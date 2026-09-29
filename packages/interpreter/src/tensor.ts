@@ -1,4 +1,4 @@
-import { denseScalarItems, derivedArray, ownedArray, readArrayItem } from './array-storage.js';
+import { derivedArray, eagerOperandItems, ownedArray, readArrayItem } from './array-storage.js';
 import { RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import type { RankArray, RankValue } from './value.js';
@@ -33,15 +33,17 @@ export function mapDenseArrays(
 ): RankArray | undefined {
     const leftArray = isArrayValue(left) ? left : undefined;
     const rightArray = isArrayValue(right) ? right : undefined;
-    const leftItems = leftArray ? denseScalarItems(leftArray) : undefined;
-    const rightItems = rightArray ? denseScalarItems(rightArray) : undefined;
-    if (leftArray ? !leftItems : !isNumeric(left)) return undefined;
-    if (rightArray ? !rightItems : !isNumeric(right)) return undefined;
+    if (!leftArray && !isNumeric(left)) return undefined;
+    if (!rightArray && !isNumeric(right)) return undefined;
     const shape = leftArray && rightArray
         ? broadcastShape(leftArray.shape, rightArray.shape) : (leftArray ?? rightArray!).shape;
     const size = shape.reduce((product, dimension) => product * dimension, 1);
     // A small array costs little to keep lazy; the layers only add up on large ones.
     if (size < DENSE_MIN_CELLS) return undefined;
+    const leftItems = leftArray ? eagerOperandItems(leftArray) : undefined;
+    const rightItems = rightArray ? eagerOperandItems(rightArray) : undefined;
+    if (leftArray && !leftItems) return undefined;
+    if (rightArray && !rightItems) return undefined;
     const same = !!leftArray && !!rightArray
         && leftArray.shape.length === rightArray.shape.length
         && leftArray.shape.every((dimension, axis) => dimension === rightArray.shape[axis]);

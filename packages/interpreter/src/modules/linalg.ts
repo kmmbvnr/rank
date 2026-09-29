@@ -1,5 +1,5 @@
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
-import { derivedArray, ownedArray, readArrayItem, readArrayShape } from '../array-storage.js';
+import { derivedArray, eagerOperandItems, ownedArray, readArrayItem, readArrayShape } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { isRankArray, type RankArray, type RankValue } from '../value.js';
 import { expectNumeric, native } from './shared.js';
@@ -444,7 +444,72 @@ export function matmulValues(
     };
 
     if (outputShape.length === 0) return resultAt(0);
+    const dense = denseMatmul(left, right, leftAxes, rightAxes, leftAxis, rightAxis, outputShape, contracted);
+    if (dense) return dense;
     return derivedArray(outputShape, [left, right], resultAt, true);
+}
+
+/** Below this many multiplications a lazy result costs less than it saves. */
+const DENSE_MATMUL_WORK = 1024;
+
+/**
+ * Contract two stored scalar arrays with plain offset arithmetic. Reads
+ * nothing lazy, and declines (leaving the lazy path to raise on read) when a
+ * cell is not numeric.
+ */
+function denseMatmul(
+    left: RankArray, right: RankArray,
+    leftAxes: readonly number[], rightAxes: readonly number[],
+    leftAxis: number, rightAxis: number,
+    outputShape: readonly number[], contracted: number,
+): RankArray | undefined {
+    const size = outputShape.reduce((product, dimension) => product * dimension, 1);
+    if (size * contracted < DENSE_MATMUL_WORK) return undefined;
+    const leftItems = eagerOperandItems(left);
+    const rightItems = eagerOperandItems(right);
+    if (!leftItems || !rightItems) return undefined;
+    const leftStrides = stridesOf(left.shape);
+    const rightStrides = stridesOf(right.shape);
+    const leftInner = leftStrides[leftAxis];
+    const rightInner = rightStrides[rightAxis];
+    const outputStrides = [
+        ...leftAxes.map(axis => leftStrides[axis]),
+        ...rightAxes.map(axis => rightStrides[axis]),
+    ];
+    const leftRank = leftAxes.length;
+    const cells: (bigint | number)[] = new Array(size);
+    try {
+        for (let index = 0; index < size; index += 1) {
+            checkpoint('computing linear algebra');
+            let remaining = index;
+            let leftBase = 0;
+            let rightBase = 0;
+            for (let position = outputShape.length - 1; position >= 0; position -= 1) {
+                const coordinate = remaining % outputShape[position];
+                remaining = (remaining - coordinate) / outputShape[position];
+                if (position < leftRank) leftBase += coordinate * outputStrides[position];
+                else rightBase += coordinate * outputStrides[position];
+            }
+            let total: bigint | number = 0n;
+            for (let inner = 0; inner < contracted; inner += 1) {
+                const a = leftItems[leftBase + inner * leftInner];
+                const b = rightItems[rightBase + inner * rightInner];
+                if (typeof a === 'number' && typeof b === 'number' && typeof total === 'number') total += a * b;
+                else total = addNumbers(total, multiplyNumbers(expectNumeric(a), expectNumeric(b)));
+            }
+            cells[index] = total;
+        }
+    } catch (error) {
+        if (error instanceof RankError) return undefined;
+        throw error;
+    }
+    return ownedArray(cells, outputShape, true);
+}
+
+function stridesOf(shape: readonly number[]): number[] {
+    const strides = new Array<number>(shape.length).fill(1);
+    for (let axis = shape.length - 2; axis >= 0; axis -= 1) strides[axis] = strides[axis + 1] * shape[axis + 1];
+    return strides;
 }
 
 function inverseMatrix(value: RankValue): RankArray {

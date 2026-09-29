@@ -1,6 +1,6 @@
 import { checkpoint } from '../interrupt.js';
 import { markArrayMask } from '../array-mask.js';
-import { derivedArray } from '../array-storage.js';
+import { denseScalarItems, derivedArray, ownedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import { maxSqlite, sumSqlite } from './sqlite.js';
@@ -150,6 +150,21 @@ function mapUnaryNumeric(
         return mapSequence(value, name, item => operation(numericReal(item, name)));
     }
     if (!isRankArray(value)) return operation(numericReal(value, name));
+    // A large stored array is mapped at once; a cell that raises leaves the
+    // lazy path to raise it when read.
+    const stored = denseScalarItems(value);
+    if (stored && stored.length >= 1024) {
+        try {
+            const cells: RankValue[] = new Array(stored.length);
+            for (let index = 0; index < stored.length; index += 1) {
+                checkpoint('computing array');
+                cells[index] = operation(numericReal(stored[index], name));
+            }
+            return ownedArray(cells, value.shape, true);
+        } catch (error) {
+            if (!(error instanceof RankError)) throw error;
+        }
+    }
     return derivedArray(value.shape, [value], index =>
         operation(numericReal(value.itemAt?.(index) ?? value.items[index], name)), true);
 }

@@ -116,6 +116,33 @@ export function denseScalarItems(value: RankArray): readonly RankValue[] | undef
     return storage?.stable && storage.scalarOnly ? storage.items : undefined;
 }
 
+const SMALL_OPERAND_CELLS = 4096;
+
+/**
+ * The scalar cells of an operand for an eager kernel: the stored cells of a
+ * dense array, or the values of a small lazy one, which costs little next to a
+ * large partner. Declines when reading raises (the lazy path raises it when
+ * the cell is demanded) or when a cell is not a number.
+ */
+export function eagerOperandItems(value: RankArray): readonly RankValue[] | undefined {
+    const stored = denseScalarItems(value);
+    if (stored) return stored;
+    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+    if (size > SMALL_OPERAND_CELLS) return undefined;
+    const cells: RankValue[] = new Array(size);
+    try {
+        for (let index = 0; index < size; index += 1) {
+            const cell = readArrayItem(value, index);
+            if (typeof cell !== 'number' && typeof cell !== 'bigint') return undefined;
+            cells[index] = cell;
+        }
+    } catch (error) {
+        if (error instanceof RankError) return undefined;
+        throw error;
+    }
+    return cells;
+}
+
 /** Takes exclusive ownership of fresh storage. JS sees a write-tracked facade;
  * internal read kernels may borrow the raw storage without proxy overhead. */
 export function ownedArray(

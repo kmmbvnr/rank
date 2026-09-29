@@ -36,7 +36,37 @@ describe('elementwise arithmetic on large stored arrays', () => {
         expect(run('M = array shape 100 20 fill 2\nV = array shape 20 fill 3\nR = M * V\nR sum')).toBe(12000n);
     });
 
+    it('combines a large array with a small lazy one', () => {
+        const source = 'use stats\nX = array shape 2000 5 fill 1.5\nC = X mean axis 0\nZ = X - C\nZ sum';
+        expect(run(source)).toBe(0);
+    });
+
     it('still reports a shape mismatch', () => {
         expect(() => run('M = array shape 100 20 fill 2\nV = array shape 7 fill 3\nM * V')).toThrow('shape mismatch');
+    });
+});
+
+describe('dense matrix kernels', () => {
+    it('multiplies stored matrices like the lazy path', () => {
+        expect(run('use linalg\nM = array shape 100 20 fill 2\nV = array shape 20 fill 3\nR = M V matmul\nR sum')).toBe(12000n);
+        expect(run('use linalg\nM = array shape 4 2 fill 2\nV = array shape 2 fill 3\nR = M V matmul\nR sum')).toBe(48n);
+    });
+
+    it('keeps reals and integers apart as the lazy path does', () => {
+        expect(run('use linalg\nM = array shape 100 20 fill 2.0\nV = array shape 20 fill 3\nR = M V matmul\nR sum')).toBe(12000);
+    });
+
+    it('permutes a stored matrix', () => {
+        expect(run('use sequences\nM = array shape 100 20 fill 1\nM 3 5 = 7\nT = M transpose\nT 5 3')).toBe(7n);
+    });
+
+    it('multiplies a transposed matrix by a vector', () => {
+        const source = 'use linalg\nuse sequences\nM = array shape 100 20 fill 1\nT = M transpose\n'
+            + 'V = array shape 100 fill 2\nR = T V matmul\nR sum';
+        expect(run(source)).toBe(4000n);
+    });
+
+    it('maps a large array through a numeric function', () => {
+        expect(run('use numbers\nR = array shape 2000 fill 4.0\nS = R sqrt\nS sum')).toBe(4000);
     });
 });
