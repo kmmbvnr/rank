@@ -21,11 +21,10 @@ fun solve N
   Dist = array shape N N fill -1
   Dist 0 0 = 0
 
-  queue push 0
-  Head = 0
+  Pending = new queue
+  Pending push 0
 
-  for queue len greater Head
-    Cell = queue Head
+  for Cell in Pending
     Y = Cell // N
     X = Cell % N
     NextDist = Dist Y X + 1
@@ -34,18 +33,19 @@ fun solve N
       NY = Y + DY
       NX = X + DXs k
 
-      Inside = NY at least 0 and NY less N
-      Inside and= NX at least 0 and NX less N
-
-      if Inside
-        if Dist NY NX equal -1
-          Dist NY NX = NextDist
-          queue push NY * N + NX
-        end
+      if NY less 0 or NY at least N
+        continue
       end
-    end
+      if NX less 0 or NX at least N
+        continue
+      end
+      if Dist NY NX not equal -1
+        continue
+      end
 
-    Head += 1
+      Dist NY NX = NextDist
+      Pending push NY * N + NX
+    end
   end
 
   return Dist
