@@ -15,8 +15,8 @@ fun derangements N
 
   for Size in 2 to N
     Total = Previous + Current
-    Next = (Size - 1) * Total
-    Next %= Mod
+    Factor = Size - 1
+    Next = Factor * Total % Mod
     Previous = Current
     Current = Next
   end
