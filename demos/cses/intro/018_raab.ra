@@ -5,7 +5,7 @@ use io
 
 T = stdin .integer
 
-for t in 1 to T
+for Step in 1 to T
   N = stdin .integer
   A = stdin .integer
   B = stdin .integer

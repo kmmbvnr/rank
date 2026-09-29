@@ -6,7 +6,7 @@ use sequences
 use algo
 
 Text = stdin .word
-Perms = Text sort permutations
+Perms = Text strings
 
 Perms len print
 for Perm in Perms

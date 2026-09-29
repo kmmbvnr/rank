@@ -26,17 +26,9 @@ fun solve Grid
     for Old j in Row
       Cell = i + j
       if Cell even
-        if Old equal "A"
-          Colored += "B"
-        else
-          Colored += "A"
-        end
+        Colored += (Old equal "A") "B" "A" choose
       else
-        if Old equal "C"
-          Colored += "D"
-        else
-          Colored += "C"
-        end
+        Colored += (Old equal "C") "D" "C" choose
       end
     end
 
