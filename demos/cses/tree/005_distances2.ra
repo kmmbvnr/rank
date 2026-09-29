@@ -30,16 +30,15 @@ fun distance_sums Tree
   end
 
   Last = Order len - 1
-  for i in Last to 1 by -1
-    Node = Order i
+  for Node in Order (Last to 1 by -1)
     Parent = Parents Node
     Sizes Parent += Sizes Node
   end
 
   Result = array shape (N + 1) fill 0
   Result 1 = RootSum
-  for i in 1 until (Order len)
-    Node = Order i
+  Total = Order len
+  for Node in Order (1 until Total)
     Parent = Parents Node
     Diff = 2 * Sizes Node
     Result Node = Result Parent + N - Diff
