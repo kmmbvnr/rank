@@ -40,8 +40,7 @@ fun path_counts Rooted Paths
   end
 
   Last = Order len - 1
-  for i in Last to 1 by -1
-    Node = Order i
+  for Node in Order (Last to 1 by -1)
     Parent = Parents Node
     Counts Parent += Counts Node
   end
