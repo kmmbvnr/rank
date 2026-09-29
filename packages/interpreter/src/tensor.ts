@@ -30,6 +30,7 @@ export function mapDenseArrays(
     left: RankValue,
     right: RankValue,
     operation: (left: RankValue, right: RankValue) => RankValue,
+    realCode = -1,
 ): RankArray | undefined {
     const leftArray = isArrayValue(left) ? left : undefined;
     const rightArray = isArrayValue(right) ? right : undefined;
@@ -51,24 +52,63 @@ export function mapDenseArrays(
     const rightStrides = rightArray && arrayStrides(rightArray.shape);
     const cells: RankValue[] = new Array(size);
     try {
-        for (let index = 0; index < size; index += 1) {
+        // Each shape case gets its own loop, so the hot one has no per-cell branch.
+        for (let start = 0; start < size; start += DENSE_CHUNK) {
             checkpoint('computing array');
-            const a = leftItems
-                ? leftItems[!rightArray || same ? index : broadcastOffset(index, shape, leftArray!.shape, leftStrides!)]
-                : left;
-            const b = rightItems
-                ? rightItems[!leftArray || same ? index : broadcastOffset(index, shape, rightArray!.shape, rightStrides!)]
-                : right;
-            cells[index] = operation(a, b);
+            const end = Math.min(size, start + DENSE_CHUNK);
+            if (leftItems && rightItems && same) {
+                for (let index = start; index < end; index += 1) {
+                    const a = leftItems[index], b = rightItems[index];
+                    cells[index] = typeof a === 'number' && typeof b === 'number'
+                        ? realOperation(realCode, a, b, operation) : operation(a, b);
+                }
+            } else if (leftItems && !rightArray) {
+                for (let index = start; index < end; index += 1) {
+                    const a = leftItems[index];
+                    cells[index] = typeof a === 'number' && typeof right === 'number'
+                        ? realOperation(realCode, a, right, operation) : operation(a, right);
+                }
+            } else if (rightItems && !leftArray) {
+                for (let index = start; index < end; index += 1) {
+                    const b = rightItems[index];
+                    cells[index] = typeof left === 'number' && typeof b === 'number'
+                        ? realOperation(realCode, left, b, operation) : operation(left, b);
+                }
+            } else {
+                for (let index = start; index < end; index += 1) {
+                    cells[index] = operation(
+                        leftItems![broadcastOffset(index, shape, leftArray!.shape, leftStrides!)],
+                        rightItems![broadcastOffset(index, shape, rightArray!.shape, rightStrides!)]);
+                }
+            }
         }
     } catch (error) {
         if (error instanceof RankError) return undefined;
         throw error;
     }
-    return ownedArray(cells, shape);
+    // Every cell is a number, a boolean or a bigint: the operands were scalar
+    // and the operation returned a scalar.
+    return ownedArray(cells, shape, true);
 }
 
 const DENSE_MIN_CELLS = 1024;
+const DENSE_CHUNK = 4096;
+
+/** Codes for the real operations that run without a call through `operation`. */
+export const REAL_CODES: Readonly<Record<string, number>> = { '+': 0, '-': 1, '*': 2, '/': 3 };
+
+// One switch on a constant per cell is cheaper than a closure call per cell.
+function realOperation(
+    code: number, a: number, b: number, operation: (left: RankValue, right: RankValue) => RankValue,
+): RankValue {
+    switch (code) {
+        case 0: return a + b;
+        case 1: return a - b;
+        case 2: return a * b;
+        case 3: return b === 0 ? operation(a, b) : a / b;
+        default: return operation(a, b);
+    }
+}
 const isArrayValue =(value: RankValue): value is RankArray =>
     typeof value === 'object' && value !== null && (value as { kind?: string }).kind === 'array';
 const isNumeric = (value: RankValue) => typeof value === 'number' || typeof value === 'bigint';
