@@ -43,6 +43,14 @@ describe('columnar CSV', () => {
         });
     }
 
+    it('reads Python-style True and False as booleans', () => {
+        const table = parseCsvToArrow('a,b\nTrue,yes\nFalse,True\n,false\n');
+        expect(table.cell(0, 0)).toBe(true);
+        expect(table.cell(1, 0)).toBe(false);
+        expect(table.cell(2, 0)).toBeUndefined();
+        expect(table.cell(0, 1)).toBe('yes');
+    });
+
     it('reads a cell without building a row object', () => {
         const table = parseCsvToArrow('a,b\n1,x\n,y\n');
         expect(table.length).toBe(2);

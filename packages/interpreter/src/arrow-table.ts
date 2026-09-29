@@ -384,13 +384,18 @@ export function parseCsvToArrow(text: string): RankArrowTable {
     return new RankArrowTable(rows, writers.map(writer => writer.finish()));
 }
 
+// Kaggle and pandas write Python-style True/False.
+function isCsvBoolean(value: string): boolean {
+    return value === 'true' || value === 'false' || value === 'True' || value === 'False';
+}
+
 function learn(shape: Shape, value: string, row: number): void {
     shape.present += 1;
     if (shape.integer || shape.real || shape.boolean) {
         const isInteger = CSV_INTEGER.test(value);
         if (!isInteger) shape.integer = false;
         if (shape.real && !isInteger && !CSV_REAL.test(value)) shape.real = false;
-        if (shape.boolean && value !== 'true' && value !== 'false') shape.boolean = false;
+        if (shape.boolean && !isCsvBoolean(value)) shape.boolean = false;
         if (isInteger && !shape.wide && value.length >= 19) {
             const number = BigInt(value);
             if (number < INT64_MIN || number > INT64_MAX) shape.wide = true;
@@ -474,7 +479,7 @@ function columnWriter(name: string, kind: RankColumnKind, shape: Shape, rows: nu
         return {
             write(row, value) {
                 if (value === '') nulls += 1;
-                else { if (value === 'true') setBit(data, row); setBit(validity, row); }
+                else { if (value === 'true' || value === 'True') setBit(data, row); setBit(validity, row); }
             },
             finish: () => ({ name, kind, vector: vectorOf(new Bool(), rows, nulls, validity, { data }) }),
         };

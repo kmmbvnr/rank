@@ -353,6 +353,8 @@ const derivedRevisions = new WeakMap<object, {
 
 type DerivedRecord = NonNullable<ReturnType<typeof derivedRevisions.get>>;
 
+const MAX_CACHED_CELLS = 1 << 24;
+
 /** Cache a pure reader only while all its explicit dependencies have known revisions.
  * Untracked host buffers remain live: retained aliases can mutate outside Rank.
  * Registering the dependency revision also invalidates downstream expressions.
@@ -423,8 +425,10 @@ export function derivedArray(
         const result = read(index);
         if (diagnostics) diagnostics.cellsComputed++;
         // A dependency may have changed during the reader. Never retain that read.
-        if (undisturbed(startedEpoch, startedEntry)
-            || (tracked && arrayRevision(value) === started)) cells.set(index, result);
+        // A Map cannot hold more than 2^24 entries; a larger array recomputes
+        // the cells beyond the cache rather than failing.
+        if (cells.size < MAX_CACHED_CELLS && (undisturbed(startedEpoch, startedEntry)
+            || (tracked && arrayRevision(value) === started))) cells.set(index, result);
         return result;
     };
     const value: RankArray = {
