@@ -23,5 +23,5 @@ Result = Result sort by .letter
 Result OutputPath csv
 
 fun initial Name
-  return Name from 0 until 1
+  return Name (0 until 1)
 end

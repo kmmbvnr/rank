@@ -1,7 +1,7 @@
 import { checkpoint, InterruptedError, inspectionEnabled, inspectExecution, debugExecutionPoint } from './interrupt.js';
 import { AstUtils } from 'langium';
 import { registerFlatCombine } from './flat-combine.js';
-import { arrayMaskSource, markArrayMask } from './array-mask.js';
+import { arrayMaskSource, markArrayMask, nameMask } from './array-mask.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
@@ -22,6 +22,7 @@ import {
 import { LocalFrame } from './frame.js';
 import { compileKeyedTableExpression } from './keyed-table-expression.js';
 import { compileTableExpression } from './table-query-expression.js';
+import { compileClauseExpression } from './clause-expression.js';
 import { prepareIfStatement, prepareTryStatement,
     type ExecutionContext, type LoopControl } from './statement-control.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
@@ -37,7 +38,7 @@ import { ReductionEvaluator, reductionValues } from './reduction.js';
 import { RankApplication, dyadicCells, tensorCells, tensorFrameAxes,
     type OuterCells } from './rank-application.js';
 import {
-    ALL_AXIS, atArray, axisSize, isCollectionSelector, isIntegerCollectionSelector,
+    ALL_AXIS, atArray, isCollectionSelector, isIntegerCollectionSelector,
     isTensorAddress, scalarArrayWriteOffset, selectAxis, tensorSelection,
 } from './selectors.js';
 import { arrayOffset, coordinatesAt, safeDimension, sameShape } from './tensor-index.js';
@@ -64,8 +65,6 @@ import {
     isExpressionStatement,
     isFlagStatement,
     isForStatement,
-    isFirstIndexWhereExpression,
-    isFirstWhereExpression,
     isFunctionStatement,
     isIfStatement,
     isIndexAssignmentStatement,
@@ -79,7 +78,6 @@ import {
     isPushStatement,
     isRecordExpression,
     isRecordUpdateExpression,
-    isTakeWhileExpression,
     isRunStatement,
     isReturnStatement,
     isKeyedSortExpression,
@@ -149,16 +147,15 @@ import { parse } from './parser.js';
 import { setValueKey } from './set.js';
 import {
     atSequence,
-    boundSequence,
     filterSequence,
-    firstWhereValue,
-    lowerBoundSequence,
+    positionalSelection,
+    positionalMask,
+    isPositionalMask,
     mapSequence,
     materializeSequence,
     sequence,
     sequenceMask,
     sequenceValues,
-    takeWhileValue,
     shiftValue,
     windowValue,
     zipSequences,
@@ -1922,6 +1919,14 @@ export class Interpreter {
             maskSelection,
         }));
         if (tableQuery) return tableQuery;
+        const clause = compileClauseExpression(expression, () => ({
+            get localFrame() { return interpreter.localFrame; },
+            set localFrame(frame) { interpreter.localFrame = frame; },
+            evaluate: node => interpreter.evaluateTask(node),
+            binary: (operator, left, right) => interpreter.evaluateBinary(operator, left, right),
+            findVariable: name => interpreter.findVariable(name),
+        }));
+        if (clause) return clause;
         if (isRecordExpression(expression)) {
             return function* (): Execution<RankValue> {
                 const entries = new ResourceMap<RankValue>(value => value);
@@ -2039,24 +2044,10 @@ export class Interpreter {
                 evaluate: value => this.evaluateTask(value),
             })!;
         }
-        if (isFirstWhereExpression(expression) || isFirstIndexWhereExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                const source = yield* resume(interpreter.evaluateTask(expression.source));
-                const mask = yield* resume(interpreter.evaluateTask(expression.mask));
-                return firstWhereValue(source, mask, isFirstIndexWhereExpression(expression));
-            };
-        }
-        if (isTakeWhileExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                const source = yield* resume(interpreter.evaluateTask(expression.source));
-                const mask = yield* resume(interpreter.evaluateTask(expression.mask));
-                return takeWhileValue(source, mask);
-            };
-        }
         if (isNameExpression(expression)) {
             return () => {
                 const value = interpreter.resolve(expression.name);
-                if (!isNativeFunction(value) || !value.arities.includes(0)) return completed(value);
+                if (!isNativeFunction(value) || !value.arities.includes(0)) return completed(nameMask(value));
                 if (tail && interpreter.resources.currentScopeEmpty()) {
                     const definition = functionDefinitions.get(value);
                     if (definition?.interpreter === interpreter) throw new TailCallSignal(definition, []);
@@ -2092,16 +2083,6 @@ export class Interpreter {
                         (yield* resume(interpreter.evaluateTask(expression.right))),
                     );
                     return interpreter.evaluateUnary(left.operator, powered);
-                };
-            }
-            const slice = inlineSlice(expression);
-            if (slice) {
-                return function* (): Execution<RankValue> {
-                    const start = expectInteger((yield* resume(interpreter.evaluateTask(slice.start))));
-                    const end = expectInteger((yield* resume(interpreter.evaluateTask(slice.end))));
-                    const source = (yield* resume(interpreter.evaluateTask(slice.source)));
-                    const axis = slice.axis === undefined ? 0 : safeDimension(slice.axis, 'axis');
-                    return sliceValue(source, axis, start, end, slice.inclusive);
                 };
             }
             if (expression.operator === 'default') {
@@ -2423,19 +2404,6 @@ export class Interpreter {
                     const remaining = yield* resume(mapExecution(parts.slice(textFormat + 2),
                         part => interpreter.evaluateTask(part)));
                     return remaining.length ? yield* resume(interpreter.apply([result, ...remaining], missing, 0, [], tail)) : result;
-                };
-            }
-            case 'lower-bound': {
-                const lowerBound = form;
-                return function* (): Execution<RankValue> {
-                    const source = yield* resume(interpreter.evaluateTask(lowerBound.source));
-                    if (!isRankSequence(source)) {
-                        throw new RankError('from expects a sequence source');
-                    }
-                    const limit = expectInteger(
-                        yield* resume(interpreter.evaluateTask(lowerBound.limit)),
-                    );
-                    return lowerBoundSequence(source, limit);
                 };
             }
             case 'axis-window': {
@@ -3625,7 +3593,7 @@ export class Interpreter {
     // Rank source cannot pass a nullary function by name: the name calls it.
     // A host callback can still supply one through a parameter or public binding.
     private directNameValue(value: RankValue): RankValue {
-        if (!isNativeFunction(value) || !value.arities.includes(0)) return value;
+        if (!isNativeFunction(value) || !value.arities.includes(0)) return nameMask(value);
         const result = value.call([]);
         this.resources.ownFiles(result);
         return result;
@@ -4072,6 +4040,9 @@ export class Interpreter {
     }
 
     private evaluateUnaryValue(operator: string, value: RankValue): RankValue {
+        if (operator === 'not' && isPositionalMask(value)) {
+            return positionalMask(mapSequence(value, 'not', item => item !== true).plan);
+        }
         if (operator === 'not' && isRankSequenceMask(value)) {
             return sequenceMask(value.source, {
                 name: `not ${value.predicate.name}`,
@@ -4184,10 +4155,9 @@ export class Interpreter {
         }
         if (operator === 'to' || operator === 'until') {
             if (isRankSequence(left)) {
-                if (rangeStep !== undefined) {
-                    throw new RankError('by applies only to numeric ranges');
-                }
-                return boundSequence(left, expectInteger(right), operator === 'to');
+                // `to` and `until` make ranges; a sequence is bounded by a clause.
+                throw new RankError(`${operator} makes a range of numbers; bound a sequence with till: `
+                    + `write \`Values till ${operator === 'to' ? 'Limit' : 'at least Limit'}\``);
             }
             return makeRange(
                 expectInteger(left),
@@ -4196,7 +4166,7 @@ export class Interpreter {
                 rangeStep === undefined ? undefined : expectInteger(rangeStep),
             );
         }
-        if ((isRankSequenceMask(left) || isRankSequenceMask(right))
+        if ((isRankSequenceMask(left) || isRankSequenceMask(right) || isPositionalMask(left) || isPositionalMask(right))
             && ['and', 'or', 'xor'].includes(operator)) {
             return this.combineSequenceMasks(operator, left, right);
         }
@@ -4342,12 +4312,20 @@ export class Interpreter {
     }
 
     private combineSequenceMasks(operator: string, left: RankValue, right: RankValue): RankValue {
-        if (!isRankSequenceMask(left) || !isRankSequenceMask(right)
-            || !['and', 'or', 'xor'].includes(operator)) {
+        const combine = (a: boolean, b: boolean) => operator === 'and' ? a && b : operator === 'or' ? a || b : a !== b;
+        if (!['and', 'or', 'xor'].includes(operator)) {
             throw new RankError(`operator ${operator} does not accept sequence masks`);
         }
-        if (left.source !== right.source) {
-            throw new RankError('cannot combine masks from different sequences');
+        if (!isRankSequenceMask(left) || !isRankSequenceMask(right) || left.source !== right.source) {
+            // Masks of different values combine flag by flag, as positions.
+            if (!isRankSequence(left) || !isRankSequence(right)) {
+                throw new RankError(`operator ${operator} combines a sequence mask only with another mask`);
+            }
+            const zipped = zipSequences(left, right, operator, (a, b) => {
+                if (typeof a !== 'boolean' || typeof b !== 'boolean') throw new RankError(`${operator} expects boolean masks`);
+                return combine(a, b);
+            });
+            return positionalMask(zipped.plan);
         }
         return sequenceMask(left.source, {
             name: `${left.predicate.name} ${operator} ${right.predicate.name}`,
@@ -4726,7 +4704,27 @@ function outerCells(
     };
 }
 
+/** A range's own bounds, so selecting with it can reach SQL as LIMIT and OFFSET or substr. */
+const rangeBounds = new WeakMap<RankSequence, { start: bigint; end: bigint; inclusive: boolean }>();
+
 function makeRange(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {
+    const range = rangeSequence(start, end, inclusive, stride);
+    if (stride === undefined || stride === 1n) rangeBounds.set(range, { start, end, inclusive });
+    return range;
+}
+
+/** `Rows (0 until 10)` on SQLite: the range slices the query instead of reading its rows. */
+function sqliteRangeSelection(values: RankValue[]): RankValue | undefined {
+    if (values.length !== 2 || !isRankSequence(values[1])) return undefined;
+    const bounds = rangeBounds.get(values[1]);
+    if (!bounds) return undefined;
+    const { start, end, inclusive } = bounds;
+    if (isRankSqliteExpression(values[0])) return sliceTextSqlite(values[0], start, end, inclusive);
+    if (isRankSqliteTable(values[0])) return sliceSqlite(values[0], start, inclusive ? end + 1n : end);
+    return undefined;
+}
+
+function rangeSequence(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {
     const step = stride ?? 1n;
     if (step === 0n) throw new RankError('range step must be a nonzero integer');
 
@@ -4768,6 +4766,8 @@ function absolute(value: bigint): bigint {
 }
 
 function applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
+    const sqlite = sqliteRangeSelection(values);
+    if (sqlite !== undefined) return sqlite;
     // `Walk .order i`: read the field, then address what it holds.
     if (values.length > 2 && isRankLabel(values[1]) && hasField(values[0], values[1].name)) {
         return applySelectors([applySelectors(values.slice(0, 2)), ...values.slice(2)], missing);
@@ -4835,12 +4835,14 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     if (values.length === 2 && isRankSequence(values[0]) && typeof values[1] === 'bigint') {
         return atSequence(values[0], values[1]);
     }
+    if (values.length === 2 && (isRankSequence(values[0]) || isRankArray(values[0])) && isPositionalMask(values[1])) {
+        return positionalSelection(values[0], values[1]);
+    }
     if (values.length === 2 && isRankSequence(values[0]) && isRankSequenceMask(values[1])) {
         const [source, selector] = values;
-        if (selector.source !== source) {
-            throw new RankError('mask belongs to a different sequence');
-        }
-        return filterSequence(source, selector.predicate);
+        // The mask's own source can take its test; any other value reads it by position.
+        if (selector.source === source) return filterSequence(source, selector.predicate);
+        return positionalSelection(source, selector);
     }
     if (values.length === 2 && isRankSequence(values[0])
         && isIntegerCollectionSelector(values[1])) {
@@ -5037,6 +5039,8 @@ function seedableRandom(source?: () => number): SeedableRandom {
 }
 
 function canApplySelectors(values: RankValue[]): boolean {
+    if (values.length === 2 && (isRankSqliteExpression(values[0]) || isRankSqliteTable(values[0]))
+        && isRankSequence(values[1]) && rangeBounds.has(values[1])) return true;
     if (isScopedSelectorChain(values)) return true;
     if (values.length === 2 && isRankTableAlias(values[0])) {
         return canApplySelectors([values[0].source, values[1]]);
@@ -5059,9 +5063,9 @@ function canApplySelectors(values: RankValue[]): boolean {
     if (values.length === 2 && isRankSequence(values[0])
         && typeof values[1] === 'bigint') return true;
     if (values.length === 2 && isRankSequence(values[0])
-        && isRankSequenceMask(values[1])) {
-        return values[0] === values[1].source;
-    }
+        && isRankSequenceMask(values[1])) return true;
+    if (values.length === 2 && (isRankSequence(values[0]) || isRankArray(values[0]))
+        && isPositionalMask(values[1])) return true;
     if (values.length === 2 && isRankSequence(values[0])
         && isIntegerCollectionSelector(values[1])) return true;
     if (values.length === 2 && isRankArray(values[0]) && isRankArray(values[1])) {
@@ -5134,43 +5138,6 @@ function checkedArrayDimension(dimension: bigint): number {
         throw new RankError(`array dimension is too large: ${dimension}`);
     }
     return Number(dimension);
-}
-
-function sliceValue(
-    source: RankValue,
-    axis: number,
-    start: bigint,
-    end: bigint,
-    inclusive: boolean,
-): RankValue {
-    if (isRankSqliteExpression(source)) {
-        if (axis !== 0) throw new RankError(`SQLite text has no axis ${axis}`);
-        return sliceTextSqlite(source, start, end, inclusive);
-    }
-    if (isRankSqliteTable(source)) {
-        if (axis !== 0) throw new RankError(`SQLite view has no axis ${axis}`);
-        return sliceSqlite(source, start, inclusive ? end + 1n : end);
-    }
-    const size = axisSize(source, axis);
-    const indices = sliceIndices(size, start, end, inclusive);
-    return selectAxis(source, axis, array(indices));
-}
-
-function sliceIndices(
-    size: number,
-    start: bigint,
-    end: bigint,
-    inclusive: boolean,
-): bigint[] {
-    if (start < 0n || end < 0n) throw new RankError('slice bounds must be nonnegative');
-    const stop = inclusive ? end + 1n : end;
-    if (start > BigInt(size) || stop > BigInt(size)) {
-        throw new RankError(`slice ${start} ${inclusive ? 'to' : 'until'} ${end} exceeds axis size ${size}`);
-    }
-    if (stop <= start) return [];
-    const result: bigint[] = [];
-    for (let position = start; position < stop; position += 1n) result.push(position);
-    return result;
 }
 
 function memoScalarKey(value: RankValue): string {
@@ -5342,35 +5309,6 @@ function markBinaryMask(operator: string, left: RankValue, right: RankValue, res
 function isPredicateOperator(operator: string): boolean {
     return ['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby']
         .includes(operator);
-}
-
-interface InlineSlice {
-    readonly source: Expression;
-    readonly axis?: bigint;
-    readonly start: Expression;
-    readonly end: Expression;
-    readonly inclusive: boolean;
-}
-
-function inlineSlice(expression: Expression): InlineSlice | undefined {
-    if (!isBinaryExpression(expression)
-        || (expression.operator !== 'to' && expression.operator !== 'until')) return undefined;
-    const parts = flattenApplication(expression.left);
-    const base = { end: expression.right, inclusive: expression.operator === 'to' };
-    if (parts.length === 3 && isNamed(parts[1], 'from')) {
-        return { ...base, source: parts[0], start: parts[2] };
-    }
-    if (parts.length === 5 && isNamed(parts[1], 'axis')
-        && isNumberLiteral(parts[2]) && typeof parts[2].value === 'bigint'
-        && isNamed(parts[3], 'from')) {
-        return {
-            ...base,
-            source: parts[0],
-            axis: parts[2].value,
-            start: parts[4],
-        };
-    }
-    return undefined;
 }
 
 const SEGMENT_OPERATORS = new Set(['+', '*', 'and', 'or', 'xor']);

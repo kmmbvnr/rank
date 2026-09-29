@@ -22,7 +22,7 @@ fun solve Lines
 
   for Line in Lines
     Parsed = Line Pattern parse
-    Ingredient = Parsed 1 drop
+    Ingredient = Parsed drop 1
     queue push Ingredient
   end
 

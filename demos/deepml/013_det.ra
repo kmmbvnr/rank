@@ -26,7 +26,7 @@ fun determinant A
 
   for c in Cols
     Keep = Cols not equal c
-    Minor = A axis 0 from 1 until N
+    Minor = A (1 until N)
     Minor = Minor axis 1 Keep
 
     Sign = 1 - 2 * (c % 2)

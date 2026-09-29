@@ -265,18 +265,18 @@ it('distinguishes weighted and unweighted functional graph results', () => {
 });
 
 it('tracks the kind, cells and leading dimension of take and drop', () => {
-    expect(facts('(array 1 2 3) 1 drop')).toEqual({ types: ['array'], rank: 1,
+    expect(facts('(array 1 2 3) drop 1')).toEqual({ types: ['array'], rank: 1,
         shape: [2], elements: ['integer'], callbackFreeScalarCells: true });
-    expect(facts('(array shape 2 3 fill 0) 1 take')).toEqual({ types: ['array'], rank: 2,
+    expect(facts('(array shape 2 3 fill 0) take 1')).toEqual({ types: ['array'], rank: 2,
         shape: [1, 3], elements: ['integer'], callbackFreeScalarCells: true });
-    expect(facts('(1 to 5) 2 take')).toEqual({ types: ['sequence'], rank: 1,
+    expect(facts('(1 to 5) take 2')).toEqual({ types: ['sequence'], rank: 1,
         shape: [2], elements: ['integer'], callbackFreeScalarCells: true });
-    expect(facts('"abcd" 2 drop')).toEqual({ types: ['text'], rank: 1, shape: [2] });
-    expect(facts('Lazy 1 drop', new Map([['Lazy', { types: ['array'], rank: 1,
+    expect(facts('"abcd" drop 2')).toEqual({ types: ['text'], rank: 1, shape: [2] });
+    expect(facts('Lazy drop 1', new Map([['Lazy', { types: ['array'], rank: 1,
         shape: [3], elements: ['integer'] }]]))).toEqual({
         types: ['array'], rank: 1, shape: [2], elements: ['integer'],
     });
-    expect(facts('(array 1 2) 1.5 take')).toEqual({ types: [] });
+    expect(facts('(array 1 2) take 1.5')).toEqual({ types: [] });
 });
 
 it('infers numeric scans without treating unsafe cell readers as callback-free', () => {
@@ -326,7 +326,7 @@ it('types safe integer-vector selection and sequence slicing', () => {
         elements: ['integer'], callbackFreeScalarCells: true });
     bindings.set('I', { ...indices, callbackFreeScalarCells: undefined });
     expect(facts('A 0 I', bindings).elements).toBeUndefined();
-    expect(facts('(1 to 4) from 1 to 2')).toEqual({ types: ['array'], rank: 1,
+    expect(facts('(1 to 4) (1 to 2)')).toEqual({ types: ['array'], rank: 1,
         shape: [2], elements: ['integer'], callbackFreeScalarCells: true });
 });
 
@@ -349,9 +349,15 @@ it('tracks callback-free membership masks and short-circuit selectors', () => {
     bindings.set('Mask', mask);
     expect(facts('Values first where Mask', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
     expect(facts('Values first index where Mask', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
-    expect(facts('Values take while Mask', bindings)).toEqual({ types: ['array'], rank: 1, shape: [null],
+    expect(facts('Values till Mask', bindings)).toEqual({ types: ['array'], rank: 1, shape: [null],
         elements: ['integer'], callbackFreeScalarCells: true });
-    expect(facts('Q take while Mask', new Map([...bindings, ['Q', { types: ['queue'] }]])))
+    expect(facts('Values till greater 3', bindings)).toEqual({ types: ['array'], rank: 1, shape: [null],
+        elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('Values from 3', bindings)).toEqual({ types: ['array'], rank: 1, shape: [null],
+        elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('Values till Unsafe', new Map([...bindings, ['Unsafe', { types: [] }]])))
+        .toEqual({ types: ['array'], rank: 1, shape: [null] });
+    expect(facts('Q till Mask', new Map([...bindings, ['Q', { types: ['queue'] }]])))
         .toEqual({ types: ['array'], rank: 1, shape: [null] });
     expect(facts('Values first where Unsafe', new Map([...bindings, ['Unsafe', { types: [] }]])))
         .toEqual({ types: [] });
@@ -368,7 +374,7 @@ it('tracks callback-free membership masks and short-circuit selectors', () => {
     expect(facts('Unsafe 2 findall', new Map([...bindings, ['Unsafe', { types: ['array'], rank: 1,
         shape: [null], elements: ['integer'] }]]))).toEqual({ types: ['array'] });
     for (const [source, expected] of [
-        ['Values first index where Mask', 'integer'], ['Values take while Mask', 'array'],
+        ['Values first index where Mask', 'integer'], ['Values till Mask', 'array'],
     ]) {
         const parsed = services.Rank.parser.LangiumParser.parse<Program>(`A = ${source}\n`);
         const statement = parsed.value.statements[0];
@@ -698,20 +704,20 @@ it('recognizes positional slices as arrays rather than integer ranges', () => {
     const source: ValueFacts = { types: ['array'], rank: 2, shape: [5, 4], elements: ['integer'],
         eagerScalarCells: true };
     const bindings = new Map([['Source', source]]);
-    expect(facts('Source from 1 until 3', bindings)).toMatchObject({ types: ['array'], rank: 2,
+    expect(facts('Source (1 until 3)', bindings)).toMatchObject({ types: ['array'], rank: 2,
         shape: [2, 4], elements: ['integer'] });
-    expect(facts('Source axis 1 from 1 to 2', bindings)).toMatchObject({ types: ['array'], rank: 2,
+    expect(facts('Source # (1 to 2)', bindings)).toMatchObject({ types: ['array'], rank: 2,
         shape: [5, 2], elements: ['integer'] });
-    expect(facts('Source from Start until End', bindings)).toMatchObject({ types: ['array'], rank: 2,
+    expect(facts('Source (Start until End)', bindings)).toMatchObject({ types: ['array'], rank: 2,
         shape: [null, 4] });
-    expect(facts('Unknown from 0 until End')).toEqual({ types: [] });
+    expect(facts('Unknown (0 until End)')).toEqual({ types: [] });
     expect(facts('1 until 3')).toMatchObject({ types: ['sequence'], shape: [2] });
-    expect(facts('"A😀БC" from 1 until 3')).toMatchObject({ types: ['text'], rank: 1, shape: [2] });
-    expect(facts('(1 to 5) from 1 until 3')).toMatchObject({ types: ['array'], rank: 1,
+    expect(facts('"A😀БC" (1 until 3)')).toMatchObject({ types: ['text'], rank: 1, shape: [2] });
+    expect(facts('(1 to 5) (1 until 3)')).toMatchObject({ types: ['array'], rank: 1,
         shape: [2], elements: ['integer'] });
-    expect(facts('Queue from 1 to 2', new Map([['Queue', { types: ['queue'] }]])))
+    expect(facts('Queue (1 to 2)', new Map([['Queue', { types: ['queue'] }]])))
         .toMatchObject({ types: ['array'], rank: 1, shape: [null] });
-    const parsed = services.Rank.parser.LangiumParser.parse<Program>('Result = Source from 1 until 3\n');
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>('Result = Source (1 until 3)\n');
     const assignment = parsed.value.statements[0];
     if (!isAssignmentStatement(assignment)) throw new Error('expected assignment');
     expect(typeOf(assignment.value, name => name === 'Source' ? ['array'] : undefined)).toEqual(['array']);

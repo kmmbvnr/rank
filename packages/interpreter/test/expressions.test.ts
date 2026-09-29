@@ -345,7 +345,7 @@ describe('Rank expressions and sequences', () => {
             .toThrowError('unknown name: window');
         expect(run([
             'use sequences',
-            'Pairs = (primes until 10) 2 window',
+            'Pairs = (primes till 10) 2 window',
             'Pair = Pairs 2',
             'Pair + reduce',
         ].join('\n'))).toBe('12');
@@ -650,12 +650,17 @@ describe('Rank expressions and sequences', () => {
     });
 
     it('combines masks from repeated built-in sequence references', () => {
-        expect(run('use sequences\nuse numbers\n(fibonacci (fibonacci multiple by 5 or fibonacci multiple by 3)) to 100'))
+        expect(run('use sequences\nuse numbers\nfibonacci (fibonacci multiple by 5 or fibonacci multiple by 3) till 100'))
             .toBe('3 5 21 55');
-        expect(run('use sequences\nuse numbers\n(primes (primes multiple by 5 or primes multiple by 3)) to 100'))
+        expect(run('use sequences\nuse numbers\nprimes (primes multiple by 5 or primes multiple by 3) till 100'))
             .toBe('3 5');
-        expect(() => run('use sequences\nuse numbers\nfibonacci even or primes even'))
-            .toThrowError('cannot combine masks from different sequences');
+        // Masks of different sequences combine position by position.
+        expect(run('use sequences\nuse numbers\n(fibonacci even or primes even) take 4 array'))
+            .toBe('true true false false');
+        expect(run('use sequences\nuse numbers\nfibonacci (fibonacci even or primes even) take 3 array'))
+            .toBe('1 2 8');
+        expect(() => run('use sequences\nuse numbers\n(10 to 15) (fibonacci even or primes even) array'))
+            .toThrowError('mask is longer than the values it selects from');
     });
 
     it('consumes sequence masks as booleans and selects values explicitly', () => {
@@ -672,7 +677,7 @@ describe('Rank expressions and sequences', () => {
         expect(run(setup + 'Mask all')).toBe('false');
         expect(run(setup + '(not Mask) array')).toBe('true true false');
         expect(run(setup + '(Mask or (B equal 1)) array')).toBe('true false true');
-        expect(run(setup + 'Mask 2 take array')).toBe('false false');
+        expect(run(setup + 'Mask take 2 array')).toBe('false false');
         expect(run(setup + 'Mask 2 window')).toBe('false false false true');
         expect(run(setup + 'Result = true\nfor Value in Mask\nResult and= Value\nend\nResult'))
             .toBe('false');
@@ -680,25 +685,33 @@ describe('Rank expressions and sequences', () => {
     });
 
     it('keeps explicit Fibonacci selection lazy', () => {
-        const setup = 'use sequences\nuse numbers\nFib = fibonacci to 100\nMask = Fib even\n';
+        const setup = 'use sequences\nuse numbers\nFib = fibonacci till 100\nMask = Fib even\n';
         expect(run(setup + 'Fib Mask sum')).toBe('44');
         expect(run(setup + 'Mask count')).toBe('3');
         expect(run(setup + '(Fib Mask) 1')).toBe('8');
         expect(run(setup + 'Pairs = (Fib Mask) 2 window\nPairs 1 + reduce')).toBe('42');
-        expect(run('use sequences\nuse numbers\nFib = fibonacci\nMask = Fib even\n(Fib Mask) until 100'))
+        expect(run('use sequences\nuse numbers\nFib = fibonacci\nMask = Fib even\nFib Mask till 100'))
             .toBe('2 8 34');
-        expect(() => run('use sequences\nuse numbers\nMask = primes even\nMask until 100'))
-            .toThrowError('does not support until');
+        // A mask is positional: a finite one bounds the selection from an endless source.
+        expect(run('use sequences\nuse numbers\nMask = fibonacci till 100 even\nfibonacci Mask array'))
+            .toBe('2 8 34');
+        expect(run('use sequences\nuse numbers\nMask = (1 to 5) even\n(100 to 104) Mask array'))
+            .toBe('101 103');
+        expect(() => run('use sequences\nuse numbers\nMask = (1 to 5) even\n(1 to 2) Mask array'))
+            .toThrowError('mask is longer than the values it selects from');
     });
 
     it('reduces the values a sequence mask selects with numeric operations', () => {
-        const setup = 'use sequences\nuse numbers\nuse stats\nFib = fibonacci to 100\n';
+        const setup = 'use sequences\nuse numbers\nuse stats\nFib = fibonacci till 100\n';
         expect(run(setup + 'Fib even sum')).toBe('44');
         expect(run(setup + 'Fib even max')).toBe('34');
         expect(run(setup + 'Fib even min')).toBe('2');
         expect(run(setup + 'Fib even median')).toBe('8');
         expect(run(setup + 'Fib even count')).toBe('3');
-        expect(run(setup + 'Mask = Fib even\nMask sum')).toBe('44');
+        // Only a mask made in the same pipeline stands for its values; a named one is booleans.
+        expect(() => run(setup + 'Mask = Fib even\nMask sum'))
+            .toThrowError('sum of a named mask: write `Values Mask sum`');
+        expect(run(setup + 'Mask = Fib even\nFib Mask sum')).toBe('44');
         // The mask itself still holds booleans.
         expect(run(setup + 'Fib even array')).toBe('false true false false true false false true false false');
         expect(() => run('use sequences\nuse numbers\nfibonacci even sum'))
@@ -710,19 +723,19 @@ describe('Rank expressions and sequences', () => {
         expect(run(setup + 'A even sum')).toBe('6');
         expect(run(setup + 'A odd max')).toBe('5');
         expect(run(setup + 'A even mean')).toBe('3');
-        expect(run(setup + 'Mask = A greater 2\nMask sum')).toBe('12');
-        expect(run(setup + 'Mask = A greater 1 and (A less 5)\nMask sum')).toBe('9');
-        expect(run(setup + 'Mask = not (A even)\nMask sum')).toBe('9');
+        expect(run(setup + 'Mask = A greater 2\nA Mask sum')).toBe('12');
+        expect(run(setup + 'Mask = A greater 1 and (A less 5)\nA Mask sum')).toBe('9');
+        expect(run(setup + 'Mask = not (A even)\nA Mask sum')).toBe('9');
+        expect(() => run(setup + 'Mask = A greater 2\nMask sum')).toThrowError('sum of a named mask');
+        expect(() => run(setup + 'Mask = A greater 2\nMask mean')).toThrowError('mean of a named mask');
         expect(run(setup + 'A even')).toBe('false true false true false');
         expect(run('use numbers\nM = array 1 2 3 4 5 6 shape 2 3\nM even sum')).toBe('12');
         expect(run('use numbers\nM = array 1 2 3 4 5 6 shape 2 3\nM (M even)')).toBe('2 4 6');
-        // The mask keeps the array as it was; writing the mask changes the selection.
-        expect(run(setup + 'Mask = A even\nA 1 = 10\nMask sum')).toBe('6');
+        // A mask selects by position from whatever it is applied to.
+        expect(run(setup + 'Mask = A even\nA 1 = 10\nA Mask sum')).toBe('14');
         expect(run(setup + 'Mask = A even\nA 1 = 10\nA')).toBe('1 10 3 4 5');
-        expect(run(setup + 'Mask = A even\nMask 0 = true\nMask sum')).toBe('7');
-        // Masks of different arrays do not join into a selection.
-        expect(() => run(setup + 'B = array 5 4 3 2 1\nMask = A even and (B even)\nMask sum'))
-            .toThrowError('expected numeric input');
+        expect(run(setup + 'Mask = A even\nMask 0 = true\nA Mask sum')).toBe('7');
+        expect(run(setup + 'B = array 5 4 3 2 1\nMask = A even and (B even)\nA Mask sum')).toBe('6');
     });
 
     it('reads a record field before the function that follows it', () => {
@@ -743,18 +756,19 @@ describe('Rank expressions and sequences', () => {
 
     it('indexes and bounds lazy prime sequences', () => {
         expect(run('use sequences\nprimes 5')).toBe('13');
-        expect(run('use sequences\nprimes until 20')).toBe('2 3 5 7 11 13 17 19');
+        expect(run('use sequences\nprimes till 20')).toBe('2 3 5 7 11 13 17 19');
+        expect(run('use sequences\nprimes till at least 19')).toBe('2 3 5 7 11 13 17');
         expect(run('use sequences\n17 in primes')).toBe('true');
         expect(run('use sequences\n17.0 in primes')).toBe('true');
         expect(run('use sequences\n18 in primes')).toBe('false');
-        expect(run('use sequences\n23 in (primes until 20)')).toBe('false');
-        expect(run('use sequences\n8 in (fibonacci to 20)')).toBe('true');
+        expect(run('use sequences\n23 in (primes till 20)')).toBe('false');
+        expect(run('use sequences\n8 in (fibonacci till 20)')).toBe('true');
         expect(run('use sequences\nP = primes from 10\nP 0')).toBe('11');
         expect(run('use sequences\nP = primes from 11\nP 0')).toBe('11');
         expect(run([
             'use sequences',
             'P = primes from 10',
-            'P = P until 20',
+            'P = P till 20',
             'P',
         ].join('\n'))).toBe('11 13 17 19');
         expect(run([
@@ -766,16 +780,13 @@ describe('Rank expressions and sequences', () => {
         expect(run([
             'use sequences',
             'F = fibonacci from 8',
-            'F = F to 34',
+            'F = F till 34',
             'F',
         ].join('\n'))).toBe('8 13 21 34');
-        expect(() => run([
-
-            'R = 1 to 5',
-            'R from 3',
-        ].join('\n'))).toThrowError('does not support from');
+        // `from` is a condition, so any sequence of comparable values accepts it.
+        expect(run('R = 1 to 5\nR from 3')).toBe('3 4 5');
         expect(run('use sequences\nprimes (-1) default 99')).toBe('99');
-        expect(() => run('use sequences\n(primes until 10) 4'))
+        expect(() => run('use sequences\n(primes till 10) 4'))
             .toThrowError('sequence index out of bounds: 4');
         expect(run('use sequences\n4 in fibonacci')).toBe('false');
     });
@@ -791,14 +802,13 @@ describe('Rank expressions and sequences', () => {
         expect(() => run('1 to 5 by 0'))
             .toThrowError('range step must be a nonzero integer');
         expect(() => run('use sequences\nfibonacci to 20 by 2'))
-            .toThrowError('by applies only to numeric ranges');
-        expect(run('"A😀БC" from 1 until 3')).toBe('😀Б');
-        expect(run('"A😀БC" from 1 to 3')).toBe('😀БC');
+            .toThrowError('to makes a range of numbers; bound a sequence with till');
+        expect(run('"A😀БC" (1 until 3)')).toBe('😀Б');
+        expect(run('"A😀БC" (1 to 3)')).toBe('😀БC');
         expect(run('"abcdef" array 4 1 1')).toBe('ebb');
         expect(run('Positions = 1 to 3\n"abcde" Positions')).toBe('bcd');
         expect(run('"abc" array shape 0\nend')).toBe('');
-        expect(() => run('"abc" from 1 to 3'))
-            .toThrowError('slice 1 to 3 exceeds axis size 3');
+        expect(() => run('"abc" (1 to 3)')).toThrowError();
     });
 
     it('slices and gathers tensor axes while preserving rank', () => {
@@ -810,7 +820,7 @@ describe('Rank expressions and sequences', () => {
         ];
         const columns = new Interpreter().execute([
             ...matrix,
-            'M axis 1 from 1 until 3',
+            'M # (1 until 3)',
         ].join('\n'));
         expect(columns).toMatchObject({ kind: 'array', items: [2n, 3n, 5n, 6n], shape: [2, 2] });
 

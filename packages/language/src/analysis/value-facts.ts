@@ -3,13 +3,14 @@ import {
     isFirstIndexWhereExpression, isFirstWhereExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
     isNumberLiteral,
     isParenthesizedExpression, isRecordExpression, isRecordUpdateExpression, isStdinExpression, isStringLiteral,
-    isTableFilterExpression,
-    isTakeWhileExpression, isUnaryExpression,
+    isSubjectComparisonExpression, isTableFilterExpression,
+    isBoundClauseExpression, isCountClauseExpression, isUnaryExpression,
     type Expression,
 } from '../generated/ast.js';
 import { localCollectionType, resultTypes, typeOf } from './types.js';
 import { findOperation } from '../operations.js';
-import { applicationExpressionFacts } from './application-facts.js';
+import { applicationExpressionFacts, takeDropFacts } from './application-facts.js';
+import { sliceFacts } from './binary-facts.js';
 import { binaryExpressionFacts } from './binary-facts.js';
 import { isAtom, stableRecordField, UNKNOWN_VALUE, BOTTOM_VALUE,
     type FactLookup, type ValueFacts } from './value-domain.js';
@@ -158,26 +159,33 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
             types: ['array'], rank: 1, shape: [null],
         };
     }
-    if (isFirstWhereExpression(expression) || isTakeWhileExpression(expression)) {
+    if (isCountClauseExpression(expression)) {
+        const facts = takeDropFacts(expressionFacts(expression.source, lookup),
+            expressionFacts(expression.count, lookup), expression.operator === 'drop');
+        if (facts) return facts;
+        return UNKNOWN_VALUE;
+    }
+    if (isBoundClauseExpression(expression)) {
+        // A bound keeps a run of the source's own items.
         const source = expressionFacts(expression.source, lookup);
-        const mask = expressionFacts(expression.mask, lookup);
-        const safeMask = mask.rank === 1 && mask.elements?.join() === 'boolean'
-            && (mask.eagerScalarCells || mask.callbackFreeScalarCells);
+        if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
+        if (source.types.join() === 'queue') return { types: ['array'], rank: 1, shape: [null] };
+        if (source.rank === 1 && ['array', 'sequence'].includes(source.types.join())) {
+            const safe = source.elements?.length && (source.eagerScalarCells || source.callbackFreeScalarCells)
+                && callbackFreeCondition(expression.condition, lookup);
+            return { types: source.types, rank: 1, shape: [null],
+                ...(safe ? { elements: source.elements, callbackFreeScalarCells: true as const } : {}) };
+        }
+        return UNKNOWN_VALUE;
+    }
+    if (isFirstWhereExpression(expression)) {
+        const source = expressionFacts(expression.source, lookup);
+        if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [1] };
         const safeSource = source.rank === 1 && source.elements?.length
             && source.elements.every(type => ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type))
             && (source.eagerScalarCells || source.callbackFreeScalarCells);
-        if (isTakeWhileExpression(expression)) {
-            if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
-            if (source.types.join() === 'queue') return { types: ['array'], rank: 1, shape: [null] };
-            if (source.rank === 1 && ['array', 'sequence'].includes(source.types.join())) {
-                const kind = source.types.join() === 'sequence' ? 'sequence' : 'array';
-                return { types: [kind], rank: 1, shape: [null],
-                    ...(safeSource && safeMask ? { elements: source.elements, callbackFreeScalarCells: true as const } : {}) };
-            }
-            return UNKNOWN_VALUE;
-        }
-        if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [1] };
-        if (safeSource && safeMask && ['array', 'sequence'].includes(source.types.join())) {
+        if (safeSource && callbackFreeCondition(expression.mask, lookup)
+            && ['array', 'sequence'].includes(source.types.join())) {
             return source.elements!.join() === 'text'
                 ? { types: ['text'], rank: 1, shape: [null] }
                 : { types: source.elements!, rank: 0, shape: [] };
@@ -189,8 +197,28 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
         if (binary) return binary;
     }
     if (isApplicationExpression(expression)) {
+        const slice = sliceFacts(expression, lookup, expressionFacts);
+        if (slice) return slice;
         const application = applicationExpressionFacts(expression, lookup, expressionFacts);
         if (application) return application;
     }
     return { types: typeOf(expression, name => lookup(name)?.types) };
+}
+
+/**
+ * Whether a clause condition reads the items without calling back into the
+ * program: a comparison with a plain operand, a plain bound value, or a mask
+ * whose cells are already known.
+ */
+function callbackFreeCondition(condition: Expression, lookup: FactLookup): boolean {
+    if (isSubjectComparisonExpression(condition)) return callbackFreeCondition(condition.right, lookup);
+    if (isUnaryExpression(condition)) return callbackFreeCondition(condition.operand, lookup);
+    if (isBinaryExpression(condition)) {
+        return callbackFreeCondition(condition.left, lookup) && callbackFreeCondition(condition.right, lookup);
+    }
+    const facts = expressionFacts(condition, lookup);
+    if (facts.rank === 0 && facts.types.length > 0
+        && facts.types.every(type => ['integer', 'real', 'boolean', 'text'].includes(type))) return true;
+    return facts.rank === 1 && facts.elements?.join() === 'boolean'
+        && !!(facts.eagerScalarCells || facts.callbackFreeScalarCells);
 }

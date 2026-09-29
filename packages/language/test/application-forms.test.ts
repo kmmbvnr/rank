@@ -21,7 +21,7 @@ it.each([
     ['A 2 window stride 2 padding 1 with 9 axis 1', 'axis-window'], ['A B equal rank 1', 'comparison-rank'],
     ['A min scan with 0', 'named-scan'], ['A min segment', 'named-segment'],
     ['A B min outer', 'named-outer'], ['A sort .descending', 'sort-direction'],
-    ['A from 10', 'lower-bound'], ['A findroot 1', 'dsu-method'],
+    ['A findroot 1', 'dsu-method'],
     ['A jump 1 2', 'functional-method'], ['A floor 2', 'multiset-method'],
     ['A edges 1', 'graph-edges'], ['A array len', 'materialize-pipeline'],
     ['A + scan with 0', 'scan'], ['A + reduce', 'reduce'], ['A + segment', 'segment'],

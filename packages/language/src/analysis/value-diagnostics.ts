@@ -6,12 +6,13 @@ import {
     isExpressionStatement, isNewStructureExpression, isRecordExpression, isRecordUpdateExpression,
     isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
     isAddStatement, isArgumentStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
-    isFirstIndexWhereExpression, isFirstWhereExpression, isTakeWhileExpression,
+    isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
+    isTakeWhileExpression,
     type Expression, type Program, type Statement, type FunctionStatement,
     type TryStatement,
 } from '../generated/ast.js';
 import { compoundType } from './types.js';
-import { flattenApplication, inlineSliceOperands } from '../expressions.js';
+import { flattenApplication } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { builtinBindingDiagnostics } from '../builtin-bindings.js';
 import { renamedBuiltinCall } from '../builtin-renames.js';
@@ -195,8 +196,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             name => env.get(name)?.types.includes('function') ?? false,
             name => env.has(name), name => env.get(name));
         const nodes = [expression, ...AstUtils.streamAllContents(expression)];
-        const sliceModifiers = new Set(nodes.filter(isBinaryExpression)
-            .flatMap(node => inlineSliceOperands(node)?.modifiers ?? []));
         let unknown = false;
         const written = new Set<string>();
         const writtenGlobals = new Set<string>();
@@ -214,7 +213,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 }
             }
             if (!isNameExpression(node)) continue;
-            if (sliceModifiers.has(node)) continue;
             if (env.get(node.name)?.types.includes('function')) {
                 // Only the restricted numeric proof can provisionally preserve
                 // effects. A general recursive return contract proves no purity.
@@ -443,6 +441,14 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             || isTakeWhileExpression(expression)) {
             inspect(expression.source, env);
             inspect(expression.mask, env);
+        }
+        if (isBoundClauseExpression(expression)) {
+            inspect(expression.source, env);
+            inspect(expression.condition, env);
+        }
+        if (isCountClauseExpression(expression)) {
+            inspect(expression.source, env);
+            inspect(expression.count, env);
         }
         if (isArrayExpression(expression)) {
             for (const item of [...expression.items, ...expression.dimensions, ...expression.rows.flatMap(row => row.items)]) inspect(item.value, env);

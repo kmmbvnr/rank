@@ -37,7 +37,7 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts | undefined {
     switch (form.kind) {
         case 'plain': case 'new-dsu': case 'new-graph': case 'text-format': case 'rank':
-        case 'lower-bound': case 'named-segment': case 'named-outer': case 'sort-direction':
+        case 'named-segment': case 'named-outer': case 'sort-direction':
         case 'axis-length': case 'axis-reduction': case 'axis-covariance': case 'axis-correlation':
         case 'dsu-method': case 'functional-method': case 'graph-edges': case 'materialize-pipeline':
             return isApplicationExpression(expression)
@@ -145,14 +145,6 @@ function transferApplicationFacts(
         if (isApplicationExpression(prefix)) parts = [prefix, ...flattened.slice(2)];
     }
     const last = parts.at(-1)!;
-    if (form.kind === 'lower-bound') {
-        const source = infer(parts[0], lookup);
-        const limit = infer(parts[2], lookup);
-        if (source.types.join() === 'sequence' && limit.types.join() === 'integer') return {
-            types: ['sequence'], elements: source.elements, rank: 1, shape: [null],
-            ...(source.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}),
-        };
-    }
     const headParts = isApplicationExpression(expression.head) ? flattenApplication(expression.head) : [];
     const headLast = headParts.at(-1);
     const completedUnaryBuiltin = headParts.length >= 2 && isNameExpression(headLast)
@@ -373,27 +365,6 @@ function transferApplicationFacts(
             if (arity === 3 && ['ancestor', 'lca'].includes(last.name) && source.types.join() === 'record'
                 && source.elements?.length) {
                 return stableRecordField({ types: source.elements });
-            }
-            if (arity === 2 && ['take', 'drop'].includes(last.name)
-                && operands[1].types.join() === 'integer' && operands[1].rank === 0
-                && (operands[1].integer === undefined || BigInt(operands[1].integer) >= 0n)) {
-                const size = source.shape?.[0];
-                const count = operands[1].integer;
-                const leading = size == null || count === undefined ? null
-                    : Number(BigInt(count) < BigInt(size) ? BigInt(count) : BigInt(size));
-                const length = last.name === 'drop' && size != null && leading != null
-                    ? size - leading : leading;
-                if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [length] };
-                if (source.types.join() === 'sequence') return { types: ['sequence'], rank: 1,
-                    shape: [length], elements: source.elements,
-                    ...(source.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}) };
-                if (source.types.join() === 'array' && source.rank !== undefined && source.rank > 0) return {
-                    types: ['array'], rank: source.rank,
-                    shape: [length, ...(source.shape?.slice(1) ?? Array(source.rank - 1).fill(null))],
-                    elements: source.elements,
-                    ...(source.eagerScalarCells || source.callbackFreeScalarCells
-                        ? { callbackFreeScalarCells: true as const } : {}),
-                };
             }
             if (operation.result === 'record'
                 && (operation.recordFields || operation.recordVertexArrays
@@ -729,4 +700,26 @@ function parsePositions(format: string): Types[] | undefined {
         index += directive[0].length;
     }
     return positions;
+}
+
+/** `Values take Count` and `Values drop Count` keep the kind and trailing shape of their source. */
+export function takeDropFacts(source: ValueFacts, count: ValueFacts, drop: boolean): ValueFacts | undefined {
+    if (count.types.join() !== 'integer' || count.rank !== 0
+        || (count.integer !== undefined && BigInt(count.integer) < 0n)) return undefined;
+    const size = source.shape?.[0];
+    const leading = size == null || count.integer === undefined ? null
+        : Number(BigInt(count.integer) < BigInt(size) ? BigInt(count.integer) : BigInt(size));
+    const length = drop && size != null && leading != null ? size - leading : leading;
+    if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [length] };
+    if (source.types.join() === 'sequence') return { types: ['sequence'], rank: 1,
+        shape: [length], elements: source.elements,
+        ...(source.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}) };
+    if (source.types.join() === 'array' && source.rank !== undefined && source.rank > 0) return {
+        types: ['array'], rank: source.rank,
+        shape: [length, ...(source.shape?.slice(1) ?? Array(source.rank - 1).fill(null))],
+        elements: source.elements,
+        ...(source.eagerScalarCells || source.callbackFreeScalarCells
+            ? { callbackFreeScalarCells: true as const } : {}),
+    };
+    return undefined;
 }

@@ -15,7 +15,7 @@ rem suffix through optimized prime membership.
 fun truncatable_prime_sum Limit
   Total = 0
   Found = 0
-  for Value in primes until Limit
+  for Value in primes till at least Limit
     if Value greater 7
       if Value truncatable_prime
         Total += Value
@@ -36,10 +36,10 @@ fun truncatable_prime Value
   Text = Value text
   Length = Text len
   for Drop in 1 until Length
-    LeftText = Text from Drop until Length
+    LeftText = Text (Drop until Length)
     Left = LeftText integer
     Last = Length - Drop
-    RightText = Text from 0 until Last
+    RightText = Text (0 until Last)
     Right = RightText integer
     if not Left in primes
       return false

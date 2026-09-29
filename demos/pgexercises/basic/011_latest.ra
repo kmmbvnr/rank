@@ -12,7 +12,7 @@ Db = DbPath sqlite
 Rows = (Db .members) array
 Dates = (Rows .joindate) sort
 Latest = Dates (Dates len - 1)
-First = Rows from 0 until 1
+First = Rows (0 until 1)
 Result = First select
   .latest = Latest
 end

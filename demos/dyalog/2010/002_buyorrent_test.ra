@@ -16,7 +16,7 @@ test "first three months of the contest example"
 
   Shape = Series shape equal array 360 15
   Payments = Model .payments 2 round equal array 658.18 161.05
-  Months = Series 3 take 2 round equal Expected
+  Months = (Series take 3) 2 round equal Expected
   (Shape all) and (Payments all) and (Months all)
 end
 
@@ -27,7 +27,7 @@ test "property tax is paid every six months on the value at the start of the yea
 
   Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
   Tax = Params buyorrent .series # 8
-  Paid = Tax 30 take 2 round
+  Paid = (Tax take 30) 2 round
   (Paid 5 equal 1312.5) and (Paid 11 equal 1312.5) and (Paid 17 equal 1332.19) and (Paid 12 equal 0.0)
 end
 

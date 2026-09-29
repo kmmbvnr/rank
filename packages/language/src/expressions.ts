@@ -1,5 +1,5 @@
-import { isApplicationExpression, isBinaryExpression, isNameExpression, isNumberLiteral,
-    type Expression } from './generated/ast.js';
+import { isAllAxisExpression, isApplicationExpression, isBinaryExpression, isNameExpression,
+    isParenthesizedExpression, type Expression } from './generated/ast.js';
 import { findOperation } from './operations.js';
 
 /** Flatten a call chain without crossing an explicit operand group. */
@@ -16,24 +16,23 @@ export function flattenApplication(expression: Expression): Expression[] {
     return parts;
 }
 
-/** The `from` form of `to`/`until` is a slice, not an integer range. */
-export function inlineSliceOperands(expression: Expression): {
+/**
+ * A contiguous slice is a range selector: `Values (A until B)` along the first
+ * axis, `M # (A until B)` along the next. The range has no step.
+ */
+export function rangeSliceOperands(expression: Expression): {
     source: Expression; start: Expression; end: Expression; axis: bigint; inclusive: boolean;
-    modifiers: readonly Expression[];
 } | undefined {
-    if (!isBinaryExpression(expression) || (expression.operator !== 'to' && expression.operator !== 'until')) return undefined;
-    const parts = flattenApplication(expression.left);
-    const base = { end: expression.right, inclusive: expression.operator === 'to' };
-    if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'from') {
-        return { ...base, source: parts[0], start: parts[2], axis: 0n, modifiers: [parts[1]] };
-    }
-    if (parts.length === 5 && isNameExpression(parts[1]) && parts[1].name === 'axis'
-        && isNumberLiteral(parts[2]) && typeof parts[2].value === 'bigint'
-        && isNameExpression(parts[3]) && parts[3].name === 'from') {
-        return { ...base, source: parts[0], start: parts[4], axis: parts[2].value,
-            modifiers: [parts[1], parts[3]] };
-    }
-    return undefined;
+    if (!isApplicationExpression(expression)) return undefined;
+    const parts = flattenApplication(expression);
+    const range = parts.at(-1);
+    if (parts.length < 2 || !isParenthesizedExpression(range)) return undefined;
+    const value = range.value;
+    if (!isBinaryExpression(value) || (value.operator !== 'to' && value.operator !== 'until') || value.step) return undefined;
+    const skipped = parts.slice(1, -1);
+    if (!skipped.every(isAllAxisExpression)) return undefined;
+    return { source: parts[0], start: value.left, end: value.right, axis: BigInt(skipped.length),
+        inclusive: value.operator === 'to' };
 }
 
 /** Build the same left-associated call structure produced by the grammar. */

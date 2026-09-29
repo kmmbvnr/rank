@@ -7,6 +7,15 @@ import { RankError } from './errors.js';
 
 const services = createRankServices(EmptyFileSystem).Rank;
 
+/** Former spellings the grammar no longer accepts, with what replaced them. */
+function removedSpelling(error: object): string | undefined {
+    const { token, previousToken } = error as { token?: { image?: string }; previousToken?: { image?: string } };
+    // The count is missing after the keyword, or the keyword follows its count.
+    const clause = [previousToken?.image, token?.image].find(image => image === 'take' || image === 'drop');
+    if (clause) return `${clause} takes its count after it: write \`Values ${clause} 5\``;
+    return undefined;
+}
+
 export function parse(
     source: string, sourceId = '<input>', grouping: GroupingOptions = {}, known?: ReadonlySet<string>,
     syntheticNames?: ReadonlySet<string>,
@@ -29,7 +38,7 @@ export function parse(
             column = lines.at(-1)!.length + 1;
         }
         const location = ` at ${line}:${column}`;
-        const diagnostic = new RankError(`${error.message}${location}`, 'Syntax');
+        const diagnostic = new RankError(`${removedSpelling(error) ?? error.message}${location}`, 'Syntax');
         diagnostic.location = {
             sourceId, line: line!, column: column!,
             sourceLine: source.split(/\r?\n/)[line! - 1] ?? '',

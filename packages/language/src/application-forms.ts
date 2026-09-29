@@ -116,13 +116,6 @@ export function symbolicApplicationForm(
     return undefined;
 }
 
-export function explicitLowerBoundApplication(
-    parts: Expression[],
-): { source: Expression; limit: Expression } | undefined {
-    if (parts.length !== 3 || !isNamed(parts[1], 'from')) return undefined;
-    return { source: parts[0], limit: parts[2] };
-}
-
 export function explicitMaterializePipeline(parts: Expression[]): {
     readonly source: readonly Expression[];
     readonly selector: ArrayExpression;
@@ -328,7 +321,6 @@ export type ApplicationForm =
     | Recognized<'axis-covariance', typeof explicitAxisCovariance>
     | Recognized<'axis-correlation', typeof explicitAxisCorrelation>
     | Recognized<'axis-quantile', typeof explicitAxisQuantile>
-    | Recognized<'lower-bound', typeof explicitLowerBoundApplication>
     | Recognized<'axis-window', typeof explicitAxisWindow>
     | Recognized<'axis-shift', typeof explicitAxisShift>
     | Recognized<'axis-shuffle', typeof explicitAxisShuffle>
@@ -414,8 +406,6 @@ function classifyParts(parts: Expression[]): ApplicationForm {
     const position = parts.findIndex((part, index) => index > 0
         && isNamed(part, 'text') && isStringLiteral(parts[index + 1]));
     if (position >= 0) return { kind: 'text-format', position };
-    const form6 = explicitLowerBoundApplication(parts);
-    if (form6) return { ...form6, kind: 'lower-bound' };
     const form7 = explicitAxisWindow(parts);
     if (form7) return { ...form7, kind: 'axis-window' };
     const formShift = explicitAxisShift(parts);

@@ -33,7 +33,7 @@ fun random_subsets X Y N Replace Seed
       Ids = Pool Size choices
     else
       Order = Pool shuffle
-      Ids = Order from 0 until Size
+      Ids = Order (0 until Size)
     end
 
     Part = record

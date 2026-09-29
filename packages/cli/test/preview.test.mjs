@@ -72,7 +72,7 @@ test('long text is cut and counted', () => {
 });
 
 test('a result is cut to the width of the screen', () => {
-    const fib = value('use cli\nuse sequences\nfibonacci to 400000');
+    const fib = value('use cli\nuse sequences\nfibonacci till 400000');
     const narrow = preview(fib, 40);
     assert.ok(narrow.text.length <= 40, narrow.text);
     assert.match(narrow.text, /^1 2 3 .* \.\.\. .*317811$/);

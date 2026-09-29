@@ -33,7 +33,7 @@ fun expand Text L R Best
     Size = R - L + 1
     BestSize = Best len
     if Size greater BestSize
-      Best = Text from L to R
+      Best = Text (L to R)
     end
 
     L -= 1

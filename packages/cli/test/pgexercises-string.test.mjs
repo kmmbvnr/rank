@@ -164,7 +164,7 @@ test('Unicode text functions and slices agree on SQLite and arrays', () => {
             '  .clean = Clean', '  .first = First',
             '  .label = Label', 'end',
             'Result OutputPath csv',
-            'fun initial Text', '  return Text from 0 until 1', 'end',
+            'fun initial Text', '  return Text (0 until 1)', 'end',
         ].join('\n');
         fs.writeFileSync(sourceFile, program);
         const expected = csv(values.map(value => {

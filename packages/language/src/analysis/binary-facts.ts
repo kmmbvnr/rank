@@ -1,9 +1,9 @@
 import type { BinaryExpression, Expression } from '../generated/ast.js';
-import { inlineSliceOperands } from '../expressions.js';
+import { rangeSliceOperands } from '../expressions.js';
 import { applicationForm, type ApplicationForm } from '../application-forms.js';
 import { findOperation } from '../operations.js';
 import { binaryType, type Types } from './types.js';
-import { broadcastShape, incompatibleShapes, isAtom, UNKNOWN_VALUE,
+import { broadcastShape, incompatibleShapes, isAtom,
     type FactLookup, type ValueFacts } from './value-domain.js';
 
 /** Transfer existing facts through a binary expression without executing it. */
@@ -14,38 +14,6 @@ export function binaryExpressionFacts(
     const symbolic = applicationForm(expression, name => lookup(name) ? false : findOperation(name));
     const transferred = symbolicFormFacts(symbolic, lookup, infer);
     if (transferred) return transferred;
-    const slice = inlineSliceOperands(expression);
-    if (slice) {
-        const source = infer(slice.source, lookup);
-        const kind = source.types.join();
-        if (kind === 'array' || kind === 'text' || kind === 'sequence' || kind === 'queue') {
-            const axis = Number(slice.axis);
-            const start = infer(slice.start, lookup).integer;
-            const end = infer(slice.end, lookup).integer;
-            const shape = source.shape?.slice() ?? (kind === 'array' ? undefined : [null]);
-            if (shape && Number.isSafeInteger(axis) && axis >= 0 && axis < shape.length) {
-                shape[axis] = null;
-                if (start !== undefined && end !== undefined) {
-                    const first = BigInt(start);
-                    const last = BigInt(end) + (slice.inclusive ? 1n : 0n);
-                    const size = source.shape?.[axis] ?? null;
-                    if (first >= 0n && last >= 0n && size !== null
-                        && first <= BigInt(size) && last <= BigInt(size)) {
-                        shape[axis] = Number(last > first ? last - first : 0n);
-                    }
-                }
-            }
-            if (kind === 'text') return { types: ['text'], rank: 1, shape };
-            if (kind === 'sequence' || kind === 'queue') return { types: ['array'], rank: 1, shape,
-                elements: source.elements,
-                ...(kind === 'sequence' && source.callbackFreeScalarCells
-                    ? { callbackFreeScalarCells: true as const } : {}) };
-            return { types: ['array'], rank: source.rank, shape,
-                elements: source.elements,
-                ...(source.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}) };
-        }
-        return UNKNOWN_VALUE;
-    }
     if (symbolic?.kind === 'outer'
         && ['+', '-', '*', '/', '//', '%', '**'].includes(symbolic.operator)) {
         if (symbolic.operands.length === 2) {
@@ -198,6 +166,46 @@ export function symbolicFormFacts(symbolic: ApplicationForm, lookup: FactLookup,
             return { types: source.elements.join() === 'integer' ? ['integer'] : ['integer', 'real'],
                 rank: 0, shape: [] };
         }
+    }
+    return undefined;
+}
+
+/** `Values (Start until End)`: a contiguous run along one axis keeps the source's kind and cells. */
+export function sliceFacts(
+    expression: Expression, lookup: FactLookup,
+    infer: (expression: Expression, lookup: FactLookup) => ValueFacts,
+): ValueFacts | undefined {
+    const slice = rangeSliceOperands(expression);
+    if (slice) {
+        const source = infer(slice.source, lookup);
+        const kind = source.types.join();
+        if (kind === 'array' || kind === 'text' || kind === 'sequence' || kind === 'queue') {
+            const axis = Number(slice.axis);
+            const start = infer(slice.start, lookup).integer;
+            const end = infer(slice.end, lookup).integer;
+            const shape = source.shape?.slice() ?? (kind === 'array' ? undefined : [null]);
+            if (shape && Number.isSafeInteger(axis) && axis >= 0 && axis < shape.length) {
+                shape[axis] = null;
+                if (start !== undefined && end !== undefined) {
+                    const first = BigInt(start);
+                    const last = BigInt(end) + (slice.inclusive ? 1n : 0n);
+                    const size = source.shape?.[axis] ?? null;
+                    if (first >= 0n && last >= 0n && size !== null
+                        && first <= BigInt(size) && last <= BigInt(size)) {
+                        shape[axis] = Number(last > first ? last - first : 0n);
+                    }
+                }
+            }
+            if (kind === 'text') return { types: ['text'], rank: 1, shape };
+            if (kind === 'sequence' || kind === 'queue') return { types: ['array'], rank: 1, shape,
+                elements: source.elements,
+                ...(kind === 'sequence' && source.callbackFreeScalarCells
+                    ? { callbackFreeScalarCells: true as const } : {}) };
+            return { types: ['array'], rank: source.rank, shape,
+                elements: source.elements,
+                ...(source.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}) };
+        }
+        return undefined;
     }
     return undefined;
 }

@@ -75,9 +75,9 @@ A in primes`);
     it('supports fibonacci membership and retains source boundaries', () => {
         expect(run('use sequences\n(array 0 1 2 4 8 13 14) in fibonacci'))
             .toBe('false true true false true true false');
-        expect(run('use sequences\n(array 2 8 13 21) in ((fibonacci from 8) until 21)'))
+        expect(run('use sequences\n(array 2 8 13 21) in (fibonacci from 8 till at least 21)'))
             .toBe('false true true false');
-        expect(run('use sequences\n(array 2 11 23) in ((primes from 10) until 20)'))
+        expect(run('use sequences\n(array 2 11 23) in (primes from 10 till 20)'))
             .toBe('false true false');
     });
 

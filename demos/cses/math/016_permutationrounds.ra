@@ -40,7 +40,7 @@ fun rounds P
 
   Mod = 1000000007
   Answer = 1
-  for Prime in primes to N
+  for Prime in primes till N
     Power = Powers Prime
     Part = Prime Power Mod powmod
     Answer = Answer * Part % Mod

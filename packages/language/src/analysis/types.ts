@@ -1,5 +1,5 @@
 import { joinTypes } from './value-domain.js';
-import { flattenApplication, inlineSliceOperands } from '../expressions.js';
+import { flattenApplication } from '../expressions.js';
 /**
  * Type facts over the runtime's own type names.
  *
@@ -12,7 +12,7 @@ import { flattenApplication, inlineSliceOperands } from '../expressions.js';
 
 import {
     isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
-    isFirstIndexWhereExpression, isFirstWhereExpression, isTakeWhileExpression,
+    isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression,
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
     isRecordExpression, isRecordUpdateExpression, isStdinExpression, isStringLiteral, isTextBlockExpression, isUnaryExpression,
@@ -169,18 +169,12 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
     }
     if (isFirstIndexWhereExpression(expression)) return ['integer'];
     if (isFirstWhereExpression(expression)) return same(typeOf(expression.source, lookup), 'text') ? ['text'] : UNKNOWN;
-    if (isTakeWhileExpression(expression)) {
+    if (isBoundClauseExpression(expression) || isCountClauseExpression(expression)) {
         const source = typeOf(expression.source, lookup);
-        return same(source, 'text') || same(source, 'sequence') ? source
-            : same(source, 'array') || same(source, 'queue') ? ['array'] : UNKNOWN;
+        return same(source, 'text') || same(source, 'sequence') || same(source, 'array') ? source
+            : same(source, 'queue') ? ['array'] : UNKNOWN;
     }
     if (isBinaryExpression(expression)) {
-        const slice = inlineSliceOperands(expression);
-        if (slice) {
-            const source = typeOf(slice.source, lookup);
-            return same(source, 'array') || same(source, 'text') ? source
-                : same(source, 'sequence') || same(source, 'queue') ? ['array'] : UNKNOWN;
-        }
         if (['+', '*', 'and', 'or', 'xor'].includes(expression.operator)
             && isNameExpression(expression.right) && expression.right.name === 'segment'
             && lookup('segment') === undefined) return ['segment'];

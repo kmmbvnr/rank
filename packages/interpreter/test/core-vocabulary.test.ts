@@ -47,7 +47,7 @@ for (const compiled of [true, false]) {
             expect(() => r.execute('6 multiple by 3')).toThrow('use numbers');
             expect(() => r.execute('fibonacci')).toThrow('use sequences');
             expect(r.execute('use numbers\n9 sqrt')).toBe(3);
-            expect(r.execute('use sequences\nfibonacci until 10 sum')).toBe(19n);
+            expect(r.execute('use sequences\nfibonacci till 10 sum')).toBe(19n);
         });
 
         it('gates each CLI construct and keeps ordinary files parameterless', () => {

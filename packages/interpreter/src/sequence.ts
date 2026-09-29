@@ -1,6 +1,6 @@
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
 import { derivedArray, ownedArray, readArrayItem } from './array-storage.js';
-import { arrayMaskSelection } from './array-mask.js';
+import { arrayMaskSelection, checkUnnamedMask } from './array-mask.js';
 import { MissingValueError, RankError } from './errors.js';
 import {
     isRankArray,
@@ -234,55 +234,107 @@ export function firstWhereValue(
     throw new MissingValueError(`first${returnIndex ? ' index' : ''} where found no matching value`);
 }
 
-export function takeWhileValue(source: RankValue, mask: RankValue): RankValue {
-    validateAlignedSizes(source, mask, 'take while');
+/** Boolean sequences that select by position, made by combining masks of different values. */
+const positionalMasks = new WeakSet<RankSequence>();
+
+export function positionalMask(plan: SequencePlan): RankSequence {
+    const result = sequence(plan);
+    positionalMasks.add(result);
+    return result;
+}
+
+export function isPositionalMask(value: RankValue): value is RankSequence {
+    return isRankSequence(value) && positionalMasks.has(value);
+}
+
+/**
+ * A mask is positional: its first flag selects the first item, whatever value
+ * it was made from. It may be shorter than the source, which ends the
+ * selection; a source that ends first leaves flags with nothing to select.
+ */
+export function positionalSelection(source: RankValue, mask: RankValue): RankSequence {
+    const plan = isRankSequence(source) ? source.plan : undefined;
+    return sequence({
+        name: `${plan?.name ?? 'values'} selected`,
+        singlePass: plan?.singlePass ?? false,
+        size: { kind: 'unknown' },
+        captures: plan?.captures,
+        *iterate() {
+            const values = rankOneValues(source, 'selection');
+            const flags = rankOneValues(mask, 'selection');
+            while (true) {
+                const flag = flags.next();
+                if (flag.done) return;
+                const value = values.next();
+                if (value.done) throw new RankError('mask is longer than the values it selects from');
+                if (typeof flag.value !== 'boolean') throw new RankError('selection expects a boolean mask');
+                checkpoint('reading sequence');
+                if (flag.value) yield value.value;
+                else passOver();
+            }
+        },
+    });
+}
+
+/** Where a bound clause looks: a test of each item, or a mask read beside it. */
+export type BoundCondition =
+    | { readonly test: (item: RankValue) => boolean }
+    | { readonly mask: RankValue };
+
+/**
+ * `till` keeps the leading items before the first that meets the condition;
+ * `from` keeps the rest, starting with that item. A mask shorter than the
+ * source ends the search where it ends: it says nothing about later items.
+ */
+export function boundValue(source: RankValue, condition: BoundCondition, mode: 'till' | 'from'): RankValue {
+    const operation = mode;
+    const tests = (): (() => IteratorResult<boolean> | undefined) => {
+        if ('test' in condition) return () => undefined;
+        const mask = condition.mask;
+        if (isRankSequenceMask(mask) && mask.source !== source) {
+            throw new RankError(`${operation} mask belongs to a different sequence`);
+        }
+        const flags = maskValues(source, mask, operation);
+        return () => flags.next();
+    };
+    const test = 'test' in condition ? condition.test : undefined;
+    function* bounded(values: Iterator<RankValue>): Generator<RankValue> {
+        const flag = tests();
+        let started = false;
+        while (true) {
+            const value = values.next();
+            if (value.done) return;
+            checkpoint('reading sequence');
+            if (started) { yield value.value; continue; }
+            let hit: boolean;
+            if (test) hit = test(value.value);
+            else {
+                const next = flag()!;
+                if (next.done) return;
+                hit = next.value;
+            }
+            if (mode === 'till') {
+                if (hit) return;
+                yield value.value;
+            } else if (hit) {
+                started = true;
+                yield value.value;
+            } else passOver();
+        }
+    }
     if (isRankSequence(source)) {
         const sourcePlan = source.plan;
         return sequence({
-            name: `${sourcePlan.name} take while`,
+            name: `${sourcePlan.name} ${mode}`,
             singlePass: sourcePlan.singlePass,
-            size: { kind: 'unknown' },
+            size: mode === 'till' || sourcePlan.size.kind !== 'infinite' ? { kind: 'unknown' } : sourcePlan.size,
             captures: sourcePlan.captures,
-            *iterate() {
-                if (isRankSequenceMask(mask) && mask.source === source) {
-                    for (const value of sourcePlan.iterate()) {
-                        if (!mask.predicate.test(value)) return;
-                        yield value;
-                    }
-                    return;
-                }
-                const values = rankOneValues(source, 'take while');
-                const selected = maskValues(source, mask, 'take while');
-                while (true) {
-                    const value = values.next();
-                    const choice = selected.next();
-                    if (value.done || choice.done) {
-                        if (value.done !== choice.done) {
-                            throw new RankError('take while source and mask have different lengths');
-                        }
-                        return;
-                    }
-                    if (!choice.value) return;
-                    yield value.value;
-                }
-            },
+            *iterate() { yield* bounded(sourcePlan.iterate()); },
         });
     }
-
-    const values = rankOneValues(source, 'take while');
-    const selected = maskValues(source, mask, 'take while');
-    const result: RankValue[] = [];
-    while (true) {
-        const value = values.next();
-        const choice = selected.next();
-        if (value.done || choice.done) {
-            if (value.done !== choice.done) throw new RankError('take while source and mask have different lengths');
-            break;
-        }
-        if (!choice.value) break;
-        result.push(value.value);
-    }
-    return typeof source === 'string' ? result.join('') : ownedArray(result);
+    const result = [...bounded(rankOneValues(source, operation))];
+    if (typeof source === 'string') return result.join('');
+    return ownedArray(result);
 }
 
 function* rankOneValues(value: RankValue, operation: string): IterableIterator<RankValue> {
@@ -368,7 +420,8 @@ export function zipSequences(
  * numeric operations read the source items it selects: `Fib even sum`,
  * `A even sum`.
  */
-export function numericSource(value: RankValue): RankValue {
+export function numericSource(value: RankValue, operation?: string): RankValue {
+    checkUnnamedMask(value, operation);
     if (isRankSequenceMask(value)) return filterSequence(value.source, value.predicate);
     return arrayMaskSelection(value) ?? value;
 }

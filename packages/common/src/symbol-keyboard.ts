@@ -31,9 +31,11 @@ const MODIFIERS: Readonly<Record<string, (previous: Token) => boolean>> = {
     axis: previous => REDUCED.has(previous.text) || COMPARED.has(previous.text) || function_(previous),
 };
 
-/** Postfix forms that take exactly one operand: `Values sort by .x`, but `(A B) sort by .x`. */
-const SINGLE = new Set(['sort by', 'argsort by', 'group by', 'first where', 'first index where',
-    'take while', 'filter', 'select']);
+/**
+ * Postfix forms that take exactly one operand: `Values sort by .x`, but `(A B) sort by .x`.
+ * Pipeline clauses such as `filter` and `till` continue any operand, so they are infix.
+ */
+const SINGLE = new Set(['sort by', 'argsort by', 'group by', 'first where', 'first index where', 'select']);
 
 /** Joins take two operands side by side: `Days Revenue leftjoin by .date`. */
 const PAIR = new Set(['leftjoin by', 'innerjoin by', 'leftjoin on', 'innerjoin on']);

@@ -430,12 +430,10 @@ it('checks inline array element counts without executing dimensions', () => {
 });
 
 it('keeps slice result types during program analysis', () => {
-    expect(messages('A = (1 to 5) from 1 until 3\nA = "text"'))
+    expect(messages('A = (1 to 5) (1 until 3)\nA = "text"'))
         .toEqual(['A has type array and cannot receive text']);
-    expect(messages('T = "A😀БC" from 1 until 3\nT = array 1 2'))
+    expect(messages('T = "A😀БC" (1 until 3)\nT = array 1 2'))
         .toEqual(['T has type text and cannot receive array']);
-    expect(messages('Q = new queue\nA = Q from 0 until 0\nA = "text"'))
-        .toEqual(['A has type array and cannot receive text']);
 });
 
 it('infers safe unpacked shape cells without losing unrelated types', () => {

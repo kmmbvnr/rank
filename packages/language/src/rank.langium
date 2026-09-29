@@ -203,7 +203,7 @@ ArrayNameExpression infers NameExpression:
     name=ArrayReferenceName;
 
 ArrayReferenceName returns string:
-    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'take' | 'index' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
+    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'index' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
 
 AddressItem:
     spread?='unpack' value=ArrayAtom |
@@ -284,27 +284,40 @@ PowerExpression returns Expression:
 // Parse the recursive primary once before choosing its contextual suffix.
 // Repeating PrimaryExpression in every alternative makes LL(*) lookahead
 // enumerate combinations of alternatives through nested parentheses.
+// Clauses continue a pipeline: `fibonacci filter even till 1000 take 3`.
+// A one-line condition parses to the end of the line; grouping then keeps only
+// its predicate and moves the operations after it back into the pipeline.
 ApplicationExpression returns Expression:
-    PrimaryApplicationExpression |
+    (PrimaryApplicationExpression |
     TableWritePreviewExpression |
     TextBlockExpression |
     NonPrimaryExpression
     ({infer ApplicationExpression.head=current}
         arguments+=ApplicationArgument)*
-    ({infer MaterializeExpression.source=current} 'array')?;
+    ({infer MaterializeExpression.source=current} 'array')?)
+    ((
+        {infer TableFilterExpression.source=current} sourceFields+=LabelLiteral?
+            'filter' (condition=FilterCondition |
+                NL+ (conditions+=FilterCondition NL+)+ 'end') |
+        {infer BoundClauseExpression.source=current} operator=('from' | 'till') condition=FilterCondition |
+        // `take while` is gone; it parses only to report `till` in its place.
+        {infer TakeWhileExpression.source=current} 'take' 'while' mask=FilterCondition |
+        {infer CountClauseExpression.source=current} operator=('take' | 'drop') count=PrimaryExpression
+    )
+    ({infer ApplicationExpression.head=current}
+        arguments+=ApplicationArgument)*
+    ({infer MaterializeExpression.source=current} 'array')?)*;
 
+// `first` is also an ordinary name, so its clauses bind to the primary before
+// it can be read as an argument: `Values first where greater 5`.
 PrimaryApplicationExpression returns Expression:
     PrimaryExpression (
-        {infer FirstIndexWhereExpression.source=current} 'first' 'index' 'where' mask=Expression |
-        {infer FirstWhereExpression.source=current} 'first' 'where' mask=Expression |
-        {infer TakeWhileExpression.source=current} 'take' 'while' mask=Expression |
+        {infer FirstIndexWhereExpression.source=current} 'first' 'index' 'where' mask=FilterCondition |
+        {infer FirstWhereExpression.source=current} 'first' 'where' mask=FilterCondition |
         {infer TableWriteExpression.source=current} sourceFields+=LabelLiteral?
             ('insert' values+=NameExpression+ |
              'update' NL+ (entries+=SelectEntry NL+)+ 'end' |
              'delete') |
-        {infer TableFilterExpression.source=current} sourceFields+=LabelLiteral?
-            'filter' (condition=FilterCondition |
-                NL+ (conditions+=FilterCondition NL+)+ 'end') |
         {infer TableSelectExpression.source=current} sourceFields+=LabelLiteral?
             'select' (fields+=LabelLiteral+ | columns=NameExpression | columns=ParenthesizedExpression |
                 NL+ (entries+=SelectEntry NL+)+ 'end') |
@@ -471,7 +484,7 @@ MultilinePowerExpression returns Expression:
         NL* operator='**' NL* right=MultilinePowerExpression)?;
 
 Identifier returns string:
-    VARIABLE | WORD | 'text' | 'first' | 'take' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'delete' | 'ascending' | 'descending';
+    VARIABLE | WORD | 'text' | 'first' | 'take' | 'drop' | 'from' | 'till' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'delete' | 'ascending' | 'descending';
 
 AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;
@@ -480,7 +493,7 @@ UnpackTarget returns string:
     AssignableName | '#';
 
 ReferenceName returns string:
-    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'take' | 'index' | 'shape' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
+    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'index' | 'shape' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
 
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;

@@ -14,7 +14,7 @@ function evaluate(source) {
 
 test('folds the Fibonacci mask into logical clauses within 40 columns', () => {
     assert.equal(formatSource(mask), foldedMask);
-    const prefix = 'use sequences\nuse numbers\nFibs = fibonacci until 1000\n';
+    const prefix = 'use sequences\nuse numbers\nFibs = fibonacci till 1000\n';
     const suffix = '\nFibs Mask';
     assert.equal(evaluate(prefix + foldedMask + suffix), evaluate(prefix + mask + suffix));
 });

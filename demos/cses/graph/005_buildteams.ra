@@ -54,6 +54,6 @@ fun build_teams Graph NodeCount
 
   return record
     .possible = Possible
-    .teams = Teams from 1 to NodeCount
+    .teams = Teams (1 to NodeCount)
   end
 end

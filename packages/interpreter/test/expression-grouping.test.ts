@@ -18,8 +18,8 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
     });
 
     it('finishes a range, including its step, before reduction or materialization', () => {
-        expect(run('fibonacci until 1000 sum')).toBe('2582');
-        expect(run('Fibs = fibonacci multiple by 5 or fibonacci multiple by 3\n(fibonacci Fibs) until 1000 sum')).toBe('1825');
+        expect(run('fibonacci till at least 1000 sum')).toBe('2582');
+        expect(run('Fibs = fibonacci multiple by 5 or fibonacci multiple by 3\nfibonacci Fibs till 1000 sum')).toBe('1825');
         expect(run('1 to 9 by 2 sum')).toBe('25');
         expect(run('1 to 9 by 2 array')).toBe('1 3 5 7 9');
         expect(run('1 to 5 + reduce')).toBe('15');
@@ -72,7 +72,7 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         // A pipeline on the left keeps both sides independent.
         expect(run(arrays + 'A len equal B len')).toBe('true');
         expect(run(arrays + 'B len equal 2')).toBe('true');
-        expect(run('use numbers\nC = array 1 2 3 4\nMask = C even or C greater 3\nMask sum')).toBe('6');
+        expect(run('use numbers\nC = array 1 2 3 4\nMask = C even or C greater 3\nC Mask sum')).toBe('6');
         expect(run('not 2 even')).toBe('false');
         expect(run('not 2 less 3')).toBe('false');
         expect(run('not 2 even or 3 odd')).toBe('true');

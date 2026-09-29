@@ -63,8 +63,8 @@ rem Dashes are replaced with spaces.
 fun decrypt Name Sector
   Alphabet = "abcdefghijklmnopqrstuvwxyz"
   Shift = Sector % 26
-  Tail = Alphabet from Shift until 26
-  Head = Alphabet from 0 until Shift
+  Tail = Alphabet (Shift until 26)
+  Head = Alphabet (0 until Shift)
   Cipher = Tail + Head
 
   Plain = Name Alphabet Cipher translate

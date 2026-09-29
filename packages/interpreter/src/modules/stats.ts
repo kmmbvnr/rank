@@ -13,15 +13,15 @@ import { expectNumeric, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const statsModule: RuntimeModule = {
-    mean: () => native('mean', 1, ([value]) => meanValue(numericSource(value))),
-    median: () => native('median', 1, ([value]) => medianValue(numericSource(value))),
-    std: () => native('std', 1, ([value]) => standardDeviation(numericSource(value))),
-    variance: () => native('variance', 1, ([value]) => varianceValue(numericSource(value))),
-    var: () => native('var', 1, ([value]) => varianceValue(numericSource(value))),
-    quantile: () => native('quantile', [1, 2], args => quantileValue(numericSource(args[0]), args[1] ?? 0.5)),
-    percentile: () => native('percentile', [1, 2], args => quantileValue(numericSource(args[0]), args[1] ?? 50, undefined, true)),
-    skewness: () => native('skewness', 1, ([value]) => skewnessValue(numericSource(value))),
-    skew: () => native('skew', 1, ([value]) => skewnessValue(numericSource(value))),
+    mean: () => native('mean', 1, ([value]) => meanValue(numericSource(value, 'mean'))),
+    median: () => native('median', 1, ([value]) => medianValue(numericSource(value, 'median'))),
+    std: () => native('std', 1, ([value]) => standardDeviation(numericSource(value, 'std'))),
+    variance: () => native('variance', 1, ([value]) => varianceValue(numericSource(value, 'variance'))),
+    var: () => native('var', 1, ([value]) => varianceValue(numericSource(value, 'var'))),
+    quantile: () => native('quantile', [1, 2], args => quantileValue(numericSource(args[0], 'quantile'), args[1] ?? 0.5)),
+    percentile: () => native('percentile', [1, 2], args => quantileValue(numericSource(args[0], 'percentile'), args[1] ?? 50, undefined, true)),
+    skewness: () => native('skewness', 1, ([value]) => skewnessValue(numericSource(value, 'skewness'))),
+    skew: () => native('skew', 1, ([value]) => skewnessValue(numericSource(value, 'skew'))),
     mode: () => native('mode', 1, ([value]) => modeValue(value)),
     mse: () => native('mse', 2, arguments_ => errorMetricValue(
         arguments_[0],

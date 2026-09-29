@@ -82,7 +82,7 @@ export const OPERATOR_KEYWORDS = [
     'and', 'or', 'xor', 'not', 'equal', 'not equal', 'less', 'greater',
     'at least', 'at most', 'multiple by', 'in', 'is', 'to', 'until', 'by',
     'default', 'fill', 'as', 'axis', 'rank', 'reduce', 'scan', 'outer', 'sort by',
-    'first where', 'first index where', 'take while',
+    'first where', 'first index where', 'take', 'drop', 'from', 'till',
     'argsort by', 'group by', 'leftjoin by', 'innerjoin by', 'leftjoin on',
     'innerjoin on', 'set add', 'counter add', 'filter', 'select', 'ascending', 'descending',
 ];

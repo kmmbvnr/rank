@@ -4,7 +4,7 @@ import { ownedArray, derivedArray, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
-import { materializeSequence, sequence, shiftValue, stackItems, takeDropValue, windowValue } from '../sequence.js';
+import { materializeSequence, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
 import { setValueKey } from '../set.js';
 import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
@@ -44,8 +44,6 @@ export const sequencesModule: RuntimeModule = {
         whenFalse === undefined ? chooseIndexed(condition, whenTrue) : chooseValue(condition, whenTrue, whenFalse)),
     fibonacci: () => sequence(fibonacciPlan()),
     primes: () => sequence(primePlan()),
-    take: () => native('take', 2, ([source, count]) => takeDropValue(source, count)),
-    drop: () => native('drop', 2, ([source, count]) => takeDropValue(source, count, true)),
     shape: () => native('shape', 1, arguments_ => shapeOf(arguments_[0])),
     copy: () => native('copy', 1, arguments_ =>
         arguments_[0] instanceof FlatRecords

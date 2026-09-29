@@ -30,7 +30,7 @@ test "yearly totals of the buy or rent model"
   Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
   Series = Params buyorrent .series
   Years = Series 12 "LSSLSSLSSLLLSLL" aggregate
-  Interest = Series # 1 12 take sum
+  Interest = Series # 1 take 12 sum
   Shape = Years shape equal array 30 15
   (Shape all) and (Years 0 1 equal Interest) and (Years 0 3 equal Series 11 3) and (Years 29 14 equal Series 359 14)
 end

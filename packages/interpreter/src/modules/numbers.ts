@@ -100,7 +100,7 @@ export const numbersModule: RuntimeModule = {
                 expectInteger(arguments_[1]),
             );
         }
-        const value = numericSource(arguments_[0]);
+        const value = numericSource(arguments_[0], 'lcm');
         const items = isRankArray(value) ? value.items : sequenceValues(value, 'lcm');
         let result = 1n;
         for (const item of items) {
@@ -249,7 +249,7 @@ export function numericExtreme(
         if (arguments_.length === 2) {
             return binary(arguments_[0], arguments_[1]);
         }
-        const value = numericSource(arguments_[0]);
+        const value = numericSource(arguments_[0], name);
         if (name === 'max' && isRankSqliteExpression(value)) return maxSqlite(value);
         if (isRankMultiset(value)) {
             const extreme = name === 'min' ? value.min() : value.max();
@@ -575,7 +575,7 @@ function predicateFunction(name: string, test: (value: RankValue) => boolean) {
 }
 
 export function sumValue(value: RankValue): RankValue {
-    value = numericSource(value);
+    value = numericSource(value, 'sum');
     if (isRankSqliteExpression(value)) return sumSqlite(value);
     if (isRankSequence(value)) {
         const planned = reduceSequence(value, 'sum');

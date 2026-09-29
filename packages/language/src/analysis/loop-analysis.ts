@@ -8,7 +8,7 @@ import {
     isTryStatement, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '../generated/ast.js';
-import { flattenApplication, inlineSliceOperands } from '../expressions.js';
+import { flattenApplication } from '../expressions.js';
 import { type Types } from './types.js';
 import { contractRank, invalidate, loopBinding, mergeEnvironments, settledShape } from './control-flow.js';
 import { functionEffects } from './function-effects.js';
@@ -38,7 +38,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
         while (source && isParenthesizedExpression(source)) source = source.value;
         return !!source && isBinaryExpression(source)
             && (source.operator === 'to' || source.operator === 'until')
-            && !inlineSliceOperands(source) && collection.types.join() === 'sequence'
+            && collection.types.join() === 'sequence'
             && collection.shape?.[0] === 0;
     }
 

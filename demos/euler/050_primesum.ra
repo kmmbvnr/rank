@@ -16,11 +16,10 @@ Answer print
 rem Prefix sums make each candidate interval
 rem constant time; lengths are tried longest first.
 fun longest_prime_sum Limit
-  Primes = primes until Limit array
+  Primes = primes till at least Limit array
   Count = Primes len
   Prefix = Primes + scan with 0
-  Below = Prefix less Limit
-  MaxLength = (Prefix take while Below) len - 1
+  MaxLength = (Prefix till at least Limit) len - 1
 
   for Length in MaxLength to 1 by -1
     LastStart = Count - Length

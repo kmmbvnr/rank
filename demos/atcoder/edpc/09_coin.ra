@@ -38,6 +38,6 @@ fun more_than_half P
   end
 
   Start = N // 2 + 1
-  Tail = Dp from Start to N
+  Tail = Dp (Start to N)
   return Tail sum
 end

@@ -44,5 +44,5 @@ fun distance_sums Tree
     Diff = 2 * Sizes Node
     Result Node = Result Parent + N - Diff
   end
-  return Result 1 drop
+  return Result drop 1
 end

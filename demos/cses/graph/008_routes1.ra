@@ -48,5 +48,5 @@ fun shortest Graph NodeCount
       end
     end
   end
-  return Dist from 1 to NodeCount
+  return Dist (1 to NodeCount)
 end

@@ -51,11 +51,11 @@ describe('filter over plain collections', () => {
     });
 
     it('filters a lazy sequence without materializing its source', () => {
-        expect(run('use sequences\nuse numbers\nFib = fibonacci to 100\nFib filter even'))
+        expect(run('use sequences\nuse numbers\nFib = fibonacci till 100\nFib filter even'))
             .toBe('2 8 34');
-        expect(run('use sequences\nuse numbers\nFib = fibonacci to 100\n(Fib filter even) sum'))
+        expect(run('use sequences\nuse numbers\nFib = fibonacci till 100\n(Fib filter even) sum'))
             .toBe('44');
-        expect(run('use sequences\nuse numbers\nP = primes 8 take array\nP filter greater 5'))
+        expect(run('use sequences\nuse numbers\nP = primes take 8 array\nP filter greater 5'))
             .toBe('7 11 13 17 19');
     });
 
@@ -112,9 +112,9 @@ describe('filter over plain collections', () => {
     });
 
     it('returns a lazy selection for an empty array as for any other', () => {
-        expect(run(`${NUMBERS}E = N 10 drop\n(E filter in N) type`)).toBe('.sequence');
-        expect(run(`${NUMBERS}E = N 10 drop\n(E filter greater 1) type`)).toBe('.sequence');
-        expect(run(`${NUMBERS}Next = N filter in N\nfor I in 0 to 10\n  Rest = N I drop\n  Next = Rest filter in N\nend\nNext len`))
+        expect(run(`${NUMBERS}E = N drop 10\n(E filter in N) type`)).toBe('.sequence');
+        expect(run(`${NUMBERS}E = N drop 10\n(E filter greater 1) type`)).toBe('.sequence');
+        expect(run(`${NUMBERS}Next = N filter in N\nfor I in 0 to 10\n  Rest = N drop I\n  Next = Rest filter in N\nend\nNext len`))
             .toBe('0');
     });
 });

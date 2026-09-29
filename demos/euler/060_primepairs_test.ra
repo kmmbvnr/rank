@@ -42,7 +42,7 @@ test "known five-prime set forms a complete graph"
 
   Vals = array 13 5197 5701 6733 8389
   for P i in Vals
-    for Q in Vals (i + 1) drop
+    for Q in Vals drop (i + 1)
       if not P Q compatible
         return false
       end
@@ -62,7 +62,7 @@ test "search improves an earlier clique and keeps calls independent"
   Second = array 2 3 4 5 6
   for Group in array First Second
     for P i in Group
-      for Q in Group (i + 1) drop
+      for Q in Group drop (i + 1)
         Graph add P Q
       end
     end

@@ -1,5 +1,6 @@
 import { arrayRevision, holdArraySource, ownedArray, readArrayItem, readArrayShape } from './array-storage.js';
-import { isRankArray, type RankArray, type RankValue } from './value.js';
+import { RankError } from './errors.js';
+import { isRankArray, isRankSequenceMask, type RankArray, type RankValue } from './value.js';
 
 /**
  * A boolean array made by testing an array (`A even`, `A greater 3`) remembers
@@ -40,4 +41,25 @@ export function arrayMaskSelection(mask: RankValue): RankArray | undefined {
         if (readArrayItem(mask as RankArray, index) === true) items.push(readArrayItem(source, index));
     }
     return ownedArray(items, [items.length]);
+}
+
+/**
+ * A mask read by its name is plain booleans. Only a mask made in the same
+ * pipeline stands for the values it selects: `Fib even sum` adds even numbers,
+ * while `Mask sum` would silently add values nobody wrote beside it. The
+ * mask still knows its source, but only selection uses that, to push the test
+ * into it.
+ */
+const named = new WeakSet<object>();
+
+export function nameMask(value: RankValue): RankValue {
+    if (isRankSequenceMask(value) || (isRankArray(value) && masks.has(value))) named.add(value);
+    return value;
+}
+
+export function checkUnnamedMask(value: RankValue, operation = 'sum'): void {
+    if (typeof value === 'object' && named.has(value)) {
+        throw new RankError(`${operation} of a named mask: write \`Values Mask ${operation}\` `
+            + 'for the values it selects, or `Mask count` for how many');
+    }
 }

@@ -52,8 +52,9 @@ for (const compiled of [true, false]) describe(`nullary calls (compiled: ${compi
             expect(interpreter.execute(`G = tst
 Mask = G multiple by 2 or G multiple by 3
 G Mask sum`)).toBe(5n);
-            expect(() => interpreter.execute('tst multiple by 2 or tst multiple by 3'))
-                .toThrow('cannot combine masks from different sequences');
+            // Masks of two instances combine position by position.
+            expect(formatValue(interpreter.execute('(tst multiple by 2 or tst multiple by 3) array')!))
+                .toBe('false true true');
         } finally { interpreter.dispose(); }
     });
 
@@ -173,7 +174,7 @@ fail`)).toThrow('division by zero');
             expect(run(`use numbers
 use sequences
 Fibs = fibonacci multiple by 5 or fibonacci multiple by 3
-(fibonacci Fibs) until 1000 sum`)).toBe('1825');
+fibonacci Fibs till 1000 sum`)).toBe('1825');
         } finally { interpreter.dispose(); }
     });
 });

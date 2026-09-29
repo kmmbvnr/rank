@@ -50,7 +50,7 @@ fun walk Text
 
   for Token in Text words
     Turn = Token 0
-    Steps = Token 1 drop integer
+    Steps = Token drop 1 integer
 
     Dir = Dir Swap * Signs
     if Turn equal "l"

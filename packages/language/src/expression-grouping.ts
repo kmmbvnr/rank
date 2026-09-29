@@ -8,6 +8,7 @@ import {
 import { analyzeBindings } from './analysis/bindings.js';
 import { flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped } from './expressions.js';
 import { operationArities } from './operations.js';
+import { splitClauseConditions } from './clause-conditions.js';
 
 // A comparison takes one operand on each side and binds below arithmetic, so
 // calls after it apply to its result, as on a calculator: `A greater 2 sum`.
@@ -300,6 +301,16 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         if (grouped.$cstNode) (grouped.$cstNode as { astNode: AstNode }).astNode = grouped;
         return grouped;
     }
+    splitClauseConditions(program, {
+        callable,
+        arities: part => {
+            if (!isNameExpression(part)) return [];
+            const start = part.$cstNode?.range.start;
+            const local = start && arities.get(siteKey(start.line + 1, start.character + 1));
+            const supplied = options.bindings?.get(part.name);
+            return local || (supplied || undefined) || operationArities(part.name) || [];
+        },
+    });
     visitChildren(program);
     AstUtils.linkContentToContainer(program, { deep: true });
 }

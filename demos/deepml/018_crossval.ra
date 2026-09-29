@@ -36,7 +36,7 @@ fun cross_validation N K Shuffle
     end
     Last = First + Size
 
-    Test = Order from First until Last
+    Test = Order (First until Last)
 
     TrainMask = Positions less First
     After = Positions at least Last

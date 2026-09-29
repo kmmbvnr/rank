@@ -7,7 +7,7 @@ test "official ciphertext and recovered key"
   Cipher len equal 1455
   Key (array 101 120 112) equal rank 1
   Answer equal 129448
-  Prefix = Plain from 0 until 10
+  Prefix = Plain (0 until 10)
   Prefix (array 65 110 32 101 120 116 114 97 99 116) equal rank 1
 end
 
