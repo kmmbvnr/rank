@@ -21,7 +21,8 @@ fun coprime_pairs Values
 
   for Value in Values
     Factors = Value factors unique array
-    Subsets = 1 (Factors len) shl
+    Count = Factors len
+    Subsets = 1 Count shl
     NotCoprime = 0
 
     for Mask in 1 until Subsets
