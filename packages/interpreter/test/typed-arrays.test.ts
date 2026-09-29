@@ -62,3 +62,46 @@ describe('typed column storage', () => {
         expect(show('M # 2')).toBe('3 6 9');
     });
 });
+
+describe('typed results of real arithmetic', () => {
+    const run = (source: string) => {
+        const runtime = new Interpreter();
+        try { return formatValue(runtime.execute(source)!); } finally { runtime.dispose(); }
+    };
+    const real = 'use linalg\nuse sequences\nuse stats\nA = array shape 2000 fill 1.5\nB = array shape 2000 fill 0.5\n';
+
+    it('adds, subtracts, multiplies and divides reals like the small path', () => {
+        expect(run(`${real}(A + B) sum`)).toBe('4000');
+        expect(run(`${real}(A - B) sum`)).toBe('2000');
+        expect(run(`${real}(A * B) sum`)).toBe('1500');
+        expect(run(`${real}(A / B) sum`)).toBe('6000');
+        expect(run(`${real}(A * 2.0 - 1.0) sum`)).toBe('4000');
+        expect(run('use stats\nA = array shape 4 fill 1.5\nB = array shape 4 fill 0.5\n(A / B) sum')).toBe('12');
+    });
+
+    it('divides by a zero real like the small path', () => {
+        expect(() => run('A = array shape 4 fill 1.5\nZ = array shape 4 fill 0.0\n(A / Z) 0')).toThrowError('division by zero');
+        expect(() => run(`${real}Z = array shape 2000 fill 0.0\n(A / Z) 0`)).toThrowError('division by zero');
+    });
+
+    it('is a value: a write after the arithmetic never reaches the result', () => {
+        expect(run(`${real}C = A + B\nA 0 = 100.0\nC 0`)).toBe('2');
+        expect(run(`${real}C = A + B\nC 0 = 100.0\nA 0`)).toBe('1.5');
+    });
+
+    it('keeps mixed integer and real cells correct', () => {
+        expect(run('use stats\nA = array shape 2000 fill 3\nB = array shape 2000 fill 1.5\n(A * B) sum')).toBe('9000');
+        expect(run('use stats\nA = array shape 2000 fill 3\nB = array shape 2000 fill 2\n(A * B) sum')).toBe('12000');
+    });
+
+    it('multiplies matrices and transposes them', () => {
+        const matrices = 'M = array shape 100 30 fill 2.0\nV = array shape 30 fill 0.5\n';
+        expect(run(`${real}${matrices}(M V matmul) sum`)).toBe('3000');
+        expect(run(`${real}${matrices}(M transpose) shape`)).toBe('30 100');
+        expect(run(`${real}${matrices}((M transpose) (array shape 100 fill 1.0) matmul) sum`)).toBe('6000');
+    });
+
+    it('maps a large real array through a numeric function', () => {
+        expect(run('use numbers\nuse stats\nA = array shape 2000 fill 4.0\n(A sqrt) sum')).toBe('4000');
+    });
+});

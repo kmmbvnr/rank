@@ -1,6 +1,6 @@
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, denseScalarItems, readArrayItem } from '../array-storage.js';
+import { ownedArray, derivedArray, denseScalarItems, readArrayItem, realCells, typedArray, typedElementKind } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
@@ -302,19 +302,29 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
             sourceStrides[axis] = sourceStrides[axis + 1] * value.shape[axis + 1];
         }
         const strides = permutation.map(axis => sourceStrides[axis]);
-        const cells: RankValue[] = new Array(total);
+        // A typed source stays typed, and a plain array of reals becomes typed.
+        const kind = typedElementKind(value);
+        const reals = realCells(value) !== undefined;
+        const out: RankValue[] | Float64Array | BigInt64Array = reals ? new Float64Array(total)
+            : kind === 'integer' ? new BigInt64Array(total) : new Array(total);
+        const cells = out as unknown as RankValue[];
+        // An odometer over the output coordinates walks the source offsets.
+        const rank = shape.length;
+        const coordinates = new Array<number>(rank).fill(0);
+        let offset = 0;
         for (let index = 0; index < total; index += 1) {
-            checkpoint('transposing array');
-            let remaining = index;
-            let offset = 0;
-            for (let axis = shape.length - 1; axis >= 0; axis -= 1) {
-                const coordinate = remaining % shape[axis];
-                remaining = (remaining - coordinate) / shape[axis];
-                offset += coordinate * strides[axis];
-            }
+            if ((index & 0xfff) === 0) checkpoint('transposing array');
             cells[index] = stored[offset];
+            for (let axis = rank - 1; axis >= 0; axis -= 1) {
+                coordinates[axis] += 1;
+                offset += strides[axis];
+                if (coordinates[axis] < shape[axis]) break;
+                offset -= strides[axis] * shape[axis];
+                coordinates[axis] = 0;
+            }
         }
-        return ownedArray(cells, shape, true);
+        if (Array.isArray(out)) return ownedArray(out, shape, true);
+        return typedArray(out, shape);
     }
     const itemAt = (index: number): RankValue => {
         const output = coordinatesAt(shape, index);

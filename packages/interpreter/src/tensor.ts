@@ -1,4 +1,4 @@
-import { derivedArray, eagerOperandItems, ownedArray, readArrayItem } from './array-storage.js';
+import { derivedArray, eagerOperandItems, float64Cells, ownedArray, readArrayItem, realCells, typedArray } from './array-storage.js';
 import { RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import type { RankArray, RankValue } from './value.js';
@@ -54,7 +54,18 @@ export function mapDenseArrays(
     // of the result's, so its cell is the index modulo n; -1: general broadcast.
     const leftMod = leftArray ? trailingCells(leftArray.shape, shape) : 0;
     const rightMod = rightArray ? trailingCells(rightArray.shape, shape) : 0;
-    const cells: RankValue[] = new Array(size);
+    // Real arithmetic on real cells gives real cells, so the result goes straight
+    // into a typed buffer: no boxed doubles, and one allocation outside the heap.
+    const realMode = realCode >= 0
+        && (leftArray ? realCells(leftArray) !== undefined : typeof left === 'number')
+        && (rightArray ? realCells(rightArray) !== undefined : typeof right === 'number');
+    if (realMode && leftMod >= 0 && rightMod >= 0) {
+        const a = leftArray ? float64Cells(leftArray)! : (left as number);
+        const b = rightArray ? float64Cells(rightArray)! : (right as number);
+        const result = realKernel(realCode, size, a, b, leftMod, rightMod);
+        if (result) return typedArray(result, shape);
+    }
+    const cells: RankValue[] = realMode ? new Float64Array(size) as unknown as RankValue[] : new Array(size);
     try {
         // Each shape case gets its own loop, so the hot one has no per-cell branch.
         for (let start = 0; start < size; start += DENSE_CHUNK) {
@@ -99,11 +110,73 @@ export function mapDenseArrays(
     }
     // Every cell is a number, a boolean or a bigint: the operands were scalar
     // and the operation returned a scalar.
-    return ownedArray(cells, shape, true);
+    return realMode ? typedArray(cells as unknown as Float64Array, shape) : ownedArray(cells, shape, true);
 }
 
 const DENSE_MIN_CELLS = 1024;
 const DENSE_CHUNK = 4096;
+
+/**
+ * Real +, -, *, / over typed buffers. Each operand is a buffer or a scalar, and
+ * `aMod`/`bMod` are 0 for full shape or the length of a trailing shape. Declines
+ * on a zero divisor, so the general path decides what that means.
+ */
+function realKernel(
+    code: number, size: number, a: Float64Array | number, b: Float64Array | number,
+    aMod: number, bMod: number,
+): Float64Array | undefined {
+    const out = new Float64Array(size);
+    for (let start = 0; start < size; start += DENSE_CHUNK) {
+        checkpoint('computing array');
+        const end = Math.min(size, start + DENSE_CHUNK);
+        if (typeof a !== 'number' && typeof b !== 'number' && aMod === 0 && bMod === 0) {
+            switch (code) {
+                case 0: for (let i = start; i < end; i += 1) out[i] = a[i] + b[i]; break;
+                case 1: for (let i = start; i < end; i += 1) out[i] = a[i] - b[i]; break;
+                case 2: for (let i = start; i < end; i += 1) out[i] = a[i] * b[i]; break;
+                default:
+                    for (let i = start; i < end; i += 1) {
+                        if (b[i] === 0) return undefined;
+                        out[i] = a[i] / b[i];
+                    }
+            }
+        } else if (typeof b === 'number' && typeof a !== 'number' && aMod === 0) {
+            switch (code) {
+                case 0: for (let i = start; i < end; i += 1) out[i] = a[i] + b; break;
+                case 1: for (let i = start; i < end; i += 1) out[i] = a[i] - b; break;
+                case 2: for (let i = start; i < end; i += 1) out[i] = a[i] * b; break;
+                default:
+                    if (b === 0) return undefined;
+                    for (let i = start; i < end; i += 1) out[i] = a[i] / b;
+            }
+        } else if (typeof a === 'number' && typeof b !== 'number' && bMod === 0) {
+            switch (code) {
+                case 0: for (let i = start; i < end; i += 1) out[i] = a + b[i]; break;
+                case 1: for (let i = start; i < end; i += 1) out[i] = a - b[i]; break;
+                case 2: for (let i = start; i < end; i += 1) out[i] = a * b[i]; break;
+                default:
+                    for (let i = start; i < end; i += 1) {
+                        if (b[i] === 0) return undefined;
+                        out[i] = a / b[i];
+                    }
+            }
+        } else {
+            for (let i = start; i < end; i += 1) {
+                const x = typeof a === 'number' ? a : a[aMod ? i % aMod : i];
+                const y = typeof b === 'number' ? b : b[bMod ? i % bMod : i];
+                switch (code) {
+                    case 0: out[i] = x + y; break;
+                    case 1: out[i] = x - y; break;
+                    case 2: out[i] = x * y; break;
+                    default:
+                        if (y === 0) return undefined;
+                        out[i] = x / y;
+                }
+            }
+        }
+    }
+    return out;
+}
 
 function trailingCells(operand: readonly number[], result: readonly number[]): number {
     if (operand.length === result.length) return operand.every((size, axis) => size === result[axis]) ? 0 : -1;

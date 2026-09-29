@@ -61,6 +61,8 @@ interface OwnedStorage {
     items: RankValue[];
     typed?: Float64Array | BigInt64Array;
     convert?: () => void;
+    /** The revision at which every cell was last found to be a number, or not. */
+    realChecked?: { revision: number; real: boolean };
     shape: readonly number[];
     revision: number;
     birth: number;
@@ -121,6 +123,34 @@ export function isFlatScalarArray(value: RankValue): boolean {
 export function denseScalarItems(value: RankArray): ArrayLike<RankValue> | undefined {
     const storage = ownedStorage.get(value);
     return storage?.stable && storage.scalarOnly ? storage.items : undefined;
+}
+
+/**
+ * The cells of an array when every one is a real number: a real typed buffer,
+ * or stored cells checked once per revision. Real arithmetic on such cells
+ * needs no type dispatch and can write straight into a typed buffer.
+ */
+export function realCells(value: RankArray): ArrayLike<number> | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.scalarOnly) return undefined;
+    if (state.typed) return state.typed instanceof Float64Array ? state.typed : undefined;
+    if (state.realChecked?.revision !== state.revision) {
+        let real = true;
+        for (let index = 0; index < state.items.length; index += 1) {
+            if (typeof state.items[index] !== 'number') { real = false; break; }
+        }
+        state.realChecked = { revision: state.revision, real };
+    }
+    return state.realChecked.real ? state.items as unknown as number[] : undefined;
+}
+
+/** The real cells of an array as one Float64Array, or undefined if any cell is
+ * not a real number. A typed buffer is shared; plain cells are copied. */
+export function float64Cells(value: RankArray): Float64Array | undefined {
+    const state = ownedStorage.get(value);
+    if (state?.stable && state.typed instanceof Float64Array) return state.typed;
+    const plain = realCells(value);
+    return plain ? Float64Array.from(plain) : undefined;
 }
 
 const SMALL_OPERAND_CELLS = 4096;
