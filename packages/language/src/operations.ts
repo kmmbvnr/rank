@@ -650,6 +650,8 @@ export const operations: readonly Operation[] = [
         effects: ['io'], summary: 'SQLite query plan rows for a prepared query view.' },
     { name: 'labels', module: 'tables', arities: [1], form: 'Table labels', result: 'array',
         summary: 'Ordered column labels of a rank-1 table.' },
+    { name: 'table', module: 'tables', arities: [1], form: 'Rows table', result: 'table',
+        summary: 'Builds a column table from a rank-1 array of objects.' },
     { name: 'lookup', module: 'tables', arities: [3],
         form: 'Ids Keys Values lookup', result: 'value', lazy: true,
         summary: 'First keyed match; SQLite expressions become a correlated subquery.' },

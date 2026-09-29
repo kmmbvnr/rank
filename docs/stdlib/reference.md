@@ -414,6 +414,7 @@ CSV, SQLite, grouping and joins.
 | `Path csv` | table, io | Reads a CSV file into a rank-1 table, or writes a table to a path. |
 | `Query explain` | table, io | SQLite query plan rows for a prepared query view. |
 | `Table labels` | array | Ordered column labels of a rank-1 table. |
+| `Rows table` | table | Builds a column table from a rank-1 array of objects. |
 | `Ids Keys Values lookup` | value, lazy | First keyed match; SQLite expressions become a correlated subquery. |
 | `Query sql` | record | Statement text and bound parameters of a query view. |
 | `Path sqlite` | database, io | Opens an existing SQLite database; reads are lazy, writes explicit. |

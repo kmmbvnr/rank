@@ -3,7 +3,7 @@ import {
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression,
     type Expression,
 } from '@arrrank/language';
-import { derivedArray, readArrayItem } from './array-storage.js';
+import { derivedArray, ownedArray, readArrayItem } from './array-storage.js';
 import { resume, mapExecution, type Evaluation, type Execution } from './execution.js';
 import { RankError } from './errors.js';
 import { LocalFrame } from './frame.js';
@@ -11,11 +11,12 @@ import { ResourceMap } from './resource-summary.js';
 import { selectAxis } from './selectors.js';
 import { TABLE_INPUT, collectionExpression, frameAxes, readsFields, tableExpression } from './table-expression.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
+import { selectGroupedColumnar, selectColumns, filterTable } from './table-ops.js';
 import { selectGroupedTable, selectTable, type GroupAggregateSpec, type GroupAggregateOperation } from './modules/tables.js';
 import { executeSqliteWrite, sqliteWindowNumber, sqliteWrite } from './modules/sqlite.js';
 import {
-    isNativeFunction, isRankArray, isRankGroupedTable, isRankObject, isRankSequence, isRankSequenceMask,
-    isRankSqliteTable, isRankTableAlias, type RankArray, type RankRecord, type RankSequence, type RankValue,
+    isNativeFunction, isRankArray, isRankGroupedTable, isRankObject, isRankRecord, isRankSequence, isRankSequenceMask,
+    isRankSqliteTable, isRankTable, isRankTableAlias, type RankArray, type RankRecord, type RankSequence, type RankValue,
     typeName,
 } from './value.js';
 
@@ -96,13 +97,15 @@ export function compileTableExpression(
                             : ['sum', 'min', 'max'].includes(operation) ? 'core' : 'stats', operation);
                         return { name: entry.name, operation, field, parameter };
                     });
+                    if (source.columnar) return selectGroupedColumnar(source, specs);
                     return selectGroupedTable(source, specs);
                 }
                 if (collection) {
                     if (!isRankArray(source) && !isRankSequence(source)) {
                         throw new RankError('filter expects an array, sequence or table', 'TypeError');
                     }
-                } else if ((!isRankArray(source) || source.shape.length !== 1) && !isRankSqliteTable(source)) {
+                } else if ((!isRankArray(source) || source.shape.length !== 1) && !isRankSqliteTable(source)
+                    && !isRankTable(source)) {
                     throw new RankError('filter/select expects a rank-1 table or SQLite view', 'TypeError');
                 }
                 const previous = context.localFrame;
@@ -170,6 +173,12 @@ export function compileTableExpression(
                             // Selection already defines every mask shape a collection allows.
                             return context.select([source, mask]);
                         }
+                        if (isRankTable(source)) {
+                            if (!isRankArray(mask)) {
+                                throw new RankError('filter requires a boolean mask with one value per row', 'TypeError');
+                            }
+                            return filterTable(source, mask);
+                        }
                         if (isRankArray(source)) {
                             if (!isRankArray(mask) || mask.shape.length !== 1
                                 || mask.shape[0] !== source.shape[0]
@@ -183,7 +192,11 @@ export function compileTableExpression(
                         }
                         return context.select([source, mask]);
                     }
-                    if (expression.columns) return selectTable(source, yield* resume(context.evaluate(expression.columns)));
+                    if (expression.columns) {
+                        const columns = yield* resume(context.evaluate(expression.columns));
+                        return isRankTable(source) && isRankRecord(columns)
+                            ? selectColumns(source, columns) : selectTable(source, columns);
+                    }
                     const entries = new ResourceMap<RankValue>(value => value);
                     const record: RankRecord = entries.resources.track({ kind: 'record', entries, types: new Map() });
                     const add = (name: string, value: RankValue): void => {
@@ -201,6 +214,10 @@ export function compileTableExpression(
                         let value: RankValue;
                         if (window && isRankSqliteTable(source)) {
                             value = sqliteWindowNumber(source, window);
+                        } else if (window === 'rownumber' && isRankTable(source)) {
+                            value = ownedArray(Array.from({ length: source.length }, (_, index) => BigInt(index + 1)), [source.length], true);
+                        } else if (window === 'ranknumber' && isRankTable(source)) {
+                            value = ranksOf(source.sortKeys, source.length);
                         } else if (window === 'rownumber' && isRankArray(source)) {
                             value = derivedArray(source.shape, [source], index => BigInt(index + 1), true);
                         } else if (window === 'ranknumber' && isRankArray(source)) {
@@ -230,7 +247,7 @@ export function compileTableExpression(
                             frame.define(entry.name, value, new Set([typeName(value)]));
                         }
                     }
-                    return selectTable(source, record);
+                    return isRankTable(source) ? selectColumns(source, record) : selectTable(source, record);
                 } finally {
                     context.localFrame = previous;
                 }
@@ -283,13 +300,31 @@ export function compileTableExpression(
     return undefined;
 }
 
+/** Competition ranks from the keys of the preceding `sort by`: ties share a rank. */
+function ranksOf(keys: readonly (readonly (RankValue | undefined)[])[] | undefined, length: number): RankArray {
+    if (!keys) throw new RankError('ranknumber requires sort by before select', 'TypeError');
+    const ranks: bigint[] = [];
+    let rank = 1n;
+    for (let index = 0; index < keys.length; index += 1) {
+        if (index > 0 && keys[index].some((key, column) => {
+            const previous = keys[index - 1][column];
+            return key === undefined || previous === undefined
+                ? key !== previous
+                : compareOrderedValues(key, previous, orderedKind(key)) !== 0;
+        })) rank = BigInt(index + 1);
+        ranks.push(rank);
+    }
+    if (ranks.length !== length) throw new RankError('ranknumber requires sort by before select', 'TypeError');
+    return ownedArray(ranks, [length], true);
+}
+
 function arraySize(shape: readonly number[]): number {
     return shape.reduce((product, dimension) => product * dimension, 1);
 }
 
-/** A table is a SQLite view or a rank-1 array of object rows. */
+/** A table is a column table, a SQLite view or a rank-1 array of object rows. */
 function isTableSource(value: RankValue): boolean {
-    if (isRankSqliteTable(value)) return true;
+    if (isRankSqliteTable(value) || isRankTable(value)) return true;
     if (!isRankArray(value) || value.kind !== 'array' || value.shape.length !== 1) return false;
     if (value.columnNames !== undefined) return true;
     return value.shape[0] > 0 && isRankObject(readArrayItem(value, 0));
