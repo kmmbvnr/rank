@@ -44,7 +44,7 @@ rem loan are the same for both loans and cancel: what
 rem remains is the savings from the payment and tax
 rem differences, less the difference of the balances.
 rem Every lane is a vector element, so the only loop is
-rem over months; copy keeps the carried vectors dense.
+rem over months.
 fun difference Changes Start Params
   unpack Price Costs Months BankAmt BankRate DadAmt DadRate Infl Tax PropRate SavRate Rent = Params
   Term = Months integer
@@ -64,11 +64,11 @@ fun difference Changes Start Params
     end
     Interest = Balance * Rate
     Principal = Payment - Interest
-    Balance = (Balance - Principal) copy
+    Balance = Balance - Principal
     Flow = (Interest - Fixed .int Month) * Tax / 100 - (Payment - Fixed .pmt)
-    Saving = (Saving * Growth + Flow) copy
+    Saving = Saving * Growth + Flow
     if Month % 3 equal 2
-      Official = (Official + Changes (Month // 3)) 0.0 max copy
+      Official = (Official + Changes (Month // 3)) 0.0 max
     end
   end
   return Saving - (Balance - Fixed .bal (Term - 1))

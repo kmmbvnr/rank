@@ -30,7 +30,7 @@ fun variablefast Options Params
   Quarters = Params 2 integer // 3
   Rolls = (1 to 6) (Quarters * Sims) choices
   Steps = (Rolls - 3.5) / 10
-  Changes = Steps (array Quarters Sims) reshape copy
+  Changes = Steps (array Quarters Sims) reshape
   return Changes Start Params fastdifference bins
 end
 
@@ -70,17 +70,17 @@ fun fastdifference Changes Start Params
     Weight = Rise Growth Span weight
     Excess = Balance * Rate - Payment
     Kept = Tax * Excess * Weight - (1 - Tax) * Payment * Within
-    Saving = (Saving * Growth ** Span + Kept) copy
-    Balance = Balance Rate Payment Span repay copy
+    Saving = Saving * Growth ** Span + Kept
+    Balance = Balance Rate Payment Span repay
     if First + 12 less Term
       for Quarter in Year * 4 till Year * 4 + 4
         Moved = Official + Changes Quarter
-        Official = Moved 0.0 max copy
+        Official = Moved 0.0 max
       end
     end
   end
   Owed = Balance - Fixed .bal (Term - 1)
-  return (Saving + Settled - Owed) copy
+  return Saving + Settled - Owed
 end
 
 
