@@ -2,7 +2,6 @@ rem CSES 1650: Range Xor Queries
 rem https://cses.fi/problemset/task/1650
 
 use io
-use algo
 use bits
 use sequences
 
@@ -17,16 +16,10 @@ Values Queries range_xors print
 
 rem Answer inclusive xor ranges.
 fun range_xors Values Queries
-  Tree = Values bxor segment
-  Q = Queries len
-  Answers = array shape Q fill 0
-
-  for Query i in Queries
-    unpack Left Right = Query
-    L = Left - 1
-    R = Right - 1
-    Answers i = Tree L R query
-  end
-
-  return Answers
+  Prefix = Values bxor scan with 0
+  Left = Queries # 0
+  Right = Queries # 1
+  Before = Prefix (Left - 1)
+  After = Prefix Right
+  return After Before bxor
 end
