@@ -28,11 +28,11 @@ fun find_four A Target
 
       if Need in index
         Pair = index Need
-        First = Pair 0 + 1
-        Second = Pair 1 + 1
-        Third = i + 1
-        Fourth = j + 1
-        return array First Second Third Fourth
+        P = Pair 0 + 1
+        Q = Pair 1 + 1
+        R = i + 1
+        S = j + 1
+        return array P Q R S
       end
     end
 
