@@ -11,12 +11,14 @@ A max_subarray print
 
 rem Find the largest contiguous sum.
 fun max_subarray A
-  N = A len
   Current = A 0
   Best = A 0
 
-  for i in 1 till N
-    Current = (A i) (Current + A i) max
+  for Value i in A
+    if i equal 0
+      continue
+    end
+    Current = Value (Current + Value) max
     Best = Best Current max
   end
 
