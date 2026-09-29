@@ -50,6 +50,10 @@ export function mapDenseArrays(
         && leftArray.shape.every((dimension, axis) => dimension === rightArray.shape[axis]);
     const leftStrides = leftArray && arrayStrides(leftArray.shape);
     const rightStrides = rightArray && arrayStrides(rightArray.shape);
+    // 0: the operand has the result's shape; n: its shape is the trailing part
+    // of the result's, so its cell is the index modulo n; -1: general broadcast.
+    const leftMod = leftArray ? trailingCells(leftArray.shape, shape) : 0;
+    const rightMod = rightArray ? trailingCells(rightArray.shape, shape) : 0;
     const cells: RankValue[] = new Array(size);
     try {
         // Each shape case gets its own loop, so the hot one has no per-cell branch.
@@ -74,6 +78,13 @@ export function mapDenseArrays(
                     cells[index] = typeof left === 'number' && typeof b === 'number'
                         ? realOperation(realCode, left, b, operation) : operation(left, b);
                 }
+            } else if (leftMod >= 0 && rightMod >= 0) {
+                for (let index = start; index < end; index += 1) {
+                    const a = leftItems![leftMod ? index % leftMod : index];
+                    const b = rightItems![rightMod ? index % rightMod : index];
+                    cells[index] = typeof a === 'number' && typeof b === 'number'
+                        ? realOperation(realCode, a, b, operation) : operation(a, b);
+                }
             } else {
                 for (let index = start; index < end; index += 1) {
                     cells[index] = operation(
@@ -93,6 +104,14 @@ export function mapDenseArrays(
 
 const DENSE_MIN_CELLS = 1024;
 const DENSE_CHUNK = 4096;
+
+function trailingCells(operand: readonly number[], result: readonly number[]): number {
+    if (operand.length === result.length) return operand.every((size, axis) => size === result[axis]) ? 0 : -1;
+    if (operand.length > result.length) return -1;
+    const offset = result.length - operand.length;
+    return operand.every((size, axis) => size === result[offset + axis])
+        ? operand.reduce((product, size) => product * size, 1) : -1;
+}
 
 /** Codes for the real operations that run without a call through `operation`. */
 export const REAL_CODES: Readonly<Record<string, number>> = { '+': 0, '-': 1, '*': 2, '/': 3 };
