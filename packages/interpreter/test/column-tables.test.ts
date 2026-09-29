@@ -48,7 +48,7 @@ describe('column tables', () => {
         expect(show('Data (Data .Sex equal "female")')).toBe('<table 2 rows: .Id .Sex .Age .Fare .Alive>');
         expect(show('Data (Data .Sex equal "female") .Id')).toBe('2 3');
         expect(show('Data (array 3 0) .Id')).toBe('4 1');
-        expect(show('Data (0 until 2) .Id')).toBe('1 2');
+        expect(show('Data (0 till 2) .Id')).toBe('1 2');
     });
 
     it('projects columns into a named matrix', () => {

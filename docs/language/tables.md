@@ -52,7 +52,7 @@ write copies only the column it touches. Programs cannot tell the difference.
 - `Data 5` is row 5 as a *snapshot*: a record with the present fields in column
   order. Changing the record does not change the table.
 - `Data 5 .Age` is one cell.
-- `Data Mask` and `Data (0 until 10)` select rows into a new table, in source
+- `Data Mask` and `Data (0 till 10)` select rows into a new table, in source
   order. A boolean mask must have one value per row.
 - `Data (array .a .b)` projects columns into a rank-2 array with those column
   names, in the order named. Use it to build a numeric matrix; CSV output
