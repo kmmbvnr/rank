@@ -1,5 +1,5 @@
 import {
-    formatValue, isRankArray, isRankSequence, isRankSequenceMask,
+    DemandBudgetExhausted, withDemandBudget, formatValue, isRankArray, isRankSequence, isRankSequenceMask,
     type RankArray, type RankValue,
 } from '@arrrank/interpreter';
 
@@ -14,6 +14,12 @@ export const PREVIEW_TEXT = 200;
  * is not worth the wait, and a plan whose size is unknown may have no end.
  */
 export const SCAN_LIMIT = 100_000;
+
+/**
+ * How many source items a preview of unknown size reads in search of the few
+ * it shows. A selection may never find another item, and nothing can prove it.
+ */
+export const DEMAND_LIMIT = 10_000;
 
 export interface Preview {
     readonly text: string;
@@ -165,11 +171,19 @@ function take(
     count: number,
 ): { items: string[]; whole: boolean } {
     const shown: string[] = [];
-    for (const item of plan.iterate()) {
-        shown.push(formatValue(map(item)));
-        if (shown.length >= count) return { items: shown, whole: false };
+    try {
+        return withDemandBudget(DEMAND_LIMIT, () => {
+            for (const item of plan.iterate()) {
+                shown.push(formatValue(map(item)));
+                if (shown.length >= count) return { items: shown, whole: false };
+            }
+            return { items: shown, whole: true };
+        });
+    } catch (error) {
+        // Not proven empty from here on, only not worth waiting for.
+        if (error instanceof DemandBudgetExhausted) return { items: shown, whole: false };
+        throw error;
     }
-    return { items: shown, whole: true };
 }
 
 function listPreview(

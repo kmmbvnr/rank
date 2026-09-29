@@ -104,6 +104,32 @@ export function withInterrupt<T>(signal: Int32Array | InterruptSignal, run: () =
 /** Interactive workers install a signal. File and pipe execution do not. */
 export function interruptsEnabled(): boolean { return flag !== undefined; }
 
+/**
+ * A look that ran out of reading before it found the next item. Not a
+ * RankError: a program's `catch` must not swallow the host giving up.
+ */
+export class DemandBudgetExhausted extends Error {}
+
+let budget: number | undefined;
+
+/**
+ * Bound how many items `run` may pass over. A selection may skip without end on
+ * the way to its next item, as `Fib (Fib less 10)` does after 8; a preview has
+ * to give up on it instead of waiting forever. Slow work that does produce
+ * items, such as a factor search, is not counted: Ctrl-C stops that.
+ */
+export function withDemandBudget<T>(limit: number, run: () => T): T {
+    const previous = budget;
+    budget = limit;
+    try { return run(); }
+    finally { budget = previous; }
+}
+
+/** A selection read an item it did not keep. */
+export function passOver(): void {
+    if (budget !== undefined && --budget < 0) throw new DemandBudgetExhausted();
+}
+
 export function checkpoint(activity?: string, work = 1, details?: () => Record<string, string>): void {
     if (!flag) return;
     ticks += work;

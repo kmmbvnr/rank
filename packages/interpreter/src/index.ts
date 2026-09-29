@@ -12,4 +12,4 @@ export { standardModules } from './modules/index.js';
 
 export { RuntimeDiagnostics } from './diagnostics.js';
 
-export { InterruptedError, withInterrupt, checkInterrupt, setDebugBreakpoints, type PauseSnapshot, type InterruptSignal } from './interrupt.js';
+export { InterruptedError, DemandBudgetExhausted, withDemandBudget, withInterrupt, checkInterrupt, setDebugBreakpoints, type PauseSnapshot, type InterruptSignal } from './interrupt.js';

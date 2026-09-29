@@ -1,4 +1,4 @@
-import { checkpoint, interruptibleValues } from './interrupt.js';
+import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
 import { derivedArray, ownedArray, readArrayItem } from './array-storage.js';
 import { arrayMaskSelection } from './array-mask.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -53,6 +53,7 @@ function filteredPlan(source: SequencePlan, predicate: SequencePredicate): Seque
             for (const value of source.iterate()) {
                 checkpoint('reading sequence');
                 if (predicate.test(value)) yield value;
+                else passOver();
             }
         },
         ...(source.withUpperBound && {
