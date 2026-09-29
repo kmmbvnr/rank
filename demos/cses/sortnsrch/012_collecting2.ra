@@ -26,8 +26,7 @@ fun collecting_updates Values Swaps
   Rounds = 1
 
   for Value in 1 till N
-    Next = Value + 1
-    if index Value greater index Next
+    if index Value greater index (Value + 1)
       Rounds += 1
     end
   end
@@ -44,11 +43,11 @@ fun collecting_updates Values Swaps
     Edges = Edges unique
 
     for Value in Edges
-      if Value at least 1 and Value less N
-        Next = Value + 1
-        if index Value greater index Next
-          Rounds -= 1
-        end
+      if Value less 1 or Value at least N
+        continue
+      end
+      if index Value greater index (Value + 1)
+        Rounds -= 1
       end
     end
 
@@ -58,11 +57,11 @@ fun collecting_updates Values Swaps
     index Y = I
 
     for Value in Edges
-      if Value at least 1 and Value less N
-        Next = Value + 1
-        if index Value greater index Next
-          Rounds += 1
-        end
+      if Value less 1 or Value at least N
+        continue
+      end
+      if index Value greater index (Value + 1)
+        Rounds += 1
       end
     end
 
