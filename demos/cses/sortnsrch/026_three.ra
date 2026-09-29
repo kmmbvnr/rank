@@ -31,10 +31,8 @@ fun find_three A Target
       Sum = B a + B Left + B Right
 
       if Sum equal Target
-        First = Order a + 1
-        Second = Order Left + 1
-        Third = Order Right + 1
-        return array First Second Third
+        Indices = array a Left Right
+        return Order Indices + 1
       elif Sum less Target
         Left += 1
       else
