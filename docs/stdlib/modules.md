@@ -535,8 +535,6 @@ transpose
 window
 shift
 copy
-take
-drop
 sort
 argsort
 indices
@@ -545,12 +543,9 @@ find
 findall
 ```
 
-`Values Count take` keeps at most `Count` leading items; `Values Count drop`
-skips them. Counts must be nonnegative integers and are clamped to the source
-length. Both accept text, arrays and sequences. Arrays return lazy views along
-the leading axis; text counts Unicode code points. Sequences stay lazy, and
-`take` can bound an infinite source before `copy`. See
-[Take and drop](../language/sequences-arrays.md#take-and-drop).
+`take`, `drop`, `from` and `till` are clauses rather than functions, so they
+need no module: `primes take 5`, `fibonacci till 1000`. See
+[Pipeline clauses](../language/sequences-arrays.md#pipeline-clauses).
 
 `copy` eagerly copies a material or lazy array into independent writable dense
 storage while preserving its shape. On a numeric `+ segment`, it creates an
@@ -561,16 +556,16 @@ finite sequences of one shape stacks them after its own axes. `transpose` requir
 copy a sequence explicitly before transposing it.
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime
-integers beginning with `2`, supports `to` and `until`, and may seek to a
-zero-based position through normal sequence addressing:
+integers beginning with `2`, and may seek to a zero-based position through
+normal sequence addressing:
 
 ```rank
-BelowTwenty = primes until 20
+BelowTwenty = primes till 20
 SixthPrime = primes 5
 ```
 
-`from` sets an inclusive lower value boundary and lets the source seek instead
-of enumerating the discarded prefix:
+`from` and `till` with a plain value or a `greater` or `at least` condition
+let the source seek instead of enumerating the discarded prefix:
 
 ```rank
 Candidates = primes from 100
@@ -579,7 +574,7 @@ rem First is 101
 ```
 
 `fibonacci from Lower` uses the same plan interface. A lower-bounded source is
-still infinite until `to` or `until` supplies an upper boundary.
+still infinite until `till` supplies an upper boundary.
 
 `in` performs optimized primality testing on this source without enumerating
 an unbounded prefix:
@@ -590,7 +585,7 @@ if Candidate in primes
 end
 ```
 
-A boundary remains part of membership, so `23 in (primes until 20)` is false.
+A boundary remains part of membership, so `23 in (primes till 20)` is false.
 `fibonacci` also supports membership without an upper bound: its plan advances
 only as far as the queried value and respects lower and upper boundaries.
 Scalar membership in another bounded sequence uses a finite linear scan;

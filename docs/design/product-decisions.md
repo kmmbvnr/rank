@@ -179,15 +179,15 @@ comfortably on a phone screen.
 
 ## 6. Boolean sequence masks and explicit selection
 
-Lazy masks retain their source for optimized selection, and every operation
-that consumes the mask as data sees boolean values. Prefix `array Mask` and
-postfix `Mask array` therefore agree. Numeric operations such as `sum`, `max`
-or `mean` cannot use booleans, so they read the source items the mask selects.
-Array masks made by a predicate or a comparison with a scalar do the same, so
-`A even sum` needs no parentheses either:
+A mask is positional booleans, and every operation that consumes the mask as
+data sees boolean values. Prefix `array Mask` and postfix `Mask array`
+therefore agree. In the pipeline that makes it, a numeric operation such as
+`sum`, `max` or `mean` reads the items the mask selects, so `Fib even sum` and
+`A even sum` need no parentheses. A mask read by its name is only booleans:
+`Mask sum` is an error that names `Values Mask sum` and `Mask count`.
 
 ```rank
-Fib = fibonacci to Limit
+Fib = fibonacci till Limit
 Answer = Fib even sum
 Mask = Fib even
 Answer = Fib Mask sum
@@ -258,8 +258,8 @@ This replaces `start Total at 0 -> append Total -> update Total for each value
 -> append each new Total`. The result begins with the seed, so it can be used
 directly as a zero-based prefix table.
 
-Use `first where`, `first index where`, `take while`, `all`, or `any` when an
-ordered search can stop after a mask decides its result. These operations only
+Use `first where`, `first index where`, `till`, `all`, or `any` when an
+ordered search can stop after a condition decides its result. These operations only
 read the demanded prefix of a lazy sequence.
 
 Keep a `for` loop when the algorithm carries several changing states, mutates

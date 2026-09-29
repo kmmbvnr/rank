@@ -52,15 +52,15 @@ position unchanged:
 ```rank
 use sequences
 G = primes
-G until 100
-G until 100 sum
+G till at least 100
+G till at least 100 sum
 G
 ```
 
-The sum is `1060`; the final preview begins `101 103 107`. `until` peeks at
+The sum is `1060`; the final preview begins `101 103 107`. `till` peeks at
 the first excluded value and leaves it buffered for the next consumer.
-`G to 101 sum` would consume `101`, whereas `G until 101 sum` would return zero
-and leave it in place. Bounds on a stored view can narrow its limit but cannot
+`G till 101 sum` would consume `101`, whereas `G till at least 101 sum` would
+return zero and leave it in place. Bounds on a stored view can narrow its limit but cannot
 widen it. Filtering a stream and then bounding it uses the same cursor.
 
 `H = G` shares consumption. `H = primes` creates a separate stream beginning

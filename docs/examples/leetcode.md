@@ -128,7 +128,7 @@ possible odd and even center. It uses ordinary conditional `for` loops rather
 than adding `break`, and extracts each better result directly:
 
 ```rank
-Best = Text from L to R
+Best = Text (L to R)
 ```
 
 Text slices count Unicode code points. The example runs in quadratic time and

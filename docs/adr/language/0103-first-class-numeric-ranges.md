@@ -32,6 +32,8 @@ Rank introduces **word-based, first-class numeric range sequences**:
 
 Ranges are first-class, lazy sequence values. They can be bound to names (`R = 1 until 1000`), iterated in `for` loops (`for i in 1 to 10`), or evaluated as arrays.
 
+`to` and `until` only build ranges of numbers. Addressing with a range slices by position (`Text (1 until 3)`), and another sequence is bounded by the `till` and `from` clauses (`fibonacci till 1000`), as [ADR-0205](0205-slices-and-sequence-bounds.md) describes. `primes until 20` is an error that suggests `till`.
+
 ### 2. Explicit Stepping with `by`
 A step is specified using the `by` keyword followed by a non-zero integer:
 ```text

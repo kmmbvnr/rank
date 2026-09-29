@@ -330,8 +330,7 @@ Pred Negative = 0
 
 ## Slices and ranges
 
-Numeric ranges are first-class sequences. Their compact form does not use
-`from`:
+Numeric ranges are first-class sequences:
 
 ```rank
 1 to 10
@@ -379,9 +378,9 @@ Use an explicit negative step for a descending range:
 
 With `to`, the endpoint is included only
 when the range lands on it exactly; `1 to 6 by 2` therefore produces
-`1 3 5`. With `until`, the endpoint is always excluded. `by` applies only
-to numeric ranges; bounding a known sequence such as `fibonacci to 100` does
-not accept a step.
+`1 3 5`. With `until`, the endpoint is always excluded. `to` and `until`
+build ranges of numbers only: a sequence such as `fibonacci` is bounded with
+`till` (see [Pipeline clauses](sequences-arrays.md#pipeline-clauses)).
 
 Equal bounds produce one value with `to` and no values with `until`,
 regardless of the step's sign. A zero step is an error even for empty ranges.
@@ -399,32 +398,28 @@ end
 rem Prints 3, 2, 1.
 ```
 
-`from` appears only after a selected value and introduces a contiguous slice:
+A range used as a selector takes a contiguous slice:
 
 ```rank
-Closed = Text from L to R
-Open = Text from L until R
+Closed = Text (L to R)
+Open = Text (L until R)
 ```
 
-`to` includes the final position; `until` excludes it. Slice bounds are
-zero-based, nonnegative and ascending. An exclusive end may equal the axis size;
-an inclusive end must be inside the axis. Equal exclusive bounds produce an
-empty slice.
+`to` includes the final position; `until` excludes it. Positions are
+zero-based, and every selected position must exist. Equal exclusive bounds
+produce an empty slice. Text is sliced by Unicode code point.
 
-For tensors, `axis` chooses the sliced axis. Other axes are preserved:
+For tensors, each selector addresses the next axis, and `#` keeps a whole axis.
+Other axes are preserved:
 
 ```rank
-Rows = M axis 0 from 1 until 4
-Columns = M axis 1 from 2 to 5
+Rows = M (1 until 4)
+Columns = M # (2 to 5)
+Block = M (1 until 4) (2 until 5)
 ```
 
-Multiple axes can be sliced through ordinary assignments without adding a
-special multidimensional delimiter:
-
-```rank
-Block = M axis 0 from 1 until 4
-Block = Block axis 1 from 2 until 5
-```
+On a SQLite view a range selector becomes `LIMIT` and `OFFSET`, and on a SQLite
+text expression it becomes `substr`, so neither reads rows early.
 
 ## Arrays of indices
 

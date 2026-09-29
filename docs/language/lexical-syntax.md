@@ -123,7 +123,7 @@ serve to satisfy the line/parenthesis budget, rather than acting as procedural c
 
 - **Intentional intermediate variables (encouraged):**
   - Name key domain concepts and intermediate data states (`Odds = Numbers odd`,
-    `Mask = Heights greater 10`, `Tail = Dp from Start to N`).
+    `Mask = Heights greater 10`, `Tail = Dp (Start to N)`).
   - Break long expressions to stay within the 40-column width.
   - Eliminate nested parentheses to satisfy the <= 1 parenthesis budget.
   - Provide clear REPL inspection points for intermediate vectors/matrices.
@@ -463,7 +463,7 @@ right. Addressing stays tight: `A i * B j` multiplies two addressed values.
 rem sqrt(11)
 2 + 3 * 4
 rem 14
-Fibs until 1000 sum
+Fibs till 1000 sum
 1 to 9 by 2 array
 A max + 1
 ```

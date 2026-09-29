@@ -428,10 +428,11 @@ Without `axis`, the frame axes are the leading axes in natural order. `rank 0`
 yields atoms; a rank equal to the tensor rank yields the whole tensor once.
 Iteration produces cells in row-major frame order.
 
-The same `axis` word selects tensor slices and arbitrary positions:
+A range selects a slice and an integer array selects arbitrary positions;
+`#` keeps a whole axis, and `axis` names the axis for an index array:
 
 ```rank
-Rows = M axis 0 from 1 until 4
+Rows = M (1 until 4)
 Columns = M axis 1 array 0 2 5
 ```
 

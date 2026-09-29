@@ -40,7 +40,7 @@ rem https://projecteuler.net/problem=2
 use sequences
 use numbers
 
-Fib = fibonacci to 4000000
+Fib = fibonacci till 4000000
 Mask = Fib even
 Answer = Fib Mask sum
 ```
@@ -211,7 +211,7 @@ use numbers
 
 option Limit integer = 2000000
 
-Primes = primes until Limit
+Primes = primes till at least Limit
 Answer = Primes sum
 ```
 
@@ -261,7 +261,7 @@ rem https://projecteuler.net/problem=13
 
 Total = Numbers sum
 Text = Total text
-Prefix = Text from 0 until 10
+Prefix = Text (0 until 10)
 Answer = Prefix integer
 ```
 
@@ -496,7 +496,7 @@ rem Project Euler 27
 rem https://projecteuler.net/problem=27
 
 for A in (-Limit + 1) until Limit by 2
-  for B in primes to Limit
+  for B in primes till Limit
     Length = A B quadratic_run
   end
 end
@@ -631,13 +631,13 @@ whose sum is `40730`.
 rem Project Euler 35
 rem https://projecteuler.net/problem=35
 
-Candidates = primes until Limit
+Candidates = primes till at least Limit
 Circular = Candidates circular_prime rank 0
 Answer = Circular count
 
 for Shift in 1 until Length
-  Left = Text from Shift until Length
-  Right = Text from 0 until Shift
+  Left = Text (Shift until Length)
+  Right = Text (0 until Shift)
   Number = (Left + Right) integer
 end
 ```
@@ -668,8 +668,8 @@ the odd-only search produces `872187`.
 rem Project Euler 37
 rem https://projecteuler.net/problem=37
 
-LeftText = Text from Drop until Length
-RightText = Text from 0 until Last
+LeftText = Text (Drop until Length)
+RightText = Text (0 until Last)
 ```
 
 Every proper decimal prefix and suffix is parsed and tested with `in primes`.
@@ -858,8 +858,7 @@ concatenation is `296962999629`.
 
 ```rank
 Prefix = Primes + scan with 0
-Below = Prefix less Limit
-Length = (Prefix take while Below) len - 1
+Length = (Prefix till at least Limit) len - 1
 
 Total = Prefix End - Prefix Start
 if Total in primes
@@ -867,8 +866,9 @@ if Total in primes
 end
 ```
 
-A seeded scan builds the zero-based prefix table. `take while` finds the longest
-prefix whose sum stays below the limit without a mutable accumulator. Every
+A seeded scan builds the zero-based prefix table. `till at least Limit` finds
+the longest prefix whose sum stays below the limit without a mutable
+accumulator. Every
 interval sum is then constant time, and lengths are tried from largest to
 smallest. The result below one million is `997651`.
 

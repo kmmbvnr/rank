@@ -360,7 +360,6 @@ Shapes, orderings, windows and lazy sources.
 | `Mask TrueValues FalseValues choose` | value, lazy | Selects each cell by a boolean mask; SQLite expressions become CASE. |
 | `Values copy` | array | Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack. |
 | `Mask count` | integer | Number of true cells, or of source items a lazy mask selects. |
-| `Values Count drop` | value, lazy | Skips Count leading items; sequences stay lazy and arrays slice their leading axis. |
 | `Values Target find` | integer | First zero-based position equal to Target in a vector or text. |
 | `Values Target findall` | array | Every zero-based position equal to Target in a vector or text. |
 | `Values flat` | array | Copies records into fixed-width storage; Count State flat initializes a compact array. |
@@ -371,7 +370,6 @@ Shapes, orderings, windows and lazy sources.
 | `Value shape` | array | Axis lengths as a rank-1 array. |
 | `Values sort .descending` | array | Stable sort into a new rank-1 array, ascending by default. |
 | `Matrix transpose` | array | Reverses the axes of an array. |
-| `Values Count take` | value, lazy | Keeps at most Count leading items; sequences stay lazy and arrays slice their leading axis. |
 | `Values unique` | array | Distinct values in first-appearance order. |
 | `Values Width window` | array, lazy | Overlapping complete cells of that size, with optional stride, padding and padding value. |
 | `Values Count shift` | array, lazy | Moves items along an axis, keeping the shape; vacated positions read zero or a with value. |

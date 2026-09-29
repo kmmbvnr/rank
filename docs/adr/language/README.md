@@ -43,7 +43,7 @@ flowchart TD
         ADR202["0202: Whitespace Juxtaposition for Addressing"]
         ADR203["0203: First-Class Boolean Masks"]
         ADR204["0204: Whole-Axis Selector ('#')"]
-        ADR205["0205: Contiguous Slicing ('from ... to/until')"]
+        ADR205["0205: Slices and Sequence Bounds ('take', 'drop', 'from', 'till')"]
         ADR206["0206: Index Array Selection & Permutation (Gather)"]
         ADR207["0207: Positional Unpacking & Splatting ('unpack')"]
     end
@@ -108,7 +108,7 @@ flowchart TD
 | [ADR-0202](0202-whitespace-juxtaposition-for-addressing.md) | Whitespace Juxtaposition for Addressing and Selection | Universal $\text{value} + \text{selector} \rightarrow \text{value}$ formula; non-negative indices. |
 | [ADR-0203](0203-first-class-boolean-masks.md) | First-Class Boolean Masks for Selection and Assignment | Declarative filtering `A Mask` and conditional in-place updates `A Mask = 0`. |
 | [ADR-0204](0204-whole-axis-tensor-selector-hash.md) | Whole-Axis Tensor Selector (`#`) | Extracting and mutating entire matrix columns (`M # j`) via long-press on `.`. |
-| [ADR-0205](0205-contiguous-slicing-from-to-until.md) | Contiguous Slicing with `from ... to / until` | Boundary-safe contiguous slices across strings, 1D arrays, and tensor axes. |
+| [ADR-0205](0205-slices-and-sequence-bounds.md) | Slices and Sequence Bounds | Range selectors slice by position; `take`/`drop` count items; `from`/`till` bound a sequence by a condition or value. |
 | [ADR-0206](0206-index-array-selection-and-permutation.md) | Index Array Selection and Permutation (Gather Addressing) | Arbitrary permutation, duplication along axis 0, and multidimensional Cartesian sub-blocks. |
 | [ADR-0207](0207-positional-unpacking-and-splatting.md) | Positional Unpacking and Argument Splatting (`unpack`) | Destructuring LHS, argument splatting RHS, and coordinate expansion `A unpack Coors`. |
 

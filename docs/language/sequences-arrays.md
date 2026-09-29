@@ -7,7 +7,7 @@ Ranges and algorithmic sources are sequences:
 ```rank
 Range = 1 until 1000
 Primes = primes
-Fib = fibonacci to 4000000
+Fib = fibonacci till 4000000
 ```
 
 Sequences are lazy by default. Constructing, transforming or filtering a
@@ -15,57 +15,37 @@ sequence builds a plan. A terminal operation such as `sum`, explicit
 materialization, or iteration demands values from that plan. A terminal
 operation that would consume an unbounded sequence is an error.
 
-`fibonacci` starts with `1 2 3 5 8 ...`. Applied to an ordered algorithmic
-source, `to` includes the boundary and `until` excludes it:
+`fibonacci` starts with `1 2 3 5 8 ...` and `primes` with `2 3 5 7 11 ...`.
+Both are infinite until a clause bounds them, and both support ordinary
+zero-based sequence addressing:
 
 ```rank
-Fib = fibonacci to 100
-```
-
-`primes` starts with `2 3 5 7 11 ...`. It is infinite until bounded with `to`
-or `until`, and supports ordinary zero-based sequence addressing:
-
-```rank
-BelowTwenty = primes until 20
+Fib = fibonacci till 100
 SixthPrime = primes 5
 ```
 
-`from` gives an ordered source an inclusive lower value bound:
+`to` and `until` build ranges of numbers only. `primes until 20` is an error
+that suggests `till`.
+
+## Pipeline clauses
+
+Four clauses shape a sequence, an array or text from left to right. Each one
+continues the pipeline, so they chain in any order:
 
 ```rank
-Candidates = primes from 100
-First = Candidates 0
-rem First is 101
+Answer = fibonacci till Limit filter even sum
+Big = primes from 100 take 5
+Even = fibonacci filter even till 1000
 ```
 
-This is a source boundary rather than a positional slice. `primes` seeks to
-the first candidate at least equal to the bound, and `fibonacci` advances its
-recurrence to the first matching value. The result remains unbounded unless it
-also receives `to` or `until`. A source that cannot interpret a lower value
-bound reports an error.
-
-The existing `A from Start until End` form remains positional slicing.
-
-Sequence sources may accept bounds, filters and reductions in their own plan.
-For example, applying an `even` mask to `fibonacci` allows the source to produce
-only `2 8 34 ...`. A source that has no specialized implementation uses the
-general lazy operation with the same observable result.
-
-Sequence plans expose lower- and upper-bound hooks, so other ordered sources
-can implement `from`, `to` and `until` without enumerating discarded prefixes.
-
-## Take and drop
-
-`take` keeps at most the requested number of leading items. `drop` skips that
-many items and returns the remaining tail. Both belong to `sequences`:
+`take` and `drop` count items. `take` keeps at most the requested number of
+leading items; `drop` skips that many and returns the tail:
 
 ```rank
-use sequences
-FirstFive = primes 5 take
-NextFive = primes 5 drop 5 take
-Values = NextFive copy
-Prefix = "abcdef" 3 take
-Tail = "abcdef" 3 drop
+FirstFive = primes take 5
+NextFive = primes drop 5 take 5
+Prefix = "abcdef" take 3
+Tail = "abcdef" drop 3
 ```
 
 The count must be a nonnegative integer. Counts larger than a finite source
@@ -73,19 +53,61 @@ are clamped: `take` returns all its items and `drop` returns an empty result.
 `take 0` reads nothing; `drop 0` preserves all items. Text counts Unicode code
 points. Arrays return lazy views along their leading axis, preserving the
 remaining dimensions. Writes to the source are visible through those views;
-use `copy` for an independent snapshot.
+use `copy` for an independent snapshot. The former spelling `primes 5 take` is
+a syntax error that names `primes take 5`.
 
 Sequences remain lazy, including user generators. `take` stops without
 requesting an extra item and closes the source iterator. `drop` traverses the
 skipped prefix when demanded. Neither operation makes a single-pass source
 replayable. `take` bounds an infinite source by count; `drop` alone leaves it
-infinite. Materializing a bounded sequence still uses `copy` or postfix `array`.
+infinite. Materializing a bounded sequence uses postfix `array`.
 
-`from` on an ordered source sets a value bound. For example,
-`(primes from 10) 3 take copy` gives `11 13 17`, while
-`primes 10 drop 3 take copy` gives `31 37 41`. General generators and mapped
-sequences do not acquire value bounds through `take` or `drop`. Numeric ranges
-already specify their starting value, as in `10 to 20`.
+`from` and `till` bound by a condition. `from` starts at the first item that
+meets its condition and keeps it; `till` stops before the first item that
+meets its condition:
+
+```rank
+Large = primes from greater 100 take 3
+rem 101 103 107
+Leading = fibonacci till greater 50
+rem 1 2 3 5 8 13 21 34
+Word = "hello world" till equal " "
+rem hello
+```
+
+The condition's subject is the item, as in [`filter`](#filter-clause): a
+comparison with its right operand (`greater 50`), a predicate (`even`), a
+function of one argument, `not` and the logical words over those, or a mask.
+Text asks the condition of each character.
+
+A plain value is a bound rather than a value to find, because a sequence need
+never equal it. `till Limit` keeps the items at most `Limit`, the same as
+`till greater Limit`, and `from Limit` starts at the first item at least
+`Limit`:
+
+```rank
+Fib = fibonacci till 100
+Candidates = primes from 100
+Below = primes till at least 20
+rem 2 3 5 7 11 13 17 19
+```
+
+`till at least Limit` is the strict bound: it keeps the items below `Limit`.
+
+`from` and `till` read items in order and work on any rank-1 value. An ordered
+source seeks instead: `primes from 100` starts its sieve at 100, `fibonacci`
+advances its recurrence to the bound, and a filter over such a source keeps
+the ability. Seeking applies to a plain bound and to `greater` and `at least`
+conditions, and gives the same items as reading. On a stored native stream,
+`till` looks at the first excluded value and leaves it for the next consumer.
+
+Sequence sources may also accept filters and reductions in their own plan.
+For example, filtering `fibonacci` by `even` lets the source produce only
+`2 8 34 ...`. A source that has no specialized implementation uses the general
+lazy operation with the same observable result.
+
+`take while` is gone: `Values till not Condition` keeps the items while
+`Condition` holds.
 
 ## Explicit materialization
 
@@ -455,13 +477,13 @@ Lazy arrays produced by operations such as `outer` and `window` are not
 writable. Copy a finite result explicitly with postfix `copy` before changing
 its cells.
 
-Contiguous slices use `from` after the value. Arbitrary positions use an integer
-array as the selector:
+A range selects a contiguous run. Arbitrary positions use an integer array as
+the selector:
 
 ```rank
-Part = A from 2 until 6
+Part = A (2 until 6)
 Picked = A array 4 1 1
-Rows = M axis 0 from 1 to 3
+Columns = M # (1 to 3)
 ```
 
 Ranges and integer arrays preserve the selected axis. A scalar integer removes
@@ -497,9 +519,9 @@ mask with a following operation, or push predicates into a source such as a
 table scan. It may also materialize a mask eagerly when that produces the same
 observable result.
 
-A lazy sequence mask contains one boolean per source item. Display, iteration,
-indexing, `count`, `any`, `all`, `copy`, and postfix `array` all consume those
-booleans. Selection is explicit:
+A mask contains one boolean per source item. Display, iteration, indexing,
+`count`, `any`, `all`, `copy`, and postfix `array` all consume those booleans.
+Selection is explicit:
 
 ```rank
 Mask = Fib even
@@ -507,29 +529,52 @@ Selected = Fib Mask
 Answer = Selected sum
 ```
 
-Numeric operations cannot use booleans, so they read the source items the mask
-selects instead: `sum`, `min`, `max`, `lcm`, `mean`, `median`, `std`,
-`variance`, `skewness`, `quantile` and `percentile`. A pipeline therefore reads
-like a calculator, and both lines below give 44 for `Fib = fibonacci to 100`:
+A mask is positional. Its first flag selects the first item of whatever it is
+applied to, so a mask built from one value can select from another, and masks
+of different values combine flag by flag. The value and the mask are read in
+lockstep. A mask shorter than the value ends the selection where the mask
+ends, which lets a finite mask bound an endless source. A value that ends while
+the mask still has flags is an error.
+
+```rank
+Mask = fibonacci till 1000 even
+Even = fibonacci Mask
+rem 2 8 34 144 610
+```
+
+A mask is a predicate, not a bound. `Fib (Fib less 1000)` never ends when `Fib`
+is endless: after 987 every flag is `false`, and nothing proves that no later
+one is `true`. Bound the sequence with `till` instead.
+
+In the pipeline that makes it, a mask stands for the values it selects, so
+numeric operations after the predicate read those values: `sum`, `min`, `max`,
+`lcm`, `mean`, `median`, `std`, `variance`, `skewness`, `quantile` and
+`percentile`. A pipeline therefore reads like a calculator, and both lines
+below give 44 for `Fib = fibonacci till 100`:
 
 ```rank
 Answer = Fib even sum
 Answer = Fib (Fib even) sum
 ```
 
-A boolean array made by a predicate (`A even`), by comparing an array with a
-scalar (`A greater 2`), or by `not`, `and`, `or` and `xor` over masks of the
-same array works the same way: `A even sum` adds the even cells of `A`, read in
-row-major order. Like any named value, a mask keeps the array as it was when
-the mask was made: after `Mask = A even`, a write to `A` copies `A` first, and
-`Mask sum` still adds the cells that were even. Writing the mask itself
-changes which cells it selects.
+The same holds for a boolean array made by a predicate (`A even`), by
+comparing an array with a scalar (`A greater 2`), or by `not`, `and`, `or` and
+`xor` over such masks: `A even sum` adds the even cells of `A`, read in
+row-major order.
 
-The mask retains its source so explicit selection can push the predicate into
-that source without allocating a boolean array. This does not change the mask's
-values. Bound the source before creating a mask, or bound the explicitly selected
-sequence when its source supports value bounds. A boolean mask itself does not
-inherit numeric `from`, `to`, or `until` bounds from its source.
+A mask read by its name has left its pipeline and is only booleans. A numeric
+operation on it is an error that names the explicit forms:
+
+```rank
+Mask = Fib even
+Total = Fib Mask sum
+Count = Mask count
+rem Mask sum is an error
+```
+
+The runtime may remember a mask's source so that selecting from that same
+source pushes the test into it without allocating booleans. This never changes
+a result.
 
 Reusing a mask does not promise that its computed bits are cached. A mask
 captures the logical values of its operands when it is created, rather than
@@ -605,6 +650,15 @@ Mask = N greater 5
 Kept = N filter Mask
 ```
 
+A named function of one argument is a predicate too:
+
+```rank
+fun big X
+  return X greater 10
+end
+Kept = N filter big
+```
+
 `filter` over a table keeps the table form even when its condition names no
 column, because only that form returns rows that are still a table. A table is
 a SQLite view or a rank-1 value of rows, and filtering one needs `use tables`.
@@ -613,13 +667,18 @@ Filtering a lazy sequence stays lazy, and filtering an array yields a lazy
 selection. Materialize it with `copy` or postfix `array` when the result must
 be an array.
 
-A condition extends to the end of its line, so a following operation needs
-parentheses:
+A condition is one predicate, so the pipeline goes on after it. A comparison
+takes one operand, a predicate takes its `rank` and `axis` modifiers, and a
+function after data takes that data as its data-first arguments (`5 near`).
+Everything after the condition applies to the filtered result:
 
 ```rank
-Total = (N filter even) sum
-Values = (N filter greater 5) array
+Total = N filter even sum
+Values = N filter greater 5 array
+Early = N filter even till 100 take 3
 ```
+
+Parenthesize an operand to compute it first: `N filter greater (Limit sqrt)`.
 
 `filter` is source syntax over the mask model above, not a separate kind of
 value, and it does not change its input. It does not replace a named mask: a
@@ -1057,24 +1116,22 @@ sequence sources remain lazy.
 
 ## Short-circuiting selection
 
-A rank-1 value and an aligned boolean mask support three ordered operations:
+`first where` and `first index where` take a condition, as `filter` does, or
+an aligned boolean mask:
 
 ```rank
-Match = Values first where Mask
+Match = Values first where greater 10
 Position = Values first index where Mask
-Prefix = Values take while Mask
 ```
 
-`first where` returns the first value selected by the mask. `first index where`
-returns its zero-based position. Both stop reading as soon as the mask first
-produces `true`. If no position matches, they raise `.Missing`, so `default`
-can provide a fallback.
+`first where` returns the first value that meets the condition. `first index
+where` returns its zero-based position. Both stop reading at the first match,
+so they work on an unbounded source. If nothing matches, they raise `.Missing`,
+so `default` can provide a fallback. Known unequal source and mask lengths are
+errors.
 
-`take while` returns the leading values for which the mask remains `true` and
-stops before the first `false`. Array and queue sources produce an array, text
-produces text, and a sequence produces another lazy sequence. It can therefore
-bound an unbounded source without reading the rest. Known unequal source and
-mask lengths are errors.
+The leading run that meets a condition is `till not Condition`; see
+[Pipeline clauses](#pipeline-clauses).
 
 ## Outer
 
