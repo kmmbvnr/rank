@@ -17,9 +17,7 @@ fun minimum_time Machines Target
 
   for Low less High
     Mid = (Low + High) // 2
-    Made = Mid // Machines sum
-
-    if Made at least Target
+    if Mid // Machines sum at least Target
       High = Mid
     else
       Low = Mid + 1
