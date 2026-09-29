@@ -16,8 +16,7 @@ Result .inside print
 
 rem Count containing and contained ranges.
 fun nested_range_counts Data
-  Shape = Data shape
-  N = Shape 0
+  N = (Data shape) 0
   Start = Data # 0
   Finish = Data # 1
 
@@ -54,9 +53,8 @@ fun nested_range_counts Data
     Seen += 1
   end
 
-  Result = record
+  return record
     .contains = Contains
     .inside = Inside
   end
-  return Result
 end
