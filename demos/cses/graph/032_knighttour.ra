@@ -18,10 +18,10 @@ fun knight_tour StartX StartY
   DY = array 1 2 2 1 -1 -2 -2 -1
 
   fun countopen X Y
-    Inside = X at least 0 and X less 8
-    InsideY = Y at least 0 and Y less 8
-    Inside and= InsideY
-    if not Inside
+    if X less 0 or X at least 8
+      return false
+    end
+    if Y less 0 or Y at least 8
       return false
     end
     return Board Y X equal 0
@@ -60,7 +60,8 @@ fun knight_tour StartX StartY
     for Next in Ordered
       NX = Next % 8
       NY = Next // 8
-      if NX NY (Step + 1) visit
+      NextStep = Step + 1
+      if NX NY NextStep visit
         return true
       end
     end
@@ -94,8 +95,9 @@ fun valid_tour Board
   end
 
   for Step in 1 until 64
-    DX = Xs (Step + 1) - Xs Step abs
-    DY = Ys (Step + 1) - Ys Step abs
+    Next = Step + 1
+    DX = (Xs Next - Xs Step) abs
+    DY = (Ys Next - Ys Step) abs
     if DX * DY not equal 2
       return false
     end
