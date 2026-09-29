@@ -17,10 +17,8 @@ fun removal_game Values
   for Length in 2 to N
     for Left in 0 to N - Length
       Right = Left + Length - 1
-      AfterLeft = Difference (Left + 1)
-      TakeLeft = Values Left - AfterLeft
-      BeforeRight = Difference Left
-      TakeRight = Values Right - BeforeRight
+      TakeLeft = Values Left - Difference (Left + 1)
+      TakeRight = Values Right - Difference Left
       Difference Left = TakeLeft TakeRight max
     end
   end
