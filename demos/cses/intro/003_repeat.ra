@@ -15,8 +15,7 @@ fun longest Text
   Previous = Chars 1 shift with ""
   Changes = Chars not equal Previous
   Starts = Changes indices
-  Total = Text len
-  Ends = Starts -1 shift with Total
+  Ends = Starts -1 shift with (Text len)
   Runs = Ends - Starts
   return Runs max
 end
