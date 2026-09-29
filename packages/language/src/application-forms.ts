@@ -74,7 +74,8 @@ function isNamed(expression: Expression | undefined, name: string): boolean {
 export type SymbolicApplicationForm =
     | { readonly kind: 'outer'; readonly operator: string; readonly operands: readonly Expression[] }
     | { readonly kind: 'segment'; readonly operator: string; readonly source: Expression }
-    | { readonly kind: 'scan'; readonly operator: string; readonly source: Expression; readonly seed?: Expression }
+    | { readonly kind: 'scan'; readonly operator: string; readonly source: Expression; readonly seed?: Expression;
+        readonly axis?: Expression }
     | { readonly kind: 'reduce'; readonly operator: string; readonly source: Expression;
         readonly rank?: Expression; readonly seed?: Expression };
 
@@ -99,6 +100,9 @@ export function symbolicApplicationForm(
             source: expression.left };
         if (parts.length === 3 && isNamed(parts[1], 'with')) return {
             kind: 'scan', operator: expression.operator, source: expression.left, seed: parts[2],
+        };
+        if (parts.length === 3 && isNamed(parts[1], 'axis') && isNumberLiteral(parts[2])) return {
+            kind: 'scan', operator: expression.operator, source: expression.left, axis: parts[2],
         };
     }
     if (isNamed(parts[0], 'reduce') && standard('reduce')) {
@@ -154,6 +158,7 @@ export interface NamedSegmentApplication {
 
 export interface NamedScanApplication {
     readonly seed?: Expression;
+    readonly axis?: Expression;
     readonly source: Expression;
     readonly operation: Expression;
 }
@@ -161,6 +166,10 @@ export interface NamedScanApplication {
 export function explicitNamedScanApplication(parts: Expression[]): NamedScanApplication | undefined {
     if (parts.length === 5 && isNamed(parts[2], 'scan') && isNamed(parts[3], 'with')) {
         return { source: parts[0], seed: parts[4], operation: parts[1] };
+    }
+    if (parts.length === 5 && isNamed(parts[2], 'scan') && isNamed(parts[3], 'axis')
+        && isNumberLiteral(parts[4])) {
+        return { source: parts[0], axis: parts[4], operation: parts[1] };
     }
     if (parts.length === 3 && isNamed(parts[2], 'scan')) {
         return { source: parts[0], operation: parts[1] };

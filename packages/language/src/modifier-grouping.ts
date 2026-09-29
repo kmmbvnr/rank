@@ -39,7 +39,7 @@ function boundary(parts: Expression[]): number | undefined {
         && isSortDirection(part) && applicationForm(parts.slice(0, index + 1)).kind === 'sort-direction');
     if (direction >= 0) return direction < parts.length - 1 ? direction + 1 : undefined;
     if (named(parts[2], 'segment') || named(parts[2], 'scan')) {
-        const end = named(parts[3], 'with') ? 5 : 3;
+        const end = named(parts[3], 'with') || named(parts[3], 'axis') ? 5 : 3;
         return parts.length > end ? end : undefined;
     }
     const rank = parts.findIndex((part, index) => index >= 2 && named(part, 'rank'));
@@ -79,7 +79,8 @@ export function groupModifiers(expression: Expression, standard: StandardName = 
         const seeded = (reduce || scan) && named(parts[ranked ? 3 : 1], 'with');
         const rankPosition = comparison ? parts.findIndex(part => named(part, 'rank')) : -1;
         if (comparison && rankPosition < 0) return expression;
-        const end = comparison ? rankPosition + 2 : (ranked ? 3 : 1) + (seeded ? 2 : 0);
+        const axised = scan && named(parts[1], 'axis');
+        const end = comparison ? rankPosition + 2 : (ranked ? 3 : 1) + (seeded || axised ? 2 : 0);
         if (parts.length <= end) return expression;
         prefix = { ...expression, right: applicationExpression(parts.slice(0, end)) } as Expression;
         rest = parts.slice(end);

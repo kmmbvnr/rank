@@ -1,4 +1,4 @@
-import { ownedArray } from '../array-storage.js';
+import { eagerOperandItems, ownedArray, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { sequenceValues } from '../sequence.js';
 import {
@@ -68,8 +68,9 @@ export function uniformValue(
     }
     const size = uniformSize(shape);
     const width = high - low;
-    const items = Array.from({ length: size }, () => low + random() * width);
-    return ownedArray(items, shape);
+    const items = new Float64Array(size);
+    for (let index = 0; index < size; index += 1) items[index] = low + random() * width;
+    return typedArray(items, shape);
 }
 
 function finiteBound(value: RankValue, side: string): number {
@@ -115,6 +116,18 @@ export function choicesValue(
     const cellShape = source.shape.slice(1);
     const cellSize = cellShape
         .reduce((product, dimension) => product * dimension, 1);
+    // Integer or real cells are drawn straight into a typed buffer.
+    const cells = eagerOperandItems(source);
+    const kind = cells && uniformScalarKind(cells);
+    if (cells && kind) {
+        const out = kind === 'integer' ? new BigInt64Array(count * cellSize) : new Float64Array(count * cellSize);
+        let at = 0;
+        for (let draw = 0; draw < count; draw += 1) {
+            const start = Math.floor(random() * axisSize) * cellSize;
+            for (let offset = 0; offset < cellSize; offset += 1) (out as unknown as RankValue[])[at++] = cells[start + offset];
+        }
+        return typedArray(out, [count, ...cellShape]);
+    }
     const items: RankValue[] = [];
     for (let draw = 0; draw < count; draw += 1) {
         const sourceCell = Math.floor(random() * axisSize);
@@ -125,6 +138,21 @@ export function choicesValue(
         }
     }
     return ownedArray(items, [count, ...cellShape]);
+}
+
+/** 'integer' when every cell is an int64-sized integer, 'real' when every cell is a real number. */
+function uniformScalarKind(cells: ArrayLike<RankValue>): 'integer' | 'real' | undefined {
+    const first = cells[0];
+    if (typeof first === 'number') {
+        for (let index = 1; index < cells.length; index += 1) if (typeof cells[index] !== 'number') return undefined;
+        return 'real';
+    }
+    if (typeof first !== 'bigint') return undefined;
+    for (let index = 0; index < cells.length; index += 1) {
+        const cell = cells[index];
+        if (typeof cell !== 'bigint' || cell !== BigInt.asIntN(64, cell)) return undefined;
+    }
+    return 'integer';
 }
 
 /** Return an eager copy with complete cells reordered along one axis. */

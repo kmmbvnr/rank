@@ -8,7 +8,7 @@ import { materializeSequence, sequence, shiftValue, stackItems, windowValue } fr
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
 import { setValueKey } from '../set.js';
 import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
-import { broadcastShape } from '../tensor.js';
+import { broadcastShape, chooseDenseArrays } from '../tensor.js';
 import { isKnownFileFree } from '../resource-summary.js';
 import {
     isRankArray,
@@ -87,6 +87,8 @@ function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse: RankV
     const shape = arrays.reduce<readonly number[]>(
         (current, array) => broadcastShape(current, array.shape), []);
     const read = (value: RankValue, index: number): RankValue => broadcastRead(shape, value, index);
+    const dense = chooseDenseArrays(condition, whenTrue, whenFalse, shape);
+    if (dense) return dense;
     const fileFree = [whenTrue, whenFalse].every(value => isKnownFileFree(value)
         || (isRankArray(value) && value.containsFiles === false));
     return derivedArray(shape, arrays, index => {

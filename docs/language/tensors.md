@@ -80,6 +80,20 @@ Axis numbers are zero-based. The list must contain every source axis exactly
 once; missing, repeated and out-of-range axes are errors. A matrix transpose is
 `A transpose axis 1 0`.
 
+## Scanning along an axis
+
+`scan axis` accumulates along one axis and keeps the shape:
+
+```rank
+Balance = Factor * scan axis 0
+Highest = Path max scan axis 0
+```
+
+`Factor` is a table with one row per year and one column per lane; `Balance`
+has the running product of every column. The operator may be a symbolic one or
+a named binary operation. The axis is a literal number, and the first item along
+it is kept as it is. Every cell along the other axes is scanned independently.
+
 ## Axis reductions
 
 `sum`, `mean`, `std`, `min`, `max`, `all` and `any` without modifiers reduce
