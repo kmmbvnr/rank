@@ -11,16 +11,7 @@ A shifts print
 
 rem Count the shared factors of two across every value.
 fun shifts A
-  Best = -1
-
-  for V in A
-    Twos = V trailing_twos
-    if Best equal -1 or Twos less Best
-      Best = Twos
-    end
-  end
-
-  return Best
+  return (A trailing_twos rank 0) min
 end
 
 
