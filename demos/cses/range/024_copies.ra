@@ -36,18 +36,19 @@ fun copies Values Queries
     Tree = Versions (K - 1)
     if Type equal 3
       Versions push Tree copy
-    else
-      A = Query 2
-      B = Query 3
-      if Type equal 1
-        Tree (A - 1) = B
-      else
-        Left = A - 1
-        Right = B - 1
-        Total = Tree Left Right query
-        Answers push Total
-      end
+      continue
     end
+
+    A = Query 2
+    B = Query 3
+    if Type equal 1
+      Tree (A - 1) = B
+      continue
+    end
+
+    Left = A - 1
+    Right = B - 1
+    Answers push Tree Left Right query
   end
 
   return Answers
