@@ -2,8 +2,6 @@ rem Median of Two Sorted Arrays
 rem Median of two sorted arrays in
 rem O(log(m+n)) time
 
-use algo
-
 fun median A B
   M = A len
   N = B len
@@ -12,81 +10,56 @@ fun median A B
     return B A median
   end
 
-  Half = M + N + 1
-  Half //= 2
-
+  Half = (M + N + 1) // 2
   Low = 0
   High = M
 
   for Low at most High
-    I = Low + High
-    I //= 2
+    I = (Low + High) // 2
     J = Half - I
-
-    MoveLeft = false
 
     if I greater 0
       if J less N
-        P = I - 1
-        AL = A P
-        BR = B J
-        MoveLeft = AL greater BR
+        if A (I - 1) greater B J
+          High = I - 1
+          continue
+        end
       end
     end
 
-    if MoveLeft
-      High = I - 1
+    if J greater 0
+      if I less M
+        if B (J - 1) greater A I
+          Low = I + 1
+          continue
+        end
+      end
+    end
+
+    Left = 0
+    if I equal 0
+      Left = B (J - 1)
+    elif J equal 0
+      Left = A (I - 1)
     else
-      MoveRight = false
-
-      if J greater 0
-        if I less M
-          Q = J - 1
-          BL = B Q
-          AR = A I
-          MoveRight = BL greater AR
-        end
-      end
-
-      if MoveRight
-        Low = I + 1
-      else
-        Left = 0
-        if I equal 0
-          Q = J - 1
-          Left = B Q
-        else
-          P = I - 1
-          Left = A P
-
-          if J greater 0
-            Q = J - 1
-            BL = B Q
-            Left = Left BL max
-          end
-        end
-
-        Total = M + N
-
-        if Total % 2 equal 1
-          return Left / 1.0
-        end
-
-        Right = 0
-        if I equal M
-          Right = B J
-        else
-          Right = A I
-
-          if J less N
-            BR = B J
-            Right = Right BR min
-          end
-        end
-
-        Sum = Left + Right
-        return Sum / 2.0
-      end
+      Left = A (I - 1)
+      Left = Left (B (J - 1)) max
     end
+
+    if (M + N) % 2 equal 1
+      return Left / 1.0
+    end
+
+    Right = 0
+    if I equal M
+      Right = B J
+    elif J equal N
+      Right = A I
+    else
+      Right = A I
+      Right = Right (B J) min
+    end
+
+    return (Left + Right) / 2.0
   end
 end
