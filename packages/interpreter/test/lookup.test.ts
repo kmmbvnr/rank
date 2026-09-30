@@ -27,3 +27,19 @@ describe('lookup', () => {
             .toThrowError('aligned rank-1 arrays');
     });
 });
+
+describe('lookup over finite sequences', () => {
+    it('takes sequences for the requests, keys and values', () => {
+        const runtime = new Interpreter();
+        runtime.execute('use tables\nuse sequences');
+        expect(formatValue(runtime.execute('(array 2 0) (0 till 3) (array "a" "b" "c") lookup')!))
+            .toBe('c a');
+        expect(formatValue(runtime.execute('1 (0 till 2) (array 5 6) lookup')!)).toBe('6');
+    });
+
+    it('rejects an unbounded sequence', () => {
+        const runtime = new Interpreter();
+        runtime.execute('use tables\nuse sequences');
+        expect(() => runtime.execute('1 primes (array 5 6) lookup')).toThrowError();
+    });
+});

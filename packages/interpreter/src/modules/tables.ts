@@ -22,6 +22,7 @@ import {
     isRankSqliteExpression,
     isRankTableAlias,
     isRankRecord,
+    isRankSequence,
     type RankGroupedTable,
     type RankArray,
     type RankObject,
@@ -32,8 +33,20 @@ import { setValueKey } from '../set.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
+/** A finite sequence read as the array of its items; anything else unchanged. */
+function finiteColumn(value: RankValue): RankValue {
+    if (!isRankSequence(value)) return value;
+    if (value.plan.size.kind === 'infinite') {
+        throw new RankError('lookup requires finite keys and values', 'TypeError');
+    }
+    return ownedArray([...value.plan.iterate()]);
+}
+
 export const tablesModule: RuntimeModule = {
-    lookup: () => native('lookup', 3, ([requested, keys, values]) => {
+    lookup: () => native('lookup', 3, ([requestedIds, keyColumn, valueColumn]) => {
+        const requested = finiteColumn(requestedIds);
+        const keys = finiteColumn(keyColumn);
+        const values = finiteColumn(valueColumn);
         if ([requested, keys, values].some(isRankSqliteExpression)) {
             if (!isRankSqliteExpression(requested)
                 || !isRankSqliteExpression(keys) || !isRankSqliteExpression(values)) {
