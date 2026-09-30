@@ -57,6 +57,7 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #run-button .run-progress-ring { stroke: var(--run-foreground, #dce1f9); stroke-dasharray: 100; stroke-dashoffset: 100; }
 #run-button.holding:not(.turbo) .run-progress-ring { animation: run-hold-progress 580ms linear 120ms forwards; }
 #run-button.turbo .run-progress { display: none; }
+#run-button .run-icon { width: 28px; height: 28px; fill: currentColor; pointer-events: none; }
 #run-button .pause-icon, #run-button .step-icon, #run-button .stop-icon { display: none; }
 #run-button[data-state="paused"] .play-icon, #run-button[data-state="running"] .play-icon { display: none; }
 #run-button[data-state="running"]:not(.turbo) .pause-icon { display: initial; }
