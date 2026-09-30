@@ -74,3 +74,21 @@ describe('reverse', () => {
         expect(() => runtime.execute('5 reverse')).toThrowError('expects');
     });
 });
+
+describe('gathering from an index', () => {
+    const P = 'use algo\nuse sequences\nP = new index\nP 1 = 10\nP 2 = 20\nP 3 = 30\n';
+    const run = (source: string) => show(new Interpreter(), P + source);
+    it('answers one value per key, keeping the key shape', () => {
+        expect(run('Keys = (array 3 1 2) \nP Keys')).toBe('30 10 20');
+        expect(run('Keys = (array 1 2 3 1) (array 2 2) reshape\n(P Keys) shape')).toBe('2 2');
+    });
+    it('reads a finite sequence of keys', () => {
+        expect(run('P (1 till 3)')).toBe('10 20');
+    });
+    it('fills absent keys under default', () => {
+        expect(run('Keys = (array 1 9)\nP Keys default 0')).toBe('10 0');
+    });
+    it('raises on an absent key without default', () => {
+        expect(() => run('Keys = (array 1 9)\nP Keys')).toThrow('missing keyed value');
+    });
+});

@@ -3536,6 +3536,14 @@ Constructors include `new index`, `new queue`, `new set`, `new counter`,
 `new multiset`, `new orderedset`, `new stack`, `new deque` and `new heap`.
 They do not replace the implicit local instance.
 
+An index addressed by an array or a finite sequence of keys gathers: it
+answers one value per key, in the shape of the keys. A missing key raises,
+or takes the `default` when one follows:
+
+```rank
+Labels = Part Nodes default 0
+```
+
 Assignment and argument passing preserve the structure's reference.
 `Alias = Seen` shares `Seen`; `Seen = set` shares the current implicit set.
 Neither assignment creates a copy. Named structures can be captured by local
