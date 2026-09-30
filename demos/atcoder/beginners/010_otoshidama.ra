@@ -16,11 +16,11 @@ fun otoshidama N Y
     Rest = N - Ten
     Spent = 10000 * Ten + 1000 * Rest
     Remaining = Y - Spent
-    Mod = Remaining % 4000
-    NonNegative = Remaining at least 0
-    Divisible = Mod equal 0
+    if Remaining less 0
+      break
+    end
 
-    if NonNegative and Divisible
+    if Remaining % 4000 equal 0
       Five = Remaining // 4000
       if Five at most Rest
         One = Rest - Five
