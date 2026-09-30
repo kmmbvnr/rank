@@ -39,18 +39,16 @@ fun forest_updates Grid Queries
   Trees = array shape Size Size fill 0
   Prefix = array shape Side Side fill 0
 
+  Columns = 1 to Size
+
   for Row InitialRow in Grid
     Codes = Row codepoint rank 0
     Values = (46 - Codes) // 4
     Cells = Values array
     Trees InitialRow # = Cells
-    PrefixRow = Cells + scan with 0
-    Running = PrefixRow (1 to Size)
-    Columns = 1 to Size
+    Running = Cells + scan
     Above = Prefix InitialRow Columns
-    Current = InitialRow + 1
-    Prefix Current Columns = Above
-    Prefix Current Columns += Running
+    Prefix (InitialRow + 1) Columns = Above + Running
   end
 
   Changes = new queue
@@ -58,8 +56,7 @@ fun forest_updates Grid Queries
     Changes push Side fenwick
   end
 
-  Q = Queries len
-  Answers = array shape Q fill 0
+  Answers = array shape (Queries len) fill 0
   Count = 0
   for Query in Queries
     Type = Query 0
@@ -69,10 +66,7 @@ fun forest_updates Grid Queries
       ZeroY = Y - 1
       ZeroX = X - 1
       Old = Trees ZeroY ZeroX
-      Delta = -1
-      if Old equal 0
-        Delta = 1
-      end
+      Delta = 1 - Old * 2
       Trees ZeroY ZeroX += Delta
       RowIndex = Y
       for RowIndex at most Size
@@ -81,28 +75,25 @@ fun forest_updates Grid Queries
         Step = RowIndex (-RowIndex) band
         RowIndex += Step
       end
-    else
-      Top = Query 1
-      Left = Query 2
-      Bottom = Query 3
-      Right = Query 4
-      Total = Prefix Bottom Right
-      Prior = Top - 1
-      Total -= Prefix Prior Right
-      Before = Left - 1
-      Total -= Prefix Bottom Before
-      Total += Prefix Prior Before
-      D = Changes Bottom Right bit2sum
-      Total += D
-      D = Changes Prior Right bit2sum
-      Total -= D
-      D = Changes Bottom Before bit2sum
-      Total -= D
-      D = Changes Prior Before bit2sum
-      Total += D
-      Answers Count = Total
-      Count += 1
+      continue
     end
+
+    Top = Query 1
+    Left = Query 2
+    Bottom = Query 3
+    Right = Query 4
+    Total = Prefix Bottom Right
+    Prior = Top - 1
+    Total -= Prefix Prior Right
+    Before = Left - 1
+    Total -= Prefix Bottom Before
+    Total += Prefix Prior Before
+    Total += Changes Bottom Right bit2sum
+    Total -= Changes Prior Right bit2sum
+    Total -= Changes Bottom Before bit2sum
+    Total += Changes Prior Before bit2sum
+    Answers Count = Total
+    Count += 1
   end
   return Answers (0 till Count)
 end
