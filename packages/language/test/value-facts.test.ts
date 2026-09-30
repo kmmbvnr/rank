@@ -746,7 +746,7 @@ it('keeps proven numeric builtins and arithmetic scalar', () => {
 
 it('keeps the rank of builtins that always return one scalar', () => {
     for (const source of ['X lcm', 'X Y Z powmod',
-        'X Y Z binomialmod', 'X len', 'X count', 'X Y find', 'X Y firstatleast',
+        'X Y Z binomialmod', 'X len', 'X count', 'X Y find',
         'X position', 'X size', 'X seed', 'X codepoint']) {
         expect(facts(source)).toEqual({ types: ['integer'], rank: 0, shape: [] });
     }
@@ -755,7 +755,7 @@ it('keeps the rank of builtins that always return one scalar', () => {
         expect(facts(source)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
     }
     expect(facts('(array 1 2) 1 binomial').types).toEqual(['array']);
-    for (const source of ['X Y gcd', 'X Y lcm', 'X Y bit']) expect(facts(source).rank).toBeUndefined();
+    for (const source of ['X Y gcd', 'X Y lcm', 'X Y bit', 'X Y firstatleast']) expect(facts(source).rank).toBeUndefined();
     expect(facts('12 18 gcd')).toMatchObject({ types: ['integer'], rank: 0, shape: [] });
     expect(facts('"abc" "a" startswith')).toEqual({ types: ['boolean'], rank: 0, shape: [] });
     expect(facts('("abc" bytes) ("a" bytes) startswith'))

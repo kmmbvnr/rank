@@ -3,6 +3,7 @@ import { findOperation, instantiateShapeSignature, operations, type KnownShape }
 import { derivedArray, ownedArray } from '../src/array-storage.js';
 import { RankDsu } from '../src/dsu.js';
 import { RankFunctionalGraph } from '../src/functional-graph.js';
+import { RankMultiset } from '../src/multiset.js';
 import { RankRangeSumSegment } from '../src/segment.js';
 import { RankWavelet } from '../src/wavelet.js';
 import { sequence } from '../src/sequence.js';
@@ -22,6 +23,8 @@ const file: RankValue = { kind: 'file', closed: false, handle: {
 // logical result shape, measured from headers without enumerating lazy values.
 type Sample = readonly [string, () => RankValue[], KnownShape];
 const samples: readonly Sample[] = [
+    ...['ceiling', 'floor', 'lowerbound', 'upperbound'].map((name): Sample =>
+        [`algo.${name}`, () => [new RankMultiset().add(1n).add(5n), 3n], []]),
     ['algo.firstatleast', () => [new RankRangeSumSegment([1n, 2n, 3n]), 3n], []],
     ['algo.missing', () => [new RankWavelet(vector(1n, 2n, 4n)), vector(0n, 2n)], []],
     ['algo.permutations', () => [vector(1n, 2n, 3n)], [6]],

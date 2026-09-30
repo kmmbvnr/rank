@@ -3875,6 +3875,15 @@ exists they also raise `.Missing`, so ordinary `default` supplies a fallback:
 Best = Tickets floor Limit default -1
 ```
 
+The query has intrinsic rank 0: an array of queries gives one answer per
+element, in the shape of the queries. A missing answer raises `.Missing` when
+that cell is read; `default` replaces only the missing cells.
+
+```rank
+Limits = array 3 7 12
+Bests = Tickets floor Limits default -1
+```
+
 `Bag I` addresses the occurrence at zero-based position `I` in sorted order.
 Equal values occupy separate positions. A negative or out-of-bounds position
 raises `.Missing`, so it also composes with `default`.
@@ -4013,7 +4022,8 @@ reaches a numeric target:
 Position = Tree Target firstatleast
 ```
 
-It returns `-1` when no prefix reaches the target. Prefix aggregates must be
+It returns `-1` when no prefix reaches the target. An array of targets gives one
+position per target. Prefix aggregates must be
 monotone relative to the target. Typical valid trees use `max`, or `+` with
 nonnegative values. Rank does not attempt to prove this condition.
 
