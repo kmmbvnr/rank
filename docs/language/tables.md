@@ -251,7 +251,8 @@ Names = First + Members .surname
 Rec = Ids Keys Names lookup
 ```
 
-For arrays, `Keys` and `Values` must be aligned rank-1 arrays. A rank-1 `Ids`
+For arrays, `Keys` and `Values` must be aligned rank-1 arrays or finite
+sequences. A rank-1 `Ids`
 array produces a lazy rank-1 result; a scalar ID produces one value. The first
 match in source order wins, numeric keys compare by value, and a missing key
 or unmatched ID leaves the result cell absent. Source changes invalidate a
@@ -262,6 +263,14 @@ no join and no row read until the enclosing view executes. SQL `NULL` or no
 match leaves the result field absent. If source keys repeat, SQLite's first
 match has no guaranteed order unless the source view has an explicit order;
 use unique keys when the answer must be stable.
+
+`lookup` searches the keys on every call and needs no setup, so it suits a
+one-off match. To answer many requests against the same keys, fill a
+`new index` once and address it with the requested keys (`Dict Ids default 0`):
+one hash lookup per key instead of a scan. `lookup` is a primitive on purpose:
+its SQLite form is a correlated subquery that reads no rows, which the
+`find` plus indexing composition cannot express, and it leaves an unmatched
+cell absent where `find` raises.
 
 `Edges Starts reach by .source .target` traverses a directed relation from one
 starting ID or a rank-1 array/column of IDs:
