@@ -19,18 +19,17 @@ W Weights Values max_value print
 
 rem Visit capacities backwards so every item is used at most once.
 fun max_value W Weights Values
-  Size = W + 1
-  Best = array shape Size fill 0
+  Best = array shape (W + 1) fill 0
 
-  for Weight i in Weights
-    if Weight at most W
-      Value = Values i
+  for Wt i in Weights
+    if Wt greater W
+      continue
+    end
 
-      for Cap in W to Weight by -1
-        Candidate = Best (Cap - Weight) + Value
-        Current = Best Cap
-        Best Cap = Current Candidate max
-      end
+    Val = Values i
+    for Cap in W to Wt by -1
+      Gain = Best (Cap - Wt) + Val
+      Best Cap = (Best Cap) Gain max
     end
   end
 
