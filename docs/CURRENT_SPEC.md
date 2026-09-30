@@ -3492,9 +3492,10 @@ Smallest = A B outer Operation
 
 Cell ranks belong to the operation; `outer` combines the remaining frames.
 Symbolic binary operations have intrinsic ranks `0 0`. The named functions
-`band`, `bor`, `bxor`, `shl`, `shr`, `min` and `max` also declare ranks `0 0`.
-User-defined binary functions currently default to `all all`; syntax for
-declaring their intrinsic ranks remains deferred.
+`band`, `bor`, `bxor`, `shl`, `shr`, `min`, `max`, `atan2`, `binomial`, `gcd`,
+`lcm`, `bit` and `round` also declare ranks `0 0`. User-defined
+binary functions currently default to `all all`; syntax for declaring their
+intrinsic ranks remains deferred.
 
 The result shape is the concatenation of the left and right frame shapes.
 Therefore, if `A` has shape `2 3` and `B` has shape `4 5`, the result of atom
@@ -5421,8 +5422,9 @@ Smallest = A B outer Operation
 
 Cell ranks belong to the operation, while `outer` combines the remaining
 frames. Symbolic binary operations have intrinsic ranks `0 0`. The named
-functions `band`, `bor`, `bxor`, `shl`, `shr`, `min` and `max` also declare
-ranks `0 0`. User-defined binary functions currently default to `all all`;
+functions `band`, `bor`, `bxor`, `shl`, `shr`, `min`, `max`, `atan2`,
+`binomial`, `gcd`, `lcm`, `bit` and `round` also declare ranks
+`0 0`. User-defined binary functions currently default to `all all`;
 syntax for declaring their intrinsic ranks remains deferred.
 
 The result shape is the concatenation of the left and right frame shapes. Thus

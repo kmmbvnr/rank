@@ -147,16 +147,18 @@ export class RankApplication {
                 if (!(error instanceof RankError)) throw error;
             }
         }
+        // The result reads its operands lazily, so a write to either storage must refresh it.
+        const sources = [left, right].filter(isRankArray);
         if (a.frameShape.length === 0) {
-            return completed(lazyArray(frameShape, index =>
+            return completed(derivedArray(frameShape, sources, index =>
                 applyCell(a.cellAt(0), b.cellAt(index)), true));
         }
         if (b.frameShape.length === 0) {
-            return completed(lazyArray(frameShape, index =>
+            return completed(derivedArray(frameShape, sources, index =>
                 applyCell(a.cellAt(index), b.cellAt(0)), true));
         }
         if (sameShape(a.frameShape, b.frameShape)) {
-            return completed(lazyArray(frameShape, index =>
+            return completed(derivedArray(frameShape, sources, index =>
                 applyCell(a.cellAt(index), b.cellAt(index)), true));
         }
         const leftCells = lazyArray(a.frameShape, a.cellAt);
