@@ -26,20 +26,20 @@ fun path_count Grid
 
       if R equal 0 and C equal 0
         Ways 0 0 = 1
-      else
-        Total = 0
-        if R greater 0
-          Total += Ways (R - 1) C
-        end
-        if C greater 0
-          Total += Ways R (C - 1)
-        end
-        Ways R C = Total % 1000000007
+        continue
       end
+
+      Total = 0
+      if R greater 0
+        Total += Ways (R - 1) C
+      end
+      if C greater 0
+        Total += Ways R (C - 1)
+      end
+      Ways R C = Total % 1000000007
     end
   end
 
-  LastRow = H - 1
-  LastCol = W - 1
-  return Ways LastRow LastCol
+  R = H - 1
+  return Ways R (W - 1)
 end
