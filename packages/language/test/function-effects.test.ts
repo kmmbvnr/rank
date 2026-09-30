@@ -126,7 +126,7 @@ it('proves the AoC circuit expression helper cannot change its index argument', 
 });
 
 it('summarizes a counted numeric reader loop only with proven call inputs', () => {
-    const source = readFileSync(new URL('../../../demos/cses/sortnsrch/008_maxsubarray.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/008_maxsubarray.ra', import.meta.url), 'utf8');
     const input: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true };
     expect(analyze(source, 'max_subarray').unknown).toBe(true);
     expect(analyze(source, 'max_subarray', [], [input])).toMatchObject({ unknown: false,
@@ -322,7 +322,7 @@ it('accepts only a local numeric array compound update with compatible callback-
 });
 
 it('summarizes the unchanged palindrome demo with proven integer input', () => {
-    const source = readFileSync(new URL('../../../demos/leetcode/009_palnum.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/009_palnum.ra', import.meta.url), 'utf8');
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     expect(analyze(source, 'palindrome', [], [integer])).toMatchObject({ unknown: false,
         parameters: new Set(), captures: new Set(), io: false });
@@ -336,7 +336,7 @@ it('summarizes the unchanged reverse-integer demo with an early loop return', ()
 });
 
 it('summarizes the unchanged bill-count demo with a return from a counted loop', () => {
-    const source = readFileSync(new URL('../../../demos/atcoder/beginners/010_otoshidama.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/010_otoshidama.ra', import.meta.url), 'utf8');
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     expect(analyze(source, 'otoshidama', [], [integer, integer])).toMatchObject({ unknown: false,
         parameters: new Set(), captures: new Set(), io: false });
@@ -389,15 +389,24 @@ it('joins scalar facts from conditional assignments before proving builtin calls
 });
 
 it('summarizes the unchanged AtCoder vacation loop for eager integer inputs', () => {
-    const source = readFileSync(new URL('../../../demos/atcoder/edpc/03_vacation.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/03_vacation.ra', import.meta.url), 'utf8');
     const input: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true };
     expect(analyze(source, 'best_score', [], [input, input, input])).toMatchObject({ unknown: false,
         readParameters: new Set([0, 1, 2]), parameters: new Set(), io: false });
 });
 
+it('proves a chained max over the vacation arrays read-only', () => {
+    const source = 'fun best A B C\n  X = A 0\n  Y = B 0\n  Z = C 0\n  return X Y max Z max\nend';
+    expect(borrowProofs(source, 'best', ['len', 'max'])).toEqual(new Map([
+        [0, new Map([[1, 'flat-array'], [2, 'flat-array']])],
+        [1, new Map([[0, 'flat-array'], [2, 'flat-array']])],
+        [2, new Map([[0, 'flat-array'], [1, 'flat-array']])]]));
+    expect(borrowProofs(source, 'best', ['len'])).toEqual(new Map());
+});
+
 it('proves non-escape in unchanged numeric reader demos only with exact builtin contracts', () => {
-    const max = readFileSync(new URL('../../../demos/cses/sortnsrch/008_maxsubarray.ra', import.meta.url), 'utf8');
-    const vacation = readFileSync(new URL('../../../demos/atcoder/edpc/03_vacation.ra', import.meta.url), 'utf8');
+    const max = readFileSync(new URL('./fixtures/008_maxsubarray.ra', import.meta.url), 'utf8');
+    const vacation = readFileSync(new URL('./fixtures/03_vacation.ra', import.meta.url), 'utf8');
     expect(borrowProofs(max, 'max_subarray')).toEqual(new Map());
     expect(borrowProofs(max, 'max_subarray', ['len', 'max'])).toEqual(new Map([[0, new Map()]]));
     expect(borrowProofs(vacation, 'best_score', ['len', 'max']))

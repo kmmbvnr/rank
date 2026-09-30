@@ -48,7 +48,7 @@ it('retains draft diagnostics across a proven eager-array reader and withdraws t
 });
 
 it('shows the unchanged maximum-subarray reader result in a draft and retracts an unsupported effect proof', () => {
-    const source = readFileSync(new URL('../../../demos/cses/sortnsrch/008_maxsubarray.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/008_maxsubarray.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.indexOf('fun max_subarray'));
     const session = createReplSession();
     try {

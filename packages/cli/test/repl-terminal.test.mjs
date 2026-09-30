@@ -888,7 +888,7 @@ test('an invalid function example reports syntax at its field and stays editable
         { keys: 'A = 1' + ENTER, until: 'Syntax' },
         { keys: CLEAR + 'A' + ENTER, until: 'X = A' },
     ], 80, 20);
-    assert.match(frames[2].text, /X = A = 1\n\s+! Syntax: Expecting token/);
+    assert.match(frames[2].text, /X = A = 1\n\s+! Syntax: Unexpected '='/);
     assert.match(frames[2].text.split('\n')[frames[2].cursorY], /X = A = 1/);
     assert.doesNotMatch(frames[2].text, /return X|<function inc>/);
     assert.match(frames[3].text, /X = A/);

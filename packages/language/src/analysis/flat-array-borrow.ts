@@ -2,7 +2,7 @@ import {
     isApplicationExpression, isAssignmentStatement, isBinaryExpression, isBooleanLiteral, isForStatement, isIfStatement,
     isNameExpression, isNumberLiteral, isParenthesizedExpression,
     isUnaryExpression,
-    isReturnStatement, type Expression, type FunctionStatement,
+    isReturnStatement, type Expression, type FunctionStatement, type NameExpression,
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
 
@@ -241,9 +241,16 @@ export function flatArrayBorrowProofs(definition: FunctionStatement,
                         return guards;
                     }
                     if (isNameExpression(target) && (target.name === 'min' || target.name === 'max')
-                        && parts.length === 3 && !current.parameters.includes(target.name)
+                        && parts.length >= 3 && !current.parameters.includes(target.name)
                         && builtin(target.name)) {
-                        return onlyReads(parts.slice(0, -1), parameter, selectorLocals, scalarLocals, false);
+                        // A chain such as `A B max C max` interleaves the operator names.
+                        const operators = parts.slice(0, -1).filter((part): part is NameExpression =>
+                            isNameExpression(part) && (part.name === 'min' || part.name === 'max')
+                            && !current.parameters.includes(part.name));
+                        if (!operators.every(operator => builtin(operator.name as 'min' | 'max'))) return undefined;
+                        const operands = parts.slice(0, -1).filter(part => !operators.includes(part as NameExpression));
+                        if (operands.length !== operators.length + 2) return undefined;
+                        return onlyReads(operands, parameter, selectorLocals, scalarLocals, false);
                     }
                     if (!isNameExpression(target) || current.parameters.includes(target.name)
                         || parts.slice(0, -1).filter(part => directName(part, parameter)).length !== 1) return undefined;
