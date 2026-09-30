@@ -106,7 +106,7 @@ function render(): void {
     if (repl.running) {
         if (runningStartedAt === undefined) {
             runningStartedAt = performance.now();
-            turboTimer = setTimeout(() => { render(); }, 2500);
+            turboTimer = setTimeout(() => { render(); }, 1500);
         }
     } else {
         runningStartedAt = undefined;
@@ -131,7 +131,7 @@ function render(): void {
     runButton.setAttribute('aria-label', shownPause ? 'Step into line; hold to continue execution'
         : repl.running ? (session.turboActive ? 'Stop execution' : 'Pause and debug; hold to stop') : 'Run through selected line; hold to run all from start');
     runButton.disabled = modes.waitingForPause || !!session.pauseRequested && !paused;
-    turboButton.hidden = !repl.running || runningElapsed < 2500 || !!shownPause || !!session.turboActive;
+    turboButton.hidden = !repl.running || runningElapsed < 1500 || !!shownPause || !!session.turboActive;
     turboButton.disabled = modes.waitingForPause;
     // The steppers only make sense while the cursor sits on a loop being previewed.
     iterationControls.hidden = !!shownPause || repl.running || !repl.liveIterationAvailable;
