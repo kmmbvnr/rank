@@ -18,11 +18,9 @@ Tree tree_distances print
 rem Compare distances from both ends.
 fun tree_distances Tree
   First = Tree 1 bfs
-  Last = First .order len - 1
-  A = First .order Last
+  A = First .order last
   FromA = Tree A bfs
-  Last = FromA .order len - 1
-  B = FromA .order Last
+  B = FromA .order last
   FromB = Tree B bfs
 
   N = Tree len
