@@ -361,8 +361,8 @@ Shapes, orderings, windows and lazy sources.
 | `Values copy` | array | Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack. |
 | `Items stack` | array | Lazy array of equally shaped array or sequence items; their axes follow the frame of Items. copy is the eager form. |
 | `Mask count` | integer | Number of true cells, or of source items a lazy mask selects. |
-| `Values Target find` | integer | First zero-based position equal to Target in a vector or text. |
-| `Values Target findall` | array | Every zero-based position equal to Target in a vector or text. |
+| `Values Target find` | integer | First zero-based position equal to Target in a vector or text; an array of targets finds each. |
+| `Values Target findall` | array | Every zero-based position equal to Target in a vector or text; an array of targets needs equal counts. |
 | `Values flat` | array | Copies records into fixed-width storage; Count State flat initializes a compact array. |
 | `fibonacci` | sequence, lazy | Unbounded lazy Fibonacci numbers; bound with to, till, from or after. |
 | `Mask indices` | array | Zero-based positions of the true values in a boolean vector. |
@@ -370,7 +370,7 @@ Shapes, orderings, windows and lazy sources.
 | `Values first` | element | First item of text, an array, a queue or a sequence; missing when empty. |
 | `Values last` | element | Last item of text, an array, a queue or a finite sequence; missing when empty. |
 | `primes` | sequence, lazy | Unbounded ascending primes, with planned membership and positional seeking. |
-| `Values Shape reshape` | array | Dense array in row-major order, the element count matching exactly. |
+| `Values Shape reshape` | array | Dense array in row-major order, the element count matching exactly; a matrix of shapes reshapes once per row. |
 | `Value shape` | array | Axis lengths as a rank-1 array. |
 | `Values sort .descending` | array | Stable sort into a new rank-1 array, ascending by default. |
 | `Matrix transpose` | array | Reverses the axes of an array. |
@@ -459,7 +459,7 @@ Splitting, formatting, parsing and code points.
 | `Code character` | text | One-character text for a Unicode code point. |
 | `Character codepoint` | integer | Integer code point of exactly one character. |
 | `Bytes hex` | text | Lowercase hexadecimal text for bytes, without a prefix. |
-| `Values Separator join` | text | Joins scalar elements of a finite collection into one text. |
+| `Values Separator join` | text | Joins scalar elements of a finite collection into one text; a matrix joins each row. |
 | `Text Pattern parse` | array | Captures /integer, /real, /word and /text from a complete pattern match. |
 | `Text Separator split` | array | Splits at every exact occurrence of a separator, keeping empty parts. |
 | `Value Prefix startswith` | boolean | Exact text or byte prefix test; ordinary arrays broadcast elementwise. |

@@ -48,6 +48,11 @@ export class RankApplication {
         if (frameAxes !== undefined && !isRankArray(value)) {
             throw new RankError('axis rank expects an array');
         }
+        if (cellRank < 0) {
+            // Text and sequences have one axis of elements.
+            cellRank = resolveCellRank(cellRank, isRankArray(value) ? value.shape.length
+                : typeof value === 'string' || isRankSequence(value) ? 1 : 0);
+        }
         if (typeof value === 'string') {
             if (cellRank >= 1) return this.invoke(fn, [value]);
             return completed(mapTextAtoms(value, atom => fn.call([atom]), fn.name));
@@ -106,9 +111,15 @@ export class RankApplication {
         if (frameShape.length === 0) {
             return this.invoke(fn, [left, right]);
         }
+        // A cell that returns an array, or an explicit rank on a function without its own
+        // dyadic ranks, stacks its results under the frame.
+        if (fn.arrayCells || (customLeftRank !== undefined && !fn.dyadicRanks)) {
+            return completed(this.stackedCells(left, right, a, b, frameShape, fn));
+        }
         const applyCell = (x: RankValue, y: RankValue): RankValue => {
             const result = fn.call([x, y]);
-            if (valueRank(result) !== 0) {
+            // Text is a boxed cell, as in unary ranked application.
+            if (valueRank(result) !== 0 && typeof result !== 'string') {
                 throw new RankError(
                     `rank operation ${fn.name} must return a scalar`,
                 );
@@ -168,6 +179,92 @@ export class RankApplication {
             rightCells,
             applyCell,
         ));
+    }
+
+    /**
+     * Frame of cells whose results may be arrays. Results must share one shape and
+     * stack under the frame (the `stack` rule), else the read raises `DimensionMismatch`.
+     * The cell shape comes from the first cell, read when the shape is first needed.
+     */
+    private stackedCells(
+        left: RankValue,
+        right: RankValue,
+        a: OuterCells,
+        b: OuterCells,
+        frameShape: readonly number[],
+        fn: NativeFunction,
+    ): RankArray {
+        const frameSize = arraySize(frameShape);
+        if (frameSize === 0) return ownedArray([], [...frameShape]);
+        const operandIndex = (operandFrame: readonly number[], frameIndex: number): number => {
+            if (operandFrame.length === 0) return 0;
+            if (sameShape(operandFrame, frameShape)) return frameIndex;
+            const coordinates = coordinatesAt(frameShape, frameIndex).slice(frameShape.length - operandFrame.length);
+            return arrayOffset(operandFrame, coordinates.map((coordinate, axis) =>
+                operandFrame[axis] === 1 ? 0 : coordinate));
+        };
+        const sources = [left, right].filter(isRankArray);
+        const results = new Map<number, RankValue>();
+        let inputRevision: number | undefined;
+        let cellShape: readonly number[] | undefined;
+        let materialized: RankValue[] | undefined;
+        const refresh = (): boolean => {
+            let current: number | undefined = 0;
+            for (const source of sources) {
+                const next = arrayRevision(source);
+                if (next === undefined) { current = undefined; break; }
+                current = Math.max(current, next);
+            }
+            if (current === undefined || current !== inputRevision) {
+                results.clear();
+                materialized = undefined;
+                if (current !== inputRevision) cellShape = undefined;
+                inputRevision = current;
+            }
+            return current !== undefined;
+        };
+        const resultAt = (frameIndex: number): RankValue => {
+            const cacheable = refresh();
+            const cached = results.get(frameIndex);
+            if (cached !== undefined) return cached;
+            const result = fn.call([
+                a.cellAt(operandIndex(a.frameShape, frameIndex)),
+                b.cellAt(operandIndex(b.frameShape, frameIndex)),
+            ]);
+            const shape = isRankArray(result) ? result.shape : [];
+            if (cellShape === undefined) cellShape = [...shape];
+            else if (!sameShape(cellShape, shape)) {
+                throw new RankError(
+                    `ranked results must have the same shape: ${cellShape.join(' ')} and ${shape.join(' ')}`,
+                    'DimensionMismatch',
+                );
+            }
+            this.ownFiles(result);
+            if (cacheable) results.set(frameIndex, result);
+            return result;
+        };
+        const outputShape = (): readonly number[] => {
+            resultAt(0);
+            return [...frameShape, ...cellShape!];
+        };
+        const result: RankArray = {
+            kind: 'array',
+            get shape() {
+                return outputShape();
+            },
+            itemAt(index) {
+                outputShape();
+                const cellSize = arraySize(cellShape!);
+                const cell = resultAt(Math.floor(index / cellSize));
+                return isRankArray(cell) ? arrayItem(cell, index % cellSize) : cell;
+            },
+            get items() {
+                const shape = outputShape();
+                materialized ??= Array.from({ length: arraySize(shape) }, (_, index) => this.itemAt!(index));
+                return materialized;
+            },
+        };
+        return registerArrayDependencies(result, sources);
     }
 
     private applyToTensorCells(
@@ -310,6 +407,16 @@ export interface OuterCells {
     readonly cellAt: (frameIndex: number) => RankValue;
 }
 
+/**
+ * The cell rank an intrinsic or explicit rank gives an operand of rank `operandRank`.
+ * `all` takes the whole operand; a negative rank counts down from the operand's own
+ * rank, so `-1` selects its items and never goes below a scalar cell.
+ */
+export function resolveCellRank(rank: IntrinsicRank, operandRank: number): number {
+    if (rank === 'all') return operandRank;
+    return rank < 0 ? Math.max(0, operandRank + rank) : Math.min(rank, operandRank);
+}
+
 export function dyadicCells(
     value: RankValue,
     rank: IntrinsicRank,
@@ -317,9 +424,7 @@ export function dyadicCells(
     if (!isRankArray(value)) {
         return { frameShape: [], cellAt: () => value };
     }
-    const cellRank = rank === 'all'
-        ? value.shape.length
-        : Math.min(rank, value.shape.length);
+    const cellRank = resolveCellRank(rank, value.shape.length);
     const frameShape = value.shape.slice(
         0, value.shape.length - cellRank,
     );

@@ -746,7 +746,7 @@ it('keeps proven numeric builtins and arithmetic scalar', () => {
 
 it('keeps the rank of builtins that always return one scalar', () => {
     for (const source of ['X lcm', 'X Y Z powmod',
-        'X Y Z binomialmod', 'X len', 'X count', 'X Y find',
+        'X Y Z binomialmod', 'X len', 'X count',
         'X position', 'X size', 'X seed', 'X codepoint']) {
         expect(facts(source)).toEqual({ types: ['integer'], rank: 0, shape: [] });
     }
@@ -1017,8 +1017,10 @@ it('keeps collection kinds without inventing dimensions or callback proofs', () 
 });
 
 it('keeps collection search and DSU findroot contracts separate', () => {
-    expect(facts('X Y find')).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    // The targets may be an array, which finds each of them.
+    expect(facts('X Y find').rank).toBeUndefined();
     expect(facts('(array 1 2) 1 find')).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('(array 1 2) (array 2 1) find')).toMatchObject({ types: ['array'], rank: 1, shape: [2] });
     const bindings = new Map<string, ValueFacts>([['D', { types: ['dsu'], elements: ['text'] }]]);
     expect(facts('D "a" findroot', bindings)).toEqual({ types: ['text'], rank: 1, shape: [null] });
     bindings.set('Op', { types: [], builtinOperation: 'findroot' });
@@ -1034,4 +1036,14 @@ it('broadcasts the binary scalar built-ins with intrinsic 0 0 ranks', () => {
         expect(facts(call, bindings)).toMatchObject({ types: ['array'], rank: 2, shape: [2, 3] });
     }
     expect(facts('V V bit', bindings)).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['boolean'] });
+});
+
+it('resolves a negative explicit rank against the operand rank', () => {
+    const bindings = new Map<string, ValueFacts>([
+        ['A', { types: ['array'], rank: 3, shape: [2, 3, 4] }],
+        ['B', { types: ['array'], rank: 2, shape: [3, 4] }],
+    ]);
+    expect(facts('A sum rank -1', bindings)).toEqual(facts('A sum rank 2', bindings));
+    expect(facts('A sum rank -2', bindings)).toEqual(facts('A sum rank 1', bindings));
+    expect(facts('A B atan2 rank -3 -2', bindings)).toEqual(facts('A B atan2 rank 0 0', bindings));
 });

@@ -59,6 +59,8 @@ export interface Operation {
     /** Omitted when the operation takes its whole argument at once (`all`). */
     readonly monadicRank?: IntrinsicRank;
     readonly dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank];
+    /** A cell of a ranked call may return an array; results stack under the frame. */
+    readonly arrayCells?: true;
     /** Cell shape contracts, one per supported operand count. Ranks remain explicit. */
     readonly shape?: readonly ShapeSignature[];
     /** Present when the result is produced on demand rather than at once. */
@@ -581,10 +583,13 @@ export const operations: readonly Operation[] = [
         scalarCellArrayNoCallback: 'boolean',
         summary: 'Number of true cells, or of source items a lazy mask selects.' },
     { name: 'find', module: 'sequences', arities: [2], form: 'Values Target find', result: 'integer',
-        shape: [{ args: [null, null], result: [] }],
-        summary: 'First zero-based position equal to Target in a vector or text.' },
+        shape: [{ args: [null, []], result: [] }],
+        dyadicRanks: ['all', 0],
+        summary: 'First zero-based position equal to Target in a vector or text; an array of targets finds each.' },
     { name: 'findall', module: 'sequences', arities: [2], form: 'Values Target findall', result: 'array',
-        summary: 'Every zero-based position equal to Target in a vector or text.' },
+        dyadicRanks: ['all', 0], arrayCells: true,
+        shape: [{ args: [null, []], result: null }],
+        summary: 'Every zero-based position equal to Target in a vector or text; an array of targets needs equal counts.' },
     { name: 'flat', module: 'sequences', arities: [1, 2], form: 'Values flat', result: 'array',
         summary: 'Copies records into fixed-width storage; Count State flat initializes a compact array.' },
     { name: 'fibonacci', module: 'sequences', arities: [], form: 'fibonacci', result: 'sequence',
@@ -606,8 +611,9 @@ export const operations: readonly Operation[] = [
         summary: 'Unbounded ascending primes, with planned membership and positional seeking.' },
     { name: 'reshape', module: 'sequences', arities: [2], form: 'Values Shape reshape',
         shape: [{ args: [null, ['d']], result: null }],
+        dyadicRanks: ['all', 1], arrayCells: true,
         result: 'array',
-        summary: 'Dense array in row-major order, the element count matching exactly.' },
+        summary: 'Dense array in row-major order, the element count matching exactly; a matrix of shapes reshapes once per row.' },
     { name: 'shape', module: 'sequences', arities: [1], form: 'Value shape', result: 'array',
         arrayHeaderNoCallback: true,
         summary: 'Axis lengths as a rank-1 array.' },
@@ -701,7 +707,9 @@ export const operations: readonly Operation[] = [
         shape: [{ args: [null], result: [] }],
         monadicRank: 1, summary: 'Converts an integer or decimal text to a real, or preserves a real.' },
     { name: 'join', module: 'text', arities: [2], form: 'Values Separator join', result: 'text',
-        summary: 'Joins scalar elements of a finite collection into one text.' },
+        shape: [{ args: [[null], []], result: null }],
+        dyadicRanks: [1, 0],
+        summary: 'Joins scalar elements of a finite collection into one text; a matrix joins each row.' },
     { name: 'parse', module: 'text', arities: [2], form: 'Text Pattern parse', result: 'array',
         summary: 'Captures /integer, /real, /word and /text from a complete pattern match.' },
     { name: 'split', module: 'text', arities: [2], form: 'Text Separator split', result: 'array',

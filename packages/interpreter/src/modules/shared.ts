@@ -33,6 +33,7 @@ export function native(
         monadicRank: operation?.monadicRank ?? 'all',
         monadicResultShape: resultShape,
         dyadicRanks: operation?.dyadicRanks,
+        arrayCells: operation?.arrayCells,
         call(arguments_) {
             if (!arities.includes(arguments_.length)) {
                 throw new RankError(

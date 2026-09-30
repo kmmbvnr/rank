@@ -213,6 +213,7 @@ export interface NativeFunction {
      * to call. `undefined` leaves the shape unknown. */
     readonly monadicResultShape?: (cellShape: readonly number[]) => readonly number[] | undefined;
     readonly dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank];
+    readonly arrayCells?: boolean;
     readonly captures?: readonly ReadonlyMap<string, RankValue>[];
     readonly call: (arguments_: RankValue[]) => RankValue;
 }

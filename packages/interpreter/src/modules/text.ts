@@ -44,7 +44,7 @@ export const textModule: RuntimeModule = {
         else if (isRankSequence(value)) {
             if (value.plan.size.kind === 'infinite') throw new RankError('join requires a finite sequence', 'TypeError');
             items = value.plan.iterate();
-        } else throw new RankError('join expects a rank-1 collection; join matrix rows separately', 'TypeError');
+        } else throw new RankError('join expects a rank-1 collection', 'TypeError');
         return Array.from(items, item => {
             if (typeof item === 'object' && !isRankLabel(item) && !isRankDate(item)) {
                 throw new RankError('join expects scalar elements; join nested rows separately', 'TypeError');

@@ -19,18 +19,20 @@ export function operationShapeFacts(
         const rank = ranks[i];
         const shape = value.shape ?? (value.rank === undefined ? undefined : Array(value.rank).fill(null));
         if (rank === 'all') { cells.push(shape); continue; }
-        if (typeof rank !== 'number' || !Number.isSafeInteger(rank) || rank < 0 || !shape) return;
+        if (typeof rank !== 'number' || !Number.isSafeInteger(rank) || !shape) return;
+        // A negative rank counts down from the operand's own rank.
+        const cellRank = rank < 0 ? Math.max(0, shape.length + rank) : rank;
         // Only tensors expose leading frames here. Text and sequences have their
         // own mapping/boxing rules and keep their specialized transfers.
         if (value.types.join() !== 'array') {
-            if (shape.length > rank) return;
+            if (shape.length > cellRank) return;
             cells.push(shape);
             continue;
         }
-        const selected = axes ?? Array.from({ length: Math.max(0, shape.length - rank) }, (_, n) => n);
+        const selected = axes ?? Array.from({ length: Math.max(0, shape.length - cellRank) }, (_, n) => n);
         if (selected.some(n => !Number.isSafeInteger(n) || n < 0 || n >= shape.length)
             || new Set(selected).size !== selected.length
-            || axes && shape.length - selected.length !== rank) return;
+            || axes && shape.length - selected.length !== cellRank) return;
         const nextFrame = selected.map(n => shape[n]);
         if (incompatibleShapes({ types: ['array'], shape: frame }, { types: ['array'], shape: nextFrame })) return;
         frame = broadcastShape(frame, nextFrame);
