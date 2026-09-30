@@ -8,7 +8,7 @@ describe('segment tree', () => {
             'use algo',
             'use numbers',
             'Values = array 5 2 7 1 6',
-            'Tree = Values min segment',
+            'Tree = Values segment min',
             'Before = Tree 1 4 query',
             'Tree 3 = 9',
             'After = Tree 1 4 query',
@@ -22,12 +22,12 @@ describe('segment tree', () => {
         expect(run([
             'use algo',
             'Values = array 1 2 3 4',
-            'Sums = Values + segment',
+            'Sums = Values segment +',
             'A = Sums 1 3 query',
             'fun merge A B',
             '  return A + B',
             'end',
-            'Words = (array "a" "b" "c" "d") merge segment',
+            'Words = (array "a" "b" "c" "d") segment merge',
             'B = Words 1 3 query',
             'array A B',
         ].join('\n'))).toBe('9 bcd');
@@ -36,7 +36,7 @@ describe('segment tree', () => {
     it('updates sum segments over inclusive ranges', () => {
         expect(run([
             'use algo',
-            'Tree = (array 2 3 1 1 5 3) + segment',
+            'Tree = (array 2 3 1 1 5 3) segment +',
             'Before = Tree 2 4 query',
             'Tree 1 3 += 2',
             'Middle = Tree 2 4 query',
@@ -51,24 +51,24 @@ describe('segment tree', () => {
     it('validates sum segment range updates', () => {
         expect(() => run([
             'use algo',
-            'Tree = (array 1 2) + segment',
+            'Tree = (array 1 2) segment +',
             'Tree 1 0 += 3',
         ].join('\n'))).toThrow(
             'segment query start must not exceed its end',
         );
         expect(() => run([
             'use algo',
-            'Tree = (array 1 2) + segment',
+            'Tree = (array 1 2) segment +',
             'Tree 0 1 = "x"',
         ].join('\n'))).toThrow(
-            '+ segment expects numeric values',
+            'segment + expects numeric values',
         );
         expect(() => run([
             'use algo',
-            'Tree = (array 1 2) + segment',
+            'Tree = (array 1 2) segment +',
             'Tree 0 1 *= 2',
         ].join('\n'))).toThrow(
-            '+ segment range assignment supports = and +=',
+            'segment + range assignment supports = and +=',
         );
     });
 
@@ -76,7 +76,7 @@ describe('segment tree', () => {
         expect(run([
             'use algo',
             'use sequences',
-            'First = (array 2 3 1 2 5) + segment',
+            'First = (array 2 3 1 2 5) segment +',
             'Second = First copy',
             'First 0 = 9',
             'Second 1 = 5',
@@ -98,7 +98,7 @@ describe('segment tree', () => {
             'fun combinecustom A B',
             '  return A + B',
             'end',
-            'Tree = (array 2 3 4) combinecustom segment',
+            'Tree = (array 2 3 4) segment combinecustom',
             'Tree 0 2 query',
         ].join('\n'))).toBe('9');
     });
@@ -107,15 +107,15 @@ describe('segment tree', () => {
         expect(run([
             'use algo',
             'use numbers',
-            '(array 8 3 5) min segment 0 2 query',
+            '(array 8 3 5) segment min 0 2 query',
         ].join('\n'))).toBe('3');
     });
 
     it('reports bounds and invalid ranges as Rank errors', () => {
-        expect(run('use algo\nTree = (array 1 2) + segment\nTree (-1) default 7')).toBe('7');
-        expect(() => run('use algo\nTree = (array 1 2) + segment\nTree 0 2 query'))
+        expect(run('use algo\nTree = (array 1 2) segment +\nTree (-1) default 7')).toBe('7');
+        expect(() => run('use algo\nTree = (array 1 2) segment +\nTree 0 2 query'))
             .toThrowError('segment index out of bounds: 2');
-        expect(() => run('use algo\nTree = (array 1 2) + segment\nTree 1 0 query'))
+        expect(() => run('use algo\nTree = (array 1 2) segment +\nTree 1 0 query'))
             .toThrowError('segment query start must not exceed its end');
     });
 
@@ -123,12 +123,12 @@ describe('segment tree', () => {
         expect(run([
             'use algo',
             'use sequences',
-            'Tree = (array 1 2 3) + segment',
+            'Tree = (array 1 2 3) segment +',
             'array (Tree type) (Tree len) (Tree shape)',
         ].join('\n'))).toBe('.segment 3 3');
-        expect(() => run('(array 1 2) + segment'))
+        expect(() => run('(array 1 2) segment +'))
             .toThrowError('segment requires: use algo');
-        expect(() => run('use algo\n(array 1 2) - segment'))
+        expect(() => run('use algo\n(array 1 2) segment -'))
             .toThrowError('segment requires an associative operation');
     });
 
@@ -137,8 +137,8 @@ describe('segment tree', () => {
             'use algo',
             'use bits',
             'use sequences',
-            'Tree = (array 7 3 5) bxor segment',
-            'Empty = (array shape 0 fill 0) + segment',
+            'Tree = (array 7 3 5) segment bxor',
+            'Empty = (array shape 0 fill 0) segment +',
             'array (Tree 0 2 query) (Empty len)',
         ].join('\n'))).toBe('1 0');
     });
@@ -147,8 +147,8 @@ describe('segment tree', () => {
         expect(run([
             'use algo',
             'use numbers',
-            'Maximums = (array 2 7 3 9) max segment',
-            'Counts = (array 1 0 1 1) + segment',
+            'Maximums = (array 2 7 3 9) segment max',
+            'Counts = (array 1 0 1 1) segment +',
             'Result = array shape 5',
             '  (Maximums 1 firstatleast)',
             '  (Maximums 8 firstatleast)',
@@ -164,20 +164,20 @@ describe('segment tree', () => {
         expect(run([
             'use algo',
             'use numbers',
-            'Tree = (array 4 2 8) max segment',
+            'Tree = (array 4 2 8) segment max',
             'Tree 0 = 0',
             'Tree 5 firstatleast',
         ].join('\n'))).toBe('2');
-        expect(run('use algo\nEmpty = (array shape 0 fill 0) + segment\nEmpty 1 firstatleast'))
+        expect(run('use algo\nEmpty = (array shape 0 fill 0) segment +\nEmpty 1 firstatleast'))
             .toBe('-1');
-        expect(() => run('use algo\nTree = (array "a" "b") + segment\nTree 1 firstatleast'))
+        expect(() => run('use algo\nTree = (array "a" "b") segment +\nTree 1 firstatleast'))
             .toThrowError('firstatleast expects numeric segment aggregates');
     });
 
     it('provides the numeric maxsum profile and point updates', () => {
         expect(run([
             'use algo',
-            'Tree = (array -2 3 -1 4 -8) maxsum segment',
+            'Tree = (array -2 3 -1 4 -8) segment maxsum',
             'Before = Tree 0 4 query',
             'Tree 4 = 5',
             'After = Tree 2 4 query',
@@ -187,8 +187,8 @@ describe('segment tree', () => {
             'end',
             'Result',
         ].join('\n'))).toBe('-4 4 0 6 8 8 9 9 5');
-        expect(() => run('use algo\n(array 1 "x") maxsum segment'))
-            .toThrowError('maxsum segment expects numeric values');
+        expect(() => run('use algo\n(array 1 "x") segment maxsum'))
+            .toThrowError('segment maxsum expects numeric values');
     });
 
     it('honors a user function that replaces customcombine', () => {
@@ -197,7 +197,7 @@ describe('segment tree', () => {
             'fun customcombine A B',
             '  return A + B',
             'end',
-            'Tree = (array 1 2 3) customcombine segment',
+            'Tree = (array 1 2 3) segment customcombine',
             'Tree 0 2 query',
         ].join('\n'))).toBe('6');
     });

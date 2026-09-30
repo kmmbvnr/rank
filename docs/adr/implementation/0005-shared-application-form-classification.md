@@ -46,7 +46,7 @@ dispatch. Neither mechanism is removed by the source binding rule.
   exhaustive dispatches. It does not edit the checkout.
 - The same check prototypes `A scan + with 0` in an isolated classifier module.
   Existing runtime and analysis handlers consume its descriptor unchanged.
-  Production syntax remains `A + scan with 0`; #24 remains a separate decision.
+  Production syntax remains `A scan + with 0`; #24 remains a separate decision.
 - Language and runtime application-form tests cover literal validation,
   builtin aliases, contextual methods and changing alias identities.
 

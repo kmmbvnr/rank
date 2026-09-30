@@ -76,7 +76,7 @@ Lower = 10 ** (Digits - 1)
 Upper = Lower * 10 - 1
 
 Factors = Lower to Upper
-Products = Factors Factors * outer
+Products = Factors Factors outer *
 Palindromes = Products filter palindrome rank 0
 Answer = Palindromes max
 ```
@@ -153,7 +153,7 @@ option Width integer = 13
 
 Digits = Number integer rank 0
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows reduce * rank 1
 Answer = Products max
 ```
 
@@ -176,19 +176,19 @@ ALast = (Target - 1) // 3
 BLast = (Target - 1) // 2
 A = (1 to ALast) array
 B = (2 to BLast) array
-PairSums = A B + outer
+PairSums = A B outer +
 C = Target - PairSums
 
-Increasing = A B less outer
+Increasing = A B outer less
 Increasing and= B less C
 
 ASquares = A ** 2
 BSquares = B ** 2
-SquareSums = ASquares BSquares + outer
+SquareSums = ASquares BSquares outer +
 Valid = SquareSums equal C ** 2
 Valid and= Increasing
 
-PairProducts = A B * outer
+PairProducts = A B outer *
 Products = PairProducts * C
 Candidates = Products Valid
 Answer = Candidates max
@@ -293,8 +293,8 @@ rem https://projecteuler.net/problem=15
 
 Top = (Size + 1) to Size * 2
 Bottom = 1 to Size
-Numerator = Top * reduce
-Denominator = Bottom * reduce
+Numerator = Top reduce *
+Denominator = Bottom reduce *
 Answer = Numerator // Denominator
 ```
 
@@ -376,7 +376,7 @@ The twentieth-century count is `171`.
 rem Project Euler 20
 rem https://projecteuler.net/problem=20
 
-Factorial = (1 to 100) * reduce
+Factorial = (1 to 100) reduce *
 Digits = Factorial text
 Values = Digits integer rank 0
 Answer = Values sum
@@ -715,7 +715,7 @@ rem Project Euler 40
 rem https://projecteuler.net/problem=40
 
 Digits = Positions champernowne_digit rank 0
-Answer = Digits * reduce
+Answer = Digits reduce *
 
 for Remaining greater Digits * Count
   Remaining -= Digits * Count
@@ -857,7 +857,7 @@ concatenation is `296962999629`.
 ## 50. Consecutive prime sum
 
 ```rank
-Prefix = Primes + scan with 0
+Prefix = Primes scan + with 0
 Length = (Prefix till Limit) len - 1
 
 Total = Prefix End - Prefix Start
@@ -894,8 +894,8 @@ membership in `primes` checks the whole family. The smallest match is `121313`.
 ## 53. Combinatoric selections
 
 ```rank
-Top = (N to 1 by -1) * scan with 1
-Bottom = (1 to N) * scan with 1
+Top = (N to 1 by -1) scan * with 1
+Bottom = (1 to N) scan * with 1
 Choices = Top // Bottom
 ```
 

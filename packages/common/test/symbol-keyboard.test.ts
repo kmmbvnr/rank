@@ -33,9 +33,9 @@ describe('symbol keyboard', () => {
         expect(keyAvailable('by', 'Part ')).toBe(false);
         expect(keyAvailable('else', 'if X\n  Y\n')).toBe(true);
         expect(keyAvailable('else', '')).toBe(false);
-        expect(keyAvailable('reduce', 'X + ')).toBe(true);
-        expect(keyAvailable('reduce', 'X ')).toBe(false);
-        expect(keyAvailable('outer', 'A equal ')).toBe(true);
+        expect(keyAvailable('reduce', 'X ')).toBe(true);
+        expect(keyAvailable('reduce', 'X + ')).toBe(false);
+        expect(keyAvailable('outer', 'A B ')).toBe(true);
         expect(keyAvailable('axis', 'M len ')).toBe(true);
         expect(keyAvailable('not', 'X ')).toBe(false);
         expect(keyAvailable('stdin', 'X = ')).toBe(true);

@@ -1,12 +1,12 @@
 {
   "compiler": "@arrrank/compile@0.0.1",
-  "date": "2026-09-14T10:31:25.660Z",
+  "date": "2026-09-30T05:04:12.370Z",
   "integers": "i64",
   "sourceSha256": "c607a04c132c6fb5048fe714ad188adc28a70e8391bb21af9a9c4078ceb5fcaa",
   "mainSha256": "aea3d1321d6490271ea2044636c9bec056af2de143a2e61d8ad6d961c1dea0cf",
   "cargoLockSha256": "7d512c9d4b4df5167e278a388de3e1b06226c4c12b9a1826e94b1ba5ebe43bec",
   "casesSha256": "5a54c47572a79ebde214f2c3e78e38d5e9e255642b21027b39da40a96225118a",
-  "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "rust": "rustc 1.94.1 (e408947bf 2026-03-25)",
   "passed": 11,
   "cases": [
     {
@@ -183,7 +183,7 @@
       "actual": {
         "status": 101,
         "stdout": "",
-        "stderr": "\nthread 'main' (9396695) panicked at src/main.rs:6:29:\nattempt to multiply with overflow\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n"
+        "stderr": "\nthread 'main' (27560) panicked at src/main.rs:6:29:\nattempt to multiply with overflow\nstack backtrace:\n   0: __rustc::rust_begin_unwind\n   1: core::panicking::panic_fmt\n   2: core::panicking::panic_const::panic_const_mul_overflow\n   3: rank_005_smallestmultiple_i64::main\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\n"
       }
     }
   ]

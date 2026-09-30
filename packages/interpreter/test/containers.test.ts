@@ -35,7 +35,7 @@ Sum = 0
 for V in Q
   Sum += V
 end
-array (Q 0) (Q 1) (Q len) Sum (Q + reduce)
+array (Q 0) (Q 1) (Q len) Sum (Q reduce +)
 `)).toBe('2 3 2 5 5');
     });
 

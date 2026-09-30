@@ -40,7 +40,7 @@ describe('eager array storage', () => {
 
     it('fuses each name over the value that name holds', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun total A\n return (A * 2) + reduce\nend\nA = array 1 2\nB = A');
+        runtime.execute('fun total A\n return (A * 2) reduce +\nend\nA = array 1 2\nB = A');
         expect(runtime.execute('A total')).toBe(6n);
         runtime.execute('B 0 = 10');
         expect(runtime.execute('A total')).toBe(6n);
@@ -50,7 +50,7 @@ describe('eager array storage', () => {
 
     it('observes replacement of host storage between calls', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun total A\n return (A * 2) + reduce\nend');
+        runtime.execute('fun total A\n return (A * 2) reduce +\nend');
         const fn = runtime.variables.get('total');
         if (!fn || !isNativeFunction(fn)) throw new Error('total');
         const input = createArraySnapshot([1n]);

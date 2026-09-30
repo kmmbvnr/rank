@@ -382,12 +382,12 @@ A segment tree stores a finite rank-1 value under one associative binary
 operation:
 
 ```rank
-Tree = Values min segment
-Sums = Values + segment
-Tree = Values Operation segment
+Tree = Values segment min
+Sums = Values segment +
+Tree = Values segment Operation
 ```
 
-`segment` is an operation modifier, like `scan` and `reduce`. The named form
+`segment` is a higher-order operation, like `scan` and `reduce`. The named form
 resolves `Operation` once when the tree is built. It therefore honors a
 user-defined `min` or any other binary function. Rank does not try to prove
 that the operation is associative.
@@ -395,7 +395,7 @@ that the operation is associative.
 User-defined record states can supply an explicit neutral element:
 
 ```rank
-Tree = Values combine segment with Identity
+Tree = Values segment combine with Identity
 ```
 
 Each input element is already a state. `combine Left Right` must return a
@@ -445,7 +445,7 @@ Assignment replaces earlier pending additions; later additions apply to the
 assigned value. Other segment operations remain point-update trees.
 
 With `use sequences`, postfix `copy` creates an independent version of a
-numeric `+ segment` tree:
+numeric `segment +` tree:
 
 ```rank
 Version = Tree copy
@@ -483,7 +483,7 @@ nonnegative values. Rank does not attempt to prove this condition.
 `maxsum` is the native numeric profile for prefix and subarray sums:
 
 ```rank
-Tree = Values maxsum segment
+Tree = Values segment maxsum
 State = Tree Left Right query
 ```
 

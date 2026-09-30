@@ -8,22 +8,22 @@ describe('modifier pipelines', () => {
     });
 
     it('continues after scan and reduce', () => {
-        expect(run('use numbers\n(array 1 2 3) + scan sum')).toBe('10');
-        expect(run('use numbers\n(array 2 3 4) * reduce abs')).toBe('24');
-        expect(run('use numbers\n(array 1 2 3) + scan with 0 sum')).toBe('10');
-        expect(run('use numbers\n(array 2 3 4) * reduce with 10 abs')).toBe('240');
+        expect(run('use numbers\n(array 1 2 3) scan + sum')).toBe('10');
+        expect(run('use numbers\n(array 2 3 4) reduce * abs')).toBe('24');
+        expect(run('use numbers\n(array 1 2 3) scan + with 0 sum')).toBe('10');
+        expect(run('use numbers\n(array 2 3 4) reduce * with 10 abs')).toBe('240');
     });
 
     it('composes multiple modifiers', () => {
-        expect(run('use text\nuse numbers\n"1203" integer rank 0 + scan sum')).toBe('13');
-        expect(run('use numbers\n(array 1 2) (array 3 4) * outer sum rank 1 sum')).toBe('21');
+        expect(run('use text\nuse numbers\n"1203" integer rank 0 scan + sum')).toBe('13');
+        expect(run('use numbers\n(array 1 2) (array 3 4) outer * sum rank 1 sum')).toBe('21');
     });
 
     it('continues after axis and combined axis/rank selection', () => {
         const matrix = 'M = array shape 2 2\n  1 2\n  3 4\nend\n';
         expect(run('use numbers\n' + matrix + 'M sum axis 0 sum')).toBe('10');
         expect(run('use numbers\n' + matrix + 'M sum axis 0 rank 1 sum')).toBe('10');
-        expect(run('use numbers\n' + matrix + 'M + reduce rank 1 sum')).toBe('10');
+        expect(run('use numbers\n' + matrix + 'M reduce + rank 1 sum')).toBe('10');
     });
 
     it('keeps independent modifier pipelines on both sides of comparisons', () => {

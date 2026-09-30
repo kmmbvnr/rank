@@ -9,7 +9,7 @@
 ## Context
 
 In multi-dimensional array and tensor programming (APL, NumPy, JAX, PyTorch), the vast majority of developer errors stem from dimension mismatches:
-- Reducing along an axis that does not exist (`* reduce rank 2` on a 1D vector);
+- Reducing along an axis that does not exist (`reduce * rank 2` on a 1D vector);
 - Aligning incompatible shapes during elementwise broadcasting;
 - Applying whole-axis selectors (`# # #`) exceeding tensor rank;
 - Passing matrices into functions expecting scalars.

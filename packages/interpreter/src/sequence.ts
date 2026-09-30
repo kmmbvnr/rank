@@ -187,7 +187,7 @@ export function scanSequence(
 ): RankSequence {
     const sourcePlan = source.plan;
     return sequence({
-        name: `${sourcePlan.name} ${name} scan`,
+        name: `${sourcePlan.name} scan ${name}`,
         singlePass: sourcePlan.singlePass,
         size: scanSize(sourcePlan.size, seed !== undefined),
         captures: sourcePlan.captures,

@@ -18,15 +18,15 @@ const CONTINUATIONS = new Set(['catch', 'elif', 'else', 'end', 'finally']);
 /** Words that open an operand, so they never follow one. */
 const PREFIX = new Set(['array', 'new', 'not', 'record', 'stdin']);
 
-/** Modifiers name the operator they follow: `+ reduce`, `equal outer`, `len axis`. */
+/** Higher-order operations follow their operands and take the operator after them: `A reduce +`, `A B outer equal`. */
 const REDUCED = new Set(['+', '-', '*', '**', '/', '//', '%', 'and', 'or', 'xor']);
 const COMPARED = new Set(['equal', 'less', 'greater', 'least', 'most', 'by']);
-/** `rank` and `axis` also follow a function name: `len axis`, `integer rank`. */
+/** `rank` and `axis` follow a function name: `len axis`, `integer rank`; `scan` follows the values it applies to. */
 const function_ = (previous: Token) => previous.kind === 'word' && endsOperand(previous);
 const MODIFIERS: Readonly<Record<string, (previous: Token) => boolean>> = {
-    reduce: previous => REDUCED.has(previous.text),
-    scan: previous => REDUCED.has(previous.text),
-    outer: previous => REDUCED.has(previous.text) || COMPARED.has(previous.text),
+    reduce: previous => endsOperand(previous),
+    scan: previous => endsOperand(previous),
+    outer: previous => endsOperand(previous),
     rank: previous => REDUCED.has(previous.text) || COMPARED.has(previous.text) || function_(previous),
     axis: previous => REDUCED.has(previous.text) || COMPARED.has(previous.text) || function_(previous),
 };

@@ -53,7 +53,7 @@ fun hand_score Cards
 
   Flush = Suits unique len equal 1
 
-  Same = Values Values equal outer
+  Same = Values Values outer equal
   Freq = Same count rank 1
 
   MaxFreq = Freq max

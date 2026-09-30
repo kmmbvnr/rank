@@ -8,7 +8,7 @@ describe('derived array revisions', () => {
         const runtime = new Interpreter();
         try {
             runtime.execute(`A = (1 to 3) array
-B = A A + outer`);
+B = A A outer +`);
             const source = runtime.variables.get('A') as RankArray;
             const result = runtime.variables.get('B') as RankArray;
             let reads = 0;

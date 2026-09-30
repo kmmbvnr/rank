@@ -3113,32 +3113,49 @@ M3 = N % 3 equal 0
 
 ## Operation modifiers
 
-An operation may be followed by a word that changes how it is applied:
+Two kinds of trailing words change how an operation is applied.
+
+**Call parameters** say how a function is applied to cells. They follow the
+function: `A F rank 0`, `M sum axis 0`.
+
+**Higher-order operations** (`reduce`, `scan`, `segment`, `outer`) take a
+function as their argument. The function is the word or symbol right after
+the operation, with the other parameters, as in `sort by .field`:
 
 ```rank
-Total = A + reduce with 0
-Prefix = A + scan with 0
-Tree = A + segment
-Products = A B * outer
+Total = A reduce + with 0
+Prefix = A scan + with 0
+Tree = A segment +
+Products = A B outer *
+States = Steps scan next with Start
 Cells = A F rank 0
 ```
 
-The trailing modifier binds the operation and its operands as one expression.
-In `A B * outer`, `A B` is not evaluated first as addressing.
+The function is a symbol (`+`, `*`, `and`, `less`), or a name that holds a
+function, builtin or user-defined. An operator symbol directly after one of
+these four words is its argument, never an infix operator. `scan`, `segment`
+and `outer` need the function; the old orders `A + scan with 0` and
+`Steps next scan` are rejected with a message that shows the new spelling.
+`reduce` takes only a symbol. If a program binds `scan`, `reduce`, `segment` or
+`outer` itself, the symbol form (`A scan +`) is rejected; the name form
+follows the binding.
+
+The operation takes everything on its left: `Start + Y scan +` scans
+`Start + Y`. In `A B outer *`, `A B` is not evaluated first as addressing.
 A completed modified operation can feed the next operation in the same chain:
 
 ```rank
 Total = "1203" integer rank 0 sum
-Prefix = A + scan with 0
+Prefix = A scan + with 0
 Total = Prefix sum
-Total = A B * outer sum rank 1 sum
+Total = A B outer * sum rank 1 sum
 Total = M sum axis 0 sum
 ```
 
 `rank` consumes its integer argument, or two for `rank L R`; `axis` consumes its axis numbers (and
 an optional `rank R`). The following operation receives the modified result.
 `with` consumes one seed or identity operand before the chain continues.
-For example, `A + scan with 0 sum` sums the scan results. `segment`
+For example, `A scan + with 0 sum` sums the scan results. `segment`
 constructs the algorithmic collection described in
 [Collections](language/collections.md). Operands are evaluated once.
 Parentheses remain available to make grouping explicit.
@@ -3279,8 +3296,8 @@ six comparison operators above; general binary function rank remains deferred.
 A reduction collapses values:
 
 ```rank
-Total = A + reduce with 0
-Product = A * reduce
+Total = A reduce + with 0
+Product = A reduce *
 ```
 
 Without an explicit rank, reduction consumes the complete finite value in
@@ -3288,8 +3305,8 @@ row-major order. `reduce rank R` instead reduces every trailing rank-`R` cell
 to one atom while preserving its leading frame:
 
 ```rank
-RowTotals = M + reduce rank 1 with 0
-BlockProducts = Blocks * reduce rank 2
+RowTotals = M reduce + rank 1 with 0
+BlockProducts = Blocks reduce * rank 2
 ```
 
 `with Seed` supplies an explicit initial accumulator. The seed is combined with
@@ -3323,8 +3340,8 @@ Rows = Flags all axis 1
 RowCounts = Flags count axis 1
 ```
 
-`all` is equivalent to `and reduce with true`; `any` is equivalent to
-`or reduce with false`.
+`all` is equivalent to `reduce and with true`; `any` is equivalent to
+`reduce or with false`.
 `count` returns the integer number of `true` values. All three operations
 require boolean cells. `all` and `any` short-circuit as soon as the result is
 known, while `count` examines the complete cell. An empty collection produces
@@ -3377,7 +3394,7 @@ representation.
 Prefix accumulation:
 
 ```rank
-Prefix = A + scan with 0
+Prefix = A scan + with 0
 ```
 
 `scan with Seed` returns the seed followed by every left-to-right accumulated
@@ -3394,10 +3411,10 @@ prefix or a particular position. `scan` without `axis` rejects higher-rank
 arrays and has no `rank` form.
 
 `axis` followed by one literal axis number scans an array of any rank along that
-axis and keeps its shape, so `T + scan axis 0` accumulates down every column of
+axis and keeps its shape, so `T scan + axis 0` accumulates down every column of
 a matrix and each cell along the other axes is an independent scan. It works
 with the symbolic operators and with named binary operations, as in
-`T max scan axis 0` or `T next scan axis 1`. The first item along the axis is
+`T scan max axis 0` or `T scan next axis 1`. The first item along the axis is
 kept, as in a scan without a seed; `with` is not accepted together with `axis`.
 Real cells scanned with `+`, `-`, `*`, `max` or `min` run as one loop over a
 typed buffer.
@@ -3405,12 +3422,12 @@ typed buffer.
 A binary user function can also accumulate states:
 
 ```rank
-States = Steps next scan with Start
-Prefixes = Steps next scan
+States = Steps scan next with Start
+Prefixes = Steps scan next
 ```
 
 `next State Step` receives the previous state and the next source item. The
-seed is the first result. Without a seed, `Steps next scan` starts from the
+seed is the first result. Without a seed, `Steps scan next` starts from the
 first source item. The function is resolved once when the scan is created;
 sequence sources remain lazy.
 
@@ -3440,11 +3457,11 @@ The leading run that meets a condition is `till not Condition`; see
 function immediately before it to every pair of cells:
 
 ```rank
-Sums = A B + outer
-Products = A B * outer
-Grid = Values Values bxor outer
+Sums = A B outer +
+Products = A B outer *
+Grid = Values Values outer bxor
 Operation = min
-Smallest = A B Operation outer
+Smallest = A B outer Operation
 ```
 
 Cell ranks belong to the operation; `outer` combines the remaining frames.
@@ -3455,7 +3472,7 @@ declaring their intrinsic ranks remains deferred.
 
 The result shape is the concatenation of the left and right frame shapes.
 Therefore, if `A` has shape `2 3` and `B` has shape `4 5`, the result of atom
-pairing `A B * outer` has shape:
+pairing `A B outer *` has shape:
 
 ```text
 2 3 4 5
@@ -3867,12 +3884,12 @@ A segment tree stores a finite rank-1 value under one associative binary
 operation:
 
 ```rank
-Tree = Values min segment
-Sums = Values + segment
-Tree = Values Operation segment
+Tree = Values segment min
+Sums = Values segment +
+Tree = Values segment Operation
 ```
 
-`segment` is an operation modifier, like `scan` and `reduce`. The named form
+`segment` is a higher-order operation, like `scan` and `reduce`. The named form
 resolves `Operation` once when the tree is built. It therefore honors a
 user-defined `min` or any other binary function. Rank does not try to prove
 that the operation is associative.
@@ -3880,7 +3897,7 @@ that the operation is associative.
 User-defined record states can supply an explicit neutral element:
 
 ```rank
-Tree = Values combine segment with Identity
+Tree = Values segment combine with Identity
 ```
 
 Each input element is already a state. `combine Left Right` must return a
@@ -3930,7 +3947,7 @@ Assignment replaces earlier pending additions; later additions apply to the
 assigned value. Other segment operations remain point-update trees.
 
 With `use sequences`, postfix `copy` creates an independent version of a
-numeric `+ segment` tree:
+numeric `segment +` tree:
 
 ```rank
 Version = Tree copy
@@ -3968,7 +3985,7 @@ nonnegative values. Rank does not attempt to prove this condition.
 `maxsum` is the native numeric profile for prefix and subarray sums:
 
 ```rank
-Tree = Values maxsum segment
+Tree = Values segment maxsum
 State = Tree Left Right query
 ```
 
@@ -5214,7 +5231,7 @@ copying them:
 ```rank
 WindowShape = array 2 3
 Blocks = M WindowShape window
-Scores = Blocks + reduce rank 2 with 0
+Scores = Blocks reduce + rank 2 with 0
 ```
 
 For source shape `4 5`, `Blocks` has shape `3 3 2 3`. The trimmed source axes
@@ -5361,10 +5378,10 @@ array. All other axes keep their order and size.
 immediately before it is applied to every pair of cells:
 
 ```rank
-Sums = A B + outer
-Grid = Values Values bxor outer
+Sums = A B outer +
+Grid = Values Values outer bxor
 Operation = min
-Smallest = A B Operation outer
+Smallest = A B outer Operation
 ```
 
 Cell ranks belong to the operation, while `outer` combines the remaining
@@ -5730,8 +5747,8 @@ Rows = Flags all axis 1
 RowCounts = Flags count axis 1
 ```
 
-`all` and `any` are equivalent to `and reduce with true` and
-`or reduce with false`, respectively.
+`all` and `any` are equivalent to `reduce and with true` and
+`reduce or with false`, respectively.
 `count` returns the integer number of `true` values. All three accept only
 boolean cells and support `rank` and `axis`. `all` and `any` short-circuit;
 `count` examines the complete cell. Empty collections produce `true`, `false`
@@ -5917,7 +5934,7 @@ The two-argument forms of `band`, `bor`, `bxor`, `shl` and `shr` have intrinsic
 ranks `0 0`, so they can be passed to `outer`:
 
 ```rank
-Grid = Values Values bxor outer
+Grid = Values Values outer bxor
 ```
 
 `binary` formats a nonnegative integer as text. With one argument it uses the
@@ -5948,7 +5965,7 @@ count
 ```
 
 `copy` eagerly copies a material or lazy array into independent writable dense
-storage while preserving its shape. On a numeric `+ segment`, it creates an
+storage while preserving its shape. On a numeric `segment +`, it creates an
 independent persistent version that shares unchanged nodes. On a finite
 sequence, it materializes values and stacks equally shaped array items along
 a new leading axis, like postfix `array`. An array whose cells are arrays or
@@ -6671,7 +6688,7 @@ Seen = new set
 Counts = new counter
 Empty = new multiset
 F = Size fenwick
-Tree = Values min segment
+Tree = Values segment min
 Data = Values wavelet
 Seen add Value
 Counts add Value
@@ -6711,18 +6728,18 @@ zero-based cell access and assignment plus inclusive prefix sums through
 This middle use of `sum` dispatches by the receiver's Fenwick type and does not
 reserve the word in other application chains.
 
-`Values Operation segment` builds a segment tree for an associative binary
+`Values segment Operation` builds a segment tree for an associative binary
 operation. `Tree Left Right query` reduces an inclusive range, and addressed
 assignment performs a point update. Construction, bounds and error behavior
 are specified in [Collections](language/collections.md).
 
 `Tree Target firstatleast` finds the first monotone numeric prefix that reaches
-the target. `Values maxsum segment` selects the native prefix/subarray summary
+the target. `Values segment maxsum` selects the native prefix/subarray summary
 profile. `Values wavelet` prepares immutable inclusive range counts through
 `Data Left Right Low High within`. Numeric wavelets also provide `sumwithin`
 for range-value sums and `Data Bounds missing` for positive coin values.
 
-Numeric `Values + segment` trees also accept `Tree Left Right = Value` and
+Numeric `Values segment +` trees also accept `Tree Left Right = Value` and
 `Tree Left Right += Delta` with lazy `O(log N)` range updates.
 
 ## Graph profile
@@ -6829,7 +6846,7 @@ Lower = 10 ** (Digits - 1)
 Upper = Lower * 10 - 1
 
 Factors = Lower to Upper
-Products = Factors Factors * outer
+Products = Factors Factors outer *
 Palindromes = Products filter palindrome rank 0
 Answer = Palindromes max
 ```
@@ -6906,7 +6923,7 @@ option Width integer = 13
 
 Digits = Number integer rank 0
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows reduce * rank 1
 Answer = Products max
 ```
 
@@ -6929,19 +6946,19 @@ ALast = (Target - 1) // 3
 BLast = (Target - 1) // 2
 A = (1 to ALast) array
 B = (2 to BLast) array
-PairSums = A B + outer
+PairSums = A B outer +
 C = Target - PairSums
 
-Increasing = A B less outer
+Increasing = A B outer less
 Increasing and= B less C
 
 ASquares = A ** 2
 BSquares = B ** 2
-SquareSums = ASquares BSquares + outer
+SquareSums = ASquares BSquares outer +
 Valid = SquareSums equal C ** 2
 Valid and= Increasing
 
-PairProducts = A B * outer
+PairProducts = A B outer *
 Products = PairProducts * C
 Candidates = Products Valid
 Answer = Candidates max
@@ -7046,8 +7063,8 @@ rem https://projecteuler.net/problem=15
 
 Top = (Size + 1) to Size * 2
 Bottom = 1 to Size
-Numerator = Top * reduce
-Denominator = Bottom * reduce
+Numerator = Top reduce *
+Denominator = Bottom reduce *
 Answer = Numerator // Denominator
 ```
 
@@ -7129,7 +7146,7 @@ The twentieth-century count is `171`.
 rem Project Euler 20
 rem https://projecteuler.net/problem=20
 
-Factorial = (1 to 100) * reduce
+Factorial = (1 to 100) reduce *
 Digits = Factorial text
 Values = Digits integer rank 0
 Answer = Values sum
@@ -7468,7 +7485,7 @@ rem Project Euler 40
 rem https://projecteuler.net/problem=40
 
 Digits = Positions champernowne_digit rank 0
-Answer = Digits * reduce
+Answer = Digits reduce *
 
 for Remaining greater Digits * Count
   Remaining -= Digits * Count
@@ -7610,7 +7627,7 @@ concatenation is `296962999629`.
 ## 50. Consecutive prime sum
 
 ```rank
-Prefix = Primes + scan with 0
+Prefix = Primes scan + with 0
 Length = (Prefix till Limit) len - 1
 
 Total = Prefix End - Prefix Start
@@ -7647,8 +7664,8 @@ membership in `primes` checks the whole family. The smallest match is `121313`.
 ## 53. Combinatoric selections
 
 ```rank
-Top = (N to 1 by -1) * scan with 1
-Bottom = (1 to N) * scan with 1
+Top = (N to 1 by -1) scan * with 1
+Bottom = (1 to N) scan * with 1
 Choices = Top // Bottom
 ```
 
@@ -8207,7 +8224,7 @@ vertical pipelines (`|>` or fluent dot-chaining):
 rem Preferred Rank style:
 Digits = Number integer rank 0
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows reduce * rank 1
 Answer = Products max
 ```
 
@@ -8222,7 +8239,7 @@ line** to avoid mobile keyboard friction.
 
 ```rank
 Range = 1 till 1000
-States = Range next scan with Start
+States = Range scan next with Start
 ```
 
 Here `Start` is the first state, so the 999 range items produce 1000 states.
@@ -8307,12 +8324,12 @@ patterns apply:
 
 ## 5. Multidimensional `window` and operator-modifier reductions
 
-Rank introduces `window` and operator-modifier reductions (`* reduce`, `+ reduce`)
+Rank introduces `window` and operator-modifier reductions (`reduce *`, `reduce +`)
 to replace nested index-manipulation loops with rank operations:
 
 ```rank
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows reduce * rank 1
 Answer = Products max
 ```
 
@@ -8388,7 +8405,7 @@ Total = Squares sum
 This replaces the imperative chain `test each value -> update Total -> return
 Total`. Each named value exposes one stage to the REPL. Prefer `sum`, `count`,
 `min`, `max`, `all`, and `any` when their names describe the operation. Use a
-symbolic modifier such as `* reduce` when no clearer named reduction exists or
+symbolic modifier such as `reduce *` when no clearer named reduction exists or
 when `rank` selects cells. Use `with Seed` only when an additional initial value
 must participate in the reduction.
 
@@ -8396,7 +8413,7 @@ Use `scan with Seed` when every intermediate accumulator state is part of the
 result:
 
 ```rank
-Running = Values + scan with 0
+Running = Values scan + with 0
 ```
 
 This replaces `start Total at 0 -> append Total -> update Total for each value

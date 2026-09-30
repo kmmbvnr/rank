@@ -85,8 +85,8 @@ once; missing, repeated and out-of-range axes are errors. A matrix transpose is
 `scan axis` accumulates along one axis and keeps the shape:
 
 ```rank
-Balance = Factor * scan axis 0
-Highest = Path max scan axis 0
+Balance = Factor scan * axis 0
+Highest = Path scan max axis 0
 ```
 
 `Factor` is a table with one row per year and one column per lane; `Balance`
@@ -281,7 +281,7 @@ copying them:
 ```rank
 WindowShape = array 2 3
 Blocks = M WindowShape window
-Scores = Blocks + reduce rank 2 with 0
+Scores = Blocks reduce + rank 2 with 0
 ```
 
 For source shape `4 5`, `Blocks` has shape `3 3 2 3`. The trimmed source axes
@@ -459,10 +459,10 @@ array. All other axes keep their order and size.
 immediately before it is applied to every pair of cells:
 
 ```rank
-Sums = A B + outer
-Grid = Values Values bxor outer
+Sums = A B outer +
+Grid = Values Values outer bxor
 Operation = min
-Smallest = A B Operation outer
+Smallest = A B outer Operation
 ```
 
 Cell ranks belong to the operation, while `outer` combines the remaining

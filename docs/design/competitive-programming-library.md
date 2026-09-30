@@ -25,9 +25,9 @@ These extend the current `segment` value instead of creating unrelated trees:
   compact form. A future arbitrary-predicate search still needs evidence;
 - `maxsum` stores sum, maximum prefix, suffix and subarray aggregates natively.
   Prefix Sum Queries and both Subarray Sum Queries justify the profile;
-- numeric `+ segment` trees accept inclusive addressed assignment and addition
+- numeric `segment +` trees accept inclusive addressed assignment and addition
   with lazy propagation. Range Updates and Sums justifies the update syntax;
-- postfix `copy` on a numeric `+ segment` creates an independent persistent
+- postfix `copy` on a numeric `segment +` creates an independent persistent
   version. Versions share unchanged nodes, while updates copy one root path.
   Range Queries and Copies justifies the ownership model.
 

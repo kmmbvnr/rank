@@ -67,7 +67,7 @@ Algorithmic collections, range structures and combinatorial generators.
 | `Tree Target firstatleast` | integer | First position whose monotone prefix aggregate reaches the target. |
 | `Bag floor Limit` | element | Largest stored value at most the limit. |
 | `Bag lowerbound Value` | element | Smallest stored value at least the query, an alias for ceiling. |
-| `Values maxsum segment` | record | Prefix and subarray sum profile: query returns sum, prefix, suffix and best. |
+| `Values segment maxsum` | record | Prefix and subarray sum profile: query returns sum, prefix, suffix and best. |
 | `Data Bounds missing` | integer | Smallest subset sum a wavelet position range cannot make. |
 | `Values Count multicomb` | sequence, lazy | Lazy sequence of the combinations of that size with repetition. |
 | `Values multiset` | collection | Ordered multiset holding every value, duplicates kept. |
@@ -83,7 +83,7 @@ Algorithmic collections, range structures and combinatorial generators.
 | `Ends Value pushfront` | collection, mutates | Adds a value to the front of a deque. |
 | `Tree Left Right query` | element | Reduces an inclusive segment-tree range in left-to-right order. |
 | `Bag remove Value` | collection, mutates | Removes one occurrence from a set, counter or multiset. |
-| `Values Operation segment` | segment | Segment tree over one associative binary operation. |
+| `Values segment Operation` | segment | Segment tree over one associative binary operation. |
 | `Data Left Right Low High sumwithin` | number | Sums wavelet values inside inclusive position and value ranges. |
 | `Bag upperbound Value` | element | Smallest stored value greater than the query. |
 | `Values wavelet` | structure | Immutable wavelet matrix for range counts and sums. |

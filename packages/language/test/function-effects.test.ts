@@ -192,7 +192,7 @@ it('proves local integer factor iteration without user callbacks', () => {
 });
 
 it('proves numeric full reductions without invoking lazy cells', () => {
-    const source = 'fun helper Values\n return Values + reduce\nend';
+    const source = 'fun helper Values\n return Values reduce +\nend';
     const numeric: ValueFacts = { types: ['sequence'], rank: 1, shape: [null], elements: ['integer'],
         callbackFreeScalarCells: true };
     expect(analyze(source, 'helper', [], [numeric]).unknown).toBe(false);
@@ -543,7 +543,7 @@ it('classifies whole-axis array selection as a guarded read', () => {
 });
 
 it('proves numeric outer arithmetic without trusting lazy callback arrays', () => {
-    const source = 'fun helper X Y\n return X Y + outer\nend';
+    const source = 'fun helper X Y\n return X Y outer +\nend';
     const numeric = { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true } as const;
     expect(analyze(source, 'helper', [], [numeric, numeric]).unknown).toBe(false);
     expect(analyze(source, 'helper', [], [{ ...numeric, eagerScalarCells: undefined }, numeric]).unknown).toBe(true);

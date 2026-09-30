@@ -46,7 +46,7 @@ fun increase_costs Values Queries
   end
   Path = Next Cost weighted
 
-  Prefix = Values + scan with 0
+  Prefix = Values scan + with 0
   Q = Queries len
   Answers = array shape Q fill 0
   for Query I in Queries

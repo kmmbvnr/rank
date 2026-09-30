@@ -103,7 +103,7 @@ integer, real and mixed inputs and named/reused intermediates. It predates the
 last recursion fix, which does not change private storage or fold kernels.
 [Raw comparison](../../benchmarks/baselines/2026-09-11-integrated-host-arrays.json).
 
-Plain-host inline `(A * 2 + B) + reduce` at one million elements became slower:
+Plain-host inline `(A * 2 + B) reduce +` at one million elements became slower:
 integer 30.7 to 92.4 ms, real 29.8 to 86.2 ms, mixed 34.3 to 86.9 ms.
 Main's former fusion proof probed unknown object descriptors; a Proxy trap
 could change values during that proof. The corrected path does not make those

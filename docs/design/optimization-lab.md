@@ -102,7 +102,7 @@ peak RSS was 278.3 MiB. [Raw samples](../../benchmarks/baselines/2026-09-11-matv
 
 ## 3. Builtin-sum fusion: faster prototype rejected on correctness
 
-The prototype shared arithmetic-plan construction with `+ reduce`, resolved
+The prototype shared arithmetic-plan construction with `reduce +`, resolved
 `sum` after preparing operands, and checked its identity against the builtin.
 Only a transient inline arithmetic result could be fused. A shadowed function,
 lazy input, named cached intermediate or different broadcast shape retained
@@ -149,8 +149,8 @@ sum semantics tests; the fresh demo run passed all 164 files. The [rejected patc
 is saved for inspection only; it is not runtime code and must not be applied
 without fixing its eligibility check. The k-means harness and raw results stay.
 
-The existing `+ reduce` fusion uses the same descriptor probe. A separate live
-check after rollback also returned `200n` for `(A * 2) + reduce` versus `2n` for
+The existing `reduce +` fusion uses the same descriptor probe. A separate live
+check after rollback also returned `200n` for `(A * 2) reduce +` versus `2n` for
 a named intermediate on the same kind of Proxy. This is an open pre-existing
 correctness issue, not repaired by rolling back the sum extension.
 
@@ -173,7 +173,7 @@ from the baseline or from a passing timeout.
 The next prototype identifies owned arrays in a private WeakMap before inspecting
 their descriptors. Unknown objects, including proxies around owned arrays, take
 the ordinary path without extra property probes. This repairs the existing
-`+ reduce` example that returned 200 instead of 2. Numeric Rank literals and
+`reduce +` example that returned 200 instead of 2. Numeric Rank literals and
 materialized sequences receive private backing arrays. JS callers can request a
 shallow copy with `createArraySnapshot`; existing host objects remain supported.
 The [storage contract](array-storage.md) explains exposure, mutation and files.

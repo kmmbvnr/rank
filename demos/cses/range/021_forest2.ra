@@ -44,7 +44,7 @@ fun forest_updates Grid Queries
     Values = (46 - Codes) // 4
     Cells = Values array
     Trees InitialRow # = Cells
-    PrefixRow = Cells + scan with 0
+    PrefixRow = Cells scan + with 0
     Running = PrefixRow (1 to Size)
     Columns = 1 to Size
     Above = Prefix InitialRow Columns

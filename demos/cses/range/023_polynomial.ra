@@ -17,7 +17,7 @@ Values Queries polynomial print
 rem Store doubled prefix coefficients.
 fun polynomial Values Queries
   N = Values len
-  Prefix = Values + scan with 0
+  Prefix = Values scan + with 0
   Size = N + 2
   Quad = Size fenwick
   Line = Size fenwick
