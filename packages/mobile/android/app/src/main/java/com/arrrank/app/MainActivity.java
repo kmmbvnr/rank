@@ -6,16 +6,58 @@ import android.os.Bundle;
 import android.os.Build;
 import android.graphics.Color;
 import android.webkit.WebView;
+import java.lang.ref.WeakReference;
+import android.content.pm.PackageManager;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 public class MainActivity extends BridgeActivity {
+    private static WeakReference<MainActivity> currentActivity;
     private boolean resumed;
     private boolean keyboardRequested;
     private Boolean imeVisible;
     private int imeHeight;
+
+    public static MainActivity getCurrentActivity() {
+        return currentActivity != null ? currentActivity.get() : null;
+    }
+
+    public boolean isAppResumed() {
+        return resumed;
+    }
+
+    public static void pauseExecution() {
+        MainActivity activity = getCurrentActivity();
+        if (activity != null && activity.bridge != null) {
+            WebView webView = activity.bridge.getWebView();
+            if (webView != null) {
+                webView.post(() -> webView.evaluateJavascript("window.rankPause && window.rankPause()", null));
+            }
+        }
+    }
+
+    public static void resumeExecution() {
+        MainActivity activity = getCurrentActivity();
+        if (activity != null && activity.bridge != null) {
+            WebView webView = activity.bridge.getWebView();
+            if (webView != null) {
+                webView.post(() -> webView.evaluateJavascript("window.rankResume && window.rankResume()", null));
+            }
+        }
+    }
+
+    public static void stopExecution() {
+        MainActivity activity = getCurrentActivity();
+        if (activity != null && activity.bridge != null) {
+            WebView webView = activity.bridge.getWebView();
+            if (webView != null) {
+                webView.post(() -> webView.evaluateJavascript("window.rankStop && window.rankStop()", null));
+            }
+        }
+    }
+
     private final Runnable showKeyboard = () -> {
         if (!resumed || !hasWindowFocus() || keyboardRequested || bridge == null) return;
         WebView webView = bridge.getWebView();
@@ -41,6 +83,12 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        currentActivity = new WeakReference<>(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
         bridge.setWebViewClient(new DebugSignalClient(bridge));
         getWindow().getDecorView().setBackgroundColor(Color.BLACK);
         hideSystemBars();
@@ -93,6 +141,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onResume() {
         super.onResume();
+        currentActivity = new WeakReference<>(this);
         resumed = true;
         keyboardRequested = false;
         scheduleKeyboard();
@@ -103,6 +152,21 @@ public class MainActivity extends BridgeActivity {
         resumed = false;
         getWindow().getDecorView().removeCallbacks(showKeyboard);
         super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        ExecutionService.onAppBackgrounded(this);
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroy() {
+        if (getCurrentActivity() == this) {
+            currentActivity = null;
+        }
+        ExecutionService.stop(this);
+        super.onDestroy();
     }
 
     @Override

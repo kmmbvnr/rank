@@ -38,6 +38,12 @@ function haptic(kind: 'tap' | 'step' | 'hold' = 'tap'): void {
         void fetch('/__rank_haptic?kind=' + kind, { cache: 'no-store' }).catch(() => {});
     } else navigator.vibrate?.(kind === 'hold' ? 25 : kind === 'step' ? 5 : 10);
 }
+function reportExecution(state: 'running' | 'paused' | 'idle'): void {
+    const capacitor = (globalThis as typeof globalThis & { Capacitor?: { getPlatform(): string } }).Capacitor;
+    if (capacitor?.getPlatform() === 'android') {
+        void fetch('/__rank_execution?state=' + state, { cache: 'no-store' }).catch(() => {});
+    }
+}
 if (import.meta.env.MODE === 'mobile') document.documentElement.classList.add('mobile');
 const example = new URLSearchParams(location.search).get('example') === 'fibonacci';
 // A phone browser needs the command menu and the symbol keyboard as much as the app does.
@@ -88,13 +94,20 @@ function nativeSelection(): boolean {
         && (screen.contains(selection.anchorNode) || screen.contains(selection.focusNode));
 }
 
+let lastExecutionState: 'running' | 'paused' | 'idle' = 'idle';
+
 function render(): void {
     const paused = session.pauseState;
     modes.allowRender();
     if (paused) lastPause = paused;
     if (!repl.running) lastPause = undefined;
     const shownPause = paused ?? (modes.waitingForPause ? lastPause : undefined);
-    runButton.dataset.state = shownPause ? 'paused' : repl.running ? 'running' : 'idle';
+    const currentExecutionState: 'running' | 'paused' | 'idle' = shownPause ? 'paused' : repl.running ? 'running' : 'idle';
+    if (currentExecutionState !== lastExecutionState) {
+        lastExecutionState = currentExecutionState;
+        reportExecution(currentExecutionState);
+    }
+    runButton.dataset.state = currentExecutionState;
     runButton.setAttribute('aria-label', shownPause ? 'Step into line; hold to continue execution'
         : repl.running ? 'Pause and debug; hold to stop' : 'Run through selected line; hold to run all from start');
     runButton.disabled = modes.waitingForPause || !!session.pauseRequested && !paused;
@@ -217,6 +230,29 @@ async function press(key: Key, text = ''): Promise<void> {
         for (const cell of repl.notebook.cells) if (cell.status === 'running') cell.status = 'interrupted';
     } finally { busy = false; render(); }
 }
+
+(globalThis as typeof globalThis & {
+    rankPause?: () => void;
+    rankResume?: () => void;
+    rankStop?: () => void;
+}).rankPause = () => { session.pause?.(); render(); };
+(globalThis as typeof globalThis & {
+    rankPause?: () => void;
+    rankResume?: () => void;
+    rankStop?: () => void;
+}).rankResume = () => { session.resume?.(); render(); };
+(globalThis as typeof globalThis & {
+    rankPause?: () => void;
+    rankResume?: () => void;
+    rankStop?: () => void;
+}).rankStop = () => { void press({ name: 'c', ctrl: true }); };
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        const state: 'running' | 'paused' | 'idle' = session.pauseState ? 'paused' : repl.running ? 'running' : 'idle';
+        if (state !== 'idle') reportExecution(state);
+    }
+});
 
 function applyInput(): void {
     stopMomentum();

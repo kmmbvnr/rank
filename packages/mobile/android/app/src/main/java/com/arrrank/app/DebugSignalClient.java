@@ -48,6 +48,11 @@ public final class DebugSignalClient extends BridgeWebViewClient {
             view.post(() -> view.performHapticFeedback(effect));
             return response(200, "OK", "{}");
         }
+        if ("/__rank_execution".equals(uri.getPath())) {
+            String state = uri.getQueryParameter("state");
+            ExecutionService.updateState(view.getContext(), state);
+            return response(200, "OK", "{}");
+        }
         if (!"/__rank_debug".equals(uri.getPath())) {
             WebResourceResponse response = super.shouldInterceptRequest(view, request);
             if (response != null) applyIsolationHeaders(response);
