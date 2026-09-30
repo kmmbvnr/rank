@@ -82,7 +82,7 @@ export class ReductionEvaluator {
 
     private scanAxis(operator: string, value: RankValue, axis: number,
         operation: (left: RankValue, right: RankValue) => RankValue): RankValue {
-        if (!isRankArray(value)) throw new RankError(`${operator} scan axis expects an array`);
+        if (!isRankArray(value)) throw new RankError(`scan ${operator} axis expects an array`);
         if (axis >= value.shape.length) throw new RankError(`array has no axis ${axis}`);
         const shape = value.shape;
         const size = arraySize(shape);
@@ -123,7 +123,7 @@ export class ReductionEvaluator {
     scanValues(value: RankValue, operator: string, seed: RankValue | undefined,
         operation: (left: RankValue, right: RankValue) => RankValue): RankValue {
         if (valueRank(value) !== 1) {
-            throw new RankError(`${operator} scan expects a rank-1 value`);
+            throw new RankError(`scan ${operator} expects a rank-1 value`);
         }
         if (isRankSequence(value)) {
             return scanSequence(value, operator, seed, operation);
@@ -303,7 +303,7 @@ export function* reductionValues(value: RankValue, operation: string): IterableI
     }
     if (isRankSequence(value)) {
         if (value.plan.size.kind === 'infinite') {
-            throw new RankError(`${operation} reduce requires a bounded sequence`);
+            throw new RankError(`reduce ${operation} requires a bounded sequence`);
         }
         yield* value.plan.iterate();
         return;
@@ -316,5 +316,5 @@ function reductionIdentity(operator: string): RankValue {
     if (operator === '*') return 1n;
     if (operator === 'and') return true;
     if (operator === 'or' || operator === 'xor') return false;
-    throw new RankError(`${operator} reduce does not define a value for an empty cell`);
+    throw new RankError(`reduce ${operator} does not define a value for an empty cell`);
 }

@@ -322,8 +322,8 @@ Rows = Flags all axis 1
 RowCounts = Flags count axis 1
 ```
 
-`all` and `any` are equivalent to `and reduce with true` and
-`or reduce with false`, respectively.
+`all` and `any` are equivalent to `reduce and with true` and
+`reduce or with false`, respectively.
 `count` returns the integer number of `true` values. All three accept only
 boolean cells and support `rank` and `axis`. `all` and `any` short-circuit;
 `count` examines the complete cell. Empty collections produce `true`, `false`
@@ -509,7 +509,7 @@ The two-argument forms of `band`, `bor`, `bxor`, `shl` and `shr` have intrinsic
 ranks `0 0`, so they can be passed to `outer`:
 
 ```rank
-Grid = Values Values bxor outer
+Grid = Values Values outer bxor
 ```
 
 `binary` formats a nonnegative integer as text. With one argument it uses the
@@ -548,7 +548,7 @@ rather than functions, so they need no module: `primes take 5`,
 `fibonacci to 1000`. See [Bounds](../language/sequences-arrays.md#bounds).
 
 `copy` eagerly copies a material or lazy array into independent writable dense
-storage while preserving its shape. On a numeric `+ segment`, it creates an
+storage while preserving its shape. On a numeric `segment +`, it creates an
 independent persistent version that shares unchanged nodes. On a finite
 sequence, it materializes values and stacks equally shaped array items along
 a new leading axis, like postfix `array`. An array whose cells are arrays or
@@ -1276,7 +1276,7 @@ Seen = new set
 Counts = new counter
 Empty = new multiset
 F = Size fenwick
-Tree = Values min segment
+Tree = Values segment min
 Data = Values wavelet
 Seen add Value
 Counts add Value
@@ -1321,16 +1321,16 @@ zero-based cell access and assignment plus inclusive prefix sums through
 This middle use of `sum` dispatches by the receiver's Fenwick type and does not
 reserve the word in other application chains.
 
-`Values Operation segment` builds a segment tree for an associative binary
+`Values segment Operation` builds a segment tree for an associative binary
 operation. `Tree Left Right query` reduces an inclusive range, and addressed
 assignment performs a point update. Construction, bounds and error behavior
 are specified in [Collections](../language/collections.md).
 
 `Tree Target firstatleast` finds the first monotone numeric prefix that reaches
-the target. `Values maxsum segment` selects the native prefix/subarray summary
+the target. `Values segment maxsum` selects the native prefix/subarray summary
 profile and returns `.sum`, `.prefix`, `.suffix` and `.best` from `query`.
 
-Numeric `Values + segment` trees also accept inclusive addressed range
+Numeric `Values segment +` trees also accept inclusive addressed range
 assignment and addition. Both updates and `query` take `O(log N)` time.
 
 `Values wavelet` prepares an immutable wavelet matrix. The form

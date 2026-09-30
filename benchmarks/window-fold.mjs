@@ -18,7 +18,7 @@ for (const size of [0, 13, 1000, 10000, 100000]) {
   if (size < 13) continue;
   const cases = [false, true].map(tensorFusion => {
     const runtime = new Interpreter(() => {}, { tensorFusion });
-    runtime.execute('use sequences\nuse numbers\nfun largest Digits\n  Windows = Digits 13 window\n  Products = Windows * reduce rank 1\n  return Products max\nend');
+    runtime.execute('use sequences\nuse numbers\nfun largest Digits\n  Windows = Digits 13 window\n  Products = Windows reduce * rank 1\n  return Products max\nend');
     const input = { kind: 'array', shape: [size], items };
     const call = () => runtime.variables.get('largest').call([input]);
     return { runtime, tensorFusion, call, samplesMs: [] };

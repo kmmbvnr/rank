@@ -1,12 +1,12 @@
 {
   "compiler": "@arrrank/compile@0.0.1",
-  "date": "2026-09-14T10:31:56.360Z",
+  "date": "2026-09-30T05:04:39.663Z",
   "integers": "exact",
   "sourceSha256": "659070fdc0fa86dcc23f2dd02f107cf79fb2d8029da98e57d18fb67b36ce3dc7",
   "mainSha256": "5533f37add440555164d7f9c7bf682c8b646b8a4196714ed06950bafe001c572",
   "cargoLockSha256": "653de200cfaac8126e555d42f341080ee7ec9dd3840451af8f08bfe6fefd4ae6",
   "casesSha256": "cb5d56f7afe46d350f6ad3d060fcee36319d764dac2528c04e1fed52a2fe8916",
-  "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "rust": "rustc 1.94.1 (e408947bf 2026-03-25)",
   "passed": 11,
   "cases": [
     {
@@ -145,7 +145,7 @@
       "expected": {
         "ok": false,
         "stdout": "",
-        "error": "sequence index must be nonnegative"
+        "error": "sequence index out of bounds"
       },
       "actual": {
         "status": 1,
@@ -163,7 +163,7 @@
       "expected": {
         "ok": false,
         "stdout": "",
-        "error": "sequence index must be nonnegative"
+        "error": "sequence index out of bounds"
       },
       "actual": {
         "status": 1,

@@ -1437,7 +1437,7 @@ export class Interpreter {
                         } else if (statement.operator === '+=') {
                             target.addRange(selectors[0], selectors[1], value);
                         } else {
-                            throw new RankError('+ segment range assignment supports = and +=');
+                            throw new RankError('segment + range assignment supports = and +=');
                         }
                         return value;
                     }
@@ -3703,7 +3703,7 @@ export class Interpreter {
             ? `; did you forget ${providers.map(provider => `\`${provider}\``).join(' or ')}?`
             : '';
         throw new RankError(name === 'scan' && !hint
-            ? 'scan needs an operator, e.g. Range + scan with 0'
+            ? 'scan needs an operator, e.g. Range scan + with 0'
             : `unknown name: ${name}${hint}`);
     }
 

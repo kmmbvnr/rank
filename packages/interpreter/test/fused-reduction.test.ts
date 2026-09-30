@@ -17,13 +17,13 @@ describe('inline arithmetic reduction', () => {
             const runtime = new Interpreter();
             runtime.execute(`
 fun fused A B
-  return (A * 2 + (B - A)) ${operator} reduce
+  return (A * 2 + (B - A)) reduce ${operator}
 end
 fun expression A B
   return A * 2 + (B - A)
 end
 fun total X
-  return X ${operator} reduce
+  return X reduce ${operator}
 end
 `);
             for (const values of [
@@ -34,7 +34,7 @@ end
             ]) {
                 // Each fresh lazy input has no known element type until read.
                 // Keep this comparison independent of an earlier return contract.
-                runtime.execute(`fun total X\n return X ${operator} reduce\nend`);
+                runtime.execute(`fun total X\n return X reduce ${operator}\nend`);
                 const a = vector(values);
                 const b = vector([...values].reverse());
                 if (values.length === 0 && operator === '-') {
@@ -53,13 +53,13 @@ end
         const runtime = new Interpreter();
         runtime.execute(`
 fun fused A B
-  return (A * 2 + B) + reduce
+  return (A * 2 + B) reduce +
 end
 fun expression A B
   return A * 2 + B
 end
 fun total X
-  return X + reduce
+  return X reduce +
 end
 `);
         for (const [a, b] of [
@@ -74,7 +74,7 @@ end
 
     it('retains lazy read order and stops without replay on failure', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun fused A B\n  return (A * 2 + B) + reduce\nend');
+        runtime.execute('fun fused A B\n  return (A * 2 + B) reduce +\nend');
         const reads: string[] = [];
         const lazy = (name: string): RankArray => ({
             kind: 'array', shape: [3], containsFiles: false,
@@ -93,7 +93,7 @@ end
 
     it('does not probe host array cells while choosing the fast path', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun fused A B\n  return (A * 2 + B) + reduce\nend');
+        runtime.execute('fun fused A B\n  return (A * 2 + B) reduce +\nend');
         const reads: string[] = [];
         const host = (name: string): RankArray => ({
             kind: 'array', shape: [2], containsFiles: false,
@@ -111,7 +111,7 @@ end
 
     it('reads lazy operands in tree order and observes mutations between calls', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun fused A B\n  return (A + (B * 2)) + reduce\nend');
+        runtime.execute('fun fused A B\n  return (A + (B * 2)) reduce +\nend');
         const reads: string[] = [];
         const a: RankArray = { ...vector([1n, 2n]), itemAt: index => {
             if (index === 0) { reads.push('a0'); b.items[0] = 10n; }
@@ -130,7 +130,7 @@ end
 
     it('preserves cached named intermediates and explicit rank reductions', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun fused A B\n  return (A * 2 + B) + reduce\nend');
+        runtime.execute('fun fused A B\n  return (A * 2 + B) reduce +\nend');
         const a = vector([1n, 2n]);
         runtime.variables.set('A', a);
         runtime.execute('Temp = A + A');
@@ -140,7 +140,7 @@ end
         a.items[1] = 20n;
         expect(call(runtime, 'fused', temp, 0n)).toBe(120n);
         runtime.variables.set('M', vector([1n, 2n, 3n, 4n], [2, 2]));
-        expect(force(runtime.execute('(M * 2 + M) + reduce rank 1')!))
+        expect(force(runtime.execute('(M * 2 + M) reduce + rank 1')!))
             .toEqual({ shape: [2], items: [9n, 21n] });
         runtime.dispose();
     });
@@ -149,10 +149,10 @@ end
         const runtime = new Interpreter();
         runtime.variables.set('A', vector([1n, 2n]));
         runtime.variables.set('B', vector([1n, 2n, 3n]));
-        expect(() => runtime.execute('(A + B + Missing) + reduce')).toThrow('shape mismatch');
+        expect(() => runtime.execute('(A + B + Missing) reduce +')).toThrow('shape mismatch');
         runtime.variables.set('Flag', true);
-        expect(() => runtime.execute('(Flag * 2 + Missing) + reduce')).toThrow('expected number, got boolean');
-        runtime.execute('fun fused A B\n  return (A * 2 + B) + reduce\nend');
+        expect(() => runtime.execute('(Flag * 2 + Missing) reduce +')).toThrow('expected number, got boolean');
+        runtime.execute('fun fused A B\n  return (A * 2 + B) reduce +\nend');
         try {
             call(runtime, 'fused', vector([1n, 'bad']), 0n);
             throw new Error('expected failure');
@@ -171,14 +171,14 @@ fun change A
   return A
 end
 fun fused A
-  return (A + (A change)) + reduce
+  return (A + (A change)) reduce +
 end
 `);
         // change returns its own array, so the left operand still reads 1 2 and
         // the result no longer depends on which side is evaluated first.
         expect(call(runtime, 'fused', vector([1n, 2n]))).toBe(14n);
         runtime.variables.set('A', vector([1n, 2n]));
-        expect(runtime.execute('((A + scan) * 2) + reduce')).toBe(8n);
+        expect(runtime.execute('((A scan +) * 2) reduce +')).toBe(8n);
         runtime.dispose();
     });
 });

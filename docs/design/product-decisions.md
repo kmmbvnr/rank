@@ -55,7 +55,7 @@ vertical pipelines (`|>` or fluent dot-chaining):
 rem Preferred Rank style:
 Digits = Number integer rank 0
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows reduce * rank 1
 Answer = Products max
 ```
 
@@ -70,7 +70,7 @@ line** to avoid mobile keyboard friction.
 
 ```rank
 Range = 1 till 1000
-States = Range next scan with Start
+States = Range scan next with Start
 ```
 
 Here `Start` is the first state, so the 999 range items produce 1000 states.
@@ -155,12 +155,12 @@ patterns apply:
 
 ## 5. Multidimensional `window` and operator-modifier reductions
 
-Rank introduces `window` and operator-modifier reductions (`* reduce`, `+ reduce`)
+Rank introduces `window` and operator-modifier reductions (`reduce *`, `reduce +`)
 to replace nested index-manipulation loops with rank operations:
 
 ```rank
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows reduce * rank 1
 Answer = Products max
 ```
 
@@ -243,7 +243,7 @@ Total = Squares sum
 This replaces the imperative chain `test each value -> update Total -> return
 Total`. Each named value exposes one stage to the REPL. Prefer `sum`, `count`,
 `min`, `max`, `all`, and `any` when their names describe the operation. Use a
-symbolic modifier such as `* reduce` when no clearer named reduction exists or
+symbolic modifier such as `reduce *` when no clearer named reduction exists or
 when `rank` selects cells. Use `with Seed` only when an additional initial value
 must participate in the reduction.
 
@@ -251,7 +251,7 @@ Use `scan with Seed` when every intermediate accumulator state is part of the
 result:
 
 ```rank
-Running = Values + scan with 0
+Running = Values scan + with 0
 ```
 
 This replaces `start Total at 0 -> append Total -> update Total for each value

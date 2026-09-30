@@ -12,19 +12,19 @@ ALast = (Target - 1) // 3
 BLast = (Target - 1) // 2
 A = 1 to ALast array
 B = 2 to BLast array
-PairSums = A B + outer
+PairSums = A B outer +
 C = Target - PairSums
 
-Increasing = A B less outer
+Increasing = A B outer less
 Increasing and= B less C
 
 ASquares = A ** 2
 BSquares = B ** 2
-SquareSums = ASquares BSquares + outer
+SquareSums = ASquares BSquares outer +
 Valid = SquareSums equal C ** 2
 Valid and= Increasing
 
-PairProducts = A B * outer
+PairProducts = A B outer *
 Products = PairProducts * C
 Candidates = Products Valid
 Answer = Candidates max

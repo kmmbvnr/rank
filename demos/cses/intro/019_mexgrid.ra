@@ -15,5 +15,5 @@ end
 rem Construct the grid as the outer XOR of its row and column numbers.
 fun grid N
   Values = 0 till N
-  return Values Values bxor outer
+  return Values Values outer bxor
 end

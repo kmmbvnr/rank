@@ -38,11 +38,27 @@ and a newline. `use cli` and `use io` open options/output, not implicit I/O effe
 Functions apply to the data on their left: `N factors` means factors(N), and
 `Values sum` means sum(Values). Binary expressions use ordinary infix arithmetic
 with multiplication before addition and explicit parentheses. Function chains
-flow left to right: `Fib even sum` means sum(filter_even(Fib)). Consult the parsed
+flow left to right: `N factors sum` means sum(factors(N)). A predicate keeps the
+shape of its input and gives booleans: `Mask = Fib even` is map(is_even, Fib),
+and an explicit selection `Fib Mask` filters, so `Fib Mask sum` means
+sum(filter(Fib, Mask)). Numeric operations (`sum`, `min`, `max`, `mean`, ...)
+on such a mask read the items it selects, so `Fib even sum` means
+sum(filter(is_even, Fib)) too. The same holds for an array mask made by a
+predicate or by comparing the array with a scalar: `A even sum` sums the even
+cells of A, in row-major order, as A was when the mask was made.
+Consult the parsed
 syntax below for grouping; do not infer grouping from whitespace alone.
 
 `fun palindrome X ... return Value ... end` declares a function of X. Function
-declarations can appear after their calls. `X text` converts X to text, `Text
+declarations can appear after their calls. A name holds its own value: `B = A`,
+passing an argument and `yield` each give the receiver a value, so no write can
+reach another name's data and a function cannot change what its caller passed.
+Translate an array as owned storage — `Vec<T>`, moved or borrowed — and never as
+shared mutable state. Naming a computed array fixes it: a later write to one of
+its sources does not change it. The exceptions carry identity and do need shared
+mutation: records, graphs, the `algo` structures (`index`, `queue`, `deque`,
+`stack`, `heap`, `set`, `counter`, `multiset`, `orderedset`, `fenwick`, segment
+trees), open handles and generator sequences. `X text` converts X to text, `Text
 reverse` reverses it, and `Text equal Back` compares values. `less`, `greater`,
 `atleast` and `atmost` mean <, >, >= and <=. `equal`/`notequal` are value equality.
 
@@ -51,8 +67,8 @@ elif Other ... else ... end` selects a branch. `return` exits a function;
 `break`/`continue` affect the enclosing loop. Conditional `for Condition ... end`
 rechecks Condition before each iteration. Do not remove effects or change order.
 
-`A B + outer` computes all pairwise sums with A on the first axis and B on the
-second. `A B * outer` does the same for products. A vector on the right of a
+`A B outer +` computes all pairwise sums with A on the first axis and B on the
+second. `A B outer *` does the same for products. A vector on the right of a
 matrix operation broadcasts along the last axis. `Values Mask` selects values
 where a same-shaped boolean mask is true; scalar `Values Index` indexes instead.
 In the first ten Euler programs, chained mask operations retain array shape.
@@ -64,7 +80,7 @@ type: do not replace integers with f64. `//` is floor division and `%` follows t
 divisor's sign; Rust signed division truncates, so translate negative operands
 explicitly. Division by zero fails. Boolean operations evaluate both operands.
 
-`A to B` is ascending and includes B. `A till B` excludes B. Empty ascending
+`A to B` is ascending and includes B. `A until B` excludes B. Empty ascending
 ranges produce no elements. Sequence values are lazy and may be iterated again;
 do not consume a named sequence once if it is reused later. Never assume an
 arbitrary user generator is pure or finite.
@@ -86,7 +102,7 @@ zero or a default answer.
 
 ## Arrays, masks and loops
 
-`A B * outer` evaluates every pair into a multidimensional result. Broadcasting
+`A B outer *` evaluates every pair into a multidimensional result. Broadcasting
 and axis/rank operations follow source shapes; `rank 0` applies to scalar cells,
 and `rank 1` applies to rows. A boolean mask selects matching elements.
 `Digits Width window` creates overlapping windows of positive width with default
@@ -104,8 +120,8 @@ Arithmetic simplifications are allowed only under the selected numeric policy.
 In i64 mode, require checked arithmetic for generated expressions as well.
 
 The analysis records reads, writes, reassignment and loop-carried bindings. It
-does not prove that callbacks lack effects or that arrays do not alias. Preserve
-iteration order, live collection mutation, break/continue, returns and cleanup.
+does not prove that callbacks lack effects. Preserve iteration order, live
+collection mutation, break/continue, returns and cleanup.
 Keep unsupported effects explicit; never remove I/O, errors or cleanup to make
 a loop faster. Do not translate runtime guards into unconditional assumptions.
 
@@ -151,22 +167,7 @@ Answer print
 ## Existing tests (context, not a substitute for general behavior)
 
 ```rank
-use testing
 
-test "default input"
-  use "005_smallestmultiple"
-  run
-
-  Answer equal 232792560
-end
-
-test "workspace input"
-  use "005_smallestmultiple"
-  Limit = 10
-  run
-
-  Answer equal 2520
-end
 ```
 
 ## Resolved syntax and analysis
@@ -278,6 +279,21 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       ],
       "form": "A B lcm",
       "result": "integer",
+      "shape": [
+        {
+          "args": [
+            null
+          ],
+          "result": []
+        },
+        {
+          "args": [
+            null,
+            null
+          ],
+          "result": []
+        }
+      ],
       "summary": "Least common multiple, also a reduction over one finite collection.",
       "sites": [
         {

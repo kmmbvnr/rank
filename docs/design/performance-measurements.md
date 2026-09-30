@@ -222,7 +222,7 @@ the same 81-case harness, two warmups and five samples per case. No tests or
 other assistant-launched benchmarks overlapped; other machine activity was
 not controlled.
 
-Median milliseconds for `(A * 2 + B) + reduce` at 1,000,000 elements:
+Median milliseconds for `(A * 2 + B) reduce +` at 1,000,000 elements:
 
 | Input | Pair 1 before → after | Pair 2 before → after |
 | --- | ---: | ---: |

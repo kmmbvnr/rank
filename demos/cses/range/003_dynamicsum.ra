@@ -17,7 +17,7 @@ Values Queries dynamic_sums print
 rem Apply point assignments.
 rem Answer inclusive one-based ranges.
 fun dynamic_sums Values Queries
-  Tree = Values + segment
+  Tree = Values segment +
   Answers = array shape (Queries len) fill 0
   Count = 0
 

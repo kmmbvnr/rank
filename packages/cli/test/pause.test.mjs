@@ -149,7 +149,7 @@ test('inspection does not evaluate a ranked array shape while paused inside its 
     const fn = 'fun palindrome X\n  Text = X text\n  Back = Text reverse\n  return Text equal Back\nend';
     await session.execute(fn, 1, []);
     session.setDebugBreakpoints([{ source: fn, line: 2 }]);
-    const execution = session.execute('Factors = 100 to 999\nProducts = Factors Factors * outer\nMask = Products palindrome rank 0', 2, []);
+    const execution = session.execute('Factors = 100 to 999\nProducts = Factors Factors outer *\nMask = Products palindrome rank 0', 2, []);
     const first = await nextPause(session);
     assert.match(first.state, /X = 10000/);
     assert.match(first.state, /Products = <array shape 900 × 900>/);

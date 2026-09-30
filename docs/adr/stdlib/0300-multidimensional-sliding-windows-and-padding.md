@@ -41,7 +41,7 @@ Because windowed cells form the trailing dimensions, Rank's core `rank` combinat
 ```rank
 rem Compute max product across all 13-digit sliding windows:
 Windows = Digits 13 window
-Products = Windows * reduce rank 1
+Products = Windows reduce * rank 1
 MaxProduct = Products max
 ```
 This solves complex window-aggregation problems in just 3–4 concise lines.
@@ -91,7 +91,7 @@ This solves complex window-aggregation problems in just 3–4 concise lines.
 * **APL-level power with English words:** Replaces nested index loops with clean, declarative window operations that fit the 40-column mobile line budget.
 * **Zero memory duplication:** Lazy read-only views avoid allocating gigabytes of overlapping duplicate buffers.
 * **Unified ML primitive:** Unifies text n-grams, time-series moving averages, and 2D/3D convolutional filter patches under a single syntax.
-* **Seamless fusion:** Downstream reductions (`+ reduce rank 1`, `max`) fuse with window traversal, computing aggregates in registers.
+* **Seamless fusion:** Downstream reductions (`reduce + rank 1`, `max`) fuse with window traversal, computing aggregates in registers.
 
 ### Negative / Trade-offs
 * **Read-only views:** Windows cannot be directly written to in place; mutating windowed results requires materializing an independent dense copy via `copy`.

@@ -38,7 +38,7 @@ runtime.execute(`
 use sequences
 use numbers
 fun total A B
-  return A + reduce
+  return A reduce +
 end
 fun addition A B
   return A + B
@@ -47,19 +47,19 @@ fun chain A B
   return A * 2 + B
 end
 fun chainreduce A B
-  return (A * 2 + B) + reduce
+  return (A * 2 + B) reduce +
 end
 fun namedreduce A B
   Temp = A * 2 + B
-  return Temp + reduce
+  return Temp reduce +
 end
 fun reusedreduce A B
   Temp = A * 2 + B
-  First = Temp + reduce
-  return First + (Temp + reduce)
+  First = Temp reduce +
+  return First + (Temp reduce +)
 end
 fun prefix A B
-  return A + scan
+  return A scan +
 end
 fun ordered A B
   return A sort

@@ -7,20 +7,20 @@ test "official example"
   Pair = Result 0
   Train = 2 till 10 array
   Match = Pair 0 equal Train
-  Ok = Match and reduce with true
+  Ok = Match reduce and with true
   Expected = array 0 1
   Match = Pair 1 equal Expected
-  Reduced = Match and reduce with true
+  Reduced = Match reduce and with true
   Ok and= Reduced
 
   Pair = Result 4
   Train = 0 till 8 array
   Match = Pair 0 equal Train
-  Reduced = Match and reduce with true
+  Reduced = Match reduce and with true
   Ok and= Reduced
   Expected = array 8 9
   Match = Pair 1 equal Expected
-  Reduced = Match and reduce with true
+  Reduced = Match reduce and with true
   Ok and= Reduced
   Ok
 end
@@ -39,15 +39,15 @@ test "uneven folds put extras first"
   Ok and= Third 1 len equal 3
   Expected = 0 till 4 array
   Match = First 1 equal Expected
-  Reduced = Match and reduce with true
+  Reduced = Match reduce and with true
   Ok and= Reduced
   Expected = 4 till 7 array
   Match = Second 1 equal Expected
-  Reduced = Match and reduce with true
+  Reduced = Match reduce and with true
   Ok and= Reduced
   Expected = 7 till 10 array
   Match = Third 1 equal Expected
-  Reduced = Match and reduce with true
+  Reduced = Match reduce and with true
   Ok and= Reduced
   Ok
 end
@@ -64,7 +64,7 @@ test "shuffle visits every sample"
     end
   end
 
-  Seen and reduce with true
+  Seen reduce and with true
 end
 
 test "invalid fold counts are rejected"

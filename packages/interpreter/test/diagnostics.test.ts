@@ -128,7 +128,7 @@ end
 
     it('explains scan when it is used without a binary operator', () => {
         expect(failure('State = 0\nRange = 1 to 3\nRange scan with State').message)
-            .toBe('scan needs an operator, e.g. Range + scan with 0');
+            .toBe('scan needs its combining operation after it, e.g. `Range scan + with 0` or `Range scan next with Start`.');
     });
 
     it('formats parser errors with source context too', () => {

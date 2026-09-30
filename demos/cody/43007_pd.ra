@@ -11,7 +11,7 @@ fun pair_distances Points
   Norm2 = Points * Points sum axis 1
   PointsT = Points transpose
   Dot = Points PointsT matmul
-  Squared = Norm2 Norm2 + outer
+  Squared = Norm2 Norm2 outer +
   Squared -= Dot * 2
   return Squared 0 max sqrt
 end

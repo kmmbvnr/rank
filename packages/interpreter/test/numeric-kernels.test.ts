@@ -58,10 +58,10 @@ fun binary A B
   return A ${operator} B
 end
 fun total A
-  return A ${operator} reduce
+  return A reduce ${operator}
 end
 fun prefix A
-  return A ${operator} scan
+  return A scan ${operator}
 end
 `);
             for (const values of [
@@ -105,27 +105,27 @@ end
     it('retains empty identities, singleton values and nonnumeric fallback', () => {
         const runtime = new Interpreter();
         runtime.variables.set('Empty', vector([]));
-        expect(runtime.execute('Empty + reduce')).toBe(0n);
-        expect(runtime.execute('Empty * reduce')).toBe(1n);
-        expect(() => runtime.execute('Empty - reduce')).toThrow('empty cell');
-        expect(items(runtime.execute('Empty + scan')!)).toEqual([]);
-        expect(runtime.execute('(array "a" "b" "c") + reduce')).toBe('abc');
-        expect(items(runtime.execute('(array "a" "b" "c") + scan')!)).toEqual(['a', 'ab', 'abc']);
+        expect(runtime.execute('Empty reduce +')).toBe(0n);
+        expect(runtime.execute('Empty reduce *')).toBe(1n);
+        expect(() => runtime.execute('Empty reduce -')).toThrow('empty cell');
+        expect(items(runtime.execute('Empty scan +')!)).toEqual([]);
+        expect(runtime.execute('(array "a" "b" "c") reduce +')).toBe('abc');
+        expect(items(runtime.execute('(array "a" "b" "c") scan +')!)).toEqual(['a', 'ab', 'abc']);
         expect(runtime.execute('(array true false) and reduce')).toBe(false);
         runtime.variables.set('Single', vector([-0]));
-        expect(runtime.execute('Single + reduce')).toBe(-0);
+        expect(runtime.execute('Single reduce +')).toBe(-0);
         expect(runtime.execute('use numbers\nSingle sum')).toBe(0);
-        expect(() => runtime.execute('(array 1 "a") + reduce')).toThrow('+ expects two numeric or two text values');
-        expect(() => runtime.execute('(array 1 0) / reduce')).toThrow('division by zero');
+        expect(() => runtime.execute('(array 1 "a") reduce +')).toThrow('+ expects two numeric or two text values');
+        expect(() => runtime.execute('(array 1 0) reduce /')).toThrow('division by zero');
         runtime.dispose();
     });
 
     it('uses with as an explicit reduction seed', () => {
         const runtime = new Interpreter();
-        expect(runtime.execute('(array 2 3 4) * reduce with 10')).toBe(240n);
-        expect(runtime.execute('(array 2 3 4) - reduce with 20')).toBe(11n);
-        expect(runtime.execute('(array shape 0 fill 0) - reduce with 10')).toBe(10n);
-        expect(items(runtime.execute('M = array shape 2 3\n  1 2 3\n  4 5 6\nend\nM + reduce rank 1 with 10')!))
+        expect(runtime.execute('(array 2 3 4) reduce * with 10')).toBe(240n);
+        expect(runtime.execute('(array 2 3 4) reduce - with 20')).toBe(11n);
+        expect(runtime.execute('(array shape 0 fill 0) reduce - with 10')).toBe(10n);
+        expect(items(runtime.execute('M = array shape 2 3\n  1 2 3\n  4 5 6\nend\nM reduce + rank 1 with 10')!))
             .toEqual([16n, 25n]);
         runtime.dispose();
     });
@@ -133,10 +133,10 @@ end
     it('reduces tensor cells by rank and keeps zero-sized frames', () => {
         const runtime = new Interpreter();
         runtime.variables.set('A', vector([1n, 2n, 3n, 4n, 5n, 6n], [2, 3]));
-        expect(items(runtime.execute('A + reduce rank 1')!)).toEqual([6n, 15n]);
-        expect(items(runtime.execute('A + reduce rank 0')!)).toEqual([1n, 2n, 3n, 4n, 5n, 6n]);
+        expect(items(runtime.execute('A reduce + rank 1')!)).toEqual([6n, 15n]);
+        expect(items(runtime.execute('A reduce + rank 0')!)).toEqual([1n, 2n, 3n, 4n, 5n, 6n]);
         runtime.variables.set('Empty', vector([], [2, 0]));
-        expect(items(runtime.execute('Empty + reduce rank 1')!)).toEqual([0n, 0n]);
+        expect(items(runtime.execute('Empty reduce + rank 1')!)).toEqual([0n, 0n]);
         runtime.dispose();
     });
 
@@ -187,7 +187,7 @@ end
 
     it('does not pre-read lazy inputs or replay a mixed-type failure', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun total A\n  return A + reduce\nend\nfun prefix A\n  return A + scan\nend');
+        runtime.execute('fun total A\n  return A reduce +\nend\nfun prefix A\n  return A scan +\nend');
         const reads: number[] = [];
         const input: RankArray = {
             kind: 'array', shape: [3], containsFiles: false,
@@ -235,7 +235,7 @@ end
 
     it('retains nested-array fallback and Rank error positions', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun total A\n  return A + reduce\nend');
+        runtime.execute('fun total A\n  return A reduce +\nend');
         expect(items(call(runtime, 'total', vector([vector([1n, 2n]), vector([3n, 4n])]))))
             .toEqual([4n, 6n]);
         try {

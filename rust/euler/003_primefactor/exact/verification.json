@@ -1,12 +1,12 @@
 {
   "compiler": "@arrrank/compile@0.0.1",
-  "date": "2026-09-14T10:30:54.733Z",
+  "date": "2026-09-30T05:03:24.558Z",
   "integers": "exact",
   "sourceSha256": "8e11471b287343376aee4080f49c4be26ff2a1be019b107f0e6cf7706355472d",
   "mainSha256": "5e7898e778a156c9730acefa37f74846a59525a22320b4d7aa50356382d815cb",
   "cargoLockSha256": "84a1cd83d7074fde99b0a5c4d6631dbfe302b33b7a1b1d226d09a34d508b9509",
   "casesSha256": "6da5dc9d091d13f3274e0535867abc16059467a25d6276ad3f990b91a612cfba",
-  "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "rust": "rustc 1.94.1 (e408947bf 2026-03-25)",
   "passed": 12,
   "cases": [
     {

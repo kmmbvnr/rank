@@ -60,24 +60,24 @@ Rank lifts scalar and vector operations across dimensions through higher-order c
 - **Rank-limited reduction (`reduce rank R`):**
   ```rank
   rem Sum every row of a matrix:
-  RowTotals = M + reduce rank 1 with 0
+  RowTotals = M reduce + rank 1 with 0
 
   rem Multiply 2D blocks inside a 4D tensor:
-  BlockProducts = Blocks * reduce rank 2
+  BlockProducts = Blocks reduce * rank 2
   ```
 - **Prefix scan combinator (`scan`):**
   Computes running prefix reductions (cumulative sum, prefix product, running extrema):
   ```rank
-  Prefix = Values + scan with 0
-  RunningMin = Values min scan
+  Prefix = Values scan + with 0
+  RunningMin = Values scan min
   ```
   Evaluates lazily on sequences and dense arrays without extra intermediate allocations.
 - **Outer product combinator (`outer`):**
   Applies an operator or binary function to every pair of cells across two operands:
   ```rank
-  Sums = A B + outer
-  Grid = Values Values bxor outer
-  Smallest = A B min outer
+  Sums = A B outer +
+  Grid = Values Values outer bxor
+  Smallest = A B outer min
   ```
   The result shape is the exact concatenation of the left frame shape and the right frame shape.
 

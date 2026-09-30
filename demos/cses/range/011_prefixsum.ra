@@ -16,7 +16,7 @@ Values Queries prefix_queries print
 
 rem Query the built-in max-sum summary.
 fun prefix_queries Values Queries
-  Tree = Values maxsum segment
+  Tree = Values segment maxsum
 
   for Query in Queries
     unpack Type A B = Query

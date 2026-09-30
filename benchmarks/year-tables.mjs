@@ -25,12 +25,12 @@ const cases = {
     'startup only': [],
     'running product down the years': [
         'Factor = 1.0 + Cells * 0.0000001',
-        'Balance = Factor * scan axis 0',
+        'Balance = Factor scan * axis 0',
         'Balance sum print',
     ],
     'running maximum down the years': [
         'Path = Cells * 0.5 % 7.0',
-        'Highest = Path max scan axis 0',
+        'Highest = Path scan max axis 0',
         'Highest sum print',
     ],
     'broadcast over the months, summed': [

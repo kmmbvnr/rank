@@ -100,7 +100,7 @@ As codified in ADR-0101, algorithmic collections belong to Rank's closed set of 
 
 ### 7. Logarithmic Range Structures (`fenwick`, `segment`, `wavelet`)
 - **Fenwick Tree (`N fenwick`):** Point update `F I += Delta` and prefix sums `F sum I` in $O(\log N)$.
-- **Segment Tree (`Values min segment`, `Values + segment`):** Range queries and point/range updates in $O(\log N)$. Supports associative combinators with optional identity seeds (`segment with Identity`), lazy propagation, and $O(1)$ persistent copy-on-write versioning (`Version = Tree copy`).
+- **Segment Tree (`Values segment min`, `Values segment +`):** Range queries and point/range updates in $O(\log N)$. Supports associative combinators with optional identity seeds (`segment with Identity`), lazy propagation, and $O(1)$ persistent copy-on-write versioning (`Version = Tree copy`).
 - **Wavelet Matrix (`Values wavelet`):** Range value-frequency queries (`within`, `sumwithin`, `missing`) over immutable arrays in $O(\log S)$ time.
 
 ### Element contracts

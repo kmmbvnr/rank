@@ -26,7 +26,7 @@ Values Queries range_updates print
 
 rem Apply inclusive range operations.
 fun range_updates Values Queries
-  Tree = Values + segment
+  Tree = Values segment +
   Q = Queries len
   Answers = array shape Q fill 0
   Count = 0

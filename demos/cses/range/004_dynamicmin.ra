@@ -18,7 +18,7 @@ Values Queries dynamic_mins print
 rem Apply point assignments.
 rem Answer inclusive one-based ranges.
 fun dynamic_mins Values Queries
-  Tree = Values min segment
+  Tree = Values segment min
   Answers = array shape (Queries len) fill 0
   Count = 0
 

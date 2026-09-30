@@ -11,7 +11,7 @@ Start = record
   .den = 2
 end
 Range = 1 till 1000
-States = Range next scan with Start
+States = Range scan next with Start
 Longer = States longer rank 0
 Answer = Longer count
 Answer print

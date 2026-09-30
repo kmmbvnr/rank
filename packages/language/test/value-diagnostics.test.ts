@@ -264,27 +264,27 @@ it('infers maxsum query fields in range-query demos and after numeric point upda
         expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
             .toEqual(examples.map(() => ['array']));
     }
-    const source = 'use algo\nTree = (array 1 2) maxsum segment\nAlias = Tree\nAlias 0 = 1.5\n';
+    const source = 'use algo\nTree = (array 1 2) segment maxsum\nAlias = Tree\nAlias 0 = 1.5\n';
     const analysis = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
     expect(analysis.bindings.get('Tree')?.elements).toEqual(['integer', 'real']);
     expect(messages(source + 'State = Tree 0 1 query\nState .best + "bad"'))
         .toEqual(['operator + does not accept integer or real and text']);
-    expect(messages('use algo\nTree = (array 1 2) maxsum segment\nTree 0 = Unknown\n'
+    expect(messages('use algo\nTree = (array 1 2) segment maxsum\nTree 0 = Unknown\n'
         + 'State = Tree 0 1 query\nState .best + "bad"')).toEqual([]);
 });
 
 it('keeps integer bitwise segment reads through integer writes but forgets unproven writes', () => {
-    const source = 'use algo\nuse bits\nTree = (array 1 2) bxor segment\nAlias = Tree\nAlias 0 = 3\n';
+    const source = 'use algo\nuse bits\nTree = (array 1 2) segment bxor\nAlias = Tree\nAlias 0 = 3\n';
     expect(messages(source + 'Tree 0 1 query + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nuse bits\nTree = (array 1 2) bxor segment\nTree 0 = Unknown\n'
+    expect(messages('use algo\nuse bits\nTree = (array 1 2) segment bxor\nTree 0 = Unknown\n'
         + 'Tree 0 1 query + "bad"')).toEqual([]);
-    expect(messages('use algo\nuse bits\nTree = (array 1) bxor segment\nTree 0 = 1.5\n'
+    expect(messages('use algo\nuse bits\nTree = (array 1) segment bxor\nTree 0 = 1.5\n'
         + 'Tree 0 + "bad"')).toEqual([]);
 });
 
 it('widens numeric segment payloads across aliases and forgets unsafe updates', () => {
-    const source = 'use algo\nTree = (array 1 2) + segment\nAlias = Tree\nAlias 0 = 1.5\n';
+    const source = 'use algo\nTree = (array 1 2) segment +\nAlias = Tree\nAlias 0 = 1.5\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(program.parserErrors).toEqual([]);
     const analysis = analyzeValues(program.value);
@@ -292,12 +292,12 @@ it('widens numeric segment payloads across aliases and forgets unsafe updates', 
     expect(analysis.bindings.get('Alias')?.elements).toEqual(['integer', 'real']);
     expect(messages(source + 'Tree 0 1 query + "bad"'))
         .toEqual(['operator + does not accept integer or real and text']);
-    expect(messages('use algo\nTree = (array 1 2) + segment\nTree 0 = Unknown\nTree 0 1 query + "bad"'))
+    expect(messages('use algo\nTree = (array 1 2) segment +\nTree 0 = Unknown\nTree 0 1 query + "bad"'))
         .toEqual([]);
-    expect(messages('use algo\nCount = 1\nTree = (array 1 2) + segment\n'
+    expect(messages('use algo\nCount = 1\nTree = (array 1 2) segment +\n'
         + 'for I in 0 till 2\n Tree I = 3\nend\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nCount = 1\nTree = (array 1 2) + segment\n'
+    expect(messages('use algo\nCount = 1\nTree = (array 1 2) segment +\n'
         + 'for I in 0 till 2\n Tree I = Unknown\nend\nCount + "bad"'))
         .toEqual([]);
 });
@@ -745,9 +745,9 @@ it('keeps loop contracts in functions and after loops while discarding mutation 
 });
 
 it('checks reductions against the actual runtime rule, allowing full rank', () => {
-    expect(messages('A = array shape 2 3 fill 0\nA + reduce rank 3'))
+    expect(messages('A = array shape 2 3 fill 0\nA reduce + rank 3'))
         .toEqual(['rank 3 exceeds value rank 2']);
-    expect(messages('A = array shape 2 3 fill 0\nA + reduce rank 2')).toEqual([]);
+    expect(messages('A = array shape 2 3 fill 0\nA reduce + rank 2')).toEqual([]);
 });
 
 it('checks axis bounds and selector counts', () => {
@@ -765,7 +765,7 @@ it('does not reuse shapes after a call that may change a captured binding', () =
 it('checks nested expressions and respects text rank', () => {
     expect(messages('array (1 + "x")')).toEqual(['operator + does not accept integer and text']);
     expect(messages('"a" + "long"')).toEqual([]);
-    expect(messages('"abc" + reduce rank 1')).toEqual([]);
+    expect(messages('"abc" reduce + rank 1')).toEqual([]);
 });
 
 it('infers a helper result from its body and literal call arguments', () => {

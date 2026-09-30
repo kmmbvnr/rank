@@ -855,32 +855,49 @@ M3 = N % 3 equal 0
 
 ## Operation modifiers
 
-An operation may be followed by a word that changes how it is applied:
+Two kinds of trailing words change how an operation is applied.
+
+**Call parameters** say how a function is applied to cells. They follow the
+function: `A F rank 0`, `M sum axis 0`.
+
+**Higher-order operations** (`reduce`, `scan`, `segment`, `outer`) take a
+function as their argument. The function is the word or symbol right after
+the operation, with the other parameters, as in `sort by .field`:
 
 ```rank
-Total = A + reduce with 0
-Prefix = A + scan with 0
-Tree = A + segment
-Products = A B * outer
+Total = A reduce + with 0
+Prefix = A scan + with 0
+Tree = A segment +
+Products = A B outer *
+States = Steps scan next with Start
 Cells = A F rank 0
 ```
 
-The trailing modifier binds the operation and its operands as one expression.
-In `A B * outer`, `A B` is not evaluated first as addressing.
+The function is a symbol (`+`, `*`, `and`, `less`), or a name that holds a
+function, builtin or user-defined. An operator symbol directly after one of
+these four words is its argument, never an infix operator. `scan`, `segment`
+and `outer` need the function; the old orders `A + scan with 0` and
+`Steps next scan` are rejected with a message that shows the new spelling.
+`reduce` takes only a symbol. If a program binds `scan`, `reduce`, `segment` or
+`outer` itself, the symbol form (`A scan +`) is rejected; the name form
+follows the binding.
+
+The operation takes everything on its left: `Start + Y scan +` scans
+`Start + Y`. In `A B outer *`, `A B` is not evaluated first as addressing.
 A completed modified operation can feed the next operation in the same chain:
 
 ```rank
 Total = "1203" integer rank 0 sum
-Prefix = A + scan with 0
+Prefix = A scan + with 0
 Total = Prefix sum
-Total = A B * outer sum rank 1 sum
+Total = A B outer * sum rank 1 sum
 Total = M sum axis 0 sum
 ```
 
 `rank` consumes its integer argument, or two for `rank L R`; `axis` consumes its axis numbers (and
 an optional `rank R`). The following operation receives the modified result.
 `with` consumes one seed or identity operand before the chain continues.
-For example, `A + scan with 0 sum` sums the scan results. `segment`
+For example, `A scan + with 0 sum` sums the scan results. `segment`
 constructs the algorithmic collection described in
 [Collections](collections.md). Operands are evaluated once. Parentheses remain
 available to make grouping explicit.
@@ -1007,8 +1024,8 @@ six comparison operators above; general binary function rank remains deferred.
 A reduction collapses values:
 
 ```rank
-Total = A + reduce with 0
-Product = A * reduce
+Total = A reduce + with 0
+Product = A reduce *
 ```
 
 Without an explicit rank, reduction consumes the complete finite value in
@@ -1016,8 +1033,8 @@ row-major order. `reduce rank R` instead reduces every trailing rank-`R` cell
 to one atom while preserving its leading frame:
 
 ```rank
-RowTotals = M + reduce rank 1 with 0
-BlockProducts = Blocks * reduce rank 2
+RowTotals = M reduce + rank 1 with 0
+BlockProducts = Blocks reduce * rank 2
 ```
 
 `with Seed` supplies an explicit initial accumulator. The seed is combined with
@@ -1051,8 +1068,8 @@ Rows = Flags all axis 1
 RowCounts = Flags count axis 1
 ```
 
-`all` is equivalent to `and reduce with true`; `any` is equivalent to
-`or reduce with false`.
+`all` is equivalent to `reduce and with true`; `any` is equivalent to
+`reduce or with false`.
 `count` returns the integer number of `true` values. All three operations
 require boolean cells. `all` and `any` short-circuit as soon as the result is
 known, while `count` examines the complete cell. An empty collection produces
@@ -1094,7 +1111,7 @@ representation.
 Prefix accumulation:
 
 ```rank
-Prefix = A + scan with 0
+Prefix = A scan + with 0
 ```
 
 `scan with Seed` returns the seed followed by every left-to-right accumulated
@@ -1113,12 +1130,12 @@ currently has no `rank` or `axis` form.
 A binary user function can also accumulate states:
 
 ```rank
-States = Steps next scan with Start
-Prefixes = Steps next scan
+States = Steps scan next with Start
+Prefixes = Steps scan next
 ```
 
 `next State Step` receives the previous state and the next source item. The
-seed is the first result. Without a seed, `Steps next scan` starts from the
+seed is the first result. Without a seed, `Steps scan next` starts from the
 first source item. The function is resolved once when the scan is created;
 sequence sources remain lazy.
 
@@ -1147,11 +1164,11 @@ The leading run that meets a condition is `till not Condition`; see
 function immediately before it to every pair of cells:
 
 ```rank
-Sums = A B + outer
-Products = A B * outer
-Grid = Values Values bxor outer
+Sums = A B outer +
+Products = A B outer *
+Grid = Values Values outer bxor
 Operation = min
-Smallest = A B Operation outer
+Smallest = A B outer Operation
 ```
 
 Cell ranks belong to the operation; `outer` combines the remaining frames.
@@ -1162,7 +1179,7 @@ declaring their intrinsic ranks remains deferred.
 
 The result shape is the concatenation of the left and right frame shapes.
 Therefore, if `A` has shape `2 3` and `B` has shape `4 5`, the result of atom
-pairing `A B * outer` has shape:
+pairing `A B outer *` has shape:
 
 ```text
 2 3 4 5

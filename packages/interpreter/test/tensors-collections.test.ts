@@ -389,7 +389,7 @@ describe('Rank tensors and collections', () => {
             .toThrowError('array index out of bounds on axis 0: 2');
         expect(() => run([
 
-            'A = (1 to 2) (1 to 2) + outer',
+            'A = (1 to 2) (1 to 2) outer +',
             'A 0 0 = 9',
         ].join('\n'))).toThrowError('cannot assign to a lazy array');
     });
@@ -460,7 +460,7 @@ describe('Rank tensors and collections', () => {
         expect(run([
             'use sequences',
             'fun cell_sum Cell',
-            '  return Cell + reduce',
+            '  return Cell reduce +',
             'end',
             'T = array shape 2 3 2',
             '  1 2 3 4 5 6',
@@ -501,7 +501,7 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toBe('true');
         expect(() => run([
             'fun total Cell',
-            '  return Cell + reduce',
+            '  return Cell reduce +',
             'end',
             'T = array shape 2 3 4 fill 0',
             'T total axis 0 1 rank 2',
@@ -510,14 +510,14 @@ describe('Rank tensors and collections', () => {
         );
         expect(() => run([
             'fun total Cell',
-            '  return Cell + reduce',
+            '  return Cell reduce +',
             'end',
             'T = array shape 2 3 4 fill 0',
             'T total axis 0 0 rank 1',
         ].join('\n'))).toThrowError('axis numbers must be unique');
         expect(() => run([
             'fun total Cell',
-            '  return Cell + reduce',
+            '  return Cell reduce +',
             'end',
             'T = array shape 2 3 4 fill 0',
             'T total axis 0 3 rank 1',

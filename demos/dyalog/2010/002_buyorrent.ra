@@ -73,6 +73,6 @@ rem grown by Growth, plus that month's flow.
 rem Discounting to month zero turns it into a sum.
 fun accrue Flow Growth Start
   Discount = Growth ** -((1 to (Flow len)) copy)
-  Saved = (Flow * Discount) + scan
+  Saved = (Flow * Discount) scan +
   return (Start + Saved) / Discount
 end

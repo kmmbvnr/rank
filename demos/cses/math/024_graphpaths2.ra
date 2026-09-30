@@ -58,7 +58,7 @@ fun minplus Left Right
   for K in 0 till Size
     Column = Left # K
     Row = Right K
-    Candidate = Column Row + outer
+    Candidate = Column Row outer +
     Result = Result Candidate min
   end
 

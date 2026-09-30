@@ -42,7 +42,7 @@ fun subtree Values Rooted Queries
     Pos = Entry Node
     Flat Pos = Values (Node - 1)
   end
-  Sums = Flat + segment
+  Sums = Flat segment +
   Answers = new queue
 
   for Query in Queries
