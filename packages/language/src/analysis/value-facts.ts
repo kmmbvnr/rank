@@ -107,6 +107,16 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     }
     if (isArrayExpression(expression)) {
         if (expression.dimensions.length) {
+            const only = expression.dimensions.length === 1 ? expressionFacts(expression.dimensions[0]!.value, lookup) : undefined;
+            if (only?.types.join() === 'array') {
+                // `array shape Shape fill X`: a vector of dimensions, so the rank is the vector's length.
+                const rank = only.shape?.length === 1 ? only.shape[0] : null;
+                const fill = expression.fill && expressionFacts(expression.fill, lookup);
+                const elements = fill && isAtom(fill) ? fill.types : undefined;
+                return { types: ['array'], ...(rank === null || rank === undefined ? {}
+                    : { rank, shape: Array<number | null>(rank).fill(null) }),
+                    ...(elements ? { elements } : {}) };
+            }
             const shape = expression.dimensions.map(item => {
                 const fact = expressionFacts(item.value, lookup);
                 if (fact.integer === undefined || item.sign === '-') return null;

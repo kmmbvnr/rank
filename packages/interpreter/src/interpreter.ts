@@ -1915,7 +1915,7 @@ export class Interpreter {
                     ? expression.rows.flatMap(row => row.items)
                     : expression.items, item => interpreter.evaluateArrayItem(item)));
                 if (expression.dimensions.length === 0) return array(items);
-                const shape = yield* resume(mapExecution(expression.dimensions, item => interpreter.arrayDimension(item)));
+                const shape = yield* resume(interpreter.arrayShape(expression.dimensions));
                 const size = shape.reduce((product, dimension) => product * BigInt(dimension), 1n);
                 if (expression.fill !== undefined) {
                     const fill = (yield* resume(interpreter.evaluateTask(expression.fill)));
@@ -2871,6 +2871,18 @@ export class Interpreter {
     private *arrayDimension(item: ArrayItem): Execution<number> {
         const dimension = expectInteger((yield* resume(this.evaluateArrayItem(item))));
         return checkedArrayDimension(dimension);
+    }
+
+    /** `array shape N M` takes one integer per dimension; `array shape Shape` takes one vector. */
+    private *arrayShape(items: readonly ArrayItem[]): Execution<number[]> {
+        if (items.length === 1) {
+            const value = yield* resume(this.evaluateArrayItem(items[0]!));
+            if (!isRankArray(value)) return [checkedArrayDimension(expectInteger(value))];
+            if (value.shape.length !== 1) throw new RankError('array shape expects a vector of dimensions');
+            return Array.from({ length: value.shape[0]! },
+                (_, index) => checkedArrayDimension(expectInteger(value.itemAt?.(index) ?? value.items[index]!)));
+        }
+        return yield* resume(mapExecution(items, item => this.arrayDimension(item)));
     }
 
     private useStandard(module: string): void {

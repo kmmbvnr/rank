@@ -2727,6 +2727,14 @@ Dist = array shape Rows Columns fill -1
 The dimensions follow the same nonnegative-integer rule. A zero dimension
 creates an empty material array with the declared shape.
 
+A single dimension may instead be a vector of integers, such as the result of
+`shape`, so the rank follows the vector's length:
+
+```rank
+Dims = A shape
+Dist = array shape Dims fill -1
+```
+
 `reshape` constructs a dense array dynamically from existing values:
 
 ```rank
