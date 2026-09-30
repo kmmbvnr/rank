@@ -20,20 +20,17 @@ fun forest_queries Grid Queries
   Size = Grid len
   Side = Size + 1
   Prefix = array shape Side Side fill 0
+  Columns = 1 to Size
 
   for Row Y in Grid
     Codes = Row codepoint rank 0
     Trees = (46 - Codes) // 4
-    PrefixRow = Trees + scan with 0
-    Running = PrefixRow (1 to Size)
-    Columns = 1 to Size
+    Running = Trees + scan
     Above = Prefix Y Columns
-    Current = Above + Running
-    Prefix (Y + 1) Columns = Current
+    Prefix (Y + 1) Columns = Above + Running
   end
 
-  Q = Queries len
-  Answers = array shape Q fill 0
+  Answers = array shape (Queries len) fill 0
   for Query I in Queries
     unpack Top Left Bottom Right = Query
     Answers I = Prefix Bottom Right
