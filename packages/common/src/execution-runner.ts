@@ -178,9 +178,11 @@ export class ExecutionRunner {
             this.render();
         }, interval);
         try {
-            await new Promise<void>(resolve => setTimeout(resolve, 0));
-            this.session.setDebugBreakpoints?.(book.cells.flatMap(item =>
-                [...(this.breakpoints.get(item.id) ?? [])].map(line => ({ source: item.source, line }))));
+            if (!this.session.turboActive) {
+                await new Promise<void>(resolve => setTimeout(resolve, 0));
+                this.session.setDebugBreakpoints?.(book.cells.flatMap(item =>
+                    [...(this.breakpoints.get(item.id) ?? [])].map(line => ({ source: item.source, line }))));
+            }
             const pending = this.session.execute(source, cell.id, book.fileLines(), this.columns(), cell.fileSource, replaceDeclarations);
             if (this.stopping) this.session.interrupt?.();
             const result = await pending;
