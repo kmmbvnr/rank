@@ -21,27 +21,24 @@ rem Track the minimum weight for each achievable total value instead of the
 rem other way around, since the capacity can be far larger than the value sum.
 fun max_value W Weights Values
   TotalValue = Values sum
-  Infinity = 1000000000000000000
+  Inf = 1000000000000000000
   Size = TotalValue + 1
-  MinWeight = array shape Size fill Infinity
-  MinWeight 0 = 0
+  MinW = array shape Size fill Inf
+  MinW 0 = 0
 
   for Weight i in Weights
-    Value = Values i
-
-    for V in TotalValue to Value by -1
-      Candidate = MinWeight (V - Value) + Weight
-      Current = MinWeight V
-      MinWeight V = Current Candidate min
+    Val = Values i
+    for V in TotalValue to Val by -1
+      Next = MinW (V - Val) + Weight
+      MinW V = (MinW V) Next min
     end
   end
 
-  Best = 0
-  for V in 0 to TotalValue
-    if MinWeight V at most W
-      Best = V
+  for V in TotalValue to 0 by -1
+    if MinW V at most W
+      return V
     end
   end
 
-  return Best
+  return 0
 end
