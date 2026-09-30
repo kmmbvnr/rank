@@ -2587,6 +2587,24 @@ Series = (array Month Interest Balance) copy transpose
 Series shape          rem 360 3 for 360 months
 ```
 
+Postfix `stack` is the lazy counterpart of that rule. It joins equally shaped
+arrays or sequences into a derived array: cells are read from the items on
+demand rather than copied, and the item axes follow the shape of the array that
+holds them. Assignment keeps its value semantics, so writing to a name later
+does not change a stack built from it. Shapes are checked when `stack` is
+applied.
+
+```rank
+Series = (array Month Interest Balance) stack   rem lazy, shape 360 3 after transpose
+Dense = Series copy                             rem eager, same shape
+```
+
+Sequences with an exact size stack lazily; a sequence of unknown size (a
+generator or `filter`) raises `TypeError` and points to `copy`, an infinite
+sequence is an error, and items of different shapes, or arrays mixed with
+scalars, raise `DimensionMismatch`. A single sequence of arrays is not stacked
+by `stack`: use `copy`.
+
 ## Sliding windows
 
 `window` produces every overlapping, contiguous cell of a fixed size. The

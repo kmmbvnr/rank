@@ -561,6 +561,8 @@ export const operations: readonly Operation[] = [
         summary: 'Selects each cell by a boolean mask; SQLite expressions become CASE.' },
     { name: 'copy', module: 'sequences', arities: [1], form: 'Values copy', result: 'array',
         summary: 'Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack.' },
+    { name: 'stack', module: 'sequences', arities: [1], form: 'Items stack', result: 'array',
+        summary: 'Lazy array of equally shaped array or sequence items; their axes follow the frame of Items. copy is the eager form.' },
     { name: 'count', module: 'sequences', arities: [1], form: 'Mask count', result: 'integer', axisReduction: true,
         shape: [{ args: [null], result: [] }],
         scalarCellArrayNoCallback: 'boolean',

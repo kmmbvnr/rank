@@ -53,6 +53,7 @@ export const sequencesModule: RuntimeModule = {
         || arguments_[0] instanceof RankPersistentSumSegment
             ? arguments_[0].copy()
             : copyArray(arguments_[0])),
+    stack: () => native('stack', 1, arguments_ => stackValue(arguments_[0])),
     sort: () => native('sort', [1, 2], arguments_ => sortValue(arguments_[0])),
     argsort: () => native(
         'argsort',
@@ -332,6 +333,59 @@ function copyArray(value: RankValue): RankArray {
     if (!items.some(item => isRankArray(item) || isRankSequence(item))) return ownedArray(items, value.shape);
     const cells = items.map(item => isRankSequence(item) ? materializeSequence(item) : item);
     return stackItems(cells, value.shape, 'array');
+}
+
+/**
+ * `Items stack`: the lazy counterpart of `copy` for equally shaped array or sequence
+ * items. The frame is the shape of `Items`; the item axes follow it. Shapes are checked
+ * when the view is made, cells are read from the items on demand.
+ */
+function stackValue(value: RankValue): RankArray {
+    if (isRankSequence(value)) {
+        throw new RankError('stack expects an array of arrays or sequences; use copy for a sequence', 'TypeError');
+    }
+    if (!isRankArray(value)) throw new RankError('stack expects an array of arrays or sequences', 'TypeError');
+    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+    const mismatch = (message: string) => new RankError(message, 'DimensionMismatch');
+    const readers: ((index: number) => RankValue)[] = [];
+    const dependencies: RankArray[] = [value];
+    let cellShape: readonly number[] | undefined;
+    for (let position = 0; position < size; position += 1) {
+        checkpoint('stacking items');
+        let item = value.itemAt?.(position) ?? value.items[position]!;
+        let shape: readonly number[];
+        if (isRankSequence(item)) {
+            const length = item.plan.size;
+            if (length.kind === 'infinite') throw new RankError('cannot stack an infinite sequence');
+            if (length.kind === 'unknown') {
+                throw new RankError('cannot stack a sequence of unknown size; use copy', 'TypeError');
+            }
+            if (!item.plan.at) item = materializeSequence(item);
+        }
+        if (isRankSequence(item)) {
+            const source = item;
+            shape = [Number(source.plan.size.kind === 'exact' ? source.plan.size.value : 0n)];
+            for (const capture of source.plan.captures ?? []) {
+                for (const captured of capture.values()) if (isRankArray(captured)) dependencies.push(captured);
+            }
+            readers.push(index => atSequence(source, BigInt(index)));
+        } else if (isRankArray(item)) {
+            const source = item;
+            shape = source.shape;
+            dependencies.push(source);
+            readers.push(index => readArrayItem(source, index));
+        } else {
+            throw mismatch('stack items must all be arrays or sequences');
+        }
+        cellShape ??= shape;
+        if (cellShape.length !== shape.length || cellShape.some((dimension, axis) => dimension !== shape[axis])) {
+            throw mismatch('stack items must have the same shape');
+        }
+    }
+    if (cellShape === undefined) return ownedArray([], value.shape);
+    const cellSize = cellShape.reduce((product, dimension) => product * dimension, 1);
+    return derivedArray([...value.shape, ...cellShape], dependencies, index =>
+        readers[cellSize === 0 ? 0 : Math.floor(index / cellSize)]!(cellSize === 0 ? 0 : index % cellSize));
 }
 
 export function transposeValue(value: RankValue, axes?: readonly number[]): RankValue {
