@@ -22,12 +22,12 @@ fun prefix_queries Values Queries
     unpack Type A B = Query
     if Type equal 1
       Tree (A - 1) = B
-    else
-      Left = A - 1
-      Right = B - 1
-      State = Tree Left Right query
-      queue push State .prefix
+      continue
     end
+
+    Left = A - 1
+    State = Tree Left (B - 1) query
+    queue push State .prefix
   end
 
   return queue
