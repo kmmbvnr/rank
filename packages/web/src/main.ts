@@ -95,12 +95,27 @@ function nativeSelection(): boolean {
 }
 
 let lastExecutionState: 'running' | 'paused' | 'turbo' | 'idle' = 'idle';
+let runningStartedAt: number | undefined;
+let turboTimer: ReturnType<typeof setTimeout> | undefined;
 
 function render(): void {
     const paused = session.pauseState;
     modes.allowRender();
     if (paused) lastPause = paused;
     if (!repl.running) lastPause = undefined;
+    if (repl.running) {
+        if (runningStartedAt === undefined) {
+            runningStartedAt = performance.now();
+            turboTimer = setTimeout(() => { render(); }, 3000);
+        }
+    } else {
+        runningStartedAt = undefined;
+        if (turboTimer !== undefined) {
+            clearTimeout(turboTimer);
+            turboTimer = undefined;
+        }
+    }
+    const runningElapsed = runningStartedAt !== undefined ? performance.now() - runningStartedAt : 0;
     const shownPause = paused ?? (modes.waitingForPause ? lastPause : undefined);
     const currentExecutionState: 'running' | 'paused' | 'turbo' | 'idle' = shownPause
         ? 'paused'
@@ -116,7 +131,7 @@ function render(): void {
     runButton.setAttribute('aria-label', shownPause ? 'Step into line; hold to continue execution'
         : repl.running ? (session.turboActive ? 'Stop execution' : 'Pause and debug; hold to stop') : 'Run through selected line; hold to run all from start');
     runButton.disabled = modes.waitingForPause || !!session.pauseRequested && !paused;
-    turboButton.hidden = !repl.running || !!shownPause || !!session.turboActive;
+    turboButton.hidden = !repl.running || runningElapsed < 3000 || !!shownPause || !!session.turboActive;
     turboButton.disabled = modes.waitingForPause;
     // The steppers only make sense while the cursor sits on a loop being previewed.
     iterationControls.hidden = !!shownPause || repl.running || !repl.liveIterationAvailable;
