@@ -145,7 +145,7 @@ overflow-checks = true
 
 ## Source: 004_palproduct.ra
 
-SHA-256: 1dd2f92ba32de881e37310e141ab39d21b49a1f834b5cf5846cf868f5a7b5c42
+SHA-256: 2a904eaeec1cda50184fdce866e61b019f3dec7bfd9908bb145a126db97530c3
 
 ```rank
 rem Largest Palindrome Product
@@ -153,6 +153,7 @@ rem https://projecteuler.net/problem=4
 rem Largest palindrome made from the
 rem product of two N-digit numbers
 
+use sequences
 use text
 use io
 use cli
@@ -165,8 +166,7 @@ Upper = Lower * 10 - 1
 
 Factors = Lower to Upper
 Products = Factors Factors outer *
-Mask = Products palindrome rank 0
-Palindromes = Products Mask
+Palindromes = Products filter palindrome rank 0
 
 Answer = Palindromes max
 
@@ -184,7 +184,30 @@ end
 ## Existing tests (context, not a substitute for general behavior)
 
 ```rank
+use testing
 
+test "default input"
+  use "004_palproduct"
+  run
+
+  Answer equal 906609
+end
+
+test "two-digit factors"
+  use "004_palproduct"
+  Digits = 2
+  run
+
+  Answer equal 9009
+end
+
+test "one-digit factors"
+  use "004_palproduct"
+  Digits = 1
+  run
+
+  Answer equal 9
+end
 ```
 
 ## Resolved syntax and analysis
@@ -195,6 +218,7 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
 ```json
 {
   "modules": [
+    "sequences",
     "text",
     "io",
     "cli"
@@ -223,8 +247,8 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
           ],
           "reads": [
             {
-              "line": 18,
-              "column": 17
+              "line": 19,
+              "column": 31
             }
           ],
           "reassigned": false,
@@ -240,18 +264,18 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
           "name": "Digits",
           "kind": "option",
           "bound": {
-            "line": 11,
+            "line": 12,
             "column": 1
           },
           "writes": [
             {
-              "line": 11,
+              "line": 12,
               "column": 1
             }
           ],
           "reads": [
             {
-              "line": 13,
+              "line": 14,
               "column": 16
             }
           ],
@@ -265,22 +289,22 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
           "name": "Lower",
           "kind": "assignment",
           "bound": {
-            "line": 13,
+            "line": 14,
             "column": 1
           },
           "writes": [
             {
-              "line": 13,
+              "line": 14,
               "column": 1
             }
           ],
           "reads": [
             {
-              "line": 14,
+              "line": 15,
               "column": 9
             },
             {
-              "line": 16,
+              "line": 17,
               "column": 11
             }
           ],
@@ -294,18 +318,18 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
           "name": "Upper",
           "kind": "assignment",
           "bound": {
-            "line": 14,
+            "line": 15,
             "column": 1
           },
           "writes": [
             {
-              "line": 14,
+              "line": 15,
               "column": 1
             }
           ],
           "reads": [
             {
-              "line": 16,
+              "line": 17,
               "column": 20
             }
           ],
@@ -317,35 +341,6 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
         },
         {
           "name": "Factors",
-          "kind": "assignment",
-          "bound": {
-            "line": 16,
-            "column": 1
-          },
-          "writes": [
-            {
-              "line": 16,
-              "column": 1
-            }
-          ],
-          "reads": [
-            {
-              "line": 17,
-              "column": 12
-            },
-            {
-              "line": 17,
-              "column": 20
-            }
-          ],
-          "reassigned": false,
-          "unused": false,
-          "loopCarried": false,
-          "shadows": false,
-          "types": "sequence"
-        },
-        {
-          "name": "Products",
           "kind": "assignment",
           "bound": {
             "line": 17,
@@ -360,21 +355,21 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
           "reads": [
             {
               "line": 18,
-              "column": 8
+              "column": 12
             },
             {
-              "line": 19,
-              "column": 15
+              "line": 18,
+              "column": 20
             }
           ],
           "reassigned": false,
           "unused": false,
           "loopCarried": false,
           "shadows": false,
-          "types": "unknown"
+          "types": "sequence"
         },
         {
-          "name": "Mask",
+          "name": "Products",
           "kind": "assignment",
           "bound": {
             "line": 18,
@@ -389,7 +384,7 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
           "reads": [
             {
               "line": 19,
-              "column": 24
+              "column": 15
             }
           ],
           "reassigned": false,
@@ -535,7 +530,7 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
           "unused": false,
           "loopCarried": false,
           "shadows": false,
-          "types": "text"
+          "types": "unknown"
         }
       ]
     }
@@ -602,13 +597,13 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
     },
     {
       "name": "reverse",
-      "module": "text",
+      "module": "sequences",
       "arities": [
         1
       ],
-      "form": "Text reverse",
-      "result": "text",
-      "summary": "Reverses text by Unicode code point.",
+      "form": "Values reverse",
+      "result": "value",
+      "summary": "Reverses text by code point, an array along its leading axis, or a queue or finite sequence into an array.",
       "sites": [
         {
           "line": 29,
@@ -636,6 +631,10 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
   "syntax": {
     "$type": "Program",
     "statements": [
+      {
+        "$type": "UseStatement",
+        "module": "sequences"
+      },
       {
         "$type": "UseStatement",
         "module": "text"
@@ -766,58 +765,40 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       },
       {
         "$type": "AssignmentStatement",
-        "name": "Mask",
+        "name": "Palindromes",
         "operator": "=",
         "value": {
-          "$type": "ApplicationExpression",
-          "head": {
+          "$type": "TableFilterExpression",
+          "source": {
+            "$type": "NameExpression",
+            "name": "Products"
+          },
+          "condition": {
             "$type": "ApplicationExpression",
             "head": {
               "$type": "ApplicationExpression",
               "head": {
                 "$type": "NameExpression",
-                "name": "Products"
+                "name": "palindrome"
               },
               "arguments": [
                 {
                   "$type": "NameExpression",
-                  "name": "palindrome"
+                  "name": "rank"
                 }
               ]
             },
             "arguments": [
               {
-                "$type": "NameExpression",
-                "name": "rank"
+                "$type": "NumberLiteral",
+                "value": {
+                  "integer": "0"
+                }
               }
             ]
           },
-          "arguments": [
-            {
-              "$type": "NumberLiteral",
-              "value": {
-                "integer": "0"
-              }
-            }
-          ]
-        }
-      },
-      {
-        "$type": "AssignmentStatement",
-        "name": "Palindromes",
-        "operator": "=",
-        "value": {
-          "$type": "ApplicationExpression",
-          "head": {
-            "$type": "NameExpression",
-            "name": "Products"
-          },
-          "arguments": [
-            {
-              "$type": "NameExpression",
-              "name": "Mask"
-            }
-          ]
+          "conditions": [],
+          "sourceFields": []
         }
       },
       {
