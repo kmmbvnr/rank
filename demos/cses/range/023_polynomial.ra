@@ -27,7 +27,8 @@ fun polynomial Values Queries
     unpack Type Left Right = Query
     if Type equal 1
       A = 3 - 2 * Left
-      B = (Left - 1) * (Left - 2)
+      Left1 = Left - 1
+      B = Left1 * (Left - 2)
       Length = Right - Left + 1
       After = Right + 1
       Quad Left += 1
@@ -37,13 +38,14 @@ fun polynomial Values Queries
       Line After -= A
       Tail = Length * (Length + 1)
       Base After += Tail - B
-    else
-      X = Left - 1
-      Total = Prefix Right - Prefix X
-      Added = Quad Line Base Right poly
-      Before = Quad Line Base X poly
-      queue push Total + Added - Before
+      continue
     end
+
+    X = Left - 1
+    Total = Prefix Right - Prefix X
+    Added = Quad Line Base Right poly
+    Before = Quad Line Base X poly
+    queue push Total + Added - Before
   end
 
   return queue
