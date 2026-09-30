@@ -16,9 +16,8 @@ fun match Text Pattern
   rem A starred element can match empty text.
   for PatternSymbol j in Pattern
     if j at least 1 and PatternSymbol equal "*"
-      Column = j + 1
-      Previous = j - 1
-      index 0 Column = index 0 Previous default false
+      Prev = j - 1
+      index 0 (j + 1) = index 0 Prev default false
     end
   end
 
@@ -28,20 +27,25 @@ fun match Text Pattern
       Column = j + 1
 
       if PatternSymbol equal "*"
-        Previous = Column - 2
-        Repeated = Pattern Previous
-        Same = Repeated equal "." or Repeated equal TextSymbol
-        Zero = index Row Previous default false
-        More = Same and index i Column default false
+        Prev = Column - 2
+        Repeated = Pattern (j - 1)
+        Same = Repeated TextSymbol matches
+        Zero = index Row Prev default false
+        Valid = index i Column default false
+        More = Same and Valid
         index Row Column = Zero or More
       else
-        Same = PatternSymbol equal "." or PatternSymbol equal TextSymbol
-        Previous = Column - 1
-        Prefix = index i Previous default false
+        Same = PatternSymbol TextSymbol matches
+        Prefix = index i j default false
         index Row Column = Same and Prefix
       end
     end
   end
 
   return index N M default false
+end
+
+
+fun matches S T
+  return S equal "." or S equal T
 end
