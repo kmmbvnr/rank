@@ -22,34 +22,38 @@ fun expected_turns N A
   C3 = (A equal 3) count
 
   Total = C1 + C2 + C3
-  Size = Total + 1
-  Depth = C3 + 1
-  Dp = array shape Size Size Depth fill 0.0
+  S = Total + 1
+  D = C3 + 1
+  Dp = array shape S S D fill 0.0
 
   for K in 0 to C3
     for J in 0 to Total
       for I in 0 to Total
         Occupied = I + J + K
-        if Occupied greater 0 and Occupied at most Total
-          Base = N / Occupied
-
-          if I greater 0
-            Neighbor = Dp (I - 1) J K
-            Base += I * Neighbor / Occupied
-          end
-          if J greater 0
-            Down = J - 1
-            Neighbor = Dp (I + 1) Down K
-            Base += J * Neighbor / Occupied
-          end
-          if K greater 0
-            Down = K - 1
-            Neighbor = Dp I (J + 1) Down
-            Base += K * Neighbor / Occupied
-          end
-
-          Dp I J K = Base
+        if Occupied equal 0
+          continue
         end
+        if Occupied greater Total
+          continue
+        end
+
+        Base = N / Occupied
+        if I greater 0
+          Next = Dp (I - 1) J K
+          Base += I * Next / Occupied
+        end
+        if J greater 0
+          Down = J - 1
+          Next = Dp (I + 1) Down K
+          Base += J * Next / Occupied
+        end
+        if K greater 0
+          Down = K - 1
+          Next = Dp I (J + 1) Down
+          Base += K * Next / Occupied
+        end
+
+        Dp I J K = Base
       end
     end
   end
