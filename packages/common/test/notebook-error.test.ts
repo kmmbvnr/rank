@@ -33,3 +33,25 @@ describe('clearing a failed source line', () => {
         expect(repl.notebook.current.output).toEqual([]);
     });
 });
+
+describe('running a line after a failed one', () => {
+    it('does not carry a syntax error over to the corrected line', async () => {
+        const repl = new NotebookRepl(createReplSession());
+        repl.notebook.replace('X = @');
+        await repl.submit(true);
+        expect(repl.notebook.cells[0]!.status).toBe('error');
+        expect(repl.notebook.cells[0]!.output[0]!.text).not.toMatch(/Expecting|Token sequences|<\[NL\]>/);
+
+        repl.notebook.replace('X = 1 + 2');
+        await repl.submit(true);
+        expect(repl.notebook.cells.some(cell => cell.status === 'error')).toBe(false);
+        expect(repl.notebook.cells.flatMap(cell => cell.output.map(line => line.text))).toEqual(['3']);
+    });
+
+    it('opens a block on Play for a function header instead of reporting an error', async () => {
+        const repl = new NotebookRepl(createReplSession());
+        repl.notebook.replace('fun inc N');
+        await repl.submit(true);
+        expect(repl.notebook.cells.some(cell => cell.status === 'error')).toBe(false);
+    });
+});
