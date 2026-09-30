@@ -4899,6 +4899,25 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         && isIntegerCollectionSelector(values[1])) {
         return selectAxis(values[0], 0, values[1]);
     }
+    if (isRankIndex(values[0]) && values.length === 2
+        && (isRankArray(values[1]) || isRankSequence(values[1]))) {
+        // Gather: an index addressed by many keys answers with one value per key.
+        const source = values[0];
+        const keys = values[1];
+        const read = (key: RankValue): RankValue => {
+            const value = source.entries.get(indexKey([key]));
+            if (value !== undefined) return value;
+            if (missing) return missing();
+            throw new MissingValueError('missing keyed value');
+        };
+        if (isRankSequence(keys)) {
+            if (keys.plan.size.kind === 'infinite') {
+                throw new RankError('an index cannot be gathered by an infinite sequence');
+            }
+            return ownedArray([...keys.plan.iterate()].map(read));
+        }
+        return ownedArray(Array.from(keys.items, read), keys.shape);
+    }
     if (isRankIndex(values[0])) {
         const value = values[0].entries.get(indexKey(values.slice(1)));
         if (value === undefined) {
