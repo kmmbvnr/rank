@@ -2,34 +2,19 @@ rem Add Two Numbers
 rem Two numbers as digit lists in reverse
 rem order, return their sum the same way
 
-use algo
-
 fun add_two A B
-  N = A len
-  M = B len
-  Size = N M max
+  Size = (A len) (B len) max
   Carry = 0
 
   for I in 0 till Size
-    X = 0
-    Y = 0
-
-    if I less N
-      X = A I
-    end
-
-    if I less M
-      Y = B I
-    end
-
+    X = A I default 0
+    Y = B I default 0
     Sum = X + Y + Carry
-    queue push Sum % 10
+    yield Sum % 10
     Carry = Sum // 10
   end
 
   if Carry greater 0
-    queue push Carry
+    yield Carry
   end
-
-  return queue
 end
