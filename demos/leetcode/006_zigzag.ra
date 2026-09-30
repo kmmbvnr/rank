@@ -16,14 +16,14 @@ fun zigzag Text N
   Cycle = N * 2 - 2
 
   for Row in 0 till N
+    Step = Cycle - Row * 2
     for Position in Row till Length by Cycle
       queue push Position
 
       if Row greater 0 and Row less N - 1
-        Diagonal = Position + Cycle - Row * 2
-
-        if Diagonal less Length
-          queue push Diagonal
+        Diag = Position + Step
+        if Diag less Length
+          queue push Diag
         end
       end
     end
