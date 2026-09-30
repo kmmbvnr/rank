@@ -61,9 +61,8 @@ fun negative_cycle Edges N
   end
   Path push Start
 
-  Last = Path len - 1
   return record
     .found = true
-    .cycle = Path (Last to 0 by -1)
+    .cycle = Path reverse
   end
 end

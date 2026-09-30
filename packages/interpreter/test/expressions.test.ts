@@ -858,10 +858,10 @@ describe('Rank expressions and sequences', () => {
         expect(run('use text\n-120 text')).toBe('-120');
         expect(run('use text\ntrue text')).toBe('true');
         expect(run('use text\n.Label text')).toBe('.Label');
-        expect(run('use text\n"A😀Б" reverse')).toBe('Б😀A');
+        expect(run('use sequences\n"A😀Б" reverse')).toBe('Б😀A');
         expect(() => run('use text\n(array 1 2) text'))
             .toThrowError('text expects a scalar value');
-        expect(() => run('use text\n12 reverse')).toThrowError('reverse expects text');
+        expect(() => run('use sequences\n12 reverse')).toThrowError('reverse expects');
     });
 
     it('converts Unicode code points and searches text', () => {

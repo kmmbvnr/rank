@@ -538,6 +538,7 @@ copy
 sort
 argsort
 indices
+reverse
 first
 last
 count
@@ -624,6 +625,20 @@ rem 0 2
 `Values Target find` returns the first zero-based position equal to `Target`.
 `findall` returns every matching position; an empty result is an empty vector.
 Both accept rank-1 arrays and text, indexed by Unicode code point.
+
+`Values reverse` reverses text by Unicode code point, an array along its leading
+axis, and a queue, stack, deque or finite sequence, which becomes an array
+(the queue is left as it was). The result is a new value
+of the same shape and element type; a matrix keeps each row and reverses their
+order. Unbounded sequences and other values are rejected. `reverse` is a
+`sequences` operation, not a `text` one.
+
+```rank
+Back = "A😀Б" reverse
+rem Б😀A
+Down = (array 1 2 3) reverse
+rem 3 2 1
+```
 
 `Values first` and `Values last` read an end of the leading axis without
 `len - 1` arithmetic. They accept text (one code point), arrays (a row for a
@@ -753,7 +768,6 @@ Examples:
 split
 words
 vocab
-reverse
 codepoint
 character
 text
@@ -917,15 +931,6 @@ end
 `join` consumes its input. Known infinite sequences are rejected; for a sequence
 whose size is unknown, the caller must ensure that it terminates.
 
-
-`reverse` reverses text by Unicode code point:
-
-```rank
-Back = "A😀Б" reverse
-rem Б😀A
-```
-
-Reversal of array axes is a separate tensor operation and remains deferred.
 
 `codepoint` converts exactly one Unicode character to its integer code point.
 `character` performs the inverse conversion and returns one-character text:

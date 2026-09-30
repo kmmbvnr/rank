@@ -3,6 +3,7 @@ rem https://projecteuler.net/problem=55
 rem Count numbers below Limit that do not
 rem form a palindrome within fifty reverse-add steps
 
+use sequences
 use text
 use io
 use cli
