@@ -2123,7 +2123,22 @@ export class Interpreter {
                         left ??= interpreter.compileExpression(expression.left, () => absent);
                         const value = yield* resume(left());
                         if (isRankArray(value)) {
-                            const items = value.items;
+                            let items: readonly RankValue[];
+                            try {
+                                items = value.items;
+                            } catch (error) {
+                                if (!(error instanceof MissingValueError)) throw error;
+                                // A missing cell takes the fallback; the other cells keep their values.
+                                const size = value.shape.reduce((product, length) => product * length, 1);
+                                items = Array.from({ length: size }, (_, index) => {
+                                    try {
+                                        return readArrayItem(value, index);
+                                    } catch (cellError) {
+                                        if (!(cellError instanceof MissingValueError)) throw cellError;
+                                        return absent;
+                                    }
+                                });
+                            }
                             if (!items.includes(absent)) return value;
                             const fallback = yield* resume(interpreter.evaluateTask(expression.right));
                             return createArraySnapshot(
@@ -2627,7 +2642,18 @@ export class Interpreter {
                     ));
                     if (isRankDsu(receiver)) {
                         interpreter.requireModule('graph', dsuMethod.operation);
-                        if (dsuMethod.operation === 'findroot') return receiver.find(arguments_[0]);
+                        if (dsuMethod.operation === 'findroot') {
+                            if (isRankArray(arguments_[0])) {
+                                // One representative per queried value, in the shape of the queries.
+                                const operation = yield* resume(interpreter.evaluateTask(dsuMethod.operationExpression));
+                                if (isNativeFunction(operation)) {
+                                    return yield* resume(interpreter.rankApplication.applyDyadicAtRank(
+                                        receiver, arguments_[0], operation,
+                                    ));
+                                }
+                            }
+                            return receiver.find(arguments_[0]);
+                        }
                         if (dsuMethod.operation === 'merge') {
                             return receiver.merge(arguments_[0], arguments_[1]);
                         }
@@ -2683,6 +2709,18 @@ export class Interpreter {
                     if (isRankMultiset(receiverValue)) {
                         interpreter.requireModule('algo', multisetMethod.operation);
                         const receiver = expectMultiset(receiverValue);
+                        if (isRankArray(argumentValue)) {
+                            // Many queries against one structure: the operation's intrinsic ranks
+                            // split the queries into scalar cells.
+                            const operation = yield* resume(interpreter.evaluateTask(
+                                parts[multisetMethod.receiver.length],
+                            ));
+                            if (isNativeFunction(operation)) {
+                                return yield* resume(interpreter.rankApplication.applyDyadicAtRank(
+                                    receiverValue, argumentValue, operation,
+                                ));
+                            }
+                        }
                         if (multisetMethod.operation === 'floor') return receiver.floor(argumentValue);
                         if (multisetMethod.operation === 'upperbound') return receiver.upperBound(argumentValue);
                         return receiver.ceiling(argumentValue);

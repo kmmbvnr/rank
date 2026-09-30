@@ -3222,7 +3222,16 @@ explicit modifier, that rank determines the cells it receives. `rank R`
 overrides the unary rank: if the argument rank is greater than `R`, the function
 is applied to each trailing `R`-cell and the leading frame is preserved. If the
 argument rank is at most `R`, the function receives the whole argument once.
-Rank values are currently nonnegative integers.
+A negative rank counts down from the operand's own rank, as in J: `-1` selects
+the items of the operand (its rows, for a matrix) without knowing its rank,
+`-2` the items of those items, and a rank below a scalar cell is a scalar cell.
+`A F rank -1` therefore applies `F` to every item of `A`. In `rank L R` each
+operand resolves its own rank.
+
+```rank
+Totals = Matrix sum rank -1
+rem one sum per row, for any rank of Matrix
+```
 
 An explicit `axis` list before `rank` names the frame axes. The remaining axes,
 kept in their original order, form the cell passed to the unary function:
@@ -3492,9 +3501,10 @@ Smallest = A B outer Operation
 
 Cell ranks belong to the operation; `outer` combines the remaining frames.
 Symbolic binary operations have intrinsic ranks `0 0`. The named functions
-`band`, `bor`, `bxor`, `shl`, `shr`, `min` and `max` also declare ranks `0 0`.
-User-defined binary functions currently default to `all all`; syntax for
-declaring their intrinsic ranks remains deferred.
+`band`, `bor`, `bxor`, `shl`, `shr`, `min`, `max`, `atan2`, `binomial`, `gcd`,
+`lcm`, `bit` and `round` also declare ranks `0 0`. User-defined
+binary functions currently default to `all all`; syntax for declaring their
+intrinsic ranks remains deferred.
 
 The result shape is the concatenation of the left and right frame shapes.
 Therefore, if `A` has shape `2 3` and `B` has shape `4 5`, the result of atom
@@ -3874,6 +3884,15 @@ exists they also raise `.Missing`, so ordinary `default` supplies a fallback:
 Best = Tickets floor Limit default -1
 ```
 
+The query has intrinsic rank 0: an array of queries gives one answer per
+element, in the shape of the queries. A missing answer raises `.Missing` when
+that cell is read; `default` replaces only the missing cells.
+
+```rank
+Limits = array 3 7 12
+Bests = Tickets floor Limits default -1
+```
+
 `Bag I` addresses the occurrence at zero-based position `I` in sorted order.
 Equal values occupy separate positions. A negative or out-of-bounds position
 raises `.Missing`, so it also composes with `default`.
@@ -4012,7 +4031,8 @@ reaches a numeric target:
 Position = Tree Target firstatleast
 ```
 
-It returns `-1` when no prefix reaches the target. Prefix aggregates must be
+It returns `-1` when no prefix reaches the target. An array of targets gives one
+position per target. Prefix aggregates must be
 monotone relative to the target. Typical valid trees use `max`, or `+` with
 nonnegative values. Rank does not attempt to prove this condition.
 
@@ -5122,8 +5142,8 @@ Their framed results are lazy. Empty reduced cells raise `.EmptyReduction`.
 Standard binary functions may declare intrinsic ranks. Rank splits array
 arguments into trailing cells, broadcasts their leading frames, and applies
 the function to corresponding cells. An atomic or whole-value argument has an
-empty frame and is reused for every cell of the other argument. Explicit
-binary `rank` overrides are not yet part of the language.
+empty frame and is reused for every cell of the other argument. `rank L R`
+overrides both ranks explicitly.
 
 The broader tensor direction includes:
 
@@ -5343,12 +5363,29 @@ other item by item finds several values in one vector at once:
 
 ```rank
 Kinds = "SAMFL" "" split
-Index = Kinds (Ops "" split) find rank 1 0
+Index = Kinds (Ops "" split) find
 rem one position for every code
 ```
 
-`M Targets find rank 1 0` pairs each row of `M` with its own target. Each cell
-result must currently be a scalar; `rank N` keeps its meaning.
+`find` has intrinsic ranks `all 0`, so the explicit `rank 1 0` is the same.
+Other built-ins with a binary intrinsic rank:
+
+| Ranks | Functions |
+| --- | --- |
+| `0 0` | `band`, `bor`, `bxor`, `shl`, `shr`, `atan2`, `binomial`, `gcd`, `lcm`, `bit`, `round`, `min`, `max` |
+| `all 0` | `find`, `findall`, `findroot`, `floor`, `ceiling`, `lowerbound`, `upperbound`, `firstatleast` |
+| `all 1` | `reshape` |
+| `1 0` | `join`, `percentile`, `quantile` |
+
+`Rows "," join` joins each row of a text matrix. `Values Targets findall` and
+`Values Shapes reshape` have array cells, so their results stack under the frame
+by the `stack` rule: every cell must have one shape, or the call raises
+`DimensionMismatch`. A built-in without intrinsic binary ranks also accepts
+array cell results under an explicit `rank L R`, so `Matrices Columns solve rank 2 1`
+solves a batch of systems. For other built-ins each cell result must still be a
+scalar. `startswith` keeps whole-operand ranks, because a byte view is an array
+that must be compared whole. `take` and `drop` are sequence operators, not
+functions, and have no ranks. `rank N` keeps its meaning.
 
 ## Iteration by axis and cell rank
 
@@ -5421,8 +5458,9 @@ Smallest = A B outer Operation
 
 Cell ranks belong to the operation, while `outer` combines the remaining
 frames. Symbolic binary operations have intrinsic ranks `0 0`. The named
-functions `band`, `bor`, `bxor`, `shl`, `shr`, `min` and `max` also declare
-ranks `0 0`. User-defined binary functions currently default to `all all`;
+functions `band`, `bor`, `bxor`, `shl`, `shr`, `min`, `max`, `atan2`,
+`binomial`, `gcd`, `lcm`, `bit` and `round` also declare ranks
+`0 0`. User-defined binary functions currently default to `all all`;
 syntax for declaring their intrinsic ranks remains deferred.
 
 The result shape is the concatenation of the left and right frame shapes. Thus

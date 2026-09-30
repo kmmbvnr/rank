@@ -1,5 +1,5 @@
 import {
-    isApplicationExpression, isBinaryExpression, isLabelLiteral, isNameExpression, isNumberLiteral,
+    isApplicationExpression, isBinaryExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isUnaryExpression,
     type Expression, type NameExpression,
 } from './generated/ast.js';
 import { applicationExpression, flattenApplication, groupedExpression } from './expressions.js';
@@ -12,6 +12,12 @@ export { REDUCE_OPERATORS, OUTER_OPERATORS } from './application-forms.js';
 
 function named(expression: Expression | undefined, name: string): boolean {
     return isNameExpression(expression) && expression.name === name;
+}
+
+/** A rank is an integer literal, possibly negative (`rank -1`). */
+function isRankNumber(expression: Expression | undefined): boolean {
+    return isNumberLiteral(expression)
+        || isUnaryExpression(expression) && expression.operator === '-' && isNumberLiteral(expression.operand);
 }
 
 function isSortDirection(expression: Expression | undefined): boolean {
@@ -45,7 +51,7 @@ function boundary(parts: Expression[]): number | undefined {
     const rank = parts.findIndex((part, index) => index >= 2 && named(part, 'rank'));
     if (rank >= 0) {
         // `rank L R` takes a second number for the right operand of a binary operation.
-        const end = isNumberLiteral(parts[rank + 2]) ? rank + 3 : rank + 2;
+        const end = isRankNumber(parts[rank + 2]) ? rank + 3 : rank + 2;
         if (parts.length > end) return end;
     }
     const axis = parts.findIndex((part, index) => index >= 2 && named(part, 'axis'));

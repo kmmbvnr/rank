@@ -3,6 +3,7 @@ import { findOperation, instantiateShapeSignature, operations, type KnownShape }
 import { derivedArray, ownedArray } from '../src/array-storage.js';
 import { RankDsu } from '../src/dsu.js';
 import { RankFunctionalGraph } from '../src/functional-graph.js';
+import { RankMultiset } from '../src/multiset.js';
 import { RankRangeSumSegment } from '../src/segment.js';
 import { RankWavelet } from '../src/wavelet.js';
 import { sequence } from '../src/sequence.js';
@@ -22,6 +23,8 @@ const file: RankValue = { kind: 'file', closed: false, handle: {
 // logical result shape, measured from headers without enumerating lazy values.
 type Sample = readonly [string, () => RankValue[], KnownShape];
 const samples: readonly Sample[] = [
+    ...['ceiling', 'floor', 'lowerbound', 'upperbound'].map((name): Sample =>
+        [`algo.${name}`, () => [new RankMultiset().add(1n).add(5n), 3n], []]),
     ['algo.firstatleast', () => [new RankRangeSumSegment([1n, 2n, 3n]), 3n], []],
     ['algo.missing', () => [new RankWavelet(vector(1n, 2n, 4n)), vector(0n, 2n)], []],
     ['algo.permutations', () => [vector(1n, 2n, 3n)], [6]],
@@ -35,6 +38,7 @@ const samples: readonly Sample[] = [
     ...['day', 'hour', 'minute', 'month', 'second', 'weekday', 'year'].map(name =>
         [`dates.${name}`, () => [moment], []] as Sample),
     ['dates.seconds', () => [{ kind: 'duration', seconds: 90n }], []],
+    ['graph.findroot', () => [new RankDsu(true), 1n], []],
     ['graph.connected', () => [new RankDsu(true), 'a', 'b'], []],
     ['graph.merge', () => [new RankDsu(true), 'a', 'b'], []],
     ['graph.lengths', () => [new RankFunctionalGraph(vector(2n, 1n))], [2]],
@@ -76,7 +80,8 @@ const samples: readonly Sample[] = [
         [`sequences.${name}`, () => ['cba'], [3]],
     ] as Sample[]),
     ['sequences.find', () => [vector(1n, 2n), 2n], []],
-    ['sequences.find', () => ['abc', 'b'], []],
+    ['sequences.findall', () => [vector(1n, 2n, 1n), 1n], [2]],
+    ['text.join', () => [vector('a', 'b'), ','], [3]],
     ['sequences.reshape', () => [vector(1n, 2n, 3n, 4n), vector(2n, 2n)], [2, 2]],
     ['sequences.reshape', () => [vector(), vector(0n, 3n)], [0, 3]],
     ['sequences.unique', () => [vector(1n, 1n, 1n)], [1]],

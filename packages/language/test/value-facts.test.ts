@@ -745,16 +745,18 @@ it('keeps proven numeric builtins and arithmetic scalar', () => {
 });
 
 it('keeps the rank of builtins that always return one scalar', () => {
-    for (const source of ['X Y gcd', 'X lcm', 'X Y lcm', 'X Y Z powmod',
-        'X Y Z binomialmod', 'X len', 'X count', 'X Y find', 'X Y firstatleast',
+    for (const source of ['X lcm', 'X Y Z powmod',
+        'X Y Z binomialmod', 'X len', 'X count',
         'X position', 'X size', 'X seed', 'X codepoint']) {
         expect(facts(source)).toEqual({ types: ['integer'], rank: 0, shape: [] });
     }
-    for (const source of ['X Y bit', 'X Y Z connected', 'X Y Z merge',
+    for (const source of ['X Y Z connected', 'X Y Z merge',
         'X eof']) {
         expect(facts(source)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
     }
     expect(facts('(array 1 2) 1 binomial').types).toEqual(['array']);
+    for (const source of ['X Y gcd', 'X Y lcm', 'X Y bit', 'X Y firstatleast']) expect(facts(source).rank).toBeUndefined();
+    expect(facts('12 18 gcd')).toMatchObject({ types: ['integer'], rank: 0, shape: [] });
     expect(facts('"abc" "a" startswith')).toEqual({ types: ['boolean'], rank: 0, shape: [] });
     expect(facts('("abc" bytes) ("a" bytes) startswith'))
         .toEqual({ types: ['boolean'], rank: 0, shape: [] });
@@ -1015,10 +1017,33 @@ it('keeps collection kinds without inventing dimensions or callback proofs', () 
 });
 
 it('keeps collection search and DSU findroot contracts separate', () => {
-    expect(facts('X Y find')).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    // The targets may be an array, which finds each of them.
+    expect(facts('X Y find').rank).toBeUndefined();
     expect(facts('(array 1 2) 1 find')).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('(array 1 2) (array 2 1) find')).toMatchObject({ types: ['array'], rank: 1, shape: [2] });
     const bindings = new Map<string, ValueFacts>([['D', { types: ['dsu'], elements: ['text'] }]]);
     expect(facts('D "a" findroot', bindings)).toEqual({ types: ['text'], rank: 1, shape: [null] });
     bindings.set('Op', { types: [], builtinOperation: 'findroot' });
     expect(facts('D "a" Op', bindings)).toEqual({ types: ['text'], rank: 1, shape: [null] });
+});
+
+it('broadcasts the binary scalar built-ins with intrinsic 0 0 ranks', () => {
+    const bindings = new Map<string, ValueFacts>([
+        ['R', { types: ['array'], elements: ['integer'], rank: 2, shape: [2, 3] }],
+        ['V', { types: ['array'], elements: ['integer'], rank: 1, shape: [3] }],
+    ]);
+    for (const call of ['R R gcd', 'V R lcm', 'R 1 round']) {
+        expect(facts(call, bindings)).toMatchObject({ types: ['array'], rank: 2, shape: [2, 3] });
+    }
+    expect(facts('V V bit', bindings)).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['boolean'] });
+});
+
+it('resolves a negative explicit rank against the operand rank', () => {
+    const bindings = new Map<string, ValueFacts>([
+        ['A', { types: ['array'], rank: 3, shape: [2, 3, 4] }],
+        ['B', { types: ['array'], rank: 2, shape: [3, 4] }],
+    ]);
+    expect(facts('A sum rank -1', bindings)).toEqual(facts('A sum rank 2', bindings));
+    expect(facts('A sum rank -2', bindings)).toEqual(facts('A sum rank 1', bindings));
+    expect(facts('A B atan2 rank -3 -2', bindings)).toEqual(facts('A B atan2 rank 0 0', bindings));
 });

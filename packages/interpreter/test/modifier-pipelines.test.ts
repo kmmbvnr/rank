@@ -40,7 +40,7 @@ describe('modifier pipelines', () => {
 
     it('keeps modifier argument diagnostics in a pipeline', () => {
         expect(() => run('use text\n"12" integer rank "bad" print'))
-            .toThrowError('rank expects a nonnegative integer');
+            .toThrowError('rank expects an integer');
     });
 
     it('prints the completed result and evaluates the source once', () => {

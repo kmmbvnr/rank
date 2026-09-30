@@ -1,5 +1,5 @@
 import {
-    isExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnpackExpression,
+    isExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
     isApplicationExpression, isArrayExpression, isBinaryExpression, isLabelLiteral, isNameExpression,
     type ArrayExpression, type ArrayItem, type Expression,
 } from './generated/ast.js';
@@ -638,32 +638,41 @@ function explicitAxisCorrelation(parts: Expression[]): AxisCovarianceApplication
 }
 
 
+/** A rank is an integer literal; a negative rank counts down from the operand's own rank, as in J. */
+function rankLiteral(part: Expression | undefined): number | undefined {
+    const limit = BigInt(Number.MAX_SAFE_INTEGER);
+    let value: bigint | undefined;
+    if (part && isNumberLiteral(part) && typeof part.value === 'bigint') value = part.value;
+    else if (part && isUnaryExpression(part) && part.operator === '-'
+        && isNumberLiteral(part.operand) && typeof part.operand.value === 'bigint') value = -part.operand.value;
+    if (value === undefined) return undefined;
+    if (value > limit || value < -limit) throw new ApplicationSyntaxError('rank is too large: ' + value);
+    return Number(value);
+}
+
 function explicitRankApplication(
     parts: Expression[],
 ): { parts: Expression[]; rank: bigint; rightRank?: bigint; axes?: readonly number[] } | undefined {
     // `rank L R` gives the left and right operands of a binary operation their own cell ranks.
     const [word, first, second] = parts.slice(-3);
-    if (parts.length >= 3 && isNamed(word, 'rank') && isNumberLiteral(first) && isNumberLiteral(second)) {
+    const leftRank = isNamed(word, 'rank') ? rankLiteral(first) : undefined;
+    const rightRank = isNamed(word, 'rank') ? rankLiteral(second) : undefined;
+    if (parts.length >= 3 && leftRank !== undefined && rightRank !== undefined) {
         const beforeRank = parts.slice(0, -3);
         if (beforeRank.length !== 3 || beforeRank.some(part => isNamed(part, 'axis'))) {
             throw new ApplicationSyntaxError('rank L R expects two operands and a binary operation');
         }
-        return {
-            parts: beforeRank,
-            rank: BigInt(literalDimension(integerLiteral(first, 'rank'), 'rank')),
-            rightRank: BigInt(literalDimension(integerLiteral(second, 'rank'), 'rank')),
-        };
+        return { parts: beforeRank, rank: BigInt(leftRank), rightRank: BigInt(rightRank) };
     }
     const modifier = parts.at(-2);
     const rank = parts.at(-1);
     if (!modifier || !rank || !isNameExpression(modifier) || modifier.name !== 'rank') return undefined;
-    if (!isNumberLiteral(rank) || typeof rank.value !== 'bigint') {
-        throw new ApplicationSyntaxError('rank expects a nonnegative integer');
-    }
+    const cellRank = rankLiteral(rank);
+    if (cellRank === undefined) throw new ApplicationSyntaxError('rank expects an integer');
     const beforeRank = parts.slice(0, -2);
     if (beforeRank.length < 2) throw new ApplicationSyntaxError('rank requires data and a unary operation');
     const axisPosition = beforeRank.findIndex(part => isNamed(part, 'axis'));
-    if (axisPosition < 0) return { parts: beforeRank, rank: rank.value };
+    if (axisPosition < 0) return { parts: beforeRank, rank: BigInt(cellRank) };
     if (axisPosition !== 2 || beforeRank.length === 3) {
         throw new ApplicationSyntaxError(
             'axis rank expects data and a unary operation followed by one or more frame axes',
@@ -671,7 +680,7 @@ function explicitRankApplication(
     }
     return {
         parts: beforeRank.slice(0, axisPosition),
-        rank: rank.value,
+        rank: BigInt(cellRank),
         axes: beforeRank.slice(axisPosition + 1).map(axis =>
             literalDimension(integerLiteral(axis, 'axis rank'), 'axis rank')),
     };
