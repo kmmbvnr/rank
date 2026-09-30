@@ -28,23 +28,19 @@ fun movie_queries Movies Queries
   for Movie in Movies
     unpack Start Finish = Movie
     Place = Start - 1
-    Current = Next Place
-    Next Place = Current Finish min
+    Next Place = (Next Place) Finish min
   end
   for Time in LastTime to 1 by -1
     Place = Time - 1
-    Current = Next Place
     Later = Next Time
-    Next Place = Current Later min
+    Next Place = (Next Place) Later min
   end
   Path = Next functional
 
-  Q = Queries len
-  Answers = array shape Q fill 0
+  Answers = array shape (Queries len) fill 0
   for Query I in Queries
     unpack Arrive Leave = Query
-    Answers I = Path Arrive Leave upto
-    Answers I -= 1
+    Answers I = (Path Arrive Leave upto) - 1
   end
   return Answers
 end
