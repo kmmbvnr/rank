@@ -39,11 +39,9 @@ fun visible Heights Queries
 
   Path = Next functional
 
-  Q = Queries len
-  Answers = array shape Q fill 0
+  Answers = array shape (Queries len) fill 0
   for Query I in Queries
-    First = Query 0
-    Last = Query 1
+    unpack First Last = Query
     Answers I = Path First Last upto
   end
   return Answers
