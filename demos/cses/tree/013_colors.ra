@@ -34,8 +34,7 @@ fun distinct_colors Colors Rooted
     Bags Node = Bag
   end
 
-  Last = Order len - 1
-  for Node in Order (Last to 0 by -1)
+  for Node in Order reverse
     Bag = Bags Node
     Id = Node - 1
     Result Id = Bag len

@@ -365,6 +365,7 @@ Shapes, orderings, windows and lazy sources.
 | `Values flat` | array | Copies records into fixed-width storage; Count State flat initializes a compact array. |
 | `fibonacci` | sequence, lazy | Unbounded lazy Fibonacci numbers; bound with to, till, from or after. |
 | `Mask indices` | array | Zero-based positions of the true values in a boolean vector. |
+| `Values reverse` | value | Reverses text by code point, an array along its leading axis, or a queue or finite sequence into an array. |
 | `Values first` | element | First item of text, an array, a queue or a sequence; missing when empty. |
 | `Values last` | element | Last item of text, an array, a queue or a finite sequence; missing when empty. |
 | `primes` | sequence, lazy | Unbounded ascending primes, with planned membership and positional seeking. |
@@ -459,7 +460,6 @@ Splitting, formatting, parsing and code points.
 | `Bytes hex` | text | Lowercase hexadecimal text for bytes, without a prefix. |
 | `Values Separator join` | text | Joins scalar elements of a finite collection into one text. |
 | `Text Pattern parse` | array | Captures /integer, /real, /word and /text from a complete pattern match. |
-| `Text reverse` | text | Reverses text by Unicode code point. |
 | `Text Separator split` | array | Splits at every exact occurrence of a separator, keeping empty parts. |
 | `Value Prefix startswith` | boolean | Exact text or byte prefix test; ordinary arrays broadcast elementwise. |
 | `Text lower` | text | Converts Unicode text to lowercase. |

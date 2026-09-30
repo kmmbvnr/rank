@@ -22,8 +22,7 @@ fun subordinates Bosses
   Walk = Tree 1 dfs
   Counts = array shape N fill 0
   Order = Walk .order
-  Last = Order len - 1
-  for Employee in Order (Last to 1 by -1)
+  for Employee in Order drop 1 reverse
     Boss = Walk .parent Employee
     Subordinates = Counts (Employee - 1) + 1
     Counts (Boss - 1) += Subordinates

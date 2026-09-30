@@ -525,6 +525,13 @@ function transferApplicationFacts(
                 ...(hasNumericArrayNoCallbackProof(operation, operands)
                     ? { callbackFreeScalarCells: true as const } : {}),
             };
+            if (operation === findOperation('reverse') && arity === 1) {
+                if (source.types.join() === 'text') return { types: ['text'], rank: source.rank, shape: source.shape };
+                if (source.types.join() === 'array' && source.shape) return {
+                    types: ['array'], rank: source.rank, shape: source.shape, elements: source.elements,
+                    ...(hasNumericArrayNoCallbackProof(operation, operands)
+                        ? { callbackFreeScalarCells: true as const } : {}) };
+            }
             if (operation === findOperation('transpose') && arity === 1 && source.types.join() === 'array'
                 && source.shape) return { types: ['array'], rank: source.shape.length,
                 shape: [...source.shape].reverse(), elements: source.elements,

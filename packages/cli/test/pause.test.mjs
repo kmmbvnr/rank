@@ -145,7 +145,7 @@ test('step to main leaves ranked callbacks and stops in the following cell', { t
 test('inspection does not evaluate a ranked array shape while paused inside its callback', { timeout: 10000 }, async t => {
     const session = await createWorkerSession();
     t.after(() => session.dispose());
-    await session.execute('use text', 0, []);
+    await session.execute('use text\nuse sequences', 0, []);
     const fn = 'fun palindrome X\n  Text = X text\n  Back = Text reverse\n  return Text equal Back\nend';
     await session.execute(fn, 1, []);
     session.setDebugBreakpoints([{ source: fn, line: 2 }]);

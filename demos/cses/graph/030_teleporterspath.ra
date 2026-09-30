@@ -24,9 +24,8 @@ end
 rem Use every teleporter from 1 to N.
 fun teleporters_path Graph N EdgeCount
   Path = Graph 1 euler
-  Last = Path len - 1
   Valid = Path len equal EdgeCount + 1
-  if Valid and Path Last equal N
+  if Valid and Path last equal N
     return Path
   end
   return array shape 0 fill 0
