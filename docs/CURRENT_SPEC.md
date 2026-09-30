@@ -5373,7 +5373,7 @@ Other built-ins with a binary intrinsic rank:
 | Ranks | Functions |
 | --- | --- |
 | `0 0` | `band`, `bor`, `bxor`, `shl`, `shr`, `atan2`, `binomial`, `gcd`, `lcm`, `bit`, `round`, `min`, `max` |
-| `all 0` | `find`, `findall`, `floor`, `ceiling`, `lowerbound`, `upperbound`, `firstatleast` |
+| `all 0` | `find`, `findall`, `findroot`, `floor`, `ceiling`, `lowerbound`, `upperbound`, `firstatleast` |
 | `all 1` | `reshape` |
 | `1 0` | `join`, `percentile`, `quantile` |
 

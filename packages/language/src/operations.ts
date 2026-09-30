@@ -328,6 +328,8 @@ export const operations: readonly Operation[] = [
     { name: 'euler', module: 'graph', arities: [2], form: 'Graph Start euler', result: 'array',
         summary: 'Euler trail using every edge once, or an empty array when none exists.' },
     { name: 'findroot', module: 'graph', arities: [2], form: 'Dsu Value findroot', result: 'element',
+        shape: [{ args: [null, []], result: [] }],
+        dyadicRanks: ['all', 0],
         summary: 'Representative of the disjoint-set component holding a value.' },
     { name: 'floyd', module: 'graph', arities: [1], form: 'Graph floyd', result: 'record',
         summary: 'All-pairs shortest distances addressed Distance From To.' },

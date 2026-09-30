@@ -2642,7 +2642,18 @@ export class Interpreter {
                     ));
                     if (isRankDsu(receiver)) {
                         interpreter.requireModule('graph', dsuMethod.operation);
-                        if (dsuMethod.operation === 'findroot') return receiver.find(arguments_[0]);
+                        if (dsuMethod.operation === 'findroot') {
+                            if (isRankArray(arguments_[0])) {
+                                // One representative per queried value, in the shape of the queries.
+                                const operation = yield* resume(interpreter.evaluateTask(dsuMethod.operationExpression));
+                                if (isNativeFunction(operation)) {
+                                    return yield* resume(interpreter.rankApplication.applyDyadicAtRank(
+                                        receiver, arguments_[0], operation,
+                                    ));
+                                }
+                            }
+                            return receiver.find(arguments_[0]);
+                        }
                         if (dsuMethod.operation === 'merge') {
                             return receiver.merge(arguments_[0], arguments_[1]);
                         }

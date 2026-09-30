@@ -33,3 +33,12 @@ describe('structure queries take many queries at once', () => {
         expect(run('T = (array 3 1 5) segment max\nT (array 2 4 9) firstatleast')).toBe('0 2 -1');
     });
 });
+
+describe('disjoint-set queries take many values at once', () => {
+    it('answers one representative per queried value', () => {
+        const sets = 'use graph\nD = new dsu\nD 1 2 merge\nD 3 4 merge\n';
+        expect(run(`${sets}D (array 1 2 3 4) findroot`)).toBe('1 1 3 3');
+        expect(run(`${sets}D 2 findroot`)).toBe('1');
+        expect(run(`${sets}(D (array 1 2 3 4 shape 2 2) findroot) shape`)).toBe('2 2');
+    });
+});

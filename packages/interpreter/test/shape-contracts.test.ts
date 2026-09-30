@@ -38,6 +38,7 @@ const samples: readonly Sample[] = [
     ...['day', 'hour', 'minute', 'month', 'second', 'weekday', 'year'].map(name =>
         [`dates.${name}`, () => [moment], []] as Sample),
     ['dates.seconds', () => [{ kind: 'duration', seconds: 90n }], []],
+    ['graph.findroot', () => [new RankDsu(true), 1n], []],
     ['graph.connected', () => [new RankDsu(true), 'a', 'b'], []],
     ['graph.merge', () => [new RankDsu(true), 'a', 'b'], []],
     ['graph.lengths', () => [new RankFunctionalGraph(vector(2n, 1n))], [2]],
