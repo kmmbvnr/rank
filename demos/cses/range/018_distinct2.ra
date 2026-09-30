@@ -34,8 +34,7 @@ fun distinct2 Values Queries
   end
   Tree = Next min segment
 
-  Q = Queries len
-  Answers = array shape Q fill ""
+  Answers = array shape (Queries len) fill ""
   Count = 0
   for Query in Queries
     Type = Query 0
@@ -66,17 +65,18 @@ fun distinct2 Values Queries
         S add Place
         Values Place = New
       end
-    else
-      Left = Query 1 - 1
-      Right = Query 2 - 1
-      Repeat = Tree Left Right query
-      if Repeat greater Right
-        Answers Count = "YES"
-      else
-        Answers Count = "NO"
-      end
-      Count += 1
+      continue
     end
+
+    Left = Query 1 - 1
+    Right = Query 2 - 1
+    Repeat = Tree Left Right query
+    if Repeat greater Right
+      Answers Count = "YES"
+    else
+      Answers Count = "NO"
+    end
+    Count += 1
   end
   return Answers (0 till Count)
 end
