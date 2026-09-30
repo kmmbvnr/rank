@@ -18,7 +18,12 @@ export class ExecutionRunner {
 
     get status(): string {
         if (this.startedAt === undefined) return 'Running…';
-        return `${this.stopping ? 'Stopping…' : this.session.pauseRequested ? 'Pausing…' : 'Running…'} ${((performance.now() - this.startedAt) / 1000).toFixed(1)}s · ^C stop · ^P pause`;
+        const isTurbo = !!this.session.turboActive;
+        const elapsed = ((performance.now() - this.startedAt) / 1000).toFixed(isTurbo ? 2 : 1);
+        if (isTurbo) {
+            return `${this.stopping ? 'Stopping…' : 'Running…'} ${elapsed}s · ^C stop`;
+        }
+        return `${this.stopping ? 'Stopping…' : this.session.pauseRequested ? 'Pausing…' : 'Running…'} ${elapsed}s · ^C stop · ^P pause`;
     }
 
     setRunning(value: boolean): void { this.running = value; }
@@ -162,7 +167,16 @@ export class ExecutionRunner {
         this.startedAt = performance.now();
         this.stopping = false;
         this.render();
-        const timer = setInterval(() => this.render(), 100);
+        let interval = this.session.turboActive ? 30 : 100;
+        let timer = setInterval(() => {
+            const nextInterval = this.session.turboActive ? 30 : 100;
+            if (nextInterval !== interval) {
+                clearInterval(timer);
+                interval = nextInterval;
+                timer = setInterval(() => this.render(), interval);
+            }
+            this.render();
+        }, interval);
         try {
             await new Promise<void>(resolve => setTimeout(resolve, 0));
             this.session.setDebugBreakpoints?.(book.cells.flatMap(item =>
@@ -172,7 +186,7 @@ export class ExecutionRunner {
             const result = await pending;
             if (result.exit) return true;
             if (result.interrupted) result.output.unshift({
-                text: `Stopped after ${((performance.now() - this.startedAt!) / 1000).toFixed(1)}s`, error: false,
+                text: `Stopped after ${((performance.now() - this.startedAt!) / 1000).toFixed(this.session.turboActive ? 2 : 1)}s`, error: false,
             });
             book.finish(index, enclosing ? { ...result, source: enclosing.source,
                 errorOffset: result.errorOffset === undefined ? undefined : enclosing.offset + result.errorOffset } : result);

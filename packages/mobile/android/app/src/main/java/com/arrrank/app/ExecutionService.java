@@ -14,6 +14,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 
+import androidx.core.app.NotificationCompat;
+
 /**
  * Foreground service that maintains an ongoing notification and prevents process
  * termination during long-running evaluation or when the app is backgrounded.
@@ -217,7 +219,7 @@ public class ExecutionService extends Service {
             actionTitle = "Resume";
             actionCommand = ACTION_RESUME;
         } else if (isTurbo) {
-            actionIcon = android.R.drawable.ic_menu_close_clear_cancel;
+            actionIcon = R.drawable.ic_stop;
             actionTitle = "Stop";
             actionCommand = ACTION_STOP;
         } else {
@@ -230,29 +232,15 @@ public class ExecutionService extends Service {
         actionIntent.setAction(actionCommand);
         PendingIntent actionPending = PendingIntent.getService(this, 1, actionIntent, flags);
 
-        Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-            ? new Notification.Builder(this, CHANNEL_ID)
-            : new Notification.Builder(this);
-
-        builder.setContentTitle(getString(R.string.app_name))
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle(getString(R.string.app_name))
             .setContentText(text)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setContentIntent(tapPending);
-
-        Notification.Action action = new Notification.Action.Builder(
-            Icon.createWithResource(this, actionIcon),
-            actionTitle,
-            actionPending
-        ).build();
-        builder.addAction(action);
-
-        Notification.MediaStyle mediaStyle = new Notification.MediaStyle();
-        mediaStyle.setShowActionsInCompactView(0);
-        builder.setStyle(mediaStyle);
-
-        return builder.build();
+            .setContentIntent(tapPending)
+            .addAction(actionIcon, actionTitle, actionPending)
+            .build();
     }
 
     private void ensureNotificationChannel() {
