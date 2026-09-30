@@ -15,18 +15,16 @@ fun longest_common S T
   N = S len
   M = T len
   Rows = N + 1
-  Cols = M + 1
-  Lengths = array shape Rows Cols fill 0
+  Lengths = array shape Rows (M + 1) fill 0
 
   for i in 1 to N
-    Letter = S (i - 1)
     Up = i - 1
+    Letter = S Up
 
     for j in 1 to M
       Back = j - 1
       if Letter equal T Back
-        Prior = Lengths Up Back
-        Lengths i j = Prior + 1
+        Lengths i j = (Lengths Up Back) + 1
       else
         Above = Lengths Up j
         Left = Lengths i Back
@@ -37,23 +35,23 @@ fun longest_common S T
 
   Result = ""
   Row = N
-  Column = M
+  Col = M
 
-  for Row greater 0 and Column greater 0
+  for Row greater 0 and Col greater 0
     RowBack = Row - 1
-    ColumnBack = Column - 1
+    ColBack = Col - 1
     Letter = S RowBack
-    Above = Lengths RowBack Column
-    Left = Lengths Row ColumnBack
+    Above = Lengths RowBack Col
+    Left = Lengths Row ColBack
 
-    if Letter equal T ColumnBack
+    if Letter equal T ColBack
       Result = Letter + Result
       Row = RowBack
-      Column = ColumnBack
+      Col = ColBack
     elif Above greater Left
       Row = RowBack
     else
-      Column = ColumnBack
+      Col = ColBack
     end
   end
 
