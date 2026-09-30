@@ -16,6 +16,40 @@ function removedSpelling(error: object): string | undefined {
     return undefined;
 }
 
+function distance(a: string, b: string): number {
+    const row = Array.from({ length: b.length + 1 }, (_, index) => index);
+    for (let i = 1; i <= a.length; i++) {
+        let diagonal = row[0]!;
+        row[0] = i;
+        for (let j = 1; j <= b.length; j++) {
+            const above = row[j]!;
+            row[j] = Math.min(above + 1, row[j - 1]! + 1, diagonal + (a[i - 1] === b[j - 1] ? 0 : 1));
+            diagonal = above;
+        }
+    }
+    return row[b.length]!;
+}
+
+/** A short message for a parser or lexer error, never the parser's own expectation text. */
+function readableSyntaxError(error: object, source: string): string {
+    const { message, name, token } = error as { message: string; name?: string; token?: { image?: string; startOffset?: number } };
+    if (!('token' in error)) {
+        if (/unexpected character: ->"<-/.test(message)) return 'Text is missing its closing quote';
+        const character = /unexpected character: ->(.*?)<-/s.exec(message)?.[1];
+        return character ? `Unexpected character '${character}'` : 'Unexpected character';
+    }
+    const image = token?.image ?? '';
+    if (!image || name === 'NotAllInputParsedException' && image === 'EOF') return 'Unexpected end of input';
+    if (/^\s*$/.test(image)) return 'Unexpected end of line';
+    let text = `Unexpected '${image}'`;
+    if (image === 'at') {
+        const next = /^\s*([A-Za-z]+)/.exec(source.slice((token?.startOffset ?? 0) + image.length))?.[1]?.toLowerCase();
+        const close = next && ['least', 'most'].find(word => word !== next && distance(word, next) <= 2);
+        if (close) text += `, did you mean 'at ${close}'?`;
+    }
+    return text;
+}
+
 export function parse(
     source: string, sourceId = '<input>', grouping: GroupingOptions = {}, known?: ReadonlySet<string>,
     syntheticNames?: ReadonlySet<string>,
@@ -38,7 +72,7 @@ export function parse(
             column = lines.at(-1)!.length + 1;
         }
         const location = ` at ${line}:${column}`;
-        const diagnostic = new RankError(`${removedSpelling(error) ?? error.message}${location}`, 'Syntax');
+        const diagnostic = new RankError(`${removedSpelling(error) ?? readableSyntaxError(error, source)}${location}`, 'Syntax');
         diagnostic.location = {
             sourceId, line: line!, column: column!,
             sourceLine: source.split(/\r?\n/)[line! - 1] ?? '',
