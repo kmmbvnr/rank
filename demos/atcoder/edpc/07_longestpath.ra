@@ -7,10 +7,8 @@ use sequences
 
 N = stdin .integer
 M = stdin .integer
-ValueCount = M * 2
-Values = stdin .integer ValueCount array
-Shape = array M 2
-Edges = Values Shape reshape
+Values = stdin .integer (M * 2) array
+Edges = Values (array M 2) reshape
 Nodes = 1 to N
 Graph = new graph Nodes .directed
 Graph add Edges
@@ -20,17 +18,15 @@ Graph N longest_path print
 
 rem Longest path length, counted in edges, through a DAG.
 fun longest_path Graph N
-  Size = N + 1
-  Distance = array shape Size fill 1
+  Dist = array shape (N + 1) fill 1
   Sorted = Graph topological
 
-  for Current in Sorted .order
-    Candidate = Distance Current + 1
-    for Next in Graph Current
-      Existing = Distance Next
-      Distance Next = Existing Candidate max
+  for Cur in Sorted .order
+    Cand = Dist Cur + 1
+    for Next in Graph Cur
+      Dist Next = (Dist Next) Cand max
     end
   end
 
-  return Distance max - 1
+  return Dist max - 1
 end
