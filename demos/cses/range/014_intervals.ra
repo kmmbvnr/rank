@@ -17,15 +17,12 @@ Values Queries intervals print
 rem Count each index-value rectangle.
 fun intervals Values Queries
   Data = Values wavelet
-  Q = Queries len
-  Answers = array shape Q fill 0
+  Answers = array shape (Queries len) fill 0
   for Query I in Queries
-    L = Query 0 - 1
-    R = Query 1 - 1
-    Low = Query 2
-    High = Query 3
-    Count = Data L R Low High within
-    Answers I = Count
+    unpack Left Right Low High = Query
+    L = Left - 1
+    R = Right - 1
+    Answers I = Data L R Low High within
   end
   return Answers
 end
