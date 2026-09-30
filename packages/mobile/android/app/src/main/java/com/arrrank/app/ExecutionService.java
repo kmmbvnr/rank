@@ -8,11 +8,11 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import androidx.core.app.NotificationCompat;
 
 /**
  * Foreground service that maintains an ongoing notification and prevents process
@@ -46,7 +46,7 @@ public class ExecutionService extends Service {
     };
 
     public static boolean isExecutionActive(String state) {
-        return "running".equals(state) || "paused".equals(state);
+        return "running".equals(state) || "paused".equals(state) || "turbo".equals(state);
     }
 
     public static String getCurrentState() {
@@ -200,32 +200,59 @@ public class ExecutionService extends Service {
 
     private Notification buildNotification(String state) {
         boolean isPaused = "paused".equals(state);
-        String text = isPaused ? "Evaluation paused" : "Running evaluation…";
+        boolean isTurbo = "turbo".equals(state);
+        String text = isPaused ? "Evaluation paused" : (isTurbo ? "Running in turbo…" : "Running evaluation…");
 
         Intent tapIntent = new Intent(this, MainActivity.class);
         tapIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
         PendingIntent tapPending = PendingIntent.getActivity(this, 0, tapIntent, flags);
 
+        int actionIcon;
+        String actionTitle;
+        String actionCommand;
+
+        if (isPaused) {
+            actionIcon = android.R.drawable.ic_media_play;
+            actionTitle = "Resume";
+            actionCommand = ACTION_RESUME;
+        } else if (isTurbo) {
+            actionIcon = android.R.drawable.ic_menu_close_clear_cancel;
+            actionTitle = "Stop";
+            actionCommand = ACTION_STOP;
+        } else {
+            actionIcon = android.R.drawable.ic_media_pause;
+            actionTitle = "Pause";
+            actionCommand = ACTION_PAUSE;
+        }
+
         Intent actionIntent = new Intent(this, ExecutionService.class);
-        actionIntent.setAction(isPaused ? ACTION_RESUME : ACTION_PAUSE);
+        actionIntent.setAction(actionCommand);
         PendingIntent actionPending = PendingIntent.getService(this, 1, actionIntent, flags);
 
-        Intent stopIntent = new Intent(this, ExecutionService.class);
-        stopIntent.setAction(ACTION_STOP);
-        PendingIntent stopPending = PendingIntent.getService(this, 2, stopIntent, flags);
+        Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+            ? new Notification.Builder(this, CHANNEL_ID)
+            : new Notification.Builder(this);
 
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(R.string.app_name))
+        builder.setContentTitle(getString(R.string.app_name))
             .setContentText(text)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setContentIntent(tapPending)
-            .addAction(isPaused ? android.R.drawable.ic_media_play : android.R.drawable.ic_media_pause,
-                isPaused ? "Resume" : "Pause", actionPending)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop", stopPending)
-            .build();
+            .setContentIntent(tapPending);
+
+        Notification.Action action = new Notification.Action.Builder(
+            Icon.createWithResource(this, actionIcon),
+            actionTitle,
+            actionPending
+        ).build();
+        builder.addAction(action);
+
+        Notification.MediaStyle mediaStyle = new Notification.MediaStyle();
+        mediaStyle.setShowActionsInCompactView(0);
+        builder.setStyle(mediaStyle);
+
+        return builder.build();
     }
 
     private void ensureNotificationChannel() {

@@ -38,7 +38,7 @@ function haptic(kind: 'tap' | 'step' | 'hold' = 'tap'): void {
         void fetch('/__rank_haptic?kind=' + kind, { cache: 'no-store' }).catch(() => {});
     } else navigator.vibrate?.(kind === 'hold' ? 25 : kind === 'step' ? 5 : 10);
 }
-function reportExecution(state: 'running' | 'paused' | 'idle'): void {
+function reportExecution(state: 'running' | 'paused' | 'turbo' | 'idle'): void {
     const capacitor = (globalThis as typeof globalThis & { Capacitor?: { getPlatform(): string } }).Capacitor;
     if (capacitor?.getPlatform() === 'android') {
         void fetch('/__rank_execution?state=' + state, { cache: 'no-store' }).catch(() => {});
@@ -94,7 +94,7 @@ function nativeSelection(): boolean {
         && (screen.contains(selection.anchorNode) || screen.contains(selection.focusNode));
 }
 
-let lastExecutionState: 'running' | 'paused' | 'idle' = 'idle';
+let lastExecutionState: 'running' | 'paused' | 'turbo' | 'idle' = 'idle';
 
 function render(): void {
     const paused = session.pauseState;
@@ -102,16 +102,21 @@ function render(): void {
     if (paused) lastPause = paused;
     if (!repl.running) lastPause = undefined;
     const shownPause = paused ?? (modes.waitingForPause ? lastPause : undefined);
-    const currentExecutionState: 'running' | 'paused' | 'idle' = shownPause ? 'paused' : repl.running ? 'running' : 'idle';
+    const currentExecutionState: 'running' | 'paused' | 'turbo' | 'idle' = shownPause
+        ? 'paused'
+        : repl.running
+            ? (session.turboActive ? 'turbo' : 'running')
+            : 'idle';
     if (currentExecutionState !== lastExecutionState) {
         lastExecutionState = currentExecutionState;
         reportExecution(currentExecutionState);
     }
-    runButton.dataset.state = currentExecutionState;
+    runButton.dataset.state = currentExecutionState === 'turbo' ? 'running' : currentExecutionState;
+    runButton.classList.toggle('turbo', !!session.turboActive && repl.running);
     runButton.setAttribute('aria-label', shownPause ? 'Step into line; hold to continue execution'
-        : repl.running ? 'Pause and debug; hold to stop' : 'Run through selected line; hold to run all from start');
+        : repl.running ? (session.turboActive ? 'Stop execution' : 'Pause and debug; hold to stop') : 'Run through selected line; hold to run all from start');
     runButton.disabled = modes.waitingForPause || !!session.pauseRequested && !paused;
-    turboButton.hidden = (!repl.running && !shownPause) || !!session.turboActive;
+    turboButton.hidden = !repl.running || !!shownPause || !!session.turboActive;
     turboButton.disabled = modes.waitingForPause;
     // The steppers only make sense while the cursor sits on a loop being previewed.
     iterationControls.hidden = !!shownPause || repl.running || !repl.liveIterationAvailable;
@@ -249,7 +254,11 @@ async function press(key: Key, text = ''): Promise<void> {
 
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
-        const state: 'running' | 'paused' | 'idle' = session.pauseState ? 'paused' : repl.running ? 'running' : 'idle';
+        const state: 'running' | 'paused' | 'turbo' | 'idle' = session.pauseState
+            ? 'paused'
+            : repl.running
+                ? (session.turboActive ? 'turbo' : 'running')
+                : 'idle';
         if (state !== 'idle') reportExecution(state);
     }
 });
@@ -514,7 +523,7 @@ commands.onclick = event => {
         closeMenu();
         focusInput();
         session.requestTurbo?.();
-        void press({ name: 'r', ctrl: true });
+        void press({ name: 'l', ctrl: true });
         return;
     }
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-key]');
@@ -526,7 +535,7 @@ commands.onclick = event => {
 };
 turboButton.addEventListener('pointerdown', event => event.preventDefault());
 turboButton.onclick = () => {
-    if (turboButton.disabled || (!repl.running && !session.pauseState)) return;
+    if (turboButton.disabled || !repl.running || !!session.pauseState) return;
     haptic('tap');
     session.turbo?.();
     render();
@@ -535,7 +544,10 @@ function runAction(): void {
     if (runButton.disabled || busy && !repl.running) return;
     haptic(session.pauseState ? 'step' : 'tap');
     if (session.pauseState) void press({ name: 't' });
-    else if (repl.running) { session.pause?.(); render(); }
+    else if (repl.running) {
+        if (session.turboActive) void press({ name: 'c', ctrl: true });
+        else { session.pause?.(); render(); }
+    }
     else void press({ name: 'r', ctrl: true });
 }
 async function moveIteration(direction: -1 | 1): Promise<void> {
@@ -567,15 +579,20 @@ function endHold(pointerId: number, step: boolean): void {
     const wasLong = hold.long;
     const wasRunning = hold.running;
     clearTimeout(hold.timer);
+    const wasTurbo = session.turboActive;
     hold = undefined;
     runButton.classList.remove('holding');
-    if (step && !wasLong && wasRunning === repl.running) runAction();
+    if (step && (!wasLong || wasTurbo) && wasRunning === repl.running) runAction();
 }
 runButton.addEventListener('pointerdown', event => {
     if (!event.isPrimary || hold || busy && !repl.running) return;
     event.preventDefault();
     rippleRunButton(event.clientX, event.clientY);
     runButton.setPointerCapture(event.pointerId);
+    if (session.turboActive && repl.running) {
+        hold = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, long: false, running: repl.running, action: 'stop' };
+        return;
+    }
     runButton.classList.add('holding');
     hold = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, long: false, running: repl.running,
         action: session.pauseState ? 'continue' : repl.running ? 'stop' : 'restart',

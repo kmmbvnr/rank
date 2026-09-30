@@ -98,24 +98,23 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
         resume: () => resume(),
         step: (iteration = false) => { if (pauseState) resume(iteration ? 3 : 2); },
         stepToMain: () => { if (pauseState) { stepToMain = true; resume(4); } },
-        endDebugRun: () => { stepToMain = false; turboRequested = false; turboActive = false; },
+        endDebugRun: () => { stepToMain = false; turboRequested = false; turboActive = false; onChange(); },
         debugNext: () => { debugNext = true; },
         setDebugBreakpoints: points => { void call('setDebugBreakpoints', points).catch(error => onFailure(String(error))); },
-        turbo: () => { if (active) { turboActive = true; resume(5); } },
-        requestTurbo: () => { turboRequested = true; },
+        turbo: () => { if (active) { turboRequested = true; turboActive = true; resume(5); } },
+        requestTurbo: () => { turboRequested = true; turboActive = true; },
         get turboActive() { return turboActive; },
         execute: async (...args) => {
             if (signal) { Atomics.store(signal, 0, 0); Atomics.store(signal, 1, 0); }
             else await control('reset');
             active = true;
             if (turboRequested) turboActive = true;
-            const method = turboRequested ? 'turboExecute' : debugNext || stepToMain ? 'debugExecute' : 'execute';
+            const method = turboRequested || turboActive ? 'turboExecute' : debugNext || stepToMain ? 'debugExecute' : 'execute';
             try { return await call<Execution>(method, ...args); }
             finally {
                 active = false;
                 debugNext = false;
-                turboRequested = false;
-                turboActive = false;
+                if (!turboRequested) turboActive = false;
                 requested = false;
                 pauseState = undefined;
                 onChange();
@@ -125,7 +124,9 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
         prepareFunctions: (...args) => call('prepareFunctions', ...args),
         rewind: id => { void call('rewind', id).catch(error => onFailure(String(error))); },
         resetExecution: async () => {
-            debugNext = false; stepToMain = false; turboRequested = false; turboActive = false; requested = false; pauseState = undefined;
+            debugNext = false; stepToMain = false;
+            if (!turboRequested) turboActive = false;
+            requested = false; pauseState = undefined;
             if (signal) signal.fill(0);
             else await control('reset');
             await call<void>('resetExecution');
@@ -134,6 +135,8 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
         saveFile: async () => ({ ok: false, output: [{ text: 'File saving is unavailable', error: true }] }),
         dispose: () => { worker.terminate(); },
         interrupt: () => {
+            turboRequested = false;
+            turboActive = false;
             if (active && (signal || signalUrl)) {
                 if (signal) { Atomics.store(signal, 0, 1); resume(); }
                 else { requested = false; pauseState = undefined; void control('stop').catch(error => onFailure(String(error))); }

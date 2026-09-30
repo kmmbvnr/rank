@@ -12,6 +12,7 @@ public class ExecutionServiceTest {
     public void testIsExecutionActive() {
         assertTrue(ExecutionService.isExecutionActive("running"));
         assertTrue(ExecutionService.isExecutionActive("paused"));
+        assertTrue(ExecutionService.isExecutionActive("turbo"));
         assertFalse(ExecutionService.isExecutionActive("idle"));
         assertFalse(ExecutionService.isExecutionActive("stopped"));
         assertFalse(ExecutionService.isExecutionActive(null));

@@ -65,7 +65,7 @@ export async function createWorkerSession() {
         Atomics.store(signal, 1, 0);
         Atomics.notify(signal, 1);
     };
-    const interrupt = () => { stepToMain = false; stepNextCell = false; if (active) { Atomics.store(signal, 0, 1); resume(); } };
+    const interrupt = () => { stepToMain = false; stepNextCell = false; turboRequested = false; turboActive = false; if (active) { Atomics.store(signal, 0, 1); resume(); } };
     return {
         get pauseState() { return pauseState; },
         get pauseRequested() { return active && Atomics.load(signal, 1) === 1; },
@@ -78,8 +78,8 @@ export async function createWorkerSession() {
         setDebugBreakpoints(points: { source: string; line: number }[]): void {
             void call<void>('setDebugBreakpoints', points).catch(fail);
         },
-        turbo(): void { if (active) { turboActive = true; resume(5); } },
-        requestTurbo(): void { turboRequested = true; },
+        turbo(): void { if (active) { turboRequested = true; turboActive = true; resume(5); } },
+        requestTurbo(): void { turboRequested = true; turboActive = true; },
         get turboActive() { return turboActive; },
         get savedFile() { return snapshot.savedFile; },
         get names() { return snapshot.names; },
@@ -94,8 +94,7 @@ export async function createWorkerSession() {
             debugNext = false;
             stepToMain = false;
             stepNextCell = false;
-            turboRequested = false;
-            turboActive = false;
+            if (!turboRequested) turboActive = false;
             resume();
             Atomics.store(signal, 0, 0);
             await call<void>('resetExecution');
@@ -125,7 +124,7 @@ export async function createWorkerSession() {
             Atomics.store(signal, 0, 0);
             active = true;
             if (turboRequested) turboActive = true;
-            const method = turboRequested ? 'turboExecute' : debugNext || stepToMain || stepNextCell ? 'debugExecute' : 'execute';
+            const method = turboRequested || turboActive ? 'turboExecute' : debugNext || stepToMain || stepNextCell ? 'debugExecute' : 'execute';
             execution = call<Execution>(method, ...args);
             debugNext = false;
             try {
@@ -133,7 +132,12 @@ export async function createWorkerSession() {
                 if (!result.ok) { stepToMain = false; stepNextCell = false; }
                 return result;
             }
-            finally { active = false; turboRequested = false; turboActive = false; execution = undefined; resume(); }
+            finally {
+                active = false;
+                if (!turboRequested) turboActive = false;
+                execution = undefined;
+                resume();
+            }
         },
         interrupt,
         async dispose(): Promise<void> {
