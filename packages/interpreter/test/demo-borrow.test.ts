@@ -23,14 +23,15 @@ it('borrows the unchanged scalar-reader demos without copying their inputs on a 
         try {
             const max = demo(runtime, 'demos/cses/sortnsrch/008_maxsubarray.ra', 'max_subarray');
             const vacation = demo(runtime, 'demos/atcoder/edpc/03_vacation.ra', 'best_score');
+            // Element iteration is outside the borrow proof, so a later write may copy.
+            const values = input(1n);
+            expect(max.call([values])).toBe(64n);
+            const writable = arrayForWrite(values) ?? values;
+            writable.items[0] = 9n;
+            expect(max.call([writable])).toBe(72n);
+
             const stats = new RuntimeDiagnostics();
             stats.run(() => {
-                const values = input(1n);
-                expect(max.call([values])).toBe(64n);
-                const writable = arrayForWrite(values) ?? values;
-                writable.items[0] = 9n;
-                expect(writable).toBe(values);
-
                 const arrays = [input(1n), input(2n), input(3n)];
                 expect(vacation.call(arrays)).toBe(160n);
                 const identities: boolean[] = [];

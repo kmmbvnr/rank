@@ -1,8 +1,8 @@
 {
   "compiler": "@arrrank/compile@0.0.1",
-  "date": "2026-09-30T05:03:55.986Z",
+  "date": "2026-09-30T11:01:06.377Z",
   "integers": "i64",
-  "sourceSha256": "1dd2f92ba32de881e37310e141ab39d21b49a1f834b5cf5846cf868f5a7b5c42",
+  "sourceSha256": "2a904eaeec1cda50184fdce866e61b019f3dec7bfd9908bb145a126db97530c3",
   "mainSha256": "65a0df3db5f3eb4e159695f5b02103c743f1d1e4be6437c67075cec587ff5784",
   "cargoLockSha256": "e04be787dc5cc56054ede12cd3a0bab93cfb2425b8d82fca7d249363c4e85647",
   "casesSha256": "637f14ec58af9f889a07108111eac71684398afa23668d81f2bb5d42561be412",

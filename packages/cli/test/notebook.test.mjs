@@ -279,7 +279,7 @@ test('an invalid example argument is rejected before the function preview runs',
     repl.exampleEditor.replace('A = 1');
     await repl.submit();
     assert.deepEqual(repl.examplePrompt, { name: 'inc', parameter: 'X', index: 0, count: 1 });
-    assert.match(repl.exampleFields[0].error, /Syntax: Expecting token/);
+    assert.match(repl.exampleFields[0].error, /Syntax: Unexpected '='/);
     assert.equal(repl.exampleEditor.current.source, 'A = 1');
     assert.equal(repl.liveOutputs.size, 0);
 

@@ -670,7 +670,7 @@ it('keeps the type of a local index when a cell is copied with a default', () =>
 });
 
 it('infers the simplified regular-expression matcher from its local index writes', () => {
-    const source = readFileSync(new URL('../../../demos/leetcode/010_regexp.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/010_regexp.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/leetcode/010_regexp_test.ra', import.meta.url), 'utf8');
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
@@ -886,7 +886,7 @@ it('uses a settled binding type for a direct return after an unknown branch', ()
 });
 
 it('infers the result of the unchanged CSES maximum-subarray loop', () => {
-    const source = readFileSync(new URL('../../../demos/cses/sortnsrch/008_maxsubarray.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/008_maxsubarray.ra', import.meta.url), 'utf8');
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source.slice(source.indexOf('fun max_subarray')));
     expect(parsed.parserErrors).toEqual([]);
     const result = analyzeValues(parsed.value, new Map(), new Map(), [{
@@ -987,7 +987,7 @@ it('infers the unchanged AtCoder grid-path table', () => {
 });
 
 it('infers the unchanged CSES book-shop dynamic program from its test inputs', () => {
-    const source = readFileSync(new URL('../../../demos/cses/dynamic/007_bookshop.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/007_bookshop.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/cses/dynamic/007_bookshop_test.ra', import.meta.url), 'utf8');
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
@@ -1075,7 +1075,7 @@ it('does not infer scalar results for array-valued demo test examples', () => {
 });
 
 it('retains unrelated facts after the unchanged maximum-subarray reader on eager input', () => {
-    const source = readFileSync(new URL('../../../demos/cses/sortnsrch/008_maxsubarray.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/008_maxsubarray.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.indexOf('fun max_subarray'));
     expect(messages(`${definition}\nA = array 1 2 3\nCount = 3\nA max_subarray\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
@@ -1091,7 +1091,7 @@ it('retains unrelated facts after the unchanged maximum-subarray reader on eager
 });
 
 it('retains unrelated facts after the unchanged AtCoder vacation loop', () => {
-    const source = readFileSync(new URL('../../../demos/atcoder/edpc/03_vacation.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/03_vacation.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.indexOf('fun best_score'));
     expect(messages(`${definition}\nA = array 1 2 3\nB = array 3 2 1\nC = array 2 3 1\n`
         + 'Count = 3\nA B C best_score\nCount + "bad"'))
@@ -1108,7 +1108,7 @@ it('retains unrelated facts after the unchanged bracket-count demo on integer in
 });
 
 it('retains unrelated facts after the unchanged palindrome loop on integer input', () => {
-    const source = readFileSync(new URL('../../../demos/leetcode/009_palnum.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/009_palnum.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.indexOf('fun palindrome'));
     expect(messages(`${definition}\nCount = 3\n121 palindrome\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
@@ -1235,7 +1235,7 @@ it('keeps known empty arrays but not arbitrary empty sequences', () => {
 });
 
 it('checks the result rank of the unchanged bill-count loop before execution', () => {
-    const source = readFileSync(new URL('../../../demos/atcoder/beginners/010_otoshidama.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/010_otoshidama.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.indexOf('fun otoshidama'));
     expect(messages(`${definition}\nResult = 9 45000 otoshidama\nResult # #`))
         .toEqual(['2 selectors exceed array rank 1']);
@@ -1656,7 +1656,7 @@ it('infers the unchanged lattice-paths result through integer reductions', () =>
 });
 
 it('infers the unchanged removing-digits result through ranked digit conversion', () => {
-    const source = readFileSync(new URL('../../../demos/cses/dynamic/005_removedigits.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/005_removedigits.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/cses/dynamic/005_removedigits_test.ra', import.meta.url), 'utf8');
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);

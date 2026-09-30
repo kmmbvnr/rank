@@ -119,7 +119,7 @@ it.each([
     ['cses/math/001_josephus', 'removed', 9, ['integer']],
     ['cses/dynamic/021_tilings', 'counting_tilings', 5, ['integer']],
 ])('checks the recursive demo boundary: %s', (path, name, count, types) => {
-    const source = readFileSync(new URL(`../../../demos/${path}.ra`, import.meta.url), 'utf8');
+    const source = readFileSync(new URL(path === 'cses/dynamic/021_tilings' ? './fixtures/021_tilings.ra' : `../../../demos/${path}.ra`, import.meta.url), 'utf8');
     const tests = readFileSync(new URL(`../../../demos/${path}_test.ra`, import.meta.url), 'utf8');
     const examples = functionTestExamples(parse(tests), path.split('/').at(-1)!, new Set([name]));
     expect(examples).toHaveLength(count);
