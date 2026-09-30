@@ -9,8 +9,7 @@ fun two_sum A Target
     Need = Target - Value
 
     if Need in index
-      J = index Need
-      return array J i
+      return array (index Need) i
     end
 
     index Value = i
