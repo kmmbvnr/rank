@@ -186,7 +186,18 @@ export class NotebookRepl {
     }
     set suggestion(value: string) { this.suggestionText = value; }
     help?: { text: string; top: number };
-    private completion?: { candidates: string[]; from: number; to: number; index: number };
+    private completion?: { candidates: string[]; from: number; to: number; index: number; original: string; trailingSpace?: boolean };
+    get hasCompletion(): boolean { return !!this.completion; }
+
+    cancelCompletion(): boolean {
+        if (!this.completion) return false;
+        const item = this.completion;
+        const book = this.notebook;
+        book.replace(book.current.source.slice(0, item.from) + item.original + book.current.source.slice(item.to),
+            item.from + item.original.length);
+        this.dismiss();
+        return true;
+    }
 
     get savePrompt(): SavePrompt | undefined { return this.files.prompt; }
     set savePrompt(prompt: SavePrompt | undefined) { this.files.prompt = prompt; }
@@ -393,13 +404,14 @@ export class NotebookRepl {
     discardChanges(): boolean { return this.files.discardChanges(); }
     savePromptFile(): Promise<boolean> { return this.files.savePromptFile(); }
 
-    complete(): void {
+    complete(trailingSpace = false): void {
         const book = this.notebook;
         if (book.indentToCode()) { this.dismiss(); return; }
         if (this.completion) {
             const item = this.completion;
             item.index = (item.index + 1) % item.candidates.length;
-            const candidate = item.candidates[item.index];
+            let candidate = item.candidates[item.index];
+            if (item.trailingSpace && !candidate.endsWith(' ')) candidate += ' ';
             book.replace(book.current.source.slice(0, item.from) + candidate + book.current.source.slice(item.to),
                 item.from + candidate.length);
             item.to = book.cursor;
@@ -410,10 +422,11 @@ export class NotebookRepl {
         const [candidates, word] = this.session.complete(prefix);
         if (!candidates.length) { this.suggestion = 'No completions'; return; }
         const from = book.cursor - word.length;
-        const candidate = candidates[0];
+        let candidate = candidates[0];
+        if (trailingSpace && !candidate.endsWith(' ')) candidate += ' ';
         book.replace(prefix.slice(0, from) + candidate + book.current.source.slice(book.cursor), from + candidate.length);
+        this.completion = { candidates, from, to: book.cursor, index: 0, original: word, trailingSpace };
         if (candidates.length > 1) {
-            this.completion = { candidates, from, to: book.cursor, index: 0 };
             this.suggestion = `Tab: ${candidate.trim()} (1/${candidates.length}) · Esc close`;
         }
     }

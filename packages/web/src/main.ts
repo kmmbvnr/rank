@@ -687,6 +687,7 @@ input.addEventListener('selectionchange', syncInputSelection);
 
 async function locate(x: number, y: number): Promise<void> {
     stopMomentum();
+    repl.dismiss();
     if (busy || repl.running || repl.help) { if (!keyboardEnabled) return; focusInput(); return; }
     const rect = terminal.getBoundingClientRect();
     const row = Math.floor((y - rect.top + scrollFraction) / cellHeight);
@@ -790,22 +791,33 @@ function coast(velocity: number): void {
     };
     momentumFrame = requestAnimationFrame(step);
 }
+let touchStart: { x: number; y: number; time: number } | undefined;
 let swipe: { y: number; pixels: number; time: number; lastY: number; lastTime: number;
     velocity: number; scrolling: boolean } | undefined;
 terminal.addEventListener('touchstart', event => {
-    if (event.touches.length !== 1 || event.target === input) { swipe = undefined; return; }
+    if (event.touches.length !== 1) { swipe = undefined; touchStart = undefined; return; }
     stopMomentum();
     const now = performance.now();
+    touchStart = { x: event.touches[0].clientX, y: event.touches[0].clientY, time: now };
+    if (event.target === input) { swipe = undefined; return; }
     swipe = { y: event.touches[0].clientY, pixels: top * cellHeight + scrollFraction,
         time: now, lastY: event.touches[0].clientY, lastTime: now, velocity: 0, scrolling: false };
 }, { passive: true });
 terminal.addEventListener('touchmove', event => {
-    if (!swipe || event.touches.length !== 1 || nativeSelection()) return;
+    if (event.touches.length !== 1 || nativeSelection()) return;
     const now = performance.now();
-    const y = event.touches[0].clientY;
-    const distance = swipe.y - y;
-    if (!swipe.scrolling) {
-        if (now - swipe.time > 350 || Math.abs(distance) < 10) return;
+    const touch = event.touches[0];
+    const y = touch.clientY;
+    const x = touch.clientX;
+    const distanceY = swipe ? swipe.y - y : (touchStart ? touchStart.y - y : 0);
+    const distanceX = touchStart ? x - touchStart.x : 0;
+    if (!swipe?.scrolling) {
+        if (Math.abs(distanceX) > Math.abs(distanceY) * 1.5 && Math.abs(distanceX) > 10) {
+            // Horizontal swipe gesture in progress: prevent native horizontal gesture navigation
+            event.preventDefault();
+            return;
+        }
+        if (!swipe || now - swipe.time > 350 || Math.abs(distanceY) < 10) return;
         swipe.scrolling = true;
     }
     event.preventDefault();
@@ -813,13 +825,38 @@ terminal.addEventListener('touchmove', event => {
     swipe.velocity = 0.65 * swipe.velocity + 0.35 * speed;
     swipe.lastY = y;
     swipe.lastTime = now;
-    scrollToPixels(swipe.pixels + distance);
+    scrollToPixels(swipe.pixels + distanceY);
 }, { passive: false });
-terminal.addEventListener('touchend', () => {
-    if (swipe?.scrolling && performance.now() - swipe.lastTime < 80) coast(swipe.velocity);
+terminal.addEventListener('touchend', event => {
+    if (swipe?.scrolling) {
+        if (performance.now() - swipe.lastTime < 80) coast(swipe.velocity);
+    } else if (touchStart && event.changedTouches.length === 1 && !nativeSelection()) {
+        const touch = event.changedTouches[0];
+        const dx = touch.clientX - touchStart.x;
+        const dy = touch.clientY - touchStart.y;
+        const dt = performance.now() - touchStart.time;
+        if (dt < 500 && Math.abs(dx) >= 30 && Math.abs(dx) > 1.5 * Math.abs(dy)) {
+            tapped = false;
+            if (!busy && !repl.running) {
+                if (dx > 0) {
+                    repl.complete(true);
+                    render();
+                    haptic('step');
+                } else if (repl.hasCompletion) {
+                    repl.cancelCompletion();
+                    render();
+                    haptic('tap');
+                }
+            }
+        }
+    }
     swipe = undefined;
+    touchStart = undefined;
 });
-terminal.addEventListener('touchcancel', () => { swipe = undefined; });
+terminal.addEventListener('touchcancel', () => {
+    swipe = undefined;
+    touchStart = undefined;
+});
 terminal.addEventListener('wheel', event => {
     event.preventDefault();
     stopMomentum();
