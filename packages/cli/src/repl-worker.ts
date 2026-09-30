@@ -23,6 +23,7 @@ port.on('message', ({ id, method, args }) => {
                     case 'debugExecute':
                         Atomics.store(signal, 2, 2);
                         return session.execute(...args as Parameters<typeof session.execute>);
+                    case 'turboExecute':
                     case 'execute': return session.execute(...args as Parameters<typeof session.execute>);
                     case 'preview': return session.preview(...args as Parameters<typeof session.preview>);
                     case 'setDebugBreakpoints': breakpoints = args[0]; return;
@@ -34,7 +35,7 @@ port.on('message', ({ id, method, args }) => {
                     case 'dispose': return session.dispose();
                     default: throw new Error(`Unknown session method: ${method}`);
                 }
-            }, onPause);
+            }, method === 'turboExecute' ? undefined : onPause);
             port.postMessage({ id, value, snapshot: session.snapshot() });
         } catch (error) {
             port.postMessage({ id, error: String(error), snapshot: session.snapshot() });

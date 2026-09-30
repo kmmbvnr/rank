@@ -14,6 +14,7 @@
         <nav id="commands" aria-label="Terminal commands" hidden>
             <button data-key="r" data-ctrl="true">Run through selected line</button>
             <button data-key="l" data-ctrl="true">Run all from start</button>
+            <button data-action="turbo-run">Run (Turbo / Full JIT)</button>
             <button data-key="g" data-ctrl="true">Select iteration</button>
             <div class="arrows">
                 <button data-key="left" aria-label="Left">←</button>
@@ -54,6 +55,9 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5v14l9-7z"></path></svg>
         </button>
     </div>
+    <button id="turbo-button" type="button" aria-label="Turbo: continue execution without debugging overhead" title="Turbo (run without debugging overhead)" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"></path></svg>
+    </button>
     <button id="run-button" type="button" aria-label="Run through selected line; hold to run all from start">
         <svg class="run-progress" viewBox="0 0 72 72" aria-hidden="true">
             <rect class="run-progress-track" x="4" y="4" width="64" height="64" rx="20"></rect>

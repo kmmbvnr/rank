@@ -14,6 +14,8 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
     let ready = Promise.resolve();
     let active = false;
     let requested = false;
+    let turboRequested = false;
+    let turboActive = false;
     let pauseState: PauseSnapshot | undefined;
     let debugNext = false;
     let stepToMain = false;
@@ -30,11 +32,12 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
     function resume(command = 0): void {
         requested = false;
         pauseState = undefined;
+        if (command === 5) turboActive = true;
         if (signal) {
             Atomics.store(signal, 2, command);
             Atomics.store(signal, 1, 0);
             Atomics.notify(signal, 1);
-        } else void control('resume' + command).catch(error => onFailure(String(error)));
+        } else void control(command === 5 ? 'turbo' : 'resume' + command).catch(error => onFailure(String(error)));
         onChange();
     }
     function createWorker(): Worker {
@@ -95,21 +98,34 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
         resume: () => resume(),
         step: (iteration = false) => { if (pauseState) resume(iteration ? 3 : 2); },
         stepToMain: () => { if (pauseState) { stepToMain = true; resume(4); } },
-        endDebugRun: () => { stepToMain = false; },
+        endDebugRun: () => { stepToMain = false; turboRequested = false; turboActive = false; },
         debugNext: () => { debugNext = true; },
         setDebugBreakpoints: points => { void call('setDebugBreakpoints', points).catch(error => onFailure(String(error))); },
+        turbo: () => { if (active) { turboActive = true; resume(5); } },
+        requestTurbo: () => { turboRequested = true; },
+        get turboActive() { return turboActive; },
         execute: async (...args) => {
             if (signal) { Atomics.store(signal, 0, 0); Atomics.store(signal, 1, 0); }
             else await control('reset');
             active = true;
-            try { return await call<Execution>(debugNext || stepToMain ? 'debugExecute' : 'execute', ...args); }
-            finally { active = false; debugNext = false; requested = false; pauseState = undefined; onChange(); }
+            if (turboRequested) turboActive = true;
+            const method = turboRequested ? 'turboExecute' : debugNext || stepToMain ? 'debugExecute' : 'execute';
+            try { return await call<Execution>(method, ...args); }
+            finally {
+                active = false;
+                debugNext = false;
+                turboRequested = false;
+                turboActive = false;
+                requested = false;
+                pauseState = undefined;
+                onChange();
+            }
         },
         preview: (...args) => call<Execution>('preview', ...args),
         prepareFunctions: (...args) => call('prepareFunctions', ...args),
         rewind: id => { void call('rewind', id).catch(error => onFailure(String(error))); },
         resetExecution: async () => {
-            debugNext = false; stepToMain = false; requested = false; pauseState = undefined;
+            debugNext = false; stepToMain = false; turboRequested = false; turboActive = false; requested = false; pauseState = undefined;
             if (signal) signal.fill(0);
             else await control('reset');
             await call<void>('resetExecution');

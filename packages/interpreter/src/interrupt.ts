@@ -46,7 +46,11 @@ export function setDebugBreakpoints(points: { source: string; line: number }[]):
 /** Called before a statement, or at the beginning of a loop iteration. */
 export function debugExecutionPoint(next: DebugPoint): void {
     if (!paused || !flag || cancelled) return;
-    if (flag.length > 2 && flag.exchange(2, 0) === 2) stepping = 'line';
+    if (flag.length > 2 && flag.load(2) !== 0) {
+        const cmd = flag.exchange(2, 0);
+        if (cmd === 2) stepping = 'line';
+        else if (cmd === 5) { detachInspection(); return; }
+    }
     const stop = stepping === 'line'
         || stepping === 'iteration' && (!targetLoop || next.depth < targetDepth
             || next.depth === targetDepth && (next.iteration === targetLoop || !next.loops.includes(targetLoop)))
@@ -62,6 +66,15 @@ let inspect: (() => string | Inspection) | undefined;
 let paused: ((snapshot: PauseSnapshot) => void) | undefined;
 export function inspectionEnabled(): boolean { return paused !== undefined; }
 export function inspectExecution(provider: () => string | Inspection): void { if (paused) inspect = provider; }
+
+export function detachInspection(): void {
+    paused = undefined;
+    inspect = undefined;
+    stepping = undefined;
+    targetLoop = undefined;
+    targetDepth = 0;
+    point = undefined;
+}
 
 export function withInterrupt<T>(signal: Int32Array | InterruptSignal, run: () => T, onPause?: (snapshot: PauseSnapshot) => void): T {
     const previousCancelled = cancelled;
@@ -142,6 +155,10 @@ export function checkpoint(activity?: string, work = 1, details?: () => Record<s
 export function checkInterrupt(activity?: string, details?: () => Record<string, string>): void {
     if (!flag) return;
     if (flag.exchange(0, 0)) { cancelled = true; throw new InterruptedError(activity); }
+    if (flag.length > 2 && flag.load(2) === 5) {
+        flag.exchange(2, 0);
+        detachInspection();
+    }
     // A separate word keeps pause requests invisible to the native SQLite monitor.
     if (!cancelled && paused && flag.length > 1 && flag.load(1) === 1) {
         stepping = undefined;
@@ -152,6 +169,11 @@ export function checkInterrupt(activity?: string, details?: () => Record<string,
             flag.wait(1, 1);
         }
         const command = flag.length > 2 ? flag.exchange(2, 0) : 0;
+        if (command === 5) {
+            detachInspection();
+            if (flag.exchange(0, 0)) { cancelled = true; throw new InterruptedError(activity); }
+            return;
+        }
         stepping = command === 2 ? 'line' : command === 3 ? 'iteration' : command === 4 ? 'main' : undefined;
         targetLoop = point?.loops.at(-1);
         targetDepth = point?.depth ?? 0;

@@ -71,14 +71,15 @@ public final class DebugSignalClient extends BridgeWebViewClient {
         if (!key.equals(token)) return response(410, "Gone", "[]");
         if ("pause".equals(control)) words[1] = 1;
         else if ("stop".equals(control)) { words[0] = 1; words[1] = 0; }
-        else if (control != null && control.matches("resume[0234]")) {
+        else if ("turbo".equals(control)) { words[2] = 5; words[1] = 0; }
+        else if (control != null && control.matches("resume[02345]")) {
             words[2] = control.charAt(6) - '0';
             words[1] = 0;
         }
         String index = uri.getQueryParameter("index");
         String value = uri.getQueryParameter("value");
         if (index != null) {
-            if (!index.matches("[012]") || value == null || !value.matches("[0-4]"))
+            if (!index.matches("[012]") || value == null || !value.matches("[0-5]"))
                 return response(400, "Bad Request", "[]");
             words[Integer.parseInt(index)] = Integer.parseInt(value);
         }

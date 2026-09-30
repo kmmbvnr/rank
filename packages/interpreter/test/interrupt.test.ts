@@ -163,4 +163,54 @@ describe('interactive host cancellation', () => {
         expect(() => cancel(() => formatValue(source))).toThrow(/formatting result/);
         expect(formatValue({ kind: 'array', shape: [2], items: [1n, 2n] })).toBe('1 2');
     });
+
+    it('switches to turbo mode on command 5 and continues without further pauses or inspection', () => {
+        const words = [0, 1, 0];
+        const signal: InterruptSignal = {
+            length: 3,
+            load: index => words[index],
+            store: (index, value) => { words[index] = value; },
+            exchange: (index, value) => { const previous = words[index]; words[index] = value; return previous; },
+            wait: () => { throw new Error('The host should have resumed execution'); },
+        };
+        const pauses: PauseSnapshot[] = [];
+        const runtime = withInterrupt(signal, () => new Interpreter(), () => {});
+        runtime.execute('Total = 0');
+        const result = withInterrupt(signal,
+            () => runtime.execute('for I in 1 to 10\n  Total += I\nend\nTotal'),
+            pause => {
+                pauses.push(pause);
+                words[1] = 0;
+                words[2] = 5;
+            });
+        expect(result).toBe(55n);
+        expect(pauses).toHaveLength(1);
+        expect(runtime.variables.get('Total')).toBe(55n);
+        expect(interruptsEnabled()).toBe(false);
+    });
+
+    it('turbo execution can still be cancelled via slot 0', () => {
+        const words = [0, 0, 5];
+        const signal: InterruptSignal = {
+            length: 3,
+            load: index => words[index],
+            store: (index, value) => { words[index] = value; },
+            exchange: (index, value) => { const previous = words[index]; words[index] = value; return previous; },
+            wait: () => {},
+        };
+        const pauses: PauseSnapshot[] = [];
+        const runtime = withInterrupt(signal, () => new Interpreter(), () => {});
+        expect(() => withInterrupt(signal, () => {
+            runtime.execute('Total = 0\nfor I in 1 to 100\n  Total += I\nend\nTotal');
+        }, pause => {
+            pauses.push(pause);
+        })).not.toThrow();
+        expect(pauses).toHaveLength(0);
+
+        words[0] = 1;
+        words[2] = 5;
+        expect(() => withInterrupt(signal, () => {
+            checkpoint('testing turbo cancel', 1024);
+        })).toThrow(InterruptedError);
+    });
 });

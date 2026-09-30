@@ -17,6 +17,9 @@ export type ReplSession = Omit<ReturnType<typeof createReplSession>, 'snapshot' 
     endDebugRun?: () => void;
     debugNext?: () => void;
     setDebugBreakpoints?: (points: { source: string; line: number }[]) => void;
+    turbo?: () => void;
+    requestTurbo?: () => void;
+    readonly turboActive?: boolean;
     readonly pauseRequested?: boolean;
     readonly pauseState?: PauseSnapshot;
 };

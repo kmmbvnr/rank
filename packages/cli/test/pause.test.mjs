@@ -349,3 +349,33 @@ test('source stepping resumes a lazy generator without skipping yields', { timeo
     session.resume();
     assert.deepEqual((await execution).output.map(line => line.text), ['3']);
 });
+
+test('turbo continues execution without further pause overhead', { timeout: 10000 }, async t => {
+    const session = await createWorkerSession();
+    t.after(() => session.dispose());
+    const source = 'Total = 0\nfor I in 1 to 5\n  Total += I\nend';
+    session.setDebugBreakpoints([{ source, line: 3 }]);
+    const execution = session.execute(source, 0, []);
+    assert.match((await nextPause(session)).state, /I = 1/);
+    assert.equal(session.turboActive, false);
+    session.turbo();
+    assert.equal(session.turboActive, true);
+    const result = await execution;
+    assert.equal(result.ok, true);
+    assert.equal(session.pauseState, undefined);
+    assert.equal(session.turboActive, false);
+    assert.deepEqual((await session.execute('Total', 1, [])).output.map(line => line.text), ['15']);
+});
+
+test('requestTurbo executes in full JIT mode without hitting breakpoints', { timeout: 10000 }, async t => {
+    const session = await createWorkerSession();
+    t.after(() => session.dispose());
+    const source = 'Total = 0\nfor I in 1 to 5\n  Total += I\nend';
+    session.setDebugBreakpoints([{ source, line: 3 }]);
+    session.requestTurbo();
+    const execution = session.execute(source, 0, []);
+    const result = await execution;
+    assert.equal(result.ok, true);
+    assert.equal(session.pauseState, undefined);
+    assert.deepEqual((await session.execute('Total', 1, [])).output.map(line => line.text), ['15']);
+});

@@ -19,6 +19,7 @@ const chrome = document.querySelector<HTMLElement>('#chrome')!;
 const menuToggle = document.querySelector<HTMLButtonElement>('#menu-toggle')!;
 const commands = document.querySelector<HTMLElement>('#commands')!;
 const runButton = document.querySelector<HTMLButtonElement>('#run-button')!;
+const turboButton = document.querySelector<HTMLButtonElement>('#turbo-button')!;
 const iterationControls = document.querySelector<HTMLElement>('#iteration-controls')!;
 const iterationPrev = document.querySelector<HTMLButtonElement>('#iteration-prev')!;
 const iterationNext = document.querySelector<HTMLButtonElement>('#iteration-next')!;
@@ -97,6 +98,8 @@ function render(): void {
     runButton.setAttribute('aria-label', shownPause ? 'Step into line; hold to continue execution'
         : repl.running ? 'Pause and debug; hold to stop' : 'Run through selected line; hold to run all from start');
     runButton.disabled = modes.waitingForPause || !!session.pauseRequested && !paused;
+    turboButton.hidden = (!repl.running && !shownPause) || !!session.turboActive;
+    turboButton.disabled = modes.waitingForPause;
     // The steppers only make sense while the cursor sits on a loop being previewed.
     iterationControls.hidden = !!shownPause || repl.running || !repl.liveIterationAvailable;
     iterationPrev.disabled = iterationNext.disabled = busy;
@@ -106,6 +109,8 @@ function render(): void {
         button.disabled = repl.running && button.dataset.key !== 'c'
             && !(paused && (button.hasAttribute('data-debug') || ['up', 'down'].includes(button.dataset.key!)));
     }
+    const turboRun = commands.querySelector<HTMLButtonElement>('button[data-action="turbo-run"]');
+    if (turboRun) turboRun.disabled = repl.running;
     // Replacing the DOM would destroy the phone's selection handles and Copy menu.
     if (nativeSelection()) return;
     if (shownPause) {
@@ -467,12 +472,28 @@ menuToggle.onclick = () => {
     menuToggle.setAttribute('aria-expanded', String(!commands.hidden));
 };
 commands.onclick = event => {
+    const turboRun = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-action="turbo-run"]');
+    if (turboRun && !turboRun.disabled) {
+        haptic('tap');
+        closeMenu();
+        focusInput();
+        session.requestTurbo?.();
+        void press({ name: 'r', ctrl: true });
+        return;
+    }
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-key]');
     if (!button || button.disabled) return;
     haptic(button.dataset.key === 't' && !!session.pauseState ? 'step' : 'tap');
     closeMenu();
     focusInput();
     void press({ name: button.dataset.key, ctrl: button.dataset.ctrl === 'true' });
+};
+turboButton.addEventListener('pointerdown', event => event.preventDefault());
+turboButton.onclick = () => {
+    if (turboButton.disabled || (!repl.running && !session.pauseState)) return;
+    haptic('tap');
+    session.turbo?.();
+    render();
 };
 function runAction(): void {
     if (runButton.disabled || busy && !repl.running) return;

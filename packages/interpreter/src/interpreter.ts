@@ -419,7 +419,18 @@ export class Interpreter {
     private readonly sourceFunctions = new WeakMap<NativeFunction, FunctionStatement>();
     readonly testResults: RankTestResult[] = [];
     private readonly output: Output;
-    private readonly options: InterpreterOptions;
+    private readonly baseOptions: InterpreterOptions;
+    get options(): InterpreterOptions {
+        return inspectionEnabled() ? { ...this.baseOptions,
+            integerLoopCompilation: false,
+            scalarFunctionCompilation: false,
+            scalarEntryCompilation: false,
+            blockCompilation: false,
+            scalarCompilation: false,
+            tensorFusion: false,
+            functionBodyCompilation: false,
+        } : this.baseOptions;
+    }
     private readonly random: SeedableRandom;
     private readonly openPrograms = new Map<string, LoadedProgram>();
     private readonly aliases = new Map<string, Interpreter>();
@@ -427,6 +438,7 @@ export class Interpreter {
     private pendingArgs: string[] | undefined;
     private loadedProgram: LoadedProgram | undefined;
     private readonly statements = new WeakMap<Statement, PreparedStatement>();
+    private readonly debugStatements = new WeakMap<Statement, PreparedStatement>();
     private readonly functionBodies = new WeakMap<FunctionStatement, Map<string, CompiledBlock<ExecutionContext> | null>>();
     private readonly globalBorrowProofs = new WeakMap<FunctionStatement, BorrowProof>();
     private readonly localBorrowProofs = new WeakMap<LocalFrame, WeakMap<FunctionStatement, BorrowProof>>();
@@ -517,11 +529,7 @@ export class Interpreter {
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
-        // Keep Rank locals observable in interactive workers. Other hosts retain
-        // all compiler defaults; native sequence algorithms remain unchanged.
-        this.options = inspectionEnabled() ? { ...options, integerLoopCompilation: false,
-            scalarFunctionCompilation: false, scalarEntryCompilation: false,
-            blockCompilation: false, scalarCompilation: false, tensorFusion: false, functionBodyCompilation: false } : options;
+        this.baseOptions = options;
         this.random = seedableRandom(options.random);
         this.maxCallDepth = options.maxCallDepth ?? 200_000;
         if (!Number.isSafeInteger(this.maxCallDepth) || this.maxCallDepth < 1) {
@@ -529,7 +537,7 @@ export class Interpreter {
         }
         this.reductions = new ReductionEvaluator(
             (operator, left, right) => this.evaluateBinary(operator, left, right),
-            name => this.resolve(name), this.standardFunctions, this.options.tensorFusion !== false,
+            name => this.resolve(name), this.standardFunctions, () => this.options.tensorFusion !== false,
         );
         this.rankApplication = new RankApplication(
             (fn, args) => this.invoke(fn, args),
@@ -858,7 +866,8 @@ export class Interpreter {
     private preparedStatement(statements: Statement[], index: number): PreparedStatement {
         const statement = statements[index];
         this.debugPoint(statement);
-        let prepared = this.statements.get(statement);
+        const cache = inspectionEnabled() ? this.debugStatements : this.statements;
+        let prepared = cache.get(statement);
         if (!prepared) {
             prepared = this.prepareStatement(statement);
             if ((isForStatement(statement) || isIfStatement(statement) || isTryStatement(statement))
@@ -873,7 +882,7 @@ export class Interpreter {
                 const tensor = this.prepareTensorGroup(statements, index);
                 if (tensor) prepared = { ...prepared, tensor };
             }
-            this.statements.set(statement, prepared);
+            cache.set(statement, prepared);
         }
         return prepared;
     }

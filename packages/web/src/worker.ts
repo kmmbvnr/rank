@@ -32,10 +32,10 @@ self.addEventListener('message', (event: MessageEvent<WorkerRequest | WorkerInit
                     if (signal instanceof Int32Array) Atomics.store(signal, 2, 2);
                     else signal.store(2, 2);
                 }
-                const call = session[method === 'debugExecute' ? 'execute' : method] as (...args: unknown[]) => unknown;
+                const call = session[method === 'debugExecute' || method === 'turboExecute' ? 'execute' : method] as (...args: unknown[]) => unknown;
                 return call(...args);
             };
-            const result = await (signal ? withInterrupt(signal, run, onPause) : run());
+            const result = await (signal ? withInterrupt(signal, run, method === 'turboExecute' ? undefined : onPause) : run());
             self.postMessage({ id, result, snapshot: session.snapshot() } satisfies WorkerResponse);
         } catch (error) {
             self.postMessage({ id, error: String(error), snapshot: session.snapshot() } satisfies WorkerResponse);

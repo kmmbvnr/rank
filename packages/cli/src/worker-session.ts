@@ -8,6 +8,8 @@ export async function createWorkerSession() {
     const worker = new Worker(new URL('./repl-worker.js', import.meta.url), { workerData: { signal: signal.buffer } });
     let serial = 0;
     let active = false;
+    let turboRequested = false;
+    let turboActive = false;
     let debugNext = false;
     let stepToMain = false;
     let stepNextCell = false;
@@ -57,6 +59,7 @@ export async function createWorkerSession() {
     await started;
     const initial = snapshot!;
     const resume = (command = 0) => {
+        if (command === 5) turboActive = true;
         Atomics.store(signal, 2, command);
         pauseState = undefined;
         Atomics.store(signal, 1, 0);
@@ -70,11 +73,14 @@ export async function createWorkerSession() {
         resume: () => { stepNextCell = false; resume(); },
         step(iteration = false): void { if (pauseState) { stepNextCell = true; resume(iteration ? 3 : 2); } },
         stepToMain(): void { if (pauseState) { stepToMain = true; resume(4); } },
-        endDebugRun(): void { stepToMain = false; stepNextCell = false; },
+        endDebugRun(): void { stepToMain = false; stepNextCell = false; turboRequested = false; turboActive = false; },
         debugNext(): void { debugNext = true; },
         setDebugBreakpoints(points: { source: string; line: number }[]): void {
             void call<void>('setDebugBreakpoints', points).catch(fail);
         },
+        turbo(): void { if (active) { turboActive = true; resume(5); } },
+        requestTurbo(): void { turboRequested = true; },
+        get turboActive() { return turboActive; },
         get savedFile() { return snapshot.savedFile; },
         get names() { return snapshot.names; },
         get modules() { return snapshot.modules; },
@@ -88,6 +94,8 @@ export async function createWorkerSession() {
             debugNext = false;
             stepToMain = false;
             stepNextCell = false;
+            turboRequested = false;
+            turboActive = false;
             resume();
             Atomics.store(signal, 0, 0);
             await call<void>('resetExecution');
@@ -116,14 +124,16 @@ export async function createWorkerSession() {
             resume();
             Atomics.store(signal, 0, 0);
             active = true;
-            execution = call<Execution>(debugNext || stepToMain || stepNextCell ? 'debugExecute' : 'execute', ...args);
+            if (turboRequested) turboActive = true;
+            const method = turboRequested ? 'turboExecute' : debugNext || stepToMain || stepNextCell ? 'debugExecute' : 'execute';
+            execution = call<Execution>(method, ...args);
             debugNext = false;
             try {
                 const result = await execution;
                 if (!result.ok) { stepToMain = false; stepNextCell = false; }
                 return result;
             }
-            finally { active = false; execution = undefined; resume(); }
+            finally { active = false; turboRequested = false; turboActive = false; execution = undefined; resume(); }
         },
         interrupt,
         async dispose(): Promise<void> {

@@ -32,8 +32,12 @@ export class ReductionEvaluator {
         private readonly binary: (operator: string, left: RankValue, right: RankValue) => RankValue,
         private readonly resolve: (name: string) => RankValue,
         private readonly standardFunctions: ReadonlyMap<RuntimeModule[string], NativeFunction>,
-        private readonly tensorFusion: boolean,
+        private readonly tensorFusion: boolean | (() => boolean),
     ) {}
+
+    private isTensorFusion(): boolean {
+        return typeof this.tensorFusion === 'function' ? this.tensorFusion() : this.tensorFusion;
+    }
 
     evaluateReduction(
         operator: string,
@@ -206,7 +210,7 @@ export class ReductionEvaluator {
                 ? (index: number) => stored[start + reducedOffsets![index]]
                 : (index: number) => arrayItem(value, start + offsetAt(index, reducedAxes));
             if (directSum) return sumIndexed(reducedSize, itemAt);
-            if (this.tensorFusion
+            if (this.isTensorFusion()
                 && (operation === 'mean' || operation === 'std')
                 && reducer === this.standardFunctions.get(standardModules.stats[operation])) {
                 return statisticsCell(operation, reducedSize, itemAt);
@@ -261,7 +265,7 @@ export class ReductionEvaluator {
     ): RankValue {
         if (size === 0) return seed === undefined ? reductionIdentity(operator) : seed;
         const operation = numericKernel(operator, (a, b) => this.binary(operator, a, b));
-        if (seed === undefined && this.tensorFusion) {
+        if (seed === undefined && this.isTensorFusion()) {
             const folded = reduceWindowCell(value, start, size, operation);
             if (folded !== undefined) return folded;
         }
