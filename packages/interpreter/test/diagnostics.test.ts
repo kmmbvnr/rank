@@ -15,6 +15,20 @@ function failure(source: string, interpreter = new Interpreter(() => {}, { sourc
     throw new Error('expected a Rank error');
 }
 
+describe('syntax error wording', () => {
+    it.each([
+        ['memo fib N\n  if N at leat 2\n    return 1\n  end\nend\n', "Unexpected 'at', did you mean 'at least'? at 2:8"],
+        ['fun inc N\n', 'Unexpected end of line at 1:10'],
+        ['X = 1 +\n', "Unexpected '+' at 1:7"],
+        ['X = @\n', "Unexpected character '@' at 1:5"],
+        ['X = "abc\n', 'Text is missing its closing quote at 1:5'],
+    ])('reports %j in one readable line', (source, message) => {
+        const error = failure(source);
+        expect(error.message).toBe(message);
+        expect(error.message).not.toMatch(/Expecting|Token sequences|<\[NL\]>/);
+    });
+});
+
 describe('runtime diagnostics', () => {
     it('reports the source statement without changing the error message', () => {
         const error = failure('X = 1\n  X / 0');
@@ -128,7 +142,7 @@ end
 
     it('explains scan when it is used without a binary operator', () => {
         expect(failure('State = 0\nRange = 1 to 3\nRange scan with State').message)
-            .toBe('scan needs an operator, e.g. Range + scan with 0');
+            .toBe('scan needs its combining operation after it, e.g. `Range scan + with 0` or `Range scan next with Start`.');
     });
 
     it('formats parser errors with source context too', () => {

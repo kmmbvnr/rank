@@ -21,7 +21,7 @@ type errors at edit time before code is run.
 
 In array and tensor languages (APL, NumPy, JAX, PyTorch), the vast majority of
 logic errors stem from mismatched tensor shapes:
-- Reducing along an axis that does not exist (`* reduce rank 2` on a 1D vector).
+- Reducing along an axis that does not exist (`reduce * rank 2` on a 1D vector).
 - Aligning incompatible operands in elementwise operations or broadcasting.
 - Applying a multi-axis selector (`# # #`) to a lower-rank matrix.
 - Passing a multi-dimensional array into a function that assumes a scalar.
@@ -38,7 +38,7 @@ uncluttered BASIC-inspired syntax:
 rem The user types this:
 Digits = 10 to 99
 Windows = Digits 5 window
-Total = Windows * reduce rank 3   <-- Editor immediately flags: rank 3 invalid (Windows has rank 2)
+Total = Windows reduce * rank 3   <-- Editor immediately flags: rank 3 invalid (Windows has rank 2)
 ```
 
 ---
@@ -161,12 +161,12 @@ The abstract interpreter defines transfer rules for each Rank primitive:
   - Result shape is `[N - K + 1, K]`.
   - Static check: verifies $K \le N$ when both are known.
 
-### 3. Outer product (`A B * outer`)
+### 3. Outer product (`A B outer *`)
 - Combines the shapes of two inputs:
   - Result rank: $R_{result} = R_A + R_B$.
   - Result shape: `[...shape(A), ...shape(B)]`.
 
-### 4. Reductions (`sum`, `max`, `* reduce rank K`)
+### 4. Reductions (`sum`, `max`, `reduce * rank K`)
 - Unqualified `sum` / `max` / `min`: collapses all dimensions to scalar ($R=0$).
 - `reduce rank K`:
   - Static guard: verifies $0 \le K < R_{input}$.
@@ -371,7 +371,7 @@ at line 42: Data.filter(x => x > 0).window(5).map(w => w.sum()).reduce((a, b) =>
 **In Rank:**
 ```rank
 4 | Windows = Digits 5 window
-5 | Total = Windows * reduce rank 3
+5 | Total = Windows reduce * rank 3
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     Cannot reduce rank 3: 'Windows' has rank 2 (shape [N - 4, 5])
 ```

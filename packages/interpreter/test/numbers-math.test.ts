@@ -182,7 +182,7 @@ describe('Rank mathematical functions', () => {
         ].join('\n'))).toBe(
             '0.7853981633974483 2.356194490192345 0.7853981633974483 2.356194490192345',
         );
-        expect(run('use numbers\n(array 0 1) (array 1 0) atan2 outer'))
+        expect(run('use numbers\n(array 0 1) (array 1 0) outer atan2'))
             .toBe('0 0 0.7853981633974483 1.5707963267948966');
         expect(run([
             'use numbers',

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "compiler": "@arrrank/compile@0.0.1",
   "sourceName": "010_sumprimes.ra",
-  "sourceSha256": "5aecdac3036a1375c84a82fb21c52cc3fd21789685ea5bfdf5f0d6d454a372ec",
-  "taskSha256": "63e5fc20dcf7d02d51a51495e2fa9f5e06ab648718cc66199a6ae08ab27ccafe",
+  "sourceSha256": "397c3cbfd19a3acde267a64c64d12c28a3e9a1691758a15c67423473712ff425",
+  "taskSha256": "d4ff3703cdf082f71ffbdd0eeac6666c2eca81ac80e533f9d12d55df75d11328",
   "integers": "exact",
   "crate": "rank-010_sumprimes-exact"
 }

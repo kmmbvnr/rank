@@ -396,7 +396,13 @@ NonPrimaryArgument returns Expression:
     UnpackExpression | ArrayExpression;
 
 PrimaryExpression returns Expression:
-    ArrayAtom | AllAxisExpression;
+    ArrayAtom | AllAxisExpression | HigherOrderOperator;
+
+// `A scan + with 0`: a higher-order operation followed by a combining symbol.
+// The lexer joins them so the symbol is not read as an infix operator; grouping
+// turns the pair back into the call form the runtime executes.
+HigherOrderOperator:
+    text=HIGHER_ORDER;
 
 AllAxisExpression:
     {infer AllAxisExpression} '#';
@@ -522,6 +528,7 @@ terminal LEFTJOIN_BY: /leftjoin[\t ]+by/;
 terminal INNERJOIN_BY: /innerjoin[\t ]+by/;
 terminal LEFTJOIN_ON: /leftjoin[\t ]+on/;
 terminal INNERJOIN_ON: /innerjoin[\t ]+on/;
+terminal HIGHER_ORDER: /(scan|reduce|segment|outer)[\t ]+(\*\*|\/\/|[-+*\/%]|(and|or|xor|equal|less|greater)(?![A-Za-z0-9_])|not[\t ]+equal(?![A-Za-z0-9_])|at[\t ]+(least|most)(?![A-Za-z0-9_])|multiple[\t ]+by(?![A-Za-z0-9_]))/;
 terminal SET_ADD: /(set|counter)[\t ]+add/;
 terminal VARIABLE: /[A-Z][A-Za-z0-9_]*/;
 terminal WORD: /[a-z][A-Za-z0-9_]*/;

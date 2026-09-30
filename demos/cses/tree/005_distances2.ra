@@ -29,8 +29,7 @@ fun distance_sums Tree
     RootSum += Distances Node
   end
 
-  Last = Order len - 1
-  for Node in Order (Last to 1 by -1)
+  for Node in Order drop 1 reverse
     Parent = Parents Node
     Sizes Parent += Sizes Node
   end

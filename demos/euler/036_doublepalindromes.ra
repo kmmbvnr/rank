@@ -3,6 +3,7 @@ rem https://projecteuler.net/problem=36
 rem Sum values below Limit palindromic in
 rem both decimal and binary notation
 
+use sequences
 use text
 use bits
 use io

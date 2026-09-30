@@ -28,7 +28,7 @@ fun solve Lines
   for J in 0 till Width
     Column = Grid axis 1 J
     Letters = Column unique
-    Matches = Column Letters equal outer
+    Matches = Column Letters outer equal
     Counts = Matches count axis 0
 
     MostIdx = Counts argsort .descending 0

@@ -714,14 +714,14 @@ export class RankMaxSumSegment implements RankSegmentValue {
 
 function expectNumeric(value: RankValue): Numeric {
     if (typeof value !== 'bigint' && typeof value !== 'number') {
-        throw new RankError('maxsum segment expects numeric values');
+        throw new RankError('segment maxsum expects numeric values');
     }
     return value;
 }
 
 function expectSumNumeric(value: RankValue): Numeric {
     if (typeof value !== 'bigint' && typeof value !== 'number') {
-        throw new RankError('+ segment expects numeric values');
+        throw new RankError('segment + expects numeric values');
     }
     return value;
 }

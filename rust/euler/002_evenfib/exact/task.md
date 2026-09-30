@@ -40,8 +40,13 @@ Functions apply to the data on their left: `N factors` means factors(N), and
 with multiplication before addition and explicit parentheses. Function chains
 flow left to right: `N factors sum` means sum(factors(N)). A predicate keeps the
 shape of its input and gives booleans: `Mask = Fib even` is map(is_even, Fib),
-and only an explicit selection `Fib Mask` filters, so `Fib Mask sum` means
-sum(filter(Fib, Mask)). Consult the parsed
+and an explicit selection `Fib Mask` filters, so `Fib Mask sum` means
+sum(filter(Fib, Mask)). Numeric operations (`sum`, `min`, `max`, `mean`, ...)
+on such a mask read the items it selects, so `Fib even sum` means
+sum(filter(is_even, Fib)) too. The same holds for an array mask made by a
+predicate or by comparing the array with a scalar: `A even sum` sums the even
+cells of A, in row-major order, as A was when the mask was made.
+Consult the parsed
 syntax below for grouping; do not infer grouping from whitespace alone.
 
 `fun palindrome X ... return Value ... end` declares a function of X. Function
@@ -62,8 +67,8 @@ elif Other ... else ... end` selects a branch. `return` exits a function;
 `break`/`continue` affect the enclosing loop. Conditional `for Condition ... end`
 rechecks Condition before each iteration. Do not remove effects or change order.
 
-`A B + outer` computes all pairwise sums with A on the first axis and B on the
-second. `A B * outer` does the same for products. A vector on the right of a
+`A B outer +` computes all pairwise sums with A on the first axis and B on the
+second. `A B outer *` does the same for products. A vector on the right of a
 matrix operation broadcasts along the last axis. `Values Mask` selects values
 where a same-shaped boolean mask is true; scalar `Values Index` indexes instead.
 In the first ten Euler programs, chained mask operations retain array shape.
@@ -75,7 +80,7 @@ type: do not replace integers with f64. `//` is floor division and `%` follows t
 divisor's sign; Rust signed division truncates, so translate negative operands
 explicitly. Division by zero fails. Boolean operations evaluate both operands.
 
-`A to B` is ascending and includes B. `A till B` excludes B. Empty ascending
+`A to B` is ascending and includes B. `A until B` excludes B. Empty ascending
 ranges produce no elements. Sequence values are lazy and may be iterated again;
 do not consume a named sequence once if it is reused later. Never assume an
 arbitrary user generator is pure or finite.
@@ -97,7 +102,7 @@ zero or a default answer.
 
 ## Arrays, masks and loops
 
-`A B * outer` evaluates every pair into a multidimensional result. Broadcasting
+`A B outer *` evaluates every pair into a multidimensional result. Broadcasting
 and axis/rank operations follow source shapes; `rank 0` applies to scalar cells,
 and `rank 1` applies to rows. A boolean mask selects matching elements.
 `Digits Width window` creates overlapping windows of positive width with default
@@ -165,22 +170,7 @@ Answer print
 ## Existing tests (context, not a substitute for general behavior)
 
 ```rank
-use testing
 
-test "default input"
-  use "002_evenfib"
-  run
-
-  Answer equal 4613732
-end
-
-test "workspace input"
-  use "002_evenfib"
-  Limit = 100
-  run
-
-  Answer equal 44
-end
 ```
 
 ## Resolved syntax and analysis
@@ -337,7 +327,9 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       "form": "fibonacci",
       "result": "sequence",
       "lazy": true,
-      "summary": "Unbounded lazy Fibonacci numbers; bound with to, till or from.",
+      "valueElements": "integer",
+      "valueCallbackFree": true,
+      "summary": "Unbounded lazy Fibonacci numbers; bound with to, till, from or after.",
       "sites": [
         {
           "line": 13,
@@ -372,6 +364,15 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       ],
       "form": "Values sum",
       "result": "number",
+      "axisReduction": true,
+      "shape": [
+        {
+          "args": [
+            null
+          ],
+          "result": []
+        }
+      ],
       "scalarCellArrayNoCallback": "number",
       "summary": "Adds every numeric cell of an array, collection or finite sequence.",
       "sites": [

@@ -4,7 +4,8 @@ import { ownedArray, derivedArray, denseScalarItems, readArrayItem, realCells, t
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
-import { materializeSequence, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
+import { atSequence, materializeSequence, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
+import { atArray } from '../selectors.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
 import { setValueKey } from '../set.js';
 import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
@@ -70,7 +71,67 @@ export const sequencesModule: RuntimeModule = {
     find: () => native('find', 2, arguments_ => findValue(arguments_[0], arguments_[1])),
     findall: () => native('findall', 2, arguments_ => findAllValues(arguments_[0], arguments_[1])),
     indices: () => native('indices', 1, arguments_ => trueIndices(arguments_[0])),
+    reverse: () => native('reverse', 1, arguments_ => reverseValue(arguments_[0])),
+    first: () => native('first', 1, arguments_ => endItem(arguments_[0], false)),
+    last: () => native('last', 1, arguments_ => endItem(arguments_[0], true)),
 };
+
+/**
+ * `Values reverse`: text by code point, an array along its leading axis, or a
+ * queue, stack, deque or finite sequence as an array; a queue is left in place. The result is a new value; typed storage stays typed.
+ */
+function reverseValue(value: RankValue): RankValue {
+    if (typeof value === 'string') return [...value].reverse().join('');
+    if (isRankArray(value) && value.shape.length > 0) {
+        const [rows, ...rest] = value.shape;
+        const width = rest.reduce((product, dimension) => product * dimension, 1);
+        const total = rows * width;
+        const kind = typedElementKind(value);
+        const reals = realCells(value) !== undefined;
+        const out: RankValue[] | Float64Array | BigInt64Array = reals ? new Float64Array(total)
+            : kind === 'integer' ? new BigInt64Array(total) : new Array(total);
+        const cells = out as unknown as RankValue[];
+        for (let row = 0; row < rows; row += 1) {
+            if ((row & 0xfff) === 0) checkpoint('reversing array');
+            const from = (rows - 1 - row) * width;
+            for (let column = 0; column < width; column += 1) {
+                cells[row * width + column] = readArrayItem(value, from + column);
+            }
+        }
+        if (!Array.isArray(out)) return typedArray(out, value.shape);
+        return ownedArray(out, value.shape, denseScalarItems(value) !== undefined);
+    }
+    if (value instanceof RankDeque || isRankQueue(value)) return ownedArray([...value.items].reverse());
+    if (isRankSequence(value)) {
+        if (value.plan.size.kind === 'infinite') {
+            throw new RankError('reverse requires a finite sequence', 'TypeError');
+        }
+        return ownedArray([...value.plan.iterate()].reverse());
+    }
+    throw new RankError('reverse expects text, an array, a queue or a finite sequence', 'TypeError');
+}
+
+/** `Values first` and `Values last`: an end of the leading axis, missing when it is empty. */
+function endItem(value: RankValue, back: boolean): RankValue {
+    const name = back ? 'last' : 'first';
+    if (value instanceof RankDeque) return value.peek(back);
+    if (typeof value === 'string') {
+        const points = [...value];
+        if (!points.length) throw new MissingValueError('text is empty');
+        return points[back ? points.length - 1 : 0];
+    }
+    if (isRankArray(value) && value.shape.length > 0) {
+        if (!value.shape[0]) throw new MissingValueError('array is empty');
+        return atArray(value, [BigInt(back ? value.shape[0] - 1 : 0)]);
+    }
+    if (isRankSequence(value)) {
+        if (!back) return atSequence(value, 0n);
+        const length = lengthOf(value);
+        if (!length) throw new MissingValueError('sequence is empty');
+        return atSequence(value, length - 1n);
+    }
+    throw new RankError(`${name} expects text, an array, queue or finite sequence`, 'TypeError');
+}
 
 function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse: RankValue): RankValue {
     const values = [condition, whenTrue, whenFalse];

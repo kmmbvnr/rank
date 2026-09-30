@@ -80,7 +80,7 @@ for (const compiled of [true, false]) describe(`explicit conversions (compiled=$
         expect(r.execute('2.75 text ".1f"')).toBe('2.8');
         expect(r.execute('true text')).toBe('true');
         expect(r.execute('2.75 text real')).toBe(2.75);
-        expect(() => r.execute('"abc" reverse')).toThrow('use text');
+        expect(() => r.execute('"abc" reverse')).toThrow('use sequences');
     });
 
     it('preserves record types, function aliases, rejected overrides and one evaluation per conversion', () => {

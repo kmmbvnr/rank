@@ -91,7 +91,7 @@ array A B
     });
 
     it('does not reinterpret modifier spellings as integer variables', () => {
-        const result = compare('I = 0\nA = 1\nscan = 2\nfor I less 1\n  X = A + scan\n  I += 1\nend\nX');
+        const result = compare('I = 0\nA = 1\nscan = 2\nfor I less 1\n  X = A scan +\n  I += 1\nend\nX');
         expect(result.loops).toBe(0);
         expect(result).toHaveProperty('error');
     });

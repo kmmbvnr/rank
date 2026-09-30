@@ -87,7 +87,7 @@ with short names that describe their contents or role. For example:
 
 ```rank
 Range = 1 till 1000
-States = Range next scan with Start
+States = Range scan next with Start
 ```
 
 Keep parentheses when they are needed for grouping. See the

@@ -30,7 +30,7 @@ test "official backward pass"
   end
   Rounded = Back round 8
   Matches = Rounded equal Expected
-  Same = Matches and reduce with true
+  Same = Matches reduce and with true
 
   Updated = Layer .weights
   Old = Official 0 0
@@ -93,7 +93,7 @@ test "frozen layer keeps its parameters"
     4.0 6.0
   end
   Same = After equal Before
-  BackPassOk = BackOk and reduce with true
-  Unchanged = Same and reduce with true
+  BackPassOk = BackOk reduce and with true
+  Unchanged = Same reduce and with true
   BackPassOk and Unchanged
 end

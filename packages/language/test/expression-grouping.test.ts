@@ -28,16 +28,16 @@ describe('shared expression grouping', () => {
         ['M sum axis 0', 'use numbers'],
         ['M sum axis 0 rank 1', 'use numbers'],
         ['M argsort axis 1 .descending', 'use sequences\nuse numbers'],
-        ['M + scan', 'use numbers'],
-        ['M + scan axis 0', 'use numbers'],
-        ['M next scan axis 1', 'use numbers'],
-        ['M next scan', 'use numbers'],
-        ['M next scan with Seed', 'use numbers'],
-        ['M next scan with (1 + 2)', 'use numbers'],
-        ['M + reduce rank 1', 'use numbers'],
-        ['A B * outer', 'use numbers'],
-        ['M min segment', 'use algo\nuse numbers'],
-        ['M combine segment with Identity', 'use algo\nuse numbers'],
+        ['M scan +', 'use numbers'],
+        ['M scan + axis 0', 'use numbers'],
+        ['M scan next axis 1', 'use numbers'],
+        ['M scan next', 'use numbers'],
+        ['M scan next with Seed', 'use numbers'],
+        ['M scan next with (1 + 2)', 'use numbers'],
+        ['M reduce + rank 1', 'use numbers'],
+        ['A B outer *', 'use numbers'],
+        ['M segment min', 'use algo\nuse numbers'],
+        ['M segment combine with Identity', 'use algo\nuse numbers'],
     ])('groups %s before the next call for every syntax consumer', async (prefix, imports) => {
         const document = await parse(`${imports}\n${prefix} sum`);
         expect(document.parseResult.parserErrors).toEqual([]);
@@ -82,6 +82,77 @@ describe('shared expression grouping', () => {
         expect(invalid.diagnostics![0]).toMatchObject({
             message: expect.stringContaining('intermediate variable'),
             range: { start: { line: 1, character: 11 } },
+        });
+    });
+
+    describe('higher-order operations', () => {
+        const shape = (expression: any): string => {
+            switch (expression?.$type) {
+                case 'BinaryExpression': return `(${shape(expression.left)} ${expression.operator} ${shape(expression.right)})`;
+                case 'ApplicationExpression': return `[${shape(expression.head)} ${expression.arguments.map(shape).join(' ')}]`;
+                case 'ParenthesizedExpression': return `<${shape(expression.value)}>`;
+                case 'NameExpression': return expression.name;
+                case 'NumberLiteral': return String(expression.value);
+                default: return expression?.$type ?? 'missing';
+            }
+        };
+        const grouped = async (source: string) => {
+            const document = await parse(`use numbers\nuse sequences\n${source}`, { validation: true });
+            const statement = document.parseResult.value.statements.at(-1)!;
+            if (!isExpressionStatement(statement)) throw new Error('expected expression');
+            return { tree: shape(statement.value), messages: document.diagnostics!.map(item => item.message) };
+        };
+
+        it.each([
+            ['A scan + with 0', 'A + scan with 0'],
+            ['A reduce * rank 1', 'A * reduce rank 1'],
+            ['A segment +', 'A + segment'],
+            ['A B outer *', 'A B * outer'],
+            ['A B outer not equal', 'A B not equal outer'],
+            ['Start + Y scan +', 'Start + Y + scan'],
+            ['A scan + with 0 sum', 'A + scan with 0 sum'],
+            ['Steps scan next with Start', 'Steps next scan with Start'],
+            ['A B outer min', 'A B min outer'],
+            ['A segment min', 'A min segment'],
+        ])('reads %s as the call form the runtime executes', async (written, call) => {
+            const { tree, messages } = await grouped(written);
+            expect(messages).toEqual([]);
+            const expected = await parse(`use numbers\nuse sequences\n${call}`);
+            const statement = expected.parseResult.value.statements.at(-1)!;
+            if (!isExpressionStatement(statement)) throw new Error('expected expression');
+            expect(tree).toBe(shape(statement.value));
+        });
+
+        it('applies the operation to the whole expression on its left', async () => {
+            expect((await grouped('Start + Y scan +')).tree).toBe('((Start + Y) + scan)');
+            expect((await grouped('A * 2 + B reduce +')).tree).toBe('(((A * 2) + B) + reduce)');
+        });
+
+        it.each([
+            ['A + scan with 0', '`scan` takes its combining operation after it. Write `A scan +` instead of `A + scan`.'],
+            ['A B * outer', '`outer` takes its combining operation after it. Write `A outer *` instead of `A * outer`.'],
+            ['Steps next scan with Start', 'scan needs its combining operation after it, e.g. `Range scan + with 0` or `Range scan next with Start`.'],
+            ['Steps next scan', 'scan needs its combining operation after it, e.g. `Range scan + with 0` or `Range scan next with Start`.'],
+        ])('rejects the old order of %s', async (source, message) => {
+            expect((await grouped(source)).messages).toEqual([message]);
+        });
+
+        it('keeps a rank and axis call parameter after its function', async () => {
+            expect((await grouped('A F rank 0')).messages).toEqual([]);
+            expect((await grouped('M sum axis 0')).messages).toEqual([]);
+        });
+
+        it('leaves a program binding of the operation alone', async () => {
+            const bound = 'fun scan X\n  return X\nend\n';
+            const named = await grouped(`${bound}A scan next with Start`);
+            expect(named.messages).toEqual([]);
+            expect(named.tree).toBe('[[[[A scan] next] with] Start]');
+            const symbol = await grouped(`${bound}A scan +`);
+            expect(symbol.messages).toEqual([expect.stringContaining('`scan` is rebound in this program')]);
+        });
+
+        it('rejects a joined operation that has nothing on its left', async () => {
+            expect((await grouped('scan +')).messages).toEqual([expect.stringContaining('needs the values it applies to on its left')]);
         });
     });
 });

@@ -75,14 +75,14 @@ fun fastdifference Changes Start Params
   Alive = (Year Column reshape) 1 min
   Reached = (Year * 4 - 1) 0 max
 
-  Walk = (Changes + scan axis 0) + Start
-  Low = Walk min scan axis 0
+  Walk = (Changes scan + axis 0) + Start
+  Low = Walk scan min axis 0
   Path = Walk - (Low 0.0 min)
   Official = Path Reached # * Alive + Start * (1 - Alive)
   Rate = Official / 1200
   Payment = 1.0 Rate Left payment
   Factor = 1.0 Rate Payment Span repay
-  Kept = Factor * scan axis 0
+  Kept = Factor scan * axis 0
   Before = Kept 1 shift with 1.0
 
   Ahead = (0 till 12) (array 1 12) reshape

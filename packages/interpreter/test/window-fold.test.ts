@@ -63,7 +63,7 @@ describe('window cell folds', () => {
 use numbers
 A = array 1.5 2 3 4 5
 Windows = A 3 window
-Result = Windows ${op} reduce rank 1
+Result = Windows reduce ${op} rank 1
 Result copy`);
                 return isRankArray(value!) ? { shape: value.shape, items: value.items } : value;
             } catch (error) { return String(error); }

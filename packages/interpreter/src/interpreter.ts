@@ -1446,7 +1446,7 @@ export class Interpreter {
                         } else if (statement.operator === '+=') {
                             target.addRange(selectors[0], selectors[1], value);
                         } else {
-                            throw new RankError('+ segment range assignment supports = and +=');
+                            throw new RankError('segment + range assignment supports = and +=');
                         }
                         return value;
                     }
@@ -3712,7 +3712,7 @@ export class Interpreter {
             ? `; did you forget ${providers.map(provider => `\`${provider}\``).join(' or ')}?`
             : '';
         throw new RankError(name === 'scan' && !hint
-            ? 'scan needs an operator, e.g. Range + scan with 0'
+            ? 'scan needs an operator, e.g. Range scan + with 0'
             : `unknown name: ${name}${hint}`);
     }
 
@@ -4907,6 +4907,25 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
     if (values.length === 2 && isRankSequence(values[0])
         && isIntegerCollectionSelector(values[1])) {
         return selectAxis(values[0], 0, values[1]);
+    }
+    if (isRankIndex(values[0]) && values.length === 2
+        && (isRankArray(values[1]) || isRankSequence(values[1]))) {
+        // Gather: an index addressed by many keys answers with one value per key.
+        const source = values[0];
+        const keys = values[1];
+        const read = (key: RankValue): RankValue => {
+            const value = source.entries.get(indexKey([key]));
+            if (value !== undefined) return value;
+            if (missing) return missing();
+            throw new MissingValueError('missing keyed value');
+        };
+        if (isRankSequence(keys)) {
+            if (keys.plan.size.kind === 'infinite') {
+                throw new RankError('an index cannot be gathered by an infinite sequence');
+            }
+            return ownedArray([...keys.plan.iterate()].map(read));
+        }
+        return ownedArray(Array.from(keys.items, read), keys.shape);
     }
     if (isRankIndex(values[0])) {
         const value = values[0].entries.get(indexKey(values.slice(1)));

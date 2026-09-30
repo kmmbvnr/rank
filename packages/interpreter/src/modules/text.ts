@@ -114,11 +114,6 @@ export const textModule: RuntimeModule = {
         for (const byte of value.data) result += hexadecimalBytes[byte];
         return result;
     }),
-    reverse: () => native('reverse', 1, arguments_ => {
-        const value = arguments_[0];
-        if (typeof value !== 'string') throw new RankError('reverse expects text');
-        return [...value].reverse().join('');
-    }),
     codepoint: () => native('codepoint', 1, arguments_ => {
         const value = arguments_[0];
         if (typeof value !== 'string' || [...value].length !== 1) {

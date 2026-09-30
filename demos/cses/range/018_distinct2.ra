@@ -32,7 +32,7 @@ fun distinct2 Values Queries
     Set = Positions Value
     Next I = Set upperbound I default N
   end
-  Tree = Next min segment
+  Tree = Next segment min
 
   Answers = array shape (Queries len) fill ""
   Count = 0

@@ -28,8 +28,8 @@ fun deliveries Prices Queries
   Indices = 0 till N array
   LeftPrices = Prices - Indices
   RightPrices = Prices + Indices
-  FromLeft = LeftPrices min segment
-  FromRight = RightPrices min segment
+  FromLeft = LeftPrices segment min
+  FromRight = RightPrices segment min
   Answers = array shape (Queries len) fill 0
   Count = 0
 

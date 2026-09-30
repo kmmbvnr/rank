@@ -16,7 +16,7 @@ Values Queries range_max_sums print
 
 rem Read each range's best subarray.
 fun range_max_sums Values Queries
-  Tree = Values maxsum segment
+  Tree = Values segment maxsum
   Answers = array shape (Queries len) fill 0
   for Query I in Queries
     unpack Left Right = Query

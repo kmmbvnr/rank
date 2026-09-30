@@ -22,8 +22,8 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         expect(run('Fibs = fibonacci multiple by 5 or fibonacci multiple by 3\nfibonacci Fibs till 1000 sum')).toBe('1825');
         expect(run('1 to 9 by 2 sum')).toBe('25');
         expect(run('1 to 9 by 2 array')).toBe('1 3 5 7 9');
-        expect(run('1 to 5 + reduce')).toBe('15');
-        expect(run('A = array 1 2 3\nA * A + reduce')).toBe('14');
+        expect(run('1 to 5 reduce +')).toBe('15');
+        expect(run('A = array 1 2 3\nA * A reduce +')).toBe('14');
     });
 
     it('keeps addressing tight and allows explicit smaller operands', () => {
@@ -156,7 +156,7 @@ describe('grouping diagnostics', () => {
     });
 
     it('requests a named intermediate result when functions resume after arithmetic', () => {
-        for (const expression of ['2 sqrt + 1 sqrt', 'A max + 1 sum', 'A max + A + reduce']) {
+        for (const expression of ['2 sqrt + 1 sqrt', 'A max + 1 sum', 'A max + A reduce +']) {
             expect(() => parse('use numbers\nA = array 1 2\n' + expression))
                 .toThrowError('Name the result on the left, then apply the function');
         }

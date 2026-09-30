@@ -609,7 +609,7 @@ test('completion has one replaceable suggestion and is dismissed without executi
 
 test('completion sees declarations before the cursor in an unfinished function', t => {
     const { repl, book, session } = setup(t);
-    const source = 'use text\nfun palindrome N\n  Text = N text\n  return Text equal Text reverse\nend\n'
+    const source = 'use text\nuse sequences\nfun palindrome N\n  Text = N text\n  return Text equal Text reverse\nend\n'
         + 'fun lychel Number\n  for # in 1 to 50\n    Back = Number text reverse integer\n    Number += B';
     book.replace(source);
     repl.complete();

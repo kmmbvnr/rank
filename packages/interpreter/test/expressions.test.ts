@@ -56,7 +56,7 @@ describe('Rank expressions and sequences', () => {
         expect(run('2 ** -2')).toBe('0.25');
         expect(run('Value = 2\nValue **= 3\nValue')).toBe('8');
         expect(run('(1 to 4) ** 2')).toBe('1 4 9 16');
-        expect(run('A = array 2 3\nA A ** outer')).toBe('4 8 9 27');
+        expect(run('A = array 2 3\nA A outer **')).toBe('4 8 9 27');
         expect(() => run('0 ** -1'))
             .toThrowError('zero cannot be raised to a negative power');
         expect(() => run('(-2) ** 0.5')).toThrowError('power result is not real');
@@ -209,7 +209,7 @@ describe('Rank expressions and sequences', () => {
 
             'A = 1 to 2',
             'B = 3 to 5',
-            'A B * outer',
+            'A B outer *',
         ].join('\n'));
         expect(product).toMatchObject({ kind: 'array', shape: [2, 3] });
         expect(product && typeof product === 'object' && product.kind === 'array'
@@ -222,7 +222,7 @@ describe('Rank expressions and sequences', () => {
             '  3 4',
             'end',
             'B = array 10 20',
-            'A B + outer',
+            'A B outer +',
         ].join('\n'));
         expect(tensor).toMatchObject({ kind: 'array', shape: [2, 2, 2] });
         expect(tensor && typeof tensor === 'object' && tensor.kind === 'array'
@@ -231,7 +231,7 @@ describe('Rank expressions and sequences', () => {
         expect(run([
             'A = array 1 3',
             'B = array 2 4',
-            'A B less outer',
+            'A B outer less',
         ].join('\n'))).toBe('true true false true');
     });
 
@@ -241,7 +241,7 @@ describe('Rank expressions and sequences', () => {
 
             'Values = 0 till 3',
             'Operation = bxor',
-            'Values Values Operation outer',
+            'Values Values outer Operation',
         ].join('\n'));
         expect(xor).toMatchObject({ kind: 'array', shape: [3, 3] });
         expect(xor && typeof xor === 'object' && xor.kind === 'array'
@@ -252,14 +252,14 @@ describe('Rank expressions and sequences', () => {
             'use numbers',
             'A = array 3 1',
             'B = array 2 4',
-            'A B min outer',
+            'A B outer min',
         ].join('\n'))).toBe('2 3 1 1');
 
         expect(run([
             'use bits',
             'A = array 1 "invalid"',
             'B = array 2',
-            'Grid = A B bxor outer',
+            'Grid = A B outer bxor',
             'Grid 0 0',
         ].join('\n'))).toBe('3');
 
@@ -267,7 +267,7 @@ describe('Rank expressions and sequences', () => {
             'use numbers',
             'A = array 1 2',
             'B = array 3 4',
-            'Result = A B whole outer',
+            'Result = A B outer whole',
             '',
             'fun whole A B',
             '  Left = A sum',
@@ -285,12 +285,12 @@ describe('Rank expressions and sequences', () => {
         expect(() => run([
             'use numbers',
             'A = array 1 2',
-            'A A abs outer',
+            'A A outer abs',
         ].join('\n'))).toThrowError('outer operation abs must accept 2 arguments');
         expect(() => run([
             'A = array 1',
             'B = array 2',
-            'Result = A B pair outer',
+            'Result = A B outer pair',
             '',
             'fun pair A B',
             '  return array 1 2',
@@ -308,12 +308,12 @@ describe('Rank expressions and sequences', () => {
             '  return X % 2 equal 0',
             'end',
             'A = 1 to 3',
-            'Products = A A * outer',
+            'Products = A A outer *',
             'Mask = Products even_value rank 0',
             'Selected = Products Mask',
             'Selected sum',
         ].join('\n'))).toBe('20');
-        expect(() => run('use sequences\nfibonacci fibonacci * outer'))
+        expect(() => run('use sequences\nfibonacci fibonacci outer *'))
             .toThrowError('outer left operand must be finite');
         expect(() => run([
             'A = array shape 2 2',
@@ -336,7 +336,7 @@ describe('Rank expressions and sequences', () => {
 
             'use sequences',
             'Windows = (1 to 4) 3 window',
-            'Windows * reduce rank 1',
+            'Windows reduce * rank 1',
         ].join('\n'))).toBe('6 24');
         expect(run('use sequences\n(array 1 2) 3 window')).toBe('');
         expect(() => run('use sequences\n(array 1 2) 0 window'))
@@ -347,7 +347,7 @@ describe('Rank expressions and sequences', () => {
             'use sequences',
             'Pairs = (primes till 10) 2 window',
             'Pair = Pairs 2',
-            'Pair + reduce',
+            'Pair reduce +',
         ].join('\n'))).toBe('12');
     });
 
@@ -380,12 +380,12 @@ describe('Rank expressions and sequences', () => {
             ...source,
             'Size = array 2 2',
             'Windows = M Size window',
-            'Windows + reduce rank 2',
+            'Windows reduce + rank 2',
         ].join('\n'))).toBe('14 18 22 30 34 38');
         expect(run([
             ...source,
             'Windows = M 3 window axis 1',
-            'Windows + reduce rank 1',
+            'Windows reduce + rank 1',
         ].join('\n'))).toBe('6 9 18 21 30 33');
         expect(() => run([
             ...source,
@@ -548,16 +548,16 @@ describe('Rank expressions and sequences', () => {
     });
 
     it('reduces complete values and trailing cells', () => {
-        expect(run('(array 2 3 4) * reduce')).toBe('24');
-        expect(run('(array 1 2 3) + reduce')).toBe('6');
+        expect(run('(array 2 3 4) reduce *')).toBe('24');
+        expect(run('(array 1 2 3) reduce +')).toBe('6');
         expect(run('(array true true false) and reduce')).toBe('false');
         const empty = 'Empty = array shape 0\nend\nEmpty';
-        expect(run(`${empty} + reduce`)).toBe('0');
-        expect(run(`${empty} * reduce`)).toBe('1');
-        expect(() => run(`${empty} - reduce`))
-            .toThrowError('- reduce does not define a value for an empty cell');
-        expect(() => run('use sequences\nfibonacci + reduce'))
-            .toThrowError('+ reduce requires a bounded sequence');
+        expect(run(`${empty} reduce +`)).toBe('0');
+        expect(run(`${empty} reduce *`)).toBe('1');
+        expect(() => run(`${empty} reduce -`))
+            .toThrowError('reduce - does not define a value for an empty cell');
+        expect(() => run('use sequences\nfibonacci reduce +'))
+            .toThrowError('reduce + requires a bounded sequence');
     });
 
     it('names boolean reductions and applies them at rank', () => {
@@ -689,7 +689,7 @@ describe('Rank expressions and sequences', () => {
         expect(run(setup + 'Fib Mask sum')).toBe('44');
         expect(run(setup + 'Mask count')).toBe('3');
         expect(run(setup + '(Fib Mask) 1')).toBe('8');
-        expect(run(setup + 'Pairs = (Fib Mask) 2 window\nPairs 1 + reduce')).toBe('42');
+        expect(run(setup + 'Pairs = (Fib Mask) 2 window\nPairs 1 reduce +')).toBe('42');
         expect(run('use sequences\nuse numbers\nFib = fibonacci\nMask = Fib even\nFib Mask till 100'))
             .toBe('2 8 34');
         // A mask is positional: a finite one bounds the selection from an endless source.
@@ -858,10 +858,10 @@ describe('Rank expressions and sequences', () => {
         expect(run('use text\n-120 text')).toBe('-120');
         expect(run('use text\ntrue text')).toBe('true');
         expect(run('use text\n.Label text')).toBe('.Label');
-        expect(run('use text\n"A😀Б" reverse')).toBe('Б😀A');
+        expect(run('use sequences\n"A😀Б" reverse')).toBe('Б😀A');
         expect(() => run('use text\n(array 1 2) text'))
             .toThrowError('text expects a scalar value');
-        expect(() => run('use text\n12 reverse')).toThrowError('reverse expects text');
+        expect(() => run('use sequences\n12 reverse')).toThrowError('reverse expects');
     });
 
     it('converts Unicode code points and searches text', () => {
@@ -903,7 +903,7 @@ describe('Rank expressions and sequences', () => {
             'Digest = "abc" md5',
             'First = Digest 0',
             'Count = Digest len',
-            'Sum = Digest + reduce',
+            'Sum = Digest reduce +',
             'Last = Digest 15',
             'Hex = Digest hex',
         ].join('\n'));

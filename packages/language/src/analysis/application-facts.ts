@@ -398,6 +398,10 @@ function transferApplicationFacts(
                 && (source.eagerScalarCells || source.callbackFreeScalarCells)) {
                 return { types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true };
             }
+            if (arity === 1 && ['first', 'last'].includes(last.name) && source.rank === 1
+                && ['array', 'sequence'].includes(source.types.join()) && source.elements?.length) {
+                return { types: source.elements, rank: 0, shape: [] };
+            }
             if (arity === 2 && last.name === 'findall' && hasCallbackFreeFindProof(source, operands[1])) {
                 return { types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true };
             }
@@ -521,6 +525,13 @@ function transferApplicationFacts(
                 ...(hasNumericArrayNoCallbackProof(operation, operands)
                     ? { callbackFreeScalarCells: true as const } : {}),
             };
+            if (operation === findOperation('reverse') && arity === 1) {
+                if (source.types.join() === 'text') return { types: ['text'], rank: source.rank, shape: source.shape };
+                if (source.types.join() === 'array' && source.shape) return {
+                    types: ['array'], rank: source.rank, shape: source.shape, elements: source.elements,
+                    ...(hasNumericArrayNoCallbackProof(operation, operands)
+                        ? { callbackFreeScalarCells: true as const } : {}) };
+            }
             if (operation === findOperation('transpose') && arity === 1 && source.types.join() === 'array'
                 && source.shape) return { types: ['array'], rank: source.shape.length,
                 shape: [...source.shape].reverse(), elements: source.elements,

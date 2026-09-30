@@ -21,7 +21,7 @@ fun calculate_correlation X Y
 
   Xstd = X std axis 0
   Ystd = Y std axis 0
-  Scale = Xstd Ystd * outer
+  Scale = Xstd Ystd outer *
   return Cov / Scale
 end
 

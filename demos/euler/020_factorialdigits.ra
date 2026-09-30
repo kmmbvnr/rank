@@ -16,7 +16,7 @@ rem then reduce its decimal digits.
 fun factorial_digit_sum N
   Factorial = 1
   if N greater 0
-    Factorial = (1 to N) * reduce
+    Factorial = (1 to N) reduce *
   end
 
   Digits = Factorial text

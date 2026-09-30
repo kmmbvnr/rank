@@ -32,7 +32,7 @@ fun maximums Values Rooted Queries
     Pos = Entry Node
     Flat Pos = Values (Node - 1)
   end
-  Maxima = Flat max segment
+  Maxima = Flat segment max
   Answers = new queue
 
   for Query in Queries

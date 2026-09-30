@@ -43,8 +43,8 @@ elif Other ... else ... end` selects a branch. `return` exits a function;
 `break`/`continue` affect the enclosing loop. Conditional `for Condition ... end`
 rechecks Condition before each iteration. Do not remove effects or change order.
 
-`A B + outer` computes all pairwise sums with A on the first axis and B on the
-second. `A B * outer` does the same for products. A vector on the right of a
+`A B outer +` computes all pairwise sums with A on the first axis and B on the
+second. `A B outer *` does the same for products. A vector on the right of a
 matrix operation broadcasts along the last axis. `Values Mask` selects values
 where a same-shaped boolean mask is true; scalar `Values Index` indexes instead.
 In the first ten Euler programs, chained mask operations retain array shape.
@@ -78,7 +78,7 @@ zero or a default answer.
 
 ## Arrays, masks and loops
 
-`A B * outer` evaluates every pair into a multidimensional result. Broadcasting
+`A B outer *` evaluates every pair into a multidimensional result. Broadcasting
 and axis/rank operations follow source shapes; `rank 0` applies to scalar cells,
 and `rank 1` applies to rows. A boolean mask selects matching elements.
 `Digits Width window` creates overlapping windows of positive width with default

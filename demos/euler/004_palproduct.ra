@@ -3,6 +3,7 @@ rem https://projecteuler.net/problem=4
 rem Largest palindrome made from the
 rem product of two N-digit numbers
 
+use sequences
 use text
 use io
 use cli
@@ -14,7 +15,7 @@ Lower = 10 ** (Digits - 1)
 Upper = Lower * 10 - 1
 
 Factors = Lower to Upper
-Products = Factors Factors * outer
+Products = Factors Factors outer *
 Palindromes = Products filter palindrome rank 0
 
 Answer = Palindromes max

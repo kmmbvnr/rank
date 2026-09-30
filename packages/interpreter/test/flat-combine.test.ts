@@ -149,7 +149,7 @@ end`);
 State = record
  .n = 1
 end
-Tree = (7 State flat) combine segment
+Tree = (7 State flat) segment combine
 fun readtree X
  return Tree 1 5 query
 end`);

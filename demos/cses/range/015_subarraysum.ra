@@ -16,7 +16,7 @@ Values Updates max_subarrays print
 
 rem Report the best subarray or zero.
 fun max_subarrays Values Updates
-  Tree = Values maxsum segment
+  Tree = Values segment maxsum
   Last = Values len - 1
   Answers = array shape (Updates len) fill 0
 

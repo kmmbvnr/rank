@@ -29,7 +29,7 @@ test "official three features"
 
   Actual = X correlation_matrix
   Match = Actual round 8 equal Expected
-  Match and reduce with true
+  Match reduce and with true
 end
 
 test "official cross correlation"

@@ -485,7 +485,7 @@ describe('Rank grammar', () => {
     });
 
     it('parses a named function modified by outer', async () => {
-        const document = await parse('Grid = Values Values bxor outer');
+        const document = await parse('Grid = Values Values outer bxor');
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
 
@@ -640,7 +640,7 @@ describe('Rank grammar', () => {
         const document = await parse([
             'Windows = Values 3 window',
             'Rows = Matrix 3 window axis 1',
-            'Products = Windows * reduce rank 1',
+            'Products = Windows reduce * rank 1',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);

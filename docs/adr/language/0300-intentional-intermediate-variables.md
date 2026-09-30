@@ -24,7 +24,7 @@ Rank establishes **explicit, named intermediate variables as the canonical idiom
 rem Canonical Rank style:
 Digits = Number integer rank 0
 Windows = Digits Width window
-Products = Windows * reduce rank 1
+Products = Windows reduce * rank 1
 Answer = Products max
 ```
 

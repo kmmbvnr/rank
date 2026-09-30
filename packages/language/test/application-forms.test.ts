@@ -19,13 +19,13 @@ it.each([
     ['A 2 window axis 0', 'axis-window'], ['A 1 shift with 9', 'axis-shift'],
     ['A 1 shift with 9 axis 1', 'axis-shift'], ['A 1 shift axis 1', 'axis-shift'], ['A 1 shift', 'plain'], ['A 2 window padding 1 with 9', 'axis-window'],
     ['A 2 window stride 2 padding 1 with 9 axis 1', 'axis-window'], ['A B equal rank 1', 'comparison-rank'],
-    ['A min scan with 0', 'named-scan'], ['A min segment', 'named-segment'],
-    ['A B min outer', 'named-outer'], ['A sort .descending', 'sort-direction'],
+    ['A scan min with 0', 'named-scan'], ['A segment min', 'named-segment'],
+    ['A B outer min', 'named-outer'], ['A sort .descending', 'sort-direction'],
     ['A findroot 1', 'dsu-method'],
     ['A jump 1 2', 'functional-method'], ['A floor 2', 'multiset-method'],
     ['A edges 1', 'graph-edges'], ['A array len', 'materialize-pipeline'],
-    ['A + scan with 0', 'scan'], ['A + scan axis 1', 'scan'], ['A min scan axis 0', 'named-scan'], ['A + reduce', 'reduce'], ['A + segment', 'segment'],
-    ['A B + outer', 'outer'], ['1 + 2', 'plain'],
+    ['A scan + with 0', 'scan'], ['A scan + axis 1', 'scan'], ['A scan min axis 0', 'named-scan'], ['A reduce +', 'reduce'], ['A segment +', 'segment'],
+    ['A B outer +', 'outer'], ['1 + 2', 'plain'],
 ])('classifies %s as %s', (source, kind) => {
     const parsed = parser.parse<Program>(`Result = ${source}\n`);
     expect(parsed.parserErrors.map(error => error.message)).toEqual([]);
@@ -90,11 +90,11 @@ it('recognizes symbolic modifiers once and respects a shadowed modifier', () => 
         if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
         return symbolicApplicationForm(statement.value, standard);
     };
-    expect(symbolic('Values + scan with 0')?.kind).toBe('scan');
-    expect(symbolic('Values + reduce rank 1 with 0')?.kind).toBe('reduce');
-    expect(symbolic('Values + segment')?.kind).toBe('segment');
-    expect(symbolic('A B * outer')?.kind).toBe('outer');
-    expect(symbolic('Values + scan axis 1')?.kind).toBe('scan');
-    expect(symbolic('Values + scan axis 1')).toMatchObject({ axis: { value: 1n } });
-    expect(symbolic('Values + scan', name => name !== 'scan')).toBeUndefined();
+    expect(symbolic('Values scan + with 0')?.kind).toBe('scan');
+    expect(symbolic('Values reduce + rank 1 with 0')?.kind).toBe('reduce');
+    expect(symbolic('Values segment +')?.kind).toBe('segment');
+    expect(symbolic('A B outer *')?.kind).toBe('outer');
+    expect(symbolic('Values scan + axis 1')?.kind).toBe('scan');
+    expect(symbolic('Values scan + axis 1')).toMatchObject({ axis: { value: 1n } });
+    expect(symbolic('Values scan +', name => name !== 'scan')).toBeUndefined();
 });
