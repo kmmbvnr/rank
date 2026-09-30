@@ -16,15 +16,16 @@ Hotels Groups assign_hotels print
 rem Choose the first hotel with room.
 fun assign_hotels Hotels Groups
   Tree = Hotels max segment
-  M = Groups len
-  Answers = array shape M fill 0
+  Answers = array shape (Groups len) fill 0
 
   for Need I in Groups
     Position = Tree Need firstatleast
-    if Position at least 0
-      Answers I = Position + 1
-      Tree Position -= Need
+    if Position less 0
+      continue
     end
+
+    Answers I = Position + 1
+    Tree Position -= Need
   end
 
   return Answers
