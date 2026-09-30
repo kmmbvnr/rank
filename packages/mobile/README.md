@@ -43,7 +43,8 @@ Function arguments and intermediate results appear in the CLI layout.
 Android hides system bars; an edge swipe temporarily reveals them.
 
 Source and unfinished drafts are kept locally. Reloading restores pending
-source, not runtime values. Android pause and stop requests use a local native signal mailbox, so the
-interpreter can pause without losing its stack or values. The web version uses
-a shared signal when served with cross-origin isolation headers. Native
-file/stdin operations are not exposed by this mobile shell.
+source, not runtime values. Local assets are served with cross-origin
+isolation headers, allowing the interpreter to use a shared array buffer signal
+directly. A local native signal mailbox remains as a fallback when shared array
+buffers are not available, so the interpreter can pause without losing its stack
+or values. Native file/stdin operations are not exposed by this mobile shell.

@@ -11,6 +11,8 @@ import com.getcapacitor.BridgeWebViewClient;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /** Local-only signal mailbox for the synchronous interpreter worker. */
 public final class DebugSignalClient extends BridgeWebViewClient {
@@ -18,6 +20,18 @@ public final class DebugSignalClient extends BridgeWebViewClient {
     private final int[] words = new int[3];
 
     public DebugSignalClient(Bridge bridge) { super(bridge); }
+
+    static Map<String, String> addIsolationHeaders(Map<String, String> existing) {
+        Map<String, String> updated = existing == null ? new HashMap<>() : new HashMap<>(existing);
+        updated.put("Cross-Origin-Opener-Policy", "same-origin");
+        updated.put("Cross-Origin-Embedder-Policy", "require-corp");
+        updated.put("Cross-Origin-Resource-Policy", "same-origin");
+        return updated;
+    }
+
+    static void applyIsolationHeaders(WebResourceResponse response) {
+        response.setResponseHeaders(addIsolationHeaders(response.getResponseHeaders()));
+    }
 
     @Override
     public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
@@ -34,7 +48,11 @@ public final class DebugSignalClient extends BridgeWebViewClient {
             view.post(() -> view.performHapticFeedback(effect));
             return response(200, "OK", "{}");
         }
-        if (!"/__rank_debug".equals(uri.getPath())) return super.shouldInterceptRequest(view, request);
+        if (!"/__rank_debug".equals(uri.getPath())) {
+            WebResourceResponse response = super.shouldInterceptRequest(view, request);
+            if (response != null) applyIsolationHeaders(response);
+            return response;
+        }
         // A bounded wait yields between worker polls without holding the mailbox lock.
         if ("1".equals(uri.getQueryParameter("wait"))) {
             try { Thread.sleep(20); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
@@ -69,7 +87,7 @@ public final class DebugSignalClient extends BridgeWebViewClient {
 
     private WebResourceResponse response(int status, String reason, String body) {
         return new WebResourceResponse("application/json", "UTF-8", status, reason,
-            Collections.singletonMap("Cache-Control", "no-store"),
+            addIsolationHeaders(Collections.singletonMap("Cache-Control", "no-store")),
             new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8)));
     }
 }
