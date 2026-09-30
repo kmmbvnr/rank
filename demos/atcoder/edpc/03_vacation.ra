@@ -33,6 +33,5 @@ fun best_score A B C
     PrevC = NextC
   end
 
-  Best = PrevA PrevB max
-  return Best PrevC max
+  return PrevA PrevB max PrevC max
 end
