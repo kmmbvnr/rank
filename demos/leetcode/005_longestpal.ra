@@ -2,8 +2,6 @@ rem Longest Palindromic Substring
 rem Longest substring of a string that
 rem reads the same both ways
 
-use algo
-
 rem Find the first longest palindrome.
 rem Try an odd and even center at every
 rem character and keep the longest result.
@@ -24,15 +22,11 @@ fun expand Text L R Best
   N = Text len
 
   for L at least 0 and R less N
-    Left = Text L
-    Right = Text R
-    if Left not equal Right
+    if Text L not equal Text R
       break
     end
 
-    Size = R - L + 1
-    BestSize = Best len
-    if Size greater BestSize
+    if R - L + 1 greater (Best len)
       Best = Text (L to R)
     end
 
