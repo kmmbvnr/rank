@@ -31,9 +31,7 @@ fun salaries Salaries Types As Bs
   Coordinates = array shape Total fill 0
   Coordinates (0 till N) = Salaries
   Coordinates (N till N + Q) = As
-  LastStart = N + Q
-  Tail = LastStart till Total
-  Coordinates Tail = Bs
+  Coordinates (N + Q till Total) = Bs
   Coordinates = Coordinates unique sort
 
   Rank = new index
@@ -57,12 +55,13 @@ fun salaries Salaries Types As Bs
       Counts (Rank Old) -= 1
       Salaries Employee = B
       Counts (Rank B) += 1
-    else
-      High = Counts sum (Rank B)
-      Low = Counts sum (Rank A - 1)
-      Answers AnswerCount = High - Low
-      AnswerCount += 1
+      continue
     end
+
+    High = Counts sum (Rank B)
+    Low = Counts sum (Rank A - 1)
+    Answers AnswerCount = High - Low
+    AnswerCount += 1
   end
 
   return Answers (0 till AnswerCount)
