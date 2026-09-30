@@ -365,6 +365,8 @@ Shapes, orderings, windows and lazy sources.
 | `Values flat` | array | Copies records into fixed-width storage; Count State flat initializes a compact array. |
 | `fibonacci` | sequence, lazy | Unbounded lazy Fibonacci numbers; bound with to, till, from or after. |
 | `Mask indices` | array | Zero-based positions of the true values in a boolean vector. |
+| `Values first` | element | First item of text, an array, a queue or a sequence; missing when empty. |
+| `Values last` | element | Last item of text, an array, a queue or a finite sequence; missing when empty. |
 | `primes` | sequence, lazy | Unbounded ascending primes, with planned membership and positional seeking. |
 | `Values Shape reshape` | array | Dense array in row-major order, the element count matching exactly. |
 | `Value shape` | array | Axis lengths as a rank-1 array. |

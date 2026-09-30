@@ -29,5 +29,5 @@ fun min_cost H
     Cost I = Best
   end
 
-  return Cost (N - 1)
+  return Cost last
 end

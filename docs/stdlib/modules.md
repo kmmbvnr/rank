@@ -538,6 +538,8 @@ copy
 sort
 argsort
 indices
+first
+last
 count
 find
 findall
@@ -622,6 +624,18 @@ rem 0 2
 `Values Target find` returns the first zero-based position equal to `Target`.
 `findall` returns every matching position; an empty result is an empty vector.
 Both accept rank-1 arrays and text, indexed by Unicode code point.
+
+`Values first` and `Values last` read an end of the leading axis without
+`len - 1` arithmetic. They accept text (one code point), arrays (a row for a
+matrix), queues and deques, and sequences; `last` needs a finite sequence. An
+empty collection gives a missing value, so `default` supplies a fallback:
+
+```rank
+Tail = (array 10 20 30) last
+rem 30
+Initial = "" first default "-"
+rem -
+```
 
 ## Tables
 

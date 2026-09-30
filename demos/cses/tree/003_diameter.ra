@@ -3,6 +3,7 @@ rem https://cses.fi/problemset/task/1131
 
 use graph
 use io
+use sequences
 
 N = stdin .integer
 Tree = new graph (1 to N) .undirected
@@ -17,10 +18,8 @@ Tree tree_diameter print
 rem Find both ends with two searches.
 fun tree_diameter Tree
   First = Tree 1 bfs
-  Last = First .order len - 1
-  End = First .order Last
+  End = First .order last
   Second = Tree End bfs
-  Last = Second .order len - 1
-  End = Second .order Last
+  End = Second .order last
   return Second .distance End
 end

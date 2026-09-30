@@ -4,7 +4,8 @@ import { ownedArray, derivedArray, denseScalarItems, readArrayItem, realCells, t
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
-import { materializeSequence, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
+import { atSequence, materializeSequence, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
+import { atArray } from '../selectors.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
 import { setValueKey } from '../set.js';
 import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
@@ -70,7 +71,31 @@ export const sequencesModule: RuntimeModule = {
     find: () => native('find', 2, arguments_ => findValue(arguments_[0], arguments_[1])),
     findall: () => native('findall', 2, arguments_ => findAllValues(arguments_[0], arguments_[1])),
     indices: () => native('indices', 1, arguments_ => trueIndices(arguments_[0])),
+    first: () => native('first', 1, arguments_ => endItem(arguments_[0], false)),
+    last: () => native('last', 1, arguments_ => endItem(arguments_[0], true)),
 };
+
+/** `Values first` and `Values last`: an end of the leading axis, missing when it is empty. */
+function endItem(value: RankValue, back: boolean): RankValue {
+    const name = back ? 'last' : 'first';
+    if (value instanceof RankDeque) return value.peek(back);
+    if (typeof value === 'string') {
+        const points = [...value];
+        if (!points.length) throw new MissingValueError('text is empty');
+        return points[back ? points.length - 1 : 0];
+    }
+    if (isRankArray(value) && value.shape.length > 0) {
+        if (!value.shape[0]) throw new MissingValueError('array is empty');
+        return atArray(value, [BigInt(back ? value.shape[0] - 1 : 0)]);
+    }
+    if (isRankSequence(value)) {
+        if (!back) return atSequence(value, 0n);
+        const length = lengthOf(value);
+        if (!length) throw new MissingValueError('sequence is empty');
+        return atSequence(value, length - 1n);
+    }
+    throw new RankError(`${name} expects text, an array, queue or finite sequence`, 'TypeError');
+}
 
 function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse: RankValue): RankValue {
     const values = [condition, whenTrue, whenFalse];
