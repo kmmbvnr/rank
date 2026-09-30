@@ -20,13 +20,12 @@ fun ways A B C X
     for J in 0 to B
       Spent = 500 * I + 100 * J
       Remaining = X - Spent
-      Mod = Remaining % 50
-      NonNegative = Remaining at least 0
-      Divisible = Mod equal 0
+      if Remaining less 0
+        break
+      end
 
-      if NonNegative and Divisible
-        K = Remaining // 50
-        if K at most C
+      if Remaining % 50 equal 0
+        if Remaining // 50 at most C
           Count += 1
         end
       end
