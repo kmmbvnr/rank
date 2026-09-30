@@ -27,8 +27,7 @@ Values Queries range_updates print
 rem Apply inclusive range operations.
 fun range_updates Values Queries
   Tree = Values + segment
-  Q = Queries len
-  Answers = array shape Q fill 0
+  Answers = array shape (Queries len) fill 0
   Count = 0
   for Query in Queries
     Type = Query 0
@@ -36,14 +35,11 @@ fun range_updates Values Queries
     Right = Query 2 - 1
     if Type equal 1
       Tree Left Right += Query 3
+    elif Type equal 2
+      Tree Left Right = Query 3
     else
-      if Type equal 2
-        Tree Left Right = Query 3
-      else
-        Total = Tree Left Right query
-        Answers Count = Total
-        Count += 1
-      end
+      Answers Count = Tree Left Right query
+      Count += 1
     end
   end
   return Answers (0 till Count)
