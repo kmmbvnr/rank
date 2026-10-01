@@ -160,6 +160,7 @@ import {
     isPositionalMask,
     mapSequence,
     materializeSequence,
+    stackItems,
     sequence,
     sequenceMask,
     sequenceValues,
@@ -2234,8 +2235,9 @@ export class Interpreter {
                 if (isRankSqliteTable(source)) return materializeSqlite(source);
                 if (isRankTable(source)) return source.toRows();
                 if (isRankSqliteExpression(source)) return materializeSqliteExpression(source);
-                if (!isRankSequence(source)) throw new RankError('postfix array expects a sequence, table or SQLite table');
-                return materializeSequence(source);
+                if (isRankSequence(source)) return materializeSequence(source);
+                if (isMaterializableCollection(source)) return stackItems(iterationValues(source), undefined, 'collection');
+                throw new RankError('postfix array expects a sequence, queue, stack, deque, set, multiset, table or SQLite table');
             };
         }
         if (isAllAxisExpression(expression)) {
@@ -2799,8 +2801,9 @@ export class Interpreter {
                     const source = sourceParts.length === 1
                         ? sourceParts[0]
                         : yield* resume(interpreter.apply(sourceParts));
-                    if (isRankSequence(source)) {
-                        let result: RankValue = materializeSequence(source);
+                    if (isRankSequence(source) || isMaterializableCollection(source)) {
+                        let result: RankValue = isRankSequence(source) ? materializeSequence(source)
+                            : stackItems(iterationValues(source), undefined, 'collection');
                         for (const item of materializePipeline.steps) {
                             result = yield* resume(interpreter.apply([
                                 result,
@@ -4931,6 +4934,11 @@ function rangeSequence(start: bigint, end: bigint, inclusive: boolean, stride?: 
             for (let value = start; within(value); value += step) yield value;
         },
     });
+}
+
+/** Containers whose `for` order is defined, so postfix `array` can copy them without consuming. */
+function isMaterializableCollection(value: RankValue): boolean {
+    return value instanceof RankDeque || isRankQueue(value) || isRankSet(value) || isRankMultiset(value);
 }
 
 function iterationValues(value: RankValue): Iterable<RankValue> {

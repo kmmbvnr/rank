@@ -2562,6 +2562,15 @@ core array constructor and conversion. A SQLite-backed table view also uses
 postfix `array` to execute its query and produce a rank-1 array of object rows;
 see [Tables](language/tables.md#sqlite).
 
+Postfix `array` also copies a queue, stack, deque, set or multiset into a
+rank-1 array (or a stacked array when every element is an array of one shape),
+in the order `for` visits the container: front to back for queues and deques,
+insertion order for stacks and sets, ascending order for multisets and
+ordered sets. The source is not consumed and later writes to it do not reach
+the copy. An empty container gives shape `0`. A counter or heap has no
+contract order and raises an error. This lets
+`Reversed array reverse` turn a queue into a reversed array.
+
 Position disambiguates the three uses of `array`:
 
 ```rank

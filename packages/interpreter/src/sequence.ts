@@ -449,7 +449,7 @@ export function materializeSequence(source: RankSequence): RankArray {
 export function stackItems(
     values: Iterable<RankValue>,
     frame: readonly number[] | undefined,
-    source: 'sequence' | 'array',
+    source: 'sequence' | 'array' | 'collection',
 ): RankArray {
     const mismatch = () => new RankError(`materialized ${source} items must have the same shape`, 'DimensionMismatch');
     const items: RankValue[] = [];

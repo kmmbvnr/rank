@@ -193,7 +193,9 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
         return source.types.length === 1 && source.types[0] === 'sequence'
             ? { ...source, types: ['array'],
                 ...(isStdinExpression(expression.source) && source.elements?.length
-                    ? { eagerScalarCells: true as const } : {}) } : { types: ['array'] };
+                    ? { eagerScalarCells: true as const } : {}) }
+            : source.types.length === 1 && source.types[0] === 'queue'
+                ? { types: ['array'], rank: 1, shape: [null] } : { types: ['array'] };
     }
     if (isFirstIndexWhereExpression(expression)) return { types: ['integer'], rank: 0, shape: [] };
     if (isTableFilterExpression(expression) && !expression.sourceFields.length) {
