@@ -4,10 +4,6 @@ import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { ownedArray, readArrayItem, arrayForWrite, enterRuntime, leaveRuntime } from './array-storage.js';
 import { ByteArray } from './bytes.js';
-import { isPureHostFunction } from './host-effects.js';
-import { typedNativeCall } from './typed-native.js';
-import { compileTensorCellCopy } from './tensor-cell-compiler.js';
-import { compileIntegerLoop } from './integer-loop.js';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
 import { compileTensorKernel } from './tensor-kernel.js';
 import {
@@ -15,40 +11,40 @@ import {
 } from './execution.js';
 import { BindingEnvironment } from './binding-environment.js';
 import { FunctionInvocation } from './function-invocation.js';
-import { ApplicationEvaluator, integerLiteral } from './eval/application.js';
-import { ExpressionEvaluator, checkedArrayDimension } from './eval/expressions.js';
+import { ApplicationEvaluator } from './eval/application.js';
+import { ExpressionEvaluator } from './eval/expressions.js';
+import { forIteration, prepareForStatement, type LoopContext } from './eval/loops.js';
+import { FastPaths } from './fast-paths.js';
 import type { InterpreterOptions, RankTestResult } from './interpreter-options.js';
 import { DebugInspection } from './debug-inspection.js';
 import { BuiltinRegistry, reseed, seedableRandom, type SeedableRandom } from './modules/builtins.js';
 import { locateError, registerSource } from './source-location.js';
 import { Operators, arraySize } from './operators.js';
 import {
-    applySelectors, selectValues,
+    selectValues,
 } from './value-selection.js';
-import { BREAK_SIGNAL, BreakSignal, CONTINUE_SIGNAL, ContinueSignal, ReturnSignal } from './control-signals.js';
+import { BREAK_SIGNAL, CONTINUE_SIGNAL, ReturnSignal } from './control-signals.js';
 import { prepareIfStatement, prepareTryStatement,
-    type ExecutionContext, type LoopControl } from './statement-control.js';
+    type ExecutionContext, type LoopControl, type PreparedStatement, type TensorGroup } from './statement-control.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
-import { RankDeque, RankHeap, pushCollection } from './containers.js';
+import { RankDeque, pushCollection } from './containers.js';
 import { argumentSignature } from './return-contract.js';
 import { assignRecordField, recordContract, retainRecordContract } from './record-contract.js';
 import { ResourceOwnership } from './resource-ownership.js';
 import { inputDeclarationName, inputValues, kebabCase, parseArguments, validateInputValue } from './cli-args.js';
 import { ReductionEvaluator } from './reduction.js';
-import { RankApplication, tensorFrameAxes } from './rank-application.js';
+import { RankApplication } from './rank-application.js';
 import {
-    atArray, scalarArrayWriteOffset, tensorSelection,
+    tensorSelection,
 } from './selectors.js';
-import { arrayOffset, coordinatesAt, safeDimension, sameShape } from './tensor-index.js';
+import { sameShape } from './tensor-index.js';
 import {
-    flattenApplication, isAddStatement,
-    isAllAxisExpression,
+    isAddStatement,
     isArrayAssignmentStatement,
     isArgsStatement,
     isArgumentStatement,
     isApplicationExpression,
     isAssignmentStatement,
-    isBinaryExpression,
     isBreakStatement,
     isContinueStatement,
     isExpressionStatement,
@@ -58,7 +54,6 @@ import {
     isIfStatement,
     isIndexAssignmentStatement,
     isNameExpression,
-    isNumberLiteral,
     isOptionStatement,
     isParenthesizedExpression,
     isPushStatement,
@@ -87,11 +82,7 @@ import { standardModules } from './modules/index.js';
 import { writeTable } from './table-access.js';
 import { parse } from './parser.js';
 import {
-    sequenceValues,
-} from './sequence.js';
-import {
     formatValue,
-    expectBoolean,
     isNativeFunction,
     isRankArray,
     isRankBytes,
@@ -100,7 +91,6 @@ import {
     isRankGraph,
     isRankIndex,
     isRankLabel,
-    isRankMultiset,
     isRankObject,
     isRankTable,
     isRankQueue,
@@ -116,7 +106,6 @@ import {
     type RankRecord,
     type RankSet,
     type RankValue,
-    typeName,
 } from './value.js';
 
 type Output = (text: string) => void;
@@ -152,14 +141,6 @@ interface LoadedProgram {
     readonly id: string;
     readonly program: Program;
 }
-
-interface TensorGroup { readonly count: number; run(): RankValue | undefined }
-type PreparedStatement = (
-    | { readonly run: (context: ExecutionContext) => RankValue | undefined }
-    | { readonly stream: (context: ExecutionContext) => Evaluation<RankValue | undefined> }
-) & { readonly tensor?: TensorGroup };
-
-const NO_INDICES: readonly RankValue[] = [];
 
 export class Interpreter {
     readonly variables = new Map<string, RankValue>();
@@ -198,6 +179,8 @@ export class Interpreter {
     private readonly functions: FunctionInvocation;
     private readonly application: ApplicationEvaluator;
     private readonly expressions: ExpressionEvaluator;
+    private readonly fastPaths: FastPaths;
+    private readonly loops: LoopContext;
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
@@ -257,6 +240,30 @@ export class Interpreter {
             builtins: this.builtins,
             application: this.application,
         });
+        this.fastPaths = new FastPaths({
+            bindings: this.bindings,
+            modules: this.modules,
+            builtins: this.builtins,
+            functions: this.functions,
+            resolve: name => this.resolve(name),
+            compileAssign: name => this.compileAssign(name),
+            locate: (error, node) => this.locateError(error, node),
+            options: () => this.options,
+        });
+        this.loops = {
+            bindings: this.bindings,
+            evaluate: expression => this.evaluateTask(expression),
+            compileDirect: expression => this.compileDirectExpression(expression),
+            compileAssign: name => this.compileAssign(name),
+            prepareBody: (statements, context, iterable, loopControl) =>
+                this.prepareLoopBody(statements, context, iterable, loopControl),
+            execute: (statements, context) => this.executeStatementStream(statements, context.assertBooleanExpressions,
+                context.insideLoop, context.insideFinally, context.insideGenerator, context.tailCallsAllowed,
+                context.loopControl),
+            point: (statement, iteration) => this.inspection.point(statement, iteration),
+            options: () => this.options,
+            compileLoop: (statement, binding) => this.fastPaths.compileLoop(statement, binding),
+        };
     }
 
     execute(source: string, syntheticNames: ReadonlySet<string> = new Set()): RankValue | undefined {
@@ -787,189 +794,7 @@ export class Interpreter {
             return isTryStatement(statement)
                 ? prepareTryStatement(statement, control) : prepareIfStatement(statement, control);
         }
-        if (isForStatement(statement)) {
-            const binding = forIteration(statement.condition);
-            const condition = !binding && statement.condition
-                ? this.compileDirectExpression(statement.condition) : undefined;
-            const interpreter = this;
-            // The names a binding writes never change, so each gets its write
-            // site once here rather than a name lookup on every iteration.
-            const bindValue = binding && binding.names[0] !== '#'
-                ? this.compileAssign(binding.names[0]) : undefined;
-            const bindIndex = binding
-                ? binding.names.slice(1).map(name =>
-                    name === '#' ? undefined : this.compileAssign(name))
-                : [];
-            const reference: PreparedStatement = { stream: function* (context) {
-                const { assertBooleanExpressions, insideFinally, insideGenerator } = context;
-                // Each loop owns its jumps. Branches share this carrier, while
-                // protected try/catch/finally blocks retain exception unwinding.
-                const loopControl: LoopControl | undefined = interpreter.options.directLoopControl !== false ? {} : undefined;
-                let result: RankValue | undefined;
-                let preparedBody: (() => Evaluation<RankValue | undefined>) | undefined;
-                if (binding) {
-                    const spec = tensorIterationSpec(binding.iterable);
-                    const iterable = (yield* resume(interpreter.evaluateTask(spec?.source ?? binding.iterable)));
-                    const flat = interpreter.options.directIteration !== false && !spec
-                        && !isRankObject(iterable) && !(isRankArray(iterable) && iterable.shape.length > 1);
-                    const entries = flat ? interpreter.iterationAtoms(binding, iterable)
-                        : interpreter.forEntries(binding, iterable);
-                    let ordinal = 0n;
-                    for (const entry of entries) {
-                        checkpoint();
-                        if (flat) {
-                            if (bindValue) bindValue(entry as RankValue);
-                            if (bindIndex[0]) bindIndex[0](ordinal++);
-                        } else {
-                            const cell = entry as ForEntry;
-                            if (bindValue) bindValue(cell.value);
-                            for (let position = 0; position < bindIndex.length; position += 1) {
-                                bindIndex[position]?.(cell.indices[position]);
-                            }
-                        }
-                        interpreter.inspection.point(statement, true);
-                        try {
-                            // A body that finishes on its own needs no task; only
-                            // one that suspends goes back to the driver.
-                            const body = interpreter.options.loopPreparation !== false
-                                ? (preparedBody ??= interpreter.prepareLoopBody(statement.statements, context, true, loopControl))()
-                                : interpreter.executeStatementStream(
-                                statement.statements,
-                                assertBooleanExpressions,
-                                true,
-                                insideFinally,
-                                insideGenerator,
-                                false, // Returning must close this iterator after the callee finishes.
-                                loopControl,
-                            );
-                            const value = 'done' in body
-                                ? body.value : (yield { task: body }) as RankValue | undefined;
-                            if (loopControl?.signal) {
-                                const signal = loopControl.signal;
-                                loopControl.signal = undefined;
-                                if (signal === 'break') break;
-                                continue;
-                            }
-                            result = value;
-                        } catch (error) {
-                            if (error instanceof BreakSignal) break;
-                            if (error instanceof ContinueSignal) continue;
-                            throw error;
-                        }
-                    }
-                } else {
-                    for (;;) {
-                        checkpoint();
-                        interpreter.inspection.point(statement, true);
-                        if (statement.condition) {
-                            let test: RankValue;
-                            if (condition) {
-                                test = condition();
-                            } else {
-                                const task = interpreter.evaluateTask(statement.condition);
-                                test = 'done' in task ? task.value : (yield { task }) as RankValue;
-                            }
-                            if (!expectBoolean(test)) break;
-                        }
-                        try {
-                            const body = interpreter.options.loopPreparation !== false
-                                ? (preparedBody ??= interpreter.prepareLoopBody(statement.statements, context, false, loopControl))()
-                                : interpreter.executeStatementStream(
-                                statement.statements,
-                                assertBooleanExpressions,
-                                true,
-                                insideFinally,
-                                insideGenerator,
-                                context.tailCallsAllowed,
-                                loopControl,
-                            );
-                            const value = 'done' in body
-                                ? body.value : (yield { task: body }) as RankValue | undefined;
-                            if (loopControl?.signal) {
-                                const signal = loopControl.signal;
-                                loopControl.signal = undefined;
-                                if (signal === 'break') break;
-                                continue;
-                            }
-                            result = value;
-                        } catch (error) {
-                            if (error instanceof BreakSignal) break;
-                            if (error instanceof ContinueSignal) continue;
-                            throw error;
-                        }
-                    }
-                }
-                return result;
-            } };
-            const compiled = this.options.integerLoopCompilation !== false ? compileIntegerLoop(statement, {
-                tensorReadHoisting: this.options.tensorReadHoisting !== false,
-                read: name => this.findVariable(name),
-                writer: name => this.compileAssign(name),
-                prepareWriter: this.options.boundIntegerWrites !== false ? (name, checked) => {
-                    let direct: ((value: RankValue) => void) | undefined;
-                    return value => {
-                        if (direct) { direct(value); return; }
-                        checked(value);
-                        const frame = this.bindings.current?.find(name);
-                        direct = frame ? frame.bindStore(name) : next => { this.variables.set(name, next); };
-                    };
-                } : undefined,
-                textLoops: this.options.textLoopCompilation !== false,
-                textArrayLoops: this.options.textArrayLoopCompilation !== false,
-                nestedLoops: this.options.nestedLoopCompilation !== false,
-                arrayRead: atArray,
-                textRead: (source, index) => applySelectors([source, index]) as string,
-                returns: this.options.loopReturnCompilation !== false,
-                canReturn: () => this.bindings.current !== undefined,
-                returnValue: value => { throw new ReturnSignal(value); },
-                arrayLocals: this.options.arrayLocalCompilation !== false,
-                dimension: checkedArrayDimension,
-                booleanArrays: this.options.booleanArrayCompilation !== false,
-                booleanLocals: this.options.booleanLoopCompilation !== false,
-                scalarText: this.options.scalarTextCompilation !== false,
-                nativeCalls: this.options.nativeLoopCompilation !== false,
-                builtinCall: (module, name, types) => {
-                    if (!this.modules.has(module)) return undefined;
-                    // Unknown host callbacks may mutate bindings or re-enter Rank.
-                    if (module === 'crypto' && name === 'md5' && this.options.md5
-                        && !isPureHostFunction(this.options.md5)) return undefined;
-                    try {
-                        const value = this.resolve(name);
-                        return isNativeFunction(value) && this.builtins.is(module, name, value)
-                            ? this.options.typedNativeCalls === false ? value.call : typedNativeCall(value, types)
-                            : undefined;
-                    } catch { return undefined; }
-                },
-                scalarFunction: (name, arity) => this.functions.scalarCall(name, arity),
-                absolute: this.options.absoluteLoopCompilation !== false,
-                extrema: this.options.extremaLoopCompilation !== false,
-                extremeParts: flattenApplication,
-                compoundWrites: this.options.compoundArrayCompilation !== false,
-                arrayIteration: this.options.arrayIterationCompilation !== false,
-                // The region guards cell types before entry and preserves them.
-                iterationValues: (binding, source, elementType = 'integer') => this.iterationAtoms(binding, source,
-                    this.options.provenIterationTypes !== false ? elementType : undefined,
-                    this.options.directTextIteration !== false),
-                arrayWrites: this.options.arrayWriteCompilation !== false,
-                inlineWriteOffsets: this.options.scalarAddressCompilation !== false,
-                arrayOffset: this.options.scalarAddressCompilation !== false
-                    ? scalarArrayWriteOffset
-                    : (source, indices) => tensorSelection(source, indices).offsetAt(0),
-                arrayReads: this.options.arrayLoopCompilation !== false,
-                iteration: forIteration,
-                module: name => this.modules.has(name),
-                builtin: (module, name) => {
-                    if (!this.modules.has(module)) return false;
-                    try { return this.builtins.is(module, name, this.resolve(name)); }
-                    catch { return false; }
-                },
-                locate: (error, command) => this.locateError(error, command),
-                compiled: this.options.onIntegerLoopCompiled,
-                executed: this.options.onIntegerLoopExecuted,
-            }, binding) : undefined;
-            if (!compiled) recordFallback(this.options.integerLoopCompilation === false ? 'loop:disabled' : 'loop:unsupported');
-            return compiled ? { stream: context => compiled.run(context.insideFinally, context.insideGenerator, context.tailCallsAllowed !== false) ?? reference.stream!(context) } : reference;
-        }
+        if (isForStatement(statement)) return prepareForStatement(statement, this.loops);
         if (isPushStatement(statement)) {
             return { stream: function* (): Execution<RankValue | undefined> {
                 const receiver = (yield* resume(interpreter.evaluateTask(statement.receiver)));
@@ -1748,106 +1573,11 @@ export class Interpreter {
         return selectValues(this.modules, values, missing);
     }
 
-    private *forEntries(binding: ForBinding, value: RankValue): IterableIterator<ForEntry> {
-        const spec = tensorIterationSpec(binding.iterable);
-        if (spec) {
-            if (!isRankArray(value)) throw new RankError('ranked for iteration expects an array');
-            const frameAxes = tensorFrameAxes(value.shape, spec.axes, spec.cellRank);
-            validateForBindings(binding.names, frameAxes.length);
-            this.declareLoopTypes(binding.names, [
-                spec.cellRank === 0 ? typesOf(value.items) : new Set(['array']),
-                ...frameAxes.map(() => new Set(['integer'])),
-            ]);
-            yield* tensorEntries(value, frameAxes, this.options.tensorCellCompilation !== false);
-            return;
-        }
-
-        if (isRankObject(value)) {
-            validateForBindings(binding.names, 1);
-            this.declareLoopTypes(binding.names, [
-                typesOf(value.entries.values()),
-                new Set(['text']),
-            ]);
-            for (const [key, item] of value.entries) {
-                yield { value: item, indices: [key] };
-            }
-            return;
-        }
-        if (isRankArray(value) && value.shape.length > 1) {
-            validateForBindings(binding.names, 1);
-            this.declareLoopTypes(binding.names, [new Set(['array']), new Set(['integer'])]);
-            yield* tensorEntries(value, [0], this.options.tensorCellCompilation !== false);
-            return;
-        }
-
-        const values = this.iterationAtoms(binding, value);
-        // A binding without an index name has nowhere to put one, so the walk
-        // neither counts nor carries it.
-        if (binding.names.length === 1) {
-            for (const item of values) yield { value: item, indices: NO_INDICES };
-            return;
-        }
-        let index = 0n;
-        for (const item of values) {
-            yield { value: item, indices: [index] };
-            index += 1n;
-        }
-    }
-
-    private iterationAtoms(binding: ForBinding, value: RankValue, provenType?: 'integer' | 'text', directText = false): Iterable<RankValue> {
-        validateForBindings(binding.names, 1);
-        if (isRankArray(value)) {
-            const types = provenType
-                ? new Set(value.items.length ? [provenType] : []) : typesOf(value.items);
-            this.declareLoopTypes(binding.names, [types, new Set(['integer'])]);
-        } else if (isRankQueue(value)) {
-            const types = value instanceof RankDeque ? value.iterationTypes(typeName) : typesOf(value.items);
-            this.declareLoopTypes(binding.names, [types, new Set(['integer'])]);
-        } else if (isRankSet(value)) {
-            this.declareLoopTypes(binding.names, [
-                typesOf(value.entries.values()),
-                new Set(['integer']),
-            ]);
-        } else if (isRankCounter(value)) {
-            this.declareLoopTypes(binding.names, [
-                typesOf(Array.from(value.entries.values(), entry => entry.value)),
-                new Set(['integer']),
-            ]);
-        } else if (typeof value === 'string') {
-            this.declareLoopTypes(binding.names, [new Set(['text']), new Set(['integer'])]);
-        }
-        if (directText && typeof value === 'string') return value;
-        return iterationValues(value);
-    }
-
-    private declareLoopTypes(
-        names: readonly string[],
-        candidates: readonly ReadonlySet<string>[],
-    ): void {
-        this.bindings.declareTypes(names, candidates);
-    }
-
     private requireModule(module: string, operation: string): void {
         if (!this.modules.has(module)) {
             throw new RankError(`${operation} requires: use ${module}`);
         }
     }
-}
-
-interface ForBinding {
-    readonly names: readonly string[];
-    readonly iterable: Expression;
-}
-
-interface ForEntry {
-    readonly value: RankValue;
-    readonly indices: readonly RankValue[];
-}
-
-interface TensorIterationSpec {
-    readonly source: Expression;
-    readonly axes?: readonly number[];
-    readonly cellRank: number;
 }
 
 /**
@@ -1910,124 +1640,8 @@ function blockNames(statement: Statement, syntheticNames: ReadonlySet<string>): 
     return [...names].filter(name => !syntheticNames.has(name));
 }
 
-function forIteration(
-    condition: Expression | undefined,
-): ForBinding | undefined {
-    if (!condition || !isBinaryExpression(condition) || condition.operator !== 'in') return undefined;
-    const bindings = flattenApplication(condition.left);
-    if (bindings.length < 1 || !bindings.every(binding =>
-        isNameExpression(binding) || isAllAxisExpression(binding))) {
-        return undefined;
-    }
-    return {
-        names: bindings.map(binding => isNameExpression(binding) ? binding.name : '#'),
-        iterable: condition.right,
-    };
-}
-
-function tensorIterationSpec(expression: Expression): TensorIterationSpec | undefined {
-    const parts = flattenApplication(expression);
-    const rankWord = parts.at(-2);
-    const rankValue = parts.at(-1);
-    if (!rankWord || !rankValue || !isNameExpression(rankWord)
-        || rankWord.name !== 'rank' || !isNumberLiteral(rankValue)
-        || typeof rankValue.value !== 'bigint') return undefined;
-
-    const cellRank = safeDimension(rankValue.value, 'rank');
-    const beforeRank = parts.slice(0, -2);
-    const axisPosition = beforeRank.findIndex(part => isNameExpression(part) && part.name === 'axis');
-    if (axisPosition < 0) {
-        if (beforeRank.length !== 1) return undefined;
-        return { source: beforeRank[0], cellRank };
-    }
-    if (axisPosition !== 1 || beforeRank.length === 2) {
-        throw new RankError('axis expects an array followed by one or more axis numbers');
-    }
-    const axisParts = beforeRank.slice(2);
-    return {
-        source: beforeRank[0],
-        axes: axisParts.map(axis => safeDimension(integerLiteral(axis, 'axis'), 'axis')),
-        cellRank,
-    };
-}
-
-function validateForBindings(names: readonly string[], frameRank: number): void {
-    if (names.length !== 1 && names.length !== frameRank + 1) {
-        throw new RankError(
-            `for expects one value name or ${frameRank + 1} value/index names, got ${names.length}`,
-        );
-    }
-}
-
-function* tensorEntries(source: RankArray, frameAxes: readonly number[], compiled: boolean): IterableIterator<ForEntry> {
-    const frameShape = frameAxes.map(axis => source.shape[axis]);
-    const frameSet = new Set(frameAxes);
-    const cellAxes = source.shape.map((_, axis) => axis).filter(axis => !frameSet.has(axis));
-    const cellShape = cellAxes.map(axis => source.shape[axis]);
-    const copy = compiled && cellAxes.length > 0
-        ? compileTensorCellCopy(frameAxes.length + cellAxes.length, cellAxes) : undefined;
-
-    for (const frameCoordinates of coordinates(frameShape)) {
-        const fullCoordinates = Array(source.shape.length).fill(0) as number[];
-        frameAxes.forEach((axis, position) => {
-            fullCoordinates[axis] = frameCoordinates[position];
-        });
-        const copied = copy?.(source, fullCoordinates, cellShape);
-        const items: RankValue[] = copied ?? [];
-        const cellSize = copied === undefined ? cellShape.reduce((product, dimension) => product * dimension, 1) : 0;
-        for (let linear = 0; linear < cellSize; linear++) {
-            if (cellShape.length !== cellAxes.length) {
-                // A host callback can resize the shared cell shape. Preserve
-                // the ordinary missing/extra coordinate behavior in that case.
-                const cellCoordinates = coordinatesAt(cellShape, linear);
-                cellAxes.forEach((axis, position) => {
-                    fullCoordinates[axis] = cellCoordinates[position];
-                });
-            } else {
-                let remaining = linear;
-                for (let position = cellShape.length - 1; position >= 0; position--) {
-                    fullCoordinates[cellAxes[position]] = remaining % cellShape[position];
-                    remaining = Math.floor(remaining / cellShape[position]);
-                }
-            }
-            items.push(source.items[arrayOffset(source.shape, fullCoordinates)]);
-        }
-        yield {
-            value: cellShape.length === 0
-                ? items[0]
-                : ownedArray(items, cellShape),
-            indices: frameCoordinates.map(BigInt),
-        };
-    }
-}
-
-function* coordinates(shape: readonly number[]): IterableIterator<number[]> {
-    const size = shape.reduce((product, dimension) => product * dimension, 1);
-    for (let linear = 0; linear < size; linear += 1) {
-        let remaining = linear;
-        const result = Array(shape.length).fill(0) as number[];
-        for (let axis = shape.length - 1; axis >= 0; axis -= 1) {
-            result[axis] = remaining % shape[axis];
-            remaining = Math.floor(remaining / shape[axis]);
-        }
-        yield result;
-    }
-}
-
 function arrayItem(source: RankArray, index: number): RankValue {
     return readArrayItem(source, index);
-}
-
-function iterationValues(value: RankValue): Iterable<RankValue> {
-    if (value instanceof RankDeque || value instanceof RankHeap) return value.values();
-    if (isRankSequence(value)) return sequenceValues(value, 'for');
-    if (isRankArray(value)) return value.items;
-    if (isRankQueue(value)) return value.items;
-    if (isRankSet(value)) return value.entries.values();
-    if (isRankCounter(value)) return Array.from(value.entries.values(), entry => entry.value);
-    if (isRankMultiset(value)) return value.values();
-    if (typeof value === 'string') return [...value];
-    throw new RankError(`for expects text or a sequence, got ${typeName(value)}`);
 }
 
 function assignmentOperator(operator: string): string {
@@ -2078,6 +1692,3 @@ function assertTestExpression(value: RankValue): void {
 export { typeName } from './value.js';
 export type { InterpreterOptions, LoadedModule, RankTestResult } from './interpreter-options.js';
 
-function typesOf(values: Iterable<RankValue>): ReadonlySet<string> {
-    return new Set([...values].map(typeName));
-}
