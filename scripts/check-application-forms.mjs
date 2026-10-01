@@ -17,7 +17,7 @@ const read = host.readFile;
 host.readFile = file => resolve(file) === forms
     ? source.replace('export type ApplicationForm =',
         "export type ApplicationForm =\n    | { readonly kind: '__exhaustiveness_probe' }") : read(file);
-const consumers = ['packages/interpreter/src/interpreter.ts', 'packages/language/src/analysis/application-facts.ts'];
+const consumers = ['packages/interpreter/src/eval/application.ts', 'packages/language/src/analysis/application-facts.ts'];
 const program = ts.createProgram(consumers.map(file => resolve(root, file)), options, host);
 const diagnostics = ts.getPreEmitDiagnostics(program);
 for (const consumer of consumers) assert(diagnostics.some(diagnostic =>
@@ -54,7 +54,7 @@ const form = prototype.applicationForm(expression);
 assert.equal(form.kind, 'scan');
 const runtime = new Interpreter();
 runtime.execute('A = array 1 2 3');
-const evaluation = runtime.compileApplicationForm(expression, form)();
+const evaluation = runtime.application.compileForm(expression, form)();
 const value = 'done' in evaluation ? evaluation.value : runExecution(evaluation);
 assert.equal(formatValue(value), '0 1 3 6');
 const lookup = name => name === 'A' ? { types: ['array'], rank: 1, shape: [3],
