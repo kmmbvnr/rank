@@ -1,25 +1,23 @@
 import { checkpoint, InterruptedError, inspectionEnabled } from './interrupt.js';
-import { AstUtils } from 'langium';
-import { registerFlatCombine } from './flat-combine.js';
+import { AstUtils, type AstNode } from 'langium';
 import { nameMask } from './array-mask.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
-import { compileScalarFunction } from './scalar-function-kernel.js';
-import { allValid, isPresentAt, maskedCells, typedArray, createArraySnapshot, ownedArray, readArrayItem, arrayForWrite, noteArrayBinding, isFlatScalarArray, isSharedArray, enterRuntime, leaveRuntime } from './array-storage.js';
+import { allValid, isPresentAt, maskedCells, typedArray, createArraySnapshot, ownedArray, readArrayItem, arrayForWrite, noteArrayBinding, enterRuntime, leaveRuntime } from './array-storage.js';
 import { ByteArray } from './bytes.js';
 import { isPureHostFunction } from './host-effects.js';
 import { typedNativeCall } from './typed-native.js';
-import { scalarFunctionResult } from './scalar-function-proof.js';
 import { compileTensorCellCopy } from './tensor-cell-compiler.js';
 import { compileIntegerLoop } from './integer-loop.js';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
 import { compileScalarExpression } from './scalar-compiler.js';
 import { compileTensorKernel } from './tensor-kernel.js';
 import {
-    ExecutionStack, completed, emit, flatMapResult, mapExecution, mapPair, mapResult, resume, runExecution, type Evaluation, type Execution,
+    completed, emit, flatMapResult, mapExecution, mapPair, mapResult, resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
-import { LocalFrame } from './frame.js';
 import { BindingEnvironment } from './binding-environment.js';
+import { FunctionInvocation } from './function-invocation.js';
+import type { InterpreterOptions, RankTestResult } from './interpreter-options.js';
 import { DebugInspection } from './debug-inspection.js';
 import { BuiltinRegistry, reseed, seedableRandom, type SeedableRandom } from './modules/builtins.js';
 import { locateError, registerSource } from './source-location.js';
@@ -27,7 +25,7 @@ import { Operators, arraySize, expectInteger } from './operators.js';
 import {
     applySelectors, callArguments, canApplySelectors, hasField, maskSelection, selectValues, unpackApplicationItems,
 } from './value-selection.js';
-import { BREAK_SIGNAL, BreakSignal, CONTINUE_SIGNAL, ContinueSignal, ReturnSignal, TailCallSignal } from './control-signals.js';
+import { BREAK_SIGNAL, BreakSignal, CONTINUE_SIGNAL, ContinueSignal, ReturnSignal } from './control-signals.js';
 import { compileKeyedTableExpression } from './keyed-table-expression.js';
 import { compileTableExpression } from './table-query-expression.js';
 import { compileClauseExpression, isBoundCondition, type ClauseExpressionContext } from './clause-expression.js';
@@ -35,9 +33,8 @@ import { prepareIfStatement, prepareTryStatement,
     type ExecutionContext, type LoopControl } from './statement-control.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
-import { ReturnContract, argumentRankSignature, argumentSignature } from './return-contract.js';
+import { argumentSignature } from './return-contract.js';
 import { checkRecordField, recordContract, retainRecordContract } from './record-contract.js';
-import { prepareFunction } from './prepared-function.js';
 import { ResourceMap } from './resource-summary.js';
 import { ResourceOwnership } from './resource-ownership.js';
 import { inputDeclarationName, inputValues, kebabCase, parseArguments, validateInputValue } from './cli-args.js';
@@ -51,7 +48,6 @@ import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import {
     nameNeedsExecution, requiresDataOperand, flattenApplication, applicationExpression as applicationParts,
     renamedBuiltinCall,
-    flatArrayBorrowProofs,
     isAddStatement,
     isAliasedTableExpression,
     isAllAxisExpression,
@@ -104,10 +100,8 @@ import {
     type FunctionStatement,
     type Program,
     type Statement,
-    applicationForm, assertNever, type ApplicationForm, findOperation, functionEffects, type ValueFacts,
-    availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage,
+    applicationForm, assertNever, type ApplicationForm, findOperation, availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage,
     bindingTypeMessage,
-    declaredRanks,
 } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
@@ -120,7 +114,6 @@ import {
 import { graphConstructor } from './graph.js';
 import { dsuFrom } from './dsu.js';
 import { indexKey } from './index-key.js';
-import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
 import { matmulValues } from './modules/linalg.js';
@@ -158,7 +151,6 @@ import {
     isRankArray,
     isRankBytes,
     isRankCounter,
-    isRankDate,
     isRankDsu,
     isRankFunctionalGraph,
     isRankFenwick,
@@ -179,7 +171,6 @@ import {
     isRankSegment,
     type RankArray,
     type RankCounter,
-    type RankFile,
     type NativeFunction,
     type RankIndex,
     type RankQueue,
@@ -219,95 +210,6 @@ function clonePreviewValue(value: RankValue): RankValue {
     return value;
 }
 
-export interface LoadedModule {
-    readonly id: string;
-    readonly source: string;
-}
-
-export interface InterpreterOptions {
-    /** Optional host MD5 implementation; portable hashing is the default.
-     * Use pureHostFunction only for implementations that satisfy its contract. */
-    readonly md5?: (value: string | Uint8Array) => Uint8Array;
-    /** Host-owned buffering for single-pass sources, installed only at creation. */
-    readonly wrapSinglePassSequence?: (source: RankSequence) => RankSequence;
-    /** Optional host cursors for repeatable sequence values saved by assignment. */
-    readonly wrapStoredSequence?: (source: RankSequence) => RankSequence;
-    readonly tensorReadHoisting?: boolean;
-    readonly scalarEntryCompilation?: boolean;
-    readonly compiledScalarTailCalls?: boolean;
-    readonly scalarFunctionCompilation?: boolean;
-    readonly onScalarFunctionExecuted?: () => void;
-    readonly scalarBlockCalls?: boolean;
-    readonly scalarCallCompilation?: boolean;
-    readonly tensorTextDigits?: boolean;
-    readonly scalarTextCompilation?: boolean;
-    readonly directTextIteration?: boolean;
-    readonly textArrayLoopCompilation?: boolean;
-    readonly textLoopCompilation?: boolean;
-    readonly absoluteLoopCompilation?: boolean;
-    readonly provenIterationTypes?: boolean;
-    readonly loopReturnCompilation?: boolean;
-    readonly arrayLocalCompilation?: boolean;
-    readonly booleanArrayCompilation?: boolean;
-    readonly booleanLoopCompilation?: boolean;
-    readonly boundIntegerWrites?: boolean;
-    readonly scalarAddressCompilation?: boolean;
-    readonly extremaLoopCompilation?: boolean;
-    readonly compoundArrayCompilation?: boolean;
-    readonly arrayIterationCompilation?: boolean;
-    readonly arrayWriteCompilation?: boolean;
-    readonly arrayLoopCompilation?: boolean;
-    readonly nestedLoopCompilation?: boolean;
-    readonly tensorCellCompilation?: boolean;
-    /** Iterate scalar streams without per-element entry wrappers. */
-    readonly directIteration?: boolean;
-    /** Carry ordinary loop jumps through blocks without throwing signals. */
-    readonly directLoopControl?: boolean;
-    /** Compile guarded synchronous text/byte builtin calls inside loops. */
-    readonly nativeLoopCompilation?: boolean;
-    /** Use checked native wrappers even in typed loops when false. */
-    readonly typedNativeCalls?: boolean;
-    /** Compile function bodies with a terminal return continuation. */
-    readonly functionBodyCompilation?: boolean;
-    readonly onFunctionBodyCompiled?: (source: string) => void;
-    readonly onFunctionBodyExecuted?: () => void;
-    readonly integerLoopCompilation?: boolean;
-    readonly onIntegerLoopCompiled?: (source: string) => void;
-    readonly onIntegerLoopExecuted?: () => void;
-    /** Reuse compiled loop bodies and their execution contexts. */
-    readonly loopPreparation?: boolean;
-    /** Compiled command blocks; false retains statement dispatch. */
-    readonly blockCompilation?: boolean;
-    readonly onBlockCompiled?: (source: string) => void;
-    readonly onBlockExecuted?: () => void;
-    /** Compound scalar expression compilation; false retains prepared operators. */
-    readonly scalarCompilation?: boolean;
-    readonly onScalarCompiled?: (source: string) => void;
-    readonly onScalarExecuted?: () => void;
-    /** General tensor fusion; false selects the reference statement path. */
-    readonly tensorFusion?: boolean;
-    readonly onTensorKernelCompiled?: (source: string) => void;
-    readonly onTensorKernelExecuted?: () => void;
-    readonly args?: readonly string[];
-    readonly sourceId?: string;
-    readonly testing?: boolean;
-    readonly input?: RankInput;
-    readonly io?: RankIo;
-    readonly random?: () => number;
-    readonly persistentResources?: boolean;
-    readonly maxCallDepth?: number;
-    readonly loadModule?: (specifier: string, fromId?: string) => LoadedModule;
-    readonly onTestResult?: (result: RankTestResult) => void;
-}
-
-export interface RankTestResult {
-    readonly name: string;
-    readonly passed: boolean;
-    readonly output: readonly string[];
-    readonly error?: string;
-    readonly durationMs?: number;
-}
-
 interface LoadedProgram {
     readonly id: string;
     readonly program: Program;
@@ -319,19 +221,6 @@ type PreparedStatement = (
     | { readonly stream: (context: ExecutionContext) => Evaluation<RankValue | undefined> }
 ) & { readonly tensor?: TensorGroup };
 
-const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[]) => Evaluation<RankValue>>();
-interface FunctionDefinition {
-    readonly specialization: (arguments_: RankValue[]) => ReturnContract;
-    readonly interpreter: Interpreter;
-    readonly statement: FunctionStatement;
-    readonly context: LocalFrame | undefined;
-    readonly direct: (() => RankValue) | undefined;
-}
-interface BorrowProof {
-    readonly bindings: ReadonlyMap<string, RankValue | undefined>;
-    readonly candidates: ReadonlyMap<number, ReadonlyMap<number, 'bigint' | 'boolean' | 'flat-array'>>;
-}
-const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
 const NO_INDICES: readonly RankValue[] = [];
 
 export class Interpreter {
@@ -339,7 +228,6 @@ export class Interpreter {
     readonly modules = new Set<string>(['core']);
     private readonly bindings = new BindingEnvironment(this.variables, this.modules);
     private readonly operators = new Operators(this.modules, value => this.resources.ownFiles(value));
-    private readonly sourceFunctions = new WeakMap<NativeFunction, FunctionStatement>();
     readonly testResults: RankTestResult[] = [];
     private readonly output: Output;
     private readonly baseOptions: InterpreterOptions;
@@ -363,8 +251,6 @@ export class Interpreter {
     private readonly statements = new WeakMap<Statement, PreparedStatement>();
     private readonly debugStatements = new WeakMap<Statement, PreparedStatement>();
     private readonly functionBodies = new WeakMap<FunctionStatement, Map<string, CompiledBlock<ExecutionContext> | null>>();
-    private readonly globalBorrowProofs = new WeakMap<FunctionStatement, BorrowProof>();
-    private readonly localBorrowProofs = new WeakMap<LocalFrame, WeakMap<FunctionStatement, BorrowProof>>();
     private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
     private readonly expressions = new WeakMap<Expression, () => Evaluation<RankValue>>();
     private readonly builtins: BuiltinRegistry;
@@ -372,8 +258,7 @@ export class Interpreter {
     private readonly rankApplication: RankApplication;
     private readonly resources = new ResourceOwnership();
     private readonly inspection = new DebugInspection(this.bindings, () => this.options.sourceId ?? '<input>');
-    private callDepth = 0;
-    private readonly maxCallDepth: number;
+    private readonly functions: FunctionInvocation;
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
@@ -387,10 +272,13 @@ export class Interpreter {
             seedRandom: seed => reseed(this.random, seed),
             ownFile: file => this.resources.ownFile(file),
         });
-        this.maxCallDepth = options.maxCallDepth ?? 200_000;
-        if (!Number.isSafeInteger(this.maxCallDepth) || this.maxCallDepth < 1) {
-            throw new RankError('maxCallDepth must be a positive safe integer');
-        }
+        this.functions = new FunctionInvocation(this.bindings, this.resources, this.builtins, this.inspection,
+            this.modules, () => this.options, {
+                compileDirect: expression => this.compileDirectExpression(expression),
+                compiled: (statement, arguments_) => this.compiledFunctionBody(statement, arguments_),
+                execute: (statements, generator) => this.executeStatementStream(statements, false, false, false, generator),
+                locate: (error, node) => this.locateError(error, node),
+            });
         this.reductions = new ReductionEvaluator(
             (operator, left, right) => this.operators.evaluateBinary(operator, left, right),
             name => this.resolve(name), this.builtins.functions, () => this.options.tensorFusion !== false,
@@ -467,16 +355,16 @@ export class Interpreter {
         fork.bindings.globals.adoptContracts(this.bindings.globals);
         for (const [name, child] of this.aliases) fork.aliases.set(name, child.forkForPreview(output));
         for (const [name, value] of this.variables) {
-            const source = isNativeFunction(value) ? this.sourceFunctions.get(value) : undefined;
-            if (source && isNativeFunction(value)) fork.sourceFunctions.set(value, source);
-            const definition = isNativeFunction(value) ? functionDefinitions.get(value) : undefined;
+            const source = isNativeFunction(value) ? this.functions.sourceOf(value) : undefined;
+            if (source && isNativeFunction(value)) fork.functions.adoptSource(value, source);
+            const definition = isNativeFunction(value) ? this.functions.definitionOf(value) : undefined;
             if (!definition || definition.context) fork.variables.set(name, clonePreviewValue(value));
         }
         // Rebuild top-level user functions so their calls use the fork rather than
         // the original interpreter captured by the function object.
         for (const value of this.variables.values()) {
-            const definition = isNativeFunction(value) ? functionDefinitions.get(value) : undefined;
-            if (definition && !definition.context) fork.defineFunction(definition.statement);
+            const definition = isNativeFunction(value) ? this.functions.definitionOf(value) : undefined;
+            if (definition && !definition.context) fork.functions.define(definition.statement);
         }
         return fork;
     }
@@ -489,19 +377,6 @@ export class Interpreter {
     dispose(): void {
         for (const child of this.aliases.values()) child.dispose();
         this.resources.dispose();
-    }
-
-    private withGeneratorFrame<T>(
-        frame: LocalFrame,
-        resources: Set<RankFile>,
-        operation: () => T,
-    ): T {
-        this.resources.pushScope(resources);
-        try {
-            return this.bindings.withFrame(frame, operation);
-        } finally {
-            this.resources.popScope();
-        }
     }
 
     executeProgram(
@@ -518,14 +393,14 @@ export class Interpreter {
 
     private declareFunctions(statements: readonly Statement[]): void {
         for (const statement of statements) {
-            if (isFunctionStatement(statement)) this.defineFunction(statement);
+            if (isFunctionStatement(statement)) this.functions.define(statement);
         }
     }
 
     private checkBuiltinBindings(program: Program, modules = this.modules): void {
         const existing: (string | FunctionStatement)[] = [...this.bindings.sourceBindings, ...this.aliases.keys()];
         for (const value of this.variables.values()) {
-            const statement = isNativeFunction(value) ? this.sourceFunctions.get(value) : undefined;
+            const statement = isNativeFunction(value) ? this.functions.sourceOf(value) : undefined;
             if (statement) existing.push(statement);
         }
         const diagnostic = builtinBindingDiagnostics(program, modules, existing)[0];
@@ -812,7 +687,7 @@ export class Interpreter {
         }
     }
 
-    private locateError(error: unknown, node: Statement | Expression): unknown {
+    private locateError(error: unknown, node: AstNode): unknown {
         return locateError(error, node, this.options.sourceId ?? '<input>');
     }
 
@@ -855,7 +730,7 @@ export class Interpreter {
             } };
         }
         if (isFunctionStatement(statement)) {
-            return { stream: function* (): Execution<RankValue | undefined> { return interpreter.defineFunction(statement); } };
+            return { stream: function* (): Execution<RankValue | undefined> { return interpreter.functions.define(statement); } };
         }
         if (isYieldStatement(statement)) {
             const interpreter = this;
@@ -1095,31 +970,7 @@ export class Interpreter {
                             : undefined;
                     } catch { return undefined; }
                 },
-                scalarFunction: (name, arity) => {
-                    if (this.options.scalarCallCompilation === false) return undefined;
-                    const value = this.findVariable(name);
-                    const definition = value && isNativeFunction(value) ? functionDefinitions.get(value) : undefined;
-                    if (!definition || definition.statement.parameters.length !== arity) return undefined;
-                    const statement = definition.statement;
-                    const proof = scalarFunctionResult(statement, this.options.scalarBlockCalls !== false);
-                    if (!proof) return undefined;
-                    const captures = definition.context !== undefined;
-                    return { type: proof.type, locals: captures ? proof.locals : [], bind: () => {
-                        const current = this.findVariable(name);
-                        if (!current || !isNativeFunction(current)) return undefined;
-                        const active = functionDefinitions.get(current);
-                        if (active?.statement !== statement || (active.context !== undefined) !== captures
-                            || proof.locals.some(local => active.context?.find(local))) return undefined;
-                        const compiled = active.interpreter.prepareScalarFunctionCall(statement);
-                        return (arguments_, tail = false) => {
-                            if (tail && active.interpreter === this) {
-                                throw new TailCallSignal(active, arguments_,
-                                    this.options.compiledScalarTailCalls !== false ? compiled : undefined);
-                            }
-                            return compiled ? compiled(arguments_) : current.call(arguments_);
-                        };
-                    } };
-                },
+                scalarFunction: (name, arity) => this.functions.scalarCall(name, arity),
                 absolute: this.options.absoluteLoopCompilation !== false,
                 extrema: this.options.extremaLoopCompilation !== false,
                 extremeParts: flattenApplication,
@@ -1906,8 +1757,7 @@ export class Interpreter {
                 const value = interpreter.resolve(expression.name);
                 if (!isNativeFunction(value) || !value.arities.includes(0)) return completed(nameMask(value));
                 if (tail && interpreter.resources.currentScopeEmpty()) {
-                    const definition = functionDefinitions.get(value);
-                    if (definition?.interpreter === interpreter) throw new TailCallSignal(definition, []);
+                    interpreter.functions.throwTailCall(value, []);
                 }
                 return mapResult(interpreter.invoke(value, []), result => {
                     interpreter.resources.ownFiles(result);
@@ -2775,423 +2625,9 @@ export class Interpreter {
         this.modules.add(module);
     }
 
-    private defineFunction(statement: FunctionStatement): RankValue {
-        if (availableBuiltin(statement.name, this.modules)) {
-            throw new RankError(builtinBindingMessage(statement.name), 'TypeError');
-        }
-        const { generator } = prepareFunction(statement);
-        if (statement.memo && generator) throw new RankError('memo functions cannot yield');
-        const context = this.bindings.current;
-        const only = statement.statements.length === 1 ? statement.statements[0] : undefined;
-        const compiled = !inspectionEnabled() && only && isReturnStatement(only) && only.value
-            ? this.compileDirectExpression(only.value) : undefined;
-        const direct = compiled ? () => {
-            try { return compiled(); }
-            catch (error) { throw this.locateError(error, only!); }
-        } : undefined;
-        const proof = this.options.scalarEntryCompilation !== false && !generator
-            ? scalarFunctionResult(statement, true) : undefined;
-        const scalar = proof ? this.prepareScalarFunctionCall(statement) : undefined;
-        const instances = new Map<string, ReturnContract>();
-        const returnRanks = new Map<string, { rank?: number }>();
-        const specialization = (arguments_: RankValue[]): ReturnContract => {
-            const key = argumentSignature(arguments_);
-            let instance = instances.get(key);
-            if (!instance) {
-                prepareFunction(statement, key);
-                const rankKey = argumentRankSignature(arguments_);
-                let rank = returnRanks.get(rankKey);
-                if (!rank) returnRanks.set(rankKey, rank = {});
-                instances.set(key, instance = new ReturnContract(statement.name, rank));
-            }
-            return instance;
-        };
-        const body = (arguments_: RankValue[]): Evaluation<RankValue> => {
-            if (scalar && arguments_.length === statement.parameters.length
-                && arguments_.every(value => typeof value === 'bigint')
-                && !proof!.locals.some(name => context?.find(name))) {
-                return completed(scalar(arguments_));
-            }
-            return direct ? completed(this.callDirectFunction(statement, arguments_, context, direct))
-                : this.callFunction(statement, arguments_, context);
-        };
-        const checkedBody = (arguments_: RankValue[]): Evaluation<RankValue> => {
-            const contract = specialization(arguments_);
-            return mapResult(body(arguments_), value => {
-                try { return contract.check(value); }
-                catch (error) {
-                    if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
-                    throw this.locateError(error, statement);
-                }
-            });
-        };
-        // Only successful, validated returns enter the closure's memo cache.
-        const cache = statement.memo ? new Map<string, RankValue>() : undefined;
-        const execute = cache ? (arguments_: RankValue[]): Evaluation<RankValue> => {
-            const key = JSON.stringify(arguments_.map(memoScalarKey));
-            const cached = cache.get(key);
-            if (cached !== undefined) return completed(cached);
-            return mapResult(checkedBody(arguments_), value => {
-                memoScalarKey(value);
-                cache.set(key, value);
-                return value;
-            });
-        } : checkedBody;
-        const declared = declaredRanks(statement);
-        if (typeof declared === 'string') throw this.locateError(new RankError(declared, 'TypeError'), statement);
-        const fn: NativeFunction = {
-            kind: 'function',
-            name: statement.name,
-            arities: [statement.parameters.length],
-            monadicRank: declared?.ranks.length === 1 ? declared.ranks[0] : 'all',
-            arrayCells: declared ? true : undefined,
-            monadicResultShape: generator ? undefined
-                : cellShape => this.userResultCellShape(statement, context, returnRanks, cellShape),
-            dyadicRanks: statement.parameters.length === 2
-                ? declared?.ranks.length === 2 ? [declared.ranks[0], declared.ranks[1]] : ['all', 'all']
-                : undefined,
-            captures: context?.captures(),
-            // What a caller outside the runtime reaches. A Rank call made from a
-            // Rank body takes a shorter path, so the stretch this opens is the
-            // work our embedder asked for; readers over storage we cannot track
-            // keep their cells for exactly that long. See enterRuntime.
-            call: arguments_ => {
-                enterRuntime();
-                try {
-                    return generator
-                        ? this.callGeneratorFunction(statement, arguments_, context)
-                        : runExecution(execute(arguments_));
-                } finally { leaveRuntime(); }
-            },
-        };
-        this.sourceFunctions.set(fn, statement);
-        if (!generator) {
-            functionExecutions.set(fn, execute);
-            // A memo call must return through its cache writer. Do not bypass it
-            // via the tail-call path that enters an ordinary function body.
-            if (!statement.memo) functionDefinitions.set(fn, { interpreter: this, statement, context, direct, specialization });
-        }
-        if (!generator && !statement.memo && this.options.scalarFunctionCompilation !== false) {
-            registerFlatCombine(fn, statement, builtins => {
-                if (this.callDepth >= this.maxCallDepth) return false;
-                for (const name of builtins) {
-                    // Rank locals cannot hide core names; only host-injected globals need a guard.
-                    const bound = this.variables.get(name);
-                    if (bound !== undefined) {
-                        if (!this.builtins.is('core', name, bound)) return false;
-                    }
-                }
-                return true;
-            });
-        }
-        this.assign(statement.name, fn);
-        return fn;
-    }
-
-    /**
-     * The result cell shape of a user function over an empty frame, found
-     * without calling it: its body may print or loop. Static result facts for
-     * an integer cell of that shape come first, then a return rank that earlier
-     * calls settled. Lengths the facts leave open are zero.
-     */
-    private userResultCellShape(
-        statement: FunctionStatement,
-        context: LocalFrame | undefined,
-        returnRanks: ReadonlyMap<string, { rank?: number }>,
-        cellShape: readonly number[],
-    ): readonly number[] | undefined {
-        const valueOf = (name: string) => context?.lookup(name) ?? this.variables.get(name);
-        const functionValue = (name: string) => {
-            const value = valueOf(name);
-            return value !== undefined && isNativeFunction(value) ? value : undefined;
-        };
-        const cell: ValueFacts = cellShape.length === 0
-            ? { types: ['integer'], rank: 0, shape: [] }
-            : { types: ['array'], rank: cellShape.length, shape: cellShape,
-                elements: ['integer'], eagerScalarCells: true };
-        const result = functionEffects(
-            name => name === statement.name ? statement : this.sourceFunctions.get(functionValue(name)!),
-            name => functionValue(name) !== undefined,
-            name => valueOf(name) !== undefined,
-        )(statement.name, [cell]).result;
-        // Like a called cell, a non-array result leaves only the frame.
-        if (result?.types.length && !result.types.some(type => ['array', 'bytes'].includes(type))) return [];
-        if (result?.types.join() === 'array' && result.shape?.length === result.rank) {
-            return result.shape!.map(dimension => dimension ?? 0);
-        }
-        const settled = new Set<number>();
-        for (const [key, contract] of returnRanks) {
-            const [argument, ...rest] = JSON.parse(key) as [string, number, unknown][];
-            if (rest.length || contract.rank === undefined || argument[1] !== cellShape.length
-                || cellShape.length > 0 && argument[0] !== 'array') continue;
-            settled.add(contract.rank);
-        }
-        return settled.size === 1 ? Array<number>([...settled][0]).fill(0) : undefined;
-    }
-
-    private prepareScalarFunctionCall(statement: FunctionStatement): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined {
-        if (this.options.scalarFunctionCompilation === false) return undefined;
-        const kernel = compileScalarFunction(statement);
-        if (!kernel) return undefined;
-        const locate = (error: unknown, index: number) => this.locateError(error, kernel.locations[index] ?? statement);
-        return (arguments_, tail = false) => {
-            if (!tail && this.callDepth >= this.maxCallDepth) {
-                throw new RankError(`function call depth exceeds ${this.maxCallDepth}`, 'RecursionLimit');
-            }
-            if (!tail) this.callDepth += 1;
-            try {
-                this.options.onScalarFunctionExecuted?.();
-                return kernel.run(arguments_, locate);
-            } catch (error) {
-                if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
-                throw error;
-            } finally { if (!tail) this.callDepth -= 1; }
-        };
-    }
-
-    private functionFrame(
-        statement: FunctionStatement,
-        arguments_: RankValue[],
-        parent: LocalFrame | undefined,
-        reusable?: LocalFrame,
-    ): LocalFrame {
-        if (arguments_.length !== statement.parameters.length) {
-            throw new RankError(
-                `${statement.name} expects ${statement.parameters.length} arguments, got ${arguments_.length}`,
-            );
-        }
-        const prepared = prepareFunction(statement, argumentSignature(arguments_));
-        const frame = reusable?.reset() ? reusable
-            : new LocalFrame(parent, prepared.layout);
-        const candidates = arguments_.some((argument, index) => isFlatScalarArray(argument) && !isSharedArray(argument)
-            && !prepared.borrowedParameters.has(statement.parameters[index]))
-            ? this.borrowCandidates(statement, parent) : undefined;
-        statement.parameters.forEach((parameter, index) => {
-            const argument = arguments_[index];
-            const guards = candidates?.get(index);
-            const borrowed = isFlatScalarArray(argument)
-                && (prepared.borrowedParameters.has(parameter)
-                    || !!guards && [...guards].every(([selector, type]) => type === 'flat-array'
-                        ? isFlatScalarArray(arguments_[selector]) : typeof arguments_[selector] === type));
-            frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
-        });
-        return frame;
-    }
-
-    private borrowCandidates(statement: FunctionStatement, parent: LocalFrame | undefined): ReadonlyMap<number, ReadonlyMap<number, 'bigint' | 'boolean' | 'flat-array'>> {
-        const cache = parent ? this.localBorrowProofs.get(parent) : this.globalBorrowProofs;
-        const current = cache?.get(statement);
-        const lookup = (name: string) => parent?.lookup(name) ?? this.variables.get(name);
-        if (current && [...current.bindings].every(([name, value]) => lookup(name) === value)) {
-            return current.candidates;
-        }
-        const bindings = new Map<string, RankValue | undefined>();
-        const candidates = flatArrayBorrowProofs(statement, name => {
-            // These names bypass ordinary variable lookup in resolve().
-            if (name.includes('.') || name === 'index' || name === 'queue'
-                || name === 'set' || name === 'counter') return undefined;
-            const bound = lookup(name);
-            bindings.set(name, bound);
-            const helper = bound && isNativeFunction(bound) ? functionDefinitions.get(bound) : undefined;
-            return helper?.interpreter === this && helper.context === parent ? helper.statement : undefined;
-        }, name => {
-            const bound = lookup(name);
-            bindings.set(name, bound);
-            return this.builtins.is('core', name, bound ?? this.resolve(name));
-        });
-        const proof = { bindings, candidates };
-        if (parent) {
-            const local = cache ?? new WeakMap<FunctionStatement, BorrowProof>();
-            local.set(statement, proof);
-            if (!cache) this.localBorrowProofs.set(parent, local);
-        } else this.globalBorrowProofs.set(statement, proof);
-        return candidates;
-    }
-
-    // A single return whose expression contains no applications cannot make a
-    // direct Rank call. It needs a lexical/resource frame, but no suspended task.
-    private callDirectFunction(
-        statement: FunctionStatement,
-        arguments_: RankValue[],
-        context: LocalFrame | undefined,
-        direct: () => RankValue,
-    ): RankValue {
-        if (this.callDepth >= this.maxCallDepth) {
-            throw new RankError(`function call depth exceeds ${this.maxCallDepth}`, 'RecursionLimit');
-        }
-        const frame = this.functionFrame(statement, arguments_, context);
-        this.callDepth += 1;
-        return this.resources.withResourceScope(() => {
-            try {
-                return this.bindings.withFrame(frame, direct);
-            } catch (error) {
-                if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
-                throw error;
-            } finally {
-                this.callDepth -= 1;
-            }
-        });
-    }
-
-    private *callFunction(
-        statement: FunctionStatement,
-        arguments_: RankValue[],
-        context: LocalFrame | undefined,
-    ): Execution<RankValue> {
-        if (this.callDepth >= this.maxCallDepth) {
-            throw new RankError(`function call depth exceeds ${this.maxCallDepth}`, 'RecursionLimit');
-        }
-        let frame = this.functionFrame(statement, arguments_, context);
-        const callerStatement = this.inspection.statement;
-        const caller = this.bindings.current;
-        const scope = new Set<RankFile>();
-        this.resources.pushScope(scope);
-        this.bindings.current = frame;
-        this.callDepth += 1;
-        if (inspectionEnabled()) this.inspection.enter(statement.name, frame);
-        let result: RankValue | undefined;
-        let pending: unknown;
-        let compiledTail = false;
-        const tailContracts = new Set<ReturnContract>();
-        try {
-            while (true) {
-                checkpoint();
-                try {
-                    this.bindings.current = frame;
-                    if (inspectionEnabled()) this.inspection.replace(statement.name, frame);
-                    for (const local of prepareFunction(statement, argumentSignature(arguments_)).locals) this.defineFunction(local);
-                    const body = this.compiledFunctionBody(statement, arguments_);
-                    if (body) {
-                        result = yield* resume(body({ assertBooleanExpressions: false, insideLoop: false,
-                            insideFinally: false, insideGenerator: false }));
-                        break;
-                    }
-                    yield* resume(this.executeStatementStream(statement.statements));
-                    throw new RankError(`function ${statement.name} reached end without return`);
-                } catch (error) {
-                    if (error instanceof TailCallSignal) {
-                        tailContracts.add(error.definition.specialization(error.arguments_));
-                        if (error.compiled) {
-                            compiledTail = true;
-                            // Keep the tail driver's logical depth and resource scope;
-                            // this proven scalar body needs no new lexical frame.
-                            try { result = error.compiled(error.arguments_, true); }
-                            catch (error) { pending = error; }
-                            break;
-                        }
-                        const reusable = statement === error.definition.statement
-                            && frame.parent === error.definition.context ? frame : undefined;
-                        statement = error.definition.statement;
-                        arguments_ = error.arguments_;
-                        frame = this.functionFrame(statement, error.arguments_, error.definition.context, reusable);
-                        if (error.definition.direct) {
-                            this.bindings.current = frame;
-                            try {
-                                result = error.definition.direct();
-                            } catch (error) {
-                                pending = error;
-                            }
-                            break;
-                        }
-                        continue;
-                    }
-                    if (error instanceof ReturnSignal && error.value !== undefined) result = error.value;
-                    else pending = error;
-                    break;
-                }
-            }
-        } finally {
-            this.callDepth -= 1;
-            this.bindings.current = caller;
-            if (inspectionEnabled()) this.inspection.leave(callerStatement);
-            if (pending instanceof RankError && !compiledTail) pending.addCall(statement.name, statement.parameters, arguments_);
-            if (pending === undefined && result !== undefined) {
-                try { for (const contract of tailContracts) result = contract.check(result); }
-                catch (error) { pending = error; }
-            }
-            this.resources.finishResourceScope(scope, result, pending);
-        }
-        return result!;
-    }
-
     private singlePassSequence(plan: RankSequence['plan']): RankSequence {
         const source = sequence({ ...plan, singlePass: true });
         return this.options.wrapSinglePassSequence?.(source) ?? source;
-    }
-
-    private callGeneratorFunction(
-        statement: FunctionStatement,
-        arguments_: RankValue[],
-        context: LocalFrame | undefined,
-    ): RankSequence {
-        const frame = this.functionFrame(statement, arguments_, context);
-        const interpreter = this;
-        let consumed = false;
-
-        this.bindings.withFrame(frame, () => {
-            for (const local of prepareFunction(statement, argumentSignature(arguments_)).locals) this.defineFunction(local);
-        });
-
-        return this.singlePassSequence({
-            name: statement.name,
-            size: { kind: 'unknown' },
-            captures: frame.captures(),
-            *iterate() {
-                if (consumed) {
-                    throw new RankError(
-                        `generator sequence ${statement.name} has already been consumed`,
-                        'ConsumedSequence',
-                    );
-                }
-                consumed = true;
-
-                const resources = new Set<RankFile>();
-                interpreter.resources.addGeneratorScope(resources);
-                const execution = new ExecutionStack((function* (): Execution<RankValue | undefined> {
-                    return yield* resume(interpreter.executeStatementStream(
-                        statement.statements, false, false, false, true,
-                    ));
-                })());
-                try {
-                    while (true) {
-                        let next: IteratorResult<RankValue, RankValue | undefined>;
-                        try {
-                            next = interpreter.withGeneratorFrame(
-                                frame,
-                                resources,
-                                () => {
-                                    if (!inspectionEnabled()) return execution.next();
-                                    const callerStatement = interpreter.inspection.statement;
-                                    interpreter.inspection.enter(statement.name, frame);
-                                    try { return execution.next(); }
-                                    finally { interpreter.inspection.leave(callerStatement); }
-                                },
-                            );
-                        } catch (error) {
-                            if (error instanceof ReturnSignal && error.value === undefined) return;
-                            if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
-                            throw error;
-                        }
-                        if (next.done) return;
-                        yield next.value;
-                    }
-                } finally {
-                    try {
-                        interpreter.withGeneratorFrame(
-                            frame,
-                            resources,
-                            () => {
-                                let result = execution.return(undefined);
-                                while (!result.done) result = execution.next();
-                            },
-                        );
-                    } finally {
-                        interpreter.resources.deleteGeneratorScope(resources);
-                        interpreter.resources.closeResources(resources, new Set());
-                    }
-                }
-            },
-        });
     }
 
     private localIndex(): RankIndex {
@@ -3270,7 +2706,7 @@ export class Interpreter {
             onTensorKernelExecuted: this.options.onTensorKernelExecuted,
             io: this.options.io,
             random: this.random,
-            maxCallDepth: this.maxCallDepth,
+            maxCallDepth: this.functions.maxDepth,
             loadModule: this.options.loadModule,
             sourceId: loaded.id,
         });
@@ -3632,8 +3068,7 @@ export class Interpreter {
                 parts => this.select(parts),
             );
             if (tail && index === values.length - 1 && this.resources.currentScopeEmpty()) {
-                const definition = functionDefinitions.get(value);
-                if (definition?.interpreter === this) throw new TailCallSignal(definition, arguments_);
+                this.functions.throwTailCall(value, arguments_);
             }
             const task = this.rankApplication.applyIntrinsicRank(value, arguments_);
             if (!('done' in task)) return this.continueApplication(values, missing, index + 1, task, tail);
@@ -3662,8 +3097,7 @@ export class Interpreter {
     }
 
     private invoke(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue> {
-        const execution = functionExecutions.get(fn);
-        return execution ? execution(arguments_) : completed(fn.call(arguments_));
+        return this.functions.invoke(fn, arguments_);
     }
 
     private select(values: RankValue[], missing?: () => RankValue): RankValue {
@@ -3990,14 +3424,6 @@ function checkedArrayDimension(dimension: bigint): number {
     return Number(dimension);
 }
 
-function memoScalarKey(value: RankValue): string {
-    if (typeof value === 'number' && Object.is(value, -0)) return 'number:-0';
-    if (typeof value !== 'object') return `${typeof value}:${value}`;
-    if (isRankLabel(value)) return `label:${value.name}`;
-    if (isRankDate(value)) return `${value.kind}:${formatValue(value)}`;
-    throw new RankError('memo arguments and results must be scalar values');
-}
-
 function assignmentOperator(operator: string): string {
     return operator.slice(0, -1);
 }
@@ -4069,6 +3495,7 @@ function isNamed(expression: Expression, name: string): boolean {
 }
 
 export { typeName } from './value.js';
+export type { InterpreterOptions, LoadedModule, RankTestResult } from './interpreter-options.js';
 
 function typesOf(values: Iterable<RankValue>): ReadonlySet<string> {
     return new Set([...values].map(typeName));
