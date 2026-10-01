@@ -98,7 +98,7 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     }
     if (isUnaryExpression(expression) && ['+', '-'].includes(expression.operator)) {
         const operand = expressionFacts(expression.operand, lookup);
-        if (operand.integer !== undefined) return { ...operand,
+        if (operand.integer !== undefined) return { ...operand, interval: undefined,
             integer: String(BigInt(operand.integer) * (expression.operator === '-' ? -1n : 1n)) };
         if (operand.rank === 0 && operand.types.length > 0
             && operand.types.every(type => type === 'integer' || type === 'real')) {
