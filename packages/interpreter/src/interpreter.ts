@@ -107,6 +107,7 @@ import {
     bindingTypeMessage,
     possibleBindingTypeConflict,
 } from '@arrrank/language';
+import { missingBinary } from './missing.js';
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
 import {
@@ -194,6 +195,7 @@ import {
     isRankSet,
     isRankSequence,
     isRankSequenceMask,
+    MISSING,
     valueRank,
     isRankSegment,
     addDateTimeDuration,
@@ -1780,7 +1782,10 @@ export class Interpreter {
             const value = expression.parts.join(expression.mode === 'lines' ? '\n' : '');
             return () => value;
         }
-        if (isLabelLiteral(expression)) return () => ({ kind: 'label', name: expression.name });
+        if (isLabelLiteral(expression)) {
+            if (expression.name === 'NA') return () => MISSING;
+            return () => ({ kind: 'label', name: expression.name });
+        }
         if (isNameExpression(expression)) {
             if (nameNeedsExecution(expression)) return undefined;
             const name = expression.name;
@@ -1875,7 +1880,9 @@ export class Interpreter {
             return function* (): Execution<RankValue> { return expression.value; };
         }
         if (isLabelLiteral(expression)) {
-            return function* (): Execution<RankValue> { return ({ kind: 'label', name: expression.name }); };
+            return function* (): Execution<RankValue> {
+                return expression.name === 'NA' ? MISSING : { kind: 'label', name: expression.name };
+            };
         }
         if (isStdinExpression(expression)) {
             return function* (): Execution<RankValue> {
@@ -2139,14 +2146,15 @@ export class Interpreter {
                                     }
                                 });
                             }
-                            if (!items.includes(absent)) return value;
+                            const unknown = (item: RankValue) => item === absent || item === MISSING;
+                            if (!items.some(unknown)) return value;
                             const fallback = yield* resume(interpreter.evaluateTask(expression.right));
                             return createArraySnapshot(
-                                items.map(item => item === absent ? fallback : item),
+                                items.map(item => unknown(item) ? fallback : item),
                                 value.shape,
                             );
                         }
-                        if (value !== absent) return value;
+                        if (value !== absent && value !== MISSING) return value;
                     } catch (error) {
                         if (!(error instanceof MissingValueError)) throw error;
                     }
@@ -4162,6 +4170,7 @@ export class Interpreter {
         if (isRankArray(value)) {
             return ownedArray(value.items.map(item => this.evaluateUnary(operator, item)), value.shape);
         }
+        if (value === MISSING && (operator === 'not' || operator === '+' || operator === '-')) return MISSING;
         if (operator === 'not' && typeof value === 'boolean') {
             return !value;
         }
@@ -4300,6 +4309,10 @@ export class Interpreter {
         }
         if (isRankArray(left) || isRankArray(right) || isRankQueue(left) || isRankQueue(right)) {
             return mapBinary(left, right, operator, (a, b) => this.evaluateBinary(operator, a, b));
+        }
+        if (left === MISSING || right === MISSING) {
+            const result = missingBinary(operator, left, right);
+            if (result !== undefined) return result;
         }
         if (operator === 'equal' || operator === 'notequal') {
             const equal = equalValues(left, right);

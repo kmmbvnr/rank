@@ -20,6 +20,7 @@ import {
     isRankSqliteExpression,
     isRankSequence,
     isRankSet,
+    MISSING,
     type RankValue,
     type SequencePlan,
     type SequencePredicate,
@@ -121,7 +122,7 @@ export const numbersModule: RuntimeModule = {
     }),
     odd: () => predicateFunction('odd', value => expectInteger(value) % 2n !== 0n),
     even: () => predicateFunction('even', value => expectInteger(value) % 2n === 0n),
-    isnan: () => predicateFunction('isnan', value => Number.isNaN(Number(expectNumeric(value)))),
+    isnan: () => predicateFunction('isnan', value => value !== MISSING && Number.isNaN(Number(expectNumeric(value)))),
 };
 
 function unaryMath(
@@ -257,6 +258,7 @@ export function numericExtreme(
         if ((typeof a === 'object' || typeof b === 'object')
             && (isRankArray(a) || isRankArray(b) || isRankSequence(a) || isRankSequence(b)
                 || isRankQueue(a) || isRankQueue(b))) return mapBinaryValue(a, b, name, binary);
+        if (a === MISSING || b === MISSING) return MISSING;
         const left = expectNumeric(a);
         const right = expectNumeric(b);
         return replaces(right, left) ? right : left;
@@ -288,6 +290,7 @@ export function numericExtreme(
         let result: bigint | number | undefined;
         for (const item of items) {
             checkpoint('computing numbers');
+            if (item === MISSING) continue;
             const numeric = expectNumeric(item);
             if (result === undefined || replaces(numeric, result)) result = numeric;
         }
@@ -306,10 +309,12 @@ function sumArray(items: readonly RankValue[]): bigint | number {
         checkpoint('computing numbers');
         const item = items[index];
         if (typeof item === 'bigint') { integer += item; continue; }
+        if (item === MISSING) continue;
         let real = Number(integer) + Number(expectNumeric(item));
         for (index++; index < items.length; index++) {
             checkpoint('computing numbers');
-            real += Number(expectNumeric(items[index]));
+            const next = items[index];
+            if (next !== MISSING) real += Number(expectNumeric(next));
         }
         return real;
     }
@@ -321,7 +326,8 @@ export function sumIndexed(size: number, itemAt: (index: number) => RankValue): 
     let total: bigint | number = 0n;
     for (let index = 0; index < size; index += 1) {
         checkpoint('computing numbers');
-        total = add(total, expectNumeric(itemAt(index)));
+        const item = itemAt(index);
+        if (item !== MISSING) total = add(total, expectNumeric(item));
     }
     return total;
 }
@@ -605,7 +611,7 @@ export function sumValue(value: RankValue): RankValue {
     let total: bigint | number = 0n;
     for (const item of items) {
         checkpoint('computing numbers');
-        total = add(total, expectNumeric(item));
+        if (item !== MISSING) total = add(total, expectNumeric(item));
     }
     return total;
 }

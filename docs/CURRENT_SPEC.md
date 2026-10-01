@@ -763,7 +763,29 @@ real arithmetic like `infinity - infinity`. `nan` is unordered: `less`,
 `greater`, `at most`, `at least` and `equal` with it are false, so it does not
 equal itself and `find` cannot locate it. `Value isnan` tests for it, mapping
 over arrays and sequences like `even`, and `Params isnan true find` gives its
-position. Missing cells in general are a separate proposal.
+position. `nan` is a number; a cell with no value at all is `.NA`.
+
+## Missing cells
+
+`.NA` is a scalar value of type `.missing` for a cell that has no value. It can
+be written in an array, bound and passed like any value, and it does not change
+the array's numeric element type:
+
+```rank
+Params = array 150000.0 5000.0 .NA 3.0
+Unknown = Params present false find
+```
+
+Arithmetic and comparison with `.NA` give `.NA`, including `equal`, so a missing
+cell is found with `Values present`, a boolean mask that is false for `.NA`
+and for a cell that reads as `.Missing`, and not by value. `and` and `or` use
+three-valued logic: `false and .NA` is false, `true or .NA` is true, and every
+other combination with `.NA` is `.NA`. `default` replaces `.NA`, and `sum`,
+`min`, `max`, `mean`, `median`, `std` and the other statistics skip it. `.NA`
+reaching a place that needs one value, such as an `if` condition, raises
+`.Missing`, which `default` also handles. `nan` stays a number: `isnan` is false
+for `.NA`. Reading one absent cell, key or element still raises `.Missing`; see
+ADR-0108.
 
 `round` from `use numbers` preserves the numeric type of every scalar it
 rounds: an `integer` result remains an integer and a `real` result remains a

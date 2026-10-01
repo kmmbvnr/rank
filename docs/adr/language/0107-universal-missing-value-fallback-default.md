@@ -2,6 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-09-08
+* **Updated:** 2026-10-01 (see ADR-0108)
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Values and Addressing Specification
 
@@ -25,6 +26,8 @@ Age = Data .Age default Median       rem Missing table value
 ```
 
 ### 1. No Silent Nulls
+> Updated by [ADR-0108](0108-missing-cells-na.md): an explicit `.NA` value now exists for missing array cells. Addressing an absent value still raises; nothing produces `.NA` implicitly from a single read.
+
 Addressing an absent value without a `default` clause is an immediate runtime error (`MissingValueError`). Rank completely rejects a generic `null` / `nil` primitive value that could silently propagate through calculations.
 
 ### 2. Universal Semantics Across Domains

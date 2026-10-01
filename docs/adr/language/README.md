@@ -95,6 +95,7 @@ flowchart TD
 | [ADR-0105](0105-symbol-scalars-for-labels-and-enums.md) | Symbol Scalars for Labels, Enums, Fields, and Type Tags | Lightweight `.name` tokens for record fields, table columns, ad-hoc enums, and type guards. |
 | [ADR-0106](0106-record-types.md) | Record Types as Closed, Typed Reference Structures | Typo-safe closed schemas with typed fields; explicit reference identity for autograd and graphs; `with` blocks for changed copies. |
 | [ADR-0107](0107-universal-missing-value-fallback-default.md) | Universal Missing-Value Fallback via `default` Keyword | Unified absence handling across arrays, maps, and tables without `null` poisoning or `try/catch`. |
+| [ADR-0108](0108-missing-cells-na.md) | Missing Cells as the `.NA` Value | An explicit missing value for array cells that propagates, is tested with `present` and filled with `default`, kept in a validity bitmap. |
 
 ---
 

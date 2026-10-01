@@ -6,6 +6,7 @@ import { mapBroadcastArrays } from '../tensor.js';
 import {
     isRankArray,
     isRankSequence,
+    MISSING,
     type RankArray,
     type RankValue,
 } from '../value.js';
@@ -530,7 +531,7 @@ export function medianValue(value: RankValue): number {
 }
 
 function presentValues(value: RankValue, operation: string): RankValue[] {
-    if (!isRankArray(value)) return [...sequenceValues(value, operation)];
+    if (!isRankArray(value)) return [...sequenceValues(value, operation)].filter(item => item !== MISSING);
     const stored = denseScalarItems(value);
     if (stored) return Array.from(stored);
     const items: RankValue[] = [];
@@ -538,7 +539,8 @@ function presentValues(value: RankValue, operation: string): RankValue[] {
     for (let index = 0; index < size; index += 1) {
         checkpoint('computing statistics');
         try {
-            items.push(arrayItem(value, index));
+            const item = arrayItem(value, index);
+            if (item !== MISSING) items.push(item);
         } catch (error) {
             if (!(error instanceof MissingValueError)) throw error;
         }

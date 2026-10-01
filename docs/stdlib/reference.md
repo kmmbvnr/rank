@@ -136,6 +136,7 @@ Always available: conversions, ranges, length, sums and extrema. No use required
 | `Left Right min` | number | Smaller of two numbers, or the smallest of one collection. |
 | `Values sum` | number | Adds every numeric cell of an array, collection or finite sequence. |
 | `Value len` | integer | Code points of text, leading axis of an array, or size of a collection. |
+| `Values present` | boolean | Mask of the cells that have a value: false for `.NA` and for cells that read as `.Missing`. |
 | `Value bytes` | bytes | Converts UTF-8 text or a rank-1 array of integers in 0..255 to compact bytes. |
 | `Value integer` | integer | Truncates a finite real toward zero, preserves an integer, or parses signed decimal integer text. |
 | `Value real` | real | Converts an integer or decimal text to a real, or preserves a real. |
