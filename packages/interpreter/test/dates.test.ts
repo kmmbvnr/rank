@@ -228,7 +228,7 @@ describe('dates', () => {
         const runtime = new Interpreter(undefined, { io });
         runtime.execute('use tables\nuse dates\nRows = "/in.csv" csv');
         expect(() => runtime.execute('Rows .when date weekday'))
-            .toThrowError('missing object key: when');
+            .toThrowError('missing value where text or a datetime is needed');
         expect(formatValue(runtime.execute('(Rows .when default "2024-01-02") date weekday')!))
             .toBe('0 1 2');
     });

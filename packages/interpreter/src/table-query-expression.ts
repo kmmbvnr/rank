@@ -18,6 +18,7 @@ import {
     isNativeFunction, isRankArray, isRankGroupedTable, isRankObject, isRankRecord, isRankSequence, isRankSequenceMask,
     isRankSqliteTable, isRankTable, isRankTableAlias, type RankArray, type RankRecord, type RankSequence, type RankValue,
     typeName,
+    MISSING,
 } from './value.js';
 
 export interface TableExpressionContext {
@@ -182,7 +183,7 @@ export function compileTableExpression(
                         if (isRankArray(source)) {
                             if (!isRankArray(mask) || mask.shape.length !== 1
                                 || mask.shape[0] !== source.shape[0]
-                                || !mask.items.every(value => typeof value === 'boolean')) {
+                                || !mask.items.every(value => typeof value === 'boolean' || value === MISSING)) {
                                 throw new RankError('filter requires a boolean mask with one value per row', 'TypeError');
                             }
                             const selected = selectAxis(source, 0, mask) as RankArray;

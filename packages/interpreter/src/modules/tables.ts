@@ -14,6 +14,7 @@ import {
     formatValue,
     isRankObject,
     isRankArray,
+    MISSING,
     isRankDate,
     isRankDuration,
     isRankLabel,
@@ -72,7 +73,7 @@ export const tablesModule: RuntimeModule = {
                 }
                 if (setValueKey(candidate) === sought) return readArrayItem(values, index);
             }
-            throw new MissingValueError('lookup key not found');
+            throw new MissingValueError('lookup key not found', true);
         };
         if (!isRankArray(requested)) return find(requested);
         if (requested.shape.length !== 1) {
@@ -592,17 +593,38 @@ export function projectAliasedField(
         const nested = row.entries.get(scope);
         if (nested === undefined) {
             if (missing) return missing();
-            throw new MissingValueError(`missing object key: ${scope}`);
+            throw new MissingValueError(`missing object key: ${scope}`, true);
         }
         if (!isRankObject(nested)) throw new RankError('table projection expects object rows', 'TypeError');
         const value = nested.entries.get(field);
         if (value === undefined) {
             if (missing) return missing();
-            throw new MissingValueError(`missing object key: ${field}`);
+            throw new MissingValueError(`missing object key: ${field}`, true);
         }
         return value;
     };
-    return derivedArray(source.shape, [source], itemAt, true);
+    return rejectAbsentField(derivedArray(source.shape, [source], itemAt, true), field);
+}
+
+/**
+ * Rows of an object array may lack a field, which reads as `.NA` for the whole
+ * array. A field that no row has is a mistake, not data, so that still raises.
+ */
+function rejectAbsentField(array: RankArray, field: string): RankArray {
+    const own = Object.getOwnPropertyDescriptor(array, 'items')?.get;
+    if (!own) return array;
+    Object.defineProperty(array, 'items', {
+        configurable: true,
+        enumerable: true,
+        get() {
+            const items = own.call(array) as RankValue[];
+            if (items.length > 0 && items.every(item => item === MISSING)) {
+                throw new MissingValueError(`missing object key: ${field}`);
+            }
+            return items;
+        },
+    });
+    return array;
 }
 
 /** Lazily project one named field from every object cell in an array. */
@@ -619,11 +641,11 @@ export function projectField(
         const value = row.entries.get(field);
         if (value === undefined) {
             if (missing) return missing();
-            throw new MissingValueError(`missing object key: ${field}`);
+            throw new MissingValueError(`missing object key: ${field}`, true);
         }
         return value;
     };
-    return derivedArray(source.shape, [source], itemAt, true);
+    return rejectAbsentField(derivedArray(source.shape, [source], itemAt, true), field);
 }
 
 /** Lazily project an ordered list of fields into a rows-by-fields matrix. */
@@ -648,7 +670,7 @@ export function projectFields(source: RankArray, fields: RankArray): RankArray {
         }
         const field = names[position % columns];
         const value = row.entries.get(field);
-        if (value === undefined) throw new MissingValueError(`missing object key: ${field}`);
+        if (value === undefined) throw new MissingValueError(`missing object key: ${field}`, true);
         return value;
     };
     const result = derivedArray([source.shape[0], columns], [source], itemAt, true);

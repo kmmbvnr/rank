@@ -40,7 +40,12 @@ Arithmetic and comparison with `.NA` give `.NA`, including `equal`: `.NA equal .
 
 ### 5. Relationship to the `.Missing` error
 
-ADR-0107 stays in force for addressing: reading one absent cell, key or element raises `.Missing`, and `default` catches it. `.NA` is the value a *whole-array* result holds for such a cell: array-valued lookups, joins and `choose` materialise `.Missing` reads as `.NA` cells instead of raising per cell, so the vector path never uses exceptions.
+ADR-0107 stays in force for addressing: reading one absent cell, key or element raises `.Missing`, and `default` catches it. `.NA` is the value a *whole array* holds for data that has no value, so the vector path never uses exceptions:
+
+- A **soft** miss is data with no value: a `lookup` key with no match, an absent table cell, a field some object rows lack. Reading all the cells of an array (printing it, `present`, a reduction, a table column) gives `.NA` for them. Reading one such lookup cell by itself still raises. A table column stores `.NA` in the array, so reading one of its cells returns `.NA`.
+- A **strict** miss is not data: an index outside the choices of `choose`, a floor with no answer, a key `find` cannot locate, a table field that does not exist, a field no row has. It raises `.Missing` for the whole array as before, and `default` supplies a value per cell.
+
+A mask with `.NA` selects no row or element where it has no value (`filter`, `X (Mask)`), as SQL's `WHERE` does. Functions that do not know `.NA` raise `.Missing` ("missing value where a number is needed"); math functions, `abs`, `sqrt` and binary numeric functions propagate it.
 
 ### 6. Representation
 
@@ -49,7 +54,7 @@ An array with `.NA` cells is a values buffer plus an optional validity bitmap (1
 ## Consequences
 
 * A scalar `.NA` is a real value. ADR-0107's "no silent nulls" holds for addressing, because absent reads still raise; `.NA` is explicit data that the program or its input wrote.
-* Existing programs are unchanged except that the symbol `.NA` is now a value, not a symbol.
+* Existing programs are unchanged except that the symbol `.NA` is now a value, not a symbol, and that whole-array reads of soft misses give `.NA` instead of raising.
 
 ## References
 * Issue #27, #15, #6

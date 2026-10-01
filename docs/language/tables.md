@@ -551,7 +551,8 @@ Applying it fixes the matching row positions, as ordinary array masks do.
 The result is a rank-1 array view whose rows remain lazy; it retains the table
 header, including when no row matches. The input rows are not copied or
 changed. SQLite extends its parameterized WHERE plan without reading rows.
-Existing missing-cell and SQL NULL predicate behavior is unchanged.
+A row whose condition has no value (`.NA`, from an absent cell) is not kept, as
+in SQL. SQL `NULL` predicate behavior is unchanged.
 
 The same clause filters a plain array or sequence, where the elided subject is
 the value itself rather than a column; see

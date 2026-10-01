@@ -1,4 +1,5 @@
-import { RankError } from '../errors.js';
+import { MissingValueError, RankError } from '../errors.js';
+import { MISSING } from '../value.js';
 import { derivedArray, ownedObject, readArrayItem } from '../array-storage.js';
 import { mapSequence } from '../sequence.js';
 import {
@@ -144,6 +145,7 @@ function parseDate(value: RankValue): RankDate {
     if (isRankDate(value)) {
         return { kind: 'date', year: value.year, month: value.month, day: value.day };
     }
+    if (value === MISSING) throw new MissingValueError('missing value where text or a datetime is needed');
     if (typeof value !== 'string') throw new RankError('date expects text or datetime', 'TypeError');
     const parts = DATE.exec(value);
     if (!parts) throw invalidDate(value);

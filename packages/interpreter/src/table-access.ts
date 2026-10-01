@@ -121,7 +121,7 @@ function projectColumns(table: RankArrowTable, fields: readonly RankValue[]): Ra
         checkpoint('processing table');
         for (let column = 0; column < columns; column += 1) {
             const value = table.cell(row, indices[column]);
-            if (value === undefined) throw new MissingValueError(`missing object key: ${names[column]}`);
+            if (value === undefined) throw new MissingValueError(`missing object key: ${names[column]}`, true);
             items[row * columns + column] = value;
         }
     }

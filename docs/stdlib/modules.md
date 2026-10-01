@@ -1257,8 +1257,8 @@ text column unless it is explicitly assigned back.
 `second` require `datetime`. Each returns an `integer`; `weekday` numbers
 Monday as 0 and Sunday as 6. The operations apply elementwise to arrays and
 sequences, preserve tensor shape, and evaluate lazy cells only when demanded.
-A missing projected table cell remains `.Missing` and can be handled with
-`default` before parsing.
+A missing projected table cell is `.NA`, which `date` and the date parts
+reject with `.Missing`; `default` fills it before parsing.
 
 On a SQLite column, `date` or `datetime` followed by `year`, `month` or `day`
 builds a lazy `strftime` expression. The source column must contain canonical

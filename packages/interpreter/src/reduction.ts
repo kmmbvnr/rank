@@ -1,4 +1,4 @@
-import { denseScalarItems, derivedArray, eagerOperandItems, ownedArray, readArrayItem, typedArray } from './array-storage.js';
+import { denseScalarItems, derivedArray, materializeCells, eagerOperandItems, ownedArray, readArrayItem, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
@@ -20,7 +20,7 @@ function lazyArray(shape: readonly number[], itemAt: (index: number) => RankValu
     return {
         kind: 'array', shape, itemAt,
         get items() {
-            materialized ??= Array.from({ length: arraySize(shape) }, (_, index) => itemAt(index));
+            materialized ??= materializeCells(arraySize(shape), itemAt);
             return materialized;
         },
     };

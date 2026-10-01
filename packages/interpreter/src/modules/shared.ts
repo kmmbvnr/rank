@@ -1,11 +1,12 @@
 import { findOperation, instantiateShapeSignature } from '@arrrank/language';
 import { checkInterrupt, interruptsEnabled } from '../interrupt.js';
 import { ownedArray } from '../array-storage.js';
-import { RankError } from '../errors.js';
+import { MissingValueError, RankError } from '../errors.js';
 import { mapSequence } from '../sequence.js';
 import {
     isRankArray,
     isRankSequence,
+    MISSING,
     type NativeFunction,
     type RankValue,
 } from '../value.js';
@@ -59,6 +60,7 @@ export function mapValue(
 
 export function expectInteger(value: RankValue): bigint {
     if (typeof value !== 'bigint') {
+        if (value === MISSING) throw new MissingValueError('missing value where an integer is needed');
         throw new RankError(`expected integer input`);
     }
     return value;
@@ -66,6 +68,7 @@ export function expectInteger(value: RankValue): bigint {
 
 export function expectNumeric(value: RankValue): bigint | number {
     if (typeof value !== 'bigint' && typeof value !== 'number') {
+        if (value === MISSING) throw new MissingValueError('missing value where a number is needed');
         throw new RankError('expected numeric input');
     }
     return value;

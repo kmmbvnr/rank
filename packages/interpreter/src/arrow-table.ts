@@ -1,8 +1,8 @@
 import { Bool, Dictionary, Float64, Int32, Int64, Utf8, Vector, makeData, type DataType } from 'apache-arrow';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
-import { derivedArray, ownedArray, ownedObject, typedArray } from './array-storage.js';
-import type { RankArray, RankObject, RankRecord, RankValue } from './value.js';
+import { ownedArray, ownedObject, typedArray } from './array-storage.js';
+import { MISSING, type RankArray, type RankObject, type RankRecord, type RankValue } from './value.js';
 
 const INT64_MIN = -(1n << 63n);
 const INT64_MAX = (1n << 63n) - 1n;
@@ -102,11 +102,13 @@ export class RankArrowTable {
             }
             return ownedArray(items, [this.length]);
         }
-        return derivedArray([this.length], [], row => {
-            const value = this.cell(row, index);
-            if (value === undefined) throw new MissingValueError(`missing object key: ${name}`);
-            return value;
-        }, true);
+        // An absent cell is a cell with no value: `.NA`, kept beside the numbers
+        // of a numeric column rather than raised for each read.
+        for (let row = 0; row < this.length; row += 1) {
+            checkpoint('processing table');
+            items[row] = this.cell(row, index) ?? MISSING;
+        }
+        return ownedArray(items, [this.length]);
     }
 
     /** Row `row` as a record holding its present cells. */

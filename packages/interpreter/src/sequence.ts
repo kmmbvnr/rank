@@ -1,5 +1,5 @@
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
-import { derivedArray, ownedArray, readArrayItem } from './array-storage.js';
+import { derivedArray, materializeCells, ownedArray, readArrayItem } from './array-storage.js';
 import { arrayMaskSelection, checkUnnamedMask } from './array-mask.js';
 import { MissingValueError, RankError } from './errors.js';
 import {
@@ -821,7 +821,7 @@ function lazyArray(shape: readonly number[], itemAt: (index: number) => RankValu
         shape,
         itemAt,
         get items() {
-            materialized ??= Array.from({ length: arraySize(shape) }, (_, index) => itemAt(index));
+            materialized ??= materializeCells(arraySize(shape), itemAt);
             return materialized;
         },
     };

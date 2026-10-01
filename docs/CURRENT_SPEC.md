@@ -787,6 +787,14 @@ reaching a place that needs one value, such as an `if` condition, raises
 for `.NA`. Reading one absent cell, key or element still raises `.Missing`; see
 ADR-0108.
 
+A whole array holds data that has no value as `.NA` instead of raising for each
+cell: an absent table cell, a field some object rows lack, and a `lookup` key
+with no match. Reading that one lookup cell by itself still raises `.Missing`.
+A miss that is not data, such as an index outside the choices of `choose`,
+raises `.Missing` for the whole array, and so does a field no row has. A mask
+with `.NA` selects no row or element where it has no value, as in SQL:
+`X (X greater 2.0)` skips an `.NA` cell.
+
 `round` from `use numbers` preserves the numeric type of every scalar it
 rounds: an `integer` result remains an integer and a `real` result remains a
 real. Its signed integer places argument counts decimal positions to the right
@@ -4812,7 +4820,8 @@ Applying it fixes the matching row positions, as ordinary array masks do.
 The result is a rank-1 array view whose rows remain lazy; it retains the table
 header, including when no row matches. The input rows are not copied or
 changed. SQLite extends its parameterized WHERE plan without reading rows.
-Existing missing-cell and SQL NULL predicate behavior is unchanged.
+A row whose condition has no value (`.NA`, from an absent cell) is not kept, as
+in SQL. SQL `NULL` predicate behavior is unchanged.
 
 The same clause filters a plain array or sequence, where the elided subject is
 the value itself rather than a column; see
@@ -6742,8 +6751,8 @@ text column unless it is explicitly assigned back.
 `second` require `datetime`. Each returns an `integer`; `weekday` numbers
 Monday as 0 and Sunday as 6. The operations apply elementwise to arrays and
 sequences, preserve tensor shape, and evaluate lazy cells only when demanded.
-A missing projected table cell remains `.Missing` and can be handled with
-`default` before parsing.
+A missing projected table cell is `.NA`, which `date` and the date parts
+reject with `.Missing`; `default` fills it before parsing.
 
 Subtracting two `datetime` values produces an immutable `duration` containing
 an exact signed integer number of seconds. `duration seconds` returns that
