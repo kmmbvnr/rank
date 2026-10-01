@@ -73,3 +73,10 @@ export function expectNumeric(value: RankValue): bigint | number {
     }
     return value;
 }
+
+/** An operation from a module the program has not opened names the `use` it needs. */
+export function requireModule(modules: ReadonlySet<string>, module: string, operation: string): void {
+    if (!modules.has(module)) {
+        throw new RankError(`${operation} requires: use ${module}`);
+    }
+}
