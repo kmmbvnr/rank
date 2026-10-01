@@ -6,18 +6,18 @@ import { ByteArray } from './bytes.js';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
 import { compileTensorKernel } from './tensor-kernel.js';
 import {
-    completed, emit, mapExecution, mapResult, resume, runExecution, type Evaluation, type Execution,
+    completed, resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { BindingEnvironment } from './binding-environment.js';
 import { FunctionInvocation } from './function-invocation.js';
 import { ApplicationEvaluator } from './eval/application.js';
 import { ExpressionEvaluator } from './eval/expressions.js';
-import { forIteration, prepareForStatement, type LoopContext } from './eval/loops.js';
+import { forIteration, type LoopContext } from './eval/loops.js';
 import {
-    prepareAddStatement, prepareArrayAssignment, prepareAssignment, prepareCollectionMutation, prepareIndexAssignment,
-    preparePushStatement, prepareUnpackStatement, type AssignmentContext,
+    type AssignmentContext,
 } from './eval/assignments.js';
 import { FastPaths } from './fast-paths.js';
+import { prepareStatement, type StatementContext } from './eval/statements.js';
 import type { InterpreterOptions, RankTestResult } from './interpreter-options.js';
 import { DebugInspection } from './debug-inspection.js';
 import { BuiltinRegistry, reseed, seedableRandom, type SeedableRandom } from './modules/builtins.js';
@@ -26,9 +26,8 @@ import { Operators } from './operators.js';
 import {
     selectValues,
 } from './value-selection.js';
-import { BREAK_SIGNAL, CONTINUE_SIGNAL, ReturnSignal } from './control-signals.js';
-import { prepareIfStatement, prepareTryStatement,
-    type ExecutionContext, type LoopControl, type PreparedStatement, type TensorGroup } from './statement-control.js';
+import { ReturnSignal } from './control-signals.js';
+import { type ExecutionContext, type LoopControl, type PreparedStatement, type TensorGroup } from './statement-control.js';
 import { newStructure } from './collections.js';
 import { RankDeque } from './containers.js';
 import { argumentSignature } from './return-contract.js';
@@ -38,44 +37,32 @@ import { inputDeclarationName, inputValues, kebabCase, parseArguments, validateI
 import { ReductionEvaluator } from './reduction.js';
 import { RankApplication } from './rank-application.js';
 import {
-    isAddStatement,
-    isArrayAssignmentStatement,
-    isArgsStatement,
     isArgumentStatement,
     isApplicationExpression,
     isAssignmentStatement,
-    isBreakStatement,
-    isContinueStatement,
-    isExpressionStatement,
     isFlagStatement,
     isForStatement,
     isFunctionStatement,
     isIfStatement,
-    isIndexAssignmentStatement,
-    isNameExpression,
     isOptionStatement,
     isParenthesizedExpression,
-    isPushStatement,
-    isRunStatement,
     isReturnStatement,
     isTestStatement,
     isTryStatement,
     isUnpackStatement,
     isUseStatement,
-    isYieldStatement,
     type AddressItem,
     type ArrayItem,
     type Expression,
     type FunctionStatement,
     type Program,
     type Statement,
-    applicationForm, findOperation, availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage,
+    findOperation, availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage,
 } from '@arrrank/language';
 import { RankError } from './errors.js';
 import { standardModules } from './modules/index.js';
 import { parse } from './parser.js';
 import {
-    formatValue,
     isNativeFunction,
     isRankArray,
     isRankBytes,
@@ -168,6 +155,7 @@ export class Interpreter {
     private readonly fastPaths: FastPaths;
     private readonly loops: LoopContext;
     private readonly writes: AssignmentContext;
+    private readonly statementContext: StatementContext;
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
@@ -264,6 +252,29 @@ export class Interpreter {
             counter: () => this.localCounter(),
             options: () => this.options,
             operators: this.operators,
+        };
+        this.statementContext = {
+            bindings: this.bindings,
+            evaluate: expression => this.evaluateTask(expression),
+            compileDirect: expression => this.compileDirectExpression(expression),
+            compileTail: expression => this.compileExpression(expression, undefined, true),
+            operationOf: name => this.applicationOperation(name),
+            execute: (statements, context) => this.executeStatementStream(statements, context.assertBooleanExpressions,
+                context.insideLoop, context.insideFinally, context.insideGenerator, context.tailCallsAllowed,
+                context.loopControl),
+            assign: (name, value) => this.assign(name, value),
+            define: statement => this.functions.define(statement),
+            requireModule: (module, operation) => this.requireModule(module, operation),
+            program: {
+                useFile: (path, alias) => { this.useFile(path, alias); },
+                useStandard: module => this.useStandard(module),
+                run: path => this.run(path),
+                runAlias: alias => this.runAlias(alias),
+                test: (name, statements) => this.executeTest(name, statements),
+                setArguments: values => { this.pendingArgs = values; },
+            },
+            loops: this.loops,
+            writes: this.writes,
         };
     }
 
@@ -544,7 +555,7 @@ export class Interpreter {
         const cache = inspectionEnabled() ? this.debugStatements : this.statements;
         let prepared = cache.get(statement);
         if (!prepared) {
-            prepared = this.prepareStatement(statement);
+            prepared = prepareStatement(statement, this.statementContext);
             if ((isForStatement(statement) || isIfStatement(statement) || isTryStatement(statement))
                 && !insideLoop(statement)) {
                 const names = blockNames(statement, this.syntheticNames);
@@ -667,163 +678,6 @@ export class Interpreter {
 
     private locateError(error: unknown, node: AstNode): unknown {
         return locateError(error, node, this.options.sourceId ?? '<input>');
-    }
-
-    // Cache only syntax. Flags and workspaces belong to each execution, including
-    // resumed generators. Prepare a statement only when control reaches it.
-    private prepareStatement(statement: Statement): PreparedStatement {
-        const interpreter = this;
-        if (isUseStatement(statement)) {
-            return { stream: function* (): Execution<RankValue | undefined> {
-                if (statement.path !== undefined) {
-                    interpreter.useFile(statement.path, statement.alias);
-                } else {
-                    interpreter.useStandard(statement.module!);
-                }
-                return undefined;
-            } };
-        }
-        if (isRunStatement(statement)) {
-            return { stream: function* (): Execution<RankValue | undefined> { return interpreter.run(statement.path); } };
-        }
-        if (isArgsStatement(statement)) {
-            return { stream: function* (): Execution<RankValue | undefined> {
-                interpreter.requireModule('cli', 'args');
-                interpreter.pendingArgs = (yield* resume(mapExecution(statement.values, value => interpreter.evaluateTask(value)))).map(formatValue);
-                return undefined;
-            } };
-        }
-        if (isOptionStatement(statement)
-            || isArgumentStatement(statement)
-            || isFlagStatement(statement)) {
-            return { stream: function* (): Execution<RankValue | undefined> {
-                interpreter.requireModule('cli', inputDeclarationName(statement));
-                return undefined;
-            } };
-        }
-        if (isTestStatement(statement)) {
-            return { stream: function* (): Execution<RankValue | undefined> {
-                interpreter.executeTest(statement.description, statement.statements);
-                return undefined;
-            } };
-        }
-        if (isFunctionStatement(statement)) {
-            return { stream: function* (): Execution<RankValue | undefined> { return interpreter.functions.define(statement); } };
-        }
-        if (isYieldStatement(statement)) {
-            const interpreter = this;
-            return { stream: function* (context) {
-                const { insideGenerator } = context;
-                if (!insideGenerator) {
-                    throw new RankError('yield is only valid inside a generator function');
-                }
-                yield* resume(emit((yield* resume(interpreter.evaluateTask(statement.value)))));
-                return undefined;
-            } };
-        }
-        if (isReturnStatement(statement)) {
-            const validate = (context: ExecutionContext): void => {
-                const { insideFinally, insideGenerator } = context;
-                if (insideFinally) {
-                    throw new RankError('return is not valid inside finally');
-                }
-                if (interpreter.bindings.current === undefined) {
-                    throw new RankError('return is only valid inside a function');
-                }
-                if (insideGenerator && statement.value !== undefined) {
-                    throw new RankError('a generator cannot return a value');
-                }
-                if (!insideGenerator && statement.value === undefined) {
-                    throw new RankError('a value-returning function must return a value');
-                }
-            };
-            const direct = statement.value && this.compileDirectExpression(statement.value);
-            if (direct) {
-                return { run: context => {
-                    validate(context);
-                    throw new ReturnSignal(direct());
-                } };
-            }
-            let candidate = statement.value;
-            while (candidate && isParenthesizedExpression(candidate)) candidate = candidate.value;
-            const tailCandidate = candidate && isApplicationExpression(candidate);
-            if (!tailCandidate) {
-                return { stream: function* (context): Execution<RankValue | undefined> {
-                    validate(context);
-                    throw new ReturnSignal(statement.value === undefined ? undefined
-                        : yield* resume(interpreter.evaluateTask(statement.value)));
-                } };
-            }
-            let tail: (() => Evaluation<RankValue>) | undefined;
-            return { stream: context => {
-                validate(context);
-                if (statement.value === undefined) throw new ReturnSignal();
-                const result = context.tailCallsAllowed !== false
-                    ? (tail ??= interpreter.compileExpression(statement.value, undefined, true))()
-                    : interpreter.evaluateTask(statement.value);
-                return mapResult(result, value => { throw new ReturnSignal(value); });
-            } };
-        }
-        if (isBreakStatement(statement) || isContinueStatement(statement)) {
-            const operation = isBreakStatement(statement) ? 'break' : 'continue';
-            const signal = operation === 'break' ? BREAK_SIGNAL : CONTINUE_SIGNAL;
-            // Leaving an iteration never suspends, so it needs no task at all.
-            return { run: (context): RankValue | undefined => {
-                if (context.insideFinally) {
-                    throw new RankError(`${operation} is not valid inside finally`);
-                }
-                if (!context.insideLoop) {
-                    throw new RankError(`${operation} is only valid inside a for loop`);
-                }
-                if (context.loopControl) {
-                    context.loopControl.signal = operation;
-                    return undefined;
-                }
-                throw signal;
-            } };
-        }
-        if (isTryStatement(statement) || isIfStatement(statement)) {
-            const control = {
-                evaluate: (expression: Expression) => this.evaluateTask(expression),
-                execute: (statements: Statement[], context: ExecutionContext) => this.executeStatementStream(
-                    statements, context.assertBooleanExpressions, context.insideLoop,
-                    context.insideFinally, context.insideGenerator, context.tailCallsAllowed, context.loopControl,
-                ),
-                compileDirect: (expression: Expression) => this.compileDirectExpression(expression),
-                assign: (name: string, value: RankValue) => this.assign(name, value),
-            };
-            return isTryStatement(statement)
-                ? prepareTryStatement(statement, control) : prepareIfStatement(statement, control);
-        }
-        if (isForStatement(statement)) return prepareForStatement(statement, this.loops);
-        if (isPushStatement(statement)) return preparePushStatement(statement, this.writes);
-        if (isAddStatement(statement)) return prepareAddStatement(statement, this.writes);
-        if (isIndexAssignmentStatement(statement)) return prepareIndexAssignment(statement, this.writes);
-        if (isUnpackStatement(statement)) return prepareUnpackStatement(statement, this.writes);
-        if (isArrayAssignmentStatement(statement)) return prepareArrayAssignment(statement, this.writes);
-        if (isAssignmentStatement(statement)) return prepareAssignment(statement, this.writes);
-        if (isExpressionStatement(statement)) {
-            const form = applicationForm(statement.value, name => this.applicationOperation(name), true);
-            const mutation = form.kind === 'collection-mutation' ? form : undefined;
-            if (mutation) return prepareCollectionMutation(mutation, this.writes);
-            if (isNameExpression(statement.value) && statement.value.name.endsWith('.run')) {
-                const alias = statement.value.name.slice(0, -4);
-                return { stream: function* (): Execution<RankValue | undefined> { return interpreter.runAlias(alias); } };
-            }
-            const direct = this.compileDirectExpression(statement.value);
-            if (direct) {
-                return { run: context => {
-                    const result = direct();
-                    if (context.assertBooleanExpressions) assertTestExpression(result);
-                    return result;
-                } };
-            }
-            return { stream: context => mapResult(this.evaluateTask(statement.value), result => {
-                if (context.assertBooleanExpressions) assertTestExpression(result);
-                return result;
-            }) };
-        }
-        return { stream: function* (): Execution<RankValue | undefined> { return undefined; } };
     }
 
     evaluate(expression: Expression): RankValue {
@@ -1344,15 +1198,6 @@ function validateFunctionPlacement(
             validateFunctionPlacement(statement.finallyStatements, 'block');
         }
     }
-}
-
-function assertTestExpression(value: RankValue): void {
-    const failed = typeof value === 'boolean'
-        ? !value
-        : isRankArray(value)
-            && value.items.every(item => typeof item === 'boolean')
-            && value.items.some(item => item === false);
-    if (failed) throw new RankError('boolean test expression evaluated to false');
 }
 
 export { typeName } from './value.js';
