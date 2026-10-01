@@ -1142,6 +1142,7 @@ it('lets a name hold .NA before its first value and refuses other changes of typ
     expect(diagnose('Y = 2.0\nY = .NA\nY = 3.5\n')).toEqual([]);
     expect(diagnose('X = .NA\nX = 1.0\nX = "a"\n')).toEqual(['X has type real and cannot receive text']);
     expect(diagnose('Y = 2.0\nY = .NA\nY = "a"\n')).toEqual(['Y has type real and cannot receive text']);
+});
 
 it('gives a path-dependent length one variable of its own after a branch merge', async () => {
     const { provenSameShape } = await import('../src/analysis/value-domain.js');
