@@ -10,10 +10,6 @@
 <body>
     <header id="chrome">
         <span id="brand" aria-label="Rank">RANK</span>
-        <button id="voice-indicator" type="button" aria-label="Stop voice dictation" title="Stop listening" hidden>
-            <span class="voice-dot" aria-hidden="true"></span>
-            <span class="voice-text">Listening…</span>
-        </button>
         <button id="menu-toggle" aria-label="Terminal commands" aria-expanded="false" aria-controls="commands">⋮</button>
         <nav id="commands" aria-label="Terminal commands" hidden>
             <button data-key="r" data-ctrl="true">Run through selected line</button>
@@ -37,6 +33,9 @@
     <main id="terminal" aria-label="Rank terminal">
         <div id="screen" role="region" aria-label="Rank notebook"></div>
         <div id="caret" aria-hidden="true"></div>
+        <button id="voice-indicator" type="button" aria-label="Stop voice dictation" title="Stop recording" hidden>
+            <span class="voice-dot" aria-hidden="true"></span>
+        </button>
         <textarea id="input" aria-label="Rank terminal input" rows="1" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" enterkeyhint="enter"></textarea>
     </main>
     <div id="keyboard" aria-label="Symbol keyboard" hidden>

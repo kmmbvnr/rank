@@ -1,9 +1,12 @@
+import { mergeTranscripts } from '@arrrank/common/comment-wrap';
+
 export interface VoiceDictationOptions {
     onStart?: () => void;
     onResult?: (transcript: string, isFinal: boolean) => void;
     onEnd?: () => void;
     onError?: (error: unknown) => void;
     silenceTimeoutMs?: number;
+    lang?: string;
 }
 
 const SpeechRecognitionAPI: any =
@@ -20,30 +23,41 @@ export class VoiceDictation {
     private silenceTimer: ReturnType<typeof setTimeout> | undefined;
     private running = false;
     private finished = false;
+    private committedTranscript = '';
+    private currentTranscript = '';
     private options: VoiceDictationOptions;
     private silenceTimeoutMs: number;
+    private lang: string;
 
     constructor(options: VoiceDictationOptions) {
         this.options = options;
         this.silenceTimeoutMs = options.silenceTimeoutMs ?? 2500;
+        this.lang = options.lang ?? 'en-US';
     }
 
     start(): boolean {
         if (!SpeechRecognitionAPI) return false;
         if (this.running) return true;
 
+        this.running = true;
+        this.finished = false;
+        this.committedTranscript = '';
+        this.currentTranscript = '';
+
+        return this.startSession();
+    }
+
+    private startSession(): boolean {
+        if (!SpeechRecognitionAPI || this.finished) return false;
+
         try {
             const recognition = new SpeechRecognitionAPI();
             recognition.continuous = true;
             recognition.interimResults = true;
             recognition.maxAlternatives = 1;
-            if (typeof navigator !== 'undefined' && navigator.language) {
-                recognition.lang = navigator.language;
-            }
+            recognition.lang = this.lang;
 
             this.recognition = recognition;
-            this.running = true;
-            this.finished = false;
 
             recognition.onstart = () => {
                 this.options.onStart?.();
@@ -56,28 +70,55 @@ export class VoiceDictation {
 
             recognition.onresult = (event: any) => {
                 this.resetSilenceTimer();
-                const parts: string[] = [];
+
+                let sessionTranscript = '';
                 let hasFinal = false;
 
                 for (let i = 0; i < event.results.length; i++) {
                     const result = event.results[i];
                     if (result && result[0]) {
                         const text = String(result[0].transcript || '').trim();
-                        if (text) parts.push(text);
+                        if (text) {
+                            sessionTranscript = sessionTranscript
+                                ? mergeTranscripts(sessionTranscript, text)
+                                : text;
+                        }
                         if (result.isFinal) hasFinal = true;
                     }
                 }
 
-                const fullTranscript = parts.join(' ');
+                const fullTranscript = this.committedTranscript
+                    ? mergeTranscripts(this.committedTranscript, sessionTranscript)
+                    : sessionTranscript;
+
+                this.currentTranscript = fullTranscript;
                 this.options.onResult?.(fullTranscript, hasFinal);
             };
 
-            recognition.onerror = (error: any) => {
-                this.options.onError?.(error);
+            recognition.onerror = (event: any) => {
+                const error = event?.error;
+                if (error === 'no-speech') {
+                    // Ignore transient silence from Android speech recognizer;
+                    // the silence timer will stop the session if user remains silent.
+                    return;
+                }
+                this.options.onError?.(event);
                 this.finish();
             };
 
             recognition.onend = () => {
+                if (this.running && !this.finished) {
+                    // Android recognition ended prematurely (e.g. short pause or network reconnect).
+                    // Commit current progress and restart recognition if silence timer hasn't expired.
+                    this.committedTranscript = this.currentTranscript;
+                    this.recognition = null;
+                    try {
+                        this.startSession();
+                        return;
+                    } catch {
+                        // Fall through to finish if restart fails
+                    }
+                }
                 this.finish();
             };
 
@@ -129,3 +170,4 @@ export class VoiceDictation {
         return this.running;
     }
 }
+

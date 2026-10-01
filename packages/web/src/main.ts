@@ -135,9 +135,8 @@ function startVoiceDictation(): void {
         indent,
     };
 
-    voiceIndicator.hidden = false;
-
     activeVoiceDictation = new VoiceDictation({
+        lang: 'en-US',
         onResult: (transcript) => {
             if (!voiceContext) return;
             const targetCell = repl.notebook.cells.find(c => c.id === voiceContext!.cellId);
@@ -145,18 +144,17 @@ function startVoiceDictation(): void {
             const wrapped = wrapCommentLines(transcript, 40, voiceContext.indent);
             targetCell.source = voiceContext.prefixBefore + wrapped + voiceContext.suffixAfter;
             if (repl.notebook.current.id === voiceContext.cellId) {
-                book.cursor = voiceContext.prefixBefore.length + wrapped.length;
+                const ed = editor();
+                ed.cursor = voiceContext.prefixBefore.length + wrapped.length;
             }
             render();
         },
         onEnd: () => {
-            voiceIndicator.hidden = true;
             activeVoiceDictation = undefined;
             voiceContext = undefined;
             render();
         },
         onError: () => {
-            voiceIndicator.hidden = true;
             activeVoiceDictation = undefined;
             voiceContext = undefined;
             render();
@@ -164,20 +162,20 @@ function startVoiceDictation(): void {
     });
 
     if (!activeVoiceDictation.start()) {
-        voiceIndicator.hidden = true;
         activeVoiceDictation = undefined;
         voiceContext = undefined;
     }
+    render();
 }
 
 function stopVoiceDictation(): void {
     if (activeVoiceDictation) {
         const dictation = activeVoiceDictation;
         activeVoiceDictation = undefined;
+        voiceContext = undefined;
         dictation.stop();
     }
     voiceIndicator.hidden = true;
-    voiceContext = undefined;
     render();
 }
 
@@ -288,7 +286,13 @@ function render(): void {
     const y = frame.cursor.row * cellHeight - scrollFraction;
     caret.style.transform = `translate(${left}px, ${y}px)`;
     caret.style.width = (frame.cursorStyle === 6 ? 2 : cellWidth) + 'px';
-    caret.hidden = !frame.cursorVisible || !!repl.help;
+    caret.hidden = !frame.cursorVisible || !!repl.help || Boolean(activeVoiceDictation);
+    if (activeVoiceDictation && frame.cursorVisible && !repl.help) {
+        voiceIndicator.hidden = false;
+        voiceIndicator.style.transform = `translate(${left}px, ${y}px)`;
+    } else {
+        voiceIndicator.hidden = true;
+    }
     input.style.left = left + 'px';
     input.style.top = y + 'px';
     input.setAttribute('aria-busy', String(busy || repl.running));

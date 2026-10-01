@@ -37,10 +37,11 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 }
 #chrome { position: fixed; top: var(--top); right: 0; left: 0; height: var(--chrome-height); z-index: 2; background: #000; }
 #brand { position: absolute; left: max(16px, env(safe-area-inset-left)); bottom: 0; display: flex; align-items: center; height: 44px; color: #e5e5e5; font-family: system-ui, sans-serif; font-size: 17px; font-weight: 950; font-style: italic; font-synthesis: weight style; letter-spacing: -.06em; pointer-events: none; }
-#voice-indicator { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); height: 44px; display: flex; align-items: center; gap: 8px; background: transparent; padding: 0 12px; border-radius: 22px; cursor: pointer; color: #ff5555; font-family: system-ui, sans-serif; font-size: 14px; font-weight: 500; user-select: none; touch-action: manipulation; }
+#voice-indicator { position: absolute; left: 0; top: 0; width: 14px; height: 1.5em; display: flex; align-items: center; justify-content: center; background: transparent; padding: 0; margin: 0; border: 0; cursor: pointer; z-index: 2; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+#voice-indicator::after { content: ''; position: absolute; top: -10px; bottom: -10px; left: -12px; right: -12px; }
 #voice-indicator[hidden] { display: none; }
-.voice-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff4444; box-shadow: 0 0 8px #ff4444; animation: voice-pulse 1.2s ease-in-out infinite; }
-@keyframes voice-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.6; } }
+.voice-dot { width: 9px; height: 9px; border-radius: 50%; background: #ff3b30; box-shadow: 0 0 6px #ff3b30, 0 0 12px rgba(255, 59, 48, 0.6); animation: voice-pulse 1.1s ease-in-out infinite; }
+@keyframes voice-pulse { 0%, 100% { transform: scale(0.85); opacity: 0.75; box-shadow: 0 0 4px #ff3b30; } 50% { transform: scale(1.25); opacity: 1; box-shadow: 0 0 8px #ff3b30, 0 0 14px rgba(255, 59, 48, 0.85); } }
 @media (prefers-reduced-motion: reduce) { .voice-dot { animation: none; } }
 button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 #menu-toggle { position: absolute; right: max(4px, env(safe-area-inset-right)); bottom: 0; width: 44px; height: 44px; background: transparent; font-size: 25px; }
