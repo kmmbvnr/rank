@@ -1,4 +1,4 @@
-import { checkpoint, InterruptedError, inspectionEnabled, inspectExecution, debugExecutionPoint } from './interrupt.js';
+import { checkpoint, InterruptedError, inspectionEnabled } from './interrupt.js';
 import { AstUtils } from 'langium';
 import { registerFlatCombine } from './flat-combine.js';
 import { nameMask } from './array-mask.js';
@@ -16,11 +16,13 @@ import { compileBlock, type CompiledBlock } from './block-compiler.js';
 import { compileScalarExpression } from './scalar-compiler.js';
 import { compileTensorKernel } from './tensor-kernel.js';
 import {
-    ExecutionStack, completed, emit, flatMapResult, mapExecution, mapPair, mapResult, normalizeStackError,
-    resume, runExecution, type Evaluation, type Execution,
+    ExecutionStack, completed, emit, flatMapResult, mapExecution, mapPair, mapResult, resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { LocalFrame } from './frame.js';
 import { BindingEnvironment } from './binding-environment.js';
+import { DebugInspection } from './debug-inspection.js';
+import { BuiltinRegistry, reseed, seedableRandom, type SeedableRandom } from './modules/builtins.js';
+import { locateError, registerSource } from './source-location.js';
 import { Operators, arraySize, expectInteger } from './operators.js';
 import {
     applySelectors, callArguments, canApplySelectors, hasField, maskSelection, selectValues, unpackApplicationItems,
@@ -121,10 +123,9 @@ import { indexKey } from './index-key.js';
 import type { RankInput, RankIo } from './io.js';
 import { expectMultiset } from './multiset.js';
 import { standardModules } from './modules/index.js';
-import type { RuntimeModule } from './modules/types.js';
 import { matmulValues } from './modules/linalg.js';
 import { formattedText } from './modules/text.js';
-import { randomFromSeed, shuffleValue } from './modules/random.js';
+import { shuffleValue } from './modules/random.js';
 import {
     argsortAxis,
     argsortValue,
@@ -160,7 +161,6 @@ import {
     isRankDate,
     isRankDsu,
     isRankFunctionalGraph,
-    isRankErrorValue,
     isRankFenwick,
     isRankGraph,
     isRankIndex,
@@ -320,7 +320,6 @@ type PreparedStatement = (
 ) & { readonly tensor?: TensorGroup };
 
 const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[]) => Evaluation<RankValue>>();
-const sourceIds = new WeakMap<object, string>();
 interface FunctionDefinition {
     readonly specialization: (arguments_: RankValue[]) => ReturnContract;
     readonly interpreter: Interpreter;
@@ -333,47 +332,7 @@ interface BorrowProof {
     readonly candidates: ReadonlyMap<number, ReadonlyMap<number, 'bigint' | 'boolean' | 'flat-array'>>;
 }
 const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
-const builtinOperations = new WeakMap<NativeFunction, NonNullable<ReturnType<typeof findOperation>>>();
-
-const SEED_RANDOM = Symbol('seedRandom');
-
-type SeedableRandom = (() => number) & {
-    readonly [SEED_RANDOM]: (seed: bigint) => void;
-};
-
 const NO_INDICES: readonly RankValue[] = [];
-
-const raiseFunction: NativeFunction = {
-    kind: 'function',
-    name: 'raise',
-    arities: [1, 2],
-    monadicRank: 'all',
-    call(arguments_) {
-        const first = arguments_[0];
-        if (arguments_.length === 1 && isRankErrorValue(first)) {
-            if (first.source instanceof RankError) throw first.source;
-            throw new RankError(first.message, first.errorKind.name, first.value);
-        }
-        if (!isRankLabel(first)) {
-            throw new RankError('raise expects an error or a label followed by an optional value');
-        }
-        const value = arguments_[1];
-        const message = value === undefined
-            ? `.${first.name}`
-            : typeof value === 'string'
-                ? value
-                : `.${first.name}: ${formatValue(value)}`;
-        throw new RankError(message, first.name, value);
-    },
-};
-
-const typeFunction: NativeFunction = {
-    kind: 'function',
-    name: 'type',
-    arities: [1],
-    monadicRank: 'all',
-    call: arguments_ => ({ kind: 'label', name: typeName(arguments_[0]) }),
-};
 
 export class Interpreter {
     readonly variables = new Map<string, RankValue>();
@@ -408,83 +367,11 @@ export class Interpreter {
     private readonly localBorrowProofs = new WeakMap<LocalFrame, WeakMap<FunctionStatement, BorrowProof>>();
     private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
     private readonly expressions = new WeakMap<Expression, () => Evaluation<RankValue>>();
-    private readonly standardFunctions = new Map<RuntimeModule[string], NativeFunction>();
+    private readonly builtins: BuiltinRegistry;
     private readonly reductions: ReductionEvaluator;
     private readonly rankApplication: RankApplication;
-    private readonly standardSequences = new Map<RuntimeModule[string], RankSequence>();
     private readonly resources = new ResourceOwnership();
-    private debugStatement?: Statement;
-    private readonly debugCalls: { name: string; frame: LocalFrame }[] = [];
-    private inspectionState(): Pick<import('./interrupt.js').PauseSnapshot, 'state' | 'bindings'> {
-        const inspected: NonNullable<import('./interrupt.js').PauseSnapshot['bindings']> = [];
-        const reads = new Set<string>();
-        const writes = new Map<string, LocalFrame | Map<string, RankValue>>();
-        const markWrite = (name: string, mutate: boolean) => {
-            if (name.includes('.')) return;
-            const frame = this.bindings.current?.find(name);
-            const target = mutate ? frame ?? (this.variables.has(name) ? this.variables : undefined)
-                : frame ?? this.bindings.current ?? this.variables;
-            if (target && target.get(name) !== undefined)
-                writes.set(name, target);
-        };
-        const statement = this.debugStatement;
-        if (statement) {
-            const visit = (node: import('langium').AstNode) => {
-                if (isNameExpression(node)) reads.add(node.name);
-                for (const child of AstUtils.streamContents(node)) {
-                    if (!child.$type.endsWith('Statement') && !child.$type.endsWith('Clause')) visit(child);
-                }
-            };
-            visit(statement);
-            if ((isAssignmentStatement(statement) && statement.operator !== '=')
-                || isArrayAssignmentStatement(statement))
-                reads.add(statement.name);
-            if (isAssignmentStatement(statement)) markWrite(statement.name, false);
-            if (isArrayAssignmentStatement(statement)) markWrite(statement.name, true);
-            if (isUnpackStatement(statement))
-                for (const name of statement.names) if (name !== '#') markWrite(name, false);
-        }
-        const node = this.debugStatement?.$cstNode;
-        const line = node?.range.start.line;
-        const describe = (value: RankValue): string => {
-            if (typeof value === 'string') return JSON.stringify(value.slice(0, 200)) + (value.length > 200 ? '…' : '');
-            if (value === null || typeof value !== 'object') return String(value);
-            if (isRankArray(value)) {
-                // A ranked array's shape getter can run a user function. Inspection
-                // must not evaluate it, especially while paused inside that function.
-                const shape = Object.getOwnPropertyDescriptor(value, 'shape');
-                return shape && 'value' in shape ? `<array shape ${shape.value.join(' × ')}>`
-                    : '<array shape not evaluated>';
-            }
-            if (isRankSequence(value)) return `<sequence ${value.plan.name}>`;
-            return `<${value.kind}>`;
-        };
-        const bindings = (scope: LocalFrame | Map<string, RankValue>) => {
-            const values = scope instanceof LocalFrame ? scope.values : scope;
-            const entries = [...values].filter(([, value]) => !isNativeFunction(value));
-            const lines: string[] = [];
-            for (const [name, value] of entries) {
-                if (lines.length === 100) { lines.push('  …'); break; }
-                lines.push(`  ${name} = ${describe(value)}`);
-                inspected.push({ name, read: reads.delete(name), write: writes.get(name) === scope });
-            }
-            return lines.join('\n') || '  (none)';
-        };
-        const location = node && line !== undefined
-            ? `${sourceIds.get(node.root) ?? this.options.sourceId ?? '<input>'}:${line + 1}\n${node.root.fullText.split(/\r?\n/)[line]}` : '<result preview>';
-        const current = this.bindings.current ?? this.variables;
-        const seen = new Set<object>([current]);
-        const sections = [`Variables (current scope):\n${bindings(current)}`];
-        for (const call of [...this.debugCalls].reverse()) {
-            if (seen.has(call.frame)) continue;
-            seen.add(call.frame);
-            sections.push(`${call.name} locals:\n${bindings(call.frame)}`);
-        }
-        if (!seen.has(this.variables)) sections.push(`Globals:\n${bindings(this.variables)}`);
-        return { state: `${location}\n\nCall stack (outermost first):\n<cell>\n${this.debugCalls.map(call => call.name).join('\n')}\n\n${sections.join('\n\n')}`,
-            bindings: inspected };
-    }
-
+    private readonly inspection = new DebugInspection(this.bindings, () => this.options.sourceId ?? '<input>');
     private callDepth = 0;
     private readonly maxCallDepth: number;
 
@@ -492,17 +379,25 @@ export class Interpreter {
         this.output = output;
         this.baseOptions = options;
         this.random = seedableRandom(options.random);
+        this.builtins = new BuiltinRegistry(this.modules, {
+            output,
+            io: options.io,
+            md5: options.md5,
+            random: this.random,
+            seedRandom: seed => reseed(this.random, seed),
+            ownFile: file => this.resources.ownFile(file),
+        });
         this.maxCallDepth = options.maxCallDepth ?? 200_000;
         if (!Number.isSafeInteger(this.maxCallDepth) || this.maxCallDepth < 1) {
             throw new RankError('maxCallDepth must be a positive safe integer');
         }
         this.reductions = new ReductionEvaluator(
             (operator, left, right) => this.operators.evaluateBinary(operator, left, right),
-            name => this.resolve(name), this.standardFunctions, () => this.options.tensorFusion !== false,
+            name => this.resolve(name), this.builtins.functions, () => this.options.tensorFusion !== false,
         );
         this.rankApplication = new RankApplication(
             (fn, args) => this.invoke(fn, args),
-            value => this.resources.ownFiles(value), this.standardFunctions,
+            value => this.resources.ownFiles(value), this.builtins.functions,
         );
     }
 
@@ -520,7 +415,7 @@ export class Interpreter {
         const program = parse(source, this.options.sourceId, {
             bindings: new Map([...this.variables].map(([name, value]) => [name, isNativeFunction(value) ? value.arities : false])),
         }, new Set(this.variables.keys()), this.syntheticNames);
-        if (program.$cstNode) sourceIds.set(program.$cstNode.root, this.options.sourceId ?? '<input>');
+        registerSource(program, this.options.sourceId ?? '<input>');
         this.loadedProgram = {
             id: this.options.sourceId ?? '<input>',
             program,
@@ -540,7 +435,7 @@ export class Interpreter {
         const program = parse(source, this.options.sourceId, {
             bindings: new Map([...this.variables].map(([name, value]) => [name, isNativeFunction(value) ? value.arities : false])),
         }, new Set(this.variables.keys()));
-        if (program.$cstNode) sourceIds.set(program.$cstNode.root, this.options.sourceId ?? '<input>');
+        registerSource(program, this.options.sourceId ?? '<input>');
         validateFunctionPlacement(program.statements, 'top');
         this.checkBuiltinBindings(program);
         this.declareFunctions(program.statements);
@@ -790,24 +685,9 @@ export class Interpreter {
         } catch (error) { throw this.locateError(error, statements[index]); }
     }
 
-    private debugPoint(statement: Statement, iteration = false): void {
-        if (!inspectionEnabled()) return;
-        this.debugStatement = statement;
-        inspectExecution(() => this.inspectionState());
-        const node = statement.$cstNode;
-        if (!node) return;
-        const loops: object[] = [];
-        for (let parent = statement as import('langium').AstNode | undefined; parent; parent = parent.$container) {
-            if (isForStatement(parent)) loops.unshift(parent);
-        }
-        debugExecutionPoint({ source: node.root.fullText, line: node.range.start.line + 1,
-            loops, depth: this.debugCalls.length, iteration: iteration ? statement : undefined,
-            topLevel: statement.$container?.$type === 'Program' });
-    }
-
     private preparedStatement(statements: Statement[], index: number): PreparedStatement {
         const statement = statements[index];
-        this.debugPoint(statement);
+        this.inspection.point(statement);
         const cache = inspectionEnabled() ? this.debugStatements : this.statements;
         let prepared = cache.get(statement);
         if (!prepared) {
@@ -880,7 +760,7 @@ export class Interpreter {
                 const module = ['text', 'integer', 'len', 'sum', 'min', 'max'].includes(name)
                     ? 'core' : name === 'mean' ? 'stats' : 'sequences';
                 if (!this.modules.has(module)) return false;
-                return this.resolve(name) === this.standardFunctions.get(standardModules[module][name]);
+                return this.builtins.is(module, name, this.resolve(name));
             },
         });
         if (!kernel) return recordFallback('tensor:unsupported');
@@ -933,18 +813,7 @@ export class Interpreter {
     }
 
     private locateError(error: unknown, node: Statement | Expression): unknown {
-        error = normalizeStackError(error);
-        if (error instanceof RankError && !error.location && node.$cstNode) {
-            const cst = node.$cstNode;
-            const start = cst.range.start;
-            error.location = {
-                sourceId: sourceIds.get(cst.root) ?? this.options.sourceId ?? '<input>',
-                line: start.line + 1,
-                column: start.character + 1,
-                sourceLine: cst.root.fullText.split(/\r?\n/)[start.line] ?? '',
-            };
-        }
-        return error;
+        return locateError(error, node, this.options.sourceId ?? '<input>');
     }
 
     // Cache only syntax. Flags and workspaces belong to each execution, including
@@ -1113,7 +982,7 @@ export class Interpreter {
                                 bindIndex[position]?.(cell.indices[position]);
                             }
                         }
-                        interpreter.debugPoint(statement, true);
+                        interpreter.inspection.point(statement, true);
                         try {
                             // A body that finishes on its own needs no task; only
                             // one that suspends goes back to the driver.
@@ -1146,7 +1015,7 @@ export class Interpreter {
                 } else {
                     for (;;) {
                         checkpoint();
-                        interpreter.debugPoint(statement, true);
+                        interpreter.inspection.point(statement, true);
                         if (statement.condition) {
                             let test: RankValue;
                             if (condition) {
@@ -1221,7 +1090,7 @@ export class Interpreter {
                         && !isPureHostFunction(this.options.md5)) return undefined;
                     try {
                         const value = this.resolve(name);
-                        return isNativeFunction(value) && value === this.standardFunctions.get(standardModules[module][name])
+                        return isNativeFunction(value) && this.builtins.is(module, name, value)
                             ? this.options.typedNativeCalls === false ? value.call : typedNativeCall(value, types)
                             : undefined;
                     } catch { return undefined; }
@@ -1270,7 +1139,7 @@ export class Interpreter {
                 module: name => this.modules.has(name),
                 builtin: (module, name) => {
                     if (!this.modules.has(module)) return false;
-                    try { return this.resolve(name) === this.standardFunctions.get(standardModules[module][name]); }
+                    try { return this.builtins.is(module, name, this.resolve(name)); }
                     catch { return false; }
                 },
                 locate: (error, command) => this.locateError(error, command),
@@ -1901,10 +1770,7 @@ export class Interpreter {
             binary: (operator, left, right) => interpreter.operators.evaluateBinary(operator, left, right),
             resolve: name => interpreter.resolve(name),
             findVariable: name => interpreter.findVariable(name),
-            isStandardFunction: (module, name, value) => {
-                const factory = standardModules[module]?.[name];
-                return factory !== undefined && interpreter.standardFunctions.get(factory) === value;
-            },
+            isStandardFunction: (module, name, value) => interpreter.builtins.is(module, name, value),
             maskSelection,
         }));
         if (tableQuery) return tableQuery;
@@ -2173,7 +2039,7 @@ export class Interpreter {
     private applicationOperation(name: string): ReturnType<typeof findOperation> | false {
         const value = this.findVariable(name);
         if (value === undefined) return findOperation(name);
-        return isNativeFunction(value) ? builtinOperations.get(value) ?? false : false;
+        return isNativeFunction(value) ? BuiltinRegistry.operationOf(value) ?? false : false;
     }
 
     private compileApplicationForm(
@@ -2288,7 +2154,7 @@ export class Interpreter {
                         throw new RankError('sort direction must follow sort or argsort', 'TypeError');
                     }
                     const fn = interpreter.resolve(name);
-                    if (fn !== interpreter.standardFunctions.get(standardModules.sequences[name]) || !isNativeFunction(fn)) {
+                    if (!interpreter.builtins.is('sequences', name, fn) || !isNativeFunction(fn)) {
                         throw new RankError('sort direction requires the standard sort or argsort', 'TypeError');
                     }
                     const descending = sortDescending(yield* resume(interpreter.evaluateTask(direction)));
@@ -2544,7 +2410,7 @@ export class Interpreter {
                         throw new RankError('segment requires a binary operation');
                     }
                     const values = source instanceof FlatRecords ? source : segmentItems(source);
-                    const maxSum = interpreter.standardFunctions.get(standardModules.algo.maxsum);
+                    const maxSum = interpreter.builtins.standard('algo', 'maxsum');
                     if (operation === maxSum && identity === undefined && !(values instanceof FlatRecords)) return new RankMaxSumSegment(values);
                     return new RankSegment(
                         values,
@@ -2748,7 +2614,7 @@ export class Interpreter {
                         binary: (operator, a, b) => interpreter.operators.evaluateBinary(operator, a, b),
                     }, (value, sum) => {
                         const fn = interpreter.resolve('sum');
-                        if (isNativeFunction(fn) && fn === interpreter.standardFunctions.get(standardModules.core.sum)) {
+                        if (isNativeFunction(fn) && interpreter.builtins.is('core', 'sum', fn)) {
                             return completed(sum ? sum() : fn.call([value]));
                         }
                         return interpreter.apply([value, fn], missing, 0, [], tail);
@@ -3012,7 +2878,7 @@ export class Interpreter {
                     // Rank locals cannot hide core names; only host-injected globals need a guard.
                     const bound = this.variables.get(name);
                     if (bound !== undefined) {
-                        if (bound !== this.standardFunctions.get(standardModules.core[name])) return false;
+                        if (!this.builtins.is('core', name, bound)) return false;
                     }
                 }
                 return true;
@@ -3131,9 +2997,7 @@ export class Interpreter {
         }, name => {
             const bound = lookup(name);
             bindings.set(name, bound);
-            const expected = standardModules.core[name];
-            const actual = bound ?? this.resolve(name);
-            return actual === this.standardFunctions.get(expected);
+            return this.builtins.is('core', name, bound ?? this.resolve(name));
         });
         const proof = { bindings, candidates };
         if (parent) {
@@ -3178,13 +3042,13 @@ export class Interpreter {
             throw new RankError(`function call depth exceeds ${this.maxCallDepth}`, 'RecursionLimit');
         }
         let frame = this.functionFrame(statement, arguments_, context);
-        const callerStatement = this.debugStatement;
+        const callerStatement = this.inspection.statement;
         const caller = this.bindings.current;
         const scope = new Set<RankFile>();
         this.resources.pushScope(scope);
         this.bindings.current = frame;
         this.callDepth += 1;
-        if (inspectionEnabled()) this.debugCalls.push({ name: statement.name, frame });
+        if (inspectionEnabled()) this.inspection.enter(statement.name, frame);
         let result: RankValue | undefined;
         let pending: unknown;
         let compiledTail = false;
@@ -3194,7 +3058,7 @@ export class Interpreter {
                 checkpoint();
                 try {
                     this.bindings.current = frame;
-                    if (inspectionEnabled()) this.debugCalls[this.debugCalls.length - 1] = { name: statement.name, frame };
+                    if (inspectionEnabled()) this.inspection.replace(statement.name, frame);
                     for (const local of prepareFunction(statement, argumentSignature(arguments_)).locals) this.defineFunction(local);
                     const body = this.compiledFunctionBody(statement, arguments_);
                     if (body) {
@@ -3239,11 +3103,7 @@ export class Interpreter {
         } finally {
             this.callDepth -= 1;
             this.bindings.current = caller;
-            if (inspectionEnabled()) {
-                this.debugCalls.pop();
-                this.debugStatement = callerStatement;
-                inspectExecution(() => this.inspectionState());
-            }
+            if (inspectionEnabled()) this.inspection.leave(callerStatement);
             if (pending instanceof RankError && !compiledTail) pending.addCall(statement.name, statement.parameters, arguments_);
             if (pending === undefined && result !== undefined) {
                 try { for (const contract of tailContracts) result = contract.check(result); }
@@ -3301,14 +3161,10 @@ export class Interpreter {
                                 resources,
                                 () => {
                                     if (!inspectionEnabled()) return execution.next();
-                                    const callerStatement = interpreter.debugStatement;
-                                    interpreter.debugCalls.push({ name: statement.name, frame });
+                                    const callerStatement = interpreter.inspection.statement;
+                                    interpreter.inspection.enter(statement.name, frame);
                                     try { return execution.next(); }
-                                    finally {
-                                        interpreter.debugCalls.pop();
-                                        interpreter.debugStatement = callerStatement;
-                                        inspectExecution(() => interpreter.inspectionState());
-                                    }
+                                    finally { interpreter.inspection.leave(callerStatement); }
                                 },
                             );
                         } catch (error) {
@@ -3449,7 +3305,7 @@ export class Interpreter {
         }
         const source = this.options.loadModule(specifier, this.options.sourceId);
         const loaded = { id: source.id, program: parse(source.source, source.id) };
-        if (loaded.program.$cstNode) sourceIds.set(loaded.program.$cstNode.root, source.id);
+        registerSource(loaded.program, source.id);
         this.openPrograms.set(specifier, loaded);
         return loaded;
     }
@@ -3687,41 +3543,9 @@ export class Interpreter {
             return variable;
         }
 
-        if (name === 'raise') return raiseFunction;
-        if (name === 'type') return typeFunction;
-
-        for (const module of this.modules) {
-            const fn = standardModules[module]?.[name];
-            if (fn) {
-                const cached = this.standardFunctions.get(fn) ?? this.standardSequences.get(fn);
-                if (cached !== undefined) return cached;
-                const value = fn({
-                    output: this.output,
-                    io: this.options.io,
-                    md5: this.options.md5,
-                    random: this.random,
-                    seedRandom: seed => this.random[SEED_RANDOM](seed),
-                    ownFile: file => this.resources.ownFile(file),
-                });
-                if (isNativeFunction(value)) {
-                    this.standardFunctions.set(fn, value);
-                    const operation = findOperation(name);
-                    if (operation) builtinOperations.set(value, operation);
-                }
-                if (isRankSequence(value)) this.standardSequences.set(fn, value);
-                return value;
-            }
-        }
-
-        const providers = Object.entries(standardModules)
-            .filter(([module, exports]) => !this.modules.has(module) && Object.prototype.hasOwnProperty.call(exports, name))
-            .map(([module]) => `use ${module}`);
-        const hint = providers.length > 0
-            ? `; did you forget ${providers.map(provider => `\`${provider}\``).join(' or ')}?`
-            : '';
-        throw new RankError(name === 'scan' && !hint
-            ? 'scan needs an operator, e.g. Range scan + with 0'
-            : `unknown name: ${name}${hint}`);
+        const builtin = this.builtins.lookup(name);
+        if (builtin !== undefined) return builtin;
+        throw this.builtins.unknown(name);
     }
 
     private resolveVariable(name: string): RankValue {
@@ -4156,19 +3980,6 @@ function iterationValues(value: RankValue): Iterable<RankValue> {
     if (isRankMultiset(value)) return value.values();
     if (typeof value === 'string') return [...value];
     throw new RankError(`for expects text or a sequence, got ${typeName(value)}`);
-}
-
-function seedableRandom(source?: () => number): SeedableRandom {
-    if (source && SEED_RANDOM in source) return source as SeedableRandom;
-
-    let next = source ?? Math.random;
-    const random = (() => next()) as SeedableRandom;
-    Object.defineProperty(random, SEED_RANDOM, {
-        value(seed: bigint) {
-            next = randomFromSeed(seed);
-        },
-    });
-    return random;
 }
 
 function checkedArrayDimension(dimension: bigint): number {
