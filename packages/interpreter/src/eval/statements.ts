@@ -49,8 +49,11 @@ export interface StatementContext {
     readonly writes: AssignmentContext;
 }
 
-// Cache only syntax. Flags and workspaces belong to each execution, including
-// resumed generators. Prepare a statement only when control reaches it.
+/**
+ * Prepares one statement for execution. Preparation caches only syntax:
+ * flags and workspaces belong to each execution, including resumed
+ * generators. A statement is prepared only when control reaches it.
+ */
 export function prepareStatement(statement: Statement, host: StatementContext): PreparedStatement {
     if (isUseStatement(statement)) {
         return { stream: function* (): Execution<RankValue | undefined> {
