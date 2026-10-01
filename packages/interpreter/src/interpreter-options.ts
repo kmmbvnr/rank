@@ -89,3 +89,20 @@ export interface RankTestResult {
     readonly error?: string;
     readonly durationMs?: number;
 }
+
+/**
+ * What a module loaded by `use "file"` inherits from its importer: every
+ * option except those that belong to the importer's own run.
+ */
+export function moduleOptions(options: InterpreterOptions): InterpreterOptions {
+    const { args: _args, testing: _testing, persistentResources: _persistent, onTestResult: _onTestResult,
+        ...inherited } = options;
+    return inherited;
+}
+
+/** What a `test` block inherits: a module's options, without host buffering or the host's call limit. */
+export function testOptions(options: InterpreterOptions): InterpreterOptions {
+    const { wrapSinglePassSequence: _singlePass, wrapStoredSequence: _stored, maxCallDepth: _depth,
+        ...inherited } = moduleOptions(options);
+    return inherited;
+}

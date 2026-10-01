@@ -27,9 +27,9 @@ describe('builtin sum semantics required by fusion', () => {
         const runtime = new Interpreter(undefined, { tensorFusion: false });
         runtime.execute(source);
         const input = createArraySnapshot([1n, 2n]);
-        const apply = vi.spyOn(runtime as unknown as {
-            invoke(fn: { name: string }, args: RankValue[]): unknown;
-        }, 'invoke');
+        const apply = vi.spyOn((runtime as unknown as {
+            functions: { invoke(fn: { name: string }, args: RankValue[]): unknown };
+        }).functions, 'invoke');
         expect(call(runtime, 'fused', input, 2n)).toBe(6n);
         expect(apply.mock.calls.filter(([fn]) => fn.name === 'sum')).toHaveLength(0);
         expect(call(runtime, 'ordinary', input, 2n)).toBe(6n);
@@ -40,9 +40,9 @@ describe('builtin sum semantics required by fusion', () => {
         const runtime = new Interpreter(undefined, { tensorFusion: false });
         runtime.execute('Total = sum\nfun aliased A B\n  return (A * B) Total\nend');
         const input = createArraySnapshot([1n, 2n]);
-        const apply = vi.spyOn(runtime as unknown as {
-            invoke(fn: { name: string }, args: RankValue[]): unknown;
-        }, 'invoke');
+        const apply = vi.spyOn((runtime as unknown as {
+            functions: { invoke(fn: { name: string }, args: RankValue[]): unknown };
+        }).functions, 'invoke');
         expect(call(runtime, 'aliased', input, 2n)).toBe(6n);
         expect(apply.mock.calls.filter(([fn]) => fn.name === 'sum')).toHaveLength(0);
         runtime.dispose();

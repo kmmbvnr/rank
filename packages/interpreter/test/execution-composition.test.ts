@@ -73,10 +73,10 @@ describe('evaluation composition', () => {
         runtime.execute('use numbers\nA = array 3 7\nfun replacement X\n return X max + 10\nend');
         const statement = parse('A min').statements[0];
         if (!isExpressionStatement(statement)) throw new Error('expected expression');
-        const evaluator = runtime as unknown as { evaluateTask(expression: Expression): Evaluation<RankValue> };
-        expect(evaluator.evaluateTask(statement.value)).toEqual(completed(3n));
+        const evaluator = (runtime as unknown as { expressions: { evaluate(expression: Expression): Evaluation<RankValue> } }).expressions;
+        expect(evaluator.evaluate(statement.value)).toEqual(completed(3n));
         runtime.variables.set('min', runtime.variables.get('replacement')!);
-        expect(runExecution(evaluator.evaluateTask(statement.value))).toBe(17n);
+        expect(runExecution(evaluator.evaluate(statement.value))).toBe(17n);
         runtime.dispose();
     });
 
@@ -85,8 +85,8 @@ describe('evaluation composition', () => {
         runtime.execute('A = array 2 3\nB = array 4 5');
         const statement = parse('A 0 * B 1').statements[0];
         if (!isExpressionStatement(statement)) throw new Error('expected expression');
-        const evaluator = runtime as unknown as { evaluateTask(expression: Expression): Evaluation<RankValue> };
-        expect(evaluator.evaluateTask(statement.value)).toEqual(completed(10n));
+        const evaluator = (runtime as unknown as { expressions: { evaluate(expression: Expression): Evaluation<RankValue> } }).expressions;
+        expect(evaluator.evaluate(statement.value)).toEqual(completed(10n));
         runtime.dispose();
     });
 
