@@ -1,5 +1,14 @@
 import type { AstNode } from 'langium';
-import { flattenApplication, type ForStatement } from '@arrrank/language';
+import {
+    findOperation, flattenApplication, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
+    isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
+} from '@arrrank/language';
+import { compileBlock, type CompiledBlock } from './block-compiler.js';
+import { currentDiagnostics } from './diagnostics.js';
+import type { Evaluation, Execution } from './execution.js';
+import { argumentSignature } from './return-contract.js';
+import type { ExecutionContext, PreparedStatement, TensorGroup } from './statement-control.js';
+import { compileTensorKernel } from './tensor-kernel.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import { recordFallback } from './diagnostics.js';
 import { checkedArrayDimension } from './eval/expressions.js';
@@ -27,6 +36,19 @@ export interface FastPathContext {
     compileAssign(name: string): (value: RankValue) => void;
     locate(error: unknown, node: AstNode): unknown;
     options(): InterpreterOptions;
+    evaluate(expression: Expression): Evaluation<RankValue>;
+    compileDirect(expression: Expression): (() => RankValue) | undefined;
+    /** Evaluation of a returned application that may become a tail call. */
+    compileTail(expression: Expression): () => Evaluation<RankValue>;
+}
+
+/** How a compiled block reaches statement preparation and resumes after a suspension. */
+export interface BlockSteps {
+    preparedStatement(statements: Statement[], index: number): PreparedStatement;
+    continueCompiledBlock(
+        statements: Statement[], index: number, task: Execution<RankValue | undefined>,
+        context: ExecutionContext, block: CompiledBlock<ExecutionContext>,
+    ): Execution<RankValue | undefined>;
 }
 
 /**
@@ -36,7 +58,94 @@ export interface FastPathContext {
  * guard fails. Options can disable each path; inspection disables them all.
  */
 export class FastPaths {
+    private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
+    private readonly functionBodies = new WeakMap<FunctionStatement, Map<string, CompiledBlock<ExecutionContext> | null>>();
+
     constructor(private readonly context: FastPathContext) {}
+
+    /** A block of 2 to 64 statements compiled to one closure that steps through them. */
+    block(statements: Statement[], steps: BlockSteps): CompiledBlock<ExecutionContext> | undefined {
+        if (this.context.options().blockCompilation !== false && statements.length >= 2 && statements.length <= 64) {
+            let block = this.blocks.get(statements);
+            if (block === undefined) {
+                block = compileBlock<ExecutionContext>(statements.length, {
+                    prepare: index => steps.preparedStatement(statements, index),
+                    locate: (error, index) => this.context.locate(error, statements[index]),
+                    pause: (index, task, context, compiled) => steps.continueCompiledBlock(
+                        statements, index, task, context, compiled),
+                    compiled: this.context.options().onBlockCompiled,
+                    executed: this.context.options().onBlockExecuted,
+                }) ?? null;
+                this.blocks.set(statements, block);
+            }
+            return block ?? undefined;
+        }
+        return undefined;
+    }
+
+    /** A function body ending in `return` compiled per argument signature, its return a terminal step. */
+    functionBody(
+        statement: FunctionStatement, arguments_: RankValue[], steps: BlockSteps,
+    ): CompiledBlock<ExecutionContext> | undefined {
+        if (this.context.options().functionBodyCompilation === false) return undefined;
+        let instances = this.functionBodies.get(statement);
+        if (!instances) this.functionBodies.set(statement, instances = new Map());
+        const signature = argumentSignature(arguments_);
+        let body = instances.get(signature);
+        if (body === undefined) {
+            const commands = statement.statements;
+            const last = commands.at(-1);
+            body = last && isReturnStatement(last) && last.value ? compileBlock<ExecutionContext>(commands.length, {
+                prepare: index => {
+                    if (index !== commands.length - 1) return steps.preparedStatement(commands, index);
+                    const tensor = steps.preparedStatement(commands, index).tensor;
+                    const direct = this.context.compileDirect(last.value!);
+                    if (direct) return { run: direct, tensor };
+                    let candidate = last.value!;
+                    while (isParenthesizedExpression(candidate)) candidate = candidate.value;
+                    const value = isApplicationExpression(candidate)
+                        ? this.context.compileTail(last.value!)
+                        : () => this.context.evaluate(last.value!);
+                    return { stream: value, tensor };
+                },
+                locate: (error, index) => this.context.locate(error, commands[index]),
+                pause: (index, task, context, compiled) => steps.continueCompiledBlock(commands, index, task, context, compiled),
+                compiled: this.context.options().onFunctionBodyCompiled,
+                executed: this.context.options().onFunctionBodyExecuted,
+            }) ?? null : null;
+            instances.set(signature, body);
+        }
+        return body ?? undefined;
+    }
+
+    tensorGroup(statements: Statement[], index: number): TensorGroup | undefined {
+        const kernel = compileTensorKernel(statements.slice(index), {
+            textDigits: this.context.options().tensorTextDigits !== false,
+            lookup: name => this.context.bindings.find(name),
+            compiled: this.context.options().onTensorKernelCompiled,
+            builtin: name => {
+                const module = findOperation(name)?.module;
+                if (module === undefined || !this.context.modules.has(module)) return false;
+                return this.context.builtins.is(module, name, this.context.resolve(name));
+            },
+        });
+        if (!kernel) return recordFallback('tensor:unsupported');
+        const last = statements[index + kernel.count - 1];
+        if (!isAssignmentStatement(last) && !isReturnStatement(last)) return undefined;
+        const assign = isAssignmentStatement(last) ? this.context.compileAssign(last.name) : undefined;
+        return { count: kernel.count, run: () => {
+            if (!assign && this.context.bindings.current === undefined) return undefined;
+            const value = kernel.run();
+            if (value === undefined) return recordFallback('tensor:entry-guard');
+            try { assign?.(value); }
+            catch (error) { throw this.context.locate(error, last); }
+            this.context.options().onTensorKernelExecuted?.();
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) diagnostics.compiledTensors++;
+            if (!assign) throw new ReturnSignal(value);
+            return value;
+        } };
+    }
 
     /** A numeric loop compiled to straight-line code over local registers. */
     compileLoop(statement: ForStatement, binding: ForBinding | undefined): CompiledLoop | undefined {

@@ -1,23 +1,21 @@
-import { checkpoint, InterruptedError, inspectionEnabled } from './interrupt.js';
-import { AstUtils, type AstNode } from 'langium';
-import { currentDiagnostics, recordFallback } from './diagnostics.js';
+import { InterruptedError, inspectionEnabled } from './interrupt.js';
+import { type AstNode } from 'langium';
 import { ownedArray, readArrayItem, enterRuntime, leaveRuntime } from './array-storage.js';
 import { ByteArray } from './bytes.js';
-import { compileBlock, type CompiledBlock } from './block-compiler.js';
-import { compileTensorKernel } from './tensor-kernel.js';
 import {
-    completed, resume, runExecution, type Evaluation, type Execution,
+    runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { BindingEnvironment } from './binding-environment.js';
 import { FunctionInvocation } from './function-invocation.js';
 import { ApplicationEvaluator } from './eval/application.js';
 import { ExpressionEvaluator } from './eval/expressions.js';
-import { forIteration, type LoopContext } from './eval/loops.js';
+import { type LoopContext } from './eval/loops.js';
 import {
     type AssignmentContext,
 } from './eval/assignments.js';
 import { FastPaths } from './fast-paths.js';
 import { prepareStatement, type StatementContext } from './eval/statements.js';
+import { BlockExecution } from './eval/blocks.js';
 import type { InterpreterOptions, RankTestResult } from './interpreter-options.js';
 import { DebugInspection } from './debug-inspection.js';
 import { BuiltinRegistry, reseed, seedableRandom, type SeedableRandom } from './modules/builtins.js';
@@ -26,11 +24,8 @@ import { Operators } from './operators.js';
 import {
     selectValues,
 } from './value-selection.js';
-import { ReturnSignal } from './control-signals.js';
-import { type ExecutionContext, type LoopControl, type PreparedStatement, type TensorGroup } from './statement-control.js';
 import { newStructure } from './collections.js';
 import { RankDeque } from './containers.js';
-import { argumentSignature } from './return-contract.js';
 import { recordContract, retainRecordContract } from './record-contract.js';
 import { ResourceOwnership } from './resource-ownership.js';
 import { inputDeclarationName, inputValues, kebabCase, parseArguments, validateInputValue } from './cli-args.js';
@@ -38,18 +33,13 @@ import { ReductionEvaluator } from './reduction.js';
 import { RankApplication } from './rank-application.js';
 import {
     isArgumentStatement,
-    isApplicationExpression,
-    isAssignmentStatement,
     isFlagStatement,
     isForStatement,
     isFunctionStatement,
     isIfStatement,
     isOptionStatement,
-    isParenthesizedExpression,
-    isReturnStatement,
     isTestStatement,
     isTryStatement,
-    isUnpackStatement,
     isUseStatement,
     type AddressItem,
     type ArrayItem,
@@ -140,10 +130,6 @@ export class Interpreter {
     private currentRunTarget: LoadedProgram | undefined;
     private pendingArgs: string[] | undefined;
     private loadedProgram: LoadedProgram | undefined;
-    private readonly statements = new WeakMap<Statement, PreparedStatement>();
-    private readonly debugStatements = new WeakMap<Statement, PreparedStatement>();
-    private readonly functionBodies = new WeakMap<FunctionStatement, Map<string, CompiledBlock<ExecutionContext> | null>>();
-    private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
     private readonly builtins: BuiltinRegistry;
     private readonly reductions: ReductionEvaluator;
     private readonly rankApplication: RankApplication;
@@ -156,6 +142,7 @@ export class Interpreter {
     private readonly loops: LoopContext;
     private readonly writes: AssignmentContext;
     private readonly statementContext: StatementContext;
+    private readonly blocks: BlockExecution;
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
@@ -172,8 +159,8 @@ export class Interpreter {
         this.functions = new FunctionInvocation(this.bindings, this.resources, this.builtins, this.inspection,
             this.modules, () => this.options, {
                 compileDirect: expression => this.compileDirectExpression(expression),
-                compiled: (statement, arguments_) => this.compiledFunctionBody(statement, arguments_),
-                execute: (statements, generator) => this.executeStatementStream(statements, false, false, false, generator),
+                compiled: (statement, arguments_) => this.fastPaths.functionBody(statement, arguments_, this.blocks),
+                execute: (statements, generator) => this.blocks.execute(statements, false, false, false, generator),
                 locate: (error, node) => this.locateError(error, node),
             });
         this.reductions = new ReductionEvaluator(
@@ -224,6 +211,18 @@ export class Interpreter {
             compileAssign: name => this.compileAssign(name),
             locate: (error, node) => this.locateError(error, node),
             options: () => this.options,
+            evaluate: expression => this.evaluateTask(expression),
+            compileDirect: expression => this.compileDirectExpression(expression),
+            compileTail: expression => this.compileExpression(expression, undefined, true),
+        });
+        this.blocks = new BlockExecution({
+            bindings: this.bindings,
+            fastPaths: this.fastPaths,
+            prepare: statement => prepareStatement(statement, this.statementContext),
+            point: statement => this.inspection.point(statement),
+            locate: (error, node) => this.locateError(error, node),
+            syntheticNames: () => this.syntheticNames,
+            options: () => this.options,
         });
         this.loops = {
             bindings: this.bindings,
@@ -231,10 +230,8 @@ export class Interpreter {
             compileDirect: expression => this.compileDirectExpression(expression),
             compileAssign: name => this.compileAssign(name),
             prepareBody: (statements, context, iterable, loopControl) =>
-                this.prepareLoopBody(statements, context, iterable, loopControl),
-            execute: (statements, context) => this.executeStatementStream(statements, context.assertBooleanExpressions,
-                context.insideLoop, context.insideFinally, context.insideGenerator, context.tailCallsAllowed,
-                context.loopControl),
+                this.blocks.prepareLoopBody(statements, context, iterable, loopControl),
+            execute: (statements, context) => this.blocks.executeIn(statements, context),
             point: (statement, iteration) => this.inspection.point(statement, iteration),
             options: () => this.options,
             compileLoop: (statement, binding) => this.fastPaths.compileLoop(statement, binding),
@@ -259,9 +256,7 @@ export class Interpreter {
             compileDirect: expression => this.compileDirectExpression(expression),
             compileTail: expression => this.compileExpression(expression, undefined, true),
             operationOf: name => this.applicationOperation(name),
-            execute: (statements, context) => this.executeStatementStream(statements, context.assertBooleanExpressions,
-                context.insideLoop, context.insideFinally, context.insideGenerator, context.tailCallsAllowed,
-                context.loopControl),
+            execute: (statements, context) => this.blocks.executeIn(statements, context),
             assign: (name, value) => this.assign(name, value),
             define: statement => this.functions.define(statement),
             requireModule: (module, operation) => this.requireModule(module, operation),
@@ -377,7 +372,7 @@ export class Interpreter {
         this.checkBuiltinBindings(program);
         this.declareFunctions(program.statements);
         this.prepareInputs(program, args);
-        return this.executeStatements(program.statements, assertBooleanExpressions);
+        return this.blocks.run(program.statements, assertBooleanExpressions);
     }
 
     private declareFunctions(statements: readonly Statement[]): void {
@@ -408,271 +403,6 @@ export class Interpreter {
             } else {
                 this.useStandard(statement.module!);
             }
-        }
-    }
-
-    private executeStatements(
-        statements: Statement[],
-        assertBooleanExpressions = false,
-        insideLoop = false,
-        insideFinally = false,
-    ): RankValue | undefined {
-        return runExecution(this.executeStatementStream(
-            statements,
-            assertBooleanExpressions,
-            insideLoop,
-            insideFinally,
-            false,
-        ));
-    }
-
-    private executeStatementStream(
-        statements: Statement[],
-        assertBooleanExpressions = false,
-        insideLoop = false,
-        insideFinally = false,
-        insideGenerator = false,
-        tailCallsAllowed = true,
-        loopControl?: LoopControl,
-    ): Evaluation<RankValue | undefined> {
-        // Ordinary blocks keep their compact context; only protected blocks
-        // need to carry the additional tail-call flag.
-        const context: ExecutionContext = tailCallsAllowed
-            ? { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, loopControl }
-            : { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, loopControl, tailCallsAllowed: false };
-        const block = this.compiledBlock(statements);
-        if (block) return block(context);
-        let result: RankValue | undefined;
-        let index = 0;
-        try {
-            for (; index < statements.length; index += 1) {
-                checkpoint();
-                const prepared = this.preparedStatement(statements, index);
-                if (prepared.tensor && !context.insideFinally && !context.insideGenerator) {
-                    const value = prepared.tensor.run();
-                    if (value !== undefined) {
-                        result = value;
-                        index += prepared.tensor.count - 1;
-                        continue;
-                    }
-                }
-                if ('run' in prepared) {
-                    result = prepared.run(context);
-                } else {
-                    const task = prepared.stream(context);
-                    if ('done' in task) result = task.value;
-                    else return this.continueStatementStream(statements, index, context, task);
-                }
-                if (loopControl?.signal) return completed(result);
-            }
-        } catch (error) {
-            throw this.locateError(error, statements[index]);
-        }
-        return completed(result);
-    }
-
-    private compiledBlock(statements: Statement[]): CompiledBlock<ExecutionContext> | undefined {
-        if (this.options.blockCompilation !== false && statements.length >= 2 && statements.length <= 64) {
-            let block = this.blocks.get(statements);
-            if (block === undefined) {
-                block = compileBlock<ExecutionContext>(statements.length, {
-                    prepare: index => this.preparedStatement(statements, index),
-                    locate: (error, index) => this.locateError(error, statements[index]),
-                    pause: (index, task, context, compiled) => this.continueCompiledBlock(
-                        statements, index, task, context, compiled),
-                    compiled: this.options.onBlockCompiled,
-                    executed: this.options.onBlockExecuted,
-                }) ?? null;
-                this.blocks.set(statements, block);
-            }
-            return block ?? undefined;
-        }
-        return undefined;
-    }
-
-    private compiledFunctionBody(statement: FunctionStatement, arguments_: RankValue[]): CompiledBlock<ExecutionContext> | undefined {
-        if (this.options.functionBodyCompilation === false) return undefined;
-        let instances = this.functionBodies.get(statement);
-        if (!instances) this.functionBodies.set(statement, instances = new Map());
-        const signature = argumentSignature(arguments_);
-        let body = instances.get(signature);
-        if (body === undefined) {
-            const commands = statement.statements;
-            const last = commands.at(-1);
-            body = last && isReturnStatement(last) && last.value ? compileBlock<ExecutionContext>(commands.length, {
-                prepare: index => {
-                    if (index !== commands.length - 1) return this.preparedStatement(commands, index);
-                    const tensor = this.preparedStatement(commands, index).tensor;
-                    const direct = this.compileDirectExpression(last.value!);
-                    if (direct) return { run: direct, tensor };
-                    let candidate = last.value!;
-                    while (isParenthesizedExpression(candidate)) candidate = candidate.value;
-                    const value = isApplicationExpression(candidate)
-                        ? this.compileExpression(last.value!, undefined, true)
-                        : () => this.evaluateTask(last.value!);
-                    return { stream: value, tensor };
-                },
-                locate: (error, index) => this.locateError(error, commands[index]),
-                pause: (index, task, context, compiled) => this.continueCompiledBlock(commands, index, task, context, compiled),
-                compiled: this.options.onFunctionBodyCompiled,
-                executed: this.options.onFunctionBodyExecuted,
-            }) ?? null : null;
-            instances.set(signature, body);
-        }
-        return body ?? undefined;
-    }
-
-    private prepareLoopBody(
-        statements: Statement[], context: ExecutionContext, iterable: boolean, loopControl?: LoopControl,
-    ): () => Evaluation<RankValue | undefined> {
-        const block = this.compiledBlock(statements);
-        const tailCallsAllowed = iterable ? false : context.tailCallsAllowed !== false;
-        if (block) {
-            const bodyContext: ExecutionContext = tailCallsAllowed
-                ? { ...context, insideLoop: true, loopControl }
-                : { ...context, insideLoop: true, loopControl, tailCallsAllowed: false };
-            return () => block(bodyContext);
-        }
-        return () => this.executeStatementStream(statements, context.assertBooleanExpressions,
-            true, context.insideFinally, context.insideGenerator, tailCallsAllowed, loopControl);
-    }
-
-    private *continueCompiledBlock(
-        statements: Statement[], index: number, task: Execution<RankValue | undefined>,
-        context: ExecutionContext, block: CompiledBlock<ExecutionContext>,
-    ): Execution<RankValue | undefined> {
-        try {
-            const value = (yield { task }) as RankValue | undefined;
-            if (context.loopControl?.signal) return value;
-            const next = block(context, index + 1, value);
-            return 'done' in next ? next.value : (yield { task: next }) as RankValue | undefined;
-        } catch (error) { throw this.locateError(error, statements[index]); }
-    }
-
-    private preparedStatement(statements: Statement[], index: number): PreparedStatement {
-        const statement = statements[index];
-        this.inspection.point(statement);
-        const cache = inspectionEnabled() ? this.debugStatements : this.statements;
-        let prepared = cache.get(statement);
-        if (!prepared) {
-            prepared = prepareStatement(statement, this.statementContext);
-            if ((isForStatement(statement) || isIfStatement(statement) || isTryStatement(statement))
-                && !insideLoop(statement)) {
-                const names = blockNames(statement, this.syntheticNames);
-                const known = alwaysFresh(statement, names);
-                prepared = this.scopeBlock(prepared, [...names.filter(name => known.has(name)),
-                    ...names.filter(name => !known.has(name))], known.size);
-            }
-            if (this.options.tensorFusion !== false
-                && (isAssignmentStatement(statement) || isReturnStatement(statement))) {
-                const tensor = this.prepareTensorGroup(statements, index);
-                if (tensor) prepared = { ...prepared, tensor };
-            }
-            cache.set(statement, prepared);
-        }
-        return prepared;
-    }
-
-    // A name a block introduces ends with the block, together with its type.
-    // Blocks inside a loop keep theirs until the outermost block ends: every
-    // iteration then binds a name with the same type, and the block-scope check
-    // has already rejected every read that could see a value kept that long.
-    // The first `known` names are provably unbound on entry and skip the lookup.
-    private scopeBlock(prepared: PreparedStatement, names: readonly string[], known: number): PreparedStatement {
-        if (names.length === 0 || !('stream' in prepared)) return prepared;
-        // A bit per name marks the ones this run introduces, without allocating;
-        // a block with more names than bits groups them into words.
-        if (names.length > 30) {
-            let wrapped: PreparedStatement = prepared;
-            for (let index = 0; index < names.length; index += 30) {
-                wrapped = this.scopeBlock(wrapped, names.slice(index, index + 30),
-                    Math.min(30, Math.max(0, known - index)));
-            }
-            return wrapped;
-        }
-        const interpreter = this;
-        const inner = prepared.stream;
-        const release = (fresh: number) => {
-            for (let index = 0; fresh !== 0; index += 1, fresh >>>= 1) {
-                if (fresh & 1) interpreter.bindings.unbind(names[index]);
-            }
-        };
-        const proven = known === 0 ? 0 : (1 << known) - 1;
-        return { ...prepared, stream: context => {
-            let fresh = proven;
-            for (let index = known; index < names.length; index += 1) {
-                if (interpreter.findVariable(names[index]) === undefined) fresh |= 1 << index;
-            }
-            if (fresh === 0) return inner(context);
-            let task: Evaluation<RankValue | undefined>;
-            try { task = inner(context); } catch (error) { release(fresh); throw error; }
-            if ('done' in task) { release(fresh); return task; }
-            return (function* (): Execution<RankValue | undefined> {
-                try { return yield* resume(task); } finally { release(fresh); }
-            })();
-        } };
-    }
-
-    // Eligibility is prepared with the statement itself. Ordinary scalar
-    // statements incur no additional name lookup or optimizer-cache lookup.
-    private prepareTensorGroup(statements: Statement[], index: number): TensorGroup | undefined {
-        const kernel = compileTensorKernel(statements.slice(index), {
-            textDigits: this.options.tensorTextDigits !== false,
-            lookup: name => this.findVariable(name),
-            compiled: this.options.onTensorKernelCompiled,
-            builtin: name => {
-                const module = ['text', 'integer', 'len', 'sum', 'min', 'max'].includes(name)
-                    ? 'core' : name === 'mean' ? 'stats' : 'sequences';
-                if (!this.modules.has(module)) return false;
-                return this.builtins.is(module, name, this.resolve(name));
-            },
-        });
-        if (!kernel) return recordFallback('tensor:unsupported');
-        const last = statements[index + kernel.count - 1];
-        if (!isAssignmentStatement(last) && !isReturnStatement(last)) return undefined;
-        const assign = isAssignmentStatement(last) ? this.compileAssign(last.name) : undefined;
-        return { count: kernel.count, run: () => {
-            if (!assign && this.bindings.current === undefined) return undefined;
-            const value = kernel.run();
-            if (value === undefined) return recordFallback('tensor:entry-guard');
-            try { assign?.(value); }
-            catch (error) { throw this.locateError(error, last); }
-            this.options.onTensorKernelExecuted?.();
-            const diagnostics = currentDiagnostics();
-            if (diagnostics) diagnostics.compiledTensors++;
-            if (!assign) throw new ReturnSignal(value);
-            return value;
-        } };
-    }
-
-    private *continueStatementStream(
-        statements: Statement[],
-        index: number,
-        context: ExecutionContext,
-        first: Execution<RankValue | undefined>,
-    ): Execution<RankValue | undefined> {
-        try {
-            let result = yield* resume(first);
-            if (context.loopControl?.signal) return result;
-            for (index += 1; index < statements.length; index += 1) {
-                checkpoint();
-                const prepared = this.preparedStatement(statements, index);
-                if (prepared.tensor && !context.insideFinally && !context.insideGenerator) {
-                    const value = prepared.tensor.run();
-                    if (value !== undefined) {
-                        result = value;
-                        index += prepared.tensor.count - 1;
-                        continue;
-                    }
-                }
-                result = 'run' in prepared
-                    ? prepared.run(context)
-                    : yield* resume(prepared.stream(context));
-                if (context.loopControl?.signal) return result;
-            }
-            return result;
-        } catch (error) {
-            throw this.locateError(error, statements[index]);
         }
     }
 
@@ -1106,66 +836,6 @@ export class Interpreter {
             throw new RankError(`${operation} requires: use ${module}`);
         }
     }
-}
-
-/**
- * Block names no binding outside the block can have set. An assignment inside
- * a top-level function never reaches globals, so a name that is neither a
- * parameter nor bound elsewhere in that function is unbound whenever the block
- * starts. Nested functions and programs share names at runtime and stay checked.
- */
-function alwaysFresh(statement: Statement, names: readonly string[]): Set<string> {
-    let owner: import('langium').AstNode | undefined = statement.$container;
-    while (owner && !isFunctionStatement(owner)) owner = owner.$container;
-    if (!owner || !isFunctionStatement(owner)) return new Set();
-    for (let node: import('langium').AstNode | undefined = owner.$container; node; node = node.$container) {
-        if (isFunctionStatement(node)) return new Set();
-    }
-    const outside = new Set<string>(owner.parameters);
-    const visit = (node: import('langium').AstNode): void => {
-        if (node === statement || isFunctionStatement(node)) return;
-        if (isAssignmentStatement(node)) outside.add(node.name);
-        else if (isUnpackStatement(node)) node.names.forEach(name => outside.add(name));
-        else if (isForStatement(node)) forIteration(node.condition)?.names.forEach(name => outside.add(name));
-        else if (isTryStatement(node)) node.catches.forEach(clause => outside.add(clause.errorName));
-        for (const child of AstUtils.streamContents(node)) visit(child);
-    };
-    for (const child of AstUtils.streamContents(owner)) visit(child);
-    return new Set(names.filter(name => !outside.has(name)));
-}
-
-/** Whether a loop of the same function or program encloses the statement. */
-function insideLoop(statement: Statement): boolean {
-    for (let node = statement.$container; node && !isFunctionStatement(node); node = node.$container) {
-        if (isForStatement(node)) return true;
-    }
-    return false;
-}
-
-/** Names a block may introduce: loop bindings, assignments, unpacking and caught errors. */
-function blockNames(statement: Statement, syntheticNames: ReadonlySet<string>): string[] {
-    const names = new Set<string>();
-    const visit = (node: Statement): void => {
-        if (isFunctionStatement(node)) return;
-        if (isAssignmentStatement(node) && node.operator === '=' && !node.name.includes('.')) names.add(node.name);
-        else if (isUnpackStatement(node)) for (const name of node.names) names.add(name);
-        else if (isForStatement(node)) {
-            for (const name of forIteration(node.condition)?.names ?? []) if (name !== '#') names.add(name);
-            node.statements.forEach(visit);
-        } else if (isIfStatement(node)) {
-            [node.thenStatements, ...node.elifClauses.map(clause => clause.statements), node.elseStatements]
-                .forEach(branch => branch.forEach(visit));
-        } else if (isTryStatement(node)) {
-            node.statements.forEach(visit);
-            for (const clause of node.catches) {
-                names.add(clause.errorName);
-                clause.statements.forEach(visit);
-            }
-            node.finallyStatements.forEach(visit);
-        }
-    };
-    visit(statement);
-    return [...names].filter(name => !syntheticNames.has(name));
 }
 
 type FunctionPlacement = 'top' | 'function' | 'block';
