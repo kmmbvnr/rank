@@ -5,16 +5,17 @@ const results = [];
 for (const rows of [0, 1, 128, 4096, 32768]) {
   const columns = 32;
   const shape = [rows, columns];
-  const items = Array.from({ length: rows * columns }, (_, i) => (i % 97) / 8);
-  const mean = Array.from({ length: columns }, (_, i) => i / 16);
-  const dev = Array.from({ length: columns }, (_, i) => 1 + i / 32);
-  const args = [{ kind: 'array', shape, items },
-    { kind: 'array', shape: [columns], items: mean },
-    { kind: 'array', shape: [columns], items: dev }];
-  const expected = items.map((x, i) => (x - mean[i % columns]) / dev[i % columns]);
+  // Arrays must be created by the interpreter: the kernel declines host-owned
+  // arrays (no tracked storage), which would silently turn fusion off.
+  const setup = `Data = array shape ${rows} ${columns} fill 3
+Mean = array shape ${columns} fill 1
+Dev = array shape ${columns} fill 2
+`;
+  const expected = Array.from({ length: rows * columns }, () => 1);
   const cases = [false, true].map(tensorFusion => {
     const runtime = new Interpreter(undefined, { tensorFusion });
-    runtime.execute('use sequences\nfun normalize Data Mean Dev\n  Centered = Data - Mean\n  return (Centered / Dev) copy\nend');
+    runtime.execute('use sequences\nfun normalize Data Mean Dev\n  Centered = Data - Mean\n  return (Centered / Dev) copy\nend\n' + setup);
+    const args = ['Data', 'Mean', 'Dev'].map(name => runtime.variables.get(name));
     const call = () => runtime.variables.get('normalize').call(args);
     const measure = () => {
       const start = performance.now();
