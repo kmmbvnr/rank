@@ -70,4 +70,17 @@ describe('Repl inline completion and cancel', () => {
         expect(repl.cancelCompletion()).toBe(false);
         expect(repl.notebook.current.source).toBe('option Limit integer ');
     });
+
+    it('closes a completion when the draft is replaced another way', () => {
+        const repl = new NotebookRepl(createReplSession());
+        repl.notebook.replace('option Limit integ');
+        repl.complete(true);
+        expect(repl.hasCompletion).toBe(true);
+
+        repl.notebook.replace('N mul');
+        expect(repl.hasCompletion).toBe(false);
+        expect(repl.cancelCompletion()).toBe(false);
+        repl.complete();
+        expect(repl.notebook.current.source).toBe('N multiple by ');
+    });
 });

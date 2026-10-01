@@ -187,11 +187,26 @@ export class NotebookRepl {
     set suggestion(value: string) { this.suggestionText = value; }
     help?: { text: string; top: number };
     private completion?: { candidates: string[]; from: number; to: number; index: number; original: string; trailingSpace?: boolean };
-    get hasCompletion(): boolean { return !!this.completion; }
+    get hasCompletion(): boolean { return !!this.openCompletion(); }
+
+    /**
+     * The completion whose inserted text is still in the draft. Text replaced any other way
+     * (history, a pasted line, a host edit) closes it, so Tab starts a new completion and
+     * cancel never splices an old range into different text.
+     */
+    private openCompletion(): NonNullable<NotebookRepl['completion']> | undefined {
+        const item = this.completion;
+        if (!item) return undefined;
+        let inserted = item.candidates[item.index];
+        if (item.trailingSpace && !inserted.endsWith(' ')) inserted += ' ';
+        if (this.notebook.current.source.slice(item.from, item.to) === inserted) return item;
+        this.completion = undefined;
+        return undefined;
+    }
 
     cancelCompletion(): boolean {
-        if (!this.completion) return false;
-        const item = this.completion;
+        const item = this.openCompletion();
+        if (!item) return false;
         const book = this.notebook;
         book.replace(book.current.source.slice(0, item.from) + item.original + book.current.source.slice(item.to),
             item.from + item.original.length);
@@ -407,8 +422,9 @@ export class NotebookRepl {
     complete(trailingSpace = false): void {
         const book = this.notebook;
         if (book.indentToCode()) { this.dismiss(); return; }
-        if (this.completion) {
-            const item = this.completion;
+        const open = this.openCompletion();
+        if (open) {
+            const item = open;
             item.index = (item.index + 1) % item.candidates.length;
             let candidate = item.candidates[item.index];
             if (item.trailingSpace && !candidate.endsWith(' ')) candidate += ' ';
