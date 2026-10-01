@@ -5460,8 +5460,30 @@ Cell ranks belong to the operation, while `outer` combines the remaining
 frames. Symbolic binary operations have intrinsic ranks `0 0`. The named
 functions `band`, `bor`, `bxor`, `shl`, `shr`, `min`, `max`, `atan2`,
 `binomial`, `gcd`, `lcm`, `bit` and `round` also declare ranks
-`0 0`. User-defined binary functions currently default to `all all`;
-syntax for declaring their intrinsic ranks remains deferred.
+`0 0`.
+
+A user-defined function declares its own ranks with a `rank` tail on the
+header, one entry per parameter, in parameter order:
+
+```rank
+fun inc X Y rank 0 1
+  return X + Y
+end
+
+memo fun norm Row rank 1
+  return Row sum
+end
+```
+
+An entry is an integer (negative counts down from the operand's rank), as in a
+call-site `rank L R`, or `all` for the whole operand. Without a clause the
+ranks are `all all` and nothing changes. The clause needs exactly one entry per
+parameter, and a function takes it only with one or two parameters. A
+call-site `rank` still overrides the declaration. A function with a declared
+rank stacks array results under the frame, and every recursive call inside its
+body maps over cells too. Each cell calls a `memo` function on its own, and an
+effectful function runs once per cell in cell order. Static analysis does not
+describe a call to such a function: its facts stay unknown.
 
 The result shape is the concatenation of the left and right frame shapes. Thus
 atom-pairing operations preserve all operand axes. Left frame axes come first

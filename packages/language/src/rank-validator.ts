@@ -1,8 +1,9 @@
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
-import type { Program, RankAstType, TextBlockExpression } from './generated/ast.js';
+import type { FunctionStatement, Program, RankAstType, TextBlockExpression } from './generated/ast.js';
 import type { RankServices } from './rank-module.js';
 import { expressionDiagnostics } from './expression-grouping.js';
 import { analyzeValues } from './analysis/value-diagnostics.js';
+import { declaredRanks } from './function-ranks.js';
 import { blockScopeDiagnostics } from './analysis/block-scope.js';
 
 export function registerValidationChecks(services: RankServices): void {
@@ -10,6 +11,7 @@ export function registerValidationChecks(services: RankServices): void {
     const checks: ValidationChecks<RankAstType> = {
         Program: validator.checkExpressions,
         TextBlockExpression: validator.checkTextBlock,
+        FunctionStatement: validator.checkFunctionRanks,
     };
     services.validation.ValidationRegistry.register(checks, validator);
 }
@@ -33,6 +35,11 @@ export class RankValidator {
         for (const diagnostic of analyzeValues(program).diagnostics) {
             accept('error', diagnostic.message, { node: diagnostic.node, code: diagnostic.code ?? diagnostic.kind });
         }
+    }
+
+    checkFunctionRanks(statement: FunctionStatement, accept: ValidationAcceptor): void {
+        const declared = declaredRanks(statement);
+        if (typeof declared === 'string') accept('error', declared, { node: statement, property: 'ranks' });
     }
 
     checkTextBlock(block: TextBlockExpression, accept: ValidationAcceptor): void {
