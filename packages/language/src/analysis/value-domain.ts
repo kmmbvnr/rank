@@ -1,5 +1,5 @@
 import type { Types } from './types.js';
-import { compareDims, constantDim, type Dim } from './shape-index.js';
+import { compareDims, constantDim, freshDim, type Dim } from './shape-index.js';
 
 /** Serializable facts only: inspecting these never evaluates user code.
  * Accepted binding fields remain here for compatibility with the current pass.
@@ -139,6 +139,19 @@ export function broadcastDims(left: ValueFacts, right: ValueFacts): (Dim | null)
         return compareDims(a, b) === 'equal' ? a : null;
     });
     return dims.some(dim => dim && dim.terms.length > 0) ? dims : undefined;
+}
+
+/**
+ * A value that is exactly one of several paths has one length on each unknown axis,
+ * whichever path ran: give that axis a variable of its own. This is only sound for
+ * a binding or a returned value, never for the cells of a collection, which may differ.
+ */
+export function withPathDims(joined: ValueFacts): ValueFacts {
+    if (joined.types.join() !== 'array' || !joined.shape?.length) return joined;
+    const unknown = joined.shape.map((size, axis) => size === null && !axisDim(joined, axis));
+    if (!unknown.some(Boolean)) return joined;
+    const dims = joined.shape.map((_, axis) => unknown[axis] ? freshDim() : joined.dims?.[axis] ?? null);
+    return { ...joined, dims };
 }
 
 /** Every axis of the two arrays is proven equal: same rank, same canonical dims. */

@@ -4,7 +4,7 @@ import {
 } from '../generated/ast.js';
 import { expressionFacts } from './value-facts.js';
 import { flattenApplication } from '../expressions.js';
-import { joinValueFacts, UNKNOWN_VALUE, type ValueFacts } from './value-domain.js';
+import { joinValueFacts, UNKNOWN_VALUE, withPathDims, type ValueFacts } from './value-domain.js';
 import type { Types } from './types.js';
 
 export const arrayRank = (fact: ValueFacts | undefined): number | undefined =>
@@ -35,7 +35,7 @@ export function mergeEnvironments(env: Map<string, ValueFacts>, paths: readonly 
         if (facts.every(fact => fact === first)) { env.set(name, first); continue; }
         const rank = contractRank(first);
         const accepted = facts.map(fact => ({ types: fact.acceptedTypes ?? fact.types }));
-        env.set(name, { ...joinValueFacts(facts), acceptedTypes: joinValueFacts(accepted).types,
+        env.set(name, { ...withPathDims(joinValueFacts(facts)), acceptedTypes: joinValueFacts(accepted).types,
             acceptedArrayRank: facts.every(fact => contractRank(fact) === rank) ? rank : undefined });
     }
 }

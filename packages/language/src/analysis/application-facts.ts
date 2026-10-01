@@ -625,8 +625,7 @@ function transferApplicationFacts(
             || source.types.join() === 'sequence' && source.callbackFreeScalarCells === true)) {
         const length = ['array', 'text', 'sequence'].includes(source.types.join()) ? source.shape?.[0] : undefined;
         // An unknown length is one fixed natural number: a bound `N = X len` keeps it for later shapes.
-        const symbolic = length === null || length === undefined ? undefined
-            : source.dims?.[0] ?? undefined;
+        const symbolic = source.dims?.length === source.shape?.length ? source.dims?.[0] ?? undefined : undefined;
         const dim = symbolic ?? (length === null && source.types.join() === 'array' ? freshDim('len') : undefined);
         return { types: ['integer'], rank: 0, shape: [],
             ...(length !== undefined && length !== null ? { integer: String(length) } : {}),

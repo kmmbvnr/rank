@@ -5,13 +5,13 @@ import {
     isArrayAssignmentStatement, isAssignmentStatement, isIndexAssignmentStatement, isBinaryExpression,
     isExpressionStatement, isNewStructureExpression, isRecordExpression, isRecordUpdateExpression,
     isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
-    isAddStatement, isArgumentStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
+    isAddStatement, isArgumentStatement, isOptionStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isTakeWhileExpression,
     type Expression, type Program, type Statement, type FunctionStatement,
     type TryStatement,
 } from '../generated/ast.js';
-import { compoundType } from './types.js';
+import { compoundType, declaredType } from './types.js';
 import { flattenApplication } from '../expressions.js';
 import { findOperation, type Operation } from '../operations.js';
 import { builtinBindingDiagnostics } from '../builtin-bindings.js';
@@ -25,6 +25,7 @@ import { createCallAnalysis } from './function-calls.js';
 import { createReturnPathAnalysis } from './return-paths.js';
 import { recordFieldConflict } from './return-contract.js';
 import { createLoopAnalysis } from './loop-analysis.js';
+import { freshDim } from './shape-index.js';
 import { directValue, safeCollectionValue, safeIndexDefault, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
 import { expressionFacts } from './value-facts.js';
 import { hasCallbackFreeFindProof } from './operation-proofs.js';
@@ -986,9 +987,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     insertCollectionElement(parts[0].name, expressionFacts(payload, name => env.get(name)), payload, env);
                 }
                 if (calls.directNoReturnCall(statement.value, env)) return false;
+            } else if (isOptionStatement(statement) && statement.many) {
+                if (statement.defaultValue) invalidateCalls(statement.defaultValue, env);
+                env.set(statement.name, externalArray(statement.valueType));
             } else if (isArgumentStatement(statement)) {
                 if (statement.defaultValue) invalidateCalls(statement.defaultValue, env);
-                env.set(statement.name, invalidate(env.get(statement.name)));
+                env.set(statement.name, statement.many ? externalArray(statement.valueType)
+                    : invalidate(env.get(statement.name)));
             } else if (isUseStatement(statement) && statement.path && statement.alias && loadModule) {
                 if (importedAliases.has(statement.alias)) {
                     invalidateImportedAlias(statement.alias, env);
@@ -1058,4 +1063,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
 function dataDependentLength(operation: Operation): boolean {
     return operation.dataLength === true || !!operation.shape?.find(shape => shape.args.length === 1)?.result
         ?.some(term => term !== null && typeof term === 'object' && 'exists' in term);
+}
+
+/** A `many` command-line value: one array whose length is fixed when the program starts. */
+function externalArray(valueType: string): ValueFacts {
+    const elements = declaredType(valueType, false);
+    return { types: ['array'], rank: 1, shape: [null], dims: [freshDim('arg')], acceptedTypes: ['array'],
+        acceptedArrayRank: 1, ...(elements.length ? { elements } : {}) };
 }
