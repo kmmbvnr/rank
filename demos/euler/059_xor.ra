@@ -61,21 +61,27 @@ fun english_weights
 end
 
 
-rem Reuse byte positions and score each key as it arrives.
-fun best_key Cipher Weights
-  Size = Cipher len
-  Positions = 0 till Size
-  Slots = Positions % 3
-  BestScore = -101 * Size - 1
-  BestKey = array 97 97 97
-  for Key in keys
-    KeyStream = Key Slots
-    Plain = Cipher KeyStream bxor
+rem Find the best single byte for a strided slice.
+fun best_byte Bytes Weights
+  BestScore = -101 * (Bytes len) - 1
+  BestByte = 97
+  for Byte in 97 to 122
+    Plain = Bytes Byte bxor
     Score = Weights Plain sum
     if Score greater BestScore
       BestScore = Score
-      BestKey = Key
+      BestByte = Byte
     end
   end
-  return BestKey
+  return BestByte
+end
+
+
+rem Solve each byte of the repeating key independently.
+fun best_key Cipher Weights
+  Size = Cipher len
+  B0 = (Cipher (0 till Size by 3)) Weights best_byte
+  B1 = (Cipher (1 till Size by 3)) Weights best_byte
+  B2 = (Cipher (2 till Size by 3)) Weights best_byte
+  return array B0 B1 B2
 end
