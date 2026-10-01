@@ -1,5 +1,5 @@
 import { runProgram } from '@arrrank/common';
-import { Interpreter, RankError, parse } from '@arrrank/interpreter';
+import { Interpreter, RankError, parse, type RankTestResult } from '@arrrank/interpreter';
 import {
     analyzeValues, analyzeWithImports, describeTypes, moduleForms, moduleOperations, modules,
     type Binding, type Operation, type Program, type ScopeFacts, type WordUse,
@@ -291,6 +291,16 @@ function printWords(
     }
 }
 
+function formatTestDuration(durationMs: number): string {
+    if (durationMs >= 1000) {
+        return `${(durationMs / 1000).toFixed(2)}s`;
+    }
+    if (durationMs < 1) {
+        return '<1ms';
+    }
+    return `${Math.round(durationMs)}ms`;
+}
+
 async function runTests(target: string): Promise<void> {
     const files = await findFiles(path.resolve(target), name => name.endsWith('_test.ra'));
     if (files.length === 0) {
@@ -300,26 +310,35 @@ async function runTests(target: string): Promise<void> {
     let failed = 0;
     for (const file of files) {
         const source = await fs.readFile(file, 'utf8');
+        const printResult = (result: RankTestResult) => {
+            const label = `${path.relative(process.cwd(), file)}: ${result.name}`;
+            const duration = formatTestDuration(result.durationMs ?? 0);
+            if (result.passed) {
+                console.log(chalk.green(`ok ${label} (${duration})`));
+            } else {
+                failed += 1;
+                console.error(chalk.red(`not ok ${label} (${duration})`));
+                console.error(`  ${result.error}`);
+                if (result.output.length > 0) {
+                    console.error(`  stdout: ${JSON.stringify(result.output.join('\n') + '\n')}`);
+                }
+            }
+        };
         const interpreter = new Interpreter(() => undefined, {
             io: nodeIo,
             md5: nodeMd5,
             sourceId: file,
             testing: true,
             loadModule,
+            onTestResult: printResult,
         });
-        interpreter.execute(source);
-        for (const result of interpreter.testResults) {
-            const label = `${path.relative(process.cwd(), file)}: ${result.name}`;
-            if (result.passed) {
-                console.log(chalk.green(`ok ${label}`));
-            } else {
-                failed += 1;
-                console.error(chalk.red(`not ok ${label}`));
-                console.error(`  ${result.error}`);
-                if (result.output.length > 0) {
-                    console.error(`  stdout: ${JSON.stringify(result.output.join('\n') + '\n')}`);
-                }
-            }
+        try {
+            interpreter.execute(source);
+        } catch (error) {
+            failed += 1;
+            const label = path.relative(process.cwd(), file);
+            console.error(chalk.red(`not ok ${label}: file execution failed`));
+            console.error(`  ${error instanceof RankError ? error.format() : String(error)}`);
         }
     }
     console.log(`${files.length} files, ${failed} failed`);

@@ -325,6 +325,7 @@ export interface InterpreterOptions {
     readonly persistentResources?: boolean;
     readonly maxCallDepth?: number;
     readonly loadModule?: (specifier: string, fromId?: string) => LoadedModule;
+    readonly onTestResult?: (result: RankTestResult) => void;
 }
 
 export interface RankTestResult {
@@ -332,6 +333,7 @@ export interface RankTestResult {
     readonly passed: boolean;
     readonly output: readonly string[];
     readonly error?: string;
+    readonly durationMs?: number;
 }
 
 interface LoadedProgram {
@@ -3629,17 +3631,25 @@ export class Interpreter {
         });
         test.modules.add('testing');
         const program = { $type: 'Program' as const, statements } as Program;
+        const startedAt = performance.now();
         try {
             test.resources.withResourceScope(() => test.executeProgram(program, [], true), false);
-            this.testResults.push({ name, passed: true, output });
+            const durationMs = performance.now() - startedAt;
+            const result: RankTestResult = { name, passed: true, output, durationMs };
+            this.testResults.push(result);
+            this.options.onTestResult?.(result);
         } catch (error) {
             if (error instanceof InterruptedError) throw error;
-            this.testResults.push({
+            const durationMs = performance.now() - startedAt;
+            const result: RankTestResult = {
                 name,
                 passed: false,
                 output,
                 error: error instanceof RankError ? error.format() : String(error),
-            });
+                durationMs,
+            };
+            this.testResults.push(result);
+            this.options.onTestResult?.(result);
         }
     }
 

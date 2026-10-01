@@ -525,26 +525,29 @@ describe('Rank IO, modules and programs', () => {
             'end',
         ].join('\n'));
         expect(interpreter.testResults).toEqual([
-            { name: 'workspace input', passed: true, output: [] },
+            { name: 'workspace input', passed: true, output: [], durationMs: expect.any(Number) },
             {
                 name: 'false result',
                 passed: false,
                 output: [],
                 error: 'RankError [Runtime]: boolean test expression evaluated to false\n  at /tests/worker_test.ra:9:3\n9 |   1 equal 2\n      ^',
+                durationMs: expect.any(Number),
             },
-            { name: 'matching arrays', passed: true, output: [] },
+            { name: 'matching arrays', passed: true, output: [], durationMs: expect.any(Number) },
             {
                 name: 'different arrays',
                 passed: false,
                 output: [],
                 error: 'RankError [Runtime]: boolean test expression evaluated to false\n  at /tests/worker_test.ra:17:3\n17 |   Answer equal array 7 1 8\n       ^',
+                durationMs: expect.any(Number),
             },
-            { name: 'matching tensors', passed: true, output: [] },
+            { name: 'matching tensors', passed: true, output: [], durationMs: expect.any(Number) },
             {
                 name: 'different shapes',
                 passed: false,
                 output: [],
                 error: 'RankError [DimensionMismatch]: shape mismatch: 2,2 and 3\n  at /tests/worker_test.ra:34:3\n34 |   Answer equal array 7 0 8\n       ^',
+                durationMs: expect.any(Number),
             },
         ]);
     });
@@ -566,7 +569,7 @@ describe('Rank IO, modules and programs', () => {
             'end',
         ].join('\n'));
         expect(interpreter.testResults).toEqual([
-            { name: 'queue result', passed: true, output: [] },
+            { name: 'queue result', passed: true, output: [], durationMs: expect.any(Number) },
         ]);
     });
 
