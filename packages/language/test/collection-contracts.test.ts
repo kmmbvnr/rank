@@ -85,3 +85,32 @@ Q push "text"
         }
     });
 });
+
+describe('structure queries keep the shape of their queries', () => {
+    const bag = 'A = array 1 2 3\nS = A multiset\n';
+
+    it('answers one element per query in the shape of the queries', () => {
+        const { bindings } = analyze(`${bag}Q = array 1 2\nR = S floor Q\nT = S ceiling 2`);
+        expect(bindings.get('S')).toMatchObject({ types: ['multiset'], elements: ['integer'] });
+        expect(bindings.get('R')).toMatchObject({ types: ['array'], rank: 1, shape: [2], elements: ['integer'] });
+        expect(bindings.get('T')).toMatchObject({ types: ['integer'], rank: 0, shape: [] });
+    });
+
+    it('forgets the elements once the multiset can change', () => {
+        for (const change of ['S add 2.5', 'grow S', 'for X in array 1 2\n  S add 2.5\nend']) {
+            const { bindings } = analyze(`fun grow B\n  B add 2.5\nend\n${bag}${change}\nT = S floor 2`);
+            expect(bindings.get('T')?.types, change).toEqual([]);
+        }
+    });
+
+    it('answers a disjoint-set query per element', () => {
+        const { bindings } = analyze('D = new dsu (array 1 2 3)\nQ = array 1 2\nR = D Q findroot\nT = D 1 findroot');
+        expect(bindings.get('R')).toMatchObject({ types: ['array'], rank: 1, shape: [2], elements: ['integer'] });
+        expect(bindings.get('T')).toMatchObject({ types: ['integer'], rank: 0, shape: [] });
+    });
+
+    it('does not claim element types after a merge adds values', () => {
+        const { bindings } = analyze('D = new dsu (array 1 2 3)\nD 1 2 merge\nQ = array 1 2\nR = D Q findroot');
+        expect(bindings.get('R')?.elements ?? []).toEqual([]);
+    });
+});

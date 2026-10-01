@@ -4,16 +4,35 @@ import {
     isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
     isNumberLiteral, isStringLiteral, type ApplicationExpression, type Expression,
 } from '../generated/ast.js';
-import { flattenApplication, groupedUnaryDyadicChain } from '../expressions.js';
+import { applicationExpression, flattenApplication, groupedUnaryDyadicChain } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { applicationForm, assertNever, type ApplicationForm } from '../application-forms.js';
 import { mapsScalarCells, resultTypes, type Types } from './types.js';
-import { broadcastShape, incompatibleShapes, stableRecordField, UNKNOWN_VALUE,
+import { broadcastShape, incompatibleShapes, isAtom, stableRecordField, UNKNOWN_VALUE,
     type FactLookup, type ValueFacts } from './value-domain.js';
 import {
     hasCallbackFreeFindProof, hasMappedScalarNoCallbackProof,
     hasNumericArrayNoCallbackProof, hasScalarCellArrayNoCallbackProof, hasScalarNoCallbackProof,
 } from './operation-proofs.js';
+
+/**
+ * Answers to structure queries (`Bag floor Q`, `Dsu Q findroot`): their ranks are `all 0`, so one
+ * query gives one element and an array of queries gives an array of elements in the same shape.
+ */
+function perQueryFacts(query: ValueFacts, elements: Types): ValueFacts {
+    if (query.types.join() === 'array' && query.rank !== undefined) {
+        return { types: ['array'], rank: query.rank, shape: query.shape ?? Array(query.rank).fill(null), elements };
+    }
+    return isAtom(query) ? stableRecordField({ types: elements }) : UNKNOWN_VALUE;
+}
+
+function multisetMethodFacts(form: Extract<ApplicationForm, { kind: 'multiset-method' }>, lookup: FactLookup,
+    infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts {
+    if (!form.receiver.length || !form.argument.length) return UNKNOWN_VALUE;
+    const receiver = infer(applicationExpression(form.receiver), lookup);
+    if (receiver.types.join() !== 'multiset' || !receiver.elements?.length) return UNKNOWN_VALUE;
+    return perQueryFacts(infer(applicationExpression(form.argument), lookup), receiver.elements);
+}
 
 function sortedScalarArray(source: ValueFacts): ValueFacts | undefined {
     if (source.types.join() !== 'array' || source.rank !== 1 || !source.shape
@@ -45,9 +64,11 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
         // These forms have runtime implementations but no abstract transfer yet.
         case 'collection-mutation': case 'unpack': case 'invalid': case 'axis-matmul': case 'axis-quantile':
         case 'axis-window': case 'axis-shift': case 'axis-shuffle': case 'axis-argsort': case 'axis-metric':
-        case 'axis-transpose': case 'named-scan': case 'axis-selection': case 'multiset-method':
+        case 'axis-transpose': case 'named-scan': case 'axis-selection':
         case 'comparison-rank': case 'outer':
             return UNKNOWN_VALUE;
+        case 'multiset-method':
+            return multisetMethodFacts(form, lookup, infer);
         case 'segment': case 'scan': case 'reduce':
             return symbolicFormFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
         default: return assertNever(form);
@@ -243,7 +264,13 @@ function transferApplicationFacts(
     }
     if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'findroot'
         && lookup('findroot') === undefined && source.types.join() === 'dsu' && source.elements?.length) {
-        return stableRecordField({ types: source.elements });
+        return perQueryFacts(infer(parts[2], lookup), source.elements);
+    }
+    if (parts.length === 2 && isNameExpression(last) && last.name === 'multiset' && lookup('multiset') === undefined
+        && source.rank === 1 && ['array', 'sequence'].includes(source.types.join())
+        && (source.eagerScalarCells || source.callbackFreeScalarCells)
+        && source.elements?.length && source.elements.every(type => ['integer', 'real', 'text'].includes(type))) {
+        return { types: ['multiset'], elements: source.elements };
     }
     if (parts.length === 2 && source.types.join() === 'graph' && source.elements?.length
         && infer(parts[1], lookup).types.length && !infer(parts[1], lookup).types.includes('function')) return {
@@ -360,7 +387,7 @@ function transferApplicationFacts(
             }
             if (arity === 2 && operation.name === 'findroot' && source.types.join() === 'dsu'
                 && source.elements?.length) {
-                return stableRecordField({ types: source.elements });
+                return perQueryFacts(infer(parts[1], lookup), source.elements);
             }
             if (arity === 3 && ['ancestor', 'lca'].includes(last.name) && source.types.join() === 'record'
                 && source.elements?.length) {
