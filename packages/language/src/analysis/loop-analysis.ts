@@ -143,6 +143,8 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
                     eagerScalarCells: undefined, callbackFreeScalarCells: true as const,
                     integers: undefined, positions: undefined, positionFacts: undefined }] as const] : [];
         }));
+        const inserts = contents.some(node => isPushStatement(node) || isNameExpression(node)
+            && (functions.has(node.name) || ['pushfront', 'pushback', 'enqueue', 'add'].includes(node.name)));
         const prepare = (preserved: ReadonlySet<string>, indexSeed?: readonly string[],
             numericSeeds: ReadonlyMap<string, ValueFacts> = new Map(),
             arraySeeds: ReadonlyMap<string, ValueFacts> = candidates): Map<string, ValueFacts> => {
@@ -167,6 +169,10 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
                 for (const [name, fact] of local) if (fact.types.join() === 'index') {
                     local.set(name, { ...fact, elements: indexSeed });
                 }
+            }
+            // A later iteration sees what this one inserted, so the schema of earlier insertions is not enough.
+            if (inserts) for (const [name, fact] of local) if (fact.elementRecord) {
+                local.set(name, { ...fact, elementRecord: undefined });
             }
             if (membership) bindIteration(local, membership.names, collection);
             return local;

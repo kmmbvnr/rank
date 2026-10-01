@@ -28,6 +28,7 @@ import { createLoopAnalysis } from './loop-analysis.js';
 import { freshDim } from './shape-index.js';
 import { directValue, safeCollectionValue, safeIndexDefault, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
 import { expressionFacts } from './value-facts.js';
+import { withInsertedElement } from './collection-facts.js';
 import { hasCallbackFreeFindProof } from './operation-proofs.js';
 import { incompatibleShapes, isAtom, joinValueFacts, stableRecordField, UNKNOWN_VALUE, UnobservedReturn,
     type ValueFacts, type FactLookup } from './value-domain.js';
@@ -88,8 +89,14 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     function insertCollectionElement(name: string, value: ValueFacts, node: Expression,
         env: Map<string, ValueFacts>): void {
         const collection = env.get(name);
-        if (!collection || !['set', 'counter', 'queue', 'stack', 'deque', 'heap'].includes(collection.types.join())
-            || !value.types.length) return;
+        if (!collection || !['set', 'counter', 'queue', 'stack', 'deque', 'heap'].includes(collection.types.join())) return;
+        if (!value.types.length) {
+            if (collection.collectionId === undefined) return;
+            for (const [alias, fact] of env) if (fact.collectionId === collection.collectionId) {
+                env.set(alias, withInsertedElement(fact, value));
+            }
+            return;
+        }
         const accepted = collection.elements;
         if (accepted?.length && value.types.every(type => !accepted.includes(type))) {
             diagnostics.push({ node, kind: 'TypeError',
@@ -113,7 +120,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         // Unknown host collections need runtime validation before we can publish facts.
         if (collection.collectionId === undefined) return;
         for (const [alias, fact] of env) if (fact.collectionId === collection.collectionId) {
-            env.set(alias, { ...fact, elements: accepted?.length ? accepted : value.types,
+            env.set(alias, { ...withInsertedElement(fact, value),
                 ...(rank !== undefined ? { elementRank: collection.elementRank ?? rank } : {}),
                 ...(!accepted?.length && nonempty && value.types.join() === 'array' && value.elements?.length
                     ? { elementCells: value.elements } : {}) });
@@ -238,6 +245,14 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 // Host input may re-enter Rank. It is identified separately in
                 // the summary, but cannot preserve pre-call value facts here.
                 unknown ||= result.unknown || result.io;
+                // Summarized collection writes only change what the collection may hold.
+                for (const [name, state] of result.collections ?? []) {
+                    const current = env.get(name);
+                    if (current?.collectionId === undefined) { unknown = true; continue; }
+                    for (const [alias, fact] of env) if (fact.collectionId === current.collectionId) {
+                        env.set(alias, { ...fact, elements: state.elements, elementRecord: state.elementRecord });
+                    }
+                }
                 // Other indexed structures can invoke user callbacks on writes.
                 const array = (fact: ValueFacts | undefined) => !!fact?.types.length
                     && fact.types.every(type => type === 'array');

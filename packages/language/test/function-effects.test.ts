@@ -372,10 +372,41 @@ it('records returned values inside loops without trusting aliases changed by pri
 
 it('does not summarize unsupported exits or callbacks inside a condition loop', () => {
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
-    for (const body of ['break', 'continue', 'yield X', 'Unknown external']) {
+    for (const body of ['yield X', 'Unknown external']) {
         expect(analyze(`fun helper X\n for X greater 0\n  ${body}\n end\n return X\nend`,
             'helper', [], [integer]).unknown, body).toBe(true);
     }
+});
+
+it('joins the facts of every statement a loop with break or continue can leave after', () => {
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    for (const exit of ['break', 'continue']) {
+        const effects = analyze('fun helper X\n Y = 1\n for X greater 0\n  X -= 1\n  if X greater 5\n'
+            + `   ${exit}\n  end\n  Y = 2.5\n  X = 0\n end\n return Y\nend`, 'helper', [], [integer]);
+        expect(effects.unknown, exit).toBe(false);
+        expect([...effects.result!.types].sort(), exit).toEqual(['integer', 'real']);
+    }
+    expect(analyze('fun helper X\n for X greater 0\n  break\n end\n return X\nend', 'helper', [], [integer]).unknown)
+        .toBe(false);
+});
+
+it('summarizes captured stack writes by facts that hold across any number of calls', () => {
+    const stack: ValueFacts = { types: ['stack'], elements: [], collectionId: 1 };
+    const source = (body: string) => `fun outer\n S = new stack\n fun add X\n${body}\n  return 0\n end\n return 0\nend`;
+    const summary = (body: string, capture: ValueFacts | null = stack) => analyze(source(body), 'add', [],
+        [{ types: ['integer'], rank: 0, shape: [] }], new Map(capture ? [['S', capture]] : []));
+    const pushed = summary('  S push record\n   .path = X\n  end');
+    expect(pushed.unknown).toBe(false);
+    expect(pushed.captures.size).toBe(0);
+    expect(pushed.collections?.get('S')).toMatchObject({ types: ['stack'], elements: ['record'],
+        elementRecord: { fields: { path: { types: ['integer'] } } } });
+    // Reading what was never inserted gives no facts, so re-inserting it is unsummarized; so is a
+    // collection that is not provably local.
+    expect(summary('  T = S peek\n  S push T').unknown).toBe(true);
+    expect(summary('  S push X', null).unknown).toBe(true);
+    expect(summary('  S push X', { types: ['stack'], elements: [] }).unknown).toBe(true);
+    expect(summary('  S push X', { types: ['stack'], collectionId: 1 }).unknown).toBe(true);
+    expect(summary('  S push Y').unknown).toBe(true);
 });
 
 it('joins scalar facts from conditional assignments before proving builtin calls', () => {
