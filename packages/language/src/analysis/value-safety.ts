@@ -1,6 +1,7 @@
 import {
     isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral, isLabelLiteral,
-    isNameExpression, isNumberLiteral, isParenthesizedExpression, isStringLiteral, isUnaryExpression,
+    isNameExpression, isNumberLiteral, isParenthesizedExpression, isRecordExpression, isStringLiteral,
+    isUnaryExpression,
     type Expression,
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
@@ -14,7 +15,11 @@ export const directValue = (node: Expression): boolean => isNameExpression(node)
     || isStringLiteral(node) || isBooleanLiteral(node) || isLabelLiteral(node)
     || isParenthesizedExpression(node) && directValue(node.value);
 export const safeCollectionValue = (node: Expression, env: ReadonlyMap<string, ValueFacts>): boolean =>
-    isParenthesizedExpression(node) ? safeCollectionValue(node.value, env) : directValue(node) || isArrayExpression(node)
+    isParenthesizedExpression(node) ? safeCollectionValue(node.value, env) : directValue(node)
+        // A record literal runs only its field expressions.
+        || isRecordExpression(node) && node.fields.every(field =>
+            safeCollectionValue(field.value, env) || scalarArithmetic(field.value, env))
+        || isArrayExpression(node)
         && node.dimensions.every(item => directValue(item.value))
         && (!node.fill || directValue(node.fill))
         && (!node.range || isBinaryExpression(node.range) && directValue(node.range.left) && directValue(node.range.right) && (!node.range.step || directValue(node.range.step)))

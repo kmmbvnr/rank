@@ -3,16 +3,19 @@ import {
     isApplicationExpression, isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement,
     isBinaryExpression, isBooleanLiteral, isBreakStatement, isContinueStatement, isExpressionStatement,
     isForStatement, isFunctionStatement, isIfStatement, isLabelLiteral, isAllAxisExpression,
-    isNameExpression, isNumberLiteral, isParenthesizedExpression, isReturnStatement, isStdinExpression,
+    isNameExpression, isNumberLiteral, isParenthesizedExpression, isPushStatement, isRecordExpression,
+    isReturnStatement, isStdinExpression,
     isStringLiteral, isTextBlockExpression, isTryStatement, isUnaryExpression, isUnpackStatement, isYieldStatement,
     type ArrayAssignmentStatement, type Expression, type FunctionStatement, type Statement,
 } from '../generated/ast.js';
-import { flattenApplication, groupedUnaryDyadicChain } from '../expressions.js';
+import { applicationExpression, flattenApplication, groupedUnaryDyadicChain } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { expressionFacts } from './value-facts.js';
+import { isTrackedCollection, summarizedElement, withInsertedElement } from './collection-facts.js';
 import { hasArrayHeaderNoCallbackProof, hasMappedScalarNoCallbackProof, hasNumericArrayNoCallbackProof,
     hasScalarCellArrayNoCallbackProof, hasScalarNoCallbackProof } from './operation-proofs.js';
 import { joinValueFacts, UNKNOWN_VALUE, widenValueFacts, type FactLookup, type ValueFacts } from './value-domain.js';
+import { compoundType } from './types.js';
 
 /** Possible effects, not a purity promise. Unknown includes unsupported syntax. */
 export interface FunctionEffects {
@@ -31,6 +34,11 @@ export interface FunctionEffects {
     readonly globalValueCaptures: ReadonlySet<string>;
     readonly io: boolean;
     readonly returns: readonly ReturnOrigin[];
+    /**
+     * Captured local collections the call may insert into or remove from, with facts that hold
+     * before and after any number of such calls. Their writes are fully described by these facts.
+     */
+    readonly collections?: ReadonlyMap<string, ValueFacts>;
     /** Result facts proved from supported return paths and actual inputs. */
     readonly result?: ValueFacts;
 }
@@ -153,6 +161,32 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
         const eagerLocals = new Set<string>();
         const privateArrays = new Set<string>();
         const returnFacts: ValueFacts[] = [];
+        // Captured collections are summarized by inductive facts: whatever the body inserts, the
+        // collection's contents stay inside them, so each pass assumes them and checks the insertions.
+        const collections = new Map<string, ValueFacts>();
+        let inserted = new Map<string, ValueFacts[]>();
+        const capturedCollection = (value: Expression): string | undefined => {
+            while (isParenthesizedExpression(value)) value = value.value;
+            if (!facts || !isNameExpression(value) || definition.$container.$type === 'Program'
+                || locals.has(value.name) || assignments.has(value.name) || isFunction(value.name)) return undefined;
+            const initial = captureFact(value.name);
+            return isTrackedCollection(initial) && initial!.elements?.every(type =>
+                summarizedElement({ types: [type], rank: type === 'text' ? 1 : 0 })) ? value.name : undefined;
+        };
+        const recordField = (parts: readonly Expression[]): ValueFacts | undefined => {
+            if (!facts || !isNameExpression(parts[0]) || changedLocals.has(parts[0].name)
+                || !parts.slice(1).every(isLabelLiteral)) return undefined;
+            let current: ValueFacts | undefined = fact(parts[0]);
+            for (const label of parts.slice(1)) {
+                if (!isLabelLiteral(label) || current?.types.join() !== 'record') return undefined;
+                current = current.fields?.[label.name];
+            }
+            return current?.types.length ? current : undefined;
+        };
+        const flowEnds = (body: readonly Statement[]): boolean => body.some(item =>
+            isReturnStatement(item) || isBreakStatement(item) || isContinueStatement(item));
+        // Each loop that can leave early records the facts after every statement it runs.
+        const snapshots: Map<string, ValueFacts>[][] = [];
         const scalarLiteral = (value: Expression): boolean => isNumberLiteral(value)
             || isBooleanLiteral(value) || isLabelLiteral(value)
             || isNameExpression(value) && !isBound(value.name)
@@ -465,6 +499,20 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     && !locals.has(name) && !isFunction(name));
                 if (grouped) return expression(grouped);
                 const parts = flattenApplication(value);
+                if (parts.length === 2 && isNameExpression(parts[1]) && ['len', 'peek', 'pop'].includes(parts[1].name)
+                    && !isBound(parts[1].name) && !locals.has(parts[1].name) && capturedCollection(parts[0])) return true;
+                // `Record .field` reads a field of a record whose schema is proven; a trailing operation
+                // applies to that field value.
+                const labels = parts.findIndex((part, index) => index > 0 && !isLabelLiteral(part));
+                const fieldEnd = labels < 0 ? parts.length : labels;
+                if (fieldEnd > 1 && recordField(parts.slice(0, fieldEnd))) {
+                    if (fieldEnd === parts.length) return true;
+                    const rest = parts.slice(fieldEnd);
+                    const operation = rest.at(-1)!;
+                    return isNameExpression(operation) && !locals.has(operation.name)
+                        && propagate(operation.name, [applicationExpression(parts.slice(0, fieldEnd), value),
+                            ...rest.slice(0, -1)]);
+                }
                 if (isNameExpression(parts[0]) && parts.length > 1 && parts.slice(1).every(part =>
                     isAllAxisExpression(part) || isNumberLiteral(part) && typeof part.value === 'bigint'
                     || facts && fact(part).rank === 0 && fact(part).types.join() === 'integer'
@@ -491,6 +539,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 return !value.count || expression(value.count);
             }
             if (isParenthesizedExpression(value)) return expression(value.value);
+            if (isRecordExpression(value)) return value.fields.every(field => expression(field.value));
             if (isUnaryExpression(value)) return expression(value.operand);
             if (isBinaryExpression(value)) {
                 if (['+', '*'].includes(value.operator) && isNameExpression(value.right)
@@ -521,8 +570,17 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 && (!value.range || expression(value.range));
             return false;
         };
-        const statement = (item: Statement): boolean => {
+        const run = (item: Statement): boolean => {
             if (isFunctionStatement(item)) return localFunctions.get(item.name) === item && !item.memo;
+            if (isBreakStatement(item) || isContinueStatement(item)) return !!facts && snapshots.length > 0;
+            if (isPushStatement(item)) {
+                const name = capturedCollection(item.receiver);
+                if (!name || !expression(item.value)) return false;
+                const value = fact(item.value);
+                if (!summarizedElement(value)) return false;
+                inserted.set(name, [...inserted.get(name) ?? [], value]);
+                return true;
+            }
             // Runtime assignment searches enclosing frames before making a local.
             if (isAssignmentStatement(item)) {
                 if (item.name.includes('.') || !expression(item.value)) return false;
@@ -558,8 +616,20 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     bindingCaptures.add(item.name);
                     return true;
                 }
+                // With the call site's bindings known, a name that is not bound yet there makes a local.
                 return definition.parameters.includes(item.name) || definition.$container.$type === 'Program'
-                    || !isBound(item.name) && !enclosingBindings.has(item.name);
+                    || !isBound(item.name) && (!enclosingBindings.has(item.name) || !!facts);
+            }
+            if (isArrayAssignmentStatement(item) && facts && item.indices.length > 0
+                && item.indices.every(index => !index.all && !index.spread && index.value && isLabelLiteral(index.value))) {
+                // A write to a proven record field keeps the field's type, so no fact about any alias changes.
+                const target = recordField([{ $type: 'NameExpression', name: item.name } as Expression,
+                    ...item.indices.map(index => index.value!)]);
+                if (!target || !expression(item.value)) return false;
+                const value = fact(item.value);
+                const result = item.operator === '=' ? value.types : compoundType(item.operator, target.types, value.types);
+                return value.rank === 0 && result.length > 0 && target.rank === 0
+                    && result.every(type => target.types.includes(type));
             }
             if (isArrayAssignmentStatement(item)) {
                 const captured = !assignments.has(item.name) && !locals.has(item.name)
@@ -688,6 +758,39 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             }
             if (isForStatement(item) && facts && item.condition
                 && !(isBinaryExpression(item.condition) && item.condition.operator === 'in')
+                && item.statements.some(body => [body, ...AstUtils.streamAllContents(body)]
+                    .some(node => isBreakStatement(node) || isContinueStatement(node)))
+                && !item.statements.some(body => [body, ...AstUtils.streamAllContents(body)]
+                    .some(node => isYieldStatement(node) || isTryStatement(node)))) {
+                // Leaving early can happen after any statement, so the loop's facts are what holds at the
+                // entry and after every statement of the body, whichever iteration runs it.
+                const initial = new Map(facts);
+                let entry = initial;
+                let settled = false;
+                for (let pass = 0; pass < 4 && !settled; pass++) {
+                    facts.clear();
+                    for (const [name, value] of entry) facts.set(name, value);
+                    const recorded: Map<string, ValueFacts>[] = [];
+                    snapshots.push(recorded);
+                    try {
+                        if (!expression(item.condition) || !item.statements.every(statement)) return false;
+                    } finally { snapshots.pop(); }
+                    const states = [initial, new Map(facts), ...recorded];
+                    const next = new Map<string, ValueFacts>();
+                    for (const name of new Set(states.flatMap(state => [...state.keys()]))) {
+                        next.set(name, joinValueFacts(states.map(state => state.get(name) ?? UNKNOWN_VALUE)));
+                    }
+                    settled = [...next].every(([name, value]) => JSON.stringify(value) === JSON.stringify(entry.get(name)))
+                        && [...entry.keys()].every(name => next.has(name));
+                    entry = next;
+                }
+                if (!settled) return false;
+                facts.clear();
+                for (const [name, value] of entry) facts.set(name, value);
+                return true;
+            }
+            if (isForStatement(item) && facts && item.condition
+                && !(isBinaryExpression(item.condition) && item.condition.operator === 'in')
                 && !item.statements.some(body => [body, ...AstUtils.streamAllContents(body)]
                     .some(node => isBreakStatement(node) || isContinueStatement(node)
                         || isYieldStatement(node) || isTryStatement(node)))) {
@@ -718,35 +821,72 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     && item.elseStatements.every(statement);
                 const before = new Map(facts);
                 const paths: Map<string, ValueFacts>[] = [];
+                const leaving: Map<string, ValueFacts>[] = [];
                 for (const [condition, body] of [[item.condition, item.thenStatements] as const,
                     ...item.elifClauses.map(clause => [clause.condition, clause.statements] as const)]) {
                     facts.clear();
                     for (const [name, value] of before) facts.set(name, value);
                     if (!expression(condition) || !body.every(statement)) return false;
-                    paths.push(new Map(facts));
+                    (flowEnds(body) ? leaving : paths).push(new Map(facts));
                 }
                 facts.clear();
                 for (const [name, value] of before) facts.set(name, value);
                 if (!item.elseStatements.every(statement)) return false;
-                paths.push(new Map(facts));
+                (flowEnds(item.elseStatements) ? leaving : paths).push(new Map(facts));
+                // A branch that returns or leaves the loop does not reach the code after the `if`.
+                const reaching = paths.length ? paths : leaving;
                 facts.clear();
-                for (const name of new Set(paths.flatMap(path => [...path.keys()]))) {
-                    facts.set(name, joinValueFacts(paths.map(path => path.get(name) ?? UNKNOWN_VALUE)));
+                for (const name of new Set(reaching.flatMap(path => [...path.keys()]))) {
+                    facts.set(name, joinValueFacts(reaching.map(path => path.get(name) ?? UNKNOWN_VALUE)));
                 }
                 return true;
+            }
+            return false;
+        };
+        const statement = (item: Statement): boolean => {
+            if (!run(item)) return false;
+            if (facts) for (const recorded of snapshots) recorded.push(new Map(facts));
+            return true;
+        };
+        // Names whose collections the body may mutate, found syntactically and then checked by capturedCollection.
+        const mentioned = new Set(descendants.filter(isNameExpression).map(node => node.name));
+        const body = (): boolean => {
+            const candidates = facts ? [...mentioned].filter(name => capturedCollection(
+                { $type: 'NameExpression', name } as Expression)) : [];
+            if (!candidates.length) return definition.statements.every(statement);
+            const entry = new Map(facts);
+            const known = new Map(candidates.map(name => [name, captureFact(name)!] as const));
+            for (let pass = 0; pass < 4; pass++) {
+                facts!.clear();
+                for (const [name, value] of entry) facts!.set(name, value);
+                for (const [name, value] of known) facts!.set(name, value);
+                inserted = new Map();
+                // An early pass may stop where the contents are still unknown; only the settled pass counts.
+                const supported = definition.statements.every(statement);
+                let settled = supported;
+                for (const [name, value] of known) {
+                    const next = (inserted.get(name) ?? []).reduce(withInsertedElement, value);
+                    if (JSON.stringify(next) !== JSON.stringify(value)) settled = false;
+                    known.set(name, next);
+                }
+                if (settled) {
+                    for (const [name, value] of known) collections.set(name, value);
+                    return true;
+                }
             }
             return false;
         };
         active.add(definition);
         try {
             let origins: readonly ReturnOrigin[] | undefined;
-            const supported = definition.statements.every(statement);
+            const supported = body();
             for (const name of unprovenCaptureWrites) numericCaptureWrites.delete(name);
             const recursiveSafe = !recursive || !io && !parameters.size && !reboundParameters.size
                 && !bindingCaptures.size && [...captures].every(name => numericCaptureWrites.has(name));
             const result = supported && recursiveSafe ? {
                 unknown: false, parameters, reboundParameters, captures, bindingCaptures, globalWriteCaptures,
                 ...(numericCaptureWrites.size ? { numericCaptureWrites } : {}),
+                ...(collections.size ? { collections } : {}),
                 readParameters, readCaptures, globalReadCaptures,
                 valueCaptures, globalValueCaptures, io,
                 ...(returnFacts.length && returnFacts.every(value => value.types.length)

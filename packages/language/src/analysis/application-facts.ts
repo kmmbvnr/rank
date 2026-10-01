@@ -216,6 +216,7 @@ function transferApplicationFacts(
         && ['queue', 'stack', 'deque', 'heap'].includes(source.types.join())
         && source.elements?.length) {
         const types = source.elements;
+        if (source.elementRecord && types.join() === 'record') return source.elementRecord;
         return types.join() === 'array' && source.elementRank !== undefined
             ? { types, rank: source.elementRank, shape: Array(source.elementRank).fill(null), elements: source.elementCells }
             : stableRecordField({ types });

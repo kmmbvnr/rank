@@ -13,7 +13,7 @@ import { findOperation } from '../operations.js';
 import { applicationExpressionFacts, takeDropFacts } from './application-facts.js';
 import { callbackFreeCondition, sliceFacts } from './binary-facts.js';
 import { binaryExpressionFacts } from './binary-facts.js';
-import { isAtom, stableRecordField, UNKNOWN_VALUE, BOTTOM_VALUE,
+import { isAtom, stableRecordField, TRACKED_COLLECTIONS, UNKNOWN_VALUE, BOTTOM_VALUE,
     type FactLookup, type ValueFacts } from './value-domain.js';
 
 /** Start with facts that follow directly from syntax, retaining unknown lengths. */
@@ -50,6 +50,9 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     }
     if (isNewStructureExpression(expression) && expression.structure === 'index') {
         return { types: ['index'], elements: [] };
+    }
+    if (isNewStructureExpression(expression) && TRACKED_COLLECTIONS.includes(expression.structure)) {
+        return { types: [expression.structure], elements: [] };
     }
     if (isNumberLiteral(expression)) return {
         types: [typeof expression.value === 'bigint' ? 'integer' : 'real'], rank: 0, shape: [],
