@@ -6,7 +6,7 @@ import { rangeSliceOperands } from '../expressions.js';
 import { applicationForm, type ApplicationForm } from '../application-forms.js';
 import { findOperation } from '../operations.js';
 import { binaryType, type Types } from './types.js';
-import { broadcastShape, incompatibleShapes, isAtom,
+import { broadcastDims, broadcastShape, incompatibleShapes, isAtom,
     type FactLookup, type ValueFacts } from './value-domain.js';
 
 /** Transfer existing facts through a binary expression without executing it. */
@@ -111,7 +111,8 @@ export function binaryExpressionFacts(
                     && value.elements?.join() === 'integer';
             const integerResult = ['+', '-', '*', '//', '%'].includes(expression.operator)
                 && [left, right].every(integerCells);
-            return { types, rank: shape.length, shape,
+            const dims = broadcastDims(left, right);
+            return { types, rank: shape.length, shape, ...(dims ? { dims } : {}),
                 ...(callbackFree ? { elements: (integerResult ? ['integer'] : ['integer', 'real']) as Types,
                     callbackFreeScalarCells: true as const } : {}) };
         }
@@ -136,7 +137,8 @@ export function binaryExpressionFacts(
             const rightShape = right.rank === 0 ? [] : right.shape!;
             if (!incompatibleShapes(left, right)) {
                 const shape = broadcastShape(leftShape, rightShape);
-                return { types: ['array'], rank: shape.length, shape, elements: ['boolean'],
+                const dims = broadcastDims(left, right);
+                return { types: ['array'], rank: shape.length, shape, ...(dims ? { dims } : {}), elements: ['boolean'],
                     callbackFreeScalarCells: true };
             }
         }

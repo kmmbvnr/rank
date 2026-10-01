@@ -139,7 +139,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
             return !writes.has(name) && fact?.types.join() === 'array' && fact.rank !== undefined && fact.rank > 0
                 && (fact.eagerScalarCells || fact.callbackFreeScalarCells)
                 && fact.elements?.length && fact.elements.every(type => type === 'integer' || type === 'real')
-                ? [[name, { ...fact, shape: Array(fact.rank).fill(null), elements: fact.elements as Types,
+                ? [[name, { ...fact, shape: Array(fact.rank).fill(null), dims: undefined, dim: undefined, elements: fact.elements as Types,
                     eagerScalarCells: undefined, callbackFreeScalarCells: true as const,
                     integers: undefined, positions: undefined, positionFacts: undefined }] as const] : [];
         }));

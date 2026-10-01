@@ -1,4 +1,5 @@
 import { operationShapeFacts } from './operation-shape.js';
+import { freshDim } from './shape-index.js';
 import { symbolicFormFacts } from './binary-facts.js';
 import {
     isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
@@ -623,8 +624,13 @@ function transferApplicationFacts(
             'multiset', 'object', 'graph', 'dsu', 'segment', 'wavelet'].includes(source.types.join())
             || source.types.join() === 'sequence' && source.callbackFreeScalarCells === true)) {
         const length = ['array', 'text', 'sequence'].includes(source.types.join()) ? source.shape?.[0] : undefined;
+        // An unknown length is one fixed natural number: a bound `N = X len` keeps it for later shapes.
+        const symbolic = length === null || length === undefined ? undefined
+            : source.dims?.[0] ?? undefined;
+        const dim = symbolic ?? (length === null && source.types.join() === 'array' ? freshDim('len') : undefined);
         return { types: ['integer'], rank: 0, shape: [],
-            ...(length !== undefined && length !== null ? { integer: String(length) } : {}) };
+            ...(length !== undefined && length !== null ? { integer: String(length) } : {}),
+            ...(dim && !(length !== null && length !== undefined) ? { dim } : {}) };
     }
     if (isNameExpression(last) && last.name === 'len' && lookup(last.name) === undefined
         && parts.length === 2) return { types: ['integer'], rank: 0, shape: [] };

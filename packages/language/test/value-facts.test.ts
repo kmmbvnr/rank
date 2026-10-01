@@ -153,7 +153,7 @@ it('gives finite collection lengths scalar rank', () => {
     expect(facts('Values len', new Map([['Values', facts('array shape 2 3 fill 0')]])))
         .toEqual({ types: ['integer'], rank: 0, shape: [], integer: '2' });
     expect(facts('Values len', new Map([['Values', { types: ['array'], rank: 1, shape: [null] }]])))
-        .toEqual({ types: ['integer'], rank: 0, shape: [] });
+        .toEqual({ types: ['integer'], rank: 0, shape: [], dim: expect.objectContaining({ constant: 0 }) });
     expect(facts('(1 to 5) len')).toEqual({ types: ['integer'], rank: 0, shape: [], integer: '5' });
     expect(facts('Values len', new Map([['Values', { types: ['sequence'], rank: 1, shape: [5] }]])))
         .toEqual({ types: ['integer'], rank: 0, shape: [] });
@@ -197,7 +197,7 @@ it('keeps closed graph vertex types through neighbor lookup', () => {
         types: ['integer'], rank: 0, shape: [],
     });
     expect(facts('Sorted .order len', new Map([['Sorted', sorted]]))).toEqual({
-        types: ['integer'], rank: 0, shape: [],
+        types: ['integer'], rank: 0, shape: [], dim: expect.objectContaining({ constant: 0 }),
     });
     expect(facts('(Graph 1 bfs) .distance 1', new Map([['Graph', graph]]))).toEqual({
         types: ['integer'], rank: 0, shape: [],
@@ -1079,4 +1079,42 @@ it('warns when rank lifts a function with a data-dependent result length', () =>
     const mask = 'fun positive Row\n  return Row (Row greater 0)\nend\n';
     expect(ragged(mask + 'M = array 1 1 2 3 shape 2 2\n(M positive rank 1) print\n')[0].message)
         .toContain('(from `a mask selection`)');
+});
+
+function bound(source: string, initial: Record<string, ValueFacts> = {}) {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(parsed.parserErrors).toEqual([]);
+    return analyzeValues(parsed.value, new Map(Object.entries(initial))).bindings;
+}
+
+it('keeps one symbolic length for arrays built from the same bound length', async () => {
+    const { provenSameShape } = await import('../src/analysis/value-domain.js');
+    const input: ValueFacts = { types: ['array'], rank: 1, shape: [null], elements: ['integer'] };
+    const names = bound('N = Input len\nA = array shape N fill 0\nB = array shape N fill 1\nC = A + B\nD = array shape 4 fill 0\nE = array shape (Input len) fill 0\n', { Input: input });
+    const [a, b, c, d, e] = ['A', 'B', 'C', 'D', 'E'].map(name => names.get(name)!);
+    expect(a.shape).toEqual([null]);
+    expect(provenSameShape(a, b)).toBe(true);
+    expect(provenSameShape(a, c)).toBe(true);
+    expect(provenSameShape(a, d)).toBe(false);
+    // Two separate `Input len` reads are not proven equal: no shared symbol.
+    expect(provenSameShape(a, e)).toBe(false);
+});
+
+it('drops a symbolic length when the bound length changes', () => {
+    const input: ValueFacts = { types: ['array'], rank: 1, shape: [null], elements: ['integer'] };
+    const names = bound('N = Input len\nA = array shape N fill 0\nN = N + 1\nB = array shape N fill 0\n', { Input: input });
+    expect(names.get('A')!.dims).toBeDefined();
+    expect(names.get('B')!.dims).toBeUndefined();
+});
+
+it('keeps only dimensions proven equal across a join', async () => {
+    const { joinValueFacts } = await import('../src/analysis/value-domain.js');
+    const { variableDim } = await import('../src/analysis/shape-index.js');
+    const x = variableDim('x');
+    const same = joinValueFacts([{ types: ['array'], rank: 1, shape: [null], dims: [x] },
+        { types: ['array'], rank: 1, shape: [null], dims: [x] }]);
+    expect(same.dims).toEqual([x]);
+    const differ = joinValueFacts([{ types: ['array'], rank: 1, shape: [null], dims: [x] },
+        { types: ['array'], rank: 1, shape: [null], dims: [variableDim('y')] }]);
+    expect(differ.dims).toBeUndefined();
 });
