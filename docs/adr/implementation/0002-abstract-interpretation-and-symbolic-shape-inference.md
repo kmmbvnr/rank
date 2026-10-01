@@ -47,7 +47,11 @@ The abstract interpreter distinguishes **Rank** (number of dimensions) from **Sh
   - Vector / Sequence: $R = 1$
   - Matrix: $R = 2$ (a table of object rows is rank 1)
   - $N$-D Tensor: $R = N$
-- **Shape ($S = [d_1, \dots, d_R]$):** Current value facts store known axis lengths or unknown lengths (`null`). Symbolic affine dimensions are not an implemented general guarantee.
+- **Shape ($S = [d_1, \dots, d_R]$):** Value facts store known axis lengths or unknown lengths (`null`) in `shape`. A sidecar `dims` carries a symbolic length per axis where one is known, and `dim` carries the symbolic value of an integer scalar.
+
+A symbolic dimension is a linear form `c + Σ kᵢ·xᵢ` over natural-number variables, kept canonical so equality is structural (`x+y+5+x` equals `(x+x)+5+y`). Variables are fresh per source: the length of an array whose size is unknown (`X len`), and a bound length reused by `array shape N`. Comparison has three outcomes: equal (proven), distinct constants (a mismatch) and unknown. A symbol may be 1 under broadcasting, so two different symbols are never reported as a mismatch. Joins keep only dimensions proven equal, and loop or recursion widening drops them. Multiplication of symbols and inequality reasoning are out of scope.
+
+Proven equal shapes are an analysis fact (`provenSameShape`). The tensor kernel planner does not consume them: its run-time shape comparison measured as a fraction of a percent of a small call, so removing it is not worth the risk of an unsound proof.
 
 Rank can remain known when exact axis lengths are unknown. There is no measured
 general percentage of tensor errors caught by this analysis.
