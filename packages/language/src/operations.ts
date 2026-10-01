@@ -59,6 +59,8 @@ export interface Operation {
     /** Omitted when the operation takes its whole argument at once (`all`). */
     readonly monadicRank?: IntrinsicRank;
     readonly dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank];
+    /** The result length depends on the values, not only on the operand shapes (Σ in the shape signature). */
+    readonly dataLength?: true;
     /** A cell of a ranked call may return an array; results stack under the frame. */
     readonly arrayCells?: true;
     /** Cell shape contracts, one per supported operand count. Ranks remain explicit. */
@@ -589,7 +591,7 @@ export const operations: readonly Operation[] = [
         dyadicRanks: ['all', 0],
         summary: 'First zero-based position equal to Target in a vector or text; an array of targets finds each.' },
     { name: 'findall', module: 'sequences', arities: [2], form: 'Values Target findall', result: 'array',
-        dyadicRanks: ['all', 0], arrayCells: true,
+        dyadicRanks: ['all', 0], arrayCells: true, dataLength: true,
         shape: [{ args: [null, []], result: null }],
         summary: 'Every zero-based position equal to Target in a vector or text; an array of targets needs equal counts.' },
     { name: 'flat', module: 'sequences', arities: [1, 2], form: 'Values flat', result: 'array',
@@ -731,7 +733,7 @@ export const operations: readonly Operation[] = [
         summary: 'Formats one scalar as text; a .Nf literal after it selects fixed decimals.' },
     { name: 'vocab', module: 'text', arities: [2], form: 'Texts Limit vocab', result: 'array',
         summary: 'Most frequent words, at most Limit of them, ties by code point.' },
-    { name: 'words', module: 'text', arities: [1], form: 'Text words', result: 'array',
+    { name: 'words', module: 'text', arities: [1], form: 'Text words', result: 'array', dataLength: true,
         summary: 'Lowercase Unicode letter and number runs.' },
 
     { name: 'xml', module: 'xml', arities: [1, 2], form: 'Text xml', result: 'value', modifiers: ['flat'],

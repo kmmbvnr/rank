@@ -5390,7 +5390,8 @@ functions, and have no ranks. `rank N` keeps its meaning.
 A function whose result length depends on the values, such as `unique`,
 `split` or a mask selection, can differ in length from cell to cell. Lifting
 it with `rank` over several cells (`M unique rank 1`) works only when every cell
-happens to give the same length; the analyzer warns on the `rank` word, and the
+happens to give the same length; the analyzer (and `rank check`) warns on the `rank` word, for
+`unique`, `findall`, `words`, `split` and a one-parameter function that returns one of them, and the
 runtime error names the function and the two cell shapes. Reduce inside the
 function you lift (`fun Distinct Row` returning `Row unique sum`), pad to a
 fixed width, or iterate rows with `for` to keep ragged results.
