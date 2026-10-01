@@ -1,43 +1,42 @@
 import { checkpoint, InterruptedError, inspectionEnabled } from './interrupt.js';
 import { AstUtils, type AstNode } from 'langium';
-import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
-import { ownedArray, readArrayItem, arrayForWrite, enterRuntime, leaveRuntime } from './array-storage.js';
+import { ownedArray, readArrayItem, enterRuntime, leaveRuntime } from './array-storage.js';
 import { ByteArray } from './bytes.js';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
 import { compileTensorKernel } from './tensor-kernel.js';
 import {
-    completed, emit, flatMapResult, mapExecution, mapResult, resume, runExecution, type Evaluation, type Execution,
+    completed, emit, mapExecution, mapResult, resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { BindingEnvironment } from './binding-environment.js';
 import { FunctionInvocation } from './function-invocation.js';
 import { ApplicationEvaluator } from './eval/application.js';
 import { ExpressionEvaluator } from './eval/expressions.js';
 import { forIteration, prepareForStatement, type LoopContext } from './eval/loops.js';
+import {
+    prepareAddStatement, prepareArrayAssignment, prepareAssignment, prepareCollectionMutation, prepareIndexAssignment,
+    preparePushStatement, prepareUnpackStatement, type AssignmentContext,
+} from './eval/assignments.js';
 import { FastPaths } from './fast-paths.js';
 import type { InterpreterOptions, RankTestResult } from './interpreter-options.js';
 import { DebugInspection } from './debug-inspection.js';
 import { BuiltinRegistry, reseed, seedableRandom, type SeedableRandom } from './modules/builtins.js';
 import { locateError, registerSource } from './source-location.js';
-import { Operators, arraySize } from './operators.js';
+import { Operators } from './operators.js';
 import {
     selectValues,
 } from './value-selection.js';
 import { BREAK_SIGNAL, CONTINUE_SIGNAL, ReturnSignal } from './control-signals.js';
 import { prepareIfStatement, prepareTryStatement,
     type ExecutionContext, type LoopControl, type PreparedStatement, type TensorGroup } from './statement-control.js';
-import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
-import { RankDeque, pushCollection } from './containers.js';
+import { newStructure } from './collections.js';
+import { RankDeque } from './containers.js';
 import { argumentSignature } from './return-contract.js';
-import { assignRecordField, recordContract, retainRecordContract } from './record-contract.js';
+import { recordContract, retainRecordContract } from './record-contract.js';
 import { ResourceOwnership } from './resource-ownership.js';
 import { inputDeclarationName, inputValues, kebabCase, parseArguments, validateInputValue } from './cli-args.js';
 import { ReductionEvaluator } from './reduction.js';
 import { RankApplication } from './rank-application.js';
-import {
-    tensorSelection,
-} from './selectors.js';
-import { sameShape } from './tensor-index.js';
 import {
     isAddStatement,
     isArrayAssignmentStatement,
@@ -72,14 +71,8 @@ import {
     type Statement,
     applicationForm, findOperation, availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage,
 } from '@arrrank/language';
-import { MissingValueError, RankError } from './errors.js';
-import {
-    RankPersistentSumSegment,
-    RankRangeSumSegment,
-} from './segment.js';
-import { indexKey } from './index-key.js';
+import { RankError } from './errors.js';
 import { standardModules } from './modules/index.js';
-import { writeTable } from './table-access.js';
 import { parse } from './parser.js';
 import {
     formatValue,
@@ -87,18 +80,11 @@ import {
     isRankArray,
     isRankBytes,
     isRankCounter,
-    isRankFenwick,
-    isRankGraph,
     isRankIndex,
-    isRankLabel,
     isRankObject,
-    isRankTable,
     isRankQueue,
     isRankRecord,
     isRankSet,
-    isRankSequence,
-    isRankSegment,
-    type RankArray,
     type RankCounter,
     type NativeFunction,
     type RankIndex,
@@ -181,6 +167,7 @@ export class Interpreter {
     private readonly expressions: ExpressionEvaluator;
     private readonly fastPaths: FastPaths;
     private readonly loops: LoopContext;
+    private readonly writes: AssignmentContext;
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
@@ -263,6 +250,20 @@ export class Interpreter {
             point: (statement, iteration) => this.inspection.point(statement, iteration),
             options: () => this.options,
             compileLoop: (statement, binding) => this.fastPaths.compileLoop(statement, binding),
+        };
+        this.writes = {
+            evaluate: expression => this.evaluateTask(expression),
+            compileDirect: expression => this.compileDirectExpression(expression),
+            compileAssign: name => this.compileAssign(name),
+            resolveVariable: name => this.resolveVariable(name),
+            evaluateAddressParts: item => this.evaluateAddressParts(item),
+            select: values => this.select(values),
+            requireModule: (module, operation) => this.requireModule(module, operation),
+            index: () => this.localIndex(),
+            set: () => this.localSet(),
+            counter: () => this.localCounter(),
+            options: () => this.options,
+            operators: this.operators,
         };
     }
 
@@ -795,343 +796,16 @@ export class Interpreter {
                 ? prepareTryStatement(statement, control) : prepareIfStatement(statement, control);
         }
         if (isForStatement(statement)) return prepareForStatement(statement, this.loops);
-        if (isPushStatement(statement)) {
-            return { stream: function* (): Execution<RankValue | undefined> {
-                const receiver = (yield* resume(interpreter.evaluateTask(statement.receiver)));
-                interpreter.requireModule('algo', 'push');
-                pushCollection(receiver, (yield* resume(interpreter.evaluateTask(statement.value))));
-                return undefined;
-            } };
-        }
-        if (isAddStatement(statement)) {
-            return { stream: function* (): Execution<RankValue | undefined> {
-                const value = (yield* resume(interpreter.evaluateTask(statement.value)));
-                if (statement.structure.startsWith('counter')) {
-                    addToCollection(interpreter.localCounter(), value);
-                } else {
-                    addToCollection(interpreter.localSet(), value);
-                }
-                return undefined;
-            } };
-        }
-        if (isIndexAssignmentStatement(statement)) {
-            return { stream: function* (): Execution<RankValue | undefined> {
-                const index = interpreter.localIndex();
-                const keys = yield* resume(mapExecution(statement.keys, key => interpreter.evaluateTask(key)));
-                index.entries.set(indexKey(keys), (yield* resume(interpreter.evaluateTask(statement.value))));
-                return undefined;
-            } };
-        }
-        if (isUnpackStatement(statement)) {
-            const writes = statement.names.map(name =>
-                name === '#' ? undefined : this.compileAssign(name));
-            return { stream: function* (): Execution<RankValue | undefined> {
-                const result = (yield* resume(interpreter.evaluateTask(statement.value)));
-                if (!isRankArray(result) || result.shape.length !== 1) {
-                    throw new RankError('unpack expects a rank-1 array value');
-                }
-                const unpacked = result;
-                if (unpacked.items.length !== statement.names.length) {
-                    throw new RankError(
-                        `unpack expects ${statement.names.length} values, got ${unpacked.items.length}`,
-                    );
-                }
-                for (let index = 0; index < writes.length; index += 1) {
-                    writes[index]?.(unpacked.items[index]);
-                }
-                return result;
-            } };
-        }
-        if (isArrayAssignmentStatement(statement)) {
-            const general = function* (
-                target: RankValue, selectors: RankValue[], evaluated?: RankValue,
-            ): Execution<RankValue | undefined> {
-                if (isRankTable(target)) {
-                    // A table is a value: a write makes a new version and rebinds the name.
-                    interpreter.requireModule('tables', 'table assignment');
-                    const value = yield* resume(interpreter.evaluateTask(statement.value));
-                    rebind(writeTable(target, selectors, value,
-                        statement.operator === '=' ? undefined : assignmentOperator(statement.operator),
-                        (operator, left, right) => interpreter.operators.evaluateBinary(operator, left, right)));
-                    return value;
-                }
-                if (isRankIndex(target)) {
-                    const key = indexKey(selectors);
-                    const value = yield* resume(interpreter.evaluateTask(statement.value));
-                    if (statement.operator === '=') target.entries.set(key, value);
-                    else {
-                        const previous = target.entries.get(key);
-                        if (previous === undefined) throw new MissingValueError('index key not found');
-                        target.entries.set(key, interpreter.operators.evaluateBinary(
-                            assignmentOperator(statement.operator), previous, value,
-                        ));
-                    }
-                    return undefined;
-                }
-                if (isRankFenwick(target)) {
-                    if (selectors.length !== 1 || typeof selectors[0] !== 'bigint') {
-                        throw new RankError('fenwick assignment expects one integer index');
-                    }
-                    const value = yield* resume(interpreter.evaluateTask(statement.value));
-                    const result = statement.operator === '=' ? value : interpreter.operators.evaluateBinary(
-                        assignmentOperator(statement.operator), target.at(selectors[0]), value,
-                    );
-                    if (typeof result !== 'bigint') {
-                        throw new RankError('fenwick values must be integers');
-                    }
-                    target.set(selectors[0], result);
-                    return result;
-                }
-                if (isRankSegment(target)) {
-                    if (selectors.length === 2
-                        && selectors.every(selector => typeof selector === 'bigint')
-                        && (target instanceof RankRangeSumSegment
-                            || target instanceof RankPersistentSumSegment)) {
-                        const value = yield* resume(interpreter.evaluateTask(statement.value));
-                        if (statement.operator === '=') {
-                            target.setRange(selectors[0], selectors[1], value);
-                        } else if (statement.operator === '+=') {
-                            target.addRange(selectors[0], selectors[1], value);
-                        } else {
-                            throw new RankError('segment + range assignment supports = and +=');
-                        }
-                        return value;
-                    }
-                    if (selectors.length !== 1 || typeof selectors[0] !== 'bigint') {
-                        throw new RankError('segment assignment expects one integer index');
-                    }
-                    const value = yield* resume(interpreter.evaluateTask(statement.value));
-                    const result = statement.operator === '=' ? value : interpreter.operators.evaluateBinary(
-                        assignmentOperator(statement.operator), target.at(selectors[0]), value,
-                    );
-                    target.set(selectors[0], result);
-                    return result;
-                }
-                if (target instanceof FlatRecords) {
-                    if (selectors.length < 1 || selectors.length > 2 || typeof selectors[0] !== 'bigint') {
-                        throw new RankError('flat assignment expects an integer index and optional field');
-                    }
-                    const index = Number(selectors[0]);
-                    const previous = target.itemAt(index);
-                    const value = yield* resume(interpreter.evaluateTask(statement.value));
-                    if (selectors.length === 2) {
-                        const field = selectors[1];
-                        if (!isRankLabel(field)) throw new RankError('flat assignment expects a field label');
-                        const result = assignRecordField(previous, field.name, statement.operator, value, interpreter.operators);
-                        target.set(index, previous);
-                        return result;
-                    }
-                    if (statement.operator !== '=') throw new RankError('flat record assignment supports =');
-                    target.set(index, value);
-                    return value;
-                }
-                const field = selectors.at(-1);
-                if (field !== undefined && isRankLabel(field) && field.name !== '#') {
-                    let receiver: RankValue = target;
-                    for (const selector of selectors.slice(0, -1)) {
-                        receiver = interpreter.select([receiver, selector]);
-                    }
-                    if (isRankArray(receiver)) {
-                        interpreter.requireModule('tables', 'table column assignment');
-                        if (receiver.shape.length !== 1) {
-                            throw new RankError(
-                                'table column assignment expects a rank-1 table',
-                                'DimensionMismatch',
-                            );
-                        }
-                        const result = yield* resume(interpreter.evaluateTask(statement.value));
-                        let operands: RankValue[];
-                        if (isRankArray(result)) {
-                            if (!sameShape(receiver.shape, result.shape)) {
-                                throw new RankError(
-                                    `assignment shape mismatch: ${receiver.shape} and ${result.shape}`,
-                                    'DimensionMismatch',
-                                );
-                            }
-                            operands = Array.from(
-                                { length: arraySize(receiver.shape) },
-                                (_, index) => arrayItem(result, index),
-                            );
-                        } else {
-                            operands = Array(arraySize(receiver.shape)).fill(result) as RankValue[];
-                        }
-                        const rows = Array.from(
-                            { length: arraySize(receiver.shape) },
-                            (_, index) => arrayItem(receiver, index),
-                        );
-                        if (!rows.every(isRankObject)) {
-                            throw new RankError('table assignment expects object rows', 'TypeError');
-                        }
-                        const operator = statement.operator === '='
-                            ? undefined : assignmentOperator(statement.operator);
-                        const replacements = operands.map((operand, index) => {
-                            if (operator === undefined) return operand;
-                            const previous = rows[index].entries.get(field.name);
-                            if (previous === undefined) {
-                                throw new MissingValueError(`missing object key: ${field.name}`);
-                            }
-                            return interpreter.operators.evaluateBinary(operator, previous, operand);
-                        });
-                        for (let index = 0; index < rows.length; index += 1) {
-                            rows[index].entries.set(field.name, replacements[index]);
-                        }
-                        return result;
-                    }
-                    if (!isRankRecord(receiver)) {
-                        throw new RankError('field assignment expects a record target');
-                    }
-                    return assignRecordField(
-                        receiver,
-                        field.name,
-                        statement.operator,
-                        yield* resume(interpreter.evaluateTask(statement.value)),
-                        interpreter.operators,
-                    );
-                }
-                if (!isRankArray(target) || target.kind !== 'array') {
-                    throw new RankError('array assignment expects an array target');
-                }
-                if (target.itemAt !== undefined) {
-                    throw new RankError('cannot assign to a lazy array');
-                }
-                const selection = tensorSelection(target, selectors);
-                // The compiled single-cell form hands its value over when the
-                // shape rules have to decide what happens to it.
-                const result = evaluated
-                    ?? (yield* resume(interpreter.evaluateTask(statement.value)));
-                const operator = statement.operator === '='
-                    ? undefined : assignmentOperator(statement.operator);
-                let operands: RankValue[];
-                if (isRankArray(result)) {
-                    if (!sameShape(selection.shape, result.shape)) {
-                        throw new RankError(
-                            `assignment shape mismatch: ${selection.shape} and ${result.shape}`,
-                            'DimensionMismatch',
-                        );
-                    }
-                    operands = Array.from(
-                        { length: arraySize(selection.shape) },
-                        (_, index) => arrayItem(result, index),
-                    );
-                } else {
-                    operands = Array(arraySize(selection.shape)).fill(result) as RankValue[];
-                }
-                const replacements = operands.map((operand, index) => operator === undefined
-                    ? operand
-                    : interpreter.operators.evaluateBinary(
-                        operator,
-                        target.items[selection.offsetAt(index)],
-                        operand,
-                    ));
-                for (let index = 0; index < replacements.length; index += 1) {
-                    target.items[selection.offsetAt(index)] = replacements[index];
-                }
-                return result;
-            };
-            // A write is where sharing has to be paid for: shared storage
-            // becomes this name's own copy, which the name then keeps.
-            const rebind = this.compileAssign(statement.name);
-            const owned = (target: RankValue): RankValue => {
-                const copy = arrayForWrite(target);
-                if (copy === undefined) return target;
-                rebind(copy);
-                return copy;
-            };
-            const address = statement.indices.length === 1 ? statement.indices[0] : undefined;
-            const directIndex = address && !address.all && !address.sign && !address.spread && address.value
-                ? this.compileDirectExpression(address.value) : undefined;
-            const directValue = this.compileDirectExpression(statement.value);
-            if (directIndex && directValue) {
-                // One integer index into a stored vector is the shape dynamic
-                // programming writes in its inner loop. It needs no suspendable
-                // task, no selector list and no tensor selection; anything that
-                // does falls through to the general form with the selector it
-                // already evaluated.
-                const operator = statement.operator === '='
-                    ? undefined : assignmentOperator(statement.operator);
-                return { stream: (): Evaluation<RankValue | undefined> => {
-                    const target = owned(this.resolveVariable(statement.name));
-                    const selector = directIndex();
-                    if (typeof selector === 'bigint' && typeof target === 'object'
-                        && target.kind === 'array' && target.shape.length === 1
-                        && target.itemAt === undefined) {
-                        const offset = Number(selector);
-                        if (offset >= 0 && offset < target.shape[0]) {
-                            const value = directValue();
-                            if (isRankArray(value)) return general(target, [selector], value);
-                            target.items[offset] = operator === undefined ? value
-                                : this.operators.evaluateBinary(operator, target.items[offset], value);
-                            return completed(value);
-                        }
-                    }
-                    return general(target, [selector]);
-                } };
-            }
-            return { stream: (): Evaluation<RankValue | undefined> => {
-                const target = owned(this.resolveVariable(statement.name));
-                // Selectors that all complete hand straight over to the general
-                // form, so the usual case adds no second generator to drive.
-                return flatMapResult(
-                    mapExecution(statement.indices, index => this.evaluateAddressParts(index)),
-                    selectors => general(target, selectors.flat()),
-                );
-            } };
-        }
-        if (isAssignmentStatement(statement)) {
-            const operator = statement.operator === '='
-                ? undefined : assignmentOperator(statement.operator);
-            const direct = this.compileDirectExpression(statement.value);
-            const write = this.compileAssign(statement.name);
-            const stored = (value: RankValue): RankValue => isRankSequence(value)
-                ? this.options.wrapStoredSequence?.(value) ?? value : value;
-            if (direct) {
-                return { run: () => {
-                    const result = stored(operator === undefined ? direct() : this.operators.evaluateBinary(
-                        operator, this.resolveVariable(statement.name), direct(),
-                    ));
-                    write(result);
-                    return result;
-                } };
-            }
-            return { stream: () => {
-                const previous = operator === undefined ? undefined : this.resolveVariable(statement.name);
-                return mapResult(this.evaluateTask(statement.value), value => {
-                    const result = stored(operator === undefined ? value : this.operators.evaluateBinary(operator, previous!, value));
-                    write(result);
-                    return result;
-                });
-            } };
-        }
+        if (isPushStatement(statement)) return preparePushStatement(statement, this.writes);
+        if (isAddStatement(statement)) return prepareAddStatement(statement, this.writes);
+        if (isIndexAssignmentStatement(statement)) return prepareIndexAssignment(statement, this.writes);
+        if (isUnpackStatement(statement)) return prepareUnpackStatement(statement, this.writes);
+        if (isArrayAssignmentStatement(statement)) return prepareArrayAssignment(statement, this.writes);
+        if (isAssignmentStatement(statement)) return prepareAssignment(statement, this.writes);
         if (isExpressionStatement(statement)) {
             const form = applicationForm(statement.value, name => this.applicationOperation(name), true);
             const mutation = form.kind === 'collection-mutation' ? form : undefined;
-            if (mutation) {
-                return { stream: function* (): Execution<RankValue | undefined> {
-                    const target = yield* resume(interpreter.evaluateTask(mutation.receiver));
-                    if (isRankGraph(target)) {
-                        interpreter.requireModule('graph', mutation.operation);
-                        if (mutation.operation !== 'add') {
-                            throw new RankError('graph does not support remove');
-                        }
-                        const values = yield* resume(mapExecution(
-                            mutation.arguments ?? [mutation.value],
-                            value => interpreter.evaluateTask(value),
-                        ));
-                        target.add(values);
-                        return undefined;
-                    }
-                    // The receiver decides first. Asking for `use algo` before
-                    // knowing the value can take the mutation blames a module for
-                    // what is really a receiver that is not a collection at all.
-                    const receiver = mutation.operation === 'add'
-                        ? expectAddCollection(target) : target;
-                    interpreter.requireModule('algo', mutation.operation);
-                    const value = yield* resume(interpreter.evaluateTask(mutation.value));
-                    if (mutation.operation === 'add') addToCollection(receiver, value);
-                    else removeFromCollection(receiver, value);
-                    return undefined;
-                } };
-            }
+            if (mutation) return prepareCollectionMutation(mutation, this.writes);
             if (isNameExpression(statement.value) && statement.value.name.endsWith('.run')) {
                 const alias = statement.value.name.slice(0, -4);
                 return { stream: function* (): Execution<RankValue | undefined> { return interpreter.runAlias(alias); } };
@@ -1638,14 +1312,6 @@ function blockNames(statement: Statement, syntheticNames: ReadonlySet<string>): 
     };
     visit(statement);
     return [...names].filter(name => !syntheticNames.has(name));
-}
-
-function arrayItem(source: RankArray, index: number): RankValue {
-    return readArrayItem(source, index);
-}
-
-function assignmentOperator(operator: string): string {
-    return operator.slice(0, -1);
 }
 
 type FunctionPlacement = 'top' | 'function' | 'block';
