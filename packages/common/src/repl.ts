@@ -1,5 +1,5 @@
-import { EMPTY_CELL, addLine, isComplete } from './repl-input.js';
-import { Notebook, splitSource } from './notebook.js';
+import { EMPTY_CELL, addLine, hasCode, isComplete } from './repl-input.js';
+import { Notebook } from './notebook.js';
 import { FileWorkflow, type SavePrompt } from './file-workflow.js';
 import { ExecutionRunner } from './execution-runner.js';
 import { LiveConditionalController } from './live-conditional-controller.js';
@@ -165,12 +165,17 @@ export class NotebookRepl {
         const book = this.notebook;
         const failing = book.active;
         const cursor = book.cursor;
-        const position = importPosition(book.cells, module, failing);
-        book.insertCell(position, `use ${module}`);
+        const { index: position, line } = importPosition(book.cells, module, failing);
+        if (line === undefined) book.insertCell(position, `use ${module}`);
+        else {
+            const lines = book.cells[position].source.split('\n');
+            lines.splice(line, 0, `use ${module}`);
+            book.cells[position].source = lines.join('\n');
+        }
         book.selectTo(position, 0);
         const exit = await this.rerun();
         if (exit || book.cells[position].status !== 'ok') return exit;
-        book.selectTo(failing + 1, cursor);
+        book.selectTo(failing + (line === undefined ? 1 : 0), cursor);
         return this.rerun();
     }
 
@@ -313,14 +318,13 @@ export class NotebookRepl {
         this.stepTarget = undefined;
         this.iterationSelecting = false;
         const book = this.notebook;
+        // Running an edited cell settles its boundaries first: one statement per cell.
+        book.resplit(book.active);
         const targetIndex = book.active;
         const targetCursor = book.cursor;
         const pendingFrom = book.dirtyFrom;
-        const firstSource = book.cells.findIndex(cell => !cell.command && cell.source.trim() !== '');
-        const firstPart = splitSource(book.current.source).find(part => part.trim() !== '');
-        const firstEnd = firstPart === undefined ? -1 : book.current.source.indexOf(firstPart) + firstPart.length;
-        if (!book.atPrompt && (book.active === firstSource && book.cursor <= firstEnd
-            || pendingFrom === firstSource && firstSource < targetIndex)) {
+        const firstSource = book.cells.findIndex(cell => !cell.command && hasCode(cell.source));
+        if (!book.atPrompt && (book.active === firstSource || pendingFrom === firstSource && firstSource < targetIndex)) {
             await this.execution.exclusive(async () => {
                 await this.session.resetExecution();
                 book.resetExecution();
@@ -334,13 +338,13 @@ export class NotebookRepl {
             for (let index = start; index < targetIndex; index++) {
                 const cell = book.cells[index];
                 if (cell.command) continue;
-                if (cell.source.trim() === '') {
+                if (!hasCode(cell.source)) {
                     cell.executed = cell.source;
                     cell.output = [];
                     cell.status = 'idle';
                     continue;
                 }
-                const exit = await this.execution.executeOne(index, cell.source, 0);
+                const exit = await this.execution.executeOne(index);
                 if (exit || cell.status === 'error' || cell.status === 'interrupted') return exit;
             }
             book.selectTo(targetIndex, targetCursor);
@@ -357,30 +361,13 @@ export class NotebookRepl {
     private async runInstruction(): Promise<boolean> {
         const book = this.notebook;
         const index = book.active;
-        let offset = 0;
-        const parts = splitSource(book.current.source);
-        let selected = parts.length - 1;
-        for (const [part, source] of parts.entries()) {
-            if (book.cursor <= offset + source.length) { selected = part; break; }
-            offset += source.length + 1;
+        if (hasCode(book.current.source)) {
+            const exit = await this.execution.executeOne(index);
+            if (exit || book.current.status === 'error' || book.current.status === 'interrupted') return exit;
         }
-        const source = parts[selected] ?? '';
-        if (selected > 0 && book.current.status === 'idle' && book.current.executed === undefined) {
-            let prefixOffset = 0;
-            for (const part of parts.slice(0, selected)) {
-                const exit = await this.execution.executeOne(index, part, prefixOffset);
-                if (exit || book.cells[index].status === 'error' || book.cells[index].status === 'interrupted') return exit;
-                prefixOffset += part.length + 1;
-            }
-        }
-        const exit = await this.execution.executeOne(index, source, offset);
-        if (exit || book.current.status === 'error' || book.current.status === 'interrupted') return exit;
-        if (selected + 1 < parts.length) book.cursor = offset + source.length + 1;
-        else {
-            book.active = Math.min(index + 1, book.cells.length - 1);
-            book.cursor = book.atPrompt ? book.current.source.length : 0;
-        }
-        while (!book.atPrompt && !book.current.source.trim()) book.active++;
+        book.active = Math.min(index + 1, book.cells.length - 1);
+        book.cursor = book.atPrompt ? book.current.source.length : 0;
+        while (!book.atPrompt && !hasCode(book.current.source)) book.active++;
         if (!book.atPrompt) this.stepTarget = { id: book.current.id, source: book.current.source, cursor: book.cursor };
         return false;
     }

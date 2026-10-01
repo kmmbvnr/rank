@@ -2,6 +2,7 @@
 import { cellWidth, fitEnd } from './display-width.js';
 import stripVTControlCharacters from 'strip-ansi';
 import type { Notebook } from './notebook.js';
+import { hasCode } from './repl-input.js';
 import type { PauseSnapshot } from '@arrrank/interpreter';
 import { importPhrases, missingImports } from './import-fix.js';
 
@@ -142,6 +143,7 @@ export function notebookFrame(
     let nextEvalRow: number | undefined;
     let nextEvalSourceLine: number | undefined;
     const dirty = notebook.dirtyFrom;
+    let number = 0;
     for (const [index, cell] of notebook.cells.entries()) {
         const pending = dirty >= 0 && index >= dirty && index < notebook.cells.length - 1;
         const prompt = index === notebook.cells.length - 1;
@@ -149,13 +151,15 @@ export function notebookFrame(
         const editingField = live && promptFields?.some(field => field.active);
         const nextEvalLine = index === notebook.active && !editingField && (live || stepping)
             ? promptOutputFocus?.nextLine ?? cell.source.slice(0, notebook.cursor).split('\n').length : undefined;
-        const label = prompt ? promptLabel : `●${String(index + 1).padStart(3)}› `;
+        const numbered = prompt || cell.command || hasCode(cell.source);
+        if (numbered && !prompt) number++;
+        const label = prompt ? promptLabel : `●${String(number).padStart(3)}› `;
         const color = cell.status === 'running' || cell.status === 'interrupted' ? '\x1b[33m'
             : cell.status === 'error' && cell.executed === cell.source && (index === dirty || !pending) ? '\x1b[31m'
             : pending || cell.status === 'idle' ? '\x1b[90m'
             : !cell.command && notebook.isExperimental(index) ? '\x1b[38;5;208m' : '\x1b[32m';
         const sourceRows = editableRows(cell.source, bodyWidth);
-        const labelRow = prompt ? 0 : sourceRows.findIndex(row => row.text.trim() !== '');
+        const labelRow = prompt ? 0 : numbered ? sourceRows.findIndex(row => row.text.trim() !== '') : -1;
         for (const [line, item] of sourceRows.entries()) {
             const offset = item.points[0]?.offset ?? 0;
             const sourceLine = cell.source.slice(0, offset).split('\n').length;
@@ -169,7 +173,7 @@ export function notebookFrame(
             const marker = breakpoint ? '    ◆ ' : line === labelRow ? label : hiddenFocusedDraft ? '      '
                 : steppingNext ? '    ● '
                 : liveProgress ? '    ● '
-                : item.text.trim() === '' ? '      ' : '    · ';
+                : item.text.trim() === '' || !numbered ? '      ' : '    · ';
             const prefix = fitEnd(marker, gutter || cellWidth(label));
             const progress = promptOutputs?.get(sourceLine);
             const progressColor = progress?.some(output => output.error) ? '\x1b[31m'
