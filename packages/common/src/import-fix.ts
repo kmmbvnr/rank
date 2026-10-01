@@ -21,23 +21,24 @@ export function importPhrases(text: string): { text: string; phrases: string[] }
     return { text: shown, phrases };
 }
 
-function importedModule(cell: NotebookCell): string | undefined {
-    return /^\s*use\s+"?([^"\s]+)/.exec(cell.source)?.[1];
+function importedModule(line: string): string | undefined {
+    return /^\s*use\s+"?([^"\s]+)/.exec(line)?.[1];
 }
 
 function preamble(cell: NotebookCell): boolean {
     return cell.source.split('\n').every(line => /^\s*(?:rem\b|#!|$)/.test(line));
 }
 
-/** The first cell at or after which `use module` keeps the imports sorted,
- * never below the failing cell; with no imports, after the leading comments. */
-export function importPosition(cells: readonly NotebookCell[], module: string, failing: number): number {
-    const imports = cells.slice(0, failing).flatMap((cell, index) =>
-        cell.command || importedModule(cell) === undefined ? [] : [index]);
+/** Where `use module` keeps the imports sorted, never below the failing cell. Imports live in one
+ * cell, so it joins that cell at `line`; with no imports it is a new cell after the leading comments. */
+export function importPosition(cells: readonly NotebookCell[], module: string, failing: number): { index: number; line?: number } {
+    const imports = cells.slice(0, failing).flatMap((cell, index) => cell.command ? []
+        : cell.source.split('\n').flatMap((text, line) => importedModule(text) === undefined ? [] : [{ index, line, text }]));
     if (!imports.length) {
         const first = cells.findIndex((cell, index) => index >= failing || !cell.command && !preamble(cell));
-        return Math.min(first < 0 ? failing : first, failing);
+        return { index: Math.min(first < 0 ? failing : first, failing) };
     }
-    const after = imports.find(index => importedModule(cells[index])! > module);
-    return after ?? imports.at(-1)! + 1;
+    const after = imports.find(item => importedModule(item.text)! > module);
+    const last = imports.at(-1)!;
+    return after ? { index: after.index, line: after.line } : { index: last.index, line: last.line + 1 };
 }

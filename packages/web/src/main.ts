@@ -83,7 +83,7 @@ const storageKey = example ? 'rank-example-fibonacci-v1' : 'rank-notebook-v1';
 try {
     const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
     if (saved && Array.isArray(saved.cells) && saved.cells.every((s: unknown) => typeof s === 'string')) {
-        for (const source of saved.cells) repl.notebook.enqueue(source);
+        for (const source of saved.cells) repl.notebook.restore(source);
         repl.notebook.toPrompt();
         repl.notebook.replace(typeof saved.draft === 'string' ? saved.draft : '');
     }

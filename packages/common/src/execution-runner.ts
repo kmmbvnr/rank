@@ -1,4 +1,5 @@
 import { splitSource, type Notebook } from './notebook.js';
+import { hasCode } from './repl-input.js';
 import type { ReplSession } from './repl-types.js';
 
 /** Runs committed cells and owns transient running and interruption state. */
@@ -6,7 +7,6 @@ export class ExecutionRunner {
     running = false;
     private startedAt?: number;
     private stopping = false;
-    private steppedPrefix?: { id: number; source: string; next: number };
 
     constructor(
         private readonly notebook: Notebook,
@@ -60,7 +60,6 @@ export class ExecutionRunner {
     }
 
     async execute(draft: string, command: boolean, force: boolean): Promise<boolean> {
-        this.steppedPrefix = undefined;
         const book = this.notebook;
         if (draft.trim() !== '' || !force && book.dirtyFrom < 0) {
             const draftId = book.cells.at(-1)!.id;
@@ -102,7 +101,7 @@ export class ExecutionRunner {
             for (let index = start; index < end; index++) {
                 const cell = book.cells[index];
                 if (cell.command) continue;
-                if (cell.source.trim() === '') {
+                if (!hasCode(cell.source)) {
                     cell.executed = cell.source;
                     cell.output = [];
                     cell.errorOffset = undefined;
@@ -131,22 +130,12 @@ export class ExecutionRunner {
         }
     }
 
-    async executeOne(index: number, source: string, offset: number): Promise<boolean> {
+    async executeOne(index: number): Promise<boolean> {
         const book = this.notebook;
         const cell = book.cells[index];
-        const original = cell.source;
-        const partial = source !== original;
         return this.exclusive(async () => {
             book.beginExecution(index);
-            const exit = await this.run(index, source, partial ? { source: original, offset } : undefined, !partial);
-            const consecutive = offset === 0 || this.steppedPrefix?.id === cell.id
-                && this.steppedPrefix.source === original && this.steppedPrefix.next === offset;
-            this.steppedPrefix = partial && cell.status === 'ok' && consecutive
-                ? { id: cell.id, source: original, next: offset + source.length + 1 } : undefined;
-            if (this.steppedPrefix && offset + source.length === original.length) {
-                cell.executed = original;
-                this.steppedPrefix = undefined;
-            }
+            const exit = await this.run(index, cell.source, true);
             book.replayFrom = index + 1 < book.cells.length - 1 ? index + 1 : undefined;
             if (cell.status === 'error') {
                 book.replayFrom = index;
@@ -157,7 +146,7 @@ export class ExecutionRunner {
         });
     }
 
-    private async run(index: number, source: string, enclosing?: { source: string; offset: number }, replaceDeclarations = false): Promise<boolean> {
+    private async run(index: number, source: string, replaceDeclarations = false): Promise<boolean> {
         const book = this.notebook;
         const cell = book.cells[index];
         book.active = index;
@@ -190,9 +179,7 @@ export class ExecutionRunner {
             if (result.interrupted) result.output.unshift({
                 text: `Stopped after ${((performance.now() - this.startedAt!) / 1000).toFixed(this.session.turboActive ? 2 : 1)}s`, error: false,
             });
-            book.finish(index, enclosing ? { ...result, source: enclosing.source,
-                errorOffset: result.errorOffset === undefined ? undefined : enclosing.offset + result.errorOffset } : result);
-            if (enclosing && result.ok) cell.executed = undefined;
+            book.finish(index, result);
             this.render();
             return false;
         } finally {

@@ -37,8 +37,9 @@ describe('Ctrl-R on a later instruction', () => {
 
         await new KeyRouter(repl).press('', { ctrl: true, name: 'r' });
 
-        expect(repl.notebook.cells[0].output.map(line => line.text)).toEqual(['1']);
-        expect(repl.notebook.cells[0].executed).toBe(repl.notebook.cells[0].source);
+        expect(repl.notebook.cells.map(cell => cell.source)).toEqual(['Count = 0', 'Count += 1', 'Count', '']);
+        expect(repl.notebook.cells[2].output.map(line => line.text)).toEqual(['1']);
+        expect(repl.notebook.cells[2].executed).toBe('Count');
     });
 
     it('does not repeat instructions that already ran', async () => {

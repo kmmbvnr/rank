@@ -104,13 +104,31 @@ source changed, execution starts at the earliest changed instruction, continues
 through the following instructions, then reaches the newly submitted one. An
 empty Enter at the bottom resumes pending work. When nothing is pending, it adds
 a blank source line.
-Blank lines have no status circle and are saved as spacing, without execution.
+Blank lines and cells holding only `rem` comments have no number, no status circle
+and no output. They are saved as written, never executed, and do not use up a
+number: numbering counts only cells that contain code. Editing an executed cell
+into a comment clears its output and status.
+
+### Cell boundaries
+
+Boundaries follow content, not how the text was typed. One top-level statement is
+one cell, and a block (`fun`, `memo`, `if`, `for`, `try` … `end`) stays whole.
+Consecutive top-level `use` lines form one cell, so imports live together; a new
+`use` typed at `rank>` or anywhere among them joins that cell.
+
+Enter inside an existing cell still inserts a newline into that cell. When the
+cursor leaves an edited cell (to another cell or to `rank>`) or the cell is run,
+its source is split again with the same rules as loading a file. Statements that
+did not change keep their status and output; changed ones become pending. The
+saved `.ra` text is the same either way. Notebooks restored by the web app go
+through the same split.
+
 Ctrl-R on committed source executes only the selected top-level instruction,
 against retained interpreter state, then stops at the next instruction. Enter
 continues one step at a time; at a loop it opens the iteration preview rather
 than executing the whole loop. Completing an existing block also stops before
-the next instruction. A grouped cell keeps its surrounding source intact when
-only one of its statements is run. Partial grouped-cell execution remains pending.
+the next instruction. A cell never holds more than one statement, so there is no
+partial execution of a cell.
 When Ctrl-R runs a whole cell, it removes bindings first declared by that cell
 before evaluating it again, so an edited declaration can change its type or name.
 Assignments to names declared in other cells still check their existing types.
