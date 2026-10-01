@@ -51,6 +51,12 @@ A mask with `.NA` selects no row or element where it has no value (`filter`, `X 
 
 An array with `.NA` cells is a values buffer plus an optional validity bitmap (1 bit per cell, set means present, as in Arrow). An array without `.NA` has no bitmap and runs the existing path unchanged. Kernels combine validity with a bitwise AND and compute the values unconditionally, so they stay branch-free and map to SIMD and GPU. The layout matches the validity bitmap planned for Arrow table columns (#6).
 
+### 7. Static facts and type stability
+
+The analyzer types the literal `.NA` as `missing` and keeps it apart from the numeric type: `array 1.0 .NA 3.0` has element types `real` and `missing`, the missing-aware `real?`. Arithmetic and comparison of `.NA` with a scalar give `missing`, `and`/`or` give `boolean` or `missing`, and `default` removes `missing` from what it leaves (`P default 0.0` has element type `real`). The proofs that let numeric kernels skip checks (`callbackFreeScalarCells`) do not cover `missing`, so such arrays take the general path.
+
+Type stability (ADR-0100) treats `.NA` as fitting every binding: `Best = 2.0` then `Best = .NA` is allowed and `Best` stays `real`. A name that has held only `.NA` settles on the type of its first value, so `Best = .NA` then `Best = 1.0` is allowed and `Best = "a"` after it is not. The runtime and the analyzer use the same rule (`acceptsBindingType`, `settledBindingTypes`).
+
 ## Consequences
 
 * A scalar `.NA` is a real value. ADR-0107's "no silent nulls" holds for addressing, because absent reads still raise; `.NA` is explicit data that the program or its input wrote.

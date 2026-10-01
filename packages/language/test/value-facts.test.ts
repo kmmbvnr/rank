@@ -1118,3 +1118,28 @@ it('keeps only dimensions proven equal across a join', async () => {
         { types: ['array'], rank: 1, shape: [null], dims: [variableDim('y')] }]);
     expect(differ.dims).toBeUndefined();
 });
+
+it('keeps missing cells apart from the numeric type and drops them at default', () => {
+    const cells = facts('array 1.0 .NA 3.0');
+    expect(cells).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['real', 'missing'] });
+    const env = new Map<string, ValueFacts>([['P', cells], ['N', facts('.NA')], ['R', facts('1.5')]]);
+    expect(facts('P default 0.0', env)).toEqual({ types: ['array'], rank: 1, shape: [3], elements: ['real'] });
+    expect(facts('P default false', env)).toMatchObject({ elements: ['real', 'boolean'] });
+    expect(facts('P 1 default 0.0', env).types).toEqual(['real']);
+    expect(facts('N + 1', env)).toEqual({ types: ['missing'], rank: 0, shape: [] });
+    expect(facts('R less N', env)).toEqual({ types: ['missing'], rank: 0, shape: [] });
+    expect(facts('R and N', env).types).toEqual(['boolean', 'missing']);
+    // The numeric kernels' proof does not cover cells that may have no value.
+    expect(facts('P + 1.0', env).callbackFreeScalarCells).toBeUndefined();
+});
+
+it('lets a name hold .NA before its first value and refuses other changes of type', () => {
+    const diagnose = (source: string) => {
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        return analyzeValues(program.value, new Map(), new Map(), []).diagnostics.map(item => item.message);
+    };
+    expect(diagnose('X = .NA\nX = 1.0\n')).toEqual([]);
+    expect(diagnose('Y = 2.0\nY = .NA\nY = 3.5\n')).toEqual([]);
+    expect(diagnose('X = .NA\nX = 1.0\nX = "a"\n')).toEqual(['X has type real and cannot receive text']);
+    expect(diagnose('Y = 2.0\nY = .NA\nY = "a"\n')).toEqual(['Y has type real and cannot receive text']);
+});
