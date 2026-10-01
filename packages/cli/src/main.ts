@@ -84,7 +84,12 @@ async function checkFiles(target: string): Promise<void> {
             const source = await fs.readFile(file, 'utf8');
             const sourceId = path.relative(process.cwd(), file);
             const program = parse(source, sourceId);
-            const renamed = analyzeValues(program).diagnostics.find(item => item.code === 'BuiltinRename');
+            const diagnostics = analyzeValues(program).diagnostics;
+            for (const warning of diagnostics.filter(item => item.severity === 'warning')) {
+                const start = warning.node.$cstNode?.range.start;
+                console.warn(`${sourceId}:${(start?.line ?? 0) + 1}:${(start?.character ?? 0) + 1}: warning: ${warning.message}`);
+            }
+            const renamed = diagnostics.find(item => item.code === 'BuiltinRename');
             if (renamed) {
                 const error = new RankError(renamed.message, renamed.code);
                 const start = renamed.node.$cstNode?.range.start;

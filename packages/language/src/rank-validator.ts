@@ -33,7 +33,7 @@ export class RankValidator {
             accept('error', diagnostic.message, { node: diagnostic.node });
         }
         for (const diagnostic of analyzeValues(program).diagnostics) {
-            accept('error', diagnostic.message, { node: diagnostic.node, code: diagnostic.code ?? diagnostic.kind });
+            accept(diagnostic.severity ?? 'error', diagnostic.message, { node: diagnostic.node, code: diagnostic.code ?? diagnostic.kind });
         }
     }
 

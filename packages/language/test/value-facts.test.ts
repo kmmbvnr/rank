@@ -1056,3 +1056,27 @@ it('leaves a call of a function with declared ranks unknown', () => {
     const analysis = analyzeValues(parsed.value);
     expect(analysis.bindings.get('A')?.rank).toBeUndefined();
 });
+
+function ragged(source: string) {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(parsed.parserErrors).toEqual([]);
+    return analyzeValues(parsed.value).diagnostics.filter(item => item.code === 'RaggedLift')
+        .map(({ node: _node, ...item }) => item);
+}
+
+it('warns when rank lifts a function with a data-dependent result length', () => {
+    const [warning] = ragged('M = array 1 1 2 3 shape 2 2\n(M unique rank 1) print\n');
+    expect(warning.severity).toBe('warning');
+    expect(warning.message).toContain('`unique` returns a data-dependent length');
+    expect(ragged('M = array 1 1 2 3 shape 2 2\n(M distinct rank 1) print\n')).toEqual([]);
+    expect(ragged('M = array 1 2 3 shape 3\n(M unique rank 1) print\n')).toEqual([]);
+    expect(ragged('M = array 3 1 2 shape 2 3\n(M sort rank 1) print\n')).toEqual([]);
+    const fn = 'fun distinct Row\n  return Row unique sum\nend\nfun uniq Row\n  return Row unique\nend\n';
+    expect(ragged(fn + 'M = array 1 1 2 3 shape 2 2\n(M uniq rank 1) print\n')[0].message)
+        .toContain('`uniq` returns a data-dependent length (from `unique`)');
+    expect(ragged(fn + 'M = array 1 1 2 3 shape 2 2\n(M distinct rank 1) print\n')).toEqual([]);
+    expect(ragged('use text\nM = array 1 1 2 3 shape 2 2\n(M words rank 1) print\n')).toHaveLength(1);
+    const mask = 'fun positive Row\n  return Row (Row greater 0)\nend\n';
+    expect(ragged(mask + 'M = array 1 1 2 3 shape 2 2\n(M positive rank 1) print\n')[0].message)
+        .toContain('(from `a mask selection`)');
+});

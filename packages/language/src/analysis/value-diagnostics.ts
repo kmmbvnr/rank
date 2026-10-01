@@ -13,7 +13,7 @@ import {
 } from '../generated/ast.js';
 import { compoundType } from './types.js';
 import { flattenApplication } from '../expressions.js';
-import { findOperation } from '../operations.js';
+import { findOperation, type Operation } from '../operations.js';
 import { builtinBindingDiagnostics } from '../builtin-bindings.js';
 import { renamedBuiltinCall } from '../builtin-renames.js';
 import { arrayRank, conditionalPaths, contractRank, invalidate, mergeEnvironments } from './control-flow.js';
@@ -35,7 +35,8 @@ export interface ValueDiagnostic {
     readonly node: AstNode;
     readonly message: string;
     readonly kind: 'TypeError' | 'DimensionMismatch';
-    readonly code?: 'BuiltinRename';
+    readonly code?: 'BuiltinRename' | 'RaggedLift';
+    readonly severity?: 'warning';
 }
 
 export interface ValueAnalysis {
@@ -510,6 +511,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 }
             }
         }
+        if (isApplicationExpression(expression)) raggedLiftWarning(expression, lookup);
         if (isBinaryExpression(expression)) {
             const left = inspect(expression.left, env);
             const right = inspect(expression.right, env);
@@ -543,6 +545,66 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         expressions.set(expression, result);
         if (result.bottom) throw new UnobservedReturn();
         return result;
+    }
+
+    /** `Row (Row greater 0)`: a parenthesized boolean mask selects a data-dependent number of items. */
+    function maskSelection(value: Expression, declared: FunctionStatement) {
+        if (!isApplicationExpression(value)) return undefined;
+        const parts = flattenApplication(value);
+        const mask = parts.length === 2 ? parts[1] : undefined;
+        if (!mask || !isParenthesizedExpression(mask)) return undefined;
+        const inner = mask.value;
+        const boolean = isBinaryExpression(inner) ? !['+', '-', '*', '/', '//', '%', '**', 'till', 'to', 'until', 'default'].includes(inner.operator)
+            : (() => {
+                const last = flattenApplication(inner).at(-1);
+                const operation = isNameExpression(last) && !declared.parameters.includes(last.name) && !functions.has(last.name)
+                    ? findOperation(last.name) : undefined;
+                return operation?.result === 'boolean';
+            })();
+        return boolean ? { name: 'a mask selection' } : undefined;
+    }
+
+    /** The builtin that ends every `return` of a one-parameter function with no declared ranks, if all agree on a data-dependent length. */
+    function raggedReturn(declared: FunctionStatement) {
+        if (declared.parameters.length !== 1 || declared.ranks.length) return undefined;
+        const returns = AstUtils.streamAllContents(declared).filter(isReturnStatement).toArray();
+        let found;
+        for (const item of returns) {
+            if (!item.value) return undefined;
+            const selected = maskSelection(item.value, declared);
+            if (selected) { found ??= selected; continue; }
+            const last = flattenApplication(item.value).at(-1);
+            const operation = isNameExpression(last) && !declared.parameters.includes(last.name) && !functions.has(last.name)
+                ? findOperation(last.name) : undefined;
+            if (!operation || !dataDependentLength(operation)) return undefined;
+            found ??= operation;
+        }
+        return found;
+    }
+
+    /** `F rank N` over a frame of several cells where F's result length depends on the values. */
+    function raggedLiftWarning(expression: Expression, lookup: FactLookup): void {
+        if (!isApplicationExpression(expression)) return;
+        const parts = flattenApplication(expression);
+        const modifier = parts.at(-2);
+        if (parts.length !== 4 || !isNameExpression(modifier) || modifier.name !== 'rank' || lookup('rank')) return;
+        const name = parts[1];
+        if (!isNameExpression(name)) return;
+        const declared = functions.get(name.name);
+        const operation = declared ? undefined : lookup(name.name) ? undefined : findOperation(name.name);
+        const source_ = declared ? raggedReturn(declared) : operation && dataDependentLength(operation) ? operation : undefined;
+        if (!source_) return;
+        const rank = expressionFacts(parts[3], lookup).integer;
+        const source = expressions.get(parts[0]) ?? expressionFacts(parts[0], lookup);
+        const sourceRank = source.shape?.length ?? source.acceptedArrayRank;
+        if (rank === undefined || BigInt(rank) < 0n || sourceRank === undefined
+            || source.types.length && source.types.join() !== 'array') return;
+        const frame = source.shape?.slice(0, Math.max(0, sourceRank - Number(rank)))
+            ?? Array<number | null>(Math.max(0, sourceRank - Number(rank))).fill(null);
+        if (frame.length === 0 || frame.every(n => n !== null) && frame.reduce<number>((size, n) => size * n!, 1) <= 1) return;
+        diagnostics.push({ node: modifier, kind: 'DimensionMismatch', code: 'RaggedLift', severity: 'warning',
+            message: `\`${name.name}\` returns a data-dependent length${declared ? ` (from \`${source_.name}\`)` : ''}; under \`rank ${rank}\` the cells may differ in length `
+                + `and fail at run time. Reduce inside a function you lift (for example \`fun Total Row\` returning \`Row ... sum\`) or pad to a fixed width`});
     }
 
     function checkFieldAssignment(expected: ValueFacts, value: Expression, operator: string,
@@ -990,4 +1052,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const unique = diagnostics.filter((diagnostic, index) => !diagnostics.slice(0, index).some(previous =>
         previous.node === diagnostic.node && previous.message === diagnostic.message));
     return { diagnostics: unique, bindings, expressions, functions, functionResults };
+}
+
+function dataDependentLength(operation: Operation): boolean {
+    return operation.dataLength === true || !!operation.shape?.find(shape => shape.args.length === 1)?.result
+        ?.some(term => term !== null && typeof term === 'object' && 'exists' in term);
 }
