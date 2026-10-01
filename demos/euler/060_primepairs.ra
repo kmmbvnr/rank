@@ -26,11 +26,25 @@ fun build Limit
   Vals = primes from 3 till Limit filter not equal 5 array
   Graph = new graph Vals .undirected
 
-  for P i in Vals
-    Later = Vals drop (i + 1)
-    for Q in Later
-      Same = P % 3 equal Q % 3
-      if P equal 3 or Q equal 3 or Same
+  if 3 in Vals
+    Three = 3
+    for Q in Vals drop 1
+      if Three Q compatible
+        Graph add Three Q
+      end
+    end
+  end
+
+  Mod1 = Vals (Vals % 3 equal 1)
+  Mod2 = Vals (Vals % 3 equal 2)
+
+  for Group in array Mod1 Mod2
+    for P i in Group
+      if P at least 10000
+        break
+      end
+      Later = Group drop (i + 1)
+      for Q in Later
         if P Q compatible
           Graph add P Q
         end
