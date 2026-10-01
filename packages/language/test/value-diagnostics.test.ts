@@ -2277,7 +2277,8 @@ it('infers circuit signals through a read-only helper and a caught retry loop', 
         'return Wires Token', 'Wires Token = "changed"\n      return Wires Token'));
     expect(analyzeValues(indexWriter.value, new Map(), new Map(), examples).functionResults
         .every(fact => !fact.types.length)).toBe(true);
-});
+    // Analyzing the whole circuit demo takes about 3 s, near the default limit on a slow runner.
+}, 30_000);
 
 it('joins an index before and after a potentially throwing write', () => {
     const source = 'fun read\n index "a" = 1\n try\n  index "a" = "x"\n'
