@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { createArraySnapshot, hasMaskedCells, isPresentAt, maskedCells, readArrayItem } from '../src/array-storage.js';
+import { mapMaskedArrays } from '../src/masked-kernels.js';
+import { MISSING } from '../src/value.js';
 import { run } from './support.js';
 
 describe('missing cells (.NA)', () => {
@@ -60,5 +63,56 @@ describe('missing cells (.NA)', () => {
     it('keeps nan a number apart from missing', () => {
         expect(run('use numbers\n(array 1.0 nan .NA) present')).toBe('true true false');
         expect(run('use numbers\n(array 1.0 nan .NA) isnan')).toBe('false true false');
+    });
+});
+
+describe('missing cells in typed storage', () => {
+    const cells = (...items: (number | bigint | typeof MISSING)[]) => createArraySnapshot(items);
+
+    it('keeps real cells in a buffer with a validity bitmap', () => {
+        const array = cells(1.5, MISSING, 3);
+        const masked = maskedCells(array);
+        expect(masked?.values).toEqual(new Float64Array([1.5, 0, 3]));
+        expect(masked && isPresentAt(masked.validity, 1)).toBe(false);
+        expect(masked && isPresentAt(masked.validity, 2)).toBe(true);
+        expect(readArrayItem(array, 1)).toBe(MISSING);
+        expect(readArrayItem(array, 2)).toBe(3);
+        // Reading the plain view restores `.NA` cells and ends the typed form.
+        expect(array.items).toEqual([1.5, MISSING, 3]);
+        expect(maskedCells(array)).toBeUndefined();
+    });
+
+    it('keeps integer cells with a bitmap and leaves other arrays alone', () => {
+        expect(hasMaskedCells(cells(1n, MISSING))).toBe(true);
+        expect(maskedCells(cells(1n, MISSING))).toBeUndefined();
+        expect(hasMaskedCells(cells(1, 2, 3))).toBe(false);
+        expect(hasMaskedCells(cells(1, 2n, MISSING))).toBe(false);
+        expect(hasMaskedCells(createArraySnapshot([true, MISSING]))).toBe(false);
+    });
+
+    it('computes real arithmetic on the buffers and combines the bitmaps', () => {
+        const left = cells(1, MISSING, 3, 4);
+        const right = cells(10, 20, MISSING, 40);
+        const sum = mapMaskedArrays(left, right, 0)!;
+        expect(maskedCells(sum)?.values[0]).toBe(11);
+        expect(maskedCells(sum)?.values[3]).toBe(44);
+        expect(sum.items).toEqual([11, MISSING, MISSING, 44]);
+        expect(mapMaskedArrays(left, 2, 2)!.items).toEqual([2, MISSING, 6, 8]);
+        expect(mapMaskedArrays(left, right, 6)!.items).toEqual([false, MISSING, MISSING, false]);
+        // A real zero divisor still goes to the general path, a missing one does not.
+        expect(mapMaskedArrays(cells(1, 2), cells(0, MISSING), 3)).toBeUndefined();
+        expect(mapMaskedArrays(cells(1, 2), cells(1, MISSING), 3)!.items).toEqual([1, MISSING]);
+    });
+
+    it('agrees with the plain path through the language', () => {
+        const size = 70;
+        const text = Array.from({ length: size }, (_, index) => index % 7 === 3 ? '.NA' : `${index}.5`).join(' ');
+        const expected = Array.from({ length: size }, (_, index) => index % 7 === 3 ? '.NA' : `${index + 2}.5`).join(' ');
+        expect(run(`X = array ${text}\nX + 2`)).toBe(expected);
+        expect(run(`use sequences\nX = array ${text}\n(X + 2) present count`)).toBe(String(size - 10));
+        expect(run(`X = array ${text}\n(X default 0.0) sum`)).toBe(run(`X = array ${text}\nX sum`));
+        expect(run(`X = array ${text}\nX max`)).toBe('69.5');
+        expect(run(`X = array ${text}\nX min`)).toBe('0.5');
+        expect(run(`use stats\nX = array ${text}\nX mean`)).toBe(run(`use stats\nX = array ${text}\n(X default 0.0) sum / 60`));
     });
 });

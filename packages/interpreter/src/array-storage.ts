@@ -2,7 +2,7 @@ import { interruptibleCallback } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { ResourceSummary } from './resource-summary.js';
 import { MissingValueError, RankError } from './errors.js';
-import { isRankArray, type RankArray, type RankObject, type RankValue } from './value.js';
+import { isRankArray, MISSING, type RankArray, type RankObject, type RankValue } from './value.js';
 
 /** Eager numeric cells only. Lazy Rank readers must retain their caches. */
 export function eagerArrayStorage(value: RankValue): {
@@ -60,6 +60,10 @@ interface OwnedStorage {
      * and length reads are valid on it, and `convert` swaps in a plain array. */
     items: RankValue[];
     typed?: Float64Array | BigInt64Array;
+    /** Bit i set means cell i of `typed` has a value; absent when every cell has one.
+     * The buffer holds 0 in a cell without a value. A masked array is not
+     * `scalarOnly`: kernels that do not read the bits must not see its buffer. */
+    validity?: Uint32Array;
     convert?: () => void;
     /** The revision at which every cell was last found to be a number, or not. */
     realChecked?: { revision: number; real: boolean };
@@ -148,7 +152,7 @@ export function realCells(value: RankArray): ArrayLike<number> | undefined {
  * not a real number. A typed buffer is shared; plain cells are copied. */
 export function float64Cells(value: RankArray): Float64Array | undefined {
     const state = ownedStorage.get(value);
-    if (state?.stable && state.typed instanceof Float64Array) return state.typed;
+    if (state?.stable && state.typed instanceof Float64Array && !state.validity) return state.typed;
     const plain = realCells(value);
     if (!plain) return undefined;
     // A plain loop: `Float64Array.from` walks an iterator, several times slower.
@@ -167,6 +171,8 @@ const MAX_EAGER_OPERAND_CELLS = 1 << 25;
  * the cell is demanded) or when a cell is not a number.
  */
 export function eagerOperandItems(value: RankArray): ArrayLike<RankValue> | undefined {
+    // Reading the cells of a masked array would turn it into a plain one.
+    if (ownedStorage.get(value)?.validity) return undefined;
     const stored = denseScalarItems(value);
     if (stored) return stored;
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
@@ -228,23 +234,103 @@ export function typedArray(
 /** The element type of an array still held in a typed buffer. */
 export function typedElementKind(value: RankArray): 'integer' | 'real' | undefined {
     const state = ownedStorage.get(value);
-    if (!state?.stable || !state.typed) return undefined;
+    if (!state?.stable || !state.typed || state.validity) return undefined;
     return state.typed instanceof BigInt64Array ? 'integer' : 'real';
+}
+
+/**
+ * A real or integer array whose cells may have no value: the values buffer
+ * plus a validity bitmap, one bit a cell with a set bit meaning a value is
+ * present (the Arrow layout). A cell without a value holds 0 in the buffer.
+ * Takes ownership of both. Kernels that know about the bitmap read it through
+ * `maskedCells`; everything else sees `.NA` cells in the plain view.
+ */
+export function maskedArray(
+    values: Float64Array | BigInt64Array, validity: Uint32Array, shape: readonly number[] = [values.length],
+): RankArray {
+    return createOwned(values, shape, false, undefined, validity);
+}
+
+/** The buffer and bitmap of a real masked array, or undefined for any other array. */
+export function maskedCells(value: RankArray): { values: Float64Array; validity: Uint32Array } | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.validity || !(state.typed instanceof Float64Array)) return undefined;
+    return { values: state.typed, validity: state.validity };
+}
+
+export function hasMaskedCells(value: RankArray): boolean {
+    return ownedStorage.get(value)?.validity !== undefined;
+}
+
+/** Number of 32-bit words holding a bitmap for this many cells. */
+export function validityWords(size: number): number { return (size + 31) >>> 5; }
+
+/** A bitmap with the first `size` cells present. */
+export function allPresent(size: number): Uint32Array {
+    const bits = new Uint32Array(validityWords(size)).fill(0xFFFFFFFF);
+    if (size & 31) bits[bits.length - 1] = (1 << (size & 31)) - 1;
+    return bits;
+}
+
+export function isPresentAt(validity: Uint32Array, index: number): boolean {
+    return (validity[index >>> 5] >>> (index & 31) & 1) === 1;
+}
+
+/** Whether every one of the first `size` cells has a value. */
+export function allValid(validity: Uint32Array, size: number): boolean {
+    const whole = size >>> 5;
+    for (let word = 0; word < whole; word += 1) if (validity[word] !== 0xFFFFFFFF) return false;
+    if (!(size & 31)) return true;
+    const tail = ((1 << (size & 31)) - 1) >>> 0;
+    return ((validity[whole] & tail) >>> 0) === tail;
+}
+
+/**
+ * 'scalar' for cells that are all numbers (nothing to do), the buffer and
+ * bitmap when the cells are numbers of one kind and `.NA`, otherwise undefined.
+ * Stops at the first cell of any other kind, so ordinary arrays cost a short scan.
+ */
+function scanForMissing(items: readonly RankValue[]): 'scalar' | { values: Float64Array | BigInt64Array; validity: Uint32Array } | undefined {
+    let kind = 0;
+    let missing = false;
+    for (let index = 0; index < items.length; index += 1) {
+        const item = items[index];
+        if (item === MISSING) { missing = true; continue; }
+        const type = typeof item === 'number' ? 1 : typeof item === 'bigint' ? 2 : 0;
+        if (type === 0 || (kind !== 0 && type !== kind)) return undefined;
+        kind = type;
+    }
+    if (!missing) return kind === 0 ? undefined : 'scalar';
+    const validity = new Uint32Array(validityWords(items.length));
+    const values = kind === 2 ? new BigInt64Array(items.length) : new Float64Array(items.length);
+    for (let index = 0; index < items.length; index += 1) {
+        const item = items[index];
+        if (item === MISSING) continue;
+        (values as unknown as RankValue[])[index] = item;
+        validity[index >>> 5] |= 1 << (index & 31);
+    }
+    return { values, validity };
 }
 
 function createOwned(
     cells: RankValue[] | Float64Array | BigInt64Array, shape: readonly number[], scalarOnly: boolean,
-    columnNames?: readonly string[],
+    columnNames?: readonly string[], validity?: Uint32Array,
 ): RankArray {
     const typed = Array.isArray(cells) ? undefined : cells;
     const items = cells as RankValue[];
+    if (!typed && !scalarOnly) {
+        // Cells with no value are kept beside a numeric buffer, not in it.
+        const found = scanForMissing(items);
+        if (found === 'scalar') scalarOnly = true;
+        else if (found) return createOwned(found.values, shape, false, columnNames, found.validity);
+    }
     const state: OwnedStorage = {
-        items, typed, shape: [...shape], revision: writeRevision, birth: ++creationSerial,
-        scalarOnly: typed !== undefined || scalarOnly || items.every(item => typeof item !== 'object'),
+        items, typed, validity, shape: [...shape], revision: writeRevision, birth: ++creationSerial,
+        scalarOnly: !validity && (typed !== undefined || scalarOnly || items.every(item => typeof item !== 'object')),
         stable: true, resources: undefined!,
     };
     state.resources = new ResourceSummary(() => state.scalarOnly && state.stable);
-    if (!state.scalarOnly) for (const item of items) state.resources.include(item);
+    if (!state.scalarOnly && !typed) for (const item of items) state.resources.include(item);
     const changed = (value: RankValue) => {
         state.revision = noteMutation(state.birth);
         state.resources.include(value);
@@ -288,6 +374,13 @@ function createOwned(
         Object.defineProperty(raw, 'items', { configurable: true, enumerable: true, get: () => { state.convert!(); return raw.items; } });
         state.convert = () => {
             const plain = Array.from(typed as ArrayLike<RankValue>);
+            if (state.validity) {
+                const bits = state.validity;
+                for (let index = 0; index < plain.length; index += 1) {
+                    if (!(bits[index >>> 5] >>> (index & 31) & 1)) plain[index] = MISSING;
+                }
+                state.validity = undefined;
+            }
             state.items = plain;
             state.typed = undefined;
             state.convert = undefined;
@@ -411,7 +504,7 @@ export function privateArrayCopy(value: RankArray): RankArray {
             diagnostics.cowCopiedCells += stored.typed.length;
         }
         return createOwned(stored.typed.slice(), value.shape, true,
-            (value as { columnNames?: readonly string[] }).columnNames);
+            (value as { columnNames?: readonly string[] }).columnNames, stored.validity?.slice());
     }
     const items = [...value.items];
     const diagnostics = currentDiagnostics();
@@ -462,7 +555,7 @@ function valueRevision(value: RankValue): number | undefined {
     }
     const state = ownedStorage.get(value as RankArray);
     if (!state?.stable) return undefined;
-    if (state.scalarOnly) return state.revision;
+    if (state.scalarOnly || state.validity) return state.revision;
     // Nested mutable arrays and object rows are dependencies as well.
     if (state.nestedEpoch === writeRevision) return state.nestedRevision;
     if (state.nestedEpoch !== undefined
@@ -755,7 +848,10 @@ export function registerArrayDependencies<T extends RankArray>(value: T, sources
 /** Runtime-owned storage has no observable getters; host readers keep their order. */
 export function readArrayItem(value: RankArray, index: number): RankValue {
     const state = ownedStorage.get(value);
-    if (state?.stable) return state.items[index];
+    if (state?.stable) {
+        if (state.validity !== undefined && !(state.validity[index >>> 5] >>> (index & 31) & 1)) return MISSING;
+        return state.items[index];
+    }
     return value.itemAt?.(index) ?? value.items[index];
 }
 

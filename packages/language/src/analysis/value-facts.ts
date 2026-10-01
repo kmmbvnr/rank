@@ -54,7 +54,7 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
         types: [typeof expression.value === 'bigint' ? 'integer' : 'real'], rank: 0, shape: [],
         ...(typeof expression.value === 'bigint' ? { integer: String(expression.value) } : {}),
     };
-    if (isLabelLiteral(expression)) return { types: ['symbol'], rank: 0, shape: [] };
+    if (isLabelLiteral(expression)) return { types: [expression.name === 'NA' ? 'missing' : 'symbol'], rank: 0, shape: [] };
     if (isStdinExpression(expression)) {
         const elements = expression.mode.name === 'integer' ? ['integer']
             : expression.mode.name === 'word' ? ['text'] : [];

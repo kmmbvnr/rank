@@ -1,6 +1,6 @@
 import { MissingValueError, RankError } from '../errors.js';
 import { markArrayMask } from '../array-mask.js';
-import { ownedArray } from '../array-storage.js';
+import { isPresentAt, maskedCells, ownedArray } from '../array-storage.js';
 import { sequenceMask } from '../sequence.js';
 import { ByteArray } from '../bytes.js';
 import { withTypedCalls } from '../typed-native.js';
@@ -54,6 +54,13 @@ export const coreModule: RuntimeModule = {
             return sequenceMask(value, predicate);
         }
         if (!isRankArray(value)) return value !== MISSING;
+        const masked = maskedCells(value);
+        if (masked) {
+            const size = masked.values.length;
+            const bits: boolean[] = new Array(size);
+            for (let index = 0; index < size; index += 1) bits[index] = isPresentAt(masked.validity, index);
+            return markArrayMask(ownedArray(bits, value.shape, true), value);
+        }
         // A cell whose read raises `.Missing` has no value either.
         const size = value.shape.reduce((product, length) => product * length, 1);
         const flags: boolean[] = new Array(size);
