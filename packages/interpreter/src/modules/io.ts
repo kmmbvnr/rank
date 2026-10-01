@@ -1,6 +1,6 @@
 import { ByteArray } from '../bytes.js';
 import { RankError } from '../errors.js';
-import type { RankFileMode, RankIo } from '../io.js';
+import type { RankFileMode, RankInput, RankIo } from '../io.js';
 import { materializeSqlite, materializeSqliteExpression } from './sqlite.js';
 import {
     formatValue,
@@ -10,6 +10,7 @@ import {
     isRankSqliteExpression,
     isRankSqliteTable,
     type RankFile,
+    type RankSequence,
     type RankValue,
 } from '../value.js';
 import { native } from './shared.js';
@@ -182,4 +183,67 @@ function ioCall<T>(path: string, operation: () => T): T {
         const detail = error instanceof Error ? error.message : String(error);
         throw new RankError(`${path}: ${detail}`, 'IO', path);
     }
+}
+
+export type StdinMode = 'word' | 'integer';
+
+/** The mode written after `stdin`: `.word` or `.integer`. */
+export function stdinMode(name: string): StdinMode {
+    if (name !== 'word' && name !== 'integer') {
+        throw new RankError(`unsupported standard input mode: .${name}`);
+    }
+    return name;
+}
+
+/** One token of standard input, read as a word or an integer. */
+export function readStdin(input: RankInput | undefined, mode: StdinMode): RankValue {
+    if (!input) {
+        throw new RankError('standard input is unavailable in this host', 'IO');
+    }
+    const token = input.readToken();
+    if (token === undefined) {
+        throw new RankError(`standard input ended before .${mode}`, 'EndOfInput');
+    }
+    if (mode === 'word') return token;
+    if (!/^[+-]?[0-9]+$/u.test(token)) {
+        throw new RankError(`invalid integer input: ${token}`, 'InvalidNumber', token);
+    }
+    return BigInt(token);
+}
+
+/**
+ * `stdin .mode Count`: a plan that reads its tokens only when iterated, once.
+ * `line` is where the expression was written, since the sequence is usually
+ * read far from it.
+ */
+export function stdinSequence(
+    input: () => RankInput | undefined, mode: StdinMode, count: RankValue, line: number,
+): RankSequence['plan'] {
+    if (typeof count !== 'bigint' || count < 0n) {
+        throw new RankError('stdin count must be a nonnegative integer');
+    }
+    let consumed = false;
+    return {
+        name: `stdin .${mode}`,
+        size: { kind: 'exact', value: count },
+        *iterate() {
+            if (consumed) {
+                throw new RankError(
+                    `standard input sequence .${mode} has already been consumed`,
+                    'ConsumedSequence',
+                );
+            }
+            consumed = true;
+            for (let index = 0n; index < count; index += 1n) {
+                try {
+                    yield readStdin(input(), mode);
+                } catch (error) {
+                    // The sequence is read where it is used, far from its declaration.
+                    if (!(error instanceof RankError) || error.rankKind === 'IO') throw error;
+                    throw new RankError(`${error.message} (item ${index + 1n} of ${count}, read by `
+                        + `stdin .${mode} at line ${line})`, error.rankKind, error.value);
+                }
+            }
+        },
+    };
 }

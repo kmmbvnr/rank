@@ -9,7 +9,6 @@ import {
 } from '@arrrank/language';
 import { nameMask } from '../array-mask.js';
 import { allValid, createArraySnapshot, isPresentAt, maskedCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
-import { RankArrowTable } from '../arrow-table.js';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { compileClauseExpression, isBoundCondition, type ClauseExpressionContext } from '../clause-expression.js';
 import { newStructure } from '../collections.js';
@@ -24,9 +23,11 @@ import { graphConstructor } from '../graph.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
 import { compileKeyedTableExpression } from '../keyed-table-expression.js';
 import { BuiltinRegistry } from '../modules/builtins.js';
-import { sortByItems, sortByKeys } from '../modules/sequences.js';
+import { readStdin, stdinMode, stdinSequence } from '../modules/io.js';
+import { keyedSort, sortByFields, sortFieldDescending } from '../modules/keyed-sort.js';
+import { tableAlias } from '../modules/tables.js';
 import {
-    materializeSqlite, materializeSqliteExpression, sortSqlite,
+    materializeSqlite, materializeSqliteExpression,
 } from '../modules/sqlite.js';
 import { expectInteger, type Operators } from '../operators.js';
 import { assignRecordField, recordContract } from '../record-contract.js';
@@ -35,10 +36,9 @@ import { ResourceMap } from '../resource-summary.js';
 import { ALL_AXIS } from '../selectors.js';
 import { materializeSequence, sequence } from '../sequence.js';
 import { compileTableExpression } from '../table-query-expression.js';
-import { sortTable } from '../table-ops.js';
 import { maskSelection, unpackApplicationItems } from '../value-selection.js';
 import {
-    isNativeFunction, isRankArray, isRankObject, isRankRecord, isRankSequence, isRankSqliteExpression,
+    isNativeFunction, isRankArray, isRankRecord, isRankSequence, isRankSqliteExpression,
     isRankSqliteTable, isRankTable, isRankTableAlias, MISSING, typeName,
     type NativeFunction, type RankArray, type RankRecord, type RankSequence, type RankValue,
 } from '../value.js';
@@ -238,41 +238,11 @@ export class ExpressionEvaluator {
         if (isStdinExpression(expression)) {
             return function* (): Execution<RankValue> {
                 expressions.context.requireModule('io', 'stdin');
-                const mode = expression.mode.name;
-                if (mode !== 'word' && mode !== 'integer') {
-                    throw new RankError(`unsupported standard input mode: .${mode}`);
-                }
-                if (!expression.count) return expressions.readStdin(mode);
-
-                const count = (yield* resume(expressions.evaluate(expression.count)));
-                if (typeof count !== 'bigint' || count < 0n) {
-                    throw new RankError('stdin count must be a nonnegative integer');
-                }
-                let consumed = false;
-                return expressions.singlePass({
-                    name: `stdin .${mode}`,
-                    size: { kind: 'exact', value: count },
-                    *iterate() {
-                        if (consumed) {
-                            throw new RankError(
-                                `standard input sequence .${mode} has already been consumed`,
-                                'ConsumedSequence',
-                            );
-                        }
-                        consumed = true;
-                        const line = (expression.$cstNode?.range.start.line ?? 0) + 1;
-                        for (let index = 0n; index < count; index += 1n) {
-                            try {
-                                yield expressions.readStdin(mode);
-                            } catch (error) {
-                                // The sequence is read where it is used, far from its declaration.
-                                if (!(error instanceof RankError) || error.rankKind === 'IO') throw error;
-                                throw new RankError(`${error.message} (item ${index + 1n} of ${count}, read by `
-                                    + `stdin .${mode} at line ${line})`, error.rankKind, error.value);
-                            }
-                        }
-                    },
-                });
+                const mode = stdinMode(expression.mode.name);
+                if (!expression.count) return readStdin(expressions.context.options().input, mode);
+                const count = yield* resume(expressions.evaluate(expression.count));
+                return expressions.singlePass(stdinSequence(() => expressions.context.options().input, mode, count,
+                    (expression.$cstNode?.range.start.line ?? 0) + 1));
             };
         }
         if (isArrayExpression(expression)) {
@@ -377,14 +347,7 @@ export class ExpressionEvaluator {
                 if (expression.field) {
                     source = expressions.context.select([source, { kind: 'label', name: expression.field.name }]);
                 }
-                if (isRankSqliteTable(source) && source.scopes) {
-                    throw new RankError('alias of a joined SQLite view is not supported yet', 'TypeError');
-                }
-                if (isRankTable(source)) source = source.toRows();
-                if ((!isRankArray(source) || source.shape.length !== 1) && !isRankSqliteTable(source)) {
-                    throw new RankError('alias expects a rank-1 table or SQLite view', 'TypeError');
-                }
-                return { kind: 'table-alias', source, name: expression.name.name };
+                return tableAlias(source, expression.name.name);
             };
         }
         if (isKeyedSortExpression(expression)) {
@@ -392,58 +355,25 @@ export class ExpressionEvaluator {
                 const operation = expression.operator.startsWith('argsort')
                     ? 'argsort by'
                     : 'sort by';
-                const indices = operation === 'argsort by';
                 expressions.context.requireModule('sequences', operation);
                 const source = yield* resume(expressions.evaluate(expression.source));
-                if (isRankSqliteTable(source) && !indices && expression.fields.length > 0) {
-                    return sortSqlite(source, expression.fields.map(field => field.field.name),
-                        expression.fields.map(field => sortFieldDescending(field.direction)));
-                }
-                if (isRankTable(source) && !indices && expression.fields.length > 0) {
-                    return sortTable(source, expression.fields.map(field => field.field.name),
-                        expression.fields.map(field => sortFieldDescending(field.direction)));
-                }
-                // A key function reads whole rows, so it works on a snapshot of them.
-                const tableSource = isRankTable(source) ? source : undefined;
-                const items = sortByItems(tableSource ? tableSource.toRows() : source, operation);
-                const resultWithSchema = (result: RankArray): RankValue => {
-                    if (tableSource && !indices) return RankArrowTable.fromRows(result.items, tableSource.names);
-                    if (!indices && isRankArray(source) && source.columnNames) {
-                        Object.defineProperty(result, 'columnNames', { value: source.columnNames });
-                    }
-                    return result;
-                };
                 if (expression.fields.length > 0) {
-                    const keys = items.map(item => expression.fields.map(field => {
-                        if (!isRankRecord(item) && !isRankObject(item)) {
-                            throw new RankError(`${operation} fields expects records`, 'TypeError');
-                        }
-                        return item.entries.get(field.field.name);
-                    }));
-                    for (const [index, field] of expression.fields.entries()) {
-                        if (keys.length > 0 && !keys.some(row => row[index] !== undefined)
-                            && (!isRankArray(source)
-                                || !source.columnNames?.includes(field.field.name))) {
-                            throw new MissingValueError(
-                                `${operation} record is missing field .${field.field.name}`,
-                            );
-                        }
-                    }
-                    return resultWithSchema(sortByKeys(items, keys, operation, indices,
-                        expression.fields.map(field => sortFieldDescending(field.direction))));
+                    return sortByFields(source, expression.fields.map(field =>
+                        ({ name: field.field.name, direction: field.direction })), operation);
                 }
+                const sort = keyedSort(source, operation);
                 if (!expression.key) throw new RankError(`${operation} requires a key`);
                 const key = yield* resume(expressions.evaluate(expression.key));
                 if (!isNativeFunction(key) || !key.arities.includes(1)) {
                     throw new RankError(`${operation} key must be a unary function`);
                 }
                 const keys: RankValue[][] = [];
-                for (const item of items) {
+                for (const item of sort.items) {
                     const value = yield* resume(expressions.context.invoke(key, [item]));
                     expressions.context.resources.ownFiles(value);
                     keys.push([value]);
                 }
-                return resultWithSchema(sortByKeys(items, keys, operation, indices, [sortFieldDescending(expression.direction)]));
+                return sort.finish(keys, [sortFieldDescending(expression.direction)]);
             };
         }
         if (isKeyedGroupExpression(expression) || isKeyedRollingExpression(expression)
@@ -593,22 +523,6 @@ export class ExpressionEvaluator {
         return isNativeFunction(value) ? BuiltinRegistry.operationOf(value) ?? false : false;
     }
 
-    private readStdin(mode: 'word' | 'integer'): RankValue {
-        const input = this.context.options().input;
-        if (!input) {
-            throw new RankError('standard input is unavailable in this host', 'IO');
-        }
-        const token = input.readToken();
-        if (token === undefined) {
-            throw new RankError(`standard input ended before .${mode}`, 'EndOfInput');
-        }
-        if (mode === 'word') return token;
-        if (!/^[+-]?[0-9]+$/u.test(token)) {
-            throw new RankError(`invalid integer input: ${token}`, 'InvalidNumber', token);
-        }
-        return BigInt(token);
-    }
-
     *evaluateArrayItem(item: ArrayItem): Execution<RankValue> {
         const value = (yield* resume(this.evaluate(item.value)));
         if (!item.sign) return value;
@@ -674,18 +588,6 @@ export class ExpressionEvaluator {
 
 function array(items: RankValue[]): RankArray {
     return ownedArray(items);
-}
-
-function sortFieldDescending(direction: unknown): boolean {
-    const value = typeof direction === 'string' ? direction
-        : direction && typeof direction === 'object' && 'name' in direction
-            ? (direction as { name?: unknown }).name
-            : undefined;
-    const name = typeof value === 'string' ? value.replace(/^\./, '') : undefined;
-    if (name && name !== 'ascending' && name !== 'descending') {
-        throw new RankError('sort direction must be .ascending or .descending', 'TypeError');
-    }
-    return name === 'descending';
 }
 
 export function checkedArrayDimension(dimension: bigint): number {

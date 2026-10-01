@@ -7,32 +7,30 @@ import { RankError } from '../errors.js';
 import {
     completed, flatMapResult, mapExecution, mapResult, resume, type Evaluation, type Execution,
 } from '../execution.js';
-import { expectFenwick } from '../fenwick.js';
-import { FlatRecords } from '../flat.js';
 import type { FastPaths } from '../fast-paths.js';
 import type { FunctionInvocation } from '../function-invocation.js';
 import { graphConstructor } from '../graph.js';
 import { dsuFrom } from '../dsu.js';
 import type { BuiltinRegistry } from '../modules/builtins.js';
+import { fenwickSum, multisetQuery, namedSegment, symbolicSegment } from '../modules/algo.js';
+import { dsuQuery, functionalQuery } from '../modules/graph.js';
 import { matmulValues } from '../modules/linalg.js';
 import { shuffleValue } from '../modules/random.js';
-import { argsortAxis, argsortValue, lengthOfAxis, sortValue, transposeValue } from '../modules/sequences.js';
+import { argsortAxis, directedSort, lengthOfAxis, sortDescending, transposeValue } from '../modules/sequences.js';
 import { correlationValue, covarianceValue, errorMetricValue, quantileValue } from '../modules/stats.js';
 import { formattedText } from '../modules/text.js';
-import { expectMultiset } from '../multiset.js';
-import { expectInteger, type Operators } from '../operators.js';
+import { type Operators } from '../operators.js';
 import type { RankApplication } from '../rank-application.js';
 import type { ReductionEvaluator } from '../reduction.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
-import { RankMaxSumSegment, RankRangeSumSegment, RankSegment } from '../segment.js';
 import { ALL_AXIS, selectAxis } from '../selectors.js';
 import { materializeSequence, shiftValue, windowValue } from '../sequence.js';
 import { safeDimension } from '../tensor-index.js';
 import { callArguments, canApplySelectors, hasField, unpackApplicationItems } from '../value-selection.js';
 import {
     isNativeFunction, isRankArray, isRankDsu, isRankFenwick, isRankFunctionalGraph, isRankGraph, isRankLabel,
-    isRankMultiset, isRankQueue, isRankSequence, typeName,
-    type NativeFunction, type RankValue,
+    isRankMultiset, isRankSequence, typeName,
+    type RankValue,
 } from '../value.js';
 
 /** What evaluating application forms needs from the rest of evaluation. */
@@ -98,26 +96,11 @@ export class ApplicationEvaluator {
                 };
             }
             case 'segment': {
-                const symbolicSegment = form;
+                const segment = form;
                 return function* (): Execution<RankValue> {
                     context.requireModule('algo', 'segment');
-                    if (!SEGMENT_OPERATORS.has(symbolicSegment.operator)) {
-                        throw new RankError('segment requires an associative operation');
-                    }
-                    const source = yield* resume(context.evaluate(symbolicSegment.source));
-                    const values = segmentItems(source);
-                    if (symbolicSegment.operator === '+'
-                        && values.every(value => typeof value === 'bigint'
-                            || typeof value === 'number')) {
-                        return new RankRangeSumSegment(values);
-                    }
-                    return new RankSegment(
-                        values,
-                        (left, right) => context.operators.evaluateBinary(
-                            symbolicSegment.operator, left, right,
-                        ),
-                        symbolicSegment.operator,
-                    );
+                    const build = symbolicSegment(segment.operator, context.operators);
+                    return build(yield* resume(context.evaluate(segment.source)));
                 };
             }
             case 'scan': {
@@ -183,8 +166,7 @@ export class ApplicationEvaluator {
                     const descending = sortDescending(yield* resume(context.evaluate(direction)));
                     if (axis) return argsortAxis(yield* resume(context.evaluate(axis.source)), axis.axis, descending);
                     const source = yield* resume(context.evaluate(applicationParts((ranked?.parts ?? parts).slice(0, -1))));
-                    const directed: NativeFunction = { ...fn, call: args => name === 'sort'
-                        ? sortValue(args[0], descending) : argsortValue(args[0], descending) };
+                    const directed = directedSort(fn, name, descending);
                     return yield* resume(ranked
                         ? application.applyAtRank([source, directed], ranked.rank, ranked.axes)
                         : context.rankApplication.applyIntrinsicRank(directed, [source]));
@@ -422,26 +404,14 @@ export class ApplicationEvaluator {
                 };
             }
             case 'named-segment': {
-                const namedSegment = form;
+                const segment = form;
                 return function* (): Execution<RankValue> {
                     context.requireModule('algo', 'segment');
-                    const source = yield* resume(context.evaluate(namedSegment.source));
-                    const identity = namedSegment.identity
-                        ? yield* resume(context.evaluate(namedSegment.identity)) : undefined;
-                    const operation = yield* resume(context.evaluate(namedSegment.operation));
-                    if (!isNativeFunction(operation) || !operation.arities.includes(2)) {
-                        throw new RankError('segment requires a binary operation');
-                    }
-                    const values = source instanceof FlatRecords ? source : segmentItems(source);
-                    const maxSum = context.builtins.standard('algo', 'maxsum');
-                    if (operation === maxSum && identity === undefined && !(values instanceof FlatRecords)) return new RankMaxSumSegment(values);
-                    return new RankSegment(
-                        values,
-                        (left, right) => operation.call([left, right]),
-                        operation.name,
-                        operation,
-                        identity,
-                    );
+                    const source = yield* resume(context.evaluate(segment.source));
+                    const identity = segment.identity
+                        ? yield* resume(context.evaluate(segment.identity)) : undefined;
+                    const operation = yield* resume(context.evaluate(segment.operation));
+                    return namedSegment(source, operation, identity, context.builtins.standard('algo', 'maxsum'));
                 };
             }
             case 'named-scan': {
@@ -508,22 +478,16 @@ export class ApplicationEvaluator {
                     ));
                     if (isRankDsu(receiver)) {
                         context.requireModule('graph', dsuMethod.operation);
-                        if (dsuMethod.operation === 'findroot') {
-                            if (isRankArray(arguments_[0])) {
+                        if (dsuMethod.operation === 'findroot' && isRankArray(arguments_[0])) {
                                 // One representative per queried value, in the shape of the queries.
                                 const operation = yield* resume(context.evaluate(dsuMethod.operationExpression));
-                                if (isNativeFunction(operation)) {
-                                    return yield* resume(context.rankApplication.applyDyadicAtRank(
-                                        receiver, arguments_[0], operation,
-                                    ));
-                                }
+                            if (isNativeFunction(operation)) {
+                                return yield* resume(context.rankApplication.applyDyadicAtRank(
+                                    receiver, arguments_[0], operation,
+                                ));
                             }
-                            return receiver.find(arguments_[0]);
                         }
-                        if (dsuMethod.operation === 'merge') {
-                            return receiver.merge(arguments_[0], arguments_[1]);
-                        }
-                        return receiver.connected(arguments_[0], arguments_[1]);
+                        return dsuQuery(receiver, dsuMethod.operation, arguments_);
                     }
                     const operation = yield* resume(context.evaluate(dsuMethod.operationExpression));
                     return yield* resume(application.apply(
@@ -543,9 +507,7 @@ export class ApplicationEvaluator {
                     ));
                     if (isRankFunctionalGraph(receiver)) {
                         context.requireModule('graph', functionalMethod.operation);
-                        return functionalMethod.operation === 'jump'
-                            ? receiver.jump(arguments_[0], arguments_[1])
-                            : receiver.distance(arguments_[0], arguments_[1]);
+                        return functionalQuery(receiver, functionalMethod.operation, arguments_);
                     }
                     const operation = yield* resume(context.evaluate(
                         functionalMethod.operationExpression,
@@ -574,7 +536,6 @@ export class ApplicationEvaluator {
                         : yield* resume(application.apply(argumentParts));
                     if (isRankMultiset(receiverValue)) {
                         context.requireModule('algo', multisetMethod.operation);
-                        const receiver = expectMultiset(receiverValue);
                         if (isRankArray(argumentValue)) {
                             // Many queries against one structure: the operation's intrinsic ranks
                             // split the queries into scalar cells.
@@ -587,9 +548,7 @@ export class ApplicationEvaluator {
                                 ));
                             }
                         }
-                        if (multisetMethod.operation === 'floor') return receiver.floor(argumentValue);
-                        if (multisetMethod.operation === 'upperbound') return receiver.upperBound(argumentValue);
-                        return receiver.ceiling(argumentValue);
+                        return multisetQuery(receiverValue, multisetMethod.operation, argumentValue);
                     }
                     const operation = yield* resume(context.evaluate(
                         parts[multisetMethod.receiver.length],
@@ -652,7 +611,7 @@ export class ApplicationEvaluator {
                                     const argument = parts[++index];
                                     if (!argument) throw new RankError('fenwick sum expects one integer index');
                                     const position = yield* resume(context.evaluate(argument));
-                                    pending = [expectFenwick(receiver).sum(expectInteger(position))];
+                                    pending = [fenwickSum(receiver, position)];
                                     continue;
                                 }
                             }
@@ -806,36 +765,6 @@ export class ApplicationEvaluator {
         if (receivers.length !== 1) throw new RankError('unary rank requires one data value');
         return yield* resume(context.rankApplication.applyUnaryAtRank(receivers[0], fn, Number(rank), axes));
     }
-}
-
-function segmentItems(value: RankValue): RankValue[] {
-    if (isRankArray(value)) {
-        if (value.shape.length !== 1) throw new RankError('segment expects a rank-1 value');
-        return Array.from(
-            { length: value.shape[0] },
-            (_, index) => value.itemAt?.(index) ?? value.items[index],
-        );
-    }
-    if (isRankQueue(value)) return [...value.items];
-    if (typeof value === 'string') return [...value];
-    if (isRankSequence(value)) {
-        if (value.plan.size.kind === 'infinite') {
-            throw new RankError('segment requires a bounded sequence');
-        }
-        return [...value.plan.iterate()];
-    }
-    throw new RankError('segment expects a rank-1 value');
-}
-
-
-const SEGMENT_OPERATORS = new Set(['+', '*', 'and', 'or', 'xor']);
-
-
-function sortDescending(direction: RankValue): boolean {
-    if (!isRankLabel(direction) || (direction.name !== 'ascending' && direction.name !== 'descending')) {
-        throw new RankError('sort direction must be .ascending or .descending', 'TypeError');
-    }
-    return direction.name === 'descending';
 }
 
 export function integerLiteral(expression: Expression, name: string): bigint {

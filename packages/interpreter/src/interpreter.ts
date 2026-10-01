@@ -19,13 +19,12 @@ import { BlockExecution } from './eval/blocks.js';
 import type { InterpreterOptions, RankTestResult } from './interpreter-options.js';
 import { DebugInspection } from './debug-inspection.js';
 import { BuiltinRegistry, reseed, seedableRandom, type SeedableRandom } from './modules/builtins.js';
+import { IMPLICIT_STRUCTURES, implicitStructure, type ImplicitStructure } from './modules/algo.js';
 import { locateError, registerSource } from './source-location.js';
 import { Operators } from './operators.js';
 import {
     selectValues,
 } from './value-selection.js';
-import { newStructure } from './collections.js';
-import { RankDeque } from './containers.js';
 import { recordContract, retainRecordContract } from './record-contract.js';
 import { ResourceOwnership } from './resource-ownership.js';
 import { inputDeclarationName, inputValues, kebabCase, parseArguments, validateInputValue } from './cli-args.js';
@@ -62,12 +61,8 @@ import {
     isRankQueue,
     isRankRecord,
     isRankSet,
-    type RankCounter,
     type NativeFunction,
-    type RankIndex,
-    type RankQueue,
     type RankRecord,
-    type RankSet,
     type RankValue,
 } from './value.js';
 
@@ -250,9 +245,9 @@ export class Interpreter {
             evaluateAddressParts: item => this.evaluateAddressParts(item),
             select: values => this.select(values),
             requireModule: (module, operation) => this.requireModule(module, operation),
-            index: () => this.localIndex(),
-            set: () => this.localSet(),
-            counter: () => this.localCounter(),
+            index: () => this.structure('index', IMPLICIT_STRUCTURES.index),
+            set: () => this.structure('set', IMPLICIT_STRUCTURES.set),
+            counter: () => this.structure('counter', IMPLICIT_STRUCTURES.counter),
             options: () => this.options,
             operators: this.operators,
         };
@@ -459,24 +454,9 @@ export class Interpreter {
         this.modules.add(module);
     }
 
-    private localIndex(): RankIndex {
-        this.requireModule('algo', 'index');
-        return this.bindings.structure('index', isRankIndex, () => newStructure('index') as RankIndex);
-    }
-
-    private localQueue(): RankQueue {
-        this.requireModule('algo', 'queue');
-        return this.bindings.structure('queue', isRankQueue, () => new RankDeque());
-    }
-
-    private localSet(): RankSet {
-        this.requireModule('algo', 'set');
-        return this.bindings.structure('set', isRankSet, () => newStructure('set') as RankSet);
-    }
-
-    private localCounter(): RankCounter {
-        this.requireModule('algo', 'counter');
-        return this.bindings.structure('counter', isRankCounter, () => newStructure('counter') as RankCounter);
+    private structure<T extends RankValue>(name: string, kind: ImplicitStructure<T>): T {
+        this.requireModule('algo', name);
+        return this.bindings.structure(name, kind.is, kind.create);
     }
 
     private useFile(specifier: string, alias?: string): LoadedProgram {
@@ -779,10 +759,8 @@ export class Interpreter {
             if (member === 'run') throw new RankError(`${alias}.run is only valid as a statement`);
             return child.resolveVariable(member);
         }
-        if (name === 'index') return this.localIndex();
-        if (name === 'queue') return this.localQueue();
-        if (name === 'set') return this.localSet();
-        if (name === 'counter') return this.localCounter();
+        const implicit = implicitStructure(name);
+        if (implicit) return this.structure(name, implicit);
         const variable = this.findVariable(name);
         if (variable !== undefined) {
             return variable;

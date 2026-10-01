@@ -1466,3 +1466,19 @@ class MinHeap {
         return first;
     }
 }
+
+/** `Dsu find X`, `merge X Y` and `connected X Y` for one query. */
+export function dsuQuery(receiver: RankDsu, operation: string, arguments_: readonly RankValue[]): RankValue {
+    if (operation === 'findroot') return receiver.find(arguments_[0]);
+    if (operation === 'merge') return receiver.merge(arguments_[0], arguments_[1]);
+    return receiver.connected(arguments_[0], arguments_[1]);
+}
+
+/** `Graph jump X K` and `Graph distance X Y` on a functional graph. */
+export function functionalQuery(
+    receiver: RankFunctionalGraph, operation: string, arguments_: readonly RankValue[],
+): RankValue {
+    return operation === 'jump'
+        ? receiver.jump(arguments_[0], arguments_[1])
+        : receiver.distance(arguments_[0], arguments_[1]);
+}

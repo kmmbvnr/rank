@@ -27,11 +27,15 @@ import {
     isRankSegment,
     isRankWavelet,
     isRankSet,
+    isRankLabel,
+    type NativeFunction,
     type RankArray,
     type RankValue,
     type SequencePlan,
     type SequencePredicate,
 } from '../value.js';
+import type { Operators } from '../operators.js';
+import { assignRecordField } from '../record-contract.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
@@ -961,4 +965,43 @@ function isPrime(candidate: bigint, smallerPrimes: readonly bigint[]): boolean {
         if (candidate % prime === 0n) return false;
     }
     return true;
+}
+
+/** The direction after sort or argsort: `.ascending` or `.descending`. */
+export function sortDescending(direction: RankValue): boolean {
+    if (!isRankLabel(direction) || (direction.name !== 'ascending' && direction.name !== 'descending')) {
+        throw new RankError('sort direction must be .ascending or .descending', 'TypeError');
+    }
+    return direction.name === 'descending';
+}
+
+/** The standard sort or argsort fixed to one direction, keeping its ranks. */
+export function directedSort(fn: NativeFunction, name: 'sort' | 'argsort', descending: boolean): NativeFunction {
+    return { ...fn, call: args => name === 'sort' ? sortValue(args[0], descending) : argsortValue(args[0], descending) };
+}
+
+/**
+ * `Flat I = Record` or `Flat I .field op= Value`: the index and field are
+ * checked, and the record read, before the value is evaluated.
+ */
+export function flatRecordWrite(
+    target: FlatRecords, selectors: readonly RankValue[], operator: string, operators: Operators,
+): (value: RankValue) => RankValue {
+    if (selectors.length < 1 || selectors.length > 2 || typeof selectors[0] !== 'bigint') {
+        throw new RankError('flat assignment expects an integer index and optional field');
+    }
+    const index = Number(selectors[0]);
+    const previous = target.itemAt(index);
+    return value => {
+        if (selectors.length === 2) {
+            const field = selectors[1];
+            if (!isRankLabel(field)) throw new RankError('flat assignment expects a field label');
+            const result = assignRecordField(previous, field.name, operator, value, operators);
+            target.set(index, previous);
+            return result;
+        }
+        if (operator !== '=') throw new RankError('flat record assignment supports =');
+        target.set(index, value);
+        return value;
+    };
 }

@@ -1,20 +1,34 @@
 import { checkpoint } from '../interrupt.js';
-import { RankError } from '../errors.js';
-import { expectDeque, expectHeap, peekCollection, pushCollection } from '../containers.js';
-import { addToCollection, removeFromCollection } from '../collections.js';
-import { RankFenwick } from '../fenwick.js';
-import { expectSegment } from '../segment.js';
+import { MissingValueError, RankError } from '../errors.js';
+import { RankDeque, expectDeque, expectHeap, peekCollection, pushCollection } from '../containers.js';
+import { addToCollection, newStructure, removeFromCollection } from '../collections.js';
+import { RankFenwick, expectFenwick } from '../fenwick.js';
+import { FlatRecords } from '../flat.js';
+import { indexKey } from '../index-key.js';
+import type { Operators } from '../operators.js';
+import {
+    RankMaxSumSegment, RankPersistentSumSegment, RankRangeSumSegment, RankSegment, expectSegment,
+} from '../segment.js';
 import { RankWavelet } from '../wavelet.js';
 import { expectMultiset, multisetValue } from '../multiset.js';
 import { sequence } from '../sequence.js';
 import { setValueKey } from '../set.js';
 import {
+    isNativeFunction,
     isRankArray,
     isRankCounter,
+    isRankFenwick,
+    isRankIndex,
     isRankQueue,
+    isRankSegment,
     isRankSequence,
     isRankSet,
+    type NativeFunction,
     type RankArray,
+    type RankCounter,
+    type RankIndex,
+    type RankQueue,
+    type RankSet,
     type RankValue,
 } from '../value.js';
 import { expectInteger, native } from './shared.js';
@@ -349,4 +363,156 @@ function multicombCount(size: number, count: number): bigint {
         result = result * (total - smaller + step) / step;
     }
     return result;
+}
+
+const SEGMENT_OPERATORS = new Set(['+', '*', 'and', 'or', 'xor']);
+
+/** `Source segment +`: the operator is checked before the source is evaluated. */
+export function symbolicSegment(operator: string, operators: Operators): (source: RankValue) => RankValue {
+    if (!SEGMENT_OPERATORS.has(operator)) {
+        throw new RankError('segment requires an associative operation');
+    }
+    return source => {
+        const values = segmentItems(source);
+        if (operator === '+' && values.every(value => typeof value === 'bigint' || typeof value === 'number')) {
+            return new RankRangeSumSegment(values);
+        }
+        return new RankSegment(values, (left, right) => operators.evaluateBinary(operator, left, right), operator);
+    };
+}
+
+/** `Source segment Operation with Identity`. `maxSum` is this interpreter's own maxsum. */
+export function namedSegment(
+    source: RankValue, operation: RankValue, identity: RankValue | undefined, maxSum: NativeFunction | undefined,
+): RankValue {
+    if (!isNativeFunction(operation) || !operation.arities.includes(2)) {
+        throw new RankError('segment requires a binary operation');
+    }
+    const values = source instanceof FlatRecords ? source : segmentItems(source);
+    if (operation === maxSum && identity === undefined && !(values instanceof FlatRecords)) return new RankMaxSumSegment(values);
+    return new RankSegment(
+        values,
+        (left, right) => operation.call([left, right]),
+        operation.name,
+        operation,
+        identity,
+    );
+}
+
+/** `Multiset floor X`, `ceiling` and `upperbound` for one query. */
+export function multisetQuery(receiver: RankValue, operation: string, argument: RankValue): RankValue {
+    const multiset = expectMultiset(receiver);
+    if (operation === 'floor') return multiset.floor(argument);
+    if (operation === 'upperbound') return multiset.upperBound(argument);
+    return multiset.ceiling(argument);
+}
+
+/** `Fenwick sum I`: the prefix sum through position I. */
+export function fenwickSum(receiver: RankValue, position: RankValue): RankValue {
+    return expectFenwick(receiver).sum(expectInteger(position));
+}
+
+/**
+ * A write into an index, Fenwick tree or segment tree. The selectors are
+ * checked before the value is evaluated; the returned write takes the value.
+ * Undefined when the target is none of these.
+ */
+export function structureWrite(
+    target: RankValue, selectors: readonly RankValue[], operator: string, operators: Operators,
+): ((value: RankValue) => RankValue | undefined) | undefined {
+    const combine = operator === '=' ? undefined : operator.slice(0, -1);
+    if (isRankIndex(target)) {
+        const key = indexKey(selectors);
+        return value => {
+            if (combine === undefined) target.entries.set(key, value);
+            else {
+                const previous = target.entries.get(key);
+                if (previous === undefined) throw new MissingValueError('index key not found');
+                target.entries.set(key, operators.evaluateBinary(combine, previous, value));
+            }
+            return undefined;
+        };
+    }
+    if (isRankFenwick(target)) {
+        if (selectors.length !== 1 || typeof selectors[0] !== 'bigint') {
+            throw new RankError('fenwick assignment expects one integer index');
+        }
+        const position = selectors[0];
+        return value => {
+            const result = combine === undefined ? value
+                : operators.evaluateBinary(combine, target.at(position), value);
+            if (typeof result !== 'bigint') {
+                throw new RankError('fenwick values must be integers');
+            }
+            target.set(position, result);
+            return result;
+        };
+    }
+    if (isRankSegment(target)) {
+        if (selectors.length === 2
+            && selectors.every(selector => typeof selector === 'bigint')
+            && (target instanceof RankRangeSumSegment
+                || target instanceof RankPersistentSumSegment)) {
+            const [start, end] = selectors as [bigint, bigint];
+            return value => {
+                if (operator === '=') {
+                    target.setRange(start, end, value);
+                } else if (operator === '+=') {
+                    target.addRange(start, end, value);
+                } else {
+                    throw new RankError('segment + range assignment supports = and +=');
+                }
+                return value;
+            };
+        }
+        if (selectors.length !== 1 || typeof selectors[0] !== 'bigint') {
+            throw new RankError('segment assignment expects one integer index');
+        }
+        const position = selectors[0];
+        return value => {
+            const result = combine === undefined ? value
+                : operators.evaluateBinary(combine, target.at(position), value);
+            target.set(position, result);
+            return result;
+        };
+    }
+    return undefined;
+}
+
+function segmentItems(value: RankValue): RankValue[] {
+    if (isRankArray(value)) {
+        if (value.shape.length !== 1) throw new RankError('segment expects a rank-1 value');
+        return Array.from(
+            { length: value.shape[0] },
+            (_, index) => value.itemAt?.(index) ?? value.items[index],
+        );
+    }
+    if (isRankQueue(value)) return [...value.items];
+    if (typeof value === 'string') return [...value];
+    if (isRankSequence(value)) {
+        if (value.plan.size.kind === 'infinite') {
+            throw new RankError('segment requires a bounded sequence');
+        }
+        return [...value.plan.iterate()];
+    }
+    throw new RankError('segment expects a rank-1 value');
+}
+
+/** A structure a scope creates the first time its name is used. */
+export interface ImplicitStructure<T extends RankValue> {
+    is(value: RankValue): value is T;
+    create(): T;
+}
+
+/** `index`, `queue`, `set` and `counter` name one structure per scope without a declaration. */
+export const IMPLICIT_STRUCTURES = {
+    index: { is: isRankIndex, create: () => newStructure('index') as RankIndex },
+    queue: { is: isRankQueue, create: (): RankQueue => new RankDeque() },
+    set: { is: isRankSet, create: () => newStructure('set') as RankSet },
+    counter: { is: isRankCounter, create: () => newStructure('counter') as RankCounter },
+} satisfies Record<string, ImplicitStructure<RankValue>>;
+
+export function implicitStructure(name: string): ImplicitStructure<RankValue> | undefined {
+    return Object.prototype.hasOwnProperty.call(IMPLICIT_STRUCTURES, name)
+        ? IMPLICIT_STRUCTURES[name as keyof typeof IMPLICIT_STRUCTURES] : undefined;
 }

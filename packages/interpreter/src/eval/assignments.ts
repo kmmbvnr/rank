@@ -5,23 +5,24 @@ import {
 import { arrayForWrite, readArrayItem } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
 import { pushCollection } from '../containers.js';
-import { MissingValueError, RankError } from '../errors.js';
+import { RankError } from '../errors.js';
 import {
     completed, flatMapResult, mapExecution, mapResult, resume, type Evaluation, type Execution,
 } from '../execution.js';
 import { FlatRecords } from '../flat.js';
+import { structureWrite } from '../modules/algo.js';
+import { flatRecordWrite } from '../modules/sequences.js';
+import { tableColumnWrite } from '../modules/tables.js';
 import { indexKey } from '../index-key.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
 import { arraySize, type Operators } from '../operators.js';
 import { assignRecordField } from '../record-contract.js';
-import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
 import { tensorSelection } from '../selectors.js';
 import type { PreparedStatement } from '../statement-control.js';
 import { writeTable } from '../table-access.js';
 import { sameShape } from '../tensor-index.js';
 import {
-    isRankArray, isRankFenwick, isRankGraph, isRankIndex, isRankLabel, isRankObject, isRankRecord, isRankSegment,
-    isRankSequence, isRankTable,
+    isRankArray, isRankGraph, isRankLabel, isRankRecord, isRankSequence, isRankTable,
     type RankCounter, type RankIndex, type RankSet, type RankValue,
 } from '../value.js';
 
@@ -111,76 +112,10 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 (operator, left, right) => host.operators.evaluateBinary(operator, left, right)));
             return value;
         }
-        if (isRankIndex(target)) {
-            const key = indexKey(selectors);
-            const value = yield* resume(host.evaluate(statement.value));
-            if (statement.operator === '=') target.entries.set(key, value);
-            else {
-                const previous = target.entries.get(key);
-                if (previous === undefined) throw new MissingValueError('index key not found');
-                target.entries.set(key, host.operators.evaluateBinary(
-                    assignmentOperator(statement.operator), previous, value,
-                ));
-            }
-            return undefined;
-        }
-        if (isRankFenwick(target)) {
-            if (selectors.length !== 1 || typeof selectors[0] !== 'bigint') {
-                throw new RankError('fenwick assignment expects one integer index');
-            }
-            const value = yield* resume(host.evaluate(statement.value));
-            const result = statement.operator === '=' ? value : host.operators.evaluateBinary(
-                assignmentOperator(statement.operator), target.at(selectors[0]), value,
-            );
-            if (typeof result !== 'bigint') {
-                throw new RankError('fenwick values must be integers');
-            }
-            target.set(selectors[0], result);
-            return result;
-        }
-        if (isRankSegment(target)) {
-            if (selectors.length === 2
-                && selectors.every(selector => typeof selector === 'bigint')
-                && (target instanceof RankRangeSumSegment
-                    || target instanceof RankPersistentSumSegment)) {
-                const value = yield* resume(host.evaluate(statement.value));
-                if (statement.operator === '=') {
-                    target.setRange(selectors[0], selectors[1], value);
-                } else if (statement.operator === '+=') {
-                    target.addRange(selectors[0], selectors[1], value);
-                } else {
-                    throw new RankError('segment + range assignment supports = and +=');
-                }
-                return value;
-            }
-            if (selectors.length !== 1 || typeof selectors[0] !== 'bigint') {
-                throw new RankError('segment assignment expects one integer index');
-            }
-            const value = yield* resume(host.evaluate(statement.value));
-            const result = statement.operator === '=' ? value : host.operators.evaluateBinary(
-                assignmentOperator(statement.operator), target.at(selectors[0]), value,
-            );
-            target.set(selectors[0], result);
-            return result;
-        }
-        if (target instanceof FlatRecords) {
-            if (selectors.length < 1 || selectors.length > 2 || typeof selectors[0] !== 'bigint') {
-                throw new RankError('flat assignment expects an integer index and optional field');
-            }
-            const index = Number(selectors[0]);
-            const previous = target.itemAt(index);
-            const value = yield* resume(host.evaluate(statement.value));
-            if (selectors.length === 2) {
-                const field = selectors[1];
-                if (!isRankLabel(field)) throw new RankError('flat assignment expects a field label');
-                const result = assignRecordField(previous, field.name, statement.operator, value, host.operators);
-                target.set(index, previous);
-                return result;
-            }
-            if (statement.operator !== '=') throw new RankError('flat record assignment supports =');
-            target.set(index, value);
-            return value;
-        }
+        const write = target instanceof FlatRecords
+            ? flatRecordWrite(target, selectors, statement.operator, host.operators)
+            : structureWrite(target, selectors, statement.operator, host.operators);
+        if (write) return write(yield* resume(host.evaluate(statement.value)));
         const field = selectors.at(-1);
         if (field !== undefined && isRankLabel(field) && field.name !== '#') {
             let receiver: RankValue = target;
@@ -189,49 +124,8 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             }
             if (isRankArray(receiver)) {
                 host.requireModule('tables', 'table column assignment');
-                if (receiver.shape.length !== 1) {
-                    throw new RankError(
-                        'table column assignment expects a rank-1 table',
-                        'DimensionMismatch',
-                    );
-                }
-                const result = yield* resume(host.evaluate(statement.value));
-                let operands: RankValue[];
-                if (isRankArray(result)) {
-                    if (!sameShape(receiver.shape, result.shape)) {
-                        throw new RankError(
-                            `assignment shape mismatch: ${receiver.shape} and ${result.shape}`,
-                            'DimensionMismatch',
-                        );
-                    }
-                    operands = Array.from(
-                        { length: arraySize(receiver.shape) },
-                        (_, index) => readArrayItem(result, index),
-                    );
-                } else {
-                    operands = Array(arraySize(receiver.shape)).fill(result) as RankValue[];
-                }
-                const rows = Array.from(
-                    { length: arraySize(receiver.shape) },
-                    (_, index) => readArrayItem(receiver, index),
-                );
-                if (!rows.every(isRankObject)) {
-                    throw new RankError('table assignment expects object rows', 'TypeError');
-                }
-                const operator = statement.operator === '='
-                    ? undefined : assignmentOperator(statement.operator);
-                const replacements = operands.map((operand, index) => {
-                    if (operator === undefined) return operand;
-                    const previous = rows[index].entries.get(field.name);
-                    if (previous === undefined) {
-                        throw new MissingValueError(`missing object key: ${field.name}`);
-                    }
-                    return host.operators.evaluateBinary(operator, previous, operand);
-                });
-                for (let index = 0; index < rows.length; index += 1) {
-                    rows[index].entries.set(field.name, replacements[index]);
-                }
-                return result;
+                const writeColumn = tableColumnWrite(receiver, field.name, statement.operator, host.operators);
+                return writeColumn(yield* resume(host.evaluate(statement.value)));
             }
             if (!isRankRecord(receiver)) {
                 throw new RankError('field assignment expects a record target');
