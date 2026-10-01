@@ -106,6 +106,7 @@ import {
     acceptsBindingType,
     bindingTypeMessage,
     possibleBindingTypeConflict,
+    declaredRanks,
 } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
@@ -2994,14 +2995,19 @@ export class Interpreter {
                 return value;
             });
         } : checkedBody;
+        const declared = declaredRanks(statement);
+        if (typeof declared === 'string') throw this.locateError(new RankError(declared, 'TypeError'), statement);
         const fn: NativeFunction = {
             kind: 'function',
             name: statement.name,
             arities: [statement.parameters.length],
-            monadicRank: 'all',
+            monadicRank: declared?.ranks.length === 1 ? declared.ranks[0] : 'all',
+            arrayCells: declared ? true : undefined,
             monadicResultShape: generator ? undefined
                 : cellShape => this.userResultCellShape(statement, context, returnRanks, cellShape),
-            dyadicRanks: statement.parameters.length === 2 ? ['all', 'all'] : undefined,
+            dyadicRanks: statement.parameters.length === 2
+                ? declared?.ranks.length === 2 ? [declared.ranks[0], declared.ranks[1]] : ['all', 'all']
+                : undefined,
             captures: context?.captures(),
             // What a caller outside the runtime reaches. A Rank call made from a
             // Rank body takes a shorter path, so the stretch this opens is the

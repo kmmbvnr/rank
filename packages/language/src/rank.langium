@@ -80,9 +80,12 @@ TestStatement:
     NL* 'end';
 
 FunctionStatement:
-    ('fun' | memo?='memo') name=(WORD | 'text' | 'first' | 'take' | 'update' | 'ascending' | 'descending') parameters+=Identifier* NL+
+    ('fun' | memo?='memo') name=(WORD | 'text' | 'first' | 'take' | 'update' | 'ascending' | 'descending') parameters+=Identifier* ('rank' ranks+=RankSpec+)? NL+
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
+
+RankSpec returns string:
+    '-'? INTEGER | WORD;
 
 ReturnStatement:
     'return' value=Expression?;
@@ -203,7 +206,7 @@ ArrayNameExpression infers NameExpression:
     name=ArrayReferenceName;
 
 ArrayReferenceName returns string:
-    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'index' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
+    VARIABLE | WORD | 'rank' | QUALIFIED_NAME | 'text' | 'first' | 'index' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
 
 AddressItem:
     spread?='unpack' value=ArrayAtom |
@@ -503,7 +506,7 @@ MultilinePowerExpression returns Expression:
         NL* operator='**' NL* right=MultilinePowerExpression)?;
 
 Identifier returns string:
-    VARIABLE | WORD | 'text' | 'first' | 'take' | 'drop' | 'from' | 'after' | 'till' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'delete' | 'ascending' | 'descending';
+    VARIABLE | WORD | 'rank' | 'text' | 'first' | 'take' | 'drop' | 'from' | 'after' | 'till' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'delete' | 'ascending' | 'descending';
 
 AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;
@@ -512,7 +515,7 @@ UnpackTarget returns string:
     AssignableName | '#';
 
 ReferenceName returns string:
-    VARIABLE | WORD | QUALIFIED_NAME | 'text' | 'first' | 'index' | 'shape' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
+    VARIABLE | WORD | 'rank' | QUALIFIED_NAME | 'text' | 'first' | 'index' | 'shape' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
 
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;

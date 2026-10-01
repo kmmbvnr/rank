@@ -5,6 +5,7 @@ import { isAssignmentStatement, type Program } from '../src/generated/ast.js';
 import { expressionFacts } from '../src/analysis/value-facts.js';
 import { incompatibleShapes, joinValueFacts, type ValueFacts } from '../src/analysis/value-domain.js';
 import { typeOf } from '../src/analysis/types.js';
+import { analyzeValues } from '../src/analysis/value-diagnostics.js';
 
 let services: ReturnType<typeof createRankServices>;
 beforeAll(() => { services = createRankServices(EmptyFileSystem); });
@@ -1046,4 +1047,12 @@ it('resolves a negative explicit rank against the operand rank', () => {
     expect(facts('A sum rank -1', bindings)).toEqual(facts('A sum rank 2', bindings));
     expect(facts('A sum rank -2', bindings)).toEqual(facts('A sum rank 1', bindings));
     expect(facts('A B atan2 rank -3 -2', bindings)).toEqual(facts('A B atan2 rank 0 0', bindings));
+});
+
+it('leaves a call of a function with declared ranks unknown', () => {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(
+        'fun inc X rank 0\n  return X + 1\nend\nA = (array 1 2) inc\n');
+    expect(parsed.parserErrors).toEqual([]);
+    const analysis = analyzeValues(parsed.value);
+    expect(analysis.bindings.get('A')?.rank).toBeUndefined();
 });
