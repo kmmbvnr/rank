@@ -116,3 +116,39 @@ describe('missing cells in typed storage', () => {
         expect(run(`use stats\nX = array ${text}\nX mean`)).toBe(run(`use stats\nX = array ${text}\n(X default 0.0) sum / 60`));
     });
 });
+
+describe('a whole array holds data without a value as .NA', () => {
+    const lookup = 'use tables\nIds = array 2 1 9\nKeys = array 1 2 2\nNames = array "Ada" "Bea" "Later"\n'
+        + 'Found = Ids Keys Names lookup\n';
+
+    it('shows a lookup with no match as .NA, while one read of it still raises', () => {
+        expect(run(`${lookup}Found`)).toBe('Bea Ada .NA');
+        expect(run(`${lookup}Found present`)).toBe('true true false');
+        expect(run(`${lookup}Found default "?"`)).toBe('Bea Ada ?');
+        expect(() => run(`${lookup}Found 2`)).toThrowError('lookup key not found');
+        expect(run(`${lookup}Found 2 default ""`)).toBe('');
+    });
+
+    it('propagates a missing lookup through arithmetic', () => {
+        const numbers = 'use tables\nUse = array 1 2 3\nKeys = array 1 3\nValues = array 10.0 30.0\n'
+            + 'Found = Use Keys Values lookup\n';
+        expect(run(`${numbers}Found + 1.0`)).toBe('11 .NA 31');
+        expect(run(`${numbers}Found sum`)).toBe('40');
+    });
+
+    it('keeps a missing index for choose, floor and find an error for the whole array', () => {
+        expect(() => run('use sequences\n(array 0 5) (array 10 20) choose')).toThrowError();
+        expect(run('use sequences\n(array 0 5) (array 10 20) choose default -1')).toBe('10 -1');
+    });
+
+    it('does not keep a row or element whose condition has no value', () => {
+        expect(run('X = array 1.0 .NA 3.0\nX (X greater 0.5)')).toBe('1 3');
+        expect(run('X = array 1.0 .NA 3.0\nX (X greater 2.0)')).toBe('3');
+        expect(run('X = array 1.0 .NA 3.0\nX filter greater 0.5')).toBe('1 3');
+    });
+
+    it('names the missing value when a number is required', () => {
+        expect(() => run('use numbers\n.NA 4 gcd')).toThrowError('missing value');
+        expect(run('use numbers\n(array 4.0 .NA 9.0) sqrt')).toBe('2 .NA 3');
+    });
+});

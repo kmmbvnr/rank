@@ -1,5 +1,5 @@
 import { RankArrowTable, columnFromValues } from './arrow-table.js';
-import { readArrayItem } from './array-storage.js';
+import { readArrayItem, readCellOrMissing } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { aggregateGroup, type GroupAggregateSpec } from './modules/tables.js';
@@ -8,6 +8,7 @@ import { setValueKey } from './set.js';
 import {
     isRankArray, isRankDate, isRankLabel, isRankSqliteExpression,
     type RankArray, type RankGroupedTable, type RankRecord, type RankValue,
+    MISSING,
 } from './value.js';
 
 const ABSENT = '\u0000';
@@ -21,7 +22,9 @@ export function filterTable(table: RankArrowTable, mask: RankArray): RankArrowTa
     const rows: number[] = [];
     for (let row = 0; row < table.length; row += 1) {
         checkpoint('processing table');
-        const flag = readArrayItem(mask, row);
+        const flag = readCellOrMissing(mask, row);
+        // A row whose condition has no value is not kept, as in SQL.
+        if (flag === MISSING) continue;
         if (typeof flag !== 'boolean') {
             throw new RankError('filter requires a boolean mask with one value per row', 'TypeError');
         }

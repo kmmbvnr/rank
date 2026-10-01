@@ -62,7 +62,13 @@ export class RankError extends Error {
 }
 
 export class MissingValueError extends RankError {
-    constructor(message: string) {
+    /**
+     * `soft` marks data that has no value (a lookup that found nothing, an absent
+     * table cell). A whole array holds such a cell as `.NA`; reading that one
+     * cell by itself still raises. A strict miss, such as an index outside the
+     * choices, is not data and raises for the whole array as well.
+     */
+    constructor(message: string, readonly soft = false) {
         super(message, 'Missing');
         this.name = 'MissingValueError';
     }

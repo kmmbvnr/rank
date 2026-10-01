@@ -1,10 +1,10 @@
-import { denseScalarItems, derivedArray, ownedArray, readArrayItem, realCells, typedArray, typedElementKind } from './array-storage.js';
+import { denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { atSequence, sequenceValues } from './sequence.js';
 import { arrayOffset, coordinatesAt, safeDimension } from './tensor-index.js';
 import { isRankArray, isRankQueue, isRankSequence, typeName,
-    type RankArray, type RankValue } from './value.js';
+    MISSING, type RankArray, type RankValue } from './value.js';
 
 export const ALL_AXIS = { kind: 'label', name: '#' } as const;
 const arrayItem = readArrayItem;
@@ -273,11 +273,14 @@ function selectorIndices(selector: RankValue, size: number, axis: number): numbe
     const length = count ?? values!.length;
     if (length === 0) return [];
     const at = isRankArray(selector)
-        ? (index: number) => arrayItem(selector, index)
+        ? (index: number) => readCellOrMissing(selector, index)
         : isRankQueue(selector)
             ? (index: number) => selector.items[index]
             : (index: number) => values![index];
-    const boolean = typeof at(0) === 'boolean';
+    // A cell with no value in a mask is not selected, as in SQL.
+    let lead = at(0);
+    for (let position = 1; lead === MISSING && position < length; position += 1) lead = at(position);
+    const boolean = typeof lead === 'boolean' || lead === MISSING;
     if (boolean && length !== size) {
         throw new RankError(`mask length ${length} does not match axis ${axis} size ${size}`);
     }
@@ -285,6 +288,7 @@ function selectorIndices(selector: RankValue, size: number, axis: number): numbe
     for (let position = 0; position < length; position += 1) {
         const value = at(position);
         if (boolean) {
+            if (value === MISSING) continue;
             if (typeof value !== 'boolean') {
                 throw new RankError('axis selector must contain only integers or only booleans');
             }

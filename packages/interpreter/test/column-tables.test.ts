@@ -29,10 +29,12 @@ describe('column tables', () => {
         expect(show('Data labels')).toBe('.Id .Sex .Age .Fare .Alive');
     });
 
-    it('reports an absent cell only when it is read, and default fills it', () => {
+    it('holds an absent cell as .NA, which default fills', () => {
         const { show, runtime } = session();
         expect(show('Data .Age default 0')).toBe('22 0 26 35');
-        expect(() => runtime.execute('Data .Age len\nX = Data .Age\nX 1')).toThrowError('missing object key: Age');
+        expect(show('Data .Age')).toBe('22 .NA 26 35');
+        expect(show('Data .Age present')).toBe('true false true true');
+        expect(runtime.execute('X = Data .Age\nX 1')).toBe(runtime.execute('.NA'));
         expect(show('Data .Age median')).toBe('26');
     });
 

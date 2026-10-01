@@ -5,7 +5,7 @@ import { arrayMaskSource, markArrayMask, nameMask } from './array-mask.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
-import { allValid, isPresentAt, maskedCells, typedArray, createArraySnapshot, ownedArray, derivedArray, readArrayItem, arrayForWrite, noteArrayBinding, isFlatScalarArray, isSharedArray, enterRuntime, leaveRuntime } from './array-storage.js';
+import { materializeCells, allValid, isPresentAt, maskedCells, typedArray, createArraySnapshot, ownedArray, derivedArray, readArrayItem, arrayForWrite, noteArrayBinding, isFlatScalarArray, isSharedArray, enterRuntime, leaveRuntime } from './array-storage.js';
 import { ByteArray } from './bytes.js';
 import { isPureHostFunction } from './host-effects.js';
 import { typedNativeCall } from './typed-native.js';
@@ -4788,7 +4788,7 @@ function lazyArray(
         itemAt,
         containsFiles: fileFree ? false : undefined,
         get items() {
-            materialized ??= Array.from({ length: arraySize(shape) }, (_, index) => itemAt(index));
+            materialized ??= materializeCells(arraySize(shape), itemAt);
             return materialized;
         },
     };
@@ -5043,7 +5043,7 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
                 const key = arrayItem(keys, index);
                 if (typeof key !== 'string') throw new RankError('object addressing expects text keys');
                 const value = object.entries.get(key);
-                if (value === undefined) throw new MissingValueError(`missing object key: ${key}`);
+                if (value === undefined) throw new MissingValueError(`missing object key: ${key}`, true);
                 return value;
             }));
         }
@@ -5052,7 +5052,7 @@ function applySelectors(values: RankValue[], missing?: () => RankValue): RankVal
         }
         const key = isRankLabel(values[1]) ? values[1].name : values[1];
         const value = values[0].entries.get(key);
-        if (value === undefined) throw new MissingValueError(`missing object key: ${key}`);
+        if (value === undefined) throw new MissingValueError(`missing object key: ${key}`, true);
         return value;
     }
     if (isRankQueue(values[0]) && values.length === 2 && typeof values[1] === 'bigint') {
@@ -5119,17 +5119,18 @@ function maskSelection(source: RankArray, selector: RankArray): RankSequence {
     if (!sameShape(source.shape, selector.shape)) {
         throw new RankError(`mask shape mismatch: ${source.shape} and ${selector.shape}`);
     }
-    if (!selector.items.every(item => typeof item === 'boolean')) {
+    if (!selector.items.every(item => typeof item === 'boolean' || item === MISSING)) {
         throw new RankError('array selector must be a boolean mask');
     }
 
-    const mask = selector.items as boolean[];
+    // A cell with no value is not selected, as in SQL.
+    const mask = selector.items;
     return sequence({
         name: 'array mask selection',
         size: { kind: 'unknown' },
         *iterate() {
             for (let index = 0; index < sourceSize; index += 1) {
-                if (mask[index]) yield arrayItem(source, index);
+                if (mask[index] === true) yield arrayItem(source, index);
             }
         },
     });
@@ -5491,6 +5492,7 @@ function isNamed(expression: Expression, name: string): boolean {
 
 function expectInteger(value: RankValue): bigint {
     if (typeof value !== 'bigint') {
+        if (value === MISSING) throw new MissingValueError('missing value where an integer is needed');
         throw new RankError(`expected integer, got ${typeName(value)}`);
     }
     return value;
@@ -5498,6 +5500,7 @@ function expectInteger(value: RankValue): bigint {
 
 function expectNumeric(value: RankValue): bigint | number {
     if (typeof value !== 'bigint' && typeof value !== 'number') {
+        if (value === MISSING) throw new MissingValueError('missing value where a number is needed');
         throw new RankError(`expected number, got ${typeName(value)}`);
     }
     return value;

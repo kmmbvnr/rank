@@ -31,6 +31,7 @@ import type { RuntimeModule } from './types.js';
 
 export const numbersModule: RuntimeModule = {
     abs: () => native('abs', 1, arguments_ => {
+        if (arguments_[0] === MISSING) return MISSING;
         const value = expectNumeric(arguments_[0]);
         if (typeof value === 'bigint') return absolute(value);
         return value < 0 ? -value : value === 0 ? 0 : value;
@@ -54,6 +55,7 @@ export const numbersModule: RuntimeModule = {
     acosh: () => unaryMath('acosh', Math.acosh, value => value >= 1),
     atanh: () => unaryMath('atanh', Math.atanh, value => value > -1 && value < 1),
     sqrt: () => native('sqrt', 1, arguments_ => {
+        if (arguments_[0] === MISSING) return MISSING;
         const value = expectNumeric(arguments_[0]);
         if (value < 0) {
             throw new RankError('sqrt expects a nonnegative value', 'DomainError');
@@ -148,10 +150,11 @@ function mapUnaryNumeric(
     name: string,
     operation: (value: number) => number,
 ): RankValue {
-    if (isRankSequence(value)) {
-        return mapSequence(value, name, item => operation(numericReal(item, name)));
-    }
-    if (!isRankArray(value)) return operation(numericReal(value, name));
+    // A cell with no value stays without one.
+    const apply = (item: RankValue): RankValue =>
+        item === MISSING ? MISSING : operation(numericReal(item, name));
+    if (isRankSequence(value)) return mapSequence(value, name, apply);
+    if (!isRankArray(value)) return apply(value);
     // A large stored array is mapped at once; a cell that raises leaves the
     // lazy path to raise it when read.
     const stored = denseScalarItems(value);
@@ -169,15 +172,18 @@ function mapUnaryNumeric(
         }
     }
     return derivedArray(value.shape, [value], index =>
-        operation(numericReal(value.itemAt?.(index) ?? value.items[index], name)), true);
+        apply(value.itemAt?.(index) ?? value.items[index]), true);
 }
 
 function mapBinaryValue(
     left: RankValue,
     right: RankValue,
     name: string,
-    scalarOperation: (left: RankValue, right: RankValue) => RankValue,
+    operation: (left: RankValue, right: RankValue) => RankValue,
 ): RankValue {
+    // A cell with no value stays without one.
+    const scalarOperation = (a: RankValue, b: RankValue): RankValue =>
+        a === MISSING || b === MISSING ? MISSING : operation(a, b);
     if (isRankSequence(left) && isRankSequence(right)) {
         return zipSequences(left, right, name, scalarOperation);
     }

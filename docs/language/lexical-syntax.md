@@ -712,6 +712,14 @@ reaching a place that needs one value, such as an `if` condition, raises
 for `.NA`. Reading one absent cell, key or element still raises `.Missing`; see
 ADR-0108.
 
+A whole array holds data that has no value as `.NA` instead of raising for each
+cell: an absent table cell, a field some object rows lack, and a `lookup` key
+with no match. Reading that one lookup cell by itself still raises `.Missing`.
+A miss that is not data, such as an index outside the choices of `choose`,
+raises `.Missing` for the whole array, and so does a field no row has. A mask
+with `.NA` selects no row or element where it has no value, as in SQL:
+`X (X greater 2.0)` skips an `.NA` cell.
+
 `round` from `use numbers` preserves the numeric type of every scalar it
 rounds: an `integer` result remains an integer and a `real` result remains a
 real. Its signed integer places argument counts decimal positions to the right

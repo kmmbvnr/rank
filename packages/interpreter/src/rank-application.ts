@@ -1,4 +1,4 @@
-import { arrayRevision, derivedArray, ownedArray, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
+import { arrayRevision, derivedArray, materializeCells, ownedArray, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
 import { completed, type Evaluation } from './execution.js';
 import { RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
@@ -21,7 +21,7 @@ function lazyArray(shape: readonly number[], itemAt: (index: number) => RankValu
     return { kind: 'array', shape, itemAt,
         containsFiles: fileFree ? false : undefined,
         get items() {
-            materialized ??= Array.from({ length: arraySize(shape) }, (_, index) => itemAt(index));
+            materialized ??= materializeCells(arraySize(shape), itemAt);
             return materialized;
         },
     };

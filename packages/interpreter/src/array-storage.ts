@@ -115,6 +115,33 @@ function onlyNewObjectsChanged(epoch: number, checkedBirth: number): boolean {
 }
 const ownedStorage = new WeakMap<RankArray, OwnedStorage>();
 
+/**
+ * The cells of a lazy array read all at once. A cell that has no data (a soft
+ * miss) reads as `.NA` here, so a whole array holds its gaps as values and the vector paths
+ * never need an exception; reading one cell by itself still raises `.Missing`.
+ */
+export function materializeCells(size: number, read: (index: number) => RankValue): RankValue[] {
+    return Array.from({ length: size }, (_, index) => {
+        try {
+            return read(index);
+        } catch (error) {
+            if (error instanceof MissingValueError && error.soft) return MISSING;
+            throw error;
+        }
+    });
+}
+
+/** One cell, with a cell that has no data (a soft miss) read as `.NA`. For whole-array
+ * consumers, such as a mask, that handle `.NA` themselves. */
+export function readCellOrMissing(value: RankArray, index: number): RankValue {
+    try {
+        return readArrayItem(value, index);
+    } catch (error) {
+        if (error instanceof MissingValueError && error.soft) return MISSING;
+        throw error;
+    }
+}
+
 /** Cheap borrow guard: no lazy cells or nested values can escape through indexing. */
 export function isFlatScalarArray(value: RankValue): boolean {
     if (typeof value !== 'object' || value === null) return false;
@@ -688,10 +715,8 @@ export function derivedArray(
         const started = seen;
         const startedEpoch = writeRevision;
         const startedEntry = hostEntry;
-        const items = Array.from(
-            { length: shape.reduce((size, dimension) => size * dimension, 1) },
-            interruptibleCallback((_: unknown, index: number) => itemAt(index), 'materializing array'),
-        );
+        const read = interruptibleCallback((index: number) => itemAt(index), 'materializing array');
+        const items = materializeCells(shape.reduce((size, dimension) => size * dimension, 1), read);
         if (undisturbed(startedEpoch, startedEntry)
             || (tracked && arrayRevision(value) === started)) materialized = items;
         return items;
