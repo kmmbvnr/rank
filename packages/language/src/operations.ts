@@ -416,7 +416,7 @@ export const operations: readonly Operation[] = [
     { name: 'readbytes', module: 'io', arities: [2, 3], form: 'Path Offset Count readbytes',
         result: 'bytes', effects: ['io'],
         summary: 'Reads a block of bytes by offset, or the next Count bytes of an open file.' },
-    { name: 'readlines', module: 'io', arities: [1], form: 'Path readlines', result: 'array',
+    { name: 'readlines', module: 'io', arities: [1], form: 'Path readlines', result: 'array', dataLength: true,
         effects: ['io'], summary: 'Lines of a file with their separators removed.' },
     { name: 'seek', module: 'io', arities: [2], form: 'File Offset seek', result: 'file',
         effects: ['io'], summary: 'Sets an absolute byte offset from the beginning.' },

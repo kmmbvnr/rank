@@ -547,6 +547,23 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         return result;
     }
 
+    /** `Row (Row greater 0)`: a parenthesized boolean mask selects a data-dependent number of items. */
+    function maskSelection(value: Expression, declared: FunctionStatement) {
+        if (!isApplicationExpression(value)) return undefined;
+        const parts = flattenApplication(value);
+        const mask = parts.length === 2 ? parts[1] : undefined;
+        if (!mask || !isParenthesizedExpression(mask)) return undefined;
+        const inner = mask.value;
+        const boolean = isBinaryExpression(inner) ? !['+', '-', '*', '/', '//', '%', '**', 'till', 'to', 'until', 'default'].includes(inner.operator)
+            : (() => {
+                const last = flattenApplication(inner).at(-1);
+                const operation = isNameExpression(last) && !declared.parameters.includes(last.name) && !functions.has(last.name)
+                    ? findOperation(last.name) : undefined;
+                return operation?.result === 'boolean';
+            })();
+        return boolean ? { name: 'a mask selection' } : undefined;
+    }
+
     /** The builtin that ends every `return` of a one-parameter function with no declared ranks, if all agree on a data-dependent length. */
     function raggedReturn(declared: FunctionStatement) {
         if (declared.parameters.length !== 1 || declared.ranks.length) return undefined;
@@ -554,6 +571,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         let found;
         for (const item of returns) {
             if (!item.value) return undefined;
+            const selected = maskSelection(item.value, declared);
+            if (selected) { found ??= selected; continue; }
             const last = flattenApplication(item.value).at(-1);
             const operation = isNameExpression(last) && !declared.parameters.includes(last.name) && !functions.has(last.name)
                 ? findOperation(last.name) : undefined;
@@ -585,7 +604,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (frame.length === 0 || frame.every(n => n !== null) && frame.reduce<number>((size, n) => size * n!, 1) <= 1) return;
         diagnostics.push({ node: modifier, kind: 'DimensionMismatch', code: 'RaggedLift', severity: 'warning',
             message: `\`${name.name}\` returns a data-dependent length${declared ? ` (from \`${source_.name}\`)` : ''}; under \`rank ${rank}\` the cells may differ in length `
-                + `and fail at run time. Reduce inside a function you lift (\`fun Distinct Row ... Row ${source_.name} sum\`) or pad to a fixed width`});
+                + `and fail at run time. Reduce inside a function you lift (for example \`fun Total Row\` returning \`Row ... sum\`) or pad to a fixed width`});
     }
 
     function checkFieldAssignment(expected: ValueFacts, value: Expression, operator: string,

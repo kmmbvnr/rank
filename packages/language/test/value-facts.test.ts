@@ -1076,4 +1076,7 @@ it('warns when rank lifts a function with a data-dependent result length', () =>
         .toContain('`uniq` returns a data-dependent length (from `unique`)');
     expect(ragged(fn + 'M = array 1 1 2 3 shape 2 2\n(M distinct rank 1) print\n')).toEqual([]);
     expect(ragged('use text\nM = array 1 1 2 3 shape 2 2\n(M words rank 1) print\n')).toHaveLength(1);
+    const mask = 'fun positive Row\n  return Row (Row greater 0)\nend\n';
+    expect(ragged(mask + 'M = array 1 1 2 3 shape 2 2\n(M positive rank 1) print\n')[0].message)
+        .toContain('(from `a mask selection`)');
 });
