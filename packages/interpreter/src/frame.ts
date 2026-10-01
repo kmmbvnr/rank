@@ -21,6 +21,8 @@ export class LocalFrame {
     // knows the slot checks them without looking the name up a second time.
     private readonly slotTypes: (ReadonlySet<string> | undefined)[] = [];
     private arrayRanks: Map<string, number> | undefined;
+    // Set for the globals; see publish().
+    private shared = false;
 
     constructor(
         readonly parent: LocalFrame | undefined,
@@ -33,6 +35,7 @@ export class LocalFrame {
         const frame = new LocalFrame(undefined);
         frame.mappedValues = values;
         frame.mappedTypes = new Map();
+        frame.shared = true;
         return frame;
     }
 
@@ -67,6 +70,10 @@ export class LocalFrame {
     }
 
     set(name: string, value: RankValue): void {
+        if (this.shared) {
+            this.publish(name, value);
+            return;
+        }
         this.checkRank(name, value);
         noteBinding(value);
         if (this.mappedValues) {
@@ -78,6 +85,11 @@ export class LocalFrame {
 
     // A name arrives with both its value and the types it settles on.
     define(name: string, value: RankValue, types: ReadonlySet<string>, borrowed = false): void {
+        if (this.shared) {
+            this.publish(name, value);
+            this.mappedTypes!.set(name, types);
+            return;
+        }
         this.checkRank(name, value);
         noteBinding(value, borrowed);
         if (this.mappedValues) {
@@ -176,6 +188,23 @@ export class LocalFrame {
         this.slotTypes.length = 0;
         this.arrayRanks?.clear();
         return true;
+    }
+
+    // A global is visible from the moment it is written. Reading a ranked
+    // array's shape for the rank check can run a Rank function, and a debugger
+    // paused there shows the new binding. A rejected rank restores the old value.
+    private publish(name: string, value: RankValue): void {
+        const values = this.mappedValues!;
+        const previous = values.get(name);
+        values.set(name, value);
+        try {
+            this.checkRank(name, value);
+        } catch (error) {
+            if (previous === undefined) values.delete(name);
+            else values.set(name, previous);
+            throw error;
+        }
+        noteBinding(value);
     }
 
     private checkRank(name: string, value: RankValue): void {
