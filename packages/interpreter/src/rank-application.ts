@@ -308,7 +308,9 @@ export class RankApplication {
                 resultCellShape = [...shape];
             } else if (!sameShape(resultCellShape, shape)) {
                 throw new RankError(
-                    `rank results must have one shape: ${resultCellShape.join(' ')} and ${shape.join(' ')}`,
+                    `rank results must have one shape: \`${fn.name ?? 'function'}\` gave ${resultCellShape.join(' ') || 'a scalar'}`
+                    + ` and ${shape.join(' ') || 'a scalar'} (cell ${frameIndex}); `
+                    + 'reduce inside a function you lift, or pad to a fixed width',
                 );
             }
             this.ownFiles(result);

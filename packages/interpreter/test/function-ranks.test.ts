@@ -45,3 +45,12 @@ describe('fun headers declare intrinsic ranks', () => {
         expect(() => run('fun f rank 0\n  return 1\nend')).toThrow(/needs a function with parameters/);
     });
 });
+
+describe('ragged lifts', () => {
+    it('name the function and the two cell shapes', () => {
+        const rows = '(array 1 1 2 3) (array 2 2) reshape';
+        expect(() => run(`(${rows}) unique rank 1`)).toThrow(/`unique` gave 1 and 2 \(cell 1\)/);
+        const distinct = 'fun distinct Row\n  return Row unique sum\nend\n';
+        expect(run(`${distinct}(${rows}) distinct rank 1`)).toBe('1 5');
+    });
+});

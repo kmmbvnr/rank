@@ -35,7 +35,8 @@ export interface ValueDiagnostic {
     readonly node: AstNode;
     readonly message: string;
     readonly kind: 'TypeError' | 'DimensionMismatch';
-    readonly code?: 'BuiltinRename';
+    readonly code?: 'BuiltinRename' | 'RaggedLift';
+    readonly severity?: 'warning';
 }
 
 export interface ValueAnalysis {
@@ -510,6 +511,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 }
             }
         }
+        if (isApplicationExpression(expression)) raggedLiftWarning(expression, lookup);
         if (isBinaryExpression(expression)) {
             const left = inspect(expression.left, env);
             const right = inspect(expression.right, env);
@@ -543,6 +545,30 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         expressions.set(expression, result);
         if (result.bottom) throw new UnobservedReturn();
         return result;
+    }
+
+    /** `F rank N` over a frame of several cells where F's result length depends on the values. */
+    function raggedLiftWarning(expression: Expression, lookup: FactLookup): void {
+        if (!isApplicationExpression(expression)) return;
+        const parts = flattenApplication(expression);
+        const modifier = parts.at(-2);
+        if (parts.length !== 4 || !isNameExpression(modifier) || modifier.name !== 'rank' || lookup('rank')) return;
+        const name = parts[1];
+        if (!isNameExpression(name) || lookup(name.name)) return;
+        const operation = findOperation(name.name);
+        const signature = operation?.shape?.find(shape => shape.args.length === 1);
+        if (!operation || !signature?.result?.some(term => term !== null && typeof term === 'object' && 'exists' in term)) return;
+        const rank = expressionFacts(parts[3], lookup).integer;
+        const source = expressions.get(parts[0]) ?? expressionFacts(parts[0], lookup);
+        const sourceRank = source.shape?.length ?? source.acceptedArrayRank;
+        if (rank === undefined || BigInt(rank) < 0n || sourceRank === undefined
+            || source.types.length && source.types.join() !== 'array') return;
+        const frame = source.shape?.slice(0, Math.max(0, sourceRank - Number(rank)))
+            ?? Array<number | null>(Math.max(0, sourceRank - Number(rank))).fill(null);
+        if (frame.length === 0 || frame.every(n => n !== null) && frame.reduce<number>((size, n) => size * n!, 1) <= 1) return;
+        diagnostics.push({ node: modifier, kind: 'DimensionMismatch', code: 'RaggedLift', severity: 'warning',
+            message: `\`${operation.name}\` returns a data-dependent length; under \`rank ${rank}\` the cells may differ in length `
+                + `and fail at run time. Reduce inside a function you lift (\`fun Distinct Row ... Row ${operation.name} sum\`) or pad to a fixed width`});
     }
 
     function checkFieldAssignment(expected: ValueFacts, value: Expression, operator: string,

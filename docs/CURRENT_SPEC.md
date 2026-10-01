@@ -5387,6 +5387,14 @@ scalar. `startswith` keeps whole-operand ranks, because a byte view is an array
 that must be compared whole. `take` and `drop` are sequence operators, not
 functions, and have no ranks. `rank N` keeps its meaning.
 
+A function whose result length depends on the values, such as `unique`,
+`split` or a mask selection, can differ in length from cell to cell. Lifting
+it with `rank` over several cells (`M unique rank 1`) works only when every cell
+happens to give the same length; the analyzer warns on the `rank` word, and the
+runtime error names the function and the two cell shapes. Reduce inside the
+function you lift (`fun Distinct Row` returning `Row unique sum`), pad to a
+fixed width, or iterate rows with `for` to keep ragged results.
+
 ## Iteration by axis and cell rank
 
 Ordinary `for` over a rank-N tensor yields its rank-(N-1) cells along the
