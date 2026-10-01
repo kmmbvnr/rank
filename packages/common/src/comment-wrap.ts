@@ -54,45 +54,17 @@ export function mergeTranscripts(existing: string, addition: string): string {
 
     const normA = wordsA.map(normalizeWord);
     const normB = wordsB.map(normalizeWord);
+    // True when `count` words of A starting at `startA` equal the first `count` words of B.
+    const matchesB = (startA: number, count: number) => normB.slice(0, count).every((w, i) => normA[startA + i] === w);
 
     // 1. If addition is a prefix of existing, it contains no new words
-    if (wordsA.length >= wordsB.length) {
-        let prefixMatch = true;
-        for (let i = 0; i < wordsB.length; i++) {
-            if (normA[i] !== normB[i]) {
-                prefixMatch = false;
-                break;
-            }
-        }
-        if (prefixMatch) {
-            return trimmedA;
-        }
-    }
+    if (wordsA.length >= wordsB.length && matchesB(0, wordsB.length)) return trimmedA;
 
     // 2. Find longest suffix of A matching prefix of B
-    const maxOverlap = Math.min(wordsA.length, wordsB.length);
-    let overlap = 0;
-
-    for (let k = maxOverlap; k >= 1; k--) {
-        let match = true;
-        for (let i = 0; i < k; i++) {
-            if (normA[wordsA.length - k + i] !== normB[i]) {
-                match = false;
-                break;
-            }
-        }
-        if (match) {
-            overlap = k;
-            break;
-        }
-    }
-
-    if (overlap > 0) {
-        const remainingB = wordsB.slice(overlap);
-        if (remainingB.length === 0) {
-            return trimmedA;
-        }
-        return trimmedA + ' ' + remainingB.join(' ');
+    for (let k = Math.min(wordsA.length, wordsB.length); k >= 1; k--) {
+        if (!matchesB(wordsA.length - k, k)) continue;
+        const remainingB = wordsB.slice(k);
+        return remainingB.length === 0 ? trimmedA : trimmedA + ' ' + remainingB.join(' ');
     }
 
     return trimmedA + ' ' + trimmedB;
