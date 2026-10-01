@@ -12,8 +12,25 @@ import type { RankArrowTable } from './arrow-table.js';
 import { MissingValueError, RankError } from './errors.js';
 import { bindingRankConflict, bindingRankMessage } from '@arrrank/language';
 
+/** A cell with no value, written `.NA`. It is a value, not an error: arithmetic
+ * and comparison propagate it, `and`/`or` follow three-valued logic, and
+ * `default` replaces it. Where a definite value is required (a condition, an
+ * index) it raises `.Missing`, which `default` also handles. */
+export interface RankMissing {
+    readonly kind: 'missing';
+}
+
+export const MISSING: RankMissing = Object.freeze({ kind: 'missing' as const });
+
+export function isRankMissing(value: RankValue): value is RankMissing {
+    return value === MISSING;
+}
+
 export function expectBoolean(value: RankValue): boolean {
-    if (typeof value !== 'boolean') throw new RankError(`expected boolean, got ${typeName(value)}`);
+    if (typeof value !== 'boolean') {
+        if (value === MISSING) throw new MissingValueError('missing value where true or false is needed');
+        throw new RankError(`expected boolean, got ${typeName(value)}`);
+    }
     return value;
 }
 
@@ -277,7 +294,7 @@ export interface RankSequenceMask extends RankSequence {
     readonly predicate: SequencePredicate;
 }
 
-export type RankValue = bigint | number | boolean | string | RankArray | RankFile |
+export type RankValue = bigint | number | boolean | string | RankMissing | RankArray | RankFile |
     RankSqliteDatabase | RankSqliteTable | RankSqliteExpression | RankTableAlias | RankSqliteScope |
     RankLabel | RankDate | RankDateTime | RankDuration | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
@@ -608,6 +625,7 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     if (value.kind === 'label') {
         return `.${value.name}`;
     }
+    if (value.kind === 'missing') return '.NA';
     if (isRankDate(value)) return formatDate(value);
     if (isRankDuration(value)) return formatDuration(value);
     if (value.kind === 'error') {

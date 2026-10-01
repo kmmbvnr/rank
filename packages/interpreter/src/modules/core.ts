@@ -1,8 +1,14 @@
-import { RankError } from '../errors.js';
+import { MissingValueError, RankError } from '../errors.js';
+import { markArrayMask } from '../array-mask.js';
+import { ownedArray } from '../array-storage.js';
+import { sequenceMask } from '../sequence.js';
 import { ByteArray } from '../bytes.js';
 import { withTypedCalls } from '../typed-native.js';
 import { readArrayItem } from '../array-storage.js';
-import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, type RankValue } from '../value.js';
+import {
+    formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankSequence, MISSING,
+    type RankValue, type SequencePredicate,
+} from '../value.js';
 import { numericExtreme, sumValue } from './numbers.js';
 import { lengthOf } from './sequences.js';
 import { native } from './shared.js';
@@ -41,6 +47,25 @@ export const coreModule: RuntimeModule = {
             throw new RankError('text expects a scalar value', 'TypeError');
         }
         return formatValue(value);
+    }),
+    present: () => native('present', 1, ([value]) => {
+        if (isRankSequence(value)) {
+            const predicate: SequencePredicate = { name: 'present', test: item => item !== MISSING };
+            return sequenceMask(value, predicate);
+        }
+        if (!isRankArray(value)) return value !== MISSING;
+        // A cell whose read raises `.Missing` has no value either.
+        const size = value.shape.reduce((product, length) => product * length, 1);
+        const flags: boolean[] = new Array(size);
+        for (let index = 0; index < size; index += 1) {
+            try {
+                flags[index] = readArrayItem(value, index) !== MISSING;
+            } catch (error) {
+                if (!(error instanceof MissingValueError)) throw error;
+                flags[index] = false;
+            }
+        }
+        return markArrayMask(ownedArray(flags, value.shape, true), value);
     }),
     len: () => native('len', 1, args => lengthOf(args[0])),
     sum: () => native('sum', 1, args => sumValue(args[0])),

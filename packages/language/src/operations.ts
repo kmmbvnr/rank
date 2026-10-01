@@ -608,6 +608,8 @@ export const operations: readonly Operation[] = [
     { name: 'len', module: 'core', arities: [1], form: 'Value len', result: 'integer',
         arrayHeaderNoCallback: true,
         summary: 'Code points of text, leading axis of an array, or size of a collection.' },
+    { name: 'present', module: 'core', arities: [1], form: 'Values present', result: 'boolean',
+        summary: 'Mask of the cells that have a value: false for `.NA` and for cells that read as `.Missing`.' },
     { name: 'primes', module: 'sequences', arities: [], form: 'primes', result: 'sequence',
         lazy: true, valueElements: 'integer', valueCallbackFree: true,
         summary: 'Unbounded ascending primes, with planned membership and positional seeking.' },
