@@ -9,8 +9,8 @@ import {
 } from '../execution.js';
 import { expectFenwick } from '../fenwick.js';
 import { FlatRecords } from '../flat.js';
+import type { FastPaths } from '../fast-paths.js';
 import type { FunctionInvocation } from '../function-invocation.js';
-import { compileFusedReduction, compileFusedSum } from '../fused-reduction.js';
 import { graphConstructor } from '../graph.js';
 import { dsuFrom } from '../dsu.js';
 import type { BuiltinRegistry } from '../modules/builtins.js';
@@ -54,6 +54,7 @@ export interface ApplicationContext {
     readonly builtins: BuiltinRegistry;
     readonly resources: ResourceOwnership;
     readonly functions: FunctionInvocation;
+    readonly fastPaths: FastPaths;
 }
 
 /**
@@ -143,14 +144,11 @@ export class ApplicationEvaluator {
             case 'reduce': {
                 const reduction = { ...form, rank: form.rank === undefined ? undefined
                     : safeDimension(integerLiteral(form.rank, 'rank'), 'rank') };
-                const fused = reduction.rank === undefined && reduction.seed === undefined ? compileFusedReduction(
-                    reduction.source, reduction.operator, {
-                        prepareLeaf: source => context.compileDirect(source),
-                        binary: (operator, a, b) => context.operators.evaluateBinary(operator, a, b),
-                        reduce: value => context.reductions.evaluateReduction(reduction.operator, value),
-                    },
-                ) : undefined;
-                if (fused) return () => completed(fused());
+                const fused = context.fastPaths.application(form, parts, {
+                    reduce: (operator, value) => context.reductions.evaluateReduction(operator, value),
+                    apply: values => application.apply(values, missing, 0, [], tail),
+                });
+                if (fused) return fused;
                 return function* (): Execution<RankValue> {
                     const source = yield* resume(context.evaluate(reduction.source));
                     const seed = reduction.seed === undefined
@@ -633,19 +631,11 @@ export class ApplicationEvaluator {
             }
             case 'plain': {
                 if (!isApplicationExpression(expression)) return context.compile(expression, missing, tail, false);
-                if (parts.length === 2 && isNamed(parts[1], 'sum')) {
-                    const fused = compileFusedSum(parts[0], {
-                        prepareLeaf: source => context.compileDirect(source),
-                        binary: (operator, a, b) => context.operators.evaluateBinary(operator, a, b),
-                    }, (value, sum) => {
-                        const fn = context.resolve('sum');
-                        if (isNativeFunction(fn) && context.builtins.is('core', 'sum', fn)) {
-                            return completed(sum ? sum() : fn.call([value]));
-                        }
-                        return application.apply([value, fn], missing, 0, [], tail);
-                    });
-                    if (fused) return fused;
-                }
+                const fused = context.fastPaths.application(form, parts, {
+                    reduce: (operator, value) => context.reductions.evaluateReduction(operator, value),
+                    apply: values => application.apply(values, missing, 0, [], tail),
+                });
+                if (fused) return fused;
                 if (parts.some((part, index) => index > 0 && isNamed(part, 'sum'))) {
                     return function* (): Execution<RankValue> {
                         let pending: RankValue[] = [];

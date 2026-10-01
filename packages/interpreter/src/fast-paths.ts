@@ -1,11 +1,18 @@
 import type { AstNode } from 'langium';
 import {
-    findOperation, flattenApplication, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
+    findOperation, flattenApplication, isBinaryExpression, isNameExpression, isUnaryExpression,
+    type ApplicationForm, type Operation, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
+import { TailCallSignal } from './control-signals.js';
+import { registerFlatCombine } from './flat-combine.js';
+import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
+import type { Operators } from './operators.js';
+import { compileScalarExpression } from './scalar-compiler.js';
+import { scalarFunctionResult } from './scalar-function-proof.js';
 import { currentDiagnostics } from './diagnostics.js';
-import type { Evaluation, Execution } from './execution.js';
+import { completed, type Evaluation, type Execution } from './execution.js';
 import { argumentSignature } from './return-contract.js';
 import type { ExecutionContext, PreparedStatement, TensorGroup } from './statement-control.js';
 import { compileTensorKernel } from './tensor-kernel.js';
@@ -22,7 +29,7 @@ import type { BuiltinRegistry } from './modules/builtins.js';
 import { atArray, scalarArrayWriteOffset, tensorSelection } from './selectors.js';
 import { typedNativeCall } from './typed-native.js';
 import { applySelectors } from './value-selection.js';
-import { isNativeFunction, type RankValue } from './value.js';
+import { isNativeFunction, type NativeFunction, type RankValue } from './value.js';
 
 export type CompiledLoop = NonNullable<ReturnType<typeof compileIntegerLoop>>;
 
@@ -40,6 +47,22 @@ export interface FastPathContext {
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     /** Evaluation of a returned application that may become a tail call. */
     compileTail(expression: Expression): () => Evaluation<RankValue>;
+    /** Builtin identity a name is bound to, or false for a user value. */
+    operationOf(name: string): Operation | undefined | false;
+    readonly operators: Operators;
+}
+
+/** The reference evaluation an application fast path falls back to. */
+export interface ApplicationReference {
+    reduce(operator: string, value: RankValue): RankValue;
+    apply(values: RankValue[]): Evaluation<RankValue>;
+}
+
+/** A compiled loop's view of a user function it may call without leaving the loop. */
+export interface ScalarCallSite {
+    readonly type: 'integer' | 'boolean';
+    readonly locals: readonly string[];
+    bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined;
 }
 
 /** How a compiled block reaches statement preparation and resumes after a suspension. */
@@ -188,7 +211,7 @@ export class FastPaths {
                         : undefined;
                 } catch { return undefined; }
             },
-            scalarFunction: (name, arity) => this.context.functions.scalarCall(name, arity),
+            scalarFunction: (name, arity) => this.scalarCall(name, arity),
             absolute: this.context.options().absoluteLoopCompilation !== false,
             extrema: this.context.options().extremaLoopCompilation !== false,
             extremeParts: flattenApplication,
@@ -217,5 +240,103 @@ export class FastPaths {
         }, binding) : undefined;
         if (!compiled) recordFallback(this.context.options().integerLoopCompilation === false ? 'loop:disabled' : 'loop:unsupported');
         return compiled;
+    }
+
+    /** A binary or unary expression over direct leaves compiled to one closure. */
+    scalarExpression(
+        expression: Expression, leaf: (expression: Expression) => (() => RankValue) | undefined,
+    ): (() => RankValue) | undefined {
+        if (this.context.options().scalarCompilation === false
+            || !(isBinaryExpression(expression) || isUnaryExpression(expression))) return undefined;
+        return compileScalarExpression(expression, {
+            leaf,
+            binary: (op, left, right) => this.context.operators.evaluateBinary(op, left, right),
+            unary: (op, value) => this.context.operators.evaluateUnary(op, value),
+            compiled: this.context.options().onScalarCompiled,
+            executed: this.context.options().onScalarExecuted,
+        });
+    }
+
+    /**
+     * A specialized evaluation of a classified application, chosen by form
+     * kind. An operation is recognized by the identity its name is bound to,
+     * never by spelling; the caller recompiles when that identity changes.
+     */
+    application(
+        form: ApplicationForm, parts: readonly Expression[], reference: ApplicationReference,
+    ): (() => Evaluation<RankValue>) | undefined {
+        const arithmetic = {
+            prepareLeaf: (source: Expression) => this.context.compileDirect(source),
+            binary: (operator: string, a: RankValue, b: RankValue) => this.context.operators.evaluateBinary(operator, a, b),
+        };
+        switch (form.kind) {
+            case 'reduce': {
+                // A literal rank or a seed takes the reference reduction.
+                if (form.rank !== undefined || form.seed !== undefined) return undefined;
+                const fused = compileFusedReduction(form.source, form.operator, {
+                    ...arithmetic, reduce: value => reference.reduce(form.operator, value),
+                });
+                return fused && (() => completed(fused()));
+            }
+            case 'plain': {
+                const operation = parts.length === 2 ? parts[1] : undefined;
+                if (!operation || !isNameExpression(operation)) return undefined;
+                const identity = this.context.operationOf(operation.name);
+                if (!identity || identity.module !== 'core' || identity.name !== 'sum') return undefined;
+                return compileFusedSum(parts[0], arithmetic, (value, sum) => {
+                    // A host can still bind the name to something else between runs.
+                    const fn = this.context.resolve(operation.name);
+                    if (isNativeFunction(fn) && this.context.builtins.is('core', 'sum', fn)) {
+                        return completed(sum ? sum() : fn.call([value]));
+                    }
+                    return reference.apply([value, fn]);
+                });
+            }
+            default: return undefined;
+        }
+    }
+
+    /** A proven scalar body that integer arguments may enter without a frame. */
+    scalarEntry(statement: FunctionStatement, generator: boolean): { readonly locals: readonly string[] } | undefined {
+        return this.context.options().scalarEntryCompilation !== false && !generator
+            ? scalarFunctionResult(statement, true) : undefined;
+    }
+
+    /** Lets flat combinators run a scalar user function without entering Rank. */
+    flatCombine(
+        fn: NativeFunction, statement: FunctionStatement, available: (builtins: ReadonlySet<string>) => boolean,
+    ): void {
+        if (this.context.options().scalarFunctionCompilation !== false) registerFlatCombine(fn, statement, available);
+    }
+
+    /**
+     * A compiled loop calling `name` with `arity` integer arguments may compile the call
+     * when the callee's body is a proven scalar function. `bind` rechecks the
+     * binding at loop entry, since the name can be rebound between runs.
+     */
+    scalarCall(name: string, arity: number): ScalarCallSite | undefined {
+        if (this.context.options().scalarCallCompilation === false) return undefined;
+        const value = this.context.bindings.find(name);
+        const definition = value && isNativeFunction(value) ? this.context.functions.definitionOf(value) : undefined;
+        if (!definition || definition.statement.parameters.length !== arity) return undefined;
+        const statement = definition.statement;
+        const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false);
+        if (!proof) return undefined;
+        const captures = definition.context !== undefined;
+        return { type: proof.type, locals: captures ? proof.locals : [], bind: () => {
+            const current = this.context.bindings.find(name);
+            if (!current || !isNativeFunction(current)) return undefined;
+            const active = this.context.functions.definitionOf(current);
+            if (active?.statement !== statement || (active.context !== undefined) !== captures
+                || proof.locals.some(local => active.context?.find(local))) return undefined;
+            const compiled = active.owner.prepareScalarCall(statement);
+            return (arguments_, tail = false) => {
+                if (tail && active.owner === this.context.functions) {
+                    throw new TailCallSignal(active, arguments_,
+                        this.context.options().compiledScalarTailCalls !== false ? compiled : undefined);
+                }
+                return compiled ? compiled(arguments_) : current.call(arguments_);
+            };
+        } };
     }
 }

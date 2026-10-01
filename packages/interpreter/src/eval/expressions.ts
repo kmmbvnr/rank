@@ -18,6 +18,7 @@ import { MissingValueError, RankError } from '../errors.js';
 import {
     completed, flatMapResult, mapExecution, mapPair, mapResult, resume, type Evaluation, type Execution,
 } from '../execution.js';
+import type { FastPaths } from '../fast-paths.js';
 import type { FunctionInvocation } from '../function-invocation.js';
 import { graphConstructor } from '../graph.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
@@ -31,7 +32,6 @@ import { expectInteger, type Operators } from '../operators.js';
 import { assignRecordField, recordContract } from '../record-contract.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
 import { ResourceMap } from '../resource-summary.js';
-import { compileScalarExpression } from '../scalar-compiler.js';
 import { ALL_AXIS } from '../selectors.js';
 import { materializeSequence, sequence } from '../sequence.js';
 import { compileTableExpression } from '../table-query-expression.js';
@@ -59,6 +59,7 @@ export interface ExpressionContext {
     readonly functions: FunctionInvocation;
     readonly builtins: BuiltinRegistry;
     readonly application: ApplicationEvaluator;
+    readonly fastPaths: FastPaths;
 }
 
 /**
@@ -111,17 +112,8 @@ export class ExpressionEvaluator {
     }
 
     private compileDirectValue(expression: Expression): (() => RankValue) | undefined {
-        if (this.context.options().scalarCompilation !== false
-            && (isBinaryExpression(expression) || isUnaryExpression(expression))) {
-            const compiled = compileScalarExpression(expression, {
-                leaf: leaf => this.compileDirect(leaf),
-                binary: (op, left, right) => this.context.operators.evaluateBinary(op, left, right),
-                unary: (op, value) => this.context.operators.evaluateUnary(op, value),
-                compiled: this.context.options().onScalarCompiled,
-                executed: this.context.options().onScalarExecuted,
-            });
-            if (compiled) return compiled;
-        }
+        const compiled = this.context.fastPaths.scalarExpression(expression, leaf => this.compileDirect(leaf));
+        if (compiled) return compiled;
         if (isNewStructureExpression(expression)) return () => {
             if (expression.structure === 'graph') {
                 this.context.requireModule('graph', 'new graph');

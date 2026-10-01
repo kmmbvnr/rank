@@ -36,6 +36,17 @@ describe('builtin sum semantics required by fusion', () => {
         expect(apply.mock.calls.filter(([fn]) => fn.name === 'sum')).toHaveLength(1);
         runtime.dispose();
     });
+    it('chooses the fused sum by binding identity, so an alias of sum fuses too', () => {
+        const runtime = new Interpreter(undefined, { tensorFusion: false });
+        runtime.execute('Total = sum\nfun aliased A B\n  return (A * B) Total\nend');
+        const input = createArraySnapshot([1n, 2n]);
+        const apply = vi.spyOn(runtime as unknown as {
+            invoke(fn: { name: string }, args: RankValue[]): unknown;
+        }, 'invoke');
+        expect(call(runtime, 'aliased', input, 2n)).toBe(6n);
+        expect(apply.mock.calls.filter(([fn]) => fn.name === 'sum')).toHaveLength(0);
+        runtime.dispose();
+    });
     it('observes ordinary eager input changes between calls', () => {
         const runtime = new Interpreter();
         runtime.execute(source);

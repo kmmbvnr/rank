@@ -162,6 +162,8 @@ export class Interpreter {
                 compiled: (statement, arguments_) => this.fastPaths.functionBody(statement, arguments_, this.blocks),
                 execute: (statements, generator) => this.blocks.execute(statements, false, false, false, generator),
                 locate: (error, node) => this.locateError(error, node),
+                scalarEntry: (statement, generator) => this.fastPaths.scalarEntry(statement, generator),
+                flatCombine: (fn, statement, available) => this.fastPaths.flatCombine(fn, statement, available),
             });
         this.reductions = new ReductionEvaluator(
             (operator, left, right) => this.operators.evaluateBinary(operator, left, right),
@@ -171,6 +173,21 @@ export class Interpreter {
             (fn, args) => this.invoke(fn, args),
             value => this.resources.ownFiles(value), this.builtins.functions,
         );
+        this.fastPaths = new FastPaths({
+            bindings: this.bindings,
+            modules: this.modules,
+            builtins: this.builtins,
+            functions: this.functions,
+            resolve: name => this.resolve(name),
+            compileAssign: name => this.compileAssign(name),
+            locate: (error, node) => this.locateError(error, node),
+            options: () => this.options,
+            evaluate: expression => this.evaluateTask(expression),
+            compileDirect: expression => this.compileDirectExpression(expression),
+            compileTail: expression => this.compileExpression(expression, undefined, true),
+            operationOf: name => this.applicationOperation(name),
+            operators: this.operators,
+        });
         this.application = new ApplicationEvaluator({
             evaluate: expression => this.evaluateTask(expression),
             compileDirect: expression => this.compileDirectExpression(expression),
@@ -187,6 +204,7 @@ export class Interpreter {
             builtins: this.builtins,
             resources: this.resources,
             functions: this.functions,
+            fastPaths: this.fastPaths,
         });
         this.expressions = new ExpressionEvaluator({
             bindings: this.bindings,
@@ -201,19 +219,7 @@ export class Interpreter {
             functions: this.functions,
             builtins: this.builtins,
             application: this.application,
-        });
-        this.fastPaths = new FastPaths({
-            bindings: this.bindings,
-            modules: this.modules,
-            builtins: this.builtins,
-            functions: this.functions,
-            resolve: name => this.resolve(name),
-            compileAssign: name => this.compileAssign(name),
-            locate: (error, node) => this.locateError(error, node),
-            options: () => this.options,
-            evaluate: expression => this.evaluateTask(expression),
-            compileDirect: expression => this.compileDirectExpression(expression),
-            compileTail: expression => this.compileExpression(expression, undefined, true),
+            fastPaths: this.fastPaths,
         });
         this.blocks = new BlockExecution({
             bindings: this.bindings,

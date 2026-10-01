@@ -10,7 +10,6 @@ import { ReturnSignal, TailCallSignal } from './control-signals.js';
 import type { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
 import { ExecutionStack, completed, mapResult, resume, runExecution, type Evaluation, type Execution } from './execution.js';
-import { registerFlatCombine } from './flat-combine.js';
 import { LocalFrame } from './frame.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import { checkpoint, inspectionEnabled } from './interrupt.js';
@@ -19,7 +18,6 @@ import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
 import { ReturnContract, argumentRankSignature, argumentSignature } from './return-contract.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
-import { scalarFunctionResult } from './scalar-function-proof.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
 import {
@@ -36,8 +34,8 @@ export interface FunctionDefinition {
     readonly direct: (() => RankValue) | undefined;
 }
 
-/** What running a function body needs from statement execution. */
-export interface FunctionBodies {
+/** What defining and running a function body needs from execution and the fast-path owner. */
+export interface FunctionHost {
     /** A synchronous closure for an expression that cannot call Rank code, when one exists. */
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     /** A compiled body for these argument types, when the block compiler accepts it. */
@@ -45,13 +43,10 @@ export interface FunctionBodies {
     /** Runs statements as a function body, or as a generator body that may yield. */
     execute(statements: Statement[], generator: boolean): Evaluation<RankValue | undefined>;
     locate(error: unknown, node: AstNode): unknown;
-}
-
-/** A compiled loop's view of a user function it may call without leaving the loop. */
-export interface ScalarCallSite {
-    readonly type: 'integer' | 'boolean';
-    readonly locals: readonly string[];
-    bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined;
+    /** A proven scalar body that integer arguments may enter directly, when that path is enabled. */
+    scalarEntry(statement: FunctionStatement, generator: boolean): { readonly locals: readonly string[] } | undefined;
+    /** Offers a function to flat combinators; `available` is checked before each use. */
+    flatCombine(fn: NativeFunction, statement: FunctionStatement, available: (builtins: ReadonlySet<string>) => boolean): void;
 }
 
 interface BorrowProof {
@@ -84,7 +79,7 @@ export class FunctionInvocation {
         private readonly inspection: DebugInspection,
         private readonly modules: ReadonlySet<string>,
         private readonly options: () => InterpreterOptions,
-        private readonly bodies: FunctionBodies,
+        private readonly host: FunctionHost,
     ) {
         this.maxDepth = options().maxCallDepth ?? 200_000;
         if (!Number.isSafeInteger(this.maxDepth) || this.maxDepth < 1) {
@@ -127,13 +122,12 @@ export class FunctionInvocation {
         const context = this.bindings.current;
         const only = statement.statements.length === 1 ? statement.statements[0] : undefined;
         const compiled = !inspectionEnabled() && only && isReturnStatement(only) && only.value
-            ? this.bodies.compileDirect(only.value) : undefined;
+            ? this.host.compileDirect(only.value) : undefined;
         const direct = compiled ? () => {
             try { return compiled(); }
-            catch (error) { throw this.bodies.locate(error, only!); }
+            catch (error) { throw this.host.locate(error, only!); }
         } : undefined;
-        const proof = this.options().scalarEntryCompilation !== false && !generator
-            ? scalarFunctionResult(statement, true) : undefined;
+        const proof = this.host.scalarEntry(statement, generator);
         const scalar = proof ? this.prepareScalarCall(statement) : undefined;
         const instances = new Map<string, ReturnContract>();
         const returnRanks = new Map<string, { rank?: number }>();
@@ -164,7 +158,7 @@ export class FunctionInvocation {
                 try { return contract.check(value); }
                 catch (error) {
                     if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
-                    throw this.bodies.locate(error, statement);
+                    throw this.host.locate(error, statement);
                 }
             });
         };
@@ -181,7 +175,7 @@ export class FunctionInvocation {
             });
         } : checkedBody;
         const declared = declaredRanks(statement);
-        if (typeof declared === 'string') throw this.bodies.locate(new RankError(declared, 'TypeError'), statement);
+        if (typeof declared === 'string') throw this.host.locate(new RankError(declared, 'TypeError'), statement);
         const fn: NativeFunction = {
             kind: 'function',
             name: statement.name,
@@ -214,8 +208,8 @@ export class FunctionInvocation {
             // via the tail-call path that enters an ordinary function body.
             if (!statement.memo) functionDefinitions.set(fn, { owner: this, statement, context, direct, specialization });
         }
-        if (!generator && !statement.memo && this.options().scalarFunctionCompilation !== false) {
-            registerFlatCombine(fn, statement, builtins => {
+        if (!generator && !statement.memo) {
+            this.host.flatCombine(fn, statement, builtins => {
                 if (this.depth >= this.maxDepth) return false;
                 for (const name of builtins) {
                     // Rank locals cannot hide core names; only host-injected globals need a guard.
@@ -277,7 +271,7 @@ export class FunctionInvocation {
         if (this.options().scalarFunctionCompilation === false) return undefined;
         const kernel = compileScalarFunction(statement);
         if (!kernel) return undefined;
-        const locate = (error: unknown, index: number) => this.bodies.locate(error, kernel.locations[index] ?? statement);
+        const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
         return (arguments_, tail = false) => {
             if (!tail && this.depth >= this.maxDepth) {
                 throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
@@ -404,13 +398,13 @@ export class FunctionInvocation {
                     this.bindings.current = frame;
                     if (inspectionEnabled()) this.inspection.replace(statement.name, frame);
                     for (const local of prepareFunction(statement, argumentSignature(arguments_)).locals) this.define(local);
-                    const body = this.bodies.compiled(statement, arguments_);
+                    const body = this.host.compiled(statement, arguments_);
                     if (body) {
                         result = yield* resume(body({ assertBooleanExpressions: false, insideLoop: false,
                             insideFinally: false, insideGenerator: false }));
                         break;
                     }
-                    yield* resume(this.bodies.execute(statement.statements, false));
+                    yield* resume(this.host.execute(statement.statements, false));
                     throw new RankError(`function ${statement.name} reached end without return`);
                 } catch (error) {
                     if (error instanceof TailCallSignal) {
@@ -487,7 +481,7 @@ export class FunctionInvocation {
                 const resources = new Set<RankFile>();
                 invocation.resources.addGeneratorScope(resources);
                 const execution = new ExecutionStack((function* (): Execution<RankValue | undefined> {
-                    return yield* resume(invocation.bodies.execute(statement.statements, true));
+                    return yield* resume(invocation.host.execute(statement.statements, true));
                 })());
                 try {
                     while (true) {
@@ -529,37 +523,6 @@ export class FunctionInvocation {
                 }
             },
         });
-    }
-
-    /**
-     * A loop calling `name` with `arity` integer arguments may compile the call
-     * when the callee's body is a proven scalar function. `bind` rechecks the
-     * binding at loop entry, since the name can be rebound between runs.
-     */
-    scalarCall(name: string, arity: number): ScalarCallSite | undefined {
-        if (this.options().scalarCallCompilation === false) return undefined;
-        const value = this.bindings.find(name);
-        const definition = value && isNativeFunction(value) ? functionDefinitions.get(value) : undefined;
-        if (!definition || definition.statement.parameters.length !== arity) return undefined;
-        const statement = definition.statement;
-        const proof = scalarFunctionResult(statement, this.options().scalarBlockCalls !== false);
-        if (!proof) return undefined;
-        const captures = definition.context !== undefined;
-        return { type: proof.type, locals: captures ? proof.locals : [], bind: () => {
-            const current = this.bindings.find(name);
-            if (!current || !isNativeFunction(current)) return undefined;
-            const active = functionDefinitions.get(current);
-            if (active?.statement !== statement || (active.context !== undefined) !== captures
-                || proof.locals.some(local => active.context?.find(local))) return undefined;
-            const compiled = active.owner.prepareScalarCall(statement);
-            return (arguments_, tail = false) => {
-                if (tail && active.owner === this) {
-                    throw new TailCallSignal(active, arguments_,
-                        this.options().compiledScalarTailCalls !== false ? compiled : undefined);
-                }
-                return compiled ? compiled(arguments_) : current.call(arguments_);
-            };
-        } };
     }
 
     private withGeneratorFrame<T>(
