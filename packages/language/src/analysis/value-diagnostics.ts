@@ -454,12 +454,23 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (isArrayExpression(expression)) {
             for (const item of [...expression.items, ...expression.dimensions, ...expression.rows.flatMap(row => row.items)]) inspect(item.value, env);
             if (expression.fill) inspect(expression.fill, env);
+            if (expression.range) inspect(expression.range, env);
             const shape = expressionFacts(expression, lookup).shape;
             if (expression.dimensions.length && !expression.fill && shape?.every(n => n !== null)) {
                 const expected = shape.reduce<bigint>((size, n) => size * BigInt(n!), 1n);
-                const actual = expression.items.length + expression.rows.reduce((count, row) => count + row.items.length, 0);
-                if (expected !== BigInt(actual)) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
-                    message: `array shape ${shape.join(' ')} expects ${expected} elements, got ${actual}` });
+                if (expression.range) {
+                    const rangeFacts = expressionFacts(expression.range, lookup);
+                    const rangeSize = rangeFacts.shape?.[0];
+                    if (rangeSize !== undefined && rangeSize !== null) {
+                        const actual = BigInt(rangeSize);
+                        if (expected !== actual) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
+                            message: `array shape ${shape.join(' ')} expects ${expected} elements, got ${actual}` });
+                    }
+                } else {
+                    const actual = expression.items.length + expression.rows.reduce((count, row) => count + row.items.length, 0);
+                    if (expected !== BigInt(actual)) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
+                        message: `array shape ${shape.join(' ')} expects ${expected} elements, got ${actual}` });
+                }
             }
         }
         if (isApplicationExpression(expression)) {

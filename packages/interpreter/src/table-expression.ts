@@ -113,6 +113,7 @@ export function tableExpression(
                 ({ ...value, value: lower(value.value) });
             return { ...node, items: node.items.map(item), dimensions: node.dimensions.map(item),
                 fill: node.fill ? lower(node.fill) : undefined,
+                range: node.range ? lower(node.range) : undefined,
                 rows: node.rows.map(row => ({ ...row, items: row.items.map(item) })) } as Expression;
         }
         if (isApplicationExpression(node)) {

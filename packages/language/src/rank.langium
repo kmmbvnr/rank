@@ -171,8 +171,39 @@ ArrayExpression:
             'fill' fill=Expression |
             NL+ (rows+=ArrayRow NL+)* 'end'
         ) |
+        range=ArrayRangeExpression ('shape' dimensions+=ArrayItem+)? |
         items+=ArrayItem+ ('shape' dimensions+=ArrayItem+)?
     );
+
+ArrayRangeExpression returns Expression:
+    ArrayRangeBound
+    {infer BinaryExpression.left=current}
+    operator=('to' | 'till' | 'until') right=ArrayRangeBound
+    ('by' step=ArrayRangeBound)?;
+
+ArrayRangeBound returns Expression:
+    ArrayRangeAddition;
+
+ArrayRangeAddition returns Expression:
+    ArrayRangeMultiplication
+    ({infer BinaryExpression.left=current}
+        operator=('+' | '-') right=ArrayRangeMultiplication)*;
+
+ArrayRangeMultiplication returns Expression:
+    ArrayRangePower
+    ({infer BinaryExpression.left=current}
+        operator=('*' | '/' | '//' | '%') right=ArrayRangePower)*;
+
+ArrayRangePower returns Expression:
+    ArrayRangeAtom
+    ({infer BinaryExpression.left=current}
+        operator='**' right=ArrayRangePower)?;
+
+ArrayRangeAtom returns Expression:
+    {infer UnaryExpression} operator=('+' | '-') operand=ArrayRangeAtom |
+    NumberLiteral |
+    ArrayNameExpression |
+    ParenthesizedExpression;
 
 // One quoted line per source line, glued or joined by `lines`. `rem` lines are
 // hidden and blank lines collapse into NL+, so only the quoted lines remain.

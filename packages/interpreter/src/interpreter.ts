@@ -1931,9 +1931,27 @@ export class Interpreter {
         }
         if (isArrayExpression(expression)) {
             return function* (): Execution<RankValue> {
-                const items = yield* resume(mapExecution(expression.rows.length > 0
-                    ? expression.rows.flatMap(row => row.items)
-                    : expression.items, item => interpreter.evaluateArrayItem(item)));
+                let items: RankValue[];
+                if (expression.range) {
+                    const rangeValue = (yield* resume(interpreter.evaluateTask(expression.range)));
+                    if (isRankSequence(rangeValue)) {
+                        if (rangeValue.plan.size.kind === 'infinite') {
+                            throw new RankError('cannot materialize an infinite sequence');
+                        }
+                        const material = materializeSequence(rangeValue);
+                        if (expression.dimensions.length === 0) return material;
+                        items = material.items;
+                    } else if (isRankArray(rangeValue)) {
+                        if (expression.dimensions.length === 0) return rangeValue;
+                        items = rangeValue.items;
+                    } else {
+                        throw new RankError('array range must be a sequence or array');
+                    }
+                } else {
+                    items = yield* resume(mapExecution(expression.rows.length > 0
+                        ? expression.rows.flatMap(row => row.items)
+                        : expression.items, item => interpreter.evaluateArrayItem(item)));
+                }
                 if (expression.dimensions.length === 0) return array(items);
                 const shape = yield* resume(interpreter.arrayShape(expression.dimensions));
                 const size = shape.reduce((product, dimension) => product * BigInt(dimension), 1n);

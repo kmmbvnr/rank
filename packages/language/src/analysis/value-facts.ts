@@ -109,6 +109,32 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
         };
     }
     if (isArrayExpression(expression)) {
+        if (expression.range) {
+            const rangeFact = expressionFacts(expression.range, lookup);
+            const elements = rangeFact.elements ?? ['integer'];
+            if (expression.dimensions.length) {
+                const shape = expression.dimensions.map(item => {
+                    const fact = expressionFacts(item.value, lookup);
+                    if (fact.integer === undefined || item.sign === '-') return null;
+                    const size = Number(fact.integer);
+                    return Number.isSafeInteger(size) && size >= 0 ? size : null;
+                });
+                return {
+                    types: ['array'],
+                    rank: shape.length,
+                    shape,
+                    elements,
+                    eagerScalarCells: true as const,
+                };
+            }
+            return {
+                types: ['array'],
+                rank: 1,
+                shape: rangeFact.shape ?? [null],
+                elements,
+                eagerScalarCells: true as const,
+            };
+        }
         if (expression.dimensions.length) {
             const only = expression.dimensions.length === 1 ? expressionFacts(expression.dimensions[0]!.value, lookup) : undefined;
             if (only?.types.join() === 'array') {

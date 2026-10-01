@@ -17,6 +17,7 @@ export const safeCollectionValue = (node: Expression, env: ReadonlyMap<string, V
     isParenthesizedExpression(node) ? safeCollectionValue(node.value, env) : directValue(node) || isArrayExpression(node)
         && node.dimensions.every(item => directValue(item.value))
         && (!node.fill || directValue(node.fill))
+        && (!node.range || isBinaryExpression(node.range) && directValue(node.range.left) && directValue(node.range.right) && (!node.range.step || directValue(node.range.step)))
         && [...node.items, ...node.rows.flatMap(row => row.items)].every(item => directValue(item.value))
         && expressionFacts(node, name => env.get(name)).eagerScalarCells === true;
 export const safeIndexDefault = (node: Expression, env: ReadonlyMap<string, ValueFacts>): boolean => {

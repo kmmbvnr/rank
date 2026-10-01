@@ -164,7 +164,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 || definition.$container.$type !== 'Program' || definition.parameters.includes(item.name)
                 || item.value.rows.length
                 || (item.value.dimensions.length ? !item.value.fill || !scalarLiteral(item.value.fill)
-                    || item.value.items.length > 0 : !!item.value.fill
+                    || item.value.items.length > 0 || !!item.value.range : !!item.value.fill
                         || !item.value.items.every(cell => scalarLiteral(cell.value)))) continue;
             if (descendants.filter(isAssignmentStatement).filter(other => other.name === item.name).length !== 1) continue;
             const writes = descendants.filter((node): node is ArrayAssignmentStatement =>
@@ -517,7 +517,8 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     && (!value.step || expression(value.step));
             }
             if (isArrayExpression(value)) return [...value.items, ...value.dimensions, ...value.rows.flatMap(row => row.items)]
-                .every(item => expression(item.value)) && (!value.fill || expression(value.fill));
+                .every(item => expression(item.value)) && (!value.fill || expression(value.fill))
+                && (!value.range || expression(value.range));
             return false;
         };
         const statement = (item: Statement): boolean => {

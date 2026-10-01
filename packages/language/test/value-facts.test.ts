@@ -940,6 +940,13 @@ it('propagates finite range lengths through materialization', () => {
     expect(facts('(5 to 1) array').shape).toEqual([0]);
 });
 
+it('infers shape and integer elements for range array declarations', () => {
+    expect(facts('array 1 to 5')).toMatchObject({ types: ['array'], elements: ['integer'], rank: 1, shape: [5], eagerScalarCells: true });
+    expect(facts('array 1 to 4 shape 2 2')).toMatchObject({ types: ['array'], elements: ['integer'], rank: 2, shape: [2, 2], eagerScalarCells: true });
+    expect(facts('array 1 to 9 by 2 shape 5 1')).toMatchObject({ types: ['array'], elements: ['integer'], rank: 2, shape: [5, 1], eagerScalarCells: true });
+    expect(facts('array 0 till 16 shape 4 4')).toMatchObject({ types: ['array'], elements: ['integer'], rank: 2, shape: [4, 4], eagerScalarCells: true });
+});
+
 it('only proves incompatible known non-singleton axes', () => {
     const shape = (...dimensions: (number | null)[]): ValueFacts => ({ types: ['array'], shape: dimensions });
     expect(incompatibleShapes(shape(2, 3), shape(2, 4))).toBe(true);

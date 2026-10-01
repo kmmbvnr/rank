@@ -547,6 +547,37 @@ describe('Rank expressions and sequences', () => {
             .toThrowError('unknown name: reshape');
     });
 
+    it('evaluates range expressions in array declarations and shapes', () => {
+        const matrix = new Interpreter().execute([
+            'M = array 1 to 4 shape 2 2',
+            'M',
+        ].join('\n'));
+        expect(matrix).toMatchObject({ kind: 'array', shape: [2, 2], items: [1n, 2n, 3n, 4n] });
+
+        const vector = new Interpreter().execute([
+            'V = array 1 to 5',
+            'V',
+        ].join('\n'));
+        expect(vector).toMatchObject({ kind: 'array', shape: [5], items: [1n, 2n, 3n, 4n, 5n] });
+
+        const stepped = new Interpreter().execute([
+            'O = array 1 to 9 by 2 shape 5 1',
+            'O',
+        ].join('\n'));
+        expect(stepped).toMatchObject({ kind: 'array', shape: [5, 1], items: [1n, 3n, 5n, 7n, 9n] });
+
+        const exclusive = new Interpreter().execute([
+            'G = array 0 till 4 shape 2 2',
+            'G',
+        ].join('\n'));
+        expect(exclusive).toMatchObject({ kind: 'array', shape: [2, 2], items: [0n, 1n, 2n, 3n] });
+
+        expect(run('M = array 1 to 4 shape 2 2\nM 1 0')).toBe('3');
+
+        expect(() => run('array 1 to 5 shape 2 2'))
+            .toThrowError('array shape 2 2 expects 4 elements, got 5');
+    });
+
     it('reduces complete values and trailing cells', () => {
         expect(run('(array 2 3 4) reduce *')).toBe('24');
         expect(run('(array 1 2 3) reduce +')).toBe('6');

@@ -527,6 +527,7 @@ class Analyzer {
         if (isArrayExpression(expression)) {
             for (const dimension of expression.dimensions) this.expression(dimension.value);
             this.expression(expression.fill);
+            if (expression.range) this.expression(expression.range);
             for (const row of expression.rows) {
                 for (const item of row.items) this.expression(item.value);
             }

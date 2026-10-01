@@ -734,6 +734,57 @@ describe('Rank grammar', () => {
             dimensions: [{ value: { value: 2n } }, { value: { value: 2n } }] } });
     });
 
+    it('parses range expressions in array declarations with and without shape', async () => {
+        const doc1 = await parse('M = array 1 to 4 shape 2 2');
+        expect(doc1.parseResult.lexerErrors).toEqual([]);
+        expect(doc1.parseResult.parserErrors).toEqual([]);
+        expect(doc1.parseResult.value.statements[0]).toMatchObject({
+            value: {
+                $type: 'ArrayExpression',
+                range: {
+                    $type: 'BinaryExpression',
+                    operator: 'to',
+                    left: { value: 1n },
+                    right: { value: 4n },
+                },
+                dimensions: [{ value: { value: 2n } }, { value: { value: 2n } }],
+            },
+        });
+
+        const doc2 = await parse('V = array 1 to 10');
+        expect(doc2.parseResult.lexerErrors).toEqual([]);
+        expect(doc2.parseResult.parserErrors).toEqual([]);
+        expect(doc2.parseResult.value.statements[0]).toMatchObject({
+            value: {
+                $type: 'ArrayExpression',
+                range: {
+                    $type: 'BinaryExpression',
+                    operator: 'to',
+                    left: { value: 1n },
+                    right: { value: 10n },
+                },
+                dimensions: [],
+            },
+        });
+
+        const doc3 = await parse('Odds = array 1 to 9 by 2 shape 5 1');
+        expect(doc3.parseResult.lexerErrors).toEqual([]);
+        expect(doc3.parseResult.parserErrors).toEqual([]);
+        expect(doc3.parseResult.value.statements[0]).toMatchObject({
+            value: {
+                $type: 'ArrayExpression',
+                range: {
+                    $type: 'BinaryExpression',
+                    operator: 'to',
+                    left: { value: 1n },
+                    right: { value: 9n },
+                    step: { value: 2n },
+                },
+                dimensions: [{ value: { value: 5n } }, { value: { value: 1n } }],
+            },
+        });
+    });
+
     it('parses an array as the right operand of a comparison', async () => {
         const document = await parse('Answer equal array 7 0 8');
         expect(document.parseResult.lexerErrors).toEqual([]);

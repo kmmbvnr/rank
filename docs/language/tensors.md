@@ -26,11 +26,20 @@ Function parameters and local variables establish their rank per call.
 The current implementation includes dense construction through `array shape`
 and dynamic row-major `reshape`:
 
-List values followed by `shape` to create a tensor on one line:
+List values or a range followed by `shape` to create a tensor on one line:
 
 ```rank
 M = array 1 2 3 4 shape 2 2
+Grid = array 1 to 4 shape 2 2
+Odds = array 1 to 9 by 2 shape 5 1
 Zeros = array shape 2 2 fill 0
+```
+
+A range also constructs a rank-1 array without parentheses:
+
+```rank
+V = array 1 to 10
+Countdown = array 10 till 0 by -2
 ```
 
 Values use row-major order. Their count must equal the product of the dimensions.
