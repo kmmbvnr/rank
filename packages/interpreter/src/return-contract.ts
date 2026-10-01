@@ -9,24 +9,10 @@ export function argumentRankSignature(values: readonly RankValue[]): string {
         isRankRecord(value) ? recordSignature(recordContract(value), false) : null]));
 }
 
-/**
- * A cache key per argument specialization: type, rank and element types, with a
- * length-prefixed record contract. Type names are identifiers, so the plain
- * delimiters cannot collide.
- */
 export function argumentSignature(values: readonly RankValue[]): string {
-    let key = '';
-    for (let index = 0; index < values.length; index++) {
-        const value = values[index];
-        const types = isRankArray(value) ? elementTypes(value) : null;
-        key += `${typeName(value)}|${valueRank(value)}|${types === null ? '-' : types === undefined ? '?' : types.join(',')}`;
-        if (isRankRecord(value)) {
-            const record = JSON.stringify(recordSignature(recordContract(value), true));
-            key += `|${record.length}:${record}`;
-        }
-        key += ';';
-    }
-    return key;
+    return JSON.stringify(values.map(value => [typeName(value), valueRank(value),
+        isRankArray(value) ? elementTypes(value) : null,
+        isRankRecord(value) ? recordSignature(recordContract(value), true) : null]));
 }
 
 function recordSignature(value: CollectionElementType, elements: boolean): unknown {
