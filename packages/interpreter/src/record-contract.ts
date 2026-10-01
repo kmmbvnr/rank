@@ -1,5 +1,7 @@
+import { bindingTypeMessage } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
-import { readArrayItem } from './array-storage.js';
+import type { Operators } from './operators.js';
+import { noteArrayBinding, readArrayItem } from './array-storage.js';
 import { collectionElementType, isRankArray, isRankRecord, mergeCollectionElementType, typeName,
     type CollectionElementType, type RankRecord, type RankValue } from './value.js';
 
@@ -52,4 +54,30 @@ export function checkRecordField(record: RankRecord, field: string, value: RankV
     }
     retainRecordContract(value, contract);
     record.fieldContracts!.set(field, isRankRecord(value) ? { ...contract, fields: value.fieldContracts } : contract);
+}
+
+/** `Record .field = Value` or `op=`: the field keeps its type and contract. */
+export function assignRecordField(
+    record: RankRecord,
+    field: string,
+    operator: string,
+    value: RankValue,
+    operators: Operators,
+): RankValue {
+    const previous = record.entries.get(field);
+    if (previous === undefined) {
+        throw new RankError(`unknown record field: .${field}`);
+    }
+    const result = operator === '='
+        ? value
+        : operators.evaluateBinary(operator.slice(0, -1), previous, value);
+    const expected = record.types.get(field)!;
+    const received = typeName(result);
+    if (expected !== received) {
+        throw new RankError(bindingTypeMessage(`record field .${field}`, [expected], [received]));
+    }
+    checkRecordField(record, field, result);
+    noteArrayBinding(result);
+    record.entries.set(field, result);
+    return result;
 }

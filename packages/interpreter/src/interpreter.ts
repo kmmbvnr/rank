@@ -1,63 +1,54 @@
 import { checkpoint, InterruptedError, inspectionEnabled } from './interrupt.js';
 import { AstUtils, type AstNode } from 'langium';
-import { nameMask } from './array-mask.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
-import { allValid, isPresentAt, maskedCells, typedArray, createArraySnapshot, ownedArray, readArrayItem, arrayForWrite, noteArrayBinding, enterRuntime, leaveRuntime } from './array-storage.js';
+import { ownedArray, readArrayItem, arrayForWrite, enterRuntime, leaveRuntime } from './array-storage.js';
 import { ByteArray } from './bytes.js';
 import { isPureHostFunction } from './host-effects.js';
 import { typedNativeCall } from './typed-native.js';
 import { compileTensorCellCopy } from './tensor-cell-compiler.js';
 import { compileIntegerLoop } from './integer-loop.js';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
-import { compileScalarExpression } from './scalar-compiler.js';
 import { compileTensorKernel } from './tensor-kernel.js';
 import {
-    completed, emit, flatMapResult, mapExecution, mapPair, mapResult, resume, runExecution, type Evaluation, type Execution,
+    completed, emit, flatMapResult, mapExecution, mapResult, resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { BindingEnvironment } from './binding-environment.js';
 import { FunctionInvocation } from './function-invocation.js';
-import { ApplicationEvaluator, integerLiteral, isNamed } from './eval/application.js';
+import { ApplicationEvaluator, integerLiteral } from './eval/application.js';
+import { ExpressionEvaluator, checkedArrayDimension } from './eval/expressions.js';
 import type { InterpreterOptions, RankTestResult } from './interpreter-options.js';
 import { DebugInspection } from './debug-inspection.js';
 import { BuiltinRegistry, reseed, seedableRandom, type SeedableRandom } from './modules/builtins.js';
 import { locateError, registerSource } from './source-location.js';
-import { Operators, arraySize, expectInteger } from './operators.js';
+import { Operators, arraySize } from './operators.js';
 import {
-    applySelectors, maskSelection, selectValues, unpackApplicationItems,
+    applySelectors, selectValues,
 } from './value-selection.js';
 import { BREAK_SIGNAL, BreakSignal, CONTINUE_SIGNAL, ContinueSignal, ReturnSignal } from './control-signals.js';
-import { compileKeyedTableExpression } from './keyed-table-expression.js';
-import { compileTableExpression } from './table-query-expression.js';
-import { compileClauseExpression, isBoundCondition, type ClauseExpressionContext } from './clause-expression.js';
 import { prepareIfStatement, prepareTryStatement,
     type ExecutionContext, type LoopControl } from './statement-control.js';
 import { addToCollection, expectAddCollection, newStructure, removeFromCollection } from './collections.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { argumentSignature } from './return-contract.js';
-import { checkRecordField, recordContract, retainRecordContract } from './record-contract.js';
-import { ResourceMap } from './resource-summary.js';
+import { assignRecordField, recordContract, retainRecordContract } from './record-contract.js';
 import { ResourceOwnership } from './resource-ownership.js';
 import { inputDeclarationName, inputValues, kebabCase, parseArguments, validateInputValue } from './cli-args.js';
 import { ReductionEvaluator } from './reduction.js';
 import { RankApplication, tensorFrameAxes } from './rank-application.js';
 import {
-    ALL_AXIS, atArray, scalarArrayWriteOffset, tensorSelection,
+    atArray, scalarArrayWriteOffset, tensorSelection,
 } from './selectors.js';
 import { arrayOffset, coordinatesAt, safeDimension, sameShape } from './tensor-index.js';
 import {
-    nameNeedsExecution, requiresDataOperand, flattenApplication, isAddStatement,
-    isAliasedTableExpression,
+    flattenApplication, isAddStatement,
     isAllAxisExpression,
     isArrayAssignmentStatement,
-    isArrayExpression,
-    isTextBlockExpression,
     isArgsStatement,
     isArgumentStatement,
     isApplicationExpression,
     isAssignmentStatement,
     isBinaryExpression,
-    isBooleanLiteral,
     isBreakStatement,
     isContinueStatement,
     isExpressionStatement,
@@ -66,29 +57,15 @@ import {
     isFunctionStatement,
     isIfStatement,
     isIndexAssignmentStatement,
-    isLabelLiteral,
-    isMaterializeExpression,
     isNameExpression,
-    isNewStructureExpression,
     isNumberLiteral,
     isOptionStatement,
     isParenthesizedExpression,
     isPushStatement,
-    isRecordExpression,
-    isRecordUpdateExpression,
     isRunStatement,
     isReturnStatement,
-    isKeyedSortExpression,
-    isKeyedGroupExpression,
-    isKeyedRollingExpression,
-    isKeyedJoinExpression,
-    isKeyedReachExpression,
-    isStdinExpression,
-    isStringLiteral,
     isTestStatement,
     isTryStatement,
-    isUnaryExpression,
-    isUnpackExpression,
     isUnpackStatement,
     isUseStatement,
     isYieldStatement,
@@ -99,32 +76,17 @@ import {
     type Program,
     type Statement,
     applicationForm, findOperation, availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage,
-    bindingTypeMessage,
 } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
 import {
     RankPersistentSumSegment,
     RankRangeSumSegment,
 } from './segment.js';
-import { graphConstructor } from './graph.js';
-import { dsuFrom } from './dsu.js';
 import { indexKey } from './index-key.js';
 import { standardModules } from './modules/index.js';
-import {
-    sortByItems,
-    sortByKeys,
-} from './modules/sequences.js';
 import { writeTable } from './table-access.js';
-import { sortTable } from './table-ops.js';
-import { RankArrowTable } from './arrow-table.js';
-import {
-    materializeSqlite,
-    materializeSqliteExpression, sortSqlite,
-} from './modules/sqlite.js';
 import { parse } from './parser.js';
 import {
-    materializeSequence,
-    sequence,
     sequenceValues,
 } from './sequence.js';
 import {
@@ -140,15 +102,11 @@ import {
     isRankLabel,
     isRankMultiset,
     isRankObject,
-    isRankSqliteExpression,
-    isRankSqliteTable,
     isRankTable,
-    isRankTableAlias,
     isRankQueue,
     isRankRecord,
     isRankSet,
     isRankSequence,
-    MISSING,
     isRankSegment,
     type RankArray,
     type RankCounter,
@@ -157,7 +115,6 @@ import {
     type RankQueue,
     type RankRecord,
     type RankSet,
-    type RankSequence,
     type RankValue,
     typeName,
 } from './value.js';
@@ -233,7 +190,6 @@ export class Interpreter {
     private readonly debugStatements = new WeakMap<Statement, PreparedStatement>();
     private readonly functionBodies = new WeakMap<FunctionStatement, Map<string, CompiledBlock<ExecutionContext> | null>>();
     private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
-    private readonly expressions = new WeakMap<Expression, () => Evaluation<RankValue>>();
     private readonly builtins: BuiltinRegistry;
     private readonly reductions: ReductionEvaluator;
     private readonly rankApplication: RankApplication;
@@ -241,6 +197,7 @@ export class Interpreter {
     private readonly inspection = new DebugInspection(this.bindings, () => this.options.sourceId ?? '<input>');
     private readonly functions: FunctionInvocation;
     private readonly application: ApplicationEvaluator;
+    private readonly expressions: ExpressionEvaluator;
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
@@ -285,6 +242,20 @@ export class Interpreter {
             builtins: this.builtins,
             resources: this.resources,
             functions: this.functions,
+        });
+        this.expressions = new ExpressionEvaluator({
+            bindings: this.bindings,
+            resolve: name => this.resolve(name),
+            select: (values, missing) => this.select(values, missing),
+            requireModule: (module, operation) => this.requireModule(module, operation),
+            invoke: (fn, arguments_) => this.invoke(fn, arguments_),
+            locate: (error, expression) => this.locateError(error, expression),
+            options: () => this.options,
+            operators: this.operators,
+            resources: this.resources,
+            functions: this.functions,
+            builtins: this.builtins,
+            application: this.application,
         });
     }
 
@@ -1121,7 +1092,7 @@ export class Interpreter {
                     if (selectors.length === 2) {
                         const field = selectors[1];
                         if (!isRankLabel(field)) throw new RankError('flat assignment expects a field label');
-                        const result = interpreter.assignRecordField(previous, field.name, statement.operator, value);
+                        const result = assignRecordField(previous, field.name, statement.operator, value, interpreter.operators);
                         target.set(index, previous);
                         return result;
                     }
@@ -1184,11 +1155,12 @@ export class Interpreter {
                     if (!isRankRecord(receiver)) {
                         throw new RankError('field assignment expects a record target');
                     }
-                    return interpreter.assignRecordField(
+                    return assignRecordField(
                         receiver,
                         field.name,
                         statement.operator,
                         yield* resume(interpreter.evaluateTask(statement.value)),
+                        interpreter.operators,
                     );
                 }
                 if (!isRankArray(target) || target.kind !== 'array') {
@@ -1364,584 +1336,29 @@ export class Interpreter {
     }
 
     private evaluateTask(expression: Expression): Evaluation<RankValue> {
-        return this.prepareExpression(expression)();
+        return this.expressions.evaluate(expression);
     }
 
-    private prepareExpression(expression: Expression): () => Evaluation<RankValue> {
-        let execute = this.expressions.get(expression);
-        if (!execute) {
-            const direct = this.compileDirectExpression(expression);
-            execute = direct
-                ? () => completed(direct())
-                : this.compileExpression(expression);
-            if (!direct && requiresDataOperand(expression)) {
-                const evaluate = execute;
-                execute = () => mapResult(evaluate(), value => this.checkDataOperand(expression, value));
-            }
-            this.expressions.set(expression, execute);
-        }
-        return execute;
-    }
-
-    // Arithmetic and conditions with direct operands cannot call
-    // Rank functions. Keep those syntax trees synchronous to avoid allocating a task
-    // for every atom of a counted loop. Bindings and values remain runtime work.
     private compileDirectExpression(expression: Expression): (() => RankValue) | undefined {
-        const evaluate = this.compileDirectValue(expression);
-        return evaluate && requiresDataOperand(expression)
-            ? () => this.checkDataOperand(expression, evaluate()) : evaluate;
+        return this.expressions.compileDirect(expression);
     }
 
-    private checkDataOperand(expression: Expression, value: RankValue): RankValue {
-        if (isNativeFunction(value)) throw this.locateError(new RankError(
-            'This function has no known signature here. Group its input with parentheses or introduce an intermediate variable.',
-            'Syntax',
-        ), expression);
-        return value;
-    }
-
-    private compileDirectValue(expression: Expression): (() => RankValue) | undefined {
-        if (this.options.scalarCompilation !== false
-            && (isBinaryExpression(expression) || isUnaryExpression(expression))) {
-            const compiled = compileScalarExpression(expression, {
-                leaf: leaf => this.compileDirectExpression(leaf),
-                binary: (op, left, right) => this.operators.evaluateBinary(op, left, right),
-                unary: (op, value) => this.operators.evaluateUnary(op, value),
-                compiled: this.options.onScalarCompiled,
-                executed: this.options.onScalarExecuted,
-            });
-            if (compiled) return compiled;
-        }
-        if (isNewStructureExpression(expression)) return () => {
-            if (expression.structure === 'graph') {
-                this.requireModule('graph', 'new graph');
-                return graphConstructor();
-            }
-            if (expression.structure === 'dsu') {
-                this.requireModule('graph', 'new dsu');
-                return dsuFrom();
-            }
-            this.requireModule('algo', 'new');
-            return newStructure(expression.structure);
-        };
-        if (isNumberLiteral(expression) || isBooleanLiteral(expression) || isStringLiteral(expression)) {
-            return () => expression.value;
-        }
-        if (isTextBlockExpression(expression)) {
-            const value = expression.parts.join(expression.mode === 'lines' ? '\n' : '');
-            return () => value;
-        }
-        if (isLabelLiteral(expression)) {
-            if (expression.name === 'NA') return () => MISSING;
-            return () => ({ kind: 'label', name: expression.name });
-        }
-        if (isNameExpression(expression)) {
-            if (nameNeedsExecution(expression)) return undefined;
-            const name = expression.name;
-            let layout: Map<string, number> | undefined;
-            let slot: number | undefined;
-            return () => {
-                const frame = this.bindings.current;
-                if (frame) {
-                    if (layout !== frame.layout || slot === undefined) {
-                        layout = frame.layout;
-                        slot = layout.get(name);
-                    }
-                    if (slot !== undefined) {
-                        const value = frame.read(slot, name);
-                        if (value !== undefined) {
-                            return this.directNameValue(value);
-                        }
-                    }
-                }
-                return this.directNameValue(this.resolve(name));
-            };
-        }
-        if (isParenthesizedExpression(expression)) return this.compileDirectExpression(expression.value);
-        if (isUnaryExpression(expression)) {
-            const operand = this.compileDirectExpression(expression.operand);
-            return operand ? () => this.operators.evaluateUnary(expression.operator, operand()) : undefined;
-        }
-        if (isBinaryExpression(expression) && expression.operator !== 'default'
-            && expression.operator !== '**'
-            // `Values till not even` tests each item; its right side is no value.
-            && !((expression.operator === 'to' || expression.operator === 'till') && isBoundCondition(expression.right))
-            && !isNamed(expression.right, 'reduce')
-            && !isNamed(expression.right, 'scan')
-            && !isNamed(expression.right, 'segment')
-            && !isNamed(expression.right, 'outer')) {
-            const left = this.compileDirectExpression(expression.left);
-            const right = this.compileDirectExpression(expression.right);
-            const step = expression.step ? this.compileDirectExpression(expression.step) : undefined;
-            if (left && right && (expression.operator === 'and' || expression.operator === 'or')) {
-                const operator = expression.operator;
-                return () => {
-                    const value = left();
-                    return this.operators.decidesGuard(operator, value) ? value : this.operators.evaluateGuard(operator, value, right());
-                };
-            }
-            if (left && right && (!expression.step || step)) {
-                return () => this.operators.evaluateBinary(expression.operator, left(), right(), step?.());
-            }
-        }
-        return undefined;
-    }
-
-    // Cache syntax decisions, never values or name bindings. Preparation stays
-    // lazy so errors in unexecuted branches keep their existing timing.
     private compileExpression(
-        expression: Expression,
-        missing?: () => RankValue,
-        tail = false,
-        classify = true,
+        expression: Expression, missing?: () => RankValue, tail = false, classify = true,
     ): () => Evaluation<RankValue> {
-        const interpreter = this;
-        const bound = compileClauseExpression(expression, () => this.clauseContext());
-        if (bound && isBinaryExpression(expression)) return bound;
-        if (classify && (isApplicationExpression(expression) || isBinaryExpression(expression))) {
-            const syntax = isBinaryExpression(expression) ? flattenApplication(expression.right) : flattenApplication(expression);
-            const names = syntax.filter(isNameExpression).map(part => part.name);
-            let signature: string | undefined;
-            let compiled: (() => Evaluation<RankValue>) | undefined;
-            return () => {
-                const bindings = new Map(names.map(name => [name, this.applicationOperation(name)]));
-                const next = names.map(name => {
-                    const identity = bindings.get(name);
-                    return identity === false ? '\0' : identity?.name ?? name;
-                }).join(' ');
-                if (!compiled || signature !== next) {
-                    const form = applicationForm(expression, name => bindings.has(name)
-                        ? bindings.get(name) : this.applicationOperation(name));
-                    compiled = this.application.compileForm(expression, form, missing, tail);
-                    signature = next;
-                }
-                return compiled();
-            };
-        }
-        if (isNewStructureExpression(expression)) {
-            const create = this.compileDirectExpression(expression)!;
-            return () => completed(create());
-        }
-        if (isNumberLiteral(expression) || isBooleanLiteral(expression)) {
-            return function* (): Execution<RankValue> { return expression.value; };
-        }
-        if (isStringLiteral(expression)) {
-            return function* (): Execution<RankValue> { return expression.value; };
-        }
-        if (isLabelLiteral(expression)) {
-            return function* (): Execution<RankValue> {
-                return expression.name === 'NA' ? MISSING : { kind: 'label', name: expression.name };
-            };
-        }
-        if (isStdinExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                interpreter.requireModule('io', 'stdin');
-                const mode = expression.mode.name;
-                if (mode !== 'word' && mode !== 'integer') {
-                    throw new RankError(`unsupported standard input mode: .${mode}`);
-                }
-                if (!expression.count) return interpreter.readStdin(mode);
-
-                const count = (yield* resume(interpreter.evaluateTask(expression.count)));
-                if (typeof count !== 'bigint' || count < 0n) {
-                    throw new RankError('stdin count must be a nonnegative integer');
-                }
-                let consumed = false;
-                return interpreter.singlePassSequence({
-                    name: `stdin .${mode}`,
-                    size: { kind: 'exact', value: count },
-                    *iterate() {
-                        if (consumed) {
-                            throw new RankError(
-                                `standard input sequence .${mode} has already been consumed`,
-                                'ConsumedSequence',
-                            );
-                        }
-                        consumed = true;
-                        const line = (expression.$cstNode?.range.start.line ?? 0) + 1;
-                        for (let index = 0n; index < count; index += 1n) {
-                            try {
-                                yield interpreter.readStdin(mode);
-                            } catch (error) {
-                                // The sequence is read where it is used, far from its declaration.
-                                if (!(error instanceof RankError) || error.rankKind === 'IO') throw error;
-                                throw new RankError(`${error.message} (item ${index + 1n} of ${count}, read by `
-                                    + `stdin .${mode} at line ${line})`, error.rankKind, error.value);
-                            }
-                        }
-                    },
-                });
-            };
-        }
-        if (isArrayExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                let items: RankValue[];
-                if (expression.range) {
-                    const rangeValue = (yield* resume(interpreter.evaluateTask(expression.range)));
-                    if (isRankSequence(rangeValue)) {
-                        if (rangeValue.plan.size.kind === 'infinite') {
-                            throw new RankError('cannot materialize an infinite sequence');
-                        }
-                        const material = materializeSequence(rangeValue);
-                        if (expression.dimensions.length === 0) return material;
-                        items = material.items;
-                    } else if (isRankArray(rangeValue)) {
-                        if (expression.dimensions.length === 0) return rangeValue;
-                        items = rangeValue.items;
-                    } else {
-                        throw new RankError('array range must be a sequence or array');
-                    }
-                } else {
-                    items = yield* resume(mapExecution(expression.rows.length > 0
-                        ? expression.rows.flatMap(row => row.items)
-                        : expression.items, item => interpreter.evaluateArrayItem(item)));
-                }
-                if (expression.dimensions.length === 0) return array(items);
-                const shape = yield* resume(interpreter.arrayShape(expression.dimensions));
-                const size = shape.reduce((product, dimension) => product * BigInt(dimension), 1n);
-                if (expression.fill !== undefined) {
-                    const fill = (yield* resume(interpreter.evaluateTask(expression.fill)));
-                    return ownedArray(Array(Number(size)).fill(fill), shape, typeof fill !== 'object');
-                }
-                if (BigInt(items.length) !== size) {
-                    throw new RankError(
-                        `array shape ${shape.join(' ')} expects ${size} elements, got ${items.length}`,
-                    );
-                }
-                return ownedArray(items, shape);
-            };
-        }
-        const tableQuery = compileTableExpression(expression, () => ({
-            get localFrame() { return interpreter.bindings.current; },
-            set localFrame(frame) { interpreter.bindings.current = frame; },
-            requireModule: (module, operation) => interpreter.requireModule(module, operation),
-            evaluate: node => interpreter.evaluateTask(node),
-            select: values => interpreter.select(values),
-            binary: (operator, left, right) => interpreter.operators.evaluateBinary(operator, left, right),
-            resolve: name => interpreter.resolve(name),
-            findVariable: name => interpreter.findVariable(name),
-            isStandardFunction: (module, name, value) => interpreter.builtins.is(module, name, value),
-            maskSelection,
-        }));
-        if (tableQuery) return tableQuery;
-        const clause = compileClauseExpression(expression, () => this.clauseContext());
-        if (clause) return clause;
-        if (isRecordExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                const entries = new ResourceMap<RankValue>(value => value);
-                const record: RankRecord = entries.resources.track({
-                    kind: 'record',
-                    entries,
-                    types: new Map(),
-                });
-                for (const field of expression.fields) {
-                    if (record.entries.has(field.name)) {
-                        throw new RankError(`duplicate record field: .${field.name}`);
-                    }
-                    const value = yield* resume(interpreter.evaluateTask(field.value));
-                    record.entries.set(field.name, value);
-                    record.types.set(field.name, typeName(value));
-                }
-                recordContract(record);
-                return record;
-            };
-        }
-        if (isRecordUpdateExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                const source = yield* resume(interpreter.evaluateTask(expression.source));
-                if (!isRankRecord(source)) throw new RankError('with expects a record', 'TypeError');
-                const entries = new ResourceMap<RankValue>(value => value);
-                const record: RankRecord = entries.resources.track({
-                    kind: 'record',
-                    entries,
-                    types: new Map(source.types),
-                    fieldContracts: new Map(recordContract(source).fields),
-                });
-                for (const [name, value] of source.entries) entries.set(name, value);
-                const changed = new Set<string>();
-                for (const field of expression.fields) {
-                    if (changed.has(field.name)) throw new RankError(`duplicate record field: .${field.name}`);
-                    changed.add(field.name);
-                    const value = yield* resume(interpreter.evaluateTask(field.value));
-                    interpreter.assignRecordField(record, field.name, field.operator, value);
-                }
-                return record;
-            };
-        }
-        if (isAliasedTableExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                interpreter.requireModule('tables', 'alias');
-                let source = yield* resume(interpreter.evaluateTask(expression.source));
-                if (expression.field) {
-                    source = interpreter.select([source, { kind: 'label', name: expression.field.name }]);
-                }
-                if (isRankSqliteTable(source) && source.scopes) {
-                    throw new RankError('alias of a joined SQLite view is not supported yet', 'TypeError');
-                }
-                if (isRankTable(source)) source = source.toRows();
-                if ((!isRankArray(source) || source.shape.length !== 1) && !isRankSqliteTable(source)) {
-                    throw new RankError('alias expects a rank-1 table or SQLite view', 'TypeError');
-                }
-                return { kind: 'table-alias', source, name: expression.name.name };
-            };
-        }
-        if (isKeyedSortExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                const operation = expression.operator.startsWith('argsort')
-                    ? 'argsort by'
-                    : 'sort by';
-                const indices = operation === 'argsort by';
-                interpreter.requireModule('sequences', operation);
-                const source = yield* resume(interpreter.evaluateTask(expression.source));
-                if (isRankSqliteTable(source) && !indices && expression.fields.length > 0) {
-                    return sortSqlite(source, expression.fields.map(field => field.field.name),
-                        expression.fields.map(field => sortFieldDescending(field.direction)));
-                }
-                if (isRankTable(source) && !indices && expression.fields.length > 0) {
-                    return sortTable(source, expression.fields.map(field => field.field.name),
-                        expression.fields.map(field => sortFieldDescending(field.direction)));
-                }
-                // A key function reads whole rows, so it works on a snapshot of them.
-                const tableSource = isRankTable(source) ? source : undefined;
-                const items = sortByItems(tableSource ? tableSource.toRows() : source, operation);
-                const resultWithSchema = (result: RankArray): RankValue => {
-                    if (tableSource && !indices) return RankArrowTable.fromRows(result.items, tableSource.names);
-                    if (!indices && isRankArray(source) && source.columnNames) {
-                        Object.defineProperty(result, 'columnNames', { value: source.columnNames });
-                    }
-                    return result;
-                };
-                if (expression.fields.length > 0) {
-                    const keys = items.map(item => expression.fields.map(field => {
-                        if (!isRankRecord(item) && !isRankObject(item)) {
-                            throw new RankError(`${operation} fields expects records`, 'TypeError');
-                        }
-                        return item.entries.get(field.field.name);
-                    }));
-                    for (const [index, field] of expression.fields.entries()) {
-                        if (keys.length > 0 && !keys.some(row => row[index] !== undefined)
-                            && (!isRankArray(source)
-                                || !source.columnNames?.includes(field.field.name))) {
-                            throw new MissingValueError(
-                                `${operation} record is missing field .${field.field.name}`,
-                            );
-                        }
-                    }
-                    return resultWithSchema(sortByKeys(items, keys, operation, indices,
-                        expression.fields.map(field => sortFieldDescending(field.direction))));
-                }
-                if (!expression.key) throw new RankError(`${operation} requires a key`);
-                const key = yield* resume(interpreter.evaluateTask(expression.key));
-                if (!isNativeFunction(key) || !key.arities.includes(1)) {
-                    throw new RankError(`${operation} key must be a unary function`);
-                }
-                const keys: RankValue[][] = [];
-                for (const item of items) {
-                    const value = yield* resume(interpreter.invoke(key, [item]));
-                    interpreter.resources.ownFiles(value);
-                    keys.push([value]);
-                }
-                return resultWithSchema(sortByKeys(items, keys, operation, indices, [sortFieldDescending(expression.direction)]));
-            };
-        }
-        if (isKeyedGroupExpression(expression) || isKeyedRollingExpression(expression)
-            || isKeyedJoinExpression(expression) || isKeyedReachExpression(expression)) {
-            return compileKeyedTableExpression(expression, {
-                requireModule: (module, operation) => this.requireModule(module, operation),
-                evaluate: value => this.evaluateTask(value),
-            })!;
-        }
-        if (isNameExpression(expression)) {
-            return () => {
-                const value = interpreter.resolve(expression.name);
-                if (!isNativeFunction(value) || !value.arities.includes(0)) return completed(nameMask(value));
-                if (tail && interpreter.resources.currentScopeEmpty()) {
-                    interpreter.functions.throwTailCall(value, []);
-                }
-                return mapResult(interpreter.invoke(value, []), result => {
-                    interpreter.resources.ownFiles(result);
-                    return result;
-                });
-            };
-        }
-        if (isParenthesizedExpression(expression)) {
-            if (tail) return this.compileExpression(expression.value, missing, true);
-            return () => interpreter.evaluateTask(expression.value);
-        }
-        if (isUnpackExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                throw new RankError('unpack requires a surrounding application');
-            };
-        }
-        if (isUnaryExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                return interpreter.operators.evaluateUnary(expression.operator, (yield* resume(interpreter.evaluateTask(expression.operand))));
-            };
-        }
-        if (isBinaryExpression(expression)) {
-            if (expression.operator === '**' && isUnaryExpression(expression.left)
-                && (expression.left.operator === '+' || expression.left.operator === '-')) {
-                const left = expression.left;
-                return function* (): Execution<RankValue> {
-                    const powered = interpreter.operators.evaluateBinary(
-                        '**',
-                        (yield* resume(interpreter.evaluateTask(left.operand))),
-                        (yield* resume(interpreter.evaluateTask(expression.right))),
-                    );
-                    return interpreter.operators.evaluateUnary(left.operator, powered);
-                };
-            }
-            if (expression.operator === 'default') {
-                // Identity-only marker; never exposed to Rank or passed to functions.
-                const absent: RankValue = { kind: 'label', name: '' };
-                let left: (() => Evaluation<RankValue>) | undefined;
-                return function* (): Execution<RankValue> {
-                    try {
-                        // Prepare on first use to preserve operand/error ordering.
-                        left ??= interpreter.compileExpression(expression.left, () => absent);
-                        const value = yield* resume(left());
-                        if (isRankArray(value)) {
-                            const masked = maskedCells(value);
-                            let evaluated: RankValue | undefined;
-                            if (masked) {
-                                if (allValid(masked.validity, masked.values.length)) return value;
-                                const fallback = evaluated = yield* resume(interpreter.evaluateTask(expression.right));
-                                if (typeof fallback === 'number') {
-                                    const out = masked.values.slice();
-                                    for (let index = 0; index < out.length; index += 1) {
-                                        if (!isPresentAt(masked.validity, index)) out[index] = fallback;
-                                    }
-                                    return typedArray(out, value.shape);
-                                }
-                            }
-                            let items: readonly RankValue[];
-                            try {
-                                items = value.items;
-                            } catch (error) {
-                                if (!(error instanceof MissingValueError)) throw error;
-                                // A missing cell takes the fallback; the other cells keep their values.
-                                const size = value.shape.reduce((product, length) => product * length, 1);
-                                items = Array.from({ length: size }, (_, index) => {
-                                    try {
-                                        return readArrayItem(value, index);
-                                    } catch (cellError) {
-                                        if (!(cellError instanceof MissingValueError)) throw cellError;
-                                        return absent;
-                                    }
-                                });
-                            }
-                            const unknown = (item: RankValue) => item === absent || item === MISSING;
-                            if (!items.some(unknown)) return value;
-                            const fallback = evaluated ?? (yield* resume(interpreter.evaluateTask(expression.right)));
-                            return createArraySnapshot(
-                                items.map(item => unknown(item) ? fallback : item),
-                                value.shape,
-                            );
-                        }
-                        if (value !== absent && value !== MISSING) return value;
-                    } catch (error) {
-                        if (!(error instanceof MissingValueError)) throw error;
-                    }
-                    return (yield* resume(interpreter.evaluateTask(expression.right)));
-                };
-            }
-            if (expression.operator === 'and' || expression.operator === 'or') {
-                const operator = expression.operator;
-                const right = () => interpreter.evaluateTask(expression.right);
-                return () => flatMapResult(interpreter.evaluateTask(expression.left), left =>
-                    interpreter.operators.decidesGuard(operator, left) ? completed(left)
-                        : mapResult(right(), value => interpreter.operators.evaluateGuard(operator, left, value)));
-            }
-            if (!expression.step) {
-                const right = () => interpreter.evaluateTask(expression.right);
-                const operation = (left: RankValue, right: RankValue) =>
-                    interpreter.operators.evaluateBinary(expression.operator, left, right);
-                return () => mapPair(interpreter.evaluateTask(expression.left), right, operation);
-            }
-            return function* (): Execution<RankValue> { return interpreter.operators.evaluateBinary(
-                expression.operator,
-                (yield* resume(interpreter.evaluateTask(expression.left))),
-                (yield* resume(interpreter.evaluateTask(expression.right))),
-                (yield* resume(interpreter.evaluateTask(expression.step!))),
-            ); };
-        }
-        if (isMaterializeExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                const source = (yield* resume(interpreter.evaluateTask(expression.source)));
-                if (isRankTableAlias(source) && isRankSqliteTable(source.source)) {
-                    return materializeSqlite(source.source);
-                }
-                if (isRankSqliteTable(source)) return materializeSqlite(source);
-                if (isRankTable(source)) return source.toRows();
-                if (isRankSqliteExpression(source)) return materializeSqliteExpression(source);
-                if (!isRankSequence(source)) throw new RankError('postfix array expects a sequence, table or SQLite table');
-                return materializeSequence(source);
-            };
-        }
-        if (isAllAxisExpression(expression)) {
-            return function* (): Execution<RankValue> { throw new RankError('# is only valid inside tensor addressing'); };
-        }
-        return function* (): Execution<RankValue> { throw new RankError(`cannot evaluate ${expression.$type}`); };
+        return this.expressions.compile(expression, missing, tail, classify);
     }
 
-    /** Binding identity, including aliases; no user function is executed by classification. */
     private applicationOperation(name: string): ReturnType<typeof findOperation> | false {
-        const value = this.findVariable(name);
-        if (value === undefined) return findOperation(name);
-        return isNativeFunction(value) ? BuiltinRegistry.operationOf(value) ?? false : false;
+        return this.expressions.operationOf(name);
     }
 
-    private readStdin(mode: 'word' | 'integer'): RankValue {
-        const input = this.options.input;
-        if (!input) {
-            throw new RankError('standard input is unavailable in this host', 'IO');
-        }
-        const token = input.readToken();
-        if (token === undefined) {
-            throw new RankError(`standard input ended before .${mode}`, 'EndOfInput');
-        }
-        if (mode === 'word') return token;
-        if (!/^[+-]?[0-9]+$/u.test(token)) {
-            throw new RankError(`invalid integer input: ${token}`, 'InvalidNumber', token);
-        }
-        return BigInt(token);
-    }
-
-    private *evaluateArrayItem(item: ArrayItem): Execution<RankValue> {
-        const value = (yield* resume(this.evaluateTask(item.value)));
-        if (!item.sign) return value;
-        return this.operators.evaluateUnary(item.sign, value);
-    }
-
-    private evaluateAddressItem(item: AddressItem): Evaluation<RankValue> {
-        if (item.all) return completed(ALL_AXIS);
-        if (!item.value) throw new RankError('missing array selector');
-        const result = this.evaluateTask(item.value);
-        const sign = item.sign;
-        return sign ? mapResult(result, value => this.operators.evaluateUnary(sign, value)) : result;
+    private evaluateArrayItem(item: ArrayItem): Execution<RankValue> {
+        return this.expressions.evaluateArrayItem(item);
     }
 
     private evaluateAddressParts(item: AddressItem): Evaluation<RankValue[]> {
-        if (!item.spread) return mapResult(this.evaluateAddressItem(item), value => [value]);
-        if (!item.value) throw new RankError('missing unpack expression');
-        return mapResult(this.evaluateTask(item.value), unpackApplicationItems);
-    }
-
-    private *arrayDimension(item: ArrayItem): Execution<number> {
-        const dimension = expectInteger((yield* resume(this.evaluateArrayItem(item))));
-        return checkedArrayDimension(dimension);
-    }
-
-    /** `array shape N M` takes one integer per dimension; `array shape Shape` takes one vector. */
-    private *arrayShape(items: readonly ArrayItem[]): Execution<number[]> {
-        if (items.length === 1) {
-            const value = yield* resume(this.evaluateArrayItem(items[0]!));
-            if (!isRankArray(value)) return [checkedArrayDimension(expectInteger(value))];
-            if (value.shape.length !== 1) throw new RankError('array shape expects a vector of dimensions');
-            return Array.from({ length: value.shape[0]! },
-                (_, index) => checkedArrayDimension(expectInteger(value.itemAt?.(index) ?? value.items[index]!)));
-        }
-        return yield* resume(mapExecution(items, item => this.arrayDimension(item)));
+        return this.expressions.evaluateAddressParts(item);
     }
 
     private useStandard(module: string): void {
@@ -1951,11 +1368,6 @@ export class Interpreter {
         const modules = new Set([...this.modules, module]);
         this.checkBuiltinBindings({ $type: 'Program', statements: [] }, modules);
         this.modules.add(module);
-    }
-
-    private singlePassSequence(plan: RankSequence['plan']): RankSequence {
-        const source = sequence({ ...plan, singlePass: true });
-        return this.options.wrapSinglePassSequence?.(source) ?? source;
     }
 
     private localIndex(): RankIndex {
@@ -2259,26 +1671,6 @@ export class Interpreter {
         }
     }
 
-    // Rank source cannot pass a nullary function by name: the name calls it.
-    // A host callback can still supply one through a parameter or public binding.
-    private clauseContext(): ClauseExpressionContext {
-        const interpreter = this;
-        return {
-            get localFrame() { return interpreter.bindings.current; },
-            set localFrame(frame) { interpreter.bindings.current = frame; },
-            evaluate: node => interpreter.evaluateTask(node),
-            binary: (operator, left, right) => interpreter.operators.evaluateBinary(operator, left, right),
-            findVariable: name => interpreter.findVariable(name),
-        };
-    }
-
-    private directNameValue(value: RankValue): RankValue {
-        if (!isNativeFunction(value) || !value.arities.includes(0)) return nameMask(value);
-        const result = value.call([]);
-        this.resources.ownFiles(result);
-        return result;
-    }
-
     private validateInput(name: string, valueType: string, many: boolean): void {
         const value = this.variables.get(name)!;
         const values = many && isRankArray(value) ? value.items : [value];
@@ -2342,30 +1734,6 @@ export class Interpreter {
             return;
         }
         this.bindings.assign(name, value);
-    }
-
-    private assignRecordField(
-        record: RankRecord,
-        field: string,
-        operator: string,
-        value: RankValue,
-    ): RankValue {
-        const previous = record.entries.get(field);
-        if (previous === undefined) {
-            throw new RankError(`unknown record field: .${field}`);
-        }
-        const result = operator === '='
-            ? value
-            : this.operators.evaluateBinary(assignmentOperator(operator), previous, value);
-        const expected = record.types.get(field)!;
-        const received = typeName(result);
-        if (expected !== received) {
-            throw new RankError(bindingTypeMessage(`record field .${field}`, [expected], [received]));
-        }
-        checkRecordField(record, field, result);
-        noteArrayBinding(result);
-        record.entries.set(field, result);
-        return result;
     }
 
     private findVariable(name: string): RankValue | undefined {
@@ -2646,10 +2014,6 @@ function* coordinates(shape: readonly number[]): IterableIterator<number[]> {
     }
 }
 
-function array(items: RankValue[]): RankArray {
-    return ownedArray(items);
-}
-
 function arrayItem(source: RankArray, index: number): RankValue {
     return readArrayItem(source, index);
 }
@@ -2664,14 +2028,6 @@ function iterationValues(value: RankValue): Iterable<RankValue> {
     if (isRankMultiset(value)) return value.values();
     if (typeof value === 'string') return [...value];
     throw new RankError(`for expects text or a sequence, got ${typeName(value)}`);
-}
-
-function checkedArrayDimension(dimension: bigint): number {
-    if (dimension < 0n) throw new RankError(`array dimension must be nonnegative: ${dimension}`);
-    if (dimension > BigInt(Number.MAX_SAFE_INTEGER)) {
-        throw new RankError(`array dimension is too large: ${dimension}`);
-    }
-    return Number(dimension);
 }
 
 function assignmentOperator(operator: string): string {
@@ -2724,16 +2080,4 @@ export type { InterpreterOptions, LoadedModule, RankTestResult } from './interpr
 
 function typesOf(values: Iterable<RankValue>): ReadonlySet<string> {
     return new Set([...values].map(typeName));
-}
-
-function sortFieldDescending(direction: unknown): boolean {
-    const value = typeof direction === 'string' ? direction
-        : direction && typeof direction === 'object' && 'name' in direction
-            ? (direction as { name?: unknown }).name
-            : undefined;
-    const name = typeof value === 'string' ? value.replace(/^\./, '') : undefined;
-    if (name && name !== 'ascending' && name !== 'descending') {
-        throw new RankError('sort direction must be .ascending or .descending', 'TypeError');
-    }
-    return name === 'descending';
 }
