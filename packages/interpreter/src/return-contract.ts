@@ -9,10 +9,52 @@ export function argumentRankSignature(values: readonly RankValue[]): string {
         isRankRecord(value) ? recordSignature(recordContract(value), false) : null]));
 }
 
+// The compile target predates WeakRef; every supported runtime has it, and the memo is skipped otherwise.
+declare class WeakRef<T extends object> { constructor(target: T); deref(): T | undefined }
+const weakRefs = typeof WeakRef === 'function';
+
+interface SignatureMemo {
+    readonly held: readonly unknown[];
+    readonly revisions: readonly (number | undefined)[];
+    readonly ranks: readonly number[];
+    readonly key: string;
+}
+
+let signatureMemo: SignatureMemo | undefined;
+
+/**
+ * One call asks for the same signature several times (body cache, contract,
+ * frame layout). Scalars and revision-tracked arrays cannot change type behind
+ * the same identity and revision, so the last key is reused for them; any other
+ * value (records, sequences, host arrays) recomputes. Objects are held weakly.
+ */
+function memoizedSignature(values: readonly RankValue[]): string | undefined {
+    const memo = signatureMemo;
+    if (!memo || memo.held.length !== values.length) return undefined;
+    for (let index = 0; index < values.length; index++) {
+        const value = values[index], held = memo.held[index];
+        if (typeof value !== 'object') {
+            if (held !== value || typeof held === 'object') return undefined;
+        } else {
+            if (!isRankArray(value) || (held as WeakRef<object>)?.deref?.() !== value) return undefined;
+            const revision = arrayRevision(value);
+            if (revision === undefined || revision !== memo.revisions[index] || value.shape.length !== memo.ranks[index]) return undefined;
+        }
+    }
+    return memo.key;
+}
+
 export function argumentSignature(values: readonly RankValue[]): string {
-    return JSON.stringify(values.map(value => [typeName(value), valueRank(value),
+    const memoized = memoizedSignature(values);
+    if (memoized !== undefined) return memoized;
+    const key = JSON.stringify(values.map(value => [typeName(value), valueRank(value),
         isRankArray(value) ? elementTypes(value) : null,
         isRankRecord(value) ? recordSignature(recordContract(value), true) : null]));
+    signatureMemo = weakRefs && values.every(value => typeof value !== 'object' || isRankArray(value) && arrayRevision(value) !== undefined)
+        ? { held: values.map(value => typeof value === 'object' ? new WeakRef(value) : value),
+            revisions: values.map(value => isRankArray(value) ? arrayRevision(value) : undefined),
+            ranks: values.map(value => isRankArray(value) ? value.shape.length : 0), key } : undefined;
+    return key;
 }
 
 function recordSignature(value: CollectionElementType, elements: boolean): unknown {
