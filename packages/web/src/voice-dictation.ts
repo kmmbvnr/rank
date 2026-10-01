@@ -22,7 +22,6 @@ export class VoiceDictation {
     private recognition: any = null;
     private silenceTimer: ReturnType<typeof setTimeout> | undefined;
     private running = false;
-    private finished = false;
     private committedTranscript = '';
     private currentTranscript = '';
     private options: VoiceDictationOptions;
@@ -40,7 +39,6 @@ export class VoiceDictation {
         if (this.running) return true;
 
         this.running = true;
-        this.finished = false;
         this.committedTranscript = '';
         this.currentTranscript = '';
 
@@ -48,7 +46,7 @@ export class VoiceDictation {
     }
 
     private startSession(): boolean {
-        if (!SpeechRecognitionAPI || this.finished) return false;
+        if (!SpeechRecognitionAPI || !this.running) return false;
 
         try {
             const recognition = new SpeechRecognitionAPI();
@@ -79,17 +77,13 @@ export class VoiceDictation {
                     if (result && result[0]) {
                         const text = String(result[0].transcript || '').trim();
                         if (text) {
-                            sessionTranscript = sessionTranscript
-                                ? mergeTranscripts(sessionTranscript, text)
-                                : text;
+                            sessionTranscript = mergeTranscripts(sessionTranscript, text);
                         }
                         if (result.isFinal) hasFinal = true;
                     }
                 }
 
-                const fullTranscript = this.committedTranscript
-                    ? mergeTranscripts(this.committedTranscript, sessionTranscript)
-                    : sessionTranscript;
+                const fullTranscript = mergeTranscripts(this.committedTranscript, sessionTranscript);
 
                 this.currentTranscript = fullTranscript;
                 this.options.onResult?.(fullTranscript, hasFinal);
@@ -107,17 +101,13 @@ export class VoiceDictation {
             };
 
             recognition.onend = () => {
-                if (this.running && !this.finished) {
+                if (this.running) {
                     // Android recognition ended prematurely (e.g. short pause or network reconnect).
-                    // Commit current progress and restart recognition if silence timer hasn't expired.
+                    // Commit current progress and restart; startSession finishes on failure.
                     this.committedTranscript = this.currentTranscript;
                     this.recognition = null;
-                    try {
-                        this.startSession();
-                        return;
-                    } catch {
-                        // Fall through to finish if restart fails
-                    }
+                    this.startSession();
+                    return;
                 }
                 this.finish();
             };
@@ -151,8 +141,7 @@ export class VoiceDictation {
     }
 
     private finish(): void {
-        if (this.finished) return;
-        this.finished = true;
+        if (!this.running) return;
         this.running = false;
         this.clearSilenceTimer();
         if (this.recognition) {

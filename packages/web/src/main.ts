@@ -154,11 +154,6 @@ function startVoiceDictation(): void {
             voiceContext = undefined;
             render();
         },
-        onError: () => {
-            activeVoiceDictation = undefined;
-            voiceContext = undefined;
-            render();
-        },
     });
 
     if (!activeVoiceDictation.start()) {
