@@ -363,6 +363,9 @@ test('turbo continues execution without further pause overhead', { timeout: 1000
     const result = await execution;
     assert.equal(result.ok, true);
     assert.equal(session.pauseState, undefined);
+    // Turbo covers the whole program: it lasts until the run ends, as the REPL runner ends it.
+    assert.equal(session.turboActive, true);
+    session.endDebugRun();
     assert.equal(session.turboActive, false);
     assert.deepEqual((await session.execute('Total', 1, [])).output.map(line => line.text), ['15']);
 });
