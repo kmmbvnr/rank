@@ -17,7 +17,7 @@ import { findOperation, type Operation } from '../operations.js';
 import { builtinBindingDiagnostics } from '../builtin-bindings.js';
 import { renamedBuiltinCall } from '../builtin-renames.js';
 import { arrayRank, conditionalPaths, contractRank, invalidate, mergeEnvironments } from './control-flow.js';
-import { bindingRankConflict, bindingRankMessage, bindingTypeMessage,
+import { bindingRankConflict, bindingRankMessage, bindingTypeMessage, settledBindingTypes,
     provenBindingTypeConflict } from '../binding-rule.js';
 import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { functionYields, generatorCells, yieldTypes } from './function-yields.js';
@@ -707,7 +707,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && accepted.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))) {
                     next = { types: accepted, rank: 0, shape: [] };
                 }
-                env.set(statement.name, { ...next, acceptedTypes: accepted?.length ? accepted : next.types,
+                env.set(statement.name, { ...next,
+                    acceptedTypes: accepted?.length ? settledBindingTypes(accepted, next.types) : next.types,
                     acceptedArrayRank: expectedRank ?? receivedRank });
                 if (calls.directNoReturnCall(statement.value, env)) return false;
             } else if (isUnpackStatement(statement)) {

@@ -787,6 +787,12 @@ reaching a place that needs one value, such as an `if` condition, raises
 for `.NA`. Reading one absent cell, key or element still raises `.Missing`; see
 ADR-0108.
 
+A name accepts `.NA` whatever type it holds, and a name that has held only `.NA`
+takes the type of its first value, so `Best = .NA` followed by `Best = 1.0` is
+valid and `Best = "a"` after that is not. The analyzer types `.NA` as `missing`
+and an array with `.NA` cells has element types such as `real` and `missing`;
+`default` removes `missing` from the result.
+
 A whole array holds data that has no value as `.NA` instead of raising for each
 cell: an absent table cell, a field some object rows lack, and a `lookup` key
 with no match. Reading that one lookup cell by itself still raises `.Missing`.

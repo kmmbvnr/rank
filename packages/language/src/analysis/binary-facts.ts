@@ -49,8 +49,15 @@ export function binaryExpressionFacts(
             elements: ['boolean'], callbackFreeScalarCells: true };
     }
     if (expression.operator === 'default') {
+        // `default` replaces `.NA`, so what it leaves holds no `missing` unless the fallback does.
+        if (left.types.join() === 'array' && left.elements?.includes('missing') && left.rank !== undefined
+            && left.shape && right.rank === 0 && right.types.length) {
+            return { types: ['array'], rank: left.rank, shape: left.shape,
+                elements: [...new Set([...left.elements.filter(type => type !== 'missing'), ...right.types])] as Types };
+        }
+        const present = left.types.filter(type => type !== 'missing');
         const types = left.types.length && right.types.length
-            ? [...new Set([...left.types, ...right.types])] : [];
+            ? [...new Set([...present, ...right.types])] as Types : [];
         return left.rank === 0 && right.rank === 0 && types.length
             ? { types, rank: 0, shape: [] } : { types };
     }
@@ -78,6 +85,13 @@ export function binaryExpressionFacts(
         }
         return { types: ['sequence'], elements: ['integer'], rank: 1, shape: [length],
             callbackFreeScalarCells: true };
+    }
+    // `.NA` propagates through arithmetic and comparison; `and`/`or` can still decide.
+    if (left.rank === 0 && right.rank === 0 && (left.types.join() === 'missing' || right.types.join() === 'missing')
+        && left.types.length && right.types.length) {
+        if (['+', '-', '*', '/', '//', '%', '**', 'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost']
+            .includes(expression.operator)) return { types: ['missing'], rank: 0, shape: [] };
+        if (['and', 'or'].includes(expression.operator)) return { types: ['boolean', 'missing'], rank: 0, shape: [] };
     }
     if (['+', '-', '*', '/', '//', '%', '**'].includes(expression.operator)) {
         const inferred = binaryType(expression.operator, left.types, right.types);

@@ -152,3 +152,16 @@ describe('a whole array holds data without a value as .NA', () => {
         expect(run('use numbers\n(array 4.0 .NA 9.0) sqrt')).toBe('2 .NA 3');
     });
 });
+
+describe('a name that holds .NA keeps one type', () => {
+    it('settles on the type of its first value', () => {
+        expect(run('X = .NA\nX = 1.5\nX')).toBe('1.5');
+        expect(run('Y = 2.0\nY = .NA\nY = 3.5\nY')).toBe('3.5');
+        expect(() => run('X = .NA\nX = 1.5\nX = "a"')).toThrowError('X has type real and cannot receive text');
+        expect(() => run('Y = 2.0\nY = .NA\nY = "a"')).toThrowError('Y has type real and cannot receive text');
+    });
+
+    it('does so inside a function and a loop', () => {
+        expect(run('fun f\n  Best = .NA\n  for I in 1 to 3\n    Best = I\n  end\n  return Best\nend\nf')).toBe('3');
+    });
+});

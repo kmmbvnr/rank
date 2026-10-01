@@ -104,6 +104,7 @@ import {
     availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage,
     RUNTIME_TYPE_NAMES,
     acceptsBindingType,
+    settledBindingTypes,
     bindingTypeMessage,
     possibleBindingTypeConflict,
     declaredRanks,
@@ -3872,6 +3873,12 @@ export class Interpreter {
             if (!acceptsBindingType(recorded, received)) {
                 throw new RankError(bindingTypeMessage(name, recorded, [received], true));
             }
+            // A name that has held only `.NA` settles on the type of its first value.
+            const settledType = settledBindingTypes(recorded, [received]);
+            if (settledType !== recorded) {
+                if (frame) frame.declareType(name, settledType);
+                else this.variableTypes.set(name, settledType);
+            }
             if (frame) frame.set(name, value);
             else {
                 const previousValue = this.variables.get(name);
@@ -3892,7 +3899,8 @@ export class Interpreter {
         if (expected !== undefined && !acceptsBindingType(expected, received)) {
             throw new RankError(bindingTypeMessage(name, expected, [received], true));
         }
-        const settled = expected ?? new Set([received]);
+        const settled = expected === undefined ? new Set([received])
+            : settledBindingTypes(expected, [received]);
         if (frame) {
             frame.define(name, value, settled);
             return;

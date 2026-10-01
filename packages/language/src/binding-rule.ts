@@ -1,8 +1,25 @@
 export type TypeChoices = ReadonlySet<string> | readonly string[];
 
-/** A settled binding accepts each concrete replacement type in its contract. */
+const has = (types: TypeChoices, type: string): boolean =>
+    'has' in types ? types.has(type) : types.includes(type);
+
+/**
+ * A settled binding accepts each concrete replacement type in its contract.
+ * `.NA` (type `missing`) fits every binding, which then keeps its own type, and
+ * a binding that has only held `.NA` so far accepts any first value.
+ */
 export function acceptsBindingType(expected: TypeChoices, received: string): boolean {
-    return 'has' in expected ? expected.has(received) : expected.includes(received);
+    return received === 'missing' || has(expected, 'missing') || has(expected, received);
+}
+
+/** The type a binding settles on: one that has only held `.NA` takes the type of its first value. */
+export function settledBindingTypes(expected: ReadonlySet<string>, received: TypeChoices): ReadonlySet<string>;
+export function settledBindingTypes(expected: readonly string[], received: TypeChoices): readonly string[];
+export function settledBindingTypes(expected: TypeChoices, received: TypeChoices): TypeChoices {
+    const size = 'has' in expected ? expected.size : expected.length;
+    if (size !== 1 || !has(expected, 'missing')) return expected;
+    const concrete = [...received].filter(type => type !== 'missing');
+    return concrete.length ? ('has' in expected ? new Set(concrete) : concrete) : expected;
 }
 
 /** Reject a runtime write if any of its possible values would break the binding. */
