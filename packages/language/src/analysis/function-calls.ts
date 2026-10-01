@@ -9,7 +9,7 @@ import { flattenApplication } from '../expressions.js';
 import { loopBinding, arrayRank } from './control-flow.js';
 import { functionYields, generatorCells, yieldTypes } from './function-yields.js';
 import { numericInput, numericRecursionEligible, sameNumericInput, widenedInput } from './numeric-recursion.js';
-import { BOTTOM_VALUE, joinValueFacts, UNKNOWN_VALUE, widenValueFacts, type ValueFacts } from './value-domain.js';
+import { BOTTOM_VALUE, joinValueFacts, UNKNOWN_VALUE, widenValueFacts, withPathDims, type ValueFacts } from './value-domain.js';
 
 interface CallDiagnostic {
     readonly node: AstNode;
@@ -203,7 +203,7 @@ export function createCallAnalysis(
                 expressions.clear();
                 for (const [node, fact] of before) expressions.set(node, fact);
             }
-            const ordinary = joinValueFacts(result);
+            const ordinary = withPathDims(joinValueFacts(result));
             if (!frame.recursive || ordinary.bottom) return ordinary;
             // Seed with bottom, not unknown: a recursive edge without a base
             // contributes no completed return. Unknown external calls still do.

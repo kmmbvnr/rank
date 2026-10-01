@@ -49,7 +49,7 @@ The abstract interpreter distinguishes **Rank** (number of dimensions) from **Sh
   - $N$-D Tensor: $R = N$
 - **Shape ($S = [d_1, \dots, d_R]$):** Value facts store known axis lengths or unknown lengths (`null`) in `shape`. A sidecar `dims` carries a symbolic length per axis where one is known, and `dim` carries the symbolic value of an integer scalar.
 
-A symbolic dimension is a linear form `c + Σ kᵢ·xᵢ` over natural-number variables, kept canonical so equality is structural (`x+y+5+x` equals `(x+x)+5+y`). Variables are fresh per source: the length of an array whose size is unknown (`X len`), and a bound length reused by `array shape N`. Comparison has three outcomes: equal (proven), distinct constants (a mismatch) and unknown. A symbol may be 1 under broadcasting, so two different symbols are never reported as a mismatch. Joins keep only dimensions proven equal, and loop or recursion widening drops them. Multiplication of symbols and inequality reasoning are out of scope.
+A symbolic dimension is a linear form `c + Σ kᵢ·xᵢ` over natural-number variables, kept canonical so equality is structural (`x+y+5+x` equals `(x+x)+5+y`). Variables are fresh per source: the length of an array whose size is unknown (`X len`), a bound length reused by `array shape N`, each `many` command-line value, and an array that is exactly one of several paths (a branch merge or a function result), which gets a variable of its own on each axis the paths disagree on. Collections never get one: their cells may differ in length. Function results carry the symbols of their arguments, so `normalize: [d] → [d]` is read off the body for each call. Comparison has three outcomes: equal (proven), distinct constants (a mismatch) and unknown. A symbol may be 1 under broadcasting, so two different symbols are never reported as a mismatch. Joins keep only dimensions proven equal, and loop or recursion widening drops them. Multiplication of symbols and inequality reasoning are out of scope.
 
 Proven equal shapes are an analysis fact (`provenSameShape`). The tensor kernel planner does not consume them: its run-time shape comparison measured as a fraction of a percent of a small call, so removing it is not worth the risk of an unsound proof.
 
@@ -62,6 +62,8 @@ Binding ranks, collection element contracts and recursive record field contracts
 provide stable facts after successful writes. Record axis lengths remain unknown
 because later same-rank assignments may change them. Safe direct collection
 aliases retain element facts; unknown effects discard facts they could invalidate.
+
+Reading standard input does not discard facts: it is a host token source with a type the program declares (`.integer`, `.word`), and a mismatch raises at the read. File reads and calls with unknown effects still do. A symbol also survives: `N = stdin .integer` has its own length variable, and `stdin .integer N array` (or the lazy `stdin .integer N`) has that length.
 
 Function analysis specializes on argument types and ranks, known cell types and
 record schemas. Recursive inference uses reachable base returns, then checks

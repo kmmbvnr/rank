@@ -1143,3 +1143,97 @@ it('lets a name hold .NA before its first value and refuses other changes of typ
     expect(diagnose('X = .NA\nX = 1.0\nX = "a"\n')).toEqual(['X has type real and cannot receive text']);
     expect(diagnose('Y = 2.0\nY = .NA\nY = "a"\n')).toEqual(['Y has type real and cannot receive text']);
 });
+
+it('gives a path-dependent length one variable of its own after a branch merge', async () => {
+    const { provenSameShape } = await import('../src/analysis/value-domain.js');
+    const input: ValueFacts = { types: ['array'], rank: 1, shape: [null], elements: ['integer'] };
+    const names = bound([
+        'A = array 1 2 3',
+        'if Flag',
+        '  A = array 1 2',
+        'end',
+        'B = A + A',
+    ].join('\n') + '\n', { Flag: { types: ['boolean'], rank: 0, shape: [] }, Input: input });
+    const a = names.get('A')!;
+    expect(a.shape).toEqual([null]);
+    expect(a.dims?.[0]).toBeDefined();
+    expect(provenSameShape(a, names.get('B')!)).toBe(true);
+    const fixed = bound('A = array 1 2 3\nif Flag\n  A = array 4 5 6\nend\n', { Flag: { types: ['boolean'], rank: 0, shape: [] } });
+    expect(fixed.get('A')!.shape).toEqual([3]);
+});
+
+it('carries symbolic lengths through user functions', () => {
+    const input: ValueFacts = { types: ['array'], rank: 1, shape: [null], elements: ['integer'] };
+    const names = bound([
+        'fun addone X',
+        '  return X + 1',
+        'end',
+        'fun pickone X',
+        '  if X len less 1',
+        '    return X',
+        '  end',
+        '  return array 1 2',
+        'end',
+        'N = Input len',
+        'A = array shape N fill 0',
+        'B = A addone',
+        'C = A pickone',
+        'D = C + C',
+    ].join('\n') + '\n', { Input: input });
+    return import('../src/analysis/value-domain.js').then(({ provenSameShape }) => {
+        expect(provenSameShape(names.get('A')!, names.get('B')!)).toBe(true);
+        expect(provenSameShape(names.get('A')!, names.get('C')!)).toBe(false);
+        expect(provenSameShape(names.get('C')!, names.get('D')!)).toBe(true);
+    });
+});
+
+it('does not keep a length across a loop that rebinds the array', async () => {
+    const { provenSameShape } = await import('../src/analysis/value-domain.js');
+    const input: ValueFacts = { types: ['array'], rank: 1, shape: [null], elements: ['integer'] };
+    const other: ValueFacts = { types: ['array'], rank: 1, shape: [null], elements: ['integer'] };
+    const names = bound([
+        'N = Input len',
+        'A = array shape N fill 0',
+        'Same = array shape N fill 1',
+        'for I in 1 to 3',
+        '  M = Other len',
+        '  A = array shape M fill 2',
+        'end',
+    ].join('\n') + '\n', { Input: input, Other: other });
+    expect(provenSameShape(names.get('A')!, names.get('Same')!)).toBe(false);
+});
+
+it('gives each `many` command-line value one symbolic length', async () => {
+    const { provenSameShape } = await import('../src/analysis/value-domain.js');
+    const names = bound([
+        'option Xs integer many',
+        'option Ys integer many',
+        'N = Xs len',
+        'A = array shape N fill 0',
+        'Sum = Xs + A',
+        'Other = Xs + Ys',
+    ].join('\n') + '\n');
+    expect(names.get('Xs')!.elements).toEqual(['integer']);
+    expect(provenSameShape(names.get('Xs')!, names.get('A')!)).toBe(true);
+    expect(provenSameShape(names.get('Xs')!, names.get('Sum')!)).toBe(true);
+    expect(provenSameShape(names.get('Xs')!, names.get('Ys')!)).toBe(false);
+});
+
+it('keeps declared stdin lengths across later reads', async () => {
+    const { provenSameShape } = await import('../src/analysis/value-domain.js');
+    const names = bound([
+        'use io',
+        'N = stdin .integer',
+        'A = stdin .integer N array',
+        'B = stdin .integer N array',
+        'S = stdin .integer N',
+        'Total = A + B',
+        'Fixed = stdin .integer 3 array',
+    ].join('\n') + '\n');
+    expect(names.get('N')!.dim).toBeDefined();
+    expect(provenSameShape(names.get('A')!, names.get('B')!)).toBe(true);
+    expect(provenSameShape(names.get('A')!, names.get('Total')!)).toBe(true);
+    expect(names.get('S')!.dims).toEqual(names.get('A')!.dims);
+    expect(names.get('Fixed')!.shape).toEqual([3]);
+    expect(provenSameShape(names.get('A')!, names.get('Fixed')!)).toBe(false);
+});

@@ -1912,8 +1912,16 @@ export class Interpreter {
                             );
                         }
                         consumed = true;
+                        const line = (expression.$cstNode?.range.start.line ?? 0) + 1;
                         for (let index = 0n; index < count; index += 1n) {
-                            yield interpreter.readStdin(mode);
+                            try {
+                                yield interpreter.readStdin(mode);
+                            } catch (error) {
+                                // The sequence is read where it is used, far from its declaration.
+                                if (!(error instanceof RankError) || error.rankKind === 'IO') throw error;
+                                throw new RankError(`${error.message} (item ${index + 1n} of ${count}, read by `
+                                    + `stdin .${mode} at line ${line})`, error.rankKind, error.value);
+                            }
                         }
                     },
                 });

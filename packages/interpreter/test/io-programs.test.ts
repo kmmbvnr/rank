@@ -571,3 +571,17 @@ describe('Rank IO, modules and programs', () => {
     });
 
 });
+
+describe('stdin sequences name their declaration', () => {
+    const run = (tokens: string[], source: string) => new Interpreter(undefined, {
+        input: new TokenInput(tokens),
+    }).execute(source);
+
+    it('adds the item and the line to a late format error', () => {
+        const source = 'use io\nN = stdin .integer\nValues = stdin .integer N\nTotal = Values sum\n';
+        expect(() => run(['3', '1', '2', 'x'], source))
+            .toThrowError('invalid integer input: x (item 3 of 3, read by stdin .integer at line 3)');
+        expect(() => run(['3', '1', '2'], source))
+            .toThrowError('standard input ended before .integer (item 3 of 3, read by stdin .integer at line 3)');
+    });
+});
