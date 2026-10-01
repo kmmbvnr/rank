@@ -1423,8 +1423,10 @@ it('does not retain facts across direct or transitive stdin reads', () => {
     expect(messages('fun helper\n return input\nend\n' + prefix + 'helper\nCount + "bad"')).toEqual([]);
 });
 
-it('invalidates facts across direct I/O but not an unrelated native pop', () => {
-    expect(messages('use io\nCount = 3\nstdin .integer\nCount + "bad"')).toEqual([]);
+it('invalidates facts across file I/O but not across stdin or an unrelated native pop', () => {
+    // Standard input is a host token source with a declared type: reading it runs no Rank code.
+    expect(messages('use io\nCount = 3\nstdin .integer\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
     expect(messages('use io\nCount = 3\n"path" read\nCount + "bad"')).toEqual([]);
     expect(messages('fun file Path\n return Path read\nend\nCount = 3\n"path" file\nCount + "bad"'))
         .toEqual([]);
@@ -2068,7 +2070,7 @@ it('infers elements inserted into named collections and rejects a definite misma
     expect(messages('use algo\nQ = new queue\nQ push 1\nQ = new queue\nQ push "text"\nX = Q pop\nX + "bad"'))
         .toEqual([]);
     expect(messages('use algo\nuse io\nQ = new queue\nQ push 1\nInput = stdin .integer\nX = Q pop\nX + "bad"'))
-        .toEqual([]);
+        .toEqual(['operator + does not accept integer and text']);
 });
 
 it('infers minimal grid path results through a typed set iteration', () => {

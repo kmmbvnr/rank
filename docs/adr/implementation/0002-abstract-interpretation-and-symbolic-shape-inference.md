@@ -63,6 +63,8 @@ provide stable facts after successful writes. Record axis lengths remain unknown
 because later same-rank assignments may change them. Safe direct collection
 aliases retain element facts; unknown effects discard facts they could invalidate.
 
+Reading standard input does not discard facts: it is a host token source with a type the program declares (`.integer`, `.word`), and a mismatch raises at the read. File reads and calls with unknown effects still do. A symbol also survives: `N = stdin .integer` has its own length variable, and `stdin .integer N array` (or the lazy `stdin .integer N`) has that length.
+
 Function analysis specializes on argument types and ranks, known cell types and
 record schemas. Recursive inference uses reachable base returns, then checks
 recursive steps. Unknown callbacks and captured writes can prevent a proof;

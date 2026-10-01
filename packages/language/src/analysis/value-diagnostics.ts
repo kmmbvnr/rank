@@ -4,7 +4,7 @@ import {
     isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
     isArrayAssignmentStatement, isAssignmentStatement, isIndexAssignmentStatement, isBinaryExpression,
     isExpressionStatement, isNewStructureExpression, isRecordExpression, isRecordUpdateExpression,
-    isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isStdinExpression,
+    isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, 
     isAddStatement, isArgumentStatement, isOptionStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isTakeWhileExpression,
@@ -207,7 +207,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const unprovenWrittenGlobals = new Set<string>();
         const rebound = new Set<string>();
         for (const node of nodes) {
-            if (isStdinExpression(node)) unknown = true;
             if (isRecordExpression(node) || isRecordUpdateExpression(node)) {
                 for (const field of node.fields) {
                     const value = expressionFacts(field.value, name => env.get(name));

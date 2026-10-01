@@ -6637,7 +6637,9 @@ Words = stdin .word Count
 ```
 
 The count must be a nonnegative integer. No input is read until the sequence is
-consumed, so input and conversion errors are delayed too. Use postfix `array`
+consumed, so input and conversion errors are delayed too. A late error names the
+item and the line of the `stdin` that declared it (`invalid integer input: x (item 3
+of 3, read by stdin .integer at line 3)`). Use postfix `array`
 when the complete input must be validated or traversed more than once:
 
 ```rank

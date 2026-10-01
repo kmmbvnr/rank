@@ -1217,3 +1217,22 @@ it('gives each `many` command-line value one symbolic length', async () => {
     expect(provenSameShape(names.get('Xs')!, names.get('Sum')!)).toBe(true);
     expect(provenSameShape(names.get('Xs')!, names.get('Ys')!)).toBe(false);
 });
+
+it('keeps declared stdin lengths across later reads', async () => {
+    const { provenSameShape } = await import('../src/analysis/value-domain.js');
+    const names = bound([
+        'use io',
+        'N = stdin .integer',
+        'A = stdin .integer N array',
+        'B = stdin .integer N array',
+        'S = stdin .integer N',
+        'Total = A + B',
+        'Fixed = stdin .integer 3 array',
+    ].join('\n') + '\n');
+    expect(names.get('N')!.dim).toBeDefined();
+    expect(provenSameShape(names.get('A')!, names.get('B')!)).toBe(true);
+    expect(provenSameShape(names.get('A')!, names.get('Total')!)).toBe(true);
+    expect(names.get('S')!.dims).toEqual(names.get('A')!.dims);
+    expect(names.get('Fixed')!.shape).toEqual([3]);
+    expect(provenSameShape(names.get('A')!, names.get('Fixed')!)).toBe(false);
+});

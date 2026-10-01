@@ -1,3 +1,4 @@
+import { freshDim } from './shape-index.js';
 import {
     isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral, isMaterializeExpression,
     isFirstIndexWhereExpression, isFirstWhereExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
@@ -60,13 +61,15 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
             : expression.mode.name === 'word' ? ['text'] : [];
         if (!elements.length) return UNKNOWN_VALUE;
         if (expression.count) {
-            const count = expressionFacts(expression.count, lookup).integer;
-            const size = count === undefined ? NaN : Number(count);
-            return { types: ['sequence'], rank: 1,
-                shape: [Number.isSafeInteger(size) && size >= 0 ? size : null],
+            const counted = expressionFacts(expression.count, lookup);
+            const size = counted.integer === undefined ? NaN : Number(counted.integer);
+            const known = Number.isSafeInteger(size) && size >= 0;
+            // The declared count is the length; a symbolic count keeps its symbol.
+            return { types: ['sequence'], rank: 1, shape: [known ? size : null],
+                ...(!known && counted.dim ? { dims: [counted.dim] } : {}),
                 ...(elements.length ? { elements } : {}) };
         }
-        return elements.join() === 'integer' ? { types: elements, rank: 0, shape: [] }
+        return elements.join() === 'integer' ? { types: elements, rank: 0, shape: [], dim: freshDim('in') }
             : elements.join() === 'text' ? { types: elements, rank: 1, shape: [null] } : UNKNOWN_VALUE;
     }
     // Runtime rank is one for text, although arithmetic treats the whole text as an atom.
