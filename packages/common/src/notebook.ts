@@ -1,5 +1,5 @@
 import {
-    EMPTY_CELL, addLine, cellSource, closeCell, isComplete, isEmpty,
+    EMPTY_CELL, addLine, cellSource, closeCell, insideText, isComplete, isEmpty,
     nextIndent, scanLine, startsDedent, typeAssignKey,
 } from './repl-input.js';
 import type { Execution, OutputLine } from './repl-session.js';
@@ -66,6 +66,7 @@ export class Notebook {
     active = 0;
     cursor = 0;
     replayFrom?: number;
+    onVoiceComment?: () => void;
     private nextId = 0;
     private experimentalFrom?: number;
     private preferredColumn?: number;
@@ -275,7 +276,7 @@ export class Notebook {
 
     insert(text: string, typed = false): void {
         // The assign key rewrites the line it lands on, so it replaces any selection first.
-        if (typed && text === ',' && this.selection) this.replaceSelection('');
+        if (typed && (text === ',' || text === ',,') && this.selection) this.replaceSelection('');
         if (this.selection) {
             this.replaceSelection(text);
             return;
@@ -283,11 +284,24 @@ export class Notebook {
         const source = this.current.source;
         const prefix = source.slice(0, this.cursor);
         const suffix = source.slice(this.cursor);
-        if (typed && text === ',') {
+        if (typed && (text === ',' || text === ',,')) {
             const start = prefix.lastIndexOf('\n') + 1;
-            const assign = typeAssignKey(prefix.slice(start), suffix.split('\n')[0]);
+            const linePrefix = prefix.slice(start);
+            if (text === ',,') {
+                const match = /^(\s*)$/.exec(linePrefix);
+                if (match && !insideText(linePrefix)) {
+                    const assign = match[1] + 'rem ';
+                    this.replace(source.slice(0, start) + assign + suffix, start + assign.length);
+                    this.onVoiceComment?.();
+                    return;
+                }
+            }
+            const assign = typeAssignKey(linePrefix, suffix.split('\n')[0]);
             if (assign !== undefined) {
                 this.replace(source.slice(0, start) + assign + suffix, start + assign.length);
+                if (assign.endsWith('rem ')) {
+                    this.onVoiceComment?.();
+                }
                 return;
             }
         }

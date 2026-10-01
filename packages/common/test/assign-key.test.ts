@@ -49,4 +49,76 @@ describe('the typed assign key', () => {
 
         expect(book.current.source).toBe('Total = ');
     });
+
+    it('replaces double comma at line start with rem and starts voice comment', () => {
+        let voiced = 0;
+        const book = new Notebook();
+        book.onVoiceComment = () => { voiced += 1; };
+
+        book.insert(',', true);
+        expect(book.current.source).toBe('= ');
+        expect(voiced).toBe(0);
+
+        book.insert(',', true);
+        expect(book.current.source).toBe('rem ');
+        expect(book.cursor).toBe('rem '.length);
+        expect(voiced).toBe(1);
+    });
+
+    it('preserves indentation when replacing double comma with rem', () => {
+        let voiced = 0;
+        const book = new Notebook();
+        book.replace('  ', 2);
+        book.onVoiceComment = () => { voiced += 1; };
+
+        book.insert(',', true);
+        expect(book.current.source).toBe('  = ');
+        expect(voiced).toBe(0);
+
+        book.insert(',', true);
+        expect(book.current.source).toBe('  rem ');
+        expect(book.cursor).toBe('  rem '.length);
+        expect(voiced).toBe(1);
+    });
+
+    it('handles direct ,, input at line start and triggers voice comment', () => {
+        let voiced = 0;
+        const book = new Notebook();
+        book.onVoiceComment = () => { voiced += 1; };
+
+        book.insert(',,', true);
+        expect(book.current.source).toBe('rem ');
+        expect(book.cursor).toBe('rem '.length);
+        expect(voiced).toBe(1);
+    });
+
+    it('does not turn double comma into rem after an expression', () => {
+        let voiced = 0;
+        const book = typeInto('Total', ',,');
+        book.onVoiceComment = () => { voiced += 1; };
+
+        expect(book.current.source).toBe('Total = = ');
+        expect(voiced).toBe(0);
+    });
+
+    it('leaves double comma as literal commas inside comments and strings', () => {
+        let voiced = 0;
+        const commentBook = new Notebook();
+        commentBook.replace('rem hello', 'rem hello'.length);
+        commentBook.onVoiceComment = () => { voiced += 1; };
+        commentBook.insert(',', true);
+        commentBook.insert(',', true);
+
+        expect(commentBook.current.source).toBe('rem hello,,');
+        expect(voiced).toBe(0);
+
+        const stringBook = new Notebook();
+        stringBook.replace('Name = "a', 'Name = "a'.length);
+        stringBook.onVoiceComment = () => { voiced += 1; };
+        stringBook.insert(',', true);
+        stringBook.insert(',', true);
+
+        expect(stringBook.current.source).toBe('Name = "a,,');
+        expect(voiced).toBe(0);
+    });
 });

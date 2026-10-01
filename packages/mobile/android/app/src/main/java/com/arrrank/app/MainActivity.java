@@ -7,6 +7,8 @@ import android.os.Build;
 import android.graphics.Color;
 import android.webkit.WebView;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 import android.content.pm.PackageManager;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -84,10 +86,17 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         currentActivity = new WeakReference<>(this);
+        List<String> permissions = new ArrayList<>();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+                permissions.add(android.Manifest.permission.POST_NOTIFICATIONS);
             }
+        }
+        if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(android.Manifest.permission.RECORD_AUDIO);
+        }
+        if (!permissions.isEmpty()) {
+            requestPermissions(permissions.toArray(new String[0]), 101);
         }
         bridge.setWebViewClient(new DebugSignalClient(bridge));
         getWindow().getDecorView().setBackgroundColor(Color.BLACK);

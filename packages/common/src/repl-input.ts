@@ -310,6 +310,10 @@ export function formatLine(text: string): string {
  */
 export function typeAssignKey(linePrefix: string, lineSuffix = ''): string | undefined {
     if (insideText(linePrefix)) return undefined;
+    const voiceMatch = /^(\s*)(?:=\s*|,\s*)$/.exec(linePrefix);
+    if (voiceMatch) {
+        return voiceMatch[1] + 'rem ';
+    }
     const typed = linePrefix + ',' + (lineSuffix.startsWith(' ') ? '' : ' ');
     const expanded = expandAssignKey(typed);
     return expanded === typed ? undefined : expanded;

@@ -9,6 +9,8 @@ import { textEdit } from '@arrrank/common/input-edit';
 import { browserSession } from './session.js';
 import { paintLine } from './terminal-colors.js';
 import { sourceSelection } from './source-selection.js';
+import { wrapCommentLines } from '@arrrank/common/comment-wrap';
+import { VoiceDictation, isVoiceSupported } from './voice-dictation.js';
 
 const terminal = document.querySelector<HTMLElement>('#terminal')!;
 const screen = document.querySelector<HTMLElement>('#screen')!;
@@ -18,6 +20,7 @@ const measure = document.querySelector<HTMLElement>('#measure')!;
 const chrome = document.querySelector<HTMLElement>('#chrome')!;
 const menuToggle = document.querySelector<HTMLButtonElement>('#menu-toggle')!;
 const commands = document.querySelector<HTMLElement>('#commands')!;
+const voiceIndicator = document.querySelector<HTMLButtonElement>('#voice-indicator')!;
 const runButton = document.querySelector<HTMLButtonElement>('#run-button')!;
 const turboButton = document.querySelector<HTMLButtonElement>('#turbo-button')!;
 const iterationControls = document.querySelector<HTMLElement>('#iteration-controls')!;
@@ -97,6 +100,102 @@ function nativeSelection(): boolean {
 let lastExecutionState: 'running' | 'paused' | 'turbo' | 'idle' = 'idle';
 let runningStartedAt: number | undefined;
 let turboTimer: ReturnType<typeof setTimeout> | undefined;
+
+let activeVoiceDictation: VoiceDictation | undefined;
+let voiceContext: {
+    cellId: number;
+    prefixBefore: string;
+    suffixAfter: string;
+    indent: string;
+} | undefined;
+
+function startVoiceDictation(): void {
+    if (!isVoiceSupported()) return;
+    if (activeVoiceDictation) {
+        stopVoiceDictation();
+    }
+    const book = editor();
+    const source = book.current.source;
+    const cursor = book.cursor;
+    const prefix = source.slice(0, cursor);
+    const lineStart = prefix.lastIndexOf('\n') + 1;
+    const currentLine = prefix.slice(lineStart);
+    const match = /^(\s*)rem\s*$/.exec(currentLine);
+    const indent = match ? match[1] : '';
+    const prefixBefore = source.slice(0, lineStart);
+    let suffixAfter = source.slice(cursor);
+    if (suffixAfter && !suffixAfter.startsWith('\n')) {
+        suffixAfter = '\n' + suffixAfter;
+    }
+
+    voiceContext = {
+        cellId: book.current.id,
+        prefixBefore,
+        suffixAfter,
+        indent,
+    };
+
+    voiceIndicator.hidden = false;
+
+    activeVoiceDictation = new VoiceDictation({
+        onResult: (transcript) => {
+            if (!voiceContext) return;
+            const targetCell = repl.notebook.cells.find(c => c.id === voiceContext!.cellId);
+            if (!targetCell) return;
+            const wrapped = wrapCommentLines(transcript, 40, voiceContext.indent);
+            targetCell.source = voiceContext.prefixBefore + wrapped + voiceContext.suffixAfter;
+            if (repl.notebook.current.id === voiceContext.cellId) {
+                book.cursor = voiceContext.prefixBefore.length + wrapped.length;
+            }
+            render();
+        },
+        onEnd: () => {
+            voiceIndicator.hidden = true;
+            activeVoiceDictation = undefined;
+            voiceContext = undefined;
+            render();
+        },
+        onError: () => {
+            voiceIndicator.hidden = true;
+            activeVoiceDictation = undefined;
+            voiceContext = undefined;
+            render();
+        },
+    });
+
+    if (!activeVoiceDictation.start()) {
+        voiceIndicator.hidden = true;
+        activeVoiceDictation = undefined;
+        voiceContext = undefined;
+    }
+}
+
+function stopVoiceDictation(): void {
+    if (activeVoiceDictation) {
+        const dictation = activeVoiceDictation;
+        activeVoiceDictation = undefined;
+        dictation.stop();
+    }
+    voiceIndicator.hidden = true;
+    voiceContext = undefined;
+    render();
+}
+
+repl.notebook.onVoiceComment = startVoiceDictation;
+
+voiceIndicator.addEventListener('pointerdown', event => event.preventDefault());
+voiceIndicator.onclick = event => {
+    event.preventDefault();
+    event.stopPropagation();
+    stopVoiceDictation();
+    focusInput();
+};
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && activeVoiceDictation) {
+        stopVoiceDictation();
+    }
+});
 
 function render(): void {
     const paused = session.pauseState;
@@ -216,6 +315,7 @@ function render(): void {
 
 async function press(key: Key, text = ''): Promise<void> {
     stopMomentum();
+    if (activeVoiceDictation) stopVoiceDictation();
     if (repl.running) {
         await modes.press(text, key);
         render();
@@ -280,6 +380,7 @@ document.addEventListener('visibilitychange', () => {
 
 function applyInput(): void {
     stopMomentum();
+    if (activeVoiceDictation) stopVoiceDictation();
     if (busy || repl.running || repl.help || repl.liveIterationFocused) { render(); return; }
     const book = editor();
     const previous = book.current.source;
@@ -303,6 +404,7 @@ input.addEventListener('compositionstart', () => { composing = true; });
 input.addEventListener('compositionend', () => { composing = false; applyInput(); });
 input.addEventListener('input', applyInput);
 input.addEventListener('beforeinput', event => {
+    if (activeVoiceDictation) stopVoiceDictation();
     if (!event.isComposing && (event.inputType === 'insertLineBreak' || event.inputType === 'insertParagraph')) {
         event.preventDefault(); void press({ name: 'return' }); return;
     }
@@ -494,6 +596,7 @@ function setKeyboardSize(height: number, width: number): void {
     requestAnimationFrame(resize);
 }
 function typeKey(key: string): void {
+    if (activeVoiceDictation) stopVoiceDictation();
     if (busy || repl.running || repl.help || repl.liveIterationFocused) return;
     haptic();
     const book = editor();
@@ -556,6 +659,7 @@ turboButton.onclick = () => {
     render();
 };
 function runAction(): void {
+    if (activeVoiceDictation) stopVoiceDictation();
     if (runButton.disabled || busy && !repl.running) return;
     haptic(session.pauseState ? 'step' : 'tap');
     if (session.pauseState) void press({ name: 't' });
@@ -719,6 +823,7 @@ input.addEventListener('selectionchange', syncInputSelection);
 
 async function locate(x: number, y: number): Promise<void> {
     stopMomentum();
+    if (activeVoiceDictation) stopVoiceDictation();
     repl.dismiss();
     if (busy || repl.running || repl.help) { if (!keyboardEnabled) return; focusInput(); return; }
     const rect = terminal.getBoundingClientRect();
