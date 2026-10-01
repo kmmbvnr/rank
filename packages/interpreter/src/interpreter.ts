@@ -20,6 +20,8 @@ import {
     resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
 import { LocalFrame } from './frame.js';
+import { BindingEnvironment } from './binding-environment.js';
+import { BREAK_SIGNAL, BreakSignal, CONTINUE_SIGNAL, ContinueSignal, ReturnSignal, TailCallSignal } from './control-signals.js';
 import { compileKeyedTableExpression } from './keyed-table-expression.js';
 import { compileTableExpression } from './table-query-expression.js';
 import { applyBound, compileClauseExpression, isBoundCondition, valueBound, type ClauseExpressionContext } from './clause-expression.js';
@@ -103,10 +105,7 @@ import {
     applicationForm, assertNever, type ApplicationForm, findOperation, functionEffects, type ValueFacts,
     availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage,
     RUNTIME_TYPE_NAMES,
-    acceptsBindingType,
-    settledBindingTypes,
     bindingTypeMessage,
-    possibleBindingTypeConflict,
     declaredRanks,
 } from '@arrrank/language';
 import { missingBinary } from './missing.js';
@@ -172,7 +171,6 @@ import {
     expectBoolean,
     isNativeFunction,
     isRankArray,
-    checkBindingRank,
     isRankBytes,
     isRankCounter,
     isRankDate,
@@ -363,28 +361,13 @@ interface BorrowProof {
 const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
 const builtinOperations = new WeakMap<NativeFunction, NonNullable<ReturnType<typeof findOperation>>>();
 
-class TailCallSignal {
-    constructor(readonly definition: FunctionDefinition, readonly arguments_: RankValue[],
-        readonly compiled?: (arguments_: RankValue[], tail: boolean) => RankValue) {}
-}
 const SEED_RANDOM = Symbol('seedRandom');
 
 type SeedableRandom = (() => number) & {
     readonly [SEED_RANDOM]: (seed: bigint) => void;
 };
 
-class ReturnSignal {
-    constructor(readonly value?: RankValue) {}
-}
-
 const NO_INDICES: readonly RankValue[] = [];
-
-class BreakSignal {}
-class ContinueSignal {}
-
-// The signals carry nothing, so one of each serves every loop.
-const BREAK_SIGNAL = new BreakSignal();
-const CONTINUE_SIGNAL = new ContinueSignal();
 
 const raiseFunction: NativeFunction = {
     kind: 'function',
@@ -421,8 +404,7 @@ const typeFunction: NativeFunction = {
 export class Interpreter {
     readonly variables = new Map<string, RankValue>();
     readonly modules = new Set<string>(['core']);
-    /** Source bindings, separate from values injected through the host API. */
-    private readonly sourceBindings = new Set<string>();
+    private readonly bindings = new BindingEnvironment(this.variables, this.modules);
     private readonly sourceFunctions = new WeakMap<NativeFunction, FunctionStatement>();
     readonly testResults: RankTestResult[] = [];
     private readonly output: Output;
@@ -455,9 +437,6 @@ export class Interpreter {
     private readonly reductions: ReductionEvaluator;
     private readonly rankApplication: RankApplication;
     private readonly standardSequences = new Map<RuntimeModule[string], RankSequence>();
-    private localFrame: LocalFrame | undefined;
-    private readonly variableTypes = new Map<string, ReadonlySet<string>>();
-    private readonly variableArrayRanks = new Map<string, number>();
     private readonly resources = new ResourceOwnership();
     private debugStatement?: Statement;
     private readonly debugCalls: { name: string; frame: LocalFrame }[] = [];
@@ -467,9 +446,9 @@ export class Interpreter {
         const writes = new Map<string, LocalFrame | Map<string, RankValue>>();
         const markWrite = (name: string, mutate: boolean) => {
             if (name.includes('.')) return;
-            const frame = this.localFrame?.find(name);
+            const frame = this.bindings.current?.find(name);
             const target = mutate ? frame ?? (this.variables.has(name) ? this.variables : undefined)
-                : frame ?? this.localFrame ?? this.variables;
+                : frame ?? this.bindings.current ?? this.variables;
             if (target && target.get(name) !== undefined)
                 writes.set(name, target);
         };
@@ -518,7 +497,7 @@ export class Interpreter {
         };
         const location = node && line !== undefined
             ? `${sourceIds.get(node.root) ?? this.options.sourceId ?? '<input>'}:${line + 1}\n${node.root.fullText.split(/\r?\n/)[line]}` : '<result preview>';
-        const current = this.localFrame ?? this.variables;
+        const current = this.bindings.current ?? this.variables;
         const seen = new Set<object>([current]);
         const sections = [`Variables (current scope):\n${bindings(current)}`];
         for (const call of [...this.debugCalls].reverse()) {
@@ -595,17 +574,17 @@ export class Interpreter {
 
     /** Includes inferred global types whose declaration has not produced a value yet. */
     bindingNames(): ReadonlySet<string> {
-        return new Set([...this.variables.keys(), ...this.variableTypes.keys()]);
+        return this.bindings.globals.names();
     }
 
     /** Assignment contracts for editor diagnostics, copied without exposing runtime state. */
     bindingTypeNames(name: string): readonly string[] | undefined {
-        const types = this.variableTypes.get(name);
+        const types = this.bindings.globals.typeOf(name);
         return types === undefined ? undefined : [...types];
     }
 
     bindingArrayRank(name: string): number | undefined {
-        return this.variableArrayRanks.get(name);
+        return this.bindings.globals.rankOf(name);
     }
 
     /** Copy the current bindings without rerunning the program that produced them. */
@@ -614,9 +593,8 @@ export class Interpreter {
             persistentResources: _persistent, ...options } = this.options;
         const fork = new Interpreter(output, options);
         for (const module of this.modules) fork.modules.add(module);
-        for (const name of this.sourceBindings) fork.sourceBindings.add(name);
-        for (const [name, types] of this.variableTypes) fork.variableTypes.set(name, types);
-        for (const [name, rank] of this.variableArrayRanks) fork.variableArrayRanks.set(name, rank);
+        for (const name of this.bindings.sourceBindings) fork.bindings.sourceBindings.add(name);
+        fork.bindings.globals.adoptContracts(this.bindings.globals);
         for (const [name, child] of this.aliases) fork.aliases.set(name, child.forkForPreview(output));
         for (const [name, value] of this.variables) {
             const source = isNativeFunction(value) ? this.sourceFunctions.get(value) : undefined;
@@ -635,30 +613,12 @@ export class Interpreter {
 
     /** A notebook can replace declarations without relaxing assignment type checks. */
     forgetBindings(names: Iterable<string>): void {
-        for (const name of names) {
-            this.variables.delete(name);
-            this.sourceBindings.delete(name);
-            this.variableTypes.delete(name);
-            this.variableArrayRanks.delete(name);
-        }
+        this.bindings.forget(names);
     }
 
     dispose(): void {
         for (const child of this.aliases.values()) child.dispose();
         this.resources.dispose();
-    }
-
-    private withLexicalFrame<T>(
-        frame: LocalFrame,
-        operation: () => T,
-    ): T {
-        const caller = this.localFrame;
-        this.localFrame = frame;
-        try {
-            return operation();
-        } finally {
-            this.localFrame = caller;
-        }
     }
 
     private withGeneratorFrame<T>(
@@ -668,7 +628,7 @@ export class Interpreter {
     ): T {
         this.resources.pushScope(resources);
         try {
-            return this.withLexicalFrame(frame, operation);
+            return this.bindings.withFrame(frame, operation);
         } finally {
             this.resources.popScope();
         }
@@ -693,7 +653,7 @@ export class Interpreter {
     }
 
     private checkBuiltinBindings(program: Program, modules = this.modules): void {
-        const existing: (string | FunctionStatement)[] = [...this.sourceBindings, ...this.aliases.keys()];
+        const existing: (string | FunctionStatement)[] = [...this.bindings.sourceBindings, ...this.aliases.keys()];
         for (const value of this.variables.values()) {
             const statement = isNativeFunction(value) ? this.sourceFunctions.get(value) : undefined;
             if (statement) existing.push(statement);
@@ -915,7 +875,7 @@ export class Interpreter {
         const inner = prepared.stream;
         const release = (fresh: number) => {
             for (let index = 0; fresh !== 0; index += 1, fresh >>>= 1) {
-                if (fresh & 1) interpreter.unbind(names[index]);
+                if (fresh & 1) interpreter.bindings.unbind(names[index]);
             }
         };
         const proven = known === 0 ? 0 : (1 << known) - 1;
@@ -932,16 +892,6 @@ export class Interpreter {
                 try { return yield* resume(task); } finally { release(fresh); }
             })();
         } };
-    }
-
-    private unbind(name: string): void {
-        const frame = this.localFrame;
-        if (frame) frame.unset(name);
-        else {
-            this.variables.delete(name);
-            this.variableTypes.delete(name);
-            this.variableArrayRanks.delete(name);
-        }
     }
 
     // Eligibility is prepared with the statement itself. Ordinary scalar
@@ -963,7 +913,7 @@ export class Interpreter {
         if (!isAssignmentStatement(last) && !isReturnStatement(last)) return undefined;
         const assign = isAssignmentStatement(last) ? this.compileAssign(last.name) : undefined;
         return { count: kernel.count, run: () => {
-            if (!assign && this.localFrame === undefined) return undefined;
+            if (!assign && this.bindings.current === undefined) return undefined;
             const value = kernel.run();
             if (value === undefined) return recordFallback('tensor:entry-guard');
             try { assign?.(value); }
@@ -1080,7 +1030,7 @@ export class Interpreter {
                 if (insideFinally) {
                     throw new RankError('return is not valid inside finally');
                 }
-                if (interpreter.localFrame === undefined) {
+                if (interpreter.bindings.current === undefined) {
                     throw new RankError('return is only valid inside a function');
                 }
                 if (insideGenerator && statement.value !== undefined) {
@@ -1271,7 +1221,7 @@ export class Interpreter {
                     return value => {
                         if (direct) { direct(value); return; }
                         checked(value);
-                        const frame = this.localFrame?.find(name);
+                        const frame = this.bindings.current?.find(name);
                         direct = frame ? frame.bindStore(name) : next => { this.variables.set(name, next); };
                     };
                 } : undefined,
@@ -1281,7 +1231,7 @@ export class Interpreter {
                 arrayRead: atArray,
                 textRead: (source, index) => applySelectors([source, index]) as string,
                 returns: this.options.loopReturnCompilation !== false,
-                canReturn: () => this.localFrame !== undefined,
+                canReturn: () => this.bindings.current !== undefined,
                 returnValue: value => { throw new ReturnSignal(value); },
                 arrayLocals: this.options.arrayLocalCompilation !== false,
                 dimension: checkedArrayDimension,
@@ -1797,7 +1747,7 @@ export class Interpreter {
             let layout: Map<string, number> | undefined;
             let slot: number | undefined;
             return () => {
-                const frame = this.localFrame;
+                const frame = this.bindings.current;
                 if (frame) {
                     if (layout !== frame.layout || slot === undefined) {
                         layout = frame.layout;
@@ -1968,8 +1918,8 @@ export class Interpreter {
             };
         }
         const tableQuery = compileTableExpression(expression, () => ({
-            get localFrame() { return interpreter.localFrame; },
-            set localFrame(frame) { interpreter.localFrame = frame; },
+            get localFrame() { return interpreter.bindings.current; },
+            set localFrame(frame) { interpreter.bindings.current = frame; },
             requireModule: (module, operation) => interpreter.requireModule(module, operation),
             evaluate: node => interpreter.evaluateTask(node),
             select: values => interpreter.applySelectors(values),
@@ -2990,7 +2940,7 @@ export class Interpreter {
         }
         const { generator } = prepareFunction(statement);
         if (statement.memo && generator) throw new RankError('memo functions cannot yield');
-        const context = this.localFrame;
+        const context = this.bindings.current;
         const only = statement.statements.length === 1 ? statement.statements[0] : undefined;
         const compiled = !inspectionEnabled() && only && isReturnStatement(only) && only.value
             ? this.compileDirectExpression(only.value) : undefined;
@@ -3234,7 +3184,7 @@ export class Interpreter {
         this.callDepth += 1;
         return this.resources.withResourceScope(() => {
             try {
-                return this.withLexicalFrame(frame, direct);
+                return this.bindings.withFrame(frame, direct);
             } catch (error) {
                 if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
                 throw error;
@@ -3254,10 +3204,10 @@ export class Interpreter {
         }
         let frame = this.functionFrame(statement, arguments_, context);
         const callerStatement = this.debugStatement;
-        const caller = this.localFrame;
+        const caller = this.bindings.current;
         const scope = new Set<RankFile>();
         this.resources.pushScope(scope);
-        this.localFrame = frame;
+        this.bindings.current = frame;
         this.callDepth += 1;
         if (inspectionEnabled()) this.debugCalls.push({ name: statement.name, frame });
         let result: RankValue | undefined;
@@ -3268,7 +3218,7 @@ export class Interpreter {
             while (true) {
                 checkpoint();
                 try {
-                    this.localFrame = frame;
+                    this.bindings.current = frame;
                     if (inspectionEnabled()) this.debugCalls[this.debugCalls.length - 1] = { name: statement.name, frame };
                     for (const local of prepareFunction(statement, argumentSignature(arguments_)).locals) this.defineFunction(local);
                     const body = this.compiledFunctionBody(statement, arguments_);
@@ -3296,7 +3246,7 @@ export class Interpreter {
                         arguments_ = error.arguments_;
                         frame = this.functionFrame(statement, error.arguments_, error.definition.context, reusable);
                         if (error.definition.direct) {
-                            this.localFrame = frame;
+                            this.bindings.current = frame;
                             try {
                                 result = error.definition.direct();
                             } catch (error) {
@@ -3313,7 +3263,7 @@ export class Interpreter {
             }
         } finally {
             this.callDepth -= 1;
-            this.localFrame = caller;
+            this.bindings.current = caller;
             if (inspectionEnabled()) {
                 this.debugCalls.pop();
                 this.debugStatement = callerStatement;
@@ -3343,7 +3293,7 @@ export class Interpreter {
         const interpreter = this;
         let consumed = false;
 
-        this.withLexicalFrame(frame, () => {
+        this.bindings.withFrame(frame, () => {
             for (const local of prepareFunction(statement, argumentSignature(arguments_)).locals) this.defineFunction(local);
         });
 
@@ -3415,54 +3365,22 @@ export class Interpreter {
 
     private localIndex(): RankIndex {
         this.requireModule('algo', 'index');
-        const scope = this.localFrame?.values ?? this.variables;
-        const existing = scope.get('index');
-        if (existing !== undefined) {
-            if (!isRankIndex(existing)) throw new RankError('index name is already in use');
-            return existing;
-        }
-        const index = newStructure('index') as RankIndex;
-        scope.set('index', index);
-        return index;
+        return this.bindings.structure('index', isRankIndex, () => newStructure('index') as RankIndex);
     }
 
     private localQueue(): RankQueue {
         this.requireModule('algo', 'queue');
-        const scope = this.localFrame?.values ?? this.variables;
-        const existing = scope.get('queue');
-        if (existing !== undefined) {
-            if (!isRankQueue(existing)) throw new RankError('queue name is already in use');
-            return existing;
-        }
-        const queue: RankQueue = new RankDeque();
-        scope.set('queue', queue);
-        return queue;
+        return this.bindings.structure('queue', isRankQueue, () => new RankDeque());
     }
 
     private localSet(): RankSet {
         this.requireModule('algo', 'set');
-        const scope = this.localFrame?.values ?? this.variables;
-        const existing = scope.get('set');
-        if (existing !== undefined) {
-            if (!isRankSet(existing)) throw new RankError('set name is already in use');
-            return existing;
-        }
-        const set = newStructure('set') as RankSet;
-        scope.set('set', set);
-        return set;
+        return this.bindings.structure('set', isRankSet, () => newStructure('set') as RankSet);
     }
 
     private localCounter(): RankCounter {
         this.requireModule('algo', 'counter');
-        const scope = this.localFrame?.values ?? this.variables;
-        const existing = scope.get('counter');
-        if (existing !== undefined) {
-            if (!isRankCounter(existing)) throw new RankError('counter name is already in use');
-            return existing;
-        }
-        const counter = newStructure('counter') as RankCounter;
-        scope.set('counter', counter);
-        return counter;
+        return this.bindings.structure('counter', isRankCounter, () => newStructure('counter') as RankCounter);
     }
 
     private useFile(specifier: string, alias?: string): LoadedProgram {
@@ -3751,8 +3669,8 @@ export class Interpreter {
     private clauseContext(): ClauseExpressionContext {
         const interpreter = this;
         return {
-            get localFrame() { return interpreter.localFrame; },
-            set localFrame(frame) { interpreter.localFrame = frame; },
+            get localFrame() { return interpreter.bindings.current; },
+            set localFrame(frame) { interpreter.bindings.current = frame; },
             evaluate: node => interpreter.evaluateTask(node),
             binary: (operator, left, right) => interpreter.evaluateBinary(operator, left, right),
             findVariable: name => interpreter.findVariable(name),
@@ -3847,50 +3765,11 @@ export class Interpreter {
         return value;
     }
 
-    // Repeated writes to one name settle on one frame slot, so the site that
-    // makes them resolves it once and then stores without hashing the name
-    // again. A name that moves scope, changes type or has yet to be defined
-    // reports back from store() and takes the full path below.
     private compileAssign(name: string): (value: RankValue) => void {
-        if (name.includes('.')) return value => this.assign(name, value);
-        let layout: Map<string, number> | undefined;
-        let slot = -1;
-        let global: ReadonlySet<string> | undefined;
-        return (value: RankValue): void => {
-            const received = typeName(value);
-            const frame = this.localFrame;
-            if (frame === undefined) {
-                // A global keeps the types it first settled on, so the site
-                // remembers them and the write costs one store rather than a
-                // lookup for the types and a second for the value.
-                if (global !== undefined && global.has(received)) {
-                    const previousValue = this.variables.get(name);
-                    this.variables.set(name, value);
-                    try {
-                        this.checkGlobalRank(name, value);
-                    } catch (error) {
-                        if (previousValue === undefined) this.variables.delete(name);
-                        else this.variables.set(name, previousValue);
-                        throw error;
-                    }
-                    noteArrayBinding(value);
-                    return;
-                }
-                this.assign(name, value);
-                global = this.variableTypes.get(name);
-                return;
-            }
-            if (layout !== frame.layout) {
-                layout = frame.layout;
-                slot = layout.get(name) ?? -1;
-            }
-            if (slot >= 0 && frame.store(slot, value, received)) return;
-            this.assign(name, value);
-        };
+        return name.includes('.') ? value => this.assign(name, value) : this.bindings.compileAssign(name);
     }
 
     private assign(name: string, value: RankValue): void {
-        if (availableBuiltin(name, this.modules)) throw new RankError(builtinBindingMessage(name), 'TypeError');
         const dot = name.indexOf('.');
         if (dot >= 0) {
             const alias = name.slice(0, dot);
@@ -3899,68 +3778,7 @@ export class Interpreter {
             child.assign(name.slice(dot + 1), value);
             return;
         }
-        const frame = this.localFrame?.find(name) ?? this.localFrame;
-        if (!frame) this.sourceBindings.add(name);
-        const received = typeName(value);
-        // A variable that already carries a recorded type needs neither its
-        // previous value nor a rewrite of the type it keeps.
-        const recorded = frame ? frame.typeOf(name) : this.variableTypes.get(name);
-        if (recorded !== undefined) {
-            if (!acceptsBindingType(recorded, received)) {
-                throw new RankError(bindingTypeMessage(name, recorded, [received], true));
-            }
-            // A name that has held only `.NA` settles on the type of its first value.
-            const settledType = settledBindingTypes(recorded, [received]);
-            if (settledType !== recorded) {
-                if (frame) frame.declareType(name, settledType);
-                else this.variableTypes.set(name, settledType);
-            }
-            if (frame) frame.set(name, value);
-            else {
-                const previousValue = this.variables.get(name);
-                this.variables.set(name, value);
-                try {
-                    this.checkGlobalRank(name, value);
-                } catch (error) {
-                    if (previousValue === undefined) this.variables.delete(name);
-                    else this.variables.set(name, previousValue);
-                    throw error;
-                }
-                noteArrayBinding(value);
-            }
-            return;
-        }
-        const previous = frame ? frame.get(name) : this.variables.get(name);
-        const expected = previous === undefined ? undefined : new Set([typeName(previous)]);
-        if (expected !== undefined && !acceptsBindingType(expected, received)) {
-            throw new RankError(bindingTypeMessage(name, expected, [received], true));
-        }
-        const settled = expected === undefined ? new Set([received])
-            : settledBindingTypes(expected, [received]);
-        if (frame) {
-            frame.define(name, value, settled);
-            return;
-        }
-        const previousValue = this.variables.get(name);
-        this.variables.set(name, value);
-        try {
-            this.checkGlobalRank(name, value);
-        } catch (error) {
-            if (previousValue === undefined) this.variables.delete(name);
-            else this.variables.set(name, previousValue);
-            throw error;
-        }
-        noteArrayBinding(value);
-        this.variableTypes.set(name, settled);
-    }
-
-    private checkGlobalRank(name: string, value: RankValue): void {
-        if (!isRankArray(value)) return;
-        const previous = this.variableArrayRanks.get(name);
-        const current = previous === undefined ? this.variables.get(name) : undefined;
-        const expected = previous ?? (current !== undefined && isRankArray(current) ? current.shape.length : undefined);
-        const rank = checkBindingRank(name, expected, value)!;
-        if (previous === undefined) this.variableArrayRanks.set(name, rank);
+        this.bindings.assign(name, value);
     }
 
     private assignRecordField(
@@ -3988,7 +3806,7 @@ export class Interpreter {
     }
 
     private findVariable(name: string): RankValue | undefined {
-        return this.localFrame?.lookup(name) ?? this.variables.get(name);
+        return this.bindings.find(name);
     }
 
     private apply(
@@ -4605,21 +4423,7 @@ export class Interpreter {
         names: readonly string[],
         candidates: readonly ReadonlySet<string>[],
     ): void {
-        const frame = this.localFrame;
-        names.forEach((name, index) => {
-            if (name === '#') return;
-            const inferred = candidates[index];
-            if (!inferred || inferred.size === 0) return;
-            const recorded = frame ? frame.typeOf(name) : this.variableTypes.get(name);
-            const held = frame ? frame.get(name) : this.variables.get(name);
-            const previous = recorded
-                ?? (held !== undefined ? new Set([typeName(held)]) : undefined);
-            if (previous && possibleBindingTypeConflict(previous, inferred)) {
-                throw new RankError(bindingTypeMessage(name, previous, inferred, true));
-            }
-            if (frame) frame.declareType(name, previous ?? inferred);
-            else this.variableTypes.set(name, previous ?? inferred);
-        });
+        this.bindings.declareTypes(names, candidates);
     }
 
     private requireModule(module: string, operation: string): void {

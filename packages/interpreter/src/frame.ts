@@ -27,6 +27,15 @@ export class LocalFrame {
         readonly layout = new Map<string, number>(),
     ) {}
 
+    /** A frame whose values live in a map someone else also holds: the
+     * globals, which a host reads and injects through `Interpreter.variables`. */
+    static over(values: Map<string, RankValue>): LocalFrame {
+        const frame = new LocalFrame(undefined);
+        frame.mappedValues = values;
+        frame.mappedTypes = new Map();
+        return frame;
+    }
+
     // Maps are only needed by escaping captures and scope-owned collections.
     // Once exposed they remain the source of truth for that frame.
     get values(): Map<string, RankValue> {
@@ -135,6 +144,30 @@ export class LocalFrame {
             return;
         }
         this.slotTypes[this.slotFor(name)] = types;
+    }
+
+    /** Names holding a value or a type contract; a type can outlive its value. */
+    names(): Set<string> {
+        if (this.mappedValues) return new Set([...this.mappedValues.keys(), ...this.mappedTypes!.keys()]);
+        const names = new Set<string>();
+        for (const [name, slot] of this.layout) {
+            if (this.slots[slot] !== undefined || this.slotTypes[slot] !== undefined) names.add(name);
+        }
+        return names;
+    }
+
+    rankOf(name: string): number | undefined {
+        return this.arrayRanks?.get(name);
+    }
+
+    /** Copies another frame's contracts, so a fork rejects what the original would. */
+    adoptContracts(source: LocalFrame): void {
+        for (const name of source.names()) {
+            const types = source.typeOf(name);
+            if (types !== undefined) this.declareType(name, types);
+            const rank = source.rankOf(name);
+            if (rank !== undefined) (this.arrayRanks ??= new Map()).set(name, rank);
+        }
     }
 
     reset(): boolean {
