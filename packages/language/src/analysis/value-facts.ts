@@ -117,12 +117,15 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
                     : { rank, shape: Array<number | null>(rank).fill(null) }),
                     ...(elements ? { elements } : {}) };
             }
-            const shape = expression.dimensions.map(item => {
-                const fact = expressionFacts(item.value, lookup);
+            const dimensionFacts = expression.dimensions.map(item => expressionFacts(item.value, lookup));
+            const shape = expression.dimensions.map((item, axis) => {
+                const fact = dimensionFacts[axis];
                 if (fact.integer === undefined || item.sign === '-') return null;
                 const size = Number(fact.integer);
                 return Number.isSafeInteger(size) && size >= 0 ? size : null;
             });
+            const dims = expression.dimensions.map((item, axis) =>
+                shape[axis] === null && item.sign !== '-' ? dimensionFacts[axis].dim ?? null : null);
             const fill = expression.fill && expressionFacts(expression.fill, lookup);
             const items = [...expression.items, ...expression.rows.flatMap(row => row.items)]
                 .map(item => expressionFacts(item.value, lookup));
@@ -133,6 +136,7 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
                 : !fill && items.length && items.every(isAtom)
                     ? [...new Set(items.flatMap(item => item.types))] : undefined;
             return { types: ['array'], rank: shape.length, shape,
+                ...(dims.some(Boolean) ? { dims } : {}),
                 ...(elements ? { elements } : {}),
                 ...(!fill && shape.length === 1 && elements && elements.length > 1
                     ? { positions: items.map(item => item.types) } : {}),

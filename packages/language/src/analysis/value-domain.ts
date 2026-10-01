@@ -1,4 +1,5 @@
 import type { Types } from './types.js';
+import { compareDims, constantDim, type Dim } from './shape-index.js';
 
 /** Serializable facts only: inspecting these never evaluates user code.
  * Accepted binding fields remain here for compatibility with the current pass.
@@ -29,6 +30,13 @@ export interface ValueFacts {
     readonly callbackFreeScalarCells?: true;
     readonly rank?: number;
     readonly shape?: readonly (number | null)[];
+    /**
+     * Symbolic lengths, one slot per axis of `shape`. A slot is null when the axis has no symbol
+     * (its number, if any, is still in `shape`). Absent, stale or mismatched dims mean unknown.
+     */
+    readonly dims?: readonly (Dim | null)[];
+    /** Symbolic value of an integer scalar, e.g. a length bound once and reused. */
+    readonly dim?: Dim;
     readonly boolean?: boolean;
     readonly integer?: string;
     readonly integers?: readonly (number | null)[];
@@ -108,6 +116,41 @@ export function incompatibleShapes(left: ValueFacts, right: ValueFacts): boolean
     return false;
 }
 
+/** The symbolic length of one axis: a symbol when known, else the constant when `shape` has one. */
+export function axisDim(facts: ValueFacts, axis: number): Dim | undefined {
+    const size = facts.shape?.[axis];
+    const dim = facts.dims?.length === facts.shape?.length ? facts.dims?.[axis] : undefined;
+    return dim ?? (typeof size === 'number' ? constantDim(size) : undefined);
+}
+
+/** Trailing-aligned symbolic dims of a broadcast; an axis is known only when one side is the scalar axis. */
+export function broadcastDims(left: ValueFacts, right: ValueFacts): (Dim | null)[] | undefined {
+    const leftShape = isAtom(left) ? [] : left.shape;
+    const rightShape = isAtom(right) ? [] : right.shape;
+    if (!leftShape || !rightShape) return undefined;
+    const length = Math.max(leftShape.length, rightShape.length);
+    const dims = Array.from({ length }, (_, index): Dim | null => {
+        const offset = length - index;
+        const a = offset > leftShape.length ? constantDim(1) : axisDim(left, leftShape.length - offset);
+        const b = offset > rightShape.length ? constantDim(1) : axisDim(right, rightShape.length - offset);
+        if (!a || !b) return null;
+        if (compareDims(a, constantDim(1)) === 'equal') return b;
+        if (compareDims(b, constantDim(1)) === 'equal') return a;
+        return compareDims(a, b) === 'equal' ? a : null;
+    });
+    return dims.some(dim => dim && dim.terms.length > 0) ? dims : undefined;
+}
+
+/** Every axis of the two arrays is proven equal: same rank, same canonical dims. */
+export function provenSameShape(left: ValueFacts, right: ValueFacts): boolean {
+    if (!left.shape || !right.shape || left.shape.length !== right.shape.length) return false;
+    return left.shape.every((_, axis) => {
+        const a = axisDim(left, axis);
+        const b = axisDim(right, axis);
+        return !!a && !!b && compareDims(a, b) === 'equal';
+    });
+}
+
 export function isAtom(facts: ValueFacts): boolean {
     return facts.rank === 0 || facts.types.length === 1 && facts.types[0] === 'text';
 }
@@ -136,7 +179,13 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
     const fields = types.join() === 'record' && first.fields
         ? Object.fromEntries(Object.keys(first.fields).filter(name => values.every(value => value.fields?.[name]))
             .map(name => [name, joinValueFacts(values.map(value => value.fields![name]))])) : undefined;
+    const dims = shape && values.every(value => value.dims?.length === shape.length)
+        ? shape.map((_, axis) => values.every(value => value.dims![axis] && first.dims![axis]
+            && compareDims(value.dims![axis]!, first.dims![axis]!) === 'equal') ? first.dims![axis] : null) : undefined;
+    const dim = values.every(value => value.dim && first.dim && compareDims(value.dim, first.dim) === 'equal')
+        ? first.dim : undefined;
     return { types, ...(rank !== undefined ? { rank } : {}), ...(shape ? { shape } : {}),
+        ...(dims?.some(Boolean) ? { dims } : {}), ...(dim ? { dim } : {}),
         ...(first.builtinOperation && values.every(value => value.builtinOperation === first.builtinOperation)
             ? { builtinOperation: first.builtinOperation } : {}),
         ...(types.join() === 'boolean' && first.boolean !== undefined
