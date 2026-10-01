@@ -1,10 +1,15 @@
 import {
-    EMPTY_CELL, addLine, cellSource, closeCell, insideText, isComplete, isEmpty,
+    EMPTY_CELL, addLine, cellSource, closeCell, hasCode, insideText, isComplete, isEmpty,
     nextIndent, scanLine, startsDedent, typeAssignKey,
 } from './repl-input.js';
 import type { Execution, OutputLine } from './repl-session.js';
 import { editableRows, graphemes, type TextRow } from './screen.js';
 import { parse } from '@arrrank/interpreter';
+
+/** Consecutive `use` lines are one run of imports; each lives on a single line. */
+export function isUseRun(source: string): boolean {
+    return source !== '' && source.split('\n').every(line => /^use\s/.test(line));
+}
 
 /** Keep top-level statements separate, with their blocks and source spacing intact. */
 export function splitSource(source: string): string[] {
@@ -34,10 +39,20 @@ export function splitSource(source: string): string[] {
     const cells: string[] = [];
     for (let start = 0; start < lines.length;) {
         const end = ends.get(start) ?? start;
-        cells.push(lines.slice(start, end + 1).join('\n'));
+        const cell = lines.slice(start, end + 1).join('\n');
+        const previous = cells.at(-1);
+        if (previous !== undefined && isUseRun(previous) && isUseRun(cell)) cells[cells.length - 1] = previous + '\n' + cell;
+        else cells.push(cell);
         start = end + 1;
     }
     return cells;
+}
+
+/** The cells one cell's source becomes: a trailing newline is a blank cell, not a file terminator. */
+export function splitCell(source: string): string[] {
+    if (source === '') return [''];
+    const parts = splitSource(source);
+    return source.endsWith('\n') ? [...parts, ''] : parts;
 }
 
 export interface NotebookCell {
@@ -52,7 +67,7 @@ export interface NotebookCell {
 }
 
 function clearEmptyResult(cell: NotebookCell): void {
-    if (cell.source.trim() !== '') return;
+    if (hasCode(cell.source)) return;
     cell.output = [];
     cell.errorOffset = undefined;
     cell.status = 'idle';
@@ -107,7 +122,14 @@ export class Notebook {
 
     selectTo(cell: number, cursor: number, extend = false): void {
         if (extend) this.selectionAnchor ??= { id: this.current.id, offset: this.cursor };
-        else this.clearSelection();
+        else {
+            this.clearSelection();
+            if (cell !== this.active) {
+                const from = this.active;
+                const added = this.resplit(from);
+                if (cell > from) cell += added;
+            }
+        }
         this.temporaryLine = undefined;
         this.temporaryHead = undefined;
         this.active = cell;
@@ -207,11 +229,63 @@ export class Notebook {
 
     enqueue(source: string, fileSource = false): void {
         this.toPrompt();
+        const previous = this.cells.at(-2);
+        if (previous && !previous.command && isUseRun(previous.source) && isUseRun(source)) {
+            previous.source += '\n' + source;
+            return;
+        }
         this.current.source = source;
         this.current.fileSource = fileSource;
-        if (source.trim() === '') this.current.executed = source;
+        if (!hasCode(source)) this.current.executed = source;
         this.append();
-        this.toPrompt();
+        this.toPrompt(false);
+    }
+
+    /** A cell saved by an earlier session may hold several statements; it gets the same boundaries as `load`. */
+    restore(source: string): void {
+        for (const part of splitCell(source)) this.enqueue(part);
+    }
+
+    /**
+     * Cell boundaries follow content: a cell edited into several statements becomes one cell each.
+     * A statement that is unchanged keeps its execution state. Returns how many cells were added.
+     */
+    resplit(index: number): number {
+        const cell = this.cells[index];
+        if (!cell || cell.command || cell.status === 'running' || index === this.cells.length - 1) return 0;
+        const parts = splitCell(cell.source);
+        if (parts.length < 2) return 0;
+        const executed = cell.executed === undefined ? [] : splitCell(cell.executed);
+        const { output, errorOffset, status } = cell;
+        const cursor = index === this.active ? this.cursor : undefined;
+        const kept = (part: string): boolean => executed.length === 1 && executed[0] === part;
+        const blank = (part: string): string | undefined => hasCode(part) ? undefined : part;
+        cell.source = parts[0];
+        cell.executed = kept(parts[0]) ? parts[0] : blank(parts[0]);
+        if (!kept(parts[0])) {
+            cell.output = [];
+            cell.errorOffset = undefined;
+            cell.status = 'idle';
+        }
+        const added = parts.slice(1).map((part): NotebookCell => kept(part)
+            ? { id: this.nextId++, source: part, executed: part, output, errorOffset, command: false, status }
+            : { id: this.nextId++, source: part, executed: blank(part), output: [], command: false, status: 'idle' });
+        this.cells.splice(index + 1, 0, ...added);
+        if (this.replayFrom !== undefined && this.replayFrom > index) this.replayFrom += added.length;
+        if (this.active > index) this.active += added.length;
+        else if (cursor !== undefined) {
+            let offset = 0;
+            for (const [part, text] of parts.entries()) {
+                if (cursor <= offset + text.length || part === parts.length - 1) {
+                    this.active = index + part;
+                    this.cursor = Math.min(cursor - offset, text.length);
+                    break;
+                }
+                offset += text.length + 1;
+            }
+            this.preferredColumn = undefined;
+        }
+        return added.length;
     }
 
     /** A new unexecuted cell above `index`; the active cell keeps its place. */
@@ -226,8 +300,9 @@ export class Notebook {
         this.cells.push({ id: this.nextId++, source: '', output: [], command: false, status: 'idle' });
     }
 
-    toPrompt(): void {
+    toPrompt(settle = true): void {
         this.clearSelection();
+        if (settle && !this.atPrompt) this.resplit(this.active);
         this.active = this.cells.length - 1;
         this.discardEmptyHead();
         this.cursor = this.current.source.length;
@@ -470,6 +545,11 @@ export class Notebook {
                 return;
             }
             if (next < 0 || next >= this.cells.length) return;
+            if (!this.atPrompt && this.resplit(this.active)) {
+                // Leaving from the first or last row, which now belongs to the first or last part.
+                next = this.active + direction;
+                while (next >= 0 && next < this.cells.length && this.cells[next].command) next += direction;
+            }
             const fromPrompt = this.atPrompt;
             this.active = next;
             this.discardEmptyHead();

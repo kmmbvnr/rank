@@ -1005,3 +1005,17 @@ export function flatRecordWrite(
         return value;
     };
 }
+
+/**
+ * Postfix `array` over a container whose `for` order is defined: a copy of
+ * its items in that order, leaving the container as it was. Undefined for
+ * any other value.
+ */
+export function materializeCollection(value: RankValue): RankArray | undefined {
+    if (!(value instanceof RankDeque || isRankQueue(value) || isRankSet(value) || isRankMultiset(value))) return undefined;
+    const items = value instanceof RankDeque || value instanceof RankHeap ? value.values()
+        : isRankQueue(value) ? value.items
+            : isRankSet(value) ? value.entries.values()
+                : value.values();
+    return stackItems(items, undefined, 'collection');
+}

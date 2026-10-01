@@ -75,6 +75,47 @@ describe('reverse', () => {
     });
 });
 
+describe('postfix array on containers', () => {
+    const fresh = () => {
+        const runtime = new Interpreter();
+        runtime.execute('use sequences\nuse algo');
+        return runtime;
+    };
+
+    it('copies a queue, stack or deque in iteration order and keeps the source', () => {
+        const runtime = fresh();
+        runtime.execute('Q = new queue\nQ push 1\nQ push 2\nQ push 3');
+        expect(show(runtime, 'Q array')).toBe('1 2 3');
+        expect(show(runtime, 'Q array reverse')).toBe('3 2 1');
+        expect(show(runtime, 'Q len')).toBe('3');
+        runtime.execute('A = Q array\nA 0 = 9\nB = Q array');
+        expect(show(runtime, 'B')).toBe('1 2 3');
+        runtime.execute('S = new stack\nS push 4\nS push 5');
+        expect(show(runtime, 'S array')).toBe('4 5');
+        runtime.execute('D = new deque\nD 4 pushback\nD 3 pushfront');
+        expect(show(runtime, 'D array')).toBe('3 4');
+    });
+
+    it('handles empty and single-item containers and keeps element types', () => {
+        const runtime = fresh();
+        runtime.execute('E = new queue\nT = new queue\nT push "a"\nP = new queue\nP push (array 1 2)\nP push (array 3 4)');
+        expect(show(runtime, 'E array len')).toBe('0');
+        expect(show(runtime, 'T array')).toBe('a');
+        expect(show(runtime, 'P array 1')).toBe('3 4');
+        expect(show(runtime, 'P array len')).toBe('2');
+    });
+
+    it('copies sets and multisets and rejects containers without a defined order', () => {
+        const runtime = fresh();
+        runtime.execute('X = new set\nX add 3\nX add 3\nX add 1\nM = new orderedset\nM add 5\nM add 2');
+        expect(show(runtime, 'X array len')).toBe('2');
+        expect(show(runtime, 'M array')).toBe('2 5');
+        runtime.execute('H = new heap\nC = new counter');
+        expect(() => runtime.execute('H array')).toThrowError('postfix array expects');
+        expect(() => runtime.execute('C array')).toThrowError('postfix array expects');
+    });
+});
+
 describe('gathering from an index', () => {
     const P = 'use algo\nuse sequences\nP = new index\nP 1 = 10\nP 2 = 20\nP 3 = 30\n';
     const run = (source: string) => show(new Interpreter(), P + source);

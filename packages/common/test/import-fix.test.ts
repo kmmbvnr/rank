@@ -34,16 +34,17 @@ describe('import suggestions', () => {
     it('keeps imports sorted and never lands below the failing cell', () => {
         const book = new Notebook();
         for (const source of ['rem Header', 'use io', 'use sequences', 'X = 1', 'Y = X round']) book.enqueue(source);
-        expect(importPosition(book.cells, 'numbers', 4)).toBe(2);
-        expect(importPosition(book.cells, 'algo', 4)).toBe(1);
-        expect(importPosition(book.cells, 'text', 4)).toBe(3);
-        expect(importPosition(book.cells, 'numbers', 1)).toBe(1);
+        expect(book.cells.map(cell => cell.source)).toEqual(['rem Header', 'use io\nuse sequences', 'X = 1', 'Y = X round', '']);
+        expect(importPosition(book.cells, 'numbers', 3)).toEqual({ index: 1, line: 1 });
+        expect(importPosition(book.cells, 'algo', 3)).toEqual({ index: 1, line: 0 });
+        expect(importPosition(book.cells, 'text', 3)).toEqual({ index: 1, line: 2 });
+        expect(importPosition(book.cells, 'numbers', 1)).toEqual({ index: 1 });
     });
 
     it('puts the first import after the leading comments', () => {
         const book = new Notebook();
         for (const source of ['rem Header\nrem More', 'X = 1', 'Y = X round']) book.enqueue(source);
-        expect(importPosition(book.cells, 'numbers', 2)).toBe(1);
+        expect(importPosition(book.cells, 'numbers', 2)).toEqual({ index: 1 });
     });
 
     it('underlines the suggestion and inverts it when focused', async () => {
@@ -77,8 +78,8 @@ describe('import suggestions', () => {
         await keys.press('', { name: 'return' });
 
         const book = repl.notebook;
-        expect(book.cells.map(cell => cell.source)).toEqual(['use io', 'use numbers', 'use sequences', 'X = 4.0 sqrt', '']);
-        expect(book.cells.slice(0, -1).map(cell => cell.status)).toEqual(['ok', 'ok', 'ok', 'ok']);
+        expect(book.cells.map(cell => cell.source)).toEqual(['use io\nuse numbers\nuse sequences', 'X = 4.0 sqrt', '']);
+        expect(book.cells.slice(0, -1).map(cell => cell.status)).toEqual(['ok', 'ok']);
         expect(book.atPrompt).toBe(true);
     });
 

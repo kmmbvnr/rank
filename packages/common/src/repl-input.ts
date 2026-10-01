@@ -418,6 +418,14 @@ export interface CellState {
 
 export const EMPTY_CELL: CellState = { blocks: [], pending: '', lines: [] };
 
+/** Blank lines and `rem` comments are spacing: never executed, no number, no status. */
+export function hasCode(source: string): boolean {
+    return source.split('\n').some(line => {
+        const text = line.trim();
+        return text !== '' && !/^rem(?![A-Za-z0-9_])/.test(text);
+    });
+}
+
 export function isEmpty(state: CellState): boolean {
     return state.lines.length === 0 && state.pending === '' && state.blocks.length === 0;
 }

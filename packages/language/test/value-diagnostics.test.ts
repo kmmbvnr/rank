@@ -835,6 +835,82 @@ it('checks recursive numeric specializations including empty median inputs', () 
         .toEqual(['operator + does not accept integer and text']);
 });
 
+it('keeps cell facts through reads guarded by numeric conditions on an unchanged array', () => {
+    const cells = (length: number | null, type = 'integer'): ValueFacts => ({ types: ['array'], rank: 1,
+        shape: [length], elements: [type], eagerScalarCells: true });
+    const index: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const result = (source: string, ...args: ValueFacts[]) => {
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        expect(program.parserErrors).toEqual([]);
+        return analyzeValues(program.value, new Map(), new Map(), [{ name: 'pick', arguments: args }])
+            .functionResults[0];
+    };
+    const guarded = 'fun pick A I\n M = A len\n X = 0\n if I at least 0\n  if I less M\n   X = A I\n  end\n end\n'
+        + ' return X\nend\n';
+    for (const length of [null, 3]) {
+        expect(result(guarded, cells(length), index)).toMatchObject({ types: ['integer'], rank: 0 });
+        expect(result(guarded, cells(length, 'real'), index).types.slice().sort()).toEqual(['integer', 'real']);
+    }
+    // No index is in bounds for an empty array, so the read never contributes its cell type.
+    expect(result(guarded, cells(0, 'real'), index)).toMatchObject({ types: ['integer'], rank: 0 });
+    // The guard proves nothing outside its branch: a read after it is not claimed to be in bounds.
+    const unguarded = 'fun pick A I\n if I less 0\n  return 0\n end\n return A I\nend\n';
+    expect(result(unguarded, cells(null, 'real'), index).types.slice().sort()).toEqual(['integer', 'real']);
+    // A write may change the array, so no cell fact survives it.
+    const rewritten = 'fun pick A I\n A I = "x"\n return A I\nend\n';
+    expect(result(rewritten, cells(null), index).types).not.toEqual(['integer']);
+});
+
+it('prunes branches that proven integer bounds make unreachable, and nothing else', () => {
+    const index: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const cells = (length: number | null): ValueFacts => ({ types: ['array'], rank: 1, shape: [length],
+        elements: ['integer'], eagerScalarCells: true });
+    const run = (source: string, ...args: ValueFacts[]) => {
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        expect(program.parserErrors).toEqual([]);
+        const result = analyzeValues(program.value, new Map(), new Map(), [{ name: 'pick', arguments: args }]);
+        return { types: result.functionResults[0].types.slice().sort(), messages: result.diagnostics.map(item => item.message) };
+    };
+    const guarded = 'fun pick A I\n M = A len\n if I at least 0\n  if I less M\n   return A I\n  end\n end\n return 0.5\nend\n';
+    // An empty array leaves no index that is both non-negative and below its length, so this call
+    // cannot return a cell. The contract check over widened inputs still reports the mixed returns.
+    expect(run(guarded, cells(0), index).types).toEqual(['real']);
+    // Otherwise the read may run, so both results stay possible.
+    expect(run(guarded, cells(3), index).types).toEqual(['integer', 'real']);
+    expect(run(guarded, cells(null), index).types).toEqual(['integer', 'real']);
+    // Conjunctions, negations and the else path narrow too.
+    expect(run('fun pick A I\n M = A len\n if I at least 0 and I less M\n  return A I\n end\n return 0.5\nend\n',
+        cells(0), index).types).toEqual(['real']);
+    expect(run('fun pick A I\n if I less 0\n  return 0.5\n end\n if I less 0\n  return "x"\n end\n return 1\nend\n',
+        cells(null), index).types).toEqual(['integer', 'real']);
+    expect(run('fun pick A I\n if not (I at least 0)\n  return 0.5\n else\n  if I less 0\n   return "x"\n  end\n end\n return 1\nend\n',
+        cells(null), index).types).toEqual(['integer', 'real']);
+    // A reassignment or update invalidates the bounds.
+    expect(run('fun pick A I\n if I at least 0\n  I = I - 5\n  if I less 0\n   return 0.5\n  end\n end\n return 1\nend\n',
+        cells(null), index).types).toEqual(['integer', 'real']);
+    expect(run('fun pick A I\n if I at least 0\n  I -= 5\n  if I less 0\n   return 0.5\n  end\n end\n return 1\nend\n',
+        cells(null), index).types).toEqual(['integer', 'real']);
+    // `-I` is at most -1 here; inheriting I's bounds would wrongly prove `J less 1` false.
+    expect(run('fun pick A I\n if I at least 1\n  J = -I\n  if J less 1\n   return 0.5\n  end\n end\n return 1\nend\n',
+        cells(null), index).types).toEqual(['integer', 'real']);
+    // A loop can change the name between the guard and the inner test.
+    expect(run('fun pick A I\n if I at least 0\n  for I less 3\n   I = I - 10\n   if I less 0\n    return 0.5\n   end\n  end\n end\n return 1\nend\n',
+        cells(null), index).types).toEqual(['integer', 'real']);
+    // Bounds do not outlive the branch that proved them.
+    expect(run('fun pick A I\n if I at least 0\n  X = 1\n end\n if I less 0\n  return 0.5\n end\n return 1\nend\n',
+        cells(null), index).types).toEqual(['integer', 'real']);
+});
+
+it('infers every median example including the empty-array cases', () => {
+    const source = readFileSync(new URL('../../../demos/leetcode/004_medarrs.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('../../../demos/leetcode/004_medarrs_test.ra', import.meta.url), 'utf8');
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
+    const examples = functionTestExamples(testProgram.value, '004_medarrs', new Set(['median']));
+    const results = analyzeValues(program.value, new Map(), new Map(), examples).functionResults;
+    expect(results.map(fact => [fact.types, fact.rank])).toEqual(examples.map(() => [['real'], 0]));
+});
+
 it('closes a numeric recursive result through assignments and arithmetic', () => {
     const source = readFileSync(new URL('../../../demos/cses/math/001_josephus.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/cses/math/001_josephus_test.ra', import.meta.url), 'utf8');

@@ -63,30 +63,123 @@ function narrowGuard(fact: ValueFacts, types: Types): ValueFacts {
     return { types, acceptedTypes: types, acceptedArrayRank: rank, ...settledShape(types, rank) };
 }
 
-function knownIntegerCondition(expression: Expression, env: ReadonlyMap<string, ValueFacts>): boolean | undefined {
+type Bounds = [number, number];
+type Relation = 'equal' | 'notequal' | 'less' | 'greater' | 'atleast' | 'atmost';
+const RELATIONS: readonly string[] = ['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost'];
+const NEGATED: Record<Relation, Relation> = { equal: 'notequal', notequal: 'equal', less: 'atleast',
+    atleast: 'less', greater: 'atmost', atmost: 'greater' };
+
+const unwrap = (expression: Expression): Expression => {
     while (isParenthesizedExpression(expression)) expression = expression.value;
-    if (!isBinaryExpression(expression)
-        || !['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost'].includes(expression.operator)) return;
-    const integer = (part: Expression): bigint | undefined => {
-        while (isParenthesizedExpression(part)) part = part.value;
-        if (!isNameExpression(part) && !isNumberLiteral(part)
-            && !(isUnaryExpression(part) && ['+', '-'].includes(part.operator)
-                && isNumberLiteral(part.operand))) return;
-        const value = expressionFacts(part, name => env.get(name)).integer;
-        return value === undefined ? undefined : BigInt(value);
-    };
-    const left = integer(expression.left);
-    const right = integer(expression.right);
-    if (left === undefined || right === undefined) return;
-    switch (expression.operator) {
-        case 'equal': return left === right;
-        case 'notequal': return left !== right;
-        case 'less': return left < right;
-        case 'greater': return left > right;
-        case 'atleast': return left >= right;
-        case 'atmost': return left <= right;
+    return expression;
+};
+
+const integerScalar = (fact: ValueFacts | undefined): fact is ValueFacts =>
+    !!fact && fact.types.join() === 'integer' && fact.rank === 0;
+
+/** Bounds the integer operand has on this path: a literal, or a named integer scalar. Only exact proofs count. */
+function boundsOf(part: Expression, env: ReadonlyMap<string, ValueFacts>): Bounds | undefined {
+    part = unwrap(part);
+    const literal = isNumberLiteral(part)
+        || isUnaryExpression(part) && ['+', '-'].includes(part.operator) && isNumberLiteral(unwrap(part.operand));
+    if (!literal && !isNameExpression(part)) return;
+    const fact = isNameExpression(part) ? env.get(part.name) : expressionFacts(part, name => env.get(name));
+    if (!integerScalar(fact)) return;
+    if (fact.integer !== undefined) {
+        const value = Number(fact.integer);
+        return Number.isSafeInteger(value) ? [value, value] : undefined;
     }
-    return undefined;
+    // A symbolic length is a natural number, so its constant part bounds it from below.
+    return [Math.max(fact.interval?.[0] ?? -Infinity, fact.dim?.constant ?? -Infinity),
+        fact.interval?.[1] ?? Infinity];
+}
+
+function decideRelation(operator: Relation, left: Bounds, right: Bounds): boolean | undefined {
+    const [al, ah] = left;
+    const [bl, bh] = right;
+    switch (operator) {
+        case 'less': return ah < bl ? true : al >= bh ? false : undefined;
+        case 'greater': return al > bh ? true : ah <= bl ? false : undefined;
+        case 'atleast': return al >= bh ? true : ah < bl ? false : undefined;
+        case 'atmost': return ah <= bl ? true : al > bh ? false : undefined;
+        case 'equal': return al === ah && bl === bh && al === bl ? true : ah < bl || al > bh ? false : undefined;
+        case 'notequal': {
+            const equal = decideRelation('equal', left, right);
+            return equal === undefined ? undefined : !equal;
+        }
+    }
+}
+
+function comparison(expression: Expression): { operator: Relation; left: Expression; right: Expression } | undefined {
+    expression = unwrap(expression);
+    return isBinaryExpression(expression) && RELATIONS.includes(expression.operator)
+        ? { operator: expression.operator as Relation, left: expression.left, right: expression.right } : undefined;
+}
+
+/** Whether a condition holds on every path or on none, from proven integer bounds only. */
+function knownIntegerCondition(expression: Expression, env: ReadonlyMap<string, ValueFacts>): boolean | undefined {
+    expression = unwrap(expression);
+    if (isUnaryExpression(expression) && expression.operator === 'not') {
+        const value = knownIntegerCondition(expression.operand, env);
+        return value === undefined ? undefined : !value;
+    }
+    if (isBinaryExpression(expression) && ['and', 'or'].includes(expression.operator)) {
+        const left = knownIntegerCondition(expression.left, env);
+        const narrowed = new Map(env);
+        assumeCondition(expression.left, expression.operator === 'and', narrowed);
+        const right = knownIntegerCondition(expression.right, narrowed);
+        return expression.operator === 'and'
+            ? left === false || right === false ? false : left === true && right === true ? true : undefined
+            : left === true || right === true ? true : left === false && right === false ? false : undefined;
+    }
+    const relation = comparison(expression);
+    const left = relation && boundsOf(relation.left, env);
+    const right = relation && boundsOf(relation.right, env);
+    return relation && left && right ? decideRelation(relation.operator, left, right) : undefined;
+}
+
+function narrowName(side: Expression, env: Map<string, ValueFacts>, bounds: Bounds): void {
+    side = unwrap(side);
+    const fact = isNameExpression(side) ? env.get(side.name) : undefined;
+    if (!isNameExpression(side) || !integerScalar(fact) || fact.integer !== undefined) return;
+    const [low, high] = boundsOf(side, env) ?? [-Infinity, Infinity];
+    const next: Bounds = [Math.max(low, bounds[0]), Math.min(high, bounds[1])];
+    env.set(side.name, { ...fact, interval: [Number.isFinite(next[0]) ? next[0] : null,
+        Number.isFinite(next[1]) ? next[1] : null] });
+}
+
+/** Records on `env` what a condition proves when it is (or is not) true. Unprovable parts add nothing. */
+function assumeCondition(expression: Expression, truthy: boolean, env: Map<string, ValueFacts>): void {
+    expression = unwrap(expression);
+    if (isUnaryExpression(expression) && expression.operator === 'not') {
+        assumeCondition(expression.operand, !truthy, env);
+        return;
+    }
+    if (isBinaryExpression(expression) && (expression.operator === 'and' && truthy
+        || expression.operator === 'or' && !truthy)) {
+        assumeCondition(expression.left, truthy, env);
+        assumeCondition(expression.right, truthy, env);
+        return;
+    }
+    const relation = comparison(expression);
+    if (!relation) return;
+    const operator = truthy ? relation.operator : NEGATED[relation.operator];
+    const left = boundsOf(relation.left, env);
+    const right = boundsOf(relation.right, env);
+    if (!left || !right) return;
+    // Orient every ordering as `small <= large - gap`, then narrow each side by the other.
+    const ordered = operator === 'less' ? [relation.left, relation.right, left, right, 1] as const
+        : operator === 'atmost' ? [relation.left, relation.right, left, right, 0] as const
+            : operator === 'greater' ? [relation.right, relation.left, right, left, 1] as const
+                : operator === 'atleast' ? [relation.right, relation.left, right, left, 0] as const : undefined;
+    if (ordered) {
+        const [small, large, smallBounds, largeBounds, gap] = ordered;
+        narrowName(small, env, [-Infinity, largeBounds[1] - gap]);
+        narrowName(large, env, [smallBounds[0] + gap, Infinity]);
+    } else if (operator === 'equal') {
+        narrowName(relation.left, env, right);
+        narrowName(relation.right, env, left);
+    }
 }
 
 function knownBooleanCondition(expression: Expression, env: ReadonlyMap<string, ValueFacts>): boolean | undefined {
@@ -120,6 +213,7 @@ export function conditionalPaths(statement: IfStatement, env: Map<string, ValueF
             ? fact.types.filter(type => guard!.types.includes(type)) : guard!.types);
         if (!fact || !guard || matching?.length) {
             const branch = new Map(pending);
+            assumeCondition(clause.condition, true, branch);
             if (guard && fact && matching?.length) branch.set(guard.name, narrowGuard(fact, matching));
             paths.push({ items: clause.statements, env: branch });
         }
@@ -129,6 +223,7 @@ export function conditionalPaths(statement: IfStatement, env: Map<string, ValueF
             pending.set(guard.name, narrowGuard(fact, remaining));
         }
         if (known === true) return paths;
+        assumeCondition(clause.condition, false, pending);
     }
     paths.push({ items: statement.elseStatements, env: pending });
     return paths;

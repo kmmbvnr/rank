@@ -39,6 +39,8 @@ export interface ValueFacts {
     readonly dim?: Dim;
     readonly boolean?: boolean;
     readonly integer?: string;
+    /** Proven inclusive bounds of an integer scalar on the current path; null is unbounded. Never kept across joins. */
+    readonly interval?: readonly [number | null, number | null];
     readonly integers?: readonly (number | null)[];
     readonly textLiteral?: string;
     /** Whether a functional graph carries edge weights; `upto` has a different result in each mode. */

@@ -25,6 +25,7 @@ import { compileKeyedTableExpression } from '../keyed-table-expression.js';
 import { BuiltinRegistry } from '../modules/builtins.js';
 import { readStdin, stdinMode, stdinSequence } from '../modules/io.js';
 import { keyedSort, sortByFields, sortFieldDescending } from '../modules/keyed-sort.js';
+import { materializeCollection } from '../modules/sequences.js';
 import { tableAlias } from '../modules/tables.js';
 import {
     materializeSqlite, materializeSqliteExpression,
@@ -506,8 +507,10 @@ export class ExpressionEvaluator {
                 if (isRankSqliteTable(source)) return materializeSqlite(source);
                 if (isRankTable(source)) return source.toRows();
                 if (isRankSqliteExpression(source)) return materializeSqliteExpression(source);
-                if (!isRankSequence(source)) throw new RankError('postfix array expects a sequence, table or SQLite table');
-                return materializeSequence(source);
+                if (isRankSequence(source)) return materializeSequence(source);
+                const collection = materializeCollection(source);
+                if (collection) return collection;
+                throw new RankError('postfix array expects a sequence, queue, stack, deque, set, multiset, table or SQLite table');
             };
         }
         if (isAllAxisExpression(expression)) {

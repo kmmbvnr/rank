@@ -2,6 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-09-08
+* **Updated:** 2026-10-01 — postfix `array` also materializes queues, stacks, deques, sets and multisets (non-consuming, in `for` order; counters and heaps rejected). Tests: `packages/interpreter/test/ends.test.ts`.
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Control Flow and Functions Specification, Sequences and Arrays Specification
 

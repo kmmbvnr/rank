@@ -16,7 +16,9 @@ import { fenwickSum, multisetQuery, namedSegment, symbolicSegment } from '../mod
 import { dsuQuery, functionalQuery } from '../modules/graph.js';
 import { matmulValues } from '../modules/linalg.js';
 import { shuffleValue } from '../modules/random.js';
-import { argsortAxis, directedSort, lengthOfAxis, sortDescending, transposeValue } from '../modules/sequences.js';
+import {
+    argsortAxis, directedSort, lengthOfAxis, materializeCollection, sortDescending, transposeValue,
+} from '../modules/sequences.js';
 import { correlationValue, covarianceValue, errorMetricValue, quantileValue } from '../modules/stats.js';
 import { formattedText } from '../modules/text.js';
 import { type Operators } from '../operators.js';
@@ -572,8 +574,10 @@ export class ApplicationEvaluator {
                     const source = sourceParts.length === 1
                         ? sourceParts[0]
                         : yield* resume(application.apply(sourceParts));
-                    if (isRankSequence(source)) {
-                        let result: RankValue = materializeSequence(source);
+                    // A sequence or a container with a defined order materializes; others are selected from.
+                    const materialized = isRankSequence(source) ? materializeSequence(source) : materializeCollection(source);
+                    if (materialized) {
+                        let result: RankValue = materialized;
                         for (const item of materializePipeline.steps) {
                             result = yield* resume(application.apply([
                                 result,

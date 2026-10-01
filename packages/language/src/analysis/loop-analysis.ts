@@ -56,7 +56,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
             for (const name of writtenBindings(node)) {
                 const fact = env.get(name);
                 const rank = contractRank(fact);
-                env.set(name, preserved.has(name) ? { ...fact, types: fact?.types ?? [],
+                env.set(name, preserved.has(name) ? { ...fact, types: fact?.types ?? [], interval: undefined,
                     shape: rank === undefined ? undefined : Array(rank).fill(null),
                     integers: undefined, positions: undefined, positionFacts: undefined }
                     : { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
