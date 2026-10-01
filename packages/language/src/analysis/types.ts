@@ -126,7 +126,7 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
     }
     if (isStringLiteral(expression) || isTextBlockExpression(expression)) return ['text'];
     if (isBooleanLiteral(expression)) return ['boolean'];
-    if (isLabelLiteral(expression)) return ['symbol'];
+    if (isLabelLiteral(expression)) return [expression.name === 'NA' ? 'missing' : 'symbol'];
     if (isArrayExpression(expression) || isMaterializeExpression(expression)) return ['array'];
     if (isRecordExpression(expression) || isRecordUpdateExpression(expression)) return ['record'];
     if (isTableFilterExpression(expression) || isTableSelectExpression(expression)) {

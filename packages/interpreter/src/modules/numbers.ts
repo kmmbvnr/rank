@@ -1,6 +1,7 @@
 import { checkpoint } from '../interrupt.js';
+import { extremeMasked, sumMasked } from '../masked-kernels.js';
 import { markArrayMask } from '../array-mask.js';
-import { denseScalarItems, derivedArray, typedArray } from '../array-storage.js';
+import { denseScalarItems, derivedArray, float64Cells, typedArray, typedElementKind } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import { maxSqlite, sumSqlite } from './sqlite.js';
@@ -279,6 +280,11 @@ export function numericExtreme(
         if (isRankSequence(value)) {
             const planned = reduceSequence(value, name);
             if (planned !== undefined) return expectNumeric(planned);
+        }
+        const masked = isRankArray(value) ? extremeMasked(value, replaces) : undefined;
+        if (masked) {
+            if (!masked.found) throw new RankError(`${name} requires at least one value`, 'EmptyReduction');
+            return masked.result;
         }
         const items = isRankArray(value)
             ? value.items
@@ -603,7 +609,21 @@ export function sumValue(value: RankValue): RankValue {
         const planned = reduceSequence(value, 'sum');
         if (planned !== undefined) return expectNumeric(planned);
     }
-    if (isRankArray(value)) return sumArray(value.items);
+    if (isRankArray(value)) {
+        const masked = sumMasked(value);
+        if (masked !== undefined) return masked;
+        // Real cells held in a typed buffer are added in place, not boxed one by one first.
+        const reals = typedElementKind(value) === 'real' ? float64Cells(value) : undefined;
+        if (reals?.length) {
+            let total = 0;
+            for (let index = 0; index < reals.length; index += 1) {
+                checkpoint('computing numbers');
+                total += reals[index];
+            }
+            return total;
+        }
+        return sumArray(value.items);
+    }
     if (isRankQueue(value)) return sumArray(value.items);
     const items = isRankSet(value)
         ? value.entries.values()

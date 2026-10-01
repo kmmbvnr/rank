@@ -1,6 +1,7 @@
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { derivedArray, arrayRevision, denseScalarItems, ownedArray, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
+import { presentReals } from '../masked-kernels.js';
 import { numericSource, sequenceValues } from '../sequence.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import {
@@ -534,6 +535,8 @@ function presentValues(value: RankValue, operation: string): RankValue[] {
     if (!isRankArray(value)) return [...sequenceValues(value, operation)].filter(item => item !== MISSING);
     const stored = denseScalarItems(value);
     if (stored) return Array.from(stored);
+    const reals = presentReals(value);
+    if (reals) return Array.from(reals);
     const items: RankValue[] = [];
     const size = arraySize(value.shape);
     for (let index = 0; index < size; index += 1) {

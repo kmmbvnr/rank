@@ -5,7 +5,7 @@ import { arrayMaskSource, markArrayMask, nameMask } from './array-mask.js';
 import { FlatRecords } from './flat.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
-import { createArraySnapshot, ownedArray, derivedArray, readArrayItem, arrayForWrite, noteArrayBinding, isFlatScalarArray, isSharedArray, enterRuntime, leaveRuntime } from './array-storage.js';
+import { allValid, isPresentAt, maskedCells, typedArray, createArraySnapshot, ownedArray, derivedArray, readArrayItem, arrayForWrite, noteArrayBinding, isFlatScalarArray, isSharedArray, enterRuntime, leaveRuntime } from './array-storage.js';
 import { ByteArray } from './bytes.js';
 import { isPureHostFunction } from './host-effects.js';
 import { typedNativeCall } from './typed-native.js';
@@ -109,6 +109,7 @@ import {
     declaredRanks,
 } from '@arrrank/language';
 import { missingBinary } from './missing.js';
+import { mapMaskedArrays } from './masked-kernels.js';
 import { MissingValueError, RankError } from './errors.js';
 import { expectFenwick } from './fenwick.js';
 import {
@@ -2131,6 +2132,19 @@ export class Interpreter {
                         left ??= interpreter.compileExpression(expression.left, () => absent);
                         const value = yield* resume(left());
                         if (isRankArray(value)) {
+                            const masked = maskedCells(value);
+                            let evaluated: RankValue | undefined;
+                            if (masked) {
+                                if (allValid(masked.validity, masked.values.length)) return value;
+                                const fallback = evaluated = yield* resume(interpreter.evaluateTask(expression.right));
+                                if (typeof fallback === 'number') {
+                                    const out = masked.values.slice();
+                                    for (let index = 0; index < out.length; index += 1) {
+                                        if (!isPresentAt(masked.validity, index)) out[index] = fallback;
+                                    }
+                                    return typedArray(out, value.shape);
+                                }
+                            }
                             let items: readonly RankValue[];
                             try {
                                 items = value.items;
@@ -2149,7 +2163,7 @@ export class Interpreter {
                             }
                             const unknown = (item: RankValue) => item === absent || item === MISSING;
                             if (!items.some(unknown)) return value;
-                            const fallback = yield* resume(interpreter.evaluateTask(expression.right));
+                            const fallback = evaluated ?? (yield* resume(interpreter.evaluateTask(expression.right)));
                             return createArraySnapshot(
                                 items.map(item => unknown(item) ? fallback : item),
                                 value.shape,
@@ -5416,6 +5430,10 @@ function mapBinary(
     }
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
+    if ((leftArray || rightArray) && REAL_CODES[name] !== undefined) {
+        const masked = mapMaskedArrays(left, right, REAL_CODES[name]);
+        if (masked) return masked;
+    }
     if ((leftArray || rightArray) && DENSE_OPERATORS.has(name)) {
         const dense = mapDenseArrays(leftArray ?? left, rightArray ?? right, scalarOperation, REAL_CODES[name]);
         if (dense) return dense;
