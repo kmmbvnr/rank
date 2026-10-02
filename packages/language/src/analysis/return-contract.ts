@@ -1,4 +1,4 @@
-import type { ValueFacts } from './value-domain.js';
+import { stableRecordField, type ValueFacts } from './value-domain.js';
 import { bindingRankMessage, bindingTypeMessage, provenBindingTypeConflict } from '../binding-rule.js';
 
 /** Values and axis lengths do not identify a function specialization. */
@@ -72,4 +72,23 @@ export function returnInput(value: ValueFacts): ValueFacts {
         ...(value.shape ? { shape: value.shape.map(() => null) } : {}),
         ...(value.fields ? { fields: Object.fromEntries(Object.entries(value.fields)
             .map(([name, fact]) => [name, returnInput(fact)])) } : {}) };
+}
+
+/** Binding schemas contain no values, lengths or execution proofs. */
+export function recordBindingContract(value: ValueFacts | undefined): ValueFacts | undefined {
+    return value?.acceptedRecordContract ?? (value?.types.join() === 'record' && value.closedRecord
+        ? stableRecordField(value) : undefined);
+}
+
+/** Empty fields may acquire evidence; established fields never change their schema. */
+export function refineRecordContract(previous: ValueFacts | undefined, next: ValueFacts): ValueFacts | undefined {
+    const received = recordBindingContract(next);
+    if (!previous) return received;
+    if (!received) return previous;
+    const refine = (old: ValueFacts, value: ValueFacts): ValueFacts => ({ ...old,
+        rank: old.rank ?? value.rank,
+        elements: old.elements?.length ? old.elements : value.elements,
+        ...(old.fields ? { fields: Object.fromEntries(Object.entries(old.fields).map(([name, field]) =>
+            [name, value.fields?.[name] ? refine(field, value.fields[name]) : field])) } : {}) });
+    return refine(previous, received);
 }

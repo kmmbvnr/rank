@@ -13,6 +13,8 @@ export interface ValueFacts {
     readonly types: Types;
     readonly acceptedTypes?: Types;
     readonly acceptedArrayRank?: number;
+    /** Recursive schema retained by an ordinary record binding, independent of its current value. */
+    readonly acceptedRecordContract?: ValueFacts;
     readonly acceptedArrayContract?: ArrayElementContract;
     /** Possible array/sequence cells or values stored in an index. */
     readonly elements?: Types;

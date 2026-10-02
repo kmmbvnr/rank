@@ -5,6 +5,55 @@ not a soundness proof. The wider documentation task is tracked in
 [#61](https://github.com/kmmbvnr/rank/issues/61); ordinary array contracts were
 added in [#147](https://github.com/kmmbvnr/rank/issues/147).
 
+## Record bindings
+
+An ordinary record binding retains its field names and recursive field types
+and ranks. Values, field order, and array lengths may change:
+
+```rank
+State = record
+  .count = 1
+  .items = array 10 20
+end
+State = record
+  .items = array 30 40 50
+  .count = 2
+end
+```
+
+Rebinding `State` to a record with `.name` instead of these fields is an error.
+Use a different name for a different structure. Replacing an entire record uses
+the same structural compatibility as replacing a nested record: a narrower
+established array-field union is a different schema. Empty array fields leave
+their cell domain open; a later nonempty field assignment or compatible record
+replacement settles it. Empty replacements and a temporary `.NA` do not erase
+an established contract.
+
+Contracts belong to binding lifetimes. Parameters and locals start fresh on each
+function invocation; a captured binding keeps its contract in the enclosing
+frame. Loop-body assignments to an existing name keep that name's contract.
+Forgetting a notebook binding or ending its scope removes the contract.
+
+Assignment still shares record identity. Replacing a name does not retarget its
+old aliases. Refinement of an empty field through an alias is observed by the
+binding, and a replacement record inherits the binding's established field
+contracts before it is installed. Rejected replacements leave the old binding.
+
+A heterogeneous traversal should process each record in a fresh function call:
+
+```rank
+fun visit Node
+  return Node .value
+end
+```
+
+Call `visit` for each node instead of repeatedly assigning differently shaped
+records to one loop-local name. The autograd demo uses this pattern for its
+leaf, binary, and ReLU nodes, preserving their shared gradient updates.
+
+Record-field construction and validation retain their existing eager behavior;
+this step does not introduce a new lazy record-field contract.
+
 ## Array bindings
 
 A binding retains its outer type, array rank, and recursive element domain.
@@ -128,7 +177,8 @@ rather than rebinding a global. Stateful callbacks remain allowed.
 
 | Context | Outer type | Array rank | Axis lengths | Recursive cells / record schema | Lifetime / checks |
 | --- | --- | --- | --- | --- | --- |
-| Ordinary scalar name | Fixed, with missing and infinity-seed rules | Text stays rank 1 | Text length may change | Ordinary record rebinding does not fix schema | Binding lifetime; assignment |
+| Ordinary scalar name | Fixed, with missing and infinity-seed rules | Text stays rank 1 | Text length may change | Not applicable | Binding lifetime; assignment |
+| Ordinary record name | Fixed | Field ranks fixed | May change | Recursive field names and structural field contracts | Binding lifetime; checked replacement, aliases keep identity |
 | Ordinary array name | Fixed | Fixed | May change | Recursive arrays and record cells; established union accepts subsets | Binding lifetime; eager validation or deferred lazy reads |
 | Parameter / captured array | Same as ordinary array | Fixed | May change | Same recursive contract | Invocation / enclosing frame |
 | Record field | Fixed | Fixed | May change | Recursive, including field names; record-field array unions use existing structural matching | Record identity; eager field validation can read lazy cells |
@@ -148,6 +198,14 @@ callback invalidation. It can check nested ranks and record fields when their
 facts are known. Empty arrays, unread lazy arrays, unknown alternatives, and
 unvalidated external data can leave domains unresolved. A lack of diagnostics
 is not proof that a program will satisfy every runtime contract.
+
+Record assignments reuse the analyzer's existing recursive field comparison.
+The binding retains schema facts separately from its current value, including
+through missing values and conservative callback invalidation. Private record
+names retain their known field schema across callbacks; lengths, values and
+read-safety proofs are discarded. Analysis can still miss recursive array-cell
+conflicts or refinements performed through aliases; runtime validation remains
+required.
 
 Values, axis lengths, eager-read guarantees, and callback effects are separate
 facts. Keeping a type contract does not preserve those facts or permit evaluation

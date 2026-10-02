@@ -26,7 +26,7 @@ import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { functionYields, generatorCells, yieldTypes } from './function-yields.js';
 import { createCallAnalysis } from './function-calls.js';
 import { createReturnPathAnalysis } from './return-paths.js';
-import { recordFieldConflict } from './return-contract.js';
+import { recordBindingContract, refineRecordContract, recordFieldConflict } from './return-contract.js';
 import { createLoopAnalysis } from './loop-analysis.js';
 import { freshDim } from './shape-index.js';
 import { directValue, safeCollectionValue, safeIndexDefault, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
@@ -192,6 +192,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             const accepted = fact.acceptedTypes ?? fact.types;
             const privateValue = protectedNames?.has(name) && accepted.length > 0;
             const rank = contractRank(fact);
+            const record = recordBindingContract(fact);
+            if (privateValue && fact.types.join() === 'record' && record) {
+                env.set(name, { ...record, acceptedRecordContract: record });
+                continue;
+            }
             // Unknown calls may mutate a private value, but cannot rebind its uncaptured local name.
             env.set(name, privateValue && fact.types.length > 0
                 && fact.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
@@ -749,6 +754,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     diagnostics.push({ node: statement.value, kind: 'DimensionMismatch',
                         message: bindingRankMessage(statement.name, expectedRank, receivedRank) });
                 }
+                const recordContract = recordBindingContract(previous);
+                const recordConflict = recordContract && next.types.join() === 'record'
+                    ? recordFieldConflict(recordContract, next, statement.name) : undefined;
+                if (recordConflict) diagnostics.push({ node: statement.value, ...recordConflict });
+                const schema = refineRecordContract(recordContract, next);
+                if (schema && next.types.join() === 'record') next = { ...next, fields: schema.fields, closedRecord: schema.closedRecord };
                 const arrayContract = refineArrayContract(arrayBindingContract(previous), next);
                 const elementConflict = arrayContractConflict(arrayBindingContract(previous), next, statement.name);
                 if (elementConflict) diagnostics.push({ node: statement.value, kind: 'TypeError', message: elementConflict });
@@ -761,6 +772,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 env.set(statement.name, { ...next,
                     acceptedTypes: accepted?.length ? settledBindingTypes(accepted, next.types)
                         : next.infinite ? ['integer', 'real'] : next.types,
+                    acceptedRecordContract: schema,
                     acceptedArrayRank: expectedRank ?? receivedRank, acceptedArrayContract: arrayContract });
                 if (calls.directNoReturnCall(statement.value, env)) return false;
             } else if (isUnpackStatement(statement)) {

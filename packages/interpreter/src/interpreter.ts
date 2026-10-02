@@ -292,7 +292,6 @@ export class Interpreter {
         const fork = new Interpreter(output, options);
         for (const module of this.modules) fork.modules.add(module);
         for (const name of this.bindings.sourceBindings) fork.bindings.sourceBindings.add(name);
-        fork.bindings.globals.adoptContracts(this.bindings.globals);
         for (const [name, child] of this.aliases) fork.aliases.set(name, child.forkForPreview(output));
         for (const [name, value] of this.variables) {
             const source = isNativeFunction(value) ? this.functions.sourceOf(value) : undefined;
@@ -300,6 +299,7 @@ export class Interpreter {
             const definition = isNativeFunction(value) ? this.functions.definitionOf(value) : undefined;
             if (!definition || definition.context) fork.variables.set(name, clonePreviewValue(value));
         }
+        fork.bindings.globals.adoptContracts(this.bindings.globals);
         // Rebuild top-level user functions so their calls use the fork rather than
         // the original interpreter captured by the function object.
         for (const value of this.variables.values()) {

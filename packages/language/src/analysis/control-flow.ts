@@ -1,3 +1,4 @@
+import { recordBindingContract } from './return-contract.js';
 import { arrayBindingContract } from './array-binding-contract.js';
 import {
     isAllAxisExpression, isBinaryExpression, isBooleanLiteral, isLabelLiteral, isNameExpression, isNumberLiteral,
@@ -16,7 +17,7 @@ export const settledShape = (types: Types, rank: number | undefined): Pick<Value
         : types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol',
             'date', 'datetime', 'duration'].includes(type)) ? { rank: 0, shape: [] }
             : types.join() === 'text' ? { rank: 1, shape: [null] } : {};
-export const invalidate = (fact: ValueFacts | undefined): ValueFacts => ({ types: [], acceptedArrayRank: contractRank(fact), acceptedArrayContract: arrayBindingContract(fact) });
+export const invalidate = (fact: ValueFacts | undefined): ValueFacts => ({ types: [], acceptedRecordContract: recordBindingContract(fact), acceptedArrayRank: contractRank(fact), acceptedArrayContract: arrayBindingContract(fact) });
 
 export function loopBinding(condition: Expression | undefined): {
     names: readonly string[]; iterable: Expression;
@@ -37,6 +38,8 @@ export function mergeEnvironments(env: Map<string, ValueFacts>, paths: readonly 
         const rank = contractRank(first);
         const accepted = facts.map(fact => ({ types: fact.acceptedTypes ?? fact.types }));
         env.set(name, { ...withPathDims(joinValueFacts(facts)), acceptedTypes: joinValueFacts(accepted).types,
+            acceptedRecordContract: facts.every(fact => recordBindingContract(fact))
+                ? recordBindingContract(joinValueFacts(facts.map(fact => recordBindingContract(fact)!))) : undefined,
             acceptedArrayRank: facts.every(fact => contractRank(fact) === rank) ? rank : undefined,
             acceptedArrayContract: facts.every(fact => arrayBindingContract(fact))
                 ? { type: 'array', rank, elements: facts.flatMap(fact => arrayBindingContract(fact)!.elements ?? []) } : undefined });

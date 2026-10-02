@@ -384,6 +384,14 @@ from its initial value and keeps that type on later direct or compound
 assignment. `Value type` returns `.record`, and `Value is .record` is its
 type guard.
 
+An ordinary record binding also keeps its recursive schema on whole-record
+replacement: the same field names, field types and ranks, independent of field
+order and array lengths. Parameters get a fresh binding per call; captured names
+keep their enclosing binding's contract. A temporary `.NA` does not erase it.
+Use a separate name or a fresh function call for a different schema. Record
+assignment still shares identity; rebinding does not change existing aliases.
+See [Type-stability contracts](language/type-contracts.md#record-bindings).
+
 An array field keeps its rank and recursive cell types, but not its axis lengths.
 An empty array establishes its rank; its cell types settle on the first nonempty
 assignment and remain fixed if it becomes empty again. Integer and real cells
