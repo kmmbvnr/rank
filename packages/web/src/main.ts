@@ -6,6 +6,7 @@ import { TerminalModeRouter } from '@arrrank/common/terminal-modes';
 import { fixAt, notebookFrame, helpFrame, pauseFrame, type ScreenFrame } from '@arrrank/common/screen';
 import { keyAvailable, keyboardTabs, keyText } from '@arrrank/common/symbol-keyboard';
 import { textEdit } from '@arrrank/common/input-edit';
+import { moveParen, parenSnaps } from '@arrrank/common/paren-drag';
 import { browserSession } from './session.js';
 import { paintLine } from './terminal-colors.js';
 import { sourceSelection } from './source-selection.js';
@@ -993,6 +994,106 @@ terminal.addEventListener('touchcancel', () => {
     swipe = undefined;
     touchStart = undefined;
 });
+// A finger on a bracket drags a ghost of it between valid landings; the text stays put until release.
+const ghost = document.createElement('div');
+ghost.id = 'paren-ghost';
+ghost.setAttribute('aria-hidden', 'true');
+ghost.hidden = true;
+caret.after(ghost);
+interface ParenDrag {
+    readonly cell: number;
+    readonly lineStart: number;
+    readonly line: string;
+    readonly offset: number;
+    readonly row: number;
+    readonly startX: number;
+    readonly startY: number;
+    readonly snaps: readonly { offset: number; column: number }[];
+    active: boolean;
+    choice?: { offset: number; column: number };
+}
+let parenDrag: ParenDrag | undefined;
+/** The bracket under a fingertip, when it can be dragged: 44px wide, as a finger needs. */
+function parenUnder(x: number, y: number): ParenDrag | undefined {
+    if (busy || repl.running || repl.help || repl.liveIterationFocused || repl.exampleEditor) return undefined;
+    const rect = terminal.getBoundingClientRect();
+    const row = Math.floor((y - rect.top + scrollFraction) / cellHeight);
+    const target = frame.targets?.[row];
+    if (target?.kind !== 'source') return undefined;
+    const source = repl.notebook.cells[target.cell]?.source;
+    if (source === undefined) return undefined;
+    const reach = (x - rect.left) / cellWidth - 0.5;
+    const hit = target.points.filter(point => '()'.includes(source[point.offset] ?? ''))
+        .filter(point => Math.abs(point.column - reach) * cellWidth <= 22)
+        .sort((a, b) => Math.abs(a.column - reach) - Math.abs(b.column - reach))[0];
+    if (!hit) return undefined;
+    const lineStart = source.lastIndexOf('\n', hit.offset - 1) + 1;
+    const end = source.indexOf('\n', hit.offset);
+    const line = source.slice(lineStart, end < 0 ? source.length : end);
+    const columns = new Map(target.points.map(point => [point.offset, point.column]));
+    const snaps = parenSnaps(line, hit.offset - lineStart).flatMap(offset => {
+        const column = columns.get(lineStart + offset);
+        return column === undefined ? [] : [{ offset, column }];
+    });
+    if (snaps.length === 0) return undefined;
+    return { cell: target.cell, lineStart, line, offset: hit.offset - lineStart, row, startX: x, startY: y,
+        snaps, active: false };
+}
+function showGhost(drag: ParenDrag, x: number, y: number): void {
+    const rect = terminal.getBoundingClientRect();
+    const reach = (x - rect.left) / cellWidth - 0.5;
+    const away = Math.abs(y - drag.startY) > 3 * cellHeight;
+    const near = away ? undefined : drag.snaps.reduce((best, snap) =>
+        Math.abs(snap.column - reach) < Math.abs(best.column - reach) ? snap : best);
+    if (near?.offset !== drag.choice?.offset) haptic('tap');
+    drag.choice = near;
+    ghost.hidden = !near;
+    if (!near) return;
+    ghost.textContent = drag.line[drag.offset];
+    ghost.style.width = cellWidth + 'px';
+    ghost.style.transform = `translate(${near.column * cellWidth}px, ${drag.row * cellHeight - scrollFraction}px)`;
+}
+function endParenDrag(commit: boolean): void {
+    const drag = parenDrag;
+    parenDrag = undefined;
+    ghost.hidden = true;
+    if (!drag?.active || !commit || !drag.choice) return;
+    const moved = moveParen(drag.line, drag.offset, drag.choice.offset);
+    const source = repl.notebook.cells[drag.cell]?.source;
+    if (!moved || source === undefined) return;
+    repl.editSource();
+    repl.notebook.active = drag.cell;
+    const end = drag.lineStart + drag.line.length;
+    repl.notebook.replace(source.slice(0, drag.lineStart) + moved.line + source.slice(end),
+        drag.lineStart + moved.offset + 1);
+    repl.dismiss();
+    haptic('step');
+    follow = true;
+    render();
+}
+terminal.addEventListener('touchstart', event => {
+    parenDrag = event.touches.length === 1 && event.target !== input
+        ? parenUnder(event.touches[0].clientX, event.touches[0].clientY) : undefined;
+}, { passive: true });
+terminal.addEventListener('touchmove', event => {
+    if (!parenDrag || event.touches.length !== 1 || nativeSelection()) return;
+    const touch = event.touches[0];
+    if (!parenDrag.active) {
+        const dx = touch.clientX - parenDrag.startX;
+        const dy = touch.clientY - parenDrag.startY;
+        if (Math.hypot(dx, dy) < 10) return;
+        // A mostly vertical start is a scroll, not a drag.
+        if (Math.abs(dx) < Math.abs(dy)) { parenDrag = undefined; return; }
+        parenDrag.active = true;
+        swipe = undefined;
+        touchStart = undefined;
+        tapped = false;
+    }
+    event.preventDefault();
+    showGhost(parenDrag, touch.clientX, touch.clientY);
+}, { passive: false });
+terminal.addEventListener('touchend', () => endParenDrag(true));
+terminal.addEventListener('touchcancel', () => endParenDrag(false));
 terminal.addEventListener('wheel', event => {
     event.preventDefault();
     stopMomentum();
