@@ -78,7 +78,7 @@ export async function createWorkerSession() {
         setDebugBreakpoints(points: { source: string; line: number }[]): void {
             void call<void>('setDebugBreakpoints', points).catch(fail);
         },
-        turbo(): void { if (active) { turboActive = true; resume(5); } },
+        turbo(): void { if (active) { turboRequested = true; turboActive = true; resume(5); } },
         requestTurbo(): void { turboRequested = true; turboActive = true; },
         get turboActive() { return turboActive; },
         get savedFile() { return snapshot.savedFile; },
