@@ -293,11 +293,49 @@ export function applySelectors(values: RankValue[], missing?: () => RankValue): 
         const receiver = applySelectors(values.slice(0, field + 1), missing);
         return applySelectors([receiver, ...values.slice(field + 1)], missing);
     }
+    if (values.length === 2 && isRankSequence(values[0]) && isRankArray(values[1])) {
+        return sequenceMaskSelection(values[0], values[1]);
+    }
     if (values.length !== 2 || !isRankArray(values[0]) || !isRankArray(values[1])) {
         throw new RankError('value application requires a sequence and one selector');
     }
 
     return maskSelection(values[0], values[1]);
+}
+
+/** A boolean array mask over a finite sequence of exactly its length. */
+function sequenceMaskSelection(source: RankSequence, selector: RankArray): RankSequence {
+    const size = source.plan.size;
+    if (size.kind === 'infinite') {
+        throw new RankError('cannot apply finite array mask to an infinite sequence', 'DimensionMismatch');
+    }
+    if (selector.shape.length !== 1) {
+        throw new RankError(`sequence mask must be rank 1, got rank ${selector.shape.length}`, 'DimensionMismatch');
+    }
+    if (!selector.items.every(item => typeof item === 'boolean' || item === MISSING)) {
+        throw new RankError('array selector must be a boolean mask');
+    }
+    if (size.kind === 'exact' && BigInt(selector.shape[0]) !== size.value) {
+        throw new RankError(`mask shape [${selector.shape[0]}] does not match sequence size ${size.value}`, 'DimensionMismatch');
+    }
+    const mask = selector.items;
+    return sequence({
+        name: 'sequence mask selection',
+        size: { kind: 'unknown' },
+        *iterate() {
+            let index = 0;
+            for (const item of source.plan.iterate()) {
+                if (index >= mask.length) {
+                    throw new RankError(`mask shape [${mask.length}] does not match sequence size`, 'DimensionMismatch');
+                }
+                if (mask[index] === true) yield item;
+                index += 1;
+            }
+            if (index !== mask.length) {
+                throw new RankError(`mask shape [${mask.length}] does not match sequence size ${index}`, 'DimensionMismatch');
+            }
+        },
+    });
 }
 
 /** The atoms a boolean mask keeps, as a lazy selection even when nothing is kept. */
