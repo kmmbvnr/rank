@@ -386,6 +386,13 @@ it('narrows type guards in reachable branches without changing a parameter contr
     ] }]).functionResults[0].types).toEqual(['integer', 'text']);
 });
 
+it('lets an infinity-seeded accumulator hold the integers it settles on', () => {
+    const body = (tail: string) => `use numbers\nfun smallest Xs\n Best = infinity\n for X in Xs\n  Best = Best X min\n end\n${tail}\nend\n`;
+    expect(messages(body(' if Best equal infinity\n  return -1\n end\n return Best'))).toEqual([]);
+    expect(messages(body(' Best = 3\n return Best'))).toEqual([]);
+    expect(messages('use numbers\nBest = 2.5\nBest = 3')).toEqual(['Best has type real and cannot receive integer']);
+});
+
 it('reports an incompatible reassignment before execution', () => {
     expect(messages('Count = 1\nCount = "x"')).toEqual(['Count has type integer and cannot receive text']);
     expect(messages('Count = 1\nCount /= 2')).toEqual(['Count has type integer and cannot receive real']);

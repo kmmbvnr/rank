@@ -31,10 +31,11 @@ describe('numeric results through Dijkstra helpers and heap payloads (flight_dis
     it('infers an integer result for every example without a real or infinity claim', () => {
         const { functionResults } = analyzeValues(program, new Map(), new Map(), examples);
         expect(functionResults).toHaveLength(examples.length);
-        for (const result of functionResults) expect(result).toMatchObject({ types: ['integer'], rank: 0, shape: [] });
+        // Compare only the summary: a failing diff of the whole fact object exhausts the heap.
+        for (const { types, rank, shape } of functionResults) expect({ types, rank, shape }).toEqual({ types: ['integer'], rank: 0, shape: [] });
     });
 
     it('reports no diagnostics for the demo', () => {
-        expect(analyzeValues(program, new Map(), new Map(), examples).diagnostics).toEqual([]);
+        expect(analyzeValues(program, new Map(), new Map(), examples).diagnostics.map(item => item.message)).toEqual([]);
     });
 });

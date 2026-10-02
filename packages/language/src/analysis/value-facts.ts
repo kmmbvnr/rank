@@ -46,6 +46,7 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
                     ...(builtin.valueCallbackFree ? { callbackFreeScalarCells: true as const } : {}),
                     ...(builtin.result === 'sequence' ? { rank: 1, shape: [null] } : {}),
                     ...(builtin.result === 'real' ? { rank: 0, shape: [] } : {}),
+                    ...(builtin.name === 'infinity' ? { infinite: true as const } : {}),
                 } : builtin ? { types: [], builtinOperation: builtin.name } : UNKNOWN_VALUE);
     }
     if (isNewStructureExpression(expression) && expression.structure === 'index') {
@@ -105,7 +106,7 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
             integer: String(BigInt(operand.integer) * (expression.operator === '-' ? -1n : 1n)) };
         if (operand.rank === 0 && operand.types.length > 0
             && operand.types.every(type => type === 'integer' || type === 'real')) {
-            return { types: operand.types, rank: 0, shape: [] };
+            return { types: operand.types, rank: 0, shape: [], ...(operand.infinite ? { infinite: true as const } : {}) };
         }
         if (operand.types.join() === 'array' || operand.types.join() === 'sequence') return {
             types: operand.types, rank: operand.rank, shape: operand.shape, elements: operand.elements,

@@ -687,9 +687,9 @@ it('reads the declared type and element type of builtin values', () => {
         if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
         expect(typeOf(statement.value, () => undefined)).toEqual(['sequence']);
     }
-    for (const name of ['infinity', 'nan']) {
-        expect(facts(name)).toEqual({ types: ['real'], rank: 0, shape: [] });
-    }
+    expect(facts('infinity')).toEqual({ types: ['real'], rank: 0, shape: [], infinite: true });
+    expect(facts('-infinity')).toEqual({ types: ['real'], rank: 0, shape: [], infinite: true });
+    expect(facts('nan')).toEqual({ types: ['real'], rank: 0, shape: [] });
     for (const [name, expected] of [['fibonacci', 'sequence'], ['primes', 'sequence'],
         ['infinity', 'real'], ['nan', 'real']]) {
         const parsed = services.Rank.parser.LangiumParser.parse<Program>(`A = ${name}\n`);
