@@ -118,3 +118,21 @@ describe('filter over plain collections', () => {
             .toBe('0');
     });
 });
+
+describe('array masks on sequences', () => {
+    const MASKED = 'use sequences\nuse numbers\nMM = array true false\n';
+
+    it('filters a finite sequence of matching length', () => {
+        expect(run(`${MASKED}(primes take 2) MM`)).toBe('2');
+    });
+
+    it('reports a length mismatch', () => {
+        expect(() => run(`${MASKED}(primes take 3) MM`))
+            .toThrow('mask shape [2] does not match sequence size 3');
+    });
+
+    it('reports an infinite sequence', () => {
+        expect(() => run(`${MASKED}primes MM`))
+            .toThrow('cannot apply finite array mask to an infinite sequence');
+    });
+});
