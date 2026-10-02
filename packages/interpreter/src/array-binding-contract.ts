@@ -1,3 +1,5 @@
+import { arrayDeclaration, declareArray } from './array-declaration.js';
+import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType } from './semantic-array-type.js';
 import { FlatRecords } from './flat.js';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { arrayElementTypes } from './array-element-types.js';
@@ -5,11 +7,11 @@ import { arrayRevision, holdArraySource, materializedArrayItems, materializeCell
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { recordContract, retainRecordContract } from './record-contract.js';
-import { isRankArray, isRankRecord, MISSING, mergeCollectionElementType, typeName, unionElementType,
+import { isRankArray, isRankRecord, isRankTuple, tuple, requireHomogeneous, MISSING, mergeCollectionElementType, typeName, unionElementType,
     type CollectionElementType, type RankArray, type RankValue } from './value.js';
 
 type Contract = CollectionElementType;
-interface Path { readonly key: Pick<Contract, 'type' | 'rank'>; readonly parent?: Path }
+interface Path { readonly key: Pick<Contract, 'type' | 'rank'> & { position?: number }; readonly parent?: Path }
 interface Prepared { value: RankValue; contract: Contract }
 const sameKind = (a: Contract, b: Contract): boolean => a.type === b.type && a.rank === b.rank;
 
@@ -21,10 +23,11 @@ function union(cells: Iterable<Contract>): Contract[] {
         if (index < 0) result.push(cell);
         else result[index] = unionElementType(result[index], cell);
     }
+    requireHomogeneous(result);
     return result;
 }
 
-/** A binding owns its recursive contract; aliases own independent contracts. */
+/** Recursive array/tuple contract shared by bindings and function results. */
 export class ArrayBindingContract {
     private contract?: Contract;
     private version?: RankArray;
@@ -32,57 +35,72 @@ export class ArrayBindingContract {
     private commit(next: Contract | undefined): void {
         if (next !== this.contract) { this.contract = next; if (this.version) this.version.items[0] = 0n; }
     }
-    constructor(private readonly name: string) {}
+    constructor(private readonly name: string, private readonly errorKind = 'TypeError') {}
 
     copy(): ArrayBindingContract {
-        const copy = new ArrayBindingContract(this.name);
-        copy.contract = this.contract;
+        const copy = new ArrayBindingContract(this.name, this.errorKind);
+        copy.contract = this.contract && structuredClone(this.contract);
         return copy;
     }
 
     private merge(expected: Contract | undefined, received: Contract): Contract {
         try {
+            if (received.elements) requireHomogeneous(received.elements);
             if (expected && equalContract(expected, received)) return expected;
             const result = mergeCollectionElementType(`${this.name} array elements`, expected, received, false, true);
             return expected && equalContract(expected, result) ? expected : result;
         }
         catch (error) {
             if (!(error instanceof RankError)) throw error;
-            throw new RankError(error.message, 'TypeError');
+            throw new RankError(error.message, this.errorKind);
         }
     }
 
     private at(path: Path | undefined): Contract | undefined {
         let result = this.contract;
-        for (const key of this.keys(path)) result = result?.elements?.find(cell => sameKind(cell, key));
+        for (const key of this.keys(path)) result = key.position === undefined
+            ? result?.elements?.find(cell => sameKind(cell, key)) : result?.positions?.[key.position];
         return result;
     }
 
     private refine(path: Path | undefined, received: Contract): void {
         const keys = this.keys(path);
-        const parents: { contract: Contract; index: number }[] = [];
+        const parents: { contract: Contract; index: number; positional: boolean }[] = [];
         let previous = this.contract;
         for (const key of keys) {
-            const index = previous?.elements?.findIndex(cell => sameKind(cell, key)) ?? -1;
-            // The enclosing lazy observer retains this child until its union settles.
+            const index = key.position ?? previous?.elements?.findIndex(cell => sameKind(cell, key)) ?? -1;
+            // The enclosing lazy observer installs this child when it is demanded.
             if (!previous || index < 0) return;
-            parents.push({ contract: previous, index });
-            previous = previous.elements![index];
+            parents.push({ contract: previous, index, positional: key.position !== undefined });
+            previous = key.position === undefined ? previous.elements![index] : previous.positions![index];
         }
         let next = this.merge(previous, received);
-        for (const { contract, index } of parents.reverse()) {
-            if (next === contract.elements![index]) next = contract;
+        for (const { contract, index, positional } of parents.reverse()) {
+            const children = positional ? contract.positions! : contract.elements!;
+            if (next === children[index]) next = contract;
             else {
-                const elements = [...contract.elements!];
-                elements[index] = next;
-                next = { ...contract, elements };
+                const children_ = [...children];
+                children_[index] = next;
+                next = { ...contract, [positional ? 'positions' : 'elements']: children_ };
             }
         }
         this.commit(next);
     }
 
     /** Validate every replacement before the first cell changes. */
-    write(values: readonly RankValue[]): readonly RankValue[] {
+    write(values: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[] {
+        if (this.contract?.positions && offsets) {
+            const positions = [...this.contract.positions];
+            const prepared = values.map((value, index) => {
+                const column = offsets[index] % positions.length;
+                const path = { key: { type: 'array', rank: 1, position: column } };
+                const cell = this.prepare(value, { parent: path, key: this.key(value) }, new Set());
+                positions[column] = this.merge(positions[column], { type: 'array', rank: 1, elements: union([cell.contract]) });
+                return cell;
+            });
+            this.commit({ ...this.contract, positions });
+            return prepared.map(cell => cell.value);
+        }
         const prepared = values.map(value => this.prepare(value, { key: this.key(value) }, new Set()));
         const received = { ...this.contract!, elements: union(prepared.map(cell => cell.contract)) };
         const next = this.merge(this.contract, received);
@@ -91,12 +109,31 @@ export class ArrayBindingContract {
         return prepared.map(cell => cell.value);
     }
 
-    check(value: RankArray): RankArray {
+    /** A fill is evaluated once and declares cells even when the shape is empty. */
+    fill<T extends RankArray>(value: T, fill: RankValue): T {
+        const cell = this.prepare(fill, undefined, new Set());
+        declareArray(value, { ...this.key(value), elements: union([cell.contract]) });
+        return this.check(value);
+    }
+
+    check<T extends RankValue>(value: T): T {
         const prepared = this.prepare(value, undefined, new Set());
         const next = this.merge(this.contract, prepared.contract);
         this.commit(next);
         this.retainRecords(prepared.value, next);
-        return prepared.value as RankArray;
+        // Empty or all-missing replacements keep an established binding domain.
+        // Copy storage: the same untyped source may enter different bindings.
+        if (isRankArray(prepared.value) && prepared.value.kind === 'array'
+            && (prepared.value.shape.some(size => size === 0) || prepared.contract.elements?.length === 0) && next.elements?.length) {
+            const items = materializedArrayItems(prepared.value);
+            if (items) {
+                const checked = ownedArray([...items], prepared.value.shape);
+                this.metadata(prepared.value, checked);
+                declareArray(checked, next);
+                return setSemanticArrayType(checked, semanticArrayContract(next)) as T;
+            }
+        }
+        return prepared.value as T;
     }
 
     private key(value: RankValue): Contract {
@@ -104,8 +141,8 @@ export class ArrayBindingContract {
             ? 'numeric-limit' : typeName(value), ...(isRankArray(value) ? { rank: value.shape.length } : {}) };
     }
 
-    private keys(path: Path | undefined): Contract[] {
-        const keys: Contract[] = [];
+    private keys(path: Path | undefined): Path['key'][] {
+        const keys: Path['key'][] = [];
         for (let step = path; step; step = step.parent) keys.push(step.key);
         return keys.reverse();
     }
@@ -115,6 +152,16 @@ export class ArrayBindingContract {
         const tasks: (() => void)[] = [];
         const visit = (value: RankValue, path: Path | undefined, done: (prepared: Prepared) => void): void => {
             checkpoint();
+            if (isRankTuple(value)) {
+                const cells: Prepared[] = [];
+                tasks.push(() => done({ value: cells.every((cell, index) => cell.value === value.items[index])
+                    ? value : tuple(cells.map(cell => cell.value)),
+                    contract: { type: 'tuple', positions: cells.map(cell => cell.contract) } }));
+                for (let index = value.items.length - 1; index >= 0; index--) tasks.push(() =>
+                    visit(value.items[index], { parent: path, key: { ...this.key(value.items[index]), position: index } },
+                        child => { cells[index] = child; }));
+                return;
+            }
             if (isRankRecord(value)) { done({ value, contract: recordContract(value) }); return; }
             const base = this.key(value);
             if (value instanceof FlatRecords) {
@@ -123,10 +170,38 @@ export class ArrayBindingContract {
                 return;
             }
             if (!isRankArray(value)) { done({ value, contract: base }); return; }
-            if (value.shape.some(size => size === 0)) { done({ value, contract: { ...base, elements: [] } }); return; }
+            const declared = arrayDeclaration(value);
+            if (declared) {
+                const complete = done;
+                done = prepared => complete({ ...prepared, contract: this.merge(declared, prepared.contract) });
+            }
             if (active.has(value)) throw new RankError(`${this.name}: cyclic arrays cannot establish an element contract`, 'TypeError');
+            if (value.columnNames && value.shape.length === 2) {
+                active.add(value);
+                const columns: Prepared[] = [];
+                const stored = materializedArrayItems(value);
+                tasks.push(() => {
+                    active.delete(value);
+                    const checked: RankArray = stored && columns.every(column => !isRankArray(column.value) || !column.value.itemAt)
+                        ? value : { kind: 'array', shape: value.shape,
+                            itemAt: index => readArrayItem(columns[index % columns.length].value as RankArray, Math.floor(index / columns.length)),
+                            get items() { return materializeCells(value.shape[0] * columns.length, this.itemAt!); } };
+                    if (checked !== value) this.metadata(value, checked);
+                    done({ value: checked, contract: { ...base, positions: columns.map(column => column.contract) } });
+                });
+                for (let column = value.shape[1] - 1; column >= 0; column--) {
+                    const cells: RankArray = stored
+                        ? ownedArray(Array.from({ length: value.shape[0] }, (_, row) => stored[row * value.shape[1] + column]))
+                        : { kind: 'array', shape: [value.shape[0]], items: [],
+                            itemAt: row => readArrayItem(value, row * value.shape[1] + column) };
+                    tasks.push(() => visit(cells, { parent: path, key: { type: 'array', rank: 1, position: column } },
+                        prepared => { columns[column] = prepared; }));
+                }
+                return;
+            }
+            if (value.shape.some(size => size === 0)) { done({ value, contract: { ...base, elements: [] } }); return; }
             const types = arrayElementTypes(value, true);
-            if (types && !types.some(type => ['array', 'bytes', 'record'].includes(type))) {
+            if (types && !types.some(type => ['array', 'bytes', 'record', 'tuple'].includes(type))) {
                 done({ value, contract: { ...base, elements: types.filter(type => type !== 'missing').map(type => ({ type })) } });
                 return;
             }
@@ -152,7 +227,6 @@ export class ArrayBindingContract {
     private lazy(value: RankArray, base: Contract, path: Path | undefined): Prepared {
         const version = this.version ??= ownedArray([0n]);
         const prepared: Prepared = { value, contract: base };
-        const observed = new Map<number, Prepared>();
         const size = value.shape.reduce((a, b) => a * b, 1);
         const read = (index: number): RankValue => {
             let item: RankValue;
@@ -165,17 +239,10 @@ export class ArrayBindingContract {
             }
             const child = this.prepare(item, { parent: path, key: this.key(item) }, new Set([value]));
             const expected = this.at(path);
-            // Partial observations may refine a settled union, but cannot choose
-            // the union of an unread heterogeneous array.
-            if (expected?.elements?.length) {
+            // Every observed cell must fit the one element domain.
+            if (expected) {
                 this.refine(path, { ...base, elements: union([child.contract]) });
                 this.retainRecords(child.value, this.at({ parent: path, key: child.contract }));
-            }
-            if (!prepared.contract.elements?.length) observed.set(index, child);
-            if (observed.size === size) {
-                prepared.contract = { ...base, elements: union([...observed.values()].map(cell => cell.contract)) };
-                this.refine(path, prepared.contract);
-                observed.clear();
             }
             if (missing) throw missing;
             return child.value;
@@ -207,14 +274,19 @@ export class ArrayBindingContract {
         while (pending.length) {
             const [item, type] = pending.pop()!;
             if (!type) continue;
+            if (isRankTuple(item)) {
+                item.items.forEach((cell, index) => pending.push([cell, type.positions?.[index]]));
+                continue;
+            }
             if (isRankRecord(item)) { retainRecordContract(item, type); continue; }
-            if (!isRankArray(item) || !type.elements?.some(cell => cell.fields || cell.elements?.length)) continue;
+            if (!isRankArray(item) || !type.elements?.some(cell => cell.fields || cell.elements?.length || cell.positions)) continue;
             const items = materializedArrayItems(item);
             if (items) for (const cell of items) pending.push([cell, type.elements.find(type => sameKind(type, this.key(cell)))]);
         }
     }
 
     private metadata(source: RankArray, target: RankArray): void {
+        inheritSemanticArrayType(source, target);
         const maskSource = arrayMaskSource(source);
         if (maskSource) markArrayMask(target, maskSource);
         for (const key of ['columnNames', 'tableScopes', 'sortKeys'] as const) {
@@ -229,7 +301,9 @@ function equalContract(left: Contract, right: Contract): boolean {
         const [a, b] = pending.pop()!;
         if (a === b) continue;
         if (!sameKind(a, b) || (a.elements?.length ?? 0) !== (b.elements?.length ?? 0)
+            || (a.positions?.length ?? 0) !== (b.positions?.length ?? 0)
             || (a.fields?.size ?? 0) !== (b.fields?.size ?? 0)) return false;
+        a.positions?.forEach((cell, index) => pending.push([cell, b.positions![index]]));
         for (const cell of a.elements ?? []) {
             const other = b.elements?.find(value => sameKind(cell, value));
             if (!other) return false;

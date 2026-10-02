@@ -1,13 +1,13 @@
-import { arrayElementTypes } from './array-element-types.js';
-import { arrayRevision, derivedArray, readArrayItem } from './array-storage.js';
+import { ArrayBindingContract } from './array-binding-contract.js';
+import { semanticArrayType, semanticValueType } from './semantic-array-type.js';
+import { arrayRevision } from './array-storage.js';
 import { RankError } from './errors.js';
-import { isRankArray, isRankRecord, mergeCollectionElementType, typeName, valueRank,
+import { isRankArray, isRankRecord, isRankTuple, collectionElementType, mergeCollectionElementType, typeName, valueRank,
     type CollectionElementType, type RankValue } from './value.js';
-import { recordContract, retainRecordContract } from './record-contract.js';
+import { retainRecordContract } from './record-contract.js';
 
 export function argumentRankSignature(values: readonly RankValue[]): string {
-    return JSON.stringify(values.map(value => [typeName(value), valueRank(value),
-        isRankRecord(value) ? recordSignature(recordContract(value), false) : null]));
+    return JSON.stringify(values.map(value => semanticValueType(value, false)));
 }
 
 // The compile target predates WeakRef; every supported runtime has it, and the memo is skipped otherwise.
@@ -25,7 +25,7 @@ let signatureMemo: SignatureMemo | undefined;
 
 /**
  * One call asks for the same signature several times (body cache, contract,
- * frame layout). Scalars and revision-tracked arrays cannot change type behind
+ * frame layout). Scalars and arrays with known scalar cells cannot change type behind
  * the same identity and revision, so the last key is reused for them; any other
  * value (records, sequences, host arrays) recomputes. Objects are held weakly.
  */
@@ -48,28 +48,19 @@ function memoizedSignature(values: readonly RankValue[]): string | undefined {
 export function argumentSignature(values: readonly RankValue[]): string {
     const memoized = memoizedSignature(values);
     if (memoized !== undefined) return memoized;
-    const key = JSON.stringify(values.map(value => [typeName(value), valueRank(value),
-        isRankArray(value) ? arrayElementTypes(value) : null,
-        isRankRecord(value) ? recordSignature(recordContract(value), true) : null]));
-    signatureMemo = weakRefs && values.every(value => typeof value !== 'object' || isRankArray(value) && arrayRevision(value) !== undefined)
+    const key = JSON.stringify(values.map(value => semanticValueType(value)));
+    signatureMemo = weakRefs && values.every(value => typeof value !== 'object'
+        || isRankArray(value) && semanticArrayType(value).scalar !== undefined && arrayRevision(value) !== undefined)
         ? { held: values.map(value => typeof value === 'object' ? new WeakRef(value) : value),
             revisions: values.map(value => isRankArray(value) ? arrayRevision(value) : undefined),
             ranks: values.map(value => isRankArray(value) ? value.shape.length : 0), key } : undefined;
     return key;
 }
 
-function recordSignature(value: CollectionElementType, elements: boolean): unknown {
-    return [value.type, value.rank ?? null,
-        elements ? value.elements?.map(cell => recordSignature(cell, elements))
-            .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))) : null,
-        value.fields ? [...value.fields].sort(([a], [b]) => a.localeCompare(b))
-            .map(([name, field]) => [name, recordSignature(field, elements)]) : null];
-}
-
 /** A contract belongs to one closure and one argument specialization. */
 export class ReturnContract {
     private type?: string;
-    private elements?: Set<string>;
+    private array?: ArrayBindingContract;
     private record?: CollectionElementType;
 
     constructor(private readonly name: string, private readonly ranks: { rank?: number } = {}) {}
@@ -82,11 +73,8 @@ export class ReturnContract {
         if (this.type !== undefined && this.type !== type) {
             throw new RankError(`${this.name} returns ${this.type} and cannot return ${type}`, 'ReturnTypeMismatch');
         }
-        const types = isRankArray(value) ? arrayElementTypes(value) : undefined;
-        const elements = types?.length ? new Set(types) : undefined;
-        if (elements) this.checkElements(elements);
         if (isRankRecord(value)) {
-            const received = recordContract(value);
+            const received = collectionElementType(value, new Set(), true);
             let contract: CollectionElementType;
             try {
                 contract = mergeCollectionElementType(`${this.name} return`, this.record, received);
@@ -99,38 +87,13 @@ export class ReturnContract {
         }
         this.ranks.rank = rank;
         this.type = type;
-        if (isRankArray(value) && types === undefined) {
-            // Keep lazy cells lazy. Check observed cells against a settled type,
-            // and settle a new element contract once a whole result is known.
-            const seen = new Set<number>();
-            const observed = new Set<string>();
-            const size = value.shape.reduce((a, b) => a * b, 1);
-            const checked = derivedArray(value.shape, [value], index => {
-                const item = readArrayItem(value, index);
-                const type = typeName(item);
-                if (this.elements && !this.elements.has(type)) this.mismatch(new Set([type]));
-                seen.add(index);
-                observed.add(type);
-                if (seen.size === size) this.checkElements(observed);
-                return item;
-            }, value.containsFiles === false);
-            for (const key of ['columnNames', 'tableScopes', 'sortKeys'] as const) {
-                if (value[key] !== undefined) Object.defineProperty(checked, key, { value: value[key] });
+        if (isRankArray(value) || isRankTuple(value)) {
+            try { return (this.array ??= new ArrayBindingContract(`${this.name} return`, 'ReturnTypeMismatch')).check(value); }
+            catch (error) {
+                if (!(error instanceof RankError)) throw error;
+                throw new RankError(error.message, 'ReturnTypeMismatch');
             }
-            return checked;
         }
         return value;
-    }
-
-    private mismatch(elements: ReadonlySet<string>): never {
-        throw new RankError(`${this.name} returns elements of type ${[...this.elements!].join(' or ')} `
-            + `and cannot return ${[...elements].join(' or ')}`, 'ReturnTypeMismatch');
-    }
-
-    private checkElements(elements: Set<string>): void {
-        if (!elements.size) return;
-        if (this.elements && (elements.size !== this.elements.size
-            || [...elements].some(type => !this.elements!.has(type)))) this.mismatch(elements);
-        this.elements ??= elements;
     }
 }

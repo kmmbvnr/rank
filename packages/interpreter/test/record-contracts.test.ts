@@ -35,14 +35,14 @@ describe('fixed record field contracts', () => {
 
     it('checks nested aliases and preserves refined empty-array contracts on replacement', () => {
         const runtime = new Interpreter();
-        runtime.execute('R = record\n .point = record\n .items = array 1\n end\nend\nR .point = record\n .items = array shape 0 fill 0\nend\nAlias = R .point');
+        runtime.execute('R = record\n .point = record\n .items = array 1\n end\nend\nR .point = record\n .items = array shape 0 fill .NA\nend\nAlias = R .point');
         expect(() => runtime.execute('Alias .items = array "bad"')).toThrow(/integer.*text/);
         expect(() => runtime.execute('R .point .items = array shape 1 1 fill 1')).toThrow(/rank 1.*rank 2/);
     });
 
     it('retains the contract in with copies, even if the current array is empty', () => {
         const runtime = new Interpreter();
-        runtime.execute('R = record\n .items = array 1\n .n = 0\nend\nR .items = array shape 0 fill 0\nS = R with\n .n = 1\nend');
+        runtime.execute('R = record\n .items = array 1\n .n = 0\nend\nR .items = array shape 0 fill .NA\nS = R with\n .n = 1\nend');
         expect(() => runtime.execute('S .items = array "bad"')).toThrow(/integer.*text/);
         expect(() => runtime.execute('S = R with\n .items = array shape 1 1 fill 0\nend')).toThrow(/rank 1.*rank 2/);
         expect(runtime.execute('R .n')).toBe(0n);
@@ -51,7 +51,7 @@ describe('fixed record field contracts', () => {
 
     it('does not commit a partial nested contract after a rejected assignment', () => {
         const runtime = new Interpreter();
-        runtime.execute('R = record\n .child = record\n .items = array shape 0 fill 0\n .tag = 1\n end\nend');
+        runtime.execute('R = record\n .child = record\n .items = array shape 0 fill .NA\n .tag = 1\n end\nend');
         expect(() => runtime.execute('R .child = record\n .items = array 1\n .tag = "bad"\nend')).toThrow(/integer.*text/);
         runtime.execute('R .child = record\n .items = array "ok"\n .tag = 2\nend');
         expect(runtime.execute('R .child .tag')).toBe(2n);
@@ -63,7 +63,7 @@ describe('fixed record field contracts', () => {
 
     it('rechecks a contract established through an alias during a lazy read', () => {
         const runtime = new Interpreter();
-        const record = runtime.execute('R = record\n .items = array shape 0 fill 0\nend\nR') as RankRecord;
+        const record = runtime.execute('R = record\n .items = array shape 0 fill .NA\nend\nR') as RankRecord;
         const lazy: RankArray = { kind: 'array', shape: [1], items: [], itemAt: () => {
             runtime.execute('R .items = array "callback"');
             return 1n;
@@ -99,9 +99,9 @@ describe('structural record return contracts', () => {
         expect(runtime.execute('D .name')).toBe('text');
     });
 
-    it('does not widen an existing record schema to match another return', () => {
+    it('does not change a tuple field to an array to match another return', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun choose Flag\n if Flag\n return record\n .items = array 1 "text"\n end\n end\n return record\n .items = array 1\n end\nend\ntrue choose');
+        runtime.execute('fun choose Flag\n if Flag\n return record\n .items = tuple 1 "text"\n end\n end\n return record\n .items = array 1\n end\nend\ntrue choose');
         expect(() => runtime.execute('false choose'))
             .toThrowError(expect.objectContaining({ rankKind: 'ReturnTypeMismatch' }));
     });

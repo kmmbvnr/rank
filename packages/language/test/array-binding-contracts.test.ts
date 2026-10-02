@@ -18,12 +18,12 @@ describe('array binding element contracts', () => {
     ('diagnoses %s', write => {
         expect(messages('A = array 1 2\n' + write).some(message => message.includes('array elements'))).toBe(true);
     });
-    it('retains the union and permits changing lengths, empty and missing cells', () => {
-        expect(messages('A = array 1 "x"\nA = array 2 3 4\nA 0 = "y"\nA = array shape 0 fill 0\nA = array .NA')).toEqual([]);
-        expect(messages('A = array 1 "x"\nA = array 2 3\nA 0 = true').some(message => message.includes('array elements'))).toBe(true);
+    it('retains the element type and permits changing lengths, empty and missing cells', () => {
+        expect(messages('A = array 1 2\nA = array 2 3 4\nA 0 = 5\nA = array shape 0 fill 0\nA = array .NA')).toEqual([]);
+        expect(messages('A = array 1 2\nA = array 2 3\nA 0 = true').some(message => message.includes('array elements'))).toBe(true);
     });
-    it('does not establish a domain from empty or unread values', () => {
-        expect(messages('A = array shape 0 fill 0\nA = array "x"')).toEqual([]);
+    it('does not establish a domain from missing or unread values', () => {
+        expect(messages('A = array shape 0 fill .NA\nA = array "x"')).toEqual([]);
         expect(messages('A = array .NA\nA = array "x"')).toEqual([]);
         expect(messages('A = External\nA = array "x"')).toEqual([]);
     });
@@ -59,5 +59,16 @@ describe('array binding element contracts', () => {
 it('settles infinity array seeds from finite writes without permitting a later numeric change', () => {
     expect(messages('use numbers\nA = array infinity infinity\nA 0 = 1\nA 1 = infinity')).toEqual([]);
     expect(messages('use numbers\nA = array infinity infinity\nA 0 = 1\nA 1 = 2.0')
+        .some(message => message.includes('array elements'))).toBe(true);
+});
+
+
+it.each(['0', '0.0', '(array 1)', '(tuple 1 "x")'])('retains an empty fill contract for %s', fill => {
+    expect(messages(`A = array shape 0 fill ${fill}\nA = array shape 0 fill true`)
+        .some(message => message.includes('array elements'))).toBe(true);
+});
+
+it('checks recursive empty fills without requiring stored positions', () => {
+    expect(messages('A = array shape 0 fill (array 1)\nA = array shape 0 fill (array "x")')
         .some(message => message.includes('array elements'))).toBe(true);
 });

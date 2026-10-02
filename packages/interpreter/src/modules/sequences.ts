@@ -1,3 +1,5 @@
+import { inheritArrayDeclaration } from '../array-declaration.js';
+import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { FlatRecords, flatRecords } from '../flat.js';
 import { ownedArray, derivedArray, denseScalarItems, readArrayItem, realCells, typedArray, typedElementKind } from '../array-storage.js';
@@ -12,7 +14,7 @@ import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
 import { broadcastShape, chooseDenseArrays } from '../tensor.js';
 import { isKnownFileFree } from '../resource-summary.js';
 import {
-    isRankArray,
+    isRankTuple, isRankArray,
     isRankCounter,
     isRankGraph,
     isRankDsu,
@@ -328,13 +330,18 @@ function* collectionValues(value: RankValue, operation: string): IterableIterato
 function copyArray(value: RankValue): RankArray {
     if (isRankSequence(value)) return materializeSequence(value);
     if (!isRankArray(value)) throw new RankError('copy expects an array or sequence');
+    const type = semanticArrayType(value);
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
     const items = Array.from(
         { length: size },
         (_, index) => value.itemAt?.(index) ?? value.items[index],
     );
     // Cells that are arrays or finite sequences stack along new trailing axes, as sequence items do.
-    if (!items.some(item => isRankArray(item) || isRankSequence(item))) return ownedArray(items, value.shape);
+    if (!items.some(item => isRankArray(item) || isRankSequence(item))) {
+        const result = ownedArray(items, value.shape, false, value.columnNames);
+        inheritArrayDeclaration(value, result);
+        return setSemanticArrayType(result, type);
+    }
     const cells = items.map(item => isRankSequence(item) ? materializeSequence(item) : item);
     return stackItems(cells, value.shape, 'array');
 }
@@ -444,8 +451,8 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
                 coordinates[axis] = 0;
             }
         }
-        if (Array.isArray(out)) return ownedArray(out, shape, true);
-        return typedArray(out, shape);
+        if (Array.isArray(out)) return inheritSemanticArrayType(value, ownedArray(out, shape, true));
+        return inheritSemanticArrayType(value, typedArray(out, shape));
     }
     const itemAt = (index: number): RankValue => {
         const output = coordinatesAt(shape, index);
@@ -472,7 +479,7 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
         );
         return value.itemAt?.(offset) ?? value.items[offset];
     };
-    return derivedArray(shape, [value], itemAt);
+    return inheritSemanticArrayType(value, derivedArray(shape, [value], itemAt));
 }
 
 /** Materialize the finite rank-1 sources accepted by keyed sorting. */
@@ -721,6 +728,7 @@ function offsetAt(shape: readonly number[], coordinates: readonly number[]): num
 }
 
 function reshape(value: RankValue, shapeValue: RankValue): RankValue {
+    const type = isRankArray(value) && !value.columnNames ? semanticArrayType(value) : undefined;
     if (!isRankArray(shapeValue) || shapeValue.shape.length !== 1
         || !shapeValue.items.every(item => typeof item === 'bigint')) {
         throw new RankError('reshape shape must be a rank-1 integer array');
@@ -731,7 +739,8 @@ function reshape(value: RankValue, shapeValue: RankValue): RankValue {
     // A typed array reshapes into a typed array: the cells keep their order.
     const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
     if (stored && typedElementKind(value as RankArray) !== undefined && stored.length === expected) {
-        return typedArray((stored as Float64Array | BigInt64Array).slice(), shape);
+        const result = typedArray((stored as Float64Array | BigInt64Array).slice(), shape);
+        return type ? setSemanticArrayType(result, type) : result;
     }
     const items = reshapeItems(value);
     if (items.length !== expected) {
@@ -739,7 +748,8 @@ function reshape(value: RankValue, shapeValue: RankValue): RankValue {
             `reshape shape ${shape.join(' ')} expects ${expected} elements, got ${items.length}`,
         );
     }
-    return ownedArray(items, shape);
+    const result = ownedArray(items, shape);
+    return type ? setSemanticArrayType(result, type) : result;
 }
 
 function reshapeDimension(value: bigint): number {
@@ -763,6 +773,7 @@ function reshapeItems(value: RankValue): RankValue[] {
 }
 
 export function lengthOf(value: RankValue): bigint {
+    if (isRankTuple(value)) return BigInt(value.items.length);
     if (isRankTableAlias(value)) return lengthOf(value.source);
     if (isRankSqliteTable(value)) return lengthSqlite(value);
     if (isRankTable(value)) return BigInt(value.length);

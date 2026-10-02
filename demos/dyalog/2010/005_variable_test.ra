@@ -46,9 +46,9 @@ test "shares sum to one and repeat with the seed"
 
   Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
   State = 7 seed
-  First = (array 9.0 200) Params variablerisk
+  First = (array 9.0 200.0) Params variablerisk
   State = 7 seed
-  Second = (array 9.0 200) Params variablerisk
+  Second = (array 9.0 200.0) Params variablerisk
   (First len equal 5) and ((First sum - 1) abs at most 0.000001) and ((First equal Second) all)
 end
 

@@ -51,7 +51,7 @@ A + B`)).toBe(60n);
     }, 15_000);
 
     for (const operator of ['+', '-', '*']) {
-        it(`matches scalar ${operator} for mixed numbers and floating-point edge cases`, () => {
+        it(`matches scalar ${operator} for numeric domains and floating-point edge cases`, () => {
             const runtime = new Interpreter();
             runtime.execute(`
 fun binary A B
@@ -66,7 +66,7 @@ end
 `);
             for (const values of [
                 [2n ** 100n, 7n, -(2n ** 80n)],
-                [2n ** 80n, 1n, 0.25, -3n, 2],
+                [2 ** 80, 1, 0.25, -3, 2],
                 [1e16, 1, -1e16, 0.25],
                 [-0, -0, 0, -0],
                 [Infinity, -Infinity, NaN, 1],
@@ -115,7 +115,7 @@ end
         runtime.variables.set('Single', vector([-0]));
         expect(runtime.execute('Single reduce +')).toBe(-0);
         expect(runtime.execute('use numbers\nSingle sum')).toBe(0);
-        expect(() => runtime.execute('(array 1 "a") reduce +')).toThrow('+ expects two numeric or two text values');
+        expect(() => runtime.execute('(array true false) reduce +')).toThrow('expected number, got boolean');
         expect(() => runtime.execute('(array 1 0) reduce /')).toThrow('division by zero');
         runtime.dispose();
     });
@@ -200,7 +200,7 @@ end
         };
         for (const name of ['total', 'prefix']) {
             reads.length = 0;
-            expect(() => call(runtime, name, input)).toThrow('+ expects two numeric or two text values');
+            expect(() => call(runtime, name, input)).toThrow('cannot receive');
             expect(reads).toEqual([0, 1]);
         }
         runtime.dispose();
@@ -219,8 +219,8 @@ end
             },
             get items(): RankValue[] { throw new Error('materialized input'); },
         };
-        expect(() => items(call(runtime, 'rows', input))).toThrow('last cell read');
-        expect(reads).toEqual([0, 1, 2]);
+        expect(() => items(call(runtime, 'rows', input))).toThrow('cannot receive');
+        expect(reads).toEqual([0, 1]);
         runtime.dispose();
     });
 
@@ -239,7 +239,7 @@ end
         expect(items(call(runtime, 'total', vector([vector([1n, 2n]), vector([3n, 4n])]))))
             .toEqual([4n, 6n]);
         try {
-            call(runtime, 'total', vector([1n, 'bad']));
+            call(runtime, 'total', vector([true, false]));
             throw new Error('expected failure');
         } catch (error) {
             expect(error).toBeInstanceOf(RankError);

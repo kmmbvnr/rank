@@ -310,3 +310,14 @@ test('TPC-H Q6 Rank operations execute a bound SQLite aggregate', () => fixture(
     assert.equal(result.status, 0, result.stderr);
     assert.equal(Number(result.stdout.trim()), expected);
 }));
+
+test('raw SQL accepts mixed tuple parameters and reuses inspected parameters', () => fixture((directory, dbPath) => {
+    const result = runSource(directory, `use io\nuse tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
+        + `Q = "SELECT name FROM facilities WHERE facid = ? AND name = ?"\n`
+        + `P = tuple 1 "O'Brien Court"\n`
+        + `Selected = Db Q P sqlquery\nStatement = Selected sql\n`
+        + `Again = Db (Statement .text) (Statement .params) sqlquery\n`
+        + `Rows = Again array\nRows .name print\n`);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, "O'Brien Court\n");
+}));

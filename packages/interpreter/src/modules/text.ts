@@ -1,3 +1,4 @@
+import { positionalValue } from '../positional-value.js';
 import { interruptibleCallback } from '../interrupt.js';
 import { RankError } from '../errors.js';
 import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankQueue, isRankSequence, isRankSqliteExpression, type RankArray, type RankBytes, type RankValue } from '../value.js';
@@ -270,7 +271,7 @@ function splitSeparators(value: RankValue): string[] {
     return value.items as string[];
 }
 
-function parseText(value: string, format: string): RankArray {
+function parseText(value: string, format: string): RankValue {
     const captures: Array<'integer' | 'real' | 'word' | 'text'> = [];
     let pattern = '^';
 
@@ -302,7 +303,7 @@ function parseText(value: string, format: string): RankArray {
     if (!match) throw new RankError(`text does not match format: ${format}`, 'InvalidText', value);
 
     const items = captures.map((kind, index) => convertCapture(kind, match[index + 1]));
-    return { kind: 'array', items, shape: [items.length] };
+    return positionalValue(items);
 }
 
 function capturePattern(kind: 'integer' | 'real' | 'word' | 'text'): string {

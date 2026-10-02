@@ -21,10 +21,12 @@ Text json
 Text json .flat
 ```
 
-JSON objects become records with dot
-fields, and JSON lists become arrays.
-Add .flat to get a table with one row
-per node instead.
+JSON objects become objects with dot
+fields. Same-type lists become arrays;
+mixed lists become tuples. Add .flat
+to get one table row per node. Its
+.value column is text: filter .kind
+and convert numbers before arithmetic.
 
 ### See also
 

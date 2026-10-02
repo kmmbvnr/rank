@@ -28,7 +28,7 @@ end
 `);
             for (const values of [
                 [2n ** 100n, 7n, -(2n ** 80n)],
-                [2n ** 80n, 1n, 0.25, -3n],
+                [2 ** 80, 1, 0.25, -3],
                 [1e16, 1, -1e16, 0.25],
                 [-0], [Infinity, -Infinity, NaN], [],
             ]) {
@@ -86,7 +86,7 @@ end
             },
             get items(): RankValue[] { throw new Error('forced input'); },
         });
-        expect(() => call(runtime, 'fused', lazy('a'), lazy('b'))).toThrow('+ expects');
+        expect(() => call(runtime, 'fused', lazy('a'), lazy('b'))).toThrow('cannot receive');
         expect(reads).toEqual(['a0', 'b0', 'a1', 'b1']);
         runtime.dispose();
     });
@@ -154,7 +154,7 @@ end
         expect(() => runtime.execute('(Flag * 2 + Missing) reduce +')).toThrow('expected number, got boolean');
         runtime.execute('fun fused A B\n  return (A * 2 + B) reduce +\nend');
         try {
-            call(runtime, 'fused', vector([1n, 'bad']), 0n);
+            call(runtime, 'fused', vector(['bad', 'bad']), 0n);
             throw new Error('expected failure');
         } catch (error) {
             expect(error).toBeInstanceOf(RankError);

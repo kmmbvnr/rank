@@ -32,9 +32,9 @@ test "uses every coordinate"
   end
   Root = 61 sqrt
   Expected = array shape 3 3
-    0 5 6
-    5 0 Root
-    6 Root 0
+    0.0 5.0 6.0
+    5.0 0.0 Root
+    6.0 Root 0.0
   end
 
   Actual = Points pair_distances

@@ -1,0 +1,73 @@
+{
+  "issue": 153,
+  "step": 4,
+  "scope": "Explicit fills establish recursive cell types even for empty arrays. No new annotations; unresolved recursion stays unknown; external-data boundaries remain #33/#116.",
+  "commands": [
+    "node benchmarks/analysis-coverage.mjs",
+    "node benchmarks/refactor-analysis-latency.mjs",
+    "node packages/cli/bin/cli.js test demos"
+  ],
+  "forwardCoverage": {
+    "before": {
+      "files": 466,
+      "functions": 592,
+      "knownEffects": 33,
+      "borrowCandidates": 4,
+      "guardedBuiltinBorrowCandidates": 6,
+      "loopFunctions": 347,
+      "knownLoopEffects": 0,
+      "testExamples": 1085,
+      "knownExampleResults": 1083,
+      "knownExampleEffects": 197,
+      "exampleExpectationConflicts": 0
+    },
+    "after": {
+      "files": 466,
+      "functions": 592,
+      "knownEffects": 33,
+      "borrowCandidates": 4,
+      "guardedBuiltinBorrowCandidates": 6,
+      "loopFunctions": 347,
+      "knownLoopEffects": 0,
+      "testExamples": 1085,
+      "knownExampleResults": 1083,
+      "knownExampleEffects": 197,
+      "exampleExpectationConflicts": 0
+    }
+  },
+  "requirements": {
+    "before": {
+      "bindingsWithNewRankBounds": 230,
+      "bindingsWithNewExactRank": 227,
+      "callResultsWithNewRankBounds": 32,
+      "callResultsWithNewExactRank": 29,
+      "constrainedParameters": 7,
+      "contradictions": 0,
+      "limitedFiles": 0
+    },
+    "after": {
+      "bindingsWithNewRankBounds": 230,
+      "bindingsWithNewExactRank": 227,
+      "callResultsWithNewRankBounds": 32,
+      "callResultsWithNewExactRank": 29,
+      "constrainedParameters": 7,
+      "contradictions": 0,
+      "limitedFiles": 0
+    }
+  },
+  "editorLatency": {
+    "before": [
+      "short incomplete: median 0.21 ms, p95 0.38 ms",
+      "array contracts: median 19.81 ms, p95 23.17 ms",
+      "large incomplete: median 10.46 ms, p95 12.88 ms"
+    ],
+    "after": [
+      "short incomplete: median 0.35 ms, p95 0.75 ms",
+      "array contracts: median 22.79 ms, p95 32.67 ms",
+      "large incomplete: median 13.52 ms, p95 18.95 ms"
+    ],
+    "qualification": "Local samples, with other validation work nearby. No speed improvement is claimed."
+  },
+  "migration": "One demo test supplied integer input to a real-valued dense-layer buffer. Its input is now explicitly real. Tests intended to exercise unresolved-domain settlement use fill .NA.",
+  "simplification": "Array construction now supplies a recursive contract independently of cell count. Binding, record, return and specialization checks reuse that evidence. The analyzer can retain the integer domain through writes even when the fill shape is unknown. This adds metadata rather than reducing overall code size."
+}

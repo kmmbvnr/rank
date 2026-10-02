@@ -1,3 +1,5 @@
+import { arrayDeclaration } from './array-declaration.js';
+import { noteArrayBinding } from './array-storage.js';
 import { checkpoint, interruptibleValues } from './interrupt.js';
 import type { RankMultiset } from './multiset.js';
 import type { RankFenwick } from './fenwick.js';
@@ -54,6 +56,21 @@ export interface RankPlainArray extends RankArrayValue {
 export interface RankBytes extends RankArrayValue {
     readonly kind: 'bytes';
     readonly data: Uint8Array;
+}
+
+/** Fixed positional product; referenced records retain their identity. */
+export interface RankTuple {
+    readonly kind: 'tuple';
+    readonly items: readonly RankValue[];
+}
+
+export function tuple(items: readonly RankValue[]): RankTuple {
+    items.forEach(noteArrayBinding);
+    return Object.freeze({ kind: 'tuple', items: Object.freeze([...items]) });
+}
+
+export function isRankTuple(value: RankValue): value is RankTuple {
+    return typeof value === 'object' && value.kind === 'tuple';
 }
 
 export type RankArray = RankPlainArray | RankBytes;
@@ -296,7 +313,7 @@ export interface RankSequenceMask extends RankSequence {
     readonly predicate: SequencePredicate;
 }
 
-export type RankValue = bigint | number | boolean | string | RankMissing | RankArray | RankFile |
+export type RankValue = bigint | number | boolean | string | RankMissing | RankArray | RankTuple | RankFile |
     RankSqliteDatabase | RankSqliteTable | RankSqliteExpression | RankTableAlias | RankSqliteScope |
     RankLabel | RankDate | RankDateTime | RankDuration | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
@@ -311,13 +328,23 @@ export interface CollectionElementType {
     readonly rank?: number;
     readonly elements?: readonly CollectionElementType[];
     readonly fields?: ReadonlyMap<string, CollectionElementType>;
+    readonly positions?: readonly CollectionElementType[];
+}
+
+/** Infinity defers the finite numeric domain; missing contributes no type. */
+export function requireHomogeneous(elements: readonly CollectionElementType[]): void {
+    const cells = elements.filter(cell => cell.type !== 'missing' && cell.type !== 'numeric-limit');
+    if (cells.length > 1 || elements.some(cell => cell.type === 'numeric-limit')
+        && cells.some(cell => !['integer', 'real'].includes(cell.type))) {
+        throw new RankError(`arrays require one element type (got ${elements.map(cell => cell.type).join(' and ')}); use a tuple for different positional types`, 'TypeError');
+    }
 }
 
 /** Validate before committing the insertion. Empty arrays do not establish a cell type. */
 export function checkCollectionElementType(
     collection: string, expected: CollectionElementType | undefined | (() => CollectionElementType | undefined), value: RankValue,
 ): CollectionElementType {
-    const received = isRankArray(value) ? collectionElementType(value, new Set()) : { type: typeName(value) };
+    const received = isRankArray(value) || isRankTuple(value) ? collectionElementType(value, new Set()) : { type: typeName(value) };
     // Reading lazy cells can re-enter Rank and insert through another alias.
     return mergeCollectionElementType(collection, typeof expected === 'function' ? expected() : expected, received);
 }
@@ -336,10 +363,21 @@ export function mergeCollectionElementType(collection: string, expected: Collect
     const merge = (name: string, old: CollectionElementType | undefined, next: CollectionElementType,
         exact: boolean, limits: boolean, done: (contract: CollectionElementType) => void): void => {
         if (!old) { done(next); return; }
-        const mismatch = (kind?: string): never => {
+        const mismatch = (kind = 'TypeError'): never => {
             throw new RankError(`${name} holds ${describeElementType(old)} and cannot receive ${describeElementType(next)}`, kind);
         };
         if (old.type !== next.type || old.rank !== next.rank) mismatch();
+        if (!!old.positions !== !!next.positions) mismatch('TypeError');
+        if (old.positions && next.positions) {
+            if (old.positions.length !== next.positions.length) mismatch('TypeError');
+            const positions = [...old.positions];
+            tasks.push(() => done({ ...old, positions }));
+            positions.forEach((position, index) => tasks.push(() =>
+                merge(`${name} position ${index + 1}`, position.type === 'missing' ? undefined : position,
+                    next.positions![index].type === 'missing' && position.type !== 'missing' ? position : next.positions![index], true, limits,
+                    merged => { positions[index] = merged; })));
+            return;
+        }
         if (old.fields && next.fields) {
             if (old.fields.size !== next.fields.size || [...old.fields.keys()].some(field => !next.fields!.has(field))) mismatch('TypeError');
             const fields = new Map(old.fields);
@@ -361,7 +399,8 @@ export function mergeCollectionElementType(collection: string, expected: Collect
         for (let cell of [...next.elements ?? []].reverse()) {
             // Infinity-only array seeds defer their finite numeric domain.
             if (limits && cell.type === 'numeric-limit' && !elements.some(item => item.type === 'numeric-limit')
-                && elements.some(item => item.type === 'real')) cell = { type: 'real' };
+                && elements.some(item => item.type === 'real' || item.type === 'integer'))
+                cell = { type: elements.find(item => item.type === 'real' || item.type === 'integer')!.type };
             const index = elements.findIndex(item => item.type === cell.type && item.rank === cell.rank);
             if (index < 0) mismatch();
             const receivedCell = cell;
@@ -376,6 +415,7 @@ export function mergeCollectionElementType(collection: string, expected: Collect
 export function collectionElementType(value: RankValue, active: Set<RankValue> = new Set(), records = false): CollectionElementType {
     const type = typeName(value);
     const rank = isRankArray(value) ? value.shape.length : undefined;
+    if (isRankTuple(value)) return { type, positions: value.items.map(item => collectionElementType(item, active, true)) };
     if (records && isRankRecord(value)) {
         if (active.has(value)) throw new RankError('cyclic records cannot establish a structural type', 'TypeError');
         if (!value.fieldContracts) {
@@ -390,6 +430,13 @@ export function collectionElementType(value: RankValue, active: Set<RankValue> =
     if (!isRankArray(value)) return { type };
     if (active.has(value)) throw new RankError('cyclic arrays cannot be collection elements');
     active.add(value);
+    if (value.columnNames && value.shape.length === 2) {
+        const positions = value.columnNames.map((_, column) => collectionElementType({ kind: 'array', shape: [value.shape[0]],
+            items: Array.from({ length: value.shape[0] }, (_, row) => value.itemAt?.(row * value.shape[1] + column)
+                ?? value.items[row * value.shape[1] + column]) }, active, records));
+        active.delete(value);
+        return { type, rank, positions };
+    }
     const elements: CollectionElementType[] = [];
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
     for (let index = 0; index < size; index++) {
@@ -402,34 +449,23 @@ export function collectionElementType(value: RankValue, active: Set<RankValue> =
             if (records && error instanceof MissingValueError) continue;
             throw error;
         }
-        const cellType = typeName(cell);
+        if (cell === MISSING) continue;
+        const cellType = typeof cell === 'number' && !Number.isFinite(cell) && !Number.isNaN(cell)
+            ? 'numeric-limit' : typeName(cell);
         const cellRank = isRankArray(cell) ? cell.shape.length : undefined;
         const position = elements.findIndex(element => element.type === cellType && element.rank === cellRank);
-        const element = collectionElementType(cell, active, records);
+        const element = cellType === 'numeric-limit' ? { type: cellType } : collectionElementType(cell, active, records);
         if (position < 0) elements.push(element);
         else elements[position] = unionElementType(elements[position], element);
     }
     active.delete(value);
-    return { type, rank, ...(elements.length ? { elements } : {}) };
+    requireHomogeneous(elements);
+    return mergeCollectionElementType('array fill', arrayDeclaration(value),
+        { type, rank, ...(elements.length ? { elements } : {}) }, false, true);
 }
 
 export function unionElementType(left: CollectionElementType, right: CollectionElementType): CollectionElementType {
-    let result: CollectionElementType;
-    const tasks: (() => void)[] = [];
-    const combine = (a: CollectionElementType, b: CollectionElementType, done: (value: CollectionElementType) => void): void => {
-        if (a.fields && b.fields) { done(mergeCollectionElementType('array record cells', a, b)); return; }
-        if (!b.elements?.length) { done(a); return; }
-        const elements = [...a.elements ?? []];
-        tasks.push(() => done({ ...a, elements }));
-        for (const cell of b.elements) {
-            const index = elements.findIndex(item => item.type === cell.type && item.rank === cell.rank);
-            if (index < 0) elements.push(cell);
-            else tasks.push(() => combine(elements[index], cell, merged => { elements[index] = merged; }));
-        }
-    };
-    tasks.push(() => combine(left, right, value => { result = value; }));
-    while (tasks.length) tasks.pop()!();
-    return result!;
+    return mergeCollectionElementType('array cells', left, right, false, true);
 }
 
 /** The type symbol reported by `type` and enforced by runtime bindings. */
@@ -672,6 +708,7 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     if (value.kind === 'sqlite-expression') return '<sqlite expression>';
     if (value.kind === 'sqlite-scope') return `<sqlite scope .${value.name}>`;
     if (value.kind === 'table-alias') return `<table alias .${value.name}>`;
+    if (value.kind === 'tuple') return value.items.map(item => formatNestedValue(item, active)).join(' ');
     if (value.kind === 'queue') {
         return value.items.map(item => formatNestedValue(item, active)).join(' ');
     }

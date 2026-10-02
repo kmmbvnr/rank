@@ -1,0 +1,107 @@
+{
+  "issue": 153,
+  "step": 2,
+  "scope": "Homogeneous arrays and fixed positional tuples; tables retain a homogeneous type per column.",
+  "commands": [
+    "npm test",
+    "npm test --workspace packages/language --workspace packages/interpreter --workspace packages/common",
+    "node --test packages/cli/test/reference.test.mjs packages/cli/test/pgexercises-joins.test.mjs packages/cli/test/sqlite.test.mjs",
+    "node packages/cli/bin/cli.js test demos",
+    "node benchmarks/analysis-coverage.mjs",
+    "node benchmarks/refactor-analysis-latency.mjs"
+  ],
+  "forwardCoverage": {
+    "before": {
+      "files": 466,
+      "functions": 592,
+      "knownEffects": 33,
+      "borrowCandidates": 4,
+      "guardedBuiltinBorrowCandidates": 6,
+      "loopFunctions": 347,
+      "knownLoopEffects": 0,
+      "testExamples": 1085,
+      "knownExampleResults": 1083,
+      "knownExampleEffects": 197,
+      "exampleExpectationConflicts": 0
+    },
+    "after": {
+      "files": 466,
+      "functions": 592,
+      "knownEffects": 33,
+      "borrowCandidates": 4,
+      "guardedBuiltinBorrowCandidates": 6,
+      "loopFunctions": 347,
+      "knownLoopEffects": 0,
+      "testExamples": 1085,
+      "knownExampleResults": 1083,
+      "knownExampleEffects": 197,
+      "exampleExpectationConflicts": 0
+    }
+  },
+  "requirements": {
+    "before": {
+      "bindingsWithNewRankBounds": 230,
+      "bindingsWithNewExactRank": 227,
+      "callResultsWithNewRankBounds": 32,
+      "callResultsWithNewExactRank": 29,
+      "constrainedParameters": 7,
+      "contradictions": 0,
+      "limitedFiles": 0
+    },
+    "after": {
+      "bindingsWithNewRankBounds": 230,
+      "bindingsWithNewExactRank": 227,
+      "callResultsWithNewRankBounds": 32,
+      "callResultsWithNewExactRank": 29,
+      "constrainedParameters": 7,
+      "contradictions": 0,
+      "limitedFiles": 0
+    }
+  },
+  "editorLatency": {
+    "before": [
+      "short incomplete: median 0.10 ms, p95 0.19 ms",
+      "array contracts: median 10.57 ms, p95 13.27 ms",
+      "large incomplete: median 5.84 ms, p95 7.59 ms"
+    ],
+    "after": [
+      "short incomplete: median 0.19 ms, p95 0.45 ms",
+      "array contracts: median 19.49 ms, p95 23.93 ms",
+      "large incomplete: median 10.61 ms, p95 13.03 ms"
+    ],
+    "qualification": "Local measurements, with concurrent test activity in both stages. Observed latency is higher; these samples do not isolate the implementation from machine load and do not establish a speed improvement."
+  },
+  "analyzerChanges": [
+    "Assignments and unpacking use one binding-contract check.",
+    "Tuple arity and recursive per-position facts participate in bindings, returns, indexing and widening.",
+    "Homogeneous literal diagnostics reuse the recursive field comparison."
+  ],
+  "runtimeSimplifications": [
+    "Array and tuple returns reuse ArrayBindingContract.",
+    "Removed whole-array observed-cell union settlement; first concrete lazy cell establishes a contract, subsequent demanded cells are checked.",
+    "Recursive element merging uses the shared contract merger."
+  ],
+  "verification": {
+    "language": "737 passed",
+    "interpreter": "2443 passed",
+    "common": "141 passed",
+    "compile": "10 passed in full npm test",
+    "cli": "Initial full run: 482/486 passed, with two SQL fixture subtest failures, their parent failure, and generated reference mismatch. After fixes all 33 affected CLI checks passed, including a new tuple SQL round-trip test. All terminal tests passed in the full run. The complete npm test command was not rerun after fixes.",
+    "demos": "392 files, zero failed; after final named-row selection changes all 10 Kaggle files passed again.",
+    "finalReview": "65 tuple and collection tests passed after final review; TypeScript build and both repository boundary checks passed.",
+    "whitespace": "git diff --check passed"
+  },
+  "migrations": [
+    "Mixed positional returns and test bundles use tuple.",
+    "Ordinary numeric arrays use explicit consistent integer or real cells.",
+    "JSON flat value column is text; numeric consumers convert explicitly.",
+    "Mixed JSON arrays and parse captures produce tuples; homogeneous results remain arrays.",
+    "eigh, weighted graph edge pairs and SQL parameter bundles use tuples.",
+    "SQL NULL fixtures use absent object fields rather than the distinct JSON null label."
+  ],
+  "limitations": [
+    "Runtime validation is still required for unresolved static facts.",
+    "Lazy specialization and boundary declarations remain steps 3 and 4.",
+    "No packed-storage optimization or runtime speed improvement is claimed."
+  ]
+}

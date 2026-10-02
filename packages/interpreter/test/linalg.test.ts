@@ -37,7 +37,7 @@ describe('Rank linear algebra', () => {
             .toThrowError('diag expects a rank-1 vector or rank-2 matrix');
         expect(() => run('use linalg\n(array shape 1 1 1 fill 0) diag'))
             .toThrowError('diag expects a rank-1 vector or rank-2 matrix');
-        expect(() => run('use linalg\n(array 1 "bad") diag'))
+        expect(() => run('use linalg\n(array "bad" "bad") diag'))
             .toThrowError('diag expects numeric elements');
     });
 
@@ -51,7 +51,7 @@ describe('Rank linear algebra', () => {
             '  0 0 2',
             'end',
             'unpack Values Vectors = A eigh',
-            'array Values Vectors',
+            'tuple Values Vectors',
         ].join('\n'))).toBe('1 2 3 0 0 1 1 0 0 0 1 0');
 
         expectNumbers(run([
@@ -61,7 +61,7 @@ describe('Rank linear algebra', () => {
             '  1 2',
             'end',
             'unpack Values Vectors = A eigh',
-            'array Values Vectors',
+            'tuple Values Vectors',
         ].join('\n')), [
             1, 3,
             Math.SQRT1_2, Math.SQRT1_2,
@@ -98,10 +98,7 @@ describe('Rank linear algebra', () => {
         ].join('\n'))).toThrowError('eigh expects a symmetric matrix');
         expect(() => run([
             'use linalg',
-            'A = array shape 2 2',
-            '  1 "bad"',
-            '  "bad" 1',
-            'end',
+            'A = array shape 2 2 fill "bad"',
             'A eigh',
         ].join('\n'))).toThrowError('eigh expects numeric elements');
         expect(() => run('(array shape 1 1 fill 1) eigh'))
@@ -138,8 +135,8 @@ describe('Rank linear algebra', () => {
         expect(run([
             'use linalg',
             'A = array shape 2 2',
-            '  1.5 2',
-            '  3 4',
+            '  1.5 2.0',
+            '  3.0 4.0',
             'end',
             'A det is .real',
         ].join('\n'))).toBe('true');
@@ -165,10 +162,7 @@ describe('Rank linear algebra', () => {
             .toThrowError('det expects a square rank-2 matrix');
         expect(() => run([
             'use linalg',
-            'A = array shape 2 2',
-            '  1 "bad"',
-            '  3 4',
-            'end',
+            'A = array shape 2 2 fill "bad"',
             'A det',
         ].join('\n'))).toThrowError('det expects numeric elements');
         expect(() => run('(array shape 2 2 fill 1) det'))
@@ -227,10 +221,7 @@ describe('Rank linear algebra', () => {
         ].join('\n'))).toThrowError('solve expects a nonsingular matrix');
         expect(() => run([
             'use linalg',
-            'A = array shape 2 2',
-            '  1 "bad"',
-            '  0 1',
-            'end',
+            'A = array shape 2 2 fill "bad"',
             'A (array 1 2) solve',
         ].join('\n'))).toThrowError('solve expects numeric coefficient elements');
         expect(() => run([
@@ -239,7 +230,7 @@ describe('Rank linear algebra', () => {
             '  1 0',
             '  0 1',
             'end',
-            'A (array 1 "bad") solve',
+            'A (array "bad" "bad") solve',
         ].join('\n'))).toThrowError('solve expects numeric right-side elements');
         expect(() => run('(array shape 1 1 fill 1) (array 1) solve'))
             .toThrowError('unknown name: solve');
@@ -250,7 +241,7 @@ describe('Rank linear algebra', () => {
         expect(run([
             'use linalg',
             'IntegerDot = (array 1 2) (array 3 4) matmul',
-            'RealDot = (array 1 2.5) (array 2 4) matmul',
+            'RealDot = (array 1.0 2.5) (array 2 4) matmul',
             'IntegerDot is .integer and RealDot is .real',
         ].join('\n'))).toBe('true');
         expect(run([
@@ -331,10 +322,7 @@ describe('Rank linear algebra', () => {
 
         expect(run([
             'use linalg',
-            'A = array shape 2 2',
-            '  1 2',
-            '  "unused" 4',
-            'end',
+            'A = (array shape 2 2 fill 1) // (array shape 2 2\n 1 1\n 0 1\nend)',
             'B = array shape 2 2',
             '  1 0',
             '  0 1',
@@ -344,14 +332,11 @@ describe('Rank linear algebra', () => {
         ].join('\n'))).toBe('1');
         expect(() => run([
             'use linalg',
-            'A = array shape 2 2',
-            '  1 2',
-            '  "invalid" 4',
-            'end',
+            'A = (array shape 2 2 fill 1) // (array shape 2 2\n 1 1\n 0 1\nend)',
             'B = array shape 2 2 fill 1',
             'Result = A B matmul',
             'Result 1 0',
-        ].join('\n'))).toThrowError('expected numeric input');
+        ].join('\n'))).toThrowError('division by zero');
     });
 
     it('validates matmul dimensions and axes', () => {

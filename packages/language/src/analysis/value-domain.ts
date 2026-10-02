@@ -11,8 +11,13 @@ export interface ValueFacts {
     /** Internal recursion seed: no returning path has been observed yet. */
     readonly bottom?: true;
     readonly types: Types;
+    readonly tupleItems?: readonly ValueFacts[];
     readonly acceptedTypes?: Types;
     readonly acceptedArrayRank?: number;
+    /** Recursive schema retained by an ordinary record binding, independent of its current value. */
+    readonly acceptedRecordContract?: ValueFacts;
+    /** Recursive type explicitly supplied by an array fill, independent of length. */
+    readonly declaredArrayContract?: ArrayElementContract;
     readonly acceptedArrayContract?: ArrayElementContract;
     /** Possible array/sequence cells or values stored in an index. */
     readonly elements?: Types;
@@ -87,12 +92,13 @@ export function joinTypes(values: readonly Types[]): Types {
 /** The recursive contract forgets data and read-safety proofs, keeping type and rank. */
 export function widenValueFacts(value: ValueFacts): ValueFacts {
     if (value.bottom) return BOTTOM_VALUE;
-    if (value.types.join() === 'record') return stableRecordField(value);
+    if (['record', 'tuple'].includes(value.types.join())) return stableRecordField(value);
     const ranks = value.types.map(type => ['array', 'bytes'].includes(type) ? undefined
         : ['text', 'sequence', 'queue', 'stack', 'deque'].includes(type) ? 1 : 0);
     const rank = value.rank ?? (ranks.length && ranks.every(rank => rank === ranks[0]) ? ranks[0] : undefined);
     return { types: value.types, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}),
-        ...(value.elements ? { elements: value.elements } : {}) };
+        ...(value.elements ? { elements: value.elements } : {}),
+        ...(value.declaredArrayContract ? { declaredArrayContract: value.declaredArrayContract } : {}) };
 }
 
 export type FactLookup = ((name: string) => ValueFacts | undefined) & {
@@ -102,13 +108,15 @@ export type FactLookup = ((name: string) => ValueFacts | undefined) & {
 
 export function stableRecordField(value: ValueFacts, construction = false): ValueFacts {
     const { types } = value;
+    if (types.join() === 'tuple') return { types, rank: 0, shape: [], tupleItems: value.tupleItems?.map(item => stableRecordField(item)) };
     return { types,
         ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol',
             'date', 'datetime', 'duration'].includes(type)) ? { rank: 0, shape: [] }
             : types.join() === 'text' ? { rank: 1, shape: [null] }
                 : types.join() === 'array' || types.join() === 'bytes'
                     ? { rank: value.rank, shape: value.rank === undefined ? undefined : Array(value.rank).fill(null),
-                        elements: !construction || value.shape?.every(size => size !== null && size > 0)
+                        declaredArrayContract: value.declaredArrayContract,
+                        elements: !construction || value.declaredArrayContract || value.shape?.every(size => size !== null && size > 0)
                             ? value.elements : undefined }
                     : types.join() === 'record' ? { rank: 0, shape: [],
                         ...(value.fields ? { fields: Object.fromEntries(Object.entries(value.fields)
@@ -232,6 +240,8 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
         ...(first.segmentOperation && values.every(value => value.segmentOperation === first.segmentOperation)
             ? { segmentOperation: first.segmentOperation } : {}),
         ...(elements ? { elements } : {}),
+        ...(first.declaredArrayContract && values.every(value => JSON.stringify(value.declaredArrayContract) === JSON.stringify(first.declaredArrayContract))
+            ? { declaredArrayContract: first.declaredArrayContract } : {}),
         ...(elementRank !== undefined ? { elementRank } : {}),
         ...(elements?.length && values.filter(value => value.elements!.length).every(value => value.elementRecord)
             ? { elementRecord: joinValueFacts(values.filter(value => value.elements!.length)
@@ -242,6 +252,8 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
             ? { collectionId: first.collectionId } : {}),
         ...(positions ? { positions } : {}),
         ...(fields ? { fields } : {}),
+        ...(first.tupleItems && values.every(value => value.tupleItems?.length === first.tupleItems!.length)
+            ? { tupleItems: first.tupleItems.map((_, index) => joinValueFacts(values.map(value => value.tupleItems![index]))) } : {}),
         ...(fields && values.every(value => value.closedRecord && value.fields
             && Object.keys(value.fields).length === Object.keys(fields).length) ? { closedRecord: true as const } : {}),
         ...(first.textLiteral !== undefined && values.every(value => value.textLiteral === first.textLiteral)

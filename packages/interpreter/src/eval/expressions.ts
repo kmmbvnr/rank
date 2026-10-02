@@ -1,5 +1,7 @@
+import { ArrayBindingContract } from '../array-binding-contract.js';
+import { tuple } from '../value.js';
 import {
-    flattenApplication, isAliasedTableExpression, isAllAxisExpression, isApplicationExpression, isArrayExpression,
+    isTupleExpression, flattenApplication, isAliasedTableExpression, isAllAxisExpression, isApplicationExpression, isArrayExpression,
     isBinaryExpression, isBooleanLiteral, isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression,
     isKeyedRollingExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression, isNameExpression,
     isNewStructureExpression, isNumberLiteral, isParenthesizedExpression, isRecordExpression,
@@ -246,6 +248,11 @@ export class ExpressionEvaluator {
                     (expression.$cstNode?.range.start.line ?? 0) + 1));
             };
         }
+        if (isTupleExpression(expression)) {
+            return () => mapResult(mapExecution(expression.items, item => expressions.evaluateArrayItem(item)), items => {
+                return tuple(items);
+            });
+        }
         if (isArrayExpression(expression)) {
             return function* (): Execution<RankValue> {
                 let items: RankValue[];
@@ -269,19 +276,20 @@ export class ExpressionEvaluator {
                         ? expression.rows.flatMap(row => row.items)
                         : expression.items, item => expressions.evaluateArrayItem(item)));
                 }
-                if (expression.dimensions.length === 0) return array(items);
+                if (expression.dimensions.length === 0) return new ArrayBindingContract('array').check(array(items));
                 const shape = yield* resume(expressions.arrayShape(expression.dimensions));
                 const size = shape.reduce((product, dimension) => product * BigInt(dimension), 1n);
                 if (expression.fill !== undefined) {
                     const fill = (yield* resume(expressions.evaluate(expression.fill)));
-                    return ownedArray(Array(Number(size)).fill(fill), shape, typeof fill !== 'object');
+                    return new ArrayBindingContract('array fill').fill(
+                        ownedArray(Array(Number(size)).fill(fill), shape, typeof fill !== 'object'), fill);
                 }
                 if (BigInt(items.length) !== size) {
                     throw new RankError(
                         `array shape ${shape.join(' ')} expects ${size} elements, got ${items.length}`,
                     );
                 }
-                return ownedArray(items, shape);
+                return new ArrayBindingContract('array').check(ownedArray(items, shape));
             };
         }
         const tableQuery = compileTableExpression(expression, () => ({
@@ -425,8 +433,7 @@ export class ExpressionEvaluator {
                 };
             }
             if (expression.operator === 'default') {
-                // Identity-only marker; never exposed to Rank or passed to functions.
-                const absent: RankValue = { kind: 'label', name: '' };
+                const absent = MISSING;
                 let left: (() => Evaluation<RankValue>) | undefined;
                 return function* (): Execution<RankValue> {
                     try {

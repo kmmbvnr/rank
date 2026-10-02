@@ -56,7 +56,7 @@ describe('json .flat', () => {
 
     it('selects leaves at any depth with an ordinary filter', () => {
         const flat = `${JSON_}${DOC}Nodes = Doc json .flat\n`;
-        expect(run(`${flat}(Nodes filter .kind equal "integer") .value sum`)).toBe('1');
+        expect(run(`${flat}(Nodes filter .kind equal "integer") .value integer rank 0 sum`)).toBe('1');
         expect(run(`${flat}Red = Nodes filter .value equal "red"\nRed 0 .parent`)).toBe('4');
     });
 

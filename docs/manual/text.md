@@ -128,9 +128,9 @@ Text Pattern parse
 In the pattern, /integer, /real, /word
 and /text mark the values to read;
 everything else must match exactly. The
-whole text must match. The values come
-back as an array, often split with
-unpack.
+whole text must match. Same-type
+captures form an array; mixed captures
+form a tuple. Use unpack to name them.
 
 ### See also
 

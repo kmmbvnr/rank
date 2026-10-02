@@ -15,12 +15,12 @@ test "red object is excluded"
   use "012_jsonsum"
 
   Result = "{\"d\":\"red\",\"e\":[1,2,3,4],\"f\":5}" solve
-  Result equal array 15 0
+  Result equal tuple 15 0
 end
 
 test "red affects its object only"
   use "012_jsonsum"
 
   Result = "[1,{\"c\":\"red\",\"b\":2},3]" solve
-  Result equal array 6 4
+  Result equal tuple 6 4
 end

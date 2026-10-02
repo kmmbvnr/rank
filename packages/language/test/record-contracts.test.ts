@@ -69,7 +69,49 @@ describe('structural record facts', () => {
         expect(result.diagnostics.map(item => item.message)).toEqual([]);
     });
 
-    it('does not treat an empty array fill as an established cell type', () => {
-        expect(messages('R = record\n .items = array shape 0 fill 0\nend\nR .items = array "ok"')).toEqual([]);
+    it('does not treat a missing fill as an established cell type', () => {
+        expect(messages('R = record\n .items = array shape 0 fill .NA\nend\nR .items = array "ok"')).toEqual([]);
     });
+});
+
+describe('ordinary record binding schemas', () => {
+    it('rejects different field names, types and ranks', () => {
+        for (const field of ['.other = 1', '.items = "bad"', '.items = array "bad"', '.items = array shape 1 1 fill 0']) {
+            expect(messages(vector + `R = record\n ${field}\nend`).some(message => message.includes('R') && message.includes('cannot receive'))).toBe(true);
+        }
+    });
+    it('retains the established schema through empty and missing replacements', () => {
+        expect(messages(vector + 'R = .NA\nR = record\n .items = array "bad"\nend').some(message => message.includes('integer'))).toBe(true);
+        expect(messages(vector + 'R = record\n .items = array shape 0 fill .NA\nend\nR .items = array "bad"'))
+            .toContain('record field .items has array cells of type integer and cannot receive text');
+    });
+    it('settles an initially empty field on a whole-record assignment', () => {
+        expect(messages('R = record\n .items = array shape 0 fill .NA\nend\n' + vector + 'R = record\n .items = array "bad"\nend')
+            .some(message => message.includes('integer') && message.includes('text'))).toBe(true);
+    });
+    it('allows compatible assignments without keeping stale lengths', () => {
+        const result = analyze(vector + 'R = record\n .items = array 3 4 5\nend\nX = R .items');
+        expect(result.diagnostics).toEqual([]);
+        expect(result.bindings.get('X')).toMatchObject({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
+    });
+});
+
+it('retains record contracts across callbacks while forgetting values and lengths', () => {
+    const result = analyze('fun apply F\n R = record\n .items = array 1 2\n .count = 7\n end\n 0 F\n return R\nend\nX = Callback apply');
+    expect(result.bindings.get('X')).toMatchObject({ types: ['record'], fields: {
+        items: { types: ['array'], rank: 1, shape: [null], elements: ['integer'] },
+        count: { types: ['integer'] },
+    } });
+    expect(result.bindings.get('X')?.fields?.count.integer).toBeUndefined();
+    expect(result.bindings.get('X')?.fields?.items.eagerScalarCells).toBeUndefined();
+    expect(messages('fun apply F\n R = record\n .x = 1\n end\n 0 F\n R = record\n .y = 2\n end\n return R\nend\nCallback apply')
+        .some(message => message.includes('fields .x') && message.includes('fields .y'))).toBe(true);
+});
+
+it('keeps a record schema after control-flow joins and loop invalidation', () => {
+    for (const middle of ['if Flag\n R = record\n .items = array 3\n end\nend',
+        'for I in 1 to 2\n Unknown\nend']) {
+        expect(messages(vector + middle + '\nR = record\n .other = 1\nend')
+            .some(message => message.includes('fields .items') && message.includes('fields .other'))).toBe(true);
+    }
 });

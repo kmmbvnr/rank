@@ -15,5 +15,5 @@ fun single_neuron X Y W Bias
   Mse = Error * Error mean round 4
   Pred = Pred round 4
 
-  return array Pred Mse
+  return tuple Pred Mse
 end

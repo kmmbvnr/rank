@@ -4,22 +4,19 @@ import { createArraySnapshot } from '../src/array-storage.js';
 import type { RankValue } from '../src/index.js';
 
 describe('broadcast result caches', () => {
-    it.each([2, 3])('caches zero, false and later entries independently of access order at size %i', size => {
-        const source = createArraySnapshot([0n, false, 7n].slice(0, size));
+    it.each([[0n, 0n, 7n], [false, false, true]])('caches falsy cells independently of access order: %s', (...initial) => {
+        const source = createArraySnapshot(initial);
         const seen: RankValue[] = [];
         const result = mapBroadcastArrays(source, source, a => { seen.push(a); return a; });
-        expect(result.itemAt!(1)).toBe(false);
-        expect(result.itemAt!(0)).toBe(0n);
-        if (size === 3) expect(result.itemAt!(2)).toBe(7n);
-        source.items[0] = 20n;
-        source.items[1] = true;
-        if (size === 3) source.items[2] = 70n;
-        expect(result.items).toEqual([20n, true, 70n].slice(0, size));
-        expect(result.itemAt!(-0)).toBe(20n);
-        expect(seen).toEqual([...([false, 0n, 7n].slice(0, size)), ...([20n, true, 70n].slice(0, size))]);
-        result.items[0] = 100n;
-        expect(result.itemAt!(0)).toBe(20n);
-        expect(result.items[0]).toBe(100n);
+        expect(result.itemAt!(1)).toBe(initial[1]);
+        expect(result.itemAt!(0)).toBe(initial[0]);
+        expect(result.itemAt!(2)).toBe(initial[2]);
+        expect(result.itemAt!(-0)).toBe(initial[0]);
+        expect(seen).toEqual([initial[1], initial[0], initial[2]]);
+        source.items[0] = initial[2];
+        expect(result.items).toEqual([initial[2], initial[1], initial[2]]);
+        result.items[0] = initial[0];
+        expect(result.itemAt!(0)).toBe(initial[2]);
     });
 
     it.each([2, 3])('does not cache failures and retains Map key behavior at size %i', size => {

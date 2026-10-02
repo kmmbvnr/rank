@@ -362,10 +362,14 @@ calls. Each closure owns its contracts. Redefining a function starts new contrac
 
 Known array element types distinguish type specializations, which share the
 return rank for the same argument ranks. Empty arrays do not settle an element
-type. Direct lazy array arguments are not read to choose a specialization: unknown element types
-share a specialization until materialized. Returned lazy elements are checked as
-they are consumed, and their complete element type set settles when all cells have
-been read. Materialize inputs when dispatch must distinguish their element types.
+type. Direct lazy array arguments are not read to choose a specialization.
+Known operator types propagate without executing cells; views and copies retain
+that information. Reading cells or calling `copy` does not change specialization.
+An unresolved lazy element domain stays unresolved after materialization, with
+runtime return contracts retained. Returned lazy elements are checked as they
+are consumed; the first concrete cell settles their recursive element contract.
+Dense arithmetic and `choose` fast paths only borrow stored operands, so unread
+operands stay lazy. See [Type contracts](type-contracts.md#lazy-call-specialization).
 
 Record arguments also distinguish specializations by their field names and
 recursive field types, including array ranks and established cell types. Field
@@ -375,8 +379,9 @@ passed to a function.
 
 Within one specialization, returned records must have the same recursive schema.
 Being `.record` on both paths is not enough: a field cannot be absent, change
-type, or change array rank. Empty arrays may defer cell types until a nonempty
-value establishes them. A schema conflict raises `ReturnTypeMismatch`.
+type, or change array rank. Empty arrays without a concrete fill may defer cell types until a nonempty
+value establishes them. An explicit fill such as `array shape 0 fill 0`
+already establishes integer cells, including in an empty function result. A schema conflict raises `ReturnTypeMismatch`.
 
 For results with different meanings, return a record with an explicit tag and
 consistent fields:

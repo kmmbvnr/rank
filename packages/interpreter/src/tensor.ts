@@ -1,4 +1,4 @@
-import { derivedArray, eagerOperandItems, float64Cells, ownedArray, readArrayItem, realCells, typedArray } from './array-storage.js';
+import { derivedArray, storedOperandItems, float64Cells, ownedArray, readArrayItem, realCells, typedArray } from './array-storage.js';
 import { RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import type { RankArray, RankValue } from './value.js';
@@ -41,8 +41,8 @@ export function mapDenseArrays(
     const size = shape.reduce((product, dimension) => product * dimension, 1);
     // A small array costs little to keep lazy; the layers only add up on large ones.
     if (size < DENSE_MIN_CELLS) return undefined;
-    let leftItems = leftArray ? eagerOperandItems(leftArray) : undefined;
-    let rightItems = rightArray ? eagerOperandItems(rightArray) : undefined;
+    let leftItems = leftArray ? storedOperandItems(leftArray) : undefined;
+    let rightItems = rightArray ? storedOperandItems(rightArray) : undefined;
     if (leftArray && !leftItems) return undefined;
     if (rightArray && !rightItems) return undefined;
     const same = !!leftArray && !!rightArray
@@ -130,9 +130,9 @@ export function mapDenseArrays(
 }
 
 /**
- * `choose` at once when every operand is stored or small: the condition cells
- * must all be booleans and the branches scalars, and an operand that raises when
- * read declines, so the lazy form still reads only the chosen branch cell.
+ * `choose` at once when every operand is stored: the condition cells
+ * must all be booleans and the branches scalars. Unread operands decline,
+ * so the lazy form reads only the chosen branch cell.
  */
 export function chooseDenseArrays(
     condition: RankValue, whenTrue: RankValue, whenFalse: RankValue, shape: readonly number[],
@@ -148,7 +148,7 @@ export function chooseDenseArrays(
                 cells.push([operand]);
                 continue;
             }
-            const items = eagerOperandItems(operand);
+            const items = storedOperandItems(operand);
             if (!items) return undefined;
             cells.push(trailingCells(operand.shape, shape) === 0 ? items
                 : expandOperand<RankValue>(items, operand.shape, shape, Array as never));

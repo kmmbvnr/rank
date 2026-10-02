@@ -51,7 +51,7 @@ end
 
     it('joins scalar arrays, ranges and empty sequences', () => {
         expect(run('use text\n(array "ab" "cd") "" join')).toBe('abcd');
-        expect(run('use text\n(array 1 true "x") ", " join')).toBe('1, true, x');
+        expect(run('use text\n(array "1" "true" "x") ", " join')).toBe('1, true, x');
         expect(run('use text\n(1 to 3) ":" join')).toBe('1:2:3');
         expect(run('use text\n(1 to 0) "," join')).toBe('');
         expect(run('use text\n(1 to 3) text ".1f" "," join')).toBe('1.0,2.0,3.0');

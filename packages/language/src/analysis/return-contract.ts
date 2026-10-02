@@ -1,4 +1,5 @@
-import type { ValueFacts } from './value-domain.js';
+import { arrayBindingContract, arrayContractConflict } from './array-binding-contract.js';
+import { stableRecordField, type ValueFacts } from './value-domain.js';
 import { bindingRankMessage, bindingTypeMessage, provenBindingTypeConflict } from '../binding-rule.js';
 
 /** Values and axis lengths do not identify a function specialization. */
@@ -7,7 +8,7 @@ export function argumentSignature(inputs: readonly ValueFacts[], elements = true
 }
 
 function inputSignature(value: ValueFacts, elements: boolean): unknown {
-    return [[...value.types].sort(), value.rank ?? null,
+    return [[...value.types].sort(), value.rank ?? null, value.tupleItems?.map(item => inputSignature(item, elements)),
         elements && value.elements ? [...value.elements].sort() : null,
         value.types.join() === 'record' && value.fields ? Object.keys(value.fields).sort()
             .map(name => [name, inputSignature(value.fields![name], elements)]) : null];
@@ -22,9 +23,19 @@ export function recordFieldConflict(expected: ValueFacts, received: ValueFacts, 
         return { kind: 'DimensionMismatch', message: bindingRankMessage(name, expected.rank, received.rank) };
     }
     if (expected.types.join() === 'array' && received.types.join() === 'array' && expected.elements?.length
-        && received.elements?.length && (contract || received.shape?.every(size => size !== null && size > 0))
+        && received.elements?.length && (contract || received.declaredArrayContract || received.shape?.every(size => size !== null && size > 0))
         && provenBindingTypeConflict(expected.elements, received.elements)) {
         return { kind: 'TypeError', message: `${name} has array cells of type ${expected.elements.join(' or ')} and cannot receive ${received.elements.join(' or ')}` };
+    }
+    const arrayConflict = arrayContractConflict(arrayBindingContract(expected), received, name);
+    if (arrayConflict) return { kind: 'TypeError', message: arrayConflict };
+    if (expected.tupleItems && received.tupleItems) {
+        if (expected.tupleItems.length !== received.tupleItems.length) return { kind: 'TypeError',
+            message: `${name} has ${expected.tupleItems.length} tuple positions and cannot receive ${received.tupleItems.length}` };
+        for (let index = 0; index < expected.tupleItems.length; index++) {
+            const conflict = recordFieldConflict(expected.tupleItems[index], received.tupleItems[index], `${name} position ${index + 1}`, true);
+            if (conflict) return conflict;
+        }
     }
     if (expected.types.join() !== 'record' || received.types.join() !== 'record' || !expected.fields || !received.fields) return;
     if (expected.closedRecord && received.closedRecord
@@ -48,10 +59,10 @@ export function returnConflicts(values: readonly ValueFacts[]): { kind: 'TypeErr
         message: `returns incompatible ranks: ${ranks.join(' and ')}` });
     for (let i = 0; i < values.length; i++) for (const right of values.slice(i + 1)) {
         const left = values[i];
-        if (left.types.join() === 'record' && right.types.join() === 'record') {
-            const conflict = recordFieldConflict(left, right, 'return record');
+        if (left.types.join() === right.types.join() && ['record', 'tuple'].includes(left.types.join())) {
+            const conflict = recordFieldConflict(left, right, `return ${left.types.join()}`);
             if (conflict) {
-                conflicts.push({ ...conflict, message: `returns incompatible record types: ${conflict.message}` });
+                conflicts.push({ ...conflict, message: `returns incompatible ${left.types.join() === 'array' ? '' : left.types.join() + ' '}types: ${conflict.message}` });
                 return conflicts;
             }
         }
@@ -61,6 +72,13 @@ export function returnConflicts(values: readonly ValueFacts[]): { kind: 'TypeErr
             conflicts.push({ kind: 'TypeError', message: `returns incompatible types: ${a.join(' or ')} and ${b.join(' or ')}` });
             return conflicts;
         }
+        if (left.types.join() === 'array' && right.types.join() === 'array') {
+            const conflict = recordFieldConflict(left, right, 'return array');
+            if (conflict) {
+                conflicts.push({ ...conflict, message: `returns incompatible array types: ${conflict.message}` });
+                return conflicts;
+            }
+        }
     }
     return conflicts;
 }
@@ -68,8 +86,32 @@ export function returnConflicts(values: readonly ValueFacts[]): { kind: 'TypeErr
 /** Retain types/ranks while forgetting data that could select just one return path. */
 export function returnInput(value: ValueFacts): ValueFacts {
     return { types: value.types, rank: value.rank, elements: value.elements,
+        ...(value.declaredArrayContract ? { declaredArrayContract: value.declaredArrayContract } : {}),
+        ...(value.tupleItems ? { tupleItems: value.tupleItems.map(returnInput) } : {}),
         ...(value.closedRecord ? { closedRecord: true as const } : {}),
         ...(value.shape ? { shape: value.shape.map(() => null) } : {}),
         ...(value.fields ? { fields: Object.fromEntries(Object.entries(value.fields)
             .map(([name, fact]) => [name, returnInput(fact)])) } : {}) };
+}
+
+/** Binding schemas contain no values, lengths or execution proofs. */
+export function recordBindingContract(value: ValueFacts | undefined): ValueFacts | undefined {
+    return value?.acceptedRecordContract ?? (value && (value.types.join() === 'record' && value.closedRecord || value.types.join() === 'tuple' && value.tupleItems)
+        ? stableRecordField(value) : undefined);
+}
+
+/** Empty fields may acquire evidence; established fields never change their schema. */
+export function refineRecordContract(previous: ValueFacts | undefined, next: ValueFacts): ValueFacts | undefined {
+    const received = recordBindingContract(next);
+    if (!previous) return received;
+    if (!received) return previous;
+    const refine = (old: ValueFacts, value: ValueFacts): ValueFacts => ({ ...old,
+        rank: old.rank ?? value.rank,
+        ...(old.tupleItems ? { tupleItems: old.tupleItems.map((item, index) => value.tupleItems?.[index]
+            ? refine(item, value.tupleItems[index]) : item) } : {}),
+        declaredArrayContract: old.declaredArrayContract?.elements?.length ? old.declaredArrayContract : value.declaredArrayContract,
+        elements: old.elements?.length ? old.elements : value.elements,
+        ...(old.fields ? { fields: Object.fromEntries(Object.entries(old.fields).map(([name, field]) =>
+            [name, value.fields?.[name] ? refine(field, value.fields[name]) : field])) } : {}) });
+    return refine(previous, received);
 }

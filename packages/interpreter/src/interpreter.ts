@@ -191,7 +191,7 @@ export class Interpreter {
             compileLoop: (statement, binding) => this.fastPaths.compileLoop(statement, binding),
         };
         this.writes = {
-            checkArrayWrite: (name, target, values) => this.checkArrayWrite(name, target, values),
+            checkArrayWrite: (name, target, values, offsets) => this.checkArrayWrite(name, target, values, offsets),
             evaluate: expression => this.expressions.evaluate(expression),
             compileDirect: expression => this.expressions.compileDirect(expression),
             compileAssign: name => this.compileAssign(name),
@@ -292,7 +292,6 @@ export class Interpreter {
         const fork = new Interpreter(output, options);
         for (const module of this.modules) fork.modules.add(module);
         for (const name of this.bindings.sourceBindings) fork.bindings.sourceBindings.add(name);
-        fork.bindings.globals.adoptContracts(this.bindings.globals);
         for (const [name, child] of this.aliases) fork.aliases.set(name, child.forkForPreview(output));
         for (const [name, value] of this.variables) {
             const source = isNativeFunction(value) ? this.functions.sourceOf(value) : undefined;
@@ -300,6 +299,7 @@ export class Interpreter {
             const definition = isNativeFunction(value) ? this.functions.definitionOf(value) : undefined;
             if (!definition || definition.context) fork.variables.set(name, clonePreviewValue(value));
         }
+        fork.bindings.globals.adoptContracts(this.bindings.globals);
         // Rebuild top-level user functions so their calls use the fork rather than
         // the original interpreter captured by the function object.
         for (const value of this.variables.values()) {
@@ -405,13 +405,13 @@ export class Interpreter {
         return value;
     }
 
-    private checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[]): readonly RankValue[] {
+    private checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[] {
         const dot = name.indexOf('.');
         if (dot > 0) {
             const child = this.aliases.get(name.slice(0, dot));
-            if (child) return child.checkArrayWrite(name.slice(dot + 1), target, values);
+            if (child) return child.checkArrayWrite(name.slice(dot + 1), target, values, offsets);
         }
-        return (this.bindings.current?.find(name) ?? this.bindings.globals).checkArrayWrite(name, target, values);
+        return (this.bindings.current?.find(name) ?? this.bindings.globals).checkArrayWrite(name, target, values, offsets);
     }
 
     private compileAssign(name: string): (value: RankValue) => void {

@@ -11,7 +11,7 @@ import { flattenApplication } from '../expressions.js';
  */
 
 import {
-    isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
+    isTupleExpression, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression,
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
@@ -127,6 +127,7 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
     if (isStringLiteral(expression) || isTextBlockExpression(expression)) return ['text'];
     if (isBooleanLiteral(expression)) return ['boolean'];
     if (isLabelLiteral(expression)) return [expression.name === 'NA' ? 'missing' : 'symbol'];
+    if (isTupleExpression(expression)) return ['tuple'];
     if (isArrayExpression(expression) || isMaterializeExpression(expression)) return ['array'];
     if (isRecordExpression(expression) || isRecordUpdateExpression(expression)) return ['record'];
     if (isTableFilterExpression(expression) || isTableSelectExpression(expression)) {

@@ -22,7 +22,7 @@ export type ResultKind =
     | 'integer' | 'real' | 'number' | 'boolean' | 'text' | 'bytes'
     | 'array' | 'sequence' | 'table' | 'record' | 'collection'
     | 'element' | 'structure' | 'functional' | 'segment' | 'fenwick' | 'date' | 'datetime' | 'duration' | 'file' | 'database'
-    | 'value' | 'same';
+    | 'tuple' | 'value' | 'same';
 
 /** One builtin name, either always available in core or opened by a module. */
 export interface Operation {
@@ -440,7 +440,7 @@ export const operations: readonly Operation[] = [
         monadicRank: 2, summary: 'Determinant of a square numeric matrix, exact for integers.' },
     { name: 'diag', module: 'linalg', arities: [1], form: 'Values diag', result: 'array',
         summary: 'Diagonal matrix from a vector, or the main diagonal of a matrix.' },
-    { name: 'eigh', module: 'linalg', arities: [1], form: 'Matrix eigh', result: 'array',
+    { name: 'eigh', module: 'linalg', arities: [1], form: 'Matrix eigh', result: 'tuple',
         summary: 'Ascending eigenvalues and their eigenvector columns of a symmetric matrix.' },
     { name: 'inverse', module: 'linalg', arities: [1], form: 'Matrix inverse', result: 'array',
         shape: [{ args: [['n', 'n']], result: ['n', 'n'] }],
@@ -720,7 +720,7 @@ export const operations: readonly Operation[] = [
         shape: [{ args: [[null], []], result: null }],
         dyadicRanks: [1, 0],
         summary: 'Joins scalar elements of a finite collection into one text; a matrix joins each row.' },
-    { name: 'parse', module: 'text', arities: [2], form: 'Text Pattern parse', result: 'array',
+    { name: 'parse', module: 'text', arities: [2], form: 'Text Pattern parse', result: 'value',
         summary: 'Captures /integer, /real, /word and /text from a complete pattern match.' },
     { name: 'split', module: 'text', arities: [2], form: 'Text Separator split', result: 'array',
         shape: [{ args: [null, null], result: [{ exists: 'k' }] }],

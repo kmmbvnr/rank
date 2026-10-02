@@ -1,0 +1,99 @@
+{
+  "issue": 153,
+  "step": 1,
+  "date": "2026-10-02",
+  "baseRevision": "10f9298b7a61e7152a358daca4d256e555293d49",
+  "scope": "Stable recursive schemas for ordinary record bindings; reuse field validation and retain schema facts separately from current values.",
+  "commands": [
+    "node benchmarks/analysis-coverage.mjs",
+    "node benchmarks/refactor-analysis-latency.mjs",
+    "node packages/cli/bin/cli.js test demos"
+  ],
+  "forwardCoverage": {
+    "before": {
+      "files": 466,
+      "functions": 591,
+      "knownEffects": 33,
+      "borrowCandidates": 4,
+      "guardedBuiltinBorrowCandidates": 6,
+      "loopFunctions": 347,
+      "knownLoopEffects": 0,
+      "testExamples": 1085,
+      "knownExampleResults": 1083,
+      "knownExampleEffects": 197,
+      "exampleExpectationConflicts": 0
+    },
+    "after": {
+      "files": 466,
+      "functions": 592,
+      "knownEffects": 33,
+      "borrowCandidates": 4,
+      "guardedBuiltinBorrowCandidates": 6,
+      "loopFunctions": 347,
+      "knownLoopEffects": 0,
+      "testExamples": 1085,
+      "knownExampleResults": 1083,
+      "knownExampleEffects": 197,
+      "exampleExpectationConflicts": 0
+    }
+  },
+  "requirements": {
+    "before": {
+      "bindingsWithNewRankBounds": 230,
+      "bindingsWithNewExactRank": 227,
+      "callResultsWithNewRankBounds": 32,
+      "callResultsWithNewExactRank": 29,
+      "constrainedParameters": 7,
+      "contradictions": 0,
+      "limitedFiles": 0
+    },
+    "after": {
+      "bindingsWithNewRankBounds": 230,
+      "bindingsWithNewExactRank": 227,
+      "callResultsWithNewRankBounds": 32,
+      "callResultsWithNewExactRank": 29,
+      "constrainedParameters": 7,
+      "contradictions": 0,
+      "limitedFiles": 0
+    }
+  },
+  "editorLatency": {
+    "before": [
+      "short incomplete: median 0.11 ms, p95 0.23 ms",
+      "array contracts: median 10.89 ms, p95 13.42 ms",
+      "large incomplete: median 5.61 ms, p95 7.12 ms"
+    ],
+    "after": [
+      "short incomplete: median 0.10 ms, p95 0.19 ms",
+      "array contracts: median 10.57 ms, p95 13.27 ms",
+      "large incomplete: median 5.84 ms, p95 7.59 ms"
+    ],
+    "qualification": "Small local samples; other test processes were running. These measurements do not establish a speed change."
+  },
+  "compatibilityAudit": {
+    "demoTestFiles": 392,
+    "affectedSourceFiles": [
+      "demos/deepml/026_grad.ra"
+    ],
+    "migration": "Process each tape node in a fresh backward_node call, preserving shared gradient mutation. Adds one function; inference counts otherwise unchanged.",
+    "result": "Three autograd tests initially failed on changing Node schemas and passed after migration. All other demo tests passed after restoring the local Africa CSV fixture (three tests)."
+  },
+  "analyzerChanges": [
+    "Reuse recordFieldConflict for ordinary assignments instead of adding a second schema checker.",
+    "Retain established schema bounds through missing values, joins and invalidation; keep private record field schemas across unknown callbacks without values, lengths or read-safety proofs."
+  ],
+  "limitations": [
+    "Static recursive array-cell and alias-refinement information remains conservative; runtime checks are required.",
+    "Shared return contracts, lazy semantic specialization and annotations remain later steps of issue 153."
+  ],
+  "verification": {
+    "build": "npm test completed the full build and both repository checks; final TypeScript incremental build also passed.",
+    "language": "730 tests passed; final diagnostic adjustment additionally passed all 15 record analysis tests.",
+    "interpreter": "2410 tests passed, including 30 ordinary-record-binding tests.",
+    "common": "141 tests passed.",
+    "compile": "10 tests passed.",
+    "cli": "485 of 486 passed in npm test. The scalar terminal test \"an open function evaluates body lines immediately on example arguments\" failed with spawnSync expect ETIMEDOUT. Its isolated rerun passed in 6.9 seconds. The full npm test command therefore exited 1; no unrelated terminal changes were made.",
+    "demos": "392 files audited. The three autograd failures passed after migration; three missing Africa CSV fixture failures passed after restoring the ignored local fixture.",
+    "whitespace": "git diff --check passed."
+  }
+}

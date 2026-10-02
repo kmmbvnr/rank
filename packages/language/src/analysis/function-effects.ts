@@ -1,6 +1,6 @@
 import { AstUtils } from 'langium';
 import {
-    isApplicationExpression, isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement,
+    isTupleExpression, isApplicationExpression, isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement,
     isBinaryExpression, isBooleanLiteral, isBreakStatement, isContinueStatement, isExpressionStatement,
     isForStatement, isFunctionStatement, isIfStatement, isLabelLiteral, isAllAxisExpression,
     isNameExpression, isNumberLiteral, isParenthesizedExpression, isPushStatement, isRecordExpression,
@@ -565,6 +565,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 return expression(value.left) && expression(value.right)
                     && (!value.step || expression(value.step));
             }
+            if (isTupleExpression(value)) return value.items.every(item => expression(item.value));
             if (isArrayExpression(value)) return [...value.items, ...value.dimensions, ...value.rows.flatMap(row => row.items)]
                 .every(item => expression(item.value)) && (!value.fill || expression(value.fill))
                 && (!value.range || expression(value.range));

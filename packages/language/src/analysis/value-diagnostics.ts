@@ -4,7 +4,7 @@ import { inferRequirements, type RequirementAnalysis } from './requirements.js';
 import { requirementDiagnostics } from './requirement-diagnostics.js';
 import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isNumberLiteral, isStringLiteral, isParenthesizedExpression,
-    isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
+    isTupleExpression, isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
     isArrayAssignmentStatement, isAssignmentStatement, isIndexAssignmentStatement, isBinaryExpression,
     isExpressionStatement, isNewStructureExpression, isRecordExpression, isRecordUpdateExpression,
     isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, 
@@ -26,7 +26,7 @@ import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { functionYields, generatorCells, yieldTypes } from './function-yields.js';
 import { createCallAnalysis } from './function-calls.js';
 import { createReturnPathAnalysis } from './return-paths.js';
-import { recordFieldConflict } from './return-contract.js';
+import { recordBindingContract, refineRecordContract, recordFieldConflict } from './return-contract.js';
 import { createLoopAnalysis } from './loop-analysis.js';
 import { freshDim } from './shape-index.js';
 import { directValue, safeCollectionValue, safeIndexDefault, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
@@ -116,7 +116,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 message: `${name} holds array rank ${collection.elementRank} and cannot receive rank ${rank}` });
             return;
         }
-        const nonempty = value.shape?.every(size => size !== null && size > 0) === true;
+        const nonempty = !!value.declaredArrayContract?.elements?.length || value.shape?.every(size => size !== null && size > 0) === true;
         if (nonempty && accepted?.join() === 'array' && collection.elementCells?.length && value.elements?.length
             && value.elements.every(type => !collection.elementCells!.includes(type))) {
             diagnostics.push({ node, kind: 'TypeError',
@@ -132,6 +132,41 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     ? { elementCells: value.elements } : {}) });
         }
     }
+    function bind(name: string, next: ValueFacts, node: AstNode, env: Map<string, ValueFacts>): void {
+        const previous = env.get(name);
+        const accepted = previous?.acceptedTypes ?? previous?.types;
+        const expectedRank = contractRank(previous);
+        const receivedRank = arrayRank(next);
+        if (accepted?.length && provenBindingTypeConflict(accepted, next.types)) {
+            diagnostics.push({ node, kind: 'TypeError',
+                message: bindingTypeMessage(name, accepted, next.types) });
+        } else if (expectedRank !== undefined && receivedRank !== undefined
+            && bindingRankConflict(expectedRank, receivedRank)) {
+            diagnostics.push({ node, kind: 'DimensionMismatch',
+                message: bindingRankMessage(name, expectedRank, receivedRank) });
+        }
+        const recordContract = recordBindingContract(previous);
+        const recordConflict = recordContract && ['record', 'tuple'].includes(next.types.join())
+            ? recordFieldConflict(recordContract, next, name) : undefined;
+        if (recordConflict) diagnostics.push({ node, ...recordConflict });
+        const schema = refineRecordContract(recordContract, next);
+        if (schema && ['record', 'tuple'].includes(next.types.join())) next = { ...next, fields: schema.fields, closedRecord: schema.closedRecord, tupleItems: schema.tupleItems };
+        const arrayContract = refineArrayContract(arrayBindingContract(previous), next);
+        const elementConflict = arrayContractConflict(arrayBindingContract(previous), next, name);
+        if (elementConflict) diagnostics.push({ node, kind: 'TypeError', message: elementConflict });
+        // A successful assignment to an uncaptured scalar local must
+        // satisfy its existing binding contract, even if the RHS is unknown.
+        if (!next.types.length && accepted?.length && privateBindings.at(-1)?.has(name)
+            && accepted.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))) {
+            next = { types: accepted, rank: 0, shape: [] };
+        }
+        env.set(name, { ...next,
+            acceptedTypes: accepted?.length ? settledBindingTypes(accepted, next.types)
+                : next.infinite ? ['integer', 'real'] : next.types,
+            acceptedRecordContract: schema,
+            acceptedArrayRank: expectedRank ?? receivedRank, acceptedArrayContract: arrayContract });
+    }
+
     function tryPrefixFacts(statement: TryStatement,
         env: Map<string, ValueFacts>): Map<string, ValueFacts> | undefined {
         const indexNames = [...env].filter(([, fact]) => fact.types.join() === 'index' && fact.elements !== undefined)
@@ -192,6 +227,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             const accepted = fact.acceptedTypes ?? fact.types;
             const privateValue = protectedNames?.has(name) && accepted.length > 0;
             const rank = contractRank(fact);
+            const record = recordBindingContract(fact);
+            if (privateValue && ['record', 'tuple'].includes(fact.types.join()) && record) {
+                env.set(name, { ...record, acceptedRecordContract: record });
+                continue;
+            }
             // Unknown calls may mutate a private value, but cannot rebind its uncaptured local name.
             env.set(name, privateValue && fact.types.length > 0
                 && fact.types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
@@ -486,10 +526,18 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             inspect(expression.source, env);
             inspect(expression.count, env);
         }
+        if (isTupleExpression(expression)) expression.items.forEach(item => inspect(item.value, env));
         if (isArrayExpression(expression)) {
             for (const item of [...expression.items, ...expression.dimensions, ...expression.rows.flatMap(row => row.items)]) inspect(item.value, env);
             if (expression.fill) inspect(expression.fill, env);
             if (expression.range) inspect(expression.range, env);
+            const cells = [...expression.items, ...expression.rows.flatMap(row => row.items)]
+                .map(item => expressionFacts(item.value, lookup)).filter(cell => !cell.infinite && cell.types.length === 1
+                    && cell.types[0] !== 'missing');
+            if (cells.some(cell => recordFieldConflict(cells[0], cell, 'array elements'))) {
+                diagnostics.push({ node: expression, kind: 'TypeError',
+                    message: 'arrays require one element type; use a tuple for different positional types' });
+            }
             const shape = expressionFacts(expression, lookup).shape;
             if (expression.dimensions.length && !expression.fill && shape?.every(n => n !== null)) {
                 const expected = shape.reduce<bigint>((size, n) => size * BigInt(n!), 1n);
@@ -738,61 +786,35 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         left: { $type: 'NameExpression', name: statement.name }, right: statement.value } as Expression, name => env.get(name)),
                     types: compoundType(statement.operator, previous?.types ?? [], next.types),
                 };
-                const accepted = previous?.acceptedTypes ?? previous?.types;
-                const expectedRank = contractRank(previous);
-                const receivedRank = arrayRank(next);
-                if (accepted?.length && provenBindingTypeConflict(accepted, next.types)) {
-                    diagnostics.push({ node: statement.value, kind: 'TypeError',
-                        message: bindingTypeMessage(statement.name, accepted, next.types) });
-                } else if (expectedRank !== undefined && receivedRank !== undefined
-                    && bindingRankConflict(expectedRank, receivedRank)) {
-                    diagnostics.push({ node: statement.value, kind: 'DimensionMismatch',
-                        message: bindingRankMessage(statement.name, expectedRank, receivedRank) });
-                }
-                const arrayContract = refineArrayContract(arrayBindingContract(previous), next);
-                const elementConflict = arrayContractConflict(arrayBindingContract(previous), next, statement.name);
-                if (elementConflict) diagnostics.push({ node: statement.value, kind: 'TypeError', message: elementConflict });
-                // A successful assignment to an uncaptured scalar local must
-                // satisfy its existing binding contract, even if the RHS is unknown.
-                if (!next.types.length && accepted?.length && privateBindings.at(-1)?.has(statement.name)
-                    && accepted.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))) {
-                    next = { types: accepted, rank: 0, shape: [] };
-                }
-                env.set(statement.name, { ...next,
-                    acceptedTypes: accepted?.length ? settledBindingTypes(accepted, next.types)
-                        : next.infinite ? ['integer', 'real'] : next.types,
-                    acceptedArrayRank: expectedRank ?? receivedRank, acceptedArrayContract: arrayContract });
+                bind(statement.name, next, statement.value, env);
                 if (calls.directNoReturnCall(statement.value, env)) return false;
             } else if (isUnpackStatement(statement)) {
                 invalidateCalls(statement.value, env);
                 const source = inspect(statement.value, env);
                 const knownCells = !!source.elements?.length || !!source.positionFacts?.length;
-                if (source.types.join() !== 'array' || source.rank !== 1
+                if (!source.tupleItems && (source.types.join() !== 'array' || source.rank !== 1
                     || source.shape?.[0] != null && source.shape[0] !== statement.names.length
                     || !knownCells && source.positions?.length !== statement.names.length
-                    || !(source.eagerScalarCells || source.callbackFreeScalarCells)) {
+                    || !(source.eagerScalarCells || source.callbackFreeScalarCells))) {
                     forgetNonFunctions(env);
+                    continue;
+                }
+                if (source.tupleItems && source.tupleItems.length !== statement.names.length) {
+                    diagnostics.push({ node: statement, kind: 'TypeError', message: `unpack expects ${statement.names.length} values, got ${source.tupleItems.length}` });
                     continue;
                 }
                 for (const [index, name] of statement.names.entries()) {
                     if (name === '#') continue;
-                    const cell = source.positionFacts?.[index];
+                    const cell = source.tupleItems?.[index] ?? source.positionFacts?.[index];
                     const types = cell?.types ?? source.positions?.[index] ?? source.elements ?? [];
-                    const previous = env.get(name);
-                    const accepted = previous?.acceptedTypes ?? previous?.types;
-                    if (accepted?.length && provenBindingTypeConflict(accepted, types)) {
-                        diagnostics.push({ node: statement, kind: 'TypeError',
-                            message: bindingTypeMessage(name, accepted, types) });
-                    }
                     const scalarCell = types.length && types.every(type =>
                         ['integer', 'real', 'boolean', 'symbol', 'date', 'datetime', 'duration'].includes(type));
                     const textCell = types.join() === 'text';
-                    env.set(name, { ...(cell ?? (scalarCell ? { rank: 0, shape: [] }
+                    bind(name, { ...(cell ?? (scalarCell ? { rank: 0, shape: [] }
                             : textCell ? { rank: 1, shape: [null] } : {})),
                         types,
                         ...(source.integers?.[index] != null ? { integer: String(source.integers[index]) } : {}),
-                        acceptedTypes: accepted ?? types,
-                        ...(cell?.types.join() === 'array' ? { acceptedArrayRank: cell.rank } : {}) });
+                    }, statement, env);
                 }
             } else if (isAddStatement(statement)) {
                 invalidateCalls(statement.value, env);

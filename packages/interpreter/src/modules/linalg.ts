@@ -1,3 +1,4 @@
+import { tuple } from '../value.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { derivedArray, eagerOperandItems, ownedArray, readArrayItem, readArrayShape, float64Cells, realCells, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
@@ -71,7 +72,7 @@ function diagNumber(value: RankValue): bigint | number {
     throw new RankError('diag expects numeric elements', 'TypeError');
 }
 
-function symmetricEigendecomposition(value: RankValue): RankArray {
+function symmetricEigendecomposition(value: RankValue): RankValue {
     if (!isRankArray(value) || value.shape.length !== 2
         || value.shape[0] !== value.shape[1]) {
         throw new RankError('eigh expects a square rank-2 matrix', 'DimensionMismatch');
@@ -109,7 +110,7 @@ function symmetricEigendecomposition(value: RankValue): RankArray {
         return cleanReal(vectors[row][order[column]]);
     });
     const vectorArray = ownedArray(vectorItems, [size, size]);
-    return ownedArray([values, vectorArray]);
+    return tuple([values, vectorArray]);
 }
 
 function numericMatrix(value: RankArray, size: number, operation: string): number[][] {

@@ -10,7 +10,7 @@ describe('wavelet matrix', () => {
             'A = Data 1 3 2 4 within',
             'B = Data 4 5 2 9 within',
             'C = Data 0 7 1 5 within',
-            'array A B C',
+            'tuple A B C',
         ].join('\n'))).toBe('2 0 8');
     });
 
@@ -33,7 +33,7 @@ describe('wavelet matrix', () => {
             'A = Data 1 3 2 4 sumwithin',
             'B = Data 4 5 2 9 sumwithin',
             'C = Data 0 7 1 5 sumwithin',
-            'array A B C',
+            'tuple A B C',
         ].join('\n'))).toBe('6 0 24');
     });
 
@@ -55,7 +55,7 @@ describe('wavelet matrix', () => {
             'use algo',
             'use sequences',
             'Data = (array 1 2 3) wavelet',
-            'array (Data type) (Data len) (Data shape)',
+            'tuple (Data type) (Data len) (Data shape)',
         ].join('\n'))).toBe('.wavelet 3 3');
     });
 
@@ -67,8 +67,8 @@ describe('wavelet matrix', () => {
         ].join('\n'))).toThrow(
             'wavelet range start must not exceed its end',
         );
-        expect(() => run('use algo\n(array 1 "a") wavelet'))
-            .toThrow('wavelet values must have one comparable type');
+        expect(() => run('use algo\n(array (tuple 1) (tuple 2)) wavelet'))
+            .toThrow('ordered values must be comparable scalars');
         expect(() => run('(array 1 2) wavelet'))
             .toThrow('unknown name: wavelet');
         expect(() => run([

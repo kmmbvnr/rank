@@ -77,7 +77,7 @@ describe('dimension and domain requirements', () => {
         expect(conflict?.first.node).not.toBe(conflict?.second.node);
     });
     it('allows an empty array to satisfy disjoint cell-domain uses', () => {
-        expect(infer('use text\nX = array shape 0 fill 0\nX lower\nX sum').conflicts).toEqual([]);
+        expect(infer('use text\nX = array shape 0 fill .NA\nX lower\nX sum').conflicts).toEqual([]);
     });
 });
 

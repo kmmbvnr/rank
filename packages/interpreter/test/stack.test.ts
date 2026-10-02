@@ -31,6 +31,6 @@ describe('stack', () => {
 
     it('rejects different shapes and mixed scalars', () => {
         expect(() => run('S = (array (array 1 2) (array 1 2 3)) stack\nS')).toThrow(/same shape/);
-        expect(() => run('S = (array (array 1 2) 3) stack\nS')).toThrow(/arrays or sequences/);
+        expect(() => run('S = (array (array 1 2) 3) stack\nS')).toThrow(/arrays require one element type/);
     });
 });

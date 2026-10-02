@@ -1,3 +1,4 @@
+import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
 import { RUNTIME_TYPE_NAMES, type ApplicationForm } from '@arrrank/language';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { derivedArray, materializeCells, ownedArray, readArrayItem } from './array-storage.js';
@@ -166,7 +167,10 @@ export class Operators {
         rangeStep?: RankValue,
     ): RankValue {
         const result = this.evaluateBinaryValue(operator, left, right, rangeStep);
-        return isRankArray(result) ? markBinaryMask(operator, left, right, result) : result;
+        if (!isRankArray(result)) return result;
+        const type = binaryArrayType(operator, left, right);
+        if (type) setSemanticArrayType(result, type);
+        return markBinaryMask(operator, left, right, result);
     }
 
     /** `and` and `or` after a single boolean are guards: the right side runs only

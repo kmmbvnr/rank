@@ -59,8 +59,8 @@ describe('Rank IO, modules and programs', () => {
             'Word = stdin .word',
             'A = stdin .integer',
             'B = stdin .integer',
-            'array Word (A + B)',
-        ].join('\n'))).toEqual({ kind: 'array', items: ['Rank', -1196n], shape: [2] });
+            'tuple Word (A + B)',
+        ].join('\n'))).toEqual({ kind: 'tuple', items: ['Rank', -1196n] });
 
         expect(() => new Interpreter(undefined, {
             input: new TokenInput([]),

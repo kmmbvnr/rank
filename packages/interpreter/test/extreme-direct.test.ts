@@ -28,7 +28,7 @@ describe('direct binary extrema', () => {
 
     it('retains lazy broadcasting, selectors and reductions', () => {
         expect(run('use numbers\nA = array 1 8\nB = A 3 max\nB')).toBe('3 8');
-        expect(run('use numbers\nA = array 1 "later"\nB = A 3 max\nB 0')).toBe('3');
+        expect(run('use numbers\nA = (array 1 0) // (array 1 0)\nB = A 3 max\nB 0')).toBe('3');
         expect(run('use numbers\nA = array 1 8\nA 0 3 max')).toBe('3');
         expect(run('use numbers\nA = array 1 8\nA max')).toBe('8');
     });
@@ -142,7 +142,7 @@ end`);
     });
 
     it('gives aliases the same lazy broadcasting and tie representation', () => {
-        expect(run('use numbers\nOp = max\nA = array 1 "later"\nB = A 3 Op\nB 0')).toBe('3');
+        expect(run('use numbers\nOp = max\nA = (array 1 0) // (array 1 0)\nB = A 3 Op\nB 0')).toBe('3');
         expect(run('use numbers\nOp = min\n(1 to 3) 2 Op')).toBe('1 2 2');
         expect(run('use numbers\nuse algo\nQ = new queue\nQ push 1\nQ push 8\nOp = max\nQ 3 Op')).toBe('3 8');
         const runtime = new Interpreter();

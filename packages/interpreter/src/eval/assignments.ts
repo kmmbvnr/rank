@@ -1,3 +1,4 @@
+import { unpackApplicationItems } from '../value-selection.js';
 import {
     type AddStatement, type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
     type Expression, type IndexAssignmentStatement, type PushStatement, type UnpackStatement,
@@ -32,7 +33,7 @@ export interface AssignmentContext {
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     compileAssign(name: string): (value: RankValue) => void;
     resolveVariable(name: string): RankValue;
-    checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[]): readonly RankValue[];
+    checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[];
     evaluateAddressParts(item: AddressItem): Evaluation<RankValue[]>;
     select(values: RankValue[]): RankValue;
     requireModule(module: string, operation: string): void;
@@ -83,18 +84,11 @@ export function prepareUnpackStatement(statement: UnpackStatement, host: Assignm
         name === '#' ? undefined : host.compileAssign(name));
     return { stream: function* (): Execution<RankValue | undefined> {
         const result = (yield* resume(host.evaluate(statement.value)));
-        if (!isRankArray(result) || result.shape.length !== 1) {
-            throw new RankError('unpack expects a rank-1 array value');
+        const unpacked = unpackApplicationItems(result);
+        if (unpacked.length !== statement.names.length) {
+            throw new RankError(`unpack expects ${statement.names.length} values, got ${unpacked.length}`);
         }
-        const unpacked = result;
-        if (unpacked.items.length !== statement.names.length) {
-            throw new RankError(
-                `unpack expects ${statement.names.length} values, got ${unpacked.items.length}`,
-            );
-        }
-        for (let index = 0; index < writes.length; index += 1) {
-            writes[index]?.(unpacked.items[index]);
-        }
+        for (let index = 0; index < writes.length; index += 1) writes[index]?.(unpacked[index]);
         return result;
     } };
 }
@@ -176,7 +170,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 target.items[selection.offsetAt(index)],
                 operand,
             ));
-        const checked = host.checkArrayWrite(statement.name, target, replacements);
+        const checked = host.checkArrayWrite(statement.name, target, replacements, replacements.map((_, index) => selection.offsetAt(index)));
         const destination = owned(target) as typeof target;
         for (let index = 0; index < replacements.length; index += 1) {
             destination.items[selection.offsetAt(index)] = checked[index];

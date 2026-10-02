@@ -35,7 +35,7 @@ fun parseinstruction Line
   unpack X1 Y1 = Words First "," split integer rank 0
   unpack X2 Y2 = Words (First + 2) "," split integer rank 0
 
-  return array Op X1 Y1 X2 Y2
+  return tuple Op X1 Y1 X2 Y2
 end
 
 

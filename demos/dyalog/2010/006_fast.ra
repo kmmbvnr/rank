@@ -19,7 +19,7 @@ argument Input path = "demos/dyalog/2010/data/buyrent.xml"
 
 State = 2010 seed
 Params = Input read getparams
-Options = array 8.5 10000
+Options = array 8.5 10000.0
 Options Params variablefast print
 
 

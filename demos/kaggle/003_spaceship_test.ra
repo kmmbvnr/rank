@@ -9,7 +9,7 @@ test "fills spending and builds total spend"
 
   unpack X Xtest = Train Test spending_features
   Expected = array shape 1 4
-    0 0 25.0 20
+    0.0 0.0 25.0 20.0
   end
   Shape = X shape
   CorrectShape = Shape 0 equal 2 and Shape 1 equal 4

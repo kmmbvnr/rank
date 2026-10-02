@@ -289,7 +289,7 @@ Matrix products, solvers and decompositions.
 | --- | --- | --- |
 | `Matrix det` | number | Determinant of a square numeric matrix, exact for integers. |
 | `Values diag` | array | Diagonal matrix from a vector, or the main diagonal of a matrix. |
-| `Matrix eigh` | array | Ascending eigenvalues and their eigenvector columns of a symmetric matrix. |
+| `Matrix eigh` | tuple | Ascending eigenvalues and their eigenvector columns of a symmetric matrix. |
 | `Matrix inverse` | array, lazy | Inverse of a square matrix, one trailing cell at a time. |
 | `A B matmul` | array, lazy | Contracts the last axis of the left array with the first axis of the right. |
 | `A B solve` | array | Solves A * X = B for a square coefficient matrix. |
@@ -461,7 +461,7 @@ Splitting, formatting, parsing and code points.
 | `Character codepoint` | integer | Integer code point of exactly one character. |
 | `Bytes hex` | text | Lowercase hexadecimal text for bytes, without a prefix. |
 | `Values Separator join` | text | Joins scalar elements of a finite collection into one text; a matrix joins each row. |
-| `Text Pattern parse` | array | Captures /integer, /real, /word and /text from a complete pattern match. |
+| `Text Pattern parse` | value | Captures /integer, /real, /word and /text from a complete pattern match. |
 | `Text Separator split` | array | Splits at every exact occurrence of a separator, keeping empty parts. |
 | `Value Prefix startswith` | boolean | Exact text or byte prefix test; ordinary arrays broadcast elementwise. |
 | `Text lower` | text | Converts Unicode text to lowercase. |

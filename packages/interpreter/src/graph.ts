@@ -1,7 +1,7 @@
 import { MissingValueError, RankError } from './errors.js';
 import { setValueKey } from './set.js';
 import {
-    isRankArray,
+    tuple, isRankArray,
     isRankLabel,
     isRankSequence,
     type RankGraph,
@@ -119,11 +119,7 @@ export class GraphValue implements RankGraph {
                 size: { kind: 'exact', value: BigInt(edges.length) },
                 *iterate() {
                     for (const edge of edges) {
-                        yield {
-                            kind: 'array',
-                            items: [edge.target, edge.weight],
-                            shape: [2],
-                        };
+                        yield tuple([edge.target, edge.weight]);
                     }
                 },
             },

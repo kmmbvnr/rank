@@ -86,7 +86,7 @@ describe('missing cells in typed storage', () => {
         expect(hasMaskedCells(cells(1n, MISSING))).toBe(true);
         expect(maskedCells(cells(1n, MISSING))).toBeUndefined();
         expect(hasMaskedCells(cells(1, 2, 3))).toBe(false);
-        expect(hasMaskedCells(cells(1, 2n, MISSING))).toBe(false);
+        expect(() => cells(1, 2n, MISSING)).toThrow('arrays require one element type');
         expect(hasMaskedCells(createArraySnapshot([true, MISSING]))).toBe(false);
     });
 

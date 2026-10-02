@@ -94,7 +94,7 @@ describe('column tables', () => {
         show('Data 1 .Age = 40');
         expect(show('Data .Age')).toBe('22 40 26 35');
         show('Data 0 .Fare += 1');
-        expect(show('Data .Fare default 0')).toBe('8.25 71.5 0 8.05');
+        expect(show('Data .Fare default 0.0')).toBe('8.25 71.5 0 8.05');
         expect(() => show('Data 0 .Sex = 5')).toThrowError('cannot write integer into text column');
     });
 

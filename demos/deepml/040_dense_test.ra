@@ -18,7 +18,7 @@ test "official backward pass"
   Layer .weights = Official
 
   X = array shape 1 2
-    1 2
+    1.0 2.0
   end
   Forward = Layer X forward_pass
   Grad = array shape 1 3

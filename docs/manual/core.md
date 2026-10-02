@@ -676,7 +676,7 @@ catch, finally
 
 ## unpack
 
-Split an array into separate names.
+Split an array or tuple into names.
 
 ```rank
 unpack A B = array 2 3
@@ -2159,3 +2159,37 @@ single values.
 ### See also
 
 integer, real, join
+
+
+## tuple
+
+Keep values with different types in
+fixed positions.
+
+```rank
+Pair = tuple 3 "three"
+unpack Number Name = Pair
+Number
+```
+
+```result
+3
+```
+
+### Usage
+
+```text
+tuple A B
+(tuple)
+```
+
+The number of positions and each one's
+type and rank stay fixed. Use integer
+indexing, len, equality or unpack.
+Positions are immutable. Arrays inside
+keep value semantics; records keep
+references.
+
+### See also
+
+array, unpack, record

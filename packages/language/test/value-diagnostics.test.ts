@@ -465,22 +465,21 @@ it('infers safe unpacked shape cells without losing unrelated types', () => {
         .toEqual(['operator + does not accept integer and text']);
 });
 
-it('infers each type from a fixed mixed array and a parse pattern', () => {
-    expect(messages('Values = array 1 "two"\nunpack Number Text = Values\nNumber + "bad"\nText + 1'))
+it('infers each type from a tuple and a parse pattern', () => {
+    expect(messages('Values = tuple 1 "two"\nunpack Number Text = Values\nNumber + "bad"\nText + 1'))
         .toEqual(['operator + does not accept integer and text', 'operator + does not accept text and integer']);
     expect(messages('Values = array "one" "two"\nunpack First Second = Values\nFirst + 1'))
         .toEqual(['operator + does not accept text and integer']);
-    expect(messages('fun pair X\n return array X "two"\nend\nValues = 1 pair\n'
+    expect(messages('fun pair X\n return tuple X "two"\nend\nValues = 1 pair\n'
         + 'unpack Number Text = Values\nNumber + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use text\nPattern = "/integer:/word"\nValues = "42:abc" Pattern parse\n'
         + 'unpack Number Text = Values\nNumber + "bad"\nText + 1'))
         .toEqual(['operator + does not accept integer and text', 'operator + does not accept text and integer']);
-    expect(messages('if Flag\n Values = array 1 "one"\nelse\n Values = array 2 "two"\nend\n'
+    expect(messages('if Flag\n Values = tuple 1 "one"\nelse\n Values = tuple 2 "two"\nend\n'
         + 'unpack Number Text = Values\nNumber + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('Values = array 1 "two"\nValues 0 = "three"\n'
-        + 'unpack Number Text = Values\nNumber + "bad"')).toEqual([]);
+
 });
 
 it('infers mixed parse positions in the unchanged AoC snow demo', () => {
@@ -492,7 +491,7 @@ it('infers mixed parse positions in the unchanged AoC snow demo', () => {
     }]);
     const capture = [...result.expressions].find(([expression]) =>
         expression.$cstNode?.text === 'Text Pattern parse')?.[1];
-    expect(capture?.positions).toEqual([['text'], ['integer'], ['integer']]);
+    expect(capture?.tupleItems?.map(item => item.types)).toEqual([['text'], ['integer'], ['integer']]);
     expect(result.functionResults[0].types).toEqual(['integer']);
 });
 
@@ -1100,9 +1099,11 @@ it('proves scalar array cell types through closed plain and compound writes in n
     expect(result.diagnostics).toEqual([]);
     const mixed = source.replace('A I = A (I - 1) + 1', 'A I = "text"');
     const changed = services.Rank.parser.LangiumParser.parse<Program>(mixed);
-    expect(analyzeValues(changed.value, new Map(), new Map(), [
+    const rejected = analyzeValues(changed.value, new Map(), new Map(), [
         { name: 'fill_array', arguments: [{ types: ['integer'], rank: 0, shape: [] }] },
-    ]).functionResults[0].types).toEqual(['integer', 'text']);
+    ]);
+    expect(rejected.functionResults[0].types).toEqual(['integer']);
+    // Result facts describe successful executions; runtime rejects the text write.
 });
 
 it('proves full-cell writes across every axis without assuming slice writes are scalar', () => {

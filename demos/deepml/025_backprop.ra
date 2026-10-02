@@ -40,5 +40,5 @@ fun train_neuron X Y InitialWeights Bias Rate Epochs
   W = W round 4
   B = B round 4
 
-  return array W B Loss
+  return tuple W B Loss
 end

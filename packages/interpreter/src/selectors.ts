@@ -1,3 +1,5 @@
+import { inheritSemanticArrayType } from './semantic-array-type.js';
+import { positionalValue } from './positional-value.js';
 import { denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -134,15 +136,18 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
     }
     for (let axis = indices.length; axis < shape.length; axis += 1) offset *= shape[axis];
     if (indices.length === shape.length) return arrayItem(source, offset);
+    if (source.columnNames && shape.length === 2 && indices.length === 1) {
+        return positionalValue(Array.from({ length: shape[1] }, (_, column) => arrayItem(source, offset + column)));
+    }
     const rest = shape.slice(indices.length);
     // A row of a typed array is one contiguous run of its buffer.
     const kind = typedElementKind(source);
     const stored = kind ? denseScalarItems(source) as Float64Array | BigInt64Array : undefined;
     if (stored) {
         const length = arraySize(rest);
-        return typedArray(stored.slice(offset, offset + length), rest);
+        return inheritSemanticArrayType(source, typedArray(stored.slice(offset, offset + length), rest));
     }
-    return derivedArray(rest, [source], index => arrayItem(source, offset + index));
+    return inheritSemanticArrayType(source, derivedArray(rest, [source], index => arrayItem(source, offset + index)));
 }
 
 /** The cells a selection addresses: an array, or the one cell of an empty shape. */
@@ -150,6 +155,12 @@ export function sliceArray(
     source: RankArray, selection: TensorSelection,
 ): RankValue {
     if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
+    const columnAxis = source.columnNames && source.shape.length === 2 ? selection.axes?.[1] : undefined;
+    if (columnAxis?.preserve && selection.axes?.[0].preserve === false) {
+        return positionalValue(Array.from({ length: columnAxis.size }, (_, column) => arrayItem(source, selection.offsetAt(column))));
+    }
+    const columnNames = columnAxis?.preserve && selection.shape.length === 2
+        ? Array.from({ length: columnAxis.size }, (_, column) => source.columnNames![columnAxis.indexAt(column)]) : undefined;
     const stored = denseScalarItems(source);
     const total = arraySize(selection.shape);
     // A typed source is never written in place, so its slice is copied whatever
@@ -160,9 +171,12 @@ export function sliceArray(
         const out: RankValue[] | Float64Array | BigInt64Array = reals ? new Float64Array(total)
             : kind === 'integer' ? new BigInt64Array(total) : new Array(total);
         gather(stored, out as unknown as RankValue[], selection, total);
-        return Array.isArray(out) ? ownedArray(out, selection.shape, true) : typedArray(out, selection.shape);
+        const result = Array.isArray(out) ? ownedArray(out, selection.shape, true, columnNames) : typedArray(out, selection.shape, columnNames);
+        return source.columnNames ? result : inheritSemanticArrayType(source, result);
     }
-    return derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
+    const result = derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
+    if (columnNames) Object.defineProperty(result, 'columnNames', { value: columnNames });
+    return source.columnNames ? result : inheritSemanticArrayType(source, result);
 }
 
 /** Copy the selected cells in output order. With a per-axis plan the source

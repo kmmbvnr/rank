@@ -230,8 +230,10 @@ Db Q P sqlquery
 Db Query Parameters sqlquery
 ```
 
-Each ? in the query is filled from
-Parameters, in order. Passing values
+Parameters is a tuple or rank-1 array.
+Use a tuple for different value types.
+Each ? is filled from it in order.
+Passing values
 this way keeps them safe from SQL
 injection. Only reading queries are
 allowed.

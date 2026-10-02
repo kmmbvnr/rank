@@ -86,7 +86,7 @@ Matrix eigh
 ```
 
 The matrix must equal its own transpose.
-Gives two items: `R 0` holds the
+Gives a tuple: `R 0` holds the
 eigenvalues, smallest first, and `R 1` a
 matrix whose columns are the matching
 eigenvectors.

@@ -1,6 +1,7 @@
 import { ArrayBindingContract } from './array-binding-contract.js';
 import { noteArrayBinding, noteArrayBorrow } from './array-storage.js';
-import { checkBindingRank, isRankArray, type RankValue } from './value.js';
+import { checkBindingRank, isRankArray, isRankRecord, isRankTuple, mergeCollectionElementType, type CollectionElementType, type RankValue } from './value.js';
+import { recordContract, retainRecordContract } from './record-contract.js';
 
 // Every write to a name passes here, and most of them carry a number or a
 // string. Reaching into another module to learn that costs more than asking
@@ -22,6 +23,7 @@ export class LocalFrame {
     // knows the slot checks them without looking the name up a second time.
     private readonly slotTypes: (ReadonlySet<string> | undefined)[] = [];
     private arrayElements: Map<string, ArrayBindingContract> | undefined;
+    private records: Map<string, CollectionElementType> | undefined;
     private arrayRanks: Map<string, number> | undefined;
     // Set for the globals; see publish().
     private shared = false;
@@ -76,7 +78,7 @@ export class LocalFrame {
             this.publish(name, value);
             return;
         }
-        value = this.checkArray(name, value);
+        value = this.checkBinding(name, value);
         noteBinding(value);
         if (this.mappedValues) {
             this.mappedValues.set(name, value);
@@ -92,7 +94,7 @@ export class LocalFrame {
             this.mappedTypes!.set(name, types);
             return;
         }
-        value = this.checkArray(name, value);
+        value = this.checkBinding(name, value);
         noteBinding(value, borrowed);
         if (this.mappedValues) {
             this.mappedValues.set(name, value);
@@ -116,7 +118,7 @@ export class LocalFrame {
             const previous = this.slots[slot]!;
             if (!isRankArray(previous) || previous.shape.length !== value.shape.length) return false;
         }
-        value = this.checkArray(name, value);
+        value = this.checkBinding(name, value);
         noteBinding(value);
         this.slots[slot] = value;
         return true;
@@ -127,7 +129,7 @@ export class LocalFrame {
     bindStore(name: string): (value: RankValue) => void {
         const slot = this.layout.get(name)!;
         return value => {
-            value = this.checkArray(name, value);
+            value = this.checkBinding(name, value);
             noteBinding(value);
             if (this.mappedValues) this.mappedValues.set(name, value);
             else this.slots[slot] = value;
@@ -136,6 +138,7 @@ export class LocalFrame {
 
     /** Forgets a name that ended with its block: its value and the types it accepted. */
     unset(name: string): void {
+        this.records?.delete(name);
         this.arrayRanks?.delete(name);
         this.arrayElements?.delete(name);
         if (this.mappedValues) {
@@ -182,6 +185,12 @@ export class LocalFrame {
         for (const name of source.names()) {
             const types = source.typeOf(name);
             if (types !== undefined) this.declareType(name, types);
+            const record = source.records?.get(name);
+            if (record) {
+                const value = this.get(name);
+                (this.records ??= new Map()).set(name, value !== undefined && isRankRecord(value)
+                    ? recordContract(value) : structuredClone(record));
+            }
             const elements = source.arrayElements?.get(name);
             if (elements) (this.arrayElements ??= new Map()).set(name, elements.copy());
             const rank = source.rankOf(name);
@@ -193,6 +202,7 @@ export class LocalFrame {
         if (this.mappedValues) return false;
         this.slots.length = 0;
         this.slotTypes.length = 0;
+        this.records?.clear();
         this.arrayRanks?.clear();
         this.arrayElements?.clear();
         return true;
@@ -206,7 +216,7 @@ export class LocalFrame {
         const previous = values.get(name);
         values.set(name, value);
         try {
-            value = this.checkArray(name, value);
+            value = this.checkBinding(name, value);
             values.set(name, value);
         } catch (error) {
             if (previous === undefined) values.delete(name);
@@ -214,6 +224,29 @@ export class LocalFrame {
             throw error;
         }
         noteBinding(value);
+    }
+
+    private checkBinding(name: string, value: RankValue): RankValue {
+        if (isRankTuple(value)) {
+            const contract = this.arrayElements?.get(name) ?? new ArrayBindingContract(name);
+            const checked = contract.check(value);
+            (this.arrayElements ??= new Map()).set(name, contract);
+            return checked;
+        }
+        if (isRankRecord(value)) {
+            const received = value.fieldContracts
+                ? { type: 'record', fields: value.fieldContracts } : recordContract(value);
+            // Reuse established schemas without rereading lazy fields. A native
+            // record may still need inspection, so read the previous contract last:
+            // a lazy field can refine the old record through an alias.
+            const previous = this.records?.get(name);
+            const contract = previous?.fields === received.fields ? received
+                : mergeCollectionElementType(name, previous, received);
+            if (contract.fields !== value.fieldContracts) retainRecordContract(value, contract);
+            (this.records ??= new Map()).set(name, { type: 'record', fields: value.fieldContracts });
+            return value;
+        }
+        return this.checkArray(name, value);
     }
 
     private checkArray(name: string, value: RankValue): RankValue {
@@ -227,11 +260,11 @@ export class LocalFrame {
         return checked;
     }
 
-    checkArrayWrite(name: string, target: RankValue, replacements: readonly RankValue[]): readonly RankValue[] {
+    checkArrayWrite(name: string, target: RankValue, replacements: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[] {
         if (!isRankArray(target)) return replacements;
         // Host-injected arrays acquire a contract on their first source write.
         if (!this.arrayElements?.has(name)) this.checkArray(name, target);
-        return this.arrayElements!.get(name)!.write(replacements);
+        return this.arrayElements!.get(name)!.write(replacements, offsets);
     }
 
     // Reading a variable only wants the value, so the walk keeps it rather than

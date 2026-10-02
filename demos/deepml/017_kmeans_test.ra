@@ -37,7 +37,7 @@ test "reassigns points after first update"
   end
   Expected = array shape 2 1
     1.6667
-    10
+    10.0
   end
 
   Result = Points 2 Centroids 10 k_means

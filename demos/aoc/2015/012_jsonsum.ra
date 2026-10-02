@@ -6,6 +6,7 @@ use io
 use cli
 use json
 use tables
+use sequences
 
 argument Input path
 
@@ -22,9 +23,9 @@ rem the tree.
 fun solve Text
   Nodes = Text json .flat
   Numbers = Nodes filter .kind equal "integer"
-  Part1 = Numbers .value sum
+  Part1 = Numbers .value integer rank 0 sum
   Part2 = Text json sumnored
-  return array Part1 Part2
+  return tuple Part1 Part2
 end
 
 
@@ -43,9 +44,9 @@ fun sumnored Value
   end
 
   Total = 0.0
-  if Value is .array
-    for Item in Value
-      Total += Item sumnored
+  if Value is .array or Value is .tuple
+    for I in 0 till (Value len)
+      Total += (Value I) sumnored
     end
   elif Value is .object
     for Item Key in Value

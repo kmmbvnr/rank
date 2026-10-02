@@ -1,3 +1,4 @@
+import { arrayElementTypes } from './array-element-types.js';
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
 import { derivedArray, materializeCells, ownedArray, readArrayItem } from './array-storage.js';
 import { arrayMaskSelection, checkUnnamedMask } from './array-mask.js';
@@ -490,8 +491,9 @@ export function windowValue(
     axes?: readonly number[],
     strideValue?: RankValue,
     paddingValue?: RankValue,
-    fillValue: RankValue = 0n,
+    fillValue?: RankValue,
 ): RankValue {
+    fillValue ??= isRankArray(source) && arrayElementTypes(source)?.join() === 'real' ? 0 : 0n;
     if (isRankArray(fillValue) || isRankSequence(fillValue) || isRankQueue(fillValue)) {
         throw new RankError('window padding fill must be a single value');
     }

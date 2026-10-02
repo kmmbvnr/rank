@@ -69,6 +69,27 @@ fun relu Tape A
   return Node
 end
 
+rem Each call binds one node schema from the heterogeneous tape.
+fun backward_node Node
+  G = Node .grad
+
+  if Node .op equal .add
+    Node .left .grad += G
+    Node .right .grad += G
+  elif Node .op equal .mul
+    Left = Node .left
+    Right = Node .right
+    Left .grad += Right .data * G
+    Right .grad += Left .data * G
+  elif Node .op equal .relu
+    Input = Node .input
+    if Input .data greater 0
+      Input .grad += G
+    end
+  end
+  return 0
+end
+
 rem Propagate accumulated gradients.
 fun backward Tape Out
   Out .grad = 1.0
@@ -76,23 +97,7 @@ fun backward Tape Out
 
   for I greater 0
     I -= 1
-    Node = Tape I
-    G = Node .grad
-
-    if Node .op equal .add
-      Node .left .grad += G
-      Node .right .grad += G
-    elif Node .op equal .mul
-      Left = Node .left
-      Right = Node .right
-      Left .grad += Right .data * G
-      Right .grad += Left .data * G
-    elif Node .op equal .relu
-      Input = Node .input
-      if Input .data greater 0
-        Input .grad += G
-      end
-    end
+    (Tape I) backward_node
   end
   return Out
 end

@@ -1789,7 +1789,7 @@ end`);
         expect(result.variables).toContainEqual(['Total', '0']);
     });
 
-    it('falls back before writes for a mixed vector', () => {
+    it('rejects a mixed vector before executing its loop', () => {
         const result = compare(`Rows = array "a" 5
 Total = 0
 for Row in Rows
@@ -1798,7 +1798,7 @@ for Row in Rows
   end
 end`);
         expect(result).toHaveProperty('error');
-        expect(result.variables).toContainEqual(['Total', '1']);
+        expect(result.variables).not.toContainEqual(['Total', '1']);
     });
 
     it('keeps local string rebinding separate from vector storage', () => {

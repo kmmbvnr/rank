@@ -78,9 +78,9 @@ test "shares match task 5 with the same seed"
 
   Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
   State = 3 seed
-  Slow = (array 8.5 300) Params variablerisk
+  Slow = (array 8.5 300.0) Params variablerisk
   State = 3 seed
-  Fast = (array 8.5 300) Params variablefast
+  Fast = (array 8.5 300.0) Params variablefast
   (Slow equal Fast) all
 end
 

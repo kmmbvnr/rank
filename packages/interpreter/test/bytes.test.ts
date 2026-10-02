@@ -18,7 +18,7 @@ describe('compact bytes', () => {
     it.each([
         ['1 bytes', 'rank-1 integer array'],
         ['(array shape 1 2 fill 0) bytes', 'rank-1 integer array'],
-        ['(array 0 1.5) bytes', 'integer elements'],
+        ['(array 0.0 1.5) bytes', 'integer elements'],
         ['(array true) bytes', 'integer elements'],
         ['(array "0") bytes', 'integer elements'],
         ['(array (-1)) bytes', 'between 0 and 255'],

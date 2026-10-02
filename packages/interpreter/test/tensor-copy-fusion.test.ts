@@ -103,7 +103,7 @@ describe('copy kernel host values', () => {
         [[], [2, 0]],
         [[1n, 2n, 3n, 4n], [2, 2]],
         [[-0, Infinity, NaN, -Infinity], [4]],
-        [[2n ** 100n, 1.5], [2]],
+        [[2n ** 100n, 15n], [2]],
     ] as [RankValue[], number[]][])('preserves cells %s and shape %s', (items, shape) => {
         const reference = execute(items, shape, false);
         const actual = execute(items, shape, true);

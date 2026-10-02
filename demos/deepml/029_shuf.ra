@@ -16,5 +16,5 @@ fun shuffle_data X Y
 
   ShuffledX = X Order
   ShuffledY = Y Order
-  return array ShuffledX ShuffledY
+  return tuple ShuffledX ShuffledY
 end
