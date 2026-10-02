@@ -32,7 +32,7 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 #terminal.focused #caret { animation: caret-blink 1s step-end infinite; }
 #terminal:not(.focused) #caret { background: transparent; outline: 1px solid #fff; outline-offset: -1px; }
 .mobile #terminal #caret { background: #fff; outline: 0; animation: caret-blink 1s step-end infinite; }
-#terminal.scrolling #caret { animation: none !important; }
+#terminal.scrolling #caret { animation: none !important; visibility: hidden; }
 @keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { #terminal.focused #caret, .mobile #terminal #caret { animation: none; } }
 #input {
