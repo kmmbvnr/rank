@@ -73,7 +73,7 @@ the order repeatable.
 
 ```text
 Values shuffle -> array
-Values: values as shown
+Values: array or finite sequence
 ```
 
 ### DESCRIPTION

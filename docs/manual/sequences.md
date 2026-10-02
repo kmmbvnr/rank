@@ -645,16 +645,17 @@ order.
 ### SYNOPSIS
 
 ```text
-Values unique -> array
-Values: values as shown
+Values unique -> same collection kind
+Values: text or one-dimensional
+collection
 ```
 
 ### DESCRIPTION
 
 Keeps only the first occurrence of each
-value, in source order. Returns a new
-one-dimensional array. Begin the program
-with use sequences.
+value, in source order. Text stays text;
+arrays stay arrays, and sequences stay
+lazy. Begin with use sequences.
 
 ### EXAMPLES
 
