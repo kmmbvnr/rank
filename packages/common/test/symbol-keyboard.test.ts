@@ -1,8 +1,17 @@
+import { readFileSync, readdirSync } from 'node:fs';
+import { modules } from '@arrrank/language';
 import { describe, expect, it } from 'vitest';
 import { keyAvailable, keyboardModules, keyboardTabs, keyText } from '../src/symbol-keyboard.js';
 import { createReplSession } from '../src/repl-session.js';
 
 describe('symbol keyboard', () => {
+    it('has a bundled manual page for every offered key', () => {
+        const directory = new URL('../../../docs/manual/', import.meta.url);
+        const names = new Set(readdirSync(directory).filter(file => file.endsWith('.md')).flatMap(file =>
+            [...readFileSync(new URL(file, directory), 'utf8').matchAll(/^## (.+)$/gm)].map(match => match[1])));
+        const keys = keyboardTabs(modules.map(module => module.name)).flatMap(tab => tab.keys);
+        expect(keys.filter(key => !names.has(key))).toEqual([]);
+    });
     it('offers core first and only the modules in use', () => {
         const tabs = keyboardTabs(['core', 'sequences', 'numbers']);
         expect(tabs.map(tab => tab.module)).toEqual(['core', 'numbers', 'sequences']);
