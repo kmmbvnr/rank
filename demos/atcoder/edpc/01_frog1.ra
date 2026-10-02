@@ -16,15 +16,18 @@ fun min_cost H
   N = H len
   Cost = array shape N fill 0
 
+  Prev = H 1 shift
+  Prev2 = H 2 shift
+  One = (H - Prev) abs
+  Two = (H - Prev2) abs
+
   for I in 1 to N - 1
-    Diff = H I - H (I - 1)
-    Diff = Diff abs
-    Best = Cost (I - 1) + Diff
+    Hop = One I
+    Best = Cost (I - 1) + Hop
 
     if I greater 1
-      Diff = H I - H (I - 2)
-      Diff = Diff abs
-      Step = Cost (I - 2) + Diff
+      Jump = Two I
+      Step = Cost (I - 2) + Jump
       Best = Best Step min
     end
 
