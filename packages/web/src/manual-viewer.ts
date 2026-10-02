@@ -1,28 +1,76 @@
 import { keyManual } from './key-manual.js';
 
-/** A separate modal leaves the notebook, cursor and keyboard layout intact. */
+const icon = (path: string) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"></path></svg>`;
+const backIcon = icon('M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z');
+const closeIcon = icon('M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z');
+const copyIcon = icon('M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z');
+const doneIcon = icon('M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z');
+
+function iconButton(svg: string, label: string): HTMLButtonElement {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'manual-icon';
+    button.innerHTML = svg;
+    button.setAttribute('aria-label', label);
+    return button;
+}
+
+/** A paragraph whose `backticked` spans render as code. */
+function prose(text: string, className?: string): HTMLParagraphElement {
+    const paragraph = document.createElement('p');
+    if (className) paragraph.className = className;
+    text.split('`').forEach((part, i) => {
+        if (i % 2 === 0) return paragraph.append(part);
+        const code = document.createElement('code');
+        code.textContent = part;
+        paragraph.append(code);
+    });
+    return paragraph;
+}
+
+function codeBlock(text: string, className = 'manual-code'): HTMLPreElement {
+    const pre = document.createElement('pre');
+    pre.className = className;
+    pre.textContent = text;
+    return pre;
+}
+
+/**
+ * A bottom sheet in the keyboard's own palette, like the module picker. As a
+ * separate modal it leaves the notebook, cursor and keyboard layout intact.
+ */
 export class ManualViewer {
     private readonly dialog = document.createElement('dialog');
     private readonly body = document.createElement('div');
     private readonly title = document.createElement('h2');
+    private readonly summary = document.createElement('p');
+    private readonly module = document.createElement('span');
+    private readonly back = iconButton(backIcon, 'Back');
+    /** Pages left through See also, for the back button. */
+    private history: string[] = [];
+    private current = '';
     private origin?: HTMLElement;
 
     constructor() {
         this.dialog.id = 'key-manual';
         this.dialog.setAttribute('aria-labelledby', 'key-manual-title');
+        this.dialog.setAttribute('aria-describedby', 'key-manual-summary');
         this.title.id = 'key-manual-title';
-        const header = document.createElement('header');
-        const basics = document.createElement('button');
-        basics.type = 'button';
-        basics.textContent = 'Rank basics';
-        basics.onclick = () => this.open('rank-basics', 'core', this.origin!);
-        const close = document.createElement('button');
-        close.type = 'button';
-        close.textContent = 'Close';
-        close.setAttribute('aria-label', 'Close manual');
+        this.summary.id = 'key-manual-summary';
+        this.module.className = 'manual-module';
+        const name = document.createElement('div');
+        name.className = 'manual-name';
+        name.append(this.title, this.module);
+        this.back.onclick = () => this.show(this.history.pop()!);
+        const close = iconButton(closeIcon, 'Close manual');
         close.onclick = () => this.dialog.close();
-        header.append(this.title, basics, close);
+        const header = document.createElement('header');
+        // The summary spans the whole width, so the back arrow never indents it.
+        header.append(this.back, name, close, this.summary);
         this.body.className = 'manual-body';
+        // Focus the text, not the close button, so opening shows no focus ring.
+        this.body.tabIndex = -1;
+        this.body.autofocus = true;
         this.dialog.append(header, this.body);
         document.body.append(this.dialog);
         this.dialog.addEventListener('click', event => {
@@ -30,46 +78,80 @@ export class ManualViewer {
             if (event.target === this.dialog && (event.clientX < rect.left || event.clientX > rect.right
                 || event.clientY < rect.top || event.clientY > rect.bottom)) this.dialog.close();
         });
+        // Escape (and Android back) steps back through followed links before closing.
+        this.dialog.addEventListener('cancel', event => {
+            if (!this.history.length) return;
+            event.preventDefault();
+            this.show(this.history.pop()!);
+        });
         this.dialog.addEventListener('close', () => this.origin?.focus({ preventScroll: true }));
     }
 
-    open(key: string, module: string, origin: HTMLElement): void {
-        const entry = keyManual(key, module);
+    open(key: string, origin: HTMLElement): void {
         this.origin = origin;
-        this.title.textContent = key === 'rank-basics' ? 'RANK(7)' : `${key.toUpperCase()}(1)`;
-        this.body.replaceChildren();
-        const section = (name: string, text: string) => {
-            const heading = document.createElement('h3');
-            heading.textContent = name;
-            const content = document.createElement(name === 'SYNOPSIS' ? 'pre' : 'p');
-            content.textContent = text;
-            this.body.append(heading, content);
-        };
-        section('NAME', `${key === 'rank-basics' ? 'rank' : entry.name} — ${entry.summary}`);
-        section('SYNOPSIS', entry.synopsis);
-        section('DESCRIPTION', entry.description);
-        section('EXAMPLES', '');
-        for (const example of entry.examples) {
-            const explanation = document.createElement('p');
-            explanation.textContent = example.explanation;
-            this.body.append(explanation);
-            const code = document.createElement('pre');
-            code.textContent = example.code;
-            const copy = document.createElement('button');
-            copy.type = 'button';
-            copy.textContent = 'Copy';
-            copy.setAttribute('aria-label', 'Copy example');
-            copy.onclick = async () => {
-                try {
-                    await navigator.clipboard.writeText(example.code);
-                    copy.textContent = 'Copied';
-                } catch {
-                    copy.textContent = 'Copy failed — select the code';
-                }
-            };
-            this.body.append(code, copy);
-        }
+        this.history = [];
+        this.show(key);
         if (!this.dialog.open) this.dialog.showModal();
+    }
+
+    private follow(key: string): void {
+        this.history.push(this.current);
+        this.show(key);
+    }
+
+    private show(key: string): void {
+        const entry = keyManual(key);
+        const basics = key === 'rank-basics';
+        this.current = key;
+        this.back.hidden = !this.history.length;
+        this.title.textContent = basics ? 'Rank basics' : entry.name;
+        this.title.classList.toggle('code', !basics);
+        this.module.textContent = basics ? '' : entry.module;
+        this.summary.replaceChildren(...prose(entry.summary).childNodes);
+        this.body.replaceChildren();
+        const heading = (text: string) => {
+            const element = document.createElement('h3');
+            element.textContent = text;
+            this.body.append(element);
+        };
+        if (entry.caption) this.body.append(prose(entry.caption));
+        const card = document.createElement('div');
+        card.className = 'manual-example';
+        const copy = iconButton(copyIcon, 'Copy example');
+        copy.onclick = async () => {
+            try {
+                await navigator.clipboard.writeText(entry.example);
+                copy.innerHTML = doneIcon;
+                copy.setAttribute('aria-label', 'Copied');
+            } catch {
+                copy.classList.add('failed');
+                if (!card.nextElementSibling?.classList.contains('manual-hint'))
+                    card.after(prose('Copy failed — select the code instead.', 'manual-hint'));
+            }
+        };
+        card.append(codeBlock(entry.example), copy);
+        if (entry.result) card.append(codeBlock(entry.result, 'manual-code manual-result'));
+        this.body.append(card);
+        for (const section of entry.sections) {
+            heading(section.heading);
+            if (section.code) this.body.append(codeBlock(section.code));
+            for (const text of section.paragraphs) this.body.append(prose(text));
+        }
+        const links = entry.seeAlso;
+        if (links.length) {
+            heading('See also');
+            const list = document.createElement('div');
+            list.className = 'manual-links';
+            for (const name of links) {
+                const link = document.createElement('button');
+                link.type = 'button';
+                link.className = name === 'rank-basics' ? 'manual-link' : 'manual-link code';
+                link.textContent = name === 'rank-basics' ? 'Rank basics' : name;
+                link.onclick = () => this.follow(name);
+                list.append(link);
+            }
+            this.body.append(list);
+        }
         this.body.scrollTop = 0;
     }
 }

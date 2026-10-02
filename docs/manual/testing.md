@@ -2,30 +2,8 @@
 
 ## test
 
-### NAME
-
-Declare a block of boolean assertions.
-
-### SYNOPSIS
-
-```text
-test "name"
-  Condition
-end
-Capitalized words stand for your values.
-```
-
-### DESCRIPTION
-
-A test block contains boolean
-assertions. The runner collects these
-blocks; a false assertion or raised
-error fails the test.
-
-### EXAMPLES
-
-Check that addition gives the expected
-value.
+A named group of checks that should all
+be true.
 
 ```rank
 use testing
@@ -33,3 +11,19 @@ test "addition"
   1 + 1 equal 2
 end
 ```
+
+### Usage
+
+```text
+test "name"
+  Condition
+end
+```
+
+Each line in the block is a condition.
+The test fails if any condition is false
+or anything raises an error.
+
+### See also
+
+equal, try

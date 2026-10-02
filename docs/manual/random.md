@@ -2,28 +2,8 @@
 
 ## choices
 
-### NAME
-
-Draws Count values with replacement,
-complete cells for a tensor.
-
-### SYNOPSIS
-
-```text
-Values Count choices -> array
-Values: collection; Count: integer
-```
-
-### DESCRIPTION
-
-Count is a nonnegative integer. The same
-source item may be chosen more than
-once; the source must not be empty when
-count is positive.
-
-### EXAMPLES
-
-Draw three values with replacement.
+Pick random items, where the same item
+may come up again.
 
 ```rank
 use random
@@ -31,57 +11,30 @@ use random
 (array 10 20 30) 3 choices
 ```
 
+```result
+30 10 20
+```
+
+### Usage
+
+```text
+Values Count choices
+```
+
+Each pick is independent, like rolling a
+die. The collection cannot be empty. On
+a matrix, picks whole rows.
+
+### See also
+
+shuffle, seed
+
 ## seed
 
-### NAME
+Make the random results repeatable.
 
-Restarts the pseudorandom stream of the
-session and returns the seed.
-
-### SYNOPSIS
-
-```text
-Seed seed -> integer
-Seed: integer
-```
-
-### DESCRIPTION
-
-The seed is an integer. The same seed
-and sequence of random operations
-reproduce the same results.
-
-### EXAMPLES
-
-Set a repeatable random state.
-
-```rank
-use random
-123 seed
-```
-
-## shuffle
-
-### NAME
-
-New array in random order; a seed makes
-the order repeatable.
-
-### SYNOPSIS
-
-```text
-Values shuffle -> array
-Values: array or finite sequence
-```
-
-### DESCRIPTION
-
-Produces a shuffled collection. Seed
-first when results must be reproducible.
-
-### EXAMPLES
-
-Return the items in random order.
+After the same seed, the same calls give
+the same numbers.
 
 ```rank
 use random
@@ -89,32 +42,76 @@ use random
 (array 1 2 3 4) shuffle
 ```
 
-## uniform
-
-### NAME
-
-Real tensor drawn from the half-open
-interval between the bounds.
-
-### SYNOPSIS
-
-```text
-Shape Low High uniform -> array
-Shape: integer array; Low, High: number
+```result
+2 3 1 4
 ```
 
-### DESCRIPTION
+### Usage
 
-Shape gives nonnegative axis lengths.
-Low and High give the sampling interval;
-the result contains real values.
+```text
+Number seed
+```
 
-### EXAMPLES
+Call it once at the start. Without it,
+results differ every run.
 
-Create a 2-by-3 array of random reals.
+### See also
+
+shuffle, choices, uniform
+
+## shuffle
+
+Put items in a random order.
 
 ```rank
 use random
 123 seed
-(array 2 3) 0 1 uniform
+(array 1 2 3 4) shuffle
 ```
+
+```result
+2 3 1 4
+```
+
+### Usage
+
+```text
+Values shuffle
+```
+
+Gives a new array; the input is
+unchanged. Every item appears exactly
+once.
+
+### See also
+
+choices, seed, sort
+
+## uniform
+
+Random decimal numbers spread evenly
+over a range.
+
+```rank
+use random
+123 seed
+(array 2) 0 10 uniform
+```
+
+```result
+7.872516233474016 1.785435655619949
+```
+
+### Usage
+
+```text
+Shape Low High uniform
+```
+
+Shape is a list of sizes, for example
+`(array 2 3)` for a 2-by-3 matrix.
+Values can equal Low but never High.
+
+### See also
+
+choices, seed

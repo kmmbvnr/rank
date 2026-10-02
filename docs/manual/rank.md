@@ -2,55 +2,48 @@
 
 ## rank-basics
 
-### NAME
+How to read Rank code and these pages.
 
-Rank: read and try the offline manual.
-
-### SYNOPSIS
-
-```text
-Values function -> result
-use Module
-```
-
-### DESCRIPTION
-
-Rank puts data first: 9 sqrt calls sqrt
-with the number 9. A capitalized name,
-such as Values, stands for data you have
-stored with =. Lowercase names are
-functions or language words. Strings
-use double quotes; spaces separate items
-in an array. Dot-prefixed names such as
-.integer are labels, not text.
-
-An integer is a whole number; a real is
-a decimal number; a boolean is true or
-false. An array holds indexed cells;
-indices begin at zero. A matrix is a
-2-dimensional array. A sequence produces
-items on demand; use take to bound an
-infinite sequence. A record has named
-fields; a table holds rows and columns.
-In signatures, value means any supported
-value, element means an item from the
-input, and same means the original
-input.
-
-Selecting a module in the keyboard
-loads its functions. Each manual page
-states inputs, results and important
-limits. Copy copies only the example
-code. Close returns to your unchanged
-notebook. All pages are stored in the
-app and need no internet.
-
-### EXAMPLES
-
-Compute the sum of three stored numbers.
-Here A is an array. The result is 6.
+In Rank, the data comes first and the
+function last.
 
 ```rank
 A = array 1 2 3
 A sum
 ```
+
+```result
+6
+```
+
+### Reading code
+
+`9 sqrt` means "take 9 and apply sqrt".
+Several inputs come before the function
+too: `12 18 gcd`.
+
+Names with a capital letter, such as A
+or Total, hold your data; store them
+with =. On these pages, capitalized
+words in Usage stand for your own
+values. Lowercase words are functions
+and keywords. Text goes in double
+quotes. Words starting with a dot, such
+as .name or .integer, are labels: field
+names, column names or options.
+
+### Kinds of values
+
+An integer is a whole number and a real
+has a decimal point. A boolean is true
+or false. An array is a list of values;
+positions start at 0. A matrix is an
+array with rows and columns. A sequence
+makes its items only when you read them,
+so it can be endless: cut it with take.
+A record has named fields and a table
+has named columns.
+
+### See also
+
+use, array, for, fun

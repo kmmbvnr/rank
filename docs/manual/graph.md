@@ -2,30 +2,11 @@
 
 ## ancestor
 
-### NAME
-
-Vertex K parent edges above another in a
+The vertex K steps above another in a
 rooted tree.
 
-### SYNOPSIS
-
-```text
-Rooted Vertex K ancestor -> element
-Rooted: record returned by root
-Vertex: vertex value; K: nonnegative
-integer
-```
-
-### DESCRIPTION
-
-The graph must be an undirected
-connected tree. root builds the record
-needed by ancestor, lca and distance;
-pathlengths produces a lazy sequence.
-
-### EXAMPLES
-
-Move one parent step from 3: vertex 2.
+In the path 1 – 2 – 3 rooted at 1, one
+step up from 3 is 2.
 
 ```rank
 use graph
@@ -36,163 +17,170 @@ R = G 1 root
 R 3 1 ancestor
 ```
 
-## bellmanford
-
-### NAME
-
-Shortest distances allowing negative
-weights, plus reachable negative cycles.
-
-### SYNOPSIS
-
-```text
-Graph Start bellmanford -> record
-Graph: graph; Start: vertex value
+```result
+2
 ```
 
-### DESCRIPTION
+### Usage
 
-Finds shortest weighted paths even with
-negative edges. Reachable negative
-cycles are reported by the algorithm.
+```text
+Rooted Vertex K ancestor
+```
 
-### EXAMPLES
+Rooted comes from root. K = 0 gives the
+vertex itself.
 
-Start the traversal or distance search
-at vertex 1.
+### See also
+
+root, lca, distance
+
+## bellmanford
+
+Shortest distances from a start vertex,
+even when some edges have negative
+weights.
 
 ```rank
 use graph
 G = new graph (1 to 3) .directed
-G add 1 2
-G add 2 3
-G 1 bellmanford
+G add 1 2 4
+G add 2 3 -1
+R = G 1 bellmanford
+R .distance 3
 ```
+
+```result
+3
+```
+
+### Usage
+
+```text
+Graph Start bellmanford
+```
+
+Gives a record: .distance and .parent
+are looked up by vertex, and .negative
+is the set of vertices affected by a
+negative cycle, where no shortest
+distance exists.
+
+### Notes
+
+If no weight is negative, dijkstra is
+faster.
+
+### See also
+
+dijkstra, floyd, bfs
 
 ## bfs
 
-### NAME
-
-Breadth-first search returning distance,
-parent and discovery order.
-
-### SYNOPSIS
-
-```text
-Graph Start bfs -> record
-Graph: graph; Start: vertex value
-```
-
-### DESCRIPTION
-
-Visits vertices by unweighted distance.
-The result record includes traversal and
-distance information.
-
-### EXAMPLES
-
-Start the traversal or distance search
-at vertex 1.
+Visit a graph level by level from a
+start vertex, nearest first.
 
 ```rank
 use graph
 G = new graph (1 to 3) .directed
 G add 1 2
 G add 2 3
-G 1 bfs
+R = G 1 bfs
+R .distance 3
 ```
+
+```result
+2
+```
+
+### Usage
+
+```text
+Graph Start bfs
+```
+
+Gives a record: .distance counts edges
+to each vertex, .parent is the vertex it
+was reached from, and .order lists
+vertices as they were visited. Edge
+weights are ignored.
+
+### See also
+
+dfs, dijkstra, components
 
 ## bipartite
 
-### NAME
-
-Two-colouring of an undirected graph, or
-possible false for an odd cycle.
-
-### SYNOPSIS
-
-```text
-Graph bipartite -> record
-Graph: graph
-```
-
-### DESCRIPTION
-
-Tests whether vertices can be split into
-two groups with no edge inside a group.
-A self-loop or odd cycle prevents this.
-
-### EXAMPLES
-
-Run the algorithm on a three-vertex
-path.
+Check whether the vertices can be split
+into two groups with every edge going
+between the groups.
 
 ```rank
 use graph
 G = new graph (1 to 3) .undirected
 G add 1 2
 G add 2 3
-G bipartite
+R = G bipartite
+R .possible
 ```
+
+```result
+true
+```
+
+### Usage
+
+```text
+Graph bipartite
+```
+
+Gives a record: .possible is true or
+false, and .color gives each vertex 0 or
+1. Any cycle of odd length makes it
+impossible.
+
+### See also
+
+components, cycle
 
 ## components
 
-### NAME
+Find the groups of vertices that are
+linked to each other.
 
-Connected components: their count, a
-per-vertex index and the roots.
-
-### SYNOPSIS
-
-```text
-Graph components -> record
-Graph: graph
-```
-
-### DESCRIPTION
-
-Groups vertices connected by graph
-edges. The result record describes the
-component assignment.
-
-### EXAMPLES
-
-Run the algorithm on a three-vertex
-path.
+Vertex 3 has no edges, so there are two
+groups.
 
 ```rank
 use graph
 G = new graph (1 to 3) .undirected
 G add 1 2
-G add 2 3
-G components
+R = G components
+R .count
 ```
+
+```result
+2
+```
+
+### Usage
+
+```text
+Graph components
+```
+
+Gives a record: .count of groups,
+.component with each vertex's group
+number, and .roots with one vertex from
+each group.
+
+### See also
+
+scc, merge, bfs
 
 ## connected
 
-### NAME
-
-True when two values share a
-disjoint-set representative.
-
-### SYNOPSIS
-
-```text
-Dsu A B connected -> boolean
-Dsu: disjoint set; A, B: values
-```
-
-### DESCRIPTION
-
-A disjoint-set structure tracks
-connectivity without storing graph
-edges. Representatives are internal
-values; use connected to compare
-membership.
-
-### EXAMPLES
-
-1 and 2 are in the same set: true.
+Check whether two values are in the same
+group of a dsu.
 
 ```rank
 use graph
@@ -201,130 +189,125 @@ D 1 2 merge
 D 1 2 connected
 ```
 
-## cycle
-
-### NAME
-
-One cycle with its first vertex repeated
-at the end, or an empty array.
-
-### SYNOPSIS
-
-```text
-Graph cycle -> array
-Graph: graph
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Returns a directed or undirected cycle
-when one exists. An acyclic graph
-returns an empty array.
+```text
+Dsu A B connected
+```
 
-### EXAMPLES
+### See also
 
-Run the algorithm on a three-vertex
-path.
+merge, findroot, new
+
+## cycle
+
+Find a cycle: a path that returns to
+where it started.
 
 ```rank
 use graph
 G = new graph (1 to 3) .directed
 G add 1 2
 G add 2 3
+G add 3 1
 G cycle
 ```
 
-## dfs
-
-### NAME
-
-Depth-first search returning distance,
-parent and discovery order.
-
-### SYNOPSIS
-
-```text
-Graph Start dfs -> record
-Graph: graph; Start: vertex value
+```result
+1 2 3 1
 ```
 
-### DESCRIPTION
+### Usage
 
-Explores one branch before backtracking.
-The result is a traversal record; graph
-direction controls reachable vertices.
+```text
+Graph cycle
+```
 
-### EXAMPLES
+The first vertex is repeated at the end.
+A graph without cycles gives an empty
+array.
 
-Start the traversal or distance search
-at vertex 1.
+### See also
+
+topological, bipartite
+
+## dfs
+
+Explore a graph by going as deep as
+possible before backing up.
 
 ```rank
 use graph
 G = new graph (1 to 3) .directed
 G add 1 2
 G add 2 3
-G 1 dfs
+R = G 1 dfs
+R .order
 ```
+
+```result
+1 2 3
+```
+
+### Usage
+
+```text
+Graph Start dfs
+```
+
+Gives a record with .distance, .parent
+and .order, the vertices in the order
+they were reached.
+
+### See also
+
+bfs, cycle, topological
 
 ## dijkstra
 
-### NAME
+Shortest distances from a start vertex
+along weighted edges.
 
-Shortest distances for nonnegative
-numeric weights.
-
-### SYNOPSIS
-
-```text
-Graph Start dijkstra -> record
-Graph: graph; Start: vertex value
-```
-
-### DESCRIPTION
-
-Finds shortest weighted paths. Edge
-weights must be nonnegative; unreachable
-vertices have no finite distance.
-
-### EXAMPLES
-
-Start the traversal or distance search
-at vertex 1.
+The direct edge 1 → 3 costs 20, but
+going through 2 costs only 5 + 4 = 9.
 
 ```rank
 use graph
 G = new graph (1 to 3) .directed
-G add 1 2
-G add 2 3
-G 1 dijkstra
+G add 1 2 5
+G add 2 3 4
+G add 1 3 20
+R = G 1 dijkstra
+R .distance 3
 ```
+
+```result
+9
+```
+
+### Usage
+
+```text
+Graph Start dijkstra
+```
+
+Gives a record: .distance to each
+vertex, .parent to rebuild the path, and
+.order. Weights cannot be negative.
+Unreachable vertices have no distance.
+
+### See also
+
+bellmanford, bfs, floyd
 
 ## distance
 
-### NAME
-
-Edges between two vertices of a rooted
-tree or functional graph.
-
-### SYNOPSIS
-
-```text
-Rooted A B distance -> integer
-Rooted: record returned by root
-A, B: vertex values
-```
-
-### DESCRIPTION
-
-The graph must be an undirected
-connected tree. root builds the record
-needed by ancestor, lca and distance;
-pathlengths produces a lazy sequence.
-
-### EXAMPLES
-
-Count the two edges from 1 to 3.
+How many edges apart two vertices are in
+a rooted tree.
 
 ```rank
 use graph
@@ -335,31 +318,27 @@ R = G 1 root
 R 1 3 distance
 ```
 
-## euler
-
-### NAME
-
-Euler trail using every edge once, or an
-empty array when none exists.
-
-### SYNOPSIS
-
-```text
-Graph Start euler -> array
-Graph, Start: graph/vertex operands as
-shown
+```result
+2
 ```
 
-### DESCRIPTION
+### Usage
 
-Returns an Euler trail using every edge
-once. Start and graph degrees must
-permit the trail; disconnected edges
-cannot form one trail.
+```text
+Rooted A B distance
+```
 
-### EXAMPLES
+Rooted comes from root. Also works on a
+functional graph.
 
-Traverse the two edges starting at 1.
+### See also
+
+root, lca, ancestor
+
+## euler
+
+A route that uses every edge exactly
+once.
 
 ```rank
 use graph
@@ -369,32 +348,28 @@ G add 2 3
 G 1 euler
 ```
 
-## findroot
-
-### NAME
-
-Representative of the disjoint-set
-component holding a value.
-
-### SYNOPSIS
-
-```text
-Dsu Value findroot -> element
-Dsu: disjoint set; Value: member
+```result
+1 2 3
 ```
 
-### DESCRIPTION
+### Usage
 
-A disjoint-set structure tracks
-connectivity without storing graph
-edges. Representatives are internal
-values; use connected to compare
-membership.
+```text
+Graph Start euler
+```
 
-### EXAMPLES
+Gives the vertices in order, or an empty
+array if no such route exists from
+Start.
 
-Find the representative of the set
-containing 2.
+### See also
+
+cycle
+
+## findroot
+
+The vertex that represents a value's
+group in a dsu.
 
 ```rank
 use graph
@@ -403,97 +378,65 @@ D 1 2 merge
 D 2 findroot
 ```
 
-## floyd
-
-### NAME
-
-All-pairs shortest distances addressed
-Distance From To.
-
-### SYNOPSIS
-
-```text
-Graph floyd -> record
-Graph: graph
+```result
+1
 ```
 
-### DESCRIPTION
+### Usage
 
-Computes all-pairs shortest-path
-information. It considers edge weights
-and can detect negative cycles.
+```text
+Dsu Value findroot
+```
 
-### EXAMPLES
+Two values are in the same group when
+they have the same root. To compare,
+connected is simpler.
 
-Run the algorithm on a three-vertex
-path.
+### See also
+
+connected, merge
+
+## floyd
+
+Shortest distances between every pair of
+vertices.
 
 ```rank
 use graph
 G = new graph (1 to 3) .directed
 G add 1 2
 G add 2 3
-G floyd
+R = G floyd
+R .distance 1 3
 ```
+
+```result
+2
+```
+
+### Usage
+
+```text
+Graph floyd
+```
+
+Gives a record: read a distance with `R
+.distance From To`. .negative holds
+vertices caught in a negative cycle.
+Practical for graphs of up to a few
+hundred vertices.
+
+### See also
+
+dijkstra, bellmanford
 
 ## functional
 
-### NAME
+A graph where every vertex has exactly
+one next vertex.
 
-Successor structure prepared for jump,
-distance and path queries.
-
-### SYNOPSIS
-
-```text
-Next functional -> functional
-Next: integer vector with values 1..N
-```
-
-### DESCRIPTION
-
-Successors are a one-dimensional integer
-array using vertex numbers 1..N, not
-ordinary zero-based array positions.
-upto requires increasing successors; the
-final vertex may point to itself.
-
-### EXAMPLES
-
-Store one successor for every vertex.
-
-```rank
-use graph
-F = (array 2 3 1) functional
-F
-```
-
-## jump
-
-### NAME
-
-Vertex reached after exactly that many
-successor steps.
-
-### SYNOPSIS
-
-```text
-F Start Steps jump -> integer
-F: functional graph; Start: vertex 1..N
-Steps: nonnegative integer
-```
-
-### DESCRIPTION
-
-Successors are a one-dimensional integer
-array using vertex numbers 1..N, not
-ordinary zero-based array positions.
-upto requires increasing successors; the
-final vertex may point to itself.
-
-### EXAMPLES
-
-Follow two edges from 1: reach 3.
+Vertex 1 leads to 2, 2 to 3 and 3 back
+to 1.
 
 ```rank
 use graph
@@ -501,31 +444,56 @@ F = (array 2 3 1) functional
 F 1 2 jump
 ```
 
-## lca
-
-### NAME
-
-Lowest common ancestor of two vertices.
-
-### SYNOPSIS
-
-```text
-Rooted A B lca -> element
-Rooted: record returned by root
-A, B: vertex values
+```result
+3
 ```
 
-### DESCRIPTION
+### Usage
 
-The graph must be an undirected
-connected tree. root builds the record
-needed by ancestor, lca and distance;
-pathlengths produces a lazy sequence.
+```text
+Next functional
+```
 
-### EXAMPLES
+Item i of Next is the vertex after
+vertex i. Vertices are numbered from 1,
+not from 0. Use it with jump, lengths,
+distance and upto.
 
-The lowest shared ancestor of 2 and 3 is
-2.
+### See also
+
+jump, lengths, upto, weighted
+
+## jump
+
+Where you end up after following N steps
+in a functional graph.
+
+```rank
+use graph
+F = (array 2 3 1) functional
+F 1 2 jump
+```
+
+```result
+3
+```
+
+### Usage
+
+```text
+F Start Steps jump
+```
+
+Fast even for billions of steps.
+
+### See also
+
+functional, lengths
+
+## lca
+
+The lowest vertex that is above both of
+two vertices in a rooted tree.
 
 ```rank
 use graph
@@ -536,32 +504,29 @@ R = G 1 root
 R 2 3 lca
 ```
 
-## lengths
-
-### NAME
-
-Path length from every vertex of a
-functional graph.
-
-### SYNOPSIS
-
-```text
-F lengths -> array
-F: functional graph
+```result
+2
 ```
 
-### DESCRIPTION
+### Usage
 
-Successors are a one-dimensional integer
-array using vertex numbers 1..N, not
-ordinary zero-based array positions.
-upto requires increasing successors; the
-final vertex may point to itself.
+```text
+Rooted A B lca
+```
 
-### EXAMPLES
+Rooted comes from root. If one vertex is
+above the other, that vertex is the
+answer.
 
-Count distinct visited vertices before
-repetition.
+### See also
+
+root, ancestor, distance
+
+## lengths
+
+For each vertex of a functional graph,
+how many different vertices you visit
+before repeating.
 
 ```rank
 use graph
@@ -569,134 +534,134 @@ F = (array 2 3 1) functional
 F lengths
 ```
 
-## maxflow
-
-### NAME
-
-Maximum flow value, the per-edge flow
-and the minimum cut.
-
-### SYNOPSIS
-
-```text
-Graph Source Sink maxflow -> record
-Graph: graph; Source, Sink: vertices
+```result
+3 3 3
 ```
 
-### DESCRIPTION
+### Usage
 
-Edge weights are nonnegative capacities.
-Returns a record describing the maximum
-flow and the residual cut.
+```text
+F lengths
+```
 
-### EXAMPLES
+Gives one number per vertex, counting
+the starting vertex.
 
-Send flow from 1 to 3 through capacities
-5 and 4.
+### See also
+
+functional, jump
+
+## maxflow
+
+The most that can flow from a source to
+a sink when edges have capacities.
+
+The 4 on the second edge limits the
+flow.
 
 ```rank
 use graph
 G = new graph (1 to 3) .directed
 G add 1 2 5
 G add 2 3 4
-G 1 3 maxflow
+R = G 1 3 maxflow
+R .value
 ```
+
+```result
+4
+```
+
+### Usage
+
+```text
+Graph Source Sink maxflow
+```
+
+Edge weights are the capacities. Gives a
+record: .value is the total flow, .flow
+the flow on each edge, and .cut the
+vertices still reachable from Source,
+which mark the bottleneck.
+
+### See also
+
+dijkstra
 
 ## merge
 
-### NAME
-
-Unions two disjoint-set components, true
-only when they differed.
-
-### SYNOPSIS
-
-```text
-Dsu A B merge -> boolean
-Dsu: disjoint set; A, B: values
-```
-
-### DESCRIPTION
-
-A disjoint-set structure tracks
-connectivity without storing graph
-edges. Representatives are internal
-values; use connected to compare
-membership. This operation changes the
-receiver in place.
-
-### EXAMPLES
-
-Join the set containing 3 to that
-containing 2.
+Join the groups of two values in a dsu.
 
 ```rank
 use graph
 D = new dsu
 D 1 2 merge
 D 2 3 merge
+D 1 3 connected
 ```
+
+```result
+true
+```
+
+### Usage
+
+```text
+Dsu A B merge
+```
+
+Gives true if they were in different
+groups, false if they were already
+together. A dsu (disjoint set union)
+tracks groups without storing edges, and
+stays fast for millions of merges.
+
+### See also
+
+connected, findroot, new
 
 ## mst
 
-### NAME
-
-Minimum spanning forest: connectivity,
-component count, weight and edges.
-
-### SYNOPSIS
-
-```text
-Graph mst -> record
-Graph: graph
-```
-
-### DESCRIPTION
-
-Finds a minimum spanning tree of an
-undirected weighted graph. It selects
-edges with minimum total cost.
-
-### EXAMPLES
-
-Run the algorithm on a three-vertex
-path.
+The cheapest set of edges that still
+links every vertex.
 
 ```rank
 use graph
 G = new graph (1 to 3) .undirected
-G add 1 2
-G add 2 3
-G mst
+G add 1 2 1
+G add 2 3 2
+G add 1 3 5
+R = G mst
+R .weight
 ```
+
+```result
+3
+```
+
+### Usage
+
+```text
+Graph mst
+```
+
+Gives a record: .weight is the total
+cost, .edges lists the chosen edges, and
+.connected tells whether one tree covers
+everything. The graph must be
+undirected.
+
+### See also
+
+components, dijkstra
 
 ## pathlengths
 
-### NAME
+The distance between every pair of
+vertices in a tree.
 
-Lazy sequence of every unordered pair
-distance in a tree.
-
-### SYNOPSIS
-
-```text
-Tree pathlengths -> sequence
-Tree: undirected tree
-```
-
-### DESCRIPTION
-
-The graph must be an undirected
-connected tree. root builds the record
-needed by ancestor, lca and distance;
-pathlengths produces a lazy sequence.
-Values are produced on demand; storing
-the result does not force every item.
-
-### EXAMPLES
-
-Enumerate distances between vertex
-pairs.
+In the path 1 – 2 – 3, the pairs are 1
+apart, 2 apart and 1 apart.
 
 ```rank
 use graph
@@ -706,136 +671,131 @@ G add 2 3
 G pathlengths
 ```
 
-## root
-
-### NAME
-
-Immutable rooted view of a connected
-undirected tree.
-
-### SYNOPSIS
-
-```text
-Tree Root root -> record
-Tree: undirected tree; Root: vertex
-value
+```result
+1 2 1
 ```
 
-### DESCRIPTION
+### Usage
 
-The graph must be an undirected
-connected tree. root builds the record
-needed by ancestor, lca and distance;
-pathlengths produces a lazy sequence.
+```text
+Tree pathlengths
+```
 
-### EXAMPLES
+The tree must be undirected and
+connected. Each pair appears once.
+Distances are produced as you read them.
 
-Prepare traversal data rooted at vertex
-1.
+### See also
+
+distance, root
+
+## root
+
+Hang a tree from one vertex, ready for
+ancestor, lca and distance questions.
 
 ```rank
 use graph
 G = new graph (1 to 3) .undirected
 G add 1 2
 G add 2 3
-G 1 root
+R = G 1 root
+R .order
 ```
+
+```result
+1 2 3
+```
+
+### Usage
+
+```text
+Tree Root root
+```
+
+The graph must be an undirected,
+connected tree. Gives a record including
+.parent and .depth for each vertex.
+
+### See also
+
+ancestor, lca, distance
 
 ## scc
 
-### NAME
+Group the vertices of a directed graph
+that can all reach each other.
 
-Strongly connected components of a
-directed graph.
-
-### SYNOPSIS
-
-```text
-Graph scc -> record
-Graph: graph
-```
-
-### DESCRIPTION
-
-Groups vertices that can each reach
-every other member of their group.
-Direction matters; the result is a
-component record.
-
-### EXAMPLES
-
-Run the algorithm on a three-vertex
-path.
+1 and 2 reach each other; 3 can be
+reached but cannot get back.
 
 ```rank
 use graph
 G = new graph (1 to 3) .directed
 G add 1 2
+G add 2 1
 G add 2 3
-G scc
+R = G scc
+R .count
 ```
+
+```result
+2
+```
+
+### Usage
+
+```text
+Graph scc
+```
+
+Gives a record: .count of groups,
+.component with each vertex's group, and
+.roots.
+
+### See also
+
+components, cycle
 
 ## topological
 
-### NAME
-
-Topological order of a directed graph,
-or possible false.
-
-### SYNOPSIS
-
-```text
-Graph topological -> record
-Graph: graph
-```
-
-### DESCRIPTION
-
-Orders a directed acyclic graph so each
-edge points forward. A directed cycle
-prevents a complete topological order.
-
-### EXAMPLES
-
-Run the algorithm on a three-vertex
-path.
+Order the vertices so every edge points
+forward, as in a task list where each
+task comes after the tasks it depends
+on.
 
 ```rank
 use graph
 G = new graph (1 to 3) .directed
+G add 3 1
 G add 1 2
-G add 2 3
-G topological
+R = G topological
+R .order
 ```
+
+```result
+3 1 2
+```
+
+### Usage
+
+```text
+Graph topological
+```
+
+Gives a record: .possible is false when
+the graph has a cycle, and .order is the
+ordering.
+
+### See also
+
+cycle, dfs
 
 ## upto
 
-### NAME
-
-Counts path vertices through a limit;
-weighted paths return count, sum and
-last.
-
-### SYNOPSIS
-
-```text
-F Start Limit upto -> value
-F: increasing functional graph
-Start, Limit: integers
-```
-
-### DESCRIPTION
-
-Successors are a one-dimensional integer
-array using vertex numbers 1..N, not
-ordinary zero-based array positions.
-upto requires increasing successors; the
-final vertex may point to itself.
-
-### EXAMPLES
-
-Count the increasing path through a
-limit.
+Follow an increasing functional graph
+from a start and count the vertices up
+to a limit.
 
 ```rank
 use graph
@@ -843,37 +803,53 @@ F = (array 2 3 3) functional
 F 1 3 upto
 ```
 
-## weighted
-
-### NAME
-
-Functional graph carrying numeric edge
-costs along its paths.
-
-### SYNOPSIS
-
-```text
-Next Cost weighted -> functional
-Next: integer successors in 1..N
-Cost: numeric vector of the same length
+```result
+3
 ```
 
-### DESCRIPTION
+### Usage
 
-Successors are a one-dimensional integer
-array using vertex numbers 1..N, not
-ordinary zero-based array positions.
-upto requires increasing successors; the
-final vertex may point to itself.
+```text
+F Start Limit upto
+```
 
-### EXAMPLES
+Each next vertex must be larger than the
+current one; the last may point to
+itself. On a weighted graph, gives a
+record with .count, .sum of costs and
+.last vertex.
 
-Store successors and their outgoing
-weights.
+### See also
+
+functional, weighted, jump
+
+## weighted
+
+A functional graph where each step has a
+cost.
 
 ```rank
 use graph
 Next = array 2 3 3
 Cost = array 10 20 0
+W = Next Cost weighted
+R = W 1 3 upto
+R .sum
+```
+
+```result
+30
+```
+
+### Usage
+
+```text
 Next Cost weighted
 ```
+
+Cost has one number per vertex: the cost
+of leaving it.
+
+### See also
+
+functional, upto

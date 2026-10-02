@@ -2,27 +2,7 @@
 
 ## det
 
-### NAME
-
-Determinant of a square numeric matrix,
-exact for integers.
-
-### SYNOPSIS
-
-```text
-Matrix det -> number
-Matrix: square numeric matrix
-```
-
-### DESCRIPTION
-
-Input is a square numeric matrix. An
-empty 0-by-0 matrix has determinant 1.
-
-### EXAMPLES
-
-The determinant of this diagonal matrix
-is 6.
+The determinant of a square matrix.
 
 ```rank
 use linalg
@@ -33,95 +13,91 @@ end
 A det
 ```
 
-## diag
-
-### NAME
-
-Diagonal matrix from a vector, or the
-main diagonal of a matrix.
-
-### SYNOPSIS
-
-```text
-Values diag -> array
-Values: numeric vector or matrix
+```result
+6
 ```
 
-### DESCRIPTION
+### Usage
 
-A vector builds a diagonal matrix; a
-matrix extracts its diagonal.
+```text
+Matrix det
+```
 
-### EXAMPLES
+For a matrix of integers, the answer is
+exact. Zero means the matrix has no
+inverse.
 
-Build a diagonal matrix with diagonal 2,
-3.
+### See also
+
+inverse, solve
+
+## diag
+
+Build a matrix with given values on its
+diagonal, or read a matrix's diagonal.
 
 ```rank
 use linalg
 (array 2 3) diag
 ```
 
-## eigh
-
-### NAME
-
-Ascending eigenvalues and their
-eigenvector columns of a symmetric
-matrix.
-
-### SYNOPSIS
-
-```text
-Matrix eigh -> tuple
-Matrix: real symmetric square matrix
+```result
+2 0 0 3
 ```
 
-### DESCRIPTION
+### Usage
 
-Input is a real symmetric square matrix.
-Returns a tuple of the eigenvalue vector
-and the eigenvector matrix.
+```text
+Values diag
+Matrix diag
+```
 
-### EXAMPLES
+A list becomes a square matrix with
+zeros off the diagonal. A matrix gives
+back its diagonal as a list.
 
-Find the symmetric matrix eigenvalues
-and eigenvectors.
+### See also
+
+det, matmul
+
+## eigh
+
+Eigenvalues and eigenvectors of a
+symmetric matrix.
 
 ```rank
 use linalg
 A = array shape 2 2
-  2 0
-  0 3
+  2 1
+  1 2
 end
-A eigh
+R = A eigh
+R 0
 ```
+
+```result
+1 3
+```
+
+### Usage
+
+```text
+Matrix eigh
+```
+
+The matrix must equal its own transpose.
+Gives a tuple: `R 0` holds the
+eigenvalues, smallest first, and `R 1` a
+matrix whose columns are the matching
+eigenvectors.
+
+### See also
+
+det, transpose
 
 ## inverse
 
-### NAME
-
-Inverse of a square matrix, one trailing
-cell at a time.
-
-### SYNOPSIS
-
-```text
-Matrix inverse -> array
-Matrix: square numeric matrix
-```
-
-### DESCRIPTION
-
-Input is a square numeric matrix. A
-singular matrix has no inverse and
-raises an error. Values are produced on
-demand; storing the result does not
-force every item.
-
-### EXAMPLES
-
-Invert the diagonal matrix.
+The matrix that undoes this one.
 
 ```rank
 use linalg
@@ -132,68 +108,68 @@ end
 A inverse
 ```
 
-## matmul
-
-### NAME
-
-Contracts the last axis of the left
-array with the first axis of the right.
-
-### SYNOPSIS
-
-```text
-A B matmul -> array
-A, B: numeric arrays with matching
-contracted axis lengths
+```result
+0.5 0 0 0.3333333333333333
 ```
 
-### DESCRIPTION
+### Usage
 
-Contracts the last axis of the left
-operand with the first axis of the
-right. These axis lengths must agree;
-this is not elementwise multiplication.
-Values are produced on demand; storing
-the result does not force every item.
+```text
+Matrix inverse
+```
 
-### EXAMPLES
+The matrix must be square. A matrix with
+determinant zero has no inverse, which
+is an error.
 
-Multiply the matrix by itself.
+### Notes
+
+To solve equations, solve is faster and
+more accurate than multiplying by the
+inverse.
+
+### See also
+
+solve, det, matmul
+
+## matmul
+
+Matrix multiplication.
 
 ```rank
 use linalg
 A = array shape 2 2
-  2 0
-  0 3
+  1 2
+  3 4
 end
-A A matmul
+B = array 1 1
+A B matmul
 ```
+
+```result
+3 7
+```
+
+### Usage
+
+```text
+A B matmul
+```
+
+The number of columns of A must equal
+the number of rows of B. This is not the
+same as A * B, which multiplies cell by
+cell.
+
+### See also
+
+outer, inverse, solve
 
 ## solve
 
-### NAME
+Find X in the equations A × X = B.
 
-Solves A * X = B for a square
-coefficient matrix.
-
-### SYNOPSIS
-
-```text
-A B solve -> array
-A: square numeric matrix
-B: numeric vector or matrix
-```
-
-### DESCRIPTION
-
-The coefficient matrix is square. The
-right-hand side may be a vector or
-matrix with matching leading length.
-Singular systems raise an error.
-
-### EXAMPLES
-
-Solve A times X = [4, 9], giving [2, 3].
+2x = 4 and 3y = 9, so x = 2 and y = 3.
 
 ```rank
 use linalg
@@ -203,3 +179,22 @@ A = array shape 2 2
 end
 A (array 4 9) solve
 ```
+
+```result
+2 3
+```
+
+### Usage
+
+```text
+A B solve
+```
+
+A is a square matrix of coefficients. B
+can be a list or a matrix of several
+right-hand sides. Equations without a
+single solution are an error.
+
+### See also
+
+inverse, matmul, det

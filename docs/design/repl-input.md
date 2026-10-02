@@ -317,6 +317,24 @@ without an Enter hint. The source editor shows `Ctrl-R run · Ctrl-L run all`;
 An iteration row shows `Enter select · Esc edit · ^L run all`, and active
 selection shows `←/→ select · Esc edit · ^L run all`.
 
+While source is edited and the cursor is on a name, the footer shows that name's
+type and shape instead of the hints and the file name, for example
+`M · integer [3 4]`, `Row · text`, `X · unknown` or `F · function`. A name counts when
+it is a read, an assignment target, a loop name, a parameter or a function name, and
+the cursor right after it counts as on it. A function name, whether a catalogue builtin or one written in the notebook, shows
+`function`; typed signatures are a separate piece of work. A keyword, an operator word or a number shows the normal hints. The line is grey and clipped to the footer width: the shape goes first,
+then the front of the name. A shape with an axis of unknown length is left out rather
+than guessed. Errors, running status, completion candidates and an iteration row keep
+the footer. Facts come from the run for names of cells that were executed and have not
+changed since, and from the static analysis of earlier cells otherwise. A draft that
+rebinds a name never borrows the old run's facts, and the line is computed from the
+current source, so an edit never leaves a stale answer. On a touch console, where
+the footer is hidden except while running, the line appears only while the cursor is
+on a name that is on screen, in a slightly smaller font; a tap places the cursor, so a tap
+shows the type. The footer is the row directly under the visible rows, never below
+overscan. While a scroll is sliding, the window has no footer; it returns when the scroll
+settles or at the next tap.
+
 Ctrl-Q, Ctrl-D on an empty line, `exit`, and `quit` offer to save if source has
 changed. Enter or S saves, D discards changes, and Esc cancels the exit. Saving a
 new program asks for a filename; an existing binding supplies it automatically.

@@ -26,25 +26,21 @@ export function runtimeValueFacts(values: ReadonlyMap<string, RankValue>,
     return facts;
 }
 
-/** Source analysis replaces stale runtime facts as soon as an earlier cell changes. */
-export function notebookValueDiagnostics(book: Notebook, runtime: readonly [string, ValueFacts][] = [],
-    tests?: { path: string; examples: readonly FunctionTestExample[] }): ReadonlyMap<number, OutputLine[]> {
+/** What the cells before the active one bind: analyzed, then replaced by the run's facts while those are fresh. */
+export function notebookScope(book: Notebook, runtime: readonly [string, ValueFacts][] = []): {
+    bindings: Map<string, ValueFacts>; functions: Map<string, FunctionStatement>; clean: boolean;
+} {
     let bindings = new Map<string, ValueFacts>();
     let functions = new Map<string, FunctionStatement>();
-    const output = new Map<number, OutputLine[]>();
-    const current = book.current;
-    if (current.command || !current.source.trim()) return output;
     const cleanPrefix = book.atPrompt && book.dirtyFrom < 0
         && book.cells.slice(0, book.active).every(cell => cell.command || cell.status === 'ok' && cell.executed === cell.source);
-    {
-        for (const cell of book.cells.slice(0, book.active)) {
-            if (cell.command) continue;
-            try {
-                const analysis = analyzeValues(parse(cell.source), bindings, functions);
-                bindings = new Map(analysis.bindings);
-                functions = new Map(analysis.functions);
-            } catch { bindings.clear(); functions.clear(); }
-        }
+    for (const cell of book.cells.slice(0, book.active)) {
+        if (cell.command) continue;
+        try {
+            const analysis = analyzeValues(parse(cell.source), bindings, functions);
+            bindings = new Map(analysis.bindings);
+            functions = new Map(analysis.functions);
+        } catch { bindings.clear(); functions.clear(); }
     }
     if (cleanPrefix) {
         const sequential = book.cells.slice(0, book.active).every((_, index) => !book.isExperimental(index));
@@ -61,6 +57,16 @@ export function notebookValueDiagnostics(book: Notebook, runtime: readonly [stri
             bindings.set(name, { ...fact, ...(elements && !fact.elements ? { elements } : {}) });
         }
     }
+    return { bindings, functions, clean: cleanPrefix };
+}
+
+/** Source analysis replaces stale runtime facts as soon as an earlier cell changes. */
+export function notebookValueDiagnostics(book: Notebook, runtime: readonly [string, ValueFacts][] = [],
+    tests?: { path: string; examples: readonly FunctionTestExample[] }): ReadonlyMap<number, OutputLine[]> {
+    const output = new Map<number, OutputLine[]>();
+    const current = book.current;
+    if (current.command || !current.source.trim()) return output;
+    const { bindings, functions } = notebookScope(book, runtime);
     try {
         const program = parse(current.source);
         const definitions = program.statements.filter(isFunctionStatement);

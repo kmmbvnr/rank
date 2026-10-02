@@ -2,256 +2,246 @@
 
 ## band
 
-### NAME
+Bitwise and: keep the bits set in both
+numbers.
 
-Bitwise and.
-
-### SYNOPSIS
-
-```text
-A B band -> integer
-A, B: integer
-```
-
-### DESCRIPTION
-
-Operates on integers, not boolean masks.
-Integer precision is not limited to a
-machine word.
-
-### EXAMPLES
-
-Keep shared bits: 2.
+6 is 110 and 3 is 011; only the middle
+bit is in both, giving 010.
 
 ```rank
 use bits
 6 3 band
 ```
 
-## binary
-
-### NAME
-
-Formats a nonnegative integer as binary
-text, a width padding with zeroes.
-
-### SYNOPSIS
-
-```text
-Value binary -> text
-Value: integer
+```result
+2
 ```
 
-### DESCRIPTION
+### Usage
 
-Operates on integers, not boolean masks.
-Integer precision is not limited to a
-machine word.
+```text
+A B band
+```
 
-### EXAMPLES
+Works on integers of any size. For true
+and false, use and.
 
-Write 6 in binary: 110.
+### See also
+
+bor, bxor, bnot, and
+
+## binary
+
+Write an integer in binary.
 
 ```rank
 use bits
-6 binary
+6 8 binary
 ```
+
+```result
+00000110
+```
+
+### Usage
+
+```text
+Number binary
+Number Width binary
+```
+
+With Width, pads with zeros on the left.
+Number cannot be negative.
+
+### See also
+
+hex, bit, popcount
 
 ## bit
 
-### NAME
+Check whether a single bit is set.
 
-Tests a zero-based bit position.
-
-### SYNOPSIS
-
-```text
-Value Position bit -> boolean
-Value, Position: integer
-```
-
-### DESCRIPTION
-
-Operands are arbitrary-precision
-integers. Bit positions and shift counts
-start at zero and must be nonnegative.
-
-### EXAMPLES
-
-Inspect bit position 1 of 6.
+6 is 110 in binary: bit 0 is off and bit
+1 is on.
 
 ```rank
 use bits
 6 1 bit
 ```
 
-## bnot
-
-### NAME
-
-Bitwise not in infinite two-complement
-form, so the result is -Value - 1.
-
-### SYNOPSIS
-
-```text
-Value bnot -> integer
-Value: integer
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Operates on integers, not boolean masks.
-Integer precision is not limited to a
-machine word.
+```text
+Number Position bit
+```
 
-### EXAMPLES
+Bit 0 is the rightmost one.
 
-Invert the integer bits.
+### See also
+
+binary, shl
+
+## bnot
+
+Flip every bit. The result is always
+-Number - 1.
 
 ```rank
 use bits
 6 bnot
 ```
 
-## bor
-
-### NAME
-
-Bitwise or.
-
-### SYNOPSIS
-
-```text
-A B bor -> integer
-A, B: integer
+```result
+-7
 ```
 
-### DESCRIPTION
+### Usage
 
-Operates on integers, not boolean masks.
-Integer precision is not limited to a
-machine word.
+```text
+Number bnot
+```
 
-### EXAMPLES
+Integers have no fixed width, so the
+bits are flipped as if there were
+endless leading ones or zeros. That is
+why the answer is negative.
 
-Keep bits from either integer: 7.
+### See also
+
+band, bor
+
+## bor
+
+Bitwise or: keep the bits set in either
+number.
 
 ```rank
 use bits
 6 3 bor
 ```
 
-## bxor
-
-### NAME
-
-Bitwise exclusive or.
-
-### SYNOPSIS
-
-```text
-A B bxor -> integer
-A, B: integer
+```result
+7
 ```
 
-### DESCRIPTION
+### Usage
 
-Operates on integers, not boolean masks.
-Integer precision is not limited to a
-machine word.
+```text
+A B bor
+```
 
-### EXAMPLES
+### See also
 
-Keep bits present in only one input: 5.
+band, bxor, or
+
+## bxor
+
+Bitwise exclusive or: keep the bits set
+in exactly one number.
 
 ```rank
 use bits
 6 3 bxor
 ```
 
-## popcount
-
-### NAME
-
-Number of set bits in a nonnegative
-integer.
-
-### SYNOPSIS
-
-```text
-Value popcount -> integer
-Value: integer
+```result
+5
 ```
 
-### DESCRIPTION
+### Usage
 
-Operates on integers, not boolean masks.
-Integer precision is not limited to a
-machine word.
+```text
+A B bxor
+```
 
-### EXAMPLES
+### See also
 
-Count set bits in 6: two.
+band, bor, xor
+
+## popcount
+
+How many bits are set.
+
+6 is 110 in binary: two bits are on.
 
 ```rank
 use bits
 6 popcount
 ```
 
-## shl
-
-### NAME
-
-Shifts left by a nonnegative bit count.
-
-### SYNOPSIS
-
-```text
-Value Count shl -> integer
-Value, Count: integer
+```result
+2
 ```
 
-### DESCRIPTION
+### Usage
 
-Operands are arbitrary-precision
-integers. Bit positions and shift counts
-start at zero and must be nonnegative.
+```text
+Number popcount
+```
 
-### EXAMPLES
+Number cannot be negative.
 
-Shift 3 left twice: 12.
+### See also
+
+binary, bit
+
+## shl
+
+Shift bits left, which multiplies by a
+power of two.
+
+Shifting 3 left by 2 multiplies it by 4.
 
 ```rank
 use bits
 3 2 shl
 ```
 
-## shr
-
-### NAME
-
-Arithmetic shift right by a nonnegative
-bit count.
-
-### SYNOPSIS
-
-```text
-Value Count shr -> integer
-Value, Count: integer
+```result
+12
 ```
 
-### DESCRIPTION
+### Usage
 
-Operands are arbitrary-precision
-integers. Bit positions and shift counts
-start at zero and must be nonnegative.
+```text
+Number Count shl
+```
 
-### EXAMPLES
+Count cannot be negative. Integers never
+overflow.
 
-Shift 12 right twice: 3.
+### See also
+
+shr
+
+## shr
+
+Shift bits right, which divides by a
+power of two, rounding down.
 
 ```rank
 use bits
 12 2 shr
 ```
+
+```result
+3
+```
+
+### Usage
+
+```text
+Number Count shr
+```
+
+Count cannot be negative. Negative
+numbers round down too: `-8 1 shr` is
+-4.
+
+### See also
+
+shl

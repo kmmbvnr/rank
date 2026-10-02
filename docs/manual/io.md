@@ -2,122 +2,99 @@
 
 ## stdin
 
-### NAME
-
-Read typed tokens from standard input.
-
-### SYNOPSIS
-
-```text
-stdin .Type
-Count stdin .Type
-Result: typed token or sequence
-Count: nonnegative integer
-.Type: .integer, .real or .text
-```
-
-### DESCRIPTION
-
-The label selects the token type, such
-as .integer, .real or .text. A preceding
-count requests a lazy sequence of
-tokens. This example needs an input
-token.
-
-### EXAMPLES
-
-Read one integer token from input.
+Read the next number or word typed as
+input.
 
 ```rank
 use io
 stdin .integer
 ```
 
-## append
-
-### NAME
-
-Appends UTF-8 text to a file, creating
-it when missing.
-
-### SYNOPSIS
-
-```text
-Text Path append -> text
-Text, Path: text
+```result
+7
 ```
 
-### DESCRIPTION
+### Usage
 
-Operands are text followed by a path.
-Creates the file when absent; the host
-must provide writable file storage.
+```text
+stdin .Type
+Count stdin .Type
+```
 
-### EXAMPLES
+.Type is .integer, .real or .text. Input
+is split at spaces and line breaks. With
+a Count in front, reads that many values
+as a sequence.
 
-Append b after a without replacing a.
+### See also
+
+argument, read
+
+## append
+
+Add text to the end of a file.
 
 ```rank
 use io
 "a" "notes.txt" write
 "b" "notes.txt" append
+"notes.txt" read
 ```
+
+```result
+ab
+```
+
+### Usage
+
+```text
+Text Path append
+```
+
+Creates the file if it does not exist
+yet. Nothing is added between the old
+text and the new one; include "\n"
+yourself to start a new line.
+
+### See also
+
+write, read
 
 ## close
 
-### NAME
-
-Closes a file early; closing an already
-closed file does nothing.
-
-### SYNOPSIS
-
-```text
-File close -> file
-File: open file handle
-```
-
-### DESCRIPTION
-
-Closes the handle immediately. Reading
-or writing through a closed handle
-raises an error; owned handles also
-close when their scope ends.
-
-### EXAMPLES
-
-Release an open file handle.
+Close an open file.
 
 ```rank
 use io
-"hello" "notes.txt" write
-F = "notes.txt" open
+F = "notes.txt" .write open
+F ("hi" bytes) writebytes
 F close
+"notes.txt" read
 ```
+
+```result
+hi
+```
+
+### Usage
+
+```text
+File close
+```
+
+Files close by themselves when the
+function that opened them ends. Close
+early to make sure writes are finished.
+Closing twice is harmless.
+
+### See also
+
+open, flush
 
 ## eof
 
-### NAME
-
-True when the position is at or past the
-end of the file.
-
-### SYNOPSIS
-
-```text
-File eof -> boolean
-File: open file handle
-```
-
-### DESCRIPTION
-
-Tests whether the current byte position
-is at the file end. Reading or seeking
-changes this result.
-
-### EXAMPLES
-
-The new cursor is not at end: false.
+Check whether an open file has been read
+to the end.
 
 ```rank
 use io
@@ -126,61 +103,55 @@ F = "notes.txt" open
 F eof
 ```
 
-## flush
-
-### NAME
-
-Asks the host to write buffered output
-to the file system.
-
-### SYNOPSIS
-
-```text
-File flush -> file
-File: open file handle
+```result
+false
 ```
 
-### DESCRIPTION
+### Usage
 
-Requires an open file handle. Makes its
-pending writes visible according to the
-host file implementation.
+```text
+File eof
+```
 
-### EXAMPLES
+### See also
 
-Flush buffered writes to the host.
+readbytes, position, seek
+
+## flush
+
+Make sure everything written so far
+reaches the file.
 
 ```rank
 use io
 F = "notes.txt" .write open
 F ("hello" bytes) writebytes
 F flush
+"notes.txt" read
 ```
+
+```result
+hello
+```
+
+### Usage
+
+```text
+File flush
+```
+
+Writes may be held back to make them
+faster; flush sends them now. close does
+this too.
+
+### See also
+
+close, writebytes
 
 ## open
 
-### NAME
-
-Opens a file, read-only unless a mode
-label selects write, update or append.
-
-### SYNOPSIS
-
-```text
-Path open -> file
-Path: text; optional mode label
-```
-
-### DESCRIPTION
-
-The default mode is read. Put .write,
-.append or .update before open to choose
-another mode. File handles are closed
-when their owning scope ends.
-
-### EXAMPLES
-
-Open a file and read its size in bytes.
+Open a file to read or write it bit by
+bit.
 
 ```rank
 use io
@@ -189,29 +160,33 @@ F = "notes.txt" open
 F size
 ```
 
-## position
-
-### NAME
-
-Current byte offset of an open file.
-
-### SYNOPSIS
-
-```text
-File position -> integer
-File: open file handle
+```result
+5
 ```
 
-### DESCRIPTION
+### Usage
 
-Returns the file cursor position in
-bytes. Text code points and bytes are
-different for non-ASCII text.
+```text
+Path open
+Path .write open
+```
 
-### EXAMPLES
+A file opens for reading unless you add
+.write, .append or .update before open.
 
-A newly opened reader is at byte offset
-zero.
+### Notes
+
+To read or write a whole file at once,
+read and write are simpler.
+
+### See also
+
+close, readbytes, writebytes, seek
+
+## position
+
+Where in an open file the next read or
+write happens, counted in bytes.
 
 ```rank
 use io
@@ -220,58 +195,61 @@ F = "notes.txt" open
 F position
 ```
 
-## print
-
-### NAME
-
-Writes one line and returns the value,
-so a pipeline continues.
-
-### SYNOPSIS
-
-```text
-Value print -> same
-Value: any supported value
+```result
+0
 ```
 
-### DESCRIPTION
+### Usage
 
-Formats the value and writes it to
-standard output. Returns the same value
-so a pipeline can continue.
+```text
+File position
+```
 
-### EXAMPLES
+A freshly opened file starts at 0.
 
-Send hello to program output.
+### Notes
+
+Bytes are not characters: letters like é
+take two bytes.
+
+### See also
+
+seek, size
+
+## print
+
+Show a value as a line of output.
+
+print shows hello, then the REPL shows
+the value print hands back.
 
 ```rank
 use io
 "hello" print
 ```
 
-## read
-
-### NAME
-
-Complete decoded UTF-8 text of a file,
-final line ending included.
-
-### SYNOPSIS
-
-```text
-Path read -> text
-Path: text path or open file handle
+```result
+hello
+hello
 ```
 
-### DESCRIPTION
+### Usage
 
-Reads a path as UTF-8 text. A missing
-file raises an error; the host must
-provide file access.
+```text
+Value print
+```
 
-### EXAMPLES
+print gives back the same value, so you
+can put it in the middle of a
+calculation to watch it.
 
-Read the complete text back.
+### See also
+
+write, text
+
+## read
+
+Read a whole text file.
 
 ```rank
 use io
@@ -279,31 +257,29 @@ use io
 "notes.txt" read
 ```
 
-## readbytes
-
-### NAME
-
-Reads a block of bytes by offset, or the
-next Count bytes of an open file.
-
-### SYNOPSIS
-
-```text
-Path Offset Count readbytes -> bytes
-Path: text; Offset, Count: integers
+```result
+hello
 ```
 
-### DESCRIPTION
+### Usage
 
-A path form takes Offset and Count. A
-file-handle form takes Count and
-advances its cursor. Offsets and counts
-are nonnegative integers.
+```text
+Path read
+```
 
-### EXAMPLES
+The file is read as UTF-8 text. A
+missing file is an error.
 
-Read two bytes starting at byte offset
-1.
+### See also
+
+readlines, write, open
+
+## readbytes
+
+Read raw bytes from a file.
+
+Two bytes from position 1: the letters e
+and l.
 
 ```rank
 use io
@@ -311,31 +287,28 @@ use io
 "notes.txt" 1 2 readbytes
 ```
 
-## readlines
-
-### NAME
-
-Lines of a file with their separators
-removed.
-
-### SYNOPSIS
-
-```text
-Path readlines -> array
-Path: text path or open file handle
+```result
+0x656c
 ```
 
-### DESCRIPTION
+### Usage
 
-Lines are produced lazily. Line
-terminators are not part of each
-returned line; file access is supplied
-by the host.
+```text
+Path Offset Count readbytes
+File Count readbytes
+```
 
-### EXAMPLES
+With a path, reads Count bytes starting
+at Offset. With an open file, reads the
+next Count bytes and moves on.
 
-Read the file as a sequence of text
-lines.
+### See also
+
+read, open, seek
+
+## readlines
+
+Read a text file line by line.
 
 ```rank
 use io
@@ -343,29 +316,27 @@ use io
 "notes.txt" readlines
 ```
 
-## seek
-
-### NAME
-
-Sets an absolute byte offset from the
-beginning.
-
-### SYNOPSIS
-
-```text
-File Offset seek -> file
-File: open handle; Offset: integer
+```result
+a b
 ```
 
-### DESCRIPTION
+### Usage
 
-Offset is a nonnegative integer. It is
-an absolute byte position, not a
-relative move or character count.
+```text
+Path readlines
+```
 
-### EXAMPLES
+Line endings are removed. Lines are read
+as you use them, so even very large
+files are fine.
 
-Move to absolute byte offset 2.
+### See also
+
+read, split
+
+## seek
+
+Jump to a byte position in an open file.
 
 ```rank
 use io
@@ -375,28 +346,26 @@ F 2 seek
 F position
 ```
 
-## size
-
-### NAME
-
-Length of an open file in bytes.
-
-### SYNOPSIS
-
-```text
-File size -> integer
-File: open file handle
+```result
+2
 ```
 
-### DESCRIPTION
+### Usage
 
-Returns the file length in bytes, not
-Unicode characters. The cursor position
-is unchanged.
+```text
+File Offset seek
+```
 
-### EXAMPLES
+Offset counts bytes from the start of
+the file.
 
-The ASCII text occupies five bytes.
+### See also
+
+position, readbytes
+
+## size
+
+How many bytes an open file holds.
 
 ```rank
 use io
@@ -405,62 +374,73 @@ F = "notes.txt" open
 F size
 ```
 
-## write
-
-### NAME
-
-Creates or replaces a file with UTF-8
-text.
-
-### SYNOPSIS
-
-```text
-Text Path write -> text
-Text, Path: text
+```result
+5
 ```
 
-### DESCRIPTION
+### Usage
 
-Operands are text followed by a path.
-Existing content is replaced; the host
-must provide writable file storage.
+```text
+File size
+```
 
-### EXAMPLES
+### See also
 
-Create or replace notes.txt.
+position, open
+
+## write
+
+Save text to a file, replacing what was
+there.
 
 ```rank
 use io
 "hello" "notes.txt" write
+"notes.txt" read
 ```
+
+```result
+hello
+```
+
+### Usage
+
+```text
+Text Path write
+```
+
+Creates the file if needed. Any old
+content is lost; to add to the end
+instead, use append.
+
+### See also
+
+append, read
 
 ## writebytes
 
-### NAME
-
-Writes a bytes value to an open file.
-
-### SYNOPSIS
-
-```text
-File Bytes writebytes -> file
-File: writable handle; Bytes: bytes
-```
-
-### DESCRIPTION
-
-Arguments are a writable file handle
-followed by bytes. Writing advances the
-cursor; text must first be converted
-with bytes.
-
-### EXAMPLES
-
-Write UTF-8 bytes to an opened file.
+Write raw bytes to an open file.
 
 ```rank
 use io
 F = "notes.txt" .write open
 F ("hello" bytes) writebytes
 F close
+"notes.txt" read
 ```
+
+```result
+hello
+```
+
+### Usage
+
+```text
+File Bytes writebytes
+```
+
+Turn text into bytes first with bytes.
+
+### See also
+
+open, bytes, readbytes

@@ -2,27 +2,8 @@
 
 ## index
 
-### NAME
-
-Store and retrieve sparse keyed values.
-
-### SYNOPSIS
-
-```text
-index Key = Value
-Capitalized words stand for your values.
-```
-
-### DESCRIPTION
-
-An index stores sparse keys rather than
-positional array cells. Reading an
-absent key raises a missing-value error;
-default supplies a fallback.
-
-### EXAMPLES
-
-Store and look up a keyed value: 3.
+A lookup table from keys to values, like
+a dictionary.
 
 ```rank
 use algo
@@ -30,94 +11,99 @@ index "red" = 3
 index "red"
 ```
 
+```result
+3
+```
+
+### Usage
+
+```text
+index Key = Value
+index Key
+```
+
+Keys can be numbers, text or other
+single values, and need not be
+consecutive. Each function has its own
+index.
+
+### Notes
+
+Reading a key that was never stored is
+an error. Add default for a fallback:
+`index "blue" default 0`.
+
+### See also
+
+new, counter add, default
+
 ## new
 
-### NAME
+Create an empty container: a queue,
+stack, deque, heap, set or counter.
 
-Create an empty named mutable container.
+```rank
+use algo
+Q = new queue
+Q push 7
+Q pop
+```
 
-### SYNOPSIS
+```result
+7
+```
+
+### Usage
 
 ```text
 new Kind
-Capitalized words stand for your values.
 ```
 
-### DESCRIPTION
+Containers change in place. Giving one a
+second name does not copy it: both names
+refer to the same container.
 
-Choose a container kind such as queue,
-stack, set or counter. Named mutable
-containers are shared when assigned to
-another name.
+### See also
 
-### EXAMPLES
-
-Create an empty queue, then remove 7.
-
-```rank
-use algo
-Q = new queue
-Q push 7
-Q pop
-```
+push, pop, add, pushback
 
 ## push
 
-### NAME
-
-Appends a value to a queue, stack, deque
-or heap, which orders it by priority.
-
-### SYNOPSIS
-
-```text
-Q push Value -> collection
-Q: queue or stack; Value: item
-```
-
-### DESCRIPTION
-
-Queue removal is oldest-first; stack
-removal is newest-first. A heap removes
-the smallest priority first. Reading an
-empty container raises a missing-value
-error. This operation changes the
-receiver in place.
-
-### EXAMPLES
-
-Append 7 to a queue, then remove it.
+Put a value into a queue, stack or heap.
 
 ```rank
 use algo
 Q = new queue
-Q push 7
+Q push 1
+Q push 2
 Q pop
 ```
 
-## set add
-
-### NAME
-
-Add an item to the implicit local set.
-
-### SYNOPSIS
-
-```text
-set add Value
-Capitalized words stand for your values.
+```result
+1
 ```
 
-### DESCRIPTION
+### Usage
 
-set is an implicit local mutable set.
-Repeated equal values do not add
-entries. Use new set for a named
-instance.
+```text
+Container push Value
+```
 
-### EXAMPLES
+What pop gives back next depends on the
+container: a queue gives the oldest
+value, a stack the newest, a heap the
+smallest.
 
-Adding 3 twice keeps one item.
+### See also
+
+pop, peek, enqueue, new
+
+## set add
+
+Add a value to this function's built-in
+set.
+
+Adding 3 twice still leaves one item.
 
 ```rank
 use algo
@@ -126,30 +112,29 @@ set add 3
 set len
 ```
 
-## counter add
-
-### NAME
-
-Count an item in the implicit local
-counter.
-
-### SYNOPSIS
-
-```text
-counter add Value
-Capitalized words stand for your values.
+```result
+1
 ```
 
-### DESCRIPTION
+### Usage
 
-counter is an implicit local frequency
-collection. Adding an equal value
-increments its count; use new counter
-for a named instance.
+```text
+set add Value
+```
 
-### EXAMPLES
+The word set alone is a ready-made set,
+one per function. A set holds each value
+once. For more than one set, use new
+set.
 
-Count two occurrences of a.
+### See also
+
+add, new, counter add
+
+## counter add
+
+Count a value in this function's
+built-in counter.
 
 ```rank
 use algo
@@ -158,31 +143,30 @@ counter add "a"
 counter "a"
 ```
 
-## add
-
-### NAME
-
-Adds a value to a set, counter or
-multiset.
-
-### SYNOPSIS
-
-```text
-Seen add Value -> collection
-Seen: set/counter/multiset; Value: item
+```result
+2
 ```
 
-### DESCRIPTION
+### Usage
 
-An ordered multiset keeps duplicates. A
-lookup with no qualifying value raises a
-missing-value error; append default to
-supply a fallback. This operation
-changes the receiver in place.
+```text
+counter add Value
+counter Value
+```
 
-### EXAMPLES
+The word counter alone is a ready-made
+counter, one per function. Read a count
+with `counter Value`. For more than one
+counter, use new counter.
 
-Insert one occurrence of 7.
+### See also
+
+add, set add, vocab
+
+## add
+
+Put a value into a set, counter or
+multiset.
 
 ```rank
 use algo
@@ -191,516 +175,94 @@ Bag add 7
 Bag len
 ```
 
-## ceiling
-
-### NAME
-
-Smallest stored value at least the
-limit.
-
-### SYNOPSIS
-
-```text
-Bag ceiling Limit -> element
-Bag: ordered multiset; Limit: item
+```result
+5
 ```
 
-### DESCRIPTION
+### Usage
 
-An ordered multiset keeps duplicates. A
-lookup with no qualifying value raises a
-missing-value error; append default to
-supply a fallback.
+```text
+Container add Value
+```
 
-### EXAMPLES
+A set ignores a value it already has. A
+counter adds one to its count. A
+multiset keeps every copy.
 
-Find a value at least 5: 5.
+### See also
+
+remove, set add, counter add, multiset
+
+## ceiling
+
+The smallest value in a multiset that is
+at least a limit.
 
 ```rank
 use algo
 Bag = (array 2 5 5 9) multiset
-Bag 5 ceiling
+Bag 6 ceiling
 ```
+
+```result
+9
+```
+
+### Usage
+
+```text
+Bag Limit ceiling
+```
+
+### Notes
+
+If every value is below Limit, it is an
+error. Add default for a fallback.
+
+### See also
+
+floor, upperbound, lowerbound, multiset
 
 ## combinations
 
-### NAME
+Every way to pick N items, ignoring
+order.
 
-Lazy sequence of the combinations of
-that size, in input order.
-
-### SYNOPSIS
-
-```text
-Values Count combinations -> sequence
-Values: finite collection; Count:
-integer
-```
-
-### DESCRIPTION
-
-The input is a finite one-dimensional
-collection. Generated combinations and
-permutations are lazy, so consume only
-the results you need. Values are
-produced on demand; storing the result
-does not force every item.
-
-### EXAMPLES
-
-Choose pairs without repetition.
+The pairs from 1 2 3 are 1 2, 1 3 and 2
+3.
 
 ```rank
 use algo
 (array 1 2 3) 2 combinations
 ```
 
+```result
+1 2 1 3 2 3
+```
+
+### Usage
+
+```text
+Values Count combinations
+```
+
+Each item is used at most once, and the
+pairs keep the input order. Results are
+made one at a time as you read them, so
+even huge counts are fine if you only
+read a few.
+
+### See also
+
+multicomb, permutations, binomial
+
 ## enqueue
 
-### NAME
-
-Inserts a payload into a heap under a
-separate priority.
-
-### SYNOPSIS
-
-```text
-Heap Priority Value enqueue ->
-collection
-Heap: heap; Priority: ordered value
-Value: payload
-```
-
-### DESCRIPTION
-
-Queue removal is oldest-first; stack
-removal is newest-first. A heap removes
-the smallest priority first. Reading an
-empty container raises a missing-value
-error. This operation changes the
-receiver in place.
-
-### EXAMPLES
-
-Store a payload under priority 1.
-
-```rank
-use algo
-H = new heap
-H 1 "first" enqueue
-```
-
-## fenwick
-
-### NAME
-
-Fixed-size integer Fenwick tree with
-inclusive prefix sums.
-
-### SYNOPSIS
-
-```text
-Size fenwick -> fenwick
-Size: nonnegative integer
-```
-
-### DESCRIPTION
-
-Size is a nonnegative integer. Cells
-start at zero; indices start at zero.
-Prefix sums include their final index.
-
-### EXAMPLES
-
-Store 5 at position 1 and sum through 2.
-
-```rank
-use algo
-F = 4 fenwick
-F 1 = 5
-F sum 2
-```
-
-## firstatleast
-
-### NAME
-
-First position whose monotone prefix
-aggregate reaches the target.
-
-### SYNOPSIS
-
-```text
-Tree Target firstatleast -> integer
-Tree: numeric segment; Target: number
-```
-
-### DESCRIPTION
-
-Finds the first position whose prefix
-aggregate reaches Target. Aggregates
-must be numeric and monotone for this
-search to be valid.
-
-### EXAMPLES
-
-The prefix reaches 4 at position 1.
-
-```rank
-use algo
-S = (array 2 3 5) segment +
-S 4 firstatleast
-```
-
-## floor
-
-### NAME
-
-Largest stored value at most the limit.
-
-### SYNOPSIS
-
-```text
-Bag floor Limit -> element
-Bag: ordered multiset; Limit: item
-```
-
-### DESCRIPTION
-
-An ordered multiset keeps duplicates. A
-lookup with no qualifying value raises a
-missing-value error; append default to
-supply a fallback.
-
-### EXAMPLES
-
-Find a value at most 5: 5.
-
-```rank
-use algo
-Bag = (array 2 5 5 9) multiset
-Bag 5 floor
-```
-
-## lowerbound
-
-### NAME
-
-Smallest stored value at least the
-query, an alias for ceiling.
-
-### SYNOPSIS
-
-```text
-Bag lowerbound Value -> element
-Bag: ordered multiset; Value: item
-```
-
-### DESCRIPTION
-
-An ordered multiset keeps duplicates. A
-lookup with no qualifying value raises a
-missing-value error; append default to
-supply a fallback.
-
-### EXAMPLES
-
-Find the first value at least 5.
-
-```rank
-use algo
-Bag = (array 2 5 5 9) multiset
-Bag 5 lowerbound
-```
-
-## maxsum
-
-### NAME
-
-Prefix and subarray sum profile: query
-returns sum, prefix, suffix and best.
-
-### SYNOPSIS
-
-```text
-Values segment maxsum -> record
-Values: numeric vector
-```
-
-### DESCRIPTION
-
-Used as the combiner after segment. The
-query returns a record containing sum,
-prefix, suffix and best; best is the
-maximum subarray sum.
-
-### EXAMPLES
-
-Query the maximum-subarray profile.
-
-```rank
-use algo
-S = (array -2 4 -1) segment maxsum
-S 0 2 query
-```
-
-## missing
-
-### NAME
-
-Smallest subset sum a wavelet position
-range cannot make.
-
-### SYNOPSIS
-
-```text
-Data Bounds missing -> integer
-Data: wavelet of positive integers
-Bounds: inclusive integer index pairs
-```
-
-### DESCRIPTION
-
-The wavelet source must contain positive
-integers. Each bounds pair selects an
-inclusive positional range; the result
-is the least positive sum unavailable
-from its subset sums.
-
-### EXAMPLES
-
-The first impossible subset sum is 4.
-
-```rank
-use algo
-W = (array 1 2 7) wavelet
-W (array 0 2) missing
-```
-
-## multicomb
-
-### NAME
-
-Lazy sequence of the combinations of
-that size with repetition.
-
-### SYNOPSIS
-
-```text
-Values Count multicomb -> sequence
-Values: finite collection; Count:
-integer
-```
-
-### DESCRIPTION
-
-The input is a finite one-dimensional
-collection. Generated combinations and
-permutations are lazy, so consume only
-the results you need. Values are
-produced on demand; storing the result
-does not force every item.
-
-### EXAMPLES
-
-Choose pairs allowing repeated items.
-
-```rank
-use algo
-(array 1 2) 2 multicomb
-```
-
-## multiset
-
-### NAME
-
-Ordered multiset holding every value,
-duplicates kept.
-
-### SYNOPSIS
-
-```text
-Values multiset -> collection
-Values: comparable vector
-```
-
-### DESCRIPTION
-
-The input is a one-dimensional
-collection of comparable values. Values
-must have compatible types.
-
-### EXAMPLES
-
-Store values in sorted order, keeping
-duplicates.
-
-```rank
-use algo
-(array 3 1 3) multiset
-```
-
-## peek
-
-### NAME
-
-Next value of a queue, stack, deque or
-heap, left in place.
-
-### SYNOPSIS
-
-```text
-Q peek -> element
-Q: queue, stack, deque or heap
-```
-
-### DESCRIPTION
-
-Queue removal is oldest-first; stack
-removal is newest-first. A heap removes
-the smallest priority first. Reading an
-empty container raises a missing-value
-error.
-
-### EXAMPLES
-
-Read the next payload without removing
-it.
-
-```rank
-use algo
-H = new heap
-H 2 "later" enqueue
-H 1 "first" enqueue
-H peek
-```
-
-## peekback
-
-### NAME
-
-Last value of a deque, left in place.
-
-### SYNOPSIS
-
-```text
-Ends peekback -> element
-Ends: deque
-```
-
-### DESCRIPTION
-
-The front is the first item and the back
-the last. Peek leaves the item in place;
-pop removes it; push inserts it. Reading
-an empty deque raises a missing-value
-error.
-
-### EXAMPLES
-
-Use the named front or back of a
-two-ended queue.
-
-```rank
-use algo
-D = new deque
-D 1 pushback
-D 2 pushback
-D peekback
-```
-
-## peekfront
-
-### NAME
-
-First value of a deque, left in place.
-
-### SYNOPSIS
-
-```text
-Ends peekfront -> element
-Ends: deque
-```
-
-### DESCRIPTION
-
-The front is the first item and the back
-the last. Peek leaves the item in place;
-pop removes it; push inserts it. Reading
-an empty deque raises a missing-value
-error.
-
-### EXAMPLES
-
-Use the named front or back of a
-two-ended queue.
-
-```rank
-use algo
-D = new deque
-D 1 pushback
-D 2 pushback
-D peekfront
-```
-
-## permutations
-
-### NAME
-
-Lazy sequence of every ordering of the
-values.
-
-### SYNOPSIS
-
-```text
-Values permutations -> sequence
-Values: finite collection
-```
-
-### DESCRIPTION
-
-The input is a finite one-dimensional
-collection. Generated combinations and
-permutations are lazy, so consume only
-the results you need. Values are
-produced on demand; storing the result
-does not force every item.
-
-### EXAMPLES
-
-Enumerate all orders of three items.
-
-```rank
-use algo
-(array 1 2 3) permutations
-```
-
-## pop
-
-### NAME
-
-Removes and returns the next value of a
-queue, stack, deque or heap.
-
-### SYNOPSIS
-
-```text
-Q pop -> element
-Q: queue, stack, deque or heap
-```
-
-### DESCRIPTION
-
-Queue removal is oldest-first; stack
-removal is newest-first. A heap removes
-the smallest priority first. Reading an
-empty container raises a missing-value
-error. This operation changes the
-receiver in place.
-
-### EXAMPLES
-
-Remove the next payload.
+Add a value to a heap with its own
+priority.
+
+The value with the smallest priority
+comes out first.
 
 ```rank
 use algo
@@ -710,33 +272,425 @@ H 1 "first" enqueue
 H pop
 ```
 
-## popback
-
-### NAME
-
-Removes and returns the last value of a
-deque.
-
-### SYNOPSIS
-
-```text
-Ends popback -> element
-Ends: deque
+```result
+first
 ```
 
-### DESCRIPTION
+### Usage
 
-The front is the first item and the back
-the last. Peek leaves the item in place;
-pop removes it; push inserts it. Reading
-an empty deque raises a missing-value
-error. This operation changes the
-receiver in place.
+```text
+Heap Priority Value enqueue
+```
 
-### EXAMPLES
+Use this when the order you want is not
+the value itself, such as tasks ranked
+by distance.
 
-Use the named front or back of a
-two-ended queue.
+### See also
+
+push, pop, peek, new
+
+## fenwick
+
+A list of numbers that can quickly sum
+the first N of them while changing.
+
+Positions start at zero; the sum through
+position 2 adds positions 0, 1 and 2.
+
+```rank
+use algo
+F = 4 fenwick
+F 1 = 5
+F 3 = 2
+F sum 2
+```
+
+```result
+5
+```
+
+### Usage
+
+```text
+Size fenwick
+Tree Position = Value
+Tree sum Position
+```
+
+All cells start at zero. Both setting a
+cell and summing take very little time,
+even for millions of cells.
+
+### See also
+
+segment, query, sum
+
+## firstatleast
+
+The first position where a running total
+reaches a target.
+
+The running totals are 2, 5, 10; the
+first to reach 4 is at position 1.
+
+```rank
+use algo
+S = (array 2 3 5) segment +
+S 4 firstatleast
+```
+
+```result
+1
+```
+
+### Usage
+
+```text
+Tree Target firstatleast
+```
+
+Works on a segment tree. The running
+total must only ever grow, so the values
+should not be negative.
+
+### See also
+
+segment, query
+
+## floor
+
+The largest value in a multiset that is
+at most a limit.
+
+```rank
+use algo
+Bag = (array 2 5 5 9) multiset
+Bag 6 floor
+```
+
+```result
+5
+```
+
+### Usage
+
+```text
+Bag Limit floor
+```
+
+### Notes
+
+If every value is above Limit, it is an
+error. Add default for a fallback.
+
+### See also
+
+ceiling, lowerbound, multiset
+
+## lowerbound
+
+Another name for ceiling: the smallest
+value at least a limit.
+
+```rank
+use algo
+Bag = (array 2 5 5 9) multiset
+Bag 5 lowerbound
+```
+
+```result
+5
+```
+
+### Usage
+
+```text
+Bag Limit lowerbound
+```
+
+### See also
+
+ceiling, upperbound
+
+## maxsum
+
+Set up a segment tree to find the best
+sum of a run of neighbours.
+
+The best run in -2 4 -1 is just 4.
+
+```rank
+use algo
+S = (array -2 4 -1) segment maxsum
+R = S 0 2 query
+R .best
+```
+
+```result
+4
+```
+
+### Usage
+
+```text
+Values segment maxsum
+```
+
+Use it in place of an operator after
+segment. A query then gives a record
+with .sum, .prefix, .suffix and .best,
+where .best is the largest sum of a run
+of neighbouring items.
+
+### See also
+
+segment, query
+
+## missing
+
+The smallest total you cannot make by
+adding up some of the numbers in a
+range.
+
+From 1, 2 and 7 you can make 1, 2 and 3,
+but not 4.
+
+```rank
+use algo
+W = (array 1 2 7) wavelet
+W (array 0 2) missing
+```
+
+```result
+4
+```
+
+### Usage
+
+```text
+Data Bounds missing
+```
+
+Data is a wavelet of positive integers.
+Bounds is a pair of positions, both
+included.
+
+### See also
+
+wavelet, within
+
+## multicomb
+
+Every way to pick N items when an item
+may be picked more than once.
+
+```rank
+use algo
+(array 1 2) 2 multicomb
+```
+
+```result
+1 1 1 2 2 2
+```
+
+### Usage
+
+```text
+Values Count multicomb
+```
+
+From 1 2 the pairs are 1 1, 1 2 and 2 2.
+Results are made one at a time as you
+read them.
+
+### See also
+
+combinations, permutations
+
+## multiset
+
+A sorted collection that keeps
+duplicates and can quickly find nearby
+values.
+
+```rank
+use algo
+Bag = (array 3 1 3) multiset
+Bag 2 ceiling
+```
+
+```result
+3
+```
+
+### Usage
+
+```text
+Values multiset
+```
+
+Values stay sorted as you add and remove
+them. Look up neighbours with floor,
+ceiling and upperbound.
+
+### See also
+
+add, remove, floor, ceiling
+
+## peek
+
+Look at the next value of a queue, stack
+or heap without removing it.
+
+```rank
+use algo
+H = new heap
+H 2 "later" enqueue
+H 1 "first" enqueue
+H peek
+```
+
+```result
+first
+```
+
+### Usage
+
+```text
+Container peek
+```
+
+### Notes
+
+Peeking at an empty container is an
+error.
+
+### See also
+
+pop, push
+
+## peekback
+
+Look at the last value of a deque
+without removing it.
+
+```rank
+use algo
+D = new deque
+D 1 pushback
+D 2 pushback
+D peekback
+```
+
+```result
+2
+```
+
+### Usage
+
+```text
+Deque peekback
+```
+
+### See also
+
+peekfront, popback, pushback
+
+## peekfront
+
+Look at the first value of a deque
+without removing it.
+
+```rank
+use algo
+D = new deque
+D 1 pushback
+D 2 pushback
+D peekfront
+```
+
+```result
+1
+```
+
+### Usage
+
+```text
+Deque peekfront
+```
+
+### See also
+
+peekback, popfront, pushfront
+
+## permutations
+
+Every possible order of the items.
+
+```rank
+use algo
+P = (array 1 2 3) permutations
+P array len
+```
+
+```result
+6
+```
+
+### Usage
+
+```text
+Values permutations
+```
+
+n items have n × (n−1) × … × 1 orders,
+which grows fast. The orders are made
+one at a time as you read them, so stop
+early with take or first where.
+
+### See also
+
+combinations, multicomb
+
+## pop
+
+Take the next value out of a queue,
+stack or heap.
+
+```rank
+use algo
+H = new heap
+H 2 "later" enqueue
+H 1 "first" enqueue
+H pop
+```
+
+```result
+first
+```
+
+### Usage
+
+```text
+Container pop
+```
+
+A queue gives the oldest value, a stack
+the newest, a heap the smallest.
+
+### Notes
+
+Popping from an empty container is an
+error.
+
+### See also
+
+push, peek, enqueue
+
+## popback
+
+Take the last value off a deque.
 
 ```rank
 use algo
@@ -746,33 +700,23 @@ D 2 pushback
 D popback
 ```
 
-## popfront
-
-### NAME
-
-Removes and returns the first value of a
-deque.
-
-### SYNOPSIS
-
-```text
-Ends popfront -> element
-Ends: deque
+```result
+2
 ```
 
-### DESCRIPTION
+### Usage
 
-The front is the first item and the back
-the last. Peek leaves the item in place;
-pop removes it; push inserts it. Reading
-an empty deque raises a missing-value
-error. This operation changes the
-receiver in place.
+```text
+Deque popback
+```
 
-### EXAMPLES
+### See also
 
-Use the named front or back of a
-two-ended queue.
+popfront, pushback, peekback
+
+## popfront
+
+Take the first value off a deque.
 
 ```rank
 use algo
@@ -782,103 +726,79 @@ D 2 pushback
 D popfront
 ```
 
-## pushback
-
-### NAME
-
-Appends a value to the back of a deque.
-
-### SYNOPSIS
-
-```text
-Ends Value pushback -> collection
-Ends: deque; Value: item
+```result
+1
 ```
 
-### DESCRIPTION
+### Usage
 
-The front is the first item and the back
-the last. Peek leaves the item in place;
-pop removes it; push inserts it. Reading
-an empty deque raises a missing-value
-error. This operation changes the
-receiver in place.
+```text
+Deque popfront
+```
 
-### EXAMPLES
+### See also
 
-Use the named front or back of a
-two-ended queue.
+popback, pushfront, peekfront
+
+## pushback
+
+Add a value at the back of a deque.
 
 ```rank
 use algo
 D = new deque
 D 1 pushback
 D 2 pushback
-D 3 pushback
-D len
+D peekback
 ```
+
+```result
+2
+```
+
+### Usage
+
+```text
+Deque Value pushback
+```
+
+A deque is a line you can add to or take
+from at both ends.
+
+### See also
+
+pushfront, popback, new
 
 ## pushfront
 
-### NAME
-
-Adds a value to the front of a deque.
-
-### SYNOPSIS
-
-```text
-Ends Value pushfront -> collection
-Ends: deque; Value: item
-```
-
-### DESCRIPTION
-
-The front is the first item and the back
-the last. Peek leaves the item in place;
-pop removes it; push inserts it. Reading
-an empty deque raises a missing-value
-error. This operation changes the
-receiver in place.
-
-### EXAMPLES
-
-Use the named front or back of a
-two-ended queue.
+Add a value at the front of a deque.
 
 ```rank
 use algo
 D = new deque
 D 1 pushback
-D 2 pushback
-D 3 pushfront
-D len
+D 2 pushfront
+D peekfront
 ```
+
+```result
+2
+```
+
+### Usage
+
+```text
+Deque Value pushfront
+```
+
+### See also
+
+pushback, popfront, new
 
 ## query
 
-### NAME
-
-Reduces an inclusive segment-tree range
-in left-to-right order.
-
-### SYNOPSIS
-
-```text
-Tree Left Right query -> element
-Tree: segment; Left, Right: integer
-indices
-```
-
-### DESCRIPTION
-
-Left and Right are inclusive zero-based
-positions in the segment tree. Left must
-not exceed Right; out-of-bounds
-positions raise an error.
-
-### EXAMPLES
-
-Sum positions 1 through 2: 8.
+Combine a range of a segment tree, such
+as the sum of positions 1 to 2.
 
 ```rank
 use algo
@@ -886,31 +806,27 @@ S = (array 2 3 5) segment +
 S 1 2 query
 ```
 
-## remove
-
-### NAME
-
-Removes one occurrence from a set,
-counter or multiset.
-
-### SYNOPSIS
-
-```text
-Bag remove Value -> collection
-Bag: multiset; Value: item
+```result
+8
 ```
 
-### DESCRIPTION
+### Usage
 
-An ordered multiset keeps duplicates. A
-lookup with no qualifying value raises a
-missing-value error; append default to
-supply a fallback. This operation
-changes the receiver in place.
+```text
+Tree From To query
+```
 
-### EXAMPLES
+Both ends are included, and positions
+start at zero.
 
-Remove one occurrence of 5.
+### See also
+
+segment, firstatleast
+
+## remove
+
+Take one copy of a value out of a set,
+counter or multiset.
 
 ```rank
 use algo
@@ -919,66 +835,66 @@ Bag remove 5
 Bag len
 ```
 
-## segment
-
-### NAME
-
-Segment tree over one associative binary
-operation.
-
-### SYNOPSIS
-
-```text
-Values segment Operation -> segment
-Values: vector; Operation: binary
-combiner
+```result
+3
 ```
 
-### DESCRIPTION
+### Usage
 
-The binary combiner must be associative.
-query uses inclusive zero-based bounds.
-Point assignment updates the stored
-values and their aggregates.
+```text
+Container remove Value
+```
 
-### EXAMPLES
+From a multiset, only one copy is
+removed.
 
-Build a sum tree and sum all three
-cells.
+### See also
+
+add, multiset
+
+## segment
+
+A list that can quickly combine any
+range, even while values change.
+
+Change position 1 to 10, then sum
+everything.
 
 ```rank
 use algo
 S = (array 2 3 5) segment +
+S 1 = 10
 S 0 2 query
 ```
 
-## sumwithin
-
-### NAME
-
-Sums wavelet values inside inclusive
-position and value ranges.
-
-### SYNOPSIS
-
-```text
-Data Left Right Low High sumwithin ->
-number
-Data: numeric wavelet
-Left, Right: integer indices
-Low, High: numbers
+```result
+17
 ```
 
-### DESCRIPTION
+### Usage
 
-Both positional and value bounds are
-inclusive. within counts qualifying
-cells; sumwithin adds them and requires
-numeric values.
+```text
+Values segment Operator
+Tree Position = Value
+```
 
-### EXAMPLES
+The operator combines two values, such
+as +, max or min. It must give the same
+answer however the values are grouped,
+as + does.
 
-Consider positions 0..3 and values 2..4.
+### See also
+
+query, firstatleast, maxsum, fenwick
+
+## sumwithin
+
+Add up the values in a range of
+positions that also fall in a range of
+sizes.
+
+Among positions 0 to 3, the values from
+2 to 4 are 3 and 2.
 
 ```rank
 use algo
@@ -986,30 +902,26 @@ W = (array 3 1 2 5) wavelet
 W 0 3 2 4 sumwithin
 ```
 
-## upperbound
-
-### NAME
-
-Smallest stored value greater than the
-query.
-
-### SYNOPSIS
-
-```text
-Bag upperbound Value -> element
-Bag: ordered multiset; Value: item
+```result
+5
 ```
 
-### DESCRIPTION
+### Usage
 
-An ordered multiset keeps duplicates. A
-lookup with no qualifying value raises a
-missing-value error; append default to
-supply a fallback.
+```text
+Data From To Low High sumwithin
+```
 
-### EXAMPLES
+All four bounds are included.
 
-Find the first value strictly above 5.
+### See also
+
+within, wavelet
+
+## upperbound
+
+The smallest value in a multiset
+strictly greater than a limit.
 
 ```rank
 use algo
@@ -1017,65 +929,81 @@ Bag = (array 2 5 5 9) multiset
 Bag 5 upperbound
 ```
 
+```result
+9
+```
+
+### Usage
+
+```text
+Bag Limit upperbound
+```
+
+### Notes
+
+If no value is greater, it is an error.
+Add default for a fallback.
+
+### See also
+
+ceiling, lowerbound
+
 ## wavelet
 
-### NAME
-
-Immutable wavelet matrix for range
-counts and sums.
-
-### SYNOPSIS
-
-```text
-Values wavelet -> structure
-Values: comparable vector
-```
-
-### DESCRIPTION
-
-The input is a one-dimensional
-collection of comparable values. Values
-must have compatible types.
-
-### EXAMPLES
-
-Index values for range-count queries.
-
-```rank
-use algo
-(array 3 1 2) wavelet
-```
-
-## within
-
-### NAME
-
-Counts wavelet values inside inclusive
-position and value ranges.
-
-### SYNOPSIS
-
-```text
-Data Left Right Low High within ->
-integer
-Data: wavelet; Left, Right: integer
-indices
-Low, High: comparable values
-```
-
-### DESCRIPTION
-
-Both positional and value bounds are
-inclusive. within counts qualifying
-cells; sumwithin adds them and requires
-numeric values.
-
-### EXAMPLES
-
-Consider positions 0..3 and values 2..4.
+Prepare a list for fast range questions,
+such as how many values in positions 10
+to 500 lie between 3 and 7.
 
 ```rank
 use algo
 W = (array 3 1 2 5) wavelet
 W 0 3 2 4 within
 ```
+
+```result
+2
+```
+
+### Usage
+
+```text
+Values wavelet
+```
+
+The list cannot be changed afterwards.
+Ask questions with within, sumwithin and
+missing.
+
+### See also
+
+within, sumwithin, missing
+
+## within
+
+Count the values in a range of positions
+that also fall in a range of sizes.
+
+Among positions 0 to 3, two values lie
+between 2 and 4.
+
+```rank
+use algo
+W = (array 3 1 2 5) wavelet
+W 0 3 2 4 within
+```
+
+```result
+2
+```
+
+### Usage
+
+```text
+Data From To Low High within
+```
+
+All four bounds are included.
+
+### See also
+
+sumwithin, wavelet

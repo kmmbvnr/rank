@@ -2,356 +2,329 @@
 
 ## character
 
-### NAME
-
-One-character text for a Unicode code
-point.
-
-### SYNOPSIS
-
-```text
-Code character -> text
-Code: valid integer Unicode code point
-```
-
-### DESCRIPTION
-
-Accepts a valid Unicode code point and
-returns one-character text.
-
-### EXAMPLES
-
-Unicode code point 65 gives A.
+The character with a given Unicode
+number.
 
 ```rank
 use text
 65 character
 ```
 
-## codepoint
-
-### NAME
-
-Integer code point of exactly one
-character.
-
-### SYNOPSIS
-
-```text
-Character codepoint -> integer
-Character: one-code-point text
+```result
+A
 ```
 
-### DESCRIPTION
+### Usage
 
-Input must contain exactly one Unicode
-code point, not an arbitrary-length
-string.
+```text
+Code character
+```
 
-### EXAMPLES
+### See also
 
-A has Unicode code point 65.
+codepoint
+
+## codepoint
+
+The Unicode number of a character.
 
 ```rank
 use text
 "A" codepoint
 ```
 
-## hex
-
-### NAME
-
-Lowercase hexadecimal text for bytes,
-without a prefix.
-
-### SYNOPSIS
-
-```text
-Bytes hex -> text
-Bytes: bytes
+```result
+65
 ```
 
-### DESCRIPTION
+### Usage
 
-Input is bytes. Two hexadecimal digits
-represent each byte; no 0x prefix is
-added.
+```text
+Character codepoint
+```
 
-### EXAMPLES
+The text must be exactly one character.
 
-Encode bytes as lowercase hexadecimal.
+### See also
+
+character
+
+## hex
+
+Write bytes as hexadecimal text.
 
 ```rank
 use text
 "Rank" bytes hex
 ```
 
-## join
-
-### NAME
-
-Joins scalar elements of a finite
-collection into one text; a matrix joins
-each row.
-
-### SYNOPSIS
-
-```text
-Values Separator join -> text
-Values: finite collection; Separator:
-text
+```result
+52616e6b
 ```
 
-### DESCRIPTION
+### Usage
 
-Scalar values are formatted as text. A
-matrix joins each row separately; the
-separator is placed between items.
+```text
+Bytes hex
+```
 
-### EXAMPLES
+Two lowercase digits per byte, with no
+0x in front.
 
-Join items with commas: a,b.
+### See also
+
+bytes, binary
+
+## join
+
+Glue items into one text, with a
+separator between them.
 
 ```rank
 use text
-(array "a" "b") "," join
+(array 1 2 3) ", " join
 ```
+
+```result
+1, 2, 3
+```
+
+### Usage
+
+```text
+Values Separator join
+```
+
+Numbers and other single values are
+turned into text first. A matrix joins
+each row separately.
+
+### See also
+
+split, text
 
 ## parse
 
-### NAME
-
-Captures /integer, /real, /word and
-/text from a complete pattern match.
-
-### SYNOPSIS
-
-```text
-Text Pattern parse -> array or tuple
-Text, Pattern: text
-```
-
-### DESCRIPTION
-
-The pattern supports /integer, /real,
-/word and /text. The entire text must
-match; unpack assigns the captured
-values to names. Same-type captures
-form an array; mixed captures form a
-tuple.
-
-### EXAMPLES
-
-Capture two integers from the complete
-text.
+Read values out of text that follows a
+pattern.
 
 ```rank
 use text
-"12 7" "/integer /integer" parse
+P = "/integer /integer"
+unpack A B = "12 7" P parse
+A + B
 ```
+
+```result
+19
+```
+
+### Usage
+
+```text
+Text Pattern parse
+```
+
+In the pattern, /integer, /real, /word
+and /text mark the values to read;
+everything else must match exactly. The
+whole text must match. Same-type
+captures form an array; mixed captures
+form a tuple. Use unpack to name them.
+
+### See also
+
+split, words, unpack
 
 ## split
 
-### NAME
-
-Splits at every exact occurrence of a
-separator, keeping empty parts.
-
-### SYNOPSIS
-
-```text
-Text Separator split -> array
-Text: text; Separator: text or text
-array
-```
-
-### DESCRIPTION
-
-Splits at every exact separator
-occurrence. An empty separator splits
-into Unicode code points and must be
-used alone.
-
-### EXAMPLES
-
-Keep the empty item between adjacent
-commas.
+Cut text into pieces at a separator.
 
 ```rank
 use text
-"a,,b" "," split
+"a,b,c" "," split
 ```
+
+```result
+a b c
+```
+
+### Usage
+
+```text
+Text Separator split
+```
+
+Two separators in a row give an empty
+piece between them. An empty separator
+"" splits into single characters.
+
+### See also
+
+join, words, parse
 
 ## startswith
 
-### NAME
-
-Exact text or byte prefix test; ordinary
-arrays broadcast elementwise.
-
-### SYNOPSIS
-
-```text
-Value Prefix startswith -> boolean
-Value, Prefix: text or bytes
-```
-
-### DESCRIPTION
-
-The match is exact and case-sensitive.
-Text and bytes are supported; ordinary
-arrays broadcast cell by cell.
-
-### EXAMPLES
-
-The text has prefix Ra: true.
+Check whether text begins with a given
+prefix.
 
 ```rank
 use text
 "Rank" "Ra" startswith
 ```
 
-## lower
-
-### NAME
-
-Converts Unicode text to lowercase.
-
-### SYNOPSIS
-
-```text
-Text lower -> text
-Text: text
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Uses Unicode lowercase rules. Input
-cells must be text.
+```text
+Text Prefix startswith
+```
 
-### EXAMPLES
+Upper and lower case must match. Also
+works on bytes, and on each item of an
+array.
 
-Convert uppercase R to lowercase: rank.
+### See also
+
+find, lower
+
+## lower
+
+Change text to lowercase.
 
 ```rank
 use text
 "Rank" lower
 ```
 
-## lpad
-
-### NAME
-
-Pads text on the left without truncating
-longer values.
-
-### SYNOPSIS
-
-```text
-Text Width Fill lpad -> text
-Text, Fill: text; Width: integer
+```result
+rank
 ```
 
-### DESCRIPTION
+### Usage
 
-Width counts Unicode code points. Text
-already at least that wide is unchanged;
-longer values are not truncated.
+```text
+Text lower
+```
 
-### EXAMPLES
+Works for every language, not only
+English.
 
-Pad on the left: 007.
+### See also
+
+words, startswith
+
+## lpad
+
+Pad text on the left to a minimum width.
 
 ```rank
 use text
 "7" 3 "0" lpad
 ```
 
-## translate
-
-### NAME
-
-Replaces listed characters, deleting
-those with no replacement.
-
-### SYNOPSIS
-
-```text
-Text Chars Replacement translate -> text
-Text, Chars, Replacement: text
+```result
+007
 ```
 
-### DESCRIPTION
+### Usage
 
-Chars names source characters and
-Replacement supplies their replacements.
-Source characters without replacements
-are deleted.
+```text
+Text Width Fill lpad
+```
 
-### EXAMPLES
+Text already as wide as Width is left
+unchanged; nothing is cut off.
 
-Replace a with A and n with N.
+### See also
+
+join, text
+
+## translate
+
+Replace characters one for one; delete
+the ones with no replacement.
+
+a becomes A and n becomes N.
 
 ```rank
 use text
 "banana" "an" "AN" translate
 ```
 
-## vocab
-
-### NAME
-
-Most frequent words, at most Limit of
-them, ties by code point.
-
-### SYNOPSIS
-
-```text
-Texts Limit vocab -> array
-Texts: text array; Limit: integer
+```result
+bANANA
 ```
 
-### DESCRIPTION
+### Usage
 
-Limit is a nonnegative integer. Words
-are normalized; ties are ordered by
-Unicode code point. Zero limit returns
-an empty array.
+```text
+Text From To translate
+```
 
-### EXAMPLES
+Each character of From is replaced by
+the character at the same place in To.
+If To is shorter, the leftover
+characters of From are deleted.
 
-Find the two most frequent words.
+### See also
+
+lower, split
+
+## vocab
+
+The most common words, most frequent
+first.
 
 ```rank
 use text
 (array "a a" "b") 2 vocab
 ```
 
-## words
-
-### NAME
-
-Lowercase Unicode letter and number
-runs.
-
-### SYNOPSIS
-
-```text
-Text words -> array
-Text: text
+```result
+a b
 ```
 
-### DESCRIPTION
+### Usage
 
-Keeps Unicode letter and number runs.
-Punctuation and whitespace separate
-words.
+```text
+Texts Limit vocab
+```
 
-### EXAMPLES
+Gives at most Limit words. Words are
+found as with words, so case and
+punctuation are ignored. Ties are broken
+alphabetically.
 
-Extract lowercase words: hello, rank.
+### See also
+
+words
+
+## words
+
+The words of a text, in lowercase.
 
 ```rank
 use text
 "Hello, Rank!" words
 ```
+
+```result
+hello rank
+```
+
+### Usage
+
+```text
+Text words
+```
+
+A word is a run of letters and digits;
+spaces and punctuation separate words.
+
+### See also
+
+split, vocab, lower

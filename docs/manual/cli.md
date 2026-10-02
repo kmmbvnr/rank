@@ -2,57 +2,36 @@
 
 ## args
 
-### NAME
-
-Set arguments for the next program run.
-
-### SYNOPSIS
-
-```text
-args Values
-Capitalized words stand for your values.
-```
-
-### DESCRIPTION
-
-Sets command-line inputs used by a later
-run. Quoted words are individual
-argument tokens; this requires the cli
-module.
-
-### EXAMPLES
-
-Supply arguments for the next run.
+Set the command-line arguments for the
+next program run.
 
 ```rank
 use cli
 args "--limit" "10"
 ```
 
-## argument
-
-### NAME
-
-Declare a positional program input.
-
-### SYNOPSIS
+### Usage
 
 ```text
-argument Name Type = Default
-Capitalized words stand for your values.
+args Words
 ```
 
-### DESCRIPTION
+Each quoted word is one argument, as if
+typed after the program name in a
+terminal. Lets you try a program's
+options inside the app.
 
-Declares an input consumed in argument
-order. The declared type parses the
-token; a default supplies the value when
-it is absent.
+### See also
 
-### EXAMPLES
+argument, option, flag, run
 
-Use the positional input, defaulting to
-3.
+## argument
+
+Declare an input that the program takes
+by position.
+
+Run without arguments, N gets its
+default of 3.
 
 ```rank
 use cli
@@ -60,28 +39,29 @@ argument N integer = 3
 N * 2
 ```
 
-## flag
-
-### NAME
-
-Declare a boolean command-line flag.
-
-### SYNOPSIS
-
-```text
-flag Name
-Capitalized words stand for your values.
+```result
+6
 ```
 
-### DESCRIPTION
+### Usage
 
-Declares a boolean command-line flag.
-Its presence sets true; unlike option it
-takes no value token.
+```text
+argument Name Type = Default
+```
 
-### EXAMPLES
+Arguments are filled in the order they
+are declared. Type is integer, real or
+text. Without a default, the argument is
+required.
 
-An omitted --verbose flag is false.
+### See also
+
+option, flag, args
+
+## flag
+
+Declare an on/off switch, such as
+--verbose.
 
 ```rank
 use cli
@@ -89,31 +69,49 @@ flag Verbose
 Verbose
 ```
 
-## option
-
-### NAME
-
-Declare a named program input.
-
-### SYNOPSIS
-
-```text
-option Name Type = Default
-Capitalized words stand for your values.
+```result
+false
 ```
 
-### DESCRIPTION
+### Usage
 
-Declares a named command-line input. Its
-type controls parsing and its default is
-used when the option is omitted.
+```text
+flag Name
+```
 
-### EXAMPLES
+The name is true when the flag is given
+and false otherwise. Unlike option, a
+flag takes no value.
 
-Use --limit, or the default 10.
+### See also
+
+option, argument
+
+## option
+
+Declare a named input, such as --limit
+10.
 
 ```rank
 use cli
 option Limit integer = 10
 Limit
 ```
+
+```result
+10
+```
+
+### Usage
+
+```text
+option Name Type = Default
+```
+
+Type is integer, real or text. The
+default is used when the option is left
+out.
+
+### See also
+
+flag, argument, args
