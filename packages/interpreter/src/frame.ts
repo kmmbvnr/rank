@@ -1,6 +1,6 @@
 import { ArrayBindingContract } from './array-binding-contract.js';
 import { noteArrayBinding, noteArrayBorrow } from './array-storage.js';
-import { checkBindingRank, isRankArray, isRankRecord, mergeCollectionElementType, type CollectionElementType, type RankValue } from './value.js';
+import { checkBindingRank, isRankArray, isRankRecord, isRankTuple, mergeCollectionElementType, type CollectionElementType, type RankValue } from './value.js';
 import { recordContract, retainRecordContract } from './record-contract.js';
 
 // Every write to a name passes here, and most of them carry a number or a
@@ -227,6 +227,12 @@ export class LocalFrame {
     }
 
     private checkBinding(name: string, value: RankValue): RankValue {
+        if (isRankTuple(value)) {
+            const contract = this.arrayElements?.get(name) ?? new ArrayBindingContract(name);
+            const checked = contract.check(value);
+            (this.arrayElements ??= new Map()).set(name, contract);
+            return checked;
+        }
         if (isRankRecord(value)) {
             const received = value.fieldContracts
                 ? { type: 'record', fields: value.fieldContracts } : recordContract(value);
@@ -254,11 +260,11 @@ export class LocalFrame {
         return checked;
     }
 
-    checkArrayWrite(name: string, target: RankValue, replacements: readonly RankValue[]): readonly RankValue[] {
+    checkArrayWrite(name: string, target: RankValue, replacements: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[] {
         if (!isRankArray(target)) return replacements;
         // Host-injected arrays acquire a contract on their first source write.
         if (!this.arrayElements?.has(name)) this.checkArray(name, target);
-        return this.arrayElements!.get(name)!.write(replacements);
+        return this.arrayElements!.get(name)!.write(replacements, offsets);
     }
 
     // Reading a variable only wants the value, so the walk keeps it rather than

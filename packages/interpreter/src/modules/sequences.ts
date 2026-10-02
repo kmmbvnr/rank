@@ -12,7 +12,7 @@ import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
 import { broadcastShape, chooseDenseArrays } from '../tensor.js';
 import { isKnownFileFree } from '../resource-summary.js';
 import {
-    isRankArray,
+    isRankTuple, isRankArray,
     isRankCounter,
     isRankGraph,
     isRankDsu,
@@ -334,7 +334,7 @@ function copyArray(value: RankValue): RankArray {
         (_, index) => value.itemAt?.(index) ?? value.items[index],
     );
     // Cells that are arrays or finite sequences stack along new trailing axes, as sequence items do.
-    if (!items.some(item => isRankArray(item) || isRankSequence(item))) return ownedArray(items, value.shape);
+    if (!items.some(item => isRankArray(item) || isRankSequence(item))) return ownedArray(items, value.shape, false, value.columnNames);
     const cells = items.map(item => isRankSequence(item) ? materializeSequence(item) : item);
     return stackItems(cells, value.shape, 'array');
 }
@@ -763,6 +763,7 @@ function reshapeItems(value: RankValue): RankValue[] {
 }
 
 export function lengthOf(value: RankValue): bigint {
+    if (isRankTuple(value)) return BigInt(value.items.length);
     if (isRankTableAlias(value)) return lengthOf(value.source);
     if (isRankSqliteTable(value)) return lengthSqlite(value);
     if (isRankTable(value)) return BigInt(value.length);

@@ -61,7 +61,7 @@ describe('window cell folds', () => {
             try {
                 const value = runtime.execute(`use sequences
 use numbers
-A = array 1.5 2 3 4 5
+A = array 1.5 2.0 3.0 4.0 5.0
 Windows = A 3 window
 Result = Windows reduce ${op} rank 1
 Result copy`);

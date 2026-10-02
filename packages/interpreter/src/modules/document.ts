@@ -9,7 +9,7 @@
 import { ownedArray, ownedObject } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { checkpoint } from '../interrupt.js';
-import { isRankLabel, type RankArray, type RankValue } from '../value.js';
+import { formatValue, isRankLabel, type RankArray, type RankValue } from '../value.js';
 
 export function documentForm(name: string, modifier: RankValue | undefined): 'tree' | 'flat' {
     if (modifier === undefined) return 'tree';
@@ -32,7 +32,9 @@ export function nodeTable<T>(
     const walk = (node: T, depth: number, parent: number): void => {
         checkpoint('flattening document');
         const index = rows.length;
-        rows.push(nodeObject({ depth: BigInt(depth), parent: BigInt(parent), ...row(node, depth, parent) }));
+        const fields = row(node, depth, parent);
+        rows.push(nodeObject({ depth: BigInt(depth), parent: BigInt(parent), ...fields,
+            value: formatValue(fields.value) }));
         for (const child of children(node)) walk(child, depth + 1, index);
     };
     walk(root, 0, -1);

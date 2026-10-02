@@ -1,3 +1,4 @@
+import { joinValueFacts } from './value-domain.js';
 import { operationShapeFacts } from './operation-shape.js';
 import { freshDim } from './shape-index.js';
 import { symbolicFormFacts } from './binary-facts.js';
@@ -249,6 +250,14 @@ function transferApplicationFacts(
         ? findOperation(name)?.arities : lookup(name)?.types.includes('function') && lookup.arity?.(name) !== undefined
             ? [lookup.arity(name)!] : undefined, name => lookup(name) === undefined) !== undefined;
     const source = infer(unaryTail ? expression.head : parts[0], lookup);
+    if (parts.length === 2 && source.tupleItems && infer(parts[1], lookup).types.join() === 'integer') {
+        const index = infer(parts[1], lookup).integer;
+        if (index !== undefined) {
+            const position = Number(index) < 0 ? source.tupleItems.length + Number(index) : Number(index);
+            return source.tupleItems[position] ?? UNKNOWN_VALUE;
+        }
+        return joinValueFacts(source.tupleItems);
+    }
     if (parts.length === 2 && source.types.join() === 'array' && source.rank === 1 && source.shape) {
         const fields = infer(parts[1], lookup);
         const columns = fields.shape?.[0];
@@ -264,15 +273,22 @@ function transferApplicationFacts(
         try {
             const value: unknown = JSON.parse(source.textLiteral);
             if (Array.isArray(value)) {
-                const elementTypes = [...new Set(value.map(item => item === null ? 'symbol'
-                    : Array.isArray(item) ? 'array' : typeof item === 'object' ? 'object'
-                        : typeof item === 'number' ? 'integer' : typeof item))];
-                const types = elementTypes.flatMap(type => type === 'integer' ? ['integer', 'real'] : [type]);
-                const eagerScalarCells = elementTypes.every(type =>
-                    ['integer', 'boolean', 'text', 'symbol'].includes(type));
+                const primitive = (item: unknown): ValueFacts => item === null ? { types: ['symbol'], rank: 0, shape: [] }
+                    : typeof item === 'string' ? { types: ['text'], rank: 1, shape: [null] }
+                    : typeof item === 'boolean' ? { types: ['boolean'], rank: 0, shape: [] }
+                    : typeof item === 'number' ? { types: ['integer', 'real'], rank: 0, shape: [] }
+                    : { types: [Array.isArray(item) ? 'array' : 'object'] };
+                const cells = value.map(primitive);
+                if (value.every(item => typeof item === 'number')) {
+                    const tokens = source.textLiteral.trim().slice(1, -1).split(',');
+                    cells.forEach((cell, index) => { cells[index] = { ...cell,
+                        types: /[.eE]/.test(tokens[index]) ? ['real'] : ['integer'] }; });
+                }
+                if (value.some(Array.isArray)) return { types: ['array', 'tuple'] };
+                const kinds = new Set(cells.map(cell => cell.types.join()));
+                if (kinds.size > 1) return { types: ['tuple'], rank: 0, shape: [], tupleItems: cells };
                 return { types: ['array'], rank: 1, shape: [value.length],
-                    ...(types.length ? { elements: [...new Set(types)] } : {}),
-                    ...(eagerScalarCells ? { eagerScalarCells: true as const } : {}) };
+                    elements: cells[0]?.types ?? [], eagerScalarCells: true };
             }
             if (value === null) return { types: ['symbol'], rank: 0, shape: [] };
             if (typeof value === 'object') return { types: ['object'] };
@@ -454,11 +470,11 @@ function transferApplicationFacts(
                 && (source.eagerScalarCells || source.callbackFreeScalarCells)
                 && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
                 const size = source.shape[0];
-                return { types: ['array'], rank: 1, shape: [2], elements: ['array'],
-                    positionFacts: [
+                return { types: ['tuple'], rank: 0, shape: [],
+                    tupleItems: [
                         { types: ['array'], rank: 1, shape: [size], elements: ['real'], eagerScalarCells: true },
                         { types: ['array'], rank: 2, shape: [size, size], elements: ['real'], eagerScalarCells: true },
-                    ], eagerScalarCells: true };
+                    ] };
             }
             if (arity === 1 && last.name === 'functional') {
                 return { types: ['functional'], functionalWeighted: false };
@@ -637,8 +653,9 @@ function transferApplicationFacts(
                 const positions = parsePositions(operands[1].textLiteral);
                 if (positions) {
                     const elements = [...new Set(positions.flat())];
-                    return { types: ['array'], rank: 1, shape: [positions.length], elements,
-                        ...(elements.length > 1 ? { positions } : {}), eagerScalarCells: true };
+                    return elements.length > 1
+                        ? { types: ['tuple'], rank: 0, shape: [], tupleItems: positions.map(types => ({ types })) }
+                        : { types: ['array'], rank: 1, shape: [positions.length], elements, eagerScalarCells: true };
                 }
             }
             if (last.name === 'shape' && arity === 1 && source.types.join() === 'array'

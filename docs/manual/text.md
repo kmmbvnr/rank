@@ -127,7 +127,7 @@ Captures /integer, /real, /word and
 ### SYNOPSIS
 
 ```text
-Text Pattern parse -> array
+Text Pattern parse -> array or tuple
 Text, Pattern: text
 ```
 
@@ -136,7 +136,9 @@ Text, Pattern: text
 The pattern supports /integer, /real,
 /word and /text. The entire text must
 match; unpack assigns the captured
-values to names.
+values to names. Same-type captures
+form an array; mixed captures form a
+tuple.
 
 ### EXAMPLES
 

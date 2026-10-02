@@ -348,8 +348,8 @@ Array bindings keep their rank and recursive element contracts. Axis lengths may
 change, but a vector cannot become a matrix and an established integer array
 cannot receive text cells. Parameters and captured bindings use the same rule;
 each function invocation has fresh local contracts. Empty and missing-only arrays
-defer their element domain. An explicitly mixed array establishes a union, and
-later values may use a subset of that union. Infinity seeds defer their finite
+defer their element domain. Ordinary arrays are homogeneous, recursively; use
+tuples for positional values of different types. Infinity seeds defer their finite
 numeric domain until concrete cells settle it.
 
 Eager writes are checked before changing cells. Lazy arrays retain checks that run
@@ -487,7 +487,23 @@ keys and may use tuple keys.
 
 ## Unpacking assignment
 
-`unpack` assigns the items of a rank-1 array to the following names:
+`tuple A B` constructs a fixed positional value. Every binding and function result
+specialization has a fixed tuple arity and recursive type/rank at each position:
+
+```rank
+fun item N
+  return tuple N "item"
+end
+unpack Number Name = 1 item
+unpack Number Name = 2 item
+```
+
+Tuple positions are immutable. Integer indexing, `len`, equality and `unpack`
+are supported. Tuples have rank 0 and do not participate in array broadcasting.
+`(tuple)` is empty; `(tuple A)` has one position. Arrays inside tuple positions
+may change length but keep their element types. Records keep their shared identity.
+
+`unpack` assigns the items of a rank-1 array or a tuple to the following names:
 
 ```rank
 unpack Length Width Height = array 2 3 4
@@ -2097,8 +2113,7 @@ Known array element types distinguish type specializations, which share the
 return rank for the same argument ranks. Empty arrays do not settle an element
 type. Direct lazy array arguments are not read to choose a specialization: unknown element types
 share a specialization until materialized. Returned lazy elements are checked as
-they are consumed, and their complete element type set settles when all cells have
-been read. Materialize inputs when dispatch must distinguish their element types.
+they are consumed; the first concrete cell settles their recursive element type. Materialize inputs when dispatch must distinguish their element types.
 
 Record arguments also distinguish specializations by their field names and
 recursive field types, including array ranks and established cell types. Field
@@ -4348,7 +4363,7 @@ evaluated. Later graph mutations do not change an existing sequence. Neighbor
 order follows edge insertion order.
 
 The contextual `edges` method returns the same outgoing entries as lazy
-rank-1 pairs `array Next Cost`. `unpack` gives readable access without changing
+tuples `tuple Next Cost`. `unpack` gives readable access without changing
 the compact neighbor form:
 
 ```rank
@@ -6368,7 +6383,8 @@ an empty array. These operations require `use text`; wrong element types raise
 `.TypeError`, and an invalid limit raises `.DomainError`.
 
 `parse` matches a complete text value against a text pattern and returns the
-captured values as a rank-1 array. It is normally combined with `unpack`:
+captured values as an array when all captures have the same type, or a tuple
+when their types differ. It is normally combined with `unpack`:
 
 ```rank
 Pattern = "/word to /word = /integer"
@@ -6560,7 +6576,8 @@ FileData = Path read json
 
 JSON integers become arbitrary-precision `integer` values. Decimal and
 exponent forms become `real`; strings and booleans become the corresponding
-Rank scalars; arrays become Rank arrays; objects become keyed `object` values;
+Rank scalars; homogeneous arrays become Rank arrays and heterogeneous arrays
+become tuples; objects become keyed `object` values;
 and JSON `null` becomes `.null`. Invalid input raises `.InvalidJson`. File input
 is composed explicitly with `read`, so file and UTF-8 failures keep their
 ordinary I/O error kinds.
@@ -6597,7 +6614,7 @@ per value, in document order, so a container precedes its contents:
 ```rank
 Nodes = Text json .flat
 Numbers = Nodes filter .kind equal "integer"
-Total = Numbers .value sum
+Total = Numbers .value integer rank 0 sum
 ```
 
 Every row is an object with the same fields, shared with `xml .flat`:
@@ -6608,7 +6625,7 @@ Every row is an object with the same fields, shared with `xml .flat`:
 | `.parent` | Row number of the enclosing container; -1 for the document value. |
 | `.kind` | `"object"`, `"array"`, `"integer"`, `"real"`, `"text"`, `"boolean"` or `"null"`. |
 | `.name` | The key of an object entry; `""` for array items and the document value. |
-| `.value` | The value of a leaf; `""` for objects and arrays. |
+| `.value` | Text representation of a leaf; `""` for objects and arrays. |
 
 `.kind` is text rather than a label because a label inside a table condition
 names a column. The tree suits documents whose shape is known, where a path

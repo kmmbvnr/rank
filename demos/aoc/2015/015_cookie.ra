@@ -22,7 +22,8 @@ fun solve Lines
 
   for Line in Lines
     Parsed = Line Pattern parse
-    Ingredient = Parsed drop 1
+    unpack Name Cap Dur Fla Tex Cal = Parsed
+    Ingredient = array Cap Dur Fla Tex Cal
     queue push Ingredient
   end
 

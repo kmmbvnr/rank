@@ -10,7 +10,7 @@ describe('ordered multiset', () => {
             'Before = Bag len',
             'Bag add 5',
             'Bag add 3',
-            'array Before (Bag len) (Bag floor 4)',
+            'tuple Before (Bag len) (Bag floor 4)',
         ].join('\n'))).toBe('0 2 3');
     });
 
@@ -65,7 +65,7 @@ describe('ordered multiset', () => {
             'Bag remove 5',
             'Gone = 5 in Bag',
             'Bag add 4',
-            'array StillThere Gone (Bag len)',
+            'tuple StillThere Gone (Bag len)',
         ].join('\n'))).toBe('true false 2');
     });
 
@@ -97,14 +97,14 @@ describe('ordered multiset', () => {
         expect(run([
             'use algo',
             'Bag = (array 7 2 7 4) multiset',
-            'array (Bag 0) (Bag 1) (Bag 2) (Bag 3)',
+            'tuple (Bag 0) (Bag 1) (Bag 2) (Bag 3)',
         ].join('\n'))).toBe('2 4 7 7');
         expect(run([
             'use algo',
             'Bag = (array 7 2 7 4) multiset',
             'Bag remove 2',
             'Bag add 5',
-            'array (Bag 0) (Bag 1) (Bag 2) (Bag 3)',
+            'tuple (Bag 0) (Bag 1) (Bag 2) (Bag 3)',
         ].join('\n'))).toBe('4 5 7 7');
         expect(run([
             'use algo',
@@ -123,7 +123,7 @@ describe('ordered multiset', () => {
             'use algo',
             'use numbers',
             'Bag = (array 7 2 7 4) multiset',
-            'array (Bag min) (Bag max)',
+            'tuple (Bag min) (Bag max)',
         ].join('\n'))).toBe('2 7');
     });
 

@@ -2,7 +2,7 @@ import { Bool, Dictionary, Float64, Int32, Int64, Utf8, Vector, makeData, type D
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { ownedArray, ownedObject, typedArray } from './array-storage.js';
-import { MISSING, type RankArray, type RankObject, type RankRecord, type RankValue } from './value.js';
+import { collectionElementType, mergeCollectionElementType, MISSING, type CollectionElementType, type RankArray, type RankObject, type RankRecord, type RankValue } from './value.js';
 
 const INT64_MIN = -(1n << 63n);
 const INT64_MAX = (1n << 63n) - 1n;
@@ -10,7 +10,7 @@ const INT64_MAX = (1n << 63n) - 1n;
 export type RankColumnKind = 'integer' | 'real' | 'boolean' | 'text' | 'values';
 
 /** One column: an Arrow vector, or plain cells where Arrow has no matching type
- * (an integer outside 64 bits, mixed types, dates, nested values). */
+ * (an integer outside 64 bits, dates, nested values). */
 export interface RankArrowColumn {
     readonly name: string;
     readonly kind: RankColumnKind;
@@ -188,20 +188,23 @@ function columnKindOf(value: RankValue): RankColumnKind {
 }
 
 /** A column from JS cells (undefined is absent). A column holding one type gets
- * a typed buffer; mixed or unsupported cells are kept as they are. `hint` names
+ * a typed buffer; unsupported types keep their original representation. `hint` names
  * the type of a column with no present cell. */
 export function columnFromValues(
     name: string, values: readonly (RankValue | undefined)[], hint?: RankColumnKind,
 ): RankArrowColumn {
+    values = values.map(value => value === MISSING ? undefined : value);
     const rows = values.length;
     let kind: RankColumnKind | undefined;
     let present = 0;
+    let schema: CollectionElementType | undefined;
     for (const value of values) {
-        if (value === undefined) continue;
+        if (value === undefined || value === MISSING) continue;
+        schema = mergeCollectionElementType(`table column .${name}`, schema, collectionElementType(value, new Set(), true));
         present += 1;
         const next = columnKindOf(value);
         if (kind === undefined) kind = next;
-        else if (kind !== next) { kind = 'values'; break; }
+        else if (kind !== next) kind = 'values';
     }
     if (kind === undefined) kind = hint === undefined || hint === 'values' ? 'text' : hint;
     if (kind === 'integer'

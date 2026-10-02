@@ -18,11 +18,12 @@ for (const compiled of [true, false]) describe(`array binding contracts (compile
         expect(formatValue(r.variables.get('A')!)).toBe('1 2');
         expect(formatValue(r.variables.get('Alias')!)).toBe('1 2');
     });
-    it('retains a union when a replacement uses only part of it', () => {
+    it('rejects mixed initialization and keeps the single established domain', () => {
         const r = runtime();
-        r.execute('A = array 1 "x"\nA = array 2 3 4\nA 0 = "y"');
-        expect(formatValue(r.variables.get('A')!)).toBe('y 3 4');
-        expect(() => r.execute('A 0 = true')).toThrow(/array elements/);
+        expect(() => r.execute('A = array 1 "x"')).toThrow(/one element type/);
+        r.execute('A = array 1 2\nA = array 2 3 4');
+        expect(() => r.execute('A 0 = "y"')).toThrow(/array elements/);
+        expect(formatValue(r.variables.get('A')!)).toBe('2 3 4');
     });
     it('keeps contracts through empty and missing replacements', () => {
         const r = runtime();
@@ -36,7 +37,8 @@ for (const compiled of [true, false]) describe(`array binding contracts (compile
         r.execute('use numbers\nA = array infinity');
         r.execute('A 0 = 1');
         expect(() => r.execute('A 0 = 1.0')).toThrow(/array elements/);
-        r.execute('A 0 = infinity\nA 0 = 2\nB = array 1 2.0\nB 0 = 3.0\nB 1 = 4');
+        r.execute('A 0 = infinity\nA 0 = 2');
+        expect(() => r.execute('B = array 1 2.0')).toThrow(/one element type/);
     });
     it('checks parameters and captured locals and resets contracts on each invocation', () => {
         const r = runtime();
@@ -78,19 +80,19 @@ it('validates lazy cells at observation without reading ahead', () => {
     expect(reads).toBe(2);
 });
 
-it('settles a complete lazy union and rechecks earlier observations after settlement', () => {
+it('settles a homogeneous lazy domain at its first observation without reading ahead', () => {
     const frame = new LocalFrame(undefined);
-    const lazy: RankArray = { kind: 'array', shape: [2], items: [], itemAt: i => i ? 'x' : 1n };
+    let reads = 0;
+    const lazy: RankArray = { kind: 'array', shape: [2], items: [], itemAt: i => { reads++; return i ? 'x' : 1n; } };
     frame.define('A', lazy, new Set(['array']));
     const held = frame.get('A') as RankArray;
+    expect(reads).toBe(0);
     expect(readArrayItem(held, 0)).toBe(1n);
-    frame.set('A', ownedArray(['y'], [1]));
-    expect(() => readArrayItem(held, 0)).toThrow(/array elements/);
-    frame.unset('A');
-    frame.define('A', lazy, new Set(['array']));
-    expect((frame.get('A') as RankArray).items).toEqual([1n, 'x']);
-    frame.set('A', ownedArray([2n, MISSING], [2]));
-    expect(() => frame.set('A', ownedArray([true], [1]))).toThrow(/array elements/);
+    expect(() => frame.set('A', ownedArray(['y']))).toThrow(/array elements/);
+    expect(() => readArrayItem(held, 1)).toThrow(/array elements/);
+    expect(reads).toBe(2);
+    frame.set('A', ownedArray([2n, MISSING]));
+    expect(() => frame.set('A', ownedArray([true]))).toThrow(/array elements/);
 });
 
 it('checks nested lazy arrays without observing their cells on assignment', () => {
@@ -133,9 +135,9 @@ it('keeps RHS effects but rejects an eager write before publishing any cell', ()
     expect(r.execute('State .count')).toBe(1n);
 });
 
-it('does not narrow a new alias to the original binding union', () => {
+it('keeps the homogeneous domain in independent aliases', () => {
     const r = new Interpreter();
-    r.execute('A = array 1 "x"\nA = array 2 3\nB = A\nA 0 = "y"');
+    r.execute('A = array 1 2\nA = array 2 3\nB = A\nA 0 = 9');
     expect(() => r.execute('B 0 = "z"')).toThrow(/array elements/);
     expect(formatValue(r.variables.get('B')!)).toBe('2 3');
 });

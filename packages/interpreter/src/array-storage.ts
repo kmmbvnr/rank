@@ -2,7 +2,7 @@ import { interruptibleCallback } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { ResourceSummary } from './resource-summary.js';
 import { MissingValueError, RankError } from './errors.js';
-import { isRankArray, MISSING, type RankArray, type RankObject, type RankValue } from './value.js';
+import { isRankArray, typeName, requireHomogeneous, MISSING, type RankArray, type RankObject, type RankValue } from './value.js';
 
 /** Eager numeric cells only. Lazy Rank readers must retain their caches. */
 export function eagerArrayStorage(value: RankValue): {
@@ -241,6 +241,16 @@ export function ownedArray(
     items: RankValue[], shape: readonly number[] = [items.length], scalarOnly = false,
     columnNames?: readonly string[],
 ): RankArray {
+    if (!columnNames) {
+        const kinds = new Map<string, { type: string; rank?: number }>();
+        for (const item of items) {
+            const type = typeof item === 'number' && !Number.isFinite(item) && !Number.isNaN(item)
+                ? 'numeric-limit' : typeName(item);
+            const rank = isRankArray(item) ? item.shape.length : undefined;
+            kinds.set(`${type}:${rank}`, { type, ...(rank === undefined ? {} : { rank }) });
+        }
+        requireHomogeneous([...kinds.values()]);
+    }
     return createOwned(items, shape, scalarOnly, columnNames);
 }
 
@@ -631,6 +641,21 @@ export function derivedArray(
     read: (index: number) => RankValue, fileFree = false,
 ): RankArray {
     const diagnostics = currentDiagnostics();
+    const observedColumns = new Map<number, Map<string, { type: string; rank?: number }>>();
+    const checkCell = (cell: RankValue, index: number): void => {
+        const column = value.columnNames && shape.length === 2 ? index % shape[1] : 0;
+        let observedKinds = observedColumns.get(column);
+        if (!observedKinds) observedColumns.set(column, observedKinds = new Map());
+        if (cell === MISSING) return;
+        const type = typeof cell === 'number' && !Number.isFinite(cell) && !Number.isNaN(cell)
+            ? 'numeric-limit' : typeName(cell);
+        const rank = isRankArray(cell) ? cell.shape.length : undefined;
+        const key = `${type}:${rank}`;
+        if (observedKinds.has(key)) return;
+        const kind = { type, ...(rank === undefined ? {} : { rank }) };
+        requireHomogeneous([...observedKinds.values(), kind]);
+        observedKinds.set(key, kind);
+    };
     const revision = () => {
         let current = 0;
         for (const source of dependencies) {
@@ -690,6 +715,7 @@ export function derivedArray(
         const startedEntry = hostEntry;
         if (diagnostics) diagnostics.cacheMisses++;
         const result = read(index);
+        checkCell(result, index);
         if (diagnostics) diagnostics.cellsComputed++;
         // A dependency may have changed during the reader. Never retain that read.
         // A Map cannot hold more than 2^24 entries; a larger array recomputes

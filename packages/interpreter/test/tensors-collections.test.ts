@@ -65,7 +65,7 @@ describe('Rank tensors and collections', () => {
             '  4 5 6',
             'end',
             'T = M transpose',
-            'array (T shape) T',
+            'tuple (T shape) T',
         ].join('\n'))).toBe('3 2 1 4 2 5 3 6');
         expect(run([
             'use sequences',
@@ -106,7 +106,7 @@ describe('Rank tensors and collections', () => {
             'end',
             'Means = T mean axis 1',
             'Sums = T sum axis 0 2',
-            'array (Means shape) Means (Sums shape) Sums',
+            'tuple (Means shape) Means (Sums shape) Sums',
         ].join('\n'))).toBe('2 3 2.5 3.5 4.5 8.5 9.5 10.5 2 30 48');
         expect(run([
             'use stats',
@@ -133,7 +133,7 @@ describe('Rank tensors and collections', () => {
             'end',
             'Lows = M min axis 0',
             'Highs = M max axis 1',
-            'array Lows Highs',
+            'tuple Lows Highs',
         ].join('\n'))).toBe('-1 2 8 7 4');
         expect(() => run([
             'use numbers',
@@ -167,7 +167,7 @@ describe('Rank tensors and collections', () => {
             'end',
             'Rows = M count axis 1',
             'Columns = M count axis 0',
-            'array Rows Columns',
+            'tuple Rows Columns',
         ].join('\n'))).toBe('2 1 2 1 0');
     });
 
@@ -246,7 +246,7 @@ describe('Rank tensors and collections', () => {
             'end',
             'Column = M # 1',
             'Explicit = M axis 1 1',
-            'array (Column shape) Column (M # 1 sum) Explicit',
+            'tuple (Column shape) Column (M # 1 sum) Explicit',
         ].join('\n'))).toBe('2 2 5 7 2 5');
         expect(run([
             'use sequences',
@@ -256,7 +256,7 @@ describe('Rank tensors and collections', () => {
             'end',
             'Last = T # # 2',
             'Middle = T # 1',
-            'array (Last shape) Last (Middle shape) Middle',
+            'tuple (Last shape) Last (Middle shape) Middle',
         ].join('\n'))).toBe('2 3 2 6 10 14 18 22 2 4 4 5 6 7 16 17 18 19');
     });
 
@@ -271,7 +271,7 @@ describe('Rank tensors and collections', () => {
             'Rows = array 2 0',
             'Columns = array 3 1',
             'Block = M Rows Columns',
-            'array (Block shape) Block',
+            'tuple (Block shape) Block',
         ].join('\n'))).toBe('2 2 11 9 3 1');
     });
 
@@ -626,7 +626,7 @@ describe('Rank tensors and collections', () => {
             'Count = Values len',
             'First = Values 0',
             'Last = Values 11',
-            'array Count First Last',
+            'tuple Count First Last',
         ].join('\n'))).toBe('12 aabc cbaa');
         expect(run([
             'use algo',
@@ -689,7 +689,7 @@ describe('Rank tensors and collections', () => {
             'use sequences',
             'Values = array 1 "A"',
             'Values sort',
-        ].join('\n'))).toThrowError('sort array elements must have one comparable type');
+        ].join('\n'))).toThrowError('arrays require one element type');
     });
 
     it('generates lazy combinations and preserves tensor cell shape', () => {
@@ -833,8 +833,8 @@ describe('Rank tensors and collections', () => {
             'use linalg',
             'use numbers',
             'A = array shape 2 2',
-            '  1.23456 0',
-            '  0 2.34567',
+            '  1.23456 0.0',
+            '  0.0 2.34567',
             'end',
             'I = array shape 2 2',
             '  1 0',
@@ -846,7 +846,7 @@ describe('Rank tensors and collections', () => {
             'use numbers',
             'Values = array shape 2 2',
             '  1.23455 2.34564',
-            '  3.0 4',
+            '  3.0 4.0',
             'end',
             'Rounded = Values round 4',
         ];
@@ -857,7 +857,7 @@ describe('Rank tensors and collections', () => {
     it('keeps array rounding lazy and validates its inputs', () => {
         expect(run([
             'use numbers',
-            'Values = array 1.25 "later"',
+            'Values = (array 1.25 0.0) / (array 1.0 0.0)',
             'Rounded = Values round 1',
             'Rounded 0',
         ].join('\n'))).toBe('1.2');

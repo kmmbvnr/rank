@@ -18,9 +18,9 @@ describe('array binding element contracts', () => {
     ('diagnoses %s', write => {
         expect(messages('A = array 1 2\n' + write).some(message => message.includes('array elements'))).toBe(true);
     });
-    it('retains the union and permits changing lengths, empty and missing cells', () => {
-        expect(messages('A = array 1 "x"\nA = array 2 3 4\nA 0 = "y"\nA = array shape 0 fill 0\nA = array .NA')).toEqual([]);
-        expect(messages('A = array 1 "x"\nA = array 2 3\nA 0 = true').some(message => message.includes('array elements'))).toBe(true);
+    it('retains the element type and permits changing lengths, empty and missing cells', () => {
+        expect(messages('A = array 1 2\nA = array 2 3 4\nA 0 = 5\nA = array shape 0 fill 0\nA = array .NA')).toEqual([]);
+        expect(messages('A = array 1 2\nA = array 2 3\nA 0 = true').some(message => message.includes('array elements'))).toBe(true);
     });
     it('does not establish a domain from empty or unread values', () => {
         expect(messages('A = array shape 0 fill 0\nA = array "x"')).toEqual([]);

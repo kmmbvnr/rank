@@ -11,6 +11,7 @@ export interface ValueFacts {
     /** Internal recursion seed: no returning path has been observed yet. */
     readonly bottom?: true;
     readonly types: Types;
+    readonly tupleItems?: readonly ValueFacts[];
     readonly acceptedTypes?: Types;
     readonly acceptedArrayRank?: number;
     /** Recursive schema retained by an ordinary record binding, independent of its current value. */
@@ -89,7 +90,7 @@ export function joinTypes(values: readonly Types[]): Types {
 /** The recursive contract forgets data and read-safety proofs, keeping type and rank. */
 export function widenValueFacts(value: ValueFacts): ValueFacts {
     if (value.bottom) return BOTTOM_VALUE;
-    if (value.types.join() === 'record') return stableRecordField(value);
+    if (['record', 'tuple'].includes(value.types.join())) return stableRecordField(value);
     const ranks = value.types.map(type => ['array', 'bytes'].includes(type) ? undefined
         : ['text', 'sequence', 'queue', 'stack', 'deque'].includes(type) ? 1 : 0);
     const rank = value.rank ?? (ranks.length && ranks.every(rank => rank === ranks[0]) ? ranks[0] : undefined);
@@ -104,6 +105,7 @@ export type FactLookup = ((name: string) => ValueFacts | undefined) & {
 
 export function stableRecordField(value: ValueFacts, construction = false): ValueFacts {
     const { types } = value;
+    if (types.join() === 'tuple') return { types, rank: 0, shape: [], tupleItems: value.tupleItems?.map(item => stableRecordField(item)) };
     return { types,
         ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol',
             'date', 'datetime', 'duration'].includes(type)) ? { rank: 0, shape: [] }
@@ -244,6 +246,8 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
             ? { collectionId: first.collectionId } : {}),
         ...(positions ? { positions } : {}),
         ...(fields ? { fields } : {}),
+        ...(first.tupleItems && values.every(value => value.tupleItems?.length === first.tupleItems!.length)
+            ? { tupleItems: first.tupleItems.map((_, index) => joinValueFacts(values.map(value => value.tupleItems![index]))) } : {}),
         ...(fields && values.every(value => value.closedRecord && value.fields
             && Object.keys(value.fields).length === Object.keys(fields).length) ? { closedRecord: true as const } : {}),
         ...(first.textLiteral !== undefined && values.every(value => value.textLiteral === first.textLiteral)

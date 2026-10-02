@@ -59,11 +59,13 @@ it('infers the stable outer shape of flat XML and JSON documents', () => {
 
 it('infers outer facts from literal JSON without assuming external schemas', () => {
     expect(facts('"[{\\"x\\":1},{\\"x\\":2}]" json')).toEqual({
-        types: ['array'], rank: 1, shape: [2], elements: ['object'],
+        types: ['array'], rank: 1, shape: [2], elements: ['object'], eagerScalarCells: true,
     });
     expect(facts('"[1, true, null]" json')).toEqual({
-        types: ['array'], rank: 1, shape: [3], elements: ['integer', 'real', 'boolean', 'symbol'],
-        eagerScalarCells: true,
+        types: ['tuple'], rank: 0, shape: [], tupleItems: [
+            { types: ['integer', 'real'], rank: 0, shape: [] },
+            { types: ['boolean'], rank: 0, shape: [] }, { types: ['symbol'], rank: 0, shape: [] },
+        ],
     });
     expect(facts('"{\\"x\\":1}" json')).toEqual({ types: ['object'] });
     expect(facts('"[1, 2]" json', new Map([['json', { types: ['function'] }]]))).toEqual({ types: [] });
@@ -138,8 +140,8 @@ it('infers covariance and correlation matrix shapes from feature axes', () => {
 it('keeps distinct array ranks in the two eager results of eigh', () => {
     const matrix = facts('array shape 2 2 fill 1.0');
     expect(facts('Matrix eigh', new Map([['Matrix', matrix]]))).toEqual({
-        types: ['array'], rank: 1, shape: [2], elements: ['array'], eagerScalarCells: true,
-        positionFacts: [
+        types: ['tuple'], rank: 0, shape: [],
+        tupleItems: [
             { types: ['array'], rank: 1, shape: [2], elements: ['real'], eagerScalarCells: true },
             { types: ['array'], rank: 2, shape: [2, 2], elements: ['real'], eagerScalarCells: true },
         ],
@@ -631,8 +633,7 @@ it('proves eager cells for known atom array literals', () => {
 
 it('reads only valid parse directives when inferring captured positions', () => {
     expect(facts('"/42:x" "///integer:/word" parse')).toMatchObject({
-        types: ['array'], rank: 1, shape: [2], elements: ['integer', 'text'],
-        positions: [['integer'], ['text']], eagerScalarCells: true,
+        types: ['tuple'], rank: 0, shape: [], tupleItems: [{ types: ['integer'] }, { types: ['text'] }],
     });
     expect(facts('"x" "/invalid" parse').positions).toBeUndefined();
 });

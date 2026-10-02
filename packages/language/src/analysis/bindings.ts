@@ -11,7 +11,7 @@ import { flattenApplication as flatten } from '../expressions.js';
  */
 
 import {
-    isAddStatement, isApplicationExpression, isArgsStatement, isArgumentStatement,
+    isTupleExpression, isAddStatement, isApplicationExpression, isArgsStatement, isArgumentStatement,
     isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isFlagStatement,
     isForStatement, isFunctionStatement, isIfStatement, isIndexAssignmentStatement,
     isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression,
@@ -522,6 +522,10 @@ class Analyzer {
         if (isKeyedReachExpression(expression)) {
             this.expression(expression.edges);
             this.expression(expression.starts);
+            return;
+        }
+        if (isTupleExpression(expression)) {
+            expression.items.forEach(item => this.expression(item.value));
             return;
         }
         if (isArrayExpression(expression)) {

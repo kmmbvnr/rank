@@ -63,8 +63,8 @@ G Mask sum`)).toBe(5n);
             .toBe('0');
     });
 
-    it('does not check yielded types at runtime', () => {
-        expect(run('use sequences\nfun mixed\n yield 1\n yield "x"\nend\nmixed array')).toBe('1 x');
+    it('rejects heterogeneous yields when materialized as an array', () => {
+        expect(() => run('use sequences\nfun mixed\n yield 1\n yield "x"\nend\nmixed array')).toThrow('arrays require one element type');
     });
 
     it('uses nullary results as selectors and independent operands', () => {

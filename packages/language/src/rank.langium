@@ -165,6 +165,9 @@ ExpressionOrPushStatement:
 Expression returns Expression:
     OrExpression;
 
+TupleExpression:
+    'tuple' items+=ArrayItem*;
+
 ArrayExpression:
     'array' (
         'shape' dimensions+=ArrayItem+ (
@@ -417,7 +420,7 @@ NonPrimaryExpression returns Expression:
     UnpackExpression |
     {infer UnaryExpression}
         operator=('+' | '-') operand=UnaryExpression |
-    ArrayExpression |
+    ArrayExpression | TupleExpression |
     RecordExpression;
 
 UnpackExpression:
@@ -427,7 +430,7 @@ ApplicationArgument returns Expression:
     NonPrimaryArgument | PrimaryExpression;
 
 NonPrimaryArgument returns Expression:
-    UnpackExpression | ArrayExpression;
+    UnpackExpression | ArrayExpression | TupleExpression;
 
 PrimaryExpression returns Expression:
     ArrayAtom | AllAxisExpression | HigherOrderOperator;
@@ -470,7 +473,7 @@ BooleanValue returns boolean:
     'true' | 'false';
 
 LabelLiteral:
-    '.' name=(Identifier | 'array' | 'record');
+    '.' name=(Identifier | 'array' | 'record' | 'tuple');
 
 NameExpression:
     name=ReferenceName;

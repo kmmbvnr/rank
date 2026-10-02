@@ -2,7 +2,7 @@ import { bindingTypeMessage } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
 import type { Operators } from './operators.js';
 import { noteArrayBinding, readArrayItem } from './array-storage.js';
-import { collectionElementType, isRankArray, isRankRecord, mergeCollectionElementType, typeName,
+import { collectionElementType, isRankTuple, isRankArray, isRankRecord, mergeCollectionElementType, typeName,
     type CollectionElementType, type RankRecord, type RankValue } from './value.js';
 
 /** Native records acquire the same contract before their first mutation or use as a return value. */
@@ -14,7 +14,11 @@ export function recordContract(value: RankRecord): CollectionElementType {
 
 /** Install refined empty-array contracts only after every field has passed validation. */
 export function retainRecordContract(value: RankValue, contract: CollectionElementType): void {
-    const containsRecords = (type: CollectionElementType): boolean => !!type.fields || !!type.elements?.some(containsRecords);
+    if (isRankTuple(value) && contract.positions) {
+        value.items.forEach((item, index) => retainRecordContract(item, contract.positions![index]));
+        return;
+    }
+    const containsRecords = (type: CollectionElementType): boolean => !!type.fields || !!type.elements?.some(containsRecords) || !!type.positions?.some(containsRecords);
     if (isRankArray(value) && contract.elements?.some(containsRecords)) {
         const size = value.shape.reduce((a, b) => a * b, 1);
         for (let index = 0; index < size; index++) {

@@ -2,13 +2,14 @@ import { ownedArray, readArrayItem } from './array-storage.js';
 import { ByteArray } from './bytes.js';
 import { recordContract, retainRecordContract } from './record-contract.js';
 import {
-    isRankArray, isRankBytes, isRankCounter, isRankIndex, isRankObject, isRankQueue, isRankRecord, isRankSet,
+    tuple, isRankTuple, isRankArray, isRankBytes, isRankCounter, isRankIndex, isRankObject, isRankQueue, isRankRecord, isRankSet,
     type RankRecord, type RankValue,
 } from './value.js';
 
 /** Detach the ordinary mutable values a preview function can reach. */
 export function clonePreviewValue(value: RankValue): RankValue {
     if (typeof value !== 'object') return value;
+    if (isRankTuple(value)) return tuple(value.items.map(clonePreviewValue));
     if (isRankBytes(value)) return new ByteArray(value.data.slice());
     if (isRankArray(value)) {
         const size = value.shape.reduce((product, dimension) => product * dimension, 1);

@@ -44,7 +44,7 @@ fun buyorrent Params
   Saved = Price + Costs - BankAmt - DadAmt
   SaveRent = (-MoRent) Growth Saved accrue
 
-  Series = array Month (Bank .int) (Bank .prn) (Bank .bal) (Dad .int) (Dad .prn) (Dad .bal) TaxSave PropTax HomeVal SaveOwn HomeCash MoRent SaveRent (HomeCash - SaveRent)
+  Series = array (Month / 1.0) (Bank .int) (Bank .prn) (Bank .bal) (Dad .int) (Dad .prn) (Dad .bal) TaxSave PropTax HomeVal SaveOwn HomeCash MoRent SaveRent (HomeCash - SaveRent)
   return record
     .payments = array (Bank .pmt) (Dad .pmt)
     .series = Series copy transpose

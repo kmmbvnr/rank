@@ -1,6 +1,6 @@
 import { freshDim } from './shape-index.js';
 import {
-    isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral, isMaterializeExpression,
+    isTupleExpression, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral, isMaterializeExpression,
     isFirstIndexWhereExpression, isFirstWhereExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
     isNumberLiteral,
     isParenthesizedExpression, isRecordExpression, isRecordUpdateExpression, isStdinExpression, isStringLiteral,
@@ -112,6 +112,8 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
             types: operand.types, rank: operand.rank, shape: operand.shape, elements: operand.elements,
         };
     }
+    if (isTupleExpression(expression)) return { types: ['tuple'], rank: 0, shape: [],
+        tupleItems: expression.items.map(item => expressionFacts(item.value, lookup)) };
     if (isArrayExpression(expression)) {
         if (expression.range) {
             const rangeFact = expressionFacts(expression.range, lookup);

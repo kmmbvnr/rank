@@ -265,11 +265,11 @@ it('checks excess scalar indices at a clean prompt and removes stale execution e
     } finally { session.dispose(); }
 });
 
-it('allows a write within an established heterogeneous array contract', async () => {
+it('allows a write within an established homogeneous array contract', async () => {
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        for (const source of ['A = array 1 "old" 2', 'A 0 = "abc"']) {
+        for (const source of ['A = array "one" "old" "two"', 'A 0 = "abc"']) {
             repl.notebook.replace(source);
             await repl.submit();
             expect(repl.notebook.cells.at(-2)?.status).toBe('ok');
@@ -461,7 +461,7 @@ it('forgets a loop value and its types once the loop ends', async () => {
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        repl.notebook.replace('for Value in array 1 "two"\n Value = Value\nend');
+        repl.notebook.replace('for Value in array 1 2\n Value = Value\nend');
         await repl.submit();
         expect(session.names).not.toContain('Value');
         repl.notebook.replace('Value = true');

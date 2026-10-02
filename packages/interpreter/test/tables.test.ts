@@ -95,7 +95,7 @@ describe('Rank tables', () => {
         expect(formatValue(runtime.execute('Means .value')!)).toBe('2 5');
         expect(formatValue(runtime.execute('Means .key default "missing"')!))
             .toBe('a missing');
-        expect(formatValue(runtime.execute('Joined .value default 0')!)).toBe('2 0 0');
+        expect(formatValue(runtime.execute('Joined .value default 0.0')!)).toBe('2 0 0');
     });
 
     it('keeps an all-missing aggregate cell available for default', () => {
@@ -112,7 +112,7 @@ describe('Rank tables', () => {
             '  .value = .value sum',
             'end',
         ].join('\n'));
-        expect(formatValue(runtime.execute('Means .value default 0')!)).toBe('4 0');
+        expect(formatValue(runtime.execute('Means .value default 0.0')!)).toBe('4 0');
         expect(formatValue(runtime.execute('Sums .value')!)).toBe('4 0');
     });
 
@@ -142,7 +142,7 @@ describe('Rank tables', () => {
         expect(formatValue(runtime.execute('Totals .visits')!)).toBe('2 1');
         expect(formatValue(runtime.execute('Totals .present')!)).toBe('1 0');
         expect(formatValue(runtime.execute('Totals .total')!)).toBe('2 0');
-        expect(formatValue(runtime.execute('Totals .average default 0')!)).toBe('2 0');
+        expect(formatValue(runtime.execute('Totals .average default 0.0')!)).toBe('2 0');
     });
 
     it('keeps real missing keys distinct from rollup subtotal rows', () => {
@@ -437,7 +437,7 @@ describe('Rank tables', () => {
             'use json',
             'use tables',
             'Rows = "[{\\"x\\":1,\\"y\\":2},{\\"x\\":3,\\"y\\":4}]" json',
-            'Fields = array .y "x" .y',
+            'Fields = array .y .x .y',
             'Rows Fields',
         ].join('\n'))!;
         expect(result).toMatchObject({ kind: 'array', shape: [2, 3] });
@@ -463,7 +463,7 @@ describe('Rank tables', () => {
             'use tables',
             'Rows = "[{\\"x\\":1}]" json',
             'Rows (array .x 2)',
-        ].join('\n'))).toThrowError('table column selection expects labels or text');
+        ].join('\n'))).toThrowError('arrays require one element type');
         expect(() => run([
             'use json',
             'use tables',
@@ -500,7 +500,7 @@ describe('Rank tables', () => {
             'use tables',
             'Rows = "[{\\"x\\":1},2]" json',
             'Rows .y = 4',
-        ].join('\n'))).toThrowError('table assignment expects object rows');
+        ].join('\n'))).toThrowError('field assignment expects a record target');
         expect(() => run([
             'use json',
             'use tables',
@@ -513,17 +513,17 @@ describe('Rank tables', () => {
         expect(run([
             'use json',
             'use tables',
-            'Rows = "[{\\"x\\":1},2]" json',
+            'Rows = "[{\\"x\\":1},{}]" json',
             'Column = Rows "x"',
             'Column 0',
         ].join('\n'))).toBe('1');
         expect(() => run([
             'use json',
             'use tables',
-            'Rows = "[{\\"x\\":1},2]" json',
+            'Rows = "[{\\"x\\":1},{}]" json',
             'Column = Rows "x"',
             'Column 1',
-        ].join('\n'))).toThrowError('table projection expects object rows');
+        ].join('\n'))).toThrowError('missing object key: x');
         expect(() => run([
             'use json',
             'use tables',

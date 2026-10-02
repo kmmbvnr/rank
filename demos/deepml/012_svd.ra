@@ -60,5 +60,5 @@ fun svd_2x2 A
   end
 
   VT = V transpose
-  return array U Sigma VT
+  return tuple U Sigma VT
 end

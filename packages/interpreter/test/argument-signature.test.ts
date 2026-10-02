@@ -1,14 +1,14 @@
+import { ownedArray } from '../src/array-storage.js';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
 import { argumentSignature } from '../src/return-contract.js';
 
 describe('argument signature memo', () => {
-    it('follows a changed element type of the same array', () => {
-        const runtime = new Interpreter();
-        runtime.execute('A = array 1 2.0 3');
-        const first = argumentSignature([runtime.variables.get('A')!]);
-        runtime.execute('A 1 = 2');
-        expect(argumentSignature([runtime.variables.get('A')!])).not.toBe(first);
+    it('invalidates signatures after a host replaces all cells with another homogeneous type', () => {
+        const value = ownedArray([1n, 2n]);
+        const first = argumentSignature([value]);
+        value.items.splice(0, 2, 1.0, 2.0);
+        expect(argumentSignature([value])).not.toBe(first);
     });
 
     it('does not mix up different scalars, arrays and argument counts', () => {
@@ -20,11 +20,10 @@ describe('argument signature memo', () => {
         expect(argumentSignature([a])).toBe(keys[2]);
     });
 
-    it('keeps return contracts exact across calls that change element types', () => {
+    it('specializes separately for integer and real arrays', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun double Row\n  return Row * 2\nend\nA = array 1 2.0 3');
+        runtime.execute('fun double Row\n  return Row * 2\nend\nA = array 1 2 3\nB = array 1.0 2.0 3.0');
         expect(formatValue(runtime.execute('A double')!)).toBe('2 4 6');
-        runtime.execute('A 1 = 2');
-        expect(formatValue(runtime.execute('A double')!)).toBe('2 4 6');
+        expect(formatValue(runtime.execute('B double')!)).toBe('2 4 6');
     });
 });

@@ -18,7 +18,7 @@ import { setValueKey } from './set.js';
 import { applyTable, canApplyTable } from './table-access.js';
 import { sameShape } from './tensor-index.js';
 import {
-    isRankArray, isRankCounter, isRankErrorValue, isRankFenwick, isRankGraph, isRankGroupedTable,
+    isRankTuple, isRankArray, isRankCounter, isRankErrorValue, isRankFenwick, isRankGraph, isRankGroupedTable,
     isRankIndex, isRankLabel, isRankMultiset, isRankObject, isRankQueue, isRankRecord, isRankSegment,
     isRankSequence, isRankSequenceMask, isRankSqliteDatabase, isRankSqliteExpression, isRankSqliteScope,
     isRankSqliteTable, isRankTable, isRankTableAlias, MISSING,
@@ -35,6 +35,13 @@ import {
  * ordinary selection.
  */
 export function selectValues(modules: ReadonlySet<string>, values: RankValue[], missing?: () => RankValue): RankValue {
+    if (isRankTuple(values[0]) && values.length > 1) {
+        if (typeof values[1] !== 'bigint') throw new RankError('tuple positions require an integer index', 'TypeError');
+        const items = values[0].items;
+        const index = Number(values[1] < 0n ? BigInt(items.length) + values[1] : values[1]);
+        if (!Number.isSafeInteger(index) || index < 0 || index >= items.length) throw new MissingValueError('tuple index out of bounds');
+        return values.length === 2 ? items[index] : selectValues(modules, [items[index], ...values.slice(2)], missing);
+    }
     if (isScopedSelectorChain(values)) {
         if (values.length === 3 && isRankArray(values[0])) {
             const scope = isRankLabel(values[1]) ? values[1].name : values[1] as string;
@@ -500,8 +507,9 @@ function isScopedSelectorChain(values: readonly RankValue[]): boolean {
 }
 
 export function unpackApplicationItems(value: RankValue): RankValue[] {
+    if (isRankTuple(value)) return [...value.items];
     if (!isRankArray(value)) {
-        throw new RankError('unpack expects an array value', 'TypeError');
+        throw new RankError('unpack expects an array or tuple value', 'TypeError');
     }
     if (value.shape.length !== 1) {
         throw new RankError('unpack expects a rank-1 array value', 'DimensionMismatch');

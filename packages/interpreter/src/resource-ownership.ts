@@ -4,7 +4,7 @@ import { closeFile } from './modules/io.js';
 import { isKnownFileFree } from './resource-summary.js';
 import {
     isNativeFunction, isRankArray, isRankCounter, isRankErrorValue, isRankFile,
-    isRankGroupedTable, isRankIndex, isRankObject, isRankQueue, isRankRecord,
+    isRankTuple, isRankGroupedTable, isRankIndex, isRankObject, isRankQueue, isRankRecord,
     isRankSegment, isRankSequence, isRankSet, type RankFile, type RankValue,
 } from './value.js';
 
@@ -137,7 +137,7 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
             pending.push(item.values());
         } else if (isRankSegment(item)) {
             pending.push(item.values());
-        } else if (isRankArray(item) || isRankQueue(item)) {
+        } else if (isRankTuple(item) || isRankArray(item) || isRankQueue(item)) {
             pending.push(item.items.values());
         } else if (isRankIndex(item) || isRankSet(item)
             || isRankObject(item) || isRankRecord(item)) {

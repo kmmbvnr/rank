@@ -17,7 +17,7 @@ describe('text words and vocabulary', () => {
 
     it('validates text and limit types', () => {
         expect(() => run('use text\n1 words')).toThrowError('words expects text');
-        expect(() => run('use text\n(array "a" 1) 2 vocab'))
+        expect(() => run('use text\n(array 1 2) 2 vocab'))
             .toThrowError('vocab expects text elements');
         expect(() => run('use text\n(array "a") (-1) vocab'))
             .toThrowError('vocab limit must be a nonnegative integer');

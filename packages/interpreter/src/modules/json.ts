@@ -1,6 +1,7 @@
-import { ownedArray, ownedObject } from '../array-storage.js';
+import { positionalValue } from '../positional-value.js';
+import { ownedObject } from '../array-storage.js';
 import { RankError } from '../errors.js';
-import { isRankArray, isRankLabel, isRankObject, type RankObject, type RankValue } from '../value.js';
+import { isRankTuple, isRankArray, isRankLabel, isRankObject, type RankObject, type RankValue } from '../value.js';
 import { documentForm, nodeTable } from './document.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
@@ -32,17 +33,17 @@ function jsonNodes(root: RankValue): RankValue {
     return nodeTable<JsonNode>(
         { name: '', value: root },
         ({ name, value }) => {
-            const container = isRankArray(value) || isRankObject(value);
+            const container = isRankTuple(value) || isRankArray(value) || isRankObject(value);
             return {
                 kind: isRankLabel(value) ? value.name : typeof value === 'bigint' ? 'integer'
                     : typeof value === 'number' ? 'real' : typeof value === 'string' ? 'text'
-                    : typeof value === 'boolean' ? 'boolean' : value.kind,
+                    : typeof value === 'boolean' ? 'boolean' : isRankTuple(value) ? 'array' : value.kind,
                 name,
                 value: container ? '' : value,
             };
         },
         ({ value }) => isRankObject(value) ? [...value.entries].map(([name, item]) => ({ name, value: item }))
-            : isRankArray(value) ? (value.items as RankValue[]).map(item => ({ name: '', value: item }))
+            : isRankTuple(value) || isRankArray(value) ? (value.items as RankValue[]).map(item => ({ name: '', value: item }))
             : [],
     );
 }
@@ -109,14 +110,14 @@ class JsonParser {
         this.position += 1;
         const items: RankValue[] = [];
         this.whitespace();
-        if (this.take(']')) return ownedArray(items);
+        if (this.take(']')) return positionalValue(items);
         for (;;) {
             items.push(this.value());
             this.whitespace();
             if (this.take(']')) break;
             this.expect(',');
         }
-        return ownedArray(items);
+        return positionalValue(items);
     }
 
     private object(): RankObject {

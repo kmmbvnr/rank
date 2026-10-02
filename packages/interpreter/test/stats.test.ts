@@ -7,7 +7,7 @@ describe('Rank statistics', () => {
             'use stats',
             'Values = array 9 1 4',
             'Result = Values median',
-            'array Result Values',
+            'tuple Result Values',
         ].join('\n'))).toBe('4 9 1 4');
         expect(run('use stats\n(array 8 2 4 6) median')).toBe('5');
     });
@@ -27,7 +27,7 @@ describe('Rank statistics', () => {
     });
 
     it('validates median input and remaining values', () => {
-        expect(() => run('use stats\n(array 1 "bad") median'))
+        expect(() => run('use stats\n(array "bad" "bad") median'))
             .toThrowError('expected numeric input');
         expect(() => run('use stats\n(array shape 0 fill 0) median'))
             .toThrowError('median requires at least one value');
@@ -87,7 +87,7 @@ describe('Rank statistics', () => {
             'end',
             'Empty std',
         ].join('\n'))).toThrowError('std requires at least one value');
-        expect(() => run('use stats\n(array 1 "bad") std'))
+        expect(() => run('use stats\n(array "bad" "bad") std'))
             .toThrowError('expected numeric input');
         expect(() => run('use numbers\nuse stats\n(array 1 infinity) std'))
             .toThrowError('std expects finite values');
@@ -145,10 +145,7 @@ describe('Rank statistics', () => {
     it('keeps framed error reductions lazy', () => {
         expect(run([
             'use stats',
-            'Actual = array shape 2 2',
-            '  1 2',
-            '  "later" 4',
-            'end',
+            'Actual = (array shape 2 2\n 1 2\n 3 4\nend) // (array shape 2 2\n 1 1\n 0 1\nend)',
             'Target = array 1 1',
             'Result = Actual Target mse axis 1',
             'Result 0',
@@ -226,15 +223,12 @@ describe('Rank statistics', () => {
     it('evaluates batches lazily', () => {
         const source = [
             'use stats',
-            'Data = array shape 2 2 3',
-            '  1 2 3 4 5 6',
-            '  "invalid" 2 3 4 5 6',
-            'end',
+            'Data = (array shape 2 2 3\n 1 2 3 4 5 6\n 1 2 3 4 5 6\nend) // (array shape 2 2 3\n 1 1 1 1 1 1\n 0 1 1 1 1 1\nend)',
             'Result = Data covariance',
         ];
         expect(run([...source, 'Result 0 0 0'].join('\n'))).toBe('1');
         expect(() => run([...source, 'Result 1 0 0'].join('\n')))
-            .toThrowError('expected numeric input');
+            .toThrowError('division by zero');
     });
 
     it('validates observation counts and axes', () => {

@@ -6,8 +6,8 @@ describe('Rank mathematical functions', () => {
     it('marks and detects nan, which is unordered and unequal to itself', () => {
         expect(run('use numbers\nnan')).toBe('nan');
         expect(run('use numbers\ninfinity - infinity isnan')).toBe('true');
-        expect(run('use numbers\n(array 1.0 nan 3) isnan')).toBe('false true false');
-        expect(run('use numbers\nuse sequences\n(array 1.0 nan 3) isnan true find')).toBe('1');
+        expect(run('use numbers\n(array 1.0 nan 3.0) isnan')).toBe('false true false');
+        expect(run('use numbers\nuse sequences\n(array 1.0 nan 3.0) isnan true find')).toBe('1');
         expect(run('use numbers\nuse sequences\n(1 to 3) isnan copy')).toBe('false false false');
         expect(run('use numbers\narray (nan less 1.0) (nan at most 1.0) (1.0 at least nan) (nan equal nan)'))
             .toBe('false false false false');
@@ -123,7 +123,7 @@ describe('Rank mathematical functions', () => {
         expect(run('use numbers\n(array 1 2) log')).toBe('0 0.6931471805599453');
         expect(run([
             'use numbers',
-            'Values = array 1 "later"',
+            'Values = (array 1 0) // (array 1 0)',
             'Logs = Values log',
             'Logs 0',
         ].join('\n'))).toBe('0');
@@ -138,7 +138,7 @@ describe('Rank mathematical functions', () => {
             .toBe('1 2.718281828459045');
         expect(run([
             'use numbers',
-            'Values = array 0 "later"',
+            'Values = (array 0 0) // (array 1 0)',
             'Powers = Values exp',
             'Powers 0',
         ].join('\n'))).toBe('1');
@@ -160,7 +160,7 @@ describe('Rank mathematical functions', () => {
 
         expect(run([
             'use numbers',
-            'Values = array 0 "later"',
+            'Values = (array 0 0) // (array 1 0)',
             'Result = Values cos',
             'Result 0',
         ].join('\n'))).toBe('1');

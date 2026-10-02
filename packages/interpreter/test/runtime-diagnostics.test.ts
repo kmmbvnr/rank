@@ -88,8 +88,8 @@ Total`))).toBe(28n);
             expect(stats.loopElementScans).toBe(2);
             array.items[0] = 'changed';
             expect(() => stats.run(() => read.call([array])))
-                .toThrow('read_one returns rank 0 and cannot return rank 1');
-            expect(stats.loopElementScans).toBe(3);
+                .toThrow('arrays require one element type');
+            expect(stats.loopElementScans).toBe(2);
             expect(stats.compiledLoops).toBe(3);
         } finally { runtime.dispose(); }
     });
@@ -107,7 +107,7 @@ Total`))).toBe(28n);
             expect(stats.loopElementScans).toBe(0);
             array.items[0] = 'changed';
             expect(() => stats.run(() => read.call([array])))
-                .toThrow('read_one returns rank 0 and cannot return rank 1');
+                .toThrow('arrays require one element type');
             expect(stats.loopElementScans).toBe(0);
             expect(stats.compiledLoops).toBe(0);
             expect(stats.fallbacks['loop:storage-or-cell-type']).toBeGreaterThan(0);
@@ -210,7 +210,7 @@ Total`))).toBe(28n);
             if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
             expect(stats.run(() => alter.call([createArraySnapshot([1n, 2n]), true]))).toBeDefined();
             if (integerLoopCompilation) expect(stats.compiledLoops).toBeGreaterThan(0);
-            const array = createArraySnapshot([1n, 'not an integer']);
+            const array = createArraySnapshot(['not', 'integers']);
             noteArrayBinding(array);
             expect(stats.run(() => alter.call([array, false]))).toEqual(array);
             if (integerLoopCompilation) expect(stats.fallbacks['loop:storage-or-cell-type']).toBeGreaterThan(0);
@@ -229,7 +229,7 @@ Total`))).toBe(28n);
             if (integerLoopCompilation) expect(stats.compiledLoops).toBeGreaterThan(0);
             const first = createArraySnapshot([1n, 2n]);
             noteArrayBinding(first);
-            const second = createArraySnapshot([3n, 'not an integer']);
+            const second = createArraySnapshot(['not', 'integers']);
             expect(stats.run(() => alter.call([first, second, false]))).toEqual(first);
             if (integerLoopCompilation) expect(stats.fallbacks['loop:storage-or-cell-type']).toBeGreaterThan(0);
             expect(stats.cowCopies).toBe(0);

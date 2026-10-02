@@ -70,5 +70,5 @@ fun svd_2x2 A
     V 1 1 = V 0 0
   end
 
-  return array U S V
+  return tuple U S V
 end

@@ -648,7 +648,8 @@ Result
 
 ### NAME
 
-Assign or expand items of an array.
+Assign or expand items of an array or
+tuple.
 
 ### SYNOPSIS
 
@@ -661,8 +662,8 @@ Capitalized words stand for your values.
 ### DESCRIPTION
 
 The right side is a one-dimensional
-array. Before an expression, unpack
-instead expands an array into adjacent
+array or a tuple. Before an expression,
+unpack expands its items into adjacent
 operands.
 
 ### EXAMPLES
@@ -2196,4 +2197,38 @@ Format an integer as text.
 
 ```rank
 42 text
+```
+
+## tuple
+
+### NAME
+
+Fixed positional values with
+individual types.
+
+### SYNOPSIS
+
+```text
+tuple A B
+(tuple)
+```
+
+### DESCRIPTION
+
+Each position keeps its type and rank.
+The number of positions is fixed.
+Tuples support integer indexing, len,
+equality and unpack. Positions are
+immutable. Arrays in positions keep
+value semantics; records keep
+references.
+
+### EXAMPLES
+
+Return and unpack two different types.
+
+```rank
+Pair = tuple 3 "three"
+unpack Number Name = Pair
+Number
 ```

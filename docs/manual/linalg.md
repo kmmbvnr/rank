@@ -73,15 +73,15 @@ matrix.
 ### SYNOPSIS
 
 ```text
-Matrix eigh -> array
+Matrix eigh -> tuple
 Matrix: real symmetric square matrix
 ```
 
 ### DESCRIPTION
 
 Input is a real symmetric square matrix.
-Returns values and vectors in a result
-record.
+Returns a tuple of the eigenvalue vector
+and the eigenvector matrix.
 
 ### EXAMPLES
 

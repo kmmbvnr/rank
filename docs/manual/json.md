@@ -18,8 +18,12 @@ Text: complete JSON text
 
 Accepts a complete JSON document.
 Objects become object values; arrays
-become arrays. A trailing .flat requests
-a table of document nodes.
+become homogeneous arrays or tuples
+when element types differ. A trailing
+.flat requests a table of document
+nodes. Its .value column contains text;
+filter .kind and convert numeric leaves
+before arithmetic.
 
 ### EXAMPLES
 

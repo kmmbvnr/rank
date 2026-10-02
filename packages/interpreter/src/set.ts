@@ -2,7 +2,7 @@ import { RankError } from './errors.js';
 import { trackedKeyedCollections } from './interrupt.js';
 import {
     formatDate,
-    isRankArray,
+    isRankTuple, isRankArray,
     isRankDate,
     isRankLabel,
     isRankRecord,
@@ -28,6 +28,12 @@ function nestedValueKey(value: RankValue, active: Set<object>): string {
     if (typeof value === 'string') return `text:${JSON.stringify(value)}`;
     if (isRankLabel(value)) return `label:${value.name}`;
     if (isRankDate(value)) return `${value.kind}:${formatDate(value)}`;
+    if (isRankTuple(value)) {
+        enterValue(value, active);
+        const keys = value.items.map(item => nestedValueKey(item, active));
+        active.delete(value);
+        return `tuple:${JSON.stringify(keys)}`;
+    }
     if (isRankArray(value)) return arrayKey(value, active);
     if (isRankRecord(value)) return recordKey(value, active);
     throw new RankError('set values must be scalars, arrays or records');

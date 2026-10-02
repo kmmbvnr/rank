@@ -43,5 +43,5 @@ fun pegasos X Y Kind Lambda Steps Sigma
 
   Alpha = Alpha round 4
   Bias = Bias round 4
-  return array Alpha Bias
+  return tuple Alpha Bias
 end

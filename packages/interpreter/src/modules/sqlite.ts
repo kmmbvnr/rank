@@ -2,8 +2,9 @@ import { ByteArray } from '../bytes.js';
 import { MissingValueError, RankError } from '../errors.js';
 import type { RankSqliteConnection, SqliteScalar } from '../io.js';
 import {
-    formatDate,
+    tuple, formatDate,
     isRankArray,
+    isRankTuple,
     isRankBytes,
     isRankDate,
     isRankDuration,
@@ -41,9 +42,9 @@ export const sqliteModule: RuntimeModule = {
             kind: 'record',
             entries: new Map<string, RankValue>([
                 ['text', table.text],
-                ['params', { kind: 'array', items: table.params.map(fromSqlite), shape: [table.params.length] }],
+                ['params', tuple(table.params.map(fromSqlite))],
             ]),
-            types: new Map([['text', 'text'], ['params', 'array']]),
+            types: new Map([['text', 'text'], ['params', 'tuple']]),
         };
     }),
     explain: () => native('explain', 1, ([value]) => {
@@ -56,8 +57,8 @@ export const sqliteModule: RuntimeModule = {
         if (typeof text !== 'string' || !/^\s*(SELECT|WITH)\b/i.test(text)) {
             throw new RankError('sqlquery expects one SELECT statement', 'TypeError');
         }
-        if (!isRankArray(paramsValue) || paramsValue.shape.length !== 1) {
-            throw new RankError('sqlquery parameters must be a rank-1 array', 'TypeError');
+        if (!isRankTuple(paramsValue) && (!isRankArray(paramsValue) || paramsValue.shape.length !== 1)) {
+            throw new RankError('sqlquery parameters must be a tuple or rank-1 array', 'TypeError');
         }
         const params = paramsValue.items.map(toSqlite);
         withConnection(database, connection => {
@@ -764,8 +765,8 @@ export function executeSqliteWrite(write: SqliteWrite, mode?: 'sql' | 'explain')
     if (mode === 'sql') return { kind: 'record',
         entries: new Map<string, RankValue>([
             ['text', write.text],
-            ['params', { kind: 'array', items: write.params.map(fromSqlite), shape: [write.params.length] }],
-        ]), types: new Map([['text', 'text'], ['params', 'array']]) };
+            ['params', tuple(write.params.map(fromSqlite))],
+        ]), types: new Map([['text', 'text'], ['params', 'tuple']]) };
     if (mode === 'explain') return withConnection(write.database, connection =>
         resultRows(connection.prepare(`EXPLAIN QUERY PLAN ${write.text}`), write.params));
     const open = write.database.io.openSqliteWrite;

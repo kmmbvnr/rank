@@ -99,9 +99,9 @@ describe('structural record return contracts', () => {
         expect(runtime.execute('D .name')).toBe('text');
     });
 
-    it('does not widen an existing record schema to match another return', () => {
+    it('does not change a tuple field to an array to match another return', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun choose Flag\n if Flag\n return record\n .items = array 1 "text"\n end\n end\n return record\n .items = array 1\n end\nend\ntrue choose');
+        runtime.execute('fun choose Flag\n if Flag\n return record\n .items = tuple 1 "text"\n end\n end\n return record\n .items = array 1\n end\nend\ntrue choose');
         expect(() => runtime.execute('false choose'))
             .toThrowError(expect.objectContaining({ rankKind: 'ReturnTypeMismatch' }));
     });

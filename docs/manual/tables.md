@@ -241,15 +241,16 @@ positional parameters.
 ```text
 Db Text Parameters sqlquery -> table
 Db: database; Text: SQL; Parameters:
-array
+tuple or array
 ```
 
 ### DESCRIPTION
 
 Requires an existing database and SQLite
 host support. Text is a SELECT query;
-Parameters is a one-dimensional array
+Parameters is a tuple or rank-1 array
 matching its positional placeholders.
+Use a tuple for different value types.
 
 ### EXAMPLES
 

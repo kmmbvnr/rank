@@ -14,7 +14,7 @@ describe('segment tree', () => {
             'After = Tree 1 4 query',
             'Tree 1 += 4',
             'Final = Tree 0 4 query',
-            'array Before After Final (Tree 1)',
+            'tuple Before After Final (Tree 1)',
         ].join('\n'))).toBe('1 2 5 6');
     });
 
@@ -29,7 +29,7 @@ describe('segment tree', () => {
             'end',
             'Words = (array "a" "b" "c" "d") segment merge',
             'B = Words 1 3 query',
-            'array A B',
+            'tuple A B',
         ].join('\n'))).toBe('9 bcd');
     });
 
@@ -44,7 +44,7 @@ describe('segment tree', () => {
             'After = Tree 2 4 query',
             'Tree 0 += 3',
             'Place = Tree 16 firstatleast',
-            'array Before Middle After Place',
+            'tuple Before Middle After Place',
         ].join('\n'))).toBe('7 11 15 3');
     });
 
@@ -124,7 +124,7 @@ describe('segment tree', () => {
             'use algo',
             'use sequences',
             'Tree = (array 1 2 3) segment +',
-            'array (Tree type) (Tree len) (Tree shape)',
+            'tuple (Tree type) (Tree len) (Tree shape)',
         ].join('\n'))).toBe('.segment 3 3');
         expect(() => run('(array 1 2) segment +'))
             .toThrowError('segment requires: use algo');
@@ -139,7 +139,7 @@ describe('segment tree', () => {
             'use sequences',
             'Tree = (array 7 3 5) segment bxor',
             'Empty = (array shape 0 fill 0) segment +',
-            'array (Tree 0 2 query) (Empty len)',
+            'tuple (Tree 0 2 query) (Empty len)',
         ].join('\n'))).toBe('1 0');
     });
 
@@ -187,7 +187,7 @@ describe('segment tree', () => {
             'end',
             'Result',
         ].join('\n'))).toBe('-4 4 0 6 8 8 9 9 5');
-        expect(() => run('use algo\n(array 1 "x") segment maxsum'))
+        expect(() => run('use algo\n(array "x" "x") segment maxsum'))
             .toThrowError('segment maxsum expects numeric values');
     });
 

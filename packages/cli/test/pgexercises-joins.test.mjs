@@ -88,6 +88,7 @@ test('all 8 PostgreSQL Exercises Joins programs match SQLite reference queries',
     try {
         const programs = fs.readdirSync(joins).filter(name => /^\d{3}_.*\.ra$/.test(name)).sort();
         assert.equal(programs.length, reference.length);
+        // SQL NULL is an absent table field; JSON null is a distinct Rank label.
         const tables = Object.fromEntries(['members', 'bookings', 'facilities'].map(name =>
             [name, db.prepare(`SELECT * FROM ${name}`).all()]));
         for (const [index, program] of programs.entries()) {
@@ -98,7 +99,7 @@ test('all 8 PostgreSQL Exercises Joins programs match SQLite reference queries',
                     let source = path.join(joins, program);
                     if (storage === 'array') {
                         const text = fs.readFileSync(source, 'utf8').replace('Db = DbPath sqlite',
-                            `use json\nDb = ${JSON.stringify(JSON.stringify(tables))} json`);
+                            `use json\nDb = ${JSON.stringify(JSON.stringify(tables, (_key, value) => value === null ? undefined : value))} json`);
                         source = path.join(directory, 'array.ra');
                         fs.writeFileSync(source, text);
                     }

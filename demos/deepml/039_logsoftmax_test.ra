@@ -24,7 +24,7 @@ end
 
 test "official small score"
   use "039_logsoftmax"
-  Scores = array 1 1 0.0000001
+  Scores = array 1.0 1.0 0.0000001
   Expected = array -0.862 -0.862 -1.862
 
   Actual = Scores log_softmax

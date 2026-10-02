@@ -14,6 +14,8 @@ export function summarizeValue(value: RankValue, depth = 0): string {
         const shown = Array.from(items.slice(0, 8), item => summarizeValue(item, depth + 1));
         return `${label}: ${shown.join(' ')}${items.length > 8 ? ' …' : ''}`;
     }
+    if (value.kind === 'tuple') return depth >= 2 ? `tuple[${value.items.length}]`
+        : `tuple: ${value.items.slice(0, 8).map(item => summarizeValue(item, depth + 1)).join(' ')}${value.items.length > 8 ? ' …' : ''}`;
     if (value.kind === 'label') return `.${value.name}`;
     if (value.kind === 'function') return `<function ${value.name}>`;
     return `<${value.kind}>`;

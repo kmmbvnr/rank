@@ -161,25 +161,25 @@ describe('Rank expressions and sequences', () => {
         expect(run('42 is .integer')).toBe('true');
         expect(run('42 is .real')).toBe('false');
         expect(run('.Age is .symbol')).toBe('true');
-        expect(run([
-            'Values = array 1 "two" true',
-            'Result = ""',
-            'for Value i in Values',
-            '  if Value is .integer',
-            '    Result += "i"',
-            '  end',
-            '  if Value is .text',
-            '    Result += "t"',
-            '  end',
-            '  if Value is .boolean',
-            '    Result += "b"',
-            '  end',
-            'end',
-            'Result',
-        ].join('\n'))).toBe('itb');
+        expect(run(`Values = tuple 1 "two" true
+Result = ""
+for I in 0 till 3
+  Result += (Values I) tag
+end
+Result
+fun tag Value
+  if Value is .integer
+    return "i"
+  end
+  if Value is .text
+    return "t"
+  end
+  return "b"
+end
+Result`)).toBe('itb');
         // The loop name ends with the loop, so the same spelling may start over.
         expect(run([
-            'Values = array 1 "two"',
+            'Values = array 1 2',
             'for Value in Values',
             '  Value = Value',
             'end',
@@ -257,7 +257,7 @@ describe('Rank expressions and sequences', () => {
 
         expect(run([
             'use bits',
-            'A = array 1 "invalid"',
+            'A = (array 1 0) // (array 1 0)',
             'B = array 2',
             'Grid = A B outer bxor',
             'Grid 0 0',
@@ -616,9 +616,9 @@ describe('Rank expressions and sequences', () => {
             'end',
             'M count rank 1',
         ].join('\n'))).toBe('2 0');
-        expect(() => run('use sequences\n(array true 1) all'))
+        expect(() => run('use sequences\n(array 1 2) all'))
             .toThrowError('all expects boolean values');
-        expect(() => run('use sequences\n(array true 1) count'))
+        expect(() => run('use sequences\n(array 1 2) count'))
             .toThrowError('count expects boolean values');
         expect(() => run('use sequences\nfibonacci any'))
             .toThrowError('any requires a bounded sequence');
@@ -647,7 +647,7 @@ describe('Rank expressions and sequences', () => {
         expect(run('use sequences\n(array false false) indices')).toBe('');
         const empty = 'Mask = array shape 0\nend\nMask';
         expect(run(`use sequences\n${empty} indices`)).toBe('');
-        expect(() => run('use sequences\n(array true 1) indices'))
+        expect(() => run('use sequences\n(array 1 2) indices'))
             .toThrowError('indices expects boolean values');
         expect(() => run('use sequences\ntrue indices'))
             .toThrowError('indices expects a rank-1 array');
@@ -991,9 +991,8 @@ describe('Rank expressions and sequences', () => {
             'Pattern = "/word//path// /text /real"',
             '"open/path/ remaining text -1.5" Pattern parse',
         ].join('\n'))).toEqual({
-            kind: 'array',
+            kind: 'tuple',
             items: ['open', 'remaining text', -1.5],
-            shape: [3],
         });
         expect(() => run('use text\n"abc" "/integer" parse'))
             .toThrowError('text does not match format: /integer');
@@ -1040,11 +1039,11 @@ describe('Rank expressions and sequences', () => {
             'fun add_nested Values Tail',
             '  return Values 0 + Tail',
             'end',
-            'Packed = array (array 4) 3',
+            'Packed = tuple (array 4) 3',
             'unpack Packed add_nested',
         ].join('\n'))).toBe('7');
         expect(() => run('unpack 1 print'))
-            .toThrowError('unpack expects an array value');
+            .toThrowError('unpack expects an array or tuple value');
         expect(() => run([
             'Matrix = array shape 1 2',
             '  1 2',

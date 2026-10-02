@@ -272,7 +272,7 @@ S`);
         const next = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0);
         for (let sample = 0; sample < 30; sample++) {
             const values = Array.from({ length: 9 }, () => (next() % 100 - 50) / (sample % 2 ? 8 : 1));
-            const cells = values.map(value => `(${value})`).join(' ');
+            const cells = values.map(value => `(${sample % 2 ? value.toFixed(3) : value})`).join(' ');
             const source = `use numbers
 use stats
 fun f A

@@ -142,7 +142,7 @@ describe('arrays of array cells', () => {
     });
 
     it('materializes finite sequence cells before stacking', () => {
-        expect(run('use sequences\nM = (array (1 to 3) (array 4 5 6)) copy\nM shape')).toBe('2 3');
+        expect(run('use sequences\nM = (array ((1 to 3) copy) (array 4 5 6)) copy\nM shape')).toBe('2 3');
         expect(run('use sequences\nM = (array (1 to 2) (3 to 4)) copy\nM 1 0')).toBe('3');
     });
 
@@ -155,7 +155,7 @@ Grid copy shape`)).toBe('2 2 2');
 
     it.each(['array 1 2', '3'])('rejects cells of another shape or kind: %s', other => {
         expect(() => run(`use sequences\n(array (array 1 2 3) (${other})) copy`))
-            .toThrowError('materialized array items must have the same shape');
+            .toThrowError(other === '3' ? 'arrays require one element type' : 'materialized array items must have the same shape');
     });
 
     it('leaves an array of scalar cells unstacked', () => {

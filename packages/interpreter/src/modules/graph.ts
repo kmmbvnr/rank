@@ -1003,7 +1003,7 @@ function minimumSpanningTreeRecord(graph: GraphValue): RankRecord {
         connected: components <= 1,
         components: BigInt(components),
         weight,
-        edges: { kind: 'array', items, shape: [selected.length, 3] },
+        edges: { kind: 'array', items, shape: [selected.length, 3], columnNames: ['from', 'to', 'weight'] },
     });
 }
 

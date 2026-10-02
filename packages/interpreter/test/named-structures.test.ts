@@ -32,7 +32,7 @@ Q push 7
 M = new multiset
 N = new multiset
 M add 7
-array (A 1) (B 1) (S len) (T len) (C 7) (D 7) (Q len) (R len) (M len) (N len)
+tuple (A 1) (B 1) (S len) (T len) (C 7) (D 7) (Q len) (R len) (M len) (N len)
 `)).toBe('10 20 1 0 1 0 1 0 1 0');
     });
 
@@ -50,7 +50,7 @@ fun visit S C X
 end
 X = Seen Counts 7 visit
 X = Alias Counts 7 visit
-array (Seen len) (7 in Alias) (Counts 7)
+tuple (Seen len) (7 in Alias) (Counts 7)
 `)).toBe('1 true 2');
     });
 
@@ -81,7 +81,7 @@ Seen add array 1 2
 Seen add array 1 2
 Counts add array 1 2
 Counts add array 1 2
-array (Seen len) (Counts (array 1 2))
+tuple (Seen len) (Counts (array 1 2))
 `)).toBe('1 2');
         expect(run('use algo\nSeen = new set\nSeen add 7\nSeen add 2\nSeen add 7\nResult = 0\nfor Value in Seen\n Result = Result * 10 + Value\nend\nResult')).toBe('72');
     });
@@ -115,7 +115,7 @@ B = 0 make
 First = 7 A
 Second = 7 A
 Other = 7 B
-array First Second Other
+tuple First Second Other
 `)).toBe('1 2 1');
     });
 
@@ -135,7 +135,7 @@ fun local N
 end
 First = 1 local
 Second = 2 local
-array (First 0) (First 1) (First 2) (Second 0) (queue len) (set len) (counter 9)
+tuple (First 0) (First 1) (First 2) (Second 0) (queue len) (set len) (counter 9)
 `)).toBe('0 0 0 0 1 1 1');
     });
 
@@ -150,7 +150,7 @@ end
 A = 0 fresh
 B = 0 fresh
 A add 1
-array (A len) (B len) (set len)
+tuple (A len) (B len) (set len)
 `)).toBe('1 0 1');
     });
 
@@ -165,7 +165,7 @@ Y = Counts 7 add
 Tickets = (array 3 3) multiset
 Tickets add 4
 Tickets remove 3
-array (Seen len) (Counts 7) (Tickets len) (Tickets floor 4)
+tuple (Seen len) (Counts 7) (Tickets len) (Tickets floor 4)
 `)).toBe('1 1 2 4');
         expect(run('fun add A B\n return A + B\nend\n3 4 add')).toBe('7');
     });
@@ -213,7 +213,7 @@ Counts remove 7
 HasSevenAfter = 7 in Counts
 Counts remove 2
 EmptyLen = Counts len
-array Result HasSeven HasThree CountSeven HasSevenAfter EmptyLen
+tuple Result HasSeven HasThree CountSeven HasSevenAfter EmptyLen
 `)).toBe('72 true false 1 false 0');
 
         expect(() => run('use algo\nC = new counter\nC remove 1'))
@@ -227,7 +227,7 @@ C add "c"
 C add "a"
 C add "b"
 M = C multiset
-array (M 0) (M 1) (M 2)
+tuple (M 0) (M 1) (M 2)
 `)).toBe('a b c');
     });
 
@@ -249,7 +249,7 @@ fun down N
   end
   return set len
 end
-array (A len) (B len) (10 down)
+tuple (A len) (B len) (10 down)
 `)).toBe('1 0 1');
     });
 });

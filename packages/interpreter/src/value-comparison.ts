@@ -2,7 +2,7 @@ import { readArrayItem } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import {
-    formatValue, isRankArray, isRankDate, isRankDuration, isRankRecord,
+    formatValue, isRankTuple, isRankArray, isRankDate, isRankDuration, isRankRecord,
     type RankValue,
 } from './value.js';
 
@@ -68,6 +68,11 @@ function equalNestedValues(
     }
     if (isRankDuration(left) && isRankDuration(right)) {
         return left.seconds === right.seconds;
+    }
+    if (isRankTuple(left) && isRankTuple(right)) {
+        if (left.items.length !== right.items.length) return false;
+        if (alreadyCompared(left, right, compared)) return true;
+        return left.items.every((item, index) => equalNestedValues(item, right.items[index], compared));
     }
     if (isRankArray(left) && isRankArray(right)) {
         if (!sameShape(left.shape, right.shape)) return false;
