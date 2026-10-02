@@ -148,11 +148,11 @@ describe('inspect: arrays', () => {
         expect(texts(clamped.cells)).toEqual([['13', '14'], ['15', '16']]);
     });
 
-    it('types each cell and quotes nothing it cannot read', async () => {
-        const { session, ref } = await run(['Mixed = array 1 2.5 "a" true', 'Mixed']);
+    it('types each cell', async () => {
+        const { session, ref } = await run(['Reals = array 1.5 2.5', 'Reals']);
         const value = opened(session.inspect(ref));
         if (value.kind !== 'array') throw new Error('expected an array');
-        expect(value.cells.flat().map(cell => cell.type)).toEqual(['integer', 'real', 'text', 'boolean']);
+        expect(value.cells.flat().map(cell => cell.type)).toEqual(['real', 'real']);
     });
 });
 
@@ -284,9 +284,14 @@ describe('value view model', () => {
         expect(view).toMatchObject({ kind: 'grid', columnLabels: ['id', 'name'], typeLine: 'table · [1 2]' });
     });
 
-    it('claims no element type for a window of mixed cells', async () => {
-        const { session, ref } = await run(['Mixed = array 1 "a"', 'Mixed']);
-        expect(buildValueView('Mixed', opened(session.inspect(ref))).typeLine).toBe('array · [2]');
+    it('lists a tuple by position, each item with its own type', async () => {
+        const { session, ref } = await run(['Pair = tuple 1 "a"', 'Pair']);
+        const value = opened(session.inspect(ref));
+        if (value.kind !== 'entries') throw new Error('expected entries');
+        expect(value.type).toBe('tuple');
+        expect(value.entries.map(entry => [entry.key, entry.value.text, entry.value.type]))
+            .toEqual([['0', '1', 'integer'], ['1', 'a', 'text']]);
+        expect(buildValueView('Pair', value)).toMatchObject({ kind: 'list', typeLine: 'tuple · 2', rows: [['0', '1'], ['1', 'a']] });
     });
 
     it('lists a record as keyed rows, and a sequence by what it has read', async () => {

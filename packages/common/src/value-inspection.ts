@@ -178,7 +178,7 @@ function collectionEntries(value: Exclude<RankValue, bigint | number | boolean |
             return [...value.entries].map(([key, item]) => ({ key, value: cellOf(item) }));
         case 'set':
             return [...value.entries.values()].map((item, index) => ({ key: String(index), value: cellOf(item) }));
-        case 'queue':
+        case 'queue': case 'tuple':
             return value.items.map((item, index) => ({ key: String(index), value: cellOf(item) }));
         case 'counter':
             return [...value.entries.values()].map(entry => ({
