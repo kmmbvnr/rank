@@ -280,6 +280,7 @@ function render(): void {
         repl.help.top = frame.top;
     } else {
         const showShortcutHints = keyHints();
+        const nameFacts = repl.nameFacts;
         const shownFailure = failure === 'Stopped' ? stoppedMessage() : failure;
         // Flinging re-laid out and repainted the notebook at every row; a few screens of rows turn that into a slide.
         windowedFrame = scrollWindow && !follow && !shownFailure && !repl.running && !showShortcutHints;
@@ -290,7 +291,7 @@ function render(): void {
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
             repl.liveIterationFocus, repl.stepping,
             anchorCursor && restingCursorRow !== undefined ? Math.min(restingCursorRow, rows - 1) : undefined, showShortcutHints,
-            windowedFrame ? rows * 3 : !keyHints() && !shownFailure && !repl.running ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus);
+            windowedFrame ? rows * 3 : !keyHints() && !shownFailure && !repl.running && !nameFacts ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus, nameFacts);
         if (windowedFrame) top = Math.min(top, frame.maxTop ?? 0);
         else { top = frame.top; scrollWindow = false; }
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
@@ -305,6 +306,7 @@ function render(): void {
         paintedLines = [];
     }
     frame.lines.forEach((line, index) => {
+        (screen.children[index] as HTMLElement).classList.toggle('terminal-facts', index === frame.factsRow);
         if (paintedLines[index] === line) return;
         const row = screen.children[index] as HTMLElement;
         row.replaceChildren();
@@ -948,6 +950,7 @@ async function locate(x: number, y: number): Promise<void> {
     }
     // Placing the cursor in a visible row must not shift the screen; typing brings the cursor into view later.
     follow = !(touchConsole && target?.kind === 'source');
+    scrollWindow = false;
     render();
     focusInput();
 }
@@ -1002,7 +1005,11 @@ function scrollToPixels(position: number): boolean {
     // Pausing the caret blink while moving keeps the blended caret from repainting the screen every half second.
     terminal.classList.add('scrolling');
     clearTimeout(scrollIdle);
-    scrollIdle = setTimeout(() => terminal.classList.remove('scrolling'), 150);
+    scrollIdle = setTimeout(() => {
+        terminal.classList.remove('scrolling');
+        // The sliding window has no footer; once the scroll settles, draw an ordinary frame so the type under the cursor returns.
+        if (windowedFrame && momentumFrame === undefined) { scrollWindow = false; render(); }
+    }, 150);
     // Sliding inside one row only moves layers; re-laying out the notebook per touch event made scrolling stutter.
     if (sameRows) placeScreen(); else { scrollWindow = touchConsole; render(); }
     return limited !== position;

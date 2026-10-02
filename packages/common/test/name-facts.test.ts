@@ -155,3 +155,17 @@ describe('formatNameFacts', () => {
         expect(formatNameFacts(long, 3).length).toBeLessThanOrEqual(3);
     });
 });
+
+describe('factsAt: functions', () => {
+    const word = (source: string, text: string): NameFacts => factsAt(source, source.lastIndexOf(text) + 1)!;
+
+    it('calls a builtin and a notebook function a function, and claims no signature', () => {
+        expect(formatNameFacts(word('Xs = array 1 2 3\nXs sum\n', 'sum'), 60)).toBe('sum · function');
+        expect(formatNameFacts(word('fun twice X\n return X * 2\nend\n3 twice\n', 'twice'), 60)).toBe('twice · function');
+    });
+
+    it('is not fooled by a variable or an unknown word', () => {
+        expect(formatNameFacts(word('Sum = 5\nSum\n', 'Sum'), 60)).toBe('Sum · integer');
+        expect(formatNameFacts(word('Q = Zork\n', 'Zork'), 60)).toBe('Zork · unknown');
+    });
+});

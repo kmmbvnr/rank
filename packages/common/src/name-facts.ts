@@ -1,6 +1,6 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, describeTypes, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
+    analyzeValues, describeTypes, findOperation, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
     isFunctionStatement, isNameExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type Program, type ValueFacts,
 } from '@arrrank/language';
@@ -23,25 +23,39 @@ const UNKNOWN: ValueFacts = { types: [] };
 const FUNCTION: ValueFacts = { types: ['function'] };
 
 /**
+ * The cells before an unexecuted draft: what they bind, and which functions they declare. A draft
+ * has not run, so a name it writes never takes the run's facts for an earlier value.
+ */
+export interface NameFactsScope {
+    readonly bindings: ReadonlyMap<string, ValueFacts>;
+    readonly functions: ReadonlyMap<string, FunctionStatement>;
+}
+
+/**
  * Analyzes `source` once; the returned lookup answers any offset. `sessionFacts` are trusted:
  * the caller passes only facts of cells that were executed and have not changed since.
  */
 export function nameFactsIn(source: string, sessionFacts: readonly (readonly [string, ValueFacts])[] = [],
-    examples: readonly NameFactsExample[] = []): ((offset: number) => NameFacts | undefined) | undefined {
+    examples: readonly NameFactsExample[] = [], scope?: NameFactsScope): ((offset: number) => NameFacts | undefined) | undefined {
     let program: Program;
     try { program = parse(source); } catch { return undefined; }
     const root = program.$cstNode;
     if (!root) return undefined;
     const runtime = new Map(sessionFacts);
     let analysis: ReturnType<typeof analyzeValues>;
-    try { analysis = analyzeValues(program, runtime, new Map(), examples.map(example => ({ ...example }))); } catch { return undefined; }
+    try { analysis = analyzeValues(program, scope ? new Map(scope.bindings) : runtime,
+        new Map(scope?.functions), examples.map(example => ({ ...example }))); } catch { return undefined; }
 
+    const written = scope ? writtenNames(program) : new Set<string>();
+    /** A catalogue name that nothing in the notebook or the run has bound is a function. */
+    const isCatalogueFunction = (site: Site): boolean => site.kind === 'read' && !analysis.bindings.has(site.name)
+        && !runtime.has(site.name) && !written.has(site.name) && !!findOperation(site.name)?.arities.length;
     return offset => {
         const site = [offset, offset - 1].map(at => nameSite(root, at)).find(found => found !== undefined);
         if (!site) return undefined;
         const inFunction = AstUtils.getContainerOfType(site.node, isFunctionStatement);
         const observed = runtime.get(site.name);
-        if (observed && !inFunction && site.kind !== 'parameter') {
+        if (observed && !inFunction && site.kind !== 'parameter' && !written.has(site.name)) {
             // A run records no element types; the analyzer's agree with it only when type, rank and shape do.
             const inferred = analysis.bindings.get(site.name);
             const same = inferred && observed.types.join() === inferred.types.join() && observed.rank === inferred.rank
@@ -50,7 +64,7 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
             const elements = same && !observed.elements ? inferred.elements : undefined;
             return { name: site.name, source: 'runtime', facts: { ...observed, ...(elements ? { elements } : {}) } };
         }
-        return { name: site.name, source: 'static', facts: staticFacts(site, analysis) };
+        return { name: site.name, source: 'static', facts: isCatalogueFunction(site) ? FUNCTION : staticFacts(site, analysis) };
     };
 }
 
@@ -63,6 +77,16 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
 export function factsAt(source: string, offset: number, sessionFacts: readonly (readonly [string, ValueFacts])[] = [],
     examples: readonly NameFactsExample[] = []): NameFacts | undefined {
     return nameFactsIn(source, sessionFacts, examples)?.(offset);
+}
+
+function writtenNames(program: Program): Set<string> {
+    const names = new Set<string>();
+    for (const node of AstUtils.streamAllContents(program)) {
+        if (isAssignmentStatement(node) || isArrayAssignmentStatement(node)) names.add(node.name);
+        else if (isUnpackStatement(node)) node.names.forEach(name => names.add(name));
+        else if (isForStatement(node)) loopNames(node).forEach(name => names.add(name));
+    }
+    return names;
 }
 
 interface Site {

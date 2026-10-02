@@ -181,7 +181,7 @@ export class TerminalRenderer {
         const frame = notebookFrame(repl.notebook, this.columns, this.rows,
             this.top, repl.suggestion, repl.running, this.followCursor, repl.fileStatus, repl.runningStatus,
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields, repl.liveIterationFocus, repl.stepping,
-            this.anchoredCursorRow, true, 0, repl.diagnosticOutputs, repl.importFixFocus);
+            this.anchoredCursorRow, true, 0, repl.diagnosticOutputs, repl.importFixFocus, repl.nameFacts);
         this.top = frame.top;
         this.cursorRow = frame.cursorVisible ? frame.cursor.row : undefined;
         this.targets = frame.targets ?? [];

@@ -8,7 +8,8 @@ import { enclosingIterationLine } from './live-preview.js';
 import { importPosition, missingImports } from './import-fix.js';
 import { type OutputLine } from './repl-session.js';
 import type { ReplSession } from './repl-types.js';
-import { notebookValueDiagnostics } from './value-diagnostics.js';
+import { notebookScope, notebookValueDiagnostics } from './value-diagnostics.js';
+import { nameFactsIn, type NameFacts } from './name-facts.js';
 
 
 /** Coordinates explicit execution. Navigation never calls into the interpreter. */
@@ -46,6 +47,22 @@ export class NotebookRepl {
         };
         return this.diagnosticCache.outputs;
     }
+    /** The name under the source cursor, while the source is being edited. Gone as soon as the source changes. */
+    get nameFacts(): NameFacts | undefined {
+        if (this.running || this.liveEditing) return undefined;
+        const book = this.notebook;
+        const current = book.current;
+        if (current.command || !current.source.trim()) return undefined;
+        const facts = this.session.diagnosticFacts;
+        const key = JSON.stringify([book.active, book.dirtyFrom,
+            book.cells.map(cell => [cell.id, cell.source, cell.executed, cell.command, cell.status]), facts]);
+        if (this.nameFactsCache?.key !== key) {
+            const scope = notebookScope(book, facts);
+            this.nameFactsCache = { key, lookup: nameFactsIn(current.source, scope.clean ? facts : [], [], scope) };
+        }
+        return this.nameFactsCache.lookup?.(book.cursor);
+    }
+    private nameFactsCache?: { key: string; lookup: ReturnType<typeof nameFactsIn> };
     private diagnosticCache?: { key: string; outputs: ReadonlyMap<number, OutputLine[]> };
     get liveEditing(): boolean { return this.liveFunction.editing || this.liveConditional.editing; }
     get completingLiveFunction(): boolean { return this.liveFunction.completing; }

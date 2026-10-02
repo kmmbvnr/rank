@@ -5,6 +5,7 @@ import type { Notebook } from './notebook.js';
 import { hasCode } from './repl-input.js';
 import type { PauseSnapshot } from '@arrrank/interpreter';
 import { importPhrases, missingImports } from './import-fix.js';
+import { formatNameFacts, type NameFacts } from './name-facts.js';
 
 const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 export const graphemes = (text: string): Intl.SegmentData[] => [...segmenter.segment(text)];
@@ -149,6 +150,8 @@ export interface ScreenFrame {
     readonly caretRow?: number;
     readonly cursorStyle?: 2 | 6;
     readonly targets?: readonly (ScreenTarget | undefined)[];
+    /** Index in `lines` of the footer row showing the name under the cursor, for dimmer, smaller styling. */
+    readonly factsRow?: number;
 }
 
 /** Output and suggestions are model data, so old errors/listings disappear on the next frame. */
@@ -162,7 +165,7 @@ export function notebookFrame(
     promptOutputFocus?: { readonly line: number; readonly offset: number; readonly active?: boolean; readonly nextLine?: number },
     stepping = false, anchoredCursorRow?: number, showShortcutHints = true, overscanRows = 0,
     diagnostics?: ReadonlyMap<number, readonly { text: string; error: boolean; inlineText?: string }[]>,
-    importFixFocus?: number,
+    importFixFocus?: number, nameFacts?: NameFacts,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const gutter = Math.min(Math.max(6, cellWidth(promptLabel)), Math.max(0, width - 1));
@@ -306,7 +309,11 @@ export function notebookFrame(
         if (index === notebook.active && cell.status === 'error' && cell.executed === cell.source
             && (index === dirty || !pending)) errorEnd = rows.length - 1;
     }
-    const footerRows = height > 1 && (showShortcutHints || running || !!suggestion || !!fileStatus) ? 1 : 0;
+    // Errors, running status, completion candidates and iteration hints keep the footer; otherwise a name under the cursor owns it.
+    // A tap on a touch console places the cursor without following it, so the cursor being on screen is enough.
+    const cursorShown = followCursor || caret.row >= previousTop && caret.row < previousTop + height;
+    const showFacts = !!nameFacts && cursorShown && overscanRows <= 1 && !running && !suggestion && !promptOutputFocus;
+    const footerRows = height > 1 && (showShortcutHints || running || !!suggestion || !!fileStatus || showFacts) ? 1 : 0;
     const viewportHeight = Math.max(1, height - footerRows);
     const maxTop = Math.max(0, rows.length - viewportHeight);
     let top = Math.max(0, Math.min(previousTop, Math.max(0, rows.length - (followCursor ? 1 : viewportHeight))));
@@ -325,10 +332,19 @@ export function notebookFrame(
     }
     if (followCursor && anchoredCursorRow !== undefined)
         top = Math.max(0, caret.row - Math.min(anchoredCursorRow, viewportHeight - 1));
+    // The footer takes the row that was the viewport's last; keep a cursor that sat there in view.
+    if (showFacts && !followCursor && caret.row === top + viewportHeight) top = Math.min(maxTop, top + 1);
     const renderedHeight = viewportHeight + Math.max(0, overscanRows);
     const lines = rows.slice(top, top + renderedHeight);
     while (lines.length < renderedHeight) lines.push('');
-    if (footerRows) {
+    let factsRow: number | undefined;
+    // The footer sits directly under the viewport, ahead of any overscan rows, so it is never
+    // pushed below the visible area.
+    let footerLine: string | undefined;
+    if (footerRows && showFacts) {
+        factsRow = viewportHeight;
+        footerLine = '\x1b[90m' + clipped(formatNameFacts(nameFacts!, width), width) + '\x1b[0m';
+    } else if (footerRows) {
         const footerWidth = width;
         let status = '';
         if (!followCursor) {
@@ -351,10 +367,11 @@ export function notebookFrame(
                     : available > 0 ? clipped(state.replace(/^ · /, ''), available) : '';
             }
         }
-        lines.push(clipped(label && followCursor ? `${label} · ${status}` : status, footerWidth));
+        footerLine = clipped(label && followCursor ? `${label} · ${status}` : status, footerWidth);
     }
+    if (footerLine !== undefined) lines.splice(viewportHeight, 0, footerLine);
     return { lines, cursor: { row: Math.max(0, Math.min(viewportHeight - 1, caret.row - top)), column: caret.column },
-        top, maxTop, targets: targets.slice(top, top + renderedHeight),
+        top, maxTop, targets: targets.slice(top, top + renderedHeight), factsRow,
         cursorVisible: caret.row >= top && caret.row < top + viewportHeight, caretRow: caret.row,
         cursorStyle: promptOutputFocus ? 2 : promptFields?.some(field => field.active) ? 6
             : promptOutputs && !stepping ? 6 : notebook.atPrompt || stepping ? 2 : 6 };
