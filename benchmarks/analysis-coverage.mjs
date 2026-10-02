@@ -3,7 +3,7 @@ import { dirname, extname, resolve } from 'node:path';
 import { AstUtils, EmptyFileSystem } from 'langium';
 import {
   analyzeValues, createRankServices, flatArrayBorrowProofs, functionEffects,
-  functionTestExamples, isForStatement, isFunctionStatement,
+  functionTestExamples, isForStatement, isFunctionStatement, moduleSummary,
 } from '../packages/language/out/index.js';
 
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
@@ -55,7 +55,8 @@ for (const path of paths) {
     const testProgram = parser.parse(readFileSync(testPath, 'utf8'));
     if (testProgram.parserErrors.length) throw new Error(`${testPath}: ${testProgram.parserErrors[0].message}`);
     const moduleName = path.split('/').at(-1).replace(/\.ra$/, '');
-    const examples = functionTestExamples(testProgram.value, moduleName, new Set(byName.keys()));
+    const examples = functionTestExamples(testProgram.value, moduleName, new Set(byName.keys()),
+      moduleSummary(parsed.value));
     counts.testExamples += examples.length;
     counts.knownExampleEffects += examples.filter(example =>
       !effects(example.name, example.arguments).unknown).length;
