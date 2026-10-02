@@ -130,3 +130,8 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 
 /* The app hides the system bars; Android still reports a transient bottom inset while the keyboard closes, which made the run button jump. */
 .mobile { --safe-bottom: 0px; }
+
+#keyboard-keys.module-picker { flex-direction: column; flex-wrap: nowrap; }
+#keyboard-keys.module-picker button { flex: none; height: auto; min-height: 58px; padding: 8px 12px; text-align: left; white-space: normal; }
+#keyboard-keys.module-picker strong { display: block; }
+#keyboard-keys.module-picker span { display: block; margin-top: 3px; font-size: 12px; line-height: 1.4; }
