@@ -710,6 +710,18 @@ it('reverses a queue into an array', () => {
     expect(first(' Q push (new queue)')).toEqual([]);
 });
 
+it('keeps numeric cell types through shift', () => {
+    const shifted = (setup: string, count: string) => messages(`use sequences\n${setup}\nA = (Values ${count} shift) first\nA + "bad"`);
+    expect(shifted('Values = array 1 2 3', '1'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(shifted('Values = array 1.5 2.5', '1'))
+        .toEqual(['operator + does not accept real or integer and text']);
+    // Text cells, an unproved count and an unproved source stay unknown.
+    expect(shifted('Values = array "a" "b"', '1')).toEqual([]);
+    expect(shifted('Values = array 1 2 3', 'Unknown')).toEqual([]);
+    expect(shifted('Values = Unknown', '1')).toEqual([]);
+});
+
 it('keeps outer loop facts when only a nested loop continues', () => {
     const nested = (exit: string) => `fun count Width\n Current = array shape 4 fill 0\n for Column in 1 to Width\n  Next = array shape 4 fill 0\n${exit}\n  Current = Next\n end\n return Current 0\nend\nA = 3 count\nA + "bad"`;
     expect(messages(nested('  for Mask in 0 till 4\n   Ways = Current Mask\n   if Ways equal 0\n    continue\n   end\n   Next 0 += Ways\n  end')))
