@@ -22,12 +22,12 @@ test('pasted instructions have separate cells and results while blocks stay toge
     const { book, enter } = setup(t);
     await enter('use sequences\nuse text\nuse io');
     assert.deepEqual(book.cells.slice(0, -1).map(cell => cell.source),
-        ['use sequences', 'use text', 'use io']);
+        ['use sequences\nuse text\nuse io']);
     await enter('A = 1\nif true\n  A += 2\nend\nA');
-    assert.deepEqual(book.cells.slice(3, -1).map(cell => cell.source),
+    assert.deepEqual(book.cells.slice(1, -1).map(cell => cell.source),
         ['A = 1', 'if true\n  A += 2\nend', 'A']);
-    assert.equal(output(book.cells[3]), '1');
-    assert.equal(output(book.cells[5]), '3');
+    assert.equal(output(book.cells[1]), '1');
+    assert.equal(output(book.cells[3]), '3');
     assert.ok(book.cells.slice(0, -1).every(cell => cell.status === 'ok'));
 });
 
@@ -684,10 +684,10 @@ test('replaying a generator consumer uses retained values without repeating earl
     await enter('fun logged N\n  N print\n  yield N\n  yield N + 1\nend');
     await enter('G = 3 logged');
     await enter('A = G array');
-    edit(4, 'B = G array');
+    edit(3, 'B = G array');
     await enter('');
-    assert.equal(output(book.cells[4]), '3 4');
-    assert.equal(output(book.cells[3]).split('3\n').length - 1, 1);
+    assert.equal(output(book.cells[3]), '3 4');
+    assert.equal(output(book.cells[2]).split('3\n').length - 1, 1);
     assert.equal(book.dirtyFrom, -1);
 });
 
@@ -774,23 +774,24 @@ test('save/load separates instructions and keeps only source, including blanks a
     await fs.writeFile(original, source);
     const { book, enter, edit, repl } = setup(t);
     await enter(`load ${original}`);
-    assert.deepEqual(book.cells.slice(0, -1).map(cell => cell.source), instructions);
+    assert.deepEqual(book.cells.slice(0, -1).map(cell => cell.source),
+        ['use io\nuse numbers', ...instructions.slice(2)]);
     assert.ok(book.cells.every(cell => cell.output.length === 0));
     assert.equal(book.dirtyFrom, 0);
     assert.equal(book.atPrompt, true);
     const count = book.cells.length;
     await enter('');
     assert.equal(book.cells.length, count, 'starting a loaded program must not add a blank line');
-    assert.equal(output(book.cells[5]), '42');
-    assert.equal(output(book.cells[6]), '42\n42');
+    assert.equal(output(book.cells[4]), '42');
+    assert.equal(output(book.cells[5]), '42\n42');
     await enter('vars');
     await enter('full');
     await enter(`save ${saved}`);
     assert.equal(await fs.readFile(saved, 'utf8'), source);
-    edit(5, 'A = 11 twice');
+    edit(4, 'A = 11 twice');
     await repl.submit(true);
-    assert.equal(output(book.cells[5]), '22');
-    assert.equal(output(book.cells[6]), '22\n22');
+    assert.equal(output(book.cells[4]), '22');
+    assert.equal(output(book.cells[5]), '22\n22');
     assert.equal(book.cells[0].status, 'ok');
 });
 
@@ -959,14 +960,14 @@ test('Ctrl-R replaces a declaration type while retaining other cells and their v
     await enter('use text');
     await enter('Ranks = "234567890"');
     await enter('Count = 7');
-    edit(2, 'Ranks = "234567890" "" split');
+    edit(1, 'Ranks = "234567890" "" split');
     await repl.rerun();
-    assert.equal(book.cells[2].status, 'ok', output(book.cells[2]));
+    assert.equal(book.cells[1].status, 'ok', output(book.cells[1]));
     assert.match(output(await session.execute('vars', 100, [])), /Ranks array 9/);
     assert.equal((await session.execute('Count', 101, [])).output[0].text, '7');
-    edit(2, 'Cards = "new"');
+    edit(1, 'Cards = "new"');
     await repl.rerun();
-    assert.equal(book.cells[2].status, 'ok');
+    assert.equal(book.cells[1].status, 'ok');
     assert.equal((await session.execute('Ranks', 102, [])).ok, false);
     assert.equal((await session.execute('Cards', 103, [])).ok, true);
 });

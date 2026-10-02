@@ -232,6 +232,8 @@ export class Notebook {
         const previous = this.cells.at(-2);
         if (previous && !previous.command && isUseRun(previous.source) && isUseRun(source)) {
             previous.source += '\n' + source;
+            this.current.source = '';
+            this.toPrompt(false);
             return;
         }
         this.current.source = source;

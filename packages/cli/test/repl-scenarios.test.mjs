@@ -198,7 +198,7 @@ test('an unfinished loop survives adding an import above it and resumes after re
         await s.type('K = 0 to N');
         await s.enter();
         const draft = s.book.current.source;
-        while (s.book.active > 1) await s.up();
+        while (s.book.active > 0) await s.up();
         assert.equal(s.repl.liveEditing, false);
         assert.equal(s.repl.liveOutputs, undefined);
         s.book.lineEdge(true);
@@ -207,7 +207,7 @@ test('an unfinished loop survives adding an import above it and resumes after re
         assert.equal(s.book.cells.at(-1).source, draft);
         await s.ctrlR();
         assert.equal(s.book.cells.at(-1).source, draft);
-        assert.equal(s.book.cells[1].status, 'ok');
+        assert.equal(s.book.cells[0].status, 'ok');
         s.book.toPrompt();
         assert.equal(s.repl.liveEditing, true);
         if (s.repl.liveIterationFocused) await s.enter();
@@ -529,14 +529,14 @@ test('Ctrl-R runs only the selected expression and Ctrl-R stops at the following
         s.book.enqueue('for i in 10 to 100\n  (array i)\nend');
         s.book.enqueue('After = 99');
         const source = s.book.fileLines().join('\n');
-        s.book.active = 0;
+        s.book.active = 2;
         s.book.cursor = s.book.current.source.length;
         await s.ctrlR();
-        assert.deepEqual(s.book.cells[0].output.map(line => line.text), ['2']);
-        assert.equal(s.book.active, 1);
+        assert.deepEqual(s.book.cells[2].output.map(line => line.text), ['2']);
+        assert.equal(s.book.active, 3);
         assert.equal(s.book.cursor, 0);
-        assert.equal(s.book.cells[1].executed, undefined);
-        assert.equal(s.book.cells[2].executed, undefined);
+        assert.equal(s.book.cells[3].executed, undefined);
+        assert.equal(s.book.cells[4].executed, undefined);
         assert.equal(s.repl.stepping, true);
         await s.ctrlR();
         assert.equal(s.repl.liveIterationFocus.line, 1);
@@ -545,7 +545,7 @@ test('Ctrl-R runs only the selected expression and Ctrl-R stops at the following
         await s.enter();
         await s.ctrlR();
         assert.deepEqual(s.repl.liveOutputs.get(2).map(line => line.text), ['10']);
-        assert.equal(s.book.cells[2].executed, undefined);
+        assert.equal(s.book.cells[4].executed, undefined);
         assert.equal(s.book.fileLines().join('\n'), source);
     } finally { s.session.dispose(); }
 });

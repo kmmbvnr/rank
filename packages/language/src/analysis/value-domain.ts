@@ -18,6 +18,11 @@ export interface ValueFacts {
     readonly elementRank?: number;
     /** Cell types of array elements stored in a mutable collection. */
     readonly elementCells?: Types;
+    /**
+     * Stable record facts shared by every record inserted into a locally constructed collection.
+     * Absent once an insertion carries no schema or a different one; dropped when effects are unknown.
+     */
+    readonly elementRecord?: ValueFacts;
     /** Identity of a locally constructed collection; dropped when effects are unknown. */
     readonly collectionId?: number;
     /** Element types by position for a fixed rank-1 array. */
@@ -52,6 +57,12 @@ export interface ValueFacts {
     /** All field names are known, rather than just an intersection of branch facts. */
     readonly closedRecord?: true;
 }
+
+/**
+ * Containers whose insertions are all observed by the pass. An empty one has `elements: []`
+ * (nothing inserted yet), so joining with a populated path keeps the populated facts.
+ */
+export const TRACKED_COLLECTIONS: readonly string[] = ['stack', 'queue', 'deque'];
 
 export const UNKNOWN_VALUE: ValueFacts = { types: [] };
 export const BOTTOM_VALUE: ValueFacts = { types: [], bottom: true };
@@ -183,8 +194,9 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
     const shape = rank !== undefined && values.every(value => value.shape?.length === rank)
         ? first.shape!.map((dimension, axis) => values.every(value => value.shape![axis] === dimension) ? dimension : null)
         : scalar ? [] : undefined;
+    const tracked = TRACKED_COLLECTIONS.includes(types.join());
     const elements = values.every(value => value.elements !== undefined
-        && (value.elements.length > 0 || types.join() === 'index'))
+        && (value.elements.length > 0 || types.join() === 'index' || tracked))
         ? [...new Set(values.flatMap(value => value.elements!))] : undefined;
     const elementRank = elements?.join() === 'array' && values.every(value => value.elementRank === first.elementRank)
         ? first.elementRank : undefined;
@@ -212,6 +224,9 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
             ? { segmentOperation: first.segmentOperation } : {}),
         ...(elements ? { elements } : {}),
         ...(elementRank !== undefined ? { elementRank } : {}),
+        ...(elements?.length && values.filter(value => value.elements!.length).every(value => value.elementRecord)
+            ? { elementRecord: joinValueFacts(values.filter(value => value.elements!.length)
+                .map(value => value.elementRecord!)) } : {}),
         ...(values.every(value => value.elementCells?.length)
             ? { elementCells: joinTypes(values.map(value => value.elementCells!)) } : {}),
         ...(first.collectionId !== undefined && values.every(value => value.collectionId === first.collectionId)

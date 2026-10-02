@@ -377,12 +377,13 @@ test('the next-eval marker remains in the branch body while the iterator is sele
 test('leaving an unused top insertion row restores the original numbering', async t => {
     const frames = await drive(t, [
         { keys: '1 + 1' + ENTER, until: '1›' },
-        { keys: UP + UP, until: '2›' },
+        UP + UP,
         DOWN,
         UP,
         '\x1b',
     ], 40, 12);
-    assert.match(frames[1].text, /2› 1 \+ 1/);
+    assert.match(frames[1].text, /1› 1 \+ 1/);
+    assert.doesNotMatch(frames[1].text, /2›/);
     assert.match(frames[2].text, /1› 1 \+ 1/);
     assert.equal(frames[2].cursorY, 0);
     assert.match(frames[4].text, /1› 1 \+ 1/);
