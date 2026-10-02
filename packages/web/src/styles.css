@@ -115,8 +115,8 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #keyboard-keys { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px 6px; height: min(236px, 34dvh); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 2px; }
 #keyboard-keys::-webkit-scrollbar, #keyboard-tabs::-webkit-scrollbar { display: none; }
 #keyboard-keys button { font-size: 16px; flex: 1 0 auto; min-width: 44px; height: 46px; padding: 0 10px; border-radius: 8px; background: var(--key-background, #3c4043); color: var(--key-foreground, #e8eaed); font-family: inherit; white-space: pre; }
-#keyboard-keys button:active:not(:disabled) { filter: brightness(1.4); }
-#keyboard-keys button:disabled { color: var(--keyboard-muted, #5f6368); background: color-mix(in srgb, var(--key-background, #3c4043) 45%, var(--keyboard-background, #202124)); cursor: default; }
+#keyboard-keys button:active:not([aria-disabled="true"]) { filter: brightness(1.4); }
+#keyboard-keys button[aria-disabled="true"] { color: var(--keyboard-muted, #5f6368); background: color-mix(in srgb, var(--key-background, #3c4043) 45%, var(--keyboard-background, #202124)); cursor: default; }
 #keyboard-bar { display: flex; align-items: stretch; height: 40px; margin-top: 4px; padding: 0 12px; }
 #keyboard-tabs { display: flex; flex: 1; overflow-x: auto; scrollbar-width: none; }
 #keyboard-tabs button { flex: none; padding: 0 12px; background: transparent; color: var(--keyboard-muted, #9aa0a6); border-bottom: 2px solid transparent; font-family: system-ui, sans-serif; font-size: 13px; }
@@ -130,3 +130,15 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 
 /* The app hides the system bars; Android still reports a transient bottom inset while the keyboard closes, which made the run button jump. */
 .mobile { --safe-bottom: 0px; }
+
+/* Offline manual: a monochrome man page above the unchanged symbol keyboard. */
+#key-manual { color: #fff; background: #000; border: 1px solid #fff; padding: 0; width: min(640px, calc(100% - 24px)); max-height: calc(var(--height) - 32px); font: inherit; }
+#key-manual::backdrop { background: rgb(0 0 0 / .65); }
+#key-manual header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #fff; }
+#key-manual h2 { font-size: 16px; margin: 0; overflow-wrap: anywhere; }
+#key-manual h3 { font-size: 14px; margin: 24px 0 8px; }
+#key-manual button { font: inherit; color: #fff; background: #000; border: 1px solid #fff; padding: 8px 12px; min-height: 44px; cursor: pointer; }
+#key-manual button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+#key-manual .manual-body { padding: 0 16px 24px; overflow-y: auto; max-height: calc(var(--height) - 110px); overscroll-behavior: contain; }
+#key-manual p { white-space: pre-wrap; overflow-wrap: anywhere; }
+#key-manual pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; border-left: 2px solid #fff; user-select: text; -webkit-user-select: text; }

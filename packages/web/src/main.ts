@@ -1,4 +1,5 @@
 import './styles.css';
+import { ManualViewer, manualKey } from './manual-viewer.js';
 import type { PauseSnapshot } from '@arrrank/interpreter';
 import { NotebookRepl } from '@arrrank/common/repl';
 import { KeyRouter, type Key } from '@arrrank/common/key-router';
@@ -459,6 +460,7 @@ function startKeyboardOpening(): void {
         render();
     }, 450);
 }
+const manualViewer = new ManualViewer();
 let keyboardModule = 'core';
 let keyboardLayout = '';
 let keyboardSize = '';
@@ -567,7 +569,7 @@ function renderKeyboard(): void {
             button.type = 'button';
             button.tabIndex = -1;
             button.textContent = key;
-            button.onclick = () => typeKey(key);
+            manualKey(button, () => { haptic('hold'); manualViewer.open(key, keyboardModule, button); }, () => typeKey(key));
             return button;
         }));
     }
@@ -577,7 +579,7 @@ function renderKeyboard(): void {
     const before = book.current.source.slice(0, book.cursor);
     const locked = busy || repl.running || !!repl.help || repl.liveIterationFocused;
     for (const button of keyboardKeys.children as HTMLCollectionOf<HTMLButtonElement>)
-        button.disabled = locked || !keyAvailable(button.textContent!, before);
+        button.setAttribute('aria-disabled', String(locked || !keyAvailable(button.textContent!, before)));
     // Landscape leaves the narrow code on the left and floats the keyboard on the right.
     keyboard.classList.toggle('floating', floating);
     const sized = !floating && softKeyboardHeight > 0;
