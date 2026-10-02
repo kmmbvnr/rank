@@ -43,6 +43,11 @@ export interface ValueFacts {
     /** Symbolic value of an integer scalar, e.g. a length bound once and reused. */
     readonly dim?: Dim;
     readonly boolean?: boolean;
+    /**
+     * The real is `infinity` or `-infinity`. Such a seed has not committed to reals: the first
+     * integer written to the binding replaces it (ADR-0100), so the binding accepts both.
+     */
+    readonly infinite?: true;
     readonly integer?: string;
     /** Proven inclusive bounds of an integer scalar on the current path; null is unbounded. Never kept across joins. */
     readonly interval?: readonly [number | null, number | null];

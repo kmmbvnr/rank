@@ -749,7 +749,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     next = { types: accepted, rank: 0, shape: [] };
                 }
                 env.set(statement.name, { ...next,
-                    acceptedTypes: accepted?.length ? settledBindingTypes(accepted, next.types) : next.types,
+                    acceptedTypes: accepted?.length ? settledBindingTypes(accepted, next.types)
+                        : next.infinite ? ['integer', 'real'] : next.types,
                     acceptedArrayRank: expectedRank ?? receivedRank });
                 if (calls.directNoReturnCall(statement.value, env)) return false;
             } else if (isUnpackStatement(statement)) {
