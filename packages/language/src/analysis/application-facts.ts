@@ -651,6 +651,15 @@ function transferApplicationFacts(
                     ...(hasNumericArrayNoCallbackProof(operation, operands)
                         ? { callbackFreeScalarCells: true as const } : {}) };
             }
+            // `Values Count shift` keeps the shape; vacated cells read the integer zero fill.
+            if (operation === findOperation('shift') && arity === 2 && source.types.join() === 'array'
+                && source.shape && source.rank !== undefined && source.rank > 0
+                && (source.eagerScalarCells || source.callbackFreeScalarCells) && source.elements?.length
+                && source.elements.every(type => type === 'integer' || type === 'real')
+                && operands[1].rank === 0 && operands[1].types.join() === 'integer') {
+                return { types: ['array'], rank: source.rank, shape: source.shape,
+                    elements: [...new Set([...source.elements, 'integer'])], callbackFreeScalarCells: true };
+            }
             if (operation === findOperation('transpose') && arity === 1 && source.types.join() === 'array'
                 && source.shape) return { types: ['array'], rank: source.shape.length,
                 shape: [...source.shape].reverse(), elements: source.elements,
