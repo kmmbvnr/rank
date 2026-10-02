@@ -866,6 +866,19 @@ function syncInputSelection(): void {
     const from = selected?.start === book.active ? selected.from : book.cursor;
     const to = selected?.end === book.active ? selected.to : book.cursor;
     if (start === from && end === to) return;
+    if (start === end && touchConsole) {
+        // A space-bar swipe reports coarse jumps across the whole cell: take only its direction, one character per event, never leaving the line.
+        const source = book.current.source;
+        const origin = book.cursor;
+        const next = start > origin
+            ? (source[origin] === '\n' || origin >= source.length ? origin : origin + 1)
+            : (origin === 0 || source[origin - 1] === '\n' ? origin : origin - 1);
+        book.selectTo(book.active, next);
+        input.setSelectionRange(next, next);
+        follow = true;
+        render();
+        return;
+    }
     if (start === end) {
         book.selectTo(book.active, start);
     } else {
