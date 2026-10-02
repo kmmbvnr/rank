@@ -2,7 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-09-08
-* **Updated:** 2026-09-28 — current contract inference and proof limits
+* **Updated:** 2026-10-02 — separate use requirements and proof limits
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Abstract Interpretation Specification, Langium Validator Tests
 
@@ -28,7 +28,10 @@ flowchart TD
     AbstractEval --> AbstractEnv["Abstract Environment (Rank + Shape)"]
     AbstractEnv --> Checker["Constraint & Dimension Checker"]
     Checker -->|Mismatch| Diagnostics["Inline LSP Diagnostics (ValidationAcceptor)"]
-    Checker -->|Valid| KernelPlanner["JIT Kernel Fusion Planner"]
+    AbstractEnv -->|Proven facts| KernelPlanner["JIT Kernel Fusion Planner"]
+    AST --> Requirements["Use Requirements"]
+    AbstractEnv --> Requirements
+    Requirements -->|Contradiction| Diagnostics
 ```
 
 ### 1. Structural Enablers in Rank
@@ -74,6 +77,62 @@ an unresolved result is not itself a proven type error. See
 Type or rank knowledge alone does not prove bounds safety, eager evaluation or
 absence of callbacks. Optimizations require those separate proofs. The runtime
 enforces contracts where static analysis cannot establish them.
+
+### Requirements inferred from uses (#69)
+
+`inferRequirements(program)` collects a separate graph of necessary rank,
+length and scalar/cell-domain requirements. `analyzeValues` exposes that graph
+as `requirements` and adds its new contradictions to diagnostics. A contradiction
+includes both source sites. Existing forward diagnostics take precedence when
+they already explain an error at either site.
+
+A requirement is not a proof. Requirement intervals and domains never enter
+`ValueFacts`, callback-safety facts, fusion decisions, in-place updates, or guard
+removal. The empty-frame evaluator also does not read them. Runtime behavior
+continues to depend on runtime values and forward contracts alone. There are no
+requirement-derived editor hints in this change.
+
+Rank equalities use weighted union-find, with intervals for bounds. A worklist
+propagates frame and sum relations. Exact dimension constraints reuse the `Dim`
+symbols from the forward shape domain in a separate solver; solving a requirement
+does not change those symbols' forward meaning. Cell domains intersect along
+explicit value aliases. Array ranks follow binding contracts; lengths and cell
+domains belong to values, since rebinding may change both. Missing seeds do not
+establish a rank contract.
+
+Function bodies produce templates even without calls. Calls instantiate fresh
+variables so requirements from separate specializations cannot collide. Source
+imports use the same templates through the existing module loader. Active
+recursion is left unresolved. Template count, graph expansion and solver work
+are bounded; the result exposes `limited` when a budget stops inference. These
+budgets are independent of the forward call-analysis budget.
+
+The collector follows current Rank semantics:
+
+- `M # 1` requires two axes. The integer is a selector value, not an axis count.
+- Ordinary `rank R` clamps positive ranks and accepts negative ranks. It does
+  not imply `rank M >= R`. `reduce rank R` and explicit frame axes have their
+  own requirements.
+- An empty frame does not execute a cell. Cell-body constraints are connected
+  only when execution is established; unknown or empty frames remain conservative.
+- Arithmetic broadcasting permits size-1 stretching. It does not equate operand
+  lengths. Exact dimension relations come from applicable builtin shape patterns.
+- Operand acceptance is separate from callback-safety metadata. The initial
+  `operandDomains` catalogue entries cover `sum` and `lower`; arithmetic domain
+  constraints cover `/`, `//`, `%` and `**`. Overloaded acceptance must be checked
+  before adding further entries.
+- Conflicting cell domains do not prove an error for a possibly empty array.
+  Diagnostics require scalar or nonempty-cell evidence.
+
+Guarded branches, zero-trip loops, captured writes and unknown callbacks do not
+supply unconditional requirements. Unsupported effects discard value links.
+Text atoms and sequence boxing retain their existing forward rules. This pass
+is intentionally incomplete; absence of a contradiction is not validation.
+
+External data expectations remain requirements. Checked CSV/XML/JSON schemas
+and read-time checks are separate work in #33 and #116. Neither arbitrary input
+files nor test fixtures are read to manufacture static facts. Collection
+infinity settlement is also outside this static-analysis change.
 
 ### 3. Real-Time LSP Diagnostic Emission
 - The abstract interpretation pass is integrated directly into `RankValidator` via Langium.

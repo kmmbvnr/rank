@@ -6,6 +6,25 @@ import { notebookValueDiagnostics } from '../src/value-diagnostics.js';
 import { notebookFrame } from '../src/screen.js';
 import { Notebook } from '../src/notebook.js';
 
+it('shows both requirement sites in a forty-column unexecuted notebook and retracts them on edit', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const draft = (value: string) => `fun check X\n A = X decode\n A # 0\n A = ${value}\nend`;
+        repl.notebook.replace(draft('1'));
+        const frame = notebookFrame(repl.notebook, 40, 20, 0, '', false, true, '', '',
+            undefined, 'rank> ', undefined, undefined, undefined, false, undefined, true, 0, repl.diagnosticOutputs);
+        const text = frame.lines.join('\n');
+        expect(text).toContain('rank conflict');
+        expect(text).toContain('line 3:');
+        expect(text).toContain('line 4:');
+        expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
+        repl.notebook.replace(draft('array shape 2 2 fill 1'));
+        expect([...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n'))
+            .not.toContain('rank conflict');
+    } finally { session.dispose(); }
+});
+
 it('shows a proven mixed-yield error in an unexecuted REPL draft', () => {
     const session = createReplSession();
     try {

@@ -16,6 +16,7 @@ export * from './analysis/types.js';
 export * from './analysis/value-domain.js';
 export * from './analysis/value-facts.js';
 export * from './analysis/value-diagnostics.js';
+export * from './analysis/requirements.js';
 export * from './analysis/function-effects.js';
 export * from './analysis/function-yields.js';
 export * from './analysis/flat-array-borrow.js';

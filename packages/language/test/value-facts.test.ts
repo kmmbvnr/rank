@@ -1273,3 +1273,11 @@ it('does not call the xor of unproved operands a scalar', () => {
         .functionResults[0];
     expect(result.rank).not.toBe(0);
 });
+
+it('does not give ordered extrema a numeric result before the operand domain is known', () => {
+    const analyze = (source: string) => analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
+    const result = analyze('fun small X\n return X min\nend\nA = "b" small\nA = "a"');
+    expect(result.diagnostics).toEqual([]);
+    expect(result.bindings.get('A')).toMatchObject({ types: ['text'], rank: 1 });
+    expect(analyze('fun small X\n return X min\nend\nA = Unknown small').bindings.get('A')?.rank).toBeUndefined();
+});
