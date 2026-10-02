@@ -797,11 +797,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 let safeKeys = true;
                 for (const key of statement.keys) {
                     invalidateCalls(key, env);
-                    if (!directValue(key)) {
+                    // Scalar arithmetic only reads numbers, so a computed key leaves other facts intact.
+                    const pureKey = directValue(key) || scalarArithmetic(key, env);
+                    if (!pureKey) {
                         forgetNonFunctions(env);
                     }
                     const fact = inspect(key, env);
-                    safeKeys &&= directValue(key) && fact.types.length > 0
+                    safeKeys &&= pureKey && fact.types.length > 0
                         && fact.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type));
                 }
                 invalidateCalls(statement.value, env);

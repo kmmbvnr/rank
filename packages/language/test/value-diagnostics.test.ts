@@ -669,6 +669,20 @@ it('keeps the type of a local index when a cell is copied with a default', () =>
         .toEqual(['operator + does not accept boolean and integer']);
 });
 
+it('keeps local index facts across a key computed from scalar arithmetic', () => {
+    expect(messages('use algo\nfun grid Text\n index 0 0 = true\n for Symbol I in Text\n  index (I + 1) 0 = true\n end\n return index 1 0 default false\nend\nA = "ab" grid\nA + 1'))
+        .toEqual(['operator + does not accept boolean and integer']);
+    expect(messages('use algo\nfun grid\n index 0 0 = true\n index (1 + 1) 0 = true\n return index 1 0 default false\nend\nA = grid\nA + 1'))
+        .toEqual(['operator + does not accept boolean and integer']);
+});
+
+it('forgets local index facts when a computed key is not plain scalar arithmetic', () => {
+    expect(messages('use algo\nfun grid Key\n index 0 0 = true\n index (Key + 1) 0 = true\n return index 1 0 default false\nend\nA = Unknown grid\nA + 1'))
+        .toEqual([]);
+    expect(messages('use algo\nfun grid Key\n index 0 0 = true\n index (Key first) 0 = true\n return index 1 0 default false\nend\nA = (array 1 2) grid\nA + 1'))
+        .toEqual([]);
+});
+
 it('infers the simplified regular-expression matcher from its local index writes', () => {
     const source = readFileSync(new URL('./fixtures/010_regexp.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/leetcode/010_regexp_test.ra', import.meta.url), 'utf8');
