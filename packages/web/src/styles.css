@@ -108,21 +108,21 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 .mobile #turbo-button:not([hidden]) { display: flex; }
 
 /* Symbol keyboard: docked in place of the soft keyboard, in the style of a dark phone keyboard. */
-#keyboard { position: fixed; z-index: 2; left: 0; right: 0; top: calc(var(--top) + var(--height) - var(--keyboard-height)); padding: 6px 4px var(--safe-bottom); background: var(--keyboard-background, #202124); touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+#keyboard { position: fixed; z-index: 2; left: 0; right: 0; top: calc(var(--top) + var(--height) - var(--keyboard-height)); padding: 6px 4px max(var(--safe-bottom), calc(var(--keyboard-bottom, 0px) - 10px)); background: var(--keyboard-background, #202124); touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 #keyboard { display: flex; flex-direction: column; }
 #keyboard[hidden] { display: none; }
 #keyboard.sized #keyboard-keys { flex: 1; height: auto; min-height: 0; }
 #keyboard-keys { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px 6px; height: min(236px, 34dvh); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 2px; }
 #keyboard-keys::-webkit-scrollbar, #keyboard-tabs::-webkit-scrollbar { display: none; }
 #keyboard-keys button { font-size: 16px; flex: 1 0 auto; min-width: 44px; height: 46px; padding: 0 10px; border-radius: 8px; background: var(--key-background, #3c4043); color: var(--key-foreground, #e8eaed); font-family: inherit; white-space: pre; }
-#keyboard-keys button:active:not([aria-disabled="true"]) { filter: brightness(1.4); }
-#keyboard-keys button[aria-disabled="true"] { color: var(--keyboard-muted, #5f6368); background: color-mix(in srgb, var(--key-background, #3c4043) 45%, var(--keyboard-background, #202124)); cursor: default; }
-#keyboard-bar { display: flex; align-items: stretch; height: 40px; margin-top: 4px; padding: 0 12px; }
-#keyboard-tabs { display: flex; flex: 1; overflow-x: auto; scrollbar-width: none; }
-#keyboard-tabs button { flex: none; padding: 0 12px; background: transparent; color: var(--keyboard-muted, #9aa0a6); border-bottom: 2px solid transparent; font-family: system-ui, sans-serif; font-size: 13px; }
+#keyboard-keys button:active:not(:disabled):not([aria-disabled="true"]) { filter: brightness(1.4); }
+#keyboard-keys button:disabled, #keyboard-keys button[aria-disabled="true"] { color: var(--keyboard-muted, #5f6368); background: color-mix(in srgb, var(--key-background, #3c4043) 45%, var(--keyboard-background, #202124)); cursor: default; }
+#keyboard-bar { display: flex; align-items: center; height: 48px; margin-top: 4px; padding: 0 12px; }
+#keyboard-tabs { display: flex; align-items: center; flex: 1; overflow-x: auto; scrollbar-width: none; }
+#keyboard-tabs button { flex: none; height: 36px; padding: 0 14px; background: transparent; color: var(--keyboard-muted, #9aa0a6); border-bottom: 2px solid transparent; font-family: system-ui, sans-serif; font-size: 16px; }
 #keyboard-tabs button[aria-selected="true"] { color: var(--keyboard-accent, #8ab4f8); border-bottom-color: var(--keyboard-accent, #8ab4f8); }
-#keyboard-hide, #keyboard-letters { flex: none; width: 52px; padding: 0; background: transparent; color: var(--key-foreground, #e8eaed); display: flex; align-items: center; justify-content: center; }
-#keyboard-hide svg, #keyboard-letters svg { width: 26px; height: 26px; fill: currentColor; }
+#keyboard-hide, #keyboard-letters { flex: none; width: 56px; height: 44px; padding: 0; background: transparent; color: var(--key-foreground, #e8eaed); display: flex; align-items: center; justify-content: center; }
+#keyboard-hide svg, #keyboard-letters svg { width: 32px; height: 32px; fill: currentColor; }
 /* Floating, as the phone keyboard floats in landscape: a rounded card beside the code. */
 #keyboard.floating { left: auto; top: auto; right: max(8px, env(safe-area-inset-right)); bottom: max(8px, var(--safe-bottom)); width: min(420px, 48vw); padding: 8px 6px 0; border-radius: 18px; box-shadow: 0 8px 24px rgb(0 0 0 / .6); }
 #keyboard.floating::before { content: ''; display: block; width: 36px; height: 4px; margin: 0 auto 8px; border-radius: 2px; background: var(--keyboard-muted, #5f6368); }
@@ -142,3 +142,7 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #key-manual .manual-body { padding: 0 16px 24px; overflow-y: auto; max-height: calc(var(--height) - 110px); overscroll-behavior: contain; }
 #key-manual p { white-space: pre-wrap; overflow-wrap: anywhere; }
 #key-manual pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; border-left: 2px solid #fff; user-select: text; -webkit-user-select: text; }
+#keyboard-keys.module-picker { flex-direction: column; flex-wrap: nowrap; }
+#keyboard-keys.module-picker button { flex: none; height: auto; min-height: 58px; padding: 8px 12px; text-align: left; white-space: normal; }
+#keyboard-keys.module-picker strong { display: block; }
+#keyboard-keys.module-picker span { display: block; margin-top: 3px; font-size: 12px; line-height: 1.4; }

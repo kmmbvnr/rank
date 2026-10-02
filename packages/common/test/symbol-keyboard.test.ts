@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { keyAvailable, keyboardTabs, keyText } from '../src/symbol-keyboard.js';
+import { keyAvailable, keyboardModules, keyboardTabs, keyText } from '../src/symbol-keyboard.js';
 import { createReplSession } from '../src/repl-session.js';
 
 describe('symbol keyboard', () => {
@@ -21,6 +21,15 @@ describe('symbol keyboard', () => {
         expect(keyboardTabs(session.modules).map(tab => tab.module)).toEqual(['core']);
         await session.execute('use graph', 1, []);
         expect(keyboardTabs(session.modules).map(tab => tab.module)).toEqual(['core', 'graph']);
+    });
+
+    it('lists unimported built-ins with summaries, including modules without operation keys', () => {
+        const available = keyboardModules(['numbers', 'graph']);
+        expect(available.map(module => module.name)).not.toContain('core');
+        expect(available.map(module => module.name)).not.toContain('numbers');
+        expect(available.map(module => module.name)).not.toContain('graph');
+        expect(available.map(module => module.name)).toContain('testing');
+        expect(available.find(module => module.name === 'linalg')?.summary).toContain('Matrix');
     });
 
     it('offers keywords only where they can stand', () => {
