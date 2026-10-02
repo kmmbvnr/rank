@@ -926,10 +926,15 @@ async function locate(x: number, y: number): Promise<void> {
         repl.notebook.active = target.cell;
         if (!repl.liveIterationFocused) repl.focusLiveIterationFromBody(target.line);
         repl.iterationSelecting = true;
+    } else if (touchConsole && frame.lines[row]?.trim()) {
+        // Output and markers are read-only: a touch there neither edits nor scrolls away from what is being read.
+        if (keyboardEnabled) focusInput();
+        return;
     } else if (row < rows - 1) {
         repl.editSource(); repl.notebook.toPrompt();
     }
-    follow = true;
+    // Placing the cursor in a visible row must not shift the screen; typing brings the cursor into view later.
+    follow = !(touchConsole && target?.kind === 'source');
     render();
     focusInput();
 }
