@@ -17,6 +17,7 @@ const precedence: Readonly<Record<string, number>> = {
     equal: 0.5, notequal: 0.5, less: 0.5, greater: 0.5, atleast: 0.5, atmost: 0.5, multipleby: 0.5,
     to: 1, till: 1, by: 1, '+': 2, '-': 2, '*': 3, '/': 3, '//': 3, '%': 3, '**': 4,
 };
+const isRangeOperator = (operator: string): boolean => operator === 'to' || operator === 'till' || operator === 'until';
 const comparisons = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby', 'in', 'notin', 'is']);
 const symbolic = new Set(['reduce', 'scan', 'outer', 'segment', 'rank', 'axis']);
 const modifiers = new Set(['axis', 'rank', 'outer', 'segment', 'scan']);
@@ -282,6 +283,15 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                     || (precedence[operators.at(-1)!.operator] === precedence[token.value.operator] && token.value.operator !== '**'))) reduce();
                 operators.push(token.value);
             } else {
+                // `A to X len` bounds the range by the length of `X`: a bare name bound
+                // takes `len` itself. Literals keep the formula rule, so `1 till 5 len` counts.
+                const bound = values.at(-1);
+                if (token.kind === 'call' && operators.length && isRangeOperator(operators.at(-1)!.operator)
+                    && token.parts.length === 1 && isNameExpression(token.parts[0]) && token.parts[0].name === 'len'
+                    && standardOperation('len') && isNameExpression(bound) && !callable(bound)) {
+                    values.push(application([values.pop()!, ...token.parts], token.original));
+                    continue;
+                }
                 if (phase === 'adjustment') report(token.kind === 'call' ? token.parts[0] : token.original,
                     'A new function call after arithmetic requires an intermediate variable. Name the result on the left, then apply the function.');
                 const extra: Expression[] = [];

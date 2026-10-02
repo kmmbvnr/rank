@@ -555,7 +555,10 @@ A max + 1
 ```
 
 To process just one operand, group it explicitly: `A - (A mean)` or
-`0 till (Classes len)`.
+`0 till (Classes len)`. One case needs no parentheses: `len` right after a
+data name that bounds a range measures that name, so `0 till Classes len` and
+`1 to Items len` mean `0 till (Classes len)` and `1 to (Items len)`. After a
+number, `len` still counts the range: `1 till 5 len` is `4`.
 
 A comparison works like the arithmetic above it, as on a calculator: after a
 plain left operand, the comparison takes the next value and a following
