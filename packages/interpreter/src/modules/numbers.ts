@@ -3,6 +3,7 @@ import { extremeMasked, sumMasked } from '../masked-kernels.js';
 import { markArrayMask } from '../array-mask.js';
 import { denseScalarItems, derivedArray, float64Cells, typedArray, typedElementKind } from '../array-storage.js';
 import { RankError } from '../errors.js';
+import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import { maxSqlite, sumSqlite } from './sqlite.js';
 import {
@@ -261,14 +262,34 @@ export function numericExtreme(
     name: 'min' | 'max',
     replaces: (candidate: bigint | number, current: bigint | number) => boolean,
 ) {
+    // Numbers keep the numeric fast path; text and other ordered scalars
+    // compare with the same ordering as `less` and `greater`.
+    const expectExtremeOperand = (value: RankValue): RankValue => {
+        if (typeof value === 'string' || typeof value === 'boolean') return value;
+        if (typeof value === 'object' && value !== null && value !== MISSING && !isRankArray(value)) {
+            orderedKind(value);
+            return value;
+        }
+        return expectNumeric(value);
+    };
+    const replacesExtreme = (candidate: RankValue, current: RankValue): boolean => {
+        if (typeof candidate === 'object' || typeof candidate === 'string' || typeof candidate === 'boolean'
+            || typeof current === 'object' || typeof current === 'string' || typeof current === 'boolean') {
+            const kind = orderedKind(candidate);
+            if (kind !== orderedKind(current)) throw new RankError('expected numeric input');
+            const order = compareOrderedValues(candidate, current, kind);
+            return name === 'min' ? order < 0 : order > 0;
+        }
+        return replaces(candidate, current);
+    };
     const binary = (a: RankValue, b: RankValue): RankValue => {
         if ((typeof a === 'object' || typeof b === 'object')
             && (isRankArray(a) || isRankArray(b) || isRankSequence(a) || isRankSequence(b)
                 || isRankQueue(a) || isRankQueue(b))) return mapBinaryValue(a, b, name, binary);
         if (a === MISSING || b === MISSING) return MISSING;
-        const left = expectNumeric(a);
-        const right = expectNumeric(b);
-        return replaces(right, left) ? right : left;
+        const left = expectExtremeOperand(a);
+        const right = expectExtremeOperand(b);
+        return replacesExtreme(right, left) ? right : left;
     };
     return native(name, [1, 2], arguments_ => {
         if (arguments_.length === 2) {
@@ -281,11 +302,11 @@ export function numericExtreme(
             if (extreme === undefined) {
                 throw new RankError(`${name} requires at least one value`, 'EmptyReduction');
             }
-            return expectNumeric(extreme);
+            return expectExtremeOperand(extreme);
         }
         if (isRankSequence(value)) {
             const planned = reduceSequence(value, name);
-            if (planned !== undefined) return expectNumeric(planned);
+            if (planned !== undefined) return expectExtremeOperand(planned);
         }
         const masked = isRankArray(value) ? extremeMasked(value, replaces) : undefined;
         if (masked) {
@@ -299,12 +320,12 @@ export function numericExtreme(
                 : isRankSet(value)
                     ? value.entries.values()
                     : sequenceValues(value, name);
-        let result: bigint | number | undefined;
+        let result: RankValue | undefined;
         for (const item of items) {
             checkpoint('computing numbers');
             if (item === MISSING) continue;
-            const numeric = expectNumeric(item);
-            if (result === undefined || replaces(numeric, result)) result = numeric;
+            const operand = expectExtremeOperand(item);
+            if (result === undefined || replacesExtreme(operand, result)) result = operand;
         }
         if (result === undefined) {
             throw new RankError(`${name} requires at least one value`, 'EmptyReduction');
