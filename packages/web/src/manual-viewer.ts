@@ -12,12 +12,16 @@ export class ManualViewer {
         this.dialog.setAttribute('aria-labelledby', 'key-manual-title');
         this.title.id = 'key-manual-title';
         const header = document.createElement('header');
+        const basics = document.createElement('button');
+        basics.type = 'button';
+        basics.textContent = 'Rank basics';
+        basics.onclick = () => this.open('rank-basics', 'core', this.origin!);
         const close = document.createElement('button');
         close.type = 'button';
         close.textContent = 'Close';
         close.setAttribute('aria-label', 'Close manual');
         close.onclick = () => this.dialog.close();
-        header.append(this.title, close);
+        header.append(this.title, basics, close);
         this.body.className = 'manual-body';
         this.dialog.append(header, this.body);
         document.body.append(this.dialog);
@@ -32,7 +36,7 @@ export class ManualViewer {
     open(key: string, module: string, origin: HTMLElement): void {
         const entry = keyManual(key, module);
         this.origin = origin;
-        this.title.textContent = `${key.toUpperCase()}(1)`;
+        this.title.textContent = key === 'rank-basics' ? 'RANK(7)' : `${key.toUpperCase()}(1)`;
         this.body.replaceChildren();
         const section = (name: string, text: string) => {
             const heading = document.createElement('h3');
@@ -41,11 +45,14 @@ export class ManualViewer {
             content.textContent = text;
             this.body.append(heading, content);
         };
-        section('NAME', `${entry.name} — ${entry.summary}`);
+        section('NAME', `${key === 'rank-basics' ? 'rank' : entry.name} — ${entry.summary}`);
         section('SYNOPSIS', entry.synopsis);
         section('DESCRIPTION', entry.description);
         section('EXAMPLES', '');
         for (const example of entry.examples) {
+            const explanation = document.createElement('p');
+            explanation.textContent = example.explanation;
+            this.body.append(explanation);
             const code = document.createElement('pre');
             code.textContent = example.code;
             const copy = document.createElement('button');
@@ -60,14 +67,9 @@ export class ManualViewer {
                     copy.textContent = 'Copy failed — select the code';
                 }
             };
-            if (example.template) {
-                const note = document.createElement('p');
-                note.textContent = 'Usage template: replace capitalized operands with your values.';
-                this.body.append(note);
-            }
             this.body.append(code, copy);
         }
-        this.dialog.showModal();
+        if (!this.dialog.open) this.dialog.showModal();
         this.body.scrollTop = 0;
     }
 }

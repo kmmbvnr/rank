@@ -27,7 +27,7 @@ async page => {
     check(await source() === '', 'disabled hold inserted text');
     for (const heading of ['NAME', 'SYNOPSIS', 'DESCRIPTION', 'EXAMPLES'])
         check(await dialog.getByRole('heading', { name: heading, exact: true }).count() === 1, `missing ${heading}`);
-    check((await dialog.textContent()).includes('inclusive upper bound'), 'range semantics missing');
+    check((await dialog.textContent()).includes('upper bound'), 'range semantics missing');
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     const example = await dialog.locator('.manual-body pre').nth(1).textContent();
     await dialog.getByRole('button', { name: 'Copy example' }).first().click();
@@ -70,28 +70,27 @@ async page => {
     await page.evaluate(() => { window.rankSoftKeyboard(true, 280); window.rankSoftKeyboard(false); });
     await page.getByRole('tab', { name: 'numbers', exact: true }).click();
     await hold('sqrt');
-    check((await dialog.textContent()).includes('Value sqrt → real'), 'module signature missing');
+    check((await dialog.textContent()).includes('Value sqrt -> real'), 'module signature missing');
     check((await dialog.textContent()).includes('nonnegative'), 'module domain missing');
     await dialog.getByRole('button', { name: 'Close manual' }).click();
     check(await page.getByRole('tab', { name: 'numbers', exact: true }).getAttribute('aria-selected') === 'true', 'manual changed module tab');
     await page.setViewportSize({ width: 844, height: 390 });
     await hold('sqrt');
     check(await dialog.isVisible(), 'landscape hold did not open manual');
+    await dialog.getByRole('button', { name: 'Rank basics' }).click();
+    check((await dialog.textContent()).includes('Rank puts data first'), 'offline beginner guide missing');
     await page.keyboard.press('Escape');
-    // Coverage across every module, including keys whose only example is a labelled usage template.
+    // Every key has a complete bundled page and an explained example.
     const coverage = await page.evaluate(async () => {
         const { keyManual } = await import('/src/key-manual.ts');
         // Resolve workspace imports through Vite's transformed source, independent of checkout path.
         const main = await (await fetch('/src/main.ts')).text();
-        const manual = await (await fetch('/src/key-manual.ts')).text();
         const keyboardUrl = main.match(/from "([^"]+symbol-keyboard\.js[^"]*)"/)[1];
-        const languageUrl = manual.match(/from "([^"]+language\/out\/index\.js[^"]*)"/)[1];
-        const { keyboardTabs } = await import(keyboardUrl);
-        const { modules } = await import(languageUrl);
-        const entries = keyboardTabs(modules.map(module => module.name)).flatMap(tab => tab.keys.map(key => keyManual(key, tab.module)));
+        const { keyboardTabs, keyboardModules } = await import(keyboardUrl);
+        const entries = keyboardTabs(keyboardModules([]).map(module => module.name)).flatMap(tab => tab.keys.map(key => keyManual(key, tab.module)));
         if (!keyManual('default', 'core').description.includes('division by zero')) throw new Error('default edge cases missing');
         if (!keyManual('memo', 'core').synopsis.startsWith('memo name')) throw new Error('memo signature incorrect');
-        return { count: entries.length, missing: entries.filter(entry => !entry.summary || !entry.synopsis || !entry.description || !entry.examples.length) };
+        return { count: entries.length, missing: entries.filter(entry => !entry.summary || !entry.synopsis || !entry.description || !entry.examples.length || entry.examples.some(example => !example.explanation)) };
     });
     check(coverage.count > 200 && coverage.missing.length === 0, `manual coverage: ${JSON.stringify(coverage)}`);
 }

@@ -132,16 +132,17 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 .mobile { --safe-bottom: 0px; }
 
 /* Offline manual: a monochrome man page above the unchanged symbol keyboard. */
-#key-manual { color: #fff; background: #000; border: 1px solid #fff; padding: 0; width: min(640px, calc(100% - 24px)); max-height: calc(var(--height) - 32px); font: inherit; }
+#key-manual { color: #fff; background: #000; border: 1px solid #fff; padding: 0; width: min(calc(40ch + 34px), calc(100% - 24px)); max-height: calc(var(--height) - 32px); font: inherit; }
+#key-manual[open] { display: flex; flex-direction: column; }
 #key-manual::backdrop { background: rgb(0 0 0 / .65); }
-#key-manual header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #fff; }
-#key-manual h2 { font-size: 16px; margin: 0; overflow-wrap: anywhere; }
+#key-manual header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #fff; }
+#key-manual h2 { flex: 1; font-size: 16px; margin: 0; overflow-wrap: anywhere; }
 #key-manual h3 { font-size: 14px; margin: 24px 0 8px; }
 #key-manual button { font: inherit; color: #fff; background: #000; border: 1px solid #fff; padding: 8px 12px; min-height: 44px; cursor: pointer; }
 #key-manual button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
-#key-manual .manual-body { padding: 0 16px 24px; overflow-y: auto; max-height: calc(var(--height) - 110px); overscroll-behavior: contain; }
-#key-manual p { white-space: pre-wrap; overflow-wrap: anywhere; }
-#key-manual pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; border-left: 2px solid #fff; user-select: text; -webkit-user-select: text; }
+#key-manual .manual-body { flex: 1; min-height: 0; padding: 0 16px 24px; overflow-y: auto; max-height: calc(var(--height) - 110px); overscroll-behavior: contain; }
+#key-manual p { white-space: pre-line; overflow-wrap: anywhere; }
+#key-manual pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; padding: 8px 0; border-top: 1px solid #fff; user-select: text; -webkit-user-select: text; }
 #keyboard-keys.module-picker { flex-direction: column; flex-wrap: nowrap; }
 #keyboard-keys.module-picker button { flex: none; height: auto; min-height: 58px; padding: 8px 12px; text-align: left; white-space: normal; }
 #keyboard-keys.module-picker strong { display: block; }
