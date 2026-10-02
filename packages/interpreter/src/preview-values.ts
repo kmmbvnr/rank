@@ -1,3 +1,4 @@
+import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { ownedArray, readArrayItem } from './array-storage.js';
 import { ByteArray } from './bytes.js';
 import { recordContract, retainRecordContract } from './record-contract.js';
@@ -13,8 +14,8 @@ export function clonePreviewValue(value: RankValue): RankValue {
     if (isRankBytes(value)) return new ByteArray(value.data.slice());
     if (isRankArray(value)) {
         const size = value.shape.reduce((product, dimension) => product * dimension, 1);
-        return ownedArray(Array.from({ length: size }, (_, index) =>
-            clonePreviewValue(readArrayItem(value, index))), value.shape, false, value.columnNames);
+        return inheritSemanticArrayType(value, ownedArray(Array.from({ length: size }, (_, index) =>
+            clonePreviewValue(readArrayItem(value, index))), value.shape, false, value.columnNames));
     }
     if (isRankIndex(value)) return { kind: 'index', entries: new Map([...value.entries]
         .map(([key, item]) => [key, clonePreviewValue(item)])) };

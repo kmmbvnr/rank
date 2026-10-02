@@ -1,5 +1,5 @@
 import { ArrayBindingContract } from './array-binding-contract.js';
-import { arrayElementTypes } from './array-element-types.js';
+import { semanticArrayType, semanticValueType } from './semantic-array-type.js';
 import { arrayRevision } from './array-storage.js';
 import { RankError } from './errors.js';
 import { isRankArray, isRankRecord, isRankTuple, collectionElementType, mergeCollectionElementType, typeName, valueRank,
@@ -7,8 +7,7 @@ import { isRankArray, isRankRecord, isRankTuple, collectionElementType, mergeCol
 import { retainRecordContract } from './record-contract.js';
 
 export function argumentRankSignature(values: readonly RankValue[]): string {
-    return JSON.stringify(values.map(value => [typeName(value), valueRank(value),
-        structuralSignature(value, false)]));
+    return JSON.stringify(values.map(value => semanticValueType(value, false)));
 }
 
 // The compile target predates WeakRef; every supported runtime has it, and the memo is skipped otherwise.
@@ -26,7 +25,7 @@ let signatureMemo: SignatureMemo | undefined;
 
 /**
  * One call asks for the same signature several times (body cache, contract,
- * frame layout). Scalars and revision-tracked arrays cannot change type behind
+ * frame layout). Scalars and arrays with known scalar cells cannot change type behind
  * the same identity and revision, so the last key is reused for them; any other
  * value (records, sequences, host arrays) recomputes. Objects are held weakly.
  */
@@ -49,28 +48,13 @@ function memoizedSignature(values: readonly RankValue[]): string | undefined {
 export function argumentSignature(values: readonly RankValue[]): string {
     const memoized = memoizedSignature(values);
     if (memoized !== undefined) return memoized;
-    const key = JSON.stringify(values.map(value => [typeName(value), valueRank(value),
-        isRankArray(value) ? arrayElementTypes(value) : null,
-        structuralSignature(value, true)]));
-    signatureMemo = weakRefs && values.every(value => typeof value !== 'object' || isRankArray(value) && arrayRevision(value) !== undefined)
+    const key = JSON.stringify(values.map(value => semanticValueType(value)));
+    signatureMemo = weakRefs && values.every(value => typeof value !== 'object'
+        || isRankArray(value) && semanticArrayType(value).scalar !== undefined && arrayRevision(value) !== undefined)
         ? { held: values.map(value => typeof value === 'object' ? new WeakRef(value) : value),
             revisions: values.map(value => isRankArray(value) ? arrayRevision(value) : undefined),
             ranks: values.map(value => isRankArray(value) ? value.shape.length : 0), key } : undefined;
     return key;
-}
-
-function structuralSignature(value: RankValue, elements: boolean): unknown {
-    if (isRankTuple(value)) return value.items.map(item => [typeName(item), valueRank(item),
-        elements && isRankArray(item) ? arrayElementTypes(item) : null, structuralSignature(item, elements)]);
-    return isRankRecord(value) ? recordSignature(collectionElementType(value, new Set(), true), elements) : null;
-}
-
-function recordSignature(value: CollectionElementType, elements: boolean): unknown {
-    return [value.type, value.rank ?? null, value.positions?.map(cell => recordSignature(cell, elements)),
-        elements ? value.elements?.map(cell => recordSignature(cell, elements))
-            .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))) : null,
-        value.fields ? [...value.fields].sort(([a], [b]) => a.localeCompare(b))
-            .map(([name, field]) => [name, recordSignature(field, elements)]) : null];
 }
 
 /** A contract belongs to one closure and one argument specialization. */

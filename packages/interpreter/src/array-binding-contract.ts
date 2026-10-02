@@ -1,3 +1,4 @@
+import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType } from './semantic-array-type.js';
 import { FlatRecords } from './flat.js';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { arrayElementTypes } from './array-element-types.js';
@@ -112,6 +113,17 @@ export class ArrayBindingContract {
         const next = this.merge(this.contract, prepared.contract);
         this.commit(next);
         this.retainRecords(prepared.value, next);
+        // Empty or all-missing replacements keep an established binding domain.
+        // Copy storage: the same untyped source may enter different bindings.
+        if (isRankArray(prepared.value) && prepared.value.kind === 'array'
+            && prepared.contract.elements?.length === 0 && next.elements?.length) {
+            const items = materializedArrayItems(prepared.value);
+            if (items) {
+                const checked = ownedArray([...items], prepared.value.shape);
+                this.metadata(prepared.value, checked);
+                return setSemanticArrayType(checked, semanticArrayContract(next)) as T;
+            }
+        }
         return prepared.value as T;
     }
 
@@ -260,6 +272,7 @@ export class ArrayBindingContract {
     }
 
     private metadata(source: RankArray, target: RankArray): void {
+        inheritSemanticArrayType(source, target);
         const maskSource = arrayMaskSource(source);
         if (maskSource) markArrayMask(target, maskSource);
         for (const key of ['columnNames', 'tableScopes', 'sortKeys'] as const) {

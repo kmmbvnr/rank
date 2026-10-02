@@ -214,6 +214,48 @@ graph edge pairs and SQL parameter bundles are tuples. JSON `.flat` keeps `.valu
 as text so that its column is homogeneous; filter `.kind` and convert explicitly
 before numeric operations.
 
+## Lazy call specialization
+
+Laziness and materialization are evaluation/storage properties, not language
+types. Call specialization uses stable element-type information separately
+from the cell cache:
+
+```rank
+use sequences
+fun twice Values
+  return Values * 2
+end
+Source = array 1 2
+Lazy = Source * 2
+A = Lazy twice
+Material = Lazy copy
+B = Material twice
+```
+
+`Source`, `Lazy`, `Material`, `A`, and `B` have the same integer-array
+specialization. Reading cells, or calling `copy`, does not create another
+specialization. Multiplication propagates its result type using the same scalar
+operator rules as the analyzer; it does not execute a cell to discover its type.
+Slices, transpose, reshape, binding wrappers, and preview copies preserve the
+available element information. Tuples carry it at each position.
+
+A lazy value whose type is genuinely unknown retains an unresolved element
+domain, including after materialization and copying. Unresolved arguments use
+an unresolved specialization; runtime return checks still apply. A cache of
+observed cells is not a declaration that authorizes a new specialization.
+Explicit declarations and external-data validation remain separate work in
+step 4 and #33/#116. Empty arrays likewise do not acquire a concrete type from
+an unused fill value. An already typed binding keeps its domain through empty
+or all-missing replacements. This change preserves existing specialization granularity:
+array argument keys describe direct element kinds, while recursive binding and
+return contracts validate nested structure.
+
+Calling `twice` with unread cells leaves them unread, including at sizes eligible
+for dense kernels. Those kernels only borrow cells already stored. A demanded
+cell still runs its callback and raises its errors at that point. Known type
+information does not imply purity, permit callback reordering, or suppress
+validation of the actual result.
+
 ## Static analysis
 
 Whole-program analysis reports provable assignment violations and retains

@@ -188,6 +188,22 @@ export function float64Cells(value: RankArray): Float64Array | undefined {
     return copy;
 }
 
+/** Cells already stored, with no lazy reads or host cell getter calls. */
+export function storedOperandItems(value: RankArray): ArrayLike<RankValue> | undefined {
+    if (ownedStorage.get(value)?.validity) return undefined;
+    const dense = denseScalarItems(value);
+    if (dense) return dense;
+    const items = materializedArrayItems(value);
+    if (!items) return undefined;
+    for (let index = 0; index < items.length; index++) {
+        const property = Object.getOwnPropertyDescriptor(items, index);
+        if (!property || !('value' in property)) return undefined;
+        const type = typeof property.value;
+        if (type !== 'number' && type !== 'bigint' && type !== 'boolean') return undefined;
+    }
+    return items;
+}
+
 const SMALL_OPERAND_CELLS = 4096;
 const MAX_EAGER_OPERAND_CELLS = 1 << 25;
 

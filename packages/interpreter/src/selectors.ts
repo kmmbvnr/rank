@@ -1,3 +1,4 @@
+import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { positionalValue } from './positional-value.js';
 import { denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
@@ -144,9 +145,9 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
     const stored = kind ? denseScalarItems(source) as Float64Array | BigInt64Array : undefined;
     if (stored) {
         const length = arraySize(rest);
-        return typedArray(stored.slice(offset, offset + length), rest);
+        return inheritSemanticArrayType(source, typedArray(stored.slice(offset, offset + length), rest));
     }
-    return derivedArray(rest, [source], index => arrayItem(source, offset + index));
+    return inheritSemanticArrayType(source, derivedArray(rest, [source], index => arrayItem(source, offset + index)));
 }
 
 /** The cells a selection addresses: an array, or the one cell of an empty shape. */
@@ -170,11 +171,12 @@ export function sliceArray(
         const out: RankValue[] | Float64Array | BigInt64Array = reals ? new Float64Array(total)
             : kind === 'integer' ? new BigInt64Array(total) : new Array(total);
         gather(stored, out as unknown as RankValue[], selection, total);
-        return Array.isArray(out) ? ownedArray(out, selection.shape, true, columnNames) : typedArray(out, selection.shape, columnNames);
+        const result = Array.isArray(out) ? ownedArray(out, selection.shape, true, columnNames) : typedArray(out, selection.shape, columnNames);
+        return source.columnNames ? result : inheritSemanticArrayType(source, result);
     }
     const result = derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
     if (columnNames) Object.defineProperty(result, 'columnNames', { value: columnNames });
-    return result;
+    return source.columnNames ? result : inheritSemanticArrayType(source, result);
 }
 
 /** Copy the selected cells in output order. With a per-axis plan the source

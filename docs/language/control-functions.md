@@ -362,10 +362,14 @@ calls. Each closure owns its contracts. Redefining a function starts new contrac
 
 Known array element types distinguish type specializations, which share the
 return rank for the same argument ranks. Empty arrays do not settle an element
-type. Direct lazy array arguments are not read to choose a specialization: unknown element types
-share a specialization until materialized. Returned lazy elements are checked as
-they are consumed, and their complete element type set settles when all cells have
-been read. Materialize inputs when dispatch must distinguish their element types.
+type. Direct lazy array arguments are not read to choose a specialization.
+Known operator types propagate without executing cells; views and copies retain
+that information. Reading cells or calling `copy` does not change specialization.
+An unresolved lazy element domain stays unresolved after materialization, with
+runtime return contracts retained. Returned lazy elements are checked as they
+are consumed; the first concrete cell settles their recursive element contract.
+Dense arithmetic and `choose` fast paths only borrow stored operands, so unread
+operands stay lazy. See [Type contracts](type-contracts.md#lazy-call-specialization).
 
 Record arguments also distinguish specializations by their field names and
 recursive field types, including array ranks and established cell types. Field

@@ -1,0 +1,105 @@
+{
+  "issue": 153,
+  "step": 3,
+  "scope": "Stable array specialization across lazy evaluation and materialization; preserve unread cells across function calls.",
+  "commands": [
+    "npm test",
+    "npm test --workspace packages/interpreter",
+    "node --test --test-concurrency=2 packages/cli/test/*.test.mjs",
+    "node packages/cli/bin/cli.js test demos",
+    "node benchmarks/analysis-coverage.mjs",
+    "node benchmarks/refactor-analysis-latency.mjs"
+  ],
+  "forwardCoverage": {
+    "before": {
+      "files": 466,
+      "functions": 592,
+      "knownEffects": 33,
+      "borrowCandidates": 4,
+      "guardedBuiltinBorrowCandidates": 6,
+      "loopFunctions": 347,
+      "knownLoopEffects": 0,
+      "testExamples": 1085,
+      "knownExampleResults": 1083,
+      "knownExampleEffects": 197,
+      "exampleExpectationConflicts": 0
+    },
+    "after": {
+      "files": 466,
+      "functions": 592,
+      "knownEffects": 33,
+      "borrowCandidates": 4,
+      "guardedBuiltinBorrowCandidates": 6,
+      "loopFunctions": 347,
+      "knownLoopEffects": 0,
+      "testExamples": 1085,
+      "knownExampleResults": 1083,
+      "knownExampleEffects": 197,
+      "exampleExpectationConflicts": 0
+    }
+  },
+  "requirements": {
+    "before": {
+      "bindingsWithNewRankBounds": 230,
+      "bindingsWithNewExactRank": 227,
+      "callResultsWithNewRankBounds": 32,
+      "callResultsWithNewExactRank": 29,
+      "constrainedParameters": 7,
+      "contradictions": 0,
+      "limitedFiles": 0
+    },
+    "after": {
+      "bindingsWithNewRankBounds": 230,
+      "bindingsWithNewExactRank": 227,
+      "callResultsWithNewRankBounds": 32,
+      "callResultsWithNewExactRank": 29,
+      "constrainedParameters": 7,
+      "contradictions": 0,
+      "limitedFiles": 0
+    }
+  },
+  "editorLatency": {
+    "before": [
+      "short incomplete: median 0.19 ms, p95 0.45 ms",
+      "array contracts: median 19.49 ms, p95 23.93 ms",
+      "large incomplete: median 10.61 ms, p95 13.03 ms"
+    ],
+    "after": [
+      "short incomplete: median 0.21 ms, p95 0.38 ms",
+      "array contracts: median 19.81 ms, p95 23.17 ms",
+      "large incomplete: median 10.46 ms, p95 12.88 ms"
+    ],
+    "qualification": "Small local samples with test activity. These measurements do not establish a speed change. An earlier sample taken during the full interpreter run was much slower and was repeated after that CPU-heavy run finished."
+  },
+  "changes": [
+    "Semantic array element metadata is independent of the materialized cell cache.",
+    "Runtime propagation reuses the analyzer binaryType rules; it does not probe operations or read lazy cells.",
+    "Bindings, copy, slices, transpose, reshape and preview copies carry available element information.",
+    "Previously typed bindings preserve their domain through empty/all-missing replacements without changing shared untyped sources.",
+    "Unresolved lazy element domains stay unresolved across reads and copies; return contracts still validate observed values.",
+    "Rank and full argument signatures use the same structural encoder. Existing direct array-element specialization granularity is retained.",
+    "Dense arithmetic and choose only borrow stored cells; they no longer probe unread operands and trigger callbacks/errors early."
+  ],
+  "reproductions": [
+    "Source = array 1 2; Lazy = Source * 2 previously had a different argument key from Source and Lazy copy.",
+    "A stateful function could avoid its established result-type contract by copying a lazy input.",
+    "Calling twice on a 1024-cell lazy host array read its failing second cell before the result was consumed."
+  ],
+  "verification": {
+    "initialFullRun": "Language 737 passed, common 141 passed, compile 10 passed. Interpreter had a newly introduced deep-array traversal failure, subsequently fixed. CLI had debugger failures under load and was interrupted before completion. The aggregate npm test command exited nonzero.",
+    "interpreterRerun": "133 files, 2458 tests passed. Subsequent narrow rank/view/absence refinements passed focused suites; final signature suite contains 22 tests.",
+    "finalFocused": "70 argument-signature, array-binding and return-contract tests passed; earlier final view/tuple pass contained 76 tests. Final metadata-preservation check: 57 tests passed.",
+    "debuggerRerun": "19 tests passed in isolation.",
+    "cliRerun": "All CLI tests passed with test concurrency 2. \u2139 tests 487; \u2139 pass 487; \u2139 fail 0",
+    "demos": "392 files, zero failed.",
+    "build": "TypeScript build and both repository boundary checks passed.",
+    "whitespace": "git diff --check passed."
+  },
+  "limitations": [
+    "This does not introduce declaration syntax or an external-data validation API; these remain step 4 and issues 33/116.",
+    "Unknown element domains are conservative and do not become declared concrete types merely because their caches fill.",
+    "Record fields retain their existing eager structural validation.",
+    "Nested structure continues to be checked recursively at bindings and returns; array argument keys retain their existing direct-element granularity.",
+    "No runtime speed improvement is claimed."
+  ]
+}
