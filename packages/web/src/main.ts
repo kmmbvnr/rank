@@ -469,8 +469,9 @@ let nativeSoftKeyboard: boolean | undefined;
 const softKeyboardHeightKey = 'rank-soft-keyboard-height-v1';
 let softKeyboardHeight = 0;
 try { softKeyboardHeight = Number(localStorage.getItem(softKeyboardHeightKey)) || 0; } catch { /* Measured again when it opens. */ }
-(globalThis as typeof globalThis & { rankSoftKeyboard?: (visible: boolean, height?: number) => void })
-    .rankSoftKeyboard = (visible, height = 0) => {
+(globalThis as typeof globalThis & { rankSoftKeyboard?: (visible: boolean, height?: number, navigation?: number) => void })
+    .rankSoftKeyboard = (visible, height = 0, navigation = 0) => {
+        document.documentElement.style.setProperty('--keyboard-bottom', navigation + 'px');
         const changed = nativeSoftKeyboard !== visible;
         nativeSoftKeyboard = visible;
         const wasSoftKeyboard = softKeyboard;

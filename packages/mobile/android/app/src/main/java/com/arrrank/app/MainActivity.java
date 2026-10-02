@@ -21,6 +21,7 @@ public class MainActivity extends BridgeActivity {
     private boolean keyboardRequested;
     private Boolean imeVisible;
     private int imeHeight;
+    private int navigationHeight;
 
     public static MainActivity getCurrentActivity() {
         return currentActivity != null ? currentActivity.get() : null;
@@ -139,11 +140,15 @@ public class MainActivity extends BridgeActivity {
             // CSS pixels, so the symbol keyboard can take exactly the soft keyboard's place.
             int height = Math.round(insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
                 / getResources().getDisplayMetrics().density);
-            if (imeVisible != null && imeVisible == visible && imeHeight == height) return;
+            // The system bars are hidden, yet the soft keyboard still keeps its bottom row clear of the gesture bar.
+            int navigation = Math.round(insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.navigationBars()).bottom
+                / getResources().getDisplayMetrics().density);
+            if (imeVisible != null && imeVisible == visible && imeHeight == height && navigationHeight == navigation) return;
             imeVisible = visible;
             imeHeight = height;
+            navigationHeight = navigation;
             webView.evaluateJavascript("window.rankSoftKeyboard&&window.rankSoftKeyboard("
-                + visible + "," + height + ")", null);
+                + visible + "," + height + "," + navigation + ")", null);
         });
     }
 
