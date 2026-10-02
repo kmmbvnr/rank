@@ -65,6 +65,8 @@ let scrollFraction = 0;
 let follow = true;
 // Screen row of the cursor when the layout was last stable; a keyboard swap resizes the viewport
 // through transient heights, and the cursor must come back to this row, not stay where they pushed it.
+let scrollWindow = false;
+let windowedFrame = false;
 let restingCursorRow: number | undefined;
 let anchorCursor = false;
 let busy = false;
@@ -195,6 +197,28 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+/** Positions the already painted rows, caret and input for the current sub-row scroll offset. */
+function placeScreen(): void {
+    // A windowed frame holds several screens of rows; `top` slides inside it without another layout.
+    const shift = windowedFrame ? top - frame.top : 0;
+    const shiftedTop = shift * cellHeight + scrollFraction;
+    screen.style.transform = shiftedTop ? `translateY(${-shiftedTop}px)` : '';
+    const caretRow = windowedFrame && frame.caretRow !== undefined ? frame.caretRow - top : frame.cursor.row;
+    if (windowedFrame) caret.hidden = caretRow < 0 || caretRow >= rows || !!repl.help || Boolean(activeVoiceDictation);
+    const left = frame.cursor.column * cellWidth;
+    const y = caretRow * cellHeight - scrollFraction;
+    const inputY = windowedFrame ? Math.max(0, Math.min(rows - 1, caretRow)) * cellHeight - (caretRow >= 0 && caretRow < rows ? scrollFraction : 0) : y;
+    caret.style.transform = `translate(${left}px, ${y}px)`;
+    if (activeVoiceDictation && frame.cursorVisible && !repl.help) {
+        voiceIndicator.hidden = false;
+        voiceIndicator.style.transform = `translate(${left}px, ${y}px)`;
+    } else {
+        voiceIndicator.hidden = true;
+    }
+    input.style.left = left + 'px';
+    input.style.top = inputY + 'px';
+}
+
 function render(): void {
     const paused = session.pauseState;
     modes.allowRender();
@@ -256,17 +280,20 @@ function render(): void {
     } else {
         const showShortcutHints = keyHints();
         const shownFailure = failure === 'Stopped' ? stoppedMessage() : failure;
+        // Flinging re-laid out and repainted the notebook at every row; a few screens of rows turn that into a slide.
+        windowedFrame = scrollWindow && !follow && !shownFailure && !repl.running && !showShortcutHints;
         if (follow || shownFailure || repl.running) scrollFraction = 0;
-        frame = notebookFrame(repl.notebook, columns, rows, top,
+        frame = notebookFrame(repl.notebook, columns, rows, windowedFrame ? Math.max(0, top - rows) : top,
             shownFailure || (showShortcutHints ? repl.suggestion : ''), busy || repl.running, follow, '',
             shownFailure || (repl.running ? showShortcutHints ? repl.runningStatus : repl.runningStatus.split(' · ')[0] : 'Running…'),
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
             repl.liveIterationFocus, repl.stepping,
             anchorCursor && restingCursorRow !== undefined ? Math.min(restingCursorRow, rows - 1) : undefined, showShortcutHints,
-            !keyHints() && !shownFailure && !repl.running ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus);
-        top = frame.top;
+            windowedFrame ? rows * 3 : !keyHints() && !shownFailure && !repl.running ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus);
+        if (windowedFrame) top = Math.min(top, frame.maxTop ?? 0);
+        else { top = frame.top; scrollWindow = false; }
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
-        if (!anchorCursor) restingCursorRow = frame.cursor.row >= 0 && frame.cursor.row < rows ? frame.cursor.row : undefined;
+        if (!anchorCursor && !windowedFrame) restingCursorRow = frame.cursor.row >= 0 && frame.cursor.row < rows ? frame.cursor.row : undefined;
     }
     if (screen.children.length !== frame.lines.length) {
         screen.replaceChildren(...frame.lines.map(() => {
@@ -283,20 +310,9 @@ function render(): void {
         paintLine(row, line);
     });
     paintedLines = [...frame.lines];
-    screen.style.transform = scrollFraction ? `translateY(${-scrollFraction}px)` : '';
-    const left = frame.cursor.column * cellWidth;
-    const y = frame.cursor.row * cellHeight - scrollFraction;
-    caret.style.transform = `translate(${left}px, ${y}px)`;
     caret.style.width = (frame.cursorStyle === 6 ? 2 : cellWidth) + 'px';
     caret.hidden = !frame.cursorVisible || !!repl.help || Boolean(activeVoiceDictation);
-    if (activeVoiceDictation && frame.cursorVisible && !repl.help) {
-        voiceIndicator.hidden = false;
-        voiceIndicator.style.transform = `translate(${left}px, ${y}px)`;
-    } else {
-        voiceIndicator.hidden = true;
-    }
-    input.style.left = left + 'px';
-    input.style.top = y + 'px';
+    placeScreen();
     input.setAttribute('aria-busy', String(busy || repl.running));
     if (!composing) {
         const book = editor();
@@ -872,7 +888,7 @@ async function locate(x: number, y: number): Promise<void> {
     repl.dismiss();
     if (busy || repl.running || repl.help) { if (!keyboardEnabled) return; focusInput(); return; }
     const rect = terminal.getBoundingClientRect();
-    const row = Math.floor((y - rect.top + scrollFraction) / cellHeight);
+    const row = Math.floor((y - rect.top + scrollFraction) / cellHeight) + (windowedFrame ? top - frame.top : 0);
     const column = Math.round((x - rect.left) / cellWidth);
     const target = frame.targets?.[row];
     repl.notebook.clearSelection();
@@ -955,11 +971,31 @@ function scrollToPixels(position: number): boolean {
         return false;
     }
     const limited = Math.max(0, Math.min(position, (frame.maxTop ?? 0) * cellHeight));
+    const nextTop = Math.floor(limited / cellHeight);
+    const sameRows = !follow && !repl.help && !nativeSelection() && (nextTop === top && !windowedFrame
+        || windowedFrame && nextTop >= frame.top && nextTop + rows <= frame.top + frame.lines.length);
     follow = false;
-    top = Math.floor(limited / cellHeight);
+    top = nextTop;
     scrollFraction = limited - top * cellHeight;
-    render();
+    // Pausing the caret blink while moving keeps the blended caret from repainting the screen every half second.
+    terminal.classList.add('scrolling');
+    clearTimeout(scrollIdle);
+    scrollIdle = setTimeout(() => terminal.classList.remove('scrolling'), 150);
+    // Sliding inside one row only moves layers; re-laying out the notebook per touch event made scrolling stutter.
+    if (sameRows) placeScreen(); else { scrollWindow = touchConsole; render(); }
     return limited !== position;
+}
+let scrollIdle: ReturnType<typeof setTimeout> | undefined;
+let pendingScroll: number | undefined;
+let scrollFrame: number | undefined;
+/** Touch events arrive faster than frames; only the latest finger position is worth drawing. */
+function scrollSoon(position: number): void {
+    pendingScroll = position;
+    scrollFrame ??= requestAnimationFrame(() => {
+        scrollFrame = undefined;
+        if (pendingScroll !== undefined) scrollToPixels(pendingScroll);
+        pendingScroll = undefined;
+    });
 }
 function coast(velocity: number): void {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches || Math.abs(velocity) < 0.05) return;
@@ -976,7 +1012,7 @@ function coast(velocity: number): void {
 let touchStart: { x: number; y: number; time: number } | undefined;
 let swipe: { y: number; pixels: number; time: number; lastY: number; lastTime: number;
     velocity: number; scrolling: boolean } | undefined;
-terminal.addEventListener('touchstart', event => {
+function onTouchStart(event: TouchEvent): void {
     if (event.touches.length !== 1) { swipe = undefined; touchStart = undefined; return; }
     stopMomentum();
     const now = performance.now();
@@ -984,8 +1020,31 @@ terminal.addEventListener('touchstart', event => {
     if (event.target === input) { swipe = undefined; return; }
     swipe = { y: event.touches[0].clientY, pixels: top * cellHeight + scrollFraction,
         time: now, lastY: event.touches[0].clientY, lastTime: now, velocity: 0, scrolling: false };
-}, { passive: true });
-terminal.addEventListener('touchmove', event => {
+    followTouchTarget(event.target);
+}
+terminal.addEventListener('touchstart', onTouchStart, { passive: true });
+// Scrolling repaints the rows, which detaches the element under the finger; its touch events then no longer
+// bubble to the terminal and the gesture would die, so the handlers also listen on that element until it ends.
+let touchTarget: EventTarget | undefined;
+let lastTouchEvent: Event | undefined;
+function followTouchTarget(target: EventTarget | null): void {
+    releaseTouchTarget();
+    if (!target || target === terminal || target === input) return;
+    touchTarget = target;
+    target.addEventListener('touchmove', onTouchMove as EventListener, { passive: false });
+    target.addEventListener('touchend', onTouchEnd as EventListener);
+    target.addEventListener('touchcancel', onTouchCancel);
+}
+function releaseTouchTarget(): void {
+    if (!touchTarget) return;
+    touchTarget.removeEventListener('touchmove', onTouchMove as EventListener);
+    touchTarget.removeEventListener('touchend', onTouchEnd as EventListener);
+    touchTarget.removeEventListener('touchcancel', onTouchCancel);
+    touchTarget = undefined;
+}
+function onTouchMove(event: TouchEvent): void {
+    if (lastTouchEvent === event) return;
+    lastTouchEvent = event;
     if (event.touches.length !== 1 || nativeSelection()) return;
     const now = performance.now();
     const touch = event.touches[0];
@@ -1007,9 +1066,13 @@ terminal.addEventListener('touchmove', event => {
     swipe.velocity = 0.65 * swipe.velocity + 0.35 * speed;
     swipe.lastY = y;
     swipe.lastTime = now;
-    scrollToPixels(swipe.pixels + distanceY);
-}, { passive: false });
-terminal.addEventListener('touchend', event => {
+    scrollSoon(swipe.pixels + distanceY);
+}
+terminal.addEventListener('touchmove', onTouchMove, { passive: false });
+function onTouchEnd(event: TouchEvent): void {
+    if (lastTouchEvent === event) return;
+    lastTouchEvent = event;
+    releaseTouchTarget();
     if (swipe?.scrolling) {
         if (performance.now() - swipe.lastTime < 80) coast(swipe.velocity);
     } else if (touchStart && event.changedTouches.length === 1 && !nativeSelection()) {
@@ -1034,11 +1097,14 @@ terminal.addEventListener('touchend', event => {
     }
     swipe = undefined;
     touchStart = undefined;
-});
-terminal.addEventListener('touchcancel', () => {
+}
+terminal.addEventListener('touchend', onTouchEnd);
+function onTouchCancel(): void {
+    releaseTouchTarget();
     swipe = undefined;
     touchStart = undefined;
-});
+}
+terminal.addEventListener('touchcancel', onTouchCancel);
 // A finger on a bracket drags a ghost of it between valid landings; the text stays put until release.
 const ghost = document.createElement('div');
 ghost.id = 'paren-ghost';
@@ -1070,7 +1136,7 @@ let parenDrag: ParenDrag | undefined;
 function parenUnder(x: number, y: number): ParenDrag | undefined {
     if (busy || repl.running || repl.help || repl.liveIterationFocused || repl.exampleEditor) return undefined;
     const rect = terminal.getBoundingClientRect();
-    const row = Math.floor((y - rect.top + scrollFraction) / cellHeight);
+    const row = Math.floor((y - rect.top + scrollFraction) / cellHeight) + (windowedFrame ? top - frame.top : 0);
     const target = frame.targets?.[row];
     if (target?.kind !== 'source') return undefined;
     const source = repl.notebook.cells[target.cell]?.source;

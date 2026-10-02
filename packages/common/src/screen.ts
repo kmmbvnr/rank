@@ -116,6 +116,8 @@ export interface ScreenFrame {
     readonly top: number;
     readonly maxTop?: number;
     readonly cursorVisible: boolean;
+    /** Absolute row of the cursor in the whole notebook, for callers that scroll inside an overscanned frame. */
+    readonly caretRow?: number;
     readonly cursorStyle?: 2 | 6;
     readonly targets?: readonly (ScreenTarget | undefined)[];
 }
@@ -325,7 +327,7 @@ export function notebookFrame(
     }
     return { lines, cursor: { row: Math.max(0, Math.min(viewportHeight - 1, caret.row - top)), column: caret.column },
         top, maxTop, targets: targets.slice(top, top + renderedHeight),
-        cursorVisible: caret.row >= top && caret.row < top + viewportHeight,
+        cursorVisible: caret.row >= top && caret.row < top + viewportHeight, caretRow: caret.row,
         cursorStyle: promptOutputFocus ? 2 : promptFields?.some(field => field.active) ? 6
             : promptOutputs && !stepping ? 6 : notebook.atPrompt || stepping ? 2 : 6 };
 }
