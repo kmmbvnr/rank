@@ -11,6 +11,14 @@ for (const compiled of [true, false]) {
             });
         }
 
+        it('measures a named bound with len inside a range', () => {
+            const r = runtime();
+            expect(r.execute('X = array 5 6 7 8\n1 to X len sum')).toBe(10n);
+            expect(r.execute('X = array 5 6 7 8\n0 till X len sum')).toBe(6n);
+            expect(r.execute('X = array 5 6 7 8\n0 till X len by 2 sum')).toBe(2n);
+            expect(r.execute('X = array 5 6 7 8\nT = 0\nfor I in 1 to X len\n T += I\nend\nT')).toBe(10n);
+        });
+
         it('combines ranges, reductions, indexing and loops without imports', () => {
             const r = runtime();
             expect(r.execute('1 to 5 sum')).toBe(15n);

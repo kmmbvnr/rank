@@ -91,7 +91,7 @@ function transform(node: AstNode, names: ClauseNames): AstNode {
     const condition = record[key] as Expression;
     // A bound's right side is a value unless it is written as a condition.
     const { extent, steps } = key === 'right' && !isCondition(condition)
-        ? peelOperand(condition) : peelTerm(condition, names);
+        ? peelBound(condition, names) : peelTerm(condition, names);
     record[key] = extent;
     return rebuild(clause, steps);
 }
@@ -158,6 +158,22 @@ function peelTerm(expression: Expression, names: ClauseNames): Peeled {
         };
     }
     return { extent: expression, steps: [] };
+}
+
+/**
+ * A range bound is one value, and later calls apply to the whole range
+ * (`1 till 5 len`). The exception is `len` after a data name, which measures
+ * that name: `A to X len` bounds the range by the length of `X`.
+ */
+function peelBound(expression: Expression, names: ClauseNames): Peeled {
+    if (isApplicationExpression(expression)) {
+        const parts = flattenApplication(expression);
+        if (parts.length > 1 && isNameExpression(parts[0]) && !names.callable(parts[0])
+            && isNameExpression(parts[1]) && parts[1].name === 'len' && names.callable(parts[1])) {
+            return { extent: application(parts.slice(0, 2), expression), steps: arguments_(parts.slice(2)) };
+        }
+    }
+    return peelOperand(expression);
 }
 
 /**
