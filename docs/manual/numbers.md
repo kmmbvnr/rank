@@ -18,8 +18,7 @@ Value, Divisor: integers; Divisor != 0
 
 Both inputs are integers. Tests whether
 division leaves a zero remainder; a zero
-divisor is invalid. Begin the program
-with use numbers.
+divisor is invalid.
 
 ### EXAMPLES
 
@@ -48,8 +47,7 @@ Value: integer or real
 
 Returns the magnitude of the number; a
 negative input becomes positive. Integer
-input stays integer. Begin the program
-with use numbers.
+input stays integer.
 
 ### EXAMPLES
 
@@ -77,8 +75,7 @@ Value: integer or real
 ### DESCRIPTION
 
 Accepts a number from -1 through 1. The
-result is an angle in radians. Begin the
-program with use numbers.
+result is an angle in radians.
 
 ### EXAMPLES
 
@@ -107,8 +104,7 @@ Value: integer or real
 
 Computes the inverse hyperbolic cosine.
 The input must be at least 1; the result
-is real. Begin the program with use
-numbers.
+is real.
 
 ### EXAMPLES
 
@@ -136,8 +132,7 @@ Value: integer or real
 ### DESCRIPTION
 
 Accepts a number from -1 through 1. The
-result is an angle in radians. Begin the
-program with use numbers.
+result is an angle in radians.
 
 ### EXAMPLES
 
@@ -165,8 +160,7 @@ Value: integer or real
 
 Works on each numeric cell of an array
 as well as on one number. The result is
-real. Begin the program with use
-numbers.
+real.
 
 ### EXAMPLES
 
@@ -194,8 +188,7 @@ Value: integer or real
 
 Works on each numeric cell of an array
 as well as on one number. The result is
-real. Begin the program with use
-numbers.
+real.
 
 ### EXAMPLES
 
@@ -224,8 +217,7 @@ Y, X: integer or real
 
 Arguments are y followed by x. Returns
 an angle in radians, preserving the
-quadrant. Begin the program with use
-numbers.
+quadrant.
 
 ### EXAMPLES
 
@@ -254,8 +246,7 @@ Value: integer or real
 
 Accepts a real input strictly between -1
 and 1. The inverse hyperbolic tangent
-returns a real. Begin the program with
-use numbers.
+returns a real.
 
 ### EXAMPLES
 
@@ -283,7 +274,6 @@ N, K: nonnegative integers
 
 N and K are nonnegative integers. Counts
 combinations without enumerating them.
-Begin the program with use numbers.
 
 ### EXAMPLES
 
@@ -312,8 +302,7 @@ N, K, Modulus: integers
 
 N, K and Modulus are integers. Computes
 the combination count modulo a positive
-modulus. Begin the program with use
-numbers.
+modulus.
 
 ### EXAMPLES
 
@@ -342,7 +331,6 @@ Value: integer or real
 The input angle is measured in radians,
 not degrees. Arrays are processed
 element by element; results are real.
-Begin the program with use numbers.
 
 ### EXAMPLES
 
@@ -370,8 +358,7 @@ Value: integer or real
 
 Works on each numeric cell of an array
 as well as on one number. The result is
-real. Begin the program with use
-numbers.
+real.
 
 ### EXAMPLES
 
@@ -402,7 +389,6 @@ Input is a positive integer. Returns its
 positive divisors in ascending order.
 Values are produced on demand; storing
 the result does not force every item.
-Begin the program with use numbers.
 
 ### EXAMPLES
 
@@ -430,7 +416,6 @@ Value/N: integer
 
 Accepts integers. Returns true for
 values divisible by two, including zero.
-Begin the program with use numbers.
 
 ### EXAMPLES
 
@@ -458,8 +443,7 @@ Value: integer or real
 
 Works on each numeric cell of an array
 as well as on one number. The result is
-real. Begin the program with use
-numbers.
+real.
 
 ### EXAMPLES
 
@@ -490,8 +474,7 @@ Input is a positive integer. Repeated
 prime factors are kept, so 12 yields 2,
 2, 3. Values are produced on demand;
 storing the result does not force every
-item. Begin the program with use
-numbers.
+item.
 
 ### EXAMPLES
 
@@ -520,7 +503,6 @@ A, B: integer
 
 Both operands are integers. Zero is
 allowed; the result is nonnegative.
-Begin the program with use numbers.
 
 ### EXAMPLES
 
@@ -548,8 +530,7 @@ No operands; a builtin real value
 
 A real value larger than every finite
 number. It is useful as an initial bound
-in minimum calculations. Begin the
-program with use numbers.
+in minimum calculations.
 
 ### EXAMPLES
 
@@ -578,8 +559,7 @@ Value: numeric value
 
 Returns true only for the real NaN
 value. Use this instead of comparing
-with nan. Begin the program with use
-numbers.
+with nan.
 
 ### EXAMPLES
 
@@ -609,8 +589,7 @@ Value: nonnegative integer
 Accepts a nonnegative integer and
 returns the largest integer whose square
 is at most the input. It does not use
-floating-point rounding. Begin the
-program with use numbers.
+floating-point rounding.
 
 ### EXAMPLES
 
@@ -638,8 +617,7 @@ A, B: integer
 ### DESCRIPTION
 
 Both operands are integers. A zero
-operand produces zero. Begin the program
-with use numbers.
+operand produces zero.
 
 ### EXAMPLES
 
@@ -668,8 +646,7 @@ Value: integer or real
 
 Computes the natural logarithm (base e).
 The input must be positive; log 1 is
-zero. Begin the program with use
-numbers.
+zero.
 
 ### EXAMPLES
 
@@ -698,8 +675,7 @@ No operands; a builtin real value
 
 A real value representing an undefined
 numeric result. Ordinary equality does
-not recognize NaN; use isnan. Begin the
-program with use numbers.
+not recognize NaN; use isnan.
 
 ### EXAMPLES
 
@@ -727,8 +703,7 @@ Value/N: integer
 
 Accepts integers. Returns true for
 values not divisible by two, including
-negative odd values. Begin the program
-with use numbers.
+negative odd values.
 
 ### EXAMPLES
 
@@ -757,8 +732,7 @@ Base, Exponent, Modulus: integers
 
 Base, Exponent and Modulus are integers.
 Exponent must be nonnegative and modulus
-positive. Begin the program with use
-numbers.
+positive.
 
 ### EXAMPLES
 
@@ -787,8 +761,7 @@ Value: number; Places: integer
 
 Places is an integer; zero rounds to a
 whole number. Negative places round to
-powers of ten. Begin the program with
-use numbers.
+powers of ten.
 
 ### EXAMPLES
 
@@ -817,7 +790,6 @@ Value: integer or real
 The input angle is measured in radians,
 not degrees. Arrays are processed
 element by element; results are real.
-Begin the program with use numbers.
 
 ### EXAMPLES
 
@@ -845,8 +817,7 @@ Value: integer or real
 
 Works on each numeric cell of an array
 as well as on one number. The result is
-real. Begin the program with use
-numbers.
+real.
 
 ### EXAMPLES
 
@@ -875,8 +846,7 @@ Value: nonnegative integer or real
 
 Accepts integer or real numeric input.
 Negative inputs are invalid for square
-roots. Begin the program with use
-numbers.
+roots.
 
 ### EXAMPLES
 
@@ -905,7 +875,6 @@ Value: integer or real
 The input angle is measured in radians,
 not degrees. Arrays are processed
 element by element; results are real.
-Begin the program with use numbers.
 
 ### EXAMPLES
 
@@ -933,8 +902,7 @@ Value: integer or real
 
 Works on each numeric cell of an array
 as well as on one number. The result is
-real. Begin the program with use
-numbers.
+real.
 
 ### EXAMPLES
 

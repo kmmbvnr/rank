@@ -19,8 +19,7 @@ Path: text; optional Table: table
 A path reads a table, inferring its
 columns from the file. A table and path
 write CSV; both require host file
-access. Begin the program with use
-tables.
+access.
 
 ### EXAMPLES
 
@@ -51,8 +50,7 @@ Query: SQLite-backed table view
 
 Input is a SQLite-backed query view.
 Requires an existing database and a host
-with SQLite support. Begin the program
-with use tables.
+with SQLite support.
 
 ### EXAMPLES
 
@@ -84,8 +82,7 @@ Table: table
 
 The input is a one-dimensional table.
 Column labels are returned in their
-defined order. Begin the program with
-use tables.
+defined order.
 
 ### EXAMPLES
 
@@ -118,8 +115,7 @@ Rows: one-dimensional object array
 Input is a one-dimensional array of
 objects. Field names become column
 labels; absent values become missing
-cells. Begin the program with use
-tables.
+cells.
 
 ### EXAMPLES
 
@@ -154,8 +150,7 @@ Returns the first keyed match for each
 requested id; missing matches can be
 handled with default. Values are
 produced on demand; storing the result
-does not force every item. Begin the
-program with use tables.
+does not force every item.
 
 ### EXAMPLES
 
@@ -188,8 +183,7 @@ Query: SQLite-backed table view
 Input is a SQLite-backed query view.
 Returns a record instead of executing
 the query; requires the database setup
-shown in the example. Begin the program
-with use tables.
+shown in the example.
 
 ### EXAMPLES
 
@@ -224,8 +218,7 @@ Path: text naming an existing database
 Requires a host with SQLite support and
 an existing data.sqlite file. Reads are
 lazy; database writes require explicit
-writable operations. Begin the program
-with use tables.
+writable operations.
 
 ### EXAMPLES
 
@@ -257,7 +250,6 @@ Requires an existing database and SQLite
 host support. Text is a SELECT query;
 Parameters is a one-dimensional array
 matching its positional placeholders.
-Begin the program with use tables.
 
 ### EXAMPLES
 

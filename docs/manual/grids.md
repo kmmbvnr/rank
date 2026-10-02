@@ -21,8 +21,7 @@ Grid: matrix; Row, Column: integers
 Row and Column are zero-based integers.
 Returns in-bounds coordinate pairs; a
 trailing .eight label includes diagonal
-neighbors. Begin the program with use
-grids.
+neighbors.
 
 ### EXAMPLES
 
@@ -54,8 +53,7 @@ Grid: matrix; Width: positive integer
 Grid is a two-dimensional array. Width
 must be positive. Horizontal, vertical
 and diagonal segments are included;
-segments do not wrap across edges. Begin
-the program with use grids.
+segments do not wrap across edges.
 
 ### EXAMPLES
 

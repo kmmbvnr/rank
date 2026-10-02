@@ -17,10 +17,10 @@ Dimensions: nonnegative integers
 
 ### DESCRIPTION
 
-Postfix shape requires use sequences.
-The constructor array shape needs no
-import; it specifies axis lengths before
-the cells or fill value.
+Postfix shape returns the axis lengths.
+The constructor array shape specifies
+axis lengths before the cells or fill
+value.
 
 ### EXAMPLES
 
@@ -50,8 +50,7 @@ Mask: boolean collection
 
 Requires boolean cells. Empty input
 gives true; evaluation stops when a
-false item is found. Begin the program
-with use sequences.
+false item is found.
 
 ### EXAMPLES
 
@@ -80,8 +79,7 @@ Mask: boolean collection
 
 Requires boolean cells. Empty input
 gives false; evaluation stops when a
-true item is found. Begin the program
-with use sequences.
+true item is found.
 
 ### EXAMPLES
 
@@ -110,8 +108,7 @@ Values: comparable vector
 
 Returns source positions, not the sorted
 values. Sorting is stable; equal items
-keep their original order. Begin the
-program with use sequences.
+keep their original order.
 
 ### EXAMPLES
 
@@ -145,8 +142,7 @@ corresponding cells of two values. With
 two operands, an integer index selects
 from a collection of choices. Values are
 produced on demand; storing the result
-does not force every item. Begin the
-program with use sequences.
+does not force every item.
 
 ### EXAMPLES
 
@@ -178,8 +174,7 @@ Values: finite array or sequence
 
 Eagerly evaluates a finite array or
 sequence. Later writes to the source do
-not alter the copy. Begin the program
-with use sequences.
+not alter the copy.
 
 ### EXAMPLES
 
@@ -210,8 +205,7 @@ Items: arrays of equal shape
 
 All input arrays must have the same
 shape. A new leading axis separates the
-items. Begin the program with use
-sequences.
+items.
 
 ### EXAMPLES
 
@@ -242,8 +236,7 @@ Mask: boolean collection or column
 
 Counts true boolean cells. Table-column
 reductions count present values; missing
-cells are skipped. Begin the program
-with use sequences.
+cells are skipped.
 
 ### EXAMPLES
 
@@ -273,8 +266,7 @@ Values: vector or text; Target: item
 
 Returns a zero-based position. No match
 raises a missing-value error; use
-default for a fallback. Begin the
-program with use sequences.
+default for a fallback.
 
 ### EXAMPLES
 
@@ -305,8 +297,7 @@ Values: vector or text; Target: item(s)
 Returns every matching position in
 order. No matches give an empty array;
 array targets require compatible match
-counts. Begin the program with use
-sequences.
+counts.
 
 ### EXAMPLES
 
@@ -337,7 +328,6 @@ Values: record array with one schema
 Input records must share a fixed schema.
 The first record establishes the field
 layout; empty input cannot infer it.
-Begin the program with use sequences.
 
 ### EXAMPLES
 
@@ -372,8 +362,7 @@ The sequence is infinite and lazy. Bound
 it with take, to or till before
 converting it to a dense array. Values
 are produced on demand; storing the
-result does not force every item. Begin
-the program with use sequences.
+result does not force every item.
 
 ### EXAMPLES
 
@@ -402,8 +391,7 @@ Mask: boolean vector
 
 Input is a one-dimensional boolean mask.
 Returns zero-based positions in source
-order. Begin the program with use
-sequences.
+order.
 
 ### EXAMPLES
 
@@ -433,8 +421,7 @@ Values: text or finite collection
 
 Arrays reverse their leading axis.
 Queues and finite sequences are
-collected into a reversed array. Begin
-the program with use sequences.
+collected into a reversed array.
 
 ### EXAMPLES
 
@@ -464,7 +451,6 @@ Values: text or collection
 Text returns its first code point. Empty
 input raises a missing-value error;
 append default to supply a fallback.
-Begin the program with use sequences.
 
 ### EXAMPLES
 
@@ -493,8 +479,7 @@ Values: text or finite collection
 
 A sequence must be finite. Empty input
 raises a missing-value error; append
-default to supply a fallback. Begin the
-program with use sequences.
+default to supply a fallback.
 
 ### EXAMPLES
 
@@ -525,8 +510,7 @@ The ascending sequence is infinite and
 lazy. Use take or a value bound before
 materializing it. Values are produced on
 demand; storing the result does not
-force every item. Begin the program with
-use sequences.
+force every item.
 
 ### EXAMPLES
 
@@ -558,8 +542,7 @@ Values: finite array; Shape: integers
 Dimensions are nonnegative integers.
 Their product must exactly equal the
 number of source cells; values are
-placed in row-major order. Begin the
-program with use sequences.
+placed in row-major order.
 
 ### EXAMPLES
 
@@ -590,8 +573,7 @@ Values: comparable vector
 Ascending order is the default. A
 trailing .descending reverses the
 direction; equal items keep their source
-order. Begin the program with use
-sequences.
+order.
 
 ### EXAMPLES
 
@@ -619,8 +601,7 @@ Matrix: array
 
 Reverses the order of axes. A scalar or
 vector keeps its shape; an N-dimensional
-array has its axis order reversed. Begin
-the program with use sequences.
+array has its axis order reversed.
 
 ### EXAMPLES
 
@@ -655,7 +636,7 @@ collection
 Keeps only the first occurrence of each
 value, in source order. Text stays text;
 arrays stay arrays, and sequences stay
-lazy. Begin with use sequences.
+lazy.
 
 ### EXAMPLES
 
@@ -688,8 +669,7 @@ windows overlap along the leading axis;
 oversized windows produce no complete
 window. Values are produced on demand;
 storing the result does not force every
-item. Begin the program with use
-sequences.
+item.
 
 ### EXAMPLES
 
@@ -722,7 +702,6 @@ beyond an edge are replaced by the fill
 value; this does not wrap like rotation.
 Values are produced on demand; storing
 the result does not force every item.
-Begin the program with use sequences.
 
 ### EXAMPLES
 

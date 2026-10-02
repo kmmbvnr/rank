@@ -22,7 +22,7 @@ The label selects the token type, such
 as .integer, .real or .text. A preceding
 count requests a lazy sequence of
 tokens. This example needs an input
-token. Begin the program with use io.
+token.
 
 ### EXAMPLES
 
@@ -52,7 +52,6 @@ Text, Path: text
 Operands are text followed by a path.
 Creates the file when absent; the host
 must provide writable file storage.
-Begin the program with use io.
 
 ### EXAMPLES
 
@@ -83,8 +82,7 @@ File: open file handle
 Closes the handle immediately. Reading
 or writing through a closed handle
 raises an error; owned handles also
-close when their scope ends. Begin the
-program with use io.
+close when their scope ends.
 
 ### EXAMPLES
 
@@ -115,8 +113,7 @@ File: open file handle
 
 Tests whether the current byte position
 is at the file end. Reading or seeking
-changes this result. Begin the program
-with use io.
+changes this result.
 
 ### EXAMPLES
 
@@ -147,8 +144,7 @@ File: open file handle
 
 Requires an open file handle. Makes its
 pending writes visible according to the
-host file implementation. Begin the
-program with use io.
+host file implementation.
 
 ### EXAMPLES
 
@@ -180,8 +176,7 @@ Path: text; optional mode label
 The default mode is read. Put .write,
 .append or .update before open to choose
 another mode. File handles are closed
-when their owning scope ends. Begin the
-program with use io.
+when their owning scope ends.
 
 ### EXAMPLES
 
@@ -211,8 +206,7 @@ File: open file handle
 
 Returns the file cursor position in
 bytes. Text code points and bytes are
-different for non-ASCII text. Begin the
-program with use io.
+different for non-ASCII text.
 
 ### EXAMPLES
 
@@ -244,8 +238,7 @@ Value: any supported value
 
 Formats the value and writes it to
 standard output. Returns the same value
-so a pipeline can continue. Begin the
-program with use io.
+so a pipeline can continue.
 
 ### EXAMPLES
 
@@ -274,8 +267,7 @@ Path: text path or open file handle
 
 Reads a path as UTF-8 text. A missing
 file raises an error; the host must
-provide file access. Begin the program
-with use io.
+provide file access.
 
 ### EXAMPLES
 
@@ -306,8 +298,7 @@ Path: text; Offset, Count: integers
 A path form takes Offset and Count. A
 file-handle form takes Count and
 advances its cursor. Offsets and counts
-are nonnegative integers. Begin the
-program with use io.
+are nonnegative integers.
 
 ### EXAMPLES
 
@@ -339,8 +330,7 @@ Path: text path or open file handle
 Lines are produced lazily. Line
 terminators are not part of each
 returned line; file access is supplied
-by the host. Begin the program with use
-io.
+by the host.
 
 ### EXAMPLES
 
@@ -371,8 +361,7 @@ File: open handle; Offset: integer
 
 Offset is a nonnegative integer. It is
 an absolute byte position, not a
-relative move or character count. Begin
-the program with use io.
+relative move or character count.
 
 ### EXAMPLES
 
@@ -403,8 +392,7 @@ File: open file handle
 
 Returns the file length in bytes, not
 Unicode characters. The cursor position
-is unchanged. Begin the program with use
-io.
+is unchanged.
 
 ### EXAMPLES
 
@@ -436,7 +424,6 @@ Text, Path: text
 Operands are text followed by a path.
 Existing content is replaced; the host
 must provide writable file storage.
-Begin the program with use io.
 
 ### EXAMPLES
 
@@ -465,8 +452,7 @@ File: writable handle; Bytes: bytes
 Arguments are a writable file handle
 followed by bytes. Writing advances the
 cursor; text must first be converted
-with bytes. Begin the program with use
-io.
+with bytes.
 
 ### EXAMPLES
 

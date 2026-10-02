@@ -18,8 +18,7 @@ Text: valid YYYY-MM-DD text
 
 Dates use the Gregorian calendar. Text
 must contain a valid date; datetimes are
-local values without a timezone. Begin
-the program with use dates.
+local values without a timezone.
 
 ### EXAMPLES
 
@@ -53,8 +52,7 @@ the end returns an empty table. A
 database operand can create a SQLite
 calendar view. Values are produced on
 demand; storing the result does not
-force every item. Begin the program with
-use dates.
+force every item.
 
 ### EXAMPLES
 
@@ -86,8 +84,7 @@ Value: valid datetime text or date
 
 Dates use the Gregorian calendar. Text
 must contain a valid date; datetimes are
-local values without a timezone. Begin
-the program with use dates.
+local values without a timezone.
 
 ### EXAMPLES
 
@@ -118,8 +115,7 @@ Seconds is an integer. A duration is an
 exact signed time interval, distinct
 from a date or datetime. Values are
 produced on demand; storing the result
-does not force every item. Begin the
-program with use dates.
+does not force every item.
 
 ### EXAMPLES
 
@@ -147,8 +143,7 @@ Value: date or datetime
 
 Reads a date or local datetime. Months
 are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday. Begin the
-program with use dates.
+Monday through 6 for Sunday.
 
 ### EXAMPLES
 
@@ -177,8 +172,7 @@ Moment: local datetime
 
 Reads a date or local datetime. Months
 are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday. Begin the
-program with use dates.
+Monday through 6 for Sunday.
 
 ### EXAMPLES
 
@@ -207,8 +201,7 @@ Moment: local datetime
 
 Reads a date or local datetime. Months
 are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday. Begin the
-program with use dates.
+Monday through 6 for Sunday.
 
 ### EXAMPLES
 
@@ -237,8 +230,7 @@ Value: date or datetime
 
 Reads a date or local datetime. Months
 are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday. Begin the
-program with use dates.
+Monday through 6 for Sunday.
 
 ### EXAMPLES
 
@@ -270,8 +262,7 @@ Returns midnight on the first day of the
 containing month. Accepts a date or a
 local datetime. Values are produced on
 demand; storing the result does not
-force every item. Begin the program with
-use dates.
+force every item.
 
 ### EXAMPLES
 
@@ -304,7 +295,6 @@ next month. The change is by calendar
 month, not by a fixed number of seconds.
 Values are produced on demand; storing
 the result does not force every item.
-Begin the program with use dates.
 
 ### EXAMPLES
 
@@ -334,8 +324,7 @@ Moment: local datetime
 
 Reads a date or local datetime. Months
 are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday. Begin the
-program with use dates.
+Monday through 6 for Sunday.
 
 ### EXAMPLES
 
@@ -365,8 +354,7 @@ Duration: duration
 
 Converts a duration to its signed number
 of seconds. Subtracting two datetimes
-also produces a duration. Begin the
-program with use dates.
+also produces a duration.
 
 ### EXAMPLES
 
@@ -396,8 +384,7 @@ Value: date or datetime
 
 Reads a date or local datetime. Months
 are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday. Begin the
-program with use dates.
+Monday through 6 for Sunday.
 
 ### EXAMPLES
 
@@ -426,8 +413,7 @@ Value: date or datetime
 
 Reads a date or local datetime. Months
 are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday. Begin the
-program with use dates.
+Monday through 6 for Sunday.
 
 ### EXAMPLES
 

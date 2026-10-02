@@ -20,8 +20,7 @@ Capitalized words stand for your values.
 A test block contains boolean
 assertions. The runner collects these
 blocks; a false assertion or raised
-error fails the test. Begin the program
-with use testing.
+error fails the test.
 
 ### EXAMPLES
 

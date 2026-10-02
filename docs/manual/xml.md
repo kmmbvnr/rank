@@ -20,7 +20,6 @@ Requires one complete XML document.
 Returns a tree of element nodes; a
 trailing .flat gives a table with depth,
 parent, kind, name and value fields.
-Begin the program with use xml.
 
 ### EXAMPLES
 

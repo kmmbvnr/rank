@@ -24,7 +24,6 @@ normalizes by feature spread; a constant
 feature has no defined correlation.
 Values are produced on demand; storing
 the result does not force every item.
-Begin the program with use stats.
 
 ### EXAMPLES
 
@@ -63,7 +62,6 @@ normalizes by feature spread; a constant
 feature has no defined correlation.
 Values are produced on demand; storing
 the result does not force every item.
-Begin the program with use stats.
 
 ### EXAMPLES
 
@@ -103,7 +101,6 @@ normalizes by feature spread; a constant
 feature has no defined correlation.
 Values are produced on demand; storing
 the result does not force every item.
-Begin the program with use stats.
 
 ### EXAMPLES
 
@@ -138,8 +135,7 @@ values
 
 Computes the mean of absolute errors.
 Numeric arrays broadcast compatible
-shapes; the result is real. Begin the
-program with use stats.
+shapes; the result is real.
 
 ### EXAMPLES
 
@@ -171,8 +167,7 @@ Values: finite numeric collection
 
 Adds finite numeric values and divides
 by their count. Missing table cells are
-skipped. Begin the program with use
-stats.
+skipped.
 
 ### EXAMPLES
 
@@ -202,8 +197,7 @@ Values: finite numeric collection
 Sorts a copy and selects the middle
 value; an even count averages the middle
 two. Input must contain at least one
-numeric value. Begin the program with
-use stats.
+numeric value.
 
 ### EXAMPLES
 
@@ -232,8 +226,7 @@ Values: finite comparable collection
 
 Returns the value with greatest
 frequency. Missing table cells are
-skipped. Begin the program with use
-stats.
+skipped.
 
 ### EXAMPLES
 
@@ -263,8 +256,7 @@ values
 
 Computes the mean of squared errors.
 Numeric arrays broadcast compatible
-shapes; the result is real. Begin the
-program with use stats.
+shapes; the result is real.
 
 ### EXAMPLES
 
@@ -294,8 +286,7 @@ Values: numbers; P: real in 0..100
 ### DESCRIPTION
 
 P is between 0 and 100. This is quantile
-expressed as a percentage. Begin the
-program with use stats.
+expressed as a percentage.
 
 ### EXAMPLES
 
@@ -323,8 +314,7 @@ Values: numbers; Q: real in 0..1
 
 Q is between 0 and 1. Sorts numeric
 values and uses linear interpolation
-between positions. Begin the program
-with use stats.
+between positions.
 
 ### EXAMPLES
 
@@ -351,8 +341,7 @@ Values: finite numeric collection
 ### DESCRIPTION
 
 Requires enough numeric observations to
-compute sample skewness. Begin the
-program with use stats.
+compute sample skewness.
 
 ### EXAMPLES
 
@@ -381,8 +370,7 @@ Values: finite numeric collection
 Measures sample asymmetry around the
 mean. Requires enough numeric
 observations; symmetric data has zero
-skewness. Begin the program with use
-stats.
+skewness.
 
 ### EXAMPLES
 
@@ -411,8 +399,7 @@ Values: finite numeric collection
 
 Uses the population divisor N, not the
 sample divisor N-1. Missing table cells
-are skipped. Begin the program with use
-stats.
+are skipped.
 
 ### EXAMPLES
 
@@ -439,8 +426,7 @@ Values: finite numeric collection
 ### DESCRIPTION
 
 Alias for variance, using the population
-divisor N. Begin the program with use
-stats.
+divisor N.
 
 ### EXAMPLES
 
@@ -468,8 +454,7 @@ Values: finite numeric collection
 
 Averages squared deviations from the
 mean, using divisor N. Missing table
-cells are skipped. Begin the program
-with use stats.
+cells are skipped.
 
 ### EXAMPLES
 

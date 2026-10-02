@@ -19,8 +19,7 @@ Text: complete JSON text
 Accepts a complete JSON document.
 Objects become object values; arrays
 become arrays. A trailing .flat requests
-a table of document nodes. Begin the
-program with use json.
+a table of document nodes.
 
 ### EXAMPLES
 

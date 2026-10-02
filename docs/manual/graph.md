@@ -22,7 +22,6 @@ The graph must be an undirected
 connected tree. root builds the record
 needed by ancestor, lca and distance;
 pathlengths produces a lazy sequence.
-Begin the program with use graph.
 
 ### EXAMPLES
 
@@ -56,7 +55,6 @@ Graph: graph; Start: vertex value
 Finds shortest weighted paths even with
 negative edges. Reachable negative
 cycles are reported by the algorithm.
-Begin the program with use graph.
 
 ### EXAMPLES
 
@@ -89,8 +87,7 @@ Graph: graph; Start: vertex value
 
 Visits vertices by unweighted distance.
 The result record includes traversal and
-distance information. Begin the program
-with use graph.
+distance information.
 
 ### EXAMPLES
 
@@ -124,7 +121,6 @@ Graph: graph
 Tests whether vertices can be split into
 two groups with no edge inside a group.
 A self-loop or odd cycle prevents this.
-Begin the program with use graph.
 
 ### EXAMPLES
 
@@ -157,8 +153,7 @@ Graph: graph
 
 Groups vertices connected by graph
 edges. The result record describes the
-component assignment. Begin the program
-with use graph.
+component assignment.
 
 ### EXAMPLES
 
@@ -193,8 +188,7 @@ A disjoint-set structure tracks
 connectivity without storing graph
 edges. Representatives are internal
 values; use connected to compare
-membership. Begin the program with use
-graph.
+membership.
 
 ### EXAMPLES
 
@@ -225,8 +219,7 @@ Graph: graph
 
 Returns a directed or undirected cycle
 when one exists. An acyclic graph
-returns an empty array. Begin the
-program with use graph.
+returns an empty array.
 
 ### EXAMPLES
 
@@ -260,7 +253,6 @@ Graph: graph; Start: vertex value
 Explores one branch before backtracking.
 The result is a traversal record; graph
 direction controls reachable vertices.
-Begin the program with use graph.
 
 ### EXAMPLES
 
@@ -293,8 +285,7 @@ Graph: graph; Start: vertex value
 
 Finds shortest weighted paths. Edge
 weights must be nonnegative; unreachable
-vertices have no finite distance. Begin
-the program with use graph.
+vertices have no finite distance.
 
 ### EXAMPLES
 
@@ -330,7 +321,6 @@ The graph must be an undirected
 connected tree. root builds the record
 needed by ancestor, lca and distance;
 pathlengths produces a lazy sequence.
-Begin the program with use graph.
 
 ### EXAMPLES
 
@@ -365,8 +355,7 @@ shown
 Returns an Euler trail using every edge
 once. Start and graph degrees must
 permit the trail; disconnected edges
-cannot form one trail. Begin the program
-with use graph.
+cannot form one trail.
 
 ### EXAMPLES
 
@@ -400,8 +389,7 @@ A disjoint-set structure tracks
 connectivity without storing graph
 edges. Representatives are internal
 values; use connected to compare
-membership. Begin the program with use
-graph.
+membership.
 
 ### EXAMPLES
 
@@ -433,8 +421,7 @@ Graph: graph
 
 Computes all-pairs shortest-path
 information. It considers edge weights
-and can detect negative cycles. Begin
-the program with use graph.
+and can detect negative cycles.
 
 ### EXAMPLES
 
@@ -469,8 +456,7 @@ Successors are a one-dimensional integer
 array using vertex numbers 1..N, not
 ordinary zero-based array positions.
 upto requires increasing successors; the
-final vertex may point to itself. Begin
-the program with use graph.
+final vertex may point to itself.
 
 ### EXAMPLES
 
@@ -503,8 +489,7 @@ Successors are a one-dimensional integer
 array using vertex numbers 1..N, not
 ordinary zero-based array positions.
 upto requires increasing successors; the
-final vertex may point to itself. Begin
-the program with use graph.
+final vertex may point to itself.
 
 ### EXAMPLES
 
@@ -536,7 +521,6 @@ The graph must be an undirected
 connected tree. root builds the record
 needed by ancestor, lca and distance;
 pathlengths produces a lazy sequence.
-Begin the program with use graph.
 
 ### EXAMPLES
 
@@ -572,8 +556,7 @@ Successors are a one-dimensional integer
 array using vertex numbers 1..N, not
 ordinary zero-based array positions.
 upto requires increasing successors; the
-final vertex may point to itself. Begin
-the program with use graph.
+final vertex may point to itself.
 
 ### EXAMPLES
 
@@ -604,8 +587,7 @@ Graph: graph; Source, Sink: vertices
 
 Edge weights are nonnegative capacities.
 Returns a record describing the maximum
-flow and the residual cut. Begin the
-program with use graph.
+flow and the residual cut.
 
 ### EXAMPLES
 
@@ -641,8 +623,7 @@ connectivity without storing graph
 edges. Representatives are internal
 values; use connected to compare
 membership. This operation changes the
-receiver in place. Begin the program
-with use graph.
+receiver in place.
 
 ### EXAMPLES
 
@@ -674,8 +655,7 @@ Graph: graph
 
 Finds a minimum spanning tree of an
 undirected weighted graph. It selects
-edges with minimum total cost. Begin the
-program with use graph.
+edges with minimum total cost.
 
 ### EXAMPLES
 
@@ -712,7 +692,6 @@ needed by ancestor, lca and distance;
 pathlengths produces a lazy sequence.
 Values are produced on demand; storing
 the result does not force every item.
-Begin the program with use graph.
 
 ### EXAMPLES
 
@@ -748,7 +727,6 @@ The graph must be an undirected
 connected tree. root builds the record
 needed by ancestor, lca and distance;
 pathlengths produces a lazy sequence.
-Begin the program with use graph.
 
 ### EXAMPLES
 
@@ -782,8 +760,7 @@ Graph: graph
 Groups vertices that can each reach
 every other member of their group.
 Direction matters; the result is a
-component record. Begin the program with
-use graph.
+component record.
 
 ### EXAMPLES
 
@@ -817,7 +794,6 @@ Graph: graph
 Orders a directed acyclic graph so each
 edge points forward. A directed cycle
 prevents a complete topological order.
-Begin the program with use graph.
 
 ### EXAMPLES
 
@@ -854,8 +830,7 @@ Successors are a one-dimensional integer
 array using vertex numbers 1..N, not
 ordinary zero-based array positions.
 upto requires increasing successors; the
-final vertex may point to itself. Begin
-the program with use graph.
+final vertex may point to itself.
 
 ### EXAMPLES
 
@@ -889,8 +864,7 @@ Successors are a one-dimensional integer
 array using vertex numbers 1..N, not
 ordinary zero-based array positions.
 upto requires increasing successors; the
-final vertex may point to itself. Begin
-the program with use graph.
+final vertex may point to itself.
 
 ### EXAMPLES
 

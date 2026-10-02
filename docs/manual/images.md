@@ -20,7 +20,6 @@ Requires a host that can access and
 decode images, and an existing photos
 directory. Returns a table of image
 names and paths; it does not download
-images. Begin the program with use
 images.
 
 ### EXAMPLES
@@ -56,8 +55,7 @@ are positive integers. The result axes
 are image, height, width, channel; RGB
 has three channels. Values are produced
 on demand; storing the result does not
-force every item. Begin the program with
-use images.
+force every item.
 
 ### EXAMPLES
 

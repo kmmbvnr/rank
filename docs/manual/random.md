@@ -19,8 +19,7 @@ Values: collection; Count: integer
 Count is a nonnegative integer. The same
 source item may be chosen more than
 once; the source must not be empty when
-count is positive. Begin the program
-with use random.
+count is positive.
 
 ### EXAMPLES
 
@@ -50,8 +49,7 @@ Seed: integer
 
 The seed is an integer. The same seed
 and sequence of random operations
-reproduce the same results. Begin the
-program with use random.
+reproduce the same results.
 
 ### EXAMPLES
 
@@ -80,7 +78,6 @@ Values: array or finite sequence
 
 Produces a shuffled collection. Seed
 first when results must be reproducible.
-Begin the program with use random.
 
 ### EXAMPLES
 
@@ -110,8 +107,7 @@ Shape: integer array; Low, High: number
 
 Shape gives nonnegative axis lengths.
 Low and High give the sampling interval;
-the result contains real values. Begin
-the program with use random.
+the result contains real values.
 
 ### EXAMPLES
 

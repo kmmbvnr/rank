@@ -18,7 +18,7 @@ Capitalized words stand for your values.
 Sets command-line inputs used by a later
 run. Quoted words are individual
 argument tokens; this requires the cli
-module. Begin the program with use cli.
+module.
 
 ### EXAMPLES
 
@@ -47,8 +47,7 @@ Capitalized words stand for your values.
 Declares an input consumed in argument
 order. The declared type parses the
 token; a default supplies the value when
-it is absent. Begin the program with use
-cli.
+it is absent.
 
 ### EXAMPLES
 
@@ -78,8 +77,7 @@ Capitalized words stand for your values.
 
 Declares a boolean command-line flag.
 Its presence sets true; unlike option it
-takes no value token. Begin the program
-with use cli.
+takes no value token.
 
 ### EXAMPLES
 
@@ -108,8 +106,7 @@ Capitalized words stand for your values.
 
 Declares a named command-line input. Its
 type controls parsing and its default is
-used when the option is omitted. Begin
-the program with use cli.
+used when the option is omitted.
 
 ### EXAMPLES
 

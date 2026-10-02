@@ -17,8 +17,7 @@ Code: valid integer Unicode code point
 ### DESCRIPTION
 
 Accepts a valid Unicode code point and
-returns one-character text. Begin the
-program with use text.
+returns one-character text.
 
 ### EXAMPLES
 
@@ -47,7 +46,7 @@ Character: one-code-point text
 
 Input must contain exactly one Unicode
 code point, not an arbitrary-length
-string. Begin the program with use text.
+string.
 
 ### EXAMPLES
 
@@ -76,7 +75,7 @@ Bytes: bytes
 
 Input is bytes. Two hexadecimal digits
 represent each byte; no 0x prefix is
-added. Begin the program with use text.
+added.
 
 ### EXAMPLES
 
@@ -107,8 +106,7 @@ text
 
 Scalar values are formatted as text. A
 matrix joins each row separately; the
-separator is placed between items. Begin
-the program with use text.
+separator is placed between items.
 
 ### EXAMPLES
 
@@ -138,8 +136,7 @@ Text, Pattern: text
 The pattern supports /integer, /real,
 /word and /text. The entire text must
 match; unpack assigns the captured
-values to names. Begin the program with
-use text.
+values to names.
 
 ### EXAMPLES
 
@@ -171,8 +168,7 @@ array
 Splits at every exact separator
 occurrence. An empty separator splits
 into Unicode code points and must be
-used alone. Begin the program with use
-text.
+used alone.
 
 ### EXAMPLES
 
@@ -202,8 +198,7 @@ Value, Prefix: text or bytes
 
 The match is exact and case-sensitive.
 Text and bytes are supported; ordinary
-arrays broadcast cell by cell. Begin the
-program with use text.
+arrays broadcast cell by cell.
 
 ### EXAMPLES
 
@@ -230,8 +225,7 @@ Text: text
 ### DESCRIPTION
 
 Uses Unicode lowercase rules. Input
-cells must be text. Begin the program
-with use text.
+cells must be text.
 
 ### EXAMPLES
 
@@ -260,8 +254,7 @@ Text, Fill: text; Width: integer
 
 Width counts Unicode code points. Text
 already at least that wide is unchanged;
-longer values are not truncated. Begin
-the program with use text.
+longer values are not truncated.
 
 ### EXAMPLES
 
@@ -291,8 +284,7 @@ Text, Chars, Replacement: text
 Chars names source characters and
 Replacement supplies their replacements.
 Source characters without replacements
-are deleted. Begin the program with use
-text.
+are deleted.
 
 ### EXAMPLES
 
@@ -322,8 +314,7 @@ Texts: text array; Limit: integer
 Limit is a nonnegative integer. Words
 are normalized; ties are ordered by
 Unicode code point. Zero limit returns
-an empty array. Begin the program with
-use text.
+an empty array.
 
 ### EXAMPLES
 
@@ -352,7 +343,7 @@ Text: text
 
 Keeps Unicode letter and number runs.
 Punctuation and whitespace separate
-words. Begin the program with use text.
+words.
 
 ### EXAMPLES
 

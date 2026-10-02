@@ -37,21 +37,18 @@ value, element means an item from the
 input, and same means the original
 input.
 
-use opens a module's functions. Core
-words need no import. Each manual page
-states its required module, inputs,
-result and important limits. Copy copies
-only the example code. Close returns to
-your unchanged notebook. All pages are
-stored in the app and need no internet.
+Selecting a module in the keyboard
+loads its functions. Each manual page
+states inputs, results and important
+limits. Copy copies only the example
+code. Close returns to your unchanged
+notebook. All pages are stored in the
+app and need no internet.
 
 ### EXAMPLES
 
 Compute the sum of three stored numbers.
-Here A is an array; sum is a core
-function
-and needs no use import. The result is
-6.
+Here A is an array. The result is 6.
 
 ```rank
 A = array 1 2 3

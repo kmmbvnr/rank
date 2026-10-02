@@ -20,8 +20,7 @@ Text is encoded as UTF-8; bytes can be
 hashed directly. MD5 is a legacy
 checksum and is unsuitable for password
 storage or security-sensitive integrity
-checks. Begin the program with use
-crypto.
+checks.
 
 ### EXAMPLES
 

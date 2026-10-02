@@ -21,8 +21,7 @@ Values: items or a finite sequence
 Values are separated by spaces. Indices
 start at zero. Postfix array
 materializes a finite sequence; array
-shape constructs a dense array. No use
-import is needed.
+shape constructs a dense array.
 
 ### EXAMPLES
 
@@ -53,7 +52,7 @@ Capitalized words stand for your values.
 
 Exits the nearest enclosing loop.
 Execution continues with the statement
-after its end. No use import is needed.
+after its end.
 
 ### EXAMPLES
 
@@ -93,7 +92,6 @@ The error record has fields such as
 .Kind and .Message. The caught name
 belongs to the catch block; ordinary
 errors outside try still stop execution.
-No use import is needed.
 
 ### EXAMPLES
 
@@ -128,7 +126,7 @@ Capitalized words stand for your values.
 
 Skips the rest of the current loop
 iteration. The next iteration starts
-normally. No use import is needed.
+normally.
 
 ### EXAMPLES
 
@@ -166,8 +164,7 @@ Capitalized words stand for your values.
 
 Conditions are tested from top to
 bottom. Only the first true branch runs;
-elif must continue an open if block. No
-use import is needed.
+elif must continue an open if block.
 
 ### EXAMPLES
 
@@ -205,8 +202,7 @@ Capitalized words stand for your values.
 
 Runs when no preceding if or elif
 condition matched. It is optional and
-must belong to the same open block. No
-use import is needed.
+must belong to the same open block.
 
 ### EXAMPLES
 
@@ -243,7 +239,7 @@ Capitalized words stand for your values.
 Closes the nearest open block, such as
 if, for, fun or record. Indentation aids
 reading; end determines the block
-boundary. No use import is needed.
+boundary.
 
 ### EXAMPLES
 
@@ -274,7 +270,7 @@ Capitalized words stand for your values.
 
 A boolean is used by if, for and logical
 operators. It is distinct from the
-integer 0. No use import is needed.
+integer 0.
 
 ### EXAMPLES
 
@@ -306,7 +302,7 @@ Capitalized words stand for your values.
 Runs when leaving try, including after
 an error or return. Use it to release
 resources; it does not catch an error by
-itself. No use import is needed.
+itself.
 
 ### EXAMPLES
 
@@ -343,8 +339,7 @@ Capitalized words stand for your values.
 An iterable loop visits its values in
 order. A condition form checks before
 each iteration; bare for repeats until
-break or return. No use import is
-needed.
+break or return.
 
 ### EXAMPLES
 
@@ -378,8 +373,7 @@ Capitalized words stand for your values.
 Parameters follow the function name in
 its definition. Calls are data-first:
 arguments precede the name. return ends
-a value-returning function. No use
-import is needed.
+a value-returning function.
 
 ### EXAMPLES
 
@@ -412,8 +406,7 @@ Capitalized words stand for your values.
 Runs the body only when the condition is
 true. New names inside a branch have
 block scope; initialize a result outside
-to use it after end. No use import is
-needed.
+to use it after end.
 
 ### EXAMPLES
 
@@ -450,7 +443,7 @@ complete typed argument tuple. Only
 scalar arguments and results are
 supported. Errors are not cached;
 captured-state changes do not invalidate
-the cache. No use import is needed.
+the cache.
 
 ### EXAMPLES
 
@@ -482,8 +475,7 @@ Value: boolean value
 
 Applies after function calls and
 comparisons. It also negates each
-boolean cell of an array. No use import
-is needed.
+boolean cell of an array.
 
 ### EXAMPLES
 
@@ -512,8 +504,7 @@ Capitalized words stand for your values.
 
 Field names are dot-prefixed labels. A
 record has a fixed set of fields; update
-a field with R .age = 37. No use import
-is needed.
+a field with R .age = 37.
 
 ### EXAMPLES
 
@@ -545,7 +536,7 @@ Capitalized words stand for your values.
 Ends the current function call
 immediately. A bare return returns no
 value; it does not exit the whole
-program. No use import is needed.
+program.
 
 ### EXAMPLES
 
@@ -579,8 +570,7 @@ Capitalized words stand for your values.
 Unlike use, run executes ordinary
 statements in the source file. This
 example needs hello.ra in the program
-host; file loading is host-dependent. No
-use import is needed.
+host; file loading is host-dependent.
 
 ### EXAMPLES
 
@@ -607,7 +597,7 @@ Capitalized words stand for your values.
 
 A boolean is used by if, for and logical
 operators. It is distinct from the
-integer 1. No use import is needed.
+integer 1.
 
 ### EXAMPLES
 
@@ -638,8 +628,7 @@ Capitalized words stand for your values.
 
 Runs the body and transfers control to
 catch if an error is raised. finally,
-when present, runs during cleanup. No
-use import is needed.
+when present, runs during cleanup.
 
 ### EXAMPLES
 
@@ -674,7 +663,7 @@ Capitalized words stand for your values.
 The right side is a one-dimensional
 array. Before an expression, unpack
 instead expands an array into adjacent
-operands. No use import is needed.
+operands.
 
 ### EXAMPLES
 
@@ -705,8 +694,7 @@ Capitalized words stand for your values.
 Standard modules add their names to the
 current program. A quoted source path
 imports definitions without executing
-the file's ordinary statements. No use
-import is needed.
+the file's ordinary statements.
 
 ### EXAMPLES
 
@@ -735,8 +723,7 @@ Capitalized words stand for your values.
 A function containing yield produces a
 lazy sequence. Each yield emits one item
 and suspends; execution resumes when the
-next item is requested. No use import is
-needed.
+next item is requested.
 
 ### EXAMPLES
 
@@ -770,7 +757,7 @@ Left, Right: boolean values
 For a scalar boolean, a false left side
 skips the right side. Arrays combine
 element by element and evaluate both
-sides. No use import is needed.
+sides.
 
 ### EXAMPLES
 
@@ -799,7 +786,7 @@ Left, Right: boolean values
 For a scalar boolean, a true left side
 skips the right side. Arrays combine
 element by element and evaluate both
-sides. No use import is needed.
+sides.
 
 ### EXAMPLES
 
@@ -828,7 +815,6 @@ Left, Right: boolean values
 
 Both operands are evaluated. The result
 is false when both booleans are equal.
-No use import is needed.
 
 ### EXAMPLES
 
@@ -857,7 +843,7 @@ Left, Right: values
 Compares array cells element by element.
 For whole-array equality, use a test
 block or reduce the resulting boolean
-mask with all. No use import is needed.
+mask with all.
 
 ### EXAMPLES
 
@@ -885,8 +871,7 @@ Left, Right: values
 
 This is the negation of equal. Arrays
 produce a mask rather than one
-whole-array boolean. No use import is
-needed.
+whole-array boolean.
 
 ### EXAMPLES
 
@@ -914,7 +899,7 @@ Left, Right: comparable values
 
 Compares numbers or ordered values.
 Equality does not satisfy a strict
-comparison. No use import is needed.
+comparison.
 
 ### EXAMPLES
 
@@ -942,7 +927,7 @@ Left, Right: comparable values
 
 Compares numbers or ordered values.
 Equality does not satisfy a strict
-comparison. No use import is needed.
+comparison.
 
 ### EXAMPLES
 
@@ -969,8 +954,7 @@ Left, Right: comparable values
 ### DESCRIPTION
 
 Tests greater than or equal to the right
-operand. Arrays compare cell by cell. No
-use import is needed.
+operand. Arrays compare cell by cell.
 
 ### EXAMPLES
 
@@ -997,8 +981,7 @@ Left, Right: comparable values
 ### DESCRIPTION
 
 Tests less than or equal to the right
-operand. Arrays compare cell by cell. No
-use import is needed.
+operand. Arrays compare cell by cell.
 
 ### EXAMPLES
 
@@ -1028,8 +1011,7 @@ items
 
 A scalar produces one boolean. A
 collection on the left produces a
-membership mask with the same shape. No
-use import is needed.
+membership mask with the same shape.
 
 ### EXAMPLES
 
@@ -1058,7 +1040,6 @@ Value: any value; .Type: type label
 The right operand is a type label,
 beginning with a dot. Inside a branch
 this test also narrows the known type.
-No use import is needed.
 
 ### EXAMPLES
 
@@ -1087,7 +1068,7 @@ Low, High: integers for a counting range
 The upper bound is included. After a
 collection, this word keeps values at
 most the bound rather than counting
-positions. No use import is needed.
+positions.
 
 ### EXAMPLES
 
@@ -1116,8 +1097,7 @@ Low, High: integers for a counting range
 The upper bound is excluded. After a
 collection it keeps values below the
 bound; a predicate form stops at the
-first matching value. No use import is
-needed.
+first matching value.
 
 ### EXAMPLES
 
@@ -1146,7 +1126,6 @@ Low, High, Step: integers; Step != 0
 The step must be a nonzero integer. Its
 sign controls direction; a step pointing
 away from the end gives an empty range.
-No use import is needed.
 
 ### EXAMPLES
 
@@ -1176,8 +1155,7 @@ Fallback: value or expression
 The fallback is evaluated only when the
 addressed value is missing. It does not
 hide invalid negative indices, type
-errors or division by zero. No use
-import is needed.
+errors or division by zero.
 
 ### EXAMPLES
 
@@ -1207,8 +1185,7 @@ Value: initial cell value
 
 Dimensions are nonnegative integers.
 Every cell starts with the fill value; a
-zero dimension makes an empty array. No
-use import is needed.
+zero dimension makes an empty array.
 
 ### EXAMPLES
 
@@ -1238,8 +1215,7 @@ Capitalized words stand for your values.
 Use a capitalized namespace name after a
 quoted source-module path. This example
 requires helpers.ra to define fun twice
-X returning X * 2. No use import is
-needed.
+X returning X * 2.
 
 ### EXAMPLES
 
@@ -1269,7 +1245,7 @@ N: zero-based integer axis
 Axes are numbered from zero. An
 axis-qualified reduction combines cells
 along the named axes while preserving
-the other axes. No use import is needed.
+the other axes.
 
 ### EXAMPLES
 
@@ -1305,8 +1281,7 @@ N, M: nonnegative integer cell ranks
 Rank is the number of trailing axes
 passed to each function call. Rank 0
 means a scalar cell; rank 1 means a
-vector. Leading axes are preserved. No
-use import is needed.
+vector. Leading axes are preserved.
 
 ### EXAMPLES
 
@@ -1341,8 +1316,7 @@ Operator: binary combining function
 Combines values from left to right. An
 optional with Seed supplies the initial
 accumulator. Infinite sequences cannot
-be reduced completely. No use import is
-needed.
+be reduced completely.
 
 ### EXAMPLES
 
@@ -1372,7 +1346,7 @@ Operator: binary combining function
 Unlike reduce, scan returns each
 intermediate accumulator. The result is
 lazy; with Seed supplies an initial
-value. No use import is needed.
+value.
 
 ### EXAMPLES
 
@@ -1403,8 +1377,7 @@ Operator: pure binary function
 Produces all pairwise combinations,
 adding axes to the result. This is
 different from matrix multiplication,
-which contracts an axis. No use import
-is needed.
+which contracts an axis.
 
 ### EXAMPLES
 
@@ -1435,8 +1408,7 @@ Key: field label or key function
 
 A dot-prefixed key names a field.
 Multiple keys are compared in order;
-equal keys keep source order. Begin the
-program with use sequences.
+equal keys keep source order.
 
 ### EXAMPLES
 
@@ -1472,7 +1444,7 @@ Condition: boolean expression per item
 Searches in source order and stops after
 the first match. No match raises a
 missing-value error; default can supply
-a fallback. No use import is needed.
+a fallback.
 
 ### EXAMPLES
 
@@ -1501,8 +1473,7 @@ Condition: boolean expression per item
 
 Searches in source order but returns the
 position, not the value. No match raises
-a missing-value error. No use import is
-needed.
+a missing-value error.
 
 ### EXAMPLES
 
@@ -1533,7 +1504,7 @@ Count: nonnegative integer
 Count is a nonnegative integer. A count
 beyond the source length is clamped;
 take 0 reads nothing. A sequence remains
-lazy. No use import is needed.
+lazy.
 
 ### EXAMPLES
 
@@ -1562,8 +1533,7 @@ Count: nonnegative integer
 
 Count is a nonnegative integer. A count
 beyond the source length gives an empty
-result; drop 0 keeps everything. No use
-import is needed.
+result; drop 0 keeps everything.
 
 ### EXAMPLES
 
@@ -1593,7 +1563,6 @@ Low: comparable lower bound
 The lower bound is included. This
 filters by value, not by position; use
 drop to skip a number of leading items.
-No use import is needed.
 
 ### EXAMPLES
 
@@ -1623,8 +1592,7 @@ Low: comparable lower bound
 
 The lower bound is excluded. This
 filters by value, not by position; use
-drop for a positional tail. No use
-import is needed.
+drop for a positional tail.
 
 ### EXAMPLES
 
@@ -1653,8 +1621,7 @@ Key: field label or key function
 
 Uses the same stable key order as sort
 by but returns zero-based source
-positions, not rows. Begin with use
-sequences.
+positions, not rows.
 
 ### EXAMPLES
 
@@ -1688,7 +1655,6 @@ Rows: table; .field: column label
 Creates a grouped view. Follow it with a
 select block containing aggregate
 calculations, such as count or sum.
-Begin the program with use tables.
 
 ### EXAMPLES
 
@@ -1727,7 +1693,6 @@ Keeps every left row, adding matching
 right fields. An unmatched right field
 is missing; default supplies a value. by
 uses the same field names on both sides.
-Begin with use tables.
 
 ### EXAMPLES
 
@@ -1760,8 +1725,7 @@ Left, Right: tables; .field: shared key
 Keeps only left/right row pairs that
 match. Multiple right matches repeat the
 corresponding left row. by uses the same
-field names on both sides. Begin the
-program with use tables.
+field names on both sides.
 
 ### EXAMPLES
 
@@ -1796,8 +1760,7 @@ Keeps every left row, adding matching
 right fields. An unmatched right field
 is missing; default supplies a value. on
 takes a boolean condition; field names
-on the two sides can differ. Begin the
-program with use tables.
+on the two sides can differ.
 
 ### EXAMPLES
 
@@ -1834,8 +1797,7 @@ Keeps only left/right row pairs that
 match. Multiple right matches repeat the
 corresponding left row. on takes a
 boolean condition; field names on the
-two sides can differ. Begin with use
-tables.
+two sides can differ.
 
 ### EXAMPLES
 
@@ -1870,7 +1832,7 @@ Condition: boolean expression per item
 The current item is the implicit left
 operand of the condition. Sequences
 remain lazy; text keeps matching code
-points. No use import is needed.
+points.
 
 ### EXAMPLES
 
@@ -1903,8 +1865,7 @@ Dot-prefixed assignments name result
 columns. Within the block a field name
 reads the corresponding input column;
 ordinary local variables can hold
-intermediate calculations. Begin the
-program with use tables.
+intermediate calculations.
 
 ### EXAMPLES
 
@@ -1939,8 +1900,7 @@ Capitalized words stand for your values.
 This direction label follows sort or a
 sort key. Increasing order is also the
 default; equal items preserve their
-original order. Begin with use
-sequences.
+original order.
 
 ### EXAMPLES
 
@@ -1968,8 +1928,7 @@ Capitalized words stand for your values.
 
 This direction label follows sort or a
 sort key. Equal items preserve their
-original order. Begin with use
-sequences.
+original order.
 
 ### EXAMPLES
 
@@ -1999,8 +1958,7 @@ Left, Right: numbers or one collection
 One collection operand finds its
 greatest numeric cell; two operands
 compare numbers. Empty reductions have
-no selected value. No use import is
-needed.
+no selected value.
 
 ### EXAMPLES
 
@@ -2029,7 +1987,7 @@ Left, Right: numbers or one collection
 One collection operand finds its least
 numeric cell; two operands compare
 numbers. Empty reductions have no
-selected value. No use import is needed.
+selected value.
 
 ### EXAMPLES
 
@@ -2057,7 +2015,6 @@ Values: finite numeric collection
 
 Consumes all numeric cells. An infinite
 sequence cannot be summed to completion.
-No use import is needed.
 
 ### EXAMPLES
 
@@ -2086,7 +2043,7 @@ Value: text, array or collection
 Counts text code points or collection
 items. An array length counts its
 leading axis; use shape for all axis
-lengths. No use import is needed.
+lengths.
 
 ### EXAMPLES
 
@@ -2116,8 +2073,7 @@ Values: array or table column
 
 Returns a boolean mask, with false for
 missing cells. The result keeps the
-shape of an array input. No use import
-is needed.
+shape of an array input.
 
 ### EXAMPLES
 
@@ -2146,8 +2102,7 @@ Value: text, bytes or integer vector
 
 Also accepts a one-dimensional integer
 array with cells in 0..255. Invalid
-cells raise an error. No use import is
-needed.
+cells raise an error.
 
 ### EXAMPLES
 
@@ -2177,7 +2132,7 @@ Value: integer, finite real or text
 Finite real input is truncated toward
 zero. Invalid integer text raises an
 error; assignment does not convert types
-automatically. No use import is needed.
+automatically.
 
 ### EXAMPLES
 
@@ -2205,8 +2160,7 @@ Value: integer, real or decimal text
 
 Converts integers or decimal text to
 binary64 real numbers. Invalid decimal
-text raises an error. No use import is
-needed.
+text raises an error.
 
 ### EXAMPLES
 
@@ -2234,8 +2188,7 @@ Value: scalar value
 
 Formats a scalar. A following .Nf label
 requests N digits after the decimal
-point, as in 3.5 text .2f. No use import
-is needed.
+point, as in 3.5 text .2f.
 
 ### EXAMPLES
 

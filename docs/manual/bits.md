@@ -17,8 +17,7 @@ A, B: integer
 
 Operates on integers, not boolean masks.
 Integer precision is not limited to a
-machine word. Begin the program with use
-bits.
+machine word.
 
 ### EXAMPLES
 
@@ -47,8 +46,7 @@ Value: integer
 
 Operates on integers, not boolean masks.
 Integer precision is not limited to a
-machine word. Begin the program with use
-bits.
+machine word.
 
 ### EXAMPLES
 
@@ -77,7 +75,6 @@ Value, Position: integer
 Operands are arbitrary-precision
 integers. Bit positions and shift counts
 start at zero and must be nonnegative.
-Begin the program with use bits.
 
 ### EXAMPLES
 
@@ -106,8 +103,7 @@ Value: integer
 
 Operates on integers, not boolean masks.
 Integer precision is not limited to a
-machine word. Begin the program with use
-bits.
+machine word.
 
 ### EXAMPLES
 
@@ -135,8 +131,7 @@ A, B: integer
 
 Operates on integers, not boolean masks.
 Integer precision is not limited to a
-machine word. Begin the program with use
-bits.
+machine word.
 
 ### EXAMPLES
 
@@ -164,8 +159,7 @@ A, B: integer
 
 Operates on integers, not boolean masks.
 Integer precision is not limited to a
-machine word. Begin the program with use
-bits.
+machine word.
 
 ### EXAMPLES
 
@@ -194,8 +188,7 @@ Value: integer
 
 Operates on integers, not boolean masks.
 Integer precision is not limited to a
-machine word. Begin the program with use
-bits.
+machine word.
 
 ### EXAMPLES
 
@@ -224,7 +217,6 @@ Value, Count: integer
 Operands are arbitrary-precision
 integers. Bit positions and shift counts
 start at zero and must be nonnegative.
-Begin the program with use bits.
 
 ### EXAMPLES
 
@@ -254,7 +246,6 @@ Value, Count: integer
 Operands are arbitrary-precision
 integers. Bit positions and shift counts
 start at zero and must be nonnegative.
-Begin the program with use bits.
 
 ### EXAMPLES
 

@@ -18,8 +18,7 @@ Capitalized words stand for your values.
 An index stores sparse keys rather than
 positional array cells. Reading an
 absent key raises a missing-value error;
-default supplies a fallback. Begin the
-program with use algo.
+default supplies a fallback.
 
 ### EXAMPLES
 
@@ -49,8 +48,7 @@ Capitalized words stand for your values.
 Choose a container kind such as queue,
 stack, set or counter. Named mutable
 containers are shared when assigned to
-another name. Begin the program with use
-algo.
+another name.
 
 ### EXAMPLES
 
@@ -84,8 +82,7 @@ removal is newest-first. A heap removes
 the smallest priority first. Reading an
 empty container raises a missing-value
 error. This operation changes the
-receiver in place. Begin the program
-with use algo.
+receiver in place.
 
 ### EXAMPLES
 
@@ -116,8 +113,7 @@ Capitalized words stand for your values.
 set is an implicit local mutable set.
 Repeated equal values do not add
 entries. Use new set for a named
-instance. Begin the program with use
-algo.
+instance.
 
 ### EXAMPLES
 
@@ -149,8 +145,7 @@ Capitalized words stand for your values.
 counter is an implicit local frequency
 collection. Adding an equal value
 increments its count; use new counter
-for a named instance. Begin the program
-with use algo.
+for a named instance.
 
 ### EXAMPLES
 
@@ -183,8 +178,7 @@ An ordered multiset keeps duplicates. A
 lookup with no qualifying value raises a
 missing-value error; append default to
 supply a fallback. This operation
-changes the receiver in place. Begin the
-program with use algo.
+changes the receiver in place.
 
 ### EXAMPLES
 
@@ -216,8 +210,7 @@ Bag: ordered multiset; Limit: item
 An ordered multiset keeps duplicates. A
 lookup with no qualifying value raises a
 missing-value error; append default to
-supply a fallback. Begin the program
-with use algo.
+supply a fallback.
 
 ### EXAMPLES
 
@@ -251,8 +244,7 @@ collection. Generated combinations and
 permutations are lazy, so consume only
 the results you need. Values are
 produced on demand; storing the result
-does not force every item. Begin the
-program with use algo.
+does not force every item.
 
 ### EXAMPLES
 
@@ -286,8 +278,7 @@ removal is newest-first. A heap removes
 the smallest priority first. Reading an
 empty container raises a missing-value
 error. This operation changes the
-receiver in place. Begin the program
-with use algo.
+receiver in place.
 
 ### EXAMPLES
 
@@ -318,7 +309,6 @@ Size: nonnegative integer
 Size is a nonnegative integer. Cells
 start at zero; indices start at zero.
 Prefix sums include their final index.
-Begin the program with use algo.
 
 ### EXAMPLES
 
@@ -350,8 +340,7 @@ Tree: numeric segment; Target: number
 Finds the first position whose prefix
 aggregate reaches Target. Aggregates
 must be numeric and monotone for this
-search to be valid. Begin the program
-with use algo.
+search to be valid.
 
 ### EXAMPLES
 
@@ -381,8 +370,7 @@ Bag: ordered multiset; Limit: item
 An ordered multiset keeps duplicates. A
 lookup with no qualifying value raises a
 missing-value error; append default to
-supply a fallback. Begin the program
-with use algo.
+supply a fallback.
 
 ### EXAMPLES
 
@@ -413,8 +401,7 @@ Bag: ordered multiset; Value: item
 An ordered multiset keeps duplicates. A
 lookup with no qualifying value raises a
 missing-value error; append default to
-supply a fallback. Begin the program
-with use algo.
+supply a fallback.
 
 ### EXAMPLES
 
@@ -445,8 +432,7 @@ Values: numeric vector
 Used as the combiner after segment. The
 query returns a record containing sum,
 prefix, suffix and best; best is the
-maximum subarray sum. Begin the program
-with use algo.
+maximum subarray sum.
 
 ### EXAMPLES
 
@@ -479,8 +465,7 @@ The wavelet source must contain positive
 integers. Each bounds pair selects an
 inclusive positional range; the result
 is the least positive sum unavailable
-from its subset sums. Begin the program
-with use algo.
+from its subset sums.
 
 ### EXAMPLES
 
@@ -514,8 +499,7 @@ collection. Generated combinations and
 permutations are lazy, so consume only
 the results you need. Values are
 produced on demand; storing the result
-does not force every item. Begin the
-program with use algo.
+does not force every item.
 
 ### EXAMPLES
 
@@ -544,8 +528,7 @@ Values: comparable vector
 
 The input is a one-dimensional
 collection of comparable values. Values
-must have compatible types. Begin the
-program with use algo.
+must have compatible types.
 
 ### EXAMPLES
 
@@ -577,7 +560,7 @@ Queue removal is oldest-first; stack
 removal is newest-first. A heap removes
 the smallest priority first. Reading an
 empty container raises a missing-value
-error. Begin the program with use algo.
+error.
 
 ### EXAMPLES
 
@@ -611,7 +594,7 @@ The front is the first item and the back
 the last. Peek leaves the item in place;
 pop removes it; push inserts it. Reading
 an empty deque raises a missing-value
-error. Begin the program with use algo.
+error.
 
 ### EXAMPLES
 
@@ -645,7 +628,7 @@ The front is the first item and the back
 the last. Peek leaves the item in place;
 pop removes it; push inserts it. Reading
 an empty deque raises a missing-value
-error. Begin the program with use algo.
+error.
 
 ### EXAMPLES
 
@@ -681,8 +664,7 @@ collection. Generated combinations and
 permutations are lazy, so consume only
 the results you need. Values are
 produced on demand; storing the result
-does not force every item. Begin the
-program with use algo.
+does not force every item.
 
 ### EXAMPLES
 
@@ -714,8 +696,7 @@ removal is newest-first. A heap removes
 the smallest priority first. Reading an
 empty container raises a missing-value
 error. This operation changes the
-receiver in place. Begin the program
-with use algo.
+receiver in place.
 
 ### EXAMPLES
 
@@ -750,8 +731,7 @@ the last. Peek leaves the item in place;
 pop removes it; push inserts it. Reading
 an empty deque raises a missing-value
 error. This operation changes the
-receiver in place. Begin the program
-with use algo.
+receiver in place.
 
 ### EXAMPLES
 
@@ -787,8 +767,7 @@ the last. Peek leaves the item in place;
 pop removes it; push inserts it. Reading
 an empty deque raises a missing-value
 error. This operation changes the
-receiver in place. Begin the program
-with use algo.
+receiver in place.
 
 ### EXAMPLES
 
@@ -823,8 +802,7 @@ the last. Peek leaves the item in place;
 pop removes it; push inserts it. Reading
 an empty deque raises a missing-value
 error. This operation changes the
-receiver in place. Begin the program
-with use algo.
+receiver in place.
 
 ### EXAMPLES
 
@@ -860,8 +838,7 @@ the last. Peek leaves the item in place;
 pop removes it; push inserts it. Reading
 an empty deque raises a missing-value
 error. This operation changes the
-receiver in place. Begin the program
-with use algo.
+receiver in place.
 
 ### EXAMPLES
 
@@ -897,8 +874,7 @@ indices
 Left and Right are inclusive zero-based
 positions in the segment tree. Left must
 not exceed Right; out-of-bounds
-positions raise an error. Begin the
-program with use algo.
+positions raise an error.
 
 ### EXAMPLES
 
@@ -930,8 +906,7 @@ An ordered multiset keeps duplicates. A
 lookup with no qualifying value raises a
 missing-value error; append default to
 supply a fallback. This operation
-changes the receiver in place. Begin the
-program with use algo.
+changes the receiver in place.
 
 ### EXAMPLES
 
@@ -964,8 +939,7 @@ combiner
 The binary combiner must be associative.
 query uses inclusive zero-based bounds.
 Point assignment updates the stored
-values and their aggregates. Begin the
-program with use algo.
+values and their aggregates.
 
 ### EXAMPLES
 
@@ -1000,8 +974,7 @@ Low, High: numbers
 Both positional and value bounds are
 inclusive. within counts qualifying
 cells; sumwithin adds them and requires
-numeric values. Begin the program with
-use algo.
+numeric values.
 
 ### EXAMPLES
 
@@ -1032,8 +1005,7 @@ Bag: ordered multiset; Value: item
 An ordered multiset keeps duplicates. A
 lookup with no qualifying value raises a
 missing-value error; append default to
-supply a fallback. Begin the program
-with use algo.
+supply a fallback.
 
 ### EXAMPLES
 
@@ -1063,8 +1035,7 @@ Values: comparable vector
 
 The input is a one-dimensional
 collection of comparable values. Values
-must have compatible types. Begin the
-program with use algo.
+must have compatible types.
 
 ### EXAMPLES
 
@@ -1097,8 +1068,7 @@ Low, High: comparable values
 Both positional and value bounds are
 inclusive. within counts qualifying
 cells; sumwithin adds them and requires
-numeric values. Begin the program with
-use algo.
+numeric values.
 
 ### EXAMPLES
 

@@ -18,7 +18,6 @@ Matrix: square numeric matrix
 
 Input is a square numeric matrix. An
 empty 0-by-0 matrix has determinant 1.
-Begin the program with use linalg.
 
 ### EXAMPLES
 
@@ -51,8 +50,7 @@ Values: numeric vector or matrix
 ### DESCRIPTION
 
 A vector builds a diagonal matrix; a
-matrix extracts its diagonal. Begin the
-program with use linalg.
+matrix extracts its diagonal.
 
 ### EXAMPLES
 
@@ -83,8 +81,7 @@ Matrix: real symmetric square matrix
 
 Input is a real symmetric square matrix.
 Returns values and vectors in a result
-record. Begin the program with use
-linalg.
+record.
 
 ### EXAMPLES
 
@@ -120,8 +117,7 @@ Input is a square numeric matrix. A
 singular matrix has no inverse and
 raises an error. Values are produced on
 demand; storing the result does not
-force every item. Begin the program with
-use linalg.
+force every item.
 
 ### EXAMPLES
 
@@ -159,7 +155,6 @@ right. These axis lengths must agree;
 this is not elementwise multiplication.
 Values are produced on demand; storing
 the result does not force every item.
-Begin the program with use linalg.
 
 ### EXAMPLES
 
@@ -194,8 +189,7 @@ B: numeric vector or matrix
 The coefficient matrix is square. The
 right-hand side may be a vector or
 matrix with matching leading length.
-Singular systems raise an error. Begin
-the program with use linalg.
+Singular systems raise an error.
 
 ### EXAMPLES
 
