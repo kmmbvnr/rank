@@ -65,10 +65,16 @@ type Inspection = Pick<PauseSnapshot, 'state' | 'bindings'>;
 let inspect: (() => string | Inspection) | undefined;
 let paused: ((snapshot: PauseSnapshot) => void) | undefined;
 export function inspectionEnabled(): boolean { return paused !== undefined; }
+
+/** Keyed collections that received an element during this inspected run. */
+let keyedCollections: Set<object> | undefined;
+export function trackKeyedCollection(collection: object): void { keyedCollections?.add(collection); }
+export function trackedKeyedCollections(): Iterable<object> { return keyedCollections ?? []; }
 export function inspectExecution(provider: () => string | Inspection): void { if (paused) inspect = provider; }
 
 export function detachInspection(): void {
     paused = undefined;
+    keyedCollections = undefined;
     inspect = undefined;
     stepping = undefined;
     targetLoop = undefined;
@@ -90,6 +96,8 @@ export function withInterrupt<T>(signal: Int32Array | InterruptSignal, run: () =
     const previousTicks = ticks;
     const previousPause = paused;
     const previousInspect = inspect;
+    const previousKeyed = keyedCollections;
+    keyedCollections = onPause ? new Set() : undefined;
     paused = onPause;
     inspect = undefined;
     flag = signal instanceof Int32Array ? {
@@ -111,6 +119,7 @@ export function withInterrupt<T>(signal: Int32Array | InterruptSignal, run: () =
         ticks = previousTicks;
         paused = previousPause;
         inspect = previousInspect;
+        keyedCollections = previousKeyed;
     }
 }
 

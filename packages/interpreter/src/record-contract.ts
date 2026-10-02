@@ -79,5 +79,6 @@ export function assignRecordField(
     checkRecordField(record, field, result);
     noteArrayBinding(result);
     record.entries.set(field, result);
+    record.key = undefined;
     return result;
 }
