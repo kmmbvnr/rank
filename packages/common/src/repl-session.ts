@@ -7,6 +7,7 @@ import {
 import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@arrrank/language';
 import { preview } from './preview.js';
 import { SequenceReplay } from './sequence-replay.js';
+import { STALE, inspectValue, type InspectRequest, type Inspection } from './value-inspection.js';
 import { formatSource } from './source-format.js';
 import { textColumns } from './screen.js';
 import {
@@ -17,12 +18,15 @@ import {
 const WIDTH = 40;
 const COMMANDS = ['help', 'forms', 'ops', 'vars', 'full', 'list', 'save', 'load', 'alias', 'exit', 'quit'];
 
-export interface OutputLine { readonly text: string; readonly error: boolean; readonly inlineText?: string }
+/** `ref` names the value a result line printed; `inspect` answers for it until the cell reruns. */
+export interface OutputLine { readonly text: string; readonly error: boolean; readonly inlineText?: string; readonly ref?: number }
 export interface ProgramFile { readonly path: string; readonly source: string }
 export interface Execution {
     readonly valueSummary?: string;
     readonly source: string;
     readonly output: OutputLine[];
+    /** The reference of the cell's result, when it has one. */
+    readonly valueRef?: number;
     readonly command: boolean;
     readonly exit: boolean;
     readonly ok: boolean;
@@ -69,6 +73,15 @@ export function createReplSession(host: ReplHost = {}) {
     let interpreter = runtime.interpreter;
     let aliases = true;
     let last: RankValue | undefined;
+    // Results the viewer may open. Ids are never reused, so a released one cannot name a newer value.
+    const held = new Map<number, RankValue>();
+    const heldByCell = new Map<number, number>();
+    let nextRef = 1;
+    const release = (cell: number): void => {
+        const ref = heldByCell.get(cell);
+        if (ref !== undefined) held.delete(ref);
+        heldByCell.delete(cell);
+    };
     const resetExecution = (): void => {
         try { replay.dispose(); } finally { runtime.dispose(); }
         replay = new SequenceReplay();
@@ -76,6 +89,8 @@ export function createReplSession(host: ReplHost = {}) {
         interpreter = runtime.interpreter;
         aliases = true;
         last = undefined;
+        held.clear();
+        heldByCell.clear();
         declarations.clear();
         testExamples = undefined;
         output = [];
@@ -111,7 +126,14 @@ export function createReplSession(host: ReplHost = {}) {
         isCommand(source: string): boolean {
             return !source.trim().includes('\n') && isCommand(source.trim(), interpreter);
         },
+        /** The value behind a result line, a window at a time; stale once its cell reran or the document restarted. */
+        inspect(ref: number, request: InspectRequest = {}): Inspection {
+            const value = held.get(ref);
+            if (value === undefined) return STALE;
+            return { status: 'ok', ...replay.preview(() => inspectValue(value, request, replay)) };
+        },
         rewind(id: number): void {
+            for (const cell of [...heldByCell.keys()]) if (cell >= id) release(cell);
             replay.rewind(id);
             const names = [...declarations].filter(([, line]) => line >= id).map(([name]) => name);
             interpreter.forgetBindings(names);
@@ -158,6 +180,8 @@ export function createReplSession(host: ReplHost = {}) {
             errorOffset = undefined;
             width = Math.min(WIDTH, textColumns(columns));
             loadedFile = undefined;
+            release(id);
+            let valueRef: number | undefined;
             const rawCommand = !text.trim().includes('\n') && isCommand(text.trim(), interpreter);
             let source = sourceOnly ? text : rawCommand ? text.trim() : text.split('\n').map(line => {
                 const indent = /^ */.exec(line)![0];
@@ -185,7 +209,7 @@ export function createReplSession(host: ReplHost = {}) {
                         for (const name of names) declarations.delete(name);
                     }
                     const before = interpreter.bindingNames();
-                    try { run(interpreter, source, session); }
+                    try { valueRef = run(interpreter, source, session, id); }
                     finally {
                         for (const name of interpreter.bindingNames()) {
                             if (!before.has(name)) declarations.set(name, id);
@@ -194,7 +218,7 @@ export function createReplSession(host: ReplHost = {}) {
                 }
             }
             return {
-                source, output, loadedFile, interrupted,
+                source, output, loadedFile, interrupted, valueRef,
                 command: cmd, exit,
                 ok: !interrupted && !output.some(line => line.error), errorOffset,
             };
@@ -235,16 +259,24 @@ export function createReplSession(host: ReplHost = {}) {
         return (text === 'exit' || text === 'quit') && !interpreter.variables.has(text);
     }
 
-    function run(interpreter: Interpreter, source: string, session: Session): boolean {
+    /** Runs a cell and holds its result for `inspect`; the reference tags the lines that printed it. */
+    function run(interpreter: Interpreter, source: string, session: Session, cell: number): number | undefined {
         try {
             checkInterrupt();
             const result = interpreter.execute(source);
             checkInterrupt('evaluating cell');
             session.setLast(result);
-            if (result !== undefined) show(result);
-            return true;
+            if (result === undefined) return undefined;
+            const first = output.length;
+            show(result);
+            const ref = nextRef++;
+            held.set(ref, result);
+            heldByCell.set(cell, ref);
+            for (let line = first; line < output.length; line++) output[line] = { ...output[line], ref };
+            return ref;
         } catch (error) {
-            return reportError(error, source);
+            reportError(error, source);
+            return undefined;
         }
     }
 

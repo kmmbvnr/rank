@@ -1,5 +1,6 @@
 import { sessionEditor, type Execution, type SessionSnapshot } from '@arrrank/common/repl-session';
 import type { ReplSession } from '@arrrank/common/repl-types';
+import type { Inspection } from '@arrrank/common/value-inspection';
 import type { PauseSnapshot } from '@arrrank/interpreter';
 import type { SessionMethod, WorkerRequest, WorkerResponse } from './protocol.js';
 
@@ -121,6 +122,7 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
             }
         },
         preview: (...args) => call<Execution>('preview', ...args),
+        inspect: (...args) => call<Inspection>('inspect', ...args),
         prepareFunctions: (...args) => call('prepareFunctions', ...args),
         rewind: id => { void call('rewind', id).catch(error => onFailure(String(error))); },
         resetExecution: async () => {

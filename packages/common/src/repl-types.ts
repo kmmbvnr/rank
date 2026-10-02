@@ -1,10 +1,12 @@
 import type { PauseSnapshot } from '@arrrank/interpreter';
 import { createReplSession, type Execution } from './repl-session.js';
+import type { InspectRequest, Inspection } from './value-inspection.js';
 
 type FunctionPreparation = Awaited<ReturnType<ReturnType<typeof createReplSession>['prepareFunctions']>>;
 
-export type ReplSession = Omit<ReturnType<typeof createReplSession>, 'snapshot' | 'prepareFunctions' | 'preview' | 'resetExecution'> & {
+export type ReplSession = Omit<ReturnType<typeof createReplSession>, 'snapshot' | 'prepareFunctions' | 'preview' | 'resetExecution' | 'inspect'> & {
     resetExecution: () => void | Promise<void>;
+    inspect: (ref: number, request?: InspectRequest) => Inspection | Promise<Inspection>;
     readonly names: string[];
     prepareFunctions: (cells: { id: number; source: string }[]) => FunctionPreparation | Promise<FunctionPreparation>;
     preview: (text: string, columns?: number, summaryOnly?: boolean,

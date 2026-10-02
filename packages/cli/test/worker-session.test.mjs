@@ -13,10 +13,12 @@ test('restart through the worker resets generators and preserves saved-file iden
         book.enqueue(source);
     await repl.restart();
     assert.equal(book.cells[4].status, 'ok');
-    const first = book.cells[4].output;
+    // A restart releases every reference; a rerun result carries a new one.
+    const lines = output => output.map(({ ref, ...line }) => line);
+    const first = lines(book.cells[4].output);
     await s.execute('Stray = 99', 99, []);
     await repl.restart();
-    assert.deepEqual(book.cells[4].output, first);
+    assert.deepEqual(lines(book.cells[4].output), first);
     assert.ok(!s.names.includes('Stray'));
     assert.deepEqual(s.savedFile, saved);
     assert.equal(repl.unsaved, true);

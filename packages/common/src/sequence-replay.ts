@@ -53,6 +53,7 @@ interface Tape {
 /** The REPL retains yielded values; ordinary file execution has no tape. */
 export class SequenceReplay {
     private readonly tapes = new Set<Tape>();
+    private readonly tapeOf = new WeakMap<SequencePlan, Tape>();
     private readonly consumed = new Map<Tape, Consumption[]>();
     private looking?: Map<Tape, Consumption>;
     private readonly collecting: Read[][] = [];
@@ -78,8 +79,24 @@ export class SequenceReplay {
                 }
             },
         };
+        this.tapeOf.set(plan, tape);
         return { kind: 'sequence', plan };
     };
+
+    /**
+     * The values a stored generator has already yielded, without reading
+     * another. Absent for sequences this replay keeps no tape of, and for
+     * native sources, which keep a position rather than their values.
+     */
+    forced(sequence: RankSequence): { readonly items: RankValue[]; readonly finished: boolean } | undefined {
+        const tape = this.tapeOf.get(sequence.plan);
+        if (!tape || tape.resumable) return undefined;
+        const items: RankValue[] = [];
+        for (const { outcome } of tape.entries) {
+            if ('result' in outcome && !outcome.result.done) items.push(outcome.result.value);
+        }
+        return { items, finished: tape.finished };
+    }
 
     /** Store sources with numeric bounds as cursors; ranges and aliases retain their identity. */
     readonly store = (source: RankSequence): RankSequence => {
