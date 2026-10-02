@@ -43,6 +43,8 @@ const COMPOUND_LEFT = new Set(['plus', 'minus', 'times', 'over', 'idiv', 'mod', 
 const COMPOUND_KEYWORDS = new Set(['and', 'or', 'xor']);
 const COMPOUND_SYMBOLS = new Set(['+', '-', '*', '**', '/', '//', '%']);
 
+const BINARY_SYMBOLS = new Set(['+', '-', '*', '**', '/', '//', '%']);
+
 const SYMBOLS = [
     '**=', '//=', '**', '//', '+=', '-=', '*=', '/=', '%=',
     '=', '+', '-', '*', '/', '%', '(', ')', '#', '.',
@@ -185,6 +187,24 @@ export function expandOperators(line: string, isBound: (name: string) => boolean
         at = edit.end;
     }
     return result + line.slice(at);
+}
+
+/**
+ * Where a `(` goes when `)` is typed with nothing open: the start of the binary operation
+ * at the end of the line, `A i i+1` giving `A i (i+1)`. Lines that already hold a bracket,
+ * text, or no binary operation are left to type `)` as it is.
+ */
+export function wrapStart(linePrefix: string): number | undefined {
+    if (insideText(linePrefix)) return undefined;
+    const tokens = tokenize(linePrefix);
+    if (tokens.some(item => item.kind === 'comment' || item.text === '(' || item.text === ')')) return undefined;
+    const right = tokens.at(-1);
+    const operator = tokens.at(-2);
+    const left = tokens.at(-3);
+    if (!right || !operator || !left || right.kind === 'symbol' || !endsOperand(right)) return undefined;
+    if (operator.kind !== 'symbol' || !BINARY_SYMBOLS.has(operator.text)) return undefined;
+    if (left.kind === 'symbol' || !endsOperand(left)) return undefined;
+    return left.start;
 }
 
 export function endsOperand(previous: Token | undefined): boolean {

@@ -1,6 +1,6 @@
 import {
     EMPTY_CELL, addLine, cellSource, closeCell, hasCode, insideText, isComplete, isEmpty,
-    nextIndent, scanLine, startsDedent, typeAssignKey,
+    nextIndent, scanLine, startsDedent, typeAssignKey, wrapStart,
 } from './repl-input.js';
 import type { Execution, OutputLine } from './repl-session.js';
 import { editableRows, graphemes, type TextRow } from './screen.js';
@@ -379,6 +379,15 @@ export class Notebook {
                 if (assign.endsWith('rem ')) {
                     this.onVoiceComment?.();
                 }
+                return;
+            }
+        }
+        if (typed && text === ')') {
+            const start = prefix.lastIndexOf('\n') + 1;
+            const open = wrapStart(prefix.slice(start));
+            if (open !== undefined) {
+                const at = start + open;
+                this.replace(source.slice(0, at) + '(' + prefix.slice(at) + ')' + suffix, this.cursor + 2);
                 return;
             }
         }
