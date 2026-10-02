@@ -40,9 +40,7 @@ fun all_pairs Graph NodeCount
     Dist Node Node = 0
     for Edge in Graph edges Node
       unpack Next Cost = Edge
-      if Cost less Dist Node Next
-        Dist Node Next = Cost
-      end
+      Dist Node Next = Cost (Dist Node Next) min
     end
   end
 
