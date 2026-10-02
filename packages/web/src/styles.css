@@ -24,7 +24,10 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 .terminal-row { height: 1.5em; white-space: pre; }
 #measure { position: absolute; visibility: hidden; white-space: pre; font: inherit; }
 #caret { position: absolute; left: 0; top: 0; height: 1.5em; background: #fff; mix-blend-mode: difference; pointer-events: none; }
-#paren-ghost { position: absolute; left: 0; top: 0; height: 1.5em; line-height: 1.5em; text-align: center;
+#paren-scope { position: absolute; left: 0; top: 0; height: 1.5em; background: rgba(120, 170, 255, .22);
+    border-radius: 3px; pointer-events: none; }
+#paren-ghost { box-shadow: 0 0 0 2px rgba(120, 170, 255, .9), 0 0 10px rgba(120, 170, 255, .8);
+    font-weight: bold; position: absolute; left: 0; top: 0; height: 1.5em; line-height: 1.5em; text-align: center;
     color: #fff; background: rgba(120, 170, 255, .45); border-radius: 3px; pointer-events: none; }
 #terminal.focused #caret { animation: caret-blink 1s step-end infinite; }
 #terminal:not(.focused) #caret { background: transparent; outline: 1px solid #fff; outline-offset: -1px; }

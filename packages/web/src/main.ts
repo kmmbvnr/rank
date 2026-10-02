@@ -6,7 +6,7 @@ import { TerminalModeRouter } from '@arrrank/common/terminal-modes';
 import { fixAt, notebookFrame, helpFrame, pauseFrame, type ScreenFrame } from '@arrrank/common/screen';
 import { keyAvailable, keyboardTabs, keyText } from '@arrrank/common/symbol-keyboard';
 import { textEdit } from '@arrrank/common/input-edit';
-import { moveParen, parenSnaps } from '@arrrank/common/paren-drag';
+import { moveParen, parenPartner, parenSnaps } from '@arrrank/common/paren-drag';
 import { browserSession } from './session.js';
 import { paintLine } from './terminal-colors.js';
 import { sourceSelection } from './source-selection.js';
@@ -999,7 +999,11 @@ const ghost = document.createElement('div');
 ghost.id = 'paren-ghost';
 ghost.setAttribute('aria-hidden', 'true');
 ghost.hidden = true;
-caret.after(ghost);
+const scope = document.createElement('div');
+scope.id = 'paren-scope';
+scope.setAttribute('aria-hidden', 'true');
+scope.hidden = true;
+caret.after(scope, ghost);
 interface ParenDrag {
     readonly cell: number;
     readonly lineStart: number;
@@ -1009,11 +1013,15 @@ interface ParenDrag {
     readonly startX: number;
     readonly startY: number;
     readonly snaps: readonly { offset: number; column: number }[];
+    readonly column: number;
+    readonly partner?: number;
+    grabbed: boolean;
     active: boolean;
+    timer?: ReturnType<typeof setTimeout>;
     choice?: { offset: number; column: number };
 }
 let parenDrag: ParenDrag | undefined;
-/** The bracket under a fingertip, when it can be dragged: 44px wide, as a finger needs. */
+/** The bracket under a fingertip, when it can be dragged: 72px wide, as a finger needs. */
 function parenUnder(x: number, y: number): ParenDrag | undefined {
     if (busy || repl.running || repl.help || repl.liveIterationFocused || repl.exampleEditor) return undefined;
     const rect = terminal.getBoundingClientRect();
@@ -1024,7 +1032,7 @@ function parenUnder(x: number, y: number): ParenDrag | undefined {
     if (source === undefined) return undefined;
     const reach = (x - rect.left) / cellWidth - 0.5;
     const hit = target.points.filter(point => '()'.includes(source[point.offset] ?? ''))
-        .filter(point => Math.abs(point.column - reach) * cellWidth <= 22)
+        .filter(point => Math.abs(point.column - reach) * cellWidth <= 36)
         .sort((a, b) => Math.abs(a.column - reach) - Math.abs(b.column - reach))[0];
     if (!hit) return undefined;
     const lineStart = source.lastIndexOf('\n', hit.offset - 1) + 1;
@@ -1036,8 +1044,24 @@ function parenUnder(x: number, y: number): ParenDrag | undefined {
         return column === undefined ? [] : [{ offset, column }];
     });
     if (snaps.length === 0) return undefined;
+    const partner = parenPartner(line, hit.offset - lineStart);
     return { cell: target.cell, lineStart, line, offset: hit.offset - lineStart, row, startX: x, startY: y,
-        snaps, active: false };
+        snaps, column: hit.column, partner: partner === undefined ? undefined : columns.get(lineStart + partner),
+        grabbed: false, active: false };
+}
+/** Draws the bracket at `column` and tints the group it would enclose, from there to its partner. */
+function drawGhost(drag: ParenDrag, column: number): void {
+    const y = drag.row * cellHeight - scrollFraction;
+    ghost.hidden = false;
+    ghost.textContent = drag.line[drag.offset];
+    ghost.style.width = cellWidth + 'px';
+    ghost.style.transform = `translate(${column * cellWidth}px, ${y}px)`;
+    if (drag.partner === undefined) { scope.hidden = true; return; }
+    const from = Math.min(column, drag.partner);
+    const to = Math.max(column, drag.partner);
+    scope.hidden = false;
+    scope.style.width = (to - from + 1) * cellWidth + 'px';
+    scope.style.transform = `translate(${from * cellWidth}px, ${y}px)`;
 }
 function showGhost(drag: ParenDrag, x: number, y: number): void {
     const rect = terminal.getBoundingClientRect();
@@ -1047,16 +1071,22 @@ function showGhost(drag: ParenDrag, x: number, y: number): void {
         Math.abs(snap.column - reach) < Math.abs(best.column - reach) ? snap : best);
     if (near?.offset !== drag.choice?.offset) haptic('tap');
     drag.choice = near;
-    ghost.hidden = !near;
-    if (!near) return;
-    ghost.textContent = drag.line[drag.offset];
-    ghost.style.width = cellWidth + 'px';
-    ghost.style.transform = `translate(${near.column * cellWidth}px, ${drag.row * cellHeight - scrollFraction}px)`;
+    if (near) drawGhost(drag, near.column);
+    else { ghost.hidden = true; scope.hidden = true; }
+}
+/** Marks the bracket as picked up, before it moves: it lights up where it stands, with its group. */
+function grabParen(drag: ParenDrag): void {
+    if (parenDrag !== drag || drag.grabbed || drag.active || nativeSelection()) return;
+    drag.grabbed = true;
+    haptic('hold');
+    drawGhost(drag, drag.column);
 }
 function endParenDrag(commit: boolean): void {
     const drag = parenDrag;
     parenDrag = undefined;
     ghost.hidden = true;
+    scope.hidden = true;
+    if (drag) clearTimeout(drag.timer);
     if (!drag?.active || !commit || !drag.choice) return;
     const moved = moveParen(drag.line, drag.offset, drag.choice.offset);
     const source = repl.notebook.cells[drag.cell]?.source;
@@ -1074,6 +1104,8 @@ function endParenDrag(commit: boolean): void {
 terminal.addEventListener('touchstart', event => {
     parenDrag = event.touches.length === 1 && event.target !== input
         ? parenUnder(event.touches[0].clientX, event.touches[0].clientY) : undefined;
+    const drag = parenDrag;
+    if (drag) drag.timer = setTimeout(() => grabParen(drag), 90);
 }, { passive: true });
 terminal.addEventListener('touchmove', event => {
     if (!parenDrag || event.touches.length !== 1 || nativeSelection()) return;
@@ -1081,9 +1113,10 @@ terminal.addEventListener('touchmove', event => {
     if (!parenDrag.active) {
         const dx = touch.clientX - parenDrag.startX;
         const dy = touch.clientY - parenDrag.startY;
-        if (Math.hypot(dx, dy) < 10) return;
+        if (Math.hypot(dx, dy) < 4) return;
         // A mostly vertical start is a scroll, not a drag.
-        if (Math.abs(dx) < Math.abs(dy)) { parenDrag = undefined; return; }
+        if (Math.abs(dx) < Math.abs(dy)) { endParenDrag(false); return; }
+        clearTimeout(parenDrag.timer);
         parenDrag.active = true;
         swipe = undefined;
         touchStart = undefined;

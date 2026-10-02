@@ -42,6 +42,12 @@ function pairAt(line: string, offset: number): Pair | undefined {
     return pairsOf(line)?.find(pair => pair.open === offset || pair.close === offset);
 }
 
+/** The offset of the bracket that pairs with the one at `offset`. */
+export function parenPartner(line: string, offset: number): number | undefined {
+    const pair = pairAt(line, offset);
+    return pair && (offset === pair.open ? pair.close : pair.open);
+}
+
 /**
  * Where the bracket at `offset` can be dropped, as offsets into `line`. A `(` lands on the start of a
  * token and a `)` on the end of one; every other pair keeps enclosing the same tokens, and the
