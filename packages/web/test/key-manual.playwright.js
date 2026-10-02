@@ -95,4 +95,3 @@ async page => {
     });
     check(coverage.count > 200 && coverage.missing.length === 0, `manual coverage: ${JSON.stringify(coverage)}`);
 }
-
