@@ -1,3 +1,4 @@
+import { establishedArrayContract } from './array-binding-contract.js';
 import { argumentSignature, returnConflicts, returnInput } from './return-contract.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
@@ -114,7 +115,7 @@ export function createCallAnalysis(
             if (isAssignmentStatement(node) && !definition.parameters.includes(node.name)) local.delete(node.name);
         }
         definition.parameters.forEach((parameter, index) => local.set(parameter, {
-            ...arguments_[index], acceptedArrayRank: arrayRank(arguments_[index]), acceptedTypes: arguments_[index].types,
+            ...arguments_[index], acceptedArrayContract: establishedArrayContract(arguments_[index]), acceptedArrayRank: arrayRank(arguments_[index]), acceptedTypes: arguments_[index].types,
         }));
         if (!definition.parameters.includes('index')) local.set('index', { types: ['index'], elements: [] });
         // Runtime declares local functions before executing the body, including
@@ -219,7 +220,7 @@ export function createCallAnalysis(
             const widened = new Map(entry);
             definition.parameters.forEach((parameter, index) => widened.set(parameter, {
                 ...inputs[index], acceptedTypes: inputs[index].types,
-                acceptedArrayRank: arrayRank(inputs[index]),
+                acceptedArrayRank: arrayRank(inputs[index]), acceptedArrayContract: establishedArrayContract(inputs[index]),
             }));
             const before = new Map(expressions);
             const savedGlobal = new Map(globalEnv);

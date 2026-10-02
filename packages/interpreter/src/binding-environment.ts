@@ -107,7 +107,7 @@ export class BindingEnvironment {
                 layout = frame.layout;
                 slot = layout.get(name) ?? -1;
             }
-            if (slot >= 0 && frame.store(slot, value, received)) return;
+            if (slot >= 0 && frame.store(slot, name, value, received)) return;
             this.assign(name, value);
         };
     }

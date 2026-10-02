@@ -69,8 +69,8 @@ end
 
 
 fun solve X Y Xtest Classes
-  X = X / 255.0
-  Xtest = Xtest / 255.0
-  Centers = X Y Classes centroids
-  return Xtest Centers Classes classify
+  Pixels = X / 255.0
+  TestPixels = Xtest / 255.0
+  Centers = Pixels Y Classes centroids
+  return TestPixels Centers Classes classify
 end

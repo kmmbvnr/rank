@@ -344,12 +344,18 @@ Compound assignment follows the same rule. For example, `/=` cannot store a
 real quotient in a variable inferred as `integer`; use `//=` when floor division
 is intended.
 
-Array bindings also keep their rank (number of axes). Axis lengths may change,
-but a vector cannot be reassigned a matrix. This applies to parameters and
-captured bindings; each function invocation has fresh local contracts. Ordinary
-array bindings do not fix cell types. Record fields and mutable collections have
-the stricter contracts described in [Records](#records) and
-[Collections](language/collections.md#mutable-collection-element-types).
+Array bindings keep their rank and recursive element contracts. Axis lengths may
+change, but a vector cannot become a matrix and an established integer array
+cannot receive text cells. Parameters and captured bindings use the same rule;
+each function invocation has fresh local contracts. Empty and missing-only arrays
+defer their element domain. An explicitly mixed array establishes a union, and
+later values may use a subset of that union. Infinity seeds defer their finite
+numeric domain until concrete cells settle it.
+
+Eager writes are checked before changing cells. Lazy arrays retain checks that run
+when their cells are read. See [Type-stability contracts](language/type-contracts.md) for
+nested arrays, numeric settlement, aliases, failure timing, and the comparison
+with record fields, collections, and function returns.
 
 ## Records
 

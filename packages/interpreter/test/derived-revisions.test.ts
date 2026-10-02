@@ -11,6 +11,7 @@ describe('derived array revisions', () => {
 B = A A outer +`);
             const source = runtime.variables.get('A') as RankArray;
             const result = runtime.variables.get('B') as RankArray;
+            result.items; // Settle the binding contract before measuring dependent cache reads.
             let reads = 0;
             const observed = derivedArray([9], [result], i => {
                 reads++;

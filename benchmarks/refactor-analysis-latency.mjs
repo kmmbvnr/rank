@@ -5,6 +5,8 @@ import { analyzeValues, createRankServices } from '../packages/language/out/inde
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
 const sources = new Map([
   ['short incomplete', 'Value = 1\nResult = Value +'],
+  ['array contracts', Array.from({ length: 60 }, (_, index) =>
+    `Values${index} = array 1 2 3\nValues${index} 0 += 1\nTotal${index} = Values${index} sum`).join('\n')],
   ['large incomplete', `${Array.from({ length: 200 }, (_, index) =>
     `Value${index} = ${index} + 1`).join('\n')}\nResult = Value199 +`],
 ]);

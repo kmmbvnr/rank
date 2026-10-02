@@ -6,7 +6,8 @@ use sequences
 use stats
 
 rem Assign points to their nearest centroid and recompute cluster means.
-fun k_means Points K Centroids Max
+fun k_means Points K InitialCentroids Max
+  Centroids = InitialCentroids / 1.0
   N = Points len
   Labels = array shape N fill 0
 

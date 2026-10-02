@@ -51,9 +51,11 @@ describe('typed column storage', () => {
         expect(show('K 0')).toBe('100');
     });
 
-    it('accepts a value of another type after a write converts it', () => {
+    it('rejects a value of another type before converting its storage', () => {
         const { show } = session();
-        expect(show('K = Data .A\nK 1 = 2.5\nK 1')).toBe('2.5');
+        show('K = Data .A');
+        expect(() => show('K 1 = 2.5')).toThrow(/array elements/);
+        expect(show('K 1')).toBe('4');
     });
 
     it('slices and selects rows', () => {

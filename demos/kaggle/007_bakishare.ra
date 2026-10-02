@@ -30,12 +30,12 @@ fun bike_features Data
   Numeric = Data NumericFields
   Result = array shape Rows 12 fill 0.0
 
-  Result # 0 = Times hour
-  Result # 1 = Times weekday
-  Result # 2 = Times month
-  Result # 3 = Times year
+  Result # 0 = (Times hour) * 1.0
+  Result # 1 = (Times weekday) * 1.0
+  Result # 2 = (Times month) * 1.0
+  Result # 3 = (Times year) * 1.0
   for Column in 0 till 8
-    Result # (Column + 4) = Numeric # Column
+    Result # (Column + 4) = (Numeric # Column) * 1.0
   end
   return Result
 end

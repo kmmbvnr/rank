@@ -42,10 +42,10 @@ fun taxi_features Data
   Result = array shape Rows 5 fill 0.0
 
   Result # 0 = Geo distance rank 1
-  Result # 1 = Times hour
-  Result # 2 = Times weekday
-  Result # 3 = Times month
-  Result # 4 = Passengers
+  Result # 1 = (Times hour) * 1.0
+  Result # 2 = (Times weekday) * 1.0
+  Result # 3 = (Times month) * 1.0
+  Result # 4 = Passengers * 1.0
   return Result
 end
 

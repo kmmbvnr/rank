@@ -191,6 +191,7 @@ export class Interpreter {
             compileLoop: (statement, binding) => this.fastPaths.compileLoop(statement, binding),
         };
         this.writes = {
+            checkArrayWrite: (name, target, values) => this.checkArrayWrite(name, target, values),
             evaluate: expression => this.expressions.evaluate(expression),
             compileDirect: expression => this.expressions.compileDirect(expression),
             compileAssign: name => this.compileAssign(name),
@@ -402,6 +403,15 @@ export class Interpreter {
             throw new RankError(`unknown variable: ${name}`);
         }
         return value;
+    }
+
+    private checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[]): readonly RankValue[] {
+        const dot = name.indexOf('.');
+        if (dot > 0) {
+            const child = this.aliases.get(name.slice(0, dot));
+            if (child) return child.checkArrayWrite(name.slice(dot + 1), target, values);
+        }
+        return (this.bindings.current?.find(name) ?? this.bindings.globals).checkArrayWrite(name, target, values);
     }
 
     private compileAssign(name: string): (value: RankValue) => void {

@@ -19,7 +19,7 @@ fun matrixmul A B
     for j in 0 till Cols
       Col = B # j
       Dot = Row * Col
-      Result i j = Dot sum
+      Result i j = (Dot sum) * 1.0
     end
   end
 

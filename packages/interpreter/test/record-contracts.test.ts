@@ -58,7 +58,7 @@ describe('fixed record field contracts', () => {
     });
 
     it('keeps field arrays isolated from ordinary array writes', () => {
-        expect(run('R = record\n .items = array 1 2\nend\nA = R .items\nA 0 = "text"\nR .items 0')).toBe('1');
+        expect(run('R = record\n .items = array 1 2\nend\nA = R .items\nA 0 = 9\nR .items 0')).toBe('1');
     });
 
     it('rechecks a contract established through an alias during a lazy read', () => {

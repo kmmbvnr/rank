@@ -1,3 +1,4 @@
+import { contractElements } from './array-binding-contract.js';
 import type { AstNode } from 'langium';
 import type { Expression } from '../generated/ast.js';
 import { UNKNOWN_VALUE, withPathDims, type ValueFacts } from './value-domain.js';
@@ -77,6 +78,9 @@ export class Graph {
         // Empty arrays do not establish any cell-domain evidence.
         const types = fact.types.join() === 'array' || fact.types.join() === 'sequence'
             ? fact.shape?.every(n => n !== null && n > 0) ? fact.elements : undefined : fact.types;
+        const established = contractElements(fact.acceptedArrayContract);
+        if (established?.length) this.domains.push({ variable: rank, types: established,
+            site: site(node, `established array elements: ${established.join(' or ')}`) });
         if (types?.length) this.domains.push({ variable: rank, types, site: site(node, types.join(' or ')) });
         return value;
     }

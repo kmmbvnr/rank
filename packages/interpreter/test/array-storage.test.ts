@@ -60,10 +60,10 @@ describe('eager array storage', () => {
         runtime.dispose();
     });
 
-    it('retains a file inserted into a numeric array before closing its scope', () => {
+    it('retains a file inserted into a missing-only array before closing its scope', () => {
         const io = new MemoryIo({ '/input': 'Rank' });
         const runtime = new Interpreter(undefined, { io });
-        expect(runtime.execute('use io\nfun build Path\n A = array 0\n A 0 = Path open\n return A\nend\nA = "/input" build\nFile = A 0\nFile size')).toBe(4n);
+        expect(runtime.execute('use io\nfun build Path\n A = array .NA\n A 0 = Path open\n return A\nend\nA = "/input" build\nFile = A 0\nFile size')).toBe(4n);
         expect(io.handles[0].closed).toBe(true);
         runtime.dispose();
     });

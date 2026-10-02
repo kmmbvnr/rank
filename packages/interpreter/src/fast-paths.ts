@@ -29,7 +29,7 @@ import type { BuiltinRegistry } from './modules/builtins.js';
 import { atArray, scalarArrayWriteOffset, tensorSelection } from './selectors.js';
 import { typedNativeCall } from './typed-native.js';
 import { applySelectors } from './value-selection.js';
-import { isNativeFunction, type NativeFunction, type RankValue } from './value.js';
+import { isRankArray, isNativeFunction, type NativeFunction, type RankValue } from './value.js';
 
 export type CompiledLoop = NonNullable<ReturnType<typeof compileIntegerLoop>>;
 
@@ -182,7 +182,10 @@ export class FastPaths {
                     if (direct) { direct(value); return; }
                     checked(value);
                     const frame = this.context.bindings.current?.find(name);
-                    direct = frame ? frame.bindStore(name) : next => { this.context.bindings.globals.values.set(name, next); };
+                    direct = frame ? frame.bindStore(name) : next => {
+                        if (isRankArray(next)) this.context.bindings.globals.set(name, next);
+                        else this.context.bindings.globals.values.set(name, next);
+                    };
                 };
             } : undefined,
             textLoops: this.context.options().textLoopCompilation !== false,

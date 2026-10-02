@@ -69,8 +69,8 @@ end
 
 
 fun predictall X Y Xtest Rate Steps
-  X = X / 255.0
-  Xtest = Xtest / 255.0
-  Model = X Y Rate Steps Classifier.logistic
-  return Xtest Model probability
+  Pixels = X / 255.0
+  TestPixels = Xtest / 255.0
+  Model = Pixels Y Rate Steps Classifier.logistic
+  return TestPixels Model probability
 end
