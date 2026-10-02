@@ -223,6 +223,27 @@ function transferApplicationFacts(
             ...parts.slice(index + 1)];
         index--;
     }
+    // `Steps Value 5 min`: when the count fits no arity, the leading values are one receiver and its
+    // selectors and the rest are the remaining operands. A full integer read of a scalar array is
+    // the only leading selection proven here.
+    const trailing = parts.at(-1);
+    const trailingOperation = trailing && isNameExpression(trailing) && parts.length > 3
+        ? operationBinding(trailing.name, lookup) : undefined;
+    if (trailingOperation && !trailingOperation.arities.includes(parts.length - 1)) {
+        const receiver = infer(parts[0], lookup);
+        const arity = [...trailingOperation.arities].sort((left, right) => right - left)
+            .find(candidate => candidate >= 1 && parts.length - 1 > candidate);
+        const firstLength = arity === undefined ? 0 : parts.length - arity;
+        if (firstLength >= 2 && receiver.types.join() === 'array' && receiver.rank === firstLength - 1
+            && (receiver.eagerScalarCells || receiver.callbackFreeScalarCells) && receiver.elements?.length
+            && parts.slice(1, firstLength).every(part => {
+                const selector = infer(part, lookup);
+                return selector.rank === 0 && selector.types.length > 0
+                    && selector.types.every(type => type === 'integer');
+            })) {
+            parts = [applicationExpression(parts.slice(0, firstLength), expression), ...parts.slice(firstLength)];
+        }
+    }
     const last = parts.at(-1)!;
     const headParts = isApplicationExpression(expression.head) ? flattenApplication(expression.head) : [];
     const headLast = headParts.at(-1);

@@ -683,6 +683,16 @@ it('forgets local index facts when a computed key is not plain scalar arithmetic
         .toEqual([]);
 });
 
+it('reads a scalar array cell as the first operand of a trailing dyadic operation', () => {
+    expect(messages('Steps = array 9 8 7\nA = Steps 1 5 min\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('Steps = array 9 8 7\nA = Steps 1 5 max\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    // A partial read of a matrix selects a row, and an unproved selector leaves the result unknown.
+    expect(messages('M = array shape 2 2\n 1 2\n 3 4\nend\nA = M 1 5 min\nA + "bad"')).toEqual([]);
+    expect(messages('Steps = array 9 8 7\nA = Steps Unknown 5 min\nA + "bad"')).toEqual([]);
+});
+
 it('infers the simplified regular-expression matcher from its local index writes', () => {
     const source = readFileSync(new URL('./fixtures/010_regexp.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/leetcode/010_regexp_test.ra', import.meta.url), 'utf8');
