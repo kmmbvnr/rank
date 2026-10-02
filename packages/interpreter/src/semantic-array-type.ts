@@ -1,3 +1,4 @@
+import { arrayDeclaration, inheritArrayDeclaration } from './array-declaration.js';
 import { binaryType } from '@arrrank/language';
 import { arrayElementTypes } from './array-element-types.js';
 import { arrayRevision } from './array-storage.js';
@@ -20,11 +21,14 @@ export function setSemanticArrayType<T extends RankArray>(value: T, type: Semant
 }
 
 export function inheritSemanticArrayType<T extends RankArray>(source: RankArray, target: T): T {
+    inheritArrayDeclaration(source, target);
     return setSemanticArrayType(target, semanticArrayType(source));
 }
 
 /** No itemAt, getters, callbacks, or already materialized lazy caches are read. */
 export function semanticArrayType(value: RankArray): SemanticArrayType {
+    const declaration = arrayDeclaration(value);
+    if (declaration?.elements?.length) return semanticArrayContract(declaration);
     const previous = types.get(value);
     const lazy = 'itemAt' in value || !Object.getOwnPropertyDescriptor(value, 'items')?.value;
     const revision = arrayRevision(value);

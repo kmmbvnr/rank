@@ -1,3 +1,4 @@
+import { arrayDeclaration, declareArray } from './array-declaration.js';
 import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType } from './semantic-array-type.js';
 import { FlatRecords } from './flat.js';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
@@ -108,6 +109,13 @@ export class ArrayBindingContract {
         return prepared.map(cell => cell.value);
     }
 
+    /** A fill is evaluated once and declares cells even when the shape is empty. */
+    fill<T extends RankArray>(value: T, fill: RankValue): T {
+        const cell = this.prepare(fill, undefined, new Set());
+        declareArray(value, { ...this.key(value), elements: union([cell.contract]) });
+        return this.check(value);
+    }
+
     check<T extends RankValue>(value: T): T {
         const prepared = this.prepare(value, undefined, new Set());
         const next = this.merge(this.contract, prepared.contract);
@@ -116,11 +124,12 @@ export class ArrayBindingContract {
         // Empty or all-missing replacements keep an established binding domain.
         // Copy storage: the same untyped source may enter different bindings.
         if (isRankArray(prepared.value) && prepared.value.kind === 'array'
-            && prepared.contract.elements?.length === 0 && next.elements?.length) {
+            && (prepared.value.shape.some(size => size === 0) || prepared.contract.elements?.length === 0) && next.elements?.length) {
             const items = materializedArrayItems(prepared.value);
             if (items) {
                 const checked = ownedArray([...items], prepared.value.shape);
                 this.metadata(prepared.value, checked);
+                declareArray(checked, next);
                 return setSemanticArrayType(checked, semanticArrayContract(next)) as T;
             }
         }
@@ -161,6 +170,11 @@ export class ArrayBindingContract {
                 return;
             }
             if (!isRankArray(value)) { done({ value, contract: base }); return; }
+            const declared = arrayDeclaration(value);
+            if (declared) {
+                const complete = done;
+                done = prepared => complete({ ...prepared, contract: this.merge(declared, prepared.contract) });
+            }
             if (active.has(value)) throw new RankError(`${this.name}: cyclic arrays cannot establish an element contract`, 'TypeError');
             if (value.columnNames && value.shape.length === 2) {
                 active.add(value);

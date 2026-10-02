@@ -1,3 +1,4 @@
+import { arrayBindingContract, arrayContractConflict } from './array-binding-contract.js';
 import { stableRecordField, type ValueFacts } from './value-domain.js';
 import { bindingRankMessage, bindingTypeMessage, provenBindingTypeConflict } from '../binding-rule.js';
 
@@ -22,10 +23,12 @@ export function recordFieldConflict(expected: ValueFacts, received: ValueFacts, 
         return { kind: 'DimensionMismatch', message: bindingRankMessage(name, expected.rank, received.rank) };
     }
     if (expected.types.join() === 'array' && received.types.join() === 'array' && expected.elements?.length
-        && received.elements?.length && (contract || received.shape?.every(size => size !== null && size > 0))
+        && received.elements?.length && (contract || received.declaredArrayContract || received.shape?.every(size => size !== null && size > 0))
         && provenBindingTypeConflict(expected.elements, received.elements)) {
         return { kind: 'TypeError', message: `${name} has array cells of type ${expected.elements.join(' or ')} and cannot receive ${received.elements.join(' or ')}` };
     }
+    const arrayConflict = arrayContractConflict(arrayBindingContract(expected), received, name);
+    if (arrayConflict) return { kind: 'TypeError', message: arrayConflict };
     if (expected.tupleItems && received.tupleItems) {
         if (expected.tupleItems.length !== received.tupleItems.length) return { kind: 'TypeError',
             message: `${name} has ${expected.tupleItems.length} tuple positions and cannot receive ${received.tupleItems.length}` };
@@ -59,7 +62,7 @@ export function returnConflicts(values: readonly ValueFacts[]): { kind: 'TypeErr
         if (left.types.join() === right.types.join() && ['record', 'tuple'].includes(left.types.join())) {
             const conflict = recordFieldConflict(left, right, `return ${left.types.join()}`);
             if (conflict) {
-                conflicts.push({ ...conflict, message: `returns incompatible ${left.types.join()} types: ${conflict.message}` });
+                conflicts.push({ ...conflict, message: `returns incompatible ${left.types.join() === 'array' ? '' : left.types.join() + ' '}types: ${conflict.message}` });
                 return conflicts;
             }
         }
@@ -69,6 +72,13 @@ export function returnConflicts(values: readonly ValueFacts[]): { kind: 'TypeErr
             conflicts.push({ kind: 'TypeError', message: `returns incompatible types: ${a.join(' or ')} and ${b.join(' or ')}` });
             return conflicts;
         }
+        if (left.types.join() === 'array' && right.types.join() === 'array') {
+            const conflict = recordFieldConflict(left, right, 'return array');
+            if (conflict) {
+                conflicts.push({ ...conflict, message: `returns incompatible array types: ${conflict.message}` });
+                return conflicts;
+            }
+        }
     }
     return conflicts;
 }
@@ -76,6 +86,7 @@ export function returnConflicts(values: readonly ValueFacts[]): { kind: 'TypeErr
 /** Retain types/ranks while forgetting data that could select just one return path. */
 export function returnInput(value: ValueFacts): ValueFacts {
     return { types: value.types, rank: value.rank, elements: value.elements,
+        ...(value.declaredArrayContract ? { declaredArrayContract: value.declaredArrayContract } : {}),
         ...(value.tupleItems ? { tupleItems: value.tupleItems.map(returnInput) } : {}),
         ...(value.closedRecord ? { closedRecord: true as const } : {}),
         ...(value.shape ? { shape: value.shape.map(() => null) } : {}),
@@ -98,6 +109,7 @@ export function refineRecordContract(previous: ValueFacts | undefined, next: Val
         rank: old.rank ?? value.rank,
         ...(old.tupleItems ? { tupleItems: old.tupleItems.map((item, index) => value.tupleItems?.[index]
             ? refine(item, value.tupleItems[index]) : item) } : {}),
+        declaredArrayContract: old.declaredArrayContract?.elements?.length ? old.declaredArrayContract : value.declaredArrayContract,
         elements: old.elements?.length ? old.elements : value.elements,
         ...(old.fields ? { fields: Object.fromEntries(Object.entries(old.fields).map(([name, field]) =>
             [name, value.fields?.[name] ? refine(field, value.fields[name]) : field])) } : {}) });

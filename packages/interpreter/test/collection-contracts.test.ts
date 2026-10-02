@@ -25,13 +25,13 @@ Alias put
 
         it(`${kind}: lengths vary and empty arrays defer the cell contract`, () => {
             expect(run(prelude + `C = new ${kind}
-${insert('C', 'array shape 0 fill 0')}
+${insert('C', 'array shape 0 fill .NA')}
 ${insert('C', 'array 1 2')}
 ${insert('C', 'array 3 4 5')}
 C len
 `)).toBe('3');
             expect(() => run(prelude + `C = new ${kind}
-${insert('C', 'array shape 0 fill 0')}
+${insert('C', 'array shape 0 fill .NA')}
 ${insert('C', 'array 1 2')}
 ${insert('C', 'array 1.0 2.0')}
 `)).toThrow(/of integer.*of real/);

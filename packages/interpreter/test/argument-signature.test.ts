@@ -163,7 +163,7 @@ it('keeps unresolved metadata through dense transpose and selection paths', () =
 
 it('keeps an established type through empty replacement without typing the shared empty source', () => {
     const runtime = new Interpreter();
-    runtime.execute('A = array 1\nB = array 1.0\nEmpty = array shape 0 fill 0');
+    runtime.execute('A = array 1\nB = array 1.0\nEmpty = array shape 0 fill .NA');
     const integerKey = argumentSignature([runtime.variables.get('A')!]);
     const realKey = argumentSignature([runtime.variables.get('B')!]);
     const emptyKey = argumentSignature([runtime.variables.get('Empty')!]);

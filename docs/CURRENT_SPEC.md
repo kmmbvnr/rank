@@ -347,8 +347,10 @@ is intended.
 Array bindings keep their rank and recursive element contracts. Axis lengths may
 change, but a vector cannot become a matrix and an established integer array
 cannot receive text cells. Parameters and captured bindings use the same rule;
-each function invocation has fresh local contracts. Empty and missing-only arrays
-defer their element domain. Ordinary arrays are homogeneous, recursively; use
+each function invocation has fresh local contracts. Plain empty and missing-only arrays
+defer their element domain. An explicit fill supplies its recursive cell type
+even at length zero: `array shape 0 fill 0` is an integer array, while
+`fill 0.0` declares real cells and `fill ""` declares text cells. Ordinary arrays are homogeneous, recursively; use
 tuples for positional values of different types. Infinity seeds defer their finite
 numeric domain until concrete cells settle it.
 
@@ -393,8 +395,9 @@ assignment still shares identity; rebinding does not change existing aliases.
 See [Type-stability contracts](language/type-contracts.md#record-bindings).
 
 An array field keeps its rank and recursive cell types, but not its axis lengths.
-An empty array establishes its rank; its cell types settle on the first nonempty
-assignment and remain fixed if it becomes empty again. Integer and real cells
+An empty array establishes its rank and any type supplied by an explicit fill.
+Without a concrete fill, its cell types settle on the first nonempty assignment
+and remain fixed if it becomes empty again. Integer and real cells
 are different types. A nested record keeps the same field names and recursively
 the same field types; declaration order does not affect this contract.
 If an array field initially contains several cell types, later array values may

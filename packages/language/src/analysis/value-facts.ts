@@ -1,3 +1,4 @@
+import { valueElementContracts } from './array-binding-contract.js';
 import { freshDim } from './shape-index.js';
 import {
     isTupleExpression, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral, isMaterializeExpression,
@@ -147,10 +148,11 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
                 // `array shape Shape fill X`: a vector of dimensions, so the rank is the vector's length.
                 const rank = only.shape?.length === 1 ? only.shape[0] : null;
                 const fill = expression.fill && expressionFacts(expression.fill, lookup);
-                const elements = fill && isAtom(fill) ? fill.types : undefined;
+                const elements = fill?.types.filter(type => type !== 'missing');
                 return { types: ['array'], ...(rank === null || rank === undefined ? {}
                     : { rank, shape: Array<number | null>(rank).fill(null) }),
-                    ...(elements ? { elements } : {}) };
+                    ...(elements ? { elements } : {}),
+                    ...(fill ? { declaredArrayContract: { type: 'array', rank: rank ?? undefined, elements: valueElementContracts(fill, true) } } : {}) };
             }
             const dimensionFacts = expression.dimensions.map(item => expressionFacts(item.value, lookup));
             const shape = expression.dimensions.map((item, axis) => {
@@ -167,10 +169,11 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
             const eagerScalarCells = fill
                 ? fill.types.length > 0 && isAtom(fill)
                 : items.length > 0 && items.every(item => item.types.length > 0 && isAtom(item));
-            const elements = fill && isAtom(fill) ? fill.types
+            const elements = fill ? fill.types.filter(type => type !== 'missing')
                 : !fill && items.length && items.every(isAtom)
                     ? [...new Set(items.flatMap(item => item.types))] : undefined;
             return { types: ['array'], rank: shape.length, shape,
+                ...(fill ? { declaredArrayContract: { type: 'array', rank: shape.length, elements: valueElementContracts(fill, true) } } : {}),
                 ...(fill?.infinite ? { infiniteElements: true as const } : {}),
                 ...(dims.some(Boolean) ? { dims } : {}),
                 ...(elements ? { elements } : {}),

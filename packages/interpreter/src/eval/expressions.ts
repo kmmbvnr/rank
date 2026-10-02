@@ -281,7 +281,8 @@ export class ExpressionEvaluator {
                 const size = shape.reduce((product, dimension) => product * BigInt(dimension), 1n);
                 if (expression.fill !== undefined) {
                     const fill = (yield* resume(expressions.evaluate(expression.fill)));
-                    return ownedArray(Array(Number(size)).fill(fill), shape, typeof fill !== 'object');
+                    return new ArrayBindingContract('array fill').fill(
+                        ownedArray(Array(Number(size)).fill(fill), shape, typeof fill !== 'object'), fill);
                 }
                 if (BigInt(items.length) !== size) {
                     throw new RankError(

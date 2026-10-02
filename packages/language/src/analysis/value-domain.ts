@@ -16,6 +16,8 @@ export interface ValueFacts {
     readonly acceptedArrayRank?: number;
     /** Recursive schema retained by an ordinary record binding, independent of its current value. */
     readonly acceptedRecordContract?: ValueFacts;
+    /** Recursive type explicitly supplied by an array fill, independent of length. */
+    readonly declaredArrayContract?: ArrayElementContract;
     readonly acceptedArrayContract?: ArrayElementContract;
     /** Possible array/sequence cells or values stored in an index. */
     readonly elements?: Types;
@@ -95,7 +97,8 @@ export function widenValueFacts(value: ValueFacts): ValueFacts {
         : ['text', 'sequence', 'queue', 'stack', 'deque'].includes(type) ? 1 : 0);
     const rank = value.rank ?? (ranks.length && ranks.every(rank => rank === ranks[0]) ? ranks[0] : undefined);
     return { types: value.types, ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}),
-        ...(value.elements ? { elements: value.elements } : {}) };
+        ...(value.elements ? { elements: value.elements } : {}),
+        ...(value.declaredArrayContract ? { declaredArrayContract: value.declaredArrayContract } : {}) };
 }
 
 export type FactLookup = ((name: string) => ValueFacts | undefined) & {
@@ -112,7 +115,8 @@ export function stableRecordField(value: ValueFacts, construction = false): Valu
             : types.join() === 'text' ? { rank: 1, shape: [null] }
                 : types.join() === 'array' || types.join() === 'bytes'
                     ? { rank: value.rank, shape: value.rank === undefined ? undefined : Array(value.rank).fill(null),
-                        elements: !construction || value.shape?.every(size => size !== null && size > 0)
+                        declaredArrayContract: value.declaredArrayContract,
+                        elements: !construction || value.declaredArrayContract || value.shape?.every(size => size !== null && size > 0)
                             ? value.elements : undefined }
                     : types.join() === 'record' ? { rank: 0, shape: [],
                         ...(value.fields ? { fields: Object.fromEntries(Object.entries(value.fields)
@@ -236,6 +240,8 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
         ...(first.segmentOperation && values.every(value => value.segmentOperation === first.segmentOperation)
             ? { segmentOperation: first.segmentOperation } : {}),
         ...(elements ? { elements } : {}),
+        ...(first.declaredArrayContract && values.every(value => JSON.stringify(value.declaredArrayContract) === JSON.stringify(first.declaredArrayContract))
+            ? { declaredArrayContract: first.declaredArrayContract } : {}),
         ...(elementRank !== undefined ? { elementRank } : {}),
         ...(elements?.length && values.filter(value => value.elements!.length).every(value => value.elementRecord)
             ? { elementRecord: joinValueFacts(values.filter(value => value.elements!.length)

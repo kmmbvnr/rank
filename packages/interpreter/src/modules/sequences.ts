@@ -1,3 +1,4 @@
+import { inheritArrayDeclaration } from '../array-declaration.js';
 import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { FlatRecords, flatRecords } from '../flat.js';
@@ -337,7 +338,9 @@ function copyArray(value: RankValue): RankArray {
     );
     // Cells that are arrays or finite sequences stack along new trailing axes, as sequence items do.
     if (!items.some(item => isRankArray(item) || isRankSequence(item))) {
-        return setSemanticArrayType(ownedArray(items, value.shape, false, value.columnNames), type);
+        const result = ownedArray(items, value.shape, false, value.columnNames);
+        inheritArrayDeclaration(value, result);
+        return setSemanticArrayType(result, type);
     }
     const cells = items.map(item => isRankSequence(item) ? materializeSequence(item) : item);
     return stackItems(cells, value.shape, 'array');

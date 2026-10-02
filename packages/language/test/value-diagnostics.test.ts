@@ -1099,9 +1099,11 @@ it('proves scalar array cell types through closed plain and compound writes in n
     expect(result.diagnostics).toEqual([]);
     const mixed = source.replace('A I = A (I - 1) + 1', 'A I = "text"');
     const changed = services.Rank.parser.LangiumParser.parse<Program>(mixed);
-    expect(analyzeValues(changed.value, new Map(), new Map(), [
+    const rejected = analyzeValues(changed.value, new Map(), new Map(), [
         { name: 'fill_array', arguments: [{ types: ['integer'], rank: 0, shape: [] }] },
-    ]).functionResults[0].types).toEqual(['integer', 'text']);
+    ]);
+    expect(rejected.functionResults[0].types).toEqual(['integer']);
+    // Result facts describe successful executions; runtime rejects the text write.
 });
 
 it('proves full-cell writes across every axis without assuming slice writes are scalar', () => {

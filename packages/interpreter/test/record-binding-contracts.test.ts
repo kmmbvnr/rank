@@ -35,18 +35,18 @@ for (const compiled of [true, false]) describe(`record binding contracts (compil
     it('keeps contracts through missing and empty replacements', () => {
         const r = runtime();
         r.execute(`R = .NA\nR = ${record('.items = array 1')}\nR = .NA`);
-        r.execute(`R = ${record('.items = array shape 0 fill 0')}\nAlias = R`);
+        r.execute(`R = ${record('.items = array shape 0 fill .NA')}\nAlias = R`);
         expect(() => r.execute('Alias .items = array "bad"')).toThrow(/integer.*text/);
         expect(() => r.execute(`R = ${record('.items = array "bad"')}`)).toThrow(/integer.*text/);
     });
     it('observes settlement through an alias before rebinding', () => {
         const r = runtime();
-        r.execute(`R = ${record('.items = array shape 0 fill 0')}\nAlias = R\nAlias .items = array 1`);
+        r.execute(`R = ${record('.items = array shape 0 fill .NA')}\nAlias = R\nAlias .items = array 1`);
         expect(() => r.execute(`R = ${record('.items = array "bad"')}`)).toThrow(/integer.*text/);
     });
     it('does not settle an empty field when another field rejects the replacement', () => {
         const r = runtime();
-        r.execute(`R = ${record('.items = array shape 0 fill 0\n .tag = 1')}`);
+        r.execute(`R = ${record('.items = array shape 0 fill .NA\n .tag = 1')}`);
         expect(() => r.execute(`R = ${record('.items = array 1\n .tag = "bad"')}`)).toThrow(/cannot receive/);
         r.execute(`R = ${record('.items = array "ok"\n .tag = 2')}`);
         expect(r.execute('R .tag')).toBe(2n);
@@ -83,7 +83,7 @@ it('copies frame contracts and clears them at the end of the binding lifetime', 
 
 it('isolates refinements in a preview, including a temporarily missing binding', () => {
     const r = new Interpreter();
-    r.execute(`R = ${record('.items = array shape 0 fill 0')}`);
+    r.execute(`R = ${record('.items = array shape 0 fill .NA')}`);
     const preview = r.forkForPreview();
     preview.execute('R .items = array 1');
     expect(() => preview.execute(`R = ${record('.items = array "bad"')}`)).toThrow(/integer.*text/);
@@ -110,7 +110,7 @@ it('reuses an established schema without rereading record-array cells', () => {
 
 it('observes a refinement made during native record inspection', () => {
     const r = new Interpreter();
-    r.execute(`R = ${record('.items = array shape 0 fill 0')}\nAlias = R`);
+    r.execute(`R = ${record('.items = array shape 0 fill .NA')}\nAlias = R`);
     const next: RankRecord = { kind: 'record', entries: new Map([['items', {
         kind: 'array', shape: [1], items: [], itemAt: () => {
             r.execute('Alias .items = array "settled"');

@@ -1,3 +1,4 @@
+import { arrayDeclaration } from './array-declaration.js';
 import { noteArrayBinding } from './array-storage.js';
 import { checkpoint, interruptibleValues } from './interrupt.js';
 import type { RankMultiset } from './multiset.js';
@@ -459,7 +460,8 @@ export function collectionElementType(value: RankValue, active: Set<RankValue> =
     }
     active.delete(value);
     requireHomogeneous(elements);
-    return { type, rank, ...(elements.length ? { elements } : {}) };
+    return mergeCollectionElementType('array fill', arrayDeclaration(value),
+        { type, rank, ...(elements.length ? { elements } : {}) }, false, true);
 }
 
 export function unionElementType(left: CollectionElementType, right: CollectionElementType): CollectionElementType {

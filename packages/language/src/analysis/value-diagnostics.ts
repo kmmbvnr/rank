@@ -116,7 +116,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 message: `${name} holds array rank ${collection.elementRank} and cannot receive rank ${rank}` });
             return;
         }
-        const nonempty = value.shape?.every(size => size !== null && size > 0) === true;
+        const nonempty = !!value.declaredArrayContract?.elements?.length || value.shape?.every(size => size !== null && size > 0) === true;
         if (nonempty && accepted?.join() === 'array' && collection.elementCells?.length && value.elements?.length
             && value.elements.every(type => !collection.elementCells!.includes(type))) {
             diagnostics.push({ node, kind: 'TypeError',

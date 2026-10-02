@@ -23,7 +23,7 @@ it('separates scalar type, array elements, rank and dimensions', () => {
     expect(facts('array 1 2 3')).toEqual({ types: ['array'], elements: ['integer'], rank: 1, shape: [3],
         integers: [1, 2, 3], eagerScalarCells: true });
     expect(facts('array shape 2 3 fill 0')).toEqual({ types: ['array'], elements: ['integer'], rank: 2,
-        shape: [2, 3], eagerScalarCells: true });
+        shape: [2, 3], eagerScalarCells: true, declaredArrayContract: { type: 'array', rank: 2, elements: [{ type: 'integer' }] } });
     expect(facts('array 1 2 3 4 shape 2 2')).toEqual({ types: ['array'], elements: ['integer'], rank: 2,
         shape: [2, 2], eagerScalarCells: true });
 });

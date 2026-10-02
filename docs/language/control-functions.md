@@ -379,8 +379,9 @@ passed to a function.
 
 Within one specialization, returned records must have the same recursive schema.
 Being `.record` on both paths is not enough: a field cannot be absent, change
-type, or change array rank. Empty arrays may defer cell types until a nonempty
-value establishes them. A schema conflict raises `ReturnTypeMismatch`.
+type, or change array rank. Empty arrays without a concrete fill may defer cell types until a nonempty
+value establishes them. An explicit fill such as `array shape 0 fill 0`
+already establishes integer cells, including in an empty function result. A schema conflict raises `ReturnTypeMismatch`.
 
 For results with different meanings, return a record with an explicit tag and
 consistent fields:

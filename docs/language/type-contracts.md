@@ -24,7 +24,7 @@ end
 Rebinding `State` to a record with `.name` instead of these fields is an error.
 Use a different name for a different structure. Replacing an entire record uses
 the same structural compatibility as replacing a nested record: a different
-established array element type is a different schema. Empty array fields leave
+established array element type is a different schema. Empty array fields without a concrete fill leave
 their cell domain open; a later nonempty field assignment or compatible record
 replacement settles it. Empty replacements and a temporary `.NA` do not erase
 an established contract.
@@ -75,8 +75,13 @@ contracts; records in one array domain must have compatible schemas, as they do
 in array-valued record fields. Other mutable values, such as objects and indices,
 retain their own payload rules.
 
-Empty arrays establish rank but no cell domain. Missing cells do not establish a
-domain and fit any established domain. Replacing an entire binding with `.NA`
+An explicit `fill` establishes the recursive cell type even at length zero:
+`array shape 0 fill 0` has integer cells, `fill 0.0` real cells, and `fill ""`
+text cells. This type survives copies, compatible assignments, and returns.
+A nested array, tuple, or record fill supplies its recursive type and rank.
+
+Plain empty arrays and `fill .NA` establish rank but no concrete cell domain.
+Missing cells do not establish a domain and fit any established domain. Replacing an entire binding with `.NA`
 does not erase its array contract. A first nonmissing batch of cell writes can
 settle an otherwise missing-only array.
 
@@ -114,7 +119,7 @@ outer type, an array's rank, an optional homogeneous element contract, tuple pos
 It contains no array lengths or scalar values.
 
 - An absent element contract is unresolved. The first concrete observation
-  establishes it; empty arrays and missing cells leave it unresolved.
+  establishes it; empty arrays without a concrete fill and missing cells leave it unresolved.
 - Every concrete cell must match the same contract, recursively.
 - A successful write retains established types and newly settled nested domains.
   A failed eager batch publishes none of its replacement cells.
@@ -243,9 +248,8 @@ A lazy value whose type is genuinely unknown retains an unresolved element
 domain, including after materialization and copying. Unresolved arguments use
 an unresolved specialization; runtime return checks still apply. A cache of
 observed cells is not a declaration that authorizes a new specialization.
-Explicit declarations and external-data validation remain separate work in
-step 4 and #33/#116. Empty arrays likewise do not acquire a concrete type from
-an unused fill value. An already typed binding keeps its domain through empty
+Explicit fills provide type evidence even for empty arrays. External-data
+validation remains in #33/#116. An already typed binding keeps its domain through empty
 or all-missing replacements. This change preserves existing specialization granularity:
 array argument keys describe direct element kinds, while recursive binding and
 return contracts validate nested structure.
@@ -286,3 +290,28 @@ Implementation evidence:
 - [Runtime regression tests](../../packages/interpreter/test/array-binding-contracts.test.ts),
   [static regression tests](../../packages/language/test/array-binding-contracts.test.ts),
   and [record contracts](../../packages/interpreter/test/record-contracts.test.ts).
+
+
+## Inference boundaries and explicit fills
+
+No new annotation syntax is required by #153. A fill is evaluated once, even
+when its resulting array has zero cells. Its type provides construction evidence;
+this does not authorize evaluating unread nested lazy cells to discover a type.
+`fill infinity` remains a numeric sentinel that can settle to integer or real.
+`fill .NA` and plain empty arrays leave the concrete domain unresolved.
+
+To migrate an old placeholder, use the intended type:
+
+```rank
+Numbers = array shape 0 fill 0
+Names = array shape 0 fill ""
+Undecided = array shape 0 fill .NA
+```
+
+Recursive functions with no provable returning type remain unknown under bounded
+inference and retain runtime checks. Unknown is not a proof of termination or a
+permission to change an established result contract.
+
+For external JSON, CSV, and XML, backward requirements describe how the program
+uses input. They become established facts only after boundary validation. The
+validation design is tracked in #33 and #116; it is not part of #153.

@@ -69,8 +69,8 @@ describe('structural record facts', () => {
         expect(result.diagnostics.map(item => item.message)).toEqual([]);
     });
 
-    it('does not treat an empty array fill as an established cell type', () => {
-        expect(messages('R = record\n .items = array shape 0 fill 0\nend\nR .items = array "ok"')).toEqual([]);
+    it('does not treat a missing fill as an established cell type', () => {
+        expect(messages('R = record\n .items = array shape 0 fill .NA\nend\nR .items = array "ok"')).toEqual([]);
     });
 });
 
@@ -82,11 +82,11 @@ describe('ordinary record binding schemas', () => {
     });
     it('retains the established schema through empty and missing replacements', () => {
         expect(messages(vector + 'R = .NA\nR = record\n .items = array "bad"\nend').some(message => message.includes('integer'))).toBe(true);
-        expect(messages(vector + 'R = record\n .items = array shape 0 fill 0\nend\nR .items = array "bad"'))
+        expect(messages(vector + 'R = record\n .items = array shape 0 fill .NA\nend\nR .items = array "bad"'))
             .toContain('record field .items has array cells of type integer and cannot receive text');
     });
     it('settles an initially empty field on a whole-record assignment', () => {
-        expect(messages('R = record\n .items = array shape 0 fill 0\nend\n' + vector + 'R = record\n .items = array "bad"\nend')
+        expect(messages('R = record\n .items = array shape 0 fill .NA\nend\n' + vector + 'R = record\n .items = array "bad"\nend')
             .some(message => message.includes('integer') && message.includes('text'))).toBe(true);
     });
     it('allows compatible assignments without keeping stale lengths', () => {

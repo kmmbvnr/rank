@@ -72,7 +72,7 @@ Q push "text"
     });
 
     it('retains array rank while deferring the cell type of an empty array', () => {
-        expect(messages('Q = new queue\nQ push array shape 0 fill 0\nQ push array "text"')).toEqual([]);
+        expect(messages('Q = new queue\nQ push array shape 0 fill .NA\nQ push array "text"')).toEqual([]);
     });
 
     it('does not narrow previously unknown or possibly empty array cells', () => {

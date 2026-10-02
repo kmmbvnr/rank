@@ -75,10 +75,10 @@ export class Graph {
             || fact.shape?.every(n => n !== null && n > 0)) this.inhabited.add(rank);
         this.shapeFacts.set(value.dimensions, fact);
         if (fact.rank !== undefined) this.solver.bound(rank, fact.rank, fact.rank, site(node, `rank ${fact.rank}`));
-        // Empty arrays do not establish any cell-domain evidence.
+        // An explicit fill establishes a domain even when there are no cells.
         const types = fact.types.join() === 'array' || fact.types.join() === 'sequence'
             ? fact.shape?.every(n => n !== null && n > 0) ? fact.elements : undefined : fact.types;
-        const established = contractElements(fact.acceptedArrayContract);
+        const established = contractElements(fact.acceptedArrayContract ?? fact.declaredArrayContract);
         if (established?.length) this.domains.push({ variable: rank, types: established,
             site: site(node, `established array elements: ${established.join(' or ')}`) });
         if (types?.length) this.domains.push({ variable: rank, types, site: site(node, types.join(' or ')) });
