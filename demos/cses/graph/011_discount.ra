@@ -28,7 +28,7 @@ fun flight_discount Edges N
 
   FromStart = Graph N 1 distances
   ToEnd = Back N N distances
-  Best = infinity
+  Best = -1
 
   for Edge in Edges
     unpack From To Cost = Edge
@@ -39,10 +39,9 @@ fun flight_discount Edges N
     end
 
     Candidate = Left + Cost // 2 + Right
-    Best = Best Candidate min
-  end
-  if Best equal infinity
-    return -1
+    if Best equal -1 or Candidate less Best
+      Best = Candidate
+    end
   end
   return Best
 end
