@@ -176,3 +176,44 @@ it('widens numeric loop cells when the integer seed is not closed', () => {
     expect(result.bindings.get('A')?.elements).toEqual(['integer', 'real']);
     expect(result.diagnostics).toEqual([]);
 });
+
+const scalarSearch = (body: string, bound = 'Best') => `
+fun f Vals ${bound}
+  Vals 5 0 search
+  return ${bound}
+
+  fun search Rest Need Sum
+${body}
+  end
+end
+`;
+const recursiveBody = `    if Rest len less Need
+      return Best
+    end
+    for P i in Rest
+      Total = Sum + P
+      if Total at least Best
+        break
+      end
+      Left = Need - 1
+      if Left equal 0
+        Best = Total
+        return Best
+      end
+      Later = Rest drop (i + 1)
+      Later Left Total search
+    end
+    return Best`;
+const numbers: ValueFacts = { types: ['array'], rank: 1, shape: [null], elements: ['integer'] };
+
+it('keeps the scalar contract of a bound that a recursive closure rebinds', () => {
+    expect(analyze(scalarSearch(recursiveBody), [numbers, integer]).functionResults[0].types).toEqual(['integer']);
+    expect(analyze(scalarSearch(recursiveBody), [numbers, { types: ['real'], rank: 0, shape: [] }])
+        .functionResults[0].types).toEqual(['real']);
+});
+
+it('stays unknown when the rebound capture has no proven scalar contract', () => {
+    expect(analyze(scalarSearch(recursiveBody), [numbers, UNKNOWN_VALUE]).functionResults[0]).toEqual(UNKNOWN_VALUE);
+    const text: ValueFacts = { types: ['text'], rank: 1, shape: [null] };
+    expect(analyze(scalarSearch(recursiveBody), [numbers, text]).functionResults[0].types).not.toEqual(['integer']);
+});

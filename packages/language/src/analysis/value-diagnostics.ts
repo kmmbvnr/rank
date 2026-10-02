@@ -67,7 +67,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             const analysis = analyzeValues(module, new Map(), new Map(), [{ name, arguments: arguments_ }]);
             return { result: analysis.functionResults[0], diagnostics: analysis.diagnostics };
         });
-    const { functionBindings, imported, importedAliases, globalCallEnvs, privateBindings } = calls;
+    const { functionBindings, imported, importedAliases, globalCallEnvs, privateBindings, frameBindings } = calls;
     function invalidateImportedAlias(alias: string, env: Map<string, ValueFacts>): void {
         for (const name of imported.keys()) if (name.startsWith(`${alias}.`)) {
             env.set(name, invalidate(env.get(name)));
@@ -169,9 +169,20 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             for (const [node, fact] of beforeExpressions) expressions.set(node, fact);
         }
     }
-    const forgetNonFunctions = (env: Map<string, ValueFacts>): void => {
+    // A call into this program's own nested functions writes a captured name through the enclosing
+    // frame's binding, so each write still passes its type and rank contract and a scalar keeps
+    // them. Host callbacks and unknown names carry no such bound and still forget everything.
+    const scalarContract = (name: string, fact: ValueFacts | undefined): ValueFacts | undefined => {
+        const accepted = fact?.acceptedTypes ?? fact?.types;
+        return fact && frameBindings.at(-1)?.has(name) && fact.types.length > 0 && accepted?.length
+            && [...fact.types, ...accepted].every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
+            ? { types: accepted, acceptedTypes: accepted, rank: 0, shape: [] } : undefined;
+    };
+    const forgetNonFunctions = (env: Map<string, ValueFacts>, closureOnly = false): void => {
         const protectedNames = privateBindings.at(-1);
         for (const [name, fact] of env) if (!fact.types.includes('function')) {
+            const scalar = closureOnly ? scalarContract(name, fact) : undefined;
+            if (scalar) { env.set(name, scalar); continue; }
             const accepted = fact.acceptedTypes ?? fact.types;
             const privateValue = protectedNames?.has(name) && accepted.length > 0;
             const rank = contractRank(fact);
@@ -206,6 +217,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             name => env.has(name), name => env.get(name));
         const nodes = [expression, ...AstUtils.streamAllContents(expression)];
         let unknown = false;
+        let closureUnknown = false;
         const written = new Set<string>();
         const writtenGlobals = new Set<string>();
         const numericWritten = new Set<string>();
@@ -244,7 +256,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     : effects(node.name, inputs);
                 // Host input may re-enter Rank. It is identified separately in
                 // the summary, but cannot preserve pre-call value facts here.
-                unknown ||= result.unknown || result.io;
+                unknown ||= result.io;
+                closureUnknown ||= result.unknown && !result.io;
                 // Summarized collection writes only change what the collection may hold.
                 for (const [name, state] of result.collections ?? []) {
                     const current = env.get(name);
@@ -404,11 +417,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 if (!operation || operation.effects?.length) unknown = true;
             }
         }
-        if (!unknown && !written.size && !writtenGlobals.size && !rebound.size) return;
+        if (!unknown && !closureUnknown && !written.size && !writtenGlobals.size && !rebound.size) return;
         // An unknown call can change captured bindings. Do not use a pre-call
         // shape, even in another operand of the same expression.
-        if (unknown) {
-            forgetNonFunctions(env);
+        if (unknown || closureUnknown) {
+            forgetNonFunctions(env, !unknown);
             const global = globalCallEnvs.at(-1);
             if (global && global !== env) for (const [name, fact] of global) {
                 if (!fact.types.includes('function')) global.set(name, invalidate(fact));

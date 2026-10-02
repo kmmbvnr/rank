@@ -41,6 +41,8 @@ export function createCallAnalysis(
     type Instance = { rankSignature: string; values: ValueFacts[] };
     const specializations = new WeakMap<FunctionStatement, Map<string, Instance>>();
     const privateBindings: Set<string>[] = [];
+    /** Every name a frame binds, including those a nested function may also write through the closure. */
+    const frameBindings: Set<string>[] = [];
 
     function directNoReturnCall(expression: Expression, env: ReadonlyMap<string, ValueFacts>): boolean {
         const parts = isApplicationExpression(expression) ? flattenApplication(expression) : [expression];
@@ -137,10 +139,11 @@ export function createCallAnalysis(
             [...AstUtils.streamAllContents(nested)].flatMap(node => isAssignmentStatement(node) ? [node.name]
                 : isFunctionStatement(node) ? [node.name] : isUnpackStatement(node) ? node.names : isForStatement(node)
                     ? loopBinding(node.condition)?.names ?? [] : [])));
-        privateBindings.push(new Set([...definition.parameters, ...nodes.filter(isAssignmentStatement)
+        const bound = [...definition.parameters, ...nodes.filter(isAssignmentStatement)
             .map(statement => statement.name).filter(name => !name.includes('.')), ...nodes.filter(isForStatement)
-            .flatMap(loop => loopBinding(loop.condition)?.names ?? [])]
-            .filter(name => name !== '#' && !nestedWrites.has(name))));
+            .flatMap(loop => loopBinding(loop.condition)?.names ?? [])].filter(name => name !== '#');
+        privateBindings.push(new Set(bound.filter(name => !nestedWrites.has(name))));
+        frameBindings.push(new Set(bound));
         const entry = new Map(local);
         const diagnosticStart = diagnostics.length;
         const contractEnv = new Map([...local].map(([key, fact]) => [key,
@@ -256,6 +259,7 @@ export function createCallAnalysis(
             active.delete(signature);
             globalCallEnvs.pop();
             privateBindings.pop();
+            frameBindings.pop();
             for (const { nested, previous, previousBinding, hadBinding, previousInstances } of hoisted.reverse()) {
                 if (previousInstances) specializations.set(nested, previousInstances);
                 else specializations.delete(nested);
@@ -272,7 +276,7 @@ export function createCallAnalysis(
     }
 
     return {
-        functionBindings, imported, importedAliases, globalCallEnvs, privateBindings,
+        functionBindings, imported, importedAliases, globalCallEnvs, privateBindings, frameBindings,
         directNoReturnCall, call,
         hasPureRecursiveProbe: (name: string) => {
             const definition = functions.get(name);
