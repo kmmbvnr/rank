@@ -171,7 +171,7 @@ it('keeps empty nested domains open until a populated replacement settles them',
 
 it('leaves empty typed storage unresolved just like other empty arrays', () => {
     for (const data of [new BigInt64Array(0), new Float64Array(0)]) {
-        const frame = new LocalFrame();
+        const frame = new LocalFrame(undefined);
         frame.define('A', typedArray(data), new Set(['array']));
         expect(() => frame.set('A', ownedArray(['x']))).not.toThrow();
         expect(() => frame.set('A', ownedArray([1n]))).toThrow(/array elements/);
