@@ -80,6 +80,7 @@ export class LivePreviewRunner {
             ...build(source, target),
             control: controlAt(lines[target].trim(), target + 1, state.iterations),
             recursive: lineCallsFunction(lines[target].trim(), functionName),
+            generator: closesGeneratorLoop(lines, start, target),
         }));
         const changed = previews.some(item => state.prefixes.has(item.line)
                 && state.prefixes.get(item.line) !== item.source)
@@ -98,6 +99,11 @@ export class LivePreviewRunner {
                 state.outputs.set(item.line, [{ text: 'recursive call', error: false }]);
                 state.prefixes.set(item.line, item.source);
                 priorRecursion = true;
+                continue;
+            }
+            if (item.generator) {
+                state.outputs.set(item.line, [{ text: 'generator loop', error: false }]);
+                state.prefixes.set(item.line, item.source);
                 continue;
             }
             if (state.slowLines?.has(item.line)) {
@@ -160,6 +166,16 @@ export class LivePreviewRunner {
             state.prefixes.set(item.line, item.source);
         }
     }
+}
+
+/**
+ * A bare `for` that yields never ends on its own, and the closing `end` previews
+ * by counting the iterations, so that count would never come back.
+ */
+function closesGeneratorLoop(lines: string[], start: number, target: number): boolean {
+    const loop = closingLoop(lines, start, target);
+    if (loop === undefined || lines[loop].trim() !== 'for') return false;
+    return lines.slice(loop + 1, target).some(line => /^yield\b/.test(line.trim()));
 }
 
 function lineCallsFunction(line: string, name?: string): boolean {
