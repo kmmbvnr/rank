@@ -24,7 +24,7 @@ import { bindingRankConflict, bindingRankMessage, bindingTypeMessage, settledBin
     provenBindingTypeConflict } from '../binding-rule.js';
 import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { functionYields, generatorCells, yieldTypes } from './function-yields.js';
-import { createCallAnalysis } from './function-calls.js';
+import { createCallAnalysis, type ImportedFunction } from './function-calls.js';
 import { createReturnPathAnalysis } from './return-paths.js';
 import { recordBindingContract, refineRecordContract, recordFieldConflict } from './return-contract.js';
 import { createLoopAnalysis } from './loop-analysis.js';
@@ -52,6 +52,8 @@ export interface ValueAnalysis {
     readonly expressions: ReadonlyMap<Expression, ValueFacts>;
     readonly functions: ReadonlyMap<string, FunctionStatement>;
     readonly functionResults: readonly ValueFacts[];
+    /** The imported functions this pass bound, for a later pass over the next cell to start from. */
+    readonly imports: ReadonlyMap<string, ImportedFunction>;
 }
 
 let nextCollectionId = 0;
@@ -61,7 +63,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     declarations: ReadonlyMap<string, FunctionStatement> = new Map(),
     examples: readonly { name: string; arguments: readonly ValueFacts[];
         constructions?: readonly (readonly ConstructorCall[] | undefined)[] }[] = [],
-    loadModule?: (path: string) => Program | undefined): ValueAnalysis {
+    loadModule?: (path: string) => Program | undefined,
+    initialImports?: ReadonlyMap<string, ImportedFunction>): ValueAnalysis {
     const diagnostics: ValueDiagnostic[] = builtinBindingDiagnostics(program, undefined, declarations.values(), loadModule);
     const expressions = new Map<Expression, ValueFacts>();
     const bindings = new Map(initial);
@@ -72,7 +75,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         (module, name, arguments_) => {
             const analysis = analyzeValues(module, new Map(), new Map(), [{ name, arguments: arguments_ }]);
             return { result: analysis.functionResults[0], diagnostics: analysis.diagnostics };
-        });
+        }, initialImports);
     const { functionBindings, imported, importedAliases, globalCallEnvs, privateBindings, frameBindings } = calls;
     function invalidateImportedAlias(alias: string, env: Map<string, ValueFacts>): void {
         for (const name of imported.keys()) if (name.startsWith(`${alias}.`)) {
@@ -1165,7 +1168,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     diagnostics.push(...requirementDiagnostics(requirements.conflicts, diagnostics));
     const unique = diagnostics.filter((diagnostic, index) => !diagnostics.slice(0, index).some(previous =>
         previous.node === diagnostic.node && previous.message === diagnostic.message));
-    return { diagnostics: unique, bindings, expressions, functions, functionResults, requirements };
+    return { diagnostics: unique, bindings, expressions, functions, functionResults, requirements, imports: imported };
 }
 
 function dataDependentLength(operation: Operation): boolean {

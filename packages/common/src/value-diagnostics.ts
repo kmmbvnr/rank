@@ -1,4 +1,4 @@
-import { analyzeValues, describeTypes, functionTestExamples, isFunctionStatement, type ValueFacts, type FunctionStatement, type FunctionTestExample } from '@arrrank/language';
+import { analyzeValues, describeTypes, functionTestExamples, isFunctionStatement, type ValueFacts, type FunctionStatement, type FunctionTestExample, type ImportedFunction, type Program } from '@arrrank/language';
 import { isNativeFunction, isRankArray, parse, type RankValue } from '@arrrank/interpreter';
 import type { Notebook } from './notebook.js';
 import type { OutputLine } from './repl-session.js';
@@ -27,20 +27,24 @@ export function runtimeValueFacts(values: ReadonlyMap<string, RankValue>,
 }
 
 /** What the cells before the active one bind: analyzed, then replaced by the run's facts while those are fresh. */
-export function notebookScope(book: Notebook, runtime: readonly [string, ValueFacts][] = []): {
+export function notebookScope(book: Notebook, runtime: readonly [string, ValueFacts][] = [],
+    loadModule?: (specifier: string) => Program | undefined): {
     bindings: Map<string, ValueFacts>; functions: Map<string, FunctionStatement>; clean: boolean;
+    imports: Map<string, ImportedFunction>;
 } {
     let bindings = new Map<string, ValueFacts>();
     let functions = new Map<string, FunctionStatement>();
+    let imports = new Map<string, ImportedFunction>();
     const cleanPrefix = book.atPrompt && book.dirtyFrom < 0
         && book.cells.slice(0, book.active).every(cell => cell.command || cell.status === 'ok' && cell.executed === cell.source);
     for (const cell of book.cells.slice(0, book.active)) {
         if (cell.command) continue;
         try {
-            const analysis = analyzeValues(parse(cell.source), bindings, functions);
+            const analysis = analyzeValues(parse(cell.source), bindings, functions, [], loadModule, imports);
             bindings = new Map(analysis.bindings);
             functions = new Map(analysis.functions);
-        } catch { bindings.clear(); functions.clear(); }
+            imports = new Map(analysis.imports);
+        } catch { bindings.clear(); functions.clear(); imports.clear(); }
     }
     if (cleanPrefix) {
         const sequential = book.cells.slice(0, book.active).every((_, index) => !book.isExperimental(index));
@@ -57,16 +61,17 @@ export function notebookScope(book: Notebook, runtime: readonly [string, ValueFa
             bindings.set(name, { ...fact, ...(elements && !fact.elements ? { elements } : {}) });
         }
     }
-    return { bindings, functions, clean: cleanPrefix };
+    return { bindings, functions, clean: cleanPrefix, imports };
 }
 
 /** Source analysis replaces stale runtime facts as soon as an earlier cell changes. */
 export function notebookValueDiagnostics(book: Notebook, runtime: readonly [string, ValueFacts][] = [],
-    tests?: { path: string; examples: readonly FunctionTestExample[] }): ReadonlyMap<number, OutputLine[]> {
+    tests?: { path: string; examples: readonly FunctionTestExample[] },
+    loadModule?: (specifier: string) => Program | undefined): ReadonlyMap<number, OutputLine[]> {
     const output = new Map<number, OutputLine[]>();
     const current = book.current;
     if (current.command || !current.source.trim()) return output;
-    const { bindings, functions } = notebookScope(book, runtime);
+    const { bindings, functions, imports } = notebookScope(book, runtime, loadModule);
     try {
         const program = parse(current.source);
         const definitions = program.statements.filter(isFunctionStatement);
@@ -82,7 +87,7 @@ export function notebookValueDiagnostics(book: Notebook, runtime: readonly [stri
         }
         const relevantExamples = locatedExamples.filter(({ example }) => definitions.some(definition => definition.name === example.name));
         const examples = relevantExamples.map(({ example }) => example);
-        const analysis = analyzeValues(program, bindings, functions, examples);
+        const analysis = analyzeValues(program, bindings, functions, examples, loadModule, imports);
         for (const diagnostic of analysis.diagnostics) {
             const line = (diagnostic.node.$cstNode?.range.start.line ?? 0) + 1;
             const text = `${diagnostic.kind}: ${diagnostic.message}`;

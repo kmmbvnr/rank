@@ -9,6 +9,7 @@ import { importPosition, missingImports } from './import-fix.js';
 import { type OutputLine } from './repl-session.js';
 import type { ReplSession } from './repl-types.js';
 import { notebookScope, notebookValueDiagnostics } from './value-diagnostics.js';
+import { createModuleLoader, importedPaths, type ModuleSource } from './module-loader.js';
 import { nameFactsIn, type NameFacts } from './name-facts.js';
 
 
@@ -41,9 +42,10 @@ export class NotebookRepl {
         const facts = this.session.diagnosticFacts;
         const key = JSON.stringify([this.notebook.active, this.notebook.dirtyFrom,
             this.notebook.cells.map(cell =>
-                [cell.id, cell.source, cell.executed, cell.command, cell.status]), facts, this.session.testExamples]);
+                [cell.id, cell.source, cell.executed, cell.command, cell.status]), facts, this.session.testExamples,
+            this.importedSources()]);
         if (this.diagnosticCache?.key !== key) this.diagnosticCache = {
-            key, outputs: notebookValueDiagnostics(this.notebook, facts, this.session.testExamples),
+            key, outputs: notebookValueDiagnostics(this.notebook, facts, this.session.testExamples, this.loadModule),
         };
         return this.diagnosticCache.outputs;
     }
@@ -55,12 +57,22 @@ export class NotebookRepl {
         if (current.command || !current.source.trim()) return undefined;
         const facts = this.session.diagnosticFacts;
         const key = JSON.stringify([book.active, book.dirtyFrom,
-            book.cells.map(cell => [cell.id, cell.source, cell.executed, cell.command, cell.status]), facts]);
+            book.cells.map(cell => [cell.id, cell.source, cell.executed, cell.command, cell.status]), facts,
+            this.importedSources()]);
         if (this.nameFactsCache?.key !== key) {
-            const scope = notebookScope(book, facts);
-            this.nameFactsCache = { key, lookup: nameFactsIn(current.source, scope.clean ? facts : [], [], scope) };
+            const scope = notebookScope(book, facts, this.loadModule);
+            this.nameFactsCache = { key, lookup: nameFactsIn(current.source, scope.clean ? facts : [], [], scope, this.loadModule) };
         }
         return this.nameFactsCache.lookup?.(book.cursor);
+    }
+    private readonly modules?: ModuleSource;
+    private readonly loadModule?: ReturnType<typeof createModuleLoader>;
+    /** What the notebook's imports say now, so a module edited on disk invalidates the cached analysis. */
+    private importedSources(): (string | null)[] {
+        if (!this.modules) return [];
+        return importedPaths(this.notebook.cells.map(cell => cell.source)).map(path => {
+            try { return this.modules!(path) ?? null; } catch { return null; }
+        });
     }
     private nameFactsCache?: { key: string; lookup: ReturnType<typeof nameFactsIn> };
     private diagnosticCache?: { key: string; outputs: ReadonlyMap<number, OutputLine[]> };
@@ -244,7 +256,11 @@ export class NotebookRepl {
         readonly render: () => void = () => {},
         readonly columns = () => 80,
         functionExamples = false,
+        /** Where `use "path"` finds a module, for analysis only; without it imports stay opaque. */
+        modules?: ModuleSource,
     ) {
+        this.modules = modules;
+        this.loadModule = modules && createModuleLoader(modules);
         this.execution = new ExecutionRunner(this.notebook, session, this.breakpoints, columns, render);
         this.liveFunction = new LiveFunctionController(
             this.notebook, session, columns, text => { this.suggestion = text; }, render, functionExamples,

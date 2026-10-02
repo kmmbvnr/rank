@@ -12,6 +12,7 @@ import { TerminalModeRouter } from './terminal-modes.js';
 import { TerminalRenderer } from './terminal-renderer.js';
 import { TerminalInputDecoder } from './terminal-input.js';
 import { systemClipboard } from './clipboard.js';
+import { loadModule } from './load-module.js';
 
 const HISTORY_LIMIT = 500;
 const historyFile = (): string => path.join(os.homedir(), '.rank_history');
@@ -84,7 +85,11 @@ async function terminalRepl(session: ReplSession): Promise<void> {
     const typeAhead: { text: string; key?: Key }[] = [];
     let replayTypeAhead = (): void => {};
     const render = (): void => { replayTypeAhead(); renderer?.render(); };
-    const repl = new NotebookRepl(session, render, () => output.columns || 80, true);
+    // Analysis reads imports the way a run does: relative to the directory the session started in.
+    const moduleSource = (specifier: string): string | undefined => {
+        try { return loadModule(specifier, path.join(process.cwd(), '<repl>')).source; } catch { return undefined; }
+    };
+    const repl = new NotebookRepl(session, render, () => output.columns || 80, true, moduleSource);
     const book = repl.notebook;
     const keyRouter = new KeyRouter(repl, history, () => output.columns || 80, systemClipboard());
     const modeRouter = new TerminalModeRouter(repl, () => output.rows || 24);

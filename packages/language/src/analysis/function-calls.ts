@@ -18,6 +18,17 @@ interface CallDiagnostic {
     readonly kind: 'TypeError' | 'DimensionMismatch';
 }
 
+/**
+ * A function of an imported module, tied to the binding that introduced it: a call uses the
+ * summary only while the environment still holds this exact `binding`.
+ */
+export interface ImportedFunction {
+    readonly program: Program;
+    readonly name: string;
+    readonly binding: ValueFacts;
+    readonly functions: ReadonlyMap<string, FunctionStatement>;
+}
+
 /** State confined to call-site evaluation and bounded recursive probes. */
 export function createCallAnalysis(
     bindings: Map<string, ValueFacts>,
@@ -26,11 +37,11 @@ export function createCallAnalysis(
     expressions: Map<Expression, ValueFacts>,
     returnValues: (items: readonly Statement[], env: Map<string, ValueFacts>) => ValueFacts[],
     analyzeImported: (program: Program, name: string, arguments_: readonly ValueFacts[]) => { result: ValueFacts; diagnostics: readonly CallDiagnostic[] },
+    initialImports: ReadonlyMap<string, ImportedFunction> = new Map(),
 ) {
     const functionBindings = new Map([...functions.keys()].map(name => [name, bindings.get(name)]));
-    const imported = new Map<string, { program: Program; name: string; binding: ValueFacts;
-        functions: ReadonlyMap<string, FunctionStatement> }>();
-    const importedAliases = new Set<string>();
+    const imported = new Map<string, ImportedFunction>(initialImports);
+    const importedAliases = new Set([...initialImports.keys()].map(qualified => qualified.slice(0, qualified.indexOf('.'))));
     const activeCalls = new WeakMap<FunctionStatement, Set<string>>();
     const recursiveProbes = new WeakMap<FunctionStatement, Map<string, { inputs: readonly ValueFacts[]; result: ValueFacts;
         seen: boolean; valid: boolean; pure: boolean }>>();

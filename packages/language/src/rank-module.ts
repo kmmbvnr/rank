@@ -43,7 +43,7 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
         },
     },
     validation: {
-        RankValidator: () => new RankValidator()
+        RankValidator: services => new RankValidator(services)
     }
 };
 
