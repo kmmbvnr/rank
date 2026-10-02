@@ -696,6 +696,20 @@ rem 2.5, 2, -3
 valid for comparisons and arithmetic, but decimal input declarations accept
 only finite real values.
 
+A binding that still holds `infinity` or `-infinity` has not yet committed to
+real values, so its first integer replaces it and the binding settles on
+`integer`. This keeps exact minima and maxima over integers:
+
+```rank
+Best = infinity
+for Candidate in Candidates
+  Best = Best Candidate min
+end
+rem Best is an integer when Candidates are integers
+```
+
+A binding that has held any finite real keeps `real`, as in ADR-0100.
+
 `nan` from `use numbers` is the IEEE not-a-number real value. It marks a real
 with no numeric value, such as an unknown parameter, and arises from undefined
 real arithmetic like `infinity - infinity`. `nan` is unordered: `less`,

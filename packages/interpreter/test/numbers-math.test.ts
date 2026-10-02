@@ -15,6 +15,17 @@ describe('Rank mathematical functions', () => {
         expect(() => run('use numbers\n"x" isnan')).toThrowError();
     });
 
+    it('lets an infinite accumulator seed settle on its first integer', () => {
+        const fold = (seed: string, pick: string) => `use numbers\n${seed}\nfor Item in array 5 3 8\n  Best = Best Item ${pick}\nend\nBest`;
+        expect(run(fold('Best = infinity', 'min'))).toBe('3');
+        expect(run(fold('Best = -infinity', 'max'))).toBe('8');
+        expect(run(`${fold('Best = infinity', 'min')} type`)).toBe('.integer');
+        expect(run('use numbers\nBest = infinity\nBest = Best 2.5 min\nBest type')).toBe('.real');
+        expect(() => run('use numbers\nBest = infinity\nBest = 3\nBest = 2.5'))
+            .toThrowError('Best has type integer and cannot receive real');
+        expect(() => run('use numbers\nBest = 2.5\nBest = 3')).toThrowError('Best has type real and cannot receive integer');
+    });
+
     it('calculates exact and modular binomials', () => {
         expect(run('use numbers\n5 2 binomial')).toBe('10');
         expect(run('use numbers\n100 50 binomial')).toBe(
