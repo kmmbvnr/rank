@@ -535,6 +535,14 @@ function transferApplicationFacts(
                 return { ...(shaped ?? { types: ['array'] }),
                     elements: ['integer'], eagerScalarCells: true };
             }
+            // A queue, stack or deque reverses into a new array of the same items.
+            if (arity === 1 && last.name === 'reverse' && operation === findOperation('reverse')
+                && ['queue', 'stack', 'deque'].includes(source.types.join())) {
+                const scalar = source.elements?.length
+                    && source.elements.every(type => ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type));
+                return { types: ['array'], rank: 1, shape: [null],
+                    ...(scalar ? { elements: source.elements, eagerScalarCells: true as const } : {}) };
+            }
             if (arity === 1 && last.name === 'unique' && source.rank === 1
                 && ['array', 'sequence'].includes(source.types.join())
                 && (source.eagerScalarCells || source.callbackFreeScalarCells)

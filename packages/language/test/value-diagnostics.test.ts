@@ -693,6 +693,16 @@ it('reads a scalar array cell as the first operand of a trailing dyadic operatio
     expect(messages('Steps = array 9 8 7\nA = Steps Unknown 5 min\nA + "bad"')).toEqual([]);
 });
 
+it('reverses a queue into an array', () => {
+    const reversed = (setup: string, read = '') => messages(`use algo\nuse sequences\nfun back Item\n Q = new queue\n${setup}\n return Q reverse${read}\nend\nA = 1 back\nA = 1`);
+    expect(reversed(' Q push Item\n Q push 2'))
+        .toEqual(['A has type array and cannot receive integer']);
+    // The reversed array keeps the queue's item types only when they are proved.
+    const first = (setup: string) => messages(`use algo\nuse sequences\nfun back Item\n Q = new queue\n${setup}\n R = Q reverse\n return R first\nend\nA = 1 back\nA = "text"`);
+    expect(first(' Q push Item\n Q push 2')).toEqual(['A has type integer and cannot receive text']);
+    expect(first(' Q push (new queue)')).toEqual([]);
+});
+
 it('keeps outer loop facts when only a nested loop continues', () => {
     const nested = (exit: string) => `fun count Width\n Current = array shape 4 fill 0\n for Column in 1 to Width\n  Next = array shape 4 fill 0\n${exit}\n  Current = Next\n end\n return Current 0\nend\nA = 3 count\nA + "bad"`;
     expect(messages(nested('  for Mask in 0 till 4\n   Ways = Current Mask\n   if Ways equal 0\n    continue\n   end\n   Next 0 += Ways\n  end')))
