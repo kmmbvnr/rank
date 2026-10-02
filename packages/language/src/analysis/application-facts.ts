@@ -35,6 +35,31 @@ function multisetMethodFacts(form: Extract<ApplicationForm, { kind: 'multiset-me
     return perQueryFacts(infer(applicationExpression(form.argument), lookup), receiver.elements);
 }
 
+/** Cell types a scalar or array operand can contribute to a mask selection. */
+function selectedCells(value: ValueFacts): Types | undefined {
+    const cells = value.rank === 0 ? value.types : value.types.join() === 'array' ? value.elements : undefined;
+    return cells?.length && cells.every(type => type === 'integer' || type === 'real') ? cells : undefined;
+}
+
+/**
+ * `Mask Then Else choose` with a boolean array mask: every cell comes from one branch, so the
+ * result has the broadcast shape and the numeric cell types either branch can supply.
+ */
+function chooseFacts(mask: ValueFacts, then: ValueFacts, otherwise: ValueFacts): ValueFacts | undefined {
+    const operands = [mask, then, otherwise];
+    if (mask.types.join() !== 'array' || !mask.rank || mask.elements?.join() !== 'boolean') return;
+    const thenCells = selectedCells(then);
+    const otherCells = selectedCells(otherwise);
+    if (!thenCells || !otherCells || operands.some(operand => operand.rank === undefined)) return;
+    let shape: (number | null)[] = [];
+    for (const operand of operands) {
+        const next = operand.shape ?? Array(operand.rank!).fill(null);
+        if (incompatibleShapes({ types: ['array'], shape }, { types: ['array'], shape: next })) return;
+        shape = broadcastShape(shape, next);
+    }
+    return { types: ['array'], rank: shape.length, shape, elements: [...new Set([...thenCells, ...otherCells])] };
+}
+
 function sortedScalarArray(source: ValueFacts): ValueFacts | undefined {
     if (source.types.join() !== 'array' || source.rank !== 1 || !source.shape
         || !(source.eagerScalarCells || source.callbackFreeScalarCells)
@@ -165,6 +190,14 @@ function transferApplicationFacts(
             prefix = prefix.head;
         }
         if (isApplicationExpression(prefix)) parts = [prefix, ...flattened.slice(2)];
+    }
+    // A later operand `Record .field` is a field read too, as in `X Model .weights matmul`.
+    for (let index = 2; parts.length > 2 && index < parts.length; index++) {
+        const label = parts[index];
+        if (!isLabelLiteral(label) || !infer(parts[index - 1], lookup).fields?.[label.name]) continue;
+        parts = [...parts.slice(0, index - 1), applicationExpression([parts[index - 1], label], expression),
+            ...parts.slice(index + 1)];
+        index--;
     }
     const last = parts.at(-1)!;
     const headParts = isApplicationExpression(expression.head) ? flattenApplication(expression.head) : [];
@@ -346,6 +379,10 @@ function transferApplicationFacts(
             const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => infer(part, lookup));
             const shaped = operation.sortDirection && arity === 2 ? undefined
                 : operationShapeFacts(operation, operands);
+            if (arity === 3 && operation.name === 'choose') {
+                const chosen = chooseFacts(operands[0], operands[1], operands[2]);
+                if (chosen) return chosen;
+            }
             if (arity === 1 && last.name === 'eigh' && source.types.join() === 'array'
                 && source.rank === 2 && source.shape?.length === 2
                 && (source.eagerScalarCells || source.callbackFreeScalarCells)

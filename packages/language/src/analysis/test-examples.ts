@@ -1,13 +1,15 @@
+import { AstUtils } from 'langium';
 import {
-    isApplicationExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement,
-    isNameExpression, isParenthesizedExpression, isTestStatement, isUseStatement, isFunctionStatement,
+    isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression,
+    isExpressionStatement, isLabelLiteral, isNameExpression, isParenthesizedExpression, isTestStatement, isUseStatement, isFunctionStatement,
     type Expression, type Program,
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { mapsScalarCells } from './types.js';
 import { expressionFacts } from './value-facts.js';
-import type { ValueFacts } from './value-domain.js';
+import { analyzeValues } from './value-diagnostics.js';
+import { stableRecordField, UNKNOWN_VALUE, type ValueFacts } from './value-domain.js';
 
 export interface FunctionTestExample {
     readonly name: string;
@@ -17,9 +19,21 @@ export interface FunctionTestExample {
     readonly line: number;
 }
 
-/** Expected examples, not contracts. No module loading or test execution occurs here. */
+/** Result facts of calling a function of the tested module; empty types when nothing is proven. */
+export type ModuleSummary = (name: string, arguments_: readonly ValueFacts[]) => ValueFacts;
+
+/** Summarizes calls into `program` by analyzing the called function, never by running it. */
+export function moduleSummary(program: Program): ModuleSummary {
+    return (name, arguments_) => analyzeValues(program, new Map(), new Map(),
+        [{ name, arguments: arguments_ }]).functionResults[0] ?? UNKNOWN_VALUE;
+}
+
+/**
+ * Expected examples, not contracts. No test execution occurs here. Without `summarize`, a call
+ * into the tested module binds an unknown value, so records it builds carry no facts.
+ */
 export function functionTestExamples(program: Program, moduleName?: string,
-    moduleFunctions?: ReadonlySet<string>): FunctionTestExample[] {
+    moduleFunctions?: ReadonlySet<string>, summarize?: ModuleSummary): FunctionTestExample[] {
     const examples: FunctionTestExample[] = [];
     const localFunctions = new Set(program.statements.filter(isFunctionStatement).map(statement => statement.name));
     const knownFunctions = moduleFunctions ?? (moduleName === undefined ? localFunctions : undefined);
@@ -69,22 +83,54 @@ export function functionTestExamples(program: Program, moduleName?: string,
                 arguments: (piped ? [prefix] : parts.slice(0, -1))
                     .map(part => expressionFacts(part, name => bindings.get(name))) };
         };
+        // A call or write may reach a record through an alias and resize its fields, but a field
+        // keeps its runtime type, so only the dimensions and cells of every record are forgotten.
+        const forgetFieldDimensions = () => {
+            for (const [name, fact] of bindings) if (fact.types.join() === 'record') {
+                bindings.set(name, { ...fact, ...stableRecordField(fact) });
+            }
+        };
+        const hasCall = (expression: Expression) =>
+            AstUtils.streamAst(expression).some(node => isApplicationExpression(node));
         for (const statement of test.statements) {
+            if (isArrayAssignmentStatement(statement) && bindings.get(statement.name)?.types.join() === 'record') {
+                const target = bindings.get(statement.name)!;
+                const value = expressionFacts(statement.value, name => bindings.get(name));
+                forgetFieldDimensions();
+                const [index] = statement.indices;
+                const field = statement.indices.length === 1 && statement.operator === '='
+                    && !index.all && !index.spread && index.value && isLabelLiteral(index.value)
+                    ? index.value.name : undefined;
+                const previous = field === undefined ? undefined : target.fields?.[field];
+                const kept = bindings.get(statement.name)!;
+                bindings.set(statement.name, field !== undefined && previous && value.types.length
+                    && value.types.join() === previous.types.join()
+                    ? { ...kept, fields: { ...kept.fields, [field]: value } } : UNKNOWN_VALUE);
+                calls.delete(statement.name);
+                continue;
+            }
             if (isAssignmentStatement(statement) && statement.operator === '=') {
                 const invocation = call(statement.value);
+                const facts = expressionFacts(statement.value, name => bindings.get(name));
+                const summary = invocation && !invocation.shapePreserved ? summarize?.(invocation.name,
+                    invocation.arguments) : undefined;
+                if (hasCall(statement.value)) forgetFieldDimensions();
                 if (invocation) calls.set(statement.name, invocation); else calls.delete(statement.name);
-                bindings.set(statement.name, expressionFacts(statement.value, name => bindings.get(name)));
+                bindings.set(statement.name, summary?.types.length ? summary : facts);
             } else if (isExpressionStatement(statement) && isBinaryExpression(statement.value)
                 && statement.value.operator === 'equal') {
                 const invocation = call(statement.value.left);
-                if (!invocation) continue;
                 let expected = expressionFacts(statement.value.right, name => bindings.get(name));
-                if (invocation.shapePreserved) {
-                    if (expected.types.join() !== 'array') continue;
+                const comparable = !invocation?.shapePreserved || expected.types.join() === 'array';
+                if (invocation?.shapePreserved && comparable) {
                     expected = { types: ['array'], rank: expected.rank, shape: expected.shape };
                 }
-                examples.push({ name: invocation.name, arguments: invocation.arguments, expected,
-                    test: test.description, line: (statement.$cstNode?.range.start.line ?? 0) + 1 });
+                if (invocation && comparable) examples.push({ name: invocation.name,
+                    arguments: invocation.arguments, expected, test: test.description,
+                    line: (statement.$cstNode?.range.start.line ?? 0) + 1 });
+                forgetFieldDimensions();
+            } else if (!isUseStatement(statement)) {
+                forgetFieldDimensions();
             }
         }
     }
