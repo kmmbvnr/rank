@@ -71,7 +71,10 @@ export function safeIndexedIteration(collection: ValueFacts): boolean {
     const kind = collection.types.join();
     return kind === 'text' || kind === 'queue'
         || collection.rank !== undefined && collection.rank > 0 && ['array', 'sequence'].includes(kind)
-            && (collection.eagerScalarCells === true || collection.callbackFreeScalarCells === true);
+            && (collection.eagerScalarCells === true || collection.callbackFreeScalarCells === true)
+        // A materialized array of records with a proved schema holds no lazy cells.
+        || kind === 'array' && collection.rank === 1 && collection.elements?.join() === 'record'
+            && collection.elementRecord !== undefined;
 }
 
 export function safeIndexedSource(source: Expression): boolean {

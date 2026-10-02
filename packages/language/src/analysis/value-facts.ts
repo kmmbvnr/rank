@@ -5,7 +5,7 @@ import {
     isNumberLiteral,
     isParenthesizedExpression, isRecordExpression, isRecordUpdateExpression, isStdinExpression, isStringLiteral,
     isTableFilterExpression,
-    isBoundClauseExpression, isCountClauseExpression, isUnaryExpression,
+    isBoundClauseExpression, isCountClauseExpression, isKeyedSortExpression, isUnaryExpression,
     type Expression,
 } from '../generated/ast.js';
 import { localCollectionType, resultTypes, typeOf } from './types.js';
@@ -199,6 +199,20 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
                     ? { eagerScalarCells: true as const } : {}) }
             : source.types.length === 1 && source.types[0] === 'queue'
                 ? { types: ['array'], rank: 1, shape: [null] } : { types: ['array'] };
+    }
+    if (isKeyedSortExpression(expression) && /^sort\s+by$/.test(expression.operator) && expression.fields.length) {
+        // Sorting reorders the records without changing them, so the schema survives
+        // once every sort field is a proven field of it.
+        const source = expressionFacts(expression.source, lookup);
+        const kind = source.types.join();
+        const fields = source.elementRecord?.fields;
+        if (['queue', 'deque', 'stack', 'array'].includes(kind) && source.elements?.join() === 'record'
+            && fields && expression.fields.every(item => fields[item.field.name])
+            && (kind !== 'array' || source.rank === 1)) {
+            return { types: ['array'], rank: 1, shape: [kind === 'array' ? source.shape?.[0] ?? null : null],
+                elements: ['record'], elementRecord: source.elementRecord };
+        }
+        return { types: ['array'] };
     }
     if (isFirstIndexWhereExpression(expression)) return { types: ['integer'], rank: 0, shape: [] };
     if (isTableFilterExpression(expression) && !expression.sourceFields.length) {

@@ -1244,3 +1244,32 @@ it('keeps declared stdin lengths across later reads', async () => {
     expect(names.get('Fixed')!.shape).toEqual([3]);
     expect(provenSameShape(names.get('A')!, names.get('Fixed')!)).toBe(false);
 });
+
+it('types a named scan as a rank-1 array and keeps the seed in its length', () => {
+    const values = new Map<string, ValueFacts>([['V', facts('array 7 7 9')],
+        ['R', { types: ['array'], rank: 1, shape: [3], elements: ['real'], eagerScalarCells: true }],
+        ['U', { types: ['array'], rank: 1, shape: [3] }]]);
+    expect(facts('V scan bxor with 0', values)).toMatchObject({ types: ['array'], rank: 1, shape: [4],
+        elements: ['integer'] });
+    expect(facts('V scan bxor', values)).toMatchObject({ types: ['array'], rank: 1, shape: [3] });
+    expect(facts('V scan max with 0', values)).toMatchObject({ types: ['array'], rank: 1, shape: [4] });
+    // Real cells, unproved cells, an array seed and a shadowed operation claim nothing.
+    expect(facts('R scan bxor with 0', values).types).toEqual([]);
+    expect(facts('U scan bxor with 0', values).types).toEqual([]);
+    expect(facts('V scan bxor with V', values).types).toEqual([]);
+    expect(facts('V scan bxor with 0', new Map([...values, ['bxor', { types: ['function'] }]])).types).toEqual([]);
+});
+
+it('does not call the xor of unproved operands a scalar', () => {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(
+        'use bits\nuse sequences\nfun f Values Queries\n Prefix = Values scan bxor with 0\n'
+        + ' Left = Queries # 0\n Right = Queries # 1\n Before = Prefix (Left - 1)\n After = Prefix Right\n'
+        + ' return After Before bxor\nend\n');
+    expect(parsed.parserErrors).toEqual([]);
+    const values: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true };
+    const queries: ValueFacts = { types: ['array'], rank: 2, shape: [3, 2], elements: ['integer'],
+        eagerScalarCells: true };
+    const result = analyzeValues(parsed.value, new Map(), new Map(), [{ name: 'f', arguments: [values, queries] }])
+        .functionResults[0];
+    expect(result.rank).not.toBe(0);
+});

@@ -1,7 +1,8 @@
 import { AstUtils } from 'langium';
 import {
     isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression,
-    isExpressionStatement, isLabelLiteral, isNameExpression, isParenthesizedExpression, isTestStatement, isUseStatement, isFunctionStatement,
+    isExpressionStatement, isLabelLiteral, isNameExpression, isParenthesizedExpression, isPushStatement,
+    isTestStatement, isUseStatement, isFunctionStatement,
     type Expression, type Program,
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
@@ -11,9 +12,17 @@ import { expressionFacts } from './value-facts.js';
 import { analyzeValues } from './value-diagnostics.js';
 import { stableRecordField, UNKNOWN_VALUE, type ValueFacts } from './value-domain.js';
 
+/** A module function the test applied to build one element of a collection argument. */
+export interface ConstructorCall {
+    readonly name: string;
+    readonly arguments: readonly ValueFacts[];
+}
+
 export interface FunctionTestExample {
     readonly name: string;
     readonly arguments: readonly ValueFacts[];
+    /** Per argument: the ordered pushes of module-function results that filled a fresh collection. */
+    readonly constructions?: readonly (readonly ConstructorCall[] | undefined)[];
     readonly expected: ValueFacts;
     readonly test: string;
     readonly line: number;
@@ -44,7 +53,10 @@ export function functionTestExamples(program: Program, moduleName?: string,
         if (moduleName !== undefined && !imports.length) continue;
         if (moduleName === undefined && test.statements.some(statement => isUseStatement(statement) && !statement.alias)) continue;
         const bindings = new Map<string, ValueFacts>();
-        const calls = new Map<string, { name: string; arguments: ValueFacts[]; shapePreserved?: true }>();
+        const calls = new Map<string, { name: string; arguments: ValueFacts[]; shapePreserved?: true;
+            constructions?: (readonly ConstructorCall[] | undefined)[] }>();
+        // Fresh collections whose every element came from a module function call.
+        const filled = new Map<string, ConstructorCall[]>();
         const unwrap = (expression: Expression): Expression => isParenthesizedExpression(expression) ? unwrap(expression.value) : expression;
         const call = (expression: Expression) => {
             expression = unwrap(expression);
@@ -79,9 +91,24 @@ export function functionTestExamples(program: Program, moduleName?: string,
                 && (prefixOperation.module === 'core' || test.statements.some(statement =>
                     isUseStatement(statement) && !statement.alias
                     && statement.module === prefixOperation.module));
+            const inputs = piped ? [prefix] : parts.slice(0, -1);
+            const constructions = inputs.map(part => {
+                const input = unwrap(part);
+                return isNameExpression(input) ? filled.get(input.name)?.slice() : undefined;
+            });
+            // A piped prefix is evaluated by an operation, which may change what it reads.
+            if (piped) unsettle(prefix);
             return { name,
-                arguments: (piped ? [prefix] : parts.slice(0, -1))
-                    .map(part => expressionFacts(part, name => bindings.get(name))) };
+                arguments: inputs.map(part => expressionFacts(part, name => bindings.get(name))),
+                ...(constructions.some(sites => sites !== undefined) ? { constructions } : {}) };
+        };
+        const emptyCollection = (fact: ValueFacts | undefined): boolean => fact?.types.length === 1
+            && ['queue', 'stack', 'deque'].includes(fact.types[0]) && !fact.elements?.length;
+        const unsettle = (expression: { readonly $cstNode?: { readonly text: string } }) => {
+            // Any other use of a filled collection may change it.
+            for (const name of [...filled.keys()]) {
+                if (expression.$cstNode?.text.split(/\s+/).includes(name)) filled.delete(name);
+            }
         };
         // A call or write may reach a record through an alias and resize its fields, but a field
         // keeps its runtime type, so only the dimensions and cells of every record are forgotten.
@@ -115,22 +142,41 @@ export function functionTestExamples(program: Program, moduleName?: string,
                 const summary = invocation && !invocation.shapePreserved ? summarize?.(invocation.name,
                     invocation.arguments) : undefined;
                 if (hasCall(statement.value)) forgetFieldDimensions();
+                filled.delete(statement.name);
+                unsettle(statement.value);
                 if (invocation) calls.set(statement.name, invocation); else calls.delete(statement.name);
                 bindings.set(statement.name, summary?.types.length ? summary : facts);
+                if (emptyCollection(bindings.get(statement.name))) filled.set(statement.name, []);
+            } else if (isPushStatement(statement)) {
+                const receiver = unwrap(statement.receiver);
+                const sites = isNameExpression(receiver) ? filled.get(receiver.name) : undefined;
+                const invocation = call(statement.value);
+                if (sites && invocation && !invocation.shapePreserved) {
+                    sites.push({ name: invocation.name, arguments: invocation.arguments });
+                } else if (isNameExpression(receiver)) filled.delete(receiver.name);
+                unsettle(statement.value);
+                forgetFieldDimensions();
             } else if (isExpressionStatement(statement) && isBinaryExpression(statement.value)
                 && statement.value.operator === 'equal') {
                 const invocation = call(statement.value.left);
+                unsettle(statement.value.right);
+                if (!invocation) {
+                    unsettle(statement.value.left);
+                    forgetFieldDimensions();
+                    continue;
+                }
                 let expected = expressionFacts(statement.value.right, name => bindings.get(name));
-                const comparable = !invocation?.shapePreserved || expected.types.join() === 'array';
-                if (invocation?.shapePreserved && comparable) {
+                const comparable = !invocation.shapePreserved || expected.types.join() === 'array';
+                if (invocation.shapePreserved && comparable) {
                     expected = { types: ['array'], rank: expected.rank, shape: expected.shape };
                 }
-                if (invocation && comparable) examples.push({ name: invocation.name,
-                    arguments: invocation.arguments, expected, test: test.description,
-                    line: (statement.$cstNode?.range.start.line ?? 0) + 1 });
+                if (comparable) examples.push({ name: invocation.name, arguments: invocation.arguments,
+                    ...(invocation.constructions ? { constructions: invocation.constructions } : {}), expected,
+                    test: test.description, line: (statement.$cstNode?.range.start.line ?? 0) + 1 });
                 forgetFieldDimensions();
-            } else if (!isUseStatement(statement)) {
-                forgetFieldDimensions();
+            } else {
+                unsettle(statement);
+                if (!isUseStatement(statement)) forgetFieldDimensions();
             }
         }
     }
