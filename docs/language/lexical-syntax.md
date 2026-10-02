@@ -349,10 +349,24 @@ Node .parent .grad += Change
 
 Equality is structural even though mutation is shared by reference. Two records
 are equal when they contain the same field names and recursively equal values;
-field declaration order does not matter. A record may be used as a set element,
-but its identity travels with it: changing a field afterwards changes the
-element in place and the set no longer matches it by its stored key. Store a
-value the set can keep, or leave the record unchanged while the set holds it. `print` includes their fields in declaration order so a result remains
+field declaration order does not matter. A record may be used as a set element
+or counter element, but its identity travels with it: a set stores the element
+under the key it had when it was added. Changing a field afterwards changes the
+element in place, and the set no longer finds it, although it is still stored.
+Do not change a record, or anything nested in it, while a set or counter holds
+it. To change an element, remove it, change it and add it again, or add a changed
+copy made with `with`:
+
+```rank
+S remove Node
+Node .grad += 1.0
+S add Node
+```
+
+Ordinary runs do not check this. A debugger run reports it as a runtime error,
+`set element was modified after it was added`, before the next statement runs.
+
+`print` includes their fields in declaration order so a result remains
 useful to a person and to a line-oriented grader:
 
 ```rank

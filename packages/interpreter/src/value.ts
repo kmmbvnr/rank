@@ -216,6 +216,8 @@ export interface RankRecord {
     readonly entries: Map<string, RankValue>;
     readonly types: Map<string, string>;
     fieldContracts?: Map<string, CollectionElementType>;
+    /** Structural key of a record whose fields are all scalars; every field write clears it. */
+    key?: string;
 }
 
 export type IntrinsicRank = number | 'all';

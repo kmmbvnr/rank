@@ -6,6 +6,7 @@ import {
 import type { BindingEnvironment } from './binding-environment.js';
 import { LocalFrame } from './frame.js';
 import { debugExecutionPoint, inspectExecution, inspectionEnabled, type PauseSnapshot } from './interrupt.js';
+import { verifyKeyedCollections } from './set.js';
 import { sourceIdOf } from './source-location.js';
 import { isNativeFunction, isRankArray, isRankSequence, type RankValue } from './value.js';
 
@@ -26,6 +27,7 @@ export class DebugInspection {
 
     point(statement: Statement, iteration = false): void {
         if (!inspectionEnabled()) return;
+        verifyKeyedCollections();
         this.statement = statement;
         this.publish();
         const node = statement.$cstNode;
