@@ -56,6 +56,12 @@ export class BindingEnvironment {
         // previous value nor a rewrite of the type it keeps.
         const recorded = scope.typeOf(name);
         if (recorded !== undefined) {
+            if (received === 'integer' && holdsInfiniteLimit(recorded, scope.get(name))) {
+                // An unbounded accumulator seed settles on its first exact integer.
+                scope.declareType(name, new Set([received]));
+                scope.set(name, value);
+                return;
+            }
             if (!acceptsBindingType(recorded, received)) {
                 throw new RankError(bindingTypeMessage(name, recorded, [received], true));
             }
@@ -151,4 +157,9 @@ export class BindingEnvironment {
         scope.set(name, created);
         return created;
     }
+}
+
+/** A real binding that still holds `infinity` or `-infinity` has not yet committed to reals over integers. */
+function holdsInfiniteLimit(recorded: ReadonlySet<string>, held: RankValue | undefined): boolean {
+    return recorded.size === 1 && recorded.has('real') && typeof held === 'number' && !Number.isFinite(held) && !Number.isNaN(held);
 }
