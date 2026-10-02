@@ -169,6 +169,7 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
                 : !fill && items.length && items.every(isAtom)
                     ? [...new Set(items.flatMap(item => item.types))] : undefined;
             return { types: ['array'], rank: shape.length, shape,
+                ...(fill?.infinite ? { infiniteElements: true as const } : {}),
                 ...(dims.some(Boolean) ? { dims } : {}),
                 ...(elements ? { elements } : {}),
                 ...(!fill && shape.length === 1 && elements && elements.length > 1
@@ -182,6 +183,7 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
             const elements = [...new Set(items.flatMap(item => item.types))];
             return { types: ['array'], rank: 1, shape: [items.length],
                 elements, ...(elements.length > 1 ? { positions: items.map(item => item.types) } : {}),
+                ...(items.some(item => item.fields || item.infinite) ? { positionFacts: items } : {}),
                 ...(eagerScalarCells ? { eagerScalarCells: true as const } : {}),
                 ...(items.every(item => item.integer !== undefined) ? {
                     integers: items.map((item, index) => {

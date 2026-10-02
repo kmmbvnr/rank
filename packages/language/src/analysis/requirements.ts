@@ -1,3 +1,4 @@
+import { arrayBindingContract, refineArrayContract } from './array-binding-contract.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
     isAllAxisExpression, isApplicationExpression, isArgumentStatement, isArrayAssignmentStatement,
@@ -120,7 +121,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
         }
         const forget = () => {
             for (const [name, binding] of env) {
-                const value = graph.value(binding.node);
+                const value = graph.value(binding.node, { types: [], acceptedArrayContract: arrayBindingContract(binding.value.fact) });
                 env.set(name, { ...binding, rank: value.rank, value });
             }
         };
@@ -386,9 +387,10 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 const placeholder = value.fact.types.join() === 'missing' || old?.value.fact.types.join() === 'missing';
                 const rank = placeholder ? value.rank : old?.rank ?? value.rank;
                 if (old && !placeholder) graph.solver.equal(rank, value.rank, site(item, `${item.name} keeps its rank`));
+                value.fact = { ...value.fact, acceptedArrayContract: refineArrayContract(arrayBindingContract(old?.value.fact), value.fact) };
                 const binding = { name: item.name, node: item, rank, value };
                 env.set(item.name, binding); graph.bindings.push(binding);
-                // Rebinding changes lengths/domains even though the array rank stays fixed.
+                // Lengths and current cell subsets change; the established contract survives.
                 for (const name of env.keys()) if (name.startsWith(`${item.name}.`)) env.delete(name);
             } else if (isOptionStatement(item) || isArgumentStatement(item)) {
                 const types = declaredType(item.valueType, item.many);
@@ -420,7 +422,8 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             } else if (isArrayAssignmentStatement(item)) {
                 for (const name of env.keys()) if (name.startsWith(`${item.name}.`)) env.delete(name);
                 const old = env.get(item.name);
-                if (old) env.set(item.name, { ...old, value: graph.value(item, { types: old.value.fact.types, rank: old.value.fact.rank }) });
+                if (old) env.set(item.name, { ...old, value: graph.value(item, { types: old.value.fact.types, rank: old.value.fact.rank,
+                    acceptedArrayContract: arrayBindingContract(old.value.fact) }) });
                 forget();
             } else if (!isUseStatement(item)) forget();
         }

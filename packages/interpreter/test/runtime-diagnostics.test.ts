@@ -328,7 +328,8 @@ B = A * 3`);
                 (runtime.variables.get('B') as RankArray).items;
                 expect(stats.run(() => runtime.execute('B 3 total'))).toBe(24n);
                 const compiledBefore = stats.compiledLoops;
-                runtime.execute('B = array "bad"');
+                // A host can replace a binding outside Rank's source contracts.
+                runtime.variables.set('B', createArraySnapshot(['bad']));
                 let error = '';
                 try { stats.run(() => runtime.execute('B 3 total')); }
                 catch (caught) { error = caught instanceof RankError ? caught.format() : String(caught); }

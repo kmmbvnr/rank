@@ -1,3 +1,4 @@
+import { arrayBindingContract, contractElements } from './array-binding-contract.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
     isAddStatement, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement,
@@ -48,7 +49,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
         if (!isArrayAssignmentStatement(node)) return;
         const fact = env.get(node.name);
         if (fact && fact.types.join() !== 'segment') env.set(node.name, { ...fact,
-            elements: undefined, positions: undefined, positionFacts: undefined, integers: undefined,
+            acceptedArrayContract: arrayBindingContract(fact), elements: contractElements(arrayBindingContract(fact)), positions: undefined, positionFacts: undefined, integers: undefined,
             eagerScalarCells: undefined, callbackFreeScalarCells: undefined });
     }
     function widenLoopExit(contents: readonly AstNode[], env: Map<string, ValueFacts>, preserved: ReadonlySet<string> = new Set()): void {
@@ -60,7 +61,8 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
                     shape: rank === undefined ? undefined : Array(rank).fill(null),
                     integers: undefined, positions: undefined, positionFacts: undefined }
                     : { types: fact?.acceptedTypes ?? [], acceptedTypes: fact?.acceptedTypes,
-                        acceptedArrayRank: rank, ...settledShape(fact?.acceptedTypes ?? [], rank) });
+                        acceptedArrayRank: rank, acceptedArrayContract: arrayBindingContract(fact),
+                        elements: contractElements(arrayBindingContract(fact)), ...settledShape(fact?.acceptedTypes ?? [], rank) });
             }
             if (!isArrayAssignmentStatement(node) || !preserved.has(node.name)) widenArrayWrite(node, env);
         }
@@ -161,6 +163,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
                     const types = previous?.acceptedTypes ?? previous?.types ?? [];
                     const rank = contractRank(previous);
                     local.set(name, numericSeeds.get(name) ?? { types, acceptedTypes: types, acceptedArrayRank: rank,
+                        acceptedArrayContract: arrayBindingContract(previous), elements: contractElements(arrayBindingContract(previous)),
                         ...settledShape(types, rank) });
                 }
                 if (!isArrayAssignmentStatement(node) || !preserved.has(node.name)
@@ -374,6 +377,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
                     const types = previous?.acceptedTypes ?? previous?.types ?? [];
                     const rank = contractRank(previous);
                     local.set(name, { types, acceptedTypes: types, acceptedArrayRank: rank,
+                        acceptedArrayContract: arrayBindingContract(previous), elements: contractElements(arrayBindingContract(previous)),
                         ...settledShape(types, rank) });
                 }
                 if (!isArrayAssignmentStatement(node) || seed === undefined

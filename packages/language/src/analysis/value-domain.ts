@@ -1,3 +1,4 @@
+import type { ArrayElementContract } from './array-binding-contract.js';
 import type { Types } from './types.js';
 import { compareDims, constantDim, freshDim, type Dim } from './shape-index.js';
 
@@ -12,6 +13,7 @@ export interface ValueFacts {
     readonly types: Types;
     readonly acceptedTypes?: Types;
     readonly acceptedArrayRank?: number;
+    readonly acceptedArrayContract?: ArrayElementContract;
     /** Possible array/sequence cells or values stored in an index. */
     readonly elements?: Types;
     /** Rank fixed by the first insertion of an array into a mutable collection. */
@@ -48,6 +50,8 @@ export interface ValueFacts {
      * integer written to the binding replaces it (ADR-0100), so the binding accepts both.
      */
     readonly infinite?: true;
+    /** Every stored cell is an unresolved infinity seed. */
+    readonly infiniteElements?: true;
     readonly integer?: string;
     /** Proven inclusive bounds of an integer scalar on the current path; null is unbounded. Never kept across joins. */
     readonly interval?: readonly [number | null, number | null];

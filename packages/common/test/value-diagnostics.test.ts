@@ -186,8 +186,8 @@ it('recomputes cell types after an earlier source edit', async () => {
         const repl = new NotebookRepl(session);
         repl.notebook.replace('A = array 1 2');
         await repl.submit();
-        repl.notebook.replace('A 0 = 3\nA + (array true false)');
-        expect(repl.diagnosticOutputs?.get(2)?.[0].text).toContain('integer and boolean');
+        repl.notebook.replace('A + (array true false)');
+        expect(repl.diagnosticOutputs?.get(1)?.[0].text).toContain('integer and boolean');
         repl.notebook.cells[0].source = 'A = array shape 2 fill X';
         expect(notebookValueDiagnostics(repl.notebook, session.diagnosticFacts).size).toBe(0);
     } finally { session.dispose(); }
@@ -265,11 +265,11 @@ it('checks excess scalar indices at a clean prompt and removes stale execution e
     } finally { session.dispose(); }
 });
 
-it('does not reuse source element types after an array write', async () => {
+it('allows a write within an established heterogeneous array contract', async () => {
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        for (const source of ['A = array 1 2', 'A 0 = "abc"']) {
+        for (const source of ['A = array 1 "old" 2', 'A 0 = "abc"']) {
             repl.notebook.replace(source);
             await repl.submit();
             expect(repl.notebook.cells.at(-2)?.status).toBe('ok');

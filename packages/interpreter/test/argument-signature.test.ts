@@ -5,9 +5,9 @@ import { argumentSignature } from '../src/return-contract.js';
 describe('argument signature memo', () => {
     it('follows a changed element type of the same array', () => {
         const runtime = new Interpreter();
-        runtime.execute('A = array 1 2 3');
+        runtime.execute('A = array 1 2.0 3');
         const first = argumentSignature([runtime.variables.get('A')!]);
-        runtime.execute('A 0 = 1.5');
+        runtime.execute('A 1 = 2');
         expect(argumentSignature([runtime.variables.get('A')!])).not.toBe(first);
     });
 
@@ -22,9 +22,9 @@ describe('argument signature memo', () => {
 
     it('keeps return contracts exact across calls that change element types', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun double Row\n  return Row * 2\nend\nA = array 1 2 3');
+        runtime.execute('fun double Row\n  return Row * 2\nend\nA = array 1 2.0 3');
         expect(formatValue(runtime.execute('A double')!)).toBe('2 4 6');
-        runtime.execute('A 0 = 1.5');
-        expect(formatValue(runtime.execute('A double')!)).toBe('3 4 6');
+        runtime.execute('A 1 = 2');
+        expect(formatValue(runtime.execute('A double')!)).toBe('2 4 6');
     });
 });

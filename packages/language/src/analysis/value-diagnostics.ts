@@ -1,3 +1,4 @@
+import { arrayBindingContract, establishedArrayContract, refineArrayContract, contractElements, arrayContractConflict } from './array-binding-contract.js';
 import { AstUtils, type AstNode } from 'langium';
 import { inferRequirements, type RequirementAnalysis } from './requirements.js';
 import { requirementDiagnostics } from './requirement-diagnostics.js';
@@ -200,6 +201,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     ? { types: ['text'], acceptedTypes: ['text'], rank: 1, shape: [null] }
                     : privateValue && fact.types.join() === 'array' && accepted.join() === 'array'
                         ? { types: ['array'], acceptedTypes: ['array'], acceptedArrayRank: rank,
+                            acceptedArrayContract: arrayBindingContract(fact), elements: contractElements(arrayBindingContract(fact)),
                             ...(rank !== undefined ? { rank, shape: Array(rank).fill(null) } : {}) }
                         : privateValue && fact.types.length === 1 && accepted.join() === fact.types.join()
                             ? { types: fact.types, acceptedTypes: accepted }
@@ -747,6 +749,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     diagnostics.push({ node: statement.value, kind: 'DimensionMismatch',
                         message: bindingRankMessage(statement.name, expectedRank, receivedRank) });
                 }
+                const arrayContract = refineArrayContract(arrayBindingContract(previous), next);
+                const elementConflict = arrayContractConflict(arrayBindingContract(previous), next, statement.name);
+                if (elementConflict) diagnostics.push({ node: statement.value, kind: 'TypeError', message: elementConflict });
                 // A successful assignment to an uncaptured scalar local must
                 // satisfy its existing binding contract, even if the RHS is unknown.
                 if (!next.types.length && accepted?.length && privateBindings.at(-1)?.has(statement.name)
@@ -756,7 +761,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 env.set(statement.name, { ...next,
                     acceptedTypes: accepted?.length ? settledBindingTypes(accepted, next.types)
                         : next.infinite ? ['integer', 'real'] : next.types,
-                    acceptedArrayRank: expectedRank ?? receivedRank });
+                    acceptedArrayRank: expectedRank ?? receivedRank, acceptedArrayContract: arrayContract });
                 if (calls.directNoReturnCall(statement.value, env)) return false;
             } else if (isUnpackStatement(statement)) {
                 invalidateCalls(statement.value, env);
@@ -856,6 +861,24 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 invalidateCalls(statement.value, env);
                 const replacement = inspect(statement.value, env);
                 const fact = env.get(statement.name);
+                let contract = arrayBindingContract(fact);
+                const cellWrite = fact?.types.join() === 'array' && fact.rank === statement.indices.length
+                    && statement.indices.every((index, position) => !index.spread
+                        && (index.all && (fact.shape?.[position] ?? 0) > 0
+                            || !index.all && selectors[position]?.types.join() === 'integer' && selectors[position]?.rank === 0
+                            || !index.all && ['array', 'sequence'].includes(selectors[position]?.types.join() ?? '')
+                                && selectors[position]?.elements?.join() === 'integer' && (selectors[position]?.shape?.[0] ?? 0) > 0));
+                if (cellWrite && !fact!.shape?.some(size => size === 0)) contract ??= establishedArrayContract({
+                    ...fact!, shape: Array(fact!.rank).fill(1),
+                });
+                const inserted = statement.operator === '=' ? replacement : {
+                    types: compoundType(statement.operator, fact?.elements ?? [], replacement.types), rank: 0,
+                };
+                const elementConflict = cellWrite && arrayContractConflict(contract, inserted, statement.name, true);
+                if (elementConflict) diagnostics.push({ node: statement.value, kind: 'TypeError', message: elementConflict });
+                if (cellWrite) contract = refineArrayContract(contract, inserted.types.join() === 'array' ? inserted
+                    : { types: ['array'], rank: fact!.rank, shape: [1], eagerScalarCells: true,
+                        elements: inserted.types, positionFacts: [inserted] });
                 const fenwickIndex = statement.indices.length === 1 && !statement.indices[0].all
                     && !statement.indices[0].spread ? selectors[0] : undefined;
                 const fenwickValueTypes = statement.operator === '=' ? replacement.types
@@ -979,16 +1002,18 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     || lineWrite || lineCompound.length > 0)
                     && fact?.types.length
                     && fact.types.every(type => type === 'array')) {
-                    // Keep old element types as conservative possibilities;
-                    // a known scalar replacement adds its possible types.
+                    // Successful writes stay within the established domain. Values
+                    // and cell-read safety still need their own proofs.
                     const oneCell = (oneCellSelectors || indexedCells) && isAtom(replacement)
                         && replacement.types.length > 0;
                     const safeCells = oneCell || lineWrite || lineCompound.length > 0;
                     env.set(statement.name, { ...fact, elementRecord: undefined,
-                        elements: safeCells && fact.elements?.length
+                        acceptedArrayContract: contract,
+                        elements: contractElements(contract) ? [...new Set([...contractElements(contract)!,
+                            ...(fact.elements?.includes('missing') || inserted.types.includes('missing') ? ['missing'] : [])])] : (safeCells && fact.elements?.length
                             ? [...new Set([...fact.elements, ...(lineWrite ? lineTypes
                                 : lineCompound.length ? lineCompound
-                                    : compound.length ? compound : replacement.types)])] : undefined,
+                                    : compound.length ? compound : replacement.types)])] : undefined),
                         integers: undefined, positions: undefined, positionFacts: undefined,
                         callbackFreeScalarCells: undefined,
                         eagerScalarCells: safeCells && fact.eagerScalarCells

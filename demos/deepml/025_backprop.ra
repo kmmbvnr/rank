@@ -9,8 +9,9 @@ use stats
 
 rem Train one neuron with full batches.
 rem Record MSE before each update.
-fun train_neuron X Y W Bias Rate Epochs
-  Loss = array shape Epochs fill 0
+fun train_neuron X Y InitialWeights Bias Rate Epochs
+  W = InitialWeights / 1.0
+  Loss = array shape Epochs fill 0.0
   N = Y len
   B = Bias / 1.0
 

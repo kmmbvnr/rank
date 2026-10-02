@@ -322,39 +322,55 @@ export function checkCollectionElementType(
     return mergeCollectionElementType(collection, typeof expected === 'function' ? expected() : expected, received);
 }
 
-function describeElementType(value: CollectionElementType): string {
-    return value.type + (value.rank === undefined ? '' : ` rank ${value.rank}`)
-        + (value.elements?.length ? ` of ${value.elements.map(describeElementType).join(' or ')}` : '')
-        + (value.fields ? ` {${[...value.fields].map(([name, field]) => `.${name}: ${describeElementType(field)}`).join(', ')}}` : '');
+function describeElementType(value: CollectionElementType, depth = 0): string {
+    if (depth > 6) return value.type + ' …';
+    return (value.type === 'numeric-limit' ? 'infinity' : value.type) + (value.rank === undefined ? '' : ` rank ${value.rank}`)
+        + (value.elements?.length ? ` of ${value.elements.map(cell => describeElementType(cell, depth + 1)).join(' or ')}` : '')
+        + (value.fields ? ` {${[...value.fields].map(([name, field]) => `.${name}: ${describeElementType(field, depth + 1)}`).join(', ')}}` : '');
 }
 
 export function mergeCollectionElementType(collection: string, expected: CollectionElementType | undefined,
-    received: CollectionElementType, structural = false): CollectionElementType {
-    if (!expected) return received;
-    if (expected.type !== received.type || expected.rank !== received.rank) {
-        throw new RankError(`${collection} holds ${describeElementType(expected)} and cannot receive ${describeElementType(received)}`);
-    }
-    if (expected.fields && received.fields) {
-        if (expected.fields.size !== received.fields.size || [...expected.fields.keys()].some(name => !received.fields!.has(name))) {
-            throw new RankError(`${collection} holds ${describeElementType(expected)} and cannot receive ${describeElementType(received)}`, 'TypeError');
+    received: CollectionElementType, structural = false, numericLimits = false): CollectionElementType {
+    let result: CollectionElementType;
+    const tasks: (() => void)[] = [];
+    const merge = (name: string, old: CollectionElementType | undefined, next: CollectionElementType,
+        exact: boolean, limits: boolean, done: (contract: CollectionElementType) => void): void => {
+        if (!old) { done(next); return; }
+        const mismatch = (kind?: string): never => {
+            throw new RankError(`${name} holds ${describeElementType(old)} and cannot receive ${describeElementType(next)}`, kind);
+        };
+        if (old.type !== next.type || old.rank !== next.rank) mismatch();
+        if (old.fields && next.fields) {
+            if (old.fields.size !== next.fields.size || [...old.fields.keys()].some(field => !next.fields!.has(field))) mismatch('TypeError');
+            const fields = new Map(old.fields);
+            tasks.push(() => done([...fields].every(([field, type]) => type === old.fields!.get(field)) ? old : { ...old, fields }));
+            for (const [field, type] of [...fields].reverse()) tasks.push(() =>
+                merge(`${name} .${field}`, type, next.fields!.get(field)!, true, false, merged => { fields.set(field, merged); }));
+            return;
         }
-        return { ...expected, fields: new Map([...expected.fields].map(([name, field]) =>
-            [name, mergeCollectionElementType(`${collection} .${name}`, field, received.fields!.get(name)!, true)])) };
-    }
-    if (!expected.elements?.length) return received.elements?.length ? received : expected;
-    if (structural && received.elements?.length && expected.elements.some(item =>
-        !received.elements!.some(cell => cell.type === item.type && cell.rank === item.rank))) {
-        throw new RankError(`${collection} holds ${describeElementType(expected)} and cannot receive ${describeElementType(received)}`, 'TypeError');
-    }
-    const elements = [...expected.elements];
-    for (const cell of received.elements ?? []) {
-        const index = elements.findIndex(item => item.type === cell.type && item.rank === cell.rank);
-        if (index < 0) {
-            throw new RankError(`${collection} holds ${describeElementType(expected)} and cannot receive ${describeElementType(received)}`);
+        if (!old.elements?.length) { done(next.elements?.length ? next : old); return; }
+        if (exact && next.elements?.length && old.elements.some(item =>
+            !next.elements!.some(cell => cell.type === item.type && cell.rank === item.rank))) mismatch('TypeError');
+        const elements = [...old.elements];
+        if (limits && elements.some(cell => cell.type === 'numeric-limit')
+            && !elements.some(cell => cell.type === 'integer' || cell.type === 'real')) {
+            elements.push(...(next.elements ?? []).filter(cell => cell.type === 'integer' || cell.type === 'real'));
         }
-        elements[index] = mergeCollectionElementType(collection, elements[index], cell, structural);
-    }
-    return { ...expected, elements };
+        tasks.push(() => done(elements.length === old.elements!.length
+            && elements.every((cell, index) => cell === old.elements![index]) ? old : { ...old, elements }));
+        for (let cell of [...next.elements ?? []].reverse()) {
+            // Infinity-only array seeds defer their finite numeric domain.
+            if (limits && cell.type === 'numeric-limit' && !elements.some(item => item.type === 'numeric-limit')
+                && elements.some(item => item.type === 'real')) cell = { type: 'real' };
+            const index = elements.findIndex(item => item.type === cell.type && item.rank === cell.rank);
+            if (index < 0) mismatch();
+            const receivedCell = cell;
+            tasks.push(() => merge(name, elements[index], receivedCell, exact, limits, merged => { elements[index] = merged; }));
+        }
+    };
+    tasks.push(() => merge(collection, expected, received, structural, numericLimits, contract => { result = contract; }));
+    while (tasks.length) tasks.pop()!();
+    return result!;
 }
 
 export function collectionElementType(value: RankValue, active: Set<RankValue> = new Set(), records = false): CollectionElementType {
@@ -397,16 +413,23 @@ export function collectionElementType(value: RankValue, active: Set<RankValue> =
     return { type, rank, ...(elements.length ? { elements } : {}) };
 }
 
-function unionElementType(left: CollectionElementType, right: CollectionElementType): CollectionElementType {
-    if (left.fields && right.fields) return mergeCollectionElementType('array record cells', left, right);
-    if (!right.elements?.length) return left;
-    const elements = [...(left.elements ?? [])];
-    for (const cell of right.elements) {
-        const index = elements.findIndex(item => item.type === cell.type && item.rank === cell.rank);
-        if (index < 0) elements.push(cell);
-        else elements[index] = unionElementType(elements[index], cell);
-    }
-    return { ...left, elements };
+export function unionElementType(left: CollectionElementType, right: CollectionElementType): CollectionElementType {
+    let result: CollectionElementType;
+    const tasks: (() => void)[] = [];
+    const combine = (a: CollectionElementType, b: CollectionElementType, done: (value: CollectionElementType) => void): void => {
+        if (a.fields && b.fields) { done(mergeCollectionElementType('array record cells', a, b)); return; }
+        if (!b.elements?.length) { done(a); return; }
+        const elements = [...a.elements ?? []];
+        tasks.push(() => done({ ...a, elements }));
+        for (const cell of b.elements) {
+            const index = elements.findIndex(item => item.type === cell.type && item.rank === cell.rank);
+            if (index < 0) elements.push(cell);
+            else tasks.push(() => combine(elements[index], cell, merged => { elements[index] = merged; }));
+        }
+    };
+    tasks.push(() => combine(left, right, value => { result = value; }));
+    while (tasks.length) tasks.pop()!();
+    return result!;
 }
 
 /** The type symbol reported by `type` and enforced by runtime bindings. */

@@ -16,8 +16,7 @@ end
 fun self_attention Q K V
   Width = Q len axis 1
   Kt = K transpose
-  Scores = Q Kt matmul
-  Scores /= Width sqrt
+  Scores = (Q Kt matmul) / (Width sqrt)
 
   Tops = Scores max axis 1
   Shift = Scores transpose - Tops

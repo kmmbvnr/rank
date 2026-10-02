@@ -1,7 +1,8 @@
-import { arrayRevision, denseScalarItems, derivedArray, materializedArrayItems, readArrayItem, typedElementKind } from './array-storage.js';
+import { arrayElementTypes } from './array-element-types.js';
+import { arrayRevision, derivedArray, readArrayItem } from './array-storage.js';
 import { RankError } from './errors.js';
 import { isRankArray, isRankRecord, mergeCollectionElementType, typeName, valueRank,
-    type CollectionElementType, type RankArray, type RankValue } from './value.js';
+    type CollectionElementType, type RankValue } from './value.js';
 import { recordContract, retainRecordContract } from './record-contract.js';
 
 export function argumentRankSignature(values: readonly RankValue[]): string {
@@ -48,7 +49,7 @@ export function argumentSignature(values: readonly RankValue[]): string {
     const memoized = memoizedSignature(values);
     if (memoized !== undefined) return memoized;
     const key = JSON.stringify(values.map(value => [typeName(value), valueRank(value),
-        isRankArray(value) ? elementTypes(value) : null,
+        isRankArray(value) ? arrayElementTypes(value) : null,
         isRankRecord(value) ? recordSignature(recordContract(value), true) : null]));
     signatureMemo = weakRefs && values.every(value => typeof value !== 'object' || isRankArray(value) && arrayRevision(value) !== undefined)
         ? { held: values.map(value => typeof value === 'object' ? new WeakRef(value) : value),
@@ -63,43 +64,6 @@ function recordSignature(value: CollectionElementType, elements: boolean): unkno
             .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))) : null,
         value.fields ? [...value.fields].sort(([a], [b]) => a.localeCompare(b))
             .map(([name, field]) => [name, recordSignature(field, elements)]) : null];
-}
-
-const elementTypeCache = new WeakMap<RankArray, { revision: number; types: string[] }>();
-
-function elementTypes(value: RankArray): string[] | undefined {
-    if (value.kind === 'bytes') return value.shape.some(size => size === 0) ? [] : ['integer'];
-    const revision = arrayRevision(value);
-    const cached = elementTypeCache.get(value);
-    if (revision !== undefined && cached?.revision === revision) return cached.types;
-    const typed = typedElementKind(value);
-    if (typed) return [typed];
-    const dense = denseScalarItems(value);
-    if (dense) {
-        // Stored scalars cannot hide getters, so no descriptor lookup is needed.
-        const types = new Set<string>();
-        let last: string | undefined;
-        for (let index = 0; index < dense.length; index++) {
-            const item = dense[index];
-            const type = typeof item === 'bigint' ? 'integer' : typeof item === 'number' ? 'real' : typeName(item);
-            if (type !== last) { types.add(type); last = type; }
-        }
-        const result = [...types].sort();
-        if (revision !== undefined) elementTypeCache.set(value, { revision, types: result });
-        return result;
-    }
-    const items = materializedArrayItems(value);
-    if (!items) return undefined;
-    // Property descriptors avoid invoking getters on host-supplied cells.
-    const types = new Set<string>();
-    for (let index = 0; index < items.length; index++) {
-        const property = Object.getOwnPropertyDescriptor(items, index);
-        if (!property || !('value' in property)) return undefined;
-        types.add(typeName(property.value));
-    }
-    const result = [...types].sort();
-    if (revision !== undefined) elementTypeCache.set(value, { revision, types: result });
-    return result;
 }
 
 /** A contract belongs to one closure and one argument specialization. */
@@ -118,7 +82,7 @@ export class ReturnContract {
         if (this.type !== undefined && this.type !== type) {
             throw new RankError(`${this.name} returns ${this.type} and cannot return ${type}`, 'ReturnTypeMismatch');
         }
-        const types = isRankArray(value) ? elementTypes(value) : undefined;
+        const types = isRankArray(value) ? arrayElementTypes(value) : undefined;
         const elements = types?.length ? new Set(types) : undefined;
         if (elements) this.checkElements(elements);
         if (isRankRecord(value)) {

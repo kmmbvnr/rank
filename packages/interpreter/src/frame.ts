@@ -1,3 +1,4 @@
+import { ArrayBindingContract } from './array-binding-contract.js';
 import { noteArrayBinding, noteArrayBorrow } from './array-storage.js';
 import { checkBindingRank, isRankArray, type RankValue } from './value.js';
 
@@ -20,6 +21,7 @@ export class LocalFrame {
     // The types a name accepts live in its own slot, so a write that already
     // knows the slot checks them without looking the name up a second time.
     private readonly slotTypes: (ReadonlySet<string> | undefined)[] = [];
+    private arrayElements: Map<string, ArrayBindingContract> | undefined;
     private arrayRanks: Map<string, number> | undefined;
     // Set for the globals; see publish().
     private shared = false;
@@ -74,7 +76,7 @@ export class LocalFrame {
             this.publish(name, value);
             return;
         }
-        this.checkRank(name, value);
+        value = this.checkArray(name, value);
         noteBinding(value);
         if (this.mappedValues) {
             this.mappedValues.set(name, value);
@@ -90,7 +92,7 @@ export class LocalFrame {
             this.mappedTypes!.set(name, types);
             return;
         }
-        this.checkRank(name, value);
+        value = this.checkArray(name, value);
         noteBinding(value, borrowed);
         if (this.mappedValues) {
             this.mappedValues.set(name, value);
@@ -106,7 +108,7 @@ export class LocalFrame {
     // resolved it once can store straight into it. The write only stands while
     // this frame still holds the name and keeps the types it already accepts;
     // anything else reports back and takes the long way through assign.
-    store(slot: number, value: RankValue, received: string): boolean {
+    store(slot: number, name: string, value: RankValue, received: string): boolean {
         if (this.slots[slot] === undefined) return false;
         const accepted = this.slotTypes[slot];
         if (accepted === undefined || !accepted.has(received)) return false;
@@ -114,6 +116,7 @@ export class LocalFrame {
             const previous = this.slots[slot]!;
             if (!isRankArray(previous) || previous.shape.length !== value.shape.length) return false;
         }
+        value = this.checkArray(name, value);
         noteBinding(value);
         this.slots[slot] = value;
         return true;
@@ -124,6 +127,7 @@ export class LocalFrame {
     bindStore(name: string): (value: RankValue) => void {
         const slot = this.layout.get(name)!;
         return value => {
+            value = this.checkArray(name, value);
             noteBinding(value);
             if (this.mappedValues) this.mappedValues.set(name, value);
             else this.slots[slot] = value;
@@ -133,6 +137,7 @@ export class LocalFrame {
     /** Forgets a name that ended with its block: its value and the types it accepted. */
     unset(name: string): void {
         this.arrayRanks?.delete(name);
+        this.arrayElements?.delete(name);
         if (this.mappedValues) {
             this.mappedValues.delete(name);
             this.mappedTypes!.delete(name);
@@ -177,6 +182,8 @@ export class LocalFrame {
         for (const name of source.names()) {
             const types = source.typeOf(name);
             if (types !== undefined) this.declareType(name, types);
+            const elements = source.arrayElements?.get(name);
+            if (elements) (this.arrayElements ??= new Map()).set(name, elements.copy());
             const rank = source.rankOf(name);
             if (rank !== undefined) (this.arrayRanks ??= new Map()).set(name, rank);
         }
@@ -187,6 +194,7 @@ export class LocalFrame {
         this.slots.length = 0;
         this.slotTypes.length = 0;
         this.arrayRanks?.clear();
+        this.arrayElements?.clear();
         return true;
     }
 
@@ -198,7 +206,8 @@ export class LocalFrame {
         const previous = values.get(name);
         values.set(name, value);
         try {
-            this.checkRank(name, value);
+            value = this.checkArray(name, value);
+            values.set(name, value);
         } catch (error) {
             if (previous === undefined) values.delete(name);
             else values.set(name, previous);
@@ -207,11 +216,22 @@ export class LocalFrame {
         noteBinding(value);
     }
 
-    private checkRank(name: string, value: RankValue): void {
-        if (!isRankArray(value)) return;
+    private checkArray(name: string, value: RankValue): RankValue {
+        if (!isRankArray(value)) return value;
         const previous = this.arrayRanks?.get(name);
         const rank = checkBindingRank(name, previous, value)!;
+        const contract = this.arrayElements?.get(name) ?? new ArrayBindingContract(name);
+        const checked = contract.check(value);
         if (previous === undefined) (this.arrayRanks ??= new Map()).set(name, rank);
+        (this.arrayElements ??= new Map()).set(name, contract);
+        return checked;
+    }
+
+    checkArrayWrite(name: string, target: RankValue, replacements: readonly RankValue[]): readonly RankValue[] {
+        if (!isRankArray(target)) return replacements;
+        // Host-injected arrays acquire a contract on their first source write.
+        if (!this.arrayElements?.has(name)) this.checkArray(name, target);
+        return this.arrayElements!.get(name)!.write(replacements);
     }
 
     // Reading a variable only wants the value, so the walk keeps it rather than

@@ -32,6 +32,7 @@ export interface AssignmentContext {
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     compileAssign(name: string): (value: RankValue) => void;
     resolveVariable(name: string): RankValue;
+    checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[]): readonly RankValue[];
     evaluateAddressParts(item: AddressItem): Evaluation<RankValue[]>;
     select(values: RankValue[]): RankValue;
     requireModule(module: string, operation: string): void;
@@ -112,6 +113,8 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 (operator, left, right) => host.operators.evaluateBinary(operator, left, right)));
             return value;
         }
+        const lastSelector = selectors.at(-1);
+        if (target instanceof FlatRecords || lastSelector !== undefined && isRankLabel(lastSelector) && lastSelector.name !== '#') target = owned(target);
         const write = target instanceof FlatRecords
             ? flatRecordWrite(target, selectors, statement.operator, host.operators)
             : structureWrite(target, selectors, statement.operator, host.operators);
@@ -173,8 +176,10 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 target.items[selection.offsetAt(index)],
                 operand,
             ));
+        const checked = host.checkArrayWrite(statement.name, target, replacements);
+        const destination = owned(target) as typeof target;
         for (let index = 0; index < replacements.length; index += 1) {
-            target.items[selection.offsetAt(index)] = replacements[index];
+            destination.items[selection.offsetAt(index)] = checked[index];
         }
         return result;
     };
@@ -200,7 +205,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         const operator = statement.operator === '='
             ? undefined : assignmentOperator(statement.operator);
         return { stream: (): Evaluation<RankValue | undefined> => {
-            const target = owned(host.resolveVariable(statement.name));
+            let target = host.resolveVariable(statement.name);
             const selector = directIndex();
             if (typeof selector === 'bigint' && typeof target === 'object'
                 && target.kind === 'array' && target.shape.length === 1
@@ -209,8 +214,11 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 if (offset >= 0 && offset < target.shape[0]) {
                     const value = directValue();
                     if (isRankArray(value)) return general(target, [selector], value);
-                    target.items[offset] = operator === undefined ? value
+                    const replacement = operator === undefined ? value
                         : host.operators.evaluateBinary(operator, target.items[offset], value);
+                    const [checked] = host.checkArrayWrite(statement.name, target, [replacement]);
+                    target = owned(target) as typeof target;
+                    target.items[offset] = checked;
                     return completed(value);
                 }
             }
@@ -218,7 +226,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         } };
     }
     return { stream: (): Evaluation<RankValue | undefined> => {
-        const target = owned(host.resolveVariable(statement.name));
+        let target = host.resolveVariable(statement.name);
         // Selectors that all complete hand straight over to the general
         // form, so the usual case adds no second generator to drive.
         return flatMapResult(

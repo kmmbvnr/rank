@@ -1,0 +1,123 @@
+{
+  "issue": 147,
+  "date": "2026-10-02",
+  "baseRevision": "6c8c6c8b795a4338f779158a0fd094c190265879",
+  "scope": "Recursive stable array element contracts for ordinary bindings and corresponding static bounds.",
+  "commands": [
+    "node benchmarks/analysis-coverage.mjs --conflicts --unknown",
+    "node benchmarks/refactor-analysis-latency.mjs",
+    "node packages/cli/bin/cli.js test demos/cses/graph"
+  ],
+  "forwardCoverage": {
+    "before": {
+      "files": 466,
+      "functions": 591,
+      "knownEffects": 33,
+      "borrowCandidates": 4,
+      "guardedBuiltinBorrowCandidates": 6,
+      "loopFunctions": 347,
+      "knownLoopEffects": 0,
+      "testExamples": 1085,
+      "knownExampleResults": 1083,
+      "knownExampleEffects": 197,
+      "exampleExpectationConflicts": 0
+    },
+    "after": {
+      "files": 466,
+      "functions": 591,
+      "knownEffects": 33,
+      "borrowCandidates": 4,
+      "guardedBuiltinBorrowCandidates": 6,
+      "loopFunctions": 347,
+      "knownLoopEffects": 0,
+      "testExamples": 1085,
+      "knownExampleResults": 1083,
+      "knownExampleEffects": 197,
+      "exampleExpectationConflicts": 0
+    }
+  },
+  "requirements": {
+    "before": {
+      "bindingsWithNewRankBounds": 230,
+      "bindingsWithNewExactRank": 227,
+      "callResultsWithNewRankBounds": 32,
+      "callResultsWithNewExactRank": 29,
+      "constrainedParameters": 7,
+      "contradictions": 0,
+      "limitedFiles": 0
+    },
+    "after": {
+      "bindingsWithNewRankBounds": 230,
+      "bindingsWithNewExactRank": 227,
+      "callResultsWithNewRankBounds": 32,
+      "callResultsWithNewExactRank": 29,
+      "constrainedParameters": 7,
+      "contradictions": 0,
+      "limitedFiles": 0
+    }
+  },
+  "analysisLatency": {
+    "before": {
+      "short incomplete": {
+        "medianMs": 0.25,
+        "p95Ms": 0.47
+      },
+      "array contracts": {
+        "medianMs": 22.38,
+        "p95Ms": 27.25
+      },
+      "large incomplete": {
+        "medianMs": 14.64,
+        "p95Ms": 19.62
+      }
+    },
+    "after": {
+      "short incomplete": {
+        "medianMs": 0.26,
+        "p95Ms": 0.49
+      },
+      "array contracts": {
+        "medianMs": 19.16,
+        "p95Ms": 24.69
+      },
+      "large incomplete": {
+        "medianMs": 10.53,
+        "p95Ms": 13.3
+      }
+    },
+    "method": "Identical harness including array fixture, 5 warmups and 20 measured parse-plus-analysis samples per fixture. Separate sequential baseline and changed runs on the same machine. Other tests were active; indicative only, not a speedup claim."
+  },
+  "demoCompatibility": {
+    "filesChecked": 798,
+    "baselineRunnable": 469,
+    "baselineFailuresSkipped": 329,
+    "newFailuresAmongRunnable": 0,
+    "notes": "Direct Interpreter comparison without a module/file host; excludes non-test Euler mains. Full interpreter type corpus covers additional programs. The CLI graph test run supplies the real host: 36 test files, zero failures.",
+    "hostTestFiles": 392,
+    "hostTestResult": "Initial complete CLI run found 14 contract-related failures in six demo files; all passed after migrations in focused reruns (55 Deep-ML files and the forest-query file). Three additional failures passed after copying the existing ignored Africa CSV fixture from the main checkout. Kaggle source migrations were applied before the full run and passed there."
+  },
+  "notes": [
+    "Corpus result coverage is unchanged at 1083 of 1085 examples. New focused tests verify retained element bounds across writes and recursive mismatch diagnostics.",
+    "Contracts do not establish purity, read safety, exact lengths or concrete values.",
+    "Infinity seeds retain a sentinel alternative while the first finite domain settles to integer or real.",
+    "Ten demo programs migrated: distinct names for integer-to-real normalization, real accumulators/features, and materialized prefix-sum cells."
+  ],
+  "verification": {
+    "fullNpmTest": "Language 724, interpreter 2096 and compiler 10 passed. Common and CLI initially failed on obsolete fixtures, missing SQLite native binding and two Kaggle domain changes. All affected suites/tests passed after fixes; the entire npm test command was not repeated.",
+    "followupTests": [
+      "Common: 140 passed",
+      "Recursive, collection and record contracts after final changes: 77 passed",
+      "Function return contracts: 13 passed",
+      "CLI without terminal tests after native dependency repair: 417 passed, two Kaggle failures subsequently fixed and all three Kaggle/image host tests passed",
+      "SQLite terminal cancellation: passed; other terminal tests passed in the original full run",
+      "CLI Deep-ML: 55 files, zero failures",
+      "CLI forest queries: 1 file, zero failures",
+      "CLI Africa dataset: 1 file, zero failures"
+    ],
+    "checks": [
+      "TypeScript build",
+      "Semantic boundaries: 49 owners",
+      "git diff --check"
+    ]
+  }
+}

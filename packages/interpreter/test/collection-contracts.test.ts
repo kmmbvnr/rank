@@ -103,7 +103,7 @@ end
         expect(run(prelude + `Q = new queue
 A = array 1 2
 Q push A
-A 0 = "changed"
+A 0 = 9
 B = Q peek
 B 0
 `)).toBe('1');

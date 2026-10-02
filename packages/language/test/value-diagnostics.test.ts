@@ -733,8 +733,8 @@ it('keeps outer loop facts when only a nested loop continues', () => {
     const nested = (exit: string) => `fun count Width\n Current = array shape 4 fill 0\n for Column in 1 to Width\n  Next = array shape 4 fill 0\n${exit}\n  Current = Next\n end\n return Current 0\nend\nA = 3 count\nA + "bad"`;
     expect(messages(nested('  for Mask in 0 till 4\n   Ways = Current Mask\n   if Ways equal 0\n    continue\n   end\n   Next 0 += Ways\n  end')))
         .toEqual(['operator + does not accept integer and text']);
-    // The loop's own continue still takes the conservative exit analysis.
-    expect(messages(nested('  if Column equal 2\n   continue\n  end\n  Next 0 += 1'))).toEqual([]);
+    // A continue loses values, but the element contract still holds.
+    expect(messages(nested('  if Column equal 2\n   continue\n  end\n  Next 0 += 1'))).toEqual(['operator + does not accept integer and text']);
 });
 
 it('infers the simplified regular-expression matcher from its local index writes', () => {
@@ -807,7 +807,7 @@ it('keeps loop contracts in functions and after loops while discarding mutation 
         .toEqual(['3 selectors exceed array rank 2']);
     expect(messages('A = array 1 2\nfor I in Items\n A = array 1 2 3\nend\nA = array shape 2 2 fill 0'))
         .toEqual(['A has rank 1 and cannot receive rank 2']);
-    expect(messages('A = array 1 2\nfor I in 1 to 3\n A 0 = "text"\n A + (array 1 2)\nend')).toEqual([]);
+    expect(messages('A = array 1 2\nfor I in 1 to 3\n A 0 = "text"\n A + (array 1 2)\nend')).toEqual(['A has array elements of type integer and cannot receive text']);
     expect(messages('fun choose X\n for I in 1 to 3\n  return 1\n end\n return "text"\nend\nA = 0 choose\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
 });
@@ -924,9 +924,9 @@ it('keeps cell facts through reads guarded by numeric conditions on an unchanged
     // The guard proves nothing outside its branch: a read after it is not claimed to be in bounds.
     const unguarded = 'fun pick A I\n if I less 0\n  return 0\n end\n return A I\nend\n';
     expect(result(unguarded, cells(null, 'real'), index).types.slice().sort()).toEqual(['integer', 'real']);
-    // A write may change the array, so no cell fact survives it.
+    // A successful write must preserve the established element domain.
     const rewritten = 'fun pick A I\n A I = "x"\n return A I\nend\n';
-    expect(result(rewritten, cells(null), index).types).not.toEqual(['integer']);
+    expect(result(rewritten, cells(null), index).types).toEqual(['integer']);
 });
 
 it('prunes branches that proven integer bounds make unreachable, and nothing else', () => {
@@ -1102,7 +1102,7 @@ it('proves scalar array cell types through closed plain and compound writes in n
     const changed = services.Rank.parser.LangiumParser.parse<Program>(mixed);
     expect(analyzeValues(changed.value, new Map(), new Map(), [
         { name: 'fill_array', arguments: [{ types: ['integer'], rank: 0, shape: [] }] },
-    ]).functionResults[0].types).toEqual([]);
+    ]).functionResults[0].types).toEqual(['integer', 'text']);
 });
 
 it('proves full-cell writes across every axis without assuming slice writes are scalar', () => {
@@ -1114,7 +1114,7 @@ it('proves full-cell writes across every axis without assuming slice writes are 
         .functionResults[0].types).toEqual(['integer']);
     const mixed = services.Rank.parser.LangiumParser.parse<Program>(source.replace('A I J += 1', 'A I J = "text"'));
     expect(analyzeValues(mixed.value, new Map(), new Map(), [{ name: 'grid', arguments: [] }])
-        .functionResults[0].types).toEqual([]);
+        .functionResults[0].types).toEqual(['integer']);
 });
 
 it('infers the unchanged AtCoder grid-path table', () => {
@@ -1159,7 +1159,7 @@ it('infers indexed values from the unchanged CSES next-prime sequence', () => {
 it('widens array element facts before analyzing repeated writes', () => {
     expect(messages('Count = 1\nA = array 1 2\nfor I in 0 to 1\n A 0 = "x"\nend\n'
         + 'A 0 + 1\nCount + "bad"'))
-        .toEqual(['operator + does not accept integer and text']);
+        .toEqual(['A has array elements of type integer and cannot receive text', 'operator + does not accept integer and text']);
     expect(messages('Count = 1\nA = array 1 2\nfor I in 0 to 1\n A Key = 0\nend\n'
         + 'Count + "bad"')).toEqual([]);
 });
@@ -1480,7 +1480,7 @@ it('maps a direct nested reader or writer to the enclosing argument', () => {
     const reader = 'fun outer X\n fun read\n  return X 0\n end\n return read\nend\n';
     expect(messages(reader + 'A = array 1 2\nCount = 3\nA outer\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    const writer = 'fun outer X\n fun change\n  X 0 = "x"\n  return 0\n end\n change\n return 0\nend\n';
+    const writer = 'fun outer X\n fun change\n  X 0 = 9\n  return 0\n end\n change\n return 0\nend\n';
     expect(messages(writer + 'A = array 1 2\nCount = 3\nA outer\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(writer + 'A = array 1 2\nA outer\nA + "bad"'))
@@ -1511,7 +1511,7 @@ it('reads top-level captures rather than equally named caller parameters', () =>
         + 'fun outer Offset\n return 1 read\nend\nResult = "x" outer\nResult + "y"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('Shared = array 1 2\nfun read Ignored\n return Shared 0\nend\n'
-        + 'fun outer Ignored\n Shared 0 = "x"\n return 0 read\nend\nResult = 0 outer\nResult + 1'))
+        + 'fun outer Ignored\n Shared 0 = 9\n return 0 read\nend\nResult = 0 outer\nResult + 1'))
         .toEqual([]);
 });
 
@@ -1588,11 +1588,11 @@ it('follows copy-on-write when a function writes a parameter array', () => {
 
 it('invalidates the written binding while retaining independent array facts', () => {
     const code = 'A = array 1 2\nB = A\nC = array 3 4 5\n';
-    expect(messages(code + 'A 0 = "x"\nB + C'))
+    expect(messages(code + 'A 0 = 9\nB + C'))
         .toEqual(['shape mismatch: [2] and [3]']);
-    expect(messages(code + 'fun change\n A 0 = "x"\n return 0\nend\nchange\nB + C'))
+    expect(messages(code + 'fun change\n A 0 = 9\n return 0\nend\nchange\nB + C'))
         .toEqual(['shape mismatch: [2] and [3]']);
-    expect(messages(code + 'fun change\n A 0 = "x"\n return 0\nend\nchange\nA + (array 1 2)'))
+    expect(messages(code + 'fun change\n A 0 = 9\n return 0\nend\nchange\nA + (array 1 2)'))
         .toEqual([]);
 });
 
@@ -1602,7 +1602,7 @@ it('uses proven integer selectors through assignments and branch joins', () => {
         .toEqual(['shape mismatch: [2] and [3]']);
     expect(messages(code + 'if Flag\n A I = 9\nend\nB + C'))
         .toEqual(['shape mismatch: [2] and [3]']);
-    expect(messages(code + 'A I = "x"\nA + (array 3 4)')).toEqual([]);
+    expect(messages(code + 'A I = "x"\nA + (array 3 4)')).toEqual(['A has array elements of type integer and cannot receive text']);
     expect(messages('Key = .n\nA = array true false\nB = A\nA Key = 1\nB + 1'))
         .toEqual([]);
 });
@@ -1615,8 +1615,8 @@ it('retains known cell types after a proven single-cell replacement', () => {
         .toEqual(['operator + does not accept integer and boolean']);
     expect(messages('A = array 1 2\nif Flag\n A 0 = 3\nend\nA + (array true false)'))
         .toEqual(['operator + does not accept integer and boolean']);
-    expect(messages('A = array 1 2\nA 0 = true\nA + (array 3 4)')).toEqual([]);
-    expect(messages('A = array 1 2\nA # = 3\nA + (array true false)')).toEqual([]);
+    expect(messages('A = array 1 2\nA 0 = true\nA + (array 3 4)')).toEqual(['A has array elements of type integer and cannot receive boolean']);
+    expect(messages('A = array 1 2\nA # = 3\nA + (array true false)')).toEqual(['operator + does not accept integer and boolean']);
     expect(messages('A = array 1 2\nA 0 += 3\nA + (array true false)'))
         .toEqual(['operator + does not accept integer and boolean']);
     expect(messages('A = array 1 2\nA 0 %= 3\nA + (array true false)'))
@@ -1671,7 +1671,7 @@ it('drops caller facts when a nested helper name is redefined', () => {
 });
 
 it('falls back for unknown effects and reference-like writes', () => {
-    const prefix = 'fun change X\n X 0 = 1\n return 0\nend\nA = array true false\nAlias = A\nCount = 3\n';
+    const prefix = 'fun change X\n X 0 = true\n return 0\nend\nA = array true false\nAlias = A\nCount = 3\n';
     expect(messages(prefix + 'A change\nAlias + 1')).toEqual(['operator + does not accept boolean and integer']);
     expect(messages(prefix + 'A external\nCount + "bad"')).toEqual([]);
     expect(messages(prefix + 'Unknown change\nCount + "bad"')).toEqual([]);
@@ -1721,8 +1721,8 @@ it('preserves scalar cells through a proven integer spread index', () => {
         + '  A unpack Position += 1\n end\n return A 0 1\nend\nResult = (array 0 1) write';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
     expect(analyzeValues(parse(source)).bindings.get('Result')?.types).toEqual(['integer']);
-    expect(analyzeValues(parse(source.replace('array 0 1', 'array 0'))).bindings.get('Result')?.types).toEqual([]);
-    expect(analyzeValues(parse(source.replace('array 0 1', 'array 0.5 1'))).bindings.get('Result')?.types).toEqual([]);
+    expect(analyzeValues(parse(source.replace('array 0 1', 'array 0'))).bindings.get('Result')?.types).toEqual(['integer']);
+    expect(analyzeValues(parse(source.replace('array 0 1', 'array 0.5 1'))).bindings.get('Result')?.types).toEqual(['integer']);
 });
 
 it('keeps numeric matrix cells only when loop rebindings are closed', () => {
@@ -1733,12 +1733,12 @@ it('keeps numeric matrix cells only when loop rebindings are closed', () => {
     expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['integer']);
     const broken = source.replace('Result = Result Base matmul\n end',
         'Result = Result Base matmul\n  if I equal 1\n   Result = "bad"\n  end\n end');
-    expect(analyzeValues(parse(broken)).bindings.get('A')?.types).toEqual([]);
+    expect(analyzeValues(parse(broken)).bindings.get('A')?.types).toEqual(['integer']);
     expect(messages('A = array shape 2 2 fill 1\nfor I in 0 till 2\n'
         + ' A = array shape 2 3 fill 1\nend\nA + (array shape 2 4 fill 1)')).toEqual([]);
 });
 
-it('joins integer and real cells across proven matrix writes in a loop', () => {
+it('settles infinity seeds while retaining the sentinel as a possible real value', () => {
     const source = 'fun build_matrix Size\n M = array shape Size Size fill infinity\n'
         + ' for I in 0 till Size\n  M I I = 0\n end\n return M 0 0\nend\nA = 2 build_matrix';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
@@ -1763,7 +1763,7 @@ it('does not close a numeric loop through an effectful helper', () => {
     const source = 'fun impure X\n Unknown external\n return X\nend\n'
         + 'fun compute\n A = array 1 2\n for I in 0 till 2\n  A = A impure\n end\n return A 0\nend\nResult = compute';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
-    expect(analyzeValues(parsed.value).bindings.get('Result')?.types).toEqual([]);
+    expect(analyzeValues(parsed.value).bindings.get('Result')?.types).toEqual(['integer']);
 });
 
 it('infers the unchanged CSES min-plus graph-path result through safe helpers', () => {
@@ -2042,7 +2042,7 @@ it('keeps numeric cells through a callback-free integer-sequence compound write'
     expect(messages('A = array shape 5 fill 0\nA (1 to 4 by 2) += 1\nA 1 + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('A = array shape 5 fill 0\nA (1 to 4 by 2) /= 2\nA 1 + "bad"'))
-        .toEqual(['operator + does not accept integer or real and text']);
+        .toEqual(['A has array elements of type integer and cannot receive real', 'operator + does not accept integer and text']);
     expect(messages('A = array shape 5 fill 0\nA Unknown += 1\nA 1 + "bad"'))
         .toEqual([]);
     expect(messages('A = array shape 5 fill 0\nfor I in 1 to 2\n'
@@ -2105,7 +2105,7 @@ it('keeps numeric matrix cells through a safe vector-index replacement', () => {
     expect(messages('A = array shape 3 4 fill 0\nI = 1 to 2\nA 0 I = array 5 6\nA 0 1 + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('A = array shape 3 4 fill 0\nI = 1 to 2\nA 0 I = array "x" "y"\nA 0 1 + "bad"'))
-        .toEqual([]);
+        .toEqual(['A has array elements of type integer and cannot receive text']);
     expect(messages('A = array shape 3 4 fill 0\nA 0 Unknown = array 5 6\nA 0 1 + "bad"'))
         .toEqual([]);
     expect(messages('A = array shape 3 4 fill 0\nA 0 # = array 1 2 3 4\nA 0 1 + "bad"'))
@@ -2113,7 +2113,7 @@ it('keeps numeric matrix cells through a safe vector-index replacement', () => {
     expect(messages('A = array shape 3 4 fill 0\nI = 1 to 2\nA 0 I += array 5 6\nA 0 1 + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('A = array shape 3 4 fill 0\nA 0 # = array "a" "b" "c" "d"\nA 0 1 + "bad"'))
-        .toEqual([]);
+        .toEqual(['A has array elements of type integer and cannot receive text', 'operator + does not accept integer and text']);
     expect(messages('A = array shape 3 4 fill 1.0\nA # 1 *= -1\nA 0 1 + "bad"'))
         .toEqual(['operator + does not accept real and text']);
     expect(messages('A = array shape 3 4 fill 1.0\nA # # *= -1\nA 0 1 + "bad"'))
@@ -2180,7 +2180,7 @@ it('does not discard unrelated facts when popping a known native container', () 
     }
     expect(messages('use algo\nA = array 1 2\nUnknown pop\nA 0 + "bad"')).toEqual([]);
     expect(messages('use algo\nA = array 1 2\nQ = new stack\n'
-        + 'fun pop X\n A 0 = "changed"\n return 0\nend\nQ pop\nA 0 + "bad"')).toEqual(['cannot redefine available builtin: pop']);
+        + 'fun pop X\n A 0 = 9\n return 0\nend\nQ pop\nA 0 + "bad"')).toEqual(['cannot redefine available builtin: pop', 'operator + does not accept integer and text']);
 });
 
 it('infers elements inserted into named collections and rejects a definite mismatch', () => {
@@ -2348,7 +2348,7 @@ it('retains a private container binding after an uncertain indexed write', () =>
         'fun read Tree Key\n A = array 1 2\n Tree Key = 1\n return A 0\nend\n');
     expect(analyzeValues(cells.value, new Map(), new Map(), [{ name: 'read', arguments: [
         { types: [] }, { types: [] },
-    ] }]).functionResults[0].types).toEqual([]);
+    ] }]).functionResults[0].types).toEqual(['integer']);
 });
 
 it('infers the unchanged range-copy result despite an uncertain indexed write', () => {
@@ -2485,10 +2485,10 @@ it('infers indices of safe masks without trusting a lazy mask read', () => {
         'use sequences\nfun probe Mask\n A = array 1 2\n Mask indices\n return A 0\nend\n');
     const input = { types: ['array'], rank: 1, shape: [2], elements: ['boolean'] };
     expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'probe', arguments: [input] }])
-        .functionResults[0].types).toEqual([]);
+        .functionResults[0].types).toEqual(['integer']);
     expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'probe', arguments: [
         { types: [] },
-    ] }]).functionResults[0].types).toEqual([]);
+    ] }]).functionResults[0].types).toEqual(['integer']);
     expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'probe', arguments: [
         { ...input, eagerScalarCells: true },
     ] }]).functionResults[0].types).toEqual(['integer']);
@@ -2505,8 +2505,8 @@ it('infers findall positions only after callback-free source and key reads', () 
         const result = (...arguments_: ValueFacts[]) => analyzeValues(program.value, new Map(), new Map(), [
             { name: 'probe', arguments: arguments_ },
         ]).functionResults[0].types;
-        expect(result(values, target)).toEqual([]);
-        expect(result({ ...values, eagerScalarCells: true }, { types: [] })).toEqual([]);
+        expect(result(values, target)).toEqual(['integer']);
+        expect(result({ ...values, eagerScalarCells: true }, { types: [] })).toEqual(['integer']);
         expect(result({ ...values, eagerScalarCells: true }, target)).toEqual(['integer']);
     }
 });

@@ -69,7 +69,11 @@ binding holds a finite value its type is invariant again.
 An array binding also keeps its number of axes. Axis lengths may change; a
 vector cannot be reassigned a matrix. The rule applies to parameters and captured
 bindings, and a new function invocation gets fresh local binding contracts.
-Ordinary array bindings do not thereby acquire a fixed cell-type contract.
+Ordinary array bindings also retain a recursive element contract. Empty and missing-only
+arrays defer the element domain; an established union accepts subsets. Infinity-only
+numeric seeds settle on the first finite numeric domain while retaining infinity as
+a sentinel. Validation of unread lazy cells is deferred. See the
+[type-contract comparison](../../language/type-contracts.md) for timing and exceptions.
 
 Record fields have the recursive contracts in
 [ADR-0106](0106-record-types.md). Mutable collections establish their element
