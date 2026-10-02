@@ -693,6 +693,14 @@ it('reads a scalar array cell as the first operand of a trailing dyadic operatio
     expect(messages('Steps = array 9 8 7\nA = Steps Unknown 5 min\nA + "bad"')).toEqual([]);
 });
 
+it('keeps outer loop facts when only a nested loop continues', () => {
+    const nested = (exit: string) => `fun count Width\n Current = array shape 4 fill 0\n for Column in 1 to Width\n  Next = array shape 4 fill 0\n${exit}\n  Current = Next\n end\n return Current 0\nend\nA = 3 count\nA + "bad"`;
+    expect(messages(nested('  for Mask in 0 till 4\n   Ways = Current Mask\n   if Ways equal 0\n    continue\n   end\n   Next 0 += Ways\n  end')))
+        .toEqual(['operator + does not accept integer and text']);
+    // The loop's own continue still takes the conservative exit analysis.
+    expect(messages(nested('  if Column equal 2\n   continue\n  end\n  Next 0 += 1'))).toEqual([]);
+});
+
 it('infers the simplified regular-expression matcher from its local index writes', () => {
     const source = readFileSync(new URL('./fixtures/010_regexp.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/leetcode/010_regexp_test.ra', import.meta.url), 'utf8');

@@ -110,7 +110,9 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
             return;
         }
         const contents = [...AstUtils.streamAllContents(statement)];
-        const hasExit = contents.some(node => isBreakStatement(node) || isContinueStatement(node));
+        // A break or continue in a nested loop leaves that loop, not this one.
+        const hasExit = contents.some(node => (isBreakStatement(node) || isContinueStatement(node))
+            && AstUtils.getContainerOfType(node, isForStatement) === statement);
         if (condition && isBinaryExpression(condition) && condition.operator === 'in' && !membership
             || contents.some(node => isStatement(node) && !isExpression(node) && !isAssignmentStatement(node)
                 && !isUnpackStatement(node) && !isArrayAssignmentStatement(node) && !isIndexAssignmentStatement(node)
