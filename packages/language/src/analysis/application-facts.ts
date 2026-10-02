@@ -725,6 +725,9 @@ function transferApplicationFacts(
             ...(source.eagerScalarCells || source.callbackFreeScalarCells
                 ? { callbackFreeScalarCells: true as const } : {}) };
         if (source.elements?.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
+        if (source.types[0] === 'array' && source.elements?.join() === 'record' && source.elementRecord) {
+            return source.elementRecord;
+        }
         return source.elements?.length && source.elements.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
             ? { types: source.elements, rank: 0, shape: [] } : { types: source.elements ?? [] };
     }
