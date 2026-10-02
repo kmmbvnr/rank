@@ -63,6 +63,10 @@ let cellHeight = 22;
 let top = 0;
 let scrollFraction = 0;
 let follow = true;
+// Screen row of the cursor when the layout was last stable; a keyboard swap resizes the viewport
+// through transient heights, and the cursor must come back to this row, not stay where they pushed it.
+let restingCursorRow: number | undefined;
+let anchorCursor = false;
 let busy = false;
 let composing = false;
 let failure = '';
@@ -257,10 +261,12 @@ function render(): void {
             shownFailure || (showShortcutHints ? repl.suggestion : ''), busy || repl.running, follow, '',
             shownFailure || (repl.running ? showShortcutHints ? repl.runningStatus : repl.runningStatus.split(' · ')[0] : 'Running…'),
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
-            repl.liveIterationFocus, repl.stepping, undefined, showShortcutHints,
+            repl.liveIterationFocus, repl.stepping,
+            anchorCursor && restingCursorRow !== undefined ? Math.min(restingCursorRow, rows - 1) : undefined, showShortcutHints,
             !keyHints() && !shownFailure && !repl.running ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus);
         top = frame.top;
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
+        if (!anchorCursor) restingCursorRow = frame.cursor.row >= 0 && frame.cursor.row < rows ? frame.cursor.row : undefined;
     }
     if (screen.children.length !== frame.lines.length) {
         screen.replaceChildren(...frame.lines.map(() => {
@@ -1202,7 +1208,8 @@ function resize(): void {
     columns = Math.max(12, Math.floor(terminal.clientWidth / cellWidth));
     rows = Math.max(2, Math.floor(terminal.clientHeight / cellHeight));
     follow = true;
-    render();
+    anchorCursor = true;
+    try { render(); } finally { anchorCursor = false; }
 }
 window.visualViewport?.addEventListener('resize', resize);
 window.visualViewport?.addEventListener('scroll', resize);
