@@ -58,3 +58,22 @@ export function groupedUnaryDyadicChain(expression: Expression, unbound: (name: 
         groupedExpression(applicationExpression(parts.slice(0, 2), expression)), parts[2], parts[3],
     ], expression);
 }
+
+/** The grammar's completed call followed by a unary operation, including a unary
+ * overload after another unary builtin (`N text sort`). Keep this boundary
+ * shared by forward facts and backward requirements. */
+export function unaryApplicationHead(expression: Expression,
+    arities: (name: string) => readonly number[] | undefined,
+    standard: (name: string) => boolean = () => true): Expression | undefined {
+    if (!isApplicationExpression(expression) || !isApplicationExpression(expression.head)
+        || expression.arguments.length !== 1) return;
+    const last = expression.arguments[0];
+    if (!isNameExpression(last)) return;
+    const tail = arities(last.name);
+    const head = flattenApplication(expression.head);
+    const headLast = head.at(-1);
+    const completed = head.length >= 2 && isNameExpression(headLast) && standard(headLast.name)
+        && arities(headLast.name)?.join() === '1';
+    if (tail?.join() === '1' || completed && tail?.includes(1)) return expression.head;
+    return undefined;
+}

@@ -1,0 +1,94 @@
+{
+  "issue": 69,
+  "date": "2026-10-02",
+  "baseRevision": "bdc82a2d56447a89ced8697d66fe5db4227f42ba",
+  "scope": "Static requirements and diagnostics; issues 33 and 116 are design context only.",
+  "commands": [
+    "npm test",
+    "npm test --workspace packages/language --workspace packages/interpreter --workspace packages/common",
+    "node benchmarks/analysis-coverage.mjs --conflicts",
+    "node benchmarks/refactor-analysis-latency.mjs"
+  ],
+  "forwardCoverage": {
+    "before": {
+      "files": 466,
+      "functions": 591,
+      "knownEffects": 33,
+      "borrowCandidates": 4,
+      "guardedBuiltinBorrowCandidates": 6,
+      "loopFunctions": 347,
+      "knownLoopEffects": 0,
+      "testExamples": 1085,
+      "knownExampleResults": 1080,
+      "knownExampleEffects": 197,
+      "exampleExpectationConflicts": 0
+    },
+    "after": {
+      "files": 466,
+      "functions": 591,
+      "knownEffects": 33,
+      "borrowCandidates": 4,
+      "guardedBuiltinBorrowCandidates": 6,
+      "loopFunctions": 347,
+      "knownLoopEffects": 0,
+      "testExamples": 1085,
+      "knownExampleResults": 1080,
+      "knownExampleEffects": 197,
+      "exampleExpectationConflicts": 0
+    }
+  },
+  "requirements": {
+    "bindingsWithNewRankBounds": 230,
+    "bindingsWithNewExactRank": 227,
+    "callResultsWithNewRankBounds": 32,
+    "callResultsWithNewExactRank": 29,
+    "constrainedParameters": 7,
+    "contradictions": 0,
+    "limitedFiles": 0
+  },
+  "latencyMilliseconds": {
+    "before": {
+      "short": {
+        "median": 0.19,
+        "p95": 0.4
+      },
+      "large200Lines": {
+        "median": 9.93,
+        "p95": 11.79
+      }
+    },
+    "after": {
+      "short": {
+        "median": 0.22,
+        "p95": 0.38
+      },
+      "large200Lines": {
+        "median": 11.53,
+        "p95": 13.3
+      }
+    }
+  },
+  "verification": {
+    "fullNpmTest": "passed before final inference corrections",
+    "finalSuites": {
+      "language": 709,
+      "interpreter": 2061,
+      "common": 126
+    },
+    "earlierFullRunOtherSuites": {
+      "cli": 486,
+      "compile": 10
+    },
+    "semanticBoundaryOwners": 49,
+    "applicationForms": "passed",
+    "typescriptBuild": "passed",
+    "diffCheck": "passed"
+  },
+  "notes": [
+    "Known result counts include unions. Ordered extrema now retain possible nonnumeric types when numeric input is unproved.",
+    "Binding metrics count assignment sites. Requirements are not forward facts or runtime optimization proofs.",
+    "No requirement contradictions or inference budget limits in the 466-demo corpus.",
+    "Latency includes parsing and analysis of incomplete editor input; single-machine samples are not a runtime performance claim.",
+    "Final relevant suites were rerun after template dimension, explicit axis, import boundary and ordered extrema corrections."
+  ]
+}

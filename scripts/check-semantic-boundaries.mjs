@@ -17,6 +17,10 @@ const owners = new Set([
     'packages/language/src/analysis/function-yields.ts',
     'packages/language/src/analysis/numeric-recursion.ts',
     'packages/language/src/analysis/operation-proofs.ts',
+    'packages/language/src/analysis/requirements.ts',
+    'packages/language/src/analysis/requirement-graph.ts',
+    'packages/language/src/analysis/requirement-solver.ts',
+    'packages/language/src/analysis/requirement-diagnostics.ts',
     'packages/language/src/analysis/return-paths.ts',
     'packages/language/src/analysis/return-contract.ts',
     'packages/language/src/analysis/value-domain.ts',
@@ -79,6 +83,10 @@ for (const file of [...sources(language), ...sources(runtime)]) {
     if (file.startsWith(`${runtime}/`) && name !== 'packages/interpreter/src/index.ts'
         && imports.some(specifier => target(specifier) === resolve(runtime, 'interpreter.ts'))) {
         failures.push(`${name}: runtime module imports Interpreter facade`);
+    }
+    const proofConsumer = file.startsWith(`${runtime}/`) || /\/(operation-proofs|flat-array-borrow|function-effects|value-facts)\.ts$/.test(file);
+    if (proofConsumer && /\b(?:inferRequirements|RequirementAnalysis)\b|\.requirements\b|from ['"][^'"]*\/requirement(?:s|-)/.test(source)) {
+        failures.push(`${name}: requirement facts must not enter runtime or optimization proofs`);
     }
     if (!owners.has(name)) continue;
     // Type-only imports are erased; a cycle among owners is a runtime dependency.

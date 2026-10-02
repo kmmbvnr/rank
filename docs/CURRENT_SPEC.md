@@ -1866,6 +1866,22 @@ cell-rank and axis iteration are defined in [Tensors](language/tensors.md).
 
 ## Errors and exceptions
 
+Static analysis can combine requirements from several uses of one binding,
+including requirements inside a directly called function. New contradictions
+report both source lines, for example:
+
+```text
+DimensionMismatch: rank conflict
+line 2: 2 selectors need rank >= 2
+line 3: rank 0
+```
+
+These messages describe incompatible requirements. They do not certify the
+shape or type of external data, remove runtime checks, or change the result
+shape of an empty ranked frame. Guarded uses and unknown callbacks may remain
+unresolved. Ordinary `rank R` accepts ranks larger than the operand rank and
+negative ranks; it does not impose a minimum input rank by itself.
+
 Runtime diagnostics identify the failing statement by file, line and column
 (counted from one), followed by its source line and a caret:
 

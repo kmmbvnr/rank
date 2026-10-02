@@ -3,7 +3,7 @@ import { dirname, extname, resolve } from 'node:path';
 import { AstUtils, EmptyFileSystem } from 'langium';
 import {
   analyzeValues, createRankServices, flatArrayBorrowProofs, functionEffects,
-  functionTestExamples, isForStatement, isFunctionStatement, moduleSummary,
+  functionTestExamples, isForStatement, isFunctionStatement, isApplicationExpression, isAssignmentStatement, isNameExpression, flattenApplication, findOperation, moduleSummary,
 } from '../packages/language/out/index.js';
 
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
@@ -22,10 +22,42 @@ const groups = new Map();
 const conflicts = [];
 const unknowns = [];
 const importedPrograms = new Map();
+const requirements = { bindingsWithNewRankBounds: 0, bindingsWithNewExactRank: 0,
+  callResultsWithNewRankBounds: 0, callResultsWithNewExactRank: 0,
+  constrainedParameters: 0, contradictions: 0, limitedFiles: 0 };
+const requirementConflicts = [];
 for (const path of paths) {
   const parsed = parser.parse(readFileSync(path, 'utf8'));
   if (parsed.parserErrors.length) throw new Error(`${path}: ${parsed.parserErrors[0].message}`);
   const definitions = parsed.value.statements.filter(isFunctionStatement);
+  const forward = analyzeValues(parsed.value);
+  const inferred = forward.requirements;
+  const constrained = value => value.rank.min > 0 || value.rank.max < Infinity;
+  const exact = value => value.rank.min === value.rank.max;
+  for (const binding of inferred.bindings) {
+    const fact = (isAssignmentStatement(binding.node) ? forward.expressions.get(binding.node.value) : undefined)
+      ?? forward.bindings.get(binding.name);
+    if (!fact || fact.rank !== undefined || !constrained(binding)) continue;
+    requirements.bindingsWithNewRankBounds++;
+    if (exact(binding)) requirements.bindingsWithNewExactRank++;
+  }
+  for (const [expression, value] of inferred.expressions) {
+    if (!isApplicationExpression(expression)) continue;
+    const target = flattenApplication(expression).at(-1);
+    const fact = forward.expressions.get(expression);
+    if (!isNameExpression(target) || !forward.functions.has(target.name) && !findOperation(target.name)
+      || !fact || fact.rank !== undefined || !constrained(value)) continue;
+    requirements.callResultsWithNewRankBounds++;
+    if (exact(value)) requirements.callResultsWithNewExactRank++;
+  }
+  for (const summary of inferred.functions.values()) {
+    requirements.constrainedParameters += summary.params.filter(constrained).length;
+  }
+  requirements.contradictions += inferred.conflicts.length;
+  requirements.limitedFiles += Number(inferred.limited);
+  for (const conflict of inferred.conflicts) requirementConflicts.push({ path, kind: conflict.kind,
+    sites: [conflict.first, conflict.second].map(site => ({
+      line: (site.node.$cstNode?.range.start.line ?? 0) + 1, reason: site.reason })) });
   const byName = new Map(definitions.map(definition => [definition.name, definition]));
   const effects = functionEffects(name => byName.get(name), name => byName.has(name));
   const group = path.split('/')[1];
@@ -106,6 +138,6 @@ const total = { files: 0, functions: 0, knownEffects: 0, borrowCandidates: 0,
 for (const counts of groups.values()) {
   for (const key of Object.keys(total)) total[key] += counts[key];
 }
-console.log(JSON.stringify({ total, groups: Object.fromEntries(groups) }, null, 2));
-if (process.argv.includes('--conflicts')) console.error(JSON.stringify(conflicts, null, 2));
+console.log(JSON.stringify({ total, requirements, groups: Object.fromEntries(groups) }, null, 2));
+if (process.argv.includes('--conflicts')) console.error(JSON.stringify({ forward: conflicts, requirements: requirementConflicts }, null, 2));
 if (process.argv.includes('--unknown')) console.error(JSON.stringify(unknowns, null, 2));

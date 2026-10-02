@@ -5,7 +5,7 @@ import {
     isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
     isNumberLiteral, isStringLiteral, type ApplicationExpression, type Expression,
 } from '../generated/ast.js';
-import { applicationExpression, flattenApplication, groupedUnaryDyadicChain } from '../expressions.js';
+import { applicationExpression, flattenApplication, groupedUnaryDyadicChain, unaryApplicationHead } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { applicationForm, assertNever, type ApplicationForm } from '../application-forms.js';
 import { mapsScalarCells, resultTypes, type Types } from './types.js';
@@ -245,15 +245,9 @@ function transferApplicationFacts(
         }
     }
     const last = parts.at(-1)!;
-    const headParts = isApplicationExpression(expression.head) ? flattenApplication(expression.head) : [];
-    const headLast = headParts.at(-1);
-    const completedUnaryBuiltin = headParts.length >= 2 && isNameExpression(headLast)
-        && lookup(headLast.name) === undefined && findOperation(headLast.name)?.arities.join() === '1';
-    const unaryTail = isApplicationExpression(expression.head) && expression.arguments.length === 1
-        && isNameExpression(last) && (lookup(last.name) === undefined
-            ? findOperation(last.name)?.arities.join() === '1'
-                || completedUnaryBuiltin && findOperation(last.name)?.arities.includes(1)
-            : lookup(last.name)?.types.includes('function') && lookup.arity?.(last.name) === 1);
+    const unaryTail = unaryApplicationHead(expression, name => lookup(name) === undefined
+        ? findOperation(name)?.arities : lookup(name)?.types.includes('function') && lookup.arity?.(name) !== undefined
+            ? [lookup.arity(name)!] : undefined, name => lookup(name) === undefined) !== undefined;
     const source = infer(unaryTail ? expression.head : parts[0], lookup);
     if (parts.length === 2 && source.types.join() === 'array' && source.rank === 1 && source.shape) {
         const fields = infer(parts[1], lookup);
@@ -424,6 +418,33 @@ function transferApplicationFacts(
             const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => infer(part, lookup));
             const shaped = operation.sortDirection && arity === 2 ? undefined
                 : operationShapeFacts(operation, operands);
+            // Extrema select an ordered value, including text, rather than
+            // manufacturing a number. The numeric shape signature alone cannot
+            // establish their result domain or text's runtime rank.
+            if (operation.selectsNumericCell) {
+                const ordered = new Set(['integer', 'real', 'text', 'boolean', 'symbol', 'date', 'datetime', 'record']);
+                const domains = operands.map(value => {
+                    if (value.types.length && value.types.every(type => ordered.has(type))) return value.types;
+                    if (arity !== 1 || !value.elements?.length
+                        || !value.elements.every(type => ordered.has(type))) return undefined;
+                    if (['array', 'sequence'].includes(value.types.join())
+                        && !value.eagerScalarCells && !value.callbackFreeScalarCells
+                        && value.elements.every(type => type === 'integer' || type === 'real')) return ['integer', 'real'];
+                    return value.elements;
+                });
+                if (domains.every(domain => domain !== undefined)) {
+                    const types = [...new Set(domains.flatMap(domain => domain!))];
+                    return types.every(type => type === 'text') ? { types, rank: 1, shape: [null] }
+                        : types.every(type => type !== 'text') ? { types, rank: 0, shape: [] } : { types };
+                }
+                if (arity === 1) {
+                    // Successful reduction selects an ordered value. Unknown max
+                    // can also build a SQLite expression. Neither fixes a rank.
+                    const collection = source.types.length && source.types.every(type =>
+                        ['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'multiset'].includes(type));
+                    return { types: [...ordered, ...(!collection && operation.name === 'max' ? ['sqlite-expression'] : [])] };
+                }
+            }
             if (arity === 3 && operation.name === 'choose') {
                 const chosen = chooseFacts(operands[0], operands[1], operands[2]);
                 if (chosen) return chosen;

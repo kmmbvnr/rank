@@ -7,6 +7,13 @@ import { analyzeValues } from '../src/analysis/value-diagnostics.js';
 import { functionTestExamples } from '../src/analysis/test-examples.js';
 import type { ValueFacts } from '../src/analysis/value-domain.js';
 
+it('accepts clamped and negative ordinary ranks but checks reduction ranks', () => {
+    expect(messages('A = array 1 2\nA sum rank 5')).toEqual([]);
+    expect(messages('A = array 1 2\nA sum rank -1')).toEqual([]);
+    expect(messages('A = array 1 2\nA + reduce rank 5'))
+        .toContain('rank 5 exceeds value rank 1');
+});
+
 it('does not join an explicit raise with successful function returns', () => {
     const source = 'fun choose Flag\n if Flag\n  return .Missing raise\n else\n  return 1\n end\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);

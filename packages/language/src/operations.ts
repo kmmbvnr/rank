@@ -65,6 +65,9 @@ export interface Operation {
     readonly arrayCells?: true;
     /** Cell shape contracts, one per supported operand count. Ranks remain explicit. */
     readonly shape?: readonly ShapeSignature[];
+    /** Accepted scalar/cell domains for requirement diagnostics, not callback proofs.
+     * Omit an operand when its overloads do not have one unconditional domain. */
+    readonly operandDomains?: readonly (readonly string[] | null)[];
     /** Present when the result is produced on demand rather than at once. */
     readonly lazy?: true;
     readonly effects?: readonly Effect[];
@@ -542,6 +545,7 @@ export const operations: readonly Operation[] = [
         shape: [{ args: [[]], result: [] }],
         monadicRank: 0, summary: 'Real square root of a nonnegative number.' },
     { name: 'sum', module: 'core', arities: [1], form: 'Values sum', result: 'number', axisReduction: true,
+        operandDomains: [['integer', 'real', 'missing']],
         shape: [{ args: [null], result: [] }],
         scalarCellArrayNoCallback: 'number',
         summary: 'Adds every numeric cell of an array, collection or finite sequence.' },
@@ -726,6 +730,7 @@ export const operations: readonly Operation[] = [
         result: 'boolean',
         summary: 'Exact text or byte prefix test; ordinary arrays broadcast elementwise.' },
     { name: 'lower', module: 'text', arities: [1], form: 'Text lower', result: 'text',
+        operandDomains: [['text']],
         summary: 'Converts Unicode text to lowercase.' },
     { name: 'lpad', module: 'text', arities: [3], form: 'Text Width Fill lpad', result: 'text',
         summary: 'Pads text on the left without truncating longer values.' },

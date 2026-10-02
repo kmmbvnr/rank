@@ -1,4 +1,6 @@
 import { AstUtils, type AstNode } from 'langium';
+import { inferRequirements, type RequirementAnalysis } from './requirements.js';
+import { requirementDiagnostics } from './requirement-diagnostics.js';
 import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isNumberLiteral, isStringLiteral, isParenthesizedExpression,
     isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
@@ -38,11 +40,12 @@ export interface ValueDiagnostic {
     readonly node: AstNode;
     readonly message: string;
     readonly kind: 'TypeError' | 'DimensionMismatch';
-    readonly code?: 'BuiltinRename' | 'RaggedLift';
+    readonly code?: 'BuiltinRename' | 'RaggedLift' | 'RequirementConflict';
     readonly severity?: 'warning';
 }
 
 export interface ValueAnalysis {
+    readonly requirements: RequirementAnalysis;
     readonly diagnostics: readonly ValueDiagnostic[];
     readonly bindings: ReadonlyMap<string, ValueFacts>;
     readonly expressions: ReadonlyMap<Expression, ValueFacts>;
@@ -542,11 +545,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     message: `${selectors.length} selectors exceed array rank ${source.rank}` });
             for (let index = 1; index < parts.length - 1; index++) {
                 const part = parts[index];
-                if (!isNameExpression(part) || !['rank', 'axis'].includes(part.name) || lookup(part.name)) continue;
+                // Ordinary rank clamps to the operand rank (negative ranks count
+                // back from it). Only an explicit axis is an index here.
+                if (!isNameExpression(part) || part.name !== 'axis' || lookup(part.name)) continue;
                 const integer = expressionFacts(parts[index + 1], lookup).integer;
                 if (integer === undefined || source.rank === undefined) continue;
                 const value = BigInt(integer);
-                if (value < 0n || (part.name === 'axis' ? value >= BigInt(source.rank) : value > BigInt(source.rank))) {
+                if (value < 0n || value >= BigInt(source.rank)) {
                     diagnostics.push({ node: parts[index + 1], kind: 'DimensionMismatch',
                         message: `${part.name} ${integer} is invalid for rank ${source.rank}` });
                 }
@@ -1109,9 +1114,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         return calls.call(example.name, inputs, bindings);
     });
     calls.validateDeclarations(bindings);
+    const requirements = inferRequirements(program, { initial, declarations, loadModule });
+    diagnostics.push(...requirementDiagnostics(requirements.conflicts, diagnostics));
     const unique = diagnostics.filter((diagnostic, index) => !diagnostics.slice(0, index).some(previous =>
         previous.node === diagnostic.node && previous.message === diagnostic.message));
-    return { diagnostics: unique, bindings, expressions, functions, functionResults };
+    return { diagnostics: unique, bindings, expressions, functions, functionResults, requirements };
 }
 
 function dataDependentLength(operation: Operation): boolean {
