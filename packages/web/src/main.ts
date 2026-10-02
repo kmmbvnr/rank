@@ -4,7 +4,7 @@ import { NotebookRepl } from '@arrrank/common/repl';
 import { KeyRouter, type Key } from '@arrrank/common/key-router';
 import { TerminalModeRouter } from '@arrrank/common/terminal-modes';
 import { fixAt, notebookFrame, helpFrame, pauseFrame, type ScreenFrame } from '@arrrank/common/screen';
-import { keyAvailable, keyboardTabs, keyText } from '@arrrank/common/symbol-keyboard';
+import { keyAvailable, keyboardModules, keyboardTabs, keyText } from '@arrrank/common/symbol-keyboard';
 import { textEdit } from '@arrrank/common/input-edit';
 import { browserSession } from './session.js';
 import { paintLine } from './terminal-colors.js';
@@ -543,32 +543,48 @@ floatingKeyboard.addEventListener('change', () => render());
 function renderKeyboard(): void {
     const floating = floatingKeyboard.matches;
     const tabs = keyboardTabs(repl.session.modules);
-    if (!tabs.some(tab => tab.module === keyboardModule)) keyboardModule = 'core';
+    if (keyboardModule !== '+' && !tabs.some(tab => tab.module === keyboardModule)) keyboardModule = 'core';
     const modules = tabs.map(tab => tab.module).join(',');
     if (modules !== keyboardTabList.dataset.modules) {
         keyboardTabList.dataset.modules = modules;
-        keyboardTabList.replaceChildren(...tabs.map(tab => {
+        keyboardTabList.replaceChildren(...[...tabs, { module: '+' }].map(tab => {
             const button = document.createElement('button');
             button.type = 'button';
             button.role = 'tab';
             button.tabIndex = -1;
             button.textContent = tab.module;
+            if (tab.module === '+') button.setAttribute('aria-label', 'Import a module');
             button.onclick = () => { haptic(); keyboardModule = tab.module; keyboardKeys.scrollTop = 0; render(); };
             return button;
         }));
     }
     for (const button of keyboardTabList.children)
         button.setAttribute('aria-selected', String(button.textContent === keyboardModule));
-    if (keyboardModule !== keyboardLayout) {
-        keyboardLayout = keyboardModule;
-        keyboardKeys.replaceChildren(...tabs.find(tab => tab.module === keyboardModule)!.keys.map(key => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.tabIndex = -1;
-            button.textContent = key;
-            button.onclick = () => typeKey(key);
-            return button;
-        }));
+    const layout = keyboardModule === '+' ? '+' + repl.session.modules.join(',') : keyboardModule;
+    if (layout !== keyboardLayout) {
+        keyboardLayout = layout;
+        keyboardKeys.classList.toggle('module-picker', keyboardModule === '+');
+        keyboardKeys.replaceChildren(...(keyboardModule === '+'
+            ? keyboardModules(repl.session.modules).map(module => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.tabIndex = -1;
+                const name = document.createElement('strong');
+                name.textContent = module.name;
+                const summary = document.createElement('span');
+                summary.textContent = module.summary;
+                button.append(name, summary);
+                button.onclick = () => { void importKeyboardModule(module.name); };
+                return button;
+            })
+            : tabs.find(tab => tab.module === keyboardModule)!.keys.map(key => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.tabIndex = -1;
+                button.textContent = key;
+                button.onclick = () => typeKey(key);
+                return button;
+            })));
     }
     keyboard.hidden = !keyboardEnabled || keyboardOpening || (floating && softKeyboard);
     if (!keyboardEnabled || keyboardOpening) return setKeyboardSize(0, 0);
@@ -576,7 +592,7 @@ function renderKeyboard(): void {
     const before = book.current.source.slice(0, book.cursor);
     const locked = busy || repl.running || !!repl.help || repl.liveIterationFocused;
     for (const button of keyboardKeys.children as HTMLCollectionOf<HTMLButtonElement>)
-        button.disabled = locked || !keyAvailable(button.textContent!, before);
+        button.disabled = locked || needsRestart || (keyboardModule !== '+' && !keyAvailable(button.textContent!, before));
     // Landscape leaves the narrow code on the left and floats the keyboard on the right.
     keyboard.classList.toggle('floating', floating);
     const sized = !floating && softKeyboardHeight > 0;
@@ -586,6 +602,28 @@ function renderKeyboard(): void {
     const width = softKeyboard || keyboardOpening || !floating ? 0 : keyboard.offsetWidth + 16;
     setKeyboardSize(height, width);
 }
+async function importKeyboardModule(module: string): Promise<void> {
+    if (busy || repl.running || repl.help || repl.liveIterationFocused || needsRestart
+        || !keyboardModules(repl.session.modules).some(item => item.name === module)) return;
+    haptic();
+    if (activeVoiceDictation) stopVoiceDictation();
+    const book = repl.notebook;
+    const current = book.current;
+    const cursor = book.cursor;
+    // Keep leading imports together: Ctrl-R resets and evaluates this whole cell.
+    if (book.cells.length > 1 && /^use\s/.test(book.cells[0].source)) {
+        book.cells[0].source = `use ${module}\n${book.cells[0].source}`;
+    } else book.insertCell(0, `use ${module}`);
+    book.selectTo(0, book.cells[0].source.length);
+    await press({ name: 'r', ctrl: true });
+    book.selectTo(book.cells.indexOf(current), cursor);
+    if (repl.session.modules.includes(module)) {
+        keyboardModule = module;
+        keyboardKeys.scrollTop = 0;
+    }
+    render();
+}
+
 function setKeyboardSize(height: number, width: number): void {
     const size = height + 'x' + width;
     if (size === keyboardSize) return;

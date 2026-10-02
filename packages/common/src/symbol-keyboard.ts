@@ -1,4 +1,4 @@
-import { acceptsNext, moduleOperations, nextTokens } from '@arrrank/language';
+import { acceptsNext, moduleOperations, modules as builtinModules, nextTokens, type Module } from '@arrrank/language';
 import { OPERATOR_KEYWORDS, STATEMENT_KEYWORDS, endsOperand, insideText, tokenize, type Token } from './repl-input.js';
 
 export interface KeyboardTab {
@@ -97,6 +97,12 @@ export function keyboardTabs(modules: Iterable<string>): KeyboardTab[] {
         ...[...used].sort().map(module => ({ module, keys: words(module) }))
             .filter(tab => tab.keys.length > 0),
     ];
+}
+
+/** Built-in modules available to import, with the catalogue's descriptions. */
+export function keyboardModules(imported: Iterable<string>): readonly Module[] {
+    const used = new Set(['core', ...imported]);
+    return builtinModules.filter(module => !used.has(module.name));
 }
 
 /**
