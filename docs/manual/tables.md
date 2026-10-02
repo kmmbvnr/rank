@@ -2,59 +2,38 @@
 
 ## csv
 
-### NAME
-
-Reads a CSV file into a rank-1 table, or
-writes a table to a path.
-
-### SYNOPSIS
-
-```text
-Path csv -> table
-Path: text; optional Table: table
-```
-
-### DESCRIPTION
-
-A path reads a table, inferring its
-columns from the file. A table and path
-write CSV; both require host file
-access.
-
-### EXAMPLES
-
-Read a CSV file with one id row.
+Read a CSV file as a table, or save a
+table as CSV.
 
 ```rank
 use tables
 use io
-"id\n1\n" "rows.csv" write
-"rows.csv" csv
+"id\n1\n2\n" "rows.csv" write
+T = "rows.csv" csv
+T .id
 ```
+
+```result
+1 2
+```
+
+### Usage
+
+```text
+Path csv
+Table Path csv
+```
+
+The first line names the columns. Column
+types are worked out from the data.
+
+### See also
+
+table, read
 
 ## explain
 
-### NAME
-
-SQLite query plan rows for a prepared
-query view.
-
-### SYNOPSIS
-
-```text
-Query explain -> table
-Query: SQLite-backed table view
-```
-
-### DESCRIPTION
-
-Input is a SQLite-backed query view.
-Requires an existing database and a host
-with SQLite support.
-
-### EXAMPLES
-
-Ask SQLite for its query-plan rows.
+Show how SQLite plans to run a query.
 
 ```rank
 use tables
@@ -65,96 +44,85 @@ Rows = Db Q P sqlquery
 Rows explain
 ```
 
-## labels
-
-### NAME
-
-Ordered column labels of a rank-1 table.
-
-### SYNOPSIS
+### Usage
 
 ```text
-Table labels -> array
-Table: table
+Query explain
 ```
 
-### DESCRIPTION
+Gives a table of plan steps. Useful for
+finding slow queries.
 
-The input is a one-dimensional table.
-Column labels are returned in their
-defined order.
+### Notes
 
-### EXAMPLES
+Needs an existing database file and an
+app with SQLite support.
 
-Read the table column labels.
+### See also
+
+sql, sqlquery
+
+## labels
+
+The names of a table's columns.
 
 ```rank
 use tables
 use json
-Rows = "[{\"id\":1}]" json
+Rows = "[{\"id\":1,\"n\":7}]" json
 T = Rows table
 T labels
 ```
 
-## table
-
-### NAME
-
-Builds a column table from a rank-1
-array of objects.
-
-### SYNOPSIS
-
-```text
-Rows table -> table
-Rows: one-dimensional object array
+```result
+.id .n
 ```
 
-### DESCRIPTION
+### Usage
 
-Input is a one-dimensional array of
-objects. Field names become column
-labels; absent values become missing
-cells.
+```text
+Table labels
+```
 
-### EXAMPLES
+### See also
 
-Turn object rows into a column table.
+table, select
+
+## table
+
+Turn a list of records into a table with
+one column per field.
 
 ```rank
 use tables
 use json
-Rows = "[{\"id\":1}]" json
-Rows table
+Rows = "[{\"id\":1},{\"id\":2}]" json
+T = Rows table
+T .id
 ```
+
+```result
+1 2
+```
+
+### Usage
+
+```text
+Records table
+```
+
+Read a column with its label, such as `T
+.id`. A field missing from some records
+leaves those cells missing.
+
+### See also
+
+csv, json, labels, select
 
 ## lookup
 
-### NAME
-
-First keyed match; SQLite expressions
-become a correlated subquery.
-
-### SYNOPSIS
-
-```text
-Ids Keys Values lookup -> value
-Ids: requested keys; Keys: key array
-Values: corresponding value array
-```
-
-### DESCRIPTION
-
-Keys and Values have matching lengths.
-Returns the first keyed match for each
-requested id; missing matches can be
-handled with default. Values are
-produced on demand; storing the result
-does not force every item.
-
-### EXAMPLES
-
-Look up 2 and 1: b, a.
+For each key, find the matching value in
+a pair of lists.
 
 ```rank
 use tables
@@ -164,31 +132,30 @@ Vals = array "a" "b"
 Ids Keys Vals lookup
 ```
 
-## sql
-
-### NAME
-
-Statement text and bound parameters of a
-query view.
-
-### SYNOPSIS
-
-```text
-Query sql -> record
-Query: SQLite-backed table view
+```result
+b a
 ```
 
-### DESCRIPTION
+### Usage
 
-Input is a SQLite-backed query view.
-Returns a record instead of executing
-the query; requires the database setup
-shown in the example.
+```text
+Wanted Keys Values lookup
+```
 
-### EXAMPLES
+Keys and Values have the same length;
+the value at each key's position is
+returned. If a key appears twice, the
+first wins. A key that is not found is
+missing, so add default for a fallback.
 
-Inspect a query's SQL text and bound
-parameters.
+### See also
+
+leftjoin by, index
+
+## sql
+
+Show the SQL text a query will run, with
+its parameters.
 
 ```rank
 use tables
@@ -199,62 +166,55 @@ Rows = Db Q P sqlquery
 Rows sql
 ```
 
-## sqlite
-
-### NAME
-
-Opens an existing SQLite database; reads
-are lazy, writes explicit.
-
-### SYNOPSIS
+### Usage
 
 ```text
-Path sqlite -> database
-Path: text naming an existing database
+Query sql
 ```
 
-### DESCRIPTION
+Gives a record; nothing is run.
 
-Requires a host with SQLite support and
-an existing data.sqlite file. Reads are
-lazy; database writes require explicit
-writable operations.
+### Notes
 
-### EXAMPLES
+Needs an existing database file and an
+app with SQLite support.
 
-Open an existing local SQLite database.
+### See also
+
+explain, sqlquery
+
+## sqlite
+
+Open a SQLite database file.
 
 ```rank
 use tables
 "data.sqlite" sqlite
 ```
 
-## sqlquery
-
-### NAME
-
-Read-only SELECT view with bound
-positional parameters.
-
-### SYNOPSIS
+### Usage
 
 ```text
-Db Text Parameters sqlquery -> table
-Db: database; Text: SQL; Parameters:
-array
+Path sqlite
 ```
 
-### DESCRIPTION
+The file must already exist. Data is
+read only when you ask for it, so large
+databases open instantly.
 
-Requires an existing database and SQLite
-host support. Text is a SELECT query;
-Parameters is a one-dimensional array
-matching its positional placeholders.
+### Notes
 
-### EXAMPLES
+Needs an existing database file and an
+app with SQLite support.
 
-Prepare a read-only query with no
-parameters.
+### See also
+
+sqlquery, calendar
+
+## sqlquery
+
+Run a SELECT query on a SQLite database
+and get a table.
 
 ```rank
 use tables
@@ -263,3 +223,24 @@ Q = "SELECT 1 AS n"
 P = array shape 0 fill 0
 Db Q P sqlquery
 ```
+
+### Usage
+
+```text
+Db Query Parameters sqlquery
+```
+
+Each ? in the query is filled from
+Parameters, in order. Passing values
+this way keeps them safe from SQL
+injection. Only reading queries are
+allowed.
+
+### Notes
+
+Needs an existing database file and an
+app with SQLite support.
+
+### See also
+
+sqlite, sql, explain

@@ -2,29 +2,9 @@
 
 ## shape
 
-### NAME
+The size of an array along each axis.
 
-Axis lengths as a rank-1 array.
-
-### SYNOPSIS
-
-```text
-Value shape -> integer array
-array shape Dimensions fill Value
-Value: array or collection
-Dimensions: nonnegative integers
-```
-
-### DESCRIPTION
-
-Postfix shape returns the axis lengths.
-The constructor array shape specifies
-axis lengths before the cells or fill
-value.
-
-### EXAMPLES
-
-Read the two axis lengths: 2, 3.
+A matrix with 2 rows and 3 columns.
 
 ```rank
 use sequences
@@ -32,122 +12,116 @@ A = array shape 2 3 fill 0
 A shape
 ```
 
-## all
-
-### NAME
-
-True when every boolean cell is true;
-empty collections are true.
-
-### SYNOPSIS
-
-```text
-Mask all -> boolean
-Mask: boolean collection
+```result
+2 3
 ```
 
-### DESCRIPTION
+### Usage
 
-Requires boolean cells. Empty input
-gives true; evaluation stops when a
-false item is found.
+```text
+Values shape
+```
 
-### EXAMPLES
+Gives one number per axis. For a simple
+list that is just its length.
 
-Every cell is true: true.
+### See also
+
+len, reshape, fill
+
+## all
+
+True when every item is true.
 
 ```rank
 use sequences
 (array true true) all
 ```
 
-## any
-
-### NAME
-
-True when one boolean cell is true;
-empty collections are false.
-
-### SYNOPSIS
-
-```text
-Mask any -> boolean
-Mask: boolean collection
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Requires boolean cells. Empty input
-gives false; evaluation stops when a
-true item is found.
+```text
+Booleans all
+```
 
-### EXAMPLES
+Stops at the first false. An empty
+collection gives true.
 
-At least one cell is true: true.
+### See also
+
+any, count
+
+## any
+
+True when at least one item is true.
 
 ```rank
 use sequences
 (array false true) any
 ```
 
-## argsort
-
-### NAME
-
-Stable zero-based positions that put the
-values in order.
-
-### SYNOPSIS
-
-```text
-Values argsort .descending -> array
-Values: comparable vector
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Returns source positions, not the sorted
-values. Sorting is stable; equal items
-keep their original order.
+```text
+Booleans any
+```
 
-### EXAMPLES
+Stops at the first true. An empty
+collection gives false.
 
-Positions in sorted order are 1, 2, 0.
+### See also
+
+all, count
+
+## argsort
+
+The positions that would put the values
+in order.
+
+The smallest value, 2, is at position 1;
+then 5 at position 2; then 8 at position
+0.
 
 ```rank
 use sequences
 (array 8 2 5) argsort
 ```
 
-## choose
-
-### NAME
-
-Selects each cell by a boolean mask;
-SQLite expressions become CASE.
-
-### SYNOPSIS
-
-```text
-Mask TrueValues FalseValues choose ->
-value
-Mask: booleans; TrueValues, FalseValues:
-values of compatible shapes
+```result
+1 2 0
 ```
 
-### DESCRIPTION
+### Usage
 
-A boolean mask selects between
-corresponding cells of two values. With
-two operands, an integer index selects
-from a collection of choices. Values are
-produced on demand; storing the result
-does not force every item.
+```text
+Values argsort
+Values argsort .descending
+```
 
-### EXAMPLES
+Gives positions, not values. Use them to
+reorder another array the same way.
+Equal values keep their original order.
 
-Select 2 from the first array and 8 from
-the second.
+### See also
+
+sort, argsort by
+
+## choose
+
+Pick between two values cell by cell,
+using true or false.
+
+Where the mask is true, take from the
+first array; where false, from the
+second.
 
 ```rank
 use sequences
@@ -155,457 +129,440 @@ M = array true false
 M (array 2 3) (array 7 8) choose
 ```
 
-## copy
-
-### NAME
-
-Independent dense copy of an array or
-finite sequence; equally shaped array or
-sequence items stack.
-
-### SYNOPSIS
-
-```text
-Values copy -> array
-Values: finite array or sequence
+```result
+2 8
 ```
 
-### DESCRIPTION
+### Usage
 
-Eagerly evaluates a finite array or
-sequence. Later writes to the source do
-not alter the copy.
+```text
+Mask IfTrue IfFalse choose
+Positions Options choose
+```
 
-### EXAMPLES
+The second form picks items by position:
+`(array 2 0) (array "a" "b" "c") choose`
+gives c a.
 
-Create an independent dense copy.
+### See also
+
+filter, indices
+
+## copy
+
+Make an independent copy of an array.
 
 ```rank
 use sequences
 A = array 1 2 3
-A copy
+B = A copy
+B 0 = 9
+A
 ```
+
+```result
+1 2 3
+```
+
+### Usage
+
+```text
+Values copy
+```
+
+Changing the copy leaves the original
+alone. Also turns a finite sequence into
+an array right away.
+
+### See also
+
+stack, array
 
 ## stack
 
-### NAME
+Put arrays of the same shape together as
+rows of a bigger array.
 
-Lazy array of equally shaped array or
-sequence items; their axes follow the
-frame of Items. copy is the eager form.
-
-### SYNOPSIS
-
-```text
-Items stack -> array
-Items: arrays of equal shape
-```
-
-### DESCRIPTION
-
-All input arrays must have the same
-shape. A new leading axis separates the
-items.
-
-### EXAMPLES
-
-Stack two equal-shaped arrays.
+Two lists of 2 make a 2-by-2 matrix.
 
 ```rank
 use sequences
 A = array 1 2
 B = array 3 4
-(array A B) stack
+S = (array A B) stack
+S shape
 ```
+
+```result
+2 2
+```
+
+### Usage
+
+```text
+Arrays stack
+```
+
+All arrays must have the same shape.
+Items are computed only when read; use
+copy to compute them all at once.
+
+### See also
+
+copy, reshape
 
 ## count
 
-### NAME
-
-Number of true cells, or of source items
-a lazy mask selects.
-
-### SYNOPSIS
-
-```text
-Mask count -> integer
-Mask: boolean collection or column
-```
-
-### DESCRIPTION
-
-Counts true boolean cells. Table-column
-reductions count present values; missing
-cells are skipped.
-
-### EXAMPLES
-
-Count true cells: 2.
+How many items are true.
 
 ```rank
 use sequences
 (array true false true) count
 ```
 
-## find
-
-### NAME
-
-First zero-based position equal to
-Target in a vector or text; an array of
-targets finds each.
-
-### SYNOPSIS
-
-```text
-Values Target find -> integer
-Values: vector or text; Target: item
+```result
+2
 ```
 
-### DESCRIPTION
+### Usage
 
-Returns a zero-based position. No match
-raises a missing-value error; use
-default for a fallback.
+```text
+Booleans count
+```
 
-### EXAMPLES
+Inside a grouped select, counts the rows
+of each group. On a table column, counts
+the cells that have a value.
 
-The first 2 occurs at position 1.
+### See also
+
+sum, filter, group by
+
+## find
+
+The position of the first item equal to
+a value.
 
 ```rank
 use sequences
-(array 5 2 5) 2 find
+"banana" "a" find
 ```
+
+```result
+1
+```
+
+### Usage
+
+```text
+Values Target find
+```
+
+Works on arrays and text. Positions
+start at zero. With an array of targets,
+finds each one.
+
+### Notes
+
+Not found is an error. Add default for a
+fallback.
+
+### See also
+
+findall, first index where, default
 
 ## findall
 
-### NAME
-
-Every zero-based position equal to
-Target in a vector or text; an array of
-targets needs equal counts.
-
-### SYNOPSIS
-
-```text
-Values Target findall -> array
-Values: vector or text; Target: item(s)
-```
-
-### DESCRIPTION
-
-Returns every matching position in
-order. No matches give an empty array;
-array targets require compatible match
-counts.
-
-### EXAMPLES
-
-5 occurs at positions 0 and 2.
+The positions of every item equal to a
+value.
 
 ```rank
 use sequences
-(array 5 2 5) 5 findall
+"banana" "a" findall
 ```
+
+```result
+1 3 5
+```
+
+### Usage
+
+```text
+Values Target findall
+```
+
+Works on arrays and text. No match gives
+an empty array.
+
+### See also
+
+find, indices
 
 ## flat
 
-### NAME
-
-Copies records into fixed-width storage;
-Count State flat initializes a compact
-array.
-
-### SYNOPSIS
-
-```text
-Values flat -> array
-Values: record array with one schema
-```
-
-### DESCRIPTION
-
-Input records must share a fixed schema.
-The first record establishes the field
-layout; empty input cannot infer it.
-
-### EXAMPLES
-
-Store a record array in compact field
-storage.
+Store an array of records compactly,
+field by field.
 
 ```rank
 use sequences
 R = record
   .x = 3
 end
-(array R) flat
+F = (array R) flat
+F 0 .x
 ```
+
+```result
+3
+```
+
+### Usage
+
+```text
+Records flat
+```
+
+All records must have the same fields.
+Useful for large arrays of records,
+which then take less memory.
+
+### See also
+
+record
 
 ## fibonacci
 
-### NAME
-
-Unbounded lazy Fibonacci numbers; bound
-with to, till, from or after.
-
-### SYNOPSIS
-
-```text
-fibonacci -> sequence
-No operands; an infinite sequence value
-```
-
-### DESCRIPTION
-
-The sequence is infinite and lazy. Bound
-it with take, to or till before
-converting it to a dense array. Values
-are produced on demand; storing the
-result does not force every item.
-
-### EXAMPLES
-
-Read only six terms: 1, 2, 3, 5, 8, 13.
+The Fibonacci numbers, one after
+another, forever.
 
 ```rank
 use sequences
 fibonacci take 6
 ```
 
-## indices
-
-### NAME
-
-Zero-based positions of the true values
-in a boolean vector.
-
-### SYNOPSIS
-
-```text
-Mask indices -> array
-Mask: boolean vector
+```result
+1 2 3 5 8 13
 ```
 
-### DESCRIPTION
+### Usage
 
-Input is a one-dimensional boolean mask.
-Returns zero-based positions in source
-order.
+```text
+fibonacci
+```
 
-### EXAMPLES
+The sequence never ends, so cut it with
+take, to or till before using it:
+`fibonacci to 100` keeps the numbers up
+to 100.
 
-True cells are at positions 1 and 2.
+### See also
+
+primes, take, to
+
+## indices
+
+The positions of the true items.
 
 ```rank
 use sequences
 (array false true true) indices
 ```
 
-## reverse
-
-### NAME
-
-Reverses text by code point, an array
-along its leading axis, or a queue or
-finite sequence into an array.
-
-### SYNOPSIS
-
-```text
-Values reverse -> value
-Values: text or finite collection
+```result
+1 2
 ```
 
-### DESCRIPTION
+### Usage
 
-Arrays reverse their leading axis.
-Queues and finite sequences are
-collected into a reversed array.
+```text
+Booleans indices
+```
 
-### EXAMPLES
+Positions start at zero. Pair it with a
+comparison: `A greater 3 indices`.
 
-Reverse the code points: cba.
+### See also
+
+findall, filter
+
+## reverse
+
+Put the items in the opposite order.
 
 ```rank
 use sequences
 "abc" reverse
 ```
 
-## first
-
-### NAME
-
-First item of text, an array, a queue or
-a sequence; missing when empty.
-
-### SYNOPSIS
-
-```text
-Values first -> element
-Values: text or collection
+```result
+cba
 ```
 
-### DESCRIPTION
+### Usage
 
-Text returns its first code point. Empty
-input raises a missing-value error;
-append default to supply a fallback.
+```text
+Values reverse
+```
 
-### EXAMPLES
+Works on text, arrays and finite
+sequences. A matrix reverses the order
+of its rows.
 
-Read the first item: 7.
+### See also
+
+sort, transpose
+
+## first
+
+The first item.
 
 ```rank
 use sequences
 (array 7 8) first
 ```
 
-## last
-
-### NAME
-
-Last item of text, an array, a queue or
-a finite sequence; missing when empty.
-
-### SYNOPSIS
-
-```text
-Values last -> element
-Values: text or finite collection
+```result
+7
 ```
 
-### DESCRIPTION
+### Usage
 
-A sequence must be finite. Empty input
-raises a missing-value error; append
-default to supply a fallback.
+```text
+Values first
+```
 
-### EXAMPLES
+Works on text, arrays and sequences,
+including endless ones.
 
-Read the last item: 8.
+### Notes
+
+An empty input is an error. Add default
+for a fallback.
+
+### See also
+
+last, take, first where
+
+## last
+
+The last item.
 
 ```rank
 use sequences
 (array 7 8) last
 ```
 
-## primes
-
-### NAME
-
-Unbounded ascending primes, with planned
-membership and positional seeking.
-
-### SYNOPSIS
-
-```text
-primes -> sequence
-No operands; an infinite sequence value
+```result
+8
 ```
 
-### DESCRIPTION
+### Usage
 
-The ascending sequence is infinite and
-lazy. Use take or a value bound before
-materializing it. Values are produced on
-demand; storing the result does not
-force every item.
+```text
+Values last
+```
 
-### EXAMPLES
+Works on text, arrays and finite
+sequences.
 
-Read the first five primes: 2, 3, 5, 7,
-11.
+### Notes
+
+An empty input is an error. Add default
+for a fallback.
+
+### See also
+
+first, drop
+
+## primes
+
+The prime numbers, smallest first,
+forever.
 
 ```rank
 use sequences
-primes take 5
+primes till 20
 ```
+
+```result
+2 3 5 7 11 13 17 19
+```
+
+### Usage
+
+```text
+primes
+```
+
+The sequence never ends, so cut it with
+take, to or till. `7 in primes` checks
+whether 7 is prime.
+
+### See also
+
+fibonacci, factors, take
 
 ## reshape
 
-### NAME
-
-Dense array in row-major order, the
-element count matching exactly; a matrix
-of shapes reshapes once per row.
-
-### SYNOPSIS
-
-```text
-Values Shape reshape -> array
-Values: finite array; Shape: integers
-```
-
-### DESCRIPTION
-
-Dimensions are nonnegative integers.
-Their product must exactly equal the
-number of source cells; values are
-placed in row-major order.
-
-### EXAMPLES
-
-Arrange six items into a 2-by-3 matrix.
+Arrange items into a new shape, row by
+row.
 
 ```rank
 use sequences
 A = 1 to 6
-A (array 2 3) reshape
+B = A (array 2 3) reshape
+B 1
 ```
+
+```result
+4 5 6
+```
+
+### Usage
+
+```text
+Values Shape reshape
+```
+
+The new shape must hold exactly as many
+items as the input: 2 × 3 = 6.
+
+### See also
+
+shape, transpose, stack
 
 ## sort
 
-### NAME
-
-Stable sort into a new rank-1 array,
-ascending by default.
-
-### SYNOPSIS
-
-```text
-Values sort .descending -> array
-Values: comparable vector
-```
-
-### DESCRIPTION
-
-Ascending order is the default. A
-trailing .descending reverses the
-direction; equal items keep their source
-order.
-
-### EXAMPLES
-
-Return a new array ordered 2, 5, 8.
+Put items in order, smallest first.
 
 ```rank
 use sequences
 (array 8 2 5) sort
 ```
 
-## transpose
-
-### NAME
-
-Reverses the axes of an array.
-
-### SYNOPSIS
-
-```text
-Matrix transpose -> array
-Matrix: array
+```result
+2 5 8
 ```
 
-### DESCRIPTION
+### Usage
 
-Reverses the order of axes. A scalar or
-vector keeps its shape; an N-dimensional
-array has its axis order reversed.
+```text
+Values sort
+Values sort .descending
+```
 
-### EXAMPLES
+Gives a new array; the input is
+unchanged. Equal items keep their
+original order. Text sorts
+alphabetically.
 
-Exchange rows and columns.
+### See also
+
+sort by, argsort, reverse
+
+## transpose
+
+Swap rows and columns.
 
 ```rank
 use sequences
@@ -616,98 +573,107 @@ end
 A transpose
 ```
 
-## unique
-
-### NAME
-
-Distinct values in first-appearance
-order.
-
-### SYNOPSIS
-
-```text
-Values unique -> same collection kind
-Values: text or one-dimensional
-collection
+```result
+1 3 2 4
 ```
 
-### DESCRIPTION
+### Usage
 
-Keeps only the first occurrence of each
-value, in source order. Text stays text;
-arrays stay arrays, and sequences stay
-lazy.
+```text
+Matrix transpose
+```
 
-### EXAMPLES
+A list stays as it is. For more than two
+axes, the order of all axes is reversed.
 
-Remove repeated equal values.
+### See also
+
+reshape, reverse
+
+## unique
+
+Remove repeats, keeping the first of
+each.
 
 ```rank
 use sequences
 (array 2 1 2 3) unique
 ```
 
-## window
-
-### NAME
-
-Overlapping complete cells of that size,
-with optional stride, padding and
-padding value.
-
-### SYNOPSIS
-
-```text
-Values Width window -> array
-Values: array; Width: positive integer
+```result
+2 1 3
 ```
 
-### DESCRIPTION
+### Usage
 
-Width is a positive integer. Complete
-windows overlap along the leading axis;
-oversized windows produce no complete
-window. Values are produced on demand;
-storing the result does not force every
-item.
+```text
+Values unique
+```
 
-### EXAMPLES
+The original order is kept. Text stays
+text: `"hello" unique` is helo.
 
-Read adjacent pairs [1,2], [2,3], [3,4].
+### See also
+
+sort, count
+
+## window
+
+Every run of N neighbouring items.
+
+Pairs of neighbours: 1 2, then 2 3, then
+3 4.
 
 ```rank
 use sequences
-(array 1 2 3 4) 2 window
+W = (array 1 2 3 4) 2 window
+W 1
 ```
+
+```result
+2 3
+```
+
+### Usage
+
+```text
+Values Width window
+```
+
+Each window is one row of the result.
+Windows overlap and are all complete, so
+a list shorter than Width gives none.
+
+### See also
+
+shift, scan
 
 ## shift
 
-### NAME
-
-Moves items along an axis, keeping the
-shape; vacated positions read zero or a
-with value.
-
-### SYNOPSIS
-
-```text
-Values Count shift -> array
-Values: array; Count: signed integer
-```
-
-### DESCRIPTION
-
-Count is a signed integer. Cells shifted
-beyond an edge are replaced by the fill
-value; this does not wrap like rotation.
-Values are produced on demand; storing
-the result does not force every item.
-
-### EXAMPLES
-
-Move cells with the default zero fill.
+Slide items left or right, filling the
+gap.
 
 ```rank
 use sequences
 (array 1 2 3) 1 shift
 ```
+
+```result
+0 1 2
+```
+
+### Usage
+
+```text
+Values Count shift
+Values Count shift with Fill
+```
+
+A positive Count moves items right, a
+negative one left. Items pushed past the
+end are lost; the gap is filled with 0,
+or with Fill.
+
+### See also
+
+window, reverse

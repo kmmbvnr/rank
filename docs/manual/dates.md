@@ -2,152 +2,130 @@
 
 ## date
 
-### NAME
-
-Parses YYYY-MM-DD or truncates a
-datetime to its calendar day.
-
-### SYNOPSIS
-
-```text
-Text date -> date
-Text: valid YYYY-MM-DD text
-```
-
-### DESCRIPTION
-
-Dates use the Gregorian calendar. Text
-must contain a valid date; datetimes are
-local values without a timezone.
-
-### EXAMPLES
-
-Parse a valid leap-day date.
+Turn "YYYY-MM-DD" text into a date.
 
 ```rank
 use dates
 "2024-02-29" date
 ```
 
-## calendar
-
-### NAME
-
-Inclusive daily table; optional database
-keeps it as a SQLite view.
-
-### SYNOPSIS
-
-```text
-Db Start End calendar -> table
-Start, End: date or date text
-Db: optional SQLite database
+```result
+2024-02-29
 ```
 
-### DESCRIPTION
+### Usage
 
-Returns a table with a .date column,
-including both endpoints. A start after
-the end returns an empty table. A
-database operand can create a SQLite
-calendar view. Values are produced on
-demand; storing the result does not
-force every item.
+```text
+Text date
+Moment date
+```
 
-### EXAMPLES
+The text must be a real calendar day, so
+"2023-02-29" is an error. Given a
+datetime, drops the time of day.
 
-Include February 29 in the daily
-calendar.
+### See also
+
+datetime, calendar, year
+
+## calendar
+
+A table with one row for every day
+between two dates.
 
 ```rank
 use dates
-Start = "2024-02-28"
-End = "2024-03-01"
-Start End calendar
+use tables
+C = "2024-02-28" "2024-03-01" calendar
+C .date
 ```
+
+```result
+2024-02-28 2024-02-29 2024-03-01
+```
+
+### Usage
+
+```text
+Start End calendar
+Db Start End calendar
+```
+
+Both ends are included; a start after
+the end gives an empty table. The column
+is called .date. Put a SQLite database
+first to create the calendar inside the
+database instead.
+
+### See also
+
+date, nextmonth, table
 
 ## datetime
 
-### NAME
-
-Parses a local timestamp or casts a date
-to midnight.
-
-### SYNOPSIS
-
-```text
-Value datetime -> datetime
-Value: valid datetime text or date
-```
-
-### DESCRIPTION
-
-Dates use the Gregorian calendar. Text
-must contain a valid date; datetimes are
-local values without a timezone.
-
-### EXAMPLES
-
-Parse a local date and time.
+Turn "YYYY-MM-DD HH:MM:SS" text into a
+date with a time of day.
 
 ```rank
 use dates
 "2024-02-29 13:05:09" datetime
 ```
 
-## duration
-
-### NAME
-
-Creates an exact duration from integer
-seconds.
-
-### SYNOPSIS
-
-```text
-Seconds duration -> duration
-Seconds: integer
+```result
+2024-02-29 13:05:09
 ```
 
-### DESCRIPTION
+### Usage
 
-Seconds is an integer. A duration is an
-exact signed time interval, distinct
-from a date or datetime. Values are
-produced on demand; storing the result
-does not force every item.
+```text
+Text datetime
+Date datetime
+```
 
-### EXAMPLES
+Times are local, with no time zone. A
+date becomes midnight of that day.
 
-Represent an interval of 90 seconds.
+### Notes
+
+Subtracting two datetimes gives a
+duration. Adding a duration to a
+datetime moves it: `A + (7200 duration)`
+is two hours later.
+
+### See also
+
+date, duration, hour
+
+## duration
+
+A length of time, given in seconds.
 
 ```rank
 use dates
 90 duration
 ```
 
-## day
-
-### NAME
-
-Day of the month of a date or datetime.
-
-### SYNOPSIS
-
-```text
-Value day -> integer
-Value: date or datetime
+```result
+00:01:30
 ```
 
-### DESCRIPTION
+### Usage
 
-Reads a date or local datetime. Months
-are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday.
+```text
+Seconds duration
+```
 
-### EXAMPLES
+Shown as hours:minutes:seconds. Can be
+negative. Add it to a datetime, or get
+one by subtracting two datetimes.
 
-Read the day of month: 29.
+### See also
+
+seconds, datetime
+
+## day
+
+The day of the month, from 1 to 31.
 
 ```rank
 use dates
@@ -155,28 +133,25 @@ D = "2024-02-29" date
 D day
 ```
 
-## hour
-
-### NAME
-
-Hour of a datetime.
-
-### SYNOPSIS
-
-```text
-Moment hour -> integer
-Moment: local datetime
+```result
+29
 ```
 
-### DESCRIPTION
+### Usage
 
-Reads a date or local datetime. Months
-are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday.
+```text
+Moment day
+```
 
-### EXAMPLES
+Works on dates and datetimes.
 
-Read the hour: 13.
+### See also
+
+month, year, weekday
+
+## hour
+
+The hour of a datetime, from 0 to 23.
 
 ```rank
 use dates
@@ -184,28 +159,23 @@ D = "2024-02-29 13:05:09" datetime
 D hour
 ```
 
-## minute
-
-### NAME
-
-Minute of a datetime.
-
-### SYNOPSIS
-
-```text
-Moment minute -> integer
-Moment: local datetime
+```result
+13
 ```
 
-### DESCRIPTION
+### Usage
 
-Reads a date or local datetime. Months
-are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday.
+```text
+Moment hour
+```
 
-### EXAMPLES
+### See also
 
-Read the minute: 5.
+minute, second, day
+
+## minute
+
+The minute of a datetime, from 0 to 59.
 
 ```rank
 use dates
@@ -213,28 +183,24 @@ D = "2024-02-29 13:05:09" datetime
 D minute
 ```
 
-## month
-
-### NAME
-
-Month of a date or datetime.
-
-### SYNOPSIS
-
-```text
-Value month -> integer
-Value: date or datetime
+```result
+5
 ```
 
-### DESCRIPTION
+### Usage
 
-Reads a date or local datetime. Months
-are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday.
+```text
+Moment minute
+```
 
-### EXAMPLES
+### See also
 
-Read the month number: 2.
+hour, second
+
+## month
+
+The month number, from 1 for January to
+12 for December.
 
 ```rank
 use dates
@@ -242,31 +208,26 @@ D = "2024-02-29" date
 D month
 ```
 
-## monthstart
-
-### NAME
-
-Midnight on the first day of the current
-month.
-
-### SYNOPSIS
-
-```text
-Value monthstart -> datetime
-Value: date or datetime
+```result
+2
 ```
 
-### DESCRIPTION
+### Usage
 
-Returns midnight on the first day of the
-containing month. Accepts a date or a
-local datetime. Values are produced on
-demand; storing the result does not
-force every item.
+```text
+Moment month
+```
 
-### EXAMPLES
+Works on dates and datetimes.
 
-Move to the start of February.
+### See also
+
+day, year, monthstart
+
+## monthstart
+
+Midnight on the first day of the same
+month.
 
 ```rank
 use dates
@@ -274,61 +235,54 @@ D = "2024-02-29 13:05:09" datetime
 D monthstart
 ```
 
-## nextmonth
-
-### NAME
-
-Midnight on the first day of the
-following month.
-
-### SYNOPSIS
-
-```text
-Value nextmonth -> datetime
-Value: date or datetime
+```result
+2024-02-01 00:00:00
 ```
 
-### DESCRIPTION
+### Usage
 
-Returns midnight on the first day of the
-next month. The change is by calendar
-month, not by a fixed number of seconds.
-Values are produced on demand; storing
-the result does not force every item.
+```text
+Moment monthstart
+```
 
-### EXAMPLES
+Useful for grouping by month.
 
-Move to the start of the following
+### See also
+
+nextmonth, month
+
+## nextmonth
+
+Midnight on the first day of the next
 month.
 
 ```rank
 use dates
-D = "2024-02-29 13:05:09" datetime
+D = "2024-12-15" date
 D nextmonth
 ```
 
-## second
-
-### NAME
-
-Second of a datetime.
-
-### SYNOPSIS
-
-```text
-Moment second -> integer
-Moment: local datetime
+```result
+2025-01-01 00:00:00
 ```
 
-### DESCRIPTION
+### Usage
 
-Reads a date or local datetime. Months
-are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday.
+```text
+Moment nextmonth
+```
 
-### EXAMPLES
+Moves by calendar month, so it handles
+months of different lengths and the turn
+of the year.
 
-Read the second: 9.
+### See also
+
+monthstart, calendar
+
+## second
+
+The second of a datetime, from 0 to 59.
 
 ```rank
 use dates
@@ -336,59 +290,59 @@ D = "2024-02-29 13:05:09" datetime
 D second
 ```
 
-## seconds
-
-### NAME
-
-Exact signed number of seconds in a
-duration.
-
-### SYNOPSIS
-
-```text
-Duration seconds -> integer
-Duration: duration
+```result
+9
 ```
 
-### DESCRIPTION
+### Usage
 
-Converts a duration to its signed number
-of seconds. Subtracting two datetimes
-also produces a duration.
+```text
+Moment second
+```
 
-### EXAMPLES
+### Notes
 
-Recover the exact integer 90.
+To turn a duration into a number of
+seconds, use seconds instead.
+
+### See also
+
+minute, seconds
+
+## seconds
+
+How many seconds a duration lasts.
 
 ```rank
 use dates
-D = 90 duration
-D seconds
+A = "2024-03-01 00:00:00" datetime
+B = "2024-02-29 23:00:00" datetime
+A - B seconds
 ```
+
+```result
+3600
+```
+
+### Usage
+
+```text
+Duration seconds
+```
+
+Gives an integer, negative for a
+negative duration.
+
+### See also
+
+duration, second
 
 ## weekday
 
-### NAME
+The day of the week: 0 for Monday up to
+6 for Sunday.
 
-Day of the week, Monday zero through
-Sunday six.
-
-### SYNOPSIS
-
-```text
-Value weekday -> integer
-Value: date or datetime
-```
-
-### DESCRIPTION
-
-Reads a date or local datetime. Months
-are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday.
-
-### EXAMPLES
-
-Thursday is weekday 3.
+29 February 2024 was a Thursday.
 
 ```rank
 use dates
@@ -396,31 +350,40 @@ D = "2024-02-29" date
 D weekday
 ```
 
-## year
-
-### NAME
-
-Year of a date or datetime.
-
-### SYNOPSIS
-
-```text
-Value year -> integer
-Value: date or datetime
+```result
+3
 ```
 
-### DESCRIPTION
+### Usage
 
-Reads a date or local datetime. Months
-are numbered 1..12; weekdays are 0 for
-Monday through 6 for Sunday.
+```text
+Moment weekday
+```
 
-### EXAMPLES
+### See also
 
-Read the year: 2024.
+day, calendar
+
+## year
+
+The year of a date or datetime.
 
 ```rank
 use dates
 D = "2024-02-29" date
 D year
 ```
+
+```result
+2024
+```
+
+### Usage
+
+```text
+Moment year
+```
+
+### See also
+
+month, day

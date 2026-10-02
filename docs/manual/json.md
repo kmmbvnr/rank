@@ -2,30 +2,30 @@
 
 ## json
 
-### NAME
-
-Decodes a complete JSON document into
-Rank values.
-
-### SYNOPSIS
-
-```text
-Text json -> value
-Text: complete JSON text
-```
-
-### DESCRIPTION
-
-Accepts a complete JSON document.
-Objects become object values; arrays
-become arrays. A trailing .flat requests
-a table of document nodes.
-
-### EXAMPLES
-
-Decode JSON into a Rank array.
+Read JSON text into Rank values.
 
 ```rank
 use json
-"[1,2,3]" json
+R = "{\"name\":\"Ada\"}" json
+R .name
 ```
+
+```result
+Ada
+```
+
+### Usage
+
+```text
+Text json
+Text json .flat
+```
+
+JSON objects become records with dot
+fields, and JSON lists become arrays.
+Add .flat to get a table with one row
+per node instead.
+
+### See also
+
+table, xml, read

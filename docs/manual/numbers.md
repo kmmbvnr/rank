@@ -2,913 +2,925 @@
 
 ## multiple by
 
-### NAME
-
-Test integer divisibility.
-
-### SYNOPSIS
-
-```text
-Value multiple by Divisor
-Result: boolean or boolean array
-Value, Divisor: integers; Divisor != 0
-```
-
-### DESCRIPTION
-
-Both inputs are integers. Tests whether
-division leaves a zero remainder; a zero
-divisor is invalid.
-
-### EXAMPLES
-
-12 is divisible by 3: true.
+Check whether one integer divides
+another evenly.
 
 ```rank
 use numbers
 12 multiple by 3
 ```
 
-## abs
-
-### NAME
-
-Absolute value, keeping the integer or
-real type.
-
-### SYNOPSIS
-
-```text
-Value abs -> number
-Value: integer or real
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Returns the magnitude of the number; a
-negative input becomes positive. Integer
-input stays integer.
+```text
+Number multiple by Divisor
+```
 
-### EXAMPLES
+Gives true when dividing leaves no
+remainder. On an array, checks every
+item and gives an array of true and
+false.
 
-Apply abs to 9.
+### Notes
+
+Both values must be integers, and
+Divisor cannot be zero.
+
+### See also
+
+even, odd, gcd
+
+## abs
+
+Distance from zero: drops the minus
+sign.
 
 ```rank
 use numbers
-9 abs
+-7 abs
 ```
+
+```result
+7
+```
+
+### Usage
+
+```text
+Number abs
+```
+
+An integer stays an integer and a real
+stays a real.
+
+### See also
+
+round, sqrt
 
 ## acos
 
-### NAME
-
-Inverse cosine in radians, for values
-from -1 through 1.
-
-### SYNOPSIS
-
-```text
-Value acos -> real
-Value: integer or real
-```
-
-### DESCRIPTION
-
-Accepts a number from -1 through 1. The
-result is an angle in radians.
-
-### EXAMPLES
-
-Compute acos of 0.5.
+Inverse cosine: the angle whose cosine
+is the given number.
 
 ```rank
 use numbers
 0.5 acos
 ```
 
-## acosh
-
-### NAME
-
-Inverse hyperbolic cosine, for values at
-least 1.
-
-### SYNOPSIS
-
-```text
-Value acosh -> real
-Value: integer or real
+```result
+1.0471975511965979
 ```
 
-### DESCRIPTION
+### Usage
 
-Computes the inverse hyperbolic cosine.
-The input must be at least 1; the result
-is real.
+```text
+Number acos
+```
 
-### EXAMPLES
+Number must be between -1 and 1. The
+angle comes back in radians.
 
-Compute acosh for the supplied number.
+### Notes
+
+Rank has no `pi` constant; `-1 acos`
+gives π.
+
+### See also
+
+cos, asin, atan
+
+## acosh
+
+Inverse hyperbolic cosine.
 
 ```rank
 use numbers
 2 acosh
 ```
 
-## asin
-
-### NAME
-
-Inverse sine in radians, for values from
--1 through 1.
-
-### SYNOPSIS
-
-```text
-Value asin -> real
-Value: integer or real
+```result
+1.3169578969248166
 ```
 
-### DESCRIPTION
+### Usage
 
-Accepts a number from -1 through 1. The
-result is an angle in radians.
+```text
+Number acosh
+```
 
-### EXAMPLES
+Number must be 1 or more. The result is
+a real.
 
-Compute asin of 0.5.
+### See also
+
+cosh, asinh, atanh
+
+## asin
+
+Inverse sine: the angle whose sine is
+the given number.
 
 ```rank
 use numbers
 0.5 asin
 ```
 
-## asinh
-
-### NAME
-
-Inverse hyperbolic sine.
-
-### SYNOPSIS
-
-```text
-Value asinh -> real
-Value: integer or real
+```result
+0.5235987755982989
 ```
 
-### DESCRIPTION
+### Usage
 
-Works on each numeric cell of an array
-as well as on one number. The result is
-real.
+```text
+Number asin
+```
 
-### EXAMPLES
+Number must be between -1 and 1. The
+angle comes back in radians.
 
-Compute asinh for the supplied number.
+### See also
+
+sin, acos, atan
+
+## asinh
+
+Inverse hyperbolic sine.
 
 ```rank
 use numbers
 1 asinh
 ```
 
-## atan
-
-### NAME
-
-Inverse tangent in radians.
-
-### SYNOPSIS
-
-```text
-Value atan -> real
-Value: integer or real
+```result
+0.881373587019543
 ```
 
-### DESCRIPTION
+### Usage
 
-Works on each numeric cell of an array
-as well as on one number. The result is
-real.
+```text
+Number asinh
+```
 
-### EXAMPLES
+Works on any number, or on every item of
+an array. The result is real.
 
-Compute atan for the supplied number.
+### See also
+
+sinh, acosh, atanh
+
+## atan
+
+Inverse tangent: the angle whose tangent
+is the given number.
 
 ```rank
 use numbers
 1 atan
 ```
 
-## atan2
-
-### NAME
-
-Angle in radians from the coordinates,
-keeping the quadrant.
-
-### SYNOPSIS
-
-```text
-Y X atan2 -> real
-Y, X: integer or real
+```result
+0.7853981633974483
 ```
 
-### DESCRIPTION
+### Usage
 
-Arguments are y followed by x. Returns
-an angle in radians, preserving the
-quadrant.
+```text
+Number atan
+```
 
-### EXAMPLES
+Works on any number. The angle comes
+back in radians, between -π/2 and π/2.
 
-The point x=1, y=1 has angle π/4.
+### Notes
+
+To find the angle of a point, use atan2
+instead: it knows which quadrant the
+point is in.
+
+### See also
+
+atan2, tan, asin, acos
+
+## atan2
+
+The angle of the point (X, Y), measured
+from the positive x-axis.
+
+The point x=1, y=1 lies at 45°, which is
+π/4 radians.
 
 ```rank
 use numbers
 1 1 atan2
 ```
 
-## atanh
-
-### NAME
-
-Inverse hyperbolic tangent, for values
-strictly between -1 and 1.
-
-### SYNOPSIS
-
-```text
-Value atanh -> real
-Value: integer or real
+```result
+0.7853981633974483
 ```
 
-### DESCRIPTION
+### Usage
 
-Accepts a real input strictly between -1
-and 1. The inverse hyperbolic tangent
-returns a real.
+```text
+Y X atan2
+```
 
-### EXAMPLES
+Note the order: Y comes first. The angle
+is in radians, from -π to π, and has the
+right sign for every quadrant.
 
-Compute atanh of 0.5.
+### See also
+
+atan
+
+## atanh
+
+Inverse hyperbolic tangent.
 
 ```rank
 use numbers
 0.5 atanh
 ```
 
-## binomial
-
-### NAME
-
-Exact binomial coefficient.
-
-### SYNOPSIS
-
-```text
-N K binomial -> integer
-N, K: nonnegative integers
+```result
+0.5493061443340548
 ```
 
-### DESCRIPTION
+### Usage
 
-N and K are nonnegative integers. Counts
-combinations without enumerating them.
+```text
+Number atanh
+```
 
-### EXAMPLES
+Number must be strictly between -1 and
+1. The result is real.
 
-Choose 2 of 5 items: 10 choices.
+### See also
+
+tanh, asinh, acosh
+
+## binomial
+
+How many ways there are to choose K
+items out of N.
+
+Choose 2 people out of 5: there are 10
+different pairs.
 
 ```rank
 use numbers
 5 2 binomial
 ```
 
-## binomialmod
-
-### NAME
-
-Binomial coefficient calculated directly
-modulo a prime.
-
-### SYNOPSIS
-
-```text
-N K Modulus binomialmod -> integer
-N, K, Modulus: integers
+```result
+10
 ```
 
-### DESCRIPTION
+### Usage
 
-N, K and Modulus are integers. Computes
-the combination count modulo a positive
-modulus.
+```text
+N K binomial
+```
 
-### EXAMPLES
+N and K are whole numbers with K between
+0 and N. The answer is exact, however
+large.
 
-Compute 10 modulo 7: 3.
+### See also
+
+binomialmod, factors
+
+## binomialmod
+
+Count the ways to choose K of N, keeping
+only the remainder after dividing by
+Modulus.
+
+There are 10 ways to choose 2 of 5, and
+10 leaves 3 after dividing by 7.
 
 ```rank
 use numbers
 5 2 7 binomialmod
 ```
 
-## cos
-
-### NAME
-
-Cosine of an angle in radians.
-
-### SYNOPSIS
-
-```text
-Angle cos -> real
-Value: integer or real
+```result
+3
 ```
 
-### DESCRIPTION
+### Usage
 
-The input angle is measured in radians,
-not degrees. Arrays are processed
-element by element; results are real.
+```text
+N K Modulus binomialmod
+```
 
-### EXAMPLES
+All three are integers, and Modulus must
+be a prime. Works directly with
+remainders, so it stays fast when the
+full count would be huge.
 
-Compute cos for the supplied number.
+### See also
+
+binomial, powmod
+
+## cos
+
+Cosine of an angle given in radians.
 
 ```rank
 use numbers
-1 cos
+0 cos
 ```
+
+```result
+1
+```
+
+### Usage
+
+```text
+Angle cos
+```
+
+The angle is in radians, not degrees. On
+an array, works on every item.
+
+### Notes
+
+To convert degrees, multiply by π/180,
+where π is `-1 acos`.
+
+### See also
+
+sin, tan, acos
 
 ## cosh
 
-### NAME
-
 Hyperbolic cosine.
-
-### SYNOPSIS
-
-```text
-Value cosh -> real
-Value: integer or real
-```
-
-### DESCRIPTION
-
-Works on each numeric cell of an array
-as well as on one number. The result is
-real.
-
-### EXAMPLES
-
-Compute cosh for the supplied number.
 
 ```rank
 use numbers
 1 cosh
 ```
 
-## divisors
-
-### NAME
-
-Lazy ascending sequence of the positive
-divisors.
-
-### SYNOPSIS
-
-```text
-N divisors -> sequence
-Value/N: integer
+```result
+1.5430806348152437
 ```
 
-### DESCRIPTION
+### Usage
 
-Input is a positive integer. Returns its
-positive divisors in ascending order.
-Values are produced on demand; storing
-the result does not force every item.
+```text
+Number cosh
+```
 
-### EXAMPLES
+Works on any number, or on every item of
+an array. The result is real.
 
-List the positive divisors of 12.
+### See also
+
+sinh, tanh, acosh
+
+## divisors
+
+Every positive number that divides N
+evenly, smallest first.
 
 ```rank
 use numbers
 12 divisors
 ```
 
-## even
-
-### NAME
-
-True for an even integer.
-
-### SYNOPSIS
-
-```text
-Value even -> boolean
-Value/N: integer
+```result
+1 2 3 4 6 12
 ```
 
-### DESCRIPTION
+### Usage
 
-Accepts integers. Returns true for
-values divisible by two, including zero.
+```text
+N divisors
+```
 
-### EXAMPLES
+N must be a positive integer. The result
+is a sequence, so items are found only
+as you read them.
 
-Test whether 4 is even: true.
+### See also
+
+factors, multiple by, gcd
+
+## even
+
+Check whether an integer is even.
 
 ```rank
 use numbers
 4 even
 ```
 
-## exp
-
-### NAME
-
-Natural exponential.
-
-### SYNOPSIS
-
-```text
-Value exp -> real
-Value: integer or real
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Works on each numeric cell of an array
-as well as on one number. The result is
-real.
+```text
+Number even
+```
 
-### EXAMPLES
+Zero and negative even numbers count as
+even. On an array, checks every item.
 
-Compute exp for the supplied number.
+### See also
+
+odd, multiple by
+
+## exp
+
+e raised to the given power.
 
 ```rank
 use numbers
 1 exp
 ```
 
-## factors
-
-### NAME
-
-Lazy ascending sequence of the prime
-factors, repeated factors included.
-
-### SYNOPSIS
-
-```text
-N factors -> sequence
-Value/N: integer
+```result
+2.718281828459045
 ```
 
-### DESCRIPTION
+### Usage
 
-Input is a positive integer. Repeated
-prime factors are kept, so 12 yields 2,
-2, 3. Values are produced on demand;
-storing the result does not force every
-item.
+```text
+Number exp
+```
 
-### EXAMPLES
+Works on any number, or on every item of
+an array. The result is real.
 
-Factor 12 into primes.
+### See also
+
+log
+
+## factors
+
+Break N into primes. A prime that
+divides N several times is listed
+several times.
+
+360 is 2 × 2 × 2 × 3 × 3 × 5.
 
 ```rank
 use numbers
-12 factors
+360 factors
 ```
+
+```result
+2 2 2 3 3 5
+```
+
+### Usage
+
+```text
+N factors
+```
+
+N must be a positive integer. The primes
+come smallest first, as a sequence.
+
+### See also
+
+divisors, gcd
 
 ## gcd
 
-### NAME
-
-Greatest common divisor, always
-nonnegative.
-
-### SYNOPSIS
-
-```text
-A B gcd -> integer
-A, B: integer
-```
-
-### DESCRIPTION
-
-Both operands are integers. Zero is
-allowed; the result is nonnegative.
-
-### EXAMPLES
-
-Find the largest shared divisor: 6.
+The largest number that divides both A
+and B.
 
 ```rank
 use numbers
 12 18 gcd
 ```
 
-## infinity
-
-### NAME
-
-The positive infinite real value.
-
-### SYNOPSIS
-
-```text
-infinity -> real
-No operands; a builtin real value
+```result
+6
 ```
 
-### DESCRIPTION
+### Usage
 
-A real value larger than every finite
-number. It is useful as an initial bound
-in minimum calculations.
+```text
+A B gcd
+```
 
-### EXAMPLES
+A and B are integers. Zero is allowed:
+`0 12 gcd` is 12. The result is never
+negative.
 
-The real value for positive infinity.
+### See also
+
+lcm, divisors
+
+## infinity
+
+A real number larger than every other
+number.
 
 ```rank
 use numbers
 infinity
 ```
 
-## isnan
-
-### NAME
-
-True for the real value nan; it does not
-equal itself.
-
-### SYNOPSIS
-
-```text
-Value isnan -> boolean
-Value: numeric value
+```result
+infinity
 ```
 
-### DESCRIPTION
+### Usage
 
-Returns true only for the real NaN
-value. Use this instead of comparing
-with nan.
+```text
+infinity
+```
 
-### EXAMPLES
+A constant; it takes no input. Handy as
+a starting value when searching for a
+minimum.
 
-Recognize NaN: true.
+### See also
+
+nan
+
+## isnan
+
+Check whether a value is nan, the "not a
+number" value.
 
 ```rank
 use numbers
 nan isnan
 ```
 
-## isqrt
-
-### NAME
-
-Exact integer floor of the square root,
-calculated without reals.
-
-### SYNOPSIS
-
-```text
-Value isqrt -> integer
-Value: nonnegative integer
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Accepts a nonnegative integer and
-returns the largest integer whose square
-is at most the input. It does not use
-floating-point rounding.
+```text
+Value isnan
+```
 
-### EXAMPLES
+### Notes
 
-Apply isqrt to 9.
+nan is never equal to anything,
+including itself, so `nan equal nan` is
+false. Use isnan to test for it.
+
+### See also
+
+nan, infinity
+
+## isqrt
+
+Whole-number square root, rounded down.
+
+17 lies between 4² = 16 and 5² = 25, so
+the answer is 4.
 
 ```rank
 use numbers
-9 isqrt
+17 isqrt
 ```
+
+```result
+4
+```
+
+### Usage
+
+```text
+Number isqrt
+```
+
+Number must be a nonnegative integer.
+The answer is exact even for very large
+integers, because no decimal rounding is
+involved.
+
+### See also
+
+sqrt
 
 ## lcm
 
-### NAME
-
-Least common multiple, also a reduction
-over one finite collection.
-
-### SYNOPSIS
-
-```text
-A B lcm -> integer
-A, B: integer
-```
-
-### DESCRIPTION
-
-Both operands are integers. A zero
-operand produces zero.
-
-### EXAMPLES
-
-Find the smallest shared multiple: 36.
+The smallest number that both A and B
+divide evenly.
 
 ```rank
 use numbers
 12 18 lcm
 ```
 
-## log
-
-### NAME
-
-Natural logarithm of a positive finite
-number.
-
-### SYNOPSIS
-
-```text
-Value log -> real
-Value: integer or real
+```result
+36
 ```
 
-### DESCRIPTION
+### Usage
 
-Computes the natural logarithm (base e).
-The input must be positive; log 1 is
-zero.
+```text
+A B lcm
+Numbers lcm
+```
 
-### EXAMPLES
+The first form takes two integers. The
+second takes an array and finds the
+smallest number every item divides. If
+any value is zero, the result is zero.
 
-Compute log for the supplied number.
+### See also
+
+gcd, multiple by
+
+## log
+
+Natural logarithm, the inverse of exp.
 
 ```rank
 use numbers
-2 log
+1 log
 ```
+
+```result
+0
+```
+
+### Usage
+
+```text
+Number log
+```
+
+Number must be positive. The result is
+real.
+
+### See also
+
+exp
 
 ## nan
 
-### NAME
-
-The real not-a-number value, for a
-result or cell with no numeric value.
-
-### SYNOPSIS
-
-```text
-nan -> real
-No operands; a builtin real value
-```
-
-### DESCRIPTION
-
-A real value representing an undefined
-numeric result. Ordinary equality does
-not recognize NaN; use isnan.
-
-### EXAMPLES
-
-The real not-a-number value.
+"Not a number": a real value that marks
+a missing or undefined result.
 
 ```rank
 use numbers
 nan
 ```
 
-## odd
-
-### NAME
-
-True for an odd integer.
-
-### SYNOPSIS
-
-```text
-Value odd -> boolean
-Value/N: integer
+```result
+nan
 ```
 
-### DESCRIPTION
+### Usage
 
-Accepts integers. Returns true for
-values not divisible by two, including
-negative odd values.
+```text
+nan
+```
 
-### EXAMPLES
+A constant; it takes no input.
 
-Test whether 3 is odd: true.
+### Notes
+
+nan is not equal to anything, not even
+itself. Test for it with isnan.
+
+### See also
+
+isnan, infinity
+
+## odd
+
+Check whether an integer is odd.
 
 ```rank
 use numbers
 3 odd
 ```
 
-## powmod
-
-### NAME
-
-Modular exponentiation by repeated
-squaring, never building the full power.
-
-### SYNOPSIS
-
-```text
-Base Exponent Modulus powmod -> integer
-Base, Exponent, Modulus: integers
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Base, Exponent and Modulus are integers.
-Exponent must be nonnegative and modulus
-positive.
+```text
+Number odd
+```
 
-### EXAMPLES
+Negative odd numbers count as odd. On an
+array, checks every item.
 
-Compute 2 to power 10 modulo 1000: 24.
+### See also
+
+even, multiple by
+
+## powmod
+
+Raise Base to a power and keep only the
+remainder after dividing by Modulus.
+
+2¹⁰ is 1024, which leaves 24 after
+dividing by 1000.
 
 ```rank
 use numbers
 2 10 1000 powmod
 ```
 
-## round
-
-### NAME
-
-Rounds to a signed number of decimal
-places, halfway values to even.
-
-### SYNOPSIS
-
-```text
-Value Places round -> number
-Value: number; Places: integer
+```result
+24
 ```
 
-### DESCRIPTION
+### Usage
 
-Places is an integer; zero rounds to a
-whole number. Negative places round to
-powers of ten.
+```text
+Base Exponent Modulus powmod
+```
 
-### EXAMPLES
+All three are integers. Exponent cannot
+be negative and Modulus must be
+positive. The full power is never built,
+so huge exponents stay fast.
 
-Round to two decimal places.
+### See also
+
+binomialmod
+
+## round
+
+Round a number to a given number of
+decimal places.
 
 ```rank
 use numbers
 3.14159 2 round
 ```
 
-## sin
-
-### NAME
-
-Sine of an angle in radians.
-
-### SYNOPSIS
-
-```text
-Angle sin -> real
-Value: integer or real
+```result
+3.14
 ```
 
-### DESCRIPTION
+### Usage
 
-The input angle is measured in radians,
-not degrees. Arrays are processed
-element by element; results are real.
+```text
+Number Places round
+```
 
-### EXAMPLES
+Places 0 rounds to a whole number.
+Negative places round to tens, hundreds
+and so on: `1234 -2 round` is 1200.
 
-Compute sin for the supplied number.
+### Notes
+
+A value exactly halfway rounds to the
+even neighbour: `2.5 0 round` is 2 and
+`3.5 0 round` is 4.
+
+### See also
+
+abs
+
+## sin
+
+Sine of an angle given in radians.
 
 ```rank
 use numbers
-1 sin
+0 sin
 ```
+
+```result
+0
+```
+
+### Usage
+
+```text
+Angle sin
+```
+
+The angle is in radians, not degrees. On
+an array, works on every item.
+
+### See also
+
+cos, tan, asin
 
 ## sinh
 
-### NAME
-
 Hyperbolic sine.
-
-### SYNOPSIS
-
-```text
-Value sinh -> real
-Value: integer or real
-```
-
-### DESCRIPTION
-
-Works on each numeric cell of an array
-as well as on one number. The result is
-real.
-
-### EXAMPLES
-
-Compute sinh for the supplied number.
 
 ```rank
 use numbers
 1 sinh
 ```
 
-## sqrt
-
-### NAME
-
-Real square root of a nonnegative
-number.
-
-### SYNOPSIS
-
-```text
-Value sqrt -> real
-Value: nonnegative integer or real
+```result
+1.1752011936438014
 ```
 
-### DESCRIPTION
+### Usage
 
-Accepts integer or real numeric input.
-Negative inputs are invalid for square
-roots.
+```text
+Number sinh
+```
 
-### EXAMPLES
+Works on any number, or on every item of
+an array. The result is real.
 
-Apply sqrt to 9.
+### See also
+
+cosh, tanh, asinh
+
+## sqrt
+
+Square root of a number.
 
 ```rank
 use numbers
 9 sqrt
 ```
 
-## tan
-
-### NAME
-
-Tangent of an angle in radians.
-
-### SYNOPSIS
-
-```text
-Angle tan -> real
-Value: integer or real
+```result
+3
 ```
 
-### DESCRIPTION
+### Usage
 
-The input angle is measured in radians,
-not degrees. Arrays are processed
-element by element; results are real.
+```text
+Number sqrt
+```
 
-### EXAMPLES
+Number must be zero or positive. On an
+array, works on every item.
 
-Compute tan for the supplied number.
+### Notes
+
+For an exact whole-number root of a
+large integer, use isqrt.
+
+### See also
+
+isqrt, abs
+
+## tan
+
+Tangent of an angle given in radians.
 
 ```rank
 use numbers
-1 tan
+0 tan
 ```
+
+```result
+0
+```
+
+### Usage
+
+```text
+Angle tan
+```
+
+The angle is in radians, not degrees. On
+an array, works on every item.
+
+### See also
+
+sin, cos, atan
 
 ## tanh
 
-### NAME
-
 Hyperbolic tangent.
-
-### SYNOPSIS
-
-```text
-Value tanh -> real
-Value: integer or real
-```
-
-### DESCRIPTION
-
-Works on each numeric cell of an array
-as well as on one number. The result is
-real.
-
-### EXAMPLES
-
-Compute tanh for the supplied number.
 
 ```rank
 use numbers
 1 tanh
 ```
+
+```result
+0.7615941559557649
+```
+
+### Usage
+
+```text
+Number tanh
+```
+
+Works on any number, or on every item of
+an array. The result is real, between -1
+and 1.
+
+### See also
+
+sinh, cosh, atanh

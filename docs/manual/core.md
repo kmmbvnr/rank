@@ -2,61 +2,41 @@
 
 ## array
 
-### NAME
-
-Construct an array or collect a
-sequence.
-
-### SYNOPSIS
-
-```text
-array Values
-Sequence array
-Result: array
-Values: items or a finite sequence
-```
-
-### DESCRIPTION
-
-Values are separated by spaces. Indices
-start at zero. Postfix array
-materializes a finite sequence; array
-shape constructs a dense array.
-
-### EXAMPLES
-
-Create three items and read the first:
-2.
+Make an array: a list of values you can
+read by position.
 
 ```rank
 A = array 2 7 11
 A 0
 ```
 
-## break
-
-### NAME
-
-Exit the nearest enclosing loop.
-
-### SYNOPSIS
-
-```text
-for
-  break
-end
-Capitalized words stand for your values.
+```result
+2
 ```
 
-### DESCRIPTION
+### Usage
 
-Exits the nearest enclosing loop.
-Execution continues with the statement
-after its end.
+```text
+array Values
+Sequence array
+array shape Rows Columns
+```
 
-### EXAMPLES
+Separate the values with spaces.
+Positions start at zero, so `A 0` is the
+first item. Put array after a finite
+sequence to collect its items. Use
+`array shape` to build a matrix.
 
-Leave the loop when N reaches 3.
+### See also
+
+fill, len, unpack, rank-basics
+
+## break
+
+Leave a loop early.
+
+The loop stops as soon as N reaches 3.
 
 ```rank
 N = 0
@@ -69,33 +49,28 @@ end
 N
 ```
 
-## catch
-
-### NAME
-
-Handle an error from a try block.
-
-### SYNOPSIS
-
-```text
-try
-  Statements
-catch Error
-  Statements
-end
-Capitalized words stand for your values.
+```result
+3
 ```
 
-### DESCRIPTION
+### Usage
 
-The error record has fields such as
-.Kind and .Message. The caught name
-belongs to the catch block; ordinary
-errors outside try still stop execution.
+```text
+for ...
+  break
+end
+```
 
-### EXAMPLES
+Only the innermost loop stops. The
+program continues after that loop's end.
 
-Read the caught error message.
+### See also
+
+continue, for, return
+
+## catch
+
+Handle an error raised inside try.
 
 ```rank
 Result = "ok"
@@ -107,30 +82,40 @@ end
 Result
 ```
 
-## continue
-
-### NAME
-
-Skip to the next loop iteration.
-
-### SYNOPSIS
-
-```text
-for Item in Values
-  continue
-end
-Capitalized words stand for your values.
+```result
+division by zero
 ```
 
-### DESCRIPTION
+### Usage
 
-Skips the rest of the current loop
-iteration. The next iteration starts
-normally.
+```text
+try
+  Statements
+catch Error
+  Statements
+end
+```
 
-### EXAMPLES
+The name after catch holds the error.
+Read `Error .Message` for the text and
+`Error .Kind` for its type.
 
-Skip 2 and add the other values: 4.
+### Notes
+
+Error exists only inside the catch
+block. Copy anything you need into a
+name set before try.
+
+### See also
+
+try, finally
+
+## continue
+
+Skip the rest of this pass and start the
+next one.
+
+Add 1 and 3, skipping 2.
 
 ```rank
 Total = 0
@@ -143,32 +128,26 @@ end
 Total
 ```
 
-## elif
-
-### NAME
-
-Test another branch of an open if.
-
-### SYNOPSIS
-
-```text
-if Condition
-  Statements
-elif Condition
-  Statements
-end
-Capitalized words stand for your values.
+```result
+4
 ```
 
-### DESCRIPTION
+### Usage
 
-Conditions are tested from top to
-bottom. Only the first true branch runs;
-elif must continue an open if block.
+```text
+for Item in Values
+  continue
+end
+```
 
-### EXAMPLES
+### See also
 
-Choose the second branch: zero.
+break, for
+
+## elif
+
+Try another condition when the ones
+above it were false.
 
 ```rank
 N = 0
@@ -181,13 +160,49 @@ end
 Kind
 ```
 
+```result
+zero
+```
+
+### Usage
+
+```text
+if Condition
+  Statements
+elif Condition
+  Statements
+end
+```
+
+Conditions are checked from the top.
+Only the first true branch runs. You can
+chain as many elif as you need.
+
+### See also
+
+if, else, end
+
 ## else
 
-### NAME
+Run this branch when no condition above
+it was true.
 
-Run the fallback branch of an open if.
+```rank
+N = -1
+Kind = ""
+if N greater 0
+  Kind = "positive"
+else
+  Kind = "not positive"
+end
+Kind
+```
 
-### SYNOPSIS
+```result
+not positive
+```
+
+### Usage
 
 ```text
 if Condition
@@ -195,55 +210,19 @@ if Condition
 else
   Statements
 end
-Capitalized words stand for your values.
 ```
 
-### DESCRIPTION
+else is optional and comes last, after
+any elif.
 
-Runs when no preceding if or elif
-condition matched. It is optional and
-must belong to the same open block.
+### See also
 
-### EXAMPLES
-
-Use the fallback branch.
-
-```rank
-N = -1
-Kind = "positive"
-if N greater 0
-  Kind = "positive"
-else
-  Kind = "nonpositive"
-end
-Kind
-```
+if, elif, end
 
 ## end
 
-### NAME
-
-Close the nearest open block.
-
-### SYNOPSIS
-
-```text
-Block
-  Statements
-end
-Capitalized words stand for your values.
-```
-
-### DESCRIPTION
-
-Closes the nearest open block, such as
-if, for, fun or record. Indentation aids
-reading; end determines the block
-boundary.
-
-### EXAMPLES
-
-Close the if block, then read 7.
+Close a block such as if, for, fun or
+record.
 
 ```rank
 N = 0
@@ -253,60 +232,54 @@ end
 N
 ```
 
-## false
-
-### NAME
-
-The false boolean value.
-
-### SYNOPSIS
-
-```text
-false -> boolean
-Capitalized words stand for your values.
+```result
+7
 ```
 
-### DESCRIPTION
+### Usage
 
-A boolean is used by if, for and logical
-operators. It is distinct from the
-integer 0.
+```text
+if Condition
+  Statements
+end
+```
 
-### EXAMPLES
+Indentation is for reading; end is what
+actually closes the block.
 
-The boolean false value.
+### See also
+
+if, for, fun, record, rank-basics
+
+## false
+
+The boolean value false.
 
 ```rank
+3 greater 5
+```
+
+```result
 false
 ```
 
-## finally
-
-### NAME
-
-Run cleanup when leaving a try block.
-
-### SYNOPSIS
+### Usage
 
 ```text
-try
-  Statements
-finally
-  Statements
-end
-Capitalized words stand for your values.
+false
 ```
 
-### DESCRIPTION
+Comparisons give true or false, and if
+and for test them. false is not the same
+as the number 0.
 
-Runs when leaving try, including after
-an error or return. Use it to release
-resources; it does not catch an error by
-itself.
+### See also
 
-### EXAMPLES
+true, not, and, or, rank-basics
 
-The cleanup block sets Done to true.
+## finally
+
+Run cleanup code however try ends.
 
 ```rank
 Done = false
@@ -318,32 +291,40 @@ end
 Done
 ```
 
-## for
-
-### NAME
-
-Repeat statements over values or a
-condition.
-
-### SYNOPSIS
-
-```text
-for Item in Values
-  Statements
-end
-Capitalized words stand for your values.
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-An iterable loop visits its values in
-order. A condition form checks before
-each iteration; bare for repeats until
-break or return.
+```text
+try
+  Statements
+finally
+  Statements
+end
+```
 
-### EXAMPLES
+The finally block runs whether try
+finishes normally, hits an error or
+returns. Use it to close files or
+release other resources.
 
-Visit 1, 2, 3 and accumulate 6.
+### Notes
+
+finally does not stop the error. Add
+catch to handle it.
+
+### See also
+
+try, catch
+
+## for
+
+Repeat a block, once for each value or
+while a condition holds.
+
+Add up 1, 2 and 3.
 
 ```rank
 Total = 0
@@ -353,31 +334,39 @@ end
 Total
 ```
 
-## fun
-
-### NAME
-
-Define a reusable function.
-
-### SYNOPSIS
-
-```text
-fun name Parameters
-  return Value
-end
-Capitalized words stand for your values.
+```result
+6
 ```
 
-### DESCRIPTION
+### Usage
 
-Parameters follow the function name in
-its definition. Calls are data-first:
-arguments precede the name. return ends
-a value-returning function.
+```text
+for Item in Values
+  Statements
+end
 
-### EXAMPLES
+for Condition
+  Statements
+end
 
-Define a function and call it: 6.
+for
+  Statements
+end
+```
+
+The first form visits each value in
+order. The second repeats while
+Condition is true, checking before each
+pass. A bare for repeats until break or
+return.
+
+### See also
+
+break, continue, to, till, rank-basics
+
+## fun
+
+Define your own function.
 
 ```rank
 fun twice X
@@ -386,31 +375,32 @@ end
 3 twice
 ```
 
-## if
-
-### NAME
-
-Run statements when a condition is true.
-
-### SYNOPSIS
-
-```text
-if Condition
-  Statements
-end
-Capitalized words stand for your values.
+```result
+6
 ```
 
-### DESCRIPTION
+### Usage
 
-Runs the body only when the condition is
-true. New names inside a branch have
-block scope; initialize a result outside
-to use it after end.
+```text
+fun name Inputs
+  Statements
+  return Value
+end
+```
 
-### EXAMPLES
+Inputs are listed after the name. When
+calling, the data comes first and the
+function name last, just like built-in
+functions: `3 twice`.
 
-Execute the branch for a positive N.
+### See also
+
+return, memo, yield, use, rank-basics
+
+## if
+
+Run a block only when a condition is
+true.
 
 ```rank
 N = 3
@@ -421,33 +411,36 @@ end
 Result
 ```
 
-## memo
-
-### NAME
-
-Define a function with cached results.
-
-### SYNOPSIS
-
-```text
-memo name Parameters
-  return Value
-end
-Capitalized words stand for your values.
+```result
+1
 ```
 
-### DESCRIPTION
+### Usage
 
-Caches successful results by the
-complete typed argument tuple. Only
-scalar arguments and results are
-supported. Errors are not cached;
-captured-state changes do not invalidate
-the cache.
+```text
+if Condition
+  Statements
+end
+```
 
-### EXAMPLES
+### Notes
 
-The second call reuses the cached 9.
+A name first assigned inside the block
+does not exist after end. Assign it
+before if, as Result is above, to use it
+later.
+
+### See also
+
+elif, else, end, rank-basics
+
+## memo
+
+Define a function that remembers its
+answers.
+
+The second call returns the saved 9
+without computing it again.
 
 ```rank
 memo square N
@@ -457,58 +450,68 @@ end
 3 square
 ```
 
-## not
-
-### NAME
-
-Reverse a boolean condition.
-
-### SYNOPSIS
-
-```text
-not Value
-Result: boolean or boolean array
-Value: boolean value
+```result
+9
 ```
 
-### DESCRIPTION
+### Usage
 
-Applies after function calls and
-comparisons. It also negates each
-boolean cell of an array.
+```text
+memo name Inputs
+  Statements
+  return Value
+end
+```
 
-### EXAMPLES
+Works like fun, but each result is
+stored by its inputs. Ideal for
+recursive functions that call themselves
+with the same values many times.
 
-Reverse the boolean: true.
+### Notes
+
+Inputs and results must be single
+values, such as numbers or text, not
+arrays. Errors are not stored. If the
+function reads a name that later
+changes, the stored answers are not
+refreshed.
+
+### See also
+
+fun, return
+
+## not
+
+Turn true into false and false into
+true.
 
 ```rank
 not false
 ```
 
-## record
-
-### NAME
-
-Construct a value with named fields.
-
-### SYNOPSIS
-
-```text
-record
-  .field = Value
-end
-Capitalized words stand for your values.
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Field names are dot-prefixed labels. A
-record has a fixed set of fields; update
-a field with R .age = 37.
+```text
+not Condition
+```
 
-### EXAMPLES
+not applies to the whole comparison
+after it. On an array of booleans, flips
+every item.
 
-Create named fields and read Ada.
+### See also
+
+and, or, xor, not equal
+
+## record
+
+A value with named fields, such as a
+person with a name and an age.
 
 ```rank
 R = record
@@ -518,29 +521,30 @@ end
 R .name
 ```
 
-## return
-
-### NAME
-
-End a function call with a result.
-
-### SYNOPSIS
-
-```text
-return Value
-Capitalized words stand for your values.
+```result
+Ada
 ```
 
-### DESCRIPTION
+### Usage
 
-Ends the current function call
-immediately. A bare return returns no
-value; it does not exit the whole
-program.
+```text
+record
+  .field = Value
+end
+```
 
-### EXAMPLES
+Field names start with a dot. Read a
+field with `R .name` and change it with
+`R .age = 37`. You cannot add new fields
+after the record is made.
 
-Leave the function with a result: 3.
+### See also
+
+end, select, rank-basics
+
+## return
+
+Finish a function and give back a value.
 
 ```rank
 fun absolute X
@@ -552,87 +556,88 @@ end
 -3 absolute
 ```
 
-## run
-
-### NAME
-
-Execute a source program's statements.
-
-### SYNOPSIS
-
-```text
-run "program.ra"
-Capitalized words stand for your values.
+```result
+3
 ```
 
-### DESCRIPTION
+### Usage
 
-Unlike use, run executes ordinary
-statements in the source file. This
-example needs hello.ra in the program
-host; file loading is host-dependent.
+```text
+return Value
+return
+```
 
-### EXAMPLES
+The function stops immediately. A bare
+return gives back nothing. return leaves
+the function, not the whole program.
 
-Execute a program stored in a file.
+### See also
+
+fun, memo, break
+
+## run
+
+Run another Rank program file.
 
 ```rank
 run "hello.ra"
 ```
 
-## true
-
-### NAME
-
-The true boolean value.
-
-### SYNOPSIS
-
-```text
-true -> boolean
-Capitalized words stand for your values.
+```result
+hello
+hello
 ```
 
-### DESCRIPTION
+### Usage
 
-A boolean is used by if, for and logical
-operators. It is distinct from the
-integer 1.
+```text
+run "file.ra"
+```
 
-### EXAMPLES
+Every statement in the file runs, as if
+typed here. The file must be available
+to the app.
 
-The boolean true value.
+### Notes
+
+To borrow functions from a file without
+running its other statements, use use
+instead.
+
+### See also
+
+use, as
+
+## true
+
+The boolean value true.
 
 ```rank
+3 less 5
+```
+
+```result
 true
 ```
 
-## try
-
-### NAME
-
-Run statements with error handling.
-
-### SYNOPSIS
+### Usage
 
 ```text
-try
-  Statements
-catch Error
-  Statements
-end
-Capitalized words stand for your values.
+true
 ```
 
-### DESCRIPTION
+Comparisons give true or false, and if
+and for test them. true is not the same
+as the number 1.
 
-Runs the body and transfers control to
-catch if an error is raised. finally,
-when present, runs during cleanup.
+### See also
 
-### EXAMPLES
+false, not, and, or, rank-basics
 
-Catch the division error.
+## try
+
+Run code that might fail, and handle the
+error instead of stopping.
 
 ```rank
 Result = "ok"
@@ -644,90 +649,99 @@ end
 Result
 ```
 
-## unpack
-
-### NAME
-
-Assign or expand items of an array.
-
-### SYNOPSIS
-
-```text
-unpack Names = Values
-unpack Values
-Capitalized words stand for your values.
+```result
+caught
 ```
 
-### DESCRIPTION
+### Usage
 
-The right side is a one-dimensional
-array. Before an expression, unpack
-instead expands an array into adjacent
-operands.
+```text
+try
+  Statements
+catch Error
+  Statements
+finally
+  Statements
+end
+```
 
-### EXAMPLES
+If something inside try raises an error,
+the program jumps to catch. finally, if
+present, always runs last. You can use
+catch, finally or both.
 
-Assign the two items to A and B: 5.
+### See also
+
+catch, finally
+
+## unpack
+
+Split an array into separate names.
 
 ```rank
 unpack A B = array 2 3
 A + B
 ```
 
-## use
-
-### NAME
-
-Import a module's functions or
-definitions.
-
-### SYNOPSIS
-
-```text
-use Module
-use "module.ra" as Name
-Capitalized words stand for your values.
+```result
+5
 ```
 
-### DESCRIPTION
+### Usage
 
-Standard modules add their names to the
-current program. A quoted source path
-imports definitions without executing
-the file's ordinary statements.
+```text
+unpack Names = Values
+unpack Values
+```
 
-### EXAMPLES
+The first form gives each item its own
+name; the counts must match. The second
+spreads the items out as separate inputs
+to the next function.
 
-Make sqrt available, then compute 3.0.
+### See also
+
+array
+
+## use
+
+Load a module so its functions become
+available.
 
 ```rank
 use numbers
 9 sqrt
 ```
 
-## yield
-
-### NAME
-
-Produce one item of a lazy sequence.
-
-### SYNOPSIS
-
-```text
-yield Value
-Capitalized words stand for your values.
+```result
+3
 ```
 
-### DESCRIPTION
+### Usage
 
-A function containing yield produces a
-lazy sequence. Each yield emits one item
-and suspends; execution resumes when the
-next item is requested.
+```text
+use Module
+use "file.ra" as Name
+```
 
-### EXAMPLES
+Standard modules add their functions
+directly. For your own file, quote its
+path; its functions are loaded but its
+other statements are not run.
 
-Collect a generator into an array: 2, 3.
+### Notes
+
+Picking a module from the keyboard's +
+list adds the use line for you.
+
+### See also
+
+as, run, rank-basics
+
+## yield
+
+Produce one item of a sequence from
+inside a function.
 
 ```rank
 fun small
@@ -738,519 +752,499 @@ use sequences
 small array
 ```
 
-## and
-
-### NAME
-
-Combine two conditions; both must hold.
-
-### SYNOPSIS
-
-```text
-Left and Right
-Result: boolean or boolean array
-Left, Right: boolean values
+```result
+2 3
 ```
 
-### DESCRIPTION
+### Usage
 
-For a scalar boolean, a false left side
-skips the right side. Arrays combine
-element by element and evaluate both
-sides.
+```text
+fun name Inputs
+  yield Value
+end
+```
 
-### EXAMPLES
+A function with yield gives a sequence.
+Each yield hands out one item and pauses
+until the next item is asked for, so a
+sequence can be endless.
 
-Both must be true: the result is false.
+### See also
+
+fun, take, array
+
+## and
+
+True when both conditions are true.
 
 ```rank
 true and false
 ```
 
-## or
-
-### NAME
-
-Combine conditions; either may hold.
-
-### SYNOPSIS
-
-```text
-Left or Right
-Result: boolean or boolean array
-Left, Right: boolean values
+```result
+false
 ```
 
-### DESCRIPTION
+### Usage
 
-For a scalar boolean, a true left side
-skips the right side. Arrays combine
-element by element and evaluate both
-sides.
+```text
+Left and Right
+```
 
-### EXAMPLES
+If Left is false, Right is not checked.
+On arrays, combines item by item, and
+both sides are always computed.
 
-One true value is enough: true.
+### See also
+
+or, xor, not
+
+## or
+
+True when at least one condition is
+true.
 
 ```rank
 true or false
 ```
 
-## xor
-
-### NAME
-
-Test whether exactly one condition
-holds.
-
-### SYNOPSIS
-
-```text
-Left xor Right
-Result: boolean or boolean array
-Left, Right: boolean values
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Both operands are evaluated. The result
-is false when both booleans are equal.
+```text
+Left or Right
+```
 
-### EXAMPLES
+If Left is true, Right is not checked.
+On arrays, combines item by item, and
+both sides are always computed.
 
-Exactly one side is true: true.
+### See also
+
+and, xor, not
+
+## xor
+
+True when exactly one of two conditions
+is true.
 
 ```rank
 true xor false
 ```
 
-## equal
-
-### NAME
-
-Compare values for equality.
-
-### SYNOPSIS
-
-```text
-Left equal Right
-Result: boolean or boolean array
-Left, Right: values
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Compares array cells element by element.
-For whole-array equality, use a test
-block or reduce the resulting boolean
-mask with all.
+```text
+Left xor Right
+```
 
-### EXAMPLES
+False when both sides are the same. Both
+sides are always computed.
 
-Compare values: true.
+### See also
+
+and, or, not
+
+## equal
+
+Check whether two values are the same.
 
 ```rank
 3 equal 3
 ```
 
-## not equal
-
-### NAME
-
-Compare values for inequality.
-
-### SYNOPSIS
-
-```text
-Left not equal Right
-Result: boolean or boolean array
-Left, Right: values
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-This is the negation of equal. Arrays
-produce a mask rather than one
-whole-array boolean.
+```text
+Left equal Right
+```
 
-### EXAMPLES
+On arrays, compares item by item and
+gives an array of true and false.
 
-Different values compare true.
+### See also
+
+not equal, less, greater, isnan
+
+## not equal
+
+Check whether two values differ.
 
 ```rank
 3 not equal 4
 ```
 
-## less
-
-### NAME
-
-Test a strict upper bound.
-
-### SYNOPSIS
-
-```text
-Left less Right
-Result: boolean or boolean array
-Left, Right: comparable values
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Compares numbers or ordered values.
-Equality does not satisfy a strict
-comparison.
+```text
+Left not equal Right
+```
 
-### EXAMPLES
+On arrays, compares item by item.
 
-3 is strictly below 4: true.
+### See also
+
+equal
+
+## less
+
+Check whether the left value is smaller.
 
 ```rank
 3 less 4
 ```
 
-## greater
-
-### NAME
-
-Test a strict lower bound.
-
-### SYNOPSIS
-
-```text
-Left greater Right
-Result: boolean or boolean array
-Left, Right: comparable values
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Compares numbers or ordered values.
-Equality does not satisfy a strict
-comparison.
+```text
+Left less Right
+```
 
-### EXAMPLES
+Equal values give false. Works on
+numbers and on text, which compares
+alphabetically. On arrays, compares item
+by item.
 
-4 is strictly above 3: true.
+### See also
+
+at most, greater
+
+## greater
+
+Check whether the left value is larger.
 
 ```rank
 4 greater 3
 ```
 
-## at least
-
-### NAME
-
-Test an inclusive lower bound.
-
-### SYNOPSIS
-
-```text
-Left at least Right
-Result: boolean or boolean array
-Left, Right: comparable values
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Tests greater than or equal to the right
-operand. Arrays compare cell by cell.
+```text
+Left greater Right
+```
 
-### EXAMPLES
+Equal values give false. On arrays,
+compares item by item.
 
-The lower bound is inclusive: true.
+### See also
+
+at least, less
+
+## at least
+
+Check whether the left value is larger
+or equal.
 
 ```rank
 3 at least 3
 ```
 
-## at most
-
-### NAME
-
-Test an inclusive upper bound.
-
-### SYNOPSIS
-
-```text
-Left at most Right
-Result: boolean or boolean array
-Left, Right: comparable values
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-Tests less than or equal to the right
-operand. Arrays compare cell by cell.
+```text
+Left at least Right
+```
 
-### EXAMPLES
+On arrays, compares item by item.
 
-The upper bound is inclusive: true.
+### See also
+
+greater, at most
+
+## at most
+
+Check whether the left value is smaller
+or equal.
 
 ```rank
 3 at most 3
 ```
 
-## in
-
-### NAME
-
-Test collection membership.
-
-### SYNOPSIS
-
-```text
-Value in Collection
-Result: boolean or boolean array
-Value: item or collection
-Collection: collection of comparable
-items
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-A scalar produces one boolean. A
-collection on the left produces a
-membership mask with the same shape.
+```text
+Left at most Right
+```
 
-### EXAMPLES
+On arrays, compares item by item.
 
-3 belongs to the collection: true.
+### See also
+
+less, at least
+
+## in
+
+Check whether a value appears in a
+collection.
 
 ```rank
 3 in (array 1 3 5)
 ```
 
-## is
-
-### NAME
-
-Test a value's runtime type.
-
-### SYNOPSIS
-
-```text
-Value is .Type
-Result: boolean
-Value: any value; .Type: type label
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-The right operand is a type label,
-beginning with a dot. Inside a branch
-this test also narrows the known type.
+```text
+Value in Collection
+```
 
-### EXAMPLES
+With an array on the left, checks each
+item and gives an array of true and
+false.
 
-Check the runtime type: true.
+### See also
+
+equal, filter
+
+## is
+
+Check what type a value is.
 
 ```rank
 42 is .integer
 ```
 
-## to
-
-### NAME
-
-Make a range with an inclusive end.
-
-### SYNOPSIS
-
-```text
-Low to High
-Result: range or bounded values
-Low, High: integers for a counting range
+```result
+true
 ```
 
-### DESCRIPTION
+### Usage
 
-The upper bound is included. After a
-collection, this word keeps values at
-most the bound rather than counting
-positions.
+```text
+Value is .Type
+```
 
-### EXAMPLES
+The type name starts with a dot, for
+example .integer, .real or .text. Inside
+an if that uses is, Rank knows the value
+has that type.
 
-The counting range is 1, 2, 3, 4, 5.
+### See also
+
+integer, real, text
+
+## to
+
+Count from one number to another,
+including the last.
 
 ```rank
 1 to 5
 ```
 
-## till
-
-### NAME
-
-Make a range with an exclusive end.
-
-### SYNOPSIS
-
-```text
-Low till High
-Result: range or bounded values
-Low, High: integers for a counting range
+```result
+1 2 3 4 5
 ```
 
-### DESCRIPTION
+### Usage
 
-The upper bound is excluded. After a
-collection it keeps values below the
-bound; a predicate form stops at the
-first matching value.
+```text
+Low to High
+Values to High
+```
 
-### EXAMPLES
+Both ends are included. After a
+collection instead of a number, keeps
+the values up to High.
 
-The range stops before 5: 1, 2, 3, 4.
+### See also
+
+till, by, from, for
+
+## till
+
+Count from one number up to, but not
+including, another.
 
 ```rank
 1 till 5
 ```
 
-## by
-
-### NAME
-
-Set the step of a counting range.
-
-### SYNOPSIS
-
-```text
-Low to High by Step
-Result: counting range
-Low, High, Step: integers; Step != 0
+```result
+1 2 3 4
 ```
 
-### DESCRIPTION
+### Usage
 
-The step must be a nonzero integer. Its
-sign controls direction; a step pointing
-away from the end gives an empty range.
+```text
+Low till High
+Values till High
+```
 
-### EXAMPLES
+The end is left out, which suits
+positions: `0 till N` gives N positions.
+After a collection, keeps the values
+below High.
 
-Use a step of two: 1, 3, 5, 7.
+### See also
+
+to, by, after
+
+## by
+
+Count in steps other than one.
 
 ```rank
 1 to 7 by 2
 ```
 
-## default
-
-### NAME
-
-Supply a fallback for a missing value.
-
-### SYNOPSIS
-
-```text
-Address default Fallback
-Result: value
-Address: lookup that may be missing
-Fallback: value or expression
+```result
+1 3 5 7
 ```
 
-### DESCRIPTION
+### Usage
 
-The fallback is evaluated only when the
-addressed value is missing. It does not
-hide invalid negative indices, type
-errors or division by zero.
+```text
+Low to High by Step
+```
 
-### EXAMPLES
+A negative step counts down: `5 to 1 by
+-1`. Step cannot be zero.
 
-Use zero when index 5 is absent.
+### See also
+
+to, till
+
+## default
+
+Use a fallback value when a lookup finds
+nothing.
+
+There is no position 5, so the fallback
+0 is used.
 
 ```rank
 A = array 1 2
 A 5 default 0
 ```
 
-## fill
-
-### NAME
-
-Initialize all cells of a shaped array.
-
-### SYNOPSIS
-
-```text
-array shape Dimensions fill Value
-Result: array
-Dimensions: nonnegative integers
-Value: initial cell value
+```result
+0
 ```
 
-### DESCRIPTION
+### Usage
 
-Dimensions are nonnegative integers.
-Every cell starts with the fill value; a
-zero dimension makes an empty array.
+```text
+Lookup default Fallback
+```
 
-### EXAMPLES
+The fallback is computed only when it is
+needed.
 
-Create a 2-by-3 matrix of zeros.
+### Notes
+
+default covers missing values only.
+Other errors, such as division by zero
+or a wrong type, still stop the program.
+
+### See also
+
+present, leftjoin by
+
+## fill
+
+Give every cell of a new array the same
+starting value.
+
+A 2-by-3 matrix of zeros, read at row 1,
+column 2.
 
 ```rank
 A = array shape 2 3 fill 0
 A 1 2
 ```
 
-## as
-
-### NAME
-
-Give an imported source module a
-namespace.
-
-### SYNOPSIS
-
-```text
-use "module.ra" as Name
-Capitalized words stand for your values.
+```result
+0
 ```
 
-### DESCRIPTION
+### Usage
 
-Use a capitalized namespace name after a
-quoted source-module path. This example
-requires helpers.ra to define fun twice
-X returning X * 2.
+```text
+array shape Sizes fill Value
+```
 
-### EXAMPLES
+Sizes are whole numbers, one per axis. A
+size of zero makes an empty array.
 
-Call twice from an imported namespace.
+### See also
+
+array
+
+## as
+
+Give a loaded file a short name to call
+its functions through.
 
 ```rank
 use "helpers.ra" as H
 3 H.twice
 ```
 
-## axis
-
-### NAME
-
-Choose axes for a reduction.
-
-### SYNOPSIS
-
-```text
-Values Function axis N
-Result: array or reduction result
-N: zero-based integer axis
+```result
+6
 ```
 
-### DESCRIPTION
+### Usage
 
-Axes are numbered from zero. An
-axis-qualified reduction combines cells
-along the named axes while preserving
-the other axes.
+```text
+use "file.ra" as Name
+```
 
-### EXAMPLES
+Call the file's functions as
+`Name.function`. Name starts with a
+capital letter.
 
-Reduce the row axis to get column sums
-4, 6.
+### Notes
+
+This example needs a file helpers.ra
+that defines a function twice.
+
+### See also
+
+use
+
+## axis
+
+Apply a summary, such as sum, along one
+direction of a matrix.
+
+Summing down the rows gives one total
+per column.
 
 ```rank
 A = array shape 2 2
@@ -1260,32 +1254,31 @@ end
 A sum axis 0
 ```
 
-## rank
-
-### NAME
-
-Apply a function to cells of a given
-rank.
-
-### SYNOPSIS
-
-```text
-Values Function rank N
-Left Right Function rank M N
-Result: array of function results
-N, M: nonnegative integer cell ranks
+```result
+4 6
 ```
 
-### DESCRIPTION
+### Usage
 
-Rank is the number of trailing axes
-passed to each function call. Rank 0
-means a scalar cell; rank 1 means a
-vector. Leading axes are preserved.
+```text
+Values Function axis N
+```
 
-### EXAMPLES
+Axes are numbered from zero: axis 0 runs
+down the rows, axis 1 across the
+columns. The chosen axis disappears from
+the result; the others stay.
 
-Sum each row separately: 3, 7.
+### See also
+
+rank, sum, reduce
+
+## rank
+
+Apply a function to each row, or to
+cells of another size.
+
+Sum each row on its own.
 
 ```rank
 use sequences
@@ -1296,92 +1289,92 @@ end
 A sum rank 1
 ```
 
-## reduce
-
-### NAME
-
-Combine items into one accumulator.
-
-### SYNOPSIS
-
-```text
-Values reduce Operator
-Result: accumulator value
-Values: finite collection
-Operator: binary combining function
+```result
+3 7
 ```
 
-### DESCRIPTION
+### Usage
 
-Combines values from left to right. An
-optional with Seed supplies the initial
-accumulator. Infinite sequences cannot
-be reduced completely.
+```text
+Values Function rank N
+Left Right Function rank M N
+```
 
-### EXAMPLES
+N is how many dimensions each piece has:
+rank 0 means single numbers, rank 1
+means rows. The results are collected
+back into an array.
 
-Combine the values into their sum: 9.
+### See also
+
+axis, outer
+
+## reduce
+
+Combine all items into one value with an
+operator.
 
 ```rank
 (array 2 3 4) reduce +
 ```
 
-## scan
-
-### NAME
-
-Return successive accumulator values.
-
-### SYNOPSIS
-
-```text
-Values scan Operator
-Result: sequence of accumulators
-Values: collection
-Operator: binary combining function
+```result
+9
 ```
 
-### DESCRIPTION
+### Usage
 
-Unlike reduce, scan returns each
-intermediate accumulator. The result is
-lazy; with Seed supplies an initial
-value.
+```text
+Values reduce Operator
+Values reduce Operator with Start
+```
 
-### EXAMPLES
+Works left to right: ((2 + 3) + 4). With
+with, the combining begins from Start.
 
-Keep each running sum: 2, 5, 9.
+### Notes
+
+The input must be finite; an endless
+sequence never finishes.
+
+### See also
+
+scan, sum
+
+## scan
+
+Like reduce, but keep every step: a
+running total.
 
 ```rank
 (array 2 3 4) scan +
 ```
 
-## outer
-
-### NAME
-
-Apply a function to all pairs of items.
-
-### SYNOPSIS
-
-```text
-Left Right outer Operator
-Result: array of pairwise results
-Left, Right: arrays or finite
-collections
-Operator: pure binary function
+```result
+2 5 9
 ```
 
-### DESCRIPTION
+### Usage
 
-Produces all pairwise combinations,
-adding axes to the result. This is
-different from matrix multiplication,
-which contracts an axis.
+```text
+Values scan Operator
+Values scan Operator with Start
+```
 
-### EXAMPLES
+The result is a sequence, so it also
+works on endless input when you take
+only part of it.
 
-Add every item of A to every item of B.
+### See also
+
+reduce, take
+
+## outer
+
+Combine every item of one list with
+every item of another.
+
+A table of all sums.
 
 ```rank
 A = array 1 2
@@ -1389,811 +1382,780 @@ B = array 10 20
 A B outer +
 ```
 
-## sort by
-
-### NAME
-
-Sort items stably by one or more keys.
-
-### SYNOPSIS
-
-```text
-Values sort by Key
-Result: sorted values
-Values: finite collection
-Key: field label or key function
+```result
+11 21 12 22
 ```
 
-### DESCRIPTION
+### Usage
 
-A dot-prefixed key names a field.
-Multiple keys are compared in order;
-equal keys keep source order.
+```text
+Left Right outer Operator
+```
 
-### EXAMPLES
+The result has one row per item of Left
+and one column per item of Right.
 
-Order the rows by their id field.
+### See also
+
+rank, matmul
+
+## sort by
+
+Sort rows by a field or a computed key.
 
 ```rank
 use json
 use tables
 use sequences
 T = "[{\"id\":2},
-  {\"id\":1}]" json
-T sort by .id
+  {\"id\":1}]" json table
+S = T sort by .id
+S .id
 ```
+
+```result
+1 2
+```
+
+### Usage
+
+```text
+Rows sort by .field
+Rows sort by .field .descending
+```
+
+Give several keys to break ties. Rows
+with equal keys keep their original
+order.
+
+### See also
+
+argsort by, ascending, descending
 
 ## first where
 
-### NAME
-
-Find the first item satisfying a
+Find the first item that matches a
 condition.
-
-### SYNOPSIS
-
-```text
-Values first where Condition
-Result: element
-Values: text, array or sequence
-Condition: boolean expression per item
-```
-
-### DESCRIPTION
-
-Searches in source order and stops after
-the first match. No match raises a
-missing-value error; default can supply
-a fallback.
-
-### EXAMPLES
-
-Stop at the first match: 4.
 
 ```rank
 (1 to 5) first where greater 3
 ```
 
-## first index where
-
-### NAME
-
-Find the position of the first match.
-
-### SYNOPSIS
-
-```text
-Values first index where Condition
-Result: integer
-Values: text, array or sequence
-Condition: boolean expression per item
+```result
+4
 ```
 
-### DESCRIPTION
+### Usage
 
-Searches in source order but returns the
-position, not the value. No match raises
-a missing-value error.
+```text
+Values first where Condition
+```
 
-### EXAMPLES
+The condition is written as if the item
+were on its left. The search stops at
+the first match, so it is fine on
+endless sequences.
 
-The first match has zero-based position
-3.
+### Notes
+
+No match is an error. Add `default` to
+give a fallback.
+
+### See also
+
+first index where, filter, default
+
+## first index where
+
+Find the position of the first item that
+matches.
 
 ```rank
 (1 to 5) first index where greater 3
 ```
 
-## take
-
-### NAME
-
-Keep a given number of leading items.
-
-### SYNOPSIS
-
-```text
-Values take Count
-Result: text, array view or sequence
-Values: text, array or sequence
-Count: nonnegative integer
+```result
+3
 ```
 
-### DESCRIPTION
+### Usage
 
-Count is a nonnegative integer. A count
-beyond the source length is clamped;
-take 0 reads nothing. A sequence remains
-lazy.
+```text
+Values first index where Condition
+```
 
-### EXAMPLES
+Positions start at zero.
 
-Keep the first three characters: abc.
+### Notes
+
+No match is an error. Add `default` to
+give a fallback.
+
+### See also
+
+first where, filter
+
+## take
+
+Keep the first N items.
 
 ```rank
 "abcdef" take 3
 ```
 
-## drop
-
-### NAME
-
-Skip a given number of leading items.
-
-### SYNOPSIS
-
-```text
-Values drop Count
-Result: text, array view or sequence
-Values: text, array or sequence
-Count: nonnegative integer
+```result
+abc
 ```
 
-### DESCRIPTION
+### Usage
 
-Count is a nonnegative integer. A count
-beyond the source length gives an empty
-result; drop 0 keeps everything.
+```text
+Values take Count
+```
 
-### EXAMPLES
+Asking for more than there is just gives
+everything. Use take to read the start
+of an endless sequence.
 
-Skip three characters: def.
+### See also
+
+drop, first where
+
+## drop
+
+Skip the first N items and keep the
+rest.
 
 ```rank
 "abcdef" drop 3
 ```
 
-## from
-
-### NAME
-
-Keep values at or above a lower bound.
-
-### SYNOPSIS
-
-```text
-Values from Low
-Result: bounded values
-Values: text, array or sequence
-Low: comparable lower bound
+```result
+def
 ```
 
-### DESCRIPTION
+### Usage
 
-The lower bound is included. This
-filters by value, not by position; use
-drop to skip a number of leading items.
+```text
+Values drop Count
+```
 
-### EXAMPLES
+Skipping more than there is gives an
+empty result.
 
-Keep values starting at 3: 3, 4, 5.
+### See also
+
+take, after
+
+## from
+
+Keep the values that are at least a
+lower bound.
 
 ```rank
 use sequences
 (1 to 5) from 3
 ```
 
-## after
-
-### NAME
-
-Keep values above a strict lower bound.
-
-### SYNOPSIS
-
-```text
-Values after Low
-Result: bounded values
-Values: text, array or sequence
-Low: comparable lower bound
+```result
+3 4 5
 ```
 
-### DESCRIPTION
+### Usage
 
-The lower bound is excluded. This
-filters by value, not by position; use
-drop for a positional tail.
+```text
+Values from Low
+```
 
-### EXAMPLES
+Low itself is kept. This compares
+values; to skip by position, use drop.
 
-Keep values strictly above 3: 4, 5.
+### See also
+
+after, to, drop
+
+## after
+
+Keep the values greater than a lower
+bound.
 
 ```rank
 (1 to 5) after 3
 ```
 
-## argsort by
-
-### NAME
-
-Return source positions in key order.
-
-### SYNOPSIS
-
-```text
-Values argsort by Key
-Result: integer array
-Values: finite collection
-Key: field label or key function
+```result
+4 5
 ```
 
-### DESCRIPTION
+### Usage
 
-Uses the same stable key order as sort
-by but returns zero-based source
-positions, not rows.
+```text
+Values after Low
+```
 
-### EXAMPLES
+Low itself is left out. This compares
+values; to skip by position, use drop.
 
-Return row positions ordered by id.
+### See also
+
+from, till, drop
+
+## argsort by
+
+The positions of rows in sorted order,
+instead of the rows themselves.
 
 ```rank
 use json
 use tables
 use sequences
 T = "[{\"id\":2},
-  {\"id\":1}]" json
+  {\"id\":1}]" json table
 T argsort by .id
 ```
 
-## group by
-
-### NAME
-
-Group rows with equal field values.
-
-### SYNOPSIS
-
-```text
-Rows group by .field
-Result: grouped table view
-Rows: table; .field: column label
+```result
+1 0
 ```
 
-### DESCRIPTION
+### Usage
 
-Creates a grouped view. Follow it with a
-select block containing aggregate
-calculations, such as count or sum.
+```text
+Rows argsort by .field
+```
 
-### EXAMPLES
+Uses the same order as sort by.
+Positions start at zero.
 
-Group equal ids and count each group.
+### See also
+
+sort by
+
+## group by
+
+Put rows with the same value in a field
+together.
+
+Count how many rows share each id.
 
 ```rank
 use json
 use tables
 use sequences
-T = "[{\"id\":2},
-  {\"id\":1}]" json
+T = "[{\"id\":2},{\"id\":1},
+  {\"id\":2}]" json table
 G = T group by .id
-G select
+C = G select
   .n = count
 end
+C .n
 ```
+
+```result
+2 1
+```
+
+### Usage
+
+```text
+Rows group by .field
+```
+
+Follow it with select to compute
+something for each group, such as count
+or sum.
+
+### See also
+
+select, count
 
 ## leftjoin by
 
-### NAME
+Add matching fields from another table,
+keeping every row of the first.
 
-Match rows on shared keys, keeping left
-rows.
+```rank
+use json
+use tables
+L = "[{\"id\":1},
+  {\"id\":2}]" json table
+R = "[{\"id\":1,\"n\":7}]" json table
+J = L R leftjoin by .id
+J .n
+```
 
-### SYNOPSIS
+```result
+7 .NA
+```
+
+### Usage
 
 ```text
 Left Right leftjoin by .field
-Result: table
-Left, Right: tables; .field: shared key
 ```
 
-### DESCRIPTION
+Rows match when the field is equal; both
+tables use the same field name. A left
+row with no match keeps missing values,
+which default can fill.
 
-Keeps every left row, adding matching
-right fields. An unmatched right field
-is missing; default supplies a value. by
-uses the same field names on both sides.
+### See also
 
-### EXAMPLES
-
-Match rows on equal key values.
-
-```rank
-use json
-use tables
-L = "[{\"id\":1}]" json
-R = "[{\"id\":1,\"n\":7}]" json
-L R leftjoin by .id
-```
+innerjoin by, leftjoin on, default
 
 ## innerjoin by
 
-### NAME
+Pair up rows from two tables that share
+a field value.
 
-Keep row pairs matching shared keys.
+```rank
+use json
+use tables
+L = "[{\"id\":1},
+  {\"id\":2}]" json table
+R = "[{\"id\":1,\"n\":7}]" json table
+J = L R innerjoin by .id
+J .n
+```
 
-### SYNOPSIS
+```result
+7
+```
+
+### Usage
 
 ```text
 Left Right innerjoin by .field
-Result: table
-Left, Right: tables; .field: shared key
 ```
 
-### DESCRIPTION
+Rows without a match are dropped. A row
+matching several rows appears once for
+each.
 
-Keeps only left/right row pairs that
-match. Multiple right matches repeat the
-corresponding left row. by uses the same
-field names on both sides.
+### See also
 
-### EXAMPLES
-
-Match rows on equal key values.
-
-```rank
-use json
-use tables
-L = "[{\"id\":1}]" json
-R = "[{\"id\":1,\"n\":7}]" json
-L R innerjoin by .id
-```
+leftjoin by, innerjoin on
 
 ## leftjoin on
 
-### NAME
-
-Join on a condition, keeping left rows.
-
-### SYNOPSIS
-
-```text
-L R leftjoin on .left equal .right
-Result: table
-L, R: tables; .left, .right: field
-labels
-```
-
-### DESCRIPTION
-
-Keeps every left row, adding matching
-right fields. An unmatched right field
-is missing; default supplies a value. on
-takes a boolean condition; field names
-on the two sides can differ.
-
-### EXAMPLES
-
-Match rows on equal key values.
+Join on a condition, keeping every row
+of the first table.
 
 ```rank
 use json
 use tables
-L = "[{\"id\":1}]" json
-R = "[{\"key\":1}]" json
+L = "[{\"id\":1},
+  {\"id\":2}]" json table
+R = "[{\"key\":1,\"n\":7}]" json table
 J = L R leftjoin on .id equal .key
-J
+J .n
 ```
+
+```result
+7 .NA
+```
+
+### Usage
+
+```text
+Left Right leftjoin on Condition
+```
+
+Use on when the matching fields have
+different names, or the match is not
+simple equality.
+
+### See also
+
+leftjoin by, innerjoin on
 
 ## innerjoin on
 
-### NAME
-
-Keep row pairs satisfying a join
-condition.
-
-### SYNOPSIS
-
-```text
-L R innerjoin on .left equal .right
-Result: table
-L, R: tables; .left, .right: field
-labels
-```
-
-### DESCRIPTION
-
-Keeps only left/right row pairs that
-match. Multiple right matches repeat the
-corresponding left row. on takes a
-boolean condition; field names on the
-two sides can differ.
-
-### EXAMPLES
-
-Match rows on equal key values.
+Pair up rows from two tables that
+satisfy a condition.
 
 ```rank
 use json
 use tables
-L = "[{\"id\":1}]" json
-R = "[{\"key\":1}]" json
+L = "[{\"id\":1},
+  {\"id\":2}]" json table
+R = "[{\"key\":1,\"n\":7}]" json table
 J = L R innerjoin on .id equal .key
-J
+J .n
 ```
+
+```result
+7
+```
+
+### Usage
+
+```text
+Left Right innerjoin on Condition
+```
+
+Use on when the matching fields have
+different names. Rows without a match
+are dropped.
+
+### See also
+
+innerjoin by, leftjoin on
 
 ## filter
 
-### NAME
-
-Keep items satisfying a condition.
-
-### SYNOPSIS
-
-```text
-Values filter Condition
-Result: filtered values
-Values: text, array, sequence or table
-Condition: boolean expression per item
-```
-
-### DESCRIPTION
-
-The current item is the implicit left
-operand of the condition. Sequences
-remain lazy; text keeps matching code
-points.
-
-### EXAMPLES
-
-Keep only values 4 and 5.
+Keep only the items that match a
+condition.
 
 ```rank
 (1 to 5) filter greater 3
 ```
 
-## select
-
-### NAME
-
-Produce named table columns.
-
-### SYNOPSIS
-
-```text
-Rows select .fields
-Rows select
-  .field = Expression
-end
-Result: table
-Rows: table; .fields: column labels
+```result
+4 5
 ```
 
-### DESCRIPTION
+### Usage
 
-Dot-prefixed assignments name result
-columns. Within the block a field name
-reads the corresponding input column;
-ordinary local variables can hold
-intermediate calculations.
+```text
+Values filter Condition
+```
 
-### EXAMPLES
+The condition is written as if the item
+were on its left. Works on arrays,
+sequences and table rows; on a sequence
+it also works lazily.
 
-Compute a named output column.
+### See also
+
+first where, in, take
+
+## select
+
+Build a table with the columns you name.
 
 ```rank
 use json
 use tables
-use sequences
 T = "[{\"id\":2},
-  {\"id\":1}]" json
-T select
+  {\"id\":1}]" json table
+D = T select
   .double = .id * 2
+end
+D .double
+```
+
+```result
+4 2
+```
+
+### Usage
+
+```text
+Rows select .field .field
+Rows select
+  .new = Expression
 end
 ```
 
+The short form keeps some columns. In
+the block form, each line makes a
+column; inside it, `.id` reads that
+row's id.
+
+### See also
+
+group by, record
+
 ## ascending
 
-### NAME
-
-Select increasing sort order.
-
-### SYNOPSIS
-
-```text
-Values sort .ascending
-Capitalized words stand for your values.
-```
-
-### DESCRIPTION
-
-This direction label follows sort or a
-sort key. Increasing order is also the
-default; equal items preserve their
-original order.
-
-### EXAMPLES
-
-Sort in increasing order: 1, 2, 3.
+Sort from smallest to largest.
 
 ```rank
 use sequences
 (array 3 1 2) sort .ascending
 ```
 
-## descending
-
-### NAME
-
-Select decreasing sort order.
-
-### SYNOPSIS
-
-```text
-Values sort .descending
-Capitalized words stand for your values.
+```result
+1 2 3
 ```
 
-### DESCRIPTION
+### Usage
 
-This direction label follows sort or a
-sort key. Equal items preserve their
-original order.
+```text
+Values sort .ascending
+```
 
-### EXAMPLES
+This is already the default order. Equal
+items keep their original order.
 
-Sort in decreasing order: 3, 2, 1.
+### See also
+
+descending, sort by
+
+## descending
+
+Sort from largest to smallest.
 
 ```rank
 use sequences
 (array 3 1 2) sort .descending
 ```
 
-## max
-
-### NAME
-
-Larger of two numbers, or the largest of
-one collection.
-
-### SYNOPSIS
-
-```text
-Left Right max -> number
-Left, Right: numbers or one collection
+```result
+3 2 1
 ```
 
-### DESCRIPTION
+### Usage
 
-One collection operand finds its
-greatest numeric cell; two operands
-compare numbers. Empty reductions have
-no selected value.
+```text
+Values sort .descending
+```
 
-### EXAMPLES
+Equal items keep their original order.
 
-The larger of two numbers is 5.
+### See also
+
+ascending, sort by
+
+## max
+
+The larger of two numbers, or the
+largest item of a collection.
 
 ```rank
 3 5 max
 ```
 
-## min
-
-### NAME
-
-Smaller of two numbers, or the smallest
-of one collection.
-
-### SYNOPSIS
-
-```text
-Left Right min -> number
-Left, Right: numbers or one collection
+```result
+5
 ```
 
-### DESCRIPTION
+### Usage
 
-One collection operand finds its least
-numeric cell; two operands compare
-numbers. Empty reductions have no
-selected value.
+```text
+A B max
+Values max
+```
 
-### EXAMPLES
+An empty collection has no largest item.
 
-The smaller of two numbers is 3.
+### See also
+
+min, sum
+
+## min
+
+The smaller of two numbers, or the
+smallest item of a collection.
 
 ```rank
 3 5 min
 ```
 
-## sum
-
-### NAME
-
-Adds every numeric cell of an array,
-collection or finite sequence.
-
-### SYNOPSIS
-
-```text
-Values sum -> number
-Values: finite numeric collection
+```result
+3
 ```
 
-### DESCRIPTION
+### Usage
 
-Consumes all numeric cells. An infinite
-sequence cannot be summed to completion.
+```text
+A B min
+Values min
+```
 
-### EXAMPLES
+An empty collection has no smallest
+item.
 
-Add 1+2+3+4+5: 15.
+### See also
+
+max, sum
+
+## sum
+
+Add up all the numbers.
 
 ```rank
 (1 to 5) sum
 ```
 
-## len
-
-### NAME
-
-Code points of text, leading axis of an
-array, or size of a collection.
-
-### SYNOPSIS
-
-```text
-Value len -> integer
-Value: text, array or collection
+```result
+15
 ```
 
-### DESCRIPTION
+### Usage
 
-Counts text code points or collection
-items. An array length counts its
-leading axis; use shape for all axis
-lengths.
+```text
+Values sum
+```
 
-### EXAMPLES
+Works on arrays, matrices and finite
+sequences.
 
-The text contains five Unicode code
-points.
+### See also
+
+reduce, axis, max, min
+
+## len
+
+How long something is: characters in
+text, or items in a collection.
 
 ```rank
 "hello" len
 ```
 
-## present
-
-### NAME
-
-Mask of the cells that have a value:
-false for .NA and for cells that read as
-.Missing.
-
-### SYNOPSIS
-
-```text
-Values present -> boolean
-Values: array or table column
+```result
+5
 ```
 
-### DESCRIPTION
+### Usage
 
-Returns a boolean mask, with false for
-missing cells. The result keeps the
-shape of an array input.
+```text
+Value len
+```
 
-### EXAMPLES
+For a matrix, gives the number of rows.
+Text is counted in characters, so
+letters like é count once.
 
-Identify cells that have values.
+### See also
+
+array, take
+
+## present
+
+Mark which cells have a value and which
+are missing.
 
 ```rank
 A = array 1 .NA 3
 A present
 ```
 
-## bytes
-
-### NAME
-
-Converts UTF-8 text or a rank-1 array of
-integers in 0..255 to compact bytes.
-
-### SYNOPSIS
-
-```text
-Value bytes -> bytes
-Value: text, bytes or integer vector
+```result
+true false true
 ```
 
-### DESCRIPTION
+### Usage
 
-Also accepts a one-dimensional integer
-array with cells in 0..255. Invalid
-cells raise an error.
+```text
+Values present
+```
 
-### EXAMPLES
+Gives false where a cell is .NA or
+missing, and true elsewhere. The result
+has the same shape as the input.
 
-Encode the text as UTF-8 bytes.
+### See also
+
+default, filter
+
+## bytes
+
+Convert text, or a list of numbers 0 to
+255, to raw bytes.
 
 ```rank
 "Rank" bytes
 ```
 
-## integer
-
-### NAME
-
-Truncates a finite real toward zero,
-preserves an integer, or parses signed
-decimal integer text.
-
-### SYNOPSIS
-
-```text
-Value integer -> integer
-Value: integer, finite real or text
+```result
+0x52616e6b
 ```
 
-### DESCRIPTION
+### Usage
 
-Finite real input is truncated toward
-zero. Invalid integer text raises an
-error; assignment does not convert types
-automatically.
+```text
+Text bytes
+Numbers bytes
+```
 
-### EXAMPLES
+Text is encoded as UTF-8. The result is
+shown in hexadecimal.
 
-Parse decimal text into integer 42.
+### See also
+
+text
+
+## integer
+
+Convert a value to a whole number.
 
 ```rank
 "42" integer
 ```
 
-## real
-
-### NAME
-
-Converts an integer or decimal text to a
-real, or preserves a real.
-
-### SYNOPSIS
-
-```text
-Value real -> real
-Value: integer, real or decimal text
+```result
+42
 ```
 
-### DESCRIPTION
+### Usage
 
-Converts integers or decimal text to
-binary64 real numbers. Invalid decimal
-text raises an error.
+```text
+Value integer
+```
 
-### EXAMPLES
+Text must contain a whole number, such
+as "42" or "-7". A real loses its
+fraction, rounding toward zero: `-3.7
+integer` is -3.
 
-Parse text into a real number.
+### Notes
+
+Rank never converts types on its own;
+call integer when you need one.
+
+### See also
+
+real, text, round
+
+## real
+
+Convert a value to a decimal number.
 
 ```rank
 "3.5" real
 ```
 
-## text
-
-### NAME
-
-Formats one scalar as text; a .Nf
-literal after it selects fixed decimals.
-
-### SYNOPSIS
-
-```text
-Value text -> text
-Value: scalar value
+```result
+3.5
 ```
 
-### DESCRIPTION
+### Usage
 
-Formats a scalar. A following .Nf label
-requests N digits after the decimal
-point, as in 3.5 text .2f.
+```text
+Value real
+```
 
-### EXAMPLES
+Accepts integers and text holding a
+number.
 
-Format an integer as text.
+### See also
+
+integer, text
+
+## text
+
+Convert a value to text.
 
 ```rank
 42 text
 ```
+
+```result
+42
+```
+
+### Usage
+
+```text
+Value text
+```
+
+Works on numbers, booleans and other
+single values.
+
+### See also
+
+integer, real, join

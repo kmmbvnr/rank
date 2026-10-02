@@ -2,62 +2,44 @@
 
 ## neighbors
 
-### NAME
+The cells next to a cell of a grid, as
+row and column pairs.
 
-In-bounds row and column pairs around
-one grid cell; four neighbors by
-default.
-
-### SYNOPSIS
-
-```text
-Grid Row Column .eight neighbors ->
-array
-Grid: matrix; Row, Column: integers
-```
-
-### DESCRIPTION
-
-Row and Column are zero-based integers.
-Returns in-bounds coordinate pairs; a
-trailing .eight label includes diagonal
-neighbors.
-
-### EXAMPLES
-
-List the four neighbors of the center
-cell.
+The middle of a 3×3 grid has four
+neighbours: below, right, above and
+left.
 
 ```rank
 use grids
 G = array shape 3 3 fill 0
-G 1 1 neighbors
+N = G 1 1 neighbors
+N 0
 ```
+
+```result
+1 2
+```
+
+### Usage
+
+```text
+Grid Row Column neighbors
+Grid Row Column .eight neighbors
+```
+
+Rows and columns start at zero. By
+default, only the four cells sharing a
+side count; .eight adds the diagonals.
+Cells outside the grid are left out.
+
+### See also
+
+segments, bfs
 
 ## segments
 
-### NAME
-
-All in-bounds horizontal, vertical and
-diagonal segments of a fixed width.
-
-### SYNOPSIS
-
-```text
-Grid Width segments -> array
-Grid: matrix; Width: positive integer
-```
-
-### DESCRIPTION
-
-Grid is a two-dimensional array. Width
-must be positive. Horizontal, vertical
-and diagonal segments are included;
-segments do not wrap across edges.
-
-### EXAMPLES
-
-List straight segments of length two.
+Every straight line of N cells in a
+grid: across, down and diagonal.
 
 ```rank
 use grids
@@ -65,5 +47,24 @@ G = array shape 2 2
   1 2
   3 4
 end
-G 2 segments
+S = G 2 segments
+S 0
 ```
+
+```result
+1 2
+```
+
+### Usage
+
+```text
+Grid Width segments
+```
+
+Each segment is one row of the result,
+holding its values. Lines never wrap
+around an edge.
+
+### See also
+
+neighbors, window
