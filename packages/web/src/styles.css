@@ -135,18 +135,48 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 /* The app hides the system bars; Android still reports a transient bottom inset while the keyboard closes, which made the run button jump. */
 .mobile { --safe-bottom: 0px; }
 
-/* Offline manual: a monochrome man page above the unchanged symbol keyboard. */
-#key-manual { color: #fff; background: #000; border: 1px solid #fff; padding: 0; width: min(calc(40ch + 34px), calc(100% - 24px)); max-height: calc(var(--height) - 32px); font: inherit; }
-#key-manual[open] { display: flex; flex-direction: column; }
-#key-manual::backdrop { background: rgb(0 0 0 / .65); }
-#key-manual header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #fff; }
-#key-manual h2 { flex: 1; font-size: 16px; margin: 0; overflow-wrap: anywhere; }
-#key-manual h3 { font-size: 14px; margin: 24px 0 8px; }
-#key-manual button { font: inherit; color: #fff; background: #000; border: 1px solid #fff; padding: 8px 12px; min-height: 44px; cursor: pointer; }
-#key-manual button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
-#key-manual .manual-body { flex: 1; min-height: 0; padding: 0 16px 24px; overflow-y: auto; max-height: calc(var(--height) - 110px); overscroll-behavior: contain; }
-#key-manual p { white-space: pre-line; overflow-wrap: anywhere; }
-#key-manual pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; padding: 8px 0; border-top: 1px solid #fff; user-select: text; -webkit-user-select: text; }
+/* Offline manual: a bottom sheet over the keyboard, in the module picker's palette. */
+#key-manual { color: var(--key-foreground, #e8eaed); background: var(--keyboard-background, #202124); border: 0; border-radius: 20px 20px 0 0; padding: 0; margin: auto 0 0; width: 100%; max-width: 100%; max-height: calc(var(--height) - 48px); font-family: system-ui, sans-serif; font-size: 15px; line-height: 1.5; box-shadow: 0 -8px 24px rgb(0 0 0 / .5); }
+#key-manual[open] { display: flex; flex-direction: column; animation: manual-up .2s ease-out; }
+#key-manual::backdrop { background: rgb(0 0 0 / .55); }
+@keyframes manual-up { from { transform: translateY(32px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #key-manual[open] { animation: none; } }
+@media (orientation: landscape) and (min-width: 640px) { #key-manual { width: min(560px, 100%); margin: auto auto 0; } }
+#key-manual::before { content: ''; flex: none; width: 36px; height: 4px; margin: 8px auto 0; border-radius: 2px; background: var(--keyboard-muted, #5f6368); }
+#key-manual header { display: grid; grid-template-columns: auto 1fr auto; align-items: center; padding: 8px 8px 12px 20px; }
+#key-manual header .manual-icon:first-child { grid-column: 1; margin: 0 4px 0 -12px; }
+#key-manual header .manual-name { grid-column: 2; min-width: 0; }
+#key-manual header .manual-icon:nth-child(3) { grid-column: 3; }
+#key-manual .manual-icon[hidden] { display: none; }
+#key-manual .manual-name { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+#key-manual h2 { font-size: 20px; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+#key-manual h2.code { font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+#key-manual .manual-module { font-size: 12px; color: var(--keyboard-accent, #8ab4f8); }
+#key-manual .manual-module:empty { display: none; }
+#key-manual header p { grid-column: 1 / -1; margin: 0 12px 0 0; color: var(--keyboard-muted, #9aa0a6); }
+#key-manual h3 { font-size: 13px; font-weight: 600; letter-spacing: .02em; color: var(--keyboard-accent, #8ab4f8); margin: 20px 0 8px; }
+#key-manual h3:first-child { margin-top: 4px; }
+#key-manual p { margin: 0 0 10px; }
+#key-manual code { font: 14px ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace; padding: 1px 4px; border-radius: 4px; background: var(--key-background, #3c4043); }
+#key-manual .manual-hint { font-size: 13px; color: var(--keyboard-muted, #9aa0a6); margin-top: -2px; }
+#key-manual p { overflow-wrap: anywhere; }
+#key-manual .manual-code { margin: 0 0 10px; padding: 10px 12px; border: 0; border-radius: 8px; background: var(--key-background, #3c4043); font: 14px/1.5 ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace; white-space: pre-wrap; overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; }
+#key-manual .manual-example { position: relative; margin-bottom: 10px; border-radius: 8px; overflow: hidden; }
+#key-manual .manual-example .manual-code { margin: 0; border-radius: 0; }
+#key-manual .manual-example .manual-result { color: var(--keyboard-muted, #9aa0a6); background: color-mix(in srgb, var(--key-background, #3c4043) 55%, var(--keyboard-background, #202124)); }
+#key-manual .manual-example .manual-result::before { content: '→ '; }
+#key-manual .manual-example .manual-code { padding-right: 52px; }
+#key-manual .manual-example .manual-icon { position: absolute; top: 0; right: 0; }
+#key-manual button { font: inherit; color: inherit; background: transparent; border: 0; cursor: pointer; }
+#key-manual .manual-icon { flex: none; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; }
+#key-manual .manual-icon svg { width: 20px; height: 20px; fill: currentColor; }
+#key-manual .manual-icon:active { background: rgb(255 255 255 / .1); }
+#key-manual .manual-icon.failed { color: #f28b82; }
+#key-manual .manual-links { display: flex; flex-wrap: wrap; gap: 8px; }
+#key-manual .manual-link { min-height: 40px; padding: 0 14px; border-radius: 20px; background: var(--key-background, #3c4043); color: var(--keyboard-accent, #8ab4f8); }
+#key-manual .manual-link.code { font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+#key-manual button:focus-visible { outline: 2px solid var(--keyboard-accent, #8ab4f8); outline-offset: 2px; }
+#key-manual .manual-body { flex: 1; min-height: 0; padding: 0 20px max(20px, var(--safe-bottom)); overflow-y: auto; overscroll-behavior: contain; outline: 0; }
 #keyboard-keys.module-picker { flex-direction: column; flex-wrap: nowrap; }
 #keyboard-keys.module-picker button { flex: none; height: auto; min-height: 58px; padding: 8px 12px; text-align: left; white-space: normal; }
 #keyboard-keys.module-picker strong { display: block; }

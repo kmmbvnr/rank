@@ -608,7 +608,7 @@ function renderKeyboard(): void {
                 button.type = 'button';
                 button.tabIndex = -1;
                 button.textContent = key;
-                manualKey(button, () => { haptic('hold'); manualViewer.open(key, keyboardModule, button); }, () => typeKey(key));
+                manualKey(button, () => { haptic('hold'); manualViewer.open(key, button); }, () => typeKey(key));
                 return button;
             })));
     }
