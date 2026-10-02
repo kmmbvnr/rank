@@ -123,6 +123,7 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #keyboard-tabs button[aria-selected="true"] { color: var(--keyboard-accent, #8ab4f8); border-bottom-color: var(--keyboard-accent, #8ab4f8); }
 #keyboard-hide, #keyboard-letters { flex: none; width: 56px; height: 44px; padding: 0; background: transparent; color: var(--key-foreground, #e8eaed); display: flex; align-items: center; justify-content: center; }
 #keyboard-hide svg, #keyboard-letters svg { width: 32px; height: 32px; fill: currentColor; }
+#keyboard-hide svg { width: 24px; height: 24px; }
 /* Floating, as the phone keyboard floats in landscape: a rounded card beside the code. */
 #keyboard.floating { left: auto; top: auto; right: max(8px, env(safe-area-inset-right)); bottom: max(8px, var(--safe-bottom)); width: min(420px, 48vw); padding: 8px 6px 0; border-radius: 18px; box-shadow: 0 8px 24px rgb(0 0 0 / .6); }
 #keyboard.floating::before { content: ''; display: block; width: 36px; height: 4px; margin: 0 auto 8px; border-radius: 2px; background: var(--keyboard-muted, #5f6368); }
