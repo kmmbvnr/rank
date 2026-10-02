@@ -94,13 +94,10 @@ fun valid_tour Board
     end
   end
 
-  for Step in 1 till 64
-    Next = Step + 1
-    DX = (Xs Next - Xs Step) abs
-    DY = (Ys Next - Ys Step) abs
-    if DX * DY not equal 2
-      return false
-    end
-  end
-  return true
+  DX = (Xs -1 shift - Xs) abs
+  DY = (Ys -1 shift - Ys) abs
+  Moves = DX * DY
+  Inner = Moves drop 1 take 63
+  Knight = Inner equal 2
+  return Knight all
 end
