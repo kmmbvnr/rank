@@ -683,6 +683,34 @@ it('forgets local index facts when a computed key is not plain scalar arithmetic
         .toEqual([]);
 });
 
+it('reads a scalar array cell as the first operand of a trailing dyadic operation', () => {
+    expect(messages('Steps = array 9 8 7\nA = Steps 1 5 min\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('Steps = array 9 8 7\nA = Steps 1 5 max\nA + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    // A partial read of a matrix selects a row, and an unproved selector leaves the result unknown.
+    expect(messages('M = array shape 2 2\n 1 2\n 3 4\nend\nA = M 1 5 min\nA + "bad"')).toEqual([]);
+    expect(messages('Steps = array 9 8 7\nA = Steps Unknown 5 min\nA + "bad"')).toEqual([]);
+});
+
+it('reverses a queue into an array', () => {
+    const reversed = (setup: string, read = '') => messages(`use algo\nuse sequences\nfun back Item\n Q = new queue\n${setup}\n return Q reverse${read}\nend\nA = 1 back\nA = 1`);
+    expect(reversed(' Q push Item\n Q push 2'))
+        .toEqual(['A has type array and cannot receive integer']);
+    // The reversed array keeps the queue's item types only when they are proved.
+    const first = (setup: string) => messages(`use algo\nuse sequences\nfun back Item\n Q = new queue\n${setup}\n R = Q reverse\n return R first\nend\nA = 1 back\nA = "text"`);
+    expect(first(' Q push Item\n Q push 2')).toEqual(['A has type integer and cannot receive text']);
+    expect(first(' Q push (new queue)')).toEqual([]);
+});
+
+it('keeps outer loop facts when only a nested loop continues', () => {
+    const nested = (exit: string) => `fun count Width\n Current = array shape 4 fill 0\n for Column in 1 to Width\n  Next = array shape 4 fill 0\n${exit}\n  Current = Next\n end\n return Current 0\nend\nA = 3 count\nA + "bad"`;
+    expect(messages(nested('  for Mask in 0 till 4\n   Ways = Current Mask\n   if Ways equal 0\n    continue\n   end\n   Next 0 += Ways\n  end')))
+        .toEqual(['operator + does not accept integer and text']);
+    // The loop's own continue still takes the conservative exit analysis.
+    expect(messages(nested('  if Column equal 2\n   continue\n  end\n  Next 0 += 1'))).toEqual([]);
+});
+
 it('infers the simplified regular-expression matcher from its local index writes', () => {
     const source = readFileSync(new URL('./fixtures/010_regexp.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/leetcode/010_regexp_test.ra', import.meta.url), 'utf8');
