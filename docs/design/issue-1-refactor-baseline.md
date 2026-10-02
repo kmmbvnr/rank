@@ -45,7 +45,8 @@ storage and compiler modules remain owners where they already have a clear job.
 | Table queries and writes | `interpreter/table-query-expression.ts` | Keep `filter`, `select` and SQLite write semantics behind table-specific evaluation, frame and builtin-identity capabilities |
 | Selectors and rank application | `interpreter/selectors.ts`, `tensor-index.ts`, `rank-application.ts`, `reduction.ts` | Change concrete indexing, cell/frame assembly or reduction here; keep AST form recognition in language |
 | Value comparison and CLI inputs | `interpreter/value-comparison.ts`, `cli-args.ts` | Keep concrete runtime rules separate from abstract facts |
-| Execution and compiler dispatch | `interpreter.ts`, `statement-control.ts`, `execution.ts`, prepared-function and compiler modules | Keep `try`/`if` suspension and error precedence in statement control; preserve fallback timing and compiled/interpreted parity |
+| Execution and compiler dispatch | `eval/` owners (see #37 below), `statement-control.ts`, `execution.ts`, prepared-function and compiler modules | Keep `try`/`if` suspension and error precedence in statement control; preserve fallback timing and compiled/interpreted parity |
+| Fast-path selection | `interpreter/fast-paths.ts` | Choose a specialized path from the form kind or statement shape, guard its entry and fall back to the reference path |
 | Resources and host effects | `interpreter/resource-ownership.ts`, `resource-summary.ts`, `host-effects.ts` | Keep closing and host policy visible at the execution boundary |
 | REPL | `common/live-preview.ts`, `repl-session.ts` | Pass explicit synthetic names; ordinary user names have ordinary block scope |
 
@@ -164,11 +165,65 @@ The partial and open items above are tracked outside the closed issue. See the
   fake-form compiler check are repeatable with `npm run check:application-forms`.
   See [implementation ADR-0005](../adr/implementation/0005-shared-application-form-classification.md).
   #24, #9, #23 and form changes in #26 can use this boundary.
-- #37: `compileExpression`/`prepareStatement` node dispatch, one binding
-  environment for globals and locals, control signals, fast-path selection
-  and module operations in `modules/`. Depends on #36.
+- #37 is implemented; see the next section.
 - #3: persistent contracts (`acceptedTypes`, `acceptedArrayRank`, return
   contract) and the `typeOf`/`expressionFacts` split.
 - #5: explicit bottom instead of `types: []` as the recursion seed, and one
   join/widening instead of `unionTypes`, `joinValueFacts` and
   `mergeEnvironments`.
+
+## Issue #37: interpreter ownership
+
+`interpreter.ts` is down from 5,614 lines to the public API and the wiring that
+connects the owners below (about 560 lines). Each owner declares the narrow
+context it needs, as `statement-control.ts` and `table-query-expression.ts`
+did; none imports the facade or receives the interpreter itself.
+
+| Walkthrough step | Owner |
+| --- | --- |
+| Preparation: statements | `eval/statements.ts` dispatches by kind; `eval/loops.ts` owns `for`; `eval/assignments.ts` owns writes |
+| Preparation: expressions | `eval/expressions.ts`; application forms in `eval/application.ts` (exhaustive switch over #36 forms) |
+| Block execution | `eval/blocks.ts`: sequencing, suspension, block scoping, error locations |
+| Variables | `binding-environment.ts`: globals are a `LocalFrame` over `Interpreter.variables`; one type/rank contract through `binding-rule.ts` |
+| Operators and selection | `operators.ts`, `value-selection.ts` |
+| Function invocation | `function-invocation.ts`: closures, memo, return contracts, tail calls, generators, call depth |
+| Control signals | `control-signals.ts` |
+| Fast-path selection | `fast-paths.ts`: scalar expressions, fused reduction and sum (keyed by form kind and bound identity), integer loops, compiled blocks and function bodies, tensor groups, scalar entries and calls |
+| Builtins | `modules/builtins.ts` resolves names among open modules; module behavior lives in `modules/` |
+| Debugger and sources | `debug-inspection.ts`, `source-location.ts` |
+
+Behavior changes, all deliberate:
+
+- The fused `sum` is chosen when the name after the data is bound to core
+  `sum`, so an alias such as `Total = sum` fuses as well
+  (`fused-sum.test.ts`). Results are unchanged.
+- The tensor group asks the operation catalogue for a builtin's module
+  instead of a hard-coded list; the catalogue gives the same module for every
+  terminal it can name.
+- The borrow proof checks `len`, `min` and `max` from the callee's view. It
+  used to resolve them through the caller's frame, which could only disable a
+  safe borrow.
+
+A global is still stored before its rank check reads a ranked array's shape,
+so a debugger paused in that shape's function sees the new binding
+(`pause.test.mjs`). `check:semantic-boundaries` lists the new owners and
+looks for cycles through value imports only.
+
+Checks on the merged branch, compared with `main` at `d7616b78` built and
+run on the same machine in alternating order:
+
+- `npm test`: language 631, interpreter 2,044, common 118, CLI 485 of 486,
+  compile 10. The CLI failure, `pause.test.mjs` "turbo continues execution",
+  fails the same way on `main`.
+- `node packages/cli/bin/cli.js test demos`: all 392 files pass once the
+  ignored `demos/tidytuesday/data/africa.csv` is present.
+- `node packages/cli/bin/cli.js test demos/euler`: 60 files, 43.6/44.0 s on
+  the branch against 43.0/44.4 s on `main`.
+- Inference coverage: 1,038 known example results on both.
+- Incomplete-source analysis: 0.09–0.10 ms median for the short case and
+  5.27–5.37 ms for the 200-write case, against 0.10–0.11 and 5.41–5.48 ms.
+- 256-cell CoW demos, 25 samples per run, three runs: gradient 1.23–1.30 ms
+  against 1.26–1.32, Adam 3.26–3.36 against 3.26–3.40, k-means 7.98–8.14
+  against 7.54–8.00. Copy counts stay 0/1/0 and copied cells 0/256/0.
+  k-means is slower by 1–6% in every pairing; the other samples show no
+  difference beyond their spread.

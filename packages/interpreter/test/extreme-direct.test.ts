@@ -10,8 +10,8 @@ describe('direct binary extrema', () => {
         runtime.execute('use numbers\nA = 3\nB = 7');
         const statement = parse('(A B max 5 min) + 1').statements[0];
         if (!isExpressionStatement(statement)) throw new Error('expected expression');
-        const evaluator = runtime as unknown as { evaluateTask(expression: Expression): Evaluation<RankValue> };
-        expect(evaluator.evaluateTask(statement.value)).toEqual(completed(6n));
+        const evaluator = (runtime as unknown as { expressions: { evaluate(expression: Expression): Evaluation<RankValue> } }).expressions;
+        expect(evaluator.evaluate(statement.value)).toEqual(completed(6n));
         runtime.dispose();
     });
 

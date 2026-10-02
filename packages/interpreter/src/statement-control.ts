@@ -15,6 +15,18 @@ export interface ExecutionContext {
     readonly tailCallsAllowed?: false;
 }
 
+/** A run of statements one tensor kernel computes at once; `run` answers undefined to fall back. */
+export interface TensorGroup { readonly count: number; run(): RankValue | undefined }
+
+/**
+ * A statement ready to execute. `run` never suspends; `stream` may hand a task
+ * to the driver. A statement that opens a fusable run also carries its group.
+ */
+export type PreparedStatement = (
+    | { readonly run: (context: ExecutionContext) => RankValue | undefined }
+    | { readonly stream: (context: ExecutionContext) => Evaluation<RankValue | undefined> }
+) & { readonly tensor?: TensorGroup };
+
 interface StatementExecution {
     execute(statements: Statement[], context: ExecutionContext): Evaluation<RankValue | undefined>;
 }

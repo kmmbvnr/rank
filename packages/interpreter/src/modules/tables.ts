@@ -30,6 +30,7 @@ import {
     type RankRecord,
     type RankValue,
 } from '../value.js';
+import type { Operators } from '../operators.js';
 import { setValueKey } from '../set.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
@@ -764,4 +765,64 @@ function csvScalar(value: RankValue): string {
 
 function csvField(value: string): string {
     return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+}
+
+/** `Source alias Name`: names a rank-1 table or SQLite view so joins can tell sides apart. */
+export function tableAlias(source: RankValue, name: string): RankValue {
+    if (isRankSqliteTable(source) && source.scopes) {
+        throw new RankError('alias of a joined SQLite view is not supported yet', 'TypeError');
+    }
+    if (isRankTable(source)) source = source.toRows();
+    if ((!isRankArray(source) || source.shape.length !== 1) && !isRankSqliteTable(source)) {
+        throw new RankError('alias expects a rank-1 table or SQLite view', 'TypeError');
+    }
+    return { kind: 'table-alias', source, name };
+}
+
+/**
+ * `Rows .field = Values` and `op=` on a rank-1 table of object rows. The
+ * table's rank is checked before the value is evaluated; the returned write
+ * takes one value per row or one value for every row.
+ */
+export function tableColumnWrite(
+    receiver: RankArray, field: string, operator: string, operators: Operators,
+): (result: RankValue) => RankValue {
+    if (receiver.shape.length !== 1) {
+        throw new RankError(
+            'table column assignment expects a rank-1 table',
+            'DimensionMismatch',
+        );
+    }
+    const size = receiver.shape[0];
+    return result => {
+        let operands: RankValue[];
+        if (isRankArray(result)) {
+            if (result.shape.length !== 1 || result.shape[0] !== size) {
+                throw new RankError(
+                    `assignment shape mismatch: ${receiver.shape} and ${result.shape}`,
+                    'DimensionMismatch',
+                );
+            }
+            operands = Array.from({ length: size }, (_, index) => readArrayItem(result, index));
+        } else {
+            operands = Array(size).fill(result) as RankValue[];
+        }
+        const rows = Array.from({ length: size }, (_, index) => readArrayItem(receiver, index));
+        if (!rows.every(isRankObject)) {
+            throw new RankError('table assignment expects object rows', 'TypeError');
+        }
+        const combine = operator === '=' ? undefined : operator.slice(0, -1);
+        const replacements = operands.map((operand, index) => {
+            if (combine === undefined) return operand;
+            const previous = rows[index].entries.get(field);
+            if (previous === undefined) {
+                throw new MissingValueError(`missing object key: ${field}`);
+            }
+            return operators.evaluateBinary(combine, previous, operand);
+        });
+        for (let index = 0; index < rows.length; index += 1) {
+            rows[index].entries.set(field, replacements[index]);
+        }
+        return result;
+    };
 }

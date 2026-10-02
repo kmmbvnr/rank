@@ -22,6 +22,22 @@ const owners = new Set([
     'packages/language/src/analysis/value-domain.ts',
     'packages/language/src/analysis/value-facts.ts',
     'packages/language/src/analysis/value-safety.ts',
+    'packages/interpreter/src/binding-environment.ts',
+    'packages/interpreter/src/control-signals.ts',
+    'packages/interpreter/src/debug-inspection.ts',
+    'packages/interpreter/src/eval/application.ts',
+    'packages/interpreter/src/eval/assignments.ts',
+    'packages/interpreter/src/eval/blocks.ts',
+    'packages/interpreter/src/eval/expressions.ts',
+    'packages/interpreter/src/eval/loops.ts',
+    'packages/interpreter/src/eval/statements.ts',
+    'packages/interpreter/src/fast-paths.ts',
+    'packages/interpreter/src/function-invocation.ts',
+    'packages/interpreter/src/modules/builtins.ts',
+    'packages/interpreter/src/modules/keyed-sort.ts',
+    'packages/interpreter/src/operators.ts',
+    'packages/interpreter/src/source-location.ts',
+    'packages/interpreter/src/value-selection.ts',
     'packages/interpreter/src/cli-args.ts',
     'packages/interpreter/src/keyed-table-expression.ts',
     'packages/interpreter/src/rank-application.ts',
@@ -65,7 +81,11 @@ for (const file of [...sources(language), ...sources(runtime)]) {
         failures.push(`${name}: runtime module imports Interpreter facade`);
     }
     if (!owners.has(name)) continue;
-    edges.set(name, imports.map(target).filter(Boolean)
+    // Type-only imports are erased; a cycle among owners is a runtime dependency.
+    const values = source.replace(/\bimport\s+type\s[\s\S]*?from\s*['"][^'"]+['"]/g, '');
+    const valueImports = [...values.matchAll(/\bfrom\s*['"]([^'"]+)['"]|\bimport\s*(?:\(\s*)?['"]([^'"]+)['"]/g)]
+        .map(match => match[1] ?? match[2]);
+    edges.set(name, valueImports.map(target).filter(Boolean)
         .map(dependency => relative(root, dependency))
         .filter(dependency => owners.has(dependency)));
 }

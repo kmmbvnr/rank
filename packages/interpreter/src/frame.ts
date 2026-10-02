@@ -21,11 +21,23 @@ export class LocalFrame {
     // knows the slot checks them without looking the name up a second time.
     private readonly slotTypes: (ReadonlySet<string> | undefined)[] = [];
     private arrayRanks: Map<string, number> | undefined;
+    // Set for the globals; see publish().
+    private shared = false;
 
     constructor(
         readonly parent: LocalFrame | undefined,
         readonly layout = new Map<string, number>(),
     ) {}
+
+    /** A frame whose values live in a map someone else also holds: the
+     * globals, which a host reads and injects through `Interpreter.variables`. */
+    static over(values: Map<string, RankValue>): LocalFrame {
+        const frame = new LocalFrame(undefined);
+        frame.mappedValues = values;
+        frame.mappedTypes = new Map();
+        frame.shared = true;
+        return frame;
+    }
 
     // Maps are only needed by escaping captures and scope-owned collections.
     // Once exposed they remain the source of truth for that frame.
@@ -58,6 +70,10 @@ export class LocalFrame {
     }
 
     set(name: string, value: RankValue): void {
+        if (this.shared) {
+            this.publish(name, value);
+            return;
+        }
         this.checkRank(name, value);
         noteBinding(value);
         if (this.mappedValues) {
@@ -69,6 +85,11 @@ export class LocalFrame {
 
     // A name arrives with both its value and the types it settles on.
     define(name: string, value: RankValue, types: ReadonlySet<string>, borrowed = false): void {
+        if (this.shared) {
+            this.publish(name, value);
+            this.mappedTypes!.set(name, types);
+            return;
+        }
         this.checkRank(name, value);
         noteBinding(value, borrowed);
         if (this.mappedValues) {
@@ -137,12 +158,53 @@ export class LocalFrame {
         this.slotTypes[this.slotFor(name)] = types;
     }
 
+    /** Names holding a value or a type contract; a type can outlive its value. */
+    names(): Set<string> {
+        if (this.mappedValues) return new Set([...this.mappedValues.keys(), ...this.mappedTypes!.keys()]);
+        const names = new Set<string>();
+        for (const [name, slot] of this.layout) {
+            if (this.slots[slot] !== undefined || this.slotTypes[slot] !== undefined) names.add(name);
+        }
+        return names;
+    }
+
+    rankOf(name: string): number | undefined {
+        return this.arrayRanks?.get(name);
+    }
+
+    /** Copies another frame's contracts, so a fork rejects what the original would. */
+    adoptContracts(source: LocalFrame): void {
+        for (const name of source.names()) {
+            const types = source.typeOf(name);
+            if (types !== undefined) this.declareType(name, types);
+            const rank = source.rankOf(name);
+            if (rank !== undefined) (this.arrayRanks ??= new Map()).set(name, rank);
+        }
+    }
+
     reset(): boolean {
         if (this.mappedValues) return false;
         this.slots.length = 0;
         this.slotTypes.length = 0;
         this.arrayRanks?.clear();
         return true;
+    }
+
+    // A global is visible from the moment it is written. Reading a ranked
+    // array's shape for the rank check can run a Rank function, and a debugger
+    // paused there shows the new binding. A rejected rank restores the old value.
+    private publish(name: string, value: RankValue): void {
+        const values = this.mappedValues!;
+        const previous = values.get(name);
+        values.set(name, value);
+        try {
+            this.checkRank(name, value);
+        } catch (error) {
+            if (previous === undefined) values.delete(name);
+            else values.set(name, previous);
+            throw error;
+        }
+        noteBinding(value);
     }
 
     private checkRank(name: string, value: RankValue): void {

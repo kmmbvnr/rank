@@ -1,7 +1,10 @@
-import { isArgumentStatement, isOptionStatement, type Statement } from '@arrrank/language';
+import {
+    isArgumentStatement, isFlagStatement, isOptionStatement, isUseStatement,
+    type Expression, type Program, type Statement,
+} from '@arrrank/language';
 import { ownedArray } from './array-storage.js';
 import { RankError } from './errors.js';
-import { typeName, type RankValue } from './value.js';
+import { isRankArray, typeName, type RankValue } from './value.js';
 
 export interface ParsedArguments {
     readonly options: Map<string, string[]>;
@@ -80,4 +83,101 @@ export function kebabCase(name: string): string {
 
 export function inputDeclarationName(statement: Statement): string {
     return isOptionStatement(statement) ? 'option' : isArgumentStatement(statement) ? 'argument' : 'flag';
+}
+
+/** What binding command-line inputs needs from the interpreter. */
+export interface InputHost {
+    readonly variables: Map<string, RankValue>;
+    readonly modules: ReadonlySet<string>;
+    evaluate(expression: Expression): RankValue;
+    locate(error: unknown, node: Statement): unknown;
+}
+
+/**
+ * Binds the program's `option`, `argument` and `flag` declarations from the
+ * command line before it runs. A value the host already bound is validated
+ * instead; defaults are evaluated in declaration order.
+ */
+export function bindInputs(program: Program, args: readonly string[], host: InputHost): void {
+    const declarations = program.statements.filter(statement =>
+        isOptionStatement(statement) || isArgumentStatement(statement) || isFlagStatement(statement));
+    if (declarations.length === 0) {
+        if (args.length > 0) throw new RankError(`unexpected arguments: ${args.join(' ')}`);
+        return;
+    }
+
+    if (!host.modules.has('cli') && !program.statements.some(statement =>
+        isUseStatement(statement) && statement.module === 'cli')) {
+        throw host.locate(new RankError(`${inputDeclarationName(declarations[0])} requires: use cli`), declarations[0]);
+    }
+
+    const parsed = parseArguments(args);
+    let positionalIndex = 0;
+    const knownOptions = new Set<string>();
+    for (const declaration of declarations) {
+        if (isOptionStatement(declaration)) {
+            const optionName = kebabCase(declaration.name);
+            knownOptions.add(optionName);
+            const supplied = parsed.options.get(optionName);
+            if (host.variables.has(declaration.name)) {
+                validateInput(host.variables, declaration.name, declaration.valueType, declaration.many);
+            } else if (supplied) {
+                host.variables.set(
+                    declaration.name,
+                    inputValues(supplied, declaration.valueType, declaration.many),
+                );
+            } else if (declaration.defaultValue) {
+                host.variables.set(declaration.name, host.evaluate(declaration.defaultValue));
+                validateInput(host.variables, declaration.name, declaration.valueType, declaration.many);
+            } else {
+                throw new RankError(`missing option: --${optionName}`);
+            }
+        } else if (isArgumentStatement(declaration)) {
+            if (host.variables.has(declaration.name)) {
+                validateInput(host.variables, declaration.name, declaration.valueType, declaration.many);
+                continue;
+            }
+            const values = declaration.many
+                ? parsed.positionals.slice(positionalIndex)
+                : parsed.positionals.slice(positionalIndex, positionalIndex + 1);
+            positionalIndex += values.length;
+            if (values.length > 0) {
+                host.variables.set(
+                    declaration.name,
+                    inputValues(values, declaration.valueType, declaration.many),
+                );
+            } else if (declaration.defaultValue) {
+                host.variables.set(declaration.name, host.evaluate(declaration.defaultValue));
+                validateInput(host.variables, declaration.name, declaration.valueType, declaration.many);
+            } else {
+                throw new RankError(`missing argument: ${declaration.name}`);
+            }
+        } else {
+            const optionName = kebabCase(declaration.name);
+            knownOptions.add(optionName);
+            const supplied = parsed.options.get(optionName);
+            if (host.variables.has(declaration.name)) {
+                validateInput(host.variables, declaration.name, 'boolean', false);
+            } else if (supplied) {
+                host.variables.set(declaration.name, true);
+            } else {
+                host.variables.set(declaration.name, declaration.defaultValue ?? false);
+            }
+        }
+    }
+
+    const unknown = [...parsed.options.keys()].filter(name => !knownOptions.has(name));
+    if (unknown.length > 0) throw new RankError(`unknown option: --${unknown[0]}`);
+    if (positionalIndex < parsed.positionals.length) {
+        throw new RankError(`unexpected argument: ${parsed.positionals[positionalIndex]}`);
+    }
+}
+
+function validateInput(variables: ReadonlyMap<string, RankValue>, name: string, valueType: string, many: boolean): void {
+    const value = variables.get(name)!;
+    const values = many && isRankArray(value) ? value.items : [value];
+    if (many && !isRankArray(value)) {
+        throw new RankError(`${name} expects multiple ${valueType} values`);
+    }
+    for (const item of values) validateInputValue(name, valueType, item);
 }

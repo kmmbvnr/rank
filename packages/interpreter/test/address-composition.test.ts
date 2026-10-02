@@ -8,9 +8,9 @@ describe('address operand composition', () => {
     it('keeps completed selectors out of the execution stack', () => {
         const runtime = new Interpreter();
         runtime.execute('I = 1');
-        const evaluator = runtime as unknown as {
-            evaluateAddressItem(item: AddressItem): Evaluation<RankValue>;
-        };
+        const evaluator = (runtime as unknown as {
+            expressions: { evaluateAddressItem(item: AddressItem): Evaluation<RankValue> };
+        }).expressions;
         for (const selector of ['I', '(I + 1)', '+I']) {
             const statement = parse(`A ${selector} = 0`).statements[0];
             if (!isArrayAssignmentStatement(statement)) throw new Error('expected assignment');
