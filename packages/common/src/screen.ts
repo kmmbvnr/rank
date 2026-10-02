@@ -23,7 +23,36 @@ function visible(segment: string, column: number): string {
 }
 
 /** Every caret offset is mapped to a visual row using the same layout as drawing. */
+/** One-based source line of an offset, by binary search over the line starts. */
+function lineNumbers(source: string): (offset: number) => number {
+    const starts = [0];
+    for (let at = source.indexOf('\n'); at >= 0; at = source.indexOf('\n', at + 1)) starts.push(at + 1);
+    return offset => {
+        let low = 0;
+        let high = starts.length - 1;
+        while (low < high) {
+            const middle = (low + high + 1) >> 1;
+            if (starts[middle] <= offset) low = middle; else high = middle - 1;
+        }
+        return low + 1;
+    };
+}
+
+const rowCache = new Map<string, TextRow[]>();
+
+/** Wrapped rows are identical for an unchanged cell, and every scroll frame lays all cells out again. */
 export function editableRows(source: string, columns: number): TextRow[] {
+    const key = columns + ':' + source;
+    let rows = rowCache.get(key);
+    if (!rows) {
+        rows = layoutRows(source, columns);
+        if (rowCache.size >= 512) rowCache.delete(rowCache.keys().next().value!);
+        rowCache.set(key, rows);
+    }
+    return rows;
+}
+
+function layoutRows(source: string, columns: number): TextRow[] {
     const width = Math.max(1, columns);
     const rows: TextRow[] = [];
     let offset = 0;
@@ -162,11 +191,11 @@ export function notebookFrame(
             : !cell.command && notebook.isExperimental(index) ? '\x1b[38;5;208m' : '\x1b[32m';
         const sourceRows = editableRows(cell.source, bodyWidth);
         const labelRow = prompt ? 0 : numbered ? sourceRows.findIndex(row => row.text.trim() !== '') : -1;
+        const lineAt = lineNumbers(cell.source);
         for (const [line, item] of sourceRows.entries()) {
             const offset = item.points[0]?.offset ?? 0;
-            const sourceLine = cell.source.slice(0, offset).split('\n').length;
-            const firstVisualRow = line === 0 || sourceLine !== cell.source.slice(0,
-                sourceRows[line - 1].points[0]?.offset ?? 0).split('\n').length;
+            const sourceLine = lineAt(offset);
+            const firstVisualRow = line === 0 || sourceLine !== lineAt(sourceRows[line - 1].points[0]?.offset ?? 0);
             const nextEval = sourceLine === nextEvalLine && firstVisualRow && !(prompt && line === labelRow);
             const breakpoint = breakpoints?.get(cell.id)?.has(sourceLine);
             const liveProgress = live && !editingField && !breakpoint;
@@ -193,8 +222,7 @@ export function notebookFrame(
                 if (point) caret = { row: rows.length - 1, column: gutter + point.column };
             }
             const nextOffset = sourceRows[line + 1]?.points[0]?.offset;
-            const nextLine = nextOffset === undefined ? undefined
-                : cell.source.slice(0, nextOffset).split('\n').length;
+            const nextLine = nextOffset === undefined ? undefined : lineAt(nextOffset);
             if ((live || index === notebook.active && diagnostics) && nextLine !== sourceLine) {
                 const outputs = [...(live ? promptOutputs?.get(sourceLine) ?? [] : []),
                     ...(index === notebook.active ? diagnostics?.get(sourceLine) ?? [] : [])];
