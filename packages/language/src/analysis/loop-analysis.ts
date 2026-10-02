@@ -76,6 +76,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
             } else {
                 const types = collection.elements ?? (collection.types.join() === 'text' ? ['text'] : []);
                 env.set(names[0], { types, acceptedTypes: types,
+                    ...(types.join() === 'record' && collection.elementRecord ? collection.elementRecord : {}),
                     ...(types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
                         ? { rank: 0, shape: [] } : types.join() === 'text' ? { rank: 1, shape: [null] }
                             : types.join() === 'array' && collection.elementRank !== undefined

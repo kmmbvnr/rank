@@ -29,6 +29,7 @@ import { freshDim } from './shape-index.js';
 import { directValue, safeCollectionValue, safeIndexDefault, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
 import { expressionFacts } from './value-facts.js';
 import { withInsertedElement } from './collection-facts.js';
+import type { ConstructorCall } from './test-examples.js';
 import { hasCallbackFreeFindProof } from './operation-proofs.js';
 import { incompatibleShapes, isAtom, joinValueFacts, stableRecordField, UNKNOWN_VALUE, UnobservedReturn,
     type ValueFacts, type FactLookup } from './value-domain.js';
@@ -54,7 +55,8 @@ let nextCollectionId = 0;
 /** A non-executing pass. Unknown facts never justify a diagnostic. */
 export function analyzeValues(program: Program, initial: ReadonlyMap<string, ValueFacts> = new Map(),
     declarations: ReadonlyMap<string, FunctionStatement> = new Map(),
-    examples: readonly { name: string; arguments: readonly ValueFacts[] }[] = [],
+    examples: readonly { name: string; arguments: readonly ValueFacts[];
+        constructions?: readonly (readonly ConstructorCall[] | undefined)[] }[] = [],
     loadModule?: (path: string) => Program | undefined): ValueAnalysis {
     const diagnostics: ValueDiagnostic[] = builtinBindingDiagnostics(program, undefined, declarations.values(), loadModule);
     const expressions = new Map<Expression, ValueFacts>();
@@ -961,7 +963,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     const oneCell = (oneCellSelectors || indexedCells) && isAtom(replacement)
                         && replacement.types.length > 0;
                     const safeCells = oneCell || lineWrite || lineCompound.length > 0;
-                    env.set(statement.name, { ...fact,
+                    env.set(statement.name, { ...fact, elementRecord: undefined,
                         elements: safeCells && fact.elements?.length
                             ? [...new Set([...fact.elements, ...(lineWrite ? lineTypes
                                 : lineCompound.length ? lineCompound
@@ -1076,8 +1078,19 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
 
     statements(program.statements, bindings);
     const functionResults = examples.map(example => {
+        // A collection the test filled with module-function results holds what those calls return.
+        const inputs = example.arguments.map((fact, index) => {
+            const sites = example.constructions?.[index];
+            if (!sites) return fact;
+            let collection: ValueFacts = { ...fact, elements: [], collectionId: nextCollectionId++ };
+            for (const site of sites) {
+                calls.resetBudget();
+                collection = withInsertedElement(collection, calls.call(site.name, site.arguments, bindings));
+            }
+            return collection;
+        });
         calls.resetBudget();
-        return calls.call(example.name, example.arguments, bindings);
+        return calls.call(example.name, inputs, bindings);
     });
     calls.validateDeclarations(bindings);
     const unique = diagnostics.filter((diagnostic, index) => !diagnostics.slice(0, index).some(previous =>

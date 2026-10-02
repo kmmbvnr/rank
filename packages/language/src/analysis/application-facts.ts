@@ -65,15 +65,39 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
         // These forms have runtime implementations but no abstract transfer yet.
         case 'collection-mutation': case 'unpack': case 'invalid': case 'axis-matmul': case 'axis-quantile':
         case 'axis-window': case 'axis-shift': case 'axis-shuffle': case 'axis-argsort': case 'axis-metric':
-        case 'axis-transpose': case 'named-scan': case 'axis-selection':
+        case 'axis-transpose': case 'axis-selection':
         case 'comparison-rank': case 'outer':
             return UNKNOWN_VALUE;
+        case 'named-scan':
+            return namedScanFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
         case 'multiset-method':
             return multisetMethodFacts(form, lookup, infer);
         case 'segment': case 'scan': case 'reduce':
             return symbolicFormFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
         default: return assertNever(form);
     }
+}
+
+/** `Values scan bxor with 0`: a builtin scalar operation folded over proven numeric cells. */
+function namedScanFacts(form: Extract<ApplicationForm, { kind: 'named-scan' }>, lookup: FactLookup,
+    infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts | undefined {
+    if (form.axis || !isNameExpression(form.operation)) return undefined;
+    const operation = operationBinding(form.operation.name, lookup);
+    // Integer-only scalar operations, or ones that return one of their numeric operands.
+    const realCells = operation && operation.selectsNumericCell === true;
+    if (!operation || !(operation.scalarNoCallback === 'integer' || realCells) || operation.effects?.length
+        || !operation.arities.includes(2) || operation.dyadicRanks?.[0] !== 0
+        || operation.dyadicRanks[1] !== 0) return undefined;
+    const source = infer(form.source, lookup);
+    const seed = form.seed && infer(form.seed, lookup);
+    const cells = [...(source.elements ?? []), ...(seed?.types ?? [])];
+    if (!['array', 'sequence'].includes(source.types.join()) || source.rank !== 1
+        || !(source.eagerScalarCells || source.callbackFreeScalarCells) || !source.elements?.length
+        || seed && seed.rank !== 0
+        || !cells.every(type => type === 'integer' || realCells && type === 'real')) return undefined;
+    const length = source.shape?.[0];
+    return { types: ['array'], rank: 1, shape: [length == null ? null : length + (seed ? 1 : 0)],
+        elements: [...new Set(cells)], callbackFreeScalarCells: true };
 }
 
 function operationBinding(name: string, lookup: FactLookup) {
@@ -725,6 +749,9 @@ function transferApplicationFacts(
             ...(source.eagerScalarCells || source.callbackFreeScalarCells
                 ? { callbackFreeScalarCells: true as const } : {}) };
         if (source.elements?.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
+        if (source.types[0] === 'array' && source.elements?.join() === 'record' && source.elementRecord) {
+            return source.elementRecord;
+        }
         return source.elements?.length && source.elements.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
             ? { types: source.elements, rank: 0, shape: [] } : { types: source.elements ?? [] };
     }
