@@ -196,8 +196,14 @@ export function createCallAnalysis(
         const nodes = summarized ? [] : [...AstUtils.streamAllContents(definition)];
         // Top-level functions create local bindings on assignment, rather than
         // inheriting the assignment contracts of equally named globals.
+        const capturedNames = new Set<string>();
+        for (let parent: AstNode | undefined = definition.$container; parent; parent = parent.$container) {
+            const index = callStack.findIndex(frame => frame.definition === parent);
+            if (index >= 0) for (const name of frameBindings[index]) capturedNames.add(name);
+        }
         for (const node of nodes) {
-            if (isAssignmentStatement(node) && !definition.parameters.includes(node.name)) local.delete(node.name);
+            if (isAssignmentStatement(node) && !definition.parameters.includes(node.name)
+                && !capturedNames.has(node.name)) local.delete(node.name);
         }
         definition.parameters.forEach((parameter, index) => local.set(parameter, parameterFacts(arguments_[index])));
         if (!definition.parameters.includes('index')) local.set('index', { types: ['index'], elements: [] });

@@ -1,3 +1,5 @@
+import { applicationForm } from '../application-forms.js';
+import { rankedFunctionFacts, rankedFunctionInputs } from './ranked-function-facts.js';
 import type { FunctionRelationship } from './function-relationships.js';
 import { arrayBindingContract, establishedArrayContract, refineArrayContract, contractElements, arrayContractConflict } from './array-binding-contract.js';
 import { AstUtils, type AstNode } from 'langium';
@@ -297,13 +299,21 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const external = imported.get(node.name);
                 const arity = functions.get(node.name)?.parameters.length
                     ?? external?.functions.get(external.name)?.parameters.length;
-                const arguments_ = parts.at(-1) === node && parts.length - 1 === arity
+                const form = isApplicationExpression(site)
+                    ? applicationForm(site, name => env.has(name) ? false : findOperation(name)) : undefined;
+                const ranked = form?.kind === 'rank' && form.parts.at(-1) === node
+                    && form.parts.length - 1 === arity ? form : undefined;
+                const arguments_ = ranked ? ranked.parts.slice(0, -1)
+                    : parts.at(-1) === node && parts.length - 1 === arity
                     ? parts.slice(0, -1)
                     : isApplicationExpression(site) && isApplicationExpression(site.head)
                         && site.arguments.length === 1 && site.arguments[0] === node
                         && site.head.arguments.length + 1 === arity
                         ? [site.head.head, ...site.head.arguments] : undefined;
-                const inputs = arguments_?.map(part => expressionFacts(part, name => env.get(name)));
+                const operands = arguments_?.map(part => expressionFacts(part, name => env.get(name)));
+                const partition = ranked && operands ? rankedFunctionInputs(operands,
+                    ranked.rightRank === undefined ? [Number(ranked.rank)] : [Number(ranked.rank), Number(ranked.rightRank)], ranked.axes) : undefined;
+                const inputs = ranked ? partition?.inputs : operands;
                 const result = external && env.get(node.name) === external.binding
                     ? functionEffects(name => external.functions.get(name), name => external.functions.has(name),
                         name => external.functions.has(name))(external.name, inputs)
@@ -725,6 +735,20 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     // evaluation cannot itself call Rank or read host-owned array cells.
     function directCallBeforeEffects(value: Expression, env: Map<string, ValueFacts>): ValueFacts | undefined {
         if (!isApplicationExpression(value)) return undefined;
+        const form = applicationForm(value, name => env.has(name) ? false : findOperation(name));
+        if (form.kind === 'rank') {
+            const target = form.parts.at(-1);
+            if (target && isNameExpression(target) && env.get(target.name) === functionBindings.get(target.name)
+                && functions.get(target.name)?.parameters.length === form.parts.length - 1
+                && form.parts.slice(0, -1).every(directValue)) {
+                const operands = form.parts.slice(0, -1).map(part => expressionFacts(part, name => env.get(name)));
+                if (operands.every(fact => safeRead(fact) || fact.rank === 0 && !fact.types.includes('function'))) {
+                    return rankedFunctionFacts(operands,
+                        form.rightRank === undefined ? [Number(form.rank)] : [Number(form.rank), Number(form.rightRank)],
+                        cells => calls.call(target.name, cells, new Map(env), value), form.axes);
+                }
+            }
+        }
         const parts = flattenApplication(value);
         const target = parts.at(-1);
         const external = target && isNameExpression(target) ? imported.get(target.name) : undefined;

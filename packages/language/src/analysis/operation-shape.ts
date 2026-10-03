@@ -12,6 +12,24 @@ export function operationShapeFacts(
     if (!signature) return;
     const ranks = explicitRanks ?? (operands.length === 1
         ? [operation.monadicRank ?? 'all'] : operation.dyadicRanks ?? operands.map(() => 'all'));
+    const partition = rankedOperandShapes(operands, ranks, axes);
+    if (!partition) return;
+    const { cells, frame } = partition;
+    const cellShape = instantiateShapeSignature(signature, cells);
+    if (!cellShape) return;
+    // Ranked assembly boxes non-array collections instead of adding their axes.
+    if (frame.length && ['text', 'sequence'].includes(operation.result)) return;
+    const shape = [...frame, ...cellShape];
+    const types = frame.length ? ['array']
+        : operation.preservesCollectionElements && ['array', 'sequence'].includes(operands[0].types.join())
+            ? operands[0].types : resultTypes(operation);
+    return { types, rank: shape.length, shape };
+}
+
+/** Shared rank/axis partition for builtin operations and user callbacks. */
+export function rankedOperandShapes(operands: readonly ValueFacts[], ranks: readonly IntrinsicRank[],
+    axes?: readonly number[]): { cells: (KnownShape | undefined)[]; frame: KnownShape } | undefined {
+    if (operands.length !== ranks.length) return;
     const cells: (KnownShape | undefined)[] = [];
     let frame: KnownShape = [];
     for (let i = 0; i < operands.length; i++) {
@@ -38,13 +56,5 @@ export function operationShapeFacts(
         frame = broadcastShape(frame, nextFrame);
         cells.push(shape.filter((_, n) => !selected.includes(n)));
     }
-    const cellShape = instantiateShapeSignature(signature, cells);
-    if (!cellShape) return;
-    // Ranked assembly boxes non-array collections instead of adding their axes.
-    if (frame.length && ['text', 'sequence'].includes(operation.result)) return;
-    const shape = [...frame, ...cellShape];
-    const types = frame.length ? ['array']
-        : operation.preservesCollectionElements && ['array', 'sequence'].includes(operands[0].types.join())
-            ? operands[0].types : resultTypes(operation);
-    return { types, rank: shape.length, shape };
+    return { cells, frame };
 }

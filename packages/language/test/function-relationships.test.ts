@@ -295,3 +295,42 @@ it('does not reuse imported summaries at the expense of module diagnostics', () 
     expect(diagnostics.map(item => item.message)).toEqual(['other returns incompatible types']);
     expect(calls.validRelationships(env).has(fn)).toBe(false);
 });
+
+it('reuses a callback relationship over ranked array cells without granting purity', () => {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(`
+fun twice Value
+ return Value * 2
+end
+Values = array 1 2 3
+${Array.from({ length: 120 }, (_, i) => `Result${i} = Values twice rank 0`).join('\n')}
+`);
+    expect(parsed.parserErrors).toEqual([]);
+    const analysis = analyzeValues(parsed.value);
+    expect(analysis.diagnostics).toEqual([]);
+    expect(analysis.relationships.size).toBe(1);
+    for (let i = 0; i < 120; i++) {
+        const result = analysis.bindings.get(`Result${i}`);
+        expect(result).toMatchObject({ types: ['array'], elements: ['integer'], rank: 1, shape: [3] });
+        expect(result?.eagerScalarCells).toBeUndefined();
+        expect(result?.callbackFreeScalarCells).toBeUndefined();
+    }
+});
+
+it('infers stateful ranked callback results from captured contracts', () => {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(`
+fun solve Values
+ Count = 0
+ fun next Value
+  Count += 1
+  return Value + Count
+ end
+ return Values next rank 0
+end
+Result = (array 1 2 3) solve
+`);
+    expect(parsed.parserErrors).toEqual([]);
+    const analysis = analyzeValues(parsed.value);
+    expect(analysis.diagnostics).toEqual([]);
+    expect(analysis.bindings.get('Result')).toMatchObject({ types: ['array'], elements: ['integer'], rank: 1 });
+    expect(analysis.bindings.get('Result')?.callbackFreeScalarCells).toBeUndefined();
+});

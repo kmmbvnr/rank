@@ -1316,3 +1316,13 @@ it('does not prove callback-free outer cells from sequence element types alone',
         ['outer', { types: ['function'] }],
     ]))).not.toHaveProperty('elements');
 });
+
+it('retains array rank when a numeric scalar fact has no explicit rank field', () => {
+    const bindings = new Map<string, ValueFacts>([
+        ['Values', { types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'] }],
+        ['Average', { types: ['real'] }],
+    ]);
+    const result = facts('Values - Average', bindings);
+    expect(result).toMatchObject({ types: ['array'], rank: 2, shape: [2, 3] });
+    expect(result.callbackFreeScalarCells).toBeUndefined();
+});

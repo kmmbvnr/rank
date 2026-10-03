@@ -1,3 +1,4 @@
+import { rankedFunctionFacts } from './ranked-function-facts.js';
 import { joinValueFacts } from './value-domain.js';
 import { operationShapeFacts } from './operation-shape.js';
 import { freshDim } from './shape-index.js';
@@ -197,6 +198,12 @@ function transferApplicationFacts(
         const name = form.parts.at(-1);
         const operation = isNameExpression(name) ? operationBinding(name.name, lookup) : undefined;
         const operands = form.parts.slice(0, -1).map(part => infer(part, lookup));
+        if (isNameExpression(name) && lookup(name.name)?.types.join() === 'function'
+            && lookup.invoke && lookup.arity?.(name.name) === operands.length
+            && operands.length === (form.rightRank === undefined ? 1 : 2)) {
+            const ranks = form.rightRank === undefined ? [Number(form.rank)] : [Number(form.rank), Number(form.rightRank)];
+            return rankedFunctionFacts(operands, ranks, cells => lookup.invoke!(name.name, cells), form.axes);
+        }
         if (operation && operands.length === (form.rightRank === undefined ? 1 : 2)
             && operands.every(value => value.types.join() === 'array')) {
             const ranks = form.rightRank === undefined ? [Number(form.rank)] : [Number(form.rank), Number(form.rightRank)];

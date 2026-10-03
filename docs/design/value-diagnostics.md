@@ -245,3 +245,17 @@ construction. These are planning hints: emission must still prove the supported
 operation, and entry guards recheck current bindings and exact builtin identity.
 Test expectations never enter this path. A diagnostic fact is not by itself
 permission to remove runtime guards or assume that a host call is pure.
+
+Explicit `rank` applications of known user callbacks now share the builtin
+rank/axis partition. Cell facts instantiate an eligible relationship, or use
+ordinary call analysis for stateful bodies. Array results stack under the frame;
+text and tuples remain boxed cells. An empty frame does not call the callback,
+and an unknown frame length cannot establish the rank of a stacked array result
+when empty and nonempty frames differ. Text/sequence mapping and intrinsic
+function rank declarations retain their existing conservative analysis.
+
+The callback's result type grants no callback-free reader flag. Safe operands
+may be captured before callback effects invalidate caller facts, as for direct
+calls; the ordinary effect pass still runs. Nested assignments retain contracts
+belonging to their lexical enclosing frames, while unrelated caller locals and
+global names do not become captured binding contracts.

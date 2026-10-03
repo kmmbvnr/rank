@@ -72,6 +72,12 @@ export function binaryExpressionFacts(
 
 /** Shared forward transfer for already inferred operands; never reads cells. */
 export function binaryOperandFacts(operator: string, left: ValueFacts, right: ValueFacts): ValueFacts | undefined {
+    // A known numeric domain is scalar even when a builtin supplied no explicit rank.
+    const numericScalar = (value: ValueFacts): ValueFacts => value.rank === undefined && value.types.length
+        && value.types.every(type => type === 'integer' || type === 'real')
+        ? { ...value, rank: 0, shape: [] } : value;
+    left = numericScalar(left);
+    right = numericScalar(right);
     // `.NA` propagates through arithmetic and comparison; `and`/`or` can still decide.
     if (left.rank === 0 && right.rank === 0 && (left.types.join() === 'missing' || right.types.join() === 'missing')
         && left.types.length && right.types.length) {
