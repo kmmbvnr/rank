@@ -117,14 +117,29 @@ describe('the value viewer', () => {
         } finally { session.dispose(); }
     });
 
-    it('closes with Esc back onto the result row, and Enter reopens it', async () => {
+    it('closes with Esc back onto the result row when it was opened from that row, and Enter reopens it', async () => {
         const { session, repl, press } = await opened(40, 8, {}, 'M = array shape 3 4 fill 7');
         try {
+            repl.closeViewer();
+            expect(repl.valueFocus).toBeUndefined();
+            repl.focusResult(repl.notebook.cells[0].id);
+            await repl.openValue();
+            expect(repl.help?.viewer?.restoreFocus).toBe(true);
             await press('escape');
             expect(repl.help).toBeUndefined();
             expect(repl.valueFocus).toBe(repl.notebook.cells[0].id);
             await repl.openValue();
             expect(repl.help?.viewer).toBeDefined();
+        } finally { session.dispose(); }
+    });
+
+    it('leaves the result row unselected when it was opened by a tap', async () => {
+        const { session, repl, press } = await opened(40, 8, {}, 'M = array shape 3 4 fill 7');
+        try {
+            expect(repl.help?.viewer?.restoreFocus).toBe(false);
+            await press('escape');
+            expect(repl.help).toBeUndefined();
+            expect(repl.valueFocus).toBeUndefined();
         } finally { session.dispose(); }
     });
 

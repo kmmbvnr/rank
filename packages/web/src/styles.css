@@ -183,3 +183,35 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #keyboard-keys.module-picker button { flex: none; height: auto; min-height: 58px; padding: 8px 12px; text-align: left; white-space: normal; }
 #keyboard-keys.module-picker strong { display: block; }
 #keyboard-keys.module-picker span { display: block; margin-top: 3px; font-size: 12px; line-height: 1.4; }
+
+/* Value viewer: a full-screen sheet over the notebook, in the terminal's own font and colours. */
+#value-viewer { display: none; padding: 0; margin: 0; border: 0; width: 100%; max-width: 100%; height: var(--height); max-height: var(--height); color: #e5e5e5; background: #000; font-family: inherit; font-size: inherit; line-height: inherit; }
+#value-viewer[open] { display: flex; flex-direction: column; }
+#value-viewer::backdrop { background: #000; }
+#value-viewer header { flex: none; display: flex; align-items: center; gap: 4px; min-height: 52px; padding: max(4px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 4px max(4px, env(safe-area-inset-left)); border-bottom: 1px solid #222; }
+#value-viewer .viewer-close { flex: none; width: 44px; height: 44px; display: grid; place-items: center; padding: 0; background: transparent; border-radius: 50%; }
+#value-viewer .viewer-close:active, #value-viewer .viewer-close:focus-visible { background: #333; outline: 0; }
+#value-viewer .viewer-close svg { width: 24px; height: 24px; fill: currentColor; }
+#value-viewer .viewer-name { min-width: 0; }
+#value-viewer h2 { margin: 0; font: inherit; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#value-viewer .viewer-name p { margin: 0; color: #888; font-size: .85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#value-viewer .viewer-slices { flex: none; display: flex; flex-direction: column; border-bottom: 1px solid #222; }
+#value-viewer .viewer-slices[hidden] { display: none; }
+#value-viewer .viewer-slices div { display: flex; align-items: center; gap: 4px; padding: 0 8px; color: #888; }
+#value-viewer .viewer-slices span { flex: 1; text-align: center; }
+#value-viewer .viewer-slices button { width: 48px; height: 44px; background: transparent; font-size: 28px; line-height: 1; border-radius: 8px; }
+#value-viewer .viewer-body:focus { outline: 0; }
+#value-viewer .viewer-slices button:active { background: #333; }
+#value-viewer .viewer-slices button:disabled { color: #444; }
+#value-viewer .viewer-body { position: relative; flex: 1; min-height: 0; }
+#value-viewer regular-table { padding: 0; font-family: inherit; scrollbar-color: #444 transparent; outline: none; }
+#value-viewer regular-table:hover { scrollbar-color: #666 transparent; }
+#value-viewer regular-table table { color: #e5e5e5; border-collapse: collapse; }
+#value-viewer regular-table td, #value-viewer regular-table th { font-size: inherit; height: 1.5em; line-height: 1.5em; padding: 0 .6em; white-space: pre; }
+#value-viewer regular-table td { max-width: 40ch; overflow: hidden; text-overflow: ellipsis; }
+#value-viewer regular-table thead th { color: #888; font-weight: 400; text-align: right; background: #000; border-bottom: 1px solid #333; max-width: none; }
+#value-viewer regular-table tbody th { color: #888; text-align: right; background: #000; border-right: 1px solid #333; font-weight: 400; }
+#value-viewer regular-table tr:hover td, #value-viewer regular-table tr:hover th { background: transparent; color: inherit; }
+#value-viewer regular-table td.viewer-number { text-align: right; }
+#value-viewer regular-table td.viewer-missing { color: #666; }
+#value-viewer regular-table td.viewer-error { color: #ff6b5e; }

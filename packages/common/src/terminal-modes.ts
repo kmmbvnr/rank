@@ -73,14 +73,10 @@ export class TerminalModeRouter {
             const viewer = repl.help.viewer;
             try {
                 const outcome = await viewer.press(text, key);
-                if (outcome !== 'ok') {
-                    repl.help = undefined;
-                    if (outcome === 'closed') repl.focusResult(viewer.cell);
-                    else repl.suggestion = 'That value is gone · run the cell again';
-                }
+                if (outcome === 'closed') repl.closeViewer();
+                else if (outcome === 'stale') repl.closeViewer('That value is gone · run the cell again');
             } catch {
-                repl.help = undefined;
-                repl.suggestion = 'Could not read that value';
+                repl.closeViewer('Could not read that value');
             }
             return { handled: true, render: true };
         }

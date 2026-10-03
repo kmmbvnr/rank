@@ -10,6 +10,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import android.content.pm.PackageManager;
+import androidx.activity.OnBackPressedCallback;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -87,6 +88,27 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         currentActivity = new WeakReference<>(this);
+        // Back closes an open value viewer first; the page answers true when it took the press,
+        // and only otherwise does Back do what it did before.
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                WebView webView = bridge != null ? bridge.getWebView() : null;
+                if (webView == null) {
+                    passBackThrough();
+                    return;
+                }
+                webView.evaluateJavascript("window.rankBack ? window.rankBack() : false", handled -> {
+                    if (!"true".equals(handled)) passBackThrough();
+                });
+            }
+
+            private void passBackThrough() {
+                setEnabled(false);
+                getOnBackPressedDispatcher().onBackPressed();
+                setEnabled(true);
+            }
+        });
         List<String> permissions = new ArrayList<>();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {

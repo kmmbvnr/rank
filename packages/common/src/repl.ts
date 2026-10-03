@@ -250,6 +250,15 @@ export class NotebookRepl {
         this.valueFocusId = cellId;
     }
 
+    /** Closes the open viewer and puts the focus back on its result row; `message` says why it closed early. */
+    closeViewer(message = ''): void {
+        const viewer = this.help?.viewer;
+        if (!viewer) return;
+        this.help = undefined;
+        if (viewer.restoreFocus) this.focusResult(viewer.cell);
+        if (message) this.suggestion = message;
+    }
+
     releaseValue(): boolean {
         const focused = this.valueFocusId !== undefined;
         this.valueFocusId = undefined;
@@ -258,6 +267,8 @@ export class NotebookRepl {
 
     /** Opens the focused result, or the one in `cellId`, in the full-screen viewer. */
     async openValue(cellId = this.valueFocusId): Promise<boolean> {
+        // Opened from the focused row (keys), closing goes back to it; opened by a tap, the row stays unselected.
+        const fromFocus = cellId !== undefined && this.valueFocusId === cellId;
         this.valueFocusId = undefined;
         const cell = this.notebook.cells.find(cell => cell.id === cellId);
         const line = cell && this.valueOutput(cell);
@@ -268,6 +279,7 @@ export class NotebookRepl {
             const title = /^([A-Za-z_]\w*)\s*=(?!=)/.exec(cell.source.trim())?.[1] ?? last;
             const viewer = new ValueViewer(title, cell.id, request => this.session.inspect(line.ref, request),
                 () => ({ rows: this.rows(), columns: this.columns() }));
+            viewer.restoreFocus = fromFocus;
             if (await viewer.load()) this.help = { text: '', top: 0, viewer };
             else this.suggestion = 'That value is gone · run the cell again';
         } catch {
@@ -279,7 +291,7 @@ export class NotebookRepl {
     private suggestionText = '';
     get suggestion(): string {
         if (this.evaluating) return this.liveFunction?.status || this.liveConditional?.status || '';
-        if (this.valueFocus !== undefined) return 'Enter view · Esc back';
+        if (this.valueFocus !== undefined) return this.suggestionText || 'Enter view · Esc back';
         if (this.stepping) return 'Enter newline · ^R step · ^L run all';
         if (this.liveIterationFocused) return this.iterationSelecting
             ? '←/→ select · Esc edit · ^L run all'

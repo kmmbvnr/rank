@@ -47,6 +47,12 @@ was edited or failed has no stop, and a value released since the run answers
 
 ### Value viewer
 
+On the web the same opening gesture shows the viewer as a full-screen overlay with a visible
+close button instead of the text screen below; see `value-inspection.md`. Opening hides both
+keyboards, since a viewer takes no typing; closing, by the button, Esc or Android's Back,
+returns to the result row with the keyboard that was up. The rest of this section describes
+the terminal viewer.
+
 Opening a result takes over the whole screen, like help. Three lines are fixed: the title
 (the assigned name or the expression, the type line and, above rank two, the slice such as
 `[2, :, :]`), the column header (axis indices, or the column names of a table; `key` and

@@ -1,5 +1,6 @@
 import './styles.css';
 import { ManualViewer, manualKey } from './manual-viewer.js';
+import { ValueOverlay } from './value-overlay.js';
 import type { PauseSnapshot } from '@arrrank/interpreter';
 import { NotebookRepl } from '@arrrank/common/repl';
 import { KeyRouter, type Key } from '@arrrank/common/key-router';
@@ -86,6 +87,13 @@ const keys = new KeyRouter(repl, [], () => columns, {
     write: text => navigator.clipboard.writeText(text),
 });
 const modes = new TerminalModeRouter(repl, () => rows);
+/** The keyboard as it was when a value opened, so closing the viewer brings back the same one. */
+let keyboardBeforeViewer: { enabled: boolean; soft: boolean } | undefined;
+const valueOverlay = new ValueOverlay(message => {
+    repl.closeViewer(message);
+    restoreKeyboardAfterViewer();
+    render();
+});
 // The website example must never overwrite a user's main notebook (including on Android).
 const storageKey = example ? 'rank-example-fibonacci-v1' : 'rank-notebook-v1';
 
@@ -193,6 +201,8 @@ voiceIndicator.onclick = event => {
     focusInput();
 };
 
+(globalThis as typeof globalThis & { rankBack?: () => boolean }).rankBack = () => valueOverlay.back();
+
 document.addEventListener('visibilitychange', () => {
     if (document.hidden && activeVoiceDictation) {
         stopVoiceDictation();
@@ -221,7 +231,32 @@ function placeScreen(): void {
     input.style.top = inputY + 'px';
 }
 
+/** A viewer takes no typing, so neither keyboard stays up while it is open. */
+function showViewer(): void {
+    const viewer = repl.help?.viewer;
+    if (!viewer) {
+        if (valueOverlay.isOpen) valueOverlay.hide();
+        restoreKeyboardAfterViewer();
+        return;
+    }
+    if (!keyboardBeforeViewer) {
+        keyboardBeforeViewer = { enabled: keyboardEnabled, soft: softKeyboard };
+        keyboardEnabled = false;
+        keyboardOpening = false;
+        clearTimeout(keyboardOpeningTimer);
+        input.blur();
+    }
+    valueOverlay.show(viewer);
+}
+function restoreKeyboardAfterViewer(): void {
+    const before = keyboardBeforeViewer;
+    keyboardBeforeViewer = undefined;
+    if (!before?.enabled) return;
+    if (before.soft) focusInput(); else keyboardEnabled = true;
+}
+
 function render(): void {
+    showViewer();
     const paused = session.pauseState;
     modes.allowRender();
     if (paused) lastPause = paused;

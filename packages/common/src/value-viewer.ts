@@ -17,6 +17,8 @@ export type ViewerFetch = (request: InspectRequest) => Inspection | Promise<Insp
  */
 export class ValueViewer {
     view!: ValueView;
+    /** Whether closing returns to the result row: true when it was opened from the focused row, not by a tap. */
+    restoreFocus = false;
     /** Columns the last frame had room for, so a page moves by what was seen. */
     shown = 1;
     private fixed: number[] = [];
@@ -32,6 +34,9 @@ export class ValueViewer {
 
     /** Rows of cells that fit the screen. */
     get bodyRows(): number { return Math.max(1, this.size().rows - VIEWER_CHROME); }
+
+    /** One window of the value, for a viewer that scrolls on its own (the web overlay). */
+    window(request: InspectRequest): Inspection | Promise<Inspection> { return this.fetch(request); }
 
     /** Reads the first window. False when the value is no longer held. */
     async load(): Promise<boolean> { return this.read(); }
