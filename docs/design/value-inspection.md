@@ -84,7 +84,10 @@ key rules for the terminal live in `repl-input.md`.
 - The web has no filesystem, so imports stay opaque there.
 - Past about 465,000 rows the web table moves faster than a finger (the package caps the virtual
   height at 10,000,000 px) so the whole extent stays reachable.
-- No cell selection or copy yet, and no image tensors.
+- No cell selection or copy yet (a tap opens the viewer; copying changes the touch gesture model and
+  should be designed with cell and range selection), and no image tensors.
+- Errors on the touch console still wrap at about 30 characters; nothing was decided between using
+  the full width and capping them at a few rows with the rest one tap away.
 - Choosing the two axes of the table works on the web only; the terminal viewer switches the first
   held axis with `[` and `]`.
 
