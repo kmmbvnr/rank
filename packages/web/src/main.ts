@@ -239,10 +239,12 @@ function showViewer(): void {
         restoreKeyboardAfterViewer();
         return;
     }
-    if (!keyboardBeforeViewer) {
-        keyboardBeforeViewer = { enabled: keyboardEnabled, soft: softKeyboard };
+    if (!keyboardBeforeViewer) keyboardBeforeViewer = { enabled: keyboardEnabled, soft: softKeyboard };
+    // Held down on every render, so nothing that runs while the viewer is open can bring a keyboard back.
+    if (keyboardEnabled || keyboardOpening) {
         keyboardEnabled = false;
         keyboardOpening = false;
+        awaitingSoftKeyboard = false;
         clearTimeout(keyboardOpeningTimer);
         input.blur();
     }
@@ -252,7 +254,12 @@ function restoreKeyboardAfterViewer(): void {
     const before = keyboardBeforeViewer;
     keyboardBeforeViewer = undefined;
     if (!before?.enabled) return;
-    if (before.soft) focusInput(); else keyboardEnabled = true;
+    // The system keyboard comes back through the usual path, which keeps the symbol keyboard hidden
+    // until the system one has arrived; showing it first would let it slide up above the incoming one.
+    if (before.soft) {
+        keyboardEnabled = false;
+        focusInput();
+    } else keyboardEnabled = true;
 }
 
 function render(): void {
@@ -515,13 +522,22 @@ if (touchConsole) {
         render();
     }, 500);
 }
+/**
+ * Set while the system keyboard has been asked for but has not reported itself. The symbol keyboard
+ * lies behind the system one, so showing it early lets it slide into view above the incoming keyboard.
+ */
+let awaitingSoftKeyboard = false;
+function finishKeyboardOpening(): void {
+    keyboardOpening = false;
+    awaitingSoftKeyboard = false;
+    render();
+}
 function startKeyboardOpening(): void {
     keyboardOpening = true;
+    // Android says when the system keyboard shows; a browser cannot, so it keeps the fixed wait.
+    awaitingSoftKeyboard = nativeSoftKeyboard !== undefined;
     clearTimeout(keyboardOpeningTimer);
-    keyboardOpeningTimer = setTimeout(() => {
-        keyboardOpening = false;
-        render();
-    }, 450);
+    keyboardOpeningTimer = setTimeout(finishKeyboardOpening, awaitingSoftKeyboard ? 1800 : 450);
 }
 const manualViewer = new ManualViewer();
 let keyboardModule = 'core';
@@ -544,6 +560,11 @@ try { softKeyboardHeight = Number(localStorage.getItem(softKeyboardHeightKey)) |
         if (visible) {
             softKeyboardWantedUntil = 0;
             if (touchConsole) keyboardEnabled = true;
+            // The symbol keyboard reappears only once the system keyboard has finished arriving.
+            if (awaitingSoftKeyboard) {
+                clearTimeout(keyboardOpeningTimer);
+                keyboardOpeningTimer = setTimeout(finishKeyboardOpening, 400);
+            }
         }
         if (changed) beginKeyboardTransition();
         // Remember the portrait soft keyboard's height to take exactly its place.
@@ -978,7 +999,10 @@ async function locate(x: number, y: number): Promise<void> {
             if (point && repl.exampleEditor) repl.exampleEditor.cursor = point.offset;
         }
     } else if (target?.kind === 'value') {
+        // The viewer takes no typing: opening it must not raise a keyboard, as the end of this function would.
         await repl.openValue(repl.notebook.cells[target.cell].id);
+        render();
+        return;
     } else if (target?.kind === 'iteration') {
         repl.notebook.active = target.cell;
         if (!repl.liveIterationFocused) repl.focusLiveIterationFromBody(target.line);

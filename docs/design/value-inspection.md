@@ -36,8 +36,12 @@ from the terminal's CSS, so the grid, the key/value list and later renderers sha
 - **Shell.** A full-screen `<dialog>` over the notebook: close button, title (name), type line,
   and one `‹ n of N ›` stepper per leading axis of an array of rank above two. Esc and
   Android's Back close it, through the dialog's own `cancel`/`close`, back onto the result row.
-- **No typing.** Opening hides the symbol keyboard and the system keyboard; closing brings back
-  the same one.
+- **No typing.** Opening hides the symbol keyboard and the system keyboard, however it was opened
+  (a tap must not raise one), and keeps them hidden while the viewer is open; closing brings back
+  the same one. When the system keyboard returns, the symbol keyboard stays hidden until Android
+  reports the system one visible and 400 ms more have passed, because it lies behind the system
+  keyboard and would otherwise slide up above it. Measured on a phone: the system keyboard
+  arrives at about 240 ms and the symbol keyboard shows at about 655 ms.
 - **Axes.** `inspect` takes `axes: [rows, columns]` and `fixed` by axis number, so any two axes
   of an array can form the table, in either order (a transposed view is `[2, 1]`); the default
   stays the last two. Above rank two the overlay shows a toggle row for the row axis and one for
