@@ -4,7 +4,7 @@ import {
     flattenApplication, expressionFacts, findOperation, findCompiledOperator, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
-    type Expression, type ForStatement, type Statement, type CompiledAtomType, type CompiledScalarType,
+    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledScalarType,
 } from '@arrrank/language';
 import { completed, type Completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -60,7 +60,7 @@ interface Host {
     compiled?(source: string): void;
     executed?(): void;
 }
-interface Term { code: string; type: CompiledAtomType; ascii?: boolean }
+interface Term { code: string; type: CompiledLoopType; ascii?: boolean }
 
 /** Whole numeric loop: keep reads in local registers and commit every assignment.
  * Writers retain fixed-type checks and partial state on errors; optional bound

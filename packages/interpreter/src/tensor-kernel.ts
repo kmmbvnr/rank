@@ -1,6 +1,6 @@
 import { checkpoint, interruptsEnabled } from './interrupt.js';
 import {
-    flattenApplication,
+    flattenApplication, findCompiledOperator, tensorOperatorSignatures,
     isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
     isNameExpression, isNumberLiteral, isBooleanLiteral, isStringLiteral,
     isParenthesizedExpression, isUnaryExpression,
@@ -13,8 +13,6 @@ import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
 type Terminal = 'copy' | 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
 const terminals = new Set(['copy', 'sum', 'mean', 'any', 'all', 'count', 'min', 'max']);
-const binary = new Set(['+', '-', '*', '/', '**', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or', 'xor']);
-const comparison: Record<string, string> = { less: '<', greater: '>', atmost: '<=', atleast: '>=', equal: '===', notequal: '!==' };
 export type TensorNode =
     | { kind: 'input'; name?: string; value?: RankValue }
     | { kind: 'binary'; op: string; left: TensorNode; right: TensorNode }
@@ -51,7 +49,7 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
             return definitions.get(e.name) ?? { kind: 'input', name: e.name };
         }
         if (isNumberLiteral(e) || isBooleanLiteral(e) || host.textDigits && isStringLiteral(e)) return { kind: 'input', value: e.value };
-        if (isBinaryExpression(e) && binary.has(e.operator) && !e.step) {
+        if (isBinaryExpression(e) && tensorOperatorSignatures(e.operator, 2).length > 0 && !e.step) {
             // Rank gives power precedence over an unparenthesized sign.
             if (e.operator === '**' && isUnaryExpression(e.left)
                 && (e.left.operator === '+' || e.left.operator === '-')) {
@@ -62,7 +60,7 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
             const left = parse(e.left), right = parse(e.right);
             return left && right ? { kind: 'binary', op: e.operator, left, right } : undefined;
         }
-        if (isUnaryExpression(e) && ['not', '+', '-'].includes(e.operator)) {
+        if (isUnaryExpression(e) && tensorOperatorSignatures(e.operator, 1).length > 0) {
             const operand = parse(e.operand);
             return operand ? { kind: 'unary', op: e.operator, operand } : undefined;
         }
@@ -156,7 +154,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     catch { return undefined; }
                     broadcasts = true;
                 }
-                result = { shape, boolean: node.op in comparison || ['and', 'or', 'xor'].includes(node.op) };
+                result = { shape, boolean: tensorOperatorSignatures(node.op, 2).every(signature => signature.result === 'boolean') };
             } else if (node.kind === 'unary') {
                 const a = bind(node.operand);
                 if (node.op === 'text') {
@@ -168,7 +166,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     if (a && typeof a.scalar === 'string' && !/[^0-9]/.test(a.scalar) && host.builtin('integer')) {
                         result = { shape: [a.scalar.length], boolean: false, digits: true, slot: scalars.push(a.scalar) - 1 };
                     }
-                } else if (a) result = { shape: a.shape, boolean: node.op === 'not' };
+                } else if (a) result = { shape: a.shape, boolean: tensorOperatorSignatures(node.op, 1).every(signature => signature.result === 'boolean') };
             } else {
                 const a = bind(node.source), b = bind(node.selector);
                 if (!a || !b || !a.shape || a.shape.length === 0) return undefined;
@@ -263,25 +261,28 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 else if (info.view) lines.push(`const ${name} = data[${info.slot}][offsets[${info.slot}] + ${broadcasts ? address(info.view.shape) : 'i'}];`);
                 else if (node.kind === 'binary') {
                     const a = emit(node.left), b = emit(node.right);
-                    if (['and', 'or', 'xor'].includes(node.op)) {
+                    const signatures = tensorOperatorSignatures(node.op, 2);
+                    const token = findCompiledOperator(node.op)!.binary;
+                    if (signatures.every(signature => signature.inputs[0] === 'boolean')) {
                         lines.push(`if (typeof ${a} !== 'boolean' || typeof ${b} !== 'boolean') return undefined;`);
-                        lines.push(`const ${name} = ${a} ${node.op === 'and' ? '&&' : node.op === 'or' ? '||' : '!=='} ${b};`);
+                        lines.push(`const ${name} = ${a} ${token} ${b};`);
                     } else {
                         lines.push(`if (!${num(a)} || !${num(b)}) return undefined;`);
-                        if (node.op in comparison) {
+                        if (signatures.every(signature => signature.result === 'boolean')) {
                             lines.push(`if (typeof ${a} !== typeof ${b}) return undefined;`);
-                            lines.push(`const ${name} = ${a} ${comparison[node.op]} ${b};`);
+                            lines.push(`const ${name} = ${a} ${token} ${b};`);
                         } else {
                             if (node.op === '/') lines.push(`if (${b} === 0n || ${b} === 0) return undefined;`);
                             if (node.op === '**') lines.push(`if (${b} < 0 || ${b} > 1024 || (typeof ${b} === 'number' && !Number.isInteger(${b}))) return undefined;`);
-                            const expr = `Number(${a}) ${node.op} Number(${b})`;
-                            lines.push(`const ${name} = ${node.op === '/' ? expr : `(typeof ${a} === 'bigint' && typeof ${b} === 'bigint' ? ${a} ${node.op} ${b} : ${expr})`};`);
+                            const expr = `Number(${a}) ${token} Number(${b})`;
+                            lines.push(`const ${name} = ${node.op === '/' ? expr : `(typeof ${a} === 'bigint' && typeof ${b} === 'bigint' ? ${a} ${token} ${b} : ${expr})`};`);
                         }
                     }
                 } else if (node.kind === 'unary') {
                     const a = emit(node.operand);
-                    lines.push(`if (${node.op === 'not' ? `typeof ${a} !== 'boolean'` : `!${num(a)}`}) return undefined;`);
-                    lines.push(`const ${name} = ${node.op === 'not' ? '!' : node.op === '+' ? '' : '-'}${a};`);
+                    const boolean = tensorOperatorSignatures(node.op, 1).every(signature => signature.inputs[0] === 'boolean');
+                    lines.push(`if (${boolean ? `typeof ${a} !== 'boolean'` : `!${num(a)}`}) return undefined;`);
+                    lines.push(`const ${name} = ${findCompiledOperator(node.op)!.unary}${a};`);
                 } else if (node.kind === 'select') {
                     const b = emit(node.selector);
                     if (info.filter) {

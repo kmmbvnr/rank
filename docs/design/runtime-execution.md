@@ -462,8 +462,13 @@ same catalogue. Backend entries stay explicit: text concatenation requires
 native-loop calls, and integer powers still require a nonnegative literal
 exponent. Floor arithmetic, short-circuit control flow, binding and storage
 guards remain in the emitters; scalar-function lowering shares the JS tokens.
-Tensor operator migration, richer semantic signatures, and the #154 display
-remain follow-ups in #103 and the typing roadmap.
+Tensor arithmetic and comparisons now read their overloads and JS tokens from
+the same catalogue. Their real-valued and mixed numeric arithmetic profiles do
+not enable those types in scalar functions or loop registers. Tensor comparisons
+still require matching numeric domains; boolean equality remains outside that
+backend. Shape binding, storage probes, finite-value guards, power bounds, and
+empty-domain evaluation timing remain in the tensor compiler. Rejection
+diagnostics, richer language signatures, and the #154 display remain follow-ups.
 
 Before entering each region, the runtime checks required input types and binds
 only the original functions from loaded modules. Rebound functions, unsupported
