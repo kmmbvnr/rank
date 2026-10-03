@@ -43,6 +43,18 @@ describe('attributable compiler rejections', () => {
         expect(diagnostics.fallbacks).toEqual({});
     });
 
+    it('attributes per-operation fallback in a cached scalar expression', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute('fun same A B\nreturn (A + B) equal A\nend\n"a" "b" same');
+            const diagnostics = new RuntimeDiagnostics();
+            const result = diagnostics.run(() => runtime.execute('"a" "b" same'));
+            expect(formatValue(result!)).toBe('false');
+            expect(diagnostics.fallbacks['scalar-expression:operator-guard:+']).toBeGreaterThan(0);
+            expect(diagnostics.fallbacks['scalar-expression:operator-guard:equal']).toBeGreaterThan(0);
+        } finally { runtime.dispose(); }
+    });
+
     it('names the loop operation without changing execution', () => {
         const source = 'use sequences\nText = "abλ"\nfor I in 1 to 2\nText = Text reverse\nend\nText';
         const diagnostics = new RuntimeDiagnostics();

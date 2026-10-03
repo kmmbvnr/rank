@@ -481,7 +481,9 @@ signatures and the #154 display remain follow-ups.
 `RuntimeDiagnostics.fallbacks` retains the coarse loop/tensor counters and adds
 operation, node, and guard categories. Examples include
 `scalar-function:unsupported-op:/`, `scalar-function:unsupported-type:real`,
-`loop:unsupported-op:reverse`, and `tensor:operator-guard:equal`. Failed scalar
+`loop:unsupported-op:reverse`, `tensor:operator-guard:equal`, and
+`scalar-expression:operator-guard:+`. Scalar-expression guards delegate only the
+rejected operation with its already-read operands. Failed scalar
 proofs cache their reason alongside successful proof results, so enabling
 instrumentation after a failed proof still explains later attempts. Counters
 can include several nested or alternative compilation attempts; they are not

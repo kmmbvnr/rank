@@ -45,7 +45,11 @@ mean an attempted preparation found no supported plan, including ordinary scalar
 statements. `loop:disabled` means compilation was explicitly disabled. Loop entry
 checks distinguish `control-context`, `builtin`, `callee`, `input-type`,
 `writable-storage` and `storage-or-cell-type`; tensor entry refusal is currently
-`tensor:entry-guard`. These count attempts, not unique statements: one variant
+`tensor:entry-guard`. Scalar-function, scalar-expression, loop and tensor
+preparation also report the rejected operation or node; generated tensor and
+scalar-expression guards name the operation that declined. See
+[compiler rejection reasons](runtime-execution.md#typed-builtin-calls-in-loops).
+These count attempts, not unique statements: one variant
 can fail before another succeeds. They are not runtime errors, and do not claim
 to describe every compiler in Rank or mid-loop deoptimization.
 

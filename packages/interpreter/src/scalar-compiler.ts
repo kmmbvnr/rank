@@ -5,6 +5,8 @@ import {
     type Expression,
 } from '@arrrank/language';
 import type { RankValue } from './value.js';
+import { compilerRejection } from './compiler-rejection.js';
+import { currentDiagnostics, recordFallback } from './diagnostics.js';
 
 interface Host {
     leaf(expression: Expression): (() => RankValue) | undefined;
@@ -23,7 +25,12 @@ export function compileScalarExpression(expression: Expression, host: Host): (()
     const lines: string[] = [], readers: (() => RankValue)[] = [];
     let serial = 0, count = 0;
     function emit(e: Expression): string | undefined {
-        if (serial > 128) return undefined;
+        const result = emitNode(e);
+        if (result === undefined && currentDiagnostics()) recordFallback(compilerRejection('scalar-expression', e));
+        return result;
+    }
+    function emitNode(e: Expression): string | undefined {
+        if (serial > 128) return recordFallback('scalar-expression:expression-budget');
         if (isParenthesizedExpression(e)) return emit(e.value);
         if (isNameExpression(e) || isNumberLiteral(e) || isBooleanLiteral(e) || isStringLiteral(e)) {
             const read = host.leaf(e);
@@ -71,7 +78,8 @@ export function compileScalarExpression(expression: Expression, host: Host): (()
         return name;
     }
     const result = emit(expression);
-    if (!result || count < 2) return undefined;
+    if (!result) return undefined;
+    if (count < 2) return recordFallback('scalar-expression:too-small');
     const source = `"use strict"; return function() { ${lines.join('\n')} return ${result}; };`;
     let factory = factories.get(expression);
     if (factory === undefined) {
@@ -80,7 +88,7 @@ export function compileScalarExpression(expression: Expression, host: Host): (()
         factories.set(expression, factory);
         if (factory) host.compiled?.(source);
     }
-    if (!factory) return undefined;
+    if (!factory) return recordFallback('scalar-expression:dynamic-code-unavailable');
     const run = factory(readers, host.binary, host.unary);
     return host.executed ? () => { host.executed!(); return run(); } : run;
 }
