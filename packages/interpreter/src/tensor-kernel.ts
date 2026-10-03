@@ -2,11 +2,11 @@ import { checkpoint, interruptsEnabled } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    flattenApplication, findCompiledOperator, tensorOperatorSignatures,
+    flattenApplication, findCompiledOperator, tensorOperatorSignatures, inferCompiledExpression, matchCompiledOperatorDomains,
     isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
-    isNameExpression, isNumberLiteral, isBooleanLiteral, isStringLiteral,
+    isNameExpression, isNumberLiteral,
     isParenthesizedExpression, isUnaryExpression,
-    type Expression, type Statement,
+    type Expression, type Statement, type CompiledAtomType, type CompiledExpression,
 } from '@arrrank/language';
 import { type RankValue, isRankArray } from './value.js';
 import { broadcastShape } from './tensor.js';
@@ -41,6 +41,9 @@ const same = (a: readonly number[], b: readonly number[]) => a.length === b.leng
 export function compileTensorKernel(statements: Statement[], host: TensorKernelHost): {
     count: number; source: string; run(): RankValue | undefined;
 } | undefined {
+    type Domain = readonly CompiledAtomType[];
+    const domains = new Map<TensorNode, Domain>();
+    const unknown: Domain = ['integer', 'real', 'boolean', 'text'];
     const definitions = new Map<string, TensorNode>();
     const reads = new Map<string, number>();
     const names: string[] = [];
@@ -50,30 +53,52 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
         rejected = true;
         return undefined;
     }
-    function parse(expression: Expression): TensorNode | undefined {
-        return parseExpression(expression) ?? reject(unwrap(expression));
+    function typed(node: TensorNode, domain: Domain): TensorNode {
+        domains.set(node, domain);
+        return node;
     }
-    function parseExpression(expression: Expression): TensorNode | undefined {
-        const e = unwrap(expression);
+    function parse(expression: Expression): TensorNode | undefined {
+        const result = inferCompiledExpression<Domain, TensorNode>(expression, {
+            atom: type => type === 'integer' || type === 'real' || type === 'boolean'
+                || host.textDigits && type === 'text' ? [type] : undefined,
+            read: source => {
+                const input = parseInput(source);
+                return input ? { type: domains.get(input)!, input } : undefined;
+            },
+            isBound: name => definitions.has(name),
+            operator: (operation, inputs) => matchCompiledOperatorDomains(operation.tensor, inputs),
+            budget: { remaining: 1024 },
+        });
+        if (result.failure) return reject(result.failure.source, result.failure.detail);
+        return lower(result.expression);
+    }
+    function lower(node: CompiledExpression<Domain, TensorNode>): TensorNode | undefined {
+        if (node.kind === 'group') return lower(node.operand);
+        if (node.kind === 'input') return node.input;
+        if (node.kind === 'literal') return typed({ kind: 'input', value: node.value }, node.type);
+        if (node.kind === 'call') return undefined;
+        if (node.kind === 'unary') {
+            const operand = lower(node.operand);
+            return operand ? typed({ kind: 'unary', op: node.operation.name, operand }, node.type) : undefined;
+        }
+        const left = lower(node.left), right = lower(node.right);
+        return left && right ? typed({ kind: 'binary', op: node.operation.name, left, right }, node.type) : undefined;
+    }
+    function parseInput(e: Expression): TensorNode | undefined {
         if (isNameExpression(e) && !e.name.includes('.')) {
             reads.set(e.name, (reads.get(e.name) ?? 0) + 1);
-            return definitions.get(e.name) ?? { kind: 'input', name: e.name };
+            return definitions.get(e.name) ?? typed({ kind: 'input', name: e.name }, unknown);
         }
-        if (isNumberLiteral(e) || isBooleanLiteral(e) || host.textDigits && isStringLiteral(e)) return { kind: 'input', value: e.value };
-        if (isBinaryExpression(e) && tensorOperatorSignatures(e.operator, 2).length > 0 && !e.step) {
-            // Rank gives power precedence over an unparenthesized sign.
-            if (e.operator === '**' && isUnaryExpression(e.left)
-                && (e.left.operator === '+' || e.left.operator === '-')) {
-                const left = parse(e.left.operand), right = parse(e.right);
-                return left && right ? { kind: 'unary', op: e.left.operator,
-                    operand: { kind: 'binary', op: '**', left, right } } : undefined;
-            }
-            const left = parse(e.left), right = parse(e.right);
-            return left && right ? { kind: 'binary', op: e.operator, left, right } : undefined;
-        }
-        if (isUnaryExpression(e) && tensorOperatorSignatures(e.operator, 1).length > 0) {
-            const operand = parse(e.operand);
-            return operand ? { kind: 'unary', op: e.operator, operand } : undefined;
+        // Rank gives power precedence over an unparenthesized sign.
+        if (isBinaryExpression(e) && e.operator === '**' && !e.step && isUnaryExpression(e.left)
+            && (e.left.operator === '+' || e.left.operator === '-')) {
+            const left = parse(e.left.operand), right = parse(e.right);
+            if (!left || !right) return undefined;
+            const power = matchCompiledOperatorDomains(tensorOperatorSignatures('**', 2), [domains.get(left)!, domains.get(right)!]);
+            if (!power) return undefined;
+            const operand = typed({ kind: 'binary', op: '**', left, right }, power.result);
+            const sign = matchCompiledOperatorDomains(tensorOperatorSignatures(e.left.operator, 1), [power.result]);
+            return sign ? typed({ kind: 'unary', op: e.left.operator, operand }, sign.result) : undefined;
         }
         if (host.textDigits) {
             const parts = flattenApplication(e);
@@ -81,17 +106,17 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
                 && isNameExpression(parts[2]) && parts[2].name === 'rank'
                 && isNumberLiteral(parts[3]) && parts[3].value === 0n) {
                 const operand = parse(parts[0]);
-                return operand ? { kind: 'unary', op: 'integer0', operand } : undefined;
+                return operand ? typed({ kind: 'unary', op: 'integer0', operand }, ['integer']) : undefined;
             }
             if (parts.length === 2 && isNameExpression(parts[1]) && parts[1].name === 'text') {
                 const operand = parse(parts[0]);
-                return operand ? { kind: 'unary', op: 'text', operand } : undefined;
+                return operand ? typed({ kind: 'unary', op: 'text', operand }, ['text']) : undefined;
             }
         }
         const parts = pair(e);
         if (parts) {
             const source = parse(parts[0]), selector = parse(parts[1]);
-            return source && selector ? { kind: 'select', source, selector } : undefined;
+            return source && selector ? typed({ kind: 'select', source, selector }, domains.get(source)!) : undefined;
         }
         return undefined;
     }
@@ -118,7 +143,7 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
             };
             visit(root);
             if ([...definitions.values()].some(node => !reached.has(node))) return reject(statement, 'group');
-            return build(root, names, last.name as Terminal, index + 1, host);
+            return build(root, names, last.name as Terminal, index + 1, host, domains);
         }
         if (!isAssignmentStatement(statement)) return reject(statement, 'group');
         const value = parse(statement.value);
@@ -129,7 +154,8 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
     return recordFallback('tensor:no-terminal');
 }
 
-function build(root: TensorNode, names: string[], terminal: Terminal, count: number, host: TensorKernelHost) {
+function build(root: TensorNode, names: string[], terminal: Terminal, count: number, host: TensorKernelHost,
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>) {
     let cachedKey: string | undefined;
     let cachedRun: ((data: RankValue[][], offsets: number[], scalars: RankValue[], size: number) => RankValue | RankValue[] | undefined) | undefined;
     let generated = '';
@@ -177,7 +203,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     catch { return undefined; }
                     broadcasts = true;
                 }
-                result = { shape, boolean: tensorOperatorSignatures(node.op, 2).every(signature => signature.result === 'boolean') };
+                result = { shape, boolean: domains.get(node)!.every(type => type === 'boolean') };
             } else if (node.kind === 'unary') {
                 const a = bind(node.operand);
                 if (node.op === 'text') {
@@ -189,7 +215,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     if (a && typeof a.scalar === 'string' && !/[^0-9]/.test(a.scalar) && host.builtin('integer')) {
                         result = { shape: [a.scalar.length], boolean: false, digits: true, slot: scalars.push(a.scalar) - 1 };
                     }
-                } else if (a) result = { shape: a.shape, boolean: tensorOperatorSignatures(node.op, 1).every(signature => signature.result === 'boolean') };
+                } else if (a) result = { shape: a.shape, boolean: domains.get(node)!.every(type => type === 'boolean') };
             } else {
                 const a = bind(node.source), b = bind(node.selector);
                 if (!a || !b || !a.shape || a.shape.length === 0) return undefined;

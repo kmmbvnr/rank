@@ -47,7 +47,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     let resultType: CompiledScalarType | undefined;
     function type(expression: Expression, env: ReadonlyMap<string, CompiledScalarType>): CompiledScalarType | undefined {
         const inferred = inferCompiledExpression(expression, {
-            types: compiledScalarTypes,
+            atom: type => compiledScalarTypes.find(candidate => candidate === type),
             read: source => {
                 if (!isNameExpression(source)) return undefined;
                 const type = env.get(source.name);

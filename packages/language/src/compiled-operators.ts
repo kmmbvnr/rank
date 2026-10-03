@@ -119,3 +119,14 @@ export function tensorOperatorSignatures(name: string, arity: number): readonly 
 export function expressionOperatorSignatures(name: string, arity: number): readonly CompiledOperatorSignature<CompiledExpressionType>[] {
     return findCompiledOperator(name)?.scalarExpression?.filter(signature => signature.inputs.length === arity) ?? [];
 }
+
+/** Possible results of the declared overloads for unresolved input domains.
+ * A consumer must still guard the actual inputs before using these overloads. */
+export function matchCompiledOperatorDomains<T extends CompiledAtomType>(
+    signatures: readonly CompiledOperatorSignature<T>[] | undefined,
+    inputs: readonly (readonly CompiledAtomType[])[],
+) {
+    const overloads = signatures?.filter(signature => signature.inputs.length === inputs.length
+        && signature.inputs.every((type, index) => inputs[index].includes(type)));
+    return overloads?.length ? { inputs, result: [...new Set(overloads.map(signature => signature.result))], overloads } : undefined;
+}
