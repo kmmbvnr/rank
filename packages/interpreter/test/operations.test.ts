@@ -111,7 +111,7 @@ describe('the operation catalogue', () => {
     it('verifies every compiled profile against real calls, including Unicode and bytes', () => {
         const examples: Record<string, string[]> = {
             text: ['0', '(-123)', '9007199254740993'],
-            reverse: ['""', '"😀é"'], len: ['""', '"😀é"'],
+            reverse: ['""', '"😀é"'], len: ['""', '"😀é"', '(array 1 2)', '(array shape 0 fill 0)', '(array shape 2 3 fill 0)'],
             bytes: ['"ёж"', '("ёж" bytes)'],
             md5: ['"abc"', '("abc" bytes)'],
             startswith: ['"ёж" "ё"', '("ёж" bytes) ("ё" bytes)'],

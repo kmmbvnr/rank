@@ -1,7 +1,7 @@
 import type { AstNode } from 'langium';
 import {
     findOperation, flattenApplication, isBinaryExpression, isNameExpression, isUnaryExpression,
-    type ApplicationForm, type Operation, type CompiledScalarType, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
+    type ApplicationForm, type Operation, type CompiledScalarType, type CompiledFunctionType, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
@@ -312,7 +312,7 @@ export class FastPaths {
     }
 
     /** A proven scalar body that the selected argument types may enter without a frame. */
-    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledScalarType[]): { readonly locals: readonly string[] } | undefined {
+    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[]): { readonly locals: readonly string[] } | undefined {
         return this.context.options().scalarEntryCompilation !== false && !generator
             ? scalarFunctionResult(statement, true, types) : undefined;
     }
@@ -336,7 +336,7 @@ export class FastPaths {
         if (!definition || definition.statement.parameters.length !== arity) return undefined;
         const statement = definition.statement;
         const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false);
-        if (!proof) return undefined;
+        if (!proof || typeof proof.type !== 'string') return undefined;
         const captures = definition.context !== undefined;
         return { type: proof.type, locals: [...(captures ? proof.locals : []), ...proof.nativeReads], bind: () => {
             const current = this.context.bindings.find(name);

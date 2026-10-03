@@ -35,7 +35,7 @@ export type CompiledLoopType = Exclude<CompiledAtomType, 'real'>;
  * Runtime binding must still verify the actual builtin and any host override.
  */
 export interface CompiledCallSignature {
-    readonly inputs: readonly (CompiledLoopType | 'text-or-bytes' | 'text-array' | 'same')[];
+    readonly inputs: readonly (CompiledLoopType | 'text-or-bytes' | 'text-or-array' | 'text-array' | 'same')[];
     readonly result: CompiledLoopType;
     /** No callbacks except guarded operand-cell reads and the declared host override. */
     readonly callbacks: 'none' | 'read-cells';
@@ -51,6 +51,7 @@ export function matchCompiledCallSignature(operation: Operation, inputs: readonl
     const signature = operation.compiledCall;
     return signature && signature.inputs.length === inputs.length && signature.inputs.every((expected, index) =>
         expected === 'same' ? inputs[index] === inputs[0]
+            : expected === 'text-or-array' ? ['text', 'array', 'text-array'].includes(inputs[index])
             : expected === 'text-or-bytes' ? inputs[index] === 'text' || inputs[index] === 'bytes'
             : expected === inputs[index]) ? signature : undefined;
 }
@@ -648,7 +649,7 @@ export const operations: readonly Operation[] = [
     { name: 'last', module: 'sequences', arities: [1], form: 'Values last', result: 'element',
         summary: 'Last item of text, an array, a queue or a finite sequence; missing when empty.' },
     { name: 'len', module: 'core', arities: [1], form: 'Value len', result: 'integer',
-        compiledCall: { inputs: ['text'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
+        compiledCall: { inputs: ['text-or-array'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         arrayHeaderNoCallback: true,
         summary: 'Code points of text, leading axis of an array, or size of a collection.' },
     { name: 'present', module: 'core', arities: [1], form: 'Values present', result: 'boolean',

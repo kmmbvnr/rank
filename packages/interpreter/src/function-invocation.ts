@@ -1,7 +1,7 @@
 import type { AstNode } from 'langium';
 import {
     availableBuiltin, builtinBindingMessage, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
-    type CompiledScalarType, type Expression, type FunctionStatement, type Statement, type ValueFacts,
+    type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionStatement, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { enterRuntime, isFlatScalarArray, isSharedArray, leaveRuntime } from './array-storage.js';
 import type { BindingEnvironment } from './binding-environment.js';
@@ -18,6 +18,7 @@ import type { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
 import { ReturnContract, argumentRankSignature } from './return-contract.js';
+import { compiledArgumentType } from './compiled-argument-type.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
 import { prepareCompiledBuiltin } from './typed-native.js';
 import { sequence } from './sequence.js';
@@ -46,7 +47,7 @@ export interface FunctionHost {
     execute(statements: Statement[], generator: boolean): Evaluation<RankValue | undefined>;
     locate(error: unknown, node: AstNode): unknown;
     /** A proven scalar body that the selected argument types may enter directly, when that path is enabled. */
-    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledScalarType[]): { readonly locals: readonly string[] } | undefined;
+    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[]): { readonly locals: readonly string[] } | undefined;
     /** Offers a function to flat combinators; `available` is checked before each use. */
     flatCombine(fn: NativeFunction, statement: FunctionStatement, available: (builtins: ReadonlySet<string>) => boolean): void;
 }
@@ -159,11 +160,19 @@ export class FunctionInvocation {
             if (inspectionEnabled() || arguments_.length !== statement.parameters.length) return undefined;
             let call = scalar, locals = proof?.locals;
             if (!arguments_.every(value => typeof value === 'bigint')) {
-                if (arguments_.some(value => typeof value !== 'bigint' && typeof value !== 'number' && typeof value !== 'boolean' && typeof value !== 'string')) return undefined;
+                let types: CompiledFunctionType[] | undefined;
+                if (arguments_.some(value => typeof value === 'object')) {
+                    // Keep ordinary container calls allocation-free when the
+                    // first object is not eligible array storage.
+                    if (arguments_.some(value => typeof value === 'object' && !compiledArgumentType(value))) return undefined;
+                    const guarded = arguments_.map(compiledArgumentType);
+                    if (!guarded.every((type): type is CompiledFunctionType => type !== undefined)) return undefined;
+                    types = guarded;
+                } else if (arguments_.some(value => typeof value !== 'bigint' && typeof value !== 'number'
+                    && typeof value !== 'boolean' && typeof value !== 'string')) return undefined;
                 let entry = typedEntries.get(arguments_);
                 if (entry === undefined) {
-                    const types = arguments_.map(value => typeof value === 'bigint' ? 'integer'
-                        : typeof value === 'number' ? 'real' : typeof value === 'boolean' ? 'boolean' : 'text');
+                    types ??= arguments_.map(value => compiledArgumentType(value)!);
                     const typedProof = this.host.scalarEntry(statement, generator, types);
                     const typedCall = typedProof ? this.prepareScalarCall(statement, context, types) : undefined;
                     entry = typedCall ? { locals: typedProof!.locals, call: typedCall } : null;
@@ -309,13 +318,13 @@ export class FunctionInvocation {
     }
 
     /** A proven scalar body compiled to a direct call, counted against the call depth. */
-    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame, types?: readonly CompiledScalarType[]): PreparedScalarCall | undefined {
+    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame, types?: readonly CompiledFunctionType[]): PreparedScalarCall | undefined {
         if (this.options().scalarFunctionCompilation === false) return undefined;
         let cache = context ? this.localScalarCalls.get(context) : this.globalScalarCalls;
         if (!cache) this.localScalarCalls.set(context!, cache = new WeakMap());
         let instances = cache.get(statement);
         if (!instances) cache.set(statement, instances = new Map());
-        const key = types?.join(',') ?? '';
+        const key = types?.map(compiledFunctionTypeKey).join(',') ?? '';
         const cached = instances.get(key);
         if (cached) return cached;
         const kernel = compileScalarFunction(statement, types);

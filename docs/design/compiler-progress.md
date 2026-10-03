@@ -1,5 +1,28 @@
 # Compiler progress
 
+## Guarded homogeneous array arguments
+
+Function kernels can specialize on an array's element type and rank, independently
+of its length, values and storage state. The shared expression frontend represents
+those domains explicitly. Supported bodies can select scalar cells, use `len`,
+join a proved text vector, pass through an array result, and perform the existing
+scalar arithmetic/control flow around those operations.
+
+Entry requires runtime-owned scalar storage and a known semantic element type.
+A revision guard reuses cell checks after successful validation; mutation requires
+a new check. Typed buffers can prove their physical cell representation, but do
+not settle an unknown semantic type. Empty arrays require an established element
+contract. Lazy arrays, host readers and unresolved domains retain ordinary calls;
+selecting a specialization never forces their cells.
+
+Selections use the existing value-selection operation so errors, bounds and call
+locations agree with the interpreter. Inspection uses ordinary execution. Long
+boxed-cell validation scans retain cancellation checks. Primitive call caching
+keeps its existing path, and integer-loop callees still require primitive results.
+
+This does not add a generic array-arithmetic backend or compile arbitrary lazy
+readers. Broader operations continue through the existing tensor/generic paths.
+
 ## Native call contracts
 
 The ten current compiled native-call profiles in `operations.ts` declare their
