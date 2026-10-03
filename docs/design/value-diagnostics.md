@@ -58,6 +58,28 @@ helper chains. Messages identify the called function. Unknown argument facts do
 not produce an error, and tests do not restrict a function to the types in its
 examples.
 
+### Reusable structural return relationships
+
+A function consisting of one structural return can retain a relationship to its
+parameters: identity (`T → T`), fixed tuple positions (`T → tuple(T, text)`),
+or a field of an established record. These examples describe the analysis;
+they do not add annotation syntax. Unknown inputs stay unknown. A field term
+does not assert that an external object has that field.
+
+`analysis/function-relationships.ts` builds the summary once per definition in
+an analysis. Calls instantiate it using their current argument facts, preserving
+text rank one, array ranks, dimensions and existing reader-safety evidence.
+Known element types alone do not grant reader safety. Other receiver domains
+use ordinary analysis. Summary calls still run the existing return-contract
+checks and retain expression facts for the inspector, but do not walk the
+return body or consume the recursive body-analysis budget.
+
+The cache belongs to one analysis and calls still check the function binding's
+identity. Captures, mutations, guarded returns, arithmetic and calls inside the
+body currently use ordinary analysis; reusable relationships for those cases
+remain follow-up work in #156. Backward requirement templates stay separate:
+a solved requirement is not a proof about the supplied value.
+
 `analysis/function-effects.ts` summarizes possible indexed writes to parameters
 and captured objects. Calls to supported helpers map written parameters back to
 the caller's parameters. Conditional effects include all branches. The pass

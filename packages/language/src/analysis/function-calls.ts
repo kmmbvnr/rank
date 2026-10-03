@@ -1,3 +1,4 @@
+import { functionRelationship, instantiateRelationship, type FunctionRelationship } from './function-relationships.js';
 import { establishedArrayContract } from './array-binding-contract.js';
 import { argumentSignature, returnConflicts, returnInput } from './return-contract.js';
 import { AstUtils, type AstNode } from 'langium';
@@ -48,6 +49,8 @@ export function createCallAnalysis(
     const callStack: { definition: FunctionStatement; signature: string; recursive: boolean }[] = [];
     const globalCallEnvs: Map<string, ValueFacts>[] = [];
     const noReturnFunctions = new WeakMap<FunctionStatement, boolean>();
+    const relationships = new Map<FunctionStatement, FunctionRelationship>();
+    const checkedRelationships = new WeakSet<FunctionStatement>();
     let remainingCalls = 100;
     let checkingReturns = false;
     type Instance = { rankSignature: string; values: ValueFacts[] };
@@ -103,8 +106,16 @@ export function createCallAnalysis(
             if (probe.pure) probe.valid &&= arguments_.every((fact, index) => sameNumericInput(probe.inputs[index], fact));
             return probe.result;
         }
-        if (remainingCalls-- <= 0) return UNKNOWN_VALUE;
-        const yields = functionYields(definition);
+        if (!checkedRelationships.has(definition)) {
+            checkedRelationships.add(definition);
+            const relationship = functionRelationship(definition);
+            if (relationship) relationships.set(definition, relationship);
+        }
+        const relationship = relationships.get(definition);
+        const summarized = relationship && instantiateRelationship(relationship, arguments_) !== undefined;
+        // Instantiating a proved relationship does not consume the recursive body-walk budget.
+        if (!summarized && remainingCalls-- <= 0) return UNKNOWN_VALUE;
+        const yields = summarized ? [] : functionYields(definition);
         if (yields.length) {
             // A generator call creates a sequence without executing its body.
             const { cells } = generatorCells(definition, arguments_);
@@ -120,9 +131,10 @@ export function createCallAnalysis(
         }
         const globalEnv = globalCallEnvs.at(-1) ?? caller;
         const local = new Map(definition.$container.$type === 'Program' ? globalEnv : caller);
+        const nodes = summarized ? [] : [...AstUtils.streamAllContents(definition)];
         // Top-level functions create local bindings on assignment, rather than
         // inheriting the assignment contracts of equally named globals.
-        for (const node of AstUtils.streamAllContents(definition)) {
+        for (const node of nodes) {
             if (isAssignmentStatement(node) && !definition.parameters.includes(node.name)) local.delete(node.name);
         }
         definition.parameters.forEach((parameter, index) => local.set(parameter, {
@@ -146,7 +158,6 @@ export function createCallAnalysis(
         callStack.push(frame);
         active.add(signature);
         globalCallEnvs.push(globalEnv);
-        const nodes = [...AstUtils.streamAllContents(definition)];
         const nestedWrites = new Set(nodes.filter(isFunctionStatement).flatMap(nested =>
             [...AstUtils.streamAllContents(nested)].flatMap(node => isAssignmentStatement(node) ? [node.name]
                 : isFunctionStatement(node) ? [node.name] : isUnpackStatement(node) ? node.names : isForStatement(node)
@@ -161,7 +172,9 @@ export function createCallAnalysis(
         const contractEnv = new Map([...local].map(([key, fact]) => [key,
             fact.types.includes('function') ? fact : returnInput(fact)]));
         try {
-            const result = returnValues(definition.statements, local);
+            const result = summarized
+                ? [instantiateRelationship(relationship, definition.parameters.map(name => local.get(name)!), expressions)!]
+                : returnValues(definition.statements, local);
             // Reaching the end throws: only paths that actually return contribute
             // a result value. With no proven return, the result remains unknown.
             if (!checkingReturns) {
@@ -172,7 +185,9 @@ export function createCallAnalysis(
                 let returns = result;
                 checkingReturns = true;
                 try {
-                    returns = [...result, ...returnValues(definition.statements, contractEnv)];
+                    returns = [...result, ...(summarized
+                        ? [instantiateRelationship(relationship, definition.parameters.map(name => contractEnv.get(name)!))!]
+                        : returnValues(definition.statements, contractEnv))];
                 } finally {
                     checkingReturns = false;
                     remainingCalls = savedBudget;
@@ -289,7 +304,7 @@ export function createCallAnalysis(
 
     return {
         functionBindings, imported, importedAliases, globalCallEnvs, privateBindings, frameBindings,
-        directNoReturnCall, call,
+        directNoReturnCall, call, relationships,
         hasPureRecursiveProbe: (name: string) => {
             const definition = functions.get(name);
             return !!definition && [...recursiveProbes.get(definition)?.values() ?? []].some(probe => probe.pure);

@@ -1,3 +1,4 @@
+import type { FunctionRelationship } from './function-relationships.js';
 import { arrayBindingContract, establishedArrayContract, refineArrayContract, contractElements, arrayContractConflict } from './array-binding-contract.js';
 import { AstUtils, type AstNode } from 'langium';
 import { inferRequirements, type RequirementAnalysis } from './requirements.js';
@@ -46,6 +47,7 @@ export interface ValueDiagnostic {
 }
 
 export interface ValueAnalysis {
+    readonly relationships: ReadonlyMap<FunctionStatement, FunctionRelationship>;
     readonly requirements: RequirementAnalysis;
     readonly diagnostics: readonly ValueDiagnostic[];
     readonly bindings: ReadonlyMap<string, ValueFacts>;
@@ -1168,7 +1170,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     diagnostics.push(...requirementDiagnostics(requirements.conflicts, diagnostics));
     const unique = diagnostics.filter((diagnostic, index) => !diagnostics.slice(0, index).some(previous =>
         previous.node === diagnostic.node && previous.message === diagnostic.message));
-    return { diagnostics: unique, bindings, expressions, functions, functionResults, requirements, imports: imported };
+    return { diagnostics: unique, bindings, expressions, functions, functionResults, requirements, imports: imported,
+        relationships: calls.relationships };
 }
 
 function dataDependentLength(operation: Operation): boolean {
