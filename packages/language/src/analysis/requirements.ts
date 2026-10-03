@@ -52,6 +52,7 @@ const spread = (term: ShapeTerm): term is { readonly spread: string } =>
  * Guarded paths, captured writes and unresolved callbacks deliberately lose precision. */
 export function inferRequirements(program: Program, options: RequirementOptions = {}): RequirementAnalysis {
     const templates = new Map<FunctionStatement, Template>();
+    const parsedTemplates = new Map<FunctionStatement, Map<string, Template>>();
     const active = new Set<FunctionStatement>();
     const functionScopes = new Map<FunctionStatement, Map<string, FunctionStatement>>();
     const opaqueScopes = new Set<FunctionStatement>();
@@ -89,15 +90,18 @@ export function inferRequirements(program: Program, options: RequirementOptions 
     for (const definition of roots.values()) if (!functionScopes.has(definition)) {
         functionScopes.set(definition, declarations(definition.statements, roots));
     }
-    const template = (definition: FunctionStatement): Template | undefined => {
-        const cached = templates.get(definition);
+    const template = (definition: FunctionStatement, inputs?: readonly Value[]): Template | undefined => {
+        // Specialize only reader provenance, never file contents or solved call domains.
+        const key = inputs?.some(input => input.parsed) ? inputs.map(input => input.parsed ? '1' : '0').join('') : undefined;
+        const cached = key ? parsedTemplates.get(definition)?.get(key) : templates.get(definition);
         if (cached) return cached;
         if (active.has(definition)) return;
         if (budget-- <= 0) { limited = true; return; }
         active.add(definition);
         const graph = new Graph(), env = new Map<string, Binding>();
-        const params = definition.parameters.map(name => {
+        const params = definition.parameters.map((name, index) => {
             const value = graph.value(definition);
+            if (inputs?.[index].parsed) value.parsed = true;
             env.set(name, { name, node: definition, rank: value.rank, value });
             return value;
         });
@@ -105,7 +109,11 @@ export function inferRequirements(program: Program, options: RequirementOptions 
         collect(definition.statements, graph, env, functionScopes.get(definition) ?? functions, result, opaqueScopes.has(definition));
         active.delete(definition);
         const value = { graph, params, result };
-        templates.set(definition, value);
+        if (key) {
+            let variants = parsedTemplates.get(definition);
+            if (!variants) { variants = new Map(); parsedTemplates.set(definition, variants); }
+            variants.set(key, value);
+        } else templates.set(definition, value);
         return value;
     };
     function collect(items: readonly Statement[], graph: Graph, env: Map<string, Binding>,
@@ -237,7 +245,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
         const call = (definition: FunctionStatement, args: Value[], output: Value, node: AstNode,
             ranks?: readonly IntrinsicRank[], axes?: readonly number[]) => {
             if (args.length !== definition.parameters.length) return;
-            const summary = template(definition);
+            const summary = template(definition, args);
             if (!summary) return;
             const declared = declaredRanks(definition);
             const cells = ranks ?? (typeof declared === 'object' ? declared.ranks : undefined);
@@ -470,10 +478,12 @@ export function inferRequirements(program: Program, options: RequirementOptions 
     for (const definition of functionScopes.keys()) template(definition);
     const solved = graph.solve();
     const summaries = new Map<FunctionStatement, FunctionRequirement>();
+    const expressions = new Map([...graph.expressions].map(([node, value]) => [node, solved.read(value)]));
     const conflicts = [...solved.conflicts];
     for (const [definition, summary] of templates) {
         const answer = summary.graph.solve();
         summaries.set(definition, { params: summary.params.map(answer.read), result: answer.read(summary.result) });
+        for (const [node, value] of summary.graph.expressions) expressions.set(node, answer.read(value));
         conflicts.push(...answer.conflicts);
         limited ||= answer.limited;
     }
@@ -486,7 +496,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
     };
     return {
         bindings: graph.bindings.map(binding => ({ ...solved.read(binding.value), name: binding.name, node: binding.node })),
-        expressions: new Map([...graph.expressions].map(([node, value]) => [node, solved.read(value)])),
+        expressions,
         functions: summaries,
         conflicts: [...new Map(conflicts.map(conflict => [`${conflict.kind}:${key(conflict.first)}:${key(conflict.second)}`, conflict])).values()],
         limited: limited || solved.limited,

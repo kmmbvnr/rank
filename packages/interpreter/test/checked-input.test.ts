@@ -169,3 +169,27 @@ it('does not require fields read only by a short-circuited operand', () => {
         expect(() => runtime.execute(`use json\nDoc = ${JSON.stringify('{}')} json check\n${condition}`)).not.toThrow();
     }
 });
+
+it('collects requirements inside a function that reads checked data', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    const source = 'use tables\nfun total Path\n Rows = Path csv check\n return Rows .price sum\nend\n"data.csv" total';
+    try { runtime.execute(source); throw new Error('expected a checked read to fail'); }
+    catch (error) {
+        expect(error).toBeInstanceOf(RankError);
+        expect((error as RankError).rankKind).toBe('InputContract');
+        expect((error as RankError).location?.line).toBe(3);
+    }
+});
+
+it('propagates a known helper field requirement to its checked input', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    const source = 'use tables\nfun total Rows\n return Rows .price sum\nend\nRows = "data.csv" csv check\nAfter = 1\nRows total';
+    expect(() => runtime.execute(source)).toThrow(/data.csv.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('keeps separate helper calls independent for checked JSON values', () => {
+    const runtime = new Interpreter(() => {});
+    const source = `use json\nfun identity Value\n return Value\nend\nA = ${JSON.stringify('[1,2]')} json check\nX = A identity sum\nB = ${JSON.stringify('"label"')} json check\nY = B identity\nY`;
+    expect(runtime.execute(source)).toBe('label');
+});
