@@ -24,8 +24,10 @@ export type ResultKind =
     | 'element' | 'structure' | 'functional' | 'segment' | 'fenwick' | 'date' | 'datetime' | 'duration' | 'file' | 'database'
     | 'tuple' | 'value' | 'same';
 
-/** Types currently supported by direct native calls in compiled loops. */
-export type CompiledAtomType = 'integer' | 'boolean' | 'text' | 'bytes';
+// Common compiler vocabulary. Backend profiles declare the supported subset.
+export type CompiledAtomType = 'integer' | 'real' | 'boolean' | 'text' | 'bytes';
+/** Types currently supported by direct native calls and registers in loops. */
+export type CompiledLoopType = Exclude<CompiledAtomType, 'real'>;
 
 /** A verified compiler-supported subset, not the operation's full language signature.
  * Calls are synchronous and cannot invoke Rank callbacks or mutate bindings.
@@ -33,8 +35,8 @@ export type CompiledAtomType = 'integer' | 'boolean' | 'text' | 'bytes';
  * Runtime binding must still verify the actual builtin and any host override.
  */
 export interface CompiledCallSignature {
-    readonly inputs: readonly (CompiledAtomType | 'text-or-bytes' | 'text-array' | 'same')[];
-    readonly result: CompiledAtomType;
+    readonly inputs: readonly (CompiledLoopType | 'text-or-bytes' | 'text-array' | 'same')[];
+    readonly result: CompiledLoopType;
 }
 
 /** One builtin name, either always available in core or opened by a module. */

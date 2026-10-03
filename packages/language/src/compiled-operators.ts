@@ -1,9 +1,10 @@
-import type { CompiledAtomType } from './operations.js';
+import type { CompiledAtomType, CompiledLoopType } from './operations.js';
 
 /** The current scalar-function backend supports only these catalogue types. */
 export type CompiledScalarType = Extract<CompiledAtomType, 'integer' | 'boolean'>;
+export type CompiledTensorType = Extract<CompiledAtomType, 'integer' | 'real' | 'boolean'>;
 
-export interface CompiledOperatorSignature<T extends CompiledAtomType = CompiledAtomType> {
+export interface CompiledOperatorSignature<T extends CompiledAtomType = CompiledLoopType> {
     readonly inputs: readonly T[];
     readonly result: T;
     /** The corresponding compound assignment preserves the binding type. */
@@ -21,8 +22,9 @@ export interface CompiledOperator {
     readonly name: string;
     readonly scalarFunction: readonly CompiledOperatorSignature<CompiledScalarType>[];
     readonly integerLoop: readonly CompiledOperatorSignature[];
+    readonly tensor?: readonly CompiledOperatorSignature<CompiledTensorType>[];
     readonly unary?: '' | '-' | '!';
-    readonly binary?: '+' | '-' | '*' | '//' | '%' | '**' | '<' | '>' | '<=' | '>=' | '===' | '!==' | '&&' | '||';
+    readonly binary?: '+' | '-' | '*' | '/' | '//' | '%' | '**' | '<' | '>' | '<=' | '>=' | '===' | '!==' | '&&' | '||';
 }
 
 const integerUnary: CompiledOperatorSignature<CompiledScalarType> = { inputs: ['integer'], result: 'integer' };
@@ -35,22 +37,38 @@ const signed = [integerUnary, integerBinary];
 const equality = [integerComparison, booleanComparison];
 const booleanUnary: CompiledOperatorSignature<CompiledScalarType> = { inputs: ['boolean'], result: 'boolean' };
 
+const tensorArithmetic: readonly CompiledOperatorSignature<CompiledTensorType>[] = [
+    { inputs: ['integer', 'integer'], result: 'integer' },
+    { inputs: ['real', 'real'], result: 'real' },
+    { inputs: ['integer', 'real'], result: 'real' },
+    { inputs: ['real', 'integer'], result: 'real' },
+];
+const tensorSigned: readonly CompiledOperatorSignature<CompiledTensorType>[] = [
+    integerUnary, { inputs: ['real'], result: 'real' }, ...tensorArithmetic,
+];
+// Existing tensor comparisons require matching numeric domains, including equal.
+const tensorComparison: readonly CompiledOperatorSignature<CompiledTensorType>[] = [
+    integerComparison, { inputs: ['real', 'real'], result: 'boolean' },
+];
+
 export const compiledOperators: readonly CompiledOperator[] = [
-    { name: '+', unary: '', binary: '+', scalarFunction: signed,
+    { name: '+', unary: '', binary: '+', scalarFunction: signed, tensor: tensorSigned,
         integerLoop: [...signed, { inputs: ['text', 'text'], result: 'text', compound: true, nativeCalls: true }] },
-    { name: '-', unary: '-', binary: '-', scalarFunction: signed, integerLoop: signed },
+    { name: '-', unary: '-', binary: '-', scalarFunction: signed, integerLoop: signed, tensor: tensorSigned },
     ...(['*', '//', '%'] as const).map(name => ({ name, binary: name,
-        scalarFunction: [integerBinary], integerLoop: [integerBinary] })),
+        scalarFunction: [integerBinary], integerLoop: [integerBinary], tensor: name === '*' ? tensorArithmetic : undefined })),
     ...([['less', '<'], ['greater', '>'], ['atmost', '<='], ['atleast', '>=']] as const)
-        .map(([name, binary]) => ({ name, binary, scalarFunction: [integerComparison], integerLoop: [integerComparison] })),
+        .map(([name, binary]) => ({ name, binary, scalarFunction: [integerComparison], integerLoop: [integerComparison], tensor: tensorComparison })),
     ...([['equal', '==='], ['notequal', '!==']] as const)
-        .map(([name, binary]) => ({ name, binary, scalarFunction: equality, integerLoop: [...equality, textComparison] })),
+        .map(([name, binary]) => ({ name, binary, scalarFunction: equality, integerLoop: [...equality, textComparison], tensor: tensorComparison })),
     ...([['and', '&&'], ['or', '||'], ['xor', '!==']] as const)
-        .map(([name, binary]) => ({ name, binary, scalarFunction: [booleanBinary], integerLoop: [booleanBinary] })),
-    { name: 'not', unary: '!', scalarFunction: [booleanUnary], integerLoop: [booleanUnary] },
+        .map(([name, binary]) => ({ name, binary, scalarFunction: [booleanBinary], integerLoop: [booleanBinary], tensor: [booleanComparison] })),
+    { name: 'not', unary: '!', scalarFunction: [booleanUnary], integerLoop: [booleanUnary], tensor: [booleanUnary] },
     // The loop emitter additionally requires a nonnegative literal exponent.
     { name: '**', binary: '**', scalarFunction: [],
-        integerLoop: [{ inputs: ['integer', 'integer'], result: 'integer' }] },
+        integerLoop: [{ inputs: ['integer', 'integer'], result: 'integer' }], tensor: tensorArithmetic },
+    { name: '/', binary: '/', scalarFunction: [], integerLoop: [],
+        tensor: tensorArithmetic.map(signature => ({ ...signature, result: 'real' })) },
 ];
 const operatorIndex = new Map(compiledOperators.map(operation => [operation.name, operation]));
 export function findCompiledOperator(name: string): CompiledOperator | undefined { return operatorIndex.get(name); }
@@ -62,7 +80,15 @@ function match<T extends CompiledAtomType>(signatures: readonly CompiledOperator
 export function scalarOperatorSignature(name: string, inputs: readonly CompiledScalarType[]): CompiledOperatorSignature<CompiledScalarType> | undefined {
     return match(findCompiledOperator(name)?.scalarFunction, inputs);
 }
-export function loopOperatorSignature(name: string, inputs: readonly CompiledAtomType[], nativeCalls: boolean): CompiledOperatorSignature | undefined {
+export function loopOperatorSignature(name: string, inputs: readonly CompiledLoopType[], nativeCalls: boolean): CompiledOperatorSignature | undefined {
     const signature = match(findCompiledOperator(name)?.integerLoop, inputs);
     return signature?.nativeCalls && !nativeCalls ? undefined : signature;
+}
+
+/** Tensor guards currently specialize boolean, comparison and numeric families.
+ * Layout, empty-domain timing, finite values and exponent bounds stay guarded
+ * by the tensor backend; declaring an overload does not remove those guards.
+ */
+export function tensorOperatorSignatures(name: string, arity: number): readonly CompiledOperatorSignature<CompiledTensorType>[] {
+    return findCompiledOperator(name)?.tensor?.filter(signature => signature.inputs.length === arity) ?? [];
 }
