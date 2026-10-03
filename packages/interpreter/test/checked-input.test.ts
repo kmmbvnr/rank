@@ -126,3 +126,46 @@ it('preserves document modifiers and parenthesized reads', () => {
     const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\n3\n' }) });
     expect(runtime.execute('use tables\nRows = ("data.csv" csv) check\nRows .price sum')).toBe(3n);
 });
+
+it('collects multiple column uses without losing the checked read after the first reduction', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price,quantity\n1,bad\n' }) });
+    expect(() => runtime.execute('use tables\nRows = "data.csv" csv check\nFirst = Rows .price sum\nRows .quantity sum'))
+        .toThrow(/data.csv.quantity\[0\].*received text/);
+    expect(runtime.variables.has('First')).toBe(false);
+});
+
+it('infers nested document requirements from uses without guessing a JSON root schema', () => {
+    const runtime = new Interpreter(() => {});
+    expect(() => runtime.execute(`use json\nDoc = ${JSON.stringify('{"payload":{"items":["bad"]}}')} json check\nAfter = 1\nDoc .payload .items sum`))
+        .toThrow(/json input.payload.items\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('checks XML attribute selection at the parse line', () => {
+    const runtime = new Interpreter(() => {});
+    expect(() => runtime.execute(`use xml\nDoc = ${JSON.stringify('<item/>')} xml check\nAfter = 1\nDoc .attributes .id`))
+        .toThrow('xml input.attributes.id: required field is missing');
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('does not require fields protected by a default or an untaken branch', () => {
+    const runtime = new Interpreter(() => {});
+    const source = `use json\nDoc = ${JSON.stringify('{}')} json check\nResult = Doc .optional default 0\nif false\n Doc .absent sum\nend\nResult`;
+    expect(runtime.execute(source)).toBe(0n);
+});
+
+it('does not validate later mutated document contents as requirements of the original read', () => {
+    for (const mutation of ['Doc .price = "bad"', 'fun change Data\n Data .price = "bad"\n return Data\nend\nDoc = Doc change']) {
+        const runtime = new Interpreter(() => {});
+        const source = `use json\nDoc = ${JSON.stringify('{"price":1}')} json check\nAfter = 1\n${mutation}\nDoc .price sum`;
+        expect(() => runtime.execute(source)).toThrow();
+        expect(runtime.variables.get('After')).toBe(1n);
+    }
+});
+
+it('does not require fields read only by a short-circuited operand', () => {
+    for (const condition of ['false and (Doc .absent equal 1)', 'true or (Doc .absent equal 1)']) {
+        const runtime = new Interpreter(() => {});
+        expect(() => runtime.execute(`use json\nDoc = ${JSON.stringify('{}')} json check\n${condition}`)).not.toThrow();
+    }
+});

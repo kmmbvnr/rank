@@ -20,6 +20,9 @@ export interface Value {
     dimensions: Map<number, number>;
     fields: Map<string, Value>;
     fact: ValueFacts;
+    /** Fresh parser output and its selections cannot contain Rank callbacks.
+     * This is reader provenance, never a proof of a required field or domain. */
+    parsed?: true;
     node: AstNode;
 }
 export interface Binding { name: string; node: AstNode; rank: number; value: Value; }
@@ -65,6 +68,7 @@ export class Graph {
         const fields = this.fields(value);
         let selected = fields.get(name);
         if (!selected) { selected = this.value(node, fact); fields.set(name, selected); }
+        if (value.parsed) selected.parsed = true;
         return selected;
     }
     private symbolic(dim: Dim, at: RequirementSite): number | undefined {
@@ -127,6 +131,7 @@ export class Graph {
         return id;
     }
     same(left: Value, right: Value, at: RequirementSite, dimensions = true): void {
+        if (left.parsed || right.parsed) left.parsed = right.parsed = true;
         this.solver.equal(left.rank, right.rank, at);
         this.domainLinks.push([left.domain, right.domain]);
         if (dimensions) {

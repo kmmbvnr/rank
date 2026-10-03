@@ -137,7 +137,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             // bindings. A later file read must not detach aliases of an earlier read.
             if (operation.effects?.length && operation.effects.every(effect => effect === 'io')
                 && args.every(arg => arg.fact.types.length && arg.fact.types.every(type => primitiveTypes.has(type)))) return;
-            const plain = args.every(arg => arg.fact.types.length && (arg.fact.rank === 0 || arg.fact.types.join() === 'text'
+            const plain = args.every(arg => arg.parsed || arg.fact.types.length && (arg.fact.rank === 0 || arg.fact.types.join() === 'text'
                 || arg.fact.eagerScalarCells || arg.fact.callbackFreeScalarCells));
             if (operation.effects?.length || !plain) forget();
         };
@@ -272,6 +272,16 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 call(nullary, [], output, node); callEffects(nullary.name, []); return output;
             }
             if (isBinaryExpression(node)) {
+                if (node.operator === 'default') {
+                    // A missing field on the left is handled by the fallback. Neither
+                    // side supplies an unconditional successful-read requirement.
+                    forget(); return output;
+                }
+                if (node.operator === 'and' || node.operator === 'or') {
+                    expression(node.left);
+                    // The right side may be skipped; its effects are conditional too.
+                    forget(); return output;
+                }
                 const form = symbolicApplicationForm(node, name => !bound(name));
                 if (form?.kind === 'reduce') {
                     const value = expression(form.source), rank = form.rank && literal(form.rank);
@@ -302,7 +312,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             const prefix = parts.slice(1, -1);
             if (unary && prefix.length && (prefix.some(isAllAxisExpression)
                 && prefix.every(part => isAllAxisExpression(part) || literal(part) !== undefined)
-                || prefix.length === 1 && isLabelLiteral(prefix[0]))) {
+                || prefix.every(isLabelLiteral))) {
                 parts = [applicationExpression(parts.slice(0, -1), node), trailing!];
             }
             let form: ReturnType<typeof applicationForm>;
@@ -310,6 +320,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             catch { return output; } // Incomplete notebook syntax has no requirements yet.
             if (form.kind === 'checked-read') {
                 const value = expression(applicationExpression(form.parts, node));
+                value.parsed = true;
                 graph.expressions.set(node, value);
                 return value;
             }
@@ -366,16 +377,26 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 graph.solver.equal(output.rank, input.rank, site(node, 'selection'), -selectors.filter(part => !isAllAxisExpression(part)).length);
                 return output;
             }
-            // Track a selection by value identity, so aliases share the same requirement.
-            // Unknown callable receivers retain the unresolved-application path below.
-            if (parts.length === 2 && isLabelLiteral(parts[1])) {
-                const fact = expressionFacts(parts[0], lookup);
-                if (fact.types.length && fact.types.every(type => ['array', 'object', 'record'].includes(type))) {
-                    const source = expression(parts[0]);
-                    const selected = graph.field(source, parts[1].name, node, output.fact);
-                    graph.expressions.set(node, selected);
-                    return selected;
+            // Parsed documents cannot be callbacks, even when their root type is unknown.
+            // Field requirements still become facts only after the runtime check succeeds.
+            if (parts.length > 1 && parts.slice(1).every(isLabelLiteral)) {
+                let source = expression(parts[0]);
+                for (const [index, selector] of parts.slice(1).entries()) {
+                    if (!isLabelLiteral(selector)) break;
+                    if (!source.parsed && (!source.fact.types.length
+                        || !source.fact.types.every(type => ['array', 'object', 'record'].includes(type)))) {
+                        forget(); return output;
+                    }
+                    const fact = index === parts.length - 2 ? output.fact
+                        : expressionFacts(applicationExpression(parts.slice(0, index + 2), node), lookup);
+                    const selected = graph.field(source, selector.name, node, fact);
+                    // An ordinary array projection can demand lazy rows and invoke callbacks.
+                    if (!source.parsed && source.fact.types.includes('array')
+                        && !source.fact.eagerScalarCells && !source.fact.callbackFreeScalarCells) forget();
+                    source = selected;
                 }
+                graph.expressions.set(node, source);
+                return source;
             }
             for (const part of parts) if (!isNameExpression(part) || env.has(part.name)) expression(part);
             // Do not connect unknown callable arguments to its result or to a summary.
