@@ -15,6 +15,19 @@ const signs: readonly TypeSignature[] = [
     { inputs: ['missing'], result: 'missing', ranks: [0] },
 ];
 
+const item: SignatureType = { variable: 0 };
+const bound: SignatureType = { union: ['number', 'text', 'boolean', 'symbol', 'date', 'datetime', 'record', 'missing'] };
+function rangeSignatures(conditional: boolean): readonly TypeSignature[] {
+    const limit: SignatureType = conditional ? { union: [bound,
+        { collection: 'array', element: 'boolean' }, { collection: 'sequence', element: 'boolean' },
+        { callback: { inputs: [item], result: 'unknown' } }] } : bound;
+    return [{ inputs: ['integer', 'integer'], result: { collection: 'sequence', element: 'integer' } },
+        ...(['array', 'sequence', 'queue'] as const).map(collection => ({
+            inputs: [{ collection, element: item }, limit],
+            result: { collection: collection === 'queue' ? 'array' as const : collection, element: item },
+        })), { inputs: ['text', limit], result: 'text' }];
+}
+
 /** Language-level cell contracts, not the compiler's supported subset.
  * Rank annotations describe cells. Broadcasting, sequence bounds and guard
  * evaluation still follow each operator's rules; types do not promise every
@@ -45,6 +58,8 @@ export const operatorSignatures: Readonly<Record<string, readonly TypeSignature[
         { inputs: ['missing'], result: 'missing', ranks: [0] }],
     multipleby: [binary('integer', 'integer', 'boolean'), ...missing],
     is: [{ inputs: ['unknown', 'symbol'], result: 'boolean' }],
+    to: rangeSignatures(false),
+    till: rangeSignatures(true),
 };
 
 // SQL dispatch precedes scalar/cell dispatch. Column calendar/boolean refinements

@@ -1,7 +1,7 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, describeTypes, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
-    isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackStatement,
+    analyzeValues, applicationForm, formatTypeSignature, signatureType, describeTypes, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
+    isExpression, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts,
 } from '@arrrank/language';
 import { parse } from '@arrrank/interpreter';
@@ -66,6 +66,23 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         } : undefined;
     };
     const signatureFor = (site: Site): string | undefined => {
+        if (site.kind === 'outer' && !analysis.bindings.has('outer') && !runtime.has('outer')) {
+            for (let node: AstNode | undefined = site.node.$container; node && isExpression(node); node = node.$container) {
+                const form = applicationForm(node);
+                const operands = form.kind === 'outer' ? form.operands
+                    : form.kind === 'named-outer' ? [form.left, form.right, form.operation] : undefined;
+                if (operands) {
+                    const result = analysis.expressions.get(node);
+                    return formatTypeSignature({
+                        inputs: operands.map(operand => form.kind === 'named-outer' && operand === form.operation
+                            ? 'function' : signatureType(analysis.expressions.get(operand) ?? UNKNOWN)),
+                        // Every successful outer call builds an array; cell types still need analyzer evidence.
+                        result: signatureType(result?.types.length ? result : { types: ['array'] }),
+                    });
+                }
+            }
+            return undefined;
+        }
         if (site.kind === 'operator') {
             const node = site.node;
             const operands = isBinaryExpression(node) ? [node.left, node.right]
@@ -74,8 +91,8 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         }
         const call = callFacts(site);
         if (isCatalogueFunction(site)) return operationSignature(findOperation(site.name)!, call?.arguments);
-        if (site.kind !== 'function' && site.kind !== 'read') return undefined;
-        if (site.kind === 'read' && rebound.has(site.name)) return undefined;
+        if (site.kind !== 'function' && site.kind !== 'read' && site.kind !== 'outer') return undefined;
+        if (site.kind !== 'function' && rebound.has(site.name)) return undefined;
         for (let parent = site.node.$container; parent; parent = parent.$container) {
             if (isFunctionStatement(parent) && parent.parameters.includes(site.name)) return undefined;
         }
@@ -96,8 +113,10 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         const site = [offset, offset - 1].map(at => nameSite(root, at)).find(found => found !== undefined);
         if (!site) return undefined;
         const inFunction = AstUtils.getContainerOfType(site.node, isFunctionStatement);
-        if (site.kind === 'operator') return { name: site.name, source: 'static', facts: FUNCTION,
-            signature: signatureFor(site) };
+        if (site.kind === 'operator' || site.kind === 'outer') {
+            const signature = signatureFor(site);
+            if (signature) return { name: site.name, source: 'static', facts: FUNCTION, signature };
+        }
         const observed = runtime.get(site.name);
         if (observed && !inFunction && site.kind !== 'parameter' && !written.has(site.name)) {
             // A run records no element types; the analyzer's agree with it only when type, rank and shape do.
@@ -139,7 +158,7 @@ function writtenNames(program: Program): Set<string> {
 interface Site {
     readonly name: string;
     readonly node: AstNode;
-    readonly kind: 'read' | 'assignment' | 'loop' | 'parameter' | 'unpack' | 'function' | 'operator';
+    readonly kind: 'read' | 'assignment' | 'loop' | 'parameter' | 'unpack' | 'function' | 'operator' | 'outer';
 }
 
 function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site | undefined {
@@ -156,6 +175,9 @@ function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site 
         }
     }
     if (isNameExpression(node)) {
+        if (node.name === 'outer' && (text === 'outer' || /^outer\s/.test(text))) {
+            return { name: text.replace(/\s+/g, ' '), node, kind: 'outer' };
+        }
         return node.name === text ? { name: text, node, kind: loopOf(node) ? 'loop' : 'read' } : undefined;
     }
     if (isAssignmentStatement(node) || isArrayAssignmentStatement(node)) {
@@ -189,7 +211,7 @@ function staticFacts(site: Site, analysis: ReturnType<typeof analyzeValues>): Va
     const { node, name } = site;
     const known = (expression: Expression): ValueFacts => analysis.expressions.get(expression) ?? UNKNOWN;
     switch (site.kind) {
-        case 'read': {
+        case 'outer': case 'read': {
             if (analysis.functions.has(name)) return FUNCTION;
             return known(node as Expression);
         }

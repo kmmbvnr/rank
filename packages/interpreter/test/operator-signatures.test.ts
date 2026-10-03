@@ -34,3 +34,15 @@ it('keeps shape and guard restrictions separate from cell types', () => {
     expect(() => new Interpreter().execute('true and (array true false)')).toThrow('single boolean');
     expect(() => new Interpreter().execute('(1 to 3) equal (1 to 3)')).toThrow('two sequences');
 });
+
+
+it('checks range and bound collection kinds without confusing bounds with lifted cells', () => {
+    for (const [source, expected] of [
+        ['1 to 3', 'sequence'], ['1 till 3', 'sequence'],
+        ['(1 to 5) till 3', 'sequence'], ['(array 1 2 3) till 3', 'array'],
+        ['"abc" till "c"', 'text'],
+        ['use algo\nQ = new queue\nQ push 1\nQ push 2\nQ till 2', 'array'],
+        ['(1 to 3) (1 to 4) outer +', 'array'],
+    ]) expect(typeName(new Interpreter().execute(source)!), source).toBe(expected);
+    expect(() => new Interpreter().execute('(array shape 2 2 fill 1) till 3')).toThrow('rank-1');
+});

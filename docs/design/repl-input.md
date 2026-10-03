@@ -387,6 +387,12 @@ including both words in `not equal`, `at least`, `at most`, and `multiple by`.
 Equality allows unrelated operand types and can propagate `missing`; it does not
 claim that the operands must have the same type. A known SQL column selects the
 column result contract. Column refinements and ownership remain runtime constraints.
+`to`/`till` distinguish integer ranges from bounds on existing collections.
+Array bounds require rank 1; `till` accepts predicates and boolean masks, while `to`
+takes a limit. Sequence masks must meet the runtime mask and source-ownership rules.
+On `outer +` (including its symbol) and named `outer`, the footer uses the analyzer's
+proven operands and cell types with the form's array result contract; it does not
+evaluate cells to discover their types.
 Other keywords, operator forms without metadata, and numbers show the normal hints. The line is grey and clipped to the footer width: the shape goes first,
 then the front of the name. A shape with an axis of unknown length is left out rather
 than guessed. Errors, running status, completion candidates and an iteration row keep

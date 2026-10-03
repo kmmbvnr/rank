@@ -228,3 +228,17 @@ describe('factsAt: grammar operator signatures', () => {
             .toBe('boolean boolean → boolean [rank 0 0]');
     });
 });
+
+
+it('shows range and proven outer signatures on operator words', () => {
+    expect(factsAt('1 to 3', 3)?.signature).toBe('integer integer → sequence<integer>');
+    expect(factsAt('1 till 3', 4)?.signature).toBe('integer integer → sequence<integer>');
+    const source = '(1 to 3) (1 to 4) outer +';
+    for (const offset of [source.indexOf('outer'), source.length - 1, source.length]) {
+        expect(factsAt(source, offset)?.signature).toBe('sequence<integer> sequence<integer> → array<integer>');
+    }
+    const named = '(array 1 2) (array 3 4) outer max';
+    expect(factsAt(named, named.indexOf('outer'))?.signature).toBe('array<integer> array<integer> function → array');
+    const shadowed = 'fun outer X\n return X\nend\n3 outer';
+    expect(factsAt(shadowed, shadowed.lastIndexOf('outer'))?.signature).toBe('integer → integer');
+});

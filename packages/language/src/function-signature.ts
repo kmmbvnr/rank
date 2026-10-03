@@ -1,7 +1,7 @@
 import type { FunctionStatement } from './generated/ast.js';
 import { instantiateRelationship, type FunctionRelationship, type TypeRelationship } from './analysis/function-relationships.js';
 import { UNKNOWN_VALUE, type ValueFacts } from './analysis/value-domain.js';
-import { formatTypeSignature, type SignatureAtom, type SignatureType } from './type-signature.js';
+import { formatTypeSignature, signatureType, type SignatureType } from './type-signature.js';
 
 export interface FunctionSignatureFacts {
     readonly arguments?: readonly ValueFacts[];
@@ -15,17 +15,7 @@ export function functionSignature(definition: FunctionStatement, facts: Function
     let nextVariable = 0;
     const budget = { remaining: 1000 };
     const unknown = (): SignatureType => ({ variable: nextVariable++ });
-    const describe = (value: ValueFacts): SignatureType => {
-        if (!value.types.length) return unknown();
-        const members = value.types.map((name): SignatureType => {
-            if (name === 'tuple' && value.tupleItems) return { tuple: value.tupleItems.map(describe) };
-            if (['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'multiset', 'heap'].includes(name)
-                && value.elements?.length) return { collection: name as SignatureAtom,
-                element: describe({ types: value.elements }) };
-            return name as SignatureAtom;
-        });
-        return members.length === 1 ? members[0] : { union: members };
-    };
+    const describe = (value: ValueFacts): SignatureType => signatureType(value, unknown);
     const arguments_ = definition.parameters.map((_, index) => facts.arguments?.[index] ?? UNKNOWN_VALUE);
     const inputs = arguments_.map(describe);
     const instantiate = (term: TypeRelationship, values: readonly ValueFacts[]) =>

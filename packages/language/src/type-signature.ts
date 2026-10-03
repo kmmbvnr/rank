@@ -24,6 +24,19 @@ export interface TypeSignature {
     readonly ranks?: readonly (number | 'all')[];
 }
 
+/** Convert proven facts to display types; callers choose how unknown variables are named. */
+export function signatureType(value: ValueFacts, unknown: () => SignatureType = () => 'unknown'): SignatureType {
+    if (!value.types.length) return unknown();
+    const members = value.types.map((name): SignatureType => {
+        if (name === 'tuple' && value.tupleItems) return { tuple: value.tupleItems.map(item => signatureType(item, unknown)) };
+        if (['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'multiset', 'heap'].includes(name)
+            && value.elements?.length) return { collection: name as SignatureAtom,
+            element: signatureType({ types: value.elements }, unknown) };
+        return name === 'sqlite-expression' ? 'column' : name === 'sqlite-table' ? 'table' : name as SignatureAtom;
+    });
+    return members.length === 1 ? members[0] : { union: members };
+}
+
 /** Format facts supplied by the catalogue or analyzer; never infer them from operand names. */
 export function formatTypeSignature(signature: TypeSignature): string {
     const variables = new Map<number, string>();

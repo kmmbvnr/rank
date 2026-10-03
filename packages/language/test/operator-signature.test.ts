@@ -38,3 +38,13 @@ it('shows cell types for arrays and does not assign signatures to unknown words'
         .toBe('integer integer → integer [rank 0 0]');
     expect(operatorSignature('until')).toBeUndefined();
 });
+
+
+it('distinguishes numeric ranges from collection bounds', () => {
+    expect(operatorSignature('to', facts('integer', 'integer'))).toBe('integer integer → sequence<integer>');
+    expect(operatorSignature('till', [{ types: ['sequence'], elements: ['integer'] }, { types: ['integer'] }]))
+        .toBe('sequence<a> number → sequence<a>');
+    expect(operatorSignature('to', facts('text', 'text'))).toBe('text text → text');
+    expect(operatorSignature('till', [{ types: ['queue'], elements: ['integer'] }, { types: ['integer'] }]))
+        .toBe('queue<a> number → array<a>');
+});
