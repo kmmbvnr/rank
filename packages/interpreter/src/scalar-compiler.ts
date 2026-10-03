@@ -1,5 +1,5 @@
 import {
-    findCompiledOperator, expressionOperatorSignatures,
+    findCompiledOperator, expressionOperatorSignatures, applicationForm,
     isBinaryExpression, isUnaryExpression, isParenthesizedExpression,
     isNameExpression, isNumberLiteral, isBooleanLiteral, isStringLiteral,
     type Expression,
@@ -85,8 +85,9 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
         if (!isBinaryExpression(e) || e.step) return undefined;
         const signatures = expressionOperatorSignatures(e.operator, 2);
         if (!signatures.length) return undefined;
-        // These are syntax modifiers, not scalar right operands.
-        if (isNameExpression(e.right) && ['reduce', 'scan', 'outer', 'segment'].includes(e.right.name)) return undefined;
+        // Modifier operands belong to the complete application, including
+        // axis/rank/seed qualifiers. Never evaluate its fragments as values.
+        if (applicationForm(e).kind !== 'plain') return undefined;
         const left = emit(e.left), right = emit(e.right);
         if (!left || !right) return undefined;
         count++;

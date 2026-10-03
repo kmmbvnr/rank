@@ -136,6 +136,18 @@ describe('resumable expression fallback', () => {
     }
 
     it.each([
+        '(Values scan + axis 0) * 2 + 1',
+        '(Values scan + with 10) * 2 + 1',
+        '(Values reduce + with 10) * 2 + 1',
+    ])('keeps a qualified modifier whole in %s', expression => {
+        const source = `use sequences\nValues = array 1 2 3\n${expression}`;
+        const reference = run(source, false), compiled = run(source, true);
+        expect(reference).not.toHaveProperty('error');
+        expect({ ...compiled, entries: 0 }).toEqual({ ...reference, entries: 0 });
+        expect(compiled.entries).toBeGreaterThan(0);
+    });
+
+    it.each([
         `use io
 Count = 0
 fun tap X
