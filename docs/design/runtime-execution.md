@@ -452,8 +452,13 @@ at runtime, while this direct-call profile accepts only text and bytes. Do not
 use the profile as an operand-domain restriction or a complete editor signature.
 Module ownership, public result kind, ranks and effects remain on the same
 catalogue entry; native implementations and host-override validation stay in the
-interpreter. This is the first migration in #103. Scalar-operator and tensor-rule
-consolidation, richer semantic signatures, and the #154 display remain follow-ups.
+interpreter. Scalar-function proof reads its integer and boolean operator
+overloads from `packages/language/src/compiled-operators.ts`, which also declares
+which overloads preserve a binding through compound assignment. Control-flow,
+closure and proof-budget checks remain in the interpreter. These profiles pin
+the existing backend limits; they are not the full language operator signatures.
+The loop and tensor operator migrations, richer semantic signatures, and the
+#154 display remain follow-ups in #103 and the typing roadmap.
 
 Before entering each region, the runtime checks required input types and binds
 only the original functions from loaded modules. Rebound functions, unsupported

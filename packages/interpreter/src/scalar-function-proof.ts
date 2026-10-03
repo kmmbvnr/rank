@@ -1,12 +1,12 @@
 import {
+    scalarOperatorSignature, type CompiledScalarType,
     isReturnStatement, isAssignmentStatement, isIfStatement,
     isParenthesizedExpression, isNumberLiteral, isBooleanLiteral,
     isNameExpression, isUnaryExpression, isBinaryExpression,
     type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 
-type ScalarType = 'integer' | 'boolean';
-interface Proof { type: ScalarType; locals: readonly string[] }
+interface Proof { type: CompiledScalarType; locals: readonly string[] }
 const simpleProofs = new WeakMap<FunctionStatement, Proof | null>();
 const blockProofs = new WeakMap<FunctionStatement, Proof | null>();
 
@@ -17,9 +17,9 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     if (proofs.has(statement)) return proofs.get(statement) ?? undefined;
     const parameters = new Set(statement.parameters);
     const locals = new Set<string>();
-    const settled = new Map<string, ScalarType>(statement.parameters.map(name => [name, 'integer']));
-    let remaining = blocks ? 256 : 129, resultType: ScalarType | undefined;
-    function type(expression: Expression, env: ReadonlyMap<string, ScalarType>): ScalarType | undefined {
+    const settled = new Map<string, CompiledScalarType>(statement.parameters.map(name => [name, 'integer']));
+    let remaining = blocks ? 256 : 129, resultType: CompiledScalarType | undefined;
+    function type(expression: Expression, env: ReadonlyMap<string, CompiledScalarType>): CompiledScalarType | undefined {
         if (--remaining < 0) return undefined;
         if (isParenthesizedExpression(expression)) return type(expression.value, env);
         if (isNumberLiteral(expression) && typeof expression.value === 'bigint') return 'integer';
@@ -27,23 +27,16 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         if (isNameExpression(expression)) return env.get(expression.name);
         if (isUnaryExpression(expression)) {
             const operand = type(expression.operand, env);
-            if (expression.operator === 'not' && operand === 'boolean') return 'boolean';
-            if (['+', '-'].includes(expression.operator) && operand === 'integer') return 'integer';
+            return operand && scalarOperatorSignature(expression.operator, [operand])?.result;
         }
         if (isBinaryExpression(expression) && !expression.step) {
             const left = type(expression.left, env), right = type(expression.right, env);
-            if (!left || left !== right) return undefined;
-            if (['equal', 'notequal'].includes(expression.operator)) return 'boolean';
-            if (left === 'boolean' && ['and', 'or', 'xor'].includes(expression.operator)) return 'boolean';
-            if (left === 'integer') {
-                if (['+', '-', '*', '//', '%'].includes(expression.operator)) return 'integer';
-                if (['less', 'greater', 'atmost', 'atleast'].includes(expression.operator)) return 'boolean';
-            }
+            return left && right ? scalarOperatorSignature(expression.operator, [left, right])?.result : undefined;
         }
         return undefined;
     }
     // null: every path returned; undefined: unproved; map: continuing paths.
-    function flow(commands: readonly Statement[], env: Map<string, ScalarType>): Map<string, ScalarType> | null | undefined {
+    function flow(commands: readonly Statement[], env: Map<string, CompiledScalarType>): Map<string, CompiledScalarType> | null | undefined {
         for (let index = 0; index < commands.length; index++) {
             if (--remaining < 0) return undefined;
             const command = commands[index];
@@ -60,8 +53,8 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (!value || settled.has(command.name) && settled.get(command.name) !== value) return undefined;
                 if (command.operator !== '=') {
                     if (env.get(command.name) !== value) return undefined;
-                    const allowed = value === 'integer' ? ['+=', '-=', '*=', '//=', '%='] : ['and=', 'or=', 'xor='];
-                    if (!allowed.includes(command.operator)) return undefined;
+                    const signature = scalarOperatorSignature(command.operator.slice(0, -1), [value, value]);
+                    if (!signature?.compound || signature.result !== value) return undefined;
                 }
                 settled.set(command.name, value);
                 env.set(command.name, value);
@@ -69,7 +62,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 continue;
             }
             if (isIfStatement(command)) {
-                const continuing: Map<string, ScalarType>[] = [];
+                const continuing: Map<string, CompiledScalarType>[] = [];
                 for (const branch of [{ condition: command.condition, statements: command.thenStatements }, ...command.elifClauses]) {
                     if (type(branch.condition, env) !== 'boolean') return undefined;
                     const outcome = flow(branch.statements, new Map(env));
