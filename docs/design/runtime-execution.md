@@ -440,11 +440,20 @@ for measured effects and scope.
 ## Typed builtin calls in loops
 
 The whole-loop compiler also supports text concatenation and compact byte
-registers. An explicit signature table in `loop-builtins.ts` permits synchronous
-calls to `bytes`, `startswith`, `lower`, `codepoint`, `character`, `join` on text
+registers. Explicit `compiledCall` profiles in the language operation catalogue
+(`packages/language/src/operations.ts`) permit synchronous calls to `bytes`, `startswith`, `lower`, `codepoint`, `character`, `join` on text
 vectors, and `md5`. These calls preserve Unicode rules, errors and interruption
 checks. Byte length and single-integer indexing
 do not materialize a bigint array.
+
+These profiles describe the current compiler-supported subset, not a builtin's
+complete language signature. For example, `bytes` also accepts integer arrays
+at runtime, while this direct-call profile accepts only text and bytes. Do not
+use the profile as an operand-domain restriction or a complete editor signature.
+Module ownership, public result kind, ranks and effects remain on the same
+catalogue entry; native implementations and host-override validation stay in the
+interpreter. This is the first migration in #103. Scalar-operator and tensor-rule
+consolidation, richer semantic signatures, and the #154 display remain follow-ups.
 
 Before entering each region, the runtime checks required input types and binds
 only the original functions from loaded modules. Rebound functions, unsupported
