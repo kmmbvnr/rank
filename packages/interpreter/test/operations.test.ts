@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
-    findOperation, validateShapeSignature, moduleForms, modules, operations, type Operation,
+    findOperation, resultTypes, validateShapeSignature, moduleForms, modules, operations, type Operation,
 } from '@arrrank/language';
 import { Interpreter, standardModules } from '../src/index.js';
 import type { RuntimeContext } from '../src/modules/types.js';
-import { isNativeFunction, type RankValue } from '../src/value.js';
+import { isNativeFunction, typeName, type RankValue } from '../src/value.js';
 import { TokenInput } from './support.js';
 
 const context: RuntimeContext = {
@@ -91,6 +91,49 @@ describe('the operation catalogue', () => {
 
             }
         }
+    });
+
+    it('keeps direct compiled-call profiles consistent with the operation contract', () => {
+        for (const entry of operations) {
+            const signature = entry.compiledCall;
+            if (!signature) continue;
+            expect(entry.arities, entry.name).toContain(signature.inputs.length);
+            const results = resultTypes(entry);
+            if (results.length) expect(results, entry.name).toContain(signature.result);
+            expect(entry.effects ?? [], entry.name).toEqual([]);
+            expect(entry.lazy, entry.name).toBeUndefined();
+            expect(signature.inputs[0], entry.name).not.toBe('same');
+        }
+    });
+
+    it('verifies each migrated compiled profile against real calls, including both text and bytes', () => {
+        const examples: Record<string, string[]> = {
+            bytes: ['"ёж"', '("ёж" bytes)'],
+            md5: ['"abc"', '("abc" bytes)'],
+            startswith: ['"ёж" "ё"', '("ёж" bytes) ("ё" bytes)'],
+            lower: ['"ЁЖ"'], codepoint: ['"😀"'], character: ['128512'],
+            join: ['(array "ёж" "😀") ":"'],
+        };
+        const profiles = operations.filter(entry => entry.compiledCall);
+        // A new eligibility entry needs an actual runtime example as well.
+        expect(profiles.map(entry => entry.name).sort()).toEqual(Object.keys(examples).sort());
+        for (const entry of profiles) for (const operands of examples[entry.name]) {
+            const runtime = new Interpreter();
+            try {
+                const value = runtime.execute(`use text\nuse crypto\n${operands} ${entry.name}`)!;
+                expect(typeName(value), `${entry.name}: ${operands}`).toBe(entry.compiledCall!.result);
+            } finally { runtime.dispose(); }
+        }
+    });
+
+    it('does not make narrower compiler inputs into language restrictions', () => {
+        const runtime = new Interpreter();
+        try {
+            expect(typeName(runtime.execute('(array 65 66) bytes')!)).toBe('bytes');
+            expect(runtime.execute('use text\n(array 1 2) ":" join')).toBe('1:2');
+            const lifted = runtime.execute('(array "a" "b") "a" startswith')!;
+            expect(typeName(lifted)).toBe('array');
+        } finally { runtime.dispose(); }
     });
 
     it('names a module that exists for every entry', () => {

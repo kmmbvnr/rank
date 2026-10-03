@@ -352,7 +352,7 @@ measurement.
 
 A first stage-5 compiler use now keeps a cached tensor reader across calls to
 functions already proved scalar-only by `scalarFunctionResult`, and across
-synchronous builtins registered in `loopBuiltins`. Callable identity and module
+synchronous builtins with a catalogue `compiledCall` profile. Callable identity and module
 availability are checked at region entry; external MD5 additionally needs its
 explicit pure-host contract. Unknown calls still disable this reader path.
 On Apple M5 / Node v24.15.0, `node benchmarks/tensor-read-helper.mjs scalar`

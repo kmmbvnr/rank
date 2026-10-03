@@ -24,6 +24,19 @@ export type ResultKind =
     | 'element' | 'structure' | 'functional' | 'segment' | 'fenwick' | 'date' | 'datetime' | 'duration' | 'file' | 'database'
     | 'tuple' | 'value' | 'same';
 
+/** Types currently supported by direct native calls in compiled loops. */
+export type CompiledAtomType = 'integer' | 'boolean' | 'text' | 'bytes';
+
+/** A verified compiler-supported subset, not the operation's full language signature.
+ * Calls are synchronous and cannot invoke Rank callbacks or mutate bindings.
+ * `same` requires the first scalar operand's type; it does not imply broadcasting.
+ * Runtime binding must still verify the actual builtin and any host override.
+ */
+export interface CompiledCallSignature {
+    readonly inputs: readonly (CompiledAtomType | 'text-or-bytes' | 'text-array' | 'same')[];
+    readonly result: CompiledAtomType;
+}
+
 /** One builtin name, either always available in core or opened by a module. */
 export interface Operation {
     /** The word written in the program. */
@@ -44,6 +57,9 @@ export interface Operation {
     /** One sentence describing the result. */
     readonly summary: string;
     readonly result: ResultKind;
+    /** Direct-call eligibility for existing compiler backends. Never use this
+     * restricted subset as a complete operand-domain rule or displayed signature. */
+    readonly compiledCall?: CompiledCallSignature;
     /** Field result kinds for a built-in record with a stable schema. */
     readonly recordFields?: Readonly<Record<string, ResultKind>>;
     /** Fresh rank-1 record fields containing vertices from a closed graph operand. */
@@ -260,6 +276,7 @@ export const operations: readonly Operation[] = [
         dyadicRanks: [0, 0], scalarNoCallback: 'integer', summary: 'Arithmetic shift right by a nonnegative bit count.' },
 
     { name: 'md5', module: 'crypto', arities: [1], form: 'Value md5', result: 'bytes',
+        compiledCall: { inputs: ['text-or-bytes'], result: 'bytes' },
         summary: 'MD5 digest of bytes or UTF-8 text, as 16 bytes.' },
 
     { name: 'date', module: 'dates', arities: [1], form: 'Text date', result: 'date',
@@ -701,14 +718,17 @@ export const operations: readonly Operation[] = [
         summary: 'Read-only SELECT view with bound positional parameters.' },
 
     { name: 'character', module: 'text', arities: [1], form: 'Code character', result: 'text',
+        compiledCall: { inputs: ['integer'], result: 'text' },
         summary: 'One-character text for a Unicode code point.' },
     { name: 'codepoint', module: 'text', arities: [1], form: 'Character codepoint',
+        compiledCall: { inputs: ['text'], result: 'integer' },
         shape: [{ args: [null], result: [] }],
         result: 'integer',
         summary: 'Integer code point of exactly one character.' },
     { name: 'hex', module: 'text', arities: [1], form: 'Bytes hex', result: 'text',
         summary: 'Lowercase hexadecimal text for bytes, without a prefix.' },
     { name: 'bytes', module: 'core', arities: [1], form: 'Value bytes', result: 'bytes',
+        compiledCall: { inputs: ['text-or-bytes'], result: 'bytes' },
         summary: 'Converts UTF-8 text or a rank-1 array of integers in 0..255 to compact bytes.' },
     { name: 'integer', module: 'core', arities: [1], form: 'Value integer', result: 'integer',
         shape: [{ args: [null], result: [] }],
@@ -717,6 +737,7 @@ export const operations: readonly Operation[] = [
         shape: [{ args: [null], result: [] }],
         monadicRank: 1, summary: 'Converts an integer or decimal text to a real, or preserves a real.' },
     { name: 'join', module: 'text', arities: [2], form: 'Values Separator join', result: 'text',
+        compiledCall: { inputs: ['text-array', 'text'], result: 'text' },
         shape: [{ args: [[null], []], result: null }],
         dyadicRanks: [1, 0],
         summary: 'Joins scalar elements of a finite collection into one text; a matrix joins each row.' },
@@ -727,9 +748,11 @@ export const operations: readonly Operation[] = [
         denseElements: ['text'],
         summary: 'Splits at every exact occurrence of a separator, keeping empty parts.' },
     { name: 'startswith', module: 'text', arities: [2], form: 'Value Prefix startswith',
+        compiledCall: { inputs: ['text-or-bytes', 'same'], result: 'boolean' },
         result: 'boolean',
         summary: 'Exact text or byte prefix test; ordinary arrays broadcast elementwise.' },
     { name: 'lower', module: 'text', arities: [1], form: 'Text lower', result: 'text',
+        compiledCall: { inputs: ['text'], result: 'text' },
         operandDomains: [['text']],
         summary: 'Converts Unicode text to lowercase.' },
     { name: 'lpad', module: 'text', arities: [3], form: 'Text Width Fill lpad', result: 'text',

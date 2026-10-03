@@ -1,15 +1,14 @@
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import {
-    flattenApplication, expressionFacts,
+    flattenApplication, expressionFacts, findOperation,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
-    type Expression, type ForStatement, type Statement,
+    type Expression, type ForStatement, type Statement, type CompiledAtomType,
 } from '@arrrank/language';
 import { completed, type Completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankBytes, isRankIndex, type RankArray, type RankValue } from './value.js';
-import { loopBuiltins, type LoopAtomType } from './loop-builtins.js';
 import { RankDeque } from './containers.js';
 import { indexKey } from './index-key.js';
 import { materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray } from './array-storage.js';
@@ -61,7 +60,7 @@ interface Host {
     compiled?(source: string): void;
     executed?(): void;
 }
-interface Term { code: string; type: LoopAtomType; ascii?: boolean }
+interface Term { code: string; type: CompiledAtomType; ascii?: boolean }
 const comparisons: Record<string, string> = {
     less: '<', greater: '>', atmost: '<=', atleast: '>=', equal: '===', notequal: '!==',
 };
@@ -277,8 +276,8 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         if (isApplicationExpression(e)) {
             const parts = flattenApplication(e), last = parts.at(-1);
             if (last && isNameExpression(last) && !last.name.includes('.')) {
-                const signature = host.nativeCalls && Object.prototype.hasOwnProperty.call(loopBuiltins, last.name)
-                    ? loopBuiltins[last.name] : undefined;
+                const operation = host.nativeCalls ? findOperation(last.name) : undefined;
+                const signature = operation?.compiledCall;
                 if (signature && signature.inputs.length === parts.length - 1) {
                     const arguments_: string[] = [];
                     const types: string[] = [];
@@ -308,10 +307,10 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                         types.push(value.type);
                     }
                     const name = `v${serial++}`, index = calls.length;
-                    // loopBuiltins contains only synchronous operations with
+                    // Catalogue compiled calls are synchronous operations with
                     // no Rank callbacks; bind() checks the current builtin.
                     calls.push({ name: last.name, locals: [], stableArrayReads: true,
-                        bind: () => host.builtinCall(signature.module, last.name, types) });
+                        bind: () => host.builtinCall(operation!.module, last.name, types) });
                     lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
                     return { code: name, type: signature.result };
                 }
