@@ -4,7 +4,7 @@ import { EmptyFileSystem } from 'langium';
 import { beforeAll, expect, it } from 'vitest';
 import { createRankServices } from '../src/rank-module.js';
 import { isFunctionStatement, type Program } from '../src/generated/ast.js';
-import { functionRelationship, instantiateRelationship } from '../src/analysis/function-relationships.js';
+import { functionRelationship, instantiateRelationship, type FunctionRelationship, type TypeRelationship } from '../src/analysis/function-relationships.js';
 import { expressionFacts } from '../src/analysis/value-facts.js';
 import { type ValueFacts } from '../src/analysis/value-domain.js';
 
@@ -109,4 +109,76 @@ it('does not turn an unobserved recursive return into a returning tuple', () => 
         const summary = functionRelationship(definition(`fun sample Value\n return ${body}\nend`))!;
         expect(instantiateRelationship(summary, [{ types: [], bottom: true }])).toEqual({ types: [], bottom: true });
     }
+});
+
+it('composes structural relationships through nested calls beyond the body budget', () => {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(`
+fun pair Value
+ return tuple Value "label"
+end
+fun wrap Value
+ return Value pair
+end
+fun outer Value
+ return Value wrap
+end
+${Array.from({ length: 120 }, (_, i) => `Result${i} = ${i} outer`).join('\n')}
+`);
+    expect(parsed.parserErrors).toEqual([]);
+    const result = analyzeValues(parsed.value);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.relationships.size).toBe(3);
+    for (let i = 0; i < 120; i++) {
+        expect(result.bindings.get(`Result${i}`)?.tupleItems?.map(item => item.types)).toEqual([['integer'], ['text']]);
+    }
+    const pair = parsed.value.statements[0];
+    if (!isFunctionStatement(pair)) throw new Error('expected pair');
+    const parameterNode = [...result.relationships.get(pair)!.expressions.keys()]
+        .find(node => node.$type === 'NameExpression');
+    expect(result.expressions.get(parameterNode!)?.types).toEqual(['integer']);
+});
+
+it('drops a composed relationship when its callee binding changes', () => {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(
+        'fun helper Value\n return Value\nend\nfun wrap Value\n return Value helper\nend');
+    expect(parsed.parserErrors).toEqual([]);
+    const functions = new Map(parsed.value.statements.filter(isFunctionStatement).map(fn => [fn.name, fn]));
+    const env = new Map<string, ValueFacts>([['helper', { types: ['function'] }], ['wrap', { types: ['function'] }]]);
+    let bodyVisits = 0;
+    const calls = createCallAnalysis(env, functions, [], new Map(),
+        () => { bodyVisits++; return [{ types: [] }]; },
+        () => { throw new Error('unexpected import'); });
+    const input: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    expect(calls.call('wrap', [input], env).types).toEqual(['integer']);
+    expect(bodyVisits).toBe(0);
+    env.set('helper', { types: ['function'] });
+    expect(calls.validRelationships(env).has(functions.get('wrap')!)).toBe(false);
+    expect(calls.call('wrap', [input], env).types).toEqual([]);
+    expect(bodyVisits).toBeGreaterThan(0);
+    expect(calls.relationships.has(functions.get('wrap')!)).toBe(false);
+});
+
+it('keeps recursive and stateful callees on ordinary analysis', () => {
+    for (const source of [
+        'fun first Value\n return Value second\nend\nfun second Value\n return Value first\nend',
+        'fun helper Value\n Captured += 1\n return Value\nend\nfun wrap Value\n return Value helper\nend',
+    ]) {
+        const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+        expect(parsed.parserErrors).toEqual([]);
+        const result = analyzeValues(parsed.value);
+        expect(result.relationships.size).toBe(0);
+    }
+});
+
+
+it('bounds expansion of a branching relationship graph', () => {
+    const input: TypeRelationship = { kind: 'parameter', index: 0 };
+    let summary: FunctionRelationship = { result: input, expressions: new Map(), dependencies: [] };
+    for (let i = 0; i < 30; i++) {
+        summary = { result: { kind: 'tuple', items: [
+            { kind: 'call', callee: summary, arguments: [input] },
+            { kind: 'call', callee: summary, arguments: [input] },
+        ] }, expressions: new Map(), dependencies: [] };
+    }
+    expect(instantiateRelationship(summary, [{ types: ['integer'], rank: 0, shape: [] }])).toBeUndefined();
 });

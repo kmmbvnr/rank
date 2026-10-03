@@ -74,10 +74,14 @@ use ordinary analysis. Summary calls still run the existing return-contract
 checks and retain expression facts for the inspector, but do not walk the
 return body or consume the recursive body-analysis budget.
 
-The cache belongs to one analysis and calls still check the function binding's
-identity. Captures, mutations, guarded returns, arithmetic and calls inside the
-body currently use ordinary analysis; reusable relationships for those cases
-remain follow-up work in #156. Backward requirement templates stay separate:
+Structural relationships also compose through proved top-level callees. Their
+binding identities and transitive dependencies remain part of the summary;
+shadowed or replaced helpers invalidate it, including for signature display.
+Inner expression facts and parameter contracts are retained. Composition depth
+and instantiation work are bounded; unsupported or recursive groups use ordinary
+analysis. The cache belongs to one analysis. Captures, mutations, guarded returns,
+arithmetic and unresolved callbacks currently use ordinary analysis; reusable
+relationships for those cases remain follow-up work in #156. Backward requirement templates stay separate:
 a solved requirement is not a proof about the supplied value.
 
 `analysis/function-effects.ts` summarizes possible indexed writes to parameters

@@ -1171,7 +1171,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const unique = diagnostics.filter((diagnostic, index) => !diagnostics.slice(0, index).some(previous =>
         previous.node === diagnostic.node && previous.message === diagnostic.message));
     return { diagnostics: unique, bindings, expressions, functions, functionResults, requirements, imports: imported,
-        relationships: calls.relationships };
+        relationships: calls.validRelationships(bindings) };
 }
 
 function dataDependentLength(operation: Operation): boolean {
