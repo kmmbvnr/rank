@@ -1,0 +1,168 @@
+{
+  "stage": "ranked scalar callbacks through checked array views",
+  "implementationRevision": "fa9498464c1caccb58653c2d5d134ea4f651a313",
+  "sourceTrees": {
+    "packages/language/src": "b622fe3a749ccdc5ebe0fb09008b4b4ab94dfd3e",
+    "packages/interpreter/src": "f804358ca03205edde64af573ef488469fe4faf8",
+    "packages/cli/src": "70c1996d4e24504ae3b5fb2e7a7cfa61165bb295"
+  },
+  "timingRuns": [
+    {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "samples": 5,
+      "first": "baseline",
+      "revisions": {
+        "baseline": "0d8a69322d53a4446b28880f78afecc8ac680777",
+        "candidate": "3e9a64170a34bf398b8093c8fca731b8b2d79ad1"
+      },
+      "results": [
+        {
+          "name": "Euler 004",
+          "source": "demos/euler/004_palproduct.ra",
+          "expected": "906609",
+          "milliseconds": {
+            "baseline": [
+              2318.6691659999997,
+              2342.186667,
+              2350.2065000000002,
+              2349.5433330000014,
+              2342.3327080000017
+            ],
+            "candidate": [
+              2251.8627500000002,
+              2279.645624999999,
+              2300.4911250000005,
+              2272.5119159999995,
+              2287.621332999999
+            ]
+          },
+          "baselineMedian": 2342.3327080000017,
+          "candidateMedian": 2279.645624999999,
+          "ratio": 0.973237327564141
+        }
+      ]
+    }
+  ],
+  "audits": [
+    {
+      "selection": "demos",
+      "candidateSha256": "be8eef509403e68d5b2f681c693f28bf75c905778e3b65804f3977b4bc69aa9a",
+      "recordedReferenceSha256": "c60d70e80bb2adcb1cb2736d96fa85718885ad86e013bb8467d5db38d193e772",
+      "files": 392,
+      "tests": 1356,
+      "exports": null,
+      "updatedDatabases": []
+    },
+    {
+      "selection": "unpaired",
+      "candidateSha256": "305d1ffb98d3144b974ad9ba57be7d8888c1e99a8f85b5a15c6ba059b6a76227",
+      "recordedReferenceSha256": "96ad8702eac927e5a56a1fef480d8926fe03616072d169f866b08ef17a868b28",
+      "files": 74,
+      "tests": 0,
+      "exports": {
+        "001_all.csv": "12c672d049ffe17990cbc370a28c427d7ecba1837221b937c5d43ebd7e969748",
+        "002_cols.csv": "1166eb67bdcb0907a7509cf5792a53b70ef00373c427be49ad0d561048bca6c3",
+        "003_where.csv": "ec7aeaf11bdbfd1c7fa6913f7634ba36f07c49f2d2c7249a04e593d95615481a",
+        "004_where2.csv": "8aca5823f5a5cf39d653e7af1318cce65bea52e6686c92daf9dff6e6631972db",
+        "005_like.csv": "4b1ed1d75b93e8b97cb237286db958a1853e6ad088eba071e86b5cfb3035236c",
+        "006_in.csv": "ee54fb386656523501e360dc38207e59348616b1c1810568cf193df966004a0b",
+        "007_case.csv": "f70ba5af7e9f5205035c34bba3db6656841370f59c7f631a168e82e61767dd52",
+        "008_dates.csv": "0196709deed0933a1806ee8d439a68c8bebbfd8acf159b1aa78bf7831c8efbca",
+        "009_unique.csv": "2c6719f5557e7d549af5a21d33b7aad1aec5d61e96e803763f51a24431409951",
+        "010_union.csv": "32e34046f18334fd9744b7e8121036f1bdb80811e2b0d959c6f4fafa00cb2ae3",
+        "011_latest.csv": "a29243f18c28540729f55a3903c3b4e097b2e09679f43faec18ebbc6987754db",
+        "012_lastmem.csv": "24d3db9f4a1513efda633b3e3cf8d5a5c17ef2a106c109fa219d4c55549ad398",
+        "agg_003.csv": "ed5e520953e1608954d4dc42e4a7890c74f15c919bb91a91c1a66f193401e302",
+        "agg_004.csv": "1e16bbb3f2aadc0b0e469d729561488631fac5966ea7ebf98c05c10906de148a",
+        "agg_005.csv": "df42ab5ab7604cf5f17ab3475c1bbb10394cdd3c7850df10ab6814cf51783df5",
+        "agg_006.csv": "923710e737ed3bc66358d6cd1124727c09fe14b37c4706b79295cd1ab7aa0c09",
+        "agg_008.csv": "fb4af8636cddb7b3d428e8bb3e3c2a5ca5f495b4952c737808c9d56e4985978c",
+        "agg_009.csv": "d1840e61bd4d66c5161901b4890e5e887b7e86f0508b9cc94fc7d56d33f642c3",
+        "agg_010.csv": "6b0a1c8940947bf96aa724225fce1b967ec4a4200ce217a927f0a6aad8ecdc05",
+        "agg_011.csv": "540d2b80c9dc4f0e74c83bbcee98c39ebfa42984640c2f0659f5f4780b8a7977",
+        "agg_012.csv": "bff9e0f46cdc44e158e453d364109570d9680b801b59a321ed6d41cac3393168",
+        "agg_013.csv": "094f9b1ddb4c55903954bf52690c7a7f5425e0fcbc72f556dcbb2b10eb7c53d3",
+        "agg_014.csv": "eb6cf2845d5e95c95e1333f0759fa39e7aaa53e63fc76650502bc55b8923779e",
+        "agg_015.csv": "d0dd8b9ae6abb8e58d9e46c36fc78be35809c8f86578504a4735d0404e06572d",
+        "agg_016.csv": "93398deed279e783f630b41a4c1c2d0d80c5e1fe507b828cfe8813fa54638f86",
+        "agg_017.csv": "641479b7bf3d418a41338bdb400b576a74a0b8b3ea58a58d85b1cfc842b9f526",
+        "agg_018.csv": "30de92f01f204d28ea356583bce8695f1a5e87e258d1406570210a1f67e8d8ca",
+        "agg_019.csv": "17b42af56698bdc4d69243701cce1acadfcbec9383d2adc2811d3aa4dac8daba",
+        "agg_020.csv": "f9f7ad7baaf1e525b516100b003a1a27838f2a93f7d047b9afa03bb39c3b2969",
+        "agg_021.csv": "076084b0024830ad41ff5a346e685353eabfb11b0051965c0caaf1cf94a2415e",
+        "agg_022.csv": "8732fe288efc3dfd5bf4f6b11584f6dbba268c47c5c9b1e22a0a322c1aef1afa",
+        "date_003.csv": "7cd7a9a0b4f046655d29d5786765d01f62984827b13e03db86a48b92062ee664",
+        "date_006.csv": "9710f810a78e5dd410725430a2415e8b395b3f73b1ca843823490af46e3ef95e",
+        "date_008.csv": "0b05179b999c598ec75915dada2f8b83af84b63abc985d3ffa03a1dd064f5da0",
+        "date_009.csv": "e9b7066e753e330053810cd574ff12adc969da975d49c135937966bad5bee79d",
+        "date_010.csv": "6dd4af2b008c164b64d64ee18dfc19c164365e2ad48eeb2670cb26913733e573",
+        "joins_001.csv": "caa5cd6f6fe632206e8feefc83aa867ce54638ce1938ef35decfbfa3c5333764",
+        "joins_002.csv": "f9d219edb047c68b30f971b577e9f5e2c05cfbb1f30b4a600f216bf8e567cab8",
+        "joins_003.csv": "32ec81563e372600ac3a421a419545ab0aab1ad48c210da54f3d99aad2802214",
+        "joins_004.csv": "c4c1112dc7f9a6f1dd271cfc78daf8ad2d1a1d1f43a8b9abdfc7fbf8580c1919",
+        "joins_005.csv": "4f36e7d29116bf442f136269cbf7c6de1423ae1d8dcb83705a9a756b63123835",
+        "joins_006.csv": "00c5e902d62b917739ec3b0ed07f1c60aeafa1db256f51f556b8100aa40366ba",
+        "joins_007.csv": "e0755bda6903fb0808966bf1ed181758d97fd3f1634af6720d2f5931b2c53720",
+        "joins_008.csv": "00c5e902d62b917739ec3b0ed07f1c60aeafa1db256f51f556b8100aa40366ba",
+        "rec_001.csv": "4205e0e250288c373e8a190389fb032948496ea565b6b63df7a609bfb2ee57c5",
+        "rec_002.csv": "94b5df9d0a0a703fc9807c34ac9500a2ef91738e069aef9b20a0caf1ac054d66",
+        "rec_003.csv": "712f95f66af9b0ff3cbac6493a620b054fbd4f9c6416cac2004ab39fd6a8dc18",
+        "string_001.csv": "c16d0de2af5de495e799e8b806bb689010da50669be0ba556828ca7b7a7985d4",
+        "string_002.csv": "53070e9e7af172cb93d0de4a784e8d812f5fce5c4cae0c879144d58ea8e5f657",
+        "string_003.csv": "53070e9e7af172cb93d0de4a784e8d812f5fce5c4cae0c879144d58ea8e5f657",
+        "string_004.csv": "c919dbf6fe8aa827091dd7ff8725663ef1cdda235be2536836ac426e73d28af7",
+        "string_005.csv": "eeb264c19259f50bd7cea2dc5e26cca866384eb5eb13da81e596629415b69731",
+        "string_006.csv": "78b66458076453cb946835e2ecfa18942039ae4b9cb4472f64b22b5e0aa9fed4",
+        "string_007.csv": "bcf38c83b3cc72b63c5706dcdc8fe787086a66c85f18d8dc0b86f6c8e49f650c"
+      },
+      "updatedDatabases": [
+        {
+          "updatedDatabase": "8a379defe656431c714e57008414cebe0f7547ffab0ffa2aa04c5929095cd0c2",
+          "file": "demos/pgexercises/updates/001_spa.ra"
+        },
+        {
+          "updatedDatabase": "b63cf5126deae9604161726926213bc81a150d9328a0f5903eb87aa75561ab49",
+          "file": "demos/pgexercises/updates/002_spa2.ra"
+        },
+        {
+          "updatedDatabase": "8a379defe656431c714e57008414cebe0f7547ffab0ffa2aa04c5929095cd0c2",
+          "file": "demos/pgexercises/updates/003_nextid.ra"
+        },
+        {
+          "updatedDatabase": "e4652817f153a56754a38f1eebaa57ee8929d69bbc7df26467f1ba224a254206",
+          "file": "demos/pgexercises/updates/004_outlay.ra"
+        },
+        {
+          "updatedDatabase": "8c9488edb682a2c69e61d67a67f50b6a1934bc1fe0e12da713eaee7e04c8ff71",
+          "file": "demos/pgexercises/updates/005_prices.ra"
+        },
+        {
+          "updatedDatabase": "9320aba14efb622197cfb99e151a3e00533b18a0b5d866441ab44be13c12369b",
+          "file": "demos/pgexercises/updates/006_from1.ra"
+        },
+        {
+          "updatedDatabase": "10e913e754ce59562580982d75d74d25c2579ba1e1bab68ba78f9be6670ec612",
+          "file": "demos/pgexercises/updates/007_clear.ra"
+        },
+        {
+          "updatedDatabase": "da3cf24c4e2b3154518102d184291edf1573e00ae645732b986fbb80a2d8dea8",
+          "file": "demos/pgexercises/updates/008_mem37.ra"
+        },
+        {
+          "updatedDatabase": "da3cf24c4e2b3154518102d184291edf1573e00ae645732b986fbb80a2d8dea8",
+          "file": "demos/pgexercises/updates/009_unused.ra"
+        }
+      ]
+    },
+    {
+      "selection": "chess",
+      "candidateSha256": "fdb720a080cc1408c96c291a4c2814e3e88e3b7180c9a7749ceb6e7a6c94d05d",
+      "recordedReferenceSha256": "fd76d682a7b8a4e5c20c03b1fb09f1a9dab282bce5c207f03c29b74aacf498b6",
+      "files": 1,
+      "tests": 0,
+      "exports": null,
+      "updatedDatabases": []
+    }
+  ]
+}
