@@ -22,13 +22,31 @@ async function ran(...sources: string[]) {
 }
 
 describe('navigable result rows', () => {
-    it('says what an openable result is, and leaves a scalar result alone', async () => {
+    it('shows an openable result as two rows: the preview, then what it is', async () => {
         const { session, text } = await ran('M = array shape 3 4 fill 1', '1 + 2');
         try {
             const lines = text();
-            expect(lines.some(line => line.includes('integer [3 4] · '))).toBe(true);
-            expect(lines.filter(line => line.includes('·'))).toHaveLength(1);
+            const at = lines.findIndex(line => line.trim() === 'integer [3 4]');
+            expect(at).toBeGreaterThan(0);
+            expect(lines[at - 1].trim()).toBe('1 1 1 1 1 1 1 1 1 1 1 1');
+            // The shape is said once: no `shape 3 4, 12 values` note under it.
+            expect(lines.some(line => line.includes('12 values'))).toBe(false);
+            // A scalar stays a plain row.
             expect(lines.some(line => line.trim() === '3')).toBe(true);
+        } finally { session.dispose(); }
+    });
+
+    it('keeps a long preview to one row and keeps a note that adds something', async () => {
+        const { session, text } = await ran('A = array shape 100 fill 7', 'use sequences', 'S = 1 to 40');
+        try {
+            const lines = text();
+            const at = lines.findIndex(line => line.trim() === 'integer [100]');
+            expect(at).toBeGreaterThan(0);
+            expect(lines[at - 1]).toMatch(/\.\.\./);
+            expect(lines[at - 1].length).toBeLessThanOrEqual(46);
+            const range = lines.findIndex(line => line.trim().startsWith('sequence'));
+            expect(range).toBeGreaterThan(0);
+            expect(lines[range]).toMatch(/sequence · 40 values/);
         } finally { session.dispose(); }
     });
 
@@ -36,9 +54,11 @@ describe('navigable result rows', () => {
         const { session, frame } = await ran('A = array 1 2 3', '5');
         try {
             const targets = frame().targets!.filter(target => target?.kind === 'value');
-            expect(targets).toHaveLength(1);
+            // Both rows of the result open it, and the scalar below has none.
+            expect(targets).toHaveLength(2);
             expect(targets[0]).toMatchObject({ kind: 'value', cell: 0, points: [] });
             expect(typeof targets[0]!.ref).toBe('number');
+            expect(targets[1]!.ref).toBe(targets[0]!.ref);
         } finally { session.dispose(); }
     });
 

@@ -589,9 +589,9 @@ test('load can be cancelled or replace the old document and its variable types',
     assert.match(frames[1].text, /Save changes before loading another file/);
     assert.match(frames[2].text, /X = 1/);
     assert.match(frames[3].text, /Save changes before loading another file/);
-    assert.doesNotMatch(frames[4].text, /X = 1|\n      integer \[3\] · 1 2 3\n/);
+    assert.doesNotMatch(frames[4].text, /X = 1|\n      1 2 3\n      integer \[3\]\n/);
     assert.match(frames[4].text, /X = array 1 2 3/);
-    assert.match(frames[5].text, /\n      integer \[3\] · 1 2 3\nrank> /);
+    assert.match(frames[5].text, /\n      1 2 3\n      integer \[3\]\nrank> /);
     assert.doesNotMatch(frames[5].text, /cannot receive/);
 });
 
@@ -601,7 +601,7 @@ test('editing a declaration can change its type on replay', async t => {
         { keys: UP + CLEAR + 'X = array 1 2 3', until: 'X = array 1 2 3' },
         { keys: DOWN + ENTER, until: '1 2 3' }
     ]);
-    assert.match(frames[2].text, /X = array 1 2 3\n      integer \[3\] · 1 2 3\nrank> /);
+    assert.match(frames[2].text, /X = array 1 2 3\n      1 2 3\n      integer \[3\]\nrank> /);
     assert.doesNotMatch(frames[2].text, /cannot receive/);
 });
 
@@ -670,7 +670,7 @@ test('Ctrl-C interrupts SQLite in the real terminal and preserves the database b
     assert.match(frames[4].text, /Running/);
     assert.match(frames[5].text, /Stopped after/);
     assert.match(frames[5].text, /executing SQLite query/);
-    assert.match(frames[7].text, /\n      integer \[1\] · 42\n/);
+    assert.match(frames[7].text, /\n      42\n      integer \[1\]\n/);
     assert.doesNotMatch(frames[7].text, /Running/);
 });
 
@@ -1262,7 +1262,7 @@ test('Enter on a result row opens a full-screen viewer of a 3 by 4 array, and Es
     assert.match(viewer[3], /^1 │/);
     assert.match(viewer[13], /rows 1–3 of 3/);
     assert.doesNotMatch(frames[2].text, /rank> /);
-    assert.match(frames[3].text, /integer \[3 4\] · /);
+    assert.match(frames[3].text, /\n\s+integer \[3 4\]\n/);
     assert.match(frames[3].text, /Enter view/);
 });
 

@@ -35,9 +35,12 @@ The result of an executed cell is a stop for Up/Down when the value can be opene
 viewer: an array of rank one or more, a table, a sequence, or a record, object, index,
 set, counter, queue, tuple or graph. Scalars and text stay plain and are skipped. The
 stop sits between the cell and the next one: Down from the cell's last row, or Up from
-the next cell's first row, lands on the result without executing anything. The row
-starts with the value's type and shape (`integer [3 4] · 1 2 3 4 ...`), so the user can
-see there is more than the preview. A focused result row has a highlighted background
+the next cell's first row, lands on the result without executing anything. The result is
+two rows at most: the preview kept to one row, with its two ends and a gap (`1 2 3 ... 11 12`),
+and under it what the value is (`integer [3 4]`, `sequence · 499 values`, `tuple`), so the user
+can see there is more than the preview. The `shape 3 4, 12 values` note that used to follow
+repeats the shape and is dropped; a note that adds something (a sequence's size) joins the
+second row. Both rows open the viewer, and a focused result highlights both. A focused result row has a highlighted background
 and the footer shows `Enter view · Esc back`. Enter opens the viewer; Esc or Up leaves
 the row for the cell's last line, and Down continues to the next cell. Any other key
 leaves the row and acts as usual. A tap on the web, or a mouse click in the CLI, opens

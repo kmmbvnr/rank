@@ -14,7 +14,8 @@ key rules for the terminal live in `repl-input.md`.
 2. **The viewer opens from a result row.** The result of an executed cell that can be opened (an
    array of rank one or more, a table, a sequence, a record, object, index, set, counter, queue,
    tuple or graph) is a stop for Up and Down between its cell and the next. The row starts with
-   the value's type and shape (`integer [3 4] · 1 2 3 4 ...`) and the footer says `Enter view`.
+   a preview kept to one row and, under it, the value's type and shape (`integer [3 4]`), never
+   more than two rows; the footer says `Enter view`.
    Enter, a tap on the web or a click in the CLI opens the viewer. Scalars and text stay plain.
 3. **Two renderers, one model.** The CLI has a full-screen text viewer, like `help`; the web has an
    HTML overlay. Both draw the same view model from `common` (`buildValueView`): title, type

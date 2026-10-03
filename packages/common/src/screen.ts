@@ -122,6 +122,12 @@ function errorRows(text: string, columns: number): TextRow[] {
     }
     return rows;
 }
+/** One row of at most `width` cells; a longer text ends in an ellipsis instead of wrapping. */
+function oneRow(text: string, width: number): string {
+    const plain = clean(text);
+    return cellWidth(plain) <= width ? plain : clipped(plain, Math.max(1, width - 1)) + '…';
+}
+
 export function clipped(text: string, width: number): string {
     return editableRows(clean(text), Math.max(1, width))[0].text;
 }
@@ -279,7 +285,9 @@ export function notebookFrame(
             }
         }
         const modules = live ? [] : missingImports(cell.output);
-        for (const output of live ? [] : cell.output) {
+        const committed = live ? [] : cell.output;
+        for (let at = 0; at < committed.length; at++) {
+            const output = committed[at];
             // A failed execution describes its original source, not the edited draft.
             if (output.error && cell.executed !== undefined && cell.executed !== cell.source) continue;
             const marker = (output.error || pending) && gutter > 0
@@ -287,18 +295,29 @@ export function notebookFrame(
             // A result that opens in a viewer says what it is, and is a stop for the arrow keys.
             const openable = !output.error && output.view !== undefined && output.ref !== undefined;
             const focused = openable && cell.id === valueFocus;
-            const cleaned = clean((openable ? `${output.view} · ` : '') + (output.inlineText ?? output.text));
+            if (openable) {
+                // Two rows at most: the preview, kept to one row with its ends and a gap, and what the value is.
+                // The note under it (`shape 3 4, 12 values`) repeats the shape, so only a note that adds something stays.
+                const next = committed[at + 1];
+                const note = next && !next.error && next.view === undefined && next.ref === output.ref ? clean(next.text) : '';
+                if (note) at++;
+                const detail = output.view!.endsWith(']') || !note ? output.view! : `${output.view} · ${note}`;
+                for (const [part, line] of [clean(output.inlineText ?? output.text).split('\n')[0], detail].entries()) {
+                    targets[rows.length] = { kind: 'value', cell: index, line: 0, ref: output.ref, points: [] };
+                    if (focused && part === 0) caret = { row: rows.length, column: gutter };
+                    rows.push((focused ? '\x1b[7m' : '\x1b[90m')
+                        + oneRow((part === 0 ? marker : ' '.repeat(gutter)) + line, width) + '\x1b[0m');
+                }
+                continue;
+            }
+            const cleaned = clean(output.inlineText ?? output.text);
             const text = output.error ? importPhrases(cleaned).text : cleaned;
             const outputWidth = output.error ? Math.max(1, Math.min(width, 40) - gutter) : bodyWidth;
             const layout = output.error ? errorRows : editableRows;
             for (const item of layout(text, outputWidth)) {
                 const shown = clipped(marker + item.text, width);
-                if (openable) {
-                    targets[rows.length] = { kind: 'value', cell: index, line: 0, ref: output.ref, points: [] };
-                    if (focused) caret = { row: rows.length, column: gutter };
-                }
                 if (!output.error || !modules.length) {
-                    rows.push((output.error ? '\x1b[31m' : focused ? '\x1b[7m' : '\x1b[90m') + shown + '\x1b[0m');
+                    rows.push((output.error ? '\x1b[31m' : '\x1b[90m') + shown + '\x1b[0m');
                     continue;
                 }
                 const fixFocus = index === notebook.active ? importFixFocus : undefined;
