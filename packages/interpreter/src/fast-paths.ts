@@ -1,7 +1,7 @@
 import type { AstNode } from 'langium';
 import {
     findOperation, flattenApplication, isBinaryExpression, isNameExpression, isUnaryExpression,
-    type ApplicationForm, type Operation, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
+    type ApplicationForm, type Operation, type CompiledScalarType, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
@@ -59,7 +59,7 @@ export interface ApplicationReference {
 
 /** A compiled loop's view of a user function it may call without leaving the loop. */
 export interface ScalarCallSite {
-    readonly type: 'integer' | 'boolean';
+    readonly type: CompiledScalarType;
     readonly locals: readonly string[];
     bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined;
 }
@@ -320,13 +320,14 @@ export class FastPaths {
         const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false);
         if (!proof) return undefined;
         const captures = definition.context !== undefined;
-        return { type: proof.type, locals: captures ? proof.locals : [], bind: () => {
+        return { type: proof.type, locals: [...(captures ? proof.locals : []), ...proof.nativeReads], bind: () => {
             const current = this.context.bindings.find(name);
             if (!current || !isNativeFunction(current)) return undefined;
             const active = this.context.functions.definitionOf(current);
             if (active?.statement !== statement || (active.context !== undefined) !== captures
                 || proof.locals.some(local => active.context?.find(local))) return undefined;
-            const compiled = active.owner.prepareScalarCall(statement);
+            const compiled = active.owner.prepareScalarCall(statement, active.context);
+            if (proof.nativeReads.length && !compiled || compiled?.available && !compiled.available()) return undefined;
             return (arguments_, tail = false) => {
                 if (tail && active.owner === this.context.functions) {
                     throw new TailCallSignal(active, arguments_,

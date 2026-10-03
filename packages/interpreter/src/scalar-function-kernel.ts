@@ -1,7 +1,7 @@
 import {
     findCompiledOperator,
     isReturnStatement, isAssignmentStatement, isIfStatement,
-    type CompiledExpression, type CompiledOperator, type Expression, type FunctionStatement, type Statement,
+    type CompiledExpression, type CompiledOperator, type Operation, type CompiledAtomType, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { RankError } from './errors.js';
 import { recordFallback } from './diagnostics.js';
@@ -9,8 +9,9 @@ import type { RankValue } from './value.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
 
 interface Kernel {
+    readonly calls: readonly { operation: Operation; inputs: readonly CompiledAtomType[] }[];
     readonly locations: readonly Statement[];
-    run(arguments_: RankValue[], locate: (error: unknown, index: number) => unknown): RankValue;
+    run(arguments_: RankValue[], locate: (error: unknown, index: number) => unknown, calls?: readonly ((arguments_: RankValue[]) => RankValue)[]): RankValue;
 }
 const kernels = new WeakMap<FunctionStatement, Kernel | null>();
 
@@ -28,6 +29,7 @@ export function compileScalarFunction(statement: FunctionStatement): Kernel | un
     };
     statement.parameters.forEach(slot);
     const locations: Statement[] = [];
+    const calls: { operation: Operation; inputs: readonly CompiledAtomType[] }[] = [];
     let serial = 0;
     function binary(operation: CompiledOperator, left: string, right: string, lines: string[]): string {
         const op = operation.name;
@@ -52,6 +54,13 @@ export function compileScalarFunction(statement: FunctionStatement): Kernel | un
         if (expression.kind === 'unary') {
             const value = lower(expression.operand, lines), result = `v${serial++}`;
             lines.push(`const ${result} = ${expression.operation.unary}(${value});`);
+            return result;
+        }
+        if (expression.kind === 'call') {
+            const arguments_ = expression.arguments.map(argument => lower(argument, lines));
+            const index = calls.push({ operation: expression.operation, inputs: expression.arguments.map(argument => argument.type) }) - 1;
+            const result = `v${serial++}`;
+            lines.push(`const ${result} = calls[${index}]([${arguments_.join(',')}]);`);
             return result;
         }
         const operator = expression.operation.name;
@@ -96,13 +105,13 @@ export function compileScalarFunction(statement: FunctionStatement): Kernel | un
         const parameter = statement.parameters.lastIndexOf(name);
         return `r${index}${parameter >= 0 ? ` = args[${parameter}]` : ''}`;
     });
-    const source = `"use strict"; return function(args, locate) {
+    const source = `"use strict"; return function(args, locate, calls) {
         ${declarations.length ? `let ${declarations.join(',')};` : ''}
         let location = -1;
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
     let kernel: Kernel | undefined;
-    try { kernel = { locations, run: new Function('RankError', source)(RankError) as Kernel['run'] }; }
+    try { kernel = { locations, calls, run: new Function('RankError', source)(RankError) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(statement, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

@@ -448,8 +448,9 @@ for measured effects and scope.
 ## Shared compiler expression proofs
 
 The language package's `inferCompiledExpression` builds a typed expression tree
-from literals, named inputs, grouping and operators. Consumers supply their
-supported literal domains, known input types and catalogue overload policy.
+from literals, named inputs, grouping, operators and declared native calls.
+Consumers supply their supported literal domains, known input types and catalogue
+overload policy. Application grouping uses the same helpers as ordinary analysis.
 The frontend shares a bounded budget with statement analysis and returns the
 first unsupported node. It never executes values or treats missing input facts
 as a type proof.
@@ -457,11 +458,13 @@ as a type proof.
 Scalar-function analysis stores these trees in its cached proof; its kernel
 lowers them directly. The trees retain source nodes, child order and the selected
 overload. Function arguments, private local bindings, captures and builtin
-identities still need their existing runtime guards. This first migration does
-not add compiled operations or types, and does not claim a speed improvement.
+identities still need runtime guards. Private registers can hold integer, boolean
+and text values. Text retains its language rank of one. Integer `text`, text
+`reverse` and text `len` have explicit catalogue call profiles; compatible existing
+text operations use the same native-call frontend.
 
-The remaining #102 stages extend this frontend to native calls and effects,
-guarded tensor domains and array types, then migrate loop/tensor consumers and
+The remaining #102 stages add effect/cost metadata, guarded tensor domains and
+array types, then migrate loop/tensor consumers and
 higher-order operations. Those paths still retain their current inference and
 layout guards until their own migration is verified.
 
@@ -1057,12 +1060,23 @@ The existing definition/context/collision and argument-type guards still apply.
 The owning interpreter checks and restores logical call depth, and errors are
 located at the original callee statements, including imported modules. No separate
 Rank frame or resource scope is needed for this proved subset: it cannot access
-external state, call other functions, receive files or return non-scalar resources.
-The code cache retains AST metadata only. CSP failure retains ordinary execution.
+external state, call Rank callbacks, receive files or return resources. Native calls
+are limited to catalogue profiles whose proven input domains cannot invoke Rank
+callbacks. Their current builtin identity and module availability are checked at
+entry, using the defining scope and owning interpreter. Unknown host replacements
+use ordinary execution. The code cache retains AST metadata only; each definition
+scope has its own prepared binding guards. CSP failure retains ordinary execution.
+
+Native signatures are prepared once. Every region entry still checks bindings,
+host effects, options and interrupt mode. Interactive calls keep native boundary
+checks. A native callee whose kernel is unavailable cannot enter a compiled loop
+through the generic-call fallback; operator-only callees retain that fallback.
 
 Eligible tail calls still use TailCallSignal and the ordinary function driver.
 The signal can carry the proven scalar body, which the driver runs at its current
-logical depth without constructing a callee frame. The caller's resource scope
+logical depth without constructing a callee frame. Native availability is checked
+again after unwinding to the driver, so cleanup cannot leave a stale binding.
+The caller's resource scope
 remains active during the calculation and finishes after its result or error.
 Cross-interpreter calls retain ordinary invocation semantics.
 

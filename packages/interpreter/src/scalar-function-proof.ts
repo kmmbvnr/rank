@@ -1,5 +1,5 @@
 import {
-    scalarOperatorSignature, compiledScalarTypes, inferCompiledExpression, matchCompiledOperatorSignature,
+    scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType,
     isReturnStatement, isAssignmentStatement, isIfStatement,
     type Expression, type FunctionStatement, type Statement,
@@ -10,6 +10,7 @@ import { recordFallback } from './diagnostics.js';
 interface Proof {
     readonly type: CompiledScalarType;
     readonly locals: readonly string[];
+    readonly nativeReads: readonly string[];
     readonly expressions: ReadonlyMap<Expression, CompiledExpression<CompiledScalarType>>;
 }
 const simpleProofs = new WeakMap<FunctionStatement, Proof | string>();
@@ -28,6 +29,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         return undefined;
     }
     const expressions = new Map<Expression, CompiledExpression<CompiledScalarType>>();
+    const nativeReads = new Set<string>();
     const parameters = new Set(statement.parameters);
     const locals = new Set<string>();
     const settled = new Map<string, CompiledScalarType>(statement.parameters.map(name => [name, 'integer']));
@@ -38,6 +40,11 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
             types: compiledScalarTypes,
             lookup: name => env.get(name),
             operator: (operation, inputs) => matchCompiledOperatorSignature(operation.scalarFunction, inputs),
+            call: (operation, inputs) => {
+                const signature = matchCompiledCallSignature(operation, inputs);
+                if (signature) nativeReads.add(operation.name);
+                return signature;
+            },
             budget,
         });
         if (inferred.failure) return reject(inferred.failure.source, inferred.failure.detail);
@@ -90,7 +97,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         return env;
     }
     const outcome = flow(statement.statements, new Map(settled));
-    const result = outcome === null && resultType ? { type: resultType, locals: [...locals], expressions } : undefined;
+    const result = outcome === null && resultType ? { type: resultType, locals: [...locals], nativeReads: [...nativeReads], expressions } : undefined;
     const reason = rejection ?? 'scalar-function:missing-return';
     proofs.set(statement, result ?? reason);
     return result ?? recordFallback(reason);

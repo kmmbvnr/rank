@@ -1,7 +1,7 @@
 import type { CompiledAtomType, CompiledLoopType } from './operations.js';
 
 /** The current scalar-function backend supports only these catalogue types. */
-export const compiledScalarTypes = ['integer', 'boolean'] as const satisfies readonly CompiledAtomType[];
+export const compiledScalarTypes = ['integer', 'boolean', 'text'] as const satisfies readonly CompiledAtomType[];
 export type CompiledScalarType = typeof compiledScalarTypes[number];
 export type CompiledExpressionType = Extract<CompiledAtomType, 'integer' | 'real' | 'boolean'>;
 export type CompiledTensorType = Extract<CompiledAtomType, 'integer' | 'real' | 'boolean'>;
@@ -30,15 +30,15 @@ export interface CompiledOperator {
     readonly binary?: '+' | '-' | '*' | '/' | '//' | '%' | '**' | '<' | '>' | '<=' | '>=' | '===' | '!==' | '&&' | '||';
 }
 
-const integerUnary: CompiledOperatorSignature<CompiledScalarType> = { inputs: ['integer'], result: 'integer' };
-const integerBinary: CompiledOperatorSignature<CompiledScalarType> = { inputs: ['integer', 'integer'], result: 'integer', compound: true };
-const integerComparison: CompiledOperatorSignature<CompiledScalarType> = { inputs: ['integer', 'integer'], result: 'boolean' };
-const booleanComparison: CompiledOperatorSignature<CompiledScalarType> = { inputs: ['boolean', 'boolean'], result: 'boolean' };
-const booleanBinary: CompiledOperatorSignature<CompiledScalarType> = { ...booleanComparison, compound: true };
-const textComparison: CompiledOperatorSignature = { inputs: ['text', 'text'], result: 'boolean' };
+const integerUnary: CompiledOperatorSignature<'integer'> = { inputs: ['integer'], result: 'integer' };
+const integerBinary: CompiledOperatorSignature<'integer'> = { inputs: ['integer', 'integer'], result: 'integer', compound: true };
+const integerComparison: CompiledOperatorSignature<'integer' | 'boolean'> = { inputs: ['integer', 'integer'], result: 'boolean' };
+const booleanComparison: CompiledOperatorSignature<'boolean'> = { inputs: ['boolean', 'boolean'], result: 'boolean' };
+const booleanBinary: CompiledOperatorSignature<'boolean'> = { ...booleanComparison, compound: true };
+const textComparison: CompiledOperatorSignature<'text' | 'boolean'> = { inputs: ['text', 'text'], result: 'boolean' };
 const signed = [integerUnary, integerBinary];
 const equality = [integerComparison, booleanComparison];
-const booleanUnary: CompiledOperatorSignature<CompiledScalarType> = { inputs: ['boolean'], result: 'boolean' };
+const booleanUnary: CompiledOperatorSignature<'boolean'> = { inputs: ['boolean'], result: 'boolean' };
 
 const tensorArithmetic: readonly CompiledOperatorSignature<CompiledTensorType>[] = [
     { inputs: ['integer', 'integer'], result: 'integer' },
@@ -65,7 +65,7 @@ const expressionSigned: readonly CompiledOperatorSignature<CompiledExpressionTyp
 ];
 
 export const compiledOperators: readonly CompiledOperator[] = [
-    { name: '+', unary: '', binary: '+', scalarFunction: signed, scalarExpression: expressionSigned, tensor: tensorSigned,
+    { name: '+', unary: '', binary: '+', scalarFunction: [...signed, { inputs: ['text', 'text'], result: 'text', compound: true }], scalarExpression: expressionSigned, tensor: tensorSigned,
         integerLoop: [...signed, { inputs: ['text', 'text'], result: 'text', compound: true, nativeCalls: true }] },
     { name: '-', unary: '-', binary: '-', scalarFunction: signed, scalarExpression: expressionSigned, integerLoop: signed, tensor: tensorSigned },
     ...(['*', '//', '%'] as const).map(name => ({ name, binary: name,
@@ -73,7 +73,7 @@ export const compiledOperators: readonly CompiledOperator[] = [
     ...([['less', '<'], ['greater', '>'], ['atmost', '<='], ['atleast', '>=']] as const)
         .map(([name, binary]) => ({ name, binary, scalarFunction: [integerComparison], scalarExpression: [integerComparison], integerLoop: [integerComparison], tensor: tensorComparison })),
     ...([['equal', '==='], ['notequal', '!==']] as const)
-        .map(([name, binary]) => ({ name, binary, scalarFunction: equality, scalarExpression: [integerComparison], integerLoop: [...equality, textComparison], tensor: tensorComparison })),
+        .map(([name, binary]) => ({ name, binary, scalarFunction: [...equality, textComparison], scalarExpression: [integerComparison], integerLoop: [...equality, textComparison], tensor: tensorComparison })),
     ...([['and', '&&'], ['or', '||'], ['xor', '!==']] as const)
         .map(([name, binary]) => ({ name, binary, scalarFunction: [booleanBinary], integerLoop: [booleanBinary], tensor: [booleanComparison] })),
     { name: 'not', unary: '!', scalarFunction: [booleanUnary], scalarExpression: [booleanUnary], integerLoop: [booleanUnary], tensor: [booleanUnary] },

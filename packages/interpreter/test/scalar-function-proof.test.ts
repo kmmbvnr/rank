@@ -20,6 +20,7 @@ const cases = [
     ['X equal Y', 'boolean', false], ['X not equal Y', 'boolean', true],
     ['true equal false', 'boolean', false], ['true not equal false', 'boolean', true],
     ['true and false', 'boolean', false], ['true or false', 'boolean', true],
+    ['"a" equal "b"', 'boolean', false], ['"a" + "b"', 'text', 'ab'],
     ['true xor false', 'boolean', true], ['not true', 'boolean', false],
 ] as const;
 
@@ -46,7 +47,7 @@ describe('scalar function operator eligibility', () => {
     it('has executable coverage for every catalogue overload', () => {
         for (const operation of compiledOperators) {
             for (const signature of operation.scalarFunction) {
-                const inputs = signature.inputs.map(type => type === 'integer' ? '3' : 'true');
+                const inputs = signature.inputs.map(type => type === 'integer' ? '3' : type === 'text' ? '"a"' : 'true');
                 const name = ({ atmost: 'at most', atleast: 'at least', notequal: 'not equal' } as Record<string, string>)[operation.name] ?? operation.name;
                 const expression = inputs.length === 1 ? `${name} ${inputs[0]}`
                     : `${inputs[0]} ${name} ${inputs[1]}`;
@@ -61,7 +62,7 @@ describe('scalar function operator eligibility', () => {
         'X / Y', 'X ** Y', 'X to Y', 'X to Y step 2',
         'X and Y', 'not X', '-true', '+true', 'true + false',
         'true less false', 'X equal true', 'true not equal X',
-        'X + 0.5', '"a" equal "b"', 'X abs', 'Missing',
+        'X + 0.5', 'X abs', 'Missing',
     ])('keeps %s outside the compiler subset', expression => {
         const fn = statement(`return ${expression}`);
         expect(scalarFunctionResult(fn)).toBeUndefined();

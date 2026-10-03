@@ -39,6 +39,15 @@ export interface CompiledCallSignature {
     readonly result: CompiledLoopType;
 }
 
+/** Match a complete proven native input domain; no coercion or cell inspection. */
+export function matchCompiledCallSignature(operation: Operation, inputs: readonly CompiledAtomType[]): CompiledCallSignature | undefined {
+    const signature = operation.compiledCall;
+    return signature && signature.inputs.length === inputs.length && signature.inputs.every((expected, index) =>
+        expected === 'same' ? inputs[index] === inputs[0]
+            : expected === 'text-or-bytes' ? inputs[index] === 'text' || inputs[index] === 'bytes'
+            : expected === inputs[index]) ? signature : undefined;
+}
+
 /** One builtin name, either always available in core or opened by a module. */
 export interface Operation {
     /** The word written in the program. */
@@ -625,12 +634,14 @@ export const operations: readonly Operation[] = [
     { name: 'indices', module: 'sequences', arities: [1], form: 'Mask indices', result: 'array',
         summary: 'Zero-based positions of the true values in a boolean vector.' },
     { name: 'reverse', module: 'sequences', arities: [1], form: 'Values reverse', result: 'value',
+        compiledCall: { inputs: ['text'], result: 'text' },
         summary: 'Reverses text by code point, an array along its leading axis, or a queue or finite sequence into an array.' },
     { name: 'first', module: 'sequences', arities: [1], form: 'Values first', result: 'element',
         summary: 'First item of text, an array, a queue or a sequence; missing when empty.' },
     { name: 'last', module: 'sequences', arities: [1], form: 'Values last', result: 'element',
         summary: 'Last item of text, an array, a queue or a finite sequence; missing when empty.' },
     { name: 'len', module: 'core', arities: [1], form: 'Value len', result: 'integer',
+        compiledCall: { inputs: ['text'], result: 'integer' },
         arrayHeaderNoCallback: true,
         summary: 'Code points of text, leading axis of an array, or size of a collection.' },
     { name: 'present', module: 'core', arities: [1], form: 'Values present', result: 'boolean',
@@ -762,6 +773,7 @@ export const operations: readonly Operation[] = [
     { name: 'translate', module: 'text', arities: [3], form: 'Text Chars Replacement translate', result: 'text',
         summary: 'Replaces listed characters, deleting those with no replacement.' },
     { name: 'text', module: 'core', arities: [1], form: 'Value text', result: 'text',
+        compiledCall: { inputs: ['integer'], result: 'text' },
         summary: 'Formats one scalar as text; a .Nf literal after it selects fixed decimals.' },
     { name: 'vocab', module: 'text', arities: [2], form: 'Texts Limit vocab', result: 'array',
         summary: 'Most frequent words, at most Limit of them, ties by code point.' },

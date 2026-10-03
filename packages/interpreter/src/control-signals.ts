@@ -1,5 +1,10 @@
 import type { RankValue } from './value.js';
 
+/** A prepared scalar body whose native bindings, if any, need entry validation. */
+export type PreparedScalarCall = ((arguments_: RankValue[], tail?: boolean) => RankValue) & {
+    readonly available?: () => boolean;
+};
+
 /**
  * Non-local exits that unwind the JavaScript stack. Each signal has one
  * catcher: a return or tail call ends at the function call loop, a jump at its
@@ -20,7 +25,7 @@ export class ReturnSignal {
  */
 export class TailCallSignal<Definition> {
     constructor(readonly definition: Definition, readonly arguments_: RankValue[],
-        readonly compiled?: (arguments_: RankValue[], tail: boolean) => RankValue) {}
+        readonly compiled?: PreparedScalarCall) {}
 }
 
 export class BreakSignal {}

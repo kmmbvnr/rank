@@ -4,7 +4,7 @@ import { createRankServices } from '../src/rank-module.js';
 import { isAssignmentStatement, isBinaryExpression, isNameExpression, type Program } from '../src/generated/ast.js';
 import { compiledScalarTypes, findCompiledOperator, matchCompiledOperatorSignature } from '../src/compiled-operators.js';
 import { inferCompiledExpression, type CompiledExpressionContext } from '../src/compiled-expression.js';
-import type { CompiledAtomType } from '../src/operations.js';
+import { matchCompiledCallSignature, type CompiledAtomType } from '../src/operations.js';
 
 const services = createRankServices(EmptyFileSystem);
 function expression(source: string) {
@@ -49,6 +49,27 @@ describe('shared compiled expression inference', () => {
             signature: { inputs: ['integer', 'real'], result: 'real' } });
     });
 
+    it('retains nested native signatures and operand order', () => {
+        const scope = { ...context({ X: 'integer' }), call: matchCompiledCallSignature };
+        const result = inferCompiledExpression(expression('X text reverse'), scope);
+        expect(result.expression).toMatchObject({ kind: 'call', type: 'text', operation: { name: 'reverse' },
+            signature: { inputs: ['text'], result: 'text' }, arguments: [
+                { kind: 'call', operation: { name: 'text' }, arguments: [{ kind: 'input', name: 'X' }] },
+            ] });
+    });
+
+    it('requires complete native domains and declines a shadowed spelling', () => {
+        for (const [source, bindings] of [
+            ['X reverse', { X: 'integer' }],
+            ['X reverse', { X: 'text', reverse: 'integer' }],
+            ['X Y startswith', { X: 'text', Y: 'bytes' }],
+        ] as const) {
+            expect(inferCompiledExpression(expression(source), {
+                ...context(bindings), call: matchCompiledCallSignature,
+            }).failure).toBeDefined();
+        }
+    });
+
     it('does not reuse a previous environment when inferring the same syntax', () => {
         const source = expression('A + B');
         const integer = inferCompiledExpression(source, context({ A: 'integer', B: 'integer' }));
@@ -78,7 +99,7 @@ describe('shared compiled expression inference', () => {
         expect(scope.budget.remaining).toBe(-1);
     });
 
-    it.each(['"text"', 'A reverse', 'A to B step 2'])('does not infer outside the current frontend subset: %s', source => {
+    it.each(['array 1 2', 'A reverse', 'A to B step 2'])('does not infer outside the current frontend subset: %s', source => {
         expect(inferCompiledExpression(expression(source), context({ A: 'integer', B: 'integer' })).failure).toBeDefined();
     });
 });
