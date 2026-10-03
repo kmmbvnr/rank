@@ -200,6 +200,21 @@ A X rows print`;
         expect(result).not.toHaveProperty('error');
         expect(result.kernels).toBe(1);
     });
+    it('reuses a tensor body across integer and real calls without fixing an unknown input domain', () => {
+        const result = compare(`use io
+fun total Values
+  Scaled = Values * 2
+  return Scaled sum
+end
+First = array 1 2
+Second = array 1.5 2.5
+Third = array 5 6
+First total print
+Second total print
+Third total`);
+        expect(result).toMatchObject({ value: '22', output: ['6', '8'], kernels: 3 });
+    });
+
     it('preserves floating point order and mixed integer-real promotion', () => {
         const result = compare(`use numbers
 use io
