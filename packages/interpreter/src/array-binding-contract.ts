@@ -1,4 +1,4 @@
-import { resume, runExecution, type Execution } from './execution.js';
+import { resume, type Execution } from './execution.js';
 import { arrayDeclaration, declareArray } from './array-declaration.js';
 import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType } from './semantic-array-type.js';
 import { FlatRecords } from './flat.js';
@@ -252,7 +252,20 @@ export class ArrayBindingContract {
             if (missing) throw missing;
             return result;
         };
-        const read = (index: number): RankValue => runExecution(evaluate(index));
+        const sourceRead = (index: number) => readArrayItem(value, index);
+        const read = (index: number, source = sourceRead): RankValue => {
+            let item: RankValue;
+            let missing: MissingValueError | undefined;
+            try { item = source(index); }
+            catch (error) {
+                if (!(error instanceof MissingValueError) || !error.soft) throw error;
+                item = MISSING;
+                missing = error;
+            }
+            const result = validate(item);
+            if (missing) throw missing;
+            return result;
+        };
         // Check every read, even a cached source cell: another assignment may
         // have refined this binding since the wrapper was created.
         let cache: { source: number; version: number; items: RankValue[] } | undefined;
@@ -260,13 +273,7 @@ export class ArrayBindingContract {
             && arrayRevision(version) === cache.version ? cache.items : undefined;
         const prepare = (): ((index: number) => RankValue) | undefined => {
             const source = prepareArrayRead(value);
-            return source ? index => {
-                try { return validate(source(index)); }
-                catch (error) {
-                    if (error instanceof MissingValueError && error.soft) validate(MISSING);
-                    throw error;
-                }
-            } : undefined;
+            return source ? index => read(index, source) : undefined;
         };
         const all = (): RankValue[] => {
             const previous = peek();

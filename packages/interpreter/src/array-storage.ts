@@ -1,4 +1,4 @@
-import { completed, mapResult, resume, runExecution, type Evaluation, type Execution } from './execution.js';
+import { completed, resume, type Evaluation, type Execution } from './execution.js';
 import { checkpoint, interruptibleCallback } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { ResourceSummary } from './resource-summary.js';
@@ -757,29 +757,33 @@ export function derivedArray(
     const itemAt = (index: number): RankValue => {
         if (runtimeDepth === 0) {
             enterRuntime();
-            try { return runExecution(readCell(index)); } finally { leaveRuntime(); }
+            try { return readCell(index); } finally { leaveRuntime(); }
         }
-        return runExecution(readCell(index));
+        return readCell(index);
     };
-    const readCell = (index: number): Evaluation<RankValue> => {
+    const finishRead = (index: number, result: RankValue, tracked: boolean,
+        started: number | undefined, startedEpoch: number, startedEntry: number): RankValue => {
+        checkCell(result, index);
+        if (diagnostics) diagnostics.cellsComputed++;
+        // A dependency may have changed during the reader. Never retain that read.
+        // A Map cannot hold more than 2^24 entries; larger arrays recompute.
+        if (cells.size < MAX_CACHED_CELLS && (undisturbed(startedEpoch, startedEntry)
+            || (tracked && arrayRevision(value) === started))) cells.set(index, result);
+        return result;
+    };
+    // Opaque synchronous readers keep the allocation-free cell path. Planned
+    // child reads suspend below, sharing the same completion/cache policy.
+    const readCell = (index: number): RankValue => {
         const tracked = valid();
         if (cells.has(index)) {
             if (diagnostics) diagnostics.cacheHits++;
-            return completed(cells.get(index)!);
+            return cells.get(index)!;
         }
         const started = seen;
         const startedEpoch = writeRevision;
         const startedEntry = hostEntry;
         if (diagnostics) diagnostics.cacheMisses++;
-        return mapResult(evaluate ? evaluate(index) : completed(read(index)), result => {
-            checkCell(result, index);
-            if (diagnostics) diagnostics.cellsComputed++;
-            // A dependency may have changed during the reader. Never retain that read.
-            // A Map cannot hold more than 2^24 entries; larger arrays recompute.
-            if (cells.size < MAX_CACHED_CELLS && (undisturbed(startedEpoch, startedEntry)
-                || (tracked && arrayRevision(value) === started))) cells.set(index, result);
-            return result;
-        });
+        return finishRead(index, read(index), tracked, started, startedEpoch, startedEntry);
     };
     const value: RankArray = {
         kind: 'array', shape, itemAt,
@@ -810,7 +814,17 @@ export function derivedArray(
         if (entering) enterRuntime();
         try {
             checkpoint('reading array');
-            return yield* resume(readCell(index));
+            const tracked = valid();
+            if (cells.has(index)) {
+                if (diagnostics) diagnostics.cacheHits++;
+                return cells.get(index)!;
+            }
+            const started = seen;
+            const startedEpoch = writeRevision;
+            const startedEntry = hostEntry;
+            if (diagnostics) diagnostics.cacheMisses++;
+            const result = yield* resume(evaluate(index));
+            return finishRead(index, result, tracked, started, startedEpoch, startedEntry);
         } finally { if (entering) leaveRuntime(); }
     });
     return registerCachedArray(value, () => {
