@@ -369,8 +369,37 @@ While source is edited and the cursor is on a name, the footer shows that name's
 type and shape instead of the hints and the file name, for example
 `M · integer [3 4]`, `Row · text`, `X · unknown` or `F · function`. A name counts when
 it is a read, an assignment target, a loop name, a parameter or a function name, and
-the cursor right after it counts as on it. A function name, whether a catalogue builtin or one written in the notebook, shows
-`function`; typed signatures are a separate piece of work. A keyword, an operator word or a number shows the normal hints. The line is grey and clipped to the footer width: the shape goes first,
+the cursor right after it counts as on it. Known function signatures replace `function`:
+`identity · a → a`, `pair · a → tuple(a, text)` or `twice · integer → integer`.
+A direct call uses its inferred argument facts; a declaration uses available example
+arguments. Without those facts, unrelated unknown types use different letters, as in
+`twice · a → b`. A shared letter appears only for a proven relationship. Builtin
+signatures come from audited catalogue overloads, not operand names or compiler
+eligibility. Known call arguments select matching overloads and narrow their input
+unions; unknown arguments keep the alternatives. An invalid call still shows the
+declared alternatives alongside its normal diagnostics. A `[rank 0 0]` suffix
+identifies a cell signature; broadcasting and evaluation follow the operation's rules.
+In particular, scalar `and`/`or` short-circuit and require a scalar right operand,
+and ordinary comparison does not accept two sequences. A signature does not promise
+that every shape combination or value is valid. Literal flags appear by name, such as `.flat` or `(.write | .update | .append)`;
+callback types use `(a → boolean)`. All ordinary catalogue functions declare signatures. `segment` and `maxsum` are
+form-only markers whose direct native calls reject use outside segment syntax.
+On a segment form the footer shows the source, a binary callback when supplied,
+an optional identity, and the `segment` result. An otherwise unproved function
+still shows `function`.
+Arithmetic, comparison, logical and `is` operator tokens show their declared signatures,
+including both words in `not equal`, `at least`, `at most`, and `multiple by`.
+Equality allows unrelated operand types and can propagate `missing`; it does not
+claim that the operands must have the same type. A known SQL column selects the
+column result contract. A SQL result is a `view`, its projected expression a `column`, and its connection a
+`database`. Column refinements and ownership remain runtime constraints.
+`to`/`till` distinguish integer ranges from bounds on existing collections.
+Array bounds require rank 1; `till` accepts predicates and boolean masks, while `to`
+takes a limit. Sequence masks must meet the runtime mask and source-ownership rules.
+On `outer +` (including its symbol) and named `outer`, the footer uses the analyzer's
+proven operands and cell types with the form's array result contract; it does not
+evaluate cells to discover their types.
+Other keywords, operator forms without metadata, and numbers show the normal hints. The line is grey and clipped to the footer width: the shape goes first,
 then the front of the name. A shape with an axis of unknown length is left out rather
 than guessed. Errors, running status, completion candidates and an iteration row keep
 the footer. Facts come from the run for names of cells that were executed and have not

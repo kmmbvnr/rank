@@ -1,0 +1,52 @@
+import { EmptyFileSystem } from 'langium';
+import { beforeAll, expect, it } from 'vitest';
+import { analyzeValues, createRankServices, functionSignature, isFunctionStatement, type Program } from '../src/index.js';
+
+let services: ReturnType<typeof createRankServices>;
+beforeAll(() => { services = createRankServices(EmptyFileSystem); });
+function signature(source: string, name: string, arguments_?: NonNullable<Parameters<typeof functionSignature>[1]>['arguments']) {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(parsed.parserErrors).toEqual([]);
+    const definition = parsed.value.statements.find(node => isFunctionStatement(node) && node.name === name);
+    if (!isFunctionStatement(definition)) throw new Error('missing function');
+    const analysis = analyzeValues(parsed.value, new Map(), new Map(), arguments_ ? [{ name, arguments: arguments_ }] : []);
+    return functionSignature(definition, { arguments: arguments_, result: analysis.functionResults[0],
+        relationship: analysis.relationships.get(definition) });
+}
+
+it('displays identity and tuple relationships with unknown inputs', () => {
+    expect(signature('fun identity Value\n return Value\nend', 'identity')).toBe('a → a');
+    expect(signature('fun pair Value\n return tuple Value "label"\nend', 'pair')).toBe('a → tuple(a, text)');
+    expect(signature('fun pair Left Right\n return tuple Left Right\nend', 'pair')).toBe('a b → tuple(a, b)');
+});
+
+it('retains relationships through composed helpers', () => {
+    expect(signature('fun pair Value\n return tuple Value "label"\nend\nfun wrap Input\n return Input pair\nend', 'wrap'))
+        .toBe('a → tuple(a, text)');
+});
+
+it('uses example types without guessing unconstrained arithmetic domains', () => {
+    const source = 'fun twice Value\n return Value * 2\nend';
+    expect(signature(source, 'twice')).toBe('a → b');
+    expect(signature(source, 'twice', [{ types: ['integer'], rank: 0, shape: [] }])).toBe('integer → integer');
+    expect(signature(source, 'twice', [{ types: ['array'], rank: 2, shape: [2, 3], elements: ['real'], callbackFreeScalarCells: true }]))
+        .toBe('array<real> → array<real>');
+});
+
+it('does not mistake an unknown field requirement for a known field result', () => {
+    const source = 'fun items State\n return State .items\nend';
+    expect(signature(source, 'items')).toBe('a → b');
+    expect(signature(source, 'items', [{ types: ['record'], fields: { items: { types: ['text'], rank: 1, shape: [null] } } }]))
+        .toBe('record → text');
+});
+
+it('displays proven literals independently of unknown operands', () => {
+    expect(signature('fun answer Ignored\n return 42\nend', 'answer')).toBe('a → integer');
+    expect(signature('fun answer\n return 42\nend', 'answer')).toBe('→ integer');
+});
+
+it('retains ordinary result facts when a relationship cannot prove reader safety', () => {
+    expect(signature('fun twice Value\n return Value * 2\nend', 'twice', [
+        { types: ['array'], rank: 1, shape: [3], elements: ['integer'] },
+    ])).toBe('array<integer> → array');
+});

@@ -64,8 +64,8 @@ describe('factsAt: each kind of name position', () => {
 
     it('names a user function', () => {
         const program = 'fun f X\n return X\nend\n1 f\n';
-        expect(formatNameFacts(factsAt(program, at(program, 'f X'))!)).toBe('f · function');
-        expect(formatNameFacts(factsAt(program, at(program, 'f', 2) + 1)!)).toBe('f · function');
+        expect(formatNameFacts(factsAt(program, at(program, 'f X'))!)).toBe('f · a → a');
+        expect(formatNameFacts(factsAt(program, at(program, 'f', 2) + 1)!)).toBe('f · integer → integer');
     });
 
     it('returns nothing for source that does not parse', () => {
@@ -159,13 +159,105 @@ describe('formatNameFacts', () => {
 describe('factsAt: functions', () => {
     const word = (source: string, text: string): NameFacts => factsAt(source, source.lastIndexOf(text) + 1)!;
 
-    it('calls a builtin and a notebook function a function, and claims no signature', () => {
-        expect(formatNameFacts(word('Xs = array 1 2 3\nXs sum\n', 'sum'), 60)).toBe('sum · function');
-        expect(formatNameFacts(word('fun twice X\n return X * 2\nend\n3 twice\n', 'twice'), 60)).toBe('twice · function');
+    it('shows an audited builtin and a proven notebook call', () => {
+        expect(formatNameFacts(word('Xs = array 1 2 3\nXs sum\n', 'sum'), 60)).toBe('sum · array<number> → number');
+        expect(formatNameFacts(word('fun twice X\n return X * 2\nend\n3 twice\n', 'twice'), 60)).toBe('twice · integer → integer');
     });
 
     it('is not fooled by a variable or an unknown word', () => {
         expect(formatNameFacts(word('Sum = 5\nSum\n', 'Sum'), 60)).toBe('Sum · integer');
         expect(formatNameFacts(word('Q = Zork\n', 'Zork'), 60)).toBe('Zork · unknown');
     });
+});
+
+describe('function signatures in the type footer', () => {
+    it('uses explicit builtin signatures with their actual overloads', () => {
+        const split = 'use text\n"a,b" "," split';
+        expect(formatNameFacts(factsAt(split, split.indexOf('split'))!))
+            .toBe('split · text text → array<text>');
+    });
+
+    it('shows the notebook example signature and preserves unknown inputs', () => {
+        const source = 'fun twice X\n Y = X * 2\n return Y\nend';
+        expect(formatNameFacts(factsAt(source, source.indexOf('twice'), [], [{ name: 'twice', arguments: [integer()] }])!))
+            .toBe('twice · integer → integer');
+        expect(formatNameFacts(factsAt(source, source.indexOf('twice'))!)).toBe('twice · a → b');
+    });
+
+    it('keeps tuple result relationships visible without example arguments', () => {
+        const source = 'fun pair X\n return tuple X "label"\nend';
+        expect(formatNameFacts(factsAt(source, source.indexOf('pair'))!)).toBe('pair · a → tuple(a, text)');
+    });
+});
+
+it('does not use a global function signature for a shadowing callback parameter', () => {
+    const source = 'fun helper X\n return X\nend\nfun apply helper\n return 1 helper\nend';
+    expect(factsAt(source, source.lastIndexOf('helper'))?.signature).toBeUndefined();
+});
+
+
+describe('factsAt: grammar operator signatures', () => {
+    it('shows signatures on every word of a compound comparison', () => {
+        for (const operator of ['not equal', 'at least', 'at most']) {
+            const source = '1 ' + operator + ' 2';
+            for (const offset of [2, 2 + operator.indexOf(' ') + 1, 2 + operator.length]) {
+                const found = factsAt(source, offset)!;
+                expect(found.name).toBe(operator);
+                expect(found.signature).toContain('→ boolean');
+            }
+        }
+    });
+
+    it('uses proven operand types and distinguishes unary and binary signs', () => {
+        const source = 'X = 1\n-X + 2.0';
+        expect(factsAt(source, source.indexOf('-'))?.signature).toBe('integer → integer [rank 0]');
+        expect(factsAt(source, source.indexOf('+'))?.signature).toBe('integer real → real [rank 0 0]');
+        expect(factsAt('"a" + "b"', 4)?.signature).toBe('text text → text');
+        expect(factsAt('not true', 1)?.signature).toBe('boolean → boolean [rank 0]');
+    });
+
+    it('does not mistake operators in strings, comments, assignment or loop headers for calls', () => {
+        expect(factsAt('"not equal"', 2)).toBeUndefined();
+        expect(factsAt('1 # not equal', 5)).toBeUndefined();
+        expect(factsAt('X = 1', 2)).toBeUndefined();
+        expect(factsAt('for X in (1 to 3)\n X\nend', 7)).toBeUndefined();
+    });
+
+    it('keeps runtime name bindings from replacing grammar operator contracts', () => {
+        expect(factsAt('true and false', 6, [['and', { types: ['integer'] }]])?.signature)
+            .toBe('boolean boolean → boolean [rank 0 0]');
+    });
+});
+
+
+it('shows range and proven outer signatures on operator words', () => {
+    expect(factsAt('1 to 3', 3)?.signature).toBe('integer integer → sequence<integer>');
+    expect(factsAt('1 till 3', 4)?.signature).toBe('integer integer → sequence<integer>');
+    const source = '(1 to 3) (1 to 4) outer +';
+    for (const offset of [source.indexOf('outer'), source.length - 1, source.length]) {
+        expect(factsAt(source, offset)?.signature).toBe('sequence<integer> sequence<integer> → array<integer>');
+    }
+    const named = '(array 1 2) (array 3 4) outer max';
+    expect(factsAt(named, named.indexOf('outer'))?.signature).toBe('array<integer> array<integer> function → array');
+    const shadowed = 'fun outer X\n return X\nend\n3 outer';
+    expect(factsAt(shadowed, shadowed.lastIndexOf('outer'))?.signature).toBe('integer → integer');
+});
+
+
+it('shows the flat document overload after grouping its trailing modifier', () => {
+    const source = 'use json\n"{}" json .flat';
+    expect(factsAt(source, source.lastIndexOf('json'))?.signature).toBe('text .flat → array<object>');
+});
+
+
+it('shows segment form contracts without advertising callable marker signatures', () => {
+    for (const combine of ['+', 'maxsum']) {
+        const source = `use algo\n(array 1 2 3) segment ${combine}`;
+        expect(factsAt(source, source.indexOf('segment'))?.signature).toBe('array<integer> → segment');
+        if (combine === 'maxsum') expect(factsAt(source, source.indexOf('maxsum'))?.signature).toBe('array<integer> → segment');
+    }
+    const named = 'use algo\nfun combine A B\n return A + B\nend\n(array 1 2) segment combine';
+    expect(factsAt(named, named.indexOf('segment'))?.signature).toBe('array<integer> (a b → c) → segment');
+    const shadowed = 'fun segment X\n return X\nend\n3 segment';
+    expect(factsAt(shadowed, shadowed.lastIndexOf('segment'))?.signature).toBe('integer → integer');
 });

@@ -23,13 +23,13 @@ it('shows the type of the name under the cursor instead of the hints', () => {
     } finally { session.dispose(); }
 });
 
-it('shows the normal hints on a keyword, an operator or a number', () => {
+it('shows the normal hints on a keyword or a number, and signatures on operators', () => {
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
         const source = 'Count = array shape 2 3 fill 0 + 1';
         expect(footer(repl, source, source.indexOf('array') + 2)).toContain('Ctrl-');
-        expect(footer(repl, source, source.indexOf('+') + 1)).toContain('Ctrl-');
+        expect(footer(repl, source, source.indexOf('+') + 1)).toBe('facts: + · integer integer → integer [rank 0 0]');
         expect(footer(repl, source, source.indexOf('2'))).toContain('Ctrl-');
     } finally { session.dispose(); }
 });
@@ -139,5 +139,16 @@ it('does not show facts while the cursor has been scrolled out of sight', () => 
         repl.notebook.cursor = 2;
         // Reading scrollback far from the cursor: no footer, no shift.
         expect(frameOf(repl, 6, false, 0, 20).factsRow).toBeUndefined();
+    } finally { session.dispose(); }
+});
+
+it('renders a proven notebook relationship and a concrete call signature in the facts row', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const definition = 'fun identity Value\n return Value\nend';
+        expect(footer(repl, definition, definition.indexOf('identity') + 1)).toBe('facts: identity · a → a');
+        const call = definition + '\n1 identity';
+        expect(footer(repl, call, call.lastIndexOf('identity') + 1)).toBe('facts: identity · integer → integer');
     } finally { session.dispose(); }
 });

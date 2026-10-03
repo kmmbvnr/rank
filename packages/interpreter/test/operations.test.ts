@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-    findOperation, resultTypes, validateShapeSignature, moduleForms, modules, operations, type Operation,
+    findOperation, resultTypes, validateShapeSignature, moduleForms, modules, operations, type Operation, type SignatureType,
 } from '@arrrank/language';
 import { Interpreter, standardModules } from '../src/index.js';
 import type { RuntimeContext } from '../src/modules/types.js';
@@ -68,6 +68,181 @@ describe('the operation catalogue', () => {
             }
         }
         expect(wrong).toEqual([]);
+    });
+
+    it('requires signatures for callable names and identifies form-only placeholders', () => {
+        for (const entry of operations.filter(entry => entry.arities.length)) {
+            if (entry.formOnly) {
+                expect(entry.signatures, entry.name).toBeUndefined();
+                const value = runtime.get(`${entry.module}.${entry.name}`)!;
+                expect(isNativeFunction(value)).toBe(true);
+                if (isNativeFunction(value)) expect(() => value.call([1n, 2n])).toThrow(/segment/);
+            } else expect(entry.signatures?.length, entry.name).toBeGreaterThan(0);
+        }
+    });
+
+    it('keeps display overload arities consistent with the runtime catalogue', () => {
+        for (const entry of operations) for (const signature of entry.signatures ?? []) {
+            expect(entry.arities, entry.name).toContain(signature.inputs.length);
+            if (signature.ranks) expect(signature.ranks, entry.name).toHaveLength(signature.inputs.length);
+        }
+    });
+
+    it('covers the audited reverse and split overloads with actual runtime results', () => {
+        for (const [source, expected] of [
+            ['use sequences\n"abc" reverse', 'text'],
+            ['use sequences\n(array 1 2) reverse', 'array'],
+            ['use sequences\n(1 to 3) reverse', 'array'],
+            ['use algo\nuse sequences\nQ = new queue\nQ push 1\nQ reverse', 'array'],
+            ['use algo\nuse sequences\nS = new stack\nS push 1\nS reverse', 'array'],
+            ['use algo\nuse sequences\nD = new deque\nD 1 pushback\nD reverse', 'array'],
+            ['use text\n"a,b;c" (array "," ";") split', 'array'],
+            ['use text\n"a,b" "," split', 'array'],
+        ]) {
+            const value = new Interpreter().execute(source)!;
+            expect(typeName(value), source).toBe(expected);
+        }
+    });
+
+    it('keeps declared signature cell domains within unconditional operand requirements', () => {
+        const scalar = new Set(['integer', 'real', 'text', 'boolean', 'symbol', 'missing', 'date', 'datetime', 'duration']);
+        const domains = (type: SignatureType, cell = false): string[] => {
+            if (typeof type === 'string') return type === 'number' ? ['integer', 'real']
+                : scalar.has(type) || cell ? [type] : [];
+            if ('label' in type) return ['symbol'];
+            if ('union' in type) return type.union.flatMap(part => domains(part, cell));
+            if ('collection' in type) return cell ? [type.collection] : domains(type.element, true);
+            return [];
+        };
+        for (const entry of operations) for (const signature of entry.signatures ?? []) {
+            signature.inputs.forEach((input, index) => {
+                const allowed = entry.operandDomains?.[index];
+                if (allowed) for (const domain of domains(input)) expect(allowed, `${entry.name} input ${index + 1}`).toContain(domain);
+            });
+        }
+    });
+
+    it('checks numeric reductions and ordered extrema against their display domains', () => {
+        for (const [source, expected] of [
+            ['3 sum', 'integer'], ['(array 1 2) sum', 'integer'], ['(array 1.0 2.0) sum', 'real'],
+            ['use algo\nS = new set\nS add 2\nS add 3\nS sum', 'integer'],
+            ['"a" "z" max', 'text'], ['false true min', 'boolean'], ['3 4.5 max', 'real'],
+            ['.NA 3 max', 'missing'], ['3 .NA min', 'missing'],
+        ]) expect(typeName(new Interpreter().execute(source)!), source).toBe(expected);
+    });
+
+    it('checks integer bit operations and hash input domains used by signatures', () => {
+        for (const [source, expected] of [
+            ['use bits\n3 1 band', 'integer'], ['use bits\n3 1 bor', 'integer'],
+            ['use bits\n3 1 bxor', 'integer'], ['use bits\n3 bnot', 'integer'],
+            ['use bits\n3 1 shl', 'integer'], ['use bits\n3 1 shr', 'integer'],
+            ['use bits\n3 1 bit', 'boolean'], ['use bits\n3 popcount', 'integer'],
+            ['use bits\n5 binary', 'text'], ['use bits\n5 4 binary', 'text'],
+            ['use bits\n(array 1 2) 1 band', 'array'],
+            ['use crypto\n"x" md5', 'bytes'], ['use crypto\n("x" bytes) md5', 'bytes'],
+        ]) expect(typeName(new Interpreter().execute(source)!), source).toBe(expected);
+        expect(() => new Interpreter().execute('use bits\n1.5 1 band')).toThrow();
+        expect(() => new Interpreter().execute('use crypto\n(array 1 2) md5')).toThrow();
+    });
+
+    it('checks mapped date conversions and intrinsically ranked components', () => {
+        for (const [expression, expected] of [
+            ['"2026-10-03" date', 'date'], ['"2026-10-03" date datetime', 'datetime'],
+            ['"2026-10-03 12:34:56" datetime date', 'date'],
+            ['(array "2026-10-03" "2026-10-04") date', 'array'],
+            ['(1 to 3) duration', 'sequence'], ['3.0 duration', 'duration'],
+            ['3 duration seconds', 'integer'], ['(array 1 2) duration seconds', 'array'],
+            ['"2026-10-03" date year', 'integer'], ['"2026-10-03" date weekday', 'integer'],
+            ['"2026-10-03 12:34:56" datetime hour', 'integer'],
+            ['"2026-10-03 12:34:56" datetime minute', 'integer'],
+            ['"2026-10-03 12:34:56" datetime second', 'integer'],
+            ['"2026-10-03" date monthstart', 'datetime'], ['"2026-10-03" date nextmonth', 'datetime'],
+            ['"2026-10-03" "2026-10-04" calendar', 'array'],
+        ]) expect(typeName(new Interpreter().execute('use dates\n' + expression)!), expression).toBe(expected);
+        expect(() => new Interpreter().execute('use dates\n"2026-10-03" date hour')).toThrow();
+        expect(() => new Interpreter().execute('use dates\n1.5 duration')).toThrow();
+    });
+
+    it('checks numeric signatures across scalar domains, maps and missing values', () => {
+        for (const name of ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh',
+            'tanh', 'asinh', 'acosh', 'atanh', 'log', 'exp']) {
+            const argument = name === 'acosh' ? '2.0' : '0.5';
+            expect(typeName(new Interpreter().execute(`use numbers\n${argument} ${name}`)!), name).toBe('real');
+            expect(typeName(new Interpreter().execute(`use numbers\n.NA ${name}`)!), name).toBe('missing');
+        }
+        for (const [expression, expected] of [
+            ['-3 abs', 'integer'], ['-3.0 abs', 'real'], ['.NA abs', 'missing'],
+            ['4 sqrt', 'real'], ['.NA sqrt', 'missing'], ['4 isqrt', 'integer'],
+            ['1 2 atan2', 'real'], ['.NA 2 atan2', 'missing'],
+            ['5 2 binomial', 'integer'], ['.NA 2 binomial', 'missing'],
+            ['5 2 7 binomialmod', 'integer'], ['2 3 7 powmod', 'integer'], ['6 4 gcd', 'integer'],
+            ['6 4 lcm', 'integer'], ['(array 6 4) lcm', 'integer'], ['(1 to 3) lcm', 'integer'],
+            ['12 factors', 'sequence'], ['12 divisors', 'sequence'], ['3 odd', 'boolean'],
+            ['2 even', 'boolean'], ['.NA isnan', 'boolean'], ['1.25 1 round', 'real'], ['125 -1 round', 'integer'],
+            ['(array 0.0 1.0) sin', 'array'], ['(0 to 2) sin', 'sequence'],
+            ['(array 1 2) odd', 'array'], ['(1 to 3) odd', 'sequence'],
+        ]) expect(typeName(new Interpreter().execute('use numbers\n' + expression)!), expression).toBe(expected);
+        expect(() => new Interpreter().execute('use numbers\n.NA isqrt')).toThrow();
+        expect(() => new Interpreter().execute('use numbers\n1.5 2 gcd')).toThrow();
+        expect(() => new Interpreter().execute('use numbers\n.NA 2 round')).toThrow();
+        expect(() => new Interpreter().execute('use algo\nuse numbers\nQ = new queue\nQ push 2\nQ lcm')).toThrow();
+    });
+
+    it('checks text and conversion signatures including positional captures', () => {
+        for (const [expression, expected] of [
+            ['65 character', 'text'], ['"A" codepoint', 'integer'], ['("A" bytes) hex', 'text'],
+            ['"12" integer', 'integer'], ['"1.5" real', 'real'], ['3 text', 'text'],
+            ['(array 65 66) bytes', 'bytes'], ['("A" bytes) bytes', 'bytes'],
+            ['(array 1 2) "," join', 'text'], ['(1 to 3) "," join', 'text'],
+            ['"12 blue" "/integer /word" parse', 'tuple'], ['"12 13" "/integer /integer" parse', 'array'],
+            ['"a b" words', 'array'], ['(array "a b" "a c") 2 vocab', 'array'],
+            ['"ABC" lower', 'text'], ['(array "ABC" "DEF") lower', 'array'],
+            ['"abc" len', 'integer'], ['(tuple 1 "a") len', 'integer'],
+        ]) expect(typeName(new Interpreter().execute('use text\n' + expression)!), expression).toBe(expected);
+        expect(() => new Interpreter().execute('use text\n.NA text')).toThrow();
+        expect(() => new Interpreter().execute('use dates\n(1 duration) text')).toThrow();
+        expect(() => new Interpreter().execute('use text\n(array .NA) "," join')).toThrow();
+        expect(() => new Interpreter().execute('use text\n"ab" codepoint')).toThrow();
+    });
+
+    it('checks queue-family aliases and length domains against runtime representations', () => {
+        for (const name of ['queue', 'stack', 'deque']) {
+            const initialize = `use algo\nuse text\nS = new ${name}\nS push 2\nS push 3\n`;
+            for (const expression of ['S sum', 'S min', 'S max', 'S len']) {
+                expect(typeName(new Interpreter().execute(initialize + expression)!), name + expression).toBe('integer');
+            }
+            expect(typeName(new Interpreter().execute(initialize + 'S "," join')!), name).toBe('text');
+        }
+        expect(typeName(new Interpreter().execute('("ab" bytes) len')!)).toBe('integer');
+        expect(() => new Interpreter().execute('use algo\nI = new index\nI len')).toThrow();
+    });
+
+    it('checks linear algebra result forms, including empty real determinants', () => {
+        for (const [expression, expected] of [
+            ['(array 1 2) diag', 'array'], ['(array 1 2) (array 3 4) matmul', 'integer'],
+            ['(array 1.0 2.0) (array 3.0 4.0) matmul', 'real'],
+            ['((array 1 2) diag) (array 3 4) matmul', 'array'],
+            ['((array 1 2) diag) det', 'integer'], ['((array 1.0 2.0) diag) det', 'real'],
+            ['(array shape 0 0 fill 0.0) det', 'integer'],
+            ['((array 1 2) diag) inverse', 'array'], ['((array 1 2) diag) eigh', 'tuple'],
+            ['((array 1 2) diag) (array 3 4) solve', 'array'],
+        ]) expect(typeName(new Interpreter().execute('use linalg\n' + expression)!), expression).toBe(expected);
+    });
+
+    it('checks statistical reductions, quantile arrays and general mode results', () => {
+        for (const name of ['mean', 'median', 'std', 'variance', 'var', 'skewness', 'skew', 'quantile', 'percentile']) {
+            expect(typeName(new Interpreter().execute(`use stats\n(array 1 2 3) ${name}`)!), name).toBe('real');
+            expect(typeName(new Interpreter().execute(`use stats\n3 ${name}`)!), name).toBe('real');
+        }
+        for (const [expression, expected] of [
+            ['(array 1 2 3) (array 0.25 0.75) quantile', 'array'],
+            ['(array 1 2 3) (array 25 75) percentile', 'array'],
+            ['(array shape 2 3 fill 1) covariance', 'array'],
+            ['(array shape 2 3 fill 1) correlation', 'array'], ['(array shape 2 3 fill 1) corr', 'array'],
+            ['(array 1 2) (array 2 3) mse', 'real'], ['1 2 mae', 'real'],
+            ['(array "a" "b" "a") mode', 'text'], ['"abc" mode', 'text'],
+        ]) expect(typeName(new Interpreter().execute('use stats\n' + expression)!), expression).toBe(expected);
+        expect(() => new Interpreter().execute('use algo\nuse stats\nQ = new queue\nQ push 1\nQ mean')).toThrow();
     });
 
     it('validates shape contracts against explicit ranks and representation facts', () => {

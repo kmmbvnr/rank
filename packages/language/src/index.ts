@@ -31,3 +31,7 @@ export { REDUCE_OPERATORS, OUTER_OPERATORS, COMPARISON_OPERATORS, groupModifiers
 export * from './next-tokens.js';
 export * from './compiled-function-type.js';
 export * from './analysis/function-relationships.js';
+
+export * from './type-signature.js';
+export * from './function-signature.js';
+export * from './operator-signature.js';
