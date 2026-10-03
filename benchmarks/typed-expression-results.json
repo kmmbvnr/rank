@@ -1,0 +1,267 @@
+{
+  "stage": "native text calls and primitive call preparation",
+  "implementationRevision": "6ecad0c0a3aab1f6de0bbc88ee9792eaeccf93b1",
+  "sourceTrees": {
+    "packages/language/src": "b622fe3a749ccdc5ebe0fb09008b4b4ab94dfd3e",
+    "packages/interpreter/src": "a49975d539aef70904d667cf3b755045965d3314",
+    "packages/cli/src": "70c1996d4e24504ae3b5fb2e7a7cfa61165bb295"
+  },
+  "timingRuns": [
+    {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "samples": 5,
+      "first": "baseline",
+      "revisions": {
+        "baseline": "c2be797f1d6a12617fd24cc81004ea6476ba6913",
+        "candidate": "0d8a69322d53a4446b28880f78afecc8ac680777"
+      },
+      "results": [
+        {
+          "name": "Euler 004",
+          "source": "demos/euler/004_palproduct.ra",
+          "expected": "906609",
+          "milliseconds": {
+            "baseline": [
+              4659.249125000001,
+              4664.543541999999,
+              4677.139916,
+              4645.370291000003,
+              4863.650667000002
+            ],
+            "candidate": [
+              2424.7235,
+              2323.549500000001,
+              2330.642082999999,
+              2313.6194170000017,
+              2339.5551659999983
+            ]
+          },
+          "baselineMedian": 4664.543541999999,
+          "candidateMedian": 2330.642082999999,
+          "ratio": 0.4996506221915763
+        },
+        {
+          "name": "Euler 014",
+          "source": "demos/euler/014_collatz.ra",
+          "expected": "837799",
+          "milliseconds": {
+            "baseline": [
+              12722.753791999989,
+              13009.417333999998,
+              12815.065833,
+              12779.213749999995,
+              12970.102625
+            ],
+            "candidate": [
+              12302.947542000009,
+              12268.137459000005,
+              12333.993750000009,
+              12405.251749999996,
+              12294.035124999995
+            ]
+          },
+          "baselineMedian": 12815.065833,
+          "candidateMedian": 12302.947542000009,
+          "ratio": 0.9600377947586317
+        },
+        {
+          "name": "AtCoder Frog 2",
+          "source": "demos/atcoder/edpc/02_frog2.ra",
+          "expected": "139563",
+          "milliseconds": {
+            "baseline": [
+              473.9170420000155,
+              486.7366669999901,
+              477.300041999988,
+              474.88970800000243,
+              487.3862499999814
+            ],
+            "candidate": [
+              482.4699580000015,
+              488.4851250000065,
+              489.0954999999958,
+              479.68041699999594,
+              489.9097920000204
+            ]
+          },
+          "baselineMedian": 477.300041999988,
+          "candidateMedian": 488.4851250000065,
+          "ratio": 1.0234340708480782
+        },
+        {
+          "name": "CSES Coin Combinations I",
+          "source": "demos/cses/dynamic/003_coincomb1.ra",
+          "expected": "793505236",
+          "milliseconds": {
+            "baseline": [
+              558.3704589999979,
+              560.5775830000057,
+              556.6211250000051,
+              564.8423750000075,
+              570.2113339999923
+            ],
+            "candidate": [
+              564.0261670000036,
+              560.5414159999928,
+              572.0153749999881,
+              563.496124999976,
+              560.6646250000049
+            ]
+          },
+          "baselineMedian": 560.5775830000057,
+          "candidateMedian": 563.496124999976,
+          "ratio": 1.0052063123615314
+        },
+        {
+          "name": "CSES Dice Combinations",
+          "source": "demos/cses/dynamic/001_dice.ra",
+          "expected": "797925478",
+          "milliseconds": {
+            "baseline": [
+              434.80608399998164,
+              436.94704199998523,
+              438.05166700002155,
+              436.1946670000034,
+              438.58116699999664
+            ],
+            "candidate": [
+              437.07600000000093,
+              441.85275000002,
+              438.028250000003,
+              437.8319999999949,
+              438.7577920000185
+            ]
+          },
+          "baselineMedian": 436.94704199998523,
+          "candidateMedian": 438.028250000003,
+          "ratio": 1.0024744600514262
+        }
+      ]
+    },
+    {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "samples": 5,
+      "first": "candidate",
+      "revisions": {
+        "baseline": "c2be797f1d6a12617fd24cc81004ea6476ba6913",
+        "candidate": "0d8a69322d53a4446b28880f78afecc8ac680777"
+      },
+      "results": [
+        {
+          "name": "AtCoder Frog 2",
+          "source": "demos/atcoder/edpc/02_frog2.ra",
+          "expected": "139563",
+          "milliseconds": {
+            "baseline": [
+              477.8129160000001,
+              485.6269170000003,
+              477.23187499999995,
+              479.1549169999994,
+              479.3760000000002
+            ],
+            "candidate": [
+              483.8063749999999,
+              479.66879100000006,
+              482.37824999999975,
+              479.86524999999983,
+              482.2564590000002
+            ]
+          },
+          "baselineMedian": 479.1549169999994,
+          "candidateMedian": 482.2564590000002,
+          "ratio": 1.0064729420276424
+        }
+      ]
+    }
+  ],
+  "audit": {
+    "reference": "interpreter-only audit from #103 at c2be797f",
+    "loadedSources": 858,
+    "selections": {
+      "demos": {
+        "files": 392,
+        "tests": 1356,
+        "sha256": "c5d24ee496d9b1d79719c36b672dfee78ba9a23e966efbf6aaac36c341d8eb1e"
+      },
+      "unpaired": {
+        "files": 74,
+        "tests": 0,
+        "sha256": "ac2af52202f0b7e045a17d72a4aa9a89b9a6d26fdd881db1cd0c9ea402efb354"
+      },
+      "chess": {
+        "files": 1,
+        "tests": 0,
+        "sha256": "92e454980d848f59fc598e6f67d24298dff261b12480b7de4cef398af70e6d9d"
+      }
+    },
+    "csvExports": {
+      "001_all.csv": "12c672d049ffe17990cbc370a28c427d7ecba1837221b937c5d43ebd7e969748",
+      "002_cols.csv": "1166eb67bdcb0907a7509cf5792a53b70ef00373c427be49ad0d561048bca6c3",
+      "003_where.csv": "ec7aeaf11bdbfd1c7fa6913f7634ba36f07c49f2d2c7249a04e593d95615481a",
+      "004_where2.csv": "8aca5823f5a5cf39d653e7af1318cce65bea52e6686c92daf9dff6e6631972db",
+      "005_like.csv": "4b1ed1d75b93e8b97cb237286db958a1853e6ad088eba071e86b5cfb3035236c",
+      "006_in.csv": "ee54fb386656523501e360dc38207e59348616b1c1810568cf193df966004a0b",
+      "007_case.csv": "f70ba5af7e9f5205035c34bba3db6656841370f59c7f631a168e82e61767dd52",
+      "008_dates.csv": "0196709deed0933a1806ee8d439a68c8bebbfd8acf159b1aa78bf7831c8efbca",
+      "009_unique.csv": "2c6719f5557e7d549af5a21d33b7aad1aec5d61e96e803763f51a24431409951",
+      "010_union.csv": "32e34046f18334fd9744b7e8121036f1bdb80811e2b0d959c6f4fafa00cb2ae3",
+      "011_latest.csv": "a29243f18c28540729f55a3903c3b4e097b2e09679f43faec18ebbc6987754db",
+      "012_lastmem.csv": "24d3db9f4a1513efda633b3e3cf8d5a5c17ef2a106c109fa219d4c55549ad398",
+      "agg_003.csv": "ed5e520953e1608954d4dc42e4a7890c74f15c919bb91a91c1a66f193401e302",
+      "agg_004.csv": "1e16bbb3f2aadc0b0e469d729561488631fac5966ea7ebf98c05c10906de148a",
+      "agg_005.csv": "df42ab5ab7604cf5f17ab3475c1bbb10394cdd3c7850df10ab6814cf51783df5",
+      "agg_006.csv": "923710e737ed3bc66358d6cd1124727c09fe14b37c4706b79295cd1ab7aa0c09",
+      "agg_008.csv": "fb4af8636cddb7b3d428e8bb3e3c2a5ca5f495b4952c737808c9d56e4985978c",
+      "agg_009.csv": "d1840e61bd4d66c5161901b4890e5e887b7e86f0508b9cc94fc7d56d33f642c3",
+      "agg_010.csv": "6b0a1c8940947bf96aa724225fce1b967ec4a4200ce217a927f0a6aad8ecdc05",
+      "agg_011.csv": "540d2b80c9dc4f0e74c83bbcee98c39ebfa42984640c2f0659f5f4780b8a7977",
+      "agg_012.csv": "bff9e0f46cdc44e158e453d364109570d9680b801b59a321ed6d41cac3393168",
+      "agg_013.csv": "094f9b1ddb4c55903954bf52690c7a7f5425e0fcbc72f556dcbb2b10eb7c53d3",
+      "agg_014.csv": "eb6cf2845d5e95c95e1333f0759fa39e7aaa53e63fc76650502bc55b8923779e",
+      "agg_015.csv": "d0dd8b9ae6abb8e58d9e46c36fc78be35809c8f86578504a4735d0404e06572d",
+      "agg_016.csv": "93398deed279e783f630b41a4c1c2d0d80c5e1fe507b828cfe8813fa54638f86",
+      "agg_017.csv": "641479b7bf3d418a41338bdb400b576a74a0b8b3ea58a58d85b1cfc842b9f526",
+      "agg_018.csv": "30de92f01f204d28ea356583bce8695f1a5e87e258d1406570210a1f67e8d8ca",
+      "agg_019.csv": "17b42af56698bdc4d69243701cce1acadfcbec9383d2adc2811d3aa4dac8daba",
+      "agg_020.csv": "f9f7ad7baaf1e525b516100b003a1a27838f2a93f7d047b9afa03bb39c3b2969",
+      "agg_021.csv": "076084b0024830ad41ff5a346e685353eabfb11b0051965c0caaf1cf94a2415e",
+      "agg_022.csv": "8732fe288efc3dfd5bf4f6b11584f6dbba268c47c5c9b1e22a0a322c1aef1afa",
+      "date_003.csv": "7cd7a9a0b4f046655d29d5786765d01f62984827b13e03db86a48b92062ee664",
+      "date_006.csv": "9710f810a78e5dd410725430a2415e8b395b3f73b1ca843823490af46e3ef95e",
+      "date_008.csv": "0b05179b999c598ec75915dada2f8b83af84b63abc985d3ffa03a1dd064f5da0",
+      "date_009.csv": "e9b7066e753e330053810cd574ff12adc969da975d49c135937966bad5bee79d",
+      "date_010.csv": "6dd4af2b008c164b64d64ee18dfc19c164365e2ad48eeb2670cb26913733e573",
+      "joins_001.csv": "caa5cd6f6fe632206e8feefc83aa867ce54638ce1938ef35decfbfa3c5333764",
+      "joins_002.csv": "f9d219edb047c68b30f971b577e9f5e2c05cfbb1f30b4a600f216bf8e567cab8",
+      "joins_003.csv": "32ec81563e372600ac3a421a419545ab0aab1ad48c210da54f3d99aad2802214",
+      "joins_004.csv": "c4c1112dc7f9a6f1dd271cfc78daf8ad2d1a1d1f43a8b9abdfc7fbf8580c1919",
+      "joins_005.csv": "4f36e7d29116bf442f136269cbf7c6de1423ae1d8dcb83705a9a756b63123835",
+      "joins_006.csv": "00c5e902d62b917739ec3b0ed07f1c60aeafa1db256f51f556b8100aa40366ba",
+      "joins_007.csv": "e0755bda6903fb0808966bf1ed181758d97fd3f1634af6720d2f5931b2c53720",
+      "joins_008.csv": "00c5e902d62b917739ec3b0ed07f1c60aeafa1db256f51f556b8100aa40366ba",
+      "rec_001.csv": "4205e0e250288c373e8a190389fb032948496ea565b6b63df7a609bfb2ee57c5",
+      "rec_002.csv": "94b5df9d0a0a703fc9807c34ac9500a2ef91738e069aef9b20a0caf1ac054d66",
+      "rec_003.csv": "712f95f66af9b0ff3cbac6493a620b054fbd4f9c6416cac2004ab39fd6a8dc18",
+      "string_001.csv": "c16d0de2af5de495e799e8b806bb689010da50669be0ba556828ca7b7a7985d4",
+      "string_002.csv": "53070e9e7af172cb93d0de4a784e8d812f5fce5c4cae0c879144d58ea8e5f657",
+      "string_003.csv": "53070e9e7af172cb93d0de4a784e8d812f5fce5c4cae0c879144d58ea8e5f657",
+      "string_004.csv": "c919dbf6fe8aa827091dd7ff8725663ef1cdda235be2536836ac426e73d28af7",
+      "string_005.csv": "eeb264c19259f50bd7cea2dc5e26cca866384eb5eb13da81e596629415b69731",
+      "string_006.csv": "78b66458076453cb946835e2ecfa18942039ae4b9cb4472f64b22b5e0aa9fed4",
+      "string_007.csv": "bcf38c83b3cc72b63c5706dcdc8fe787086a66c85f18d8dc0b86f6c8e49f650c"
+    },
+    "updatedDatabases": {
+      "demos/pgexercises/updates/001_spa.ra": "8a379defe656431c714e57008414cebe0f7547ffab0ffa2aa04c5929095cd0c2",
+      "demos/pgexercises/updates/002_spa2.ra": "b63cf5126deae9604161726926213bc81a150d9328a0f5903eb87aa75561ab49",
+      "demos/pgexercises/updates/003_nextid.ra": "8a379defe656431c714e57008414cebe0f7547ffab0ffa2aa04c5929095cd0c2",
+      "demos/pgexercises/updates/004_outlay.ra": "e4652817f153a56754a38f1eebaa57ee8929d69bbc7df26467f1ba224a254206",
+      "demos/pgexercises/updates/005_prices.ra": "8c9488edb682a2c69e61d67a67f50b6a1934bc1fe0e12da713eaee7e04c8ff71",
+      "demos/pgexercises/updates/006_from1.ra": "9320aba14efb622197cfb99e151a3e00533b18a0b5d866441ab44be13c12369b",
+      "demos/pgexercises/updates/007_clear.ra": "10e913e754ce59562580982d75d74d25c2579ba1e1bab68ba78f9be6670ec612",
+      "demos/pgexercises/updates/008_mem37.ra": "da3cf24c4e2b3154518102d184291edf1573e00ae645732b986fbb80a2d8dea8",
+      "demos/pgexercises/updates/009_unused.ra": "da3cf24c4e2b3154518102d184291edf1573e00ae645732b986fbb80a2d8dea8"
+    }
+  }
+}
