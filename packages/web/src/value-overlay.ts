@@ -45,9 +45,12 @@ export class ValueOverlay {
     private readonly dialog = document.createElement('dialog');
     private readonly title = document.createElement('h2');
     private readonly type = document.createElement('p');
-    private readonly slices = document.createElement('div');
+    private readonly axesPanel = document.createElement('div');
     private readonly table = document.createElement('regular-table') as RegularTableElement;
     private viewer?: ValueViewer;
+    /** The shape of an array, the axes laid out as rows and columns, and the index held on every axis. */
+    private shape: number[] = [];
+    private axes: [number, number] = [0, 1];
     private fixed: number[] = [];
     private blocks = new Map<string, Promise<Block>>();
     private ready = new Map<string, Block>();
@@ -71,15 +74,15 @@ export class ValueOverlay {
         name.append(this.title, this.type);
         const header = document.createElement('header');
         header.append(close, name);
-        this.slices.className = 'viewer-slices';
-        this.slices.hidden = true;
+        this.axesPanel.className = 'viewer-axes';
+        this.axesPanel.hidden = true;
         const body = document.createElement('div');
         body.className = 'viewer-body';
         // Focus the table area, not the close button, so opening shows no focus ring.
         body.tabIndex = -1;
         body.autofocus = true;
         body.append(this.table);
-        this.dialog.append(header, this.slices, body);
+        this.dialog.append(header, this.axesPanel, body);
         document.body.append(this.dialog);
         // Escape ends as a close; Android's Back reaches `rankBack` through the activity.
         this.dialog.addEventListener('close', () => {
@@ -106,13 +109,16 @@ export class ValueOverlay {
         const view = viewer.view;
         this.title.textContent = view.title;
         this.type.textContent = view.typeLine;
-        this.fixed = view.kind === 'grid' ? view.slice.map(slice => slice.index) : [];
+        this.shape = view.kind === 'grid' ? [...view.shape] : [];
+        this.axes = view.kind === 'grid' && view.windowAxes.length === 2 ? [view.windowAxes[0], view.windowAxes[1]] : [0, 1];
+        this.fixed = this.shape.map(() => 0);
+        if (view.kind === 'grid') for (const slice of view.slice) this.fixed[slice.axis] = slice.index;
         this.entries = view.kind !== 'grid';
         this.rows = view.kind === 'grid' ? view.scroll.rows.length : view.kind === 'list' ? view.scroll.length : 1;
         this.columns = view.kind === 'grid' ? view.scroll.columns?.length ?? 1 : view.kind === 'list' ? 2 : 1;
         this.blocks.clear();
         this.ready.clear();
-        this.renderSlices();
+        this.renderAxes();
         if (!this.dialog.open) this.dialog.showModal();
         this.table.scrollTop = 0;
         this.table.scrollLeft = 0;
@@ -134,21 +140,65 @@ export class ValueOverlay {
         this.dialog.close();
     }
 
-    /** One stepper per leading axis of an array of rank above two. */
-    private renderSlices(): void {
+    /** Starts again from the top-left of whatever the axes now show. */
+    private redraw(): void {
+        this.blocks.clear();
+        this.ready.clear();
+        this.rows = this.shape[this.axes[0]];
+        this.columns = this.shape[this.axes[1]];
+        this.table.scrollTop = 0;
+        this.table.scrollLeft = 0;
+        this.renderAxes();
+        void this.table.draw();
+    }
+
+    /** Puts `axis` on the rows or the columns; when it was on the other, the two trade places. */
+    private lay(axis: number, position: 0 | 1): void {
+        if (this.axes[position] === axis) return;
+        const other = (1 - position) as 0 | 1;
+        if (this.axes[other] === axis) this.axes[other] = this.axes[position];
+        this.axes[position] = axis;
+        this.redraw();
+    }
+
+    /**
+     * For an array of rank above two: which axis runs down the rows and which across the columns,
+     * and a stepper for the index held on every other axis.
+     */
+    private renderAxes(): void {
         const view = this.viewer?.view;
-        const slices = view?.kind === 'grid' ? view.slice : [];
-        this.slices.hidden = slices.length === 0;
-        this.slices.replaceChildren(...slices.map(slice => {
+        const rank = view?.kind === 'grid' ? view.shape.length : 0;
+        this.axesPanel.hidden = rank <= 2;
+        if (rank <= 2) return this.axesPanel.replaceChildren();
+        const group = (label: string, position: 0 | 1) => {
             const row = document.createElement('div');
+            row.className = 'viewer-axis-row';
+            const name = document.createElement('span');
+            name.textContent = label;
+            row.append(name);
+            for (let axis = 0; axis < rank; axis++) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = `${axis} · ${this.shape[axis]}`;
+                button.setAttribute('aria-label', `${label} on axis ${axis}`);
+                button.setAttribute('aria-pressed', String(this.axes[position] === axis));
+                button.onclick = () => this.lay(axis, position);
+                row.append(button);
+            }
+            return row;
+        };
+        const steppers = this.shape.map((length, axis) => axis).filter(axis => !this.axes.includes(axis)).map(axis => {
+            const length = this.shape[axis];
+            const row = document.createElement('div');
+            row.className = 'viewer-stepper';
             const label = document.createElement('span');
             const step = (delta: number) => {
-                const index = Math.min(slice.length - 1, Math.max(0, this.fixed[slice.axis] + delta));
-                if (index === this.fixed[slice.axis]) return;
-                this.fixed[slice.axis] = index;
+                const index = Math.min(length - 1, Math.max(0, this.fixed[axis] + delta));
+                if (index === this.fixed[axis]) return;
+                this.fixed[axis] = index;
                 this.blocks.clear();
                 this.ready.clear();
-                this.renderSlices();
+                this.renderAxes();
                 void this.table.draw();
             };
             const button = (text: string, aria: string, delta: number) => {
@@ -156,19 +206,19 @@ export class ValueOverlay {
                 element.type = 'button';
                 element.textContent = text;
                 element.setAttribute('aria-label', aria);
-                element.disabled = delta < 0 ? this.fixed[slice.axis] <= 0 : this.fixed[slice.axis] >= slice.length - 1;
+                element.disabled = delta < 0 ? this.fixed[axis] <= 0 : this.fixed[axis] >= length - 1;
                 element.onclick = () => step(delta);
                 return element;
             };
-            label.textContent = `axis ${slice.axis} · ${this.fixed[slice.axis] + 1} of ${slice.length}`;
-            row.append(button('‹', `Previous index on axis ${slice.axis}`, -1), label,
-                button('›', `Next index on axis ${slice.axis}`, 1));
+            label.textContent = `axis ${axis} · ${this.fixed[axis] + 1} of ${length}`;
+            row.append(button('‹', `Previous index on axis ${axis}`, -1), label, button('›', `Next index on axis ${axis}`, 1));
             return row;
-        }));
+        });
+        this.axesPanel.replaceChildren(group('rows', 0), group('columns', 1), ...steppers);
     }
 
     private key(rowBlock: number, columnBlock: number): string {
-        return `${this.fixed.join(',')}:${rowBlock}:${columnBlock}`;
+        return `${this.axes.join('x')}:${this.fixed.join(',')}:${rowBlock}:${columnBlock}`;
     }
 
     private block(rowBlock: number, columnBlock: number): Promise<Block> {
@@ -184,7 +234,7 @@ export class ValueOverlay {
         const generation = this.opened;
         const loading = (async () => {
             const inspection = await viewer.window({
-                fixed: this.fixed, offset: [rowBlock * ROW_BLOCK, columnBlock * COLUMN_BLOCK],
+                axes: this.axes, fixed: this.fixed, offset: [rowBlock * ROW_BLOCK, columnBlock * COLUMN_BLOCK],
                 count: [ROW_BLOCK, COLUMN_BLOCK],
             });
             if (inspection.status === 'stale') throw new Gone();

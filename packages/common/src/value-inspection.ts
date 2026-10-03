@@ -18,12 +18,15 @@ const CELL_WIDTH = 40;
 const TEXT_LIMIT = 10_000;
 
 /**
- * Which part of a value to read. A window covers the last two axes of an
- * array (its rows and columns); `fixed` picks an index on every axis before
- * them. Lists and collections take `offset[0]` and `count[0]` as a page.
- * Anything left out takes a default, and anything out of range is clamped.
+ * Which part of a value to read. A window covers two axes of an array, its
+ * rows and its columns: the last two unless `axes` names others, in that
+ * order, so `[2, 0]` lays axis 2 down the rows and axis 0 across. `fixed`
+ * picks an index on every other axis, by axis number. Lists and collections
+ * take `offset[0]` and `count[0]` as a page. Anything left out takes a
+ * default, and anything out of range is clamped.
  */
 export interface InspectRequest {
+    readonly axes?: readonly number[];
     readonly fixed?: readonly number[];
     readonly offset?: readonly number[];
     readonly count?: readonly number[];
@@ -56,6 +59,9 @@ export type InspectedValue =
      */
     | {
         readonly kind: 'array' | 'table'; readonly type: string; readonly shape: readonly number[];
+        /** The axes laid out as rows and as columns, in that order; one for a vector. */
+        readonly windowAxes: readonly number[];
+        /** The index held on each remaining axis, in axis order. */
         readonly columns?: readonly string[]; readonly fixed: readonly number[];
         readonly axes: readonly InspectAxis[]; readonly cells: readonly (readonly InspectCell[])[];
     }
@@ -147,25 +153,35 @@ function isScalarObject(value: Exclude<RankValue, bigint | number | boolean | st
 
 function inspectArray(value: RankArray, request: InspectRequest): InspectedValue {
     const { shape } = value;
-    const lead = Math.max(0, shape.length - 2);
-    const fixed = Array.from({ length: lead }, (_, axis) => clamp(request.fixed?.[axis], 0, shape[axis] - 1, 0));
-    const shown = shape.slice(lead);
-    const axes = shown.map((length, axis) => axisWindow(length, request.offset?.[axis], request.count?.[axis]));
+    const rank = shape.length;
+    // Rows and columns are the last two axes unless the request names others; one axis cannot be both.
+    let windowAxes = rank >= 2 ? [rank - 2, rank - 1] : [0];
+    if (rank >= 2 && request.axes?.length) {
+        const rowAxis = clamp(request.axes[0], 0, rank - 1, rank - 2);
+        const columnAxis = clamp(request.axes[1], 0, rank - 1, rank - 1);
+        if (rowAxis !== columnAxis) windowAxes = [rowAxis, columnAxis];
+    }
+    const held = shape.map((_, axis) => axis).filter(axis => !windowAxes.includes(axis));
+    const fixed = held.map(axis => clamp(request.fixed?.[axis], 0, shape[axis] - 1, 0));
+    const axes = windowAxes.map((axis, position) => axisWindow(shape[axis], request.offset?.[position], request.count?.[position]));
     // Row-major: a stride is the number of cells one step on that axis skips.
     const strides = shape.map((_, axis) => shape.slice(axis + 1).reduce((total, length) => total * length, 1));
-    const base = fixed.reduce((total, index, axis) => total + index * strides[axis], 0);
+    const base = held.reduce((total, axis, position) => total + fixed[position] * strides[axis], 0);
     const at = value.itemAt ?? ((index: number) => value.items[index]);
     const rows = axes[0];
     const columns = axes[1];
+    const rowStride = strides[windowAxes[0]];
+    const columnStride = columns ? strides[windowAxes[1]] : 0;
     const cells = Array.from({ length: rows.count }, (_, row) => {
-        const start = base + (rows.offset + row) * strides[lead];
+        const start = base + (rows.offset + row) * rowStride;
         return columns
-            ? Array.from({ length: columns.count }, (_, column) => cellAt(() => at(start + (columns.offset + column))))
+            ? Array.from({ length: columns.count }, (_, column) => cellAt(() => at(start + (columns.offset + column) * columnStride)))
             : [cellAt(() => at(start))];
     });
-    const names = value.columnNames && columns
+    // Column names belong to the last axis, so they only head columns laid along it.
+    const names = value.columnNames && columns && windowAxes[1] === rank - 1
         ? value.columnNames.slice(columns.offset, columns.offset + columns.count) : undefined;
-    return { kind: 'array', type: 'array', shape, ...(names ? { columns: names } : {}), fixed, axes, cells };
+    return { kind: 'array', type: 'array', shape, windowAxes, ...(names ? { columns: names } : {}), fixed, axes, cells };
 }
 
 function inspectTable(table: Extract<RankValue, { kind: 'table' }>, request: InspectRequest): InspectedValue {
@@ -175,7 +191,7 @@ function inspectTable(table: Extract<RankValue, { kind: 'table' }>, request: Ins
     const cells = Array.from({ length: rows.count }, (_, row) =>
         Array.from({ length: columns.count }, (_, column) =>
             cellAt(() => table.cell(rows.offset + row, columns.offset + column))));
-    return { kind: 'table', type: 'table', shape: [table.length, table.columns.length], columns: names, fixed: [], axes: [rows, columns], cells };
+    return { kind: 'table', type: 'table', shape: [table.length, table.columns.length], windowAxes: [0, 1], columns: names, fixed: [], axes: [rows, columns], cells };
 }
 
 function inspectSequence(value: RankSequence, request: InspectRequest, replay?: Pick<SequenceReplay, 'forced'>): InspectedValue {

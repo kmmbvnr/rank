@@ -267,7 +267,7 @@ describe('value view model', () => {
             kind: 'grid', title: 'M', typeLine: 'array · integer · [3 4]',
             rowLabels: ['1', '2'], columnLabels: ['2', '3'], cells: [['7', '8'], ['11', '12']],
             scroll: { rows: { length: 3, offset: 1, count: 2 }, columns: { length: 4, offset: 2, count: 2 } },
-            slice: [],
+            slice: [], shape: [3, 4], windowAxes: [0, 1],
         });
     });
 
@@ -275,6 +275,63 @@ describe('value view model', () => {
         const { session, ref } = await run(['use sequences', 'T = (1 to 24) (array 2 3 4) reshape', 'T']);
         const view = buildValueView('T', opened(session.inspect(ref, { fixed: [1] })));
         expect(view.kind === 'grid' && view.slice).toEqual([{ axis: 0, index: 1, length: 2 }]);
+    });
+
+    describe('choosing the axes of the window', () => {
+        const cube = () => run(['use sequences', 'T = (1 to 24) (array 2 3 4) reshape', 'T']);
+        const grid = (view: ReturnType<typeof buildValueView>) => {
+            if (view.kind !== 'grid') throw new Error('expected a grid');
+            return view;
+        };
+
+        it('lays any two axes down the rows and across the columns, holding the third', async () => {
+            const { session, ref } = await cube();
+            // Rows on axis 0, columns on axis 2, axis 1 held at 1: cell (r, c) is r * 12 + 1 * 4 + c + 1.
+            const view = grid(buildValueView('T', opened(session.inspect(ref, { axes: [0, 2], fixed: [0, 1] }))));
+            expect(view.cells).toEqual([['5', '6', '7', '8'], ['17', '18', '19', '20']]);
+            expect(view.windowAxes).toEqual([0, 2]);
+            expect(view.slice).toEqual([{ axis: 1, index: 1, length: 3 }]);
+            expect(view.scroll.rows.length).toBe(2);
+            expect(view.scroll.columns?.length).toBe(4);
+        });
+
+        it('transposes when the row axis comes after the column axis', async () => {
+            const { session, ref } = await cube();
+            const view = grid(buildValueView('T', opened(session.inspect(ref, { axes: [2, 1] }))));
+            // Rows on axis 2 (4), columns on axis 1 (3), axis 0 held at 0: cell (r, c) is c * 4 + r + 1.
+            expect(view.cells).toEqual([['1', '5', '9'], ['2', '6', '10'], ['3', '7', '11'], ['4', '8', '12']]);
+            expect(view.slice).toEqual([{ axis: 0, index: 0, length: 2 }]);
+        });
+
+        it('reads windows along the chosen axes', async () => {
+            const { session, ref } = await cube();
+            const view = grid(buildValueView('T', opened(session.inspect(ref, {
+                axes: [1, 0], fixed: [0, 0, 3], offset: [1, 1], count: [2, 1] }))));
+            // Axis 2 held at 3: cell (r, c) is c * 12 + r * 4 + 4.
+            expect(view.cells).toEqual([['20'], ['24']]);
+            expect(view.scroll.rows).toMatchObject({ length: 3, offset: 1, count: 2 });
+            expect(view.scroll.columns).toMatchObject({ length: 2, offset: 1, count: 1 });
+        });
+
+        it('keeps the defaults for a repeated or missing axis, and ignores axes for a vector', async () => {
+            const { session, ref } = await cube();
+            const same = grid(buildValueView('T', opened(session.inspect(ref, { axes: [1, 1] }))));
+            expect(same.windowAxes).toEqual([1, 2]);
+            const out = grid(buildValueView('T', opened(session.inspect(ref, { axes: [9, -4] }))));
+            expect(out.windowAxes).toEqual([2, 0]);
+            const vector = await run(['V = array 1 2 3', 'V']);
+            const flat = grid(buildValueView('V', opened(vector.session.inspect(vector.ref, { axes: [0, 1] }))));
+            expect(flat.windowAxes).toEqual([0]);
+            expect(flat.cells).toEqual([['1'], ['2'], ['3']]);
+        });
+
+        it('heads the columns with names only along the last axis', async () => {
+            const { session, ref } = await run(['M = array shape 2 3 fill 1', 'M']);
+            const named = opened(session.inspect(ref, { axes: [1, 0] }));
+            if (named.kind !== 'array') throw new Error('expected an array');
+            expect(named.windowAxes).toEqual([1, 0]);
+            expect(named.axes.map(axis => axis.length)).toEqual([3, 2]);
+        });
     });
 
     it('uses the column names of a table as labels', async () => {

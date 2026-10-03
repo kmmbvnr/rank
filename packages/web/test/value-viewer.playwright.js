@@ -78,5 +78,39 @@ async page => {
     await dialog.waitFor({ state: 'hidden' });
     await page.waitForFunction(() => document.querySelector('#screen').textContent.includes('integer [1000000 3]'), null, { timeout: 5000 });
     check(await highlighted() === 0, 'a tap left the result row selected after closing');
+    // An array of rank above two: pick the axes of the table; the other axes get a stepper.
+    // Back to the prompt: the first Escape leaves a focused result row, the second leaves the cell.
+    await input.press('Escape');
+    await input.press('Escape');
+    await input.fill('A = (1 to 24) (array 2 3 4) reshape');
+    await input.press('Enter');
+    await settled();
+    await page.waitForFunction(() => document.querySelector('#screen').textContent.includes('integer [2 3 4]'));
+    await input.press('ArrowUp');
+    await input.press('Enter');
+    await dialog.waitFor({ state: 'visible' });
+    const firstRow = () => page.evaluate(() => [...document.querySelector('#value-viewer tbody tr').querySelectorAll('td')].map(cell => cell.textContent));
+    const rowCount = () => dialog.locator('tbody tr').count();
+    const waitFirstRow = async expected => {
+        await page.waitForFunction(want => JSON.stringify([...document.querySelector('#value-viewer tbody tr').querySelectorAll('td')].map(cell => cell.textContent)) === want,
+            JSON.stringify(expected), { timeout: 5000 });
+    };
+    const pressed = label => page.evaluate(name => [...document.querySelectorAll('#value-viewer .viewer-axis-row button[aria-pressed="true"]')]
+        .map(button => button.getAttribute('aria-label')), label);
+    await waitFirstRow(['1', '2', '3', '4']);
+    check(JSON.stringify(await pressed()) === JSON.stringify(['rows on axis 1', 'columns on axis 2']), 'the default axes are the last two');
+    check(await dialog.locator('.viewer-stepper').count() === 1, 'one held axis has a stepper');
+    // Rows on axis 2: it was the column axis, so the two trade places and the table is 4 rows by 3 columns.
+    await dialog.getByRole('button', { name: 'rows on axis 2' }).click();
+    await waitFirstRow(['1', '5', '9']);
+    check(await rowCount() === 4, 'rows on axis 2 should show 4 rows');
+    // Columns on axis 0, rows still on axis 2: the held axis is now axis 1, with the cell at r * 1 + c * 12 + 1.
+    await dialog.getByRole('button', { name: 'columns on axis 0' }).click();
+    await waitFirstRow(['1', '13']);
+    check(await dialog.getByText('axis 1 ·').count() === 1, 'the stepper follows the held axis');
+    await dialog.getByRole('button', { name: 'Next index on axis 1' }).click();
+    await waitFirstRow(['5', '17']);
+    await page.keyboard.press('Escape');
+    await dialog.waitFor({ state: 'hidden' });
     return { bounded: true, lastRow: last, keyboardHidden };
 }

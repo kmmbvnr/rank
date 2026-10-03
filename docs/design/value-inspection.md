@@ -38,6 +38,17 @@ from the terminal's CSS, so the grid, the key/value list and later renderers sha
   Android's Back close it, through the dialog's own `cancel`/`close`, back onto the result row.
 - **No typing.** Opening hides the symbol keyboard and the system keyboard; closing brings back
   the same one.
+- **Axes.** `inspect` takes `axes: [rows, columns]` and `fixed` by axis number, so any two axes
+  of an array can form the table, in either order (a transposed view is `[2, 1]`); the default
+  stays the last two. Above rank two the overlay shows a toggle row for the row axis and one for
+  the column axis (choosing the other's axis trades the two places), and a stepper for the index
+  held on each remaining axis. Changing axes starts from the top-left. Column names of a table-like
+  array only head columns laid along the last axis. The terminal viewer keeps `[` and `]` on the
+  first held axis for now.
+- **Smooth scrolling.** The table scrolls by pixels (`sub-cell-scrolling.css`), not whole rows.
+  Up to about 465,000 rows (the package caps the virtual height at 10,000,000 px) a finger and
+  the table move 1:1; beyond that the table moves faster than the finger so the whole extent stays
+  reachable.
 - **Kinds.** Arrays and tables are a grid; records, sets, counters, queues, tuples, graphs and
   sequences are the same grid with a `key` and a `value` column.
 - **Adapter.** The grid asks for a rectangle; the adapter reads it as blocks of 64 rows by 16

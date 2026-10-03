@@ -195,14 +195,17 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #value-viewer .viewer-name { min-width: 0; }
 #value-viewer h2 { margin: 0; font: inherit; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #value-viewer .viewer-name p { margin: 0; color: #888; font-size: .85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#value-viewer .viewer-slices { flex: none; display: flex; flex-direction: column; border-bottom: 1px solid #222; }
-#value-viewer .viewer-slices[hidden] { display: none; }
-#value-viewer .viewer-slices div { display: flex; align-items: center; gap: 4px; padding: 0 8px; color: #888; }
-#value-viewer .viewer-slices span { flex: 1; text-align: center; }
-#value-viewer .viewer-slices button { width: 48px; height: 44px; background: transparent; font-size: 28px; line-height: 1; border-radius: 8px; }
-#value-viewer .viewer-body:focus { outline: 0; }
-#value-viewer .viewer-slices button:active { background: #333; }
-#value-viewer .viewer-slices button:disabled { color: #444; }
+#value-viewer .viewer-axes { flex: none; display: flex; flex-direction: column; padding: 4px 8px; border-bottom: 1px solid #222; color: #888; }
+#value-viewer .viewer-axes[hidden] { display: none; }
+#value-viewer .viewer-axis-row, #value-viewer .viewer-stepper { display: flex; align-items: center; gap: 6px; min-height: 40px; }
+#value-viewer .viewer-axis-row > span { width: 5.5em; flex: none; }
+#value-viewer .viewer-axis-row button { min-width: 3.4em; height: 34px; padding: 0 .6em; background: transparent; color: #aaa; border: 1px solid #333; border-radius: 17px; }
+#value-viewer .viewer-axis-row button[aria-pressed="true"] { color: #e5e5e5; background: #262626; border-color: #666; }
+#value-viewer .viewer-axis-row button:active { background: #333; }
+#value-viewer .viewer-stepper span { flex: 1; text-align: center; }
+#value-viewer .viewer-stepper button { width: 48px; height: 40px; background: transparent; font-size: 28px; line-height: 1; border-radius: 8px; }
+#value-viewer .viewer-stepper button:active { background: #333; }
+#value-viewer .viewer-stepper button:disabled { color: #444; }
 #value-viewer .viewer-body { position: relative; flex: 1; min-height: 0; }
 #value-viewer regular-table { padding: 0; font-family: inherit; scrollbar-color: #444 transparent; outline: none; }
 #value-viewer regular-table:hover { scrollbar-color: #666 transparent; }

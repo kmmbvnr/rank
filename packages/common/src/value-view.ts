@@ -3,7 +3,7 @@ import type { InspectAxis, InspectCell, InspectedValue } from './value-inspectio
 /** Where the window sits on one axis, so a viewer can draw a scroll bar and ask for the next page. */
 export type ViewScroll = InspectAxis;
 
-/** One leading axis of an array that the viewer holds still: "axis 0, index 1 of 2". */
+/** One axis of an array that the viewer holds still: "axis 0, index 1 of 2". */
 export interface ViewSlice {
     readonly axis: number;
     readonly index: number;
@@ -23,8 +23,11 @@ export type ValueView =
         readonly cells: readonly (readonly string[])[];
         /** The row and column windows; a vector has no column window. */
         readonly scroll: { readonly rows: ViewScroll; readonly columns?: ViewScroll };
-        /** The index chosen on each leading axis of an array of rank above two. */
+        /** The index held on each axis that is not a row or column axis, in axis order. */
         readonly slice: readonly ViewSlice[];
+        /** The shape of the whole array and the axes laid out as rows and columns, for an axis picker. */
+        readonly shape: readonly number[];
+        readonly windowAxes: readonly number[];
     }
     | {
         readonly kind: 'list'; readonly title: string; readonly typeLine: string;
@@ -59,7 +62,9 @@ export function buildValueView(title: string, value: InspectedValue): ValueView 
                     : columns ? range(columns.offset, columns.count) : [''],
                 cells: value.cells.map(row => row.map(cell => cell.text)),
                 scroll: columns ? { rows, columns } : { rows },
-                slice: value.fixed.map((index, axis) => ({ axis, index, length: value.shape[axis] })),
+                slice: value.shape.map((_, axis) => axis).filter(axis => !value.windowAxes.includes(axis))
+                    .map((axis, position) => ({ axis, index: value.fixed[position], length: value.shape[axis] })),
+                shape: value.shape, windowAxes: value.windowAxes,
             };
         }
         case 'entries':
