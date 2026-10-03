@@ -68,10 +68,25 @@ are retained alongside the final samples in
 
 The final demo audit was repeated after the scalar-expression migration and all
 diagnostic changes. The subsequent rebase onto the web-viewer change on main
-(`badd7dd4`) changed no interpreter, language or CLI source. The raw report
-includes their Git tree hashes so this equivalence can be checked after rebasing.
+(`badd7dd4`) changed no interpreter, language or CLI implementation. The raw report
+includes the Git tree hashes of their `src` directories so this equivalence can be checked after rebasing.
 The integrated tree
 still receives its own full local test and CI gates.
+
+## Corpus test deadline
+
+The initial scalar-expression PR CI hit the five-minute deadline for the single
+whole-corpus type test on Node 22. The preceding green run took 291 seconds;
+the failed run reached 310 seconds. Local reproduction on the same Node 22.23.3
+passed in 130 seconds without a type contradiction.
+
+That test now names and times each demo separately, retaining a five-minute
+bound for each program. It preserves the same host-free observation rule and
+the full-run gates of more than 400 observed programs and more than 75% settled
+names. The revised Node 22 audit observed 525 programs, with 291 of 358 names
+settled; 333 programs were unobserved and explicitly skipped. This test-harness
+repair changes no audited implementation source. The final CI run verifies it
+alongside the diagnostics.
 
 ## Reproduction
 
