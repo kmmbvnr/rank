@@ -33,6 +33,7 @@ export class ReductionEvaluator {
         private readonly resolve: (name: string) => RankValue,
         private readonly standardFunctions: ReadonlyMap<RuntimeModule[string], NativeFunction>,
         private readonly tensorFusion: boolean | (() => boolean),
+        private readonly scalarCallback: (fn: NativeFunction) => ((arguments_: RankValue[]) => RankValue) | undefined,
     ) {}
 
     private isTensorFusion(): boolean {
@@ -81,7 +82,19 @@ export class ReductionEvaluator {
     evaluateNamedScanAxis(operation: NativeFunction, value: RankValue, axis: number): RankValue {
         const extreme = operation === this.standardFunctions.get(standardModules.core.max) ? 'max'
             : operation === this.standardFunctions.get(standardModules.core.min) ? 'min' : operation.name;
-        return this.scanAxis(extreme, value, axis, (left, right) => operation.call([left, right]));
+        const scalar = this.scalarCallback(operation);
+        return this.scanAxis(extreme, value, axis, (left, right) => {
+            const arguments_ = [left, right];
+            return scalar ? scalar(arguments_) : operation.call(arguments_);
+        });
+    }
+
+    evaluateNamedScan(operation: NativeFunction, value: RankValue, seed?: RankValue): RankValue {
+        const scalar = this.scalarCallback(operation);
+        return this.scanValues(value, operation.name, seed, (left, right) => {
+            const arguments_ = [left, right];
+            return scalar ? scalar(arguments_) : operation.call(arguments_);
+        });
     }
 
     private scanAxis(operator: string, value: RankValue, axis: number,

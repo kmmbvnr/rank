@@ -431,8 +431,7 @@ export class ApplicationEvaluator {
                     if (namedAxis !== undefined) {
                         return context.reductions.evaluateNamedScanAxis(operation, source, namedAxis);
                     }
-                    return context.reductions.scanValues(source, operation.name, seed,
-                        (left, right) => operation.call([left, right]));
+                    return context.reductions.evaluateNamedScan(operation, source, seed);
                 };
             }
             case 'axis-selection': {

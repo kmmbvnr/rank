@@ -67,4 +67,50 @@ describe('prepared sequence and dyadic callbacks', () => {
         expect(compiled.calls).toBeLessThan(reference.calls);
         expect(compiled.values).toContain('changed:14');
     });
+    it.each([
+        ['(array 1 2) (array 3 4) outer helper', [4n, 5n, 5n, 6n]],
+        ['(array 1 2 3) scan helper', [1n, 3n, 6n]],
+        ['(array 1 2 3) scan helper with 0', [0n, 1n, 3n, 6n]],
+        ['((array 1 2 3 4) (array 2 2) reshape) scan helper axis 1', [1n, 3n, 3n, 7n]],
+    ] as const)('uses the checked kernel for %s', (expression, expected) => {
+        for (const compiled of [false, true]) {
+            const { runtime, calls } = setup(compiled, 'fun helper X Y rank 0 0\nreturn X + Y\nend');
+            try {
+                const value = runtime.execute(expression);
+                if (!value || !isRankArray(value)) throw new Error('missing result');
+                expect([...value.items]).toEqual(expected);
+                if (compiled) expect(calls).not.toHaveBeenCalled();
+                else expect(calls).toHaveBeenCalled();
+            } finally { runtime.dispose(); }
+        }
+    });
+
+    it('keeps a named scan lazy and checks native replacements between source reads', () => {
+        const run = (compiled: boolean) => {
+            const { runtime, calls } = setup(compiled, 'fun helper X Y\nreturn (X + Y) text len\nend');
+            const reads: number[] = [];
+            try {
+                runtime.variables.set('Source', sequence({ name: 'source', size: { kind: 'unknown' },
+                    *iterate() {
+                        for (let index = 0; index < 4; index++) {
+                            reads.push(index);
+                            if (index === 2) runtime.variables.set('len', native('replacement', 1, () => 99n));
+                            yield BigInt(index + 1);
+                        }
+                    },
+                }));
+                runtime.execute('Mapped = Source scan helper');
+                expect(reads).toEqual([]);
+                const mapped = runtime.variables.get('Mapped');
+                if (!mapped || !isRankSequence(mapped)) throw new Error('missing sequence');
+                const iterator = mapped.plan.iterate()[Symbol.iterator]();
+                const values = [iterator.next().value, iterator.next().value, iterator.next().value];
+                iterator.return?.();
+                return { values, reads, calls: calls.mock.calls.length };
+            } finally { runtime.dispose(); }
+        };
+        expect(run(false)).toEqual({ values: [1n, 1n, 99n], reads: [0, 1, 2], calls: 2 });
+        expect(run(true)).toEqual({ values: [1n, 1n, 99n], reads: [0, 1, 2], calls: 1 });
+    });
+
 });
