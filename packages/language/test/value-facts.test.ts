@@ -1282,3 +1282,36 @@ it('does not give ordered extrema a numeric result before the operand domain is 
     expect(result.bindings.get('A')).toMatchObject({ types: ['text'], rank: 1 });
     expect(analyze('fun small X\n return X min\nend\nA = Unknown small').bindings.get('A')?.rank).toBeUndefined();
 });
+
+
+it('infers integer matrices from outer arithmetic on sequences', () => {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(`
+Target = 1000
+ALast = (Target - 1) // 3
+BLast = (Target - 1) // 2
+A = 1 to ALast
+B = 1 to BLast
+C = Target - (A B outer +)
+`);
+    expect(parsed.parserErrors).toEqual([]);
+    const analysis = analyzeValues(parsed.value);
+    expect(analysis.diagnostics).toEqual([]);
+    expect(analysis.bindings.get('C')).toMatchObject({ types: ['array'], elements: ['integer'],
+        rank: 2, shape: [null, null], callbackFreeScalarCells: true });
+    expect(facts('(1 to 3) (1 to 5) outer +')).toMatchObject({ types: ['array'],
+        elements: ['integer'], rank: 2, shape: [3, 5], callbackFreeScalarCells: true });
+    expect(facts('(array 1 2) (1 to 5) outer *')).toMatchObject({ types: ['array'],
+        elements: ['integer'], rank: 2, shape: [2, 5], callbackFreeScalarCells: true });
+});
+
+it('does not prove callback-free outer cells from sequence element types alone', () => {
+    const bindings = new Map<string, ValueFacts>([['Values', {
+        types: ['sequence'], rank: 1, shape: [null], elements: ['integer'],
+    }]]);
+    expect(facts('Values (1 to 5) outer +', bindings)).toEqual({
+        types: ['array'], rank: 2, shape: [null, 5],
+    });
+    expect(facts('(1 to 3) (1 to 5) outer +', new Map([
+        ['outer', { types: ['function'] }],
+    ]))).not.toHaveProperty('elements');
+});
