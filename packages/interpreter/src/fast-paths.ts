@@ -13,7 +13,7 @@ import { compileScalarExpression } from './scalar-compiler.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { completed, type Evaluation, type Execution } from './execution.js';
-import { argumentSignature } from './return-contract.js';
+import { CallSpecializations } from './call-specializations.js';
 import type { ExecutionContext, PreparedStatement, TensorGroup } from './statement-control.js';
 import { compileTensorKernel } from './tensor-kernel.js';
 import type { BindingEnvironment } from './binding-environment.js';
@@ -81,7 +81,7 @@ export interface BlockSteps {
  */
 export class FastPaths {
     private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
-    private readonly functionBodies = new WeakMap<FunctionStatement, Map<string, CompiledBlock<ExecutionContext> | null>>();
+    private readonly functionBodies = new WeakMap<FunctionStatement, CallSpecializations<CompiledBlock<ExecutionContext> | null>>();
 
     constructor(private readonly context: FastPathContext) {}
 
@@ -111,9 +111,8 @@ export class FastPaths {
     ): CompiledBlock<ExecutionContext> | undefined {
         if (this.context.options().functionBodyCompilation === false) return undefined;
         let instances = this.functionBodies.get(statement);
-        if (!instances) this.functionBodies.set(statement, instances = new Map());
-        const signature = argumentSignature(arguments_);
-        let body = instances.get(signature);
+        if (!instances) this.functionBodies.set(statement, instances = new CallSpecializations());
+        let body = instances.get(arguments_);
         if (body === undefined) {
             const commands = statement.statements;
             const last = commands.at(-1);
@@ -135,7 +134,7 @@ export class FastPaths {
                 compiled: this.context.options().onFunctionBodyCompiled,
                 executed: this.context.options().onFunctionBodyExecuted,
             }) ?? null : null;
-            instances.set(signature, body);
+            instances.set(arguments_, body);
         }
         return body ?? undefined;
     }

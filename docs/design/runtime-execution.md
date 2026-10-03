@@ -41,8 +41,17 @@ are released. Captured frames cannot be reused by tail calls.
 ## Prepared syntax
 
 `prepared-function.ts` caches generator classification and direct local function
-declarations by AST identity. Only syntax is shared: every invocation still creates
-its own local functions and captures. A weak cache permits unused ASTs to be freed.
+declarations, parameter slots and static borrow candidates by AST identity. These
+facts do not depend on argument types and are prepared once per declaration.
+Every invocation still creates its own local functions and captures. A weak cache
+permits unused ASTs to be freed.
+
+Return contracts and compiled function blocks remain per-owner specializations.
+`CallSpecializations` selects primitive domains through a path of argument types,
+so changing integer, real, boolean or text values reuses the prepared instance
+without constructing or serializing a signature. Text's rank remains one.
+Structural arguments retain `argumentSignature` and its existing semantic type
+and mutation checks; this stage does not infer types by reading lazy cells.
 
 The interpreter also prepares expression handlers on first evaluation. A handler
 remembers how to evaluate an expression, including recognized `rank`, `axis`,

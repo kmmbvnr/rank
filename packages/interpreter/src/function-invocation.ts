@@ -10,13 +10,14 @@ import { ReturnSignal, TailCallSignal, type PreparedScalarCall } from './control
 import type { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
 import { ExecutionStack, completed, mapResult, resume, runExecution, type Evaluation, type Execution } from './execution.js';
+import { CallSpecializations } from './call-specializations.js';
 import { LocalFrame } from './frame.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import { checkpoint, inspectionEnabled } from './interrupt.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
-import { ReturnContract, argumentRankSignature, argumentSignature } from './return-contract.js';
+import { ReturnContract, argumentRankSignature } from './return-contract.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
 import { prepareCompiledBuiltin } from './typed-native.js';
 import { sequence } from './sequence.js';
@@ -132,17 +133,15 @@ export class FunctionInvocation {
         } : undefined;
         const proof = this.host.scalarEntry(statement, generator);
         const scalar = proof ? this.prepareScalarCall(statement, context) : undefined;
-        const instances = new Map<string, ReturnContract>();
+        const instances = new CallSpecializations<ReturnContract>();
         const returnRanks = new Map<string, { rank?: number }>();
         const specialization = (arguments_: RankValue[]): ReturnContract => {
-            const key = argumentSignature(arguments_);
-            let instance = instances.get(key);
+            let instance = instances.get(arguments_);
             if (!instance) {
-                prepareFunction(statement, key);
                 const rankKey = argumentRankSignature(arguments_);
                 let rank = returnRanks.get(rankKey);
                 if (!rank) returnRanks.set(rankKey, rank = {});
-                instances.set(key, instance = new ReturnContract(statement.name, rank));
+                instances.set(arguments_, instance = new ReturnContract(statement.name, rank));
             }
             return instance;
         };
@@ -322,7 +321,7 @@ export class FunctionInvocation {
                 `${statement.name} expects ${statement.parameters.length} arguments, got ${arguments_.length}`,
             );
         }
-        const prepared = prepareFunction(statement, argumentSignature(arguments_));
+        const prepared = prepareFunction(statement);
         const frame = reusable?.reset() ? reusable
             : new LocalFrame(parent, prepared.layout);
         const candidates = arguments_.some((argument, index) => isFlatScalarArray(argument) && !isSharedArray(argument)
@@ -421,7 +420,7 @@ export class FunctionInvocation {
                 try {
                     this.bindings.current = frame;
                     if (inspectionEnabled()) this.inspection.replace(statement.name, frame);
-                    for (const local of prepareFunction(statement, argumentSignature(arguments_)).locals) this.define(local);
+                    for (const local of prepareFunction(statement).locals) this.define(local);
                     const body = this.host.compiled(statement, arguments_);
                     if (body) {
                         result = yield* resume(body({ assertBooleanExpressions: false, insideLoop: false,
@@ -486,7 +485,7 @@ export class FunctionInvocation {
         let consumed = false;
 
         this.bindings.withFrame(frame, () => {
-            for (const local of prepareFunction(statement, argumentSignature(arguments_)).locals) this.define(local);
+            for (const local of prepareFunction(statement).locals) this.define(local);
         });
 
         return this.singlePass({
