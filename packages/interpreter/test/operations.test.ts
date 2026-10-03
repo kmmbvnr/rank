@@ -205,6 +205,34 @@ describe('the operation catalogue', () => {
         expect(() => new Interpreter().execute('use algo\nI = new index\nI len')).toThrow();
     });
 
+    it('checks linear algebra result forms, including empty real determinants', () => {
+        for (const [expression, expected] of [
+            ['(array 1 2) diag', 'array'], ['(array 1 2) (array 3 4) matmul', 'integer'],
+            ['(array 1.0 2.0) (array 3.0 4.0) matmul', 'real'],
+            ['((array 1 2) diag) (array 3 4) matmul', 'array'],
+            ['((array 1 2) diag) det', 'integer'], ['((array 1.0 2.0) diag) det', 'real'],
+            ['(array shape 0 0 fill 0.0) det', 'integer'],
+            ['((array 1 2) diag) inverse', 'array'], ['((array 1 2) diag) eigh', 'tuple'],
+            ['((array 1 2) diag) (array 3 4) solve', 'array'],
+        ]) expect(typeName(new Interpreter().execute('use linalg\n' + expression)!), expression).toBe(expected);
+    });
+
+    it('checks statistical reductions, quantile arrays and general mode results', () => {
+        for (const name of ['mean', 'median', 'std', 'variance', 'var', 'skewness', 'skew', 'quantile', 'percentile']) {
+            expect(typeName(new Interpreter().execute(`use stats\n(array 1 2 3) ${name}`)!), name).toBe('real');
+            expect(typeName(new Interpreter().execute(`use stats\n3 ${name}`)!), name).toBe('real');
+        }
+        for (const [expression, expected] of [
+            ['(array 1 2 3) (array 0.25 0.75) quantile', 'array'],
+            ['(array 1 2 3) (array 25 75) percentile', 'array'],
+            ['(array shape 2 3 fill 1) covariance', 'array'],
+            ['(array shape 2 3 fill 1) correlation', 'array'], ['(array shape 2 3 fill 1) corr', 'array'],
+            ['(array 1 2) (array 2 3) mse', 'real'], ['1 2 mae', 'real'],
+            ['(array "a" "b" "a") mode', 'text'], ['"abc" mode', 'text'],
+        ]) expect(typeName(new Interpreter().execute('use stats\n' + expression)!), expression).toBe(expected);
+        expect(() => new Interpreter().execute('use algo\nuse stats\nQ = new queue\nQ push 1\nQ mean')).toThrow();
+    });
+
     it('validates shape contracts against explicit ranks and representation facts', () => {
         for (const entry of operations) {
             if (entry.monadicRank !== undefined || entry.dyadicRanks

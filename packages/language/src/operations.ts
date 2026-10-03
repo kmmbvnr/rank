@@ -192,6 +192,17 @@ const extremaSignatures: readonly TypeSignature[] = (['number', 'text', 'boolean
     ]);
 const printableScalar: SignatureType = { union: ['number', 'boolean', 'text', 'symbol', 'date', 'datetime'] };
 const numericCells: SignatureType = { union: ['number', 'missing'] };
+const numericArray: SignatureType = { collection: 'array', element: 'number' };
+const realArray: SignatureType = { collection: 'array', element: 'real' };
+const statisticalInput: SignatureType = { union: ['number',
+    { collection: 'array', element: numericCells }, { collection: 'sequence', element: numericCells }] };
+const statisticalSignatures: readonly TypeSignature[] = [{ inputs: [statisticalInput], result: 'real' }];
+const quantileSignatures: readonly TypeSignature[] = [...statisticalSignatures,
+    { inputs: [statisticalInput, 'number'], result: 'real' },
+    { inputs: [statisticalInput, numericArray], result: realArray }];
+const metricInput: SignatureType = { union: ['number', numericArray, { collection: 'sequence', element: 'number' }] };
+const metricSignatures: readonly TypeSignature[] = [{ inputs: [metricInput, metricInput], result: 'real' }];
+
 const numericReductionInputs: SignatureType = { union: ['number', 'missing', 'column',
     ...(['array', 'sequence', 'queue', 'stack', 'deque', 'set'] as const).map(collection => ({ collection, element: numericCells }))] };
 
@@ -545,20 +556,27 @@ export const operations: readonly Operation[] = [
 
 
     { name: 'det', module: 'linalg', arities: [1], form: 'Matrix det', result: 'number',
+        signatures: [{ inputs: [{ collection: 'array', element: 'integer' }], result: 'integer', ranks: [2] },
+            { inputs: [{ collection: 'array', element: 'real' }], result: 'number', ranks: [2] }],
         shape: [{ args: [['n', 'n']], result: [] }],
         monadicRank: 2, summary: 'Determinant of a square numeric matrix, exact for integers.' },
     { name: 'diag', module: 'linalg', arities: [1], form: 'Values diag', result: 'array',
+        signatures: [{ inputs: [numericArray], result: numericArray }],
         summary: 'Diagonal matrix from a vector, or the main diagonal of a matrix.' },
     { name: 'eigh', module: 'linalg', arities: [1], form: 'Matrix eigh', result: 'tuple',
+        signatures: [{ inputs: [numericArray], result: { tuple: [realArray, realArray] } }],
         summary: 'Ascending eigenvalues and their eigenvector columns of a symmetric matrix.' },
     { name: 'inverse', module: 'linalg', arities: [1], form: 'Matrix inverse', result: 'array',
+        signatures: [{ inputs: [numericArray], result: realArray, ranks: [2] }],
         shape: [{ args: [['n', 'n']], result: ['n', 'n'] }],
         monadicRank: 2, lazy: true,
         summary: 'Inverse of a square matrix, one trailing cell at a time.' },
     { name: 'matmul', module: 'linalg', arities: [2], form: 'A B matmul', result: 'array',
+        signatures: [{ inputs: [numericArray, numericArray], result: { union: ['number', numericArray] } }],
         lazy: true, numericArrayNoCallback: true,
         summary: 'Contracts the last axis of the left array with the first axis of the right.' },
     { name: 'solve', module: 'linalg', arities: [2], form: 'A B solve', result: 'array',
+        signatures: [{ inputs: [numericArray, numericArray], result: realArray }],
         shape: [{ args: [['n', 'n'], [{ spread: 's' }]], result: [{ spread: 's' }] }],
         numericArrayNoCallback: true,
         summary: 'Solves A * X = B for a square coefficient matrix.' },
@@ -804,39 +822,56 @@ export const operations: readonly Operation[] = [
         summary: 'Moves items along an axis, keeping the shape; vacated positions read zero or a with value.' },
 
     { name: 'correlation', module: 'stats', arities: [1], form: 'Features correlation',
+        signatures: [{ inputs: [numericArray], result: realArray }],
         result: 'array', lazy: true,
         summary: 'Pearson correlation matrix over feature and observation axes.' },
     { name: 'corr', module: 'stats', arities: [1], form: 'Features corr',
+        signatures: [{ inputs: [numericArray], result: realArray }],
         result: 'array', lazy: true,
         summary: 'Alias for correlation.' },
     { name: 'covariance', module: 'stats', arities: [1], form: 'Features covariance',
+        signatures: [{ inputs: [numericArray], result: realArray }],
         result: 'array', lazy: true,
         summary: 'Sample covariance matrix over feature and observation axes.' },
     { name: 'mae', module: 'stats', arities: [2], form: 'Pred Target mae', result: 'real',
+        signatures: metricSignatures,
         summary: 'Mean absolute error between two broadcast numeric values.' },
     { name: 'mean', module: 'stats', arities: [1], form: 'Values mean', result: 'real', axisReduction: true,
+        signatures: statisticalSignatures,
         summary: 'Arithmetic mean, missing table cells skipped.' },
     { name: 'median', module: 'stats', arities: [1], form: 'Values median', result: 'real', axisReduction: true,
+        signatures: statisticalSignatures,
         summary: 'Middle value of a sorted copy, averaging the two middle values when even.' },
     { name: 'mode', module: 'stats', arities: [1], form: 'Values mode', result: 'value', axisReduction: true,
+        signatures: [{ inputs: [{ union: [{ collection: 'array', element: { variable: 0 } },
+            { collection: 'sequence', element: { variable: 0 } }] }], result: { variable: 0 } },
+            { inputs: ['unknown'], result: 'unknown' }],
         summary: 'Most frequent value in a collection or array.' },
     { name: 'mse', module: 'stats', arities: [2], form: 'Pred Target mse', result: 'real',
+        signatures: metricSignatures,
         summary: 'Mean squared error between two broadcast numeric values.' },
     { name: 'percentile', module: 'stats', arities: [1, 2], form: 'Values P percentile', result: 'value', dyadicRanks: [1, 0],
+        signatures: quantileSignatures,
         shape: [{ args: [null], result: [] }, { args: [[null], []], result: [] }],
         summary: 'Percentile P in 0..100.' },
     { name: 'quantile', module: 'stats', arities: [1, 2], form: 'Values Q quantile', result: 'value', dyadicRanks: [1, 0],
+        signatures: quantileSignatures,
         shape: [{ args: [null], result: [] }, { args: [[null], []], result: [] }],
         summary: 'Linear interpolation quantile Q in 0..1.' },
     { name: 'skew', module: 'stats', arities: [1], form: 'Values skew', result: 'real', axisReduction: true,
+        signatures: statisticalSignatures,
         summary: 'Alias for skewness.' },
     { name: 'skewness', module: 'stats', arities: [1], form: 'Values skewness', result: 'real', axisReduction: true,
+        signatures: statisticalSignatures,
         summary: 'Sample skewness of numeric values.' },
     { name: 'std', module: 'stats', arities: [1], form: 'Values std', result: 'real', axisReduction: true,
+        signatures: statisticalSignatures,
         summary: 'Population standard deviation, dividing by N.' },
     { name: 'var', module: 'stats', arities: [1], form: 'Values var', result: 'real', axisReduction: true,
+        signatures: statisticalSignatures,
         summary: 'Alias for variance.' },
     { name: 'variance', module: 'stats', arities: [1], form: 'Values variance', result: 'real', axisReduction: true,
+        signatures: statisticalSignatures,
         summary: 'Population variance of numeric values.' },
 
 
