@@ -1,7 +1,8 @@
 # Compiler catalogue refactor: verification
 
 Measured on 2026-10-03 for #103. Baseline: `c2be797f`. Candidate:
-`ab84281b`, containing the five staged catalogue/diagnostic changes. The candidate
+`a5f4eee5`, containing all staged catalogue migrations and rejection diagnostics,
+including the additional scalar-expression consumer. The candidate
 also includes the concurrent terminal value-viewer changes from main; the CLI
 measurements therefore cover the combined checkout. No new compiler operation
 or argument domain is enabled by this refactor.
@@ -53,17 +54,22 @@ audit jobs had finished before measurement.
 
 | Program | Samples per checkout | Baseline median | Candidate median | Candidate / baseline |
 | --- | ---: | ---: | ---: | ---: |
-| Euler 004, default input | 5 | 4,735 ms | 4,872 ms | 1.029 |
-| Euler 014, default input | 5 | 13,127 ms | 13,110 ms | 0.999 |
-| AtCoder Frog 2, N=3,000, K=100 | 5 | 478 ms | 482 ms | 1.007 |
-| CSES Coin Combinations I, target=20,000 | 5 | 565 ms | 568 ms | 1.004 |
-| CSES Dice Combinations, target=100,000 | 5 | 440 ms | 443 ms | 1.007 |
-| Euler 004, candidate first in a second batch | 7 | 4,757 ms | 4,733 ms | 0.995 |
+| Euler 004 | 5 | 4,678 ms | 4,714 ms | 1.008 |
+| Euler 014 | 5 | 12,828 ms | 12,853 ms | 1.002 |
+| AtCoder Frog 2 | 5 | 479 ms | 483 ms | 1.009 |
+| CSES Coin Combinations I | 5 | 564 ms | 566 ms | 1.004 |
+| CSES Dice Combinations | 5 | 437 ms | 440 ms | 1.008 |
 
-The initial palindrome difference did not reproduce with the order reversed.
-No reproducible slowdown was found in these cases. This is not evidence of a
-speed improvement or a guarantee for unmeasured workloads. Raw samples and
-revision IDs are in [compiler-catalogue-results.json](compiler-catalogue-results.json).
+Final medians were within 1% of the baseline in these cases. This batch does not
+show a material slowdown or a speed improvement; it is not a guarantee for
+unmeasured workloads. The earlier staged measurements and a palindrome repeat
+are retained alongside the final samples in
+[compiler-catalogue-results.json](compiler-catalogue-results.json).
+
+The final demo audit was repeated after the scalar-expression migration and all
+diagnostic changes. The subsequent rebase onto the web-viewer change on main
+(`badd7dd4`) changed no interpreter, language or CLI source. The integrated tree
+still receives its own full local test and CI gates.
 
 ## Reproduction
 

@@ -169,5 +169,167 @@
         "ratio": 0.9948718751345665
       }
     ]
+  },
+  "final": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": 5,
+    "first": "baseline",
+    "revisions": {
+      "baseline": "c2be797f1d6a12617fd24cc81004ea6476ba6913",
+      "candidate": "a5f4eee5f26176492181cec6e6476a5190f9a182"
+    },
+    "results": [
+      {
+        "name": "Euler 004",
+        "source": "demos/euler/004_palproduct.ra",
+        "expected": "906609",
+        "milliseconds": {
+          "baseline": [
+            4675.681125000001,
+            4678.191167000001,
+            4652.752500000002,
+            4763.411749999999,
+            4685.510625000003
+          ],
+          "candidate": [
+            4724.518708,
+            4673.6547500000015,
+            4713.574708,
+            4719.449292000005,
+            4677.827208000002
+          ]
+        },
+        "baselineMedian": 4678.191167000001,
+        "candidateMedian": 4713.574708,
+        "ratio": 1.0075635090009991
+      },
+      {
+        "name": "Euler 014",
+        "source": "demos/euler/014_collatz.ra",
+        "expected": "837799",
+        "milliseconds": {
+          "baseline": [
+            12828.06066599999,
+            12948.713374999992,
+            12774.507874999981,
+            12598.15183399999,
+            12837.520250000001
+          ],
+          "candidate": [
+            12852.56745799999,
+            13025.746375000002,
+            12779.108959000005,
+            12769.175584000011,
+            12918.088500000013
+          ]
+        },
+        "baselineMedian": 12828.06066599999,
+        "candidateMedian": 12852.56745799999,
+        "ratio": 1.0019104050595078
+      },
+      {
+        "name": "AtCoder Frog 2",
+        "source": "demos/atcoder/edpc/02_frog2.ra",
+        "expected": "139563",
+        "milliseconds": {
+          "baseline": [
+            478.9695420000062,
+            482.04595800000243,
+            476.00908400001936,
+            492.88791600000695,
+            478.28595900000073
+          ],
+          "candidate": [
+            484.2907079999859,
+            483.7779579999915,
+            480.82620799998404,
+            480.0511669999978,
+            483.12054099998204
+          ]
+        },
+        "baselineMedian": 478.9695420000062,
+        "candidateMedian": 483.12054099998204,
+        "ratio": 1.0086665197595712
+      },
+      {
+        "name": "CSES Coin Combinations I",
+        "source": "demos/cses/dynamic/003_coincomb1.ra",
+        "expected": "793505236",
+        "milliseconds": {
+          "baseline": [
+            566.158041000017,
+            561.2415409999958,
+            560.2125419999938,
+            573.4938329999859,
+            563.8418750000128
+          ],
+          "candidate": [
+            566.1767919999838,
+            564.6734580000048,
+            562.7173750000075,
+            567.5478329999896,
+            569.4323339999828
+          ]
+        },
+        "baselineMedian": 563.8418750000128,
+        "candidateMedian": 566.1767919999838,
+        "ratio": 1.0041410847677303
+      },
+      {
+        "name": "CSES Dice Combinations",
+        "source": "demos/cses/dynamic/001_dice.ra",
+        "expected": "797925478",
+        "milliseconds": {
+          "baseline": [
+            435.4094580000092,
+            439.3015000000014,
+            435.4560840000049,
+            436.5000830000208,
+            439.66587500000605
+          ],
+          "candidate": [
+            439.2615419999929,
+            442.35537500001374,
+            439.64475000000675,
+            440.15683299998636,
+            440.01954199999454
+          ]
+        },
+        "baselineMedian": 436.5000830000208,
+        "candidateMedian": 440.01954199999454,
+        "ratio": 1.0080629056832815
+      }
+    ]
+  },
+  "finalAudit": {
+    "candidate": "a5f4eee5f26176492181cec6e6476a5190f9a182",
+    "testFiles": 392,
+    "tests": 1356,
+    "standalonePrograms": 74,
+    "csvExports": 54,
+    "databaseUpdates": 9,
+    "compiledLoops": {
+      "tests": 4240684,
+      "standalone": 1,
+      "chessFixture": 2
+    },
+    "compiledTensors": {
+      "tests": 405171,
+      "standalone": 0,
+      "chessFixture": 0
+    },
+    "sourceFilesAccounted": 858,
+    "scalarProof": {
+      "files": 858,
+      "functions": 618,
+      "simple": 6,
+      "blocks": 14,
+      "rejected": []
+    },
+    "comparisons": [
+      "pre-refactor behavior and compiled counts and normalized generated code",
+      "interpreter-only behavior"
+    ]
   }
 }
