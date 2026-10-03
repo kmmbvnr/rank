@@ -148,3 +148,15 @@ it('names document flags explicitly and keeps JSON result alternatives', () => {
     expect(operationSignature(findOperation('json')!, 2)).toBe('text .flat → array<object>');
     expect(operationSignature(findOperation('json')!, 1)).toBe('text → number | boolean | text | symbol | array | tuple | object');
 });
+
+
+it('distinguishes graph, DSU, and functional-graph overloads', () => {
+    expect(operationSignature(findOperation('components')!, [{ types: ['dsu'] }])).toBe('dsu → integer');
+    expect(operationSignature(findOperation('components')!, [{ types: ['graph'] }])).toBe('graph → record');
+    expect(operationSignature(findOperation('distance')!, [
+        { types: ['functional'] }, { types: ['integer'] }, { types: ['integer'] },
+    ])).toBe('functional integer integer → integer');
+    expect(operationSignature(findOperation('upto')!)).toBe('functional integer integer → integer | record');
+    expect(operationSignature(findOperation('findroot')!, [{ types: ['dsu'] }, { types: ['text'] }]))
+        .toBe('dsu text → number | boolean | text | symbol [rank all 0]');
+});
