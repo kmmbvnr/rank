@@ -80,8 +80,16 @@ shadowed or replaced helpers invalidate it, including for signature display.
 Inner expression facts and parameter contracts are retained. Composition depth
 and instantiation work are bounded; unsupported or recursive groups use ordinary
 analysis. The cache belongs to one analysis. Captures, mutations, guarded returns,
-arithmetic and unresolved callbacks currently use ordinary analysis; reusable
-relationships for those cases remain follow-up work in #156. Backward requirement templates stay separate:
+unresolved callbacks currently use ordinary analysis; reusable relationships for
+those cases remain follow-up work in #156.
+
+Binary operation relationships use the shared operator signatures and the same
+forward operand transfer as ordinary expressions. Numeric arrays use scalar
+operator rules for their cell types, retaining rank and shape facts without
+reading cells. An unsupported domain or a shape mismatch returns to ordinary
+analysis so diagnostics are preserved. Return-contract widening removes reader
+safety evidence, so that broader contract check may still use ordinary analysis
+when the concrete call can use a summary. Backward requirement templates stay separate:
 a solved requirement is not a proof about the supplied value.
 
 `analysis/function-effects.ts` summarizes possible indexed writes to parameters

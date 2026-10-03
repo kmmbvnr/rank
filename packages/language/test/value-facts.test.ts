@@ -452,7 +452,8 @@ it('keeps integer cells through integer-only array arithmetic', () => {
     expect(facts('(array 1 2) - 1')).toMatchObject({ types: ['array'], elements: ['integer'],
         callbackFreeScalarCells: true });
     expect(facts('(array 1 2) + (array 3 4)')).toMatchObject({ types: ['array'], elements: ['integer'] });
-    expect(facts('(array 1 2) / 2')).toMatchObject({ types: ['array'], elements: ['integer', 'real'] });
+    expect(facts('(array 1 2) / 2')).toMatchObject({ types: ['array'], elements: ['real'] });
+    expect(facts('(array 1.5 2.5) * 2')).toMatchObject({ types: ['array'], elements: ['real'] });
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     const bindings = new Map<string, ValueFacts>([['A', { types: ['array'], rank: 1,
         shape: [null], elements: ['integer'], eagerScalarCells: true }], ['I', integer]]);

@@ -1,12 +1,14 @@
+import { binaryOperandFacts } from './binary-facts.js';
+import { findCompiledOperator, type CompiledOperator } from '../compiled-operators.js';
 import { parameterFacts } from './control-flow.js';
 import {
-    isApplicationExpression, isBooleanLiteral, isLabelLiteral, isNameExpression, isNumberLiteral,
+    isApplicationExpression, isBinaryExpression, isBooleanLiteral, isLabelLiteral, isNameExpression, isNumberLiteral,
     isParenthesizedExpression, isReturnStatement, isStringLiteral, isTupleExpression,
     type Expression, type FunctionStatement,
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
 import { expressionFacts } from './value-facts.js';
-import { BOTTOM_VALUE, UNKNOWN_VALUE, type ValueFacts } from './value-domain.js';
+import { BOTTOM_VALUE, UNKNOWN_VALUE, incompatibleShapes, type ValueFacts } from './value-domain.js';
 
 /** A proven result relationship, separate from requirements on unknown inputs. */
 export type TypeRelationship =
@@ -14,6 +16,7 @@ export type TypeRelationship =
     | { readonly kind: 'constant'; readonly value: ValueFacts }
     | { readonly kind: 'tuple'; readonly items: readonly TypeRelationship[] }
     | { readonly kind: 'field'; readonly source: TypeRelationship; readonly name: string }
+    | { readonly kind: 'binary'; readonly operation: CompiledOperator; readonly left: TypeRelationship; readonly right: TypeRelationship }
     | { readonly kind: 'call'; readonly callee: FunctionRelationship; readonly arguments: readonly TypeRelationship[] };
 
 export interface RelationshipDependency {
@@ -51,6 +54,10 @@ export function functionRelationship(definition: FunctionStatement,
         } else if (isTupleExpression(node)) {
             const items = node.items.map(item => visit(item.value));
             if (items.every(item => item !== undefined)) term = { kind: 'tuple', items };
+        } else if (isBinaryExpression(node) && !node.step) {
+            const operation = findCompiledOperator(node.operator);
+            const left = visit(node.left), right = visit(node.right);
+            if (operation && left && right) term = { kind: 'binary', operation, left, right };
         } else if (isApplicationExpression(node)) {
             const parts = flattenApplication(node);
             if (parts.length === 2 && isLabelLiteral(parts[1])) {
@@ -101,6 +108,14 @@ export function instantiateRelationship(summary: FunctionRelationship, arguments
                 else if (items.every(item => item !== undefined)) value = { types: ['tuple'], rank: 0, shape: [], tupleItems: items };
                 break;
             }
+            case 'binary': {
+                const left = read(term.left), right = read(term.right);
+                if (left?.bottom || right?.bottom) value = BOTTOM_VALUE;
+                else if (left && right && supportedOperands(term.operation, left, right)) {
+                    value = binaryOperandFacts(term.operation.name, left, right);
+                }
+                break;
+            }
             case 'call': {
                 const inputs = term.arguments.map(read);
                 if (inputs.some(input => input?.bottom)) value = BOTTOM_VALUE;
@@ -126,4 +141,24 @@ export function instantiateRelationship(summary: FunctionRelationship, arguments
         if (value) expressions.set(node, value);
     }
     return result;
+}
+
+
+/** Use the shared operator signatures to select supported scalar or lifted domains.
+ * A declined domain retains ordinary analysis, including its diagnostics/effects. */
+function supportedOperands(operation: CompiledOperator, left: ValueFacts, right: ValueFacts): boolean {
+    if (incompatibleShapes(left, right)) return false;
+    // A scalar boolean on the left makes and/or guards, not lifted masks.
+    if ((operation.binary === '&&' || operation.binary === '||')
+        && left.types.join() === 'boolean' && right.types.join() !== 'boolean') return false;
+    const cells = (value: ValueFacts): readonly string[] | undefined => {
+        if (value.rank === 0 || value.types.join() === 'text') return value.types;
+        if (['array', 'sequence'].includes(value.types.join())
+            && (value.eagerScalarCells || value.callbackFreeScalarCells)) return value.elements;
+        return undefined;
+    };
+    const a = cells(left), b = cells(right);
+    const signatures = [...operation.scalarFunction, ...operation.tensor ?? []];
+    return !!a?.length && !!b?.length && a.every(first => b.every(second => signatures.some(signature =>
+        signature.inputs.length === 2 && signature.inputs[0] === first && signature.inputs[1] === second)));
 }

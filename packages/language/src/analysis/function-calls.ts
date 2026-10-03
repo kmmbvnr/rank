@@ -207,9 +207,11 @@ export function createCallAnalysis(
                 let returns = result;
                 checkingReturns = true;
                 try {
-                    returns = [...result, ...(summarized
-                        ? [instantiateRelationship(relationship, definition.parameters.map(name => contractEnv.get(name)!))!]
-                        : returnValues(definition.statements, contractEnv))];
+                    const contract = summarized && instantiateRelationship(relationship,
+                        definition.parameters.map(name => contractEnv.get(name)!));
+                    // Widening forgets reader safety, so a valid call summary may
+                    // need ordinary analysis for its broader return contract.
+                    returns = [...result, ...(contract ? [contract] : returnValues(definition.statements, contractEnv))];
                 } finally {
                     checkingReturns = false;
                     remainingCalls = savedBudget;

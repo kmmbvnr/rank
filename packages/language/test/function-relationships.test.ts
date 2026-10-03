@@ -182,3 +182,60 @@ it('bounds expansion of a branching relationship graph', () => {
     }
     expect(instantiateRelationship(summary, [{ types: ['integer'], rank: 0, shape: [] }])).toBeUndefined();
 });
+
+
+it('derives numeric result relationships from shared operator signatures', () => {
+    const summary = functionRelationship(definition('fun twice Values\n return Values * 2\nend'))!;
+    expect(summary.result).toMatchObject({ kind: 'binary', operation: { name: '*' }, left: { kind: 'parameter', index: 0 } });
+    for (const value of [
+        { types: ['integer'], rank: 0, shape: [] },
+        { types: ['real'], rank: 0, shape: [] },
+        { types: ['array'], rank: 2, shape: [null, 3], elements: ['integer'], eagerScalarCells: true },
+        { types: ['array'], rank: 1, shape: [null], elements: ['real'], callbackFreeScalarCells: true },
+        { types: ['sequence'], rank: 1, shape: [null], elements: ['integer'], callbackFreeScalarCells: true },
+    ] satisfies ValueFacts[]) {
+        const result = instantiateRelationship(summary, [value]);
+        expect(result?.types).toEqual(value.types);
+        expect(result?.rank).toEqual(value.rank);
+        expect(result?.shape).toEqual(value.shape);
+        if (value.elements) expect(result?.elements).toEqual(value.elements);
+    }
+    expect(instantiateRelationship(summary, [{ types: [] }])).toBeUndefined();
+    expect(instantiateRelationship(summary, [{ types: ['array'], rank: 1, shape: [3], elements: ['integer'] }])).toBeUndefined();
+});
+
+it('keeps operation errors on the ordinary diagnostic path', () => {
+    for (const [source, message] of [
+        ['fun twice Value\n return Value * 2\nend\nResult = "wrong" twice', 'operator * does not accept text and integer'],
+        ['fun plus A B\n return A + B\nend\nResult = (array 1 2) (array 1 2 3) plus', 'shape mismatch'],
+    ]) {
+        const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+        expect(parsed.parserErrors).toEqual([]);
+        expect(analyzeValues(parsed.value).diagnostics.some(item => item.message.includes(message))).toBe(true);
+    }
+});
+
+
+it('reuses arithmetic relationships without turning lazy arrays eager', () => {
+    const source = 'fun twice Values\n return Values * 2\nend\n'
+        + Array.from({ length: 120 }, (_, i) => `Result${i} = ${i}.5 twice`).join('\n');
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(parsed.parserErrors).toEqual([]);
+    const result = analyzeValues(parsed.value);
+    expect(result.diagnostics).toEqual([]);
+    for (let i = 0; i < 120; i++) expect(result.bindings.get(`Result${i}`)?.types).toEqual(['real']);
+    const summary = functionRelationship(definition('fun twice Values\n return Values * 2\nend'))!;
+    const value = instantiateRelationship(summary, [{ types: ['array'], rank: 1, shape: [null],
+        elements: ['integer'], callbackFreeScalarCells: true }]);
+    expect(value).toMatchObject({ types: ['array'], rank: 1, elements: ['integer'], callbackFreeScalarCells: true });
+    expect(value?.eagerScalarCells).toBeUndefined();
+});
+
+
+it('does not treat a scalar boolean guard as an array mask operation', () => {
+    const summary = functionRelationship(definition('fun guard Flag Mask\n return Flag and Mask\nend'))!;
+    expect(instantiateRelationship(summary, [
+        { types: ['boolean'], rank: 0, shape: [] },
+        { types: ['array'], rank: 1, shape: [3], elements: ['boolean'], eagerScalarCells: true },
+    ])).toBeUndefined();
+});
