@@ -21,13 +21,12 @@ import { recordFallback } from './diagnostics.js';
 import { checkedArrayDimension } from './eval/expressions.js';
 import { forIteration, iterationAtoms, type ForBinding } from './eval/loops.js';
 import type { FunctionInvocation } from './function-invocation.js';
-import { isPureHostFunction } from './host-effects.js';
 import { ReturnSignal } from './control-signals.js';
 import { compileIntegerLoop } from './integer-loop.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
 import { atArray, scalarArrayWriteOffset, tensorSelection } from './selectors.js';
-import { typedNativeCall } from './typed-native.js';
+import { prepareCompiledBuiltin } from './typed-native.js';
 import { applySelectors } from './value-selection.js';
 import { isRankArray, isNativeFunction, type NativeFunction, type RankValue } from './value.js';
 
@@ -202,18 +201,7 @@ export class FastPaths {
             booleanLocals: this.context.options().booleanLoopCompilation !== false,
             scalarText: this.context.options().scalarTextCompilation !== false,
             nativeCalls: this.context.options().nativeLoopCompilation !== false,
-            builtinCall: (module, name, types) => {
-                if (!this.context.modules.has(module)) return undefined;
-                // Unknown host callbacks may mutate bindings or re-enter Rank.
-                const md5 = this.context.options().md5;
-                if (module === 'crypto' && name === 'md5' && md5 && !isPureHostFunction(md5)) return undefined;
-                try {
-                    const value = this.context.resolve(name);
-                    return isNativeFunction(value) && this.context.builtins.is(module, name, value)
-                        ? this.context.options().typedNativeCalls === false ? value.call : typedNativeCall(value, types)
-                        : undefined;
-                } catch { return undefined; }
-            },
+            prepareBuiltinCall: (module, name, types) => prepareCompiledBuiltin(this.context, module, name, types),
             scalarFunction: (name, arity) => this.scalarCall(name, arity),
             absolute: this.context.options().absoluteLoopCompilation !== false,
             extrema: this.context.options().extremaLoopCompilation !== false,
