@@ -3,7 +3,7 @@ import { analyzeValues } from '../src/analysis/value-diagnostics.js';
 import { EmptyFileSystem } from 'langium';
 import { beforeAll, expect, it } from 'vitest';
 import { createRankServices } from '../src/rank-module.js';
-import { isFunctionStatement, type Program } from '../src/generated/ast.js';
+import { isFunctionStatement, isReturnStatement, type Program } from '../src/generated/ast.js';
 import { functionRelationship, instantiateRelationship, type FunctionRelationship, type TypeRelationship } from '../src/analysis/function-relationships.js';
 import { expressionFacts } from '../src/analysis/value-facts.js';
 import { type ValueFacts } from '../src/analysis/value-domain.js';
@@ -238,4 +238,60 @@ it('does not treat a scalar boolean guard as an array mask operation', () => {
         { types: ['boolean'], rank: 0, shape: [] },
         { types: ['array'], rank: 1, shape: [3], elements: ['boolean'], eagerScalarCells: true },
     ])).toBeUndefined();
+});
+
+
+it('reuses an imported relationship while its qualified binding remains unchanged', () => {
+    const fn = definition('fun identity Value\n return Value\nend');
+    const program = fn.$container as Program;
+    const binding: ValueFacts = { types: ['function'] };
+    const env = new Map([['M.identity', binding]]);
+    const external = { program, name: 'identity', binding, functions: new Map([['identity', fn]]) };
+    let moduleAnalyses = 0;
+    const calls = createCallAnalysis(env, new Map(), [], new Map(), () => { throw new Error('unexpected local body'); },
+        () => { moduleAnalyses++; return { result: { types: [] }, diagnostics: [], relationship: functionRelationship(fn) }; },
+        new Map([['M.identity', external]]));
+    for (let i = 0; i < 120; i++) expect(calls.call('M.identity', [{ types: ['integer'], rank: 0, shape: [] }], env).types)
+        .toEqual(['integer']);
+    expect(moduleAnalyses).toBe(1);
+    expect(calls.validRelationships(env).has(fn)).toBe(true);
+    env.set('M.identity', { types: ['function'] });
+    expect(calls.call('M.identity', [{ types: ['integer'] }], env).types).toEqual([]);
+    expect(calls.validRelationships(env).has(fn)).toBe(false);
+});
+
+it('composes imported helpers and qualifies their transitive dependencies', () => {
+    const parse = (source: string) => {
+        const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+        expect(parsed.parserErrors).toEqual([]);
+        return parsed.value;
+    };
+    const module = parse('fun helper Value\n return tuple Value "label"\nend\nfun pair Value\n return Value helper\nend');
+    const source = 'use "helper" as M\nfun wrap Value\n return Value M.pair\nend\n'
+        + Array.from({ length: 120 }, (_, i) => `Result${i} = ${i} wrap`).join('\n');
+    const result = analyzeValues(parse(source), new Map(), new Map(), [], () => module);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.bindings.get('Result119')?.tupleItems?.map(item => item.types)).toEqual([['integer'], ['text']]);
+    const wrapper = result.relationships.get(result.functions.get('wrap')!)!;
+    expect(wrapper.dependencies.map(item => item.name).sort()).toEqual(['M.helper', 'M.pair']);
+    const changed = analyzeValues(parse(source + '\nM.helper = 0\nAfter = 1 wrap'), new Map(), new Map(), [], () => module);
+    expect(changed.bindings.get('After')?.types).toEqual([]);
+    expect(changed.relationships.has(changed.functions.get('wrap')!)).toBe(false);
+});
+
+it('does not reuse imported summaries at the expense of module diagnostics', () => {
+    const fn = definition('fun identity Value\n return Value\nend');
+    const binding: ValueFacts = { types: ['function'] };
+    const env = new Map([['M.identity', binding]]);
+    const external = { program: fn.$container as Program, name: 'identity', binding, functions: new Map([['identity', fn]]) };
+    const diagnostics: Parameters<typeof createCallAnalysis>[2] = [];
+    const calls = createCallAnalysis(env, new Map(), diagnostics, new Map(), () => [], () => ({
+        result: { types: [] }, diagnostics: [{ node: fn, message: 'other returns incompatible types', kind: 'TypeError' }],
+        relationship: functionRelationship(fn),
+    }), new Map([['M.identity', external]]));
+    const statement = fn.statements[0];
+    if (!isReturnStatement(statement) || !statement.value) throw new Error('expected return expression');
+    calls.call('M.identity', [{ types: ['integer'] }], env, statement.value);
+    expect(diagnostics.map(item => item.message)).toEqual(['other returns incompatible types']);
+    expect(calls.validRelationships(env).has(fn)).toBe(false);
 });

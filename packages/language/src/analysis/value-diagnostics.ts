@@ -76,7 +76,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         (items, env) => paths.returnPaths(items, env).values,
         (module, name, arguments_) => {
             const analysis = analyzeValues(module, new Map(), new Map(), [{ name, arguments: arguments_ }]);
-            return { result: analysis.functionResults[0], diagnostics: analysis.diagnostics };
+            const definition = analysis.functions.get(name);
+            return { result: analysis.functionResults[0], diagnostics: analysis.diagnostics,
+                relationship: definition && analysis.relationships.get(definition) };
         }, initialImports);
     const { functionBindings, imported, importedAliases, globalCallEnvs, privateBindings, frameBindings } = calls;
     function invalidateImportedAlias(alias: string, env: Map<string, ValueFacts>): void {

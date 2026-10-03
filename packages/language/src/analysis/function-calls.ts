@@ -37,7 +37,7 @@ export function createCallAnalysis(
     diagnostics: CallDiagnostic[],
     expressions: Map<Expression, ValueFacts>,
     returnValues: (items: readonly Statement[], env: Map<string, ValueFacts>) => ValueFacts[],
-    analyzeImported: (program: Program, name: string, arguments_: readonly ValueFacts[]) => { result: ValueFacts; diagnostics: readonly CallDiagnostic[] },
+    analyzeImported: (program: Program, name: string, arguments_: readonly ValueFacts[]) => { result: ValueFacts; diagnostics: readonly CallDiagnostic[]; relationship?: FunctionRelationship },
     initialImports: ReadonlyMap<string, ImportedFunction> = new Map(),
 ) {
     const functionBindings = new Map([...functions.keys()].map(name => [name, bindings.get(name)]));
@@ -51,6 +51,7 @@ export function createCallAnalysis(
     const noReturnFunctions = new WeakMap<FunctionStatement, boolean>();
     const relationships = new Map<FunctionStatement, FunctionRelationship>();
     const checkedRelationships = new WeakSet<FunctionStatement>();
+    const importedRelationships = new WeakMap<ImportedFunction, { definition: FunctionStatement; summary?: FunctionRelationship }>();
     let remainingCalls = 100;
     let checkingReturns = false;
     type Instance = { rankSignature: string; values: ValueFacts[] };
@@ -61,8 +62,36 @@ export function createCallAnalysis(
 
     let relationshipDepth = 0;
     const validRelationship = (summary: FunctionRelationship, env: ReadonlyMap<string, ValueFacts>) =>
-        summary.dependencies.every(dependency => functions.get(dependency.name) === dependency.definition
-            && functionBindings.get(dependency.name) === dependency.binding && env.get(dependency.name) === dependency.binding);
+        summary.dependencies.every(dependency => {
+            const external = imported.get(dependency.name);
+            return env.get(dependency.name) === dependency.binding && (external
+                ? external.binding === dependency.binding && external.functions.get(external.name) === dependency.definition
+                : functions.get(dependency.name) === dependency.definition && functionBindings.get(dependency.name) === dependency.binding);
+        });
+    function importedRelationship(name: string, env: ReadonlyMap<string, ValueFacts>): FunctionRelationship | undefined {
+        const external = imported.get(name);
+        const definition = external?.functions.get(external.name);
+        if (!external || !definition || env.get(name) !== external.binding) return undefined;
+        let cached = importedRelationships.get(external);
+        if (!cached || cached.definition !== definition) {
+            if (definition.ranks.length || definition.statements.length !== 1 || !isReturnStatement(definition.statements[0])) {
+                importedRelationships.set(external, { definition });
+                return undefined;
+            }
+            const analysis = analyzeImported(external.program, external.name, definition.parameters.map(() => UNKNOWN_VALUE));
+            const prefix = name.slice(0, name.length - external.name.length);
+            const dependencies = analysis.relationship?.dependencies.map(dependency => {
+                const qualified = prefix + dependency.name, target = imported.get(qualified);
+                return target?.program === external.program && target.functions.get(target.name) === dependency.definition
+                    ? { name: qualified, definition: dependency.definition, binding: target.binding } : undefined;
+            });
+            const summary = !analysis.diagnostics.length && analysis.relationship && dependencies?.every(dependency => dependency !== undefined)
+                ? { ...analysis.relationship, dependencies } : undefined;
+            cached = { definition, summary };
+            importedRelationships.set(external, cached);
+        }
+        return cached.summary && validRelationship(cached.summary, env) ? cached.summary : undefined;
+    }
     function relationshipFor(definition: FunctionStatement, env: ReadonlyMap<string, ValueFacts>): FunctionRelationship | undefined {
         const cached = relationships.get(definition);
         if (cached) {
@@ -76,6 +105,12 @@ export function createCallAnalysis(
         relationshipDepth++;
         try {
             const relationship = functionRelationship(definition, name => {
+                const external = imported.get(name);
+                if (external) {
+                    const summary = importedRelationship(name, env);
+                    const callee = external.functions.get(external.name);
+                    return summary && callee ? { name, definition: callee, binding: external.binding, relationship: summary } : undefined;
+                }
                 const callee = functions.get(name), binding = functionBindings.get(name);
                 // Captured function scopes need their own dependency environment.
                 if (!callee || callee.$container.$type !== 'Program' || !binding || env.get(name) !== binding) return undefined;
@@ -109,6 +144,9 @@ export function createCallAnalysis(
         const external = imported.get(name);
         if (external && caller.get(name) === external.binding
             && external.functions.get(external.name)?.parameters.length === arguments_.length) {
+            const relationship = importedRelationship(name, caller);
+            const result = relationship && instantiateRelationship(relationship, arguments_.map(parameterFacts));
+            if (result) return withPathDims(joinValueFacts([result]));
             const analysis = analyzeImported(external.program, external.name, arguments_);
             if (site) for (const diagnostic of analysis.diagnostics) {
                 if (diagnostic.message.includes('returns incompatible')) diagnostics.push({ ...diagnostic, node: site });
@@ -329,8 +367,17 @@ export function createCallAnalysis(
     return {
         functionBindings, imported, importedAliases, globalCallEnvs, privateBindings, frameBindings,
         directNoReturnCall, call, relationships,
-        validRelationships: (env: ReadonlyMap<string, ValueFacts>) =>
-            new Map([...relationships].filter(([, summary]) => validRelationship(summary, env))),
+        validRelationships: (env: ReadonlyMap<string, ValueFacts>) => {
+            const result = new Map([...relationships].filter(([, summary]) => validRelationship(summary, env)));
+            for (const [name, external] of imported) {
+                const cached = importedRelationships.get(external);
+                if (cached?.summary && env.get(name) === external.binding
+                    && external.functions.get(external.name) === cached.definition && validRelationship(cached.summary, env)) {
+                    result.set(cached.definition, cached.summary);
+                }
+            }
+            return result;
+        },
         hasPureRecursiveProbe: (name: string) => {
             const definition = functions.get(name);
             return !!definition && [...recursiveProbes.get(definition)?.values() ?? []].some(probe => probe.pure);

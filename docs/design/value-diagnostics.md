@@ -58,7 +58,7 @@ helper chains. Messages identify the called function. Unknown argument facts do
 not produce an error, and tests do not restrict a function to the types in its
 examples.
 
-### Reusable structural return relationships
+### Reusable function result relationships
 
 A function consisting of one structural return can retain a relationship to its
 parameters: identity (`T → T`), fixed tuple positions (`T → tuple(T, text)`),
@@ -89,7 +89,15 @@ operator rules for their cell types, retaining rank and shape facts without
 reading cells. An unsupported domain or a shape mismatch returns to ordinary
 analysis so diagnostics are preserved. Return-contract widening removes reader
 safety evidence, so that broader contract check may still use ordinary analysis
-when the concrete call can use a summary. Backward requirement templates stay separate:
+when the concrete call can use a summary.
+
+Loaded module summaries are cached only within the current analysis and remain
+tied to the module's qualified bindings. Transitive helper dependencies are
+qualified into that namespace; alias rebinding or a qualified write invalidates
+them. Changed module text starts a new analysis and cannot reuse an old summary.
+Modules with diagnostics and functions without eligible summaries retain ordinary
+analysis. This does not read files or follow imports beyond the loader's existing
+boundary. Backward requirement templates stay separate:
 a solved requirement is not a proof about the supplied value.
 
 `analysis/function-effects.ts` summarizes possible indexed writes to parameters
