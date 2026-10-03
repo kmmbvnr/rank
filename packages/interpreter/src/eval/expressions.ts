@@ -199,6 +199,7 @@ export class ExpressionEvaluator {
         missing?: () => RankValue,
         tail = false,
         classify = true,
+        allowScalar = true,
     ): () => Evaluation<RankValue> {
         const expressions = this;
         const bound = compileClauseExpression(expression, () => this.clauseContext());
@@ -221,6 +222,17 @@ export class ExpressionEvaluator {
                     signature = next;
                 }
                 return compiled();
+            };
+        }
+        const scalar = allowScalar && this.context.fastPaths.scalarEvaluation(expression, source => () => this.evaluate(source));
+        if (scalar) {
+            let reference: (() => Evaluation<RankValue>) | undefined;
+            return () => {
+                if (this.context.options().scalarCompilation === false) {
+                    reference ??= this.compile(expression, missing, tail, false, false);
+                    return reference();
+                }
+                return scalar();
             };
         }
         if (isNewStructureExpression(expression)) {
