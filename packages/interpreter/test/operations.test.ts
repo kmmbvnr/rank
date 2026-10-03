@@ -70,6 +70,29 @@ describe('the operation catalogue', () => {
         expect(wrong).toEqual([]);
     });
 
+    it('keeps display overload arities consistent with the runtime catalogue', () => {
+        for (const entry of operations) for (const signature of entry.signatures ?? []) {
+            expect(entry.arities, entry.name).toContain(signature.inputs.length);
+            if (signature.ranks) expect(signature.ranks, entry.name).toHaveLength(signature.inputs.length);
+        }
+    });
+
+    it('covers the audited reverse and split overloads with actual runtime results', () => {
+        for (const [source, expected] of [
+            ['use sequences\n"abc" reverse', 'text'],
+            ['use sequences\n(array 1 2) reverse', 'array'],
+            ['use sequences\n(1 to 3) reverse', 'array'],
+            ['use algo\nuse sequences\nQ = new queue\nQ push 1\nQ reverse', 'array'],
+            ['use algo\nuse sequences\nS = new stack\nS push 1\nS reverse', 'array'],
+            ['use algo\nuse sequences\nD = new deque\nD 1 pushback\nD reverse', 'array'],
+            ['use text\n"a,b;c" (array "," ";") split', 'array'],
+            ['use text\n"a,b" "," split', 'array'],
+        ]) {
+            const value = new Interpreter().execute(source)!;
+            expect(typeName(value), source).toBe(expected);
+        }
+    });
+
     it('validates shape contracts against explicit ranks and representation facts', () => {
         for (const entry of operations) {
             if (entry.monadicRank !== undefined || entry.dyadicRanks

@@ -1,3 +1,4 @@
+import type { TypeSignature } from './type-signature.js';
 import type { ShapeSignature } from './shape-signature.js';
 
 /**
@@ -76,6 +77,8 @@ export interface Operation {
     /** One sentence describing the result. */
     readonly summary: string;
     readonly result: ResultKind;
+    /** Audited language overloads for readers and editors, independent of compiler subsets. */
+    readonly signatures?: readonly TypeSignature[];
     /** Direct-call eligibility for existing compiler backends. Never use this
      * restricted subset as a complete operand-domain rule or displayed signature. */
     readonly compiledCall?: CompiledCallSignature;
@@ -642,6 +645,13 @@ export const operations: readonly Operation[] = [
     { name: 'indices', module: 'sequences', arities: [1], form: 'Mask indices', result: 'array',
         summary: 'Zero-based positions of the true values in a boolean vector.' },
     { name: 'reverse', module: 'sequences', arities: [1], form: 'Values reverse', result: 'value',
+        signatures: [
+            { inputs: ['text'], result: 'text' },
+            { inputs: [{ collection: 'array', element: { variable: 0 } }], result: { collection: 'array', element: { variable: 0 } } },
+            { inputs: [{ union: (['queue', 'stack', 'deque', 'sequence'] as const).map(collection => ({
+                collection, element: { variable: 0 },
+            })) }], result: { collection: 'array', element: { variable: 0 } } },
+        ],
         compiledCall: { inputs: ['text'], result: 'text', callbacks: 'none', cost: 'input-dependent' },
         summary: 'Reverses text by code point, an array along its leading axis, or a queue or finite sequence into an array.' },
     { name: 'first', module: 'sequences', arities: [1], form: 'Values first', result: 'element',
@@ -765,6 +775,8 @@ export const operations: readonly Operation[] = [
     { name: 'parse', module: 'text', arities: [2], form: 'Text Pattern parse', result: 'value',
         summary: 'Captures /integer, /real, /word and /text from a complete pattern match.' },
     { name: 'split', module: 'text', arities: [2], form: 'Text Separator split', result: 'array',
+        signatures: [{ inputs: ['text', { union: ['text', { collection: 'array', element: 'text' }] }],
+            result: { collection: 'array', element: 'text' } }],
         shape: [{ args: [null, null], result: [{ exists: 'k' }] }],
         denseElements: ['text'],
         summary: 'Splits at every exact occurrence of a separator, keeping empty parts.' },

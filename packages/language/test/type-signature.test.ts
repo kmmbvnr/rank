@@ -1,0 +1,41 @@
+import { expect, it } from 'vitest';
+import { findOperation } from '../src/operations.js';
+import { formatTypeSignature, operationSignature } from '../src/type-signature.js';
+
+it('gives unrelated unknown positions distinct letters', () => {
+    expect(formatTypeSignature({ inputs: ['unknown', 'unknown'], result: 'unknown' })).toBe('a b → c');
+});
+
+it('reuses letters only for an explicit relationship', () => {
+    expect(formatTypeSignature({ inputs: [{ variable: 0 }], result: { variable: 0 } })).toBe('a → a');
+    expect(formatTypeSignature({ inputs: [{ variable: 0 }], result: { tuple: [{ variable: 0 }, 'text'] } }))
+        .toBe('a → tuple(a, text)');
+});
+
+it('keeps collection, union, callback and rank information explicit', () => {
+    expect(formatTypeSignature({ inputs: ['text', { union: ['text', { collection: 'array', element: 'text' }] }],
+        result: { collection: 'array', element: 'text' } }))
+        .toBe('text (text | array<text>) → array<text>');
+    expect(formatTypeSignature({ inputs: [{ collection: 'array', element: { variable: 0 } },
+        { callback: { inputs: [{ variable: 0 }], result: 'boolean' } }],
+        result: { collection: 'array', element: { variable: 0 } } }))
+        .toBe('array<a> (a → boolean) → array<a>');
+    expect(formatTypeSignature({ inputs: ['number', 'number'], result: 'number', ranks: [0, 0] }))
+        .toBe('number number → number [rank 0 0]');
+});
+
+it('formats nullary and wide tuple signatures without ambiguous variable names', () => {
+    expect(formatTypeSignature({ inputs: [], result: 'integer' })).toBe('→ integer');
+    expect(formatTypeSignature({ inputs: Array(27).fill('unknown'), result: 'unknown' }))
+        .toMatch(/y z t27 → t28$/);
+});
+
+it('uses audited overloads rather than a compiled subset or operand names', () => {
+    const split = findOperation('split')!;
+    expect(operationSignature(split)).toBe('text (text | array<text>) → array<text>');
+    expect(operationSignature({ ...split, form: 'Integer Number split' })).toBe(operationSignature(split));
+    expect(operationSignature({ ...split, signatures: undefined })).toBeUndefined();
+    expect(operationSignature(split, 1)).toBeUndefined();
+    expect(operationSignature(findOperation('reverse')!)).toBe(
+        'text → text ; array<a> → array<a> ; (queue<a> | stack<a> | deque<a> | sequence<a>) → array<a>');
+});
