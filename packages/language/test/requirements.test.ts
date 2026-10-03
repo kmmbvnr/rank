@@ -132,3 +132,32 @@ it('keeps completed unary pipelines separate from binary builtin operands', () =
 it('preserves unresolved import boundaries inside function templates', () => {
     expect(infer('use "unknown"\nfun f X\n return X 25 solve\nend\n(array 1 2) f').conflicts).toEqual([]);
 });
+
+it('attaches a selected CSV column requirement to the original value through an alias', () => {
+    const source = 'use tables\nRows = "data.csv" csv\nAlias = Rows\nAlias .price sum';
+    const requirements = infer(source);
+    expect(requirements.bindings.find(item => item.name === 'Rows')?.fields?.get('price')?.domains)
+        .toEqual(['integer', 'real', 'missing']);
+    expect(requirements.bindings.find(item => item.name === 'Alias')?.fields?.get('price')?.domains)
+        .toEqual(['integer', 'real', 'missing']);
+    expect(analyzeValues(parse(source)).bindings.get('Rows')?.fields).toBeUndefined();
+});
+
+it('does not attach a guarded or unresolved callback selection to an external input', () => {
+    const guarded = 'use tables\nRows = "data.csv" csv\nif Flag\n Rows .price sum\nend';
+    expect(binding(guarded, 'Rows').fields).toBeUndefined();
+    const unknown = 'Rows = Input decode\nRows .price sum';
+    expect(binding(unknown, 'Rows').fields).toBeUndefined();
+});
+
+it('keeps field requirements tied to the selected value across reassignment', () => {
+    const source = 'use tables\nRows = "first.csv" csv\nAlias = Rows\nRows = "second.csv" csv\nAlias .price sum';
+    const reads = infer(source).bindings.filter(item => item.name === 'Rows');
+    expect(reads[0].fields?.get('price')?.domains).toEqual(['integer', 'real', 'missing']);
+    expect(reads[1].fields).toBeUndefined();
+});
+
+it('still discards structural requirements across an unresolved callback', () => {
+    const source = 'use tables\nRows = "data.csv" csv\nRows mutate\nRows .price sum';
+    expect(binding(source, 'Rows').fields).toBeUndefined();
+});

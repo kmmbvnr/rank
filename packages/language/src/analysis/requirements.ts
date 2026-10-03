@@ -43,6 +43,7 @@ export interface RequirementOptions {
     readonly loadModule?: (path: string) => Program | undefined;
 }
 const site = (node: AstNode, reason: string): RequirementSite => ({ node, reason });
+const primitiveTypes = new Set(['integer', 'real', 'text', 'boolean', 'symbol', 'missing', 'date', 'datetime', 'duration']);
 const spread = (term: ShapeTerm): term is { readonly spread: string } =>
     term !== null && typeof term === 'object' && 'spread' in term;
 
@@ -132,6 +133,10 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             if (effect.unknown || effect.captures.size || effect.globalWriteCaptures.size) forget();
         };
         const builtinEffects = (operation: Operation, args: Value[]) => {
+            // I/O with only primitive arguments cannot read lazy cells or mutate Rank
+            // bindings. A later file read must not detach aliases of an earlier read.
+            if (operation.effects?.length && operation.effects.every(effect => effect === 'io')
+                && args.every(arg => arg.fact.types.length && arg.fact.types.every(type => primitiveTypes.has(type)))) return;
             const plain = args.every(arg => arg.fact.types.length && (arg.fact.rank === 0 || arg.fact.types.join() === 'text'
                 || arg.fact.eagerScalarCells || arg.fact.callbackFreeScalarCells));
             if (operation.effects?.length || !plain) forget();
@@ -356,14 +361,16 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 graph.solver.equal(output.rank, input.rank, site(node, 'selection'), -selectors.filter(part => !isAllAxisExpression(part)).length);
                 return output;
             }
-            // A static CSV field names one value, allowing several uses of the same column.
-            if (parts.length === 2 && isLabelLiteral(parts[1]) && isNameExpression(parts[0])
-                && env.get(parts[0].name)?.value.fact.types.join() === 'array') {
-                const key = `${parts[0].name}.${parts[1].name}`;
-                const existing = env.get(key);
-                if (existing) { graph.expressions.set(node, existing.value); return existing.value; }
-                env.set(key, { name: key, node, rank: output.rank, value: output });
-                return output;
+            // Track a selection by value identity, so aliases share the same requirement.
+            // Unknown callable receivers retain the unresolved-application path below.
+            if (parts.length === 2 && isLabelLiteral(parts[1])) {
+                const fact = expressionFacts(parts[0], lookup);
+                if (fact.types.length && fact.types.every(type => ['array', 'object', 'record'].includes(type))) {
+                    const source = expression(parts[0]);
+                    const selected = graph.field(source, parts[1].name, node, output.fact);
+                    graph.expressions.set(node, selected);
+                    return selected;
+                }
             }
             for (const part of parts) if (!isNameExpression(part) || env.has(part.name)) expression(part);
             // Do not connect unknown callable arguments to its result or to a summary.
