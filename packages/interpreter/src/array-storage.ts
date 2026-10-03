@@ -1,4 +1,5 @@
-import { interruptibleCallback } from './interrupt.js';
+import { completed, mapResult, resume, runExecution, type Evaluation, type Execution } from './execution.js';
+import { checkpoint, interruptibleCallback } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { ResourceSummary } from './resource-summary.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -604,56 +605,88 @@ export function arrayRevision(value: RankArray): number | undefined {
 }
 
 const revisiting = new WeakSet<object>();
-function valueRevision(value: RankValue): number | undefined {
+interface RevisionFrame {
+    value: object;
+    values: Iterator<RankValue>;
+    revision: number | undefined;
+    derived?: DerivedRecord;
+    owned?: OwnedStorage;
+}
+
+// Return cached leaves immediately. Unchecked containers describe their children
+// to the iterative walk, so neither nesting nor a long lazy DAG uses host frames.
+function revisionFrame(value: RankValue): number | undefined | RevisionFrame {
     if (typeof value !== 'object') return 0;
     if (revisiting.has(value)) return undefined;
     const derived = derivedRevisions.get(value);
     if (derived) {
-        if (derived.epoch !== writeRevision) {
-            if (onlyNewObjectsChanged(derived.epoch, derived.checkedBirth ?? 0)) {
-                derived.epoch = writeRevision;
-                return derived.cached;
-            }
-            revisiting.add(value);
-            try { derived.cached = derived.revision(); }
-            finally { revisiting.delete(value); }
+        if (derived.epoch === writeRevision) return derived.cached;
+        if (onlyNewObjectsChanged(derived.epoch, derived.checkedBirth ?? 0)) {
             derived.epoch = writeRevision;
-            derived.checkedBirth = creationSerial;
+            return derived.cached;
         }
-        return derived.cached;
+        return { value, values: derived.values()[Symbol.iterator](),
+            revision: derived.own?.() ?? 0, derived };
     }
     const state = ownedStorage.get(value as RankArray);
     if (!state?.stable) return undefined;
     if (state.scalarOnly || state.validity) return state.revision;
-    // Nested mutable arrays and object rows are dependencies as well.
     if (state.nestedEpoch === writeRevision) return state.nestedRevision;
     if (state.nestedEpoch !== undefined
         && onlyNewObjectsChanged(state.nestedEpoch, state.checkedBirth ?? 0)) {
         state.nestedEpoch = writeRevision;
         return state.nestedRevision;
     }
-    revisiting.add(value);
-    try { state.nestedRevision = containedRevision(state.items, state.revision); }
-    finally { revisiting.delete(value); }
-    state.nestedEpoch = writeRevision;
-    state.checkedBirth = creationSerial;
-    return state.nestedRevision;
+    return { value, values: state.items[Symbol.iterator](), revision: state.revision, owned: state };
 }
 
-function containedRevision(values: Iterable<RankValue>, own: number): number | undefined {
-    for (const value of values) {
-        const next = valueRevision(value);
-        if (next === undefined) return undefined;
-        own = Math.max(own, next);
+function valueRevision(value: RankValue): number | undefined {
+    const first = revisionFrame(value);
+    if (typeof first !== 'object') return first;
+    const stack = [first];
+    revisiting.add(first.value);
+    try {
+        while (stack.length) {
+            const frame = stack[stack.length - 1];
+            const child = frame.revision === undefined ? undefined : frame.values.next();
+            if (child && !child.done) {
+                const next = revisionFrame(child.value);
+                if (typeof next === 'object') {
+                    revisiting.add(next.value);
+                    stack.push(next);
+                } else {
+                    frame.revision = next === undefined ? undefined : Math.max(frame.revision!, next);
+                }
+                continue;
+            }
+            if (!child) frame.values.return?.();
+            if (frame.derived) {
+                frame.derived.cached = frame.revision;
+                frame.derived.epoch = writeRevision;
+                frame.derived.checkedBirth = creationSerial;
+            } else {
+                frame.owned!.nestedRevision = frame.revision;
+                frame.owned!.nestedEpoch = writeRevision;
+                frame.owned!.checkedBirth = creationSerial;
+            }
+            revisiting.delete(frame.value);
+            stack.pop();
+            if (!stack.length) return frame.revision;
+            const parent = stack[stack.length - 1];
+            parent.revision = frame.revision === undefined ? undefined : Math.max(parent.revision!, frame.revision);
+        }
+    } finally {
+        for (const frame of stack) revisiting.delete(frame.value);
     }
-    return own;
+    return undefined;
 }
 
 
 // A DAG can reference the same derived source repeatedly (matrix squaring).
 // Validate each node once per write epoch, rather than expanding every path.
 const derivedRevisions = new WeakMap<object, {
-    revision: () => number | undefined; epoch: number; cached?: number; checkedBirth?: number;
+    values: () => Iterable<RankValue>; own?: () => number;
+    epoch: number; cached?: number; checkedBirth?: number;
     // What binding this reader has to freeze; a reader over no stored array
     // has none, so only the readers that can be frozen carry the list.
     sources?: readonly RankArray[];
@@ -671,6 +704,7 @@ const MAX_CACHED_CELLS = 1 << 24;
 export function derivedArray(
     shape: readonly number[], dependencies: readonly RankArray[],
     read: (index: number) => RankValue, fileFree = false,
+    evaluate?: (index: number) => Evaluation<RankValue>,
 ): RankArray {
     const diagnostics = currentDiagnostics();
     const observedColumns = new Map<number, Map<string, { type: string; rank?: number }>>();
@@ -688,16 +722,7 @@ export function derivedArray(
         requireHomogeneous([...observedKinds.values(), kind]);
         observedKinds.set(key, kind);
     };
-    const revision = () => {
-        let current = 0;
-        for (const source of dependencies) {
-            const next = arrayRevision(source);
-            if (next === undefined) return undefined;
-            current = Math.max(current, next);
-        }
-        return current;
-    };
-    const record: DerivedRecord = { revision, epoch: -1, sources: dependencies };
+    const record: DerivedRecord = { values: () => dependencies, epoch: -1, sources: dependencies };
     let seen: number | undefined;
     let validatedEpoch = -1;
     let validatedEntry = -1;
@@ -732,29 +757,29 @@ export function derivedArray(
     const itemAt = (index: number): RankValue => {
         if (runtimeDepth === 0) {
             enterRuntime();
-            try { return readCell(index); } finally { leaveRuntime(); }
+            try { return runExecution(readCell(index)); } finally { leaveRuntime(); }
         }
-        return readCell(index);
+        return runExecution(readCell(index));
     };
-    const readCell = (index: number): RankValue => {
+    const readCell = (index: number): Evaluation<RankValue> => {
         const tracked = valid();
         if (cells.has(index)) {
             if (diagnostics) diagnostics.cacheHits++;
-            return cells.get(index)!;
+            return completed(cells.get(index)!);
         }
         const started = seen;
         const startedEpoch = writeRevision;
         const startedEntry = hostEntry;
         if (diagnostics) diagnostics.cacheMisses++;
-        const result = read(index);
-        checkCell(result, index);
-        if (diagnostics) diagnostics.cellsComputed++;
-        // A dependency may have changed during the reader. Never retain that read.
-        // A Map cannot hold more than 2^24 entries; a larger array recomputes
-        // the cells beyond the cache rather than failing.
-        if (cells.size < MAX_CACHED_CELLS && (undisturbed(startedEpoch, startedEntry)
-            || (tracked && arrayRevision(value) === started))) cells.set(index, result);
-        return result;
+        return mapResult(evaluate ? evaluate(index) : completed(read(index)), result => {
+            checkCell(result, index);
+            if (diagnostics) diagnostics.cellsComputed++;
+            // A dependency may have changed during the reader. Never retain that read.
+            // A Map cannot hold more than 2^24 entries; larger arrays recompute.
+            if (cells.size < MAX_CACHED_CELLS && (undisturbed(startedEpoch, startedEntry)
+                || (tracked && arrayRevision(value) === started))) cells.set(index, result);
+            return result;
+        });
     };
     const value: RankArray = {
         kind: 'array', shape, itemAt,
@@ -780,6 +805,14 @@ export function derivedArray(
         return items;
     }
     derivedRevisions.set(value, record);
+    if (evaluate) registerArrayCellEvaluation(value, function* (index) {
+        const entering = runtimeDepth === 0;
+        if (entering) enterRuntime();
+        try {
+            checkpoint('reading array');
+            return yield* resume(readCell(index));
+        } finally { if (entering) leaveRuntime(); }
+    });
     return registerCachedArray(value, () => {
         if (!valid()) return undefined;
         if (compilerCache) return compilerCache;
@@ -916,14 +949,14 @@ export function ownedObject(entries: Iterable<readonly [string, RankValue]>): Ra
     // Entry mutation is public; replacing the map would bypass its revision.
     const object: RankObject = Object.freeze({ kind: 'object', entries: map });
     derivedRevisions.set(object, {
-        epoch: -1, revision: () => containedRevision(map.values(), map.revision),
+        epoch: -1, values: () => map.values(), own: () => map.revision,
     });
     return map.resources.track(object);
 }
 
 /** Publish dependencies for a pure producer with a dynamically inferred shape. */
 export function registerArrayDependencies<T extends RankArray>(value: T, sources: readonly RankArray[]): T {
-    derivedRevisions.set(value, { epoch: -1, revision: () => containedRevision(sources, 0) });
+    derivedRevisions.set(value, { epoch: -1, values: () => sources });
     return value;
 }
 
@@ -941,4 +974,18 @@ export function readArrayItem(value: RankArray, index: number): RankValue {
 export function readArrayShape(value: RankArray): readonly number[] {
     const state = ownedStorage.get(value);
     return state?.stable ? state.shape : value.shape;
+}
+
+// A child cell is suspended onto the existing execution stack. Opaque host
+// readers remain synchronous; registering a plan must not inspect any cells.
+const cellEvaluations = new WeakMap<RankArray, (index: number) => Execution<RankValue>>();
+export function registerArrayCellEvaluation(
+    value: RankArray, evaluate: (index: number) => Execution<RankValue>,
+): void {
+    cellEvaluations.set(value, evaluate);
+}
+
+export function evaluateArrayItem(value: RankArray, index: number): Evaluation<RankValue> {
+    const evaluate = cellEvaluations.get(value);
+    return evaluate ? evaluate(index) : completed(readArrayItem(value, index));
 }

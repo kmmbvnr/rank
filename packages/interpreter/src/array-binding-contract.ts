@@ -1,9 +1,10 @@
+import { resume, runExecution, type Execution } from './execution.js';
 import { arrayDeclaration, declareArray } from './array-declaration.js';
 import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType } from './semantic-array-type.js';
 import { FlatRecords } from './flat.js';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { arrayElementTypes } from './array-element-types.js';
-import { arrayRevision, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies, registerCachedArray } from './array-storage.js';
+import { evaluateArrayItem, registerArrayCellEvaluation, arrayRevision, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies, registerCachedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { recordContract, retainRecordContract } from './record-contract.js';
@@ -228,16 +229,7 @@ export class ArrayBindingContract {
         const version = this.version ??= ownedArray([0n]);
         const prepared: Prepared = { value, contract: base };
         const size = value.shape.reduce((a, b) => a * b, 1);
-        const sourceRead = (index: number) => readArrayItem(value, index);
-        const read = (index: number, source = sourceRead): RankValue => {
-            let item: RankValue;
-            let missing: MissingValueError | undefined;
-            try { item = source(index); }
-            catch (error) {
-                if (!(error instanceof MissingValueError) || !error.soft) throw error;
-                item = MISSING;
-                missing = error;
-            }
+        const validate = (item: RankValue): RankValue => {
             const child = this.prepare(item, { parent: path, key: this.key(item) }, new Set([value]));
             const expected = this.at(path);
             // Every observed cell must fit the one element domain.
@@ -245,9 +237,22 @@ export class ArrayBindingContract {
                 this.refine(path, { ...base, elements: union([child.contract]) });
                 this.retainRecords(child.value, this.at({ parent: path, key: child.contract }));
             }
-            if (missing) throw missing;
             return child.value;
         };
+        const evaluate = function* (index: number): Execution<RankValue> {
+            let item: RankValue;
+            let missing: MissingValueError | undefined;
+            try { item = yield* resume(evaluateArrayItem(value, index)); }
+            catch (error) {
+                if (!(error instanceof MissingValueError) || !error.soft) throw error;
+                item = MISSING;
+                missing = error;
+            }
+            const result = validate(item);
+            if (missing) throw missing;
+            return result;
+        };
+        const read = (index: number): RankValue => runExecution(evaluate(index));
         // Check every read, even a cached source cell: another assignment may
         // have refined this binding since the wrapper was created.
         let cache: { source: number; version: number; items: RankValue[] } | undefined;
@@ -255,7 +260,13 @@ export class ArrayBindingContract {
             && arrayRevision(version) === cache.version ? cache.items : undefined;
         const prepare = (): ((index: number) => RankValue) | undefined => {
             const source = prepareArrayRead(value);
-            return source ? index => read(index, source) : undefined;
+            return source ? index => {
+                try { return validate(source(index)); }
+                catch (error) {
+                    if (error instanceof MissingValueError && error.soft) validate(MISSING);
+                    throw error;
+                }
+            } : undefined;
         };
         const all = (): RankValue[] => {
             const previous = peek();
@@ -269,6 +280,7 @@ export class ArrayBindingContract {
             shape: value.shape, itemAt: read, containsFiles: value.containsFiles,
             get items() { return all(); } }, [value, version]), peek);
         registerArrayReadPlan(checked, prepare);
+        registerArrayCellEvaluation(checked, evaluate);
         this.metadata(value, checked);
         holdArraySource(checked, value);
         prepared.value = checked;

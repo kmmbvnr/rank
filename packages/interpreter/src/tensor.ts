@@ -1,4 +1,5 @@
-import { derivedArray, storedOperandItems, float64Cells, ownedArray, readArrayItem, realCells, typedArray } from './array-storage.js';
+import { mapPair, runExecution } from './execution.js';
+import { evaluateArrayItem, derivedArray, storedOperandItems, float64Cells, ownedArray, realCells, typedArray } from './array-storage.js';
 import { RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import type { RankArray, RankValue } from './value.js';
@@ -13,10 +14,12 @@ export function mapBroadcastArrays(
     const rightStrides = arrayStrides(right.shape);
     const sameShape = left.shape.length === right.shape.length
         && left.shape.every((dimension, axis) => dimension === right.shape[axis]);
-    return derivedArray(shape, [left, right], index => operation(
-        arrayItem(left, sameShape ? index : broadcastOffset(index, shape, left.shape, leftStrides)),
-        arrayItem(right, sameShape ? index : broadcastOffset(index, shape, right.shape, rightStrides)),
-    ), true);
+    const evaluate = (index: number) => mapPair(
+        evaluateArrayItem(left, sameShape ? index : broadcastOffset(index, shape, left.shape, leftStrides)),
+        () => evaluateArrayItem(right, sameShape ? index : broadcastOffset(index, shape, right.shape, rightStrides)),
+        operation,
+    );
+    return derivedArray(shape, [left, right], index => runExecution(evaluate(index)), true, evaluate);
 }
 
 /**
@@ -392,8 +395,4 @@ function arrayStrides(shape: readonly number[]): number[] {
         strides[axis] = strides[axis + 1] * shape[axis + 1];
     }
     return strides;
-}
-
-function arrayItem(value: RankArray, index: number): RankValue {
-    return readArrayItem(value, index);
 }
