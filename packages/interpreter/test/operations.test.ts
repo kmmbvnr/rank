@@ -133,6 +133,24 @@ describe('the operation catalogue', () => {
         expect(() => new Interpreter().execute('use crypto\n(array 1 2) md5')).toThrow();
     });
 
+    it('checks mapped date conversions and intrinsically ranked components', () => {
+        for (const [expression, expected] of [
+            ['"2026-10-03" date', 'date'], ['"2026-10-03" date datetime', 'datetime'],
+            ['"2026-10-03 12:34:56" datetime date', 'date'],
+            ['(array "2026-10-03" "2026-10-04") date', 'array'],
+            ['(1 to 3) duration', 'sequence'], ['3.0 duration', 'duration'],
+            ['3 duration seconds', 'integer'], ['(array 1 2) duration seconds', 'array'],
+            ['"2026-10-03" date year', 'integer'], ['"2026-10-03" date weekday', 'integer'],
+            ['"2026-10-03 12:34:56" datetime hour', 'integer'],
+            ['"2026-10-03 12:34:56" datetime minute', 'integer'],
+            ['"2026-10-03 12:34:56" datetime second', 'integer'],
+            ['"2026-10-03" date monthstart', 'datetime'], ['"2026-10-03" date nextmonth', 'datetime'],
+            ['"2026-10-03" "2026-10-04" calendar', 'array'],
+        ]) expect(typeName(new Interpreter().execute('use dates\n' + expression)!), expression).toBe(expected);
+        expect(() => new Interpreter().execute('use dates\n"2026-10-03" date hour')).toThrow();
+        expect(() => new Interpreter().execute('use dates\n1.5 duration')).toThrow();
+    });
+
     it('validates shape contracts against explicit ranks and representation facts', () => {
         for (const entry of operations) {
             if (entry.monadicRank !== undefined || entry.dyadicRanks

@@ -194,6 +194,22 @@ const numericCells: SignatureType = { union: ['number', 'missing'] };
 const numericReductionInputs: SignatureType = { union: ['number', 'missing', 'column',
     ...(['array', 'sequence', 'queue', 'set'] as const).map(collection => ({ collection, element: numericCells }))] };
 
+// These date operations map whole arrays/sequences themselves; this is not
+// intrinsic rank lifting. SQL column refinements remain runtime constraints.
+function dateMappingSignatures(input: SignatureType, result: SignatureType): readonly TypeSignature[] {
+    return [{ inputs: [input], result },
+        ...(['array', 'sequence'] as const).map(collection => ({
+            inputs: [{ collection, element: input }], result: { collection, element: result },
+        })),
+        { inputs: ['column'], result: 'column' }];
+}
+const calendarValue: SignatureType = { union: ['date', 'datetime'] };
+const dateInput: SignatureType = { union: ['text', 'date', 'datetime'] };
+const calendarComponentSignatures: readonly TypeSignature[] = [
+    { inputs: [calendarValue], result: 'integer', ranks: [0] },
+    { inputs: ['column'], result: 'column', ranks: [0] },
+];
+
 export const operations: readonly Operation[] = [
     { name: 'add', module: 'algo', arities: [2], form: 'Seen add Value', result: 'collection',
         effects: ['mutates'], summary: 'Adds a value to a set, counter or multiset.' },
@@ -327,40 +343,56 @@ export const operations: readonly Operation[] = [
         summary: 'MD5 digest of bytes or UTF-8 text, as 16 bytes.' },
 
     { name: 'date', module: 'dates', arities: [1], form: 'Text date', result: 'date',
+        signatures: dateMappingSignatures(dateInput, 'date'),
         summary: 'Parses YYYY-MM-DD or truncates a datetime to its calendar day.' },
     { name: 'calendar', module: 'dates', arities: [2, 3],
+        signatures: [{ inputs: [dateInput, dateInput], result: 'table' },
+            { inputs: ['database', dateInput, dateInput], result: 'table' }],
         form: 'Db Start End calendar', result: 'table', lazy: true,
         summary: 'Inclusive daily table; optional database keeps it as a SQLite view.' },
     { name: 'datetime', module: 'dates', arities: [1], form: 'Value datetime', result: 'datetime',
+        signatures: dateMappingSignatures(dateInput, 'datetime'),
         summary: 'Parses a local timestamp or casts a date to midnight.' },
     { name: 'duration', module: 'dates', arities: [1], form: 'Seconds duration', result: 'duration',
+        signatures: dateMappingSignatures({ union: ['number', 'duration'] }, 'duration'),
         lazy: true, summary: 'Creates an exact duration from integer seconds.' },
     { name: 'day', module: 'dates', arities: [1], form: 'Value day', result: 'integer',
+        signatures: calendarComponentSignatures,
         shape: [{ args: [[]], result: [] }],
         monadicRank: 0, summary: 'Day of the month of a date or datetime.' },
     { name: 'hour', module: 'dates', arities: [1], form: 'Moment hour', result: 'integer',
+        signatures: [{ inputs: ['datetime'], result: 'integer', ranks: [0] }],
         shape: [{ args: [[]], result: [] }],
         monadicRank: 0, summary: 'Hour of a datetime.' },
     { name: 'minute', module: 'dates', arities: [1], form: 'Moment minute', result: 'integer',
+        signatures: [{ inputs: ['datetime'], result: 'integer', ranks: [0] }],
         shape: [{ args: [[]], result: [] }],
         monadicRank: 0, summary: 'Minute of a datetime.' },
     { name: 'month', module: 'dates', arities: [1], form: 'Value month', result: 'integer',
+        signatures: calendarComponentSignatures,
         shape: [{ args: [[]], result: [] }],
         monadicRank: 0, summary: 'Month of a date or datetime.' },
     { name: 'monthstart', module: 'dates', arities: [1], form: 'Value monthstart', result: 'datetime',
+        signatures: dateMappingSignatures(calendarValue, 'datetime'),
         lazy: true, summary: 'Midnight on the first day of the current month.' },
     { name: 'nextmonth', module: 'dates', arities: [1], form: 'Value nextmonth', result: 'datetime',
+        signatures: dateMappingSignatures(calendarValue, 'datetime'),
         lazy: true, summary: 'Midnight on the first day of the following month.' },
     { name: 'second', module: 'dates', arities: [1], form: 'Moment second', result: 'integer',
+        signatures: [{ inputs: ['datetime'], result: 'integer', ranks: [0] }],
         shape: [{ args: [[]], result: [] }],
         monadicRank: 0, summary: 'Second of a datetime.' },
     { name: 'seconds', module: 'dates', arities: [1], form: 'Duration seconds', result: 'integer',
+        signatures: [{ inputs: ['duration'], result: 'integer', ranks: [0] },
+            { inputs: ['column'], result: 'column', ranks: [0] }],
         shape: [{ args: [[]], result: [] }],
         monadicRank: 0, summary: 'Exact signed number of seconds in a duration.' },
     { name: 'weekday', module: 'dates', arities: [1], form: 'Value weekday', result: 'integer',
+        signatures: [{ inputs: [calendarValue], result: 'integer', ranks: [0] }],
         shape: [{ args: [[]], result: [] }],
         monadicRank: 0, summary: 'Day of the week, Monday zero through Sunday six.' },
     { name: 'year', module: 'dates', arities: [1], form: 'Value year', result: 'integer',
+        signatures: calendarComponentSignatures,
         shape: [{ args: [[]], result: [] }],
         monadicRank: 0, summary: 'Year of a date or datetime.' },
 

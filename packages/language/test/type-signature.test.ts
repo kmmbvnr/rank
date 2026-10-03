@@ -61,3 +61,20 @@ it('keeps cell lifting separate from whole-operand overloads', () => {
     ])).toBe('integer integer → integer [rank 0 0]');
     expect(operationSignature(findOperation('md5')!, [{ types: ['bytes'] }])).toBe('bytes → bytes');
 });
+
+
+it('distinguishes date mapping, scalar components and SQL column overloads', () => {
+    expect(operationSignature(findOperation('date')!, [{ types: ['text'] }])).toBe('text → date');
+    expect(operationSignature(findOperation('date')!, [{ types: ['array'], elements: ['text'] }]))
+        .toBe('array<text> → array<date>');
+    expect(operationSignature(findOperation('duration')!, [{ types: ['sequence'], elements: ['integer'] }]))
+        .toBe('sequence<number> → sequence<duration>');
+    expect(operationSignature(findOperation('year')!, [{ types: ['datetime'] }]))
+        .toBe('datetime → integer [rank 0]');
+    expect(operationSignature(findOperation('year')!, [{ types: ['sqlite-expression'] }]))
+        .toBe('column → column [rank 0]');
+    expect(operationSignature(findOperation('hour')!)).not.toContain('column');
+    expect(operationSignature(findOperation('weekday')!)).not.toContain('column');
+    expect(operationSignature(findOperation('calendar')!, 3)).toBe(
+        'database (text | date | datetime) (text | date | datetime) → table');
+});
