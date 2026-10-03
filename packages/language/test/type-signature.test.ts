@@ -182,3 +182,14 @@ it('names SQL databases and views without exposing runtime kind identifiers', ()
     expect(operationSignature(findOperation('lookup')!, Array(3).fill({ types: ['sqlite-expression'] })))
         .toBe('column column column → column');
 });
+
+
+it('does not promise unchanged cell types for stacking, windows or default-filled shifts', () => {
+    expect(operationSignature(findOperation('copy')!, [{ types: ['segment'] }])).toBe('segment → segment');
+    expect(operationSignature(findOperation('copy')!, [{ types: ['array'], elements: ['array'] }])).toBe('array → array');
+    expect(operationSignature(findOperation('stack')!)).toBe('array<array<a> | sequence<a>> → array<a>');
+    expect(operationSignature(findOperation('window')!, [{ types: ['sequence'] }, { types: ['integer'] }]))
+        .toBe('sequence<a> integer → array<a> | sequence<array<a>>');
+    expect(operationSignature(findOperation('shift')!)).toBe('array<a> integer → array<a | integer>');
+    expect(operationSignature(findOperation('first')!, [{ types: ['array'] }])).toBe('array<a> → a | array<a>');
+});
