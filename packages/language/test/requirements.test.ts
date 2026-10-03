@@ -161,3 +161,29 @@ it('still discards structural requirements across an unresolved callback', () =>
     const source = 'use tables\nRows = "data.csv" csv\nRows mutate\nRows .price sum';
     expect(binding(source, 'Rows').fields).toBeUndefined();
 });
+
+it('retains independent checked-read contracts for the callers of a reader function', () => {
+    const source = 'use tables\nuse text\nfun load Path\n return Path csv check\nend\nA = "first.csv" load\nA .price sum\nB = "second.csv" load\nB .name lower';
+    const program = parse(source);
+    const answer = inferRequirements(program, { includeCalls: true });
+    const calls = [...answer.calls.values()];
+    expect(calls).toHaveLength(2);
+    const checked = (call: typeof calls[number]) => [...call.expressions].find(([node]) =>
+        node.$cstNode?.text === 'Path csv check')?.[1];
+    expect(checked(calls[0])?.fields?.get('price')?.domains).toEqual(['integer', 'real', 'missing']);
+    expect(checked(calls[0])?.fields?.has('name')).toBe(false);
+    expect(checked(calls[1])?.fields?.get('name')?.domains).toEqual(['text']);
+    expect(checked(calls[1])?.fields?.has('price')).toBe(false);
+    expect(inferRequirements(program).calls.size).toBe(0);
+});
+
+it('carries caller requirements to a checked read through a nested wrapper', () => {
+    const source = 'use tables\nfun readrows Path\n return Path csv check\nend\nfun load Path\n return Path readrows\nend\nRows = "data.csv" load\nRows .price sum';
+    const answer = inferRequirements(parse(source), { includeCalls: true });
+    const wrapper = [...answer.calls.values()][0];
+    expect(wrapper.name).toBe('load');
+    const reader = [...wrapper.calls.values()][0];
+    expect(reader.name).toBe('readrows');
+    const checked = [...reader.expressions].find(([node]) => node.$cstNode?.text === 'Path csv check')?.[1];
+    expect(checked?.fields?.get('price')?.domains).toEqual(['integer', 'real', 'missing']);
+});

@@ -18,7 +18,7 @@ import { expressionFacts } from './value-facts.js';
 import { declaredType } from './types.js';
 import type { ValueFacts } from './value-domain.js';
 import type { RequirementConflict, RequirementSite } from './requirement-solver.js';
-import { Graph, type Value, type Binding, type Template, type ValueRequirement } from './requirement-graph.js';
+import { Graph, type Value, type Binding, type Template, type ValueRequirement, type CallValues } from './requirement-graph.js';
 export type { ValueRequirement } from './requirement-graph.js';
 export type { RequirementConflict, RequirementInterval, RequirementSite } from './requirement-solver.js';
 
@@ -30,14 +30,23 @@ export interface FunctionRequirement {
     readonly params: readonly ValueRequirement[];
     readonly result: ValueRequirement;
 }
+export interface CallRequirement {
+    readonly name: string;
+    readonly definition: FunctionStatement;
+    readonly expressions: ReadonlyMap<Expression, ValueRequirement>;
+    readonly calls: ReadonlyMap<Expression, CallRequirement>;
+}
 export interface RequirementAnalysis {
     readonly bindings: readonly BindingRequirement[];
     readonly expressions: ReadonlyMap<Expression, ValueRequirement>;
     readonly functions: ReadonlyMap<FunctionStatement, FunctionRequirement>;
+    /** Fresh expression requirements for each call, requested by runtime check preparation. */
+    readonly calls: ReadonlyMap<Expression, CallRequirement>;
     readonly conflicts: readonly RequirementConflict[];
     readonly limited: boolean;
 }
 export interface RequirementOptions {
+    readonly includeCalls?: boolean;
     readonly initial?: ReadonlyMap<string, ValueFacts>;
     readonly declarations?: ReadonlyMap<string, FunctionStatement>;
     readonly loadModule?: (path: string) => Program | undefined;
@@ -242,7 +251,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             }
             // Binary frames broadcast: equality is not a requirement.
         };
-        const call = (definition: FunctionStatement, args: Value[], output: Value, node: AstNode,
+        const call = (definition: FunctionStatement, name: string, args: Value[], output: Value, node: AstNode,
             ranks?: readonly IntrinsicRank[], axes?: readonly number[]) => {
             if (args.length !== definition.parameters.length) return;
             const summary = template(definition, args);
@@ -253,7 +262,9 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             if (graph.solver.variables.length + summary.graph.solver.variables.length > 20_000) {
                 limited = true; return;
             }
-            const instance = graph.instantiate(summary);
+            const instance = graph.instantiate(summary, options.includeCalls);
+            if (options.includeCalls && isExpression(node)) graph.calls.set(node, { name, definition,
+                expressions: instance.expressions, calls: instance.calls });
             if (!cells || cells.every(rank => rank === 'all')) {
                 args.forEach((arg, index) => graph.same(instance.params[index], arg, site(node, `${definition.name} argument`)));
                 graph.same(output, instance.result, site(node, `${definition.name} result`));
@@ -276,8 +287,8 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             const nullary = isNameExpression(node) && !env.has(node.name) ? callees.get(node.name) : undefined;
             const output = graph.value(node, nullary?.parameters.length === 0 ? { types: [] } : expressionFacts(node, lookup));
             graph.expressions.set(node, output);
-            if (nullary?.parameters.length === 0) {
-                call(nullary, [], output, node); callEffects(nullary.name, []); return output;
+            if (nullary?.parameters.length === 0 && isNameExpression(node)) {
+                call(nullary, node.name, [], output, node); callEffects(nullary.name, []); return output;
             }
             if (isBinaryExpression(node)) {
                 if (node.operator === 'default') {
@@ -338,7 +349,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 const ranks = form.rightRank === undefined ? [Number(form.rank)] : [Number(form.rank), Number(form.rightRank)];
                 if (!isNameExpression(target) || ranks.some(rank => !Number.isSafeInteger(rank))) return output;
                 const definition = !env.has(target.name) && callees.get(target.name);
-                if (definition) { call(definition, args, output, node, ranks, form.axes); callEffects(definition.name, args); }
+                if (definition) { call(definition, target.name, args, output, node, ranks, form.axes); callEffects(definition.name, args); }
                 else if (!bound(target.name)) {
                     const operation = findOperation(target.name);
                     if (operation) { signature(operation, args, output, node, ranks, form.axes); builtinEffects(operation, args); }
@@ -364,7 +375,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 const arity = definition?.parameters.length;
                 if (arity === parts.length - 1 || operation?.arities.includes(parts.length - 1)) {
                     const args = parts.slice(0, -1).map(expression);
-                    if (definition) { call(definition, args, output, node); callEffects(last.name, args); }
+                    if (definition) { call(definition, last.name, args, output, node); callEffects(last.name, args); }
                     else if (operation) {
                         signature(operation, args, output, node);
                         for (const [index, types] of (operation.operandDomains ?? []).entries()) {
@@ -487,6 +498,11 @@ export function inferRequirements(program: Program, options: RequirementOptions 
         conflicts.push(...answer.conflicts);
         limited ||= answer.limited;
     }
+    const readCalls = (calls: ReadonlyMap<Expression, CallValues>): ReadonlyMap<Expression, CallRequirement> =>
+        new Map([...calls].map(([node, call]) => [node, { name: call.name, definition: call.definition,
+            expressions: new Map([...call.expressions].map(([expression, value]) => [expression, solved.read(value)])),
+            calls: readCalls(call.calls) }]));
+    const calls = readCalls(graph.calls);
     const siteIds = new WeakMap<AstNode, number>();
     let nextSite = 0;
     const key = (value: RequirementSite) => {
@@ -497,6 +513,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
     return {
         bindings: graph.bindings.map(binding => ({ ...solved.read(binding.value), name: binding.name, node: binding.node })),
         expressions,
+        calls,
         functions: summaries,
         conflicts: [...new Map(conflicts.map(conflict => [`${conflict.kind}:${key(conflict.first)}:${key(conflict.second)}`, conflict])).values()],
         limited: limited || solved.limited,

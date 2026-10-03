@@ -1,6 +1,6 @@
 import { contractElements } from './array-binding-contract.js';
 import type { AstNode } from 'langium';
-import type { Expression } from '../generated/ast.js';
+import type { Expression, FunctionStatement } from '../generated/ast.js';
 import { UNKNOWN_VALUE, withPathDims, type ValueFacts } from './value-domain.js';
 import type { Dim } from './shape-index.js';
 import { RequirementSolver, type RequirementInterval, type RequirementSite } from './requirement-solver.js';
@@ -32,12 +32,19 @@ export interface Template {
     params: Value[];
     result: Value;
 }
+export interface CallValues {
+    readonly name: string;
+    readonly definition: FunctionStatement;
+    readonly expressions: ReadonlyMap<Expression, Value>;
+    readonly calls: ReadonlyMap<Expression, CallValues>;
+}
 const site = (node: AstNode, reason: string): RequirementSite => ({ node, reason });
 
 export class Graph {
     readonly solver = new RequirementSolver();
     readonly bindings: Binding[] = [];
     readonly expressions = new Map<Expression, Value>();
+    readonly calls = new Map<Expression, CallValues>();
     readonly domains: DomainConstraint[] = [];
     readonly domainLinks: [number, number][] = [];
     readonly inhabited = new Set<number>();
@@ -165,7 +172,9 @@ export class Graph {
             }
         }
     }
-    instantiate(template: Template): { params: Value[]; result: Value } {
+    instantiate(template: Template, includeCalls = false): {
+        params: Value[]; result: Value; expressions: ReadonlyMap<Expression, Value>; calls: ReadonlyMap<Expression, CallValues>;
+    } {
         const map = this.solver.copy(template.graph.solver);
         for (const id of template.graph.inhabited) this.inhabited.add(map(id));
         this.domains.push(...template.graph.domains.map(item => ({ ...item, variable: map(item.variable) })));
@@ -188,7 +197,14 @@ export class Graph {
             if (fresh) for (const [name, selected] of originalFields) selections.set(name, copy(selected));
             return result;
         };
-        return { params: template.params.map(copy), result: copy(template.result) };
+        const expressions = (source: ReadonlyMap<Expression, Value>) =>
+            new Map([...source].map(([node, value]) => [node, copy(value)]));
+        const calls = (source: ReadonlyMap<Expression, CallValues>): ReadonlyMap<Expression, CallValues> =>
+            new Map([...source].map(([node, call]) => [node, { ...call,
+                expressions: expressions(call.expressions), calls: calls(call.calls) }]));
+        return { params: template.params.map(copy), result: copy(template.result),
+            expressions: includeCalls ? expressions(template.graph.expressions) : new Map(),
+            calls: includeCalls ? calls(template.graph.calls) : new Map() };
     }
     solve() {
         const solved = this.solver.solve();
