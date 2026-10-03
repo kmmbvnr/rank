@@ -29,5 +29,5 @@ export * from './expression-grouping.js';
 export * from './expressions.js';
 export { REDUCE_OPERATORS, OUTER_OPERATORS, COMPARISON_OPERATORS, groupModifiers } from './modifier-grouping.js';
 export * from './next-tokens.js';
-
 export * from './compiled-function-type.js';
+export * from './analysis/function-relationships.js';

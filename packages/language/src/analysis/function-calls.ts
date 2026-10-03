@@ -1,3 +1,4 @@
+import { functionRelationship, instantiateRelationship, type FunctionRelationship } from './function-relationships.js';
 import { establishedArrayContract } from './array-binding-contract.js';
 import { argumentSignature, returnConflicts, returnInput } from './return-contract.js';
 import { AstUtils, type AstNode } from 'langium';
@@ -7,7 +8,7 @@ import {
     type Expression, type FunctionStatement, type Program, type Statement,
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
-import { loopBinding, arrayRank } from './control-flow.js';
+import { loopBinding, arrayRank, parameterFacts } from './control-flow.js';
 import { functionYields, generatorCells, yieldTypes } from './function-yields.js';
 import { numericInput, numericRecursionEligible, sameNumericInput, widenedInput } from './numeric-recursion.js';
 import { BOTTOM_VALUE, joinValueFacts, UNKNOWN_VALUE, widenValueFacts, withPathDims, type ValueFacts } from './value-domain.js';
@@ -36,7 +37,7 @@ export function createCallAnalysis(
     diagnostics: CallDiagnostic[],
     expressions: Map<Expression, ValueFacts>,
     returnValues: (items: readonly Statement[], env: Map<string, ValueFacts>) => ValueFacts[],
-    analyzeImported: (program: Program, name: string, arguments_: readonly ValueFacts[]) => { result: ValueFacts; diagnostics: readonly CallDiagnostic[] },
+    analyzeImported: (program: Program, name: string, arguments_: readonly ValueFacts[]) => { result: ValueFacts; diagnostics: readonly CallDiagnostic[]; relationship?: FunctionRelationship },
     initialImports: ReadonlyMap<string, ImportedFunction> = new Map(),
 ) {
     const functionBindings = new Map([...functions.keys()].map(name => [name, bindings.get(name)]));
@@ -48,6 +49,9 @@ export function createCallAnalysis(
     const callStack: { definition: FunctionStatement; signature: string; recursive: boolean }[] = [];
     const globalCallEnvs: Map<string, ValueFacts>[] = [];
     const noReturnFunctions = new WeakMap<FunctionStatement, boolean>();
+    const relationships = new Map<FunctionStatement, FunctionRelationship>();
+    const checkedRelationships = new WeakSet<FunctionStatement>();
+    const importedRelationships = new WeakMap<ImportedFunction, { definition: FunctionStatement; summary?: FunctionRelationship }>();
     let remainingCalls = 100;
     let checkingReturns = false;
     type Instance = { rankSignature: string; values: ValueFacts[] };
@@ -55,6 +59,68 @@ export function createCallAnalysis(
     const privateBindings: Set<string>[] = [];
     /** Every name a frame binds, including those a nested function may also write through the closure. */
     const frameBindings: Set<string>[] = [];
+
+    let relationshipDepth = 0;
+    const validRelationship = (summary: FunctionRelationship, env: ReadonlyMap<string, ValueFacts>) =>
+        summary.dependencies.every(dependency => {
+            const external = imported.get(dependency.name);
+            return env.get(dependency.name) === dependency.binding && (external
+                ? external.binding === dependency.binding && external.functions.get(external.name) === dependency.definition
+                : functions.get(dependency.name) === dependency.definition && functionBindings.get(dependency.name) === dependency.binding);
+        });
+    function importedRelationship(name: string, env: ReadonlyMap<string, ValueFacts>): FunctionRelationship | undefined {
+        const external = imported.get(name);
+        const definition = external?.functions.get(external.name);
+        if (!external || !definition || env.get(name) !== external.binding) return undefined;
+        let cached = importedRelationships.get(external);
+        if (!cached || cached.definition !== definition) {
+            if (definition.ranks.length || definition.statements.length !== 1 || !isReturnStatement(definition.statements[0])) {
+                importedRelationships.set(external, { definition });
+                return undefined;
+            }
+            const analysis = analyzeImported(external.program, external.name, definition.parameters.map(() => UNKNOWN_VALUE));
+            const prefix = name.slice(0, name.length - external.name.length);
+            const dependencies = analysis.relationship?.dependencies.map(dependency => {
+                const qualified = prefix + dependency.name, target = imported.get(qualified);
+                return target?.program === external.program && target.functions.get(target.name) === dependency.definition
+                    ? { name: qualified, definition: dependency.definition, binding: target.binding } : undefined;
+            });
+            const summary = !analysis.diagnostics.length && analysis.relationship && dependencies?.every(dependency => dependency !== undefined)
+                ? { ...analysis.relationship, dependencies } : undefined;
+            cached = { definition, summary };
+            importedRelationships.set(external, cached);
+        }
+        return cached.summary && validRelationship(cached.summary, env) ? cached.summary : undefined;
+    }
+    function relationshipFor(definition: FunctionStatement, env: ReadonlyMap<string, ValueFacts>): FunctionRelationship | undefined {
+        const cached = relationships.get(definition);
+        if (cached) {
+            if (validRelationship(cached, env)) return cached;
+            relationships.delete(definition);
+            checkedRelationships.delete(definition);
+        }
+        // Mark before following callees: recursive groups retain the existing bounded analysis.
+        if (checkedRelationships.has(definition) || relationshipDepth >= 100) return undefined;
+        checkedRelationships.add(definition);
+        relationshipDepth++;
+        try {
+            const relationship = functionRelationship(definition, name => {
+                const external = imported.get(name);
+                if (external) {
+                    const summary = importedRelationship(name, env);
+                    const callee = external.functions.get(external.name);
+                    return summary && callee ? { name, definition: callee, binding: external.binding, relationship: summary } : undefined;
+                }
+                const callee = functions.get(name), binding = functionBindings.get(name);
+                // Captured function scopes need their own dependency environment.
+                if (!callee || callee.$container.$type !== 'Program' || !binding || env.get(name) !== binding) return undefined;
+                const summary = relationshipFor(callee, env);
+                return summary && { name, definition: callee, binding, relationship: summary };
+            });
+            if (relationship) relationships.set(definition, relationship);
+            return relationship;
+        } finally { relationshipDepth--; }
+    }
 
     function directNoReturnCall(expression: Expression, env: ReadonlyMap<string, ValueFacts>): boolean {
         const parts = isApplicationExpression(expression) ? flattenApplication(expression) : [expression];
@@ -78,6 +144,9 @@ export function createCallAnalysis(
         const external = imported.get(name);
         if (external && caller.get(name) === external.binding
             && external.functions.get(external.name)?.parameters.length === arguments_.length) {
+            const relationship = importedRelationship(name, caller);
+            const result = relationship && instantiateRelationship(relationship, arguments_.map(parameterFacts));
+            if (result) return withPathDims(joinValueFacts([result]));
             const analysis = analyzeImported(external.program, external.name, arguments_);
             if (site) for (const diagnostic of analysis.diagnostics) {
                 if (diagnostic.message.includes('returns incompatible')) diagnostics.push({ ...diagnostic, node: site });
@@ -103,8 +172,13 @@ export function createCallAnalysis(
             if (probe.pure) probe.valid &&= arguments_.every((fact, index) => sameNumericInput(probe.inputs[index], fact));
             return probe.result;
         }
-        if (remainingCalls-- <= 0) return UNKNOWN_VALUE;
-        const yields = functionYields(definition);
+        const globalEnv = globalCallEnvs.at(-1) ?? caller;
+        const entryEnv = definition.$container.$type === 'Program' ? globalEnv : caller;
+        const relationship = relationshipFor(definition, entryEnv);
+        const summarized = relationship && instantiateRelationship(relationship, arguments_) !== undefined;
+        // Instantiating a proved relationship does not consume the recursive body-walk budget.
+        if (!summarized && remainingCalls-- <= 0) return UNKNOWN_VALUE;
+        const yields = summarized ? [] : functionYields(definition);
         if (yields.length) {
             // A generator call creates a sequence without executing its body.
             const { cells } = generatorCells(definition, arguments_);
@@ -118,16 +192,20 @@ export function createCallAnalysis(
             return { types: ['sequence'], ...(elements ? { elements } : {}),
                 ...(scalars ? { rank: 1, shape: [cells.length ? null : 0] } : {}) };
         }
-        const globalEnv = globalCallEnvs.at(-1) ?? caller;
-        const local = new Map(definition.$container.$type === 'Program' ? globalEnv : caller);
+        const local = new Map(entryEnv);
+        const nodes = summarized ? [] : [...AstUtils.streamAllContents(definition)];
         // Top-level functions create local bindings on assignment, rather than
         // inheriting the assignment contracts of equally named globals.
-        for (const node of AstUtils.streamAllContents(definition)) {
-            if (isAssignmentStatement(node) && !definition.parameters.includes(node.name)) local.delete(node.name);
+        const capturedNames = new Set<string>();
+        for (let parent: AstNode | undefined = definition.$container; parent; parent = parent.$container) {
+            const index = callStack.findIndex(frame => frame.definition === parent);
+            if (index >= 0) for (const name of frameBindings[index]) capturedNames.add(name);
         }
-        definition.parameters.forEach((parameter, index) => local.set(parameter, {
-            ...arguments_[index], acceptedArrayContract: establishedArrayContract(arguments_[index]), acceptedArrayRank: arrayRank(arguments_[index]), acceptedTypes: arguments_[index].types,
-        }));
+        for (const node of nodes) {
+            if (isAssignmentStatement(node) && !definition.parameters.includes(node.name)
+                && !capturedNames.has(node.name)) local.delete(node.name);
+        }
+        definition.parameters.forEach((parameter, index) => local.set(parameter, parameterFacts(arguments_[index])));
         if (!definition.parameters.includes('index')) local.set('index', { types: ['index'], elements: [] });
         // Runtime declares local functions before executing the body, including
         // declarations textually after an early return.
@@ -146,7 +224,6 @@ export function createCallAnalysis(
         callStack.push(frame);
         active.add(signature);
         globalCallEnvs.push(globalEnv);
-        const nodes = [...AstUtils.streamAllContents(definition)];
         const nestedWrites = new Set(nodes.filter(isFunctionStatement).flatMap(nested =>
             [...AstUtils.streamAllContents(nested)].flatMap(node => isAssignmentStatement(node) ? [node.name]
                 : isFunctionStatement(node) ? [node.name] : isUnpackStatement(node) ? node.names : isForStatement(node)
@@ -161,7 +238,9 @@ export function createCallAnalysis(
         const contractEnv = new Map([...local].map(([key, fact]) => [key,
             fact.types.includes('function') ? fact : returnInput(fact)]));
         try {
-            const result = returnValues(definition.statements, local);
+            const result = summarized
+                ? [instantiateRelationship(relationship, definition.parameters.map(name => local.get(name)!), expressions)!]
+                : returnValues(definition.statements, local);
             // Reaching the end throws: only paths that actually return contribute
             // a result value. With no proven return, the result remains unknown.
             if (!checkingReturns) {
@@ -172,7 +251,11 @@ export function createCallAnalysis(
                 let returns = result;
                 checkingReturns = true;
                 try {
-                    returns = [...result, ...returnValues(definition.statements, contractEnv)];
+                    const contract = summarized && instantiateRelationship(relationship,
+                        definition.parameters.map(name => contractEnv.get(name)!));
+                    // Widening forgets reader safety, so a valid call summary may
+                    // need ordinary analysis for its broader return contract.
+                    returns = [...result, ...(contract ? [contract] : returnValues(definition.statements, contractEnv))];
                 } finally {
                     checkingReturns = false;
                     remainingCalls = savedBudget;
@@ -289,7 +372,21 @@ export function createCallAnalysis(
 
     return {
         functionBindings, imported, importedAliases, globalCallEnvs, privateBindings, frameBindings,
-        directNoReturnCall, call,
+        directNoReturnCall, call, relationships,
+        validRelationships: (env: ReadonlyMap<string, ValueFacts>) => {
+            const result = new Map([...relationships].filter(([definition, summary]) =>
+                functions.get(definition.name) === definition
+                && env.get(definition.name) === functionBindings.get(definition.name)
+                && validRelationship(summary, env)));
+            for (const [name, external] of imported) {
+                const cached = importedRelationships.get(external);
+                if (cached?.summary && env.get(name) === external.binding
+                    && external.functions.get(external.name) === cached.definition && validRelationship(cached.summary, env)) {
+                    result.set(cached.definition, cached.summary);
+                }
+            }
+            return result;
+        },
         hasPureRecursiveProbe: (name: string) => {
             const definition = functions.get(name);
             return !!definition && [...recursiveProbes.get(definition)?.values() ?? []].some(probe => probe.pure);

@@ -1,5 +1,5 @@
 import { recordBindingContract } from './return-contract.js';
-import { arrayBindingContract } from './array-binding-contract.js';
+import { arrayBindingContract, establishedArrayContract } from './array-binding-contract.js';
 import {
     isAllAxisExpression, isBinaryExpression, isBooleanLiteral, isLabelLiteral, isNameExpression, isNumberLiteral,
     isParenthesizedExpression, isUnaryExpression, type Expression, type IfStatement, type Statement,
@@ -11,6 +11,9 @@ import type { Types } from './types.js';
 
 export const arrayRank = (fact: ValueFacts | undefined): number | undefined =>
     fact?.types.length && fact.types.every(type => type === 'array' || type === 'bytes') ? fact.rank : undefined;
+/** Contracts established when a function receives an argument. */
+export const parameterFacts = (fact: ValueFacts): ValueFacts => ({ ...fact,
+    acceptedArrayContract: establishedArrayContract(fact), acceptedArrayRank: arrayRank(fact), acceptedTypes: fact.types });
 export const contractRank = (fact: ValueFacts | undefined): number | undefined => fact?.acceptedArrayRank ?? arrayRank(fact);
 export const settledShape = (types: Types, rank: number | undefined): Pick<ValueFacts, 'rank' | 'shape'> =>
     rank !== undefined ? { rank, shape: Array(rank).fill(null) }

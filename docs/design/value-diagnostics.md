@@ -58,6 +58,48 @@ helper chains. Messages identify the called function. Unknown argument facts do
 not produce an error, and tests do not restrict a function to the types in its
 examples.
 
+### Reusable function result relationships
+
+A function consisting of one structural return can retain a relationship to its
+parameters: identity (`T → T`), fixed tuple positions (`T → tuple(T, text)`),
+or a field of an established record. These examples describe the analysis;
+they do not add annotation syntax. Unknown inputs stay unknown. A field term
+does not assert that an external object has that field.
+
+`analysis/function-relationships.ts` builds the summary once per definition in
+an analysis. Calls instantiate it using their current argument facts, preserving
+text rank one, array ranks, dimensions and existing reader-safety evidence.
+Known element types alone do not grant reader safety. Other receiver domains
+use ordinary analysis. Summary calls still run the existing return-contract
+checks and retain expression facts for the inspector, but do not walk the
+return body or consume the recursive body-analysis budget.
+
+Structural relationships also compose through proved top-level callees. Their
+binding identities and transitive dependencies remain part of the summary;
+shadowed or replaced helpers invalidate it, including for signature display.
+Inner expression facts and parameter contracts are retained. Composition depth
+and instantiation work are bounded; unsupported or recursive groups use ordinary
+analysis. The cache belongs to one analysis. Captures, mutations, guarded returns,
+unresolved callbacks currently use ordinary analysis; reusable relationships for
+those cases remain follow-up work in #156.
+
+Binary operation relationships use the shared operator signatures and the same
+forward operand transfer as ordinary expressions. Numeric arrays use scalar
+operator rules for their cell types, retaining rank and shape facts without
+reading cells. An unsupported domain or a shape mismatch returns to ordinary
+analysis so diagnostics are preserved. Return-contract widening removes reader
+safety evidence, so that broader contract check may still use ordinary analysis
+when the concrete call can use a summary.
+
+Loaded module summaries are cached only within the current analysis and remain
+tied to the module's qualified bindings. Transitive helper dependencies are
+qualified into that namespace; alias rebinding or a qualified write invalidates
+them. Changed module text starts a new analysis and cannot reuse an old summary.
+Modules with diagnostics and functions without eligible summaries retain ordinary
+analysis. This does not read files or follow imports beyond the loader's existing
+boundary. Backward requirement templates stay separate:
+a solved requirement is not a proof about the supplied value.
+
 `analysis/function-effects.ts` summarizes possible indexed writes to parameters
 and captured objects. Calls to supported helpers map written parameters back to
 the caller's parameters. Conditional effects include all branches. The pass
@@ -203,3 +245,17 @@ construction. These are planning hints: emission must still prove the supported
 operation, and entry guards recheck current bindings and exact builtin identity.
 Test expectations never enter this path. A diagnostic fact is not by itself
 permission to remove runtime guards or assume that a host call is pure.
+
+Explicit `rank` applications of known user callbacks now share the builtin
+rank/axis partition. Cell facts instantiate an eligible relationship, or use
+ordinary call analysis for stateful bodies. Array results stack under the frame;
+text and tuples remain boxed cells. An empty frame does not call the callback,
+and an unknown frame length cannot establish the rank of a stacked array result
+when empty and nonempty frames differ. Text/sequence mapping and intrinsic
+function rank declarations retain their existing conservative analysis.
+
+The callback's result type grants no callback-free reader flag. Safe operands
+may be captured before callback effects invalidate caller facts, as for direct
+calls; the ordinary effect pass still runs. Nested assignments retain contracts
+belonging to their lexical enclosing frames, while unrelated caller locals and
+global names do not become captured binding contracts.

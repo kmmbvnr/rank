@@ -452,7 +452,8 @@ it('keeps integer cells through integer-only array arithmetic', () => {
     expect(facts('(array 1 2) - 1')).toMatchObject({ types: ['array'], elements: ['integer'],
         callbackFreeScalarCells: true });
     expect(facts('(array 1 2) + (array 3 4)')).toMatchObject({ types: ['array'], elements: ['integer'] });
-    expect(facts('(array 1 2) / 2')).toMatchObject({ types: ['array'], elements: ['integer', 'real'] });
+    expect(facts('(array 1 2) / 2')).toMatchObject({ types: ['array'], elements: ['real'] });
+    expect(facts('(array 1.5 2.5) * 2')).toMatchObject({ types: ['array'], elements: ['real'] });
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     const bindings = new Map<string, ValueFacts>([['A', { types: ['array'], rank: 1,
         shape: [null], elements: ['integer'], eagerScalarCells: true }], ['I', integer]]);
@@ -1314,4 +1315,14 @@ it('does not prove callback-free outer cells from sequence element types alone',
     expect(facts('(1 to 3) (1 to 5) outer +', new Map([
         ['outer', { types: ['function'] }],
     ]))).not.toHaveProperty('elements');
+});
+
+it('retains array rank when a numeric scalar fact has no explicit rank field', () => {
+    const bindings = new Map<string, ValueFacts>([
+        ['Values', { types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'] }],
+        ['Average', { types: ['real'] }],
+    ]);
+    const result = facts('Values - Average', bindings);
+    expect(result).toMatchObject({ types: ['array'], rank: 2, shape: [2, 3] });
+    expect(result.callbackFreeScalarCells).toBeUndefined();
 });

@@ -67,18 +67,29 @@ export function binaryExpressionFacts(
         return { types: ['sequence'], elements: ['integer'], rank: 1, shape: [length],
             callbackFreeScalarCells: true };
     }
+    return binaryOperandFacts(expression.operator, left, right);
+}
+
+/** Shared forward transfer for already inferred operands; never reads cells. */
+export function binaryOperandFacts(operator: string, left: ValueFacts, right: ValueFacts): ValueFacts | undefined {
+    // A known numeric domain is scalar even when a builtin supplied no explicit rank.
+    const numericScalar = (value: ValueFacts): ValueFacts => value.rank === undefined && value.types.length
+        && value.types.every(type => type === 'integer' || type === 'real')
+        ? { ...value, rank: 0, shape: [] } : value;
+    left = numericScalar(left);
+    right = numericScalar(right);
     // `.NA` propagates through arithmetic and comparison; `and`/`or` can still decide.
     if (left.rank === 0 && right.rank === 0 && (left.types.join() === 'missing' || right.types.join() === 'missing')
         && left.types.length && right.types.length) {
         if (['+', '-', '*', '/', '//', '%', '**', 'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost']
-            .includes(expression.operator)) return { types: ['missing'], rank: 0, shape: [] };
-        if (['and', 'or'].includes(expression.operator)) return { types: ['boolean', 'missing'], rank: 0, shape: [] };
+            .includes(operator)) return { types: ['missing'], rank: 0, shape: [] };
+        if (['and', 'or'].includes(operator)) return { types: ['boolean', 'missing'], rank: 0, shape: [] };
     }
-    if (['+', '-', '*', '/', '//', '%', '**'].includes(expression.operator)) {
-        const inferred = binaryType(expression.operator, left.types, right.types);
+    if (['+', '-', '*', '/', '//', '%', '**'].includes(operator)) {
+        const inferred = binaryType(operator, left.types, right.types);
         const scalarNumbers = [left, right].every(value => value.rank === 0
             && value.types.length > 0 && value.types.every(type => type === 'integer' || type === 'real'));
-        const integerArithmetic = scalarNumbers && ['+', '-', '*', '//', '%'].includes(expression.operator)
+        const integerArithmetic = scalarNumbers && ['+', '-', '*', '//', '%'].includes(operator)
             && left.types.join() === 'integer' && right.types.join() === 'integer';
         const scalarTypes = integerArithmetic ? ['integer'] as Types
             : inferred.length ? inferred : scalarNumbers ? ['integer', 'real'] as Types : inferred;
@@ -99,28 +110,22 @@ export function binaryExpressionFacts(
                     && !!value.elements?.length
                     && value.elements.every(type => type === 'integer' || type === 'real'));
             const callbackFree = ['array', 'sequence'].includes(types.join()) && [left, right].every(safeNumeric);
-            const integerCells = (value: ValueFacts): boolean => value.rank === 0
-                && value.types.join() === 'integer'
-                || ['array', 'sequence'].includes(value.types.join())
-                    && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
-                    && value.elements?.join() === 'integer';
-            const integerResult = ['+', '-', '*', '//', '%'].includes(expression.operator)
-                && [left, right].every(integerCells);
             const dims = broadcastDims(left, right);
             return { types, rank: shape.length, shape, ...(dims ? { dims } : {}),
-                ...(callbackFree ? { elements: (integerResult ? ['integer'] : ['integer', 'real']) as Types,
+                ...(callbackFree ? { elements: binaryType(operator,
+                    left.rank === 0 ? left.types : left.elements!, right.rank === 0 ? right.types : right.elements!),
                     callbackFreeScalarCells: true as const } : {}) };
         }
     }
     if (['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby',
-        'and', 'or', 'xor'].includes(expression.operator)
+        'and', 'or', 'xor'].includes(operator)
         && left.rank === 0 && right.rank === 0
         && left.types.length && right.types.length
-        && binaryType(expression.operator, left.types, right.types).join() === 'boolean') {
+        && binaryType(operator, left.types, right.types).join() === 'boolean') {
         return { types: ['boolean'], rank: 0, shape: [] };
     }
-    if (['equal', 'notequal', 'and', 'or', 'xor'].includes(expression.operator)) {
-        const allowed = expression.operator === 'equal' || expression.operator === 'notequal'
+    if (['equal', 'notequal', 'and', 'or', 'xor'].includes(operator)) {
+        const allowed = operator === 'equal' || operator === 'notequal'
             ? ['integer', 'real', 'boolean', 'symbol'] : ['boolean'];
         const safe = (value: ValueFacts): boolean => (value.rank === 0 && value.types.length > 0
             && value.types.every(type => allowed.includes(type)))
