@@ -373,7 +373,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                             types.push('text-array');
                             continue;
                         }
-                        const expected = input === 'same' ? firstType
+                        const expected = input === 'text-or-array' ? 'text' : input === 'same' ? firstType
                             : input === 'text-or-bytes' ? knownType(part) ?? (isNameExpression(part) ? 'text' : undefined) : input;
                         const value = emit(parts[index], lines, expected);
                         if (!value || expected && value.type !== expected
