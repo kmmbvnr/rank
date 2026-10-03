@@ -334,3 +334,47 @@ Result = (array 1 2 3) solve
     expect(analysis.bindings.get('Result')).toMatchObject({ types: ['array'], elements: ['integer'], rank: 1 });
     expect(analysis.bindings.get('Result')?.callbackFreeScalarCells).toBeUndefined();
 });
+
+it('keeps semantic results independent of call order and array materialization evidence', () => {
+    const inputs: ValueFacts[] = [
+        { types: ['integer'], rank: 0, shape: [] },
+        { types: ['real'], rank: 0, shape: [] },
+        { types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'], eagerScalarCells: true },
+        { types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'], callbackFreeScalarCells: true },
+    ];
+    const run = (order: number[]) => {
+        const fn = definition('fun twice Value\n return Value * 2\nend');
+        const env = new Map<string, ValueFacts>([['twice', { types: ['function'] }]]);
+        const diagnostics: Parameters<typeof createCallAnalysis>[2] = [];
+        const calls = createCallAnalysis(env, new Map([['twice', fn]]), diagnostics, new Map(),
+            () => [{ types: [] }], () => { throw new Error('unexpected import'); });
+        const results = new Map(order.map(index => {
+            const { types, rank, shape, elements } = calls.call('twice', [inputs[index]], env);
+            return [index, { types, rank, shape, elements }];
+        }));
+        expect(diagnostics).toEqual([]);
+        return results;
+    };
+    const forward = run([0, 1, 2, 3]);
+    expect(run([3, 2, 1, 0])).toEqual(forward);
+    expect(forward.get(2)).toEqual(forward.get(3));
+    expect(forward.get(0)).toMatchObject({ types: ['integer'], rank: 0 });
+    expect(forward.get(1)).toMatchObject({ types: ['real'], rank: 0 });
+});
+
+it('uses fresh relationships and diagnostics after an edited definition is reparsed', () => {
+    const run = (returned: string) => {
+        const parsed = services.Rank.parser.LangiumParser.parse<Program>(
+            `fun helper Value\n return ${returned}\nend\nfun wrap Value\n return Value helper\nend\nResult = 1 wrap`);
+        expect(parsed.parserErrors).toEqual([]);
+        return analyzeValues(parsed.value);
+    };
+    const original = run('Value');
+    const edited = run('tuple Value "changed"');
+    expect(original.diagnostics).toEqual([]);
+    expect(edited.diagnostics).toEqual([]);
+    expect(original.bindings.get('Result')?.types).toEqual(['integer']);
+    expect(edited.bindings.get('Result')?.tupleItems?.map(item => item.types)).toEqual([['integer'], ['text']]);
+    expect(edited.relationships.get(edited.functions.get('wrap')!))
+        .not.toBe(original.relationships.get(original.functions.get('wrap')!));
+});
