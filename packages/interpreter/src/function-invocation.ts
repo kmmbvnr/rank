@@ -1,7 +1,7 @@
 import type { AstNode } from 'langium';
 import {
     availableBuiltin, builtinBindingMessage, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
-    type Expression, type FunctionStatement, type Statement, type ValueFacts,
+    type CompiledScalarType, type Expression, type FunctionStatement, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { enterRuntime, isFlatScalarArray, isSharedArray, leaveRuntime } from './array-storage.js';
 import type { BindingEnvironment } from './binding-environment.js';
@@ -45,8 +45,8 @@ export interface FunctionHost {
     /** Runs statements as a function body, or as a generator body that may yield. */
     execute(statements: Statement[], generator: boolean): Evaluation<RankValue | undefined>;
     locate(error: unknown, node: AstNode): unknown;
-    /** A proven scalar body that integer arguments may enter directly, when that path is enabled. */
-    scalarEntry(statement: FunctionStatement, generator: boolean): { readonly locals: readonly string[] } | undefined;
+    /** A proven scalar body that the selected argument types may enter directly, when that path is enabled. */
+    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledScalarType[]): { readonly locals: readonly string[] } | undefined;
     /** Offers a function to flat combinators; `available` is checked before each use. */
     flatCombine(fn: NativeFunction, statement: FunctionStatement, available: (builtins: ReadonlySet<string>) => boolean): void;
 }
@@ -72,8 +72,8 @@ export class FunctionInvocation {
     readonly maxDepth: number;
     private depth = 0;
     private readonly sources = new WeakMap<NativeFunction, FunctionStatement>();
-    private readonly globalScalarCalls = new WeakMap<FunctionStatement, PreparedScalarCall>();
-    private readonly localScalarCalls = new WeakMap<LocalFrame, WeakMap<FunctionStatement, PreparedScalarCall>>();
+    private readonly globalScalarCalls = new WeakMap<FunctionStatement, Map<string, PreparedScalarCall>>();
+    private readonly localScalarCalls = new WeakMap<LocalFrame, WeakMap<FunctionStatement, Map<string, PreparedScalarCall>>>();
     private readonly globalBorrowProofs = new WeakMap<FunctionStatement, BorrowProof>();
     private readonly localBorrowProofs = new WeakMap<LocalFrame, WeakMap<FunctionStatement, BorrowProof>>();
 
@@ -152,13 +152,32 @@ export class FunctionInvocation {
             }
             return instance;
         };
-        const canRunScalar = (arguments_: RankValue[]): boolean => scalar !== undefined && !inspectionEnabled()
-            && arguments_.length === statement.parameters.length
-            && arguments_.every(value => typeof value === 'bigint')
-            && !proof!.locals.some(name => context?.find(name))
-            && (!scalar.available || scalar.available());
+        const typedEntries = new CallSpecializations<{
+            readonly locals: readonly string[]; readonly call: PreparedScalarCall;
+        } | null>();
+        const selectScalar = (arguments_: RankValue[]): PreparedScalarCall | undefined => {
+            if (inspectionEnabled() || arguments_.length !== statement.parameters.length) return undefined;
+            let call = scalar, locals = proof?.locals;
+            if (!arguments_.every(value => typeof value === 'bigint')) {
+                if (arguments_.some(value => typeof value !== 'bigint' && typeof value !== 'boolean' && typeof value !== 'string')) return undefined;
+                let entry = typedEntries.get(arguments_);
+                if (entry === undefined) {
+                    const types = arguments_.map(value => typeof value === 'bigint' ? 'integer'
+                        : typeof value === 'boolean' ? 'boolean' : 'text');
+                    const typedProof = this.host.scalarEntry(statement, generator, types);
+                    const typedCall = typedProof ? this.prepareScalarCall(statement, context, types) : undefined;
+                    entry = typedCall ? { locals: typedProof!.locals, call: typedCall } : null;
+                    typedEntries.set(arguments_, entry);
+                }
+                call = entry?.call;
+                locals = entry?.locals;
+            }
+            return call && !locals!.some(name => context?.find(name))
+                && (!call.available || call.available()) ? call : undefined;
+        };
         const body = (arguments_: RankValue[]): Evaluation<RankValue> => {
-            if (canRunScalar(arguments_)) return completed(scalar!(arguments_));
+            const selected = selectScalar(arguments_);
+            if (selected) return completed(selected(arguments_));
             return direct ? completed(this.callDirectFunction(statement, arguments_, context, direct))
                 : this.callFunction(statement, arguments_, context);
         };
@@ -218,14 +237,16 @@ export class FunctionInvocation {
             // A memo call must return through its cache writer. Do not bypass it
             // via the tail-call path that enters an ordinary function body.
             if (!statement.memo) functionDefinitions.set(fn, { owner: this, statement, context, direct, specialization });
-            if (!statement.memo && scalar) scalarCallbacks.set(fn, arguments_ => {
+            if (!statement.memo && this.options().scalarFunctionCompilation !== false
+                && this.options().scalarEntryCompilation !== false) scalarCallbacks.set(fn, arguments_ => {
                 // The caller already read the operands. A declined guard uses
                 // those same values and keeps memo/generator paths untouched.
-                if (!canRunScalar(arguments_)) return fn.call(arguments_);
+                const selected = selectScalar(arguments_);
+                if (!selected) return fn.call(arguments_);
                 enterRuntime();
                 try {
                     const contract = specialization(arguments_);
-                    return checkReturn(contract, arguments_, scalar(arguments_));
+                    return checkReturn(contract, arguments_, selected(arguments_));
                 } finally { leaveRuntime(); }
             });
         }
@@ -288,13 +309,16 @@ export class FunctionInvocation {
     }
 
     /** A proven scalar body compiled to a direct call, counted against the call depth. */
-    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame): PreparedScalarCall | undefined {
+    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame, types?: readonly CompiledScalarType[]): PreparedScalarCall | undefined {
         if (this.options().scalarFunctionCompilation === false) return undefined;
         let cache = context ? this.localScalarCalls.get(context) : this.globalScalarCalls;
         if (!cache) this.localScalarCalls.set(context!, cache = new WeakMap());
-        const cached = cache.get(statement);
+        let instances = cache.get(statement);
+        if (!instances) cache.set(statement, instances = new Map());
+        const key = types?.join(',') ?? '';
+        const cached = instances.get(key);
         if (cached) return cached;
-        const kernel = compileScalarFunction(statement);
+        const kernel = compileScalarFunction(statement, types);
         if (!kernel) return undefined;
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
         const binders = kernel.calls.map(({ operation, inputs }) => prepareCompiledBuiltin({
@@ -324,7 +348,7 @@ export class FunctionInvocation {
             }
             return true;
         } });
-        cache.set(statement, run);
+        instances.set(key, run);
         return run;
     }
 

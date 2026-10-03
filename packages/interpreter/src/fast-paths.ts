@@ -292,10 +292,10 @@ export class FastPaths {
         }
     }
 
-    /** A proven scalar body that integer arguments may enter without a frame. */
-    scalarEntry(statement: FunctionStatement, generator: boolean): { readonly locals: readonly string[] } | undefined {
+    /** A proven scalar body that the selected argument types may enter without a frame. */
+    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledScalarType[]): { readonly locals: readonly string[] } | undefined {
         return this.context.options().scalarEntryCompilation !== false && !generator
-            ? scalarFunctionResult(statement, true) : undefined;
+            ? scalarFunctionResult(statement, true, types) : undefined;
     }
 
     /** Lets flat combinators run a scalar user function without entering Rank. */
