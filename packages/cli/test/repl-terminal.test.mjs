@@ -1246,3 +1246,73 @@ test('Tab restores indentation on an empty function line before completion', asy
     assert.doesNotMatch(frames[5].text, /No completions/);
     assert.match(frames[6].text, /  Value = 1/);
 });
+
+test('Enter on a result row opens a full-screen viewer of a 3 by 4 array, and Esc returns to the row', async t => {
+    const frames = await drive(t, [
+        { keys: 'M = array shape 3 4 fill 7' + ENTER, until: 'integer \\[3 4\\]' },
+        { keys: UP, until: 'Enter view' },
+        { keys: ENTER, until: 'rows 1–3 of 3' },
+        { keys: '\x1b', until: 'Enter view' },
+    ], 50, 14);
+    assert.match(frames[1].text, /Enter view · Esc back/);
+    const viewer = frames[2].text.split('\n');
+    assert.match(viewer[0], /^M · array · integer · \[3 4\]/);
+    assert.match(viewer[1], /0 +1 +2 +3/);
+    assert.match(viewer[2], /^0 │ +7 +7 +7 +7/);
+    assert.match(viewer[3], /^1 │/);
+    assert.match(viewer[13], /rows 1–3 of 3/);
+    assert.doesNotMatch(frames[2].text, /rank> /);
+    assert.match(frames[3].text, /integer \[3 4\] · /);
+    assert.match(frames[3].text, /Enter view/);
+});
+
+test('the viewer scrolls a wide table sideways without fetching the rest', async t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-viewer-table-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    const columns = Array.from({ length: 12 }, (_, index) => `column_${index}`);
+    const row = columns.map((_, index) => index * 11).join(',');
+    const csv = path.join(directory, 'wide.csv');
+    fs.writeFileSync(csv, `${columns.join(',')}\n${row}\n${row}\n`);
+    const LEFT = '\x1b[D', SHIFT_RIGHT = '\x1b[1;2C';
+    const frames = await drive(t, [
+        { keys: 'use tables' + ENTER, until: 'tables' },
+        { keys: `T = ${JSON.stringify(csv)} csv` + ENTER, until: 'table \\[2 12\\]' },
+        { keys: UP, until: 'Enter view' },
+        { keys: ENTER, until: 'columns 1' },
+        { keys: RIGHT, until: 'columns 2' },
+        { keys: SHIFT_RIGHT, until: 'columns [3-9]' },
+        { keys: LEFT, until: 'columns' },
+        { keys: '\x1b', until: 'Enter view' },
+    ], 40, 12);
+    const first = frames[3].text.split('\n');
+    assert.match(first[0], /^T · table · integer · \[2 12\]/);
+    assert.match(first[1], /column_0/);
+    assert.doesNotMatch(first[1], /column_5/);
+    assert.match(first[11], /columns 1–\d of 12/);
+    assert.doesNotMatch(frames[4].text.split('\n')[1], /column_0/);
+    assert.match(frames[4].text.split('\n')[1], /column_1/);
+    assert.match(frames[4].text.split('\n')[11], /columns 2–\d of 12/);
+    assert.match(frames[5].text.split('\n')[1], /column_\d+/);
+    assert.doesNotMatch(frames[5].text.split('\n')[1], /column_1\b/);
+    assert.match(frames[6].text.split('\n')[11], /columns \d+–\d+ of 12/);
+});
+
+test('the viewer switches the slice of a 3-D array with [ and ]', async t => {
+    const frames = await drive(t, [
+        { keys: 'use sequences' + ENTER, until: 'sequences' },
+        { keys: 'A = (1 to 24) (array 2 3 4) reshape' + ENTER, until: 'integer \\[2 3 4\\]' },
+        { keys: UP, until: 'Enter view' },
+        { keys: ENTER, until: 'slice 1 of 2' },
+        { keys: ']', until: 'slice 2 of 2' },
+        { keys: '[', until: 'slice 1 of 2' },
+        { keys: '\x1b', until: 'Enter view' },
+    ], 44, 12);
+    const first = frames[3].text.split('\n');
+    assert.match(first[0], /^A · array · integer · \[2 3 4\] \[0, :, :\]/);
+    assert.match(first[2], /^0 │ +1 +2 +3 +4/);
+    const second = frames[4].text.split('\n');
+    assert.match(second[0], /\[1, :, :\]/);
+    assert.match(second[2], /^0 │ +13 +14 +15 +16/);
+    assert.match(second[11], /slice 2 of 2/);
+    assert.match(frames[5].text.split('\n')[2], /^0 │ +1 +2 +3 +4/);
+});

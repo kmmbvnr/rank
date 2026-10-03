@@ -69,6 +69,21 @@ export class TerminalModeRouter {
             return { handled: true, render: true };
         }
 
+        if (repl.help?.viewer) {
+            const viewer = repl.help.viewer;
+            try {
+                const outcome = await viewer.press(text, key);
+                if (outcome !== 'ok') {
+                    repl.help = undefined;
+                    if (outcome === 'closed') repl.focusResult(viewer.cell);
+                    else repl.suggestion = 'That value is gone · run the cell again';
+                }
+            } catch {
+                repl.help = undefined;
+                repl.suggestion = 'Could not read that value';
+            }
+            return { handled: true, render: true };
+        }
         if (repl.help) {
             if (key.name === 'escape') repl.help = undefined;
             else if (key.name === 'up') repl.help.top--;

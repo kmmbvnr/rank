@@ -52,8 +52,7 @@ describe('navigable result rows', () => {
             expect(frame().lines.some(line => line.startsWith('\x1b[7m'))).toBe(true);
             await key('return');
             expect(repl.valueFocus).toBeUndefined();
-            expect(repl.help?.text).toContain('integer');
-            expect(repl.help?.text).toMatch(/0 +1\n1 +2\n2 +3/);
+            expect(repl.help?.viewer?.view.typeLine).toContain('integer');
         } finally { session.dispose(); }
     });
 
@@ -91,8 +90,8 @@ describe('navigable result rows', () => {
         try {
             await key('up');
             await key('return');
-            expect(repl.help?.text).toContain('record');
-            expect(repl.help?.text).toContain('x');
+            expect(repl.help?.viewer?.view).toMatchObject({ kind: 'list' });
+            expect(repl.help?.viewer?.view.typeLine).toContain('record');
         } finally { session.dispose(); }
         const stale = await ran('A = array 1 2 3');
         try {
@@ -108,7 +107,7 @@ describe('navigable result rows', () => {
         const { session, repl } = await ran('A = array 1 2 3', '2');
         try {
             await repl.openValue(repl.notebook.cells[0].id);
-            expect(repl.help?.text).toMatch(/0 +1\n1 +2\n2 +3/);
+            expect(repl.help?.viewer?.view).toMatchObject({ kind: 'grid', cells: [['1'], ['2'], ['3']] });
         } finally { session.dispose(); }
     });
 });

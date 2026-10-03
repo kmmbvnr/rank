@@ -43,8 +43,29 @@ the row for the cell's last line, and Down continues to the next cell. Any other
 leaves the row and acts as usual. A tap on the web, or a mouse click in the CLI, opens
 the viewer directly. The result must belong to the cell's current source: a cell that
 was edited or failed has no stop, and a value released since the run answers
-`That value is gone` instead of opening. Until the viewers exist the opened view is the
-shared view model as plain text on the help screen.
+`That value is gone` instead of opening.
+
+### Value viewer
+
+Opening a result takes over the whole screen, like help. Three lines are fixed: the title
+(the assigned name or the expression, the type line and, above rank two, the slice such as
+`[2, :, :]`), the column header (axis indices, or the column names of a table; `key` and
+`value` for a collection) and a footer with the position and the keys. Between them sit the
+row labels and as many cells as the screen holds, cut to the width: a column that does not
+fit whole is left out except the first. Numbers are right-aligned.
+
+Keys: Up/Down scroll by row, Left/Right by column, Shift+Left/Right by the columns on
+screen, PgUp/PgDn by a screen less one row, Home/End jump to the first and last rows.
+`[` and `]` move the index on the first leading axis of a 3-D or larger array; the other
+leading axes stay where they are for now. Esc (or `q`) closes the viewer and puts the focus
+back on the result row, so Enter opens it again. The viewer keeps no selected cell: arrows
+move the window, not a cursor.
+
+Every move asks the session for one window through `inspect`, sized to the screen, so a
+large array or table is never read whole and scrolling fetches only what comes into view.
+A value released while the viewer is open closes it with `That value is gone`. Records,
+objects, sets, counters, queues, tuples and graphs show as a key and value list, and a
+sequence as the items read so far with a note of how many.
 Ctrl-R on a loop header evaluates the header and immediately activates iteration
 selection; no extra Enter is needed. Arrow navigation still reaches the passive
 iteration row, where Enter activates selection. Source editing has a bar cursor. Places where

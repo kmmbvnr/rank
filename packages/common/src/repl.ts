@@ -11,7 +11,7 @@ import type { ReplSession } from './repl-types.js';
 import { notebookScope, notebookValueDiagnostics } from './value-diagnostics.js';
 import { createModuleLoader, importedPaths, type ModuleSource } from './module-loader.js';
 import { nameFactsIn, type NameFacts } from './name-facts.js';
-import { buildValueView, viewText } from './value-view.js';
+import { ValueViewer } from './value-viewer.js';
 
 
 /** Coordinates explicit execution. Navigation never calls into the interpreter. */
@@ -241,25 +241,35 @@ export class NotebookRepl {
         return true;
     }
 
+    /** Puts the focus back on a cell's result row, as when its viewer closes. */
+    focusResult(cellId: number): void {
+        const index = this.notebook.cells.findIndex(cell => cell.id === cellId);
+        if (index < 0 || !this.valueOutput(this.notebook.cells[index])) return;
+        this.notebook.active = index;
+        this.notebook.cursor = this.notebook.cells[index].source.length;
+        this.valueFocusId = cellId;
+    }
+
     releaseValue(): boolean {
         const focused = this.valueFocusId !== undefined;
         this.valueFocusId = undefined;
         return focused;
     }
 
-    /** Opens the focused result, or the one in `cellId`, for a viewer. Until one exists it shows the view as text. */
+    /** Opens the focused result, or the one in `cellId`, in the full-screen viewer. */
     async openValue(cellId = this.valueFocusId): Promise<boolean> {
         this.valueFocusId = undefined;
         const cell = this.notebook.cells.find(cell => cell.id === cellId);
         const line = cell && this.valueOutput(cell);
         if (!cell || !line || this.running || this.help || this.savePrompt) return false;
         try {
-            const inspected = await this.session.inspect(line.ref);
-            if (inspected.status === 'stale') this.suggestion = 'That value is gone · run the cell again';
-            else {
-                const title = cell.source.trim().split('\n').at(-1)!.trim();
-                this.help = { text: viewText(buildValueView(title, inspected)), top: 0 };
-            }
+            // The name a result was assigned to, or else the expression itself.
+            const last = cell.source.trim().split('\n').at(-1)!.trim();
+            const title = /^([A-Za-z_]\w*)\s*=(?!=)/.exec(cell.source.trim())?.[1] ?? last;
+            const viewer = new ValueViewer(title, cell.id, request => this.session.inspect(line.ref, request),
+                () => ({ rows: this.rows(), columns: this.columns() }));
+            if (await viewer.load()) this.help = { text: '', top: 0, viewer };
+            else this.suggestion = 'That value is gone · run the cell again';
         } catch {
             this.suggestion = 'Could not read that value';
         }
@@ -278,7 +288,10 @@ export class NotebookRepl {
             || this.liveFunction?.status || this.liveConditional?.status || '';
     }
     set suggestion(value: string) { this.suggestionText = value; }
-    help?: { text: string; top: number };
+    /** A help text, or a held value open in a viewer (then `text` is empty). */
+    help?: { text: string; top: number; viewer?: ValueViewer };
+    /** Rows of the screen, for a viewer to size its window. */
+    rows = (): number => 24;
     private completion?: { candidates: string[]; from: number; to: number; index: number; original: string; trailingSpace?: boolean };
     get hasCompletion(): boolean { return !!this.openCompletion(); }
 

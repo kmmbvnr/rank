@@ -90,6 +90,7 @@ async function terminalRepl(session: ReplSession): Promise<void> {
         try { return loadModule(specifier, path.join(process.cwd(), '<repl>')).source; } catch { return undefined; }
     };
     const repl = new NotebookRepl(session, render, () => output.columns || 80, true, moduleSource);
+    repl.rows = () => output.rows || 24;
     const book = repl.notebook;
     const keyRouter = new KeyRouter(repl, history, () => output.columns || 80, systemClipboard());
     const modeRouter = new TerminalModeRouter(repl, () => output.rows || 24);

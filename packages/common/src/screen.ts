@@ -6,6 +6,7 @@ import { hasCode } from './repl-input.js';
 import type { PauseSnapshot } from '@arrrank/interpreter';
 import { importPhrases, missingImports } from './import-fix.js';
 import { formatNameFacts, type NameFacts } from './name-facts.js';
+import type { ValueViewer } from './value-viewer.js';
 
 const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 export const graphemes = (text: string): Intl.SegmentData[] => [...segmenter.segment(text)];
@@ -494,6 +495,64 @@ export function helpFrame(text: string, columns: number, height: number, previou
     while (lines.length < contentHeight) lines.push('');
     if (height > 1) lines.push(clipped('Esc close · ↑/↓ scroll · PgUp/PgDn', width));
     return { lines, top, cursor: { row: 0, column: 0 }, cursorVisible: false };
+}
+
+const NUMBER = /^-?(\d[\d_]*\.?\d*|\.\d+)(e[+-]?\d+)?$/i;
+
+/** A window of a held value: header, row labels and as many cells as the screen holds. */
+export function viewerFrame(viewer: ValueViewer, columns: number, height: number): ScreenFrame {
+    const width = Math.max(1, columns - 1);
+    const view = viewer.view;
+    const pad = (text: string, size: number, right: boolean): string =>
+        right ? ' '.repeat(Math.max(0, size - cellWidth(text))) + text : text + ' '.repeat(Math.max(0, size - cellWidth(text)));
+    const slice = view.kind === 'grid' && view.slice.length
+        ? ` [${view.slice.map(item => item.index).join(', ')}${view.scroll.columns ? ', :, :' : ', :'}]` : '';
+    const title = clipped(`${view.title} · ${view.typeLine}${slice}`, width);
+    const header: string[] = [];
+    const body: string[] = [];
+    let position = '';
+    if (view.kind === 'text') {
+        body.push(...view.text.split('\n').map(line => clipped(line, width)));
+    } else if (view.kind === 'list') {
+        const keyWidth = Math.min(20, Math.max(3, ...view.rows.map(([key]) => cellWidth(key))));
+        header.push('\x1b[90m' + clipped(pad('key', keyWidth, false) + '  value', width) + '\x1b[0m');
+        body.push(...view.rows.map(([key, text]) => clipped(pad(clipped(key, keyWidth), keyWidth, false) + '  ' + text, width)));
+        const { offset, count, length } = view.scroll;
+        position = count ? `${offset + 1}–${offset + count} of ${length}` : 'empty';
+        if (view.note) position += ` · ${view.note}`;
+    } else {
+        const labelWidth = Math.max(0, ...view.rowLabels.map(label => cellWidth(label)));
+        const sizes = view.columnLabels.map((label, column) =>
+            Math.max(cellWidth(label), ...view.cells.map(row => cellWidth(row[column] ?? ''))));
+        const numeric = view.columnLabels.map((_, column) =>
+            view.cells.length > 0 && view.cells.every(row => NUMBER.test((row[column] ?? '').trim())));
+        // Every column that fits whole; the first is clipped rather than left out.
+        let used = labelWidth + 3;
+        let shown = 0;
+        while (shown < sizes.length && (shown === 0 || used + sizes[shown] + 2 <= width)) {
+            used += sizes[shown] + (shown ? 2 : 0);
+            shown++;
+        }
+        viewer.shown = Math.max(1, shown);
+        const render = (cells: readonly string[]): string => cells.slice(0, shown)
+            .map((cell, column) => pad(cell, sizes[column], numeric[column])).join('  ');
+        const heading = view.columnLabels.length === 1 && view.columnLabels[0] === '' ? ['value'] : view.columnLabels;
+        header.push('\x1b[90m' + clipped(' '.repeat(labelWidth) + '   ' + render(heading), width) + '\x1b[0m');
+        body.push(...view.cells.map((row, index) =>
+            '\x1b[90m' + pad(view.rowLabels[index], labelWidth, true) + ' │\x1b[0m ' + clipped(render(row), Math.max(1, width - labelWidth - 3))));
+        const { rows, columns: horizontal } = view.scroll;
+        position = rows.count ? `rows ${rows.offset + 1}–${rows.offset + rows.count} of ${rows.length}` : 'empty';
+        if (view.slice.length) position += ` · slice ${view.slice[0].index + 1} of ${view.slice[0].length}`;
+        if (horizontal && horizontal.length > 1) {
+            const last = Math.min(horizontal.offset + viewer.shown, horizontal.offset + horizontal.count);
+            position += ` · columns ${horizontal.offset + 1}–${last} of ${horizontal.length}`;
+        }
+    }
+    const keys = view.kind === 'grid' && view.slice.length ? '↑↓←→ PgUp/PgDn [ ] Esc' : '↑↓←→ PgUp/PgDn Esc';
+    const lines = ['\x1b[1m' + title + '\x1b[0m', ...(header.length ? header : ['']), ...body.slice(0, Math.max(0, height - 3))];
+    while (lines.length < Math.max(1, height - 1)) lines.push('');
+    if (height > 1) lines.push('\x1b[90m' + clipped(position ? `${position} · ${keys}` : keys, width) + '\x1b[0m');
+    return { lines, top: 0, cursor: { row: 0, column: 0 }, cursorVisible: false };
 }
 
 /** Absolute addressing and explicit erasure; never infer where a previous write left the cursor. */

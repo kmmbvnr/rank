@@ -4,7 +4,7 @@ import type { PauseSnapshot } from '@arrrank/interpreter';
 import { NotebookRepl } from '@arrrank/common/repl';
 import { KeyRouter, type Key } from '@arrrank/common/key-router';
 import { TerminalModeRouter } from '@arrrank/common/terminal-modes';
-import { fixAt, notebookFrame, helpFrame, pauseFrame, type ScreenFrame } from '@arrrank/common/screen';
+import { fixAt, notebookFrame, helpFrame, pauseFrame, viewerFrame, type ScreenFrame } from '@arrrank/common/screen';
 import { keyAvailable, keyboardModules, keyboardTabs, keyText } from '@arrrank/common/symbol-keyboard';
 import { textEdit } from '@arrrank/common/input-edit';
 import { moveParen, parenPartner, parenSnaps } from '@arrrank/common/paren-drag';
@@ -80,6 +80,7 @@ let lastPause: PauseSnapshot | undefined;
 let paintedLines: string[] = [];
 const session = browserSession(message => { failure = message; needsRestart = true; render(); }, () => render());
 const repl = new NotebookRepl(session, () => render(), () => columns, true);
+repl.rows = () => rows;
 const keys = new KeyRouter(repl, [], () => columns, {
     read: () => navigator.clipboard.readText(),
     write: text => navigator.clipboard.writeText(text),
@@ -274,6 +275,9 @@ function render(): void {
             keyHints() ? modes.pauseStatus : 'Paused');
         repl.pauseTop = frame.top;
         top = frame.top;
+    } else if (repl.help?.viewer) {
+        scrollFraction = 0;
+        frame = viewerFrame(repl.help.viewer, columns, rows);
     } else if (repl.help) {
         scrollFraction = 0;
         frame = helpFrame(repl.help.text, columns, rows, repl.help.top);

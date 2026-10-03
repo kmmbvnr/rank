@@ -1,6 +1,6 @@
 import type { PauseSnapshot } from '@arrrank/interpreter';
 import type { NotebookRepl } from './repl.js';
-import { drawFrame, editableRows, helpFrame, notebookFrame, pauseFrame, saveFrame } from './screen.js';
+import { drawFrame, editableRows, helpFrame, notebookFrame, pauseFrame, saveFrame, viewerFrame } from './screen.js';
 import type { Key } from './key-router.js';
 import { fixAt, type ScreenTarget } from './screen.js';
 import type { TerminalModeRouter } from './terminal-modes.js';
@@ -170,6 +170,10 @@ export class TerminalRenderer {
                 pause ? this.modes.pauseStatus : repl.runningStatus);
             repl.pauseTop = frame.top;
             this.output.write(mouse + drawFrame(frame));
+            return;
+        }
+        if (repl.help?.viewer) {
+            this.output.write(mouse + drawFrame(viewerFrame(repl.help.viewer, this.columns, this.rows)));
             return;
         }
         if (repl.help) {
