@@ -37,10 +37,17 @@ export type CompiledLoopType = Exclude<CompiledAtomType, 'real'>;
 export interface CompiledCallSignature {
     readonly inputs: readonly (CompiledLoopType | 'text-or-bytes' | 'text-array' | 'same')[];
     readonly result: CompiledLoopType;
+    /** No callbacks except guarded operand-cell reads and the declared host override. */
+    readonly callbacks: 'none' | 'read-cells';
+    /** Conservative work classification, not a complexity or latency bound.
+     * Even integer formatting and validation may depend on input size. */
+    readonly cost: 'input-dependent' | 'host-dependent';
+    /** An installed override must be explicitly certified pure at region entry. */
+    readonly hostFunction?: 'md5';
 }
 
 /** Match a complete proven native input domain; no coercion or cell inspection. */
-export function matchCompiledCallSignature(operation: Operation, inputs: readonly CompiledAtomType[]): CompiledCallSignature | undefined {
+export function matchCompiledCallSignature(operation: Operation, inputs: readonly string[]): CompiledCallSignature | undefined {
     const signature = operation.compiledCall;
     return signature && signature.inputs.length === inputs.length && signature.inputs.every((expected, index) =>
         expected === 'same' ? inputs[index] === inputs[0]
@@ -287,7 +294,7 @@ export const operations: readonly Operation[] = [
         dyadicRanks: [0, 0], scalarNoCallback: 'integer', summary: 'Arithmetic shift right by a nonnegative bit count.' },
 
     { name: 'md5', module: 'crypto', arities: [1], form: 'Value md5', result: 'bytes',
-        compiledCall: { inputs: ['text-or-bytes'], result: 'bytes' },
+        compiledCall: { inputs: ['text-or-bytes'], result: 'bytes', callbacks: 'none', cost: 'host-dependent', hostFunction: 'md5' },
         summary: 'MD5 digest of bytes or UTF-8 text, as 16 bytes.' },
 
     { name: 'date', module: 'dates', arities: [1], form: 'Text date', result: 'date',
@@ -634,14 +641,14 @@ export const operations: readonly Operation[] = [
     { name: 'indices', module: 'sequences', arities: [1], form: 'Mask indices', result: 'array',
         summary: 'Zero-based positions of the true values in a boolean vector.' },
     { name: 'reverse', module: 'sequences', arities: [1], form: 'Values reverse', result: 'value',
-        compiledCall: { inputs: ['text'], result: 'text' },
+        compiledCall: { inputs: ['text'], result: 'text', callbacks: 'none', cost: 'input-dependent' },
         summary: 'Reverses text by code point, an array along its leading axis, or a queue or finite sequence into an array.' },
     { name: 'first', module: 'sequences', arities: [1], form: 'Values first', result: 'element',
         summary: 'First item of text, an array, a queue or a sequence; missing when empty.' },
     { name: 'last', module: 'sequences', arities: [1], form: 'Values last', result: 'element',
         summary: 'Last item of text, an array, a queue or a finite sequence; missing when empty.' },
     { name: 'len', module: 'core', arities: [1], form: 'Value len', result: 'integer',
-        compiledCall: { inputs: ['text'], result: 'integer' },
+        compiledCall: { inputs: ['text'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         arrayHeaderNoCallback: true,
         summary: 'Code points of text, leading axis of an array, or size of a collection.' },
     { name: 'present', module: 'core', arities: [1], form: 'Values present', result: 'boolean',
@@ -731,17 +738,17 @@ export const operations: readonly Operation[] = [
         summary: 'Read-only SELECT view with bound positional parameters.' },
 
     { name: 'character', module: 'text', arities: [1], form: 'Code character', result: 'text',
-        compiledCall: { inputs: ['integer'], result: 'text' },
+        compiledCall: { inputs: ['integer'], result: 'text', callbacks: 'none', cost: 'input-dependent' },
         summary: 'One-character text for a Unicode code point.' },
     { name: 'codepoint', module: 'text', arities: [1], form: 'Character codepoint',
-        compiledCall: { inputs: ['text'], result: 'integer' },
+        compiledCall: { inputs: ['text'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         shape: [{ args: [null], result: [] }],
         result: 'integer',
         summary: 'Integer code point of exactly one character.' },
     { name: 'hex', module: 'text', arities: [1], form: 'Bytes hex', result: 'text',
         summary: 'Lowercase hexadecimal text for bytes, without a prefix.' },
     { name: 'bytes', module: 'core', arities: [1], form: 'Value bytes', result: 'bytes',
-        compiledCall: { inputs: ['text-or-bytes'], result: 'bytes' },
+        compiledCall: { inputs: ['text-or-bytes'], result: 'bytes', callbacks: 'none', cost: 'input-dependent' },
         summary: 'Converts UTF-8 text or a rank-1 array of integers in 0..255 to compact bytes.' },
     { name: 'integer', module: 'core', arities: [1], form: 'Value integer', result: 'integer',
         shape: [{ args: [null], result: [] }],
@@ -750,7 +757,7 @@ export const operations: readonly Operation[] = [
         shape: [{ args: [null], result: [] }],
         monadicRank: 1, summary: 'Converts an integer or decimal text to a real, or preserves a real.' },
     { name: 'join', module: 'text', arities: [2], form: 'Values Separator join', result: 'text',
-        compiledCall: { inputs: ['text-array', 'text'], result: 'text' },
+        compiledCall: { inputs: ['text-array', 'text'], result: 'text', callbacks: 'read-cells', cost: 'input-dependent' },
         shape: [{ args: [[null], []], result: null }],
         dyadicRanks: [1, 0],
         summary: 'Joins scalar elements of a finite collection into one text; a matrix joins each row.' },
@@ -761,11 +768,11 @@ export const operations: readonly Operation[] = [
         denseElements: ['text'],
         summary: 'Splits at every exact occurrence of a separator, keeping empty parts.' },
     { name: 'startswith', module: 'text', arities: [2], form: 'Value Prefix startswith',
-        compiledCall: { inputs: ['text-or-bytes', 'same'], result: 'boolean' },
+        compiledCall: { inputs: ['text-or-bytes', 'same'], result: 'boolean', callbacks: 'none', cost: 'input-dependent' },
         result: 'boolean',
         summary: 'Exact text or byte prefix test; ordinary arrays broadcast elementwise.' },
     { name: 'lower', module: 'text', arities: [1], form: 'Text lower', result: 'text',
-        compiledCall: { inputs: ['text'], result: 'text' },
+        compiledCall: { inputs: ['text'], result: 'text', callbacks: 'none', cost: 'input-dependent' },
         operandDomains: [['text']],
         summary: 'Converts Unicode text to lowercase.' },
     { name: 'lpad', module: 'text', arities: [3], form: 'Text Width Fill lpad', result: 'text',
@@ -773,7 +780,7 @@ export const operations: readonly Operation[] = [
     { name: 'translate', module: 'text', arities: [3], form: 'Text Chars Replacement translate', result: 'text',
         summary: 'Replaces listed characters, deleting those with no replacement.' },
     { name: 'text', module: 'core', arities: [1], form: 'Value text', result: 'text',
-        compiledCall: { inputs: ['integer'], result: 'text' },
+        compiledCall: { inputs: ['integer'], result: 'text', callbacks: 'none', cost: 'input-dependent' },
         summary: 'Formats one scalar as text; a .Nf literal after it selects fixed decimals.' },
     { name: 'vocab', module: 'text', arities: [2], form: 'Texts Limit vocab', result: 'array',
         summary: 'Most frequent words, at most Limit of them, ties by code point.' },
