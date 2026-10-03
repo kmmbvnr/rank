@@ -24,7 +24,7 @@ describe('attributable compiler rejections', () => {
     it.each([
         ['X reverse', 'scalar-function:unsupported-op:reverse'],
         ['X / 2', 'scalar-function:unsupported-op:/'],
-        ['X + 0.5', 'scalar-function:unsupported-type:real'],
+        ['X + (array 0.5)', 'scalar-function:unsupported-type:array'],
         ['array 1 2', 'scalar-function:unsupported-type:array'],
     ])('retains the reason for cached proof rejection: %s', (expression, reason) => {
         const statement = proof(expression);

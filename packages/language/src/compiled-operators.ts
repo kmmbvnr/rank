@@ -1,7 +1,7 @@
 import type { CompiledAtomType, CompiledLoopType } from './operations.js';
 
 /** The current scalar-function backend supports only these catalogue types. */
-export const compiledScalarTypes = ['integer', 'boolean', 'text'] as const satisfies readonly CompiledAtomType[];
+export const compiledScalarTypes = ['integer', 'real', 'boolean', 'text'] as const satisfies readonly CompiledAtomType[];
 export type CompiledScalarType = typeof compiledScalarTypes[number];
 export type CompiledExpressionType = Extract<CompiledAtomType, 'integer' | 'real' | 'boolean'>;
 export type CompiledTensorType = Extract<CompiledAtomType, 'integer' | 'real' | 'boolean'>;
@@ -64,16 +64,26 @@ const expressionSigned: readonly CompiledOperatorSignature<CompiledExpressionTyp
     integerUnary, { inputs: ['real'], result: 'real' }, ...expressionArithmetic,
 ];
 
+const scalarArithmetic: readonly CompiledOperatorSignature<CompiledScalarType>[] = tensorArithmetic.map(signature => ({
+    ...signature, ...(signature.inputs[0] === signature.result ? { compound: true as const } : {}),
+}));
+const scalarSigned: readonly CompiledOperatorSignature<CompiledScalarType>[] = [
+    integerUnary, { inputs: ['real'], result: 'real' }, ...scalarArithmetic,
+];
+const scalarComparison: readonly CompiledOperatorSignature<CompiledScalarType>[] = tensorArithmetic.map(signature => ({
+    inputs: signature.inputs, result: 'boolean',
+}));
+
 export const compiledOperators: readonly CompiledOperator[] = [
-    { name: '+', unary: '', binary: '+', scalarFunction: [...signed, { inputs: ['text', 'text'], result: 'text', compound: true }], scalarExpression: expressionSigned, tensor: tensorSigned,
+    { name: '+', unary: '', binary: '+', scalarFunction: [...scalarSigned, { inputs: ['text', 'text'], result: 'text', compound: true }], scalarExpression: expressionSigned, tensor: tensorSigned,
         integerLoop: [...signed, { inputs: ['text', 'text'], result: 'text', compound: true, nativeCalls: true }] },
-    { name: '-', unary: '-', binary: '-', scalarFunction: signed, scalarExpression: expressionSigned, integerLoop: signed, tensor: tensorSigned },
+    { name: '-', unary: '-', binary: '-', scalarFunction: scalarSigned, scalarExpression: expressionSigned, integerLoop: signed, tensor: tensorSigned },
     ...(['*', '//', '%'] as const).map(name => ({ name, binary: name,
-        scalarFunction: [integerBinary], scalarExpression: name === '*' ? expressionArithmetic : [integerBinary], integerLoop: [integerBinary], tensor: name === '*' ? tensorArithmetic : undefined })),
+        scalarFunction: name === '*' ? scalarArithmetic : [integerBinary], scalarExpression: name === '*' ? expressionArithmetic : [integerBinary], integerLoop: [integerBinary], tensor: name === '*' ? tensorArithmetic : undefined })),
     ...([['less', '<'], ['greater', '>'], ['atmost', '<='], ['atleast', '>=']] as const)
-        .map(([name, binary]) => ({ name, binary, scalarFunction: [integerComparison], scalarExpression: [integerComparison], integerLoop: [integerComparison], tensor: tensorComparison })),
+        .map(([name, binary]) => ({ name, binary, scalarFunction: scalarComparison, scalarExpression: [integerComparison], integerLoop: [integerComparison], tensor: tensorComparison })),
     ...([['equal', '==='], ['notequal', '!==']] as const)
-        .map(([name, binary]) => ({ name, binary, scalarFunction: [...equality, textComparison], scalarExpression: [integerComparison], integerLoop: [...equality, textComparison], tensor: tensorComparison })),
+        .map(([name, binary]) => ({ name, binary, scalarFunction: [...scalarComparison, booleanComparison, textComparison], scalarExpression: [integerComparison], integerLoop: [...equality, textComparison], tensor: tensorComparison })),
     ...([['and', '&&'], ['or', '||'], ['xor', '!==']] as const)
         .map(([name, binary]) => ({ name, binary, scalarFunction: [booleanBinary], integerLoop: [booleanBinary], tensor: [booleanComparison] })),
     { name: 'not', unary: '!', scalarFunction: [booleanUnary], scalarExpression: [booleanUnary], integerLoop: [booleanUnary], tensor: [booleanUnary] },

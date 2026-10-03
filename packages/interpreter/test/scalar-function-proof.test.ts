@@ -47,7 +47,7 @@ describe('scalar function operator eligibility', () => {
     it('has executable coverage for every catalogue overload', () => {
         for (const operation of compiledOperators) {
             for (const signature of operation.scalarFunction) {
-                const inputs = signature.inputs.map(type => type === 'integer' ? '3' : type === 'text' ? '"a"' : 'true');
+                const inputs = signature.inputs.map(type => type === 'integer' ? '3' : type === 'real' ? '3.5' : type === 'text' ? '"a"' : 'true');
                 const name = ({ atmost: 'at most', atleast: 'at least', notequal: 'not equal' } as Record<string, string>)[operation.name] ?? operation.name;
                 const expression = inputs.length === 1 ? `${name} ${inputs[0]}`
                     : `${inputs[0]} ${name} ${inputs[1]}`;
@@ -62,7 +62,7 @@ describe('scalar function operator eligibility', () => {
         'X / Y', 'X ** Y', 'X to Y', 'X to Y step 2',
         'X and Y', 'not X', '-true', '+true', 'true + false',
         'true less false', 'X equal true', 'true not equal X',
-        'X + 0.5', 'X abs', 'Missing',
+        'X abs', 'Missing',
     ])('keeps %s outside the compiler subset', expression => {
         const fn = statement(`return ${expression}`);
         expect(scalarFunctionResult(fn)).toBeUndefined();

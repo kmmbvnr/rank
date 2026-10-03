@@ -159,11 +159,11 @@ export class FunctionInvocation {
             if (inspectionEnabled() || arguments_.length !== statement.parameters.length) return undefined;
             let call = scalar, locals = proof?.locals;
             if (!arguments_.every(value => typeof value === 'bigint')) {
-                if (arguments_.some(value => typeof value !== 'bigint' && typeof value !== 'boolean' && typeof value !== 'string')) return undefined;
+                if (arguments_.some(value => typeof value !== 'bigint' && typeof value !== 'number' && typeof value !== 'boolean' && typeof value !== 'string')) return undefined;
                 let entry = typedEntries.get(arguments_);
                 if (entry === undefined) {
                     const types = arguments_.map(value => typeof value === 'bigint' ? 'integer'
-                        : typeof value === 'boolean' ? 'boolean' : 'text');
+                        : typeof value === 'number' ? 'real' : typeof value === 'boolean' ? 'boolean' : 'text');
                     const typedProof = this.host.scalarEntry(statement, generator, types);
                     const typedCall = typedProof ? this.prepareScalarCall(statement, context, types) : undefined;
                     entry = typedCall ? { locals: typedProof!.locals, call: typedCall } : null;

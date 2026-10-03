@@ -31,10 +31,17 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const locations: Statement[] = [];
     const calls: { operation: Operation; inputs: readonly CompiledAtomType[] }[] = [];
     let serial = 0;
-    function binary(operation: CompiledOperator, left: string, right: string, lines: string[]): string {
+    function binary(operation: CompiledOperator, left: string, right: string, lines: string[], resultType?: CompiledAtomType, inputs?: readonly CompiledAtomType[]): string {
         const op = operation.name;
         const result = `v${serial++}`;
-        if (op === '//' || op === '%') {
+        if ((op === 'equal' || op === 'notequal') && inputs?.includes('integer') && inputs.includes('real')) {
+            const real = inputs[0] === 'real' ? left : right;
+            const integer = inputs[0] === 'integer' ? left : right;
+            const equal = `(Number.isFinite(${real}) && Number.isInteger(${real}) && ${integer} === BigInt(${real}))`;
+            lines.push(`const ${result} = ${op === 'notequal' ? '!' : ''}${equal};`);
+        } else if (resultType === 'real' && (op === '+' || op === '-' || op === '*')) {
+            lines.push(`const ${result} = Number(${left}) ${operation.binary} Number(${right});`);
+        } else if (op === '//' || op === '%') {
             const remainder = `v${serial++}`;
             lines.push(`if (${right} === 0n) throw new RankError('division by zero');`);
             lines.push(`const ${remainder} = ${left} % ${right};`);
@@ -49,7 +56,8 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     function lower(expression: CompiledExpression, lines: string[]): string {
         if (expression.kind === 'group') return lower(expression.operand, lines);
         if (expression.kind === 'literal') return typeof expression.value === 'bigint'
-            ? `${expression.value}n` : JSON.stringify(expression.value);
+            ? `${expression.value}n` : typeof expression.value === 'number'
+                ? Object.is(expression.value, -0) ? '-0' : String(expression.value) : JSON.stringify(expression.value);
         if (expression.kind === 'input') return slot(expression.name);
         if (expression.kind === 'unary') {
             const value = lower(expression.operand, lines), result = `v${serial++}`;
@@ -72,7 +80,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             return result;
         }
         const left = lower(expression.left, lines), right = lower(expression.right, lines);
-        return binary(expression.operation, left, right, lines);
+        return binary(expression.operation, left, right, lines, expression.signature.result, expression.signature.inputs);
     }
     function commands(statements: readonly Statement[], lines: string[]): void {
         for (const command of statements) {
@@ -83,7 +91,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 lines.push(`return ${value};`);
             } else if (isAssignmentStatement(command)) {
                 let value = emit(command.value, lines);
-                if (command.operator !== '=') value = binary(findCompiledOperator(command.operator.slice(0, -1))!, slot(command.name), value, lines);
+                if (command.operator !== '=') value = binary(findCompiledOperator(command.operator.slice(0, -1))!, slot(command.name), value, lines, expressions.get(command.value)!.type);
                 lines.push(`${slot(command.name)} = ${value};`);
             } else if (isIfStatement(command)) {
                 const branches = [{ condition: command.condition, statements: command.thenStatements }, ...command.elifClauses];
