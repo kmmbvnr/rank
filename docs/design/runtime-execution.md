@@ -362,6 +362,14 @@ The test inputs and iteration counts remain unchanged.
 
 ## Compiled scalar expressions
 
+The scalar-expression backend reads its existing fast-path overloads and JS
+operator tokens from the shared compiler catalogue. Its profiles differ from
+scalar-function and tensor profiles: arithmetic inlines matching integer or real
+operands, comparisons inline integer pairs, and other values retain per-operation
+fallback. Fallback receives operands that were already read, so it does not
+replay their evaluation. The minimum of two operations and the existing budget
+and CSP checks remain backend guards.
+
 `scalar-compiler.ts` emits JavaScript for compound arithmetic expressions with at
 least two supported operations. It currently handles `+`, `-`, `*`, integer floor
 division/modulo, integer comparisons and unary signs/not. Number arithmetic keeps

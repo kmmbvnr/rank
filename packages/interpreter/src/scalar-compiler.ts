@@ -1,4 +1,5 @@
 import {
+    findCompiledOperator, expressionOperatorSignatures,
     isBinaryExpression, isUnaryExpression, isParenthesizedExpression,
     isNameExpression, isNumberLiteral, isBooleanLiteral, isStringLiteral,
     type Expression,
@@ -15,8 +16,6 @@ interface Host {
 type Factory = (readers: (() => RankValue)[], binary: Host['binary'], unary: Host['unary']) => () => RankValue;
 const factories = new WeakMap<Expression, Factory | null>();
 
-const operations = new Set(['+', '-', '*', '//', '%', 'less', 'greater', 'atleast', 'atmost', 'equal', 'notequal']);
-const comparison: Record<string, string> = { less: '<', greater: '>', atleast: '>=', atmost: '<=', equal: '===', notequal: '!==' };
 
 /** Compile expression control flow once. Each unsupported value delegates at
  * its own operation, with already-read operands: no speculative evaluation or replay. */
@@ -34,18 +33,22 @@ export function compileScalarExpression(expression: Expression, host: Host): (()
             lines.push(`const ${name} = readers[${readers.length - 1}]();`);
             return name;
         }
-        if (isUnaryExpression(e) && ['+', '-', 'not'].includes(e.operator)) {
+        if (isUnaryExpression(e) && expressionOperatorSignatures(e.operator, 1).length > 0) {
             const value = emit(e.operand);
             if (!value) return undefined;
             count++;
             const name = `v${serial++}`;
-            const guard = e.operator === 'not' ? `typeof ${value} === 'boolean'`
+            const token = findCompiledOperator(e.operator)!.unary;
+            const boolean = expressionOperatorSignatures(e.operator, 1).every(signature => signature.inputs[0] === 'boolean');
+            const guard = boolean ? `typeof ${value} === 'boolean'`
                 : `(typeof ${value} === 'bigint' || typeof ${value} === 'number')`;
-            const result = e.operator === 'not' ? `!${value}` : e.operator === '+' ? value : `-${value}`;
+            const result = `${token}${value}`;
             lines.push(`const ${name} = ${guard} ? ${result} : unary(${JSON.stringify(e.operator)}, ${value});`);
             return name;
         }
-        if (!isBinaryExpression(e) || e.step || !operations.has(e.operator)) return undefined;
+        if (!isBinaryExpression(e) || e.step) return undefined;
+        const signatures = expressionOperatorSignatures(e.operator, 2);
+        if (!signatures.length) return undefined;
         // These are syntax modifiers, not scalar right operands.
         if (isNameExpression(e.right) && ['reduce', 'scan', 'outer', 'segment'].includes(e.right.name)) return undefined;
         const left = emit(e.left), right = emit(e.right);
@@ -61,8 +64,8 @@ export function compileScalarExpression(expression: Expression, host: Host): (()
             result = op === '//' ? `(${left} / ${right} - (${adjust} ? 1n : 0n))`
                 : `(${remainder} + (${adjust} ? ${right} : 0n))`;
         } else {
-            if (!(op in comparison)) guard = `(${ints} || (typeof ${left} === 'number' && typeof ${right} === 'number'))`;
-            result = `${left} ${comparison[op] ?? op} ${right}`;
+            if (!signatures.every(signature => signature.result === 'boolean')) guard = `(${ints} || (typeof ${left} === 'number' && typeof ${right} === 'number'))`;
+            result = `${left} ${findCompiledOperator(op)!.binary} ${right}`;
         }
         lines.push(`const ${name} = ${guard} ? ${result} : binary(${JSON.stringify(op)}, ${left}, ${right});`);
         return name;
