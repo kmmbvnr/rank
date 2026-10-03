@@ -1,14 +1,17 @@
 import {
-    scalarOperatorSignature, type CompiledScalarType,
+    scalarOperatorSignature, compiledScalarTypes, inferCompiledExpression, matchCompiledOperatorSignature,
+    type CompiledExpression, type CompiledScalarType,
     isReturnStatement, isAssignmentStatement, isIfStatement,
-    isParenthesizedExpression, isNumberLiteral, isBooleanLiteral,
-    isNameExpression, isUnaryExpression, isBinaryExpression,
     type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compilerRejection } from './compiler-rejection.js';
 import { recordFallback } from './diagnostics.js';
 
-interface Proof { type: CompiledScalarType; locals: readonly string[] }
+interface Proof {
+    readonly type: CompiledScalarType;
+    readonly locals: readonly string[];
+    readonly expressions: ReadonlyMap<Expression, CompiledExpression<CompiledScalarType>>;
+}
 const simpleProofs = new WeakMap<FunctionStatement, Proof | string>();
 const blockProofs = new WeakMap<FunctionStatement, Proof | string>();
 
@@ -24,31 +27,28 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         rejection ??= compilerRejection('scalar-function', node, detail);
         return undefined;
     }
+    const expressions = new Map<Expression, CompiledExpression<CompiledScalarType>>();
     const parameters = new Set(statement.parameters);
     const locals = new Set<string>();
     const settled = new Map<string, CompiledScalarType>(statement.parameters.map(name => [name, 'integer']));
-    let remaining = blocks ? 256 : 129, resultType: CompiledScalarType | undefined;
+    const budget = { remaining: blocks ? 256 : 129 };
+    let resultType: CompiledScalarType | undefined;
     function type(expression: Expression, env: ReadonlyMap<string, CompiledScalarType>): CompiledScalarType | undefined {
-        if (--remaining < 0) return reject(expression, 'budget');
-        if (isParenthesizedExpression(expression)) return type(expression.value, env);
-        if (isNumberLiteral(expression) && typeof expression.value === 'bigint') return 'integer';
-        if (isBooleanLiteral(expression)) return 'boolean';
-        if (isNameExpression(expression)) return env.get(expression.name) ?? reject(expression, 'unbound-name');
-        if (isUnaryExpression(expression)) {
-            const operand = type(expression.operand, env);
-            return (operand && scalarOperatorSignature(expression.operator, [operand])?.result) ?? reject(expression);
-        }
-        if (isBinaryExpression(expression) && !expression.step) {
-            const left = type(expression.left, env), right = type(expression.right, env);
-            return (left && right ? scalarOperatorSignature(expression.operator, [left, right])?.result : undefined) ?? reject(expression);
-        }
-        return reject(expression);
+        const inferred = inferCompiledExpression(expression, {
+            types: compiledScalarTypes,
+            lookup: name => env.get(name),
+            operator: (operation, inputs) => matchCompiledOperatorSignature(operation.scalarFunction, inputs),
+            budget,
+        });
+        if (inferred.failure) return reject(inferred.failure.source, inferred.failure.detail);
+        expressions.set(expression, inferred.expression);
+        return inferred.expression.type;
     }
     // null: every path returned; undefined: unproved; map: continuing paths.
     function flow(commands: readonly Statement[], env: Map<string, CompiledScalarType>): Map<string, CompiledScalarType> | null | undefined {
         for (let index = 0; index < commands.length; index++) {
             const command = commands[index];
-            if (--remaining < 0) return reject(command, 'budget');
+            if (--budget.remaining < 0) return reject(command, 'budget');
             if (isReturnStatement(command) && command.value) {
                 const value = type(command.value, env);
                 if (!value || resultType && resultType !== value) return reject(command, 'return-type');
@@ -90,7 +90,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         return env;
     }
     const outcome = flow(statement.statements, new Map(settled));
-    const result = outcome === null && resultType ? { type: resultType, locals: [...locals] } : undefined;
+    const result = outcome === null && resultType ? { type: resultType, locals: [...locals], expressions } : undefined;
     const reason = rejection ?? 'scalar-function:missing-return';
     proofs.set(statement, result ?? reason);
     return result ?? recordFallback(reason);

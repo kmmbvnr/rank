@@ -1,8 +1,7 @@
 import {
     findCompiledOperator,
-    isReturnStatement, isAssignmentStatement, isIfStatement, isParenthesizedExpression,
-    isNumberLiteral, isBooleanLiteral, isNameExpression, isUnaryExpression, isBinaryExpression,
-    type Expression, type FunctionStatement, type Statement,
+    isReturnStatement, isAssignmentStatement, isIfStatement,
+    type CompiledExpression, type CompiledOperator, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { RankError } from './errors.js';
 import { recordFallback } from './diagnostics.js';
@@ -19,7 +18,9 @@ const kernels = new WeakMap<FunctionStatement, Kernel | null>();
 // The kernel has no environment access; cached code retains only syntax metadata.
 export function compileScalarFunction(statement: FunctionStatement): Kernel | undefined {
     if (kernels.has(statement)) return kernels.get(statement) ?? recordFallback('scalar-function:code-generation');
-    if (!scalarFunctionResult(statement, true)) return undefined;
+    const proof = scalarFunctionResult(statement, true);
+    if (!proof) return undefined;
+    const expressions = proof.expressions;
     const slots = new Map<string, number>();
     const slot = (name: string): string => {
         if (!slots.has(name)) slots.set(name, slots.size);
@@ -28,7 +29,8 @@ export function compileScalarFunction(statement: FunctionStatement): Kernel | un
     statement.parameters.forEach(slot);
     const locations: Statement[] = [];
     let serial = 0;
-    function binary(op: string, left: string, right: string, lines: string[]): string {
+    function binary(operation: CompiledOperator, left: string, right: string, lines: string[]): string {
+        const op = operation.name;
         const result = `v${serial++}`;
         if (op === '//' || op === '%') {
             const remainder = `v${serial++}`;
@@ -36,31 +38,32 @@ export function compileScalarFunction(statement: FunctionStatement): Kernel | un
             lines.push(`const ${remainder} = ${left} % ${right};`);
             const adjust = `(${remainder} !== 0n && (${remainder} < 0n) !== (${right} < 0n))`;
             lines.push(`const ${result} = ${op === '//' ? `${left} / ${right} - (${adjust} ? 1n : 0n)` : `${remainder} + (${adjust} ? ${right} : 0n)`};`);
-        } else lines.push(`const ${result} = ${left} ${findCompiledOperator(op)!.binary} ${right};`);
+        } else lines.push(`const ${result} = ${left} ${operation.binary} ${right};`);
         return result;
     }
     function emit(expression: Expression, lines: string[]): string {
-        if (isParenthesizedExpression(expression)) return emit(expression.value, lines);
-        if (isNumberLiteral(expression)) return `${expression.value}n`;
-        if (isBooleanLiteral(expression)) return String(expression.value);
-        if (isNameExpression(expression)) return slot(expression.name);
-        if (isUnaryExpression(expression)) {
-            const value = emit(expression.operand, lines), result = `v${serial++}`;
-            lines.push(`const ${result} = ${findCompiledOperator(expression.operator)!.unary}(${value});`);
+        return lower(expressions.get(expression)!, lines);
+    }
+    function lower(expression: CompiledExpression, lines: string[]): string {
+        if (expression.kind === 'group') return lower(expression.operand, lines);
+        if (expression.kind === 'literal') return typeof expression.value === 'bigint'
+            ? `${expression.value}n` : JSON.stringify(expression.value);
+        if (expression.kind === 'input') return slot(expression.name);
+        if (expression.kind === 'unary') {
+            const value = lower(expression.operand, lines), result = `v${serial++}`;
+            lines.push(`const ${result} = ${expression.operation.unary}(${value});`);
             return result;
         }
-        if (isBinaryExpression(expression) && (expression.operator === 'and' || expression.operator === 'or')) {
+        const operator = expression.operation.name;
+        if (operator === 'and' || operator === 'or') {
             // The right side runs only when the left does not decide.
-            const left = emit(expression.left, lines), result = `v${serial++}`, guarded: string[] = [];
-            const right = emit(expression.right, guarded);
-            lines.push(`let ${result} = ${left}; if (${expression.operator === 'and' ? '' : '!'}${result}) { ${guarded.join('\n')} ${result} = ${right}; }`);
+            const left = lower(expression.left, lines), result = `v${serial++}`, guarded: string[] = [];
+            const right = lower(expression.right, guarded);
+            lines.push(`let ${result} = ${left}; if (${operator === 'and' ? '' : '!'}${result}) { ${guarded.join('\n')} ${result} = ${right}; }`);
             return result;
         }
-        if (isBinaryExpression(expression)) {
-            const left = emit(expression.left, lines), right = emit(expression.right, lines);
-            return binary(expression.operator, left, right, lines);
-        }
-        throw new Error('unproved scalar expression');
+        const left = lower(expression.left, lines), right = lower(expression.right, lines);
+        return binary(expression.operation, left, right, lines);
     }
     function commands(statements: readonly Statement[], lines: string[]): void {
         for (const command of statements) {
@@ -71,7 +74,7 @@ export function compileScalarFunction(statement: FunctionStatement): Kernel | un
                 lines.push(`return ${value};`);
             } else if (isAssignmentStatement(command)) {
                 let value = emit(command.value, lines);
-                if (command.operator !== '=') value = binary(command.operator.slice(0, -1), slot(command.name), value, lines);
+                if (command.operator !== '=') value = binary(findCompiledOperator(command.operator.slice(0, -1))!, slot(command.name), value, lines);
                 lines.push(`${slot(command.name)} = ${value};`);
             } else if (isIfStatement(command)) {
                 const branches = [{ condition: command.condition, statements: command.thenStatements }, ...command.elifClauses];

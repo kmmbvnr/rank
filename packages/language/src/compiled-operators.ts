@@ -1,7 +1,8 @@
 import type { CompiledAtomType, CompiledLoopType } from './operations.js';
 
 /** The current scalar-function backend supports only these catalogue types. */
-export type CompiledScalarType = Extract<CompiledAtomType, 'integer' | 'boolean'>;
+export const compiledScalarTypes = ['integer', 'boolean'] as const satisfies readonly CompiledAtomType[];
+export type CompiledScalarType = typeof compiledScalarTypes[number];
 export type CompiledExpressionType = Extract<CompiledAtomType, 'integer' | 'real' | 'boolean'>;
 export type CompiledTensorType = Extract<CompiledAtomType, 'integer' | 'real' | 'boolean'>;
 
@@ -85,15 +86,15 @@ export const compiledOperators: readonly CompiledOperator[] = [
 const operatorIndex = new Map(compiledOperators.map(operation => [operation.name, operation]));
 export function findCompiledOperator(name: string): CompiledOperator | undefined { return operatorIndex.get(name); }
 
-function match<T extends CompiledAtomType>(signatures: readonly CompiledOperatorSignature<T>[] | undefined, inputs: readonly T[]) {
+export function matchCompiledOperatorSignature<T extends CompiledAtomType>(signatures: readonly CompiledOperatorSignature<T>[] | undefined, inputs: readonly T[]) {
     return signatures?.find(signature => signature.inputs.length === inputs.length
         && signature.inputs.every((type, index) => type === inputs[index]));
 }
 export function scalarOperatorSignature(name: string, inputs: readonly CompiledScalarType[]): CompiledOperatorSignature<CompiledScalarType> | undefined {
-    return match(findCompiledOperator(name)?.scalarFunction, inputs);
+    return matchCompiledOperatorSignature(findCompiledOperator(name)?.scalarFunction, inputs);
 }
 export function loopOperatorSignature(name: string, inputs: readonly CompiledLoopType[], nativeCalls: boolean): CompiledOperatorSignature | undefined {
-    const signature = match(findCompiledOperator(name)?.integerLoop, inputs);
+    const signature = matchCompiledOperatorSignature(findCompiledOperator(name)?.integerLoop, inputs);
     return signature?.nativeCalls && !nativeCalls ? undefined : signature;
 }
 
