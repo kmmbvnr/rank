@@ -66,9 +66,23 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         } : undefined;
     };
     const signatureFor = (site: Site): string | undefined => {
-        if (site.kind === 'outer' && !analysis.bindings.has('outer') && !runtime.has('outer')) {
+        const actualName = isNameExpression(site.node) ? site.node.name : site.name;
+        for (let parent = site.node.$container; parent; parent = parent.$container) {
+            if (isFunctionStatement(parent) && parent.parameters.includes(actualName)) return undefined;
+        }
+        if (site.kind === 'form' && !analysis.bindings.has(actualName) && !runtime.has(actualName)) {
             for (let node: AstNode | undefined = site.node.$container; node && isExpression(node); node = node.$container) {
                 const form = applicationForm(node);
+                if (form.kind === 'segment' || form.kind === 'named-segment') {
+                    const inputs = [signatureType(analysis.expressions.get(form.source) ?? UNKNOWN)];
+                    if (form.kind === 'named-segment') {
+                        const isMaxSum = isNameExpression(form.operation) && form.operation.name === 'maxsum'
+                            && !analysis.bindings.has('maxsum') && !runtime.has('maxsum');
+                        if (!isMaxSum) inputs.push({ callback: { inputs: ['unknown', 'unknown'], result: 'unknown' } });
+                        if (form.identity) inputs.push(signatureType(analysis.expressions.get(form.identity) ?? UNKNOWN));
+                    }
+                    return formatTypeSignature({ inputs, result: 'segment' });
+                }
                 const operands = form.kind === 'outer' ? form.operands
                     : form.kind === 'named-outer' ? [form.left, form.right, form.operation] : undefined;
                 if (operands) {
@@ -91,11 +105,8 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         }
         const call = callFacts(site);
         if (isCatalogueFunction(site)) return operationSignature(findOperation(site.name)!, call?.arguments);
-        if (site.kind !== 'function' && site.kind !== 'read' && site.kind !== 'outer') return undefined;
+        if (site.kind !== 'function' && site.kind !== 'read' && site.kind !== 'form') return undefined;
         if (site.kind !== 'function' && rebound.has(site.name)) return undefined;
-        for (let parent = site.node.$container; parent; parent = parent.$container) {
-            if (isFunctionStatement(parent) && parent.parameters.includes(site.name)) return undefined;
-        }
         const definition = isFunctionStatement(site.node) ? site.node : analysis.functions.get(site.name);
         if (!definition) return undefined;
         const relationship = analysis.relationships.get(definition);
@@ -113,7 +124,7 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         const site = [offset, offset - 1].map(at => nameSite(root, at)).find(found => found !== undefined);
         if (!site) return undefined;
         const inFunction = AstUtils.getContainerOfType(site.node, isFunctionStatement);
-        if (site.kind === 'operator' || site.kind === 'outer') {
+        if (site.kind === 'operator' || site.kind === 'form') {
             const signature = signatureFor(site);
             if (signature) return { name: site.name, source: 'static', facts: FUNCTION, signature };
         }
@@ -158,7 +169,7 @@ function writtenNames(program: Program): Set<string> {
 interface Site {
     readonly name: string;
     readonly node: AstNode;
-    readonly kind: 'read' | 'assignment' | 'loop' | 'parameter' | 'unpack' | 'function' | 'operator' | 'outer';
+    readonly kind: 'read' | 'assignment' | 'loop' | 'parameter' | 'unpack' | 'function' | 'operator' | 'form';
 }
 
 function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site | undefined {
@@ -175,8 +186,8 @@ function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site 
         }
     }
     if (isNameExpression(node)) {
-        if (node.name === 'outer' && (text === 'outer' || /^outer\s/.test(text))) {
-            return { name: text.replace(/\s+/g, ' '), node, kind: 'outer' };
+        if (['outer', 'segment', 'maxsum'].includes(node.name) && (text === node.name || text.split(/\s+/)[0] === node.name)) {
+            return { name: text.replace(/\s+/g, ' '), node, kind: 'form' };
         }
         return node.name === text ? { name: text, node, kind: loopOf(node) ? 'loop' : 'read' } : undefined;
     }
@@ -211,7 +222,7 @@ function staticFacts(site: Site, analysis: ReturnType<typeof analyzeValues>): Va
     const { node, name } = site;
     const known = (expression: Expression): ValueFacts => analysis.expressions.get(expression) ?? UNKNOWN;
     switch (site.kind) {
-        case 'outer': case 'read': {
+        case 'form': case 'read': {
             if (analysis.functions.has(name)) return FUNCTION;
             return known(node as Expression);
         }

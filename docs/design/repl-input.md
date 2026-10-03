@@ -382,7 +382,11 @@ identifies a cell signature; broadcasting and evaluation follow the operation's 
 In particular, scalar `and`/`or` short-circuit and require a scalar right operand,
 and ordinary comparison does not accept two sequences. A signature does not promise
 that every shape combination or value is valid. Literal flags appear by name, such as `.flat` or `(.write | .update | .append)`;
-callback types use `(a → boolean)`. Names without signature metadata still show `function`.
+callback types use `(a → boolean)`. All ordinary catalogue functions declare signatures. `segment` and `maxsum` are
+form-only markers whose direct native calls reject use outside segment syntax.
+On a segment form the footer shows the source, a binary callback when supplied,
+an optional identity, and the `segment` result. An otherwise unproved function
+still shows `function`.
 Arithmetic, comparison, logical and `is` operator tokens show their declared signatures,
 including both words in `not equal`, `at least`, `at most`, and `multiple by`.
 Equality allows unrelated operand types and can propagate `missing`; it does not

@@ -248,3 +248,16 @@ it('shows the flat document overload after grouping its trailing modifier', () =
     const source = 'use json\n"{}" json .flat';
     expect(factsAt(source, source.lastIndexOf('json'))?.signature).toBe('text .flat → array<object>');
 });
+
+
+it('shows segment form contracts without advertising callable marker signatures', () => {
+    for (const combine of ['+', 'maxsum']) {
+        const source = `use algo\n(array 1 2 3) segment ${combine}`;
+        expect(factsAt(source, source.indexOf('segment'))?.signature).toBe('array<integer> → segment');
+        if (combine === 'maxsum') expect(factsAt(source, source.indexOf('maxsum'))?.signature).toBe('array<integer> → segment');
+    }
+    const named = 'use algo\nfun combine A B\n return A + B\nend\n(array 1 2) segment combine';
+    expect(factsAt(named, named.indexOf('segment'))?.signature).toBe('array<integer> (a b → c) → segment');
+    const shadowed = 'fun segment X\n return X\nend\n3 segment';
+    expect(factsAt(shadowed, shadowed.lastIndexOf('segment'))?.signature).toBe('integer → integer');
+});

@@ -79,6 +79,8 @@ export interface Operation {
     readonly result: ResultKind;
     /** Audited language overloads for readers and editors, independent of compiler subsets. */
     readonly signatures?: readonly TypeSignature[];
+    /** Syntax marker dispatched by application forms; its native placeholder cannot be called. */
+    readonly formOnly?: true;
     /** Direct-call eligibility for existing compiler backends. Never use this
      * restricted subset as a complete operand-domain rule or displayed signature. */
     readonly compiledCall?: CompiledCallSignature;
@@ -333,6 +335,7 @@ export const operations: readonly Operation[] = [
         dyadicRanks: ['all', 0],
         summary: 'Smallest stored value at least the query, an alias for ceiling.' },
     { name: 'maxsum', module: 'algo', arities: [2], form: 'Values segment maxsum', result: 'record',
+        formOnly: true,
         summary: 'Prefix and subarray sum profile: query returns sum, prefix, suffix and best.' },
     { name: 'missing', module: 'algo', arities: [2], form: 'Data Bounds missing', result: 'integer',
         signatures: [{ inputs: ['wavelet', { collection: 'array', element: 'integer' }], result: 'integer', ranks: ['all', 1] }],
@@ -394,6 +397,7 @@ export const operations: readonly Operation[] = [
         signatures: collectionWriteSignatures,
         effects: ['mutates'], summary: 'Removes one occurrence from a set, counter or multiset.' },
     { name: 'segment', module: 'algo', arities: [2], form: 'Values segment Operation',
+        formOnly: true,
         result: 'segment', summary: 'Segment tree over one associative binary operation.' },
     { name: 'sumwithin', module: 'algo', arities: [5],
         signatures: [{ inputs: ['wavelet', 'integer', 'integer', 'number', 'number'], result: 'number' }],

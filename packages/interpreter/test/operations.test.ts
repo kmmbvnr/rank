@@ -70,6 +70,17 @@ describe('the operation catalogue', () => {
         expect(wrong).toEqual([]);
     });
 
+    it('requires signatures for callable names and identifies form-only placeholders', () => {
+        for (const entry of operations.filter(entry => entry.arities.length)) {
+            if (entry.formOnly) {
+                expect(entry.signatures, entry.name).toBeUndefined();
+                const value = runtime.get(`${entry.module}.${entry.name}`)!;
+                expect(isNativeFunction(value)).toBe(true);
+                if (isNativeFunction(value)) expect(() => value.call([1n, 2n])).toThrow(/segment/);
+            } else expect(entry.signatures?.length, entry.name).toBeGreaterThan(0);
+        }
+    });
+
     it('keeps display overload arities consistent with the runtime catalogue', () => {
         for (const entry of operations) for (const signature of entry.signatures ?? []) {
             expect(entry.arities, entry.name).toContain(signature.inputs.length);
