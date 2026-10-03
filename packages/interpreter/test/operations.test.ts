@@ -151,6 +151,31 @@ describe('the operation catalogue', () => {
         expect(() => new Interpreter().execute('use dates\n1.5 duration')).toThrow();
     });
 
+    it('checks numeric signatures across scalar domains, maps and missing values', () => {
+        for (const name of ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh',
+            'tanh', 'asinh', 'acosh', 'atanh', 'log', 'exp']) {
+            const argument = name === 'acosh' ? '2.0' : '0.5';
+            expect(typeName(new Interpreter().execute(`use numbers\n${argument} ${name}`)!), name).toBe('real');
+            expect(typeName(new Interpreter().execute(`use numbers\n.NA ${name}`)!), name).toBe('missing');
+        }
+        for (const [expression, expected] of [
+            ['-3 abs', 'integer'], ['-3.0 abs', 'real'], ['.NA abs', 'missing'],
+            ['4 sqrt', 'real'], ['.NA sqrt', 'missing'], ['4 isqrt', 'integer'],
+            ['1 2 atan2', 'real'], ['.NA 2 atan2', 'missing'],
+            ['5 2 binomial', 'integer'], ['.NA 2 binomial', 'missing'],
+            ['5 2 7 binomialmod', 'integer'], ['2 3 7 powmod', 'integer'], ['6 4 gcd', 'integer'],
+            ['6 4 lcm', 'integer'], ['(array 6 4) lcm', 'integer'], ['(1 to 3) lcm', 'integer'],
+            ['12 factors', 'sequence'], ['12 divisors', 'sequence'], ['3 odd', 'boolean'],
+            ['2 even', 'boolean'], ['.NA isnan', 'boolean'], ['1.25 1 round', 'real'], ['125 -1 round', 'integer'],
+            ['(array 0.0 1.0) sin', 'array'], ['(0 to 2) sin', 'sequence'],
+            ['(array 1 2) odd', 'array'], ['(1 to 3) odd', 'sequence'],
+        ]) expect(typeName(new Interpreter().execute('use numbers\n' + expression)!), expression).toBe(expected);
+        expect(() => new Interpreter().execute('use numbers\n.NA isqrt')).toThrow();
+        expect(() => new Interpreter().execute('use numbers\n1.5 2 gcd')).toThrow();
+        expect(() => new Interpreter().execute('use numbers\n.NA 2 round')).toThrow();
+        expect(() => new Interpreter().execute('use algo\nuse numbers\nQ = new queue\nQ push 2\nQ lcm')).toThrow();
+    });
+
     it('validates shape contracts against explicit ranks and representation facts', () => {
         for (const entry of operations) {
             if (entry.monadicRank !== undefined || entry.dyadicRanks

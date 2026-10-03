@@ -78,3 +78,18 @@ it('distinguishes date mapping, scalar components and SQL column overloads', () 
     expect(operationSignature(findOperation('calendar')!, 3)).toBe(
         'database (text | date | datetime) (text | date | datetime) → table');
 });
+
+
+it('describes numeric maps, missing propagation and integer-only reductions', () => {
+    expect(operationSignature(findOperation('abs')!, [{ types: ['real'] }])).toBe('real → real [rank 0]');
+    expect(operationSignature(findOperation('sin')!, [{ types: ['missing'] }])).toBe('missing → missing');
+    expect(operationSignature(findOperation('sin')!, [{ types: ['array'], elements: ['integer'] }]))
+        .toBe('array<number> → array<real | missing>');
+    expect(operationSignature(findOperation('odd')!, [{ types: ['sequence'], elements: ['integer'] }]))
+        .toBe('sequence<integer> → sequence<boolean>');
+    expect(operationSignature(findOperation('lcm')!, 1))
+        .toBe('(integer | array<integer> | sequence<integer>) → integer');
+    expect(operationSignature(findOperation('round')!, [{ types: ['real'] }, { types: ['integer'] }]))
+        .toBe('real integer → real [rank 0 0]');
+    expect(operationSignature(findOperation('powmod')!)).toBe('integer integer integer → integer');
+});
