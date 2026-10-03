@@ -61,7 +61,8 @@ export class RankApplication {
         }
         if (isRankSequence(value)) {
             if (cellRank >= 1) return this.invoke(fn, [value]);
-            return completed(mapSequence(value, fn.name, atom => fn.call([atom])));
+            const scalar = this.scalarCallback(fn);
+            return completed(mapSequence(value, fn.name, atom => scalar ? scalar([atom]) : fn.call([atom])));
         }
         if (isRankArray(value)) {
             if (frameAxes === undefined && cellRank >= value.shape.length) return this.invoke(fn, [value]);
@@ -118,8 +119,10 @@ export class RankApplication {
         if (fn.arrayCells || (customLeftRank !== undefined && !fn.dyadicRanks)) {
             return completed(this.stackedCells(left, right, a, b, frameShape, fn));
         }
+        const scalar = this.scalarCallback(fn);
         const applyCell = (x: RankValue, y: RankValue): RankValue => {
-            const result = fn.call([x, y]);
+            const arguments_ = [x, y];
+            const result = scalar ? scalar(arguments_) : fn.call(arguments_);
             // Text is a boxed cell, as in unary ranked application.
             if (valueRank(result) !== 0 && typeof result !== 'string') {
                 throw new RankError(
@@ -205,6 +208,7 @@ export class RankApplication {
             return arrayOffset(operandFrame, coordinates.map((coordinate, axis) =>
                 operandFrame[axis] === 1 ? 0 : coordinate));
         };
+        const scalar = this.scalarCallback(fn);
         const sources = [left, right].filter(isRankArray);
         const results = new Map<number, RankValue>();
         let inputRevision: number | undefined;
@@ -229,10 +233,11 @@ export class RankApplication {
             const cacheable = refresh();
             const cached = results.get(frameIndex);
             if (cached !== undefined) return cached;
-            const result = fn.call([
+            const arguments_ = [
                 a.cellAt(operandIndex(a.frameShape, frameIndex)),
                 b.cellAt(operandIndex(b.frameShape, frameIndex)),
-            ]);
+            ];
+            const result = scalar ? scalar(arguments_) : fn.call(arguments_);
             const shape = isRankArray(result) ? result.shape : [];
             if (cellShape === undefined) cellShape = [...shape];
             else if (!sameShape(cellShape, shape)) {

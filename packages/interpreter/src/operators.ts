@@ -39,6 +39,7 @@ export class Operators {
     constructor(
         private readonly modules: ReadonlySet<string>,
         private readonly ownFiles: (value: RankValue) => void,
+        private readonly scalarCallback: (fn: NativeFunction) => ((arguments_: RankValue[]) => RankValue) | undefined,
     ) {}
 
     compareAtRank(left: RankValue, right: RankValue, spec: Extract<ApplicationForm, { kind: 'comparison-rank' }>): RankValue {
@@ -113,11 +114,13 @@ export class Operators {
         const a = outerCells(left, leftRank, 'left');
         const b = outerCells(right, rightRank, 'right');
         const rightFrames = arraySize(b.frameShape);
+        const scalar = this.scalarCallback(operation);
         return lazyArray([...a.frameShape, ...b.frameShape], index => {
-            const result = operation.call([
+            const arguments_ = [
                 a.cellAt(Math.floor(index / rightFrames)),
                 b.cellAt(index % rightFrames),
-            ]);
+            ];
+            const result = scalar ? scalar(arguments_) : operation.call(arguments_);
             if (valueRank(result) !== 0) {
                 throw new RankError(`outer operation ${operation.name} must return a scalar`);
             }

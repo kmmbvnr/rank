@@ -76,7 +76,8 @@ export class Interpreter {
 
     private readonly bindings = new BindingEnvironment(this.variables, this.modules);
     private readonly resources = new ResourceOwnership();
-    private readonly operators = new Operators(this.modules, value => this.resources.ownFiles(value));
+    private readonly operators = new Operators(this.modules, value => this.resources.ownFiles(value),
+        fn => this.functions.scalarCallback(fn));
     private readonly inspection = new DebugInspection(this.bindings, () => this.options.sourceId ?? '<input>');
     private readonly builtins: BuiltinRegistry;
     private readonly functions: FunctionInvocation;
@@ -116,6 +117,7 @@ export class Interpreter {
         this.reductions = new ReductionEvaluator(
             (operator, left, right) => this.operators.evaluateBinary(operator, left, right),
             name => this.resolve(name), this.builtins.functions, () => this.options.tensorFusion !== false,
+            fn => this.functions.scalarCallback(fn),
         );
         this.rankApplication = new RankApplication(
             (fn, args) => this.functions.invoke(fn, args),
