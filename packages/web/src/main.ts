@@ -51,6 +51,9 @@ function reportExecution(state: 'running' | 'paused' | 'turbo' | 'idle'): void {
     }
 }
 if (import.meta.env.MODE === 'mobile') document.documentElement.classList.add('mobile');
+/** How much smaller than code a result is drawn on a touch console; the same number is in the stylesheet as `--result-scale`. */
+const RESULT_SCALE = 0.88;
+document.documentElement.style.setProperty('--result-scale', String(RESULT_SCALE));
 const example = new URLSearchParams(location.search).get('example') === 'fibonacci';
 // A phone browser needs the command menu and the symbol keyboard as much as the app does.
 const touchConsole = import.meta.env.MODE === 'mobile' || !example && matchMedia('(pointer: coarse)').matches;
@@ -58,6 +61,7 @@ if (!touchConsole) {
     chrome.hidden = true;
     document.documentElement.style.setProperty('--chrome-height', '0px');
 }
+const compactResults = touchConsole;
 let columns = 47;
 let rows = 24;
 let cellWidth = 8;
@@ -231,6 +235,22 @@ function placeScreen(): void {
     input.style.top = inputY + 'px';
 }
 
+/**
+ * A smaller result keeps its marker (`!`, `~`) and the spaces that indent it at the size of code, so the marker
+ * stays in its column and the text starts where the code above it starts.
+ */
+function keepMarkerFullSize(row: HTMLElement): void {
+    const lead = /^ *[!~]? */.exec(row.textContent ?? '')?.[0].length ?? 0;
+    const first = row.firstChild?.firstChild;
+    if (!lead || !first || first.nodeType !== Node.TEXT_NODE || (first as Text).length < lead) return;
+    const range = document.createRange();
+    range.setStart(first, 0);
+    range.setEnd(first, lead);
+    const marker = document.createElement('span');
+    marker.className = 'terminal-marker';
+    range.surroundContents(marker);
+}
+
 /** A viewer takes no typing, so neither keyboard stays up while it is open. */
 function showViewer(): void {
     const viewer = repl.help?.viewer;
@@ -351,14 +371,22 @@ function render(): void {
         }));
         paintedLines = [];
     }
+    const resultRows = new Set(frame.resultRows);
+    const painted: string[] = [];
     frame.lines.forEach((line, index) => {
-        (screen.children[index] as HTMLElement).classList.toggle('terminal-facts', index === frame.factsRow);
-        if (paintedLines[index] === line) return;
-        const row = screen.children[index] as HTMLElement;
-        row.replaceChildren();
-        paintLine(row, line);
+        const element = screen.children[index] as HTMLElement;
+        element.classList.toggle('terminal-facts', index === frame.factsRow);
+        // Results, values and errors, are drawn a little smaller than code on a phone.
+        const compact = compactResults && resultRows.has(index);
+        element.classList.toggle('terminal-result', compact);
+        const key = (compact ? '\u0001' : '') + line;
+        painted[index] = key;
+        if (paintedLines[index] === key) return;
+        element.replaceChildren();
+        paintLine(element, line);
+        if (compact) keepMarkerFullSize(element);
     });
-    paintedLines = [...frame.lines];
+    paintedLines = painted;
     caret.style.width = (frame.cursorStyle === 6 ? 2 : cellWidth) + 'px';
     caret.hidden = !frame.cursorVisible || !!repl.help || Boolean(activeVoiceDictation);
     placeScreen();

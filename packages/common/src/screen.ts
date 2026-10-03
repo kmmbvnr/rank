@@ -161,6 +161,8 @@ export interface ScreenFrame {
     readonly targets?: readonly (ScreenTarget | undefined)[];
     /** Index in `lines` of the footer row showing the name under the cursor, for dimmer, smaller styling. */
     readonly factsRow?: number;
+    /** Indexes in `lines` of the rows that show a result, a value or an error, rather than code, so a host can draw them smaller. */
+    readonly resultRows?: readonly number[];
 }
 
 /** Output and suggestions are model data, so old errors/listings disappear on the next frame. */
@@ -181,6 +183,7 @@ export function notebookFrame(
     const bodyWidth = Math.max(1, width - gutter);
     const rows: string[] = [];
     const targets: (ScreenTarget | undefined)[] = [];
+    const resultRows: number[] = [];
     let caret = { row: 0, column: gutter };
     let errorEnd: number | undefined;
     let nextEvalRow: number | undefined;
@@ -248,6 +251,7 @@ export function notebookFrame(
                     for (const result of layout(clean(output.inlineText ?? output.text), Math.max(1, outputWidth))) {
                         if (!output.error && output.text.includes(' · iteration'))
                             targets[rows.length] = { kind: 'iteration', cell: index, line: sourceLine, points: [] };
+                        resultRows.push(rows.length);
                         rows.push((output.error ? '\x1b[31m' : promptOutputFocus?.active && promptOutputFocus.line === sourceLine ? '\x1b[7m' : '\x1b[90m')
                             + clipped(marker + result.text, width) + '\x1b[0m');
                         if (!output.error && promptOutputFocus?.line === sourceLine) {
@@ -305,6 +309,7 @@ export function notebookFrame(
                 for (const [part, line] of [clean(output.inlineText ?? output.text).split('\n')[0], detail].entries()) {
                     targets[rows.length] = { kind: 'value', cell: index, line: 0, ref: output.ref, points: [] };
                     if (focused && part === 0) caret = { row: rows.length, column: gutter };
+                    resultRows.push(rows.length);
                     rows.push((focused ? '\x1b[7m' : '\x1b[90m')
                         + oneRow((part === 0 ? marker : ' '.repeat(gutter)) + line, width) + '\x1b[0m');
                 }
@@ -317,6 +322,7 @@ export function notebookFrame(
             for (const item of layout(text, outputWidth)) {
                 const shown = clipped(marker + item.text, width);
                 if (!output.error || !modules.length) {
+                    resultRows.push(rows.length);
                     rows.push((output.error ? '\x1b[31m' : '\x1b[90m') + shown + '\x1b[0m');
                     continue;
                 }
@@ -332,6 +338,7 @@ export function notebookFrame(
                         + (fix === fixFocus ? '\x1b[27m' : '\x1b[24m');
                 });
                 if (fixes.length) targets[rows.length] = { kind: 'autofix', cell: index, line: 0, points: [], fixes };
+                resultRows.push(rows.length);
                 rows.push('\x1b[31m' + painted.replace(/\u00a0/g, ' ') + '\x1b[0m');
             }
         }
@@ -401,6 +408,7 @@ export function notebookFrame(
     if (footerLine !== undefined) lines.splice(viewportHeight, 0, footerLine);
     return { lines, cursor: { row: Math.max(0, Math.min(viewportHeight - 1, caret.row - top)), column: caret.column },
         top, maxTop, targets: targets.slice(top, top + renderedHeight), factsRow,
+        resultRows: resultRows.filter(row => row >= top && row < top + renderedHeight).map(row => row - top),
         cursorVisible: caret.row >= top && caret.row < top + viewportHeight, caretRow: caret.row,
         cursorStyle: promptOutputFocus ? 2 : promptFields?.some(field => field.active) ? 6
             : promptOutputs && !stepping ? 6 : notebook.atPrompt || stepping ? 2 : 6 };
