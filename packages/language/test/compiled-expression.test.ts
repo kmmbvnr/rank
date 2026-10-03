@@ -2,7 +2,7 @@ import { EmptyFileSystem } from 'langium';
 import { describe, expect, it } from 'vitest';
 import { createRankServices } from '../src/rank-module.js';
 import { isAssignmentStatement, isApplicationExpression, isBinaryExpression, isNameExpression, type Program } from '../src/generated/ast.js';
-import { compiledScalarTypes, findCompiledOperator, matchCompiledOperatorSignature } from '../src/compiled-operators.js';
+import { compiledScalarTypes, findCompiledOperator, matchCompiledOperatorSignature, matchCompiledOperatorDomains } from '../src/compiled-operators.js';
 import { inferCompiledExpression, type CompiledExpressionContext } from '../src/compiled-expression.js';
 import { matchCompiledCallSignature, type CompiledAtomType } from '../src/operations.js';
 
@@ -18,7 +18,8 @@ function context(
     bindings: Readonly<Record<string, CompiledAtomType>> = {}, profile: 'scalarFunction' | 'tensor' = 'scalarFunction',
 ): CompiledExpressionContext<CompiledAtomType> {
     return {
-        types: profile === 'scalarFunction' ? compiledScalarTypes : ['integer', 'real', 'boolean'],
+        atom: type => (profile === 'scalarFunction' ? compiledScalarTypes : ['integer', 'real', 'boolean'] as const)
+            .find(candidate => candidate === type),
         read: source => isNameExpression(source) && bindings[source.name]
             ? { type: bindings[source.name], input: source.name } : undefined,
         isBound: name => Object.prototype.hasOwnProperty.call(bindings, name),
@@ -88,9 +89,23 @@ describe('shared compiled expression inference', () => {
             .toBe('integer');
     });
 
+    it('keeps unresolved numeric possibilities until an operation fixes the result domain', () => {
+        const scope: CompiledExpressionContext<readonly CompiledAtomType[]> = {
+            atom: type => [type],
+            read: node => isNameExpression(node) ? { type: ['integer', 'real'], input: node.name } : undefined,
+            isBound: () => true,
+            operator: (operation, inputs) => matchCompiledOperatorDomains(operation.tensor, inputs),
+            budget: { remaining: 128 },
+        };
+        expect(inferCompiledExpression(expression('A + 1'), scope).expression?.type).toEqual(['integer', 'real']);
+        expect(inferCompiledExpression(expression('A / B'), scope).expression?.type).toEqual(['real']);
+        expect(inferCompiledExpression(expression('A less B'), scope).expression?.type).toEqual(['boolean']);
+        expect(inferCompiledExpression(expression('A and B'), scope).failure).toBeDefined();
+    });
+
     it('uses the same frontend with consumer-specific numeric domains', () => {
         const source = expression('A + 1.5');
-        const restricted = { ...context({ A: 'integer' }), types: ['integer', 'boolean', 'text'] as const };
+        const restricted = { ...context({ A: 'integer' }), atom: (type: CompiledAtomType) => (['integer', 'boolean', 'text'] as const).find(candidate => candidate === type) };
         expect(inferCompiledExpression(source, restricted).failure?.source.$type).toBe('NumberLiteral');
         for (const profile of ['scalarFunction', 'tensor'] as const) {
             const result = inferCompiledExpression(source, context({ A: 'integer' }, profile));

@@ -2,34 +2,39 @@ import {
     isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isStringLiteral,
     isNameExpression, isUnaryExpression, isBinaryExpression, isApplicationExpression, type Expression,
 } from './generated/ast.js';
-import { findCompiledOperator, type CompiledOperator, type CompiledOperatorSignature } from './compiled-operators.js';
+import { findCompiledOperator, type CompiledOperator } from './compiled-operators.js';
 import { findOperation, type Operation, type CompiledAtomType, type CompiledCallSignature } from './operations.js';
 import { applicationForm, symbolicApplicationForm } from './application-forms.js';
 import { flattenApplication, groupedUnaryDyadicChain, unaryApplicationHead } from './expressions.js';
 
-interface TypedNode<T extends CompiledAtomType> {
+interface TypedNode<T> {
     readonly source: Expression;
     readonly type: T;
 }
 
 /** A compiler proof tree. It retains evaluation order and catalogue overloads;
  * it contains no runtime values, readers, frames or speculative type facts. */
-export type CompiledExpression<T extends CompiledAtomType = CompiledAtomType, Input = string> = TypedNode<T> & (
+export type CompiledExpression<T = CompiledAtomType, Input = string> = TypedNode<T> & (
     | { readonly kind: 'literal'; readonly value: bigint | number | boolean | string }
     | { readonly kind: 'input'; readonly input: Input }
     | { readonly kind: 'group'; readonly operand: CompiledExpression<T, Input> }
     | { readonly kind: 'unary'; readonly operation: CompiledOperator;
-        readonly signature: CompiledOperatorSignature<T>; readonly operand: CompiledExpression<T, Input> }
+        readonly signature: CompiledExpressionSignature<T>; readonly operand: CompiledExpression<T, Input> }
     | { readonly kind: 'call'; readonly operation: Operation; readonly signature: CompiledCallSignature;
         readonly arguments: readonly CompiledExpression<T, Input>[] }
     | { readonly kind: 'binary'; readonly operation: CompiledOperator;
-        readonly signature: CompiledOperatorSignature<T>;
+        readonly signature: CompiledExpressionSignature<T>;
         readonly left: CompiledExpression<T, Input>; readonly right: CompiledExpression<T, Input> }
 );
 
-export interface CompiledExpressionContext<T extends CompiledAtomType, Input = string> {
-    /** Literal domains supported by the consumer. Other values are not coerced. */
-    readonly types: readonly T[];
+export interface CompiledExpressionSignature<T> {
+    readonly inputs: readonly T[];
+    readonly result: T;
+}
+
+export interface CompiledExpressionContext<T, Input = string> {
+    /** Represent a known atom in the consumer domain; unsupported atoms are not coerced. */
+    readonly atom: (type: CompiledAtomType) => T | undefined;
     /** Consumer-proved inputs: slots, cell reads or other guarded operations.
      * The payload is lowering metadata, never a value observed by this pass. */
     readonly read: (source: Expression, hint?: T) => { readonly type: T; readonly input: Input } | undefined;
@@ -38,14 +43,14 @@ export interface CompiledExpressionContext<T extends CompiledAtomType, Input = s
     /** Optional input-domain hints. The consumer must guard each selected input. */
     readonly operandHint?: (source: Expression, index: 0 | 1, left?: T) => T | undefined;
     /** Select the consumer's declared overload, including its capability gates. */
-    readonly operator: (operation: CompiledOperator, inputs: readonly T[]) => CompiledOperatorSignature<T> | undefined;
+    readonly operator: (operation: CompiledOperator, inputs: readonly T[]) => CompiledExpressionSignature<T> | undefined;
     /** Optional native call capability. Runtime binding identity remains an entry guard. */
     readonly call?: (operation: Operation, inputs: readonly T[]) => CompiledCallSignature | undefined;
     /** Share a finite analysis budget with the enclosing statement analysis. */
     readonly budget: { remaining: number };
 }
 
-export type CompiledExpressionResult<T extends CompiledAtomType, Input = string> =
+export type CompiledExpressionResult<T, Input = string> =
     | { readonly expression: CompiledExpression<T, Input>; readonly failure?: never }
     | { readonly expression?: never; readonly failure: { readonly source: Expression; readonly detail?: string } };
 
@@ -53,7 +58,7 @@ export type CompiledExpressionResult<T extends CompiledAtomType, Input = string>
  * atomic-expression frontend; storage/layout and binding identity remain
  * consumer guards. Unknown names and syntax never acquire guessed types.
  * A failure identifies the first unsupported node in source evaluation order. */
-export function inferCompiledExpression<T extends CompiledAtomType, Input>(
+export function inferCompiledExpression<T, Input>(
     source: Expression, context: CompiledExpressionContext<T, Input>, hint?: T,
 ): CompiledExpressionResult<T, Input> {
     const reject = (detail?: string): CompiledExpressionResult<T, Input> => ({ failure: { source, detail } });
@@ -67,8 +72,8 @@ export function inferCompiledExpression<T extends CompiledAtomType, Input>(
     if (isNumberLiteral(source) || isBooleanLiteral(source) || isStringLiteral(source)) {
         const actual = typeof source.value === 'bigint' ? 'integer'
             : typeof source.value === 'number' ? 'real' : typeof source.value === 'boolean' ? 'boolean' : 'text';
-        const type = context.types.find(type => type === actual);
-        return type ? { expression: { kind: 'literal', source, type, value: source.value } } : reject();
+        const type = context.atom(actual);
+        return type !== undefined ? { expression: { kind: 'literal', source, type, value: source.value } } : reject();
     }
     const input = context.read(source, hint);
     if (input) return { expression: { kind: 'input', source, ...input } };
@@ -111,8 +116,8 @@ export function inferCompiledExpression<T extends CompiledAtomType, Input>(
             arguments_.push(inferred.expression);
         }
         const signature = context.call(operation, arguments_.map(argument => argument.type));
-        const type = signature && context.types.find(type => type === signature.result);
-        return signature && type ? { expression: { kind: 'call', source, type, operation, signature, arguments: arguments_ } }
+        const type = signature && context.atom(signature.result);
+        return signature && type !== undefined ? { expression: { kind: 'call', source, type, operation, signature, arguments: arguments_ } }
             : reject();
     }
     return reject();

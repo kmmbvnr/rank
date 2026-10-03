@@ -193,8 +193,10 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         let tailSource = e;
         while (isParenthesizedExpression(tailSource)) tailSource = tailSource.value;
         const booleanPairs = new Map<Expression, boolean>();
+        const types: readonly CompiledLoopType[] = host.textLoops
+            ? ['integer', 'boolean', 'text', 'bytes'] : ['integer', 'boolean', 'bytes'];
         const inferred = inferCompiledExpression<CompiledLoopType, LoopInput>(e, {
-            types: host.textLoops ? ['integer', 'boolean', 'text', 'bytes'] : ['integer', 'boolean', 'bytes'],
+            atom: type => types.find(candidate => candidate === type),
             read: (source, expected) => {
                 // Scalar operators use the shared inference. Loop-specific cell
                 // reads, calls and literal powers retain their guarded lowering.
