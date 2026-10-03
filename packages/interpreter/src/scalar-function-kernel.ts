@@ -1,4 +1,5 @@
 import {
+    findCompiledOperator,
     isReturnStatement, isAssignmentStatement, isIfStatement, isParenthesizedExpression,
     isNumberLiteral, isBooleanLiteral, isNameExpression, isUnaryExpression, isBinaryExpression,
     type Expression, type FunctionStatement, type Statement,
@@ -12,10 +13,6 @@ interface Kernel {
     run(arguments_: RankValue[], locate: (error: unknown, index: number) => unknown): RankValue;
 }
 const kernels = new WeakMap<FunctionStatement, Kernel | null>();
-const operators: Record<string, string> = {
-    less: '<', greater: '>', atmost: '<=', atleast: '>=', equal: '===', notequal: '!==',
-    and: '&&', or: '||', xor: '!==',
-};
 
 // Callers prove integer arguments and private local assignments before binding.
 // The kernel has no environment access; cached code retains only syntax metadata.
@@ -38,7 +35,7 @@ export function compileScalarFunction(statement: FunctionStatement): Kernel | un
             lines.push(`const ${remainder} = ${left} % ${right};`);
             const adjust = `(${remainder} !== 0n && (${remainder} < 0n) !== (${right} < 0n))`;
             lines.push(`const ${result} = ${op === '//' ? `${left} / ${right} - (${adjust} ? 1n : 0n)` : `${remainder} + (${adjust} ? ${right} : 0n)`};`);
-        } else lines.push(`const ${result} = ${left} ${operators[op] ?? op} ${right};`);
+        } else lines.push(`const ${result} = ${left} ${findCompiledOperator(op)!.binary} ${right};`);
         return result;
     }
     function emit(expression: Expression, lines: string[]): string {
@@ -48,7 +45,7 @@ export function compileScalarFunction(statement: FunctionStatement): Kernel | un
         if (isNameExpression(expression)) return slot(expression.name);
         if (isUnaryExpression(expression)) {
             const value = emit(expression.operand, lines), result = `v${serial++}`;
-            lines.push(`const ${result} = ${expression.operator === 'not' ? '!' : expression.operator === '+' ? '' : '-'}(${value});`);
+            lines.push(`const ${result} = ${findCompiledOperator(expression.operator)!.unary}(${value});`);
             return result;
         }
         if (isBinaryExpression(expression) && (expression.operator === 'and' || expression.operator === 'or')) {

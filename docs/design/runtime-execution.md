@@ -457,8 +457,13 @@ overloads from `packages/language/src/compiled-operators.ts`, which also declare
 which overloads preserve a binding through compound assignment. Control-flow,
 closure and proof-budget checks remain in the interpreter. These profiles pin
 the existing backend limits; they are not the full language operator signatures.
-The loop and tensor operator migrations, richer semantic signatures, and the
-#154 display remain follow-ups in #103 and the typing roadmap.
+The integer-loop emitter reads its overloads and JS operator tokens from the
+same catalogue. Backend entries stay explicit: text concatenation requires
+native-loop calls, and integer powers still require a nonnegative literal
+exponent. Floor arithmetic, short-circuit control flow, binding and storage
+guards remain in the emitters; scalar-function lowering shares the JS tokens.
+Tensor operator migration, richer semantic signatures, and the #154 display
+remain follow-ups in #103 and the typing roadmap.
 
 Before entering each region, the runtime checks required input types and binds
 only the original functions from loaded modules. Rebound functions, unsupported
