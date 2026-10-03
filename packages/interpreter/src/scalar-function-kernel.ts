@@ -5,6 +5,7 @@ import {
     type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { RankError } from './errors.js';
+import { recordFallback } from './diagnostics.js';
 import type { RankValue } from './value.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
 
@@ -17,7 +18,7 @@ const kernels = new WeakMap<FunctionStatement, Kernel | null>();
 // Callers prove integer arguments and private local assignments before binding.
 // The kernel has no environment access; cached code retains only syntax metadata.
 export function compileScalarFunction(statement: FunctionStatement): Kernel | undefined {
-    if (kernels.has(statement)) return kernels.get(statement) ?? undefined;
+    if (kernels.has(statement)) return kernels.get(statement) ?? recordFallback('scalar-function:code-generation');
     if (!scalarFunctionResult(statement, true)) return undefined;
     const slots = new Map<string, number>();
     const slot = (name: string): string => {
@@ -101,5 +102,5 @@ export function compileScalarFunction(statement: FunctionStatement): Kernel | un
     try { kernel = { locations, run: new Function('RankError', source)(RankError) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(statement, kernel ?? null);
-    return kernel;
+    return kernel ?? recordFallback('scalar-function:code-generation');
 }
