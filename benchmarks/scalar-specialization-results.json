@@ -992,5 +992,148 @@
     "demos/tidytuesday/003_brazil.ra",
     "demos/tidytuesday/003_brazil_test.ra",
     "demos/tpch/001_q6_sqlite.ra"
-  ]
+  ],
+  "timingRuns": [
+    {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "samples": 5,
+      "first": "baseline",
+      "revisions": {
+        "baseline": "9257b7a1a203741204c01b764a185b9e0eb70325",
+        "candidate": "3f5f9ae8f344c62c9d5fe91cfb0225de9cf076a1"
+      },
+      "results": [
+        {
+          "name": "Euler 004",
+          "source": "demos/euler/004_palproduct.ra",
+          "expected": "906609",
+          "milliseconds": {
+            "baseline": [
+              2313.3352080000004,
+              2263.15575,
+              2294.0854170000002,
+              2291.766582999997,
+              2268.586959
+            ],
+            "candidate": [
+              2286.318082999999,
+              2278.3546659999993,
+              2324.9645,
+              2302.5494160000017,
+              2287.866332999998
+            ]
+          },
+          "baselineMedian": 2291.766582999997,
+          "candidateMedian": 2287.866332999998,
+          "ratio": 0.9982981469278197
+        },
+        {
+          "name": "Euler 014",
+          "source": "demos/euler/014_collatz.ra",
+          "expected": "837799",
+          "milliseconds": {
+            "baseline": [
+              12359.371666,
+              12249.456625000006,
+              12286.867583,
+              12362.33266699998,
+              12295.839124999999
+            ],
+            "candidate": [
+              12276.659917000004,
+              12346.174625,
+              12322.005915999995,
+              12271.502874999991,
+              12275.121916999982
+            ]
+          },
+          "baselineMedian": 12295.839124999999,
+          "candidateMedian": 12276.659917000004,
+          "ratio": 0.9984401871393227
+        },
+        {
+          "name": "AtCoder Frog 2",
+          "source": "demos/atcoder/edpc/02_frog2.ra",
+          "expected": "139563",
+          "milliseconds": {
+            "baseline": [
+              478.10037499998,
+              477.4266249999928,
+              480.58787499999744,
+              490.8080000000191,
+              488.04116600001
+            ],
+            "candidate": [
+              482.75091699999757,
+              481.62429099998553,
+              490.08366699999897,
+              484.99566600000253,
+              480.098708000005
+            ]
+          },
+          "baselineMedian": 480.58787499999744,
+          "candidateMedian": 482.75091699999757,
+          "ratio": 1.0045008251612677
+        },
+        {
+          "name": "CSES Coin Combinations I",
+          "source": "demos/cses/dynamic/003_coincomb1.ra",
+          "expected": "793505236",
+          "milliseconds": {
+            "baseline": [
+              559.7891250000102,
+              559.6989579999936,
+              566.6446249999863,
+              563.7988750000077,
+              560.1694999999891
+            ],
+            "candidate": [
+              561.3695830000215,
+              565.6270420000073,
+              567.3740419999813,
+              557.6666670000122,
+              564.9653749999998
+            ]
+          },
+          "baselineMedian": 560.1694999999891,
+          "candidateMedian": 564.9653749999998,
+          "ratio": 1.0085614711261695
+        },
+        {
+          "name": "CSES Dice Combinations",
+          "source": "demos/cses/dynamic/001_dice.ra",
+          "expected": "797925478",
+          "milliseconds": {
+            "baseline": [
+              445.05266699998174,
+              440.9630420000176,
+              439.59225000001607,
+              446.9270419999957,
+              441.6903750000056
+            ],
+            "candidate": [
+              441.91079100000206,
+              443.0343329999887,
+              441.91950000001816,
+              441.98487499999464,
+              441.62483300000895
+            ]
+          },
+          "baselineMedian": 441.6903750000056,
+          "candidateMedian": 441.91950000001816,
+          "ratio": 1.0005187457390543
+        }
+      ]
+    }
+  ],
+  "fullTestRun": {
+    "implementationRevision": "3b3b89c2465cb49b6f8e5f962534ac9cca1e6eea",
+    "language": 759,
+    "interpreter": 3243,
+    "interpreterSkipped": 333,
+    "common": 242,
+    "cli": 490,
+    "exporter": 10
+  }
 }
