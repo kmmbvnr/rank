@@ -5,6 +5,7 @@ export * from './generated/grammar.js';
 export * from './generated/module.js';
 export * from './operations.js';
 export * from './compiled-operators.js';
+export * from './compiled-expression.js';
 export * from './function-ranks.js';
 export * from './shape-signature.js';
 export * from './application-forms.js';

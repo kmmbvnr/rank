@@ -445,6 +445,26 @@ implementation. Fully compiled integer loops already use native jumps and are
 unchanged. See the [benchmark results](../../benchmarks/loop-control-results.md)
 for measured effects and scope.
 
+## Shared compiler expression proofs
+
+The language package's `inferCompiledExpression` builds a typed expression tree
+from literals, named inputs, grouping and operators. Consumers supply their
+supported literal domains, known input types and catalogue overload policy.
+The frontend shares a bounded budget with statement analysis and returns the
+first unsupported node. It never executes values or treats missing input facts
+as a type proof.
+
+Scalar-function analysis stores these trees in its cached proof; its kernel
+lowers them directly. The trees retain source nodes, child order and the selected
+overload. Function arguments, private local bindings, captures and builtin
+identities still need their existing runtime guards. This first migration does
+not add compiled operations or types, and does not claim a speed improvement.
+
+The remaining #102 stages extend this frontend to native calls and effects,
+guarded tensor domains and array types, then migrate loop/tensor consumers and
+higher-order operations. Those paths still retain their current inference and
+layout guards until their own migration is verified.
+
 ## Typed builtin calls in loops
 
 The whole-loop compiler also supports text concatenation and compact byte

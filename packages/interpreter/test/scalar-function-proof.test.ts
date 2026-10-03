@@ -26,10 +26,21 @@ const cases = [
 describe('scalar function operator eligibility', () => {
     it.each(cases)('proves and executes %s', (expression, type, value) => {
         const fn = statement(`return ${expression}`);
-        expect(scalarFunctionResult(fn)).toEqual({ type, locals: [] });
+        expect(scalarFunctionResult(fn)).toMatchObject({ type, locals: [] });
         const kernel = compileScalarFunction(fn);
         expect(kernel).toBeDefined();
         expect(kernel!.run([7n, 3n], error => error)).toBe(value);
+    });
+
+    it('reuses a proved expression tree across repeated preparations', () => {
+        const fn = statement('Local = X + Y\nreturn Local * 2');
+        const proof = scalarFunctionResult(fn, true)!;
+        expect(proof.expressions.size).toBe(2);
+        expect(scalarFunctionResult(fn, true)).toBe(proof);
+        const trees = [...proof.expressions.values()];
+        compileScalarFunction(fn);
+        expect([...scalarFunctionResult(fn, true)!.expressions.values()]).toEqual(trees);
+        expect([...proof.expressions.values()][0]).toBe(trees[0]);
     });
 
     it('has executable coverage for every catalogue overload', () => {
