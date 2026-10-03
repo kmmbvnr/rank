@@ -240,7 +240,7 @@ it('declines generated function code when CSP blocks Function', () => {
 
 
 describe('compiled scalar tail completion', () => {
-    it.each([false, true])('finishes caller resources after tail completion (error=%s)', fails => {
+    it.each([[false, false], [true, false], [false, true], [true, true]])('finishes caller resources after tail completion (error=%s, native=%s)', (fails, nativeCall) => {
         const results = [false, true].map(compiledScalarTailCalls => {
             const io = new MemoryIo({ '/input': 'Rank' });
             const openDuringKernel: boolean[] = [];
@@ -251,9 +251,10 @@ describe('compiled scalar tail completion', () => {
             let value: unknown, error: string | undefined;
             try {
                 runtime.execute(`use io
+use text
 fun helper X
   Value = X - 3
-  return ${fails ? '10 // Value' : 'Value + 4'}
+  return ${nativeCall ? fails ? '(1114112 + Value * 1114112) character' : '(Value + 4) text' : fails ? '10 // Value' : 'Value + 4'}
 end
 fun perform N
   File = "/input" open
@@ -274,7 +275,7 @@ end`);
         expect({ ...results[1], openDuringKernel: [] }).toEqual({ ...results[0], openDuringKernel: [] });
         expect(results[1].closed).toBe(true);
         expect(results[1].openDuringKernel).toEqual([true, true]);
-        if (fails) expect(results[1].error).toContain('division by zero');
-        else expect(results[1].value).toBe(4n);
+        if (fails) expect(results[1].error).toContain(nativeCall ? 'invalid Unicode code point' : 'division by zero');
+        else expect(results[1].value).toBe(nativeCall ? '4' : 4n);
     });
 });
