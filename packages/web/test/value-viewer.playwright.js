@@ -34,6 +34,15 @@ async page => {
     await page.waitForFunction(() => document.querySelectorAll('#value-viewer tbody tr').length >= 30, null, { timeout: 5000 });
     check((await dialog.locator('thead th').count()) >= 3, 'column headers missing');
 
+    // Scrolling is smooth: a few pixels move the rows by pixels, not by a whole row.
+    const firstRowTop = () => page.evaluate(() => document.querySelector('#value-viewer tbody tr').getBoundingClientRect().top);
+    const restingTop = await firstRowTop();
+    await page.evaluate(() => { document.querySelector('regular-table').scrollTop = 3; });
+    await page.waitForFunction(top => document.querySelector('#value-viewer tbody tr').getBoundingClientRect().top !== top, restingTop, { timeout: 3000 });
+    const moved = restingTop - await firstRowTop();
+    check(moved > 1 && moved < 20, `three pixels of scroll moved the first row by ${moved}px`);
+    await page.evaluate(() => { document.querySelector('regular-table').scrollTop = 0; });
+
     // Scroll to the end: the last row shows the last values, still with a bounded number of cells.
     await page.evaluate(() => { const table = document.querySelector('regular-table'); table.scrollTop = table.scrollHeight; });
     await page.waitForFunction(() => document.querySelector('#value-viewer tbody tr:last-child td')?.textContent === '2999998', null, { timeout: 15000 });
@@ -50,7 +59,8 @@ async page => {
     // Escape closes the viewer and returns to the result row.
     await page.keyboard.press('Escape');
     await dialog.waitFor({ state: 'hidden' });
-    await page.waitForFunction(() => !document.querySelector('#value-viewer[open]'));
+    // The close event reaches the notebook a moment later; the result row is highlighted once it has.
+    await page.waitForFunction(() => document.querySelectorAll('#screen span[style*="background-color"]').length > 0, null, { timeout: 5000 });
 
     // Android's Back reaches the page as rankBack(): it closes an open viewer, and answers false when none is open.
     await input.press('Enter');
@@ -61,7 +71,7 @@ async page => {
     await page.waitForFunction(() => document.querySelector('#screen').textContent.includes('integer [1000000 3]'), null, { timeout: 5000 });
     // Opened from the focused row, closing returns to it (highlighted); opened by a tap, the row stays unselected.
     const highlighted = () => page.locator('#screen span[style*="background-color"]').count();
-    check(await highlighted() > 0, 'the result row is not highlighted after a keyboard open');
+    await page.waitForFunction(() => document.querySelectorAll('#screen span[style*="background-color"]').length > 0, null, { timeout: 5000 });
     await page.locator('#screen .terminal-row', { hasText: 'integer [1000000 3]' }).first().click();
     await dialog.waitFor({ state: 'visible' });
     check(await page.evaluate(() => window.rankBack()) === true, 'Back did not take the press after a tap');

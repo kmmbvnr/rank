@@ -1,4 +1,6 @@
 import 'regular-table';
+// Without this the table can only move by whole cells; with it, the scroll offset inside a cell moves the rows by pixels.
+import 'regular-table/dist/css/sub-cell-scrolling.css';
 import type { RegularTableElement } from 'regular-table';
 import type { DataResponse } from 'regular-table/dist/esm/types.js';
 import type { InspectCell, InspectedValue } from '@arrrank/common/value-inspection';
