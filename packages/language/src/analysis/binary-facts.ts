@@ -17,25 +17,6 @@ export function binaryExpressionFacts(
     const symbolic = applicationForm(expression, name => lookup(name) ? false : findOperation(name));
     const transferred = symbolicFormFacts(symbolic, lookup, infer);
     if (transferred) return transferred;
-    if (symbolic?.kind === 'outer'
-        && ['+', '-', '*', '/', '//', '%', '**'].includes(symbolic.operator)) {
-        if (symbolic.operands.length === 2) {
-            const left = infer(symbolic.operands[0], lookup);
-            const right = infer(symbolic.operands[1], lookup);
-            if (left.shape && right.shape && left.types.join() === 'array'
-                && right.types.join() === 'array') {
-                const shape = [...left.shape, ...right.shape];
-                const numeric = [left, right].every(value =>
-                    (value.eagerScalarCells || value.callbackFreeScalarCells)
-                    && value.elements?.length && value.elements.every(type => type === 'integer' || type === 'real'));
-                const integers = ['+', '-', '*', '//', '%'].includes(expression.operator)
-                    && [left, right].every(value => value.elements?.join() === 'integer');
-                return { types: ['array'], rank: shape.length, shape,
-                    ...(numeric ? { elements: (integers ? ['integer'] : ['integer', 'real']) as Types,
-                        callbackFreeScalarCells: true as const } : {}) };
-            }
-        }
-    }
     const left = infer(expression.left, lookup);
     const right = infer(expression.right, lookup);
     if (['in', 'notin'].includes(expression.operator)
@@ -163,6 +144,25 @@ export function binaryExpressionFacts(
 /** Transfer a classified modifier independently of the source spelling. */
 export function symbolicFormFacts(symbolic: ApplicationForm, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts | undefined {
+    if (symbolic?.kind === 'outer'
+        && ['+', '-', '*', '/', '//', '%', '**'].includes(symbolic.operator)) {
+        if (symbolic.operands.length === 2) {
+            const left = infer(symbolic.operands[0], lookup);
+            const right = infer(symbolic.operands[1], lookup);
+            if (left.shape && right.shape && ['array', 'sequence'].includes(left.types.join())
+                && ['array', 'sequence'].includes(right.types.join())) {
+                const shape = [...left.shape, ...right.shape];
+                const numeric = [left, right].every(value =>
+                    (value.eagerScalarCells || value.callbackFreeScalarCells)
+                    && value.elements?.length && value.elements.every(type => type === 'integer' || type === 'real'));
+                const integers = ['+', '-', '*', '//', '%'].includes(symbolic.operator)
+                    && [left, right].every(value => value.elements?.join() === 'integer');
+                return { types: ['array'], rank: shape.length, shape,
+                    ...(numeric ? { elements: (integers ? ['integer'] : ['integer', 'real']) as Types,
+                        callbackFreeScalarCells: true as const } : {}) };
+            }
+        }
+    }
     if (symbolic?.kind === 'segment' && symbolic.operator === '+') {
         const values = infer(symbolic.source, lookup);
         if (['array', 'sequence'].includes(values.types.join()) && values.rank === 1

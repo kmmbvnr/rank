@@ -92,13 +92,13 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
         case 'collection-mutation': case 'unpack': case 'invalid': case 'axis-matmul': case 'axis-quantile':
         case 'axis-window': case 'axis-shift': case 'axis-shuffle': case 'axis-argsort': case 'axis-metric':
         case 'axis-transpose': case 'axis-selection':
-        case 'comparison-rank': case 'outer':
+        case 'comparison-rank':
             return UNKNOWN_VALUE;
         case 'named-scan':
             return namedScanFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
         case 'multiset-method':
             return multisetMethodFacts(form, lookup, infer);
-        case 'segment': case 'scan': case 'reduce':
+        case 'segment': case 'scan': case 'reduce': case 'outer':
             return symbolicFormFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
         default: return assertNever(form);
     }
