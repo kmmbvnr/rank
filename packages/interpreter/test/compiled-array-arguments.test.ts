@@ -126,3 +126,16 @@ it('rechecks mutable storage and switches prepared calls back to inspection', ()
         expect(calls).toBe(1);
     } finally { runtime.dispose(); }
 });
+
+it('preserves aliases returned through local array bindings', () => {
+    const source = 'fun pass A\nB = A\nreturn B\nend\nSource = array 1 2\nAlias = Source pass\nAlias 0 = 9\ntuple Source Alias';
+    const results = [false, true].map(scalarFunctionCompilation => {
+        let calls = 0;
+        const runtime = new Interpreter(undefined, { scalarFunctionCompilation, onScalarFunctionExecuted: () => calls++ });
+        try { return { value: formatValue(runtime.execute(source)!), calls }; }
+        finally { runtime.dispose(); }
+    });
+    expect(results[1].value).toBe(results[0].value);
+    expect(results[0].calls).toBe(0);
+    expect(results[1].calls).toBe(1);
+});
