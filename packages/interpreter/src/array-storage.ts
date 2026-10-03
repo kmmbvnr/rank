@@ -55,6 +55,22 @@ export function materializedArrayItems(value: RankArray): RankValue[] | undefine
 }
 
 
+/** Prepared readers remove view dispatch, not validation or effects. Preparing
+ * one must not read cells; using it may still execute callbacks or throw. */
+const arrayReadPlans = new WeakMap<RankArray, () => ((index: number) => RankValue) | undefined>();
+
+export function registerArrayReadPlan<T extends RankArray>(
+    value: T, prepare: () => ((index: number) => RankValue) | undefined,
+): T {
+    arrayReadPlans.set(value, prepare);
+    return value;
+}
+
+export function prepareArrayRead(value: RankArray): ((index: number) => RankValue) | undefined {
+    return arrayReadPlans.get(value)?.();
+}
+
+
 interface OwnedStorage {
     /** The cells. Typed storage stands in here while `typed` is set: only index
      * and length reads are valid on it, and `convert` swaps in a plain array. */

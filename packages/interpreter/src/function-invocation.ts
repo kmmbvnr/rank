@@ -60,6 +60,7 @@ interface BorrowProof {
 // definitions are found from the function object rather than from a scope.
 const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[]) => Evaluation<RankValue>>();
 const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
+const scalarCallbacks = new WeakMap<NativeFunction, (arguments_: RankValue[]) => RankValue>();
 
 /**
  * Defining and calling user functions: closures over their defining frame,
@@ -95,6 +96,12 @@ export class FunctionInvocation {
     invoke(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue> {
         const execution = functionExecutions.get(fn);
         return execution ? execution(arguments_) : completed(fn.call(arguments_));
+    }
+
+    /** A checked synchronous callback for ranked materialization. The closure
+     * belongs to the defining interpreter and revalidates every actual call. */
+    scalarCallback(fn: NativeFunction): ((arguments_: RankValue[]) => RankValue) | undefined {
+        return inspectionEnabled() ? undefined : scalarCallbacks.get(fn);
     }
 
     /** A call in tail position to one of this interpreter's own functions unwinds to the active call. */
@@ -145,25 +152,26 @@ export class FunctionInvocation {
             }
             return instance;
         };
+        const canRunScalar = (arguments_: RankValue[]): boolean => scalar !== undefined && !inspectionEnabled()
+            && arguments_.length === statement.parameters.length
+            && arguments_.every(value => typeof value === 'bigint')
+            && !proof!.locals.some(name => context?.find(name))
+            && (!scalar.available || scalar.available());
         const body = (arguments_: RankValue[]): Evaluation<RankValue> => {
-            if (scalar && arguments_.length === statement.parameters.length
-                && arguments_.every(value => typeof value === 'bigint')
-                && !proof!.locals.some(name => context?.find(name))
-                && (!scalar.available || scalar.available())) {
-                return completed(scalar(arguments_));
-            }
+            if (canRunScalar(arguments_)) return completed(scalar!(arguments_));
             return direct ? completed(this.callDirectFunction(statement, arguments_, context, direct))
                 : this.callFunction(statement, arguments_, context);
         };
+        const checkReturn = (contract: ReturnContract, arguments_: RankValue[], value: RankValue): RankValue => {
+            try { return contract.check(value); }
+            catch (error) {
+                if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
+                throw this.host.locate(error, statement);
+            }
+        };
         const checkedBody = (arguments_: RankValue[]): Evaluation<RankValue> => {
             const contract = specialization(arguments_);
-            return mapResult(body(arguments_), value => {
-                try { return contract.check(value); }
-                catch (error) {
-                    if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
-                    throw this.host.locate(error, statement);
-                }
-            });
+            return mapResult(body(arguments_), value => checkReturn(contract, arguments_, value));
         };
         // Only successful, validated returns enter the closure's memo cache.
         const cache = statement.memo ? new Map<string, RankValue>() : undefined;
@@ -210,6 +218,16 @@ export class FunctionInvocation {
             // A memo call must return through its cache writer. Do not bypass it
             // via the tail-call path that enters an ordinary function body.
             if (!statement.memo) functionDefinitions.set(fn, { owner: this, statement, context, direct, specialization });
+            if (!statement.memo && scalar) scalarCallbacks.set(fn, arguments_ => {
+                // The caller already read the operands. A declined guard uses
+                // those same values and keeps memo/generator paths untouched.
+                if (!canRunScalar(arguments_)) return fn.call(arguments_);
+                enterRuntime();
+                try {
+                    const contract = specialization(arguments_);
+                    return checkReturn(contract, arguments_, scalar(arguments_));
+                } finally { leaveRuntime(); }
+            });
         }
         if (!generator && !statement.memo) {
             this.host.flatCombine(fn, statement, builtins => {

@@ -477,6 +477,31 @@ array types, then migrate loop/tensor consumers and
 higher-order operations. Those paths still retain their current inference and
 layout guards until their own migration is verified.
 
+## Prepared ranked callbacks
+
+Rank-zero application over an array can reuse a function's prepared scalar call.
+The callback belongs to the defining interpreter. Every actual call checks the
+argument domain, captured local collisions and native bindings, and enforces the
+same return contract and logical call depth. A declined guard calls the ordinary
+function with the operands already read. Memo functions and generators retain
+their own invocation paths; inspection uses ordinary callbacks.
+
+Shape discovery and individual reads retain their existing demand order and
+successful-cell cache. A full materialization can then use a prepared reader
+without repeating `itemAt` and shape dispatch for each scalar result. Empty
+frames call nothing. Failure retains earlier successful cells and does not read
+later ones; soft missing values retain the consumer's existing handling.
+
+Binding-contract wrappers compose this reader with their per-cell checks. They
+validate immediately after each read, including when another assignment has
+refined a shared contract. Preparing a reader never evaluates cells, and a
+prepared reader is not a purity proof: callers must still allow errors and
+callbacks. `RuntimeDiagnostics.rankedBatches` counts preparation of these full
+materialization attempts, including retries after failure. The reader keeps
+interrupt checkpoints. This stage covers ranked unary array callbacks; sequence
+fusion, reductions, dyadic outer calls and the common tensor frontend remain
+separate #102 work.
+
 ## Typed builtin calls in loops
 
 The whole-loop compiler also supports text concatenation and compact byte

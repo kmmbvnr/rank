@@ -3,7 +3,7 @@ import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType }
 import { FlatRecords } from './flat.js';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { arrayElementTypes } from './array-element-types.js';
-import { arrayRevision, holdArraySource, materializedArrayItems, materializeCells, ownedArray, readArrayItem, registerArrayDependencies, registerCachedArray } from './array-storage.js';
+import { arrayRevision, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies, registerCachedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { recordContract, retainRecordContract } from './record-contract.js';
@@ -228,10 +228,11 @@ export class ArrayBindingContract {
         const version = this.version ??= ownedArray([0n]);
         const prepared: Prepared = { value, contract: base };
         const size = value.shape.reduce((a, b) => a * b, 1);
-        const read = (index: number): RankValue => {
+        const sourceRead = (index: number) => readArrayItem(value, index);
+        const read = (index: number, source = sourceRead): RankValue => {
             let item: RankValue;
             let missing: MissingValueError | undefined;
-            try { item = readArrayItem(value, index); }
+            try { item = source(index); }
             catch (error) {
                 if (!(error instanceof MissingValueError) || !error.soft) throw error;
                 item = MISSING;
@@ -252,10 +253,14 @@ export class ArrayBindingContract {
         let cache: { source: number; version: number; items: RankValue[] } | undefined;
         const peek = (): RankValue[] | undefined => cache && arrayRevision(value) === cache.source
             && arrayRevision(version) === cache.version ? cache.items : undefined;
+        const prepare = (): ((index: number) => RankValue) | undefined => {
+            const source = prepareArrayRead(value);
+            return source ? index => read(index, source) : undefined;
+        };
         const all = (): RankValue[] => {
             const previous = peek();
             if (previous) return previous;
-            const items = materializeCells(size, read);
+            const items = materializeCells(size, prepare() ?? read);
             const source = arrayRevision(value);
             if (source !== undefined) cache = { source, version: arrayRevision(version)!, items };
             return items;
@@ -263,6 +268,7 @@ export class ArrayBindingContract {
         const checked = registerCachedArray(registerArrayDependencies({ kind: 'array' as const,
             shape: value.shape, itemAt: read, containsFiles: value.containsFiles,
             get items() { return all(); } }, [value, version]), peek);
+        registerArrayReadPlan(checked, prepare);
         this.metadata(value, checked);
         holdArraySource(checked, value);
         prepared.value = checked;
