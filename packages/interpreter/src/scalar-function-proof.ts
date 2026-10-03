@@ -1,7 +1,7 @@
 import {
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType,
-    isReturnStatement, isAssignmentStatement, isIfStatement,
+    isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement,
     type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compilerRejection } from './compiler-rejection.js';
@@ -48,7 +48,12 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     function type(expression: Expression, env: ReadonlyMap<string, CompiledScalarType>): CompiledScalarType | undefined {
         const inferred = inferCompiledExpression(expression, {
             types: compiledScalarTypes,
-            lookup: name => env.get(name),
+            read: source => {
+                if (!isNameExpression(source)) return undefined;
+                const type = env.get(source.name);
+                return type ? { type, input: source.name } : undefined;
+            },
+            isBound: name => env.has(name),
             operator: (operation, inputs) => matchCompiledOperatorSignature(operation.scalarFunction, inputs),
             call: (operation, inputs) => {
                 const signature = matchCompiledCallSignature(operation, inputs);

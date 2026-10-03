@@ -2219,6 +2219,8 @@ Total`);
 describe('tail calls from compiled loop returns', () => {
     it.each([
         ['conditional', 'for N greater 0\n  return N helper\nend', true],
+        ['grouped conditional', 'for N greater 0\n  return ((N helper))\nend', true],
+        ['unary after call', 'for N greater 0\n  return -(N helper)\nend', false],
         ['nested conditional', 'for N greater 0\n  for N greater 0\n    return N helper\n  end\nend', true],
         ['range', 'for I in 1 to N\n  return N helper\nend', false],
         ['range inside condition', 'for N greater 0\n  for I in 1 to N\n    return N helper\n  end\nend', false],

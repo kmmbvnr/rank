@@ -1,7 +1,7 @@
 import { EmptyFileSystem } from 'langium';
 import { describe, expect, it } from 'vitest';
 import { createRankServices } from '../src/rank-module.js';
-import { isAssignmentStatement, isBinaryExpression, isNameExpression, type Program } from '../src/generated/ast.js';
+import { isAssignmentStatement, isApplicationExpression, isBinaryExpression, isNameExpression, type Program } from '../src/generated/ast.js';
 import { compiledScalarTypes, findCompiledOperator, matchCompiledOperatorSignature } from '../src/compiled-operators.js';
 import { inferCompiledExpression, type CompiledExpressionContext } from '../src/compiled-expression.js';
 import { matchCompiledCallSignature, type CompiledAtomType } from '../src/operations.js';
@@ -19,7 +19,9 @@ function context(
 ): CompiledExpressionContext<CompiledAtomType> {
     return {
         types: profile === 'scalarFunction' ? compiledScalarTypes : ['integer', 'real', 'boolean'],
-        lookup: name => bindings[name],
+        read: source => isNameExpression(source) && bindings[source.name]
+            ? { type: bindings[source.name], input: source.name } : undefined,
+        isBound: name => Object.prototype.hasOwnProperty.call(bindings, name),
         operator: (operation, inputs) => matchCompiledOperatorSignature(operation[profile], inputs),
         budget: { remaining: 128 },
     };
@@ -33,12 +35,57 @@ describe('shared compiled expression inference', () => {
         const node = result.expression!;
         expect(node).toMatchObject({ kind: 'binary', source, type: 'boolean',
             left: { kind: 'group', operand: { kind: 'binary', type: 'integer',
-                left: { kind: 'input', name: 'A' }, right: { kind: 'literal', value: 1n } } },
-            right: { kind: 'input', name: 'B' } });
+                left: { kind: 'input', input: 'A' }, right: { kind: 'literal', value: 1n } } },
+            right: { kind: 'input', input: 'B' } });
         if (node.kind !== 'binary') throw new Error('expected binary tree');
         expect(node.source).toBe(source);
         expect(node.operation).toBe(findCompiledOperator('less'));
         expect(node.signature).toBe(findCompiledOperator('less')!.scalarFunction[0]);
+    });
+
+    it('retains consumer-proved read metadata without executing it', () => {
+        const source = expression('(Values 0) + 1');
+        const payload = { slot: 4, dimensions: [2], reader: 'reader4' };
+        let inputs = 0;
+        const result = inferCompiledExpression(source, {
+            ...context(),
+            read: node => {
+                if (!isApplicationExpression(node)) return undefined;
+                inputs++;
+                return { type: 'integer' as const, input: payload };
+            },
+        });
+        expect(inputs).toBe(1);
+        expect(result.expression).toMatchObject({ kind: 'binary', type: 'integer',
+            left: { kind: 'group', operand: { kind: 'input', input: payload } } });
+        const node = result.expression!;
+        if (node.kind !== 'binary' || node.left.kind !== 'group' || node.left.operand.kind !== 'input') {
+            throw new Error('expected a guarded read');
+        }
+        expect(node.left.operand.input).toBe(payload);
+    });
+
+    it('passes input hints through grouping and uses the proven left type for the right hint', () => {
+        const seen: [string, CompiledAtomType | undefined][] = [];
+        const result = inferCompiledExpression(expression('(Flag) and Other'), {
+            ...context(),
+            operandHint: (_source, index, left) => index === 0 ? 'boolean' : left,
+            read: (node, hint) => {
+                if (!isNameExpression(node)) return undefined;
+                seen.push([node.name, hint]);
+                return hint ? { type: hint, input: node.name } : undefined;
+            },
+        });
+        expect(result.expression?.type).toBe('boolean');
+        expect(seen).toEqual([['Flag', 'boolean'], ['Other', 'boolean']]);
+    });
+
+    it('distinguishes symbolic modifiers from bound scalar operands', () => {
+        const source = expression('A + reduce');
+        expect(inferCompiledExpression(source, context({ A: 'integer' })).failure)
+            .toEqual({ source, detail: 'application-form' });
+        expect(inferCompiledExpression(source, context({ A: 'integer', reduce: 'integer' })).expression?.type)
+            .toBe('integer');
     });
 
     it('uses the same frontend with consumer-specific numeric domains', () => {
@@ -57,7 +104,7 @@ describe('shared compiled expression inference', () => {
         const result = inferCompiledExpression(expression('X text reverse'), scope);
         expect(result.expression).toMatchObject({ kind: 'call', type: 'text', operation: { name: 'reverse' },
             signature: { inputs: ['text'], result: 'text' }, arguments: [
-                { kind: 'call', operation: { name: 'text' }, arguments: [{ kind: 'input', name: 'X' }] },
+                { kind: 'call', operation: { name: 'text' }, arguments: [{ kind: 'input', input: 'X' }] },
             ] });
     });
 
@@ -88,7 +135,7 @@ describe('shared compiled expression inference', () => {
         const source = expression('Missing + AlsoMissing');
         if (!isBinaryExpression(source)) throw new Error('expected binary expression');
         const reads: string[] = [], scope = context();
-        const result = inferCompiledExpression(source, { ...scope, lookup: name => { reads.push(name); return undefined; } });
+        const result = inferCompiledExpression(source, { ...scope, read: source => { if (isNameExpression(source)) reads.push(source.name); return undefined; } });
         expect(result.failure).toEqual({ source: source.left, detail: 'unbound-name' });
         expect(reads).toEqual(['Missing']);
     });
