@@ -253,8 +253,14 @@ export class FastPaths {
             || !(isBinaryExpression(expression) || isUnaryExpression(expression))) return undefined;
         return compileScalarExpression(expression, {
             leaf,
-            binary: (op, left, right) => this.context.operators.evaluateBinary(op, left, right),
-            unary: (op, value) => this.context.operators.evaluateUnary(op, value),
+            binary: (op, left, right) => {
+                if (currentDiagnostics()) recordFallback(`scalar-expression:operator-guard:${op}`);
+                return this.context.operators.evaluateBinary(op, left, right);
+            },
+            unary: (op, value) => {
+                if (currentDiagnostics()) recordFallback(`scalar-expression:operator-guard:${op}`);
+                return this.context.operators.evaluateUnary(op, value);
+            },
             compiled: this.context.options().onScalarCompiled,
             executed: this.context.options().onScalarExecuted,
         });

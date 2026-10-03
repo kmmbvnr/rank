@@ -475,8 +475,21 @@ the same catalogue. Their real-valued and mixed numeric arithmetic profiles do
 not enable those types in scalar functions or loop registers. Tensor comparisons
 still require matching numeric domains; boolean equality remains outside that
 backend. Shape binding, storage probes, finite-value guards, power bounds, and
-empty-domain evaluation timing remain in the tensor compiler. Rejection
-diagnostics, richer language signatures, and the #154 display remain follow-ups.
+empty-domain evaluation timing remain in the tensor compiler. Richer language
+signatures and the #154 display remain follow-ups.
+
+`RuntimeDiagnostics.fallbacks` retains the coarse loop/tensor counters and adds
+operation, node, and guard categories. Examples include
+`scalar-function:unsupported-op:/`, `scalar-function:unsupported-type:real`,
+`loop:unsupported-op:reverse`, `tensor:operator-guard:equal`, and
+`scalar-expression:operator-guard:+`. Scalar-expression guards delegate only the
+rejected operation with its already-read operands. Failed scalar
+proofs cache their reason alongside successful proof results, so enabling
+instrumentation after a failed proof still explains later attempts. Counters
+can include several nested or alternative compilation attempts; they are not
+counts of language errors. Diagnostics never execute an operation or inspect
+additional array cells to determine a reason. Failed guards still return to
+reference execution with the same values, effects, and errors.
 
 Before entering each region, the runtime checks required input types and binds
 only the original functions from loaded modules. Rebound functions, unsupported

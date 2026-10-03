@@ -1,0 +1,340 @@
+{
+  "initial": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": 5,
+    "revisions": {
+      "baseline": "c2be797f1d6a12617fd24cc81004ea6476ba6913",
+      "candidate": "ab84281bcf7ff967a0b2194a2c730f0b17e0b7e9"
+    },
+    "results": [
+      {
+        "name": "Euler 004",
+        "source": "demos/euler/004_palproduct.ra",
+        "expected": "906609",
+        "milliseconds": {
+          "baseline": [
+            4716.577583,
+            4723.927542000001,
+            4874.170208,
+            4735.392791999999,
+            4761.919249999999
+          ],
+          "candidate": [
+            4871.575708,
+            4924.969083,
+            4712.349291999999,
+            4778.981124999998,
+            5005.278416000001
+          ]
+        },
+        "baselineMedian": 4735.392791999999,
+        "candidateMedian": 4871.575708,
+        "ratio": 1.028758525846065
+      },
+      {
+        "name": "Euler 014",
+        "source": "demos/euler/014_collatz.ra",
+        "expected": "837799",
+        "milliseconds": {
+          "baseline": [
+            13240.965500000006,
+            13255.396832999992,
+            12880.29458300001,
+            13127.316250000003,
+            12948.570000000007
+          ],
+          "candidate": [
+            13569.720291999998,
+            12845.476249999992,
+            13110.013749999984,
+            12896.898000000016,
+            13123.554457999999
+          ]
+        },
+        "baselineMedian": 13127.316250000003,
+        "candidateMedian": 13110.013749999984,
+        "ratio": 0.9986819468907043
+      },
+      {
+        "name": "AtCoder Frog 2",
+        "source": "demos/atcoder/edpc/02_frog2.ra",
+        "expected": "139563",
+        "milliseconds": {
+          "baseline": [
+            485.3580409999995,
+            478.3810840000224,
+            490.3192080000008,
+            477.9560000000056,
+            478.20183299999917
+          ],
+          "candidate": [
+            491.39300000001094,
+            481.67125000001397,
+            481.33733400001074,
+            487.154291999992,
+            480.06529100000625
+          ]
+        },
+        "baselineMedian": 478.3810840000224,
+        "candidateMedian": 481.67125000001397,
+        "ratio": 1.0068777092364953
+      },
+      {
+        "name": "CSES Coin Combinations I",
+        "source": "demos/cses/dynamic/003_coincomb1.ra",
+        "expected": "793505236",
+        "milliseconds": {
+          "baseline": [
+            562.1160420000087,
+            558.984832999995,
+            565.2728749999951,
+            565.4642079999903,
+            570.0535830000008
+          ],
+          "candidate": [
+            564.7841250000056,
+            573.7054580000113,
+            565.3311669999966,
+            567.7600840000086,
+            576.2221250000002
+          ]
+        },
+        "baselineMedian": 565.2728749999951,
+        "candidateMedian": 567.7600840000086,
+        "ratio": 1.004400014771651
+      },
+      {
+        "name": "CSES Dice Combinations",
+        "source": "demos/cses/dynamic/001_dice.ra",
+        "expected": "797925478",
+        "milliseconds": {
+          "baseline": [
+            436.6584579999908,
+            436.7147910000058,
+            439.65533300000243,
+            439.80683300000965,
+            440.21495900000446
+          ],
+          "candidate": [
+            447.73199999998906,
+            445.2154580000206,
+            442.64354099999764,
+            442.6537910000188,
+            440.28362500001094
+          ]
+        },
+        "baselineMedian": 439.65533300000243,
+        "candidateMedian": 442.6537910000188,
+        "ratio": 1.0068200196266388
+      }
+    ]
+  },
+  "palindromeRepeat": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": 7,
+    "first": "candidate",
+    "revisions": {
+      "baseline": "c2be797f1d6a12617fd24cc81004ea6476ba6913",
+      "candidate": "ab84281bcf7ff967a0b2194a2c730f0b17e0b7e9"
+    },
+    "results": [
+      {
+        "name": "Euler 004",
+        "source": "demos/euler/004_palproduct.ra",
+        "expected": "906609",
+        "milliseconds": {
+          "baseline": [
+            4750.446750000001,
+            4725.992082999997,
+            4771.963750000003,
+            4757.067083999995,
+            4771.007541999999,
+            4719.919000000002,
+            4768.661708999993
+          ],
+          "candidate": [
+            4696.381291,
+            4732.67225,
+            4728.820917000005,
+            4700.449333000004,
+            4756.274624999998,
+            4763.467749999996,
+            4768.928958000004
+          ]
+        },
+        "baselineMedian": 4757.067083999995,
+        "candidateMedian": 4732.67225,
+        "ratio": 0.9948718751345665
+      }
+    ]
+  },
+  "final": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": 5,
+    "first": "baseline",
+    "revisions": {
+      "baseline": "c2be797f1d6a12617fd24cc81004ea6476ba6913",
+      "candidate": "a5f4eee5f26176492181cec6e6476a5190f9a182"
+    },
+    "results": [
+      {
+        "name": "Euler 004",
+        "source": "demos/euler/004_palproduct.ra",
+        "expected": "906609",
+        "milliseconds": {
+          "baseline": [
+            4675.681125000001,
+            4678.191167000001,
+            4652.752500000002,
+            4763.411749999999,
+            4685.510625000003
+          ],
+          "candidate": [
+            4724.518708,
+            4673.6547500000015,
+            4713.574708,
+            4719.449292000005,
+            4677.827208000002
+          ]
+        },
+        "baselineMedian": 4678.191167000001,
+        "candidateMedian": 4713.574708,
+        "ratio": 1.0075635090009991
+      },
+      {
+        "name": "Euler 014",
+        "source": "demos/euler/014_collatz.ra",
+        "expected": "837799",
+        "milliseconds": {
+          "baseline": [
+            12828.06066599999,
+            12948.713374999992,
+            12774.507874999981,
+            12598.15183399999,
+            12837.520250000001
+          ],
+          "candidate": [
+            12852.56745799999,
+            13025.746375000002,
+            12779.108959000005,
+            12769.175584000011,
+            12918.088500000013
+          ]
+        },
+        "baselineMedian": 12828.06066599999,
+        "candidateMedian": 12852.56745799999,
+        "ratio": 1.0019104050595078
+      },
+      {
+        "name": "AtCoder Frog 2",
+        "source": "demos/atcoder/edpc/02_frog2.ra",
+        "expected": "139563",
+        "milliseconds": {
+          "baseline": [
+            478.9695420000062,
+            482.04595800000243,
+            476.00908400001936,
+            492.88791600000695,
+            478.28595900000073
+          ],
+          "candidate": [
+            484.2907079999859,
+            483.7779579999915,
+            480.82620799998404,
+            480.0511669999978,
+            483.12054099998204
+          ]
+        },
+        "baselineMedian": 478.9695420000062,
+        "candidateMedian": 483.12054099998204,
+        "ratio": 1.0086665197595712
+      },
+      {
+        "name": "CSES Coin Combinations I",
+        "source": "demos/cses/dynamic/003_coincomb1.ra",
+        "expected": "793505236",
+        "milliseconds": {
+          "baseline": [
+            566.158041000017,
+            561.2415409999958,
+            560.2125419999938,
+            573.4938329999859,
+            563.8418750000128
+          ],
+          "candidate": [
+            566.1767919999838,
+            564.6734580000048,
+            562.7173750000075,
+            567.5478329999896,
+            569.4323339999828
+          ]
+        },
+        "baselineMedian": 563.8418750000128,
+        "candidateMedian": 566.1767919999838,
+        "ratio": 1.0041410847677303
+      },
+      {
+        "name": "CSES Dice Combinations",
+        "source": "demos/cses/dynamic/001_dice.ra",
+        "expected": "797925478",
+        "milliseconds": {
+          "baseline": [
+            435.4094580000092,
+            439.3015000000014,
+            435.4560840000049,
+            436.5000830000208,
+            439.66587500000605
+          ],
+          "candidate": [
+            439.2615419999929,
+            442.35537500001374,
+            439.64475000000675,
+            440.15683299998636,
+            440.01954199999454
+          ]
+        },
+        "baselineMedian": 436.5000830000208,
+        "candidateMedian": 440.01954199999454,
+        "ratio": 1.0080629056832815
+      }
+    ]
+  },
+  "finalAudit": {
+    "candidate": "a5f4eee5f26176492181cec6e6476a5190f9a182",
+    "testFiles": 392,
+    "tests": 1356,
+    "standalonePrograms": 74,
+    "csvExports": 54,
+    "databaseUpdates": 9,
+    "compiledLoops": {
+      "tests": 4240684,
+      "standalone": 1,
+      "chessFixture": 2
+    },
+    "compiledTensors": {
+      "tests": 405171,
+      "standalone": 0,
+      "chessFixture": 0
+    },
+    "sourceFilesAccounted": 858,
+    "scalarProof": {
+      "files": 858,
+      "functions": 618,
+      "simple": 6,
+      "blocks": 14,
+      "rejected": []
+    },
+    "comparisons": [
+      "pre-refactor behavior and compiled counts and normalized generated code",
+      "interpreter-only behavior"
+    ],
+    "sourceTrees": {
+      "packages/language/src": "02d13a0cf003392584563ea69d96aa528dec36cc",
+      "packages/interpreter/src": "f4ef9b3fcbbaaae2358df0219d2bf0ecdbae4880",
+      "packages/cli/src": "70c1996d4e24504ae3b5fb2e7a7cfa61165bb295"
+    }
+  }
+}

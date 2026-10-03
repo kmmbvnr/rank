@@ -1,4 +1,6 @@
 import { checkpoint, interruptsEnabled } from './interrupt.js';
+import { currentDiagnostics, recordFallback } from './diagnostics.js';
+import { compilerRejection } from './compiler-rejection.js';
 import {
     flattenApplication, findCompiledOperator, tensorOperatorSignatures,
     isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
@@ -42,7 +44,14 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
     const definitions = new Map<string, TensorNode>();
     const reads = new Map<string, number>();
     const names: string[] = [];
+    function reject(node: Expression | Statement, detail?: string): undefined {
+        if (currentDiagnostics()) recordFallback(compilerRejection('tensor', node, detail));
+        return undefined;
+    }
     function parse(expression: Expression): TensorNode | undefined {
+        return parseExpression(expression) ?? reject(expression);
+    }
+    function parseExpression(expression: Expression): TensorNode | undefined {
         const e = unwrap(expression);
         if (isNameExpression(e) && !e.name.includes('.')) {
             reads.set(e.name, (reads.get(e.name) ?? 0) + 1);
@@ -87,14 +96,14 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
     for (let index = 0; index < Math.min(statements.length, 16); index++) {
         const statement = statements[index];
         const assignment = isAssignmentStatement(statement) && statement.operator === '=';
-        if ((!assignment && !isReturnStatement(statement)) || !statement.value) return undefined;
+        if ((!assignment && !isReturnStatement(statement)) || !statement.value) return reject(statement, 'group');
         const parts = pair(statement.value);
         const last = parts && unwrap(parts[1]);
         if (last && isNameExpression(last) && terminals.has(last.name)) {
             const root = parse(parts![0]);
-            if (!root || root.kind === 'input' && names.length === 0) return undefined;
+            if (!root || root.kind === 'input' && names.length === 0) return reject(statement, 'group');
             if (!privateTensorNames(statements[0], names)
-                || names.some(name => tensorReadCount(statements[0], name) !== reads.get(name))) return undefined;
+                || names.some(name => tensorReadCount(statements[0], name) !== reads.get(name))) return reject(statement, 'group');
             // Do not discard independent assignments merely because a later
             // expression ends with a reduction.
             const reached = new Set<TensorNode>();
@@ -106,16 +115,16 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
                 if (node.kind === 'select') { visit(node.source); visit(node.selector); }
             };
             visit(root);
-            if ([...definitions.values()].some(node => !reached.has(node))) return undefined;
+            if ([...definitions.values()].some(node => !reached.has(node))) return reject(statement, 'group');
             return build(root, names, last.name as Terminal, index + 1, host);
         }
-        if (!isAssignmentStatement(statement)) return undefined;
+        if (!isAssignmentStatement(statement)) return reject(statement, 'group');
         const value = parse(statement.value);
-        if (!value || definitions.has(statement.name)) return undefined;
+        if (!value || definitions.has(statement.name)) return reject(statement, 'group');
         definitions.set(statement.name, value);
         names.push(statement.name);
     }
-    return undefined;
+    return recordFallback('tensor:no-terminal');
 }
 
 function build(root: TensorNode, names: string[], terminal: Terminal, count: number, host: TensorKernelHost) {
@@ -124,11 +133,17 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     let generated = '';
     let unavailable = false;
     return { count, get source() { return generated; }, run(): RankValue | undefined {
-        if (unavailable || names.some(name => host.lookup(name) !== undefined)) return undefined;
+        if (unavailable) return recordFallback('tensor:code-generation');
+        if (names.some(name => host.lookup(name) !== undefined)) return recordFallback('tensor:existing-binding');
         const bound = new Map<TensorNode, Bound>();
         let broadcasts = false;
         const data: RankValue[][] = [], offsets: number[] = [], scalars: RankValue[] = [];
         function bind(node: TensorNode): Bound | undefined {
+            const result = bindNode(node);
+            if (!result && currentDiagnostics()) recordFallback(`tensor:binding:${node.kind === 'binary' || node.kind === 'unary' ? node.op : node.kind === 'input' ? node.name ?? 'literal' : node.kind}`);
+            return result;
+        }
+        function bindNode(node: TensorNode): Bound | undefined {
             if (bound.has(node)) return bound.get(node);
             let result: Bound | undefined;
             if (node.kind === 'input') {
@@ -138,7 +153,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 } else if (value && isRankArray(value)) {
                     // Host-owned arrays can run getters while probing their
                     // cells. Only tracked storage is safe to inspect here.
-                    if (arrayRevision(value) === undefined) return undefined;
+                    if (arrayRevision(value) === undefined) return recordFallback('tensor:untracked-storage');
                     const items = materializedArrayItems(value);
                     if (!Array.isArray(items) || !value.shape.every(n => Number.isSafeInteger(n) && n >= 0)
                         || value.shape.reduce((p, n) => p * n, 1) !== items.length) return undefined;
@@ -188,7 +203,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             // Scalar computations are evaluated before their surrounding
             // tensor operation, even for an empty/fully filtered domain. Until
             // scalar lowering preserves that timing, leave them to reference.
-            if (result && result.shape === undefined && result.scalar === undefined) return undefined;
+            if (result && result.shape === undefined && result.scalar === undefined) return recordFallback('tensor:scalar-evaluation-timing');
             if (result) {
                 if (result.view) {
                     result.slot = data.push(result.view.items) - 1;
@@ -199,11 +214,12 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             return result;
         }
         const output = bind(root);
-        if (!output?.shape || !host.builtin(terminal)) return undefined;
+        if (!output?.shape) return recordFallback('tensor:output-shape');
+        if (!host.builtin(terminal)) return recordFallback(`tensor:builtin:${terminal}`);
         // Gathers and filters have their own iteration domains. They require
         // explicit domain composition before they can mix with broadcasting.
         if (broadcasts && ([...bound.keys()].some(node => node.kind === 'select')
-            || [...bound.values()].some(info => info.digits))) return undefined;
+            || [...bound.values()].some(info => info.digits))) return recordFallback('tensor:broadcast-selection');
         const size = output.shape.reduce((p, n) => p * n, 1);
         // A selection changes cardinality. Other operands must not zip an
         // unfiltered vector against it. Until domain algebra is implemented,
@@ -222,9 +238,9 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             filtered.set(node, value);
             return value;
         }
-        try { domain(root); } catch { return undefined; }
+        try { domain(root); } catch { return recordFallback('tensor:filtered-domain'); }
         // Array output initially requires a fixed cardinality.
-        if (terminal === 'copy' && [...filtered.values()].some(Boolean)) return undefined;
+        if (terminal === 'copy' && [...filtered.values()].some(Boolean)) return recordFallback('tensor:filtered-copy');
         const interruptible = interruptsEnabled();
         const key = String(interruptible) + [...bound.values()].map(b => `${b.shape === undefined ? 's' : b.shape.join(',')}:${b.view ? 'v' : ''}:${b.boolean}:${b.filter ?? false}:${b.slot ?? ''}`).join(';');
         if (cachedKey !== key) {
@@ -261,37 +277,40 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 else if (info.view) lines.push(`const ${name} = data[${info.slot}][offsets[${info.slot}] + ${broadcasts ? address(info.view.shape) : 'i'}];`);
                 else if (node.kind === 'binary') {
                     const a = emit(node.left), b = emit(node.right);
+                    const decline = `return decline(${JSON.stringify(`tensor:operator-guard:${node.op}`)});`;
                     const signatures = tensorOperatorSignatures(node.op, 2);
                     const token = findCompiledOperator(node.op)!.binary;
                     if (signatures.every(signature => signature.inputs[0] === 'boolean')) {
-                        lines.push(`if (typeof ${a} !== 'boolean' || typeof ${b} !== 'boolean') return undefined;`);
+                        lines.push(`if (typeof ${a} !== 'boolean' || typeof ${b} !== 'boolean') ${decline}`);
                         lines.push(`const ${name} = ${a} ${token} ${b};`);
                     } else {
-                        lines.push(`if (!${num(a)} || !${num(b)}) return undefined;`);
+                        lines.push(`if (!${num(a)} || !${num(b)}) ${decline}`);
                         if (signatures.every(signature => signature.result === 'boolean')) {
-                            lines.push(`if (typeof ${a} !== typeof ${b}) return undefined;`);
+                            lines.push(`if (typeof ${a} !== typeof ${b}) ${decline}`);
                             lines.push(`const ${name} = ${a} ${token} ${b};`);
                         } else {
-                            if (node.op === '/') lines.push(`if (${b} === 0n || ${b} === 0) return undefined;`);
-                            if (node.op === '**') lines.push(`if (${b} < 0 || ${b} > 1024 || (typeof ${b} === 'number' && !Number.isInteger(${b}))) return undefined;`);
+                            if (node.op === '/') lines.push(`if (${b} === 0n || ${b} === 0) ${decline}`);
+                            if (node.op === '**') lines.push(`if (${b} < 0 || ${b} > 1024 || (typeof ${b} === 'number' && !Number.isInteger(${b}))) ${decline}`);
                             const expr = `Number(${a}) ${token} Number(${b})`;
                             lines.push(`const ${name} = ${node.op === '/' ? expr : `(typeof ${a} === 'bigint' && typeof ${b} === 'bigint' ? ${a} ${token} ${b} : ${expr})`};`);
                         }
                     }
                 } else if (node.kind === 'unary') {
                     const a = emit(node.operand);
+                    const decline = `return decline(${JSON.stringify(`tensor:operator-guard:${node.op}`)});`;
                     const boolean = tensorOperatorSignatures(node.op, 1).every(signature => signature.inputs[0] === 'boolean');
-                    lines.push(`if (${boolean ? `typeof ${a} !== 'boolean'` : `!${num(a)}`}) return undefined;`);
+                    lines.push(`if (${boolean ? `typeof ${a} !== 'boolean'` : `!${num(a)}`}) ${decline}`);
                     lines.push(`const ${name} = ${findCompiledOperator(node.op)!.unary}${a};`);
                 } else if (node.kind === 'select') {
                     const b = emit(node.selector);
+                    const decline = `return decline('tensor:selection-guard');`;
                     if (info.filter) {
-                        lines.push(`if (typeof ${b} !== 'boolean') return undefined; if (!${b}) continue;`);
+                        lines.push(`if (typeof ${b} !== 'boolean') ${decline} if (!${b}) continue;`);
                         const a = emit(node.source);
                         lines.push(`const ${name} = ${a};`);
                     } else {
                         const source = bound.get(node.source)!;
-                        lines.push(`if (typeof ${b} !== 'bigint' || ${b} < 0n || ${b} >= BigInt(${source.shape![0]})) return undefined;`);
+                        lines.push(`if (typeof ${b} !== 'bigint' || ${b} < 0n || ${b} >= BigInt(${source.shape![0]})) ${decline}`);
                         lines.push(`const ${name} = data[${source.slot}][offsets[${source.slot}] + Number(${b})];`);
                     }
                 }
@@ -299,7 +318,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             }
             const value = emit(root);
             const isBoolean = terminal === 'copy' ? output.boolean : ['any', 'all', 'count'].includes(terminal);
-            lines.push(`if (${isBoolean ? `typeof ${value} !== 'boolean'` : `!${num(value)}`}) return undefined;`);
+            lines.push(`if (${isBoolean ? `typeof ${value} !== 'boolean'` : `!${num(value)}`}) return decline('tensor:terminal-type:${terminal}');`);
             if (terminal === 'copy') lines.push(`answer[i] = ${value};`);
             if (terminal === 'sum') lines.push(`answer = typeof answer === 'bigint' && typeof ${value} === 'bigint' ? answer + ${value} : Number(answer) + Number(${value});`);
             if (terminal === 'mean') lines.push(`answer += Number(${value});`);
@@ -308,9 +327,9 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             if (terminal === 'min' || terminal === 'max') lines.push(`if (length === 0 || ${value} ${terminal === 'min' ? '<' : '>'} answer) answer = ${value};`);
             lines.push('length++;');
             const initial = terminal === 'copy' ? 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
-            generated = `"use strict"; return function(data, offsets, scalars, size) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? 'if (length === 0) return undefined;' : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
-            try { cachedRun = new Function('checkpoint', generated)(checkpoint) as typeof cachedRun; }
-            catch { unavailable = true; return undefined; }
+            generated = `"use strict"; return function(data, offsets, scalars, size) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
+            try { cachedRun = new Function('checkpoint', 'decline', generated)(checkpoint, recordFallback) as typeof cachedRun; }
+            catch { unavailable = true; return recordFallback('tensor:code-generation'); }
             cachedKey = key;
             host.compiled?.(generated);
         }

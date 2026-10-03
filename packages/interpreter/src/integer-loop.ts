@@ -1,5 +1,6 @@
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
+import { compilerRejection } from './compiler-rejection.js';
 import {
     flattenApplication, expressionFacts, findOperation, findCompiledOperator, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
@@ -8,7 +9,7 @@ import {
 } from '@arrrank/language';
 import { completed, type Completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
-import { isRankArray, isRankBytes, isRankIndex, type RankArray, type RankValue } from './value.js';
+import { isRankArray, isRankBytes, isRankIndex, isNativeFunction, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { indexKey } from './index-key.js';
 import { materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray } from './array-storage.js';
@@ -103,10 +104,10 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
                 if (items && typeof items[0] === 'string') textArrays.push(name);
             }
         }
-        if (!text.length && !textArrays.length) return undefined;
+        if (!text.length && !textArrays.length) return recordFallback('loop:no-text-specialization');
         const key = JSON.stringify([text, textArrays]);
         if (!variants.has(key)) {
-            if (variants.size >= 8) return undefined;
+            if (variants.size >= 8) return recordFallback('loop:specialization-budget');
             variants.set(key, compileTypedLoop(statement, host, iteration, new Set(text), new Set(textArrays)));
         }
         return variants.get(key)?.run(insideFinally, insideGenerator, tailCallsAllowed);
@@ -114,7 +115,11 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
 }
 
 function compileTypedLoop(statement: ForStatement, host: Host, iteration: IterationBinding | undefined, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>): CompiledLoop | undefined {
-    if (!statement.statements.length || statement.statements.length > 32) return undefined;
+    function reject(node: Expression | Statement, detail?: string): undefined {
+        if (currentDiagnostics()) recordFallback(compilerRejection('loop', node, detail));
+        return undefined;
+    }
+    if (!statement.statements.length || statement.statements.length > 32) return reject(statement, 'statement-budget');
     const localTypes = new Map<string, Term['type']>();
     const names: string[] = [], required = new Set<number>(), assigned = new Set<string>();
     const writers: ((value: RankValue) => void)[] = [];
@@ -184,6 +189,9 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         return { code: name, type: 'integer' };
     }
     function emit(e: Expression, lines: string[], hint?: Term['type'], tail = false): Term | undefined {
+        return emitExpression(e, lines, hint, tail) ?? reject(e);
+    }
+    function emitExpression(e: Expression, lines: string[], hint?: Term['type'], tail = false): Term | undefined {
         if (serial > 256) return undefined;
         if (isParenthesizedExpression(e)) return emit(e.value, lines, hint, tail);
         if (isNumberLiteral(e) && typeof e.value === 'bigint') return { code: `${e.value}n`, type: 'integer' };
@@ -418,7 +426,10 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         } else return undefined;
         return { code: name, type: signature.result };
     }
-    function loopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number) {
+    function loopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number): { setup: string; header: string; bindings: string } | undefined {
+        return compileLoopParts(node, iteration, location) ?? reject(node, 'loop-header');
+    }
+    function compileLoopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number) {
         const tests: string[] = [];
         let setup = '', header: string, bindings = '';
         if (iteration) {
@@ -484,17 +495,17 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
     function statements(commands: readonly Statement[], body: string[], allowTail: boolean): 'next' | 'stop' | undefined {
         for (const assignment of commands) {
             const location = locations.length;
-            if (location >= 32) return undefined;
+            if (location >= 32) return reject(assignment);
             locations.push(assignment);
             if (isForStatement(assignment)) {
-                if (!host.nestedLoops) return undefined;
+                if (!host.nestedLoops) return reject(assignment);
                 const incoming = new Set(assigned);
                 const binding = host.iteration(assignment.condition);
                 const loop = loopParts(assignment, binding, location);
-                if (!loop) return undefined;
+                if (!loop) return reject(assignment);
                 body.push(`{ let result; location = ${location}; ${loop.setup} ${loop.header}`,
                     'let iterationResult;', loop.bindings);
-                if (statements(assignment.statements, body, allowTail && !binding) === undefined) return undefined;
+                if (statements(assignment.statements, body, allowTail && !binding) === undefined) return reject(assignment);
                 body.push(`result = iterationResult; location = ${location}; } iterationResult = result; }`);
                 // An inner loop may run zero times, or leave through break.
                 assigned.clear();
@@ -502,7 +513,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 continue;
             }
             if (isReturnStatement(assignment)) {
-                if (!host.returns || !assignment.value) return undefined;
+                if (!host.returns || !assignment.value) return reject(assignment);
                 hasControl = true; hasReturn = true;
                 const lines: string[] = [];
                 let expression = assignment.value;
@@ -514,7 +525,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     value = `r${array.slot}`;
                 } else {
                     const result = emit(expression, lines, undefined, allowTail);
-                    if (!result) return undefined;
+                    if (!result) return reject(assignment);
                     value = result.code;
                 }
                 body.push(`location = ${location};`, ...lines, `leave(${value});`);
@@ -526,11 +537,11 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 return 'stop';
             }
             if (isPushStatement(assignment)) {
-                if (!isNameExpression(assignment.receiver)) return undefined;
+                if (!isNameExpression(assignment.receiver)) return reject(assignment);
                 const receiver = container(assignment.receiver.name, 'deque');
                 const lines: string[] = [];
                 const value = emit(assignment.value, lines);
-                if (!receiver || value?.type !== 'integer') return undefined;
+                if (!receiver || value?.type !== 'integer') return reject(assignment);
                 needsAlgo = true;
                 body.push(`location = ${location};`, ...lines, `${receiver}.push(${value.code}); iterationResult = undefined;`);
                 continue;
@@ -538,12 +549,12 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             if (isArrayAssignmentStatement(assignment)) {
                 const compound = assignment.operator !== '=';
                 const booleanUpdate = loopOperatorSignature(assignment.operator.slice(0, -1), ['boolean', 'boolean'], host.nativeCalls)?.compound;
-                if (compound && (!host.compoundWrites || !findCompiledOperator(assignment.operator.slice(0, -1))?.integerLoop.some(signature => signature.compound))) return undefined;
-                if (assignment.name.includes('.')) return undefined;
+                if (compound && (!host.compoundWrites || !findCompiledOperator(assignment.operator.slice(0, -1))?.integerLoop.some(signature => signature.compound))) return reject(assignment);
+                if (assignment.name.includes('.')) return reject(assignment);
                 const knownArray = arrays.get(assignment.name);
-                if (knownArray && knownArray.rank !== assignment.indices.length) return undefined;
+                if (knownArray && knownArray.rank !== assignment.indices.length) return reject(assignment);
                 const previous = destinations.get(assignment.name);
-                if (previous && previous.rank !== assignment.indices.length) return undefined;
+                if (previous && previous.rank !== assignment.indices.length) return reject(assignment);
                 const target = previous ?? { slot: slot(assignment.name), rank: assignment.indices.length, compound, type: undefined as Term['type'] | undefined };
                 target.compound ||= compound;
                 destinations.set(assignment.name, target);
@@ -551,9 +562,9 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 const receiver = `storage${target.slot}`;
                 const lines: string[] = [], keys: string[] = [];
                 for (const address of assignment.indices) {
-                    if (address.all || address.sign || !address.value) return undefined;
+                    if (address.all || address.sign || !address.value) return reject(assignment);
                     const value = emit(address.value, lines);
-                    if (value?.type !== 'integer') return undefined;
+                    if (value?.type !== 'integer') return reject(assignment);
                     keys.push(value.code);
                 }
                 const name = `key${serial++}`;
@@ -576,7 +587,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 const value = emit(assignment.value, lines, expected);
                 if (!value || value.type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || value.type === 'bytes' || value.type === 'boolean' && !host.booleanArrays
                     || expected && value.type !== expected
-                    || arrays.has(assignment.name) && arrays.get(assignment.name)!.type !== value.type) return undefined;
+                    || arrays.has(assignment.name) && arrays.get(assignment.name)!.type !== value.type) return reject(assignment);
                 target.type = value.type;
                 let result = value.code;
                 if (compound) {
@@ -585,7 +596,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     const op = assignment.operator.slice(0, -1);
                     const signature = loopOperatorSignature(op, [value.type, value.type], host.nativeCalls);
                     const token = findCompiledOperator(op)?.binary;
-                    if (!signature?.compound || signature.result !== value.type || !token) return undefined;
+                    if (!signature?.compound || signature.result !== value.type || !token) return reject(assignment);
                     if (token !== '%' && token !== '//') lines.push(`const ${out} = ${old} ${token} ${rhs};`);
                     else {
                         const remainder = `remainder${serial++}`;
@@ -616,17 +627,17 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     for (const name of incoming) assigned.add(name);
                     const lines: string[] = [];
                     const condition = emit(branch.condition, lines, 'boolean');
-                    if (condition?.type !== 'boolean') return undefined;
+                    if (condition?.type !== 'boolean') return reject(assignment);
                     body.push(`location = ${location};`, ...lines, `if (${condition.code}) {`);
                     const flow = statements(branch.statements, body, allowTail);
-                    if (flow === undefined) return undefined;
+                    if (flow === undefined) return reject(assignment);
                     if (flow === 'next') outcomes.push(new Set(assigned));
                     body.push('} else {');
                 }
                 assigned.clear();
                 for (const name of incoming) assigned.add(name);
                 const flow = statements(assignment.elseStatements, body, allowTail);
-                if (flow === undefined) return undefined;
+                if (flow === undefined) return reject(assignment);
                 if (flow === 'next') outcomes.push(new Set(assigned));
                 body.push('}'.repeat(branches.length));
                 if (!outcomes.length) return 'stop';
@@ -642,16 +653,16 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 while (isParenthesizedExpression(expression)) expression = expression.value;
                 const source = isNameExpression(expression) ? arrays.get(expression.name) : undefined;
                 if (isArrayExpression(expression) || source) {
-                    if (localTypes.has(assignment.name)) return undefined;
+                    if (localTypes.has(assignment.name)) return reject(assignment);
                     const lines: string[] = [];
                     let rank: number, type: Term['type'], value: string;
                     if (isArrayExpression(expression)) {
-                        if (!expression.dimensions.length || !expression.fill || expression.rows.length) return undefined;
+                        if (!expression.dimensions.length || !expression.fill || expression.rows.length) return reject(assignment);
                         const dimensions: string[] = [];
                         for (const item of expression.dimensions) {
-                            if (!item.value) return undefined;
+                            if (!item.value) return reject(assignment);
                             const size = emit(item.value, lines, 'integer');
-                            if (size?.type !== 'integer') return undefined;
+                            if (size?.type !== 'integer') return reject(assignment);
                             const name = `dimension${serial++}`;
                             lines.push(`const ${name} = dimension(${item.sign === '-' ? `-(${size.code})` : size.code});`);
                             dimensions.push(name);
@@ -660,12 +671,12 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                         lines.push(`const ${shape} = [${dimensions.join(',')}];`,
                             `const ${size} = ${shape}.reduce((a,b) => a * BigInt(b), 1n);`);
                         const fill = emit(expression.fill, lines);
-                        if (!fill || fill.type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || fill.type === 'bytes' || fill.type === 'boolean' && !host.booleanArrays) return undefined;
+                        if (!fill || fill.type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || fill.type === 'bytes' || fill.type === 'boolean' && !host.booleanArrays) return reject(assignment);
                         rank = dimensions.length; type = fill.type;
                         value = `created${serial++}`;
                         lines.push(`const ${value} = ownedArray(Array(Number(${size})).fill(${fill.code}), ${shape}, true);`);
                     } else {
-                        if (!isNameExpression(expression) || !source) return undefined;
+                        if (!isNameExpression(expression) || !source) return reject(assignment);
                         const name = expression.name;
                         if (!assigned.has(name)) arrayInputs.add(name);
                         aliases.push([assignment.name, name]);
@@ -673,7 +684,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     }
                     const old = arrays.get(assignment.name), target = destinations.get(assignment.name);
                     if (old && (old.rank !== rank || old.type !== type)
-                        || target && (target.rank !== rank || target.type !== type)) return undefined;
+                        || target && (target.rank !== rank || target.type !== type)) return reject(assignment);
                     const destination = slot(assignment.name), index = writers.length;
                     arrays.set(assignment.name, { slot: destination, rank, type });
                     arrayDefinitions.add(assignment.name);
@@ -686,8 +697,8 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                 }
             }
             const index = writers.length;
-            if (!isAssignmentStatement(assignment) || assignment.name.includes('.')) return undefined;
-            if (arrays.has(assignment.name)) return undefined;
+            if (!isAssignmentStatement(assignment) || assignment.name.includes('.')) return reject(assignment);
+            if (arrays.has(assignment.name)) return reject(assignment);
             const destination = slot(assignment.name);
             written.add(assignment.name);
             if (assignment.operator !== '=' && !assigned.has(assignment.name)) required.add(destination);
@@ -696,16 +707,16 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             const textUpdate = host.nativeCalls && assignment.operator === '+='
                 && (localTypes.get(assignment.name) === 'text' || typeof host.read(assignment.name) === 'string');
             const value = emit(assignment.value, lines, booleanUpdate ? 'boolean' : textUpdate ? 'text' : undefined);
-            if (!value || value.type === 'boolean' && !host.booleanLocals) return undefined;
+            if (!value || value.type === 'boolean' && !host.booleanLocals) return reject(assignment);
             const previousType = localTypes.get(assignment.name);
-            if (previousType && previousType !== value.type) return undefined;
+            if (previousType && previousType !== value.type) return reject(assignment);
             localTypes.set(assignment.name, value.type);
             let result = value.code;
             if (assignment.operator !== '=') {
                 const op = assignment.operator.slice(0, -1);
                 const signature = loopOperatorSignature(op, [value.type, value.type], host.nativeCalls);
                 const token = findCompiledOperator(op)?.binary;
-                if (!signature?.compound || signature.result !== value.type || !token) return undefined;
+                if (!signature?.compound || signature.result !== value.type || !token) return reject(assignment);
                 if (token !== '%' && token !== '//') result = `(r${destination}) ${token} (${result})`;
                 else if (op === '%' || op === '//') {
                     lines.push(`if ((${result}) === 0n) throw zero();`);
@@ -714,7 +725,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     const adjust = `(${remainder} !== 0n && (${remainder} < 0n) !== ((${result}) < 0n))`;
                     result = op === '%' ? `${remainder} + (${adjust} ? (${result}) : 0n)`
                         : `r${destination} / (${result}) - (${adjust} ? 1n : 0n)`;
-                } else return undefined;
+                } else return reject(assignment);
             }
             writers.push(host.writer(assignment.name));
             writerNames.push(assignment.name);
@@ -727,10 +738,10 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
     const body: string[] = [];
     if (!statements(statement.statements, body, !iteration)) return undefined;
     // Container bindings must remain stable throughout the compiled region.
-    if ([...containers].some(([name, info]) => written.has(name) || required.has(info.slot))) return undefined;
-    if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return undefined;
-    if ([...destinations].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot))) return undefined;
-    if ([...builtins.keys()].some(name => written.has(name)) || calls.some(call => written.has(call.name) || call.locals.some(name => written.has(name)))) return undefined;
+    if ([...containers].some(([name, info]) => written.has(name) || required.has(info.slot))) return reject(statement, 'unstable-bindings');
+    if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return reject(statement, 'unstable-bindings');
+    if ([...destinations].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot))) return reject(statement, 'unstable-bindings');
+    if ([...builtins.keys()].some(name => written.has(name)) || calls.some(call => written.has(call.name) || call.locals.some(name => written.has(name)))) return reject(statement, 'unstable-bindings');
     const writable = new Set(destinations.keys());
     for (let changed = true; changed;) {
         changed = false;
@@ -741,7 +752,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
     // Local text aliases need copy-on-write at the individual store, not just
     // at region entry. Keep those writes interpreted until that lowering exists.
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
-        && (writable.has(target) || writable.has(source)))) return undefined;
+        && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
     const source = `"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads) {
         ${names.length ? `let ${names.map((name, index) => {
             const value = `r${index} = input[${index}]`;
@@ -771,7 +782,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         prepareScalarArrayWriter, (value: RankValue, stableReads: boolean, oneAxis: boolean) => oneAxis
             ? prepareScalarArrayReader(value, host.arrayRead, stableReads)
             : prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint, host.textRead); }
-    catch { return undefined; }
+    catch { return reject(statement, 'code-generation'); }
     host.compiled?.(source);
     const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0
         && calls.every(call => call.stableArrayReads) && iterators.length === 0 && containers.size === 0
@@ -815,13 +826,18 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         return step > 0n ? source.operator === 'to' ? start > end : start >= end
             : source.operator === 'to' ? start < end : start <= end;
     }
+    function entryGuard(reason: string, name: string): undefined {
+        if (currentDiagnostics()) recordFallback(`loop:${reason}:${name}`);
+        return recordFallback(`loop:${reason}`);
+    }
     return { run: (insideFinally = false, insideGenerator = false, tailCallsAllowed = true) => {
         if (hasControl && insideFinally) return recordFallback('loop:control-context');
         if (hasReturn && (insideGenerator || !host.canReturn())) return recordFallback('loop:control-context');
-        if (needsAlgo && !host.module('algo')) return recordFallback('loop:builtin');
-        for (const [name, module] of builtins) if (!host.builtin(module, name)) return recordFallback('loop:builtin');
+        if (needsAlgo && !host.module('algo')) return entryGuard('builtin', 'algo');
+        for (const [name, module] of builtins) if (!host.builtin(module, name)) return entryGuard('builtin', name);
         const activeCalls = calls.map(call => call.bind());
-        if (activeCalls.some(call => !call)) return recordFallback('loop:callee');
+        const rejectedCall = activeCalls.findIndex(call => !call);
+        if (rejectedCall >= 0) return entryGuard('callee', calls[rejectedCall].name);
         if ([...destinations].some(([name]) => {
             const value = host.read(name);
             return arrayInputs.has(name) && value !== undefined && isSharedArray(value);
@@ -832,38 +848,46 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             const value = host.read(names[index]);
             const type = localTypes.get(names[index]);
             if (type === 'bytes' ? value === undefined || !isRankBytes(value)
-                : typeof value !== (type === 'text' ? 'string' : type === 'boolean' ? 'boolean' : 'bigint')) return recordFallback('loop:input-type');
+                : typeof value !== (type === 'text' ? 'string' : type === 'boolean' ? 'boolean' : 'bigint')) {
+                if (currentDiagnostics()) {
+                    // Builtin vocabulary is not stored among variable bindings.
+                    const callable = value === undefined ? findOperation(names[index]) !== undefined : isNativeFunction(value);
+                    recordFallback(callable ? `loop:unsupported-op:${names[index]}`
+                        : `loop:input-type:${names[index]}:expected-${type ?? 'integer'}`);
+                }
+                return recordFallback('loop:input-type');
+            }
             values[index] = value;
         }
         for (const [name, info] of containers) {
             const value = host.read(name);
-            if (value === undefined) return recordFallback('loop:input-type');
-            if (info.kind === 'index' ? !isRankIndex(value) : !(value instanceof RankDeque)) return recordFallback('loop:input-type');
+            if (value === undefined) return entryGuard('input-type', name);
+            if (info.kind === 'index' ? !isRankIndex(value) : !(value instanceof RankDeque)) return entryGuard('input-type', name);
             if (info.integers && value instanceof RankDeque) {
-                for (const item of value.values()) if (typeof item !== 'bigint') return recordFallback('loop:input-type');
+                for (const item of value.values()) if (typeof item !== 'bigint') return entryGuard('input-type', name);
             }
             values[info.slot] = value;
         }
         for (const [name, info] of arrays) {
             if (!arrayInputs.has(name)) continue;
             const value = host.read(name);
-            if (!value || !isRankArray(value) || value.shape.length !== info.rank) return recordFallback('loop:input-type');
-            if (writable.has(name) && (value.kind !== 'array' || value.itemAt !== undefined)) return recordFallback('loop:writable-storage');
-            if (!matchingCells(value, info.type)) return recordFallback('loop:storage-or-cell-type');
+            if (!value || !isRankArray(value) || value.shape.length !== info.rank) return entryGuard('input-type', name);
+            if (writable.has(name) && (value.kind !== 'array' || value.itemAt !== undefined)) return entryGuard('writable-storage', name);
+            if (!matchingCells(value, info.type)) return entryGuard('storage-or-cell-type', name);
             values[info.slot] = value;
         }
         for (const [name, info] of destinations) {
             if (!arrayInputs.has(name)) {
-                if (!host.arrayWrites) return recordFallback('loop:input-type');
+                if (!host.arrayWrites) return entryGuard('input-type', name);
                 continue;
             }
             const value = host.read(name);
-            if (!value) return recordFallback('loop:input-type');
-            if (isRankIndex(value) && info.compound) return recordFallback('loop:input-type');
+            if (!value) return entryGuard('input-type', name);
+            if (isRankIndex(value) && info.compound) return entryGuard('input-type', name);
             if (!isRankIndex(value)) {
                 if (!host.arrayWrites || !isRankArray(value) || value.kind !== 'array'
-                    || value.itemAt !== undefined || value.shape.length !== info.rank) return recordFallback('loop:writable-storage');
-                if (!matchingCells(value, info.type)) return recordFallback('loop:storage-or-cell-type');
+                    || value.itemAt !== undefined || value.shape.length !== info.rank) return entryGuard('writable-storage', name);
+                if (!matchingCells(value, info.type)) return entryGuard('storage-or-cell-type', name);
             }
             values[info.slot] = value;
         }
