@@ -1,5 +1,5 @@
 import {
-    flattenApplication, isApplicationExpression, isBinaryExpression, isUnaryExpression,
+    flattenApplication, isExpressionStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isNameExpression, isNumberLiteral, isStringLiteral, isArrayExpression,
     type Expression, type Statement,
 } from '@arrrank/language';
@@ -7,6 +7,7 @@ import {
 /** Stable diagnostic categories, never source text, values, or AST references. */
 export function compilerRejection(backend: string, node: Expression | Statement, detail?: string): string {
     if (detail) return `${backend}:${detail}:${node.$type}`;
+    if (isExpressionStatement(node)) return compilerRejection(backend, node.value);
     if (isBinaryExpression(node) || isUnaryExpression(node)) return `${backend}:unsupported-op:${node.operator}`;
     if (isApplicationExpression(node)) {
         const names = flattenApplication(node).filter(isNameExpression);

@@ -228,7 +228,7 @@ export class FastPaths {
             compiled: this.context.options().onIntegerLoopCompiled,
             executed: this.context.options().onIntegerLoopExecuted,
         }, binding) : undefined;
-        if (!compiled) recordFallback(this.context.options().integerLoopCompilation === false ? 'loop:disabled' : 'loop:unsupported');
+        if (this.context.options().integerLoopCompilation === false) recordFallback('loop:disabled');
         return compiled;
     }
 

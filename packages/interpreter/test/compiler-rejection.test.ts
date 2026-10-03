@@ -65,6 +65,25 @@ describe('attributable compiler rejections', () => {
         expect(diagnostics.compiledLoops).toBe(0);
     });
 
+    it('reports the first unsupported loop child without parent or generic duplicates', () => {
+        const source = 'use text\nText = "abc"\nfor I in 1 to 2\n if I greater 0\n Text = Text "" "" translate\n end\nend\nText';
+        const diagnostics = new RuntimeDiagnostics();
+        expect(execute(source, diagnostics)).toBe(execute(source));
+        const loopReasons = Object.fromEntries(Object.entries(diagnostics.fallbacks).filter(([name]) => name.startsWith('loop:')));
+        expect(loopReasons).toEqual({ 'loop:unsupported-op:translate': 1 });
+    });
+
+    it('names unsupported loop headers and leaves successful loops without rejection counts', () => {
+        const rejected = new RuntimeDiagnostics();
+        expect(execute('Total = 0\nfor I in (array 1 2)\nTotal += I\nend\nTotal', rejected)).toBe('3');
+        expect(Object.fromEntries(Object.entries(rejected.fallbacks).filter(([name]) => name.startsWith('loop:'))))
+            .toEqual({ 'loop:loop-header:ForStatement': 1 });
+        const accepted = new RuntimeDiagnostics();
+        expect(execute('Total = 0\nfor I in 1 to 2\nTotal += I\nend\nTotal', accepted)).toBe('3');
+        expect(accepted.compiledLoops).toBe(1);
+        expect(Object.keys(accepted.fallbacks).filter(name => name.startsWith('loop:'))).toEqual([]);
+    });
+
     it('names a tensor operation whose generated type guard declined', () => {
         const source = `use sequences
 fun same A B
