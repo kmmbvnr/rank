@@ -68,3 +68,25 @@ The candidate matches the recorded interpreter-only reference on all 1,356 tests
 in 392 files, 74 standalone programs with their CSV exports and isolated database
 updates, and the deterministic chess fixture. The same final-reference and
 real-MD5 limitations described above apply. This stage does not close #102.
+
+## Sequences, dyadic ranks, named outer and scans
+
+The same checked callback now serves lazy sequence maps, both dyadic ranked
+paths, named outer products and named scans (including axis scans). Actual
+arguments are read in the original order before the callback checks its guards.
+No extra input is read to select the kernel. Named scans over unbounded sources
+retain lazy consumption.
+
+`npm test` passed at `cd5387b5`: 759 language, 3,207 interpreter (333 skipped),
+237 common, 490 CLI and 10 exporter tests. The rebase to `aab60f09` changed only
+the preceding stage's report files. All 79 focused tests passed, with tests
+asserting both exact reference read traces and avoidance of the generic call
+wrapper. Coverage includes native replacement between reads, Unicode text,
+dyadic operand order, outer products, seeded scans and axis scans.
+
+The demo audit matches the recorded interpreter-only reference on 1,356 tests
+in 392 files, 74 standalone programs with their exported files and database
+updates, and the deterministic chess fixture. Audit hashes and source-tree
+identities are recorded in `sequence-callback-results.json`. The final-current-
+reference and real-MD5 limitations above still apply. This stage has no separate
+timing claim; final #102 measurements remain required.
