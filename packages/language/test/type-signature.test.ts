@@ -130,3 +130,13 @@ it('preserves element relationships for random sampling and grid segments', () =
     expect(operationSignature(findOperation('neighbors')!, 4)).toBe('array integer integer symbol → array<integer>');
     expect(operationSignature(findOperation('resize')!)).toBe('array<object> integer integer → array<integer>');
 });
+
+
+it('distinguishes paths from file handles and preserves print values', () => {
+    expect(operationSignature(findOperation('readbytes')!, 2)).toBe('file integer → bytes');
+    expect(operationSignature(findOperation('readbytes')!, 3)).toBe('text integer integer → bytes');
+    expect(operationSignature(findOperation('open')!, 2)).toBe('text symbol → file');
+    expect(operationSignature(findOperation('readlines')!)).toBe('text → array<text>');
+    expect(operationSignature(findOperation('print')!)).toBe('a → a');
+    expect(operationSignature(findOperation('writebytes')!)).toBe('file bytes → file');
+});
