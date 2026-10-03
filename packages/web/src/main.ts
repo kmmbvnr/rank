@@ -956,6 +956,9 @@ document.addEventListener('selectionchange', () => {
     syncInputSelection();
     const selected = nativeSelection();
     if (hadNativeSelection && !selected) requestAnimationFrame(() => render());
+    // A long press selects text natively and the system keyboard goes away with it; the symbol keyboard
+    // would be left standing over the Copy menu, so it goes too. The next tap brings a keyboard back.
+    if (selected && !hadNativeSelection && touchConsole && keyboardEnabled) setKeyboard(false);
     hadNativeSelection = selected;
 });
 input.addEventListener('select', syncInputSelection);
