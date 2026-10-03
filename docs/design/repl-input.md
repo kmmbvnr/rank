@@ -387,7 +387,8 @@ Arithmetic, comparison, logical and `is` operator tokens show their declared sig
 including both words in `not equal`, `at least`, `at most`, and `multiple by`.
 Equality allows unrelated operand types and can propagate `missing`; it does not
 claim that the operands must have the same type. A known SQL column selects the
-column result contract. Column refinements and ownership remain runtime constraints.
+column result contract. A SQL result is a `view`, its projected expression a `column`, and its connection a
+`database`. Column refinements and ownership remain runtime constraints.
 `to`/`till` distinguish integer ranges from bounds on existing collections.
 Array bounds require rank 1; `till` accepts predicates and boolean masks, while `to`
 takes a limit. Sequence masks must meet the runtime mask and source-ownership rules.

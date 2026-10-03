@@ -76,7 +76,7 @@ it('distinguishes date mapping, scalar components and SQL column overloads', () 
     expect(operationSignature(findOperation('hour')!)).not.toContain('column');
     expect(operationSignature(findOperation('weekday')!)).not.toContain('column');
     expect(operationSignature(findOperation('calendar')!, 3)).toBe(
-        'database (text | date | datetime) (text | date | datetime) → table');
+        'database (text | date | datetime) (text | date | datetime) → view');
 });
 
 
@@ -171,4 +171,14 @@ it('preserves mutable collection elements without equating heap priorities with 
     expect(operationSignature(findOperation('permutations')!, [{ types: ['text'] }])).toBe('text → sequence<text>');
     expect(operationSignature(findOperation('combinations')!, [{ types: ['array'] }, { types: ['integer'] }]))
         .toBe('array<a> integer → sequence<array<a>>');
+});
+
+
+it('names SQL databases and views without exposing runtime kind identifiers', () => {
+    expect(operationSignature(findOperation('sqlite')!)).toBe('text → database');
+    expect(operationSignature(findOperation('sql')!, [{ types: ['sqlite-table'] }])).toBe('view → record');
+    expect(operationSignature(findOperation('csv')!, [{ types: ['sqlite-table'] }, { types: ['text'] }]))
+        .toBe('view text → view');
+    expect(operationSignature(findOperation('lookup')!, Array(3).fill({ types: ['sqlite-expression'] })))
+        .toBe('column column column → column');
 });

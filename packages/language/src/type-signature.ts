@@ -5,7 +5,7 @@ import type { Operation } from './operations.js';
 export type SignatureAtom =
     | 'unknown' | 'integer' | 'real' | 'number' | 'boolean' | 'text' | 'symbol' | 'missing'
     | 'date' | 'datetime' | 'duration' | 'bytes' | 'array' | 'sequence' | 'tuple' | 'record'
-    | 'table' | 'column' | 'object' | 'function' | 'file' | 'database' | 'queue' | 'stack' | 'deque' | 'heap'
+    | 'table' | 'view' | 'column' | 'object' | 'function' | 'file' | 'database' | 'queue' | 'stack' | 'deque' | 'heap'
     | 'set' | 'counter' | 'multiset' | 'index' | 'graph' | 'dsu' | 'segment' | 'fenwick'
     | 'wavelet' | 'functional';
 
@@ -33,7 +33,8 @@ export function signatureType(value: ValueFacts, unknown: () => SignatureType = 
         if (['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'multiset', 'heap'].includes(name)
             && value.elements?.length) return { collection: name as SignatureAtom,
             element: signatureType({ types: value.elements }, unknown) };
-        return name === 'sqlite-expression' ? 'column' : name === 'sqlite-table' ? 'table' : name as SignatureAtom;
+        return name === 'sqlite-expression' ? 'column' : name === 'sqlite-table' ? 'view'
+            : name === 'sqlite-database' ? 'database' : name as SignatureAtom;
     });
     return members.length === 1 ? members[0] : { union: members };
 }
@@ -78,7 +79,9 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
         if (!value.types.length) return true;
         if (typeof pattern === 'string') return pattern === 'unknown' || value.types.some(type =>
             pattern === 'number' ? type === 'integer' || type === 'real'
-                : pattern === 'column' ? type === 'sqlite-expression' : type === pattern);
+                : pattern === 'column' ? type === 'sqlite-expression'
+                : pattern === 'view' ? type === 'sqlite-table'
+                : pattern === 'database' ? type === 'sqlite-database' : type === pattern);
         if ('label' in pattern) return value.types.includes('symbol');
         if ('variable' in pattern) return true;
         if ('union' in pattern) return pattern.union.some(part => matches(part, value));
