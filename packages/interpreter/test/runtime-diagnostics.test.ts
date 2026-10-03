@@ -380,6 +380,7 @@ B = A * 3`);
             expect(stats.run(() => runtime.execute('B 3 total'))).toBe(39n);
             expect(stats.compiledLoops).toBe(1);
             expect(stats.fallbacks['loop:callee']).toBeGreaterThan(0);
+            expect(stats.fallbacks['loop:callee:codepoint']).toBeGreaterThan(0);
         } finally { runtime.dispose(); }
     });
 

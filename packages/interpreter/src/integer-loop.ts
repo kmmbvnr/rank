@@ -826,13 +826,18 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         return step > 0n ? source.operator === 'to' ? start > end : start >= end
             : source.operator === 'to' ? start < end : start <= end;
     }
+    function entryGuard(reason: string, name: string): undefined {
+        if (currentDiagnostics()) recordFallback(`loop:${reason}:${name}`);
+        return recordFallback(`loop:${reason}`);
+    }
     return { run: (insideFinally = false, insideGenerator = false, tailCallsAllowed = true) => {
         if (hasControl && insideFinally) return recordFallback('loop:control-context');
         if (hasReturn && (insideGenerator || !host.canReturn())) return recordFallback('loop:control-context');
-        if (needsAlgo && !host.module('algo')) return recordFallback('loop:builtin');
-        for (const [name, module] of builtins) if (!host.builtin(module, name)) return recordFallback('loop:builtin');
+        if (needsAlgo && !host.module('algo')) return entryGuard('builtin', 'algo');
+        for (const [name, module] of builtins) if (!host.builtin(module, name)) return entryGuard('builtin', name);
         const activeCalls = calls.map(call => call.bind());
-        if (activeCalls.some(call => !call)) return recordFallback('loop:callee');
+        const rejectedCall = activeCalls.findIndex(call => !call);
+        if (rejectedCall >= 0) return entryGuard('callee', calls[rejectedCall].name);
         if ([...destinations].some(([name]) => {
             const value = host.read(name);
             return arrayInputs.has(name) && value !== undefined && isSharedArray(value);
@@ -856,33 +861,33 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         }
         for (const [name, info] of containers) {
             const value = host.read(name);
-            if (value === undefined) return recordFallback('loop:input-type');
-            if (info.kind === 'index' ? !isRankIndex(value) : !(value instanceof RankDeque)) return recordFallback('loop:input-type');
+            if (value === undefined) return entryGuard('input-type', name);
+            if (info.kind === 'index' ? !isRankIndex(value) : !(value instanceof RankDeque)) return entryGuard('input-type', name);
             if (info.integers && value instanceof RankDeque) {
-                for (const item of value.values()) if (typeof item !== 'bigint') return recordFallback('loop:input-type');
+                for (const item of value.values()) if (typeof item !== 'bigint') return entryGuard('input-type', name);
             }
             values[info.slot] = value;
         }
         for (const [name, info] of arrays) {
             if (!arrayInputs.has(name)) continue;
             const value = host.read(name);
-            if (!value || !isRankArray(value) || value.shape.length !== info.rank) return recordFallback('loop:input-type');
-            if (writable.has(name) && (value.kind !== 'array' || value.itemAt !== undefined)) return recordFallback('loop:writable-storage');
-            if (!matchingCells(value, info.type)) return recordFallback('loop:storage-or-cell-type');
+            if (!value || !isRankArray(value) || value.shape.length !== info.rank) return entryGuard('input-type', name);
+            if (writable.has(name) && (value.kind !== 'array' || value.itemAt !== undefined)) return entryGuard('writable-storage', name);
+            if (!matchingCells(value, info.type)) return entryGuard('storage-or-cell-type', name);
             values[info.slot] = value;
         }
         for (const [name, info] of destinations) {
             if (!arrayInputs.has(name)) {
-                if (!host.arrayWrites) return recordFallback('loop:input-type');
+                if (!host.arrayWrites) return entryGuard('input-type', name);
                 continue;
             }
             const value = host.read(name);
-            if (!value) return recordFallback('loop:input-type');
-            if (isRankIndex(value) && info.compound) return recordFallback('loop:input-type');
+            if (!value) return entryGuard('input-type', name);
+            if (isRankIndex(value) && info.compound) return entryGuard('input-type', name);
             if (!isRankIndex(value)) {
                 if (!host.arrayWrites || !isRankArray(value) || value.kind !== 'array'
-                    || value.itemAt !== undefined || value.shape.length !== info.rank) return recordFallback('loop:writable-storage');
-                if (!matchingCells(value, info.type)) return recordFallback('loop:storage-or-cell-type');
+                    || value.itemAt !== undefined || value.shape.length !== info.rank) return entryGuard('writable-storage', name);
+                if (!matchingCells(value, info.type)) return entryGuard('storage-or-cell-type', name);
             }
             values[info.slot] = value;
         }
