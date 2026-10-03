@@ -1,7 +1,8 @@
+import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
 import { RUNTIME_TYPE_NAMES, type ApplicationForm } from '@arrrank/language';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
-import { derivedArray, materializeCells, ownedArray, readArrayItem } from './array-storage.js';
+import { evaluateArrayItem, derivedArray, materializeCells, ownedArray, readArrayItem } from './array-storage.js';
 import { applyBound, valueBound } from './clause-expression.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexKey } from './index-key.js';
@@ -635,10 +636,9 @@ function mapBinary(
         return mapBroadcastArrays(leftArray, rightArray, scalarOperation);
     }
     const source = leftArray ?? rightArray!;
-    return derivedArray(source.shape, [source], index => {
-        const item = readArrayItem(source, index);
-        return leftArray ? scalarOperation(item, right) : scalarOperation(left, item);
-    }, true);
+    const evaluate = (index: number) => mapResult(evaluateArrayItem(source, index), item =>
+        leftArray ? scalarOperation(item, right) : scalarOperation(left, item));
+    return derivedArray(source.shape, [source], index => runExecution(evaluate(index)), true, evaluate);
 }
 
 function asRankArray(value: RankValue): RankArray | undefined {
