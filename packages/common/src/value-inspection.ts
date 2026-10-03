@@ -119,6 +119,27 @@ export function inspectValue(value: RankValue, request: InspectRequest, replay?:
     return { kind: 'scalar', type: typeName(value), text: truncated ? text.slice(0, TEXT_LIMIT) : text, truncated };
 }
 
+/** Collections a viewer opens as keyed entries. */
+const COLLECTIONS = ['record', 'object', 'index', 'set', 'queue', 'tuple', 'counter', 'graph'];
+
+/**
+ * What a result row says about a value that can be opened, such as `integer [3 4]`,
+ * or nothing for a value that is only its text. Cheap: it reads at most one cell.
+ */
+export function viewLabel(value: RankValue): string | undefined {
+    if (isRankArray(value) && value.shape.length > 0) {
+        const shape = `[${value.shape.join(' ')}]`;
+        if (value.shape.some(length => length === 0)) return `array ${shape}`;
+        let element: string | undefined;
+        try { element = typeName((value.itemAt ?? ((index: number) => value.items[index]))(0)!); } catch { /* an unreadable cell is no type */ }
+        return element ? `${element} ${shape}` : `array ${shape}`;
+    }
+    if (isRankTable(value)) return `table [${value.length} ${value.columns.length}]`;
+    if (isRankSequenceMask(value) || isRankSequence(value)) return 'sequence';
+    if (typeof value === 'object' && COLLECTIONS.includes(value.kind)) return typeName(value);
+    return undefined;
+}
+
 /** Objects that stand for one value rather than a structure to open. */
 function isScalarObject(value: Exclude<RankValue, bigint | number | boolean | string>): boolean {
     return ['label', 'missing', 'date', 'datetime', 'duration', 'error'].includes(value.kind);

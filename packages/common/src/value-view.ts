@@ -80,3 +80,26 @@ export function buildValueView(title: string, value: InspectedValue): ValueView 
         }
     }
 }
+
+/** The view as plain lines, for a screen with no viewer of its own yet. */
+export function viewText(view: ValueView): string {
+    const lines = [view.title, view.typeLine, ''];
+    if (view.kind === 'text') lines.push(view.text);
+    else if (view.kind === 'list') {
+        const width = Math.max(0, ...view.rows.map(([key]) => key.length));
+        lines.push(...view.rows.map(([key, text]) => `${key.padEnd(width)}  ${text}`));
+        if (view.note) lines.push('', view.note);
+        if (view.scroll.length > view.scroll.count) lines.push(`${view.scroll.offset + 1}–${view.scroll.offset + view.scroll.count} of ${view.scroll.length}`);
+    } else {
+        for (const { axis, index, length } of view.slice) lines.push(`axis ${axis}: ${index} of ${length}`);
+        const table = [view.columnLabels.map(String), ...view.cells];
+        const widths = view.columnLabels.map((_, column) => Math.max(...table.map(row => (row[column] ?? '').length)));
+        const labelWidth = Math.max(0, ...view.rowLabels.map(label => label.length));
+        lines.push(...table.map((row, index) =>
+            ((index === 0 ? '' : view.rowLabels[index - 1]).padEnd(labelWidth) + '  '
+                + row.map((cell, column) => cell.padStart(widths[column])).join('  ')).trimEnd()));
+        const rows = view.scroll.rows;
+        if (rows.length > rows.count) lines.push('', `rows ${rows.offset + 1}–${rows.offset + rows.count} of ${rows.length}`);
+    }
+    return lines.join('\n');
+}

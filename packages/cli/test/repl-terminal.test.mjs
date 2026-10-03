@@ -356,7 +356,8 @@ test('the next-eval marker remains in the branch body while the iterator is sele
     const source = 'for i in 1 to 100\n  (array i)\n  if i less 4\n    (array i i)\n  else\n    (array i i i)\n  end\nend';
     const frames = await drive(t, [
         { keys: '\x1b[200~' + source + '\x1b[201~' + ENTER, until: '100 100 100' },
-        UP + UP + UP + END,
+        // The first Up lands on the loop's result row, which opens in a viewer.
+        UP + UP + UP + UP + END,
         { keys: '\x12', until: 'Enter newline' },
         { keys: '\x07', until: '←/→ select' },
         { keys: RIGHT.repeat(8), until: 'i = 9 · iteration 9' },
@@ -395,13 +396,13 @@ test('Ctrl-R on an expression stops before the loop; returning from rank> edits 
         'use sequences' + ENTER,
         '1 + 1' + ENTER,
         '\x1b[200~for i in 10 to 100\n  (array i)\nend\x1b[201~' + ENTER,
-        UP + UP + UP + UP,
+        UP + UP + UP + UP + UP,
         '\x12',
         '\x12',
         '\x12',
         { keys: '\x1b', until: 'Ctrl-R run|Ctrl-L run all' },
         '\x1b',
-        UP,
+        UP + UP, // the loop's result row, then its last source line
         ENTER,
     ], 40, 16);
     assert.match(frames[4].text.split('\n')[frames[4].cursorY], /for i in 10 to 100/);
@@ -588,9 +589,9 @@ test('load can be cancelled or replace the old document and its variable types',
     assert.match(frames[1].text, /Save changes before loading another file/);
     assert.match(frames[2].text, /X = 1/);
     assert.match(frames[3].text, /Save changes before loading another file/);
-    assert.doesNotMatch(frames[4].text, /X = 1|\n      1 2 3\n/);
+    assert.doesNotMatch(frames[4].text, /X = 1|\n      integer \[3\] · 1 2 3\n/);
     assert.match(frames[4].text, /X = array 1 2 3/);
-    assert.match(frames[5].text, /\n      1 2 3\nrank> /);
+    assert.match(frames[5].text, /\n      integer \[3\] · 1 2 3\nrank> /);
     assert.doesNotMatch(frames[5].text, /cannot receive/);
 });
 
@@ -600,7 +601,7 @@ test('editing a declaration can change its type on replay', async t => {
         { keys: UP + CLEAR + 'X = array 1 2 3', until: 'X = array 1 2 3' },
         { keys: DOWN + ENTER, until: '1 2 3' }
     ]);
-    assert.match(frames[2].text, /X = array 1 2 3\n      1 2 3\nrank> /);
+    assert.match(frames[2].text, /X = array 1 2 3\n      integer \[3\] · 1 2 3\nrank> /);
     assert.doesNotMatch(frames[2].text, /cannot receive/);
 });
 
@@ -669,7 +670,7 @@ test('Ctrl-C interrupts SQLite in the real terminal and preserves the database b
     assert.match(frames[4].text, /Running/);
     assert.match(frames[5].text, /Stopped after/);
     assert.match(frames[5].text, /executing SQLite query/);
-    assert.match(frames[7].text, /\n      42\n/);
+    assert.match(frames[7].text, /\n      integer \[1\] · 42\n/);
     assert.doesNotMatch(frames[7].text, /Running/);
 });
 

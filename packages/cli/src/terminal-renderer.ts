@@ -39,6 +39,12 @@ export class TerminalRenderer {
             this.render();
             return;
         }
+        if (target?.kind === 'value') {
+            this.mouseEditor = undefined;
+            this.followCursor = true;
+            void this.repl.openValue(this.repl.notebook.cells[target.cell].id).then(() => this.render());
+            return;
+        }
         if (!target || !target.points.length) return;
         const point = target.points.reduce((nearest, point) =>
             Math.abs(point.column - column) < Math.abs(nearest.column - column) ? point : nearest);
@@ -54,6 +60,7 @@ export class TerminalRenderer {
         } else if (target.kind === 'source') {
             if (repl.examplePrompt) repl.moveExampleField(-repl.examplePrompt.index - 1);
             repl.releaseLiveIteration();
+            repl.releaseValue();
             repl.notebook.active = target.cell;
             repl.notebook.cursor = point.offset;
             this.mouseEditor = { book: repl.notebook };
@@ -181,7 +188,7 @@ export class TerminalRenderer {
         const frame = notebookFrame(repl.notebook, this.columns, this.rows,
             this.top, repl.suggestion, repl.running, this.followCursor, repl.fileStatus, repl.runningStatus,
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields, repl.liveIterationFocus, repl.stepping,
-            this.anchoredCursorRow, true, 0, repl.diagnosticOutputs, repl.importFixFocus, repl.nameFacts);
+            this.anchoredCursorRow, true, 0, repl.diagnosticOutputs, repl.importFixFocus, repl.nameFacts, repl.valueFocus);
         this.top = frame.top;
         this.cursorRow = frame.cursorVisible ? frame.cursor.row : undefined;
         this.targets = frame.targets ?? [];

@@ -291,7 +291,7 @@ function render(): void {
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
             repl.liveIterationFocus, repl.stepping,
             anchorCursor && restingCursorRow !== undefined ? Math.min(restingCursorRow, rows - 1) : undefined, showShortcutHints,
-            windowedFrame ? rows * 3 : !keyHints() && !shownFailure && !repl.running && !nameFacts ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus, nameFacts);
+            windowedFrame ? rows * 3 : !keyHints() && !shownFailure && !repl.running && !nameFacts ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus, nameFacts, repl.valueFocus);
         if (windowedFrame) top = Math.min(top, frame.maxTop ?? 0);
         else { top = frame.top; scrollWindow = false; }
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
@@ -910,6 +910,7 @@ async function locate(x: number, y: number): Promise<void> {
     const row = Math.floor((y - rect.top + scrollFraction) / cellHeight) + (windowedFrame ? top - frame.top : 0);
     const column = Math.round((x - rect.left) / cellWidth);
     const target = frame.targets?.[row];
+    repl.releaseValue();
     repl.notebook.clearSelection();
     repl.exampleEditor?.clearSelection();
     const fix = fixAt(target, column);
@@ -937,6 +938,8 @@ async function locate(x: number, y: number): Promise<void> {
                 !best || Math.abs(point.column - column) < Math.abs(best.column - column) ? point : best, undefined);
             if (point && repl.exampleEditor) repl.exampleEditor.cursor = point.offset;
         }
+    } else if (target?.kind === 'value') {
+        await repl.openValue(repl.notebook.cells[target.cell].id);
     } else if (target?.kind === 'iteration') {
         repl.notebook.active = target.cell;
         if (!repl.liveIterationFocused) repl.focusLiveIterationFromBody(target.line);

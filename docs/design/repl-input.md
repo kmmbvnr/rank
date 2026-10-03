@@ -30,6 +30,21 @@ preview without changing its source: Enter then inserts a newline again.
 Up/Down can leave the iteration
 row directly for the header/body. Only an active selector has a highlighted
 background. Enter on a loop header does not activate it automatically.
+
+The result of an executed cell is a stop for Up/Down when the value can be opened in a
+viewer: an array of rank one or more, a table, a sequence, or a record, object, index,
+set, counter, queue, tuple or graph. Scalars and text stay plain and are skipped. The
+stop sits between the cell and the next one: Down from the cell's last row, or Up from
+the next cell's first row, lands on the result without executing anything. The row
+starts with the value's type and shape (`integer [3 4] · 1 2 3 4 ...`), so the user can
+see there is more than the preview. A focused result row has a highlighted background
+and the footer shows `Enter view · Esc back`. Enter opens the viewer; Esc or Up leaves
+the row for the cell's last line, and Down continues to the next cell. Any other key
+leaves the row and acts as usual. A tap on the web, or a mouse click in the CLI, opens
+the viewer directly. The result must belong to the cell's current source: a cell that
+was edited or failed has no stop, and a value released since the run answers
+`That value is gone` instead of opening. Until the viewers exist the opened view is the
+shared view model as plain text on the help screen.
 Ctrl-R on a loop header evaluates the header and immediately activates iteration
 selection; no extra Enter is needed. Arrow navigation still reaches the passive
 iteration row, where Enter activates selection. Source editing has a bar cursor. Places where
@@ -315,7 +330,8 @@ without an Enter hint. The source editor shows `Ctrl-R run · Ctrl-L run all`;
 `^` means Ctrl. During source evaluation the hint is `Enter newline · ^R run · ^L run all`
 (or `^R step` at the next instruction).
 An iteration row shows `Enter select · Esc edit · ^L run all`, and active
-selection shows `←/→ select · Esc edit · ^L run all`.
+selection shows `←/→ select · Esc edit · ^L run all`. A focused result row shows
+`Enter view · Esc back`.
 
 While source is edited and the cursor is on a name, the footer shows that name's
 type and shape instead of the hints and the file name, for example

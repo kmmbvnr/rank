@@ -126,10 +126,12 @@ export function clipped(text: string, width: number): string {
 }
 
 export interface ScreenTarget {
-    readonly kind: 'source' | 'example' | 'iteration' | 'autofix';
+    readonly kind: 'source' | 'example' | 'iteration' | 'autofix' | 'value';
     readonly cell: number;
     readonly line: number;
     readonly field?: number;
+    /** The held value a `value` row opens. */
+    readonly ref?: number;
     readonly points: { offset: number; column: number }[];
     /** Import suggestions on an error row, by screen column. */
     readonly fixes?: readonly { index: number; module: string; from: number; to: number }[];
@@ -165,7 +167,7 @@ export function notebookFrame(
     promptOutputFocus?: { readonly line: number; readonly offset: number; readonly active?: boolean; readonly nextLine?: number },
     stepping = false, anchoredCursorRow?: number, showShortcutHints = true, overscanRows = 0,
     diagnostics?: ReadonlyMap<number, readonly { text: string; error: boolean; inlineText?: string }[]>,
-    importFixFocus?: number, nameFacts?: NameFacts,
+    importFixFocus?: number, nameFacts?: NameFacts, valueFocus?: number,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const gutter = Math.min(Math.max(6, cellWidth(promptLabel)), Math.max(0, width - 1));
@@ -281,26 +283,33 @@ export function notebookFrame(
             if (output.error && cell.executed !== undefined && cell.executed !== cell.source) continue;
             const marker = (output.error || pending) && gutter > 0
                 ? fitEnd(output.error ? '! ' : '~ ', gutter) : ' '.repeat(gutter);
-            const cleaned = clean(output.inlineText ?? output.text);
+            // A result that opens in a viewer says what it is, and is a stop for the arrow keys.
+            const openable = !output.error && output.view !== undefined && output.ref !== undefined;
+            const focused = openable && cell.id === valueFocus;
+            const cleaned = clean((openable ? `${output.view} · ` : '') + (output.inlineText ?? output.text));
             const text = output.error ? importPhrases(cleaned).text : cleaned;
             const outputWidth = output.error ? Math.max(1, Math.min(width, 40) - gutter) : bodyWidth;
             const layout = output.error ? errorRows : editableRows;
             for (const item of layout(text, outputWidth)) {
                 const shown = clipped(marker + item.text, width);
+                if (openable) {
+                    targets[rows.length] = { kind: 'value', cell: index, line: 0, ref: output.ref, points: [] };
+                    if (focused) caret = { row: rows.length, column: gutter };
+                }
                 if (!output.error || !modules.length) {
-                    rows.push((output.error ? '\x1b[31m' : '\x1b[90m') + shown + '\x1b[0m');
+                    rows.push((output.error ? '\x1b[31m' : focused ? '\x1b[7m' : '\x1b[90m') + shown + '\x1b[0m');
                     continue;
                 }
-                const focused = index === notebook.active ? importFixFocus : undefined;
+                const fixFocus = index === notebook.active ? importFixFocus : undefined;
                 const fixes: { index: number; module: string; from: number; to: number }[] = [];
                 const painted = shown.replace(/use\u00a0([\w.-]+)/g, (phrase, module: string, at: number) => {
                     const fix = modules.indexOf(module);
                     if (fix < 0) return phrase;
                     const from = cellWidth(shown.slice(0, at));
                     fixes.push({ index: fix, module, from, to: from + cellWidth(phrase) });
-                    if (fix === focused) caret = { row: rows.length, column: from };
-                    return (fix === focused ? '\x1b[7m' : '\x1b[4m') + phrase
-                        + (fix === focused ? '\x1b[27m' : '\x1b[24m');
+                    if (fix === fixFocus) caret = { row: rows.length, column: from };
+                    return (fix === fixFocus ? '\x1b[7m' : '\x1b[4m') + phrase
+                        + (fix === fixFocus ? '\x1b[27m' : '\x1b[24m');
                 });
                 if (fixes.length) targets[rows.length] = { kind: 'autofix', cell: index, line: 0, points: [], fixes };
                 rows.push('\x1b[31m' + painted.replace(/\u00a0/g, ' ') + '\x1b[0m');
@@ -312,7 +321,7 @@ export function notebookFrame(
     // Errors, running status, completion candidates and iteration hints keep the footer; otherwise a name under the cursor owns it.
     // A tap on a touch console places the cursor without following it, so the cursor being on screen is enough.
     const cursorShown = followCursor || caret.row >= previousTop && caret.row < previousTop + height;
-    const showFacts = !!nameFacts && cursorShown && overscanRows <= 1 && !running && !suggestion && !promptOutputFocus;
+    const showFacts = !!nameFacts && cursorShown && overscanRows <= 1 && !running && !suggestion && !promptOutputFocus && valueFocus === undefined;
     const footerRows = height > 1 && (showShortcutHints || running || !!suggestion || !!fileStatus || showFacts) ? 1 : 0;
     const viewportHeight = Math.max(1, height - footerRows);
     const maxTop = Math.max(0, rows.length - viewportHeight);

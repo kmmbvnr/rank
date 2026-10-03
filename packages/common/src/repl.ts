@@ -1,5 +1,5 @@
 import { EMPTY_CELL, addLine, hasCode, isComplete } from './repl-input.js';
-import { Notebook } from './notebook.js';
+import { Notebook, type NotebookCell } from './notebook.js';
 import { FileWorkflow, type SavePrompt } from './file-workflow.js';
 import { ExecutionRunner } from './execution-runner.js';
 import { LiveConditionalController } from './live-conditional-controller.js';
@@ -11,6 +11,7 @@ import type { ReplSession } from './repl-types.js';
 import { notebookScope, notebookValueDiagnostics } from './value-diagnostics.js';
 import { createModuleLoader, importedPaths, type ModuleSource } from './module-loader.js';
 import { nameFactsIn, type NameFacts } from './name-facts.js';
+import { buildValueView, viewText } from './value-view.js';
 
 
 /** Coordinates explicit execution. Navigation never calls into the interpreter. */
@@ -208,9 +209,67 @@ export class NotebookRepl {
         return this.rerun();
     }
 
+    private valueFocusId?: number;
+
+    /** The cell's result that can be opened in a viewer, if it has one. */
+    private valueOutput(cell: NotebookCell): (OutputLine & { ref: number; view: string }) | undefined {
+        if (cell.command || cell.status !== 'ok' || cell.executed !== cell.source) return undefined;
+        return cell.output.find((line): line is OutputLine & { ref: number; view: string } =>
+            !line.error && line.ref !== undefined && line.view !== undefined);
+    }
+
+    /** The cell whose result row has focus, while that row is still there. */
+    get valueFocus(): number | undefined {
+        const cell = this.notebook.current;
+        return this.valueFocusId === cell.id && this.valueOutput(cell) && !this.running ? cell.id : undefined;
+    }
+
+    /** Moves onto the result row just above or below the cursor's cell, if that cell has one to open. */
+    focusValue(direction: -1 | 1): boolean {
+        if (this.running || this.liveEditing || this.help || this.savePrompt) return false;
+        const book = this.notebook;
+        let index = book.active;
+        if (direction < 0) {
+            index--;
+            while (index >= 0 && book.cells[index].command) index--;
+        }
+        const cell = book.cells[index];
+        if (!cell || !this.valueOutput(cell)) return false;
+        book.active = index;
+        book.cursor = cell.source.length;
+        this.valueFocusId = cell.id;
+        return true;
+    }
+
+    releaseValue(): boolean {
+        const focused = this.valueFocusId !== undefined;
+        this.valueFocusId = undefined;
+        return focused;
+    }
+
+    /** Opens the focused result, or the one in `cellId`, for a viewer. Until one exists it shows the view as text. */
+    async openValue(cellId = this.valueFocusId): Promise<boolean> {
+        this.valueFocusId = undefined;
+        const cell = this.notebook.cells.find(cell => cell.id === cellId);
+        const line = cell && this.valueOutput(cell);
+        if (!cell || !line || this.running || this.help || this.savePrompt) return false;
+        try {
+            const inspected = await this.session.inspect(line.ref);
+            if (inspected.status === 'stale') this.suggestion = 'That value is gone · run the cell again';
+            else {
+                const title = cell.source.trim().split('\n').at(-1)!.trim();
+                this.help = { text: viewText(buildValueView(title, inspected)), top: 0 };
+            }
+        } catch {
+            this.suggestion = 'Could not read that value';
+        }
+        return true;
+    }
+
     private suggestionText = '';
     get suggestion(): string {
         if (this.evaluating) return this.liveFunction?.status || this.liveConditional?.status || '';
+        if (this.valueFocus !== undefined) return 'Enter view · Esc back';
         if (this.stepping) return 'Enter newline · ^R step · ^L run all';
         if (this.liveIterationFocused) return this.iterationSelecting
             ? '←/→ select · Esc edit · ^L run all'

@@ -105,6 +105,18 @@ export class KeyRouter {
             repl.releaseImportFix();
             if (key.name === 'up' || key.name === 'down' || key.name === 'escape') return { exit: false };
         }
+        if (repl.valueFocus !== undefined && !key.meta) {
+            if (key.name === 'return' || key.name === 'enter') {
+                await repl.openValue();
+                return { exit: false };
+            }
+            repl.releaseValue();
+            if (key.name === 'escape' || key.name === 'up') return { exit: false };
+            if (key.name === 'down') {
+                book.vertical(1, textColumns(this.columns()), true);
+                return { exit: false };
+            }
+        }
         if ((key.name === 'return' || key.name === 'enter') && !key.meta
             && repl.advancing && !repl.exampleEditor && !repl.liveIterationFocused
             && !repl.completingLiveFunction) {
@@ -225,6 +237,12 @@ export class KeyRouter {
                 if (key.name === 'down' && line === 1 && nextLine === 2
                     && repl.reopenExample()) return { exit: false };
                 if (nextLine !== line && repl.focusLiveIterationFromBody(header)) return { exit: false };
+                // Between a cell and the next sits the cell's result, when it opens in a viewer.
+                const edge = key.name === 'up' ? row === 0 : row === rows.length - 1;
+                if (edge && repl.focusValue(key.name === 'up' ? -1 : 1)) {
+                    if (fromPrompt) repl.editSource();
+                    return { exit: false };
+                }
                 // Below the last row of a failed cell sits its import suggestion.
                 if (key.name === 'down' && row === rows.length - 1 && repl.focusImportFix()) return { exit: false };
                 book.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns()), true);

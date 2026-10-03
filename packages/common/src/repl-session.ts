@@ -7,7 +7,7 @@ import {
 import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@arrrank/language';
 import { preview } from './preview.js';
 import { SequenceReplay } from './sequence-replay.js';
-import { STALE, inspectValue, type InspectRequest, type Inspection } from './value-inspection.js';
+import { STALE, inspectValue, viewLabel, type InspectRequest, type Inspection } from './value-inspection.js';
 import { formatSource } from './source-format.js';
 import { textColumns } from './screen.js';
 import {
@@ -19,7 +19,11 @@ const WIDTH = 40;
 const COMMANDS = ['help', 'forms', 'ops', 'vars', 'full', 'list', 'save', 'load', 'alias', 'exit', 'quit'];
 
 /** `ref` names the value a result line printed; `inspect` answers for it until the cell reruns. */
-export interface OutputLine { readonly text: string; readonly error: boolean; readonly inlineText?: string; readonly ref?: number }
+export interface OutputLine {
+    readonly text: string; readonly error: boolean; readonly inlineText?: string; readonly ref?: number;
+    /** On the first line of a result that can be opened in a viewer: its type and shape. */
+    readonly view?: string;
+}
 export interface ProgramFile { readonly path: string; readonly source: string }
 export interface Execution {
     readonly valueSummary?: string;
@@ -272,7 +276,9 @@ export function createReplSession(host: ReplHost = {}) {
             const ref = nextRef++;
             held.set(ref, result);
             heldByCell.set(cell, ref);
-            for (let line = first; line < output.length; line++) output[line] = { ...output[line], ref };
+            const view = viewLabel(result);
+            for (let line = first; line < output.length; line++)
+                output[line] = { ...output[line], ref, ...(line === first && view !== undefined ? { view } : {}) };
             return ref;
         } catch (error) {
             reportError(error, source);
