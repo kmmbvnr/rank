@@ -68,7 +68,9 @@ are retained alongside the final samples in
 
 The final demo audit was repeated after the scalar-expression migration and all
 diagnostic changes. The subsequent rebase onto the web-viewer change on main
-(`badd7dd4`) changed no interpreter, language or CLI source. The integrated tree
+(`badd7dd4`) changed no interpreter, language or CLI source. The raw report
+includes their Git tree hashes so this equivalence can be checked after rebasing.
+The integrated tree
 still receives its own full local test and CI gates.
 
 ## Reproduction
