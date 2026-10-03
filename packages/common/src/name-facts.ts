@@ -54,8 +54,20 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
     const isCatalogueFunction = (site: Site): boolean => site.kind === 'read' && !analysis.bindings.has(site.name)
         && !runtime.has(site.name) && !written.has(site.name) && !!findOperation(site.name)?.arities.length;
     const rebound = writtenNames(program);
+    const callFacts = (site: Site): { arguments: ValueFacts[]; result?: ValueFacts } | undefined => {
+        if (!isNameExpression(site.node)) return undefined;
+        let call: AstNode = site.node;
+        while (isApplicationExpression(call.$container)) call = call.$container;
+        if (!isApplicationExpression(call)) return undefined;
+        const parts = flattenApplication(call);
+        return parts.at(-1) === site.node ? {
+            arguments: parts.slice(0, -1).map(part => analysis.expressions.get(part) ?? UNKNOWN),
+            result: analysis.expressions.get(call),
+        } : undefined;
+    };
     const signatureFor = (site: Site): string | undefined => {
-        if (isCatalogueFunction(site)) return operationSignature(findOperation(site.name)!);
+        const call = callFacts(site);
+        if (isCatalogueFunction(site)) return operationSignature(findOperation(site.name)!, call?.arguments);
         if (site.kind !== 'function' && site.kind !== 'read') return undefined;
         if (site.kind === 'read' && rebound.has(site.name)) return undefined;
         for (let parent = site.node.$container; parent; parent = parent.$container) {
@@ -64,17 +76,8 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         const definition = isFunctionStatement(site.node) ? site.node : analysis.functions.get(site.name);
         if (!definition) return undefined;
         const relationship = analysis.relationships.get(definition);
-        if (isNameExpression(site.node)) {
-            let call: AstNode = site.node;
-            while (isApplicationExpression(call.$container)) call = call.$container;
-            if (isApplicationExpression(call)) {
-                const parts = flattenApplication(call);
-                if (parts.at(-1) === site.node && parts.length - 1 === definition.parameters.length) {
-                    return functionSignature(definition, { relationship,
-                        arguments: parts.slice(0, -1).map(part => analysis.expressions.get(part) ?? UNKNOWN),
-                        result: analysis.expressions.get(call) });
-                }
-            }
+        if (call?.arguments.length === definition.parameters.length) {
+            return functionSignature(definition, { ...call, relationship });
         }
         const observed = analysis.functions.get(site.name) === definition
             ? examples.flatMap((example, index) => example.name === site.name

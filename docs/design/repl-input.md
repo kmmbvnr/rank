@@ -375,7 +375,10 @@ A direct call uses its inferred argument facts; a declaration uses available exa
 arguments. Without those facts, unrelated unknown types use different letters, as in
 `twice · a → b`. A shared letter appears only for a proven relationship. Builtin
 signatures come from audited catalogue overloads, not operand names or compiler
-eligibility. Names without signature metadata still show `function`.
+eligibility. Known call arguments select matching overloads and narrow their input
+unions; unknown arguments keep the alternatives. An invalid call still shows the
+declared alternatives alongside its normal diagnostics. A `[rank 0 0]` suffix
+identifies a cell signature that lifts over collection frames. Names without signature metadata still show `function`.
 A keyword, an operator word or a number shows the normal hints. The line is grey and clipped to the footer width: the shape goes first,
 then the front of the name. A shape with an axis of unknown length is left out rather
 than guessed. Errors, running status, completion candidates and an iteration row keep

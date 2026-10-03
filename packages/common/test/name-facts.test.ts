@@ -159,8 +159,8 @@ describe('formatNameFacts', () => {
 describe('factsAt: functions', () => {
     const word = (source: string, text: string): NameFacts => factsAt(source, source.lastIndexOf(text) + 1)!;
 
-    it('keeps unaudited builtin signatures unknown and shows a proven notebook call', () => {
-        expect(formatNameFacts(word('Xs = array 1 2 3\nXs sum\n', 'sum'), 60)).toBe('sum · function');
+    it('shows an audited builtin and a proven notebook call', () => {
+        expect(formatNameFacts(word('Xs = array 1 2 3\nXs sum\n', 'sum'), 60)).toBe('sum · array<number> → number');
         expect(formatNameFacts(word('fun twice X\n return X * 2\nend\n3 twice\n', 'twice'), 60)).toBe('twice · integer → integer');
     });
 
@@ -174,7 +174,7 @@ describe('function signatures in the type footer', () => {
     it('uses explicit builtin signatures with their actual overloads', () => {
         const split = 'use text\n"a,b" "," split';
         expect(formatNameFacts(factsAt(split, split.indexOf('split'))!))
-            .toBe('split · text (text | array<text>) → array<text>');
+            .toBe('split · text text → array<text>');
     });
 
     it('shows the notebook example signature and preserves unknown inputs', () => {

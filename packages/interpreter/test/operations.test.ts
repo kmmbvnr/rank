@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-    findOperation, resultTypes, validateShapeSignature, moduleForms, modules, operations, type Operation,
+    findOperation, resultTypes, validateShapeSignature, moduleForms, modules, operations, type Operation, type SignatureType,
 } from '@arrrank/language';
 import { Interpreter, standardModules } from '../src/index.js';
 import type { RuntimeContext } from '../src/modules/types.js';
@@ -91,6 +91,32 @@ describe('the operation catalogue', () => {
             const value = new Interpreter().execute(source)!;
             expect(typeName(value), source).toBe(expected);
         }
+    });
+
+    it('keeps declared signature cell domains within unconditional operand requirements', () => {
+        const scalar = new Set(['integer', 'real', 'text', 'boolean', 'symbol', 'missing', 'date', 'datetime', 'duration']);
+        const domains = (type: SignatureType, cell = false): string[] => {
+            if (typeof type === 'string') return type === 'number' ? ['integer', 'real']
+                : scalar.has(type) || cell ? [type] : [];
+            if ('union' in type) return type.union.flatMap(part => domains(part, cell));
+            if ('collection' in type) return cell ? [type.collection] : domains(type.element, true);
+            return [];
+        };
+        for (const entry of operations) for (const signature of entry.signatures ?? []) {
+            signature.inputs.forEach((input, index) => {
+                const allowed = entry.operandDomains?.[index];
+                if (allowed) for (const domain of domains(input)) expect(allowed, `${entry.name} input ${index + 1}`).toContain(domain);
+            });
+        }
+    });
+
+    it('checks numeric reductions and ordered extrema against their display domains', () => {
+        for (const [source, expected] of [
+            ['3 sum', 'integer'], ['(array 1 2) sum', 'integer'], ['(array 1.0 2.0) sum', 'real'],
+            ['use algo\nS = new set\nS add 2\nS add 3\nS sum', 'integer'],
+            ['"a" "z" max', 'text'], ['false true min', 'boolean'], ['3 4.5 max', 'real'],
+            ['.NA 3 max', 'missing'], ['3 .NA min', 'missing'],
+        ]) expect(typeName(new Interpreter().execute(source)!), source).toBe(expected);
     });
 
     it('validates shape contracts against explicit ranks and representation facts', () => {

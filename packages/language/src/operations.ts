@@ -1,4 +1,4 @@
-import type { TypeSignature } from './type-signature.js';
+import type { SignatureType, TypeSignature } from './type-signature.js';
 import type { ShapeSignature } from './shape-signature.js';
 
 /**
@@ -179,6 +179,20 @@ export const modules: readonly Module[] = [
     { name: 'text', summary: 'Splitting, formatting, parsing and code points.' },
     { name: 'xml', summary: 'XML decoding into a tree or a flat table of nodes.' },
 ];
+
+/** Scalar/collection extrema share the runtime's ordered scalar domains. */
+const extremaSignatures: readonly TypeSignature[] = (['number', 'text', 'boolean', 'symbol', 'date', 'datetime', 'record'] as const)
+    .flatMap((type): TypeSignature[] => [
+        { inputs: [{ union: [type, ...(['array', 'sequence', 'queue', 'set', 'multiset'] as const)
+            .map(collection => ({ collection, element: { union: [type, 'missing'] } } as SignatureType))] }], result: type },
+        { inputs: [type, type], result: type, ranks: [0, 0] },
+    ]).concat([
+        { inputs: ['missing', 'unknown'], result: 'missing', ranks: [0, 0] },
+        { inputs: ['unknown', 'missing'], result: 'missing', ranks: [0, 0] },
+    ]);
+const numericCells: SignatureType = { union: ['number', 'missing'] };
+const numericReductionInputs: SignatureType = { union: ['number', 'missing', 'column',
+    ...(['array', 'sequence', 'queue', 'set'] as const).map(collection => ({ collection, element: numericCells }))] };
 
 export const operations: readonly Operation[] = [
     { name: 'add', module: 'algo', arities: [2], form: 'Seen add Value', result: 'collection',
@@ -554,11 +568,13 @@ export const operations: readonly Operation[] = [
     { name: 'log', module: 'numbers', arities: [1], form: 'Value log', result: 'real', mapsScalarCells: true,
         summary: 'Natural logarithm of a positive finite number.' },
     { name: 'max', module: 'core', arities: [1, 2], form: 'Left Right max', result: 'number', axisReduction: true,
+        signatures: [...extremaSignatures, { inputs: ['column'], result: 'number' }],
         shape: [{ args: [null], result: [] }, { args: [[], []], result: [] }],
         dyadicRanks: [0, 0], scalarCellArrayNoCallback: 'number', numericArrayNoCallback: true,
         selectsNumericCell: true,
         summary: 'Larger of two numbers, or the largest of one collection.' },
     { name: 'min', module: 'core', arities: [1, 2], form: 'Left Right min', result: 'number', axisReduction: true,
+        signatures: extremaSignatures,
         shape: [{ args: [null], result: [] }, { args: [[], []], result: [] }],
         dyadicRanks: [0, 0], scalarCellArrayNoCallback: 'number', numericArrayNoCallback: true,
         selectsNumericCell: true,
@@ -584,6 +600,7 @@ export const operations: readonly Operation[] = [
         shape: [{ args: [[]], result: [] }],
         monadicRank: 0, summary: 'Real square root of a nonnegative number.' },
     { name: 'sum', module: 'core', arities: [1], form: 'Values sum', result: 'number', axisReduction: true,
+        signatures: [{ inputs: [numericReductionInputs], result: 'number' }],
         operandDomains: [['integer', 'real', 'missing']],
         shape: [{ args: [null], result: [] }],
         scalarCellArrayNoCallback: 'number',

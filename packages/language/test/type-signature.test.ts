@@ -39,3 +39,16 @@ it('uses audited overloads rather than a compiled subset or operand names', () =
     expect(operationSignature(findOperation('reverse')!)).toBe(
         'text → text ; array<a> → array<a> ; (queue<a> | stack<a> | deque<a> | sequence<a>) → array<a>');
 });
+
+it('selects overloads using known argument facts and preserves alternatives for unknowns', () => {
+    const max = findOperation('max')!;
+    expect(operationSignature(max, [{ types: ['text'] }, { types: ['text'] }]))
+        .toBe('text text → text [rank 0 0]');
+    expect(operationSignature(max, [{ types: ['integer'] }, { types: ['real'] }]))
+        .toBe('number number → number [rank 0 0]');
+    expect(operationSignature(max, [{ types: ['array'], elements: ['integer'] }])).toBe('array<number> → number');
+    expect(operationSignature(findOperation('sum')!, [{ types: ['array'], elements: ['integer'] }])).toBe('array<number> → number');
+    expect(operationSignature(findOperation('reverse')!, [{ types: ['text'] }])).toBe('text → text');
+    expect(operationSignature(max, [{ types: [] }, { types: [] }])).toContain('text text → text');
+    expect(operationSignature(max, [{ types: ['text'] }, { types: ['integer'] }])).toContain('number number → number');
+});

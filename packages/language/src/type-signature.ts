@@ -1,3 +1,4 @@
+import type { ValueFacts } from './analysis/value-domain.js';
 import type { Operation } from './operations.js';
 
 /** Public language types for display. Compiler eligibility is a separate contract. */
@@ -55,8 +56,48 @@ export function formatTypeSignature(signature: TypeSignature): string {
     return body(signature);
 }
 
+/** Filter only proven domain mismatches. An incomplete or invalid call still shows the declared alternatives. */
+export function matchingSignatures(signatures: readonly TypeSignature[], inputs: readonly ValueFacts[]): readonly TypeSignature[] {
+    const arity = signatures.filter(signature => signature.inputs.length === inputs.length);
+    const matches = (pattern: SignatureType, value: ValueFacts): boolean => {
+        if (!value.types.length) return true;
+        if (typeof pattern === 'string') return pattern === 'unknown' || value.types.some(type =>
+            pattern === 'number' ? type === 'integer' || type === 'real'
+                : pattern === 'column' ? type === 'sqlite-expression' : type === pattern);
+        if ('variable' in pattern) return true;
+        if ('union' in pattern) return pattern.union.some(part => matches(part, value));
+        if ('collection' in pattern) return matches(pattern.collection, value)
+            && (!value.elements?.length || matches(pattern.element, { types: value.elements }));
+        if ('tuple' in pattern) return value.types.includes('tuple') && (!value.tupleItems
+            || pattern.tuple.length === value.tupleItems.length
+                && pattern.tuple.every((part, index) => matches(part, value.tupleItems![index])));
+        return value.types.includes('function');
+    };
+    const cell = (signature: TypeSignature, index: number): ValueFacts => {
+        const value = inputs[index];
+        return signature.ranks?.[index] === 0 && value.types.length === 1
+            && ['array', 'sequence', 'queue'].includes(value.types[0])
+            ? { types: value.elements ?? [] } : value;
+    };
+    const narrow = (pattern: SignatureType, value: ValueFacts): SignatureType => {
+        if (!value.types.length || typeof pattern === 'string') return pattern;
+        if ('union' in pattern) {
+            const members = pattern.union.filter(part => matches(part, value)).map(part => narrow(part, value));
+            return members.length === 1 ? members[0] : members.length ? { union: members } : pattern;
+        }
+        if ('collection' in pattern && value.elements?.length) return { ...pattern,
+            element: narrow(pattern.element, { types: value.elements }) };
+        return pattern;
+    };
+    const candidates = arity.filter(signature => signature.inputs.every((pattern, index) => matches(pattern, cell(signature, index))));
+    return candidates.length ? candidates.map(signature => ({ ...signature,
+        inputs: signature.inputs.map((pattern, index) => narrow(pattern, cell(signature, index))) })) : arity;
+}
+
 /** Unknown metadata stays unknown; result roles and operand spelling are not type contracts. */
-export function operationSignature(operation: Operation, arity?: number): string | undefined {
-    const signatures = operation.signatures?.filter(signature => arity === undefined || signature.inputs.length === arity);
+export function operationSignature(operation: Operation, inputs?: number | readonly ValueFacts[]): string | undefined {
+    const signatures = typeof inputs === 'number'
+        ? operation.signatures?.filter(signature => signature.inputs.length === inputs)
+        : inputs ? matchingSignatures(operation.signatures ?? [], inputs) : operation.signatures;
     return signatures?.length ? signatures.map(formatTypeSignature).join(' ; ') : undefined;
 }
