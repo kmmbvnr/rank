@@ -115,8 +115,16 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
 }
 
 function compileTypedLoop(statement: ForStatement, host: Host, iteration: IterationBinding | undefined, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>): CompiledLoop | undefined {
+    let failure: string | undefined;
+    const result = buildTypedLoop(statement, host, iteration, textSources, textArrays, reason => { failure ??= reason; });
+    if (!result && currentDiagnostics()) recordFallback(failure ?? compilerRejection('loop', statement));
+    return result;
+}
+
+function buildTypedLoop(statement: ForStatement, host: Host, iteration: IterationBinding | undefined,
+    textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, failed: (reason: string) => void): CompiledLoop | undefined {
     function reject(node: Expression | Statement, detail?: string): undefined {
-        if (currentDiagnostics()) recordFallback(compilerRejection('loop', node, detail));
+        failed(compilerRejection('loop', node, detail));
         return undefined;
     }
     if (!statement.statements.length || statement.statements.length > 32) return reject(statement, 'statement-budget');

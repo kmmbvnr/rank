@@ -422,7 +422,8 @@ B = A * 3`);
 for I in 1 to 2
   I print
 end`));
-            expect(stats.fallbacks['loop:unsupported']).toBeGreaterThan(0);
+            expect(stats.fallbacks['loop:unsupported-op:print']).toBeGreaterThan(0);
+            expect(stats.fallbacks).not.toHaveProperty('loop:unsupported');
         } finally { runtime.dispose(); }
     });
 });
