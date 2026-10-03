@@ -242,3 +242,9 @@ it('shows range and proven outer signatures on operator words', () => {
     const shadowed = 'fun outer X\n return X\nend\n3 outer';
     expect(factsAt(shadowed, shadowed.lastIndexOf('outer'))?.signature).toBe('integer → integer');
 });
+
+
+it('shows the flat document overload after grouping its trailing modifier', () => {
+    const source = 'use json\n"{}" json .flat';
+    expect(factsAt(source, source.lastIndexOf('json'))?.signature).toBe('text .flat → array<object>');
+});

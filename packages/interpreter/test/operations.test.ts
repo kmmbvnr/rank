@@ -98,6 +98,7 @@ describe('the operation catalogue', () => {
         const domains = (type: SignatureType, cell = false): string[] => {
             if (typeof type === 'string') return type === 'number' ? ['integer', 'real']
                 : scalar.has(type) || cell ? [type] : [];
+            if ('label' in type) return ['symbol'];
             if ('union' in type) return type.union.flatMap(part => domains(part, cell));
             if ('collection' in type) return cell ? [type.collection] : domains(type.element, true);
             return [];

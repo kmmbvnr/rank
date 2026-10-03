@@ -381,7 +381,8 @@ declared alternatives alongside its normal diagnostics. A `[rank 0 0]` suffix
 identifies a cell signature; broadcasting and evaluation follow the operation's rules.
 In particular, scalar `and`/`or` short-circuit and require a scalar right operand,
 and ordinary comparison does not accept two sequences. A signature does not promise
-that every shape combination or value is valid. Names without signature metadata still show `function`.
+that every shape combination or value is valid. Literal flags appear by name, such as `.flat` or `(.write | .update | .append)`;
+callback types use `(a → boolean)`. Names without signature metadata still show `function`.
 Arithmetic, comparison, logical and `is` operator tokens show their declared signatures,
 including both words in `not equal`, `at least`, `at most`, and `multiple by`.
 Equality allows unrelated operand types and can propagate `missing`; it does not

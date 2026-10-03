@@ -514,7 +514,7 @@ export const operations: readonly Operation[] = [
 
     { name: 'neighbors', module: 'grids', arities: [3, 4], form: 'Grid Row Column .eight neighbors', result: 'array',
         signatures: [{ inputs: ['array', 'integer', 'integer'], result: { collection: 'array', element: 'integer' } },
-            { inputs: ['array', 'integer', 'integer', 'symbol'], result: { collection: 'array', element: 'integer' } }],
+            { inputs: ['array', 'integer', 'integer', { union: [{ label: 'four' }, { label: 'eight' }] }], result: { collection: 'array', element: 'integer' } }],
         shape: [{ args: [null, null, null], result: [{ exists: 'k' }, 2] }, { args: [null, null, null, null], result: [{ exists: 'k' }, 2] }],
         denseElements: ['integer'],
         summary: 'In-bounds row and column pairs around one grid cell; four neighbors by default.' },
@@ -538,7 +538,7 @@ export const operations: readonly Operation[] = [
         signatures: [{ inputs: ['file'], result: 'file' }],
         effects: ['io'], summary: 'Asks the host to write buffered output to the file system.' },
     { name: 'open', module: 'io', arities: [1, 2], form: 'Path open', result: 'file',
-        signatures: [{ inputs: ['text'], result: 'file' }, { inputs: ['text', 'symbol'], result: 'file' }],
+        signatures: [{ inputs: ['text'], result: 'file' }, { inputs: ['text', { union: [{ label: 'write' }, { label: 'update' }, { label: 'append' }] }], result: 'file' }],
         effects: ['io'],
         summary: 'Opens a file, read-only unless a mode label selects write, update or append.' },
     { name: 'position', module: 'io', arities: [1], form: 'File position', result: 'integer',
@@ -576,6 +576,8 @@ export const operations: readonly Operation[] = [
         result: 'file', effects: ['io'], summary: 'Writes a bytes value to an open file.' },
 
     { name: 'json', module: 'json', arities: [1, 2], form: 'Text json', result: 'value', modifiers: ['flat'],
+        signatures: [{ inputs: ['text'], result: { union: ['number', 'boolean', 'text', 'symbol', 'array', 'tuple', 'object'] } },
+            { inputs: ['text', { label: 'flat' }], result: { collection: 'array', element: 'object' } }],
         summary: 'Decodes a complete JSON document into Rank values.' },
 
 
@@ -993,6 +995,8 @@ export const operations: readonly Operation[] = [
         summary: 'Lowercase Unicode letter and number runs.' },
 
     { name: 'xml', module: 'xml', arities: [1, 2], form: 'Text xml', result: 'value', modifiers: ['flat'],
+        signatures: [{ inputs: ['text'], result: 'object' },
+            { inputs: ['text', { label: 'flat' }], result: { collection: 'array', element: 'object' } }],
         summary: 'Decodes a complete XML document into a tree of element nodes.' },
 ];
 

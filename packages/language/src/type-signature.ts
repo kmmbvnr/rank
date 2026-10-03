@@ -12,6 +12,7 @@ export type SignatureAtom =
 /** Only an explicit variable can assert that two positions share a type. */
 export type SignatureType = SignatureAtom
     | { readonly variable: number }
+    | { readonly label: string }
     | { readonly union: readonly SignatureType[] }
     | { readonly collection: SignatureAtom; readonly element: SignatureType }
     | { readonly tuple: readonly SignatureType[] }
@@ -47,6 +48,7 @@ export function formatTypeSignature(signature: TypeSignature): string {
     };
     const type = (value: SignatureType, operand = false): string => {
         if (typeof value === 'string') return value === 'unknown' ? fresh() : value;
+        if ('label' in value) return `.${value.label}`;
         if ('variable' in value) {
             let name = variables.get(value.variable);
             if (!name) variables.set(value.variable, name = fresh());
@@ -77,6 +79,7 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
         if (typeof pattern === 'string') return pattern === 'unknown' || value.types.some(type =>
             pattern === 'number' ? type === 'integer' || type === 'real'
                 : pattern === 'column' ? type === 'sqlite-expression' : type === pattern);
+        if ('label' in pattern) return value.types.includes('symbol');
         if ('variable' in pattern) return true;
         if ('union' in pattern) return pattern.union.some(part => matches(part, value));
         if ('collection' in pattern) return matches(pattern.collection, value)
