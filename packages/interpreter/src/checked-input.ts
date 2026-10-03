@@ -1,4 +1,5 @@
-import type { ValueRequirement } from '@arrrank/language';
+import { inferRequirements, isNameExpression, type Expression, type Program, type ValueFacts, type ValueRequirement } from '@arrrank/language';
+import { AstUtils } from 'langium';
 import { readArrayItem } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
@@ -60,4 +61,21 @@ export function checkExternalInput(value: RankValue, requirement: ValueRequireme
         }
     };
     check(value, requirement, source);
+}
+
+/** Requirements are prepared from source once, without inspecting external files.
+ * The map belongs to the interpreter and is keyed by the exact parsed expression. */
+export class CheckedInputContracts {
+    private readonly requirements = new WeakMap<Expression, ValueRequirement>();
+
+    prepare(program: Program, initial: ReadonlyMap<string, ValueFacts>): void {
+        if (![...AstUtils.streamAllContents(program)].some(node => isNameExpression(node) && node.name === 'check')) return;
+        const analysis = inferRequirements(program, { initial });
+        for (const [expression, requirement] of analysis.expressions) this.requirements.set(expression, requirement);
+    }
+
+    check(expression: Expression, value: RankValue, source: string): void {
+        const requirement = this.requirements.get(expression);
+        if (requirement) checkExternalInput(value, requirement, source);
+    }
 }

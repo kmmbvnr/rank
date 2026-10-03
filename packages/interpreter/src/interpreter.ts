@@ -7,6 +7,7 @@ import {
 import { enterRuntime, leaveRuntime } from './array-storage.js';
 import { BindingEnvironment } from './binding-environment.js';
 import { bindInputs } from './cli-args.js';
+import { CheckedInputContracts } from './checked-input.js';
 import { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
 import { ApplicationEvaluator } from './eval/application.js';
@@ -76,6 +77,7 @@ export class Interpreter {
 
     private readonly bindings = new BindingEnvironment(this.variables, this.modules);
     private readonly resources = new ResourceOwnership();
+    private readonly checkedInputs = new CheckedInputContracts();
     private readonly operators = new Operators(this.modules, value => this.resources.ownFiles(value),
         fn => this.functions.scalarCallback(fn));
     private readonly inspection = new DebugInspection(this.bindings, () => this.options.sourceId ?? '<input>');
@@ -140,6 +142,7 @@ export class Interpreter {
             operators: this.operators,
         });
         this.application = new ApplicationEvaluator({
+            checkInput: (expression, value, source) => this.checkedInputs.check(expression, value, source),
             evaluate: expression => this.expressions.evaluate(expression),
             compileDirect: expression => this.expressions.compileDirect(expression),
             compile: (expression, missing, tail, classify) => this.expressions.compile(expression, missing, tail, classify),
@@ -254,6 +257,7 @@ export class Interpreter {
     ): RankValue | undefined {
         validateFunctionPlacement(program.statements, 'top');
         this.checkBuiltinBindings(program);
+        this.checkedInputs.prepare(program, new Map([...this.variables.keys()].map(name => [name, { types: [] }])));
         this.declareFunctions(program.statements);
         bindInputs(program, args, {
             variables: this.variables,

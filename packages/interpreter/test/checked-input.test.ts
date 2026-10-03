@@ -83,3 +83,46 @@ it('reports contract errors without including external cell contents', () => {
         expect((error as Error).message).toBe('data.json.price: expected integer or real, received text');
     }
 });
+
+it('checks a CSV read before later statements run and locates the error at the read', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nwrong\n' }) });
+    try {
+        runtime.execute('use tables\nRows = "data.csv" csv check\nAfter = 1\nRows .price sum');
+        throw new Error('expected a checked read to fail');
+    } catch (error) {
+        expect(error).toBeInstanceOf(RankError);
+        expect((error as RankError).rankKind).toBe('InputContract');
+        expect((error as RankError).location?.line).toBe(2);
+        expect((error as Error).message).toMatch(/data.csv.price\[0\].*received text/);
+    }
+    expect(runtime.variables.has('After')).toBe(false);
+    expect(runtime.variables.has('Rows')).toBe(false);
+});
+
+it('leaves unchecked reads unchanged and accepts checked valid data', () => {
+    for (const checked of [false, true]) {
+        const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\n3\n' }) });
+        expect(runtime.execute(`use tables\nRows = "data.csv" csv${checked ? ' check' : ''}\nRows .price sum`)).toBe(3n);
+    }
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nwrong\n' }) });
+    expect(() => runtime.execute('use tables\nRows = "data.csv" csv\nAfter = 1\nRows .price sum')).toThrow();
+    expect(runtime.variables.get('After')).toBe(1n);
+});
+
+it('preserves an ordinary user function named check', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\n3\n' }) });
+    expect(runtime.execute('use tables\nfun check Value\n return 42\nend\n"data.csv" csv check')).toBe(42n);
+});
+
+it('preserves document modifiers and parenthesized reads', () => {
+    for (const reader of ['json', 'xml']) {
+        const input = reader === 'json' ? '{"a":1}' : '<a/>';
+        for (const suffix of [`${reader} .flat check`, `.flat ${reader} check`]) {
+            const runtime = new Interpreter(() => {});
+            const value = runtime.execute(`use ${reader}\nuse tables\n${JSON.stringify(input)} ${suffix}`)!;
+            expect(value).toMatchObject({ kind: 'array' });
+        }
+    }
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\n3\n' }) });
+    expect(runtime.execute('use tables\nRows = ("data.csv" csv) check\nRows .price sum')).toBe(3n);
+});

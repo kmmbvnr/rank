@@ -308,6 +308,11 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             let form: ReturnType<typeof applicationForm>;
             try { form = applicationForm(parts, name => bound(name) ? false : findOperation(name)); }
             catch { return output; } // Incomplete notebook syntax has no requirements yet.
+            if (form.kind === 'checked-read') {
+                const value = expression(applicationExpression(form.parts, node));
+                graph.expressions.set(node, value);
+                return value;
+            }
             if (form.kind === 'rank') {
                 const target = form.parts.at(-1);
                 const args = form.parts.slice(0, -1).map(expression);
