@@ -9,7 +9,7 @@ import { TailCallSignal } from './control-signals.js';
 import { registerFlatCombine } from './flat-combine.js';
 import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import type { Operators } from './operators.js';
-import { compileScalarExpression } from './scalar-compiler.js';
+import { compileScalarExpression, compileResumableScalarExpression } from './scalar-compiler.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { completed, type Evaluation, type Execution } from './execution.js';
@@ -239,6 +239,25 @@ export class FastPaths {
         if (this.context.options().scalarCompilation === false
             || !(isBinaryExpression(expression) || isUnaryExpression(expression))) return undefined;
         return compileScalarExpression(expression, {
+            leaf,
+            binary: (op, left, right) => {
+                if (currentDiagnostics()) recordFallback(`scalar-expression:operator-guard:${op}`);
+                return this.context.operators.evaluateBinary(op, left, right);
+            },
+            unary: (op, value) => {
+                if (currentDiagnostics()) recordFallback(`scalar-expression:operator-guard:${op}`);
+                return this.context.operators.evaluateUnary(op, value);
+            },
+            compiled: this.context.options().onScalarCompiled,
+            executed: this.context.options().onScalarExecuted,
+        });
+    }
+
+    /** Arithmetic around effectful or suspended children, without replaying them. */
+    scalarEvaluation(expression: Expression, leaf: (expression: Expression) => () => Evaluation<RankValue>): (() => Evaluation<RankValue>) | undefined {
+        if (this.context.options().scalarCompilation === false
+            || !(isBinaryExpression(expression) || isUnaryExpression(expression))) return undefined;
+        return compileResumableScalarExpression(expression, {
             leaf,
             binary: (op, left, right) => {
                 if (currentDiagnostics()) recordFallback(`scalar-expression:operator-guard:${op}`);

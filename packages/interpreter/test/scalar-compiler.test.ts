@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { compiledOperators, isFunctionStatement, isReturnStatement, isNameExpression } from '@arrrank/language';
+import { withInterrupt } from '../src/interrupt.js';
 import { compileScalarExpression } from '../src/scalar-compiler.js';
 import { Interpreter, RankError, formatValue, isNativeFunction, parse, type RankValue } from '../src/index.js';
 
@@ -115,4 +116,74 @@ describe('scalar-expression catalogue profiles', () => {
             expect(compiled).toEqual(reference);
             expect(compiled.entries).toBe(0);
         });
+});
+
+
+describe('resumable expression fallback', () => {
+    function run(source: string, scalarCompilation: boolean) {
+        let entries = 0;
+        const output: string[] = [];
+        const runtime = new Interpreter(line => output.push(line), {
+            scalarCompilation, scalarEntryCompilation: false, scalarFunctionCompilation: false,
+            integerLoopCompilation: false, tensorFusion: false, blockCompilation: false,
+            onScalarExecuted: () => entries++,
+        });
+        try {
+            return { value: formatValue(runtime.execute(source)!), output, entries };
+        } catch (error) {
+            return { error: error instanceof RankError ? error.format() : String(error), output, entries };
+        } finally { runtime.dispose(); }
+    }
+
+    it.each([
+        `use io
+Count = 0
+fun tap X
+  Count += 1
+  Count print
+  return X
+end
+Result = (2 tap) * 3 + (4 tap) * 5
+array Result Count`,
+        `use io
+fun later X
+  X print
+  return X
+end
+(1 // 0) * 2 + (3 later) * 4`,
+        `use io
+fun forbidden X
+  X print
+  return true
+end
+not ((true or (1 forbidden)) equal true)`,
+    ])('preserves execution and effects in %s', source => {
+        const reference = run(source, false), compiled = run(source, true);
+        expect({ ...compiled, entries: 0 }).toEqual({ ...reference, entries: 0 });
+        expect(compiled.entries).toBeGreaterThan(0);
+    });
+});
+
+
+it('keeps resumed child calls visible when inspection starts after preparation', () => {
+    let entries = 0;
+    const runtime = new Interpreter(undefined, {
+        scalarEntryCompilation: false, scalarFunctionCompilation: false, blockCompilation: false,
+        onScalarExecuted: () => entries++,
+    });
+    try {
+        runtime.execute(`fun tap X
+  return X
+end
+fun calc X
+  return (X tap) * 2 + 1
+end`);
+        const calc = runtime.variables.get('calc');
+        if (!calc || !isNativeFunction(calc)) throw new Error('missing calc');
+        expect(calc.call([2n])).toBe(5n);
+        expect(entries).toBeGreaterThan(0);
+        const before = entries;
+        expect(withInterrupt(new Int32Array(new SharedArrayBuffer(12)), () => calc.call([3n]), () => {})).toBe(7n);
+        expect(entries).toBe(before);
+    } finally { runtime.dispose(); }
 });
