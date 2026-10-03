@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Interpreter, RankError, formatValue, isNativeFunction, type RankValue } from '../src/index.js';
+import { compiledOperators, isFunctionStatement, isReturnStatement, isNameExpression } from '@arrrank/language';
+import { compileScalarExpression } from '../src/scalar-compiler.js';
+import { Interpreter, RankError, formatValue, isNativeFunction, parse, type RankValue } from '../src/index.js';
 
 function evaluate(expression: string, a: RankValue, b: RankValue, enabled: boolean) {
     let entries = 0;
@@ -74,4 +76,43 @@ array A B
         try { expect(evaluate('A * 3 + B', 2n, 4n, true)).toEqual({ value: 10n, entries: 0 }); }
         finally { blocked.mockRestore(); }
     });
+});
+
+
+describe('scalar-expression catalogue profiles', () => {
+    const values = { integer: [7n, 3n], real: [1.25, 0.5], boolean: [true, false] } as const;
+    const spelling: Record<string, string> = { atmost: 'at most', atleast: 'at least', notequal: 'not equal' };
+    for (const operation of compiledOperators) {
+        for (const signature of operation.scalarExpression ?? []) {
+            it(`inlines ${operation.name}(${signature.inputs.join(', ')}) without a fallback`, () => {
+                const name = spelling[operation.name] ?? operation.name;
+                const inner = signature.inputs.length === 1 ? `${name} A` : `A ${name} B`;
+                // This compiler deliberately requires at least two operations.
+                const expression = `${signature.result === 'boolean' ? 'not' : '+'} (${inner})`;
+                const a = values[signature.inputs[0]][0], b = values[signature.inputs[1] ?? signature.inputs[0]][1];
+                const statement = parse(`fun calc A B\nreturn ${expression}\nend`).statements[0];
+                if (!isFunctionStatement(statement)) throw new Error('expected function');
+                const returned = statement.statements[0];
+                if (!isReturnStatement(returned) || !returned.value) throw new Error('expected return');
+                const fallback = () => { throw new Error('declared overload fell back'); };
+                const kernel = compileScalarExpression(returned.value, {
+                    leaf: node => isNameExpression(node) ? () => node.name === 'A' ? a : b : undefined,
+                    binary: fallback, unary: fallback,
+                });
+                const reference = evaluate(expression, a, b, false);
+                expect(reference).not.toHaveProperty('error');
+                expect(kernel).toBeDefined();
+                expect(kernel!()).toEqual(reference.value);
+            });
+        }
+    }
+    it.each(['+(A / B)', '+(A ** B)', 'not (A and B)', 'not (A or B)', 'not (A xor B)'])(
+        'retains the unsupported operator boundary for %s', expression => {
+            const boolean = expression.startsWith('not');
+            const a = boolean ? true : 7n, b = boolean ? false : 3n;
+            const reference = evaluate(expression, a, b, false);
+            const compiled = evaluate(expression, a, b, true);
+            expect(compiled).toEqual(reference);
+            expect(compiled.entries).toBe(0);
+        });
 });
