@@ -106,8 +106,10 @@ describe('the operation catalogue', () => {
         }
     });
 
-    it('verifies each migrated compiled profile against real calls, including both text and bytes', () => {
+    it('verifies every compiled profile against real calls, including Unicode and bytes', () => {
         const examples: Record<string, string[]> = {
+            text: ['0', '(-123)', '9007199254740993'],
+            reverse: ['""', '"😀é"'], len: ['""', '"😀é"'],
             bytes: ['"ёж"', '("ёж" bytes)'],
             md5: ['"abc"', '("abc" bytes)'],
             startswith: ['"ёж" "ё"', '("ёж" bytes) ("ё" bytes)'],
@@ -120,7 +122,7 @@ describe('the operation catalogue', () => {
         for (const entry of profiles) for (const operands of examples[entry.name]) {
             const runtime = new Interpreter();
             try {
-                const value = runtime.execute(`use text\nuse crypto\n${operands} ${entry.name}`)!;
+                const value = runtime.execute(`use text\nuse crypto\nuse sequences\n${operands} ${entry.name}`)!;
                 expect(typeName(value), `${entry.name}: ${operands}`).toBe(entry.compiledCall!.result);
             } finally { runtime.dispose(); }
         }
