@@ -190,6 +190,9 @@ const extremaSignatures: readonly TypeSignature[] = (['number', 'text', 'boolean
         { inputs: ['missing', 'unknown'], result: 'missing', ranks: [0, 0] },
         { inputs: ['unknown', 'missing'], result: 'missing', ranks: [0, 0] },
     ]);
+const elementVariable: SignatureType = { variable: 0 };
+const genericArray: SignatureType = { collection: 'array', element: elementVariable };
+const randomInput: SignatureType = { union: [genericArray, { collection: 'sequence', element: elementVariable }] };
 const printableScalar: SignatureType = { union: ['number', 'boolean', 'text', 'symbol', 'date', 'datetime'] };
 const numericCells: SignatureType = { union: ['number', 'missing'] };
 const numericArray: SignatureType = { collection: 'array', element: 'number' };
@@ -500,17 +503,23 @@ export const operations: readonly Operation[] = [
         summary: 'Functional graph carrying numeric edge costs along its paths.' },
 
     { name: 'images', module: 'images', arities: [1], form: 'Directory images', result: 'table',
+        signatures: [{ inputs: ['text'], result: { collection: 'array', element: 'object' } }],
         effects: ['io'],
         summary: 'Table of the JPEG and PNG files in a directory, with name and path.' },
     { name: 'resize', module: 'images', arities: [3], form: 'Images Height Width resize',
+        signatures: [{ inputs: [{ collection: 'array', element: 'object' }, 'integer', 'integer'],
+            result: { collection: 'array', element: 'integer' } }],
         result: 'array', lazy: true, effects: ['io'],
         summary: 'Decodes every image and stretches it into a lazy RGB tensor.' },
 
     { name: 'neighbors', module: 'grids', arities: [3, 4], form: 'Grid Row Column .eight neighbors', result: 'array',
+        signatures: [{ inputs: ['array', 'integer', 'integer'], result: { collection: 'array', element: 'integer' } },
+            { inputs: ['array', 'integer', 'integer', 'symbol'], result: { collection: 'array', element: 'integer' } }],
         shape: [{ args: [null, null, null], result: [{ exists: 'k' }, 2] }, { args: [null, null, null, null], result: [{ exists: 'k' }, 2] }],
         denseElements: ['integer'],
         summary: 'In-bounds row and column pairs around one grid cell; four neighbors by default.' },
     { name: 'segments', module: 'grids', arities: [2], form: 'Grid Width segments', result: 'array',
+        signatures: [{ inputs: [genericArray, 'integer'], result: genericArray }],
         summary: 'All in-bounds horizontal, vertical and diagonal segments of a fixed width.' },
 
     { name: 'append', module: 'io', arities: [2], form: 'Text Path append', result: 'text',
@@ -722,16 +731,21 @@ export const operations: readonly Operation[] = [
         summary: 'Hyperbolic tangent.' },
 
     { name: 'choices', module: 'random', arities: [2], form: 'Values Count choices',
+        signatures: [{ inputs: [randomInput, 'integer'], result: genericArray }],
         result: 'array', effects: ['random'],
         summary: 'Draws Count values with replacement, complete cells for a tensor.' },
     { name: 'seed', module: 'random', arities: [1], form: 'Seed seed', result: 'integer',
+        signatures: [{ inputs: ['integer'], result: 'integer' }],
         shape: [{ args: [null], result: [] }],
         effects: ['random'],
         summary: 'Restarts the pseudorandom stream of the session and returns the seed.' },
     { name: 'shuffle', module: 'random', arities: [1, 2], form: 'Values shuffle', result: 'array',
+        signatures: [{ inputs: [randomInput], result: genericArray },
+            { inputs: [randomInput, 'integer'], result: genericArray }],
         effects: ['random'],
         summary: 'New array in random order; a seed makes the order repeatable.' },
     { name: 'uniform', module: 'random', arities: [3], form: 'Shape Low High uniform',
+        signatures: [{ inputs: [{ collection: 'array', element: 'integer' }, 'number', 'number'], result: realArray }],
         result: 'array', effects: ['random'],
         summary: 'Real tensor drawn from the half-open interval between the bounds.' },
 

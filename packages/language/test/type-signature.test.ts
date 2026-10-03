@@ -121,3 +121,12 @@ it('retains shape-dependent linear algebra results and quantile overloads', () =
     ])).toBe('array<number> array<number> → array<real>');
     expect(operationSignature(findOperation('mean')!, [{ types: ['integer'] }])).toBe('number → real');
 });
+
+
+it('preserves element relationships for random sampling and grid segments', () => {
+    expect(operationSignature(findOperation('shuffle')!, 2)).toBe('(array<a> | sequence<a>) integer → array<a>');
+    expect(operationSignature(findOperation('choices')!)).toBe('(array<a> | sequence<a>) integer → array<a>');
+    expect(operationSignature(findOperation('segments')!)).toBe('array<a> integer → array<a>');
+    expect(operationSignature(findOperation('neighbors')!, 4)).toBe('array integer integer symbol → array<integer>');
+    expect(operationSignature(findOperation('resize')!)).toBe('array<object> integer integer → array<integer>');
+});
