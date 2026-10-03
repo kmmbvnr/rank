@@ -4,7 +4,7 @@ import type { Operation } from './operations.js';
 export type SignatureAtom =
     | 'unknown' | 'integer' | 'real' | 'number' | 'boolean' | 'text' | 'symbol' | 'missing'
     | 'date' | 'datetime' | 'duration' | 'bytes' | 'array' | 'sequence' | 'tuple' | 'record'
-    | 'table' | 'column' | 'file' | 'database' | 'queue' | 'stack' | 'deque' | 'heap'
+    | 'table' | 'column' | 'object' | 'function' | 'file' | 'database' | 'queue' | 'stack' | 'deque' | 'heap'
     | 'set' | 'counter' | 'multiset' | 'index' | 'graph' | 'dsu' | 'segment' | 'fenwick'
     | 'wavelet' | 'functional';
 

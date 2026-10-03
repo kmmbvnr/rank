@@ -33,3 +33,4 @@ export * from './compiled-function-type.js';
 export * from './analysis/function-relationships.js';
 
 export * from './type-signature.js';
+export * from './function-signature.js';
