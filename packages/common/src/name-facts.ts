@@ -1,7 +1,7 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, describeTypes, findOperation, functionSignature, operationSignature, flattenApplication, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
-    isFunctionStatement, isNameExpression, isUnpackStatement,
+    analyzeValues, describeTypes, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
+    isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts,
 } from '@arrrank/language';
 import { parse } from '@arrrank/interpreter';
@@ -66,6 +66,12 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         } : undefined;
     };
     const signatureFor = (site: Site): string | undefined => {
+        if (site.kind === 'operator') {
+            const node = site.node;
+            const operands = isBinaryExpression(node) ? [node.left, node.right]
+                : isUnaryExpression(node) ? [node.operand] : [];
+            return operatorSignature(site.name, operands.map(operand => analysis.expressions.get(operand) ?? UNKNOWN));
+        }
         const call = callFacts(site);
         if (isCatalogueFunction(site)) return operationSignature(findOperation(site.name)!, call?.arguments);
         if (site.kind !== 'function' && site.kind !== 'read') return undefined;
@@ -90,6 +96,8 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         const site = [offset, offset - 1].map(at => nameSite(root, at)).find(found => found !== undefined);
         if (!site) return undefined;
         const inFunction = AstUtils.getContainerOfType(site.node, isFunctionStatement);
+        if (site.kind === 'operator') return { name: site.name, source: 'static', facts: FUNCTION,
+            signature: signatureFor(site) };
         const observed = runtime.get(site.name);
         if (observed && !inFunction && site.kind !== 'parameter' && !written.has(site.name)) {
             // A run records no element types; the analyzer's agree with it only when type, rank and shape do.
@@ -131,7 +139,7 @@ function writtenNames(program: Program): Set<string> {
 interface Site {
     readonly name: string;
     readonly node: AstNode;
-    readonly kind: 'read' | 'assignment' | 'loop' | 'parameter' | 'unpack' | 'function';
+    readonly kind: 'read' | 'assignment' | 'loop' | 'parameter' | 'unpack' | 'function' | 'operator';
 }
 
 function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site | undefined {
@@ -140,6 +148,13 @@ function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site 
     if (!leaf || offset < leaf.offset || offset >= leaf.end || leaf.hidden) return undefined;
     const node = leaf.astNode;
     const text = leaf.text;
+    if (isBinaryExpression(node) || isUnaryExpression(node)) {
+        const parts = GrammarUtils.findNodesForProperty(node.$cstNode, 'operator');
+        if (parts.some(part => leaf.offset >= part.offset && leaf.end <= part.end)
+            && operatorSignature(node.operator)) {
+            return { name: parts.map(part => part.text).join(' ').replace(/\s+/g, ' ').trim(), node, kind: 'operator' };
+        }
+    }
     if (isNameExpression(node)) {
         return node.name === text ? { name: text, node, kind: loopOf(node) ? 'loop' : 'read' } : undefined;
     }

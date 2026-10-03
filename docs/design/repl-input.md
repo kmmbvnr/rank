@@ -378,8 +378,16 @@ signatures come from audited catalogue overloads, not operand names or compiler
 eligibility. Known call arguments select matching overloads and narrow their input
 unions; unknown arguments keep the alternatives. An invalid call still shows the
 declared alternatives alongside its normal diagnostics. A `[rank 0 0]` suffix
-identifies a cell signature that lifts over collection frames. Names without signature metadata still show `function`.
-A keyword, an operator word or a number shows the normal hints. The line is grey and clipped to the footer width: the shape goes first,
+identifies a cell signature; broadcasting and evaluation follow the operation's rules.
+In particular, scalar `and`/`or` short-circuit and require a scalar right operand,
+and ordinary comparison does not accept two sequences. A signature does not promise
+that every shape combination or value is valid. Names without signature metadata still show `function`.
+Arithmetic, comparison, logical and `is` operator tokens show their declared signatures,
+including both words in `not equal`, `at least`, `at most`, and `multiple by`.
+Equality allows unrelated operand types and can propagate `missing`; it does not
+claim that the operands must have the same type. A known SQL column selects the
+column result contract. Column refinements and ownership remain runtime constraints.
+Other keywords, operator forms without metadata, and numbers show the normal hints. The line is grey and clipped to the footer width: the shape goes first,
 then the front of the name. A shape with an axis of unknown length is left out rather
 than guessed. Errors, running status, completion candidates and an iteration row keep
 the footer. Facts come from the run for names of cells that were executed and have not

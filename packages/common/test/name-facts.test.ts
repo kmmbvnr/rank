@@ -194,3 +194,37 @@ it('does not use a global function signature for a shadowing callback parameter'
     const source = 'fun helper X\n return X\nend\nfun apply helper\n return 1 helper\nend';
     expect(factsAt(source, source.lastIndexOf('helper'))?.signature).toBeUndefined();
 });
+
+
+describe('factsAt: grammar operator signatures', () => {
+    it('shows signatures on every word of a compound comparison', () => {
+        for (const operator of ['not equal', 'at least', 'at most']) {
+            const source = '1 ' + operator + ' 2';
+            for (const offset of [2, 2 + operator.indexOf(' ') + 1, 2 + operator.length]) {
+                const found = factsAt(source, offset)!;
+                expect(found.name).toBe(operator);
+                expect(found.signature).toContain('→ boolean');
+            }
+        }
+    });
+
+    it('uses proven operand types and distinguishes unary and binary signs', () => {
+        const source = 'X = 1\n-X + 2.0';
+        expect(factsAt(source, source.indexOf('-'))?.signature).toBe('integer → integer [rank 0]');
+        expect(factsAt(source, source.indexOf('+'))?.signature).toBe('integer real → real [rank 0 0]');
+        expect(factsAt('"a" + "b"', 4)?.signature).toBe('text text → text');
+        expect(factsAt('not true', 1)?.signature).toBe('boolean → boolean [rank 0]');
+    });
+
+    it('does not mistake operators in strings, comments, assignment or loop headers for calls', () => {
+        expect(factsAt('"not equal"', 2)).toBeUndefined();
+        expect(factsAt('1 # not equal', 5)).toBeUndefined();
+        expect(factsAt('X = 1', 2)).toBeUndefined();
+        expect(factsAt('for X in (1 to 3)\n X\nend', 7)).toBeUndefined();
+    });
+
+    it('keeps runtime name bindings from replacing grammar operator contracts', () => {
+        expect(factsAt('true and false', 6, [['and', { types: ['integer'] }]])?.signature)
+            .toBe('boolean boolean → boolean [rank 0 0]');
+    });
+});
