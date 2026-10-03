@@ -378,3 +378,15 @@ it('uses fresh relationships and diagnostics after an edited definition is repar
     expect(edited.relationships.get(edited.functions.get('wrap')!))
         .not.toBe(original.relationships.get(original.functions.get('wrap')!));
 });
+
+it('does not expose a relationship after its own function binding is replaced', () => {
+    const fn = definition('fun identity Value\n return Value\nend');
+    const env = new Map<string, ValueFacts>([['identity', { types: ['function'] }]]);
+    const calls = createCallAnalysis(env, new Map([['identity', fn]]), [], new Map(), () => [{ types: [] }],
+        () => { throw new Error('unexpected import'); });
+    calls.call('identity', [{ types: ['integer'], rank: 0, shape: [] }], env);
+    expect(calls.validRelationships(env).has(fn)).toBe(true);
+    env.set('identity', { types: ['function'] });
+    expect(calls.validRelationships(env).has(fn)).toBe(false);
+    expect(calls.call('identity', [{ types: ['integer'], rank: 0, shape: [] }], env).types).toEqual([]);
+});

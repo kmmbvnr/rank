@@ -374,7 +374,10 @@ export function createCallAnalysis(
         functionBindings, imported, importedAliases, globalCallEnvs, privateBindings, frameBindings,
         directNoReturnCall, call, relationships,
         validRelationships: (env: ReadonlyMap<string, ValueFacts>) => {
-            const result = new Map([...relationships].filter(([, summary]) => validRelationship(summary, env)));
+            const result = new Map([...relationships].filter(([definition, summary]) =>
+                functions.get(definition.name) === definition
+                && env.get(definition.name) === functionBindings.get(definition.name)
+                && validRelationship(summary, env)));
             for (const [name, external] of imported) {
                 const cached = importedRelationships.get(external);
                 if (cached?.summary && env.get(name) === external.binding
