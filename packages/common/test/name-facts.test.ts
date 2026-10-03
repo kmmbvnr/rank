@@ -64,8 +64,8 @@ describe('factsAt: each kind of name position', () => {
 
     it('names a user function', () => {
         const program = 'fun f X\n return X\nend\n1 f\n';
-        expect(formatNameFacts(factsAt(program, at(program, 'f X'))!)).toBe('f · function');
-        expect(formatNameFacts(factsAt(program, at(program, 'f', 2) + 1)!)).toBe('f · function');
+        expect(formatNameFacts(factsAt(program, at(program, 'f X'))!)).toBe('f · a → a');
+        expect(formatNameFacts(factsAt(program, at(program, 'f', 2) + 1)!)).toBe('f · integer → integer');
     });
 
     it('returns nothing for source that does not parse', () => {
@@ -159,13 +159,38 @@ describe('formatNameFacts', () => {
 describe('factsAt: functions', () => {
     const word = (source: string, text: string): NameFacts => factsAt(source, source.lastIndexOf(text) + 1)!;
 
-    it('calls a builtin and a notebook function a function, and claims no signature', () => {
+    it('keeps unaudited builtin signatures unknown and shows a proven notebook call', () => {
         expect(formatNameFacts(word('Xs = array 1 2 3\nXs sum\n', 'sum'), 60)).toBe('sum · function');
-        expect(formatNameFacts(word('fun twice X\n return X * 2\nend\n3 twice\n', 'twice'), 60)).toBe('twice · function');
+        expect(formatNameFacts(word('fun twice X\n return X * 2\nend\n3 twice\n', 'twice'), 60)).toBe('twice · integer → integer');
     });
 
     it('is not fooled by a variable or an unknown word', () => {
         expect(formatNameFacts(word('Sum = 5\nSum\n', 'Sum'), 60)).toBe('Sum · integer');
         expect(formatNameFacts(word('Q = Zork\n', 'Zork'), 60)).toBe('Zork · unknown');
     });
+});
+
+describe('function signatures in the type footer', () => {
+    it('uses explicit builtin signatures with their actual overloads', () => {
+        const split = 'use text\n"a,b" "," split';
+        expect(formatNameFacts(factsAt(split, split.indexOf('split'))!))
+            .toBe('split · text (text | array<text>) → array<text>');
+    });
+
+    it('shows the notebook example signature and preserves unknown inputs', () => {
+        const source = 'fun twice X\n Y = X * 2\n return Y\nend';
+        expect(formatNameFacts(factsAt(source, source.indexOf('twice'), [], [{ name: 'twice', arguments: [integer()] }])!))
+            .toBe('twice · integer → integer');
+        expect(formatNameFacts(factsAt(source, source.indexOf('twice'))!)).toBe('twice · a → b');
+    });
+
+    it('keeps tuple result relationships visible without example arguments', () => {
+        const source = 'fun pair X\n return tuple X "label"\nend';
+        expect(formatNameFacts(factsAt(source, source.indexOf('pair'))!)).toBe('pair · a → tuple(a, text)');
+    });
+});
+
+it('does not use a global function signature for a shadowing callback parameter', () => {
+    const source = 'fun helper X\n return X\nend\nfun apply helper\n return 1 helper\nend';
+    expect(factsAt(source, source.lastIndexOf('helper'))?.signature).toBeUndefined();
 });

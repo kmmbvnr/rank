@@ -369,8 +369,14 @@ While source is edited and the cursor is on a name, the footer shows that name's
 type and shape instead of the hints and the file name, for example
 `M · integer [3 4]`, `Row · text`, `X · unknown` or `F · function`. A name counts when
 it is a read, an assignment target, a loop name, a parameter or a function name, and
-the cursor right after it counts as on it. A function name, whether a catalogue builtin or one written in the notebook, shows
-`function`; typed signatures are a separate piece of work. A keyword, an operator word or a number shows the normal hints. The line is grey and clipped to the footer width: the shape goes first,
+the cursor right after it counts as on it. Known function signatures replace `function`:
+`identity · a → a`, `pair · a → tuple(a, text)` or `twice · integer → integer`.
+A direct call uses its inferred argument facts; a declaration uses available example
+arguments. Without those facts, unrelated unknown types use different letters, as in
+`twice · a → b`. A shared letter appears only for a proven relationship. Builtin
+signatures come from audited catalogue overloads, not operand names or compiler
+eligibility. Names without signature metadata still show `function`.
+A keyword, an operator word or a number shows the normal hints. The line is grey and clipped to the footer width: the shape goes first,
 then the front of the name. A shape with an axis of unknown length is left out rather
 than guessed. Errors, running status, completion candidates and an iteration row keep
 the footer. Facts come from the run for names of cells that were executed and have not

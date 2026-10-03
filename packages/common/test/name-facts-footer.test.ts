@@ -141,3 +141,14 @@ it('does not show facts while the cursor has been scrolled out of sight', () => 
         expect(frameOf(repl, 6, false, 0, 20).factsRow).toBeUndefined();
     } finally { session.dispose(); }
 });
+
+it('renders a proven notebook relationship and a concrete call signature in the facts row', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const definition = 'fun identity Value\n return Value\nend';
+        expect(footer(repl, definition, definition.indexOf('identity') + 1)).toBe('facts: identity · a → a');
+        const call = definition + '\n1 identity';
+        expect(footer(repl, call, call.lastIndexOf('identity') + 1)).toBe('facts: identity · integer → integer');
+    } finally { session.dispose(); }
+});

@@ -1,6 +1,6 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, describeTypes, findOperation, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
+    analyzeValues, describeTypes, findOperation, functionSignature, operationSignature, flattenApplication, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
     isFunctionStatement, isNameExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts,
 } from '@arrrank/language';
@@ -11,6 +11,7 @@ export interface NameFacts {
     readonly name: string;
     readonly facts: ValueFacts;
     readonly source: 'runtime' | 'static';
+    readonly signature?: string;
 }
 
 /** A function the live preview calls with example arguments, so its parameters have facts. */
@@ -52,6 +53,36 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
     /** A catalogue name that nothing in the notebook or the run has bound is a function. */
     const isCatalogueFunction = (site: Site): boolean => site.kind === 'read' && !analysis.bindings.has(site.name)
         && !runtime.has(site.name) && !written.has(site.name) && !!findOperation(site.name)?.arities.length;
+    const rebound = writtenNames(program);
+    const signatureFor = (site: Site): string | undefined => {
+        if (isCatalogueFunction(site)) return operationSignature(findOperation(site.name)!);
+        if (site.kind !== 'function' && site.kind !== 'read') return undefined;
+        if (site.kind === 'read' && rebound.has(site.name)) return undefined;
+        for (let parent = site.node.$container; parent; parent = parent.$container) {
+            if (isFunctionStatement(parent) && parent.parameters.includes(site.name)) return undefined;
+        }
+        const definition = isFunctionStatement(site.node) ? site.node : analysis.functions.get(site.name);
+        if (!definition) return undefined;
+        const relationship = analysis.relationships.get(definition);
+        if (isNameExpression(site.node)) {
+            let call: AstNode = site.node;
+            while (isApplicationExpression(call.$container)) call = call.$container;
+            if (isApplicationExpression(call)) {
+                const parts = flattenApplication(call);
+                if (parts.at(-1) === site.node && parts.length - 1 === definition.parameters.length) {
+                    return functionSignature(definition, { relationship,
+                        arguments: parts.slice(0, -1).map(part => analysis.expressions.get(part) ?? UNKNOWN),
+                        result: analysis.expressions.get(call) });
+                }
+            }
+        }
+        const observed = analysis.functions.get(site.name) === definition
+            ? examples.flatMap((example, index) => example.name === site.name
+                ? [{ arguments: example.arguments, result: analysis.functionResults[index] }] : []) : [];
+        return observed.length ? [...new Set(observed.map(facts => functionSignature(definition, { ...facts, relationship })))].join(' ; ')
+            : functionSignature(definition, { relationship });
+    };
+
     return offset => {
         const site = [offset, offset - 1].map(at => nameSite(root, at)).find(found => found !== undefined);
         if (!site) return undefined;
@@ -64,9 +95,12 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
                 && observed.shape?.length === inferred.shape?.length
                 && observed.shape?.every((size, axis) => inferred.shape![axis] === size);
             const elements = same && !observed.elements ? inferred.elements : undefined;
-            return { name: site.name, source: 'runtime', facts: { ...observed, ...(elements ? { elements } : {}) } };
+            return { name: site.name, source: 'runtime', facts: { ...observed, ...(elements ? { elements } : {}) },
+                ...(observed.types.join() === 'function' ? { signature: signatureFor(site) } : {}) };
         }
-        return { name: site.name, source: 'static', facts: isCatalogueFunction(site) ? FUNCTION : staticFacts(site, analysis) };
+        const facts = isCatalogueFunction(site) ? FUNCTION : staticFacts(site, analysis);
+        return { name: site.name, source: 'static', facts,
+            ...(facts.types.join() === 'function' ? { signature: signatureFor(site) } : {}) };
     };
 }
 
@@ -195,11 +229,11 @@ export function describeFacts(facts: ValueFacts, withShape = true): string {
  * goes first, then the front of the name.
  */
 export function formatNameFacts(found: NameFacts, width = Infinity): string {
-    const full = `${found.name} · ${describeFacts(found.facts)}`;
+    const full = `${found.name} · ${found.signature ?? describeFacts(found.facts)}`;
     if (cellWidth(full) <= width) return full;
-    const bare = `${found.name} · ${describeFacts(found.facts, false)}`;
+    const bare = `${found.name} · ${found.signature ?? describeFacts(found.facts, false)}`;
     if (cellWidth(bare) <= width) return bare;
-    const suffix = ` · ${describeFacts(found.facts, false)}`;
+    const suffix = ` · ${found.signature ?? describeFacts(found.facts, false)}`;
     let name = found.name;
     while (name.length > 1 && cellWidth(`${name}…${suffix}`) > width) name = name.slice(0, -1);
     const clipped = `${name}…${suffix}`;
