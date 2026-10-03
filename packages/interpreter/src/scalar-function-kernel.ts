@@ -58,7 +58,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         if (expression.kind === 'literal') return typeof expression.value === 'bigint'
             ? `${expression.value}n` : typeof expression.value === 'number'
                 ? Object.is(expression.value, -0) ? '-0' : String(expression.value) : JSON.stringify(expression.value);
-        if (expression.kind === 'input') return slot(expression.name);
+        if (expression.kind === 'input') return slot(expression.input);
         if (expression.kind === 'unary') {
             const value = lower(expression.operand, lines), result = `v${serial++}`;
             lines.push(`const ${result} = ${expression.operation.unary}(${value});`);

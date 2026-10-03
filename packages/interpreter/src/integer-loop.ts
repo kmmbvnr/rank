@@ -2,10 +2,10 @@ import { checkpoint } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    flattenApplication, expressionFacts, findOperation, findCompiledOperator, loopOperatorSignature,
+    flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
-    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledScalarType,
+    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledScalarType, type CompiledExpression,
 } from '@arrrank/language';
 import { completed, type Completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -188,15 +188,85 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         lines.push(`const ${name} = (${right.code}) ${last.name === 'min' ? '<' : '>'} (${left.code}) ? (${right.code}) : (${left.code});`);
         return { code: name, type: 'integer' };
     }
+    interface LoopInput { readonly term: Term; readonly lines: readonly string[] }
     function emit(e: Expression, lines: string[], hint?: Term['type'], tail = false): Term | undefined {
-        return emitExpression(e, lines, hint, tail) ?? reject(e);
+        let tailSource = e;
+        while (isParenthesizedExpression(tailSource)) tailSource = tailSource.value;
+        const booleanPairs = new Map<Expression, boolean>();
+        const inferred = inferCompiledExpression<CompiledLoopType, LoopInput>(e, {
+            types: host.textLoops ? ['integer', 'boolean', 'text', 'bytes'] : ['integer', 'boolean', 'bytes'],
+            read: (source, expected) => {
+                // Scalar operators use the shared inference. Loop-specific cell
+                // reads, calls and literal powers retain their guarded lowering.
+                if (isUnaryExpression(source) || isBinaryExpression(source)
+                    && source.operator !== '**' && source.operator !== 'in') return undefined;
+                const inputLines: string[] = [];
+                const term = emitInput(source, inputLines, expected, tail && source === tailSource);
+                return term ? { type: term.type, input: { term, lines: inputLines } } : undefined;
+            },
+            isBound: name => localTypes.has(name) || arrays.has(name) || containers.has(name),
+            operandHint: (source, index, left) => {
+                if (isUnaryExpression(source)) return source.operator === 'not' ? 'boolean' : 'integer';
+                if (!isBinaryExpression(source)) return undefined;
+                if (index === 1) return left === 'text' ? 'text'
+                    : booleanPairs.get(source) || left === 'boolean' ? 'boolean' : undefined;
+                const text = loopOperatorSignature(source.operator, ['text', 'text'], host.nativeCalls);
+                const boolean = loopOperatorSignature(source.operator, ['boolean', 'boolean'], host.nativeCalls);
+                const textPair = text && knownType(source.right) === 'text';
+                const booleanPair = !!boolean && (!loopOperatorSignature(source.operator, ['integer', 'integer'], host.nativeCalls)
+                    || knownType(source.right) === 'boolean');
+                booleanPairs.set(source, booleanPair);
+                return textPair || text?.result === 'text' && knownType(source.left) === 'text'
+                    ? 'text' : booleanPair ? 'boolean' : undefined;
+            },
+            // Literal powers are handled by the guarded input path. Accepting
+            // the generic overload here would admit computed/negative exponents.
+            operator: (operation, inputs) => operation.name === '**' ? undefined
+                : loopOperatorSignature(operation.name, inputs, host.nativeCalls),
+            budget: { remaining: 1024 },
+        }, hint);
+        if (inferred.failure) return reject(inferred.failure.source, inferred.failure.detail);
+        return lower(inferred.expression, lines) ?? reject(e);
     }
-    function emitExpression(e: Expression, lines: string[], hint?: Term['type'], tail = false): Term | undefined {
+    function lower(node: CompiledExpression<CompiledLoopType, LoopInput>, lines: string[]): Term | undefined {
         if (serial > 256) return undefined;
-        if (isParenthesizedExpression(e)) return emit(e.value, lines, hint, tail);
-        if (isNumberLiteral(e) && typeof e.value === 'bigint') return { code: `${e.value}n`, type: 'integer' };
-        if (isStringLiteral(e) && host.textLoops) return { code: JSON.stringify(e.value), type: 'text' };
-        if (isBooleanLiteral(e)) return { code: String(e.value), type: 'boolean' };
+        if (node.kind === 'group') return lower(node.operand, lines);
+        if (node.kind === 'literal') return { type: node.type,
+            code: typeof node.value === 'bigint' ? `${node.value}n` : JSON.stringify(node.value) };
+        if (node.kind === 'input') {
+            lines.push(...node.input.lines);
+            return node.input.term;
+        }
+        if (node.kind === 'call') return undefined; // Calls are guarded loop inputs above.
+        if (node.kind === 'unary') {
+            const value = lower(node.operand, lines), token = node.operation.unary;
+            if (!value || token === undefined) return undefined;
+            return { code: token === '' ? value.code : `${token}(${value.code})`, type: node.type };
+        }
+        const left = lower(node.left, lines);
+        const token = node.operation.binary;
+        const guard = token === '&&' || token === '||';
+        const rightLines: string[] = guard ? [] : lines;
+        const right = lower(node.right, rightLines);
+        if (!left || !right || !token) return undefined;
+        const a = left.code, b = right.code, op = node.operation.name;
+        const name = `v${serial++}`;
+        if (guard) {
+            lines.push(`let ${name} = ${a}; if (${op === 'and' ? '' : '!'}${name}) { ${rightLines.join('\n')} ${name} = ${b}; }`);
+            return { code: name, type: node.type };
+        }
+        if (token !== '//' && token !== '%') {
+            lines.push(`const ${name} = (${a}) ${token} (${b});`);
+        } else {
+            lines.push(`if ((${b}) === 0n) throw zero();`);
+            lines.push(`const m${serial} = (${a}) % (${b});`);
+            const adjust = `(m${serial} !== 0n && (m${serial} < 0n) !== ((${b}) < 0n))`;
+            lines.push(`const ${name} = ${op === '//' ? `(${a}) / (${b}) - (${adjust} ? 1n : 0n)` : `m${serial} + (${adjust} ? (${b}) : 0n)`};`);
+        }
+        return { code: name, type: node.type };
+    }
+    function emitInput(e: Expression, lines: string[], hint?: Term['type'], tail = false): Term | undefined {
+        if (serial > 256) return undefined;
         if (isNameExpression(e) && !e.name.includes('.')) {
             if (arrays.has(e.name)) return undefined;
             const type = localTypes.get(e.name) ?? (textSources.has(e.name) ? 'text' : hint ?? 'integer');
@@ -205,14 +275,6 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             const index = slot(e.name);
             if (!assigned.has(e.name)) required.add(index);
             return { code: `r${index}`, type };
-        }
-        if (isUnaryExpression(e)) {
-            const value = emit(e.operand, lines, e.operator === 'not' ? 'boolean' : 'integer');
-            if (!value) return undefined;
-            const signature = loopOperatorSignature(e.operator, [value.type], host.nativeCalls);
-            const token = findCompiledOperator(e.operator)?.unary;
-            if (!signature || token === undefined) return undefined;
-            return { code: token === '' ? value.code : `${token}(${value.code})`, type: signature.result };
         }
         if (host.extrema && isApplicationExpression(e)) {
             const parts = host.extremeParts(e);
@@ -396,36 +458,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             lines.push(`const ${name} = ${negative ? '-' : ''}((${base.code}) ** ${exponent.value}n);`);
             return { code: name, type: 'integer' };
         }
-        const textSignature = loopOperatorSignature(e.operator, ['text', 'text'], host.nativeCalls);
-        const booleanSignature = loopOperatorSignature(e.operator, ['boolean', 'boolean'], host.nativeCalls);
-        const textPair = textSignature && knownType(e.right) === 'text';
-        const booleanPair = booleanSignature && (!loopOperatorSignature(e.operator, ['integer', 'integer'], host.nativeCalls)
-            || knownType(e.right) === 'boolean');
-        const left = emit(e.left, lines, textPair || textSignature?.result === 'text' && knownType(e.left) === 'text'
-            ? 'text' : booleanPair ? 'boolean' : undefined);
-        // `and` and `or` run their right side only when the left does not decide.
-        const token = findCompiledOperator(e.operator)?.binary;
-        const guard = token === '&&' || token === '||';
-        const rightLines = guard ? [] : lines;
-        const right = emit(e.right, rightLines, left?.type === 'text' ? 'text' : booleanPair || left?.type === 'boolean' ? 'boolean' : undefined);
-        if (!left || !right) return undefined;
-        const signature = loopOperatorSignature(e.operator, [left.type, right.type], host.nativeCalls);
-        if (!signature || !token) return undefined;
-        const a = left.code, b = right.code, op = e.operator;
-        const name = `v${serial++}`;
-        if (guard) {
-            lines.push(`let ${name} = ${a}; if (${op === 'and' ? '' : '!'}${name}) { ${rightLines.join('\n')} ${name} = ${b}; }`);
-            return { code: name, type: 'boolean' };
-        }
-        if (token !== '//' && token !== '%') {
-            lines.push(`const ${name} = (${a}) ${token} (${b});`);
-        } else if (op === '//' || op === '%') {
-            lines.push(`if ((${b}) === 0n) throw zero();`);
-            lines.push(`const m${serial} = (${a}) % (${b});`);
-            const adjust = `(m${serial} !== 0n && (m${serial} < 0n) !== ((${b}) < 0n))`;
-            lines.push(`const ${name} = ${op === '//' ? `(${a}) / (${b}) - (${adjust} ? 1n : 0n)` : `m${serial} + (${adjust} ? (${b}) : 0n)`};`);
-        } else return undefined;
-        return { code: name, type: signature.result };
+        return undefined;
     }
     function loopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number): { setup: string; header: string; bindings: string } | undefined {
         return compileLoopParts(node, iteration, location) ?? reject(node, 'loop-header');
