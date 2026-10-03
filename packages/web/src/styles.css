@@ -206,6 +206,9 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #value-viewer .viewer-stepper button { width: 48px; height: 40px; background: transparent; font-size: 28px; line-height: 1; border-radius: 8px; }
 #value-viewer .viewer-stepper button:active { background: #333; }
 #value-viewer .viewer-stepper button:disabled { color: #444; }
+/* The table area takes focus when the viewer opens so keys and taps land in it; a ring around it would only be a white frame at the screen edges. */
+#value-viewer :focus, #value-viewer :focus-visible { outline: none; }
+#value-viewer { -webkit-tap-highlight-color: transparent; }
 #value-viewer .viewer-body { position: relative; flex: 1; min-height: 0; }
 #value-viewer regular-table { padding: 0; font-family: inherit; scrollbar-color: #444 transparent; outline: none; }
 #value-viewer regular-table:hover { scrollbar-color: #666 transparent; }

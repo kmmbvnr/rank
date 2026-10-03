@@ -34,6 +34,13 @@ async page => {
     await page.waitForFunction(() => document.querySelectorAll('#value-viewer tbody tr').length >= 30, null, { timeout: 5000 });
     check((await dialog.locator('thead th').count()) >= 3, 'column headers missing');
 
+    // No focus ring around the table, even when it has keyboard focus: it would show as a white frame at the screen edges.
+    await page.keyboard.press('ArrowDown');
+    const rings = await page.evaluate(() => [...document.querySelectorAll('#value-viewer, #value-viewer *')]
+        .filter(element => element.matches(':focus-visible, :focus') && getComputedStyle(element).outlineStyle !== 'none' && parseFloat(getComputedStyle(element).outlineWidth) > 0)
+        .map(element => element.tagName));
+    check(rings.length === 0, `a focus ring is drawn on ${rings}`);
+
     // Scrolling is smooth: a few pixels move the rows by pixels, not by a whole row.
     const firstRowTop = () => page.evaluate(() => document.querySelector('#value-viewer tbody tr').getBoundingClientRect().top);
     const restingTop = await firstRowTop();
