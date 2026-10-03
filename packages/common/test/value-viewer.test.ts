@@ -117,6 +117,33 @@ describe('the value viewer', () => {
         } finally { session.dispose(); }
     });
 
+    it('reads more of an endless sequence on m, and says how it went', async () => {
+        const { session, repl, viewer, press, screen } = await opened(60, 12, {},
+            'fun stream\n for I in 1 to 1000000000\n  yield I\n end\nend', 'N = stream');
+        try {
+            const before = viewer.view.kind === 'list' ? viewer.view.scroll.length : 0;
+            expect(viewer.view).toMatchObject({ kind: 'list', more: true });
+            expect(screen().at(-1)).toContain('m read more');
+            await press('', { text: 'm' });
+            expect(viewer.view.kind === 'list' && viewer.view.scroll.length).toBe(before + 100);
+            expect(viewer.readNote).toBe('read 100 more');
+            expect(screen().at(-1)).toContain('read 100 more');
+            expect(repl.help?.viewer).toBe(viewer);
+        } finally { session.dispose(); }
+    });
+
+    it('offers nothing to read for a sequence that has ended, and m does nothing', async () => {
+        const { session, viewer, press, screen } = await opened(60, 12, {},
+            'fun upto N\n for I in 1 to N\n  yield I\n end\nend', 'S = 5 upto');
+        try {
+            expect(viewer.view).toMatchObject({ kind: 'list' });
+            expect(viewer.view.kind === 'list' && viewer.view.more).toBeUndefined();
+            await press('', { text: 'm' });
+            expect(viewer.readNote).toBe('');
+            expect(screen().at(-1)).not.toContain('m read more');
+        } finally { session.dispose(); }
+    });
+
     it('closes with Esc back onto the result row when it was opened from that row, and Enter reopens it', async () => {
         const { session, repl, press } = await opened(40, 8, {}, 'M = array shape 3 4 fill 7');
         try {

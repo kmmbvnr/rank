@@ -46,6 +46,9 @@ export class ValueOverlay {
     private readonly title = document.createElement('h2');
     private readonly type = document.createElement('p');
     private readonly axesPanel = document.createElement('div');
+    private readonly more = document.createElement('footer');
+    private readonly moreStatus = document.createElement('span');
+    private readonly moreButton = document.createElement('button');
     private readonly table = document.createElement('regular-table') as RegularTableElement;
     private viewer?: ValueViewer;
     /** The shape of an array, the axes laid out as rows and columns, and the index held on every axis. */
@@ -82,7 +85,14 @@ export class ValueOverlay {
         body.tabIndex = -1;
         body.autofocus = true;
         body.append(this.table);
-        this.dialog.append(header, this.axesPanel, body);
+        // A sequence that is still being generated can be read further, a bounded number at a time.
+        this.more.className = 'viewer-more';
+        this.more.hidden = true;
+        this.moreButton.type = 'button';
+        this.moreButton.textContent = 'Read more';
+        this.moreButton.onclick = () => void this.readMore();
+        this.more.append(this.moreStatus, this.moreButton);
+        this.dialog.append(header, this.axesPanel, body, this.more);
         document.body.append(this.dialog);
         // Escape ends as a close; Android's Back reaches `rankBack` through the activity.
         this.dialog.addEventListener('close', () => {
@@ -119,6 +129,7 @@ export class ValueOverlay {
         this.blocks.clear();
         this.ready.clear();
         this.renderAxes();
+        this.renderMore();
         if (!this.dialog.open) this.dialog.showModal();
         this.table.scrollTop = 0;
         this.table.scrollLeft = 0;
@@ -138,6 +149,40 @@ export class ValueOverlay {
         if (!this.dialog.open) return;
         this.viewer = undefined;
         this.dialog.close();
+    }
+
+    /** The read-more bar: only for a sequence that has not ended and can be read further. */
+    private renderMore(): void {
+        const view = this.viewer?.view;
+        const open = view?.kind === 'list' && !!view.more;
+        this.more.hidden = !open;
+        if (!open) return;
+        this.moreStatus.textContent = [view.note, this.viewer?.readNote].filter(Boolean).join(' · ');
+        this.moreButton.disabled = false;
+    }
+
+    private async readMore(): Promise<void> {
+        const viewer = this.viewer;
+        if (!viewer || this.moreButton.disabled) return;
+        this.moreButton.disabled = true;
+        this.moreStatus.textContent = 'Reading…';
+        try {
+            const outcome = await viewer.more();
+            if (this.viewer !== viewer) return;
+            if (outcome === 'stale') {
+                this.viewer = undefined;
+                this.dialog.close();
+                this.onClose('That value is gone · run the cell again');
+                return;
+            }
+            const view = viewer.view;
+            this.rows = view.kind === 'list' ? view.scroll.length : this.rows;
+            this.renderMore();
+            void this.table.draw();
+        } catch {
+            if (this.viewer === viewer) this.moreStatus.textContent = 'Could not read more';
+            this.moreButton.disabled = false;
+        }
     }
 
     /** Starts again from the top-left of whatever the axes now show. */

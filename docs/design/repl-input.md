@@ -71,7 +71,9 @@ Every move asks the session for one window through `inspect`, sized to the scree
 large array or table is never read whole and scrolling fetches only what comes into view.
 A value released while the viewer is open closes it with `That value is gone`. Records,
 objects, sets, counters, queues, tuples and graphs show as a key and value list, and a
-sequence as the items read so far with a note of how many.
+sequence as the items read so far with a note of how many. For a sequence that has not ended,
+`m` reads up to 100 more values ahead of whatever consumes it (nothing is consumed; the work
+and the time are bounded), and the footer says `m read more` and then what the read did.
 Ctrl-R on a loop header evaluates the header and immediately activates iteration
 selection; no extra Enter is needed. Arrow navigation still reaches the passive
 iteration row, where Enter activates selection. Source editing has a bar cursor. Places where

@@ -10,8 +10,27 @@ emulator and it is not thrown away later: it becomes the run pane of the editor.
 Behind both sits one **analysis core** — the facts about a program, with no UI of
 its own.
 
-This is a plan, not current behavior. No browser package exists yet, and the
-analysis described here is not implemented.
+## Status
+
+This page began as a plan and parts of it are out of date. What exists today:
+
+- **One shared screen, not a console and an editor.** `packages/common` holds a terminal-grid
+  notebook: cells, the caret and selection, the key router, the live previews and the session
+  model. `packages/cli` renders it in a terminal and `packages/web` in the browser, in a Web
+  Worker; `packages/mobile` wraps the web build as an Android (Capacitor) app with a symbol
+  keyboard of its own. The separate `packages/console` and `packages/editor` packages and the
+  CodeMirror editor of Stage C were never built; the custom grid replaced them.
+- **Stage A (the console) landed in that shape.** The browser host is `packages/web`; the value
+  renderer is the viewer described in [value-inspection.md](value-inspection.md), reached from a
+  result row; facts from the run are kept by the session and shown in the footer (the type of
+  the name under the cursor) and in the diagnostics.
+- **Stage B (the analysis core)** lives in `packages/language`; its sections below say which
+  steps landed.
+- **The language server (Stage D)** is only scaffolded; the validator already reports the value
+  diagnostics.
+
+Read the stages below as the reasoning behind these choices, not as the current layout. The
+sections that no longer match are marked.
 
 ## What is being built
 
@@ -116,6 +135,10 @@ The editor's input help shares nothing with any of this, so it can start in
 parallel whenever it is more fun than the rest.
 
 ## Stage A — the console
+
+> **Landed, in a different shape.** See Status above: the host is `packages/web` over the shared
+> screen in `packages/common`, and the value renderer is the viewer in
+> [value-inspection.md](value-inspection.md).
 
 ### A1 — the browser host (medium)
 
@@ -250,6 +273,11 @@ golden harness and the observed-fact cross-check are in place.
 
 ## Stage C — the editor
 
+> **Superseded.** There is no CodeMirror editor. The input surface is the shared terminal grid:
+> its own caret, selection and completion, the symbol keyboard on Android, and the footer hints
+> (the type of the name under the cursor, diagnostics). The notes below record why CodeMirror was
+> considered.
+
 The editor is the console plus an input surface, and it arrives in two cuts.
 
 **Cut 1, after Stage A.** The editing surface, a run button wired to the
@@ -284,6 +312,10 @@ calls the analysis API directly rather than speaking LSP to itself; the protocol
 is only worth its cost at the VS Code boundary. One core, three surfaces.
 
 ## Package layout
+
+> **Out of date.** The packages are `language`, `interpreter`, `common` (the shared screen and
+> session), `cli`, `web`, `mobile` and `compile`. `packages/console`, `packages/editor` and
+> `packages/language-server` do not exist.
 
 ```text
 packages/language/src/operations.ts   the catalogue (B1)

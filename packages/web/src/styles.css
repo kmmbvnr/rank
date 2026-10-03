@@ -210,6 +210,12 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #value-viewer :focus, #value-viewer :focus-visible { outline: none; }
 #value-viewer { -webkit-tap-highlight-color: transparent; }
 #value-viewer .viewer-body { position: relative; flex: 1; min-height: 0; }
+#value-viewer .viewer-more { flex: none; display: flex; align-items: center; gap: 12px; padding: 6px max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); border-top: 1px solid #222; color: #888; }
+#value-viewer .viewer-more[hidden] { display: none; }
+#value-viewer .viewer-more span { flex: 1; min-width: 0; font-size: .85em; }
+#value-viewer .viewer-more button { flex: none; min-height: 40px; padding: 0 1em; background: #262626; color: #e5e5e5; border: 1px solid #666; border-radius: 20px; }
+#value-viewer .viewer-more button:active { background: #333; }
+#value-viewer .viewer-more button:disabled { color: #666; border-color: #333; }
 #value-viewer regular-table { padding: 0; font-family: inherit; scrollbar-color: #444 transparent; outline: none; }
 #value-viewer regular-table:hover { scrollbar-color: #666 transparent; }
 #value-viewer regular-table table { color: #e5e5e5; border-collapse: collapse; }

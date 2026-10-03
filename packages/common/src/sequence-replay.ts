@@ -1,4 +1,4 @@
-import { InterruptedError, RankError, isRankSequenceMask, type RankSequence, type RankValue, type SequencePlan } from '@arrrank/interpreter';
+import { DemandBudgetExhausted, InterruptedError, RankError, isRankSequenceMask, withDemandBudget, withInterrupt, type RankSequence, type RankValue, type SequencePlan } from '@arrrank/interpreter';
 
 interface Read {
     readonly tape: Tape;
@@ -50,6 +50,19 @@ interface Tape {
     end?: number;
 }
 
+/** Bounds on one read-ahead: source values passed over, milliseconds in all, and milliseconds for one value. */
+export interface ExtendLimits { readonly budget?: number; readonly total?: number; readonly each?: number }
+
+/** How reading ahead on a sequence went. */
+export interface SequenceExtension {
+    readonly added: number;
+    /** The sequence has run to its end. */
+    readonly finished: boolean;
+    /** Why it stopped before `count` values when it did not finish: the work budget, the time limit, or the generator's own error. */
+    readonly stopped?: 'budget' | 'time' | 'error';
+    readonly message?: string;
+}
+
 /** The REPL retains yielded values; ordinary file execution has no tape. */
 export class SequenceReplay {
     private readonly tapes = new Set<Tape>();
@@ -96,6 +109,54 @@ export class SequenceReplay {
             if ('result' in outcome && !outcome.result.done) items.push(outcome.result.value);
         }
         return { items, finished: tape.finished };
+    }
+
+    /**
+     * Reads up to `count` more values from a stored generator into its tape, the way showing a
+     * result already reads its first few, and says how it went. Nothing is consumed: the values
+     * wait on the tape for whatever reads the sequence next, so reading ahead never changes what a
+     * later cell sees. It stops at the end, at `count`, when the source is asked for `budget`
+     * values without yielding the next one (a filter that may never find another), after
+     * `limits.total` milliseconds between values, when one value takes longer than `limits.each`
+     * (a generator that never yields again is interrupted and closed, as Ctrl-C would), at the
+     * memory budget of the tape, or at an error of the generator itself.
+     */
+    extend(sequence: RankSequence, count: number, limits: ExtendLimits = {}): SequenceExtension | undefined {
+        const tape = this.tapeOf.get(sequence.plan);
+        if (!tape || tape.resumable) return undefined;
+        const { budget = 10_000, total = 3_000, each = 3_000 } = limits;
+        const before = tape.entries.length;
+        const started = Date.now();
+        const deadline = { at: Infinity };
+        // The read-ahead has no user to press Ctrl-C, so a deadline plays that part for one value at a time.
+        const signal = {
+            length: 1, load: () => 0, store() {}, wait() {},
+            exchange: (index: number) => index === 0 && Date.now() > deadline.at ? 1 : 0,
+        };
+        let stopped: SequenceExtension['stopped'];
+        let message: string | undefined;
+        this.preview(() => {
+            try {
+                withInterrupt(signal, () => withDemandBudget(budget, () => {
+                    for (let read = 0; read < count && !tape.finished; read++) {
+                        if (Date.now() - started > total) { stopped = 'time'; message = 'time limit reached'; return; }
+                        deadline.at = Date.now() + each;
+                        this.read(tape, tape.entries.length);
+                    }
+                }));
+            } catch (error) {
+                if (error instanceof DemandBudgetExhausted) stopped = 'budget';
+                else if (error instanceof InterruptedError) { stopped = 'time'; message = 'one value took too long, so the sequence was closed'; }
+                else { stopped = 'error'; message = error instanceof Error ? error.message : String(error); }
+            }
+        });
+        const last = tape.entries.at(-1);
+        if (!stopped && last && 'error' in last.outcome) {
+            stopped = 'error';
+            message = last.outcome.error instanceof Error ? last.outcome.error.message : String(last.outcome.error);
+        }
+        const added = tape.entries.slice(before).filter(entry => 'result' in entry.outcome && !entry.outcome.result.done).length;
+        return { added, finished: tape.finished, ...(stopped ? { stopped, ...(message ? { message } : {}) } : {}) };
     }
 
     /** Store sources with numeric bounds as cursors; ranges and aliases retain their identity. */

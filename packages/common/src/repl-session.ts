@@ -2,11 +2,11 @@ import { RankSession } from './session.js';
 import { runtimeValueFacts } from './value-diagnostics.js';
 import { functionTestExamples, isFunctionStatement, type FunctionTestExample, type ValueFacts } from '@arrrank/language';
 import {
-    Interpreter, RankError, InterruptedError, checkInterrupt, formatValue, summarizeValue, isNativeFunction, isRankArray, standardModules, parse, type RankValue, type InterpreterOptions,
+    Interpreter, RankError, InterruptedError, checkInterrupt, formatValue, summarizeValue, isNativeFunction, isRankArray, isRankSequence, standardModules, parse, type RankValue, type InterpreterOptions,
 } from '@arrrank/interpreter';
 import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@arrrank/language';
 import { preview } from './preview.js';
-import { SequenceReplay } from './sequence-replay.js';
+import { SequenceReplay, type SequenceExtension } from './sequence-replay.js';
 import { STALE, inspectValue, viewLabel, type InspectRequest, type Inspection } from './value-inspection.js';
 import { formatSource } from './source-format.js';
 import { textColumns } from './screen.js';
@@ -16,6 +16,15 @@ import {
 } from './repl-input.js';
 
 const WIDTH = 40;
+/** Values a viewer reads ahead of a sequence at a time, and the most one request may ask for. */
+export const READ_MORE = 100;
+export const READ_MORE_LIMIT = 1000;
+
+/** How reading ahead of a held sequence went; stale when its cell reran, unsupported when it keeps no tape. */
+export type Extension =
+    | { readonly status: 'stale' }
+    | { readonly status: 'unsupported' }
+    | ({ readonly status: 'ok' } & SequenceExtension);
 const COMMANDS = ['help', 'forms', 'ops', 'vars', 'full', 'list', 'save', 'load', 'alias', 'exit', 'quit'];
 
 /** `ref` names the value a result line printed; `inspect` answers for it until the cell reruns. */
@@ -135,6 +144,17 @@ export function createReplSession(host: ReplHost = {}) {
             const value = held.get(ref);
             if (value === undefined) return STALE;
             return { status: 'ok', ...replay.preview(() => inspectValue(value, request, replay)) };
+        },
+        /**
+         * Reads more of a held sequence ahead of whatever consumes it, at most `count` values,
+         * bounded by a work budget and the replay memory budget. Nothing is consumed.
+         */
+        extend(ref: number, count = READ_MORE): Extension {
+            const value = held.get(ref);
+            if (value === undefined) return { status: 'stale' };
+            if (!isRankSequence(value)) return { status: 'unsupported' };
+            const done = replay.extend(value, Math.max(1, Math.min(count, READ_MORE_LIMIT)));
+            return done ? { status: 'ok', ...done } : { status: 'unsupported' };
         },
         rewind(id: number): void {
             for (const cell of [...heldByCell.keys()]) if (cell >= id) release(cell);

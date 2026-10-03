@@ -519,7 +519,9 @@ export function viewerFrame(viewer: ValueViewer, columns: number, height: number
         body.push(...view.rows.map(([key, text]) => clipped(pad(clipped(key, keyWidth), keyWidth, false) + '  ' + text, width)));
         const { offset, count, length } = view.scroll;
         position = count ? `${offset + 1}–${offset + count} of ${length}` : 'empty';
+        if (view.more) position += ' · m read more';
         if (view.note) position += ` · ${view.note}`;
+        if (viewer.readNote) position += ` · ${viewer.readNote}`;
     } else {
         const labelWidth = Math.max(0, ...view.rowLabels.map(label => cellWidth(label)));
         const sizes = view.columnLabels.map((label, column) =>
@@ -548,7 +550,8 @@ export function viewerFrame(viewer: ValueViewer, columns: number, height: number
             position += ` · columns ${horizontal.offset + 1}–${last} of ${horizontal.length}`;
         }
     }
-    const keys = view.kind === 'grid' && view.slice.length ? '↑↓←→ PgUp/PgDn [ ] Esc' : '↑↓←→ PgUp/PgDn Esc';
+    const keys = view.kind === 'grid' && view.slice.length ? '↑↓←→ PgUp/PgDn [ ] Esc'
+        : view.kind === 'list' ? '↑↓ PgUp/PgDn Esc' : '↑↓←→ PgUp/PgDn Esc';
     const lines = ['\x1b[1m' + title + '\x1b[0m', ...(header.length ? header : ['']), ...body.slice(0, Math.max(0, height - 3))];
     while (lines.length < Math.max(1, height - 1)) lines.push('');
     if (height > 1) lines.push('\x1b[90m' + clipped(position ? `${position} · ${keys}` : keys, width) + '\x1b[0m');

@@ -278,7 +278,8 @@ export class NotebookRepl {
             const last = cell.source.trim().split('\n').at(-1)!.trim();
             const title = /^([A-Za-z_]\w*)\s*=(?!=)/.exec(cell.source.trim())?.[1] ?? last;
             const viewer = new ValueViewer(title, cell.id, request => this.session.inspect(line.ref, request),
-                () => ({ rows: this.rows(), columns: this.columns() }));
+                () => ({ rows: this.rows(), columns: this.columns() }),
+                count => this.session.extend(line.ref, count));
             viewer.restoreFocus = fromFocus;
             if (await viewer.load()) this.help = { text: '', top: 0, viewer };
             else this.suggestion = 'That value is gone · run the cell again';

@@ -35,6 +35,8 @@ export type ValueView =
         readonly scroll: ViewScroll;
         /** For a sequence: what is known of its size and how much has been read. */
         readonly note?: string;
+        /** A sequence whose generator can be read further ahead of whatever consumes it. */
+        readonly more?: boolean;
     };
 
 /** The element type when every cell in the window has one, otherwise nothing is claimed. */
@@ -81,6 +83,7 @@ export function buildValueView(title: string, value: InspectedValue): ValueView 
                 rows: value.items.map((item, index) => [String(value.offset + index), item.text] as const),
                 scroll: { length: value.forced, offset: value.offset, count: value.items.length },
                 note: `${value.forced} read so far${value.finished ? ', ended' : ''}`,
+                ...(value.finished === false ? { more: true } : {}),
             };
         }
     }

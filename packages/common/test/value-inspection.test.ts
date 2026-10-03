@@ -220,6 +220,71 @@ describe('inspect: sequences', () => {
     });
 });
 
+describe('reading ahead of a sequence', () => {
+    const every = ['fun stream\n for I in 1 to 1000000000\n  yield I * 2\n end\nend'];
+    const forced = (session: Awaited<ReturnType<typeof run>>['session'], ref: number) => {
+        const value = opened(session.inspect(ref, { count: [1000] }));
+        if (value.kind !== 'sequence') throw new Error('expected a sequence');
+        return value;
+    };
+
+    it('reads more of an endless generator, a bounded number at a time', async () => {
+        const { session } = await run(every);
+        const made = await session.execute('N = stream', 2, []);
+        const before = forced(session, made.valueRef!).forced;
+        const more = session.extend(made.valueRef!, 50);
+        expect(more).toMatchObject({ status: 'ok', added: 50, finished: false });
+        const after = forced(session, made.valueRef!);
+        expect(after.forced).toBe(before + 50);
+        expect(after.finished).toBe(false);
+        expect(after.items.slice(0, 5).map(item => item.text)).toEqual(['2', '4', '6', '8', '10']);
+    });
+
+    it('never asks for more than the limit in one go', async () => {
+        const { session } = await run(every);
+        const made = await session.execute('N = stream', 2, []);
+        const more = session.extend(made.valueRef!, 1_000_000);
+        expect(more).toMatchObject({ status: 'ok' });
+        expect(more.status === 'ok' && more.added).toBeLessThanOrEqual(1000);
+    });
+
+    it('stops at the end of a finite generator and says it ended', async () => {
+        const { session } = await run(['fun upto N\n for I in 1 to N\n  yield I\n end\nend']);
+        const made = await session.execute('Source = 5 upto', 1, []);
+        expect(session.extend(made.valueRef!, 100)).toMatchObject({ status: 'ok', added: 0, finished: true });
+        expect(session.extend(made.valueRef!, 100)).toMatchObject({ status: 'ok', added: 0, finished: true });
+    });
+
+    it('consumes nothing: the values wait on the tape for the next reader', async () => {
+        const { session } = await run(every);
+        const made = await session.execute('N = stream', 2, []);
+        session.extend(made.valueRef!, 30);
+        const total = await session.execute('N till 25 sum', 3, []);
+        expect(total.output.map(line => line.text)).toEqual(['156']);
+    });
+
+    it('gives up on a generator that never yields again, and closes it', async () => {
+        const { session } = await run([
+            // Shows its first twenty values at once, then loops without yielding another.
+            'fun stuck\n for I in 1 to 30\n  yield I\n end\n for J in 1 to 1000000000000\n  if J less 0\n   yield J\n  end\n end\nend']);
+        const made = await session.execute('S = stuck', 2, []);
+        const result = session.extend(made.valueRef!, 50);
+        expect(result).toMatchObject({ status: 'ok', stopped: 'time' });
+        expect(result.status === 'ok' && result.added).toBeGreaterThan(0);
+        // The generator was closed, as Ctrl-C would: the values read stay, and nothing more comes.
+        expect(session.extend(made.valueRef!, 5)).toMatchObject({ status: 'ok', added: 0, finished: true });
+    }, 30_000);
+
+    it('answers stale for a released reference and unsupported for what keeps no tape', async () => {
+        const { session } = await run(['V = 1 to 100', 'V']);
+        expect(session.extend(99999, 10)).toEqual({ status: 'stale' });
+        const range = await session.execute('V', 3, []);
+        expect(session.extend(range.valueRef!, 10)).toEqual({ status: 'unsupported' });
+        const scalar = await session.execute('1 + 1', 4, []);
+        expect(session.extend(scalar.valueRef!, 10)).toEqual({ status: 'unsupported' });
+    });
+});
+
 describe('inspect: collections', () => {
     it('pages the fields of a record', async () => {
         const { session, ref } = await run(['A = record\n .x = 1\n .y = "two"\nend', 'A']);

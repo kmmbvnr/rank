@@ -1,5 +1,6 @@
 import type { Key } from './key-router.js';
 import type { InspectRequest, Inspection } from './value-inspection.js';
+import type { Extension } from './repl-session.js';
 import { buildValueView, type ValueView } from './value-view.js';
 
 /** Lines the viewer keeps for itself: the title, the column header and the footer. */
@@ -9,6 +10,7 @@ export const VIEWER_CHROME = 3;
 const MIN_COLUMN = 3;
 
 export type ViewerFetch = (request: InspectRequest) => Inspection | Promise<Inspection>;
+export type ViewerExtend = (count?: number) => Extension | Promise<Extension>;
 
 /**
  * A value held open on screen: where its window sits and the view of it. Keys
@@ -30,7 +32,28 @@ export class ValueViewer {
         readonly cell: number,
         private readonly fetch: ViewerFetch,
         private readonly size: () => { rows: number; columns: number },
+        private readonly extend?: ViewerExtend,
     ) {}
+
+    /** How the last read-ahead went, for a footer: what it added, or why it stopped. */
+    readNote = '';
+
+    /**
+     * Reads more of a sequence ahead of whatever consumes it, then the window again. Safe: nothing
+     * is consumed, and the read is bounded in count, in work and in memory.
+     */
+    async more(): Promise<'ok' | 'stale' | 'none'> {
+        const view = this.view;
+        if (!this.extend || view.kind !== 'list' || !view.more) return 'none';
+        const result = await this.extend();
+        if (result.status === 'stale') return 'stale';
+        if (result.status === 'unsupported') return 'none';
+        this.readNote = result.stopped === 'budget' ? `read ${result.added} more, then stopped: no next value within the work budget`
+            : result.stopped === 'time' ? `read ${result.added} more, then stopped: ${result.message ?? 'out of time'}`
+            : result.stopped === 'error' ? `read ${result.added} more, then stopped: ${result.message ?? 'error'}`
+            : result.finished ? `read ${result.added} more, the sequence ended` : `read ${result.added} more`;
+        return await this.read() ? 'ok' : 'stale';
+    }
 
     /** Rows of cells that fit the screen. */
     get bodyRows(): number { return Math.max(1, this.size().rows - VIEWER_CHROME); }
@@ -65,6 +88,7 @@ export class ValueViewer {
     /** Applies a key. `closed` means Esc, and `stale` means the value was released meanwhile. */
     async press(text: string, key: Key): Promise<'ok' | 'closed' | 'stale'> {
         if (key.name === 'escape' || !key.ctrl && !key.meta && text === 'q') return 'closed';
+        if (!key.ctrl && !key.meta && text === 'm') return await this.more() === 'stale' ? 'stale' : 'ok';
         const [rows, columns] = this.axes();
         const body = this.bodyRows;
         const lastRow = Math.max(0, (rows?.length ?? 0) - body);

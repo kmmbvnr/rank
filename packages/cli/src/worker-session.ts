@@ -1,6 +1,7 @@
 import type { PauseSnapshot } from '@arrrank/interpreter';
 import { Worker } from 'node:worker_threads';
 import type { InspectRequest, Inspection } from '@arrrank/common/value-inspection';
+import type { Extension } from '@arrrank/common/repl-session';
 import { sessionEditor, type SessionSnapshot, type ProgramFile, type Execution } from './repl-session.js';
 
 /** The terminal only exchanges text and binding names; live values stay in the worker. */
@@ -91,6 +92,7 @@ export async function createWorkerSession() {
         isCommand(source: string) { return editor.isCommand(source); },
         complete(line: string) { return editor.complete(line); },
         inspect(ref: number, request?: InspectRequest) { return call<Inspection>('inspect', ref, request); },
+        extend(ref: number, count?: number) { return call<Extension>('extend', ref, count); },
         rewind(id: number): void { void call<void>('rewind', id).catch(fail); },
         async resetExecution(): Promise<void> {
             debugNext = false;
