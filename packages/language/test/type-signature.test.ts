@@ -52,3 +52,12 @@ it('selects overloads using known argument facts and preserves alternatives for 
     expect(operationSignature(max, [{ types: [] }, { types: [] }])).toContain('text text → text');
     expect(operationSignature(max, [{ types: ['text'] }, { types: ['integer'] }])).toContain('number number → number');
 });
+
+it('keeps cell lifting separate from whole-operand overloads', () => {
+    expect(operationSignature(findOperation('binary')!, 1)).toBe('integer → text [rank 0]');
+    expect(operationSignature(findOperation('binary')!, 2)).toBe('integer integer → text');
+    expect(operationSignature(findOperation('band')!, [
+        { types: ['array'], elements: ['integer'] }, { types: ['integer'] },
+    ])).toBe('integer integer → integer [rank 0 0]');
+    expect(operationSignature(findOperation('md5')!, [{ types: ['bytes'] }])).toBe('bytes → bytes');
+});

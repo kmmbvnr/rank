@@ -119,6 +119,20 @@ describe('the operation catalogue', () => {
         ]) expect(typeName(new Interpreter().execute(source)!), source).toBe(expected);
     });
 
+    it('checks integer bit operations and hash input domains used by signatures', () => {
+        for (const [source, expected] of [
+            ['use bits\n3 1 band', 'integer'], ['use bits\n3 1 bor', 'integer'],
+            ['use bits\n3 1 bxor', 'integer'], ['use bits\n3 bnot', 'integer'],
+            ['use bits\n3 1 shl', 'integer'], ['use bits\n3 1 shr', 'integer'],
+            ['use bits\n3 1 bit', 'boolean'], ['use bits\n3 popcount', 'integer'],
+            ['use bits\n5 binary', 'text'], ['use bits\n5 4 binary', 'text'],
+            ['use bits\n(array 1 2) 1 band', 'array'],
+            ['use crypto\n"x" md5', 'bytes'], ['use crypto\n("x" bytes) md5', 'bytes'],
+        ]) expect(typeName(new Interpreter().execute(source)!), source).toBe(expected);
+        expect(() => new Interpreter().execute('use bits\n1.5 1 band')).toThrow();
+        expect(() => new Interpreter().execute('use crypto\n(array 1 2) md5')).toThrow();
+    });
+
     it('validates shape contracts against explicit ranks and representation facts', () => {
         for (const entry of operations) {
             if (entry.monadicRank !== undefined || entry.dyadicRanks
