@@ -6,6 +6,7 @@ import {
 import { RankError } from './errors.js';
 import { recordFallback } from './diagnostics.js';
 import type { RankValue } from './value.js';
+import { noteArrayBinding } from './array-storage.js';
 import { applySelectors } from './value-selection.js';
 import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput } from './scalar-function-proof.js';
 
@@ -96,6 +97,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             lines.push(`location = ${location};`);
             if (isReturnStatement(command) && command.value) {
                 const value = emit(command.value, lines);
+                if (typeof expressions.get(command.value)!.type !== 'string') lines.push(`noteArrayBinding(${value});`);
                 lines.push(`return ${value};`);
             } else if (isAssignmentStatement(command)) {
                 let value = emit(command.value, lines);
@@ -127,7 +129,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
     let kernel: Kernel | undefined;
-    try { kernel = { locations, calls, run: new Function('RankError', 'applySelectors', source)(RankError, applySelectors) as Kernel['run'] }; }
+    try { kernel = { locations, calls, run: new Function('RankError', 'applySelectors', 'noteArrayBinding', source)(RankError, applySelectors, noteArrayBinding) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

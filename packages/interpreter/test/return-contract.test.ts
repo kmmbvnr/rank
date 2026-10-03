@@ -51,7 +51,7 @@ it('allows rank-changing recursion to use distinct argument specializations', ()
 });
 it('reuses a prepared body for equal input ranks with different lengths', () => {
     let compiled = 0;
-    const runtime = new Interpreter(() => {}, { onFunctionBodyCompiled: () => compiled++ });
+    const runtime = new Interpreter(() => {}, { scalarFunctionCompilation: false, onFunctionBodyCompiled: () => compiled++ });
     runtime.execute('fun identity X\n Y = X\n return Y\nend\n(array 1) identity\n(array 1 2) identity');
     expect(compiled).toBe(1);
     runtime.execute('(array 1 2 3 4 shape 2 2) identity');
