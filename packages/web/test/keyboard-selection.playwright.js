@@ -26,6 +26,17 @@ async page => {
         await mobile.waitForFunction(() => document.querySelector('#keyboard').hidden, null, { timeout: 3000 });
         check(!(await keyboard.isVisible()), 'the symbol keyboard stays up over a native selection');
         check((await mobile.evaluate(() => getSelection().toString())).length > 0, 'the selection survived hiding the keyboard');
+        // A long press on the empty prompt selects nothing but still ends in a context menu, and the keyboards go too.
+        await mobile.reload();
+        await mobile.waitForFunction(() => { const keyboard = document.querySelector('#keyboard'); return keyboard && !keyboard.hidden; }, null, { timeout: 5000 });
+        check(await keyboard.isVisible(), 'the symbol keyboard is shown again after a reload');
+        check((await mobile.evaluate(() => getSelection().toString())) === '', 'nothing is selected before the long press');
+        await mobile.evaluate(() => {
+            const rows = [...document.querySelectorAll('#screen .terminal-row')];
+            rows.at(-1).dispatchEvent(new Event('contextmenu', { bubbles: true, cancelable: true }));
+        });
+        await mobile.waitForFunction(() => document.querySelector('#keyboard').hidden, null, { timeout: 3000 });
+        check(!(await keyboard.isVisible()), 'the symbol keyboard stays up after a long press on the prompt');
         return { hidden: true };
     } finally { await context.close(); }
 }

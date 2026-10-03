@@ -961,6 +961,9 @@ document.addEventListener('selectionchange', () => {
     if (selected && !hadNativeSelection && touchConsole && keyboardEnabled) setKeyboard(false);
     hadNativeSelection = selected;
 });
+// A long press anywhere on the screen, with text under it or on the empty prompt, ends in a context menu
+// and Android drops the system keyboard for it. The symbol keyboard goes with it, not left standing alone.
+terminal.addEventListener('contextmenu', () => { if (touchConsole && keyboardEnabled) setKeyboard(false); });
 input.addEventListener('select', syncInputSelection);
 input.addEventListener('selectionchange', syncInputSelection);
 
