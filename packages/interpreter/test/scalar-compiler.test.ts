@@ -152,6 +152,15 @@ fun later X
 end
 (1 // 0) * 2 + (3 later) * 4`,
         `use io
+fun fail X
+  try
+    return X // 0
+  finally
+    "cleanup" print
+  end
+end
+(1 fail) * 2 + 3`,
+        `use io
 fun forbidden X
   X print
   return true
@@ -187,3 +196,22 @@ end`);
         expect(entries).toBe(before);
     } finally { runtime.dispose(); }
 });
+
+
+it('resumes compiled arithmetic through 20000 non-tail recursive children', () => {
+    let entries = 0;
+    const runtime = new Interpreter(undefined, {
+        scalarEntryCompilation: false, scalarFunctionCompilation: false, blockCompilation: false,
+        onScalarExecuted: () => entries++,
+    });
+    try {
+        expect(runtime.execute(`fun descend N
+  if N equal 0
+    return 0
+  end
+  return ((N - 1) descend) * 1 + 1
+end
+20000 descend`)).toBe(20000n);
+        expect(entries).toBe(20000);
+    } finally { runtime.dispose(); }
+}, 30000);
