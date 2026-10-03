@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, pureHostFunction } from '../src/index.js';
-import { withTypedCalls, typedNativeCall } from '../src/typed-native.js';
+import { withTypedCalls, typedNativeCall, prepareCompiledBuiltin } from '../src/typed-native.js';
+import type { InterpreterOptions } from '../src/interpreter-options.js';
+import type { RankValue } from '../src/value.js';
 import { native } from '../src/modules/shared.js';
 import { InterruptedError, withInterrupt } from '../src/interrupt.js';
 
@@ -8,12 +10,12 @@ describe('typed native kernels', () => {
     it('requires the complete signature and the registered function identity', () => {
         const kernel = () => true;
         const value = withTypedCalls(native('example', 2, () => false), { 'text,text': kernel });
-        expect(typedNativeCall(value, ['text', 'text'])).toBe(kernel);
+        expect(typedNativeCall(value, 'text,text')).toBe(kernel);
         for (const types of [['text'], ['text', 'bytes'], ['bytes', 'text'], ['toString']]) {
-            expect(typedNativeCall(value, types)).toBe(value.call);
+            expect(typedNativeCall(value, types.join(','))).toBe(value.call);
         }
         const copy = { ...value };
-        expect(typedNativeCall(copy, ['text', 'text'])).toBe(copy.call);
+        expect(typedNativeCall(copy, 'text,text')).toBe(copy.call);
         expect(value.call(['a', 'b'])).toBe(false);
         expect(() => value.call(['a'])).toThrow(/expects/);
     });
@@ -25,10 +27,57 @@ describe('typed native kernels', () => {
             return true;
         }), { text: () => false });
         withInterrupt(signal, () => {
-            expect(typedNativeCall(value, ['text'])).toBe(value.call);
-            expect(() => typedNativeCall(value, ['text'])(['a'])).toThrow(InterruptedError);
+            expect(typedNativeCall(value, 'text')).toBe(value.call);
+            expect(() => typedNativeCall(value, 'text')(['a'])).toThrow(InterruptedError);
         });
-        expect(typedNativeCall(value, ['text'])(['a'])).toBe(false);
+        expect(typedNativeCall(value, 'text')(['a'])).toBe(false);
+    });
+
+    it('rechecks a prepared builtin against binding, module, options and interrupt changes', () => {
+        const kernel = () => true;
+        const standard = withTypedCalls(native('lower', 1, () => false), { text: kernel });
+        let value: RankValue = standard;
+        let reads = 0;
+        const modules = new Set(['text']);
+        let options: InterpreterOptions = {};
+        const bind = prepareCompiledBuiltin({
+            modules, options: () => options,
+            builtins: { is: (module, name, candidate) => module === 'text' && name === 'lower' && candidate === standard },
+            resolve: () => { reads++; return value; },
+        }, 'text', 'lower', ['text']);
+        expect(reads).toBe(0);
+        expect(bind()).toBe(kernel);
+        value = withTypedCalls(native('lower', 1, () => false), { text: kernel });
+        expect(bind()).toBeUndefined();
+        value = 1n;
+        expect(bind()).toBeUndefined();
+        value = standard;
+        expect(bind()).toBe(kernel);
+        modules.clear();
+        const before = reads;
+        expect(bind()).toBeUndefined();
+        expect(reads).toBe(before);
+        modules.add('text');
+        options = { typedNativeCalls: false };
+        expect(bind()).toBe(standard.call);
+        options = { typedNativeCalls: true };
+        withInterrupt(new Int32Array(new SharedArrayBuffer(4)), () => expect(bind()).toBe(standard.call));
+        expect(bind()).toBe(kernel);
+    });
+
+    it('declines changed host effects and unresolved names without running the call', () => {
+        let reads = 0;
+        let options: InterpreterOptions = { md5: () => new Uint8Array(16) };
+        const bind = prepareCompiledBuiltin({
+            modules: new Set(['crypto']), options: () => options,
+            builtins: { is: () => true },
+            resolve: () => { reads++; throw new Error('missing'); },
+        }, 'crypto', 'md5', ['text']);
+        expect(bind()).toBeUndefined();
+        expect(reads).toBe(0);
+        options = { md5: pureHostFunction(options.md5!) };
+        expect(bind()).toBeUndefined();
+        expect(reads).toBe(1);
     });
 
     it('does not authorize compilation of an arbitrary registered function', () => {

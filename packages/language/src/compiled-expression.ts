@@ -1,9 +1,11 @@
 import {
     isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isStringLiteral,
-    isNameExpression, isUnaryExpression, isBinaryExpression, type Expression,
+    isNameExpression, isUnaryExpression, isBinaryExpression, isApplicationExpression, type Expression,
 } from './generated/ast.js';
 import { findCompiledOperator, type CompiledOperator, type CompiledOperatorSignature } from './compiled-operators.js';
-import type { CompiledAtomType } from './operations.js';
+import { findOperation, type Operation, type CompiledAtomType, type CompiledCallSignature } from './operations.js';
+import { applicationForm } from './application-forms.js';
+import { flattenApplication, groupedUnaryDyadicChain, unaryApplicationHead } from './expressions.js';
 
 interface TypedNode<T extends CompiledAtomType> {
     readonly source: Expression;
@@ -18,6 +20,8 @@ export type CompiledExpression<T extends CompiledAtomType = CompiledAtomType> = 
     | { readonly kind: 'group'; readonly operand: CompiledExpression<T> }
     | { readonly kind: 'unary'; readonly operation: CompiledOperator;
         readonly signature: CompiledOperatorSignature<T>; readonly operand: CompiledExpression<T> }
+    | { readonly kind: 'call'; readonly operation: Operation; readonly signature: CompiledCallSignature;
+        readonly arguments: readonly CompiledExpression<T>[] }
     | { readonly kind: 'binary'; readonly operation: CompiledOperator;
         readonly signature: CompiledOperatorSignature<T>;
         readonly left: CompiledExpression<T>; readonly right: CompiledExpression<T> }
@@ -29,6 +33,8 @@ export interface CompiledExpressionContext<T extends CompiledAtomType> {
     readonly lookup: (name: string) => T | undefined;
     /** Select the consumer's declared overload, including its capability gates. */
     readonly operator: (operation: CompiledOperator, inputs: readonly T[]) => CompiledOperatorSignature<T> | undefined;
+    /** Optional native call capability. Runtime binding identity remains an entry guard. */
+    readonly call?: (operation: Operation, inputs: readonly T[]) => CompiledCallSignature | undefined;
     /** Share a finite analysis budget with the enclosing statement analysis. */
     readonly budget: { remaining: number };
 }
@@ -79,6 +85,29 @@ export function inferCompiledExpression<T extends CompiledAtomType>(
         const signature = operation && context.operator(operation, [left.type, right.type]);
         return operation && signature
             ? { expression: { kind: 'binary', source, type: signature.result, operation, signature, left, right } } : reject();
+    }
+    if (isApplicationExpression(source) && context.call) {
+        const unbound = (name: string) => context.lookup(name) === undefined;
+        const lookup = (name: string) => unbound(name) ? findOperation(name) : false;
+        if (applicationForm(source, lookup).kind !== 'plain') return reject('application-form');
+        const grouped = groupedUnaryDyadicChain(source, unbound);
+        if (grouped) return inferCompiledExpression(grouped, context);
+        const head = unaryApplicationHead(source, name => { const operation = lookup(name); return operation ? operation.arities : undefined; }, unbound);
+        const parts = head ? [head, source.arguments[0]] : flattenApplication(source);
+        const last = parts.at(-1);
+        if (!isNameExpression(last) || !unbound(last.name)) return reject('callee-binding');
+        const operation = findOperation(last.name);
+        if (!operation?.compiledCall) return reject();
+        const arguments_: CompiledExpression<T>[] = [];
+        for (const part of parts.slice(0, -1)) {
+            const inferred = inferCompiledExpression(part, context);
+            if (inferred.failure) return inferred;
+            arguments_.push(inferred.expression);
+        }
+        const signature = context.call(operation, arguments_.map(argument => argument.type));
+        const type = signature && context.types.find(type => type === signature.result);
+        return signature && type ? { expression: { kind: 'call', source, type, operation, signature, arguments: arguments_ } }
+            : reject();
     }
     return reject();
 }

@@ -6,18 +6,20 @@ import {
 import { enterRuntime, isFlatScalarArray, isSharedArray, leaveRuntime } from './array-storage.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './block-compiler.js';
-import { ReturnSignal, TailCallSignal } from './control-signals.js';
+import { ReturnSignal, TailCallSignal, type PreparedScalarCall } from './control-signals.js';
 import type { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
 import { ExecutionStack, completed, mapResult, resume, runExecution, type Evaluation, type Execution } from './execution.js';
+import { CallSpecializations } from './call-specializations.js';
 import { LocalFrame } from './frame.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import { checkpoint, inspectionEnabled } from './interrupt.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
-import { ReturnContract, argumentRankSignature, argumentSignature } from './return-contract.js';
+import { ReturnContract, argumentRankSignature } from './return-contract.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
+import { prepareCompiledBuiltin } from './typed-native.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
 import {
@@ -69,6 +71,8 @@ export class FunctionInvocation {
     readonly maxDepth: number;
     private depth = 0;
     private readonly sources = new WeakMap<NativeFunction, FunctionStatement>();
+    private readonly globalScalarCalls = new WeakMap<FunctionStatement, PreparedScalarCall>();
+    private readonly localScalarCalls = new WeakMap<LocalFrame, WeakMap<FunctionStatement, PreparedScalarCall>>();
     private readonly globalBorrowProofs = new WeakMap<FunctionStatement, BorrowProof>();
     private readonly localBorrowProofs = new WeakMap<LocalFrame, WeakMap<FunctionStatement, BorrowProof>>();
 
@@ -128,25 +132,24 @@ export class FunctionInvocation {
             catch (error) { throw this.host.locate(error, only!); }
         } : undefined;
         const proof = this.host.scalarEntry(statement, generator);
-        const scalar = proof ? this.prepareScalarCall(statement) : undefined;
-        const instances = new Map<string, ReturnContract>();
+        const scalar = proof ? this.prepareScalarCall(statement, context) : undefined;
+        const instances = new CallSpecializations<ReturnContract>();
         const returnRanks = new Map<string, { rank?: number }>();
         const specialization = (arguments_: RankValue[]): ReturnContract => {
-            const key = argumentSignature(arguments_);
-            let instance = instances.get(key);
+            let instance = instances.get(arguments_);
             if (!instance) {
-                prepareFunction(statement, key);
                 const rankKey = argumentRankSignature(arguments_);
                 let rank = returnRanks.get(rankKey);
                 if (!rank) returnRanks.set(rankKey, rank = {});
-                instances.set(key, instance = new ReturnContract(statement.name, rank));
+                instances.set(arguments_, instance = new ReturnContract(statement.name, rank));
             }
             return instance;
         };
         const body = (arguments_: RankValue[]): Evaluation<RankValue> => {
             if (scalar && arguments_.length === statement.parameters.length
                 && arguments_.every(value => typeof value === 'bigint')
-                && !proof!.locals.some(name => context?.find(name))) {
+                && !proof!.locals.some(name => context?.find(name))
+                && (!scalar.available || scalar.available())) {
                 return completed(scalar(arguments_));
             }
             return direct ? completed(this.callDirectFunction(statement, arguments_, context, direct))
@@ -267,24 +270,44 @@ export class FunctionInvocation {
     }
 
     /** A proven scalar body compiled to a direct call, counted against the call depth. */
-    prepareScalarCall(statement: FunctionStatement): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined {
+    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame): PreparedScalarCall | undefined {
         if (this.options().scalarFunctionCompilation === false) return undefined;
+        let cache = context ? this.localScalarCalls.get(context) : this.globalScalarCalls;
+        if (!cache) this.localScalarCalls.set(context!, cache = new WeakMap());
+        const cached = cache.get(statement);
+        if (cached) return cached;
         const kernel = compileScalarFunction(statement);
         if (!kernel) return undefined;
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
-        return (arguments_, tail = false) => {
+        const binders = kernel.calls.map(({ operation, inputs }) => prepareCompiledBuiltin({
+            modules: this.modules, builtins: this.builtins, options: this.options,
+            resolve: name => context?.lookup(name) ?? this.bindings.globals.get(name)
+                ?? this.builtins.lookup(name) ?? (() => { throw this.builtins.unknown(name); })(),
+        }, operation.module, operation.name, inputs));
+        const calls: ((arguments_: RankValue[]) => RankValue)[] = [];
+        const run: PreparedScalarCall = (arguments_, tail = false) => {
             if (!tail && this.depth >= this.maxDepth) {
                 throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
             }
             if (!tail) this.depth += 1;
             try {
                 this.options().onScalarFunctionExecuted?.();
-                return kernel.run(arguments_, locate);
+                return kernel.run(arguments_, locate, calls);
             } catch (error) {
                 if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
                 throw error;
             } finally { if (!tail) this.depth -= 1; }
         };
+        if (binders.length) Object.defineProperty(run, 'available', { value: () => {
+            for (let index = 0; index < binders.length; index++) {
+                const call = binders[index]();
+                if (!call) return false;
+                calls[index] = call;
+            }
+            return true;
+        } });
+        cache.set(statement, run);
+        return run;
     }
 
     private functionFrame(
@@ -298,7 +321,7 @@ export class FunctionInvocation {
                 `${statement.name} expects ${statement.parameters.length} arguments, got ${arguments_.length}`,
             );
         }
-        const prepared = prepareFunction(statement, argumentSignature(arguments_));
+        const prepared = prepareFunction(statement);
         const frame = reusable?.reset() ? reusable
             : new LocalFrame(parent, prepared.layout);
         const candidates = arguments_.some((argument, index) => isFlatScalarArray(argument) && !isSharedArray(argument)
@@ -397,7 +420,7 @@ export class FunctionInvocation {
                 try {
                     this.bindings.current = frame;
                     if (inspectionEnabled()) this.inspection.replace(statement.name, frame);
-                    for (const local of prepareFunction(statement, argumentSignature(arguments_)).locals) this.define(local);
+                    for (const local of prepareFunction(statement).locals) this.define(local);
                     const body = this.host.compiled(statement, arguments_);
                     if (body) {
                         result = yield* resume(body({ assertBooleanExpressions: false, insideLoop: false,
@@ -409,7 +432,7 @@ export class FunctionInvocation {
                 } catch (error) {
                     if (error instanceof TailCallSignal) {
                         tailContracts.add(error.definition.specialization(error.arguments_));
-                        if (error.compiled) {
+                        if (error.compiled && (!error.compiled.available || error.compiled.available())) {
                             compiledTail = true;
                             // Keep the tail driver's logical depth and resource scope;
                             // this proven scalar body needs no new lexical frame.
@@ -462,7 +485,7 @@ export class FunctionInvocation {
         let consumed = false;
 
         this.bindings.withFrame(frame, () => {
-            for (const local of prepareFunction(statement, argumentSignature(arguments_)).locals) this.define(local);
+            for (const local of prepareFunction(statement).locals) this.define(local);
         });
 
         return this.singlePass({

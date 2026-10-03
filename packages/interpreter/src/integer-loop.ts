@@ -33,7 +33,7 @@ interface Host {
     readonly extrema: boolean;
     readonly absolute: boolean;
     readonly scalarText: boolean;
-    builtinCall(module: string, name: string, types: readonly string[]): ((arguments_: RankValue[]) => RankValue) | undefined;
+    prepareBuiltinCall(module: string, name: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
     scalarFunction(name: string, arity: number): {
         type: CompiledScalarType;
@@ -314,7 +314,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     // Catalogue compiled calls are synchronous operations with
                     // no Rank callbacks; bind() checks the current builtin.
                     calls.push({ name: last.name, locals: [], stableArrayReads: true,
-                        bind: () => host.builtinCall(operation!.module, last.name, types) });
+                        bind: host.prepareBuiltinCall(operation.module, last.name, types) });
                     lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
                     return { code: name, type: signature.result };
                 }

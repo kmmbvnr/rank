@@ -1890,7 +1890,7 @@ Total`);
         expect(result.loops).toBe(1);
     });
 
-    it('keeps a custom customtext function', () => {
+    it('compiles a proved text-returning user function without treating it as the text builtin', () => {
         const result = compare(`use text
 use sequences
 fun customtext X
@@ -1902,7 +1902,7 @@ for I in 1 to 3
 end
 Total`);
         expect(result.value).toBe('6');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 });
 

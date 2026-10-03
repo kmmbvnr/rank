@@ -23,7 +23,7 @@ describe('attributable compiler rejections', () => {
         ['X reverse', 'scalar-function:unsupported-op:reverse'],
         ['X / 2', 'scalar-function:unsupported-op:/'],
         ['X + 0.5', 'scalar-function:unsupported-type:real'],
-        ['"hello"', 'scalar-function:unsupported-type:text'],
+        ['array 1 2', 'scalar-function:unsupported-type:array'],
     ])('retains the reason for cached proof rejection: %s', (expression, reason) => {
         const statement = proof(expression);
         // Cache the failed proof before instrumentation is enabled.
@@ -56,10 +56,10 @@ describe('attributable compiler rejections', () => {
     });
 
     it('names the loop operation without changing execution', () => {
-        const source = 'use sequences\nText = "abλ"\nfor I in 1 to 2\nText = Text reverse\nend\nText';
+        const source = 'use text\nText = "abλ"\nfor I in 1 to 2\nText = Text "" "" translate\nend\nText';
         const diagnostics = new RuntimeDiagnostics();
         expect(execute(source, diagnostics)).toBe(execute(source));
-        expect(diagnostics.fallbacks['loop:unsupported-op:reverse']).toBeGreaterThan(0);
+        expect(diagnostics.fallbacks['loop:unsupported-op:translate']).toBeGreaterThan(0);
         expect(diagnostics.compiledLoops).toBe(0);
     });
 

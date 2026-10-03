@@ -1,3 +1,4 @@
+import { native } from '../src/modules/shared.js';
 import { MemoryIo } from './support.js';
 import { describe, expect, it, vi } from 'vitest';
 import { isFunctionStatement } from '@arrrank/language';
@@ -25,6 +26,104 @@ function compare(source: string, module?: string) {
 }
 
 describe('compiled scalar function bodies', () => {
+    it('compiles integer-to-text pipelines and preserves Unicode text operations', () => {
+        expect(compare(`use sequences
+fun palindrome X
+  Text = X text
+  Back = Text reverse
+  return Text equal Back
+end
+121 palindrome`)).toMatchObject({ value: 'true', calls: 1 });
+        expect(compare(`use sequences
+use text
+fun helper X
+  Text = "İ😀é" lower reverse
+  return Text len
+end
+1 helper`)).toMatchObject({ value: '5', calls: 1 });
+    });
+
+    it('keeps unary call boundaries before dyadic native calls', () => {
+        expect(compare(`use text
+fun helper X
+  Prefix = "12"
+  return X text Prefix startswith
+end
+123 helper`)).toMatchObject({ value: 'true', calls: 1 });
+    });
+
+    it('declines missing modules without evaluating an unused native call', () => {
+        expect(compare(`fun helper X
+  return true or ((X text reverse) equal "")
+end
+1 helper`)).toMatchObject({ value: 'true', calls: 0 });
+        const failure = compare(`fun helper X
+  return X text reverse
+end
+1 helper`);
+        expect(failure.error).toContain('use sequences');
+        expect(failure.calls).toBe(0);
+    });
+
+    it('preserves native error location and call stack', () => {
+        const failure = compare(`use text
+fun helper X
+  return X character
+end
+(-1) helper`);
+        expect(failure.error).toBeDefined();
+        expect(failure.calls).toBe(1);
+    });
+
+    it('uses the imported function owner to resolve native bindings', () => {
+        expect(compare('use "helper.ra"\n121 palindrome', `use sequences
+fun palindrome X
+  return (X text reverse) equal (X text)
+end`)).toMatchObject({ value: 'true', calls: 1 });
+    });
+
+    it('rechecks builtin identity after preparing a direct function and its loop caller', () => {
+        let calls = 0, replacements = 0;
+        const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => calls++ });
+        try {
+            runtime.execute(`use sequences
+fun helper X
+  return X text reverse
+end
+fun work
+  Result = ""
+  for I in 12 to 13
+    Result = I helper
+  end
+  return Result
+end`);
+            expect(runtime.execute('12 helper')).toBe('21');
+            expect(runtime.execute('work')).toBe('31');
+            expect(calls).toBe(3);
+            runtime.variables.set('reverse', native('replacement', 1, () => { replacements++; return 'changed'; }));
+            expect(runtime.execute('12 helper')).toBe('changed');
+            expect(runtime.execute('work')).toBe('changed');
+            expect(calls).toBe(3);
+            expect(replacements).toBe(3);
+        } finally { runtime.dispose(); }
+    });
+
+    it('declines native kernels under CSP and retains ordinary execution', () => {
+        const runtime = new Interpreter();
+        const blocked = vi.spyOn(globalThis, 'Function').mockImplementation(() => { throw new Error('CSP'); });
+        try {
+            expect(runtime.execute(`use sequences
+fun helper X
+  return X text reverse
+end
+Result = ""
+for I in 12 to 13
+  Result = I helper
+end
+Result`)).toBe('31');
+        } finally { blocked.mockRestore(); runtime.dispose(); }
+    });
+
     it.each([['-13', '5'], ['13', '-5'], ['-13', '-5'], ['9007199254740993', '7']])(
         'preserves floor division and remainder for %s / %s', (a, b) => {
             expect(compare(`fun helper A B
@@ -141,7 +240,7 @@ it('declines generated function code when CSP blocks Function', () => {
 
 
 describe('compiled scalar tail completion', () => {
-    it.each([false, true])('finishes caller resources after tail completion (error=%s)', fails => {
+    it.each([[false, false], [true, false], [false, true], [true, true]])('finishes caller resources after tail completion (error=%s, native=%s)', (fails, nativeCall) => {
         const results = [false, true].map(compiledScalarTailCalls => {
             const io = new MemoryIo({ '/input': 'Rank' });
             const openDuringKernel: boolean[] = [];
@@ -152,9 +251,10 @@ describe('compiled scalar tail completion', () => {
             let value: unknown, error: string | undefined;
             try {
                 runtime.execute(`use io
+use text
 fun helper X
   Value = X - 3
-  return ${fails ? '10 // Value' : 'Value + 4'}
+  return ${nativeCall ? fails ? '(1114112 + Value * 1114112) character' : '(Value + 4) text' : fails ? '10 // Value' : 'Value + 4'}
 end
 fun perform N
   File = "/input" open
@@ -175,7 +275,7 @@ end`);
         expect({ ...results[1], openDuringKernel: [] }).toEqual({ ...results[0], openDuringKernel: [] });
         expect(results[1].closed).toBe(true);
         expect(results[1].openDuringKernel).toEqual([true, true]);
-        if (fails) expect(results[1].error).toContain('division by zero');
-        else expect(results[1].value).toBe(4n);
+        if (fails) expect(results[1].error).toContain(nativeCall ? 'invalid Unicode code point' : 'division by zero');
+        else expect(results[1].value).toBe(nativeCall ? '4' : 4n);
     });
 });

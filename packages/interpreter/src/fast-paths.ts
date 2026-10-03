@@ -1,7 +1,7 @@
 import type { AstNode } from 'langium';
 import {
     findOperation, flattenApplication, isBinaryExpression, isNameExpression, isUnaryExpression,
-    type ApplicationForm, type Operation, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
+    type ApplicationForm, type Operation, type CompiledScalarType, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
@@ -13,7 +13,7 @@ import { compileScalarExpression } from './scalar-compiler.js';
 import { scalarFunctionResult } from './scalar-function-proof.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { completed, type Evaluation, type Execution } from './execution.js';
-import { argumentSignature } from './return-contract.js';
+import { CallSpecializations } from './call-specializations.js';
 import type { ExecutionContext, PreparedStatement, TensorGroup } from './statement-control.js';
 import { compileTensorKernel } from './tensor-kernel.js';
 import type { BindingEnvironment } from './binding-environment.js';
@@ -21,13 +21,12 @@ import { recordFallback } from './diagnostics.js';
 import { checkedArrayDimension } from './eval/expressions.js';
 import { forIteration, iterationAtoms, type ForBinding } from './eval/loops.js';
 import type { FunctionInvocation } from './function-invocation.js';
-import { isPureHostFunction } from './host-effects.js';
 import { ReturnSignal } from './control-signals.js';
 import { compileIntegerLoop } from './integer-loop.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
 import { atArray, scalarArrayWriteOffset, tensorSelection } from './selectors.js';
-import { typedNativeCall } from './typed-native.js';
+import { prepareCompiledBuiltin } from './typed-native.js';
 import { applySelectors } from './value-selection.js';
 import { isRankArray, isNativeFunction, type NativeFunction, type RankValue } from './value.js';
 
@@ -60,7 +59,7 @@ export interface ApplicationReference {
 
 /** A compiled loop's view of a user function it may call without leaving the loop. */
 export interface ScalarCallSite {
-    readonly type: 'integer' | 'boolean';
+    readonly type: CompiledScalarType;
     readonly locals: readonly string[];
     bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined;
 }
@@ -82,7 +81,7 @@ export interface BlockSteps {
  */
 export class FastPaths {
     private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
-    private readonly functionBodies = new WeakMap<FunctionStatement, Map<string, CompiledBlock<ExecutionContext> | null>>();
+    private readonly functionBodies = new WeakMap<FunctionStatement, CallSpecializations<CompiledBlock<ExecutionContext> | null>>();
 
     constructor(private readonly context: FastPathContext) {}
 
@@ -112,9 +111,8 @@ export class FastPaths {
     ): CompiledBlock<ExecutionContext> | undefined {
         if (this.context.options().functionBodyCompilation === false) return undefined;
         let instances = this.functionBodies.get(statement);
-        if (!instances) this.functionBodies.set(statement, instances = new Map());
-        const signature = argumentSignature(arguments_);
-        let body = instances.get(signature);
+        if (!instances) this.functionBodies.set(statement, instances = new CallSpecializations());
+        let body = instances.get(arguments_);
         if (body === undefined) {
             const commands = statement.statements;
             const last = commands.at(-1);
@@ -136,7 +134,7 @@ export class FastPaths {
                 compiled: this.context.options().onFunctionBodyCompiled,
                 executed: this.context.options().onFunctionBodyExecuted,
             }) ?? null : null;
-            instances.set(signature, body);
+            instances.set(arguments_, body);
         }
         return body ?? undefined;
     }
@@ -202,18 +200,7 @@ export class FastPaths {
             booleanLocals: this.context.options().booleanLoopCompilation !== false,
             scalarText: this.context.options().scalarTextCompilation !== false,
             nativeCalls: this.context.options().nativeLoopCompilation !== false,
-            builtinCall: (module, name, types) => {
-                if (!this.context.modules.has(module)) return undefined;
-                // Unknown host callbacks may mutate bindings or re-enter Rank.
-                const md5 = this.context.options().md5;
-                if (module === 'crypto' && name === 'md5' && md5 && !isPureHostFunction(md5)) return undefined;
-                try {
-                    const value = this.context.resolve(name);
-                    return isNativeFunction(value) && this.context.builtins.is(module, name, value)
-                        ? this.context.options().typedNativeCalls === false ? value.call : typedNativeCall(value, types)
-                        : undefined;
-                } catch { return undefined; }
-            },
+            prepareBuiltinCall: (module, name, types) => prepareCompiledBuiltin(this.context, module, name, types),
             scalarFunction: (name, arity) => this.scalarCall(name, arity),
             absolute: this.context.options().absoluteLoopCompilation !== false,
             extrema: this.context.options().extremaLoopCompilation !== false,
@@ -332,13 +319,14 @@ export class FastPaths {
         const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false);
         if (!proof) return undefined;
         const captures = definition.context !== undefined;
-        return { type: proof.type, locals: captures ? proof.locals : [], bind: () => {
+        return { type: proof.type, locals: [...(captures ? proof.locals : []), ...proof.nativeReads], bind: () => {
             const current = this.context.bindings.find(name);
             if (!current || !isNativeFunction(current)) return undefined;
             const active = this.context.functions.definitionOf(current);
             if (active?.statement !== statement || (active.context !== undefined) !== captures
                 || proof.locals.some(local => active.context?.find(local))) return undefined;
-            const compiled = active.owner.prepareScalarCall(statement);
+            const compiled = active.owner.prepareScalarCall(statement, active.context);
+            if (proof.nativeReads.length && !compiled || compiled?.available && !compiled.available()) return undefined;
             return (arguments_, tail = false) => {
                 if (tail && active.owner === this.context.functions) {
                     throw new TailCallSignal(active, arguments_,
