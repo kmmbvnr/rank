@@ -1,26 +1,26 @@
 import {
     findCompiledOperator,
     isReturnStatement, isAssignmentStatement, isIfStatement,
-    type CompiledExpression, type CompiledOperator, type Operation, type CompiledAtomType, type Expression, type FunctionStatement, type Statement,
+    type CompiledExpression, type CompiledScalarType, type CompiledOperator, type Operation, type CompiledAtomType, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { RankError } from './errors.js';
 import { recordFallback } from './diagnostics.js';
 import type { RankValue } from './value.js';
-import { scalarFunctionResult } from './scalar-function-proof.js';
+import { scalarFunctionResult, type ScalarFunctionProof } from './scalar-function-proof.js';
 
 interface Kernel {
     readonly calls: readonly { operation: Operation; inputs: readonly CompiledAtomType[] }[];
     readonly locations: readonly Statement[];
     run(arguments_: RankValue[], locate: (error: unknown, index: number) => unknown, calls?: readonly ((arguments_: RankValue[]) => RankValue)[]): RankValue;
 }
-const kernels = new WeakMap<FunctionStatement, Kernel | null>();
+const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
 
-// Callers prove integer arguments and private local assignments before binding.
+// Callers prove the selected argument types and private local assignments before binding.
 // The kernel has no environment access; cached code retains only syntax metadata.
-export function compileScalarFunction(statement: FunctionStatement): Kernel | undefined {
-    if (kernels.has(statement)) return kernels.get(statement) ?? recordFallback('scalar-function:code-generation');
-    const proof = scalarFunctionResult(statement, true);
+export function compileScalarFunction(statement: FunctionStatement, parameterTypes?: readonly CompiledScalarType[]): Kernel | undefined {
+    const proof = scalarFunctionResult(statement, true, parameterTypes);
     if (!proof) return undefined;
+    if (kernels.has(proof)) return kernels.get(proof) ?? recordFallback('scalar-function:code-generation');
     const expressions = proof.expressions;
     const slots = new Map<string, number>();
     const slot = (name: string): string => {
@@ -113,6 +113,6 @@ export function compileScalarFunction(statement: FunctionStatement): Kernel | un
     let kernel: Kernel | undefined;
     try { kernel = { locations, calls, run: new Function('RankError', source)(RankError) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
-    kernels.set(statement, kernel ?? null);
+    kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');
 }

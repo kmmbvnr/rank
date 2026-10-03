@@ -7,20 +7,30 @@ import {
 import { compilerRejection } from './compiler-rejection.js';
 import { recordFallback } from './diagnostics.js';
 
-interface Proof {
+export interface ScalarFunctionProof {
     readonly type: CompiledScalarType;
     readonly locals: readonly string[];
     readonly nativeReads: readonly string[];
     readonly expressions: ReadonlyMap<Expression, CompiledExpression<CompiledScalarType>>;
 }
-const simpleProofs = new WeakMap<FunctionStatement, Proof | string>();
-const blockProofs = new WeakMap<FunctionStatement, Proof | string>();
+const simpleProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | string>>();
+const blockProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | string>>();
 
 // The caller must additionally check that local assignment names neither exist
 // in the closure context nor can be created by the surrounding register region.
-export function scalarFunctionResult(statement: FunctionStatement, blocks = false): Proof | undefined {
-    const proofs = blocks ? blockProofs : simpleProofs;
-    const cached = proofs.get(statement);
+export function scalarFunctionResult(statement: FunctionStatement, blocks = false,
+    parameterTypes?: readonly CompiledScalarType[]): ScalarFunctionProof | undefined {
+    if (parameterTypes && parameterTypes.length !== statement.parameters.length) {
+        return recordFallback('scalar-function:argument-count');
+    }
+    const cache = blocks ? blockProofs : simpleProofs;
+    let proofs = cache.get(statement);
+    if (!proofs) cache.set(statement, proofs = new Map());
+    // The default remains the integer specialization used by loop call sites.
+    // This is preparation-time work; runtime callers cache their selected proof.
+    const types = parameterTypes ?? statement.parameters.map(() => 'integer' as const);
+    const key = types.join(',');
+    const cached = proofs.get(key);
     if (typeof cached === 'string') return recordFallback(cached);
     if (cached) return cached;
     let rejection: string | undefined;
@@ -32,7 +42,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const nativeReads = new Set<string>();
     const parameters = new Set(statement.parameters);
     const locals = new Set<string>();
-    const settled = new Map<string, CompiledScalarType>(statement.parameters.map(name => [name, 'integer']));
+    const settled = new Map<string, CompiledScalarType>(statement.parameters.map((name, index) => [name, types[index]]));
     const budget = { remaining: blocks ? 256 : 129 };
     let resultType: CompiledScalarType | undefined;
     function type(expression: Expression, env: ReadonlyMap<string, CompiledScalarType>): CompiledScalarType | undefined {
@@ -99,6 +109,6 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const outcome = flow(statement.statements, new Map(settled));
     const result = outcome === null && resultType ? { type: resultType, locals: [...locals], nativeReads: [...nativeReads], expressions } : undefined;
     const reason = rejection ?? 'scalar-function:missing-return';
-    proofs.set(statement, result ?? reason);
+    proofs.set(key, result ?? reason);
     return result ?? recordFallback(reason);
 }
