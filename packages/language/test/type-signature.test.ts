@@ -93,3 +93,17 @@ it('describes numeric maps, missing propagation and integer-only reductions', ()
         .toBe('real integer → real [rank 0 0]');
     expect(operationSignature(findOperation('powmod')!)).toBe('integer integer integer → integer');
 });
+
+
+it('keeps text conversion and positional parse result contracts explicit', () => {
+    expect(operationSignature(findOperation('integer')!, [{ types: ['text'] }])).toBe('text → integer [rank 1]');
+    expect(operationSignature(findOperation('bytes')!, [{ types: ['array'], elements: ['integer'] }]))
+        .toBe('array<integer> → bytes');
+    expect(operationSignature(findOperation('parse')!)).toBe('text text → array | tuple');
+    expect(operationSignature(findOperation('lower')!, [{ types: ['array'], elements: ['text'] }]))
+        .toBe('array<text> → array<text>');
+    expect(operationSignature(findOperation('lower')!, [{ types: ['sqlite-expression'] }])).toBe('column → column');
+    expect(operationSignature(findOperation('join')!, [{ types: ['array'], elements: ['integer'] }, { types: ['text'] }]))
+        .toBe('array<number> text → text [rank 1 0]');
+    expect(operationSignature(findOperation('len')!, [{ types: ['tuple'] }])).toBe('tuple → integer');
+});

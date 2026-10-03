@@ -89,8 +89,8 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
     const cell = (signature: TypeSignature, index: number): ValueFacts => {
         const value = inputs[index];
         return signature.ranks?.[index] === 0 && value.types.length === 1
-            && ['array', 'sequence', 'queue'].includes(value.types[0])
-            ? { types: value.elements ?? [] } : value;
+            && ['array', 'bytes', 'sequence', 'queue', 'stack', 'deque'].includes(value.types[0])
+            ? { types: value.types[0] === 'bytes' ? ['integer'] : value.elements ?? [] } : value;
     };
     const narrow = (pattern: SignatureType, value: ValueFacts): SignatureType => {
         if (!value.types.length || typeof pattern === 'string') return pattern;

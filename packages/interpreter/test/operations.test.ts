@@ -176,6 +176,35 @@ describe('the operation catalogue', () => {
         expect(() => new Interpreter().execute('use algo\nuse numbers\nQ = new queue\nQ push 2\nQ lcm')).toThrow();
     });
 
+    it('checks text and conversion signatures including positional captures', () => {
+        for (const [expression, expected] of [
+            ['65 character', 'text'], ['"A" codepoint', 'integer'], ['("A" bytes) hex', 'text'],
+            ['"12" integer', 'integer'], ['"1.5" real', 'real'], ['3 text', 'text'],
+            ['(array 65 66) bytes', 'bytes'], ['("A" bytes) bytes', 'bytes'],
+            ['(array 1 2) "," join', 'text'], ['(1 to 3) "," join', 'text'],
+            ['"12 blue" "/integer /word" parse', 'tuple'], ['"12 13" "/integer /integer" parse', 'array'],
+            ['"a b" words', 'array'], ['(array "a b" "a c") 2 vocab', 'array'],
+            ['"ABC" lower', 'text'], ['(array "ABC" "DEF") lower', 'array'],
+            ['"abc" len', 'integer'], ['(tuple 1 "a") len', 'integer'],
+        ]) expect(typeName(new Interpreter().execute('use text\n' + expression)!), expression).toBe(expected);
+        expect(() => new Interpreter().execute('use text\n.NA text')).toThrow();
+        expect(() => new Interpreter().execute('use dates\n(1 duration) text')).toThrow();
+        expect(() => new Interpreter().execute('use text\n(array .NA) "," join')).toThrow();
+        expect(() => new Interpreter().execute('use text\n"ab" codepoint')).toThrow();
+    });
+
+    it('checks queue-family aliases and length domains against runtime representations', () => {
+        for (const name of ['queue', 'stack', 'deque']) {
+            const initialize = `use algo\nuse text\nS = new ${name}\nS push 2\nS push 3\n`;
+            for (const expression of ['S sum', 'S min', 'S max', 'S len']) {
+                expect(typeName(new Interpreter().execute(initialize + expression)!), name + expression).toBe('integer');
+            }
+            expect(typeName(new Interpreter().execute(initialize + 'S "," join')!), name).toBe('text');
+        }
+        expect(typeName(new Interpreter().execute('("ab" bytes) len')!)).toBe('integer');
+        expect(() => new Interpreter().execute('use algo\nI = new index\nI len')).toThrow();
+    });
+
     it('validates shape contracts against explicit ranks and representation facts', () => {
         for (const entry of operations) {
             if (entry.monadicRank !== undefined || entry.dyadicRanks

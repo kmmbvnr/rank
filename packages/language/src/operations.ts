@@ -183,16 +183,17 @@ export const modules: readonly Module[] = [
 /** Scalar/collection extrema share the runtime's ordered scalar domains. */
 const extremaSignatures: readonly TypeSignature[] = (['number', 'text', 'boolean', 'symbol', 'date', 'datetime', 'record'] as const)
     .flatMap((type): TypeSignature[] => [
-        { inputs: [{ union: [type, ...(['array', 'sequence', 'queue', 'set', 'multiset'] as const)
+        { inputs: [{ union: [type, ...(['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'multiset'] as const)
             .map(collection => ({ collection, element: { union: [type, 'missing'] } } as SignatureType))] }], result: type },
         { inputs: [type, type], result: type, ranks: [0, 0] },
     ]).concat([
         { inputs: ['missing', 'unknown'], result: 'missing', ranks: [0, 0] },
         { inputs: ['unknown', 'missing'], result: 'missing', ranks: [0, 0] },
     ]);
+const printableScalar: SignatureType = { union: ['number', 'boolean', 'text', 'symbol', 'date', 'datetime'] };
 const numericCells: SignatureType = { union: ['number', 'missing'] };
 const numericReductionInputs: SignatureType = { union: ['number', 'missing', 'column',
-    ...(['array', 'sequence', 'queue', 'set'] as const).map(collection => ({ collection, element: numericCells }))] };
+    ...(['array', 'sequence', 'queue', 'stack', 'deque', 'set'] as const).map(collection => ({ collection, element: numericCells }))] };
 
 /** Whole-value maps preserve the collection kind, independently of intrinsic rank lifting. */
 function mappingSignatures(input: SignatureType, result: SignatureType): readonly TypeSignature[] {
@@ -768,6 +769,8 @@ export const operations: readonly Operation[] = [
     { name: 'last', module: 'sequences', arities: [1], form: 'Values last', result: 'element',
         summary: 'Last item of text, an array, a queue or a finite sequence; missing when empty.' },
     { name: 'len', module: 'core', arities: [1], form: 'Value len', result: 'integer',
+        signatures: [{ inputs: [{ union: ['text', 'bytes', 'array', 'tuple', 'table', 'queue', 'stack', 'deque', 'heap',
+            'set', 'counter', 'multiset', 'object', 'graph', 'dsu', 'segment', 'wavelet', 'sequence'] }], result: 'integer' }],
         compiledCall: { inputs: ['text-or-array'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         arrayHeaderNoCallback: true,
         summary: 'Code points of text, leading axis of an array, or size of a collection.' },
@@ -858,30 +861,39 @@ export const operations: readonly Operation[] = [
         summary: 'Read-only SELECT view with bound positional parameters.' },
 
     { name: 'character', module: 'text', arities: [1], form: 'Code character', result: 'text',
+        signatures: [{ inputs: ['integer'], result: 'text' }],
         compiledCall: { inputs: ['integer'], result: 'text', callbacks: 'none', cost: 'input-dependent' },
         summary: 'One-character text for a Unicode code point.' },
     { name: 'codepoint', module: 'text', arities: [1], form: 'Character codepoint',
+        signatures: [{ inputs: ['text'], result: 'integer' }],
         compiledCall: { inputs: ['text'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         shape: [{ args: [null], result: [] }],
         result: 'integer',
         summary: 'Integer code point of exactly one character.' },
     { name: 'hex', module: 'text', arities: [1], form: 'Bytes hex', result: 'text',
+        signatures: [{ inputs: ['bytes'], result: 'text' }],
         summary: 'Lowercase hexadecimal text for bytes, without a prefix.' },
     { name: 'bytes', module: 'core', arities: [1], form: 'Value bytes', result: 'bytes',
+        signatures: [{ inputs: [{ union: ['text', 'bytes', { collection: 'array', element: 'integer' }] }], result: 'bytes' }],
         compiledCall: { inputs: ['text-or-bytes'], result: 'bytes', callbacks: 'none', cost: 'input-dependent' },
         summary: 'Converts UTF-8 text or a rank-1 array of integers in 0..255 to compact bytes.' },
     { name: 'integer', module: 'core', arities: [1], form: 'Value integer', result: 'integer',
+        signatures: [{ inputs: [{ union: ['integer', 'real', 'text'] }], result: 'integer', ranks: [1] }],
         shape: [{ args: [null], result: [] }],
         monadicRank: 1, summary: 'Truncates a finite real toward zero, preserves an integer, or parses signed decimal integer text.' },
     { name: 'real', module: 'core', arities: [1], form: 'Value real', result: 'real',
+        signatures: [{ inputs: [{ union: ['integer', 'real', 'text'] }], result: 'real', ranks: [1] }],
         shape: [{ args: [null], result: [] }],
         monadicRank: 1, summary: 'Converts an integer or decimal text to a real, or preserves a real.' },
     { name: 'join', module: 'text', arities: [2], form: 'Values Separator join', result: 'text',
+        signatures: [{ inputs: [{ union: (['array', 'sequence', 'queue', 'stack', 'deque'] as const).map(collection => ({
+            collection, element: printableScalar })) }, 'text'], result: 'text', ranks: [1, 0] }],
         compiledCall: { inputs: ['text-array', 'text'], result: 'text', callbacks: 'read-cells', cost: 'input-dependent' },
         shape: [{ args: [[null], []], result: null }],
         dyadicRanks: [1, 0],
         summary: 'Joins scalar elements of a finite collection into one text; a matrix joins each row.' },
     { name: 'parse', module: 'text', arities: [2], form: 'Text Pattern parse', result: 'value',
+        signatures: [{ inputs: ['text', 'text'], result: { union: ['array', 'tuple'] } }],
         summary: 'Captures /integer, /real, /word and /text from a complete pattern match.' },
     { name: 'split', module: 'text', arities: [2], form: 'Text Separator split', result: 'array',
         signatures: [{ inputs: ['text', { union: ['text', { collection: 'array', element: 'text' }] }],
@@ -894,6 +906,9 @@ export const operations: readonly Operation[] = [
         result: 'boolean',
         summary: 'Exact text or byte prefix test; ordinary arrays broadcast elementwise.' },
     { name: 'lower', module: 'text', arities: [1], form: 'Text lower', result: 'text',
+        signatures: [{ inputs: ['text'], result: 'text' },
+            { inputs: [{ collection: 'array', element: 'text' }], result: { collection: 'array', element: 'text' } },
+            { inputs: ['column'], result: 'column' }],
         compiledCall: { inputs: ['text'], result: 'text', callbacks: 'none', cost: 'input-dependent' },
         operandDomains: [['text']],
         summary: 'Converts Unicode text to lowercase.' },
@@ -902,11 +917,15 @@ export const operations: readonly Operation[] = [
     { name: 'translate', module: 'text', arities: [3], form: 'Text Chars Replacement translate', result: 'text',
         summary: 'Replaces listed characters, deleting those with no replacement.' },
     { name: 'text', module: 'core', arities: [1], form: 'Value text', result: 'text',
+        signatures: [{ inputs: [printableScalar], result: 'text' }],
         compiledCall: { inputs: ['integer'], result: 'text', callbacks: 'none', cost: 'input-dependent' },
         summary: 'Formats one scalar as text; a .Nf literal after it selects fixed decimals.' },
     { name: 'vocab', module: 'text', arities: [2], form: 'Texts Limit vocab', result: 'array',
+        signatures: [{ inputs: [{ collection: 'array', element: 'text' }, 'integer'],
+            result: { collection: 'array', element: 'text' } }],
         summary: 'Most frequent words, at most Limit of them, ties by code point.' },
     { name: 'words', module: 'text', arities: [1], form: 'Text words', result: 'array', dataLength: true,
+        signatures: [{ inputs: ['text'], result: { collection: 'array', element: 'text' } }],
         summary: 'Lowercase Unicode letter and number runs.' },
 
     { name: 'xml', module: 'xml', arities: [1, 2], form: 'Text xml', result: 'value', modifiers: ['flat'],

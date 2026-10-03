@@ -22,9 +22,9 @@ function rangeSignatures(conditional: boolean): readonly TypeSignature[] {
         { collection: 'array', element: 'boolean' }, { collection: 'sequence', element: 'boolean' },
         { callback: { inputs: [item], result: 'unknown' } }] } : bound;
     return [{ inputs: ['integer', 'integer'], result: { collection: 'sequence', element: 'integer' } },
-        ...(['array', 'sequence', 'queue'] as const).map(collection => ({
+        ...(['array', 'sequence', 'queue', 'stack', 'deque'] as const).map(collection => ({
             inputs: [{ collection, element: item }, limit],
-            result: { collection: collection === 'queue' ? 'array' as const : collection, element: item },
+            result: { collection: collection === 'array' || collection === 'sequence' ? collection : 'array' as const, element: item },
         })), { inputs: ['text', limit], result: 'text' }];
 }
 
