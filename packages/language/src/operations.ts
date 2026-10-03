@@ -258,6 +258,30 @@ const integerDyadicSignatures: readonly TypeSignature[] = [
     { inputs: ['integer', 'integer'], result: 'integer', ranks: [0, 0] },
 ];
 
+/** Text helpers either map arrays or build SQL expressions. Only startswith
+ * recurses through array cells before dispatching SQL; the others reject mixing
+ * an array argument with a column expression. */
+function textArgumentSignatures(inputs: readonly SignatureType[], result: SignatureType, recursiveSql = false): readonly TypeSignature[] {
+    if (recursiveSql) {
+        let rows: { inputs: SignatureType[]; array: boolean; column: boolean }[] = [{ inputs: [], array: false, column: false }];
+        for (const input of inputs) rows = rows.flatMap(row => [
+            { ...row, inputs: [...row.inputs, input] },
+            { ...row, inputs: [...row.inputs, { collection: 'array' as const, element: input }], array: true },
+            { ...row, inputs: [...row.inputs, 'column' as const], column: true },
+            { inputs: [...row.inputs, { collection: 'array' as const, element: 'column' as const }], array: true, column: true },
+        ]);
+        return rows.map(row => ({ inputs: row.inputs, result: row.array
+            ? { collection: 'array', element: row.column ? 'column' : result } : row.column ? 'column' : result }));
+    }
+    const signatures: TypeSignature[] = [{ inputs, result }];
+    for (let mask = 1; mask < 2 ** inputs.length; mask++) {
+        signatures.push({ inputs: inputs.map((input, index) => mask & 2 ** index
+            ? { collection: 'array', element: input } : input), result: { collection: 'array', element: result } });
+        signatures.push({ inputs: inputs.map((input, index) => mask & 2 ** index ? 'column' : input), result: 'column' });
+    }
+    return signatures;
+}
+
 // These date operations map whole arrays/sequences themselves; this is not
 // intrinsic rank lifting. SQL column refinements remain runtime constraints.
 function dateMappingSignatures(input: SignatureType, result: SignatureType): readonly TypeSignature[] {
@@ -1117,6 +1141,8 @@ export const operations: readonly Operation[] = [
         denseElements: ['text'],
         summary: 'Splits at every exact occurrence of a separator, keeping empty parts.' },
     { name: 'startswith', module: 'text', arities: [2], form: 'Value Prefix startswith',
+        signatures: [...textArgumentSignatures(['text', 'text'], 'boolean', true),
+            ...textArgumentSignatures(['bytes', 'bytes'], 'boolean', true)],
         compiledCall: { inputs: ['text-or-bytes', 'same'], result: 'boolean', callbacks: 'none', cost: 'input-dependent' },
         result: 'boolean',
         summary: 'Exact text or byte prefix test; ordinary arrays broadcast elementwise.' },
@@ -1128,8 +1154,10 @@ export const operations: readonly Operation[] = [
         operandDomains: [['text']],
         summary: 'Converts Unicode text to lowercase.' },
     { name: 'lpad', module: 'text', arities: [3], form: 'Text Width Fill lpad', result: 'text',
+        signatures: textArgumentSignatures(['text', 'integer', 'text'], 'text'),
         summary: 'Pads text on the left without truncating longer values.' },
     { name: 'translate', module: 'text', arities: [3], form: 'Text Chars Replacement translate', result: 'text',
+        signatures: textArgumentSignatures(['text', 'text', 'text'], 'text'),
         summary: 'Replaces listed characters, deleting those with no replacement.' },
     { name: 'text', module: 'core', arities: [1], form: 'Value text', result: 'text',
         signatures: [{ inputs: [printableScalar], result: 'text' }],

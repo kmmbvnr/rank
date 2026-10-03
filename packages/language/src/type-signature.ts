@@ -118,5 +118,5 @@ export function operationSignature(operation: Operation, inputs?: number | reado
     const signatures = typeof inputs === 'number'
         ? operation.signatures?.filter(signature => signature.inputs.length === inputs)
         : inputs ? matchingSignatures(operation.signatures ?? [], inputs) : operation.signatures;
-    return signatures?.length ? signatures.map(formatTypeSignature).join(' ; ') : undefined;
+    return signatures?.length ? [...new Set(signatures.map(formatTypeSignature))].join(' ; ') : undefined;
 }

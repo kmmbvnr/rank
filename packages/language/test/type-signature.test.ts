@@ -193,3 +193,18 @@ it('does not promise unchanged cell types for stacking, windows or default-fille
     expect(operationSignature(findOperation('shift')!)).toBe('array<a> integer → array<a | integer>');
     expect(operationSignature(findOperation('first')!, [{ types: ['array'] }])).toBe('array<a> → a | array<a>');
 });
+
+
+it('distinguishes text array maps from SQL columns and byte prefix tests', () => {
+    expect(operationSignature(findOperation('startswith')!, [{ types: ['bytes'] }, { types: ['bytes'] }]))
+        .toBe('bytes bytes → boolean');
+    expect(operationSignature(findOperation('startswith')!, [
+        { types: ['array'], elements: ['text'] }, { types: ['sqlite-expression'] },
+    ])).toBe('array<text> column → array<column>');
+    expect(operationSignature(findOperation('lpad')!, [
+        { types: ['text'] }, { types: ['array'], elements: ['integer'] }, { types: ['text'] },
+    ])).toBe('text array<integer> text → array<text>');
+    expect(operationSignature(findOperation('translate')!, [
+        { types: ['sqlite-expression'] }, { types: ['text'] }, { types: ['text'] },
+    ])).toBe('column text text → column');
+});
