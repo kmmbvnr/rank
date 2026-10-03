@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { isFunctionStatement } from '@arrrank/language';
 import { Interpreter, formatValue, parse } from '../src/index.js';
 import { RuntimeDiagnostics } from '../src/diagnostics.js';
+import { compileTensorKernel } from '../src/tensor-kernel.js';
+import { ownedArray } from '../src/array-storage.js';
 import { scalarFunctionResult } from '../src/scalar-function-proof.js';
 
 function proof(expression: string) {
@@ -22,7 +24,7 @@ describe('attributable compiler rejections', () => {
     it.each([
         ['X reverse', 'scalar-function:unsupported-op:reverse'],
         ['X / 2', 'scalar-function:unsupported-op:/'],
-        ['X + 0.5', 'scalar-function:unsupported-type:real'],
+        ['X + (array 0.5)', 'scalar-function:unsupported-type:array'],
         ['array 1 2', 'scalar-function:unsupported-type:array'],
     ])('retains the reason for cached proof rejection: %s', (expression, reason) => {
         const statement = proof(expression);
@@ -44,7 +46,7 @@ describe('attributable compiler rejections', () => {
     });
 
     it('attributes per-operation fallback in a cached scalar expression', () => {
-        const runtime = new Interpreter();
+        const runtime = new Interpreter(undefined, { scalarFunctionCompilation: false });
         try {
             runtime.execute('fun same A B\nreturn (A + B) equal A\nend\n"a" "b" same');
             const diagnostics = new RuntimeDiagnostics();
@@ -75,6 +77,8 @@ A B same`;
         const diagnostics = new RuntimeDiagnostics();
         expect(execute(source, diagnostics)).toBe(execute(source));
         expect(diagnostics.fallbacks['tensor:operator-guard:equal']).toBeGreaterThan(0);
+        expect(diagnostics.fallbacks).not.toHaveProperty('tensor:unsupported');
+        expect(diagnostics.fallbacks).not.toHaveProperty('tensor:entry-guard');
         expect(diagnostics.compiledTensors).toBe(0);
     });
 
@@ -91,4 +95,48 @@ A B powers`;
         expect(diagnostics.fallbacks['tensor:operator-guard:**']).toBeGreaterThan(0);
         expect(diagnostics.compiledTensors).toBe(0);
     });
+    it('reports only the first unsupported tensor node, not its parents', () => {
+        const statement = parse('fun probe A B\nMapped = (A to B) + (A reverse)\nreturn Mapped sum\nend').statements[0];
+        if (!isFunctionStatement(statement)) throw new Error('expected function');
+        const diagnostics = new RuntimeDiagnostics();
+        const kernel = diagnostics.run(() => compileTensorKernel(statement.statements, {
+            lookup: () => undefined, builtin: () => true,
+        }));
+        expect(kernel).toBeUndefined();
+        expect(diagnostics.fallbacks).toEqual({ 'tensor:unsupported-op:to': 1 });
+    });
+
+    it('reports one storage rejection per tensor entry attempt', () => {
+        const statement = parse('fun probe A B\nMapped = A + B\nreturn Mapped sum\nend').statements[0];
+        if (!isFunctionStatement(statement)) throw new Error('expected function');
+        const kernel = compileTensorKernel(statement.statements, {
+            lookup: name => name === 'A' || name === 'B' ? { kind: 'array', shape: [2], items: [1n, 2n] } : undefined,
+            builtin: () => true,
+        });
+        expect(kernel).toBeDefined();
+        const diagnostics = new RuntimeDiagnostics();
+        diagnostics.run(() => {
+            expect(kernel!.run()).toBeUndefined();
+            expect(kernel!.run()).toBeUndefined();
+        });
+        expect(diagnostics.fallbacks).toEqual({ 'tensor:untracked-storage': 2 });
+    });
+
+    it('reports the generated guard when a cached tensor kernel declines', () => {
+        const statement = parse('fun probe A B\nMapped = A equal B\nreturn Mapped count\nend').statements[0];
+        if (!isFunctionStatement(statement)) throw new Error('expected function');
+        const values = ownedArray([true, false]);
+        const kernel = compileTensorKernel(statement.statements, {
+            lookup: name => name === 'A' || name === 'B' ? values : undefined,
+            builtin: () => true,
+        });
+        expect(kernel).toBeDefined();
+        const diagnostics = new RuntimeDiagnostics();
+        diagnostics.run(() => {
+            expect(kernel!.run()).toBeUndefined();
+            expect(kernel!.run()).toBeUndefined();
+        });
+        expect(diagnostics.fallbacks).toEqual({ 'tensor:operator-guard:equal': 2 });
+    });
+
 });

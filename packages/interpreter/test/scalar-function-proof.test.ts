@@ -47,7 +47,7 @@ describe('scalar function operator eligibility', () => {
     it('has executable coverage for every catalogue overload', () => {
         for (const operation of compiledOperators) {
             for (const signature of operation.scalarFunction) {
-                const inputs = signature.inputs.map(type => type === 'integer' ? '3' : type === 'text' ? '"a"' : 'true');
+                const inputs = signature.inputs.map(type => type === 'integer' ? '3' : type === 'real' ? '3.5' : type === 'text' ? '"a"' : 'true');
                 const name = ({ atmost: 'at most', atleast: 'at least', notequal: 'not equal' } as Record<string, string>)[operation.name] ?? operation.name;
                 const expression = inputs.length === 1 ? `${name} ${inputs[0]}`
                     : `${inputs[0]} ${name} ${inputs[1]}`;
@@ -62,7 +62,7 @@ describe('scalar function operator eligibility', () => {
         'X / Y', 'X ** Y', 'X to Y', 'X to Y step 2',
         'X and Y', 'not X', '-true', '+true', 'true + false',
         'true less false', 'X equal true', 'true not equal X',
-        'X + 0.5', 'X abs', 'Missing',
+        'X abs', 'Missing',
     ])('keeps %s outside the compiler subset', expression => {
         const fn = statement(`return ${expression}`);
         expect(scalarFunctionResult(fn)).toBeUndefined();
@@ -90,5 +90,52 @@ describe('scalar function operator eligibility', () => {
         'return X\nfun nested Z\nreturn Z\nend',
     ])('retains block rejection for %s', body => {
         expect(scalarFunctionResult(statement(body), true)).toBeUndefined();
+    });
+});
+
+describe('scalar proof specializations', () => {
+    it('keeps integer and text proofs and kernels separate for one declaration', () => {
+        const fn = statement('return X + Y');
+        const integer = scalarFunctionResult(fn, true);
+        const text = scalarFunctionResult(fn, true, ['text', 'text']);
+        expect(integer?.type).toBe('integer');
+        expect(text?.type).toBe('text');
+        expect(text).not.toBe(integer);
+        expect(scalarFunctionResult(fn, true, ['integer', 'integer'])).toBe(integer);
+        expect(scalarFunctionResult(fn, true, ['text', 'text'])).toBe(text);
+        const integers = compileScalarFunction(fn)!;
+        const strings = compileScalarFunction(fn, ['text', 'text'])!;
+        expect(strings).not.toBe(integers);
+        expect(compileScalarFunction(fn, ['integer', 'integer'])).toBe(integers);
+        expect(compileScalarFunction(fn, ['text', 'text'])).toBe(strings);
+        expect(integers.run([2n, 3n], error => error)).toBe(5n);
+        expect(strings.run(['𝄞', 'e\u0301'], error => error)).toBe('𝄞e\u0301');
+    });
+
+    it('does not let rejection of one domain poison another specialization', () => {
+        const fn = statement('return X and Y');
+        expect(scalarFunctionResult(fn, true)).toBeUndefined();
+        const proof = scalarFunctionResult(fn, true, ['boolean', 'boolean']);
+        expect(proof?.type).toBe('boolean');
+        const kernel = compileScalarFunction(fn, ['boolean', 'boolean'])!;
+        expect(kernel.run([true, false], error => error)).toBe(false);
+        expect(scalarFunctionResult(fn, true, ['text', 'text'])).toBeUndefined();
+        expect(scalarFunctionResult(fn, true, ['boolean', 'boolean'])).toBe(proof);
+    });
+
+    it('uses declared parameter domains for branch joins and native signatures', () => {
+        const fn = statement('if X\nreturn Y reverse\nelse\nreturn Y\nend');
+        const proof = scalarFunctionResult(fn, true, ['boolean', 'text']);
+        expect(proof).toMatchObject({ type: 'text', nativeReads: ['reverse'] });
+        const kernel = compileScalarFunction(fn, ['boolean', 'text'])!;
+        expect(kernel.calls.map(call => call.inputs)).toEqual([['text']]);
+        expect(kernel.run([false, '𝄞e\u0301'], error => error)).toBe('𝄞e\u0301');
+    });
+
+    it('rejects an incomplete argument domain instead of assuming missing types', () => {
+        const fn = statement('return X');
+        expect(scalarFunctionResult(fn, true, ['text'])).toBeUndefined();
+        expect(compileScalarFunction(fn, ['text'])).toBeUndefined();
+        expect(scalarFunctionResult(fn, true, ['text', 'boolean'])?.type).toBe('text');
     });
 });

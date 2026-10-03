@@ -319,6 +319,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     return { code: name, type: signature.result };
                 }
                 const callable = host.scalarFunction(last.name, parts.length - 1);
+                if (callable?.type === 'real') return reject(e, 'unsupported-type:real');
                 if (callable) {
                     const arguments_: string[] = [];
                     for (const part of parts.slice(0, -1)) {

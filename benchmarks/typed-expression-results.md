@@ -90,3 +90,51 @@ updates, and the deterministic chess fixture. Audit hashes and source-tree
 identities are recorded in `sequence-callback-results.json`. The final-current-
 reference and real-MD5 limitations above still apply. This stage has no separate
 timing claim; final #102 measurements remain required.
+
+## Text, boolean and real function specializations
+
+Function entry now selects a proof and generated kernel for the actual primitive
+argument types. The proof is shared by syntax and type vector; prepared native
+calls remain scoped to the defining environment. Each entry still checks native
+binding identity, captured assignment targets and inspection state. Failed guards
+pass the already-read arguments to ordinary execution.
+
+The real profile adds addition, subtraction, multiplication, unary signs and
+numeric comparisons. Mixed integer/real equality compares exact integer values
+rather than rounding a large integer through `Number`. Tests cover infinities,
+NaN, signed zero, large integers, Unicode text, native replacement, captures,
+memo calls, ranked text inputs and specialization reuse. Tensor diagnostics now
+record the first unsupported node without duplicate ancestor or generic entries.
+
+Full `npm test` passed at `3b3b89c2`: 759 language, 3,243 interpreter (333 skipped),
+242 common, 490 CLI and 10 exporter tests. The report-only commit `3f5f9ae8` has
+identical package sources. The compiled demo audit matches the freshly recorded
+compilation-disabled lazy-array-fix reference (`9257b7a1`) on 1,356 tests in 392
+files, 74 standalone programs, 54 CSV exports and nine isolated database updates.
+The unchanged chess program also matches with the deterministic pure MD5 fixture;
+this does not measure or verify the full real-MD5 search. The audit covers 858
+loaded source files.
+
+Five fresh-process samples per checkout, after warm-up and with alternating run
+order, produced these medians on Node v24.15.0 / Apple M5. No other local test or
+benchmark jobs ran during timing. The baseline is `9257b7a1`; the candidate is
+`3f5f9ae8`. These differences, all below 1%, do not establish a speed improvement.
+
+| Program | Baseline | Candidate | Candidate / baseline |
+| --- | ---: | ---: | ---: |
+| Euler 004 | 2292 ms | 2288 ms | 0.998 |
+| Euler 014 | 12296 ms | 12277 ms | 0.998 |
+| AtCoder Frog 2 | 481 ms | 483 ms | 1.005 |
+| CSES Coin Combinations I | 560 ms | 565 ms | 1.009 |
+| CSES Dice Combinations | 442 ms | 442 ms | 1.001 |
+
+Raw samples, audit hashes, source-tree identities and loaded-source paths are in
+`scalar-specialization-results.json`. Reproduce with
+`compiler-catalogue-bench.mjs BASELINE CANDIDATE 5` and the `tests`, `unpaired`
+and `chess` selections of `compiler-catalogue-audit.mjs`, using `--behavior-only`
+for comparisons. The external fixture requirements are in
+`compiler-catalogue-results.md`.
+
+Remaining #102 proposals include homogeneous array argument specializations,
+shared loop/tensor inference, explicit effect/cost metadata and per-node fallback.
+Reusable static function relationships remain #156.

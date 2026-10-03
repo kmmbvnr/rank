@@ -43,10 +43,13 @@ describe('shared compiled expression inference', () => {
 
     it('uses the same frontend with consumer-specific numeric domains', () => {
         const source = expression('A + 1.5');
-        expect(inferCompiledExpression(source, context({ A: 'integer' })).failure?.source.$type).toBe('NumberLiteral');
-        const result = inferCompiledExpression(source, context({ A: 'integer' }, 'tensor'));
-        expect(result.expression).toMatchObject({ kind: 'binary', type: 'real',
-            signature: { inputs: ['integer', 'real'], result: 'real' } });
+        const restricted = { ...context({ A: 'integer' }), types: ['integer', 'boolean', 'text'] as const };
+        expect(inferCompiledExpression(source, restricted).failure?.source.$type).toBe('NumberLiteral');
+        for (const profile of ['scalarFunction', 'tensor'] as const) {
+            const result = inferCompiledExpression(source, context({ A: 'integer' }, profile));
+            expect(result.expression).toMatchObject({ kind: 'binary', type: 'real',
+                signature: { inputs: ['integer', 'real'], result: 'real' } });
+        }
     });
 
     it('retains nested native signatures and operand order', () => {
