@@ -150,14 +150,14 @@ export class FastPaths {
                 return this.context.builtins.is(module, name, this.context.resolve(name));
             },
         });
-        if (!kernel) return recordFallback('tensor:unsupported');
+        if (!kernel) return undefined;
         const last = statements[index + kernel.count - 1];
         if (!isAssignmentStatement(last) && !isReturnStatement(last)) return undefined;
         const assign = isAssignmentStatement(last) ? this.context.compileAssign(last.name) : undefined;
         return { count: kernel.count, run: () => {
             if (!assign && this.context.bindings.current === undefined) return undefined;
             const value = kernel.run();
-            if (value === undefined) return recordFallback('tensor:entry-guard');
+            if (value === undefined) return undefined;
             try { assign?.(value); }
             catch (error) { throw this.context.locate(error, last); }
             this.context.options().onTensorKernelExecuted?.();

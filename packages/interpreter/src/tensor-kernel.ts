@@ -44,12 +44,14 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
     const definitions = new Map<string, TensorNode>();
     const reads = new Map<string, number>();
     const names: string[] = [];
+    let rejected = false;
     function reject(node: Expression | Statement, detail?: string): undefined {
-        if (currentDiagnostics()) recordFallback(compilerRejection('tensor', node, detail));
+        if (!rejected && currentDiagnostics()) recordFallback(compilerRejection('tensor', node, detail));
+        rejected = true;
         return undefined;
     }
     function parse(expression: Expression): TensorNode | undefined {
-        return parseExpression(expression) ?? reject(expression);
+        return parseExpression(expression) ?? reject(unwrap(expression));
     }
     function parseExpression(expression: Expression): TensorNode | undefined {
         const e = unwrap(expression);
@@ -138,9 +140,15 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         const bound = new Map<TensorNode, Bound>();
         let broadcasts = false;
         const data: RankValue[][] = [], offsets: number[] = [], scalars: RankValue[] = [];
+        let bindingRejected = false;
+        function rejectBinding(reason: string): undefined {
+            if (!bindingRejected) recordFallback(reason);
+            bindingRejected = true;
+            return undefined;
+        }
         function bind(node: TensorNode): Bound | undefined {
             const result = bindNode(node);
-            if (!result && currentDiagnostics()) recordFallback(`tensor:binding:${node.kind === 'binary' || node.kind === 'unary' ? node.op : node.kind === 'input' ? node.name ?? 'literal' : node.kind}`);
+            if (!result && !bindingRejected) rejectBinding(`tensor:binding:${node.kind === 'binary' || node.kind === 'unary' ? node.op : node.kind === 'input' ? node.name ?? 'literal' : node.kind}`);
             return result;
         }
         function bindNode(node: TensorNode): Bound | undefined {
@@ -153,7 +161,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 } else if (value && isRankArray(value)) {
                     // Host-owned arrays can run getters while probing their
                     // cells. Only tracked storage is safe to inspect here.
-                    if (arrayRevision(value) === undefined) return recordFallback('tensor:untracked-storage');
+                    if (arrayRevision(value) === undefined) return rejectBinding('tensor:untracked-storage');
                     const items = materializedArrayItems(value);
                     if (!Array.isArray(items) || !value.shape.every(n => Number.isSafeInteger(n) && n >= 0)
                         || value.shape.reduce((p, n) => p * n, 1) !== items.length) return undefined;
@@ -203,7 +211,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             // Scalar computations are evaluated before their surrounding
             // tensor operation, even for an empty/fully filtered domain. Until
             // scalar lowering preserves that timing, leave them to reference.
-            if (result && result.shape === undefined && result.scalar === undefined) return recordFallback('tensor:scalar-evaluation-timing');
+            if (result && result.shape === undefined && result.scalar === undefined) return rejectBinding('tensor:scalar-evaluation-timing');
             if (result) {
                 if (result.view) {
                     result.slot = data.push(result.view.items) - 1;
@@ -214,7 +222,8 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             return result;
         }
         const output = bind(root);
-        if (!output?.shape) return recordFallback('tensor:output-shape');
+        if (!output) return undefined;
+        if (!output.shape) return recordFallback('tensor:output-shape');
         if (!host.builtin(terminal)) return recordFallback(`tensor:builtin:${terminal}`);
         // Gathers and filters have their own iteration domains. They require
         // explicit domain composition before they can mix with broadcasting.
