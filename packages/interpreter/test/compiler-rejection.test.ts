@@ -46,7 +46,7 @@ describe('attributable compiler rejections', () => {
     });
 
     it('attributes per-operation fallback in a cached scalar expression', () => {
-        const runtime = new Interpreter();
+        const runtime = new Interpreter(undefined, { scalarFunctionCompilation: false });
         try {
             runtime.execute('fun same A B\nreturn (A + B) equal A\nend\n"a" "b" same');
             const diagnostics = new RuntimeDiagnostics();
