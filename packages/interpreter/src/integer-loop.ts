@@ -1,10 +1,10 @@
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import {
-    flattenApplication, expressionFacts, findOperation,
+    flattenApplication, expressionFacts, findOperation, findCompiledOperator, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
-    type Expression, type ForStatement, type Statement, type CompiledAtomType,
+    type Expression, type ForStatement, type Statement, type CompiledAtomType, type CompiledScalarType,
 } from '@arrrank/language';
 import { completed, type Completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -35,7 +35,7 @@ interface Host {
     builtinCall(module: string, name: string, types: readonly string[]): ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
     scalarFunction(name: string, arity: number): {
-        type: 'integer' | 'boolean';
+        type: CompiledScalarType;
         locals: readonly string[];
         bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined;
     } | undefined;
@@ -61,9 +61,6 @@ interface Host {
     executed?(): void;
 }
 interface Term { code: string; type: CompiledAtomType; ascii?: boolean }
-const comparisons: Record<string, string> = {
-    less: '<', greater: '>', atmost: '<=', atleast: '>=', equal: '===', notequal: '!==',
-};
 
 /** Whole numeric loop: keep reads in local registers and commit every assignment.
  * Writers retain fixed-type checks and partial state on errors; optional bound
@@ -204,11 +201,10 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
         if (isUnaryExpression(e)) {
             const value = emit(e.operand, lines, e.operator === 'not' ? 'boolean' : 'integer');
             if (!value) return undefined;
-            if (e.operator === 'not' && value.type === 'boolean') return { code: `!(${value.code})`, type: 'boolean' };
-            if (value.type === 'integer' && ['+', '-'].includes(e.operator)) {
-                return { code: e.operator === '+' ? value.code : `-(${value.code})`, type: 'integer' };
-            }
-            return undefined;
+            const signature = loopOperatorSignature(e.operator, [value.type], host.nativeCalls);
+            const token = findCompiledOperator(e.operator)?.unary;
+            if (!signature || token === undefined) return undefined;
+            return { code: token === '' ? value.code : `${token}(${value.code})`, type: signature.result };
         }
         if (host.extrema && isApplicationExpression(e)) {
             const parts = host.extremeParts(e);
@@ -385,55 +381,42 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             // Power binds before an unparenthesized sign, as in the evaluator.
             const signed = isUnaryExpression(e.left) && ['+', '-'].includes(e.left.operator) ? e.left : undefined;
             const base = emit(signed ? signed.operand : e.left, lines);
-            if (base?.type !== 'integer') return undefined;
+            if (!base || !loopOperatorSignature(e.operator, [base.type, 'integer'], host.nativeCalls)) return undefined;
             const name = `v${serial++}`;
             const negative = signed?.operator === '-';
             lines.push(`const ${name} = ${negative ? '-' : ''}((${base.code}) ** ${exponent.value}n);`);
             return { code: name, type: 'integer' };
         }
-        const textPair = (['equal', 'notequal'].includes(e.operator) || host.nativeCalls && e.operator === '+')
-            && knownType(e.right) === 'text';
-        const booleanPair = ['and', 'or', 'xor'].includes(e.operator)
-            || ['equal', 'notequal'].includes(e.operator) && knownType(e.right) === 'boolean';
-        const left = emit(e.left, lines, textPair || host.nativeCalls && e.operator === '+' && knownType(e.left) === 'text'
+        const textSignature = loopOperatorSignature(e.operator, ['text', 'text'], host.nativeCalls);
+        const booleanSignature = loopOperatorSignature(e.operator, ['boolean', 'boolean'], host.nativeCalls);
+        const textPair = textSignature && knownType(e.right) === 'text';
+        const booleanPair = booleanSignature && (!loopOperatorSignature(e.operator, ['integer', 'integer'], host.nativeCalls)
+            || knownType(e.right) === 'boolean');
+        const left = emit(e.left, lines, textPair || textSignature?.result === 'text' && knownType(e.left) === 'text'
             ? 'text' : booleanPair ? 'boolean' : undefined);
         // `and` and `or` run their right side only when the left does not decide.
-        const guard = e.operator === 'and' || e.operator === 'or';
+        const token = findCompiledOperator(e.operator)?.binary;
+        const guard = token === '&&' || token === '||';
         const rightLines = guard ? [] : lines;
         const right = emit(e.right, rightLines, left?.type === 'text' ? 'text' : booleanPair || left?.type === 'boolean' ? 'boolean' : undefined);
         if (!left || !right) return undefined;
+        const signature = loopOperatorSignature(e.operator, [left.type, right.type], host.nativeCalls);
+        if (!signature || !token) return undefined;
         const a = left.code, b = right.code, op = e.operator;
         const name = `v${serial++}`;
         if (guard) {
-            if (left.type !== 'boolean' || right.type !== 'boolean') return undefined;
             lines.push(`let ${name} = ${a}; if (${op === 'and' ? '' : '!'}${name}) { ${rightLines.join('\n')} ${name} = ${b}; }`);
             return { code: name, type: 'boolean' };
         }
-        if (host.nativeCalls && left.type === 'text' && right.type === 'text' && op === '+') {
-            lines.push(`const ${name} = (${a}) + (${b});`);
-            return { code: name, type: 'text' };
-        }
-        if (left.type === 'boolean' && right.type === 'boolean' && ['and', 'or', 'xor'].includes(op)) {
-            lines.push(`const ${name} = (${a}) ${op === 'and' ? '&&' : op === 'or' ? '||' : '!=='} (${b});`);
-            return { code: name, type: 'boolean' };
-        }
-        if (left.type === right.type && ['boolean', 'text'].includes(left.type) && ['equal', 'notequal'].includes(op)) {
-            lines.push(`const ${name} = (${a}) ${comparisons[op]} (${b});`);
-            return { code: name, type: 'boolean' };
-        }
-        if (left.type !== 'integer' || right.type !== 'integer') return undefined;
-        if (op in comparisons) {
-            lines.push(`const ${name} = (${a}) ${comparisons[op]} (${b});`);
-            return { code: name, type: 'boolean' };
-        }
-        if (['+', '-', '*'].includes(op)) lines.push(`const ${name} = (${a}) ${op} (${b});`);
-        else if (op === '//' || op === '%') {
+        if (token !== '//' && token !== '%') {
+            lines.push(`const ${name} = (${a}) ${token} (${b});`);
+        } else if (op === '//' || op === '%') {
             lines.push(`if ((${b}) === 0n) throw zero();`);
             lines.push(`const m${serial} = (${a}) % (${b});`);
             const adjust = `(m${serial} !== 0n && (m${serial} < 0n) !== ((${b}) < 0n))`;
             lines.push(`const ${name} = ${op === '//' ? `(${a}) / (${b}) - (${adjust} ? 1n : 0n)` : `m${serial} + (${adjust} ? (${b}) : 0n)`};`);
         } else return undefined;
-        return { code: name, type: 'integer' };
+        return { code: name, type: signature.result };
     }
     function loopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number) {
         const tests: string[] = [];
@@ -554,8 +537,8 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             }
             if (isArrayAssignmentStatement(assignment)) {
                 const compound = assignment.operator !== '=';
-                const booleanUpdate = ['and=', 'or=', 'xor='].includes(assignment.operator);
-                if (compound && (!host.compoundWrites || !['+=', '-=', '*=', '//=', '%=', 'and=', 'or=', 'xor='].includes(assignment.operator))) return undefined;
+                const booleanUpdate = loopOperatorSignature(assignment.operator.slice(0, -1), ['boolean', 'boolean'], host.nativeCalls)?.compound;
+                if (compound && (!host.compoundWrites || !findCompiledOperator(assignment.operator.slice(0, -1))?.integerLoop.some(signature => signature.compound))) return undefined;
                 if (assignment.name.includes('.')) return undefined;
                 const knownArray = arrays.get(assignment.name);
                 if (knownArray && knownArray.rank !== assignment.indices.length) return undefined;
@@ -600,8 +583,10 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
                     const rhs = `operand${serial++}`, old = `old${serial++}`, out = `updated${serial++}`;
                     lines.push(`const ${rhs} = ${value.code}, ${old} = ${receiver}.items[${name}];`);
                     const op = assignment.operator.slice(0, -1);
-                    if (booleanUpdate) lines.push(`const ${out} = ${old} ${op === 'and' ? '&&' : op === 'or' ? '||' : '!=='} ${rhs};`);
-                    else if (['+', '-', '*'].includes(op)) lines.push(`const ${out} = ${old} ${op} ${rhs};`);
+                    const signature = loopOperatorSignature(op, [value.type, value.type], host.nativeCalls);
+                    const token = findCompiledOperator(op)?.binary;
+                    if (!signature?.compound || signature.result !== value.type || !token) return undefined;
+                    if (token !== '%' && token !== '//') lines.push(`const ${out} = ${old} ${token} ${rhs};`);
                     else {
                         const remainder = `remainder${serial++}`;
                         lines.push(`if (${rhs} === 0n) throw zero(); const ${remainder} = ${old} % ${rhs};`);
@@ -707,7 +692,7 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             written.add(assignment.name);
             if (assignment.operator !== '=' && !assigned.has(assignment.name)) required.add(destination);
             const lines: string[] = [];
-            const booleanUpdate = ['and=', 'or=', 'xor='].includes(assignment.operator);
+            const booleanUpdate = loopOperatorSignature(assignment.operator.slice(0, -1), ['boolean', 'boolean'], host.nativeCalls)?.compound;
             const textUpdate = host.nativeCalls && assignment.operator === '+='
                 && (localTypes.get(assignment.name) === 'text' || typeof host.read(assignment.name) === 'string');
             const value = emit(assignment.value, lines, booleanUpdate ? 'boolean' : textUpdate ? 'text' : undefined);
@@ -718,11 +703,10 @@ function compileTypedLoop(statement: ForStatement, host: Host, iteration: Iterat
             let result = value.code;
             if (assignment.operator !== '=') {
                 const op = assignment.operator.slice(0, -1);
-                if (booleanUpdate && value.type === 'boolean') {
-                    result = `(r${destination}) ${op === 'and' ? '&&' : op === 'or' ? '||' : '!=='} (${result})`;
-                } else if (value.type === 'text' && host.nativeCalls && op === '+') result = `(r${destination}) + (${result})`;
-                else if (value.type !== 'integer') return undefined;
-                else if (['+', '-', '*'].includes(op)) result = `(r${destination}) ${op} (${result})`;
+                const signature = loopOperatorSignature(op, [value.type, value.type], host.nativeCalls);
+                const token = findCompiledOperator(op)?.binary;
+                if (!signature?.compound || signature.result !== value.type || !token) return undefined;
+                if (token !== '%' && token !== '//') result = `(r${destination}) ${token} (${result})`;
                 else if (op === '%' || op === '//') {
                     lines.push(`if ((${result}) === 0n) throw zero();`);
                     const remainder = `c${index}`;
