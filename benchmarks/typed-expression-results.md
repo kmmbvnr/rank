@@ -44,3 +44,27 @@ Reproduce with `compiler-catalogue-audit.mjs` using the `tests`, `unpaired` and
 requirements are recorded in `compiler-catalogue-results.md`.
 
 #102 remains open: broader input/array domains, shared loop/tensor inference, effects/cost metadata, higher-order paths and per-node fallback are still required.
+
+## Ranked scalar callbacks through checked array views
+
+The next stage prepares a checked callback once per ranked application and a
+cell reader once per materialization. It keeps per-cell native-binding guards,
+return contracts, inspection fallback, cancellation, and binding validation.
+Preparation does not read cells. The reader is not a purity proof.
+
+Five fresh-process Euler 004 samples on Node v24.15.0 / Apple M5 measured
+2342 → 2280 ms (candidate/baseline 0.973). No other local tests or benchmarks
+ran during timing. The baseline is the native-text/call-preparation stage
+`0d8a6932`; the candidate is `3e9a6417`, whose implementation sources are unchanged
+at `fa949846`. This is a 2.7% improvement on one program, not a general performance
+claim. Raw samples and source-tree hashes are in `ranked-callback-results.json`.
+
+`npm test` passed: 759 language, 3,199 interpreter (333 unobserved corpus cases
+skipped), 237 common, 490 CLI, and 10 exporter tests. Focused tests cover partial
+reads, retry after failure, changing native bindings, refined binding contracts,
+soft missing cells, empty frames, memo calls, inspection, and cancellation.
+
+The candidate matches the recorded interpreter-only reference on all 1,356 tests
+in 392 files, 74 standalone programs with their CSV exports and isolated database
+updates, and the deterministic chess fixture. The same final-reference and
+real-MD5 limitations described above apply. This stage does not close #102.

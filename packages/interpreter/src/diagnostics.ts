@@ -10,6 +10,8 @@ export class RuntimeDiagnostics {
     loopElementScans = 0;
     compiledLoops = 0;
     compiledTensors = 0;
+    /** Full materialization attempts over a prepared scalar callback. */
+    rankedBatches = 0;
     cowCopies = 0;
     cowCopiedCells = 0;
     readonly fallbacks: Record<string, number> = Object.create(null);

@@ -120,6 +120,7 @@ export class Interpreter {
         this.rankApplication = new RankApplication(
             (fn, args) => this.functions.invoke(fn, args),
             value => this.resources.ownFiles(value), this.builtins.functions,
+            fn => this.functions.scalarCallback(fn),
         );
         this.fastPaths = new FastPaths({
             bindings: this.bindings,
