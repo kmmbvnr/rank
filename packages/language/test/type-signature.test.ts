@@ -160,3 +160,15 @@ it('distinguishes graph, DSU, and functional-graph overloads', () => {
     expect(operationSignature(findOperation('findroot')!, [{ types: ['dsu'] }, { types: ['text'] }]))
         .toBe('dsu text → number | boolean | text | symbol [rank all 0]');
 });
+
+
+it('preserves mutable collection elements without equating heap priorities with payloads', () => {
+    expect(operationSignature(findOperation('pushback')!)).toBe('deque<a> a → deque<a>');
+    expect(operationSignature(findOperation('popfront')!)).toBe('deque<a> → a');
+    expect(operationSignature(findOperation('enqueue')!)).toBe(
+        'heap<a> (number | boolean | text | symbol | date | datetime | record) a → heap<a>');
+    expect(operationSignature(findOperation('query')!)).toBe('segment integer integer → a');
+    expect(operationSignature(findOperation('permutations')!, [{ types: ['text'] }])).toBe('text → sequence<text>');
+    expect(operationSignature(findOperation('combinations')!, [{ types: ['array'] }, { types: ['integer'] }]))
+        .toBe('array<a> integer → sequence<array<a>>');
+});

@@ -193,6 +193,25 @@ const extremaSignatures: readonly TypeSignature[] = (['number', 'text', 'boolean
 const elementVariable: SignatureType = { variable: 0 };
 const genericArray: SignatureType = { collection: 'array', element: elementVariable };
 const randomInput: SignatureType = { union: [genericArray, { collection: 'sequence', element: elementVariable }] };
+const orderedValue: SignatureType = { union: ['number', 'boolean', 'text', 'symbol', 'date', 'datetime', 'record'] };
+const combinationInput: SignatureType = { union: (['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'counter'] as const)
+    .map(collection => ({ collection, element: elementVariable })) };
+const combinationResult: SignatureType = { collection: 'sequence', element: genericArray };
+const queueReadSignatures: readonly TypeSignature[] = (['queue', 'stack', 'deque', 'heap'] as const)
+    .map(collection => ({ inputs: [{ collection, element: elementVariable }], result: elementVariable }));
+const dequeReadSignatures: readonly TypeSignature[] = [
+    { inputs: [{ collection: 'deque', element: elementVariable }], result: elementVariable },
+];
+const dequeWriteSignatures: readonly TypeSignature[] = [
+    { inputs: [{ collection: 'deque', element: elementVariable }, elementVariable],
+        result: { collection: 'deque', element: elementVariable } },
+];
+const collectionWriteSignatures: readonly TypeSignature[] = (['set', 'counter', 'multiset'] as const)
+    .map(collection => ({ inputs: [{ collection, element: elementVariable }, elementVariable],
+        result: { collection, element: elementVariable } }));
+const orderedQuerySignatures: readonly TypeSignature[] = [
+    { inputs: [{ collection: 'multiset', element: elementVariable }, orderedValue], result: elementVariable, ranks: ['all', 0] },
+];
 const graphVertex: SignatureType = { union: ['number', 'boolean', 'text', 'symbol'] };
 const graphVertexArray: SignatureType = { collection: 'array', element: graphVertex };
 const printableScalar: SignatureType = { union: ['number', 'boolean', 'text', 'symbol', 'date', 'datetime'] };
@@ -241,29 +260,38 @@ const calendarComponentSignatures: readonly TypeSignature[] = [
 
 export const operations: readonly Operation[] = [
     { name: 'add', module: 'algo', arities: [2], form: 'Seen add Value', result: 'collection',
+        signatures: collectionWriteSignatures,
         effects: ['mutates'], summary: 'Adds a value to a set, counter or multiset.' },
     { name: 'ceiling', module: 'algo', arities: [2], form: 'Bag ceiling Limit', result: 'element',
+        signatures: orderedQuerySignatures,
         shape: [{ args: [null, []], result: [] }],
         dyadicRanks: ['all', 0],
         summary: 'Smallest stored value at least the limit.' },
     { name: 'combinations', module: 'algo', arities: [2], form: 'Values Count combinations',
+        signatures: [{ inputs: [combinationInput, 'integer'], result: combinationResult }],
         result: 'sequence', lazy: true,
         summary: 'Lazy sequence of the combinations of that size, in input order.' },
     { name: 'enqueue', module: 'algo', arities: [3], form: 'Heap Priority Value enqueue',
+        signatures: [{ inputs: [{ collection: 'heap', element: elementVariable }, orderedValue, elementVariable],
+            result: { collection: 'heap', element: elementVariable } }],
         result: 'collection', effects: ['mutates'],
         summary: 'Inserts a payload into a heap under a separate priority.' },
     { name: 'fenwick', module: 'algo', arities: [1], form: 'Size fenwick', result: 'fenwick',
+        signatures: [{ inputs: ['integer'], result: 'fenwick' }],
         summary: 'Fixed-size integer Fenwick tree with inclusive prefix sums.' },
     { name: 'firstatleast', module: 'algo', arities: [2], form: 'Tree Target firstatleast',
+        signatures: [{ inputs: ['segment', 'number'], result: 'integer', ranks: ['all', 0] }],
         shape: [{ args: [null, []], result: [] }],
         result: 'integer',
         dyadicRanks: ['all', 0],
         summary: 'First position whose monotone prefix aggregate reaches the target.' },
     { name: 'floor', module: 'algo', arities: [2], form: 'Bag floor Limit', result: 'element',
+        signatures: orderedQuerySignatures,
         shape: [{ args: [null, []], result: [] }],
         dyadicRanks: ['all', 0],
         summary: 'Largest stored value at most the limit.' },
     { name: 'lowerbound', module: 'algo', arities: [2], form: 'Bag lowerbound Value',
+        signatures: orderedQuerySignatures,
         result: 'element',
         shape: [{ args: [null, []], result: [] }],
         dyadicRanks: ['all', 0],
@@ -271,56 +299,81 @@ export const operations: readonly Operation[] = [
     { name: 'maxsum', module: 'algo', arities: [2], form: 'Values segment maxsum', result: 'record',
         summary: 'Prefix and subarray sum profile: query returns sum, prefix, suffix and best.' },
     { name: 'missing', module: 'algo', arities: [2], form: 'Data Bounds missing', result: 'integer',
+        signatures: [{ inputs: ['wavelet', { collection: 'array', element: 'integer' }], result: 'integer', ranks: ['all', 1] }],
         shape: [{ args: [null, [null]], result: [] }],
         dyadicRanks: ['all', 1],
         summary: 'Smallest subset sum a wavelet position range cannot make.' },
     { name: 'multicomb', module: 'algo', arities: [2], form: 'Values Count multicomb',
+        signatures: [{ inputs: [combinationInput, 'integer'], result: combinationResult }],
         result: 'sequence', lazy: true,
         summary: 'Lazy sequence of the combinations of that size with repetition.' },
     { name: 'multiset', module: 'algo', arities: [1], form: 'Values multiset', result: 'collection',
+        signatures: [{ inputs: ['text'], result: { collection: 'multiset', element: 'text' } },
+            { inputs: [{ union: [...(['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'counter', 'multiset'] as const)
+                .map(collection => ({ collection, element: elementVariable }))] }], result: { collection: 'multiset', element: elementVariable } }],
         summary: 'Ordered multiset holding every value, duplicates kept.' },
     { name: 'peek', module: 'algo', arities: [1], form: 'Q peek', result: 'element',
+        signatures: queueReadSignatures,
         summary: 'Next value of a queue, stack, deque or heap, left in place.' },
     { name: 'peekback', module: 'algo', arities: [1], form: 'Ends peekback', result: 'element',
+        signatures: dequeReadSignatures,
         summary: 'Last value of a deque, left in place.' },
     { name: 'peekfront', module: 'algo', arities: [1], form: 'Ends peekfront', result: 'element',
+        signatures: dequeReadSignatures,
         summary: 'First value of a deque, left in place.' },
     { name: 'permutations', module: 'algo', arities: [1], form: 'Values permutations',
+        signatures: [{ inputs: ['text'], result: { collection: 'sequence', element: 'text' } },
+            { inputs: [combinationInput], result: combinationResult }],
         shape: [{ args: [['d']], result: [{ exists: 'k' }] }],
         result: 'sequence', monadicRank: 1, lazy: true,
         summary: 'Lazy sequence of every ordering of the values.' },
     { name: 'pop', module: 'algo', arities: [1], form: 'Q pop', result: 'element',
+        signatures: queueReadSignatures,
         effects: ['mutates'],
         summary: 'Removes and returns the next value of a queue, stack, deque or heap.' },
     { name: 'popback', module: 'algo', arities: [1], form: 'Ends popback', result: 'element',
+        signatures: dequeReadSignatures,
         effects: ['mutates'], summary: 'Removes and returns the last value of a deque.' },
     { name: 'popfront', module: 'algo', arities: [1], form: 'Ends popfront', result: 'element',
+        signatures: dequeReadSignatures,
         effects: ['mutates'], summary: 'Removes and returns the first value of a deque.' },
     { name: 'push', module: 'algo', arities: [2], form: 'Q push Value', result: 'collection',
+        signatures: [...(['queue', 'stack', 'deque'] as const).map(collection => ({
+            inputs: [{ collection, element: elementVariable }, elementVariable], result: { collection, element: elementVariable } })),
+            { inputs: [{ collection: 'heap', element: orderedValue }, orderedValue], result: { collection: 'heap', element: orderedValue } }],
         effects: ['mutates'],
         summary: 'Appends a value to a queue, stack, deque or heap, which orders it by priority.' },
     { name: 'pushback', module: 'algo', arities: [2], form: 'Ends Value pushback',
+        signatures: dequeWriteSignatures,
         result: 'collection', effects: ['mutates'],
         summary: 'Appends a value to the back of a deque.' },
     { name: 'pushfront', module: 'algo', arities: [2], form: 'Ends Value pushfront',
+        signatures: dequeWriteSignatures,
         result: 'collection', effects: ['mutates'],
         summary: 'Adds a value to the front of a deque.' },
     { name: 'query', module: 'algo', arities: [3], form: 'Tree Left Right query', result: 'element',
+        signatures: [{ inputs: ['segment', 'integer', 'integer'], result: 'unknown' }],
         summary: 'Reduces an inclusive segment-tree range in left-to-right order.' },
     { name: 'remove', module: 'algo', arities: [2], form: 'Bag remove Value', result: 'collection',
+        signatures: collectionWriteSignatures,
         effects: ['mutates'], summary: 'Removes one occurrence from a set, counter or multiset.' },
     { name: 'segment', module: 'algo', arities: [2], form: 'Values segment Operation',
         result: 'segment', summary: 'Segment tree over one associative binary operation.' },
     { name: 'sumwithin', module: 'algo', arities: [5],
+        signatures: [{ inputs: ['wavelet', 'integer', 'integer', 'number', 'number'], result: 'number' }],
         form: 'Data Left Right Low High sumwithin', result: 'number',
         summary: 'Sums wavelet values inside inclusive position and value ranges.' },
     { name: 'upperbound', module: 'algo', arities: [2], form: 'Bag upperbound Value',
+        signatures: orderedQuerySignatures,
         result: 'element', shape: [{ args: [null, []], result: [] }],
         dyadicRanks: ['all', 0],
         summary: 'Smallest stored value greater than the query.' },
     { name: 'wavelet', module: 'algo', arities: [1], form: 'Values wavelet', result: 'structure',
+        signatures: [{ inputs: [{ union: ['text', ...(['array', 'sequence', 'queue', 'stack', 'deque'] as const).map(collection => ({
+            collection, element: orderedValue }))] }], result: 'wavelet' }],
         summary: 'Immutable wavelet matrix for range counts and sums.' },
     { name: 'within', module: 'algo', arities: [5], form: 'Data Left Right Low High within',
+        signatures: [{ inputs: ['wavelet', 'integer', 'integer', orderedValue, orderedValue], result: 'integer' }],
         result: 'integer',
         summary: 'Counts wavelet values inside inclusive position and value ranges.' },
 
