@@ -1,3 +1,4 @@
+import { findOperation, matchCompiledCallSignature } from '@arrrank/language';
 import { isPureHostFunction } from './host-effects.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
@@ -35,12 +36,17 @@ interface BuiltinHost {
 export function prepareCompiledBuiltin(
     host: BuiltinHost, module: string, name: string, types: readonly string[],
 ): () => Call | undefined {
+    const operation = findOperation(name);
+    if (!operation || operation.module !== module || operation.effects?.length) return () => undefined;
+    const profile = matchCompiledCallSignature(operation, types);
+    if (!profile) return () => undefined;
     const signature = types.join(',');
     return () => {
         if (!host.modules.has(module)) return undefined;
         const options = host.options();
         // Unknown host callbacks may mutate bindings or re-enter Rank.
-        if (module === 'crypto' && name === 'md5' && options.md5 && !isPureHostFunction(options.md5)) return undefined;
+        const override = profile.hostFunction && options[profile.hostFunction];
+        if (override && !isPureHostFunction(override)) return undefined;
         try {
             const value = host.resolve(name);
             return isNativeFunction(value) && host.builtins.is(module, name, value)

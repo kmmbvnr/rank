@@ -137,3 +137,15 @@ describe('typed native kernels', () => {
         }
     });
 });
+
+
+it('refuses missing catalogue contracts, wrong owners and unsupported signatures before resolving bindings', () => {
+    let reads = 0;
+    const host = { modules: new Set(['text', 'core']), options: () => ({}),
+        builtins: { is: () => true }, resolve: () => { reads++; return native('example', 1, () => 0n); } };
+    for (const [module, name, types] of [
+        ['text', 'example', ['text']], ['core', 'lower', ['text']],
+        ['text', 'lower', ['integer']], ['text', 'lower', []],
+    ] as const) expect(prepareCompiledBuiltin(host, module, name, types)()).toBeUndefined();
+    expect(reads).toBe(0);
+});

@@ -1,5 +1,5 @@
 import { mapsScalarCells } from './types.js';
-import type { Operation } from '../operations.js';
+import { matchCompiledCallSignature, type CompiledAtomType, type Operation } from '../operations.js';
 import { isAtom, type ValueFacts } from './value-domain.js';
 
 /** A catalogue contract applies only to proven scalar operands in its domain. */
@@ -65,3 +65,21 @@ export function hasCallbackFreeFindProof(source: ValueFacts, target: ValueFacts)
         && isAtom(target) && target.types.length > 0 && target.types.every(scalar);
 }
 
+/** The native profile is a positive proof only for complete operand domains.
+ * Text stays rank one. Array types alone never prove that cell reads are safe;
+ * bytes and host overrides need representation/runtime facts unavailable here. */
+export function hasCompiledCallNoCallbackProof(operation: Operation, operands: readonly ValueFacts[]): boolean {
+    const signature = operation.compiledCall;
+    if (!signature || signature.hostFunction || operation.effects?.length) return false;
+    const types: (CompiledAtomType | 'text-array')[] = [];
+    for (const value of operands) {
+        const type = value.types.length === 1 ? value.types[0] : undefined;
+        if (type === 'text' && value.rank === 1) types.push(type);
+        else if ((type === 'integer' || type === 'real' || type === 'boolean') && value.rank === 0) types.push(type);
+        else if (type === 'array' && signature.callbacks === 'read-cells' && value.rank === 1
+            && value.elements?.join() === 'text'
+            && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)) types.push('text-array');
+        else return false;
+    }
+    return !!matchCompiledCallSignature(operation, types);
+}

@@ -12,7 +12,7 @@ import { applicationExpression, flattenApplication, groupedUnaryDyadicChain } fr
 import { findOperation } from '../operations.js';
 import { expressionFacts } from './value-facts.js';
 import { isTrackedCollection, summarizedElement, withInsertedElement } from './collection-facts.js';
-import { hasArrayHeaderNoCallbackProof, hasMappedScalarNoCallbackProof, hasNumericArrayNoCallbackProof,
+import { hasCompiledCallNoCallbackProof, hasArrayHeaderNoCallbackProof, hasMappedScalarNoCallbackProof, hasNumericArrayNoCallbackProof,
     hasScalarCellArrayNoCallbackProof, hasScalarNoCallbackProof } from './operation-proofs.js';
 import { joinValueFacts, UNKNOWN_VALUE, widenValueFacts, type FactLookup, type ValueFacts } from './value-domain.js';
 import { compoundType } from './types.js';
@@ -361,6 +361,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     return true;
                 }
                 if (!facts || operation.effects?.length) return false;
+                if (hasCompiledCallNoCallbackProof(operation, arguments_.map(fact))) return true;
                 if (name === 'integer' && arguments_.length === 1) {
                     const input = fact(arguments_[0]);
                     return input.types.length > 0 && input.types.every(type => ['integer', 'real', 'text'].includes(type));

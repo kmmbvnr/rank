@@ -851,3 +851,35 @@ it('does not skip later recursive effects using the first calls concrete scalar 
         + ' if N less 2\n return (N + 1) helper\n end\n return 0\nend';
     expect(analyze(source, 'helper', [], [{ types: ['integer'], rank: 0, shape: [], integer: '0' }]).unknown).toBe(true);
 });
+
+
+it('uses compiled native contracts for text while preserving unknown host effects and cell reads', () => {
+    const text: ValueFacts = { types: ['text'], rank: 1 };
+    const integer: ValueFacts = { types: ['integer'], rank: 0 };
+    for (const name of ['reverse', 'lower', 'len', 'codepoint', 'bytes']) {
+        expect(analyze(`fun helper X\n return X ${name}\nend`, 'helper', [], [text]).unknown, name).toBe(false);
+        expect(analyze(`fun helper X\n return X ${name}\nend`, 'helper', [name], [text]).unknown, name).toBe(true);
+    }
+    expect(analyze('fun helper X\n return X text\nend', 'helper', [], [integer]).unknown).toBe(false);
+    expect(analyze('fun helper X\n return X md5\nend', 'helper', [], [text]).unknown).toBe(true);
+    const source = 'fun helper X\n return X ":" join\nend';
+    const array: ValueFacts = { types: ['array'], rank: 1, elements: ['text'] };
+    expect(analyze(source, 'helper', [], [array]).unknown).toBe(true);
+    expect(analyze(source, 'helper', [], [{ ...array, eagerScalarCells: true }]).unknown).toBe(false);
+    expect(analyze(source, 'helper', [], [{ ...array, callbackFreeScalarCells: true }]).unknown).toBe(false);
+    expect(analyze(source, 'helper', [], [{ ...array, rank: 2, eagerScalarCells: true }]).unknown).toBe(true);
+});
+
+
+it('does not infer native safety from an unknown domain, a bytes tag or a mixed domain', () => {
+    for (const input of [
+        { types: [] }, { types: ['text'] }, { types: ['bytes'], rank: 1 },
+        { types: ['text', 'integer'], rank: 1 }, { types: ['array'], rank: 1, elements: ['text'] },
+    ] satisfies ValueFacts[]) {
+        expect(analyze('fun helper X\n return X bytes\nend', 'helper', [], [input]).unknown).toBe(true);
+    }
+    const source = 'fun helper X Y\n return X Y startswith\nend';
+    const text: ValueFacts = { types: ['text'], rank: 1 };
+    expect(analyze(source, 'helper', [], [text, text]).unknown).toBe(false);
+    expect(analyze(source, 'helper', [], [text, { types: ['bytes'], rank: 1 }]).unknown).toBe(true);
+});

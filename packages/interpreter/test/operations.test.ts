@@ -103,6 +103,8 @@ describe('the operation catalogue', () => {
             expect(entry.effects ?? [], entry.name).toEqual([]);
             expect(entry.lazy, entry.name).toBeUndefined();
             expect(signature.inputs[0], entry.name).not.toBe('same');
+            expect(signature.callbacks, entry.name).toBe(signature.inputs.includes('text-array') ? 'read-cells' : 'none');
+            expect(signature.cost, entry.name).toBe(signature.hostFunction ? 'host-dependent' : 'input-dependent');
         }
     });
 

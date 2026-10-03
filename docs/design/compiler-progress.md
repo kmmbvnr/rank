@@ -1,5 +1,29 @@
 # Compiler progress
 
+## Native call contracts
+
+The ten current compiled native-call profiles in `operations.ts` declare their
+input/result domains, callback conditions, cost class and host override guard.
+These profiles describe compiler-supported subsets; they are not the full
+language signatures of their operations.
+
+The effect analyzer uses the same profiles to prove supported calls safe. Text
+remains rank one. A text array passed to `join` needs positive evidence that its
+cells are eager or have callback-free readers. A bytes type tag alone is not a
+representation proof. Static analysis cannot certify an installed MD5 override;
+compiled region entry checks that override against the pure-host registry.
+
+Native binding checks the catalogue owner and signature before resolving a
+binding, then checks the actual builtin identity at every region entry. Existing
+storage, cancellation and inspection guards remain necessary.
+
+Costs are deliberately conservative: `input-dependent` or `host-dependent`.
+They are not Big-O bounds, maximum latencies or permission to omit interrupt
+checks. Integer formatting, validation and Unicode work can depend on input
+size. The typed tree retains the profile, but scheduling does not yet use these
+cost classes. Operations without a compiled profile gain no safety proof from
+this change.
+
 ## Queue loop entry: cached type summaries
 
 2026-09-11, based on `1fa5816`, Apple M5, Node v24.15.0.
