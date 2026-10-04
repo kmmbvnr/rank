@@ -137,7 +137,13 @@ const ownedStorage = new WeakMap<RankArray, OwnedStorage>();
  * miss) reads as `.NA` here, so a whole array holds its gaps as values and the vector paths
  * never need an exception; reading one cell by itself still raises `.Missing`.
  */
+/** The most cells one array can hold: a JavaScript array stops at 2^32 - 1 entries. */
+export const MAX_HELD_CELLS = 4_294_967_295;
+
 export function materializeCells(size: number, read: (index: number) => RankValue): RankValue[] {
+    if (size > MAX_HELD_CELLS) {
+        throw new RankError(`array is too large to hold in memory: ${size} cells (at most ${MAX_HELD_CELLS})`);
+    }
     return Array.from({ length: size }, (_, index) => {
         try {
             return read(index);

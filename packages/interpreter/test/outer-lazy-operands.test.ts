@@ -32,3 +32,9 @@ describe('outer over sequences stays lazy', () => {
         expect(run('((1 to 1000000000000) * 3 + 1) 999999999999')).toBe('3000000000001');
     });
 });
+
+describe('an array too large to hold', () => {
+    it('says how many cells it would need instead of a JavaScript RangeError', () => {
+        expect(() => run('use sequences\nF = 100 to 99999\nF F outer * sum')).toThrow(/array is too large to hold in memory: 9980010000 cells/);
+    });
+});
