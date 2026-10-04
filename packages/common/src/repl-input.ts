@@ -124,7 +124,7 @@ export function tokenize(line: string): Token[] {
             at += text.length;
             continue;
         }
-        const number = /^[0-9]+(\.[0-9]+)?/.exec(line.slice(at));
+        const number = /^[0-9]+(\.[0-9]+([eE][+-]?[0-9]+)?|[eE][+-]?[0-9]+)?/.exec(line.slice(at));
         if (number) {
             tokens.push(token('number', number[0], at, at + number[0].length, true));
             at += number[0].length;

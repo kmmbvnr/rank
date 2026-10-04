@@ -787,6 +787,10 @@ Count = 2
 Ratio = 2.5
 ```
 
+A literal may carry an exponent, `e` or `E` followed by digits. Without a decimal point and
+with a non-negative exponent it is an integer (`4e6` is `4000000`, `2e+3` is `2000`); with a
+decimal point or a negative exponent it is a `real` (`1.5e3`, `1e-3`).
+
 Mixed integer/real arithmetic promotes the result to `real`. `/` always performs
 real division. `//` performs floor division as in Python; two integer operands
 produce an integer, while an operation involving a real produces a real.

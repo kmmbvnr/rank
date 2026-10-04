@@ -1,10 +1,22 @@
-import { type Module, type AstNode, type ParserOptions, inject, createLangiumParser } from 'langium';
+import { type Module, type AstNode, type CstNode, type GrammarAST, type ValueType, type ParserOptions, DefaultValueConverter, inject, createLangiumParser } from 'langium';
 import { groupExpressions, type GroupingOptions } from './expression-grouping.js';
 import { normalizePrimaryApplications } from './primary-applications.js';
 import { isProgram } from './generated/ast.js';
 import { createDefaultModule, createDefaultSharedModule, type DefaultSharedModuleContext, type LangiumServices, type LangiumSharedServices, type PartialLangiumServices } from 'langium/lsp';
 import { RankGeneratedModule, RankGeneratedSharedModule } from './generated/module.js';
 import { RankValidator, registerValidationChecks } from './rank-validator.js';
+
+/** An integer written with an exponent (`4e6`, `2E+3`) is the digits followed by that many zeros. */
+class RankValueConverter extends DefaultValueConverter {
+    protected override runConverter(rule: GrammarAST.AbstractRule, input: string, cstNode: CstNode): ValueType {
+        const exponent = rule.name === 'INTEGER' ? /^([0-9]+)[eE]\+?([0-9]+)$/.exec(input) : undefined;
+        if (exponent) {
+            if (Number(exponent[2]) > 10_000) throw new Error('Integer exponent is too large');
+            return BigInt(exponent[1] + '0'.repeat(Number(exponent[2])));
+        }
+        return super.runConverter(rule, input, cstNode);
+    }
+}
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -28,6 +40,7 @@ export type RankServices = LangiumServices & RankAddedServices
  */
 export const RankModule: Module<RankServices, PartialLangiumServices & RankAddedServices> = {
     parser: {
+        ValueConverter: () => new RankValueConverter(),
         LangiumParser: services => {
             const parser = createLangiumParser(services);
             const parse = parser.parse.bind(parser);

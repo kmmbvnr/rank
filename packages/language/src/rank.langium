@@ -569,6 +569,7 @@ terminal HIGHER_ORDER: /(scan|reduce|segment|outer)[\t ]+(\*\*|\/\/|[-+*\/%]|(an
 terminal SET_ADD: /(set|counter)[\t ]+add/;
 terminal VARIABLE: /[A-Z][A-Za-z0-9_]*/;
 terminal WORD: /[a-z][A-Za-z0-9_]*/;
-terminal REAL returns number: /[0-9]+\.[0-9]+/;
-terminal INTEGER returns bigint: /[0-9]+/;
+// Scientific notation: a decimal point or a negative exponent makes a real (1.5e3, 1e-3), anything else an integer (4e6).
+terminal REAL returns number: /[0-9]+(\.[0-9]+([eE][+-]?[0-9]+)?|[eE]-[0-9]+)/;
+terminal INTEGER returns bigint: /[0-9]+([eE]\+?[0-9]+)?/;
 terminal STRING: /"(\\.|[^"\\])*"/;
