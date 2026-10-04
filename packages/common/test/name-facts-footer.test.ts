@@ -34,11 +34,11 @@ it('shows the normal hints on a keyword or a number, and signatures on operators
     } finally { session.dispose(); }
 });
 
-it('says unknown for a name nothing proves', () => {
+it('shows nothing for a name nothing defines', () => {
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        expect(footer(repl, 'Z + 1', 0)).toBe('facts: Z · unknown');
+        expect(footer(repl, 'Z + 1', 0)).not.toContain('Z ·');
     } finally { session.dispose(); }
 });
 

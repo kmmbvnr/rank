@@ -54,6 +54,15 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
     const isCatalogueFunction = (site: Site): boolean => site.kind === 'read' && !analysis.bindings.has(site.name)
         && !runtime.has(site.name) && !written.has(site.name) && !!findOperation(site.name)?.arities.length;
     const rebound = writtenNames(program);
+    /** A name nothing binds (no assignment, loop, parameter, function or run) has no facts to show. */
+    const isDefined = (site: Site): boolean => {
+        if (analysis.bindings.has(site.name) || runtime.has(site.name) || rebound.has(site.name)
+            || analysis.functions.has(site.name) || scope?.bindings.has(site.name)) return true;
+        for (let parent = site.node.$container; parent; parent = parent.$container) {
+            if (isFunctionStatement(parent) && parent.parameters.includes(site.name)) return true;
+        }
+        return false;
+    };
     const callFacts = (site: Site): { arguments: ValueFacts[]; result?: ValueFacts } | undefined => {
         if (!isNameExpression(site.node)) return undefined;
         let call: AstNode = site.node;
@@ -140,6 +149,7 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
                 ...(observed.types.join() === 'function' ? { signature: signatureFor(site) } : {}) };
         }
         const facts = isCatalogueFunction(site) ? FUNCTION : staticFacts(site, analysis);
+        if (site.kind === 'read' && !facts.types.length && !isDefined(site)) return undefined;
         return { name: site.name, source: 'static', facts,
             ...(facts.types.join() === 'function' ? { signature: signatureFor(site) } : {}) };
     };

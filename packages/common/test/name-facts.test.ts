@@ -59,7 +59,8 @@ describe('factsAt: each kind of name position', () => {
         const found = factsAt(unknown, at(unknown, 'Q', 1))!;
         expect(found.source).toBe('static');
         expect(formatNameFacts(found)).toBe('Q · unknown');
-        expect(formatNameFacts(factsAt('X + 1\n', 0)!)).toBe('X · unknown');
+        // A name nothing defines shows nothing at all.
+        expect(factsAt('X + 1\n', 0)).toBeUndefined();
     });
 
     it('names a user function', () => {
@@ -166,7 +167,7 @@ describe('factsAt: functions', () => {
 
     it('is not fooled by a variable or an unknown word', () => {
         expect(formatNameFacts(word('Sum = 5\nSum\n', 'Sum'), 60)).toBe('Sum · integer');
-        expect(formatNameFacts(word('Q = Zork\n', 'Zork'), 60)).toBe('Zork · unknown');
+        expect(factsAt('Q = Zork\n', 'Q = Zork\n'.lastIndexOf('Zork') + 1)).toBeUndefined();
     });
 });
 
