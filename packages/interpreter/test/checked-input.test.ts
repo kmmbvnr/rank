@@ -245,3 +245,28 @@ it('does not carry a previous reader schema into an opaque host callback', () =>
     if (!reader || !isNativeFunction(reader)) throw new Error('expected reader function');
     expect(() => reader.call(['name.csv'])).not.toThrow();
 });
+
+it('applies a later notebook command to a retained checked reader', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    runtime.execute('use tables\nfun load Path\n return Path csv check\nend');
+    expect(() => runtime.execute('Rows = "data.csv" load\nAfter = 1\nRows .price sum'))
+        .toThrow(/csv input.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('applies later caller requirements after registering a function cell', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    runtime.execute('use tables');
+    runtime.declareFunctionSource('fun load Path\n return Path csv check\nend');
+    expect(() => runtime.execute('Rows = "data.csv" load\nAfter = 1\nRows .price sum'))
+        .toThrow(/csv input.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('retains the checked reader contract through a function alias', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    runtime.execute('use tables\nfun load Path\n return Path csv check\nend\nReader = load');
+    expect(() => runtime.execute('Rows = "data.csv" Reader\nAfter = 1\nRows .price sum'))
+        .toThrow(/csv input.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});

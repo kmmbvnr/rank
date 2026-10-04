@@ -2,7 +2,7 @@ import { InterruptedError, inspectionEnabled } from './interrupt.js';
 import { type AstNode } from 'langium';
 import {
     availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage, isFunctionStatement, isUseStatement,
-    type Expression, type FunctionStatement, type Program, type Statement,
+    type Expression, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { enterRuntime, leaveRuntime } from './array-storage.js';
 import { BindingEnvironment } from './binding-environment.js';
@@ -259,7 +259,14 @@ export class Interpreter {
     ): RankValue | undefined {
         validateFunctionPlacement(program.statements, 'top');
         this.checkBuiltinBindings(program);
-        this.checkedInputs.prepare(program, new Map([...this.variables.keys()].map(name => [name, { types: [] }])));
+        const declarations = new Map<string, FunctionStatement>();
+        const initial = new Map<string, ValueFacts>();
+        for (const [name, value] of this.variables) {
+            const definition = isNativeFunction(value) ? this.functions.definitionOf(value) : undefined;
+            if (definition && !definition.context) declarations.set(name, definition.statement);
+            else initial.set(name, { types: [] });
+        }
+        this.checkedInputs.prepare(program, initial, declarations);
         this.declareFunctions(program.statements);
         bindInputs(program, args, {
             variables: this.variables,

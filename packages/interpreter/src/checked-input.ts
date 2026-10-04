@@ -73,10 +73,13 @@ export class CheckedInputContracts {
     private frame?: { plan?: CallRequirement };
     pending?: CallRequirement;
 
-    prepare(program: Program, initial: ReadonlyMap<string, ValueFacts>): void {
-        if (![...AstUtils.streamAllContents(program)].some(node => isNameExpression(node) && node.name === 'check')) return;
+    prepare(program: Program, initial: ReadonlyMap<string, ValueFacts>,
+        declarations: ReadonlyMap<string, FunctionStatement> = new Map()): void {
+        const containsCheck = (source: Program | FunctionStatement) =>
+            [...AstUtils.streamAllContents(source)].some(node => isNameExpression(node) && node.name === 'check');
+        if (!containsCheck(program) && ![...new Set(declarations.values())].some(containsCheck)) return;
         this.enabled = true;
-        const analysis = inferRequirements(program, { initial, includeCalls: true });
+        const analysis = inferRequirements(program, { initial, declarations, includeCalls: true });
         for (const [expression, requirement] of analysis.expressions) this.requirements.set(expression, requirement);
         for (const [expression, call] of analysis.calls) this.calls.set(expression, call);
     }
