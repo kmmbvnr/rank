@@ -85,7 +85,7 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
     switch (form.kind) {
         case 'checked-read':
             return infer(applicationExpression(form.parts, expression), lookup);
-        case 'plain': case 'new-dsu': case 'new-filled': case 'new-graph': case 'text-format': case 'rank':
+        case 'plain': case 'new-dsu': case 'new-filled': case 'new-heap': case 'new-graph': case 'text-format': case 'rank':
         case 'named-segment': case 'named-outer': case 'sort-direction':
         case 'axis-length': case 'axis-reduction': case 'axis-covariance': case 'axis-correlation':
         case 'dsu-method': case 'functional-method': case 'graph-edges': case 'materialize-pipeline':
@@ -138,6 +138,14 @@ function transferApplicationFacts(
     expression: ApplicationExpression, form: ApplicationForm, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts,
 ): ValueFacts | undefined {
+    if (form.kind === 'new-heap') {
+        const values = form.values && infer(form.values, lookup);
+        if (values?.types.join() === 'array' && values.rank !== undefined && values.rank > 1) {
+            return { types: ['heap'], elements: ['array'], elementRank: values.rank - 1,
+                elementCells: values.elements };
+        }
+        return { types: ['heap'], ...(values?.elements?.length ? { elements: values.elements } : {}) };
+    }
     const ranked = flattenApplication(expression);
     if (ranked.length === 2 && isNewStructureExpression(ranked[0]) && ranked[0].structure === 'dsu') {
         const values = infer(ranked[1], lookup);

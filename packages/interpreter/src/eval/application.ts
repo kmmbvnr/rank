@@ -11,7 +11,7 @@ import type { FastPaths } from '../fast-paths.js';
 import type { FunctionInvocation } from '../function-invocation.js';
 import { graphConstructor } from '../graph.js';
 import { addToCollection, newStructure } from '../collections.js';
-import { pushCollection } from '../containers.js';
+import { pushCollection, RankHeap } from '../containers.js';
 import { dsuFrom } from '../dsu.js';
 import { finiteValues } from '../multiset.js';
 import type { BuiltinRegistry } from '../modules/builtins.js';
@@ -26,7 +26,7 @@ import {
 import { correlationValue, covarianceValue, errorMetricValue, quantileValue } from '../modules/stats.js';
 import { formattedText } from '../modules/text.js';
 import { type Operators } from '../operators.js';
-import type { RankApplication } from '../rank-application.js';
+import { dyadicCells, type RankApplication } from '../rank-application.js';
 import type { ReductionEvaluator } from '../reduction.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
 import { ALL_AXIS, selectAxis } from '../selectors.js';
@@ -255,6 +255,37 @@ export class ApplicationEvaluator {
                         else addToCollection(filled, item);
                     }
                     return filled;
+                };
+            }
+            case 'new-heap': {
+                const heapForm = form;
+                return function* (): Execution<RankValue> {
+                    context.requireModule('algo', 'new');
+                    const direction = heapForm.direction && (yield* resume(context.evaluate(heapForm.direction)));
+                    if (direction !== undefined && (!isRankLabel(direction)
+                        || !['ascending', 'descending'].includes(direction.name))) {
+                        throw new RankError('heap direction must be .ascending or .descending', 'TypeError');
+                    }
+                    const heap = new RankHeap(direction !== undefined && direction.name === 'descending');
+                    const priorities = heapForm.priorities && (yield* resume(context.evaluate(heapForm.priorities)));
+                    const values = heapForm.values && (yield* resume(context.evaluate(heapForm.values)));
+                    if (priorities !== undefined) {
+                        if (!isRankArray(priorities) || priorities.shape.length !== 1
+                            || values === undefined || !isRankArray(values) || values.shape.length < 1) {
+                            throw new RankError('new heap priorities must be a vector and values must be an array', 'DimensionMismatch');
+                        }
+                        if (priorities.shape[0] !== values.shape[0]) {
+                            throw new RankError('heap priorities and values must have the same length', 'DimensionMismatch');
+                        }
+                        const cells = dyadicCells(values, values.shape.length - 1);
+                        const payloads = Array.from({ length: values.shape[0] }, (_, index) => cells.cellAt(index));
+                        return heap.fill([...finiteValues(priorities)], payloads);
+                    }
+                    if (values !== undefined) {
+                        const items = [...finiteValues(values)];
+                        return heap.fill(items, items);
+                    }
+                    return heap;
                 };
             }
             case 'named-outer': {

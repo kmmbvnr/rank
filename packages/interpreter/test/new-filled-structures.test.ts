@@ -4,7 +4,7 @@ import { run } from './support.js';
 const algo = (...lines: string[]) => run(['use algo', 'use sequences', ...lines].join('\n'));
 
 describe('new Kind Items', () => {
-    it('fills a queue, stack, deque and heap by pushing each item in order', () => {
+    it('fills a queue, stack, deque and heap from their items', () => {
         expect(algo('Q = new queue (array 3 1 2)', 'tuple (Q pop) (Q pop) (Q len)')).toBe('3 1 1');
         expect(algo('S = new stack (1 to 4)', 'tuple (S pop) (S len)')).toBe('4 3');
         expect(algo('D = new deque (array 5 6)', 'D popback')).toBe('6');
@@ -24,6 +24,41 @@ describe('new Kind Items', () => {
 
     it('needs the algo module', () => {
         expect(() => run('Q = new queue (array 1)')).toThrow('new requires: use algo');
+    });
+});
+
+describe('new heap priorities values', () => {
+    it('keeps the existing minimum order and accepts maximum order at construction', () => {
+        expect(algo('H = new heap (array 2 9 1) (array "a" "b" "c")',
+            'tuple (H pop) (H pop) (H pop)')).toBe('c a b');
+        expect(algo('H = new heap (array 2 9 1) (array "a" "b" "c") .descending',
+            'tuple (H pop) (H pop) (H pop)')).toBe('b a c');
+        expect(algo('H = new heap (array 5 1 3) .descending', 'H pop')).toBe('5');
+    });
+
+    it('keeps equal priorities stable and applies the direction to later inserts', () => {
+        expect(algo('H = new heap (array 5 5 2) (array "first" "second" "third") .descending',
+            'H 7 "later" enqueue', 'tuple (H pop) (H pop) (H pop) (H pop)'))
+            .toBe('later first second third');
+        expect(algo('H = new heap .descending', 'H 1 "low" enqueue',
+            'H 3 "high" enqueue', 'H pop')).toBe('high');
+    });
+
+    it('uses leading-axis rows as payloads', () => {
+        expect(algo('P = array 3 1', 'V = array shape 2 2\n  7 8\n  9 10\nend',
+            'H = new heap P V .descending', 'unpack A B = H pop', 'tuple A B'))
+            .toBe('7 8');
+    });
+
+    it('checks the parallel arrays and direction', () => {
+        expect(() => algo('H = new heap (array 1 2) (array "one")'))
+            .toThrow('heap priorities and values must have the same length');
+        expect(() => algo('H = new heap (array shape 1 2 fill 1) (array "one")'))
+            .toThrow('new heap priorities must be a vector');
+        expect(() => algo('H = new heap (array 1) 2'))
+            .toThrow('new heap priorities must be a vector');
+        expect(() => algo('H = new heap .sideways'))
+            .toThrow('heap direction must be .ascending or .descending');
     });
 });
 

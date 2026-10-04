@@ -8,6 +8,7 @@ use sequences
 use text
 use io
 use cli
+use algo
 
 rem Number of digits in each factor.
 option Digits integer = 3
@@ -15,29 +16,25 @@ option Digits integer = 3
 Lower = 10 ** (Digits - 1)
 Upper = Lower * 10 - 1
 
-rem Row R holds Upper - R times a factor that
-rem starts at Upper - R and counts down, so
-rem each product is visited once.
-Rows = Upper - Lower + 1
-Left = (Upper - (0 till Rows)) copy
-Right = Left copy
-Heads = (Left * Right) copy
+rem Each factor pair starts at A * A. The heap
+rem keeps the largest unvisited product first.
+Factors = (Lower to Upper) array
+Squares = Factors * Factors
+Pairs = ((array Factors Factors) stack) transpose
+Candidates = new heap Squares Pairs .descending
 
 Answer = 0
-for
-  unpack Candidate Row = Heads max .indexed
-  if Candidate equal 0
+for Candidates len greater 0
+  unpack A B = Candidates pop
+  Product = A * B
+  if Product palindrome
+    Answer = Product
     break
   end
-  if Candidate palindrome
-    Answer = Candidate
-    break
-  end
-  Next = Right Row - 1
-  Right Row = Next
-  Heads Row = Left Row * Next
-  if Next less Lower
-    Heads Row = 0
+  if B greater Lower
+    Next = B - 1
+    Product = A * Next
+    Candidates Product (array A Next) enqueue
   end
 end
 

@@ -324,6 +324,8 @@ export type ApplicationForm =
     | { readonly kind: 'new-graph' }
     | { readonly kind: 'new-dsu' }
     | { readonly kind: 'new-filled'; readonly structure: string }
+    | { readonly kind: 'new-heap'; readonly priorities?: Expression; readonly values?: Expression;
+        readonly direction?: Expression }
     | { readonly kind: 'text-format'; readonly position: number }
     | Recognized<'collection-mutation', typeof explicitCollectionMutation>
     | Recognized<'comparison-rank', typeof explicitComparisonRank>
@@ -424,6 +426,13 @@ function classifyParts(parts: Expression[]): ApplicationForm {
     if (parts.some(isUnpackExpression)) return { kind: 'unpack' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'graph') return { kind: 'new-graph' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'dsu') return { kind: 'new-dsu' };
+    if (isNewStructureExpression(parts[0]) && parts[0].structure === 'heap') {
+        const direction = isLabelLiteral(parts.at(-1)) ? parts.at(-1) : undefined;
+        const inputs = parts.slice(1, direction ? -1 : undefined);
+        if (inputs.length > 2) return { kind: 'invalid', message: 'new heap takes one collection or priority and value arrays' };
+        return { kind: 'new-heap', priorities: inputs.length === 2 ? inputs[0] : undefined,
+            values: inputs.at(-1), direction };
+    }
     // `new queue Items`: a collection filled from the items of one collection.
     if (isNewStructureExpression(parts[0]) && FILLED_STRUCTURES.has(parts[0].structure))
         return parts.length === 2 ? { kind: 'new-filled', structure: parts[0].structure }

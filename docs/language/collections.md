@@ -38,6 +38,24 @@ Seen = new set "hello"
 Counts = new counter (array 1 1 2)
 ```
 
+`new heap Priorities Values` builds a heap from two arrays with the same leading
+length. `Priorities` must be a vector of comparable scalar values. Each leading
+cell of `Values` becomes one payload, so a matrix supplies one row per entry.
+The constructor builds the heap in linear time. The default order pops the
+smallest priority; `.descending` pops the largest. The direction is fixed at
+construction and also applies to later insertions. Equal priorities retain
+input order:
+
+```rank
+Priorities = array 2 9 1
+Payloads = array "a" "b" "c"
+Work = new heap Priorities Payloads .descending
+Work pop                     rem "b"
+```
+
+`new heap Items .descending` uses each item as its own priority, and
+`new heap .descending` creates an empty max-heap.
+
 An index addressed by an array or a finite sequence of keys gathers: it
 answers one value per key, in the shape of the keys. A missing key raises,
 or takes the `default` when one follows:
@@ -196,13 +214,14 @@ A deque supports `pushfront`, `pushback`, `popfront`, `popback`, `peekfront` and
 `peekback`. Its plain `push` appends at the back, and `pop`/`peek` use the front.
 Binary functions use postfix syntax, such as `Ends Value pushfront`.
 
-A heap is a stable min-priority queue. `Heap push Value` uses the value itself
+A heap is a stable priority queue, smallest first unless created with
+`.descending`. `Heap push Value` uses the value itself
 as its priority. `Heap Priority Value enqueue` accepts a separate payload
 whose type is fixed by the first insertion. Priorities must be comparable
 scalars of one ordering family;
 integer and real priorities can mix. NaN priorities are rejected. Equal
-priorities preserve insertion order. For a numeric max-heap, negate priorities
-when calling `enqueue`. `pop` and `peek` return payloads, not priorities.
+priorities preserve insertion order. `pop` and `peek` return payloads, not
+priorities.
 
 Empty `pop` and `peek` operations raise a missing-value error, so
 `Pending pop default -1` supplies a fallback. `len` counts remaining entries.

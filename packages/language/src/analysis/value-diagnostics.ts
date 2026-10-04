@@ -859,6 +859,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && ['set', 'counter', 'queue', 'stack', 'deque', 'heap'].includes(constructor.structure)) {
                     next = { ...next, collectionId: nextCollectionId++ };
                 }
+                if (isApplicationExpression(constructor)
+                    && applicationForm(constructor).kind === 'new-heap') {
+                    next = { ...next, collectionId: nextCollectionId++ };
+                }
                 if (next.bottom) throw new UnobservedReturn();
                 if (statement.operator !== '=') next = {
                     ...expressionFacts({ $type: 'BinaryExpression', operator: statement.operator.slice(0, -1),

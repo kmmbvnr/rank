@@ -62,7 +62,7 @@ export class RankDeque {
 
 interface HeapEntry { readonly priority: RankValue; readonly value: RankValue; readonly order: number; }
 
-/** Stable min-priority queue; ties retain insertion order. */
+/** Stable priority queue; ties retain insertion order. */
 export class RankHeap {
     private readonly resources = new ResourceSummary();
     readonly kind = 'heap' as const;
@@ -71,25 +71,25 @@ export class RankHeap {
     private elementType?: CollectionElementType;
     private nextOrder = 0;
 
-    constructor() { this.resources.track(this); }
+    constructor(readonly descending = false) { this.resources.track(this); }
 
     get size(): number { return this.entries.length; }
     *values(): IterableIterator<RankValue> { for (const entry of this.entries) yield entry.value; }
-    push(value: RankValue, priority: RankValue = value): this {
+    private entry(value: RankValue, priority: RankValue): HeapEntry {
         const kind = orderedKind(priority);
         if (typeof priority === 'number' && Number.isNaN(priority)) throw new RankError('heap priority cannot be NaN');
         if (this.priorityKind !== undefined && this.priorityKind !== kind) {
             throw new RankError('heap priorities must have one comparable type');
         }
         const elementType = checkCollectionElementType('heap', () => this.elementType, value);
-        if (this.priorityKind !== undefined && this.priorityKind !== kind) {
-            throw new RankError('heap priorities must have one comparable type');
-        }
         this.elementType = elementType;
         this.priorityKind = kind;
         this.resources.include(value);
         noteArrayBinding(value);
-        const entry = { value, priority, order: this.nextOrder++ };
+        return { value, priority, order: this.nextOrder++ };
+    }
+    push(value: RankValue, priority: RankValue = value): this {
+        const entry = this.entry(value, priority);
         let index = this.entries.length;
         this.entries.push(entry);
         while (index > 0) {
@@ -101,6 +101,17 @@ export class RankHeap {
         this.entries[index] = entry;
         return this;
     }
+    fill(priorities: readonly RankValue[], values: readonly RankValue[]): this {
+        if (this.size) throw new RankError('heap must be empty before filling it');
+        if (priorities.length !== values.length) throw new RankError('heap priorities and values must have the same length', 'DimensionMismatch');
+        for (let index = 0; index < values.length; index++) {
+            this.entries.push(this.entry(values[index], priorities[index]));
+        }
+        for (let index = Math.floor(this.size / 2) - 1; index >= 0; index--) {
+            this.siftDown(index, this.entries[index]);
+        }
+        return this;
+    }
     peek(): RankValue {
         if (!this.size) throw new MissingValueError('heap is empty');
         return this.entries[0].value;
@@ -109,20 +120,23 @@ export class RankHeap {
         const value = this.peek();
         const last = this.entries.pop()!;
         if (!this.size) { this.priorityKind = undefined; this.nextOrder = 0; return value; }
-        let index = 0;
+        this.siftDown(0, last);
+        return value;
+    }
+    private siftDown(start: number, entry: HeapEntry): void {
+        let index = start;
         while (index * 2 + 1 < this.size) {
             let child = index * 2 + 1;
             if (child + 1 < this.size && this.before(this.entries[child + 1], this.entries[child])) child++;
-            if (!this.before(this.entries[child], last)) break;
+            if (!this.before(this.entries[child], entry)) break;
             this.entries[index] = this.entries[child];
             index = child;
         }
-        this.entries[index] = last;
-        return value;
+        this.entries[index] = entry;
     }
     private before(a: HeapEntry, b: HeapEntry): boolean {
         const order = compareOrderedValues(a.priority, b.priority, this.priorityKind!);
-        return order < 0 || (order === 0 && a.order < b.order);
+        return (this.descending ? order > 0 : order < 0) || (order === 0 && a.order < b.order);
     }
 }
 
