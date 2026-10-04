@@ -325,7 +325,11 @@ function transferApplicationFacts(
     }
     if (parts.length === 2 && isNameExpression(last) && last.name === 'xml'
         && lookup(last.name) === undefined && source.types.join() === 'text') {
-        return { types: ['object'] };
+        const text = { types: ['text'], rank: 1, shape: [null] };
+        return { types: ['object'], fields: {
+            kind: text, name: text, value: text, attributes: { types: ['object'] },
+            children: { types: ['array'], rank: 1, shape: [null], elements: ['object'] },
+        } };
     }
     const namedSegment = form.kind === 'named-segment' ? form : undefined;
     const combine = parts.length === 3 && namedSegment && isNameExpression(namedSegment.operation)
@@ -376,7 +380,7 @@ function transferApplicationFacts(
         types: ['sequence'], rank: 1, shape: [null], elements: source.elements,
         callbackFreeScalarCells: true,
     };
-    if (parts.length === 2 && source.types.join() === 'record' && isLabelLiteral(last)) {
+    if (parts.length === 2 && ['record', 'object'].includes(source.types.join()) && isLabelLiteral(last)) {
         return source.fields?.[last.name] ?? UNKNOWN_VALUE;
     }
     const axisLength = form.kind === 'axis-length' ? form : undefined;

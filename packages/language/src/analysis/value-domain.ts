@@ -66,7 +66,7 @@ export interface ValueFacts {
     readonly functionalWeighted?: boolean;
     /** Built-in numeric combine proved at construction; user callbacks never get this marker. */
     readonly segmentOperation?: '+' | 'min' | 'max' | 'maxsum' | 'band' | 'bor' | 'bxor';
-    /** Known fields of a record; absent fields remain unknown. */
+    /** Known fields of a record or a fixed-schema object; absent fields remain unknown. */
     readonly fields?: Readonly<Record<string, ValueFacts>>;
     /** All field names are known, rather than just an intersection of branch facts. */
     readonly closedRecord?: true;
@@ -220,7 +220,7 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
     const positions = first.positions && values.every(value => value.positions?.length === first.positions!.length)
         ? first.positions.map((_, index) => values.every(value => value.positions![index].length)
             ? [...new Set(values.flatMap(value => value.positions![index]))] : []) : undefined;
-    const fields = types.join() === 'record' && first.fields
+    const fields = ['record', 'object'].includes(types.join()) && first.fields
         ? Object.fromEntries(Object.keys(first.fields).filter(name => values.every(value => value.fields?.[name]))
             .map(name => [name, joinValueFacts(values.map(value => value.fields![name]))])) : undefined;
     const dims = shape && values.every(value => value.dims?.length === shape.length)

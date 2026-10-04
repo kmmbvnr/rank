@@ -49,7 +49,20 @@ it('uses proven indexed scalar facts for comparisons and boolean combinations', 
 });
 
 it('infers the stable outer shape of flat XML and JSON documents', () => {
-    expect(facts('"<root/>" xml')).toEqual({ types: ['object'] });
+    expect(facts('"<root/>" xml')).toMatchObject({ types: ['object'], fields: {
+        kind: { types: ['text'], rank: 1 }, name: { types: ['text'], rank: 1 },
+        value: { types: ['text'], rank: 1 }, attributes: { types: ['object'] },
+        children: { types: ['array'], rank: 1, elements: ['object'] },
+    } });
+    const node = facts('"<root/>" xml');
+    expect(facts('Doc .kind', new Map([['Doc', node]]))).toMatchObject({ types: ['text'], rank: 1 });
+    expect(facts('Doc .children', new Map([['Doc', node]]))).toMatchObject({ types: ['array'], rank: 1,
+        elements: ['object'] });
+    expect(facts('Doc .attributes .id', new Map([['Doc', node]]))).toEqual({ types: [] });
+    const changed = services.Rank.parser.LangiumParser.parse<Program>(
+        'use xml\nDoc = "<root/>" xml\nAlias = Doc\nDoc .kind = 42\nAfter = Alias .kind',
+    );
+    expect(analyzeValues(changed.value).bindings.get('After')?.types).toEqual([]);
     for (const document of ['"<root/>" xml .flat', '"{}" json .flat']) {
         expect(facts(document)).toEqual({ types: ['array'], rank: 1, shape: [null], elements: ['object'] });
     }
