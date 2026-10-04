@@ -218,7 +218,8 @@ function transferApplicationFacts(
     const flattened = flattenApplication(expression);
     let parts = flattened;
     if (flattened.length > 2 && isLabelLiteral(flattened[1])
-        && infer(flattened[0], lookup).fields?.[flattened[1].name]) {
+        && (infer(flattened[0], lookup).fields?.[flattened[1].name]
+            || infer(flattened[0], lookup).checkedColumns?.[flattened[1].name])) {
         let prefix: Expression = expression;
         while (isApplicationExpression(prefix) && flattenApplication(prefix).length > 2) {
             prefix = prefix.head;
@@ -228,7 +229,8 @@ function transferApplicationFacts(
     // A later operand `Record .field` is a field read too, as in `X Model .weights matmul`.
     for (let index = 2; parts.length > 2 && index < parts.length; index++) {
         const label = parts[index];
-        if (!isLabelLiteral(label) || !infer(parts[index - 1], lookup).fields?.[label.name]) continue;
+        if (!isLabelLiteral(label) || !(infer(parts[index - 1], lookup).fields?.[label.name]
+            || infer(parts[index - 1], lookup).checkedColumns?.[label.name])) continue;
         parts = [...parts.slice(0, index - 1), applicationExpression([parts[index - 1], label], expression),
             ...parts.slice(index + 1)];
         index--;
@@ -382,6 +384,9 @@ function transferApplicationFacts(
     };
     if (parts.length === 2 && ['record', 'object'].includes(source.types.join()) && isLabelLiteral(last)) {
         return source.fields?.[last.name] ?? UNKNOWN_VALUE;
+    }
+    if (parts.length === 2 && source.types.join() === 'array' && isLabelLiteral(last)) {
+        return source.checkedColumns?.[last.name] ?? UNKNOWN_VALUE;
     }
     const axisLength = form.kind === 'axis-length' ? form : undefined;
     if (axisLength
@@ -875,6 +880,9 @@ function transferApplicationFacts(
             ...(source.eagerScalarCells || source.callbackFreeScalarCells
                 ? { callbackFreeScalarCells: true as const } : {}) };
         if (source.elements?.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
+        if (source.elements?.join() === 'object' && source.checkedTableId !== undefined) {
+            return { types: ['object'], checkedTableId: source.checkedTableId };
+        }
         if (source.types[0] === 'array' && source.elements?.join() === 'record' && source.elementRecord) {
             return source.elementRecord;
         }

@@ -86,11 +86,12 @@ as `requirements` and adds its new contradictions to diagnostics. A contradictio
 includes both source sites. Existing forward diagnostics take precedence when
 they already explain an error at either site.
 
-A requirement is not a proof. Requirement intervals and domains never enter
-`ValueFacts`, callback-safety facts, fusion decisions, in-place updates, or guard
-removal. The empty-frame evaluator also does not read them. Runtime behavior
-continues to depend on runtime values and forward contracts alone. There are no
-requirement-derived editor hints in this change.
+A requirement is not a proof. Raw requirement intervals and domains do not
+justify callback-safety facts, fusion decisions, in-place updates or guard
+removal. The empty-frame evaluator does not read them. A checked external read
+is the explicit exception: successful runtime validation can establish forward
+facts for that value. Its check must execute before any consumer relies on
+those facts. There are no requirement-derived editor hints in this change.
 
 Rank equalities use weighted union-find, with intervals for bounds. A worklist
 propagates frame and sum relations. Exact dimension constraints reuse the `Dim`
@@ -129,16 +130,20 @@ supply unconditional requirements. Unsupported effects discard value links.
 Text atoms and sequence boxing retain their existing forward rules. This pass
 is intentionally incomplete; absence of a contradiction is not validation.
 
-External data expectations remain requirements. The #116 implementation adds
-one runtime consumer, `checked-input.ts`: explicit `check` reads validate actual
+External data expectations remain requirements until an explicit `check` read.
+The #116 implementation adds one runtime consumer, `checked-input.ts`, which validates actual
 CSV/XML/JSON values against inferred requirements. Function execution carries
 call-specific plans to that validator, including across tail calls; the plans
 are not optimization proofs. Unknown callbacks retain only independently proven
 reader-local checks. The semantic-boundary gate permits this validator while
 continuing to reject requirement use in other runtime and optimization owners.
-Any later static refinement must describe a guarantee enforced by that check,
-including its invalidation rules. Neither arbitrary input files nor test
-fixtures are read to manufacture static facts. Collection
+For a direct checked CSV read, the forward pass publishes checked column facts
+after the read expression, using one symbolic row length shared by its columns.
+Aliases and pure filters retain the checked column types; a filter gets a fresh
+length. Writes through a tracked row or table alias, uncertain effects, and
+unrelated table results discard these facts. The column map is distinct from a
+record schema because a CSV row may omit an empty cell. Neither arbitrary
+input files nor test fixtures are read to manufacture static facts. Collection
 infinity settlement is also outside this static-analysis change.
 
 ### 3. Real-Time LSP Diagnostic Emission

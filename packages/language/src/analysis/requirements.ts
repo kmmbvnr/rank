@@ -56,7 +56,8 @@ const primitiveTypes = new Set(['integer', 'real', 'text', 'boolean', 'symbol', 
 const spread = (term: ShapeTerm): term is { readonly spread: string } =>
     term !== null && typeof term === 'object' && 'spread' in term;
 
-/** A separate, non-executing requirement channel. No solved value enters ValueFacts.
+/** A separate, non-executing requirement channel. Only an explicit checked read
+ * can turn a validated requirement into a forward fact.
  * Summaries are templates: each call receives fresh variables, including dimensions.
  * Guarded paths, captured writes and unresolved callbacks deliberately lose precision. */
 export function inferRequirements(program: Program, options: RequirementOptions = {}): RequirementAnalysis {

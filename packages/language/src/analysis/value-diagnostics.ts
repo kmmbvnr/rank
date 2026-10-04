@@ -61,6 +61,7 @@ export interface ValueAnalysis {
 }
 
 let nextCollectionId = 0;
+let nextCheckedTableId = 0;
 
 /** A non-executing pass. Unknown facts never justify a diagnostic. */
 export function analyzeValues(program: Program, initial: ReadonlyMap<string, ValueFacts> = new Map(),
@@ -74,6 +75,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const bindings = new Map(initial);
     const numeric = new Set(['integer', 'real']);
     const functions = new Map(declarations);
+    const requirements = inferRequirements(program, { initial, declarations, loadModule });
     const calls = createCallAnalysis(bindings, functions, diagnostics, expressions,
         (items, env) => paths.returnPaths(items, env).values,
         (module, name, arguments_) => {
@@ -654,7 +656,20 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 }
             }
         }
-        const result = expressionFacts(expression, lookup);
+        let result = expressionFacts(expression, lookup);
+        if (isApplicationExpression(expression) && !AstUtils.getContainerOfType(expression, isFunctionStatement)) {
+            const form = applicationForm(expression, name => env.has(name) ? false : findOperation(name));
+            if (form.kind === 'checked-read' && form.reader === 'csv') {
+                const rowLength = freshDim('csv');
+                const needed = requirements.expressions.get(expression);
+                const columns: Record<string, ValueFacts> = Object.fromEntries([...(needed?.fields ?? [])].map(([name, field]) =>
+                    [name, { types: ['array'], rank: 1, shape: [null], dims: [rowLength],
+                        ...(field.domains?.length ? { elements: field.domains } : {}), eagerScalarCells: true as const }]));
+                result = { ...result, types: ['array'], rank: 1, shape: [null], dims: [rowLength],
+                    elements: ['object'], eagerScalarCells: true,
+                    checkedTableId: nextCheckedTableId++, checkedColumns: columns };
+            }
+        }
         expressions.set(expression, result);
         if (result.bottom) throw new UnobservedReturn();
         return result;
@@ -913,7 +928,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 });
                 invalidateCalls(statement.value, env);
                 const replacement = inspect(statement.value, env);
-                const fact = env.get(statement.name);
+                let fact = env.get(statement.name);
+                if (fact?.checkedTableId !== undefined) {
+                    for (const [name, alias] of env) if (alias.checkedTableId === fact.checkedTableId) {
+                        env.set(name, { ...alias, checkedColumns: undefined, checkedTableId: undefined });
+                    }
+                    fact = env.get(statement.name);
+                }
                 let contract = arrayBindingContract(fact);
                 const cellWrite = fact?.types.join() === 'array' && fact.rank === statement.indices.length
                     && statement.indices.every((index, position) => !index.spread
@@ -1192,7 +1213,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         return calls.call(example.name, inputs, bindings);
     });
     calls.validateDeclarations(bindings);
-    const requirements = inferRequirements(program, { initial, declarations, loadModule });
     diagnostics.push(...requirementDiagnostics(requirements.conflicts, diagnostics));
     const unique = diagnostics.filter((diagnostic, index) => !diagnostics.slice(0, index).some(previous =>
         previous.node === diagnostic.node && previous.message === diagnostic.message));

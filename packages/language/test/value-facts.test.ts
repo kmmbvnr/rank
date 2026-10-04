@@ -70,6 +70,44 @@ it('infers the stable outer shape of flat XML and JSON documents', () => {
         .toEqual({ types: [] });
 });
 
+it('publishes validated CSV column facts with one shared row length', () => {
+    const source = 'use tables\nRows = "data.csv" csv check\nPrice = Rows .price\nQuantity = Rows .quantity\nTotal = Price sum\nOther = Quantity sum';
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const analysis = analyzeValues(parsed.value);
+    const rows = analysis.bindings.get('Rows')!;
+    const price = analysis.bindings.get('Price')!;
+    const quantity = analysis.bindings.get('Quantity')!;
+    expect(analysis.diagnostics).toEqual([]);
+    expect(price).toMatchObject({ types: ['array'], rank: 1, elements: ['integer', 'real', 'missing'] });
+    expect(quantity).toMatchObject({ types: ['array'], rank: 1, elements: ['integer', 'real', 'missing'] });
+    expect(price.dims?.[0]).toEqual(rows.dims?.[0]);
+    expect(quantity.dims?.[0]).toEqual(rows.dims?.[0]);
+    const unchecked = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source.replace(' csv check', ' csv')).value);
+    expect(unchecked.bindings.get('Price')?.types).toEqual([]);
+});
+
+it('keeps checked column types through a filter with a fresh shared row length', () => {
+    const source = 'use tables\nRows = "data.csv" csv check\nPrice = Rows .price\nTotal = Price sum\nFound = Rows filter .price greater 0\nNext = Found .price';
+    const analysis = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
+    const rows = analysis.bindings.get('Rows')!;
+    const found = analysis.bindings.get('Found')!;
+    const next = analysis.bindings.get('Next')!;
+    expect(next.elements).toEqual(['integer', 'real', 'missing']);
+    expect(next.dims?.[0]).toEqual(found.dims?.[0]);
+    expect(found.dims?.[0]).not.toEqual(rows.dims?.[0]);
+});
+
+it('forgets checked CSV columns after mutating a row through an alias', () => {
+    const source = 'use tables\nRows = "data.csv" csv check\nBefore = Rows .price\nTotal = Before sum\nAlias = Rows\nRow = Alias 0\nRow .price = "bad"\nAfter = Rows .price';
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(parsed.parserErrors).toEqual([]);
+    const analysis = analyzeValues(parsed.value);
+    const before = parsed.value.statements.find(item => isAssignmentStatement(item) && item.name === 'Before');
+    if (!before || !isAssignmentStatement(before)) throw new Error('expected Before assignment');
+    expect(analysis.expressions.get(before.value)?.elements).toEqual(['integer', 'real', 'missing']);
+    expect(analysis.bindings.get('After')?.types).toEqual([]);
+});
+
 it('infers outer facts from literal JSON without assuming external schemas', () => {
     expect(facts('"[{\\"x\\":1},{\\"x\\":2}]" json')).toEqual({
         types: ['array'], rank: 1, shape: [2], elements: ['object'], eagerScalarCells: true,
