@@ -1,7 +1,7 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isAddStatement, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement,
-    isBinaryExpression, isForStatement, isFunctionStatement, isIndexAssignmentStatement,
+    isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement,
+    isBinaryExpression, isForStatement, isFunctionStatement,
     isNameExpression, isNumberLiteral, isParenthesizedExpression, isPushStatement,
     isStdinExpression, isTryStatement, isUnaryExpression, isUnpackStatement, isYieldStatement,
     type Expression, type FunctionStatement,
@@ -29,8 +29,7 @@ export function numericRecursionEligible(
     if (definition.$container.$type !== 'Program') return false;
     const nodes = [...AstUtils.streamAllContents(definition)];
     if (nodes.some(node => isFunctionStatement(node) || isTryStatement(node) || isYieldStatement(node)
-        || isStdinExpression(node) || isArrayAssignmentStatement(node) || isIndexAssignmentStatement(node)
-        || isAddStatement(node) || isPushStatement(node))) return false;
+        || isStdinExpression(node) || isArrayAssignmentStatement(node) || isPushStatement(node))) return false;
     const locals = new Set([...definition.parameters, ...nodes.filter(isAssignmentStatement).map(node => node.name),
         ...nodes.filter(isUnpackStatement).flatMap(node => node.names),
         ...nodes.filter(isForStatement).flatMap(node => loopBinding(node.condition)?.names ?? [])]);

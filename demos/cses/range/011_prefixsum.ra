@@ -16,6 +16,7 @@ Values Queries prefix_queries print
 
 rem Query the built-in max-sum summary.
 fun prefix_queries Values Queries
+  Queue = new queue
   Tree = Values segment maxsum
 
   for Query in Queries
@@ -27,8 +28,8 @@ fun prefix_queries Values Queries
 
     Left = A - 1
     State = Tree Left (B - 1) query
-    queue push State .prefix
+    Queue push State .prefix
   end
 
-  return queue
+  return Queue
 end

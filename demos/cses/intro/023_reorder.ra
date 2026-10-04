@@ -10,14 +10,15 @@ Text solve print
 
 rem Greedily choose the smallest safe letter, except when one count is forced.
 fun solve Text
+  Index = new index
   Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   N = Text len
   Max = 0
 
   for C in Text
-    Count = index C default 0
+    Count = Index C default 0
     Count += 1
-    index C = Count
+    Index C = Count
     Max = Max Count max
   end
 
@@ -34,7 +35,7 @@ fun solve Text
     Forced = ""
 
     for C in Alphabet
-      Count = index C default 0
+      Count = Index C default 0
       if Count equal 0
         continue
       end
@@ -53,8 +54,8 @@ fun solve Text
     end
 
     Answer += Choice
-    Count = index Choice
-    index Choice = Count - 1
+    Count = Index Choice
+    Index Choice = Count - 1
     Previous = Choice
     Remaining -= 1
   end

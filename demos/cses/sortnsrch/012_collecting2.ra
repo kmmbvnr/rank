@@ -16,17 +16,19 @@ A Swaps collecting_updates print
 
 rem Update the round count after swaps.
 fun collecting_updates Values Swaps
+  Index = new index
+  Queue = new queue
   A = Values copy
   N = A len
 
   for Value i in A
-    index Value = i
+    Index Value = i
   end
 
   Rounds = 1
 
   for Value in 1 till N
-    if index Value greater index (Value + 1)
+    if Index Value greater Index (Value + 1)
       Rounds += 1
     end
   end
@@ -46,27 +48,27 @@ fun collecting_updates Values Swaps
       if Value less 1 or Value at least N
         continue
       end
-      if index Value greater index (Value + 1)
+      if Index Value greater Index (Value + 1)
         Rounds -= 1
       end
     end
 
     A I = Y
     A J = X
-    index X = J
-    index Y = I
+    Index X = J
+    Index Y = I
 
     for Value in Edges
       if Value less 1 or Value at least N
         continue
       end
-      if index Value greater index (Value + 1)
+      if Index Value greater Index (Value + 1)
         Rounds += 1
       end
     end
 
-    queue push Rounds
+    Queue push Rounds
   end
 
-  return queue
+  return Queue
 end

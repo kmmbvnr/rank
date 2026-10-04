@@ -86,7 +86,7 @@ export const OPERATOR_KEYWORDS = [
     'default', 'fill', 'as', 'axis', 'rank', 'reduce', 'scan', 'outer', 'sort by',
     'first where', 'first index where', 'take', 'drop', 'from', 'after',
     'argsort by', 'group by', 'leftjoin by', 'innerjoin by', 'leftjoin on',
-    'innerjoin on', 'set add', 'counter add', 'filter', 'select', 'ascending', 'descending',
+    'innerjoin on', 'filter', 'select', 'ascending', 'descending',
 ];
 
 export const STATEMENT_KEYWORDS = [

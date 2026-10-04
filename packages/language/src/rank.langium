@@ -47,8 +47,6 @@ Statement:
     TryStatement |
     IfStatement |
     ForStatement |
-    AddStatement |
-    IndexAssignmentStatement |
     UnpackStatement |
     ArrayAssignmentStatement |
     AssignmentStatement |
@@ -135,12 +133,6 @@ ForStatement:
     'for' condition=Expression? NL+
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
-
-AddStatement:
-    structure=SET_ADD value=Expression;
-
-IndexAssignmentStatement:
-    'index' keys+=PrimaryExpression+ '=' value=Expression;
 
 UnpackStatement:
     'unpack' names+=UnpackTarget+ '=' value=Expression;
@@ -566,7 +558,6 @@ terminal INNERJOIN_BY: /innerjoin[\t ]+by/;
 terminal LEFTJOIN_ON: /leftjoin[\t ]+on/;
 terminal INNERJOIN_ON: /innerjoin[\t ]+on/;
 terminal HIGHER_ORDER: /(scan|reduce|segment|outer)[\t ]+(\*\*|\/\/|[-+*\/%]|(and|or|xor|equal|less|greater)(?![A-Za-z0-9_])|not[\t ]+equal(?![A-Za-z0-9_])|at[\t ]+(least|most)(?![A-Za-z0-9_])|multiple[\t ]+by(?![A-Za-z0-9_]))/;
-terminal SET_ADD: /(set|counter)[\t ]+add/;
 terminal VARIABLE: /[A-Z][A-Za-z0-9_]*/;
 terminal WORD: /[a-z][A-Za-z0-9_]*/;
 // Scientific notation: a decimal point or a negative exponent makes a real (1.5e3, 1e-3), anything else an integer (4e6).

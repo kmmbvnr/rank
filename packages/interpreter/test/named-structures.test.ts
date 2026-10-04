@@ -40,8 +40,8 @@ tuple (A 1) (B 1) (S len) (T len) (C 7) (D 7) (Q len) (R len) (M len) (N len)
         expect(run(`
 use algo
 use sequences
-Seen = set
-Counts = counter
+Seen = new set
+Counts = new counter
 Alias = Seen
 fun visit S C X
   S add X
@@ -119,38 +119,45 @@ tuple First Second Other
 `)).toBe('1 2 1');
     });
 
-    it('does not inherit outer implicit queues, sets or counters', () => {
+    it('keeps a function-local structure apart from a top-level one with the same name', () => {
         expect(run(`
 use algo
 use sequences
-queue push 9
-set add 9
-counter add 9
+Queue = new queue
+Queue push 9
+Seen = new set
+Seen add 9
+Counts = new counter
+Counts add 9
 fun local N
-  Before = array (queue len) (set len) (counter 9)
-  queue push N
-  set add N
-  counter add N
+  Queue = new queue
+  Seen = new set
+  Counts = new counter
+  Before = array (Queue len) (Seen len) (Counts 9 default 0)
+  Queue push N
+  Seen add N
+  Counts add N
   return Before
 end
 First = 1 local
 Second = 2 local
-tuple (First 0) (First 1) (First 2) (Second 0) (queue len) (set len) (counter 9)
+tuple (First 0) (First 1) (First 2) (Second 0) (Queue len) (Seen len) (Counts 9)
 `)).toBe('0 0 0 0 1 1 1');
     });
 
-    it('allocates anew on repeated execution and does not replace the implicit structure', () => {
+    it('allocates anew on repeated execution', () => {
         expect(run(`
 use algo
 use sequences
-set add 9
+Seen = new set
+Seen add 9
 fun fresh N
   return new set
 end
 A = 0 fresh
 B = 0 fresh
 A add 1
-tuple (A len) (B len) (set len)
+tuple (A len) (B len) (Seen len)
 `)).toBe('1 0 1');
     });
 
@@ -231,7 +238,7 @@ tuple (M 0) (M 1) (M 2)
 `)).toBe('a b c');
     });
 
-    it('creates fresh values in loops and keeps recursive implicit instances separate', () => {
+    it('creates fresh values in loops and keeps recursive function-local instances separate', () => {
         expect(run(`
 use algo
 use sequences
@@ -243,11 +250,12 @@ A = Sets 0
 B = Sets 1
 A add 1
 fun down N
-  set add N
+  Seen = new set
+  Seen add N
   if N greater 0
     Child = (N - 1) down
   end
-  return set len
+  return Seen len
 end
 tuple (A len) (B len) (10 down)
 `)).toBe('1 0 1');

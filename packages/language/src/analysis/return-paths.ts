@@ -1,9 +1,9 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isAddStatement, isArrayAssignmentStatement, isAssignmentStatement, isBreakStatement,
+    isArrayAssignmentStatement, isAssignmentStatement, isBreakStatement,
     isContinueStatement, isExpressionStatement, isForStatement, isFunctionStatement,
     isIfStatement, isNameExpression, isPushStatement, isReturnStatement, isTryStatement,
-    isUnpackStatement, isIndexAssignmentStatement,
+    isUnpackStatement,
     type Expression, type ForStatement, type Statement, type TryStatement,
 } from '../generated/ast.js';
 import { contractRank, conditionalPaths, mergeEnvironments } from './control-flow.js';
@@ -107,8 +107,7 @@ export function createReturnPathAnalysis(context: ReturnPathContext) {
                         if (!loop.fallsThrough) return { values, fallsThrough: false, breaks, continues };
                     } else context.loop(statement, env);
                 } else if (isAssignmentStatement(statement) || isArrayAssignmentStatement(statement)
-                    || isIndexAssignmentStatement(statement)
-                    || isAddStatement(statement) || isPushStatement(statement)
+                    || isPushStatement(statement)
                     || isUnpackStatement(statement)
                     || isExpressionStatement(statement) || isFunctionStatement(statement)) {
                     if (!context.statements([statement], env)) return { values, fallsThrough: false, breaks, continues };

@@ -18,6 +18,7 @@ Part2 print
 rem Find the first house reached by the required delivery total.
 rem A zero visit limit means that every multiple receives a delivery.
 fun firsthouse Target Multiplier MaxVisits
+  Index = new index
   Limit = Target // Multiplier + 1
 
   for Elf in 1 to Limit
@@ -25,8 +26,8 @@ fun firsthouse Target Multiplier MaxVisits
     Visits = 0
 
     for House at most Limit
-      Presents = index House default 0
-      index House = Presents + Multiplier * Elf
+      Presents = Index House default 0
+      Index House = Presents + Multiplier * Elf
       House += Elf
       Visits += 1
 
@@ -37,7 +38,7 @@ fun firsthouse Target Multiplier MaxVisits
       end
     end
 
-    Presents = index Elf default 0
+    Presents = Index Elf default 0
     if Presents at least Target
       return Elf
     end

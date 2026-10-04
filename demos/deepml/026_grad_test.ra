@@ -3,7 +3,7 @@ use testing
 test "official arithmetic graph"
   use "026_grad"
   use algo
-  Tape = queue
+  Tape = new queue
   A = Tape 2 value
   B = Tape 3 value
   C = Tape 10 value
@@ -29,7 +29,7 @@ end
 test "official shared subgraph"
   use "026_grad"
   use algo
-  Tape = queue
+  Tape = new queue
   A = Tape 2 value
   B = Tape 3 value
   M = Tape A B mul
@@ -52,7 +52,7 @@ end
 test "negative relu blocks its gradient"
   use "026_grad"
   use algo
-  Tape = queue
+  Tape = new queue
   A = Tape (-2.5) value
   Out = Tape A relu
 

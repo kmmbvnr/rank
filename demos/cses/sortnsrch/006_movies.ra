@@ -6,7 +6,7 @@ use algo
 use sequences
 
 N = stdin .integer
-Movies = queue
+Movies = new queue
 
 for # in 1 to N
   Start = stdin .integer

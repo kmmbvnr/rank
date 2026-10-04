@@ -238,7 +238,7 @@ export function expectMultiset(value: RankValue): RankMultiset {
     return value;
 }
 
-function finiteValues(value: RankValue): Iterable<RankValue> {
+export function finiteValues(value: RankValue): Iterable<RankValue> {
     if (typeof value === 'string') return [...value];
     if (isRankArray(value)) {
         if (value.shape.length !== 1) throw new RankError('multiset expects a rank-1 collection');

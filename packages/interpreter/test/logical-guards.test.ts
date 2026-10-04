@@ -30,7 +30,7 @@ fun visit Log V
  Log push V
  return V
 end
-Log = queue
+Log = new queue
 A = (Log false visit) and (Log true visit)
 B = (Log true visit) or (Log false visit)
 C = (Log true visit) and (Log false visit)

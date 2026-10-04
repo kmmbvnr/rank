@@ -37,6 +37,10 @@ function lowercaseVariable(error: object, source: string): string | undefined {
     const { token } = error as { token?: { image?: string; startOffset?: number } };
     if (!token?.image || !ASSIGNMENTS.has(token.image)) return undefined;
     const line = source.slice(source.lastIndexOf('\n', (token.startOffset ?? 0) - 1) + 1, token.startOffset ?? 0);
+    // `index Key = Value` wrote the retired implicit index.
+    if (token.image === '=' && /^\s*index\s+\S/.test(line)) {
+        return "Unexpected '=': a bare `index` is no longer an implicit index: create one with `Cache = new index`, then write `Cache Key = Value`";
+    }
     // Only a lone name at the start of the statement; `Xs i = 3` and similar keep the plain message.
     const name = /^\s*([a-z][A-Za-z0-9_]*)\s*$/.exec(line)?.[1];
     if (!name) return undefined;

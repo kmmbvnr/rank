@@ -213,7 +213,7 @@ First = A inspect`);
         const runtime = new Interpreter();
         try {
             runtime.execute('use algo\nfun inspect V Flag\n if Flag\n  return V 0\n else\n  return V 1\n end\nend\n'
-                + 'A = array 10 20\nQ = queue\nfun change\n Q push 1\n return true\nend');
+                + 'A = array 10 20\nQ = new queue\nfun change\n Q push 1\n return true\nend');
             const inspect = runtime.variables.get('inspect');
             if (!inspect || !isNativeFunction(inspect)) throw new Error('inspect');
             const array = runtime.variables.get('A') as RankArray;

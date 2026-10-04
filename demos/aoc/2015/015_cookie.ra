@@ -18,17 +18,18 @@ Part2 print
 
 rem Parse the ingredients and search all allocations of 100 teaspoons.
 fun solve Lines
+  Queue = new queue
   Pattern = "/word: capacity /integer, durability /integer, flavor /integer, texture /integer, calories /integer"
 
   for Line in Lines
     Parsed = Line Pattern parse
     unpack Name Cap Dur Fla Tex Cal = Parsed
     Ingredient = array Cap Dur Fla Tex Cal
-    queue push Ingredient
+    Queue push Ingredient
   end
 
   Totals = array shape 5 fill 0
-  return queue 0 100 Totals search
+  return Queue 0 100 Totals search
 end
 
 

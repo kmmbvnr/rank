@@ -23,6 +23,8 @@ Part2 print
 
 rem Find the best circular seating before and after adding yourself.
 fun solve Lines
+  Index = new index
+  Seen = new set
   Pattern = "/word would /word /integer happiness units by sitting next to /word."
 
   for Line in Lines
@@ -32,31 +34,32 @@ fun solve Lines
       Value = -Value
     end
 
-    set add A
-    set add B
-    index A B = Value
+    Seen add A
+    Seen add B
+    Index A B = Value
   end
 
-  Part1 = set index best
+  Part1 = Seen Index best
 
-  for Person in set
-    index "Me" Person = 0
-    index Person "Me" = 0
+  for Person in Seen
+    Index "Me" Person = 0
+    Index Person "Me" = 0
   end
-  set add "Me"
+  Seen add "Me"
 
-  Part2 = set index best
+  Part2 = Seen Index best
   return array Part1 Part2
 end
 
 
 rem Return the greatest happiness among all permutations of the guests.
 fun best Guests Scores
+  Queue = new queue
   for Route in Guests permutations
-    queue push Route Scores happiness
+    Queue push Route Scores happiness
   end
 
-  Happiness = queue
+  Happiness = Queue
   return Happiness max
 end
 

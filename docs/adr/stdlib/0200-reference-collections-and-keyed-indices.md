@@ -3,6 +3,7 @@
 * **Status:** Accepted
 * **Date:** 2026-09-08
 * **Updated:** 2026-09-28 — collection element contracts (issue #31)
+* **Updated:** 2026-10-04 — the implicit per-function `index`, `queue`, `set` and `counter` are removed; every structure is created with `new`, optionally filled from a collection (`new queue Items`), and `push unpack Items` appends each item (issue #182 follow-up)
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Collections Specification, Algorithmic Benchmark Suite
 
@@ -44,10 +45,11 @@ As codified in ADR-0101, algorithmic collections belong to Rank's closed set of 
 ### 2. Implicit Local Structures vs Explicit Named Instances
 - **Implicit Local Structures:** When a function needs only one instance of a common container, the type name itself denotes a lazily allocated local instance:
   ```rank
+Queue = new queue
   fun bfs Start
-    queue push Start
-    for queue
-      Current = queue pop
+    Queue push Start
+    for Queue
+      Current = Queue pop
       ...
     end
   end
@@ -64,8 +66,9 @@ As codified in ADR-0101, algorithmic collections belong to Rank's closed set of 
 ### 3. Sparse Multidimensional Keyed Addressing (`index`)
 - `index` provides sparse hash maps where keys can be composite tuples:
   ```rank
-  index X Y = Value
-  Stored = index X Y default 0
+Index = new index
+  Index X Y = Value
+  Stored = Index X Y default 0
   ```
 - This allows representing sparse 2D/3D grids, adjacency maps, or memoization tables without allocating massive dense rectangular arrays.
 - Keys support all scalars (`integer`, `real`, `text`, `boolean`, `symbol`).

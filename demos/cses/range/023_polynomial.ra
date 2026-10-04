@@ -16,6 +16,7 @@ Values Queries polynomial print
 
 rem Store doubled prefix coefficients.
 fun polynomial Values Queries
+  Queue = new queue
   N = Values len
   Prefix = Values scan + with 0
   Size = N + 2
@@ -45,10 +46,10 @@ fun polynomial Values Queries
     Total = Prefix Right - Prefix X
     Added = Quad Line Base Right poly
     Before = Quad Line Base X poly
-    queue push Total + Added - Before
+    Queue push Total + Added - Before
   end
 
-  return queue
+  return Queue
 end
 
 

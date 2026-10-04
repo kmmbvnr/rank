@@ -4,13 +4,14 @@ rem https://www.deep-ml.com/problems/1
 use algo
 
 fun matrix_dot_vector A B
+  Queue = new queue
   if A 0 len not equal B len
     .DimensionMismatch raise
   end
 
   for Row in A
-    queue push Row * B sum
+    Queue push Row * B sum
   end
 
-  return queue
+  return Queue
 end

@@ -3,7 +3,7 @@ use testing
 test "official example"
   use "005_restaurant"
   use algo
-  Events = queue
+  Events = new queue
   Events 5 8 visit
   Events 2 4 visit
   Events 3 9 visit
@@ -13,7 +13,7 @@ end
 test "departure precedes equal arrival"
   use "005_restaurant"
   use algo
-  Events = queue
+  Events = new queue
   Events 1 2 visit
   Events 2 3 visit
   Events 3 4 visit
@@ -23,7 +23,7 @@ end
 test "duplicate intervals all overlap"
   use "005_restaurant"
   use algo
-  Events = queue
+  Events = new queue
   Events 1 10 visit
   Events 1 10 visit
   Events 1 10 visit
@@ -34,6 +34,6 @@ end
 test "empty event collection"
   use "005_restaurant"
   use algo
-  Events = queue
+  Events = new queue
   Events busiest equal 0
 end

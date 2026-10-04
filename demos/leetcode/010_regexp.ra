@@ -8,16 +8,17 @@ rem Build a table where index i j says whether
 rem the first i characters match the first j
 rem pattern characters.
 fun match Text Pattern
+  Index = new index
   N = Text len
   M = Pattern len
 
-  index 0 0 = true
+  Index 0 0 = true
 
   rem A starred element can match empty text.
   for PatternSymbol j in Pattern
     if j at least 1 and PatternSymbol equal "*"
       Prev = j - 1
-      index 0 (j + 1) = index 0 Prev default false
+      Index 0 (j + 1) = Index 0 Prev default false
     end
   end
 
@@ -30,19 +31,19 @@ fun match Text Pattern
         Prev = Column - 2
         Repeated = Pattern (j - 1)
         Same = Repeated TextSymbol matches
-        Zero = index Row Prev default false
-        Valid = index i Column default false
+        Zero = Index Row Prev default false
+        Valid = Index i Column default false
         More = Same and Valid
-        index Row Column = Zero or More
+        Index Row Column = Zero or More
       else
         Same = PatternSymbol TextSymbol matches
-        Prefix = index i j default false
-        index Row Column = Same and Prefix
+        Prefix = Index i j default false
+        Index Row Column = Same and Prefix
       end
     end
   end
 
-  return index N M default false
+  return Index N M default false
 end
 
 

@@ -129,7 +129,8 @@ The unparenthesized form `for X in A` is always iteration. Parentheses make a
 membership expression a loop condition when that distinction is needed:
 
 ```rank
-for (X in index)
+Index = new index
+for (X in Index)
   ...
 end
 ```

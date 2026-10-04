@@ -232,7 +232,7 @@ describe('Rank grammar', () => {
 
     it('parses inclusive comparison and defaulted addressing', async () => {
         const document = await parse([
-            'Last = index Ci default -1',
+            'Last = Index Ci default -1',
             'Ready = Last at least Start',
             'Before = Last at most Finish',
         ].join('\n'));
@@ -260,7 +260,9 @@ describe('Rank grammar', () => {
             'D = new counter',
             'E = new multiset',
             'F = new dsu Nodes',
+            'G = new queue Items',
             'B push new set',
+            'B push unpack Pair',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
@@ -651,10 +653,10 @@ describe('Rank grammar', () => {
         const document = await parse([
             'fun two_sum A Target',
             '  for Value i in A',
-            '    if Value in index',
+            '    if Value in Index',
             '      return array Value i',
             '    end',
-            '    index Value = i',
+            '    Index Value = i',
             '  end',
             'end',
         ].join('\n'));
@@ -809,9 +811,9 @@ describe('Rank grammar', () => {
 
     it('parses a receiver method with one expression argument', async () => {
         const document = await parse([
-            'queue push Value + 1',
-            'set add array X Y',
-            'counter add Value',
+            'Queue push Value + 1',
+            'Seen add array X Y',
+            'Counts add Value',
             'Bag remove Right - Left',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);

@@ -13,10 +13,11 @@ Text palindrome print
 
 rem Build an alphabetically deterministic palindrome rearrangement.
 fun palindrome Text
+  Counts = new counter
   Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
   for C in Text
-    counter add C
+    Counts add C
   end
 
   Odd = 0
@@ -24,9 +25,9 @@ fun palindrome Text
   Left = ""
 
   for C in Alphabet
-    Half = counter C // 2
+    Half = Counts C // 2
 
-    if counter C odd
+    if Counts C odd
       Odd += 1
       Middle = C
     end

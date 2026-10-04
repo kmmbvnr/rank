@@ -63,6 +63,7 @@ end
 
 rem Check recursively whether unused packages can fill the remaining groups.
 fun partitionable Packages Used Groups Target
+  Queue = new queue
   if Groups equal 1
     return true
   end
@@ -71,10 +72,10 @@ fun partitionable Packages Used Groups Target
   for I in 0 till Count
     Taken = Used I bit
     if not Taken
-      queue push I
+      Queue push I
     end
   end
-  Available = queue
+  Available = Queue
 
   for Size in 1 to (Available len)
     for Pick in Available Size combinations

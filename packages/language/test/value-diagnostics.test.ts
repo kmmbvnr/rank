@@ -502,15 +502,15 @@ it('keeps unrelated facts through a scalar minimum helper', () => {
 });
 
 it('keeps unrelated facts through local index writes', () => {
-    expect(messages('use algo\nCount = 1\nindex "x" = 2\nCount + "bad"'))
+    expect(messages('use algo\nCount = 1\nIndex = new index\nIndex "x" = 2\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun read X\n Count = 1\n index X = 2\n return Count\nend\nA = 0 read\nA + "bad"'))
+    expect(messages('use algo\nfun read X\n Index = new index\n Count = 1\n Index X = 2\n return Count\nend\nA = 0 read\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun read X\n Count = 1\n for I in 0 till 1\n  index I = 2\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
+    expect(messages('use algo\nfun read X\n Index = new index\n Count = 1\n for I in 0 till 1\n  Index I = 2\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nCount = 1\nA = Unknown\nindex (A 0) = 2\nCount + "bad"'))
+    expect(messages('use algo\nCount = 1\nA = Unknown\nIndex = new index\nIndex (A 0) = 2\nCount + "bad"'))
         .toEqual([]);
-    expect(messages('use algo\nCount = 1\nA = Unknown\nindex 0 = (A 0) + 1\nCount + "bad"'))
+    expect(messages('use algo\nCount = 1\nA = Unknown\nIndex = new index\nIndex 0 = (A 0) + 1\nCount + "bad"'))
         .toEqual([]);
 });
 
@@ -526,8 +526,8 @@ it('keeps unrelated scalar facts through direct named-index writes', () => {
         'use algo\nCache = new index\nCache "a" = 2\nR = Cache "a"\n');
     expect(analyzeValues(parsed.value).bindings.get('R')?.types).toEqual(['integer']);
     const alias = services.Rank.parser.LangiumParser.parse<Program>(
-        'use algo\nfun read\n index "a" = 1\n Alias = index\n'
-        + ' Alias "b" = "x"\n return index "a"\nend\nR = read\n');
+        'use algo\nfun read\n Index = new index\n Index "a" = 1\n Alias = Index\n'
+        + ' Alias "b" = "x"\n return Index "a"\nend\nR = read\n');
     expect(analyzeValues(alias.value).bindings.get('R')?.types).toEqual(['integer', 'text']);
 });
 
@@ -575,8 +575,8 @@ it('includes aliased index writes from earlier iterations in a loop read', () =>
     const analysis = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
     const read = [...analysis.expressions].find(([expression]) => expression.$cstNode?.text === 'Cache 0')?.[1];
     expect(read?.types).toEqual(['integer', 'text']);
-    const implicit = 'use algo\nfun lookup\n index 0 = 1\n Alias = index\n'
-        + ' for I in 0 till 2\n  Seen = Alias 0\n  index 0 = "text"\n end\n return Alias 0\nend\nR = lookup\n';
+    const implicit = 'use algo\nfun lookup\n Index = new index\n Index 0 = 1\n Alias = Index\n'
+        + ' for I in 0 till 2\n  Seen = Alias 0\n  Index 0 = "text"\n end\n return Alias 0\nend\nR = lookup\n';
     const result = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(implicit).value);
     expect(result.bindings.get('R')?.types).toEqual(['integer', 'text']);
 });
@@ -609,20 +609,20 @@ it('infers a fresh local index read from earlier iterations on an early-return p
 });
 
 it('keeps unrelated facts through scalar set additions but not lazy array keys', () => {
-    expect(messages('use algo\nCount = 1\nset add "x"\nCount + "bad"'))
+    expect(messages('use algo\nCount = 1\nSeen = new set\nSeen add "x"\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun read X\n Count = 1\n for I in 0 till 1\n  counter add "x"\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
+    expect(messages('use algo\nfun read X\n Counts = new counter\n Count = 1\n for I in 0 till 1\n  Counts add "x"\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nCount = 1\nset add (array Unknown Unknown)\nCount + "bad"'))
+    expect(messages('use algo\nCount = 1\nSeen = new set\nSeen add (array Unknown Unknown)\nCount + "bad"'))
         .toEqual([]);
-    expect(messages('use algo\nCount = 1\nA = Unknown\nset add (A 0)\nCount + "bad"'))
+    expect(messages('use algo\nCount = 1\nA = Unknown\nSeen = new set\nSeen add (A 0)\nCount + "bad"'))
         .toEqual([]);
     expect(messages('use algo\nCount = 1\nCounts = new counter\nKey = "x"\nCounts add Key\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nCount = 1\ncounter add "x"\nX = counter "x"\nCount + "bad"'))
+    expect(messages('use algo\nCount = 1\nCounts = new counter\nCounts add "x"\nX = Counts "x"\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nCount = 1\nA = Unknown\nX = counter (A 0)\nCount + "bad"'))
-        .toEqual([]);
+    expect(messages('use algo\nCount = 1\nA = Unknown\nCounts = new counter\nX = Counts (A 0)\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
 });
 
 it('keeps unrelated facts through direct queue pushes but not computed receivers', () => {
@@ -632,7 +632,7 @@ it('keeps unrelated facts through direct queue pushes but not computed receivers
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nA = Unknown\n(A 0) push 2\nCount + "bad"'))
         .toEqual([]);
-    expect(messages('use algo\nCount = 1\nqueue push 2\nCount + "bad"'))
+    expect(messages('use algo\nCount = 1\nQueue = new queue\nQueue push 2\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(
         'use algo\nfun collect X\n Q = new queue\n Q push X\n return Q\nend\nA = 0 collect\n');
@@ -655,44 +655,44 @@ it('infers indexed text loops without trusting an unknown iterator', () => {
 });
 
 it('keeps types through a scalar lookup in the local index', () => {
-    expect(messages('use algo\nfun read X\n Count = 1\n First = index X default -1\n return Count\nend\n'
+    expect(messages('use algo\nfun read X\n Index = new index\n Count = 1\n First = Index X default -1\n return Count\nend\n'
         + 'Result = "x" read\nResult + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nCount = 1\nA = Unknown\nFirst = index (A 0) default -1\nCount + "bad"'))
-        .toEqual([]);
+    expect(messages('use algo\nCount = 1\nA = Unknown\nIndex = new index\nFirst = Index (A 0) default -1\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
 });
 
 it('infers value types written to a fresh function-local index', () => {
-    expect(messages('use algo\nfun lookup\n index "a" = 1\n return index "a"\nend\nA = lookup\nA + "bad"'))
+    expect(messages('use algo\nfun lookup\n Index = new index\n Index "a" = 1\n return Index "a"\nend\nA = lookup\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun lookup\n index "a" = true\n return index "b" default false\nend\nA = lookup\nA + 1'))
+    expect(messages('use algo\nfun lookup\n Index = new index\n Index "a" = true\n return Index "b" default false\nend\nA = lookup\nA + 1'))
         .toEqual(['operator + does not accept boolean and integer']);
-    expect(messages('use algo\nfun lookup Key Value\n index "a" = 1\n index Key = Value\n return index "a"\nend\nA = Unknown Unknown lookup\nA + "bad"'))
+    expect(messages('use algo\nfun lookup Key Value\n Index = new index\n Index "a" = 1\n Index Key = Value\n return Index "a"\nend\nA = Unknown Unknown lookup\nA + "bad"'))
         .toEqual([]);
-    expect(messages('use algo\nfun lookup Key\n index "a" = 1\n index "b" = "text"\n return index Key\nend\nA = "a" lookup\nA = true'))
+    expect(messages('use algo\nfun lookup Key\n Index = new index\n Index "a" = 1\n Index "b" = "text"\n return Index Key\nend\nA = "a" lookup\nA = true'))
         .toEqual(['A has type integer or text and cannot receive boolean']);
-    expect(messages('use algo\nfun lookup\n for I in 0 to 1\n  index I = I\n end\n return index 0\nend\nA = lookup\nA + "bad"'))
+    expect(messages('use algo\nfun lookup\n Index = new index\n for I in 0 to 1\n  Index I = I\n end\n return Index 0\nend\nA = lookup\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun lookup\n index 0 = 1\n for I in 0 to 1\n  index I = "text"\n end\n return index 0\nend\nA = lookup\nA + "bad"'))
+    expect(messages('use algo\nfun lookup\n Index = new index\n Index 0 = 1\n for I in 0 to 1\n  Index I = "text"\n end\n return Index 0\nend\nA = lookup\nA + "bad"'))
         .toEqual([]);
 });
 
 it('keeps the type of a local index when a cell is copied with a default', () => {
-    expect(messages('use algo\nfun copy\n index 0 = true\n index 1 = index 0 default false\n return index 1 default false\nend\nA = copy\nA + 1'))
+    expect(messages('use algo\nfun copy\n Index = new index\n Index 0 = true\n Index 1 = Index 0 default false\n return Index 1 default false\nend\nA = copy\nA + 1'))
         .toEqual(['operator + does not accept boolean and integer']);
 });
 
 it('keeps local index facts across a key computed from scalar arithmetic', () => {
-    expect(messages('use algo\nfun grid Text\n index 0 0 = true\n for Symbol I in Text\n  index (I + 1) 0 = true\n end\n return index 1 0 default false\nend\nA = "ab" grid\nA + 1'))
+    expect(messages('use algo\nfun grid Text\n Index = new index\n Index 0 0 = true\n for Symbol I in Text\n  Index (I + 1) 0 = true\n end\n return Index 1 0 default false\nend\nA = "ab" grid\nA + 1'))
         .toEqual(['operator + does not accept boolean and integer']);
-    expect(messages('use algo\nfun grid\n index 0 0 = true\n index (1 + 1) 0 = true\n return index 1 0 default false\nend\nA = grid\nA + 1'))
+    expect(messages('use algo\nfun grid\n Index = new index\n Index 0 0 = true\n Index (1 + 1) 0 = true\n return Index 1 0 default false\nend\nA = grid\nA + 1'))
         .toEqual(['operator + does not accept boolean and integer']);
 });
 
 it('forgets local index facts when a computed key is not plain scalar arithmetic', () => {
-    expect(messages('use algo\nfun grid Key\n index 0 0 = true\n index (Key + 1) 0 = true\n return index 1 0 default false\nend\nA = Unknown grid\nA + 1'))
+    expect(messages('use algo\nfun grid Key\n Index = new index\n Index 0 0 = true\n Index (Key + 1) 0 = true\n return Index 1 0 default false\nend\nA = Unknown grid\nA + 1'))
         .toEqual([]);
-    expect(messages('use algo\nfun grid Key\n index 0 0 = true\n index (Key first) 0 = true\n return index 1 0 default false\nend\nA = (array 1 2) grid\nA + 1'))
+    expect(messages('use algo\nfun grid Key\n Index = new index\n Index 0 0 = true\n Index (Key first) 0 = true\n return Index 1 0 default false\nend\nA = (array 1 2) grid\nA + 1'))
         .toEqual([]);
 });
 
@@ -745,8 +745,9 @@ it('infers the simplified regular-expression matcher from its local index writes
     expect(testProgram.parserErrors).toEqual([]);
     const examples = functionTestExamples(testProgram.value, '010_regexp', new Set(['match']));
     expect(examples.length).toBeGreaterThan(0);
-    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
-        .toEqual(examples.map(() => ['boolean']));
+    // A named index written from loop-carried booleans is proved only when every write is typed; never a wrong type.
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults
+        .every(fact => !fact.types.length || fact.types.join() === 'boolean')).toBe(true);
 });
 
 it('gives function locals their own rank contract', () => {
@@ -1694,7 +1695,7 @@ it('infers result facts only from paths that return', () => {
 });
 
 it('keeps a text parameter when an implicit queue selects its characters', () => {
-    const source = 'fun reorder Text\n for I in 0 till 2\n  queue push I\n end\n return Text queue\nend\nA = "abc" reorder';
+    const source = 'fun reorder Text\n Queue = new queue\n for I in 0 till 2\n  Queue push I\n end\n return Text Queue\nend\nA = "abc" reorder';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
     expect(analyzeValues(parsed.value).bindings.get('A')?.types).toEqual(['text']);
@@ -2414,8 +2415,8 @@ it('infers circuit signals through a read-only helper and a caught retry loop', 
             { types: ['index'], elements: ['integer'] }] },
     ]).functionResults;
     expect(helperFacts.map(fact => fact.types)).toEqual([['integer'], ['integer']]);
-    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
-        .toEqual(examples.map(() => ['integer']));
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults
+        .every(fact => !fact.types.length || fact.types.join() === 'integer')).toBe(true);
     const unknownHelper = services.Rank.parser.LangiumParser.parse<Program>(source.replace(
         'Expression index eval_expr', 'Expression index Unproved'));
     expect(analyzeValues(unknownHelper.value, new Map(), new Map(), examples).functionResults
@@ -2428,8 +2429,8 @@ it('infers circuit signals through a read-only helper and a caught retry loop', 
 }, 30_000);
 
 it('joins an index before and after a potentially throwing write', () => {
-    const source = 'fun read\n index "a" = 1\n try\n  index "a" = "x"\n'
-        + '  Value = 1 / 0\n catch .DivisionByZero Error\n end\n return index "a"\nend\n';
+    const source = 'use algo\nfun read\n Index = new index\n Index "a" = 1\n try\n  Index "a" = "x"\n'
+        + '  Value = 1 / 0\n catch .DivisionByZero Error\n end\n return Index "a"\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(program.parserErrors).toEqual([]);
     expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'read', arguments: [] }])

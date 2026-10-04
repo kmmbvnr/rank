@@ -8,6 +8,7 @@ rem Return Text in zigzag row order.
 rem Visit vertical and diagonal positions
 rem within each repeating zigzag cycle.
 fun zigzag Text N
+  Queue = new queue
   if N equal 1
     return Text
   end
@@ -18,16 +19,16 @@ fun zigzag Text N
   for Row in 0 till N
     Step = Cycle - Row * 2
     for Position in Row till Length by Cycle
-      queue push Position
+      Queue push Position
 
       if Row greater 0 and Row less N - 1
         Diag = Position + Step
         if Diag less Length
-          queue push Diag
+          Queue push Diag
         end
       end
     end
   end
 
-  return Text queue
+  return Text Queue
 end

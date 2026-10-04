@@ -14,23 +14,24 @@ A K count_distinct_windows print
 
 rem Count windows with at most K values.
 fun count_distinct_windows A K
+  Index = new index
   Left = 0
   Distinct = 0
   Answer = 0
 
   for Value Right in A
-    Count = index Value default 0
+    Count = Index Value default 0
 
     if Count equal 0
       Distinct += 1
     end
 
-    index Value = Count + 1
+    Index Value = Count + 1
 
     for Distinct greater K
       X = A Left
-      Count = index X - 1
-      index X = Count
+      Count = Index X - 1
+      Index X = Count
 
       if Count equal 0
         Distinct -= 1

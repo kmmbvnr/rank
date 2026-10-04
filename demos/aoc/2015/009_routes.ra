@@ -17,21 +17,24 @@ Part2 print
 
 rem Find the shortest and longest routes that visit every city once.
 fun solve Lines
+  Index = new index
+  Queue = new queue
+  Seen = new set
   Pattern = "/word to /word = /integer"
 
   for Line in Lines
     unpack A B Distance = Line Pattern parse
-    set add A
-    set add B
-    index A B = Distance
-    index B A = Distance
+    Seen add A
+    Seen add B
+    Index A B = Distance
+    Index B A = Distance
   end
 
-  for Route in set permutations
-    queue push Route index distance
+  for Route in Seen permutations
+    Queue push Route Index distance
   end
 
-  Distances = queue
+  Distances = Queue
   Shortest = Distances min
   Longest = Distances max
   return array Shortest Longest

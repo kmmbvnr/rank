@@ -13,21 +13,22 @@ A X count_subarray_sums print
 
 rem Count equal prefix-sum differences.
 fun count_subarray_sums A Target
+  Index = new index
   Prefix = 0
   Answer = 0
 
-  index 0 = 1
+  Index 0 = 1
 
   for Value in A
     Prefix += Value
     Need = Prefix - Target
 
-    if Need in index
-      Answer += index Need
+    if Need in Index
+      Answer += Index Need
     end
 
-    Count = index Prefix default 0
-    index Prefix = Count + 1
+    Count = Index Prefix default 0
+    Index Prefix = Count + 1
   end
 
   return Answer

@@ -24,44 +24,46 @@ end
 
 rem Return number of houses visited by Santa.
 fun houses Moves
+  Seen = new set
   X = 0
   Y = 0
 
-  set add array X Y
+  Seen add array X Y
 
   for C in Moves
     X += C dx
     Y += C dy
-    set add array X Y
+    Seen add array X Y
   end
 
-  return set len
+  return Seen len
 end
 
 
 rem Return number of houses visited by Santa and Robo-Santa.
 rem Even moves belong to Santa, odd moves to Robo-Santa.
 fun robohouses Moves
+  Seen = new set
   SantaX = 0
   SantaY = 0
   RoboX = 0
   RoboY = 0
 
-  set add array 0 0
+  Seen add array 0 0
 
   for C i in Moves
     if i even
       SantaX += C dx
       SantaY += C dy
-      set add array SantaX SantaY
+      Seen add array SantaX SantaY
     else
       RoboX += C dx
       RoboY += C dy
-      set add array RoboX RoboY
+      Seen add array RoboX RoboY
     end
   end
 
-  return set len
+  return Seen len
 end
 
 

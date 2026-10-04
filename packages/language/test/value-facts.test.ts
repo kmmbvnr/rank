@@ -735,10 +735,11 @@ it('retains rank when a dimension is unknown', () => {
     expect(facts('Unknown')).toEqual({ types: [] });
 });
 
-it('recognizes implicit local collections without treating other names as values', () => {
+it('types a collection only by the structure it was created with', () => {
     for (const name of ['queue', 'set', 'counter', 'index']) {
-        expect(facts(name)).toEqual({ types: [name] });
-        const parsed = services.Rank.parser.LangiumParser.parse<Program>(`A = ${name}\n`);
+        // A bare structure word is no longer a value; `new` creates the one a name holds.
+        expect(facts(name)).toEqual({ types: [] });
+        const parsed = services.Rank.parser.LangiumParser.parse<Program>(`A = new ${name}\n`);
         const statement = parsed.value.statements[0];
         if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
         expect(typeOf(statement.value, () => undefined)).toEqual([name]);
@@ -747,24 +748,21 @@ it('recognizes implicit local collections without treating other names as values
 });
 
 it('retains result types when a collection selects an axis', () => {
-    expect(facts('"abcd" queue')).toEqual({ types: ['text'], rank: 1, shape: [null] });
     expect(facts('"abcd" 2')).toEqual({ types: ['text'], rank: 1, shape: [1] });
     const selected = services.Rank.parser.LangiumParser.parse<Program>('A = "abcd" 2\n');
     const statement = selected.value.statements[0];
     if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
     expect(typeOf(statement.value, () => undefined)).toEqual(['text']);
-    const textSelection = services.Rank.parser.LangiumParser.parse<Program>('A = "abcd" queue\n').value.statements[0];
-    if (!isAssignmentStatement(textSelection)) throw new Error('expected assignment');
-    expect(typeOf(textSelection.value, () => undefined)).toEqual(['text']);
     expect(facts('Source Indices', new Map([
         ['Source', { types: ['array'], rank: 2, shape: [3, 4], elements: ['integer'], eagerScalarCells: true }],
         ['Indices', { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true }],
     ]))).toMatchObject({ types: ['array'], rank: 2, shape: [2, 4], elements: ['integer'],
         callbackFreeScalarCells: true });
-    expect(facts('Source queue', new Map([
+    expect(facts('Source Picks', new Map([
         ['Source', { types: ['sequence'], rank: 1, shape: [5], elements: ['integer'] }],
+        ['Picks', { types: ['queue'], elements: ['integer'] }],
     ]))).toMatchObject({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
-    expect(facts('Unknown queue')).toEqual({ types: [] });
+    expect(facts('Unknown Picks', new Map([['Picks', { types: ['queue'], elements: ['integer'] }]]))).toEqual({ types: [] });
 });
 
 it('reads the declared type and element type of builtin values', () => {

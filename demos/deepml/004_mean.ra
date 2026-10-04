@@ -4,15 +4,16 @@ rem https://www.deep-ml.com/problems/4
 use algo
 
 fun matrix_mean A Mode
+  Queue = new queue
   if Mode equal "row"
     for Row in A
-      queue push Row sum / (Row len)
+      Queue push Row sum / (Row len)
     end
   else
     for Col in A axis 1 rank 1
-      queue push Col sum / (Col len)
+      Queue push Col sum / (Col len)
     end
   end
 
-  return queue
+  return Queue
 end

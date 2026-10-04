@@ -94,8 +94,7 @@ Standard language words are lowercase:
 ```rank
 for
 sum
-queue
-index
+new
 sqrt
 round
 ```
@@ -280,7 +279,7 @@ Sum = 0
 ```rank
 Result = 10
 Data .Age = Age
-index Key = Value
+Cache Key = Value
 ```
 
 Compound assignment updates an existing variable without repeating the left
@@ -1303,7 +1302,7 @@ fun walk
     yield Pos
   end
 end
-Seen = set
+Seen = new set
 for P in walk
   Seen add P
 end
@@ -1354,7 +1353,7 @@ needed to protect one name from another's writes.
 A i
 A i j
 Data .Age
-index Key
+Cache Key
 A sum
 A B gcd
 ```
@@ -1717,7 +1716,7 @@ than an array of one-character text values.
 
 ```rank
 X = A i default 0
-Last = index Key default -1
+Last = Cache Key default -1
 Age = Data .Age default Median
 ```
 
@@ -1869,7 +1868,8 @@ The unparenthesized form `for X in A` is always iteration. Parentheses make a
 membership expression a loop condition when that distinction is needed:
 
 ```rank
-for (X in index)
+Index = new index
+for (X in Index)
   ...
 end
 ```
@@ -3674,8 +3674,8 @@ row-selection rule.
 
 # Collections
 
-`use algo` provides standard algorithmic collections. `index`, `queue`, `set`
-and `counter` support implicit local naming; ordered multisets are named.
+`use algo` provides standard algorithmic collections. Each one is created
+with `new` and held by a name; there are no implicit per-function instances.
 
 ## Named structures
 
@@ -3701,7 +3701,16 @@ Bag add 1
 
 Constructors include `new index`, `new queue`, `new set`, `new counter`,
 `new multiset`, `new orderedset`, `new stack`, `new deque` and `new heap`.
-They do not replace the implicit local instance.
+
+`new Kind Items` fills the new structure from the items of one collection:
+a queue, stack, deque or heap is pushed in order (a heap uses each item as its
+own priority), and a set, counter or multiset is added to:
+
+```rank
+Pending = new queue (1 to 5)
+Seen = new set "hello"
+Counts = new counter (array 1 1 2)
+```
 
 An index addressed by an array or a finite sequence of keys gathers: it
 answers one value per key, in the shape of the keys. A missing key raises,
@@ -3712,8 +3721,7 @@ Labels = Part Nodes default 0
 ```
 
 Assignment and argument passing preserve the structure's reference.
-`Alias = Seen` shares `Seen`; `Seen = set` shares the current implicit set.
-Neither assignment creates a copy. Named structures can be captured by local
+`Alias = Seen` shares `Seen`. The assignment does not create a copy. Named structures can be captured by local
 functions and returned from functions.
 
 Named sets and counters accept `Name add Value`. A set keeps one equal
@@ -3730,34 +3738,34 @@ retain their separate comparable-type rule.
 Sets and counters still hash array contents for equality, so inserting a lazy
 array into either may evaluate its cells independently of the type check.
 
-Bare `index`, `queue`, `set` and `counter` refer only to the current
-function call's implicit instances, or the module instances at top level.
-Reading and writing use the same instances. To share a structure with another
-function, pass or capture its explicit name.
+A function that needs a structure creates its own with `new`; separate and
+recursive calls each get a fresh one. To share a structure with another
+function, pass or capture its name. The bare words `index`, `queue`, `set` and
+`counter` no longer name an instance and are an error that suggests `new`.
 
-## Implicit local structure
+`push` appends one value to a queue, stack, deque or heap, even an array.
+`push unpack Items` appends each item of a rank-1 array or tuple instead.
 
-If a function uses only one instance of a standard structure, the type word
-itself denotes that lazily-created local instance.
+## Index
 
-### Index
-
-`index` is a sparse keyed structure.
+An index is a sparse keyed structure, created with `new index`.
 
 ```rank
-index Value = Position
+use algo
+Cache = new index
+Cache Value = Position
 ```
 
 Read:
 
 ```rank
-j = index Need
+j = Cache Need
 ```
 
 Membership:
 
 ```rank
-if Need in index
+if Need in Cache
   ...
 end
 ```
@@ -3765,49 +3773,44 @@ end
 Default:
 
 ```rank
-Last = index C default -1
+Last = Cache C default -1
 ```
 
 Multi-dimensional keyed addressing:
 
 ```rank
-index A B C = Value
-X = index A B C
+Cache A B C = Value
+X = Cache A B C
 ```
 
-The complete tuple is the key, so an `index` can represent a sparse matrix or
+The complete tuple is the key, so an index can represent a sparse matrix or
 higher-dimensional tensor. It does not infer rectangular dimensions or carry a
 dense shape; programs keep those dimensions separately when needed. The key
 and value types are inferred from uses within the function.
 
-Bare `index` always refers to the current function call's local structure
-(or the module structure at top level), for both reading and writing.
-Recursive calls do not share it, and an outer implicit index is not inherited.
-
-Use an ordinary name to share a dictionary explicitly:
+An index is a reference structure. Passing it to a function preserves that
+reference, so every name sees the write:
 
 ```rank
 use algo
-Index = index
+Cache = new index
 
 fun store Cache K V
   Cache K = V
   return 0
 end
 
-X = Index 7 99 store
-Index 7 rem 99
+X = Cache 7 99 store
+Cache 7 rem 99
 ```
 
-`Index = index` aliases the current structure; it does not allocate a copy.
-Passing it as `Cache` preserves that reference. Named indices support reads,
-membership, padded reads and writes with the same complete tuple keys as
-implicit indices. Compound writes such as `Cache K += 1` require an existing
-entry. Keys may be integers, real numbers, booleans, text or labels. A named index can also
-be captured by a local function.
+An index supports reads, membership, padded reads and writes with complete
+tuple keys. Compound writes such as `Cache K += 1` require an existing
+entry. Keys may be integers, real numbers, booleans, text or labels. An index
+can also be captured by a local function.
 
 Index values may have different types, and replacing an entry may change its
-type. The collection element contract below does not apply to `index`.
+type. The collection element contract below does not apply to an index.
 
 ### Mutable collection element types
 
@@ -3888,23 +3891,22 @@ Materializing a queue-family container as an array takes O(n). Named containers
 are shared references when assigned, captured or passed to functions. Their
 runtime types are `.queue`, `.stack`, `.deque` and `.heap`.
 
-### Implicit queue
+### Queue methods
 
 ```rank
-queue push X
-return queue
+Pending = new queue
+Pending push X
+return Pending
 ```
 
-The first use of `queue` lazily creates one queue in the current function-call
-workspace. Separate and recursive calls receive separate queues. The queue is
-ordered, zero-based, iterable and addressable after it is returned.
+A queue is ordered, zero-based, iterable and addressable after it is returned.
 For elementwise operations, a queue behaves as a rank-1 array. This lets a
 function return a queue and a test compare it directly with an array literal.
 
 `push` takes one argument, so the rest of its line is one complete expression:
 
 ```rank
-queue push A i + Carry
+Pending push A i + Carry
 ```
 
 Structure methods place the receiver first and the method second. A method with
@@ -3916,49 +3918,49 @@ syntax.
 Addressed mutation uses assignment rather than a `put` method:
 
 ```rank
-index Row Column = Value
+Cache Row Column = Value
 A Row Column = Value
 ```
 
-An `index` writes a sparse tuple key. An array write requires one in-bounds
+An index writes a sparse tuple key. An array write requires one in-bounds
 index per dense axis and changes the array this name holds; a second name that
-was given the same array keeps what it was given. An `index` is a reference
+was given the same array keeps what it was given. An index is a reference
 structure, so every name for it sees the write. See
-[values and sharing](language/values-addressing.md#values-and-sharing).
+[values and sharing](values-addressing.md#values-and-sharing).
 
 ### Set
 
 ```rank
-set add X
-set remove X
-if X in set
+Seen = new set
+Seen add X
+Seen remove X
+if X in Seen
   ...
 end
-Count = set len
+Count = Seen len
 ```
 
-The first use of `set` lazily creates one set in the current function-call
-workspace. `add` is idempotent: adding an equal value again leaves the set
+`add` is idempotent: adding an equal value again leaves the set
 unchanged. `remove` deletes that value and raises `.Missing` when it is absent.
 Scalars, arrays and records can be elements. Array equality includes
 both shape and contents; record equality includes field names and recursively
 equal values. `in` tests membership, and `len` returns the number of unique
 elements.
 
-As with `queue`, separate and recursive function calls receive separate sets.
+Separate and recursive function calls each create their own set.
 A set is iterable in insertion order. Adding an existing value does not move
 it. An array is useful for a composite value such as a coordinate:
 
 ```rank
-set add array X Y
+Seen add array X Y
 ```
 
 A numeric set is a finite collection for `sum`, `min` and `max`:
 
 ```rank
-Total = set sum
-Smallest = set min
-Largest = set max
+Total = Seen sum
+Smallest = Seen min
+Largest = Seen max
 ```
 
 Each distinct value contributes once. An empty set sums to zero; `min` and
@@ -4278,21 +4280,18 @@ not enumerate the results.
 `counter` is a frequency map:
 
 ```rank
-counter add X
-Count = counter X
-Kinds = counter len
+Counts = new counter
+Counts add X
+Count = Counts X
+Kinds = Counts len
 ```
 
-The first use lazily creates one counter in the current function-call workspace.
 `add` increments the frequency by one. Addressing an absent key returns zero,
 and `len` returns the number of distinct keys. Scalar and array keys use the
 same equality as `set` elements. Separate and recursive calls receive separate
 counters. `counter` is a first-class value with runtime type `.counter`.
 
 Counter iteration and direct frequency assignment are not defined yet.
-
-If multiple structures of the same type are needed, they should be given
-explicit names.
 
 ## Design rule
 
@@ -4377,8 +4376,9 @@ Address a graph with one vertex to obtain a finite lazy sequence of its
 neighbors:
 
 ```rank
+Queue = new queue
 for Next in Graph Current
-  queue push Next
+  Queue push Next
 end
 ```
 
@@ -7962,15 +7962,16 @@ rem Return indices of two values
 rem whose sum equals Target.
 
 fun two_sum A Target
+  Index = new index
   for Value i in A
     Need = Target - Value
 
-    if Need in index
-      J = index Need
+    if Need in Index
+      J = Index Need
       return array J i
     end
 
-    index Value = i
+    Index Value = i
   end
 end
 ```
@@ -7979,7 +7980,7 @@ This demonstrates:
 - `array 2 7 11 15` construction and `A i` addressing;
 - explicit value/index binding `for Value i in A`;
 - user-defined functions and `return`;
-- implicit `index`;
+- a named `index` created with `new index`;
 - keyed membership and lookup.
 
 ## 2. Add Two Numbers
@@ -7989,6 +7990,7 @@ rem LeetCode 2: Add Two Numbers
 rem Add reverse-order digit arrays.
 
 fun add_two A B
+  Queue = new queue
   N = A len
   M = B len
   Size = N
@@ -8013,16 +8015,16 @@ fun add_two A B
     end
 
     Sum = X + Y + Carry
-    queue push Sum % 10
+    Queue push Sum % 10
     Carry = Sum // 10
     I += 1
   end
 
   if Carry greater 0
-    queue push Carry
+    Queue push Carry
   end
 
-  return queue
+  return Queue
 end
 ```
 
@@ -8037,19 +8039,20 @@ rem Find the longest window containing
 rem no repeated character.
 
 fun longest Text
+  Index = new index
   Start = 0
   Best = 0
 
   for C i in Text
-    if C in index
-      Last = index C
+    if C in Index
+      Last = Index C
 
       if Last at least Start
         Start = Last + 1
       end
     end
 
-    index C = i
+    Index C = i
     Size = i - Start + 1
 
     if Size greater Best

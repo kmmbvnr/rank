@@ -14,16 +14,17 @@ Prices Customers sell print
 
 rem Sell the best affordable ticket.
 fun sell Prices Customers
+  Queue = new queue
   Tickets = Prices multiset
 
   for Max in Customers
     Price = Tickets floor Max default -1
-    queue push Price
+    Queue push Price
 
     if Price not equal -1
       Tickets remove Price
     end
   end
 
-  return queue
+  return Queue
 end

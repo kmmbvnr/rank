@@ -22,6 +22,7 @@ end
 
 rem Restore a one-based permutation.
 fun kth_permutation N K
+  Queue = new queue
   Available = 1 to N multiset
   Block = N - 1 factorial
   K -= 1
@@ -29,7 +30,7 @@ fun kth_permutation N K
   for Remaining in N to 1 by -1
     Index = K // Block
     Value = Available Index
-    queue push Value
+    Queue push Value
     Available remove Value
 
     if Remaining greater 1
@@ -38,7 +39,7 @@ fun kth_permutation N K
     end
   end
 
-  return queue
+  return Queue
 end
 
 

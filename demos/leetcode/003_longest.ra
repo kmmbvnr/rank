@@ -5,15 +5,16 @@ rem no repeated character
 use algo
 
 fun longest Text
+  Index = new index
   Start = 0
   Best = 0
 
   for C i in Text
-    if C in index
-      Start = Start (index C + 1) max
+    if C in Index
+      Start = Start (Index C + 1) max
     end
 
-    index C = i
+    Index C = i
     Best = Best (i - Start + 1) max
   end
 

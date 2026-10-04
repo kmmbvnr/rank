@@ -53,7 +53,7 @@ fun walk
     yield Pos
   end
 end
-Seen = set
+Seen = new set
 for P in walk
   Seen add P
 end
@@ -104,7 +104,7 @@ needed to protect one name from another's writes.
 A i
 A i j
 Data .Age
-index Key
+Cache Key
 A sum
 A B gcd
 ```
@@ -453,7 +453,7 @@ than an array of one-character text values.
 
 ```rank
 X = A i default 0
-Last = index Key default -1
+Last = Cache Key default -1
 Age = Data .Age default Median
 ```
 

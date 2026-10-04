@@ -10,7 +10,10 @@ import {
 import type { FastPaths } from '../fast-paths.js';
 import type { FunctionInvocation } from '../function-invocation.js';
 import { graphConstructor } from '../graph.js';
+import { addToCollection, newStructure } from '../collections.js';
+import { pushCollection } from '../containers.js';
 import { dsuFrom } from '../dsu.js';
+import { finiteValues } from '../multiset.js';
 import type { BuiltinRegistry } from '../modules/builtins.js';
 import { fenwickSum, multisetQuery, namedSegment, symbolicSegment } from '../modules/algo.js';
 import { dsuQuery, functionalQuery } from '../modules/graph.js';
@@ -239,6 +242,19 @@ export class ApplicationEvaluator {
                 return function* (): Execution<RankValue> {
                     context.requireModule('graph', 'new dsu');
                     return dsuFrom(yield* resume(context.evaluate(parts[1])));
+                };
+            }
+            case 'new-filled': {
+                const structure = form.structure;
+                return function* (): Execution<RankValue> {
+                    context.requireModule('algo', 'new');
+                    const filled = newStructure(structure);
+                    const items = yield* resume(context.evaluate(parts[1]));
+                    for (const item of finiteValues(items)) {
+                        if (['queue', 'stack', 'deque', 'heap'].includes(structure)) pushCollection(filled, item);
+                        else addToCollection(filled, item);
+                    }
+                    return filled;
                 };
             }
             case 'named-outer': {

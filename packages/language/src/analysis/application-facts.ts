@@ -85,7 +85,7 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
     switch (form.kind) {
         case 'checked-read':
             return infer(applicationExpression(form.parts, expression), lookup);
-        case 'plain': case 'new-dsu': case 'new-graph': case 'text-format': case 'rank':
+        case 'plain': case 'new-dsu': case 'new-filled': case 'new-graph': case 'text-format': case 'rank':
         case 'named-segment': case 'named-outer': case 'sort-direction':
         case 'axis-length': case 'axis-reduction': case 'axis-covariance': case 'axis-correlation':
         case 'dsu-method': case 'functional-method': case 'graph-edges': case 'materialize-pipeline':

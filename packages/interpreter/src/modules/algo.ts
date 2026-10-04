@@ -1,7 +1,7 @@
 import { checkpoint } from '../interrupt.js';
 import { MissingValueError, RankError } from '../errors.js';
-import { RankDeque, expectDeque, expectHeap, peekCollection, pushCollection } from '../containers.js';
-import { addToCollection, newStructure, removeFromCollection } from '../collections.js';
+import { expectDeque, expectHeap, peekCollection, pushCollection } from '../containers.js';
+import { addToCollection, removeFromCollection } from '../collections.js';
 import { RankFenwick, expectFenwick } from '../fenwick.js';
 import { FlatRecords } from '../flat.js';
 import { indexKey } from '../index-key.js';
@@ -25,10 +25,6 @@ import {
     isRankSet,
     type NativeFunction,
     type RankArray,
-    type RankCounter,
-    type RankIndex,
-    type RankQueue,
-    type RankSet,
     type RankValue,
 } from '../value.js';
 import { expectInteger, native } from './shared.js';
@@ -498,21 +494,7 @@ function segmentItems(value: RankValue): RankValue[] {
     throw new RankError('segment expects a rank-1 value');
 }
 
-/** A structure a scope creates the first time its name is used. */
-export interface ImplicitStructure<T extends RankValue> {
-    is(value: RankValue): value is T;
-    create(): T;
-}
-
-/** `index`, `queue`, `set` and `counter` name one structure per scope without a declaration. */
-export const IMPLICIT_STRUCTURES = {
-    index: { is: isRankIndex, create: () => newStructure('index') as RankIndex },
-    queue: { is: isRankQueue, create: (): RankQueue => new RankDeque() },
-    set: { is: isRankSet, create: () => newStructure('set') as RankSet },
-    counter: { is: isRankCounter, create: () => newStructure('counter') as RankCounter },
-} satisfies Record<string, ImplicitStructure<RankValue>>;
-
-export function implicitStructure(name: string): ImplicitStructure<RankValue> | undefined {
-    return Object.prototype.hasOwnProperty.call(IMPLICIT_STRUCTURES, name)
-        ? IMPLICIT_STRUCTURES[name as keyof typeof IMPLICIT_STRUCTURES] : undefined;
-}
+/** Bare names that once denoted a per-scope structure and now need an explicit `new` instance. */
+export const RETIRED_IMPLICIT_NAMES: ReadonlyMap<string, string> = new Map([
+    ['index', 'Cache'], ['queue', 'Pending'], ['set', 'Seen'], ['counter', 'Counts'],
+]);

@@ -14,6 +14,7 @@ N Moves stick_game print
 
 rem Gather all possible predecessors.
 fun stick_game N Moves
+  Queue = new queue
   Winning = array shape (N + 1) fill false
 
   for Sticks in 1 to N
@@ -25,8 +26,8 @@ fun stick_game N Moves
 
     Winning Sticks = Win
     Outcome = Win "W" "L" choose
-    queue push Outcome
+    Queue push Outcome
   end
 
-  return queue "" join
+  return Queue "" join
 end

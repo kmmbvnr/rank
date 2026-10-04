@@ -104,9 +104,10 @@ describe('Rank records', () => {
             '  .name = "same"',
             '  .value = 1',
             'end',
-            'set add A',
-            'set add B',
-            'B in set and set len equal 1',
+            'Seen = new set',
+            'Seen add A',
+            'Seen add B',
+            'B in Seen and Seen len equal 1',
         ].join('\n'))).toBe('true');
     });
 
@@ -156,7 +157,7 @@ describe('Rank records', () => {
             'Node = record',
             '  .grad = 0.0',
             'end',
-            'Tape = queue',
+            'Tape = new queue',
             'Tape push Node',
             'Tape 0 .grad = 4.0',
             'Node .grad',

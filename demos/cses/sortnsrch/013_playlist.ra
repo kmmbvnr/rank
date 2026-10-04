@@ -12,15 +12,16 @@ A longest_distinct print
 
 rem Find the longest distinct segment.
 fun longest_distinct A
+  Index = new index
   Left = 0
   Best = 0
 
   for Value i in A
-    if Value in index
-      Left = Left (index Value + 1) max
+    if Value in Index
+      Left = Left (Index Value + 1) max
     end
 
-    index Value = i
+    Index Value = i
 
     Size = i - Left + 1
     Best = Best Size max

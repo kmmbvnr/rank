@@ -48,8 +48,9 @@ end
 Graphs integrate directly with Rank's whitespace addressing equation ($\text{value} + \text{selector} \rightarrow \text{value}$):
 - **Unweighted Neighbors:** Addressing the graph with a vertex returns an immutable snapshot sequence of its neighbors:
   ```rank
+Queue = new queue
   for Next in Graph Current
-    queue push Next
+    Queue push Next
   end
   ```
 - **Weighted Edges:** The `edges` method returns outgoing `array Next Cost` pairs, destructurable via `unpack`:

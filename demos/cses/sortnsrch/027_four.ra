@@ -20,14 +20,15 @@ end
 
 rem Match each pair with an earlier pair.
 fun find_four A Target
+  Index = new index
   N = A len
 
   for i in 0 till N
     for j in i + 1 till N
       Need = Target - A i - A j
 
-      if Need in index
-        Pair = index Need
+      if Need in Index
+        Pair = Index Need
         P = Pair 0 + 1
         Q = Pair 1 + 1
         R = i + 1
@@ -38,7 +39,7 @@ fun find_four A Target
 
     for k in 0 till i
       Sum = A k + A i
-      index Sum = array k i
+      Index Sum = array k i
     end
   end
 

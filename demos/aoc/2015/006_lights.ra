@@ -41,6 +41,7 @@ end
 
 rem Apply the binary light rules to a sparse grid.
 fun lights Lines
+  Index = new index
   Count = 0
 
   for Line in Lines
@@ -48,7 +49,7 @@ fun lights Lines
 
     for Y in Y1 to Y2
       for X in X1 to X2
-        Old = index X Y default false
+        Old = Index X Y default false
         New = true
         if Op equal "off"
           New = false
@@ -57,7 +58,7 @@ fun lights Lines
         end
 
         if New not equal Old
-          index X Y = New
+          Index X Y = New
           if New
             Count += 1
           else
@@ -74,6 +75,7 @@ end
 
 rem Apply the brightness rules to a sparse integer grid.
 fun brightness Lines
+  Index = new index
   Total = 0
 
   for Line in Lines
@@ -81,7 +83,7 @@ fun brightness Lines
 
     for Y in Y1 to Y2
       for X in X1 to X2
-        Value = index X Y default 0
+        Value = Index X Y default 0
 
         if Op equal "on"
           Value += 1
@@ -94,7 +96,7 @@ fun brightness Lines
           Total -= 1
         end
 
-        index X Y = Value
+        Index X Y = Value
       end
     end
   end

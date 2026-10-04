@@ -11,9 +11,9 @@ import { flattenApplication as flatten } from '../expressions.js';
  */
 
 import {
-    isTupleExpression, isAddStatement, isApplicationExpression, isArgsStatement, isArgumentStatement,
+    isTupleExpression, isApplicationExpression, isArgsStatement, isArgumentStatement,
     isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isFlagStatement,
-    isForStatement, isFunctionStatement, isIfStatement, isIndexAssignmentStatement,
+    isForStatement, isFunctionStatement, isIfStatement,
     isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression,
     isMaterializeExpression, isNameExpression, isOptionStatement, isParenthesizedExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression, isSelectLocal,
@@ -365,15 +365,6 @@ class Analyzer {
         }
         if (isPushStatement(statement)) {
             this.mutate(statement.receiver);
-            this.expression(statement.value);
-            return;
-        }
-        if (isAddStatement(statement)) {
-            this.expression(statement.value);
-            return;
-        }
-        if (isIndexAssignmentStatement(statement)) {
-            for (const key of statement.keys) this.expression(key);
             this.expression(statement.value);
             return;
         }

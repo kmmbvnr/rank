@@ -7,8 +7,9 @@ a dictionary.
 
 ```rank
 use algo
-index "red" = 3
-index "red"
+Colors = new index
+Colors "red" = 3
+Colors "red"
 ```
 
 ```result
@@ -18,24 +19,25 @@ index "red"
 ### Usage
 
 ```text
-index Key = Value
-index Key
+Name = new index
+Name Key = Value
+Name Key
 ```
 
 Keys can be numbers, text or other
 single values, and need not be
-consecutive. Each function has its own
-index.
+consecutive. Give each index a name
+with new index.
 
 ### Notes
 
 Reading a key that was never stored is
 an error. Add default for a fallback:
-`index "blue" default 0`.
+`Colors "blue" default 0`.
 
 ### See also
 
-new, counter add, default
+new, add, default
 
 ## new
 
@@ -57,7 +59,13 @@ Q pop
 
 ```text
 new Kind
+new Kind Items
 ```
+
+With Items, the container starts with
+each item of that collection: a queue,
+stack, deque or heap is pushed in order,
+a set, counter or multiset is added to.
 
 Containers change in place. Giving one a
 second name does not copy it: both names
@@ -87,7 +95,12 @@ Q pop
 
 ```text
 Container push Value
+Container push unpack Items
 ```
+
+push Value puts one value in, even an
+array. push unpack Items puts each item
+in.
 
 What pop gives back next depends on the
 container: a queue gives the oldest
@@ -97,71 +110,6 @@ smallest.
 ### See also
 
 pop, peek, enqueue, new
-
-## set add
-
-Add a value to this function's built-in
-set.
-
-Adding 3 twice still leaves one item.
-
-```rank
-use algo
-set add 3
-set add 3
-set len
-```
-
-```result
-1
-```
-
-### Usage
-
-```text
-set add Value
-```
-
-The word set alone is a ready-made set,
-one per function. A set holds each value
-once. For more than one set, use new
-set.
-
-### See also
-
-add, new, counter add
-
-## counter add
-
-Count a value in this function's
-built-in counter.
-
-```rank
-use algo
-counter add "a"
-counter add "a"
-counter "a"
-```
-
-```result
-2
-```
-
-### Usage
-
-```text
-counter add Value
-counter Value
-```
-
-The word counter alone is a ready-made
-counter, one per function. Read a count
-with `counter Value`. For more than one
-counter, use new counter.
-
-### See also
-
-add, set add, vocab
 
 ## add
 
@@ -191,7 +139,7 @@ multiset keeps every copy.
 
 ### See also
 
-remove, set add, counter add, multiset
+remove, new, multiset
 
 ## ceiling
 

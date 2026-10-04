@@ -12,17 +12,18 @@ Values increasing_subsequences print
 
 rem Count prefixes by compressed rank.
 fun increasing_subsequences Values
+  Index = new index
   Modulus = 1000000007
   Sorted = Values sort unique
 
   for Value Rank in Sorted
-    index Value = Rank
+    Index Value = Rank
   end
 
   Counts = Sorted len fenwick
 
   for Value in Values
-    Rank = index Value
+    Rank = Index Value
     Prefix = Counts sum (Rank - 1)
     Ways = (1 + Prefix) % Modulus
     Counts Rank = (Counts Rank + Ways) % Modulus

@@ -11,3 +11,9 @@ describe('a lowercase name before an assignment', () => {
         expect(() => run('X = 1 +* 2')).not.toThrow(/capital letter/);
     });
 });
+
+describe('the retired implicit index write', () => {
+    it('points at new index', () => {
+        expect(() => run('use algo\nindex 1 = 2')).toThrow(/a bare `index` is no longer an implicit index: create one with `Cache = new index`/);
+    });
+});

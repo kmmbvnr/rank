@@ -73,8 +73,9 @@ Address a graph with one vertex to obtain a finite lazy sequence of its
 neighbors:
 
 ```rank
+Queue = new queue
 for Next in Graph Current
-  queue push Next
+  Queue push Next
 end
 ```
 

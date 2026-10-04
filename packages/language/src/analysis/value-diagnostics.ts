@@ -8,10 +8,10 @@ import { requirementDiagnostics } from './requirement-diagnostics.js';
 import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isNumberLiteral, isStringLiteral, isParenthesizedExpression,
     isTupleExpression, isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
-    isArrayAssignmentStatement, isAssignmentStatement, isIndexAssignmentStatement, isBinaryExpression,
+    isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression,
     isExpressionStatement, isNewStructureExpression, isRecordExpression, isRecordUpdateExpression,
     isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, 
-    isAddStatement, isArgumentStatement, isOptionStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
+    isArgumentStatement, isOptionStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isTakeWhileExpression,
     type Expression, type Program, type Statement, type FunctionStatement,
@@ -217,8 +217,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             for (const item of statement.statements) {
                 if (isAssignmentStatement(item)) {
                     if (indexNames.includes(item.name)) return;
-                } else if (isIndexAssignmentStatement(item)) {
-                    if (!item.keys.every(key => directValue(key) && isAtom(expressionFacts(key, name => prefix.get(name))))
+                } else if (isArrayAssignmentStatement(item) && item.operator === '=' && indexNames.includes(item.name)) {
+                    if (!item.indices.every(index => !index.all && !index.spread && !!index.value && directValue(index.value)
+                            && isAtom(expressionFacts(index.value, name => prefix.get(name))))
                         || !(directValue(item.value) || scalarArithmetic(item.value, prefix)
                             || scalarBitwise(item.value, prefix))) return;
                 } else if (isReturnStatement(item)) {
@@ -238,7 +239,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             }
             const privateNames = privateBindings.at(-1);
             return new Map([...env.keys()].flatMap(name => {
-                if (!privateNames?.has(name) && !(privateNames && name === 'index')) return [];
+                if (!privateNames?.has(name)) return [];
                 const fact = joinValueFacts(paths.map(path => path.get(name) ?? UNKNOWN_VALUE));
                 return fact.types.length ? [[name, fact] as const] : [];
             }));
@@ -394,34 +395,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     }
                 }
             } else if (/^[a-z]/.test(node.name) && !env.has(node.name) && !syntax.has(node.name)) {
-                if (node.name === 'index') {
-                    let site: AstNode = node;
-                    while (isApplicationExpression(site.$container)
-                        || isParenthesizedExpression(site.$container)) site = site.$container;
-                    const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
-                    if (!parts.length || parts[0] === node && parts.slice(1).every(directValue)) continue;
-                }
-                if (['queue', 'set', 'counter'].includes(node.name)) {
-                    let site: AstNode = node;
-                    while (isParenthesizedExpression(site.$container)) site = site.$container;
-                    if (!isApplicationExpression(site.$container)) continue;
-                    if (node.name === 'counter') {
-                        const parts = flattenApplication(site.$container);
-                        const key = parts[1] && expressionFacts(parts[1], name => env.get(name));
-                        if (parts.length === 2 && parts[0] === node && directValue(parts[1])
-                            && key && isAtom(key) && key.types.length > 0
-                            && key.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol',
-                                'date', 'datetime'].includes(type))) continue;
-                    }
-                    if (node.name === 'queue') {
-                        while (isApplicationExpression(site.$container)) site = site.$container;
-                        const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
-                        if (parts.length === 2 && parts[1] === node) {
-                            const source = expressionFacts(parts[0], name => env.get(name));
-                            if (safeRead(source) || source.types.join() === 'queue') continue;
-                        }
-                    }
-                }
                 if (node.name === 'raise') {
                     let site: AstNode = node;
                     while (isApplicationExpression(site.$container)) site = site.$container;
@@ -922,47 +895,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         ...(source.integers?.[index] != null ? { integer: String(source.integers[index]) } : {}),
                     }, statement, env);
                 }
-            } else if (isAddStatement(statement)) {
-                invalidateCalls(statement.value, env);
-                if (!directValue(statement.value)) {
-                    forgetNonFunctions(env);
-                }
-                const value = inspect(statement.value, env);
-                if (!value.types.length || !value.types.every(type =>
-                    ['integer', 'real', 'boolean', 'text', 'symbol', 'date', 'datetime'].includes(type))) {
-                    forgetNonFunctions(env);
-                }
-            } else if (isIndexAssignmentStatement(statement)) {
-                let safeKeys = true;
-                for (const key of statement.keys) {
-                    invalidateCalls(key, env);
-                    // Scalar arithmetic only reads numbers, so a computed key leaves other facts intact.
-                    const pureKey = directValue(key) || scalarArithmetic(key, env);
-                    if (!pureKey) {
-                        forgetNonFunctions(env);
-                    }
-                    const fact = inspect(key, env);
-                    safeKeys &&= pureKey && fact.types.length > 0
-                        && fact.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type));
-                }
-                invalidateCalls(statement.value, env);
-                const booleanValue = isBinaryExpression(statement.value)
-                    && ['and', 'or', 'xor'].includes(statement.value.operator)
-                    && [statement.value.left, statement.value.right].every(value => directValue(value)
-                        && expressionFacts(value, name => env.get(name)).types.join() === 'boolean');
-                const safeValue = directValue(statement.value) || safeIndexDefault(statement.value, env) || booleanValue
-                    || scalarArithmetic(statement.value, env) || scalarBitwise(statement.value, env);
-                if (!safeValue) {
-                    forgetNonFunctions(env);
-                }
-                const replacement = inspect(statement.value, env);
-                if (env.get('index')?.types.join() === 'index') {
-                    for (const [name, fact] of env) if (fact.types.join() === 'index') {
-                        env.set(name, { ...fact,
-                            elements: fact.elements !== undefined && safeKeys && safeValue && replacement.types.length
-                                ? [...new Set([...fact.elements, ...replacement.types])] : undefined });
-                    }
-                }
             } else if (isPushStatement(statement)) {
                 const receiver = isNameExpression(statement.receiver) ? statement.receiver.name : undefined;
                 for (const value of [statement.receiver, statement.value]) {
@@ -1121,16 +1053,23 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         }
                     }
                 } else if (fact?.types.join() === 'index' && statement.operator === '='
-                    && statement.indices.every((index, position) => !index.all && !index.spread
-                        && !!index.value && directValue(index.value) && !!selectors[position]?.types.length
+                    && statement.indices.every(index => !index.all && !index.spread && !!index.value
+                        && (directValue(index.value) || scalarArithmetic(index.value, env)))
+                    && (directValue(statement.value) || safeIndexDefault(statement.value, env)
+                        || scalarArithmetic(statement.value, env) || scalarBitwise(statement.value, env)
+                        || isBinaryExpression(statement.value) && ['and', 'or', 'xor'].includes(statement.value.operator)
+                            && [statement.value.left, statement.value.right].every(value => directValue(value)
+                                && expressionFacts(value, name => env.get(name)).types.join() === 'boolean'))) {
+                    // Pure keys and values leave other facts intact. Named indices may alias any other index,
+                    // so every index widens, and its value types are forgotten unless this write is fully typed.
+                    const typed = statement.indices.every((index, position) => !!selectors[position]?.types.length
                         && selectors[position]!.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type)))
-                    && directValue(statement.value) && isAtom(replacement) && replacement.types.length > 0
-                    && replacement.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol',
-                        'date', 'datetime'].includes(type))) {
-                    // Named indices may alias any other index, including the implicit local one.
+                        && isAtom(replacement) && replacement.types.length > 0
+                        && replacement.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol',
+                            'date', 'datetime'].includes(type));
                     for (const source of [env, globalCallEnvs.at(-1)]) if (source) for (const [name, value] of source) {
                         if (value.types.join() === 'index') source.set(name, { ...value,
-                            elements: value.elements === undefined ? undefined
+                            elements: value.elements === undefined || !typed ? undefined
                                 : [...new Set([...value.elements, ...replacement.types])] });
                     }
                 } else if ((isPlainArrayWrite(statement, integerSelector)

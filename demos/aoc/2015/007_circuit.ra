@@ -29,22 +29,23 @@ end
 rem Resolve Target by repeatedly evaluating
 rem instructions with ready inputs.
 fun circuit Lines Target Override
+  Index = new index
   if Override at least 0
-    index "b" = Override 65535 band
+    Index "b" = Override 65535 band
   end
 
   Pattern = "/text -> /word"
 
-  for not Target in index
+  for not Target in Index
     Progress = false
 
     for Line in Lines
       unpack Expression Dest = Line Pattern parse
 
-      if not Dest in index
+      if not Dest in Index
         try
-          Value = Expression index eval_expr
-          index Dest = Value 65535 band
+          Value = Expression Index eval_expr
+          Index Dest = Value 65535 band
           Progress = true
         catch .NotReady Error
         end
@@ -56,7 +57,7 @@ fun circuit Lines Target Override
     end
   end
 
-  return index Target
+  return Index Target
 end
 
 

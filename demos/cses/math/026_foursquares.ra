@@ -14,6 +14,7 @@ end
 
 rem Meet two pairs of squares by sum.
 fun four_squares N
+  Index = new index
   Limit = N isqrt
   Width = Limit + 1
 
@@ -22,11 +23,11 @@ fun four_squares N
     for B in 0 to (Remaining isqrt)
       Sum = A ** 2 + B ** 2
       Code = A * Width + B
-      index Sum = Code
+      Index Sum = Code
 
       Need = N - Sum
-      if Need in index
-        Other = index Need
+      if Need in Index
+        Other = Index Need
         C = Other // Width
         D = Other % Width
         return array A B C D

@@ -33,7 +33,7 @@ fun visit Log N
  Log push N
  return N
 end
-Log = queue
+Log = new queue
 M = array shape 2 2 fill 0
 M ((10000 down) + (Log 1 visit)) (Log 0 visit) = Log 7 visit
 M 1 0 += Log 3 visit
@@ -75,7 +75,7 @@ fun coordinates Log
   Log push 1
   return array 0 1
 end
-Log = queue
+Log = new queue
 Grid = array shape 1 2 fill 0
 Grid unpack (Log coordinates) = 9
 Log len`)).toBe('1');

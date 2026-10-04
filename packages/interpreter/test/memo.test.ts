@@ -8,7 +8,7 @@ describe('memo functions and explicit index caches', () => {
         expect(interpreter.execute(`
 use algo
 use io
-Index = index
+Index = new index
 fun fib N Cache
   if N in Cache
     return Cache N
@@ -35,7 +35,7 @@ end
         const interpreter = new Interpreter();
         expect(interpreter.execute(`
 use algo
-Index = index
+Index = new index
 Alias = Index
 fun store Cache K V
   Cache K = V
@@ -54,20 +54,22 @@ Index "a|text:b" "c"
         expect(() => interpreter.execute('Index 8 += 1')).toThrowError('index key not found');
     });
 
-    it('keeps implicit index reads and writes local even when an outer index exists', () => {
+    it('keeps a function-local index apart from a top-level one with the same name', () => {
         const interpreter = new Interpreter();
         expect(interpreter.execute(`
 use algo
-index 1 = 100
+Cache = new index
+Cache 1 = 100
 fun local N
-  Before = index 1 default -1
-  index 1 = N
+  Cache = new index
+  Before = Cache 1 default -1
+  Cache 1 = N
   return Before
 end
 7 local
 `)).toBe(-1n);
         expect(interpreter.execute('8 local')).toBe(-1n);
-        expect(interpreter.execute('index 1')).toBe(100n);
+        expect(interpreter.execute('Cache 1')).toBe(100n);
     });
 
     it('caches every Fibonacci state and shares the cache through aliases', () => {

@@ -20,6 +20,7 @@ end
 
 rem Fit a sequence of decision stumps.
 fun adaboost_fit X Y Classifiers
+  Queue = new queue
   unpack N Features = X shape
   if Y len not equal N
     .DimensionMismatch raise
@@ -80,8 +81,8 @@ fun adaboost_fit X Y Classifiers
     Scale = -Alpha * Y * Pred
     Weight *= Scale exp
     Weight /= Weight sum
-    queue push Best
+    Queue push Best
   end
 
-  return queue
+  return Queue
 end

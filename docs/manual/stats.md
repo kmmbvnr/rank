@@ -220,7 +220,7 @@ column, missing cells are skipped.
 
 ### See also
 
-mean, median, counter add
+mean, median, add
 
 ## mse
 

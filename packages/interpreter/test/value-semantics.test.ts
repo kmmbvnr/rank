@@ -91,19 +91,19 @@ describe('value semantics for arrays', () => {
     it('gives a stored value to a record, a queue and an index', () => {
         expect(run(`${SEQ}A = array 1 2\nR = record\n  .v = A\nend\nA 0 = 9\nR .v`))
             .toBe('1 2');
-        expect(run(`${ALGO}A = array 1 2\nQ = queue\nQ push A\nA 0 = 9\nQ pop`))
+        expect(run(`${ALGO}A = array 1 2\nQ = new queue\nQ push A\nA 0 = 9\nQ pop`))
             .toBe('1 2');
-        expect(run(`${ALGO}A = array 1 2\nindex 1 = A\nA 0 = 9\nindex 1`))
+        expect(run(`${ALGO}A = array 1 2\nCache = new index\nCache 1 = A\nA 0 = 9\nCache 1`))
             .toBe('1 2');
     });
 
     it('stores the value a generator yielded, not its buffer', () => {
         const src = `${ALGO}fun src\n  Pos = array 1 1\n  for # in 1 to 3\n`
             + '    Pos 0 += 1\n    yield Pos\n  end\nend\n';
-        expect(run(`${src}S = set\nfor P in src\n  S add P\nend\nS len`)).toBe('3');
-        expect(run(`${src}Seen = set\nfor P in src\n  Seen add P\nend\n`
+        expect(run(`${src}S = new set\nfor P in src\n  S add P\nend\nS len`)).toBe('3');
+        expect(run(`${src}Seen = new set\nfor P in src\n  Seen add P\nend\n`
             + 'Total = 0\nfor V in Seen\n  Total += V 0\nend\nTotal')).toBe('9');
-        expect(run(`${src}Q = queue\nfor P in src\n  Q push P\nend\nQ pop`)).toBe('2 1');
+        expect(run(`${src}Q = new queue\nfor P in src\n  Q push P\nend\nQ pop`)).toBe('2 1');
     });
 
     it('leaves a loop row and the array it came from independent', () => {
@@ -144,7 +144,7 @@ describe('reference values that stay shared', () => {
     });
 
     it('shares an algo container through every binding', () => {
-        expect(run('use algo\nA = set\nB = A\nB add 1\nA len')).toBe('1');
+        expect(run('use algo\nA = new set\nB = A\nB add 1\nA len')).toBe('1');
     });
 });
 

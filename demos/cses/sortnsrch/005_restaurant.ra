@@ -6,7 +6,7 @@ use algo
 use sequences
 
 N = stdin .integer
-Events = queue
+Events = new queue
 
 for # in 1 to N
   Arrive = stdin .integer

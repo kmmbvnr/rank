@@ -58,15 +58,16 @@ end
 
 rem Check for a repeated pair and a letter repeated after one position.
 fun nice2 S
+  Index = new index
   Pair = false
 
   for P i in S 2 window
-    First = index P default -1
+    First = Index P default -1
     if First at least 0 and i at least First + 2
       Pair = true
     end
     if First equal -1
-      index P = i
+      Index P = i
     end
   end
 

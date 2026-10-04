@@ -313,6 +313,9 @@ export type ApplicationLookup = (name: string) => Operation | false | undefined;
 type Recognized<K extends string, F extends (...args: never[]) => unknown> =
     { readonly kind: K } & NonNullable<ReturnType<F>>;
 
+/** Structures that `new X Items` fills from the items of one collection. */
+const FILLED_STRUCTURES: ReadonlySet<string> = new Set(['queue', 'stack', 'deque', 'heap', 'set', 'counter', 'multiset', 'orderedset']);
+
 export type ApplicationForm =
     | { readonly kind: 'plain' }
     | { readonly kind: 'checked-read'; readonly reader: 'csv' | 'json' | 'xml'; readonly parts: readonly Expression[] }
@@ -320,6 +323,7 @@ export type ApplicationForm =
     | { readonly kind: 'unpack' }
     | { readonly kind: 'new-graph' }
     | { readonly kind: 'new-dsu' }
+    | { readonly kind: 'new-filled'; readonly structure: string }
     | { readonly kind: 'text-format'; readonly position: number }
     | Recognized<'collection-mutation', typeof explicitCollectionMutation>
     | Recognized<'comparison-rank', typeof explicitComparisonRank>
@@ -420,6 +424,10 @@ function classifyParts(parts: Expression[]): ApplicationForm {
     if (parts.some(isUnpackExpression)) return { kind: 'unpack' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'graph') return { kind: 'new-graph' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'dsu') return { kind: 'new-dsu' };
+    // `new queue Items`: a collection filled from the items of one collection.
+    if (isNewStructureExpression(parts[0]) && FILLED_STRUCTURES.has(parts[0].structure))
+        return parts.length === 2 ? { kind: 'new-filled', structure: parts[0].structure }
+            : { kind: 'invalid', message: `new ${parts[0].structure} takes one collection to fill it from` };
     const form0 = explicitNamedOuterApplication(parts);
     if (form0) return { ...form0, kind: 'named-outer' };
     const form1 = explicitRankApplication(parts);

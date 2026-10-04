@@ -513,7 +513,7 @@ export function createReplSession(host: ReplHost = {}) {
             '  fun name X ... return X ... end',
             '  try ... catch Error ... end',
             '  Q push X',
-            '  set add X',
+            '  Q push unpack Items',
             '  new graph',
             '  array 1 2 3',
             '',

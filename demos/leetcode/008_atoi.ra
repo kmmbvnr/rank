@@ -8,11 +8,12 @@ rem Parse the decimal prefix of Text.
 rem Accumulate a negative result so the
 rem lower 32-bit bound remains representable.
 fun atoi Text
+  Index = new index
   N = Text len
   Position = 0
 
   for Symbol j in "0123456789"
-    index Symbol = j
+    Index Symbol = j
   end
 
   for Position less N
@@ -47,10 +48,10 @@ fun atoi Text
   for Position less N
     C = Text Position
 
-    if C not in index
+    if C not in Index
       break
     end
-    Digit = index C
+    Digit = Index C
 
     if Result less Mult
       return Negative clamp

@@ -18,17 +18,18 @@ Part2 print
 
 rem Parse replacement rules and solve both molecule questions.
 fun solve Lines
+  Queue = new queue
   Target = ""
 
   for Line in Lines
     if " => " in Line
-      queue push Line " => " split
+      Queue push Line " => " split
     elif Line len greater 0
       Target = Line
     end
   end
 
-  Part1 = queue Target variants
+  Part1 = Queue Target variants
   Part2 = Target medicine_steps
   return array Part1 Part2
 end
@@ -36,6 +37,7 @@ end
 
 rem Count distinct molecules made by applying exactly one rule once.
 fun variants Rules Target
+  Seen = new set
   for Rule in Rules
     From = Rule 0
     To = Rule 1
@@ -45,13 +47,13 @@ fun variants Rules Target
       for Start in 0 to Last
         if Target From Start matchat
           New = Target From To Start replaceat
-          set add New
+          Seen add New
         end
       end
     end
   end
 
-  return set len
+  return Seen len
 end
 
 

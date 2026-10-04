@@ -9,7 +9,7 @@ import {
     isBoundClauseExpression, isCountClauseExpression, isKeyedSortExpression, isUnaryExpression,
     type Expression,
 } from '../generated/ast.js';
-import { localCollectionType, resultTypes, typeOf } from './types.js';
+import { resultTypes, typeOf } from './types.js';
 import { findOperation } from '../operations.js';
 import { applicationExpressionFacts, takeDropFacts } from './application-facts.js';
 import { callbackFreeCondition, sliceFacts } from './binary-facts.js';
@@ -37,11 +37,9 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     if (isParenthesizedExpression(expression)) return expressionFacts(expression.value, lookup);
     if (isNameExpression(expression)) {
         const value = lookup(expression.name);
-        const local = localCollectionType(expression.name);
         const builtin = findOperation(expression.name);
         return value?.types.includes('function') && lookup.invoke && lookup.arity?.(expression.name) === 0
-            ? lookup.invoke(expression.name, []) : value ?? (local.length ? { types: local }
-                : builtin?.arities.length === 0 ? {
+            ? lookup.invoke(expression.name, []) : value ?? (builtin?.arities.length === 0 ? {
                     types: resultTypes(builtin),
                     ...(builtin.valueElements ? { elements: [builtin.valueElements] } : {}),
                     ...(builtin.valueCallbackFree ? { callbackFreeScalarCells: true as const } : {}),

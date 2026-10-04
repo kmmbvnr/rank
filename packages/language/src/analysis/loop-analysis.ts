@@ -1,10 +1,10 @@
 import { arrayBindingContract, contractElements } from './array-binding-contract.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isAddStatement, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement,
+    isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement,
     isBinaryExpression, isBooleanLiteral, isBreakStatement, isContinueStatement,
     isExpression, isExpressionStatement, isForStatement, isFunctionStatement, isIfStatement,
-    isIndexAssignmentStatement, isNameExpression, isNewStructureExpression,
+    isNameExpression, isNewStructureExpression,
     isParenthesizedExpression, isPushStatement, isStatement, isStdinExpression,
     isTryStatement, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type Statement,
@@ -117,8 +117,8 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
             && AstUtils.getContainerOfType(node, isForStatement) === statement);
         if (condition && isBinaryExpression(condition) && condition.operator === 'in' && !membership
             || contents.some(node => isStatement(node) && !isExpression(node) && !isAssignmentStatement(node)
-                && !isUnpackStatement(node) && !isArrayAssignmentStatement(node) && !isIndexAssignmentStatement(node)
-                && !isAddStatement(node) && !isPushStatement(node) && !isExpressionStatement(node)
+                && !isUnpackStatement(node) && !isArrayAssignmentStatement(node)
+                && !isPushStatement(node) && !isExpressionStatement(node)
                 && !isIfStatement(node) && !isForStatement(node) && !isTryStatement(node)
                 && !isBreakStatement(node) && !isContinueStatement(node))) {
             // Mutation and non-local exits need their own flow rules.
@@ -126,9 +126,8 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
             return;
         }
         const writes = new Set(contents.filter(isArrayAssignmentStatement).map(node => node.name));
-        const writesIndex = contents.some(isIndexAssignmentStatement);
         const rebound = new Set(contents.flatMap(writtenBindings));
-        const touchesIndex = writesIndex || [...writes].some(name => env.get(name)?.types.join() === 'index'
+        const touchesIndex = [...writes].some(name => env.get(name)?.types.join() === 'index'
             || rebound.has(name) || !env.has(name));
         const knownIndices = touchesIndex ? [...env.values()].filter(fact => fact.types.join() === 'index') : [];
         const indexCandidate = knownIndices.length && knownIndices.every(fact => fact.elements !== undefined)
@@ -189,8 +188,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
         const preview = prepare(new Set(candidates.keys()), indexCandidate, numeric);
         const indexWriteTypes = indexCandidate === undefined ? undefined
             : contents.flatMap(node => {
-                if (!isIndexAssignmentStatement(node) && (!isArrayAssignmentStatement(node)
-                    || preview.get(node.name)?.types.join() !== 'index')) return [];
+                if (!isArrayAssignmentStatement(node) || preview.get(node.name)?.types.join() !== 'index') return [];
                 const value = expressionFacts(node.value, name => preview.get(name));
                 return value.types;
             });
@@ -357,14 +355,13 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
                 return !!binding && isAssignmentStatement(binding) && binding.operator === '='
                     && isNewStructureExpression(binding.value) && binding.value.structure === 'index';
             })
-            && !contents.some(node => isIndexAssignmentStatement(node) || isForStatement(node)
+            && !contents.some(node => isForStatement(node)
                 || isTryStatement(node) || isFunctionStatement(node) || isExpressionStatement(node)
-                || isAddStatement(node) || isPushStatement(node) || isUnpackStatement(node)
+                || isPushStatement(node) || isUnpackStatement(node)
                 || isStdinExpression(node))
             && contents.filter(isNameExpression).every(node => env.get(node.name)?.types.length
                 && env.get(node.name)!.types.every(type => ['integer', 'real', 'boolean', 'index'].includes(type)));
-        const touchesIndex = contents.some(node => isIndexAssignmentStatement(node)
-            || isArrayAssignmentStatement(node) && (env.get(node.name)?.types.join() === 'index'
+        const touchesIndex = contents.some(node => isArrayAssignmentStatement(node) && (env.get(node.name)?.types.join() === 'index'
                 || rebound.has(node.name) || !env.has(node.name)));
         const prepare = (seed?: readonly string[]): Map<string, ValueFacts> => {
             const local = new Map(env);

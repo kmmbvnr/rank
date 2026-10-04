@@ -54,15 +54,16 @@ end
 
 rem Build sorted branches for one split.
 fun branch Data Attr Rest T
+  Index = new index
   Values = Data Attr unique sort
 
   for Value in Values
     Mask = Data Attr equal Value
     Part = Data Mask array
-    index Value = Part Rest T learn_tree
+    Index Value = Part Rest T learn_tree
   end
 
-  return index
+  return Index
 end
 
 

@@ -1,7 +1,7 @@
 import {
-    applicationForm, isAddStatement, isApplicationExpression, isArgsStatement, isArgumentStatement,
+    applicationForm, isApplicationExpression, isArgsStatement, isArgumentStatement,
     isArrayAssignmentStatement, isAssignmentStatement, isBreakStatement, isContinueStatement, isExpressionStatement,
-    isFlagStatement, isForStatement, isFunctionStatement, isIfStatement, isIndexAssignmentStatement,
+    isFlagStatement, isForStatement, isFunctionStatement, isIfStatement,
     isNameExpression, isOptionStatement, isParenthesizedExpression, isPushStatement, isReturnStatement,
     isRunStatement, isTestStatement, isTryStatement, isUnpackStatement, isUseStatement, isYieldStatement,
     type Expression, type FunctionStatement, type Operation, type Statement,
@@ -16,7 +16,7 @@ import {
 } from '../statement-control.js';
 import { formatValue, isRankArray, type RankValue } from '../value.js';
 import {
-    prepareAddStatement, prepareArrayAssignment, prepareAssignment, prepareCollectionMutation, prepareIndexAssignment,
+    prepareArrayAssignment, prepareAssignment, prepareCollectionMutation,
     preparePushStatement, prepareUnpackStatement, type AssignmentContext,
 } from './assignments.js';
 import { prepareForStatement, type LoopContext } from './loops.js';
@@ -175,8 +175,6 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
     }
     if (isForStatement(statement)) return prepareForStatement(statement, host.loops);
     if (isPushStatement(statement)) return preparePushStatement(statement, host.writes);
-    if (isAddStatement(statement)) return prepareAddStatement(statement, host.writes);
-    if (isIndexAssignmentStatement(statement)) return prepareIndexAssignment(statement, host.writes);
     if (isUnpackStatement(statement)) return prepareUnpackStatement(statement, host.writes);
     if (isArrayAssignmentStatement(statement)) return prepareArrayAssignment(statement, host.writes);
     if (isAssignmentStatement(statement)) return prepareAssignment(statement, host.writes);

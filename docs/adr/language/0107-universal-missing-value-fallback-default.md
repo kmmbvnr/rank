@@ -21,7 +21,8 @@ Rank introduces the **universal `default` keyword** across all addressable data 
 
 ```rank
 X = A i default 0                    rem Out-of-bounds array access
-Last = index Key default -1          rem Missing dictionary key
+Cache = new index
+Last = Cache Key default -1          rem Missing dictionary key
 Age = Data .Age default Median       rem Missing table value
 ```
 

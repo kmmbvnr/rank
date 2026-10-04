@@ -1,7 +1,7 @@
 import { unpackApplicationItems } from '../value-selection.js';
 import {
-    type AddStatement, type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
-    type Expression, type IndexAssignmentStatement, type PushStatement, type UnpackStatement,
+    type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
+    isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
 import { arrayForWrite, readArrayItem } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
@@ -14,7 +14,6 @@ import { FlatRecords } from '../flat.js';
 import { structureWrite } from '../modules/algo.js';
 import { flatRecordWrite } from '../modules/sequences.js';
 import { tableColumnWrite } from '../modules/tables.js';
-import { indexKey } from '../index-key.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
 import { arraySize, type Operators } from '../operators.js';
 import { assignRecordField } from '../record-contract.js';
@@ -24,7 +23,7 @@ import { writeTable } from '../table-access.js';
 import { sameShape } from '../tensor-index.js';
 import {
     isRankArray, isRankGraph, isRankLabel, isRankRecord, isRankSequence, isRankTable,
-    type RankCounter, type RankIndex, type RankSet, type RankValue,
+    type RankValue,
 } from '../value.js';
 
 /** What preparing a write needs from evaluation and the binding environment. */
@@ -37,43 +36,20 @@ export interface AssignmentContext {
     evaluateAddressParts(item: AddressItem): Evaluation<RankValue[]>;
     select(values: RankValue[]): RankValue;
     requireModule(module: string, operation: string): void;
-    /** The scope's implicit structures, created on first use. */
-    index(): RankIndex;
-    set(): RankSet;
-    counter(): RankCounter;
     options(): InterpreterOptions;
     readonly operators: Operators;
 }
 
-/** `Receiver push Value`: appends to a queue, heap or deque. */
+/** `Receiver push Value`: appends to a queue, heap or deque; `push unpack Items` appends each item. */
 export function preparePushStatement(statement: PushStatement, host: AssignmentContext): PreparedStatement {
     return { stream: function* (): Execution<RankValue | undefined> {
         const receiver = (yield* resume(host.evaluate(statement.receiver)));
         host.requireModule('algo', 'push');
-        pushCollection(receiver, (yield* resume(host.evaluate(statement.value))));
-        return undefined;
-    } };
-}
-
-/** `add set X` and `add counter X`: the scope's implicit structure. */
-export function prepareAddStatement(statement: AddStatement, host: AssignmentContext): PreparedStatement {
-    return { stream: function* (): Execution<RankValue | undefined> {
-        const value = (yield* resume(host.evaluate(statement.value)));
-        if (statement.structure.startsWith('counter')) {
-            addToCollection(host.counter(), value);
-        } else {
-            addToCollection(host.set(), value);
-        }
-        return undefined;
-    } };
-}
-
-/** `index Keys = Value`: the scope's implicit index. */
-export function prepareIndexAssignment(statement: IndexAssignmentStatement, host: AssignmentContext): PreparedStatement {
-    return { stream: function* (): Execution<RankValue | undefined> {
-        const index = host.index();
-        const keys = yield* resume(mapExecution(statement.keys, key => host.evaluate(key)));
-        index.entries.set(indexKey(keys), (yield* resume(host.evaluate(statement.value))));
+        // `Queue push unpack Items` appends each item; a plain value is appended as one element.
+        if (isUnpackExpression(statement.value)) {
+            const items = unpackApplicationItems(yield* resume(host.evaluate(statement.value.value)));
+            for (const item of items) pushCollection(receiver, item);
+        } else pushCollection(receiver, (yield* resume(host.evaluate(statement.value))));
         return undefined;
     } };
 }

@@ -40,7 +40,7 @@ fun visit Log V
  Log push V
  return V
 end
-Log = queue
+Log = new queue
 Answer = (Log 3 visit) (Log 2 visit) min (Log 4 visit) max
 Log`)).toBe('3 2 4');
         expect(run(`use numbers

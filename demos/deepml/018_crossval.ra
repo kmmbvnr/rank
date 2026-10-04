@@ -7,6 +7,7 @@ use random
 rem Build train and test indices
 rem for every fold.
 fun cross_validation N K Shuffle
+  Queue = new queue
   if N less 0
     .DomainError raise
   end
@@ -43,8 +44,8 @@ fun cross_validation N K Shuffle
     TrainMask or= After
     Train = (Order TrainMask) array
 
-    queue push array Train Test
+    Queue push array Train Test
   end
 
-  return queue
+  return Queue
 end

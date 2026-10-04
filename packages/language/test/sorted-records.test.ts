@@ -13,7 +13,7 @@ const project = 'fun project Start Finish Reward\n return record\n  .start = Sta
 function result(body: string, pushes: string[], extra = '') {
     const module = parser.parse<Program>(`${project}${extra}fun f Jobs\n${body}\nend\n`);
     expect(module.parserErrors).toEqual([]);
-    const test = parser.parse<Program>('test "t"\n use "m"\n Jobs = queue\n'
+    const test = parser.parse<Program>('test "t"\n use "m"\n Jobs = new queue\n'
         + pushes.map(line => ` Jobs push ${line}\n`).join('') + ' Jobs f equal 0\nend\n');
     expect(test.parserErrors).toEqual([]);
     const examples = functionTestExamples(test.value, 'm', new Set(['project', 'f', 'mixed']));
@@ -94,15 +94,15 @@ describe('test examples that fill a collection', () => {
     };
 
     it('records the pushed calls in order for the collection argument', () => {
-        const [example] = examples(' Jobs = queue\n Jobs push 1 2 3 project\n Jobs push 4 5 6 project\n Jobs f equal 0');
+        const [example] = examples(' Jobs = new queue\n Jobs push 1 2 3 project\n Jobs push 4 5 6 project\n Jobs f equal 0');
         expect(example.constructions?.[0]?.map(site => site.name)).toEqual(['project', 'project']);
     });
 
     it('forgets the construction when the collection is aliased or used by another statement', () => {
-        expect(examples(' Jobs = queue\n Other = Jobs\n Jobs push 1 2 3 project\n Jobs f equal 0')[0]
+        expect(examples(' Jobs = new queue\n Other = Jobs\n Jobs push 1 2 3 project\n Jobs f equal 0')[0]
             .constructions).toBeUndefined();
-        expect(examples(' Jobs = queue\n Jobs push 1 2 3 project\n Jobs pop\n Jobs f equal 0')[0]
+        expect(examples(' Jobs = new queue\n Jobs push 1 2 3 project\n Jobs pop\n Jobs f equal 0')[0]
             .constructions).toBeUndefined();
-        expect(examples(' Jobs = queue\n Jobs push 7\n Jobs f equal 0')[0].constructions).toBeUndefined();
+        expect(examples(' Jobs = new queue\n Jobs push 7\n Jobs f equal 0')[0].constructions).toBeUndefined();
     });
 });

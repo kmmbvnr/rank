@@ -30,6 +30,7 @@ end
 
 rem Convert input rows into one dense square boolean matrix.
 fun makegrid Lines Stuck
+  Queue = new queue
   N = Lines len
 
   for Line Y in Lines
@@ -38,16 +39,17 @@ fun makegrid Lines Stuck
       if Stuck and X Y N corner
         On = true
       end
-      queue push On
+      Queue push On
     end
   end
 
-  return queue (array N N) reshape
+  return Queue (array N N) reshape
 end
 
 
 rem Apply one cellular-automaton step and preserve the matrix shape.
 fun evolve Grid Stuck
+  Queue = new queue
   N = Grid len
 
   for Y in 0 till N
@@ -59,11 +61,11 @@ fun evolve Grid Stuck
       if Stuck and X Y N corner
         New = true
       end
-      queue push New
+      Queue push New
     end
   end
 
-  return queue (array N N) reshape
+  return Queue (array N N) reshape
 end
 
 

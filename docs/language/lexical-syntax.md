@@ -7,8 +7,7 @@ Standard language words are lowercase:
 ```rank
 for
 sum
-queue
-index
+new
 sqrt
 round
 ```
@@ -193,7 +192,7 @@ Sum = 0
 ```rank
 Result = 10
 Data .Age = Age
-index Key = Value
+Cache Key = Value
 ```
 
 Compound assignment updates an existing variable without repeating the left

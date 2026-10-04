@@ -52,7 +52,7 @@ test('rewrites the comma key into the = it stands for', () => {
     assert.equal(expandAssignKey(`A${key}3`), 'A = 3');
     assert.equal(expandAssignKey(`A *${key} 2`), 'A *= 2');
     assert.equal(expandAssignKey(`A and${key} B`), 'A and= B');
-    assert.equal(expandAssignKey(`index K${key} V`), 'index K = V');
+    assert.equal(expandAssignKey(`Cache K${key} V`), 'Cache K = V');
     assert.equal(expandAssignKey('A = 3'), 'A = 3');
     // A colon is left alone; it no longer stands for `=`.
     assert.equal(expandAssignKey('A: "at 12:30"'), 'A: "at 12:30"');

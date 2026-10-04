@@ -15,13 +15,14 @@ Queries binomials print
 
 rem Reuse cached modular factorials.
 fun binomials Queries
+  Queue = new queue
   Mod = 1000000007
 
   for Query in Queries
     unpack A B = Query
     Value = A B Mod binomialmod
-    queue push Value
+    Queue push Value
   end
 
-  return queue
+  return Queue
 end

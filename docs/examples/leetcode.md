@@ -10,15 +10,16 @@ rem Return indices of two values
 rem whose sum equals Target.
 
 fun two_sum A Target
+  Index = new index
   for Value i in A
     Need = Target - Value
 
-    if Need in index
-      J = index Need
+    if Need in Index
+      J = Index Need
       return array J i
     end
 
-    index Value = i
+    Index Value = i
   end
 end
 ```
@@ -37,6 +38,7 @@ rem LeetCode 2: Add Two Numbers
 rem Add reverse-order digit arrays.
 
 fun add_two A B
+  Queue = new queue
   N = A len
   M = B len
   Size = N
@@ -61,16 +63,16 @@ fun add_two A B
     end
 
     Sum = X + Y + Carry
-    queue push Sum % 10
+    Queue push Sum % 10
     Carry = Sum // 10
     I += 1
   end
 
   if Carry greater 0
-    queue push Carry
+    Queue push Carry
   end
 
-  return queue
+  return Queue
 end
 ```
 
@@ -85,19 +87,20 @@ rem Find the longest window containing
 rem no repeated character.
 
 fun longest Text
+  Index = new index
   Start = 0
   Best = 0
 
   for C i in Text
-    if C in index
-      Last = index C
+    if C in Index
+      Last = Index C
 
       if Last at least Start
         Start = Last + 1
       end
     end
 
-    index C = i
+    Index C = i
     Size = i - Start + 1
 
     if Size greater Best

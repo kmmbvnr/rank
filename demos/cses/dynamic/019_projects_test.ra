@@ -3,7 +3,7 @@ use testing
 test "official example"
   use "019_projects"
   use algo
-  Projects = queue
+  Projects = new queue
   Projects push 2 4 4 project
   Projects push 3 6 6 project
   Projects push 6 8 2 project
@@ -14,7 +14,7 @@ end
 test "touching days overlap"
   use "019_projects"
   use algo
-  Projects = queue
+  Projects = new queue
   Projects push 1 2 5 project
   Projects push 2 3 8 project
   Projects maximum_reward equal 8
@@ -23,7 +23,7 @@ end
 test "compatible rewards combine"
   use "019_projects"
   use algo
-  Projects = queue
+  Projects = new queue
   Projects push 4 5 7 project
   Projects push 1 2 6 project
   Projects push 6 8 4 project

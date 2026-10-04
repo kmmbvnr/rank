@@ -58,12 +58,9 @@ function insideArray(tokens: readonly Token[]): boolean {
     return levels.at(-1)!;
 }
 
-/** Mutations that stand as a statement of their own: `set add Value`. */
-const MUTATIONS = new Set(['set add', 'counter add']);
-
 /** Word operators that take a left operand. */
 const INFIX = new Set(OPERATOR_KEYWORDS.filter(word => !PREFIX.has(word) && !(word in MODIFIERS)
-    && !SINGLE.has(word) && !PAIR.has(word) && !(word in EXTENDS) && !MUTATIONS.has(word)));
+    && !SINGLE.has(word) && !PAIR.has(word) && !(word in EXTENDS)));
 
 /** How many operands stand side by side at the end of the line, a bracketed group counting once. */
 function trailingOperands(tokens: readonly Token[]): number {
@@ -119,12 +116,12 @@ export function keyAvailable(key: string, before: string): boolean {
     if (last?.kind === 'word' && (last.text === 'use' || last.text === 'ops')) return false;
     if (line.trim() === '') {
         if (CONTINUATIONS.has(key)) return nextTokens(before).has(key);
-        if (STATEMENT_HEADS.has(key) || MUTATIONS.has(key)) return true;
+        if (STATEMENT_HEADS.has(key)) return true;
         // The completion parser sees only a line break here, so ask what starts an expression.
         return !OPERATOR_KEYWORDS.includes(key) && acceptsNext('X = ', key)
             || PREFIX.has(key);
     }
-    if (STATEMENT_HEADS.has(key) || MUTATIONS.has(key)) return false;
+    if (STATEMENT_HEADS.has(key)) return false;
     if (key in MODIFIERS) return MODIFIERS[key](last!);
     const words = tokens.map(token => token.text);
     if (key in EXTENDS) return EXTENDS[key](words) && endsOperand(last) && !(last!.text in EXTENDS)

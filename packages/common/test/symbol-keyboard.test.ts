@@ -66,7 +66,6 @@ describe('symbol keyboard', () => {
         expect(keyAvailable('by', 'X = 1 to 10 ')).toBe(true);
         expect(keyAvailable('by', 'X = A ')).toBe(false);
         expect(keyAvailable('fill', 'X = array shape 3 ')).toBe(true);
-        expect(keyAvailable('set add', '')).toBe(true);
         expect(keyAvailable('to', 'X = 1 ')).toBe(true);
         expect(keyAvailable('to', 'X = 1 to ')).toBe(false);
         expect(keyAvailable('not', 'X = ')).toBe(true);

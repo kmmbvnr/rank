@@ -19,7 +19,7 @@ rem Reduce a modular system to RREF.
 fun solve_mod Rows Variables Matrix
   Mod = 1000000007
   A = Matrix copy
-  Pivots = queue
+  Pivots = new queue
   Row = 0
 
   for Column in 0 till Variables

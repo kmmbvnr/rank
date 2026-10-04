@@ -22,7 +22,7 @@ import { FunctionInvocation } from './function-invocation.js';
 import {
     moduleOptions, testOptions, type InterpreterOptions, type RankTestResult,
 } from './interpreter-options.js';
-import { IMPLICIT_STRUCTURES, implicitStructure, type ImplicitStructure } from './modules/algo.js';
+import { RETIRED_IMPLICIT_NAMES } from './modules/algo.js';
 import { BuiltinRegistry, reseed, seedableRandom, type SeedableRandom } from './modules/builtins.js';
 import { standardModules } from './modules/index.js';
 import { requireModule } from './modules/shared.js';
@@ -207,9 +207,6 @@ export class Interpreter {
             evaluateAddressParts: item => this.expressions.evaluateAddressParts(item),
             select: values => select(values),
             requireModule: requireOpen,
-            index: () => this.structure('index', IMPLICIT_STRUCTURES.index),
-            set: () => this.structure('set', IMPLICIT_STRUCTURES.set),
-            counter: () => this.structure('counter', IMPLICIT_STRUCTURES.counter),
             options: () => this.options,
             operators: this.operators,
         };
@@ -396,8 +393,6 @@ export class Interpreter {
             if (member === 'run') throw new RankError(`${alias}.run is only valid as a statement`);
             return child.resolveVariable(member);
         }
-        const implicit = implicitStructure(name);
-        if (implicit) return this.structure(name, implicit);
         const variable = this.bindings.find(name);
         if (variable !== undefined) {
             return variable;
@@ -405,6 +400,10 @@ export class Interpreter {
 
         const builtin = this.builtins.lookup(name);
         if (builtin !== undefined) return builtin;
+        const suggested = RETIRED_IMPLICIT_NAMES.get(name);
+        if (suggested) {
+            throw new RankError(`a bare \`${name}\` is no longer an implicit ${name}: name one with \`${suggested} = new ${name}\` and use \`${suggested}\``);
+        }
         throw this.builtins.unknown(name);
     }
 
@@ -447,11 +446,6 @@ export class Interpreter {
             return;
         }
         this.bindings.assign(name, value);
-    }
-
-    private structure<T extends RankValue>(name: string, kind: ImplicitStructure<T>): T {
-        requireModule(this.modules, 'algo', name);
-        return this.bindings.structure(name, kind.is, kind.create);
     }
 
     // Programs: standard modules, files loaded as module children, runs and tests.

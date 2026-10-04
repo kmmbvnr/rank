@@ -20,16 +20,17 @@ end
 
 rem Find one pair with the target sum.
 fun find_pair A Target
+  Index = new index
   for Value i in A
     Need = Target - Value
 
-    if Need in index
-      First = index Need + 1
+    if Need in Index
+      First = Index Need + 1
       Second = i + 1
       return array First Second
     end
 
-    index Value = i
+    Index Value = i
   end
 
   return array shape 0
