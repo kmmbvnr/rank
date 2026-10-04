@@ -132,3 +132,69 @@ it('keeps completed unary pipelines separate from binary builtin operands', () =
 it('preserves unresolved import boundaries inside function templates', () => {
     expect(infer('use "unknown"\nfun f X\n return X 25 solve\nend\n(array 1 2) f').conflicts).toEqual([]);
 });
+
+it('attaches a selected CSV column requirement to the original value through an alias', () => {
+    const source = 'use tables\nRows = "data.csv" csv\nAlias = Rows\nAlias .price sum';
+    const requirements = infer(source);
+    expect(requirements.bindings.find(item => item.name === 'Rows')?.fields?.get('price')?.domains)
+        .toEqual(['integer', 'real', 'missing']);
+    expect(requirements.bindings.find(item => item.name === 'Alias')?.fields?.get('price')?.domains)
+        .toEqual(['integer', 'real', 'missing']);
+    expect(analyzeValues(parse(source)).bindings.get('Rows')?.fields).toBeUndefined();
+});
+
+it('does not attach a guarded or unresolved callback selection to an external input', () => {
+    const guarded = 'use tables\nRows = "data.csv" csv\nif Flag\n Rows .price sum\nend';
+    expect(binding(guarded, 'Rows').fields).toBeUndefined();
+    const unknown = 'Rows = Input decode\nRows .price sum';
+    expect(binding(unknown, 'Rows').fields).toBeUndefined();
+});
+
+it('keeps field requirements tied to the selected value across reassignment', () => {
+    const source = 'use tables\nRows = "first.csv" csv\nAlias = Rows\nRows = "second.csv" csv\nAlias .price sum';
+    const reads = infer(source).bindings.filter(item => item.name === 'Rows');
+    expect(reads[0].fields?.get('price')?.domains).toEqual(['integer', 'real', 'missing']);
+    expect(reads[1].fields).toBeUndefined();
+});
+
+it('still discards structural requirements across an unresolved callback', () => {
+    const source = 'use tables\nRows = "data.csv" csv\nRows mutate\nRows .price sum';
+    expect(binding(source, 'Rows').fields).toBeUndefined();
+});
+
+it('retains independent checked-read contracts for the callers of a reader function', () => {
+    const source = 'use tables\nuse text\nfun load Path\n return Path csv check\nend\nA = "first.csv" load\nA .price sum\nB = "second.csv" load\nB .name lower';
+    const program = parse(source);
+    const answer = inferRequirements(program, { includeCalls: true });
+    const calls = [...answer.calls.values()];
+    expect(calls).toHaveLength(2);
+    const checked = (call: typeof calls[number]) => [...call.expressions].find(([node]) =>
+        node.$cstNode?.text === 'Path csv check')?.[1];
+    expect(checked(calls[0])?.fields?.get('price')?.domains).toEqual(['integer', 'real', 'missing']);
+    expect(checked(calls[0])?.fields?.has('name')).toBe(false);
+    expect(checked(calls[1])?.fields?.get('name')?.domains).toEqual(['text']);
+    expect(checked(calls[1])?.fields?.has('price')).toBe(false);
+    expect(inferRequirements(program).calls.size).toBe(0);
+});
+
+it('carries caller requirements to a checked read through a nested wrapper', () => {
+    const source = 'use tables\nfun readrows Path\n return Path csv check\nend\nfun load Path\n return Path readrows\nend\nRows = "data.csv" load\nRows .price sum';
+    const answer = inferRequirements(parse(source), { includeCalls: true });
+    const wrapper = [...answer.calls.values()][0];
+    expect(wrapper.name).toBe('load');
+    const reader = [...wrapper.calls.values()][0];
+    expect(reader.name).toBe('readrows');
+    const checked = [...reader.expressions].find(([node]) => node.$cstNode?.text === 'Path csv check')?.[1];
+    expect(checked?.fields?.get('price')?.domains).toEqual(['integer', 'real', 'missing']);
+});
+
+it('links checked CSV row lengths when a later dot product needs equal columns', () => {
+    const source = 'use tables\nuse linalg\nA = "a.csv" csv check\nB = "b.csv" csv check\nX = A .value\nY = B .value\nX Y matmul';
+    const answer = infer(source);
+    const a = answer.bindings.find(item => item.name === 'A')!;
+    const b = answer.bindings.find(item => item.name === 'B')!;
+    expect(answer.conflicts).toEqual([]);
+    expect(a.dimensions.get(0)?.equality).toEqual(b.dimensions.get(0)?.equality);
+    expect(a.fields?.get('value')?.dimensions.get(0)?.equality).toEqual(a.dimensions.get(0)?.equality);
+    expect(b.fields?.get('value')?.domains).toEqual(['integer', 'real']);
+});

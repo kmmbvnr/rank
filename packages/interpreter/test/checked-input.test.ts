@@ -1,0 +1,331 @@
+import { expect, it } from 'vitest';
+import { inferRequirements, type ValueRequirement } from '@arrrank/language';
+import { Interpreter } from '../src/interpreter.js';
+import { parse } from '../src/parser.js';
+import { MemoryIo } from './support.js';
+import { checkExternalInput } from '../src/checked-input.js';
+import { RankError } from '../src/errors.js';
+import { isNativeFunction } from '../src/value.js';
+
+const unconstrained = (): ValueRequirement => ({ rank: { min: 0, max: Infinity }, dimensions: new Map() });
+const field = (name: string, requirement: ValueRequirement): ValueRequirement =>
+    ({ ...unconstrained(), fields: new Map([[name, requirement]]) });
+const numericColumn = (): ValueRequirement => ({ rank: { min: 1, max: 1 }, dimensions: new Map(),
+    domains: ['integer', 'real', 'missing'] });
+
+it('checks an inferred CSV requirement through an alias against actual column types', () => {
+    const program = parse('use tables\nRows = "data.csv" csv\nAlias = Rows\nAlias .price sum');
+    const requirement = inferRequirements(program).bindings.find(item => item.name === 'Rows')!;
+    for (const [csv, accepted] of [['price,name\n3,Ada\n', true], ['price,name\nwrong,Ada\n', false]] as const) {
+        const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': csv }) });
+        const rows = runtime.execute('use tables\n"data.csv" csv')!;
+        const check = () => checkExternalInput(rows, requirement, 'data.csv');
+        if (accepted) expect(check).not.toThrow();
+        else expect(check).toThrow(/data.csv.price\[0\].*received text/);
+    }
+});
+
+it('requires CSV headers even when there are no rows and permits extra columns', () => {
+    const requirement = field('price', numericColumn());
+    for (const [csv, accepted] of [['price,extra\n', true], ['other\n', false], ['price,extra\n1,unused\n', true]] as const) {
+        const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': csv }) });
+        const rows = runtime.execute('use tables\n"data.csv" csv')!;
+        const check = () => checkExternalInput(rows, requirement, 'data.csv');
+        if (accepted) expect(check).not.toThrow();
+        else expect(check).toThrow('data.csv.price: required field is missing');
+    }
+});
+
+it('uses consumer missing-cell requirements without silently converting CSV columns', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price,id\n1,a\n,b\n' }) });
+    const rows = runtime.execute('use tables\n"data.csv" csv')!;
+    expect(() => checkExternalInput(rows, field('price', numericColumn()), 'data.csv')).not.toThrow();
+    expect(() => checkExternalInput(rows, field('price', { ...numericColumn(), domains: ['integer', 'real'] }), 'data.csv'))
+        .toThrow(/data.csv.price\[1\].*received missing/);
+});
+
+it('checks nested JSON fields and reports the complete path', () => {
+    const runtime = new Interpreter(() => {});
+    const data = runtime.execute(`use json\n${JSON.stringify('{"payload":{"items":[1,2,3]}}')} json`)!;
+    const requirement = field('payload', field('items', { ...numericColumn(), dimensions: new Map([[0, { min: 3, max: 3 }]]) }));
+    expect(() => checkExternalInput(data, requirement, 'response.json')).not.toThrow();
+    expect(() => checkExternalInput(data, field('payload', field('absent', numericColumn())), 'response.json'))
+        .toThrow('response.json.payload.absent: required field is missing');
+    expect(() => checkExternalInput(data, field('payload', field('items', { ...numericColumn(),
+        dimensions: new Map([[0, { min: 2, max: 2 }]]) })), 'response.json'))
+        .toThrow('response.json.payload.items: expected axis 0 length 2, received 3');
+});
+
+it('checks XML attribute presence while retaining its textual value type', () => {
+    const runtime = new Interpreter(() => {});
+    const xml = runtime.execute(`use xml\n${JSON.stringify('<item id="12"/>')} xml`)!;
+    const text: ValueRequirement = { rank: { min: 1, max: 1 }, dimensions: new Map(), domains: ['text'] };
+    expect(() => checkExternalInput(xml, field('attributes', field('id', text)), 'data.xml')).not.toThrow();
+    expect(() => checkExternalInput(xml, field('attributes', field('missing', text)), 'data.xml'))
+        .toThrow('data.xml.attributes.missing: required field is missing');
+});
+
+it('does not confuse tuples with homogeneous numeric arrays', () => {
+    const runtime = new Interpreter(() => {});
+    const tuple = runtime.execute(`use json\n${JSON.stringify('[1,"two"]')} json`)!;
+    expect(() => checkExternalInput(tuple, numericColumn(), 'data.json'))
+        .toThrow('data.json: expected rank 1, received rank 0');
+});
+
+it('reports contract errors without including external cell contents', () => {
+    const runtime = new Interpreter(() => {});
+    const data = runtime.execute(`use json\n${JSON.stringify('{"price":"private value"}')} json`)!;
+    try {
+        checkExternalInput(data, field('price', { ...unconstrained(), domains: ['integer', 'real'] }), 'data.json');
+        throw new Error('expected validation failure');
+    } catch (error) {
+        expect(error).toBeInstanceOf(RankError);
+        expect((error as RankError).rankKind).toBe('InputContract');
+        expect((error as Error).message).toBe('data.json.price: expected integer or real, received text');
+    }
+});
+
+it('checks a CSV read before later statements run and locates the error at the read', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nwrong\n' }) });
+    try {
+        runtime.execute('use tables\nRows = "data.csv" csv check\nAfter = 1\nRows .price sum');
+        throw new Error('expected a checked read to fail');
+    } catch (error) {
+        expect(error).toBeInstanceOf(RankError);
+        expect((error as RankError).rankKind).toBe('InputContract');
+        expect((error as RankError).location?.line).toBe(2);
+        expect((error as Error).message).toMatch(/data.csv.price\[0\].*received text/);
+    }
+    expect(runtime.variables.has('After')).toBe(false);
+    expect(runtime.variables.has('Rows')).toBe(false);
+});
+
+it('checks equal CSV column lengths at the second read when a dot product needs them', () => {
+    const source = 'use tables\nuse linalg\nA = "a.csv" csv check\nB = "b.csv" csv check\nAfter = 1\nX = A .value\nY = B .value\nX Y matmul';
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({
+        'a.csv': 'value\n1\n2\n', 'b.csv': 'value\n3\n4\n5\n',
+    }) });
+    try { runtime.execute(source); throw new Error('expected a checked read to fail'); }
+    catch (error) {
+        expect(error).toBeInstanceOf(RankError);
+        expect((error as RankError).rankKind).toBe('InputContract');
+        expect((error as RankError).location?.line).toBe(4);
+        expect((error as Error).message).toMatch(/b.csv.*expected axis 0 length 2 as checked at a.csv.*received 3/);
+    }
+    expect(runtime.variables.has('After')).toBe(false);
+    const matching = new Interpreter(() => {}, { io: new MemoryIo({
+        'a.csv': 'value\n1\n2\n', 'b.csv': 'value\n3\n4\n',
+    }) });
+    expect(matching.execute(source)).toBe(11n);
+});
+
+it('keeps unrelated checked CSV lengths independent', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({
+        'a.csv': 'value\n1\n2\n', 'b.csv': 'value\n3\n4\n5\n',
+    }) });
+    expect(runtime.execute('use tables\nA = "a.csv" csv check\nB = "b.csv" csv check\nX = A .value sum\nY = B .value sum\nX + Y'))
+        .toBe(15n);
+});
+
+it('leaves unchecked reads unchanged and accepts checked valid data', () => {
+    for (const checked of [false, true]) {
+        const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\n3\n' }) });
+        expect(runtime.execute(`use tables\nRows = "data.csv" csv${checked ? ' check' : ''}\nRows .price sum`)).toBe(3n);
+    }
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nwrong\n' }) });
+    expect(() => runtime.execute('use tables\nRows = "data.csv" csv\nAfter = 1\nRows .price sum')).toThrow();
+    expect(runtime.variables.get('After')).toBe(1n);
+});
+
+it('preserves an ordinary user function named check', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\n3\n' }) });
+    expect(runtime.execute('use tables\nfun check Value\n return 42\nend\n"data.csv" csv check')).toBe(42n);
+});
+
+it('preserves document modifiers and parenthesized reads', () => {
+    for (const reader of ['json', 'xml']) {
+        const input = reader === 'json' ? '{"a":1}' : '<a/>';
+        for (const suffix of [`${reader} .flat check`, `.flat ${reader} check`]) {
+            const runtime = new Interpreter(() => {});
+            const value = runtime.execute(`use ${reader}\nuse tables\n${JSON.stringify(input)} ${suffix}`)!;
+            expect(value).toMatchObject({ kind: 'array' });
+        }
+    }
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\n3\n' }) });
+    expect(runtime.execute('use tables\nRows = ("data.csv" csv) check\nRows .price sum')).toBe(3n);
+});
+
+it('collects multiple column uses without losing the checked read after the first reduction', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price,quantity\n1,bad\n' }) });
+    expect(() => runtime.execute('use tables\nRows = "data.csv" csv check\nFirst = Rows .price sum\nRows .quantity sum'))
+        .toThrow(/data.csv.quantity\[0\].*received text/);
+    expect(runtime.variables.has('First')).toBe(false);
+});
+
+it('infers nested document requirements from uses without guessing a JSON root schema', () => {
+    const runtime = new Interpreter(() => {});
+    expect(() => runtime.execute(`use json\nDoc = ${JSON.stringify('{"payload":{"items":["bad"]}}')} json check\nAfter = 1\nDoc .payload .items sum`))
+        .toThrow(/json input.payload.items\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('checks XML attribute selection at the parse line', () => {
+    const runtime = new Interpreter(() => {});
+    expect(() => runtime.execute(`use xml\nDoc = ${JSON.stringify('<item/>')} xml check\nAfter = 1\nDoc .attributes .id`))
+        .toThrow('xml input.attributes.id: required field is missing');
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('does not require fields protected by a default or an untaken branch', () => {
+    const runtime = new Interpreter(() => {});
+    const source = `use json\nDoc = ${JSON.stringify('{}')} json check\nResult = Doc .optional default 0\nif false\n Doc .absent sum\nend\nResult`;
+    expect(runtime.execute(source)).toBe(0n);
+});
+
+it('does not validate later mutated document contents as requirements of the original read', () => {
+    for (const mutation of ['Doc .price = "bad"', 'fun change Data\n Data .price = "bad"\n return Data\nend\nDoc = Doc change']) {
+        const runtime = new Interpreter(() => {});
+        const source = `use json\nDoc = ${JSON.stringify('{"price":1}')} json check\nAfter = 1\n${mutation}\nDoc .price sum`;
+        expect(() => runtime.execute(source)).toThrow();
+        expect(runtime.variables.get('After')).toBe(1n);
+    }
+});
+
+it('does not require fields read only by a short-circuited operand', () => {
+    for (const condition of ['false and (Doc .absent equal 1)', 'true or (Doc .absent equal 1)']) {
+        const runtime = new Interpreter(() => {});
+        expect(() => runtime.execute(`use json\nDoc = ${JSON.stringify('{}')} json check\n${condition}`)).not.toThrow();
+    }
+});
+
+it('collects requirements inside a function that reads checked data', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    const source = 'use tables\nfun total Path\n Rows = Path csv check\n return Rows .price sum\nend\n"data.csv" total';
+    try { runtime.execute(source); throw new Error('expected a checked read to fail'); }
+    catch (error) {
+        expect(error).toBeInstanceOf(RankError);
+        expect((error as RankError).rankKind).toBe('InputContract');
+        expect((error as RankError).location?.line).toBe(3);
+    }
+});
+
+it('propagates a known helper field requirement to its checked input', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    const source = 'use tables\nfun total Rows\n return Rows .price sum\nend\nRows = "data.csv" csv check\nAfter = 1\nRows total';
+    expect(() => runtime.execute(source)).toThrow(/data.csv.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('keeps separate helper calls independent for checked JSON values', () => {
+    const runtime = new Interpreter(() => {});
+    const source = `use json\nfun identity Value\n return Value\nend\nA = ${JSON.stringify('[1,2]')} json check\nX = A identity sum\nB = ${JSON.stringify('"label"')} json check\nY = B identity\nY`;
+    expect(runtime.execute(source)).toBe('label');
+});
+
+it('checks a reader function using requirements from the caller after its return', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    const source = 'use tables\nfun load Path\n return Path csv check\nend\nRows = "data.csv" load\nAfter = 1\nRows .price sum';
+    expect(() => runtime.execute(source)).toThrow(/csv input.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('carries a checked reader contract through a source import', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }),
+        loadModule: () => ({ id: 'readers.ra', source: 'use tables\nfun load Path\n return Path csv check\nend' }) });
+    const source = 'use tables\nuse "readers.ra" as readers\nRows = "data.csv" readers.load\nAfter = 1\nRows .price sum';
+    expect(() => runtime.execute(source)).toThrow(/csv input.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('carries a checked reader contract through nested source imports', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }),
+        loadModule: path => ({ id: path, source: path === 'wrapper.ra'
+            ? 'use "readers.ra" as readers\nfun load Path\n return Path readers.load\nend'
+            : 'use tables\nfun load Path\n return Path csv check\nend' }) });
+    const source = 'use tables\nuse "wrapper.ra" as wrapper\nRows = "data.csv" wrapper.load\nAfter = 1\nRows .price sum';
+    expect(() => runtime.execute(source)).toThrow(/csv input.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('resolves equal nested import names relative to each defining module', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'a.csv': 'price\n3\n' }),
+        sourceId: '/root.ra',
+        loadModule: (path, from) => {
+            if (path.endsWith('wrapper.ra')) return { id: `/${path}`, source:
+                'use tables\nuse "reader.ra" as reader\nfun load Path\n return Path reader.load\nend' };
+            if (from === '/a/wrapper.ra') return { id: '/a/reader.ra', source:
+                'use tables\nfun load Path\n return Path csv check\nend' };
+            return { id: '/b/reader.ra', source: 'fun load Path\n return 42\nend' };
+        } });
+    const source = 'use tables\nuse "a/wrapper.ra" as A\nuse "b/wrapper.ra" as B\nRows = "a.csv" A.load\nCount = Rows .price sum\nOther = 1 B.load\nCount + Other';
+    expect(runtime.execute(source)).toBe(45n);
+});
+
+it('carries caller requirements through a tail-called reader wrapper', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    const source = 'use tables\nfun readrows Path\n return Path csv check\nend\nfun load Path\n return Path readrows\nend\nRows = "data.csv" load\nAfter = 1\nRows .price sum';
+    expect(() => runtime.execute(source)).toThrow(/csv input.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('uses separate read contracts for separate calls to the same reader', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({
+        'first.csv': 'price\n3\n', 'second.csv': 'name\nAda\n',
+    }) });
+    const source = 'use tables\nuse text\nfun load Path\n return Path csv check\nend\nA = "first.csv" load\nFirst = A .price sum\nB = "second.csv" load\nB .name lower';
+    expect(() => runtime.execute(source)).not.toThrow();
+    expect(runtime.variables.get('First')).toBe(3n);
+});
+
+it('uses caller requirements for a nullary reader function', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    const source = 'use tables\nfun load\n return "data.csv" csv check\nend\nRows = load\nAfter = 1\nRows .price sum';
+    expect(() => runtime.execute(source)).toThrow(/data.csv.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('restores call context after a failed read before preparing another program', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({
+        'first.csv': 'price\nbad\n', 'second.csv': 'name\n42\n',
+    }) });
+    expect(() => runtime.execute('use tables\nfun first Path\n return Path csv check\nend\nA = "first.csv" first\nA .price sum'))
+        .toThrow(/csv input.price/);
+    expect(() => runtime.execute('use text\nfun second Path\n return Path csv check\nend\nB = "second.csv" second\nAfterSecond = 1\nB .name lower'))
+        .toThrow(/csv input.name\[0\].*received integer/);
+    expect(runtime.variables.has('AfterSecond')).toBe(false);
+});
+
+it('does not carry a previous reader schema into an opaque host callback', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({
+        'price.csv': 'price\n3\n', 'name.csv': 'name\nAda\n',
+    }) });
+    runtime.execute('use tables\nfun load Path\n return Path csv check\nend\nA = "price.csv" load\nA .price sum');
+    const reader = runtime.variables.get('load');
+    if (!reader || !isNativeFunction(reader)) throw new Error('expected reader function');
+    expect(() => reader.call(['name.csv'])).not.toThrow();
+});
+
+it('applies a later notebook command to a retained checked reader', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    runtime.execute('use tables\nfun load Path\n return Path csv check\nend');
+    expect(() => runtime.execute('Rows = "data.csv" load\nAfter = 1\nRows .price sum'))
+        .toThrow(/csv input.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('applies later caller requirements after registering a function cell', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    runtime.execute('use tables');
+    runtime.declareFunctionSource('fun load Path\n return Path csv check\nend');
+    expect(() => runtime.execute('Rows = "data.csv" load\nAfter = 1\nRows .price sum'))
+        .toThrow(/csv input.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('retains the checked reader contract through a function alias', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
+    runtime.execute('use tables\nfun load Path\n return Path csv check\nend\nReader = load');
+    expect(() => runtime.execute('Rows = "data.csv" Reader\nAfter = 1\nRows .price sum'))
+        .toThrow(/csv input.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});

@@ -30,6 +30,14 @@ export interface ValueFacts {
      * Absent once an insertion carries no schema or a different one; dropped when effects are unknown.
      */
     readonly elementRecord?: ValueFacts;
+    /** Columns validated by an explicit CSV check. This is not a per-row record schema. */
+    readonly checkedColumns?: Readonly<Record<string, ValueFacts>>;
+    /** Origin shared by aliases and selected values, for write invalidation. */
+    readonly checkedInputId?: number;
+    /** Named projections and their facts validated at a read. */
+    readonly checkedFields?: Readonly<Record<string, ValueFacts>>;
+    /** XML attribute objects have input-defined keys but always contain text values. */
+    readonly xmlAttributeValues?: true;
     /** Identity of a locally constructed collection; dropped when effects are unknown. */
     readonly collectionId?: number;
     /** Element types by position for a fixed rank-1 array. */
@@ -66,7 +74,7 @@ export interface ValueFacts {
     readonly functionalWeighted?: boolean;
     /** Built-in numeric combine proved at construction; user callbacks never get this marker. */
     readonly segmentOperation?: '+' | 'min' | 'max' | 'maxsum' | 'band' | 'bor' | 'bxor';
-    /** Known fields of a record; absent fields remain unknown. */
+    /** Known fields of a record or a fixed-schema object; absent fields remain unknown. */
     readonly fields?: Readonly<Record<string, ValueFacts>>;
     /** All field names are known, rather than just an intersection of branch facts. */
     readonly closedRecord?: true;
@@ -220,9 +228,19 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
     const positions = first.positions && values.every(value => value.positions?.length === first.positions!.length)
         ? first.positions.map((_, index) => values.every(value => value.positions![index].length)
             ? [...new Set(values.flatMap(value => value.positions![index]))] : []) : undefined;
-    const fields = types.join() === 'record' && first.fields
+    const fields = ['record', 'object'].includes(types.join()) && first.fields
         ? Object.fromEntries(Object.keys(first.fields).filter(name => values.every(value => value.fields?.[name]))
             .map(name => [name, joinValueFacts(values.map(value => value.fields![name]))])) : undefined;
+    const checkedInputId = first.checkedInputId !== undefined
+        && values.every(value => value.checkedInputId === first.checkedInputId) ? first.checkedInputId : undefined;
+    const checkedColumns = checkedInputId !== undefined && first.checkedColumns
+        ? Object.fromEntries(Object.keys(first.checkedColumns)
+            .filter(name => values.every(value => value.checkedColumns?.[name]))
+            .map(name => [name, joinValueFacts(values.map(value => value.checkedColumns![name]))])) : undefined;
+    const checkedFields = checkedInputId !== undefined && first.checkedFields
+        ? Object.fromEntries(Object.keys(first.checkedFields)
+            .filter(name => values.every(value => value.checkedFields?.[name]))
+            .map(name => [name, joinValueFacts(values.map(value => value.checkedFields![name]))])) : undefined;
     const dims = shape && values.every(value => value.dims?.length === shape.length)
         ? shape.map((_, axis) => values.every(value => value.dims![axis] && first.dims![axis]
             && compareDims(value.dims![axis]!, first.dims![axis]!) === 'equal') ? first.dims![axis] : null) : undefined;
@@ -252,6 +270,10 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
             ? { collectionId: first.collectionId } : {}),
         ...(positions ? { positions } : {}),
         ...(fields ? { fields } : {}),
+        ...(checkedInputId !== undefined ? { checkedInputId } : {}),
+        ...(checkedColumns ? { checkedColumns } : {}),
+        ...(checkedFields ? { checkedFields } : {}),
+        ...(values.every(value => value.xmlAttributeValues) ? { xmlAttributeValues: true as const } : {}),
         ...(first.tupleItems && values.every(value => value.tupleItems?.length === first.tupleItems!.length)
             ? { tupleItems: first.tupleItems.map((_, index) => joinValueFacts(values.map(value => value.tupleItems![index]))) } : {}),
         ...(fields && values.every(value => value.closedRecord && value.fields

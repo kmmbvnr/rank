@@ -18,7 +18,7 @@ import { expressionFacts } from './value-facts.js';
 import { declaredType } from './types.js';
 import type { ValueFacts } from './value-domain.js';
 import type { RequirementConflict, RequirementSite } from './requirement-solver.js';
-import { Graph, type Value, type Binding, type Template, type ValueRequirement } from './requirement-graph.js';
+import { Graph, type Value, type Binding, type Template, type ValueRequirement, type CallValues } from './requirement-graph.js';
 export type { ValueRequirement } from './requirement-graph.js';
 export type { RequirementConflict, RequirementInterval, RequirementSite } from './requirement-solver.js';
 
@@ -30,27 +30,39 @@ export interface FunctionRequirement {
     readonly params: readonly ValueRequirement[];
     readonly result: ValueRequirement;
 }
+export interface CallRequirement {
+    readonly name: string;
+    readonly definition: FunctionStatement;
+    readonly expressions: ReadonlyMap<Expression, ValueRequirement>;
+    readonly calls: ReadonlyMap<Expression, CallRequirement>;
+}
 export interface RequirementAnalysis {
     readonly bindings: readonly BindingRequirement[];
     readonly expressions: ReadonlyMap<Expression, ValueRequirement>;
     readonly functions: ReadonlyMap<FunctionStatement, FunctionRequirement>;
+    /** Fresh expression requirements for each call, requested by runtime check preparation. */
+    readonly calls: ReadonlyMap<Expression, CallRequirement>;
     readonly conflicts: readonly RequirementConflict[];
     readonly limited: boolean;
 }
 export interface RequirementOptions {
+    readonly includeCalls?: boolean;
     readonly initial?: ReadonlyMap<string, ValueFacts>;
     readonly declarations?: ReadonlyMap<string, FunctionStatement>;
-    readonly loadModule?: (path: string) => Program | undefined;
+    readonly loadModule?: (path: string, importSite?: AstNode) => Program | undefined;
 }
 const site = (node: AstNode, reason: string): RequirementSite => ({ node, reason });
+const primitiveTypes = new Set(['integer', 'real', 'text', 'boolean', 'symbol', 'missing', 'date', 'datetime', 'duration']);
 const spread = (term: ShapeTerm): term is { readonly spread: string } =>
     term !== null && typeof term === 'object' && 'spread' in term;
 
-/** A separate, non-executing requirement channel. No solved value enters ValueFacts.
+/** A separate, non-executing requirement channel. Only an explicit checked read
+ * can turn a validated requirement into a forward fact.
  * Summaries are templates: each call receives fresh variables, including dimensions.
  * Guarded paths, captured writes and unresolved callbacks deliberately lose precision. */
 export function inferRequirements(program: Program, options: RequirementOptions = {}): RequirementAnalysis {
     const templates = new Map<FunctionStatement, Template>();
+    const parsedTemplates = new Map<FunctionStatement, Map<string, Template>>();
     const active = new Set<FunctionStatement>();
     const functionScopes = new Map<FunctionStatement, Map<string, FunctionStatement>>();
     const opaqueScopes = new Set<FunctionStatement>();
@@ -59,12 +71,12 @@ export function inferRequirements(program: Program, options: RequirementOptions 
     const roots = new Map(options.declarations);
     const moduleScopes = new Map<Program, Map<string, FunctionStatement>>();
     const declarations = (items: readonly Statement[], parent: ReadonlyMap<string, FunctionStatement>, opaque = false): Map<string, FunctionStatement> => {
-        const unresolved = opaque || items.some(item => isUseStatement(item) && item.path && !options.loadModule?.(item.path));
+        const unresolved = opaque || items.some(item => isUseStatement(item) && item.path && !options.loadModule?.(item.path, item));
         const result = new Map(parent);
         for (const item of items) {
             if (isFunctionStatement(item)) result.set(item.name, item);
             if (isUseStatement(item) && item.path && options.loadModule) {
-                const module = options.loadModule(item.path);
+                const module = options.loadModule(item.path, item);
                 if (!module) continue;
                 let imported = moduleScopes.get(module);
                 if (!imported) {
@@ -88,15 +100,18 @@ export function inferRequirements(program: Program, options: RequirementOptions 
     for (const definition of roots.values()) if (!functionScopes.has(definition)) {
         functionScopes.set(definition, declarations(definition.statements, roots));
     }
-    const template = (definition: FunctionStatement): Template | undefined => {
-        const cached = templates.get(definition);
+    const template = (definition: FunctionStatement, inputs?: readonly Value[]): Template | undefined => {
+        // Specialize only reader provenance, never file contents or solved call domains.
+        const key = inputs?.some(input => input.parsed) ? inputs.map(input => input.parsed ? '1' : '0').join('') : undefined;
+        const cached = key ? parsedTemplates.get(definition)?.get(key) : templates.get(definition);
         if (cached) return cached;
         if (active.has(definition)) return;
         if (budget-- <= 0) { limited = true; return; }
         active.add(definition);
         const graph = new Graph(), env = new Map<string, Binding>();
-        const params = definition.parameters.map(name => {
+        const params = definition.parameters.map((name, index) => {
             const value = graph.value(definition);
+            if (inputs?.[index].parsed) value.parsed = true;
             env.set(name, { name, node: definition, rank: value.rank, value });
             return value;
         });
@@ -104,7 +119,11 @@ export function inferRequirements(program: Program, options: RequirementOptions 
         collect(definition.statements, graph, env, functionScopes.get(definition) ?? functions, result, opaqueScopes.has(definition));
         active.delete(definition);
         const value = { graph, params, result };
-        templates.set(definition, value);
+        if (key) {
+            let variants = parsedTemplates.get(definition);
+            if (!variants) { variants = new Map(); parsedTemplates.set(definition, variants); }
+            variants.set(key, value);
+        } else templates.set(definition, value);
         return value;
     };
     function collect(items: readonly Statement[], graph: Graph, env: Map<string, Binding>,
@@ -132,7 +151,11 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             if (effect.unknown || effect.captures.size || effect.globalWriteCaptures.size) forget();
         };
         const builtinEffects = (operation: Operation, args: Value[]) => {
-            const plain = args.every(arg => arg.fact.types.length && (arg.fact.rank === 0 || arg.fact.types.join() === 'text'
+            // I/O with only primitive arguments cannot read lazy cells or mutate Rank
+            // bindings. A later file read must not detach aliases of an earlier read.
+            if (operation.effects?.length && operation.effects.every(effect => effect === 'io')
+                && args.every(arg => arg.fact.types.length && arg.fact.types.every(type => primitiveTypes.has(type)))) return;
+            const plain = args.every(arg => arg.parsed || arg.fact.types.length && (arg.fact.rank === 0 || arg.fact.types.join() === 'text'
                 || arg.fact.eagerScalarCells || arg.fact.callbackFreeScalarCells));
             if (operation.effects?.length || !plain) forget();
         };
@@ -229,10 +252,10 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             }
             // Binary frames broadcast: equality is not a requirement.
         };
-        const call = (definition: FunctionStatement, args: Value[], output: Value, node: AstNode,
+        const call = (definition: FunctionStatement, name: string, args: Value[], output: Value, node: AstNode,
             ranks?: readonly IntrinsicRank[], axes?: readonly number[]) => {
             if (args.length !== definition.parameters.length) return;
-            const summary = template(definition);
+            const summary = template(definition, args);
             if (!summary) return;
             const declared = declaredRanks(definition);
             const cells = ranks ?? (typeof declared === 'object' ? declared.ranks : undefined);
@@ -240,7 +263,9 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             if (graph.solver.variables.length + summary.graph.solver.variables.length > 20_000) {
                 limited = true; return;
             }
-            const instance = graph.instantiate(summary);
+            const instance = graph.instantiate(summary, options.includeCalls);
+            if (options.includeCalls && isExpression(node)) graph.calls.set(node, { name, definition,
+                expressions: instance.expressions, calls: instance.calls });
             if (!cells || cells.every(rank => rank === 'all')) {
                 args.forEach((arg, index) => graph.same(instance.params[index], arg, site(node, `${definition.name} argument`)));
                 graph.same(output, instance.result, site(node, `${definition.name} result`));
@@ -263,10 +288,20 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             const nullary = isNameExpression(node) && !env.has(node.name) ? callees.get(node.name) : undefined;
             const output = graph.value(node, nullary?.parameters.length === 0 ? { types: [] } : expressionFacts(node, lookup));
             graph.expressions.set(node, output);
-            if (nullary?.parameters.length === 0) {
-                call(nullary, [], output, node); callEffects(nullary.name, []); return output;
+            if (nullary?.parameters.length === 0 && isNameExpression(node)) {
+                call(nullary, node.name, [], output, node); callEffects(nullary.name, []); return output;
             }
             if (isBinaryExpression(node)) {
+                if (node.operator === 'default') {
+                    // A missing field on the left is handled by the fallback. Neither
+                    // side supplies an unconditional successful-read requirement.
+                    forget(); return output;
+                }
+                if (node.operator === 'and' || node.operator === 'or') {
+                    expression(node.left);
+                    // The right side may be skipped; its effects are conditional too.
+                    forget(); return output;
+                }
                 const form = symbolicApplicationForm(node, name => !bound(name));
                 if (form?.kind === 'reduce') {
                     const value = expression(form.source), rank = form.rank && literal(form.rank);
@@ -297,19 +332,28 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             const prefix = parts.slice(1, -1);
             if (unary && prefix.length && (prefix.some(isAllAxisExpression)
                 && prefix.every(part => isAllAxisExpression(part) || literal(part) !== undefined)
-                || prefix.length === 1 && isLabelLiteral(prefix[0]))) {
+                || prefix.every(isLabelLiteral))) {
                 parts = [applicationExpression(parts.slice(0, -1), node), trailing!];
             }
             let form: ReturnType<typeof applicationForm>;
             try { form = applicationForm(parts, name => bound(name) ? false : findOperation(name)); }
             catch { return output; } // Incomplete notebook syntax has no requirements yet.
+            if (form.kind === 'checked-read') {
+                const value = expression(applicationExpression(form.parts, node));
+                value.parsed = true;
+                if (form.reader === 'csv') {
+                    value.csv = true;
+                }
+                graph.expressions.set(node, value);
+                return value;
+            }
             if (form.kind === 'rank') {
                 const target = form.parts.at(-1);
                 const args = form.parts.slice(0, -1).map(expression);
                 const ranks = form.rightRank === undefined ? [Number(form.rank)] : [Number(form.rank), Number(form.rightRank)];
                 if (!isNameExpression(target) || ranks.some(rank => !Number.isSafeInteger(rank))) return output;
                 const definition = !env.has(target.name) && callees.get(target.name);
-                if (definition) { call(definition, args, output, node, ranks, form.axes); callEffects(definition.name, args); }
+                if (definition) { call(definition, target.name, args, output, node, ranks, form.axes); callEffects(definition.name, args); }
                 else if (!bound(target.name)) {
                     const operation = findOperation(target.name);
                     if (operation) { signature(operation, args, output, node, ranks, form.axes); builtinEffects(operation, args); }
@@ -335,9 +379,21 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 const arity = definition?.parameters.length;
                 if (arity === parts.length - 1 || operation?.arities.includes(parts.length - 1)) {
                     const args = parts.slice(0, -1).map(expression);
-                    if (definition) { call(definition, args, output, node); callEffects(last.name, args); }
+                    if (definition) { call(definition, last.name, args, output, node); callEffects(last.name, args); }
                     else if (operation) {
                         signature(operation, args, output, node);
+                        if (operation.name === 'matmul' && args.length === 2) {
+                            for (const arg of args) {
+                                requireRank(arg, 1, Infinity, node, 'matmul needs an array');
+                                graph.domains.push({ variable: arg.domain, types: ['integer', 'real'],
+                                    site: site(node, 'matmul needs numeric cells') });
+                            }
+                            const leftRank = graph.shape(args[0]).rank;
+                            if (leftRank !== undefined && leftRank > 0) graph.solver.equal(
+                                graph.dimension(args[0], leftRank - 1), graph.dimension(args[1], 0),
+                                site(node, 'matmul contracted dimensions'),
+                            );
+                        }
                         for (const [index, types] of (operation.operandDomains ?? []).entries()) {
                             if (args[index] && types) graph.domains.push({ variable: args[index].domain, types,
                                 site: site(node, `${operation.name} needs ${types.join(' or ')}`) });
@@ -356,14 +412,26 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 graph.solver.equal(output.rank, input.rank, site(node, 'selection'), -selectors.filter(part => !isAllAxisExpression(part)).length);
                 return output;
             }
-            // A static CSV field names one value, allowing several uses of the same column.
-            if (parts.length === 2 && isLabelLiteral(parts[1]) && isNameExpression(parts[0])
-                && env.get(parts[0].name)?.value.fact.types.join() === 'array') {
-                const key = `${parts[0].name}.${parts[1].name}`;
-                const existing = env.get(key);
-                if (existing) { graph.expressions.set(node, existing.value); return existing.value; }
-                env.set(key, { name: key, node, rank: output.rank, value: output });
-                return output;
+            // Parsed documents cannot be callbacks, even when their root type is unknown.
+            // Field requirements still become facts only after the runtime check succeeds.
+            if (parts.length > 1 && parts.slice(1).every(isLabelLiteral)) {
+                let source = expression(parts[0]);
+                for (const [index, selector] of parts.slice(1).entries()) {
+                    if (!isLabelLiteral(selector)) break;
+                    if (!source.parsed && (!source.fact.types.length
+                        || !source.fact.types.every(type => ['array', 'object', 'record'].includes(type)))) {
+                        forget(); return output;
+                    }
+                    const fact = index === parts.length - 2 ? output.fact
+                        : expressionFacts(applicationExpression(parts.slice(0, index + 2), node), lookup);
+                    const selected = graph.field(source, selector.name, node, fact);
+                    // An ordinary array projection can demand lazy rows and invoke callbacks.
+                    if (!source.parsed && source.fact.types.includes('array')
+                        && !source.fact.eagerScalarCells && !source.fact.callbackFreeScalarCells) forget();
+                    source = selected;
+                }
+                graph.expressions.set(node, source);
+                return source;
             }
             for (const part of parts) if (!isNameExpression(part) || env.has(part.name)) expression(part);
             // Do not connect unknown callable arguments to its result or to a summary.
@@ -372,7 +440,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
         }
         for (const item of items) {
             if (isUseStatement(item)) {
-                if (item.path && !options.loadModule?.(item.path)) opaqueImport = true;
+                if (item.path && !options.loadModule?.(item.path, item)) opaqueImport = true;
                 continue;
             }
             if (isFunctionStatement(item)) continue;
@@ -437,13 +505,20 @@ export function inferRequirements(program: Program, options: RequirementOptions 
     for (const definition of functionScopes.keys()) template(definition);
     const solved = graph.solve();
     const summaries = new Map<FunctionStatement, FunctionRequirement>();
+    const expressions = new Map([...graph.expressions].map(([node, value]) => [node, solved.read(value)]));
     const conflicts = [...solved.conflicts];
     for (const [definition, summary] of templates) {
         const answer = summary.graph.solve();
         summaries.set(definition, { params: summary.params.map(answer.read), result: answer.read(summary.result) });
+        for (const [node, value] of summary.graph.expressions) expressions.set(node, answer.read(value));
         conflicts.push(...answer.conflicts);
         limited ||= answer.limited;
     }
+    const readCalls = (calls: ReadonlyMap<Expression, CallValues>): ReadonlyMap<Expression, CallRequirement> =>
+        new Map([...calls].map(([node, call]) => [node, { name: call.name, definition: call.definition,
+            expressions: new Map([...call.expressions].map(([expression, value]) => [expression, solved.read(value)])),
+            calls: readCalls(call.calls) }]));
+    const calls = readCalls(graph.calls);
     const siteIds = new WeakMap<AstNode, number>();
     let nextSite = 0;
     const key = (value: RequirementSite) => {
@@ -453,7 +528,8 @@ export function inferRequirements(program: Program, options: RequirementOptions 
     };
     return {
         bindings: graph.bindings.map(binding => ({ ...solved.read(binding.value), name: binding.name, node: binding.node })),
-        expressions: new Map([...graph.expressions].map(([node, value]) => [node, solved.read(value)])),
+        expressions,
+        calls,
         functions: summaries,
         conflicts: [...new Map(conflicts.map(conflict => [`${conflict.kind}:${key(conflict.first)}:${key(conflict.second)}`, conflict])).values()],
         limited: limited || solved.limited,

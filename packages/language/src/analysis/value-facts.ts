@@ -225,8 +225,13 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     if (isFirstIndexWhereExpression(expression)) return { types: ['integer'], rank: 0, shape: [] };
     if (isTableFilterExpression(expression) && !expression.sourceFields.length) {
         const source = expressionFacts(expression.source, lookup);
+        const filteredLength = source.checkedColumns ? freshDim('filtered') : undefined;
         if (source.types.join() === 'array' && source.rank === 1) return {
             types: ['array'], rank: 1, shape: [null],
+            ...(filteredLength && source.checkedInputId !== undefined
+                ? { dims: [filteredLength], checkedInputId: source.checkedInputId, checkedColumns: Object.fromEntries(
+                    Object.entries(source.checkedColumns ?? {}).map(([name, column]) => [name,
+                        { ...column, shape: [null], dims: [filteredLength] }])) } : {}),
         };
     }
     if (isCountClauseExpression(expression)) {

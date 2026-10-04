@@ -98,3 +98,26 @@ it('recognizes symbolic modifiers once and respects a shadowed modifier', () => 
     expect(symbolic('Values scan + axis 1')).toMatchObject({ axis: { value: 1n } });
     expect(symbolic('Values scan +', name => name !== 'scan')).toBeUndefined();
 });
+
+it.each([
+    ['Path csv check', 'csv'], ['(Path csv) check', 'csv'],
+    ['Text json check', 'json'], ['Text json .flat check', 'json'], ['Text .flat json check', 'json'],
+    ['Text xml check', 'xml'], ['Text xml .flat check', 'xml'], ['Text .flat xml check', 'xml'],
+])('recognizes %s as a checked reader', (source, reader) => {
+    const parsed = parser.parse<Program>(`Result = ${source}`);
+    expect(parsed.parserErrors).toEqual([]);
+    const assignment = parsed.value.statements[0];
+    expect(isAssignmentStatement(assignment)).toBe(true);
+    if (!isAssignmentStatement(assignment)) return;
+    expect(applicationForm(assignment.value)).toMatchObject({ kind: 'checked-read', reader });
+    expect(applicationForm(assignment.value, name => name === 'check' || name === reader ? false : findOperation(name)))
+        .toMatchObject({ kind: 'plain' });
+});
+
+it('does not interpret a CSV write as a checked read', () => {
+    const parsed = parser.parse<Program>('Result = Rows Path csv check');
+    expect(parsed.parserErrors).toEqual([]);
+    const assignment = parsed.value.statements[0];
+    if (!isAssignmentStatement(assignment)) throw new Error('expected assignment');
+    expect(applicationForm(assignment.value)).toMatchObject({ kind: 'invalid' });
+});

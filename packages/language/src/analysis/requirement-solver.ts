@@ -10,6 +10,8 @@ export interface RequirementInterval {
     readonly max: number;
     readonly lower?: RequirementSite;
     readonly upper?: RequirementSite;
+    /** Equal dimension variables share a group; their actual lengths minus offset must match. */
+    readonly equality?: { readonly group: number; readonly offset: number };
 }
 export interface RequirementConflict {
     readonly kind: 'rank' | 'dimension' | 'domain';
@@ -102,7 +104,9 @@ export class RequirementSolver {
         };
         const interval = (id: number): RequirementInterval => {
             const range = ranges[parents[id]], offset = offsets[id];
-            return { ...range, min: range.min + offset, max: range.max + offset };
+            return { ...range, min: range.min + offset, max: range.max + offset,
+                ...(this.variables[id].kind === 'dimension'
+                    ? { equality: { group: parents[id], offset } } : {}) };
         };
         this.constraints.forEach((item, i) => {
             const ids = item.kind === 'frame' ? [item.source, item.frame]

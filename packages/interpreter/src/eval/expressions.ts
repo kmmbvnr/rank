@@ -50,6 +50,7 @@ import { isNamed } from './application.js';
 
 /** What evaluating expressions needs beyond the expression itself. */
 export interface ExpressionContext {
+    inputCall?(expression: Expression, run: () => Evaluation<RankValue>): Evaluation<RankValue>;
     readonly bindings: BindingEnvironment;
     resolve(name: string): RankValue;
     select(values: RankValue[], missing?: () => RankValue): RankValue;
@@ -200,6 +201,16 @@ export class ExpressionEvaluator {
         tail = false,
         classify = true,
         allowScalar = true,
+    ): () => Evaluation<RankValue> {
+        const run = this.compileInner(expression, missing, tail, classify, allowScalar);
+        return classify && this.context.inputCall
+            && (isNameExpression(expression) || isApplicationExpression(expression) || isBinaryExpression(expression))
+            ? () => this.context.inputCall!(expression, run) : run;
+    }
+
+    private compileInner(
+        expression: Expression, missing: (() => RankValue) | undefined,
+        tail: boolean, classify: boolean, allowScalar: boolean,
     ): () => Evaluation<RankValue> {
         const expressions = this;
         const bound = compileClauseExpression(expression, () => this.clauseContext());

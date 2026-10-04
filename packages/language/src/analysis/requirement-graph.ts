@@ -1,6 +1,6 @@
 import { contractElements } from './array-binding-contract.js';
 import type { AstNode } from 'langium';
-import type { Expression } from '../generated/ast.js';
+import type { Expression, FunctionStatement } from '../generated/ast.js';
 import { UNKNOWN_VALUE, withPathDims, type ValueFacts } from './value-domain.js';
 import type { Dim } from './shape-index.js';
 import { RequirementSolver, type RequirementInterval, type RequirementSite } from './requirement-solver.js';
@@ -10,12 +10,21 @@ export interface ValueRequirement {
     /** Required scalar/cell domains. Absent means unconstrained. */
     readonly domains?: readonly string[];
     readonly dimensions: ReadonlyMap<number, RequirementInterval>;
+    /** Requirements on named selections, not proof that those fields exist.
+     * A table selection describes the projected column, not one row's cell. */
+    readonly fields?: ReadonlyMap<string, ValueRequirement>;
 }
 export interface Value {
     rank: number;
     domain: number;
     dimensions: Map<number, number>;
+    fields: Map<string, Value>;
     fact: ValueFacts;
+    /** Fresh parser output and its selections cannot contain Rank callbacks.
+     * This is reader provenance, never a proof of a required field or domain. */
+    parsed?: true;
+    /** A CSV table's named projections are rank-one columns of equal row count. */
+    csv?: true;
     node: AstNode;
 }
 export interface Binding { name: string; node: AstNode; rank: number; value: Value; }
@@ -25,16 +34,24 @@ export interface Template {
     params: Value[];
     result: Value;
 }
+export interface CallValues {
+    readonly name: string;
+    readonly definition: FunctionStatement;
+    readonly expressions: ReadonlyMap<Expression, Value>;
+    readonly calls: ReadonlyMap<Expression, CallValues>;
+}
 const site = (node: AstNode, reason: string): RequirementSite => ({ node, reason });
 
 export class Graph {
     readonly solver = new RequirementSolver();
     readonly bindings: Binding[] = [];
     readonly expressions = new Map<Expression, Value>();
+    readonly calls = new Map<Expression, CallValues>();
     readonly domains: DomainConstraint[] = [];
     readonly domainLinks: [number, number][] = [];
     readonly inhabited = new Set<number>();
     private readonly shapeParents = new WeakMap<Map<number, number>, Map<number, number>>();
+    private readonly fieldParents = new WeakMap<Map<string, Value>, Map<string, Value>>();
     private readonly symbols = new Map<string, number>();
     private readonly shapeFacts = new WeakMap<Map<number, number>, ValueFacts>();
     shape(value: Value): ValueFacts { return this.shapeFacts.get(this.dimensions(value)) ?? value.fact; }
@@ -45,6 +62,32 @@ export class Graph {
             const result = root(parent); this.shapeParents.set(map, result); return result;
         };
         return root(value.dimensions);
+    }
+    fields(value: Value): Map<string, Value> {
+        let fields = value.fields;
+        const path: Map<string, Value>[] = [];
+        for (let parent = this.fieldParents.get(fields); parent; parent = this.fieldParents.get(fields)) {
+            path.push(fields); fields = parent;
+        }
+        for (const map of path) this.fieldParents.set(map, fields);
+        return fields;
+    }
+    /** Connect repeated selections and aliases without manufacturing a forward field fact. */
+    field(value: Value, name: string, node: AstNode, fact: ValueFacts = UNKNOWN_VALUE): Value {
+        const fields = this.fields(value);
+        let selected = fields.get(name);
+        if (!selected) { selected = this.value(node, fact); fields.set(name, selected); }
+        if (value.parsed) selected.parsed = true;
+        if (value.csv) {
+            selected.fact = { types: ['array'], rank: 1, shape: [null], eagerScalarCells: true };
+            this.shapeFacts.set(this.dimensions(selected), selected.fact);
+            this.solver.bound(selected.rank, 1, 1, site(node, 'CSV column rank'));
+            const rowLength = this.dimension(value, 0), columns = this.dimensions(selected);
+            const old = columns.get(0);
+            if (old !== undefined) this.solver.equal(old, rowLength, site(node, 'CSV column length'));
+            else columns.set(0, rowLength);
+        }
+        return selected;
     }
     private symbolic(dim: Dim, at: RequirementSite): number | undefined {
         if (dim.constant < 0 || dim.terms.some(([, n]) => !Number.isSafeInteger(n) || n <= 0)) return;
@@ -70,7 +113,7 @@ export class Graph {
     }
     value(node: AstNode, fact: ValueFacts = UNKNOWN_VALUE): Value {
         const rank = this.solver.variable();
-        const value = { rank, domain: rank, dimensions: new Map<number, number>(), fact, node };
+        const value = { rank, domain: rank, dimensions: new Map<number, number>(), fields: new Map<string, Value>(), fact, node };
         if (fact.rank === 0 || fact.types.join() === 'text'
             || fact.shape?.every(n => n !== null && n > 0)) this.inhabited.add(rank);
         this.shapeFacts.set(value.dimensions, fact);
@@ -106,6 +149,8 @@ export class Graph {
         return id;
     }
     same(left: Value, right: Value, at: RequirementSite, dimensions = true): void {
+        if (left.parsed || right.parsed) left.parsed = right.parsed = true;
+        if (left.csv || right.csv) left.csv = right.csv = true;
         this.solver.equal(left.rank, right.rank, at);
         this.domainLinks.push([left.domain, right.domain]);
         if (dimensions) {
@@ -128,20 +173,50 @@ export class Graph {
                 this.shapeParents.set(a, b);
             }
         }
+        // Share before descending: recursive structures and aliases cannot recurse forever.
+        const a = this.fields(left), b = this.fields(right);
+        if (a !== b) {
+            this.fieldParents.set(a, b);
+            for (const [name, field] of a) {
+                const other = b.get(name);
+                if (other) this.same(field, other, at);
+                else b.set(name, field);
+            }
+        }
     }
-    instantiate(template: Template): { params: Value[]; result: Value } {
+    instantiate(template: Template, includeCalls = false): {
+        params: Value[]; result: Value; expressions: ReadonlyMap<Expression, Value>; calls: ReadonlyMap<Expression, CallValues>;
+    } {
         const map = this.solver.copy(template.graph.solver);
         for (const id of template.graph.inhabited) this.inhabited.add(map(id));
         this.domains.push(...template.graph.domains.map(item => ({ ...item, variable: map(item.variable) })));
         this.domainLinks.push(...template.graph.domainLinks.map(([a, b]): [number, number] => [map(a), map(b)]));
         const shapes = new Map<Map<number, number>, Map<number, number>>();
+        const fields = new Map<Map<string, Value>, Map<string, Value>>();
+        const values = new Map<Value, Value>();
         const copy = (value: Value): Value => {
+            const cached = values.get(value);
+            if (cached) return cached;
             const original = template.graph.dimensions(value);
             let dimensions = shapes.get(original);
             if (!dimensions) { dimensions = new Map([...original].map(([axis, id]) => [axis, map(id)])); shapes.set(original, dimensions); this.shapeFacts.set(dimensions, template.graph.shape(value)); }
-            return { ...value, rank: map(value.rank), domain: map(value.domain), dimensions };
+            const originalFields = template.graph.fields(value);
+            let selections = fields.get(originalFields);
+            const fresh = !selections;
+            if (!selections) { selections = new Map(); fields.set(originalFields, selections); }
+            const result = { ...value, rank: map(value.rank), domain: map(value.domain), dimensions, fields: selections };
+            values.set(value, result);
+            if (fresh) for (const [name, selected] of originalFields) selections.set(name, copy(selected));
+            return result;
         };
-        return { params: template.params.map(copy), result: copy(template.result) };
+        const expressions = (source: ReadonlyMap<Expression, Value>) =>
+            new Map([...source].map(([node, value]) => [node, copy(value)]));
+        const calls = (source: ReadonlyMap<Expression, CallValues>): ReadonlyMap<Expression, CallValues> =>
+            new Map([...source].map(([node, call]) => [node, { ...call,
+                expressions: expressions(call.expressions), calls: calls(call.calls) }]));
+        return { params: template.params.map(copy), result: copy(template.result),
+            expressions: includeCalls ? expressions(template.graph.expressions) : new Map(),
+            calls: includeCalls ? calls(template.graph.calls) : new Map() };
     }
     solve() {
         const solved = this.solver.solve();
@@ -162,9 +237,23 @@ export class Graph {
             sites.push(item);
             domains.set(root, { types, sites });
         }
-        const read = (value: Value): ValueRequirement => ({ rank: solved.intervals[value.rank],
-            domains: domains.get(find(value.domain))?.types,
-            dimensions: new Map([...this.dimensions(value)].map(([axis, id]) => [axis, solved.intervals[id]])) });
-        return { ...solved, conflicts, read };
+        let limited = solved.limited;
+        const visit = (value: Value, active: ReadonlySet<Map<string, Value>>, budget: { remaining: number }): ValueRequirement => {
+            const selections = this.fields(value);
+            const cyclic = active.has(selections) || active.size >= 256 || budget.remaining-- <= 0;
+            limited ||= cyclic;
+            const path = new Set(active); path.add(selections);
+            return { rank: solved.intervals[value.rank], domains: domains.get(find(value.domain))?.types,
+                dimensions: new Map([...this.dimensions(value)].map(([axis, id]) => [axis, solved.intervals[id]])),
+                ...(!cyclic && selections.size ? { fields: new Map([...selections]
+                    .map(([name, selected]) => [name, visit(selected, path, budget)])) } : {}) };
+        };
+        const answers = new Map<Value, ValueRequirement>();
+        const read = (value: Value): ValueRequirement => {
+            let answer = answers.get(value);
+            if (!answer) { answer = visit(value, new Set(), { remaining: 20_000 }); answers.set(value, answer); }
+            return answer;
+        };
+        return { ...solved, conflicts, read, get limited() { return limited; } };
     }
 }

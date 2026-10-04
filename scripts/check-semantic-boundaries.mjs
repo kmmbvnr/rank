@@ -17,6 +17,7 @@ const owners = new Set([
     'packages/language/src/analysis/function-yields.ts',
     'packages/language/src/analysis/numeric-recursion.ts',
     'packages/language/src/analysis/operation-proofs.ts',
+    'packages/interpreter/src/checked-input.ts',
     'packages/language/src/analysis/requirements.ts',
     'packages/language/src/analysis/requirement-graph.ts',
     'packages/language/src/analysis/requirement-solver.ts',
@@ -85,7 +86,11 @@ for (const file of [...sources(language), ...sources(runtime)]) {
         failures.push(`${name}: runtime module imports Interpreter facade`);
     }
     const proofConsumer = file.startsWith(`${runtime}/`) || /\/(operation-proofs|flat-array-borrow|function-effects|value-facts)\.ts$/.test(file);
-    if (proofConsumer && /\b(?:inferRequirements|RequirementAnalysis)\b|\.requirements\b|from ['"][^'"]*\/requirement(?:s|-)/.test(source)) {
+    // #116 permits one runtime consumer: it validates actual input values.
+    // Other runtime owners may carry opaque call plans, but cannot solve or use
+    // requirements as optimization proofs.
+    const readTimeValidator = file === resolve(runtime, 'checked-input.ts');
+    if (proofConsumer && !readTimeValidator && /\b(?:inferRequirements|RequirementAnalysis)\b|\.requirements\b|from ['"][^'"]*\/requirement(?:s|-)/.test(source)) {
         failures.push(`${name}: requirement facts must not enter runtime or optimization proofs`);
     }
     if (!owners.has(name)) continue;

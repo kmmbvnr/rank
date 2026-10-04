@@ -83,6 +83,8 @@ export function applicationExpressionFacts(
 export function applicationFormFacts(expression: Expression, form: ApplicationForm, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts | undefined {
     switch (form.kind) {
+        case 'checked-read':
+            return infer(applicationExpression(form.parts, expression), lookup);
         case 'plain': case 'new-dsu': case 'new-graph': case 'text-format': case 'rank':
         case 'named-segment': case 'named-outer': case 'sort-direction':
         case 'axis-length': case 'axis-reduction': case 'axis-covariance': case 'axis-correlation':
@@ -216,7 +218,9 @@ function transferApplicationFacts(
     const flattened = flattenApplication(expression);
     let parts = flattened;
     if (flattened.length > 2 && isLabelLiteral(flattened[1])
-        && infer(flattened[0], lookup).fields?.[flattened[1].name]) {
+        && (infer(flattened[0], lookup).fields?.[flattened[1].name]
+            || infer(flattened[0], lookup).checkedFields?.[flattened[1].name]
+            || infer(flattened[0], lookup).checkedColumns?.[flattened[1].name])) {
         let prefix: Expression = expression;
         while (isApplicationExpression(prefix) && flattenApplication(prefix).length > 2) {
             prefix = prefix.head;
@@ -226,7 +230,9 @@ function transferApplicationFacts(
     // A later operand `Record .field` is a field read too, as in `X Model .weights matmul`.
     for (let index = 2; parts.length > 2 && index < parts.length; index++) {
         const label = parts[index];
-        if (!isLabelLiteral(label) || !infer(parts[index - 1], lookup).fields?.[label.name]) continue;
+        if (!isLabelLiteral(label) || !(infer(parts[index - 1], lookup).fields?.[label.name]
+            || infer(parts[index - 1], lookup).checkedFields?.[label.name]
+            || infer(parts[index - 1], lookup).checkedColumns?.[label.name])) continue;
         parts = [...parts.slice(0, index - 1), applicationExpression([parts[index - 1], label], expression),
             ...parts.slice(index + 1)];
         index--;
@@ -323,7 +329,11 @@ function transferApplicationFacts(
     }
     if (parts.length === 2 && isNameExpression(last) && last.name === 'xml'
         && lookup(last.name) === undefined && source.types.join() === 'text') {
-        return { types: ['object'] };
+        const text = { types: ['text'], rank: 1, shape: [null] };
+        return { types: ['object'], fields: {
+            kind: text, name: text, value: text, attributes: { types: ['object'], xmlAttributeValues: true },
+            children: { types: ['array'], rank: 1, shape: [null], elements: ['object'] },
+        } };
     }
     const namedSegment = form.kind === 'named-segment' ? form : undefined;
     const combine = parts.length === 3 && namedSegment && isNameExpression(namedSegment.operation)
@@ -374,8 +384,14 @@ function transferApplicationFacts(
         types: ['sequence'], rank: 1, shape: [null], elements: source.elements,
         callbackFreeScalarCells: true,
     };
-    if (parts.length === 2 && source.types.join() === 'record' && isLabelLiteral(last)) {
+    if (parts.length === 2 && isLabelLiteral(last) && source.checkedFields?.[last.name]) {
+        return source.checkedFields[last.name];
+    }
+    if (parts.length === 2 && ['record', 'object'].includes(source.types.join()) && isLabelLiteral(last)) {
         return source.fields?.[last.name] ?? UNKNOWN_VALUE;
+    }
+    if (parts.length === 2 && source.types.join() === 'array' && isLabelLiteral(last)) {
+        return source.checkedColumns?.[last.name] ?? UNKNOWN_VALUE;
     }
     const axisLength = form.kind === 'axis-length' ? form : undefined;
     if (axisLength
@@ -869,6 +885,9 @@ function transferApplicationFacts(
             ...(source.eagerScalarCells || source.callbackFreeScalarCells
                 ? { callbackFreeScalarCells: true as const } : {}) };
         if (source.elements?.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
+        if (source.elements?.join() === 'object' && source.checkedInputId !== undefined) {
+            return { types: ['object'], checkedInputId: source.checkedInputId };
+        }
         if (source.types[0] === 'array' && source.elements?.join() === 'record' && source.elementRecord) {
             return source.elementRecord;
         }

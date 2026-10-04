@@ -38,6 +38,7 @@ import {
 /** What evaluating application forms needs from the rest of evaluation. */
 export interface ApplicationContext {
     evaluate(expression: Expression): Evaluation<RankValue>;
+    checkInput(expression: Expression, value: RankValue, source: string): void;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     /** Evaluation of an expression that is not an application, without classifying it again. */
     compile(expression: Expression, missing?: () => RankValue, tail?: boolean, classify?: boolean): () => Evaluation<RankValue>;
@@ -74,6 +75,15 @@ export class ApplicationEvaluator {
         const application = this;
         const parts = flattenApplication(expression);
         switch (form.kind) {
+            case 'checked-read': {
+                const read = applicationParts(form.parts, expression);
+                const first = form.parts[0];
+                const source = form.reader === 'csv' && isStringLiteral(first) ? first.value : `${form.reader} input`;
+                return () => mapResult(context.evaluate(read), value => {
+                    context.checkInput(expression, value, source);
+                    return value;
+                });
+            }
             case 'collection-mutation': throw new RankError('collection mutation requires a statement');
             case 'invalid': throw new RankError(form.message);
             case 'comparison-rank': {

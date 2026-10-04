@@ -1,5 +1,5 @@
 import {
-    isExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
+    isExpression, isParenthesizedExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
     isApplicationExpression, isArrayExpression, isBinaryExpression, isLabelLiteral, isNameExpression,
     type ArrayExpression, type ArrayItem, type Expression,
 } from './generated/ast.js';
@@ -315,6 +315,7 @@ type Recognized<K extends string, F extends (...args: never[]) => unknown> =
 
 export type ApplicationForm =
     | { readonly kind: 'plain' }
+    | { readonly kind: 'checked-read'; readonly reader: 'csv' | 'json' | 'xml'; readonly parts: readonly Expression[] }
     | { readonly kind: 'invalid'; readonly message: string }
     | { readonly kind: 'unpack' }
     | { readonly kind: 'new-graph' }
@@ -386,6 +387,11 @@ export function applicationForm(
             return symbolicApplicationForm(input, name => lookup(name) !== false) ?? { kind: 'plain' };
         }
         const parts = (Array.isArray(input) ? input : flattenApplication(input as Expression)).map(normalize);
+        if (parts.length === 2 && isNamed(parts[1], 'check') && isParenthesizedExpression(parts[0])) {
+            let read = parts[0].value;
+            while (isParenthesizedExpression(read)) read = read.value;
+            parts.splice(0, 1, ...flattenApplication(read).map(normalize));
+        }
         const form = classifyParts(parts);
         return originals.size ? restore(form) as ApplicationForm : form;
     } catch (error) {
@@ -395,6 +401,20 @@ export function applicationForm(
 }
 
 function classifyParts(parts: Expression[]): ApplicationForm {
+    if (isNamed(parts.at(-1), 'check')) {
+        const read = parts.slice(0, -1);
+        const operation = read.find((part, index) => index > 0 && isNameExpression(part)
+            && ['csv', 'json', 'xml'].includes(part.name));
+        if (isNameExpression(operation)) {
+            const reader = operation.name as 'csv' | 'json' | 'xml';
+            const valid = read.length === 2 && read[1] === operation
+                || reader !== 'csv' && read.length === 3
+                    && (read[1] === operation && isLabelLiteral(read[2])
+                        || read[2] === operation && isLabelLiteral(read[1]));
+            if (!valid) return { kind: 'invalid', message: 'check must follow a CSV read or a JSON/XML parse' };
+            return { kind: 'checked-read', reader, parts: read };
+        }
+    }
     const direction = sortDirectionForm(parts);
     if (direction) return direction;
     if (parts.some(isUnpackExpression)) return { kind: 'unpack' };

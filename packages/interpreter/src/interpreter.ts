@@ -2,11 +2,12 @@ import { InterruptedError, inspectionEnabled } from './interrupt.js';
 import { type AstNode } from 'langium';
 import {
     availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage, isFunctionStatement, isUseStatement,
-    type Expression, type FunctionStatement, type Program, type Statement,
+    type Expression, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { enterRuntime, leaveRuntime } from './array-storage.js';
 import { BindingEnvironment } from './binding-environment.js';
 import { bindInputs } from './cli-args.js';
+import { CheckedInputContracts } from './checked-input.js';
 import { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
 import { ApplicationEvaluator } from './eval/application.js';
@@ -31,7 +32,7 @@ import { clonePreviewValue } from './preview-values.js';
 import { RankApplication } from './rank-application.js';
 import { ReductionEvaluator } from './reduction.js';
 import { ResourceOwnership } from './resource-ownership.js';
-import { locateError, registerSource } from './source-location.js';
+import { locateError, registerSource, sourceIdOf } from './source-location.js';
 import { selectValues } from './value-selection.js';
 import { isNativeFunction, type RankValue } from './value.js';
 
@@ -76,6 +77,7 @@ export class Interpreter {
 
     private readonly bindings = new BindingEnvironment(this.variables, this.modules);
     private readonly resources = new ResourceOwnership();
+    private readonly checkedInputs = new CheckedInputContracts();
     private readonly operators = new Operators(this.modules, value => this.resources.ownFiles(value),
         fn => this.functions.scalarCallback(fn));
     private readonly inspection = new DebugInspection(this.bindings, () => this.options.sourceId ?? '<input>');
@@ -107,6 +109,7 @@ export class Interpreter {
         });
         this.functions = new FunctionInvocation(this.bindings, this.resources, this.builtins, this.inspection,
             this.modules, () => this.options, {
+                inputs: this.checkedInputs,
                 compileDirect: expression => this.expressions.compileDirect(expression),
                 compiled: (statement, arguments_) => this.fastPaths.functionBody(statement, arguments_, this.blocks),
                 execute: (statements, generator) => this.blocks.execute(statements, false, false, false, generator),
@@ -140,6 +143,7 @@ export class Interpreter {
             operators: this.operators,
         });
         this.application = new ApplicationEvaluator({
+            checkInput: (expression, value, source) => this.checkedInputs.check(expression, value, source),
             evaluate: expression => this.expressions.evaluate(expression),
             compileDirect: expression => this.expressions.compileDirect(expression),
             compile: (expression, missing, tail, classify) => this.expressions.compile(expression, missing, tail, classify),
@@ -158,6 +162,7 @@ export class Interpreter {
             fastPaths: this.fastPaths,
         });
         this.expressions = new ExpressionEvaluator({
+            inputCall: (expression, run) => this.checkedInputs.expression(expression, run),
             bindings: this.bindings,
             resolve: name => this.resolve(name),
             select,
@@ -254,6 +259,17 @@ export class Interpreter {
     ): RankValue | undefined {
         validateFunctionPlacement(program.statements, 'top');
         this.checkBuiltinBindings(program);
+        const declarations = new Map<string, FunctionStatement>();
+        const initial = new Map<string, ValueFacts>();
+        for (const [name, value] of this.variables) {
+            const definition = isNativeFunction(value) ? this.functions.definitionOf(value) : undefined;
+            if (definition && !definition.context) declarations.set(name, definition.statement);
+            else initial.set(name, { types: [] });
+        }
+        this.checkedInputs.prepare(program, initial, declarations,
+            this.options.loadModule ? (path, site) => this.load(path,
+                site?.$cstNode ? sourceIdOf(site.$cstNode, this.options.sourceId ?? '<input>')
+                    : this.options.sourceId).program : undefined);
         this.declareFunctions(program.statements);
         bindInputs(program, args, {
             variables: this.variables,
@@ -458,6 +474,7 @@ export class Interpreter {
             sourceId: loaded.id,
         });
         child.loadedProgram = loaded;
+        for (const [key, value] of this.openPrograms) child.openPrograms.set(key, value);
         child.prepareModule(loaded.program);
 
         if (alias) {
@@ -494,16 +511,17 @@ export class Interpreter {
         }
     }
 
-    private load(specifier: string): LoadedProgram {
-        const cached = this.openPrograms.get(specifier);
+    private load(specifier: string, fromId = this.options.sourceId): LoadedProgram {
+        const key = `${fromId ?? '<input>'}\0${specifier}`;
+        const cached = this.openPrograms.get(key);
         if (cached) return cached;
         if (!this.options.loadModule) {
             throw new RankError(`cannot load module without a loader: ${specifier}`);
         }
-        const source = this.options.loadModule(specifier, this.options.sourceId);
+        const source = this.options.loadModule(specifier, fromId);
         const loaded = { id: source.id, program: parse(source.source, source.id) };
         registerSource(loaded.program, source.id);
-        this.openPrograms.set(specifier, loaded);
+        this.openPrograms.set(key, loaded);
         return loaded;
     }
 
