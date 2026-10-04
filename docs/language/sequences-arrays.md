@@ -805,17 +805,18 @@ SQLite emits DESC for descending keys and still needs explicit tie-breakers
 for a deterministic order among equal keys. Keep sorting as the final SQL
 operation before output when order is required.
 
-`Mask TrueValues FalseValues choose` selects a value at each position. A
+`Mask choose TrueValues FalseValues` selects a value at each position. A
 scalar boolean selects one branch; arrays broadcast by the usual trailing-axis
 rules and produce a lazy array. Only the chosen branch is read at each cell.
 The mask must contain booleans, and an absent mask cell gives an absent result
-cell. Incompatible shapes are errors.
+cell. Incompatible shapes are errors. `choose` is available without `use sequences`.
+The earlier postfix calls remain valid. Parenthesize compound alternatives.
 
 ```rank
-Rate = Guest GuestRate MemberRate choose
+Rate = Guest choose GuestRate MemberRate
 ```
 
-`Index Choices choose` generalizes the mask to more than two branches. Each
+`Index choose Choices` generalizes the mask to more than two branches. Each
 cell of the integer index names a choice: a leading-axis cell of `Choices`,
 so either an item of `array A B C` or a slice of a stacked tensor. Index and
 choices broadcast by trailing axes, and only the chosen value is read at each
@@ -825,7 +826,7 @@ column of a matrix:
 
 ```rank
 Index = array 0 2 1
-Picked = Index (array Sums Maxima Means) choose
+Picked = Index choose (array Sums Maxima Means)
 ```
 
 When the operands are SQLite expressions from one view, `choose` builds a

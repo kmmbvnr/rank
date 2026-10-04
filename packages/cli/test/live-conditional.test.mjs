@@ -41,7 +41,7 @@ test('an open top-level if previews its conditions and only the selected branch'
 test('a function previews if lines with its example and skips inactive nested code', async () => {
     const s = scenario();
     try {
-        await s.line('fun choose X');
+        await s.line('fun decide X');
         s.repl.exampleEditor.insert('2');
         await s.repl.submit();
 

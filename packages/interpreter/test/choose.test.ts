@@ -2,6 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
 
 describe('choose', () => {
+    it('accepts the condition before choose without a module import', () => {
+        const runtime = new Interpreter();
+        expect(formatValue(runtime.execute('true choose "yes" "no"')!)).toBe('yes');
+        expect(formatValue(runtime.execute('false choose "yes" "no"')!)).toBe('no');
+        expect(formatValue(runtime.execute('2 greater 1 choose (3 + 4) 0')!)).toBe('7');
+        runtime.execute('Mask = array true false true\nValues = array 2 4 6');
+        expect(formatValue(runtime.execute('Mask choose Values 0')!)).toBe('2 0 6');
+        expect(formatValue(runtime.execute('1 choose (array 10 20 30)')!)).toBe('20');
+        expect(formatValue(runtime.execute('true choose false true choose 3 4')!)).toBe('4');
+        expect(formatValue(runtime.execute('true true false choose 3 4 choose')!)).toBe('3');
+    });
+
     it('selects scalar values and broadcasts arrays lazily', () => {
         const runtime = new Interpreter();
         runtime.execute('use sequences\nMask = array true false true\n'

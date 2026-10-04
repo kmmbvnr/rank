@@ -228,6 +228,22 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                 }
             }
             const original = raw.map(part => visit(part) as Expression);
+            for (let cursor = 1; cursor < original.length; cursor++) {
+                const part = original[cursor];
+                if (!isNameExpression(part) || part.name !== 'choose' || !standardOperation(part.name)) continue;
+                let previousCall = -1;
+                for (let index = cursor - 1; index >= 0; index--) {
+                    if (callable(original[index])) { previousCall = index; break; }
+                }
+                // Three values before choose already form the old postfix call.
+                if (cursor - previousCall - 1 >= 3) continue;
+                const nextCall = original.findIndex((candidate, index) => index > cursor && callable(candidate));
+                const end = nextCall < 0 ? original.length : nextCall;
+                const options = original.slice(cursor + 1, end);
+                if (options.length !== 1 && options.length !== 2) continue;
+                original.splice(cursor, end - cursor, ...options, part);
+                cursor = end - 1;
+            }
             const parts: Expression[] = [];
             for (let index = 0; index < original.length; index++) {
                 const part = original[index];

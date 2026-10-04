@@ -136,6 +136,7 @@ Always available: conversions, ranges, length, sums and extrema. No use required
 | `Left Right max` | number | Larger of two numbers, or the largest of one collection. |
 | `Left Right min` | number | Smaller of two numbers, or the smallest of one collection. |
 | `Values sum` | number | Adds every numeric cell of an array, collection or finite sequence. |
+| `Mask choose TrueValues FalseValues` | value, lazy | Selects each cell by a boolean mask; SQLite expressions become CASE. |
 | `Value len` | integer | Code points of text, leading axis of an array, or size of a collection. |
 | `Values present` | boolean | Mask of the cells that have a value: false for `.NA` and for cells that read as `.Missing`. |
 | `Value bytes` | bytes | Converts UTF-8 text or a rank-1 array of integers in 0..255 to compact bytes. |
@@ -151,6 +152,7 @@ These constructs are always available.
 | `Left Right max` | The larger of two numbers; min gives the smaller. |
 | `Low to High` | Counting range with an inclusive upper bound; after values, keeps those at most High. |
 | `Low till High` | Counting range with an exclusive upper bound; after values, keeps those below High. |
+| `Index choose Choices` | Selects each cell from the choice its integer index names; choices are leading cells. |
 | `Values max .index` | Position of the first largest value; min .index gives the smallest, .indexed a value and position pair. |
 
 ## crypto
@@ -355,7 +357,6 @@ Shapes, orderings, windows and lazy sources.
 | `Mask all` | boolean | True when every boolean cell is true; empty collections are true. |
 | `Mask any` | boolean | True when one boolean cell is true; empty collections are false. |
 | `Values argsort .descending` | array | Stable zero-based positions that put the values in order. |
-| `Mask TrueValues FalseValues choose` | value, lazy | Selects each cell by a boolean mask; SQLite expressions become CASE. |
 | `Values copy` | array | Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack. |
 | `Mask count` | integer | Number of true cells, or of source items a lazy mask selects. |
 | `Values Target find` | integer | First zero-based position equal to Target in a vector or text; an array of targets finds each. |
@@ -382,7 +383,6 @@ These need `use sequences` but have no name to look up.
 | `stack A B` | Builds a lazy array from equally shaped arrays or exact-size sequences. |
 | `Values sort by .field` | Stable sort by record fields or by one key function. |
 | `Values argsort by .field` | Source positions of that same order. |
-| `Index Choices choose` | Selects each cell from the choice its integer index names; choices are leading cells. |
 | `Values sort .descending` | Sorts in descending order; argsort and per-key sort directions preserve ties. |
 | `Values sort .indexes` | Positions that order the values, as argsort does; .indexed gives the sorted values and positions as a pair. |
 

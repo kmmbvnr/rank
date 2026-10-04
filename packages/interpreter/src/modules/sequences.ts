@@ -49,8 +49,6 @@ interface Boundary {
 
 export const sequencesModule: RuntimeModule = {
     flat: () => native('flat', [1, 2], flatRecords),
-    choose: () => native('choose', [2, 3], ([condition, whenTrue, whenFalse]) =>
-        whenFalse === undefined ? chooseIndexed(condition, whenTrue) : chooseValue(condition, whenTrue, whenFalse)),
     fibonacci: () => sequence(fibonacciPlan()),
     primes: () => sequence(primePlan()),
     shape: () => native('shape', 1, arguments_ => shapeOf(arguments_[0])),
@@ -140,7 +138,7 @@ function endItem(value: RankValue, back: boolean): RankValue {
     throw new RankError(`${name} expects text, an array, queue or finite sequence`, 'TypeError');
 }
 
-function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse: RankValue): RankValue {
+export function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse: RankValue): RankValue {
     const values = [condition, whenTrue, whenFalse];
     if (values.some(isRankSqliteExpression)) {
         return chooseSqlite(condition, whenTrue, whenFalse);
@@ -191,7 +189,7 @@ function broadcastRead(shape: readonly number[], value: RankValue, index: number
  * a leading-axis cell of `Choices`, to read at that position. Index and choices
  * broadcast by trailing axes, and only the chosen value is read at each cell.
  */
-function chooseIndexed(index: RankValue, choices: RankValue): RankValue {
+export function chooseIndexed(index: RankValue, choices: RankValue): RankValue {
     if (!isRankArray(choices) || choices.shape.length === 0) {
         throw new RankError('choose expects an array of choices', 'TypeError');
     }

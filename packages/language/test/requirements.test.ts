@@ -98,7 +98,7 @@ it('keeps missing seeds and typed text atoms out of tensor-only rank rules', () 
     expect(infer('X = .NA\nX / 2').conflicts).toEqual([]);
 });
 it('does not reuse a later return when an earlier conditional may return another shape', () => {
-    expect(infer('fun choose X\n if X equal 0\n  return array shape 2 2 fill 1\n end\n return X\nend\nA = 0 choose\nA # 1').conflicts).toEqual([]);
+    expect(infer('fun decide X\n if X equal 0\n  return array shape 2 2 fill 1\n end\n return X\nend\nA = 0 decide\nA # 1').conflicts).toEqual([]);
 });
 it('formats both source sites within forty columns', async () => {
     const { requirementMessage } = await import('../src/analysis/requirement-diagnostics.js');

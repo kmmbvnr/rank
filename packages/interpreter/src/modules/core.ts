@@ -10,7 +10,7 @@ import {
     type RankValue, type SequencePredicate,
 } from '../value.js';
 import { numericExtreme, sumValue } from './numbers.js';
-import { lengthOf } from './sequences.js';
+import { chooseIndexed, chooseValue, lengthOf } from './sequences.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
@@ -18,6 +18,8 @@ const encoder = new TextEncoder();
 
 /** Ordinary functions available in every workspace without a use statement. */
 export const coreModule: RuntimeModule = {
+    choose: () => native('choose', [2, 3], ([condition, whenTrue, whenFalse]) =>
+        whenFalse === undefined ? chooseIndexed(condition, whenTrue) : chooseValue(condition, whenTrue, whenFalse)),
     bytes: () => withTypedCalls(native('bytes', 1, ([value]) => {
         if (isRankBytes(value)) return value;
         if (typeof value === 'string') return new ByteArray(encoder.encode(value));

@@ -1730,7 +1730,7 @@ end`);
     });
 
     it('returns text from a compiled loop', () => {
-        const result = compare(`fun choose Text
+        const result = compare(`fun decide Text
   for C in Text
     if C not equal "x"
       return C
@@ -1738,7 +1738,7 @@ end`);
   end
   return ""
 end
-"xx😀" choose`);
+"xx😀" decide`);
         expect(result.value).toBe('😀');
         expect(result.loops).toBe(1);
     });

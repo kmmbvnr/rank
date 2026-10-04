@@ -246,8 +246,8 @@ test('choose stays in SQL and leaves an unknown condition missing', () => fixtur
         + `Db = ${JSON.stringify(dbPath)} sqlite\n`
         + 'Rows = Db .choices\n'
         + 'Flag = Rows .marked greater 0\n'
-        + 'Value = Flag "yes" "no" choose\n'
-        + 'Ok = Flag true false choose\n'
+        + 'Value = Flag choose "yes" "no"\n'
+        + 'Ok = Flag choose true false\n'
         + 'Cols = record\n  .id = Rows .id\n  .value = Value\n  .ok = Ok\nend\n'
         + 'Out = (Rows select Cols) sort by .id\n'
         + 'Q = Out sql\nQ .text print\n'

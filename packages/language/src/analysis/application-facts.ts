@@ -44,11 +44,15 @@ function selectedCells(value: ValueFacts): Types | undefined {
 }
 
 /**
- * `Mask Then Else choose` with a boolean array mask: every cell comes from one branch, so the
- * result has the broadcast shape and the numeric cell types either branch can supply.
+ * Scalar choose keeps the selected branch facts; an array mask keeps the broadcast shape
+ * and the numeric cell types either branch can supply.
  */
 function chooseFacts(mask: ValueFacts, then: ValueFacts, otherwise: ValueFacts): ValueFacts | undefined {
     const operands = [mask, then, otherwise];
+    if (mask.types.join() === 'boolean' && mask.rank === 0) {
+        return mask.boolean === undefined ? joinValueFacts([then, otherwise])
+            : mask.boolean ? then : otherwise;
+    }
     if (mask.types.join() !== 'array' || !mask.rank || mask.elements?.join() !== 'boolean') return;
     const thenCells = selectedCells(then);
     const otherCells = selectedCells(otherwise);

@@ -123,9 +123,9 @@ describe('matrix predictions from record fields', () => {
         expect(analyze(source, { types: [] }).types).toEqual([]);
     });
 
-    it('leaves a mask selection unknown without a boolean array mask or numeric branches', () => {
+    it('keeps the selected scalar branch facts but leaves unsupported array masks unknown', () => {
         const scalarMask = 'use sequences\nfun f A B\n return true A B choose\nend';
-        expect(analyze(scalarMask, matrix, matrix).types).toEqual([]);
+        expect(analyze(scalarMask, matrix, matrix)).toMatchObject({ types: ['array'], rank: 2, shape: [4, 3] });
         const textBranch = 'use sequences\nuse numbers\nfun f A\n return (A equal 0) "x" A choose\nend';
         expect(analyze(textBranch, { types: ['array'], rank: 1, shape: [3], elements: ['integer'] }).types).toEqual([]);
     });

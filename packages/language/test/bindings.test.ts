@@ -260,13 +260,13 @@ describe('type facts', () => {
 
     it('says nothing where nothing is proved', async () => {
         const result = await facts([
-            'fun choose Flag',
+            'fun decide Flag',
             '  if Flag',
             '    return 1',
             '  end',
             '  return "one"',
             'end',
-            'Either = true choose',
+            'Either = true decide',
             'Element = (array 1 2) 0',
         ]);
         expect(named(result, 'program', 'Either').types).toEqual([]);
