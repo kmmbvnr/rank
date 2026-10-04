@@ -4754,6 +4754,32 @@ Current I/O form:
 Data = "train.csv" csv
 ```
 
+Add `check` after a read to validate the requirements inferred from later,
+unconditional uses at that read:
+
+```rank
+Data = "train.csv" csv check
+Total = Data .price sum
+```
+
+This requires the `price` header and numeric or missing column cells before
+`Total` runs. A missing header or an incompatible cell raises `.InputContract`
+at the read line, with the column path and cell index. Additional columns are
+allowed. An empty table still needs every required header; cell type checks
+are vacuous when there are no rows. Empty CSV cells remain absent fields and
+may satisfy a use that accepts `missing`.
+
+`check` also follows `Text json` and `Text xml`, including their `.flat` forms.
+It validates required object fields, XML attributes, ranks, dimensions and
+cell types against the parsed value. XML attribute values remain text; a
+numeric use needs an explicit conversion. A field used only through `default`,
+on a conditional path, or through an unresolved callback does not become an
+unconditional requirement. Checked reads inside functions receive independent
+requirements from each known call. The check occurs when the value is parsed,
+not when a later use reaches it. Without `check`, reads keep their existing
+runtime behavior; analysis still reports contradictions it can prove from
+program text. Defining a function named `check` makes it an ordinary call.
+
 `csv` reads UTF-8 comma-separated data with a header row and returns a rank-1
 array of object rows. Quoted fields may contain commas, line endings and escaped
 double quotes. Every data row must have the same field count as the header;
