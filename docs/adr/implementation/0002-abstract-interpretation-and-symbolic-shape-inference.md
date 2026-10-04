@@ -129,9 +129,16 @@ supply unconditional requirements. Unsupported effects discard value links.
 Text atoms and sequence boxing retain their existing forward rules. This pass
 is intentionally incomplete; absence of a contradiction is not validation.
 
-External data expectations remain requirements. Checked CSV/XML/JSON schemas
-and read-time checks are separate work in #33 and #116. Neither arbitrary input
-files nor test fixtures are read to manufacture static facts. Collection
+External data expectations remain requirements. The #116 implementation adds
+one runtime consumer, `checked-input.ts`: explicit `check` reads validate actual
+CSV/XML/JSON values against inferred requirements. Function execution carries
+call-specific plans to that validator, including across tail calls; the plans
+are not optimization proofs. Unknown callbacks retain only independently proven
+reader-local checks. The semantic-boundary gate permits this validator while
+continuing to reject requirement use in other runtime and optimization owners.
+Any later static refinement must describe a guarantee enforced by that check,
+including its invalidation rules. Neither arbitrary input files nor test
+fixtures are read to manufacture static facts. Collection
 infinity settlement is also outside this static-analysis change.
 
 ### 3. Real-Time LSP Diagnostic Emission

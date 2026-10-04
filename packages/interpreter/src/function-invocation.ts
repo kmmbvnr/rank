@@ -1,9 +1,10 @@
 import type { AstNode } from 'langium';
 import {
     availableBuiltin, builtinBindingMessage, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
-    type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionStatement, type Statement, type ValueFacts,
+    type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionStatement, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { enterRuntime, isFlatScalarArray, isSharedArray, leaveRuntime } from './array-storage.js';
+import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './block-compiler.js';
 import { ReturnSignal, TailCallSignal, type PreparedScalarCall } from './control-signals.js';
@@ -39,6 +40,7 @@ export interface FunctionDefinition {
 
 /** What defining and running a function body needs from execution and the fast-path owner. */
 export interface FunctionHost {
+    readonly inputs?: Pick<CheckedInputContracts, 'pending' | 'call' | 'tail'>;
     /** A synchronous closure for an expression that cannot call Rank code, when one exists. */
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     /** A compiled body for these argument types, when the block compiler accepts it. */
@@ -59,7 +61,7 @@ interface BorrowProof {
 
 // Functions are values that outlive the interpreter that made them, so their
 // definitions are found from the function object rather than from a scope.
-const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[]) => Evaluation<RankValue>>();
+const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[], inputRequirement?: CallRequirement) => Evaluation<RankValue>>();
 const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
 const scalarCallbacks = new WeakMap<NativeFunction, (arguments_: RankValue[]) => RankValue>();
 
@@ -96,7 +98,7 @@ export class FunctionInvocation {
     /** Calls a function, through its Rank body when it has one so the call can suspend. */
     invoke(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue> {
         const execution = functionExecutions.get(fn);
-        return execution ? execution(arguments_) : completed(fn.call(arguments_));
+        return execution ? execution(arguments_, this.host.inputs?.pending) : completed(fn.call(arguments_));
     }
 
     /** A checked synchronous callback for ranked materialization. The closure
@@ -108,7 +110,7 @@ export class FunctionInvocation {
     /** A call in tail position to one of this interpreter's own functions unwinds to the active call. */
     throwTailCall(fn: NativeFunction, arguments_: RankValue[]): void {
         const definition = functionDefinitions.get(fn);
-        if (definition?.owner === this) throw new TailCallSignal(definition, arguments_);
+        if (definition?.owner === this) throw new TailCallSignal(definition, arguments_, undefined, this.host.inputs?.pending);
     }
 
     definitionOf(fn: NativeFunction): FunctionDefinition | undefined {
@@ -197,17 +199,18 @@ export class FunctionInvocation {
                 throw this.host.locate(error, statement);
             }
         };
-        const checkedBody = (arguments_: RankValue[]): Evaluation<RankValue> => {
+        const checkedBody = (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> => {
             const contract = specialization(arguments_);
-            return mapResult(body(arguments_), value => checkReturn(contract, arguments_, value));
+            const run = () => mapResult(body(arguments_), value => checkReturn(contract, arguments_, value));
+            return this.host.inputs ? this.host.inputs.call(statement, inputRequirement, run) : run();
         };
         // Only successful, validated returns enter the closure's memo cache.
         const cache = statement.memo ? new Map<string, RankValue>() : undefined;
-        const execute = cache ? (arguments_: RankValue[]): Evaluation<RankValue> => {
+        const execute = cache ? (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> => {
             const key = JSON.stringify(arguments_.map(memoScalarKey));
             const cached = cache.get(key);
             if (cached !== undefined) return completed(cached);
-            return mapResult(checkedBody(arguments_), value => {
+            return mapResult(checkedBody(arguments_, inputRequirement), value => {
                 memoScalarKey(value);
                 cache.set(key, value);
                 return value;
@@ -482,6 +485,7 @@ export class FunctionInvocation {
                     throw new RankError(`function ${statement.name} reached end without return`);
                 } catch (error) {
                     if (error instanceof TailCallSignal) {
+                        this.host.inputs?.tail(error.definition.statement, error.inputRequirement);
                         tailContracts.add(error.definition.specialization(error.arguments_));
                         if (error.compiled && (!error.compiled.available || error.compiled.available())) {
                             compiledTail = true;

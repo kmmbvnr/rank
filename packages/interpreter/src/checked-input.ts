@@ -1,8 +1,9 @@
-import { inferRequirements, isNameExpression, type Expression, type Program, type ValueFacts, type ValueRequirement } from '@arrrank/language';
+import { inferRequirements, isNameExpression, type CallRequirement, type Expression, type FunctionStatement, type Program, type ValueFacts, type ValueRequirement } from '@arrrank/language';
 import { AstUtils } from 'langium';
 import { readArrayItem } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
+import { resume, type Evaluation, type Execution } from './execution.js';
 import { selectValues } from './value-selection.js';
 import { isRankArray, MISSING, typeName, valueRank, type RankValue } from './value.js';
 
@@ -67,15 +68,51 @@ export function checkExternalInput(value: RankValue, requirement: ValueRequireme
  * The map belongs to the interpreter and is keyed by the exact parsed expression. */
 export class CheckedInputContracts {
     private readonly requirements = new WeakMap<Expression, ValueRequirement>();
+    private readonly calls = new WeakMap<Expression, CallRequirement>();
+    private enabled = false;
+    private frame?: { plan?: CallRequirement };
+    pending?: CallRequirement;
 
     prepare(program: Program, initial: ReadonlyMap<string, ValueFacts>): void {
         if (![...AstUtils.streamAllContents(program)].some(node => isNameExpression(node) && node.name === 'check')) return;
-        const analysis = inferRequirements(program, { initial });
+        this.enabled = true;
+        const analysis = inferRequirements(program, { initial, includeCalls: true });
         for (const [expression, requirement] of analysis.expressions) this.requirements.set(expression, requirement);
+        for (const [expression, call] of analysis.calls) this.calls.set(expression, call);
+    }
+
+    expression<T>(expression: Expression, run: () => Evaluation<T>): Evaluation<T> {
+        if (!this.enabled) return run();
+        const previous = this.pending;
+        this.pending = this.frame ? this.frame.plan?.calls.get(expression) : this.calls.get(expression);
+        return this.scoped(run, () => { this.pending = previous; });
+    }
+
+    call<T>(definition: FunctionStatement, plan: CallRequirement | undefined, run: () => Evaluation<T>): Evaluation<T> {
+        if (!this.enabled && !plan) return run();
+        if (plan) this.enabled = true;
+        const previous = this.frame, pending = this.pending;
+        this.frame = { plan: plan?.definition === definition ? plan : undefined };
+        this.pending = undefined;
+        return this.scoped(run, () => { this.frame = previous; this.pending = pending; });
+    }
+
+    tail(definition: FunctionStatement, plan?: CallRequirement): void {
+        if (this.frame) this.frame.plan = plan?.definition === definition ? plan : undefined;
+        this.pending = undefined;
+    }
+
+    private scoped<T>(run: () => Evaluation<T>, restore: () => void): Evaluation<T> {
+        let task: Evaluation<T>;
+        try { task = run(); } catch (error) { restore(); throw error; }
+        if ('done' in task) { restore(); return task; }
+        return (function* (): Execution<T> {
+            try { return yield* resume(task); } finally { restore(); }
+        })();
     }
 
     check(expression: Expression, value: RankValue, source: string): void {
-        const requirement = this.requirements.get(expression);
+        const requirement = this.frame?.plan?.expressions.get(expression) ?? this.requirements.get(expression);
         if (requirement) checkExternalInput(value, requirement, source);
     }
 }

@@ -1,3 +1,4 @@
+import type { CallRequirement } from '@arrrank/language';
 import type { RankValue } from './value.js';
 
 /** A prepared scalar body whose native bindings, if any, need entry validation. */
@@ -25,7 +26,7 @@ export class ReturnSignal {
  */
 export class TailCallSignal<Definition> {
     constructor(readonly definition: Definition, readonly arguments_: RankValue[],
-        readonly compiled?: PreparedScalarCall) {}
+        readonly compiled?: PreparedScalarCall, readonly inputRequirement?: CallRequirement) {}
 }
 
 export class BreakSignal {}

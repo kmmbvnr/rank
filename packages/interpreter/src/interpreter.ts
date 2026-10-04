@@ -109,6 +109,7 @@ export class Interpreter {
         });
         this.functions = new FunctionInvocation(this.bindings, this.resources, this.builtins, this.inspection,
             this.modules, () => this.options, {
+                inputs: this.checkedInputs,
                 compileDirect: expression => this.expressions.compileDirect(expression),
                 compiled: (statement, arguments_) => this.fastPaths.functionBody(statement, arguments_, this.blocks),
                 execute: (statements, generator) => this.blocks.execute(statements, false, false, false, generator),
@@ -161,6 +162,7 @@ export class Interpreter {
             fastPaths: this.fastPaths,
         });
         this.expressions = new ExpressionEvaluator({
+            inputCall: (expression, run) => this.checkedInputs.expression(expression, run),
             bindings: this.bindings,
             resolve: name => this.resolve(name),
             select,
