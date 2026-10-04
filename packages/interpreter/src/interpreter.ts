@@ -78,7 +78,7 @@ export class Interpreter {
     private readonly bindings = new BindingEnvironment(this.variables, this.modules);
     private readonly resources = new ResourceOwnership();
     private readonly checkedInputs = new CheckedInputContracts();
-    private readonly operators = new Operators(this.modules, value => this.resources.ownFiles(value),
+    private readonly operators = new Operators(value => this.resources.ownFiles(value),
         fn => this.functions.scalarCallback(fn));
     private readonly inspection = new DebugInspection(this.bindings, () => this.options.sourceId ?? '<input>');
     private readonly builtins: BuiltinRegistry;

@@ -24,7 +24,7 @@ fun distinct_subsequences A
 
   for Value in Seen
     Answer *= Index Value + 1
-    Answer %= 1000000007
+    Answer mod= 1000000007
   end
 
   return Answer - 1

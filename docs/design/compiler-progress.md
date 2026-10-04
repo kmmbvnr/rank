@@ -847,7 +847,7 @@ digests match the preceding array-write baseline. One pair takes 27.942 s off an
 
 ## Compound integer-array updates
 
-The integer compiler now lowers full-cell `+=`, `-=`, `*=`, `//=` and `%=`.
+The integer compiler now lowers full-cell `+=`, `-=`, `*=`, `//=` and `mod=`.
 Coordinates are checked before evaluating the right operand; the previous element
 is read afterward, and the update is committed immediately. The statement result
 remains the right operand. Floor division and modulo preserve signed semantics and

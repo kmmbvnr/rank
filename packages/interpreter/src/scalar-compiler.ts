@@ -94,7 +94,7 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
         const name = `v${serial++}`, op = e.operator;
         const ints = `(typeof ${left} === 'bigint' && typeof ${right} === 'bigint')`;
         let guard = ints, result: string;
-        if (op === '//' || op === '%') {
+        if (op === '//' || op === 'mod') {
             guard += ` && ${right} !== 0n`;
             const remainder = `(${left} % ${right})`;
             const adjust = `(${remainder} !== 0n && (${left} < 0n) !== (${right} < 0n))`;

@@ -29,7 +29,7 @@ fun lexicographic Digits Position
     Piece = Digit text
     Result += Piece
     Available remove Digit
-    Remaining %= Block
+    Remaining mod= Block
     Size -= 1
     if Size greater 0
       Block = Block // Size

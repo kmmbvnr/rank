@@ -31,7 +31,7 @@ fun champernowne_digit Position
   end
 
   NumberIndex = (Remaining - 1) // Digits
-  DigitIndex = (Remaining - 1) % Digits
+  DigitIndex = (Remaining - 1) mod Digits
   Number = First + NumberIndex
   Text = Number text
   return Text DigitIndex integer

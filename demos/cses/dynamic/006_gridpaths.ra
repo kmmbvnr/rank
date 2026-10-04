@@ -24,7 +24,7 @@ fun grid_paths Grid
       end
       if Column greater 0
         Ways Column += Ways (Column - 1)
-        Ways Column %= 1000000007
+        Ways Column mod= 1000000007
       end
     end
   end

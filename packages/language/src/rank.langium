@@ -145,7 +145,7 @@ AssignmentStatement:
     name=AssignableName operator=AssignmentOperator value=Expression;
 
 AssignmentOperator returns string:
-    '=' | '+=' | '-=' | '*=' | '**=' | '/=' | '//=' | '%=' |
+    '=' | '+=' | '-=' | '*=' | '**=' | '/=' | '//=' | 'mod=' |
     'and=' | 'or=' | 'xor=';
 
 ExpressionOrPushStatement:
@@ -187,7 +187,7 @@ ArrayRangeAddition returns Expression:
 ArrayRangeMultiplication returns Expression:
     ArrayRangePower
     ({infer BinaryExpression.left=current}
-        operator=('*' | '/' | '//' | '%') right=ArrayRangePower)*;
+        operator=('*' | '/' | '//' | 'mod') right=ArrayRangePower)*;
 
 ArrayRangePower returns Expression:
     ArrayRangeAtom
@@ -253,8 +253,13 @@ SubjectComparisonChain returns Expression:
         operator=('or' | 'and' | 'xor')
         (right=SubjectComparison | right=NotExpression))*;
 
+// `filter mod 3 equal 0`: the subject may first take one multiplicative step.
 SubjectComparison returns Expression:
-    {infer SubjectComparisonExpression} operator=ComparisonOperator right=DefaultExpression;
+    {infer SubjectComparisonExpression} (stepOperator=SubjectStepOperator stepOperand=PowerExpression)?
+        operator=ComparisonOperator right=DefaultExpression;
+
+SubjectStepOperator returns string:
+    '*' | '/' | '//' | 'mod';
 
 OrExpression returns Expression:
     XorExpression
@@ -282,7 +287,7 @@ ComparisonExpression returns Expression:
 
 ComparisonOperator returns string:
     'equal' | 'not' 'equal' | 'less' | 'greater' |
-    'at' 'least' | 'at' 'most' | 'multiple' 'by' | 'in' | 'not' 'in' | 'is';
+    'at' 'least' | 'at' 'most' | 'in' | 'not' 'in' | 'is';
 
 DefaultExpression returns Expression:
     RangeExpression
@@ -311,7 +316,7 @@ AdditionExpression returns Expression:
 MultiplicationExpression returns Expression:
     PowerExpression
     ({infer BinaryExpression.left=current}
-        operator=('*' | '/' | '//' | '%') right=PowerExpression)*;
+        operator=('*' | '/' | '//' | 'mod') right=PowerExpression)*;
 
 PowerExpression returns Expression:
     ApplicationExpression
@@ -524,7 +529,7 @@ MultilineAdditionExpression returns Expression:
 MultilineMultiplicationExpression returns Expression:
     MultilinePowerExpression
     ({infer BinaryExpression.left=current}
-        NL* operator=('*' | '/' | '//' | '%') NL* right=MultilinePowerExpression)*;
+        NL* operator=('*' | '/' | '//' | 'mod') NL* right=MultilinePowerExpression)*;
 
 MultilinePowerExpression returns Expression:
     ApplicationExpression

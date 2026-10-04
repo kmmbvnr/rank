@@ -128,7 +128,7 @@ Result`)).toBe('31');
         'preserves floor division and remainder for %s / %s', (a, b) => {
             expect(compare(`fun helper A B
   Q = A // B
-  R = A % B
+  R = A mod B
   return Q * 10 + R
 end
 Result = 0

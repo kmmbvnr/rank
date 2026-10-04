@@ -33,7 +33,7 @@ fun buyorrent Params
   Yearly = (1 + Infl / 100) ** ((Month - 1) // 12)
   HomeVal = Price * (1 + Infl / 100) ** (Month / 12)
   Assessed = Price * Yearly * PropRate / 200
-  PropTax = (Month % 6 equal 0) Assessed 0.0 choose
+  PropTax = (Month mod 6 equal 0) Assessed 0.0 choose
   TaxSave = Bank .int * Tax / 100
   Growth = 1 + SavRate / 1200 * (1 - Tax / 100)
 

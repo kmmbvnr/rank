@@ -30,5 +30,5 @@ fun code Row Column
 
   Seed = 20151125
   Factor = 252533 (Position - 1) 33554393 powmod
-  return Seed * Factor % 33554393
+  return Seed * Factor mod 33554393
 end

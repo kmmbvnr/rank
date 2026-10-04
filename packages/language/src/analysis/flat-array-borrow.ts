@@ -55,7 +55,7 @@ export function flatArrayBorrowProofs(definition: FunctionStatement,
         if (isUnaryExpression(value) && (value.operator === '+' || value.operator === '-')) {
             return integerGuards(value.operand, current, arrayParameter, selectorLocals);
         }
-        if (isBinaryExpression(value) && !value.step && ['+', '-', '*', '//', '%'].includes(value.operator)) {
+        if (isBinaryExpression(value) && !value.step && ['+', '-', '*', '//', 'mod'].includes(value.operator)) {
             const left = integerGuards(value.left, current, arrayParameter, selectorLocals);
             const right = integerGuards(value.right, current, arrayParameter, selectorLocals);
             return left && right ? new Set([...left, ...right]) : undefined;
@@ -79,7 +79,7 @@ export function flatArrayBorrowProofs(definition: FunctionStatement,
         if (isUnaryExpression(value) && (value.operator === '+' || value.operator === '-')) {
             return loopBoundGuards(value.operand, current, parameter, locals);
         }
-        if (isBinaryExpression(value) && !value.step && ['+', '-', '*', '//', '%'].includes(value.operator)) {
+        if (isBinaryExpression(value) && !value.step && ['+', '-', '*', '//', 'mod'].includes(value.operator)) {
             const left = loopBoundGuards(value.left, current, parameter, locals);
             const right = loopBoundGuards(value.right, current, parameter, locals);
             return left && right && mergeGuards(left, right) ? left : undefined;

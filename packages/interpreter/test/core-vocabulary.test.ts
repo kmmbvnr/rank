@@ -52,7 +52,7 @@ for (const compiled of [true, false]) {
         it('keeps specialized number and sequence operations behind imports', () => {
             const r = runtime();
             expect(() => r.execute('9 sqrt')).toThrow('use numbers');
-            expect(() => r.execute('6 multiple by 3')).toThrow('use numbers');
+            expect(r.execute('6 mod 3 equal 0')).toBe(true);
             expect(() => r.execute('fibonacci')).toThrow('use sequences');
             expect(r.execute('use numbers\n9 sqrt')).toBe(3);
             expect(r.execute('use sequences\nfibonacci till 10 sum')).toBe(19n);

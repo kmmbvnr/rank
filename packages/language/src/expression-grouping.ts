@@ -14,11 +14,11 @@ import { splitClauseConditions } from './clause-conditions.js';
 // calls after it apply to its result, as on a calculator: `A greater 2 sum`.
 // Logical operators still separate independent clauses.
 const precedence: Readonly<Record<string, number>> = {
-    equal: 0.5, notequal: 0.5, less: 0.5, greater: 0.5, atleast: 0.5, atmost: 0.5, multipleby: 0.5,
-    to: 1, till: 1, by: 1, '+': 2, '-': 2, '*': 3, '/': 3, '//': 3, '%': 3, '**': 4,
+    equal: 0.5, notequal: 0.5, less: 0.5, greater: 0.5, atleast: 0.5, atmost: 0.5,
+    to: 1, till: 1, by: 1, '+': 2, '-': 2, '*': 3, '/': 3, '//': 3, mod: 3, '**': 4,
 };
 const isRangeOperator = (operator: string): boolean => operator === 'to' || operator === 'till' || operator === 'until';
-const comparisons = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby', 'in', 'notin', 'is']);
+const comparisons = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'in', 'notin', 'is']);
 const symbolic = new Set(['reduce', 'scan', 'outer', 'segment', 'rank', 'axis']);
 const modifiers = new Set(['axis', 'rank', 'outer', 'segment', 'scan']);
 /** Operations that take their combining function as the word after them. */
@@ -26,7 +26,7 @@ const higherOrder = new Set(['scan', 'reduce', 'segment', 'outer']);
 /** Words after a higher-order operation that are its own parameters, not the function. */
 const higherOrderParameters = new Set(['with', 'axis', 'rank']);
 const wordOperators: Readonly<Record<string, string>> = {
-    'not equal': 'notequal', 'at least': 'atleast', 'at most': 'atmost', 'multiple by': 'multipleby',
+    'not equal': 'notequal', 'at least': 'atleast', 'at most': 'atmost',
 };
 
 /** Split the joined `scan +` token into the operation name and its combining operator. */

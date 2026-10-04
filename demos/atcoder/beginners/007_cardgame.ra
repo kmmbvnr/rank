@@ -16,7 +16,7 @@ fun card_game A
   Diff = 0
 
   for V i in Sorted
-    if i % 2 equal 0
+    if i mod 2 equal 0
       Diff += V
     else
       Diff -= V

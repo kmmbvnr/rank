@@ -77,10 +77,10 @@ describe('Repl inline completion and cancel', () => {
         repl.complete(true);
         expect(repl.hasCompletion).toBe(true);
 
-        repl.notebook.replace('N mul');
+        repl.notebook.replace('N mo');
         expect(repl.hasCompletion).toBe(false);
         expect(repl.cancelCompletion()).toBe(false);
         repl.complete();
-        expect(repl.notebook.current.source).toBe('N multiple by ');
+        expect(repl.notebook.current.source).toBe('N mod ');
     });
 });

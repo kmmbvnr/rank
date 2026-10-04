@@ -684,7 +684,7 @@ it('tracks integer selector guards through reader helpers', () => {
         .toEqual(new Map([[0, integer(1, 2)]]));
     expect(borrowProofs('fun helper X I J\n return X (I // J)\nend'))
         .toEqual(new Map([[0, integer(1, 2)]]));
-    expect(borrowProofs('fun helper X I J\n return X (I % J)\nend'))
+    expect(borrowProofs('fun helper X I J\n return X (I mod J)\nend'))
         .toEqual(new Map([[0, integer(1, 2)]]));
     expect(borrowCandidates('fun helper X I\n return X I\nend')).toEqual(new Set());
     expect(borrowProofs('fun readat X I\n return X I\nend\nfun helper A J\n return A J readat\nend'))
@@ -829,7 +829,7 @@ it('does not reuse a helper summary across a local redefinition', () => {
 
 it('proves numeric captured writes through scalar self-recursion without an alias proof', () => {
     const source = 'fun outer\n A = array shape 2 fill 0\n fun helper N\n'
-        + ' if N equal 0\n return 0\n end\n A 0 += N\n A 0 %= 7\n return (N - 1) helper\n end\n return 0\nend';
+        + ' if N equal 0\n return 0\n end\n A 0 += N\n A 0 mod= 7\n return (N - 1) helper\n end\n return 0\nend';
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [], integer: '3' };
     const array: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true };
     const captures = new Map([['A', array]]);

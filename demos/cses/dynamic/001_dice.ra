@@ -16,12 +16,12 @@ fun dice_combinations N
   Answer = 1
 
   for Total in 1 to N
-    Slot = Total % 6
+    Slot = Total mod 6
     Expired = Ways Slot
     Answer = Window
     Ways Slot = Answer
     Window += Answer - Expired
-    Window %= Modulus
+    Window mod= Modulus
   end
 
   return Answer

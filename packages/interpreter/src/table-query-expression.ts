@@ -147,7 +147,7 @@ export function compileTableExpression(
                             mask = context.binary('and', mask, yield* resume(contextual(condition)));
                         }
                         if (collection) {
-                            if (!isRankArray(mask) && !isRankSequenceMask(mask)) {
+                            if (!isRankArray(mask) && !isRankSequenceMask(mask) && !booleanSequence(mask)) {
                                 throw new RankError('filter requires a boolean mask over the filtered value', 'TypeError');
                             }
                             // A predicate with a cell rank yields one value per frame cell,
@@ -302,6 +302,13 @@ export function compileTableExpression(
 }
 
 /** Competition ranks from the keys of the preceding `sort by`: ties share a rank. */
+/** A lazy sequence of booleans, such as `mod 3 equal 0 or mod 5 equal 0` builds; its first item decides. */
+function booleanSequence(value: RankValue): boolean {
+    if (!isRankSequence(value)) return false;
+    for (const item of value.plan.iterate()) return typeof item === 'boolean';
+    return true;
+}
+
 function ranksOf(keys: readonly (readonly (RankValue | undefined)[])[] | undefined, length: number): RankArray {
     if (!keys) throw new RankError('ranknumber requires sort by before select', 'TypeError');
     const ranks: bigint[] = [];

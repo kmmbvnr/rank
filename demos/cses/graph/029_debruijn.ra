@@ -34,7 +34,7 @@ fun debruijn N
   end
   Total = Path len
   for i in 1 till Total
-    Bit = Path i % 2
+    Bit = Path i mod 2
     Result += Bit text
   end
   return Result

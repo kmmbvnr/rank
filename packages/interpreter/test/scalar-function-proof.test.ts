@@ -14,7 +14,7 @@ function statement(body: string) {
 const cases = [
     ['+X', 'integer', 7n], ['-X', 'integer', -7n],
     ['X + Y', 'integer', 10n], ['X - Y', 'integer', 4n],
-    ['X * Y', 'integer', 21n], ['X // Y', 'integer', 2n], ['X % Y', 'integer', 1n],
+    ['X * Y', 'integer', 21n], ['X // Y', 'integer', 2n], ['X mod Y', 'integer', 1n],
     ['X less Y', 'boolean', false], ['X greater Y', 'boolean', true],
     ['X at most Y', 'boolean', false], ['X at least Y', 'boolean', true],
     ['X equal Y', 'boolean', false], ['X not equal Y', 'boolean', true],
@@ -71,7 +71,7 @@ describe('scalar function operator eligibility', () => {
 
     it.each([
         ['X += Y', 10n], ['X -= Y', 4n], ['X *= Y', 21n],
-        ['X //= Y', 2n], ['X %= Y', 1n],
+        ['X //= Y', 2n], ['X mod= Y', 1n],
         ['Good = true\nGood and= false', false],
         ['Good = false\nGood or= true', true],
         ['Good = true\nGood xor= true', false],

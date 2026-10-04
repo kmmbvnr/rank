@@ -16,17 +16,17 @@ fun fibonacci_mod N
 
   for Bit in N binary
     Double = 2 * Next - Current
-    A = Current * Double % Mod
-    A = (A + Mod) % Mod
+    A = Current * Double mod Mod
+    A = (A + Mod) mod Mod
     B = Current ** 2 + Next ** 2
-    B %= Mod
+    B mod= Mod
 
     if Bit equal "0"
       Current = A
       Next = B
     else
       Current = B
-      Next = (A + B) % Mod
+      Next = (A + B) mod Mod
     end
   end
 

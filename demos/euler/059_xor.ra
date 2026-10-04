@@ -34,7 +34,7 @@ fun decrypt Cipher Key
   Size = Cipher len
   Positions = 0 till Size
   KeyLen = Key len
-  Slots = Positions % KeyLen
+  Slots = Positions mod KeyLen
   KeyStream = Key Slots
   return Cipher KeyStream bxor
 end

@@ -50,7 +50,7 @@ export const scalarArithmetic = (node: Expression, env: ReadonlyMap<string, Valu
     }
     if (isUnaryExpression(node) && ['+', '-'].includes(node.operator))
         return scalarArithmetic(node.operand, env);
-    return isBinaryExpression(node) && ['+', '-', '*', '/', '//', '%', '**'].includes(node.operator)
+    return isBinaryExpression(node) && ['+', '-', '*', '/', '//', 'mod', '**'].includes(node.operator)
         && scalarArithmetic(node.left, env) && scalarArithmetic(node.right, env);
 };
 export const scalarBitwise = (node: Expression, env: ReadonlyMap<string, ValueFacts>): boolean => {

@@ -55,8 +55,8 @@ Rank establishes **first-class boolean masks** as the fundamental selection and 
 4. **Boolean mask composition:**
    Masks compose with the word operators `and`, `or`, `xor` and `not`, position by position, without modifying the source:
    ```rank
-   M3 = N multiple by 3
-   M5 = N multiple by 5
+   M3 = N mod 3 equal 0
+   M5 = N mod 5 equal 0
    Selected = N (M3 or M5)
    ```
 

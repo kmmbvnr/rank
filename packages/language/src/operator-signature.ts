@@ -40,7 +40,7 @@ export const operatorSignatures: Readonly<Record<string, readonly TypeSignature[
     '*': [...numeric, ...missing, binary('duration', 'number', 'duration'), binary('number', 'duration', 'duration')],
     '/': [binary('number', 'number', 'real'), ...missing],
     '//': [...numeric, ...missing],
-    '%': [...numeric, ...missing],
+    'mod': [...numeric, ...missing],
     // Integer exponents can be negative, so integer inputs alone do not prove an integer result.
     '**': [binary('number', 'number', 'number'), ...missing],
     equal: [binary('unknown', 'unknown', nullableBoolean)],
@@ -56,7 +56,6 @@ export const operatorSignatures: Readonly<Record<string, readonly TypeSignature[
     xor: [binary('boolean', 'boolean', 'boolean'), ...missing],
     not: [{ inputs: ['boolean'], result: 'boolean', ranks: [0] },
         { inputs: ['missing'], result: 'missing', ranks: [0] }],
-    multipleby: [binary('integer', 'integer', 'boolean'), ...missing],
     is: [{ inputs: ['unknown', 'symbol'], result: 'boolean' }],
     to: rangeSignatures(false),
     till: rangeSignatures(true),

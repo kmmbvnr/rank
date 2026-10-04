@@ -24,7 +24,7 @@ fun cross_validation N K Shuffle
   end
 
   Base = N // K
-  Extra = N % K
+  Extra = N mod K
   Positions = 0 till N array
 
   for Fold in 0 till K

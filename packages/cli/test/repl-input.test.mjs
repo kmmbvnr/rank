@@ -33,7 +33,7 @@ test('tokenizes the pieces an input rule depends on', () => {
 test('expands alias words only in operator position', () => {
     assert.equal(expand('A gets 3'), 'A = 3');
     assert.equal(expand('A gets B plus C times D'), 'A = B + C * D');
-    assert.equal(expand('A gets 7 mod 4 power 2'), 'A = 7 % 4 ** 2');
+    assert.equal(expand('A gets 7 mod 4 power 2'), 'A = 7 mod 4 ** 2');
     assert.equal(expand('A times gets 2'), 'A *= 2');
     assert.equal(expand('A and gets B'), 'A and= B');
     assert.equal(expand('M every 2'), 'M # 2');

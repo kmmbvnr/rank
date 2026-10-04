@@ -63,7 +63,7 @@ fun add_two A B
     end
 
     Sum = X + Y + Carry
-    Queue push Sum % 10
+    Queue push Sum mod 10
     Carry = Sum // 10
     I += 1
   end
@@ -165,7 +165,7 @@ fun palindrome X
     return false
   end
 
-  if X % 10 equal 0
+  if X mod 10 equal 0
     if X not equal 0
       return false
     end
@@ -174,7 +174,7 @@ fun palindrome X
   Back = 0
 
   for X greater Back
-    Digit = X % 10
+    Digit = X mod 10
     X = X // 10
 
     Back = Back * 10 + Digit

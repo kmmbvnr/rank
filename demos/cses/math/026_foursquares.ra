@@ -29,7 +29,7 @@ fun four_squares N
       if Need in Index
         Other = Index Need
         C = Other // Width
-        D = Other % Width
+        D = Other mod Width
         return array A B C D
       end
     end

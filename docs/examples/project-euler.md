@@ -11,8 +11,8 @@ rem https://projecteuler.net/problem=1
 
 N = 1 till 1000
 
-Mask = N multiple by 3
-Mask or= N multiple by 5
+Mask = N mod 3 equal 0
+Mask or= N mod 5 equal 0
 
 Answer = N Mask sum
 
@@ -21,7 +21,7 @@ Answer print
 
 This example demonstrates:
 - the ordinary/lazy sequence `1 till 1000`;
-- the `multiple by` divisibility operation from `numbers`;
+- the `mod` operator tested against zero for divisibility;
 - boolean masks as first-class values;
 - incremental mask composition with `or=`;
 - boolean addressing;
@@ -482,7 +482,7 @@ rem Project Euler 26
 rem https://projecteuler.net/problem=26
 
 Seen Remainder = Position
-Remainder = Remainder * 10 % Denominator
+Remainder = Remainder * 10 mod Denominator
 ```
 
 Long division repeats exactly when a remainder repeats. A sparse `index`
@@ -832,7 +832,7 @@ run of four integers begins at `134043`.
 Numbers = 1 to Limit
 Powers = Numbers modular_self_power rank 0
 Total = Powers sum
-Answer = Total % Modulus
+Answer = Total mod Modulus
 ```
 
 A local rank-0 operation computes each modular self power. `sum`

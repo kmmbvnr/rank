@@ -42,7 +42,7 @@ fun rounds P
   for Prime in primes to N
     Power = Powers Prime
     Part = Prime Power Mod powmod
-    Answer = Answer * Part % Mod
+    Answer = Answer * Part mod Mod
   end
   return Answer
 end

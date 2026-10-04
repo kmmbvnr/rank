@@ -44,14 +44,14 @@ const SCALARS = new Set(['integer', 'real', 'boolean', 'text', 'date', 'datetime
 const NUMBERS = new Set(['integer', 'real']);
 
 // The grammar joins the two-word comparisons, so `at least` reaches here as
-// `atleast` and `multiple by` as `multipleby`.
+// `atleast`.
 const COMPARISONS = new Set([
-    'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby', 'in', 'notin', 'is',
+    'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'in', 'notin', 'is',
 ]);
 
 const BOOLEANS = new Set(['and', 'or', 'xor']);
 
-const ARITHMETIC = new Set(['+', '-', '*', '/', '//', '%', '**']);
+const ARITHMETIC = new Set(['+', '-', '*', '/', '//', 'mod', '**']);
 /** Scalar-cell operations whose successful array/sequence result keeps the input kind. */
 export function mapsScalarCells(operation: Operation): boolean {
     return operation.monadicRank === 0 || operation.mapsScalarCells === true;
@@ -217,7 +217,7 @@ export function binaryType(operator: string, left: Types, right: Types): Types {
     }
     // Division always produces a real, even when it divides exactly.
     if (operator === '/') return ['real'];
-    if (operator === '//' || operator === '%') {
+    if (operator === '//' || operator === 'mod') {
         if (same(left, 'integer') && same(right, 'integer')) return ['integer'];
         return same(left, 'real') || same(right, 'real') ? ['real'] : ['integer', 'real'];
     }

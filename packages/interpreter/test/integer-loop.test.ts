@@ -49,7 +49,7 @@ A = ${value}
 B = 0
 for I less 4
   B = A // -3
-  A %= -3
+  A mod= -3
   I += 1
 end
 array A B I
@@ -202,7 +202,7 @@ describe('compiled loop branches', () => {
         const result = compare(`N = 27
 Steps = 0
 for N greater 1
-  if N % 2 equal 0
+  if N mod 2 equal 0
     N //= 2
   else
     N = 3 * N + 1
@@ -236,7 +236,7 @@ Total`);
         const result = compare(`Value = 1
 Total = 0
 for I in 0 to 5
-  if I % 2 equal 0
+  if I mod 2 equal 0
     Value = I
   end
   Total += Value
@@ -932,7 +932,7 @@ Total`);
 });
 
 describe('compiled compound array assignments', () => {
-    it.each(['+=', '-=', '*=', '//=', '%='])('preserves signed operands and RHS result for %s', operator => {
+    it.each(['+=', '-=', '*=', '//=', 'mod='])('preserves signed operands and RHS result for %s', operator => {
         const result = compare(`A = array -7 7 -7 7
 B = array -3 -3 3 3
 for I in 0 till 4
@@ -956,7 +956,7 @@ A`);
         expect(result.loops).toBe(1);
     });
 
-    it.each(['//=', '%='])('keeps earlier mutations when %s divides by zero', operator => {
+    it.each(['//=', 'mod='])('keeps earlier mutations when %s divides by zero', operator => {
         const result = compare(`A = array 7 7 7
 for I in 0 till 3
   A I ${operator} (1 - I)

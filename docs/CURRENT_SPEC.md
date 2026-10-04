@@ -290,14 +290,14 @@ Total += Value
 Total -= Cost
 Product *= Factor
 Power **= Exponent
-Index %= Size
+Index mod= Size
 Mask and= Active
 Mask or= Fallback
 Mask xor= Changed
 ```
 
 The current compound assignment operators are `+=`, `-=`, `*=`, `**=`, `/=`,
-`//=`, `%=`, `and=`, `or=` and `xor=`.
+`//=`, `mod=`, `and=`, `or=` and `xor=`.
 
 The same operators may update an addressed material-array selection:
 
@@ -1006,8 +1006,7 @@ keeps native sources repeatable. See [sequence previews](design/generator-previe
 Ranges (`to`, `till`, `by`), `len`, `sum`, `min`, `max`, and explicit
 conversions `integer`, `real`, `text`, `bytes` are available
 without imports. The catalogue groups them under `core`; no `use core` is
-needed. User code cannot redefine these available names. `numbers` still provides `sqrt`, `abs`, number theory and
-`multiple by`; `sequences` provides shapes, ordering and sources such as
+needed. User code cannot redefine these available names. `numbers` still provides `sqrt`, `abs` and number theory; `sequences` provides shapes, ordering and sources such as
 `fibonacci`.
 
 ```rank
@@ -1564,8 +1563,8 @@ Data = Data Mask
 Masks can be composed before they are applied:
 
 ```rank
-M3 = N % 3 equal 0
-M5 = N % 5 equal 0
+M3 = N mod 3 equal 0
+M5 = N mod 5 equal 0
 
 Selected = N (M3 or M5)
 ```
@@ -1835,7 +1834,7 @@ A condition after `for` is evaluated before every iteration:
 
 ```rank
 for B not equal 0
-  R = A % B
+  R = A mod B
   A = B
   B = R
 end
@@ -1863,7 +1862,7 @@ its condition again; a bare `for` starts its next iteration.
 ```rank
 Sum = 0
 for I in 1 to 5
-  if I % 2 equal 0
+  if I mod 2 equal 0
     continue
   end
   Sum += I
@@ -2063,7 +2062,7 @@ rem Return the greatest common divisor.
 rem Use the Euclidean algorithm.
 fun gcd A B
   for B not equal 0
-    R = A % B
+    R = A mod B
     A = B
     B = R
   end
@@ -2483,11 +2482,16 @@ the former prefix sketch `lcm * Range` is not part of the current language.
 
 ## Division and remainder
 
-`%` is floor modulo: a nonzero result has the divisor's sign. For integer
-operands and a nonzero divisor, `A equal (A // B) * B + A % B` is always true.
-For example, `-5 % 3` is `1`, `5 % -3` is `-1`, and `-5 % -3` is `-2`.
-With a positive integer modulus `M`, `X % M` is already in `[0, M)`;
-`(X % M + M) % M` is unnecessary.
+`mod` is floor modulo (the remainder): a nonzero result has the divisor's sign. For integer
+operands and a nonzero divisor, `A equal (A // B) * B + A mod B` is always true.
+For example, `-5 mod 3` is `1`, `5 mod -3` is `-1`, and `-5 mod -3` is `-2`.
+With a positive integer modulus `M`, `X mod M` is already in `[0, M)`;
+`(X mod M + M) mod M` is unnecessary.
+
+`mod=` updates a variable in place (`Total mod= 1000000007`). `N mod 3 equal 0` tests
+divisibility, elementwise on an array. In a `filter` condition the filtered value is
+elided before one multiplicative step, so `N filter mod 3 equal 0 or mod 5 equal 0`
+keeps the multiples of 3 or 5; `*`, `/` and `//` work the same way.
 
 Real and mixed operands use the same sign rule, subject to floating-point
 rounding. A real zero result has the divisor's sign. Division or modulo by
@@ -2497,7 +2501,7 @@ zero raises a Rank error.
 rounding direction for negative values:
 
 ```rank
-Digit = X % 10
+Digit = X mod 10
 X = X // 10
 Ratio = 5 / 2
 Floor = -5 // 2
@@ -2958,8 +2962,8 @@ The mask is an ordinary first-class value. It can be named, reused and combined
 before it is applied.
 
 ```rank
-Mask = N multiple by 3
-Mask or= N multiple by 5
+Mask = N mod 3 equal 0
+Mask or= N mod 5 equal 0
 
 Selected = N Mask
 ```
@@ -3265,10 +3269,10 @@ Labels = (array "A" "B") + "!"
 rem A! B!
 ```
 
-`**`, `%` and comparisons are also elementwise over compatible arrays:
+`**`, `mod` and comparisons are also elementwise over compatible arrays:
 
 ```rank
-M3 = N % 3 equal 0
+M3 = N mod 3 equal 0
 ```
 
 ## Operation modifiers
@@ -3483,7 +3487,7 @@ BlockProducts = Blocks reduce * rank 2
 the first value, reused independently for every `reduce rank R` cell, and
 returned unchanged for an empty cell. Reduction is a left fold. Without
 `with`, a scalar and a rank-0 cell reduce to themselves.
-The current symbolic reducers are `+`, `-`, `*`, `**`, `/`, `//`, `%`, `and`,
+The current symbolic reducers are `+`, `-`, `*`, `**`, `/`, `//`, `mod`, `and`,
 `or` and `xor`.
 Empty `+`, `*`, `and`, `or` and `xor` reductions produce `0`, `1`, `true`,
 `false` and `false` respectively. Other operations reject an empty cell. A
@@ -5830,20 +5834,17 @@ binomial
 binomialmod
 factors
 divisors
-multiple by
 min
 max
 infinity
 ```
 
-`multiple by` is an elementwise divisibility test and returns a boolean value
+`mod` with `equal 0` is an elementwise divisibility test and returns a boolean value
 or mask:
 
 ```rank
-Mask = N multiple by 3
+Mask = N mod 3 equal 0
 ```
-
-It is the readable shortcut for `N % 3 equal 0`.
 
 `abs` has intrinsic rank 0 and returns the absolute value of an `integer` or
 `real`, preserving its numeric type:
@@ -7088,8 +7089,8 @@ rem https://projecteuler.net/problem=1
 
 N = 1 till 1000
 
-Mask = N multiple by 3
-Mask or= N multiple by 5
+Mask = N mod 3 equal 0
+Mask or= N mod 5 equal 0
 
 Answer = N Mask sum
 
@@ -7098,7 +7099,7 @@ Answer print
 
 This example demonstrates:
 - the ordinary/lazy sequence `1 till 1000`;
-- the `multiple by` divisibility operation from `numbers`;
+- the `mod` operator tested against zero for divisibility;
 - boolean masks as first-class values;
 - incremental mask composition with `or=`;
 - boolean addressing;
@@ -7559,7 +7560,7 @@ rem Project Euler 26
 rem https://projecteuler.net/problem=26
 
 Seen Remainder = Position
-Remainder = Remainder * 10 % Denominator
+Remainder = Remainder * 10 mod Denominator
 ```
 
 Long division repeats exactly when a remainder repeats. A sparse `index`
@@ -7909,7 +7910,7 @@ run of four integers begins at `134043`.
 Numbers = 1 to Limit
 Powers = Numbers modular_self_power rank 0
 Total = Powers sum
-Answer = Total % Modulus
+Answer = Total mod Modulus
 ```
 
 A local rank-0 operation computes each modular self power. `sum`
@@ -8049,7 +8050,7 @@ fun add_two A B
     end
 
     Sum = X + Y + Carry
-    Queue push Sum % 10
+    Queue push Sum mod 10
     Carry = Sum // 10
     I += 1
   end
@@ -8151,7 +8152,7 @@ fun palindrome X
     return false
   end
 
-  if X % 10 equal 0
+  if X mod 10 equal 0
     if X not equal 0
       return false
     end
@@ -8160,7 +8161,7 @@ fun palindrome X
   Back = 0
 
   for X greater Back
-    Digit = X % 10
+    Digit = X mod 10
     X = X // 10
 
     Back = Back * 10 + Digit

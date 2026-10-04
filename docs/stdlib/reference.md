@@ -147,6 +147,7 @@ These constructs are always available.
 
 | Form | Summary |
 | --- | --- |
+| `Values mod N` | Floored remainder; with equal 0 it tests divisibility, elementwise on arrays. Written mod= to update in place. |
 | `Left Right max` | The larger of two numbers; min gives the smaller. |
 | `Low to High` | Counting range with an inclusive upper bound; after values, keeps those at most High. |
 | `Low till High` | Counting range with an exclusive upper bound; after values, keeps those below High. |
@@ -333,12 +334,6 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `Value sqrt` | real | Real square root of a nonnegative number. |
 | `Angle tan` | real | Tangent of an angle in radians. |
 | `Value tanh` | real | Hyperbolic tangent. |
-
-These need `use numbers` but have no name to look up.
-
-| Form | Summary |
-| --- | --- |
-| `Values multiple by N` | Elementwise divisibility test. |
 
 ## random
 

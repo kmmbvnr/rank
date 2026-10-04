@@ -28,7 +28,7 @@ fun knight_tour StartX StartY
   end
 
   fun degree Position
-    X = Position % 8
+    X = Position mod 8
     Y = Position // 8
     Count = 0
     for Move in 0 till 8
@@ -58,7 +58,7 @@ fun knight_tour StartX StartY
     end
     Ordered = Moves sort by degree
     for Next in Ordered
-      NX = Next % 8
+      NX = Next mod 8
       NY = Next // 8
       NextStep = Step + 1
       if NX NY NextStep visit

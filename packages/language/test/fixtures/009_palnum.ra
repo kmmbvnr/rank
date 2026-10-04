@@ -9,7 +9,7 @@ fun palindrome X
     return false
   end
 
-  if X % 10 equal 0
+  if X mod 10 equal 0
     if X not equal 0
       return false
     end
@@ -18,7 +18,7 @@ fun palindrome X
   Back = 0
 
   for X greater Back
-    Digit = X % 10
+    Digit = X mod 10
     X = X // 10
 
     Back = Back * 10 + Digit

@@ -36,7 +36,7 @@ fun path_count Grid
       if C greater 0
         Total += Ways R (C - 1)
       end
-      Ways R C = Total % 1000000007
+      Ways R C = Total mod 1000000007
     end
   end
 

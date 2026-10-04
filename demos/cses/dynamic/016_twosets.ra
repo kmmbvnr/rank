@@ -12,7 +12,7 @@ fun two_sets N
   Modulus = 1000000007
   Total = N * (N + 1) // 2
 
-  if Total % 2 equal 1
+  if Total mod 2 equal 1
     return 0
   end
 
@@ -26,7 +26,7 @@ fun two_sets N
     end
     for Sum in Target to Value by -1
       Ways Sum += Ways (Sum - Value)
-      Ways Sum %= Modulus
+      Ways Sum mod= Modulus
     end
   end
 

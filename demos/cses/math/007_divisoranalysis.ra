@@ -27,21 +27,21 @@ fun analyze_divisors Factors
 
     Numerator = Prime Terms Mod powmod
     Numerator -= 1
-    Numerator %= Mod
+    Numerator mod= Mod
     Denom = Prime - 1
     InvExp = Mod - 2
     Inv = Denom InvExp Mod powmod
-    Geometric = Numerator * Inv % Mod
-    Sum = Sum * Geometric % Mod
+    Geometric = Numerator * Inv mod Mod
+    Sum = Sum * Geometric mod Mod
 
     Triangle = Power * Terms // 2
-    Exponent = Triangle * Count % Phi
+    Exponent = Triangle * Count mod Phi
     Old = Product Terms Mod powmod
     Added = Prime Exponent Mod powmod
-    Product = Old * Added % Mod
+    Product = Old * Added mod Mod
 
-    Number = Number * Terms % Mod
-    Count = Count * Terms % Phi
+    Number = Number * Terms mod Mod
+    Count = Count * Terms mod Phi
   end
 
   return array Number Sum Product

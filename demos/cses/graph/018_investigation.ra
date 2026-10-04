@@ -50,7 +50,7 @@ fun investigate Graph N
         Pending Candidate NextItem enqueue
       elif Candidate equal Dist Next
         Ways Next += Ways Current
-        Ways Next %= Modulus
+        Ways Next mod= Modulus
         MinFlights Next = MinF (MinFlights Next) min
         MaxFlights Next = MaxF (MaxFlights Next) max
       end

@@ -58,7 +58,7 @@ fun difference Changes Start Params
   Rate = Official / 1200
   Payment = Balance Rate Term payment
   for Month in 0 till Term
-    if Month greater 0 and Month % 12 equal 0
+    if Month greater 0 and Month mod 12 equal 0
       Rate = Official / 1200
       Payment = Balance Rate (Term - Month) payment
     end
@@ -67,7 +67,7 @@ fun difference Changes Start Params
     Balance = Balance - Principal
     Flow = (Interest - Fixed .int Month) * Tax / 100 - (Payment - Fixed .pmt)
     Saving = Saving * Growth + Flow
-    if Month % 3 equal 2
+    if Month mod 3 equal 2
       Official = (Official + Changes (Month // 3)) 0.0 max
     end
   end

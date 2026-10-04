@@ -25,7 +25,7 @@ fun digit K
   end
 
   Number = First + (K - 1) // Width
-  Offset = (K - 1) % Width
+  Offset = (K - 1) mod Width
   Position = Offset + 1
 
   for Position less Width
@@ -33,5 +33,5 @@ fun digit K
     Position += 1
   end
 
-  return Number % 10
+  return Number mod 10
 end

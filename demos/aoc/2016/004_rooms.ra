@@ -62,7 +62,7 @@ rem Decrypt a room name with a Caesar cipher shifted by sector ID.
 rem Dashes are replaced with spaces.
 fun decrypt Name Sector
   Alphabet = "abcdefghijklmnopqrstuvwxyz"
-  Shift = Sector % 26
+  Shift = Sector mod 26
   Tail = Alphabet (Shift till 26)
   Head = Alphabet (0 till Shift)
   Cipher = Tail + Head

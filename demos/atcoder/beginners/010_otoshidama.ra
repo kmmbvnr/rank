@@ -20,7 +20,7 @@ fun otoshidama N Y
       break
     end
 
-    if Remaining % 4000 equal 0
+    if Remaining mod 4000 equal 0
       Five = Remaining // 4000
       if Five at most Rest
         One = Rest - Five

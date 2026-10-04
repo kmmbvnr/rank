@@ -75,7 +75,7 @@ Functions declare parameters without parentheses and terminate cleanly with `end
 fun gcd A B
   for B greater 0
     T = B
-    B = A % B
+    B = A mod B
     A = T
   end
   return A

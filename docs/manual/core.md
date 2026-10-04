@@ -1006,6 +1006,44 @@ On arrays, compares item by item.
 
 less, at least
 
+## mod
+
+The remainder of a division, with the
+sign of the divisor.
+
+```rank
+17 mod 5
+```
+
+```result
+2
+```
+
+### Usage
+
+```text
+Number mod Divisor
+Total mod= Divisor
+Values filter mod Divisor equal 0
+```
+
+With equal 0 it tests whether one number
+divides another evenly; on an array it
+gives an array of true and false. mod=
+updates a name in place. In a filter,
+mod acts on each item: keep the items
+whose remainder matches.
+
+### Notes
+
+A negative number gives a remainder with
+the divisor's sign: -7 mod 3 is 2. A
+zero divisor is an error.
+
+### See also
+
+equal, by, gcd
+
 ## in
 
 Check whether a value appears in a

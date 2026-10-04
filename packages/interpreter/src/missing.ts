@@ -1,8 +1,8 @@
 import { MISSING, type RankValue } from './value.js';
 
 const PROPAGATING = new Set([
-    '+', '-', '*', '/', '//', '%', '**', 'min', 'max',
-    'less', 'greater', 'atleast', 'atmost', 'equal', 'notequal', 'multipleby', 'xor',
+    '+', '-', '*', '/', '//', 'mod', '**', 'min', 'max',
+    'less', 'greater', 'atleast', 'atmost', 'equal', 'notequal', 'xor',
 ]);
 
 const known = (value: RankValue) => value === MISSING || typeof value === 'boolean';

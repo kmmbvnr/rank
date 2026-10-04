@@ -44,7 +44,7 @@ fun hamiltonian_flights N Edges
       Before = Mask Bit bxor
       Prevs = Back City
       Incoming = Ways Before Prevs
-      Ways Mask City = Incoming sum % Modulus
+      Ways Mask City = Incoming sum mod Modulus
     end
   end
   return Ways Full Last

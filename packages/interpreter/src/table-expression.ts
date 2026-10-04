@@ -18,7 +18,8 @@ export function readsFields(expression: Expression): boolean {
     const children: Expression[] = isApplicationExpression(expression) ? flatten(expression)
         : isBinaryExpression(expression)
             ? [expression.left, expression.right, ...expression.step ? [expression.step] : []]
-        : isSubjectComparisonExpression(expression) ? [expression.right]
+        : isSubjectComparisonExpression(expression)
+            ? [...expression.stepOperand ? [expression.stepOperand] : [], expression.right]
         : isUnaryExpression(expression) ? [expression.operand]
         : isParenthesizedExpression(expression) ? [expression.value]
         : [];
@@ -54,7 +55,12 @@ export function collectionExpression(expression: Expression): Expression {
 
     function lower(node: Expression): Expression {
         if (isSubjectComparisonExpression(node)) {
-            return { $type: 'BinaryExpression', left: input, operator: node.operator,
+            // `mod 3 equal 0`: the subject first takes its multiplicative step.
+            const subject = node.stepOperator && node.stepOperand
+                ? { $type: 'BinaryExpression', left: input, operator: node.stepOperator,
+                    right: node.stepOperand, $cstNode: node.$cstNode } as Expression
+                : input;
+            return { $type: 'BinaryExpression', left: subject, operator: node.operator,
                 right: node.right, $cstNode: node.$cstNode } as Expression;
         }
         if (isBinaryExpression(node) && LOGICAL_OPERATORS.has(node.operator)) {

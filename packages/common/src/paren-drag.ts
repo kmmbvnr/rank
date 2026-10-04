@@ -24,7 +24,7 @@ function pairsOf(line: string): Pair[] | undefined {
     return stack.length === 0 ? pairs : undefined;
 }
 
-const OPERATORS = new Set(['+', '-', '*', '**', '/', '//', '%']);
+const OPERATORS = new Set(['+', '-', '*', '**', '/', '//', 'mod']);
 
 /** Whether the group would take in an assignment, or start or end on an operator missing an operand; a leading `-` is a sign. */
 function dangling(line: string, span: Span): boolean {

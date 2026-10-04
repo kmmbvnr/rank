@@ -527,8 +527,8 @@ The mask is an ordinary first-class value. It can be named, reused and combined
 before it is applied.
 
 ```rank
-Mask = N multiple by 3
-Mask or= N multiple by 5
+Mask = N mod 3 equal 0
+Mask or= N mod 5 equal 0
 
 Selected = N Mask
 ```
@@ -877,10 +877,10 @@ Labels = (array "A" "B") + "!"
 rem A! B!
 ```
 
-`**`, `%` and comparisons are also elementwise over compatible arrays:
+`**`, `mod` and comparisons are also elementwise over compatible arrays:
 
 ```rank
-M3 = N % 3 equal 0
+M3 = N mod 3 equal 0
 ```
 
 ## Operation modifiers
@@ -1071,7 +1071,7 @@ BlockProducts = Blocks reduce * rank 2
 the first value, reused independently for every `reduce rank R` cell, and
 returned unchanged for an empty cell. Reduction is a left fold. Without
 `with`, a scalar and a rank-0 cell reduce to themselves.
-The current symbolic reducers are `+`, `-`, `*`, `**`, `/`, `//`, `%`, `and`,
+The current symbolic reducers are `+`, `-`, `*`, `**`, `/`, `//`, `mod`, `and`,
 `or` and `xor`.
 Empty `+`, `*`, `and`, `or` and `xor` reductions produce `0`, `1`, `true`,
 `false` and `false` respectively. Other operations reject an empty cell. A

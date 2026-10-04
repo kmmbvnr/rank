@@ -392,7 +392,7 @@ On a segment form the footer shows the source, a binary callback when supplied,
 an optional identity, and the `segment` result. An otherwise unproved function
 still shows `function`.
 Arithmetic, comparison, logical and `is` operator tokens show their declared signatures,
-including both words in `not equal`, `at least`, `at most`, and `multiple by`.
+including both words in `not equal`, `at least`, `at most`.
 Equality allows unrelated operand types and can propagate `missing`; it does not
 claim that the operands must have the same type. A known SQL column selects the
 column result contract. A SQL result is a `view`, its projected expression a `column`, and its connection a

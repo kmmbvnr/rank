@@ -27,12 +27,12 @@ fun counting_towers Heights
     OldSeparate = Separate
     Together = 2 * OldTogether
     Together += OldSeparate
-    Together %= Modulus
+    Together mod= Modulus
     Separate = OldTogether
     Separate += 4 * OldSeparate
-    Separate %= Modulus
+    Separate mod= Modulus
     Answer = Together + Separate
-    Answers Height = Answer % Modulus
+    Answers Height = Answer mod Modulus
   end
 
   return Answers Heights

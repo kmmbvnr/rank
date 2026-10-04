@@ -602,9 +602,9 @@ test('completion has one replaceable suggestion and is dismissed without executi
     book.replace('option Limit integ');
     repl.complete();
     assert.equal(book.current.source, 'option Limit integer ');
-    book.replace('N mul');
+    book.replace('N mo');
     repl.complete();
-    assert.equal(book.current.source, 'N multiple by ');
+    assert.equal(book.current.source, 'N mod ');
 });
 
 test('completion sees declarations before the cursor in an unfinished function', t => {

@@ -35,7 +35,7 @@ fun counting_tilings Height Width
   fun place Row NextMask
     if Row equal Height
       Next NextMask += Ways
-      Next NextMask %= Modulus
+      Next NextMask mod= Modulus
       return 0
     end
 

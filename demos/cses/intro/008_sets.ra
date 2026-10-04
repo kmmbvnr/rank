@@ -7,12 +7,12 @@ use io
 N = stdin .integer
 
 
-if N % 4 equal 1 or N % 4 equal 2
+if N mod 4 equal 1 or N mod 4 equal 2
   "NO" print
 else
   "YES" print
 
-  if N % 4 equal 0
+  if N mod 4 equal 0
     N // 2 print
     N left print
     N // 2 print
@@ -29,7 +29,7 @@ end
 rem Generate the first equal-sum set.
 fun left N
   Start = 1
-  if N % 4 equal 3
+  if N mod 4 equal 3
     yield 1
     yield 2
     Start = 4
@@ -45,7 +45,7 @@ end
 rem Generate the second equal-sum set.
 fun right N
   Start = 2
-  if N % 4 equal 3
+  if N mod 4 equal 3
     yield 3
     Start = 5
   end

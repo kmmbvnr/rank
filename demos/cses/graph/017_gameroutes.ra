@@ -25,7 +25,7 @@ fun game_routes Graph N
   for Current in Sorted .order
     for Next in Graph Current
       Ways Next += Ways Current
-      Ways Next %= Modulus
+      Ways Next mod= Modulus
     end
   end
   return Ways N

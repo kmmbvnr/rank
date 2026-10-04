@@ -46,7 +46,7 @@ fun median A B
       Left = Left (B (J - 1)) max
     end
 
-    if (M + N) % 2 equal 1
+    if (M + N) mod 2 equal 1
       return Left / 1.0
     end
 

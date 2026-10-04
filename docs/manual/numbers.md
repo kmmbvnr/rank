@@ -1,39 +1,5 @@
 # numbers manual
 
-## multiple by
-
-Check whether one integer divides
-another evenly.
-
-```rank
-use numbers
-12 multiple by 3
-```
-
-```result
-true
-```
-
-### Usage
-
-```text
-Number multiple by Divisor
-```
-
-Gives true when dividing leaves no
-remainder. On an array, checks every
-item and gives an array of true and
-false.
-
-### Notes
-
-Both values must be integers, and
-Divisor cannot be zero.
-
-### See also
-
-even, odd, gcd
-
 ## abs
 
 Distance from zero: drops the minus
@@ -409,7 +375,7 @@ as you read them.
 
 ### See also
 
-factors, multiple by, gcd
+factors, gcd
 
 ## even
 
@@ -435,7 +401,7 @@ even. On an array, checks every item.
 
 ### See also
 
-odd, multiple by
+odd
 
 ## exp
 
@@ -638,7 +604,7 @@ any value is zero, the result is zero.
 
 ### See also
 
-gcd, multiple by
+gcd
 
 ## log
 
@@ -721,7 +687,7 @@ array, checks every item.
 
 ### See also
 
-even, multiple by
+even
 
 ## powmod
 

@@ -641,7 +641,7 @@ demo and two examples from AtCoder `010_otoshidama`. The corpus count is now
 after `reverse` and withdraws that diagnostic when the loop contains an
 unknown call. `break`, `continue`, `yield` and `try` still make this loop rule
 unknown. Unconditional loop summaries remain at zero.
-Proven scalar integer `+=`, `-=`, `*=`, `//=`, and `%=` assignments now keep
+Proven scalar integer `+=`, `-=`, `*=`, `//=`, and `mod=` assignments now keep
 their integer facts. A `for` loop can also traverse a proven text parameter
 without a callback. The caller accepts text reads as safe because Rank text
 is immutable; it still requires eager scalar cells for array reads. On the

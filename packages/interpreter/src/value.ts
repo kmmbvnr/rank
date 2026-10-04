@@ -307,6 +307,12 @@ export interface SequencePlan {
 export interface RankSequence {
     readonly kind: 'sequence';
     readonly plan: SequencePlan;
+    /**
+     * A sequence made from another one item by item with a fixed scalar operand, such as `Values mod 3`:
+     * the first sequence and the pure function from its items. A comparison of this sequence is then a
+     * mask over the first one, so it can still bound or select from an endless source.
+     */
+    readonly origin?: { readonly source: RankSequence; readonly map: (item: RankValue) => RankValue };
 }
 
 export interface RankSequenceMask extends RankSequence {

@@ -646,7 +646,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                         const remainder = `remainder${serial++}`;
                         lines.push(`if (${rhs} === 0n) throw zero(); const ${remainder} = ${old} % ${rhs};`);
                         const adjust = `(${remainder} !== 0n && (${remainder} < 0n) !== (${rhs} < 0n))`;
-                        lines.push(`const ${out} = ${op === '%' ? `${remainder} + (${adjust} ? ${rhs} : 0n)` : `${old} / ${rhs} - (${adjust} ? 1n : 0n)`};`);
+                        lines.push(`const ${out} = ${op === 'mod' ? `${remainder} + (${adjust} ? ${rhs} : 0n)` : `${old} / ${rhs} - (${adjust} ? 1n : 0n)`};`);
                     }
                     result = out;
                     body.push(`location = ${location};`, ...lines,
@@ -762,12 +762,12 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                 const token = findCompiledOperator(op)?.binary;
                 if (!signature?.compound || signature.result !== value.type || !token) return reject(assignment);
                 if (token !== '%' && token !== '//') result = `(r${destination}) ${token} (${result})`;
-                else if (op === '%' || op === '//') {
+                else if (op === 'mod' || op === '//') {
                     lines.push(`if ((${result}) === 0n) throw zero();`);
                     const remainder = `c${index}`;
                     lines.push(`const ${remainder} = r${destination} % (${result});`);
                     const adjust = `(${remainder} !== 0n && (${remainder} < 0n) !== ((${result}) < 0n))`;
-                    result = op === '%' ? `${remainder} + (${adjust} ? (${result}) : 0n)`
+                    result = op === 'mod' ? `${remainder} + (${adjust} ? (${result}) : 0n)`
                         : `r${destination} / (${result}) - (${adjust} ? 1n : 0n)`;
                 } else return reject(assignment);
             }

@@ -38,11 +38,11 @@ fun descriptions Description Maximum
       Count = Previous (Value - 1)
       Count += Previous Value
       Count += Previous (Value + 1)
-      Next Value = Count % Modulus
+      Next Value = Count mod Modulus
     end
 
     Previous = Next
   end
 
-  return Previous sum % Modulus
+  return Previous sum mod Modulus
 end

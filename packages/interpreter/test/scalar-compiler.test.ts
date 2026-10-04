@@ -20,7 +20,7 @@ function evaluate(expression: string, a: RankValue, b: RankValue, enabled: boole
 }
 
 describe('compiled scalar expressions', () => {
-    it.each(['A * 3 + B', '(A + B) * (A - B)', '(A + B) // B', '(A - B) % B',
+    it.each(['A * 3 + B', '(A + B) * (A - B)', '(A + B) // B', '(A - B) mod B',
         '(A + B) less B', '(A + B) equal A', '-(A + B)', 'not (A less B)'])('%s preserves numeric and fallback semantics', expression => {
         for (const [a, b] of [[7n, 3n], [-7n, 3n], [7n, -3n], [-7n, -3n], [1n, 0n],
             [2n ** 100n, 7n], [1.25, 2.5], [-0, -0], [Infinity, -Infinity], [NaN, 1],

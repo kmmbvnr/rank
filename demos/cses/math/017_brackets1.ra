@@ -18,5 +18,5 @@ fun bracket_count N
   Opens = N // 2
   First = N Opens Mod binomialmod
   Second = N (Opens - 1) Mod binomialmod
-  return (First - Second + Mod) % Mod
+  return (First - Second + Mod) mod Mod
 end

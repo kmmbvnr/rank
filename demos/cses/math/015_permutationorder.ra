@@ -34,7 +34,7 @@ fun kth_permutation N K
     Available remove Value
 
     if Remaining greater 1
-      K %= Block
+      K mod= Block
       Block //= Remaining - 1
     end
   end

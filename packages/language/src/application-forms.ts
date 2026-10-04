@@ -6,11 +6,11 @@ import {
 import { findOperation, type Operation } from './operations.js';
 import { flattenApplication } from './expressions.js';
 
-export const REDUCE_OPERATORS = new Set(['+', '-', '*', '**', '/', '//', '%', 'and', 'or', 'xor']);
+export const REDUCE_OPERATORS = new Set(['+', '-', '*', '**', '/', '//', 'mod', 'and', 'or', 'xor']);
 export const OUTER_OPERATORS = new Set([
-    '+', '-', '*', '**', '/', '//', '%',
+    '+', '-', '*', '**', '/', '//', 'mod',
     'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost',
-    'and', 'or', 'xor', 'multipleby',
+    'and', 'or', 'xor',
 ]);
 
 export interface AxisReductionForm {

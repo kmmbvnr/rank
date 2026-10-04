@@ -19,11 +19,11 @@ fun necklaces N Colors
     Exponent = N // Divisor
     Ways = Colors Exponent Mod powmod
     Total += Divisor totient * Ways
-    Total %= Mod
+    Total mod= Mod
   end
 
   Inverse = N (Mod - 2) Mod powmod
-  return Total * Inverse % Mod
+  return Total * Inverse mod Mod
 end
 
 

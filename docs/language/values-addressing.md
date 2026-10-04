@@ -303,8 +303,8 @@ Data = Data Mask
 Masks can be composed before they are applied:
 
 ```rank
-M3 = N % 3 equal 0
-M5 = N % 5 equal 0
+M3 = N mod 3 equal 0
+M5 = N mod 5 equal 0
 
 Selected = N (M3 or M5)
 ```

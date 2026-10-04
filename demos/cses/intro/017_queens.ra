@@ -41,7 +41,7 @@ fun solve Board
       Distance = 1
 
       for Temp greater 1
-        Previous = Temp % 8
+        Previous = Temp mod 8
         if Previous equal Col
           Valid = false
           break

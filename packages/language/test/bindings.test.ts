@@ -215,7 +215,7 @@ describe('type facts', () => {
         const result = await facts([
             'use numbers',
             'Range = 1 till 10',
-            'Mask = Range multiple by 3',
+            'Mask = Range mod 3 equal 0',
             'Values = array 1 2 3',
             'Shifted = Values + 1',
             'Flags = Values greater 1',

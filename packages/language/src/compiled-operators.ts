@@ -78,7 +78,7 @@ export const compiledOperators: readonly CompiledOperator[] = [
     { name: '+', unary: '', binary: '+', scalarFunction: [...scalarSigned, { inputs: ['text', 'text'], result: 'text', compound: true }], scalarExpression: expressionSigned, tensor: tensorSigned,
         integerLoop: [...signed, { inputs: ['text', 'text'], result: 'text', compound: true, nativeCalls: true }] },
     { name: '-', unary: '-', binary: '-', scalarFunction: scalarSigned, scalarExpression: expressionSigned, integerLoop: signed, tensor: tensorSigned },
-    ...(['*', '//', '%'] as const).map(name => ({ name, binary: name,
+    ...(['*', '//', 'mod'] as const).map(name => ({ name, binary: (name === 'mod' ? '%' : name) as '%' | '*' | '//',
         scalarFunction: name === '*' ? scalarArithmetic : [integerBinary], scalarExpression: name === '*' ? expressionArithmetic : [integerBinary], integerLoop: [integerBinary], tensor: name === '*' ? tensorArithmetic : undefined })),
     ...([['less', '<'], ['greater', '>'], ['atmost', '<='], ['atleast', '>=']] as const)
         .map(([name, binary]) => ({ name, binary, scalarFunction: scalarComparison, scalarExpression: [integerComparison], integerLoop: [integerComparison], tensor: tensorComparison })),

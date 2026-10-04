@@ -33,33 +33,32 @@ export const OPERATOR_ALIASES: Readonly<Record<string, string>> = {
     times: '*',
     over: '/',
     idiv: '//',
-    mod: '%',
     power: '**',
     every: '#',
 };
 
 /** Aliases that combine with `gets` into a compound assignment. */
-const COMPOUND_LEFT = new Set(['plus', 'minus', 'times', 'over', 'idiv', 'mod', 'power']);
-const COMPOUND_KEYWORDS = new Set(['and', 'or', 'xor']);
-const COMPOUND_SYMBOLS = new Set(['+', '-', '*', '**', '/', '//', '%']);
+const COMPOUND_LEFT = new Set(['plus', 'minus', 'times', 'over', 'idiv', 'power']);
+const COMPOUND_KEYWORDS = new Set(['and', 'or', 'xor', 'mod']);
+const COMPOUND_SYMBOLS = new Set(['+', '-', '*', '**', '/', '//']);
 
-const BINARY_SYMBOLS = new Set(['+', '-', '*', '**', '/', '//', '%']);
+const BINARY_SYMBOLS = new Set(['+', '-', '*', '**', '/', '//']);
 
 const SYMBOLS = [
-    '**=', '//=', '**', '//', '+=', '-=', '*=', '/=', '%=',
-    '=', '+', '-', '*', '/', '%', '(', ')', '#', '.',
+    '**=', '//=', '**', '//', '+=', '-=', '*=', '/=',
+    '=', '+', '-', '*', '/', '(', ')', '#', '.',
 ];
 
 /** Symbols that cannot end a statement, so the line folds into the next one. */
 const OPEN_SYMBOLS = new Set([
-    '=', '+=', '-=', '*=', '/=', '//=', '%=', '**=',
-    '+', '-', '*', '/', '//', '%', '**', '.', '(',
+    '=', '+=', '-=', '*=', '/=', '//=', '**=',
+    '+', '-', '*', '/', '//', '**', '.', '(',
 ]);
 
 /** Words that demand a right operand, so the line folds into the next one. */
 const OPEN_WORDS = new Set([
     'and', 'or', 'xor', 'not', 'to', 'till', 'by', 'default', 'fill', 'equal', 'less',
-    'greater', 'in', 'is', 'at', 'least', 'most', 'multiple', 'use', 'as',
+    'greater', 'in', 'is', 'at', 'least', 'most', 'mod', 'use', 'as',
     'push', 'yield', 'unpack', 'new', 'stdin', 'catch', 'option', 'argument',
     'flag', 'args', 'on', 'group', 'leftjoin', 'innerjoin', 'where', 'while',
 ]);
@@ -77,12 +76,12 @@ const NON_OPERAND_WORDS = new Set([
 const DEDENT_WORDS = new Set(['else', 'elif', 'catch', 'finally']);
 
 /**
- * Word operators, completed whole: `mul` finishes as `multiple by`, so the two
+ * Word operators, completed whole: `at l` finishes as `at least`, so the two
  * halves of a spelled operator never have to be typed or remembered apart.
  */
 export const OPERATOR_KEYWORDS = [
     'and', 'or', 'xor', 'not', 'equal', 'not equal', 'less', 'greater',
-    'at least', 'at most', 'multiple by', 'in', 'is', 'to', 'till', 'by',
+    'at least', 'at most', 'mod', 'in', 'is', 'to', 'till', 'by',
     'default', 'fill', 'as', 'axis', 'rank', 'reduce', 'scan', 'outer', 'sort by',
     'first where', 'first index where', 'take', 'drop', 'from', 'after',
     'argsort by', 'group by', 'leftjoin by', 'innerjoin by', 'leftjoin on',
@@ -264,8 +263,8 @@ export function expandAssignKey(line: string): string {
 
 /** Operators that read as one space on each side. */
 const SPACED_SYMBOLS = new Set([
-    '=', '+=', '-=', '*=', '/=', '//=', '%=', '**=',
-    '+', '-', '*', '/', '//', '%', '**', '#',
+    '=', '+=', '-=', '*=', '/=', '//=', '**=',
+    '+', '-', '*', '/', '//', '**', '#',
 ]);
 
 /**
@@ -415,7 +414,7 @@ function endsHigherOrder(tokens: readonly Token[]): boolean {
     if (named(last - 1)) return true;
     if (text === 'equal' && tokens[last - 1]?.text === 'not') return named(last - 2);
     if ((text === 'least' || text === 'most') && tokens[last - 1]?.text === 'at') return named(last - 2);
-    return text === 'by' && tokens[last - 1]?.text === 'multiple' && named(last - 2);
+    return false;
 }
 
 /** A `fill` at paren depth zero closes the shape form, so no `end` is needed. */

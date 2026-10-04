@@ -225,7 +225,7 @@ describe('inspect: sequences', () => {
     });
 
     it('shows the front of a computed sequence', async () => {
-        const { session, ref } = await run(['N = 1 to 10000000000000', 'N % 3 equal 0 or N % 5 equal 0']);
+        const { session, ref } = await run(['N = 1 to 10000000000000', 'N mod 3 equal 0 or N mod 5 equal 0']);
         const value = opened(session.inspect(ref, { count: [4] }));
         if (value.kind !== 'sequence') throw new Error('expected a sequence');
         expect(value.items.map(item => item.text)).toEqual(['false', 'false', 'true', 'false']);

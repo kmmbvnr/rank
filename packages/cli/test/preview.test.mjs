@@ -108,7 +108,7 @@ test('REPL previews cap numeric sequences and boolean masks at 40 columns, even 
     for (const columns of [120, 80, 47, 30]) {
         const session = createReplSession();
         t.after(() => session.dispose());
-        const sources = ['use numbers', 'N = 1 till 1000', 'Mask = N multiple by 3', 'Mask or= N multiple by 5'];
+        const sources = ['use numbers', 'N = 1 till 1000', 'Mask = N mod 3 equal 0', 'Mask or= N mod 5 equal 0'];
         for (const [index, source] of sources.entries()) {
             const result = await session.execute(source, index, [], columns);
             assert.equal(result.ok, true);

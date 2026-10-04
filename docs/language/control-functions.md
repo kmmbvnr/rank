@@ -84,7 +84,7 @@ A condition after `for` is evaluated before every iteration:
 
 ```rank
 for B not equal 0
-  R = A % B
+  R = A mod B
   A = B
   B = R
 end
@@ -112,7 +112,7 @@ its condition again; a bare `for` starts its next iteration.
 ```rank
 Sum = 0
 for I in 1 to 5
-  if I % 2 equal 0
+  if I mod 2 equal 0
     continue
   end
   Sum += I
@@ -296,7 +296,7 @@ rem Return the greatest common divisor.
 rem Use the Euclidean algorithm.
 fun gcd A B
   for B not equal 0
-    R = A % B
+    R = A mod B
     A = B
     B = R
   end
@@ -692,11 +692,16 @@ the former prefix sketch `lcm * Range` is not part of the current language.
 
 ## Division and remainder
 
-`%` is floor modulo: a nonzero result has the divisor's sign. For integer
-operands and a nonzero divisor, `A equal (A // B) * B + A % B` is always true.
-For example, `-5 % 3` is `1`, `5 % -3` is `-1`, and `-5 % -3` is `-2`.
-With a positive integer modulus `M`, `X % M` is already in `[0, M)`;
-`(X % M + M) % M` is unnecessary.
+`mod` is floor modulo (the remainder): a nonzero result has the divisor's sign. For integer
+operands and a nonzero divisor, `A equal (A // B) * B + A mod B` is always true.
+For example, `-5 mod 3` is `1`, `5 mod -3` is `-1`, and `-5 mod -3` is `-2`.
+With a positive integer modulus `M`, `X mod M` is already in `[0, M)`;
+`(X mod M + M) mod M` is unnecessary.
+
+`mod=` updates a variable in place (`Total mod= 1000000007`). `N mod 3 equal 0` tests
+divisibility, elementwise on an array. In a `filter` condition the filtered value is
+elided before one multiplicative step, so `N filter mod 3 equal 0 or mod 5 equal 0`
+keeps the multiples of 3 or 5; `*`, `/` and `//` work the same way.
 
 Real and mixed operands use the same sign rule, subject to floating-point
 rounding. A real zero result has the divisor's sign. Division or modulo by
@@ -706,7 +711,7 @@ zero raises a Rank error.
 rounding direction for negative values:
 
 ```rank
-Digit = X % 10
+Digit = X mod 10
 X = X // 10
 Ratio = 5 / 2
 Floor = -5 // 2

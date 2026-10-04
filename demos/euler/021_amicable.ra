@@ -34,7 +34,7 @@ fun proper_divisor_sum N
 
   Root = N isqrt
   Divisors = 2 to Root
-  Factors = Divisors (N multiple by Divisors)
+  Factors = Divisors (N mod Divisors equal 0)
   Pairs = N // Factors
   Total = 1 + (Factors sum)
   Total += Pairs sum

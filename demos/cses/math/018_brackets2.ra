@@ -42,5 +42,5 @@ fun completions N Prefix
   if Opens greater 0
     B = Remaining (Opens - 1) Mod binomialmod
   end
-  return (A - B + Mod) % Mod
+  return (A - B + Mod) mod Mod
 end

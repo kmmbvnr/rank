@@ -829,7 +829,7 @@ describe('Rank grammar', () => {
             'A = N filter greater 5',
             'B = N filter not equal 5',
             'C = N filter in primes',
-            'D = N filter multiple by 3 or multiple by 5',
+            'D = N filter mod 3 equal 0 or mod 5 equal 0',
             'E = N filter at least 3 and at most 9',
             'F = N filter greater 5 and even',
         ].join('\n'));

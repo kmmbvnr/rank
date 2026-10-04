@@ -24,9 +24,9 @@ fun dice_ways N
   Result = 6 identity
   for N greater 0
     if N odd
-      Result = Result Steps matmul % Mod
+      Result = Result Steps matmul mod Mod
     end
-    Steps = Steps Steps matmul % Mod
+    Steps = Steps Steps matmul mod Mod
     N //= 2
   end
 

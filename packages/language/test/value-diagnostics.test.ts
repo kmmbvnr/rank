@@ -902,7 +902,7 @@ it('checks recursive numeric specializations including empty median inputs', () 
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
         .toEqual(examples.map(() => ['real']));
     expect(messages('fun gcd A B\n if B equal 0\n  return A\n end\n'
-        + ' return B (A % B) gcd\nend\nR = 12 8 gcd\nR + "bad"'))
+        + ' return B (A mod B) gcd\nend\nR = 12 8 gcd\nR + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('fun change X\n if X less 1\n  return X\n end\n'
         + ' return (X / 2) change\nend\nR = 2 change\nR + "bad"'))
@@ -1634,7 +1634,7 @@ it('retains known cell types after a proven single-cell replacement', () => {
     expect(messages('A = array 1 2\nA # = 3\nA + (array true false)')).toEqual(['operator + does not accept integer and boolean']);
     expect(messages('A = array 1 2\nA 0 += 3\nA + (array true false)'))
         .toEqual(['operator + does not accept integer and boolean']);
-    expect(messages('A = array 1 2\nA 0 %= 3\nA + (array true false)'))
+    expect(messages('A = array 1 2\nA 0 mod= 3\nA + (array true false)'))
         .toEqual(['operator + does not accept integer and boolean']);
     expect(messages('A = array 1 2\nA 0 += "text"\nA + (array true false)')).toEqual([]);
 });

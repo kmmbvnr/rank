@@ -81,15 +81,15 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
     // `.NA` propagates through arithmetic and comparison; `and`/`or` can still decide.
     if (left.rank === 0 && right.rank === 0 && (left.types.join() === 'missing' || right.types.join() === 'missing')
         && left.types.length && right.types.length) {
-        if (['+', '-', '*', '/', '//', '%', '**', 'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost']
+        if (['+', '-', '*', '/', '//', 'mod', '**', 'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost']
             .includes(operator)) return { types: ['missing'], rank: 0, shape: [] };
         if (['and', 'or'].includes(operator)) return { types: ['boolean', 'missing'], rank: 0, shape: [] };
     }
-    if (['+', '-', '*', '/', '//', '%', '**'].includes(operator)) {
+    if (['+', '-', '*', '/', '//', 'mod', '**'].includes(operator)) {
         const inferred = binaryType(operator, left.types, right.types);
         const scalarNumbers = [left, right].every(value => value.rank === 0
             && value.types.length > 0 && value.types.every(type => type === 'integer' || type === 'real'));
-        const integerArithmetic = scalarNumbers && ['+', '-', '*', '//', '%'].includes(operator)
+        const integerArithmetic = scalarNumbers && ['+', '-', '*', '//', 'mod'].includes(operator)
             && left.types.join() === 'integer' && right.types.join() === 'integer';
         const scalarTypes = integerArithmetic ? ['integer'] as Types
             : inferred.length ? inferred : scalarNumbers ? ['integer', 'real'] as Types : inferred;
@@ -117,7 +117,7 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
                     callbackFreeScalarCells: true as const } : {}) };
         }
     }
-    if (['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby',
+    if (['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost',
         'and', 'or', 'xor'].includes(operator)
         && left.rank === 0 && right.rank === 0
         && left.types.length && right.types.length
@@ -150,7 +150,7 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
 export function symbolicFormFacts(symbolic: ApplicationForm, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts | undefined {
     if (symbolic?.kind === 'outer'
-        && ['+', '-', '*', '/', '//', '%', '**'].includes(symbolic.operator)) {
+        && ['+', '-', '*', '/', '//', 'mod', '**'].includes(symbolic.operator)) {
         if (symbolic.operands.length === 2) {
             const left = infer(symbolic.operands[0], lookup);
             const right = infer(symbolic.operands[1], lookup);
@@ -160,7 +160,7 @@ export function symbolicFormFacts(symbolic: ApplicationForm, lookup: FactLookup,
                 const numeric = [left, right].every(value =>
                     (value.eagerScalarCells || value.callbackFreeScalarCells)
                     && value.elements?.length && value.elements.every(type => type === 'integer' || type === 'real'));
-                const integers = ['+', '-', '*', '//', '%'].includes(symbolic.operator)
+                const integers = ['+', '-', '*', '//', 'mod'].includes(symbolic.operator)
                     && [left, right].every(value => value.elements?.join() === 'integer');
                 return { types: ['array'], rank: shape.length, shape,
                     ...(numeric ? { elements: (integers ? ['integer'] : ['integer', 'real']) as Types,
@@ -254,7 +254,10 @@ export function callbackFreeCondition(
     condition: Expression, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts,
 ): boolean {
-    if (isSubjectComparisonExpression(condition)) return callbackFreeCondition(condition.right, lookup, infer);
+    if (isSubjectComparisonExpression(condition)) {
+        return callbackFreeCondition(condition.right, lookup, infer)
+            && (!condition.stepOperand || callbackFreeCondition(condition.stepOperand, lookup, infer));
+    }
     if (isUnaryExpression(condition)) return callbackFreeCondition(condition.operand, lookup, infer);
     if (isBinaryExpression(condition)) {
         return callbackFreeCondition(condition.left, lookup, infer) && callbackFreeCondition(condition.right, lookup, infer);

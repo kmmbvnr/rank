@@ -26,5 +26,5 @@ fun grids N
   Total += 2 * Quarter
 
   Inverse = 4 (Mod - 2) Mod powmod
-  return Total % Mod * Inverse % Mod
+  return Total mod Mod * Inverse mod Mod
 end

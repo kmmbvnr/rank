@@ -9,7 +9,6 @@ import { indexKey } from './index-key.js';
 import { checkpoint } from './interrupt.js';
 import { missingBinary } from './missing.js';
 import { mapMaskedArrays } from './masked-kernels.js';
-import { requireModule } from './modules/shared.js';
 import { binarySqlite, inSqlite } from './modules/sqlite.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
@@ -34,11 +33,10 @@ import {
  * logic, ranges, membership and the outer products. Operators never call a
  * Rank function, except `outer` with a named operation, whose result files
  * the caller's scope must own. The only other capability they need is the set
- * of open modules, because `multiple by` belongs to `numbers`.
+ * of open modules.
  */
 export class Operators {
     constructor(
-        private readonly modules: ReadonlySet<string>,
         private readonly ownFiles: (value: RankValue) => void,
         private readonly scalarCallback: (fn: NativeFunction) => ((arguments_: RankValue[]) => RankValue) | undefined,
     ) {}
@@ -230,7 +228,7 @@ export class Operators {
                 case 'notequal': return left !== right;
                 case 'min': return left < right ? left : right;
                 case 'max': return left > right ? left : right;
-                case '%': {
+                case 'mod': {
                     if (right === 0n) throw new RankError('division by zero');
                     const remainder = left % right;
                     return remainder !== 0n && (remainder < 0n) !== (right < 0n)
@@ -316,13 +314,6 @@ export class Operators {
         if (operator === '+' && (typeof left === 'string' || typeof right === 'string')) {
             throw new RankError('+ expects two numeric or two text values');
         }
-        if (operator === 'multipleby') {
-            requireModule(this.modules, 'numbers', 'multiple by');
-            const dividend = expectInteger(left);
-            const divisor = expectInteger(right);
-            if (divisor === 0n) throw new RankError('division by zero');
-            return dividend % divisor === 0n;
-        }
         if (operator === 'less' || operator === 'greater'
             || operator === 'atleast' || operator === 'atmost') {
             // IEEE: nan is unordered, so every comparison with it is false,
@@ -369,7 +360,7 @@ export class Operators {
 
         const a = expectNumeric(left);
         const b = expectNumeric(right);
-        if ((operator === '/' || operator === '//' || operator === '%') && isZero(b)) {
+        if ((operator === '/' || operator === '//' || operator === 'mod') && isZero(b)) {
             throw new RankError('division by zero');
         }
         const bothIntegers = typeof a === 'bigint' && typeof b === 'bigint';
@@ -380,7 +371,7 @@ export class Operators {
             case '**': return power(a, b);
             case '/': return Number(a) / Number(b);
             case '//': return bothIntegers ? floorDivide(a, b) : floorDivideReal(Number(a), Number(b));
-            case '%': {
+            case 'mod': {
                 if (bothIntegers) {
                     const remainder = a % b;
                     return remainder !== 0n && (remainder < 0n) !== (b < 0n)
@@ -402,19 +393,22 @@ export class Operators {
         if (isRankSequence(left) && isRankSequence(right)) {
             throw new RankError('comparison between two sequences is not implemented');
         }
-        const source = isRankSequence(left) ? left : right as RankSequence;
+        const mapped = isRankSequence(left) ? left : right as RankSequence;
         const scalar = isRankSequence(left) ? right : left;
+        // `Values mod 3 equal 0` tests the items of `Values`, not of a derived copy of it.
+        const source = mapped.origin?.source ?? mapped;
+        const lift = mapped.origin?.map ?? ((item: RankValue) => item);
         const predicate: SequencePredicate = {
             name: operator,
-            expression: {
-                kind: 'comparison',
+            ...(mapped.origin ? {} : { expression: {
+                kind: 'comparison' as const,
                 operator,
                 scalar,
                 sourceOnLeft: isRankSequence(left),
-            },
+            } }),
             test: item => expectBoolean(isRankSequence(left)
-                ? this.evaluateBinary(operator, item, scalar)
-                : this.evaluateBinary(operator, scalar, item)),
+                ? this.evaluateBinary(operator, lift(item), scalar)
+                : this.evaluateBinary(operator, scalar, lift(item))),
         };
         return sequenceMask(source, predicate);
     }
@@ -644,6 +638,14 @@ function withAt(source: RankSequence, at: (index: bigint) => RankValue | undefin
 }
 
 /** Arithmetic over an addressable sequence is addressable: item i is the operation applied to item i. */
+/** Remember the sequence a scalar operation was applied to, composing with an origin it already had. */
+function withOrigin(mapped: RankSequence, from: RankSequence, step: (item: RankValue) => RankValue): RankSequence {
+    const first = from.origin;
+    return { ...mapped, origin: first
+        ? { source: first.source, map: item => step(first.map(item)) }
+        : { source: from, map: step } };
+}
+
 function addressable(mapped: RankSequence, source: RankSequence, operation: (item: RankValue) => RankValue): RankSequence {
     const at = source.plan.at;
     if (!at) return mapped;
@@ -671,12 +673,12 @@ function mapBinary(
         }) : zipped;
     }
     if (isRankSequence(left)) {
-        return addressable(mapSequence(left, name, item => scalarOperation(item, right)), left,
-            item => scalarOperation(item, right));
+        return withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right)), left,
+            item => scalarOperation(item, right)), left, item => scalarOperation(item, right));
     }
     if (isRankSequence(right)) {
-        return addressable(mapSequence(right, name, item => scalarOperation(left, item)), right,
-            item => scalarOperation(left, item));
+        return withOrigin(addressable(mapSequence(right, name, item => scalarOperation(left, item)), right,
+            item => scalarOperation(left, item)), right, item => scalarOperation(left, item));
     }
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
@@ -719,7 +721,7 @@ function markBinaryMask(operator: string, left: RankValue, right: RankValue, res
 }
 
 function isPredicateOperator(operator: string): boolean {
-    return ['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'multipleby']
+    return ['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost']
         .includes(operator);
 }
 

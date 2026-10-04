@@ -25,7 +25,7 @@ fun count_sundays FirstYear LastYear
       end
 
       Days = Year Month month_days
-      Weekday = (Weekday + Days) % 7
+      Weekday = (Weekday + Days) mod 7
     end
   end
 
@@ -36,10 +36,10 @@ end
 rem Return the Gregorian length of one month.
 fun month_days Year Month
   if Month equal 2
-    Leap = Year multiple by 4
+    Leap = Year mod 4 equal 0
     Leap and= (
-      not Year multiple by 100
-      or Year multiple by 400
+      not Year mod 100 equal 0
+      or Year mod 400 equal 0
     )
     if Leap
       return 29

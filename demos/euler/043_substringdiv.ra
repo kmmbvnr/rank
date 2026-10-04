@@ -55,5 +55,5 @@ fun valid_suffix Prefix Divisors
   Text = Prefix (Start till Length)
   Value = Text integer
   Divisor = Divisors (Length - 4)
-  return Value multiple by Divisor
+  return Value mod Divisor equal 0
 end

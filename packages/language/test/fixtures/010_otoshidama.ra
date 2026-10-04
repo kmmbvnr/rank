@@ -16,7 +16,7 @@ fun otoshidama N Y
     Rest = N - Ten
     Spent = 10000 * Ten + 1000 * Rest
     Remaining = Y - Spent
-    Mod = Remaining % 4000
+    Mod = Remaining mod 4000
     NonNegative = Remaining at least 0
     Divisible = Mod equal 0
 

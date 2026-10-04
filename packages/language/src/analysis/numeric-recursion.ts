@@ -37,7 +37,7 @@ export function numericRecursionEligible(
     const numericSyntax = (part: Expression): boolean => isNameExpression(part) || isNumberLiteral(part)
         || isParenthesizedExpression(part) && numericSyntax(part.value)
         || isUnaryExpression(part) && ['+', '-'].includes(part.operator) && numericSyntax(part.operand)
-        || isBinaryExpression(part) && ['+', '-', '*', '/', '//', '%', '**'].includes(part.operator)
+        || isBinaryExpression(part) && ['+', '-', '*', '/', '//', 'mod', '**'].includes(part.operator)
             && numericSyntax(part.left) && numericSyntax(part.right);
     return nodes.filter(isNameExpression).every(node => {
         if (node.name === name) {

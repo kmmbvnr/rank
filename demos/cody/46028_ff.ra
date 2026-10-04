@@ -21,7 +21,7 @@ fun tolerance_fill Grid StartY StartX T
   for Pending len greater Head
     Position = Pending Head
     Y = Position // W
-    X = Position % W
+    X = Position mod W
     Neighbors = Grid Y X neighbors
 
     for Point in Neighbors

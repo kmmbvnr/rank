@@ -34,9 +34,9 @@ rem Check the four positions where one common
 rem nonzero digit can be removed.
 fun curious Numerator Denominator
   NLeft = Numerator // 10
-  NRight = Numerator % 10
+  NRight = Numerator mod 10
   DLeft = Denominator // 10
-  DRight = Denominator % 10
+  DRight = Denominator mod 10
 
   if NLeft equal DLeft
     if Numerator * DRight equal Denominator * NRight

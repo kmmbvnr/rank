@@ -17,7 +17,7 @@ fun josephus N K
   Pos = 0
 
   for Left in N to 1 by -1
-    Pos = (Pos + K) % Left
+    Pos = (Pos + K) mod Left
 
     Child = Kids Pos
     Queue push Child

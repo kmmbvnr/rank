@@ -101,20 +101,17 @@ binomial
 binomialmod
 factors
 divisors
-multiple by
 infinity
 nan
 isnan
 ```
 
-`multiple by` is an elementwise divisibility test and returns a boolean value
+`mod` with `equal 0` is an elementwise divisibility test and returns a boolean value
 or mask:
 
 ```rank
-Mask = N multiple by 3
+Mask = N mod 3 equal 0
 ```
-
-It is the readable shortcut for `N % 3 equal 0`.
 
 `abs` has intrinsic rank 0 and returns the absolute value of an `integer` or
 `real`, preserving its numeric type:

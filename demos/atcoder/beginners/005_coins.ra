@@ -24,7 +24,7 @@ fun ways A B C X
         break
       end
 
-      if Remaining % 50 equal 0
+      if Remaining mod 50 equal 0
         if Remaining // 50 at most C
           Count += 1
         end

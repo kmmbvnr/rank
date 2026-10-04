@@ -21,7 +21,7 @@ fun count_divisible_subarrays A
 
   for X in A
     Prefix += X
-    Remainder = (Prefix % N + N) % N
+    Remainder = (Prefix mod N + N) mod N
 
     Count = Index Remainder default 0
     Answer += Count

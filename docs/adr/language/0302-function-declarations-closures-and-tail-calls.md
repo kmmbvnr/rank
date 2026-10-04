@@ -24,7 +24,7 @@ Functions declare parameters separated by whitespace and terminate with `end`:
 ```rank
 fun gcd A B
   for B not equal 0
-    R = A % B
+    R = A mod B
     A = B
     B = R
   end

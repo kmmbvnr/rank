@@ -19,7 +19,7 @@ const CONTINUATIONS = new Set(['catch', 'elif', 'else', 'end', 'finally']);
 const PREFIX = new Set(['array', 'new', 'not', 'record', 'stdin']);
 
 /** Higher-order operations follow their operands and take the operator after them: `A reduce +`, `A B outer equal`. */
-const REDUCED = new Set(['+', '-', '*', '**', '/', '//', '%', 'and', 'or', 'xor']);
+const REDUCED = new Set(['+', '-', '*', '**', '/', '//', 'mod', 'and', 'or', 'xor']);
 const COMPARED = new Set(['equal', 'less', 'greater', 'least', 'most', 'by']);
 /** `rank` and `axis` follow a function name: `len axis`, `integer rank`; `scan` follows the values it applies to. */
 const function_ = (previous: Token) => previous.kind === 'word' && endsOperand(previous);

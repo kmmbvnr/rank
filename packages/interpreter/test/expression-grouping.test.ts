@@ -19,7 +19,7 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
 
     it('finishes a range, including its step, before reduction or materialization', () => {
         expect(run('fibonacci till 1000 sum')).toBe('2582');
-        expect(run('Fibs = fibonacci multiple by 5 or fibonacci multiple by 3\nfibonacci Fibs till 1000 sum')).toBe('1825');
+        expect(run('Fibs = fibonacci mod 5 equal 0 or fibonacci mod 3 equal 0\nfibonacci Fibs till 1000 sum')).toBe('1825');
         expect(run('1 to 9 by 2 sum')).toBe('25');
         expect(run('1 to 9 by 2 array')).toBe('1 3 5 7 9');
         expect(run('1 to 5 reduce +')).toBe('15');

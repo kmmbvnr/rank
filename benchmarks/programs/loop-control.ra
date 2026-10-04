@@ -8,7 +8,7 @@ fun trial_divisors N
     if Square greater N
       break
     end
-    if N % I not equal 0
+    if N mod I not equal 0
       continue
     end
     Count += 2

@@ -415,10 +415,10 @@ it('keeps numeric result types for mixed integer-real division and remainder', (
     const bindings = new Map<string, ValueFacts>([['Total', {
         types: ['integer', 'real'], rank: 0, shape: [],
     }]]);
-    expect(facts('Total % 10', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
+    expect(facts('Total mod 10', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
     expect(facts('Total // 10', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
-    expect(facts('3.5 % 2')).toEqual({ types: ['real'], rank: 0, shape: [] });
-    expect(facts('7 % 2')).toMatchObject({ types: ['integer'], rank: 0 });
+    expect(facts('3.5 mod 2')).toEqual({ types: ['real'], rank: 0, shape: [] });
+    expect(facts('7 mod 2')).toMatchObject({ types: ['integer'], rank: 0 });
 });
 
 it('types safe integer-vector selection and sequence slicing', () => {
@@ -559,15 +559,15 @@ it('keeps integer cells through integer-only array arithmetic', () => {
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     const bindings = new Map<string, ValueFacts>([['A', { types: ['array'], rank: 1,
         shape: [null], elements: ['integer'], eagerScalarCells: true }], ['I', integer]]);
-    expect(facts('(A I) % 7', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('(A I) mod 7', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
     expect(facts('(A I) // 7', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
-    expect(facts('A % 7', bindings)).toMatchObject({ types: ['array'], elements: ['integer'] });
+    expect(facts('A mod 7', bindings)).toMatchObject({ types: ['array'], elements: ['integer'] });
 });
 
 it('keeps scalar rank through boolean comparisons and negation', () => {
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     const bindings = new Map([['N', integer]]);
-    expect(facts('N multiple by 4', bindings)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
+    expect(facts('N mod 4 equal 0', bindings)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
     expect(facts('not N equal 4', bindings)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
     expect(facts('N less 4 or N greater 8', bindings)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
     expect(facts('N equal 4', new Map([['N', { types: [] }]])).rank).toBeUndefined();

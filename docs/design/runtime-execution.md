@@ -822,7 +822,7 @@ preceding numeric-range and array read/write optimizations enabled.
 
 ## Compiled compound array writes
 
-Stored integer arrays support `+=`, `-=`, `*=`, `//=` and `%=` in compiled regions.
+Stored integer arrays support `+=`, `-=`, `*=`, `//=` and `mod=` in compiled regions.
 The compiler validates coordinates first, evaluates the right operand once, reads
 the current element and then writes the result. The statement result remains the
 right operand, as in ordinary Rank execution. Signed floor division and modulo

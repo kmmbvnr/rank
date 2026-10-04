@@ -11,8 +11,8 @@ option Limit integer = 1000
 
 N = 1 till Limit
 
-Mask = N multiple by 3
-Mask or= N multiple by 5
+Mask = N mod 3 equal 0
+Mask or= N mod 5 equal 0
 
 Answer = N Mask sum
 Answer print

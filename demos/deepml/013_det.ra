@@ -29,7 +29,7 @@ fun determinant A
     Minor = A (1 till N)
     Minor = Minor axis 1 Keep
 
-    Sign = 1 - 2 * (c % 2)
+    Sign = 1 - 2 * (c mod 2)
     Cof = Minor determinant
 
     Total += Sign * A 0 c * Cof

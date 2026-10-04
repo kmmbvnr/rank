@@ -30,7 +30,7 @@ function distance(a: string, b: string): number {
     return row[b.length]!;
 }
 
-const ASSIGNMENTS = new Set(['=', '+=', '-=', '*=', '**=', '/=', '//=', '%=', 'and=', 'or=', 'xor=']);
+const ASSIGNMENTS = new Set(['=', '+=', '-=', '*=', '**=', '/=', '//=', 'mod=', 'and=', 'or=', 'xor=']);
 
 /** A lowercase word before an assignment is a name that cannot be a variable: names start with a capital. */
 function lowercaseVariable(error: object, source: string): string | undefined {
@@ -53,6 +53,7 @@ function readableSyntaxError(error: object, source: string): string {
     if (!('token' in error)) {
         if (/unexpected character: ->"<-/.test(message)) return 'Text is missing its closing quote';
         const character = /unexpected character: ->(.*?)<-/s.exec(message)?.[1];
+        if (character === '%') return "Unexpected character '%': the remainder is written `mod`, as in `N mod 3` or `Total mod= 7`";
         return character ? `Unexpected character '${character}'` : 'Unexpected character';
     }
     const image = token?.image ?? '';

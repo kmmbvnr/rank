@@ -20,7 +20,7 @@ fun string_count Text
 
   for I in 1 to Length
     Prev = I - 1
-    Fact I = Fact Prev * I % Mod
+    Fact I = Fact Prev * I mod Mod
   end
   for Letter in Text
     Counts add Letter
@@ -37,7 +37,7 @@ fun string_count Text
     end
     Denom = Fact Repeats
     Inverse = Denom InvExp Mod powmod
-    Answer = Answer * Inverse % Mod
+    Answer = Answer * Inverse mod Mod
   end
 
   return Answer

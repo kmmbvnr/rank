@@ -18,10 +18,10 @@ fun reshape_matrix A NewShape
 
   for k in 0 till NewSize
     OldRow = k // OldCols
-    OldColumn = k % OldCols
+    OldColumn = k mod OldCols
 
     NewRow = k // Cols
-    NewColumn = k % Cols
+    NewColumn = k mod Cols
 
     Result NewRow NewColumn = A OldRow OldColumn
   end

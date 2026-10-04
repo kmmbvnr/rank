@@ -22,7 +22,7 @@ fun unordered_coin_ways Coins Target
     end
     for Total in Coin to Target
       Ways Total += Ways (Total - Coin)
-      Ways Total %= 1000000007
+      Ways Total mod= 1000000007
     end
   end
 

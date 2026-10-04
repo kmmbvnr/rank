@@ -50,10 +50,10 @@ for (const compiled of [true, false]) describe(`nullary calls (compiled: ${compi
             expect(formatValue(interpreter.execute('G array')!)).toBe('1 2 3');
             expect(() => interpreter.execute('G array')).toThrow('already been consumed');
             expect(interpreter.execute(`G = tst
-Mask = G multiple by 2 or G multiple by 3
+Mask = G mod 2 equal 0 or G mod 3 equal 0
 G Mask sum`)).toBe(5n);
             // Masks of two instances combine position by position.
-            expect(formatValue(interpreter.execute('(tst multiple by 2 or tst multiple by 3) array')!))
+            expect(formatValue(interpreter.execute('(tst mod 2 equal 0 or tst mod 3 equal 0) array')!))
                 .toBe('false true true');
         } finally { interpreter.dispose(); }
     });
@@ -82,7 +82,7 @@ values * values sum`)).toBe('14');
         expect(run(`use numbers
 ${generator}
 G = tst
-A = G multiple by 2
+A = G mod 2 equal 0
 G A sum`)).toBe('2');
     });
 
@@ -173,7 +173,7 @@ fail`)).toThrow('division by zero');
             expect(interpreter.execute('fibonacci')).toBe(interpreter.execute('fibonacci'));
             expect(run(`use numbers
 use sequences
-Fibs = fibonacci multiple by 5 or fibonacci multiple by 3
+Fibs = fibonacci mod 5 equal 0 or fibonacci mod 3 equal 0
 fibonacci Fibs till 1000 sum`)).toBe('1825');
         } finally { interpreter.dispose(); }
     });

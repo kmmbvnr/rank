@@ -98,7 +98,7 @@ end`;
         for (const source of [
             'Extra = 2\nfun combine A B\n return record\n .n = A .n + B .n + Extra\n end\nend',
             'Calls = 0\nfun combine A B\n Calls += 1\n return record\n .n = A .n + B .n\n end\nend',
-            'fun combine A B\n return record\n .n = (A .n + B .n) % 17\n end\nend',
+            'fun combine A B\n return record\n .n = (A .n + B .n) mod 17\n end\nend',
         ]) {
             const { operation, values } = fixture(source);
             expect(flatCombine(operation, values)).toBeUndefined();

@@ -42,7 +42,7 @@ fun labyrinth Grid
   end
 
   StartY = Start // W
-  StartX = Start % W
+  StartX = Start mod W
   Parent StartY StartX = -2
   Pending = new queue
   Pending push Start
@@ -52,7 +52,7 @@ fun labyrinth Grid
       break
     end
     Row = Position // W
-    Column = Position % W
+    Column = Position mod W
 
     for DY Direction in DYs
       NY = Row + DY
@@ -78,7 +78,7 @@ fun labyrinth Grid
   end
 
   TargetY = Target // W
-  TargetX = Target % W
+  TargetX = Target mod W
   LastMove = Parent TargetY TargetX
   Found = LastMove not equal -1
   Path = ""
@@ -87,7 +87,7 @@ fun labyrinth Grid
     Position = Target
     for Position not equal Start
       Row = Position // W
-      Column = Position % W
+      Column = Position mod W
       Direction = Parent Row Column
       Path += Moves Direction
       Row -= DYs Direction

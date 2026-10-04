@@ -683,7 +683,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         message: `rank ${integer} exceeds value rank ${left.rank}` });
                 }
             }
-            if (['+', '-', '*', '/', '//', '%', '**'].includes(expression.operator)) {
+            if (['+', '-', '*', '/', '//', 'mod', '**'].includes(expression.operator)) {
                 if (incompatibleShapes(left, right)) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
                     message: `shape mismatch: [${left.shape!.join(', ')}] and [${right.shape!.join(', ')}]` });
                 // Other scalar domains (dates/durations) have their own legal operators.
@@ -739,7 +739,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 || assignmentPosition < 0 || returnPosition <= assignmentPosition) return undefined;
             inner = assignment.value;
         } else return undefined;
-        const boolean = isBinaryExpression(inner) ? !['+', '-', '*', '/', '//', '%', '**', 'till', 'to', 'until', 'default'].includes(inner.operator)
+        const boolean = isBinaryExpression(inner) ? !['+', '-', '*', '/', '//', 'mod', '**', 'till', 'to', 'until', 'default'].includes(inner.operator)
             : (() => {
                 const last = flattenApplication(inner).at(-1);
                 const operation = isNameExpression(last) && !declared.parameters.includes(last.name) && !functions.has(last.name)
@@ -840,7 +840,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             if (isParenthesizedExpression(part)) return numericArgument(part.value);
             if (isUnaryExpression(part) && ['+', '-'].includes(part.operator))
                 return numericArgument(part.operand);
-            if (isBinaryExpression(part) && ['+', '-', '*', '/', '//', '%', '**'].includes(part.operator))
+            if (isBinaryExpression(part) && ['+', '-', '*', '/', '//', 'mod', '**'].includes(part.operator))
                 return numericArgument(part.left) && numericArgument(part.right);
             if (!isNameExpression(part) && !isNumberLiteral(part)) return false;
             const fact = isNameExpression(part) ? env.get(part.name) : expressionFacts(part, name => env.get(name));

@@ -196,7 +196,7 @@ Result`)).toBe('itb');
 
     it('loads vocabulary without changing the grammar', () => {
         expect(run('1 to 3')).toBe('1 2 3');
-        expect(() => run('3 multiple by 2')).toThrowError('multiple by requires: use numbers');
+        expect(run('3 mod 2 equal 0')).toBe('false');
         expect(run('1 to 3')).toBe('1 2 3');
         expect(run('use numbers\n(1 to 5) sum')).toBe('15');
     });
@@ -307,7 +307,7 @@ Result`)).toBe('itb');
 
             'use numbers',
             'fun even_value X',
-            '  return X % 2 equal 0',
+            '  return X mod 2 equal 0',
             'end',
             'A = 1 to 3',
             'Products = A A outer *',
@@ -667,7 +667,7 @@ Result`)).toBe('itb');
     });
 
     it('updates values with compound assignment', () => {
-        expect(run('Value = 10\nValue += 5\nValue *= 2\nValue -= 4\nValue //= 2\nValue %= 4\nValue')).toBe('1');
+        expect(run('Value = 10\nValue += 5\nValue *= 2\nValue -= 4\nValue //= 2\nValue mod= 4\nValue')).toBe('1');
         expect(run('Mask = true\nMask and= true\nMask xor= true\nMask or= true\nMask')).toBe('true');
     });
 
@@ -676,17 +676,17 @@ Result`)).toBe('itb');
 
             'use numbers',
             'N = 1 till 1000',
-            'Mask = N multiple by 3',
-            'Mask or= N multiple by 5',
+            'Mask = N mod 3 equal 0',
+            'Mask or= N mod 5 equal 0',
             'N Mask sum',
         ].join('\n');
         expect(run(source)).toBe('233168');
     });
 
     it('combines masks from repeated built-in sequence references', () => {
-        expect(run('use sequences\nuse numbers\nfibonacci (fibonacci multiple by 5 or fibonacci multiple by 3) till 100'))
+        expect(run('use sequences\nuse numbers\nfibonacci (fibonacci mod 5 equal 0 or fibonacci mod 3 equal 0) till 100'))
             .toBe('3 5 21 55');
-        expect(run('use sequences\nuse numbers\nprimes (primes multiple by 5 or primes multiple by 3) till 100'))
+        expect(run('use sequences\nuse numbers\nprimes (primes mod 5 equal 0 or primes mod 3 equal 0) till 100'))
             .toBe('3 5');
         // Masks of different sequences combine position by position.
         expect(run('use sequences\nuse numbers\n(fibonacci even or primes even) take 4 array'))

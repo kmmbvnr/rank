@@ -133,7 +133,7 @@ function requireCondition(mode: BoundMode): void {
 function* boundCondition(
     context: ClauseExpressionContext, source: RankValue, condition: Expression, mode: BoundMode,
 ): Execution<Bound> {
-    if (isSubjectComparisonExpression(condition)
+    if (isSubjectComparisonExpression(condition) && !condition.stepOperator
         && ['greater', 'atleast'].includes(condition.operator.replace(/\s+/g, ''))) {
         requireCondition(mode);
         const value = yield* resume(context.evaluate(condition.right));

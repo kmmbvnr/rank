@@ -25,10 +25,10 @@ fun increasing_subsequences Values
   for Value in Values
     Rank = Index Value
     Prefix = Counts sum (Rank - 1)
-    Ways = (1 + Prefix) % Modulus
-    Counts Rank = (Counts Rank + Ways) % Modulus
+    Ways = (1 + Prefix) mod Modulus
+    Counts Rank = (Counts Rank + Ways) mod Modulus
   end
 
   Last = Sorted len - 1
-  return Counts sum Last % Modulus
+  return Counts sum Last mod Modulus
 end

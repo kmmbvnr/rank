@@ -313,7 +313,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 }
                 const left = expression(node.left), right = expression(node.right);
                 // Arithmetic allows scalar and size-1 broadcasting, not shape equality.
-                if (['/', '//', '%', '**'].includes(node.operator)) {
+                if (['/', '//', 'mod', '**'].includes(node.operator)) {
                     for (const value of [left, right]) graph.domains.push({ variable: value.domain,
                         types: ['integer', 'real', 'missing'], site: site(node, `${node.operator} needs numbers`) });
                 }

@@ -34,9 +34,9 @@ fun matrix_power Base Exponent Mod
 
   for Exponent greater 0
     if Exponent odd
-      Result = Result Base matmul % Mod
+      Result = Result Base matmul mod Mod
     end
-    Base = Base Base matmul % Mod
+    Base = Base Base matmul mod Mod
     Exponent //= 2
   end
 

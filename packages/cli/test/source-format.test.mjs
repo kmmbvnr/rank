@@ -3,8 +3,8 @@ import test from 'node:test';
 import { Interpreter, formatValue, standardModules } from '@arrrank/interpreter';
 import { formatSource } from '../out/source-format.js';
 
-const mask = 'Mask = Fibs multiple by 5 or Fibs multiple by 3';
-const foldedMask = 'Mask = (\n  Fibs multiple by 5\n  or Fibs multiple by 3\n)';
+const mask = 'Mask = Fibs mod 5 equal 0 or Fibs mod 3 equal 0';
+const foldedMask = 'Mask = (\n  Fibs mod 5 equal 0\n  or Fibs mod 3 equal 0\n)';
 
 function evaluate(source) {
     const interpreter = new Interpreter({ modules: standardModules });
@@ -20,7 +20,7 @@ test('folds the Fibonacci mask into logical clauses within 40 columns', () => {
 });
 
 test('reuses outer parentheses and repeated formatting is stable', () => {
-    assert.equal(formatSource('Mask = (Fibs multiple by 5 or Fibs multiple by 3)'), foldedMask);
+    assert.equal(formatSource('Mask = (Fibs mod 5 equal 0 or Fibs mod 3 equal 0)'), foldedMask);
     assert.equal(formatSource(foldedMask), foldedMask);
 });
 
@@ -38,16 +38,16 @@ test('preserves precedence, unary signs and grouped operands', () => {
 });
 
 test('folds a return expression without changing block indentation or behavior', () => {
-    const source = 'fun mask Fibs\n  return Fibs multiple by 5 or Fibs multiple by 3\nend';
+    const source = 'fun mask Fibs\n  return Fibs mod 5 equal 0 or Fibs mod 3 equal 0\nend';
     const formatted = formatSource(source);
-    assert.equal(formatted, 'fun mask Fibs\n  return (\n    Fibs multiple by 5\n    or Fibs multiple by 3\n  )\nend');
+    assert.equal(formatted, 'fun mask Fibs\n  return (\n    Fibs mod 5 equal 0\n    or Fibs mod 3 equal 0\n  )\nend');
     assert.equal(evaluate('use numbers\n' + formatted + '\n15 mask'), 'true');
 });
 
 test('keeps text, multiline text and comments intact', () => {
     for (const source of [
         'S = "a very long string with + and or that must stay intact"',
-        'S = "first line\nMask = Fibs multiple by 5 or Fibs multiple by 3\nlast line"',
+        'S = "first line\nMask = Fibs mod 5 equal 0 or Fibs mod 3 equal 0\nlast line"',
         'rem Mask = Fibs multiple by 5 or Fibs multiple by 3',
     ]) assert.equal(formatSource(source), source);
     assert.equal(formatSource(mask + ' rem mask'), foldedMask + ' rem mask');

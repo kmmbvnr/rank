@@ -70,7 +70,7 @@ fun happiness Route Scores
   N = Route len
 
   for I in 0 till N
-    J = (I + 1) % N
+    J = (I + 1) mod N
     A = Route I
     B = Route J
     Total += Scores A B

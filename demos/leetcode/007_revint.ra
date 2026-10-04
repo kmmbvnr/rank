@@ -21,7 +21,7 @@ fun reverse X
   end
 
   for X greater 0
-    Digit = X % 10
+    Digit = X mod 10
     X = X // 10
     Max = (Limit - Digit) // 10
 

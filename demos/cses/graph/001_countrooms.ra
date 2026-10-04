@@ -27,7 +27,7 @@ fun count_rooms Grid
 
     for Position in Pending
       Row = Position // W
-      Column = Position % W
+      Column = Position mod W
 
       for DY Direction in DYs
         NY = Row + DY

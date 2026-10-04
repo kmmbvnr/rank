@@ -43,7 +43,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             lines.push(`const ${result} = ${op === 'notequal' ? '!' : ''}${equal};`);
         } else if (resultType === 'real' && (op === '+' || op === '-' || op === '*')) {
             lines.push(`const ${result} = Number(${left}) ${operation.binary} Number(${right});`);
-        } else if (op === '//' || op === '%') {
+        } else if (op === '//' || op === 'mod') {
             const remainder = `v${serial++}`;
             lines.push(`if (${right} === 0n) throw new RankError('division by zero');`);
             lines.push(`const ${remainder} = ${left} % ${right};`);

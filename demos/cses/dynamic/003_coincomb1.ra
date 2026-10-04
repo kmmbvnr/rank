@@ -21,7 +21,7 @@ fun ordered_coin_ways Coins Target
         continue
       end
       Ways Total += Ways (Total - Coin)
-      Ways Total %= 1000000007
+      Ways Total mod= 1000000007
     end
   end
 

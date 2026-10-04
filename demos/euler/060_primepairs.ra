@@ -35,8 +35,8 @@ fun build Limit
     end
   end
 
-  Mod1 = Vals (Vals % 3 equal 1)
-  Mod2 = Vals (Vals % 3 equal 2)
+  Mod1 = Vals (Vals mod 3 equal 1)
+  Mod2 = Vals (Vals mod 3 equal 2)
 
   for Group in array Mod1 Mod2
     for P i in Group

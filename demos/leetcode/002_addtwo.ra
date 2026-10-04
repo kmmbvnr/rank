@@ -10,7 +10,7 @@ fun add_two A B
     X = A I default 0
     Y = B I default 0
     Sum = X + Y + Carry
-    yield Sum % 10
+    yield Sum mod 10
     Carry = Sum // 10
   end
 

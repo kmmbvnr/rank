@@ -42,7 +42,7 @@ export function filterSequence(
 /**
  * A value bound and a filter keep the same items whichever order they run in,
  * so a filtered plan can offer the bounds its source offers. Without this a
- * selection over an endless source has nothing to stop it: `P (P multiple by 5)`
+ * selection over an endless source has nothing to stop it: `P (P mod 5 equal 0)`
  * could not then be bounded by `until`.
  */
 function filteredPlan(source: SequencePlan, predicate: SequencePredicate): SequencePlan {

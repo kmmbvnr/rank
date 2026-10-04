@@ -26,7 +26,7 @@ fun solve N
 
   for Cell in Pending
     Y = Cell // N
-    X = Cell % N
+    X = Cell mod N
     NextDist = Dist Y X + 1
 
     for DY k in DYs

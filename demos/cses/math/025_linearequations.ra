@@ -42,7 +42,7 @@ fun solve_mod Rows Variables Matrix
 
     Value = A Row Column
     Inverse = Value (Mod - 2) Mod powmod
-    Normalized = A Row * Inverse % Mod
+    Normalized = A Row * Inverse mod Mod
     A Row = Normalized
 
     for Other in 0 till Rows
@@ -54,9 +54,9 @@ fun solve_mod Rows Variables Matrix
         continue
       end
       Reduced = A Other - A Row * Factor
-      Reduced %= Mod
+      Reduced mod= Mod
       Reduced += Mod
-      Reduced %= Mod
+      Reduced mod= Mod
       A Other = Reduced
     end
 

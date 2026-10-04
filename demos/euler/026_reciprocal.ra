@@ -33,7 +33,7 @@ rem Record the first position of each remainder;
 rem a repeated remainder closes the cycle.
 fun cycle_length Denominator
   Seen = new index
-  Remainder = 1 % Denominator
+  Remainder = 1 mod Denominator
   Position = 0
 
   for Remainder not equal 0
@@ -41,7 +41,7 @@ fun cycle_length Denominator
       return Position - Seen Remainder
     end
     Seen Remainder = Position
-    Remainder = Remainder * 10 % Denominator
+    Remainder = Remainder * 10 mod Denominator
     Position += 1
   end
 

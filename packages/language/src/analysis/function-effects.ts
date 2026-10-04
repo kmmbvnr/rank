@@ -551,7 +551,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                         && !!source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')
                         && expression(value.left);
                 }
-                if (['+', '-', '*', '/', '//', '%', '**'].includes(value.operator)
+                if (['+', '-', '*', '/', '//', 'mod', '**'].includes(value.operator)
                     && isNameExpression(value.right) && value.right.name === 'outer' && !isBound('outer')
                     && isApplicationExpression(value.left) && facts) {
                     const operands = flattenApplication(value.left);
@@ -589,7 +589,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 if (item.operator === '=') {
                     if (facts) facts.set(item.name, fact(item.value));
                 } else {
-                    if (!facts || !['+=', '-=', '*=', '//=', '%=', 'and=', 'or=', 'xor='].includes(item.operator)) return false;
+                    if (!facts || !['+=', '-=', '*=', '//=', 'mod=', 'and=', 'or=', 'xor='].includes(item.operator)) return false;
                     const target = fact({ $type: 'NameExpression', name: item.name } as Expression);
                     const value = fact(item.value);
                     if (['and=', 'or=', 'xor='].includes(item.operator)
@@ -643,7 +643,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 const integerIndex = (value: Expression) => isNumberLiteral(value) && typeof value.value === 'bigint'
                     || (privateArrays.has(item.name) || numericCapture) && fact(value).rank === 0
                         && fact(value).types.join() === 'integer';
-                const numericCompound = numericCapture && ['+=', '-=', '*=', '//=', '%='].includes(item.operator)
+                const numericCompound = numericCapture && ['+=', '-=', '*=', '//=', 'mod='].includes(item.operator)
                     && item.indices.every(index => !index.spread && !index.all
                         && index.value !== undefined && integerIndex(index.value));
                 if (!isPlainArrayWrite(item, integerIndex) && !numericCompound) return false;

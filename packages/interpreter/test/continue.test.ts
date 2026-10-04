@@ -6,7 +6,7 @@ describe('continue', () => {
         expect(run(`
 Sum = 0
 for I in 1 to 5
-  if I % 2 equal 0
+  if I mod 2 equal 0
     continue
   end
   Sum += I
@@ -105,7 +105,7 @@ end
         expect(run(`
 fun values N
   for I in 1 to N
-    if I % 2 equal 0
+    if I mod 2 equal 0
       continue
     end
     yield I

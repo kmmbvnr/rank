@@ -140,6 +140,7 @@ function peelTerm(expression: Expression, names: ClauseNames): Peeled {
         return { extent: expression, steps: operand.steps };
     }
     if (isSubjectComparisonExpression(expression)) {
+        if (expression.stepOperand) expression.stepOperand = peelOperand(expression.stepOperand).extent;
         const right = peelOperand(expression.right);
         expression.right = right.extent;
         return { extent: expression, steps: right.steps };

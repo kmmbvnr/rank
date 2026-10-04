@@ -272,7 +272,7 @@ First = A inspect`);
             'fun readat V I\n return V I\nend\nfun inspect V I\n return V (I + 1) readat\nend',
             'fun inspect V I\n J = I + 1\n return V J\nend',
             'fun inspect V I\n J = (I + 1) // 1\n return V J\nend',
-            'fun inspect V I\n J = (I + 1) % 3\n return V J\nend',
+            'fun inspect V I\n J = (I + 1) mod 3\n return V J\nend',
             'fun readat V I\n return V I\nend\nfun inspect V I\n J = I + 1\n return V J readat\nend',
             'fun readat V I\n return V I\nend\nfun inspect V I\n Cell = V (I + 1) readat\n return Cell\nend',
         ]) {

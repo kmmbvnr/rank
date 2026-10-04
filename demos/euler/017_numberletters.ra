@@ -34,7 +34,7 @@ fun number_letter_total Limit
     N = Value
     if N at least 100
       Count += Small (N // 100) + 7
-      N %= 100
+      N mod= 100
       if N greater 0
         Count += 3
       end
@@ -42,7 +42,7 @@ fun number_letter_total Limit
 
     if N at least 20
       Count += Tens (N // 10)
-      N %= 10
+      N mod= 10
     elif N at least 10
       return Count + Teens (N - 10)
     end

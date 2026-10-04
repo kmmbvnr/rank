@@ -7,7 +7,7 @@ fun recurrence Limit
   for I in 0 until Limit
     if N equal 1
       N = 837799
-    elif N % 2 equal 0
+    elif N mod 2 equal 0
       N //= 2
     else
       N = 3 * N + 1

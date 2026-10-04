@@ -9,7 +9,7 @@ describe('filter over plain collections', () => {
         expect(run(`${NUMBERS}N filter at least 8`)).toBe('8 9 10');
         expect(run(`${NUMBERS}N filter at most 3`)).toBe('1 2 3');
         expect(run(`${NUMBERS}N filter not equal 5`)).toBe('1 2 3 4 6 7 8 9 10');
-        expect(run(`${NUMBERS}N filter multiple by 4`)).toBe('4 8');
+        expect(run(`${NUMBERS}N filter mod 4 equal 0`)).toBe('4 8');
         expect(run(`${NUMBERS}N filter in primes`)).toBe('2 3 5 7');
     });
 
@@ -22,7 +22,7 @@ describe('filter over plain collections', () => {
 
     it('combines elided subjects inside one condition line', () => {
         expect(run(`${NUMBERS}N filter greater 3 and less 8`)).toBe('4 5 6 7');
-        expect(run(`${NUMBERS}N filter multiple by 3 or multiple by 5`)).toBe('3 5 6 9 10');
+        expect(run(`${NUMBERS}N filter mod 3 equal 0 or mod 5 equal 0`)).toBe('3 5 6 9 10');
         expect(run(`${NUMBERS}N filter less 3 xor even`)).toBe('1 4 6 8 10');
         expect(run(`${NUMBERS}N filter not even`)).toBe('1 3 5 7 9');
     });

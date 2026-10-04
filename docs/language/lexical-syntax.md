@@ -203,14 +203,14 @@ Total += Value
 Total -= Cost
 Product *= Factor
 Power **= Exponent
-Index %= Size
+Index mod= Size
 Mask and= Active
 Mask or= Fallback
 Mask xor= Changed
 ```
 
 The current compound assignment operators are `+=`, `-=`, `*=`, `**=`, `/=`,
-`//=`, `%=`, `and=`, `or=` and `xor=`.
+`//=`, `mod=`, `and=`, `or=` and `xor=`.
 
 The same operators may update an addressed material-array selection:
 

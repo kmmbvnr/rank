@@ -19,7 +19,7 @@ rem Count trailing factors of two in a positive integer.
 fun trailing_twos V
   Count = 0
 
-  for V % 2 equal 0
+  for V mod 2 equal 0
     V //= 2
     Count += 1
   end

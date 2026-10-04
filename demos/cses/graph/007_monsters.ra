@@ -57,7 +57,7 @@ fun escape_monsters Grid
   rem Spread all monsters together.
   for Position in Pending
     Row = Position // W
-    Column = Position % W
+    Column = Position mod W
     Time = Danger Row Column + 1
 
     for DY Direction in DYs
@@ -78,7 +78,7 @@ fun escape_monsters Grid
   Parent = array shape H W fill -1
   Steps = array shape H W fill Limit
   StartY = Start // W
-  StartX = Start % W
+  StartX = Start mod W
   Parent StartY StartX = -2
   Steps StartY StartX = 0
   Pending = new queue
@@ -88,7 +88,7 @@ fun escape_monsters Grid
   rem Search only cells reached in time.
   for Position in Pending
     Row = Position // W
-    Column = Position % W
+    Column = Position mod W
     if Row equal 0 or Row equal H - 1
       Escape = Position
       break
@@ -129,7 +129,7 @@ fun escape_monsters Grid
   Path = ""
   for Position not equal Start
     Row = Position // W
-    Column = Position % W
+    Column = Position mod W
     Direction = Parent Row Column
     Path += Moves Direction
     Row -= DYs Direction
