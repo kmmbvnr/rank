@@ -341,6 +341,9 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             if (form.kind === 'checked-read') {
                 const value = expression(applicationExpression(form.parts, node));
                 value.parsed = true;
+                if (form.reader === 'csv') {
+                    value.csv = true;
+                }
                 graph.expressions.set(node, value);
                 return value;
             }
@@ -379,6 +382,18 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                     if (definition) { call(definition, last.name, args, output, node); callEffects(last.name, args); }
                     else if (operation) {
                         signature(operation, args, output, node);
+                        if (operation.name === 'matmul' && args.length === 2) {
+                            for (const arg of args) {
+                                requireRank(arg, 1, Infinity, node, 'matmul needs an array');
+                                graph.domains.push({ variable: arg.domain, types: ['integer', 'real'],
+                                    site: site(node, 'matmul needs numeric cells') });
+                            }
+                            const leftRank = graph.shape(args[0]).rank;
+                            if (leftRank !== undefined && leftRank > 0) graph.solver.equal(
+                                graph.dimension(args[0], leftRank - 1), graph.dimension(args[1], 0),
+                                site(node, 'matmul contracted dimensions'),
+                            );
+                        }
                         for (const [index, types] of (operation.operandDomains ?? []).entries()) {
                             if (args[index] && types) graph.domains.push({ variable: args[index].domain, types,
                                 site: site(node, `${operation.name} needs ${types.join(' or ')}`) });

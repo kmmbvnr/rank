@@ -187,3 +187,14 @@ it('carries caller requirements to a checked read through a nested wrapper', () 
     const checked = [...reader.expressions].find(([node]) => node.$cstNode?.text === 'Path csv check')?.[1];
     expect(checked?.fields?.get('price')?.domains).toEqual(['integer', 'real', 'missing']);
 });
+
+it('links checked CSV row lengths when a later dot product needs equal columns', () => {
+    const source = 'use tables\nuse linalg\nA = "a.csv" csv check\nB = "b.csv" csv check\nX = A .value\nY = B .value\nX Y matmul';
+    const answer = infer(source);
+    const a = answer.bindings.find(item => item.name === 'A')!;
+    const b = answer.bindings.find(item => item.name === 'B')!;
+    expect(answer.conflicts).toEqual([]);
+    expect(a.dimensions.get(0)?.equality).toEqual(b.dimensions.get(0)?.equality);
+    expect(a.fields?.get('value')?.dimensions.get(0)?.equality).toEqual(a.dimensions.get(0)?.equality);
+    expect(b.fields?.get('value')?.domains).toEqual(['integer', 'real']);
+});

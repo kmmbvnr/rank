@@ -100,6 +100,33 @@ it('checks a CSV read before later statements run and locates the error at the r
     expect(runtime.variables.has('Rows')).toBe(false);
 });
 
+it('checks equal CSV column lengths at the second read when a dot product needs them', () => {
+    const source = 'use tables\nuse linalg\nA = "a.csv" csv check\nB = "b.csv" csv check\nAfter = 1\nX = A .value\nY = B .value\nX Y matmul';
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({
+        'a.csv': 'value\n1\n2\n', 'b.csv': 'value\n3\n4\n5\n',
+    }) });
+    try { runtime.execute(source); throw new Error('expected a checked read to fail'); }
+    catch (error) {
+        expect(error).toBeInstanceOf(RankError);
+        expect((error as RankError).rankKind).toBe('InputContract');
+        expect((error as RankError).location?.line).toBe(4);
+        expect((error as Error).message).toMatch(/b.csv.*expected axis 0 length 2 as checked at a.csv.*received 3/);
+    }
+    expect(runtime.variables.has('After')).toBe(false);
+    const matching = new Interpreter(() => {}, { io: new MemoryIo({
+        'a.csv': 'value\n1\n2\n', 'b.csv': 'value\n3\n4\n',
+    }) });
+    expect(matching.execute(source)).toBe(11n);
+});
+
+it('keeps unrelated checked CSV lengths independent', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({
+        'a.csv': 'value\n1\n2\n', 'b.csv': 'value\n3\n4\n5\n',
+    }) });
+    expect(runtime.execute('use tables\nA = "a.csv" csv check\nB = "b.csv" csv check\nX = A .value sum\nY = B .value sum\nX + Y'))
+        .toBe(15n);
+});
+
 it('leaves unchecked reads unchanged and accepts checked valid data', () => {
     for (const checked of [false, true]) {
         const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\n3\n' }) });

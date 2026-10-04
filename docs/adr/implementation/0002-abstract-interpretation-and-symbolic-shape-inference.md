@@ -139,6 +139,11 @@ reader-local checks. The semantic-boundary gate permits this validator while
 continuing to reject requirement use in other runtime and optimization owners.
 For a direct checked CSV read, the forward pass publishes checked column facts
 after the read expression, using one symbolic row length shared by its columns.
+When a later `matmul` requires columns from separate checked CSV reads to have
+equal lengths, their row counts share a requirement group. The second read
+checks that length against the first and reports a contract error at its own
+read line. Independent reads keep separate groups. These checks use actual
+table row counts; a table itself remains a scalar value with rank-one columns.
 Aliases and pure filters retain the checked column types; a filter gets a fresh
 length. Writes through a tracked row or table alias, uncertain effects, and
 unrelated table results discard these facts. The column map is distinct from a

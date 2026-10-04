@@ -5,15 +5,19 @@ import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { resume, type Evaluation, type Execution } from './execution.js';
 import { selectValues } from './value-selection.js';
-import { isRankArray, MISSING, typeName, valueRank, type RankValue } from './value.js';
+import { isRankArray, isRankTable, MISSING, typeName, valueRank, type RankValue } from './value.js';
 
 const selectionModules = new Set(['tables']);
+type Lengths = Map<number, { length: number; source: string }>;
+const callLengths = new WeakMap<CallRequirement, Lengths>();
 
 /** Validate a freshly parsed external value. Requirements remain separate from
  * forward type facts; callers may publish checked facts only after this succeeds.
  * Reader results contain no user callbacks. Do not use this to inspect arbitrary
  * program values or to discover types during static analysis. */
-export function checkExternalInput(value: RankValue, requirement: ValueRequirement, source: string): void {
+export function checkExternalInput(value: RankValue, requirement: ValueRequirement, source: string,
+    equalLengths?: Lengths): void {
+    const pending: Lengths = new Map();
     const fail = (path: string, detail: string): never => {
         throw new RankError(`${path}: ${detail}`, 'InputContract');
     };
@@ -26,13 +30,22 @@ export function checkExternalInput(value: RankValue, requirement: ValueRequireme
                     : `${expected.rank.min} to ${expected.rank.max}`;
             fail(path, `expected rank ${wanted}, received rank ${rank}`);
         }
-        const shape = isRankArray(input) ? input.shape : typeof input === 'string' ? [[...input].length] : [];
+        const shape = isRankArray(input) ? input.shape : isRankTable(input) ? [input.length]
+            : typeof input === 'string' ? [[...input].length] : [];
         for (const [axis, length] of expected.dimensions) {
             const actual = shape[axis];
             if (actual === undefined || actual < length.min || actual > length.max) {
                 const wanted = length.min === length.max ? `${length.min}`
                     : length.max === Infinity ? `at least ${length.min}` : `${length.min} to ${length.max}`;
                 fail(path, `expected axis ${axis} length ${wanted}, received ${actual ?? 'no axis'}`);
+            }
+            if (length.equality && equalLengths) {
+                const { group, offset } = length.equality;
+                const previous = pending.get(group) ?? equalLengths.get(group);
+                if (previous && actual - offset !== previous.length) {
+                    fail(path, `expected axis ${axis} length ${previous.length + offset} as checked at ${previous.source}, received ${actual}`);
+                }
+                pending.set(group, { length: actual - offset, source: path });
             }
         }
         if (expected.domains) {
@@ -62,6 +75,7 @@ export function checkExternalInput(value: RankValue, requirement: ValueRequireme
         }
     };
     check(value, requirement, source);
+    if (equalLengths) for (const [group, length] of pending) equalLengths.set(group, length);
 }
 
 /** Requirements are prepared from source once, without inspecting external files.
@@ -69,8 +83,9 @@ export function checkExternalInput(value: RankValue, requirement: ValueRequireme
 export class CheckedInputContracts {
     private readonly requirements = new WeakMap<Expression, ValueRequirement>();
     private readonly calls = new WeakMap<Expression, CallRequirement>();
+    private readonly scopes = new WeakMap<Expression, Lengths>();
     private enabled = false;
-    private frame?: { plan?: CallRequirement };
+    private frame?: { plan?: CallRequirement; lengths: Lengths; fallback: Lengths };
     pending?: CallRequirement;
 
     prepare(program: Program, initial: ReadonlyMap<string, ValueFacts>,
@@ -80,8 +95,16 @@ export class CheckedInputContracts {
         if (!containsCheck(program) && ![...new Set(declarations.values())].some(containsCheck)) return;
         this.enabled = true;
         const analysis = inferRequirements(program, { initial, declarations, includeCalls: true });
-        for (const [expression, requirement] of analysis.expressions) this.requirements.set(expression, requirement);
+        const lengths: Lengths = new Map();
+        for (const [expression, requirement] of analysis.expressions) {
+            this.requirements.set(expression, requirement);
+            this.scopes.set(expression, lengths);
+        }
         for (const [expression, call] of analysis.calls) this.calls.set(expression, call);
+        const register = (calls: ReadonlyMap<Expression, CallRequirement>): void => {
+            for (const call of calls.values()) { callLengths.set(call, lengths); register(call.calls); }
+        };
+        register(analysis.calls);
     }
 
     expression<T>(expression: Expression, run: () => Evaluation<T>): Evaluation<T> {
@@ -95,13 +118,19 @@ export class CheckedInputContracts {
         if (!this.enabled && !plan) return run();
         if (plan) this.enabled = true;
         const previous = this.frame, pending = this.pending;
-        this.frame = { plan: plan?.definition === definition ? plan : undefined };
+        const matched = plan?.definition === definition ? plan : undefined;
+        this.frame = { plan: matched, lengths: matched && callLengths.get(matched) || new Map(), fallback: new Map() };
         this.pending = undefined;
         return this.scoped(run, () => { this.frame = previous; this.pending = pending; });
     }
 
     tail(definition: FunctionStatement, plan?: CallRequirement): void {
-        if (this.frame) this.frame.plan = plan?.definition === definition ? plan : undefined;
+        if (this.frame) {
+            const matched = plan?.definition === definition ? plan : undefined;
+            this.frame.plan = matched;
+            this.frame.lengths = matched && callLengths.get(matched) || new Map();
+            this.frame.fallback = new Map();
+        }
         this.pending = undefined;
     }
 
@@ -115,7 +144,9 @@ export class CheckedInputContracts {
     }
 
     check(expression: Expression, value: RankValue, source: string): void {
-        const requirement = this.frame?.plan?.expressions.get(expression) ?? this.requirements.get(expression);
-        if (requirement) checkExternalInput(value, requirement, source);
+        const planned = this.frame?.plan?.expressions.get(expression);
+        const requirement = planned ?? this.requirements.get(expression);
+        if (requirement) checkExternalInput(value, requirement, source,
+            this.frame ? planned ? this.frame.lengths : this.frame.fallback : this.scopes.get(expression));
     }
 }

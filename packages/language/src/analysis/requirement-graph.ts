@@ -23,6 +23,8 @@ export interface Value {
     /** Fresh parser output and its selections cannot contain Rank callbacks.
      * This is reader provenance, never a proof of a required field or domain. */
     parsed?: true;
+    /** A CSV table's named projections are rank-one columns of equal row count. */
+    csv?: true;
     node: AstNode;
 }
 export interface Binding { name: string; node: AstNode; rank: number; value: Value; }
@@ -76,6 +78,15 @@ export class Graph {
         let selected = fields.get(name);
         if (!selected) { selected = this.value(node, fact); fields.set(name, selected); }
         if (value.parsed) selected.parsed = true;
+        if (value.csv) {
+            selected.fact = { types: ['array'], rank: 1, shape: [null], eagerScalarCells: true };
+            this.shapeFacts.set(this.dimensions(selected), selected.fact);
+            this.solver.bound(selected.rank, 1, 1, site(node, 'CSV column rank'));
+            const rowLength = this.dimension(value, 0), columns = this.dimensions(selected);
+            const old = columns.get(0);
+            if (old !== undefined) this.solver.equal(old, rowLength, site(node, 'CSV column length'));
+            else columns.set(0, rowLength);
+        }
         return selected;
     }
     private symbolic(dim: Dim, at: RequirementSite): number | undefined {
@@ -139,6 +150,7 @@ export class Graph {
     }
     same(left: Value, right: Value, at: RequirementSite, dimensions = true): void {
         if (left.parsed || right.parsed) left.parsed = right.parsed = true;
+        if (left.csv || right.csv) left.csv = right.csv = true;
         this.solver.equal(left.rank, right.rank, at);
         this.domainLinks.push([left.domain, right.domain]);
         if (dimensions) {
