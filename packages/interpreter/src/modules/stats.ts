@@ -1,5 +1,5 @@
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
-import { derivedArray, arrayRevision, denseScalarItems, ownedArray, readArrayItem } from '../array-storage.js';
+import { derivedArray, arrayRevision, denseScalarItems, ownedArray, readArrayItem, shouldStream, streamCells } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { presentReals } from '../masked-kernels.js';
 import { numericSource, sequenceValues } from '../sequence.js';
@@ -500,6 +500,18 @@ export function meanValue(value: RankValue): number {
             sum += typeof item === 'number' ? item : Number(expectNumeric(item));
         }
         return sum / stored.length;
+    }
+    if (isRankArray(value) && shouldStream(value)) {
+        let total = 0;
+        let count = 0;
+        for (const item of streamCells(value)) {
+            checkpoint('computing statistics');
+            if (item === MISSING) continue;
+            total += Number(expectNumeric(item));
+            count += 1;
+        }
+        if (count === 0) throw new RankError('mean requires at least one value', 'EmptyReduction');
+        return total / count;
     }
     const items = presentValues(value, 'mean');
     if (items.length === 0) {

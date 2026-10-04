@@ -1,7 +1,7 @@
 import { checkpoint } from '../interrupt.js';
 import { extremeMasked, sumMasked } from '../masked-kernels.js';
 import { markArrayMask } from '../array-mask.js';
-import { denseScalarItems, derivedArray, float64Cells, typedArray, typedElementKind } from '../array-storage.js';
+import { denseScalarItems, derivedArray, float64Cells, shouldStream, streamCells, typedArray, typedElementKind } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { mapBroadcastArrays } from '../tensor.js';
@@ -314,7 +314,7 @@ export function numericExtreme(
             return masked.result;
         }
         const items = isRankArray(value)
-            ? value.items
+            ? shouldStream(value) ? streamCells(value) : value.items
             : isRankQueue(value)
                 ? value.items
                 : isRankSet(value)
@@ -336,6 +336,16 @@ export function numericExtreme(
 
 /** Sum integers without a generic numeric callback on every element.
  * Promotion happens at the first real value, in the original left-fold order. */
+/** The same left fold as `sumArray`, over cells read one at a time. */
+function sumStream(items: Iterable<RankValue>): bigint | number {
+    let total: bigint | number = 0n;
+    for (const item of items) {
+        checkpoint('computing numbers');
+        if (item !== MISSING) total = add(total, expectNumeric(item));
+    }
+    return total;
+}
+
 function sumArray(items: readonly RankValue[]): bigint | number {
     let integer = 0n;
     for (let index = 0; index < items.length; index++) {
@@ -649,6 +659,7 @@ export function sumValue(value: RankValue): RankValue {
             }
             return total;
         }
+        if (shouldStream(value)) return sumStream(streamCells(value));
         return sumArray(value.items);
     }
     if (isRankQueue(value)) return sumArray(value.items);

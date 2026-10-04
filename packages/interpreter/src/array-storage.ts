@@ -140,6 +140,28 @@ const ownedStorage = new WeakMap<RankArray, OwnedStorage>();
 /** The most cells one array can hold: a JavaScript array stops at 2^32 - 1 entries. */
 export const MAX_HELD_CELLS = 4_294_967_295;
 
+/** Arrays with at least this many cells are reduced one cell at a time rather than collected first. */
+export const STREAM_CELLS = 1_000_000;
+
+/** Whether a reduction should stream: the array computes its cells on demand and is big. */
+export function shouldStream(value: RankArray): boolean {
+    return value.itemAt !== undefined && value.shape.reduce((size, dimension) => size * dimension, 1) >= STREAM_CELLS;
+}
+
+/** The cells of an array in order, read one at a time; a cell that is softly missing reads as `.NA`. */
+export function* streamCells(value: RankArray): IterableIterator<RankValue> {
+    const read = value.streamAt ?? value.itemAt!;
+    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+    for (let index = 0; index < size; index += 1) {
+        try {
+            yield read(index);
+        } catch (error) {
+            if (error instanceof MissingValueError && error.soft) yield MISSING;
+            else throw error;
+        }
+    }
+}
+
 export function materializeCells(size: number, read: (index: number) => RankValue): RankValue[] {
     if (size > MAX_HELD_CELLS) {
         throw new RankError(`array is too large to hold in memory: ${size} cells (at most ${MAX_HELD_CELLS})`);
@@ -791,8 +813,24 @@ export function derivedArray(
         if (diagnostics) diagnostics.cacheMisses++;
         return finishRead(index, read(index), tracked, started, startedEpoch, startedEntry);
     };
+    // One pass over a huge array must not fill the cell cache: a cell already held is used, any other
+    // is computed and dropped.
+    const streamAt = (index: number): RankValue => {
+        const run = (): RankValue => {
+            valid();
+            if (cells.has(index)) return cells.get(index)!;
+            const result = read(index);
+            checkCell(result, index);
+            return result;
+        };
+        if (runtimeDepth === 0) {
+            enterRuntime();
+            try { return run(); } finally { leaveRuntime(); }
+        }
+        return run();
+    };
     const value: RankArray = {
-        kind: 'array', shape, itemAt,
+        kind: 'array', shape, itemAt, streamAt,
         containsFiles: fileFree ? false : undefined,
         get items() {
             if (runtimeDepth === 0) {

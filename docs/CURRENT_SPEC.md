@@ -3645,6 +3645,11 @@ cell reaches and the values read are kept; an operand of unknown size is read wh
 built. A table whose cell count is not exactly representable (beyond 2^53 - 1) raises
 `outer result is too large`.
 
+A lazy array of a million cells or more is reduced one cell at a time by `sum` (also through `rank`), `min`, `max`,
+`mean`, `count`, `any` and `all`, so `A A outer * sum rank 2` holds no cells however large the table is; it still has to
+compute each of them. An operation that must hold the whole array, such as `copy`, raises
+`array is too large to hold in memory` past 4294967295 cells.
+
 Construction is lazy and may compute a demanded pair again. A named function
 supplied to `outer` must therefore be pure: its result and observable behavior
 may depend only on its arguments and immutable captured values. The runtime does

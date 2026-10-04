@@ -2,7 +2,7 @@ import { inheritArrayDeclaration } from '../array-declaration.js';
 import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, denseScalarItems, readArrayItem, realCells, typedArray, typedElementKind } from '../array-storage.js';
+import { ownedArray, derivedArray, denseScalarItems, readArrayItem, realCells, shouldStream, streamCells, typedArray, typedElementKind } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
@@ -307,6 +307,7 @@ function* findSource(source: RankValue, operation: string): IterableIterator<Ran
 function* collectionValues(value: RankValue, operation: string): IterableIterator<RankValue> {
     if (value instanceof RankDeque || value instanceof RankHeap) { yield* value.values(); return; }
     if (isRankArray(value)) {
+        if (shouldStream(value)) { yield* streamCells(value); return; }
         const size = value.shape.reduce((product, dimension) => product * dimension, 1);
         for (let index = 0; index < size; index += 1) {
             yield value.itemAt?.(index) ?? value.items[index];

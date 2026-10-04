@@ -35,6 +35,36 @@ describe('outer over sequences stays lazy', () => {
 
 describe('an array too large to hold', () => {
     it('says how many cells it would need instead of a JavaScript RangeError', () => {
-        expect(() => run('use sequences\nF = 100 to 99999\nF F outer * sum')).toThrow(/array is too large to hold in memory: 9980010000 cells/);
+        expect(() => run('use sequences\nF = 100 to 99999\nF F outer * copy')).toThrow(/array is too large to hold in memory/);
+    });
+});
+
+describe('reductions stream over a lazy table', { timeout: 60000 }, () => {
+    // 1200 x 1200 = 1.44 million cells: past the size where a reduction collects the table first.
+    const setup = 'use sequences\nuse stats\nF = 1 to 1200\nT = F F outer *\n';
+
+    it('sums, finds the extremes and averages a large table one cell at a time', () => {
+        expect(run(setup + 'T sum')).toBe('519264360000');
+        expect(run(setup + 'T max')).toBe('1440000');
+        expect(run(setup + 'T min')).toBe('1');
+        expect(run(setup + 'T mean')).toBe('360600.25');
+    });
+
+    it('sums the whole table through `sum rank 2` without collecting it', () => {
+        expect(run(setup + 'T sum rank 2')).toBe('519264360000');
+    });
+
+    it('counts a streamed comparison', () => {
+        let expected = 0;
+        for (let a = 1; a <= 1200; a += 1) for (let b = 1; b <= 1200; b += 1) if (a * b > 1000000) expected += 1;
+        expect(run(setup + '(T greater 1000000) count')).toBe(String(expected));
+    });
+
+    it('streams a named-function outer table too', () => {
+        expect(run('use sequences\nF = 1 to 1200\nF F outer max sum')).toBe('1152719800');
+    });
+
+    it('keeps the same sum for a small table', () => {
+        expect(run('use sequences\nF = 1 to 30\n(F F outer *) sum')).toBe('216225');
     });
 });

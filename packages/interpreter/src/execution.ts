@@ -15,9 +15,14 @@ export interface Completed<T> {
 export type Evaluation<T> = Execution<T> | Completed<T>;
 
 export function normalizeStackError(error: unknown): unknown {
-    return error instanceof RangeError && error.message.includes('call stack')
-        ? new RankError('nested host callbacks exceeded the JavaScript stack', 'RecursionLimit')
-        : error;
+    if (error instanceof RangeError && error.message.includes('call stack')) {
+        return new RankError('nested host callbacks exceeded the JavaScript stack', 'RecursionLimit');
+    }
+    // Some operation asked for an array longer than a JavaScript array can be.
+    if (error instanceof RangeError && /invalid array length|array buffer allocation failed/i.test(error.message)) {
+        return new RankError('array is too large to hold in memory');
+    }
+    return error;
 }
 
 export function completed<T>(value: T): Completed<T> {

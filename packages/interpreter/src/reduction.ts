@@ -1,4 +1,4 @@
-import { denseScalarItems, derivedArray, materializeCells, eagerOperandItems, ownedArray, readArrayItem, typedArray } from './array-storage.js';
+import { denseScalarItems, derivedArray, materializeCells, eagerOperandItems, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
@@ -206,7 +206,9 @@ export class ReductionEvaluator {
             return offset;
         };
         // Lazy cells must still be fully read before the reducer validates them.
-        const directSum = operation === 'sum' && value.itemAt === undefined
+        // A table too big to collect is the exception: it is summed a cell at a time, nothing held.
+        const streaming = shouldStream(value);
+        const directSum = operation === 'sum' && (value.itemAt === undefined || streaming)
             && reducer === this.standardFunctions.get(standardModules.core.sum);
 
         // Stored cells are read straight from their storage, through offsets
@@ -221,7 +223,9 @@ export class ReductionEvaluator {
             const start = offsetAt(frameIndex, frameAxes);
             const itemAt = stored && reducedOffsets
                 ? (index: number) => stored[start + reducedOffsets![index]]
-                : (index: number) => arrayItem(value, start + offsetAt(index, reducedAxes));
+                : streaming && value.streamAt
+                    ? (index: number) => value.streamAt!(start + offsetAt(index, reducedAxes))
+                    : (index: number) => arrayItem(value, start + offsetAt(index, reducedAxes));
             if (directSum) return sumIndexed(reducedSize, itemAt);
             if (this.isTensorFusion()
                 && (operation === 'mean' || operation === 'std')

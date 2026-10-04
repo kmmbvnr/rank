@@ -43,6 +43,8 @@ interface RankArrayValue {
     readonly items: RankValue[];
     readonly shape: readonly number[];
     readonly itemAt?: (index: number) => RankValue;
+    /** Reads a cell for a one-pass reduction without keeping it, so streaming a huge array holds no cells. */
+    readonly streamAt?: (index: number) => RankValue;
     readonly containsFiles?: false;
     readonly columnNames?: readonly string[];
     readonly tableScopes?: readonly string[];
