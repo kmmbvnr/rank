@@ -56,8 +56,6 @@ fun forest_updates Grid Queries
     Changes push Side fenwick
   end
 
-  Answers = array shape (Queries len) fill 0
-  Count = 0
   for Query in Queries
     Type = Query 0
     if Type equal 1
@@ -92,10 +90,8 @@ fun forest_updates Grid Queries
     Total -= Changes Prior Right bit2sum
     Total -= Changes Bottom Before bit2sum
     Total += Changes Prior Before bit2sum
-    Answers Count = Total
-    Count += 1
+    yield Total
   end
-  return Answers (0 till Count)
 end
 
 

@@ -27,8 +27,6 @@ rem Store only update differences.
 rem Original values remain unchanged.
 fun range_updates Values Queries
   Updates = Values len fenwick
-  Answers = array shape (Queries len) fill 0
-  Count = 0
 
   for Query in Queries
     Type = Query 0
@@ -45,9 +43,6 @@ fun range_updates Values Queries
 
     Position = Query 1 - 1
     Change = Updates sum Position
-    Answers Count = Values Position + Change
-    Count += 1
+    yield Values Position + Change
   end
-
-  return Answers (0 till Count)
 end

@@ -30,8 +30,6 @@ fun deliveries Prices Queries
   RightPrices = Prices + Indices
   FromLeft = LeftPrices segment min
   FromRight = RightPrices segment min
-  Answers = array shape (Queries len) fill 0
-  Count = 0
 
   for Query in Queries
     Type = Query 0
@@ -47,9 +45,6 @@ fun deliveries Prices Queries
     Left += Position
     Right = FromRight Position (N - 1) query
     Right -= Position
-    Answers Count = Left Right min
-    Count += 1
+    yield Left Right min
   end
-
-  return Answers (0 till Count)
 end

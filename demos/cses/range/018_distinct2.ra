@@ -34,8 +34,6 @@ fun distinct2 Values Queries
   end
   Tree = Next segment min
 
-  Answers = array shape (Queries len) fill ""
-  Count = 0
   for Query in Queries
     Type = Query 0
     if Type equal 1
@@ -72,11 +70,9 @@ fun distinct2 Values Queries
     Right = Query 2 - 1
     Repeat = Tree Left Right query
     if Repeat greater Right
-      Answers Count = "YES"
+      yield "YES"
     else
-      Answers Count = "NO"
+      yield "NO"
     end
-    Count += 1
   end
-  return Answers (0 till Count)
 end
