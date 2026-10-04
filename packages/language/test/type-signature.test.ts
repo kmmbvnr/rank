@@ -184,10 +184,9 @@ it('names SQL databases and views without exposing runtime kind identifiers', ()
 });
 
 
-it('does not promise unchanged cell types for stacking, windows or default-filled shifts', () => {
+it('does not promise unchanged cell types for windows or default-filled shifts', () => {
     expect(operationSignature(findOperation('copy')!, [{ types: ['segment'] }])).toBe('segment → segment');
     expect(operationSignature(findOperation('copy')!, [{ types: ['array'], elements: ['array'] }])).toBe('array → array');
-    expect(operationSignature(findOperation('stack')!)).toBe('array<array<a> | sequence<a>> → array<a>');
     expect(operationSignature(findOperation('window')!, [{ types: ['sequence'] }, { types: ['integer'] }]))
         .toBe('sequence<a> integer → array<a> | sequence<array<a>>');
     expect(operationSignature(findOperation('shift')!)).toBe('array<a> integer → array<a | integer>');

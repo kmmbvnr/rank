@@ -215,12 +215,12 @@ it('infers movie-query answers from unweighted functional paths', () => {
         .toEqual(examples.map(() => ['array']));
 });
 
-it('infers numeric segment-tree demo results after safe point updates', () => {
-    for (const [moduleName, name] of [
-        ['003_dynamicsum', 'dynamic_sums'],
-        ['004_dynamicmin', 'dynamic_mins'],
-        ['008_hotel', 'assign_hotels'],
-        ['009_listremovals', 'removals'],
+it('infers numeric segment-tree generator results after safe point updates', () => {
+    for (const [moduleName, name, type] of [
+        ['003_dynamicsum', 'dynamic_sums', 'sequence'],
+        ['004_dynamicmin', 'dynamic_mins', 'sequence'],
+        ['008_hotel', 'assign_hotels', 'array'],
+        ['009_listremovals', 'removals', 'array'],
     ]) {
         const source = readFileSync(new URL(`../../../demos/cses/range/${moduleName}.ra`, import.meta.url), 'utf8');
         const tests = readFileSync(new URL(`../../../demos/cses/range/${moduleName}_test.ra`, import.meta.url), 'utf8');
@@ -229,11 +229,11 @@ it('infers numeric segment-tree demo results after safe point updates', () => {
         const examples = functionTestExamples(testProgram.value, moduleName, new Set([name]));
         expect(examples).toHaveLength(2);
         expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
-            .toEqual(examples.map(() => ['array']));
+            .toEqual(examples.map(() => [type]));
     }
 });
 
-it('infers the salary-query result through a unary unique-sort pipeline', () => {
+it('infers the salary-query generator result through a unary unique-sort pipeline', () => {
     const moduleName = '010_salary';
     const source = readFileSync(new URL(`../../../demos/cses/range/${moduleName}.ra`, import.meta.url), 'utf8');
     const tests = readFileSync(new URL(`../../../demos/cses/range/${moduleName}_test.ra`, import.meta.url), 'utf8');
@@ -242,7 +242,7 @@ it('infers the salary-query result through a unary unique-sort pipeline', () => 
     const examples = functionTestExamples(testProgram.value, moduleName, new Set(['salaries']));
     expect(examples).toHaveLength(2);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
-        .toEqual(examples.map(() => ['array']));
+        .toEqual(examples.map(() => ['sequence']));
 });
 
 it('infers distinct-query answers from integer argsort positions', () => {
@@ -2366,7 +2366,7 @@ it('retains a private container binding after an uncertain indexed write', () =>
     ] }]).functionResults[0].types).toEqual(['integer']);
 });
 
-it('infers the unchanged range-copy result despite an uncertain indexed write', () => {
+it('infers the range-copy generator result despite an uncertain indexed write', () => {
     const moduleName = '024_copies';
     const source = readFileSync(new URL(`../../../demos/cses/range/${moduleName}.ra`, import.meta.url), 'utf8');
     const tests = readFileSync(new URL(`../../../demos/cses/range/${moduleName}_test.ra`, import.meta.url), 'utf8');
@@ -2375,7 +2375,7 @@ it('infers the unchanged range-copy result despite an uncertain indexed write', 
     const examples = functionTestExamples(testProgram.value, moduleName, new Set(['copies']));
     expect(examples).toHaveLength(2);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
-        .toEqual([['queue'], ['queue']]);
+        .toEqual([['sequence'], ['sequence']]);
 });
 
 it('retains a private text parameter type across an unknown call but not through a nested capture', () => {

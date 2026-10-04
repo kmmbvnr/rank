@@ -94,6 +94,7 @@ These need `use algo` but have no name to look up.
 | Form | Summary |
 | --- | --- |
 | `new queue` | Empty container: queue, stack, deque, heap, set, counter, multiset or index. |
+| `new heap Priorities Values .descending` | Builds a heap from parallel priority and value arrays; descending pops the largest priority first. |
 | `Q push Value` | Receiver-first mutation on a container. |
 | `Seen add Value` | Adds a value to a set, counter or multiset. |
 
@@ -361,7 +362,6 @@ Shapes, orderings, windows and lazy sources.
 | `Values argsort .descending` | array | Stable zero-based positions that put the values in order. |
 | `Mask TrueValues FalseValues choose` | value, lazy | Selects each cell by a boolean mask; SQLite expressions become CASE. |
 | `Values copy` | array | Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack. |
-| `stack A B` | array | Lazy array whose leading axis selects equally shaped array or sequence arguments. |
 | `Mask count` | integer | Number of true cells, or of source items a lazy mask selects. |
 | `Values Target find` | integer | First zero-based position equal to Target in a vector or text; an array of targets finds each. |
 | `Values Target findall` | array | Every zero-based position equal to Target in a vector or text; an array of targets needs equal counts. |
@@ -384,6 +384,7 @@ These need `use sequences` but have no name to look up.
 
 | Form | Summary |
 | --- | --- |
+| `stack A B` | Builds a lazy array from equally shaped arrays or exact-size sequences. |
 | `Values sort by .field` | Stable sort by record fields or by one key function. |
 | `Values argsort by .field` | Source positions of that same order. |
 | `Index Choices choose` | Selects each cell from the choice its integer index names; choices are leading cells. |
