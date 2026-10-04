@@ -28,6 +28,9 @@ function closeFactsPanel(): void {
     factsPanel.dataset.text = '';
 }
 function openFactsPanel(text: string): void {
+    // The panel takes the footer's place and grows upward from its bottom edge, hiding the footer under it.
+    const footer = screen.querySelector<HTMLElement>('.terminal-facts');
+    if (footer) factsPanel.style.bottom = Math.max(0, terminal.getBoundingClientRect().bottom - footer.getBoundingClientRect().bottom) + 'px';
     factsPanel.textContent = text;
     factsPanel.dataset.text = text;
     factsPanel.hidden = false;
