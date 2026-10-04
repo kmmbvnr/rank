@@ -108,13 +108,13 @@ end
     it('rechecks function bindings in an already compiled binary call', () => {
         const runtime = new Interpreter();
         runtime.execute(`use numbers
-fun choose A B
+fun decide A B
  return A B max
 end
 fun replacement A B
  return A + B
 end`);
-        const fn = runtime.variables.get('choose');
+        const fn = runtime.variables.get('decide');
         if (!fn || !isNativeFunction(fn)) throw new Error('missing function');
         expect(fn.call([3n, 4n])).toBe(4n);
         runtime.variables.set('max', runtime.variables.get('replacement')!);

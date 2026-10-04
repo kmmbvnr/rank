@@ -145,7 +145,7 @@ overflow-checks = true
 
 ## Source: 001_multiples.ra
 
-SHA-256: e386a25bd4470004a407826d33c34ff2c0f5fc84e36dba3a0c40ac6ea57ac182
+SHA-256: a853e4c9b30c31822a7d63573e9d93636d0b2d0ba6710a2fdb38a2c40ab3b1c2
 
 ```rank
 rem Multiples of 3 or 5
@@ -161,8 +161,8 @@ option Limit integer = 1000
 
 N = 1 till Limit
 
-Mask = N multiple by 3
-Mask or= N multiple by 5
+Mask = N mod 3 equal 0
+Mask or= N mod 5 equal 0
 
 Answer = N Mask sum
 Answer print
@@ -171,7 +171,22 @@ Answer print
 ## Existing tests (context, not a substitute for general behavior)
 
 ```rank
+use testing
 
+test "default input"
+  use "001_multiples"
+  run
+
+  Answer equal 233168
+end
+
+test "workspace input"
+  use "001_multiples"
+  Limit = 10
+  run
+
+  Answer equal 23
+end
 ```
 
 ## Resolved syntax and analysis
@@ -323,6 +338,18 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       ],
       "form": "Value print",
       "result": "same",
+      "signatures": [
+        {
+          "inputs": [
+            {
+              "variable": 0
+            }
+          ],
+          "result": {
+            "variable": 0
+          }
+        }
+      ],
       "effects": [
         "io"
       ],
@@ -343,6 +370,81 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       "form": "Values sum",
       "result": "number",
       "axisReduction": true,
+      "signatures": [
+        {
+          "inputs": [
+            {
+              "union": [
+                "number",
+                "missing",
+                "column",
+                {
+                  "collection": "array",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "sequence",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "queue",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "stack",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "deque",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "set",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "result": "number"
+        }
+      ],
+      "operandDomains": [
+        [
+          "integer",
+          "real",
+          "missing"
+        ]
+      ],
       "shape": [
         {
           "args": [
@@ -414,14 +516,24 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
         "value": {
           "$type": "BinaryExpression",
           "left": {
-            "$type": "NameExpression",
-            "name": "N"
+            "$type": "BinaryExpression",
+            "left": {
+              "$type": "NameExpression",
+              "name": "N"
+            },
+            "operator": "mod",
+            "right": {
+              "$type": "NumberLiteral",
+              "value": {
+                "integer": "3"
+              }
+            }
           },
-          "operator": "multipleby",
+          "operator": "equal",
           "right": {
             "$type": "NumberLiteral",
             "value": {
-              "integer": "3"
+              "integer": "0"
             }
           }
         }
@@ -433,14 +545,24 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
         "value": {
           "$type": "BinaryExpression",
           "left": {
-            "$type": "NameExpression",
-            "name": "N"
+            "$type": "BinaryExpression",
+            "left": {
+              "$type": "NameExpression",
+              "name": "N"
+            },
+            "operator": "mod",
+            "right": {
+              "$type": "NumberLiteral",
+              "value": {
+                "integer": "5"
+              }
+            }
           },
-          "operator": "multipleby",
+          "operator": "equal",
           "right": {
             "$type": "NumberLiteral",
             "value": {
-              "integer": "5"
+              "integer": "0"
             }
           }
         }

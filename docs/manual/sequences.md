@@ -124,9 +124,8 @@ first array; where false, from the
 second.
 
 ```rank
-use sequences
 M = array true false
-M (array 2 3) (array 7 8) choose
+M choose (array 2 3) (array 7 8)
 ```
 
 ```result
@@ -136,13 +135,18 @@ M (array 2 3) (array 7 8) choose
 ### Usage
 
 ```text
-Mask IfTrue IfFalse choose
-Positions Options choose
+Mask choose IfTrue IfFalse
+Positions choose Options
 ```
 
 The second form picks items by position:
-`(array 2 0) (array "a" "b" "c") choose`
+`(array 2 0) choose (array "a" "b" "c")`
 gives c a.
+
+`choose` needs no `use` statement.
+The earlier postfix forms still work.
+Group a multi-step condition, such as
+`(Grid I J)`, in parentheses.
 
 ### See also
 

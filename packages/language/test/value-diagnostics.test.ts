@@ -7,6 +7,14 @@ import { analyzeValues } from '../src/analysis/value-diagnostics.js';
 import { functionTestExamples } from '../src/analysis/test-examples.js';
 import type { ValueFacts } from '../src/analysis/value-domain.js';
 
+it('analyzes data-first choose without opening sequences', () => {
+    expect(messages('A = true choose 1 2\nB = 1 choose (array 10 20)\nA + B')).toEqual([]);
+    expect(messages('A = false choose "no" "yes"\nA + 1'))
+        .toContain('operator + does not accept text and integer');
+    expect(messages('fun choose X\n return X\nend'))
+        .toContain('cannot redefine available builtin: choose');
+});
+
 it('accepts clamped and negative ordinary ranks but checks reduction ranks', () => {
     expect(messages('A = array 1 2\nA sum rank 5')).toEqual([]);
     expect(messages('A = array 1 2\nA sum rank -1')).toEqual([]);
@@ -15,15 +23,15 @@ it('accepts clamped and negative ordinary ranks but checks reduction ranks', () 
 });
 
 it('does not join an explicit raise with successful function returns', () => {
-    const source = 'fun choose Flag\n if Flag\n  return .Missing raise\n else\n  return 1\n end\nend\n';
+    const source = 'fun decide Flag\n if Flag\n  return .Missing raise\n else\n  return 1\n end\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
-    const result = analyzeValues(program.value, new Map(), new Map(), [{ name: 'choose',
+    const result = analyzeValues(program.value, new Map(), new Map(), [{ name: 'decide',
         arguments: [{ types: ['boolean'], rank: 0, shape: [] }] }]);
     expect(result.functionResults[0]).toMatchObject({ types: ['integer'], rank: 0 });
 
     const shadowed = services.Rank.parser.LangiumParser.parse<Program>(
         'fun raise Error\n return "ok"\nend\n' + source);
-    const shadowedResult = analyzeValues(shadowed.value, new Map(), new Map(), [{ name: 'choose',
+    const shadowedResult = analyzeValues(shadowed.value, new Map(), new Map(), [{ name: 'decide',
         arguments: [{ types: ['boolean'], rank: 0, shape: [] }] }]);
     expect(shadowedResult.diagnostics.map(item => item.message))
         .toContain('cannot redefine available builtin: raise');
@@ -360,7 +368,7 @@ it('checks known prefix stack arguments before execution', () => {
 });
 
 it('selects only reachable branches for exact integer comparisons', () => {
-    const source = 'fun choose Values\n N = Values len\n if N equal 0\n  return 1\n'
+    const source = 'fun decide Values\n N = Values len\n if N equal 0\n  return 1\n'
         + ' elif N less 2\n  return "one"\n else\n  return false\n end\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const args: ValueFacts[] = [
@@ -370,17 +378,17 @@ it('selects only reachable branches for exact integer comparisons', () => {
         { types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true },
     ];
     expect(args.map(argument => analyzeValues(program.value, new Map(), new Map(), [
-        { name: 'choose', arguments: [argument] },
+        { name: 'decide', arguments: [argument] },
     ]).functionResults[0].types)).toEqual([
         ['integer'], ['text'], ['boolean'], ['integer', 'text', 'boolean'],
     ]);
 });
 
 it('selects only reachable branches for an unchanged boolean literal binding', () => {
-    const source = 'fun choose Flag\n if Flag\n  return 1\n else\n  return "off"\n end\nend\n';
+    const source = 'fun decide Flag\n if Flag\n  return 1\n else\n  return "off"\n end\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect([true, false, undefined].map(boolean => analyzeValues(program.value, new Map(), new Map(), [
-        { name: 'choose', arguments: [{ types: ['boolean'], rank: 0, shape: [],
+        { name: 'decide', arguments: [{ types: ['boolean'], rank: 0, shape: [],
             ...(boolean === undefined ? {} : { boolean }) }] },
     ]).functionResults[0].types)).toEqual([['integer'], ['text'], ['integer', 'text']]);
     expect(messages('Flag = false\nif not Flag\n A = 1\nelse\n A = "off"\nend\nA + "bad"'))
@@ -780,7 +788,7 @@ it('joins new bindings from nested branches and preserves their common rank', ()
     expect(messages(body + 'M # # #')).toEqual(['3 selectors exceed array rank 2']);
     expect(messages(body + 'M = array shape 7 8 fill 0')).toEqual([]);
     expect(messages(body + 'M = array 1 2')).toEqual(['M has rank 2 and cannot receive rank 1']);
-    expect(messages('fun choose Flag Other\n' + body + 'return M\nend\nA = X Y choose\nA # # #'))
+    expect(messages('fun decide Flag Other\n' + body + 'return M\nend\nA = X Y decide\nA # # #'))
         .toEqual(['3 selectors exceed array rank 2']);
     expect(messages('if Flag\n M = array shape 2 3 fill 0\nend\nM # # #')).toEqual([]);
 });
@@ -788,7 +796,7 @@ it('joins new bindings from nested branches and preserves their common rank', ()
 it('respects ordered elif reachability and unreachable side effects', () => {
     expect(messages('if false\n A = "bad"\nelif true\n A = 1\nelse\n A = "bad"\nend\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('fun choose X\n if false\n  return "bad"\n elif true\n  return 1\n else\n  return "bad"\n end\nend\nA = Flag choose\nA = "bad"'))
+    expect(messages('fun decide X\n if false\n  return "bad"\n elif true\n  return 1\n else\n  return "bad"\n end\nend\nA = Flag decide\nA = "bad"'))
         .toEqual(['A has type integer and cannot receive text']);
     expect(messages('A = array 1 2\nif true\n A = array 1 2 3\nelif change\n A = array 1\nend\nA + (array 1 2)'))
         .toEqual(['shape mismatch: [3] and [2]']);
@@ -821,7 +829,7 @@ it('keeps loop contracts in functions and after loops while discarding mutation 
     expect(messages('A = array 1 2\nfor I in Items\n A = array 1 2 3\nend\nA = array shape 2 2 fill 0'))
         .toEqual(['A has rank 1 and cannot receive rank 2']);
     expect(messages('A = array 1 2\nfor I in 1 to 3\n A 0 = "text"\n A + (array 1 2)\nend')).toEqual(['A has array elements of type integer and cannot receive text']);
-    expect(messages('fun choose X\n for I in 1 to 3\n  return 1\n end\n return "text"\nend\nA = 0 choose\nA = true'))
+    expect(messages('fun decide X\n for I in 1 to 3\n  return 1\n end\n return "text"\nend\nA = 0 decide\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
 });
 
@@ -884,11 +892,11 @@ it('does not preserve caller facts through unknown calls, mutations or recursive
 
 it('does not guess results for recursion and joins all covered return paths', () => {
     expect(messages('fun again X\n return X again\nend\nA = 1 again\nA = "x"')).toEqual([]);
-    expect(messages('fun choose X\n if X\n  return 1\n end\n return "x"\nend\nA = Flag choose\nA = true'))
-        .toEqual(['choose returns incompatible ranks: 0 and 1',
-            'choose returns incompatible types: integer and text',
+    expect(messages('fun decide X\n if X\n  return 1\n end\n return "x"\nend\nA = Flag decide\nA = true'))
+        .toEqual(['decide returns incompatible ranks: 0 and 1',
+            'decide returns incompatible types: integer and text',
             'A has type integer or text and cannot receive boolean']);
-    expect(messages('fun choose X\n if X\n  return 1\n end\nend\nA = Flag choose\nA = true'))
+    expect(messages('fun decide X\n if X\n  return 1\n end\nend\nA = Flag decide\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
 });
 
@@ -1032,11 +1040,11 @@ it('keeps a fresh numeric array through a proved nested scalar writer', () => {
 });
 
 it('uses a settled binding type for a direct return after an unknown branch', () => {
-    const source = 'fun choose Flag Next\n Result = 1\n if Flag\n  Result = Next\n end\n return Result\nend\n';
+    const source = 'fun decide Flag Next\n Result = 1\n if Flag\n  Result = Next\n end\n return Result\nend\n';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(parsed.parserErrors).toEqual([]);
     const result = analyzeValues(parsed.value, new Map(), new Map(), [{
-        name: 'choose', arguments: [{ types: ['boolean'], rank: 0, shape: [] }, { types: [] }],
+        name: 'decide', arguments: [{ types: ['boolean'], rank: 0, shape: [] }, { types: [] }],
     }]);
     expect(result.functionResults[0].types).toEqual(['integer']);
     expect(result.diagnostics).toEqual([]);
@@ -1402,16 +1410,16 @@ it('checks the result rank of the unchanged bill-count loop before execution', (
 
 it('collects returns from reachable loop paths with break and continue', () => {
     for (const exit of ['break', 'continue']) {
-        expect(messages(`fun choose N\n for I in 0 till N\n  if I equal 0\n   ${exit}\n  end\n  return 1\n end\n return "text"\nend\nA = 2 choose\nA = true`))
-            .toEqual(['choose returns incompatible ranks: 0 and 1',
-            'choose returns incompatible types: integer and text',
+        expect(messages(`fun decide N\n for I in 0 till N\n  if I equal 0\n   ${exit}\n  end\n  return 1\n end\n return "text"\nend\nA = 2 decide\nA = true`))
+            .toEqual(['decide returns incompatible ranks: 0 and 1',
+            'decide returns incompatible types: integer and text',
             'A has type integer or text and cannot receive boolean']);
-        expect(messages(`fun choose\n for I in 1 to 2\n  ${exit}\n  return 1\n end\n return "text"\nend\nA = choose\nA = true`))
+        expect(messages(`fun decide\n for I in 1 to 2\n  ${exit}\n  return 1\n end\n return "text"\nend\nA = decide\nA = true`))
             .toEqual(['A has type text and cannot receive boolean']);
     }
-    expect(messages('fun choose\n for I in 1 to 2\n  for J in 1 to 2\n   break\n  end\n  return 1\n end\n return "text"\nend\nA = choose\nA = true'))
+    expect(messages('fun decide\n for I in 1 to 2\n  for J in 1 to 2\n   break\n  end\n  return 1\n end\n return "text"\nend\nA = decide\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
-    expect(messages('fun choose\n for I in 0 till 0\n  return "text"\n end\n return 1\nend\nA = choose\nA = true'))
+    expect(messages('fun decide\n for I in 0 till 0\n  return "text"\n end\n return 1\nend\nA = decide\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
 });
 
@@ -1695,14 +1703,14 @@ it('falls back for unknown effects and reference-like writes', () => {
 });
 
 it('joins function result dimensions without freezing elastic lengths', () => {
-    expect(messages('fun choose X\n if X\n  return array shape 2 3 fill 0\n else\n  return array shape 4 3 fill 0\n end\nend\nA = Flag choose\nA # # #'))
+    expect(messages('fun decide X\n if X\n  return array shape 2 3 fill 0\n else\n  return array shape 4 3 fill 0\n end\nend\nA = Flag decide\nA # # #'))
         .toEqual(['3 selectors exceed array rank 2']);
 });
 
 it('infers result facts only from paths that return', () => {
-    expect(messages('fun choose Flag\n if Flag\n  return array 1 2\n end\nend\nA = true choose\nA # #'))
+    expect(messages('fun decide Flag\n if Flag\n  return array 1 2\n end\nend\nA = true decide\nA # #'))
         .toEqual(['2 selectors exceed array rank 1']);
-    expect(messages('fun choose Flag\n if Flag\n  return 1\n end\nend\nA = true choose\nA + "bad"'))
+    expect(messages('fun decide Flag\n if Flag\n  return 1\n end\nend\nA = true decide\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('fun fail\n Value = 1\nend\nA = fail\nA + "bad"')).toEqual([]);
 });
@@ -2539,16 +2547,16 @@ it('infers the unchanged CSES subarray-sums result through computed index values
 });
 
 it('retains a private scalar after loop widening and an unknown call', () => {
-    const source = 'fun choose Items\n Best = -1\n for I in 0 till 3\n'
+    const source = 'fun decide Items\n Best = -1\n for I in 0 till 3\n'
         + '  if Items I external\n   Best = I\n  end\n end\n return Best\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(program.parserErrors).toEqual([]);
-    expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'choose', arguments: [{
+    expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'decide', arguments: [{
         types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true,
     }] }]).functionResults[0].types).toEqual(['integer']);
     expect(analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source.replace(
         ' Best = -1', ' fun nested\n  Best = "changed"\n  return 0\n end\n Best = -1')).value,
-    new Map(), new Map(), [{ name: 'choose', arguments: [{
+    new Map(), new Map(), [{ name: 'decide', arguments: [{
         types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true,
     }] }]).functionResults[0].types).toEqual([]);
 });
@@ -2655,12 +2663,12 @@ it('infers the unchanged Zigzag demo from its test inputs', () => {
 
 it('infers returns through try and catch without assuming partial writes', () => {
     const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
-    const both = 'fun choose\n try\n  return 1\n catch Error\n  return "fallback"\n end\nend\nA = choose';
+    const both = 'fun decide\n try\n  return 1\n catch Error\n  return "fallback"\n end\nend\nA = decide';
     expect(analyzeValues(parse(both)).bindings.get('A')?.types).toEqual(['integer', 'text']);
-    const caught = 'fun choose\n Value = 1\n try\n  Value = 2\n  1 / 0\n catch Error\n  return Value\n end\nend\nA = choose';
+    const caught = 'fun decide\n Value = 1\n try\n  Value = 2\n  1 / 0\n catch Error\n  return Value\n end\nend\nA = decide';
     expect(analyzeValues(parse(caught)).bindings.get('A')?.types).toEqual(['integer']);
     expect(analyzeValues(parse(caught)).bindings.get('A')?.integer).toBeUndefined();
-    expect(messages('fun choose\n try\n  return array 1 2\n catch Error\n  return array 3 4\n end\nend\nA = choose\nA # #'))
+    expect(messages('fun decide\n try\n  return array 1 2\n catch Error\n  return array 3 4\n end\nend\nA = decide\nA # #'))
         .toEqual(['2 selectors exceed array rank 1']);
 });
 
@@ -2671,9 +2679,9 @@ it('does not analyze statements after a definite no-return call', () => {
     expect(messages('fun fail\n fun nested\n  return 1\n end\n nested\nend\nfail\nA = 1\nA + "bad"'))
         .toEqual([]);
     expect(messages(fail + 'if Flag\n fail\nelse\n A = 1\nend\nA + "bad"')).toEqual([]);
-    expect(messages(fail + 'fun choose Flag\n if Flag\n  fail\n else\n  return 1\n end\nend\nA = true choose\nA + "bad"'))
+    expect(messages(fail + 'fun decide Flag\n if Flag\n  fail\n else\n  return 1\n end\nend\nA = true decide\nA + "bad"'))
         .toEqual([]);
-    expect(messages(fail + 'fun choose Flag\n if Flag\n  fail\n else\n  return 1\n end\nend\nA = false choose\nA + "bad"'))
+    expect(messages(fail + 'fun decide Flag\n if Flag\n  fail\n else\n  return 1\n end\nend\nA = false decide\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('fun stream\n if false\n  yield 1\n end\nend\nstream\nA = 1\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
@@ -2735,8 +2743,8 @@ it('does not apply builtin reshape rules to a local function with the same name'
 });
 
 it('does not report an error in an unproven or unreachable function branch', () => {
-    expect(messages('fun choose X\n if X\n  return 1 + "bad"\n end\n return 0\nend\nfalse choose')).toEqual([]);
-    expect(messages('fun choose X\n if false\n  return 1 + "bad"\n end\n return 0\nend\nfalse choose')).toEqual([]);
+    expect(messages('fun decide X\n if X\n  return 1 + "bad"\n end\n return 0\nend\nfalse decide')).toEqual([]);
+    expect(messages('fun decide X\n if false\n  return 1 + "bad"\n end\n return 0\nend\nfalse decide')).toEqual([]);
 });
 
 it('checks known array element types while treating text as a broadcast atom', () => {

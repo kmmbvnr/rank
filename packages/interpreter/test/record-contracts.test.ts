@@ -82,8 +82,8 @@ describe('structural record return contracts', () => {
     for (const field of ['.other = 1', '.value = "bad"', '.value = array 1']) {
         it(`rejects incompatible return ${field}`, () => {
             const runtime = new Interpreter();
-            runtime.execute(`fun choose Flag\n if Flag\n return record\n .value = 1\n end\n end\n return record\n ${field}\n end\nend\ntrue choose`);
-            expect(() => runtime.execute('false choose')).toThrowError(expect.objectContaining({ rankKind: 'ReturnTypeMismatch' }));
+            runtime.execute(`fun decide Flag\n if Flag\n return record\n .value = 1\n end\n end\n return record\n ${field}\n end\nend\ntrue decide`);
+            expect(() => runtime.execute('false decide')).toThrowError(expect.objectContaining({ rankKind: 'ReturnTypeMismatch' }));
         });
     }
 
@@ -101,8 +101,8 @@ describe('structural record return contracts', () => {
 
     it('does not change a tuple field to an array to match another return', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun choose Flag\n if Flag\n return record\n .items = tuple 1 "text"\n end\n end\n return record\n .items = array 1\n end\nend\ntrue choose');
-        expect(() => runtime.execute('false choose'))
+        runtime.execute('fun decide Flag\n if Flag\n return record\n .items = tuple 1 "text"\n end\n end\n return record\n .items = array 1\n end\nend\ntrue decide');
+        expect(() => runtime.execute('false decide'))
             .toThrowError(expect.objectContaining({ rankKind: 'ReturnTypeMismatch' }));
     });
 });

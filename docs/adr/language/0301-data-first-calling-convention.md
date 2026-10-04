@@ -19,10 +19,10 @@ On narrow 40-column screens and touchscreen mobile keyboards:
 
 ## Decision
 
-Rank adopts a pure **data-first, postfix calling convention with arity-based argument resolution**:
+Rank adopts a **data-first calling convention with arity-based argument resolution**. Ordinary named functions use postfix calls; conditional selection places its alternatives after `choose`:
 
 ### 1. Data Precedes the Function
-Arguments appear first, separated by whitespace, followed by the function identifier:
+For ordinary functions, arguments appear first, separated by whitespace, followed by the function identifier:
 ```rank
 A B gcd              rem Calls gcd with arguments A and B
 Values max sqrt      rem Computes sqrt of the maximum of Values
@@ -47,8 +47,8 @@ A field label is the exception that needs no variable: a label naming a field of
 ### Comparisons in a Pipeline
 A comparison continues the left-to-right flow like arithmetic does: after a plain left operand it takes the next value, and a following function receives the comparison's result, so `A greater 2 sum` needs no parentheses. When the left operand is already a pipeline (`A len equal B len`, `X date less Y date`), the two sides stay independent, which keeps symmetric comparisons free of parentheses too. `and`, `or` and `xor` always separate independent clauses.
 
-### No Infix Exceptions for Named Functions
-Every named function follows its arguments, including `min` and `max`. They once also had an infix form (`Low max High`), and it was removed (Issue #21):
+### No Infix Exceptions for Ordinary Named Functions
+Ordinary named functions follow their arguments, including `min` and `max`. They once also had an infix form (`Low max High`), and it was removed (Issue #21):
 - The same word changed meaning with what followed it: `A max` reduced, `A max B` compared.
 - The infix rewrite guessed where its left operand ended, so `Best min Now .spent` took `Now` as the right operand and read `.spent` afterwards.
 - Every new call-grouping rule had to be checked against the rewrite.
@@ -60,6 +60,8 @@ Clamped = Low High max Limit min
 ```
 
 `Low max High`, where the last part after `max` is data, is rejected with a hint to write `Low High max`. A chain that continues with a call (`A max 5 min`) is an ordinary postfix chain.
+
+Conditional selection has a dedicated data-first form: `Condition choose IfTrue IfFalse`, or `Index choose Choices`. The condition or index is the input on the left; the alternatives follow `choose`. Group compound alternatives with parentheses. The older postfix calls remain valid for existing programs.
 
 ### 3. Disambiguating Addressing from Calls
 - If the trailing identifier is a function in scope, preceding values are treated as arguments:

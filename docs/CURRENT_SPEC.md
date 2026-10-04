@@ -4697,13 +4697,13 @@ stays integer, and row order is unspecified unless the SQL query orders it.
 
 SQLite table views support lazy field projection, comparisons and boolean
 masks, `innerjoin by/on`, `leftjoin by/on`, `select`, `reach by`, `unique` and field-keyed `sort by`.
-`Mask TrueValues FalseValues choose` selects only the demanded branch of each
+`Mask choose TrueValues FalseValues` selects only the demanded branch of each
 array cell, broadcasting array operands by trailing axes. A missing mask cell
 gives a missing result cell. SQLite expressions from the same view compile to
 parameterized `CASE WHEN ... THEN ... WHEN NOT ... THEN ... END`; a SQL `NULL`
 condition leaves the result `NULL`. A nonboolean mask or mismatched array
 shapes are errors.
-`Index Choices choose` selects among more than two branches: each integer index
+`Index choose Choices` selects among more than two branches: each integer index
 cell names a leading-axis cell of `Choices`, with trailing-axis broadcasting
 and only the chosen value read. An index outside the choices raises `.Missing`.
 `M = Db .members alias .m` gives a table view a join role without reading or

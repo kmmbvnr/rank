@@ -791,7 +791,7 @@ it('joins returned origins through branches and resolved helpers', () => {
         .toEqual([{ kind: 'parameter', index: 0 }]);
     expect(analyze('fun identity X\n return X\nend\nfun helper X\n Y = X identity\n return Y\nend').returns)
         .toEqual([{ kind: 'parameter', index: 0 }]);
-    expect(analyze('fun choose X\n if Flag\n  return X\n end\n return array 1 2\nend\nfun helper Y\n return Y choose\nend').returns)
+    expect(analyze('fun decide X\n if Flag\n  return X\n end\n return array 1 2\nend\nfun helper Y\n return Y decide\nend').returns)
         .toEqual([{ kind: 'parameter', index: 0 }, { kind: 'fresh' }]);
     expect(analyze('fun source\n return Shared\nend\nfun helper\n return source\nend').returns)
         .toEqual([{ kind: 'unknown' }]);
