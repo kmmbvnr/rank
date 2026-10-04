@@ -1,5 +1,5 @@
 import {
-    formatValue, isRankArray, isRankSequence, isRankSequenceMask, isRankTable, typeName,
+    DemandBudgetExhausted, withDemandBudget, formatValue, isRankArray, isRankSequence, isRankSequenceMask, isRankTable, typeName,
     type RankArray, type RankSequence, type RankValue,
 } from '@arrrank/interpreter';
 import { preview } from './preview.js';
@@ -113,7 +113,7 @@ function cellAt(read: () => RankValue | undefined): InspectCell {
 export function inspectValue(value: RankValue, request: InspectRequest, replay?: Pick<SequenceReplay, 'forced'>): InspectedValue {
     if (isRankArray(value) && value.shape.length > 0) return inspectArray(value, request);
     if (isRankTable(value)) return inspectTable(value, request);
-    if (isRankSequenceMask(value)) return { kind: 'sequence', type: 'sequence', size: { kind: 'unknown' }, forced: 0, offset: 0, items: [] };
+    if (isRankSequenceMask(value)) return inspectUnrecorded(value.source.plan, item => value.predicate.test(item), request, { kind: 'unknown' });
     if (isRankSequence(value)) return inspectSequence(value, request, replay);
     if (typeof value === 'object') {
         const entries = collectionEntries(value);
@@ -197,14 +197,45 @@ function inspectTable(table: Extract<RankValue, { kind: 'table' }>, request: Ins
 function inspectSequence(value: RankSequence, request: InspectRequest, replay?: Pick<SequenceReplay, 'forced'>): InspectedValue {
     const { size } = value.plan;
     const forced = replay?.forced(value);
-    const items = forced?.items ?? [];
+    if (!forced) return inspectUnrecorded(value.plan, item => item, request, size.kind === 'exact' ? { kind: 'exact', value: size.value.toString() } : { kind: size.kind });
+    const items = forced.items;
     const window = axisWindow(items.length, request.offset?.[0], request.count?.[0]);
     return {
         kind: 'sequence', type: 'sequence',
         size: size.kind === 'exact' ? { kind: 'exact', value: size.value.toString() } : { kind: size.kind },
         forced: items.length, offset: window.offset,
         items: items.slice(window.offset, window.offset + window.count).map(cellOf),
-        ...(forced ? { finished: forced.finished } : {}),
+        finished: forced.finished,
+    };
+}
+
+/** How many values of a sequence with no tape (a range, a filtered sequence) the viewer shows from its start. */
+const HEAD = 100;
+
+/**
+ * A sequence that keeps no record of what it yielded: a range, a filtered sequence or a native source.
+ * Its front is read afresh, bounded in count and in work, the way the result row's preview reads it, and
+ * there is nothing to read ahead.
+ */
+function inspectUnrecorded(
+    plan: { iterate(): IterableIterator<RankValue> }, keep: (item: RankValue) => RankValue,
+    request: InspectRequest, size: Extract<InspectedValue, { kind: 'sequence' }>['size'],
+): InspectedValue {
+    const items: RankValue[] = [];
+    try {
+        withDemandBudget(10_000, () => {
+            for (const item of plan.iterate()) {
+                items.push(keep(item));
+                if (items.length >= HEAD) return;
+            }
+        });
+    } catch (error) {
+        if (!(error instanceof DemandBudgetExhausted)) throw error;
+    }
+    const window = axisWindow(items.length, request.offset?.[0], request.count?.[0]);
+    return {
+        kind: 'sequence', type: 'sequence', size, forced: items.length, offset: window.offset,
+        items: items.slice(window.offset, window.offset + window.count).map(cellOf),
     };
 }
 

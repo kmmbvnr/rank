@@ -74,8 +74,9 @@ key rules for the terminal live in `repl-input.md`.
 
 ## Known limits
 
-- Ranges (`1 to 100`) show their size but no items, and native resumable sources show none and
-  cannot be read ahead.
+- A sequence that keeps no tape (a range, a computed or filtered sequence, a native source such as
+  `primes`) shows its first 100 values, read afresh within the work budget, with its size, and cannot
+  be read ahead.
 - A generator that stalls without yielding is closed by the read-ahead's time limit; its read
   values stay, but a later consumer meets the interruption error and must rerun the producing cell.
 - There are no references for live previews, only for committed cells.

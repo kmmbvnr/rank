@@ -183,10 +183,13 @@ describe('inspect: tables', () => {
 });
 
 describe('inspect: sequences', () => {
-    it('reports an unbounded sequence without reading any of it', async () => {
+    it('shows only the front of an unbounded native sequence', async () => {
         const { session, ref } = await run(['use sequences', 'Primes = primes', 'Primes']);
         const value = opened(session.inspect(ref));
-        expect(value).toMatchObject({ kind: 'sequence', size: { kind: 'infinite' }, forced: 0, items: [] });
+        expect(value).toMatchObject({ kind: 'sequence', size: { kind: 'infinite' }, forced: 100 });
+        if (value.kind !== 'sequence') throw new Error('expected a sequence');
+        expect(value.items.slice(0, 4).map(item => item.text)).toEqual(['2', '3', '5', '7']);
+        expect(value.finished).toBeUndefined();
     });
 
     it('leaves a sequence unconsumed: it reads the same after any number of inspections', async () => {
@@ -213,10 +216,19 @@ describe('inspect: sequences', () => {
         expect(window.items.map(item => item.text)).toEqual(['4', '5']);
     });
 
-    it('reports a range by its exact size and invents no items', async () => {
-        const { session, ref } = await run(['V = 1 to 100', 'V']);
-        expect(opened(session.inspect(ref))).toMatchObject({
-            kind: 'sequence', size: { kind: 'exact', value: '100' }, forced: 0, items: [] });
+    it('shows the front of a range with its exact size, however long it is', async () => {
+        const { session, ref } = await run(['V = 1 to 10000000000000', 'V']);
+        const value = opened(session.inspect(ref, { count: [3] }));
+        expect(value).toMatchObject({ kind: 'sequence', size: { kind: 'exact', value: '10000000000000' }, forced: 100 });
+        if (value.kind !== 'sequence') throw new Error('expected a sequence');
+        expect(value.items.map(item => item.text)).toEqual(['1', '2', '3']);
+    });
+
+    it('shows the front of a computed sequence', async () => {
+        const { session, ref } = await run(['N = 1 to 10000000000000', 'N % 3 equal 0 or N % 5 equal 0']);
+        const value = opened(session.inspect(ref, { count: [4] }));
+        if (value.kind !== 'sequence') throw new Error('expected a sequence');
+        expect(value.items.map(item => item.text)).toEqual(['false', 'false', 'true', 'false']);
     });
 });
 
@@ -421,7 +433,7 @@ describe('value view model', () => {
         expect(buildValueView('A', opened(session.inspect(ref)))).toMatchObject({ kind: 'list', typeLine: 'record · 1', rows: [['x', '1']] });
         const primes = await run(['use sequences', 'P = primes', 'P']);
         expect(buildValueView('P', opened(primes.session.inspect(primes.ref)))).toMatchObject({
-            kind: 'list', typeLine: 'sequence · unbounded', rows: [], note: '0 read so far' });
+            kind: 'list', typeLine: 'sequence · unbounded', rows: expect.arrayContaining([['0', '2']]), note: '100 read so far' });
     });
 
     it('shows a scalar as its text', async () => {
