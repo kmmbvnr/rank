@@ -1,22 +1,23 @@
 import type { NotebookCell } from './notebook.js';
 import type { OutputLine } from './repl-session.js';
 
-const SUGGESTION = /`use ([^`\s]+)`/g;
+/** A quoted suggestion (`use graph`), or the plain `requires: use algo` of a form that needs its module. */
+const SUGGESTION = /`use ([^`\s]+)`|requires: use ([\w.-]+)/g;
 
 /** Modules an unknown-name error suggests, in the order the message names them. */
 export function missingImports(output: readonly OutputLine[]): string[] {
     const modules = output.filter(line => line.error)
-        .flatMap(line => [...(line.inlineText ?? line.text).matchAll(SUGGESTION)].map(match => match[1]));
+        .flatMap(line => [...(line.inlineText ?? line.text).matchAll(SUGGESTION)].map(match => match[1] ?? match[2]));
     return [...new Set(modules)];
 }
 
 /** Error text with each suggestion as one unbreakable, unquoted phrase. */
 export function importPhrases(text: string): { text: string; phrases: string[] } {
     const phrases: string[] = [];
-    const shown = text.replace(SUGGESTION, (_, module: string) => {
-        const phrase = `use ${module}`;
+    const shown = text.replace(SUGGESTION, (found: string, quoted: string | undefined, plain: string | undefined) => {
+        const phrase = `use\u00a0${quoted ?? plain}`;
         phrases.push(phrase);
-        return phrase;
+        return found.startsWith('requires: ') ? `requires: ${phrase}` : phrase;
     });
     return { text: shown, phrases };
 }

@@ -30,6 +30,19 @@ function distance(a: string, b: string): number {
     return row[b.length]!;
 }
 
+const ASSIGNMENTS = new Set(['=', '+=', '-=', '*=', '**=', '/=', '//=', '%=', 'and=', 'or=', 'xor=']);
+
+/** A lowercase word before an assignment is a name that cannot be a variable: names start with a capital. */
+function lowercaseVariable(error: object, source: string): string | undefined {
+    const { token } = error as { token?: { image?: string; startOffset?: number } };
+    if (!token?.image || !ASSIGNMENTS.has(token.image)) return undefined;
+    const line = source.slice(source.lastIndexOf('\n', (token.startOffset ?? 0) - 1) + 1, token.startOffset ?? 0);
+    // Only a lone name at the start of the statement; `Xs i = 3` and similar keep the plain message.
+    const name = /^\s*([a-z][A-Za-z0-9_]*)\s*$/.exec(line)?.[1];
+    if (!name) return undefined;
+    return `Unexpected '${token.image}': variable names start with a capital letter, write \`${name[0].toUpperCase()}${name.slice(1)}\` instead of \`${name}\``;
+}
+
 /** A short message for a parser or lexer error, never the parser's own expectation text. */
 function readableSyntaxError(error: object, source: string): string {
     const { message, name, token } = error as { message: string; name?: string; token?: { image?: string; startOffset?: number } };
@@ -72,7 +85,7 @@ export function parse(
             column = lines.at(-1)!.length + 1;
         }
         const location = ` at ${line}:${column}`;
-        const diagnostic = new RankError(`${removedSpelling(error) ?? readableSyntaxError(error, source)}${location}`, 'Syntax');
+        const diagnostic = new RankError(`${removedSpelling(error) ?? lowercaseVariable(error, source) ?? readableSyntaxError(error, source)}${location}`, 'Syntax');
         diagnostic.location = {
             sourceId, line: line!, column: column!,
             sourceLine: source.split(/\r?\n/)[line! - 1] ?? '',

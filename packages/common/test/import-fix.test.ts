@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { KeyRouter } from '../src/key-router.js';
-import { importPosition, missingImports } from '../src/import-fix.js';
+import { importPhrases, importPosition, missingImports } from '../src/import-fix.js';
 import { Notebook } from '../src/notebook.js';
 import { NotebookRepl } from '../src/repl.js';
 import { createReplSession } from '../src/repl-session.js';
@@ -123,4 +123,10 @@ describe('import suggestions', () => {
         expect(repl.importFixFocus).toBeUndefined();
         expect(repl.notebook.current.source).toBe('X = 4.0 sqrt1');
     });
+});
+
+it('also offers the module named by a plain "requires: use X" error', () => {
+    const output = [{ text: 'Runtime: new requires: use algo', error: true }];
+    expect(missingImports(output)).toEqual(['algo']);
+    expect(importPhrases(output[0].text)).toEqual({ text: 'Runtime: new requires: use algo', phrases: ['use algo'] });
 });
