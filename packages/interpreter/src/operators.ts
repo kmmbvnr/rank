@@ -476,17 +476,16 @@ function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
         throw new RankError(`outer ${side} operand must be finite`);
     }
 
-    // A range is arithmetic: element i is start + i * step, so nothing is read to know it.
-    const range = rangeLayouts.get(value);
-    if (range) {
-        return lazyArray([safeDimension(range.size, 'outer operand size')], index => range.start + BigInt(index) * range.step, true);
-    }
     if (value.plan.size.kind === 'exact') {
         // The size is promised, so values are read only as far as a cell asks, and kept.
         const size = safeDimension(value.plan.size.value, 'outer operand size');
         const read: RankValue[] = [];
         let source: Iterator<RankValue> | undefined;
+        const direct = value.plan.at;
         return lazyArray([size], index => {
+            // A plan that can address its items (a range, arithmetic over one) is not read at all.
+            const addressed = direct?.call(value.plan, BigInt(index));
+            if (addressed !== undefined) return addressed;
             source ??= sequenceValues(value, 'outer')[Symbol.iterator]();
             while (read.length <= index) {
                 const next = source.next();
@@ -550,14 +549,9 @@ function makeRange(start: bigint, end: bigint, inclusive: boolean, stride?: bigi
     return range;
 }
 
-/** Where a range starts, how it steps and how many values it holds, for readers that index into it. */
-const rangeLayouts = new WeakMap<RankSequence, { start: bigint; step: bigint; size: bigint }>();
-
 function rangeSequence(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {
     const range = buildRange(start, end, inclusive, stride);
-    const step = stride ?? 1n;
-    if (range.plan.size.kind === 'exact') rangeLayouts.set(range, { start, step, size: range.plan.size.value });
-    return range;
+    return { kind: 'sequence', plan: { ...range.plan, at: index => start + index * (stride ?? 1n) } };
 }
 
 function buildRange(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {
@@ -639,6 +633,20 @@ function membershipLookup(values: Iterable<RankValue>): (value: RankValue) => bo
         : scalars.has(key(value));
 }
 
+function withAt(source: RankSequence, at: (index: bigint) => RankValue | undefined): RankSequence {
+    return { kind: 'sequence', plan: { ...source.plan, at } };
+}
+
+/** Arithmetic over an addressable sequence is addressable: item i is the operation applied to item i. */
+function addressable(mapped: RankSequence, source: RankSequence, operation: (item: RankValue) => RankValue): RankSequence {
+    const at = source.plan.at;
+    if (!at) return mapped;
+    return withAt(mapped, index => {
+        const item = at.call(source.plan, index);
+        return item === undefined ? undefined : operation(item);
+    });
+}
+
 const DENSE_OPERATORS = new Set(['+', '-', '*', '/', '**', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal']);
 
 function mapBinary(
@@ -649,13 +657,20 @@ function mapBinary(
 ): RankValue {
     const scalarOperation = numericKernel(name, operation);
     if (isRankSequence(left) && isRankSequence(right)) {
-        return zipSequences(left, right, name, scalarOperation);
+        const zipped = zipSequences(left, right, name, scalarOperation);
+        const [a, b] = [left.plan.at, right.plan.at];
+        return a && b ? withAt(zipped, index => {
+            const x = a.call(left.plan, index), y = b.call(right.plan, index);
+            return x === undefined || y === undefined ? undefined : scalarOperation(x, y);
+        }) : zipped;
     }
     if (isRankSequence(left)) {
-        return mapSequence(left, name, item => scalarOperation(item, right));
+        return addressable(mapSequence(left, name, item => scalarOperation(item, right)), left,
+            item => scalarOperation(item, right));
     }
     if (isRankSequence(right)) {
-        return mapSequence(right, name, item => scalarOperation(left, item));
+        return addressable(mapSequence(right, name, item => scalarOperation(left, item)), right,
+            item => scalarOperation(left, item));
     }
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);

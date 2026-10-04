@@ -3639,8 +3639,8 @@ The left frame axes come first and the right frame varies fastest. The operation
 must accept two arguments and currently must return a scalar for every pair.
 Both operands must be finite and restartable.
 
-A range operand is addressed by arithmetic (`Start + Index * Step`), so building the table reads
-nothing from it, however long it is. Any other operand of known size is read only as far as a demanded
+A range operand is addressed by arithmetic (`Start + Index * Step`), and so is arithmetic over ranges
+(`Range * 2 + 1`, `Range - Range`), so building the table reads nothing from them, however long they are. Any other operand of known size is read only as far as a demanded
 cell reaches and the values read are kept; an operand of unknown size is read whole when the table is
 built. A table whose cell count is not exactly representable (beyond 2^53 - 1) raises
 `outer result is too large`.
