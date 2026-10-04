@@ -1,5 +1,6 @@
-import { inferRequirements, isNameExpression, type CallRequirement, type Expression, type FunctionStatement, type Program, type ValueFacts, type ValueRequirement } from '@arrrank/language';
+import { inferRequirements, isNameExpression, isUseStatement, type CallRequirement, type Expression, type FunctionStatement, type Program, type ValueFacts, type ValueRequirement } from '@arrrank/language';
 import { AstUtils } from 'langium';
+import type { AstNode } from 'langium';
 import { readArrayItem } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
@@ -89,12 +90,14 @@ export class CheckedInputContracts {
     pending?: CallRequirement;
 
     prepare(program: Program, initial: ReadonlyMap<string, ValueFacts>,
-        declarations: ReadonlyMap<string, FunctionStatement> = new Map()): void {
+        declarations: ReadonlyMap<string, FunctionStatement> = new Map(),
+        loadModule?: (path: string, importSite?: AstNode) => Program | undefined): void {
         const containsCheck = (source: Program | FunctionStatement) =>
             [...AstUtils.streamAllContents(source)].some(node => isNameExpression(node) && node.name === 'check');
-        if (!containsCheck(program) && ![...new Set(declarations.values())].some(containsCheck)) return;
+        if (!containsCheck(program) && ![...new Set(declarations.values())].some(containsCheck)
+            && !program.statements.some(item => isUseStatement(item) && item.path && loadModule)) return;
         this.enabled = true;
-        const analysis = inferRequirements(program, { initial, declarations, includeCalls: true });
+        const analysis = inferRequirements(program, { initial, declarations, includeCalls: true, loadModule });
         const lengths: Lengths = new Map();
         for (const [expression, requirement] of analysis.expressions) {
             this.requirements.set(expression, requirement);

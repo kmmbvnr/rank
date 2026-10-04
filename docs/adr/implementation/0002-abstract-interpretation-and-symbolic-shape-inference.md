@@ -137,6 +137,10 @@ call-specific plans to that validator, including across tail calls; the plans
 are not optimization proofs. Unknown callbacks retain only independently proven
 reader-local checks. The semantic-boundary gate permits this validator while
 continuing to reject requirement use in other runtime and optimization owners.
+Source imports supply their parsed function bodies to requirement analysis;
+direct and nested imported reader calls carry the caller's checked plan to the
+defining interpreter. Import resolution keeps the defining module's source ID
+so equal relative import names in different modules remain independent.
 For a direct checked CSV read, the forward pass publishes checked column facts
 after the read expression, using one symbolic row length shared by its columns.
 When a later `matmul` requires columns from separate checked CSV reads to have

@@ -49,7 +49,7 @@ export interface RequirementOptions {
     readonly includeCalls?: boolean;
     readonly initial?: ReadonlyMap<string, ValueFacts>;
     readonly declarations?: ReadonlyMap<string, FunctionStatement>;
-    readonly loadModule?: (path: string) => Program | undefined;
+    readonly loadModule?: (path: string, importSite?: AstNode) => Program | undefined;
 }
 const site = (node: AstNode, reason: string): RequirementSite => ({ node, reason });
 const primitiveTypes = new Set(['integer', 'real', 'text', 'boolean', 'symbol', 'missing', 'date', 'datetime', 'duration']);
@@ -71,12 +71,12 @@ export function inferRequirements(program: Program, options: RequirementOptions 
     const roots = new Map(options.declarations);
     const moduleScopes = new Map<Program, Map<string, FunctionStatement>>();
     const declarations = (items: readonly Statement[], parent: ReadonlyMap<string, FunctionStatement>, opaque = false): Map<string, FunctionStatement> => {
-        const unresolved = opaque || items.some(item => isUseStatement(item) && item.path && !options.loadModule?.(item.path));
+        const unresolved = opaque || items.some(item => isUseStatement(item) && item.path && !options.loadModule?.(item.path, item));
         const result = new Map(parent);
         for (const item of items) {
             if (isFunctionStatement(item)) result.set(item.name, item);
             if (isUseStatement(item) && item.path && options.loadModule) {
-                const module = options.loadModule(item.path);
+                const module = options.loadModule(item.path, item);
                 if (!module) continue;
                 let imported = moduleScopes.get(module);
                 if (!imported) {
@@ -440,7 +440,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
         }
         for (const item of items) {
             if (isUseStatement(item)) {
-                if (item.path && !options.loadModule?.(item.path)) opaqueImport = true;
+                if (item.path && !options.loadModule?.(item.path, item)) opaqueImport = true;
                 continue;
             }
             if (isFunctionStatement(item)) continue;

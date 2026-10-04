@@ -229,6 +229,38 @@ it('checks a reader function using requirements from the caller after its return
     expect(runtime.variables.has('After')).toBe(false);
 });
 
+it('carries a checked reader contract through a source import', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }),
+        loadModule: () => ({ id: 'readers.ra', source: 'use tables\nfun load Path\n return Path csv check\nend' }) });
+    const source = 'use tables\nuse "readers.ra" as readers\nRows = "data.csv" readers.load\nAfter = 1\nRows .price sum';
+    expect(() => runtime.execute(source)).toThrow(/csv input.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('carries a checked reader contract through nested source imports', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }),
+        loadModule: path => ({ id: path, source: path === 'wrapper.ra'
+            ? 'use "readers.ra" as readers\nfun load Path\n return Path readers.load\nend'
+            : 'use tables\nfun load Path\n return Path csv check\nend' }) });
+    const source = 'use tables\nuse "wrapper.ra" as wrapper\nRows = "data.csv" wrapper.load\nAfter = 1\nRows .price sum';
+    expect(() => runtime.execute(source)).toThrow(/csv input.price\[0\].*received text/);
+    expect(runtime.variables.has('After')).toBe(false);
+});
+
+it('resolves equal nested import names relative to each defining module', () => {
+    const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'a.csv': 'price\n3\n' }),
+        sourceId: '/root.ra',
+        loadModule: (path, from) => {
+            if (path.endsWith('wrapper.ra')) return { id: `/${path}`, source:
+                'use tables\nuse "reader.ra" as reader\nfun load Path\n return Path reader.load\nend' };
+            if (from === '/a/wrapper.ra') return { id: '/a/reader.ra', source:
+                'use tables\nfun load Path\n return Path csv check\nend' };
+            return { id: '/b/reader.ra', source: 'fun load Path\n return 42\nend' };
+        } });
+    const source = 'use tables\nuse "a/wrapper.ra" as A\nuse "b/wrapper.ra" as B\nRows = "a.csv" A.load\nCount = Rows .price sum\nOther = 1 B.load\nCount + Other';
+    expect(runtime.execute(source)).toBe(45n);
+});
+
 it('carries caller requirements through a tail-called reader wrapper', () => {
     const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
     const source = 'use tables\nfun readrows Path\n return Path csv check\nend\nfun load Path\n return Path readrows\nend\nRows = "data.csv" load\nAfter = 1\nRows .price sum';
