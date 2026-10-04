@@ -3374,12 +3374,13 @@ shape; array results append their shape to the frame. Source cells and the
 assembled result are lazy views, and a demanded cell result is cached.
 
 An empty frame has no cells to call, but its result keeps the cell axes, so the
-result rank does not depend on whether the input is empty. A standard-library
-function runs once on a zero cell of the argument cell shape and only the result
-shape is kept. A user function is not called. Its result shape comes from the
-analysis of its body, or from the return rank that earlier calls settled.
-Lengths that neither fixes are zero. With no such knowledge the cell is a
-scalar:
+result rank does not depend on whether the input is empty. A declared result
+shape takes precedence. If a pure standard-library function has no result-shape
+hook, the runtime may call it once on a zero cell of the argument cell shape
+when that cell is small enough; only the resulting shape is kept. A user
+function is not called. Its result shape comes from the analysis of its body,
+or from the return rank that earlier calls settled. Lengths that neither fixes
+are zero. With no such knowledge the cell is a scalar:
 
 ```rank
 M = array shape 0 3 fill 1
