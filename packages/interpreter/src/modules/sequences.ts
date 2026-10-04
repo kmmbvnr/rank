@@ -389,7 +389,7 @@ export function stackValues(values: readonly RankValue[]): RankArray {
             throw mismatch('stack items must have the same shape');
         }
     }
-    if (cellShape === undefined) throw new RankError('stack expects one or more arrays or sequences');
+    if (cellShape === undefined) return ownedArray([], [0]);
     const cellSize = cellShape.reduce((product, dimension) => product * dimension, 1);
     return derivedArray([size, ...cellShape], dependencies, index =>
         readers[cellSize === 0 ? 0 : Math.floor(index / cellSize)]!(cellSize === 0 ? 0 : index % cellSize));

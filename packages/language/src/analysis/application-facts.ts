@@ -5,7 +5,7 @@ import { freshDim } from './shape-index.js';
 import { symbolicFormFacts } from './binary-facts.js';
 import {
     isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
-    isNumberLiteral, isStringLiteral, type ApplicationExpression, type Expression,
+    isNumberLiteral, isStringLiteral, isUnpackExpression, type ApplicationExpression, type Expression,
 } from '../generated/ast.js';
 import { applicationExpression, flattenApplication, groupedUnaryDyadicChain, unaryApplicationHead } from '../expressions.js';
 import { findOperation } from '../operations.js';
@@ -86,18 +86,19 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
         case 'checked-read':
             return infer(applicationExpression(form.parts, expression), lookup);
         case 'stack-constructor': {
-            const cells = form.items.map(item => infer(item, lookup));
-            if (!cells.every(cell => ['array', 'sequence'].includes(cell.types.join()))) return UNKNOWN_VALUE;
+            const spread = form.items.some(isUnpackExpression);
+            const cells = form.items.map(item => infer(isUnpackExpression(item) ? item.value : item, lookup));
+            if (!spread && !cells.every(cell => ['array', 'sequence'].includes(cell.types.join()))) return UNKNOWN_VALUE;
             const first = cells[0];
-            const rank = first.rank === undefined || cells.some(cell => cell.rank !== first.rank)
+            const rank = spread || first.rank === undefined || cells.some(cell => cell.rank !== first.rank)
                 ? undefined : first.rank + 1;
             const shape = rank === undefined ? undefined : [cells.length,
                 ...(first.shape ?? Array(first.rank).fill(null)).map((length, axis) =>
                     cells.every(cell => cell.shape?.[axis] === length) ? length : null)];
             const stacked: ValueFacts = { types: ['array'], rank, shape,
                 elements: first.elements?.length && cells.every(cell => cell.elements?.join() === first.elements?.join())
-                    ? first.elements : undefined,
-                ...(cells.every(cell => cell.eagerScalarCells || cell.callbackFreeScalarCells)
+                    && !spread ? first.elements : undefined,
+                ...(!spread && cells.every(cell => cell.eagerScalarCells || cell.callbackFreeScalarCells)
                     ? { callbackFreeScalarCells: true as const } : {}) };
             if (!form.rest.length) return stacked;
             const name = '\0stack-result';

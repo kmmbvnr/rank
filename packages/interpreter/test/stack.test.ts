@@ -14,6 +14,9 @@ describe('stack', () => {
         expect(run(`${items}stack A B`)).toBe(run(`${items}(array A B) copy`));
         expect(run(`${items}stack A B transpose shape`)).toBe('3 2');
         expect(run(`${items}stack A B A transpose shape`)).toBe('3 3');
+        expect(run(`${items}Items = array A B\nstack unpack Items`)).toBe(run(`${items}stack A B`));
+        expect(run(`${items}stack unpack (tuple A B)`)).toBe(run(`${items}stack A B`));
+        expect(run('stack unpack (array shape 0 fill 0) shape')).toBe('0');
     });
 
     it('keeps value semantics: later writes to a name do not change the stack', () => {

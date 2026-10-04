@@ -2729,6 +2729,10 @@ Series = stack Month Interest Balance transpose   rem lazy, shape 360 3
 Dense = Series copy                               rem eager, same shape
 ```
 
+If the arguments are already held in a rank-1 array or tuple,
+`stack unpack Items` spreads them into the constructor. This is the replacement for the
+former postfix `Items stack` form.
+
 Sequences with an exact size stack lazily; a sequence of unknown size (a
 generator or `filter`) raises `TypeError` and points to `copy`, an infinite
 sequence is an error, and items of different shapes, or arrays mixed with

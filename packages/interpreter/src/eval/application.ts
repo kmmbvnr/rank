@@ -292,7 +292,15 @@ export class ApplicationEvaluator {
                 const constructor = form;
                 return function* (): Execution<RankValue> {
                     context.requireModule('sequences', 'stack');
-                    const items = yield* resume(mapExecution(constructor.items, item => context.evaluate(item)));
+                    const items: RankValue[] = [];
+                    for (const item of constructor.items) {
+                        if (isUnpackExpression(item)) {
+                            const source = yield* resume(context.evaluate(item.value));
+                            items.push(...unpackApplicationItems(source));
+                        } else {
+                            items.push(yield* resume(context.evaluate(item)));
+                        }
+                    }
                     const stacked = stackValues(items);
                     if (!constructor.rest.length) return stacked;
                     const rest = yield* resume(mapExecution(constructor.rest, part => context.evaluate(part)));
