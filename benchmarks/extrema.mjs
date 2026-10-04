@@ -28,7 +28,7 @@ const source = `use numbers\n${Object.entries(bodies).map(([name, body]) => `
 fun ${name} N
  Op = ${name.endsWith('min') ? 'min' : 'max'}
  Best = 0
- for I in 0 until N
+ for I in 0 till N
   ${body}
  end
  return Best
