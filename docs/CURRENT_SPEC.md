@@ -4781,6 +4781,10 @@ runtime behavior; analysis still reports contradictions it can prove from
 program text. After a successful check, analysis can use validated CSV column
 and JSON/XML field facts until a possible mutation invalidates them. XML node
 fields are fixed even without a check; XML attribute keys are input-defined.
+If a later operation requires columns from separate checked CSV reads to have
+equal lengths, the second read checks their row counts and reports a mismatch
+there. Columns from one CSV share its row count. Source-imported reader
+functions use the requirements of their known callers.
 Defining a function named `check` makes it an ordinary call.
 
 `csv` reads UTF-8 comma-separated data with a header row and returns a rank-1
