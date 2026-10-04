@@ -94,8 +94,18 @@ export class CheckedInputContracts {
         loadModule?: (path: string, importSite?: AstNode) => Program | undefined): void {
         const containsCheck = (source: Program | FunctionStatement) =>
             [...AstUtils.streamAllContents(source)].some(node => isNameExpression(node) && node.name === 'check');
+        const importedCheck = (source: Program, visited: Set<Program>): boolean => {
+            if (visited.has(source)) return false;
+            visited.add(source);
+            for (const item of source.statements) {
+                if (!isUseStatement(item) || !item.path || !loadModule) continue;
+                const imported = loadModule(item.path, item);
+                if (imported && (containsCheck(imported) || importedCheck(imported, visited))) return true;
+            }
+            return false;
+        };
         if (!containsCheck(program) && ![...new Set(declarations.values())].some(containsCheck)
-            && !program.statements.some(item => isUseStatement(item) && item.path && loadModule)) return;
+            && !importedCheck(program, new Set())) return;
         this.enabled = true;
         const analysis = inferRequirements(program, { initial, declarations, includeCalls: true, loadModule });
         const lengths: Lengths = new Map();
