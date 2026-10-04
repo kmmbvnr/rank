@@ -167,7 +167,9 @@ Enter inside an existing cell still inserts a newline into that cell. When the
 cursor leaves an edited cell (to another cell or to `rank>`) or the cell is run,
 its source is split again with the same rules as loading a file. Statements that
 did not change keep their status and output; changed ones become pending. The
-saved `.ra` text is the same either way. Notebooks restored by the web app go
+saved `.ra` text is the same either way. The split also joins: a block header left open in a cell (a `fun` typed above
+code that already exists) takes the cells below it down to the line that closes it, so wrapping existing cells in a
+function works; nothing joins unless the block really closes. Notebooks restored by the web app go
 through the same split.
 
 Ctrl-R on committed source executes only the selected top-level instruction,

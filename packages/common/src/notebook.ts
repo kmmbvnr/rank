@@ -1,5 +1,5 @@
 import {
-    EMPTY_CELL, addLine, cellSource, closeCell, hasCode, insideText, isComplete, isEmpty,
+    EMPTY_CELL, addLine, type CellState, cellSource, closeCell, hasCode, insideText, isComplete, isEmpty,
     nextIndent, scanLine, startsDedent, typeAssignKey, wrapStart,
 } from './repl-input.js';
 import type { Execution, OutputLine } from './repl-session.js';
@@ -127,7 +127,7 @@ export class Notebook {
             if (cell !== this.active) {
                 const from = this.active;
                 const added = this.resplit(from);
-                if (cell > from) cell += added;
+                if (cell > from) cell = Math.max(from, cell + added);
             }
         }
         this.temporaryLine = undefined;
@@ -255,8 +255,9 @@ export class Notebook {
     resplit(index: number): number {
         const cell = this.cells[index];
         if (!cell || cell.command || cell.status === 'running' || index === this.cells.length - 1) return 0;
+        const joined = this.joinBlock(index);
         const parts = splitCell(cell.source);
-        if (parts.length < 2) return 0;
+        if (parts.length < 2) return -joined;
         const executed = cell.executed === undefined ? [] : splitCell(cell.executed);
         const { output, errorOffset, status } = cell;
         const cursor = index === this.active ? this.cursor : undefined;
@@ -287,7 +288,38 @@ export class Notebook {
             }
             this.preferredColumn = undefined;
         }
-        return added.length;
+        return added.length - joined;
+    }
+
+    /**
+     * A block opened in a cell and closed by the cells below it (a `fun` header typed above code that
+     * already exists, with its `end` below) is one statement: the cells up to the closing line join it.
+     * Nothing joins unless the block does close. Returns how many cells were absorbed.
+     */
+    private joinBlock(index: number): number {
+        const cell = this.cells[index];
+        const opened = (source: string): CellState => source.split('\n').reduce((state, line) => addLine(state, line.trim()), EMPTY_CELL);
+        let state = opened(cell.source);
+        if (!hasCode(cell.source) || isComplete(state) || state.blocks.length === 0) return 0;
+        let last = index;
+        while (last < this.cells.length - 2) {
+            const next = this.cells[last + 1];
+            if (next.command) return 0;
+            last += 1;
+            for (const line of next.source.split('\n')) state = addLine(state, line.trim());
+            if (isComplete(state)) break;
+        }
+        if (!isComplete(state)) return 0;
+        const removed = last - index;
+        cell.source = [cell.source, ...this.cells.slice(index + 1, last + 1).map(part => part.source)].join('\n');
+        cell.executed = undefined;
+        cell.output = [];
+        cell.errorOffset = undefined;
+        cell.status = 'idle';
+        this.cells.splice(index + 1, removed);
+        if (this.replayFrom !== undefined && this.replayFrom > index) this.replayFrom = Math.max(index, this.replayFrom - removed);
+        if (this.active > index) this.active = Math.max(index, this.active - removed);
+        return removed;
     }
 
     /** A new unexecuted cell above `index`; the active cell keeps its place. */
