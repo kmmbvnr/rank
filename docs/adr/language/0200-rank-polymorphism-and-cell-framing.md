@@ -40,7 +40,7 @@ BatchDets = T det rank 2
 ```
 - **Argument rank $> R$:** The function applies to every trailing rank-$R$ cell in row-major frame order.
 - **Argument rank $\le R$:** The function receives the argument whole once.
-- **Empty frame:** No cell is called, yet the result keeps the cell axes, so its rank matches the nonempty case. Following J and Remora (Slepak, Shivers, Manolios, *The Semantics of Rank Polymorphism*, §2.4), the cell shape comes from the function rather than from computed cells: a declared shape, a standard-library call on a zero fill cell, or, for user functions, the analysed result facts and the settled return rank. User code never runs for this, because it may print or fail to terminate on a fill value.
+- **Empty frame:** No source cell is called, yet the result keeps the cell axes, so its rank matches the nonempty case. Following J and Remora (Slepak, Shivers, Manolios, *The Semantics of Rank Polymorphism*, §2.4), the cell shape comes from the function rather than from computed cells: a declared shape first; for a pure standard-library function without a shape hook, a zero fill cell may be probed within the runtime size limit; for user functions, the analysed result facts and settled return rank. User code never runs for this, because it may print or fail to terminate on a fill value.
 
 ### 3. Frame Selection via the `axis` Modifier
 When targeting non-trailing or arbitrary dimensions, `axis` names the **frame axes** along which the operation iterates:
@@ -54,6 +54,7 @@ Planes = T normalize axis 1 rank 2
 - **Fundamental Invariant:**
   $$\text{number of frame axes} + \text{cell rank} = \text{tensor rank}$$
 - The written order of `axis` becomes the leading result-axis order; remaining axes form the cell in natural order. This completely eliminates manual tensor transpositions.
+- Frame axes lead the result. For binary lifting, frames align by their trailing axes, and a size-1 axis may stretch to match its counterpart. A symbolic dimension may itself be 1, so static analysis can reject only mismatches it can prove.
 
 ### 4. Tensor Reductions and Combinators (`reduce`, `scan`, `outer`)
 Rank lifts scalar and vector operations across dimensions through higher-order combinators:

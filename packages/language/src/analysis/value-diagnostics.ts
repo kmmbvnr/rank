@@ -705,12 +705,23 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     }
 
     /** `Row (Row greater 0)`: a parenthesized boolean mask selects a data-dependent number of items. */
-    function maskSelection(value: Expression, declared: FunctionStatement) {
+    function maskSelection(value: Expression, declared: FunctionStatement, returned: Statement) {
         if (!isApplicationExpression(value)) return undefined;
         const parts = flattenApplication(value);
         const mask = parts.length === 2 ? parts[1] : undefined;
-        if (!mask || !isParenthesizedExpression(mask)) return undefined;
-        const inner = mask.value;
+        if (!mask) return undefined;
+        let inner: Expression;
+        if (isParenthesizedExpression(mask)) inner = mask.value;
+        else if (isNameExpression(mask)) {
+            const assignments = AstUtils.streamAllContents(declared).filter(isAssignmentStatement)
+                .filter(item => item.name === mask.name).toArray();
+            const [assignment] = assignments;
+            const returnPosition = declared.statements.indexOf(returned);
+            const assignmentPosition = assignment ? declared.statements.indexOf(assignment) : -1;
+            if (assignments.length !== 1 || assignment.operator !== '='
+                || assignmentPosition < 0 || returnPosition <= assignmentPosition) return undefined;
+            inner = assignment.value;
+        } else return undefined;
         const boolean = isBinaryExpression(inner) ? !['+', '-', '*', '/', '//', '%', '**', 'till', 'to', 'until', 'default'].includes(inner.operator)
             : (() => {
                 const last = flattenApplication(inner).at(-1);
@@ -728,7 +739,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         let found;
         for (const item of returns) {
             if (!item.value) return undefined;
-            const selected = maskSelection(item.value, declared);
+            const selected = maskSelection(item.value, declared, item);
             if (selected) { found ??= selected; continue; }
             const last = flattenApplication(item.value).at(-1);
             const operation = isNameExpression(last) && !declared.parameters.includes(last.name) && !functions.has(last.name)
@@ -742,25 +753,29 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     /** `F rank N` over a frame of several cells where F's result length depends on the values. */
     function raggedLiftWarning(expression: Expression, lookup: FactLookup): void {
         if (!isApplicationExpression(expression)) return;
-        const parts = flattenApplication(expression);
-        const modifier = parts.at(-2);
-        if (parts.length !== 4 || !isNameExpression(modifier) || modifier.name !== 'rank' || lookup('rank')) return;
-        const name = parts[1];
+        if (lookup('rank') || lookup('axis')) return;
+        const form = applicationForm(expression, name => lookup(name) ? false : findOperation(name));
+        if (form.kind !== 'rank' || form.rightRank !== undefined || form.parts.length !== 2) return;
+        const [input, name] = form.parts;
         if (!isNameExpression(name)) return;
         const declared = functions.get(name.name);
         const operation = declared ? undefined : lookup(name.name) ? undefined : findOperation(name.name);
         const source_ = declared ? raggedReturn(declared) : operation && dataDependentLength(operation) ? operation : undefined;
         if (!source_) return;
-        const rank = expressionFacts(parts[3], lookup).integer;
-        const source = expressions.get(parts[0]) ?? expressionFacts(parts[0], lookup);
+        const rank = form.rank;
+        const source = expressions.get(input) ?? expressionFacts(input, lookup);
         const sourceRank = source.shape?.length ?? source.acceptedArrayRank;
-        if (rank === undefined || BigInt(rank) < 0n || sourceRank === undefined
+        if (rank < 0n || sourceRank === undefined
             || source.types.length && source.types.join() !== 'array') return;
-        const frame = source.shape?.slice(0, Math.max(0, sourceRank - Number(rank)))
-            ?? Array<number | null>(Math.max(0, sourceRank - Number(rank))).fill(null);
+        const axes = form.axes;
+        if (axes && (axes.length + Number(rank) !== sourceRank
+            || new Set(axes).size !== axes.length || axes.some(axis => axis < 0 || axis >= sourceRank))) return;
+        const frame = axes ? axes.map(axis => source.shape?.[axis] ?? null)
+            : source.shape?.slice(0, Math.max(0, sourceRank - Number(rank)))
+                ?? Array<number | null>(Math.max(0, sourceRank - Number(rank))).fill(null);
         if (frame.length === 0 || frame.every(n => n !== null) && frame.reduce<number>((size, n) => size * n!, 1) <= 1) return;
-        diagnostics.push({ node: modifier, kind: 'DimensionMismatch', code: 'RaggedLift', severity: 'warning',
-            message: `\`${name.name}\` returns a data-dependent length${declared ? ` (from \`${source_.name}\`)` : ''}; under \`rank ${rank}\` the cells may differ in length `
+        diagnostics.push({ node: expression, kind: 'DimensionMismatch', code: 'RaggedLift', severity: 'warning',
+            message: `\`${name.name}\` returns a data-dependent length${declared ? ` (from \`${source_.name}\`)` : ''}; under \`${axes ? `axis ${axes.join(' ')} ` : ''}rank ${rank}\` the cells may differ in length `
                 + `and fail at run time. Reduce inside a function you lift (for example \`fun Total Row\` returning \`Row ... sum\`) or pad to a fixed width`});
     }
 

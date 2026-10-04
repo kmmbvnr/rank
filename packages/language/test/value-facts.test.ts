@@ -1180,6 +1180,21 @@ it('warns when rank lifts a function with a data-dependent result length', () =>
         .toContain('(from `a mask selection`)');
 });
 
+it('warns when explicit frame axes lift a data-dependent result', () => {
+    const source = 'use sequences\nM = array 1 1 2 3 shape 2 2\n(M unique axis 0 rank 1) print\n';
+    expect(ragged(source)).toMatchObject([{ severity: 'warning', message: expect.stringContaining('`unique`') }]);
+});
+
+it('warns when a lifted function selects with a named boolean mask', () => {
+    const fn = 'fun positives Row\n  Mask = Row greater 0\n  return Row Mask\nend\n';
+    const matrix = 'M = array -1 1 2 3 shape 2 2\n(M positives rank 1) print\n';
+    expect(ragged(fn + matrix)[0].message).toContain('(from `a mask selection`)');
+    const fixed = 'fun picks Row\n  Indices = array 0 1\n  return Row Indices\nend\n';
+    expect(ragged(fixed + matrix.replace('positives', 'picks'))).toEqual([]);
+    const reassigned = 'fun changed Row\n  Mask = Row greater 0\n  Mask = array true false\n  return Row Mask\nend\n';
+    expect(ragged(reassigned + matrix.replace('positives', 'changed'))).toEqual([]);
+});
+
 function bound(source: string, initial: Record<string, ValueFacts> = {}) {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(parsed.parserErrors).toEqual([]);
