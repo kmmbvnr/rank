@@ -92,6 +92,7 @@ export class Operators {
         const a = outerOperand(left, 'left');
         const b = outerOperand(right, 'right');
         const rightSize = arraySize(b.shape);
+        requireIndexable([...a.shape, ...b.shape]);
         return derivedArray([...a.shape, ...b.shape], [a, b], index => {
             const leftIndex = Math.floor(index / rightSize);
             const rightIndex = index % rightSize;
@@ -116,6 +117,7 @@ export class Operators {
         const b = outerCells(right, rightRank, 'right');
         const rightFrames = arraySize(b.frameShape);
         const scalar = this.scalarCallback(operation);
+        requireIndexable([...a.frameShape, ...b.frameShape]);
         return lazyArray([...a.frameShape, ...b.frameShape], index => {
             const arguments_ = [
                 a.cellAt(Math.floor(index / rightFrames)),
@@ -452,6 +454,12 @@ export class Operators {
     }
 }
 
+/** An outer result addresses its cells by number, so its cell count must be exact in a double. */
+function requireIndexable(shape: readonly number[]): void {
+    const cells = shape.reduce((product, dimension) => product * BigInt(dimension), 1n);
+    if (cells > BigInt(Number.MAX_SAFE_INTEGER)) throw new RankError(`outer result is too large: ${cells} cells`);
+}
+
 export function arraySize(shape: readonly number[]): number {
     return shape.reduce((product, dimension) => product * dimension, 1);
 }
@@ -468,12 +476,29 @@ function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
         throw new RankError(`outer ${side} operand must be finite`);
     }
 
+    // A range is arithmetic: element i is start + i * step, so nothing is read to know it.
+    const range = rangeLayouts.get(value);
+    if (range) {
+        return lazyArray([safeDimension(range.size, 'outer operand size')], index => range.start + BigInt(index) * range.step, true);
+    }
+    if (value.plan.size.kind === 'exact') {
+        // The size is promised, so values are read only as far as a cell asks, and kept.
+        const size = safeDimension(value.plan.size.value, 'outer operand size');
+        const read: RankValue[] = [];
+        let source: Iterator<RankValue> | undefined;
+        return lazyArray([size], index => {
+            source ??= sequenceValues(value, 'outer')[Symbol.iterator]();
+            while (read.length <= index) {
+                const next = source.next();
+                if (next.done) throw new RankError(`outer operand ended after ${read.length} values, not ${size}`);
+                read.push(next.value);
+            }
+            return read[index];
+        });
+    }
     let items: RankValue[] | undefined;
     const values = () => items ??= [...sequenceValues(value, 'outer')];
-    const size = value.plan.size.kind === 'exact'
-        ? safeDimension(value.plan.size.value, 'outer operand size')
-        : values().length;
-    return lazyArray([size], index => values()[index]);
+    return lazyArray([values().length], index => values()[index]);
 }
 
 function outerCells(
@@ -525,7 +550,17 @@ function makeRange(start: bigint, end: bigint, inclusive: boolean, stride?: bigi
     return range;
 }
 
+/** Where a range starts, how it steps and how many values it holds, for readers that index into it. */
+const rangeLayouts = new WeakMap<RankSequence, { start: bigint; step: bigint; size: bigint }>();
+
 function rangeSequence(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {
+    const range = buildRange(start, end, inclusive, stride);
+    const step = stride ?? 1n;
+    if (range.plan.size.kind === 'exact') rangeLayouts.set(range, { start, step, size: range.plan.size.value });
+    return range;
+}
+
+function buildRange(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {
     const step = stride ?? 1n;
     if (step === 0n) throw new RankError('range step must be a nonzero integer');
 
