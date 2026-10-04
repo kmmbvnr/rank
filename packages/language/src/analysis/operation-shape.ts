@@ -27,34 +27,46 @@ export function operationShapeFacts(
 }
 
 /** Shared rank/axis partition for builtin operations and user callbacks. */
+function rankedOperandPart(value: ValueFacts, rank: IntrinsicRank, axes?: readonly number[]):
+    { cell: KnownShape | undefined; frame: KnownShape } | undefined {
+    const shape = value.shape ?? (value.rank === undefined ? undefined : Array(value.rank).fill(null));
+    if (rank === 'all') return { cell: shape, frame: [] };
+    if (typeof rank !== 'number' || !Number.isSafeInteger(rank) || !shape) return;
+    // A negative rank counts down from the operand's own rank.
+    const cellRank = rank < 0 ? Math.max(0, shape.length + rank) : rank;
+    // Only tensors expose leading frames here. Text and sequences have their
+    // own mapping/boxing rules and keep their specialized transfers.
+    if (value.types.join() !== 'array') return shape.length > cellRank ? undefined : { cell: shape, frame: [] };
+    const selected = axes ?? Array.from({ length: Math.max(0, shape.length - cellRank) }, (_, n) => n);
+    if (selected.some(n => !Number.isSafeInteger(n) || n < 0 || n >= shape.length)
+        || new Set(selected).size !== selected.length
+        || axes && shape.length - selected.length !== cellRank) return;
+    return { cell: shape.filter((_, n) => !selected.includes(n)), frame: selected.map(n => shape[n]) };
+}
+
+/** A mismatch is proven only when both frame axes are concrete and cannot stretch. */
+export function rankedFrameConflict(operands: readonly ValueFacts[], ranks: readonly IntrinsicRank[],
+    axes?: readonly number[]): { left: KnownShape; right: KnownShape } | undefined {
+    if (operands.length !== 2 || ranks.length !== 2) return;
+    const left = rankedOperandPart(operands[0], ranks[0], axes)?.frame;
+    const right = rankedOperandPart(operands[1], ranks[1], axes)?.frame;
+    if (left && right && incompatibleShapes({ types: ['array'], shape: left }, { types: ['array'], shape: right })) {
+        return { left, right };
+    }
+    return;
+}
+
 export function rankedOperandShapes(operands: readonly ValueFacts[], ranks: readonly IntrinsicRank[],
     axes?: readonly number[]): { cells: (KnownShape | undefined)[]; frame: KnownShape } | undefined {
     if (operands.length !== ranks.length) return;
     const cells: (KnownShape | undefined)[] = [];
     let frame: KnownShape = [];
     for (let i = 0; i < operands.length; i++) {
-        const value = operands[i];
-        const rank = ranks[i];
-        const shape = value.shape ?? (value.rank === undefined ? undefined : Array(value.rank).fill(null));
-        if (rank === 'all') { cells.push(shape); continue; }
-        if (typeof rank !== 'number' || !Number.isSafeInteger(rank) || !shape) return;
-        // A negative rank counts down from the operand's own rank.
-        const cellRank = rank < 0 ? Math.max(0, shape.length + rank) : rank;
-        // Only tensors expose leading frames here. Text and sequences have their
-        // own mapping/boxing rules and keep their specialized transfers.
-        if (value.types.join() !== 'array') {
-            if (shape.length > cellRank) return;
-            cells.push(shape);
-            continue;
-        }
-        const selected = axes ?? Array.from({ length: Math.max(0, shape.length - cellRank) }, (_, n) => n);
-        if (selected.some(n => !Number.isSafeInteger(n) || n < 0 || n >= shape.length)
-            || new Set(selected).size !== selected.length
-            || axes && shape.length - selected.length !== cellRank) return;
-        const nextFrame = selected.map(n => shape[n]);
-        if (incompatibleShapes({ types: ['array'], shape: frame }, { types: ['array'], shape: nextFrame })) return;
-        frame = broadcastShape(frame, nextFrame);
-        cells.push(shape.filter((_, n) => !selected.includes(n)));
+        const part = rankedOperandPart(operands[i], ranks[i], axes);
+        if (!part || incompatibleShapes({ types: ['array'], shape: frame },
+            { types: ['array'], shape: part.frame })) return;
+        frame = broadcastShape(frame, part.frame);
+        cells.push(part.cell);
     }
     return { cells, frame };
 }

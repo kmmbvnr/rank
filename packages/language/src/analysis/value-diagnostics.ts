@@ -34,6 +34,7 @@ import { createLoopAnalysis } from './loop-analysis.js';
 import { freshDim } from './shape-index.js';
 import { directValue, safeCollectionValue, safeIndexDefault, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
 import { expressionFacts } from './value-facts.js';
+import { rankedFrameConflict } from './operation-shape.js';
 import { withInsertedElement } from './collection-facts.js';
 import type { ConstructorCall } from './test-examples.js';
 import { hasCallbackFreeFindProof } from './operation-proofs.js';
@@ -611,6 +612,21 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 diagnostics.push({ node: renamed.operation, kind: 'TypeError', code: 'BuiltinRename', message: renamed.message });
             }
             for (const part of parts.slice(1)) inspect(part, env);
+            const form = applicationForm(expression, name => env.has(name) ? false : findOperation(name));
+            const rankedParts = form.kind === 'rank' && form.rightRank !== undefined ? form.parts
+                : form.kind === 'plain' ? parts : undefined;
+            const rankedName = rankedParts?.at(-1);
+            const rankedOperation = rankedName && isNameExpression(rankedName) && !env.has(rankedName.name)
+                ? findOperation(rankedName.name) : undefined;
+            const ranks = form.kind === 'rank' && form.rightRank !== undefined
+                ? [Number(form.rank), Number(form.rightRank)] : rankedOperation?.dyadicRanks;
+            if (rankedParts?.length === 3 && rankedOperation?.arities.includes(2) && ranks) {
+                const operands = rankedParts.slice(0, 2).map(part => expressions.get(part)
+                    ?? expressionFacts(part, name => env.get(name)));
+                const conflict = rankedFrameConflict(operands, ranks);
+                if (conflict) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
+                    message: `shape mismatch: [${conflict.left.join(', ')}] and [${conflict.right.join(', ')}]` });
+            }
             const selectors = parts.slice(1);
             const last = parts.at(-1);
             const fenwickSelector = source.types.join() === 'fenwick'
