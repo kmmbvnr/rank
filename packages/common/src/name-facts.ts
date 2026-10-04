@@ -298,6 +298,110 @@ export function formatNameFacts(found: NameFacts, width = Infinity): string {
     let name = found.name;
     while (name.length > 1 && cellWidth(`${name}…${suffix}`) > width) name = name.slice(0, -1);
     const clipped = `${name}…${suffix}`;
-    return cellWidth(clipped) <= width ? clipped
-        : width > 1 ? [...clipped].slice(0, width - 1).join('') + '…' : [...clipped].slice(0, Math.max(0, width)).join('');
+    return cellWidth(clipped) <= width ? clipped : [...clipped].slice(0, Math.max(0, width)).join('');
+}
+
+/** Split at the spaces that are not inside parentheses or angle brackets. */
+function topLevelWords(text: string): string[] {
+    const words: string[] = [];
+    let depth = 0;
+    let word = '';
+    for (const char of text) {
+        if (char === '(' || char === '<') depth++;
+        else if (char === ')' || char === '>') depth--;
+        if (char === ' ' && depth === 0) {
+            if (word) words.push(word);
+            word = '';
+        } else word += char;
+    }
+    if (word) words.push(word);
+    // `array # #<integer>` is one type written with an axis marker per axis.
+    return words.reduce<string[]>((merged, item) => {
+        if (item.startsWith('#') && merged.length) merged[merged.length - 1] += ' ' + item;
+        else merged.push(item);
+        return merged;
+    }, []);
+}
+
+/** The members of a union, split at the `|` that sit outside nested brackets. */
+function unionMembers(text: string): string[] {
+    const members: string[] = [];
+    let depth = 0;
+    let member = '';
+    for (const char of text) {
+        if (char === '(' || char === '<') depth++;
+        else if (char === ')' || char === '>') depth--;
+        if (char === '|' && depth === 0) { members.push(member.trim()); member = ''; } else member += char;
+    }
+    members.push(member.trim());
+    return members;
+}
+
+/** A union wider than a row breaks only between its members, packed as many to a row as fit. */
+function wrapUnion(text: string, width: number, indent: string): string[] | undefined {
+    const wrapped = text.startsWith('(') && text.endsWith(')');
+    const members = unionMembers(wrapped ? text.slice(1, -1) : text);
+    if (members.length < 2) return undefined;
+    const rows: string[] = [];
+    let row = indent + (wrapped ? '(' : '');
+    members.forEach((member, at) => {
+        const piece = member + (at < members.length - 1 ? ' |' : wrapped ? ')' : '');
+        const next = row.trim() && row.trim() !== '(' ? row + ' ' + piece : row + piece;
+        if (cellWidth(next) <= width || !row.trim().replace('(', '')) row = next;
+        else { rows.push(row); row = indent + (wrapped ? ' ' : '') + piece; }
+    });
+    rows.push(row);
+    return rows;
+}
+
+/** Break a text that is wider than a row at its spaces, indenting what follows the first row. */
+function wrapElement(text: string, width: number, indent: string): string[] {
+    const rows: string[] = [];
+    let row = indent;
+    // `[rank 1]` is one unit.
+    for (const word of text.replace(/\[rank /g, '[rank\u00a0').split(' ')) {
+        const next = row.trim() ? row + ' ' + word : row + word;
+        if (cellWidth(next) <= width || !row.trim()) row = next;
+        else { rows.push(row); row = indent + '  ' + word; }
+    }
+    rows.push(row);
+    return rows.map(line => line.replace(/\u00a0/g, ' '));
+}
+
+/**
+ * The footer as rows: one row when it fits; otherwise the name, then one parameter per row with
+ * `→ result` on the last parameter's row, or on its own row when that would not fit.
+ * Types are never broken apart unless one alone is wider than a row.
+ */
+export function layoutNameFacts(found: NameFacts, width: number): string[] {
+    const text = `${found.name} · ${found.signature ?? describeFacts(found.facts)}`;
+    if (cellWidth(text) <= width || !found.signature) return cellWidth(text) <= width ? [text] : wrapElement(text, width, '');
+    return found.signature.split(' ; ').flatMap((alternative, index) => {
+        const single = `${index === 0 ? found.name + ' · ' : '  '}${alternative}`;
+        if (cellWidth(single) <= width) return [single];
+        const words = topLevelWords(alternative);
+        const arrow = words.indexOf('→');
+        const inputs = arrow < 0 ? [] : words.slice(0, arrow);
+        const result = (arrow < 0 ? words : words.slice(arrow + 1)).join(' ');
+        const rows: string[] = index === 0 ? [`${found.name} ·`] : [];
+        const place = (line: string): void => {
+            if (cellWidth(line) <= width) { rows.push(line); return; }
+            const body = line.trim();
+            const arrowed = body.startsWith('→ ');
+            const union = wrapUnion(arrowed ? body.slice(2) : body, width - (arrowed ? 2 : 0), '  ');
+            if (union && arrowed) rows.push('  → ' + union[0].trimStart(), ...union.slice(1).map(row => '  ' + row));
+            else rows.push(...(union ?? wrapElement(body, width, '  ')));
+        };
+        inputs.forEach((input, at) => {
+            const last = at === inputs.length - 1;
+            const joined = `  ${input} → ${result}`;
+            if (last && cellWidth(joined) <= width) rows.push(joined);
+            else {
+                place(`  ${input}`);
+                if (last) place(`  → ${result}`);
+            }
+        });
+        if (!inputs.length) place(`  → ${result}`);
+        return rows;
+    });
 }

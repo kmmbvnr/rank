@@ -77,12 +77,18 @@ it('keeps a completion candidate and running status ahead of the facts', () => {
     } finally { session.dispose(); }
 });
 
-it('clips a long fact to the footer width', () => {
+it('wraps a long fact onto more footer rows instead of clipping it', () => {
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        const line = footer(repl, 'LongerNameThanFits = array shape 100 200 fill 1', 3, 20)!;
-        expect(line.replace('facts: ', '').length).toBeLessThanOrEqual(19);
+        repl.notebook.replace('LongerNameThanFits = array shape 100 200 fill 1');
+        repl.notebook.cursor = 3;
+        const frame = notebookFrame(repl.notebook, 20, 12, 0, '', false, true, '', 'Running…', undefined, 'rank> ',
+            undefined, undefined, undefined, false, undefined, true, 0, repl.diagnosticOutputs, undefined, repl.nameFacts);
+        const rows = frame.lines.slice(frame.factsRow, frame.factsRow! + frame.factsRowCount!).map(line => stripAnsi(line));
+        expect(rows.length).toBeGreaterThan(1);
+        expect(rows.join(' ')).toContain('LongerNameThanFits');
+        for (const row of rows) expect(row.length).toBeLessThanOrEqual(19);
     } finally { session.dispose(); }
 });
 

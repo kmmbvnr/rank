@@ -30,7 +30,7 @@ it('uses example types without guessing unconstrained arithmetic domains', () =>
     expect(signature(source, 'twice')).toBe('a → b');
     expect(signature(source, 'twice', [{ types: ['integer'], rank: 0, shape: [] }])).toBe('integer → integer');
     expect(signature(source, 'twice', [{ types: ['array'], rank: 2, shape: [2, 3], elements: ['real'], callbackFreeScalarCells: true }]))
-        .toBe('array<real> → array<real>');
+        .toBe('array # #<real> → array # #<real>');
 });
 
 it('does not mistake an unknown field requirement for a known field result', () => {
@@ -48,5 +48,5 @@ it('displays proven literals independently of unknown operands', () => {
 it('retains ordinary result facts when a relationship cannot prove reader safety', () => {
     expect(signature('fun twice Value\n return Value * 2\nend', 'twice', [
         { types: ['array'], rank: 1, shape: [3], elements: ['integer'] },
-    ])).toBe('array<integer> → array');
+    ])).toBe('array #<integer> → array');
 });

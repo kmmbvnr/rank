@@ -1,5 +1,6 @@
 import type { ValueFacts } from './analysis/value-domain.js';
 import type { Operation } from './operations.js';
+import { operationShapeFacts } from './analysis/operation-shape.js';
 
 /** Public language types for display. Compiler eligibility is a separate contract. */
 export type SignatureAtom =
@@ -14,7 +15,8 @@ export type SignatureType = SignatureAtom
     | { readonly variable: number }
     | { readonly label: string }
     | { readonly union: readonly SignatureType[] }
-    | { readonly collection: SignatureAtom; readonly element: SignatureType }
+    /** `rank` counts the axes of an array whose rank is proven, written `array # #<integer>`. */
+    | { readonly collection: SignatureAtom; readonly element: SignatureType; readonly rank?: number }
     | { readonly tuple: readonly SignatureType[] }
     | { readonly callback: TypeSignature };
 
@@ -25,6 +27,11 @@ export interface TypeSignature {
     readonly ranks?: readonly (number | 'all')[];
 }
 
+/** A proven array rank, for display; a sequence is always one lazy axis and needs none. */
+function arrayRank(type: string, rank: number | undefined): { rank: number } | undefined {
+    return type === 'array' && rank !== undefined && rank >= 1 ? { rank } : undefined;
+}
+
 /** Convert proven facts to display types; callers choose how unknown variables are named. */
 export function signatureType(value: ValueFacts, unknown: () => SignatureType = () => 'unknown'): SignatureType {
     if (!value.types.length) return unknown();
@@ -32,7 +39,7 @@ export function signatureType(value: ValueFacts, unknown: () => SignatureType = 
         if (name === 'tuple' && value.tupleItems) return { tuple: value.tupleItems.map(item => signatureType(item, unknown)) };
         if (['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'multiset', 'heap'].includes(name)
             && value.elements?.length) return { collection: name as SignatureAtom,
-            element: signatureType({ types: value.elements }, unknown) };
+            element: signatureType({ types: value.elements }, unknown), ...arrayRank(name, value.rank) };
         return name === 'sqlite-expression' ? 'column' : name === 'sqlite-table' ? 'view'
             : name === 'sqlite-database' ? 'database' : name as SignatureAtom;
     });
@@ -59,7 +66,11 @@ export function formatTypeSignature(signature: TypeSignature): string {
             const text = value.union.map(item => type(item)).join(' | ');
             return operand && value.union.length > 1 ? `(${text})` : text;
         }
-        if ('collection' in value) return `${value.collection}<${type(value.element)}>`;
+        if ('collection' in value) {
+            // One `#` per axis, as `#` already means any axis elsewhere: `array #<integer>`, `array # #<integer>`.
+            if (value.collection === 'array' && value.rank) return `array ${Array(value.rank).fill('#').join(' ')}<${type(value.element)}>`;
+            return `${value.collection}<${type(value.element)}>`;
+        }
         if ('tuple' in value) return `tuple(${value.tuple.map(item => type(item)).join(', ')})`;
         return `(${body(value.callback)})`;
     };
@@ -105,7 +116,7 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
             return members.length === 1 ? members[0] : members.length ? { union: members } : pattern;
         }
         if ('collection' in pattern && value.elements?.length) return { ...pattern,
-            element: narrow(pattern.element, { types: value.elements }) };
+            element: narrow(pattern.element, { types: value.elements }), ...arrayRank(pattern.collection, value.rank) };
         return pattern;
     };
     const candidates = arity.filter(signature => signature.inputs.every((pattern, index) => matches(pattern, cell(signature, index))));
@@ -118,5 +129,13 @@ export function operationSignature(operation: Operation, inputs?: number | reado
     const signatures = typeof inputs === 'number'
         ? operation.signatures?.filter(signature => signature.inputs.length === inputs)
         : inputs ? matchingSignatures(operation.signatures ?? [], inputs) : operation.signatures;
-    return signatures?.length ? [...new Set(signatures.map(formatTypeSignature))].join(' ; ') : undefined;
+    // A proven result rank from the operation's shape contract is written on an array result.
+    const shaped = typeof inputs === 'object' ? operationShapeFacts(operation, inputs) : undefined;
+    const ranked = (signature: TypeSignature): TypeSignature => {
+        const result = signature.result;
+        return shaped && typeof result === 'object' && 'collection' in result && result.collection === 'array'
+            && shaped.types.join() === 'array' && shaped.rank
+            ? { ...signature, result: { ...result, rank: shaped.rank } } : signature;
+    };
+    return signatures?.length ? [...new Set(signatures.map(signature => formatTypeSignature(ranked(signature))))].join(' ; ') : undefined;
 }

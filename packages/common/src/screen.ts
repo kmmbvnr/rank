@@ -5,7 +5,7 @@ import type { Notebook } from './notebook.js';
 import { hasCode } from './repl-input.js';
 import type { PauseSnapshot } from '@arrrank/interpreter';
 import { importPhrases, missingImports } from './import-fix.js';
-import { formatNameFacts, type NameFacts } from './name-facts.js';
+import { layoutNameFacts, type NameFacts } from './name-facts.js';
 import type { ValueViewer } from './value-viewer.js';
 
 const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
@@ -128,6 +128,31 @@ function oneRow(text: string, width: number): string {
     return cellWidth(plain) <= width ? plain : clipped(plain, Math.max(1, width - 1)) + '…';
 }
 
+/** Break text at spaces into rows that fit; a word longer than a row is cut. */
+export function wrapped(text: string, width: number): string[] {
+    const rows: string[] = [];
+    let row = '';
+    for (const word of text.split(' ')) {
+        let rest = word;
+        while (cellWidth(rest) > width) {
+            if (row) { rows.push(row); row = ''; }
+            let cut = '';
+            for (const char of rest) {
+                if (cellWidth(cut + char) > width) break;
+                cut += char;
+            }
+            if (!cut) break;
+            rows.push(cut);
+            rest = rest.slice(cut.length);
+        }
+        const joined = row ? row + ' ' + rest : rest;
+        if (cellWidth(joined) <= width) row = joined;
+        else { rows.push(row); row = rest; }
+    }
+    if (row || !rows.length) rows.push(row);
+    return rows;
+}
+
 export function clipped(text: string, width: number): string {
     return editableRows(clean(text), Math.max(1, width))[0].text;
 }
@@ -161,8 +186,8 @@ export interface ScreenFrame {
     readonly targets?: readonly (ScreenTarget | undefined)[];
     /** Index in `lines` of the footer row showing the name under the cursor, for dimmer, smaller styling. */
     readonly factsRow?: number;
-    /** The footer's full, unclipped text, for a host that opens it in full on a tap. */
-    readonly factsText?: string;
+    /** The footer wraps onto this many rows (at least one) when its text is long. */
+    readonly factsRowCount?: number;
     /** Indexes in `lines` of the rows that show a result, a value or an error, rather than code, so a host can draw them smaller. */
     readonly resultRows?: readonly number[];
 }
@@ -351,7 +376,10 @@ export function notebookFrame(
     // A tap on a touch console places the cursor without following it, so the cursor being on screen is enough.
     const cursorShown = followCursor || caret.row >= previousTop && caret.row < previousTop + height;
     const showFacts = !!nameFacts && cursorShown && overscanRows <= 1 && !running && !suggestion && !promptOutputFocus && valueFocus === undefined;
-    const footerRows = height > 1 && (showShortcutHints || running || !!suggestion || !!fileStatus || showFacts) ? 1 : 0;
+    // The name under the cursor wraps onto as many rows as it needs, within a third of the screen.
+    const factsLines = showFacts ? layoutNameFacts(nameFacts!, width).slice(0, Math.max(1, Math.floor(height / 2))) : [];
+    const footerRows = height > 1 && (showShortcutHints || running || !!suggestion || !!fileStatus || showFacts)
+        ? Math.max(1, factsLines.length) : 0;
     const viewportHeight = Math.max(1, height - footerRows);
     const maxTop = Math.max(0, rows.length - viewportHeight);
     let top = Math.max(0, Math.min(previousTop, Math.max(0, rows.length - (followCursor ? 1 : viewportHeight))));
@@ -375,19 +403,19 @@ export function notebookFrame(
     if (footerRows && previousTop + height >= rows.length && top + viewportHeight < rows.length
         && caret.row >= maxTop) top = maxTop;
     // The footer takes the row that was the viewport's last; keep a cursor that sat there in view.
-    if (showFacts && !followCursor && caret.row === top + viewportHeight) top = Math.min(maxTop, top + 1);
+    if (showFacts && !followCursor && caret.row >= top + viewportHeight && caret.row < top + height)
+        top = Math.min(maxTop, caret.row - viewportHeight + 1);
     const renderedHeight = viewportHeight + Math.max(0, overscanRows);
     const lines = rows.slice(top, top + renderedHeight);
     while (lines.length < renderedHeight) lines.push('');
     let factsRow: number | undefined;
-    let factsText: string | undefined;
     // The footer sits directly under the viewport, ahead of any overscan rows, so it is never
     // pushed below the visible area.
     let footerLine: string | undefined;
+    let footerLines: string[] | undefined;
     if (footerRows && showFacts) {
         factsRow = viewportHeight;
-        factsText = formatNameFacts(nameFacts!);
-        footerLine = '\x1b[90m' + clipped(formatNameFacts(nameFacts!, width), width) + '\x1b[0m';
+        footerLines = factsLines.map(line => '\x1b[90m' + clipped(line, width) + '\x1b[0m');
     } else if (footerRows) {
         const footerWidth = width;
         let status = '';
@@ -413,9 +441,10 @@ export function notebookFrame(
         }
         footerLine = clipped(label && followCursor ? `${label} · ${status}` : status, footerWidth);
     }
-    if (footerLine !== undefined) lines.splice(viewportHeight, 0, footerLine);
+    if (footerLines) lines.splice(viewportHeight, 0, ...footerLines);
+    else if (footerLine !== undefined) lines.splice(viewportHeight, 0, footerLine);
     return { lines, cursor: { row: Math.max(0, Math.min(viewportHeight - 1, caret.row - top)), column: caret.column },
-        top, maxTop, targets: targets.slice(top, top + renderedHeight), factsRow, factsText,
+        top, maxTop, targets: targets.slice(top, top + renderedHeight), factsRow, factsRowCount: footerLines?.length,
         resultRows: resultRows.filter(row => row >= top && row < top + renderedHeight).map(row => row - top),
         cursorVisible: caret.row >= top && caret.row < top + viewportHeight, caretRow: caret.row,
         cursorStyle: promptOutputFocus ? 2 : promptFields?.some(field => field.active) ? 6
