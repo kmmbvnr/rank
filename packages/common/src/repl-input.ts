@@ -401,8 +401,21 @@ export function scanLine(line: string): LineScan {
         dedent: tokens[0]?.kind === 'word' && DEDENT_WORDS.has(tokens[0].text),
         parens,
         openString: unterminated,
-        folds: endsOpen(last),
+        folds: endsOpen(last) && !endsHigherOrder(tokens),
     };
+}
+
+const HIGHER_ORDER_WORDS = new Set(['scan', 'reduce', 'segment', 'outer']);
+
+/** `A B outer *`, `A reduce +`, `A outer not equal`: an operator named by a higher-order word is an operand, not a pending operation. */
+function endsHigherOrder(tokens: readonly Token[]): boolean {
+    const last = tokens.length - 1;
+    const named = (at: number): boolean => tokens[at]?.kind === 'word' && HIGHER_ORDER_WORDS.has(tokens[at].text);
+    const text = tokens[last]?.text;
+    if (named(last - 1)) return true;
+    if (text === 'equal' && tokens[last - 1]?.text === 'not') return named(last - 2);
+    if ((text === 'least' || text === 'most') && tokens[last - 1]?.text === 'at') return named(last - 2);
+    return text === 'by' && tokens[last - 1]?.text === 'multiple' && named(last - 2);
 }
 
 /** A `fill` at paren depth zero closes the shape form, so no `end` is needed. */

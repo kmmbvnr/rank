@@ -1,4 +1,5 @@
 import { splitSource, type Notebook } from './notebook.js';
+import { wrapLongComments } from './comment-wrap.js';
 import { hasCode } from './repl-input.js';
 import type { ReplSession } from './repl-types.js';
 
@@ -70,7 +71,7 @@ export class ExecutionRunner {
                 .map(line => command ? line : originalLines.slice(0, line).filter(text => text.trim()).length);
             this.breakpoints.delete(draftId);
             let offset = 0;
-            for (const source of command || draft === '' ? [draft] : splitSource(draft)) {
+            for (const source of command || draft === '' ? [draft] : splitSource(wrapLongComments(draft))) {
                 const id = book.cells.at(-1)!.id;
                 const lines = source.split('\n').length;
                 const selected = points.filter(line => line > offset && line <= offset + lines);

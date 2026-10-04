@@ -4,6 +4,7 @@ import {
 } from './repl-input.js';
 import type { Execution, OutputLine } from './repl-session.js';
 import { editableRows, graphemes, type TextRow } from './screen.js';
+import { wrapLongComments } from './comment-wrap.js';
 import { parse } from '@arrrank/interpreter';
 
 /** Consecutive `use` lines are one run of imports; each lives on a single line. */
@@ -255,6 +256,7 @@ export class Notebook {
     resplit(index: number): number {
         const cell = this.cells[index];
         if (!cell || cell.command || cell.status === 'running' || index === this.cells.length - 1) return 0;
+        this.wrapComments(cell);
         const joined = this.joinBlock(index);
         const parts = splitCell(cell.source);
         if (parts.length < 2) return -joined;
@@ -289,6 +291,15 @@ export class Notebook {
             this.preferredColumn = undefined;
         }
         return added.length - joined;
+    }
+
+    /** Comment lines of a cell being left are wrapped to the width of a phone line. */
+    private wrapComments(cell: NotebookCell): void {
+        const wrapped = wrapLongComments(cell.source);
+        if (wrapped === cell.source) return;
+        if (!hasCode(cell.source) && cell.executed === cell.source) cell.executed = wrapped;
+        cell.source = wrapped;
+        if (cell === this.current) this.cursor = Math.min(this.cursor, wrapped.length);
     }
 
     /**
@@ -426,10 +437,18 @@ export class Notebook {
         this.replace(prefix + text + suffix, this.cursor + text.length);
     }
 
-    newline(): void {
+    newline(continueComment = true): void {
         const prefix = this.current.source.slice(0, this.cursor);
         const line = prefix.slice(prefix.lastIndexOf('\n') + 1);
         const indent = /^ */.exec(line)![0];
+        if (continueComment && /^ *rem(?![A-Za-z0-9_])/.test(line)) {
+            // Inside a comment the next line is a comment too; Enter on an empty comment line ends it.
+            if (/^ *rem *$/.test(line)) {
+                const start = prefix.length - line.length;
+                this.replace(this.current.source.slice(0, start) + indent + this.current.source.slice(this.cursor), start + indent.length);
+            } else this.insert('\n' + indent + 'rem ');
+            return;
+        }
         const scan = scanLine(line);
         const extra = scan.opens.length > scan.closes || scan.folds ? '  ' : '';
         this.insert('\n' + indent + extra);
@@ -461,7 +480,7 @@ export class Notebook {
             if (!this.temporaryLine.source.slice(this.temporaryLine.start, this.temporaryLine.end).trim()) return;
             this.temporaryLine = undefined;
         }
-        this.newline();
+        this.newline(false);
         const source = this.current.source;
         const start = source.lastIndexOf('\n', this.cursor - 1) + 1;
         const end = source.indexOf('\n', this.cursor);

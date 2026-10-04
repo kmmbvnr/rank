@@ -23,6 +23,14 @@ export function wrapCommentLines(text: string, maxColumns = 40, indent = ''): st
     return lines.join('\n');
 }
 
+/** The comment lines longer than `maxColumns` wrapped onto continuation `rem` lines; every other line is kept. */
+export function wrapLongComments(source: string, maxColumns = 40): string {
+    return source.split('\n').map(line => {
+        const comment = /^(\s*)rem(?:\s+(.*))?$/.exec(line);
+        return comment && line.length > maxColumns ? wrapCommentLines(comment[2] ?? '', maxColumns, comment[1]) : line;
+    }).join('\n');
+}
+
 /**
  * Normalizes a word for comparison by converting to lower case and stripping surrounding punctuation.
  */
