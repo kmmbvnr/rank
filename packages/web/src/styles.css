@@ -40,7 +40,10 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 .mobile #terminal #caret { background: #fff; outline: 0; animation: caret-blink 1s step-end infinite; }
 #terminal.scrolling #caret { animation: none !important; visibility: hidden; }
 @keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { #terminal.focused #caret, .mobile #terminal #caret { animation: none; } }
+/* A long run: the block squashes into an underline and back, smoothly, rather than blinking. */
+@keyframes caret-working { 0%, 100% { clip-path: inset(0 0 0 0); opacity: 1; } 50% { clip-path: inset(86% 0 0 0); opacity: 0.8; } }
+#terminal.working #caret, .mobile #terminal.working #caret { animation: caret-working 1.1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { #terminal.focused #caret, .mobile #terminal #caret, #terminal.working #caret { animation: none; } }
 #input {
     position: absolute; width: 2px; height: 1.5em; padding: 0; margin: 0;
     border: 0; outline: 0; resize: none; overflow: hidden;

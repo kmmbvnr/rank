@@ -317,6 +317,8 @@ function render(): void {
     runButton.setAttribute('aria-label', shownPause ? 'Step into line; hold to continue execution'
         : repl.running ? (session.turboActive ? 'Stop execution' : 'Pause and debug; hold to stop') : 'Run through selected line; hold to run all from start');
     runButton.disabled = modes.waitingForPause || !!session.pauseRequested && !paused;
+    // After half a second of work the caret breathes instead of blinking, so a long run reads as busy.
+    terminal.classList.toggle('working', repl.running && !shownPause && runningElapsed >= 500);
     turboButton.hidden = !repl.running || runningElapsed < 1500 || !!shownPause || !!session.turboActive;
     turboButton.disabled = modes.waitingForPause;
     // The steppers only make sense while the cursor sits on a loop being previewed.

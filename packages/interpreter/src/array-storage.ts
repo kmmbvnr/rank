@@ -815,7 +815,7 @@ export function derivedArray(
     };
     // One pass over a huge array must not fill the cell cache: a cell already held is used, any other
     // is computed and dropped.
-    const streamAt = (index: number): RankValue => {
+    const streamAt = shape.reduce((size, dimension) => size * dimension, 1) < STREAM_CELLS ? undefined : (index: number): RankValue => {
         const run = (): RankValue => {
             valid();
             if (cells.has(index)) return cells.get(index)!;

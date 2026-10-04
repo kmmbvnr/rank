@@ -464,6 +464,9 @@ export function arraySize(shape: readonly number[]): number {
     return shape.reduce((product, dimension) => product * dimension, 1);
 }
 
+/** Operands up to this many values are read whole on first use: indexing a held array is cheaper than addressing. */
+const OUTER_EAGER_OPERAND = 65_536n;
+
 function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
     if (isRankArray(value)) return value;
     if (isRankQueue(value)) {
@@ -476,7 +479,7 @@ function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
         throw new RankError(`outer ${side} operand must be finite`);
     }
 
-    if (value.plan.size.kind === 'exact') {
+    if (value.plan.size.kind === 'exact' && value.plan.size.value > OUTER_EAGER_OPERAND) {
         // The size is promised, so values are read only as far as a cell asks, and kept.
         const size = safeDimension(value.plan.size.value, 'outer operand size');
         const read: RankValue[] = [];
@@ -497,7 +500,10 @@ function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
     }
     let items: RankValue[] | undefined;
     const values = () => items ??= [...sequenceValues(value, 'outer')];
-    return lazyArray([values().length], index => values()[index]);
+    const size = value.plan.size.kind === 'exact'
+        ? safeDimension(value.plan.size.value, 'outer operand size')
+        : values().length;
+    return lazyArray([size], index => values()[index]);
 }
 
 function outerCells(
