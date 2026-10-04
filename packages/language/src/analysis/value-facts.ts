@@ -228,8 +228,8 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
         const filteredLength = source.checkedColumns ? freshDim('filtered') : undefined;
         if (source.types.join() === 'array' && source.rank === 1) return {
             types: ['array'], rank: 1, shape: [null],
-            ...(filteredLength && source.checkedTableId !== undefined
-                ? { dims: [filteredLength], checkedTableId: source.checkedTableId, checkedColumns: Object.fromEntries(
+            ...(filteredLength && source.checkedInputId !== undefined
+                ? { dims: [filteredLength], checkedInputId: source.checkedInputId, checkedColumns: Object.fromEntries(
                     Object.entries(source.checkedColumns ?? {}).map(([name, column]) => [name,
                         { ...column, shape: [null], dims: [filteredLength] }])) } : {}),
         };

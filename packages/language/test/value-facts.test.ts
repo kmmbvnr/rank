@@ -108,6 +108,45 @@ it('forgets checked CSV columns after mutating a row through an alias', () => {
     expect(analysis.bindings.get('After')?.types).toEqual([]);
 });
 
+it('carries checked JSON field facts through nested selections', () => {
+    const document = JSON.stringify('{"payload":{"items":[1,2]}}');
+    const source = `use json\nDoc = ${document} json check\nItems = Doc .payload .items\nTotal = Items sum`;
+    const analysis = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
+    expect(analysis.bindings.get('Doc')?.checkedFields?.payload?.checkedFields?.items).toBeDefined();
+    expect(analysis.bindings.get('Items')?.types).toEqual(['integer', 'real', 'missing', 'array']);
+    expect(analysis.bindings.get('Items')?.elements).toEqual(['integer', 'real', 'missing']);
+    const unchecked = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source.replace(' json check', ' json')).value);
+    expect(unchecked.bindings.get('Items')?.types).toEqual([]);
+});
+
+it('types validated XML attributes as text without guessing unchecked keys', () => {
+    const xml = JSON.stringify('<item id="12"/>');
+    const source = `use xml\nDoc = ${xml} xml check\nId = Doc .attributes .id`;
+    const analysis = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
+    expect(analysis.bindings.get('Id')).toMatchObject({ types: ['text'], rank: 1 });
+    const unchecked = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source.replace(' xml check', ' xml')).value);
+    expect(unchecked.bindings.get('Id')?.types).toEqual([]);
+});
+
+it('forgets a checked XML attribute after mutating its object alias', () => {
+    const xml = JSON.stringify('<item id="12"/>');
+    const source = `use xml\nDoc = ${xml} xml check\nId = Doc .attributes .id\nAttrs = Doc .attributes\nAttrs .id = 12\nAfter = Doc .attributes .id`;
+    const analysis = analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
+    expect(analysis.bindings.get('After')?.types).toEqual([]);
+});
+
+it('forgets checked document fields after mutation through a nested alias', () => {
+    const document = JSON.stringify('{"payload":{"items":[1,2]}}');
+    const source = `use json\nDoc = ${document} json check\nItems = Doc .payload .items\nTotal = Items sum\nPart = Doc .payload\nPart .items = "bad"\nAfter = Doc .payload .items`;
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+    expect(parsed.parserErrors).toEqual([]);
+    const analysis = analyzeValues(parsed.value);
+    const before = parsed.value.statements.find(item => isAssignmentStatement(item) && item.name === 'Items');
+    if (!before || !isAssignmentStatement(before)) throw new Error('expected Items assignment');
+    expect(analysis.expressions.get(before.value)?.types).toContain('array');
+    expect(analysis.bindings.get('After')?.types).toEqual([]);
+});
+
 it('infers outer facts from literal JSON without assuming external schemas', () => {
     expect(facts('"[{\\"x\\":1},{\\"x\\":2}]" json')).toEqual({
         types: ['array'], rank: 1, shape: [2], elements: ['object'], eagerScalarCells: true,

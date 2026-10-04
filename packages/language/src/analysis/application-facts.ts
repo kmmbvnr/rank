@@ -219,6 +219,7 @@ function transferApplicationFacts(
     let parts = flattened;
     if (flattened.length > 2 && isLabelLiteral(flattened[1])
         && (infer(flattened[0], lookup).fields?.[flattened[1].name]
+            || infer(flattened[0], lookup).checkedFields?.[flattened[1].name]
             || infer(flattened[0], lookup).checkedColumns?.[flattened[1].name])) {
         let prefix: Expression = expression;
         while (isApplicationExpression(prefix) && flattenApplication(prefix).length > 2) {
@@ -230,6 +231,7 @@ function transferApplicationFacts(
     for (let index = 2; parts.length > 2 && index < parts.length; index++) {
         const label = parts[index];
         if (!isLabelLiteral(label) || !(infer(parts[index - 1], lookup).fields?.[label.name]
+            || infer(parts[index - 1], lookup).checkedFields?.[label.name]
             || infer(parts[index - 1], lookup).checkedColumns?.[label.name])) continue;
         parts = [...parts.slice(0, index - 1), applicationExpression([parts[index - 1], label], expression),
             ...parts.slice(index + 1)];
@@ -329,7 +331,7 @@ function transferApplicationFacts(
         && lookup(last.name) === undefined && source.types.join() === 'text') {
         const text = { types: ['text'], rank: 1, shape: [null] };
         return { types: ['object'], fields: {
-            kind: text, name: text, value: text, attributes: { types: ['object'] },
+            kind: text, name: text, value: text, attributes: { types: ['object'], xmlAttributeValues: true },
             children: { types: ['array'], rank: 1, shape: [null], elements: ['object'] },
         } };
     }
@@ -382,6 +384,9 @@ function transferApplicationFacts(
         types: ['sequence'], rank: 1, shape: [null], elements: source.elements,
         callbackFreeScalarCells: true,
     };
+    if (parts.length === 2 && isLabelLiteral(last) && source.checkedFields?.[last.name]) {
+        return source.checkedFields[last.name];
+    }
     if (parts.length === 2 && ['record', 'object'].includes(source.types.join()) && isLabelLiteral(last)) {
         return source.fields?.[last.name] ?? UNKNOWN_VALUE;
     }
@@ -880,8 +885,8 @@ function transferApplicationFacts(
             ...(source.eagerScalarCells || source.callbackFreeScalarCells
                 ? { callbackFreeScalarCells: true as const } : {}) };
         if (source.elements?.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
-        if (source.elements?.join() === 'object' && source.checkedTableId !== undefined) {
-            return { types: ['object'], checkedTableId: source.checkedTableId };
+        if (source.elements?.join() === 'object' && source.checkedInputId !== undefined) {
+            return { types: ['object'], checkedInputId: source.checkedInputId };
         }
         if (source.types[0] === 'array' && source.elements?.join() === 'record' && source.elementRecord) {
             return source.elementRecord;

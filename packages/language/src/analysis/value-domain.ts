@@ -32,8 +32,12 @@ export interface ValueFacts {
     readonly elementRecord?: ValueFacts;
     /** Columns validated by an explicit CSV check. This is not a per-row record schema. */
     readonly checkedColumns?: Readonly<Record<string, ValueFacts>>;
-    /** Origin shared by aliases and filtered views, for write invalidation. */
-    readonly checkedTableId?: number;
+    /** Origin shared by aliases and selected values, for write invalidation. */
+    readonly checkedInputId?: number;
+    /** Named projections and their facts validated at a read. */
+    readonly checkedFields?: Readonly<Record<string, ValueFacts>>;
+    /** XML attribute objects have input-defined keys but always contain text values. */
+    readonly xmlAttributeValues?: true;
     /** Identity of a locally constructed collection; dropped when effects are unknown. */
     readonly collectionId?: number;
     /** Element types by position for a fixed rank-1 array. */
@@ -227,12 +231,16 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
     const fields = ['record', 'object'].includes(types.join()) && first.fields
         ? Object.fromEntries(Object.keys(first.fields).filter(name => values.every(value => value.fields?.[name]))
             .map(name => [name, joinValueFacts(values.map(value => value.fields![name]))])) : undefined;
-    const checkedTableId = first.checkedTableId !== undefined
-        && values.every(value => value.checkedTableId === first.checkedTableId) ? first.checkedTableId : undefined;
-    const checkedColumns = checkedTableId !== undefined && first.checkedColumns
+    const checkedInputId = first.checkedInputId !== undefined
+        && values.every(value => value.checkedInputId === first.checkedInputId) ? first.checkedInputId : undefined;
+    const checkedColumns = checkedInputId !== undefined && first.checkedColumns
         ? Object.fromEntries(Object.keys(first.checkedColumns)
             .filter(name => values.every(value => value.checkedColumns?.[name]))
             .map(name => [name, joinValueFacts(values.map(value => value.checkedColumns![name]))])) : undefined;
+    const checkedFields = checkedInputId !== undefined && first.checkedFields
+        ? Object.fromEntries(Object.keys(first.checkedFields)
+            .filter(name => values.every(value => value.checkedFields?.[name]))
+            .map(name => [name, joinValueFacts(values.map(value => value.checkedFields![name]))])) : undefined;
     const dims = shape && values.every(value => value.dims?.length === shape.length)
         ? shape.map((_, axis) => values.every(value => value.dims![axis] && first.dims![axis]
             && compareDims(value.dims![axis]!, first.dims![axis]!) === 'equal') ? first.dims![axis] : null) : undefined;
@@ -262,7 +270,10 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
             ? { collectionId: first.collectionId } : {}),
         ...(positions ? { positions } : {}),
         ...(fields ? { fields } : {}),
-        ...(checkedColumns ? { checkedTableId, checkedColumns } : {}),
+        ...(checkedInputId !== undefined ? { checkedInputId } : {}),
+        ...(checkedColumns ? { checkedColumns } : {}),
+        ...(checkedFields ? { checkedFields } : {}),
+        ...(values.every(value => value.xmlAttributeValues) ? { xmlAttributeValues: true as const } : {}),
         ...(first.tupleItems && values.every(value => value.tupleItems?.length === first.tupleItems!.length)
             ? { tupleItems: first.tupleItems.map((_, index) => joinValueFacts(values.map(value => value.tupleItems![index]))) } : {}),
         ...(fields && values.every(value => value.closedRecord && value.fields

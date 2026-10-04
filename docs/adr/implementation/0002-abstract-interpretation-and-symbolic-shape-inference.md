@@ -142,8 +142,14 @@ after the read expression, using one symbolic row length shared by its columns.
 Aliases and pure filters retain the checked column types; a filter gets a fresh
 length. Writes through a tracked row or table alias, uncertain effects, and
 unrelated table results discard these facts. The column map is distinct from a
-record schema because a CSV row may omit an empty cell. Neither arbitrary
-input files nor test fixtures are read to manufacture static facts. Collection
+record schema because a CSV row may omit an empty cell. Direct checked JSON/XML
+reads likewise carry validated named selections through nested objects. Fixed
+XML node fields are known without `check`; dynamic attribute keys acquire text
+facts only when their presence was checked. Mutable aliases share one checked
+origin, so a write discards its selection facts. Function-local checked reads
+still use the runtime call plans without claiming caller-specific forward facts.
+Neither arbitrary input files nor test fixtures are read to manufacture static
+facts. Collection
 infinity settlement is also outside this static-analysis change.
 
 ### 3. Real-Time LSP Diagnostic Emission

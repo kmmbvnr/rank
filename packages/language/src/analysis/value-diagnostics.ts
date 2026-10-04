@@ -3,7 +3,7 @@ import { rankedFunctionFacts, rankedFunctionInputs } from './ranked-function-fac
 import type { FunctionRelationship } from './function-relationships.js';
 import { arrayBindingContract, establishedArrayContract, refineArrayContract, contractElements, arrayContractConflict } from './array-binding-contract.js';
 import { AstUtils, type AstNode } from 'langium';
-import { inferRequirements, type RequirementAnalysis } from './requirements.js';
+import { inferRequirements, type RequirementAnalysis, type ValueRequirement } from './requirements.js';
 import { requirementDiagnostics } from './requirement-diagnostics.js';
 import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isNumberLiteral, isStringLiteral, isParenthesizedExpression,
@@ -61,7 +61,33 @@ export interface ValueAnalysis {
 }
 
 let nextCollectionId = 0;
-let nextCheckedTableId = 0;
+let nextCheckedInputId = 0;
+
+/** Facts available only after a read has validated its backward requirements. */
+function checkedSelectionFacts(required: ValueRequirement, base: ValueFacts, id: number): ValueFacts {
+    const exactRank = required.rank.min === required.rank.max ? required.rank.min : undefined;
+    const domains = required.domains;
+    const possible = !base.types.length && domains?.length
+        ? exactRank === 0 ? domains
+            : exactRank !== undefined && exactRank > 1 ? ['array']
+                : exactRank === 1 ? [...(domains.includes('text') ? ['text'] : []), 'array']
+                    : [...new Set([...domains, 'array'])] : base.types;
+    const shape = exactRank !== undefined && !base.shape
+        ? Array.from({ length: exactRank }, (_, axis) => {
+            const length = required.dimensions.get(axis);
+            return length && length.min === length.max ? length.min : null;
+        }) : base.shape;
+    const checkedFields: Record<string, ValueFacts> = {};
+    for (const [name, field] of required.fields ?? []) {
+        const known = base.fields?.[name] ?? (base.xmlAttributeValues
+            ? { types: ['text'], rank: 1, shape: [null] } : UNKNOWN_VALUE);
+        checkedFields[name] = checkedSelectionFacts(field, known, id);
+    }
+    return { ...base, types: possible, ...(shape ? { shape } : {}),
+        ...(exactRank !== undefined && base.rank === undefined ? { rank: exactRank } : {}),
+        ...(!base.elements && possible.includes('array') && domains?.length ? { elements: domains } : {}),
+        checkedInputId: id, ...(Object.keys(checkedFields).length ? { checkedFields } : {}) };
+}
 
 /** A non-executing pass. Unknown facts never justify a diagnostic. */
 export function analyzeValues(program: Program, initial: ReadonlyMap<string, ValueFacts> = new Map(),
@@ -667,7 +693,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         ...(field.domains?.length ? { elements: field.domains } : {}), eagerScalarCells: true as const }]));
                 result = { ...result, types: ['array'], rank: 1, shape: [null], dims: [rowLength],
                     elements: ['object'], eagerScalarCells: true,
-                    checkedTableId: nextCheckedTableId++, checkedColumns: columns };
+                    checkedInputId: nextCheckedInputId++, checkedColumns: columns };
+            } else if (form.kind === 'checked-read') {
+                const needed = requirements.expressions.get(expression);
+                if (needed) result = checkedSelectionFacts(needed, result, nextCheckedInputId++);
             }
         }
         expressions.set(expression, result);
@@ -929,9 +958,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 invalidateCalls(statement.value, env);
                 const replacement = inspect(statement.value, env);
                 let fact = env.get(statement.name);
-                if (fact?.checkedTableId !== undefined) {
-                    for (const [name, alias] of env) if (alias.checkedTableId === fact.checkedTableId) {
-                        env.set(name, { ...alias, checkedColumns: undefined, checkedTableId: undefined });
+                if (fact?.checkedInputId !== undefined) {
+                    for (const [name, alias] of env) if (alias.checkedInputId === fact.checkedInputId) {
+                        env.set(name, { ...alias, checkedColumns: undefined, checkedFields: undefined,
+                            checkedInputId: undefined });
                     }
                     fact = env.get(statement.name);
                 }
@@ -992,7 +1022,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && (selector.eagerScalarCells === true || selector.callbackFreeScalarCells === true);
                 const lineTypes = statement.operator === '=' ? replacement.elements ?? []
                     : compoundType(statement.operator, fact?.elements ?? [], replacement.elements ?? []);
-                const lineWrite = fact?.rank === statement.indices.length
+                const lineWrite = !!fact && fact.rank === statement.indices.length
                     && fact.eagerScalarCells === true && !!fact.elements?.length
                     && fact.elements.every(type => type === 'integer' || type === 'real')
                     && statement.indices.every((index, position) => !index.spread
@@ -1005,12 +1035,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && replacement.elements.every(type => type === 'integer' || type === 'real')
                     && lineTypes.length > 0 && lineTypes.every(type => type === 'integer' || type === 'real');
                 const compound = statement.operator !== '=' && (oneCellSelectors || indexedCells)
+                    && !!fact
                     && fact.eagerScalarCells === true
                     && !!fact.elements?.length && fact.elements.every(type => type === 'integer' || type === 'real')
                     && replacement.rank === 0 && replacement.types.length > 0
                     && replacement.types.every(type => type === 'integer' || type === 'real')
                     ? compoundType(statement.operator, fact.elements, replacement.types) : [];
-                const lineCompound = statement.operator !== '=' && fact?.rank === statement.indices.length
+                const lineCompound = statement.operator !== '=' && !!fact && fact.rank === statement.indices.length
                     && fact.eagerScalarCells === true && !!fact.elements?.length
                     && fact.elements.every(type => type === 'integer' || type === 'real')
                     && statement.indices.every((index, position) => !index.spread

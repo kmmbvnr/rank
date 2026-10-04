@@ -4778,7 +4778,10 @@ unconditional requirement. Checked reads inside functions receive independent
 requirements from each known call. The check occurs when the value is parsed,
 not when a later use reaches it. Without `check`, reads keep their existing
 runtime behavior; analysis still reports contradictions it can prove from
-program text. Defining a function named `check` makes it an ordinary call.
+program text. After a successful check, analysis can use validated CSV column
+and JSON/XML field facts until a possible mutation invalidates them. XML node
+fields are fixed even without a check; XML attribute keys are input-defined.
+Defining a function named `check` makes it an ordinary call.
 
 `csv` reads UTF-8 comma-separated data with a header row and returns a rank-1
 array of object rows. Quoted fields may contain commas, line endings and escaped
