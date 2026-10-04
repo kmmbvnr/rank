@@ -30,6 +30,7 @@ import {
     isRankWavelet,
     isRankSet,
     isRankLabel,
+    tuple,
     type NativeFunction,
     type RankArray,
     type RankValue,
@@ -987,9 +988,26 @@ export function sortDescending(direction: RankValue): boolean {
     return direction.name === 'descending';
 }
 
-/** The standard sort or argsort fixed to one direction, keeping its ranks. */
-export function directedSort(fn: NativeFunction, name: 'sort' | 'argsort', descending: boolean): NativeFunction {
-    return { ...fn, call: args => name === 'sort' ? sortValue(args[0], descending) : argsortValue(args[0], descending) };
+/** What `sort` returns besides the ordered values: the permutation, or both. */
+export type SortMode = 'indexes' | 'indexed';
+
+/** `.indexes` (or `.index`) and `.indexed` after sort; any other label is a direction. */
+export function sortMode(label: RankValue): SortMode | undefined {
+    if (!isRankLabel(label)) return undefined;
+    if (label.name === 'indexes' || label.name === 'index') return 'indexes';
+    return label.name === 'indexed' ? 'indexed' : undefined;
+}
+
+/** The standard sort or argsort fixed to one direction and result, keeping its ranks. */
+export function directedSort(
+    fn: NativeFunction, name: 'sort' | 'argsort', descending: boolean, mode?: SortMode,
+): NativeFunction {
+    if (name === 'argsort') return { ...fn, call: args => argsortValue(args[0], descending) };
+    if (mode === 'indexes') return { ...fn, call: args => argsortValue(args[0], descending) };
+    if (mode === 'indexed') {
+        return { ...fn, call: args => tuple([sortValue(args[0], descending), argsortValue(args[0], descending)]) };
+    }
+    return { ...fn, call: args => sortValue(args[0], descending) };
 }
 
 /**

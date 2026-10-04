@@ -1,0 +1,52 @@
+rem Largest Palindrome Product
+rem https://projecteuler.net/problem=4
+rem Early-stopping variant: merge the rows of
+rem the product table in decreasing order, so
+rem the first palindrome found is the answer.
+
+use sequences
+use text
+use io
+use cli
+
+rem Number of digits in each factor.
+option Digits integer = 3
+
+Lower = 10 ** (Digits - 1)
+Upper = Lower * 10 - 1
+
+rem Row R holds Upper - R times a factor that
+rem starts at Upper - R and counts down, so
+rem each product is visited once.
+Rows = Upper - Lower + 1
+Left = (Upper - (0 till Rows)) copy
+Right = Left copy
+Heads = (Left * Right) copy
+
+Answer = 0
+for
+  unpack Candidate Row = Heads max .indexed
+  if Candidate equal 0
+    break
+  end
+  if Candidate palindrome
+    Answer = Candidate
+    break
+  end
+  Next = Right Row - 1
+  Right Row = Next
+  Heads Row = Left Row * Next
+  if Next less Lower
+    Heads Row = 0
+  end
+end
+
+Answer print
+
+rem Return true when a nonnegative integer
+rem reads the same in both directions.
+fun palindrome X
+  Text = X text
+  Back = Text reverse
+  return Text equal Back
+end

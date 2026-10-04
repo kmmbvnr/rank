@@ -9,7 +9,7 @@ import { textFunctionSqlite } from './modules/sqlite.js';
 import { mapSequence, sequence } from './sequence.js';
 import { broadcastShape, mapBroadcastArrays } from './tensor.js';
 import { arrayOffset, coordinatesAt, sameShape } from './tensor-index.js';
-import { isRankArray, isRankSqliteExpression, isRankSequence, valueRank,
+import { isRankArray, isRankLabel, isRankSqliteExpression, isRankSequence, valueRank,
     type IntrinsicRank, type NativeFunction, type RankArray, type RankSequence, type RankValue } from './value.js';
 
 const arrayItem = readArrayItem;
@@ -88,6 +88,7 @@ export class RankApplication {
             );
         }
         if (arguments_.length === 2 && fn.dyadicRanks
+            && !isRankLabel(arguments_[1])
             && arguments_.some(isRankArray)) {
             return this.applyDyadicAtRank(
                 arguments_[0], arguments_[1], fn,

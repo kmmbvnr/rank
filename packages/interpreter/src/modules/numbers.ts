@@ -17,12 +17,14 @@ import {
 } from '../sequence.js';
 import {
     isRankArray,
+    isRankLabel,
     isRankMultiset,
     isRankQueue,
     isRankSqliteExpression,
     isRankSequence,
     isRankSet,
     MISSING,
+    tuple,
     type RankValue,
     type SequencePlan,
     type SequencePredicate,
@@ -291,7 +293,44 @@ export function numericExtreme(
         const right = expectExtremeOperand(b);
         return replacesExtreme(right, left) ? right : left;
     };
+    /** `.index` and `.indexed`: the first position of the extreme, found in the same pass. */
+    const positionedExtreme = (source: RankValue, mode: string): RankValue => {
+        if (mode !== 'index' && mode !== 'indexed') {
+            throw new RankError(`${name} accepts only the .index and .indexed modifiers`, 'TypeError');
+        }
+        const value = numericSource(source, name);
+        if (isRankArray(value) && value.shape.length !== 1) {
+            throw new RankError(`${name} .${mode} expects a rank-1 collection`, 'DimensionMismatch');
+        }
+        if (!isRankArray(value) && !isRankSequence(value)) {
+            throw new RankError(`${name} .${mode} expects an array or sequence`, 'TypeError');
+        }
+        const items = isRankArray(value)
+            ? shouldStream(value) ? streamCells(value) : value.items
+            : sequenceValues(value, name);
+        let result: RankValue | undefined;
+        let position = 0n;
+        let index = 0n;
+        for (const item of items) {
+            checkpoint('computing numbers');
+            if (item !== MISSING) {
+                const operand = expectExtremeOperand(item);
+                if (result === undefined || replacesExtreme(operand, result)) {
+                    result = operand;
+                    position = index;
+                }
+            }
+            index += 1n;
+        }
+        if (result === undefined) {
+            throw new RankError(`${name} requires at least one value`, 'EmptyReduction');
+        }
+        return mode === 'index' ? position : tuple([result, position]);
+    };
     return native(name, [1, 2], arguments_ => {
+        if (arguments_.length === 2 && isRankLabel(arguments_[1])) {
+            return positionedExtreme(arguments_[0], arguments_[1].name);
+        }
         if (arguments_.length === 2) {
             return binary(arguments_[0], arguments_[1]);
         }

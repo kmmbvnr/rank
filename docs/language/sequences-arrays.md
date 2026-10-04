@@ -739,6 +739,20 @@ Rows = M argsort
 Columns = M argsort axis 0
 ```
 
+`max` and `min` take `.index` for the 0-based position of the first extreme
+value and `.indexed` for the pair `[Value, Position]`; `sort` takes `.indexes`
+(or `.index`) for the same permutation as `argsort` and `.indexed` for the pair
+`[SortedValues, Indices]`. They combine with a direction in either order, and
+ties give the earliest position. Both extremes need a rank-1 array or a bounded
+sequence and raise `EmptyReduction` on an empty one.
+
+```rank
+Row = Heads max .index
+unpack Value Position = Heads max .indexed
+Order = Values sort .indexes .descending
+unpack Sorted Order = Values sort .indexed
+```
+
 Without `axis`, intrinsic rank 1 means that a tensor is ordered independently
 along its last axis. `axis N` instead orders every vector along axis `N` and
 places the local source positions in the same tensor shape. The source is not

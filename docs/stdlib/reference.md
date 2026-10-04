@@ -149,6 +149,7 @@ These constructs are always available.
 | `Left Right max` | The larger of two numbers; min gives the smaller. |
 | `Low to High` | Counting range with an inclusive upper bound; after values, keeps those at most High. |
 | `Low till High` | Counting range with an exclusive upper bound; after values, keeps those below High. |
+| `Values max .index` | Position of the first largest value; min .index gives the smallest, .indexed a value and position pair. |
 
 ## crypto
 
@@ -387,6 +388,7 @@ These need `use sequences` but have no name to look up.
 | `Values argsort by .field` | Source positions of that same order. |
 | `Index Choices choose` | Selects each cell from the choice its integer index names; choices are leading cells. |
 | `Values sort .descending` | Sorts in descending order; argsort and per-key sort directions preserve ties. |
+| `Values sort .indexes` | Positions that order the values, as argsort does; .indexed gives the sorted values and positions as a pair. |
 
 ## stats
 

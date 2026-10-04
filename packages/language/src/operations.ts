@@ -192,6 +192,12 @@ const extremaSignatures: readonly TypeSignature[] = (['number', 'text', 'boolean
         { inputs: ['missing', 'unknown'], result: 'missing', ranks: [0, 0] },
         { inputs: ['unknown', 'missing'], result: 'missing', ranks: [0, 0] },
     ]);
+/** `Values max .index` and `.indexed`: the position of the extreme, alone or beside it. */
+const genericCollection: SignatureType = { collection: 'array', element: { variable: 0 } };
+const positionSignatures: readonly TypeSignature[] = [
+    { inputs: [{ union: [genericCollection, { collection: 'sequence', element: { variable: 0 } }] }, { label: 'index' }], result: 'integer' },
+    { inputs: [{ union: [genericCollection, { collection: 'sequence', element: { variable: 0 } }] }, { label: 'indexed' }], result: 'tuple' },
+];
 const elementVariable: SignatureType = { variable: 0 };
 const genericArray: SignatureType = { collection: 'array', element: elementVariable };
 const randomInput: SignatureType = { union: [genericArray, { collection: 'sequence', element: elementVariable }] };
@@ -817,13 +823,15 @@ export const operations: readonly Operation[] = [
         signatures: realMathSignatures,
         summary: 'Natural logarithm of a positive finite number.' },
     { name: 'max', module: 'core', arities: [1, 2], form: 'Left Right max', result: 'number', axisReduction: true,
-        signatures: [...extremaSignatures, { inputs: ['column'], result: 'number' }],
+        modifiers: ['index', 'indexed'],
+        signatures: [...extremaSignatures, { inputs: ['column'], result: 'number' }, ...positionSignatures],
         shape: [{ args: [null], result: [] }, { args: [[], []], result: [] }],
         dyadicRanks: [0, 0], scalarCellArrayNoCallback: 'number', numericArrayNoCallback: true,
         selectsNumericCell: true,
         summary: 'Larger of two numbers, or the largest of one collection.' },
     { name: 'min', module: 'core', arities: [1, 2], form: 'Left Right min', result: 'number', axisReduction: true,
-        signatures: extremaSignatures,
+        modifiers: ['index', 'indexed'],
+        signatures: [...extremaSignatures, ...positionSignatures],
         shape: [{ args: [null], result: [] }, { args: [[], []], result: [] }],
         dyadicRanks: [0, 0], scalarCellArrayNoCallback: 'number', numericArrayNoCallback: true,
         selectsNumericCell: true,
@@ -1259,6 +1267,12 @@ export const moduleForms: readonly ModuleForm[] = [
     { module: 'sequences', form: 'Values sort .descending',
         example: 'Sorted = (array 1 3 2) sort .descending',
         summary: 'Sorts in descending order; argsort and per-key sort directions preserve ties.' },
+    { module: 'core', form: 'Values max .index',
+        example: 'Row = (array 3 9 2 9) max .index',
+        summary: 'Position of the first largest value; min .index gives the smallest, .indexed a value and position pair.' },
+    { module: 'sequences', form: 'Values sort .indexes',
+        example: 'Order = (array 3 9 2) sort .indexes',
+        summary: 'Positions that order the values, as argsort does; .indexed gives the sorted values and positions as a pair.' },
     { module: 'tables', form: 'Left Right leftjoin by .id',
         example: 'use json\nRows = "[{\\"x\\": 1}]" json\nJ = Rows Rows leftjoin by .x',
         summary: 'Join on shared fields after by, or on field pairs after on.' },

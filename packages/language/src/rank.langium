@@ -473,7 +473,7 @@ BooleanValue returns boolean:
     'true' | 'false';
 
 LabelLiteral:
-    '.' name=(Identifier | 'array' | 'record' | 'tuple');
+    '.' name=(Identifier | 'array' | 'record' | 'tuple' | 'index');
 
 NameExpression:
     name=ReferenceName;

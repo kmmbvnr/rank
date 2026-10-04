@@ -2,12 +2,12 @@ import { groupModifiers } from './modifier-grouping.js';
 import { AstUtils, GrammarUtils, isAstNode, type AstNode, type CstNode } from 'langium';
 import {
     isApplicationExpression, isBinaryExpression, isExpression, isHigherOrderOperator, isMaterializeExpression,
-    isNameExpression, type HigherOrderOperator,
+    isLabelLiteral, isNameExpression, type HigherOrderOperator,
     type BinaryExpression, type Expression, type NameExpression, type Program,
 } from './generated/ast.js';
 import { analyzeBindings } from './analysis/bindings.js';
 import { flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped } from './expressions.js';
-import { operationArities } from './operations.js';
+import { findOperation, operationArities } from './operations.js';
 import { splitClauseConditions } from './clause-conditions.js';
 
 // A comparison takes one operand on each side and binds below arithmetic, so
@@ -239,7 +239,8 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                     // `Left max Right` was an infix form; a chain such as `A B max 5 min` continues with a call.
                     if (isNameExpression(part) && (part.name === 'min' || part.name === 'max')
                         && parts.length > 0 && next && index + 2 === original.length && !callable(next)
-                        && !(isNameExpression(next) && modifiers.has(next.name))) {
+                        && !(isNameExpression(next) && modifiers.has(next.name))
+                        && !(isLabelLiteral(next) && findOperation(part.name)?.modifiers?.includes(next.name))) {
                         report(part, `${part.name} is a postfix call. Write \`Left Right ${part.name}\` instead of \`Left ${part.name} Right\`.`);
                     }
                     parts.push(part);

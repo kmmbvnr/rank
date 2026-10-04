@@ -22,7 +22,7 @@ function isRankNumber(expression: Expression | undefined): boolean {
 
 function isSortDirection(expression: Expression | undefined): boolean {
     return isLabelLiteral(expression)
-        && (expression.name === 'ascending' || expression.name === 'descending');
+        && ['ascending', 'descending', 'index', 'indexes', 'indexed'].includes(expression.name);
 }
 
 /**
@@ -43,7 +43,12 @@ function declaredModifier(parts: Expression[], standard: StandardName): number |
 function boundary(parts: Expression[]): number | undefined {
     const direction = parts.findIndex((part, index) => index > 1
         && isSortDirection(part) && applicationForm(parts.slice(0, index + 1)).kind === 'sort-direction');
-    if (direction >= 0) return direction < parts.length - 1 ? direction + 1 : undefined;
+    if (direction >= 0) {
+        // `sort .indexes .descending` carries both labels.
+        let end = direction + 1;
+        while (end < parts.length && isSortDirection(parts[end])) end++;
+        return end < parts.length ? end : undefined;
+    }
     if (named(parts[2], 'segment') || named(parts[2], 'scan')) {
         const end = named(parts[3], 'with') || named(parts[3], 'axis') ? 5 : 3;
         return parts.length > end ? end : undefined;

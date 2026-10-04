@@ -1,6 +1,6 @@
 import {
     applicationExpression as applicationParts, applicationForm, assertNever, flattenApplication, isAllAxisExpression,
-    isApplicationExpression, isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression,
+    isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression,
     renamedBuiltinCall, type ApplicationForm, type ArrayItem, type Expression, type Operation,
 } from '@arrrank/language';
 import { RankError } from '../errors.js';
@@ -17,7 +17,8 @@ import { dsuQuery, functionalQuery } from '../modules/graph.js';
 import { matmulValues } from '../modules/linalg.js';
 import { shuffleValue } from '../modules/random.js';
 import {
-    argsortAxis, directedSort, lengthOfAxis, materializeCollection, sortDescending, transposeValue,
+    argsortAxis, directedSort, lengthOfAxis, materializeCollection, sortDescending, sortMode, transposeValue,
+    type SortMode,
 } from '../modules/sequences.js';
 import { correlationValue, covarianceValue, errorMetricValue, quantileValue } from '../modules/stats.js';
 import { formattedText } from '../modules/text.js';
@@ -161,8 +162,13 @@ export class ApplicationEvaluator {
                 const sortDirection = form;
                 return function* (): Execution<RankValue> {
                     context.requireModule('sequences', 'sort direction');
-                    const direction = sortDirection.direction;
-                    const parts = flattenApplication(expression).slice(0, -1);
+                    const all = flattenApplication(expression);
+                    let labelStart = all.length;
+                    while (labelStart > 1 && isLabelLiteral(all[labelStart - 1])) labelStart--;
+                    // `Values sort .indexes .descending`: the labels may come in either order.
+                    const labels = labelStart < all.length ? all.slice(labelStart)
+                        : [sortDirection.direction];
+                    const parts = labelStart < all.length ? all.slice(0, labelStart) : all.slice(0, -1);
                     const inner = applicationForm(parts, name => context.operationOf(name));
                     if (inner.kind === 'invalid') throw new RankError(inner.message);
                     const axis = inner.kind === 'axis-argsort' ? inner : undefined;
@@ -175,10 +181,23 @@ export class ApplicationEvaluator {
                     if (!context.builtins.is('sequences', name, fn) || !isNativeFunction(fn)) {
                         throw new RankError('sort direction requires the standard sort or argsort', 'TypeError');
                     }
-                    const descending = sortDescending(yield* resume(context.evaluate(direction)));
-                    if (axis) return argsortAxis(yield* resume(context.evaluate(axis.source)), axis.axis, descending);
+                    let descending: boolean | undefined;
+                    let mode: SortMode | undefined;
+                    for (const label of labels) {
+                        const value = yield* resume(context.evaluate(label));
+                        const picked = sortMode(value);
+                        if (picked) {
+                            if (mode) throw new RankError('sort accepts one of .indexes and .indexed', 'TypeError');
+                            if (name !== 'sort') throw new RankError(`argsort does not accept .${picked}`, 'TypeError');
+                            mode = picked;
+                        } else {
+                            if (descending !== undefined) throw new RankError('sort direction given twice', 'TypeError');
+                            descending = sortDescending(value);
+                        }
+                    }
+                    if (axis) return argsortAxis(yield* resume(context.evaluate(axis.source)), axis.axis, descending ?? false);
                     const source = yield* resume(context.evaluate(applicationParts((ranked?.parts ?? parts).slice(0, -1))));
-                    const directed = directedSort(fn, name, descending);
+                    const directed = directedSort(fn, name, descending ?? false, mode);
                     return yield* resume(ranked
                         ? application.applyAtRank([source, directed], ranked.rank, ranked.axes)
                         : context.rankApplication.applyIntrinsicRank(directed, [source]));
