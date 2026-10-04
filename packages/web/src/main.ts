@@ -4,6 +4,7 @@ import { ValueOverlay } from './value-overlay.js';
 import type { PauseSnapshot } from '@arrrank/interpreter';
 import { NotebookRepl } from '@arrrank/common/repl';
 import { KeyRouter, type Key } from '@arrrank/common/key-router';
+import { importPosition } from '@arrrank/common/import-fix';
 import { TerminalModeRouter } from '@arrrank/common/terminal-modes';
 import { fixAt, notebookFrame, helpFrame, pauseFrame, viewerFrame, type ScreenFrame } from '@arrrank/common/screen';
 import { keyAvailable, keyboardModules, keyboardTabs, keyText } from '@arrrank/common/symbol-keyboard';
@@ -728,11 +729,15 @@ async function importKeyboardModule(module: string): Promise<void> {
     const book = repl.notebook;
     const current = book.current;
     const cursor = book.cursor;
-    // Keep leading imports together: Ctrl-R resets and evaluates this whole cell.
-    if (book.cells.length > 1 && /^use\s/.test(book.cells[0].source)) {
-        book.cells[0].source = `use ${module}\n${book.cells[0].source}`;
-    } else book.insertCell(0, `use ${module}`);
-    book.selectTo(0, book.cells[0].source.length);
+    // Imports stay together and sorted, below any leading comments: Ctrl-R resets and evaluates the cell.
+    const { index, line } = importPosition(book.cells, module, book.cells.length - 1);
+    if (line === undefined) book.insertCell(index, `use ${module}`);
+    else {
+        const lines = book.cells[index].source.split('\n');
+        lines.splice(line, 0, `use ${module}`);
+        book.cells[index].source = lines.join('\n');
+    }
+    book.selectTo(index, book.cells[index].source.length);
     await press({ name: 'r', ctrl: true });
     book.selectTo(book.cells.indexOf(current), cursor);
     if (repl.session.modules.includes(module)) {

@@ -47,6 +47,17 @@ describe('import suggestions', () => {
         expect(importPosition(book.cells, 'numbers', 2)).toEqual({ index: 1 });
     });
 
+    it('places a keyboard import after the comments and among the imports, with the prompt as the limit', () => {
+        const book = new Notebook();
+        for (const source of ['rem Header', 'rem More', 'X = 1']) book.enqueue(source);
+        const prompt = book.cells.length - 1;
+        expect(importPosition(book.cells, 'graph', prompt)).toEqual({ index: 2 });
+        const imported = new Notebook();
+        for (const source of ['rem Header', 'use graph', 'X = 1']) imported.enqueue(source);
+        expect(importPosition(imported.cells, 'sequences', imported.cells.length - 1)).toEqual({ index: 1, line: 1 });
+        expect(importPosition(imported.cells, 'algo', imported.cells.length - 1)).toEqual({ index: 1, line: 0 });
+    });
+
     it('underlines the suggestion and inverts it when focused', async () => {
         const { repl, keys } = await failAtPrompt([], 'X = 4.0 sqrt');
         const plain = frame(repl);
