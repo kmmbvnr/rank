@@ -8,7 +8,6 @@ use sequences
 use text
 use io
 use cli
-use algo
 
 rem Number of digits in each factor.
 option Digits integer = 3
@@ -16,25 +15,17 @@ option Digits integer = 3
 Lower = 10 ** (Digits - 1)
 Upper = Lower * 10 - 1
 
-rem Each factor pair starts at A * A. The heap
-rem keeps the largest unvisited product first.
-Factors = (Lower to Upper) array
-Squares = Factors * Factors
-Pairs = stack Factors Factors transpose
-Candidates = new heap Squares Pairs .descending
+rem Every product row is descending. Merge the
+rem rows without materializing the product table.
+Factors = Upper to Lower by -1
+Products = Factors Factors outer *
+Candidates = Products merge .descending
 
 Answer = 0
-for Candidates len greater 0
-  unpack A B = Candidates pop
-  Product = A * B
+for Product in Candidates
   if Product palindrome
     Answer = Product
     break
-  end
-  if B greater Lower
-    Next = B - 1
-    Product = A * Next
-    Candidates Product (array A Next) enqueue
   end
 end
 

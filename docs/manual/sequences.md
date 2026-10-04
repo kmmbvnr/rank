@@ -564,6 +564,37 @@ alphabetically.
 
 sort by, argsort, reverse
 
+## merge
+
+Read sorted streams as one sequence.
+
+```rank
+use sequences
+(array 1 3 5) (array 2 4 6) merge array
+```
+
+```result
+1 2 3 4 5 6
+```
+
+### Usage
+
+```text
+A B merge
+Streams merge
+Matrix merge .descending
+Streams merge by .field
+```
+
+`merge` also accepts sorted matrix rows.
+Inputs must follow the chosen direction.
+A key function may replace `.field`.
+Only requested values are read.
+
+### See also
+
+sort, transpose, first
+
 ## transpose
 
 Swap rows and columns.

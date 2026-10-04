@@ -201,7 +201,7 @@ Dsu A B connected
 
 ### See also
 
-merge, findroot, new
+DSU merge, findroot, new
 
 ## cycle
 
@@ -394,7 +394,7 @@ connected is simpler.
 
 ### See also
 
-connected, merge
+connected, DSU merge
 
 ## floyd
 
@@ -588,7 +588,7 @@ which mark the bottleneck.
 
 dijkstra
 
-## merge
+## DSU merge
 
 Join the groups of two values in a dsu.
 

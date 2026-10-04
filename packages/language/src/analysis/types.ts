@@ -13,7 +13,7 @@ import { flattenApplication } from '../expressions.js';
 import {
     isTupleExpression, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
-    isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression,
+    isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isKeyedMergeExpression, isLabelLiteral, isMaterializeExpression,
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
     isRecordExpression, isRecordUpdateExpression, isStdinExpression, isStringLiteral, isTextBlockExpression, isUnaryExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression,
@@ -134,6 +134,8 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
     if (isTableWritePreviewExpression(expression)) {
         return expression.mode === 'sql' ? ['record'] : ['array'];
     }
+    if (isKeyedMergeExpression(expression)
+        || isKeyedSortExpression(expression) && expression.operator.startsWith('merge')) return ['sequence'];
     if (isKeyedSortExpression(expression) || isKeyedJoinExpression(expression)
         || isKeyedReachExpression(expression)) return ['array'];
     if (isNewStructureExpression(expression)) {

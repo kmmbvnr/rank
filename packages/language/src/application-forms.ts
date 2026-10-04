@@ -282,6 +282,10 @@ export function explicitFunctionalMethod(
 
 export function explicitDsuMethod(parts: Expression[]): DsuMethodApplication | undefined {
     if (parts.length !== 3 && parts.length !== 4) return undefined;
+    if (parts.length === 4 && isNamed(parts[3], 'merge')) {
+        return { receiver: parts[0], operation: 'merge', operationExpression: parts[3],
+            arguments: parts.slice(1, 3) };
+    }
     const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
     if (operation === 'findroot' && parts.length === 3) {
         return {

@@ -14,7 +14,7 @@ import {
     isTupleExpression, isApplicationExpression, isArgsStatement, isArgumentStatement,
     isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isFlagStatement,
     isForStatement, isFunctionStatement, isIfStatement,
-    isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression,
+    isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isKeyedMergeExpression,
     isMaterializeExpression, isNameExpression, isOptionStatement, isParenthesizedExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression, isSelectLocal,
     isPushStatement, isRecordExpression, isRecordField, isRecordUpdateExpression, isReturnStatement, isStdinExpression,
@@ -498,6 +498,12 @@ class Analyzer {
         }
         if (isKeyedSortExpression(expression)) {
             this.expression(expression.source);
+            this.expression(expression.key);
+            return;
+        }
+        if (isKeyedMergeExpression(expression)) {
+            this.expression(expression.left);
+            this.expression(expression.right);
             this.expression(expression.key);
             return;
         }

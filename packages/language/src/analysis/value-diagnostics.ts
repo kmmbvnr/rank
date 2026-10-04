@@ -430,6 +430,16 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                             return directValue(part) && isAtom(fact) && fact.types.length > 0
                                 && fact.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type));
                         })) continue;
+                    if (parts.length === 4 && parts[3] === node && dsu?.types.join() === 'dsu'
+                        && parts.slice(1, 3).every(part => {
+                            const fact = expressionFacts(part, name => env.get(name));
+                            return directValue(part) && isAtom(fact) && fact.types.length > 0
+                                && fact.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type));
+                        })) continue;
+                    if (parts.length === 4 && (parts[1] === node || parts[3] === node)) {
+                        unknown = true;
+                        continue;
+                    }
                 }
                 if (node.name === 'len') {
                     let site: AstNode = node;

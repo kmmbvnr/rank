@@ -805,6 +805,31 @@ SQLite emits DESC for descending keys and still needs explicit tie-breakers
 for a deterministic order among equal keys. Keep sorting as the final SQL
 operation before output when order is required.
 
+`merge` combines already sorted streams into a lazy sequence. Give it two
+rank-1 arrays or sequences, a finite collection of streams, or a rank-2
+matrix whose rows are sorted. It reads one head from each input, then only
+advances the stream that supplied the next result. Equal keys keep their
+order within a stream; ties between streams use input order.
+
+```rank
+Merged = (array 1 3 5) (array 2 4 6) merge
+Rows = stack (array 9 5 1) (array 8 4 0)
+Descending = Rows merge .descending
+```
+
+The default direction is ascending. Inputs must already follow that order;
+an out-of-order item raises an error when it is read. `merge by .field` or
+`merge by Key` compares one field or the result of a unary key function and
+returns the original items. The key runs only when the item is read. Write
+`.descending` after the field or key for descending inputs. To merge matrix
+columns, transpose the matrix first. `merge` consumes whole streams, so it
+has no special `axis` or `rank` form.
+
+```rank
+Events = Arrivals Departures merge by .time
+ByMagnitude = Negative Positive merge by magnitude
+```
+
 `Mask choose TrueValues FalseValues` selects a value at each position. A
 scalar boolean selects one branch; arrays broadcast by the usual trailing-axis
 rules and produce a lazy array. Only the chosen branch is read at each cell.

@@ -13,6 +13,7 @@ import {
     isKeyedSortExpression,
     isKeyedGroupExpression,
     isKeyedJoinExpression,
+    isKeyedMergeExpression,
     isKeyedReachExpression,
     isMaterializeExpression,
     isSubjectComparisonExpression,
@@ -28,6 +29,14 @@ beforeAll(() => {
 });
 
 describe('Rank grammar', () => {
+    it('parses binary and collection keyed merge forms', async () => {
+        const document = await parse('M = A B merge by .time\nN = Streams merge by key');
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const [binary, collection] = document.parseResult.value.statements;
+        expect(isAssignmentStatement(binary) && isKeyedMergeExpression(binary.value)).toBe(true);
+        expect(isAssignmentStatement(collection) && isKeyedSortExpression(collection.value)).toBe(true);
+    });
     it('restores keyed operands and their containers after sharing the application prefix', async () => {
         const document = await parse([
             'A = (Rows) (3) rolling by .time',
