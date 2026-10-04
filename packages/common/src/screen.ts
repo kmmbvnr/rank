@@ -161,6 +161,8 @@ export interface ScreenFrame {
     readonly targets?: readonly (ScreenTarget | undefined)[];
     /** Index in `lines` of the footer row showing the name under the cursor, for dimmer, smaller styling. */
     readonly factsRow?: number;
+    /** The footer's full, unclipped text, for a host that opens it in full on a tap. */
+    readonly factsText?: string;
     /** Indexes in `lines` of the rows that show a result, a value or an error, rather than code, so a host can draw them smaller. */
     readonly resultRows?: readonly number[];
 }
@@ -368,17 +370,23 @@ export function notebookFrame(
     }
     if (followCursor && anchoredCursorRow !== undefined)
         top = Math.max(0, caret.row - Math.min(anchoredCursorRow, viewportHeight - 1));
+    // The footer must not bury the last row (the prompt): if the end of the notebook was on screen
+    // without it, scroll one row so it stays reachable, as long as the cursor remains in view.
+    if (footerRows && previousTop + height >= rows.length && top + viewportHeight < rows.length
+        && caret.row >= maxTop) top = maxTop;
     // The footer takes the row that was the viewport's last; keep a cursor that sat there in view.
     if (showFacts && !followCursor && caret.row === top + viewportHeight) top = Math.min(maxTop, top + 1);
     const renderedHeight = viewportHeight + Math.max(0, overscanRows);
     const lines = rows.slice(top, top + renderedHeight);
     while (lines.length < renderedHeight) lines.push('');
     let factsRow: number | undefined;
+    let factsText: string | undefined;
     // The footer sits directly under the viewport, ahead of any overscan rows, so it is never
     // pushed below the visible area.
     let footerLine: string | undefined;
     if (footerRows && showFacts) {
         factsRow = viewportHeight;
+        factsText = formatNameFacts(nameFacts!);
         footerLine = '\x1b[90m' + clipped(formatNameFacts(nameFacts!, width), width) + '\x1b[0m';
     } else if (footerRows) {
         const footerWidth = width;
@@ -407,7 +415,7 @@ export function notebookFrame(
     }
     if (footerLine !== undefined) lines.splice(viewportHeight, 0, footerLine);
     return { lines, cursor: { row: Math.max(0, Math.min(viewportHeight - 1, caret.row - top)), column: caret.column },
-        top, maxTop, targets: targets.slice(top, top + renderedHeight), factsRow,
+        top, maxTop, targets: targets.slice(top, top + renderedHeight), factsRow, factsText,
         resultRows: resultRows.filter(row => row >= top && row < top + renderedHeight).map(row => row - top),
         cursorVisible: caret.row >= top && caret.row < top + viewportHeight, caretRow: caret.row,
         cursorStyle: promptOutputFocus ? 2 : promptFields?.some(field => field.active) ? 6

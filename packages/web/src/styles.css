@@ -24,6 +24,9 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 .terminal-row { height: 1.5em; white-space: pre; }
 /* The name under the cursor: smaller, in the same 1.5em of row height. */
 .terminal-row.terminal-facts { font-size: .85em; height: calc(1.5em / .85); line-height: calc(1.5em / .85); }
+/* The footer's full text, opened over the notebook just above the footer row. */
+#facts-panel { position: absolute; left: 0; right: 0; bottom: calc(1.5em / .85); z-index: 1; padding: 8px 12px; background: #1c1c1c; border-top: 1px solid #333; color: #cfcfcf; font-size: .85em; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 50%; overflow-y: auto; -webkit-user-select: text; user-select: text; }
+#facts-panel[hidden] { display: none; }
 /* A result on a touch console, a value or an error: a little smaller than code, in the same 1.5em of row height so the grid and taps still line up. */
 .terminal-row.terminal-result { font-size: calc(1em * var(--result-scale, .88)); height: calc(1.5em / var(--result-scale, .88)); line-height: calc(1.5em / var(--result-scale, .88)); }
 /* The marker and the indent in front of a result keep the size of code, so the text starts where the code above starts. */

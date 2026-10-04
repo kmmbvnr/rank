@@ -152,3 +152,20 @@ it('renders a proven notebook relationship and a concrete call signature in the 
         expect(footer(repl, call, call.lastIndexOf('identity') + 1)).toBe('facts: identity · integer → integer');
     } finally { session.dispose(); }
 });
+
+it('keeps the prompt row reachable when the footer appears over a full screen', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        for (let index = 0; index < 11; index++) repl.notebook.insertCell(repl.notebook.cells.length - 1, `V${index} = ${index}`);
+        repl.notebook.active = 1;
+        repl.notebook.cursor = 2;
+        for (const follow of [true, false]) {
+            const frame = notebookFrame(repl.notebook, 40, 12, 0, '', false, follow, '', 'Running…', undefined, 'rank> ',
+                undefined, undefined, undefined, false, undefined, true, 0, repl.diagnosticOutputs, undefined, repl.nameFacts);
+            expect(frame.factsRow).toBe(11);
+            expect(stripAnsi(frame.lines[10])).toBe('rank> ');
+            expect(frame.cursorVisible).toBe(true);
+        }
+    } finally { session.dispose(); }
+});

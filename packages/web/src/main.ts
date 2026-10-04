@@ -18,6 +18,21 @@ import { VoiceDictation, isVoiceSupported } from './voice-dictation.js';
 
 const terminal = document.querySelector<HTMLElement>('#terminal')!;
 const screen = document.querySelector<HTMLElement>('#screen')!;
+/** The footer's full text, opened by a tap on the footer and closed by the next tap or any change of the name under the cursor. */
+const factsPanel = document.createElement('div');
+factsPanel.id = 'facts-panel';
+factsPanel.hidden = true;
+terminal.append(factsPanel);
+function closeFactsPanel(): void {
+    factsPanel.hidden = true;
+    factsPanel.dataset.text = '';
+}
+function openFactsPanel(text: string): void {
+    factsPanel.textContent = text;
+    factsPanel.dataset.text = text;
+    factsPanel.hidden = false;
+}
+
 const input = document.querySelector<HTMLTextAreaElement>('#input')!;
 const caret = document.querySelector<HTMLElement>('#caret')!;
 const measure = document.querySelector<HTMLElement>('#measure')!;
@@ -390,6 +405,7 @@ function render(): void {
         if (compact) keepMarkerFullSize(element);
     });
     paintedLines = painted;
+    if (factsPanel.dataset.text !== (frame.factsText ?? '')) closeFactsPanel();
     caret.style.width = (frame.cursorStyle === 6 ? 2 : cellWidth) + 'px';
     caret.hidden = !frame.cursorVisible || !!repl.help || Boolean(activeVoiceDictation);
     placeScreen();
@@ -1004,6 +1020,12 @@ input.addEventListener('selectionchange', syncInputSelection);
 
 async function locate(x: number, y: number): Promise<void> {
     stopMomentum();
+    const rowAtTap = Math.floor((y - terminal.getBoundingClientRect().top + scrollFraction) / cellHeight);
+    if (!factsPanel.hidden) { closeFactsPanel(); if (rowAtTap === frame.factsRow) return; }
+    else if (frame.factsText !== undefined && rowAtTap >= (frame.factsRow ?? Infinity) && !windowedFrame) {
+        openFactsPanel(frame.factsText);
+        return;
+    }
     if (activeVoiceDictation) stopVoiceDictation();
     repl.dismiss();
     if (busy || repl.running || repl.help) { if (!keyboardEnabled) return; focusInput(); return; }

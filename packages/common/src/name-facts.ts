@@ -298,5 +298,6 @@ export function formatNameFacts(found: NameFacts, width = Infinity): string {
     let name = found.name;
     while (name.length > 1 && cellWidth(`${name}…${suffix}`) > width) name = name.slice(0, -1);
     const clipped = `${name}…${suffix}`;
-    return cellWidth(clipped) <= width ? clipped : [...clipped].slice(0, Math.max(0, width)).join('');
+    return cellWidth(clipped) <= width ? clipped
+        : width > 1 ? [...clipped].slice(0, width - 1).join('') + '…' : [...clipped].slice(0, Math.max(0, width)).join('');
 }
