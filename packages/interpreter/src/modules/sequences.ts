@@ -60,7 +60,6 @@ export const sequencesModule: RuntimeModule = {
         || arguments_[0] instanceof RankPersistentSumSegment
             ? arguments_[0].copy()
             : copyArray(arguments_[0])),
-    stack: () => native('stack', 1, arguments_ => stackValue(arguments_[0])),
     sort: () => native('sort', [1, 2], arguments_ => sortValue(arguments_[0])),
     argsort: () => native(
         'argsort',
@@ -349,23 +348,18 @@ function copyArray(value: RankValue): RankArray {
 }
 
 /**
- * `Items stack`: the lazy counterpart of `copy` for equally shaped array or sequence
- * items. The frame is the shape of `Items`; the item axes follow it. Shapes are checked
- * when the view is made, cells are read from the items on demand.
+ * `stack A B`: lazily join equally shaped arrays or sequences on a leading axis.
+ * Shapes are checked when the view is made; cells are read on demand.
  */
-function stackValue(value: RankValue): RankArray {
-    if (isRankSequence(value)) {
-        throw new RankError('stack expects an array of arrays or sequences; use copy for a sequence', 'TypeError');
-    }
-    if (!isRankArray(value)) throw new RankError('stack expects an array of arrays or sequences', 'TypeError');
-    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+export function stackValues(values: readonly RankValue[]): RankArray {
+    const size = values.length;
     const mismatch = (message: string) => new RankError(message, 'DimensionMismatch');
     const readers: ((index: number) => RankValue)[] = [];
-    const dependencies: RankArray[] = [value];
+    const dependencies: RankArray[] = [];
     let cellShape: readonly number[] | undefined;
     for (let position = 0; position < size; position += 1) {
         checkpoint('stacking items');
-        let item = value.itemAt?.(position) ?? value.items[position]!;
+        let item = values[position]!;
         let shape: readonly number[];
         if (isRankSequence(item)) {
             const length = item.plan.size;
@@ -395,9 +389,9 @@ function stackValue(value: RankValue): RankArray {
             throw mismatch('stack items must have the same shape');
         }
     }
-    if (cellShape === undefined) return ownedArray([], value.shape);
+    if (cellShape === undefined) throw new RankError('stack expects one or more arrays or sequences');
     const cellSize = cellShape.reduce((product, dimension) => product * dimension, 1);
-    return derivedArray([...value.shape, ...cellShape], dependencies, index =>
+    return derivedArray([size, ...cellShape], dependencies, index =>
         readers[cellSize === 0 ? 0 : Math.floor(index / cellSize)]!(cellSize === 0 ? 0 : index % cellSize));
 }
 

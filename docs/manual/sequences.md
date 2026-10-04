@@ -189,7 +189,7 @@ Two lists of 2 make a 2-by-2 matrix.
 use sequences
 A = array 1 2
 B = array 3 4
-S = (array A B) stack
+S = stack A B
 S shape
 ```
 

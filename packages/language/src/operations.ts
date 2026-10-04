@@ -921,10 +921,6 @@ export const operations: readonly Operation[] = [
         signatures: [{ inputs: [{ union: ['array', 'bytes', 'sequence'] }], result: 'array' },
             { inputs: ['segment'], result: 'segment' }],
         summary: 'Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack.' },
-    { name: 'stack', module: 'sequences', arities: [1], form: 'Items stack', result: 'array',
-        signatures: [{ inputs: [{ collection: 'array', element: { union: [genericArray, { collection: 'sequence', element: elementVariable }] } }],
-            result: genericArray }],
-        summary: 'Lazy array of equally shaped array or sequence items; their axes follow the frame of Items. copy is the eager form.' },
     { name: 'count', module: 'sequences', arities: [1], form: 'Mask count', result: 'integer', axisReduction: true,
         signatures: [{ inputs: [booleanCollection], result: 'integer' }],
         shape: [{ args: [null], result: [] }],
@@ -1190,6 +1186,8 @@ export const operations: readonly Operation[] = [
 ];
 
 export const moduleForms: readonly ModuleForm[] = [
+    { module: 'sequences', form: 'stack A B', example: 'X = array 1 2\nY = array 3 4\nPairs = stack X Y transpose',
+        summary: 'Builds a lazy array from equally shaped arrays or exact-size sequences.' },
     { module: 'cli', form: 'option Name Type = Default', example: 'option N integer = 3',
         summary: 'Declares a named command-line input.' },
     { module: 'cli', form: 'argument Name Type', example: 'argument N integer = 3',

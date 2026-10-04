@@ -326,6 +326,7 @@ export type ApplicationForm =
     | { readonly kind: 'new-filled'; readonly structure: string }
     | { readonly kind: 'new-heap'; readonly priorities?: Expression; readonly values?: Expression;
         readonly direction?: Expression }
+    | { readonly kind: 'stack-constructor'; readonly items: readonly Expression[]; readonly rest: readonly Expression[] }
     | { readonly kind: 'text-format'; readonly position: number }
     | Recognized<'collection-mutation', typeof explicitCollectionMutation>
     | Recognized<'comparison-rank', typeof explicitComparisonRank>
@@ -398,7 +399,7 @@ export function applicationForm(
             while (isParenthesizedExpression(read)) read = read.value;
             parts.splice(0, 1, ...flattenApplication(read).map(normalize));
         }
-        const form = classifyParts(parts);
+        const form = classifyParts(parts, lookup);
         return originals.size ? restore(form) as ApplicationForm : form;
     } catch (error) {
         if (error instanceof ApplicationSyntaxError) return { kind: 'invalid', message: error.message };
@@ -406,7 +407,20 @@ export function applicationForm(
     }
 }
 
-function classifyParts(parts: Expression[]): ApplicationForm {
+function classifyParts(parts: Expression[], lookup: ApplicationLookup): ApplicationForm {
+    if (isNamed(parts[0], 'stack')) {
+        const end = parts.findIndex((part, index) => {
+            if (index <= 1 || !isNameExpression(part)) return false;
+            const operation = lookup(part.name);
+            return !!operation && operation.arities.length > 0;
+        });
+        const items = parts.slice(1, end < 0 ? undefined : end);
+        if (!items.length) return { kind: 'invalid', message: 'stack expects one or more arrays or sequences' };
+        return { kind: 'stack-constructor', items, rest: end < 0 ? [] : parts.slice(end) };
+    }
+    if (parts.slice(1).some(part => isNamed(part, 'stack'))) {
+        return { kind: 'invalid', message: 'use stack A B to stack arrays' };
+    }
     if (isNamed(parts.at(-1), 'check')) {
         const read = parts.slice(0, -1);
         const operation = read.find((part, index) => index > 0 && isNameExpression(part)

@@ -586,6 +586,34 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             }
             for (const part of parts.slice(1)) inspect(part, env);
             const form = applicationForm(expression, name => env.has(name) ? false : findOperation(name));
+            if (form.kind === 'stack-constructor') {
+                const cells = form.items.map(item => expressionFacts(item, lookup));
+                const invalid = cells.some(cell => cell.types.length && !cell.types.every(type =>
+                    type === 'array' || type === 'sequence'));
+                if (invalid) {
+                    diagnostics.push({ node: expression, kind: 'TypeError',
+                        message: 'stack expects arrays or sequences' });
+                }
+                const first = cells[0];
+                for (const cell of invalid ? [] : cells.slice(1)) {
+                    if (first.rank !== undefined && cell.rank !== undefined && first.rank !== cell.rank
+                        || first.shape && cell.shape && first.shape.some((size, axis) =>
+                            size !== null && cell.shape?.[axis] !== null && cell.shape?.[axis] !== size)) {
+                        diagnostics.push({ node: expression, kind: 'DimensionMismatch',
+                            message: 'stack arguments must have the same shape' });
+                        break;
+                    }
+                    const conflict = first.types.join() === cell.types.join()
+                        ? recordFieldConflict(first, cell, 'stack elements', true)
+                        : first.elements?.length && cell.elements?.length
+                            && provenBindingTypeConflict(first.elements, cell.elements);
+                    if (conflict) {
+                        diagnostics.push({ node: expression, kind: 'TypeError',
+                            message: 'stack arguments must have one element type' });
+                        break;
+                    }
+                }
+            }
             const rankedParts = form.kind === 'rank' && form.rightRank !== undefined ? form.parts
                 : form.kind === 'plain' ? parts : undefined;
             const rankedName = rankedParts?.at(-1);

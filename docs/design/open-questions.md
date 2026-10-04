@@ -223,8 +223,8 @@ after SQL joins. Contextual select blocks now name nested output fields.
 Rank still needs a final name and exact semantics for combining unequal arrays
 into a higher-rank rectangular value with padding.
 
-`mix` was rejected as a user-facing name. `stack` is a candidate but is not yet
-fixed.
+`mix` was rejected as a user-facing name. `stack A B ...` now joins equally
+shaped arrays without padding, so the padded operation still needs a name.
 
 ## Rectangular and ragged construction
 

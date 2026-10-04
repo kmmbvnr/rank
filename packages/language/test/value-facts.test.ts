@@ -28,6 +28,16 @@ it('separates scalar type, array elements, rank and dimensions', () => {
         shape: [2, 2], eagerScalarCells: true });
 });
 
+it('infers the shape and cells of a prefix stack through transpose', () => {
+    const vector: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'],
+        eagerScalarCells: true };
+    const bindings = new Map([['X', vector], ['Y', vector]]);
+    expect(facts('stack X Y', bindings)).toMatchObject({ types: ['array'], rank: 2,
+        shape: [2, 3], elements: ['integer'] });
+    expect(facts('stack X Y transpose', bindings)).toMatchObject({ types: ['array'], rank: 2,
+        shape: [3, 2], elements: ['integer'] });
+});
+
 it('keeps only shared exact boolean facts across paths', () => {
     expect(facts('true')).toEqual({ types: ['boolean'], rank: 0, shape: [], boolean: true });
     expect(facts('not false')).toEqual({ types: ['boolean'], rank: 0, shape: [], boolean: true });

@@ -211,6 +211,11 @@ Series = (array Month Interest Balance) copy transpose
 Series shape          rem 360 3 for 360 months
 ```
 
+`stack Month Interest Balance transpose` constructs the same shape lazily from
+three equal-length arrays or exact-size sequences. `stack` adds a leading axis
+for its arguments, and `transpose` turns them into columns. It reads cells on
+demand and checks that all arguments have the same shape.
+
 ## Derived values and mutation
 
 Built-in pure tensor computations reuse demanded cells while their source

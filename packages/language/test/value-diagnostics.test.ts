@@ -346,6 +346,19 @@ function messages(source: string): string[] {
     return analyzeValues(parsed.value).diagnostics.map(item => item.message);
 }
 
+it('checks known prefix stack arguments before execution', () => {
+    expect(messages('use sequences\nX = stack (array 1 2) (array 3 4 5)'))
+        .toContain('stack arguments must have the same shape');
+    expect(messages('use sequences\nX = stack (array 1 2) (array "a" "b")'))
+        .toContain('stack arguments must have one element type');
+    expect(messages('use sequences\nX = stack (array 1 2) 3'))
+        .toContain('stack expects arrays or sequences');
+    expect(messages('use sequences\nX = stack (array 1 2) (array 3 4) transpose'))
+        .toEqual([]);
+    expect(messages('use sequences\nX = stack (array 1 2) (3 to 4)'))
+        .toEqual([]);
+});
+
 it('selects only reachable branches for exact integer comparisons', () => {
     const source = 'fun choose Values\n N = Values len\n if N equal 0\n  return 1\n'
         + ' elif N less 2\n  return "one"\n else\n  return false\n end\nend\n';

@@ -85,6 +85,28 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
     switch (form.kind) {
         case 'checked-read':
             return infer(applicationExpression(form.parts, expression), lookup);
+        case 'stack-constructor': {
+            const cells = form.items.map(item => infer(item, lookup));
+            if (!cells.every(cell => ['array', 'sequence'].includes(cell.types.join()))) return UNKNOWN_VALUE;
+            const first = cells[0];
+            const rank = first.rank === undefined || cells.some(cell => cell.rank !== first.rank)
+                ? undefined : first.rank + 1;
+            const shape = rank === undefined ? undefined : [cells.length,
+                ...(first.shape ?? Array(first.rank).fill(null)).map((length, axis) =>
+                    cells.every(cell => cell.shape?.[axis] === length) ? length : null)];
+            const stacked: ValueFacts = { types: ['array'], rank, shape,
+                elements: first.elements?.length && cells.every(cell => cell.elements?.join() === first.elements?.join())
+                    ? first.elements : undefined,
+                ...(cells.every(cell => cell.eagerScalarCells || cell.callbackFreeScalarCells)
+                    ? { callbackFreeScalarCells: true as const } : {}) };
+            if (!form.rest.length) return stacked;
+            const name = '\0stack-result';
+            const source = { $type: 'NameExpression', name } as Expression;
+            const next = applicationExpression([source, ...form.rest], expression);
+            const nested = Object.assign((key: string) => key === name ? stacked : lookup(key),
+                { arity: lookup.arity, invoke: lookup.invoke });
+            return infer(next, nested);
+        }
         case 'plain': case 'new-dsu': case 'new-filled': case 'new-heap': case 'new-graph': case 'text-format': case 'rank':
         case 'named-segment': case 'named-outer': case 'sort-direction':
         case 'axis-length': case 'axis-reduction': case 'axis-covariance': case 'axis-correlation':

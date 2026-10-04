@@ -20,7 +20,7 @@ import { dsuQuery, functionalQuery } from '../modules/graph.js';
 import { matmulValues } from '../modules/linalg.js';
 import { shuffleValue } from '../modules/random.js';
 import {
-    argsortAxis, directedSort, lengthOfAxis, materializeCollection, sortDescending, sortMode, transposeValue,
+    argsortAxis, directedSort, lengthOfAxis, materializeCollection, sortDescending, sortMode, stackValues, transposeValue,
     type SortMode,
 } from '../modules/sequences.js';
 import { correlationValue, covarianceValue, errorMetricValue, quantileValue } from '../modules/stats.js';
@@ -286,6 +286,17 @@ export class ApplicationEvaluator {
                         return heap.fill(items, items);
                     }
                     return heap;
+                };
+            }
+            case 'stack-constructor': {
+                const constructor = form;
+                return function* (): Execution<RankValue> {
+                    context.requireModule('sequences', 'stack');
+                    const items = yield* resume(mapExecution(constructor.items, item => context.evaluate(item)));
+                    const stacked = stackValues(items);
+                    if (!constructor.rest.length) return stacked;
+                    const rest = yield* resume(mapExecution(constructor.rest, part => context.evaluate(part)));
+                    return yield* resume(application.apply([stacked, ...rest], missing, 0, [], tail));
                 };
             }
             case 'named-outer': {

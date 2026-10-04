@@ -20,7 +20,7 @@ rem Each factor pair starts at A * A. The heap
 rem keeps the largest unvisited product first.
 Factors = (Lower to Upper) array
 Squares = Factors * Factors
-Pairs = (array Factors Factors) stack transpose
+Pairs = stack Factors Factors transpose
 Candidates = new heap Squares Pairs .descending
 
 Answer = 0
