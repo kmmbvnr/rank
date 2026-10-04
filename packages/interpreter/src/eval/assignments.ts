@@ -1,6 +1,7 @@
 import { unpackApplicationItems } from '../value-selection.js';
 import {
     type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
+    applicationExpression, flattenApplication, isApplicationExpression, isNameExpression, isNumberLiteral,
     isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
 import { arrayForWrite, readArrayItem } from '../array-storage.js';
@@ -40,27 +41,46 @@ export interface AssignmentContext {
     readonly operators: Operators;
 }
 
+/**
+ * `M axis 1` after what is unpacked picks the axis to slice along: the source expression without that
+ * tail, and the axis. Anything else is the whole expression with the leading axis.
+ */
+function unpackSource(expression: Expression): { source: Expression; axis?: number } {
+    if (!isApplicationExpression(expression)) return { source: expression };
+    const parts = flattenApplication(expression);
+    const [marker, number] = parts.slice(-2);
+    if (parts.length < 3 || !isNameExpression(marker) || marker.name !== 'axis' || !isNumberLiteral(number)
+        || typeof number.value !== 'bigint') return { source: expression };
+    if (number.value < 0n || number.value > BigInt(Number.MAX_SAFE_INTEGER)) {
+        throw new RankError('unpack axis must be a nonnegative integer', 'RangeError');
+    }
+    const rest = parts.slice(0, -2);
+    return { source: rest.length === 1 ? rest[0] : applicationExpression(rest, expression), axis: Number(number.value) };
+}
+
 /** `Receiver push Value`: appends to a queue, heap or deque; `push unpack Items` appends each item. */
 export function preparePushStatement(statement: PushStatement, host: AssignmentContext): PreparedStatement {
     return { stream: function* (): Execution<RankValue | undefined> {
         const receiver = (yield* resume(host.evaluate(statement.receiver)));
         host.requireModule('algo', 'push');
         // `Queue push unpack Items` appends each item; a plain value is appended as one element.
-        if (isUnpackExpression(statement.value)) {
-            const items = unpackApplicationItems(yield* resume(host.evaluate(statement.value.value)));
+        const spread = unpackSource(statement.value);
+        if (isUnpackExpression(spread.source)) {
+            const items = unpackApplicationItems(yield* resume(host.evaluate(spread.source.value)), spread.axis);
             for (const item of items) pushCollection(receiver, item);
         } else pushCollection(receiver, (yield* resume(host.evaluate(statement.value))));
         return undefined;
     } };
 }
 
-/** `A B C = Vector`: one name per cell of a rank-1 array. */
+/** `A B C = Vector`: one name per cell of a rank-1 array, or per slice of a tensor (`= M axis 1` picks the axis). */
 export function prepareUnpackStatement(statement: UnpackStatement, host: AssignmentContext): PreparedStatement {
     const writes = statement.names.map(name =>
         name === '#' ? undefined : host.compileAssign(name));
+    const { source, axis } = unpackSource(statement.value);
     return { stream: function* (): Execution<RankValue | undefined> {
-        const result = (yield* resume(host.evaluate(statement.value)));
-        const unpacked = unpackApplicationItems(result);
+        const result = (yield* resume(host.evaluate(source)));
+        const unpacked = unpackApplicationItems(result, axis);
         if (unpacked.length !== statement.names.length) {
             throw new RankError(`unpack expects ${statement.names.length} values, got ${unpacked.length}`);
         }

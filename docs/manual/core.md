@@ -691,11 +691,14 @@ A + B
 
 ```text
 unpack Names = Values
+unpack Names = Matrix axis 1
 unpack Values
 ```
 
 The first form gives each item its own
-name; the counts must match. The second
+name; the counts must match. A matrix
+gives its rows, or with axis its slices
+along that axis. The second
 spreads the items out as separate inputs
 to the next function.
 

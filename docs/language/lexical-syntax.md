@@ -391,7 +391,7 @@ keys and may use tuple keys.
 
 ## Unpacking assignment
 
-`unpack` assigns the items of a rank-1 array to the following names:
+`unpack` assigns the items of a rank-1 array or tuple to the following names:
 
 ```rank
 unpack Length Width Height = array 2 3 4
@@ -402,6 +402,16 @@ binding:
 
 ```rank
 unpack From To # = Edge
+```
+
+A tensor of higher rank gives its slices along the leading axis, each without
+that axis, so a matrix unpacks into its rows. `axis N` after the source picks
+another axis, so a matrix unpacks into its columns:
+
+```rank
+M = array shape 2 3 fill 0
+unpack First Second = M
+unpack A B C = M axis 1
 ```
 
 The number of names and items must match exactly. Unpacking supports only `=`;
@@ -417,7 +427,8 @@ unpack Length Width Height = Line Pattern parse
 ```
 
 The same word before an expression expands a rank-1 array into adjacent
-application arguments or address selectors:
+application arguments or address selectors (a tensor expands into its
+leading-axis slices):
 
 ```rank
 Point = array X Y
@@ -429,9 +440,10 @@ Result = unpack Point distance
 
 The expression is evaluated once and its items are inserted in order. Only one
 level is expanded, and the source is not changed. An empty vector inserts no
-arguments. A non-array raises `.TypeError`; an array whose rank is not one
-raises `.DimensionMismatch`. After expansion, ordinary function arity and
-addressing rules apply.
+arguments. A non-array raises `.TypeError`. After expansion, ordinary function
+arity and addressing rules apply. `Queue push unpack Items` appends each item
+to a queue, stack, deque or heap, and `unpack Items axis N` slices along
+another axis there too.
 
 ## Data-first application
 

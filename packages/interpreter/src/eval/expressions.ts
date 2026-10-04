@@ -573,7 +573,7 @@ export class ExpressionEvaluator {
     evaluateAddressParts(item: AddressItem): Evaluation<RankValue[]> {
         if (!item.spread) return mapResult(this.evaluateAddressItem(item), value => [value]);
         if (!item.value) throw new RankError('missing unpack expression');
-        return mapResult(this.evaluate(item.value), unpackApplicationItems);
+        return mapResult(this.evaluate(item.value), value => unpackApplicationItems(value));
     }
 
     private *arrayDimension(item: ArrayItem): Execution<number> {

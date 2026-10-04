@@ -506,18 +506,28 @@ function isScopedSelectorChain(values: readonly RankValue[]): boolean {
         || (isRankArray(source) && source.tableScopes?.includes(name) === true);
 }
 
-export function unpackApplicationItems(value: RankValue): RankValue[] {
-    if (isRankTuple(value)) return [...value.items];
+/**
+ * The cells an `unpack` spreads: the items of a tuple or rank-1 array. A tensor gives its slices along
+ * one axis, the leading one unless `axis` names another, each slice without that axis.
+ */
+export function unpackApplicationItems(value: RankValue, axis?: number): RankValue[] {
+    if (isRankTuple(value)) {
+        if (axis !== undefined) throw new RankError('unpack axis expects an array', 'TypeError');
+        return [...value.items];
+    }
     if (!isRankArray(value)) {
         throw new RankError('unpack expects an array or tuple value', 'TypeError');
     }
-    if (value.shape.length !== 1) {
-        throw new RankError('unpack expects a rank-1 array value', 'DimensionMismatch');
+    const rank = value.shape.length;
+    if (axis === undefined && rank === 1) {
+        return Array.from(
+            { length: value.shape[0] },
+            (_, index) => readArrayItem(value, index),
+        );
     }
-    return Array.from(
-        { length: value.shape[0] },
-        (_, index) => readArrayItem(value, index),
-    );
+    const along = axis ?? 0;
+    if (along >= rank) throw new RankError(`unpack axis out of bounds: ${along}`, 'DimensionMismatch');
+    return Array.from({ length: value.shape[along] }, (_, index) => selectAxis(value, along, BigInt(index)));
 }
 
 function isTableFieldList(value: RankValue, includeEmpty = true): boolean {

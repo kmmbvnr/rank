@@ -1023,7 +1023,7 @@ Result`)).toBe('itb');
             'unpack A B = array shape 1 2',
             '  1 2',
             'end',
-        ].join('\n'))).toThrowError('unpack expects a rank-1 array value');
+        ].join('\n'))).toThrowError('unpack expects 2 values, got 1');
         expect(run([
             'unpack A # C = array 2 99 5',
             'A * C',
@@ -1047,12 +1047,14 @@ Result`)).toBe('itb');
         ].join('\n'))).toBe('7');
         expect(() => run('unpack 1 print'))
             .toThrowError('unpack expects an array or tuple value');
-        expect(() => run([
+        // A matrix spreads its leading-axis slices: one row here.
+        expect(run([
+            'use numbers',
             'Matrix = array shape 1 2',
             '  1 2',
             'end',
-            'unpack Matrix print',
-        ].join('\n'))).toThrowError('unpack expects a rank-1 array value');
+            'unpack Matrix sum',
+        ].join('\n'))).toBe('3');
     });
 
     it('counts and addresses Unicode text atoms', () => {
