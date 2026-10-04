@@ -388,6 +388,14 @@ function addTarget(state: CellState, line: string, insideFunction: boolean, iter
         state = addLine(state, `${VALUE} = (${yielded[1]})`);
         return addLine(state, `${REACHED} = true`);
     }
+    // `unpack A B = Pair` binds several names; the preview shows the first one it binds.
+    const unpacked = /^unpack\s+((?:[A-Za-z#][A-Za-z0-9_]*\s+)+)=\s*.+$/.exec(line);
+    if (unpacked) {
+        state = addLine(state, line);
+        const first = unpacked[1].trim().split(/\s+/).find(name => name !== '#');
+        if (first) state = addLine(state, `${VALUE} = ${first}`);
+        return addLine(state, `${REACHED} = true`);
+    }
     const assignment = /^([A-Za-z][A-Za-z0-9_]*)(?:\s+.*?)?\s*(?:=|\+=|-=|\*=|\*\*=|\/=|\/\/=|%=|and=|or=|xor=)/.exec(line);
     if (assignment) {
         state = addLine(state, line);
