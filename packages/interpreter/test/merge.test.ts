@@ -49,6 +49,24 @@ describe('sorted sequence merge', () => {
         ].join('\n'))).toBe('2');
     });
 
+    it('stops a ranked filter after its first merged match', () => {
+        expect(run([
+            'use sequences',
+            'Calls = record',
+            '  .count = 0',
+            'end',
+            'fun hit X',
+            '  Calls .count += 1',
+            '  return X equal 11',
+            'end',
+            'A = array 11 33',
+            'B = array 22 44',
+            'Candidates = A B merge',
+            'Answer = Candidates filter hit rank 0 first',
+            'array Answer (Calls .count)',
+        ].join('\n'))).toBe('11 2');
+    });
+
     it('closes source iterators when a consumer stops early', () => {
         const closed = [false, false];
         const streams = [0, 1].map(index => sequence({
