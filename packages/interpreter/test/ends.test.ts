@@ -46,6 +46,9 @@ describe('reverse', () => {
         const runtime = new Interpreter();
         runtime.execute('use sequences');
         expect(show(runtime, '"A😀Б" reverse')).toBe('Б😀A');
+        expect(show(runtime, '"😀𝄞" reverse')).toBe('𝄞😀');
+        runtime.variables.set('Unpaired', '\ud83dA');
+        expect(runtime.execute('Unpaired reverse')).toBe('A\ud83d');
         expect(show(runtime, '(array 1 2 3) reverse')).toBe('3 2 1');
         expect(show(runtime, '(array "a" "b") reverse')).toBe('b a');
         expect(show(runtime, 'primes till 12 reverse')).toBe('11 7 5 3 2');

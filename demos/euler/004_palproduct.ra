@@ -4,7 +4,6 @@ rem Largest palindrome made from the
 rem product of two N-digit numbers
 
 use sequences
-use text
 use io
 use cli
 
@@ -26,6 +25,5 @@ rem Return true when a nonnegative integer
 rem reads the same in both directions.
 fun palindrome X
   Text = X text
-  Back = Text reverse
-  return Text equal Back
+  return Text equal (Text reverse)
 end

@@ -5,7 +5,6 @@ rem the product table in decreasing order, so
 rem the first palindrome found is the answer.
 
 use sequences
-use text
 use io
 use cli
 
@@ -28,6 +27,5 @@ rem Return true when a nonnegative integer
 rem reads the same in both directions.
 fun palindrome X
   Text = X text
-  Back = Text reverse
-  return Text equal Back
+  return Text equal (Text reverse)
 end
