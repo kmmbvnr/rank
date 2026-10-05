@@ -30,7 +30,7 @@ fun variablefast Options Params
   Quarters = Params 2 integer // 3
   Rolls = (1 to 6) (Quarters * Sims) choices
   Steps = (Rolls - 3.5) / 10
-  Changes = Steps (array Quarters Sims) reshape
+  Changes = Steps reshape Quarters Sims
   return Changes Start Params fastdifference bins
 end
 
@@ -69,10 +69,10 @@ fun fastdifference Changes Start Params
   Years = (Term + 11) // 12
   Year = (0 till Years) copy
   Column = array Years 1
-  Elapsed = (Year * 12) Column reshape
+  Elapsed = (Year * 12) reshape unpack Column
   Left = Term - Elapsed
   Span = Left 12 min
-  Alive = (Year Column reshape) 1 min
+  Alive = (Year reshape unpack Column) 1 min
   Reached = (Year * 4 - 1) 0 max
 
   Walk = (Changes scan + axis 0) + Start
@@ -85,13 +85,13 @@ fun fastdifference Changes Start Params
   Kept = Factor scan * axis 0
   Before = Kept 1 shift with 1.0
 
-  Ahead = (0 till 12) (array 1 12) reshape
+  Ahead = (0 till 12) reshape 1 12
   Powers = (Ahead less Span) (Growth ** Ahead) 0.0 choose
   Within = Powers sum axis 1
   Weight = (1 + Rate) Growth Span weight
   Excess = BankAmt * Before * (Rate - Payment)
   Paid = BankAmt * Before * Payment
-  Flow = Tax * Excess * Weight - (1 - Tax) * Paid * (Within Column reshape)
+  Flow = Tax * Excess * Weight - (1 - Tax) * Paid * (Within reshape unpack Column)
   Grown = Flow * Growth ** (Left - Span)
   Saving = Grown sum axis 0
   Last = Kept (Years - 1)

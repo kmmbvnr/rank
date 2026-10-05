@@ -4,7 +4,7 @@ test "example from the contest"
   use "003_aggregate"
   use sequences
 
-  Mat = (1 to 16) copy (array 4 4) reshape
+  Mat = ((1 to 16) copy) reshape 4 4
   Expected = (array (array 6.0 4.0 7.0 4.0) (array 22.0 12.0 15.0 12.0)) copy
   (Mat 2 "SAMF" aggregate equal Expected) all
 end
@@ -13,7 +13,7 @@ test "last and a partial period dropped"
   use "003_aggregate"
   use sequences
 
-  Mat = (1 to 10) copy (array 5 2) reshape
+  Mat = ((1 to 10) copy) reshape 5 2
   Result = Mat 2 "LM" aggregate
   Expected = (array (array 3 4) (array 7 8)) copy
   Shape = Result shape equal array 2 2

@@ -28,7 +28,7 @@ describe('large slices of stored arrays', () => {
 describe('slices of a typed array of reals', () => {
     // Cell (i, j, k) of a 10 x 12 x 10 array holds 1 + 120 i + 10 j + k, as a real.
     // The second product is real times real, so M is held in a typed buffer.
-    const cube = 'use sequences\nP = (1 to 1200) (array 10 12 10) reshape * 1.0\nM = P * 1.0\n';
+    const cube = 'use sequences\nP = (1 to 1200) reshape 10 12 10 * 1.0\nM = P * 1.0\n';
     const cell = (i: number, j: number, k: number) => 1 + 120 * i + 10 * j + k;
     const sum = (rows: number[], columns: number[], depths: number[]) => {
         let total = 0;

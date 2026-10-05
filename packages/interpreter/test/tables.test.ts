@@ -415,7 +415,7 @@ describe('Rank tables', () => {
             'use sequences',
             'use tables',
             'Rows = "[{\\"x\\":1},{\\"x\\":2}]" json',
-            'Matrix = Rows (array 1 2) reshape',
+            'Matrix = Rows reshape 1 2',
             'Matrix "x"',
         ].join('\n'));
         expect(result).toMatchObject({ kind: 'array', shape: [1, 2] });

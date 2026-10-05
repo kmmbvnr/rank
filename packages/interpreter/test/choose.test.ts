@@ -20,8 +20,8 @@ describe('choose', () => {
             + 'Yes = array 2 4 6\nOut = Mask Yes 0 choose');
         expect(formatValue(runtime.execute('Out')!)).toBe('2 0 6');
         expect(formatValue(runtime.execute('true "yes" "no" choose')!)).toBe('yes');
-        runtime.execute('Grid = (array true false false true) (array 2 2) reshape\n'
-            + 'Rates = (array 10 20) (array 1 2) reshape\n'
+        runtime.execute('Grid = (array true false false true) reshape 2 2\n'
+            + 'Rates = (array 10 20) reshape 1 2\n'
             + 'Picked = Grid Rates 0 choose');
         expect(formatValue(runtime.execute('Picked 0 0')!)).toBe('10');
         expect(formatValue(runtime.execute('Picked 0 1')!)).toBe('0');

@@ -223,7 +223,7 @@ Images should become ordinary tensor data:
 Train = "demos/kaggle/data/dogs-vs-cats/train" images
 Test = "demos/kaggle/data/dogs-vs-cats/test1" images
 Pixels = Train 8 8 resize
-X = Pixels (array (Train len) 192) reshape
+X = Pixels reshape (Train len) 192
 ```
 
 The [runnable Dogs vs Cats baseline](../../demos/kaggle/009_dogvscat.ra)

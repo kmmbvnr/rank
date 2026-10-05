@@ -10,7 +10,7 @@ N = stdin .integer
 M = stdin .integer
 Count = M * 2
 Values = stdin .integer Count array
-Edges = Values (array M 2) reshape
+Edges = Values reshape M 2
 Routes = N Edges distinct_routes
 Routes len print
 for Route in Routes

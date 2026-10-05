@@ -10,7 +10,7 @@ N = stdin .integer
 M = stdin .integer
 Count = M * 2
 Values = stdin .integer Count array
-Edges = Values (array M 2) reshape
+Edges = Values reshape M 2
 N Edges hamiltonian_flights print
 
 

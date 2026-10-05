@@ -122,6 +122,45 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
                 { arity: lookup.arity, invoke: lookup.invoke });
             return infer(next, nested);
         }
+        case 'reshape': {
+            const source = infer(form.source, lookup);
+            const continueWith = (shaped: ValueFacts): ValueFacts => {
+                if (!form.rest.length) return shaped;
+                const name = '\0reshape-result';
+                const result = { $type: 'NameExpression', name } as Expression;
+                const next = applicationExpression([result, ...form.rest], expression);
+                const nested = Object.assign((key: string) => key === name ? shaped : lookup(key),
+                    { arity: lookup.arity, invoke: lookup.invoke });
+                return infer(next, nested);
+            };
+            if (form.dimensions.length === 1 && isUnpackExpression(form.dimensions[0])) {
+                const shapes = infer(form.dimensions[0].value, lookup);
+                if (shapes.rank === 2) {
+                    const columns = shapes.shape?.[1];
+                    const shaped: ValueFacts = { types: ['array'], elements: source.elements,
+                        ...(columns == null ? {} : { rank: columns + 1,
+                            shape: [shapes.shape?.[0] ?? null, ...Array(columns).fill(null)] }) };
+                    return continueWith(shaped);
+                }
+            }
+            const dimensions = form.dimensions.flatMap(part => {
+                if (isUnpackExpression(part)) {
+                    const value = infer(part.value, lookup);
+                    return value.integers ?? Array(value.shape?.[0] ?? 0).fill(null);
+                }
+                const value = infer(part, lookup).integer;
+                return [value === undefined ? null : Number(value)];
+            });
+            const knownRank = form.dimensions.every(part => !isUnpackExpression(part)
+                || infer(part.value, lookup).integers !== undefined
+                || infer(part.value, lookup).shape?.[0] != null);
+            const shaped: ValueFacts = { types: ['array'], elements: source.types.join() === 'text'
+                ? ['text'] : source.elements,
+                ...(knownRank ? { rank: dimensions.length, shape: dimensions } : {}),
+                ...((source.eagerScalarCells || source.callbackFreeScalarCells) && source.elements?.length
+                    ? { eagerScalarCells: true as const } : {}) };
+            return continueWith(shaped);
+        }
         case 'dsu-method':
             if (form.operation === 'merge') {
                 const receiver = infer(form.receiver, lookup);
@@ -882,16 +921,6 @@ function transferApplicationFacts(
                         ? { callbackFreeScalarCells: true as const } : {}),
                 };
             }
-        }
-        if (last.name === 'reshape' && parts.length === 3) {
-            const dimensions = infer(parts[1], lookup).integers;
-            if (dimensions && dimensions.every(n => n === null || n >= 0)) return {
-                types: ['array'], elements: source.elements, rank: dimensions.length, shape: dimensions,
-                ...((source.eagerScalarCells || source.callbackFreeScalarCells)
-                    && source.elements?.length && source.elements.every(type =>
-                        ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type))
-                    ? { eagerScalarCells: true as const } : {}),
-            };
         }
     }
     if (parts.length === 2 && source.types.join() === 'text'

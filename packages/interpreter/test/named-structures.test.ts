@@ -90,7 +90,7 @@ tuple (Seen len) (Counts (array 1 2))
         for (const kind of ['set', 'counter']) {
             expect(() => run(`use algo\nC = new ${kind}\nC add 1\nC add "text"`))
                 .toThrow(`${kind} holds integer and cannot receive text`);
-            expect(() => run(`use algo\nuse sequences\nC = new ${kind}\nC add array 1 2\nC add (array 1 2 3 4) (array 2 2) reshape`))
+            expect(() => run(`use algo\nuse sequences\nC = new ${kind}\nC add array 1 2\nC add (array 1 2 3 4) reshape 2 2`))
                 .toThrow(/rank 1.*rank 2/);
             expect(() => run(`use algo\nC = new ${kind}\nC add 1\nC remove 1\nC add "text"`))
                 .toThrow(`${kind} holds integer and cannot receive text`);

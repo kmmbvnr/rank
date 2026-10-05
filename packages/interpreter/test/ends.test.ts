@@ -20,7 +20,7 @@ describe('first and last', () => {
 
     it('take a leading-axis row of a matrix', () => {
         const runtime = new Interpreter();
-        runtime.execute('use sequences\nM = (array 1 2 3 4 5 6) (array 3 2) reshape');
+        runtime.execute('use sequences\nM = (array 1 2 3 4 5 6) reshape 3 2');
         expect(show(runtime, 'M first')).toBe('1 2');
         expect(show(runtime, 'M last')).toBe('5 6');
     });
@@ -55,7 +55,7 @@ describe('reverse', () => {
         runtime.execute('use algo\nQ = new queue\nQ push 1\nQ push 2\nQ push 3');
         expect(show(runtime, 'Q reverse')).toBe('3 2 1');
         expect(show(runtime, 'Q len')).toBe('3');
-        runtime.execute('M = (array 1 2 3 4 5 6) (array 3 2) reshape\nR = M reverse');
+        runtime.execute('M = (array 1 2 3 4 5 6) reshape 3 2\nR = M reverse');
         expect(show(runtime, 'R 0')).toBe('5 6');
         expect(show(runtime, 'R 2')).toBe('1 2');
         expect(show(runtime, 'R shape')).toBe('3 2');
@@ -124,7 +124,7 @@ describe('gathering from an index', () => {
     const run = (source: string) => show(new Interpreter(), P + source);
     it('answers one value per key, keeping the key shape', () => {
         expect(run('Keys = (array 3 1 2) \nP Keys')).toBe('30 10 20');
-        expect(run('Keys = (array 1 2 3 1) (array 2 2) reshape\n(P Keys) shape')).toBe('2 2');
+        expect(run('Keys = (array 1 2 3 1) reshape 2 2\n(P Keys) shape')).toBe('2 2');
     });
     it('reads a finite sequence of keys', () => {
         expect(run('P (1 till 3)')).toBe('10 20');

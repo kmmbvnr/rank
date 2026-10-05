@@ -72,16 +72,16 @@ describe('dense matrix kernels', () => {
 });
 
 describe('dense kernels for broadcasting, powers, comparisons and choose', () => {
-    const grid = 'use sequences\nM = array shape 100 20 fill 2.0\nC = (0 till 100) (array 100 1) reshape\n';
+    const grid = 'use sequences\nM = array shape 100 20 fill 2.0\nC = (0 till 100) reshape 100 1\n';
 
     it('broadcasts a column over a table', () => {
         expect(run(`${grid}R = M + C\nR sum`)).toBe(2 * 2000 + 20 * 4950);
         expect(run(`${grid}R = M + C\n(R 3) sum`)).toBe(2 * 20 + 20 * 3);
-        expect(run('use sequences\nB = array shape 100 20 fill 2\nK = (0 till 100) (array 100 1) reshape\nR = B * K\nR sum')).toBe(2n * 20n * 4950n);
+        expect(run('use sequences\nB = array shape 100 20 fill 2\nK = (0 till 100) reshape 100 1\nR = B * K\nR sum')).toBe(2n * 20n * 4950n);
     });
 
     it('broadcasts a column and a row into a table', () => {
-        const source = 'use sequences\nC = (0 till 50) (array 50 1) reshape\nR = (0 till 40) (array 1 40) reshape\nT = C * 1.0 + R\nT sum';
+        const source = 'use sequences\nC = (0 till 50) reshape 50 1\nR = (0 till 40) reshape 1 40\nT = C * 1.0 + R\nT sum';
         expect(run(source)).toBe(40 * 1225 + 50 * 780);
     });
 
@@ -106,7 +106,7 @@ describe('dense kernels for broadcasting, powers, comparisons and choose', () =>
     it('chooses between stored cells and keeps unread branches unread', () => {
         const source = [
             'use sequences', 'use numbers',
-            'Rate = (0 till 3000) (array 3000) reshape * 0.5',
+            'Rate = (0 till 3000) reshape 3000 * 0.5',
             'Zero = Rate less 0.25',
             'Inverse = 1.0 / Rate',
             'R = Zero 0.0 Inverse choose',
@@ -118,7 +118,7 @@ describe('dense kernels for broadcasting, powers, comparisons and choose', () =>
     });
 
     it('chooses with a column against a table and with scalar branches', () => {
-        expect(run('use sequences\nC = (0 till 100) (array 100 1) reshape\nM = array shape 100 20 fill 1.0\nK = M less 2.0\nR = K C 0.0 choose\nR sum')).toBe(BigInt(20 * 4950));
+        expect(run('use sequences\nC = (0 till 100) reshape 100 1\nM = array shape 100 20 fill 1.0\nK = M less 2.0\nR = K C 0.0 choose\nR sum')).toBe(BigInt(20 * 4950));
         expect(run('use sequences\nA = array shape 3000 fill 4\nB = A greater 3\nR = B 7 9 choose\nR sum')).toBe(21000n);
     });
 

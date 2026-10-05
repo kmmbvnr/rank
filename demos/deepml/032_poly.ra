@@ -45,5 +45,5 @@ fun polynomial_features X Degree
   end
 
   NewShape = array Rows Width
-  return Result NewShape reshape
+  return Result reshape unpack NewShape
 end

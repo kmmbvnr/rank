@@ -71,7 +71,7 @@ describe('prepared sequence and dyadic callbacks', () => {
         ['(array 1 2) (array 3 4) outer helper', [4n, 5n, 5n, 6n]],
         ['(array 1 2 3) scan helper', [1n, 3n, 6n]],
         ['(array 1 2 3) scan helper with 0', [0n, 1n, 3n, 6n]],
-        ['((array 1 2 3 4) (array 2 2) reshape) scan helper axis 1', [1n, 3n, 3n, 7n]],
+        ['((array 1 2 3 4) reshape 2 2) scan helper axis 1', [1n, 3n, 3n, 7n]],
     ] as const)('uses the checked kernel for %s', (expression, expected) => {
         for (const compiled of [false, true]) {
             const { runtime, calls } = setup(compiled, 'fun helper X Y rank 0 0\nreturn X + Y\nend');

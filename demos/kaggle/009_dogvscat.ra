@@ -42,11 +42,11 @@ fun solve_images Train Test Rate Steps
 
   N = Train len
   Images = Train Height Width resize
-  X = Images (array N Features) reshape
+  X = Images reshape N Features
 
   M = Test len
   TestImages = Test Height Width resize
-  Xtest = TestImages (array M Features) reshape
+  Xtest = TestImages reshape M Features
 
   Y = Train image_labels
   Pred = X Y Xtest Rate Steps predictall

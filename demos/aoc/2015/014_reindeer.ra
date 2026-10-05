@@ -29,7 +29,7 @@ fun solve Lines Race
   end
 
   N = Lines len
-  Data = Queue (array N 3) reshape
+  Data = Queue reshape N 3
   Speeds = Data # 0
   Flys = Data # 1
   Rests = Data # 2

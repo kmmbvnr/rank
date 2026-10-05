@@ -21,7 +21,7 @@ end
 for Row in F array
   All push Row
 end
-Rows = All (array (All len)) reshape
+Rows = All reshape (All len)
 Rows = Rows select .surname
 Result = Rows unique
 Result OutputPath csv

@@ -38,9 +38,9 @@ describe('ranked cells that return arrays stack under the frame', () => {
 
     it('reshapes once per row of shapes', () => {
         const source = 'S = array 1 2 3 4 5 6 7 8\nM = array 2 4 2 4 shape 2 2\n';
-        expect(run(`${source}(S M reshape) shape`)).toBe('2 2 4');
-        expect(run(`${source}S M reshape`)).toBe('1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8');
-        expect(() => run('S = array 1 2 3 4 5 6\nM = array 2 3 3 2 shape 2 2\nS M reshape shape')).toThrow(/same shape/);
+        expect(run(`${source}(S reshape unpack M) shape`)).toBe('2 2 4');
+        expect(run(`${source}S reshape unpack M`)).toBe('1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8');
+        expect(() => run('S = array 1 2 3 4 5 6\nM = array 2 3 3 2 shape 2 2\nS reshape unpack M shape')).toThrow(/same shape/);
     });
 
     it('lets an explicit rank batch solve, which has no ranks of its own', () => {

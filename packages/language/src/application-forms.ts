@@ -325,6 +325,8 @@ export type ApplicationForm =
     | { readonly kind: 'checked-read'; readonly reader: 'csv' | 'json' | 'xml'; readonly parts: readonly Expression[] }
     | { readonly kind: 'invalid'; readonly message: string }
     | { readonly kind: 'unpack' }
+    | { readonly kind: 'reshape'; readonly source: Expression; readonly dimensions: readonly Expression[];
+        readonly rest: readonly Expression[] }
     | { readonly kind: 'new-graph' }
     | { readonly kind: 'new-dsu' }
     | { readonly kind: 'new-filled'; readonly structure: string }
@@ -441,6 +443,17 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup): Applicat
     }
     const direction = sortDirectionForm(parts);
     if (direction) return direction;
+    if (parts.length >= 2 && isNamed(parts[1], 'reshape') && lookup('reshape') === findOperation('reshape')) {
+        const end = parts.findIndex((part, index) => index > 1 && isNameExpression(part)
+            && lookup(part.name) !== false && lookup(part.name) !== undefined);
+        const dimensions = parts.slice(2, end < 0 ? undefined : end);
+        if (!dimensions.length) return { kind: 'invalid', message: 'reshape expects one or more dimensions' };
+        return { kind: 'reshape', source: parts[0], dimensions, rest: end < 0 ? [] : parts.slice(end) };
+    }
+    if (parts.slice(2).some(part => isNamed(part, 'reshape'))
+        && lookup('reshape') === findOperation('reshape')) {
+        return { kind: 'invalid', message: 'reshape dimensions must follow reshape' };
+    }
     if (parts.some(isUnpackExpression)) return { kind: 'unpack' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'graph') return { kind: 'new-graph' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'dsu') return { kind: 'new-dsu' };

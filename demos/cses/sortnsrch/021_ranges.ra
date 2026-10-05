@@ -7,7 +7,7 @@ use sequences
 
 N = stdin .integer
 Values = stdin .integer (N * 2) array
-Data = Values (array N 2) reshape
+Data = Values reshape N 2
 
 Result = Data nested_range_counts
 Result .contains print

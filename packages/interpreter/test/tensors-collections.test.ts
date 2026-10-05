@@ -79,7 +79,7 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toBe('3231');
         expect(() => run([
             'use sequences',
-            'M = (array 1 2 3 4) (array 2 2) reshape',
+            'M = (array 1 2 3 4) reshape 2 2',
             'T = M transpose',
             'T 0 0 = 9',
         ].join('\n'))).toThrowError('cannot assign to a lazy array');

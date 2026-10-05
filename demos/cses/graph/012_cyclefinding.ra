@@ -9,7 +9,7 @@ N = stdin .integer
 M = stdin .integer
 ValueCount = M * 3
 Values = stdin .integer ValueCount array
-Edges = Values (array M 3) reshape
+Edges = Values reshape M 3
 Result = Edges N negative_cycle
 
 if Result .found

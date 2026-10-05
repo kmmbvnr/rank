@@ -6,7 +6,7 @@ use sequences
 
 N = stdin .integer
 Values = stdin .integer (N * 2) array
-Tasks = Values (array N 2) reshape
+Tasks = Values reshape N 2
 
 Tasks maximum_reward print
 

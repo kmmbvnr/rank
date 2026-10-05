@@ -9,9 +9,9 @@ use sequences
 N = stdin .integer
 Q = stdin .integer
 Raw = stdin .integer (N * 2) array
-Movies = Raw (array N 2) reshape
+Movies = Raw reshape N 2
 Raw = stdin .integer (Q * 2) array
-Queries = Raw (array Q 2) reshape
+Queries = Raw reshape Q 2
 
 Movies Queries movie_queries print
 

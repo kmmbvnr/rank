@@ -11,7 +11,7 @@ N = stdin .integer
 M = stdin .integer
 ValueCount = M * 3
 Values = stdin .integer ValueCount array
-Edges = Values (array M 3) reshape
+Edges = Values reshape M 3
 Graph = new graph (1 to N) .directed
 Graph add Edges
 Graph N investigate print

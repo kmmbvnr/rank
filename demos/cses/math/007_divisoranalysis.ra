@@ -7,7 +7,7 @@ use sequences
 
 N = stdin .integer
 Raw = stdin .integer (N * 2) array
-Factors = Raw (array N 2) reshape
+Factors = Raw reshape N 2
 
 Factors analyze_divisors print
 

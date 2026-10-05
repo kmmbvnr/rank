@@ -9,7 +9,7 @@ N = stdin .integer
 Q = stdin .integer
 Values = stdin .integer N array
 Raw = stdin .integer (Q * 4) array
-Queries = Raw (array Q 4) reshape
+Queries = Raw reshape Q 4
 
 Values Queries intervals print
 

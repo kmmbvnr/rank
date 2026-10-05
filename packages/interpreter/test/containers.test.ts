@@ -97,7 +97,7 @@ array (H pop) (H pop) (H pop)
 
     it('runs shortest-path relaxation with separate priorities and vertex payloads', () => {
         expect(run(prelude + `
-Graph = (array 0 7 1 0  0 0 0 1  0 2 0 9  0 0 0 0) (array 4 4) reshape
+Graph = (array 0 7 1 0  0 0 0 1  0 2 0 9  0 0 0 0) reshape 4 4
 Dist = array 0 999 999 999
 H = new heap
 H 0 0 enqueue
@@ -250,7 +250,7 @@ V
     it('checks array ranks and cell types before committing an insertion', () => {
         expect(() => run(prelude + `Q = new queue
 Q push array 1 2
-Q push (array 1 2 3 4) (array 2 2) reshape
+Q push (array 1 2 3 4) reshape 2 2
 `)).toThrow(/rank 1.*rank 2/);
         let reads = 0;
         const lazy = { kind: 'array' as const, items: [], shape: [2], itemAt: () => {

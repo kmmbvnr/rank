@@ -71,7 +71,9 @@ export const sequencesModule: RuntimeModule = {
         ? uniqueSqlite(arguments_[0]) : uniqueValue(arguments_[0])),
     window: () => native('window', 2, arguments_ => windowValue(arguments_[0], arguments_[1])),
     shift: () => native('shift', 2, arguments_ => shiftValue(arguments_[0], arguments_[1])),
-    reshape: () => native('reshape', 2, arguments_ => reshape(arguments_[0], arguments_[1])),
+    reshape: () => native('reshape', 1, () => {
+        throw new RankError('reshape dimensions must follow reshape');
+    }),
     all: () => native('all', 1, arguments_ => booleanReduction(arguments_[0], 'all')),
     any: () => native('any', 1, arguments_ => booleanReduction(arguments_[0], 'any')),
     count: () => native('count', 1, arguments_ => countTrue(arguments_[0])),
@@ -738,14 +740,12 @@ function offsetAt(shape: readonly number[], coordinates: readonly number[]): num
     );
 }
 
-function reshape(value: RankValue, shapeValue: RankValue): RankValue {
+export function reshapeWithDimensions(value: RankValue, dimensions: readonly RankValue[]): RankValue {
     const type = isRankArray(value) && !value.columnNames ? semanticArrayType(value) : undefined;
-    if (!isRankArray(shapeValue) || shapeValue.shape.length !== 1
-        || !shapeValue.items.every(item => typeof item === 'bigint')) {
-        throw new RankError('reshape shape must be a rank-1 integer array');
+    if (!dimensions.every(item => typeof item === 'bigint')) {
+        throw new RankError('reshape dimensions must be integers');
     }
-
-    const shape = shapeValue.items.map(item => reshapeDimension(item as bigint));
+    const shape = dimensions.map(item => reshapeDimension(item as bigint));
     const expected = shape.reduce((product, dimension) => product * dimension, 1);
     // A typed array reshapes into a typed array: the cells keep their order.
     const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
@@ -761,6 +761,17 @@ function reshape(value: RankValue, shapeValue: RankValue): RankValue {
     }
     const result = ownedArray(items, shape);
     return type ? setSemanticArrayType(result, type) : result;
+}
+
+export function reshapeWithShapeRows(value: RankValue, shapes: RankArray): RankArray {
+    return stackValues(Array.from({ length: shapes.shape[0] }, (_, index) => {
+        const row = atArray(shapes, [BigInt(index)]);
+        if (!isRankArray(row) || row.shape.length !== 1) {
+            throw new RankError('reshape shape rows must be rank-1 integer arrays');
+        }
+        return reshapeWithDimensions(value, Array.from({ length: row.shape[0] }, (_, column) =>
+            readArrayItem(row, column)));
+    }));
 }
 
 function reshapeDimension(value: bigint): number {

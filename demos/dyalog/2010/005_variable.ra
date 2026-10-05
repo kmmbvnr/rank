@@ -32,7 +32,7 @@ fun variablerisk Options Params
   Sims = Count integer
   Quarters = Params 2 integer // 3
   Rolls = (1 to 6) (Quarters * Sims) choices
-  Changes = ((Rolls - 3.5) / 10) (array Quarters Sims) reshape
+  Changes = ((Rolls - 3.5) / 10) reshape Quarters Sims
   return Changes Start Params difference bins
 end
 

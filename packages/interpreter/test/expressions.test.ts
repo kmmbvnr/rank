@@ -515,7 +515,7 @@ Result`)).toBe('itb');
         const matrix = new Interpreter().execute([
             'use sequences',
 
-            'M = (1 to 6) (array 2 3) reshape',
+            'M = (1 to 6) reshape 2 3',
             'M',
         ].join('\n'));
         expect(matrix).toMatchObject({ kind: 'array', shape: [2, 3] });
@@ -524,7 +524,7 @@ Result`)).toBe('itb');
             : undefined).toEqual([1n, 2n, 3n, 4n, 5n, 6n]);
         expect(run([
             'use sequences',
-            'M = "A😀БC" (array 2 2) reshape',
+            'M = "A😀БC" reshape 2 2',
             'M 1 0',
         ].join('\n'))).toBe('Б');
         expect(run([
@@ -536,18 +536,30 @@ Result`)).toBe('itb');
             '  Queue push 2',
             '  Queue push 3',
             '  Queue push 4',
-            '  return Queue (array 2 2) reshape',
+            '  return Queue reshape 2 2',
             'end',
             '0 matrix 1 1',
         ].join('\n'))).toBe('4');
-        expect(() => run('use sequences\n(array 1 2 3) (array 2 2) reshape'))
+        expect(() => run('use sequences\n(array 1 2 3) reshape 2 2'))
             .toThrowError('reshape shape 2 2 expects 4 elements, got 3');
-        expect(() => run('use sequences\nfibonacci (array 1) reshape'))
+        expect(() => run('use sequences\nfibonacci reshape 1'))
             .toThrowError('reshape requires a finite sequence');
-        expect(() => run('use sequences\n(array 1) (array -1) reshape'))
+        expect(() => run('use sequences\n(array 1) reshape -1'))
             .toThrowError('reshape dimension must be nonnegative: -1');
-        expect(() => run('(array 1) (array 1) reshape'))
-            .toThrowError('unknown name: reshape');
+        expect(() => run('(array 1) reshape 1'))
+            .toThrowError('reshape requires: use sequences');
+    });
+
+    it('accepts dimensions after reshape and an unpacked shape', () => {
+        expect(run('use sequences\nA = array 1 2 3 4 5 6\n(A reshape 2 3) shape')).toBe('2 3');
+        expect(run('use sequences\nA = array 1 2 3 4 5 6\nS = array 3 2\n(A reshape unpack S) shape'))
+            .toBe('3 2');
+        expect(run('use sequences\nA = array 1 2 3 4 5 6\nA reshape 2 3 shape')).toBe('2 3');
+        expect(() => run('use sequences\n(array 1 2 3) reshape 2 2'))
+            .toThrowError('reshape shape 2 2 expects 4 elements, got 3');
+        expect(() => run('(array 1) reshape 1')).toThrowError('reshape requires: use sequences');
+        expect(() => run('use sequences\n(array 1 2 3 4) (array 2 2) reshape'))
+            .toThrowError('reshape dimensions must follow reshape');
     });
 
     it('evaluates range expressions in array declarations and shapes', () => {

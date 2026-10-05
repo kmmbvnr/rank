@@ -2895,11 +2895,11 @@ Dist = array shape Dims fill -1
 
 ```rank
 Shape = array Rows Columns
-M = Values Shape reshape
+M = Values reshape unpack Shape
 ```
 
-It is provided by `use sequences`. The shape must be a rank-1 array of
-nonnegative integers. Values are consumed in row-major order, and their count
+It is provided by `use sequences`. Dimensions must be nonnegative integers;
+`unpack` expands a rank-1 shape array. Values are consumed in row-major order, and their count
 must exactly equal the product of the dimensions. Arrays, queues, finite
 sequences and Unicode text can be reshaped. An unbounded sequence is an error.
 An empty shape describes a scalar and therefore requires one value; a zero
@@ -5246,7 +5246,7 @@ the previous value in place. Use a new variable for a reshape that changes rank:
 use sequences
 A = array 1 2 3 4
 A = array 5 6 7 8 9 10
-M = A (array 2 3) reshape
+M = A reshape 2 3
 ```
 
 `A` stays a vector; `M` is a matrix. Assigning `M` back to `A` is an error.
@@ -5271,7 +5271,7 @@ as an array element.
 Reshape an existing value with:
 
 ```rank
-M = Values (array Rows Columns) reshape
+M = Values reshape Rows Columns
 ```
 
 Dense storage may also be allocated with a fill value and updated in place:
@@ -5590,12 +5590,11 @@ Other built-ins with a binary intrinsic rank:
 | --- | --- |
 | `0 0` | `band`, `bor`, `bxor`, `shl`, `shr`, `atan2`, `binomial`, `gcd`, `lcm`, `bit`, `round`, `min`, `max` |
 | `all 0` | `find`, `findall`, `findroot`, `floor`, `ceiling`, `lowerbound`, `upperbound`, `firstatleast` |
-| `all 1` | `reshape` |
 | `1 0` | `join`, `percentile`, `quantile` |
 
-`Rows "," join` joins each row of a text matrix. `Values Targets findall` and
-`Values Shapes reshape` have array cells, so their results stack under the frame
-by the `stack` rule: every cell must have one shape, or the call raises
+`Rows "," join` joins each row of a text matrix. `Values Targets findall` has
+array cells that stack under the frame. `Values reshape unpack Shapes` also
+stacks a result for each row of a shape matrix: every result must have one shape, or the call raises
 `DimensionMismatch`. A built-in without intrinsic binary ranks also accepts
 array cell results under an explicit `rank L R`, so `Matrices Columns solve rank 2 1`
 solves a batch of systems. For other built-ins each cell result must still be a
@@ -6644,10 +6643,10 @@ finite sequence. It rejects an infinite sequence.
 `reshape` from `sequences` constructs a dense array in row-major order:
 
 ```rank
-M = Values (array Rows Columns) reshape
+M = Values reshape Rows Columns
 ```
 
-The shape is a rank-1 array of nonnegative integers. The source may be an
+Dimensions are nonnegative integers; `unpack` expands a rank-1 shape array. The source may be an
 array, queue, finite sequence or text, and its element count must exactly match
 the requested shape. An infinite source is an error.
 
@@ -8416,7 +8415,7 @@ Images should become ordinary tensor data:
 Train = "demos/kaggle/data/dogs-vs-cats/train" images
 Test = "demos/kaggle/data/dogs-vs-cats/test1" images
 Pixels = Train 8 8 resize
-X = Pixels (array (Train len) 192) reshape
+X = Pixels reshape (Train len) 192
 ```
 
 The [runnable Dogs vs Cats baseline](../demos/kaggle/009_dogvscat.ra)

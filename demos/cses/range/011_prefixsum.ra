@@ -9,7 +9,7 @@ N = stdin .integer
 Q = stdin .integer
 Values = stdin .integer N array
 Raw = stdin .integer (Q * 3) array
-Queries = Raw (array Q 3) reshape
+Queries = Raw reshape Q 3
 
 Values Queries prefix_queries print
 

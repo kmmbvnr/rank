@@ -239,7 +239,7 @@ code that fits the 40-column budget:
 ```rank
 rem Idiomatic Rank: separate bindings for separate ranks
 Raw = stdin .integer (Q * 3) array        # Rank 1 (flat buffer)
-Queries = Raw (array Q 3) reshape         # Rank 2 (matrix of queries)
+Queries = Raw reshape Q 3         # Rank 2 (matrix of queries)
 ```
 
 Reassigning a 1D array to a 2D matrix under the same name is an anti-pattern:

@@ -108,7 +108,7 @@ describe('filter over plain collections', () => {
         expect(run('use sequences\nT = array shape 2 2 1\n  1\n  2\n  3\n  4\nend\n'
             + 'fun positive V\n  return V sum greater 0\nend\n(T filter positive rank 1) shape'))
             .toBe('4 1');
-        const wide = 'use sequences\nT = (1 to 24) (array 2 3 4) reshape\n'
+        const wide = 'use sequences\nT = (1 to 24) reshape 2 3 4\n'
             + 'fun heavy V\n  return V sum greater 30\nend\n';
         expect(run(`${wide}(T filter heavy axis 1 2 rank 1) shape`)).toBe('2 3');
         expect(run(`${wide}T filter heavy axis 1 2 rank 1`)).toBe('10 11 12 22 23 24');

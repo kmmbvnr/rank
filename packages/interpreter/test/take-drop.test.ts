@@ -87,7 +87,7 @@ Prefix = Tail take 1`);
         const runtime = new Interpreter();
         runtime.execute(`use sequences
 A = (1 to 12) copy
-M = A (array 3 2 2) reshape
+M = A reshape 3 2 2
 T = M drop 1 take 1`);
         expect(runtime.execute('T copy')).toMatchObject({ shape: [1, 2, 2], items: [5n, 6n, 7n, 8n] });
         runtime.execute('M 1 0 0 = 99');

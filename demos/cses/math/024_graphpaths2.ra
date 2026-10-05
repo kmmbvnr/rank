@@ -9,7 +9,7 @@ Nodes = stdin .integer
 M = stdin .integer
 Length = stdin .integer
 Raw = stdin .integer (M * 3) array
-Edges = Raw (array M 3) reshape
+Edges = Raw reshape M 3
 Answer = Nodes Edges Length min_path
 Answer print
 

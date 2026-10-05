@@ -15,7 +15,7 @@ the previous value in place. Use a new variable for a reshape that changes rank:
 use sequences
 A = array 1 2 3 4
 A = array 5 6 7 8 9 10
-M = A (array 2 3) reshape
+M = A reshape 2 3
 ```
 
 `A` stays a vector; `M` is a matrix. Assigning `M` back to `A` is an error.
@@ -49,7 +49,7 @@ as an array element.
 Reshape an existing value with:
 
 ```rank
-M = Values (array Rows Columns) reshape
+M = Values reshape Rows Columns
 ```
 
 Dense storage may also be allocated with a fill value and updated in place:

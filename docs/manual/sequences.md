@@ -514,7 +514,7 @@ row.
 ```rank
 use sequences
 A = 1 to 6
-B = A (array 2 3) reshape
+B = A reshape 2 3
 B 1
 ```
 
@@ -525,9 +525,12 @@ B 1
 ### Usage
 
 ```text
-Values Shape reshape
+Values reshape Dim...
+Values reshape unpack Shape
 ```
 
+Dimensions follow `reshape`. Expand an
+existing shape vector with `unpack`.
 The new shape must hold exactly as many
 items as the input: 2 × 3 = 6.
 

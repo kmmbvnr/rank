@@ -2650,10 +2650,13 @@ it('uses the preceding join result for an imported unary function example', () =
 });
 
 it('checks scalar cells after reshaping eager input', () => {
-    expect(messages('use sequences\nA = array 1 2 3 4\nB = A (array 2 2) reshape\n'
+    expect(messages('use sequences\nA = array 1 2 3 4\nB = A reshape 2 2\n'
         + 'for Row in B\n Row 0 + "bad"\nend'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use sequences\nB = (1 to 4) (array 2 2) reshape\n'
+    expect(messages('use sequences\nB = (1 to 4) reshape 2 2\n'
+        + 'for Row in B\n Row 0 + "bad"\nend'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use sequences\nB = (1 to 4) reshape 2 2\n'
         + 'for Row in B\n Row 0 + "bad"\nend'))
         .toEqual(['operator + does not accept integer and text']);
 });
@@ -2775,9 +2778,17 @@ it('infers a generator sequence without executing its body', () => {
 });
 
 it('checks reshape element counts when source and target dimensions are known', () => {
-    expect(messages('use sequences\nA = (1 to 5) (array 2 3) reshape'))
+    expect(messages('use sequences\nA = (1 to 5) reshape 2 3'))
         .toEqual(['reshape expects 6 elements, got 5']);
-    expect(messages('use sequences\nA = (1 to 6) (array 2 3) reshape')).toEqual([]);
+    expect(messages('use sequences\nA = (1 to 6) reshape 2 3')).toEqual([]);
+    expect(messages('use sequences\nA = (1 to 5) reshape unpack (array 2 3)'))
+        .toEqual(['reshape expects 6 elements, got 5']);
+    expect(messages('use sequences\nA = (1 to 6) reshape "2" 3'))
+        .toEqual(['reshape dimensions must be integers']);
+    expect(messages('use sequences\nA = (1 to 6) reshape unpack (array "2" "3")'))
+        .toEqual(['reshape shape must be a rank-1 integer array']);
+    expect(messages('use sequences\nS = array 1 2 3 4\nM = array 2 2 2 2 shape 2 2\n'
+        + 'R = S reshape unpack M')).toEqual([]);
 });
 
 it('allows integer addressing to continue into a text array element', () => {

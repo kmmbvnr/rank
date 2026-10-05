@@ -9,7 +9,7 @@ N = stdin .integer
 M = stdin .integer
 ValueCount = M * 2
 Values = stdin .integer ValueCount array
-Edges = Values (array M 2) reshape
+Edges = Values reshape M 2
 Graph = new graph (1 to N) .directed
 Graph add Edges
 Cycle = Graph round_trip

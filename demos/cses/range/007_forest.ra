@@ -9,7 +9,7 @@ N = stdin .integer
 Q = stdin .integer
 Grid = stdin .word N array
 Raw = stdin .integer (Q * 4) array
-Queries = Raw (array Q 4) reshape
+Queries = Raw reshape Q 4
 
 Grid Queries forest_queries print
 

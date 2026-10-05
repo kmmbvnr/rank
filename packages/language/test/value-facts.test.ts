@@ -673,13 +673,18 @@ it('keeps the shape and scalar cells of a dense array copy', () => {
 it('materializes proven scalar cells when reshaping an array or sequence', () => {
     const source: ValueFacts = { types: ['array'], rank: 1, shape: [4],
         elements: ['integer'], eagerScalarCells: true };
-    expect(facts('Values (array 2 2) reshape', new Map([['Values', source]])))
+    expect(facts('Values reshape 2 2', new Map([['Values', source]])))
         .toEqual({ types: ['array'], rank: 2, shape: [2, 2], elements: ['integer'], eagerScalarCells: true });
-    expect(facts('Values (array 2 2) reshape', new Map([['Values', {
+    expect(facts('Values reshape 2 2', new Map([['Values', {
         ...source, eagerScalarCells: undefined,
     }]]))).toEqual({ types: ['array'], rank: 2, shape: [2, 2], elements: ['integer'] });
-    expect(facts('(1 to 4) (array 2 2) reshape')).toEqual({ types: ['array'], rank: 2, shape: [2, 2],
+    expect(facts('(1 to 4) reshape 2 2')).toEqual({ types: ['array'], rank: 2, shape: [2, 2],
         elements: ['integer'], eagerScalarCells: true });
+    expect(facts('Values reshape unpack (array 2 2)', new Map([['Values', source]])))
+        .toEqual({ types: ['array'], rank: 2, shape: [2, 2], elements: ['integer'], eagerScalarCells: true });
+    expect(facts('Values reshape unpack Shapes', new Map([['Values', source],
+        ['Shapes', { types: ['array'], elements: ['integer'], rank: 2, shape: [2, 2] }]])))
+        .toEqual({ types: ['array'], rank: 3, shape: [2, null, null], elements: ['integer'] });
 });
 
 it('keeps integer sums of proven scalar cells exact', () => {
@@ -1103,7 +1108,7 @@ it('only proves incompatible known non-singleton axes', () => {
 });
 
 it('propagates reshape and scalar addressing', () => {
-    expect(facts('(1 to 6) (array 2 3) reshape').shape).toEqual([2, 3]);
+    expect(facts('(1 to 6) reshape 2 3').shape).toEqual([2, 3]);
     const bindings = new Map<string, ValueFacts>([['M', {
         types: ['array'], elements: ['integer'], rank: 2, shape: [2, 3],
     }]]);

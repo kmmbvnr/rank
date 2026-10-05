@@ -17,7 +17,7 @@ describe('image module', () => {
         expect(formatValue(runtime.execute('Rows .name')!)).toBe('a.png');
         const tensor = runtime.execute('Rows 1 2 resize')!;
         expect(tensor).toMatchObject({ kind: 'array', shape: [1, 1, 2, 3] });
-        expect(formatValue(runtime.execute('(Rows 1 2 resize) (array 1 6) reshape')!))
+        expect(formatValue(runtime.execute('(Rows 1 2 resize) reshape 1 6')!))
             .toBe('1 2 3 4 5 6');
     });
 
