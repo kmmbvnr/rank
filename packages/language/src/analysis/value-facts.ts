@@ -239,24 +239,39 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
         if (source.types.join() === 'sequence') return { types: ['sequence'], rank: 1, shape: [null],
             ...(source.elements ? { elements: source.elements } : {}),
             ...(source.elementRecord ? { elementRecord: source.elementRecord } : {}) };
-        const condition = expression.condition ?? (expression.conditions.length === 1 ? expression.conditions[0] : undefined);
-        const predicate = condition && filterPredicateForm(condition);
+        const conditions = expression.condition ? [expression.condition] : expression.conditions;
+        const forms = conditions.map(filterPredicateForm);
+        const predicate = forms[0] && forms.every(form => form && form.rank === forms[0]?.rank
+            && form.axes?.join() === forms[0]?.axes?.join()) ? forms[0] : undefined;
         if (source.types.join() === 'array' && source.rank === 1 && source.elements?.length
             && !source.elements.includes('object') && !source.checkedColumns
-            && predicate && predicate.rank === undefined
+            && predicate && (predicate.rank === undefined || predicate.rank === 0)
+            && (predicate.axes === undefined || predicate.axes.join() === '0')
             && lookup(predicate.name)?.types.join() === 'function') {
             return { types: ['sequence'], rank: 1, shape: [null], elements: source.elements,
                 ...(source.elementRecord ? { elementRecord: source.elementRecord } : {}) };
         }
         if (source.types.join() === 'array' && source.rank !== undefined && source.rank > 1
-            && predicate && predicate.rank === undefined
-            && (predicate.axis ?? 0) < source.rank
+            && predicate
             && lookup(predicate.name)?.types.join() === 'function') {
-            const shape = [...(source.shape ?? Array(source.rank).fill(null))];
-            shape[predicate.axis ?? 0] = null;
-            return { types: ['array'], rank: source.rank,
-                shape,
-                ...(source.elements ? { elements: source.elements } : {}) };
+            const cellRank = predicate.rank ?? source.rank - 1;
+            const frameRank = source.rank - cellRank;
+            const axes = predicate.axes ?? Array.from({ length: Math.max(0, frameRank) }, (_, axis) => axis);
+            const validAxes = axes.length === frameRank && new Set(axes).size === axes.length
+                && axes.every(axis => axis >= 0 && axis < source.rank!);
+            if (cellRank === 0 && validAxes) {
+                return { types: ['sequence'], rank: 1, shape: [null],
+                    ...(source.elements ? { elements: source.elements } : {}) };
+            }
+            if (cellRank > 0 && frameRank > 0 && validAxes) {
+                const frame = new Set(axes);
+                const shape = source.shape ?? Array(source.rank).fill(null);
+                const first = Math.min(...axes);
+                const output = shape.flatMap((dimension, axis) => axis === first ? [null]
+                    : frame.has(axis) ? [] : [dimension]);
+                return { types: ['array'], rank: cellRank + 1, shape: output,
+                    ...(source.elements ? { elements: source.elements } : {}) };
+            }
         }
         const filteredLength = source.checkedColumns ? freshDim('filtered') : undefined;
         if (source.types.join() === 'array' && source.rank === 1) return {

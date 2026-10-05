@@ -34,6 +34,28 @@ it('checks an unranked matrix filter predicate against row cells', () => {
     expect(messages(source + 'M filter (M greater 3)')).toEqual([]);
 });
 
+it('checks tensor filter predicates against cells left by the selected axes', () => {
+    const knownMessages = (predicate: string, filter: string): string[] => {
+        const parsed = services.Rank.parser.LangiumParser.parse<Program>(predicate
+            + `fun apply T\n  return T filter ${filter}\nend\n`);
+        expect(parsed.parserErrors).toEqual([]);
+        return analyzeValues(parsed.value, new Map(), new Map(), [{ name: 'apply', arguments: [{
+            types: ['array'], rank: 3, shape: [2, 2, 2], elements: ['integer'],
+        }] }]).diagnostics.map(item => item.message);
+    };
+    expect(knownMessages('fun heavy V\n  return V sum greater 8\nend\n',
+        'heavy axis 1 2 rank 1')).toEqual([]);
+    expect(knownMessages('fun wrong V\n  return V + "bad" equal 0\nend\n',
+        'wrong axis 0 2 rank 1'))
+        .toContain('wrong: operator + does not accept integer and text');
+    expect(knownMessages('fun heavy V\n  return V sum greater 8\nend\n',
+        'heavy axis 0 rank 1'))
+        .toContain('filter axis count plus cell rank must equal source rank, with distinct valid axes');
+    expect(knownMessages('fun heavy V\n  return V sum greater 8\nend\n',
+        '\n    heavy axis 0 2 rank 1\n    heavy axis 1 2 rank 1\n  end'))
+        .toContain('filter conditions must traverse the same axes');
+});
+
 it('analyzes data-first choose without opening sequences', () => {
     expect(messages('A = true choose 1 2\nB = 1 choose (array 10 20)\nA + B')).toEqual([]);
     expect(messages('A = false choose "no" "yes"\nA + 1'))

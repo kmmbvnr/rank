@@ -222,6 +222,24 @@ it('keeps trailing matrix dimensions after a row predicate', () => {
     });
 });
 
+it('infers the remaining cell axes when a tensor filter traverses several axes', () => {
+    const tensor: ValueFacts = { types: ['array'], rank: 3, shape: [2, 3, 4], elements: ['integer'] };
+    const predicate: ValueFacts = { types: ['function'] };
+    const bindings = new Map([['Tensor', tensor], ['heavy', predicate]]);
+    expect(facts('Tensor filter heavy rank 1', bindings)).toEqual({
+        types: ['array'], rank: 2, shape: [null, 4], elements: ['integer'],
+    });
+    expect(facts('Tensor filter heavy axis 0 2 rank 1', bindings)).toEqual({
+        types: ['array'], rank: 2, shape: [null, 3], elements: ['integer'],
+    });
+    expect(facts('Tensor filter heavy axis 1 2 rank 1', bindings)).toEqual({
+        types: ['array'], rank: 2, shape: [2, null], elements: ['integer'],
+    });
+    expect(facts('Tensor filter\n  heavy axis 1 2 rank 1\n  heavy axis 1 2 rank 1\nend', bindings)).toEqual({
+        types: ['array'], rank: 2, shape: [2, null], elements: ['integer'],
+    });
+});
+
 it('infers the integer length of a known array axis', () => {
     const bindings = new Map<string, ValueFacts>([['Matrix', {
         types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'], eagerScalarCells: true,

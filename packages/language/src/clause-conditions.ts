@@ -33,22 +33,29 @@ const LOGICAL = new Set(['and', 'or', 'xor']);
 const MODIFIERS = new Set(['rank', 'axis']);
 
 /** A named filter predicate and the cell selection written after it. */
-export function filterPredicateForm(condition: Expression): { name: string; axis?: number; rank?: number } | undefined {
+export function filterPredicateForm(condition: Expression): { name: string; axes?: number[]; rank?: number } | undefined {
     const parts = flattenApplication(condition);
     const name = parts[0];
     if (!isNameExpression(name)) return;
-    let index = 1, axis: number | undefined, rank: number | undefined;
-    let word = parts[index], value = parts[index + 1];
-    if (isNameExpression(word) && word.name === 'axis' && isNumberLiteral(value)) {
-        axis = Number(value.value);
-        index += 2;
+    let index = 1, axes: number[] | undefined, rank: number | undefined;
+    const modifier = parts[index];
+    if (isNameExpression(modifier) && modifier.name === 'axis') {
+        axes = [];
+        index += 1;
+        while (true) {
+            const part = parts[index];
+            if (!isNumberLiteral(part)) break;
+            axes.push(Number(part.value));
+            index += 1;
+        }
+        if (!axes.length) return;
     }
-    word = parts[index]; value = parts[index + 1];
+    const word = parts[index], value = parts[index + 1];
     if (isNameExpression(word) && word.name === 'rank' && isNumberLiteral(value)) {
         rank = Number(value.value);
         index += 2;
     }
-    return index === parts.length ? { name: name.name, axis, rank } : undefined;
+    return index === parts.length ? { name: name.name, axes, rank } : undefined;
 }
 
 /** `Values till 10` and `1 to 10`: a range operator without a step. */

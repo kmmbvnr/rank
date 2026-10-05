@@ -543,20 +543,30 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 diagnostics.push({ node: expression, kind: 'DimensionMismatch',
                     message: 'filter needs one boolean per row' });
             }
+            const frames: number[][] = [];
             for (const condition of conditions) {
                 const predicate = filterPredicateForm(condition);
                 if (!predicate || !env.get(predicate.name)?.types.includes('function')
                     || lookup.arity?.(predicate.name) !== 1
                     || !['sequence', 'array'].includes(source.types.join())) continue;
                 const rank = predicate.rank ?? (source.rank ?? 1) - 1;
-                const axis = predicate.axis ?? 0;
+                const frameRank = (source.rank ?? 1) - rank;
+                const axes = predicate.axes ?? Array.from({ length: Math.max(0, frameRank) }, (_, axis) => axis);
+                if (source.rank !== undefined && (rank < 0 || frameRank < 1
+                    || axes.length !== frameRank || new Set(axes).size !== axes.length
+                    || axes.some(axis => axis < 0 || axis >= source.rank!))) {
+                    diagnostics.push({ node: condition, kind: 'DimensionMismatch',
+                        message: 'filter axis count plus cell rank must equal source rank, with distinct valid axes' });
+                    continue;
+                }
+                frames.push(axes);
                 let cell: ValueFacts = UNKNOWN_VALUE;
                 if (source.types.join() === 'sequence' && rank === 0
                     || source.types.join() === 'array' && rank === 0) {
                     cell = source.elementRecord ?? stableRecordField({ types: source.elements ?? [] });
                 } else if (source.types.join() === 'array' && source.rank !== undefined
-                    && rank === source.rank - 1 && axis >= 0 && axis < source.rank) {
-                    cell = { types: ['array'], rank, shape: source.shape?.filter((_, index) => index !== axis),
+                    && rank > 0) {
+                    cell = { types: ['array'], rank, shape: source.shape?.filter((_, index) => !axes.includes(index)),
                         elements: source.elements };
                 }
                 const result = calls.call(predicate.name, [cell], env, condition, true);
@@ -564,6 +574,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     diagnostics.push({ node: condition, kind: 'TypeError',
                         message: `filter predicate must return boolean, got ${result.types.join(' or ')}` });
                 }
+            }
+            if (frames.some(axes => axes.join() !== frames[0]?.join())) {
+                diagnostics.push({ node: expression, kind: 'DimensionMismatch',
+                    message: 'filter conditions must traverse the same axes' });
             }
         }
         if (isParenthesizedExpression(expression)) inspect(expression.value, env);
