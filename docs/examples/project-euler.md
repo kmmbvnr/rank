@@ -75,16 +75,16 @@ rem https://projecteuler.net/problem=4
 Lower = 10 ** (Digits - 1)
 Upper = Lower * 10 - 1
 
-Factors = Lower to Upper
+Factors = Upper to Lower by -1
 Products = Factors Factors outer *
-Palindromes = Products filter palindrome rank 0
-Answer = Palindromes max
+Candidates = Products merge .descending
+Answer = Candidates filter palindrome first
 ```
 
-`outer` constructs the multiplication table lazily. Ranked `palindrome` checks
-each scalar product, and `filter` selects the candidates for `max` without
-naming the table twice.
-The helper converts each number to text and compares it with `reverse`.
+Each row of `outer` is descending. `merge .descending` visits their products
+in global descending order without materializing the table; `filter` stops at
+the first palindrome, which is the largest. The helper converts each number
+to text and compares it with `reverse`.
 
 ## 5. Smallest multiple
 

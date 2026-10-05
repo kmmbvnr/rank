@@ -1,7 +1,8 @@
 rem Largest Palindrome Product
 rem https://projecteuler.net/problem=4
-rem Largest palindrome made from the
-rem product of two N-digit numbers
+rem Merge the rows of
+rem the product table in decreasing order, so
+rem the first palindrome found is the answer.
 
 use sequences
 use io
@@ -13,12 +14,13 @@ option Digits integer = 3
 Lower = 10 ** (Digits - 1)
 Upper = Lower * 10 - 1
 
-Factors = Lower to Upper
+rem Every product row is descending. Merge the
+rem rows without materializing the product table.
+Factors = Upper to Lower by -1
 Products = Factors Factors outer *
-Palindromes = Products filter palindrome rank 0
+Candidates = Products merge .descending
 
-Answer = Palindromes max
-
+Answer = Candidates filter palindrome first
 Answer print
 
 rem Return true when a nonnegative integer
