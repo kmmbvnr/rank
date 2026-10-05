@@ -216,9 +216,10 @@ rem https://projecteuler.net/problem=11
 Answer = Grid greatest_product
 ```
 
-The grid is one dense rank-2 array. The helper multiplies four aligned slices
-for each of the horizontal, vertical, and two diagonal directions, then takes
-their maxima. The full example produces `70600674`.
+The grid is one dense rank-2 array. The helper reduces sliding windows of four
+values horizontally and vertically. For diagonals it extracts the diagonal of
+each 4-by-4 window; reversing the grid gives the other direction. The full
+example produces `70600674`.
 
 ## 12. Highly divisible triangular number
 

@@ -4,6 +4,7 @@ rem Find the greatest product of adjacent
 rem values in four straight directions
 
 use io
+use linalg
 use sequences
 
 Grid = array shape 20 20
@@ -33,25 +34,12 @@ Answer = Grid greatest_product
 Answer print
 
 
-rem Each cell of a product matrix starts one run of four values.
+rem Multiply every run of four values in each direction.
 fun greatest_product Grid
-  Starts = 0 till 17
-  Horizontal = (
-    (Grid # Starts) * (Grid # (Starts + 1)) *
-    (Grid # (Starts + 2)) * (Grid # (Starts + 3))
-  )
-  Vertical = (
-    (Grid Starts) * (Grid (Starts + 1)) *
-    (Grid (Starts + 2)) * (Grid (Starts + 3))
-  )
-  Down = (
-    (Grid Starts Starts) * (Grid (Starts + 1) (Starts + 1)) *
-    (Grid (Starts + 2) (Starts + 2)) * (Grid (Starts + 3) (Starts + 3))
-  )
-  Up = (
-    (Grid (Starts + 3) Starts) * (Grid (Starts + 2) (Starts + 1)) *
-    (Grid (Starts + 1) (Starts + 2)) * (Grid Starts (Starts + 3))
-  )
-
-  return (array (Horizontal max) (Vertical max) (Down max) (Up max)) max
+  Square = array 4 4
+  Horizontal = Grid 4 window axis 1 reduce * rank 1 max
+  Vertical = Grid 4 window axis 0 reduce * rank 1 max
+  Down = Grid Square window diag rank 2 reduce * rank 1 max
+  Up = Grid reverse Square window diag rank 2 reduce * rank 1 max
+  return (array Horizontal Vertical Down Up) max
 end
