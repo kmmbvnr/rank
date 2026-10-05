@@ -84,6 +84,48 @@ function mergedSequenceFacts(operands: readonly ValueFacts[]): ValueFacts {
         ...(collections && rows && sameCells ? { elements: cells } : {}) };
 }
 
+function windowFacts(form: Extract<ApplicationForm, { kind: 'window' }>, lookup: FactLookup,
+    infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts {
+    const source = infer(form.source, lookup);
+    const size = infer(form.size, lookup);
+    const axes = form.axes ?? (source.rank === undefined ? undefined
+        : Array.from({ length: source.rank }, (_, axis) => axis));
+    if (!axes || source.rank === undefined || axes.some(axis => axis < 0 || axis >= source.rank!))
+        return UNKNOWN_VALUE;
+    const geometry = (value: Expression | undefined, fallback: number): (number | null)[] => {
+        if (!value) return axes.map(() => fallback);
+        const fact = infer(value, lookup);
+        if (fact.integer !== undefined) return axes.map(() => Number(fact.integer));
+        return fact.integers?.length === axes.length ? [...fact.integers] : axes.map(() => null);
+    };
+    const widths = size.integer !== undefined ? [Number(size.integer)]
+        : size.integers?.length === axes.length ? size.integers : axes.map(() => null);
+    if (widths.length !== axes.length) return UNKNOWN_VALUE;
+    const strides = geometry(form.stride, 1);
+    const padding = geometry(form.padding, 0);
+    const count = (length: number | null, index: number): number | null => {
+        const width = widths[index], stride = strides[index], pad = padding[index];
+        if (length === null || width === null || stride === null || pad === null
+            || width <= 0 || stride <= 0 || pad < 0) return null;
+        const available = length + pad * 2 - width;
+        return available < 0 ? 0 : Math.floor(available / stride) + 1;
+    };
+    if (source.types.join() === 'text' && axes.length === 1) return {
+        types: ['sequence'], elements: ['text'], rank: 1, shape: [count(source.shape?.[0] ?? null, 0)],
+        callbackFreeScalarCells: true,
+    };
+    if (source.types.join() === 'sequence' && source.shape?.[0] == null) return UNKNOWN_VALUE;
+    if (!['array', 'sequence'].includes(source.types.join())) return UNKNOWN_VALUE;
+    const shape = (source.shape ?? Array(source.rank).fill(null)).map((length, axis) => {
+        const selected = axes.indexOf(axis);
+        return selected < 0 ? length : count(length, selected);
+    });
+    return { types: ['array'], elements: source.elements, rank: shape.length + axes.length,
+        shape: [...shape, ...widths],
+        ...(source.eagerScalarCells || source.callbackFreeScalarCells
+            ? { callbackFreeScalarCells: true as const } : {}) };
+}
+
 /** Transfer facts through a flattened application and its standard-operation contract. */
 export function applicationExpressionFacts(
     expression: ApplicationExpression, lookup: FactLookup,
@@ -161,6 +203,9 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
                     ? { eagerScalarCells: true as const } : {}) };
             return continueWith(shaped);
         }
+        case 'window': {
+            return windowFacts(form, lookup, infer);
+        }
         case 'dsu-method':
             if (form.operation === 'merge') {
                 const receiver = infer(form.receiver, lookup);
@@ -177,7 +222,7 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
                 ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
         // These forms have runtime implementations but no abstract transfer yet.
         case 'collection-mutation': case 'unpack': case 'invalid': case 'axis-matmul': case 'axis-quantile':
-        case 'axis-window': case 'axis-shift': case 'axis-shuffle': case 'axis-argsort': case 'axis-metric':
+        case 'axis-shift': case 'axis-shuffle': case 'axis-argsort': case 'axis-metric':
         case 'axis-transpose': case 'axis-selection':
         case 'comparison-rank':
             return UNKNOWN_VALUE;
@@ -906,22 +951,6 @@ function transferApplicationFacts(
         return lookup.invoke(last.name, pipedArguments
             ? pipedArguments.map(part => infer(part, lookup))
             : unaryTail ? [source] : parts.slice(0, -1).map(part => infer(part, lookup)));
-    }
-    if (isNameExpression(last) && lookup(last.name) === undefined) {
-        if (lastOperation === findOperation('window') && parts.length === 3 && source.rank === 1 && source.shape?.[0] != null) {
-            const widthText = infer(parts[1], lookup).integer;
-            const width = widthText === undefined ? NaN : Number(widthText);
-            if (Number.isSafeInteger(width) && width > 0) {
-                const count = Math.max(0, source.shape[0] - width + 1);
-                if (source.types.join() === 'text') return { types: ['sequence'], elements: ['text'], rank: 1,
-                    shape: [count], callbackFreeScalarCells: true };
-                if (['array', 'bytes', 'sequence'].includes(source.types.join())) return {
-                    types: ['array'], elements: source.elements, rank: 2, shape: [count, width],
-                    ...(source.eagerScalarCells || source.callbackFreeScalarCells
-                        ? { callbackFreeScalarCells: true as const } : {}),
-                };
-            }
-        }
     }
     if (parts.length === 2 && source.types.join() === 'text'
         && infer(parts[1], lookup).types.join() === 'integer') {

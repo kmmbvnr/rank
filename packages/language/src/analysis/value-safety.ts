@@ -85,8 +85,8 @@ export function safeIndexedSource(source: Expression): boolean {
     }
     if (!isApplicationExpression(source)) return false;
     const parts = flattenApplication(source);
-    return parts.length === 3 && isNameExpression(parts[2]) && findOperation(parts[2].name) === findOperation('window')
-        && directValue(parts[0]) && directValue(parts[1]);
+    return parts.length === 3 && isNameExpression(parts[1]) && findOperation(parts[1].name) === findOperation('window')
+        && directValue(parts[0]) && directValue(parts[2]);
 }
 
 export function safeEmptyArrayIteration(source: Expression | undefined, collection: ValueFacts): boolean {

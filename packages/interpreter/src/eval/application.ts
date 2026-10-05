@@ -434,22 +434,22 @@ export class ApplicationEvaluator {
                     return remaining.length ? yield* resume(application.apply([result, ...remaining], missing, 0, [], tail)) : result;
                 };
             }
-            case 'axis-window': {
-                const axisWindow = form;
+            case 'window': {
+                const window = form;
                 return function* (): Execution<RankValue> {
                     context.requireModule('sequences', 'window');
                     return windowValue(
-                        (yield* resume(context.evaluate(axisWindow.source))),
-                        (yield* resume(context.evaluate(axisWindow.size))),
-                        axisWindow.axes,
-                        axisWindow.stride
-                            ? (yield* resume(context.evaluate(axisWindow.stride)))
+                        (yield* resume(context.evaluate(window.source))),
+                        (yield* resume(context.evaluate(window.size))),
+                        window.axes,
+                        window.stride
+                            ? (yield* resume(context.evaluate(window.stride)))
                             : undefined,
-                        axisWindow.padding
-                            ? (yield* resume(context.evaluate(axisWindow.padding)))
+                        window.padding
+                            ? (yield* resume(context.evaluate(window.padding)))
                             : undefined,
-                        axisWindow.fill
-                            ? (yield* resume(context.evaluate(axisWindow.fill)))
+                        window.fill
+                            ? (yield* resume(context.evaluate(window.fill)))
                             : undefined,
                     );
                 };

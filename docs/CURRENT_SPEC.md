@@ -2746,11 +2746,11 @@ scalars, raise `DimensionMismatch`. To materialize a sequence of arrays, use
 ## Sliding windows
 
 `window` produces every overlapping, contiguous cell of a fixed size. The
-source and size precede the operation:
+source precedes `window`, and the size follows it:
 
 ```rank
-Pairs = Text 2 window
-Windows = Values Width window
+Pairs = Text window 2
+Windows = Values window Width
 ```
 
 Text windows are text values, so ordinary text comparison and addressing keep
@@ -2763,7 +2763,7 @@ For a tensor, a rank-1 integer array supplies one size per selected axis:
 
 ```rank
 WindowShape = array 2 3
-Blocks = M WindowShape window
+Blocks = M window WindowShape
 ```
 
 Without `axis`, the size array must cover every tensor axis. If `M` has shape
@@ -2773,10 +2773,10 @@ window-cell axes are appended last.
 `axis` selects and orders a subset of source axes:
 
 ```rank
-Columns = M 3 window axis 1
+Columns = M window 3 axis 1
 
 WindowShape = array 2 3
-Blocks = T WindowShape window axis 0 2
+Blocks = T window WindowShape axis 0 2
 ```
 
 There must be one size for each selected axis. Axis numbers are zero-based and
@@ -2788,9 +2788,9 @@ valid only for a rank-1 value.
 padding before positions are chosen:
 
 ```rank
-Blocks = M WindowShape window stride 2
-Blocks = M WindowShape window padding 1
-Blocks = M WindowShape window stride 2 padding 1
+Blocks = M window WindowShape stride 2
+Blocks = M window WindowShape padding 1
+Blocks = M window WindowShape stride 2 padding 1
 ```
 
 Each value may instead be a rank-1 integer array with one item per selected
@@ -5501,7 +5501,7 @@ copying them:
 
 ```rank
 WindowShape = array 2 3
-Blocks = M WindowShape window
+Blocks = M window WindowShape
 Scores = Blocks reduce + rank 2 with 0
 ```
 
@@ -5513,8 +5513,8 @@ block.
 Selected axes follow the operation:
 
 ```rank
-Columns = M 3 window axis 1
-Blocks = T WindowShape window axis 0 2
+Columns = M window 3 axis 1
+Blocks = T window WindowShape axis 0 2
 ```
 
 There must be one window size for every selected axis. The appended cell axes
@@ -5523,9 +5523,9 @@ follow the explicit axis order.
 Stride and symmetric zero padding are contextual modifiers:
 
 ```rank
-Blocks = M WindowShape window stride 2
-Blocks = M WindowShape window padding 1
-Blocks = M WindowShape window stride 2 padding 1
+Blocks = M window WindowShape stride 2
+Blocks = M window WindowShape padding 1
+Blocks = M window WindowShape stride 2 padding 1
 ```
 
 A scalar applies to every selected axis; a rank-1 integer array supplies one
@@ -6653,13 +6653,13 @@ the requested shape. An infinite source is an error.
 `window` returns overlapping fixed-size cells lazily:
 
 ```rank
-Pairs = Text 2 window
-Windows = Values Width window
+Pairs = Text window 2
+Windows = Values window Width
 WindowShape = array 2 3
-Blocks = M WindowShape window
-Columns = M 3 window axis 1
-Strided = M WindowShape window stride 2
-Padded = M WindowShape window padding 1
+Blocks = M window WindowShape
+Columns = M window 3 axis 1
+Strided = M window WindowShape stride 2
+Padded = M window WindowShape padding 1
 ```
 
 Tensor window sizes correspond to all axes unless `axis` selects a subset.
@@ -7242,7 +7242,7 @@ use numbers
 option Width integer = 13
 
 Digits = Number integer rank 0
-Windows = Digits Width window
+Windows = Digits window Width
 Products = Windows reduce * rank 1
 Answer = Products max
 ```
@@ -7314,19 +7314,28 @@ finite plan. The default limit produces `142913828922`; limit 10 produces `17`.
 rem Project Euler 11
 rem https://projecteuler.net/problem=11
 
-Directions = array shape 4 2
-  0 1
-  1 0
-  1 1
-  1 -1
-end
-
-Answer = Grid 4 greatest_product
+H = (
+  Grid window 4 axis 1 reduce * rank 1
+) max
+V = (
+  Grid window 4 axis 0 reduce * rank 1
+) max
+Square = array 4 4
+D = (
+  Grid window Square
+) diag rank 2 reduce * rank 1 max
+U = (
+  Grid reverse window Square
+) diag rank 2 reduce * rank 1 max
+Answer = (array H V D U) max
 ```
 
-The grid is one dense rank-2 array. The helper walks horizontal, vertical and
-both downward diagonal directions, rejects endpoints outside the shape, and
-keeps the largest fixed-width product. The full example produces `70600674`.
+The grid is one dense rank-2 array. Horizontal and vertical products reduce
+sliding windows of four values. The `D` and `U` products take the diagonal of
+each 4-by-4 window; reversing the grid gives the other direction. The full
+example produces `70600674`.
+
+[Explore how the windows, diagonals, and result axes work](visualizations/euler-11-windows.html).
 
 ## 12. Highly divisible triangular number
 
@@ -8546,7 +8555,7 @@ vertical pipelines (`|>` or fluent dot-chaining):
 ```rank
 rem Preferred Rank style:
 Digits = Number integer rank 0
-Windows = Digits Width window
+Windows = Digits window Width
 Products = Windows reduce * rank 1
 Answer = Products max
 ```
@@ -8651,7 +8660,7 @@ Rank introduces `window` and operator-modifier reductions (`reduce *`, `reduce +
 to replace nested index-manipulation loops with rank operations:
 
 ```rank
-Windows = Digits Width window
+Windows = Digits window Width
 Products = Windows reduce * rank 1
 Answer = Products max
 ```

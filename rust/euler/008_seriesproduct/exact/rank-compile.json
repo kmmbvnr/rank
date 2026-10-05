@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "compiler": "@arrrank/compile@0.0.1",
   "sourceName": "008_seriesproduct.ra",
-  "sourceSha256": "231b6b2b85dc47e8db5fe30aa8ecea181bf3b7d8fb61e18f729991ac6b0e42d9",
-  "taskSha256": "cada22a456777d2b2a29ac89f7e7a9972800a91d2c4fc1b7b651de9475e398da",
+  "sourceSha256": "c41fad325851ea5d42b2d6efc9687eb5cdb687890c2ae3fe75ffffe337edcead",
+  "taskSha256": "34a2098eafce96878c0bfe41c8af6769300df38bbae5e7ce7997177e94152aec",
   "integers": "exact",
   "crate": "rank-008_seriesproduct-exact"
 }

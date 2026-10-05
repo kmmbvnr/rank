@@ -37,7 +37,7 @@ uncluttered BASIC-inspired syntax:
 ```rank
 rem The user types this:
 Digits = 10 to 99
-Windows = Digits 5 window
+Windows = Digits window 5
 Total = Windows reduce * rank 3   <-- Editor immediately flags: rank 3 invalid (Windows has rank 2)
 ```
 
@@ -154,7 +154,7 @@ The abstract interpreter defines transfer rules for each Rank primitive:
   - Concrete shapes must match: if $d_{1, i} \neq d_{2, i}$, report an error:
     `"Shape mismatch in binary operation: [10, 20] vs [10, 30]"`.
 
-### 2. Windowing (`A K window`)
+### 2. Windowing (`A window K`)
 - Lifts a rank-$R$ array to rank $R+1$.
 - If `A` has 1D shape `[N]` and `K` is known statically:
   - Result rank is $2$.
@@ -370,7 +370,7 @@ at line 42: Data.filter(x => x > 0).window(5).map(w => w.sum()).reduce((a, b) =>
 
 **In Rank:**
 ```rank
-4 | Windows = Digits 5 window
+4 | Windows = Digits window 5
 5 | Total = Windows reduce * rank 3
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     Cannot reduce rank 3: 'Windows' has rank 2 (shape [N - 4, 5])

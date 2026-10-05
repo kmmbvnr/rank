@@ -152,7 +152,7 @@ use numbers
 option Width integer = 13
 
 Digits = Number integer rank 0
-Windows = Digits Width window
+Windows = Digits window Width
 Products = Windows reduce * rank 1
 Answer = Products max
 ```
@@ -213,19 +213,28 @@ finite plan. The default limit produces `142913828922`; limit 10 produces `17`.
 rem Project Euler 11
 rem https://projecteuler.net/problem=11
 
-Directions = array shape 4 2
-  0 1
-  1 0
-  1 1
-  1 -1
-end
-
-Answer = Grid 4 greatest_product
+H = (
+  Grid window 4 axis 1 reduce * rank 1
+) max
+V = (
+  Grid window 4 axis 0 reduce * rank 1
+) max
+Square = array 4 4
+D = (
+  Grid window Square
+) diag rank 2 reduce * rank 1 max
+U = (
+  Grid reverse window Square
+) diag rank 2 reduce * rank 1 max
+Answer = (array H V D U) max
 ```
 
-The grid is one dense rank-2 array. The helper walks horizontal, vertical and
-both downward diagonal directions, rejects endpoints outside the shape, and
-keeps the largest fixed-width product. The full example produces `70600674`.
+The grid is one dense rank-2 array. Horizontal and vertical products reduce
+sliding windows of four values. The `D` and `U` products take the diagonal of
+each 4-by-4 window; reversing the grid gives the other direction. The full
+example produces `70600674`.
+
+[Explore how the windows, diagonals, and result axes work](../visualizations/euler-11-windows.html).
 
 ## 12. Highly divisible triangular number
 

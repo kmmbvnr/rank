@@ -21,8 +21,8 @@ Rank establishes **Multidimensional Sliding Windows with Stride and Padding via 
 ```rank
 use sequences
 
-Windows = Values Width window
-Blocks = Matrix (array 3 3) window stride 2 padding 1
+Windows = Values window Width
+Blocks = Matrix window (array 3 3) stride 2 padding 1
 ```
 
 ### 1. Zero-Copy Lazy Windowing (`window`)
@@ -31,7 +31,7 @@ Blocks = Matrix (array 3 3) window stride 2 padding 1
   ```rank
   rem Source shape: 4 5
   WindowShape = array 2 3
-  Blocks = Matrix WindowShape window
+  Blocks = Matrix window WindowShape
   rem Blocks shape: 3 3 2 3
   ```
 - Window views are lazy and read-only: overlapping cells are computed on demand without eagerly copying memory.
@@ -40,7 +40,7 @@ Blocks = Matrix (array 3 3) window stride 2 padding 1
 Because windowed cells form the trailing dimensions, Rank's core `rank` combinators apply directly to every window:
 ```rank
 rem Compute max product across all 13-digit sliding windows:
-Windows = Digits 13 window
+Windows = Digits window 13
 Products = Windows reduce * rank 1
 MaxProduct = Products max
 ```
@@ -49,14 +49,14 @@ This solves complex window-aggregation problems in just 3–4 concise lines.
 ### 3. Strided Windows (`stride`)
 - The `stride` modifier skips positions along the position frame:
   ```rank
-  Downsampled = Matrix WindowShape window stride 2
+  Downsampled = Matrix window WindowShape stride 2
   ```
 - Stride must be a positive integer or a rank-1 array with one stride per windowed axis.
 
 ### 4. Symmetric Zero Padding (`padding`)
 - The `padding` modifier adds conceptual zero borders before windows are selected:
   ```rank
-  Padded = Matrix WindowShape window padding 1
+  Padded = Matrix window WindowShape padding 1
   ```
 - Padding must be a non-negative integer or a rank-1 array of padding amounts.
 - For source length $N$, window width $W$, stride $S$, and padding $P$, the output position length matches the standard convolution formula:
@@ -64,7 +64,7 @@ This solves complex window-aggregation problems in just 3–4 concise lines.
 
 - `with` sets the border value; it defaults to integer zero:
   ```rank
-  Peaks = Matrix WindowShape window padding 1 with -infinity
+  Peaks = Matrix window WindowShape padding 1 with -infinity
   ```
   The value must be a single value, and `with` is valid only directly after
   `padding`. Padding stays `stride`, `padding`, `axis` in that order.
@@ -72,7 +72,7 @@ This solves complex window-aggregation problems in just 3–4 concise lines.
 ### 5. Selective Axis Windowing (`axis`)
 - `axis` targets specific dimensions without windowing the entire tensor:
   ```rank
-  Columns = Matrix 3 window axis 1
+  Columns = Matrix window 3 axis 1
   ```
 
 ### 6. Axis Shift (`shift`)

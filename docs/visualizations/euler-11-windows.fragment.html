@@ -1,0 +1,305 @@
+<div id="euler11-windows" class="e11">
+  <h2>Как окно выбирает четыре числа</h2>
+  <div class="viz-controls" role="group" aria-label="Направление">
+    <button type="button" class="btn" data-mode="h" aria-pressed="false">→ Горизонталь</button>
+    <button type="button" class="btn" data-mode="v" aria-pressed="false">↓ Вертикаль</button>
+    <button type="button" class="btn" data-mode="d" aria-pressed="true">↘ Диагональ</button>
+    <button type="button" class="btn" data-mode="u" aria-pressed="false">↗ Диагональ</button>
+  </div>
+  <div class="viz-controls e11-navigation">
+    <button type="button" class="btn" id="e11-prev">← Назад</button>
+    <label class="form-label e11-position" for="e11-index">
+      Окно <span id="e11-counter" class="tabular-nums"></span>
+      <input class="form-range" type="range" id="e11-index" min="0" max="288" value="0" aria-label="Положение окна">
+    </label>
+    <button type="button" class="btn" id="e11-next">Вперёд →</button>
+    <button type="button" class="btn" id="e11-tilt" aria-pressed="true">3D вид</button>
+  </div>
+  <div class="viz-controls" role="group" aria-label="Шаг объяснения">
+    <button type="button" class="btn" data-stage="0" aria-pressed="false">1. Окно</button>
+    <button type="button" class="btn" data-stage="1" aria-pressed="true">2. Маска</button>
+    <button type="button" class="btn" data-stage="2" aria-pressed="false">3. Произведение</button>
+  </div>
+  <div class="e11-info" id="e11-info" aria-live="polite"></div>
+  <div class="e11-layout">
+    <div class="e11-scene" id="e11-scene">
+      <div class="e11-plane" id="e11-plane">
+        <div class="e11-board" id="e11-board" role="img" aria-label="Матрица 20 на 20 с выделенным окном"></div>
+        <div class="e11-frame" id="e11-frame" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="e11-detail">
+      <div class="e11-detail-title" id="e11-mask-title"></div>
+      <div class="e11-mask" id="e11-mask" role="img"></div>
+      <div class="e11-flow-arrow" aria-hidden="true">↓</div>
+      <div class="e11-detail-title" id="e11-vector-title"></div>
+      <div class="e11-vector" id="e11-vector" role="img"></div>
+      <div class="e11-result tabular-nums" id="e11-result" aria-live="polite"></div>
+      <div class="e11-product-section" id="e11-product-section">
+        <div class="e11-detail-title" id="e11-product-title"></div>
+        <div class="e11-product-scene">
+          <div class="e11-product-plane" id="e11-product-plane" role="img"></div>
+        </div>
+        <div class="e11-product-caption tabular-nums" id="e11-product-caption"></div>
+      </div>
+    </div>
+  </div>
+  <div class="e11-code-title">Код Rank для выбранного направления</div>
+  <pre class="e11-code"><code id="e11-code"></code></pre>
+</div>
+<style>
+  #euler11-windows { width: 100%; color: var(--foreground); }
+  #euler11-windows h2 { margin: 0 0 12px; }
+  #euler11-windows .viz-controls { margin: 8px 0; }
+  #euler11-windows .e11-navigation { align-items: end; }
+  #euler11-windows .e11-position { flex: 1 1 180px; margin: 0; }
+  #euler11-windows .e11-position input { display: block; width: 100%; }
+  #euler11-windows .e11-info { color: var(--muted-foreground); margin: 10px 0 4px; }
+  #euler11-windows .e11-layout { display: grid; grid-template-columns: minmax(0, 1fr) 215px; gap: 22px; align-items: start; max-width: 900px; }
+  #euler11-windows .e11-scene { perspective: 1100px; padding: 20px 16px 35px; min-width: 0; }
+  #euler11-windows .e11-plane { position: relative; width: min(100%, 530px); margin: auto; transform-style: preserve-3d; transform: rotateX(19deg) rotateZ(-2deg); transition: transform .3s ease; }
+  #euler11-windows .e11-scene.is-flat .e11-plane { transform: none; }
+  #euler11-windows .e11-board { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); aspect-ratio: 1; transform-style: preserve-3d; }
+  #euler11-windows .e11-cell { display: grid; place-items: center; min-width: 0; font-size: clamp(11px, 1.2vw, 13px); font-variant-numeric: tabular-nums; color: var(--muted-foreground); background: var(--background); border: 1px solid var(--border); transition: background .18s ease, color .18s ease, transform .18s ease; }
+  #euler11-windows .e11-cell.in-window { background: color-mix(in srgb, var(--viz-series-1) 14%, var(--background)); color: var(--foreground); }
+  #euler11-windows .e11-cell.is-selected { background: color-mix(in srgb, var(--viz-series-1) 42%, var(--background)); color: var(--foreground); transform: translateZ(15px); }
+  #euler11-windows .e11-frame { position: absolute; pointer-events: none; border: 2px solid var(--viz-series-1); background: color-mix(in srgb, var(--viz-series-1) 8%, transparent); box-shadow: 0 8px 0 color-mix(in srgb, var(--viz-series-1) 30%, transparent); transform: translateZ(25px); transition: top .25s ease, left .25s ease, width .25s ease, height .25s ease; }
+  #euler11-windows .e11-detail { min-width: 0; padding-top: 18px; perspective: 650px; }
+  #euler11-windows .e11-detail-title { margin-bottom: 10px; color: var(--muted-foreground); }
+  #euler11-windows .e11-mask { display: grid; grid-template-columns: repeat(var(--mask-cols), minmax(0, 45px)); gap: 3px; width: max-content; max-width: 100%; }
+  #euler11-windows .e11-mask-cell { display: grid; place-items: center; width: 45px; aspect-ratio: 1; font-variant-numeric: tabular-nums; background: var(--muted); color: var(--muted-foreground); }
+  #euler11-windows .e11-mask-cell.is-selected { background: color-mix(in srgb, var(--viz-series-1) 35%, var(--background)); color: var(--foreground); }
+  #euler11-windows .e11-flow-arrow { color: var(--viz-series-1); margin: 5px 0; }
+  #euler11-windows .e11-vector { display: grid; grid-template-columns: repeat(4, 45px); gap: 3px; transform-style: preserve-3d; transform: rotateX(12deg) translateZ(22px); transition: opacity .2s ease, transform .25s ease; }
+  #euler11-windows .e11-vector-cell { display: grid; place-items: center; width: 45px; aspect-ratio: 1; font-variant-numeric: tabular-nums; color: var(--foreground); background: color-mix(in srgb, var(--viz-series-1) 35%, var(--background)); transform: translateZ(18px); }
+  #euler11-windows .e11-vector.is-pending { opacity: .25; transform: translateY(-12px) translateZ(0); }
+  #euler11-windows .e11-result { min-height: 54px; margin-top: 14px; overflow-wrap: anywhere; }
+  #euler11-windows .e11-product-section { margin-top: 10px; transition: opacity .25s ease; }
+  #euler11-windows .e11-product-section.is-pending { opacity: .3; }
+  #euler11-windows .e11-product-scene { perspective: 800px; padding: 8px 18px 28px; }
+  #euler11-windows .e11-product-plane { display: grid; grid-template-columns: repeat(var(--product-cols), minmax(0, 1fr)); width: min(100%, 190px); aspect-ratio: var(--product-cols) / var(--product-rows); transform-style: preserve-3d; transform: rotateX(18deg) rotateZ(-2deg); }
+  #euler11-windows .e11-product-tile { border: 1px solid var(--border); min-width: 0; min-height: 0; }
+  #euler11-windows .e11-product-tile.is-current { outline: 2px solid var(--viz-series-1); outline-offset: 0; transform: translateZ(24px); box-shadow: 0 8px 0 color-mix(in srgb, var(--viz-series-1) 30%, transparent); }
+  #euler11-windows .e11-product-caption { color: var(--muted-foreground); }
+  #euler11-windows .e11-code-title { color: var(--muted-foreground); margin: 8px 0 4px; }
+  #euler11-windows .e11-code { margin: 0; color: var(--foreground); white-space: pre-wrap; overflow-wrap: anywhere; }
+  #euler11-windows [aria-pressed="true"] { background: var(--primary); color: var(--primary-foreground); }
+  @media (max-width: 720px) {
+    #euler11-windows .e11-layout { grid-template-columns: 1fr; gap: 0; }
+    #euler11-windows .e11-detail { padding-top: 0; }
+    #euler11-windows .e11-mask-cell { width: 43px; }
+    #euler11-windows .e11-mask { grid-template-columns: repeat(var(--mask-cols), minmax(0, 43px)); }
+    #euler11-windows .e11-vector { grid-template-columns: repeat(4, 43px); }
+    #euler11-windows .e11-vector-cell { width: 43px; }
+  }
+  @media (max-width: 520px) {
+    #euler11-windows .e11-cell,
+    #euler11-windows .e11-cell.in-window,
+    #euler11-windows .e11-cell.is-selected { color: transparent; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #euler11-windows .e11-plane, #euler11-windows .e11-frame, #euler11-windows .e11-cell { transition: none; }
+  }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('euler11-windows');
+  const values = [8,2,22,97,38,15,0,40,0,75,4,5,7,78,52,12,50,77,91,8,49,49,99,40,17,81,18,57,60,87,17,40,98,43,69,48,4,56,62,0,81,49,31,73,55,79,14,29,93,71,40,67,53,88,30,3,49,13,36,65,52,70,95,23,4,60,11,42,69,24,68,56,1,32,56,71,37,2,36,91,22,31,16,71,51,67,63,89,41,92,36,54,22,40,40,28,66,33,13,80,24,47,32,60,99,3,45,2,44,75,33,53,78,36,84,20,35,17,12,50,32,98,81,28,64,23,67,10,26,38,40,67,59,54,70,66,18,38,64,70,67,26,20,68,2,62,12,20,95,63,94,39,63,8,40,91,66,49,94,21,24,55,58,5,66,73,99,26,97,17,78,78,96,83,14,88,34,89,63,72,21,36,23,9,75,0,76,44,20,45,35,14,0,61,33,97,34,31,33,95,78,17,53,28,22,75,31,67,15,94,3,80,4,62,16,14,9,53,56,92,16,39,5,42,96,35,31,47,55,58,88,24,0,17,54,24,36,29,85,57,86,56,0,48,35,71,89,7,5,44,44,37,44,60,21,58,51,54,17,58,19,80,81,68,5,94,47,69,28,73,92,13,86,52,17,77,4,89,55,40,4,52,8,83,97,35,99,16,7,97,57,32,16,26,26,79,33,27,98,66,88,36,68,87,57,62,20,72,3,46,33,67,46,55,12,32,63,93,53,69,4,42,16,73,38,25,39,11,24,94,72,18,8,46,29,32,40,62,76,36,20,69,36,41,72,30,23,88,34,62,99,69,82,67,59,85,74,4,36,16,20,73,35,29,78,31,90,1,74,31,49,71,48,86,81,16,23,57,5,54,1,70,54,71,83,51,54,69,16,92,33,48,61,43,52,1,89,19,67,48];
+  const N = 20;
+  const modes = {
+    h: { name: 'горизонталь', rows: 1, cols: 4, pick: [[0,0],[0,1],[0,2],[0,3]], code: 'H = (\n  Grid window 4 axis 1 reduce * rank 1\n) max' },
+    v: { name: 'вертикаль', rows: 4, cols: 1, pick: [[0,0],[1,0],[2,0],[3,0]], code: 'V = (\n  Grid window 4 axis 0 reduce * rank 1\n) max' },
+    d: { name: 'диагональ ↘', rows: 4, cols: 4, pick: [[0,0],[1,1],[2,2],[3,3]], code: 'Square = array 4 4\nD = (\n  Grid window Square\n) diag rank 2 reduce * rank 1 max' },
+    u: { name: 'диагональ ↗', rows: 4, cols: 4, pick: [[3,0],[2,1],[1,2],[0,3]], code: 'Square = array 4 4\nU = (\n  Grid reverse window Square\n) diag rank 2 reduce * rank 1 max' }
+  };
+  const saved = window.openai && window.openai.widgetState && window.openai.widgetState.modelContent;
+  const state = {
+    mode: saved && modes[saved.mode] ? saved.mode : 'd',
+    row: saved && Number.isInteger(saved.row) ? saved.row : 0,
+    col: saved && Number.isInteger(saved.col) ? saved.col : 0,
+    stage: saved && Number.isInteger(saved.stage) ? Math.max(0, Math.min(2, saved.stage)) : 1,
+    tilt: saved && typeof saved.tilt === 'boolean' ? saved.tilt : true
+  };
+  const board = root.querySelector('#e11-board');
+  const frame = root.querySelector('#e11-frame');
+  const mask = root.querySelector('#e11-mask');
+  const vector = root.querySelector('#e11-vector');
+  const scene = root.querySelector('#e11-scene');
+  const slider = root.querySelector('#e11-index');
+  const counter = root.querySelector('#e11-counter');
+  const info = root.querySelector('#e11-info');
+  const title = root.querySelector('#e11-mask-title');
+  const vectorTitle = root.querySelector('#e11-vector-title');
+  const result = root.querySelector('#e11-result');
+  const productSection = root.querySelector('#e11-product-section');
+  const productTitle = root.querySelector('#e11-product-title');
+  const productPlane = root.querySelector('#e11-product-plane');
+  const productCaption = root.querySelector('#e11-product-caption');
+  const code = root.querySelector('#e11-code');
+  const previous = root.querySelector('#e11-prev');
+  const next = root.querySelector('#e11-next');
+  const tiltButton = root.querySelector('#e11-tilt');
+  const cells = [];
+  let productTiles = [];
+  let shownProductMode = '';
+  const productMaps = {};
+  for (const [key, mode] of Object.entries(modes)) {
+    const rows = N - mode.rows + 1;
+    const cols = N - mode.cols + 1;
+    const products = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        products.push(mode.pick.reduce((p, [dr, dc]) => p * values[(r + dr) * N + c + dc], 1));
+      }
+    }
+    productMaps[key] = { products, max: Math.max(...products) };
+  }
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'e11-cell';
+      cell.textContent = values[r * N + c];
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.setAttribute('aria-hidden', 'true');
+      board.appendChild(cell);
+      cells.push(cell);
+    }
+  }
+  function bounds() {
+    const mode = modes[state.mode];
+    return { rows: N - mode.rows + 1, cols: N - mode.cols + 1 };
+  }
+  function clampPosition() {
+    const b = bounds();
+    state.row = Math.max(0, Math.min(b.rows - 1, state.row));
+    state.col = Math.max(0, Math.min(b.cols - 1, state.col));
+  }
+  function remember() {
+    if (window.openai && typeof window.openai.setWidgetState === 'function') {
+      window.openai.setWidgetState({ modelContent: { mode: state.mode, row: state.row, col: state.col, stage: state.stage, tilt: state.tilt } }).catch(() => {});
+    }
+  }
+  function render() {
+    clampPosition();
+    const mode = modes[state.mode];
+    const b = bounds();
+    const index = state.row * b.cols + state.col;
+    slider.max = b.rows * b.cols - 1;
+    slider.value = index;
+    counter.textContent = `${index + 1} / ${b.rows * b.cols}`;
+    previous.disabled = index === 0;
+    next.disabled = index === b.rows * b.cols - 1;
+    info.textContent = `${mode.name}: начало (строка ${state.row}, столбец ${state.col}); окно ${mode.rows} × ${mode.cols}`;
+    code.textContent = mode.code;
+    const windowShape = mode.rows === 4 && mode.cols === 4
+      ? `[${b.rows}, ${b.cols}, 4, 4]`
+      : `[${b.rows}, ${b.cols}, 4]`;
+    title.textContent = `window → ${windowShape}`;
+    vectorTitle.textContent = mode.rows === 4 && mode.cols === 4
+      ? `diag rank 2 → [${b.rows}, ${b.cols}, 4]`
+      : `Четыре числа на последней оси`;
+    scene.classList.toggle('is-flat', !state.tilt);
+    tiltButton.setAttribute('aria-pressed', String(state.tilt));
+    frame.style.left = `${state.col * 5}%`;
+    frame.style.top = `${state.row * 5}%`;
+    frame.style.width = `${mode.cols * 5}%`;
+    frame.style.height = `${mode.rows * 5}%`;
+    const picked = new Set(mode.pick.map(([dr, dc]) => `${state.row + dr},${state.col + dc}`));
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        const cell = cells[r * N + c];
+        const inside = r >= state.row && r < state.row + mode.rows && c >= state.col && c < state.col + mode.cols;
+        cell.classList.toggle('in-window', inside);
+        cell.classList.toggle('is-selected', state.stage > 0 && picked.has(`${r},${c}`));
+      }
+    }
+    mask.style.setProperty('--mask-cols', mode.cols);
+    mask.replaceChildren();
+    const selectedValues = [];
+    for (let dr = 0; dr < mode.rows; dr++) {
+      for (let dc = 0; dc < mode.cols; dc++) {
+        const value = values[(state.row + dr) * N + state.col + dc];
+        const chosen = mode.pick.some(([pr, pc]) => pr === dr && pc === dc);
+        const tile = document.createElement('div');
+        tile.className = 'e11-mask-cell';
+        tile.textContent = value;
+        tile.classList.toggle('is-selected', state.stage > 0 && chosen);
+        mask.appendChild(tile);
+      }
+    }
+    for (const [dr, dc] of mode.pick) selectedValues.push(values[(state.row + dr) * N + state.col + dc]);
+    mask.setAttribute('aria-label', `${mode.rows} на ${mode.cols}; выбранные числа: ${selectedValues.join(', ')}`);
+    vector.replaceChildren();
+    for (const value of selectedValues) {
+      const tile = document.createElement('div');
+      tile.className = 'e11-vector-cell';
+      tile.textContent = value;
+      vector.appendChild(tile);
+    }
+    vector.setAttribute('aria-label', `Новая ось длины 4: ${selectedValues.join(', ')}`);
+    vector.classList.toggle('is-pending', state.stage === 0);
+    const currentProduct = productMaps[state.mode].products[index];
+    if (state.stage === 0) result.textContent = 'Шаг 1: рамка показывает все числа окна.';
+    else if (state.stage === 1) result.textContent = `Шаг 2: ${selectedValues.join(' · ')} — четыре числа под маской.`;
+    else result.textContent = `Шаг 3: ${selectedValues.join(' × ')} = ${new Intl.NumberFormat('ru-RU').format(currentProduct)}`;
+    productTitle.textContent = `reduce * rank 1 → [${b.rows}, ${b.cols}]`;
+    productSection.classList.toggle('is-pending', state.stage < 2);
+    productPlane.style.setProperty('--product-cols', b.cols);
+    productPlane.style.setProperty('--product-rows', b.rows);
+    if (shownProductMode !== state.mode) {
+      productPlane.replaceChildren();
+      productTiles = productMaps[state.mode].products.map(product => {
+        const tile = document.createElement('div');
+        tile.className = 'e11-product-tile';
+        const strength = Math.round(10 + 65 * product / productMaps[state.mode].max);
+        tile.style.background = `color-mix(in srgb, var(--viz-series-2) ${strength}%, var(--background))`;
+        productPlane.appendChild(tile);
+        return tile;
+      });
+      shownProductMode = state.mode;
+    }
+    productTiles.forEach((tile, i) => tile.classList.toggle('is-current', i === index));
+    productPlane.setAttribute('aria-label', `Карта ${b.rows} на ${b.cols} произведений; текущее: ${currentProduct}; максимум: ${productMaps[state.mode].max}`);
+    productCaption.textContent = `Текущая ячейка: ${new Intl.NumberFormat('ru-RU').format(currentProduct)} · max всех ячеек: ${new Intl.NumberFormat('ru-RU').format(productMaps[state.mode].max)}`;
+    root.querySelectorAll('[data-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === state.mode)));
+    root.querySelectorAll('[data-stage]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.stage) === state.stage)));
+  }
+  function move(delta) {
+    const b = bounds();
+    const index = Math.max(0, Math.min(b.rows * b.cols - 1, state.row * b.cols + state.col + delta));
+    state.row = Math.floor(index / b.cols);
+    state.col = index % b.cols;
+    render(); remember();
+  }
+  root.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => {
+    state.mode = button.dataset.mode;
+    render(); remember();
+  }));
+  root.querySelectorAll('[data-stage]').forEach(button => button.addEventListener('click', () => {
+    state.stage = Number(button.dataset.stage);
+    render(); remember();
+  }));
+  previous.addEventListener('click', () => move(-1));
+  next.addEventListener('click', () => move(1));
+  slider.addEventListener('input', () => {
+    const b = bounds();
+    const index = Number(slider.value);
+    state.row = Math.floor(index / b.cols);
+    state.col = index % b.cols;
+    render(); remember();
+  });
+  tiltButton.addEventListener('click', () => {
+    state.tilt = !state.tilt;
+    render(); remember();
+  });
+  board.addEventListener('click', event => {
+    const cell = event.target.closest('[data-r][data-c]');
+    if (!cell) return;
+    state.row = Number(cell.dataset.r);
+    state.col = Number(cell.dataset.c);
+    render(); remember();
+  });
+  render();
+})();
+</script>

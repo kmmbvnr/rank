@@ -13,7 +13,7 @@ This is producer/reducer composition in the runtime, not a new language construc
 or a generated-JavaScript kernel. It benefits the original Euler 8 program:
 
 ```rank
-Windows = Digits Width window
+Windows = Digits window Width
 Products = Windows reduce * rank 1
 Answer = Products max
 ```

@@ -54,7 +54,7 @@ vertical pipelines (`|>` or fluent dot-chaining):
 ```rank
 rem Preferred Rank style:
 Digits = Number integer rank 0
-Windows = Digits Width window
+Windows = Digits window Width
 Products = Windows reduce * rank 1
 Answer = Products max
 ```
@@ -159,7 +159,7 @@ Rank introduces `window` and operator-modifier reductions (`reduce *`, `reduce +
 to replace nested index-manipulation loops with rank operations:
 
 ```rank
-Windows = Digits Width window
+Windows = Digits window Width
 Products = Windows reduce * rank 1
 Answer = Products max
 ```

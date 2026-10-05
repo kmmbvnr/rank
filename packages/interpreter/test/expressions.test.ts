@@ -328,26 +328,32 @@ Result`)).toBe('itb');
     });
 
     it('builds overlapping text and sequence windows', () => {
-        expect(run('use sequences\n"A😀БC" 2 window')).toBe('A😀 😀Б БC');
+        expect(run('use sequences\n"A😀БC" window 2')).toBe('A😀 😀Б БC');
         expect(run([
             'use sequences',
-            'Pairs = "xyxy" 2 window',
+            'Pairs = "xyxy" window 2',
             'Pairs 0 equal Pairs 2',
         ].join('\n'))).toBe('true');
         expect(run([
 
             'use sequences',
-            'Windows = (1 to 4) 3 window',
+            'Windows = (1 to 4) window 3',
             'Windows reduce * rank 1',
         ].join('\n'))).toBe('6 24');
-        expect(run('use sequences\n(array 1 2) 3 window')).toBe('');
-        expect(() => run('use sequences\n(array 1 2) 0 window'))
+        expect(run('use sequences\n(array 1 2) window 3')).toBe('');
+        expect(run('use sequences\n(array 1 2 3) window 2 shape')).toBe('2 2');
+        expect(run('use sequences\n(array 1 2 3) reverse window 2 shape')).toBe('2 2');
+        expect(() => run('use sequences\n(array 1 2) window 0'))
             .toThrowError('window sizes must be positive integers');
-        expect(() => run('(array 1 2) 2 window'))
-            .toThrowError('unknown name: window');
+        expect(() => run('(array 1 2) window 2'))
+            .toThrowError('window requires: use sequences');
+        expect(() => run('use sequences\n(array 1 2) 2 window'))
+            .toThrowError('window takes its size on the right');
+        expect(() => run('use sequences\n(array 1 2) 2 window stride 1'))
+            .toThrowError('window takes its size on the right');
         expect(run([
             'use sequences',
-            'Pairs = (primes till 10) 2 window',
+            'Pairs = (primes till 10) window 2',
             'Pair = Pairs 2',
             'Pair reduce +',
         ].join('\n'))).toBe('12');
@@ -365,7 +371,7 @@ Result`)).toBe('itb');
         const windows = new Interpreter().execute([
             ...source,
             'Size = array 2 2',
-            'M Size window',
+            'M window Size',
         ].join('\n'));
         expect(windows).toMatchObject({ kind: 'array', shape: [2, 3, 2, 2] });
         expect(windows && typeof windows === 'object' && windows.kind === 'array'
@@ -381,21 +387,21 @@ Result`)).toBe('itb');
         expect(run([
             ...source,
             'Size = array 2 2',
-            'Windows = M Size window',
+            'Windows = M window Size',
             'Windows reduce + rank 2',
         ].join('\n'))).toBe('14 18 22 30 34 38');
         expect(run([
             ...source,
-            'Windows = M 3 window axis 1',
+            'Windows = M window 3 axis 1',
             'Windows reduce + rank 1',
         ].join('\n'))).toBe('6 9 18 21 30 33');
         expect(() => run([
             ...source,
-            'M (array 2 2) window axis 0',
+            'M window (array 2 2) axis 0',
         ].join('\n'))).toThrowError('window has 2 size value but 1 selected axes');
         expect(() => run([
             ...source,
-            'M 2 window',
+            'M window 2',
         ].join('\n'))).toThrowError('window has 1 size value but 2 selected axes');
     });
 
@@ -403,7 +409,7 @@ Result`)).toBe('itb');
         expect(run([
             'use sequences',
             'A = array 1 2 3 4 5',
-            'A 2 window stride 2',
+            'A window 2 stride 2',
         ].join('\n'))).toBe('1 2 3 4');
         expect(run([
             'use sequences',
@@ -412,7 +418,7 @@ Result`)).toBe('itb');
             '  3 4',
             'end',
             'S = array 2 2',
-            'M S window stride 2 padding 1',
+            'M window S stride 2 padding 1',
         ].join('\n'))).toBe([
             '0 0 0 1 0 0 2 0',
             '0 3 0 0 4 0 0 0',
@@ -423,7 +429,7 @@ Result`)).toBe('itb');
             '  1 2 3',
             '  4 5 6',
             'end',
-            'M 2 window stride 2 padding 1 axis 1',
+            'M window 2 stride 2 padding 1 axis 1',
         ].join('\n'))).toBe('0 1 2 3 0 4 5 6');
         expect(run([
             'use sequences',
@@ -431,16 +437,16 @@ Result`)).toBe('itb');
             'S = array 2 2',
             'Stride = array 1 2',
             'Pad = array 0 1',
-            'W = M S window stride Stride padding Pad',
+            'W = M window S stride Stride padding Pad',
             'W shape',
         ].join('\n'))).toBe('1 2 2 2');
         expect(() => run([
             'use sequences',
-            '(array 1 2) 1 window stride 0',
+            '(array 1 2) window 1 stride 0',
         ].join('\n'))).toThrowError('window strides must be positive integers');
         expect(() => run([
             'use sequences',
-            '(array 1 2) 1 window padding (-1)',
+            '(array 1 2) window 1 padding (-1)',
         ].join('\n'))).toThrowError('window padding must be nonnegative integers');
     });
 
@@ -451,24 +457,24 @@ Result`)).toBe('itb');
             '  1 2',
             '  3 4',
             'end',
-            'M 2 window padding 1 with 9 axis 1',
+            'M window 2 padding 1 with 9 axis 1',
         ].join('\n'))).toBe('9 1 1 2 2 9 9 3 3 4 4 9');
         expect(run([
             'use sequences',
             'A = array 1 2 3',
-            'A 2 window padding 1 with 7',
+            'A window 2 padding 1 with 7',
         ].join('\n'))).toBe('7 1 1 2 2 3 3 7');
         expect(run([
             'use sequences',
             'use numbers',
             'A = array 1 2 3',
-            'B = A 3 window padding 1 with -infinity',
+            'B = A window 3 padding 1 with -infinity',
             'B max rank 1',
         ].join('\n'))).toBe('2 3 3');
         expect(() => run([
             'use sequences',
             'A = array 1 2 3',
-            'A 2 window padding 1 with (array 1 2)',
+            'A window 2 padding 1 with (array 1 2)',
         ].join('\n'))).toThrowError('window padding fill must be a single value');
     });
 
@@ -724,7 +730,7 @@ Result`)).toBe('itb');
         expect(run(setup + '(not Mask) array')).toBe('true true false');
         expect(run(setup + '(Mask or (B equal 1)) array')).toBe('true false true');
         expect(run(setup + 'Mask take 2 array')).toBe('false false');
-        expect(run(setup + 'Mask 2 window')).toBe('false false false true');
+        expect(run(setup + 'Mask window 2')).toBe('false false false true');
         expect(run(setup + 'Result = true\nfor Value in Mask\nResult and= Value\nend\nResult'))
             .toBe('false');
         expect(run('use sequences\nB = 1 till 1\nMask = B greater 2\nMask len')).toBe('0');
@@ -735,7 +741,7 @@ Result`)).toBe('itb');
         expect(run(setup + 'Fib Mask sum')).toBe('44');
         expect(run(setup + 'Mask count')).toBe('3');
         expect(run(setup + '(Fib Mask) 1')).toBe('8');
-        expect(run(setup + 'Pairs = (Fib Mask) 2 window\nPairs 1 reduce +')).toBe('42');
+        expect(run(setup + 'Pairs = (Fib Mask) window 2\nPairs 1 reduce +')).toBe('42');
         expect(run('use sequences\nuse numbers\nFib = fibonacci\nMask = Fib even\nFib Mask till 100'))
             .toBe('2 8 34');
         // A mask is positional: a finite one bounds the selection from an endless source.

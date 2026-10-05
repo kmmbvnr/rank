@@ -264,11 +264,11 @@ pure computations over them use live reads rather than retain an unsafe cache.
 ## Sliding windows
 
 `window` produces every overlapping, contiguous cell of a fixed size. The
-source and size precede the operation:
+source precedes `window`, and the size follows it:
 
 ```rank
-Pairs = Text 2 window
-Windows = Values Width window
+Pairs = Text window 2
+Windows = Values window Width
 ```
 
 Text windows are text values, so ordinary text comparison and addressing keep
@@ -281,7 +281,7 @@ For a tensor, a rank-1 integer array supplies one size per selected axis:
 
 ```rank
 WindowShape = array 2 3
-Blocks = M WindowShape window
+Blocks = M window WindowShape
 ```
 
 Without `axis`, the size array must cover every tensor axis. If `M` has shape
@@ -291,10 +291,10 @@ window-cell axes are appended last.
 `axis` selects and orders a subset of source axes:
 
 ```rank
-Columns = M 3 window axis 1
+Columns = M window 3 axis 1
 
 WindowShape = array 2 3
-Blocks = T WindowShape window axis 0 2
+Blocks = T window WindowShape axis 0 2
 ```
 
 There must be one size for each selected axis. Axis numbers are zero-based and
@@ -306,9 +306,9 @@ valid only for a rank-1 value.
 padding before positions are chosen:
 
 ```rank
-Blocks = M WindowShape window stride 2
-Blocks = M WindowShape window padding 1
-Blocks = M WindowShape window stride 2 padding 1
+Blocks = M window WindowShape stride 2
+Blocks = M window WindowShape padding 1
+Blocks = M window WindowShape stride 2 padding 1
 ```
 
 Each value may instead be a rank-1 integer array with one item per selected
@@ -323,8 +323,8 @@ border can be neutral for the reduction that follows. A negative value needs no
 parentheses:
 
 ```rank
-Above = M WindowShape window padding 1 with -infinity
-Below = M WindowShape window padding 1 with infinity
+Above = M window WindowShape padding 1 with -infinity
+Below = M window WindowShape padding 1 with infinity
 ```
 
 `with` is valid only directly after `padding`, and `axis` follows it.

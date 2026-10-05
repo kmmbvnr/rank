@@ -958,14 +958,14 @@ the requested shape. An infinite source is an error.
 `window` returns overlapping fixed-size cells lazily:
 
 ```rank
-Pairs = Text 2 window
-Windows = Values Width window
+Pairs = Text window 2
+Windows = Values window Width
 WindowShape = array 2 3
-Blocks = M WindowShape window
-Columns = M 3 window axis 1
-Strided = M WindowShape window stride 2
-Padded = M WindowShape window padding 1
-Bordered = M WindowShape window padding 1 with 9
+Blocks = M window WindowShape
+Columns = M window 3 axis 1
+Strided = M window WindowShape stride 2
+Padded = M window WindowShape padding 1
+Bordered = M window WindowShape padding 1 with 9
 ```
 
 Tensor window sizes correspond to all axes unless `axis` selects a subset.

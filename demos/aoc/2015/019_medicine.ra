@@ -94,7 +94,7 @@ fun medicine_steps Text
     end
   end
 
-  for Pair in Text 2 window
+  for Pair in Text window 2
     if Pair equal "Rn"
       Rn += 1
     elif Pair equal "Ar"
