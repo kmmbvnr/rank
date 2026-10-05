@@ -12,18 +12,72 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [22, 24]
+        include:
+          - { suite: packages }
+          - { suite: cli }
+          - { suite: interpreter }
+          - { suite: type-audit, shard: 0 }
+          - { suite: type-audit, shard: 1 }
+          - { suite: type-audit, shard: 2 }
+          - { suite: type-audit, shard: 3 }
+          - { suite: rust }
+    name: ${{ matrix.suite }} ${{ matrix.shard }} (Node 24)
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 24
           cache: npm
-      - run: sudo apt-get update && sudo apt-get install -y expect
+      - name: Install expect for CLI tests
+        if: matrix.suite == 'cli'
+        run: sudo apt-get update && sudo apt-get install -y expect
       - run: npm ci
-      - run: npm test
+      - name: Build all packages
+        if: matrix.suite == 'packages'
+        run: npm run build
+      - name: Build test dependencies
+        if: matrix.suite != 'packages'
+        run: npm run langium:generate && npx tsc -b tsconfig.build.json
+      - name: Check sources and test packages
+        if: matrix.suite == 'packages'
+        run: |
+          npm run check:semantic-boundaries
+          npm run check:application-forms
+          npm test --workspace @arrrank/language --workspace @arrrank/common --workspace @arrrank/compile
+      - name: Test CLI
+        if: matrix.suite == 'cli'
+        run: |
+          npm run build --workspace @arrrank/cli
+          npm test --workspace @arrrank/cli
+      - name: Test interpreter
+        if: matrix.suite == 'interpreter'
+        run: npm test --workspace @arrrank/interpreter -- --exclude test/types.test.ts
+      - name: Audit inferred types
+        if: matrix.suite == 'type-audit'
+        env:
+          RANK_TYPE_AUDIT_SHARDS: 4
+          RANK_TYPE_AUDIT_SHARD: ${{ matrix.shard }}
+          RANK_TYPE_AUDIT_SUMMARY: type-audit-${{ matrix.shard }}.json
+        run: npm test --workspace @arrrank/interpreter -- test/types.test.ts
+      - uses: actions/upload-artifact@v4
+        if: matrix.suite == 'type-audit'
+        with:
+          name: type-audit-${{ matrix.shard }}
+          path: packages/interpreter/type-audit-${{ matrix.shard }}.json
       - name: Verify Euler 1–10 Rust rewrites
-        if: matrix.node == 22
+        if: matrix.suite == 'rust'
         env:
           CARGO_TARGET_DIR: ${{ runner.temp }}/rank-euler-target
         run: npm run test:rust
+
+  type-audit-coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: type-audit-*
+          path: type-audit-results
+          merge-multiple: true
+      - run: node scripts/check-type-audit.mjs type-audit-results/type-audit-*.json
