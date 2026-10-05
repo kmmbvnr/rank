@@ -40,7 +40,16 @@ function declaredModifier(parts: Expression[], standard: StandardName): number |
 }
 
 /** The end of a modified call when another pipeline step follows it. */
-function boundary(parts: Expression[]): number | undefined {
+function boundary(parts: Expression[], standard: StandardName): number | undefined {
+    const window = parts.findIndex((part, index) => index > 0 && isNameExpression(part)
+        && named(part, 'window') && standard(part));
+    if (window > 0) {
+        for (let end = window + 2; end < parts.length; end++) {
+            const next = parts[end];
+            if (isNameExpression(next) && standard(next) && findOperation(next.name)
+                && applicationForm(parts.slice(0, end)).kind === 'window') return end;
+        }
+    }
     const direction = parts.findIndex((part, index) => index > 1
         && isSortDirection(part) && applicationForm(parts.slice(0, index + 1)).kind === 'sort-direction');
     if (direction >= 0) {
@@ -106,7 +115,7 @@ export function groupModifiers(expression: Expression, standard: StandardName = 
             const rest = parts.slice(modified + 2);
             return rest.length ? groupModifiers(applicationExpression([groupedExpression(call), ...rest], expression), standard) : call;
         }
-        const end = boundary(parts);
+        const end = boundary(parts, standard);
         if (end === undefined) return expression;
         prefix = applicationExpression(parts.slice(0, end));
         rest = parts.slice(end);

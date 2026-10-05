@@ -8,8 +8,8 @@ use numbers
 rem Keep strict eight-neighbor extrema.
 fun local_extrema Grid
   Size = array 3 3
-  Above = Grid Size window padding 1 with -infinity
-  Below = Grid Size window padding 1 with infinity
+  Above = Grid window Size padding 1 with -infinity
+  Below = Grid window Size padding 1 with infinity
   Peaks = Above peak rank 2
   Valleys = Below valley rank 2
   Marks = Peaks Valleys max

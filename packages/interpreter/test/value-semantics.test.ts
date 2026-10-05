@@ -152,9 +152,9 @@ describe('reference values that stay shared', () => {
 // the whole chain, so no write to any source can change what it reports.
 describe('a retained lazy chain', () => {
     it('freezes every source it reads through', () => {
-        expect(run(`${SEQ}A = array 1 2 3\nB = (A 2 window) * 2\nA 1 = 5\nB`))
+        expect(run(`${SEQ}A = array 1 2 3\nB = (A window 2) * 2\nA 1 = 5\nB`))
             .toBe('2 4 4 6');
-        expect(run(`${SEQ}A = array 1 2 3\nW = A 2 window\nB = W * 2\nA 1 = 5\nB`))
+        expect(run(`${SEQ}A = array 1 2 3\nW = A window 2\nB = W * 2\nA 1 = 5\nB`))
             .toBe('2 4 4 6');
     });
 });

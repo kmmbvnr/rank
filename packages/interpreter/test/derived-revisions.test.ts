@@ -137,7 +137,7 @@ Result = ${expression}`);
             const source = createArraySnapshot([1n, 2n, 3n]);
             runtime.variables.set('A', source);
             runtime.execute(`use sequences
-W = A 2 window
+W = A window 2
 Result = W * 2`);
             const result = runtime.variables.get('Result') as RankArray;
             expect(result.items).toEqual([2n, 4n, 4n, 6n]);

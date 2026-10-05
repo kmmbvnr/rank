@@ -152,7 +152,7 @@ use numbers
 option Width integer = 13
 
 Digits = Number integer rank 0
-Windows = Digits Width window
+Windows = Digits window Width
 Products = Windows reduce * rank 1
 Answer = Products max
 ```
@@ -214,17 +214,17 @@ rem Project Euler 11
 rem https://projecteuler.net/problem=11
 
 H = (
-  Grid 4 window axis 1 reduce * rank 1
+  Grid window 4 axis 1 reduce * rank 1
 ) max
 V = (
-  Grid 4 window axis 0 reduce * rank 1
+  Grid window 4 axis 0 reduce * rank 1
 ) max
 Square = array 4 4
 D = (
-  Grid Square window
+  Grid window Square
 ) diag rank 2 reduce * rank 1 max
 U = (
-  Grid reverse Square window
+  Grid reverse window Square
 ) diag rank 2 reduce * rank 1 max
 Answer = (array H V D U) max
 ```

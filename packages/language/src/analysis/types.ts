@@ -1,5 +1,6 @@
 import { joinTypes } from './value-domain.js';
 import { flattenApplication } from '../expressions.js';
+import { applicationForm } from '../application-forms.js';
 /**
  * Type facts over the runtime's own type names.
  *
@@ -257,6 +258,16 @@ function elementwise(left: Types, right: Types): Types | undefined {
  */
 function applicationType(expression: ApplicationExpression, lookup: TypeLookup): Types {
     const parts = flattenApplication(expression);
+    if (parts.some(part => isNameExpression(part) && part.name === 'window')) {
+        const form = applicationForm(parts, name => lookup(name) === undefined ? findOperation(name) : false);
+        if (form.kind === 'window') {
+            const source = typeOf(form.source, lookup);
+            if (same(source, 'text')) return ['sequence'];
+            if (same(source, 'sequence')) return ['array', 'sequence'];
+            if (same(source, 'array') || same(source, 'queue')) return ['array'];
+            return source.length === 0 ? ['array', 'sequence'] : UNKNOWN;
+        }
+    }
     const last = parts.at(-1);
     if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'from'
         && same(typeOf(parts[0], lookup), 'sequence') && same(typeOf(parts[2], lookup), 'integer')) return ['sequence'];

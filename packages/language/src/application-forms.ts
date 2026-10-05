@@ -4,7 +4,7 @@ import {
     type ArrayExpression, type ArrayItem, type Expression,
 } from './generated/ast.js';
 import { findOperation, type Operation } from './operations.js';
-import { flattenApplication } from './expressions.js';
+import { applicationExpression, flattenApplication } from './expressions.js';
 
 export const REDUCE_OPERATORS = new Set(['+', '-', '*', '**', '/', '//', 'mod', 'and', 'or', 'xor']);
 export const OUTER_OPERATORS = new Set([
@@ -342,7 +342,7 @@ export type ApplicationForm =
     | Recognized<'axis-covariance', typeof explicitAxisCovariance>
     | Recognized<'axis-correlation', typeof explicitAxisCorrelation>
     | Recognized<'axis-quantile', typeof explicitAxisQuantile>
-    | Recognized<'axis-window', typeof explicitAxisWindow>
+    | Recognized<'window', typeof explicitWindow>
     | Recognized<'axis-shift', typeof explicitAxisShift>
     | Recognized<'axis-shuffle', typeof explicitAxisShuffle>
     | Recognized<'axis-length', typeof explicitAxisLength>
@@ -470,8 +470,11 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup): Applicat
     const position = parts.findIndex((part, index) => index > 0
         && isNamed(part, 'text') && isStringLiteral(parts[index + 1]));
     if (position >= 0) return { kind: 'text-format', position };
-    const form7 = explicitAxisWindow(parts);
-    if (form7) return { ...form7, kind: 'axis-window' };
+    const form7 = explicitWindow(parts);
+    if (form7) return { ...form7, kind: 'window' };
+    if (parts.length >= 3 && (isNamed(parts.at(-1), 'window')
+        || isNamed(parts[2], 'window') && ['axis', 'stride', 'padding'].some(name => isNamed(parts[3], name))))
+        return { kind: 'invalid', message: 'window takes its size on the right: write Values window Width' };
     const formShift = explicitAxisShift(parts);
     if (formShift) return { ...formShift, kind: 'axis-shift' };
     const form8 = explicitAxisShuffle(parts);
@@ -794,7 +797,7 @@ function explicitAxisShift(
     return { source: parts[0], amount: parts[1], fill, axis };
 }
 
-interface AxisWindowApplication {
+interface WindowApplication {
     readonly source: Expression;
     readonly size: Expression;
     readonly axes?: readonly number[];
@@ -803,9 +806,10 @@ interface AxisWindowApplication {
     readonly fill?: Expression;
 }
 
-function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefined {
-    if (parts.length < 5 || !isNamed(parts[2], 'window')) return undefined;
-    let position = 3;
+function explicitWindow(parts: Expression[]): WindowApplication | undefined {
+    const operation = parts.findIndex((part, index) => index > 0 && isNamed(part, 'window'));
+    if (operation < 0 || operation + 1 >= parts.length) return undefined;
+    let position = operation + 2;
     let stride: Expression | undefined;
     let padding: Expression | undefined;
     let fill: Expression | undefined;
@@ -832,10 +836,10 @@ function explicitAxisWindow(parts: Expression[]): AxisWindowApplication | undefi
             literalDimension(integerLiteral(axis, 'window axis'), 'window axis'));
         position = parts.length;
     }
-    if (position !== parts.length || (!stride && !padding && !axes)) return undefined;
+    if (position !== parts.length) return undefined;
     return {
-        source: parts[0],
-        size: parts[1],
+        source: applicationExpression(parts.slice(0, operation)),
+        size: parts[operation + 1],
         axes,
         stride,
         padding,

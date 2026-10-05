@@ -39,7 +39,7 @@ end
 
 rem Test whether text contains ABBA.
 fun has_abba Text
-  Windows = Text 4 window
+  Windows = Text window 4
   Mask = Windows is_abba rank 0
   return Mask any
 end
@@ -69,12 +69,12 @@ fun ssl Address
   Super = Parts SuperMask "[[[[" join
   Hyper = Parts HyperMask "]]]]" join
 
-  Windows = Super 3 window
+  Windows = Super window 3
   Mask = Windows is_aba rank 0
   ABAs = Windows Mask
 
   BABs = ABAs to_bab rank 0
-  HyperWindows = Hyper 3 window
+  HyperWindows = Hyper window 3
 
   return (BABs in HyperWindows) any
 end

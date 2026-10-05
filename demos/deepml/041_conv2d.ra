@@ -5,6 +5,6 @@ use sequences
 
 fun simple_conv2d A K P S
   W = K shape
-  B = A W window stride S padding P
+  B = A window W stride S padding P
   return B * K sum rank 2
 end
