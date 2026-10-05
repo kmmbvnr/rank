@@ -213,11 +213,24 @@ finite plan. The default limit produces `142913828922`; limit 10 produces `17`.
 rem Project Euler 11
 rem https://projecteuler.net/problem=11
 
-Answer = Grid greatest_product
+H = (
+  Grid 4 window axis 1 reduce * rank 1
+) max
+V = (
+  Grid 4 window axis 0 reduce * rank 1
+) max
+Square = array 4 4
+D = (
+  Grid Square window
+) diag rank 2 reduce * rank 1 max
+U = (
+  Grid reverse Square window
+) diag rank 2 reduce * rank 1 max
+Answer = (array H V D U) max
 ```
 
-The grid is one dense rank-2 array. The helper reduces sliding windows of four
-values horizontally and vertically. For diagonals it extracts the diagonal of
+The grid is one dense rank-2 array. Horizontal and vertical products reduce
+sliding windows of four values. The `D` and `U` products take the diagonal of
 each 4-by-4 window; reversing the grid gives the other direction. The full
 example produces `70600674`.
 
