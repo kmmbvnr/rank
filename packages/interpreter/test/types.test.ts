@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { createHash } from 'node:crypto';
 import { setImmediate } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
@@ -91,7 +92,14 @@ function audit(file: string): Audit {
 }
 
 describe('inferred types against the values a run produced', () => {
-    const files = programs(), results = new Map<string, Audit>();
+    const shardCount = Number(process.env.RANK_TYPE_AUDIT_SHARDS ?? 1);
+    const shard = Number(process.env.RANK_TYPE_AUDIT_SHARD ?? 0);
+    if (!Number.isInteger(shardCount) || shardCount < 1 || !Number.isInteger(shard) || shard < 0 || shard >= shardCount) {
+        throw new Error('Invalid type audit shard');
+    }
+    const files = programs().filter(file =>
+        createHash('sha256').update(path.relative(demos, file)).digest().readUInt32BE(0) % shardCount === shard);
+    const results = new Map<string, Audit>();
     for (const file of files) {
         it(path.relative(demos, file), async context => {
             await setImmediate();
@@ -113,8 +121,14 @@ describe('inferred types against the values a run produced', () => {
             ran: sum.ran + result.ran, names: sum.names + result.names, settled: sum.settled + result.settled,
         }), { ran: 0, names: 0, settled: 0 });
         console.log(`type audit: ${totals.ran} demos run, ${totals.names} names, ${totals.settled} settled`);
-        expect(totals.ran).toBeGreaterThan(400);
-        // Silence alone must not let a lost inference rule pass unnoticed.
-        expect(totals.settled / totals.names).toBeGreaterThan(0.75);
+        if (shardCount === 1) {
+            expect(totals.ran).toBeGreaterThan(400);
+            // Silence alone must not let a lost inference rule pass unnoticed.
+            expect(totals.settled / totals.names).toBeGreaterThan(0.75);
+        } else {
+            const summary = process.env.RANK_TYPE_AUDIT_SUMMARY;
+            if (!summary) throw new Error('Missing type audit summary path');
+            fs.writeFileSync(summary, JSON.stringify({ shard, shardCount, ...totals }));
+        }
     });
 });
