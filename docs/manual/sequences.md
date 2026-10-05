@@ -661,7 +661,7 @@ Pairs of neighbours: 1 2, then 2 3, then
 
 ```rank
 use sequences
-W = (array 1 2 3 4) 2 window
+W = (array 1 2 3 4) window 2
 W 1
 ```
 
@@ -672,7 +672,7 @@ W 1
 ### Usage
 
 ```text
-Values Width window
+Values window Width
 ```
 
 Each window is one row of the result.

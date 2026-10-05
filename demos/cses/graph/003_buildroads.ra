@@ -13,7 +13,7 @@ Components = Cities Roads components
 
 RoadsNeeded = Components len - 1
 RoadsNeeded print
-for Pair in Components 2 window
+for Pair in Components window 2
   Pair print
 end
 

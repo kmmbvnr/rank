@@ -374,7 +374,7 @@ Shapes, orderings, windows and lazy sources.
 | `Values sort .descending` | array | Stable sort into a new rank-1 array, ascending by default. |
 | `Matrix transpose` | array | Reverses the axes of an array. |
 | `Values unique` | array | Distinct values in first-appearance order. |
-| `Values Width window` | array, lazy | Overlapping complete cells of that size, with optional stride, padding and padding value. |
+| `Values window Width` | array, lazy | Overlapping complete cells of that size, with optional stride, padding and padding value. |
 | `Values Count shift` | array, lazy | Moves items along an axis, keeping the shape; vacated positions read zero or a with value. |
 
 These need `use sequences` but have no name to look up.

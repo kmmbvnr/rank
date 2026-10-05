@@ -105,7 +105,7 @@ zero or a default answer.
 `A B outer *` evaluates every pair into a multidimensional result. Broadcasting
 and axis/rank operations follow source shapes; `rank 0` applies to scalar cells,
 and `rank 1` applies to rows. A boolean mask selects matching elements.
-`Digits Width window` creates overlapping windows of positive width with default
+`Digits window Width` creates overlapping windows of positive width with default
 stride one. Width greater than the input produces no windows. Reducing each
 window with multiplication preserves all its digits, including zeros.
 

@@ -1012,7 +1012,7 @@ export const operations: readonly Operation[] = [
                 result: { collection, element: elementVariable } })), { inputs: ['view'], result: 'view' }],
         shape: [{ args: [['d']], result: [{ exists: 'k' }] }],
         monadicRank: 1, summary: 'Distinct values in first-appearance order.' },
-    { name: 'window', module: 'sequences', arities: [2], form: 'Values Width window',
+    { name: 'window', module: 'sequences', arities: [2], form: 'Values window Width',
         signatures: [{ inputs: ['text', { union: ['integer', integerArray] }], result: { collection: 'sequence', element: 'text' } },
             { inputs: [{ union: (['array', 'queue', 'stack', 'deque'] as const).map(collection => ({
                 collection, element: elementVariable })) }, { union: ['integer', integerArray] }], result: genericArray },

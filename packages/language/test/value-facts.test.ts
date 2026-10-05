@@ -1121,10 +1121,16 @@ it('keeps text rank separate from its role as an array element', () => {
 });
 
 it('infers finite windows including an empty frame', () => {
-    expect(facts('(1 to 5) 3 window').shape).toEqual([3, 3]);
-    expect(facts('(1 to 5) 7 window').shape).toEqual([0, 7]);
-    expect(facts('"abcd" 2 window')).toEqual({ types: ['sequence'], elements: ['text'], rank: 1, shape: [3],
+    expect(facts('(1 to 5) window 3').shape).toEqual([3, 3]);
+    expect(facts('(1 to 5) window 7').shape).toEqual([0, 7]);
+    expect(facts('"abcd" window 2')).toEqual({ types: ['sequence'], elements: ['text'], rank: 1, shape: [3],
         callbackFreeScalarCells: true });
+    const matrix: ValueFacts = { types: ['array'], rank: 2, shape: [5, 5],
+        elements: ['integer'], eagerScalarCells: true };
+    const bindings = new Map([['M', matrix]]);
+    expect(facts('M window (array 2 3)', bindings).shape).toEqual([4, 3, 2, 3]);
+    expect(facts('M window 2 axis 1', bindings).shape).toEqual([5, 4, 2]);
+    expect(facts('M window 2 stride 2 padding 1 axis 1', bindings).shape).toEqual([5, 3, 2]);
 });
 
 it('instantiates builtin cell signatures and combines intrinsic frames', () => {

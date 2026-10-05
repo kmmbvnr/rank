@@ -183,7 +183,7 @@ future feature could store an operation before it receives its source:
 
 ```rank
 Even = even
-Window13 = 13 window
+Window13 = window 13
 
 Answer = Fib Even sum
 Windows = Digits Window13

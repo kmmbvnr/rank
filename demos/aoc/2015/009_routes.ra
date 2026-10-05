@@ -45,7 +45,7 @@ rem Add the distances between adjacent cities in one route.
 fun distance Route Distances
   Total = 0
 
-  for Pair in Route 2 window
+  for Pair in Route window 2
     unpack A B = Pair
     Total += Distances A B
   end

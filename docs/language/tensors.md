@@ -289,7 +289,7 @@ copying them:
 
 ```rank
 WindowShape = array 2 3
-Blocks = M WindowShape window
+Blocks = M window WindowShape
 Scores = Blocks reduce + rank 2 with 0
 ```
 
@@ -301,8 +301,8 @@ block.
 Selected axes follow the operation:
 
 ```rank
-Columns = M 3 window axis 1
-Blocks = T WindowShape window axis 0 2
+Columns = M window 3 axis 1
+Blocks = T window WindowShape axis 0 2
 ```
 
 There must be one window size for every selected axis. The appended cell axes
@@ -311,9 +311,9 @@ follow the explicit axis order.
 Stride and symmetric zero padding are contextual modifiers:
 
 ```rank
-Blocks = M WindowShape window stride 2
-Blocks = M WindowShape window padding 1
-Blocks = M WindowShape window stride 2 padding 1
+Blocks = M window WindowShape stride 2
+Blocks = M window WindowShape padding 1
+Blocks = M window WindowShape stride 2 padding 1
 ```
 
 A scalar applies to every selected axis; a rank-1 integer array supplies one

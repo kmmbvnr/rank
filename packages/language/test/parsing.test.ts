@@ -649,8 +649,8 @@ describe('Rank grammar', () => {
 
     it('parses windows and ranked reductions', async () => {
         const document = await parse([
-            'Windows = Values 3 window',
-            'Rows = Matrix 3 window axis 1',
+            'Windows = Values window 3',
+            'Rows = Matrix window 3 axis 1',
             'Products = Windows reduce * rank 1',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);

@@ -16,7 +16,7 @@ test "horizontal run"
   Grid 4 7 = 5
   Grid 4 8 = 7
 
-  Windows = Grid 4 window axis 1
+  Windows = Grid window 4 axis 1
   Windows reduce * rank 1 max equal 210
 end
 
@@ -29,7 +29,7 @@ test "vertical run"
   Grid 6 5 = 5
   Grid 7 5 = 7
 
-  Windows = Grid 4 window axis 0
+  Windows = Grid window 4 axis 0
   Windows reduce * rank 1 max equal 210
 end
 
@@ -43,7 +43,7 @@ test "downward diagonal run"
   Grid 6 7 = 5
   Grid 7 8 = 7
 
-  Blocks = Grid (array 4 4) window
+  Blocks = Grid window (array 4 4)
   Lines = Blocks diag rank 2
   Lines reduce * rank 1 max equal 210
 end
@@ -59,7 +59,7 @@ test "upward diagonal run"
   Grid 4 8 = 7
 
   Flipped = Grid reverse
-  Blocks = Flipped (array 4 4) window
+  Blocks = Flipped window (array 4 4)
   Lines = Blocks diag rank 2
   Lines reduce * rank 1 max equal 210
 end
