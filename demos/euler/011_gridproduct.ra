@@ -4,10 +4,7 @@ rem Find the greatest product of adjacent
 rem values in four straight directions
 
 use io
-use cli
-use grids
-
-option Width integer = 4
+use sequences
 
 Grid = array shape 20 20
   8 2 22 97 38 15 0 40 0 75 4 5 7 78 52 12 50 77 91 8
@@ -32,23 +29,29 @@ Grid = array shape 20 20
   1 70 54 71 83 51 54 69 16 92 33 48 61 43 52 1 89 19 67 48
 end
 
-Answer = Grid Width greatest_product
+Answer = Grid greatest_product
 Answer print
 
 
-rem Search horizontal, vertical and both
-rem downward diagonal directions.
-fun greatest_product Grid Width
-  Segments = Grid Width segments
-  Best = 0
+rem Each cell of a product matrix starts one run of four values.
+fun greatest_product Grid
+  Starts = 0 till 17
+  Horizontal = (
+    (Grid # Starts) * (Grid # (Starts + 1)) *
+    (Grid # (Starts + 2)) * (Grid # (Starts + 3))
+  )
+  Vertical = (
+    (Grid Starts) * (Grid (Starts + 1)) *
+    (Grid (Starts + 2)) * (Grid (Starts + 3))
+  )
+  Down = (
+    (Grid Starts Starts) * (Grid (Starts + 1) (Starts + 1)) *
+    (Grid (Starts + 2) (Starts + 2)) * (Grid (Starts + 3) (Starts + 3))
+  )
+  Up = (
+    (Grid (Starts + 3) Starts) * (Grid (Starts + 2) (Starts + 1)) *
+    (Grid (Starts + 1) (Starts + 2)) * (Grid Starts (Starts + 3))
+  )
 
-  for Segment in Segments
-    Product = 1
-    for Value in Segment
-      Product *= Value
-    end
-    Best = Best Product max
-  end
-
-  return Best
+  return (array (Horizontal max) (Vertical max) (Down max) (Up max)) max
 end

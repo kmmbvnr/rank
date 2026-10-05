@@ -7,14 +7,46 @@ test "default input"
   Answer equal 70600674
 end
 
-test "small square"
+test "horizontal run"
   use "011_gridproduct"
-  Grid = array shape 4 4
-    1 2 3 4
-    5 6 7 8
-    9 10 11 12
-    13 14 15 16
-  end
+  Grid = array shape 20 20 fill 1
+  Grid 4 5 = 2
+  Grid 4 6 = 3
+  Grid 4 7 = 5
+  Grid 4 8 = 7
 
-  Grid 3 greatest_product equal 3360
+  Grid greatest_product equal 210
+end
+
+test "vertical run"
+  use "011_gridproduct"
+  Grid = array shape 20 20 fill 1
+  Grid 4 5 = 2
+  Grid 5 5 = 3
+  Grid 6 5 = 5
+  Grid 7 5 = 7
+
+  Grid greatest_product equal 210
+end
+
+test "downward diagonal run"
+  use "011_gridproduct"
+  Grid = array shape 20 20 fill 1
+  Grid 4 5 = 2
+  Grid 5 6 = 3
+  Grid 6 7 = 5
+  Grid 7 8 = 7
+
+  Grid greatest_product equal 210
+end
+
+test "upward diagonal run"
+  use "011_gridproduct"
+  Grid = array shape 20 20 fill 1
+  Grid 7 5 = 2
+  Grid 6 6 = 3
+  Grid 5 7 = 5
+  Grid 4 8 = 7
+
+  Grid greatest_product equal 210
 end

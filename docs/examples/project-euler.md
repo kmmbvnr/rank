@@ -213,19 +213,12 @@ finite plan. The default limit produces `142913828922`; limit 10 produces `17`.
 rem Project Euler 11
 rem https://projecteuler.net/problem=11
 
-Directions = array shape 4 2
-  0 1
-  1 0
-  1 1
-  1 -1
-end
-
-Answer = Grid 4 greatest_product
+Answer = Grid greatest_product
 ```
 
-The grid is one dense rank-2 array. The helper walks horizontal, vertical and
-both downward diagonal directions, rejects endpoints outside the shape, and
-keeps the largest fixed-width product. The full example produces `70600674`.
+The grid is one dense rank-2 array. The helper multiplies four aligned slices
+for each of the horizontal, vertical, and two diagonal directions, then takes
+their maxima. The full example produces `70600674`.
 
 ## 12. Highly divisible triangular number
 
