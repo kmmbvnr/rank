@@ -112,5 +112,7 @@ describe('structure queries keep the shape of their queries', () => {
     it('does not claim element types after a merge adds values', () => {
         const { bindings } = analyze('D = new dsu (array 1 2 3)\nD 1 2 merge\nQ = array 1 2\nR = D Q findroot');
         expect(bindings.get('R')?.elements ?? []).toEqual([]);
+        const aliased = analyze('D = new dsu (array 1 2 3)\nAlias = D\nAlias merge 1 2\nQ = array 1 2\nR = D Q findroot');
+        expect(aliased.bindings.get('R')?.elements ?? []).toEqual([]);
     });
 });
