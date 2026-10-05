@@ -356,7 +356,7 @@ function render(): void {
         windowedFrame = scrollWindow && !follow && !shownFailure && !repl.running && !showShortcutHints;
         if (follow || shownFailure || repl.running) scrollFraction = 0;
         frame = notebookFrame(repl.notebook, columns, rows, windowedFrame ? Math.max(0, top - rows) : top,
-            shownFailure || (showShortcutHints ? repl.suggestion : ''), busy || repl.running, follow, '',
+            shownFailure || (showShortcutHints ? repl.suggestion : repl.runTime), busy || repl.running, follow, '',
             shownFailure || (repl.running ? showShortcutHints ? repl.runningStatus : repl.runningStatus.split(' · ')[0] : 'Running…'),
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
             repl.liveIterationFocus, repl.stepping,
@@ -380,7 +380,7 @@ function render(): void {
     frame.lines.forEach((line, index) => {
         const element = screen.children[index] as HTMLElement;
         element.classList.toggle('terminal-facts', frame.factsRow !== undefined && index >= frame.factsRow
-            && index < frame.factsRow + (frame.factsRowCount ?? 1));
+            && index < frame.factsRow + (frame.factsRowCount ?? 1) || index === frame.statusRow);
         // Results, values and errors, are drawn a little smaller than code on a phone.
         const compact = compactResults && resultRows.has(index);
         element.classList.toggle('terminal-result', compact);
@@ -803,7 +803,7 @@ commands.onclick = event => {
     if (turboRun && !turboRun.disabled) {
         haptic('tap');
         closeMenu();
-        focusInput();
+        setKeyboard(false);
         session.requestTurbo?.();
         void press({ name: 'l', ctrl: true });
         return;

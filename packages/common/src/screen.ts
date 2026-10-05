@@ -186,6 +186,8 @@ export interface ScreenFrame {
     readonly targets?: readonly (ScreenTarget | undefined)[];
     /** Index in `lines` of the footer row showing the name under the cursor, for dimmer, smaller styling. */
     readonly factsRow?: number;
+    /** The footer row when it holds a quiet status (running, run time), drawn like a name under the cursor. */
+    readonly statusRow?: number;
     /** The footer wraps onto this many rows (at least one) when its text is long. */
     readonly factsRowCount?: number;
     /** Indexes in `lines` of the rows that show a result, a value or an error, rather than code, so a host can draw them smaller. */
@@ -409,6 +411,7 @@ export function notebookFrame(
     const lines = rows.slice(top, top + renderedHeight);
     while (lines.length < renderedHeight) lines.push('');
     let factsRow: number | undefined;
+    let statusRow: number | undefined;
     // The footer sits directly under the viewport, ahead of any overscan rows, so it is never
     // pushed below the visible area.
     let footerLine: string | undefined;
@@ -440,16 +443,23 @@ export function notebookFrame(
             }
         }
         footerLine = clipped(label && followCursor ? `${label} · ${status}` : status, footerWidth);
+        if (followCursor && (running || RUN_TIME.test(suggestion))) {
+            footerLine = '\x1b[90m' + footerLine + '\x1b[0m';
+            statusRow = viewportHeight;
+        }
     }
     if (footerLines) lines.splice(viewportHeight, 0, ...footerLines);
     else if (footerLine !== undefined) lines.splice(viewportHeight, 0, footerLine);
     return { lines, cursor: { row: Math.max(0, Math.min(viewportHeight - 1, caret.row - top)), column: caret.column },
-        top, maxTop, targets: targets.slice(top, top + renderedHeight), factsRow, factsRowCount: footerLines?.length,
+        top, maxTop, targets: targets.slice(top, top + renderedHeight), factsRow, statusRow, factsRowCount: footerLines?.length,
         resultRows: resultRows.filter(row => row >= top && row < top + renderedHeight).map(row => row - top),
         cursorVisible: caret.row >= top && caret.row < top + viewportHeight, caretRow: caret.row,
         cursorStyle: promptOutputFocus ? 2 : promptFields?.some(field => field.active) ? 6
             : promptOutputs && !stepping ? 6 : notebook.atPrompt || stepping ? 2 : 6 };
 }
+
+/** The footer text of a finished fast run. */
+export const RUN_TIME = /^Done in \d+\.\d\ds$/;
 
 /** Saving has its own filename editor and never changes the source cursor. */
 export function saveFrame(
