@@ -459,11 +459,11 @@ creates an empty material array with the declared shape.
 
 ```rank
 Shape = array Rows Columns
-M = Values Shape reshape
+M = Values reshape unpack Shape
 ```
 
-It is provided by `use sequences`. The shape must be a rank-1 array of
-nonnegative integers. Values are consumed in row-major order, and their count
+It is provided by `use sequences`. Dimensions must be nonnegative integers;
+`unpack` expands a rank-1 shape array. Values are consumed in row-major order, and their count
 must exactly equal the product of the dimensions. Arrays, queues, finite
 sequences and Unicode text can be reshaped. An unbounded sequence is an error.
 An empty shape describes a scalar and therefore requires one value; a zero

@@ -9,7 +9,7 @@ N = stdin .integer
 K = stdin .integer
 V = stdin .integer (N * 2) array
 
-Data = V (array N 2) reshape
+Data = V reshape N 2
 Data K maximum_movies print
 
 

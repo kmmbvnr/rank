@@ -81,7 +81,7 @@ describe('value references', () => {
 
 describe('inspect: arrays', () => {
     it('reads a 3 by 4 array in full', async () => {
-        const { session, ref } = await run(['use sequences', 'M = (1 to 12) (array 3 4) reshape', 'M']);
+        const { session, ref } = await run(['use sequences', 'M = (1 to 12) reshape 3 4', 'M']);
         const value = opened(session.inspect(ref));
         expect(value).toMatchObject({ kind: 'array', shape: [3, 4], fixed: [] });
         if (value.kind !== 'array') throw new Error('expected an array');
@@ -91,7 +91,7 @@ describe('inspect: arrays', () => {
     });
 
     it('reads a window with an offset and a count on each axis', async () => {
-        const { session, ref } = await run(['use sequences', 'M = (1 to 12) (array 3 4) reshape', 'M']);
+        const { session, ref } = await run(['use sequences', 'M = (1 to 12) reshape 3 4', 'M']);
         const value = opened(session.inspect(ref, { offset: [1, 2], count: [2, 2] }));
         if (value.kind !== 'array') throw new Error('expected an array');
         expect(value.axes).toEqual([{ length: 3, offset: 1, count: 2 }, { length: 4, offset: 2, count: 2 }]);
@@ -99,7 +99,7 @@ describe('inspect: arrays', () => {
     });
 
     it('clamps a window that runs past the edge, and an offset that starts beyond it', async () => {
-        const { session, ref } = await run(['use sequences', 'M = (1 to 12) (array 3 4) reshape', 'M']);
+        const { session, ref } = await run(['use sequences', 'M = (1 to 12) reshape 3 4', 'M']);
         const past = opened(session.inspect(ref, { offset: [2, 3], count: [50, 50] }));
         if (past.kind !== 'array') throw new Error('expected an array');
         expect(texts(past.cells)).toEqual([['12']]);
@@ -110,7 +110,7 @@ describe('inspect: arrays', () => {
     });
 
     it('pages a vector as one cell per row', async () => {
-        const { session, ref } = await run(['use sequences', 'V = (1 to 100) (array 100) reshape', 'V']);
+        const { session, ref } = await run(['use sequences', 'V = (1 to 100) reshape 100', 'V']);
         const value = opened(session.inspect(ref, { offset: [10], count: [3] }));
         if (value.kind !== 'array') throw new Error('expected an array');
         expect(value.axes).toEqual([{ length: 100, offset: 10, count: 3 }]);
@@ -118,7 +118,7 @@ describe('inspect: arrays', () => {
     });
 
     it('defaults to a bounded window rather than the whole array', async () => {
-        const { session, ref } = await run(['use sequences', 'V = (1 to 5000) (array 5000) reshape', 'V']);
+        const { session, ref } = await run(['use sequences', 'V = (1 to 5000) reshape 5000', 'V']);
         const value = opened(session.inspect(ref));
         if (value.kind !== 'array') throw new Error('expected an array');
         expect(value.cells).toHaveLength(20);
@@ -127,7 +127,7 @@ describe('inspect: arrays', () => {
     });
 
     it('slices a 3-D array over its leading axis', async () => {
-        const { session, ref } = await run(['use sequences', 'T = (1 to 24) (array 2 3 4) reshape', 'T']);
+        const { session, ref } = await run(['use sequences', 'T = (1 to 24) reshape 2 3 4', 'T']);
         const first = opened(session.inspect(ref));
         const second = opened(session.inspect(ref, { fixed: [1] }));
         if (first.kind !== 'array' || second.kind !== 'array') throw new Error('expected arrays');
@@ -138,7 +138,7 @@ describe('inspect: arrays', () => {
     });
 
     it('slices a 4-D array over two leading axes and clamps an index out of range', async () => {
-        const { session, ref } = await run(['use sequences', 'T = (1 to 16) (array 2 2 2 2) reshape', 'T']);
+        const { session, ref } = await run(['use sequences', 'T = (1 to 16) reshape 2 2 2 2', 'T']);
         const value = opened(session.inspect(ref, { fixed: [1, 0] }));
         if (value.kind !== 'array') throw new Error('expected an array');
         expect(texts(value.cells)).toEqual([['9', '10'], ['11', '12']]);
@@ -338,7 +338,7 @@ describe('inspect: scalars', () => {
 
 describe('value view model', () => {
     it('describes a window of a matrix with labels, a type line and scroll positions', async () => {
-        const { session, ref } = await run(['use sequences', 'M = (1 to 12) (array 3 4) reshape', 'M']);
+        const { session, ref } = await run(['use sequences', 'M = (1 to 12) reshape 3 4', 'M']);
         const view = buildValueView('M', opened(session.inspect(ref, { offset: [1, 2], count: [2, 2] })));
         expect(view).toEqual({
             kind: 'grid', title: 'M', typeLine: 'array · integer · [3 4]',
@@ -349,13 +349,13 @@ describe('value view model', () => {
     });
 
     it('records the slice over the leading axes of a 3-D array', async () => {
-        const { session, ref } = await run(['use sequences', 'T = (1 to 24) (array 2 3 4) reshape', 'T']);
+        const { session, ref } = await run(['use sequences', 'T = (1 to 24) reshape 2 3 4', 'T']);
         const view = buildValueView('T', opened(session.inspect(ref, { fixed: [1] })));
         expect(view.kind === 'grid' && view.slice).toEqual([{ axis: 0, index: 1, length: 2 }]);
     });
 
     describe('choosing the axes of the window', () => {
-        const cube = () => run(['use sequences', 'T = (1 to 24) (array 2 3 4) reshape', 'T']);
+        const cube = () => run(['use sequences', 'T = (1 to 24) reshape 2 3 4', 'T']);
         const grid = (view: ReturnType<typeof buildValueView>) => {
             if (view.kind !== 'grid') throw new Error('expected a grid');
             return view;

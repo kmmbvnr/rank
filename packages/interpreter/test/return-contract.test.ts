@@ -13,7 +13,7 @@ it.each([true, false])('enforces return contracts with compilation %s', compiled
 
 it('specializes independently for scalar, vector and matrix inputs', () => {
     const runtime = new Interpreter(() => {});
-    runtime.execute('use sequences\nfun identity X\n return X\nend\n1 identity\n(array 1 2) identity\n((array 1 2 3 4) (array 2 2) reshape) identity');
+    runtime.execute('use sequences\nfun identity X\n return X\nend\n1 identity\n(array 1 2) identity\n((array 1 2 3 4) reshape 2 2) identity');
     expect(formatValue(runtime.execute('(array 3 4 5) identity')!)).toBe('3 4 5');
 });
 

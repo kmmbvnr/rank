@@ -11,7 +11,7 @@ Variables = stdin .integer
 Size = Rows * (Variables + 1)
 Raw = stdin .integer Size array
 Shape = array Rows (Variables + 1)
-Matrix = Raw Shape reshape
+Matrix = Raw reshape unpack Shape
 Rows Variables Matrix solve_mod print
 
 

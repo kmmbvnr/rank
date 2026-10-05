@@ -14,11 +14,11 @@ it('rejects conflicting declaration returns without a call', () => {
     expect(result.diagnostics.map(item => item.message)).toContain('pick returns incompatible types: integer and boolean');
 });
 it('checks both paths even when the only call selects one', () => {
-    const result = analyze('fun pick X\n if X equal 0\n return array 1\n else\n return (array 1 2 3 4) (array 2 2) reshape\n end\nend\n0 pick');
+    const result = analyze('fun pick X\n if X equal 0\n return array 1\n else\n return (array 1 2 3 4) reshape 2 2\n end\nend\n0 pick');
     expect(result.diagnostics.some(item => item.message.includes('returns incompatible ranks: 1 and 2'))).toBe(true);
 });
 it('keeps vector and matrix call facts separate', () => {
-    const result = analyze('fun identity X\n return X\nend\nA = (array 1 2) identity\nB = ((array 1 2 3 4) (array 2 2) reshape) identity');
+    const result = analyze('fun identity X\n return X\nend\nA = (array 1 2) identity\nB = ((array 1 2 3 4) reshape 2 2) identity');
     expect(result.diagnostics).toEqual([]);
     expect(result.bindings.get('A')?.rank).toBe(1);
     expect(result.bindings.get('B')?.rank).toBe(2);

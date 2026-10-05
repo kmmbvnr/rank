@@ -368,7 +368,7 @@ Shapes, orderings, windows and lazy sources.
 | `Values first` | element | First item of text, an array, a queue or a sequence; missing when empty. |
 | `Values last` | element | Last item of text, an array, a queue or a finite sequence; missing when empty. |
 | `primes` | sequence, lazy | Unbounded ascending primes, with planned membership and positional seeking. |
-| `Values Shape reshape` | array | Dense array in row-major order, the element count matching exactly; a matrix of shapes reshapes once per row. |
+| `Values reshape Dims... | Values reshape unpack Shape` | array | Dense array in row-major order; unpack a shape vector or matrix of shape rows when needed. |
 | `Value shape` | array | Axis lengths as a rank-1 array. |
 | `Streams merge .descending` | sequence, lazy | Lazily merges sorted streams or matrix rows, ascending by default. |
 | `Values sort .descending` | array | Stable sort into a new rank-1 array, ascending by default. |

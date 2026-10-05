@@ -21,7 +21,8 @@ import { matmulValues } from '../modules/linalg.js';
 import { shuffleValue } from '../modules/random.js';
 import { directedMerge } from '../modules/sorted-merge.js';
 import {
-    argsortAxis, directedSort, lengthOfAxis, materializeCollection, sortDescending, sortMode, stackValues, transposeValue,
+    argsortAxis, directedSort, lengthOfAxis, materializeCollection, reshapeWithDimensions, reshapeWithShapeRows,
+    sortDescending, sortMode, stackValues, transposeValue,
     type SortMode,
 } from '../modules/sequences.js';
 import { correlationValue, covarianceValue, errorMetricValue, quantileValue } from '../modules/stats.js';
@@ -227,6 +228,31 @@ export class ApplicationEvaluator {
                         }
                     }
                     return yield* resume(application.apply(values, missing, 0, [], tail));
+                };
+            }
+            case 'reshape': {
+                return function* (): Execution<RankValue> {
+                    context.requireModule('sequences', 'reshape');
+                    const source = yield* resume(context.evaluate(form.source));
+                    let result: RankValue;
+                    if (form.dimensions.length === 1 && isUnpackExpression(form.dimensions[0])) {
+                        const value = yield* resume(context.evaluate(form.dimensions[0].value));
+                        result = isRankArray(value) && value.shape.length === 2
+                            ? reshapeWithShapeRows(source, value)
+                            : reshapeWithDimensions(source, unpackApplicationItems(value));
+                    } else {
+                        const dimensions: RankValue[] = [];
+                        for (const part of form.dimensions) {
+                            if (isUnpackExpression(part)) {
+                                const value = yield* resume(context.evaluate(part.value));
+                                dimensions.push(...unpackApplicationItems(value));
+                            } else dimensions.push(yield* resume(context.evaluate(part)));
+                        }
+                        result = reshapeWithDimensions(source, dimensions);
+                    }
+                    if (!form.rest.length) return result;
+                    const rest = yield* resume(mapExecution(form.rest, part => context.evaluate(part)));
+                    return yield* resume(application.apply([result, ...rest], missing, 0, [], tail));
                 };
             }
             case 'new-graph': {

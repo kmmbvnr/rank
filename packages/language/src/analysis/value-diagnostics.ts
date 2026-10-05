@@ -14,7 +14,7 @@ import {
     isArgumentStatement, isOptionStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isTakeWhileExpression,
-    isTableFilterExpression,
+    isTableFilterExpression, isUnpackExpression,
     isSubjectComparisonExpression,
     type Expression, type Program, type Statement, type FunctionStatement,
     type TryStatement,
@@ -646,6 +646,34 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             }
             for (const part of parts.slice(1)) inspect(part, env);
             const form = applicationForm(expression, name => env.has(name) ? false : findOperation(name));
+            if (form.kind === 'reshape') {
+                const batch = form.dimensions.length === 1 && isUnpackExpression(form.dimensions[0])
+                    && expressionFacts(form.dimensions[0].value, lookup).rank === 2;
+                const dimensions = form.dimensions.flatMap(part => {
+                    const valueFacts = expressionFacts(isUnpackExpression(part) ? part.value : part, lookup);
+                    if (isUnpackExpression(part)) {
+                        if (valueFacts.types.length && (valueFacts.types.join() !== 'array'
+                            || valueFacts.rank !== undefined && valueFacts.rank !== 1 && valueFacts.rank !== 2
+                            || valueFacts.elements?.length && valueFacts.elements.join() !== 'integer')) {
+                            diagnostics.push({ node: part, kind: 'TypeError',
+                                message: 'reshape shape must be a rank-1 integer array' });
+                        }
+                        return valueFacts.integers ?? [];
+                    }
+                    if (valueFacts.types.length && valueFacts.types.join() !== 'integer') {
+                        diagnostics.push({ node: part, kind: 'TypeError', message: 'reshape dimensions must be integers' });
+                    }
+                    const value = valueFacts.integer;
+                    return [value === undefined ? null : Number(value)];
+                });
+                if (!batch && dimensions.length && dimensions.every(n => n !== null && n >= 0)
+                    && source.shape?.every(n => n !== null)) {
+                    const expected = dimensions.reduce<bigint>((size, n) => size * BigInt(n!), 1n);
+                    const actual = source.shape.reduce<bigint>((size, n) => size * BigInt(n!), 1n);
+                    if (expected !== actual) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
+                        message: `reshape expects ${expected} elements, got ${actual}` });
+                }
+            }
             if (form.kind === 'stack-constructor') {
                 const cells = form.items.map(item => expressionFacts(item, lookup));
                 const invalid = cells.some(cell => cell.types.length && !cell.types.every(type =>
@@ -698,16 +726,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 && fenwickIndex.types.every(type => type !== 'integer')) {
                 diagnostics.push({ node: fenwickSelector, kind: 'TypeError',
                     message: `fenwick index must be integer, got ${fenwickIndex.types.join(' or ')}` });
-            }
-            if (isNameExpression(last) && last.name === 'reshape' && !lookup(last.name) && parts.length === 3) {
-                const dimensions = expressionFacts(parts[1], lookup).integers;
-                if (dimensions?.every(n => n !== null && n >= 0)
-                    && source.shape?.every(n => n !== null)) {
-                    const expected = dimensions.reduce<bigint>((size, n) => size * BigInt(n!), 1n);
-                    const actual = source.shape.reduce<bigint>((size, n) => size * BigInt(n!), 1n);
-                    if (expected !== actual) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
-                        message: `reshape expects ${expected} elements, got ${actual}` });
-                }
             }
             if (source.rank !== undefined && source.types.length && source.types.every(type => type === 'array' || type === 'bytes')
                 && selectors.every(part => isAllAxisExpression(part) || expressionFacts(part, lookup).types.join() === 'integer')

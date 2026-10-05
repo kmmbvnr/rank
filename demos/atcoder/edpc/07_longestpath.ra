@@ -8,7 +8,7 @@ use sequences
 N = stdin .integer
 M = stdin .integer
 Values = stdin .integer (M * 2) array
-Edges = Values (array M 2) reshape
+Edges = Values reshape M 2
 Nodes = 1 to N
 Graph = new graph Nodes .directed
 Graph add Edges

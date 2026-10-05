@@ -91,7 +91,7 @@ describe('scan modifier', () => {
 });
 
 describe('scan along an axis', () => {
-    const table = 'use sequences\nT = (1 to 12) (array 3 4) reshape\n';
+    const table = 'use sequences\nT = (1 to 12) reshape 3 4\n';
 
     it('accumulates down the rows and along the columns, keeping the shape', () => {
         expect(run(`${table}T scan + axis 0`)).toBe('1 2 3 4 6 8 10 12 15 18 21 24');
@@ -100,7 +100,7 @@ describe('scan along an axis', () => {
     });
 
     it('scans the middle axis of a tensor', () => {
-        expect(run('use sequences\nT = (1 to 8) (array 2 2 2) reshape\nT scan * axis 1')).toBe('1 2 3 8 5 6 35 48');
+        expect(run('use sequences\nT = (1 to 8) reshape 2 2 2\nT scan * axis 1')).toBe('1 2 3 8 5 6 35 48');
     });
 
     it('gives the rank-one scan for a vector', () => {
@@ -112,7 +112,7 @@ describe('scan along an axis', () => {
     });
 
     it('scans named operations such as max, min and user functions', () => {
-        const values = 'use sequences\nT = (array 3 1 4 1 5 9 2 6 5 3 5 8) (array 3 4) reshape\n';
+        const values = 'use sequences\nT = (array 3 1 4 1 5 9 2 6 5 3 5 8) reshape 3 4\n';
         expect(run(`${values}T scan max axis 0`)).toBe('3 1 4 1 5 9 4 6 5 9 5 8');
         expect(run(`${values}T scan min axis 1`)).toBe('3 1 1 1 5 5 2 2 5 3 3 3');
         expect(run(`${values}fun tens Left Right\n  return Left * 10 + Right\nend\nT scan tens axis 1`))
@@ -122,7 +122,7 @@ describe('scan along an axis', () => {
     it('agrees with the rank-one scan on every column of a large real table', () => {
         const source = [
             'use sequences', 'use numbers',
-            'T = (0 till 6000) * 0.5 (array 300 20) reshape',
+            'T = (0 till 6000) * 0.5 reshape 300 20',
             'S = T scan + axis 0',
             'Column = T # 7',
             'Expected = Column scan +',
@@ -133,7 +133,7 @@ describe('scan along an axis', () => {
     });
 
     it('scans a large lazy source', () => {
-        expect(run('use sequences\nT = (1 to 6000) (array 300 20) reshape\nU = T * 2\nS = U scan + axis 0\nS 299 0')).toBe('1794600');
+        expect(run('use sequences\nT = (1 to 6000) reshape 300 20\nU = T * 2\nS = U scan + axis 0\nS 299 0')).toBe('1794600');
     });
 
     it('rejects an axis the array does not have and non-arrays', () => {

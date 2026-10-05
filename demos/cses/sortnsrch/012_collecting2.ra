@@ -9,7 +9,7 @@ N = stdin .integer
 M = stdin .integer
 A = stdin .integer N array
 Raw = stdin .integer (M * 2) array
-Swaps = Raw (array M 2) reshape
+Swaps = Raw reshape M 2
 
 A Swaps collecting_updates print
 

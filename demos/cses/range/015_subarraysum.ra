@@ -9,7 +9,7 @@ N = stdin .integer
 Q = stdin .integer
 Values = stdin .integer N array
 Raw = stdin .integer (Q * 2) array
-Updates = Raw (array Q 2) reshape
+Updates = Raw reshape Q 2
 
 Values Updates max_subarrays print
 

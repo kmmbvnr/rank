@@ -22,7 +22,7 @@ describe.each([true, false])('array binding rank (compiled=%s)', compiled => {
         'use sequences\nA = array 1 2 3\nA = array 2 2 2 2 shape 2 2\nA = array shape 2 2\n 2 2\n 2 2\nend',
         'A = array 1 2 3\nA = array shape 2 2\n 2 2\n 2 2\nend',
         'A = array 1 2 3\nA = array shape 0 2 fill 0',
-        'use sequences\nA = array 1 2 3 4\nA = A (array 2 2) reshape',
+        'use sequences\nA = array 1 2 3 4\nA = A reshape 2 2',
         'A = array 1 2\nA += array shape 2 2 fill 0',
         'A = array 1 2\nfor I in 1 to 2\n A = array shape 2 2 fill I\nend',
         'for I in 1 to 2\n A = array shape I fill 0\n A = array shape I I fill 0\nend',
@@ -63,7 +63,7 @@ describe.each([true, false])('array binding rank (compiled=%s)', compiled => {
 it.each([false, true])('keeps a cached assignment site checked across repeated writes (local=%s)', local => {
     const runtime = new Interpreter(undefined, { integerLoopCompilation: false });
     try {
-        const loop = 'for I in 1 to 3\n Shape = array 4\n if I equal 3\n  Shape = array 2 2\n end\n A = (array 1 2 3 4) Shape reshape\nend';
+        const loop = 'for I in 1 to 3\n Shape = array 4\n if I equal 3\n  Shape = array 2 2\n end\n A = (array 1 2 3 4) reshape unpack Shape\nend';
         const source = 'use sequences\n'
             + (local ? `fun check N\n${loop}\n return 0\nend\n3 check` : loop);
         expect(() => runtime.execute(source)).toThrow('A has rank 1 and cannot receive rank 2');

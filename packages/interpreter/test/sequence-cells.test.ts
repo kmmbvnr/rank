@@ -149,7 +149,7 @@ describe('arrays of array cells', () => {
     it('stacks the cells of a matrix of vectors after both axes', () => {
         expect(run(`use sequences
 V = array 1 2
-Grid = (array V V V V) (array 2 2) reshape
+Grid = (array V V V V) reshape 2 2
 Grid copy shape`)).toBe('2 2 2');
     });
 

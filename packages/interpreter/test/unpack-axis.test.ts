@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { run } from './support.js';
 
-const matrix = ['use sequences', 'use algo', 'M = ((1 to 6) array) (array 2 3) reshape'];
+const matrix = ['use sequences', 'use algo', 'M = ((1 to 6) array) reshape 2 3'];
 const program = (...lines: string[]) => run([...matrix, ...lines].join('\n'));
 
 describe('unpack along an axis', () => {

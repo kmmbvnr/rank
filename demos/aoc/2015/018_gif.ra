@@ -43,7 +43,7 @@ fun makegrid Lines Stuck
     end
   end
 
-  return Queue (array N N) reshape
+  return Queue reshape N N
 end
 
 
@@ -65,7 +65,7 @@ fun evolve Grid Stuck
     end
   end
 
-  return Queue (array N N) reshape
+  return Queue reshape N N
 end
 
 

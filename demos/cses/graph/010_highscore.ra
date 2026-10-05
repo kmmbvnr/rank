@@ -12,7 +12,7 @@ EdgeCount = stdin .integer
 ValueCount = EdgeCount * 3
 Values = stdin .integer ValueCount array
 Shape = array EdgeCount 3
-Edges = Values Shape reshape
+Edges = Values reshape unpack Shape
 Result = Edges NodeCount high_score
 if Result .infinite
   -1 print

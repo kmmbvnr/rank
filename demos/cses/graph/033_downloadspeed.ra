@@ -9,7 +9,7 @@ N = stdin .integer
 M = stdin .integer
 Count = M * 3
 Values = stdin .integer Count array
-Edges = Values (array M 3) reshape
+Edges = Values reshape M 3
 N Edges download_speed print
 
 

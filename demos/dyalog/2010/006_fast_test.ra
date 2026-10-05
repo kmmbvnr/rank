@@ -13,7 +13,7 @@ test "random rate paths match the monthly model"
   State = 11 seed
   Rolls = (1 to 6) (120 * 50) choices
   Steps = (Rolls - 3.5) / 10
-  Changes = Steps (array 120 50) reshape
+  Changes = Steps reshape 120 50
   Slow = Changes 8.5 Params difference
   Fast = Changes 8.5 Params fastdifference
   Error = Slow - Fast abs
@@ -63,7 +63,7 @@ test "a term that is not whole years matches the monthly model"
   State = 5 seed
   Rolls = (1 to 6) (33 * 20) choices
   Steps = (Rolls - 3.5) / 10
-  Changes = Steps (array 33 20) reshape
+  Changes = Steps reshape 33 20
   Slow = Changes 8.5 Params difference
   Fast = Changes 8.5 Params fastdifference
   Error = Slow - Fast abs

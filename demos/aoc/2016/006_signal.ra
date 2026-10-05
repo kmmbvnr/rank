@@ -19,7 +19,7 @@ fun solve Lines
   Rows = Lines len
   Cols = Lines 0 len
   Text = Lines "" join
-  Grid = Text (array Rows Cols) reshape
+  Grid = Text reshape Rows Cols
 
   Width = Grid len axis 1
   Most = ""

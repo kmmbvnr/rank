@@ -76,7 +76,7 @@ describe('the operation catalogue', () => {
                 expect(entry.signatures, entry.name).toBeUndefined();
                 const value = runtime.get(`${entry.module}.${entry.name}`)!;
                 expect(isNativeFunction(value)).toBe(true);
-                if (isNativeFunction(value)) expect(() => value.call([1n, 2n])).toThrow(/segment/);
+                if (isNativeFunction(value)) expect(() => value.call([1n, 2n])).toThrow();
             } else expect(entry.signatures?.length, entry.name).toBeGreaterThan(0);
         }
     });

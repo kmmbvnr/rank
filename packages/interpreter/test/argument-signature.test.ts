@@ -75,7 +75,7 @@ it.each([3, 1024, 8192])('does not read lazy argument cells to call twice (size 
 
 it('keeps known element types through slices, transpose and reshape', () => {
     const runtime = new Interpreter();
-    runtime.execute('use sequences\nSource = array shape 2 2 fill 1\nLazy = Source * 2\nRow = Lazy 0\nSlice = Lazy # #\nTransposed = Lazy transpose\nReshaped = Lazy (array 2 2) reshape');
+    runtime.execute('use sequences\nSource = array shape 2 2 fill 1\nLazy = Source * 2\nRow = Lazy 0\nSlice = Lazy # #\nTransposed = Lazy transpose\nReshaped = Lazy reshape 2 2');
     const matrix = argumentSignature([runtime.variables.get('Source')!]);
     for (const name of ['Lazy', 'Slice', 'Transposed', 'Reshaped']) {
         expect(argumentSignature([runtime.variables.get(name)!])).toBe(matrix);

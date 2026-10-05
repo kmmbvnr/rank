@@ -89,7 +89,7 @@ describe('the value viewer', () => {
     });
 
     it('switches the slice of a 3-D array with [ and ]', async () => {
-        const { session, viewer, press, screen } = await opened(40, 10, {}, 'use sequences', 'A = (1 to 24) (array 2 3 4) reshape');
+        const { session, viewer, press, screen } = await opened(40, 10, {}, 'use sequences', 'A = (1 to 24) reshape 2 3 4');
         try {
             expect(screen()[0]).toContain('[0, :, :]');
             expect(screen()[2]).toMatch(/^0 │ +1 +2 +3 +4/);

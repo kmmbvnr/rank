@@ -21,9 +21,9 @@ rem block run along axis 1 and the same count works without a transpose.
 fun solve Text
   Sides = Text words integer rank 0
   Height = Sides len // 3
-  Table = Sides (array Height 3) reshape
+  Table = Sides reshape Height 3
   Triangles = Height // 3
-  Blocks = Sides (array Triangles 3 3) reshape
+  Blocks = Sides reshape Triangles 3 3
 
   Part1 = Table triangles
   Part2 = Blocks triangles

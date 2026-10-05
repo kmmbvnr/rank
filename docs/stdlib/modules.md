@@ -947,10 +947,11 @@ finite sequence. It rejects an infinite sequence.
 `reshape` from `sequences` constructs a dense array in row-major order:
 
 ```rank
-M = Values (array Rows Columns) reshape
+M = Values reshape Rows Columns
+N = Values reshape unpack Shape
 ```
 
-The shape is a rank-1 array of nonnegative integers. The source may be an
+Dimensions are nonnegative integers; `unpack` expands a rank-1 shape array. The source may be an
 array, queue, finite sequence or text, and its element count must exactly match
 the requested shape. An infinite source is an error.
 

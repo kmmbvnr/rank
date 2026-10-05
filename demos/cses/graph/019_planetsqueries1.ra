@@ -10,7 +10,7 @@ Q = stdin .integer
 Next = stdin .integer N array
 ValueCount = Q * 2
 Values = stdin .integer ValueCount array
-Queries = Values (array Q 2) reshape
+Queries = Values reshape Q 2
 Next Queries planet_queries print
 
 

@@ -9,7 +9,7 @@ N = stdin .integer
 M = stdin .integer
 Count = M * 2
 Values = stdin .integer Count array
-Edges = Values (array M 2) reshape
+Edges = Values reshape M 2
 Result = N Edges routes_check
 
 if Result .possible

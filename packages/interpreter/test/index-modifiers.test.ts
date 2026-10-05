@@ -26,7 +26,7 @@ describe('max and min .index', () => {
     });
 
     it('rejects an empty array and higher ranks', () => {
-        expect(() => check(['A = array 1 2 3 4', 'Shape = array 2 2', 'B = A Shape reshape', 'B max .index'])).toThrow(/rank-1/);
+        expect(() => check(['A = array 1 2 3 4', 'Shape = array 2 2', 'B = A reshape unpack Shape', 'B max .index'])).toThrow(/rank-1/);
         expect(() => check(['E = (array 1 2) filter (array false false)', 'E max .index'])).toThrow(/at least one value/);
     });
 });

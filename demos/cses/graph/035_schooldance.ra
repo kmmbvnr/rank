@@ -11,7 +11,7 @@ Girls = stdin .integer
 K = stdin .integer
 Count = K * 2
 Values = stdin .integer Count array
-Pairs = Values (array K 2) reshape
+Pairs = Values reshape K 2
 Result = Boys Girls Pairs school_dance
 Result .count print
 for Pair in Result .pairs
