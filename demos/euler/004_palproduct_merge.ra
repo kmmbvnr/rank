@@ -5,7 +5,6 @@ rem the product table in decreasing order, so
 rem the first palindrome found is the answer.
 
 use sequences
-use text
 use io
 use cli
 
@@ -21,13 +20,12 @@ Factors = Upper to Lower by -1
 Products = Factors Factors outer *
 Candidates = Products merge .descending
 
-Answer = Candidates filter palindrome rank 0 first
+Answer = Candidates filter palindrome first
 Answer print
 
 rem Return true when a nonnegative integer
 rem reads the same in both directions.
 fun palindrome X
   Text = X text
-  Back = Text reverse
-  return Text equal Back
+  return Text equal (Text reverse)
 end

@@ -88,7 +88,22 @@ export const sequencesModule: RuntimeModule = {
  * queue, stack, deque or finite sequence as an array; a queue is left in place. The result is a new value; typed storage stays typed.
  */
 function reverseValue(value: RankValue): RankValue {
-    if (typeof value === 'string') return [...value].reverse().join('');
+    if (typeof value === 'string') {
+        let reversed = '';
+        for (let index = value.length - 1; index >= 0; index -= 1) {
+            const code = value.charCodeAt(index);
+            if (code >= 0xdc00 && code <= 0xdfff && index > 0) {
+                const prior = value.charCodeAt(index - 1);
+                if (prior >= 0xd800 && prior <= 0xdbff) {
+                    reversed += value.slice(index - 1, index + 1);
+                    index -= 1;
+                    continue;
+                }
+            }
+            reversed += value[index];
+        }
+        return reversed;
+    }
     if (isRankArray(value) && value.shape.length > 0) {
         const [rows, ...rest] = value.shape;
         const width = rest.reduce((product, dimension) => product * dimension, 1);

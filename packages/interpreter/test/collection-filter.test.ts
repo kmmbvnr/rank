@@ -57,13 +57,20 @@ describe('filter over plain collections', () => {
             .toBe('44');
         expect(run('use sequences\nuse numbers\nP = primes take 8 array\nP filter greater 5'))
             .toBe('7 11 13 17 19');
+        expect(() => run('use sequences\n(1 to 10) filter even first'))
+            .toThrow(/numbers/);
+        expect(run('use sequences\nuse text\nfun palindrome X\n  T = X text\n  Back = T reverse\n  return T equal Back\nend\n'
+            + '(array 121 122) (array 123 131) merge filter palindrome first')).toBe('121');
     });
 
-    it('ravels the frame when a rank-0 predicate selects atoms of a tensor', () => {
+    it('requires rank 0 to select atoms of a tensor', () => {
         const matrix = 'use numbers\nM = array shape 2 3\n  1 2 3\n  4 5 6\nend\n';
-        expect(run(`${matrix}M filter greater 3`)).toBe('4 5 6');
+        expect(() => run(`${matrix}M filter greater 3`)).toThrow(/one boolean per row/);
+        expect(run(`${matrix}M filter (M greater 3)`)).toBe('4 5 6');
         expect(run(`${matrix}fun small X\n  return X less 4\nend\nM filter small rank 0`))
             .toBe('1 2 3');
+        expect(run(`${matrix}fun small X\n  return X less 5\nend\nM filter small axis 1 0 rank 0`))
+            .toBe('1 4 2 3');
     });
 
     it('selects along the frame when the predicate has a cell rank', () => {
@@ -71,19 +78,52 @@ describe('filter over plain collections', () => {
             + 'fun heavy V\n  return V sum greater 5\nend\n';
         expect(run(`${matrix}(M filter heavy rank 1) shape`)).toBe('2 2');
         expect(run(`${matrix}M filter heavy rank 1`)).toBe('3 4 5 6');
+        expect(run(`${matrix}(M filter heavy) shape`)).toBe('2 2');
+        expect(run(`${matrix}M filter heavy`)).toBe('3 4 5 6');
+        expect(run(`${matrix}fun heavy V rank 0\n  return V sum greater 5\nend\nM filter heavy`))
+            .toBe('3 4 5 6');
         expect(run(`${matrix}fun wide V\n  return V sum greater 9\nend\n`
             + '(M filter wide axis 1 rank 1) shape')).toBe('3 1');
         expect(run(`${matrix}fun wide V\n  return V sum greater 9\nend\n`
             + 'M filter wide axis 1 rank 1')).toBe('2 4 6');
+        expect(run(`${matrix}fun wide V\n  return V sum greater 9\nend\n`
+            + '(M filter wide axis 1) shape')).toBe('3 1');
     });
 
-    it('reports a frame that does not line up with the filtered axis', () => {
+    it('filters cells across multiple frame axes', () => {
+        const tensor = 'use sequences\nT = array shape 2 2 2\n  1 2\n  3 4\n  5 6\n  7 8\nend\n'
+            + 'fun heavy V\n  return V sum greater 8\nend\n';
+        expect(run(`${tensor}(T filter heavy rank 1) shape`)).toBe('2 2');
+        expect(run(`${tensor}T filter heavy rank 1`)).toBe('5 6 7 8');
+        expect(run(`${tensor}(T filter heavy axis 0 2 rank 1) shape`)).toBe('2 2');
+        expect(run(`${tensor}T filter heavy axis 0 2 rank 1`)).toBe('5 7 6 8');
+        expect(run(`${tensor}(T filter heavy axis 1 2 rank 1) shape`)).toBe('2 2');
+        expect(run(`${tensor}T filter heavy axis 1 2 rank 1`)).toBe('3 4 7 8');
+        expect(run(`${tensor}T filter\n  heavy axis 1 2 rank 1\n  heavy axis 1 2 rank 1\nend`))
+            .toBe('3 4 7 8');
+        expect(() => run(`${tensor}T filter\n  heavy axis 0 2 rank 1\n  heavy axis 1 2 rank 1\nend`))
+            .toThrow(/same axes/);
+        expect(run(`${tensor}fun none V\n  return false\nend\n(T filter none rank 1) shape`))
+            .toBe('0 2');
+        expect(run('use sequences\nT = array shape 2 2 1\n  1\n  2\n  3\n  4\nend\n'
+            + 'fun positive V\n  return V sum greater 0\nend\n(T filter positive rank 1) shape'))
+            .toBe('4 1');
+        const wide = 'use sequences\nT = (1 to 24) (array 2 3 4) reshape\n'
+            + 'fun heavy V\n  return V sum greater 30\nend\n';
+        expect(run(`${wide}(T filter heavy axis 1 2 rank 1) shape`)).toBe('2 3');
+        expect(run(`${wide}T filter heavy axis 1 2 rank 1`)).toBe('10 11 12 22 23 24');
+        expect(run(`${wide}(T filter heavy axis 0 2 rank 1) shape`)).toBe('4 3');
+    });
+
+    it('reports a frame that does not line up with the filtered axes', () => {
         const matrix = 'use numbers\nM = array shape 3 2\n  1 2\n  3 4\n  5 6\nend\n';
         expect(() => run(`${matrix}K = array true false true false\nM filter (K)`))
             .toThrow(/does not match axis 0 of shape 3 2/);
         expect(() => run('use numbers\nT = array shape 2 2 2\n  1 2\n  3 4\n  5 6\n  7 8\nend\n'
             + 'fun heavy V\n  return V sum greater 5\nend\nT filter heavy axis 0 1 rank 1'))
-            .toThrow(/two or more axes/);
+            .not.toThrow();
+        expect(() => run(`${matrix}fun heavy V\n  return V sum greater 5\nend\nM filter heavy axis 0 1 rank 1`))
+            .toThrow(/axis count/);
     });
 
     it('does not change its input and composes with a following operation', () => {
@@ -102,6 +142,8 @@ describe('filter over plain collections', () => {
     it('rejects a condition that is not a mask over the value', () => {
         expect(() => run(`${NUMBERS}N filter 1`))
             .toThrow(/boolean mask/);
+        expect(() => run('use sequences\nN = 1 to 10\nfun number X\n  return X + 1\nend\nN filter number first'))
+            .toThrow(/filter predicate must return boolean/);
         expect(() => run('use numbers\nX = 3\nX filter greater 1'))
             .toThrow(/array, sequence or table/);
     });

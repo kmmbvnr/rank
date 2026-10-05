@@ -10,6 +10,7 @@ import {
     type Expression,
 } from '../generated/ast.js';
 import { resultTypes, typeOf } from './types.js';
+import { filterPredicateForm } from '../clause-conditions.js';
 import { findOperation } from '../operations.js';
 import { applicationExpressionFacts, takeDropFacts } from './application-facts.js';
 import { callbackFreeCondition, sliceFacts } from './binary-facts.js';
@@ -235,6 +236,43 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     if (isFirstIndexWhereExpression(expression)) return { types: ['integer'], rank: 0, shape: [] };
     if (isTableFilterExpression(expression) && !expression.sourceFields.length) {
         const source = expressionFacts(expression.source, lookup);
+        if (source.types.join() === 'sequence') return { types: ['sequence'], rank: 1, shape: [null],
+            ...(source.elements ? { elements: source.elements } : {}),
+            ...(source.elementRecord ? { elementRecord: source.elementRecord } : {}) };
+        const conditions = expression.condition ? [expression.condition] : expression.conditions;
+        const forms = conditions.map(filterPredicateForm);
+        const predicate = forms[0] && forms.every(form => form && form.rank === forms[0]?.rank
+            && form.axes?.join() === forms[0]?.axes?.join()) ? forms[0] : undefined;
+        if (source.types.join() === 'array' && source.rank === 1 && source.elements?.length
+            && !source.elements.includes('object') && !source.checkedColumns
+            && predicate && (predicate.rank === undefined || predicate.rank === 0)
+            && (predicate.axes === undefined || predicate.axes.join() === '0')
+            && lookup(predicate.name)?.types.join() === 'function') {
+            return { types: ['sequence'], rank: 1, shape: [null], elements: source.elements,
+                ...(source.elementRecord ? { elementRecord: source.elementRecord } : {}) };
+        }
+        if (source.types.join() === 'array' && source.rank !== undefined && source.rank > 1
+            && predicate
+            && lookup(predicate.name)?.types.join() === 'function') {
+            const cellRank = predicate.rank ?? source.rank - 1;
+            const frameRank = source.rank - cellRank;
+            const axes = predicate.axes ?? Array.from({ length: Math.max(0, frameRank) }, (_, axis) => axis);
+            const validAxes = axes.length === frameRank && new Set(axes).size === axes.length
+                && axes.every(axis => axis >= 0 && axis < source.rank!);
+            if (cellRank === 0 && validAxes) {
+                return { types: ['sequence'], rank: 1, shape: [null],
+                    ...(source.elements ? { elements: source.elements } : {}) };
+            }
+            if (cellRank > 0 && frameRank > 0 && validAxes) {
+                const frame = new Set(axes);
+                const shape = source.shape ?? Array(source.rank).fill(null);
+                const first = Math.min(...axes);
+                const output = shape.flatMap((dimension, axis) => axis === first ? [null]
+                    : frame.has(axis) ? [] : [dimension]);
+                return { types: ['array'], rank: cellRank + 1, shape: output,
+                    ...(source.elements ? { elements: source.elements } : {}) };
+            }
+        }
         const filteredLength = source.checkedColumns ? freshDim('filtered') : undefined;
         if (source.types.join() === 'array' && source.rank === 1) return {
             types: ['array'], rank: 1, shape: [null],

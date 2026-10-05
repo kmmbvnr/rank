@@ -3058,30 +3058,43 @@ Ordinary = N filter not equal 5
 Known = N filter in primes
 ```
 
-Any other condition is a predicate applied to the value:
+A function condition is a predicate applied to each selected cell:
 
 ```rank
 Even = N filter even
+First = Candidates filter palindrome first
 Palindromes = Products filter palindrome rank 0
 ```
 
-A predicate follows the ordinary rank rules, so `rank` and `axis` choose the
-cells it receives and therefore the axis the result is selected along. A
-predicate over whole cells keeps the frame axis, which selects rows or columns
-rather than atoms:
+Without a modifier, `filter` passes each sequence item or each array cell
+along the leading axis to the predicate. For a matrix, those cells are rows;
+the predicate's declared rank does not change this default. `rank R` chooses
+cells with R axes. For an array with N axes, the remaining N - R axes form the
+frame traversed by the filter. `axis` names those frame axes in traversal
+order and must name exactly N - R distinct axes; without it, they are the
+first N - R axes. The predicate returns one
+boolean per cell. A predicate over whole rows or columns keeps the other array
+axis:
 
 ```rank
 rem M has shape 3 2
-Heavy = M filter row_total rank 1
+Heavy = M filter row_total
 rem Heavy has shape 2 2: the rows the predicate kept
 
-Wide = M filter column_total axis 1 rank 1
+Wide = M filter column_total axis 1
 rem Wide has shape 3 1: the columns the predicate kept
 ```
 
-Without a cell rank the predicate applies to atoms, the frame is the whole
-shape, and the result is the selected atoms as a rank-1 value. A frame of two
-or more axes is not supported yet.
+`Products` above is a matrix, so `rank 0` deliberately tests individual
+products and returns a rank-1 selection. A leading comparison on a matrix
+produces an atom mask, not one boolean per row; write
+`M filter (M greater 3)` to select those atoms explicitly. When a filter
+traverses several axes, the retained cells are collected in traversal order;
+those frame axes become one axis at their first original position. For an array
+with shape `2 3 4`, `filter P rank 1` sends twelve vectors of length 4 to P
+and returns shape `k 4`. `filter P axis 1 2 rank 1` sends twelve vectors of
+length 2 and returns shape `2 k`. Here k is the number of accepted cells.
+Conditions in one filter block must traverse the same axes.
 
 Conditions combine with `and`, `or` and `xor` inside one line. A block combines
 complete lines with `and`, as a table condition block does:

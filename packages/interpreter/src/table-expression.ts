@@ -50,7 +50,7 @@ export function frameAxes(expression: Expression): number[] {
  * and any other leaf is a predicate applied to it. Conditions that already
  * name their own subject are left alone.
  */
-export function collectionExpression(expression: Expression): Expression {
+export function collectionExpression(expression: Expression, cellRank?: number): Expression {
     const input = { $type: 'NameExpression', name: TABLE_INPUT } as Expression;
 
     function lower(node: Expression): Expression {
@@ -71,9 +71,21 @@ export function collectionExpression(expression: Expression): Expression {
         }
         // A binary or parenthesized condition already supplies its own operands.
         if (isBinaryExpression(node) || isParenthesizedExpression(node)) return node;
+        // A filter predicate receives one cell along the selected frame axis.
+        // An explicit rank still chooses a different cell size.
+        const parts = flatten(node);
+        const ranked = parts.some(part => isNameExpression(part) && part.name === 'rank');
+        const predicate = isNameExpression(parts[0]);
+        const call = [input, ...parts];
+        if (predicate && !ranked && cellRank !== undefined) {
+            call.push(
+                { $type: 'NameExpression', name: 'rank' } as Expression,
+                { $type: 'NumberLiteral', value: BigInt(cellRank) } as Expression,
+            );
+        }
         // Prepending the subject shifts every modifier, so rebind them here:
         // the program-wide grouping pass has already run.
-        return groupModifiers(applicationExpression([input, ...flatten(node)], node));
+        return groupModifiers(applicationExpression(call, node));
     }
     return lower(expression);
 }

@@ -1,16 +1,20 @@
 import {
-    findOperation, flattenApplication, isLabelLiteral, isNameExpression, isNumberLiteral, isRecordField,
+    filterPredicateForm, findOperation, flattenApplication, isLabelLiteral, isNameExpression, isNumberLiteral, isRecordField,
+    isSubjectComparisonExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression,
     type Expression,
 } from '@arrrank/language';
+import { AstUtils } from 'langium';
 import { derivedArray, ownedArray, readArrayItem } from './array-storage.js';
 import { resume, mapExecution, type Evaluation, type Execution } from './execution.js';
 import { RankError } from './errors.js';
 import { LocalFrame } from './frame.js';
 import { ResourceMap } from './resource-summary.js';
-import { positionalSelection } from './sequence.js';
+import { inheritSemanticArrayType } from './semantic-array-type.js';
+import { filterSequence, positionalSelection, sequence } from './sequence.js';
 import { selectAxis } from './selectors.js';
 import { TABLE_INPUT, collectionExpression, frameAxes, readsFields, tableExpression } from './table-expression.js';
+import { arrayOffset, coordinatesAt } from './tensor-index.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import { selectGroupedColumnar, selectColumns, filterTable } from './table-ops.js';
 import { selectGroupedTable, selectTable, type GroupAggregateSpec, type GroupAggregateOperation } from './modules/tables.js';
@@ -124,7 +128,8 @@ export function compileTableExpression(
                         if (bound !== undefined && !isNativeFunction(bound)) {
                             return context.evaluate(node);
                         }
-                        return context.evaluate(collectionExpression(node));
+                        return context.evaluate(collectionExpression(node,
+                            isRankArray(source) ? Math.max(0, source.shape.length - 1) : 0));
                     }
                     const lowered = tableExpression(node, name => {
                         const value = context.resolve(name);
@@ -143,6 +148,28 @@ export function compileTableExpression(
                 };
                 try {
                     if (isTableFilterExpression(expression)) {
+                        const sequencePredicate = conditions.length === 1 ? filterPredicateForm(conditions[0]) : undefined;
+                        if (collection && isRankSequence(source) && sequencePredicate
+                            && (sequencePredicate.rank === undefined || sequencePredicate.rank === 0)
+                            && sequencePredicate.axes === undefined) {
+                            const name = flattenApplication(conditions[0])[0];
+                            const predicate = yield* resume(context.evaluate(name));
+                            if (isNativeFunction(predicate) && predicate.arities.includes(1)) {
+                                return filterSequence(source, {
+                                    name: predicate.name,
+                                    ...(predicate.name === 'even'
+                                        && context.isStandardFunction('numbers', 'even', predicate)
+                                        ? { optimizationKey: 'even' } : {}),
+                                    test: item => {
+                                        const result = predicate.call([item]);
+                                        if (typeof result !== 'boolean') {
+                                            throw new RankError('filter predicate must return boolean', 'TypeError');
+                                        }
+                                        return result;
+                                    },
+                                });
+                            }
+                        }
                         let mask = yield* resume(contextual(conditions[0]));
                         for (const condition of conditions.slice(1)) {
                             mask = context.binary('and', mask, yield* resume(contextual(condition)));
@@ -151,24 +178,21 @@ export function compileTableExpression(
                             if (!isRankArray(mask) && !isRankSequenceMask(mask) && !booleanSequence(mask)) {
                                 throw new RankError('filter requires a boolean mask over the filtered value', 'TypeError');
                             }
+                            if (isRankArray(source) && source.shape.length > 1 && isRankArray(mask)
+                                && mask.shape.length === source.shape.length
+                                && conditions.some(condition => [condition, ...AstUtils.streamAllContents(condition)]
+                                    .some(isSubjectComparisonExpression))) {
+                                throw new RankError('filter needs one boolean per row; use an explicit mask to select atoms', 'DimensionMismatch');
+                            }
                             // A predicate with a cell rank yields one value per frame cell,
                             // so the mask selects along the frame rather than over atoms.
                             if (isRankArray(source) && isRankArray(mask)
-                                && mask.shape.length < source.shape.length
-                                && arraySize(mask.shape) !== arraySize(source.shape)) {
-                                const axes = conditions.length === 1 ? frameAxes(conditions[0]) : [];
-                                if (axes.length > 1 || mask.shape.length > 1) {
-                                    throw new RankError('filter does not support a frame of two or more axes yet', 'TypeError');
-                                }
-                                const axis = axes[0] ?? 0;
-                                if (axis >= source.shape.length) {
-                                    throw new RankError(`array has no axis ${axis}`, 'DimensionMismatch');
-                                }
-                                if (mask.shape[0] !== source.shape[axis]) {
-                                    throw new RankError(`filter mask length ${mask.shape[0]} does not match axis `
-                                        + `${axis} of shape ${source.shape.join(' ')}`, 'DimensionMismatch');
-                                }
-                                return selectAxis(source, axis, mask);
+                                && mask.shape.length < source.shape.length) {
+                                return selectFrameCells(source, mask, filterFrameAxes(conditions, mask.shape.length));
+                            }
+                            if (isRankArray(source) && isRankArray(mask)
+                                && conditions.some(condition => frameAxes(condition).length)) {
+                                return selectFrameCells(source, mask, filterFrameAxes(conditions, mask.shape.length));
                             }
                             // An empty mask would read as an empty index list and select an array.
                             if (isRankArray(source) && isRankArray(mask)) return context.maskSelection(source, mask);
@@ -332,8 +356,70 @@ function ranksOf(keys: readonly (readonly (RankValue | undefined)[])[] | undefin
     return ownedArray(ranks, [length], true);
 }
 
-function arraySize(shape: readonly number[]): number {
-    return shape.reduce((product, dimension) => product * dimension, 1);
+/** Every line of a filter block must address the same frame cells. */
+function filterFrameAxes(conditions: readonly Expression[], rank: number): number[] {
+    const leading = Array.from({ length: rank }, (_, axis) => axis);
+    const axes = conditions.map(condition => {
+        const explicit = frameAxes(condition);
+        return explicit.length ? explicit : leading;
+    });
+    if (axes.some(frame => frame.join() !== axes[0].join())) {
+        throw new RankError('filter conditions must traverse the same axes', 'DimensionMismatch');
+    }
+    return axes[0];
+}
+
+/** Keep whole predicate cells; several frame axes collapse into one selected axis. */
+function selectFrameCells(source: RankArray, mask: RankArray, axes: readonly number[]): RankValue {
+    if (!axes.length) throw new RankError('filter needs at least one frame axis', 'DimensionMismatch');
+    if (axes.length !== mask.shape.length) {
+        throw new RankError(`filter axis count ${axes.length} does not match mask rank ${mask.shape.length}`, 'DimensionMismatch');
+    }
+    if (new Set(axes).size !== axes.length) throw new RankError('filter axis numbers must be unique', 'DimensionMismatch');
+    for (let index = 0; index < axes.length; index += 1) {
+        const axis = axes[index];
+        if (axis < 0 || axis >= source.shape.length) {
+            throw new RankError(`array has no axis ${axis}`, 'DimensionMismatch');
+        }
+        if (mask.shape[index] !== source.shape[axis]) {
+            throw new RankError(`filter mask length ${mask.shape[index]} does not match axis `
+                + `${axis} of shape ${source.shape.join(' ')}`, 'DimensionMismatch');
+        }
+    }
+    const maskItems = mask.items;
+    if (!maskItems.every(value => typeof value === 'boolean' || value === MISSING)) {
+        throw new RankError('filter requires a boolean mask over the filtered value', 'TypeError');
+    }
+    const kept: number[] = [];
+    maskItems.forEach((value, index) => { if (value === true) kept.push(index); });
+    if (axes.length === source.shape.length) {
+        const offsets = kept.map(index => {
+            const frameCoordinates = coordinatesAt(mask.shape, index);
+            const sourceCoordinates = Array(source.shape.length).fill(0) as number[];
+            axes.forEach((axis, position) => { sourceCoordinates[axis] = frameCoordinates[position]; });
+            return arrayOffset(source.shape, sourceCoordinates);
+        });
+        return sequence({ name: 'array filter', size: { kind: 'exact', value: BigInt(offsets.length) },
+            *iterate() { for (const offset of offsets) yield readArrayItem(source, offset); } });
+    }
+    if (axes.length === 1) return selectAxis(source, axes[0], mask);
+
+    const frameSet = new Set(axes);
+    const first = Math.min(...axes);
+    const outputAxes = source.shape.flatMap((_, axis) => axis === first ? [-1]
+        : frameSet.has(axis) ? [] : [axis]);
+    const shape = outputAxes.map(axis => axis === -1 ? kept.length : source.shape[axis]);
+    const selectedAxis = outputAxes.indexOf(-1);
+    return inheritSemanticArrayType(source, derivedArray(shape, [source], index => {
+        const outputCoordinates = coordinatesAt(shape, index);
+        const sourceCoordinates = Array(source.shape.length).fill(0) as number[];
+        const frameCoordinates = coordinatesAt(mask.shape, kept[outputCoordinates[selectedAxis]]);
+        axes.forEach((axis, position) => { sourceCoordinates[axis] = frameCoordinates[position]; });
+        outputAxes.forEach((axis, position) => {
+            if (axis !== -1) sourceCoordinates[axis] = outputCoordinates[position];
+        });
+        return readArrayItem(source, arrayOffset(source.shape, sourceCoordinates));
+    }));
 }
 
 /** A table is a column table, a SQLite view or a rank-1 array of object rows. */
