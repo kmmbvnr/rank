@@ -1300,7 +1300,7 @@ test('the viewer scrolls a wide table sideways without fetching the rest', async
 test('the viewer switches the slice of a 3-D array with [ and ]', async t => {
     const frames = await drive(t, [
         { keys: 'use sequences' + ENTER, until: 'sequences' },
-        { keys: 'A = (1 to 24) (array 2 3 4) reshape' + ENTER, until: 'integer \\[2 3 4\\]' },
+        { keys: 'A = (1 to 24) reshape 2 3 4' + ENTER, until: 'integer \\[2 3 4\\]' },
         { keys: UP, until: 'Enter view' },
         { keys: ENTER, until: 'slice 1 of 2' },
         { keys: ']', until: 'slice 2 of 2' },
