@@ -1,14 +1,16 @@
 import {
-    findOperation, flattenApplication, isLabelLiteral, isNameExpression, isNumberLiteral, isRecordField,
+    filterPredicateForm, findOperation, flattenApplication, isLabelLiteral, isNameExpression, isNumberLiteral, isRecordField,
+    isSubjectComparisonExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression,
     type Expression,
 } from '@arrrank/language';
+import { AstUtils } from 'langium';
 import { derivedArray, ownedArray, readArrayItem } from './array-storage.js';
 import { resume, mapExecution, type Evaluation, type Execution } from './execution.js';
 import { RankError } from './errors.js';
 import { LocalFrame } from './frame.js';
 import { ResourceMap } from './resource-summary.js';
-import { positionalSelection } from './sequence.js';
+import { filterSequence, positionalSelection } from './sequence.js';
 import { selectAxis } from './selectors.js';
 import { TABLE_INPUT, collectionExpression, frameAxes, readsFields, tableExpression } from './table-expression.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
@@ -124,7 +126,8 @@ export function compileTableExpression(
                         if (bound !== undefined && !isNativeFunction(bound)) {
                             return context.evaluate(node);
                         }
-                        return context.evaluate(collectionExpression(node));
+                        return context.evaluate(collectionExpression(node,
+                            isRankArray(source) ? Math.max(0, source.shape.length - 1) : 0));
                     }
                     const lowered = tableExpression(node, name => {
                         const value = context.resolve(name);
@@ -143,6 +146,28 @@ export function compileTableExpression(
                 };
                 try {
                     if (isTableFilterExpression(expression)) {
+                        const sequencePredicate = conditions.length === 1 ? filterPredicateForm(conditions[0]) : undefined;
+                        if (collection && isRankSequence(source) && sequencePredicate
+                            && (sequencePredicate.rank === undefined || sequencePredicate.rank === 0)
+                            && sequencePredicate.axis === undefined) {
+                            const name = flattenApplication(conditions[0])[0];
+                            const predicate = yield* resume(context.evaluate(name));
+                            if (isNativeFunction(predicate) && predicate.arities.includes(1)) {
+                                return filterSequence(source, {
+                                    name: predicate.name,
+                                    ...(predicate.name === 'even'
+                                        && context.isStandardFunction('numbers', 'even', predicate)
+                                        ? { optimizationKey: 'even' } : {}),
+                                    test: item => {
+                                        const result = predicate.call([item]);
+                                        if (typeof result !== 'boolean') {
+                                            throw new RankError('filter predicate must return boolean', 'TypeError');
+                                        }
+                                        return result;
+                                    },
+                                });
+                            }
+                        }
                         let mask = yield* resume(contextual(conditions[0]));
                         for (const condition of conditions.slice(1)) {
                             mask = context.binary('and', mask, yield* resume(contextual(condition)));
@@ -150,6 +175,12 @@ export function compileTableExpression(
                         if (collection) {
                             if (!isRankArray(mask) && !isRankSequenceMask(mask) && !booleanSequence(mask)) {
                                 throw new RankError('filter requires a boolean mask over the filtered value', 'TypeError');
+                            }
+                            if (isRankArray(source) && source.shape.length > 1 && isRankArray(mask)
+                                && mask.shape.length === source.shape.length
+                                && conditions.some(condition => [condition, ...AstUtils.streamAllContents(condition)]
+                                    .some(isSubjectComparisonExpression))) {
+                                throw new RankError('filter needs one boolean per row; use an explicit mask to select atoms', 'DimensionMismatch');
                             }
                             // A predicate with a cell rank yields one value per frame cell,
                             // so the mask selects along the frame rather than over atoms.

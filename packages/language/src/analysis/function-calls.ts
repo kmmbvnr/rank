@@ -140,7 +140,8 @@ export function createCallAnalysis(
         return noReturn;
     }
 
-    function call(name: string, arguments_: readonly ValueFacts[], caller: Map<string, ValueFacts>, site?: Expression): ValueFacts {
+    function call(name: string, arguments_: readonly ValueFacts[], caller: Map<string, ValueFacts>, site?: Expression,
+        cellCall = false): ValueFacts {
         const external = imported.get(name);
         if (external && caller.get(name) === external.binding
             && external.functions.get(external.name)?.parameters.length === arguments_.length) {
@@ -156,8 +157,8 @@ export function createCallAnalysis(
         const definition = functions.get(name);
         if (!definition || caller.get(name) !== functionBindings.get(name)
             || definition.parameters.length !== arguments_.length) return UNKNOWN_VALUE;
-        // A declared `rank` maps the body over cells, so the whole-operand facts do not describe the call.
-        if (definition.ranks.length) return UNKNOWN_VALUE;
+        // A declared `rank` maps the body over cells unless the caller already supplied one filter cell.
+        if (definition.ranks.length && !cellCall) return UNKNOWN_VALUE;
         const signature = argumentSignature(arguments_);
         let active = activeCalls.get(definition);
         if (!active) activeCalls.set(definition, active = new Set());

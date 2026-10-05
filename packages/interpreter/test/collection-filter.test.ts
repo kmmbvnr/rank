@@ -57,11 +57,16 @@ describe('filter over plain collections', () => {
             .toBe('44');
         expect(run('use sequences\nuse numbers\nP = primes take 8 array\nP filter greater 5'))
             .toBe('7 11 13 17 19');
+        expect(() => run('use sequences\n(1 to 10) filter even first'))
+            .toThrow(/numbers/);
+        expect(run('use sequences\nuse text\nfun palindrome X\n  T = X text\n  Back = T reverse\n  return T equal Back\nend\n'
+            + '(array 121 122) (array 123 131) merge filter palindrome first')).toBe('121');
     });
 
-    it('ravels the frame when a rank-0 predicate selects atoms of a tensor', () => {
+    it('requires rank 0 to select atoms of a tensor', () => {
         const matrix = 'use numbers\nM = array shape 2 3\n  1 2 3\n  4 5 6\nend\n';
-        expect(run(`${matrix}M filter greater 3`)).toBe('4 5 6');
+        expect(() => run(`${matrix}M filter greater 3`)).toThrow(/one boolean per row/);
+        expect(run(`${matrix}M filter (M greater 3)`)).toBe('4 5 6');
         expect(run(`${matrix}fun small X\n  return X less 4\nend\nM filter small rank 0`))
             .toBe('1 2 3');
     });
@@ -71,10 +76,16 @@ describe('filter over plain collections', () => {
             + 'fun heavy V\n  return V sum greater 5\nend\n';
         expect(run(`${matrix}(M filter heavy rank 1) shape`)).toBe('2 2');
         expect(run(`${matrix}M filter heavy rank 1`)).toBe('3 4 5 6');
+        expect(run(`${matrix}(M filter heavy) shape`)).toBe('2 2');
+        expect(run(`${matrix}M filter heavy`)).toBe('3 4 5 6');
+        expect(run(`${matrix}fun heavy V rank 0\n  return V sum greater 5\nend\nM filter heavy`))
+            .toBe('3 4 5 6');
         expect(run(`${matrix}fun wide V\n  return V sum greater 9\nend\n`
             + '(M filter wide axis 1 rank 1) shape')).toBe('3 1');
         expect(run(`${matrix}fun wide V\n  return V sum greater 9\nend\n`
             + 'M filter wide axis 1 rank 1')).toBe('2 4 6');
+        expect(run(`${matrix}fun wide V\n  return V sum greater 9\nend\n`
+            + '(M filter wide axis 1) shape')).toBe('3 1');
     });
 
     it('reports a frame that does not line up with the filtered axis', () => {
@@ -102,6 +113,8 @@ describe('filter over plain collections', () => {
     it('rejects a condition that is not a mask over the value', () => {
         expect(() => run(`${NUMBERS}N filter 1`))
             .toThrow(/boolean mask/);
+        expect(() => run('use sequences\nN = 1 to 10\nfun number X\n  return X + 1\nend\nN filter number first'))
+            .toThrow(/filter predicate must return boolean/);
         expect(() => run('use numbers\nX = 3\nX filter greater 1'))
             .toThrow(/array, sequence or table/);
     });

@@ -32,6 +32,25 @@ export interface ClauseNames {
 const LOGICAL = new Set(['and', 'or', 'xor']);
 const MODIFIERS = new Set(['rank', 'axis']);
 
+/** A named filter predicate and the cell selection written after it. */
+export function filterPredicateForm(condition: Expression): { name: string; axis?: number; rank?: number } | undefined {
+    const parts = flattenApplication(condition);
+    const name = parts[0];
+    if (!isNameExpression(name)) return;
+    let index = 1, axis: number | undefined, rank: number | undefined;
+    let word = parts[index], value = parts[index + 1];
+    if (isNameExpression(word) && word.name === 'axis' && isNumberLiteral(value)) {
+        axis = Number(value.value);
+        index += 2;
+    }
+    word = parts[index]; value = parts[index + 1];
+    if (isNameExpression(word) && word.name === 'rank' && isNumberLiteral(value)) {
+        rank = Number(value.value);
+        index += 2;
+    }
+    return index === parts.length ? { name: name.name, axis, rank } : undefined;
+}
+
 /** `Values till 10` and `1 to 10`: a range operator without a step. */
 function isBound(expression: Expression): boolean {
     return isBinaryExpression(expression) && ['to', 'till', 'until'].includes(expression.operator) && !expression.step;

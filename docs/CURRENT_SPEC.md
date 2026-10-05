@@ -3058,29 +3058,33 @@ Ordinary = N filter not equal 5
 Known = N filter in primes
 ```
 
-Any other condition is a predicate applied to the value:
+A function condition is a predicate applied to each selected cell:
 
 ```rank
 Even = N filter even
+First = Candidates filter palindrome first
 Palindromes = Products filter palindrome rank 0
 ```
 
-A predicate follows the ordinary rank rules, so `rank` and `axis` choose the
-cells it receives and therefore the axis the result is selected along. A
-predicate over whole cells keeps the frame axis, which selects rows or columns
-rather than atoms:
+Without a modifier, `filter` passes each sequence item or each array cell
+along the leading axis to the predicate. For a matrix, those cells are rows;
+the predicate's declared rank does not change this default. `rank` chooses a
+different cell size, while `axis` chooses the frame axis. A predicate over
+whole rows or columns keeps the other array axis:
 
 ```rank
 rem M has shape 3 2
-Heavy = M filter row_total rank 1
+Heavy = M filter row_total
 rem Heavy has shape 2 2: the rows the predicate kept
 
-Wide = M filter column_total axis 1 rank 1
+Wide = M filter column_total axis 1
 rem Wide has shape 3 1: the columns the predicate kept
 ```
 
-Without a cell rank the predicate applies to atoms, the frame is the whole
-shape, and the result is the selected atoms as a rank-1 value. A frame of two
+`Products` above is a matrix, so `rank 0` deliberately tests individual
+products and returns a rank-1 selection. A leading comparison on a matrix
+produces an atom mask, not one boolean per row; write
+`M filter (M greater 3)` to select those atoms explicitly. A frame of two
 or more axes is not supported yet.
 
 Conditions combine with `and`, `or` and `xor` inside one line. A block combines

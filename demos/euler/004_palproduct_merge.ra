@@ -21,7 +21,7 @@ Factors = Upper to Lower by -1
 Products = Factors Factors outer *
 Candidates = Products merge .descending
 
-Answer = Candidates filter palindrome rank 0 first
+Answer = Candidates filter palindrome first
 Answer print
 
 rem Return true when a nonnegative integer

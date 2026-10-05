@@ -14,6 +14,8 @@ import {
     isArgumentStatement, isOptionStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isTakeWhileExpression,
+    isTableFilterExpression,
+    isSubjectComparisonExpression,
     type Expression, type Program, type Statement, type FunctionStatement,
     type TryStatement,
 } from '../generated/ast.js';
@@ -34,6 +36,7 @@ import { createLoopAnalysis } from './loop-analysis.js';
 import { freshDim } from './shape-index.js';
 import { directValue, safeCollectionValue, safeIndexDefault, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
 import { expressionFacts } from './value-facts.js';
+import { filterPredicateForm } from '../clause-conditions.js';
 import { rankedFrameConflict } from './operation-shape.js';
 import { withInsertedElement } from './collection-facts.js';
 import type { ConstructorCall } from './test-examples.js';
@@ -531,6 +534,38 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 : env.get(name) === imported.get(name)?.binding
                     ? imported.get(name)?.functions.get(imported.get(name)!.name)?.parameters.length : undefined,
         });
+        if (isTableFilterExpression(expression) && expression.sourceFields.length === 0) {
+            const source = inspect(expression.source, env);
+            const conditions = expression.condition ? [expression.condition] : expression.conditions;
+            if (source.types.join() === 'array' && (source.rank ?? 0) > 1
+                && conditions.some(condition => [condition, ...AstUtils.streamAllContents(condition)]
+                    .some(isSubjectComparisonExpression))) {
+                diagnostics.push({ node: expression, kind: 'DimensionMismatch',
+                    message: 'filter needs one boolean per row' });
+            }
+            for (const condition of conditions) {
+                const predicate = filterPredicateForm(condition);
+                if (!predicate || !env.get(predicate.name)?.types.includes('function')
+                    || lookup.arity?.(predicate.name) !== 1
+                    || !['sequence', 'array'].includes(source.types.join())) continue;
+                const rank = predicate.rank ?? (source.rank ?? 1) - 1;
+                const axis = predicate.axis ?? 0;
+                let cell: ValueFacts = UNKNOWN_VALUE;
+                if (source.types.join() === 'sequence' && rank === 0
+                    || source.types.join() === 'array' && rank === 0) {
+                    cell = source.elementRecord ?? stableRecordField({ types: source.elements ?? [] });
+                } else if (source.types.join() === 'array' && source.rank !== undefined
+                    && rank === source.rank - 1 && axis >= 0 && axis < source.rank) {
+                    cell = { types: ['array'], rank, shape: source.shape?.filter((_, index) => index !== axis),
+                        elements: source.elements };
+                }
+                const result = calls.call(predicate.name, [cell], env, condition, true);
+                if (result.types.length && (result.types.join() !== 'boolean' || result.rank !== undefined && result.rank !== 0)) {
+                    diagnostics.push({ node: condition, kind: 'TypeError',
+                        message: `filter predicate must return boolean, got ${result.types.join(' or ')}` });
+                }
+            }
+        }
         if (isParenthesizedExpression(expression)) inspect(expression.value, env);
         if (isMaterializeExpression(expression)) inspect(expression.source, env);
         if (isUnaryExpression(expression)) inspect(expression.operand, env);

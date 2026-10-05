@@ -7,6 +7,33 @@ import { analyzeValues } from '../src/analysis/value-diagnostics.js';
 import { functionTestExamples } from '../src/analysis/test-examples.js';
 import type { ValueFacts } from '../src/analysis/value-domain.js';
 
+it('checks an unranked filter predicate against sequence element types', () => {
+    const source = 'use sequences\nCandidates = (array 121 122) (array 123 131) merge\n';
+    expect(messages(source + 'fun good X\n  return X greater 100\nend\nCandidates filter good first'))
+        .toEqual([]);
+    expect(messages(source + 'fun wrong X\n  return X + "bad" equal 0\nend\nCandidates filter wrong first'))
+        .toContain('wrong: operator + does not accept integer and text');
+    expect(messages(source + 'fun number X\n  return X + 1\nend\nCandidates filter number first'))
+        .toContain('filter predicate must return boolean, got integer');
+    expect(messages(source + 'fun number X\n  return X + 1\nend\nCandidates filter\n  number\nend'))
+        .toContain('filter predicate must return boolean, got integer');
+});
+
+it('checks an unranked matrix filter predicate against row cells', () => {
+    const source = 'M = array shape 2 2\n  1 2\n  3 4\nend\n';
+    expect(messages(source + 'fun heavy Row\n  return Row sum greater 3\nend\nM filter heavy'))
+        .toEqual([]);
+    expect(messages(source + 'fun wrong Row\n  return Row + "bad" equal 0\nend\nM filter wrong'))
+        .toContain('wrong: operator + does not accept integer and text');
+    expect(messages(source + 'fun wrong Row rank 0\n  return Row + "bad" equal 0\nend\nM filter wrong'))
+        .toContain('wrong: operator + does not accept integer and text');
+    expect(messages(source + 'fun wrong Column\n  return Column + "bad" equal 0\nend\nM filter wrong axis 1'))
+        .toContain('wrong: operator + does not accept integer and text');
+    expect(messages(source + 'M filter greater 3'))
+        .toContain('filter needs one boolean per row');
+    expect(messages(source + 'M filter (M greater 3)')).toEqual([]);
+});
+
 it('analyzes data-first choose without opening sequences', () => {
     expect(messages('A = true choose 1 2\nB = 1 choose (array 10 20)\nA + B')).toEqual([]);
     expect(messages('A = false choose "no" "yes"\nA + 1'))

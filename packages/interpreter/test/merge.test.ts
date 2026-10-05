@@ -49,7 +49,7 @@ describe('sorted sequence merge', () => {
         ].join('\n'))).toBe('2');
     });
 
-    it('stops a ranked filter after its first merged match', () => {
+    it('stops a plain filter after its first merged match', () => {
         expect(run([
             'use sequences',
             'Calls = record',
@@ -62,9 +62,31 @@ describe('sorted sequence merge', () => {
             'A = array 11 33',
             'B = array 22 44',
             'Candidates = A B merge',
-            'Answer = Candidates filter hit rank 0 first',
+            'Answer = Candidates filter hit first',
             'array Answer (Calls .count)',
-        ].join('\n'))).toBe('11 2');
+        ].join('\n'))).toBe('11 1');
+    });
+
+    it('reads a merged source once for a plain filter predicate', () => {
+        const program = [
+            'use sequences',
+            'Reads = record',
+            '  .count = 0',
+            'end',
+            'fun stream Start',
+            '  Reads .count += 1',
+            '  yield Start',
+            'end',
+            'fun hit X',
+            '  return X equal 1',
+            'end',
+            'A = 1 stream',
+            'B = 2 stream',
+            'First = A B merge filter hit first',
+            'Reads .count',
+        ].join('\n');
+        expect(run(program)).toBe('2');
+        expect(run(program.replace('filter hit first', 'filter hit rank 0 first'))).toBe('2');
     });
 
     it('closes source iterators when a consumer stops early', () => {
