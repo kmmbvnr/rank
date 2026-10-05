@@ -169,36 +169,25 @@ rem Project Euler 9
 rem https://projecteuler.net/problem=9
 
 use numbers
+use sequences
 
 option Target integer = 1000
 
 ALast = (Target - 1) // 3
-BLast = (Target - 1) // 2
-A = (1 to ALast) array
-B = (2 to BLast) array
-PairSums = A B outer +
-C = Target - PairSums
-
-Increasing = A B outer less
-Increasing and= B less C
-
-ASquares = A ** 2
-BSquares = B ** 2
-SquareSums = ASquares BSquares outer +
-Valid = SquareSums equal C ** 2
-Valid and= Increasing
-
-PairProducts = A B outer *
-Products = PairProducts * C
-Candidates = Products Valid
-Answer = Candidates max
+As = 1 to ALast array
+Bs = Target * (Target - 2 * As) / (2 * (Target - As))
+Valid = Bs round 0 equal Bs
+A = As Valid first
+B = Bs Valid first
+C = (A ** 2 + B ** 2) sqrt
+Answer = A * B * C
 ```
 
-The bounds follow from `a < Target / 3` and `b < Target / 2`. The `outer`
-operations form pairwise sums and squared sums only inside that search space.
-Trailing-axis broadcasting compares every `b` with the corresponding `c`, and
-the combined boolean tensor keeps only increasing Pythagorean triples. The
-default target produces `31875000`; target 12 produces `60`.
+Substituting `c = Target - a - b` into `a² + b² = c²` gives
+`b = Target × (Target - 2a) / (2 × (Target - a))`. Since `a < Target / 3`,
+the array of candidate `a` values needs only one axis. `Valid` selects
+integer values of `b`; the first pair yields `31875000` for the default
+target and `60` for target 12.
 
 ## 10. Summation of primes
 
