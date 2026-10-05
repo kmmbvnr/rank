@@ -7,6 +7,9 @@ import { flattenApplication } from './expressions.js';
 /** Unopened library names remain available to user code. */
 export function availableBuiltin(name: string, modules: ReadonlySet<string>): boolean {
     if (name === 'type' || name === 'raise') return true;
+    // DSU merge remains a contextual graph method even though the public
+    // function named merge belongs to sequences.
+    if (name === 'merge' && modules.has('graph')) return true;
     const operation = findOperation(name);
     return operation !== undefined && (operation.module === 'core' || modules.has(operation.module));
 }

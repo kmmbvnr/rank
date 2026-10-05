@@ -19,6 +19,7 @@ import { fenwickSum, multisetQuery, namedSegment, symbolicSegment } from '../mod
 import { dsuQuery, functionalQuery } from '../modules/graph.js';
 import { matmulValues } from '../modules/linalg.js';
 import { shuffleValue } from '../modules/random.js';
+import { directedMerge } from '../modules/sorted-merge.js';
 import {
     argsortAxis, directedSort, lengthOfAxis, materializeCollection, sortDescending, sortMode, stackValues, transposeValue,
     type SortMode,
@@ -177,12 +178,12 @@ export class ApplicationEvaluator {
                     const axis = inner.kind === 'axis-argsort' ? inner : undefined;
                     const ranked = inner.kind === 'rank' ? inner : undefined;
                     const name = sortDirection.operation.name;
-                    if (name !== 'sort' && name !== 'argsort') {
-                        throw new RankError('sort direction must follow sort or argsort', 'TypeError');
+                    if (name !== 'sort' && name !== 'argsort' && name !== 'merge') {
+                        throw new RankError('direction must follow sort, argsort or merge', 'TypeError');
                     }
                     const fn = context.resolve(name);
                     if (!context.builtins.is('sequences', name, fn) || !isNativeFunction(fn)) {
-                        throw new RankError('sort direction requires the standard sort or argsort', 'TypeError');
+                        throw new RankError('direction requires the standard sort, argsort or merge', 'TypeError');
                     }
                     let descending: boolean | undefined;
                     let mode: SortMode | undefined;
@@ -194,9 +195,14 @@ export class ApplicationEvaluator {
                             if (name !== 'sort') throw new RankError(`argsort does not accept .${picked}`, 'TypeError');
                             mode = picked;
                         } else {
-                            if (descending !== undefined) throw new RankError('sort direction given twice', 'TypeError');
-                            descending = sortDescending(value);
+                            if (descending !== undefined) throw new RankError(`${name} direction given twice`, 'TypeError');
+                            descending = sortDescending(value, name);
                         }
+                    }
+                    if (name === 'merge') {
+                        if (mode || ranked || axis) throw new RankError('merge accepts only a direction label', 'TypeError');
+                        const operands = yield* resume(mapExecution(parts.slice(0, -1), part => context.evaluate(part)));
+                        return yield* resume(context.rankApplication.applyIntrinsicRank(directedMerge(fn, descending ?? false), operands));
                     }
                     if (axis) return argsortAxis(yield* resume(context.evaluate(axis.source)), axis.axis, descending ?? false);
                     const source = yield* resume(context.evaluate(applicationParts((ranked?.parts ?? parts).slice(0, -1))));

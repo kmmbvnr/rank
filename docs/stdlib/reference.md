@@ -208,7 +208,6 @@ Graphs, disjoint sets, rooted trees and their algorithms.
 | `Rooted A B lca` | element | Lowest common ancestor of two vertices. |
 | `F lengths` | array | Path length from every vertex of a functional graph. |
 | `Graph Source Sink maxflow` | record | Maximum flow value, the per-edge flow and the minimum cut. |
-| `Dsu A B merge` | boolean, mutates | Unions two disjoint-set components, true only when they differed. |
 | `Graph mst` | record | Minimum spanning forest: connectivity, component count, weight and edges. |
 | `Tree pathlengths` | sequence, lazy | Lazy sequence of every unordered pair distance in a tree. |
 | `Tree Root root` | record | Immutable rooted view of a connected undirected tree. |
@@ -224,6 +223,7 @@ These need `use graph` but have no name to look up.
 | `new graph Nodes .undirected` | Closed graph over a finite vertex domain; direction is always explicit. |
 | `new graph .directed` | Open graph that registers endpoints as edges arrive. |
 | `new dsu` | Disjoint-set structure, open when no collection is given. |
+| `Dsu merge A B` | Unions two disjoint-set components and returns whether they differed; Dsu A B merge also works. |
 | `Graph add From To` | Adds an edge, a weighted edge, or a bulk M by 2 or M by 3 array. |
 | `Graph edges Vertex` | Lazy outgoing entries of a vertex as array Next Cost pairs. |
 
@@ -370,6 +370,7 @@ Shapes, orderings, windows and lazy sources.
 | `primes` | sequence, lazy | Unbounded ascending primes, with planned membership and positional seeking. |
 | `Values Shape reshape` | array | Dense array in row-major order, the element count matching exactly; a matrix of shapes reshapes once per row. |
 | `Value shape` | array | Axis lengths as a rank-1 array. |
+| `Streams merge .descending` | sequence, lazy | Lazily merges sorted streams or matrix rows, ascending by default. |
 | `Values sort .descending` | array | Stable sort into a new rank-1 array, ascending by default. |
 | `Matrix transpose` | array | Reverses the axes of an array. |
 | `Values unique` | array | Distinct values in first-appearance order. |
@@ -384,6 +385,7 @@ These need `use sequences` but have no name to look up.
 | `Values sort by .field` | Stable sort by record fields or by one key function. |
 | `Values argsort by .field` | Source positions of that same order. |
 | `Values sort .descending` | Sorts in descending order; argsort and per-key sort directions preserve ties. |
+| `Streams merge by .field` | Merges sorted records lazily by one field or unary key function; A B merge by Key also works. |
 | `Values sort .indexes` | Positions that order the values, as argsort does; .indexed gives the sorted values and positions as a pair. |
 
 ## stats

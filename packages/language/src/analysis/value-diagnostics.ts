@@ -424,12 +424,23 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     while (isApplicationExpression(site.$container)) site = site.$container;
                     const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
                     const dsu = parts[0] && isNameExpression(parts[0]) ? env.get(parts[0].name) : undefined;
-                    if (parts.length === 4 && parts[1] === node && dsu?.types.join() === 'dsu'
-                        && parts.slice(2).every(part => {
+                    const arguments_ = parts[1] === node ? parts.slice(2) : parts.slice(1, 3);
+                    if (parts.length === 4 && (parts[1] === node || parts[3] === node)
+                        && dsu?.types.join() === 'dsu' && arguments_.every(part => {
                             const fact = expressionFacts(part, name => env.get(name));
                             return directValue(part) && isAtom(fact) && fact.types.length > 0
                                 && fact.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type));
-                        })) continue;
+                        })) {
+                        if (dsu.collectionId === undefined) { unknown = true; continue; }
+                        for (const [alias, fact] of env) if (fact.collectionId === dsu.collectionId) {
+                            env.set(alias, { ...fact, elements: undefined });
+                        }
+                        continue;
+                    }
+                    if (parts.length === 4 && (parts[1] === node || parts[3] === node)) {
+                        unknown = true;
+                        continue;
+                    }
                 }
                 if (node.name === 'len') {
                     let site: AstNode = node;
@@ -884,11 +895,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 let constructor = statement.value;
                 while (isParenthesizedExpression(constructor)) constructor = constructor.value;
                 if (isNewStructureExpression(constructor)
-                    && ['set', 'counter', 'queue', 'stack', 'deque', 'heap'].includes(constructor.structure)) {
+                    && ['set', 'counter', 'queue', 'stack', 'deque', 'heap', 'dsu'].includes(constructor.structure)) {
                     next = { ...next, collectionId: nextCollectionId++ };
                 }
                 if (isApplicationExpression(constructor)
-                    && applicationForm(constructor).kind === 'new-heap') {
+                    && ['new-heap', 'new-dsu'].includes(applicationForm(constructor).kind)) {
                     next = { ...next, collectionId: nextCollectionId++ };
                 }
                 if (next.bottom) throw new UnobservedReturn();

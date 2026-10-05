@@ -6,7 +6,7 @@ import {
     isNumberLiteral,
     isParenthesizedExpression, isRecordExpression, isRecordUpdateExpression, isStdinExpression, isStringLiteral,
     isTableFilterExpression,
-    isBoundClauseExpression, isCountClauseExpression, isKeyedSortExpression, isUnaryExpression,
+    isBoundClauseExpression, isCountClauseExpression, isKeyedSortExpression, isKeyedMergeExpression, isUnaryExpression,
     type Expression,
 } from '../generated/ast.js';
 import { resultTypes, typeOf } from './types.js';
@@ -205,6 +205,18 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
                     ? { eagerScalarCells: true as const } : {}) }
             : source.types.length === 1 && source.types[0] === 'queue'
                 ? { types: ['array'], rank: 1, shape: [null] } : { types: ['array'] };
+    }
+    if (isKeyedMergeExpression(expression)
+        || isKeyedSortExpression(expression) && expression.operator.startsWith('merge')) {
+        const sources = isKeyedMergeExpression(expression)
+            ? [expressionFacts(expression.left, lookup), expressionFacts(expression.right, lookup)]
+            : [expressionFacts(expression.source, lookup)];
+        const cells = sources[0].elements;
+        const rows = sources.length === 2 && sources.every(source => source.rank === 1)
+            || sources.length === 1 && sources[0].rank === 2;
+        return { types: ['sequence'], rank: 1, shape: [null],
+            ...(rows && cells?.length && sources.every(source => source.elements?.join() === cells.join())
+                ? { elements: cells } : {}) };
     }
     if (isKeyedSortExpression(expression) && /^sort\s+by$/.test(expression.operator) && expression.fields.length) {
         // Sorting reorders the records without changing them, so the schema survives

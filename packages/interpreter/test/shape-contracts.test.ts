@@ -40,7 +40,6 @@ const samples: readonly Sample[] = [
     ['dates.seconds', () => [{ kind: 'duration', seconds: 90n }], []],
     ['graph.findroot', () => [new RankDsu(true), 1n], []],
     ['graph.connected', () => [new RankDsu(true), 'a', 'b'], []],
-    ['graph.merge', () => [new RankDsu(true), 'a', 'b'], []],
     ['graph.lengths', () => [new RankFunctionalGraph(vector(2n, 1n))], [2]],
     ['grids.neighbors', () => [matrix, 0n, 0n], [2, 2]],
     ['grids.neighbors', () => [matrix, 0n, 0n, { kind: 'label', name: 'eight' }], [3, 2]],

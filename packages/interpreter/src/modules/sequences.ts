@@ -11,6 +11,7 @@ import { atArray } from '../selectors.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
 import { setValueKey } from '../set.js';
 import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
+import { mergeSorted } from './sorted-merge.js';
 import { broadcastShape, chooseDenseArrays } from '../tensor.js';
 import { isKnownFileFree } from '../resource-summary.js';
 import {
@@ -64,6 +65,7 @@ export const sequencesModule: RuntimeModule = {
         [1, 2],
         arguments_ => argsortValue(arguments_[0]),
     ),
+    merge: () => native('merge', [1, 2], arguments_ => mergeSorted(arguments_, false)),
     transpose: () => native('transpose', 1, arguments_ => transposeValue(arguments_[0])),
     unique: () => native('unique', 1, arguments_ => isRankSqliteTable(arguments_[0])
         ? uniqueSqlite(arguments_[0]) : uniqueValue(arguments_[0])),
@@ -972,10 +974,10 @@ function isPrime(candidate: bigint, smallerPrimes: readonly bigint[]): boolean {
     return true;
 }
 
-/** The direction after sort or argsort: `.ascending` or `.descending`. */
-export function sortDescending(direction: RankValue): boolean {
+/** The direction after an ordering operation: `.ascending` or `.descending`. */
+export function sortDescending(direction: RankValue, operation = 'sort'): boolean {
     if (!isRankLabel(direction) || (direction.name !== 'ascending' && direction.name !== 'descending')) {
-        throw new RankError('sort direction must be .ascending or .descending', 'TypeError');
+        throw new RankError(`${operation} direction must be .ascending or .descending`, 'TypeError');
     }
     return direction.name === 'descending';
 }

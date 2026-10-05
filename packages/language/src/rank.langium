@@ -17,6 +17,15 @@ interface KeyedJoinExpression extends Expression {
     pairs: JoinFieldPair[]
 }
 
+interface KeyedMergeExpression extends Expression {
+    left: Expression
+    right: Expression
+    operator: string
+    fields: SortField[]
+    key?: NameExpression
+    direction?: string
+}
+
 interface KeyedReachExpression extends Expression {
     edges: Expression
     starts: Expression
@@ -367,12 +376,13 @@ PrimaryApplicationExpression returns Expression:
             'with' NL+ (fields+=RecordUpdateField NL+)+ 'end' |
         {infer AliasedTableExpression.source=current} field=LabelLiteral?
             'alias' name=LabelLiteral |
-        {infer KeyedSortExpression.source=current} operator=(SORT_BY | ARGSORT_BY)
+        {infer KeyedSortExpression.source=current} operator=(SORT_BY | ARGSORT_BY | MERGE_BY)
             (fields+=SortField+ | key=NameExpression direction=SortDirection?) |
         {infer KeyedGroupExpression.source=current} operator=(GROUP_BY | ROLLUP_BY) fields+=LabelLiteral+ |
         // A second primary is shared by ordinary calls and keyed operations.
         // Normalize this temporary node to the public AST after parsing.
         {infer PrimaryTailExpression.head=current} argument=PrimaryExpression (
+            operator=MERGE_BY (fields+=SortField+ | key=NameExpression direction=SortDirection?) |
             operator=ROLLING_BY field=LabelLiteral |
             operator=(LEFTJOIN_BY | INNERJOIN_BY) fields+=LabelLiteral+ |
             operator=(LEFTJOIN_ON | INNERJOIN_ON) NL* pairs+=JoinFieldPair+ |
@@ -554,6 +564,7 @@ terminal NL: /\r?\n/;
 terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;
 terminal ARGSORT_BY: /argsort[\t ]+by/;
 terminal SORT_BY: /sort[\t ]+by/;
+terminal MERGE_BY: /merge[\t ]+by/;
 terminal GROUP_BY: /group[\t ]+by/;
 terminal ROLLUP_BY: /rollup[\t ]+by/;
 terminal ROLLING_BY: /rolling[\t ]+by/;

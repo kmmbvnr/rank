@@ -8,6 +8,7 @@ import { resume, mapExecution, type Evaluation, type Execution } from './executi
 import { RankError } from './errors.js';
 import { LocalFrame } from './frame.js';
 import { ResourceMap } from './resource-summary.js';
+import { positionalSelection } from './sequence.js';
 import { selectAxis } from './selectors.js';
 import { TABLE_INPUT, collectionExpression, frameAxes, readsFields, tableExpression } from './table-expression.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
@@ -171,6 +172,11 @@ export function compileTableExpression(
                             }
                             // An empty mask would read as an empty index list and select an array.
                             if (isRankArray(source) && isRankArray(mask)) return context.maskSelection(source, mask);
+                            // A plain boolean sequence is positional; generic sequence addressing
+                            // treats it as indices and would read the entire mask first.
+                            if (isRankSequence(source) && isRankSequence(mask) && !isRankSequenceMask(mask)) {
+                                return positionalSelection(source, mask);
+                            }
                             // Selection already defines every mask shape a collection allows.
                             return context.select([source, mask]);
                         }

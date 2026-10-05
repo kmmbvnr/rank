@@ -74,6 +74,16 @@ function sortedScalarArray(source: ValueFacts): ValueFacts | undefined {
     return shaped ? { ...shaped, elements: source.elements, eagerScalarCells: true } : undefined;
 }
 
+function mergedSequenceFacts(operands: readonly ValueFacts[]): ValueFacts {
+    const cells = operands[0]?.elements;
+    const sameCells = cells?.length && operands.every(value => value.elements?.join() === cells.join());
+    const collections = operands.every(value => ['array', 'sequence'].includes(value.types.join()));
+    const rows = operands.length === 2 && operands.every(value => value.rank === 1)
+        || operands.length === 1 && operands[0].types.join() === 'array' && operands[0].rank === 2;
+    return { types: ['sequence'], rank: 1, shape: [null],
+        ...(collections && rows && sameCells ? { elements: cells } : {}) };
+}
+
 /** Transfer facts through a flattened application and its standard-operation contract. */
 export function applicationExpressionFacts(
     expression: ApplicationExpression, lookup: FactLookup,
@@ -112,10 +122,18 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
                 { arity: lookup.arity, invoke: lookup.invoke });
             return infer(next, nested);
         }
+        case 'dsu-method':
+            if (form.operation === 'merge') {
+                const receiver = infer(form.receiver, lookup);
+                return receiver.types.join() === 'dsu'
+                    ? { types: ['boolean'], rank: 0, shape: [] } : UNKNOWN_VALUE;
+            }
+            return isApplicationExpression(expression)
+                ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
         case 'plain': case 'new-dsu': case 'new-filled': case 'new-heap': case 'new-graph': case 'text-format': case 'rank':
         case 'named-segment': case 'named-outer': case 'sort-direction':
         case 'axis-length': case 'axis-reduction': case 'axis-covariance': case 'axis-correlation':
-        case 'dsu-method': case 'functional-method': case 'graph-edges': case 'materialize-pipeline':
+        case 'functional-method': case 'graph-edges': case 'materialize-pipeline':
             return isApplicationExpression(expression)
                 ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
         // These forms have runtime implementations but no abstract transfer yet.
@@ -466,6 +484,12 @@ function transferApplicationFacts(
         }
     }
     const sortDirection = form.kind === 'sort-direction' ? form : undefined;
+    if (sortDirection && sortDirection.operation.name === 'merge'
+        && (parts.length === 3 || parts.length === 4)
+        && isLabelLiteral(sortDirection.direction)
+        && ['ascending', 'descending'].includes(sortDirection.direction.name)) {
+        return mergedSequenceFacts(parts.slice(0, -2).map(part => infer(part, lookup)));
+    }
     if (parts.length === 3 && sortDirection
         && isLabelLiteral(sortDirection.direction)
         && (sortDirection.direction.name === 'ascending' || sortDirection.direction.name === 'descending')) {
@@ -490,6 +514,9 @@ function transferApplicationFacts(
         const arity = unaryTail ? 1 : parts.length - 1;
         if (operation?.arities.includes(arity)) {
             const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => infer(part, lookup));
+            if (last.name === 'merge') {
+                return mergedSequenceFacts(operands);
+            }
             const shaped = operation.sortDirection && arity === 2 ? undefined
                 : operationShapeFacts(operation, operands);
             // Extrema select an ordered value, including text, rather than

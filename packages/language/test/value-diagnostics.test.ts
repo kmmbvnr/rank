@@ -342,6 +342,8 @@ it('forgets positional eigenvector facts after changing the result array', () =>
 it('keeps unrelated scalar facts through a proven dsu merge', () => {
     expect(messages('use graph\nCount = 1\nD = new dsu (1 to 2)\nD merge 1 2\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
+    expect(messages('use graph\nCount = 1\nD = new dsu (1 to 2)\nD 1 2 merge\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
     expect(messages('use graph\nCount = 1\nD = new dsu\nD merge Unknown 2\nCount + "bad"'))
         .toEqual([]);
 });

@@ -2,6 +2,7 @@ import { AstUtils, type AstNode } from 'langium';
 import {
     isPrimaryTailExpression, type Program, type ApplicationExpression,
     type KeyedRollingExpression, type KeyedReachExpression, type KeyedJoinExpression,
+    type KeyedMergeExpression,
 } from './generated/ast.js';
 
 type Fields<T extends AstNode> = Omit<T, keyof AstNode> & Pick<T, '$type'>;
@@ -13,7 +14,7 @@ export function normalizePrimaryApplications(program: Program): void {
         if (!isPrimaryTailExpression(node)) continue;
         const operator = node.operator?.replace(/\s+/g, '');
         let properties: Fields<ApplicationExpression> | Fields<KeyedRollingExpression>
-            | Fields<KeyedReachExpression> | Fields<KeyedJoinExpression>;
+            | Fields<KeyedReachExpression> | Fields<KeyedJoinExpression> | Fields<KeyedMergeExpression>;
         if (operator === undefined) {
             properties = {
                 $type: 'ApplicationExpression', head: node.head,
@@ -29,10 +30,16 @@ export function normalizePrimaryApplications(program: Program): void {
                 $type: 'KeyedReachExpression', edges: node.head,
                 starts: node.argument, operator: node.operator!, from: node.from!, to: node.to!,
             };
+        } else if (operator === 'mergeby') {
+            properties = {
+                $type: 'KeyedMergeExpression', left: node.head, right: node.argument,
+                operator: node.operator!, fields: node.fields as KeyedMergeExpression['fields'], key: node.key,
+                direction: node.direction,
+            };
         } else {
             properties = {
                 $type: 'KeyedJoinExpression', left: node.head,
-                right: node.argument, operator: node.operator!, fields: node.fields, pairs: node.pairs,
+                right: node.argument, operator: node.operator!, fields: node.fields as KeyedJoinExpression['fields'], pairs: node.pairs,
             };
         }
         for (const key of Object.keys(node)) {

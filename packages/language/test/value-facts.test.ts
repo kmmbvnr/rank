@@ -853,10 +853,11 @@ it('keeps the rank of builtins that always return one scalar', () => {
         'X position', 'X size', 'X seed', 'X codepoint']) {
         expect(facts(source)).toEqual({ types: ['integer'], rank: 0, shape: [] });
     }
-    for (const source of ['X Y Z connected', 'X Y Z merge',
+    for (const source of ['X Y Z connected',
         'X eof']) {
         expect(facts(source)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
     }
+    expect(facts('X Y Z merge').types).toEqual([]);
     expect(facts('(array 1 2) 1 binomial').types).toEqual(['array']);
     for (const source of ['X Y gcd', 'X Y lcm', 'X Y bit', 'X Y firstatleast']) expect(facts(source).rank).toBeUndefined();
     expect(facts('12 18 gcd')).toMatchObject({ types: ['integer'], rank: 0, shape: [] });

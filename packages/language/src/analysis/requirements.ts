@@ -347,6 +347,12 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 graph.expressions.set(node, value);
                 return value;
             }
+            if (form.kind === 'dsu-method' && form.operation === 'merge') {
+                expression(form.receiver);
+                for (const argument of form.arguments) expression(argument);
+                forget();
+                return output;
+            }
             if (form.kind === 'rank') {
                 const target = form.parts.at(-1);
                 const args = form.parts.slice(0, -1).map(expression);

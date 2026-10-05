@@ -49,8 +49,6 @@ export const graphModule: RuntimeModule = {
     components: () => native('components', 1, values => isRankDsu(values[0])
         ? values[0].components : componentRecord(expectGraph(values[0]))),
     findroot: () => native('findroot', 2, values => expectDsu(values[0]).find(values[1])),
-    merge: () => native('merge', 3, values =>
-        expectDsu(values[0]).merge(values[1], values[2])),
     connected: () => native('connected', 3, values =>
         expectDsu(values[0]).connected(values[1], values[2])),
     bipartite: () => native('bipartite', 1, values =>

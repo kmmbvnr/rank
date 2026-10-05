@@ -3,11 +3,11 @@ import { tuple } from '../value.js';
 import {
     isTupleExpression, flattenApplication, isAliasedTableExpression, isAllAxisExpression, isApplicationExpression, isArrayExpression,
     isBinaryExpression, isBooleanLiteral, isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression,
-    isKeyedRollingExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression, isNameExpression,
+    isKeyedRollingExpression, isKeyedSortExpression, isKeyedMergeExpression, isLabelLiteral, isMaterializeExpression, isNameExpression,
     isNewStructureExpression, isNumberLiteral, isParenthesizedExpression, isRecordExpression,
     isRecordUpdateExpression, isStdinExpression, isStringLiteral, isTextBlockExpression, isUnaryExpression,
     isUnpackExpression, nameNeedsExecution, requiresDataOperand, applicationForm, findOperation,
-    type AddressItem, type ArrayItem, type Expression,
+    type AddressItem, type ArrayItem, type Expression, type SortField,
 } from '@arrrank/language';
 import { nameMask } from '../array-mask.js';
 import { allValid, createArraySnapshot, isPresentAt, maskedCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
@@ -17,7 +17,7 @@ import { newStructure } from '../collections.js';
 import { dsuFrom } from '../dsu.js';
 import { MissingValueError, RankError } from '../errors.js';
 import {
-    completed, flatMapResult, mapExecution, mapPair, mapResult, resume, type Evaluation, type Execution,
+    completed, flatMapResult, mapExecution, mapPair, mapResult, resume, runExecution, type Evaluation, type Execution,
 } from '../execution.js';
 import type { FastPaths } from '../fast-paths.js';
 import type { FunctionInvocation } from '../function-invocation.js';
@@ -27,6 +27,7 @@ import { compileKeyedTableExpression } from '../keyed-table-expression.js';
 import { BuiltinRegistry } from '../modules/builtins.js';
 import { readStdin, stdinMode, stdinSequence } from '../modules/io.js';
 import { keyedSort, sortByFields, sortFieldDescending } from '../modules/keyed-sort.js';
+import { mergeSorted } from '../modules/sorted-merge.js';
 import { materializeCollection } from '../modules/sequences.js';
 import { tableAlias } from '../modules/tables.js';
 import {
@@ -41,7 +42,7 @@ import { materializeSequence, sequence } from '../sequence.js';
 import { compileTableExpression } from '../table-query-expression.js';
 import { maskSelection, unpackApplicationItems } from '../value-selection.js';
 import {
-    isNativeFunction, isRankArray, isRankRecord, isRankSequence, isRankSqliteExpression,
+    isNativeFunction, isRankArray, isRankObject, isRankRecord, isRankSequence, isRankSqliteExpression,
     isRankSqliteTable, isRankTable, isRankTableAlias, MISSING, typeName,
     type NativeFunction, type RankArray, type RankRecord, type RankSequence, type RankValue,
 } from '../value.js';
@@ -382,6 +383,12 @@ export class ExpressionEvaluator {
                 return tableAlias(source, expression.name.name);
             };
         }
+        if (isKeyedMergeExpression(expression)) {
+            return this.mergeBy([expression.left, expression.right], expression.fields, expression.key, expression.direction);
+        }
+        if (isKeyedSortExpression(expression) && expression.operator.startsWith('merge')) {
+            return this.mergeBy([expression.source], expression.fields, expression.key, expression.direction);
+        }
         if (isKeyedSortExpression(expression)) {
             return function* (): Execution<RankValue> {
                 const operation = expression.operator.startsWith('argsort')
@@ -574,6 +581,34 @@ export class ExpressionEvaluator {
         if (!item.spread) return mapResult(this.evaluateAddressItem(item), value => [value]);
         if (!item.value) throw new RankError('missing unpack expression');
         return mapResult(this.evaluate(item.value), value => unpackApplicationItems(value));
+    }
+
+    private mergeBy(operands: readonly Expression[], fields: readonly SortField[],
+        keyExpression: Expression | undefined, direction: string | undefined): () => Execution<RankValue> {
+        const expressions = this;
+        return function* (): Execution<RankValue> {
+            expressions.context.requireModule('sequences', 'merge by');
+            const sources = yield* resume(mapExecution(operands, operand => expressions.evaluate(operand)));
+            if (fields.length > 1) throw new RankError('merge by accepts one key', 'TypeError');
+            const field = fields[0];
+            const descending = sortFieldDescending(field?.direction ?? direction);
+            if (field) {
+                return mergeSorted(sources, descending, value => {
+                    if (!isRankRecord(value) && !isRankObject(value)) {
+                        throw new RankError('merge by field expects records', 'TypeError');
+                    }
+                    const key = value.entries.get(field.field.name);
+                    if (key === undefined) throw new MissingValueError(`merge by record is missing field .${field.field.name}`);
+                    return key;
+                });
+            }
+            if (!keyExpression) throw new RankError('merge by requires a key', 'TypeError');
+            const key = yield* resume(expressions.evaluate(keyExpression));
+            if (!isNativeFunction(key) || !key.arities.includes(1)) {
+                throw new RankError('merge by key must be a unary function', 'TypeError');
+            }
+            return mergeSorted(sources, descending, value => runExecution(expressions.context.invoke(key, [value])));
+        };
     }
 
     private *arrayDimension(item: ArrayItem): Execution<number> {
