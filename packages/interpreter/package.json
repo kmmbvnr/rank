@@ -13,7 +13,7 @@
     "scripts": {
         "clean": "shx rm -fr *.tsbuildinfo out",
         "build": "echo 'No build step'",
-        "test": "vitest run"
+        "test": "node scripts/test.mjs"
     },
     "dependencies": {
         "@arrrank/language": "0.0.1",
