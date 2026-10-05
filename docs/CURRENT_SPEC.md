@@ -7336,6 +7336,8 @@ sliding windows of four values. The `D` and `U` products take the diagonal of
 each 4-by-4 window; reversing the grid gives the other direction. The full
 example produces `70600674`.
 
+[Explore how the windows, diagonals, and result axes work](visualizations/euler-11-windows.html).
+
 ## 12. Highly divisible triangular number
 
 ```rank
