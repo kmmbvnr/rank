@@ -145,7 +145,7 @@ overflow-checks = true
 
 ## Source: 008_seriesproduct.ra
 
-SHA-256: 231b6b2b85dc47e8db5fe30aa8ecea181bf3b7d8fb61e18f729991ac6b0e42d9
+SHA-256: c41fad325851ea5d42b2d6efc9687eb5cdb687890c2ae3fe75ffffe337edcead
 
 ```rank
 rem Largest Product in a Series
@@ -171,7 +171,22 @@ Answer print
 ## Existing tests (context, not a substitute for general behavior)
 
 ```rank
+use testing
 
+test "default input"
+  use "008_seriesproduct"
+  run
+
+  Answer equal 23514624000
+end
+
+test "workspace input"
+  use "008_seriesproduct"
+  Width = 4
+  run
+
+  Answer equal 5832
+end
 ```
 
 ## Resolved syntax and analysis
@@ -211,7 +226,7 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
           "reads": [
             {
               "line": 15,
-              "column": 18
+              "column": 25
             }
           ],
           "reassigned": false,
@@ -293,7 +308,7 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
           "unused": false,
           "loopCarried": false,
           "shadows": false,
-          "types": "array"
+          "types": "array or sequence"
         },
         {
           "name": "Products",
@@ -357,6 +372,23 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       ],
       "form": "Value integer",
       "result": "integer",
+      "signatures": [
+        {
+          "inputs": [
+            {
+              "union": [
+                "integer",
+                "real",
+                "text"
+              ]
+            }
+          ],
+          "result": "integer",
+          "ranks": [
+            1
+          ]
+        }
+      ],
       "shape": [
         {
           "args": [
@@ -384,6 +416,676 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       "form": "Left Right max",
       "result": "number",
       "axisReduction": true,
+      "modifiers": [
+        "index",
+        "indexed"
+      ],
+      "signatures": [
+        {
+          "inputs": [
+            {
+              "union": [
+                "number",
+                {
+                  "collection": "array",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "sequence",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "queue",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "stack",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "deque",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "set",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "multiset",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "result": "number"
+        },
+        {
+          "inputs": [
+            "number",
+            "number"
+          ],
+          "result": "number",
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "union": [
+                "text",
+                {
+                  "collection": "array",
+                  "element": {
+                    "union": [
+                      "text",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "sequence",
+                  "element": {
+                    "union": [
+                      "text",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "queue",
+                  "element": {
+                    "union": [
+                      "text",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "stack",
+                  "element": {
+                    "union": [
+                      "text",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "deque",
+                  "element": {
+                    "union": [
+                      "text",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "set",
+                  "element": {
+                    "union": [
+                      "text",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "multiset",
+                  "element": {
+                    "union": [
+                      "text",
+                      "missing"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "result": "text"
+        },
+        {
+          "inputs": [
+            "text",
+            "text"
+          ],
+          "result": "text",
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "union": [
+                "boolean",
+                {
+                  "collection": "array",
+                  "element": {
+                    "union": [
+                      "boolean",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "sequence",
+                  "element": {
+                    "union": [
+                      "boolean",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "queue",
+                  "element": {
+                    "union": [
+                      "boolean",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "stack",
+                  "element": {
+                    "union": [
+                      "boolean",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "deque",
+                  "element": {
+                    "union": [
+                      "boolean",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "set",
+                  "element": {
+                    "union": [
+                      "boolean",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "multiset",
+                  "element": {
+                    "union": [
+                      "boolean",
+                      "missing"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "result": "boolean"
+        },
+        {
+          "inputs": [
+            "boolean",
+            "boolean"
+          ],
+          "result": "boolean",
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "union": [
+                "symbol",
+                {
+                  "collection": "array",
+                  "element": {
+                    "union": [
+                      "symbol",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "sequence",
+                  "element": {
+                    "union": [
+                      "symbol",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "queue",
+                  "element": {
+                    "union": [
+                      "symbol",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "stack",
+                  "element": {
+                    "union": [
+                      "symbol",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "deque",
+                  "element": {
+                    "union": [
+                      "symbol",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "set",
+                  "element": {
+                    "union": [
+                      "symbol",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "multiset",
+                  "element": {
+                    "union": [
+                      "symbol",
+                      "missing"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "result": "symbol"
+        },
+        {
+          "inputs": [
+            "symbol",
+            "symbol"
+          ],
+          "result": "symbol",
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "union": [
+                "date",
+                {
+                  "collection": "array",
+                  "element": {
+                    "union": [
+                      "date",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "sequence",
+                  "element": {
+                    "union": [
+                      "date",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "queue",
+                  "element": {
+                    "union": [
+                      "date",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "stack",
+                  "element": {
+                    "union": [
+                      "date",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "deque",
+                  "element": {
+                    "union": [
+                      "date",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "set",
+                  "element": {
+                    "union": [
+                      "date",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "multiset",
+                  "element": {
+                    "union": [
+                      "date",
+                      "missing"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "result": "date"
+        },
+        {
+          "inputs": [
+            "date",
+            "date"
+          ],
+          "result": "date",
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "union": [
+                "datetime",
+                {
+                  "collection": "array",
+                  "element": {
+                    "union": [
+                      "datetime",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "sequence",
+                  "element": {
+                    "union": [
+                      "datetime",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "queue",
+                  "element": {
+                    "union": [
+                      "datetime",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "stack",
+                  "element": {
+                    "union": [
+                      "datetime",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "deque",
+                  "element": {
+                    "union": [
+                      "datetime",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "set",
+                  "element": {
+                    "union": [
+                      "datetime",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "multiset",
+                  "element": {
+                    "union": [
+                      "datetime",
+                      "missing"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "result": "datetime"
+        },
+        {
+          "inputs": [
+            "datetime",
+            "datetime"
+          ],
+          "result": "datetime",
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "union": [
+                "record",
+                {
+                  "collection": "array",
+                  "element": {
+                    "union": [
+                      "record",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "sequence",
+                  "element": {
+                    "union": [
+                      "record",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "queue",
+                  "element": {
+                    "union": [
+                      "record",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "stack",
+                  "element": {
+                    "union": [
+                      "record",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "deque",
+                  "element": {
+                    "union": [
+                      "record",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "set",
+                  "element": {
+                    "union": [
+                      "record",
+                      "missing"
+                    ]
+                  }
+                },
+                {
+                  "collection": "multiset",
+                  "element": {
+                    "union": [
+                      "record",
+                      "missing"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "result": "record"
+        },
+        {
+          "inputs": [
+            "record",
+            "record"
+          ],
+          "result": "record",
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            "missing",
+            "unknown"
+          ],
+          "result": "missing",
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            "unknown",
+            "missing"
+          ],
+          "result": "missing",
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            "column"
+          ],
+          "result": "number"
+        },
+        {
+          "inputs": [
+            {
+              "union": [
+                {
+                  "collection": "array",
+                  "element": {
+                    "variable": 0
+                  }
+                },
+                {
+                  "collection": "sequence",
+                  "element": {
+                    "variable": 0
+                  }
+                }
+              ]
+            },
+            {
+              "label": "index"
+            }
+          ],
+          "result": "integer"
+        },
+        {
+          "inputs": [
+            {
+              "union": [
+                {
+                  "collection": "array",
+                  "element": {
+                    "variable": 0
+                  }
+                },
+                {
+                  "collection": "sequence",
+                  "element": {
+                    "variable": 0
+                  }
+                }
+              ]
+            },
+            {
+              "label": "indexed"
+            }
+          ],
+          "result": "tuple"
+        }
+      ],
       "shape": [
         {
           "args": [
@@ -422,6 +1124,18 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       ],
       "form": "Value print",
       "result": "same",
+      "signatures": [
+        {
+          "inputs": [
+            {
+              "variable": 0
+            }
+          ],
+          "result": {
+            "variable": 0
+          }
+        }
+      ],
       "effects": [
         "io"
       ],
@@ -440,13 +1154,118 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
         2
       ],
       "form": "Values window Width",
+      "signatures": [
+        {
+          "inputs": [
+            "text",
+            {
+              "union": [
+                "integer",
+                {
+                  "collection": "array",
+                  "element": "integer"
+                }
+              ]
+            }
+          ],
+          "result": {
+            "collection": "sequence",
+            "element": "text"
+          }
+        },
+        {
+          "inputs": [
+            {
+              "union": [
+                {
+                  "collection": "array",
+                  "element": {
+                    "variable": 0
+                  }
+                },
+                {
+                  "collection": "queue",
+                  "element": {
+                    "variable": 0
+                  }
+                },
+                {
+                  "collection": "stack",
+                  "element": {
+                    "variable": 0
+                  }
+                },
+                {
+                  "collection": "deque",
+                  "element": {
+                    "variable": 0
+                  }
+                }
+              ]
+            },
+            {
+              "union": [
+                "integer",
+                {
+                  "collection": "array",
+                  "element": "integer"
+                }
+              ]
+            }
+          ],
+          "result": {
+            "collection": "array",
+            "element": {
+              "variable": 0
+            }
+          }
+        },
+        {
+          "inputs": [
+            {
+              "collection": "sequence",
+              "element": {
+                "variable": 0
+              }
+            },
+            {
+              "union": [
+                "integer",
+                {
+                  "collection": "array",
+                  "element": "integer"
+                }
+              ]
+            }
+          ],
+          "result": {
+            "union": [
+              {
+                "collection": "array",
+                "element": {
+                  "variable": 0
+                }
+              },
+              {
+                "collection": "sequence",
+                "element": {
+                  "collection": "array",
+                  "element": {
+                    "variable": 0
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ],
       "result": "array",
       "lazy": true,
       "summary": "Overlapping complete cells of that size, with optional stride, padding and padding value.",
       "sites": [
         {
           "line": 15,
-          "column": 24
+          "column": 18
         }
       ]
     }
@@ -540,14 +1359,14 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
             "arguments": [
               {
                 "$type": "NameExpression",
-                "name": "Width"
+                "name": "window"
               }
             ]
           },
           "arguments": [
             {
               "$type": "NameExpression",
-              "name": "window"
+              "name": "Width"
             }
           ]
         }

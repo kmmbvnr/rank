@@ -35,6 +35,22 @@ it('records a nullary result as data of unknown type, not a function alias', asy
 });
 
 describe('binding facts', () => {
+    it('keeps window result kinds when the size follows the operation', async () => {
+        const result = await facts([
+            'use sequences',
+            'A = array 1 2 3',
+            'S = 1 to 3',
+            'FromArray = A window 2',
+            'FromSequence = S window 2',
+            'FromText = "abc" window 2',
+            'FromUnknown = Input window 2',
+        ], ['Input']);
+        expect(named(result, 'program', 'FromArray').types).toEqual(['array']);
+        expect(named(result, 'program', 'FromSequence').types).toEqual(['array', 'sequence']);
+        expect(named(result, 'program', 'FromText').types).toEqual(['sequence']);
+        expect(named(result, 'program', 'FromUnknown').types).toEqual(['array', 'sequence']);
+    });
+
     it('recognizes contextual rownumber and ranknumber in select fields', async () => {
         const result = await facts([
             'use tables', 'Rows = Input',
