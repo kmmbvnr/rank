@@ -301,6 +301,8 @@ export class NotebookRepl {
             || this.liveFunction?.status || this.liveConditional?.status || '';
     }
     set suggestion(value: string) { this.suggestionText = value; }
+    /** The total time of the last fast run, until the next key; shown even where hints are off. */
+    get runTime(): string { return /^Done in /.test(this.suggestionText) ? this.suggestionText : ''; }
     /** A help text, or a held value open in a viewer (then `text` is empty). */
     help?: { text: string; top: number; viewer?: ValueViewer };
     /** Rows of the screen, for a viewer to size its window. */
@@ -512,7 +514,14 @@ export class NotebookRepl {
             }
             this.dismiss();
             book.resetExecution();
-            return this.execution.execute('', false, true);
+            const fast = !!this.session.turboActive;
+            const startedAt = performance.now();
+            const exit = await this.execution.execute('', false, true);
+            // A fast run reports only its total time; the next key press clears it.
+            if (fast && !exit && !book.cells.some(cell => cell.status === 'error' || cell.status === 'interrupted')) {
+                this.suggestion = `Done in ${((performance.now() - startedAt) / 1000).toFixed(2)}s`;
+            }
+            return exit;
         });
     }
 

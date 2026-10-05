@@ -9,7 +9,7 @@
         "clean": "node -e \"\"",
         "build": "npm run build --workspace @arrrank/web -- --mode mobile && cap sync",
         "icon:android": "node scripts/generate-android-icon.mjs",
-        "android:apk": "npm run build && cd android && ./gradlew assembleDebug",
+        "android:apk": "tsc -b ../../tsconfig.build.json && npm run build && cd android && ./gradlew assembleDebug",
         "open:android": "cap open android",
         "open:ios": "cap open ios"
     },

@@ -16,6 +16,10 @@ Build the web console in mobile mode, sync Capacitor and assemble a debug APK:
 npm run android:apk --workspace @arrrank/mobile
 ```
 
+The script first runs `tsc -b tsconfig.build.json`: the web build consumes the
+compiled `packages/*/out`, so a stale `out/` gives an APK without the latest
+interpreter changes.
+
 Without `JAVA_HOME`, the Gradle step fails with "Unable to locate a Java
 Runtime". The APK is written to
 `packages/mobile/android/app/build/outputs/apk/debug/app-debug.apk`.

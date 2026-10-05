@@ -198,7 +198,7 @@ export function createReplSession(host: ReplHost = {}) {
             if (load && isCommand(line, interpreter)) return completeLoadPath(load[1]);
             return complete(line, interpreter, EMPTY_CELL);
         },
-        async execute(text: string, id: number, file: string[], columns = 80, sourceOnly = false, replaceDeclarations = false): Promise<Execution> {
+        async execute(text: string, id: number, file: string[], columns = 80, sourceOnly = false, replaceDeclarations = false, quiet = false): Promise<Execution> {
             output = [];
             interrupted = false;
             errorOffset = undefined;
@@ -233,7 +233,7 @@ export function createReplSession(host: ReplHost = {}) {
                         for (const name of names) declarations.delete(name);
                     }
                     const before = interpreter.bindingNames();
-                    try { valueRef = run(interpreter, source, session, id); }
+                    try { valueRef = run(interpreter, source, session, id, quiet); }
                     finally {
                         for (const name of interpreter.bindingNames()) {
                             if (!before.has(name)) declarations.set(name, id);
@@ -284,13 +284,13 @@ export function createReplSession(host: ReplHost = {}) {
     }
 
     /** Runs a cell and holds its result for `inspect`; the reference tags the lines that printed it. */
-    function run(interpreter: Interpreter, source: string, session: Session, cell: number): number | undefined {
+    function run(interpreter: Interpreter, source: string, session: Session, cell: number, quiet = false): number | undefined {
         try {
             checkInterrupt();
             const result = interpreter.execute(source);
             checkInterrupt('evaluating cell');
             session.setLast(result);
-            if (result === undefined) return undefined;
+            if (result === undefined || quiet) return undefined;
             const first = output.length;
             show(result);
             const ref = nextRef++;

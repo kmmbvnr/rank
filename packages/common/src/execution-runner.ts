@@ -99,6 +99,13 @@ export class ExecutionRunner {
             this.session.rewind(book.cells[start].id);
             await this.prepareFunctions(start);
             const end = book.cells.length - 1;
+            // A fast run (turbo from the start) shows only the last result; formatting the others is wasted work.
+            let lastCode = -1;
+            if (this.session.turboActive) {
+                for (let index = start; index < end; index++) {
+                    if (!book.cells[index].command && hasCode(book.cells[index].source)) lastCode = index;
+                }
+            }
             for (let index = start; index < end; index++) {
                 const cell = book.cells[index];
                 if (cell.command) continue;
@@ -110,7 +117,7 @@ export class ExecutionRunner {
                     continue;
                 }
                 book.replayFrom = index;
-                if (await this.run(index, cell.source)) return true;
+                if (await this.run(index, cell.source, false, lastCode >= 0 && index < lastCode)) return true;
                 if (cell.status === 'interrupted') {
                     book.replayFrom = index + 1 < end ? index + 1 : undefined;
                     book.toPrompt();
@@ -147,7 +154,7 @@ export class ExecutionRunner {
         });
     }
 
-    private async run(index: number, source: string, replaceDeclarations = false): Promise<boolean> {
+    private async run(index: number, source: string, replaceDeclarations = false, quiet = false): Promise<boolean> {
         const book = this.notebook;
         const cell = book.cells[index];
         book.active = index;
@@ -173,7 +180,7 @@ export class ExecutionRunner {
                 this.session.setDebugBreakpoints?.(book.cells.flatMap(item =>
                     [...(this.breakpoints.get(item.id) ?? [])].map(line => ({ source: item.source, line }))));
             }
-            const pending = this.session.execute(source, cell.id, book.fileLines(), this.columns(), cell.fileSource, replaceDeclarations);
+            const pending = this.session.execute(source, cell.id, book.fileLines(), this.columns(), cell.fileSource, replaceDeclarations, quiet);
             if (this.stopping) this.session.interrupt?.();
             const result = await pending;
             if (result.exit) return true;
