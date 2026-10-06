@@ -125,7 +125,7 @@ async original => {
     await page.reload();
     await page.evaluate(() => window.rankSoftKeyboard(true, 280));
     await step('keyboard');
-    check((await card.textContent()).includes('Tap anywhere above the system keyboard'), 'Explain OS keyboard dismissal above it');
+    check((await card.textContent()).includes('Dismiss the system keyboard'), 'Explain OS keyboard dismissal above it');
     await page.waitForTimeout(1100);
     check((await saved()).step === 'keyboard', 'Time must not advance an action step');
     const sourceBefore = await page.getByRole('textbox').inputValue();
