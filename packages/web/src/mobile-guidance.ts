@@ -204,7 +204,7 @@ export class MobileGuidance {
                 }
                 break;
             case 'new-notebook':
-                if (context.notebookPanelOpen) { target = targets.newNotebook; text = 'Go coding.'; }
+                if (context.notebookPanelOpen) { target = targets.newNotebook; text = 'Start a new notebook and try your own ideas in Rank.'; }
                 break;
             case 'notebooks': target = targets.brand; text = 'Tap RANK to open the floating panel with your saved notebooks.'; break;
             case 'letters':

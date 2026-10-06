@@ -75,7 +75,7 @@ async original => {
     check(await page.locator('#guidance-spotlight').isVisible(), 'Final step must highlight RANK');
     await page.locator('#brand').click();
     await step('new-notebook');
-    check(await card.locator('p').textContent() === 'Go coding.', 'Finish with Go coding');
+    check(await card.locator('p').textContent() === 'Start a new notebook and try your own ideas in Rank.', 'Invite the user to start their own notebook');
     check(await card.evaluate(card => card.closest('dialog')?.id) === 'notebook-panel', 'Final hint must appear above the modal backdrop');
     await page.waitForTimeout(250);
     await geometry(page.locator('#new-notebook'));
