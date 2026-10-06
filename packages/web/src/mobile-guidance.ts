@@ -193,7 +193,7 @@ export class MobileGuidance {
             case 'commands':
                 if (context.rankKeyboard) {
                     target = targets.commands;
-                    text = 'Tap a command to insert it, or hold it to open documentation with an example.';
+                    text = 'Hold a command on the Rank keyboard to open its documentation with an example.';
                 }
                 break;
             case 'notebooks': target = targets.brand; text = 'Tap RANK to open the floating panel with your saved notebooks.'; break;
