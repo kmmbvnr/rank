@@ -241,12 +241,12 @@ option Min integer = 500
 N = 1 to #
 Triangles = N * (N + 1) // 2
 Counts = Triangles divisors count rank 0
-Answer = Triangles (Counts greater Min) first
+Ans = Triangles (Counts greater Min) first
 ```
 
 `divisors count` computes the number of positive divisors from prime exponents
 without enumerating the divisors. The unbounded range generates triangular
-numbers lazily, and `first where` stops at the first number whose divisor count
+numbers lazily, and `first` stops at the first number whose divisor count
 exceeds the threshold. No arbitrary search limit is needed. The first triangle
 with over 500 divisors is `76576500`; with over 5 divisors it is `28`.
 

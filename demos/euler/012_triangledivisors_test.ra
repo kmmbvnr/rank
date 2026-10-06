@@ -4,7 +4,7 @@ test "default input"
   use "012_triangledivisors"
   run
 
-  Answer equal 76576500
+  Ans equal 76576500
 end
 
 test "more than five divisors"
@@ -13,5 +13,5 @@ test "more than five divisors"
   Min = 5
   run
 
-  Answer equal 28
+  Ans equal 28
 end
