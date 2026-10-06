@@ -17,7 +17,7 @@ import { finiteValues } from '../multiset.js';
 import type { BuiltinRegistry } from '../modules/builtins.js';
 import { fenwickSum, multisetQuery, namedSegment, symbolicSegment } from '../modules/algo.js';
 import { dsuQuery, functionalQuery } from '../modules/graph.js';
-import { matmulValues } from '../modules/linalg.js';
+import { diagonal, diagonalOptions, diagonalShape, matmulValues } from '../modules/linalg.js';
 import { shuffleValue } from '../modules/random.js';
 import { directedMerge } from '../modules/sorted-merge.js';
 import {
@@ -161,6 +161,25 @@ export class ApplicationEvaluator {
                         reduction.rank,
                         seed,
                     );
+                };
+            }
+            case 'diagonal': {
+                return function* (): Execution<RankValue> {
+                    context.requireModule('linalg', 'diag');
+                    const source = yield* resume(context.evaluate(form.source));
+                    const mode = form.mode ? yield* resume(context.evaluate(form.mode)) : undefined;
+                    const offset = form.offset ? yield* resume(context.evaluate(form.offset)) : undefined;
+                    const options = diagonalOptions(mode, offset);
+                    const fn = context.resolve('diag');
+                    if (!isNativeFunction(fn) || !context.builtins.is('linalg', 'diag', fn)) {
+                        throw new RankError('diag parameters require the standard diag', 'TypeError');
+                    }
+                    const configured = { ...fn,
+                        monadicResultShape: (shape: readonly number[]) => diagonalShape(shape, options.offset),
+                        call: (args: RankValue[]) => diagonal(args[0], options.anti, options.offset) };
+                    return yield* resume(form.rank !== undefined
+                        ? application.applyAtRank([source, configured], form.rank, form.axes)
+                        : context.rankApplication.applyIntrinsicRank(configured, [source]));
                 };
             }
             case 'sort-direction': {

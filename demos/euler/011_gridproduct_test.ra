@@ -58,8 +58,7 @@ test "upward diagonal run"
   Grid 5 7 = 5
   Grid 4 8 = 7
 
-  Flipped = Grid reverse
-  Blocks = Flipped window (array 4 4)
-  Lines = Blocks diag rank 2
+  Blocks = Grid window (array 4 4)
+  Lines = Blocks diag .anti rank 2
   Lines reduce * rank 1 max equal 210
 end

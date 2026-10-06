@@ -647,6 +647,27 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             }
             for (const part of parts.slice(1)) inspect(part, env);
             const form = applicationForm(expression, name => env.has(name) ? false : findOperation(name));
+            if (form.kind === 'diagonal') {
+                if (form.mode && (!isLabelLiteral(form.mode) || form.mode.name !== 'anti')) {
+                    diagnostics.push({ node: form.mode, kind: 'TypeError', message: 'diag mode must be .anti' });
+                }
+                const offset = form.offset && expressionFacts(form.offset, lookup);
+                if (offset?.types.length && offset.types.join() !== 'integer') {
+                    diagnostics.push({ node: form.offset!, kind: 'TypeError', message: 'diag offset must be an integer' });
+                }
+                if (offset?.integer !== undefined && (BigInt(offset.integer) > BigInt(Number.MAX_SAFE_INTEGER)
+                    || BigInt(offset.integer) < -BigInt(Number.MAX_SAFE_INTEGER))) {
+                    diagnostics.push({ node: form.offset!, kind: 'DimensionMismatch', message: 'diag offset is too large' });
+                }
+                const input = expressionFacts(form.source, lookup);
+                const requested = form.rank === undefined ? undefined : Number(form.rank);
+                const rank = requested === undefined ? input.rank : input.rank === undefined ? undefined
+                    : requested < 0 ? Math.max(0, input.rank + requested) : Math.min(input.rank, requested);
+                if (rank !== undefined && rank !== 1 && rank !== 2) {
+                    diagnostics.push({ node: form.source, kind: 'DimensionMismatch',
+                        message: 'diag expects a rank-1 vector or rank-2 matrix' });
+                }
+            }
             if (form.kind === 'reshape') {
                 const batch = form.dimensions.length === 1 && isUnpackExpression(form.dimensions[0])
                     && expressionFacts(form.dimensions[0].value, lookup).rank === 2;

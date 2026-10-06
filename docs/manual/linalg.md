@@ -56,6 +56,26 @@ A list becomes a square matrix with
 zeros off the diagonal. A matrix gives
 back its diagonal as a list.
 
+Use `.anti` for the other diagonal,
+read from top-right to bottom-left.
+An integer following `diag` or `.anti`
+selects an offset: positive offsets
+are above the main diagonal, negative
+ones below it. For `.anti`, interpret
+the offset with the columns reflected.
+
+```text
+Matrix diag .anti
+Matrix diag 1
+Matrix diag .anti -1
+Windows diag .anti rank 2
+```
+
+Vector construction uses the same
+parameters and adds `abs(offset)` to
+the matrix side. An offset outside a
+matrix returns an empty list.
+
 ### See also
 
 det, matmul

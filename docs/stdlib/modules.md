@@ -384,17 +384,81 @@ order are implementation details and may change between versions. `shuffle`,
 
 `use linalg` provides tensor contraction and matrix operations.
 
-`diag` converts a numeric vector into a square diagonal matrix and extracts
-the main diagonal of a numeric matrix:
+`diag` constructs a matrix from a numeric vector or extracts a diagonal from
+a numeric matrix. An optional `.anti` mode selects the anti-diagonal; an optional
+integer offset follows the mode (or `diag` when no mode is given):
 
 ```rank
 Matrix = Values diag
 Values = Matrix diag
+MainAbove = Matrix diag 1
+MainBelow = Matrix diag -1
+Other = Matrix diag .anti
+OtherAbove = Matrix diag .anti 1
+OtherBelow = Matrix diag .anti -1
 ```
 
-A rectangular matrix returns `min(Rows, Columns)` values. Empty vectors and
-matrices are valid. Other ranks raise `.DimensionMismatch`, and a nonnumeric
-selected value raises `.TypeError`.
+Extraction visits rows from top to bottom. In ordinary mode, selected cells
+satisfy `column - row = offset`. In `.anti` mode, apply that rule to the matrix
+with its columns conceptually reflected: source column is
+`Columns - 1 - virtualColumn`. No reflected matrix is allocated. At offset zero,
+a rectangular matrix returns `min(Rows, Columns)` values, starting at the
+upper-left corner in ordinary mode or upper-right corner in `.anti` mode.
+Offsets outside the matrix return an empty vector.
+
+For a vector of length `N`, construction creates a square matrix of side
+`N + abs(offset)`, places the vector in extraction order, and fills other cells
+with numeric zero. Construction and extraction with the same parameters recover
+the vector. Empty inputs are valid, including an empty vector with an offset
+(which constructs an all-zero matrix of side `abs(offset)`).
+
+Parameters configure the unary operation before `rank`; they are not ranked
+data operands. Existing frame-axis selection retains its meaning:
+
+```rank
+Lines = Windows diag .anti 1 rank 2
+Total = Matrix diag .anti -1 sum
+Offset = -1
+Dynamic = Matrix diag .anti Offset
+Computed = Matrix diag (Offset + 1)
+```
+
+An offset can be an integer literal, a bound value, or a parenthesized expression.
+Parenthesize compound expressions to separate them from the following pipeline.
+The only mode is `.anti`. Offsets must be integers whose absolute value does not
+exceed `9007199254740991`; vector construction also requires a safe matrix cell
+count no greater than `4294967295`. These are representation limits, not a
+promise that every matrix fitting them can be allocated. Invalid modes or
+offset types raise `.TypeError`; excessive offsets or matrix sizes and other
+input ranks raise `.DimensionMismatch`. A nonnumeric selected element raises
+`.TypeError`. Extraction reads only the selected cells, including lazy windows.
+
+Offsets also construct a tridiagonal second-difference matrix:
+
+```rank
+use linalg
+
+Center = (array (-2) (-2) (-2) (-2)) diag
+Upper = (array 1 1 1) diag 1
+Lower = (array 1 1 1) diag -1
+L = Center + Upper + Lower
+rem -2  1  0  0
+rem  1 -2  1  0
+rem  0  1 -2  1
+rem  0  0  1 -2
+
+X = array 1 4 9 16
+Y = L X matmul
+rem 2 2 2 -23
+Boundary = array 0 0 0 25
+D2 = Y + Boundary
+rem 2 2 2 2
+```
+
+`X` samples `x ** 2` at positions 1 through 4 with unit spacing. The matrix
+product uses zero for missing neighbors; `Boundary` supplies the actual values
+0 and 25 at positions 0 and 5. With spacing `H`, divide the corrected second
+differences by `H ** 2` to approximate the second derivative.
 
 `det` has intrinsic rank 2 and returns the determinant of a square numeric
 matrix:

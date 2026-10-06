@@ -54,8 +54,9 @@ rem Four values per window, before multiplication.
 H = Grid window 4 axis 1
 V = Grid window 4 axis 0
 Square = array 4 4
-D = Grid window Square diag rank 2
-U = Grid reverse window Square diag rank 2
+Windows = Grid window Square
+D = Windows diag rank 2
+U = Windows diag .anti rank 2
 
 products = reduce * rank 1 max
 Answer = (array H V D U) products rank 0 max

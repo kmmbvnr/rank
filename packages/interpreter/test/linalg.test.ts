@@ -1,4 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { diagonal } from '../src/modules/linalg.js';
+import { windowValue } from '../src/sequence.js';
+import { isRankArray } from '../src/value.js';
+import { derivedArray, ownedArray, readArrayItem } from '../src/array-storage.js';
 import { run } from './support.js';
 
 describe('Rank linear algebra', () => {
@@ -30,6 +34,88 @@ describe('Rank linear algebra', () => {
         ].join('\n'))).toBe('true');
         expect(run('use linalg\nuse sequences\n(array shape 0 fill 0) diag shape'))
             .toBe('0 0');
+    });
+
+    it('selects both orientations and offsets with pipeline continuation', () => {
+        const matrix = 'use linalg\nuse sequences\nM = array shape 3 3\n1 2 3\n4 5 6\n7 8 9\nend\n';
+        for (const [parameters, expected] of [['', '1 5 9'], ['1', '2 6'], ['-1', '4 8'],
+            ['.anti', '3 5 7'], ['.anti 1', '2 4'], ['.anti -1', '6 8']]) {
+            expect(run(matrix + `M diag ${parameters}`)).toBe(expected);
+        }
+        expect(run(matrix + 'K = -1\nM diag .anti K sum')).toBe('14');
+        expect(run(matrix + 'M diag .anti (-1) sum')).toBe('14');
+        expect(run(matrix + 'total V = V sum\nM diag .anti total')).toBe('15');
+        expect(run(matrix + 'other V = V diag .anti -1 sum\nM other')).toBe('14');
+        expect(run(matrix + 'M diag 30 len')).toBe('0');
+        expect(run(matrix + 'M diag -30 len')).toBe('0');
+        expect(run(matrix + 'M window (array 2 2) diag .anti 1 rank 2 sum')).toBe('12');
+    });
+
+    it('keeps frame axes and negative ranks independent of diagonal parameters', () => {
+        const prefix = 'use linalg\nuse sequences\nBatch = array shape 2 3 3 fill 1\n';
+        expect(run(prefix + 'Batch diag .anti 1 axis 0 rank 2 shape')).toBe('2 2');
+        expect(run(prefix + 'Batch diag .anti 1 rank -1 shape')).toBe('2 2');
+        expect(run('use linalg\nuse sequences\nBatch = array shape 0 3 3 fill 1\nBatch diag .anti 1 rank 2 shape')).toBe('0 2');
+    });
+
+    it('constructs and extracts the same vector in each mode and offset', () => {
+        for (const mode of ['', '.anti']) for (const offset of [-2, 0, 2]) {
+            const parameters = `${mode} ${offset}`;
+            expect(run(`use linalg\nV = array 1 2 3\nM = V diag ${parameters}\nM diag ${parameters}`)).toBe('1 2 3');
+            expect(run(`use linalg\nV = array 1.5 2.5\nM = V diag ${parameters}\nM diag ${parameters}`)).toBe('1.5 2.5');
+        }
+        expect(run('use linalg\nuse sequences\n(array shape 0 fill 0) diag .anti 2 shape')).toBe('2 2');
+        for (const shape of ['0 3', '3 0']) {
+            expect(run(`use linalg\nuse sequences\n(array shape ${shape} fill 0) diag .anti -1 len`)).toBe('0');
+        }
+    });
+
+    it('reads only selected cells of rectangular lazy matrices', () => {
+        for (const [rows, columns] of [[2, 3], [3, 2]]) for (const anti of [false, true]) {
+            for (const offset of [-1, 0, 1, 100]) {
+                const reads: number[] = [];
+                const matrix = derivedArray([rows, columns], [], index => { reads.push(index); return BigInt(index + 1); });
+                diagonal(matrix, anti, offset);
+                const row = Math.max(0, -offset), column = Math.max(0, offset);
+                const expected = Array.from({ length: Math.max(0, Math.min(rows - row, columns - column)) },
+                    (_, index) => (row + index) * columns + (anti ? columns - 1 - column - index : column + index));
+                expect(reads).toEqual(expected);
+            }
+        }
+        expect(run('use linalg\nM = array shape 2 3\n1 2 3\n4 5 6\nend\nM diag .anti')).toBe('3 5');
+    });
+
+    it('reads selected source cells directly through lazy matrix windows', () => {
+        const reads: number[] = [];
+        const source = derivedArray([3, 3], [], index => { reads.push(index); return BigInt(index + 1); });
+        const windows = windowValue(source, ownedArray([2n, 2n]));
+        if (!isRankArray(windows)) throw new Error('expected matrix windows');
+        const block = derivedArray([2, 2], [windows], index => readArrayItem(windows, index));
+        diagonal(block, true);
+        expect(reads).toEqual([1, 3]);
+    });
+
+    it('validates diagonal configuration before allocation', () => {
+        const prefix = 'use linalg\nV = array 1 2\n';
+        for (const offset of ['1.5', '"bad"', '(array 1)', 'true']) {
+            expect(() => run(prefix + `V diag ${offset}`)).toThrowError('diag offset must be an integer');
+        }
+        expect(() => run(prefix + 'V diag .other')).toThrowError('diag mode must be .anti');
+        expect(() => run('use linalg\n1 diag .anti')).toThrowError('diag expects a rank-1 vector or rank-2 matrix');
+        expect(() => run('use linalg\n(array "bad" "bad") diag .anti')).toThrowError('diag expects numeric elements');
+        for (const offset of ['9007199254740992', '-9007199254740992']) {
+            expect(() => run(prefix + `V diag ${offset}`)).toThrowError('diag offset is too large');
+        }
+        expect(() => run(prefix + 'V diag 100000')).toThrowError('diag matrix is too large');
+    });
+
+    it('constructs the documented second-difference stencil', () => {
+        expect(run([
+            'use linalg', 'Center = (array (-2) (-2) (-2) (-2)) diag',
+            'Upper = (array 1 1 1) diag 1', 'Lower = (array 1 1 1) diag -1',
+            'L = Center + Upper + Lower', 'X = array 1 4 9 16',
+            'Y = L X matmul', 'Boundary = array 0 0 0 25', 'Y + Boundary',
+        ].join('\n'))).toBe('2 2 2 2');
     });
 
     it('validates diagonal inputs', () => {

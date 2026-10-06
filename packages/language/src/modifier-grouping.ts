@@ -50,6 +50,15 @@ function boundary(parts: Expression[], standard: StandardName): number | undefin
                 && applicationForm(parts.slice(0, end)).kind === 'window') return end;
         }
     }
+    const diag = parts.findIndex((part, index) => index > 0 && named(part, 'diag') && isNameExpression(part) && standard(part));
+    if (diag > 0) {
+        let end = diag + 1;
+        if (isLabelLiteral(parts[end])) end++;
+        const next = parts[end];
+        if (next && !(isNameExpression(next) && (/^[a-z]/.test(next.name) || standard(next) && findOperation(next.name)
+            || next.name === 'rank' || next.name === 'axis'))) end++;
+        if (end < parts.length && !named(parts[end], 'rank') && !named(parts[end], 'axis')) return end;
+    }
     const direction = parts.findIndex((part, index) => index > 1
         && isSortDirection(part) && applicationForm(parts.slice(0, index + 1)).kind === 'sort-direction');
     if (direction >= 0) {

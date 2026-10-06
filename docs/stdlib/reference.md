@@ -293,7 +293,7 @@ Matrix products, solvers and decompositions.
 | Form | Result | Summary |
 | --- | --- | --- |
 | `Matrix det` | number | Determinant of a square numeric matrix, exact for integers. |
-| `Values diag` | array | Diagonal matrix from a vector, or the main diagonal of a matrix. |
+| `Values diag [.anti] [Offset]` | array | Construct or extract a diagonal, with optional .anti mode and integer offset. |
 | `Matrix eigh` | tuple | Ascending eigenvalues and their eigenvector columns of a symmetric matrix. |
 | `Matrix inverse` | array, lazy | Inverse of a square matrix, one trailing cell at a time. |
 | `A B matmul` | array, lazy | Contracts the last axis of the left array with the first axis of the right. |

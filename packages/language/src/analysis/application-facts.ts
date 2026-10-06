@@ -139,6 +139,33 @@ export function applicationExpressionFacts(
 export function applicationFormFacts(expression: Expression, form: ApplicationForm, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts | undefined {
     switch (form.kind) {
+        case 'diagonal': {
+            const source = infer(form.source, lookup);
+            const offsetFacts = form.offset ? infer(form.offset, lookup) : undefined;
+            const offset = form.offset ? offsetFacts?.integer === undefined ? undefined
+                : Number(offsetFacts.integer) : 0;
+            const requested = form.rank === undefined ? undefined : Number(form.rank);
+            const cellRank = requested === undefined ? source.rank : source.rank === undefined ? undefined
+                : requested < 0 ? Math.max(0, source.rank + requested) : Math.min(source.rank, requested);
+            const dimensions = source.shape?.slice(-(cellRank ?? 0));
+            let cellShape: (number | null)[] | undefined;
+            if (cellRank === 1) {
+                const length = dimensions?.[0];
+                const side = length == null || offset === undefined ? null : length + Math.abs(offset);
+                cellShape = [side, side];
+            } else if (cellRank === 2) {
+                const [rows, columns] = dimensions ?? [];
+                const length = rows == null || columns == null || offset === undefined ? null
+                    : Math.max(0, Math.min(rows - Math.max(0, -offset), columns - Math.max(0, offset)));
+                cellShape = [length];
+            }
+            const frame = form.rank !== undefined && source.rank !== undefined && cellRank !== undefined
+                ? (source.shape ?? Array(source.rank).fill(null)).slice(0, Math.max(0, source.rank - cellRank)) : [];
+            // Arbitrary frame-axis selection is handled conservatively.
+            const shape = cellShape && !form.axes ? [...frame, ...cellShape] : undefined;
+            return { types: ['array'], elements: source.elements,
+                ...(shape ? { rank: shape.length, shape } : {}) };
+        }
         case 'checked-read':
             return infer(applicationExpression(form.parts, expression), lookup);
         case 'array-combine-constructor': {

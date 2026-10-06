@@ -1504,3 +1504,20 @@ it('retains array rank when a numeric scalar fact has no explicit rank field', (
     expect(result).toMatchObject({ types: ['array'], rank: 2, shape: [2, 3] });
     expect(result.callbackFreeScalarCells).toBeUndefined();
 });
+
+it('infers configured diagonal shapes without treating parameters as data', () => {
+    const bindings = new Map<string, ValueFacts>([
+        ['M', { types: ['array'], rank: 2, shape: [2, 3], elements: ['real'] }],
+        ['V', { types: ['array'], rank: 1, shape: [3], elements: ['integer'] }],
+        ['Windows', { types: ['array'], rank: 4, shape: [4, 5, 3, 3], elements: ['integer'] }],
+        ['K', { types: ['integer'], rank: 0, shape: [], integer: '-1' }],
+    ]);
+    expect(facts('M diag .anti K', bindings)).toMatchObject({ rank: 1, shape: [1], elements: ['real'] });
+    expect(facts('V diag 1', bindings)).toMatchObject({ rank: 2, shape: [4, 4], elements: ['integer'] });
+    expect(facts('Windows diag .anti 1 rank 2', bindings)).toMatchObject({ rank: 3, shape: [4, 5, 2] });
+    for (const [parameter, message] of [['.bad', 'diag mode must be .anti'],
+        ['1.5', 'diag offset must be an integer'], ['9007199254740992', 'diag offset is too large']]) {
+        const parsed = services.Rank.parser.LangiumParser.parse<Program>(`use linalg\nV = array 1 2\nD = V diag ${parameter}\n`);
+        expect(analyzeValues(parsed.value).diagnostics.map(item => item.message)).toContain(message);
+    }
+});

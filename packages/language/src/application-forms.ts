@@ -26,6 +26,25 @@ export interface SortDirectionForm {
     readonly direction: Expression;
 }
 
+/** Parameters configure diag before cell ranking, rather than supplying data operands. */
+export function diagonalForm(parts: readonly Expression[], standard: (name: string) => boolean = () => true): {
+    kind: 'diagonal'; source: Expression; mode?: Expression; offset?: Expression;
+    rank?: bigint; axes?: readonly number[];
+} | undefined {
+    const index = parts.findIndex((part, index) => index > 0 && isNamed(part, 'diag') && standard('diag'));
+    if (index < 0 || index + 1 === parts.length || isNamed(parts[index + 1], 'rank')
+        || isNamed(parts[index + 1], 'axis')) return undefined;
+    let end = index + 1;
+    const mode = isLabelLiteral(parts[end]) ? parts[end++] : undefined;
+    const next = parts[end];
+    const offset = next && !isNamed(next, 'rank') && !isNamed(next, 'axis') ? parts[end++] : undefined;
+    const base = [applicationExpression(parts.slice(0, index)), parts[index]];
+    const suffix = parts.slice(end);
+    const ranked = suffix.length ? explicitRankApplication([...base, ...suffix]) : undefined;
+    if (suffix.length && !ranked) return undefined;
+    return { kind: 'diagonal', source: base[0], mode, offset, rank: ranked?.rank, axes: ranked?.axes };
+}
+
 export interface AxisLengthForm {
     readonly kind: 'axis-length';
     readonly source: Expression;
@@ -338,6 +357,7 @@ export type ApplicationForm =
     | Recognized<'collection-mutation', typeof explicitCollectionMutation>
     | Recognized<'comparison-rank', typeof explicitComparisonRank>
     | SymbolicApplicationForm
+    | Recognized<'diagonal', typeof diagonalForm>
     | Recognized<'sort-direction', typeof sortDirectionForm>
     | Recognized<'named-outer', typeof explicitNamedOuterApplication>
     | Recognized<'rank', typeof explicitRankApplication>
@@ -449,6 +469,8 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup): Applicat
             return { kind: 'checked-read', reader, parts: read };
         }
     }
+    const diagonal = diagonalForm(parts, name => lookup(name) === findOperation(name));
+    if (diagonal) return diagonal;
     const direction = sortDirectionForm(parts);
     if (direction) return direction;
     if (parts.length >= 2 && isNamed(parts[1], 'reshape') && lookup('reshape') === findOperation('reshape')) {

@@ -2,7 +2,7 @@ import { tuple } from '../value.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { derivedArray, eagerOperandItems, ownedArray, readArrayItem, readArrayShape, float64Cells, realCells, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
-import { isRankArray, type RankArray, type RankValue } from '../value.js';
+import { isRankArray, isRankLabel, type RankArray, type RankValue } from '../value.js';
 import { expectNumeric, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
@@ -39,7 +39,7 @@ export const linalgModule: RuntimeModule = {
     ),
 };
 
-function diagonal(value: RankValue): RankArray {
+export function diagonal(value: RankValue, anti = false, offset = 0): RankArray {
     if (!isRankArray(value) || (value.shape.length !== 1 && value.shape.length !== 2)) {
         throw new RankError(
             'diag expects a rank-1 vector or rank-2 matrix',
@@ -49,22 +49,53 @@ function diagonal(value: RankValue): RankArray {
 
     if (value.shape.length === 2) {
         const [rows, columns] = value.shape;
-        const size = Math.min(rows, columns);
+        const row = Math.max(0, -offset);
+        const column = Math.max(0, offset);
+        const size = Math.max(0, Math.min(rows - row, columns - column));
         const items = Array.from({ length: size }, (_, index) =>
-            diagNumber(arrayItem(value, index * columns + index)));
+            diagNumber(arrayItem(value, (row + index) * columns
+                + (anti ? columns - 1 - column - index : column + index))));
         return ownedArray(items);
     }
 
-    const size = value.shape[0];
-    const values = Array.from({ length: size }, (_, index) =>
+    const length = value.shape[0];
+    const size = length + Math.abs(offset);
+    if (!Number.isSafeInteger(size * size) || size * size > 0xffffffff) {
+        throw new RankError('diag matrix is too large', 'DimensionMismatch');
+    }
+    const values = Array.from({ length: length }, (_, index) =>
         diagNumber(arrayItem(value, index)));
     const zero = values.some(item => typeof item === 'number') ? 0 : 0n;
     const items = Array.from({ length: size * size }, (_, index) => {
         const row = Math.floor(index / size);
-        const column = index % size;
-        return row === column ? values[row] : zero;
+        const column = anti ? size - 1 - index % size : index % size;
+        return column - row === offset ? values[row - Math.max(0, -offset)] ?? zero : zero;
     });
     return ownedArray(items, [size, size]);
+}
+
+export function diagonalShape(shape: readonly number[], offset: number): readonly number[] | undefined {
+    if (shape.length === 1) {
+        const side = shape[0] + Math.abs(offset);
+        return [side, side];
+    }
+    if (shape.length === 2) return [Math.max(0, Math.min(
+        shape[0] - Math.max(0, -offset), shape[1] - Math.max(0, offset)))];
+    return undefined;
+}
+
+export function diagonalOptions(mode?: RankValue, offset?: RankValue): { anti: boolean; offset: number } {
+    if (mode !== undefined && (!isRankLabel(mode) || mode.name !== 'anti')) {
+        throw new RankError('diag mode must be .anti', 'TypeError');
+    }
+    if (offset !== undefined && typeof offset !== 'bigint') {
+        throw new RankError('diag offset must be an integer', 'TypeError');
+    }
+    if (typeof offset === 'bigint' && (offset > BigInt(Number.MAX_SAFE_INTEGER)
+        || offset < -BigInt(Number.MAX_SAFE_INTEGER))) {
+        throw new RankError('diag offset is too large', 'DimensionMismatch');
+    }
+    return { anti: mode !== undefined, offset: Number(offset ?? 0n) };
 }
 
 function diagNumber(value: RankValue): bigint | number {

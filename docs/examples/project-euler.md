@@ -213,25 +213,20 @@ finite plan. The default limit produces `142913828922`; limit 10 produces `17`.
 rem Project Euler 11
 rem https://projecteuler.net/problem=11
 
-H = (
-  Grid window 4 axis 1 reduce * rank 1
-) max
-V = (
-  Grid window 4 axis 0 reduce * rank 1
-) max
+H = Grid window 4 axis 1
+V = Grid window 4 axis 0
 Square = array 4 4
-D = (
-  Grid window Square
-) diag rank 2 reduce * rank 1 max
-U = (
-  Grid reverse window Square
-) diag rank 2 reduce * rank 1 max
-Answer = (array H V D U) max
+Windows = Grid window Square
+D = Windows diag rank 2
+U = Windows diag .anti rank 2
+
+products = reduce * rank 1 max
+Answer = (array H V D U) products rank 0 max
 ```
 
 The grid is one dense rank-2 array. Horizontal and vertical products reduce
 sliding windows of four values. The `D` and `U` products take the diagonal of
-each 4-by-4 window; reversing the grid gives the other direction. The full
+each 4-by-4 window; `.anti` selects the other direction from the same windows. The full
 example produces `70600674`.
 
 [Explore how the windows, diagonals, and result axes work](../visualizations/euler-11-windows.html).
