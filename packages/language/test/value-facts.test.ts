@@ -38,6 +38,13 @@ it('infers the shape and cells of a prefix stack through transpose', () => {
         shape: [3, 2], elements: ['integer'] });
     expect(facts('stack unpack Items', new Map([['Items', { types: ['array'], rank: 1,
         shape: [2], elements: ['array'] }]]))).toMatchObject({ types: ['array'] });
+    expect(facts('stack X Y axis 1', bindings)).toMatchObject({ types: ['array'], rank: 2,
+        shape: [3, 2], elements: ['integer'] });
+    expect(facts('concat X Y', bindings)).toMatchObject({ types: ['array'], rank: 1,
+        shape: [6], elements: ['integer'] });
+    const matrix: ValueFacts = { types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'] };
+    expect(facts('concat X Y axis 1', new Map([['X', matrix], ['Y', matrix]])))
+        .toMatchObject({ types: ['array'], rank: 2, shape: [2, 6], elements: ['integer'] });
 });
 
 it('keeps only shared exact boolean facts across paths', () => {

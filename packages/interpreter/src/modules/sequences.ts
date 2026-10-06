@@ -34,6 +34,7 @@ import {
     tuple,
     type NativeFunction,
     type RankArray,
+    type RankSequence,
     type RankValue,
     type SequencePlan,
     type SequencePredicate,
@@ -365,12 +366,13 @@ function copyArray(value: RankValue): RankArray {
 }
 
 /**
- * `stack A B`: lazily join equally shaped arrays or sequences on a leading axis.
+ * `stack A B axis N`: lazily join equally shaped arrays or sequences on a new axis.
  * Shapes are checked when the view is made; cells are read on demand.
  */
-export function stackValues(values: readonly RankValue[]): RankArray {
+export function stackValues(values: readonly RankValue[], axis = 0): RankArray {
     const size = values.length;
     const mismatch = (message: string) => new RankError(message, 'DimensionMismatch');
+    if (!Number.isSafeInteger(axis) || axis < 0) throw mismatch('stack axis must be a nonnegative integer');
     const readers: ((index: number) => RankValue)[] = [];
     const dependencies: RankArray[] = [];
     let cellShape: readonly number[] | undefined;
@@ -406,10 +408,94 @@ export function stackValues(values: readonly RankValue[]): RankArray {
             throw mismatch('stack items must have the same shape');
         }
     }
-    if (cellShape === undefined) return ownedArray([], [0]);
-    const cellSize = cellShape.reduce((product, dimension) => product * dimension, 1);
-    return derivedArray([size, ...cellShape], dependencies, index =>
-        readers[cellSize === 0 ? 0 : Math.floor(index / cellSize)]!(cellSize === 0 ? 0 : index % cellSize));
+    if (cellShape === undefined) {
+        if (axis !== 0) throw mismatch(`stack axis ${axis} exceeds result rank 1`);
+        return ownedArray([], [0]);
+    }
+    if (axis > cellShape.length) throw mismatch(`stack axis ${axis} exceeds result rank ${cellShape.length + 1}`);
+    if (axis === 0) {
+        const cellSize = cellShape.reduce((product, dimension) => product * dimension, 1);
+        return derivedArray([size, ...cellShape], dependencies, index =>
+            readers[Math.floor(index / cellSize)]!(index % cellSize));
+    }
+    const shape = [...cellShape];
+    shape.splice(axis, 0, size);
+    return derivedArray(shape, dependencies, index => {
+        const coordinates = coordinatesAt(shape, index);
+        const source = coordinates.splice(axis, 1)[0]!;
+        return readers[source]!(offsetAt(cellShape, coordinates));
+    });
+}
+
+/** Join equal-rank arrays on an existing axis. Rank-one sequences retain their plans. */
+export function concatValues(values: readonly RankValue[], axis = 0): RankArray | RankSequence {
+    const mismatch = (message: string) => new RankError(message, 'DimensionMismatch');
+    if (!Number.isSafeInteger(axis) || axis < 0) throw mismatch('concat axis must be a nonnegative integer');
+    if (values.length === 0) {
+        if (axis !== 0) throw mismatch(`concat axis ${axis} exceeds input rank 1`);
+        return ownedArray([], [0]);
+    }
+    if (values.some(value => !isRankArray(value) && !isRankSequence(value))) {
+        throw new RankError('concat items must all be arrays or sequences', 'TypeError');
+    }
+    const hasSequence = values.some(isRankSequence);
+    const arrays = values.filter(isRankArray);
+    const rank = arrays[0]?.shape.length ?? 1;
+    if (rank === 0 || axis >= rank) throw mismatch(`concat axis ${axis} exceeds input rank ${rank}`);
+    if (hasSequence) {
+        if (rank !== 1 || axis !== 0 || arrays.some(array => array.shape.length !== 1)) {
+            throw mismatch('concat sequences require rank-one inputs and axis 0');
+        }
+        const sources = values as readonly (RankArray | RankSequence)[];
+        let exact = 0n;
+        let unknown = false;
+        let infinite = false;
+        for (const source of sources) {
+            const size = isRankSequence(source) ? source.plan.size : { kind: 'exact' as const, value: BigInt(source.shape[0]) };
+            if (size.kind === 'exact') exact += size.value;
+            else if (size.kind === 'infinite') infinite = true;
+            else unknown = true;
+        }
+        return sequence({
+            name: 'concat',
+            size: infinite ? { kind: 'infinite' } : unknown ? { kind: 'unknown' } : { kind: 'exact', value: exact },
+            singlePass: sources.some(source => isRankSequence(source) && source.plan.singlePass),
+            *iterate() {
+                for (const source of sources) {
+                    if (isRankSequence(source)) yield* source.plan.iterate();
+                    else for (let index = 0; index < source.shape[0]; index += 1) {
+                        checkpoint('concatenating items');
+                        yield readArrayItem(source, index);
+                    }
+                }
+            },
+        });
+    }
+    const shape = [...arrays[0]!.shape];
+    const bounds: number[] = [];
+    let total = 0;
+    for (const source of arrays) {
+        checkpoint('concatenating items');
+        if (source.shape.length !== rank || source.shape.some((length, index) =>
+            index !== axis && length !== shape[index])) throw mismatch('concat items must match on non-concatenated axes');
+        total += source.shape[axis];
+        if (!Number.isSafeInteger(total)) throw mismatch('concat axis is too long');
+        bounds.push(total);
+    }
+    shape[axis] = total;
+    return derivedArray(shape, arrays, index => {
+        const coordinates = coordinatesAt(shape, index);
+        let low = 0, high = bounds.length;
+        while (low < high) {
+            const middle = (low + high) >>> 1;
+            if (coordinates[axis] < bounds[middle]) high = middle;
+            else low = middle + 1;
+        }
+        const sourceIndex = low;
+        const start = sourceIndex === 0 ? 0 : bounds[sourceIndex - 1];
+        coordinates[axis] -= start;
+        return readArrayItem(arrays[sourceIndex]!, offsetAt(arrays[sourceIndex]!.shape, coordinates));
+    });
 }
 
 export function transposeValue(value: RankValue, axes?: readonly number[]): RankValue {

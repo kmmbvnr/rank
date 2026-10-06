@@ -674,30 +674,45 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         message: `reshape expects ${expected} elements, got ${actual}` });
                 }
             }
-            if (form.kind === 'stack-constructor') {
-                const cells = form.items.map(item => expressionFacts(item, lookup));
+            if (form.kind === 'array-combine-constructor') {
+                const cells = form.items.map(item => expressionFacts(isUnpackExpression(item) ? item.value : item, lookup));
+                const operation = form.operation;
+                const axis = form.axis && expressionFacts(form.axis, lookup);
+                const axisNumber = axis?.integer === undefined ? form.axis ? undefined : 0 : Number(axis.integer);
+                if (axis?.types.length && axis.types.join() !== 'integer') diagnostics.push({
+                    node: form.axis!, kind: 'TypeError', message: `${operation} axis must be an integer`,
+                });
+                const rank = cells[0]?.rank;
+                const maximum = rank === undefined ? undefined : rank + (operation === 'stack' ? 1 : 0);
+                if (axis?.integer !== undefined && (BigInt(axis.integer) < 0n
+                    || maximum !== undefined && BigInt(axis.integer) >= BigInt(maximum))) diagnostics.push({
+                    node: form.axis!, kind: 'DimensionMismatch',
+                    message: `${operation} axis ${axis.integer} exceeds result rank ${maximum ?? 'unknown'}`,
+                });
                 const invalid = cells.some(cell => cell.types.length && !cell.types.every(type =>
                     type === 'array' || type === 'sequence'));
                 if (invalid) {
                     diagnostics.push({ node: expression, kind: 'TypeError',
-                        message: 'stack expects arrays or sequences' });
+                        message: `${operation} expects arrays or sequences` });
                 }
                 const first = cells[0];
                 for (const cell of invalid ? [] : cells.slice(1)) {
                     if (first.rank !== undefined && cell.rank !== undefined && first.rank !== cell.rank
                         || first.shape && cell.shape && first.shape.some((size, axis) =>
-                            size !== null && cell.shape?.[axis] !== null && cell.shape?.[axis] !== size)) {
+                            (operation === 'stack' || axis !== axisNumber)
+                            && size !== null && cell.shape?.[axis] !== null && cell.shape?.[axis] !== size)) {
                         diagnostics.push({ node: expression, kind: 'DimensionMismatch',
-                            message: 'stack arguments must have the same shape' });
+                            message: operation === 'stack' ? 'stack arguments must have the same shape'
+                                : 'concat arguments must match on non-concatenated axes' });
                         break;
                     }
                     const conflict = first.types.join() === cell.types.join()
-                        ? recordFieldConflict(first, cell, 'stack elements', true)
+                        ? recordFieldConflict(first, cell, `${operation} elements`, true)
                         : first.elements?.length && cell.elements?.length
                             && provenBindingTypeConflict(first.elements, cell.elements);
                     if (conflict) {
                         diagnostics.push({ node: expression, kind: 'TypeError',
-                            message: 'stack arguments must have one element type' });
+                            message: `${operation} arguments must have one element type` });
                         break;
                     }
                 }

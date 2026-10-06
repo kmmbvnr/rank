@@ -1189,8 +1189,10 @@ export const operations: readonly Operation[] = [
 ];
 
 export const moduleForms: readonly ModuleForm[] = [
-    { module: 'sequences', form: 'stack A B', example: 'X = array 1 2\nY = array 3 4\nPairs = stack X Y transpose',
-        summary: 'Builds a lazy array from equally shaped arrays or exact-size sequences.' },
+    { module: 'sequences', form: 'stack A B ... axis N', example: 'X = array 1 2\nY = array 3 4\nPairs = stack X Y',
+        summary: 'Lazily inserts an axis (default 0) between equally shaped arrays or exact-size sequences.' },
+    { module: 'sequences', form: 'concat A B ... axis N', example: 'X = array 1 2\nY = array 3 4\nJoined = concat X Y',
+        summary: 'Lazily joins arrays along an existing axis (default 0); rank-one sequences remain sequences.' },
     { module: 'cli', form: 'option Name Type = Default', example: 'option N integer = 3',
         summary: 'Declares a named command-line input.' },
     { module: 'cli', form: 'argument Name Type', example: 'argument N integer = 3',

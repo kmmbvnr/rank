@@ -416,6 +416,14 @@ it('checks known prefix stack arguments before execution', () => {
         .toEqual([]);
     expect(messages('use sequences\nX = stack (array 1 2) (3 to 4)'))
         .toEqual([]);
+    expect(messages('use sequences\nX = concat (array 1 2 shape 1 2) (array 1 2 3 shape 1 3)'))
+        .toContain('concat arguments must match on non-concatenated axes');
+    expect(messages('use sequences\nX = concat (array 1 2) (array "a" "b")'))
+        .toContain('concat arguments must have one element type');
+    expect(messages('use sequences\nX = concat (array 1 2) (array 3 4) axis 1'))
+        .toContain('concat axis 1 exceeds result rank 1');
+    expect(messages('use sequences\nX = concat (array 1 2) (array 3 4) axis true'))
+        .toContain('concat axis must be an integer');
 });
 
 it('selects only reachable branches for exact integer comparisons', () => {

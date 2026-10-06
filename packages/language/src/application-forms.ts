@@ -332,7 +332,8 @@ export type ApplicationForm =
     | { readonly kind: 'new-filled'; readonly structure: string }
     | { readonly kind: 'new-heap'; readonly priorities?: Expression; readonly values?: Expression;
         readonly direction?: Expression }
-    | { readonly kind: 'stack-constructor'; readonly items: readonly Expression[]; readonly rest: readonly Expression[] }
+    | { readonly kind: 'array-combine-constructor'; readonly operation: 'stack' | 'concat';
+        readonly items: readonly Expression[]; readonly axis?: Expression; readonly rest: readonly Expression[] }
     | { readonly kind: 'text-format'; readonly position: number }
     | Recognized<'collection-mutation', typeof explicitCollectionMutation>
     | Recognized<'comparison-rank', typeof explicitComparisonRank>
@@ -414,18 +415,25 @@ export function applicationForm(
 }
 
 function classifyParts(parts: Expression[], lookup: ApplicationLookup): ApplicationForm {
-    if (isNamed(parts[0], 'stack')) {
+    if (isNamed(parts[0], 'stack') || isNamed(parts[0], 'concat')) {
+        const operation = isNamed(parts[0], 'stack') ? 'stack' : 'concat';
         const end = parts.findIndex((part, index) => {
             if (index <= 1 || !isNameExpression(part)) return false;
-            const operation = lookup(part.name);
-            return !!operation && operation.arities.length > 0;
+            const named = lookup(part.name);
+            return isNamed(part, 'axis') || !!named && named.arities.length > 0;
         });
         const items = parts.slice(1, end < 0 ? undefined : end);
-        if (!items.length) return { kind: 'invalid', message: 'stack expects one or more arrays or sequences' };
-        return { kind: 'stack-constructor', items, rest: end < 0 ? [] : parts.slice(end) };
+        if (!items.length) return { kind: 'invalid', message: `${operation} expects one or more arrays or sequences` };
+        if (end >= 0 && isNamed(parts[end], 'axis')) {
+            if (!parts[end + 1]) return { kind: 'invalid', message: `${operation} axis expects an integer` };
+            return { kind: 'array-combine-constructor', operation, items, axis: parts[end + 1],
+                rest: parts.slice(end + 2) };
+        }
+        return { kind: 'array-combine-constructor', operation, items,
+            rest: end < 0 ? [] : parts.slice(end) };
     }
-    if (parts.slice(1).some(part => isNamed(part, 'stack'))) {
-        return { kind: 'invalid', message: 'use stack A B to stack arrays' };
+    if (parts.slice(1).some(part => isNamed(part, 'stack') || isNamed(part, 'concat'))) {
+        return { kind: 'invalid', message: 'use stack A B or concat A B to combine arrays' };
     }
     if (isNamed(parts.at(-1), 'check')) {
         const read = parts.slice(0, -1);
