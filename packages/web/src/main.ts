@@ -877,7 +877,7 @@ function endHold(pointerId: number, step: boolean): void {
     clearTimeout(hold.timer);
     const wasTurbo = session.turboActive;
     hold = undefined;
-    runButton.classList.remove('holding');
+    runButton.classList.remove('holding', 'hold-complete');
     if (step && (!wasLong || wasTurbo) && wasRunning === repl.running) runAction();
 }
 runButton.addEventListener('pointerdown', event => {
@@ -895,6 +895,7 @@ runButton.addEventListener('pointerdown', event => {
         timer: setTimeout(() => {
             if (!hold || hold.pointerId !== event.pointerId) return;
             hold.long = true;
+            runButton.classList.add('hold-complete');
             const action = hold.action;
             if (action === 'stop' && !repl.running || action === 'continue' && !session.pauseState
                 || action === 'restart' && repl.running) return;
