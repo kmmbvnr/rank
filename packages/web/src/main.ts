@@ -1,4 +1,5 @@
 import './styles.css';
+import { MobileGuidance } from './mobile-guidance.js';
 import { Capacitor } from '@capacitor/core';
 import { ManualViewer, manualKey } from './manual-viewer.js';
 import { ValueOverlay } from './value-overlay.js';
@@ -409,6 +410,7 @@ function render(): void {
     caret.style.width = (frame.cursorStyle === 6 ? 2 : cellWidth) + 'px';
     caret.hidden = !frame.cursorVisible || !!repl.help || Boolean(activeVoiceDictation);
     placeScreen();
+    guidance?.update();
     input.setAttribute('aria-busy', String(busy || repl.running));
     if (!composing) {
         const book = editor();
@@ -468,7 +470,14 @@ async function press(key: Key, text = ''): Promise<void> {
     } catch (error) {
         failure = needsRestart ? 'Stopped' : String(error);
         for (const cell of repl.notebook.cells) if (cell.status === 'running') cell.status = 'interrupted';
-    } finally { busy = false; render(); }
+    } finally {
+        busy = false;
+        if (!failure && !needsRestart && (key.name === 'return' || key.ctrl && ['r', 'l'].includes(key.name ?? ''))
+            && !repl.notebook.cells.some(cell => cell.status === 'error' || cell.status === 'interrupted')
+            && repl.notebook.cells.some(cell => cell.status === 'ok'))
+            guidance?.executed(repl.notebook.cells.some(cell => cell.source === 'A * 10' && cell.status === 'ok'));
+        render();
+    }
 }
 
 (globalThis as typeof globalThis & {
@@ -505,6 +514,7 @@ function applyInput(): void {
     const book = editor();
     const previous = book.current.source;
     const value = input.value;
+    if (value !== previous) guidance?.edited();
     // Keep native IME composition intact; ordinary insertions use CLI auto-pairing and aliases.
     if (composing || previous === value) book.replace(value, input.selectionStart);
     else {
@@ -520,10 +530,11 @@ function applyInput(): void {
     render();
 }
 
-input.addEventListener('compositionstart', () => { composing = true; });
+input.addEventListener('compositionstart', () => { guidance?.edited(); composing = true; });
 input.addEventListener('compositionend', () => { composing = false; applyInput(); });
 input.addEventListener('input', applyInput);
 input.addEventListener('beforeinput', event => {
+    guidance?.edited();
     if (activeVoiceDictation) stopVoiceDictation();
     if (!event.isComposing && (event.inputType === 'insertLineBreak' || event.inputType === 'insertParagraph')) {
         event.preventDefault(); void press({ name: 'return' }); return;
@@ -708,7 +719,10 @@ function renderKeyboard(): void {
             button.tabIndex = -1;
             button.textContent = tab.module;
             if (tab.module === '+') button.setAttribute('aria-label', 'Import a module');
-            button.onclick = () => { haptic(); keyboardModule = tab.module; keyboardKeys.scrollTop = 0; render(); };
+            button.onclick = () => {
+                if (tab.module === '+') guidance?.discovered('modules');
+                haptic(); keyboardModule = tab.module; keyboardKeys.scrollTop = 0; render();
+            };
             return button;
         }));
     }
@@ -736,7 +750,9 @@ function renderKeyboard(): void {
                 button.type = 'button';
                 button.tabIndex = -1;
                 button.textContent = key;
-                manualKey(button, () => { haptic('hold'); manualViewer.open(key, button); }, () => typeKey(key));
+                manualKey(button, () => {
+                    haptic('hold'); manualViewer.open(key, button); guidance?.discovered('documentation');
+                }, () => typeKey(key));
                 return button;
             })));
     }
@@ -796,6 +812,7 @@ function typeKey(key: string): void {
     if (activeVoiceDictation) stopVoiceDictation();
     if (busy || repl.running || repl.help || repl.liveIterationFocused) return;
     haptic();
+    guidance?.edited();
     const book = editor();
     book.insert(keyText(key, book.current.source.slice(0, book.cursor)), true);
     repl.dismiss();
@@ -816,6 +833,7 @@ keyboard.addEventListener('pointerdown', event => event.preventDefault());
 keyboard.addEventListener('mousedown', event => event.preventDefault());
 // A field that kept focus after Back does not summon the soft keyboard again until it refocuses.
 keyboardLetters.onclick = () => {
+    guidance?.discovered('letters');
     // Hide at once so the two keyboards never share the screen while the soft one slides in.
     softKeyboard = true;
     softKeyboardWantedUntil = Date.now() + 1500;
@@ -833,6 +851,9 @@ menuToggle.onclick = () => {
     menuToggle.setAttribute('aria-expanded', String(!commands.hidden));
 };
 commands.onclick = event => {
+    if ((event.target as HTMLElement).closest('[data-action=walkthrough]')) {
+        closeMenu(); keyboardKeys.scrollTop = 0; setKeyboard(true); guidance?.replay(); return;
+    }
     const turboRun = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-action="turbo-run"]');
     if (turboRun && !turboRun.disabled) {
         haptic('tap');
@@ -923,7 +944,7 @@ runButton.addEventListener('pointerdown', event => {
             haptic('hold');
             if (action === 'stop') void press({ name: 'c', ctrl: true });
             else if (action === 'continue') { session.resume?.(); render(); }
-            else void press({ name: 'l', ctrl: true });
+            else { guidance?.discovered('hold'); void press({ name: 'l', ctrl: true }); }
         }, 700) };
 });
 runButton.addEventListener('pointermove', event => {
@@ -952,6 +973,7 @@ document.addEventListener('paste', event => {
         repl.notebook.selectTo(selected.end.cell, selected.end.offset, true);
         getSelection()?.removeAllRanges();
     }
+    guidance?.edited();
     (selected ? repl.notebook : editor()).insert(event.clipboardData?.getData('text/plain').replace(/\r\n?/g, '\n') ?? '');
     follow = true; render(); focusInput();
 });
@@ -1453,6 +1475,38 @@ function resize(): void {
 window.visualViewport?.addEventListener('resize', resize);
 window.visualViewport?.addEventListener('scroll', resize);
 window.addEventListener('resize', resize);
+const guidance = touchConsole && !example ? new MobileGuidance(() => ({
+    ready: historyReady && !changingNotebook,
+    empty: repl.notebook.cells.every(cell => !cell.source.trim()),
+    codeLines: repl.notebook.cells.filter(cell => !cell.command).flatMap(cell => cell.source.split('\n'))
+        .filter(line => line.trim() && !/^\s*rem(?:\s|$)/.test(line)).length,
+    unavailable: busy || repl.running || composing || !!activeVoiceDictation || !!failure || needsRestart
+        || !!repl.help || !!session.pauseState || nativeSelection() || !commands.hidden
+        || !!document.querySelector('dialog[open]:not(#notebook-panel)')
+        || repl.notebook.cells.some(cell => cell.status === 'error'),
+    softKeyboard,
+    notebookPanelOpen: notebookPanel?.dialog.open ?? false,
+    rankKeyboard: symbolKeyboardShown() && !keyboard.hidden && !keyboardOpening,
+    targets: { notebook: terminal, play: runButton, newNotebook: document.querySelector<HTMLElement>('#new-notebook') ?? undefined, brand: document.querySelector<HTMLElement>('#brand')!,
+        commands: keyboardKeys.querySelector<HTMLElement>('button:not([aria-disabled="true"])') ?? undefined,
+        letters: keyboardLetters, modules: keyboardTabList.querySelector<HTMLElement>('[aria-label="Import a module"]') ?? undefined },
+}), () => {
+    // Enqueue creates real editable cells and a trailing prompt, without evaluation.
+    if (!historyReady || busy || repl.running || repl.notebook.cells.some(cell => cell.source.trim())) return;
+    repl.notebook.enqueue('A = 1 to 5');
+    repl.notebook.enqueue('A * 10');
+    repl.notebook.selectTo(1, 'A * 10'.length);
+    follow = true;
+    render();
+}, () => {
+    input.blur();
+    const capacitor = (globalThis as typeof globalThis & { Capacitor?: { getPlatform(): string } }).Capacitor;
+    if (capacitor?.getPlatform() === 'android')
+        void fetch('/__rank_keyboard_hide', { cache: 'no-store' }).catch(() => {});
+}) : undefined;
+document.querySelector<HTMLButtonElement>('[data-action="walkthrough"]')!.hidden = !guidance;
+document.querySelector('#key-manual')?.addEventListener('close', () => guidance?.update());
+
 resize();
 
 if (example) {
@@ -1526,11 +1580,16 @@ if (!example) {
     notebookHistory = new NotebookHistory(notebookStore(), error => {
         failure = 'Cannot save notebook: ' + String(error); render();
     }, rememberNotebook);
-    notebookPanel = new NotebookPanel(notebookHistory, changeNotebook, importNotebook, exportNotebook,
+    notebookPanel = new NotebookPanel(notebookHistory, async id => {
+        await changeNotebook(id);
+        if (id === undefined) guidance?.discovered('newNotebook');
+    }, importNotebook, exportNotebook,
         () => { closeMenu(); stopVoiceDictation(); setKeyboard(false); },
         () => { brand.setAttribute('aria-expanded', 'false'); render(); });
-    brand.onclick = () => {
-        brand.setAttribute('aria-expanded', 'true'); void notebookPanel!.show();
+    brand.onclick = async () => {
+        brand.setAttribute('aria-expanded', 'true');
+        await notebookPanel!.show();
+        guidance?.discovered('notebooks');
     };
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && historyReady) {
