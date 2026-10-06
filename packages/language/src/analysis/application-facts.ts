@@ -141,26 +141,39 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
     switch (form.kind) {
         case 'checked-read':
             return infer(applicationExpression(form.parts, expression), lookup);
-        case 'stack-constructor': {
+        case 'array-combine-constructor': {
             const spread = form.items.some(isUnpackExpression);
             const cells = form.items.map(item => infer(isUnpackExpression(item) ? item.value : item, lookup));
             if (!spread && !cells.every(cell => ['array', 'sequence'].includes(cell.types.join()))) return UNKNOWN_VALUE;
             const first = cells[0];
-            const rank = spread || first.rank === undefined || cells.some(cell => cell.rank !== first.rank)
-                ? undefined : first.rank + 1;
-            const shape = rank === undefined ? undefined : [cells.length,
-                ...(first.shape ?? Array(first.rank).fill(null)).map((length, axis) =>
-                    cells.every(cell => cell.shape?.[axis] === length) ? length : null)];
-            const stacked: ValueFacts = { types: ['array'], rank, shape,
+            const inputRank = spread || first.rank === undefined || cells.some(cell => cell.rank !== first.rank)
+                ? undefined : first.rank;
+            const axisFact = form.axis && infer(form.axis, lookup);
+            const axis = axisFact?.integer === undefined ? form.axis ? undefined : 0 : Number(axisFact.integer);
+            const rank = inputRank === undefined ? undefined
+                : form.operation === 'stack' ? inputRank + 1 : inputRank;
+            const validAxis = axis !== undefined && rank !== undefined && axis >= 0
+                && axis < rank;
+            const shape = !validAxis || inputRank === undefined ? undefined
+                : (first.shape ?? Array(inputRank).fill(null)).map((length, index) => {
+                    if (form.operation === 'concat' && index === axis) {
+                        return cells.every(cell => cell.shape?.[index] != null)
+                            ? cells.reduce((sum, cell) => sum + cell.shape![index]!, 0) : null;
+                    }
+                    return cells.every(cell => cell.shape?.[index] === length) ? length : null;
+                });
+            if (shape && form.operation === 'stack') shape.splice(axis!, 0, cells.length);
+            const sequence = form.operation === 'concat' && cells.some(cell => cell.types.join() === 'sequence');
+            const combined: ValueFacts = { types: [sequence ? 'sequence' : 'array'], rank, shape,
                 elements: first.elements?.length && cells.every(cell => cell.elements?.join() === first.elements?.join())
                     && !spread ? first.elements : undefined,
                 ...(!spread && cells.every(cell => cell.eagerScalarCells || cell.callbackFreeScalarCells)
                     ? { callbackFreeScalarCells: true as const } : {}) };
-            if (!form.rest.length) return stacked;
-            const name = '\0stack-result';
+            if (!form.rest.length) return combined;
+            const name = '\0combined-result';
             const source = { $type: 'NameExpression', name } as Expression;
             const next = applicationExpression([source, ...form.rest], expression);
-            const nested = Object.assign((key: string) => key === name ? stacked : lookup(key),
+            const nested = Object.assign((key: string) => key === name ? combined : lookup(key),
                 { arity: lookup.arity, invoke: lookup.invoke });
             return infer(next, nested);
         }

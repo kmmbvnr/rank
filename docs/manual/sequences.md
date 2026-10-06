@@ -204,16 +204,57 @@ S shape
 ### Usage
 
 ```text
-Arrays stack
+stack Array Array ... [axis N]
 ```
 
 All arrays must have the same shape.
 Items are computed only when read; use
 copy to compute them all at once.
+`axis` places the new dimension. Its
+default is `0`. Two 2-by-2 arrays
+stacked with `axis 1` make a
+2-by-2-by-2 array.
+Use `stack unpack Parts axis 1` when
+`Parts` holds the input arrays.
 
 ### See also
 
-copy, reshape
+concat, copy, reshape
+
+## concat
+
+Join arrays along an existing axis.
+The cells are read on demand.
+
+```rank
+use sequences
+A = array 1 2 3 4 shape 2 2
+B = array 5 6 7 8 shape 2 2
+concat A B axis 1 shape
+```
+
+```result
+2 4
+```
+
+### Usage
+
+```text
+concat Array Array ... [axis N]
+```
+
+The default axis is `0`. Inputs need the
+same rank, element type, and size on
+other axes. Use
+`concat unpack Parts axis N` for a list
+or tuple of inputs. Rank-one sequences
+stay lazy, even if their length
+is unknown. Mixing a rank-one array and
+sequence also returns a sequence.
+
+### See also
+
+stack, copy
 
 ## count
 

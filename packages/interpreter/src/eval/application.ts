@@ -22,7 +22,7 @@ import { shuffleValue } from '../modules/random.js';
 import { directedMerge } from '../modules/sorted-merge.js';
 import {
     argsortAxis, directedSort, lengthOfAxis, materializeCollection, reshapeWithDimensions, reshapeWithShapeRows,
-    sortDescending, sortMode, stackValues, transposeValue,
+    sortDescending, sortMode, stackValues, concatValues, transposeValue,
     type SortMode,
 } from '../modules/sequences.js';
 import { correlationValue, covarianceValue, errorMetricValue, quantileValue } from '../modules/stats.js';
@@ -320,10 +320,10 @@ export class ApplicationEvaluator {
                     return heap;
                 };
             }
-            case 'stack-constructor': {
+            case 'array-combine-constructor': {
                 const constructor = form;
                 return function* (): Execution<RankValue> {
-                    context.requireModule('sequences', 'stack');
+                    context.requireModule('sequences', constructor.operation);
                     const items: RankValue[] = [];
                     for (const item of constructor.items) {
                         if (isUnpackExpression(item)) {
@@ -333,10 +333,17 @@ export class ApplicationEvaluator {
                             items.push(yield* resume(context.evaluate(item)));
                         }
                     }
-                    const stacked = stackValues(items);
-                    if (!constructor.rest.length) return stacked;
+                    const axisValue = constructor.axis && (yield* resume(context.evaluate(constructor.axis)));
+                    if (axisValue !== undefined && (typeof axisValue !== 'bigint' || axisValue < 0n
+                        || axisValue > BigInt(Number.MAX_SAFE_INTEGER))) {
+                        throw new RankError(`${constructor.operation} axis expects a nonnegative integer`, 'TypeError');
+                    }
+                    const axis = axisValue === undefined ? 0 : Number(axisValue);
+                    const combined = constructor.operation === 'stack'
+                        ? stackValues(items, axis) : concatValues(items, axis);
+                    if (!constructor.rest.length) return combined;
                     const rest = yield* resume(mapExecution(constructor.rest, part => context.evaluate(part)));
-                    return yield* resume(application.apply([stacked, ...rest], missing, 0, [], tail));
+                    return yield* resume(application.apply([combined, ...rest], missing, 0, [], tail));
                 };
             }
             case 'named-outer': {

@@ -381,7 +381,8 @@ These need `use sequences` but have no name to look up.
 
 | Form | Summary |
 | --- | --- |
-| `stack A B` | Builds a lazy array from equally shaped arrays or exact-size sequences. |
+| `stack A B ... axis N` | Lazily inserts an axis (default 0) between equally shaped arrays or exact-size sequences. |
+| `concat A B ... axis N` | Lazily joins arrays along an existing axis (default 0); rank-one sequences remain sequences. |
 | `Values sort by .field` | Stable sort by record fields or by one key function. |
 | `Values argsort by .field` | Source positions of that same order. |
 | `Values sort .descending` | Sorts in descending order; argsort and per-key sort directions preserve ties. |

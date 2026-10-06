@@ -2722,8 +2722,8 @@ Series = (array Month Interest Balance) copy transpose
 Series shape          rem 360 3 for 360 months
 ```
 
-Prefix `stack A B ...` is the lazy counterpart of that rule. It joins equally
-shaped arrays or sequences along a new leading axis: cells are read from the
+Prefix `stack A B ... axis N` is the lazy counterpart of that rule. It joins equally
+shaped arrays or sequences along a new axis (axis 0 by default): cells are read from the
 arguments on demand rather than copied. Assignment keeps its value semantics,
 so writing to an argument name later does not change the stack built from it.
 Shapes are checked when `stack` is applied.
@@ -2742,6 +2742,13 @@ generator or `filter`) raises `TypeError` and points to `copy`, an infinite
 sequence is an error, and items of different shapes, or arrays mixed with
 scalars, raise `DimensionMismatch`. To materialize a sequence of arrays, use
 `copy`.
+
+Prefix `concat A B ... axis N` joins same-rank arrays along an existing axis
+(axis 0 by default). The dimensions on other axes must match. Its cells are
+read from the chosen source on demand. With rank-one sequences, including
+ones of unknown length, the result is a lazy sequence; mixing rank-one arrays
+and sequences also returns a sequence. An array or tuple of arguments can be
+spread with `concat unpack Items axis N`.
 
 ## Sliding windows
 
