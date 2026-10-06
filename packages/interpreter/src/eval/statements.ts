@@ -1,10 +1,10 @@
 import {
     applicationForm, isApplicationExpression, isArgsStatement, isArgumentStatement,
     isArrayAssignmentStatement, isAssignmentStatement, isBreakStatement, isContinueStatement, isExpressionStatement,
-    isFlagStatement, isForStatement, isFunctionStatement, isIfStatement,
+    isFlagStatement, isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
     isNameExpression, isOptionStatement, isParenthesizedExpression, isPushStatement, isReturnStatement,
     isRunStatement, isTestStatement, isTryStatement, isUnpackStatement, isUseStatement, isYieldStatement,
-    type Expression, type FunctionStatement, type Operation, type Statement,
+    type Expression, type FunctionBindingStatement, type FunctionStatement, type Operation, type Statement,
 } from '@arrrank/language';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { inputDeclarationName } from '../cli-args.js';
@@ -43,6 +43,7 @@ export interface StatementContext {
     execute(statements: Statement[], context: ExecutionContext): Evaluation<RankValue | undefined>;
     assign(name: string, value: RankValue): void;
     define(statement: FunctionStatement): RankValue;
+    defineBinding(statement: FunctionBindingStatement): RankValue;
     requireModule(module: string, operation: string): void;
     readonly program: ProgramControl;
     readonly loops: LoopContext;
@@ -89,6 +90,7 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
             return undefined;
         } };
     }
+    if (isFunctionBindingStatement(statement)) return { run: () => host.defineBinding(statement) };
     if (isFunctionStatement(statement)) {
         return { stream: function* (): Execution<RankValue | undefined> { return host.define(statement); } };
     }

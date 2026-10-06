@@ -1,7 +1,8 @@
+import { prepareFunctionBindings, functionBindingPlan } from './function-binding.js';
 import { groupModifiers } from './modifier-grouping.js';
 import { AstUtils, GrammarUtils, isAstNode, type AstNode, type CstNode } from 'langium';
 import {
-    isApplicationExpression, isBinaryExpression, isExpression, isHigherOrderOperator, isMaterializeExpression,
+    isApplicationExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isHigherOrderOperator, isMaterializeExpression,
     isLabelLiteral, isNameExpression, type HigherOrderOperator,
     type BinaryExpression, type Expression, type NameExpression, type Program,
 } from './generated/ast.js';
@@ -77,6 +78,7 @@ export interface GroupingOptions {
  * below it, so a call after a comparison applies to the comparison's result.
  */
 export function groupExpressions(program: Program, options: GroupingOptions = {}): void {
+    prepareFunctionBindings(program, options.bindings);
     const errors: GroupingDiagnostic[] = [];
     diagnostics.set(program, errors);
     const externalFunctions = new Map<string, readonly number[]>();
@@ -343,6 +345,17 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         return { ...values[0], $cstNode: expression.$cstNode } as Expression;
     }
     function visitChildren(node: AstNode): AstNode {
+        if (isFunctionBindingStatement(node)) {
+            const plan = functionBindingPlan(node);
+            if (plan.error) report(node, plan.error);
+            if (plan.value) node.value = visit(plan.value) as Expression;
+            for (const definition of plan.definitions) {
+                const wrapped = { $type: 'Program', statements: [definition] } as Program;
+                groupExpressions(wrapped, options);
+                errors.push(...expressionDiagnostics(wrapped));
+            }
+            return node;
+        }
         if (isHigherOrderOperator(node)) {
             report(node, `\`${node.text}\` needs the values it applies to on its left.`);
         }

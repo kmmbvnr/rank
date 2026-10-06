@@ -52,6 +52,9 @@ export class BindingEnvironment {
         if (!frame) this.sourceBindings.add(name);
         const scope = frame ?? this.globals;
         const received = typeName(value);
+        if (received === 'function' && /^[A-Z]/.test(name.split('.').at(-1)!)) {
+            throw new RankError(`Function bindings use lowercase names: ${name}`, 'TypeError');
+        }
         // A variable that already carries a recorded type needs neither its
         // previous value nor a rewrite of the type it keeps.
         const recorded = scope.typeOf(name);

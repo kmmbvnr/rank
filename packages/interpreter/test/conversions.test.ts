@@ -88,11 +88,11 @@ for (const compiled of [true, false]) describe(`explicit conversions (compiled=$
         r.execute('Row = record\n .count = 1\nend');
         expect(() => r.execute('Row .count = 2.5')).toThrow('cannot receive real');
         expect(r.execute('Row .count = 2.5 integer')).toBe(2n);
-        r.execute('Cast = real\nCalls = array 0\nfun next\n Calls 0 += 1\n return 2\nend');
-        expect(r.execute('next Cast')).toBe(2);
+        r.execute('cast = real\nCalls = array 0\nfun next\n Calls 0 += 1\n return 2\nend');
+        expect(r.execute('next cast')).toBe(2);
         expect(r.execute('Calls 0')).toBe(1n);
         expect(() => r.execute('fun real Value\n return Value + 10\nend')).toThrow('cannot redefine available builtin: real');
         expect(r.execute('2 real')).toBe(2);
-        expect(r.execute('2 Cast')).toBe(2);
+        expect(r.execute('2 cast')).toBe(2);
     });
 });

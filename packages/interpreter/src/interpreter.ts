@@ -1,7 +1,7 @@
 import { InterruptedError, inspectionEnabled } from './interrupt.js';
 import { type AstNode } from 'langium';
 import {
-    availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage, isFunctionStatement, isUseStatement,
+    availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage, isFunctionStatement, isFunctionBindingStatement, isUseStatement,
     type Expression, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { enterRuntime, leaveRuntime } from './array-storage.js';
@@ -110,6 +110,7 @@ export class Interpreter {
         this.functions = new FunctionInvocation(this.bindings, this.resources, this.builtins, this.inspection,
             this.modules, () => this.options, {
                 inputs: this.checkedInputs,
+                apply: (fn, args) => this.rankApplication.applyIntrinsicRank(fn, args),
                 compileDirect: expression => this.expressions.compileDirect(expression),
                 compiled: (statement, arguments_) => this.fastPaths.functionBody(statement, arguments_, this.blocks),
                 execute: (statements, generator) => this.blocks.execute(statements, false, false, false, generator),
@@ -219,6 +220,7 @@ export class Interpreter {
             execute: (statements, context) => this.blocks.executeIn(statements, context),
             assign: (name, value) => this.assign(name, value),
             define: statement => this.functions.define(statement),
+            defineBinding: statement => this.functions.defineBinding(statement, name => this.resolve(name), value => this.evaluate(value)),
             requireModule: requireOpen,
             program: {
                 useFile: (path, alias) => { this.useFile(path, alias); },
@@ -483,7 +485,7 @@ export class Interpreter {
                 }
             }
             for (const statement of loaded.program.statements) {
-                if (!isFunctionStatement(statement)) continue;
+                if (!isFunctionStatement(statement) && !isFunctionBindingStatement(statement)) continue;
                 this.assign(statement.name, child.resolveVariable(statement.name));
             }
             this.currentRunTarget = loaded;
@@ -496,6 +498,10 @@ export class Interpreter {
         this.checkBuiltinBindings(program);
         this.declareFunctions(program.statements);
         for (const statement of program.statements) {
+            if (isFunctionBindingStatement(statement)) {
+                this.functions.defineBinding(statement, name => this.resolve(name), value => this.evaluate(value));
+                continue;
+            }
             if (!isUseStatement(statement)) continue;
             if (statement.path !== undefined) {
                 this.useFile(statement.path, statement.alias);

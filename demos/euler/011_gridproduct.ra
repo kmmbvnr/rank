@@ -57,10 +57,6 @@ Square = array 4 4
 D = Grid window Square diag rank 2
 U = Grid reverse window Square diag rank 2
 
-Answer = (array H V D U) max_product rank 0 max
+products = reduce * rank 1 max
+Answer = (array H V D U) products rank 0 max
 Answer print
-
-
-fun max_product Runs
-  return Runs reduce * rank 1 max
-end

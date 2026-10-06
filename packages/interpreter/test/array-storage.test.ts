@@ -212,7 +212,7 @@ First = A inspect`);
     it('does not borrow through a boolean condition supplied as a callback', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('use algo\nfun inspect V Flag\n if Flag\n  return V 0\n else\n  return V 1\n end\nend\n'
+            runtime.execute('use algo\nfun inspect V predicate\n if predicate\n  return V 0\n else\n  return V 1\n end\nend\n'
                 + 'A = array 10 20\nQ = new queue\nfun change\n Q push 1\n return true\nend');
             const inspect = runtime.variables.get('inspect');
             if (!inspect || !isNativeFunction(inspect)) throw new Error('inspect');
@@ -486,8 +486,8 @@ fun mutate
   A 0 = 99
   return 0
 end
-fun inspect V F
-  return F + (V 0)
+fun inspect V f
+  return f + (V 0)
 end`);
             const inspect = runtime.variables.get('inspect');
             if (!inspect || !isNativeFunction(inspect)) throw new Error('inspect');

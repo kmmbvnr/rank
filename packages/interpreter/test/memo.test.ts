@@ -87,7 +87,7 @@ end
 30 fib
 `)).toBe(832040n);
         expect(calls).toHaveLength(31);
-        expect(interpreter.execute('F = fib\n30 F')).toBe(832040n);
+        expect(interpreter.execute('f = fib\n30 f')).toBe(832040n);
         expect(calls).toHaveLength(31);
         expect(interpreter.execute('31 fib')).toBe(1346269n);
         expect(calls).toHaveLength(32);
@@ -105,15 +105,15 @@ fun make Base
   end
   return value
 end
-A = 10 make
-B = 20 make
+a = (10 make)
+b = (20 make)
 `);
-        expect(interpreter.execute('5 A')).toBe(15n);
-        expect(interpreter.execute('5 A')).toBe(15n);
-        expect(interpreter.execute('5 B')).toBe(25n);
-        expect(interpreter.execute('5 B')).toBe(25n);
+        expect(interpreter.execute('5 a')).toBe(15n);
+        expect(interpreter.execute('5 a')).toBe(15n);
+        expect(interpreter.execute('5 b')).toBe(25n);
+        expect(interpreter.execute('5 b')).toBe(25n);
         expect(calls).toEqual(['5', '5']);
-        expect(interpreter.execute('A equal B')).toBe(false);
+        expect(interpreter.execute('a equal b')).toBe(false);
         const localCalls: string[] = [];
         const fresh = new Interpreter(line => localCalls.push(line));
         fresh.execute(`

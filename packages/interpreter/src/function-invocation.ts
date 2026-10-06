@@ -1,7 +1,7 @@
 import type { AstNode } from 'langium';
 import {
-    availableBuiltin, builtinBindingMessage, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
-    type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionStatement, type Statement, type ValueFacts,
+    availableBuiltin, builtinBindingMessage, functionBindingPlan, groupExpressions, expressionDiagnostics, flattenApplication, isNameExpression, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
+    type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { enterRuntime, isFlatScalarArray, isSharedArray, leaveRuntime } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
@@ -40,6 +40,7 @@ export interface FunctionDefinition {
 
 /** What defining and running a function body needs from execution and the fast-path owner. */
 export interface FunctionHost {
+    apply(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue>;
     readonly inputs?: Pick<CheckedInputContracts, 'pending' | 'call' | 'tail'>;
     /** A synchronous closure for an expression that cannot call Rank code, when one exists. */
     compileDirect(expression: Expression): (() => RankValue) | undefined;
@@ -127,6 +128,61 @@ export class FunctionInvocation {
     }
 
     /** Binds a function declaration in the current scope; the definition captures that scope. */
+    defineBinding(statement: FunctionBindingStatement, resolve: (name: string) => RankValue, evaluate: (value: Expression) => RankValue): RankValue {
+        let plan = functionBindingPlan(statement);
+        if (!statement.parameters.length && !plan.alias && !plan.value) {
+            const signatures = new Map<string, readonly number[] | false>();
+            for (const part of flattenApplication(statement.value)) {
+                if (!isNameExpression(part) || ['rank', 'axis', 'with'].includes(part.name)) continue;
+                const value = resolve(part.name);
+                signatures.set(part.name, isNativeFunction(value) ? value.arities : false);
+            }
+            const copy = { ...statement };
+            const program = { $type: 'Program', statements: [copy] } as Program;
+            groupExpressions(program, { bindings: signatures });
+            const diagnostic = expressionDiagnostics(program)[0];
+            if (diagnostic) throw new RankError(diagnostic.message, 'Syntax');
+            plan = functionBindingPlan(copy);
+        }
+        if (plan.error) throw new RankError(plan.error, 'Syntax');
+        if (plan.alias || plan.value) {
+            const value = plan.alias ? resolve(plan.alias) : evaluate(statement.value);
+            if (!isNativeFunction(value)) throw new RankError('A lowercase binding must name a function', 'TypeError');
+            this.bindings.assign(statement.name, value);
+            return value;
+        }
+        const stages = plan.stages;
+        const context = this.bindings.current;
+        const plain = stages?.every(stage => stage.length === 1 && isNameExpression(stage[0]));
+        const alternatives = new Map<number, NativeFunction>();
+        for (const definition of plain ? [] : plan.definitions) {
+            alternatives.set(definition.parameters.length, this.define(definition) as NativeFunction);
+        }
+        const fn: NativeFunction = {
+            kind: 'function', name: statement.name, arities: plan.arities,
+            monadicRank: 'all', dyadicRanks: ['all', 'all'],
+            captures: this.bindings.current?.captures(),
+            call: args => {
+                if (plain) return this.bindings.withFrame(context, () => {
+                    let operands = args;
+                    for (const stage of stages!) {
+                        const head = stage[0];
+                        if (!isNameExpression(head)) throw new RankError('Pipeline stage must name a function');
+                        const operation = resolve(head.name);
+                        if (!isNativeFunction(operation)) throw new RankError('Pipeline stage must be a function', 'TypeError');
+                        operands = [runExecution(this.host.apply(operation, operands))];
+                    }
+                    return operands[0];
+                });
+                const selected = alternatives.get(args.length);
+                if (!selected) throw new RankError(`${statement.name} does not accept ${args.length} arguments`);
+                return selected.call(args);
+            },
+        };
+        this.bindings.assign(statement.name, fn);
+        return fn;
+    }
+
     define(statement: FunctionStatement): RankValue {
         if (availableBuiltin(statement.name, this.modules)) {
             throw new RankError(builtinBindingMessage(statement.name), 'TypeError');
@@ -388,6 +444,9 @@ export class FunctionInvocation {
                 && (prepared.borrowedParameters.has(parameter)
                     || !!guards && [...guards].every(([selector, type]) => type === 'flat-array'
                         ? isFlatScalarArray(arguments_[selector]) : typeof arguments_[selector] === type));
+            if (isNativeFunction(argument) && /^[A-Z]/.test(parameter)) {
+                throw new RankError(`Function parameters use lowercase names: ${parameter}`, 'TypeError');
+            }
             frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
         });
         return frame;

@@ -47,8 +47,8 @@ session, opening `linalg` after defining `solve` fails without activating the
 module. A qualified import such as `use "worker" as W` keeps `W.solve` separate
 from the caller's builtin `solve`.
 
-Function aliases are allowed. `Op = matmul` retains builtin operation identity,
-including forms such as `A B Op axis 1 0`. Reassigning an alias to another
+Function aliases are allowed. `op = matmul` retains builtin operation identity,
+including forms such as `A B op axis 1 0`. Reassigning an alias to another
 function requires the next call to resolve that identity again.
 
 Receiver methods keep their contextual dispatch. `Dsu findroot X` calls the DSU

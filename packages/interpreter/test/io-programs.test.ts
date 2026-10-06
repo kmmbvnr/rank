@@ -285,8 +285,8 @@ describe('Rank IO, modules and programs', () => {
             '    return File Count readbytes',
             '  end',
             'end',
-            'Take = "/input" reader',
-            'Bytes = 2 Take',
+            'pick_bytes = ("/input" reader)',
+            'Bytes = 2 pick_bytes',
         ].join('\n'));
 
         expect(formatValue(interpreter.variables.get('Bytes')!)).toBe('0x5261');

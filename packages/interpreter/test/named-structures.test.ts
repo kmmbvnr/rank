@@ -110,11 +110,11 @@ fun make N
     return Counts X
   end
 end
-A = 0 make
-B = 0 make
-First = 7 A
-Second = 7 A
-Other = 7 B
+a = (0 make)
+b = (0 make)
+First = 7 a
+Second = 7 a
+Other = 7 b
 tuple First Second Other
 `)).toBe('1 2 1');
     });

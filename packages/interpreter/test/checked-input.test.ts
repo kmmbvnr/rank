@@ -324,8 +324,8 @@ it('applies later caller requirements after registering a function cell', () => 
 
 it('retains the checked reader contract through a function alias', () => {
     const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\nbad\n' }) });
-    runtime.execute('use tables\nfun load Path\n return Path csv check\nend\nReader = load');
-    expect(() => runtime.execute('Rows = "data.csv" Reader\nAfter = 1\nRows .price sum'))
+    runtime.execute('use tables\nfun load Path\n return Path csv check\nend\nreader_fn = load');
+    expect(() => runtime.execute('Rows = "data.csv" reader_fn\nAfter = 1\nRows .price sum'))
         .toThrow(/csv input.price\[0\].*received text/);
     expect(runtime.variables.has('After')).toBe(false);
 });

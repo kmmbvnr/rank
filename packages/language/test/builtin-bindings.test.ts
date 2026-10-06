@@ -23,7 +23,7 @@ it('reserves module names only when the module is opened, in either order', () =
     expect(messages(declaration)).toEqual([]);
     expect(messages(`use linalg\n${declaration}`)).toContain('cannot redefine available builtin: solve');
     expect(messages(`${declaration}\nuse linalg`)).toContain('cannot redefine available builtin: solve');
-    expect(messages('Op = sum')).toEqual([]);
+    expect(messages('op = sum')).toEqual([]);
 });
 
 it('checks parameters of declarations retained from an earlier analysis', () => {
@@ -36,7 +36,7 @@ it('checks parameters of declarations retained from an earlier analysis', () => 
 
 it('uses builtin identity for an aliased axis reduction', () => {
     const program = parser.parse<Program>('A = array shape 2 2\n 1 2\n 3 4\nend\n'
-        + 'Op = sum\nResult = A Op axis 1\n');
+        + 'op = sum\nResult = A op axis 1\n');
     expect(program.parserErrors).toEqual([]);
     const analysis = analyzeValues(program.value);
     expect(analysis.diagnostics).toEqual([]);

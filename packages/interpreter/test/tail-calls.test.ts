@@ -48,8 +48,8 @@ fun loop N Saved
     return N + X
   end
   if N equal 0
-    F = Saved 0
-    return 0 F
+    f = (Saved 0)
+    return 0 f
   end
   if N equal 3
     Keep = array capture
@@ -70,16 +70,16 @@ use io
 fun identity X
   return X
 end
-F = identity
+f = identity
 fun forward N
-  return N print F
+  return N print f
 end
 7 forward
 `)).toBe(7n);
         expect(lines).toEqual(['7']);
         interpreter.execute(count);
         // A changed arity is checked when the replacement frame is created.
-        interpreter.execute('F = count');
+        interpreter.execute('f = count');
         expect(() => interpreter.execute('7 forward')).toThrowError('count expects 2 arguments, got 1');
         expect(lines).toEqual(['7', '7']);
         expect(interpreter.execute('1 0 count')).toBe(1n);

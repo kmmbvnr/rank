@@ -1171,7 +1171,7 @@ to write `Low High max`.
 
 A user-defined `min` or `max` takes precedence, even without `use numbers`.
 For example, after `fun max A B` returning `A + B`, `3 4 max` returns `7`.
-A named builtin (`Op = max`) supports the same lazy binary broadcasting.
+A named builtin (`op = max`) supports the same lazy binary broadcasting.
 Equal numeric operands preserve the left operand, including its integer/real
 representation.
 
@@ -1236,8 +1236,8 @@ function immediately before it to every pair of cells:
 Sums = A B outer +
 Products = A B outer *
 Grid = Values Values outer bxor
-Operation = min
-Smallest = A B outer Operation
+operation = min
+Smallest = A B outer operation
 ```
 
 Cell ranks belong to the operation; `outer` combines the remaining frames.

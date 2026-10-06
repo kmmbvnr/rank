@@ -494,6 +494,63 @@ that all return paths have one contract. See the
 [decision-tree demo](../../demos/deepml/020_tree.ra) for a recursive function whose
 leaves and branches share a record result.
 
+### Single-expression functions
+
+A lowercase name before `=` defines a function. An operation pipeline needs no
+named parameters:
+
+```rank
+products = reduce * rank 1 max
+multiply_abs = matmul abs
+```
+
+The entry stage supplies the complete set of supported argument counts. Thus
+`positive_max = max abs` accepts either one value or two values. Calls use the
+usual postfix argument grouping. Only the entry stage receives the original
+arguments; each later stage receives one result, including an array or tuple as
+one value. A later stage that cannot accept one value is rejected when the
+definition is analyzed: `f = abs matmul` needs an explicit second operand.
+
+Parameters before `=` instead define a single expression with a fixed argument
+count:
+
+```rank
+products V = V reduce * rank 1 max
+multiply_abs A B = A B matmul abs
+f A B = (A abs) B matmul
+```
+
+These forms replace the name's previous binding; they do not add overloads.
+Executing a definition creates the function without executing its body. Its
+binding becomes available afterward. Block `fun` declarations retain their
+existing visibility throughout their scope, and `memo` remains unchanged.
+
+A composition receives whole operands by default. Internal operations keep their
+own rank rules. A call-site `rank` applies to the complete composition:
+
+```rank
+products = reduce * rank 1 max
+Answer = (array H V D U) products rank 0 max
+```
+
+Here `rank 1` applies to `reduce *`, while `rank 0` applies to `products`.
+Similarly, `total = matmul sum` sums the complete multiplication result;
+`A B total rank 2 2` instead sums each matrix-cell multiplication separately.
+
+A direct alias, `f = g`, preserves `g`'s identity and all argument counts, even
+when `g` takes no arguments. To evaluate a factory now and bind its returned
+function, explicitly group the entire expression: `f = (10 make)`. The ungrouped
+`f = 10 make` is rejected. The grouped expression must return a function.
+Function bindings and function-valued parameters use lowercase names; ordinary
+data bindings use uppercase names. The existing index names `i`, `j`, and `k`
+remain valid.
+
+Source imports register block declarations as before, then process `use` and
+`=` function definitions in source order. They do not run ordinary data
+assignments or expression statements. A function factory used during import
+therefore needs its inputs to come from imports or its own arguments, rather
+than an unexecuted module assignment.
+
 ### Function equality
 
 `equal` compares function identity. Two references to the same function are equal;
@@ -503,8 +560,8 @@ interpreter:
 
 ```rank
 use numbers
-F = abs
-F equal abs rem true
+f = abs
+f equal abs rem true
 abs equal abs rem true
 abs equal sqrt rem false
 ```

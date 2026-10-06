@@ -3,7 +3,7 @@ import { run } from './support.js';
 
 describe('a lowercase name before an assignment', () => {
     it('says that variable names start with a capital letter', () => {
-        expect(() => run('i = 0')).toThrow(/variable names start with a capital letter, write `I` instead of `i`/);
+        expect(() => run('data = 0')).toThrow(/operation pipeline/);
         expect(() => run('for\n  count += 1\nend')).toThrow(/write `Count` instead of `count`/);
     });
 

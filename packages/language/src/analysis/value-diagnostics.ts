@@ -1,3 +1,4 @@
+import { functionBindingPlan } from '../function-binding.js';
 import { applicationForm } from '../application-forms.js';
 import { rankedFunctionFacts, rankedFunctionInputs } from './ranked-function-facts.js';
 import type { FunctionRelationship } from './function-relationships.js';
@@ -10,7 +11,7 @@ import {
     isTupleExpression, isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
     isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression,
     isExpressionStatement, isNewStructureExpression, isRecordExpression, isRecordUpdateExpression,
-    isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, 
+    isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement, isReturnStatement,
     isArgumentStatement, isOptionStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isTakeWhileExpression,
@@ -965,7 +966,20 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
 
     function statements(items: readonly Statement[], env: Map<string, ValueFacts>): boolean {
         for (const statement of items) {
-            if (isAssignmentStatement(statement)) {
+            if (isFunctionBindingStatement(statement)) {
+                const plan = functionBindingPlan(statement);
+                const operation = plan.alias && findOperation(plan.alias);
+                const fact = plan.alias ? env.get(plan.alias) ?? (operation
+                    ? { types: [], builtinOperation: operation.name } : { types: ['function'] })
+                    : { types: ['function'] };
+                env.set(statement.name, fact);
+                const definition = plan.alias ? functions.get(plan.alias)
+                    : plan.definitions.length === 1 ? plan.definitions[0] : undefined;
+                if (definition) {
+                    functions.set(statement.name, definition);
+                    functionBindings.set(statement.name, fact);
+                }
+            } else if (isAssignmentStatement(statement)) {
                 const dot = statement.name.indexOf('.');
                 if (dot > 0 && importedAliases.has(statement.name.slice(0, dot))) {
                     invalidateImportedAlias(statement.name.slice(0, dot), env);

@@ -111,10 +111,10 @@ end`;
     it('proves builtin bindings separately for each closure instance', () => {
         const runtime = new Interpreter();
         runtime.execute(`use numbers
-fun make Op
+fun make op
   fun combine A B
     return record
-      .n = (A .n) (B .n) Op
+      .n = (A .n) (B .n) op
     end
   end
   return combine

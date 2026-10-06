@@ -1,5 +1,5 @@
 import { AstUtils, type AstNode } from 'langium';
-import { isBinaryExpression, isCatchClause, isForStatement, isFunctionStatement,
+import { isBinaryExpression, isCatchClause, isForStatement, isFunctionStatement, isFunctionBindingStatement,
     isNameExpression, isSelectLocal, isUseStatement, type FunctionStatement, type Program } from './generated/ast.js';
 import { findOperation } from './operations.js';
 import { flattenApplication } from './expressions.js';
@@ -38,7 +38,7 @@ export function builtinBindingDiagnostics(
     };
     for (const binding of bindings) if (typeof binding === 'string') check(binding, program);
     for (const node of nodes) {
-        if (isFunctionStatement(node)) {
+        if (isFunctionStatement(node) || isFunctionBindingStatement(node)) {
             check(node.name, node);
             for (const parameter of node.parameters) check(parameter, node);
         } else if (isForStatement(node) && isBinaryExpression(node.condition)
@@ -53,7 +53,7 @@ export function builtinBindingDiagnostics(
             else if (node.path && loadModule) {
                 const imported = loadModule(node.path);
                 for (const declaration of imported?.statements ?? []) {
-                    if (isFunctionStatement(declaration)) check(declaration.name, node);
+                    if (isFunctionStatement(declaration) || isFunctionBindingStatement(declaration)) check(declaration.name, node);
                 }
             }
         }

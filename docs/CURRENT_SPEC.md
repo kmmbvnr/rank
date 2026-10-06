@@ -1049,8 +1049,8 @@ session, opening `linalg` after defining `solve` fails without activating the
 module. A qualified import such as `use "worker" as W` keeps `W.solve` separate
 from the caller's builtin `solve`.
 
-Function aliases are allowed. `Op = matmul` retains builtin operation identity,
-including forms such as `A B Op axis 1 0`. Reassigning an alias to another
+Function aliases are allowed. `op = matmul` retains builtin operation identity,
+including forms such as `A B op axis 1 0`. Reassigning an alias to another
 function requires the next call to resolve that identity again.
 
 Receiver methods keep their contextual dispatch. `Dsu findroot X` calls the DSU
@@ -1416,7 +1416,7 @@ function or parameter. A differently named function or alias uses the same
 postfix calling convention.
 
 Builtins and aliases use the same argument rules: `Matrix i max` and
-`Op = max` followed by `Matrix i Op` both pass two arguments. To reduce one
+`op = max` followed by `Matrix i op` both pass two arguments. To reduce one
 addressed row, write `(Matrix i) max`. Two scalar arguments work the same
 way: `3 4 max` is `4`.
 A following function starts another step: `Values max sqrt` takes the square
@@ -2259,6 +2259,63 @@ that all return paths have one contract. See the
 [decision-tree demo](../demos/deepml/020_tree.ra) for a recursive function whose
 leaves and branches share a record result.
 
+### Single-expression functions
+
+A lowercase name before `=` defines a function. An operation pipeline needs no
+named parameters:
+
+```rank
+products = reduce * rank 1 max
+multiply_abs = matmul abs
+```
+
+The entry stage supplies the complete set of supported argument counts. Thus
+`positive_max = max abs` accepts either one value or two values. Calls use the
+usual postfix argument grouping. Only the entry stage receives the original
+arguments; each later stage receives one result, including an array or tuple as
+one value. A later stage that cannot accept one value is rejected when the
+definition is analyzed: `f = abs matmul` needs an explicit second operand.
+
+Parameters before `=` instead define a single expression with a fixed argument
+count:
+
+```rank
+products V = V reduce * rank 1 max
+multiply_abs A B = A B matmul abs
+f A B = (A abs) B matmul
+```
+
+These forms replace the name's previous binding; they do not add overloads.
+Executing a definition creates the function without executing its body. Its
+binding becomes available afterward. Block `fun` declarations retain their
+existing visibility throughout their scope, and `memo` remains unchanged.
+
+A composition receives whole operands by default. Internal operations keep their
+own rank rules. A call-site `rank` applies to the complete composition:
+
+```rank
+products = reduce * rank 1 max
+Answer = (array H V D U) products rank 0 max
+```
+
+Here `rank 1` applies to `reduce *`, while `rank 0` applies to `products`.
+Similarly, `total = matmul sum` sums the complete multiplication result;
+`A B total rank 2 2` instead sums each matrix-cell multiplication separately.
+
+A direct alias, `f = g`, preserves `g`'s identity and all argument counts, even
+when `g` takes no arguments. To evaluate a factory now and bind its returned
+function, explicitly group the entire expression: `f = (10 make)`. The ungrouped
+`f = 10 make` is rejected. The grouped expression must return a function.
+Function bindings and function-valued parameters use lowercase names; ordinary
+data bindings use uppercase names. The existing index names `i`, `j`, and `k`
+remain valid.
+
+Source imports register block declarations as before, then process `use` and
+`=` function definitions in source order. They do not run ordinary data
+assignments or expression statements. A function factory used during import
+therefore needs its inputs to come from imports or its own arguments, rather
+than an unexecuted module assignment.
+
 ### Function equality
 
 `equal` compares function identity. Two references to the same function are equal;
@@ -2268,8 +2325,8 @@ interpreter:
 
 ```rank
 use numbers
-F = abs
-F equal abs rem true
+f = abs
+f equal abs rem true
 abs equal abs rem true
 abs equal sqrt rem false
 ```
@@ -3579,7 +3636,7 @@ to write `Low High max`.
 
 A user-defined `min` or `max` takes precedence, even without `use numbers`.
 For example, after `fun max A B` returning `A + B`, `3 4 max` returns `7`.
-A named builtin (`Op = max`) supports the same lazy binary broadcasting.
+A named builtin (`op = max`) supports the same lazy binary broadcasting.
 Equal numeric operands preserve the left operand, including its integer/real
 representation.
 
@@ -3654,8 +3711,8 @@ function immediately before it to every pair of cells:
 Sums = A B outer +
 Products = A B outer *
 Grid = Values Values outer bxor
-Operation = min
-Smallest = A B outer Operation
+operation = min
+Smallest = A B outer operation
 ```
 
 Cell ranks belong to the operation; `outer` combines the remaining frames.
@@ -5683,8 +5740,8 @@ immediately before it is applied to every pair of cells:
 ```rank
 Sums = A B outer +
 Grid = Values Values outer bxor
-Operation = min
-Smallest = A B outer Operation
+operation = min
+Smallest = A B outer operation
 ```
 
 Cell ranks belong to the operation, while `outer` combines the remaining
@@ -6049,7 +6106,7 @@ Bound = Low Limit max High min
 Binary chains associate from the left and broadcast over arrays using the
 ordinary trailing-axis rules. Parenthesize a compound operand, as in
 `0 (Limit - Used) max`. A stored operation remains an ordinary function value,
-so `Operation = max` may be called as `A B Operation` or passed to `outer`.
+so `operation = max` may be called as `A B operation` or passed to `outer`.
 
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.
@@ -6594,7 +6651,7 @@ minus sign. Nonfinite reals retain their ordinary text representation.
 Invalid formats raise `.InvalidFormat`; nonnumeric input raises `.TypeError`.
 
 This is a literal modifier, not a second function arity: `text` remains unary.
-A format variable or an alias such as `F = text` does not accept the modifier.
+A format variable or an alias such as `text_fn = text` does not accept the modifier.
 Formatted arrays keep their shape; formatted sequences are lazy.
 Plain `text` and `print` keep their existing behavior.
 
