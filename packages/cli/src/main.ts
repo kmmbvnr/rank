@@ -272,6 +272,8 @@ const REFERENCE_PREAMBLE = [
     '',
     '`diag` uses the shared `diagonalResultShape` transfer for vector/matrix',
     'overloads and configured offsets; its declarative result is left unknown.',
+    '`matmul` also shares a shape transfer for its default tensor contraction.',
+    'Binary array-result calls retain their known cell axes under empty frames.',
     '',
     'Explicit cell ranks still control lifting. The analyzer splits off frames,',
     'instantiates the cell signature, and combines the result with those frames.',

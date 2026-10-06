@@ -369,7 +369,7 @@ function transferApplicationFacts(
             && lookup.invoke && lookup.arity?.(name.name) === operands.length
             && operands.length === (form.rightRank === undefined ? 1 : 2)) {
             const ranks = form.rightRank === undefined ? [Number(form.rank)] : [Number(form.rank), Number(form.rightRank)];
-            return rankedFunctionFacts(operands, ranks, cells => lookup.invoke!(name.name, cells), form.axes);
+            return rankedFunctionFacts(operands, ranks, cells => lookup.invoke!(name.name, cells, true), form.axes);
         }
         if (operation && operands.length === (form.rightRank === undefined ? 1 : 2)
             && operands.every(value => value.types.join() === 'array')) {

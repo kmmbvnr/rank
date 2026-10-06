@@ -729,7 +729,7 @@ export const operations: readonly Operation[] = [
         summary: 'Contracts the last axis of the left array with the first axis of the right.' },
     { name: 'solve', module: 'linalg', arities: [2], form: 'A B solve', result: 'array',
         signatures: [{ inputs: [numericArray, numericArray], result: realArray }],
-        shape: [{ args: [['n', 'n'], [{ spread: 's' }]], result: [{ spread: 's' }] }],
+        shape: [{ args: [['n', 'n'], ['n', { spread: 's' }]], result: ['n', { spread: 's' }] }],
         numericArrayNoCallback: true,
         summary: 'Solves A * X = B for a square coefficient matrix.' },
 

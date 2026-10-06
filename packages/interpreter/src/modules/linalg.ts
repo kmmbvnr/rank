@@ -1,4 +1,4 @@
-import { diagonalResultShape } from '@arrrank/language';
+import { diagonalResultShape, matmulResultShape } from '@arrrank/language';
 import { tuple } from '../value.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { derivedArray, eagerOperandItems, ownedArray, readArrayItem, readArrayShape, float64Cells, realCells, typedArray } from '../array-storage.js';
@@ -23,16 +23,24 @@ export const linalgModule: RuntimeModule = {
         1,
         arguments_ => inverseMatrix(arguments_[0]),
     ),
-    matmul: () => native(
+    matmul: () => ({ ...native(
         'matmul',
         2,
         arguments_ => matmulValues(arguments_[0], arguments_[1]),
-    ),
-    solve: () => native(
-        'solve',
-        2,
-        arguments_ => solveLinearSystem(arguments_[0], arguments_[1]),
-    ),
+    ), dyadicResultShape: (left, right) => {
+        const shape = matmulResultShape(left, right);
+        if (!shape) throw new RankError('matmul expects compatible cell shapes', 'DimensionMismatch');
+        return shape as readonly number[];
+    } }),
+    solve: () => {
+        const fn = native('solve', 2, arguments_ => solveLinearSystem(arguments_[0], arguments_[1]));
+        return { ...fn, dyadicResultShape: (left: readonly number[], right: readonly number[]) => {
+            if (right.length !== 1 && right.length !== 2) {
+                throw new RankError('solve expects a vector or matrix right side', 'DimensionMismatch');
+            }
+            return fn.dyadicResultShape!(left, right);
+        } };
+    },
     eigh: () => native(
         'eigh',
         1,

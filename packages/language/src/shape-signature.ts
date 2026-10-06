@@ -146,3 +146,11 @@ export function diagonalResultShape(shape: KnownShape, offset = 0): KnownShape |
         shape[0]! - Math.max(0, -offset), shape[1]! - Math.max(0, offset)))];
     return undefined;
 }
+
+/** Default last-left/first-right contraction, shared by runtime and analysis. */
+export function matmulResultShape(left: KnownShape, right: KnownShape): KnownShape | undefined {
+    if (!left.length || !right.length) return undefined;
+    const a = left.at(-1), b = right[0];
+    if (a !== null && b !== null && a !== b) return undefined;
+    return [...left.slice(0, -1), ...right.slice(1)];
+}

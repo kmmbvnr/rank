@@ -6297,7 +6297,9 @@ BatchedMatrices = As Bs solve rank 2 2
 ```
 
 Both default operands are whole values. Explicit ranks distinguish vector
-right sides from matrices containing several right sides.
+right sides from matrices containing several right sides. Empty ranked batches
+retain the right-side cell axes; incompatible cell shapes still raise a shape
+error without solving nonexistent systems.
 
 `A` must be a square rank-2 numeric matrix. `B` may be a length-`N` vector
 or an `N K` matrix, and the eager real result has the same shape as `B`.

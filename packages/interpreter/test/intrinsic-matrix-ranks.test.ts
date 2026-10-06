@@ -109,6 +109,37 @@ describe('intrinsic matrix cells', () => {
         expect(() => run(`${prefix}(array shape 0 fill 0) diag rank 0`)).toThrow(/rank-1 vector or rank-2 matrix/);
     });
 
+    it('retains array cell axes in empty binary batches and user functions', () => {
+        for (const size of [0, 2]) {
+            const source = `${prefix}A = array shape ${size} 2 2 fill 0\nB = array 1 2\nC = array shape 2 3 fill 1\n`;
+            const solve = `${source}R = A B solve rank 2 1`;
+            const multiply = `${source}R = A C matmul rank 2 2`;
+            const user = `${source}fun right X Y rank 2 1\n return Y\nend\nR = A B right`;
+            const tuple = `${source}fun pair X Y rank 2 1\n return tuple X Y\nend\nR = A B pair`;
+            // Shape queries on empty batches must not execute a singular solve.
+            if (size === 0) expect(run(`${solve}\nR shape`)).toBe('0 2');
+            expect(run(`${multiply}\nR shape`)).toBe(`${size} 2 3`);
+            expect(run(`${user}\nR shape`)).toBe(`${size} 2`);
+            expect(run(`${tuple}\nR shape`)).toBe(String(size));
+            for (const [code, shape] of [[solve, [size, 2]], [multiply, [size, 2, 3]], [user, [size, 2]], [tuple, [size]]] as const) {
+                expect(analyzeValues(parse(code)).bindings.get('R')?.shape, code).toEqual(shape);
+            }
+        }
+        expect(() => run(`${prefix}A = array shape 0 2 2 fill 0\nA (array shape 2 2 2 fill 0) solve rank 2 3 shape`)).toThrow(/vector or matrix right side/);
+        expect(() => run(`${prefix}A = array shape 0 3 4 fill 0\nA (array 1 2 3) solve rank 2 1 shape`)).toThrow(/compatible cell shapes/);
+        expect(() => run(`${prefix}A = array shape 0 2 3 fill 0\nA (array shape 4 2 fill 0) matmul rank 2 2 shape`)).toThrow(/compatible cell shapes/);
+    });
+
+    it('lets explicit ranks override declared user ranks in runtime and analysis', () => {
+        const source = `${prefix}fun header X rank 1\n return X shape\nend\nA = array shape 2 3 fill 0\n`;
+        for (const [rank, shape] of [['', [2, 1]], [' rank 2', [2]]] as const) {
+            const code = `${source}R = A header${rank}`;
+            expect(run(`${code}\nR shape`)).toBe(shape.join(' '));
+            expect(analyzeValues(parse(code)).bindings.get('R')?.shape).toEqual(shape);
+        }
+        expect(() => run(`${source}A header rank 0`)).toThrow(/shape expects/);
+    });
+
     it('preserves global reductions, leading-axis transformations and binary broadcasting', () => {
         const source = `${prefix}use numbers\nA = array 1 2 3 4 5 6 shape 2 3\n`;
         expect(run(`${source}A sum`)).toBe('21');
@@ -123,6 +154,7 @@ describe('intrinsic matrix cells', () => {
         for (const [file, answer] of [['008_seriesproduct.ra', '23514624000'], ['011_gridproduct.ra', '70600674']] as const) {
             const code = readFileSync(new URL(`../../../demos/euler/${file}`, import.meta.url), 'utf8');
             expect(run(`${code}\nAnswer`)).toBe(answer);
+            expect(analyzeValues(parse(code)).diagnostics).toEqual([]);
         }
     });
 });

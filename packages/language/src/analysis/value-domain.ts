@@ -110,7 +110,7 @@ export function widenValueFacts(value: ValueFacts): ValueFacts {
 }
 
 export type FactLookup = ((name: string) => ValueFacts | undefined) & {
-    invoke?: (name: string, arguments_: readonly ValueFacts[]) => ValueFacts;
+    invoke?: (name: string, arguments_: readonly ValueFacts[], cellCall?: boolean) => ValueFacts;
     arity?: (name: string) => number | undefined;
 };
 

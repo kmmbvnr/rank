@@ -281,7 +281,9 @@ export class FunctionInvocation {
             monadicRank: declared?.ranks.length === 1 ? declared.ranks[0] : 'all',
             arrayCells: declared ? true : undefined,
             monadicResultShape: generator ? undefined
-                : cellShape => this.userResultCellShape(statement, context, returnRanks, cellShape),
+                : cellShape => this.userResultCellShape(statement, context, returnRanks, [cellShape]),
+            dyadicResultShape: generator ? undefined
+                : (left, right) => this.userResultCellShape(statement, context, returnRanks, [left, right]),
             dyadicRanks: statement.parameters.length === 2
                 ? declared?.ranks.length === 2 ? [declared.ranks[0], declared.ranks[1]] : ['all', 'all']
                 : undefined,
@@ -345,22 +347,22 @@ export class FunctionInvocation {
         statement: FunctionStatement,
         context: LocalFrame | undefined,
         returnRanks: ReadonlyMap<string, { rank?: number }>,
-        cellShape: readonly number[],
+        cellShapes: readonly (readonly number[])[],
     ): readonly number[] | undefined {
         const valueOf = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name);
         const functionValue = (name: string) => {
             const value = valueOf(name);
             return value !== undefined && isNativeFunction(value) ? value : undefined;
         };
-        const cell: ValueFacts = cellShape.length === 0
+        const cells = cellShapes.map((cellShape): ValueFacts => cellShape.length === 0
             ? { types: ['integer'], rank: 0, shape: [] }
             : { types: ['array'], rank: cellShape.length, shape: cellShape,
-                elements: ['integer'], eagerScalarCells: true };
+                elements: ['integer'], eagerScalarCells: true });
         const result = functionEffects(
             name => name === statement.name ? statement : this.sources.get(functionValue(name)!),
             name => functionValue(name) !== undefined,
             name => valueOf(name) !== undefined,
-        )(statement.name, [cell]).result;
+        )(statement.name, cells).result;
         // Like a called cell, a non-array result leaves only the frame.
         if (result?.types.length && !result.types.some(type => ['array', 'bytes'].includes(type))) return [];
         if (result?.types.join() === 'array' && result.shape?.length === result.rank) {
@@ -368,9 +370,10 @@ export class FunctionInvocation {
         }
         const settled = new Set<number>();
         for (const [key, contract] of returnRanks) {
-            const [argument, ...rest] = JSON.parse(key) as [string, number, unknown][];
-            if (rest.length || contract.rank === undefined || argument[1] !== cellShape.length
-                || cellShape.length > 0 && argument[0] !== 'array') continue;
+            const arguments_ = JSON.parse(key) as [string, number, unknown][];
+            if (contract.rank === undefined || arguments_.length !== cellShapes.length
+                || arguments_.some((argument, index) => argument[1] !== cellShapes[index].length
+                    || cellShapes[index].length > 0 && argument[0] !== 'array')) continue;
             settled.add(contract.rank);
         }
         return settled.size === 1 ? Array<number>([...settled][0]).fill(0) : undefined;
