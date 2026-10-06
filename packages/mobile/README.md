@@ -42,9 +42,36 @@ amber, and variables read by the next expression use muted blue.
 Function arguments and intermediate results appear in the CLI layout.
 Android hides system bars; an edge swipe temporarily reveals them.
 
-Source and unfinished drafts are kept locally. Reloading restores pending
-source, not runtime values. Local assets are served with cross-origin
+Tap RANK to open notebook history and create a new notebook. The drawer groups
+notebooks by their last modified date and loads 25 titles at a time. Titles use
+the first nonempty `rem` comment, or the first source line after skipping `use`
+lines, shortened to 40
+characters. The row's ⋮ menu opens a separate rename dialog or a deletion confirmation. Import and export use Android's system file picker.
+
+On Android, `NotebooksPlugin` writes plain UTF-8 `.ra` files to the app's private
+`files/notebooks/<id>.ra` directory. A SQLite catalog stores titles, dates, cell
+boundaries and unfinished drafts. It commits a recovery snapshot before writing
+the `.ra` with `AtomicFile`, so an interrupted file write can be repaired on the
+next open. If the catalog is recreated, it recovers source from existing `.ra`
+files as drafts; manual titles and exact cell boundaries require the original
+catalog. A browser uses separate IndexedDB stores for metadata and source.
+
+The former `rank-notebook-v1` draft is migrated once and retained as a backup.
+Edits save after a short delay and flush before switching or backgrounding.
+Switching blocks on save failures. Reloading restores pending source and the
+unfinished draft, not runtime values. Local assets are served with cross-origin
 isolation headers, allowing the interpreter to use a shared array buffer signal
 directly. A local native signal mailbox remains as a fallback when shared array
 buffers are not available, so the interpreter can pause without losing its stack
-or values. Native file/stdin operations are not exposed by this mobile shell.
+or values. Interpreter file/stdin operations are not exposed by this mobile shell.
+
+Check the drawer in a mobile Vite session with
+`playwright-cli run-code --filename packages/web/test/notebook-history.playwright.js`.
+Native storage tests use isolated catalogs and files. On a phone with existing
+notebooks, build `:app:assembleDebugAndroidTest`, install the test APK with
+`adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`,
+then run `adb shell am instrument -w -e class com.arrrank.app.NotebooksPluginTest
+com.arrrank.app.test/androidx.test.runner.AndroidJUnitRunner`. Build from
+`packages/mobile/android` with Android Studio's bundled JDK. Avoid
+`connectedDebugAndroidTest` on a phone with user notebooks: its runner can
+uninstall the main app after testing.

@@ -14,6 +14,7 @@
     "dependencies": {
         "@arrrank/common": "0.0.1",
         "@arrrank/interpreter": "0.0.1",
+        "@capacitor/core": "^8.5.2",
         "regular-table": "^0.9.1",
         "spcss": "^0.9.0"
     },

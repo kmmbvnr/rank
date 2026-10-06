@@ -73,7 +73,7 @@ public class MainActivity extends BridgeActivity {
         if (!webView.hasFocus()) webView.requestFocus();
         webView.evaluateJavascript(
             "(function(){const input=document.getElementById('input');"
-                + "if(!input)return false;"
+                + "if(!input||document.querySelector('dialog[open]'))return false;"
                 + "if(document.activeElement!==input)input.focus({preventScroll:true});return true;})()",
             focused -> {
                 if (resumed && hasWindowFocus() && !keyboardRequested && "true".equals(focused)) {
@@ -86,9 +86,10 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(NotebooksPlugin.class);
         super.onCreate(savedInstanceState);
         currentActivity = new WeakReference<>(this);
-        // Back closes an open value viewer first; the page answers true when it took the press,
+        // Back closes an open notebook drawer or value viewer first; the page answers true when it took the press,
         // and only otherwise does Back do what it did before.
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override

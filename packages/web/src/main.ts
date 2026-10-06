@@ -15,6 +15,10 @@ import { paintLine } from './terminal-colors.js';
 import { sourceSelection } from './source-selection.js';
 import { wrapCommentLines } from '@arrrank/common/comment-wrap';
 import { VoiceDictation, isVoiceSupported } from './voice-dictation.js';
+import { NotebookHistory } from './notebook-history.js';
+import { NotebookPanel } from './notebook-panel.js';
+import { notebookStore, notebookSource, validDraft, type NotebookDraft } from './notebook-store.js';
+import { splitSource } from '@arrrank/common/notebook';
 
 const terminal = document.querySelector<HTMLElement>('#terminal')!;
 const screen = document.querySelector<HTMLElement>('#screen')!;
@@ -102,10 +106,16 @@ const valueOverlay = new ValueOverlay(message => {
 });
 // The website example must never overwrite a user's main notebook (including on Android).
 const storageKey = example ? 'rank-example-fibonacci-v1' : 'rank-notebook-v1';
+let historyReady = example;
+let changingNotebook = false;
+let legacyDraft: NotebookDraft | undefined;
+let notebookHistory: NotebookHistory | undefined;
+let notebookPanel: NotebookPanel | undefined;
 
 try {
     const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
-    if (saved && Array.isArray(saved.cells) && saved.cells.every((s: unknown) => typeof s === 'string')) {
+    if (validDraft({ ...saved, draft: typeof saved?.draft === 'string' ? saved.draft : '' })) {
+        legacyDraft = { cells: saved.cells, draft: typeof saved.draft === 'string' ? saved.draft : '' };
         for (const source of saved.cells) repl.notebook.restore(source);
         repl.notebook.toPrompt();
         repl.notebook.replace(typeof saved.draft === 'string' ? saved.draft : '');
@@ -207,7 +217,7 @@ voiceIndicator.onclick = event => {
     focusInput();
 };
 
-(globalThis as typeof globalThis & { rankBack?: () => boolean }).rankBack = () => valueOverlay.back();
+(globalThis as typeof globalThis & { rankBack?: () => boolean }).rankBack = () => notebookPanel?.close() || valueOverlay.back();
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden && activeVoiceDictation) {
@@ -410,7 +420,8 @@ function render(): void {
             cells: repl.notebook.cells.slice(0, -1).filter(cell => !cell.command).map(cell => cell.source),
             draft: repl.notebook.cells.at(-1)!.source,
         });
-        if (savedNotebook !== storedNotebook) {
+        if (!example && historyReady && !changingNotebook) notebookHistory?.schedule(JSON.parse(savedNotebook));
+        if (example && savedNotebook !== storedNotebook) {
             localStorage.setItem(storageKey, savedNotebook);
             storedNotebook = savedNotebook;
         }
@@ -418,6 +429,7 @@ function render(): void {
 }
 
 async function press(key: Key, text = ''): Promise<void> {
+    if (!historyReady || changingNotebook || notebookPanel?.dialog.open && !(key.ctrl && key.name === 'c')) return;
     stopMomentum();
     if (activeVoiceDictation) stopVoiceDictation();
     if (repl.running) {
@@ -648,6 +660,7 @@ let softKeyboardWantedUntil = 0;
  */
 function symbolKeyboardShown(): boolean { return keyboardEnabled && !softKeyboard; }
 function focusInput(): void {
+    if (!historyReady || changingNotebook || notebookPanel?.dialog.open) return;
     if (touchConsole && !keyboardEnabled) {
         startKeyboardOpening();
         keyboardEnabled = true;
@@ -1430,4 +1443,95 @@ if (example) {
     }
     // All displayed values come from the same execution path as Ctrl-L in the CLI.
     void press({ name: 'l', ctrl: true });
+}
+
+function notebookSnapshot(): NotebookDraft {
+    return {
+        cells: repl.notebook.cells.slice(0, -1).filter(cell => !cell.command).map(cell => cell.source),
+        draft: repl.notebook.cells.at(-1)!.source,
+    };
+}
+function rememberNotebook(): void {
+    try { localStorage.setItem('rank-active-notebook-v1', notebookHistory!.current!.id); } catch { /* History still survives. */ }
+}
+async function changeNotebook(id?: string): Promise<void> {
+    if (busy || repl.running || repl.evaluating) throw new Error('Stop execution before switching notebooks');
+    changingNotebook = true;
+    input.readOnly = true;
+    try {
+        stopVoiceDictation();
+        notebookHistory!.schedule(notebookSnapshot());
+        valueOverlay.back();
+        await notebookHistory!.open(id, snapshot => repl.restoreNotebook(snapshot.cells, snapshot.draft));
+        failure = ''; needsRestart = false; lastPause = undefined;
+        top = 0; scrollFraction = 0; restingCursorRow = undefined; follow = true;
+        rememberNotebook();
+    } finally { changingNotebook = false; input.readOnly = false; render(); }
+}
+async function importNotebook(): Promise<void> {
+    let source: string | undefined;
+    if (notebookHistory!.store.importFile) source = (await notebookHistory!.store.importFile!()).source;
+    else source = await new Promise<string | undefined>((resolve, reject) => {
+        const picker = document.createElement('input');
+        picker.type = 'file'; picker.accept = '.ra,text/plain';
+        picker.oncancel = () => resolve(undefined);
+        picker.onchange = () => { void picker.files?.[0]?.text().then(resolve, reject); };
+        picker.click();
+    });
+    if (source === undefined) return;
+    await changeNotebook();
+    await repl.restoreNotebook(splitSource(source.replace(/\r\n?/g, '\n')), '');
+    notebookHistory!.schedule(notebookSnapshot());
+    await notebookHistory!.flush();
+    render();
+}
+async function exportNotebook(): Promise<void> {
+    notebookHistory!.schedule(notebookSnapshot());
+    await notebookHistory!.flush();
+    const book = notebookHistory!.current!;
+    if (notebookHistory!.store.exportFile) await notebookHistory!.store.exportFile(book.id);
+    else {
+        const url = URL.createObjectURL(new Blob([notebookSource(book.snapshot)], { type: 'text/plain;charset=utf-8' }));
+        const link = document.createElement('a');
+        link.href = url; link.download = book.title.replace(/[\\/:*?"<>|]/g, '_') + '.ra'; link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+}
+if (!example) {
+    input.readOnly = true;
+    const brand = document.querySelector<HTMLButtonElement>('#brand')!;
+    brand.disabled = true;
+    notebookHistory = new NotebookHistory(notebookStore(), error => {
+        failure = 'Cannot save notebook: ' + String(error); render();
+    }, rememberNotebook);
+    notebookPanel = new NotebookPanel(notebookHistory, changeNotebook, importNotebook, exportNotebook,
+        () => { closeMenu(); stopVoiceDictation(); setKeyboard(false); },
+        () => { brand.setAttribute('aria-expanded', 'false'); render(); });
+    brand.onclick = () => {
+        brand.setAttribute('aria-expanded', 'true'); void notebookPanel!.show();
+    };
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && historyReady) {
+            notebookHistory!.schedule(notebookSnapshot());
+            void notebookHistory!.flush().catch(error => { failure = 'Cannot save notebook: ' + String(error); render(); });
+        }
+    });
+    void (async () => {
+        try {
+            const snapshot = await notebookHistory!.initialize(localStorage.getItem('rank-history-migrated-v1') ? undefined : legacyDraft,
+                localStorage.getItem('rank-active-notebook-v1'));
+            await repl.restoreNotebook(snapshot.cells, snapshot.draft);
+            rememberNotebook();
+            localStorage.setItem('rank-history-migrated-v1', 'true');
+            // Keep the original draft as a migration backup; never overwrite it with another notebook.
+            historyReady = true;
+            input.readOnly = false;
+            brand.disabled = false;
+            render();
+        } catch (error) {
+            failure = 'Cannot open notebook history: ' + String(error);
+            // Leave the existing draft visible and untouched if storage cannot be opened.
+            render();
+        }
+    })();
 }

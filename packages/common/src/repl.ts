@@ -364,6 +364,30 @@ export class NotebookRepl {
 
     dismiss(): void { this.suggestion = ''; this.completion = undefined; }
 
+    /** Switch documents without carrying execution, previews or breakpoints into the next one. */
+    async restoreNotebook(cells: readonly string[], draft: string): Promise<void> {
+        if (this.running || this.evaluating) throw new Error('Stop execution before switching notebooks');
+        await this.session.resetExecution();
+        this.liveFunction.clear();
+        this.liveConditional.clear();
+        this.breakpoints.clear();
+        this.help = undefined;
+        this.savePrompt = undefined;
+        this.iterationSelecting = false;
+        this.stepTarget = undefined;
+        this.evaluationCell = undefined;
+        this.importFocus = undefined;
+        this.valueFocusId = undefined;
+        this.nameFactsCache = undefined;
+        this.diagnosticCache = undefined;
+        this.pauseTop = 0;
+        this.dismiss();
+        this.notebook.clear();
+        for (const source of cells) this.notebook.restore(source);
+        this.notebook.toPrompt();
+        this.notebook.replace(draft);
+    }
+
     cancelExample(): void { this.liveFunction.cancelExample(); }
 
     cancelLiveFunction(): void {
