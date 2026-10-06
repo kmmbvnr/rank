@@ -293,6 +293,8 @@ export interface SequencePlan {
     readonly singlePass?: boolean;
     readonly name: string;
     readonly size: SequenceSize;
+    /** Absent endpoint retained when this arithmetic range is used as a slice. */
+    readonly openRange?: { readonly start: bigint; readonly step: bigint };
     readonly captures?: readonly ReadonlyMap<string, RankValue>[];
     iterate(): IterableIterator<RankValue>;
 

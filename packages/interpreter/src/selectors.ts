@@ -3,7 +3,7 @@ import { positionalValue } from './positional-value.js';
 import { denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
-import { atSequence, sequenceValues } from './sequence.js';
+import { atSequence, sequence, sequenceValues } from './sequence.js';
 import { arrayOffset, coordinatesAt, safeDimension } from './tensor-index.js';
 import { isRankArray, isRankQueue, isRankSequence, typeName,
     MISSING, type RankArray, type RankValue } from './value.js';
@@ -220,6 +220,23 @@ function gather(
 }
 
 export function selectAxis(source: RankValue, axis: number, selector: RankValue): RankValue {
+    const open = isRankSequence(selector) ? selector.plan.openRange : undefined;
+    if (open && isRankSequence(source) && source.plan.size.kind === 'infinite') {
+        if (axis !== 0) throw new RankError(`sequence has no axis ${axis}`);
+        if (open.start < 0n) throw new RankError('array index must be nonnegative on axis 0');
+        const count = open.step < 0n ? open.start / -open.step + 1n : undefined;
+        return sequence({
+            name: `${source.plan.name} slice`,
+            size: count === undefined ? { kind: 'infinite' } : { kind: 'exact', value: count },
+            at: index => atSequence(source, open.start + index * open.step),
+            *iterate() {
+                for (let i = 0n; count === undefined || i < count; i++) {
+                    checkpoint('reading sequence slice');
+                    yield atSequence(source, open.start + i * open.step);
+                }
+            },
+        });
+    }
     const size = axisSize(source, axis);
     if (isRankArray(source)) {
         const selectors = Array(axis).fill(ALL_AXIS) as RankValue[];
@@ -270,6 +287,15 @@ export function axisSize(source: RankValue, axis: number): number {
 }
 
 function selectorIndices(selector: RankValue, size: number, axis: number): number[] {
+    const open = isRankSequence(selector) ? selector.plan.openRange : undefined;
+    if (open) {
+        if (open.start < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+        if (open.start > BigInt(size)) throw new MissingValueError(`array index out of bounds on axis ${axis}: ${open.start}`);
+        const indices: number[] = [];
+        if (open.start === BigInt(size)) return indices;
+        for (let i = open.start; i >= 0n && i < BigInt(size); i += open.step) indices.push(Number(i));
+        return indices;
+    }
     if (isRankArray(selector) && selector.shape.length !== 1) {
         throw new RankError('axis selector must have rank 1');
     }

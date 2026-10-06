@@ -17,20 +17,9 @@ Answer print
 rem Find the first triangular number whose
 rem divisor count is greater than Minimum.
 fun first_triangle Minimum
-  N = 1
-  for true
-    Left = N
-    Right = (N + 1) // 2
-    if N even
-      Left = N // 2
-      Right = N + 1
-    end
-
-    Divisors = Left divisors count
-    Divisors *= Right divisors count
-    if Divisors greater Minimum
-      return N * (N + 1) // 2
-    end
-    N += 1
-  end
+  N = 1 to #
+  Triangles = N * (N + 1) // 2
+  divisor_count = divisors count
+  Counts = Triangles divisor_count rank 0
+  return Triangles first where (Counts greater Minimum)
 end

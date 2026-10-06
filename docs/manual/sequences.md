@@ -1,5 +1,24 @@
 # sequences manual
 
+Numeric ranges may omit their endpoint:
+
+```rank
+N = 1 to #
+N take 4
+```
+
+```result
+1 2 3 4
+```
+
+`by` takes a nonzero integer step.
+`to #` and `till #` are equivalent.
+`A (2 to #)` selects the tail of an
+axis; a named range works the same way.
+Use `take` or a stopping condition
+before consuming an infinite range.
+
+
 ## shape
 
 The size of an array along each axis.

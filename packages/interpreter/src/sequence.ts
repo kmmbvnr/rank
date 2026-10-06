@@ -43,7 +43,8 @@ export function filterSequence(
  * A value bound and a filter keep the same items whichever order they run in,
  * so a filtered plan can offer the bounds its source offers. Without this a
  * selection over an endless source has nothing to stop it: `P (P mod 5 equal 0)`
- * could not then be bounded by `until`.
+ * could not then be bounded by `till`. Descending open ranges are different:
+ * a filter can remove the initial values that would have ended an upper bound.
  */
 function filteredPlan(source: SequencePlan, predicate: SequencePredicate): SequencePlan {
     return {
@@ -57,7 +58,7 @@ function filteredPlan(source: SequencePlan, predicate: SequencePredicate): Seque
                 else passOver();
             }
         },
-        ...(source.withUpperBound && {
+        ...(source.withUpperBound && !(source.openRange && source.openRange.step < 0n) && {
             withUpperBound: (limit: bigint, inclusive: boolean) =>
                 filteredPlan(source.withUpperBound!(limit, inclusive), predicate),
         }),

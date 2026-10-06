@@ -6,6 +6,7 @@ import { evaluateArrayItem, derivedArray, materializeCells, ownedArray, readArra
 import { applyBound, valueBound } from './clause-expression.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexKey } from './index-key.js';
+import { ALL_AXIS } from './selectors.js';
 import { checkpoint } from './interrupt.js';
 import { missingBinary } from './missing.js';
 import { mapMaskedArrays } from './masked-kernels.js';
@@ -256,6 +257,8 @@ export class Operators {
         }
         if (operator === 'until') throw new RankError('until is not a Rank word: write `till` for a bound it excludes');
         if (operator === 'to' || operator === 'till') {
+            if (right === ALL_AXIS) return makeRange(expectInteger(left), undefined, operator === 'to',
+                rangeStep === undefined ? undefined : expectInteger(rangeStep));
             // After a number the words build a range; after values they bound them.
             if (typeof left !== 'bigint' && typeof left !== 'number') {
                 if (rangeStep !== undefined) throw new RankError('by applies only to numeric ranges');
@@ -544,10 +547,35 @@ function lazyArray(
 /** A range's own bounds, so selecting with it can reach SQL as LIMIT and OFFSET or substr. */
 const rangeBoundsBySequence = new WeakMap<RankSequence, { start: bigint; end: bigint; inclusive: boolean }>();
 
-function makeRange(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {
+function makeRange(start: bigint, end: bigint | undefined, inclusive: boolean, stride?: bigint): RankSequence {
+    if (end === undefined) return openRange(start, stride ?? 1n);
     const range = rangeSequence(start, end, inclusive, stride);
     if (stride === undefined || stride === 1n) rangeBoundsBySequence.set(range, { start, end, inclusive });
     return range;
+}
+
+function openRange(start: bigint, step: bigint): RankSequence {
+    if (step === 0n) throw new RankError('range step must be a nonzero integer');
+    return sequence({
+        name: `${start} to # by ${step}`,
+        size: { kind: 'infinite' },
+        openRange: { start, step },
+        at: index => start + index * step,
+        *iterate() {
+            for (let value = start; ; value += step) {
+                checkpoint('reading sequence');
+                yield value;
+            }
+        },
+        withUpperBound(limit, inclusive) {
+            if (!(inclusive ? start <= limit : start < limit)) {
+                return rangeSequence(1n, 0n, true).plan;
+            }
+            // A descending source already below the upper bound stays unbounded.
+            return step < 0n ? openRange(start, step).plan
+                : rangeSequence(start, limit, inclusive, step).plan;
+        },
+    });
 }
 
 function rangeSequence(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {

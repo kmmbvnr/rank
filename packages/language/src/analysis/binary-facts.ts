@@ -1,5 +1,5 @@
 import {
-    isBinaryExpression, isSubjectComparisonExpression, isUnaryExpression,
+    isAllAxisExpression, isBinaryExpression, isSubjectComparisonExpression, isUnaryExpression,
     type BinaryExpression, type Expression,
 } from '../generated/ast.js';
 import { rangeSliceOperands } from '../expressions.js';
@@ -41,6 +41,12 @@ export function binaryExpressionFacts(
             ? [...new Set([...present, ...right.types])] as Types : [];
         return left.rank === 0 && right.rank === 0 && types.length
             ? { types, rank: 0, shape: [] } : { types };
+    }
+    if (['to', 'till'].includes(expression.operator) && isAllAxisExpression(expression.right)) {
+        return { types: ['sequence'], elements: ['integer'], rank: 1, shape: [null],
+            unbounded: true, openRange: { start: left.integer,
+                step: expression.step ? infer(expression.step, lookup).integer : '1' },
+            callbackFreeScalarCells: true };
     }
     if ((expression.operator === 'to' || expression.operator === 'till')
         && ['text', 'array', 'sequence', 'queue'].includes(left.types.join())) {
@@ -111,7 +117,9 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
                     && value.elements.every(type => type === 'integer' || type === 'real'));
             const callbackFree = ['array', 'sequence'].includes(types.join()) && [left, right].every(safeNumeric);
             const dims = broadcastDims(left, right);
-            return { types, rank: shape.length, shape, ...(dims ? { dims } : {}),
+            return { types, rank: shape.length, shape,
+                ...(types.join() === 'sequence' && (left.unbounded && (right.rank === 0 || right.unbounded)
+                    || right.unbounded && left.rank === 0) ? { unbounded: true as const } : {}), ...(dims ? { dims } : {}),
                 ...(callbackFree ? { elements: binaryType(operator,
                     left.rank === 0 ? left.types : left.elements!, right.rank === 0 ? right.types : right.elements!),
                     callbackFreeScalarCells: true as const } : {}) };
@@ -211,7 +219,7 @@ export function sliceFacts(
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts,
 ): ValueFacts | undefined {
     const slice = rangeSliceOperands(expression);
-    if (slice) {
+    if (slice && !isAllAxisExpression(slice.end)) {
         const source = infer(slice.source, lookup);
         const kind = source.types.join();
         if (kind === 'array' || kind === 'text' || kind === 'sequence' || kind === 'queue') {
