@@ -1,3 +1,4 @@
+import { functionBindingPlan } from '../function-binding.js';
 import { flattenApplication as flatten } from '../expressions.js';
 /**
  * Binding and mutation facts: where every name is bound, read and written.
@@ -13,7 +14,7 @@ import { flattenApplication as flatten } from '../expressions.js';
 import {
     isTupleExpression, isApplicationExpression, isArgsStatement, isArgumentStatement,
     isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isFlagStatement,
-    isForStatement, isFunctionStatement, isIfStatement,
+    isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
     isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isKeyedMergeExpression,
     isMaterializeExpression, isNameExpression, isOptionStatement, isParenthesizedExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression, isSelectLocal,
@@ -295,6 +296,14 @@ class Analyzer {
             }
             this.block(statement.statements, nested);
             this.scopes.pop();
+            return;
+        }
+        if (isFunctionBindingStatement(statement)) {
+            const plan = functionBindingPlan(statement);
+            if (plan.alias) this.read(plan.alias, statement.value);
+            if (plan.value) this.expression(statement.value);
+            for (const definition of plan.definitions) this.statement(definition, nested);
+            this.bind(statement.name, 'assignment', statement, ['function'], plan.arities);
             return;
         }
         if (isAssignmentStatement(statement)) {

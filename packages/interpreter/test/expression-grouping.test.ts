@@ -83,35 +83,35 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
 
     it('groups user functions and aliases without depending on the input values', () => {
         expect(run('fun twice X\n return X * 2\nend\n2 + 9 twice')).toBe('22');
-        expect(run('Root = sqrt\n2 + 9 Root')).toBe(String(Math.sqrt(11)));
-        expect(run('Op = gcd\n2 + 9 3 Op')).toBe('1');
+        expect(run('root = sqrt\n2 + 9 root')).toBe(String(Math.sqrt(11)));
+        expect(run('op = gcd\n2 + 9 3 op')).toBe('1');
         expect(run('fun pair A B\n return A * 10 + B\nend\n2 + 9 3 pair')).toBe('113');
         const interpreter = new Interpreter(() => {}, { scalarCompilation: compiled, blockCompilation: compiled, integerLoopCompilation: compiled, tensorFusion: compiled });
-        interpreter.execute('use numbers\nRoot = sqrt');
-        expect(formatValue(interpreter.execute('2 + 9 Root')!)).toBe(String(Math.sqrt(11)));
-        expect(formatValue(interpreter.execute('Alias = Root\n2 + 9 Alias')!)).toBe(String(Math.sqrt(11)));
-        interpreter.execute('Op = gcd');
-        expect(formatValue(interpreter.execute('2 + 9 3 Op')!)).toBe('1');
+        interpreter.execute('use numbers\nroot = sqrt');
+        expect(formatValue(interpreter.execute('2 + 9 root')!)).toBe(String(Math.sqrt(11)));
+        expect(formatValue(interpreter.execute('alias_fn = root\n2 + 9 alias_fn')!)).toBe(String(Math.sqrt(11)));
+        interpreter.execute('op = gcd');
+        expect(formatValue(interpreter.execute('2 + 9 3 op')!)).toBe('1');
     });
 
     it('requires explicit grouping for a dynamic function parameter', () => {
         // A function must itself follow data when passed through the host API.
         const runtime = new Interpreter(() => {}, { scalarCompilation: compiled });
-        runtime.execute('use numbers\nfun apply Op\n return 2 + 9 Op\nend');
+        runtime.execute('use numbers\nfun apply op\n return 2 + 9 op\nend');
         const root = runtime.execute('sqrt');
         const apply = runtime.variables.get('apply');
         if (!apply || !isNativeFunction(apply) || root === undefined) throw new Error('expected function');
         expect(() => apply.call([root])).toThrowError('Group its input');
-        runtime.execute('fun grouped Op\n return (2 + 9) Op\nend');
+        runtime.execute('fun grouped op\n return (2 + 9) op\nend');
         const grouped = runtime.variables.get('grouped');
         if (!grouped || !isNativeFunction(grouped)) throw new Error('expected function');
         expect(formatValue(grouped.call([root]))).toBe(String(Math.sqrt(11)));
     });
 
     it('uses the same extrema arguments for builtins and their aliases', () => {
-        const source = 'A = array 1 8\nOp = max\n';
+        const source = 'A = array 1 8\nop = max\n';
         expect(run(source + 'A 0 max')).toBe('1 8');
-        expect(run(source + 'A 0 Op')).toBe('1 8');
+        expect(run(source + 'A 0 op')).toBe('1 8');
         expect(run(source + '(A 0) max')).toBe('1');
         expect(run(source + 'A max sqrt')).toBe(String(Math.sqrt(8)));
         expect(run('2 + 3 4 min')).toBe('4');

@@ -5,11 +5,11 @@ describe('function identity', () => {
     it('returns the same standard function across reads, aliases and calls', () => {
         const runtime = new Interpreter();
         expect(runtime.execute('use numbers\nabs equal abs')).toBe(true);
-        runtime.execute('F = abs\n-3 abs');
-        expect(runtime.execute('F equal abs')).toBe(true);
-        expect(runtime.execute('F not equal abs')).toBe(false);
+        runtime.execute('f = abs\n-3 abs');
+        expect(runtime.execute('f equal abs')).toBe(true);
+        expect(runtime.execute('f not equal abs')).toBe(false);
         expect(runtime.execute('abs equal sqrt')).toBe(false);
-        expect(runtime.execute('use numbers\nF equal abs')).toBe(true);
+        expect(runtime.execute('use numbers\nf equal abs')).toBe(true);
     });
 
     it('compares user functions and aliases by identity, not source or results', () => {
@@ -21,13 +21,13 @@ end
 fun second X
   return X + 1
 end
-F = first
+f = first
 `);
         expect(runtime.execute('first equal first')).toBe(true);
-        expect(runtime.execute('F equal first')).toBe(true);
+        expect(runtime.execute('f equal first')).toBe(true);
         expect(runtime.execute('first equal second')).toBe(false);
         runtime.execute('fun first X\n return X + 1\nend');
-        expect(runtime.execute('F equal first')).toBe(false);
+        expect(runtime.execute('f equal first')).toBe(false);
     });
 
     it('keeps separate closure instances distinct even with equal captures', () => {
@@ -39,13 +39,13 @@ fun make Base
   end
   return add
 end
-A = 1 make
-B = 1 make
-C = A
+a = (1 make)
+b = (1 make)
+c = a
 `);
-        expect(runtime.execute('A equal B')).toBe(false);
-        expect(runtime.execute('A equal C')).toBe(true);
-        expect(runtime.execute('(5 A) equal (5 B)')).toBe(true);
+        expect(runtime.execute('a equal b')).toBe(false);
+        expect(runtime.execute('a equal c')).toBe(true);
+        expect(runtime.execute('(5 a) equal (5 b)')).toBe(true);
     });
 
     it('keeps cached functions and their host contexts private to each interpreter', () => {

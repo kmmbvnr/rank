@@ -66,7 +66,7 @@ end
             it(`resolves custom ${name}custom as a postfix call and an alias (${imports || 'no imports'})`, () => {
                 const source = `${imports}fun ${name}custom A B\n return A * 10 + B\nend\n`;
                 expect(run(source + `3 4 ${name}custom`)).toBe('34');
-                expect(run(source + `Op = ${name}custom\n3 4 Op`)).toBe('34');
+                expect(run(source + `op = ${name}custom\n3 4 op`)).toBe('34');
                 expect(run(source + `3 4 ${name}custom 5 ${name}custom`)).toBe('345');
             });
         }
@@ -142,15 +142,15 @@ end`);
     });
 
     it('gives aliases the same lazy broadcasting and tie representation', () => {
-        expect(run('use numbers\nOp = max\nA = (array 1 0) // (array 1 0)\nB = A 3 Op\nB 0')).toBe('3');
-        expect(run('use numbers\nOp = min\n(1 to 3) 2 Op')).toBe('1 2 2');
-        expect(run('use numbers\nuse algo\nQ = new queue\nQ push 1\nQ push 8\nOp = max\nQ 3 Op')).toBe('3 8');
+        expect(run('use numbers\nop = max\nA = (array 1 0) // (array 1 0)\nB = A 3 op\nB 0')).toBe('3');
+        expect(run('use numbers\nop = min\n(1 to 3) 2 op')).toBe('1 2 2');
+        expect(run('use numbers\nuse algo\nQ = new queue\nQ push 1\nQ push 8\nop = max\nQ 3 op')).toBe('3 8');
         const runtime = new Interpreter();
         runtime.execute('use numbers');
         runtime.variables.set('Left', -0);
         runtime.variables.set('Right', 0n);
         expect(runtime.execute('Left Right min')).toBe(-0);
-        expect(runtime.execute('Op = min\nLeft Right Op')).toBe(-0);
+        expect(runtime.execute('op = min\nLeft Right op')).toBe(-0);
         runtime.dispose();
     });
 });

@@ -156,7 +156,7 @@ function or parameter. A differently named function or alias uses the same
 postfix calling convention.
 
 Builtins and aliases use the same argument rules: `Matrix i max` and
-`Op = max` followed by `Matrix i Op` both pass two arguments. To reduce one
+`op = max` followed by `Matrix i op` both pass two arguments. To reduce one
 addressed row, write `(Matrix i) max`. Two scalar arguments work the same
 way: `3 4 max` is `4`.
 A following function starts another step: `Values max sqrt` takes the square

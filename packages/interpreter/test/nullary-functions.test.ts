@@ -132,7 +132,7 @@ end`;
         const interpreter = runtime({ loadModule: () => ({ id: 'source.ra', source: generator }) });
         try {
             expect(formatValue(interpreter.execute('use "source.ra" as M\nM.tst')!)).toBe('1 2 3');
-            interpreter.execute('fun read F\n return F + 1\nend\nfun answer\n return 41\nend');
+            interpreter.execute('fun read f\n return f + 1\nend\nfun answer\n return 41\nend');
             const read = interpreter.variables.get('read')!;
             const answer = interpreter.variables.get('answer')!;
             if (!isNativeFunction(read)) throw new Error('expected function');

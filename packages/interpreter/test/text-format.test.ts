@@ -21,7 +21,7 @@ use io
     it('keeps ordinary text unary and supports preceding calls', () => {
         expect(run('use text\n12 text')).toBe('12');
         expect(run('use text\nuse numbers\n(-2.5) abs text ".2f"')).toBe('2.50');
-        expect(run('use text\nF = text\n12 F')).toBe('12');
+        expect(run('use text\nf = text\n12 f')).toBe('12');
     });
 
     it('expands exponents and preserves exact large integers', () => {

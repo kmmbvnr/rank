@@ -49,6 +49,7 @@ Statement:
     ArgsStatement |
     TestStatement |
     FunctionStatement |
+    FunctionBindingStatement |
     YieldStatement |
     ReturnStatement |
     BreakStatement |
@@ -90,6 +91,9 @@ FunctionStatement:
     ('fun' | memo?='memo') name=(WORD | 'text' | 'first' | 'take' | 'update' | 'ascending' | 'descending') parameters+=Identifier* ('rank' ranks+=RankSpec+)? NL+
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
+
+FunctionBindingStatement:
+    name=WORD parameters+=Identifier* '=' value=Expression;
 
 RankSpec returns string:
     '-'? INTEGER | WORD;

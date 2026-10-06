@@ -1,3 +1,4 @@
+import { functionBindingPlan } from '../function-binding.js';
 /**
  * Block scope: a name first assigned inside `for`, `if`, `elif`, `else`,
  * `try`, `catch` or `finally` ends with that block. The pass walks statements
@@ -12,7 +13,7 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
     isAllAxisExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, isFunctionStatement,
-    isIfStatement, isNameExpression, isStatement, isTestStatement, isTryStatement, isUnpackStatement,
+    isFunctionBindingStatement, isIfStatement, isNameExpression, isStatement, isTestStatement, isTryStatement, isUnpackStatement,
     type Expression, type Program, type Statement,
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
@@ -34,6 +35,7 @@ export function loopNames(condition: Expression | undefined): string[] {
 function boundNames(statements: readonly Statement[]): Set<string> {
     const names = new Set<string>();
     const visit = (node: AstNode): void => {
+        if (isFunctionBindingStatement(node)) { names.add(node.name); return; }
         if (isFunctionStatement(node) || isTestStatement(node)) return;
         // A compound assignment updates a name that must already exist, so it binds nothing.
         if (isAssignmentStatement(node) && node.operator === '=' && !node.name.includes('.')) names.add(node.name);
@@ -92,7 +94,13 @@ export function blockScopeDiagnostics(
         const direct = new Set(statements.flatMap(node => isAssignmentStatement(node) ? [node.name]
             : isUnpackStatement(node) ? node.names : []));
         function statement(node: Statement): void {
-            if (isFunctionStatement(node)) {
+            if (isFunctionBindingStatement(node)) {
+                const plan = functionBindingPlan(node);
+                if (plan.alias) check(plan.alias, node);
+                if (plan.value) read(node.value);
+                for (const definition of plan.definitions) body(definition.statements, [...scopes, new Set(definition.parameters)]);
+                bind(node.name);
+            } else if (isFunctionStatement(node)) {
                 body(node.statements, [...scopes, direct, new Set(node.parameters)]);
             } else if (isTestStatement(node)) {
                 body(node.statements, []);

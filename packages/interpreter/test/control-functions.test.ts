@@ -355,11 +355,11 @@ describe('Rank control flow and functions', () => {
             '    return Base + Value',
             '  end',
             'end',
-            'A = 10 make',
-            'B = 20 make',
-            'First = 0 A',
-            'Second = 0 A',
-            'Other = 0 B',
+            'a = (10 make)',
+            'b = (20 make)',
+            'First = 0 a',
+            'Second = 0 a',
+            'Other = 0 b',
             'array First Second Other',
         ].join('\n'))).toBe('11 12 21');
     });
@@ -388,8 +388,8 @@ describe('Rank control flow and functions', () => {
             '    end',
             '  end',
             'end',
-            'Twos = 2 multiples',
-            '3 Twos array',
+            'twos = (2 multiples)',
+            '3 twos array',
         ].join('\n'))).toBe('2 4 6');
     });
 
@@ -470,9 +470,9 @@ describe('Rank control flow and functions', () => {
             '  end',
             'end',
             'fun caller N',
-            '  F = N make',
+            '  f = (N make)',
             '  try',
-            '    1 F',
+            '    1 f',
             '  catch .Failure Error',
             '    N += 10',
             '  end',

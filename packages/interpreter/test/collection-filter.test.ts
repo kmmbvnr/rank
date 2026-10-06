@@ -36,7 +36,7 @@ describe('filter over plain collections', () => {
         expect(run(`${NUMBERS}K = N greater 5\nN filter K`)).toBe('6 7 8 9 10');
         expect(run(`${NUMBERS}K = N even\nN filter K`)).toBe('2 4 6 8 10');
         // A name that holds an operation is still a predicate over the value.
-        expect(run(`${NUMBERS}fun big X\n  return X greater 7\nend\nP = big\nN filter P`))
+        expect(run(`${NUMBERS}fun big X\n  return X greater 7\nend\np = big\nN filter p`))
             .toBe('8 9 10');
     });
 

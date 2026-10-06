@@ -96,8 +96,8 @@ end
 ### 5. First-Class Function Identity
 Functions are first-class immutable values. They can be stored in arrays, passed as arguments, returned from functions, and compared by reference identity using `equal`:
 ```rank
-F = abs
-F equal abs      rem true
+f = abs
+f equal abs      rem true
 abs equal sqrt   rem false
 ```
 

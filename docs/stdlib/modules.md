@@ -298,7 +298,7 @@ Bound = Low Limit max High min
 Binary chains associate from the left and broadcast over arrays using the
 ordinary trailing-axis rules. Parenthesize a compound operand, as in
 `0 (Limit - Used) max`. A stored operation remains an ordinary function value,
-so `Operation = max` may be called as `A B Operation` or passed to `outer`.
+so `operation = max` may be called as `A B operation` or passed to `outer`.
 
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.
@@ -900,7 +900,7 @@ minus sign. Nonfinite reals retain their ordinary text representation.
 Invalid formats raise `.InvalidFormat`; nonnumeric input raises `.TypeError`.
 
 This is a literal modifier, not a second function arity: `text` remains unary.
-A format variable or an alias such as `F = text` does not accept the modifier.
+A format variable or an alias such as `text_fn = text` does not accept the modifier.
 Formatted arrays keep their shape; formatted sequences are lazy.
 Plain `text` and `print` keep their existing behavior.
 

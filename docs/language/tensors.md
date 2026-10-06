@@ -470,8 +470,8 @@ immediately before it is applied to every pair of cells:
 ```rank
 Sums = A B outer +
 Grid = Values Values outer bxor
-Operation = min
-Smallest = A B outer Operation
+operation = min
+Smallest = A B outer operation
 ```
 
 Cell ranks belong to the operation, while `outer` combines the remaining

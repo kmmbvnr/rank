@@ -242,8 +242,8 @@ Result`)).toBe('itb');
             'use bits',
 
             'Values = 0 till 3',
-            'Operation = bxor',
-            'Values Values outer Operation',
+            'operation = bxor',
+            'Values Values outer operation',
         ].join('\n'));
         expect(xor).toMatchObject({ kind: 'array', shape: [3, 3] });
         expect(xor && typeof xor === 'object' && xor.kind === 'array'

@@ -1,6 +1,6 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isAssignmentStatement, isForStatement, isFunctionStatement, isIfStatement, isReturnStatement, isTryStatement,
+    isAssignmentStatement, isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement, isReturnStatement, isTryStatement,
     isUnpackStatement, type Statement,
 } from '@arrrank/language';
 import type { BindingEnvironment } from '../binding-environment.js';
@@ -252,7 +252,7 @@ function alwaysFresh(statement: Statement, names: readonly string[]): Set<string
     const outside = new Set<string>(owner.parameters);
     const visit = (node: AstNode): void => {
         if (node === statement || isFunctionStatement(node)) return;
-        if (isAssignmentStatement(node)) outside.add(node.name);
+        if (isAssignmentStatement(node) || isFunctionBindingStatement(node)) outside.add(node.name);
         else if (isUnpackStatement(node)) node.names.forEach(name => outside.add(name));
         else if (isForStatement(node)) forIteration(node.condition)?.names.forEach(name => outside.add(name));
         else if (isTryStatement(node)) node.catches.forEach(clause => outside.add(clause.errorName));
@@ -275,7 +275,7 @@ function blockNames(statement: Statement, syntheticNames: ReadonlySet<string>): 
     const names = new Set<string>();
     const visit = (node: Statement): void => {
         if (isFunctionStatement(node)) return;
-        if (isAssignmentStatement(node) && node.operator === '=' && !node.name.includes('.')) names.add(node.name);
+        if (isFunctionBindingStatement(node) || isAssignmentStatement(node) && node.operator === '=' && !node.name.includes('.')) names.add(node.name);
         else if (isUnpackStatement(node)) for (const name of node.names) names.add(name);
         else if (isForStatement(node)) {
             for (const name of forIteration(node.condition)?.names ?? []) if (name !== '#') names.add(name);

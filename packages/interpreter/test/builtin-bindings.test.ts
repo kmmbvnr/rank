@@ -27,7 +27,7 @@ it('checks module activation across separate executions without corrupting the s
 });
 
 it('retains builtin aliases and receiver methods', () => {
-    expect(run('Op = sum\n(array 1 2 3) Op')).toBe('6');
+    expect(run('op = sum\n(array 1 2 3) op')).toBe('6');
     expect(run('use graph\nfun find A B\n return 99\nend\nD = new dsu (array 1 2)\nD findroot 1')).toBe('1');
 });
 
@@ -53,7 +53,7 @@ it('does not apply caller modules to the private scope of an imported function',
 
 it('retains declaration checks in previews and through function aliases', () => {
     const runtime = new Interpreter();
-    runtime.execute('memo f mean\n return mean\nend\nAlias = f');
+    runtime.execute('memo f mean\n return mean\nend\nalias_fn = f');
     runtime.forgetBindings(['f']);
     for (const session of [runtime, runtime.forkForPreview()]) {
         expect(() => session.execute('use stats')).toThrow('cannot redefine available builtin: mean');
@@ -100,7 +100,7 @@ it('checks loop bindings and parameters after a module is already loaded', () =>
 it('keeps DSU findroot and collection find distinct when both modules are open', () => {
     expect(run('use graph\nuse sequences\nuse text\nD = new dsu (array "a" "b")\nRoot = D findroot "a"\nRoot lower + "!"')).toBe('a!');
     expect(run('use graph\nuse sequences\n(array "a" "b") "b" find')).toBe('1');
-    expect(run('use graph\nOp = findroot\nD = new dsu (array "a" "b")\nD "a" Op')).toBe('a');
+    expect(run('use graph\nop = findroot\nD = new dsu (array "a" "b")\nD "a" op')).toBe('a');
     expect(() => run('use graph\nD = new dsu (array "a")\nD "a" find')).toThrow('DSU find is now findroot');
 });
 

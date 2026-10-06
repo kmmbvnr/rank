@@ -76,9 +76,9 @@ describe('contextual table operations', () => {
 
     it('restores the outer scope on errors and rejects side effects before they execute', () => {
         const { runtime, io } = setup();
-        runtime.execute('use io\nWriter = write\nCost = 9');
+        runtime.execute('use io\nwriter = write\nCost = 9');
         expect(() => runtime.execute('Out = Rows select\n  Cost = 10\n'
-            + '  .x = "oops" "oops.txt" Writer\nend')).toThrow(/pure standard-library/);
+            + '  .x = "oops" "oops.txt" writer\nend')).toThrow(/pure standard-library/);
         expect(io.files.has('oops.txt')).toBe(false);
         expect(formatValue(runtime.execute('Cost')!)).toBe('9');
         expect(() => runtime.execute('Out = Rows select .id .id')).toThrow(/duplicate select field/);

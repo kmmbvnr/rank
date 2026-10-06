@@ -270,16 +270,16 @@ end
 fun increment N
   return N + 1
 end
-F = increment
+f = increment
 fun wrapper N
-  Value = N F
+  Value = N f
   Value += 1
   return Value
 end
 A = 10 wrapper
-F = down
+f = down
 B = 1000 wrapper
-F = increment
+f = increment
 C = 10 wrapper
 array A B C
 `)).toBe('12 1001 12');
