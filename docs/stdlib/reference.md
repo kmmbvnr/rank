@@ -361,7 +361,7 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `N K Modulus binomialmod` | integer | 3 operands: whole | Binomial coefficient calculated directly modulo a prime. |
 | `Angle cos` | real | unary all (scalar map) | Cosine of an angle in radians. |
 | `Value cosh` | real | unary all (scalar map) | Hyperbolic cosine. |
-| `N divisors` | sequence, lazy | unary all | Lazy ascending sequence of the positive divisors. |
+| `N divisors` | sequence, lazy | unary 0 | Lazy ascending sequence of the positive divisors. |
 | `Value even` | boolean | unary all | True for an even integer. |
 | `Value exp` | real | unary all (scalar map) | Natural exponential. |
 | `N factors` | sequence, lazy | unary all | Lazy ascending sequence of the prime factors, repeated factors included. |

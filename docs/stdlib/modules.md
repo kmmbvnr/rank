@@ -333,6 +333,19 @@ A finite lazy source may also define a direct cardinality count. For example,
 `N divisors count` returns the number of positive divisors without enumerating
 them. Other numeric sequences still fail the boolean-cell requirement.
 
+`divisors` has default cell rank `0`: on an array or sequence of integers it
+returns one lazy divisor sequence per integer. The result cells may have different
+lengths because they are sequences, not array axes. Count each result separately:
+
+```rank
+Counts = (array 6 12) divisors count rank 0
+rem 4 6
+```
+
+`count` still consumes one complete collection by default, so its `rank 0`
+is required here. Scalar `12 divisors count` remains unchanged.
+
+
 ## Random
 
 `use random` provides random sampling operations:

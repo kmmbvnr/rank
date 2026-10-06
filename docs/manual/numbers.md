@@ -371,7 +371,10 @@ N divisors
 
 N must be a positive integer. The result
 is a sequence, so items are found only
-as you read them.
+as you read them. On arrays and sequences,
+`divisors` applies to each integer at
+rank 0 by default. Each result stays
+a separate lazy sequence.
 
 ### See also
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter } from '../src/index.js';
+import { Interpreter, formatValue, isRankSequence } from '../src/index.js';
 import { run } from './support.js';
 
 describe('Rank mathematical functions', () => {
@@ -57,6 +57,25 @@ describe('Rank mathematical functions', () => {
         expect(run('use numbers\n5 in (12 divisors)')).toBe('false');
         expect(() => run('use numbers\n0 divisors'))
             .toThrowError('divisors expects a positive integer');
+    });
+
+    it.each([false, true])('maps divisors over integer cells by default (compiled=%s)', compiled => {
+        const r = new Interpreter(undefined, { scalarFunctionCompilation: compiled });
+        const run = (source: string) => formatValue(r.execute(source)!);
+        r.execute('use numbers\nuse sequences');
+        expect(run('(array 6 12) divisors count rank 0')).toBe('4 6');
+        expect(run('M = array shape 2 2\n1 3\n6 12\nend\n(M divisors count rank 0) shape')).toBe('2 2');
+        expect(run('M divisors count rank 0')).toBe('1 2 4 6');
+        expect(run('(array 6 12) divisors rank 0 count rank 0')).toBe('4 6');
+        expect(() => run('(array 6 12) divisors rank 1')).toThrow(/integer/);
+        r.execute('N = 1 to #\nLists = N divisors');
+        const lists = r.variables.get('Lists');
+        expect(lists && isRankSequence(lists) && lists.plan.size).toEqual({ kind: 'infinite' });
+        expect(run('Lists count rank 0 take 6')).toBe('1 2 2 3 2 4');
+        expect(run('Lists count rank 0 take 3')).toBe('1 2 2');
+        expect(run('((0 to #) divisors) take 0')).toBe('');
+        expect(() => run('((0 to #) divisors) take 1')).toThrow('divisors expects a positive integer');
+        r.dispose();
     });
 
     it('uses postfix reductions and binary min/max chains', () => {

@@ -240,7 +240,7 @@ use sequences
 option Min integer = 500
 N = 1 to #
 Triangles = N * (N + 1) // 2
-Counts = Triangles divisors rank 0 count rank 0
+Counts = Triangles divisors count rank 0
 Answer = Triangles (Counts greater Min) first
 ```
 
