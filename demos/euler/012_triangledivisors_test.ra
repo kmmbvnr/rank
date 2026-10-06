@@ -10,7 +10,7 @@ end
 test "more than five divisors"
   use "012_triangledivisors"
 
-  Minimum = 5
+  Min = 5
   run
 
   Answer equal 28

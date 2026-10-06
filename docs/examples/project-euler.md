@@ -237,11 +237,11 @@ rem https://projecteuler.net/problem=12
 
 use numbers
 use sequences
-option Minimum integer = 500
+option Min integer = 500
 N = 1 to #
 Tri = N * (N + 1) // 2
-Divs = Tri divisors rank 0 count rank 0
-Answer = Tri (Divs greater Minimum) first
+Cnt = Tri divisors rank 0 count rank 0
+Answer = Tri (Cnt greater Min) first
 ```
 
 `divisors count` computes the number of positive divisors from prime exponents
