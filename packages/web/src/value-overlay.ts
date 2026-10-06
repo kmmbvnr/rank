@@ -128,6 +128,7 @@ export class ValueOverlay {
         this.columns = view.kind === 'grid' ? view.scroll.columns?.length ?? 1 : view.kind === 'list' ? 2 : 1;
         this.blocks.clear();
         this.ready.clear();
+        this.table.resetAutoSize();
         this.renderAxes();
         this.renderMore();
         if (!this.dialog.open) this.dialog.showModal();
@@ -191,6 +192,7 @@ export class ValueOverlay {
         this.ready.clear();
         this.rows = this.shape[this.axes[0]];
         this.columns = this.shape[this.axes[1]];
+        this.table.resetAutoSize();
         this.table.scrollTop = 0;
         this.table.scrollLeft = 0;
         this.renderAxes();
@@ -243,6 +245,7 @@ export class ValueOverlay {
                 this.fixed[axis] = index;
                 this.blocks.clear();
                 this.ready.clear();
+                this.table.resetAutoSize();
                 this.renderAxes();
                 void this.table.draw();
             };
