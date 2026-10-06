@@ -239,9 +239,9 @@ use numbers
 use sequences
 option Minimum integer = 500
 N = 1 to #
-Triangles = N * (N + 1) // 2
-Counts = Triangles divisors rank 0 count rank 0
-Answer = Triangles first where (Counts greater Minimum)
+Tri = N * (N + 1) // 2
+Divs = Tri divisors rank 0 count rank 0
+Answer = Tri (Divs greater Minimum) first
 ```
 
 `divisors count` computes the number of positive divisors from prime exponents
