@@ -10,5 +10,8 @@ end
 test "more than five divisors"
   use "012_triangledivisors"
 
-  5 first_triangle equal 28
+  Minimum = 5
+  run
+
+  Answer equal 28
 end

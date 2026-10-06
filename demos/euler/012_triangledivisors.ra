@@ -10,16 +10,9 @@ use cli
 
 option Minimum integer = 500
 
-Answer = Minimum first_triangle
+N = 1 to #
+Triangles = N * (N + 1) // 2
+divisor_count = divisors count
+Counts = Triangles divisor_count rank 0
+Answer = Triangles first where (Counts greater Minimum)
 Answer print
-
-
-rem Find the first triangular number whose
-rem divisor count is greater than Minimum.
-fun first_triangle Minimum
-  N = 1 to #
-  Triangles = N * (N + 1) // 2
-  divisor_count = divisors count
-  Counts = Triangles divisor_count rank 0
-  return Triangles first where (Counts greater Minimum)
-end
