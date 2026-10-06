@@ -52,6 +52,6 @@ test "one side may be empty"
   end
 
   Parts = X 0 10 divide_on_feature
-  Parts 0 len equal 0
+  (Parts 0) len equal 0
   (Parts 1) X equal rank 2
 end

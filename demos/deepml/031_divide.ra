@@ -8,5 +8,5 @@ fun divide_on_feature X Feature Limit
 
   High = X axis 0 Above
   Low = X axis 0 (not Above)
-  return array High Low
+  return tuple High Low
 end

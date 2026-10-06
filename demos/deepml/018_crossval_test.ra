@@ -34,9 +34,9 @@ test "uneven folds put extras first"
   Second = Result 1
   Third = Result 2
 
-  Ok = First 1 len equal 4
-  Ok and= Second 1 len equal 3
-  Ok and= Third 1 len equal 3
+  Ok = (First 1) len equal 4
+  Ok and= (Second 1) len equal 3
+  Ok and= (Third 1) len equal 3
   Expected = 0 till 4 array
   Match = First 1 equal Expected
   Reduced = Match reduce and with true
