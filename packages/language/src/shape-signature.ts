@@ -135,3 +135,14 @@ export function instantiateShapeSignature(
     }
     return result;
 }
+
+/** Diagonal cell axes depend on shape and offset, never on element values. */
+export function diagonalResultShape(shape: KnownShape, offset = 0): KnownShape | undefined {
+    if (shape.length === 1) {
+        const side = shape[0] === null ? null : shape[0] + Math.abs(offset);
+        return [side, side];
+    }
+    if (shape.length === 2) return [shape.some(n => n === null) ? null : Math.max(0, Math.min(
+        shape[0]! - Math.max(0, -offset), shape[1]! - Math.max(0, offset)))];
+    return undefined;
+}

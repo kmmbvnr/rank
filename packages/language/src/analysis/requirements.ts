@@ -183,7 +183,8 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             })) return;
             const cellRanks = ranks ?? (args.length === 1 ? [operation.monadicRank ?? 'all']
                 : operation.dyadicRanks ?? args.map(() => 'all'));
-            if (cellRanks.some((rank, index) => typeof rank === 'number' && !entersCells(args[index], rank, axes))) return;
+            // Unary declared shape constraints also hold for empty frames.
+            if (args.length > 1 && cellRanks.some((rank, index) => typeof rank === 'number' && !entersCells(args[index], rank, axes))) return;
             const dims = new Map<string, number>(), tails = new Map<string, Value>();
             const frames: Value[] = [];
             const pattern = (value: Value, terms: ShapePattern, output: boolean) => {

@@ -1,3 +1,4 @@
+import { diagonalResultShape } from '@arrrank/language';
 import { tuple } from '../value.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { derivedArray, eagerOperandItems, ownedArray, readArrayItem, readArrayShape, float64Cells, realCells, typedArray } from '../array-storage.js';
@@ -7,11 +8,11 @@ import { expectNumeric, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const linalgModule: RuntimeModule = {
-    diag: () => native(
+    diag: () => ({ ...native(
         'diag',
         1,
         arguments_ => diagonal(arguments_[0]),
-    ),
+    ), monadicResultShape: shape => diagonalShape(shape, 0) }),
     det: () => native(
         'det',
         1,
@@ -75,13 +76,12 @@ export function diagonal(value: RankValue, anti = false, offset = 0): RankArray 
 }
 
 export function diagonalShape(shape: readonly number[], offset: number): readonly number[] | undefined {
-    if (shape.length === 1) {
-        const side = shape[0] + Math.abs(offset);
-        return [side, side];
+    const result = diagonalResultShape(shape, offset);
+    if (!result) throw new RankError('diag expects a rank-1 vector or rank-2 matrix', 'DimensionMismatch');
+    if (shape.length === 1 && (!Number.isSafeInteger(result[0]! ** 2) || result[0]! ** 2 > 0xffffffff)) {
+        throw new RankError('diag matrix is too large', 'DimensionMismatch');
     }
-    if (shape.length === 2) return [Math.max(0, Math.min(
-        shape[0] - Math.max(0, -offset), shape[1] - Math.max(0, offset)))];
-    return undefined;
+    return result as readonly number[];
 }
 
 export function diagonalOptions(mode?: RankValue, offset?: RankValue): { anti: boolean; offset: number } {

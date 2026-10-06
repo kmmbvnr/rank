@@ -37,6 +37,10 @@ export function diagonalForm(parts: readonly Expression[], standard: (name: stri
     let end = index + 1;
     const mode = isLabelLiteral(parts[end]) ? parts[end++] : undefined;
     const next = parts[end];
+    // A following function continues the pipeline; aliases may not have been
+    // grouped by the spelling-specific modifier pass.
+    if (!mode && isNameExpression(next) && /^[a-z]/.test(next.name)
+        && !isNamed(next, 'rank') && !isNamed(next, 'axis')) return undefined;
     const offset = next && !isNamed(next, 'rank') && !isNamed(next, 'axis') ? parts[end++] : undefined;
     const base = [applicationExpression(parts.slice(0, index)), parts[index]];
     const suffix = parts.slice(end);

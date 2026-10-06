@@ -150,10 +150,10 @@ function printCatalogue(markdown: boolean): void {
             lines.push(`${module.name}  ${module.summary}`);
         }
         if (named.length > 0) {
-            if (markdown) lines.push('| Form | Result | Summary |', '| --- | --- | --- |');
+            if (markdown) lines.push('| Form | Result | Default cells | Summary |', '| --- | --- | --- | --- |');
             for (const entry of named) {
                 lines.push(markdown
-                    ? `| \`${entry.form}\` | ${resultLabel(entry)} | ${entry.summary} |`
+                    ? `| \`${entry.form}\` | ${resultLabel(entry)} | ${defaultCells(entry)} | ${entry.summary} |`
                     : `  ${entry.form.padEnd(34)} ${entry.summary}`);
             }
             if (markdown) lines.push('');
@@ -186,6 +186,16 @@ function resultLabel(operation: Operation): string {
     ].join(', ');
 }
 
+/** Audit each supported arity without assigning ranks to application forms. */
+function defaultCells(operation: Operation): string {
+    if (operation.formOnly) return 'special form';
+    if (!operation.arities.length) return 'source/value';
+    return operation.arities.map(arity => arity === 1
+        ? `unary ${operation.monadicRank ?? 'all'}${operation.mapsScalarCells ? ' (scalar map)' : ''}`
+        : arity === 2 ? `binary ${(operation.dyadicRanks ?? ['all', 'all']).join(' / ')}`
+        : arity === 0 ? 'source' : `${arity} operands: whole`).join('; ');
+}
+
 const REFERENCE_PREAMBLE = [
     '# Standard library reference',
     '',
@@ -197,6 +207,45 @@ const REFERENCE_PREAMBLE = [
     '`rank ops --markdown`, and `npm test` fails when the two disagree. Edit the',
     'catalogue, not this file. For what each module means and how its operations',
     'behave at the edges, read [the standard library](modules.md).',
+    '',
+    '## Default cells',
+    '',
+    'Every operation and supported arity below records its declared cell ranks.',
+    'A numeric rank selects trailing axes; leading axes form a broadcast frame.',
+    'Inputs with fewer axes are passed whole and validated by the operation.',
+    'Cell rank does not guess whether a matrix represents a batch of vectors.',
+    'Explicit `rank` overrides these defaults; `axis` selects frame axes.',
+    '',
+    'Unary global reductions (`sum`, `min`, `max`, boolean reductions and',
+    'statistics) take whole values. Structural operations, text/document parsers,',
+    'tables, graphs and effectful operations retain their collection or object',
+    'semantics. `reverse` reverses the leading axis; `len` measures it. `window`',
+    'uses its requested window dimensions and axes. `matmul` contracts the last',
+    'left axis with the first right axis; `solve` accepts a whole matrix and a',
+    'vector or matrix right side. Batched solve requires `rank 2 1` or `rank 2 2`.',
+    '',
+    '`sort`, `argsort`, `unique`, `integer` and `real` use rank 1. Sort direction',
+    'labels configure that unary operation rather than adding a data operand.',
+    'Numeric conversion overloads retain their existing element mapping; text',
+    'parses as a whole string, with explicit rank 0 for individual digits.',
+    '`det`, `inverse`, `diag` and `eigh` use rank 2. Configured diagonal modes',
+    'and offsets keep that rank. Internally mapped scalar math is marked',
+    'separately from declared ranks; this audit preserves its existing behavior.',
+    '`even`, `odd`, `isnan` and date conversions also retain their internal',
+    'collection mapping and query overloads despite declaring whole-value ranks.',
+    '',
+    'Special forms (constructors, indexing, `reduce`, `scan`, `outer`, `take`,',
+    '`drop`, and other syntax below) keep their own application rules. Calls',
+    'with three or more operands receive whole values; generalized intrinsic',
+    'lifting for those arities is outside the unary/binary rank dispatcher.',
+    'Sources are evaluated once per call. Implicit lifting introduces no extra',
+    'I/O, mutation or random draws. User functions take whole operands unless',
+    'they declare ranks; bound pipelines preserve their constituent defaults.',
+    '',
+    'Ranked array results contribute trailing axes. Tuples remain single array',
+    'elements, for builtins and user functions alike: batched `eigh` returns',
+    'an array of tuples. Empty frames retain known result-cell axes and check',
+    'declared cell-shape constraints without evaluating nonexistent cells.',
     '',
     '## Shape contracts',
     '',
@@ -220,6 +269,9 @@ const REFERENCE_PREAMBLE = [
     '`{ args: [[\'d\']], result: [{ exists: \'k\' }] }`. `sum` takes the whole input and',
     'declares `{ args: [null], result: [] }`. These are metadata literals,',
     'not Rank source syntax.',
+    '',
+    '`diag` uses the shared `diagonalResultShape` transfer for vector/matrix',
+    'overloads and configured offsets; its declarative result is left unknown.',
     '',
     'Explicit cell ranks still control lifting. The analyzer splits off frames,',
     'instantiates the cell signature, and combines the result with those frames.',

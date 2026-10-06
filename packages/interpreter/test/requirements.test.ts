@@ -33,9 +33,12 @@ it('keeps runtime guards and empty-frame behavior independent of downstream requ
 });
 
 it('uses explicit frame axes when checking cell shapes and empty frames', () => {
-    for (const shape of ['2 3 2', '2 0 2', '3 0 2']) {
+    for (const shape of ['2 3 2', '2 0 2']) {
         const source = `use linalg\nM = array shape ${shape} fill 1\nM det axis 1 rank 2`;
         expect(() => formatValue(new Interpreter().execute(source)!)).not.toThrow();
         expect(inferRequirements(parse(source)).conflicts, shape).toEqual([]);
     }
+    const invalid = 'use linalg\nM = array shape 3 0 2 fill 1\nM det axis 1 rank 2';
+    expect(() => formatValue(new Interpreter().execute(invalid)!)).toThrow(/cell shape/);
+    expect(inferRequirements(parse(invalid)).conflicts.length).toBeGreaterThan(0);
 });

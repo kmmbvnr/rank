@@ -22,9 +22,16 @@ Rank establishes **Rank Polymorphism with Leading-Frame Cell Application (`rank`
 ### 1. Intrinsic Function Rank
 Every function declares an intrinsic rank for each supported arity:
 - **Rank 0 (scalar atoms):** Elementwise arithmetic (`+`, `-`, `*`, `/`), math functions (`abs`, `sqrt`, `exp`, `log`, `sin`, `cos`). Applied to higher-rank tensors, they automatically map over individual scalar atoms.
-- **Rank 1 (vectors / 1D sequences):** Sequence reductions and transformations (`len`, `sum`, `sort`, `argsort`, `unique`, `reverse`, `distance`). `integer` parsing complete strings has intrinsic rank 1.
-- **Rank 2 (matrices / 2D tables):** Linear algebra operations (`det`, `inverse`, `solve`, `eigh`).
-- **Rank $\infty$ (whole tensor):** Structural operations (`transpose`, `reshape`).
+- **Rank 1 (vectors / 1D sequences):** Trailing-vector operations (`sort`, `argsort`, `unique`). `integer` and `real` parsing complete strings have intrinsic rank 1.
+- **Rank 2 (matrices / 2D tables):** Linear algebra operations (`det`, `inverse`, `diag`, `eigh`).
+- **Rank $\infty$ (whole tensor):** Structural operations (`transpose`, `reshape`), global reductions (`sum`, unary `min`/`max`, statistics), and leading-axis transformations (`reverse`, `len`). `solve` keeps whole matrix/vector or matrix/matrix operands; `matmul` keeps last-left/first-right contraction. Higher arities retain whole-operand semantics.
+
+Intrinsic rank controls cell splitting, separately from accepted input ranks.
+For example, `diag` accepts a vector or matrix whole, but lifts over trailing
+matrix cells in higher-rank arrays. Tuple results remain one frame element;
+`eigh` of `[B N N]` returns `[B]` tuples, not a tuple of batched tensors.
+Declared shape constraints are validated even for empty frames, without reading
+values. See the [reference audit](../../stdlib/reference.md#default-cells).
 
 ### 2. Overriding Cell Rank with the `rank` Modifier
 The `rank R` modifier overrides the unary cell rank:

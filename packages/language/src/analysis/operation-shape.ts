@@ -1,5 +1,5 @@
 import type { IntrinsicRank, Operation } from '../operations.js';
-import { instantiateShapeSignature, type KnownShape } from '../shape-signature.js';
+import { diagonalResultShape, instantiateShapeSignature, type KnownShape } from '../shape-signature.js';
 import { resultTypes } from './types.js';
 import { broadcastShape, incompatibleShapes, type ValueFacts } from './value-domain.js';
 
@@ -15,7 +15,8 @@ export function operationShapeFacts(
     const partition = rankedOperandShapes(operands, ranks, axes);
     if (!partition) return;
     const { cells, frame } = partition;
-    const cellShape = instantiateShapeSignature(signature, cells);
+    const cellShape = operation.name === 'diag' && cells[0]
+        ? diagonalResultShape(cells[0]) : instantiateShapeSignature(signature, cells);
     if (!cellShape) return;
     // Ranked assembly boxes non-array collections instead of adding their axes.
     if (frame.length && ['text', 'sequence'].includes(operation.result)) return;

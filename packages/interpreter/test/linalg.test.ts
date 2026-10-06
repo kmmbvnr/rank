@@ -121,8 +121,7 @@ describe('Rank linear algebra', () => {
     it('validates diagonal inputs', () => {
         expect(() => run('use linalg\n1 diag'))
             .toThrowError('diag expects a rank-1 vector or rank-2 matrix');
-        expect(() => run('use linalg\n(array shape 1 1 1 fill 0) diag'))
-            .toThrowError('diag expects a rank-1 vector or rank-2 matrix');
+        expect(run('use linalg\n(array shape 1 1 1 fill 0) diag')).toBe('0');
         expect(() => run('use linalg\n(array "bad" "bad") diag'))
             .toThrowError('diag expects numeric elements');
     });

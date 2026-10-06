@@ -68,13 +68,19 @@ the offset with the columns reflected.
 Matrix diag .anti
 Matrix diag 1
 Matrix diag .anti -1
-Windows diag .anti rank 2
+Windows diag .anti
 ```
 
 Vector construction uses the same
 parameters and adds `abs(offset)` to
 the matrix side. An offset outside a
 matrix returns an empty list.
+
+Higher-rank arrays use trailing matrix
+cells automatically. A `[B N]` matrix
+extracts one diagonal; `diag rank 1`
+constructs B diagonal matrices from its
+rows, with shape `[B N N]`.
 
 ### See also
 
@@ -110,6 +116,30 @@ Gives a tuple: `R 0` holds the
 eigenvalues, smallest first, and `R 1` a
 matrix whose columns are the matching
 eigenvectors.
+
+Higher-rank arrays use trailing square
+matrix cells. The result is an array of
+tuples under the leading frame:
+
+```rank
+use sequences
+Batch = array shape 2 2 2
+  2 1 1 2
+  4 0 0 5
+end
+Results = Batch eigh
+First = Results 0
+unpack Values Vectors = First
+Values
+```
+
+```result
+1 3
+```
+
+An empty batch `[0 N N]` gives an empty
+array of shape `[0]`. `[0 3 4]` raises a
+shape error without decomposing cells.
 
 ### See also
 
