@@ -149,13 +149,16 @@ describe('arrays of array cells', () => {
     it('stacks the cells of a matrix of vectors after both axes', () => {
         expect(run(`use sequences
 V = array 1 2
-Grid = (array V V V V) reshape 2 2
+Grid = array shape 2 2
+ V V
+ V V
+end
 Grid copy shape`)).toBe('2 2 2');
     });
 
     it.each(['array 1 2', '3'])('rejects cells of another shape or kind: %s', other => {
         expect(() => run(`use sequences\n(array (array 1 2 3) (${other})) copy`))
-            .toThrowError(other === '3' ? 'arrays require one element type' : 'materialized array items must have the same shape');
+            .toThrowError('array items must have the same shape');
     });
 
     it('leaves an array of scalar cells unstacked', () => {

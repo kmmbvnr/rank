@@ -530,10 +530,11 @@ own rank rules. A call-site `rank` applies to the complete composition:
 
 ```rank
 products = reduce * rank 1 max
-Answer = (array H V D U) products rank 0 max
+Answer = (array (H products) (V products) (D products) (U products)) max
 ```
 
-Here `rank 1` applies to `reduce *`, while `rank 0` applies to `products`.
+Here `rank 1` applies to `reduce *`. Each direction is passed to `products`
+separately, and the final `max` compares four scalar results.
 Similarly, `total = matmul sum` sums the complete multiplication result;
 `A B total rank 2 2` instead sums each matrix-cell multiplication separately.
 

@@ -28,6 +28,13 @@ it('separates scalar type, array elements, rank and dimensions', () => {
         shape: [2, 2], eagerScalarCells: true });
 });
 
+it('does not mistake a constructor frame for the full shape of array-valued or unknown cells', () => {
+    const vector: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'] };
+    expect(facts('array X X shape 2', new Map([['X', vector]]))).toEqual({ types: ['array'] });
+    expect(facts('array X X shape (array 2)', new Map([['X', vector]]))).toEqual({ types: ['array'] });
+    expect(facts('array X X shape 2')).toEqual({ types: ['array'] });
+});
+
 it('infers the shape and cells of a prefix stack through transpose', () => {
     const vector: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'],
         eagerScalarCells: true };

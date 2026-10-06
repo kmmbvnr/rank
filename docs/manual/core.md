@@ -27,6 +27,14 @@ Positions start at zero, so `A 0` is the
 first item. Put array after a finite
 sequence to collect its items. Use
 `array shape` to build a matrix.
+Array items of equal shape add trailing
+axes: two vectors of length 3 give shape
+`2 3`. Different shapes, or arrays mixed
+with scalar items, fail at construction.
+Use `tuple` for a fixed group of arrays
+with different shapes. Lazy input cells
+stay lazy; use `copy` for writable
+storage.
 
 ### See also
 

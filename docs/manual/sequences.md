@@ -243,9 +243,17 @@ concat A B axis 1 shape
 concat Array Array ... [axis N]
 ```
 
-The default axis is `0`. Inputs need the
-same rank, element type, and size on
-other axes. Use
+Axes are zero-based; the default is `0`.
+Inputs need the same rank, element type,
+and size on every other axis. The
+selected lengths are added; the input
+rank and order are preserved. Axis
+selection never flattens axes. For
+example, shapes `2 4` and `3 4` give `5
+4` on axis 0; shapes `2 4` and `2 3`
+give `2 7` on axis 1. Invalid axes or
+incompatible dimensions raise
+`DimensionMismatch`. Use
 `concat unpack Parts axis N` for a list
 or tuple of inputs. Rank-one sequences
 stay lazy, even if their length

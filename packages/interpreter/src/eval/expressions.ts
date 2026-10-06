@@ -10,7 +10,7 @@ import {
     type AddressItem, type ArrayItem, type Expression, type SortField,
 } from '@arrrank/language';
 import { nameMask } from '../array-mask.js';
-import { allValid, createArraySnapshot, isPresentAt, maskedCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
+import { allValid, createArraySnapshot, derivedArray, isPresentAt, maskedCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { compileClauseExpression, isBoundCondition, type ClauseExpressionContext } from '../clause-expression.js';
 import { newStructure } from '../collections.js';
@@ -38,7 +38,7 @@ import { assignRecordField, recordContract } from '../record-contract.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
 import { ResourceMap } from '../resource-summary.js';
 import { ALL_AXIS } from '../selectors.js';
-import { materializeSequence, sequence } from '../sequence.js';
+import { materializeSequence, sequence, stackItems } from '../sequence.js';
 import { compileTableExpression } from '../table-query-expression.js';
 import { maskSelection, unpackApplicationItems } from '../value-selection.js';
 import {
@@ -313,7 +313,7 @@ export class ExpressionEvaluator {
                         `array shape ${shape.join(' ')} expects ${size} elements, got ${items.length}`,
                     );
                 }
-                return new ArrayBindingContract('array').check(ownedArray(items, shape));
+                return new ArrayBindingContract('array').check(array(items, shape));
             };
         }
         const tableQuery = compileTableExpression(expression, () => ({
@@ -654,8 +654,34 @@ export class ExpressionEvaluator {
     }
 }
 
-function array(items: RankValue[]): RankArray {
-    return ownedArray(items);
+/** Constructor items form leading frame cells; equally shaped arrays add trailing axes. */
+function array(items: RankValue[], frame: readonly number[] = [items.length]): RankArray {
+    const first = items[0];
+    const cellShape = isRankArray(first) ? first.shape : undefined;
+    for (let position = 1; position < items.length; position += 1) {
+        const item = items[position];
+        const shape = isRankArray(item) ? item.shape : undefined;
+        if ((cellShape === undefined) !== (shape === undefined)
+            || cellShape && shape && (cellShape.length !== shape.length
+                || cellShape.some((length, axis) => length !== shape[axis]))) {
+            const describe = (shape: readonly number[] | undefined) =>
+                shape ? `shape [${shape.join(',')}]` : 'a non-array value';
+            throw new RankError(
+                `array items must have the same shape: item 0 has ${describe(cellShape)}, `
+                + `item ${position} has ${describe(shape)}`,
+                'DimensionMismatch',
+            );
+        }
+    }
+    if (!cellShape) return ownedArray(items, frame);
+    const cells = items as RankArray[];
+    const cellSize = cellShape.reduce((product, dimension) => product * dimension, 1);
+    const shape = [...frame, ...cellShape];
+    if (cells.every(cell => cell.itemAt === undefined)) {
+        return stackItems(cells, frame, 'array');
+    }
+    return derivedArray(shape, cells, index =>
+        readArrayItem(cells[Math.floor(index / cellSize)]!, index % cellSize));
 }
 
 export function checkedArrayDimension(dimension: bigint): number {
