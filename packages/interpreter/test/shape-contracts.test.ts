@@ -56,6 +56,7 @@ const samples: readonly Sample[] = [
     ['numbers.atan2', () => [1n, 2n], []],
     ['numbers.binomial', () => [5n, 2n], []],
     ['numbers.binomialmod', () => [5n, 2n, 7n], []],
+    ['numbers.divisors', () => [12n], [null]],
     ['numbers.gcd', () => [6n, 4n], []],
     ['numbers.isqrt', () => [9n], []],
     ['numbers.lcm', () => [vector(6n, 4n)], []],
