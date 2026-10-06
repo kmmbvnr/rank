@@ -1,4 +1,5 @@
 import './styles.css';
+import { Capacitor } from '@capacitor/core';
 import { ManualViewer, manualKey } from './manual-viewer.js';
 import { ValueOverlay } from './value-overlay.js';
 import type { PauseSnapshot } from '@arrrank/interpreter';
@@ -63,6 +64,7 @@ document.documentElement.style.setProperty('--result-scale', String(RESULT_SCALE
 const example = new URLSearchParams(location.search).get('example') === 'fibonacci';
 // A phone browser needs the command menu and the symbol keyboard as much as the app does.
 const touchConsole = import.meta.env.MODE === 'mobile' || !example && matchMedia('(pointer: coarse)').matches;
+const androidKeyboard = Capacitor.getPlatform() === 'android';
 if (!touchConsole) {
     chrome.hidden = true;
     document.documentElement.style.setProperty('--chrome-height', '0px');
@@ -295,6 +297,8 @@ function restoreKeyboardAfterViewer(): void {
 }
 
 function render(): void {
+    // The first frame must contain the restored notebook, not its migration draft or reset state.
+    if (!historyReady && !failure) return;
     showViewer();
     const paused = session.pauseState;
     modes.allowRender();
@@ -561,7 +565,7 @@ input.addEventListener('keydown', event => {
 let keyboardEnabled = touchConsole;
 let keyboardOpening = touchConsole;
 let keyboardOpeningTimer: ReturnType<typeof setTimeout> | undefined;
-if (touchConsole) {
+if (touchConsole && !androidKeyboard) {
     keyboardOpeningTimer = setTimeout(() => {
         keyboardOpening = false;
         render();
@@ -571,7 +575,7 @@ if (touchConsole) {
  * Set while the system keyboard has been asked for but has not reported itself. The symbol keyboard
  * lies behind the system one, so showing it early lets it slide into view above the incoming keyboard.
  */
-let awaitingSoftKeyboard = false;
+let awaitingSoftKeyboard = androidKeyboard;
 function finishKeyboardOpening(): void {
     keyboardOpening = false;
     awaitingSoftKeyboard = false;
@@ -582,7 +586,8 @@ function startKeyboardOpening(): void {
     // Android says when the system keyboard shows; a browser cannot, so it keeps the fixed wait.
     awaitingSoftKeyboard = nativeSoftKeyboard !== undefined;
     clearTimeout(keyboardOpeningTimer);
-    keyboardOpeningTimer = setTimeout(finishKeyboardOpening, awaitingSoftKeyboard ? 1800 : 450);
+    // Native startup waits for an actual IME report, even when notebook restoration is slow.
+    if (!awaitingSoftKeyboard) keyboardOpeningTimer = setTimeout(finishKeyboardOpening, 450);
 }
 const manualViewer = new ManualViewer();
 let keyboardModule = 'core';
@@ -591,15 +596,18 @@ let keyboardSize = '';
 let tallestViewport = 0;
 let viewportWidth = 0;
 /** Android reports the soft keyboard itself; a browser only shows it by shrinking the viewport. */
-let nativeSoftKeyboard: boolean | undefined;
+let nativeSoftKeyboard: boolean | undefined = androidKeyboard ? false : undefined;
 const softKeyboardHeightKey = 'rank-soft-keyboard-height-v1';
 let softKeyboardHeight = 0;
 try { softKeyboardHeight = Number(localStorage.getItem(softKeyboardHeightKey)) || 0; } catch { /* Measured again when it opens. */ }
 (globalThis as typeof globalThis & { rankSoftKeyboard?: (visible: boolean, height?: number, navigation?: number) => void })
     .rankSoftKeyboard = (visible, height = 0, navigation = 0) => {
         document.documentElement.style.setProperty('--keyboard-bottom', navigation + 'px');
+        const waitingForFirstReport = awaitingSoftKeyboard && nativeSoftKeyboard !== true;
         const changed = nativeSoftKeyboard !== visible;
         nativeSoftKeyboard = visible;
+        // Closed/zero-height reports during startup must not blur the field opening the IME.
+        if (waitingForFirstReport && !visible) return;
         const wasSoftKeyboard = softKeyboard;
         softKeyboard = visible;
         if (visible) {
@@ -619,6 +627,7 @@ try { softKeyboardHeight = Number(localStorage.getItem(softKeyboardHeightKey)) |
         }
         if (wasSoftKeyboard && !visible) {
             keyboardOpening = false;
+            awaitingSoftKeyboard = false;
             clearTimeout(keyboardOpeningTimer);
             if (busy || repl.running) keyboardEnabled = false;
             input.blur();
@@ -644,6 +653,7 @@ function beginKeyboardTransition(): void {
  * closing the soft keyboard shows the symbols, ABC brings the soft keyboard back.
  */
 function softKeyboardOpen(height: number): boolean {
+    if (awaitingSoftKeyboard) return true;
     if (Date.now() < softKeyboardWantedUntil) return true;
     if (nativeSoftKeyboard !== undefined) return nativeSoftKeyboard;
     if (innerWidth !== viewportWidth) { viewportWidth = innerWidth; tallestViewport = 0; }
@@ -654,6 +664,16 @@ function softKeyboardOpen(height: number): boolean {
 let softKeyboard = false;
 /** After ABC the system keyboard needs a moment to report itself, and must not be taken for closed. */
 let softKeyboardWantedUntil = 0;
+/** Android requests the IME only after the restored notebook accepts text input. */
+(globalThis as typeof globalThis & { rankShowKeyboard?: () => boolean }).rankShowKeyboard = () => {
+    if (!historyReady || input.readOnly || changingNotebook || document.querySelector('dialog[open]')) return false;
+    if (!keyboardOpening) startKeyboardOpening();
+    keyboardEnabled = true;
+    softKeyboard = true;
+    input.focus({ preventScroll: true });
+    render();
+    return true;
+};
 /**
  * A tap on a WebView with a focused text field reopens the system keyboard, so while the symbol
  * keyboard is up the field is left unfocused; keys edit the notebook directly.
@@ -785,6 +805,7 @@ function typeKey(key: string): void {
 function setKeyboard(enabled: boolean): void {
     keyboardEnabled = enabled;
     keyboardOpening = false;
+    awaitingSoftKeyboard = false;
     clearTimeout(keyboardOpeningTimer);
     if (!enabled) input.blur();
     render();
@@ -1528,6 +1549,7 @@ if (!example) {
             historyReady = true;
             input.readOnly = false;
             brand.disabled = false;
+            top = 0; scrollFraction = 0; restingCursorRow = undefined; follow = true;
             render();
         } catch (error) {
             failure = 'Cannot open notebook history: ' + String(error);

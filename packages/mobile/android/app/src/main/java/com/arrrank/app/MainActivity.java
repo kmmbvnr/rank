@@ -65,22 +65,16 @@ public class MainActivity extends BridgeActivity {
     private final Runnable showKeyboard = () -> {
         if (!resumed || !hasWindowFocus() || keyboardRequested || bridge == null) return;
         WebView webView = bridge.getWebView();
-        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(webView);
-        if (insets != null && insets.isVisible(WindowInsetsCompat.Type.ime())) {
-            keyboardRequested = true;
-            return;
-        }
         if (!webView.hasFocus()) webView.requestFocus();
         webView.evaluateJavascript(
-            "(function(){const input=document.getElementById('input');"
-                + "if(!input||document.querySelector('dialog[open]'))return false;"
-                + "if(document.activeElement!==input)input.focus({preventScroll:true});return true;})()",
+            "window.rankShowKeyboard ? window.rankShowKeyboard() : false",
             focused -> {
-                if (resumed && hasWindowFocus() && !keyboardRequested && "true".equals(focused)) {
+                if (!resumed || !hasWindowFocus() || keyboardRequested) return;
+                if ("true".equals(focused)) {
                     keyboardRequested = true;
                     WindowCompat.getInsetsController(getWindow(), webView)
                         .show(WindowInsetsCompat.Type.ime());
-                }
+                } else scheduleKeyboard();
             });
     };
 
