@@ -270,3 +270,15 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 .history-edit button:focus-visible { background: #383838; }
 @keyframes history-enter { from { transform: translateX(-100%); } to { transform: translateX(0); } }
 @media (prefers-reduced-motion: reduce) { #notebook-panel[open] { animation: none; } }
+
+/* Guidance never captures the notebook's touches or opens the system keyboard. */
+#guidance-spotlight { position: fixed; z-index: 10; pointer-events: none; border: 2px solid #b6c4ff; border-radius: 12px; box-shadow: 0 0 0 200vmax rgb(0 0 0 / .62); }
+#mobile-guidance { position: fixed; z-index: 11; padding: 14px 16px; border: 1px solid #545b73; border-radius: 12px; background: #252938; color: #f1f3ff; font: 14px/1.4 system-ui, sans-serif; box-shadow: 0 6px 24px rgb(0 0 0 / .4); }
+#mobile-guidance strong { display: block; font-size: 15px; }
+#mobile-guidance p { margin: 8px 0 0; }
+#mobile-guidance .guidance-code { white-space: pre; font-family: ui-monospace, monospace; }
+#mobile-guidance > div { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+#mobile-guidance button { min-height: 40px; padding: 6px 12px; border-radius: 7px; background: #414a6c; font: inherit; color: #f1f3ff; }
+#mobile-guidance button:last-child { background: transparent; text-decoration: underline; }
+#mobile-guidance button:focus-visible { outline: 2px solid #b6c4ff; }
+#mobile-guidance[hidden], #guidance-spotlight[hidden] { display: none; }
