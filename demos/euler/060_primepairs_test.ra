@@ -11,9 +11,9 @@ end
 test "concatenation and compatibility in both directions"
   use "060_primepairs"
 
-  13 7 concat equal 137
-  7 13 concat equal 713
-  3 10 concat equal 310
+  (13 7 concat) equal 137
+  (7 13 concat) equal 713
+  (3 10 concat) equal 310
   3 7 compatible
   7 3 compatible
   not 13 7 compatible

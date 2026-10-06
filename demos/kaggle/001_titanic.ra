@@ -37,7 +37,7 @@ fun prepare_features Train Test
   Features = array .Female .Pclass .Age .Fare
   X = Train Features
   Xtest = Test Features
-  return array X Xtest
+  return tuple X Xtest
 end
 
 
