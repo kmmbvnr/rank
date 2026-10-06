@@ -117,6 +117,33 @@ skipped prefix when demanded. Neither operation makes a single-pass source
 replayable. `take` bounds an infinite source by count; `drop` alone leaves it
 infinite. Materializing a bounded sequence uses postfix `array`.
 
+## Array construction
+
+Prefix `array A B ...` constructs an array from its items. Scalar items form
+one leading axis. Array-valued items must have the same shape and are stacked:
+two matrices of shape `3 4` give a tensor of shape `2 3 4`. Their cells remain
+lazy; construction checks shapes without reading every cell.
+
+```rank
+A = array 1 2 3
+B = array 4 5 6
+M = array A B
+M shape               rem 2 3
+M 1                   rem 4 5 6
+```
+
+Different array shapes, or mixing arrays and non-arrays, raise
+`DimensionMismatch` at construction with zero-based item positions and shapes.
+There is no padding. Use `tuple A B` for a fixed group of differently shaped
+arrays. Streams and collections can hold array items without constructing a
+rectangular tensor; materializing them still requires matching cell shapes.
+
+With explicit `array shape ...` item lists, the declared dimensions describe
+the frame: the item count must match that frame, and array items add their
+trailing cell axes. `array shape ... fill Value` keeps its allocation contract:
+it repeats `Value` as a cell and retains its type even for an empty frame.
+Postfix `array` materializes items eagerly as described below.
+
 ## Explicit materialization
 
 Postfix `array` consumes a sequence and stores its yielded items in a dense
@@ -215,8 +242,19 @@ Series shape          rem 360 3 for 360 months
 three equal-length arrays or exact-size sequences. `stack` adds a leading axis
 for its arguments, and `transpose` turns them into columns. It reads cells on
 demand and checks that all arguments have the same shape.
-For a rank-1 array of arrays, `stack unpack Items` spreads its items into the
-same constructor.
+`stack unpack Items` spreads an array's leading-axis cells or a tuple's items
+into the constructor.
+
+Prefix `concat A B ... axis N` joins same-rank arrays along an existing axis.
+Axes are zero-based and the default is axis 0. The dimensions on every other
+axis must match. The selected lengths are added, preserving the input rank
+and order: shapes `2 4` and `3 4` give `5 4` on axis 0; shapes `2 4` and `2 3`
+give `2 7` on axis 1. Invalid axes or mismatched ranks or other dimensions
+raise `DimensionMismatch`. Axis selection never flattens or merges axes.
+Cells are read on demand. Rank-one sequences remain lazy, including sequences
+of unknown length; mixing rank-one arrays and sequences returns a sequence.
+Use `concat unpack Parts axis N` to spread a tensor's leading-axis cells or a
+tuple's items.
 
 ## Derived values and mutation
 

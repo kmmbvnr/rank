@@ -75,6 +75,17 @@ describe('axis-aware stack and concat', () => {
             .toThrow(/homogeneous|element type|same type/);
     });
 
+    it('preserves rank and only adds lengths on the selected axis', () => {
+        expect(run('concat (array 1 2 3 4 shape 2 2) (array 5 6 shape 1 2) shape')).toBe('3 2');
+        expect(run('concat (array 1 2 3 4 shape 2 2) (array 5 6 shape 2 1) axis 1')).toBe('1 2 5 3 4 6');
+        expect(() => run('concat (array 1 2) (array 3 4 shape 1 2)')).toThrow(/non-concatenated axes/);
+        expect(() => run('concat (array 1 2) (array 3 4) axis -1')).toThrow(/nonnegative integer/);
+        expect(() => run('concat (array 1 2) (array 3 4) axis 0.5')).toThrow(/nonnegative integer/);
+        expect((concatValues([]) as RankArray).shape).toEqual([0]);
+        expect(() => concatValues([], 1)).toThrow(/axis 1/);
+        expect(run('concat (array shape 0 2 fill 0) (array shape 0 2 fill 0) shape')).toBe('0 2');
+    });
+
     it('keeps the values captured before a source name is changed', () => {
         expect(run('A = array 1 2\nB = array 3 4\nC = concat A B\nA 0 = 9\nC'))
             .toBe('1 2 3 4');
@@ -84,6 +95,8 @@ describe('axis-aware stack and concat', () => {
         expect(run('concat (1 to 3) (4 to 6)')).toBe('1 2 3 4 5 6');
         expect(run('use numbers\nconcat ((1 to 6) filter even) (array 7 8) copy'))
             .toBe('2 4 6 7 8');
+        expect(run('use numbers\nJoined = concat (1 to 2) fibonacci\nJoined take 5 copy')).toBe('1 2 1 2 3');
+        expect(() => run('concat (1 to 2) (array 3 4) axis 1')).toThrow(/axis 1/);
     });
 
     it('reads only the selected source cell', () => {

@@ -221,7 +221,7 @@ D = Windows diag
 U = Windows diag .anti
 
 products = reduce * rank 1 max
-Answer = (array H V D U) products rank 0 max
+Answer = (array (H products) (V products) (D products) (U products)) max
 ```
 
 The grid is one dense rank-2 array. Horizontal and vertical products reduce

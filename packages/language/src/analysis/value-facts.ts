@@ -142,6 +142,11 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
             };
         }
         if (expression.dimensions.length) {
+            const items = [...expression.items, ...expression.rows.flatMap(row => row.items)]
+                .map(item => expressionFacts(item.value, lookup));
+            // Array-valued constructor items add trailing cell axes at runtime.
+            // Do not report just the explicit frame as the full tensor shape.
+            if (!expression.fill && items.some(item => !isAtom(item))) return { types: ['array'] };
             const only = expression.dimensions.length === 1 ? expressionFacts(expression.dimensions[0]!.value, lookup) : undefined;
             if (only?.types.join() === 'array') {
                 // `array shape Shape fill X`: a vector of dimensions, so the rank is the vector's length.
@@ -163,8 +168,6 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
             const dims = expression.dimensions.map((item, axis) =>
                 shape[axis] === null && item.sign !== '-' ? dimensionFacts[axis].dim ?? null : null);
             const fill = expression.fill && expressionFacts(expression.fill, lookup);
-            const items = [...expression.items, ...expression.rows.flatMap(row => row.items)]
-                .map(item => expressionFacts(item.value, lookup));
             const eagerScalarCells = fill
                 ? fill.types.length > 0 && isAtom(fill)
                 : items.length > 0 && items.every(item => item.types.length > 0 && isAtom(item));

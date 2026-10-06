@@ -25,7 +25,7 @@ for (const compiled of [true, false]) describe(`record binding contracts (compil
         expect(formatValue(r.execute('R .items')!)).toBe('3 4 5');
         expect(r.execute('Alias .count')).toBe(1n);
     });
-    it.each(['array shape 1 1 fill 0', 'array "bad"', 'array (array "bad")'])
+    it.each(['array shape 1 1 1 fill 0', 'array "bad"', 'array (array "bad")'])
     ('checks recursive field ranks and cells: %s', replacement => {
         const r = runtime();
         r.execute(`R = ${record('.child = ' + record('.items = array (array 1)'))}`);

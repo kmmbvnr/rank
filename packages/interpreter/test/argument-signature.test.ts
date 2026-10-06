@@ -131,7 +131,11 @@ it.each([false, true])('keeps integer and real lazy arguments distinct in either
 
 it('keeps nested array signatures structural without forcing lazy child cells', () => {
     const runtime = new Interpreter();
-    runtime.execute('Source = array 1 2\nLazy = Source * 2\nA = array Source\nB = array Lazy');
+    runtime.execute('Source = array 1 2\nLazy = Source * 2');
+    // Nested host arrays remain distinct from Rank's tensor constructor.
+    runtime.variables.set('NestedSource', ownedArray([runtime.variables.get('Source')!]));
+    runtime.variables.set('NestedLazy', ownedArray([runtime.variables.get('Lazy')!]));
+    runtime.execute('A = NestedSource\nB = NestedLazy');
     expect(argumentSignature([runtime.variables.get('A')!])).toBe(argumentSignature([runtime.variables.get('B')!]));
 });
 
