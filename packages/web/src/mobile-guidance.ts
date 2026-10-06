@@ -188,7 +188,7 @@ export class MobileGuidance {
             case 'run': target = targets.play; text = 'Tap Play to run through the selected line and multiply every number in the array by ten.'; break;
             case 'keyboard':
                 // The system keyboard is owned by the OS. Point at the editor above it.
-                if (context.softKeyboard) { target = targets.notebook; text = 'Dismiss the system keyboard with its hide key or Android Back to reveal Rank commands.'; }
+                if (context.softKeyboard) { target = targets.notebook; text = 'Dismiss the system keyboard with its hide key to reveal Rank commands.'; }
                 break;
             case 'commands':
                 if (context.rankKeyboard) {
