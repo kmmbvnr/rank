@@ -161,6 +161,9 @@ export class SequenceReplay {
 
     /** Store sources with numeric bounds as cursors; ranges and aliases retain their identity. */
     readonly store = (source: RankSequence): RankSequence => {
+        // Open arithmetic ranges are reusable values, including their slice metadata.
+        // A shared cursor would interleave the two reads in N * (N + 1).
+        if (source.plan.openRange) return source;
         if (source.plan.singlePass || isRankSequenceMask(source) || !source.plan.withUpperBound) return source;
         const tape: Tape = { source, entries: [], finished: false, resumable: true };
         this.tapes.add(tape);
