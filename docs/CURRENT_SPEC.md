@@ -7610,8 +7610,7 @@ use sequences
 option Minimum integer = 500
 N = 1 to #
 Triangles = N * (N + 1) // 2
-divisor_count = divisors count
-Counts = Triangles divisor_count rank 0
+Counts = Triangles divisors rank 0 count rank 0
 Answer = Triangles first where (Counts greater Minimum)
 ```
 
