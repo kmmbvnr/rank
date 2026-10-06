@@ -7540,10 +7540,10 @@ option Minimum integer = 500
 Answer = Minimum first_triangle
 ```
 
-`divisor_count` consumes the sorted lazy sequence from `factors`. If the prime
-exponents are `e1, e2, ...`, it multiplies `(e1 + 1) * (e2 + 1) * ...` without
-enumerating every divisor. The first triangle with over 500 divisors is
-`76576500`.
+`divisors count` computes the number of positive divisors from prime exponents
+without enumerating the divisors. The search splits each triangular number into
+two coprime factors and multiplies their divisor counts. The first triangle with
+over 500 divisors is `76576500`.
 
 ## 13. Large sum
 
