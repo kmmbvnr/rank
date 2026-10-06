@@ -1,5 +1,5 @@
 /** Guidance uses real notebook/keyboard actions; it never takes editor focus. */
-type Step = 'offer' | 'run' | 'keyboard' | 'commands' | 'letters' | 'notebooks' | 'done';
+type Step = 'offer' | 'run' | 'keyboard' | 'commands' | 'letters' | 'notebooks' | 'new-notebook' | 'done';
 type Hint = 'hold' | 'modules';
 interface SavedGuidance {
     step?: Step;
@@ -18,11 +18,12 @@ export interface GuidanceContext {
     unavailable: boolean;
     softKeyboard: boolean;
     rankKeyboard: boolean;
+    notebookPanelOpen: boolean;
     targets: { notebook: HTMLElement; play: HTMLElement; commands?: HTMLElement; letters: HTMLElement;
-        brand: HTMLElement; modules?: HTMLElement };
+        brand: HTMLElement; newNotebook?: HTMLElement; modules?: HTMLElement };
 }
 const storageKey = 'rank-mobile-guidance-v1';
-const steps: Step[] = ['offer', 'run', 'keyboard', 'commands', 'letters', 'notebooks', 'done'];
+const steps: Step[] = ['offer', 'run', 'keyboard', 'commands', 'letters', 'notebooks', 'new-notebook', 'done'];
 
 export class MobileGuidance {
     private saved: SavedGuidance = {};
@@ -109,11 +110,12 @@ export class MobileGuidance {
         if (this.saved.step === 'offer') this.step('keyboard');
         this.hide();
     }
-    discovered(action: 'hold' | 'notebooks' | 'modules' | 'documentation' | 'letters'): void {
-        this.saved[action] = true;
+    discovered(action: 'hold' | 'notebooks' | 'modules' | 'documentation' | 'letters' | 'newNotebook'): void {
+        if (action !== 'newNotebook') this.saved[action] = true;
         if (action === 'documentation' && this.saved.step === 'commands') this.step('letters');
         if (action === 'letters' && this.saved.step === 'letters') this.step('notebooks');
-        if (action === 'notebooks' && this.saved.step === 'notebooks') { this.step('done'); this.defer(); }
+        if (action === 'notebooks' && this.saved.step === 'notebooks') this.step('new-notebook');
+        if (action === 'newNotebook' && this.saved.step === 'new-notebook') { this.step('done'); this.defer(); }
         if (action === this.hint) { this.hint = undefined; this.defer(); }
         this.persist();
         this.update();
@@ -151,6 +153,11 @@ export class MobileGuidance {
 
     update(): void {
         const context = this.context();
+        // The final hint belongs inside the modal drawer's top layer.
+        const parent = this.saved.step === 'new-notebook' && context.notebookPanelOpen
+            ? context.targets.newNotebook?.closest('dialog') ?? document.body : document.body;
+        if (this.card.parentElement !== parent) parent.append(this.spotlight, this.card);
+        if (context.notebookPanelOpen && this.saved.step !== 'new-notebook') { this.hide(); return; }
         if (context.ready && context.rankKeyboard && !this.wasKeyboard && (this.saved.keyboardUses ?? 0) < 2) {
             this.saved.keyboardUses = (this.saved.keyboardUses ?? 0) + 1;
             this.persist();
@@ -168,7 +175,7 @@ export class MobileGuidance {
         let action: { label: string; run: () => void } | undefined;
         let guided = true;
         // Hold-to-run is a single, optional hint after successful execution.
-        if (this.saved.executed && !this.saved.hold && context.codeLines >= 2 && this.visible(targets.play)
+        if (this.saved.step !== 'new-notebook' && this.saved.executed && !this.saved.hold && context.codeLines >= 2 && this.visible(targets.play)
             && this.saved.step !== 'offer' && this.saved.step !== 'run') this.hint ??= 'hold';
         if (this.saved.step === 'done' && !this.hint) {
             if (!this.saved.modules && context.rankKeyboard && (this.saved.keyboardUses ?? 0) >= 2 && this.visible(targets.modules))
@@ -195,6 +202,9 @@ export class MobileGuidance {
                     target = targets.commands;
                     text = 'Hold a command on the Rank keyboard to open its documentation with an example.';
                 }
+                break;
+            case 'new-notebook':
+                if (context.notebookPanelOpen) { target = targets.newNotebook; text = 'Go coding.'; }
                 break;
             case 'notebooks': target = targets.brand; text = 'Tap RANK to open the floating panel with your saved notebooks.'; break;
             case 'letters':

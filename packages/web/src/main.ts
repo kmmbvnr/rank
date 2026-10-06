@@ -1482,11 +1482,12 @@ const guidance = touchConsole && !example ? new MobileGuidance(() => ({
         .filter(line => line.trim() && !/^\s*rem(?:\s|$)/.test(line)).length,
     unavailable: busy || repl.running || composing || !!activeVoiceDictation || !!failure || needsRestart
         || !!repl.help || !!session.pauseState || nativeSelection() || !commands.hidden
-        || !!document.querySelector('dialog[open]')
+        || !!document.querySelector('dialog[open]:not(#notebook-panel)')
         || repl.notebook.cells.some(cell => cell.status === 'error'),
     softKeyboard,
+    notebookPanelOpen: notebookPanel?.dialog.open ?? false,
     rankKeyboard: symbolKeyboardShown() && !keyboard.hidden && !keyboardOpening,
-    targets: { notebook: terminal, play: runButton, brand: document.querySelector<HTMLElement>('#brand')!,
+    targets: { notebook: terminal, play: runButton, newNotebook: document.querySelector<HTMLElement>('#new-notebook') ?? undefined, brand: document.querySelector<HTMLElement>('#brand')!,
         commands: keyboardKeys.querySelector<HTMLElement>('button:not([aria-disabled="true"])') ?? undefined,
         letters: keyboardLetters, modules: keyboardTabList.querySelector<HTMLElement>('[aria-label="Import a module"]') ?? undefined },
 }), () => {
@@ -1579,12 +1580,16 @@ if (!example) {
     notebookHistory = new NotebookHistory(notebookStore(), error => {
         failure = 'Cannot save notebook: ' + String(error); render();
     }, rememberNotebook);
-    notebookPanel = new NotebookPanel(notebookHistory, changeNotebook, importNotebook, exportNotebook,
+    notebookPanel = new NotebookPanel(notebookHistory, async id => {
+        await changeNotebook(id);
+        if (id === undefined) guidance?.discovered('newNotebook');
+    }, importNotebook, exportNotebook,
         () => { closeMenu(); stopVoiceDictation(); setKeyboard(false); },
         () => { brand.setAttribute('aria-expanded', 'false'); render(); });
-    brand.onclick = () => {
+    brand.onclick = async () => {
+        brand.setAttribute('aria-expanded', 'true');
+        await notebookPanel!.show();
         guidance?.discovered('notebooks');
-        brand.setAttribute('aria-expanded', 'true'); void notebookPanel!.show();
     };
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && historyReady) {

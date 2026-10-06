@@ -45,7 +45,8 @@ Android hides system bars; an edge swipe temporarily reveals them.
 On first use, an optional walkthrough inserts `A = 1 to 5` and `A * 10`
 into an empty notebook without running it. It selects the last line and explains
 Play, the Rank keyboard, command documentation and the system-keyboard button,
-then ends by opening the floating notebook panel through RANK. Tapping outside
+then opens the floating notebook panel through RANK and ends by highlighting
+New notebook with “Go coding.” Tapping outside
 the editor on the keyboard-dismissal step hides the system keyboard; the tour
 advances after the native keyboard reports that it has closed.
 Each step uses one sentence without a heading or Skip button;
