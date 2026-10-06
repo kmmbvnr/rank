@@ -100,6 +100,12 @@ Structures, modules, and query syntax that extend the core language via `use`:
 
 ---
 
+## Cheat sheets
+
+- [Rank types](cheatsheets/types.html) — compact A5 cheat sheet with examples.
+
+---
+
 ## Examples & Benchmarks
 
 - [Project Euler examples](examples/project-euler.md)

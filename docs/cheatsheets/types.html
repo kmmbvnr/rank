@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rank — Types cheat sheet</title>
+<style>
+:root{color-scheme:light;--bg:#ececec;--paper:#fff;--ink:#1f2328;--muted:#656d76;--line:#d8dce0;--code:#f3f4f6;--accent:#0b5cad}
+*{box-sizing:border-box}
+body{margin:0;padding:24px;background:var(--bg);color:var(--ink);font:9px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{width:148mm;min-height:210mm;margin:auto;padding:7mm;background:var(--paper);box-shadow:0 2px 16px #0002}
+header{margin-bottom:8px}
+h1{margin:0;font-size:20px;line-height:1.2;font-weight:700}
+header p{margin:3px 0 0;color:var(--muted);font-size:9px}
+h2{margin:11px 0 5px;padding-bottom:2px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700}
+p{margin:5px 0 0}
+code,pre{font:8.2px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+p code,td code,h2 code{background:var(--code);padding:1px 3px;border-radius:3px}
+pre{margin:5px 0 0;padding:5px 7px;background:var(--code);border-radius:4px;white-space:pre-wrap;overflow-wrap:anywhere}
+pre code{font:inherit;background:none;padding:0}
+.comment{color:var(--muted)}
+table{width:100%;border-collapse:collapse}
+td{padding:3px 6px 3px 0;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td:first-child{width:17%;white-space:nowrap}
+td:first-child code{background:none;padding:0;color:var(--accent);font-weight:600}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:5px}.cols h2{margin-top:0}.cols .cols{margin-top:0}
+.cols>div{min-width:0}
+.cols>div>h2:first-child{margin-top:11px}
+.cols pre{margin:0}
+.note{color:var(--muted)}
+footer{margin-top:10px;padding-top:5px;border-top:1px solid var(--line);color:var(--muted);font-size:8px}
+@media screen and (max-width:600px){body{padding:0}main{width:100%;min-height:0;padding:20px;box-shadow:none}}
+@media screen and (max-width:420px){.cols{grid-template-columns:1fr}td:first-child{white-space:normal}}
+@page{size:A5 portrait;margin:0}
+@media print{body{padding:0;background:#fff;print-color-adjust:exact;-webkit-print-color-adjust:exact}main{margin:0;box-shadow:none;min-height:0}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Rank types</h1>
+</header>
+
+<h2 style="margin-top:0">Basic values</h2>
+<table aria-label="Basic Rank types"><tbody>
+<tr><td><code>.integer</code></td><td>A whole number of any size.</td><td><code>42 &nbsp;-7 &nbsp;1000000000000</code></td></tr>
+<tr><td><code>.real</code></td><td>A floating-point number (binary64).</td><td><code>3.14 &nbsp;2.0 &nbsp;-0.5</code></td></tr>
+<tr><td><code>.boolean</code></td><td>True or false. It is not the same as 1 or 0.</td><td><code>true &nbsp;false</code></td></tr>
+<tr><td><code>.text</code></td><td>Text in double quotes.</td><td><code>"Hello" &nbsp;""</code></td></tr>
+<tr><td><code>.bytes</code></td><td>Bytes from 0 to 255. Text is encoded as UTF-8.</td><td><code>"Hi" bytes</code></td></tr>
+<tr><td><code>.symbol</code></td><td>A name that labels a field, an option or a type.</td><td><code>.name &nbsp;.ready &nbsp;.integer</code></td></tr>
+<tr><td><code>.missing</code></td><td>A value that is absent. It is not zero and not empty text.</td><td><code>.NA</code></td></tr>
+</tbody></table>
+<h2>Arithmetic and comparison</h2>
+<div class="cols">
+<div><pre data-check><code>1 + 2            <span class="comment">rem 3</span>
+1 + 2.5          <span class="comment">rem 3.5</span>
+7 / 2            <span class="comment">rem 3.5</span>
+6 / 2 type       <span class="comment">rem .real</span>
+7 // 2           <span class="comment">rem 3</span>
+-7 // 2          <span class="comment">rem -4</span>
+7 mod 2          <span class="comment">rem 1</span></code></pre></div>
+<div><pre data-check><code>1 equal 1.0      <span class="comment">rem true</span>
+1 equal "1"      <span class="comment">rem false</span>
+1 + "1"          <span class="comment">rem error</span>
+true + 1         <span class="comment">rem error</span></code></pre>
+<p>An integer mixed with a real gives a real. <code>/</code> always gives a real; <code>//</code> rounds down, as in Python. Text, booleans and numbers do not mix.</p></div>
+</div>
+
+<h2>Checking and converting</h2>
+<div class="cols">
+<div><pre data-check><code>42 type          <span class="comment">rem .integer</span>
+42 is .integer   <span class="comment">rem true</span>
+42 is .real      <span class="comment">rem false</span></code></pre></div>
+<div><pre data-check><code>X = 1
+X = 2            <span class="comment">rem ok</span>
+X = 2.5          <span class="comment">rem error: X is .integer</span>
+X = "a"          <span class="comment">rem error: X is .integer</span></code></pre></div>
+</div>
+
+<p class="note">Rank is statically typed. A variable keeps the type of its first value, and values are never converted automatically. To change a type, convert explicitly: <code>"42" integer</code>, <code>42 text</code>.</p>
+
+<div class="cols">
+<div>
+<h2>Same type: <code>.array</code> <code>.sequence</code></h2>
+<pre data-check><code>A = array 10 20 30
+A 0              <span class="comment">rem 10</span>
+A type           <span class="comment">rem .array</span>
+M = array shape 2 3 fill 0
+
+S = 1 to 5
+S type           <span class="comment">rem .sequence</span>
+N = 1 to #
+N take 4         <span class="comment">rem 1 2 3 4</span></code></pre>
+<p>An <code>array</code> holds elements that all have the same type. A matrix or a tensor is just an array with more axes. Indexing starts at 0.</p>
+<p>A <code>sequence</code> produces its items only when they are needed, so it can be endless: <code>1 to #</code> has no last item. Take a few items; <code>sum</code> of an endless sequence is an error.</p>
+<p class="note">Mixing types is an error: <code>array 1 2.0</code> fails. Write <code>array 1.0 2.0</code> to get real values.</p>
+
+</div>
+<div>
+<h2>Mixed types: <code>.tuple</code> <code>.record</code></h2>
+<pre data-check><code>Pair = tuple 42 "Ada"
+Pair 0           <span class="comment">rem 42</span>
+unpack Id Name = Pair
+
+Person = record
+  .name = "Ada"
+  .age = 36
+end
+Person .age = 37</code></pre>
+<p>A <code>tuple</code> keeps a fixed number of positions, and each position can have a different type. You cannot assign to a position after the tuple is created.</p>
+<p>A <code>record</code> keeps named fields. You can change a field value, but the field names and their types stay the same.</p>
+<p class="note">Records are shared by reference, so a change is visible everywhere the record is used. Arrays behave like plain values and are copied.</p>
+
+</div>
+</div>
+
+</main>
+</body>
+</html>
