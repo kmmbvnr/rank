@@ -50,12 +50,12 @@ Grid = array shape 20 20
   33 48 61 43 52  1 89 19 67 48
 end
 
-rem Four values per window, before multiplication.
-H = Grid window 4 axis 1
-V = Grid window 4 axis 0
-D = Grid window 4 4 diag
-U = Grid window 4 4 diag .anti
-
+rem Greatest product in each direction.
 products = reduce * rank 1 max
-Answer = (array (H products) (V products) (D products) (U products)) max
+H = Grid window 4 axis 1 products
+V = Grid window 4 axis 0 products
+D = Grid window 4 4 diag products
+U = Grid window 4 4 diag .anti products
+
+Answer = (array H V D U) max
 Answer print

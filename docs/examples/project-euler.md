@@ -213,13 +213,13 @@ finite plan. The default limit produces `142913828922`; limit 10 produces `17`.
 rem Project Euler 11
 rem https://projecteuler.net/problem=11
 
-H = Grid window 4 axis 1
-V = Grid window 4 axis 0
-D = Grid window 4 4 diag
-U = Grid window 4 4 diag .anti
-
 products = reduce * rank 1 max
-Answer = (array (H products) (V products) (D products) (U products)) max
+H = Grid window 4 axis 1 products
+V = Grid window 4 axis 0 products
+D = Grid window 4 4 diag products
+U = Grid window 4 4 diag .anti products
+
+Answer = (array H V D U) max
 ```
 
 The grid is one dense rank-2 array. Horizontal and vertical products reduce
