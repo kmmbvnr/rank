@@ -1,6 +1,7 @@
 import { rankedFunctionFacts } from './ranked-function-facts.js';
 import { joinValueFacts } from './value-domain.js';
-import { operationShapeFacts } from './operation-shape.js';
+import { diagonalResultShape } from '../shape-signature.js';
+import { operationShapeFacts, rankedOperandShapes } from './operation-shape.js';
 import { freshDim } from './shape-index.js';
 import { symbolicFormFacts } from './binary-facts.js';
 import {
@@ -144,25 +145,12 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             const offsetFacts = form.offset ? infer(form.offset, lookup) : undefined;
             const offset = form.offset ? offsetFacts?.integer === undefined ? undefined
                 : Number(offsetFacts.integer) : 0;
-            const requested = form.rank === undefined ? undefined : Number(form.rank);
-            const cellRank = requested === undefined ? source.rank : source.rank === undefined ? undefined
-                : requested < 0 ? Math.max(0, source.rank + requested) : Math.min(source.rank, requested);
-            const dimensions = source.shape?.slice(-(cellRank ?? 0));
-            let cellShape: (number | null)[] | undefined;
-            if (cellRank === 1) {
-                const length = dimensions?.[0];
-                const side = length == null || offset === undefined ? null : length + Math.abs(offset);
-                cellShape = [side, side];
-            } else if (cellRank === 2) {
-                const [rows, columns] = dimensions ?? [];
-                const length = rows == null || columns == null || offset === undefined ? null
-                    : Math.max(0, Math.min(rows - Math.max(0, -offset), columns - Math.max(0, offset)));
-                cellShape = [length];
-            }
-            const frame = form.rank !== undefined && source.rank !== undefined && cellRank !== undefined
-                ? (source.shape ?? Array(source.rank).fill(null)).slice(0, Math.max(0, source.rank - cellRank)) : [];
-            // Arbitrary frame-axis selection is handled conservatively.
-            const shape = cellShape && !form.axes ? [...frame, ...cellShape] : undefined;
+            const requested = form.rank === undefined ? 2 : Number(form.rank);
+            const partition = rankedOperandShapes([source], [requested], form.axes);
+            const dimensions = partition?.cells[0];
+            const result = dimensions && diagonalResultShape(dimensions, offset ?? 0);
+            const cellShape = result && (offset === undefined ? result.map(() => null) : result);
+            const shape = cellShape && partition ? [...partition.frame, ...cellShape] : undefined;
             return { types: ['array'], elements: source.elements,
                 ...(shape ? { rank: shape.length, shape } : {}) };
         }
@@ -381,7 +369,7 @@ function transferApplicationFacts(
             && lookup.invoke && lookup.arity?.(name.name) === operands.length
             && operands.length === (form.rightRank === undefined ? 1 : 2)) {
             const ranks = form.rightRank === undefined ? [Number(form.rank)] : [Number(form.rank), Number(form.rightRank)];
-            return rankedFunctionFacts(operands, ranks, cells => lookup.invoke!(name.name, cells), form.axes);
+            return rankedFunctionFacts(operands, ranks, cells => lookup.invoke!(name.name, cells, true), form.axes);
         }
         if (operation && operands.length === (form.rightRank === undefined ? 1 : 2)
             && operands.every(value => value.types.join() === 'array')) {

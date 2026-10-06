@@ -38,7 +38,7 @@ unpack Values Vectors = Matrix eigh
 - Handles vectors (dot product), matrix-vector, and tensor contractions cleanly.
 
 ### 2. Intrinsic Rank-2 Solvers and Inversion
-Linear algebra operations declare **intrinsic rank 2** (ADR-0200), meaning they naturally consume trailing 2D matrix cells:
+`det`, `inverse`, `diag` and `eigh` declare **intrinsic rank 2** (ADR-0200). `solve` receives whole operands because its right side may be a vector or a matrix:
 - **Direct Linear Solver (`solve`):** Solves the system $AX = B$ directly:
   ```rank
   X = A B solve
@@ -55,13 +55,17 @@ Linear algebra operations declare **intrinsic rank 2** (ADR-0200), meaning they 
   Integer-only matrices produce exact BigInt integers; matrices with real elements produce IEEE-754 reals.
 
 ### 3. Automatic Batching via Leading-Frame Framing
-Because `det`, `inverse`, and `solve` have intrinsic rank 2, they batch over multi-dimensional tensors **automatically without loops**:
+Because `det`, `inverse`, `diag` and `eigh` have intrinsic rank 2, they batch over multi-dimensional tensors **automatically without loops**:
 ```rank
 rem Batch has shape 100 4 4:
 Dets = Batch det          rem Result has shape 100
 Inverses = Batch inverse  rem Result has shape 100 4 4
 ```
 Non-trailing matrix planes are targeted effortlessly using the core `axis` frame modifier (`T det axis 1 rank 2`).
+
+Batched `solve` requires explicit `rank 2 1` for vector right sides or
+`rank 2 2` for matrix right sides. `matmul` preserves its tensor contraction
+contract; explicit `rank 2 2` requests batched matrix multiplication.
 
 ### 4. Symmetric Eigendecomposition (`eigh`)
 - Computes eigenvalues and eigenvectors for real symmetric matrices:
@@ -70,6 +74,11 @@ Non-trailing matrix planes are targeted effortlessly using the core `axis` frame
   ```
 - `Values` contains eigenvalues in ascending order.
 - `Vectors` columns (`Vectors # j`) contain corresponding normalized eigenvectors.
+
+For `[B N N]`, `Batch eigh` returns an array of `[B]` tuples. Select a
+batch element before unpacking: `unpack Values Vectors = Results 0`.
+A valid empty batch returns shape `[0]`; nonsquare empty matrix cells still
+raise `.DimensionMismatch`, without invoking decomposition.
 
 ### 5. Structured Error Signals
 Numerical domain errors raise explicit symbols (ADR-0306):

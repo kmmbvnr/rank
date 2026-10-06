@@ -529,7 +529,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
 
     function inspect(expression: Expression, env: Map<string, ValueFacts>): ValueFacts {
         const lookup: FactLookup = Object.assign((name: string) => env.get(name), {
-            invoke: (name: string, arguments_: readonly ValueFacts[]) => calls.call(name, arguments_, env, expression),
+            invoke: (name: string, arguments_: readonly ValueFacts[], cellCall = false) => calls.call(name, arguments_, env, expression, cellCall),
             arity: (name: string) => env.get(name) === functionBindings.get(name)
                 ? functions.get(name)?.parameters.length
                 : env.get(name) === imported.get(name)?.binding
@@ -660,7 +660,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     diagnostics.push({ node: form.offset!, kind: 'DimensionMismatch', message: 'diag offset is too large' });
                 }
                 const input = expressionFacts(form.source, lookup);
-                const requested = form.rank === undefined ? undefined : Number(form.rank);
+                const requested = form.rank === undefined ? 2 : Number(form.rank);
                 const rank = requested === undefined ? input.rank : input.rank === undefined ? undefined
                     : requested < 0 ? Math.max(0, input.rank + requested) : Math.min(input.rank, requested);
                 if (rank !== undefined && rank !== 1 && rank !== 2) {
@@ -936,7 +936,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 if (operands.every(fact => safeRead(fact) || fact.rank === 0 && !fact.types.includes('function'))) {
                     return rankedFunctionFacts(operands,
                         form.rightRank === undefined ? [Number(form.rank)] : [Number(form.rank), Number(form.rightRank)],
-                        cells => calls.call(target.name, cells, new Map(env), value), form.axes);
+                        cells => calls.call(target.name, cells, new Map(env), value, true), form.axes);
                 }
             }
         }

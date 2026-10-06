@@ -217,8 +217,8 @@ H = Grid window 4 axis 1
 V = Grid window 4 axis 0
 Square = array 4 4
 Windows = Grid window Square
-D = Windows diag rank 2
-U = Windows diag .anti rank 2
+D = Windows diag
+U = Windows diag .anti
 
 products = reduce * rank 1 max
 Answer = (array H V D U) products rank 0 max

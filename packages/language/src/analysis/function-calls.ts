@@ -1,3 +1,5 @@
+import { declaredRanks } from '../function-ranks.js';
+import { rankedFunctionFacts } from './ranked-function-facts.js';
 import { functionRelationship, instantiateRelationship, type FunctionRelationship } from './function-relationships.js';
 import { establishedArrayContract } from './array-binding-contract.js';
 import { argumentSignature, returnConflicts, returnInput } from './return-contract.js';
@@ -158,7 +160,12 @@ export function createCallAnalysis(
         if (!definition || caller.get(name) !== functionBindings.get(name)
             || definition.parameters.length !== arguments_.length) return UNKNOWN_VALUE;
         // A declared `rank` maps the body over cells unless the caller already supplied one filter cell.
-        if (definition.ranks.length && !cellCall) return UNKNOWN_VALUE;
+        if (definition.ranks.length && !cellCall) {
+            const declared = declaredRanks(definition);
+            if (!declared || typeof declared === 'string') return UNKNOWN_VALUE;
+            return rankedFunctionFacts(arguments_, declared.ranks,
+                cells => call(name, cells, caller, site, true));
+        }
         const signature = argumentSignature(arguments_);
         let active = activeCalls.get(definition);
         if (!active) activeCalls.set(definition, active = new Set());

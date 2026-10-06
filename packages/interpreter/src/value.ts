@@ -250,6 +250,8 @@ export interface NativeFunction {
      * calling the function. Ranked application over an empty frame has no cell
      * to call. `undefined` leaves the shape unknown. */
     readonly monadicResultShape?: (cellShape: readonly number[]) => readonly number[] | undefined;
+    /** Shape-only contract for two ranked operand cells, including empty frames. */
+    readonly dyadicResultShape?: (leftShape: readonly number[], rightShape: readonly number[]) => readonly number[] | undefined;
     readonly dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank];
     readonly arrayCells?: boolean;
     readonly captures?: readonly ReadonlyMap<string, RankValue>[];

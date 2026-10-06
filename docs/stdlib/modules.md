@@ -412,11 +412,16 @@ with numeric zero. Construction and extraction with the same parameters recover
 the vector. Empty inputs are valid, including an empty vector with an offset
 (which constructs an all-zero matrix of side `abs(offset)`).
 
+`diag` has intrinsic rank 2: `[B M N]` produces `[B min(M,N)]` at offset
+zero. `[B N]` is one matrix, while `Rows diag rank 1` constructs a batch
+of diagonal matrices with shape `[B N N]`. No batch interpretation is guessed.
+Empty frames preserve every shape-determined result axis, including offsets.
+
 Parameters configure the unary operation before `rank`; they are not ranked
 data operands. Existing frame-axis selection retains its meaning:
 
 ```rank
-Lines = Windows diag .anti 1 rank 2
+Lines = Windows diag .anti 1
 Total = Matrix diag .anti -1 sum
 Offset = -1
 Dynamic = Matrix diag .anti Offset
@@ -479,7 +484,14 @@ trailing-cell and `axis ... rank 2` rules.
 
 ```rank
 X = A B solve
+BatchedVectors = As Bs solve rank 2 1
+BatchedMatrices = As Bs solve rank 2 2
 ```
+
+Both default operands are whole values. Explicit ranks distinguish vector
+right sides from matrices containing several right sides. Empty ranked batches
+retain the right-side cell axes; incompatible cell shapes still raise a shape
+error without solving nonexistent systems.
 
 `A` must be a square rank-2 numeric matrix. `B` may be a length-`N` vector
 or an `N K` matrix, and the eager real result has the same shape as `B`.
@@ -524,11 +536,30 @@ A non-square cell raises `.DimensionMismatch`; a singular cell raises
 demanded, and each demanded result is cached. Individual matrix inversion uses
 partial-pivoting Gauss-Jordan elimination and does not round its real results.
 
-`eigh` decomposes one real symmetric matrix:
+`eigh` has intrinsic rank 2 and decomposes trailing real symmetric matrices:
 
 ```rank
 unpack Values Vectors = A eigh
 ```
+
+For `[B N N]`, the result is an array of shape `[B]`, each element holding
+one tuple of eigenvalues `[N]` and eigenvectors `[N N]`. Tuple fields remain
+boxed, using the same assembly rule as user functions returning tuples:
+
+```rank
+use linalg
+use sequences
+Batch = array 2 1 1 2 4 0 0 5 shape 2 2 2
+Results = Batch eigh
+unpack Values Vectors = Results 0
+rem Values is 1 3; Vectors has shape 2 2
+Empty = (array shape 0 2 2 fill 0) eigh
+rem Empty has shape 0 and no tuple elements
+```
+
+`[0 3 4]` is invalid even though its frame is empty: cell shapes must be
+square. Symmetry and element constraints are checked only for existing cells.
+The empty batch does not invoke the decomposition.
 
 Eigenvalues are ascending, and the corresponding eigenvectors are columns of
 `Vectors`. The operation accepts a square rank-2 numeric matrix and returns

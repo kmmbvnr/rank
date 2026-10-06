@@ -513,6 +513,7 @@ function outerCells(
     const cellSize = arraySize(cellShape);
     return {
         frameShape,
+        cellShape,
         cellAt(frameIndex) {
             if (receivesWhole) return value;
             const start = frameIndex * cellSize;

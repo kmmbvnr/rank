@@ -1,6 +1,6 @@
 import type { AstNode } from 'langium';
 import {
-    availableBuiltin, builtinBindingMessage, functionBindingPlan, groupExpressions, expressionDiagnostics, flattenApplication, isNameExpression, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
+    availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, expressionDiagnostics, flattenApplication, isNameExpression, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
     type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { enterRuntime, isFlatScalarArray, isSharedArray, leaveRuntime } from './array-storage.js';
@@ -15,7 +15,7 @@ import { CallSpecializations } from './call-specializations.js';
 import { LocalFrame } from './frame.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import { checkpoint, inspectionEnabled } from './interrupt.js';
-import type { BuiltinRegistry } from './modules/builtins.js';
+import { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
 import { ReturnContract, argumentRankSignature } from './return-contract.js';
@@ -161,6 +161,14 @@ export class FunctionInvocation {
         const fn: NativeFunction = {
             kind: 'function', name: statement.name, arities: plan.arities,
             monadicRank: 'all', dyadicRanks: ['all', 'all'],
+            monadicResultShape: shape => {
+                const definition = plan.definitions.find(item => item.parameters.length === 1);
+                return definition && this.userResultCellShape(definition, context, new Map(), [shape]);
+            },
+            dyadicResultShape: (left, right) => {
+                const definition = plan.definitions.find(item => item.parameters.length === 2);
+                return definition && this.userResultCellShape(definition, context, new Map(), [left, right]);
+            },
             captures: this.bindings.current?.captures(),
             call: args => {
                 if (plain) return this.bindings.withFrame(context, () => {
@@ -281,7 +289,9 @@ export class FunctionInvocation {
             monadicRank: declared?.ranks.length === 1 ? declared.ranks[0] : 'all',
             arrayCells: declared ? true : undefined,
             monadicResultShape: generator ? undefined
-                : cellShape => this.userResultCellShape(statement, context, returnRanks, cellShape),
+                : cellShape => this.userResultCellShape(statement, context, returnRanks, [cellShape]),
+            dyadicResultShape: generator ? undefined
+                : (left, right) => this.userResultCellShape(statement, context, returnRanks, [left, right]),
             dyadicRanks: statement.parameters.length === 2
                 ? declared?.ranks.length === 2 ? [declared.ranks[0], declared.ranks[1]] : ['all', 'all']
                 : undefined,
@@ -345,22 +355,34 @@ export class FunctionInvocation {
         statement: FunctionStatement,
         context: LocalFrame | undefined,
         returnRanks: ReadonlyMap<string, { rank?: number }>,
-        cellShape: readonly number[],
+        cellShapes: readonly (readonly number[])[],
     ): readonly number[] | undefined {
         const valueOf = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name);
         const functionValue = (name: string) => {
             const value = valueOf(name);
             return value !== undefined && isNativeFunction(value) ? value : undefined;
         };
-        const cell: ValueFacts = cellShape.length === 0
+        const cells = cellShapes.map((cellShape): ValueFacts => cellShape.length === 0
             ? { types: ['integer'], rank: 0, shape: [] }
             : { types: ['array'], rank: cellShape.length, shape: cellShape,
-                elements: ['integer'], eagerScalarCells: true };
-        const result = functionEffects(
+                elements: ['integer'], eagerScalarCells: true });
+        let result = functionEffects(
             name => name === statement.name ? statement : this.sources.get(functionValue(name)!),
             name => functionValue(name) !== undefined,
             name => valueOf(name) !== undefined,
-        )(statement.name, [cell]).result;
+        )(statement.name, cells).result;
+        // Synthetic bound pipelines do not have linked effect-analysis bodies.
+        // Their single expression can still determine a shape without execution.
+        const only = statement.statements.length === 1 ? statement.statements[0] : undefined;
+        if (!result && only && isReturnStatement(only) && only.value) {
+            result = expressionFacts(only.value, name => {
+                const index = statement.parameters.indexOf(name);
+                if (index >= 0) return cells[index];
+                const fn = functionValue(name);
+                const operation = fn && BuiltinRegistry.operationOf(fn);
+                return operation ? { types: ['function'], builtinOperation: operation.name } : undefined;
+            });
+        }
         // Like a called cell, a non-array result leaves only the frame.
         if (result?.types.length && !result.types.some(type => ['array', 'bytes'].includes(type))) return [];
         if (result?.types.join() === 'array' && result.shape?.length === result.rank) {
@@ -368,9 +390,10 @@ export class FunctionInvocation {
         }
         const settled = new Set<number>();
         for (const [key, contract] of returnRanks) {
-            const [argument, ...rest] = JSON.parse(key) as [string, number, unknown][];
-            if (rest.length || contract.rank === undefined || argument[1] !== cellShape.length
-                || cellShape.length > 0 && argument[0] !== 'array') continue;
+            const arguments_ = JSON.parse(key) as [string, number, unknown][];
+            if (contract.rank === undefined || arguments_.length !== cellShapes.length
+                || arguments_.some((argument, index) => argument[1] !== cellShapes[index].length
+                    || cellShapes[index].length > 0 && argument[0] !== 'array')) continue;
             settled.add(contract.rank);
         }
         return settled.size === 1 ? Array<number>([...settled][0]).fill(0) : undefined;

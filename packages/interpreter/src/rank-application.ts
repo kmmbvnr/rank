@@ -201,7 +201,10 @@ export class RankApplication {
         fn: NativeFunction,
     ): RankArray {
         const frameSize = arraySize(frameShape);
-        if (frameSize === 0) return ownedArray([], [...frameShape]);
+        if (frameSize === 0) {
+            const resultShape = fn.dyadicResultShape?.(a.cellShape, b.cellShape) ?? [];
+            return ownedArray([], [...frameShape, ...resultShape]);
+        }
         const operandIndex = (operandFrame: readonly number[], frameIndex: number): number => {
             if (operandFrame.length === 0) return 0;
             if (sameShape(operandFrame, frameShape)) return frameIndex;
@@ -435,6 +438,7 @@ export function tensorFrameAxes(
 }
 
 export interface OuterCells {
+    readonly cellShape: readonly number[];
     readonly frameShape: readonly number[];
     readonly cellAt: (frameIndex: number) => RankValue;
 }
@@ -454,7 +458,7 @@ export function dyadicCells(
     rank: IntrinsicRank,
 ): OuterCells {
     if (!isRankArray(value)) {
-        return { frameShape: [], cellAt: () => value };
+        return { frameShape: [], cellShape: typeof value === 'string' ? [Array.from(value).length] : [], cellAt: () => value };
     }
     const cellRank = resolveCellRank(rank, value.shape.length);
     const frameShape = value.shape.slice(
@@ -465,6 +469,7 @@ export function dyadicCells(
     const cellSize = arraySize(cellShape);
     return {
         frameShape,
+        cellShape,
         cellAt(frameIndex) {
             if (frameShape.length === 0) return value;
             const start = frameIndex * cellSize;

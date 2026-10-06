@@ -1221,12 +1221,13 @@ it('resolves a negative explicit rank against the operand rank', () => {
     expect(facts('A B atan2 rank -3 -2', bindings)).toEqual(facts('A B atan2 rank 0 0', bindings));
 });
 
-it('leaves a call of a function with declared ranks unknown', () => {
+it('infers the frame of a function with declared ranks', () => {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(
         'fun inc X rank 0\n  return X + 1\nend\nA = (array 1 2) inc\n');
     expect(parsed.parserErrors).toEqual([]);
     const analysis = analyzeValues(parsed.value);
-    expect(analysis.bindings.get('A')?.rank).toBeUndefined();
+    expect(analysis.bindings.get('A')?.rank).toBe(1);
+    expect(analysis.bindings.get('A')?.shape).toEqual([2]);
 });
 
 function ragged(source: string) {

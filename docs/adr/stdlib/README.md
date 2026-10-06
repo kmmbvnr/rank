@@ -91,5 +91,5 @@ flowchart TD
 |---|---|---|
 | [ADR-0300](0300-multidimensional-sliding-windows-and-padding.md) | Multidimensional Sliding Windows, Stride, and Padding (`use sequences`) | Zero-copy lazy tensor windowing (`window`), strided convolution, symmetric zero padding, and rank-combinator fusion. |
 | [ADR-0301](0301-calendar-dates-and-local-datetimes.md) | Calendar Dates and Local Date-Times (`use dates`) | Dedicated `date` and `datetime` scalar types, ISO parsing, symbol field access (`.year`), and daylight-safe duration math. |
-| [ADR-0302](0302-linear-algebra-solvers-and-decompositions.md) | Linear Algebra Solvers and Matrix Decompositions (`use linalg`) | Data-first `matmul`, intrinsic rank-2 direct solvers (`solve`), matrix inversion, determinants, and symmetric `eigh`. |
+| [ADR-0302](0302-linear-algebra-solvers-and-decompositions.md) | Linear Algebra Solvers and Matrix Decompositions (`use linalg`) | Data-first `matmul`, whole-operand direct solving (`solve`), rank-2 inversion, determinants, diagonals and symmetric `eigh`. |
 | [ADR-0303](0303-statistical-error-metrics-and-covariance.md) | Statistical Error Metrics and Covariance (`use stats`) | Dispersion metrics (`mean`, `std`), dedicated loss metrics (`mse`, `mae`), and multivariate sample `covariance` matrices. |

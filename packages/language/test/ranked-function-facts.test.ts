@@ -26,12 +26,11 @@ it('stacks array results but boxes text and tuple results', () => {
     }
 });
 
-it('keeps empty frames separate from nonempty result cell shapes', () => {
-    expect(rankedFunctionFacts([{ ...matrix, shape: [0, 3] }], [1], () => {
-        throw new Error('empty frames have no callback calls');
-    })).toEqual({ types: ['array'], rank: 1, shape: [0] });
+it('preserves inferred result cell axes under empty and unknown frames', () => {
+    expect(rankedFunctionFacts([{ ...matrix, shape: [0, 3] }], [1], () => matrix))
+        .toEqual({ types: ['array'], rank: 3, shape: [0, 2, 3], elements: ['integer'] });
     expect(rankedFunctionFacts([{ ...matrix, shape: [null, 3] }], [1], () => matrix))
-        .toEqual({ types: ['array'] });
+        .toEqual({ types: ['array'], rank: 3, shape: [null, 2, 3], elements: ['integer'] });
     expect(rankedFunctionFacts([{ ...matrix, shape: [null, 3] }], [1], () => integer))
         .toEqual({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
 });

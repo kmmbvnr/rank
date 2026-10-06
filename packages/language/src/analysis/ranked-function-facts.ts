@@ -10,14 +10,12 @@ export function rankedFunctionFacts(operands: readonly ValueFacts[], ranks: read
     if (!partition) return UNKNOWN_VALUE;
     const { inputs, frame } = partition;
     if (!frame.length) return invoke(operands);
-    // Runtime never invokes the callback for an empty frame, and retains only that frame.
-    if (frame.includes(0)) return { types: ['array'], rank: frame.length, shape: frame };
     const result = invoke(inputs);
     if (result.bottom || !result.types.length) return UNKNOWN_VALUE;
     // Arrays stack their axes; other values (including text) are boxed cells.
     if (result.types.join() === 'array') {
-        // An unknown frame may be empty: runtime then omits the result cell axes.
-        if (result.rank === undefined || result.rank > 0 && frame.includes(null)) return { types: ['array'] };
+        // Shape-only callback analysis also supplies axes for empty frames.
+        if (result.rank === undefined) return { types: ['array'] };
         const shape = [...frame, ...result.shape ?? Array(result.rank).fill(null)];
         return { types: ['array'], rank: shape.length, shape, elements: result.elements };
     }

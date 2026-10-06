@@ -19,7 +19,7 @@ describe('Rank over an empty frame', () => {
         expect(native('inverse', 1, never).monadicResultShape?.([3, 3])).toEqual([3, 3]);
         expect(native('det', 1, never).monadicResultShape?.([3, 3])).toEqual([]);
         expect(native('unique', 1, never).monadicResultShape?.([3])).toEqual([0]);
-        expect(native('inverse', 1, never).monadicResultShape?.([2, 3])).toBeUndefined();
+        expect(() => native('inverse', 1, never).monadicResultShape?.([2, 3])).toThrow(/cell shape/);
     });
 
     it('keeps large empty-frame cells without allocating or evaluating a prototype', () => {

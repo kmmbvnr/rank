@@ -135,3 +135,22 @@ export function instantiateShapeSignature(
     }
     return result;
 }
+
+/** Diagonal cell axes depend on shape and offset, never on element values. */
+export function diagonalResultShape(shape: KnownShape, offset = 0): KnownShape | undefined {
+    if (shape.length === 1) {
+        const side = shape[0] === null ? null : shape[0] + Math.abs(offset);
+        return [side, side];
+    }
+    if (shape.length === 2) return [shape.some(n => n === null) ? null : Math.max(0, Math.min(
+        shape[0]! - Math.max(0, -offset), shape[1]! - Math.max(0, offset)))];
+    return undefined;
+}
+
+/** Default last-left/first-right contraction, shared by runtime and analysis. */
+export function matmulResultShape(left: KnownShape, right: KnownShape): KnownShape | undefined {
+    if (!left.length || !right.length) return undefined;
+    const a = left.at(-1), b = right[0];
+    if (a !== null && b !== null && a !== b) return undefined;
+    return [...left.slice(0, -1), ...right.slice(1)];
+}

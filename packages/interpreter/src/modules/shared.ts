@@ -25,6 +25,18 @@ export function native(
     const resultShape = signature
         ? (cellShape: readonly number[]): readonly number[] | undefined => {
             const result = instantiateShapeSignature(signature, [cellShape]);
+            if (result === undefined && signature.result !== null) {
+                throw new RankError(`${name} expects cell shape ${signature.args[0]?.join(' ') ?? 'all'}, got ${cellShape.join(' ')}`, 'DimensionMismatch');
+            }
+            return tensorResult ? result?.map(n => n ?? 0) : [];
+        } : undefined;
+    const dyadicSignature = operation?.shape?.find(shape => shape.args.length === 2);
+    const dyadicResultShape = dyadicSignature
+        ? (left: readonly number[], right: readonly number[]): readonly number[] | undefined => {
+            const result = instantiateShapeSignature(dyadicSignature, [left, right]);
+            if (result === undefined && dyadicSignature.result !== null) {
+                throw new RankError(`${name} expects compatible cell shapes`, 'DimensionMismatch');
+            }
             return tensorResult ? result?.map(n => n ?? 0) : [];
         } : undefined;
     return {
@@ -34,6 +46,7 @@ export function native(
         monadicRank: operation?.monadicRank ?? 'all',
         monadicResultShape: resultShape,
         dyadicRanks: operation?.dyadicRanks,
+        dyadicResultShape,
         arrayCells: operation?.arrayCells,
         call(arguments_) {
             if (!arities.includes(arguments_.length)) {
