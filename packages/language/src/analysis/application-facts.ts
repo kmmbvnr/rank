@@ -88,7 +88,12 @@ function mergedSequenceFacts(operands: readonly ValueFacts[]): ValueFacts {
 function windowFacts(form: Extract<ApplicationForm, { kind: 'window' }>, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts {
     const source = infer(form.source, lookup);
-    const size = infer(form.size, lookup);
+    const sizes = form.dimensions.map(part => infer(isUnpackExpression(part) ? part.value : part, lookup));
+    const widths = form.dimensions.length === 1 && !isUnpackExpression(form.dimensions[0])
+        ? sizes[0].integer !== undefined ? [Number(sizes[0].integer)] : sizes[0].integers
+        : form.dimensions.flatMap((part, index) => isUnpackExpression(part)
+            ? sizes[index].integers ?? Array(sizes[index].shape?.[0] ?? 0).fill(null)
+            : [sizes[index].integer === undefined ? null : Number(sizes[index].integer)]);
     const axes = form.axes ?? (source.rank === undefined ? undefined
         : Array.from({ length: source.rank }, (_, axis) => axis));
     if (!axes || source.rank === undefined || axes.some(axis => axis < 0 || axis >= source.rank!))
@@ -99,13 +104,12 @@ function windowFacts(form: Extract<ApplicationForm, { kind: 'window' }>, lookup:
         if (fact.integer !== undefined) return axes.map(() => Number(fact.integer));
         return fact.integers?.length === axes.length ? [...fact.integers] : axes.map(() => null);
     };
-    const widths = size.integer !== undefined ? [Number(size.integer)]
-        : size.integers?.length === axes.length ? size.integers : axes.map(() => null);
-    if (widths.length !== axes.length) return UNKNOWN_VALUE;
+    if (widths && widths.length !== axes.length) return UNKNOWN_VALUE;
+    const cellWidths = widths ?? axes.map(() => null);
     const strides = geometry(form.stride, 1);
     const padding = geometry(form.padding, 0);
     const count = (length: number | null, index: number): number | null => {
-        const width = widths[index], stride = strides[index], pad = padding[index];
+        const width = cellWidths[index], stride = strides[index], pad = padding[index];
         if (length === null || width === null || stride === null || pad === null
             || width <= 0 || stride <= 0 || pad < 0) return null;
         const available = length + pad * 2 - width;
@@ -122,7 +126,7 @@ function windowFacts(form: Extract<ApplicationForm, { kind: 'window' }>, lookup:
         return selected < 0 ? length : count(length, selected);
     });
     return { types: ['array'], elements: source.elements, rank: shape.length + axes.length,
-        shape: [...shape, ...widths],
+        shape: [...shape, ...cellWidths],
         ...(source.eagerScalarCells || source.callbackFreeScalarCells
             ? { callbackFreeScalarCells: true as const } : {}) };
 }
@@ -232,7 +236,14 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             return continueWith(shaped);
         }
         case 'window': {
-            return windowFacts(form, lookup, infer);
+            const shaped = windowFacts(form, lookup, infer);
+            if (!form.rest.length) return shaped;
+            const name = '\0window-result';
+            const result = { $type: 'NameExpression', name } as Expression;
+            const next = applicationExpression([result, ...form.rest], expression);
+            const nested = Object.assign((key: string) => key === name ? shaped : lookup(key),
+                { arity: lookup.arity, invoke: lookup.invoke });
+            return infer(next, nested);
         }
         case 'dsu-method':
             if (form.operation === 'merge') {

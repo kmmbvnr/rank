@@ -1,5 +1,5 @@
 import {
-    isApplicationExpression, isBinaryExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isUnaryExpression,
+    isApplicationExpression, isArrayExpression, isBinaryExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isUnaryExpression,
     type Expression, type NameExpression,
 } from './generated/ast.js';
 import { applicationExpression, flattenApplication, groupedExpression } from './expressions.js';
@@ -46,7 +46,7 @@ function boundary(parts: Expression[], standard: StandardName): number | undefin
     if (window > 0) {
         for (let end = window + 2; end < parts.length; end++) {
             const next = parts[end];
-            if (isNameExpression(next) && standard(next) && findOperation(next.name)
+            if ((isNameExpression(next) && standard(next) && findOperation(next.name) || isArrayExpression(next))
                 && applicationForm(parts.slice(0, end)).kind === 'window') return end;
         }
     }

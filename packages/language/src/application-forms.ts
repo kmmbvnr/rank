@@ -488,7 +488,7 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup): Applicat
         && lookup('reshape') === findOperation('reshape')) {
         return { kind: 'invalid', message: 'reshape dimensions must follow reshape' };
     }
-    if (parts.some(isUnpackExpression)) return { kind: 'unpack' };
+    if (parts.some(isUnpackExpression) && !parts.some(part => isNamed(part, 'window'))) return { kind: 'unpack' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'graph') return { kind: 'new-graph' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'dsu') return { kind: 'new-dsu' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'heap') {
@@ -517,11 +517,11 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup): Applicat
     const position = parts.findIndex((part, index) => index > 0
         && isNamed(part, 'text') && isStringLiteral(parts[index + 1]));
     if (position >= 0) return { kind: 'text-format', position };
-    const form7 = explicitWindow(parts);
-    if (form7) return { ...form7, kind: 'window' };
     if (parts.length >= 3 && (isNamed(parts.at(-1), 'window')
         || isNamed(parts[2], 'window') && ['axis', 'stride', 'padding'].some(name => isNamed(parts[3], name))))
         return { kind: 'invalid', message: 'window takes its size on the right: write Values window Width' };
+    const form7 = explicitWindow(parts, lookup);
+    if (form7) return { ...form7, kind: 'window' };
     const formShift = explicitAxisShift(parts);
     if (formShift) return { ...formShift, kind: 'axis-shift' };
     const form8 = explicitAxisShuffle(parts);
@@ -846,17 +846,28 @@ function explicitAxisShift(
 
 interface WindowApplication {
     readonly source: Expression;
-    readonly size: Expression;
+    readonly dimensions: readonly Expression[];
+    readonly rest: readonly Expression[];
     readonly axes?: readonly number[];
     readonly stride?: Expression;
     readonly padding?: Expression;
     readonly fill?: Expression;
 }
 
-function explicitWindow(parts: Expression[]): WindowApplication | undefined {
+function explicitWindow(parts: Expression[], lookup: ApplicationLookup): WindowApplication | undefined {
     const operation = parts.findIndex((part, index) => index > 0 && isNamed(part, 'window'));
     if (operation < 0 || operation + 1 >= parts.length) return undefined;
-    let position = operation + 2;
+    const endsDimensions = (part: Expression): boolean => {
+        if (!isNameExpression(part)) return false;
+        const named = lookup(part.name);
+        return ['stride', 'padding', 'axis'].includes(part.name)
+            || !!named && named.arities.length > 0
+            || part.name.startsWith('\0') && !['\0i', '\0j', '\0k'].includes(part.name);
+    };
+    let position = operation + 1;
+    while (position < parts.length && !endsDimensions(parts[position])) position++;
+    const dimensions = parts.slice(operation + 1, position);
+    if (!dimensions.length) throw new ApplicationSyntaxError('window expects one or more sizes');
     let stride: Expression | undefined;
     let padding: Expression | undefined;
     let fill: Expression | undefined;
@@ -864,32 +875,28 @@ function explicitWindow(parts: Expression[]): WindowApplication | undefined {
 
     if (isNamed(parts[position], 'stride')) {
         stride = parts[position + 1];
-        if (!stride) return undefined;
+        if (!stride) throw new ApplicationSyntaxError('window stride expects a value');
         position += 2;
     }
     if (isNamed(parts[position], 'padding')) {
         padding = parts[position + 1];
-        if (!padding) return undefined;
+        if (!padding) throw new ApplicationSyntaxError('window padding expects a value');
         position += 2;
         if (isNamed(parts[position], 'with')) {
             fill = parts[position + 1];
-            if (!fill) return undefined;
+            if (!fill) throw new ApplicationSyntaxError('window padding with expects a value');
             position += 2;
         }
     }
     if (isNamed(parts[position], 'axis')) {
-        if (position + 1 >= parts.length) return undefined;
-        axes = parts.slice(position + 1).map(axis =>
+        const start = ++position;
+        while (position < parts.length && !endsDimensions(parts[position])) position++;
+        if (position === start) throw new ApplicationSyntaxError('window axis expects one or more axes');
+        axes = parts.slice(start, position).map(axis =>
             literalDimension(integerLiteral(axis, 'window axis'), 'window axis'));
-        position = parts.length;
     }
-    if (position !== parts.length) return undefined;
     return {
-        source: applicationExpression(parts.slice(0, operation)),
-        size: parts[operation + 1],
-        axes,
-        stride,
-        padding,
-        fill,
+        source: applicationExpression(parts.slice(0, operation)), dimensions,
+        rest: parts.slice(position), axes, stride, padding, fill,
     };
 }

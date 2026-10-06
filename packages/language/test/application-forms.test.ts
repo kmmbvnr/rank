@@ -18,6 +18,8 @@ it.each([
     ['A transpose axis 1 0', 'axis-transpose'], ['A B matmul axis 1 0', 'axis-matmul'],
     ['A covariance axis 0 1', 'axis-covariance'], ['A corr axis 0 1', 'axis-correlation'],
     ['A sum rank 1', 'rank'], ['A axis 1 0', 'axis-selection'],
+    ['A window 2 3', 'window'], ['A window unpack Sizes', 'window'],
+    ['A window 2 3 shape', 'plain'], ['A window 2 3 axis 0 1 shape', 'plain'],
     ['A window 2 axis 0', 'window'], ['A 1 shift with 9', 'axis-shift'],
     ['A 1 shift with 9 axis 1', 'axis-shift'], ['A 1 shift axis 1', 'axis-shift'], ['A 1 shift', 'plain'], ['A window 2 padding 1 with 9', 'window'],
     ['A window 2 stride 2 padding 1 with 9 axis 1', 'window'], ['A B equal rank 1', 'comparison-rank'],

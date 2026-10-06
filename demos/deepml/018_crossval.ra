@@ -44,7 +44,7 @@ fun cross_validation N K Shuffle
     TrainMask or= After
     Train = (Order TrainMask) array
 
-    Queue push array Train Test
+    Queue push tuple Train Test
   end
 
   return Queue

@@ -18,8 +18,7 @@ test "official padded stride example"
     0 14 16
   end
 
-  Conv = simple_conv2d
-  Actual = Input Kernel 1 2 Conv
+  Actual = Input Kernel 1 2 simple_conv2d
   Actual Expected equal rank 2
 end
 
@@ -43,8 +42,7 @@ test "official complete windows"
     91.0 96.0 101.0 106.0
   end
 
-  Conv = simple_conv2d
-  Actual = Input Kernel 0 1 Conv
+  Actual = Input Kernel 0 1 simple_conv2d
   Actual Expected equal rank 2
 end
 
@@ -69,8 +67,7 @@ test "official wide zero padding"
     0.0 80.9 88.3 12.5
   end
 
-  Conv = simple_conv2d
-  Actual = Input Kernel 2 2 Conv
+  Actual = Input Kernel 2 2 simple_conv2d
   Actual = Actual round 10
   Actual Expected equal rank 2
 end

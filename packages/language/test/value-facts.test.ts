@@ -1148,6 +1148,9 @@ it('infers finite windows including an empty frame', () => {
         elements: ['integer'], eagerScalarCells: true };
     const bindings = new Map([['M', matrix]]);
     expect(facts('M window (array 2 3)', bindings).shape).toEqual([4, 3, 2, 3]);
+    expect(facts('M window 2 3', bindings).shape).toEqual([4, 3, 2, 3]);
+    expect(facts('M window unpack (array 2 3)', bindings).shape).toEqual([4, 3, 2, 3]);
+    expect(facts('M window 2 3 diag', bindings).shape).toEqual([4, 3, 2]);
     expect(facts('M window 2 axis 1', bindings).shape).toEqual([5, 4, 2]);
     expect(facts('M window 2 stride 2 padding 1 axis 1', bindings).shape).toEqual([5, 3, 2]);
 });

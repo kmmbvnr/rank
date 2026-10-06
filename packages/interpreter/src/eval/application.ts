@@ -3,6 +3,7 @@ import {
     isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression,
     renamedBuiltinCall, type ApplicationForm, type ArrayItem, type Expression, type Operation,
 } from '@arrrank/language';
+import { ownedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import {
     completed, flatMapResult, mapExecution, mapResult, resume, type Evaluation, type Execution,
@@ -464,20 +465,22 @@ export class ApplicationEvaluator {
                 const window = form;
                 return function* (): Execution<RankValue> {
                     context.requireModule('sequences', 'window');
-                    return windowValue(
-                        (yield* resume(context.evaluate(window.source))),
-                        (yield* resume(context.evaluate(window.size))),
-                        window.axes,
-                        window.stride
-                            ? (yield* resume(context.evaluate(window.stride)))
-                            : undefined,
-                        window.padding
-                            ? (yield* resume(context.evaluate(window.padding)))
-                            : undefined,
-                        window.fill
-                            ? (yield* resume(context.evaluate(window.fill)))
-                            : undefined,
-                    );
+                    const source = yield* resume(context.evaluate(window.source));
+                    const dimensions: RankValue[] = [];
+                    for (const part of window.dimensions) {
+                        if (isUnpackExpression(part)) {
+                            dimensions.push(...unpackApplicationItems(yield* resume(context.evaluate(part.value))));
+                        } else dimensions.push(yield* resume(context.evaluate(part)));
+                    }
+                    const size = window.dimensions.length === 1 && !isUnpackExpression(window.dimensions[0])
+                        ? dimensions[0] : ownedArray(dimensions);
+                    const result = windowValue(source, size, window.axes,
+                        window.stride ? (yield* resume(context.evaluate(window.stride))) : undefined,
+                        window.padding ? (yield* resume(context.evaluate(window.padding))) : undefined,
+                        window.fill ? (yield* resume(context.evaluate(window.fill))) : undefined);
+                    if (!window.rest.length) return result;
+                    const rest = yield* resume(mapExecution(window.rest, part => context.evaluate(part)));
+                    return yield* resume(application.apply([result, ...rest], missing, 0, [], tail));
                 };
             }
             case 'axis-shift': {

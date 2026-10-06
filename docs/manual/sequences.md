@@ -724,12 +724,21 @@ W 1
 ### Usage
 
 ```text
-Values window Width
+Values window Widths...
+Values window unpack Sizes
 ```
 
 Each window is one row of the result.
 Windows overlap and are all complete, so
 a list shorter than Width gives none.
+For a matrix, use `M window 4 4`, or `M
+window Sizes` with `Sizes = array 4 4`.
+`M window unpack Sizes` is equivalent.
+Supply one size for each axis. Use
+`axis` to choose axes; a single size
+does not repeat across all axes.
+Continue with `M window 4 4 diag` to
+take diagonals.
 
 ### See also
 

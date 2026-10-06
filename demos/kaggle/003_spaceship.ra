@@ -43,7 +43,7 @@ fun spending_features Train Test
   Features = array .Cryo .Vip .Age .TotalSpend
   X = Train Features
   Xtest = Test Features
-  return array X Xtest
+  return tuple X Xtest
 end
 
 

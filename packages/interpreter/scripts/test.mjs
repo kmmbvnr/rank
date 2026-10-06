@@ -9,7 +9,9 @@ const runs = requested.length ? [requested]
     : [['--exclude', 'test/types.test.ts'], ['test/types.test.ts']];
 
 for (const args of runs) {
-    const result = spawnSync(process.execPath, [vitest, 'run', ...args], { stdio: 'inherit' });
+    const runner = args.includes('test/types.test.ts') && !args.includes('--exclude')
+        ? ['--config', './scripts/type-audit.config.mjs'] : [];
+    const result = spawnSync(process.execPath, [vitest, 'run', ...args, ...runner], { stdio: 'inherit' });
     if (result.error) throw result.error;
     if (result.status !== 0) process.exit(result.status ?? 1);
 }
