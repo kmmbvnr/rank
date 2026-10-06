@@ -44,11 +44,13 @@ Android hides system bars; an edge swipe temporarily reveals them.
 
 On first use, an optional walkthrough inserts `A = 1 to 5` and `A * 10`
 into an empty notebook without running it. It selects the last line and explains
-Play, the Rank keyboard, command documentation and the system-keyboard button.
-Skip is available throughout; ⋮ → Replay walkthrough starts it again without
-replacing existing code. A small hold-Play hint follows successful execution of
-at least two code lines. Saved-notebook and module hints appear at later quiet
-interactions. Guidance remembers dismissed hints and actions already discovered.
+Play, the Rank keyboard, command documentation and the system-keyboard button,
+then ends by opening the floating notebook panel through RANK. Tapping outside
+the editor on the keyboard-dismissal step hides the system keyboard; the tour
+advances after the native keyboard reports that it has closed.
+Each step uses one sentence without a heading or Skip button;
+⋮ → Replay walkthrough starts it again without replacing existing code. A small hold-Play hint follows successful execution of
+at least two code lines. Module hints appear at later quiet interactions. Guidance remembers dismissed hints and actions already discovered.
 
 Tap RANK to open notebook history and create a new notebook. The drawer groups
 notebooks by their last modified date and loads 25 titles at a time. Titles use

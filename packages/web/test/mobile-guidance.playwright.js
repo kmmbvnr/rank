@@ -6,10 +6,15 @@ async original => {
     let page = await context.newPage();
     await page.goto(original.url());
     let card = page.locator('#mobile-guidance');
-    const step = name => page.waitForFunction(name => {
+    const step = async name => { await page.waitForFunction(name => {
         const card = document.querySelector('#mobile-guidance');
         return card && !card.hidden && card.dataset.step === name;
     }, name, { timeout: 8000 }).catch(async error => { throw new Error(`Step ${name}: ${await card.textContent()} / hidden=${await card.isHidden()} / ${JSON.stringify(await saved())}: ${error.message}`); });
+        check(await card.locator('strong, h1, h2, h3').count() === 0, 'Guidance must have no heading');
+        check(await card.getByRole('button', { name: 'Skip', exact: true }).count() === 0, 'Guidance must have no Skip button');
+        const sentence = await card.locator('p').textContent();
+        check((sentence.match(/[.!?]/g) ?? []).length === 1, 'Guidance must express one sentence');
+    };
     const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem('rank-mobile-guidance-v1')));
     const geometry = async target => {
         const box = await card.boundingBox();
@@ -19,6 +24,20 @@ async original => {
     };
     let play = page.locator('#run-button');
     const clickCore = () => page.getByRole('tab', { name: 'core', exact: true }).click();
+    const finishTour = async () => {
+        const command = page.locator('#keyboard-keys button:not([aria-disabled="true"])').first();
+        await command.scrollIntoViewIfNeeded();
+        const box = await command.boundingBox();
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await page.mouse.down(); await page.waitForTimeout(650); await page.mouse.up();
+        await page.getByRole('button', { name: 'Close manual' }).click();
+        await step('letters');
+        await page.locator('#keyboard-letters').click();
+        await page.evaluate(() => { window.rankSoftKeyboard(true, 280); window.rankSoftKeyboard(false); });
+        await step('notebooks');
+        await page.locator('#brand').click();
+        await page.keyboard.press('Escape');
+    };
     await step('offer');
     await card.getByRole('button', { name: 'Insert example' }).click();
     await step('run');
@@ -49,25 +68,24 @@ async original => {
     await geometry(page.locator('#keyboard-letters'));
     check((await saved()).documentation, 'Remember independently discovered documentation');
     await page.locator('#keyboard-letters').click();
-    check((await saved()).step === 'done', 'System-keyboard action completes the tour');
-    check(await card.isHidden(), 'Completion must not queue a contextual hint');
+    await step('notebooks');
+    check((await saved()).step === 'notebooks', 'The floating panel is the final action step');
+    check(await page.locator('#guidance-spotlight').isVisible(), 'Final step must highlight RANK');
+    await page.locator('#brand').click();
+    check((await saved()).step === 'done', 'Opening the floating panel completes the tour');
+    check((await saved()).notebooks, 'Remember the opened panel');
+    await page.keyboard.press('Escape');
     await page.reload();
     check(await card.isHidden(), 'Reopening must not repeat the completed tour');
-    await clickCore();
-    await step('notebooks');
-    check(await page.locator('#guidance-spotlight').isHidden(), 'Notebook hint must be nonblocking');
-    await page.locator('#brand').click();
-    check((await saved()).notebooks, 'Opening notebooks suppresses the notebook hint');
-    await page.keyboard.press('Escape');
     await page.locator('#menu-toggle').click();
     await page.getByRole('button', { name: 'Replay walkthrough' }).click();
     await page.evaluate(() => window.rankSoftKeyboard(false));
     await step('commands');
     check((await page.locator('#screen').textContent()).includes('A * 10'), 'Replay must preserve existing code');
     check(await card.getByRole('button', { name: 'Insert example' }).count() === 0, 'Replay must not offer replacement code');
-    await card.getByRole('button', { name: 'Skip', exact: true }).click();
+    await finishTour();
     await page.reload();
-    check(await card.isHidden(), 'Skip must persist across reopening');
+    check(await card.isHidden(), 'Completion must persist across reopening');
 
     // Typing cancels the offer, preserves source, and suppresses hints while editing.
     await context.close();
@@ -85,7 +103,7 @@ async original => {
     await page.getByRole('button', { name: 'Replay walkthrough' }).click();
     await page.evaluate(() => window.rankSoftKeyboard(false));
     await step('commands');
-    await card.getByRole('button', { name: 'Skip', exact: true }).click();
+    await finishTour();
     await play.click();
     await page.waitForFunction(() => document.querySelector('#input').getAttribute('aria-busy') === 'false');
     check(!(await saved()).executed, 'One code line must not qualify for hold guidance');
@@ -107,9 +125,14 @@ async original => {
     await page.reload();
     await page.evaluate(() => window.rankSoftKeyboard(true, 280));
     await step('keyboard');
-    check((await card.textContent()).includes('Dismiss the system keyboard'), 'Explain OS keyboard dismissal above it');
+    check((await card.textContent()).includes('Tap anywhere above the system keyboard'), 'Explain OS keyboard dismissal above it');
     await page.waitForTimeout(1100);
     check((await saved()).step === 'keyboard', 'Time must not advance an action step');
+    const sourceBefore = await page.getByRole('textbox').inputValue();
+    await page.locator('#menu-toggle').click();
+    check((await saved()).step === 'keyboard', 'Tap waits for the real native dismissal report');
+    check(await page.getByRole('textbox').inputValue() === sourceBefore, 'Dismissal tap must preserve source');
+    check(await page.getByRole('button', { name: 'Replay walkthrough' }).isHidden(), 'Dismissal tap must not open the menu');
     await page.evaluate(() => window.rankSoftKeyboard(false));
     await step('commands');
     await page.setViewportSize({ width: 844, height: 390 });
@@ -117,7 +140,7 @@ async original => {
     const landscape = await card.boundingBox();
     check(landscape && landscape.x >= 0 && landscape.y >= 0 && landscape.x + landscape.width <= 844
         && landscape.y + landscape.height <= 390, 'Keyboard hint must fit landscape');
-    await card.getByRole('button', { name: 'Skip', exact: true }).click();
+    await finishTour();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => window.rankSoftKeyboard(true, 280));
     await page.evaluate(() => window.rankSoftKeyboard(false));

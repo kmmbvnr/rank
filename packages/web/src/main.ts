@@ -1497,6 +1497,11 @@ const guidance = touchConsole && !example ? new MobileGuidance(() => ({
     repl.notebook.selectTo(1, 'A * 10'.length);
     follow = true;
     render();
+}, () => {
+    input.blur();
+    const capacitor = (globalThis as typeof globalThis & { Capacitor?: { getPlatform(): string } }).Capacitor;
+    if (capacitor?.getPlatform() === 'android')
+        void fetch('/__rank_keyboard_hide', { cache: 'no-store' }).catch(() => {});
 }) : undefined;
 document.querySelector<HTMLButtonElement>('[data-action="walkthrough"]')!.hidden = !guidance;
 document.querySelector('#key-manual')?.addEventListener('close', () => guidance?.update());

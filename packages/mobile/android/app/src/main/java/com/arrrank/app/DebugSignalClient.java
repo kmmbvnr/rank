@@ -38,6 +38,11 @@ public final class DebugSignalClient extends BridgeWebViewClient {
         Uri uri = request.getUrl();
         if (!"https".equals(uri.getScheme()) || !"localhost".equals(uri.getHost()))
             return super.shouldInterceptRequest(view, request);
+        if ("/__rank_keyboard_hide".equals(uri.getPath())) {
+            MainActivity activity = MainActivity.getCurrentActivity();
+            if (activity != null) view.post(() -> activity.hideKeyboard());
+            return response(200, "OK", "{}");
+        }
         if ("/__rank_haptic".equals(uri.getPath())) {
             String kind = uri.getQueryParameter("kind");
             int effect = "step".equals(kind)

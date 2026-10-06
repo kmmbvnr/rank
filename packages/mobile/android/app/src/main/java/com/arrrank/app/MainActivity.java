@@ -62,6 +62,13 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    public void hideKeyboard() {
+        keyboardRequested = true;
+        getWindow().getDecorView().removeCallbacks(showKeyboard);
+        if (bridge != null) WindowCompat.getInsetsController(getWindow(), bridge.getWebView())
+            .hide(WindowInsetsCompat.Type.ime());
+    }
+
     private final Runnable showKeyboard = () -> {
         if (!resumed || !hasWindowFocus() || keyboardRequested || bridge == null) return;
         WebView webView = bridge.getWebView();

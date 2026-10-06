@@ -1,6 +1,6 @@
 /** Guidance uses real notebook/keyboard actions; it never takes editor focus. */
-type Step = 'offer' | 'run' | 'keyboard' | 'commands' | 'letters' | 'done';
-type Hint = 'hold' | 'notebooks' | 'modules';
+type Step = 'offer' | 'run' | 'keyboard' | 'commands' | 'letters' | 'notebooks' | 'done';
+type Hint = 'hold' | 'modules';
 interface SavedGuidance {
     step?: Step;
     hold?: boolean;
@@ -22,13 +22,12 @@ export interface GuidanceContext {
         brand: HTMLElement; modules?: HTMLElement };
 }
 const storageKey = 'rank-mobile-guidance-v1';
-const steps: Step[] = ['offer', 'run', 'keyboard', 'commands', 'letters', 'done'];
+const steps: Step[] = ['offer', 'run', 'keyboard', 'commands', 'letters', 'notebooks', 'done'];
 
 export class MobileGuidance {
     private saved: SavedGuidance = {};
     private readonly card = document.createElement('aside');
     private readonly spotlight = document.createElement('div');
-    private readonly title = document.createElement('strong');
     private readonly text = document.createElement('p');
     private readonly actions = document.createElement('div');
     private hint?: Hint;
@@ -39,7 +38,7 @@ export class MobileGuidance {
     private editing = false;
     private timer?: ReturnType<typeof setTimeout>;
 
-    constructor(private context: () => GuidanceContext, private insertExample: () => void) {
+    constructor(private context: () => GuidanceContext, private insertExample: () => void, private dismissKeyboard: () => void) {
         try {
             const data = JSON.parse(localStorage.getItem(storageKey) || '{}');
             if (data && typeof data === 'object') {
@@ -55,7 +54,7 @@ export class MobileGuidance {
         this.card.setAttribute('aria-live', 'polite');
         this.spotlight.id = 'guidance-spotlight';
         this.spotlight.setAttribute('aria-hidden', 'true');
-        this.card.append(this.title, this.text, this.actions);
+        this.card.append(this.text, this.actions);
         this.card.addEventListener('pointerdown', event => event.preventDefault());
         this.card.addEventListener('mousedown', event => event.preventDefault());
         document.body.append(this.spotlight, this.card);
@@ -66,6 +65,26 @@ export class MobileGuidance {
             if ((event.target as HTMLElement).closest('textarea, #keyboard-keys')) return;
             this.quietBoundary();
         });
+        // Consume this gesture so the same tap cannot edit code or activate a toolbar action.
+        let dismissTap = false;
+        document.addEventListener('pointerdown', event => {
+            dismissTap = false;
+            if (this.card.hidden || this.hint || this.saved.step !== 'keyboard' || !this.context().softKeyboard
+                || event.target instanceof HTMLTextAreaElement) return;
+            dismissTap = true;
+            event.preventDefault(); event.stopPropagation();
+        }, true);
+        document.addEventListener('pointerup', event => {
+            if (!dismissTap) return;
+            event.preventDefault(); event.stopPropagation();
+            this.dismissKeyboard();
+        }, true);
+        for (const type of ['mousedown', 'mouseup', 'click']) document.addEventListener(type, event => {
+            if (!dismissTap) return;
+            event.preventDefault(); event.stopPropagation();
+            if (type === 'click') dismissTap = false;
+        }, true);
+        document.addEventListener('pointercancel', () => { dismissTap = false; }, true);
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) { clearTimeout(this.timer); this.hide(); }
             else this.update();
@@ -93,7 +112,8 @@ export class MobileGuidance {
     discovered(action: 'hold' | 'notebooks' | 'modules' | 'documentation' | 'letters'): void {
         this.saved[action] = true;
         if (action === 'documentation' && this.saved.step === 'commands') this.step('letters');
-        if (action === 'letters' && this.saved.step === 'letters') { this.step('done'); this.defer(); }
+        if (action === 'letters' && this.saved.step === 'letters') this.step('notebooks');
+        if (action === 'notebooks' && this.saved.step === 'notebooks') { this.step('done'); this.defer(); }
         if (action === this.hint) { this.hint = undefined; this.defer(); }
         this.persist();
         this.update();
@@ -110,13 +130,12 @@ export class MobileGuidance {
         this.hint = undefined;
         this.editing = false;
         this.nextBoundary = this.boundary;
-        this.saved.documentation = this.saved.letters = false;
+        this.saved.documentation = this.saved.letters = this.saved.notebooks = false;
         this.step(this.context().empty ? 'offer' : 'keyboard');
         this.update();
     }
     private dismiss(): void {
         if (this.hint) { this.saved[this.hint] = true; this.hint = undefined; this.persist(); }
-        else this.step('done');
         this.defer();
     }
     private hide(): void { this.card.hidden = this.spotlight.hidden = true; }
@@ -141,11 +160,10 @@ export class MobileGuidance {
         if (!this.saved.step) this.step(context.empty ? 'offer' : 'keyboard');
         if (this.saved.step === 'offer' && !context.empty) { this.step('keyboard'); this.editing = true; this.hide(); return; }
         if (this.saved.step === 'keyboard' && context.rankKeyboard) this.step(this.saved.documentation ? 'letters' : 'commands');
-        if (this.saved.step === 'letters' && this.saved.letters) { this.step('done'); this.defer(); }
+        if (this.saved.step === 'letters' && this.saved.letters) this.step('notebooks');
         if (this.boundary < this.nextBoundary) { this.hide(); return; }
         const targets = context.targets;
         let target: HTMLElement | undefined;
-        let title = '';
         let text = '';
         let action: { label: string; run: () => void } | undefined;
         let guided = true;
@@ -153,48 +171,46 @@ export class MobileGuidance {
         if (this.saved.executed && !this.saved.hold && context.codeLines >= 2 && this.visible(targets.play)
             && this.saved.step !== 'offer' && this.saved.step !== 'run') this.hint ??= 'hold';
         if (this.saved.step === 'done' && !this.hint) {
-            if (!this.saved.notebooks && this.visible(targets.brand)) this.hint = 'notebooks';
-            else if (!this.saved.modules && context.rankKeyboard && (this.saved.keyboardUses ?? 0) >= 2 && this.visible(targets.modules))
+            if (!this.saved.modules && context.rankKeyboard && (this.saved.keyboardUses ?? 0) >= 2 && this.visible(targets.modules))
                 this.hint = 'modules';
         }
         if (this.hint) {
             guided = false;
-            if (this.hint === 'hold') { target = targets.play; title = 'Hold Play to run everything from the start'; }
-            if (this.hint === 'notebooks') { target = targets.brand; title = 'Your saved notebooks'; text = 'Tap RANK to open saved notebooks or create a new one.'; }
-            if (this.hint === 'modules') { target = context.rankKeyboard ? targets.modules : undefined; title = 'Add more commands'; text = 'Tap + to import a module and add its commands to this keyboard.'; }
+            if (this.hint === 'hold') { target = targets.play; text = 'Hold Play to run everything from the start.'; }
+            if (this.hint === 'modules') { target = context.rankKeyboard ? targets.modules : undefined; text = 'Tap + to choose a module and add its commands to this keyboard.'; }
         } else switch (this.saved.step) {
             case 'offer':
-                target = targets.notebook; title = 'Try array operations'; text = 'A = 1 to 5\nA * 10';
+                target = targets.notebook; text = 'Insert an example to multiply every number in an array by ten.';
                 action = { label: 'Insert example', run: () => {
                     if (!this.context().empty) { this.edited(); return; }
                     this.step('run'); this.insertExample(); this.update();
                 } }; break;
-            case 'run': target = targets.play; title = 'Run through the selected line'; text = 'Tap Play to multiply the array by ten.'; break;
+            case 'run': target = targets.play; text = 'Tap Play to run through the selected line and multiply every number in the array by ten.'; break;
             case 'keyboard':
                 // The system keyboard is owned by the OS. Point at the editor above it.
-                if (context.softKeyboard) { target = targets.notebook; title = 'Reveal Rank commands'; text = 'Dismiss the system keyboard using its hide key or Android Back. Rank commands appear in its place.'; }
+                if (context.softKeyboard) { target = targets.notebook; text = 'Tap anywhere above the system keyboard to reveal Rank commands.'; }
                 break;
             case 'commands':
                 if (context.rankKeyboard) {
-                    target = targets.commands; title = 'Tap to insert · hold for documentation';
-                    text = 'Hold a command to open its documentation and an example.';
+                    target = targets.commands;
+                    text = 'Tap a command to insert it, or hold it to open documentation with an example.';
                 }
                 break;
+            case 'notebooks': target = targets.brand; text = 'Tap RANK to open the floating panel with your saved notebooks.'; break;
             case 'letters':
-                if (context.rankKeyboard) { target = targets.letters; title = 'Return to the system keyboard'; text = 'Tap this keyboard button when you want to type.'; }
+                if (context.rankKeyboard) { target = targets.letters; text = 'Tap this keyboard button to return to the system keyboard.'; }
                 break;
         }
         if (!this.visible(target)) { this.hide(); return; }
         const key = `${this.saved.step}:${this.hint ?? ''}`;
         if (this.shown !== key) {
             this.shown = key;
-            this.title.textContent = title;
             this.text.textContent = text;
-            this.text.classList.toggle('guidance-code', this.saved.step === 'offer' && !this.hint);
             this.text.hidden = !text;
             this.actions.replaceChildren();
             if (action) this.button(action.label, action.run);
-            this.button(guided ? 'Skip' : 'Got it', () => this.dismiss());
+            if (!guided) this.button('Got it', () => this.dismiss());
+            this.actions.hidden = guided && !action;
         }
         this.card.dataset.step = this.hint ?? this.saved.step;
         this.card.classList.toggle('guided', guided);
