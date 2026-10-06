@@ -2593,6 +2593,75 @@ Fib = fibonacci to 100
 SixthPrime = primes 5
 ```
 
+## Open numeric ranges
+
+`#` in a range endpoint means that no boundary is supplied. It is a contextual
+marker, not a numeric infinity. Both `to #` and `till #` construct the same
+lazy, replayable sequence:
+
+```rank
+N = 1 to #
+Odd = 1 to # by 2
+Down = 0 to # by -1
+First = N take 4
+rem 1 2 3 4
+```
+
+The start and step must be integers; the default step is `1` and zero is an
+error. The step determines direction. Indexing calculates `Start + Index * Step`
+without reading earlier items. Independent consumers restart their own traversal;
+the range does not retain a history of generated items. Elementwise arithmetic
+and rank-0 mapping stay lazy.
+
+A range has infinite cardinality until it is bounded. `take K` on the original
+range terminates for a finite nonnegative count. `first where` stops at the first
+match, and `till Condition` stops when the condition holds; either search may run
+indefinitely when its condition never holds. After a filter, even `take K` can
+wait indefinitely for another matching item. Such searches remain interruptible.
+Full consumption (`sum`, `max`, `len`, or `array`) rejects a source known to be
+unbounded. A filtered infinite source retains a conservative full-consumption
+guard; that does not prove that its matching result has infinite cardinality.
+
+Value bounds keep their usual meaning, including for descending sequences:
+
+```rank
+Down = 0 to # by -1
+Empty = Down to -10
+rem Empty: the first value already exceeds -10.
+Prefix = Down till less -10
+rem 0 -1 ... -10
+```
+
+Numeric `infinity` is not a range endpoint. Elsewhere `#` keeps its existing
+meanings of whole-axis selection and discarded bindings.
+
+### Open slice selectors
+
+An open range used as a selector ends at the selected axis boundary. Naming the
+selector preserves this behavior:
+
+```rank
+A = array 10 20 30 40
+Tail = 2 to #
+A Tail
+rem 30 40
+A (2 to #)
+rem 30 40
+M # (2 to #)
+rem Every row, columns from index 2 onward.
+A (3 to # by -1)
+rem 40 30 20 10
+```
+
+Starts must be nonnegative. A start equal to the axis size selects nothing,
+including index zero on an empty axis; a greater start is an out-of-bounds
+error. Positive steps stop before the axis size and negative steps stop before
+index zero. Explicit index collections still fail for invalid indices rather
+than clipping them. Finite sequence slices require an exact axis size, as
+existing index collection selection does. Over an infinite source, a positive
+open selector remains a lazy infinite sequence; a negative-step selector ends
+at index zero. Unknown-size sources retain the existing exact-size requirement.
+
 ## Bounds
 
 Four words bound a sequence, an array or text by value. `to` and `till` end
@@ -7536,14 +7605,21 @@ example produces `70600674`.
 rem Project Euler 12
 rem https://projecteuler.net/problem=12
 
+use numbers
+use sequences
 option Minimum integer = 500
-Answer = Minimum first_triangle
+N = 1 to #
+Triangles = N * (N + 1) // 2
+divisor_count = divisors count
+Counts = Triangles divisor_count rank 0
+Answer = Triangles first where (Counts greater Minimum)
 ```
 
 `divisors count` computes the number of positive divisors from prime exponents
-without enumerating the divisors. The search splits each triangular number into
-two coprime factors and multiplies their divisor counts. The first triangle with
-over 500 divisors is `76576500`.
+without enumerating the divisors. The unbounded range generates triangular
+numbers lazily, and `first where` stops at the first number whose divisor count
+exceeds the threshold. No arbitrary search limit is needed. The first triangle
+with over 500 divisors is `76576500`; with over 5 divisors it is `28`.
 
 ## 13. Large sum
 

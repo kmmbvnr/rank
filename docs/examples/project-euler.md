@@ -235,14 +235,21 @@ example produces `70600674`.
 rem Project Euler 12
 rem https://projecteuler.net/problem=12
 
+use numbers
+use sequences
 option Minimum integer = 500
-Answer = Minimum first_triangle
+N = 1 to #
+Triangles = N * (N + 1) // 2
+divisor_count = divisors count
+Counts = Triangles divisor_count rank 0
+Answer = Triangles first where (Counts greater Minimum)
 ```
 
 `divisors count` computes the number of positive divisors from prime exponents
-without enumerating the divisors. The search splits each triangular number into
-two coprime factors and multiplies their divisor counts. The first triangle with
-over 500 divisors is `76576500`.
+without enumerating the divisors. The unbounded range generates triangular
+numbers lazily, and `first where` stops at the first number whose divisor count
+exceeds the threshold. No arbitrary search limit is needed. The first triangle
+with over 500 divisors is `76576500`; with over 5 divisors it is `28`.
 
 ## 13. Large sum
 

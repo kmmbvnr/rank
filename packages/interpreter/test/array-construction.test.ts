@@ -65,6 +65,6 @@ for (const compiled of [true, false]) describe(`array construction (compiled ${c
         const r = runtime();
         r.execute(readFileSync(new URL('../../../demos/euler/011_gridproduct.ra', import.meta.url), 'utf8'));
         expect(r.execute('Answer')).toBe(70600674n);
-        expect(() => r.execute('array H V D U')).toThrow(/item 0 has shape \[20,17,4\], item 1 has shape \[17,20,4\]/);
+        expect(formatValue(r.execute('array H V D U')!)).toBe('48477312 51267216 40304286 70600674');
     });
 });

@@ -63,6 +63,10 @@ export interface ValueFacts {
      * integer written to the binding replaces it (ADR-0100), so the binding accepts both.
      */
     readonly infinite?: true;
+    /** Exact infinite cardinality, separate from infinity numeric seeds. */
+    readonly unbounded?: true;
+    /** Arithmetic open range retained for direct and named slice analysis. */
+    readonly openRange?: { readonly start?: string; readonly step?: string };
     /** Every stored cell is an unresolved infinity seed. */
     readonly infiniteElements?: true;
     readonly integer?: string;
@@ -246,7 +250,11 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
             && compareDims(value.dims![axis]!, first.dims![axis]!) === 'equal') ? first.dims![axis] : null) : undefined;
     const dim = values.every(value => value.dim && first.dim && compareDims(value.dim, first.dim) === 'equal')
         ? first.dim : undefined;
-    return { types, ...(rank !== undefined ? { rank } : {}), ...(shape ? { shape } : {}),
+    return { types,
+        ...(values.every(value => value.unbounded) ? { unbounded: true as const } : {}),
+        ...(first.openRange && values.every(value => value.openRange?.start === first.openRange!.start
+            && value.openRange?.step === first.openRange!.step) ? { openRange: first.openRange } : {}),
+        ...(rank !== undefined ? { rank } : {}), ...(shape ? { shape } : {}),
         ...(dims?.some(Boolean) ? { dims } : {}), ...(dim ? { dim } : {}),
         ...(first.builtinOperation && values.every(value => value.builtinOperation === first.builtinOperation)
             ? { builtinOperation: first.builtinOperation } : {}),

@@ -178,7 +178,8 @@ export class ExpressionEvaluator {
             && !isNamed(expression.right, 'segment')
             && !isNamed(expression.right, 'outer')) {
             const left = this.compileDirect(expression.left);
-            const right = this.compileDirect(expression.right);
+            const right = isAllAxisExpression(expression.right) && ['to', 'till'].includes(expression.operator)
+                ? () => ALL_AXIS : this.compileDirect(expression.right);
             const step = expression.step ? this.compileDirect(expression.step) : undefined;
             if (left && right && (expression.operator === 'and' || expression.operator === 'or')) {
                 const operator = expression.operator;
@@ -521,6 +522,13 @@ export class ExpressionEvaluator {
                 return () => flatMapResult(expressions.evaluate(expression.left), left =>
                     expressions.context.operators.decidesGuard(operator, left) ? completed(left)
                         : mapResult(right(), value => expressions.context.operators.evaluateGuard(operator, left, value)));
+            }
+            if (isAllAxisExpression(expression.right) && ['to', 'till'].includes(expression.operator)) {
+                return function* (): Execution<RankValue> {
+                    const left = yield* resume(expressions.evaluate(expression.left));
+                    const step = expression.step ? yield* resume(expressions.evaluate(expression.step)) : undefined;
+                    return expressions.context.operators.evaluateBinary(expression.operator, left, ALL_AXIS, step);
+                };
             }
             if (!expression.step) {
                 const right = () => expressions.evaluate(expression.right);

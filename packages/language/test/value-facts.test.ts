@@ -1532,3 +1532,33 @@ it('infers configured diagonal shapes without treating parameters as data', () =
         expect(analyzeValues(parsed.value).diagnostics.map(item => item.message)).toContain(message);
     }
 });
+
+it('tracks absent endpoints separately from numeric infinity and slice boundaries', () => {
+    const range = facts('2 to #');
+    expect(range).toMatchObject({ types: ['sequence'], rank: 1, shape: [null],
+        elements: ['integer'], unbounded: true, openRange: { start: '2', step: '1' } });
+    expect(range.infinite).toBeUndefined();
+    expect(facts('0 till # by -2').openRange).toEqual({ start: '0', step: '-2' });
+    const bindings = new Map<string, ValueFacts>([['Tail', range], ['N', facts('1 to #')],
+        ['M', { types: ['array'], shape: [2, 4], rank: 2, elements: ['integer'] }]]);
+    expect(facts('M # (2 to #)', bindings)).toMatchObject({ rank: 2, shape: [2, 2] });
+    expect(facts('M # Tail', bindings)).toMatchObject({ rank: 2, shape: [2, 2] });
+    expect(facts('N * (N + 1) // 2', bindings)).toMatchObject({ types: ['sequence'], unbounded: true });
+    expect(facts('N take 5', bindings)).toMatchObject({ shape: [5] });
+    expect(facts('N take 5', bindings).unbounded).toBeUndefined();
+    expect(facts('N drop 5', bindings).unbounded).toBe(true);
+    expect(joinValueFacts([range, range]).openRange).toEqual(range.openRange);
+    expect(joinValueFacts([range, facts('2 to 4')]).unbounded).toBeUndefined();
+});
+
+
+it('keeps infinite cardinality through scalar mapping but not filtering', () => {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(
+        'use numbers\nuse sequences\nN = 1 to #\nMapped = N abs rank 0\nFiltered = N filter greater 5',
+    );
+    expect(parsed.parserErrors).toEqual([]);
+    const analysis = analyzeValues(parsed.value);
+    expect(analysis.bindings.get('Mapped')).toMatchObject({ types: ['sequence'], rank: 1,
+        shape: [null], elements: ['integer', 'real'], unbounded: true });
+    expect(analysis.bindings.get('Filtered')?.unbounded).toBeUndefined();
+});

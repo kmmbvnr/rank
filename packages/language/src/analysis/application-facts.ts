@@ -376,6 +376,19 @@ function transferApplicationFacts(
         const name = form.parts.at(-1);
         const operation = isNameExpression(name) ? operationBinding(name.name, lookup) : undefined;
         const operands = form.parts.slice(0, -1).map(part => infer(part, lookup));
+        if (form.rank === 0n && form.rightRank === undefined && !form.axes
+            && operands.length === 1 && operands[0].types.join() === 'sequence'
+            && (operands[0].callbackFreeScalarCells || operands[0].eagerScalarCells)) {
+            const source = operands[0];
+            const cells: ValueFacts = { types: source.elements ?? [], rank: 0, shape: [] };
+            const result = isNameExpression(name) && lookup(name.name)?.types.join() === 'function' && lookup.invoke
+                ? lookup.invoke(name.name, [cells], true)
+                : operation ? operationShapeFacts(operation, [cells]) : undefined;
+            if (result?.rank === 0 && result.types.length) return {
+                types: ['sequence'], rank: 1, shape: source.shape, elements: result.types,
+                ...(source.unbounded ? { unbounded: true as const } : {}),
+            };
+        }
         if (isNameExpression(name) && lookup(name.name)?.types.join() === 'function'
             && lookup.invoke && lookup.arity?.(name.name) === operands.length
             && operands.length === (form.rightRank === undefined ? 1 : 2)) {
@@ -999,6 +1012,25 @@ function transferApplicationFacts(
         && infer(parts[1], lookup).types.length > 0) {
         return { types: ['integer'], rank: 0, shape: [] };
     }
+    if (parts.length === 2 && ['sequence', 'text', 'queue'].includes(source.types.join())) {
+        const open = infer(parts[1], lookup).openRange;
+        if (open) {
+            const start = open.start === undefined ? undefined : BigInt(open.start);
+            const step = open.step === undefined ? undefined : BigInt(open.step);
+            const size = source.shape?.[0];
+            let length: number | null = null;
+            if (start !== undefined && step !== undefined && start >= 0n && step !== 0n) {
+                if (source.unbounded && step < 0n) length = Number(start / -step + 1n);
+                else if (size != null && start <= BigInt(size)) length = start === BigInt(size) ? 0
+                    : Number(step > 0n ? (BigInt(size) - start + step - 1n) / step : start / -step + 1n);
+            }
+            const lazy = source.types.join() === 'sequence' && source.unbounded;
+            return { types: [lazy ? 'sequence' : source.types.join() === 'text' ? 'text' : 'array'],
+                rank: 1, shape: [length], elements: source.elements,
+                ...(lazy && step !== undefined && step > 0n ? { unbounded: true as const } : {}),
+                ...(source.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}) };
+        }
+    }
     if (source.types.join() === 'array' && source.shape && parts.length - 1 <= source.shape.length) {
         const selectors = parts.slice(1).map(part => isAllAxisExpression(part)
             ? undefined : infer(part, lookup));
@@ -1012,6 +1044,14 @@ function transferApplicationFacts(
             const shape = source.shape.flatMap((dimension, axis) => {
                 const selector = selectors[axis];
                 if (selector?.rank === 0 && selector.types.join() === 'integer') return [];
+                const open = selector?.openRange;
+                if (open?.start !== undefined && open.step !== undefined && dimension !== null) {
+                    const start = BigInt(open.start), step = BigInt(open.step), size = BigInt(dimension);
+                    if (start >= 0n && start <= size && step !== 0n) {
+                        return [start === size ? 0 : Number(step > 0n
+                            ? (size - start + step - 1n) / step : start / -step + 1n)];
+                    }
+                }
                 return [integerVector(selector) ? selector?.shape?.[0] ?? null : dimension];
             });
             return { types: ['array'], rank: shape.length, shape, elements: source.elements,
@@ -1076,12 +1116,14 @@ export function takeDropFacts(source: ValueFacts, count: ValueFacts, drop: boole
     if (count.types.join() !== 'integer' || count.rank !== 0
         || (count.integer !== undefined && BigInt(count.integer) < 0n)) return undefined;
     const size = source.shape?.[0];
-    const leading = size == null || count.integer === undefined ? null
+    const leading = !drop && source.unbounded && count.integer !== undefined
+        ? Number(BigInt(count.integer)) : size == null || count.integer === undefined ? null
         : Number(BigInt(count.integer) < BigInt(size) ? BigInt(count.integer) : BigInt(size));
     const length = drop && size != null && leading != null ? size - leading : leading;
     if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [length] };
     if (source.types.join() === 'sequence') return { types: ['sequence'], rank: 1,
         shape: [length], elements: source.elements,
+        ...(drop && source.unbounded ? { unbounded: true as const } : {}),
         ...(source.callbackFreeScalarCells ? { callbackFreeScalarCells: true as const } : {}) };
     if (source.types.join() === 'array' && source.rank !== undefined && source.rank > 0) return {
         types: ['array'], rank: source.rank,
