@@ -2,21 +2,20 @@
 
 ## Issue-based task workflow
 
-- Create or reuse a GitHub issue for every task before implementation. Write
-  issues, issue comments and pull requests in English.
+- Do not create or update GitHub issues, post comments, or open pull requests
+  on your own initiative. Ask whether to create, update or comment after the
+  discussion has reached a useful conclusion, unless the user has explicitly
+  requested that action. Write GitHub content in English.
 - Use the issue as the working agreement: describe the problem, expected
   behavior and short acceptance criteria. For ordinary tasks, do not create
   separate specification or ADR documents unless the user asks for them.
-- After discussion, record the agreed decisions in an issue comment. Update
-  the agreement when requirements change; distinguish decisions from open
-  questions.
-- Record findings and decisions made during implementation in issue comments,
-  including any behavior that needed to be settled beyond the original request.
-- Record wishes and ideas for later work in comments too. When a follow-up
-  becomes a separate task, create a linked issue.
-- Finish with an issue comment stating what changed, what was verified and
-  what remains. Link the implementation or pull request. Keep existing
-  user-facing documentation consistent with implemented behavior.
+- When the user authorizes an issue update, write a consolidated summary of
+  agreed decisions, relevant implementation findings, verification and
+  follow-up ideas. Distinguish decisions from open questions. Do not post a
+  separate comment for every suggestion, intermediate finding or chat turn.
+- Ask before creating a follow-up issue or posting a final results comment;
+  previous permission for another GitHub action is not blanket authorization.
+- Keep existing user-facing documentation consistent with implemented behavior.
 
 ## Building and installing the Android APK
 
