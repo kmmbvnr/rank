@@ -1,6 +1,6 @@
 import type { AstNode } from 'langium';
 import {
-    availableBuiltin, builtinBindingMessage, functionBindingPlan, groupExpressions, expressionDiagnostics, flattenApplication, isNameExpression, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
+    availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, expressionDiagnostics, flattenApplication, isNameExpression, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
     type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { enterRuntime, isFlatScalarArray, isSharedArray, leaveRuntime } from './array-storage.js';
@@ -15,7 +15,7 @@ import { CallSpecializations } from './call-specializations.js';
 import { LocalFrame } from './frame.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import { checkpoint, inspectionEnabled } from './interrupt.js';
-import type { BuiltinRegistry } from './modules/builtins.js';
+import { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
 import { ReturnContract, argumentRankSignature } from './return-contract.js';
@@ -161,6 +161,14 @@ export class FunctionInvocation {
         const fn: NativeFunction = {
             kind: 'function', name: statement.name, arities: plan.arities,
             monadicRank: 'all', dyadicRanks: ['all', 'all'],
+            monadicResultShape: shape => {
+                const definition = plan.definitions.find(item => item.parameters.length === 1);
+                return definition && this.userResultCellShape(definition, context, new Map(), [shape]);
+            },
+            dyadicResultShape: (left, right) => {
+                const definition = plan.definitions.find(item => item.parameters.length === 2);
+                return definition && this.userResultCellShape(definition, context, new Map(), [left, right]);
+            },
             captures: this.bindings.current?.captures(),
             call: args => {
                 if (plain) return this.bindings.withFrame(context, () => {
@@ -358,11 +366,23 @@ export class FunctionInvocation {
             ? { types: ['integer'], rank: 0, shape: [] }
             : { types: ['array'], rank: cellShape.length, shape: cellShape,
                 elements: ['integer'], eagerScalarCells: true });
-        const result = functionEffects(
+        let result = functionEffects(
             name => name === statement.name ? statement : this.sources.get(functionValue(name)!),
             name => functionValue(name) !== undefined,
             name => valueOf(name) !== undefined,
         )(statement.name, cells).result;
+        // Synthetic bound pipelines do not have linked effect-analysis bodies.
+        // Their single expression can still determine a shape without execution.
+        const only = statement.statements.length === 1 ? statement.statements[0] : undefined;
+        if (!result && only && isReturnStatement(only) && only.value) {
+            result = expressionFacts(only.value, name => {
+                const index = statement.parameters.indexOf(name);
+                if (index >= 0) return cells[index];
+                const fn = functionValue(name);
+                const operation = fn && BuiltinRegistry.operationOf(fn);
+                return operation ? { types: ['function'], builtinOperation: operation.name } : undefined;
+            });
+        }
         // Like a called cell, a non-array result leaves only the frame.
         if (result?.types.length && !result.types.some(type => ['array', 'bytes'].includes(type))) return [];
         if (result?.types.join() === 'array' && result.shape?.length === result.rank) {

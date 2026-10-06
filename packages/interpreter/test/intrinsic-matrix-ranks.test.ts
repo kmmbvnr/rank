@@ -125,6 +125,9 @@ describe('intrinsic matrix cells', () => {
                 expect(analyzeValues(parse(code)).bindings.get('R')?.shape, code).toEqual(shape);
             }
         }
+        const pipeline = `${prefix}use numbers\npositive = inverse abs\nA = array shape 0 2 2 fill 0\nR = A positive rank 2`;
+        expect(run(`${pipeline}\nR shape`)).toBe('0 2 2');
+        expect(analyzeValues(parse(pipeline)).bindings.get('R')?.shape).toEqual([0, 2, 2]);
         expect(() => run(`${prefix}A = array shape 0 2 2 fill 0\nA (array shape 2 2 2 fill 0) solve rank 2 3 shape`)).toThrow(/vector or matrix right side/);
         expect(() => run(`${prefix}A = array shape 0 3 4 fill 0\nA (array 1 2 3) solve rank 2 1 shape`)).toThrow(/compatible cell shapes/);
         expect(() => run(`${prefix}A = array shape 0 2 3 fill 0\nA (array shape 4 2 fill 0) matmul rank 2 2 shape`)).toThrow(/compatible cell shapes/);
