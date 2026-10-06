@@ -2855,14 +2855,23 @@ axis selects the window and whose trailing axis contains the window cell. The
 operation is lazy and does not copy all overlapping cells before they are
 demanded. An unbounded sequence may likewise produce windows indefinitely.
 
-For a tensor, a rank-1 integer array supplies one size per selected axis:
+For a tensor, write one size per selected axis directly, pass a rank-1
+integer array, or unpack a vector of sizes. These forms produce the same windows:
 
 ```rank
+Blocks = M window 2 3
 WindowShape = array 2 3
 Blocks = M window WindowShape
+Blocks = M window unpack WindowShape
 ```
 
-Without `axis`, the size array must cover every tensor axis. If `M` has shape
+Sizes may be variables or grouped computations: `M window Height Width` or
+`M window (Height + 1) Width`. Group a function call used to compute a size.
+Each size is evaluated once. The size list ends at `stride`, `padding`, `axis`,
+or the next operation, so `M window 4 4 diag` reads matrix diagonals directly
+from each window. A following `array` still materializes sequence windows.
+
+Without `axis`, the sizes must cover every tensor axis. If `M` has shape
 `4 5`, the example has shape `3 3 2 3`: window-position axes come first and
 window-cell axes are appended last.
 
@@ -7507,10 +7516,8 @@ rem https://projecteuler.net/problem=11
 
 H = Grid window 4 axis 1
 V = Grid window 4 axis 0
-Square = array 4 4
-Windows = Grid window Square
-D = Windows diag
-U = Windows diag .anti
+D = Grid window 4 4 diag
+U = Grid window 4 4 diag .anti
 
 products = reduce * rank 1 max
 Answer = (array (H products) (V products) (D products) (U products)) max

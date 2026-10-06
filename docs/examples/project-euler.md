@@ -215,10 +215,8 @@ rem https://projecteuler.net/problem=11
 
 H = Grid window 4 axis 1
 V = Grid window 4 axis 0
-Square = array 4 4
-Windows = Grid window Square
-D = Windows diag
-U = Windows diag .anti
+D = Grid window 4 4 diag
+U = Grid window 4 4 diag .anti
 
 products = reduce * rank 1 max
 Answer = (array (H products) (V products) (D products) (U products)) max
