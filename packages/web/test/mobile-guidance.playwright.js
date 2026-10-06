@@ -39,7 +39,7 @@ async original => {
         await page.keyboard.press('Escape');
     };
     await step('offer');
-    await card.getByRole('button', { name: 'Insert example' }).click();
+    await card.getByRole('button', { name: 'Start' }).click();
     await step('run');
     check(await page.getByRole('textbox').inputValue() === 'A * 10', 'Select the final example line');
     check(!(await page.locator('#screen').textContent()).includes('10 20 30 40 50'), 'Insertion must not execute');
@@ -82,7 +82,7 @@ async original => {
     await page.evaluate(() => window.rankSoftKeyboard(false));
     await step('commands');
     check((await page.locator('#screen').textContent()).includes('A * 10'), 'Replay must preserve existing code');
-    check(await card.getByRole('button', { name: 'Insert example' }).count() === 0, 'Replay must not offer replacement code');
+    check(await card.getByRole('button', { name: 'Start' }).count() === 0, 'Replay must not offer replacement code');
     await finishTour();
     await page.reload();
     check(await card.isHidden(), 'Completion must persist across reopening');

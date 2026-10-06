@@ -180,8 +180,8 @@ export class MobileGuidance {
             if (this.hint === 'modules') { target = context.rankKeyboard ? targets.modules : undefined; text = 'Tap + to choose a module and add its commands to this keyboard.'; }
         } else switch (this.saved.step) {
             case 'offer':
-                target = targets.notebook; text = 'Insert an example to multiply every number in an array by ten.';
-                action = { label: 'Insert example', run: () => {
+                target = targets.notebook; text = 'Let’s get to know Rank with a short example.';
+                action = { label: 'Start', run: () => {
                     if (!this.context().empty) { this.edited(); return; }
                     this.step('run'); this.insertExample(); this.update();
                 } }; break;
