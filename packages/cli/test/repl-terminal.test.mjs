@@ -118,7 +118,7 @@ test('type diagnostics appear while typing before Enter', async t => {
 
 test('function argument diagnostics appear before Enter and disappear after correction', async t => {
     const frames = await drive(t, [
-        { keys: '\x1b[200~fun increment X\n Y = X + 1\n return Y\nend\x1b[201~' + ENTER, until: 'a → b' },
+        { keys: '\x1b[200~fun increment X\n Y = X + 1\n return Y\nend\x1b[201~' + ENTER, until: 'a → \\?' },
         { keys: 'Input = "bad"' + ENTER, until: '2›' },
         { keys: 'Input increment', until: 'TypeError' },
         CLEAR + '3 increment'
@@ -183,7 +183,7 @@ test('Enter after end returns to rank prompt after previewing an unfinished func
         { keys: 'Digits = N text integer rank 0' + '\x12', until: 'Digits = N' },
         ENTER,
         { keys: 'return Digits sum' + ENTER, until: 'return Digits sum' },
-        { keys: 'end' + ENTER, until: 'a → b' },
+        { keys: 'end' + ENTER, until: 'a → \\?' },
         { keys: '123456 digit_sum' + ENTER, until: '\\s+21' },
     ]);
     assert.match(frames[5].text.split('\n')[frames[5].cursorY], /^rank>\s*$/);
@@ -743,7 +743,7 @@ test('an open function evaluates body lines immediately on example arguments', a
         { keys: '2' + ENTER, until: 'N = 2' },
         { keys: 'A = N + 1' + ENTER, until: '\\s+3' },
         { keys: 'A * 2' + ENTER, until: '\\s+6' },
-        { keys: 'end' + ENTER, until: 'a → b' },
+        { keys: 'end' + ENTER, until: 'a → \\?' },
     ], 100, 30);
     assert.match(frames[0].text, /rank> fun inc N\n\s+N = /);
     assert.match(frames[0].text, /N = /);
@@ -756,7 +756,7 @@ test('an open function evaluates body lines immediately on example arguments', a
     assert.match(frames[3].text, /A \* 2\n        6/);
     assert.doesNotMatch(frames[2].text + frames[3].text, /Paused/);
     assert.match(frames[4].text, /●\s*1› fun inc N/);
-    assert.match(frames[4].text, /a → b/);
+    assert.match(frames[4].text, /a → \?/);
 });
 
 test('up from the first body line reopens Cards for an array example', async t => {
@@ -816,7 +816,7 @@ test('arrows leave example fields in both directions without losing edits or eva
 
 test('function examples show split values and ranked failures show the failing card', async t => {
     const frames = await drive(t, [
-        { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun card_value Card\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER, until: 'a → b' },
+        { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun card_value Card\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER, until: 'a → \\?' },
         'fun hand_score Cards' + ENTER,
         '"5H 5C" "" split' + ENTER,
         'Values = Cards card_value rank 0' + ENTER,
@@ -944,7 +944,7 @@ test('Ctrl-R reruns an unfinished function and leaves it open at the current lin
     assert.match(frames[4].text, /Result = N \+ 1\n        5/);
     assert.match(frames[5].text, /Result = N \+ 1\n        5/);
     assert.match(frames[6].text, /return Result\n        5/);
-    assert.match(frames[7].text, /a → b/);
+    assert.match(frames[7].text, /a → \?/);
 });
 
 test('Enter on an empty live-function line preserves a blank without inserting end', async t => {
@@ -974,7 +974,7 @@ test('Enter reevaluates an edited function line without inserting end', async t 
     assert.match(frames[3].text, /Result = X \+ 2\n        3/);
     assert.doesNotMatch(frames[3].text, /<function inc>|●\s*1›|\n\s*end\s*\n/);
     assert.match(frames[4].text, /return Result\n        3/);
-    assert.match(frames[5].text, /a → b/);
+    assert.match(frames[5].text, /a → \?/);
 });
 
 test('a live eval error keeps the terminal cursor on the erroneous line', async t => {
@@ -1037,7 +1037,7 @@ test('Ctrl-R reopens a completed function at the selected line with its old exam
     assert.match(frames[8].text, /Result = X \+ 1\n        3/);
     assert.match(frames[8].text, /Result \*= 2\n        6/);
     assert.match(frames[8].text.split('\n')[frames[8].cursorY], /end/);
-    assert.match(frames[9].text, /a → b/);
+    assert.match(frames[9].text, /a → \?/);
 });
 
 test('loop arrows keep the cursor on the visible iteration and defer body evaluation', async t => {
