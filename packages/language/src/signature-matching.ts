@@ -12,13 +12,13 @@ const members = (value: SignatureType): readonly SignatureType[] =>
         : typeof value === 'object' && 'union' in value ? value.union : [value];
 
 /** Intersection of finite nominal domains, without numeric promotion or shape solving. */
-function intersect(left: SignatureType, right: SignatureType): SignatureType | undefined {
+export function intersectSignatureTypes(left: SignatureType, right: SignatureType): SignatureType | undefined {
     if (left === 'unknown') return right;
     if (right === 'unknown') return left;
     if (left === 'number' || right === 'number'
         || typeof left === 'object' && 'union' in left || typeof right === 'object' && 'union' in right) {
         const results = members(left).flatMap(a => members(right).flatMap(b => {
-            const result = intersect(a, b);
+            const result = intersectSignatureTypes(a, b);
             return result === undefined ? [] : [result];
         }));
         return results.length ? union(results) : undefined;
@@ -34,12 +34,12 @@ function intersect(left: SignatureType, right: SignatureType): SignatureType | u
     }
     if ('collection' in left && 'collection' in right && left.collection === right.collection) {
         if (left.rank !== undefined && right.rank !== undefined && left.rank !== right.rank) return undefined;
-        const element = intersect(left.element, right.element);
+        const element = intersectSignatureTypes(left.element, right.element);
         return element === undefined ? undefined : { collection: left.collection, element,
             ...((left.rank ?? right.rank) === undefined ? {} : { rank: left.rank ?? right.rank }) };
     }
     if ('tuple' in left && 'tuple' in right && left.tuple.length === right.tuple.length) {
-        const items = left.tuple.map((item, index) => intersect(item, right.tuple[index]));
+        const items = left.tuple.map((item, index) => intersectSignatureTypes(item, right.tuple[index]));
         return items.every(item => item !== undefined) ? { tuple: items } : undefined;
     }
     return JSON.stringify(left) === JSON.stringify(right) ? left : undefined;
@@ -47,11 +47,11 @@ function intersect(left: SignatureType, right: SignatureType): SignatureType | u
 
 function match(pattern: SignatureType, actual: SignatureType, bindings: Bindings): boolean {
     if (actual === 'unknown') return true;
-    if (typeof pattern === 'string') return pattern === 'unknown' || intersect(pattern, actual) !== undefined;
+    if (typeof pattern === 'string') return pattern === 'unknown' || intersectSignatureTypes(pattern, actual) !== undefined;
     if ('variable' in pattern) {
         const domain = pattern.domain ? union(pattern.domain) : 'unknown';
-        const accepted = intersect(domain, actual);
-        const narrowed = accepted === undefined ? undefined : intersect(bindings.get(pattern.variable) ?? 'unknown', accepted);
+        const accepted = intersectSignatureTypes(domain, actual);
+        const narrowed = accepted === undefined ? undefined : intersectSignatureTypes(bindings.get(pattern.variable) ?? 'unknown', accepted);
         if (narrowed === undefined) return false;
         bindings.set(pattern.variable, narrowed);
         return true;
@@ -110,7 +110,7 @@ export function typeVariableDomains(signature: TypeSignature): Map<number, Signa
     const collect = (pattern: SignatureType): void => {
         if (typeof pattern === 'string') return;
         if ('variable' in pattern && pattern.domain) {
-            const domain = pattern.domain.length ? intersect(domains.get(pattern.variable) ?? 'unknown', union(pattern.domain)) : undefined;
+            const domain = pattern.domain.length ? intersectSignatureTypes(domains.get(pattern.variable) ?? 'unknown', union(pattern.domain)) : undefined;
             if (domain === undefined) valid = false;
             else domains.set(pattern.variable, domain);
         } else if ('union' in pattern) pattern.union.forEach(collect);

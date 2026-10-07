@@ -421,3 +421,24 @@ length is unknown. `matmul` retains last-left/first-right contraction, including
 vector dot products and higher-rank outputs. Known empty product shapes display
 a scalar result. Array facts with unresolved element types display `<?>`;
 unknown function results display `?` instead of a fresh type variable.
+
+### Symbolic function previews
+
+For supported scalar arithmetic, ordered comparisons and boolean expressions,
+function previews compose the operator contracts instead of enumerating every
+parameter-domain combination. For example, `((A + B) + C) + D` has the numeric
+branch `a a a a → a ; a: number`. Integer constants remain integer: `X + 1`
+does not acquire a real branch. Independent numeric groups keep separate
+variables, and proven helper calls carry their relationships into the caller.
+
+SQL, missing values, text and other declared scalar overloads retain separate
+alternatives. Scalar/cell alternatives exclude SQL columns so missing
+propagation cannot take precedence over column dispatch. The established
+single-frame numeric alternatives remain conditional; multiple frames, empty
+or unknown cells and unsupported domains remain in the explicit remainder.
+
+Unsupported expressions use the bounded enumeration fallback. Both paths keep
+an inference-limit marker when their budget is exhausted. General previews
+remain partial contracts; they do not prove callback safety or compiler
+eligibility. Concrete-call analysis still instantiates relationships from the
+actual argument facts through its existing separate path.
