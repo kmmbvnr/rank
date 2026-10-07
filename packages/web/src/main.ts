@@ -577,7 +577,10 @@ function applyInput(): void {
         const edit = textEdit(previous, value, input.selectionEnd);
         if (edit.to > edit.from) book.replace(previous.slice(0, edit.from) + previous.slice(edit.to), edit.from);
         else book.cursor = edit.from;
-        if (edit.text) book.insert(edit.text, true);
+        if (edit.text) {
+            book.insert(edit.text, true);
+            if (touchConsole && edit.text === ' ') repl.capitalizeTypedName();
+        }
         // A soft keyboard deletes through input events, not Backspace keydowns.
         else if (edit.to > edit.from) book.dropClearedLine(previous);
     }

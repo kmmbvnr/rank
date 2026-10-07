@@ -200,6 +200,7 @@ export function createReplSession(host: ReplHost = {}) {
             if (load && isCommand(line, interpreter)) return completeLoadPath(load[1]);
             return complete(line, interpreter, EMPTY_CELL);
         },
+        variableSpelling(source: string) { return variableSpelling(source, interpreter); },
         async execute(text: string, id: number, file: string[], columns = 80, sourceOnly = false, replaceDeclarations = false, quiet = false): Promise<Execution> {
             output = [];
             interrupted = false;
@@ -692,6 +693,29 @@ function complete(source: string, interpreter: EditorBindings, state: CellState)
     return [[], word];
 }
 
+/** The lowercase indices every program may use without declaring them. */
+const INDEX_NAMES: ReadonlySet<string> = new Set(['i', 'j', 'k']);
+
+/**
+ * The variable a lowercase word at the end of `source` stands for, so a phone keyboard
+ * can type `n` for `N`. The word must spell a bound variable apart from its first letter's
+ * case, must not be a name or keyword in its own right (`i`, `times`), and a variable must
+ * be allowed where it stands.
+ */
+function variableSpelling(source: string, interpreter: EditorBindings): { from: number; name: string } | undefined {
+    const start = source.lastIndexOf('\n') + 1;
+    const line = source.slice(start);
+    const last = tokenize(line).at(-1);
+    if (last?.kind !== 'word' || last.end !== line.length || line[last.start - 1] === '.') return undefined;
+    const bindings = { modules: interpreter.modules, variables: new Map(interpreter.variables) };
+    for (const name of draftBindings(source.slice(0, start))) bindings.variables.set(name, true);
+    const pool = new Set(candidates(line.slice(0, last.start).trimEnd(), bindings, EMPTY_CELL));
+    if (pool.has(last.text) || bindings.variables.has(last.text) || INDEX_NAMES.has(last.text)) return undefined;
+    const matches = [...bindings.variables.keys()].filter(name => /^[A-Z]/.test(name)
+        && name.toLowerCase() === last.text.toLowerCase() && name.slice(1) === last.text.slice(1));
+    return matches.length === 1 && pool.has(matches[0]) ? { from: start + last.start, name: matches[0] } : undefined;
+}
+
 /** Read declarations without requiring a finished or executable block. */
 function draftBindings(source: string): Set<string> {
     let names = new Set<string>();
@@ -787,5 +811,6 @@ export function sessionEditor(snapshot: SessionSnapshot, completeLoadPath: (text
             if (load && isCommand(line, bindings)) return completeLoadPath(load[1]);
             return complete(line, bindings, EMPTY_CELL);
         },
+        variableSpelling(source: string) { return variableSpelling(source, bindings); },
     };
 }

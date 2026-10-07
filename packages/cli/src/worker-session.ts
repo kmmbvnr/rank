@@ -90,6 +90,7 @@ export async function createWorkerSession() {
         get testExamples() { return snapshot.testExamples; },
         format(line: string) { return editor.format(line); },
         isCommand(source: string) { return editor.isCommand(source); },
+        variableSpelling(source: string) { return editor.variableSpelling(source); },
         complete(line: string) { return editor.complete(line); },
         inspect(ref: number, request?: InspectRequest) { return call<Inspection>('inspect', ref, request); },
         extend(ref: number, count?: number) { return call<Extension>('extend', ref, count); },

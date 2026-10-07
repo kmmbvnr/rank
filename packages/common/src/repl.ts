@@ -585,6 +585,21 @@ export class NotebookRepl {
         }
     }
 
+    /**
+     * After a space is typed, spell the lowercase word before it as the variable it names:
+     * `n ` becomes `N ` when `N` is bound and a variable fits there.
+     */
+    capitalizeTypedName(): boolean {
+        const book = this.notebook;
+        const source = book.current.source;
+        const end = book.cursor - 1;
+        if (book.selection || end < 0 || source[end] !== ' ') return false;
+        const hit = this.session.variableSpelling(source.slice(0, end));
+        if (!hit) return false;
+        book.replace(source.slice(0, hit.from) + hit.name + source.slice(end), book.cursor);
+        return true;
+    }
+
     /** Enter in the draft resumes the edited suffix, then evaluates the new statement. */
     async submit(force = false): Promise<boolean> {
         if (this.running || this.help || this.savePrompt) return false;

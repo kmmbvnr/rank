@@ -88,6 +88,7 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
         format: line => sessionEditor(snapshot).format(line),
         complete: line => sessionEditor(snapshot).complete(line),
         isCommand: source => sessionEditor(snapshot).isCommand(source),
+        variableSpelling: source => sessionEditor(snapshot).variableSpelling(source),
         get pauseState() { return pauseState; },
         get pauseRequested() { return requested; },
         pause: () => {
