@@ -14,21 +14,21 @@ it('describes arithmetic domains independently of compiler eligibility', () => {
 });
 
 it('does not assert that equality operands have the same type or ignore missing', () => {
-    expect(operatorSignature('equal', facts('text', 'integer'))).toBe('a b → boolean | missing [rank 0 0]');
+    expect(operatorSignature('equal', facts('text', 'integer'))).toBe('? ? → boolean | missing [rank 0 0]');
     expect(operatorSignature('not equal', facts('missing', 'integer'))).toContain('boolean | missing');
     expect(operatorSignature('at least', facts('integer', 'real'))).toBe('number number → boolean [rank 0 0]');
-    expect(operatorSignature('less', facts('missing', 'integer'))).toBe('missing a → missing [rank 0 0]');
+    expect(operatorSignature('less', facts('missing', 'integer'))).toBe('missing ? → missing [rank 0 0]');
 });
 
 it('represents three-valued logic and whole-value type inspection', () => {
     expect(operatorSignature('and', facts('missing', 'boolean'))).toBe('missing boolean → boolean | missing [rank 0 0]');
     expect(operatorSignature('xor', facts('boolean', 'boolean'))).toBe('boolean boolean → boolean [rank 0 0]');
-    expect(operatorSignature('is', facts('array', 'symbol'))).toBe('a symbol → boolean');
+    expect(operatorSignature('is', facts('array', 'symbol'))).toBe('? symbol → boolean');
 });
 
 it('respects column dispatch before scalar or missing propagation', () => {
-    expect(operatorSignature('+', facts('sqlite-expression', 'missing'))).toBe('column a → column');
-    expect(operatorSignature('equal', facts('sqlite-expression', 'integer'))).toBe('column a → column');
+    expect(operatorSignature('+', facts('sqlite-expression', 'missing'))).toBe('column ? → column');
+    expect(operatorSignature('equal', facts('sqlite-expression', 'integer'))).toBe('column ? → column');
     expect(operatorSignature('equal', [{ types: [] }, { types: [] }])).toContain('column');
     expect(operatorSignature('xor')).not.toContain('column');
 });

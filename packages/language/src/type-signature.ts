@@ -15,7 +15,7 @@ export type SignatureType = SignatureAtom
     | { readonly variable: number }
     | { readonly label: string }
     | { readonly union: readonly SignatureType[] }
-    /** `rank` counts the axes of an array whose rank is proven, written `array # #<integer>`. */
+    /** `rank` counts the axes of an array whose rank is proven, written `array[#, #]<integer>`. */
     | { readonly collection: SignatureAtom; readonly element: SignatureType; readonly rank?: number }
     | { readonly tuple: readonly SignatureType[] }
     | { readonly callback: TypeSignature };
@@ -55,7 +55,7 @@ export function formatTypeSignature(signature: TypeSignature): string {
         return index < 26 ? String.fromCharCode(97 + index) : `t${index + 1}`;
     };
     const type = (value: SignatureType, operand = false): string => {
-        if (typeof value === 'string') return value === 'unknown' ? fresh() : value;
+        if (typeof value === 'string') return value === 'unknown' ? '?' : value;
         if ('label' in value) return `.${value.label}`;
         if ('variable' in value) {
             let name = variables.get(value.variable);
@@ -63,12 +63,18 @@ export function formatTypeSignature(signature: TypeSignature): string {
             return name;
         }
         if ('union' in value) {
-            const text = value.union.map(item => type(item)).join(' | ');
-            return operand && value.union.length > 1 ? `(${text})` : text;
+            const members = value.union.map(item => type(item));
+            if (members.includes('integer') && members.includes('real')) {
+                members.splice(Math.min(members.indexOf('integer'), members.indexOf('real')), 0, 'number');
+            }
+            const compact = [...new Set(members.filter(item =>
+                !members.includes('number') || !['integer', 'real'].includes(item)))];
+            const text = compact.join(' | ');
+            return operand && compact.length > 1 ? `(${text})` : text;
         }
         if ('collection' in value) {
-            // One `#` per axis, as `#` already means any axis elsewhere: `array #<integer>`, `array # #<integer>`.
-            if (value.collection === 'array' && value.rank) return `array ${Array(value.rank).fill('#').join(' ')}<${type(value.element)}>`;
+            // Exact rank: each `#` represents one axis of unknown size.
+            if (value.collection === 'array' && value.rank) return `array[${Array(value.rank).fill('#').join(', ')}]<${type(value.element)}>`;
             return `${value.collection}<${type(value.element)}>`;
         }
         if ('tuple' in value) return `tuple(${value.tuple.map(item => type(item)).join(', ')})`;
