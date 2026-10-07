@@ -84,5 +84,5 @@ export function operatorSignature(name: string, inputs?: readonly ValueFacts[]):
     const knownColumn = inputs?.some(input => input.types.length === 1 && input.types[0] === 'sqlite-expression');
     const signatures = knownColumn && columns.length ? columns : [...declared, ...columns];
     const selected = inputs ? matchingSignatures(signatures, inputs) : signatures;
-    return selected.length ? [...new Set(selected.map(formatTypeSignature))].join(' ; ') : undefined;
+    return selected.length ? [...new Set(selected.map(signature => formatTypeSignature(signature)))].join(' ; ') : undefined;
 }

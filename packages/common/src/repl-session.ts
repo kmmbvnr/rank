@@ -346,10 +346,11 @@ export function createReplSession(host: ReplHost = {}) {
         const known = functionSignatures.get(value);
         if (known) return known;
         const context = [...file, source, value.name].join('\n');
-        const signature = nameFactsIn(context)?.(context.length - value.name.length)?.signature
+        const signature = nameFactsIn(context, runtimeValueFacts(interpreter.variables,
+            name => interpreter.bindingTypeNames(name), name => interpreter.bindingArrayRank(name)))?.(context.length - value.name.length)?.signature
             ?? value.arities.map(arity => formatTypeSignature({
                 inputs: Array.from({ length: arity }, (_, index) => ({ variable: index })),
-                result: { variable: arity },
+                result: 'unknown',
             })).join(' ; ');
         functionSignatures.set(value, signature);
         return signature;

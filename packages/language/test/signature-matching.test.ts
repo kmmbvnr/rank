@@ -100,7 +100,7 @@ const finiteContainer: SignatureType = { container: 0, kinds: ['array', 'sequenc
 const preserveKind: TypeSignature = { inputs: [finiteContainer], result: finiteContainer };
 
 it('expands finite container domains and retains the proven result kind', () => {
-    expect(formatTypeSignature(preserveKind)).toBe('c<a> → c<a> ; c: array | sequence');
+    expect(formatTypeSignature(preserveKind)).toBe('c<a> → c<a>');
     for (const collection of ['array', 'sequence'] as const) {
         expect(instantiateTypeSignature(preserveKind, [{ collection, element: 'integer' }]))
             .toEqual({ inputs: [{ collection, element: 'integer' }], result: { collection, element: 'integer' } });
@@ -118,7 +118,7 @@ it('requires the same kind for a shared container variable, but not for differen
     expect(instantiateTypeSignature(sameKind, [array, sequence])).toBeUndefined();
     const other = { container: 1, kinds: ['array', 'sequence'], element: { variable: 1 } } as const;
     const independent: TypeSignature = { inputs: [finiteContainer, other], result: { tuple: [finiteContainer, other] } };
-    expect(formatTypeSignature(independent)).toBe('c<a> d<b> → tuple(c<a>, d<b>) ; c: array | sequence ; d: array | sequence');
+    expect(formatTypeSignature(independent)).toBe('c<a> d<b> → tuple(c<a>, d<b>)');
     expect(instantiateTypeSignature(independent, [array, sequence])?.result).toEqual({ tuple: [array, sequence] });
     expect(instantiateTypeSignature(independent, [array, array])?.result).toEqual({ tuple: [array, array] });
 });
@@ -147,7 +147,7 @@ it('formats unknown-kind calls compactly and keeps type and kind names distinct'
     expect(matchingSignatures([preserveKind], [{ types: ['array'], elements: ['real'] }])[0].result)
         .toEqual({ collection: 'array', element: 'real' });
     const signature: TypeSignature = { inputs: [finiteContainer, { variable: 1 }, { variable: 2 }], result: finiteContainer };
-    expect(formatTypeSignature(signature)).toBe('c<a> b g → c<a> ; c: array | sequence');
+    expect(formatTypeSignature(signature)).toBe('c<a> b g → c<a>');
     expect(instantiateTypeSignature(preserveKind, [{ collection: 'sequence', element: 'text' }])?.result)
         .toEqual({ collection: 'sequence', element: 'text' });
 });

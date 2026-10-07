@@ -343,32 +343,38 @@ values, or array dimensions. Unknown inputs do not establish a concrete type.
 
 An uncalled single-return function can expose conditional input/result
 alternatives from the fixed contracts of built-in operators. For example,
-`return X + 1` shows `integer → integer`, whereas
-`return X / 2` shows `integer → real`. A real argument requires a real
+`return X + 1` shows `i → i`, whereas
+`return X / 2` shows `i → r`. A real argument requires a real
 constant or an explicit conversion. These are related
 alternatives, not independent unions of inputs and outputs. Supported helper
 calls carry the intermediate types through the same analysis.
 
-The notebook displays the first two scalar alternatives, followed by
-`numeric cells lift` when numeric array or sequence alternatives apply.
+The notebook displays up to two scalar and two collection alternatives.
+Matching array and sequence alternatives share a container variable: for
+`return X + 1`, the collection signature is
+`c<i> → c<i>`. Function previews abbreviate integer as `i` and real as
+`r`; source declarations still use their full names.
 Array rank remains generic. Adding a scalar preserves the numeric
-collection's shape; two collections still follow broadcasting rules, so
-this label does not require equal shapes. `… (other domains)` explicitly
-marks a partial display and unresolved domains. Duration, missing values
+collection's shape; two collections still follow broadcasting rules.
+The preview shows supported alternatives; unresolved domains remain in the
+structured contract. Duration, missing values
 and SQL expressions remain in the structured alternatives; SQL dispatch
 precedes missing propagation. Empty or untyped lazy collections cannot
 establish an element requirement from an unevaluated cell.
 
-Analysis has a fixed work budget. `… (inference limit)` keeps an unresolved
-remainder when it is exhausted, including when no supported alternative
-was found. Unsupported bodies and unknown record
+Analysis has a fixed work budget. Exhaustion and unresolved alternatives remain
+in the structured contract; the preview uses `?` for an unproven result.
+Unsupported bodies and unknown record
 fields retain the existing conservative signature. This inspection never
 executes a function, reads cells or consumes a sequence. A conditional
 signature does not prove termination, shape compatibility, callback safety
 or absence of value-dependent errors, and is not an optimization fact.
 Concrete calls and examples retain their observed signatures; notebook
 function previews cache the general contract rather than an example's
-specialization.
+specialization. Functions with local assignments and loops also use the
+existing return-flow analysis with unknown arguments. An initialized integer
+counter returned after integer increments therefore displays `a → i` before
+any call; a return path with an unknown result still displays `?`.
 
 Generator previews also infer scalar alternatives through local assignments,
 compound assignments, branches and condition loops. An established variable
@@ -388,12 +394,14 @@ unresolved remainder. It neither runs the body nor changes runtime type checks.
 
 ### Finite container variables in signatures
 
-`c<a> → c<a> ; c: array | sequence` abbreviates two concrete rows:
+`c<a> → c<a>` abbreviates two concrete rows. By convention, `c`, `d`,
+`e` and `f` range over array and sequence, so this default domain is not
+repeated in the preview:
 `array<a> → array<a>` and `sequence<a> → sequence<a>`. Matching expands
 these alternatives and keeps each input/result relationship together. Known
 arguments select their concrete kind; unresolved kinds stay compact when all
-alternatives retain the same element relationship. The accepted set is always
-explicit. Repeated `c` means the same kind; separate `c` and `d` may be the same
+alternatives retain the same element relationship. The accepted set remains explicit in the structured contract; domains other
+than array and sequence are also printed. Repeated `c` means the same kind; separate `c` and `d` may be the same
 or different kinds. Type variables `a`, `b` and container variables `c`, `d`,
 `e`, `f` have separate names and are local to one signature.
 

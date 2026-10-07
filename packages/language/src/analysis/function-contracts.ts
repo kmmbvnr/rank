@@ -112,7 +112,7 @@ export function inferFunctionContract(summary: FunctionRelationship, arity: numb
 }
 
 /** A bounded summary; detailed alternatives retain all correlations above.
- * Numeric rows lead the display; the remainder is explicitly non-exhaustive. */
+ * Numeric rows lead the display; unresolved alternatives stay in the contract. */
 export function summarizeFunctionContract(contract: FunctionContract,
     format: (signature: TypeSignature) => string): string | undefined {
     if (!contract.alternatives.length) return undefined;
@@ -124,7 +124,28 @@ export function summarizeFunctionContract(contract: FunctionContract,
         && row.inputs.some(input => typeof input === 'string' || 'variable' in input && !!input.domain));
     const rows = (contract.symbolic && numeric.length ? numeric : scalar).slice(0, 2).map(format);
     if (!rows.length) return undefined;
-    if (contract.alternatives.some(row => row.inputs.some(collection))) rows.push('numeric cells lift');
-    if (contract.unresolved || scalar.length > 2) rows.push(contract.exhausted ? '… (inference limit)' : '… (other domains)');
+    // Collapse only matching array/sequence rows with the same inherited frame.
+    // A shared container variable preserves the input/result kind correlation.
+    const lifted = new Map<string, { signature: TypeSignature; kinds: Set<string> }>();
+    for (const row of contract.alternatives) {
+        const index = row.frameParameter;
+        if (index === undefined) continue;
+        const input = row.inputs[index], result = row.result;
+        if (!collection(input) || !collection(result) || input.collection !== result.collection
+            || !['array', 'sequence'].includes(input.collection)
+            || Object.keys(input).some(key => !['collection', 'element'].includes(key))
+            || Object.keys(result).some(key => !['collection', 'element'].includes(key))) continue;
+        const signature: TypeSignature = {
+            inputs: row.inputs.map((type, at) => at === index
+                ? { container: 0, kinds: ['array', 'sequence'], element: input.element } : type),
+            result: { container: 0, kinds: ['array', 'sequence'], element: result.element },
+        };
+        const key = JSON.stringify(signature);
+        const group = lifted.get(key) ?? { signature, kinds: new Set<string>() };
+        group.kinds.add(input.collection);
+        lifted.set(key, group);
+    }
+    rows.push(...[...lifted.values()].filter(group => group.kinds.size === 2)
+        .slice(0, 2).map(group => format(group.signature)));
     return rows.join(' ; ');
 }

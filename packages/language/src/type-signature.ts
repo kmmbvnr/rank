@@ -57,7 +57,7 @@ export function signatureType(value: ValueFacts, unknown: () => SignatureType = 
 }
 
 /** Format facts supplied by the catalogue or analyzer; never infer them from operand names. */
-export function formatTypeSignature(signature: TypeSignature): string {
+export function formatTypeSignature(signature: TypeSignature, options: { shortNumericNames?: boolean } = {}): string {
     const variables = new Map<number, string>();
     const constraints = new Map<number, readonly SignatureAtom[]>();
     const kinds = containerVariableDomains(signature);
@@ -69,13 +69,16 @@ export function formatTypeSignature(signature: TypeSignature): string {
         return ['n', 'm', 'k'][index] ?? `n${index + 1}`;
     };
     let next = 0;
-    const fresh = () => {
+    const fresh = (): string => {
         let index = next++;
         if (kinds.size && index >= 2) index += 4;
+        if (options.shortNumericNames && (index === 8 || index === 17)) return fresh();
         return index < 26 ? String.fromCharCode(97 + index) : `t${index + 1}`;
     };
     const type = (value: SignatureType, operand = false): string => {
-        if (typeof value === 'string') return value === 'unknown' ? '?' : value;
+        if (typeof value === 'string') return value === 'unknown' ? '?'
+            : options.shortNumericNames && value === 'integer' ? 'i'
+            : options.shortNumericNames && value === 'real' ? 'r' : value;
         if ('label' in value) return `.${value.label}`;
         if ('variable' in value) {
             let name = variables.get(value.variable);
@@ -85,11 +88,13 @@ export function formatTypeSignature(signature: TypeSignature): string {
         }
         if ('union' in value) {
             const members = value.union.map(item => type(item));
-            if (members.includes('integer') && members.includes('real')) {
-                members.splice(Math.min(members.indexOf('integer'), members.indexOf('real')), 0, 'number');
+            const integer = options.shortNumericNames ? 'i' : 'integer';
+            const real = options.shortNumericNames ? 'r' : 'real';
+            if (members.includes(integer) && members.includes(real)) {
+                members.splice(Math.min(members.indexOf(integer), members.indexOf(real)), 0, 'number');
             }
             const compact = [...new Set(members.filter(item =>
-                !members.includes('number') || !['integer', 'real'].includes(item)))];
+                !members.includes('number') || ![integer, real].includes(item)))];
             const text = compact.join(' | ');
             return operand && compact.length > 1 ? `(${text})` : text;
         }
@@ -118,7 +123,10 @@ export function formatTypeSignature(signature: TypeSignature): string {
     const domains = typeVariableDomains(signature);
     const bounds = [...constraints].map(([id, domain]) =>
         `${variables.get(id)}: ${type(domains?.get(id) ?? { union: domain })}`);
-    bounds.push(...[...containers].map(([id, name]) => `${name}: ${kinds.get(id)!.join(' | ')}`));
+    bounds.push(...[...containers].filter(([id]) => {
+        const domain = kinds.get(id)!;
+        return domain.length !== 2 || !domain.includes('array') || !domain.includes('sequence');
+    }).map(([id, name]) => `${name}: ${kinds.get(id)!.join(' | ')}`));
     return formatted + (bounds.length ? ` ; ${bounds.join(' ; ')}` : '');
 }
 
