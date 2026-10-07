@@ -255,7 +255,7 @@ test('runs blocks, folded lines and aliases through the real REPL', () => {
     const result = spawnSync(process.execPath, [cli], { input: source, encoding: 'utf8' });
     assert.equal(result.status, 0);
     assert.deepEqual(result.stdout.trim().split('\n'), [
-        'a → b', '10', '3', '3', 'text', 'text',
+        'integer → integer ; real → real ;', 'numeric cells lift ; … (other domains)', '10', '3', '3', 'text', 'text',
         'at 12:30', 'at 12:30', '4', '4',
         // A tensor prints flat, so the preview names the shape underneath it.
         '1 2 3 4 5 6', 'shape 2 3', '2 5', '78',
