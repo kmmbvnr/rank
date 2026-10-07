@@ -356,7 +356,8 @@ precedes missing propagation. Empty or untyped lazy collections cannot
 establish an element requirement from an unevaluated cell.
 
 Analysis has a fixed work budget. `… (inference limit)` keeps an unresolved
-remainder when it is exhausted. Unsupported bodies and unknown record
+remainder when it is exhausted, including when no supported alternative
+was found. Unsupported bodies and unknown record
 fields retain the existing conservative signature. This inspection never
 executes a function, reads cells or consumes a sequence. A conditional
 signature does not prove termination, shape compatibility, callback safety

@@ -93,3 +93,14 @@ it('keeps concrete four-argument inference independent of the symbolic body prev
     expect(signature(source, 'sum4', [value('integer'), value('real'), value('integer'), value('integer')]))
         .toBe('integer real integer integer → ?');
 });
+
+
+it('retains the inference limit when unsupported fields leave no preview alternatives', () => {
+    const source = 'fun f A B C D\n return A .value + ((B + C) + D)\nend';
+    expect(signature(source, 'f')).toBe('a b c d → ? ; … (inference limit)');
+    expect(signature('fun f A B\n return A .value + B\nend', 'f')).toBe('a b → ?');
+    expect(signature(source, 'f', [
+        { types: ['record'], fields: { value: { types: ['integer'], rank: 0, shape: [] } } },
+        ...Array.from({ length: 3 }, () => ({ types: ['integer'], rank: 0, shape: [] })),
+    ])).toBe('record integer integer integer → integer');
+});

@@ -58,3 +58,15 @@ it('shows a compact four-parameter contract in a 40-column session without cachi
         expect(session.preview(source, 40, true).valueSummary).toBe(general);
     } finally { session.dispose(); }
 });
+
+
+it('keeps an exhausted general preview explicit even without supported alternatives', async () => {
+    const session = createReplSession();
+    const source = 'fun f A B C D\n return A .value + ((B + C) + D)\nend';
+    const general = 'a b c d → ? ; … (inference limit)';
+    try {
+        expect((await session.execute(source, 0, [], 40, true)).output.map(row => row.text).join(' ')).toBe(general);
+        expect(session.preview(source, 40, true).valueSummary).toBe(general);
+        expect((await session.execute('f', 1, [], 40, true)).output.map(row => row.text).join(' ')).toBe(general);
+    } finally { session.dispose(); }
+});
