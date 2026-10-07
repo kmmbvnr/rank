@@ -23,6 +23,7 @@ export class KeyRouter {
         readonly history: string[] = [],
         private readonly columns = () => 80,
         private readonly clipboard?: Clipboard,
+        private readonly gutter = 6,
     ) {}
 
     async press(text: string, key: Key = {}): Promise<KeyResult> {
@@ -50,7 +51,7 @@ export class KeyRouter {
         const navigation = ['left', 'right', 'up', 'down', 'home', 'end'].includes(key.name ?? '');
         if (key.shift && navigation && !key.ctrl && !key.meta) {
             if (editor === book) repl.editSource();
-            editor.selectMove(key.name!, textColumns(this.columns()));
+            editor.selectMove(key.name!, textColumns(this.columns(), this.gutter));
             repl.dismiss();
             return { exit: false };
         }
@@ -85,7 +86,7 @@ export class KeyRouter {
                 editor.active = key.name === 'left' ? range.start : range.end;
                 editor.cursor = key.name === 'left' ? range.from : range.to;
             } else if (key.name === 'up' || key.name === 'down') {
-                editor.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns()));
+                editor.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns(), this.gutter));
             } else if (key.name === 'home' || key.name === 'end') editor.lineEdge(key.name === 'end');
             repl.dismiss();
             return { exit: false };
@@ -113,7 +114,7 @@ export class KeyRouter {
             repl.releaseValue();
             if (key.name === 'escape' || key.name === 'up') return { exit: false };
             if (key.name === 'down') {
-                book.vertical(1, textColumns(this.columns()), true);
+                book.vertical(1, textColumns(this.columns(), this.gutter), true);
                 return { exit: false };
             }
         }
@@ -227,7 +228,7 @@ export class KeyRouter {
                 const fromPrompt = book.atPrompt;
                 const line = book.current.source.slice(0, book.cursor).split('\n').length;
                 const header = key.name === 'up' ? line - 1 : line;
-                const rows = editableRows(book.current.source, textColumns(this.columns()));
+                const rows = editableRows(book.current.source, textColumns(this.columns(), this.gutter));
                 const row = rows.findIndex(row => row.points.some(point => point.offset === book.cursor));
                 const neighbor = rows[row + (key.name === 'up' ? -1 : 1)];
                 const nextLine = neighbor?.points[0] === undefined ? undefined
@@ -245,7 +246,7 @@ export class KeyRouter {
                 }
                 // Below the last row of a failed cell sits its import suggestion.
                 if (key.name === 'down' && row === rows.length - 1 && repl.focusImportFix()) return { exit: false };
-                book.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns()), true);
+                book.vertical(key.name === 'up' ? -1 : 1, textColumns(this.columns(), this.gutter), true);
                 if (fromPrompt && !book.atPrompt) repl.editSource();
             } else if (key.name === 'pageup' || key.name === 'pagedown') {
                 return { exit: false, pageDelta: key.name === 'pageup' ? -1 : 1 };

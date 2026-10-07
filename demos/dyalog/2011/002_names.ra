@@ -1,11 +1,12 @@
 rem Dyalog Programming Contest 2011
 rem Task 2: What's in a Name?
-rem Noise: replace each letter of Name with X,
-rem independently, with probability Rate.
-rem Search: find every place Name occurs in Text
-rem with at most Tolerance mismatched characters,
-rem ignoring case. An empty Name or one longer
-rem than Text has no matches.
+rem Noise: each letter of Name becomes
+rem X independently, with chance Rate.
+rem Search: find Name in Text, ignoring
+rem case, with at most Tolerance
+rem mismatched characters. Empty names
+rem and names longer than Text do not
+rem match.
 
 use io
 use cli
@@ -24,9 +25,10 @@ option Text path = "I think Jakc Jonnson is the greatest"
 rem Most mismatched characters allowed.
 option Tolerance integer = 3
 
-rem Spaces, digits and punctuation never
-rem change; the number of changed letters is
-rem random, not Rate times the letter count.
+rem Spaces, digits and punctuation
+rem never change. The changed letter
+rem count is random, not Rate times
+rem the total letter count.
 Seed seed
 Chars = Name "" split
 Shape = array (Chars len)
@@ -36,9 +38,9 @@ Letters = Mask choose "X" Chars
 Noisy = Letters "" join
 Noisy print
 
-rem Hamming distance of every window of the
-rem same width, compared in lowercase. The
-rem original text is kept for the result.
+rem Hamming distance for each window
+rem of the same width, ignoring case.
+rem Keep original text for the result.
 Width = Name len
 Positions = array shape 0 fill 0
 Matches = array shape 0 fill ""

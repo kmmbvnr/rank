@@ -72,6 +72,7 @@ if (!touchConsole) {
     document.documentElement.style.setProperty('--chrome-height', '0px');
 }
 const compactResults = touchConsole;
+const notebookGutter = touchConsole ? 5 : 6;
 let columns = 47;
 let rows = 24;
 let cellWidth = 8;
@@ -99,7 +100,7 @@ repl.rows = () => rows;
 const keys = new KeyRouter(repl, [], () => columns, {
     read: () => navigator.clipboard.readText(),
     write: text => navigator.clipboard.writeText(text),
-});
+}, notebookGutter);
 const modes = new TerminalModeRouter(repl, () => rows);
 /** The keyboard as it was when a value opened, so closing the viewer brings back the same one. */
 let keyboardBeforeViewer: { enabled: boolean; soft: boolean } | undefined;
@@ -374,10 +375,10 @@ function render(): void {
         frame = notebookFrame(repl.notebook, columns, rows, windowedFrame ? Math.max(0, top - rows) : top,
             shownFailure || (showShortcutHints ? repl.suggestion : repl.runTime), busy || repl.running, follow, '',
             shownFailure || (repl.running ? showShortcutHints ? repl.runningStatus : repl.runningStatus.split(' · ')[0] : 'Running…'),
-            repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
+            repl.breakpoints, touchConsole ? '> ' : repl.promptLabel, repl.liveOutputs, repl.exampleFields,
             repl.liveIterationFocus, repl.stepping,
             anchorCursor && restingCursorRow !== undefined ? Math.min(restingCursorRow, rows - 1) : undefined, showShortcutHints,
-            windowedFrame ? rows * 3 : !keyHints() && !shownFailure && !repl.running && !nameFacts ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus, nameFacts, repl.valueFocus);
+            windowedFrame ? rows * 3 : !keyHints() && !shownFailure && !repl.running && !nameFacts ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus, nameFacts, repl.valueFocus, notebookGutter);
         if (windowedFrame) top = Math.min(top, frame.maxTop ?? 0);
         else { top = frame.top; scrollWindow = false; }
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;

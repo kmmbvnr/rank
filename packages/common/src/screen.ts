@@ -17,7 +17,7 @@ export interface TextRow {
 }
 
 /** Reserve the rightmost terminal column so native auto-wrap never owns our cursor. */
-export function textColumns(columns: number): number { return Math.max(1, columns - 7); }
+export function textColumns(columns: number, gutter = 6): number { return Math.max(1, columns - gutter - 1); }
 
 function visible(segment: string, column: number): string {
     if (segment === '\t') return ' '.repeat(4 - column % 4);
@@ -59,10 +59,23 @@ function layoutRows(source: string, columns: number): TextRow[] {
     const rows: TextRow[] = [];
     let offset = 0;
     for (const line of source.split('\n')) {
+        const comment = /^\s*rem(?:\s|$)/.test(line);
         let row: TextRow = { text: '', points: [{ offset, column: 0 }] };
         let column = 0;
         rows.push(row);
         for (const part of graphemes(line)) {
+            // Wrap comment words visually, keeping every source offset and space intact.
+            // Oversized words still use the ordinary grapheme-level fallback.
+            if (comment && !/\s/.test(part.segment) && part.index > 0 && /\s/.test(line[part.index - 1])) {
+                const rest = line.slice(part.index);
+                const end = rest.search(/\s/);
+                const wordWidth = cellWidth(end < 0 ? rest : rest.slice(0, end));
+                if (column > 0 && wordWidth <= width && column + wordWidth > width) {
+                    row = { text: '', points: [{ offset: offset + part.index, column: 0 }] };
+                    rows.push(row);
+                    column = 0;
+                }
+            }
             let shown = visible(part.segment, column);
             let size = cellWidth(shown);
             if (size > width) { shown = '?'; size = 1; }
@@ -205,10 +218,10 @@ export function notebookFrame(
     promptOutputFocus?: { readonly line: number; readonly offset: number; readonly active?: boolean; readonly nextLine?: number },
     stepping = false, anchoredCursorRow?: number, showShortcutHints = true, overscanRows = 0,
     diagnostics?: ReadonlyMap<number, readonly { text: string; error: boolean; inlineText?: string }[]>,
-    importFixFocus?: number, nameFacts?: NameFacts, valueFocus?: number,
+    importFixFocus?: number, nameFacts?: NameFacts, valueFocus?: number, sourceGutter = 6,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
-    const gutter = Math.min(Math.max(6, cellWidth(promptLabel)), Math.max(0, width - 1));
+    const gutter = Math.min(Math.max(sourceGutter, cellWidth(promptLabel)), Math.max(0, width - 1));
     const bodyWidth = Math.max(1, width - gutter);
     const rows: string[] = [];
     const targets: (ScreenTarget | undefined)[] = [];
