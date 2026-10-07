@@ -1,3 +1,5 @@
+import { instantiateTypeSignature, typeVariableDomains } from './signature-matching.js';
+export { instantiateTypeSignature, inferSignatureResultTypes } from './signature-matching.js';
 import type { ValueFacts } from './analysis/value-domain.js';
 import type { Operation } from './operations.js';
 import { operationShapeFacts } from './analysis/operation-shape.js';
@@ -12,7 +14,7 @@ export type SignatureAtom =
 
 /** Only an explicit variable can assert that two positions share a type. */
 export type SignatureType = SignatureAtom
-    | { readonly variable: number }
+    | { readonly variable: number; readonly domain?: readonly SignatureAtom[] }
     | { readonly label: string }
     | { readonly union: readonly SignatureType[] }
     /** `rank` counts the axes of an array whose rank is proven, written `array[#, #]<integer>`. */
@@ -49,6 +51,7 @@ export function signatureType(value: ValueFacts, unknown: () => SignatureType = 
 /** Format facts supplied by the catalogue or analyzer; never infer them from operand names. */
 export function formatTypeSignature(signature: TypeSignature): string {
     const variables = new Map<number, string>();
+    const constraints = new Map<number, readonly SignatureAtom[]>();
     let next = 0;
     const fresh = () => {
         const index = next++;
@@ -60,6 +63,7 @@ export function formatTypeSignature(signature: TypeSignature): string {
         if ('variable' in value) {
             let name = variables.get(value.variable);
             if (!name) variables.set(value.variable, name = fresh());
+            if (value.domain) constraints.set(value.variable, value.domain);
             return name;
         }
         if ('union' in value) {
@@ -86,7 +90,11 @@ export function formatTypeSignature(signature: TypeSignature): string {
         const ranks = value.ranks ? ` [rank ${value.ranks.join(' ')}]` : '';
         return `${inputs ? inputs + ' ' : ''}→ ${result}${ranks}`;
     };
-    return body(signature);
+    const formatted = body(signature);
+    const domains = typeVariableDomains(signature);
+    const bounds = [...constraints].map(([id, domain]) =>
+        `${variables.get(id)}: ${type(domains?.get(id) ?? { union: domain })}`);
+    return formatted + (bounds.length ? ` ; ${bounds.join(' ; ')}` : '');
 }
 
 /** Filter only proven domain mismatches. An incomplete or invalid call still shows the declared alternatives. */
@@ -100,7 +108,7 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
                 : pattern === 'view' ? type === 'sqlite-table'
                 : pattern === 'database' ? type === 'sqlite-database' : type === pattern);
         if ('label' in pattern) return value.types.includes('symbol');
-        if ('variable' in pattern) return true;
+        if ('variable' in pattern) return !pattern.domain || matches({ union: pattern.domain }, value);
         if ('union' in pattern) return pattern.union.some(part => matches(part, value));
         if ('collection' in pattern) return matches(pattern.collection, value)
             && (!value.elements?.length || matches(pattern.element, { types: value.elements }));
@@ -125,9 +133,13 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
             element: narrow(pattern.element, { types: value.elements }), ...arrayRank(pattern.collection, value.rank) };
         return pattern;
     };
-    const candidates = arity.filter(signature => signature.inputs.every((pattern, index) => matches(pattern, cell(signature, index))));
-    return candidates.length ? candidates.map(signature => ({ ...signature,
-        inputs: signature.inputs.map((pattern, index) => narrow(pattern, cell(signature, index))) })) : arity;
+    const candidates = arity.flatMap(signature => {
+        const instantiated = instantiateTypeSignature(signature,
+            signature.inputs.map((_, index) => signatureType(cell(signature, index))));
+        return instantiated ? [{ ...instantiated, inputs: instantiated.inputs.map((pattern, index) =>
+            narrow(pattern, cell(signature, index))) }] : [];
+    });
+    return candidates.length ? candidates : arity;
 }
 
 /** Unknown metadata stays unknown; result roles and operand spelling are not type contracts. */

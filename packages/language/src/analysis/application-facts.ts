@@ -1,3 +1,5 @@
+import { inferSignatureResultTypes } from '../signature-matching.js';
+import type { SignatureAtom } from '../type-signature.js';
 import { rankedFunctionFacts } from './ranked-function-facts.js';
 import { joinValueFacts } from './value-domain.js';
 import { diagonalResultShape } from '../shape-signature.js';
@@ -814,10 +816,13 @@ function transferApplicationFacts(
                     ['integer', 'real', 'boolean', 'symbol'].includes(type))) {
                 return { types: ['text'], rank: 1, shape: [null] };
             }
-            if (arity === 1 && operation.preservesNumericScalarType && source.rank === 0
+            if (arity === 1 && source.rank === 0
                 && source.types.length > 0
                 && source.types.every(type => type === 'integer' || type === 'real')) {
-                return { types: source.types, rank: 0, shape: [] };
+                const result = inferSignatureResultTypes(operation.signatures ?? [],
+                    [{ union: source.types as readonly SignatureAtom[] }]);
+                if (result?.length && result.every(type => type === 'integer' || type === 'real'))
+                    return { types: result, rank: 0, shape: [] };
             }
             if (hasScalarNoCallbackProof(operation, operands)) {
                 const types = resultTypes(operation);

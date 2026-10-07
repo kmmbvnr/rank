@@ -43,8 +43,18 @@ it('shows cell types for arrays and does not assign signatures to unknown words'
 it('distinguishes numeric ranges from collection bounds', () => {
     expect(operatorSignature('to', facts('integer', 'integer'))).toBe('integer integer → sequence<integer>');
     expect(operatorSignature('till', [{ types: ['sequence'], elements: ['integer'] }, { types: ['integer'] }]))
-        .toBe('sequence<a> number → sequence<a>');
+        .toBe('sequence<integer> number → sequence<integer>');
     expect(operatorSignature('to', facts('text', 'text'))).toBe('text text → text');
     expect(operatorSignature('till', [{ types: ['queue'], elements: ['integer'] }, { types: ['integer'] }]))
-        .toBe('queue<a> number → array<a>');
+        .toBe('queue<integer> number → array<integer>');
+});
+
+
+it('shows compact numeric equality constraints for unknown operands', () => {
+    expect(operatorSignature('+',  [{ types: [] }, { types: [] }]))
+        .toContain('a a → a [rank 0 0] ; a: number');
+    expect(operatorSignature('/', [{ types: [] }, { types: [] }]))
+        .toContain('a a → real [rank 0 0] ; a: number');
+    expect(operatorSignature('less', [{ types: [] }, { types: [] }]))
+        .toContain('a a → boolean [rank 0 0] ; a: number');
 });

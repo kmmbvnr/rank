@@ -9,8 +9,8 @@ it('compacts numeric families recursively while retaining concrete alternatives'
     expect(formatTypeSignature({ inputs: [{ union: ['real', 'text', 'integer', 'number'] }], result: 'real' }))
         .toBe('(number | text) → real');
     expect(formatTypeSignature({ inputs: ['integer'], result: 'integer' })).toBe('integer → integer');
-    expect(operationSignature(findOperation('abs')!, 1)).toContain('integer → integer');
-    expect(operationSignature(findOperation('abs')!, 1)).toContain('real → real');
+    expect(operationSignature(findOperation('abs')!, 1))
+        .toBe('a → a [rank 0] ; a: number ; missing → missing [rank 0]');
 });
 
 it('keeps unknowns separate from variables and exact rank separate from cell rank', () => {
