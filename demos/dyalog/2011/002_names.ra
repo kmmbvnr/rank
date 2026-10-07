@@ -1,12 +1,9 @@
-rem Dyalog Programming Contest 2011
-rem Task 2: What's in a Name?
-rem Noise: each letter of Name becomes
-rem X independently, with chance Rate.
-rem Search: find Name in Text, ignoring
-rem case, with at most Tolerance
-rem mismatched characters. Empty names
-rem and names longer than Text do not
-rem match.
+rem Dyalog 2011, task 2
+rem What's in a Name?
+rem Noise: replace letters with X.
+rem Search: find Name in Text.
+rem Ignore case; allow mismatches.
+rem Name must be nonempty and fit.
 
 use io
 use cli
@@ -14,21 +11,20 @@ use random
 use sequences
 use text
 
-rem Chance that each letter becomes X.
+rem Chance per letter to become X.
 option Rate real = 0.2
-rem Random seed, for repeatable noise.
+rem Seed for repeatable noise.
 option Seed integer = 42
-rem Name to disturb and to look for.
+rem Name to alter and find.
 option Name path = "Jack Johnson"
-rem Text searched for the name.
+rem Text to search.
 option Text path = "I think Jakc Jonnson is the greatest"
-rem Most mismatched characters allowed.
+rem Maximum mismatched characters.
 option Tolerance integer = 3
 
-rem Spaces, digits and punctuation
-rem never change. The changed letter
-rem count is random, not Rate times
-rem the total letter count.
+rem Only letters change.
+rem Each draw is independent.
+rem The changed count is random.
 Seed seed
 Chars = Name "" split
 Shape = array (Chars len)
@@ -38,9 +34,9 @@ Letters = Mask choose "X" Chars
 Noisy = Letters "" join
 Noisy print
 
-rem Hamming distance for each window
-rem of the same width, ignoring case.
-rem Keep original text for the result.
+rem Compare equal-width windows.
+rem Count differences; ignore case.
+rem Return the original text.
 Width = Name len
 Positions = array shape 0 fill 0
 Matches = array shape 0 fill ""
