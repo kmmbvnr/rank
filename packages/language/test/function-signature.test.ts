@@ -27,7 +27,7 @@ it('retains relationships through composed helpers', () => {
 
 it('uses example types without guessing unconstrained arithmetic domains', () => {
     const source = 'fun twice Value\n return Value + Value\nend';
-    expect(signature(source, 'twice')).toBe('integer → integer ; real → real ; numeric cells lift ; … (other domains)');
+    expect(signature(source, 'twice')).toBe('a → a ; a: number ; numeric cells lift ; … (other domains)');
     expect(signature(source, 'twice', [{ types: ['integer'], rank: 0, shape: [] }])).toBe('integer → integer');
     expect(signature(source, 'twice', [{ types: ['array'], rank: 2, shape: [2, 3], elements: ['real'], callbackFreeScalarCells: true }]))
         .toBe('array[2, 3]<real> → array[2, 3]<real>');
@@ -80,4 +80,16 @@ it('does not advertise incompatible generator writes or heterogeneous cells', ()
     expect(signature('fun f N\n for N greater 0\n  X = 1\n  N -= 1\n end\n yield X\nend', 'f')).toBe('a → sequence');
     expect(signature('fun f N\n yield N unknown_helper\nend', 'f')).toBe('a → sequence');
     expect(signature('fun f N\n yield 1.0\nend', 'f')).toContain('integer → sequence<real>');
+});
+
+it('keeps concrete four-argument inference independent of the symbolic body preview', () => {
+    const source = 'fun sum4 A B C D\n return ((A + B) + C) + D\nend';
+    const value = (type: 'integer' | 'real') => ({ types: [type], rank: 0, shape: [] });
+    expect(signature(source, 'sum4')).toContain('a a a a → a ; a: number');
+    expect(signature(source, 'sum4', Array(4).fill(value('integer'))))
+        .toBe('integer integer integer integer → integer');
+    expect(signature(source, 'sum4', Array(4).fill(value('real'))))
+        .toBe('real real real real → real');
+    expect(signature(source, 'sum4', [value('integer'), value('real'), value('integer'), value('integer')]))
+        .toBe('integer real integer integer → ?');
 });

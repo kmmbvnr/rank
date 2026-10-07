@@ -1,3 +1,4 @@
+import { inferSymbolicFunctionContract } from './symbolic-function-contracts.js';
 import { operatorContract } from '../operator-signature.js';
 import { instantiateTypeSignature, signatureType, type SignatureAtom, type SignatureType, type TypeSignature } from '../type-signature.js';
 import type { FunctionRelationship, TypeRelationship } from './function-relationships.js';
@@ -13,6 +14,8 @@ export interface FunctionContract {
     /** Untyped/empty collections and unsupported domains remain possible. */
     readonly unresolved: boolean;
     readonly exhausted: boolean;
+    /** Scalar rows composed from operator contracts without parameter-domain enumeration. */
+    readonly symbolic?: true;
 }
 
 const atoms: readonly SignatureAtom[] = ['integer', 'real', 'missing', 'column', 'text', 'boolean',
@@ -24,7 +27,8 @@ const collection = (type: SignatureType): type is Extract<SignatureType, { colle
     typeof type === 'object' && 'collection' in type;
 
 
-/** Enumerate a small, fixed nominal domain, retaining whole input/result rows.
+/** Compose supported scalar expressions; otherwise enumerate a fixed nominal domain.
+ * Retain whole input/result rows in either path.
  * Each invocation owns its budget and state. An explicit remainder makes this a
  * partial contract, including empty/lazy cells that cannot establish a domain.
  * No requirements are promoted to ValueFacts or optimizer eligibility. */
@@ -48,6 +52,8 @@ export function inferFunctionContract(summary: FunctionRelationship, arity: numb
         }
     };
     const inheritsFrame = preservesFrame(summary.result);
+    const symbolic = inferSymbolicFunctionContract(summary, arity, atoms, limit, inheritsFrame);
+    if (symbolic) return symbolic;
     const read = (term: TypeRelationship, inputs: readonly SignatureType[]): SignatureType | undefined => {
         if (--remaining < 0) { exhausted = true; return undefined; }
         switch (term.kind) {
@@ -110,8 +116,13 @@ export function inferFunctionContract(summary: FunctionRelationship, arity: numb
 export function summarizeFunctionContract(contract: FunctionContract,
     format: (signature: TypeSignature) => string): string | undefined {
     if (!contract.alternatives.length) return undefined;
-    const scalar = contract.alternatives.filter(row => row.inputs.every(input => typeof input === 'string'));
-    const rows = scalar.slice(0, 2).map(format);
+    const scalar = contract.alternatives.filter(row => row.inputs.every(input => typeof input === 'string' || typeof input === 'object' && 'variable' in input));
+    const numericInput = (type: SignatureType): boolean => type === 'integer' || type === 'real'
+        || typeof type === 'object' && 'variable' in type && (!type.domain
+            || type.domain.length > 0 && type.domain.every(atom => atom === 'integer' || atom === 'real'));
+    const numeric = scalar.filter(row => row.inputs.every(numericInput)
+        && row.inputs.some(input => typeof input === 'string' || 'variable' in input && !!input.domain));
+    const rows = (contract.symbolic && numeric.length ? numeric : scalar).slice(0, 2).map(format);
     if (!rows.length) return undefined;
     if (contract.alternatives.some(row => row.inputs.some(collection))) rows.push('numeric cells lift');
     if (contract.unresolved || scalar.length > 2) rows.push(contract.exhausted ? '… (inference limit)' : '… (other domains)');
