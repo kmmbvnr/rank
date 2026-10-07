@@ -528,12 +528,13 @@ native-loop calls, and integer powers still require a nonnegative literal
 exponent. Floor arithmetic, short-circuit control flow, binding and storage
 guards remain in the emitters; scalar-function lowering shares the JS tokens.
 Tensor arithmetic and comparisons now read their overloads and JS tokens from
-the same catalogue. Their real-valued and mixed numeric arithmetic profiles do
-not enable those types in scalar functions or loop registers. Tensor comparisons
-still require matching numeric domains; boolean equality remains outside that
-backend. Shape binding, storage probes, finite-value guards, power bounds, and
-empty-domain evaluation timing remain in the tensor compiler. Richer language
-signatures and the #154 display remain follow-ups.
+the same catalogue. Numeric arithmetic and comparisons require matching
+integer or real operands. Scalar functions support their declared numeric
+rows; integer-loop registers retain their integer-only profile. Boolean
+equality remains outside the tensor backend. Shape binding, storage probes,
+finite-value guards, power bounds, and empty-domain evaluation timing remain
+in the tensor compiler. Richer language
+signatures are consumed separately by analysis and preview formatting.
 
 `RuntimeDiagnostics.fallbacks` retains the coarse loop/tensor counters and adds
 operation, node, and guard categories. Examples include
