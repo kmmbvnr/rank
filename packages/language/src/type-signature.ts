@@ -175,7 +175,7 @@ export function operationSignature(operation: Operation, inputs?: number | reado
     const signatures = typeof inputs === 'number'
         ? operation.signatures?.filter(signature => signature.inputs.length === inputs)
         : inputs ? matchingSignatures(operation.signatures ?? [], inputs) : operation.signatures;
-    // A proven result rank from the operation's shape contract is written on an array result.
+    // Shape facts describe the whole result, including frames around scalar cells.
     const shaped = typeof inputs === 'object' ? operationShapeFacts(operation, inputs) : undefined;
     const ranked = (signature: TypeSignature): TypeSignature => {
         const result = signature.result;
@@ -184,6 +184,10 @@ export function operationSignature(operation: Operation, inputs?: number | reado
             if (typeof type === 'object' && 'collection' in type && type.collection === 'array')
                 return { ...type, rank: shaped.rank, shape: shaped.shape?.map((size, index) =>
                     size ?? (type.shape?.length === shaped.shape?.length ? type.shape?.[index] ?? null : null)) };
+            if (shaped.types.join() === 'array' && shaped.rank !== undefined && shaped.rank > 0
+                && signature.inputs.some(input => typeof input === 'object'
+                    && 'collection' in input && input.collection === 'array'))
+                return { collection: 'array', element: type, rank: shaped.rank, shape: shaped.shape };
             return type;
         };
         // Matmul's empty output shape is a scalar; nonempty output shapes select its array row.

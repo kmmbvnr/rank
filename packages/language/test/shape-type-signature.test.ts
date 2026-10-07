@@ -64,3 +64,17 @@ it('rejects distinct symbolic constants without rejecting unrelated unknown symb
     const mismatch = { ...array([null, null]), dims: [constantDim(2), constantDim(3)] };
     expect(instantiateTypeSignatures(square, [signatureType(mismatch)])).toEqual([]);
 });
+
+
+it('shows frames around determinant scalar cells without changing scalar matrix results', () => {
+    expect(display('det', array([3, 3], ['integer'])))
+        .toBe('array[3, 3]<integer> → integer [rank 2]');
+    expect(display('det', array([2, 3, 3], ['integer'])))
+        .toBe('array[2, 3, 3]<integer> → array[2]<integer> [rank 2]');
+    expect(display('det', array([0, 3, 3], ['real'])))
+        .toBe('array[0, 3, 3]<real> → array[0]<number> [rank 2]');
+    expect(display('det', array([2, 4, 3, 3], ['real'])))
+        .toBe('array[2, 4, 3, 3]<real> → array[2, 4]<number> [rank 2]');
+    expect(display('det', array([null, 3, 3], ['integer'])))
+        .toBe('array[#, 3, 3]<integer> → array[#]<integer> [rank 2]');
+});
