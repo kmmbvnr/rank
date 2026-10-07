@@ -303,10 +303,10 @@ export function notebookFrame(
             const liveProgress = live && !editingField && !breakpoint;
             const hiddenFocusedDraft = promptOutputFocus && item.text.trim() === '';
             const steppingNext = nextEval && (stepping || !!promptOutputFocus);
-            const marker = breakpoint ? '    ◆ ' : line === labelRow ? label : hiddenFocusedDraft ? '      '
-                : steppingNext ? '    ● '
-                : liveProgress ? '    ● '
-                : item.text.trim() === '' || !numbered ? '      ' : '    · ';
+            const marker = breakpoint ? '◆     ' : line === labelRow ? label : hiddenFocusedDraft ? '      '
+                : steppingNext ? '●     '
+                : liveProgress ? '●     '
+                : item.text.trim() === '' || !numbered ? '      ' : '·     ';
             const prefix = fitEnd(marker, gutter || cellWidth(label));
             const progress = promptOutputs?.get(sourceLine);
             const progressColor = progress?.some(output => output.error) ? '\x1b[31m'

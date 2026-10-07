@@ -102,3 +102,21 @@ it('keeps every gutter exactly as wide as the prompt label, even with a wide gly
         expect(cellWidth(row.slice(0, row.indexOf(source)))).toBe(gutter);
     }
 });
+
+it('keeps dots at the left edge and fits three-digit notebook numbers', () => {
+    const book = new Notebook();
+    for (let number = 1; number <= 999; number++) book.enqueue(`V${number} = 1`);
+    const frame = notebookFrame(book, 46, 1010, 0, '', false, false, '', 'Running…', undefined, '> ');
+    for (const number of [1, 10, 100, 999]) {
+        const row = stripAnsi(frame.lines.find(line => line.includes(`V${number} = 1`))!);
+        expect(row).toBe(`●${String(number).padStart(3)}› V${number} = 1`);
+        expect(cellWidth(row.slice(0, row.indexOf(`V${number}`)))).toBe(6);
+    }
+    const continued = new Notebook();
+    continued.enqueue('fun f N\n  N + 1\nend');
+    const rows = notebookFrame(continued, 46, 12).lines.map(stripAnsi);
+    expect(rows.find(row => row.includes('N + 1'))).toBe('·       N + 1');
+    const marked = notebookFrame(continued, 46, 12, 0, '', false, true, '', 'Running…',
+        new Map([[continued.cells[0].id, new Set([2])]]));
+    expect(stripAnsi(marked.lines.find(row => row.includes('N + 1'))!)).toBe('◆       N + 1');
+});

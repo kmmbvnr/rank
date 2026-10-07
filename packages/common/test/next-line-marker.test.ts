@@ -23,6 +23,6 @@ it('marks the next line to evaluate while stepping by the color of its dot', () 
     const frame = frameOf(true, false);
     expect(frame.lines.join('\n')).not.toContain('▶');
     const next = frame.lines.find(line => line.includes('B = A'))!;
-    expect(next).toMatch(/\x1b\[36m\s+●/);
+    expect(next).toMatch(/^\x1b\[36m● {5}/);
     expect(frame.lines.find(line => line.includes('A = N'))!).not.toContain('\x1b[36m');
 });

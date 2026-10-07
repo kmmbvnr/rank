@@ -73,7 +73,8 @@ connection. Opening an example saves a local notebook without executing it.
 Later edits stay on the device, and opening the same example again resumes
 that local copy. Delete the local notebook in history to import it afresh.
 
-The phone console uses a five-column margin for line markers. Long comments
+The phone console reserves six columns for dots and up to three-digit line
+numbers. Continuation dots sit at the left edge of that margin. Long comments
 wrap at word boundaries for display without changing the saved source;
 code and words wider than the screen still wrap by character.
 URLs in comments omit `http://` or `https://` and use an ellipsis when too long.

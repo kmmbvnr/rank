@@ -72,7 +72,7 @@ if (!touchConsole) {
     document.documentElement.style.setProperty('--chrome-height', '0px');
 }
 const compactResults = touchConsole;
-const notebookGutter = touchConsole ? 5 : 6;
+const notebookGutter = 6;
 let columns = 47;
 let rows = 24;
 let cellWidth = 8;
