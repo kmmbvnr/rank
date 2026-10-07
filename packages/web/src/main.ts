@@ -375,7 +375,7 @@ function render(): void {
         frame = notebookFrame(repl.notebook, columns, rows, windowedFrame ? Math.max(0, top - rows) : top,
             shownFailure || (showShortcutHints ? repl.suggestion : repl.runTime), busy || repl.running, follow, '',
             shownFailure || (repl.running ? showShortcutHints ? repl.runningStatus : repl.runningStatus.split(' · ')[0] : 'Running…'),
-            repl.breakpoints, touchConsole ? '> ' : repl.promptLabel, repl.liveOutputs, repl.exampleFields,
+            repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
             repl.liveIterationFocus, repl.stepping,
             anchorCursor && restingCursorRow !== undefined ? Math.min(restingCursorRow, rows - 1) : undefined, showShortcutHints,
             windowedFrame ? rows * 3 : !keyHints() && !shownFailure && !repl.running && !nameFacts ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus, nameFacts, repl.valueFocus, notebookGutter);
