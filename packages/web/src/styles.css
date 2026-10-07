@@ -25,6 +25,8 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 .terminal-row.terminal-comment { color: #aaa; }
 .terminal-gutter { display: inline-block; width: var(--notebook-gutter-width); font-size: 12px; }
 .terminal-row.terminal-result .terminal-gutter .terminal-marker { font-size: inherit; }
+.terminal-gutter.terminal-prompt { font-size: 13px; }
+.terminal-prompt > span { display: inline-flex; width: calc(var(--notebook-gutter-width) / 6); justify-content: center; }
 /* The name under the cursor: smaller, in the same 1.5em of row height. */
 .terminal-row.terminal-facts { font-size: .85em; height: calc(1.5em / .85); line-height: calc(1.5em / .85); }
 /* A result on a touch console, a value or an error: a little smaller than code, in the same 1.5em of row height so the grid and taps still line up. */

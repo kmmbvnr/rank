@@ -303,6 +303,14 @@ function compactGutter(row: HTMLElement): void {
             const gutter = document.createElement('span');
             gutter.className = 'terminal-gutter';
             gutter.append(range.extractContents());
+            if (gutter.textContent === 'rank> ') {
+                gutter.classList.add('terminal-prompt');
+                gutter.replaceChildren(...Array.from(gutter.textContent, character => {
+                    const slot = document.createElement('span');
+                    slot.textContent = character;
+                    return slot;
+                }));
+            }
             row.prepend(gutter);
             return;
         }
