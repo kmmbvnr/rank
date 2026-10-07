@@ -1,5 +1,5 @@
-import { instantiateTypeSignature, typeVariableDomains } from './signature-matching.js';
-export { instantiateTypeSignature, inferSignatureResultTypes } from './signature-matching.js';
+import { instantiateTypeSignatures, containerVariableDomains, typeVariableDomains } from './signature-matching.js';
+export { instantiateTypeSignature, instantiateTypeSignatures, inferSignatureResultTypes } from './signature-matching.js';
 import type { ValueFacts } from './analysis/value-domain.js';
 import type { Operation } from './operations.js';
 import { operationShapeFacts } from './analysis/operation-shape.js';
@@ -12,6 +12,9 @@ export type SignatureAtom =
     | 'set' | 'counter' | 'multiset' | 'index' | 'graph' | 'dsu' | 'segment' | 'fenwick'
     | 'wavelet' | 'functional';
 
+export type SignatureContainer = 'array' | 'sequence' | 'queue' | 'stack' | 'deque' | 'heap'
+    | 'set' | 'counter' | 'multiset';
+
 /** Only an explicit variable can assert that two positions share a type. */
 export type SignatureType = SignatureAtom
     | { readonly variable: number; readonly domain?: readonly SignatureAtom[] }
@@ -19,6 +22,8 @@ export type SignatureType = SignatureAtom
     | { readonly union: readonly SignatureType[] }
     /** `rank` counts the axes of an array whose rank is proven, written `array[#, #]<integer>`. */
     | { readonly collection: SignatureAtom; readonly element: SignatureType; readonly rank?: number }
+    /** Finite sugar for concrete collection rows; repeated IDs share their kind. */
+    | { readonly container: number; readonly kinds: readonly SignatureContainer[]; readonly element: SignatureType }
     | { readonly tuple: readonly SignatureType[] }
     | { readonly callback: TypeSignature };
 
@@ -52,9 +57,12 @@ export function signatureType(value: ValueFacts, unknown: () => SignatureType = 
 export function formatTypeSignature(signature: TypeSignature): string {
     const variables = new Map<number, string>();
     const constraints = new Map<number, readonly SignatureAtom[]>();
+    const kinds = containerVariableDomains(signature);
+    const containers = new Map<number, string>();
     let next = 0;
     const fresh = () => {
-        const index = next++;
+        let index = next++;
+        if (kinds.size && index >= 2) index += 4;
         return index < 26 ? String.fromCharCode(97 + index) : `t${index + 1}`;
     };
     const type = (value: SignatureType, operand = false): string => {
@@ -81,6 +89,12 @@ export function formatTypeSignature(signature: TypeSignature): string {
             if (value.collection === 'array' && value.rank) return `array[${Array(value.rank).fill('#').join(', ')}]<${type(value.element)}>`;
             return `${value.collection}<${type(value.element)}>`;
         }
+        if ('container' in value) {
+            let name = containers.get(value.container);
+            if (!name) containers.set(value.container, name = containers.size < 4
+                ? String.fromCharCode(99 + containers.size) : `c${containers.size + 1}`);
+            return `${name}<${type(value.element)}>`;
+        }
         if ('tuple' in value) return `tuple(${value.tuple.map(item => type(item)).join(', ')})`;
         return `(${body(value.callback)})`;
     };
@@ -94,6 +108,7 @@ export function formatTypeSignature(signature: TypeSignature): string {
     const domains = typeVariableDomains(signature);
     const bounds = [...constraints].map(([id, domain]) =>
         `${variables.get(id)}: ${type(domains?.get(id) ?? { union: domain })}`);
+    bounds.push(...[...containers].map(([id, name]) => `${name}: ${kinds.get(id)!.join(' | ')}`));
     return formatted + (bounds.length ? ` ; ${bounds.join(' ; ')}` : '');
 }
 
@@ -111,6 +126,8 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
         if ('variable' in pattern) return !pattern.domain || matches({ union: pattern.domain }, value);
         if ('union' in pattern) return pattern.union.some(part => matches(part, value));
         if ('collection' in pattern) return matches(pattern.collection, value)
+            && (!value.elements?.length || matches(pattern.element, { types: value.elements }));
+        if ('container' in pattern) return pattern.kinds.some(kind => matches(kind, value))
             && (!value.elements?.length || matches(pattern.element, { types: value.elements }));
         if ('tuple' in pattern) return value.types.includes('tuple') && (!value.tupleItems
             || pattern.tuple.length === value.tupleItems.length
@@ -134,10 +151,10 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
         return pattern;
     };
     const candidates = arity.flatMap(signature => {
-        const instantiated = instantiateTypeSignature(signature,
+        const instantiated = instantiateTypeSignatures(signature,
             signature.inputs.map((_, index) => signatureType(cell(signature, index))));
-        return instantiated ? [{ ...instantiated, inputs: instantiated.inputs.map((pattern, index) =>
-            narrow(pattern, cell(signature, index))) }] : [];
+        return instantiated.map(row => ({ ...row, inputs: row.inputs.map((pattern, index) =>
+            narrow(pattern, cell(signature, index))) }));
     });
     return candidates.length ? candidates : arity;
 }

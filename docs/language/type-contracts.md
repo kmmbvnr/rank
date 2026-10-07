@@ -380,3 +380,21 @@ ranked generators and unsupported statements keep their element domains unresolv
 an ordinary generator can still display `a → sequence`. It shares a fixed work
 budget across candidate inputs and nested loops and retains the explicit
 unresolved remainder. It neither runs the body nor changes runtime type checks.
+
+### Finite container variables in signatures
+
+`c<a> → c<a> ; c: array | sequence` abbreviates two concrete rows:
+`array<a> → array<a>` and `sequence<a> → sequence<a>`. Matching expands
+these alternatives and keeps each input/result relationship together. Known
+arguments select their concrete kind; unresolved kinds stay compact when all
+alternatives retain the same element relationship. The accepted set is always
+explicit. Repeated `c` means the same kind; separate `c` and `d` may be the same
+or different kinds. Type variables `a`, `b` and container variables `c`, `d`,
+`e`, `f` have separate names and are local to one signature.
+
+A concrete result remains concrete: `reverse` accepts a queue, stack, deque or
+finite sequence through `c<a>`, but returns `array<a>`. Collection writes to a
+set, counter or multiset preserve their input kind. Scalar mapping operations
+that already support arrays and sequences use the same finite notation.
+These display and matching contracts do not establish shape relationships,
+callback safety or compiler eligibility.
