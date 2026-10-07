@@ -18,3 +18,7 @@ Run test suites:
 ```bash
 node packages/cli/bin/cli.js test demos/tidytuesday/003_brazil_test.ra
 ```
+
+## Folders
+
+- [Dataset files](data/) — Local input files for the [TidyTuesday](https://github.com/rfordatascience/tidytuesday) examples.

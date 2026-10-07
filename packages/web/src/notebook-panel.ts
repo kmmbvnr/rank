@@ -1,3 +1,4 @@
+import { LibraryBrowser } from './demo-library.js';
 import { NotebookHistory } from './notebook-history.js';
 import { notebookTitle, type HistoryPage, type NotebookMeta } from './notebook-store.js';
 
@@ -14,24 +15,26 @@ export class NotebookPanel {
     private readonly renameDialog = document.createElement('dialog');
     private readonly deleteDialog = document.createElement('dialog');
     private selected?: NotebookMeta;
+    private readonly library: LibraryBrowser;
     constructor(private readonly history: NotebookHistory,
         private readonly open: (id?: string) => Promise<void>,
         importFile: () => Promise<void>,
-        exportFile: () => Promise<void>,
+        exportFile: (id: string) => Promise<void>,
+        openLibrary: (path: string, source: () => Promise<string>) => Promise<void>,
         private readonly beforeOpen: () => void,
         private readonly afterClose: () => void) {
         this.dialog.id = 'notebook-panel';
         this.dialog.setAttribute('aria-label', 'Notebook history');
-        this.dialog.innerHTML = `<header><button class="history-brand" type="button" aria-label="Close notebook history">RANK</button></header>
-            <button type="button" id="new-notebook">New notebook</button>
+        this.dialog.innerHTML = `<header><button class="history-brand" type="button" aria-label="Close notebook history">RANK</button></header><div class="library-home">
+            <button type="button" id="new-notebook" class="history-shortcut"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M12 11v7M8.5 14.5h7"/></svg><span>New notebook</span></button>
+            <div class="history-library-row"><button type="button" data-action="library" class="history-shortcut"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h5v18H3zM8 3h5v18H8zM15 4l4-1 4 17-4 1z"/></svg><span>Library</span></button><button type="button" id="import-notebook" class="history-options history-import" aria-label="Import .ra" title="Import .ra"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20V4h6l2 3h9v4M3 20l4-9h15l-4 9H3"/></svg></button></div>
             <p class="history-status" role="status"></p><div class="history-scroll"><div class="history-list"></div>
-            <button type="button" class="history-more" hidden>Load more</button></div>
-            <footer><button type="button" id="import-notebook">Import .ra</button><button type="button" id="export-notebook">Export .ra</button></footer>`;
+            <button type="button" class="history-more" hidden>Load more</button></div></div>`;
         document.body.append(this.dialog);
         this.actions.className = 'history-actions';
         this.actions.setAttribute('popover', 'auto');
         this.actions.setAttribute('role', 'menu');
-        this.actions.innerHTML = '<button type="button" role="menuitem">Rename</button><button type="button" role="menuitem" class="history-delete">Delete</button>';
+        this.actions.innerHTML = '<button type="button" role="menuitem">Rename</button><button type="button" role="menuitem" class="history-export">Export</button><button type="button" role="menuitem" class="history-delete">Delete</button>';
         this.dialog.append(this.actions);
         this.renameDialog.className = this.deleteDialog.className = 'history-edit';
         this.renameDialog.setAttribute('aria-label', 'Rename notebook');
@@ -87,9 +90,14 @@ export class NotebookPanel {
         this.dialog.querySelector<HTMLButtonElement>('[aria-label="Close notebook history"]')!.onclick = () => this.close();
         this.dialog.querySelector<HTMLButtonElement>('#new-notebook')!.onclick = () => void this.action(() => this.open());
         this.dialog.querySelector<HTMLButtonElement>('#import-notebook')!.onclick = () => void this.action(importFile);
-        this.dialog.querySelector<HTMLButtonElement>('#export-notebook')!.onclick = () => void this.action(exportFile, false);
+        this.actions.querySelector<HTMLButtonElement>('.history-export')!.onclick = () => {
+            const id = this.selected!.id;
+            this.actions.hidePopover();
+            void this.action(() => exportFile(id), false);
+        };
+        this.library = new LibraryBrowser(this.dialog, openLibrary, () => { this.close(); });
         this.more.onclick = () => void this.load();
-        this.dialog.querySelector('.history-scroll')!.addEventListener('scroll', event => {
+        this.dialog.querySelector('.library-home')!.addEventListener('scroll', event => {
             const element = event.currentTarget as HTMLElement;
             if (element.scrollHeight - element.scrollTop - element.clientHeight < 120 && this.next) void this.load();
         });
@@ -111,6 +119,7 @@ export class NotebookPanel {
         if (this.deleteDialog.open) { this.deleteDialog.close(); return true; }
         if (this.actions.matches(':popover-open')) { this.actions.hidePopover(); return true; }
         if (!this.dialog.open) return false;
+        this.library.reset();
         this.dialog.close();
         this.afterClose();
         return true;
@@ -174,6 +183,7 @@ export class NotebookPanel {
         const row = document.createElement('div');
         row.className = 'history-row';
         row.dataset.id = meta.id;
+        if (meta.id === this.history.current?.id) row.dataset.active = 'true';
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'history-title';
@@ -190,8 +200,8 @@ export class NotebookPanel {
         options.onclick = () => {
             this.selected = meta;
             const rect = options.getBoundingClientRect();
-            this.actions.style.left = Math.max(12, rect.right - 180) + 'px';
-            this.actions.style.top = Math.min(rect.bottom, window.innerHeight - 130) + 'px';
+            this.actions.style.left = Math.max(12, rect.right - 160) + 'px';
+            this.actions.style.top = Math.min(rect.bottom, window.innerHeight - 144) + 'px';
             this.actions.showPopover();
         };
         row.append(button, options);

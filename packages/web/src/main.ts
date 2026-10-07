@@ -18,6 +18,7 @@ import { sourceSelection } from './source-selection.js';
 import { wrapCommentLines } from '@arrrank/common/comment-wrap';
 import { VoiceDictation, isVoiceSupported } from './voice-dictation.js';
 import { NotebookHistory } from './notebook-history.js';
+import { libraryNotebookId } from './demo-library.js';
 import { NotebookPanel } from './notebook-panel.js';
 import { notebookStore, notebookSource, validDraft, type NotebookDraft } from './notebook-store.js';
 import { splitSource } from '@arrrank/common/notebook';
@@ -1561,10 +1562,11 @@ async function importNotebook(): Promise<void> {
     await notebookHistory!.flush();
     render();
 }
-async function exportNotebook(): Promise<void> {
+async function exportNotebook(id: string): Promise<void> {
     notebookHistory!.schedule(notebookSnapshot());
     await notebookHistory!.flush();
-    const book = notebookHistory!.current!;
+    const book = await notebookHistory!.store.get(id);
+    if (!book) throw new Error('Notebook is no longer available');
     if (notebookHistory!.store.exportFile) await notebookHistory!.store.exportFile(book.id);
     else {
         const url = URL.createObjectURL(new Blob([notebookSource(book.snapshot)], { type: 'text/plain;charset=utf-8' }));
@@ -1583,7 +1585,17 @@ if (!example) {
     notebookPanel = new NotebookPanel(notebookHistory, async id => {
         await changeNotebook(id);
         if (id === undefined) guidance?.discovered('newNotebook');
-    }, importNotebook, exportNotebook,
+    }, importNotebook, exportNotebook, async (path, source) => {
+        if (busy || repl.running || repl.evaluating) throw new Error('Stop execution before opening an example');
+        const id = await libraryNotebookId(path);
+        if (!await notebookHistory!.store.get(id)) {
+            const text = await source();
+            const now = Date.now();
+            await notebookHistory!.store.save({ id, title: path.split('/').at(-1)!, manual: true,
+                created: now, updated: now, snapshot: { cells: splitSource(text.replace(/\r\n?/g, '\n')), draft: '' } });
+        }
+        await changeNotebook(id);
+    },
         () => { closeMenu(); stopVoiceDictation(); setKeyboard(false); },
         () => { brand.setAttribute('aria-expanded', 'false'); render(); });
     brand.onclick = async () => {

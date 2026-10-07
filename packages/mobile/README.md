@@ -53,11 +53,25 @@ Each step uses one sentence without a heading or Skip button;
 ⋮ → Replay walkthrough starts it again without replacing existing code. A small hold-Play hint follows successful execution of
 at least two code lines. Module hints appear at later quiet interactions. Guidance remembers dismissed hints and actions already discovered.
 
-Tap RANK to open notebook history and create a new notebook. The drawer groups
+Tap RANK to open notebook history and create a new notebook. RANK stays at the
+top on a translucent background that blurs the scrolling content beneath it.
+The import icon to the right of Library opens the file picker. New notebook, Library and notebook rows
+scroll together; the active notebook has a subtle highlight across its entire row.
+The drawer groups
 notebooks by their last modified date and loads 25 titles at a time. Titles use
 the first nonempty `rem` comment, or the first source line after skipping `use`
 lines, shortened to 40
-characters. The row's ⋮ menu opens a separate rename dialog or a deletion confirmation. Import and export use Android's system file picker.
+characters. The row's ⋮ menu offers Rename, Export and Delete. Rename and Delete open
+separate dialogs; Export saves the selected notebook without opening it. Import and export use Android's system file picker.
+
+Use RANK → Library to browse `demos/` in `kmmbvnr/rank` on GitHub's `main`
+branch. Each folder replaces the panel contents; Back returns to its parent,
+or to notebook history at the library root. Folder labels use the text of folder links in the parent folder's
+`README.md`, with the folder name as a fallback. Only `.ra`
+files appear; `_test.ra` files are excluded. Browsing requires an internet
+connection. Opening an example saves a local notebook without executing it.
+Later edits stay on the device, and opening the same example again resumes
+that local copy. Delete the local notebook in history to import it afresh.
 
 On Android, `NotebooksPlugin` writes plain UTF-8 `.ra` files to the app's private
 `files/notebooks/<id>.ra` directory. A SQLite catalog stores titles, dates, cell

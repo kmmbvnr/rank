@@ -237,28 +237,30 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #value-viewer regular-table td.viewer-error { color: #ff6b5e; }
 
 /* The notebook drawer uses the reference's roomy rows with Rank's neutral palette. */
-#notebook-panel { position: fixed; inset: 0 auto 0 0; margin: 0; width: min(82vw, 380px); max-width: none; height: 100dvh; max-height: none; padding: max(20px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); border: 0; border-right: 1px solid #303030; color: #e5e5e5; background: #181818; font-family: "Helvetica Neue", "sans-serif-light", sans-serif; font-size: 19px; font-weight: 300; letter-spacing: .015em; line-height: 1.5; overflow: hidden; }
+#notebook-panel { position: fixed; inset: 0 auto 0 0; margin: 0; width: min(82vw, 380px); max-width: none; height: 100dvh; max-height: none; padding: max(20px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); border: 0; border-right: 1px solid #303030; color: #e5e5e5; background: #181818; font-family: "Helvetica Neue", "sans-serif-light", sans-serif; font-size: 17px; font-weight: 300; letter-spacing: .015em; line-height: 1.5; overflow: hidden; }
 #notebook-panel[open] { display: flex; flex-direction: column; animation: history-enter 180ms ease-out; }
 #notebook-panel::backdrop { background: rgba(0, 0, 0, .6); }
 #notebook-panel header { display: flex; align-items: center; flex: none; min-height: 56px; }
 #notebook-panel .history-brand { font: italic 950 22px system-ui, sans-serif; letter-spacing: -.06em; }
 #notebook-panel button { min-height: 52px; background: transparent; padding: 14px 12px; border-radius: 8px; text-align: left; }
-#notebook-panel button:focus-visible, .history-title[aria-current] { background: #303030; }
+#notebook-panel button:focus-visible { background: #303030; }
+#notebook-panel .history-row[data-active] { background: #242424; }
+#notebook-panel .history-row[data-active] button { border-radius: 0; }
 @media (hover: hover) { #notebook-panel button:hover { background: #303030; } }
 #notebook-panel button:disabled { opacity: .45; }
 #notebook-panel #new-notebook { flex: none; margin: 12px 0 8px; }
 .history-status { flex: none; margin: 0; padding: 0 12px; color: #aaa; font-size: 13px; }
 .history-status:not(:empty) { padding-top: 8px; padding-bottom: 8px; }
-.history-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-.history-date { margin: 24px 12px 10px; color: #888; font-size: 13px; }
-.history-row { display: flex; align-items: center; margin-bottom: 8px; }
+.history-scroll { flex: none; margin-inline: -16px; }
+.history-more { margin-inline: 16px; }
+.history-date { margin: 24px 28px 10px; color: #888; font-size: 13px; }
+.history-row { display: flex; align-items: center; padding-inline: 16px; margin-bottom: 8px; }
 #notebook-panel .history-title { flex: 1; min-width: 0; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 #notebook-panel .history-options { flex: none; width: 48px; display: flex; justify-content: center; align-items: center; padding: 12px; color: #aaa; }
 .history-options svg { width: 20px; height: 20px; fill: currentColor; }
-#notebook-panel .history-actions { position: fixed; inset: auto; margin: 0; width: 180px; padding: 6px; border: 1px solid #3b3b3b; border-radius: 12px; color: #eee; background: #282828; font: 300 17px/1.5 "Helvetica Neue", "sans-serif-light", sans-serif; letter-spacing: .015em; box-shadow: 0 8px 24px #0008; }
-.history-actions button { display: block; width: 100%; }
+#notebook-panel .history-actions { position: fixed; inset: auto; margin: 0; width: 160px; padding: 4px; border: 1px solid #3b3b3b; border-radius: 12px; color: #eee; background: #282828; font: 300 15px/1.4 "Helvetica Neue", "sans-serif-light", sans-serif; letter-spacing: .015em; box-shadow: 0 8px 24px #0008; }
+#notebook-panel .history-actions button { display: block; width: 100%; min-height: 40px; padding: 8px 12px; }
 #notebook-panel .history-delete, .history-edit .history-delete { color: #f99; }
-#notebook-panel footer { flex: none; display: flex; justify-content: space-between; padding-top: 12px; margin-top: 8px; font-size: 14px; }
 .history-edit { width: min(88vw, 360px); padding: 24px; border: 1px solid #333; border-radius: 18px; color: #eee; background: #202020; font: 16px/1.5 system-ui, sans-serif; }
 .history-edit::backdrop { background: #0008; }
 .history-edit h2 { margin: 0 0 20px; font-size: 21px; font-weight: 600; }
@@ -280,3 +282,29 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #mobile-guidance:not(.guided) button { background: transparent; text-decoration: underline; }
 #mobile-guidance button:focus-visible { outline: 2px solid #b6c4ff; }
 #mobile-guidance > div[hidden], #mobile-guidance[hidden], #guidance-spotlight[hidden] { display: none; }
+
+
+#notebook-panel { padding: 0 16px; }
+#notebook-panel > header {
+    position: absolute; left: 0; right: 0; z-index: 1; margin: 0;
+    background: rgb(24 24 24 / .68); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+#notebook-panel > header { top: 0; padding: max(20px, env(safe-area-inset-top)) 16px 0; }
+#notebook-panel .library-home, #notebook-panel .library-view {
+    display: flex; flex-direction: column; flex: 1; min-height: 0;
+    margin-inline: -16px; padding: calc(max(20px, env(safe-area-inset-top)) + 56px) 16px max(16px, env(safe-area-inset-bottom));
+    overflow-y: auto; overscroll-behavior: contain;
+}
+#notebook-panel .library-home[hidden], #notebook-panel .library-view[hidden] { display: none; }
+#notebook-panel .library-home > *, #notebook-panel .library-view > * { flex-shrink: 0; }
+#notebook-panel .library-view > div button { width: 100%; overflow-wrap: anywhere; }
+#notebook-panel .library-view p { margin: 8px 12px; font-size: 14px; color: #aaa; overflow-wrap: anywhere; }
+#notebook-panel .history-shortcut { display: flex; align-items: center; gap: 12px; }
+.history-shortcut svg { flex: none; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+.history-library-row { display: flex; align-items: center; }
+#notebook-panel .history-library-row .history-shortcut { flex: 1; min-width: 0; }
+#notebook-panel .history-import svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+#notebook-panel .library-back { display: flex; align-items: center; gap: 12px; }
+.library-back svg { flex: none; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
