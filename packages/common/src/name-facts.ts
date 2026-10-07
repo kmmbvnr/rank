@@ -41,7 +41,8 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
     examples: readonly NameFactsExample[] = [], scope?: NameFactsScope,
     loadModule?: (specifier: string) => Program | undefined): ((offset: number) => NameFacts | undefined) | undefined {
     let program: Program;
-    try { program = parse(source); } catch { return undefined; }
+    const known = new Set([...sessionFacts.map(([name]) => name), ...(scope?.bindings.keys() ?? [])]);
+    try { program = parse(source, '<preview>', {}, known); } catch { return undefined; }
     const root = program.$cstNode;
     if (!root) return undefined;
     const runtime = new Map(sessionFacts);

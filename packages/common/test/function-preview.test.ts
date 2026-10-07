@@ -70,3 +70,30 @@ it('keeps an exhausted general preview explicit even without supported alternati
         expect((await session.execute('f', 1, [], 40, true)).output.map(row => row.text).join(' ')).toBe(general);
     } finally { session.dispose(); }
 });
+
+
+it('infers functions after CLI options and a loop in the full notebook context', async () => {
+    const session = createReplSession();
+    const prefix = 'use cli\noption N integer = 42\nfor N greater 1\n N = 1\nend';
+    const generator = 'fun factors N\n Rest = N\n D = 2\n for Rest greater 1\n  yield D\n  Rest = Rest // D\n end\nend';
+    const inc = 'fun inc X\n return X + 1\nend';
+    const file = [prefix, generator, inc].join('\n').split('\n');
+    try {
+        expect((await session.execute('use cli', 0, file, 40, true)).ok).toBe(true);
+        expect((await session.execute('option N integer = 42', 1, file, 40, true)).ok).toBe(true);
+        expect((await session.execute('for N greater 1\n N = 1\nend', 2, file, 40, true)).ok).toBe(true);
+        expect((await session.execute(generator, 1, file, 40, true)).output.map(row => row.text).join(' '))
+            .toBe('integer → sequence<integer> ; … (other domains)');
+        expect((await session.execute(inc, 2, file, 40, true)).output.map(row => row.text).join(' '))
+            .toBe('integer → integer ; numeric cells lift ; … (other domains)');
+    } finally { session.dispose(); }
+});
+
+it('keeps an unproven fallback result unknown when notebook context cannot be parsed', async () => {
+    const session = createReplSession();
+    try {
+        const result = await session.execute('fun inc X\n return X + 1\nend', 0,
+            ['for Missing greater 1', ' Missing = 1', 'end'], 40, true);
+        expect(result.output.map(row => row.text).join(' ')).toBe('a → ?');
+    } finally { session.dispose(); }
+});
