@@ -13,6 +13,7 @@ function pinned(text: string): Node {
     const glyph = document.createElement('span');
     glyph.textContent = text;
     cell.append(glyph);
+    if (text === '→') cell.className = 'terminal-type-arrow';
     return cell;
 }
 

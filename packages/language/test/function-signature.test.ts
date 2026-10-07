@@ -27,7 +27,7 @@ it('retains relationships through composed helpers', () => {
 
 it('uses example types without guessing unconstrained arithmetic domains', () => {
     const source = 'fun twice Value\n return Value + Value\nend';
-    expect(signature(source, 'twice')).toBe('a → a ; a: number ; c<a> → c<a> ; a: number ; c: array | sequence ; …');
+    expect(signature(source, 'twice')).toBe('a → a ; a: number ; c<a> → c<a> ; a: number');
     expect(signature(source, 'twice', [{ types: ['integer'], rank: 0, shape: [] }])).toBe('integer → integer');
     expect(signature(source, 'twice', [{ types: ['array'], rank: 2, shape: [2, 3], elements: ['real'], callbackFreeScalarCells: true }]))
         .toBe('array[2, 3]<real> → array[2, 3]<real>');
@@ -69,7 +69,7 @@ it('infers generator locals across branches and loop back edges', () => {
   end
  end
 end`;
-    expect(signature(source, 'facts')).toBe('integer → sequence<integer> ; …');
+    expect(signature(source, 'facts')).toBe('integer → sequence<integer>');
 });
 
 it('does not advertise incompatible generator writes or heterogeneous cells', () => {
@@ -95,9 +95,9 @@ it('keeps concrete four-argument inference independent of the symbolic body prev
 });
 
 
-it('retains the inference limit when unsupported fields leave no preview alternatives', () => {
+it('keeps the result unknown when unsupported fields exhaust inference', () => {
     const source = 'fun f A B C D\n return A .value + ((B + C) + D)\nend';
-    expect(signature(source, 'f')).toBe('a b c d → ? ; … (inference limit)');
+    expect(signature(source, 'f')).toBe('a b c d → ?');
     expect(signature('fun f A B\n return A .value + B\nend', 'f')).toBe('a b → ?');
     expect(signature(source, 'f', [
         { types: ['record'], fields: { value: { types: ['integer'], rank: 0, shape: [] } } },
@@ -108,5 +108,5 @@ it('retains the inference limit when unsupported fields leave no preview alterna
 
 it('shows the collection result element separately from its preserved container kind', () => {
     expect(signature('fun half X\n return X / 2\nend', 'half'))
-        .toBe('integer → real ; c<integer> → c<real> ; c: array | sequence ; …');
+        .toBe('integer → real ; c<integer> → c<real>');
 });

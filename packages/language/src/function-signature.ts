@@ -15,17 +15,14 @@ export interface FunctionSignatureFacts {
 /** Render observed facts and proven relationships without running the function.
  * A shared letter means a proven relationship, not an operand-name convention. */
 export function functionSignature(definition: FunctionStatement, facts: FunctionSignatureFacts = {}): string {
-    let inferenceLimited = false;
     const generator = !definition.ranks.length && functionYields(definition).length > 0;
     if (!facts.arguments && generator) {
         const contract = inferGeneratorContract(definition);
-        inferenceLimited ||= contract.exhausted;
         const inferred = summarizeFunctionContract(contract, formatTypeSignature);
         if (inferred) return inferred;
     }
     if (facts.relationship && !facts.arguments && hasBinary(facts.relationship.result)) {
         const contract = inferFunctionContract(facts.relationship, definition.parameters.length);
-        inferenceLimited ||= contract.exhausted;
         const inferred = summarizeFunctionContract(contract, formatTypeSignature);
         if (inferred) return inferred;
     }
@@ -59,7 +56,7 @@ export function functionSignature(definition: FunctionStatement, facts: Function
     const result = facts.relationship
         ? resultType(facts.relationship.result, inputs, arguments_)
         : describe(facts.result ?? (generator ? { types: ['sequence'] } : UNKNOWN_VALUE));
-    return formatTypeSignature({ inputs, result }) + (inferenceLimited ? ' ; … (inference limit)' : '');
+    return formatTypeSignature({ inputs, result });
 }
 
 function hasBinary(term: TypeRelationship, budget = { remaining: 1000 }): boolean {

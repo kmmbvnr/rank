@@ -112,7 +112,7 @@ export function inferFunctionContract(summary: FunctionRelationship, arity: numb
 }
 
 /** A bounded summary; detailed alternatives retain all correlations above.
- * Numeric rows lead the display; the remainder is explicitly non-exhaustive. */
+ * Numeric rows lead the display; unresolved alternatives stay in the contract. */
 export function summarizeFunctionContract(contract: FunctionContract,
     format: (signature: TypeSignature) => string): string | undefined {
     if (!contract.alternatives.length) return undefined;
@@ -147,7 +147,5 @@ export function summarizeFunctionContract(contract: FunctionContract,
     }
     rows.push(...[...lifted.values()].filter(group => group.kinds.size === 2)
         .slice(0, 2).map(group => format(group.signature)));
-    if (contract.unresolved || scalar.length > 2 || lifted.size > 2)
-        rows.push(contract.exhausted ? '… (inference limit)' : '…');
     return rows.join(' ; ');
 }

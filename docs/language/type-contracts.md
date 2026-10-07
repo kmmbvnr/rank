@@ -352,17 +352,18 @@ calls carry the intermediate types through the same analysis.
 The notebook displays up to two scalar and two collection alternatives.
 Matching array and sequence alternatives share a container variable: for
 `return X + 1`, the collection signature is
-`c<integer> → c<integer> ; c: array | sequence`.
+`c<integer> → c<integer>`.
 Array rank remains generic. Adding a scalar preserves the numeric
 collection's shape; two collections still follow broadcasting rules.
-`…` marks a partial display and unresolved domains. Duration, missing values
+The preview shows supported alternatives; unresolved domains remain in the
+structured contract. Duration, missing values
 and SQL expressions remain in the structured alternatives; SQL dispatch
 precedes missing propagation. Empty or untyped lazy collections cannot
 establish an element requirement from an unevaluated cell.
 
-Analysis has a fixed work budget. `… (inference limit)` keeps an unresolved
-remainder when it is exhausted, including when no supported alternative
-was found. Unsupported bodies and unknown record
+Analysis has a fixed work budget. Exhaustion and unresolved alternatives remain
+in the structured contract; the preview uses `?` for an unproven result.
+Unsupported bodies and unknown record
 fields retain the existing conservative signature. This inspection never
 executes a function, reads cells or consumes a sequence. A conditional
 signature does not prove termination, shape compatibility, callback safety
@@ -389,12 +390,14 @@ unresolved remainder. It neither runs the body nor changes runtime type checks.
 
 ### Finite container variables in signatures
 
-`c<a> → c<a> ; c: array | sequence` abbreviates two concrete rows:
+`c<a> → c<a>` abbreviates two concrete rows. By convention, `c`, `d`,
+`e` and `f` range over array and sequence, so this default domain is not
+repeated in the preview:
 `array<a> → array<a>` and `sequence<a> → sequence<a>`. Matching expands
 these alternatives and keeps each input/result relationship together. Known
 arguments select their concrete kind; unresolved kinds stay compact when all
-alternatives retain the same element relationship. The accepted set is always
-explicit. Repeated `c` means the same kind; separate `c` and `d` may be the same
+alternatives retain the same element relationship. The accepted set remains explicit in the structured contract; domains other
+than array and sequence are also printed. Repeated `c` means the same kind; separate `c` and `d` may be the same
 or different kinds. Type variables `a`, `b` and container variables `c`, `d`,
 `e`, `f` have separate names and are local to one signature.
 

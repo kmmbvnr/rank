@@ -118,7 +118,10 @@ export function formatTypeSignature(signature: TypeSignature): string {
     const domains = typeVariableDomains(signature);
     const bounds = [...constraints].map(([id, domain]) =>
         `${variables.get(id)}: ${type(domains?.get(id) ?? { union: domain })}`);
-    bounds.push(...[...containers].map(([id, name]) => `${name}: ${kinds.get(id)!.join(' | ')}`));
+    bounds.push(...[...containers].filter(([id]) => {
+        const domain = kinds.get(id)!;
+        return domain.length !== 2 || !domain.includes('array') || !domain.includes('sequence');
+    }).map(([id, name]) => `${name}: ${kinds.get(id)!.join(' | ')}`));
     return formatted + (bounds.length ? ` ; ${bounds.join(' ; ')}` : '');
 }
 
