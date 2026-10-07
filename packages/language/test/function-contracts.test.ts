@@ -60,3 +60,12 @@ it('keeps a conservative remainder when a fresh inference budget runs out', () =
     expect(limited.unresolved).toBe(true);
     expect(contract('fun f X\n return X + 1\nend').exhausted).toBe(false);
 });
+
+
+it('does not claim inherited bounds when a scalar constructs another collection', () => {
+    const result = contract('fun f X Y\n return X + (Y to 2)\nend');
+    const row = result.alternatives.find(row => JSON.stringify(row.inputs)
+        === JSON.stringify([{ collection: 'sequence', element: 'integer' }, 'integer']));
+    expect(row).toBeDefined();
+    expect(row?.frameParameter).toBeUndefined();
+});

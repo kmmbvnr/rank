@@ -39,6 +39,21 @@ export function inferFunctionContract(summary: FunctionRelationship, arity: numb
     let remaining = limit;
     let exhausted = false;
     const alternatives: FunctionAlternative[] = [];
+    const frameBudget = { remaining: 1000 };
+    // A scalar argument can construct a fresh collection (for example `to`).
+    // Only pure arithmetic composition can inherit an input frame here.
+    const preservesFrame = (term: TypeRelationship): boolean => {
+        if (--frameBudget.remaining < 0) return false;
+        switch (term.kind) {
+            case 'parameter': return true;
+            case 'constant': return term.value.rank === 0;
+            case 'binary': return ['+', '-', '*', '/', '//', 'mod', '**'].includes(term.operation.name)
+                && preservesFrame(term.left) && preservesFrame(term.right);
+            case 'call': return preservesFrame(term.callee.result) && term.arguments.every(preservesFrame);
+            default: return false;
+        }
+    };
+    const inheritsFrame = preservesFrame(summary.result);
     const read = (term: TypeRelationship, inputs: readonly SignatureType[]): SignatureType | undefined => {
         if (--remaining < 0) { exhausted = true; return undefined; }
         switch (term.kind) {
@@ -87,7 +102,7 @@ export function inferFunctionContract(summary: FunctionRelationship, arity: numb
             if (result) {
                 const frames = inputs.flatMap((input, index) => collection(input) ? [index] : []);
                 alternatives.push({ inputs, result,
-                    ...(collection(result) && frames.length === 1 ? { frameParameter: frames[0] } : {}) });
+                    ...(inheritsFrame && collection(result) && frames.length === 1 ? { frameParameter: frames[0] } : {}) });
             }
         } else for (const domain of domains) {
             enumerate([...inputs, domain]);
