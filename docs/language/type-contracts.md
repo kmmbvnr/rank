@@ -315,3 +315,32 @@ permission to change an established result contract.
 For external JSON, CSV, and XML, backward requirements describe how the program
 uses input. They become established facts only after boundary validation. The
 validation design is tracked in #33 and #116; it is not part of #153.
+
+## Function body signatures
+
+An uncalled single-return function can expose conditional input/result
+alternatives from the fixed contracts of built-in operators. For example,
+`return X + 1` shows `integer → integer` and `real → real`, whereas
+`return X / 2` shows `integer → real` and `real → real`. These are related
+alternatives, not independent unions of inputs and outputs. Supported helper
+calls carry the intermediate types through the same analysis.
+
+The notebook displays the first two scalar alternatives, followed by
+`numeric cells lift` when numeric array or sequence alternatives apply.
+Array rank remains generic. Adding a scalar preserves the numeric
+collection's shape; two collections still follow broadcasting rules, so
+this label does not require equal shapes. `… (other domains)` explicitly
+marks a partial display and unresolved domains. Duration, missing values
+and SQL expressions remain in the structured alternatives; SQL dispatch
+precedes missing propagation. Empty or untyped lazy collections cannot
+establish an element requirement from an unevaluated cell.
+
+Analysis has a fixed work budget. `… (inference limit)` keeps an unresolved
+remainder when it is exhausted. Unsupported bodies and unknown record
+fields retain the existing conservative signature. This inspection never
+executes a function, reads cells or consumes a sequence. A conditional
+signature does not prove termination, shape compatibility, callback safety
+or absence of value-dependent errors, and is not an optimization fact.
+Concrete calls and examples retain their observed signatures; notebook
+function previews cache the general contract rather than an example's
+specialization.
