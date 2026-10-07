@@ -1,11 +1,12 @@
 import { RankSession } from './session.js';
 import { runtimeValueFacts } from './value-diagnostics.js';
-import { functionTestExamples, isFunctionStatement, type FunctionTestExample, type ValueFacts } from '@arrrank/language';
+import { formatTypeSignature, functionTestExamples, isFunctionStatement, type FunctionTestExample, type ValueFacts } from '@arrrank/language';
 import {
     Interpreter, RankError, InterruptedError, checkInterrupt, formatValue, summarizeValue, isNativeFunction, isRankArray, isRankSequence, standardModules, parse, type RankValue, type InterpreterOptions,
 } from '@arrrank/interpreter';
 import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@arrrank/language';
 import { preview } from './preview.js';
+import { nameFactsIn } from './name-facts.js';
 import { SequenceReplay, type SequenceExtension } from './sequence-replay.js';
 import { STALE, inspectValue, viewLabel, type InspectRequest, type Inspection } from './value-inspection.js';
 import { formatSource } from './source-format.js';
@@ -86,6 +87,7 @@ export function createReplSession(host: ReplHost = {}) {
     let interpreter = runtime.interpreter;
     let aliases = true;
     let last: RankValue | undefined;
+    const functionSignatures = new WeakMap<object, string>();
     // Results the viewer may open. Ids are never reused, so a released one cannot name a newer value.
     const held = new Map<number, RankValue>();
     const heldByCell = new Map<number, number>();
@@ -266,8 +268,9 @@ export function createReplSession(host: ReplHost = {}) {
             try {
                 const result = fork.execute(source, syntheticNames);
                 if (result !== undefined) {
-                    if (summaryOnly) valueSummary = summarizeValue(result);
-                    else display(result);
+                    const signature = functionPreview(result, source);
+                    if (summaryOnly) valueSummary = signature ?? summarizeValue(result);
+                    else display(result, signature);
                 }
             } catch (error) { reportError(error, source); }
             finally { fork.dispose(); }
@@ -292,7 +295,7 @@ export function createReplSession(host: ReplHost = {}) {
             session.setLast(result);
             if (result === undefined || quiet) return undefined;
             const first = output.length;
-            show(result);
+            show(result, functionPreview(result, source, session.file));
             const ref = nextRef++;
             held.set(ref, result);
             heldByCell.set(cell, ref);
@@ -333,11 +336,26 @@ export function createReplSession(host: ReplHost = {}) {
     }
 
     /** A result as an answer to read: long ones keep their two ends. */
-    function show(value: RankValue): void {
-        replay.preview(() => display(value));
+    function show(value: RankValue, signature?: string): void {
+        replay.preview(() => display(value, signature));
     }
 
-    function display(value: RankValue): void {
+    function functionPreview(value: RankValue, source: string, file: readonly string[] = []): string | undefined {
+        if (!isNativeFunction(value)) return undefined;
+        const known = functionSignatures.get(value);
+        if (known) return known;
+        const context = [...file, source, value.name].join('\n');
+        const signature = nameFactsIn(context, [], testExamples?.examples)?.(context.length - value.name.length)?.signature
+            ?? value.arities.map(arity => formatTypeSignature({
+                inputs: Array.from({ length: arity }, (_, index) => ({ variable: index })),
+                result: { variable: arity },
+            })).join(' ; ');
+        functionSignatures.set(value, signature);
+        return signature;
+    }
+
+    function display(value: RankValue, signature?: string): void {
+        if (signature) { for (const line of wrap(signature.split(' '), ' ', width)) say(line); return; }
         const { text, note } = preview(value, width);
         checkInterrupt('formatting result');
         emit(text);
@@ -623,12 +641,12 @@ export function createReplSession(host: ReplHost = {}) {
         return value.kind;
     }
 
-    function wrap(items: readonly string[], separator = ' '): string[] {
+    function wrap(items: readonly string[], separator = ' ', columns = WIDTH - 2): string[] {
         const lines: string[] = [];
         let current = '';
         for (const item of items) {
             const candidate = current === '' ? item : current + separator + item;
-            if (candidate.length > WIDTH - 2 && current !== '') {
+            if (candidate.length > columns && current !== '') {
                 lines.push(current);
                 current = item;
             } else {

@@ -240,7 +240,7 @@ test('an open function evaluates each body line on example arguments', async t =
     await repl.submit();
     assert.equal(repl.liveOutputs, undefined);
     assert.deepEqual(book.fileLines(), ['X = 3', 'fun inc N', '  A = N + 1', '  A * 2', 'end']);
-    assert.equal(output(book.cells[1]), '<function inc>');
+    assert.equal(output(book.cells[1]), 'a → b');
 });
 
 test('a live function named like an operator alias keeps its name in the preview call', async t => {
@@ -477,7 +477,7 @@ test('Ctrl-R reopens a completed function at the cursor with its previous exampl
     assert.equal(repl.liveEditing, false);
     assert.equal(book.cells.length, 2, 'editing must update the original cell');
     assert.match(book.cells[0].source, /Result \*= 3/);
-    assert.equal(output(book.cells[0]), '<function inc>');
+    assert.equal(output(book.cells[0]), 'a → b');
 });
 
 test('Ctrl-R still requests a missing example after leaving its field by arrow', async t => {
