@@ -47,7 +47,7 @@ fun median A B
     end
 
     if (M + N) mod 2 equal 1
-      return Left / 1.0
+      return Left / 1
     end
 
     Right = 0
@@ -60,6 +60,6 @@ fun median A B
       Right = Right (B J) min
     end
 
-    return (Left + Right) / 2.0
+    return (Left + Right) / 2
   end
 end

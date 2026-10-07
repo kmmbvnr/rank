@@ -7,21 +7,22 @@ use stats
 
 rem Assign points to their nearest centroid and recompute cluster means.
 fun k_means Points K InitialCentroids Max
-  Centroids = InitialCentroids / 1.0
+  Samples = Points real rank 0
+  Centroids = InitialCentroids real rank 0
   N = Points len
   Labels = array shape N fill 0
 
   for Step in 0 till Max
     for i in 0 till N
-      Point = Points i
+      Point = Samples i
       Best = 0
 
       D = Point - Centroids 0
-      BestDist = D * D sum / 1
+      BestDist = D * D sum
 
       for c in 1 till K
         D = Point - Centroids c
-        Dist = D * D sum / 1
+        Dist = D * D sum
 
         if Dist less BestDist
           BestDist = Dist
@@ -36,7 +37,7 @@ fun k_means Points K InitialCentroids Max
 
     for c in 0 till K
       Mask = Labels equal c
-      Cluster = Points Mask #
+      Cluster = Samples Mask #
 
       if Cluster len greater 0
         Next c = Cluster mean axis 0

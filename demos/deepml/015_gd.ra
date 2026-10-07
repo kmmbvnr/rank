@@ -22,14 +22,16 @@ fun linear_regression X Y Rate Steps
     .DimensionMismatch raise
   end
 
+  Features = X real rank 0
+  Targets = Y real rank 0
   Theta = array shape N fill 0.0
 
   for Step in 0 till Steps
-    Pred = X Theta matmul
-    Error = Pred - Y
+    Pred = Features Theta matmul
+    Error = Pred - Targets
 
-    Grad = X transpose Error matmul
-    Grad = Grad / M
+    Grad = Features transpose Error matmul
+    Grad = Grad / (M real)
 
     Theta -= Rate * Grad
   end

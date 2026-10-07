@@ -97,7 +97,7 @@ describe('shared compiled expression inference', () => {
             operator: (operation, inputs) => matchCompiledOperatorDomains(operation.tensor, inputs),
             budget: { remaining: 128 },
         };
-        expect(inferCompiledExpression(expression('A + 1'), scope).expression?.type).toEqual(['integer', 'real']);
+        expect(inferCompiledExpression(expression('A + 1'), scope).expression?.type).toEqual(['integer']);
         expect(inferCompiledExpression(expression('A / B'), scope).expression?.type).toEqual(['real']);
         expect(inferCompiledExpression(expression('A less B'), scope).expression?.type).toEqual(['boolean']);
         expect(inferCompiledExpression(expression('A and B'), scope).failure).toBeDefined();
@@ -109,8 +109,7 @@ describe('shared compiled expression inference', () => {
         expect(inferCompiledExpression(source, restricted).failure?.source.$type).toBe('NumberLiteral');
         for (const profile of ['scalarFunction', 'tensor'] as const) {
             const result = inferCompiledExpression(source, context({ A: 'integer' }, profile));
-            expect(result.expression).toMatchObject({ kind: 'binary', type: 'real',
-                signature: { inputs: ['integer', 'real'], result: 'real' } });
+            expect(result.failure).toBeDefined();
         }
     });
 

@@ -23,7 +23,7 @@ describe('argument signature memo', () => {
 
     it('specializes separately for integer and real arrays', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun double Row\n  return Row * 2\nend\nA = array 1 2 3\nB = array 1.0 2.0 3.0');
+        runtime.execute('fun double Row\n  return Row + Row\nend\nA = array 1 2 3\nB = array 1.0 2.0 3.0');
         expect(formatValue(runtime.execute('A double')!)).toBe('2 4 6');
         expect(formatValue(runtime.execute('B double')!)).toBe('2 4 6');
     });
