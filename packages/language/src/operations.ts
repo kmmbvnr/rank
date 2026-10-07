@@ -224,9 +224,10 @@ const dequeWriteSignatures: readonly TypeSignature[] = [
     { inputs: [{ collection: 'deque', element: elementVariable }, elementVariable],
         result: { collection: 'deque', element: elementVariable } },
 ];
-const collectionWriteSignatures: readonly TypeSignature[] = (['set', 'counter', 'multiset'] as const)
-    .map(collection => ({ inputs: [{ collection, element: elementVariable }, elementVariable],
-        result: { collection, element: elementVariable } }));
+const writableCollection: SignatureType = { container: 0, kinds: ['set', 'counter', 'multiset'], element: elementVariable };
+const collectionWriteSignatures: readonly TypeSignature[] = [
+    { inputs: [writableCollection, elementVariable], result: writableCollection },
+];
 const orderedQuerySignatures: readonly TypeSignature[] = [
     { inputs: [{ collection: 'multiset', element: elementVariable }, orderedValue], result: elementVariable, ranks: ['all', 0] },
 ];
@@ -251,9 +252,8 @@ const numericReductionInputs: SignatureType = { union: ['number', 'missing', 'co
 /** Whole-value maps preserve the collection kind, independently of intrinsic rank lifting. */
 function mappingSignatures(input: SignatureType, result: SignatureType): readonly TypeSignature[] {
     return [{ inputs: [input], result },
-        ...(['array', 'sequence'] as const).map(collection => ({
-            inputs: [{ collection, element: input }], result: { collection, element: result },
-        }))];
+        { inputs: [{ container: 0, kinds: ['array', 'sequence'], element: input }],
+            result: { container: 0, kinds: ['array', 'sequence'], element: result } }];
 }
 const realMathSignatures: readonly TypeSignature[] = [
     { inputs: ['number'], result: 'real' }, { inputs: ['missing'], result: 'missing' },
@@ -947,9 +947,7 @@ export const operations: readonly Operation[] = [
         signatures: [
             { inputs: ['text'], result: 'text' },
             { inputs: [{ collection: 'array', element: { variable: 0 } }], result: { collection: 'array', element: { variable: 0 } } },
-            { inputs: [{ union: (['queue', 'stack', 'deque', 'sequence'] as const).map(collection => ({
-                collection, element: { variable: 0 },
-            })) }], result: { collection: 'array', element: { variable: 0 } } },
+            { inputs: [{ container: 0, kinds: ['queue', 'stack', 'deque', 'sequence'], element: { variable: 0 } }], result: { collection: 'array', element: { variable: 0 } } },
         ],
         compiledCall: { inputs: ['text'], result: 'text', callbacks: 'none', cost: 'input-dependent' },
         summary: 'Reverses text by code point, an array along its leading axis, or a queue or finite sequence into an array.' },

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { formatTypeSignature, inferSignatureResultTypes, instantiateTypeSignature, matchingSignatures, type SignatureType,
+import { formatTypeSignature, inferSignatureResultTypes, instantiateTypeSignature, instantiateTypeSignatures, matchingSignatures, type SignatureType,
     type TypeSignature } from '../src/type-signature.js';
 
 const number: SignatureType = { variable: 0, domain: ['integer', 'real'] };
@@ -94,4 +94,67 @@ it('shares element constraints with an explicitly described callback', () => {
         { callback: { inputs: ['integer'], result: 'boolean' } }])?.result).toBe('integer');
     expect(instantiateTypeSignature(signature, [{ collection: 'array', element: 'integer' },
         { callback: { inputs: ['real'], result: 'boolean' } }])).toBeUndefined();
+});
+
+const finiteContainer: SignatureType = { container: 0, kinds: ['array', 'sequence'], element: { variable: 0 } };
+const preserveKind: TypeSignature = { inputs: [finiteContainer], result: finiteContainer };
+
+it('expands finite container domains and retains the proven result kind', () => {
+    expect(formatTypeSignature(preserveKind)).toBe('c<a> → c<a> ; c: array | sequence');
+    for (const collection of ['array', 'sequence'] as const) {
+        expect(instantiateTypeSignature(preserveKind, [{ collection, element: 'integer' }]))
+            .toEqual({ inputs: [{ collection, element: 'integer' }], result: { collection, element: 'integer' } });
+    }
+    expect(instantiateTypeSignature(preserveKind, [{ collection: 'set', element: 'integer' }])).toBeUndefined();
+    expect(instantiateTypeSignature(preserveKind, ['integer'])).toBeUndefined();
+    expect(instantiateTypeSignature(preserveKind, ['unknown'])).toEqual(preserveKind);
+    expect(inferSignatureResultTypes([preserveKind], ['unknown'])).toEqual(['array', 'sequence']);
+});
+
+it('requires the same kind for a shared container variable, but not for different variables', () => {
+    const sameKind: TypeSignature = { inputs: [finiteContainer, finiteContainer], result: finiteContainer };
+    const array = { collection: 'array', element: 'integer' } as const;
+    const sequence = { collection: 'sequence', element: 'integer' } as const;
+    expect(instantiateTypeSignature(sameKind, [array, sequence])).toBeUndefined();
+    const other = { container: 1, kinds: ['array', 'sequence'], element: { variable: 1 } } as const;
+    const independent: TypeSignature = { inputs: [finiteContainer, other], result: { tuple: [finiteContainer, other] } };
+    expect(formatTypeSignature(independent)).toBe('c<a> d<b> → tuple(c<a>, d<b>) ; c: array | sequence ; d: array | sequence');
+    expect(instantiateTypeSignature(independent, [array, sequence])?.result).toEqual({ tuple: [array, sequence] });
+    expect(instantiateTypeSignature(independent, [array, array])?.result).toEqual({ tuple: [array, array] });
+});
+
+it('intersects repeated kind restrictions, including constraints in the result', () => {
+    const restricted = { ...finiteContainer, kinds: ['sequence'] } as const;
+    const signature = { inputs: [finiteContainer], result: restricted };
+    expect(instantiateTypeSignature(signature, ['array'])).toBeUndefined();
+    expect(instantiateTypeSignature(signature, ['sequence'])?.result).toEqual({ collection: 'sequence', element: { variable: 0 } });
+    expect(formatTypeSignature(signature)).toBe('c<a> → c<a> ; c: sequence');
+    expect(instantiateTypeSignatures({ inputs: [restricted], result: { ...restricted, kinds: ['array'] } }, ['unknown'])).toEqual([]);
+});
+
+it('keeps container and element alternatives correlated instead of creating cross products', () => {
+    const array = { collection: 'array', element: 'integer' } as const;
+    const sequence = { collection: 'sequence', element: 'real' } as const;
+    const rows = instantiateTypeSignatures(preserveKind, [{ union: [array, sequence] }]);
+    expect(rows).toEqual([{ inputs: [array], result: array }, { inputs: [sequence], result: sequence }]);
+    expect(instantiateTypeSignature(preserveKind, [{ union: [array, sequence] }])).toBeUndefined();
+    const concrete: TypeSignature = { inputs: [finiteContainer], result: { collection: 'array', element: { variable: 0 } } };
+    expect(instantiateTypeSignature(concrete, [sequence])?.result).toEqual({ collection: 'array', element: 'real' });
+});
+
+it('formats unknown-kind calls compactly and keeps type and kind names distinct', () => {
+    expect(matchingSignatures([preserveKind], [{ types: [] }])).toEqual([preserveKind]);
+    expect(matchingSignatures([preserveKind], [{ types: ['array'], elements: ['real'] }])[0].result)
+        .toEqual({ collection: 'array', element: 'real' });
+    const signature: TypeSignature = { inputs: [finiteContainer, { variable: 1 }, { variable: 2 }], result: finiteContainer };
+    expect(formatTypeSignature(signature)).toBe('c<a> b g → c<a> ; c: array | sequence');
+    expect(instantiateTypeSignature(preserveKind, [{ collection: 'sequence', element: 'text' }])?.result)
+        .toEqual({ collection: 'sequence', element: 'text' });
+});
+
+it('does not broaden a result kind when compacting intersected unknown-kind rows', () => {
+    const limited = { container: 0, kinds: ['array', 'sequence'], element: 'integer' } as const;
+    const wider = { ...limited, kinds: ['array', 'sequence', 'set'] } as const;
+    expect(inferSignatureResultTypes([{ inputs: [limited], result: wider }], ['unknown']))
+        .toEqual(['array', 'sequence']);
 });

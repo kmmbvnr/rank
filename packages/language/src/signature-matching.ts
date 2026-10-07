@@ -1,4 +1,4 @@
-import type { SignatureType, TypeSignature } from './type-signature.js';
+import type { SignatureContainer, SignatureType, TypeSignature } from './type-signature.js';
 
 type Bindings = Map<number, SignatureType>;
 const union = (members: readonly SignatureType[]): SignatureType => {
@@ -82,6 +82,7 @@ function match(pattern: SignatureType, actual: SignatureType, bindings: Bindings
     }
     if ('label' in pattern) return actual === 'symbol'
         || typeof actual === 'object' && 'label' in actual && pattern.label === actual.label;
+    if ('container' in pattern) return false; // Expanded before nominal matching.
     if (actual === 'function') return true;
     return typeof actual === 'object' && 'callback' in actual
         && pattern.callback.inputs.length === actual.callback.inputs.length
@@ -111,7 +112,7 @@ export function typeVariableDomains(signature: TypeSignature): Map<number, Signa
             if (domain === undefined) valid = false;
             else domains.set(pattern.variable, domain);
         } else if ('union' in pattern) pattern.union.forEach(collect);
-        else if ('collection' in pattern) collect(pattern.element);
+        else if ('collection' in pattern || 'container' in pattern) collect(pattern.element);
         else if ('tuple' in pattern) pattern.tuple.forEach(collect);
         else if ('callback' in pattern) {
             pattern.callback.inputs.forEach(collect);
@@ -123,8 +124,90 @@ export function typeVariableDomains(signature: TypeSignature): Map<number, Signa
     return valid ? domains : undefined;
 }
 
+/** Kind variables are finite notation over concrete rows, not higher-kinded types. */
+export function containerVariableDomains(signature: TypeSignature): Map<number, readonly SignatureContainer[]> {
+    const domains = new Map<number, readonly SignatureContainer[]>();
+    const collect = (type: SignatureType): void => {
+        if (typeof type === 'string') return;
+        if ('container' in type) {
+            const prior = domains.get(type.container);
+            domains.set(type.container, [...new Set(type.kinds)].filter(kind => !prior || prior.includes(kind)));
+            collect(type.element);
+        } else if ('collection' in type) collect(type.element);
+        else if ('union' in type) type.union.forEach(collect);
+        else if ('tuple' in type) type.tuple.forEach(collect);
+        else if ('callback' in type) { type.callback.inputs.forEach(collect); collect(type.callback.result); }
+    };
+    signature.inputs.forEach(collect);
+    collect(signature.result);
+    return domains;
+}
+
+function mapSignatureTypes(signature: TypeSignature, transform: (type: SignatureType) => SignatureType): TypeSignature {
+    const map = (type: SignatureType): SignatureType => {
+        if (typeof type === 'string') return type;
+        if ('collection' in type || 'container' in type) return transform({ ...type, element: map(type.element) });
+        if ('union' in type) return { union: type.union.map(map) };
+        if ('tuple' in type) return { tuple: type.tuple.map(map) };
+        if ('callback' in type) return { callback: mapSignatureTypes(type.callback, transform) };
+        return type;
+    };
+    return { ...signature, inputs: signature.inputs.map(map), result: map(signature.result) };
+}
+
+export function expandContainerSignatures(signature: TypeSignature): readonly TypeSignature[] {
+    const domains = containerVariableDomains(signature);
+    if (!domains.size) return [signature];
+    let assignments: Map<number, SignatureContainer>[] = [new Map()];
+    for (const [id, kinds] of domains) {
+        assignments = assignments.flatMap(prior => kinds.map(kind => new Map(prior).set(id, kind)));
+    }
+    return assignments.map(assignment => mapSignatureTypes(signature, type =>
+        typeof type === 'object' && 'container' in type
+            ? { collection: assignment.get(type.container)!, element: type.element } : type));
+}
+
+/** Restore notation only when all concrete alternatives still describe the same element relationships. */
+function collapseContainerRows(template: TypeSignature, rows: readonly TypeSignature[]): readonly TypeSignature[] {
+    const kinds = containerVariableDomains(template);
+    const restore = (pattern: SignatureType, actual: SignatureType): SignatureType => {
+        if (typeof pattern === 'string' || typeof actual === 'string') return actual;
+        if ('container' in pattern && 'collection' in actual)
+            return { ...pattern, kinds: kinds.get(pattern.container)!, element: restore(pattern.element, actual.element) };
+        if ('collection' in pattern && 'collection' in actual)
+            return { ...actual, element: restore(pattern.element, actual.element) };
+        if ('tuple' in pattern && 'tuple' in actual)
+            return { tuple: actual.tuple.map((part, index) => restore(pattern.tuple[index], part)) };
+        if ('union' in pattern && 'union' in actual && pattern.union.length === actual.union.length)
+            return { union: actual.union.map((part, index) => restore(pattern.union[index], part)) };
+        if ('callback' in pattern && 'callback' in actual)
+            return { callback: restoreRow(pattern.callback, actual.callback) };
+        return actual;
+    };
+    const restoreRow = (pattern: TypeSignature, row: TypeSignature): TypeSignature => ({ ...row,
+        inputs: row.inputs.map((part, index) => restore(pattern.inputs[index], part)),
+        result: restore(pattern.result, row.result) });
+    const restored = rows.map(row => restoreRow(template, row));
+    return restored.every(row => JSON.stringify(row) === JSON.stringify(restored[0])) ? restored.slice(0, 1) : rows;
+}
+
+/** Keep alternative rows correlated. A singular caller cannot choose an arbitrary kind. */
+export function instantiateTypeSignatures(signature: TypeSignature, inputs: readonly SignatureType[]): readonly TypeSignature[] {
+    const expanded = expandContainerSignatures(signature);
+    const rows = expanded.flatMap(row => {
+        const matched = instantiateConcreteSignature(row, inputs);
+        return matched ? [matched] : [];
+    });
+    return rows.length > 1 && rows.length === expanded.length ? collapseContainerRows(signature, rows) : rows;
+}
+
+export function instantiateTypeSignature(signature: TypeSignature, inputs: readonly SignatureType[]): TypeSignature | undefined {
+    const rows = instantiateTypeSignatures(signature, inputs);
+    return rows.length === 1 ? rows[0] : undefined;
+}
+
 /** Match one complete correlated row. Unknown inputs remain unknown; failed rows never supply result facts. */
-export function instantiateTypeSignature(signature: TypeSignature,
+function instantiateConcreteSignature(signature: TypeSignature,
     inputs: readonly SignatureType[]): TypeSignature | undefined {
     if (signature.inputs.length !== inputs.length) return undefined;
     const domains = typeVariableDomains(signature);
@@ -164,14 +247,14 @@ export function inferSignatureResultTypes(signatures: readonly TypeSignature[],
             return values.every(value => value !== undefined) ? [...new Set(values.flat())] : undefined;
         }
         if ('collection' in type) return [type.collection];
+        if ('container' in type) return [...type.kinds];
         if ('tuple' in type) return ['tuple'];
         if ('label' in type) return ['symbol'];
         if ('callback' in type) return ['function'];
         return undefined;
     };
     const results = signatures.flatMap(signature => {
-        const instantiated = instantiateTypeSignature(signature, inputs);
-        return instantiated ? [nominal(instantiated.result)] : [];
+        return instantiateTypeSignatures(signature, inputs).map(row => nominal(row.result));
     });
     return results.length && results.every(result => result !== undefined) ? [...new Set(results.flat())] : undefined;
 }

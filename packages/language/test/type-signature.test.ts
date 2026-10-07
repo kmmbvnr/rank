@@ -55,7 +55,7 @@ it('uses audited overloads rather than a compiled subset or operand names', () =
     expect(operationSignature({ ...split, signatures: undefined })).toBeUndefined();
     expect(operationSignature(split, 1)).toBeUndefined();
     expect(operationSignature(findOperation('reverse')!)).toBe(
-        'text → text ; array<a> → array<a> ; (queue<a> | stack<a> | deque<a> | sequence<a>) → array<a>');
+        'text → text ; array<a> → array<a> ; c<a> → array<a> ; c: queue | stack | deque | sequence');
 });
 
 it('selects overloads using known argument facts and preserves alternatives for unknowns', () => {
