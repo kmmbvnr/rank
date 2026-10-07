@@ -7,6 +7,18 @@ import { analyzeValues } from '../src/analysis/value-diagnostics.js';
 import { functionTestExamples } from '../src/analysis/test-examples.js';
 import type { ValueFacts } from '../src/analysis/value-domain.js';
 
+it('reports proven mixed numeric operands while leaving unknown inputs for runtime checks', () => {
+    for (const operator of ['+', '-', '*', '/', '//', 'mod', '**',
+        'equal', 'not equal', 'less', 'greater', 'at least', 'at most']) {
+        expect(messages(`1 ${operator} 2.0`)).toContain(
+            'integer and real require explicit conversion with integer or real');
+        expect(messages(`(array 1 2) ${operator} 2.0`)).toContain(
+            'integer and real require explicit conversion with integer or real');
+        expect(messages(`(1 real) ${operator} 2.0`)).toEqual([]);
+        expect(messages(`fun probe X Y\n return X ${operator} Y\nend`)).toEqual([]);
+    }
+});
+
 it('checks an unranked filter predicate against sequence element types', () => {
     const source = 'use sequences\nCandidates = (array 121 122) (array 123 131) merge\n';
     expect(messages(source + 'fun good X\n  return X greater 100\nend\nCandidates filter good first'))

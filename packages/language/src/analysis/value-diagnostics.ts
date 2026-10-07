@@ -798,6 +798,17 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         message: `rank ${integer} exceeds value rank ${left.rank}` });
                 }
             }
+            if (['+', '-', '*', '/', '//', 'mod', '**', 'equal', 'notequal',
+                'less', 'greater', 'atleast', 'atmost'].includes(expression.operator)) {
+                const cells = (value: ValueFacts) => isAtom(value) ? value.types
+                    : value.shape?.every(size => size !== null && size > 0) ? value.elements ?? [] : [];
+                const a = cells(left), b = cells(right);
+                if (a.length && b.length && [...a, ...b].every(type => numeric.has(type))
+                    && !a.some(type => b.includes(type))) {
+                    diagnostics.push({ node: expression, kind: 'TypeError',
+                        message: 'integer and real require explicit conversion with integer or real' });
+                }
+            }
             if (['+', '-', '*', '/', '//', 'mod', '**'].includes(expression.operator)) {
                 if (incompatibleShapes(left, right)) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
                     message: `shape mismatch: [${left.shape!.join(', ')}] and [${right.shape!.join(', ')}]` });

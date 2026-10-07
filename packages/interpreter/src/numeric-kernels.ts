@@ -13,25 +13,22 @@ export function numericKernel(operator: string, fallback: BinaryOperation): Bina
         };
         case '+': return (left, right) => {
             if (typeof left === 'bigint' && typeof right === 'bigint') return left + right;
-            if ((typeof left === 'number' || typeof left === 'bigint')
-                && (typeof right === 'number' || typeof right === 'bigint')) {
-                return Number(left) + Number(right);
+            if (typeof left === 'number' && typeof right === 'number') {
+                return left + right;
             }
             return fallback(left, right);
         };
         case '-': return (left, right) => {
             if (typeof left === 'bigint' && typeof right === 'bigint') return left - right;
-            if ((typeof left === 'number' || typeof left === 'bigint')
-                && (typeof right === 'number' || typeof right === 'bigint')) {
-                return Number(left) - Number(right);
+            if (typeof left === 'number' && typeof right === 'number') {
+                return left - right;
             }
             return fallback(left, right);
         };
         case '*': return (left, right) => {
             if (typeof left === 'bigint' && typeof right === 'bigint') return left * right;
-            if ((typeof left === 'number' || typeof left === 'bigint')
-                && (typeof right === 'number' || typeof right === 'bigint')) {
-                return Number(left) * Number(right);
+            if (typeof left === 'number' && typeof right === 'number') {
+                return left * right;
             }
             return fallback(left, right);
         };

@@ -15,8 +15,8 @@ describe('elementwise arithmetic on large stored arrays', () => {
         expect(run('A = array shape 4 fill 3\nB = A * 2 + 1\nB sum')).toBe(28n);
     });
 
-    it('promotes integers with reals like the lazy path', () => {
-        expect(run(`${setup}B = A / 2.0\nB sum`)).toBe(3000);
+    it('divides integer arrays with integer divisors', () => {
+        expect(run(`${setup}B = A / 2\nB sum`)).toBe(3000);
     });
 
     it('is a value: a later write to the source does not reach the result', () => {
@@ -72,7 +72,7 @@ describe('dense matrix kernels', () => {
 });
 
 describe('dense kernels for broadcasting, powers, comparisons and choose', () => {
-    const grid = 'use sequences\nM = array shape 100 20 fill 2.0\nC = (0 till 100) reshape 100 1\n';
+    const grid = 'use sequences\nM = array shape 100 20 fill 2.0\nC = ((0 till 100) real rank 0) reshape 100 1\n';
 
     it('broadcasts a column over a table', () => {
         expect(run(`${grid}R = M + C\nR sum`)).toBe(2 * 2000 + 20 * 4950);
@@ -81,32 +81,32 @@ describe('dense kernels for broadcasting, powers, comparisons and choose', () =>
     });
 
     it('broadcasts a column and a row into a table', () => {
-        const source = 'use sequences\nC = (0 till 50) reshape 50 1\nR = (0 till 40) reshape 1 40\nT = C * 1.0 + R\nT sum';
+        const source = 'use sequences\nC = (0 till 50) reshape 50 1\nR = (0 till 40) reshape 1 40\nT = (C real rank 0) + (R real rank 0)\nT sum';
         expect(run(source)).toBe(40 * 1225 + 50 * 780);
     });
 
-    it('raises reals to powers, integers to reals, and reports what is not real', () => {
+    it('raises reals to powers after explicit conversion, and reports what is not real', () => {
         expect(run('A = array shape 2000 fill 3.0\nB = A ** 2.0\nB sum')).toBe(18000);
-        expect(run('A = array shape 2000 fill 3\nB = A ** 0.5\nB 0')).toBe(3 ** 0.5);
+        expect(run('A = array shape 2000 fill 3\nB = (A real rank 0) ** 0.5\nB 0')).toBe(3 ** 0.5);
         expect(() => run('A = array shape 2000 fill -8.0\nB = A ** 0.5\nB 0')).toThrow(RankError);
         expect(() => run('A = array shape 2000 fill 0.0\nB = A ** -1.0\nB 0')).toThrow(RankError);
     });
 
-    it('adds integers to reals as reals', () => {
-        expect(run('A = array shape 2000 fill 3\nB = A - 3.5\nB sum')).toBe(-1000);
-        expect(run('A = array shape 2000 fill 3\nB = A / 2.0\nB 0')).toBe(1.5);
+    it('adds integers to reals after explicit conversion', () => {
+        expect(run('A = array shape 2000 fill 3\nB = (A real rank 0) - 3.5\nB sum')).toBe(-1000);
+        expect(run('A = array shape 2000 fill 3\nB = A / 2\nB 0')).toBe(1.5);
     });
 
     it('compares reals and integers with reals', () => {
         expect(run('use sequences\nA = array shape 2000 fill 3.0\nB = A less 4.0\n(B count)')).toBe(2000n);
         expect(run('A = array shape 2000 fill 3.0\nB = A at least 4.0\nB 0')).toBe(false);
-        expect(run('A = array shape 2000 fill 3\nB = A less 3.5\nB 0')).toBe(true);
+        expect(run('A = array shape 2000 fill 3\nB = (A real rank 0) less 3.5\nB 0')).toBe(true);
     });
 
     it('chooses between stored cells and keeps unread branches unread', () => {
         const source = [
             'use sequences', 'use numbers',
-            'Rate = (0 till 3000) reshape 3000 * 0.5',
+            'Rate = ((0 till 3000) real rank 0) reshape 3000 * 0.5',
             'Zero = Rate less 0.25',
             'Inverse = 1.0 / Rate',
             'R = Zero 0.0 Inverse choose',

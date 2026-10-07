@@ -5,10 +5,9 @@ const nullableBoolean: SignatureType = { union: ['boolean', 'missing'] };
 const binary = (left: SignatureType, right: SignatureType, result: SignatureType): TypeSignature =>
     ({ inputs: [left, right], result, ranks: [0, 0] });
 const missing = [binary('missing', 'unknown', 'missing'), binary('unknown', 'missing', 'missing')];
-const ordered = (['number', 'text', 'boolean', 'symbol', 'date', 'datetime', 'record'] as const)
+const ordered = (['integer', 'real', 'text', 'boolean', 'symbol', 'date', 'datetime', 'record'] as const)
     .map(type => binary(type, type, 'boolean'));
-const numeric = [binary('integer', 'integer', 'integer'), binary('integer', 'real', 'real'),
-    binary('real', 'integer', 'real'), binary('real', 'real', 'real')];
+const numeric = [binary('integer', 'integer', 'integer'), binary('real', 'real', 'real')];
 const signs: readonly TypeSignature[] = [
     { inputs: ['integer'], result: 'integer', ranks: [0] },
     { inputs: ['real'], result: 'real', ranks: [0] },
@@ -38,11 +37,11 @@ export const operatorSignatures: Readonly<Record<string, readonly TypeSignature[
         binary('datetime', 'duration', 'datetime'), binary('duration', 'datetime', 'datetime')],
     '-': [...signs, ...numeric, ...missing, binary('datetime', 'datetime', 'duration')],
     '*': [...numeric, ...missing, binary('duration', 'number', 'duration'), binary('number', 'duration', 'duration')],
-    '/': [binary('number', 'number', 'real'), ...missing],
+    '/': [binary('integer', 'integer', 'real'), binary('real', 'real', 'real'), ...missing],
     '//': [...numeric, ...missing],
     'mod': [...numeric, ...missing],
     // Integer exponents can be negative, so integer inputs alone do not prove an integer result.
-    '**': [binary('number', 'number', 'number'), ...missing],
+    '**': [binary('integer', 'integer', 'number'), binary('real', 'real', 'real'), ...missing],
     equal: [binary('unknown', 'unknown', nullableBoolean)],
     notequal: [binary('unknown', 'unknown', nullableBoolean)],
     less: [...ordered, ...missing],

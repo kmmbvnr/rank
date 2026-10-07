@@ -1,5 +1,6 @@
 import { readArrayItem } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
+import { requireSameNumericType } from './numeric-types.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import {
     formatValue, isRankTuple, isRankArray, isRankDate, isRankDuration, isRankRecord,
@@ -52,10 +53,8 @@ function equalNestedValues(
 ): boolean {
     if ((typeof left === 'bigint' || typeof left === 'number')
         && (typeof right === 'bigint' || typeof right === 'number')) {
-        if (typeof left === typeof right) return left === right;
-        const integer = typeof left === 'bigint' ? left : right as bigint;
-        const real = typeof left === 'number' ? left : right as number;
-        return Number.isFinite(real) && Number.isInteger(real) && integer === BigInt(real);
+        requireSameNumericType(left, right);
+        return left === right;
     }
     if (typeof left !== 'object' || typeof right !== 'object') {
         return left === right;
@@ -108,4 +107,3 @@ function alreadyCompared(
     else compared.set(left, new WeakSet([right]));
     return false;
 }
-
