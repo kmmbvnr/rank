@@ -344,3 +344,17 @@ or absence of value-dependent errors, and is not an optimization fact.
 Concrete calls and examples retain their observed signatures; notebook
 function previews cache the general contract rather than an example's
 specialization.
+
+Generator previews also infer scalar alternatives through local assignments,
+compound assignments, branches and condition loops. Loop back edges widen local
+domains until they stabilize: an integer local later assigned `X / 2` contributes
+both integer and real cells. For example, the trial-division generator `facts`
+shows `integer → sequence<integer>` for its integer input alternative. Sequence
+length and termination remain unknown. Locals defined only inside a possibly
+empty loop or only on one continuing branch do not establish a cell type.
+
+This generator analysis is for display only. Captures, helper calls, ranked
+generators and unsupported statements keep their element domains unresolved;
+an ordinary generator can still display `a → sequence`. It shares a fixed work
+budget across candidate inputs and nested loops and retains the explicit
+unresolved remainder. It neither runs the body nor changes runtime type checks.

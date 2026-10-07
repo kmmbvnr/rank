@@ -50,3 +50,34 @@ it('retains ordinary result facts when a relationship cannot prove reader safety
         { types: ['array'], rank: 1, shape: [3], elements: ['integer'] },
     ])).toBe('array #<integer> → array');
 });
+
+it('infers generator locals across branches and loop back edges', () => {
+    const source = `fun facts N
+ Rest = N
+ D = 2
+ Step = 1
+ for Rest greater 1
+  if D greater (Rest // D)
+   yield Rest
+  end
+  if Rest mod D equal 0
+   yield D
+   Rest = Rest // D
+  else
+   D += Step
+   Step = 2
+  end
+ end
+end`;
+    expect(signature(source, 'facts')).toBe('integer → sequence<integer> ; real → sequence<integer | real> ; … (other domains)');
+});
+
+it('unions generator domains over later iterations and continuing branches', () => {
+    expect(signature('fun f N\n X = 1\n for N greater 0\n  yield X\n  X = X / 2\n  N -= 1\n end\nend', 'f'))
+        .toContain('integer → sequence<integer | real>');
+    expect(signature('fun f N\n if N greater 0\n  X = 1\n else\n  X = 1.5\n end\n yield X\nend', 'f'))
+        .toContain('integer → sequence<integer | real>');
+    expect(signature('fun f N\n for N greater 0\n  X = 1\n  N -= 1\n end\n yield X\nend', 'f')).toBe('a → sequence');
+    expect(signature('fun f N\n yield N unknown_helper\nend', 'f')).toBe('a → sequence');
+    expect(signature('fun f N\n yield 1.0\nend', 'f')).toContain('integer → sequence<real>');
+});
