@@ -183,7 +183,7 @@ test('Enter after end returns to rank prompt after previewing an unfinished func
         { keys: 'Digits = N text integer rank 0' + '\x12', until: 'Digits = N' },
         ENTER,
         { keys: 'return Digits sum' + ENTER, until: 'return Digits sum' },
-        { keys: 'end' + ENTER, until: 'a → \\?' },
+        { keys: 'end' + ENTER, until: 'a → number' },
         { keys: '123456 digit_sum' + ENTER, until: '\\s+21' },
     ]);
     assert.match(frames[5].text.split('\n')[frames[5].cursorY], /^rank>\s*$/);
@@ -816,7 +816,7 @@ test('arrows leave example fields in both directions without losing edits or eva
 
 test('function examples show split values and ranked failures show the failing card', async t => {
     const frames = await drive(t, [
-        { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun card_value Card\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER, until: 'a → \\?' },
+        { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun card_value Card\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER, until: 'a → i' },
         'fun hand_score Cards' + ENTER,
         '"5H 5C" "" split' + ENTER,
         'Values = Cards card_value rank 0' + ENTER,
