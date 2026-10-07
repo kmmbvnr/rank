@@ -9,13 +9,16 @@ export function operationShapeFacts(
     explicitRanks?: readonly IntrinsicRank[], axes?: readonly number[],
 ): ValueFacts | undefined {
     const signature = operation.shape?.find(shape => shape.args.length === operands.length);
-    if (!signature && operation.name !== 'matmul') return;
+    const transpose = operation.name === 'transpose' && operands.length === 1
+        && operands[0].types.join() === 'array';
+    if (!signature && operation.name !== 'matmul' && !transpose) return;
     const ranks = explicitRanks ?? (operands.length === 1
         ? [operation.monadicRank ?? 'all'] : operation.dyadicRanks ?? operands.map(() => 'all'));
     const partition = rankedOperandShapes(operands, ranks, axes);
     if (!partition) return;
     const { cells, frame } = partition;
-    const cellShape = operation.name === 'diag' && cells[0]
+    const cellShape = transpose && cells[0] ? [...cells[0]].reverse()
+        : operation.name === 'diag' && cells[0]
         ? diagonalResultShape(cells[0])
         : operation.name === 'matmul' && cells[0] && cells[1] ? matmulResultShape(cells[0], cells[1])
         : signature ? instantiateShapeSignature(signature, cells) : undefined;

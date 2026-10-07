@@ -241,6 +241,10 @@ B = Material twice
 specialization. Reading cells, or calling `copy`, does not create another
 specialization. Multiplication propagates its result type using the same scalar
 operator rules as the analyzer; it does not execute a cell to discover its type.
+For matrices, transpose displays `array[n, m]<a> → array[m, n]<a>`.
+Its generic array alternative remains available for other ranks. Known
+input axes appear reversed in the result, including zero-length axes.
+
 Slices, transpose, reshape, binding wrappers, and preview copies preserve the
 available element information. Tuples carry it at each position.
 
