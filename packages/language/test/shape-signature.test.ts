@@ -63,3 +63,14 @@ describe('shape signatures', () => {
         ] satisfies ShapeSignature[]) expect(validate(signature).length).toBeGreaterThan(0);
     });
 });
+
+it('concatenates bound frame sequences in results while rejecting ambiguous input frames', () => {
+    const product: ShapeSignature = { args: [[{ spread: 's' }, 'k'], ['k', { spread: 't' }]],
+        result: [{ spread: 's' }, { spread: 't' }] };
+    expect(validate(product)).toEqual([]);
+    expect(apply(product, [[2, 3, 4], [4, 5, 6]])).toEqual([2, 3, 5, 6]);
+    expect(apply(product, [[4], [4]])).toEqual([]);
+    expect(apply(product, [[4], [5]])).toBeUndefined();
+    expect(validate({ args: [[{ spread: 's' }, { spread: 't' }]], result: [] }))
+        .toContain('multiple spreads in one pattern');
+});

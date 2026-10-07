@@ -161,7 +161,7 @@ describe('factsAt: functions', () => {
     const word = (source: string, text: string): NameFacts => factsAt(source, source.lastIndexOf(text) + 1)!;
 
     it('shows an audited builtin and a proven notebook call', () => {
-        expect(formatNameFacts(word('Xs = array 1 2 3\nXs sum\n', 'sum'), 60)).toBe('sum · array[#]<number> → number');
+        expect(formatNameFacts(word('Xs = array 1 2 3\nXs sum\n', 'sum'), 60)).toBe('sum · array[3]<number> → number');
         expect(formatNameFacts(word('fun twice X\n return X * 2\nend\n3 twice\n', 'twice'), 60)).toBe('twice · integer → integer');
     });
 
@@ -182,7 +182,7 @@ describe('function signatures in the type footer', () => {
         const source = 'fun twice X\n Y = X * 2\n return Y\nend';
         expect(formatNameFacts(factsAt(source, source.indexOf('twice'), [], [{ name: 'twice', arguments: [integer()] }])!))
             .toBe('twice · integer → integer');
-        expect(formatNameFacts(factsAt(source, source.indexOf('twice'))!)).toBe('twice · a → b');
+        expect(formatNameFacts(factsAt(source, source.indexOf('twice'))!)).toBe('twice · a → ?');
     });
 
     it('keeps tuple result relationships visible without example arguments', () => {
@@ -236,10 +236,10 @@ it('shows range and proven outer signatures on operator words', () => {
     expect(factsAt('1 till 3', 4)?.signature).toBe('integer integer → sequence<integer>');
     const source = '(1 to 3) (1 to 4) outer +';
     for (const offset of [source.indexOf('outer'), source.length - 1, source.length]) {
-        expect(factsAt(source, offset)?.signature).toBe('sequence<integer> sequence<integer> → array[#, #]<integer>');
+        expect(factsAt(source, offset)?.signature).toBe('sequence<integer> sequence<integer> → array[3, 4]<integer>');
     }
     const named = '(array 1 2) (array 3 4) outer max';
-    expect(factsAt(named, named.indexOf('outer'))?.signature).toBe('array[#]<integer> array[#]<integer> function → array');
+    expect(factsAt(named, named.indexOf('outer'))?.signature).toBe('array[2]<integer> array[2]<integer> function → array');
     const shadowed = 'fun outer X\n return X\nend\n3 outer';
     expect(factsAt(shadowed, shadowed.lastIndexOf('outer'))?.signature).toBe('integer → integer');
 });
@@ -254,11 +254,11 @@ it('shows the flat document overload after grouping its trailing modifier', () =
 it('shows segment form contracts without advertising callable marker signatures', () => {
     for (const combine of ['+', 'maxsum']) {
         const source = `use algo\n(array 1 2 3) segment ${combine}`;
-        expect(factsAt(source, source.indexOf('segment'))?.signature).toBe('array[#]<integer> → segment');
-        if (combine === 'maxsum') expect(factsAt(source, source.indexOf('maxsum'))?.signature).toBe('array[#]<integer> → segment');
+        expect(factsAt(source, source.indexOf('segment'))?.signature).toBe('array[3]<integer> → segment');
+        if (combine === 'maxsum') expect(factsAt(source, source.indexOf('maxsum'))?.signature).toBe('array[3]<integer> → segment');
     }
     const named = 'use algo\nfun combine A B\n return A + B\nend\n(array 1 2) segment combine';
-    expect(factsAt(named, named.indexOf('segment'))?.signature).toBe('array[#]<integer> (? ? → ?) → segment');
+    expect(factsAt(named, named.indexOf('segment'))?.signature).toBe('array[2]<integer> (? ? → ?) → segment');
     const shadowed = 'fun segment X\n return X\nend\n3 segment';
     expect(factsAt(shadowed, shadowed.lastIndexOf('segment'))?.signature).toBe('integer → integer');
 });
@@ -268,14 +268,14 @@ describe('layoutNameFacts', () => {
     const outer = () => factsAt(source, source.indexOf('outer') + 2)!;
 
     it('keeps a signature that fits on one row', () => {
-        expect(layoutNameFacts(outer(), 80)).toEqual(['outer * · sequence<integer> sequence<integer> → array[#, #]<integer>']);
+        expect(layoutNameFacts(outer(), 80)).toEqual(['outer * · sequence<integer> sequence<integer> → array[9, 9]<integer>']);
     });
 
     it('puts one parameter per row and the result beside the last one', () => {
         expect(layoutNameFacts(outer(), 42)).toEqual([
             'outer * ·',
             '  sequence<integer>',
-            '  sequence<integer> → array[#, #]<integer>',
+            '  sequence<integer> → array[9, 9]<integer>',
         ]);
     });
 
@@ -284,7 +284,7 @@ describe('layoutNameFacts', () => {
             'outer * ·',
             '  sequence<integer>',
             '  sequence<integer>',
-            '  → array[#, #]<integer>',
+            '  → array[9, 9]<integer>',
         ]);
     });
 });

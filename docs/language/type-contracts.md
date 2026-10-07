@@ -398,3 +398,26 @@ set, counter or multiset preserve their input kind. Scalar mapping operations
 that already support arrays and sequences use the same finite notation.
 These display and matching contracts do not establish shape relationships,
 callback safety or compiler eligibility.
+
+### Array shape references in signatures
+
+An array signature can describe its axes: `array[n, m]`, a square
+`array[n, n]`, known sizes `array[3, 3]`, or anonymous sizes `array[#, #]`.
+These are exact axis lists. `array[…s, n, n]` accepts zero or more leading
+frame axes and two trailing square axes. A `[rank 2]` annotation separately
+states the default processed cell rank. A queue or sequence does not acquire
+array axes through a container-kind variable.
+
+Matching reuses the existing shape contracts. Known incompatible sizes reject
+a row; unresolved sizes retain runtime checks. Existing symbolic dimension
+identities can be retained without adding arithmetic inference. Shared frames
+can be concatenated in a result; an input still allows at most one frame
+sequence. A result relationship describes successful calls and does not prove
+that an inverse exists or that a lazy array can be read without callbacks.
+
+`diag` keeps vector creation and matrix extraction separate. A square main
+diagonal retains its shared length; a rectangular diagonal uses `#` when the
+length is unknown. `matmul` retains last-left/first-right contraction, including
+vector dot products and higher-rank outputs. Known empty product shapes display
+a scalar result. Array facts with unresolved element types display `<?>`;
+unknown function results display `?` instead of a fresh type variable.

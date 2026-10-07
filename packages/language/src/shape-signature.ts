@@ -29,7 +29,7 @@ export function validateShapeSignature(signature: ShapeSignature): readonly stri
     };
     const pattern = (value: ShapePattern | null, result: boolean) => {
         if (value === null) return;
-        if (value.filter(spread).length > 1) errors.push('multiple spreads in one pattern');
+        if (!result && value.filter(spread).length > 1) errors.push('multiple spreads in one pattern');
         for (const term of value) {
             if (spread(term)) { variable(term.spread, 'shape', result); continue; }
             if (term !== null && typeof term === 'object' && 'exists' in term) {
@@ -153,4 +153,11 @@ export function matmulResultShape(left: KnownShape, right: KnownShape): KnownSha
     const a = left.at(-1), b = right[0];
     if (a !== null && b !== null && a !== b) return undefined;
     return [...left.slice(0, -1), ...right.slice(1)];
+}
+
+/** Compact shape notation. Arithmetic and value-dependent sizes remain anonymous. */
+export function formatShapePattern(pattern: ShapePattern): string {
+    return pattern.map(term => term === null ? '#'
+        : typeof term === 'number' || typeof term === 'string' ? String(term)
+        : 'spread' in term ? `…${term.spread}` : '#').join(', ');
 }

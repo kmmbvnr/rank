@@ -129,11 +129,11 @@ it('keeps text conversion and positional parse result contracts explicit', () =>
 
 it('retains shape-dependent linear algebra results and quantile overloads', () => {
     expect(operationSignature(findOperation('eigh')!)).toBe('array<number> → tuple(array<real>, array<real>)');
-    expect(operationSignature(findOperation('matmul')!)).toBe('array<number> array<number> → number | array<number>');
+    expect(operationSignature(findOperation('matmul')!)).toBe('array[…s, k]<number> array[k, …t]<number> → number | array[…s, …t]<number>');
     expect(operationSignature(findOperation('det')!, [{ types: ['array'], elements: ['integer'] }]))
-        .toBe('array<integer> → integer [rank 2]');
+        .toBe('array[…s, n, n]<integer> → integer [rank 2]');
     expect(operationSignature(findOperation('det')!, [{ types: ['array'], elements: ['real'] }]))
-        .toBe('array<real> → number [rank 2]');
+        .toBe('array[…s, n, n]<real> → number [rank 2]');
     expect(operationSignature(findOperation('quantile')!, [
         { types: ['array'], elements: ['integer'] }, { types: ['array'], elements: ['real'] },
     ])).toBe('array<number> array<number> → array<real>');

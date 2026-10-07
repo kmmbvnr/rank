@@ -177,6 +177,9 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             ranks?: readonly IntrinsicRank[], axes?: readonly number[]) => {
             const shape = operation.shape?.find(shape => shape.args.length === args.length);
             if (!shape || args.some(arg => arg.fact.types.includes('text') || arg.fact.elements?.includes('text'))) return;
+            // Concatenated result frames need the existing operation-specific transfer
+            // (matmul below); the generic requirement graph represents only one tail.
+            if (shape.result && shape.result.filter(spread).length > 1) return;
             if (operation.selectsNumericCell && args.some(arg => {
                 const types = arg.fact.types.join() === 'array' ? arg.fact.elements : arg.fact.types;
                 return !types?.length || !types.every(type => type === 'integer' || type === 'real');

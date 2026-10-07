@@ -377,7 +377,7 @@ the cursor right after it counts as on it. Known function signatures replace `fu
 `identity · a → a`, `pair · a → tuple(a, text)` or `twice · integer → integer`.
 A direct call uses its inferred argument facts; a declaration uses available example
 arguments. Without those facts, unrelated unknown types use different letters, as in
-`twice · a → b`. A shared letter appears only for a proven relationship. Builtin
+`twice · a → ?`. A shared letter appears only for a proven relationship. Builtin
 signatures come from audited catalogue overloads, not operand names or compiler
 eligibility. Known call arguments select matching overloads and narrow their input
 unions; unknown arguments keep the alternatives. An invalid call still shows the

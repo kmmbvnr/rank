@@ -27,16 +27,16 @@ export function functionSignature(definition: FunctionStatement, facts: Function
     let nextVariable = 0;
     const budget = { remaining: 1000 };
     const unknown = (): SignatureType => ({ variable: nextVariable++ });
-    const describe = (value: ValueFacts): SignatureType => signatureType(value, unknown);
+    const describe = (value: ValueFacts): SignatureType => signatureType(value);
     const arguments_ = definition.parameters.map((_, index) => facts.arguments?.[index] ?? UNKNOWN_VALUE);
-    const inputs = arguments_.map(describe);
+    const inputs = arguments_.map(value => !value.types.length && !facts.arguments ? unknown() : describe(value));
     const instantiate = (term: TypeRelationship, values: readonly ValueFacts[]) =>
         instantiateRelationship({ result: term, dependencies: [], expressions: new Map() }, values,
             undefined, budget) ?? UNKNOWN_VALUE;
     const resultType = (term: TypeRelationship, parameters: readonly SignatureType[], values: readonly ValueFacts[]): SignatureType => {
-        if (budget.remaining-- <= 0) return unknown();
+        if (budget.remaining-- <= 0) return 'unknown';
         switch (term.kind) {
-            case 'parameter': return parameters[term.index] ?? unknown();
+            case 'parameter': return parameters[term.index] ?? 'unknown';
             case 'constant': return describe(term.value);
             case 'tuple': return { tuple: term.items.map(item => resultType(item, parameters, values)) };
             case 'call': {

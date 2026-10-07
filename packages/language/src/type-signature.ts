@@ -1,3 +1,5 @@
+import { sameDim, type Dim } from './analysis/shape-index.js';
+import { formatShapePattern, type ShapePattern } from './shape-signature.js';
 import { instantiateTypeSignatures, containerVariableDomains, typeVariableDomains } from './signature-matching.js';
 export { instantiateTypeSignature, instantiateTypeSignatures, inferSignatureResultTypes } from './signature-matching.js';
 import type { ValueFacts } from './analysis/value-domain.js';
@@ -21,7 +23,7 @@ export type SignatureType = SignatureAtom
     | { readonly label: string }
     | { readonly union: readonly SignatureType[] }
     /** `rank` counts the axes of an array whose rank is proven, written `array[#, #]<integer>`. */
-    | { readonly collection: SignatureAtom; readonly element: SignatureType; readonly rank?: number }
+    | { readonly collection: SignatureAtom; readonly element: SignatureType; readonly rank?: number; readonly shape?: ShapePattern; readonly dims?: readonly (Dim | null)[] }
     /** Finite sugar for concrete collection rows; repeated IDs share their kind. */
     | { readonly container: number; readonly kinds: readonly SignatureContainer[]; readonly element: SignatureType }
     | { readonly tuple: readonly SignatureType[] }
@@ -45,8 +47,9 @@ export function signatureType(value: ValueFacts, unknown: () => SignatureType = 
     const members = value.types.map((name): SignatureType => {
         if (name === 'tuple' && value.tupleItems) return { tuple: value.tupleItems.map(item => signatureType(item, unknown)) };
         if (['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'multiset', 'heap'].includes(name)
-            && value.elements?.length) return { collection: name as SignatureAtom,
-            element: signatureType({ types: value.elements }, unknown), ...arrayRank(name, value.rank) };
+            && (value.elements?.length || name === 'array' && (value.shape || value.rank !== undefined))) return { collection: name as SignatureAtom,
+            element: signatureType({ types: value.elements ?? [] }, unknown), ...arrayRank(name, value.rank),
+            ...(name === 'array' && value.shape ? { shape: value.shape, ...(value.dims?.length === value.shape.length ? { dims: value.dims } : {}) } : {}) };
         return name === 'sqlite-expression' ? 'column' : name === 'sqlite-table' ? 'view'
             : name === 'sqlite-database' ? 'database' : name as SignatureAtom;
     });
@@ -59,6 +62,12 @@ export function formatTypeSignature(signature: TypeSignature): string {
     const constraints = new Map<number, readonly SignatureAtom[]>();
     const kinds = containerVariableDomains(signature);
     const containers = new Map<number, string>();
+    const dimensions: Dim[] = [];
+    const dimensionName = (dim: Dim): string => {
+        let index = dimensions.findIndex(prior => sameDim(prior, dim));
+        if (index < 0) { index = dimensions.length; dimensions.push(dim); }
+        return ['n', 'm', 'k'][index] ?? `n${index + 1}`;
+    };
     let next = 0;
     const fresh = () => {
         let index = next++;
@@ -85,6 +94,7 @@ export function formatTypeSignature(signature: TypeSignature): string {
             return operand && compact.length > 1 ? `(${text})` : text;
         }
         if ('collection' in value) {
+            if (value.collection === 'array' && value.shape) return `array[${formatShapePattern(value.shape.map((size, axis) => size ?? (value.dims?.[axis] ? dimensionName(value.dims[axis]!) : null)))}]<${type(value.element)}>`;
             // Exact rank: each `#` represents one axis of unknown size.
             if (value.collection === 'array' && value.rank) return `array[${Array(value.rank).fill('#').join(', ')}]<${type(value.element)}>`;
             return `${value.collection}<${type(value.element)}>`;
@@ -147,7 +157,8 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
             return members.length === 1 ? members[0] : members.length ? { union: members } : pattern;
         }
         if ('collection' in pattern && value.elements?.length) return { ...pattern,
-            element: narrow(pattern.element, { types: value.elements }), ...arrayRank(pattern.collection, value.rank) };
+            element: narrow(pattern.element, { types: value.elements }), ...arrayRank(pattern.collection, value.rank),
+            ...(pattern.collection === 'array' && !pattern.shape && value.shape ? { shape: value.shape } : {}) };
         return pattern;
     };
     const candidates = arity.flatMap(signature => {
@@ -168,9 +179,20 @@ export function operationSignature(operation: Operation, inputs?: number | reado
     const shaped = typeof inputs === 'object' ? operationShapeFacts(operation, inputs) : undefined;
     const ranked = (signature: TypeSignature): TypeSignature => {
         const result = signature.result;
-        return shaped && typeof result === 'object' && 'collection' in result && result.collection === 'array'
-            && shaped.types.join() === 'array' && shaped.rank
-            ? { ...signature, result: { ...result, rank: shaped.rank } } : signature;
+        if (!shaped) return signature;
+        const shapeResult = (type: SignatureType): SignatureType => {
+            if (typeof type === 'object' && 'collection' in type && type.collection === 'array')
+                return { ...type, rank: shaped.rank, shape: shaped.shape?.map((size, index) =>
+                    size ?? (type.shape?.length === shaped.shape?.length ? type.shape?.[index] ?? null : null)) };
+            return type;
+        };
+        // Matmul's empty output shape is a scalar; nonempty output shapes select its array row.
+        if (operation.name === 'matmul' && typeof result === 'object' && 'union' in result) {
+            const alternatives = result.union.filter(type => shaped.rank === 0
+                ? typeof type === 'string' : typeof type === 'object' && 'collection' in type);
+            if (alternatives.length === 1) return { ...signature, result: shapeResult(alternatives[0]) };
+        }
+        return { ...signature, result: shapeResult(result) };
     };
     return signatures?.length ? [...new Set(signatures.map(signature => formatTypeSignature(ranked(signature))))].join(' ; ') : undefined;
 }
