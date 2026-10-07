@@ -1,5 +1,5 @@
 import type { SignatureType, TypeSignature } from './type-signature.js';
-import type { ShapeSignature } from './shape-signature.js';
+import type { ShapePattern, ShapeSignature } from './shape-signature.js';
 
 /**
  * The catalogue of standard-library vocabulary.
@@ -299,6 +299,15 @@ const calendarComponentSignatures: readonly TypeSignature[] = [
     { inputs: [calendarValue], result: 'integer', ranks: [0] },
     { inputs: ['column'], result: 'column', ranks: [0] },
 ];
+
+const squareAxes: ShapePattern = ['n', 'n'];
+const squareFrames: ShapePattern = [{ spread: 's' }, ...squareAxes];
+const shapedArray = (element: SignatureType, shape: ShapePattern): SignatureType => ({ collection: 'array', element, shape });
+const diagonalElement: SignatureType = { variable: 0, domain: ['integer', 'real'] };
+const productShape: ShapeSignature = {
+    args: [[{ spread: 's' }, 'k'], ['k', { spread: 't' }]],
+    result: [{ spread: 's' }, { spread: 't' }],
+};
 
 export const operations: readonly Operation[] = [
     { name: 'add', module: 'algo', arities: [2], form: 'Seen add Value', result: 'collection',
@@ -703,26 +712,34 @@ export const operations: readonly Operation[] = [
 
 
     { name: 'det', module: 'linalg', arities: [1], form: 'Matrix det', result: 'number',
-        signatures: [{ inputs: [{ collection: 'array', element: 'integer' }], result: 'integer', ranks: [2] },
-            { inputs: [{ collection: 'array', element: 'real' }], result: 'number', ranks: [2] }],
-        shape: [{ args: [['n', 'n']], result: [] }],
+        signatures: [{ inputs: [shapedArray('integer', squareFrames)], result: 'integer', ranks: [2] },
+            { inputs: [shapedArray('real', squareFrames)], result: 'number', ranks: [2] }],
+        shape: [{ args: [squareAxes], result: [] }],
         monadicRank: 2, summary: 'Determinant of a square numeric matrix, exact for integers.' },
     { name: 'diag', module: 'linalg', monadicRank: 2, arities: [1], form: 'Values diag [.anti] [Offset]', result: 'array',
-        signatures: [{ inputs: [numericArray], result: numericArray }],
+        signatures: [
+            { inputs: [shapedArray(diagonalElement, ['n'])], result: shapedArray(diagonalElement, ['n', 'n']) },
+            { inputs: [shapedArray(diagonalElement, squareFrames)],
+                result: shapedArray(diagonalElement, [{ spread: 's' }, 'n']), ranks: [2] },
+            { inputs: [shapedArray(diagonalElement, [{ spread: 's' }, 'n', 'm'])],
+                result: shapedArray(diagonalElement, [{ spread: 's' }, null]), ranks: [2] },
+        ],
         // Vector/matrix overloads and offsets use diagonalResultShape.
         shape: [{ args: [null], result: null }],
         summary: 'Construct or extract a diagonal, with optional .anti mode and integer offset.' },
     { name: 'eigh', module: 'linalg', monadicRank: 2, arities: [1], form: 'Matrix eigh', result: 'tuple',
         signatures: [{ inputs: [numericArray], result: { tuple: [realArray, realArray] } }],
-        shape: [{ args: [['n', 'n']], result: [] }],
+        shape: [{ args: [squareAxes], result: [] }],
         summary: 'Ascending eigenvalues and their eigenvector columns of a symmetric matrix.' },
     { name: 'inverse', module: 'linalg', arities: [1], form: 'Matrix inverse', result: 'array',
-        signatures: [{ inputs: [numericArray], result: realArray, ranks: [2] }],
-        shape: [{ args: [['n', 'n']], result: ['n', 'n'] }],
+        signatures: [{ inputs: [shapedArray('number', squareFrames)], result: shapedArray('real', squareFrames), ranks: [2] }],
+        shape: [{ args: [squareAxes], result: squareAxes }],
         monadicRank: 2, lazy: true,
         summary: 'Inverse of a square matrix, one trailing cell at a time.' },
     { name: 'matmul', module: 'linalg', arities: [2], form: 'A B matmul', result: 'array',
-        signatures: [{ inputs: [numericArray, numericArray], result: { union: ['number', numericArray] } }],
+        signatures: [{ inputs: productShape.args.map(shape => shapedArray('number', shape!)),
+            result: { union: ['number', shapedArray('number', productShape.result!)] } }],
+        shape: [productShape],
         lazy: true, numericArrayNoCallback: true,
         summary: 'Contracts the last axis of the left array with the first axis of the right.' },
     { name: 'solve', module: 'linalg', arities: [2], form: 'A B solve', result: 'array',

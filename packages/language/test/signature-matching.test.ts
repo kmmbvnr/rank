@@ -158,3 +158,30 @@ it('does not broaden a result kind when compacting intersected unknown-kind rows
     expect(inferSignatureResultTypes([{ inputs: [limited], result: wider }], ['unknown']))
         .toEqual(['array', 'sequence']);
 });
+
+it('checks and substitutes shared shape references with the existing shape matcher', () => {
+    const square = { collection: 'array', element: 'real', shape: ['n', 'n'] } as const;
+    const signature: TypeSignature = { inputs: [square], result: square };
+    const array = (shape: readonly (number | null)[]): SignatureType => ({ collection: 'array', element: 'real', shape });
+    expect(formatTypeSignature(signature)).toBe('array[n, n]<real> → array[n, n]<real>');
+    expect(instantiateTypeSignature(signature, [array([3, 3])])?.result)
+        .toEqual({ ...square, rank: 2, shape: [3, 3] });
+    expect(instantiateTypeSignature(signature, [array([2, 3])])).toBeUndefined();
+    expect(instantiateTypeSignature(signature, [array([null, 3])])?.result)
+        .toEqual({ ...square, rank: 2, shape: [3, 3] });
+    expect(instantiateTypeSignature(signature, ['array'])?.result)
+        .toEqual({ ...square, rank: 2 });
+});
+
+it('distinguishes exact axes from a minimum rank and does not invent unknown frames', () => {
+    const array = (shape: readonly (number | null)[]): SignatureType => ({ collection: 'array', element: 'real', shape });
+    const framed = { collection: 'array', element: 'real', shape: [{ spread: 's' }, 'n', 'n'] } as const;
+    const signature: TypeSignature = { inputs: [framed], result: framed, ranks: [2] };
+    expect(formatTypeSignature(signature)).toBe('array[…s, n, n]<real> → array[…s, n, n]<real> [rank 2]');
+    expect(instantiateTypeSignature(signature, [array([2, 3, 3])])?.result)
+        .toEqual({ ...framed, rank: 3, shape: [2, 3, 3] });
+    expect(instantiateTypeSignature(signature, [array([3])])).toBeUndefined();
+    expect(instantiateTypeSignature(signature, ['array'])?.result).toEqual(framed);
+    expect(formatTypeSignature({ inputs: [array([null, null])], result: 'real' }))
+        .toBe('array[#, #]<real> → real');
+});

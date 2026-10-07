@@ -30,12 +30,12 @@ it('uses example types without guessing unconstrained arithmetic domains', () =>
     expect(signature(source, 'twice')).toBe('integer → integer ; real → real ; numeric cells lift ; … (other domains)');
     expect(signature(source, 'twice', [{ types: ['integer'], rank: 0, shape: [] }])).toBe('integer → integer');
     expect(signature(source, 'twice', [{ types: ['array'], rank: 2, shape: [2, 3], elements: ['real'], callbackFreeScalarCells: true }]))
-        .toBe('array[#, #]<real> → array[#, #]<real>');
+        .toBe('array[2, 3]<real> → array[2, 3]<real>');
 });
 
 it('does not mistake an unknown field requirement for a known field result', () => {
     const source = 'fun items State\n return State .items\nend';
-    expect(signature(source, 'items')).toBe('a → b');
+    expect(signature(source, 'items')).toBe('a → ?');
     expect(signature(source, 'items', [{ types: ['record'], fields: { items: { types: ['text'], rank: 1, shape: [null] } } }]))
         .toBe('record → text');
 });
@@ -48,7 +48,7 @@ it('displays proven literals independently of unknown operands', () => {
 it('retains ordinary result facts when a relationship cannot prove reader safety', () => {
     expect(signature('fun twice Value\n return Value * 2\nend', 'twice', [
         { types: ['array'], rank: 1, shape: [3], elements: ['integer'] },
-    ])).toBe('array[#]<integer> → array');
+    ])).toBe('array[3]<integer> → array[3]<?>');
 });
 
 it('infers generator locals across branches and loop back edges', () => {

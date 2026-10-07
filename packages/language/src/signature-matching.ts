@@ -1,3 +1,5 @@
+import { compareDims, constantDim, type Dim } from './analysis/shape-index.js';
+import { instantiateShapeSignature, type KnownShape, type ShapePattern, type ShapeTerm } from './shape-signature.js';
 import type { SignatureContainer, SignatureType, TypeSignature } from './type-signature.js';
 
 type Bindings = Map<number, SignatureType>;
@@ -206,6 +208,64 @@ export function instantiateTypeSignature(signature: TypeSignature, inputs: reado
     return rows.length === 1 ? rows[0] : undefined;
 }
 
+/** Use the existing shape matcher for array references; no new arithmetic solver. */
+function instantiateSignatureShapes(signature: TypeSignature, inputs: readonly SignatureType[]): TypeSignature | undefined {
+    const args: (ShapePattern | null)[] = [];
+    const actual: (KnownShape | undefined)[] = [];
+    signature.inputs.forEach((pattern, index) => {
+        const value = inputs[index];
+        const shape = typeof pattern === 'object' && 'collection' in pattern && pattern.collection === 'array'
+            ? pattern.shape ?? (pattern.rank === undefined ? null : Array(pattern.rank).fill(null)) : null;
+        args.push(shape);
+        actual.push(typeof value === 'object' && 'collection' in value && value.collection === 'array'
+            ? value.shape?.every(term => term === null || typeof term === 'number')
+                ? value.shape as KnownShape : value.rank === undefined ? undefined : Array(value.rank).fill(null)
+            : undefined);
+    });
+    if (args.every(pattern => pattern === null)) return signature;
+    if (!instantiateShapeSignature({ args, result: [] }, actual)) return undefined;
+    const frames = new Map<string, KnownShape>();
+    const dimensions = new Map<string, Dim>();
+    const frameDims = new Map<string, readonly (Dim | null)[]>();
+    let compatible = true;
+    args.forEach((pattern, index) => {
+        const shape = actual[index];
+        const value = inputs[index];
+        const dims = typeof value === 'object' && 'collection' in value ? value.dims : undefined;
+        if (!pattern || !shape) return;
+        const at = pattern.findIndex(term => term !== null && typeof term === 'object' && 'spread' in term);
+        if (at >= 0) {
+            const term = pattern[at] as { readonly spread: string };
+            frames.set(term.spread, shape.slice(at, shape.length - (pattern.length - at - 1)));
+            frameDims.set(term.spread, shape.slice(at, shape.length - (pattern.length - at - 1))
+                .map((size, axis) => size === null ? dims?.[at + axis] ?? null : constantDim(size)));
+        }
+        pattern.forEach((term, axis) => {
+            if (typeof term !== 'string' && typeof term !== 'number') return;
+            const index = at >= 0 && axis > at ? shape.length - (pattern.length - axis) : axis;
+            const dim = shape[index] === null ? dims?.[index] : constantDim(shape[index]!);
+            if (!dim) return;
+            const previous = typeof term === 'number' ? constantDim(term) : dimensions.get(term);
+            if (previous && compareDims(previous, dim) === 'distinct') compatible = false;
+            if (!previous && typeof term === 'string') dimensions.set(term, dim);
+        });
+    });
+    if (!compatible) return undefined;
+    return mapSignatureTypes(signature, type => {
+        if (typeof type !== 'object' || !('collection' in type) || type.collection !== 'array' || !type.shape) return type;
+        const shape = instantiateShapeSignature({ args, result: type.shape }, actual);
+        if (!shape) return type;
+        // Unknown sizes retain their declared relationships, rather than becoming fresh guesses.
+        const expanded = type.shape.flatMap<ShapeTerm>(term => term !== null && typeof term === 'object' && 'spread' in term
+            ? frames.get(term.spread) ?? [term] : [term]);
+        const dims = type.shape.flatMap<Dim | null>(term => typeof term === 'number' ? [constantDim(term)]
+            : typeof term === 'string' ? [dimensions.get(term) ?? null]
+            : term !== null && typeof term === 'object' && 'spread' in term ? frameDims.get(term.spread) ?? [null] : [null]);
+        return { ...type, shape: shape.map((term, index) => term ?? expanded[index]), rank: shape.length,
+            ...(dims.some(dim => dim !== null && dim.terms.length > 0) ? { dims } : {}) };
+    });
+}
+
 /** Match one complete correlated row. Unknown inputs remain unknown; failed rows never supply result facts. */
 function instantiateConcreteSignature(signature: TypeSignature,
     inputs: readonly SignatureType[]): TypeSignature | undefined {
@@ -230,8 +290,8 @@ function instantiateConcreteSignature(signature: TypeSignature,
     if (!patterns.every((pattern, index) => match(pattern, inputs[index], bindings))) return undefined;
     // Recheck after every shared variable has been narrowed, including constraints on later references.
     if (!patterns.every((pattern, index) => match(substitute(pattern, bindings), inputs[index], new Map()))) return undefined;
-    return { ...signature, inputs: patterns.map(pattern => substitute(pattern, bindings)),
-        result: substitute(constrained(signature.result), bindings) };
+    return instantiateSignatureShapes({ ...signature, inputs: patterns.map(pattern => substitute(pattern, bindings)),
+        result: substitute(constrained(signature.result), bindings) }, inputs);
 }
 
 /** Successful nominal result domains only; unresolved variables stay unknown. */
