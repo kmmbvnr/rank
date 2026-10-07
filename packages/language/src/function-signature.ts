@@ -1,4 +1,6 @@
 import { inferFunctionContract, summarizeFunctionContract } from './analysis/function-contracts.js';
+import { inferGeneratorContract } from './analysis/generator-contracts.js';
+import { functionYields } from './analysis/function-yields.js';
 import type { FunctionStatement } from './generated/ast.js';
 import { instantiateRelationship, type FunctionRelationship, type TypeRelationship } from './analysis/function-relationships.js';
 import { UNKNOWN_VALUE, type ValueFacts } from './analysis/value-domain.js';
@@ -13,6 +15,11 @@ export interface FunctionSignatureFacts {
 /** Render observed facts and proven relationships without running the function.
  * A shared letter means a proven relationship, not an operand-name convention. */
 export function functionSignature(definition: FunctionStatement, facts: FunctionSignatureFacts = {}): string {
+    const generator = !definition.ranks.length && functionYields(definition).length > 0;
+    if (!facts.arguments && generator) {
+        const inferred = summarizeFunctionContract(inferGeneratorContract(definition), formatTypeSignature);
+        if (inferred) return inferred;
+    }
     if (facts.relationship && !facts.arguments && hasBinary(facts.relationship.result)) {
         const inferred = summarizeFunctionContract(inferFunctionContract(facts.relationship, definition.parameters.length), formatTypeSignature);
         if (inferred) return inferred;
@@ -46,7 +53,7 @@ export function functionSignature(definition: FunctionStatement, facts: Function
     };
     const result = facts.relationship
         ? resultType(facts.relationship.result, inputs, arguments_)
-        : describe(facts.result ?? UNKNOWN_VALUE);
+        : describe(facts.result ?? (generator ? { types: ['sequence'] } : UNKNOWN_VALUE));
     return formatTypeSignature({ inputs, result });
 }
 

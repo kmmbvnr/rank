@@ -7,6 +7,7 @@ describe('function result signatures', () => {
         ['fun identity X\n return X\nend', 'a → a'],
         ['fun pair X\n return tuple X "label"\nend', 'a → tuple(a, text)'],
         ['fun add X Y\n return X + Y\nend', 'integer integer → integer ; integer real → real ; numeric cells lift ; … (other domains)'],
+        ['fun countdown N\n for N greater 0\n  yield N\n  N -= 1\n end\nend', 'integer → sequence<integer> ; real → sequence<real> ; … (other domains)'],
     ])('shows the inferred signature for %s', async (source, signature) => {
         const session = createReplSession();
         try {

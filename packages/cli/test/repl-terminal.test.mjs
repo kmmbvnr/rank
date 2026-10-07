@@ -241,7 +241,7 @@ test('Shift selection and mouse dragging replace source without executing pasted
     assert.match(frames[1].raw, /\x1b\[7m/);
     assert.match(frames[2].text, /rank> abcXYZ/);
     assert.match(frames[3].raw, /\x1b\[7m/);
-    assert.match(frames[4].text, /rank> 123\n\s*· 456XYZ/);
+    assert.match(frames[4].text, /rank> 123\n·     456XYZ/);
     assert.match(frames[5].text, /rank> abcXYZ/);
 });
 
@@ -959,7 +959,7 @@ test('Enter on an empty live-function line preserves a blank without inserting e
     assert.match(frames[3].text, /Enter try · \^T args · \^L run all/);
     assert.doesNotMatch(frames[3].text, /<function inc>|\n\s*end\s*\n/);
     assert.match(frames[3].text.split('\n')[frames[3].cursorY], /^\s*●?\s*$/);
-    assert.match(frames[4].text, /return X \+ 1\n        2\n    ●   \n    ●   return X \+ 2/);
+    assert.match(frames[4].text, /return X \+ 1\n        2\n●       \n●       return X \+ 2/);
 });
 
 test('Enter reevaluates an edited function line without inserting end', async t => {
