@@ -1037,6 +1037,17 @@ end
 whose size is unknown, the caller must ensure that it terminates.
 
 
+`letter`, `digit` and `alnum` classify one Unicode character each: a letter
+(`\p{L}`), a decimal digit (`\p{Nd}`), or a letter or number (`\p{L}`, `\p{N}`,
+the same class `words` tokenizes). Given a text array, usually from
+`Text "" split`, they return a boolean array of the same shape. Anything that
+is not exactly one character raises `.TypeError`:
+
+```rank
+Chars = "Jack, 42" "" split
+Mask = Chars letter
+```
+
 `codepoint` converts exactly one Unicode character to its integer code point.
 `character` performs the inverse conversion and returns one-character text:
 

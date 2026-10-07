@@ -1,0 +1,57 @@
+rem Dyalog Programming Contest 2011
+rem Task 2: What's in a Name?
+rem Noise: replace each letter of Name with X,
+rem independently, with probability Rate.
+rem Search: find every place Name occurs in Text
+rem with at most Tolerance mismatched characters,
+rem ignoring case. An empty Name or one longer
+rem than Text has no matches.
+
+use io
+use cli
+use random
+use sequences
+use text
+
+rem Chance that each letter becomes X.
+option Rate real = 0.2
+rem Random seed, for repeatable noise.
+option Seed integer = 42
+rem Name to disturb and to look for.
+option Name path = "Jack Johnson"
+rem Text searched for the name.
+option Text path = "I think Jakc Jonnson is the greatest"
+rem Most mismatched characters allowed.
+option Tolerance integer = 3
+
+rem Spaces, digits and punctuation never
+rem change; the number of changed letters is
+rem random, not Rate times the letter count.
+Seed seed
+Chars = Name "" split
+Shape = array (Chars len)
+Draws = Shape 0 1 uniform
+Mask = Draws less Rate and Chars letter
+Letters = Mask choose "X" Chars
+Noisy = Letters "" join
+Noisy print
+
+rem Hamming distance of every window of the
+rem same width, compared in lowercase. The
+rem original text is kept for the result.
+Width = Name len
+Positions = array shape 0 fill 0
+Matches = array shape 0 fill ""
+if Width at least 1
+  Lower = (Text lower) "" split
+  Windows = Lower window Width
+  Pattern = (Name lower) "" split
+  Different = Windows not equal Pattern
+  Errors = Different count axis 1
+  Close = Errors at most Tolerance
+  Positions = Close indices
+  Raw = Text window Width
+  Matches = Raw Positions
+end
+Positions print
+Matches print

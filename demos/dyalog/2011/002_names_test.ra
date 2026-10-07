@@ -1,0 +1,102 @@
+use testing
+
+test "the contest example finds the misspelling"
+  use "002_names"
+  run
+
+  Positions equal array 8 and Matches equal array "Jakc Jonnson"
+end
+
+test "tolerance boundary"
+  use "002_names"
+  Text = "Jakc Jonnson"
+  Tolerance = 2
+  run
+  Missed = Positions len equal 0
+
+  Tolerance = 3
+  run
+  Missed and Positions len equal 1
+end
+
+test "case is ignored and the case kept"
+  use "002_names"
+  Text = "xx JACK johnson"
+  Tolerance = 0
+  run
+
+  Positions equal array 3 and Matches equal array "JACK johnson"
+end
+
+test "overlapping matches"
+  use "002_names"
+  Name = "aa"
+  Text = "aaaa"
+  Tolerance = 0
+  run
+
+  Positions equal array 0 1 2
+end
+
+test "an insertion is not a match"
+  use "002_names"
+  Name = "ab"
+  Text = "axb"
+  Tolerance = 0
+  run
+
+  Positions len equal 0
+end
+
+test "an empty name has no matches"
+  use "002_names"
+  Name = ""
+  Tolerance = 5
+  run
+
+  Positions len equal 0
+end
+
+test "a name longer than the text has no matches"
+  use "002_names"
+  Name = "abc"
+  Text = "ab"
+  Tolerance = 5
+  run
+
+  Positions len equal 0
+end
+
+test "rate zero changes nothing"
+  use "002_names"
+  Rate = 0.0
+  run
+
+  Noisy equal "Jack Johnson"
+end
+
+test "rate one replaces only letters"
+  use "002_names"
+  Rate = 1.0
+  Name = "Jack, Johnson 42!"
+  run
+
+  Noisy equal "XXXX, XXXXXXX 42!"
+end
+
+test "each letter is replaced independently"
+  use "002_names"
+  use numbers
+  use sequences
+  use text
+  Parts = array shape 1000 fill "abcdefghij"
+  Rate = 0.3
+  Name = Parts "" join
+  Text = "x"
+  run
+
+  Marks = Noisy "" split equal "X"
+  Total = Name len
+  Share = Marks count / Total
+  (Share - 0.3) abs less 0.02
+end

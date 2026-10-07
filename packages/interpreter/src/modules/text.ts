@@ -87,6 +87,9 @@ export const textModule: RuntimeModule = {
         if (isRankSqliteExpression(value)) return textFunctionSqlite('rank_lower', [value]);
         return lowerText(value);
     }), { text: arguments_ => (arguments_[0] as string).toLowerCase() }),
+    letter: () => characterClass('letter', /^\p{L}$/u),
+    digit: () => characterClass('digit', /^\p{Nd}$/u),
+    alnum: () => characterClass('alnum', /^[\p{L}\p{N}]$/u),
     lpad: () => native('lpad', 3, arguments_ => {
         if (arguments_.some(isRankArray)) {
             return mapTextArguments(arguments_, args => lpadText(args[0], args[1], args[2]));
@@ -134,6 +137,19 @@ export const textModule: RuntimeModule = {
     }),
 
 };
+
+// Elementwise Unicode class test: one character gives a boolean,
+// a text array gives a boolean array of the same shape.
+function characterClass(name: string, pattern: RegExp) {
+    const test = (value: RankValue): boolean => {
+        if (typeof value !== 'string' || [...value].length !== 1) {
+            throw new RankError(`${name} expects one Unicode character`, 'TypeError');
+        }
+        return pattern.test(value);
+    };
+    return native(name, 1, ([value]) =>
+        isRankArray(value) ? mapTextArguments([value], args => test(args[0])) : test(value));
+}
 
 function startsWith(value: RankValue, prefix: RankValue): RankValue {
     // Bytes are whole binary values here; ordinary arrays keep text broadcasting.
