@@ -154,6 +154,39 @@ Use tensor and sequence idioms when they make the algorithm shorter and clearer.
 Keep direct BASIC-style loops when a vectorized form introduces more ceremony
 or hides important state.
 
+### Main program first, inputs as options
+
+The top-level program computes the answer and prints it. Do not wrap the whole
+task in a `main` or `solve` function. Add a function only for a repeated step,
+a recursive step, or a generator, as in the Euler 1-11 demos.
+
+Declare every value a test may want to change as an `option` from `use cli`,
+with a one-line `rem` above it as its help text: a limit, a seed, a rate, a
+tolerance, the text to search. Give each result a name (`Answer`, `Positions`,
+`Noisy`) so a test can read it after `run`.
+
+```rank
+use cli
+
+rem Chance that each letter becomes X.
+option Rate real = 0.2
+option Seed integer = 42
+```
+
+Randomized demos take a `Seed` option and call `Seed seed` before the first
+draw, so the output is repeatable.
+
+Notation reminders for demo code:
+
+- A function call lists all its arguments before the name: `Text Name 3 patFind`.
+- A new function call right after arithmetic needs a named intermediate value.
+- The window size goes on the right: `Values window Width`.
+- An empty or too-short input gives an empty result; handle it with a guard
+  around the vector steps, and document the contract in a `rem` header.
+- Declared option types are `integer`, `real`, `path` and `boolean`. `text` is
+  accepted by the runtime but does not parse yet (issue #239), so use `path`
+  for free text until it is fixed.
+
 ## Tests for examples
 
 Place tests in a neighboring `_test.ra` file. Every test independently imports
@@ -168,11 +201,32 @@ test "official example"
 end
 ```
 
+A program written as a main program with options is tested by setting the
+options in the workspace and calling `run`; a test may change an option and
+`run` again:
+
+```rank
+test "tolerance boundary"
+  use "002_names"
+  Text = "Jakc Jonnson"
+  Tolerance = 2
+  run
+  Missed = Positions len equal 0
+
+  Tolerance = 3
+  run
+  Missed and Positions len equal 1
+end
+```
+
 Tests should normally include:
 
 - the official small example when one exists;
 - one boundary or semantic case that could expose an interpreter mistake;
-- both puzzle parts when the task has two parts.
+- both puzzle parts when the task has two parts;
+- empty and oversized inputs when the program defines a contract for them;
+- for random output, a fixed seed and a statistical check with a stated
+  tolerance, never an exact count promised by chance.
 
 Keep manageable text, JSON and tabular samples as literals inside the test.
 Use fixture files only when file behavior itself is under test or the input is
