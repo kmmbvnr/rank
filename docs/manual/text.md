@@ -246,7 +246,8 @@ digit, alnum, split
 
 ## digit
 
-Test whether characters are decimal digits.
+Test whether characters are decimal
+digits.
 
 ```rank
 use text
@@ -263,8 +264,9 @@ false false false true
 Character digit
 ```
 
-Any script's decimal digits count. A text
-array gives one answer per character.
+Any script's decimal digits count.
+A text array gives one answer per
+character.
 
 ### See also
 
@@ -272,7 +274,8 @@ letter, alnum, split
 
 ## alnum
 
-Test whether characters are letters or numbers.
+Test whether characters are letters
+or numbers.
 
 ```rank
 use text
@@ -290,7 +293,8 @@ Character alnum
 ```
 
 The same characters that words keeps. A
-text array gives one answer per character.
+text array gives one answer per
+character.
 
 ### See also
 

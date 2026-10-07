@@ -288,3 +288,14 @@ describe('layoutNameFacts', () => {
         ]);
     });
 });
+
+it('keeps body alternatives separate from concrete call signatures', () => {
+    const definition = 'fun inc X\n return X + 1\nend';
+    const general = 'integer → integer ; real → real ; numeric cells lift ; … (other domains)';
+    for (const calls of ['1 inc\n1.5 inc', '1.5 inc\n1 inc']) {
+        const source = definition + '\n' + calls;
+        expect(factsAt(source, source.indexOf('inc'))?.signature).toBe(general);
+        const last = source.lastIndexOf('inc');
+        expect(factsAt(source, last)?.signature).toBe(calls.startsWith('1 inc') ? 'real → real' : 'integer → integer');
+    }
+});

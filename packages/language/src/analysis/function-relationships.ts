@@ -1,5 +1,6 @@
 import { binaryOperandFacts } from './binary-facts.js';
-import { findCompiledOperator, type CompiledOperator } from '../compiled-operators.js';
+import { findCompiledOperator } from '../compiled-operators.js';
+import { operatorContract } from '../operator-signature.js';
 import { parameterFacts } from './control-flow.js';
 import {
     isApplicationExpression, isBinaryExpression, isBooleanLiteral, isLabelLiteral, isNameExpression, isNumberLiteral,
@@ -16,7 +17,7 @@ export type TypeRelationship =
     | { readonly kind: 'constant'; readonly value: ValueFacts }
     | { readonly kind: 'tuple'; readonly items: readonly TypeRelationship[] }
     | { readonly kind: 'field'; readonly source: TypeRelationship; readonly name: string }
-    | { readonly kind: 'binary'; readonly operation: CompiledOperator; readonly left: TypeRelationship; readonly right: TypeRelationship }
+    | { readonly kind: 'binary'; readonly operation: { readonly name: string }; readonly left: TypeRelationship; readonly right: TypeRelationship }
     | { readonly kind: 'call'; readonly callee: FunctionRelationship; readonly arguments: readonly TypeRelationship[] };
 
 export interface RelationshipDependency {
@@ -55,7 +56,7 @@ export function functionRelationship(definition: FunctionStatement,
             const items = node.items.map(item => visit(item.value));
             if (items.every(item => item !== undefined)) term = { kind: 'tuple', items };
         } else if (isBinaryExpression(node) && !node.step) {
-            const operation = findCompiledOperator(node.operator);
+            const operation = operatorContract(node.operator) ? { name: node.operator } : undefined;
             const left = visit(node.left), right = visit(node.right);
             if (operation && left && right) term = { kind: 'binary', operation, left, right };
         } else if (isApplicationExpression(node)) {
@@ -111,7 +112,7 @@ export function instantiateRelationship(summary: FunctionRelationship, arguments
             case 'binary': {
                 const left = read(term.left), right = read(term.right);
                 if (left?.bottom || right?.bottom) value = BOTTOM_VALUE;
-                else if (left && right && supportedOperands(term.operation, left, right)) {
+                else if (left && right && supportedOperands(term.operation.name, left, right)) {
                     value = binaryOperandFacts(term.operation.name, left, right);
                 }
                 break;
@@ -146,7 +147,9 @@ export function instantiateRelationship(summary: FunctionRelationship, arguments
 
 /** Use the shared operator signatures to select supported scalar or lifted domains.
  * A declined domain retains ordinary analysis, including its diagnostics/effects. */
-function supportedOperands(operation: CompiledOperator, left: ValueFacts, right: ValueFacts): boolean {
+function supportedOperands(name: string, left: ValueFacts, right: ValueFacts): boolean {
+    const operation = findCompiledOperator(name);
+    if (!operation) return false;
     if (incompatibleShapes(left, right)) return false;
     // A scalar boolean on the left makes and/or guards, not lifted masks.
     if ((operation.binary === '&&' || operation.binary === '||')

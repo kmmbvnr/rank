@@ -843,7 +843,7 @@ test('arrow keys edit visible function arguments and return to them from the bod
         UP + UP,
         { keys: CLEAR + '4' + ENTER, until: 'Y = 4' },
         { keys: ENTER, until: '\\s+7' },
-        { keys: 'end' + ENTER, until: 'a b → c' },
+        { keys: 'end' + ENTER, until: 'integer integer → integer' },
     ], 100, 30);
     assert.match(frames[1].text, /X = 1\n\s+Y = /);
     assert.match(frames[2].text, /X = 1\n\s+Y = 2/);
@@ -852,7 +852,7 @@ test('arrow keys edit visible function arguments and return to them from the bod
     assert.match(frames[6].text.split('\n')[frames[6].cursorY], /^\s+Y = 2/);
     assert.doesNotMatch(frames[7].text, /\n\s+7\n/, 'the selected body line waits for Enter');
     assert.match(frames[8].text, /return X \+ Y\n\s+7/);
-    assert.match(frames[9].text, /a b → c/);
+    assert.match(frames[9].text, /integer integer → integer/);
 });
 
 test('a live function named plus is not rewritten to an operator in its preview call', async t => {
@@ -1152,7 +1152,7 @@ test('debugging a loaded file uses document line numbers for cells and function 
     fs.writeFileSync(target, 'rem Example\n\nAnswer = 21 twice\n\nfun twice X\n  return X + X\nend\n');
     const frames = await drive(t, [
         { keys: `load ${target}` + ENTER, until: 'forward.ra' },
-        { keys: ENTER, until: 'a → b' },
+        { keys: ENTER, until: 'integer → integer' },
         paused(UP + UP + UP + UP + UP + '\x14'),
         paused('\x14'),
         ENTER,

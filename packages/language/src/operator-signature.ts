@@ -70,11 +70,18 @@ const columnSignatures: readonly TypeSignature[] = [
     { inputs: ['unknown', 'column'], result: 'column' },
 ];
 
+/** Ordered complete public contract. SQL dispatch must be tested before cell dispatch. */
+export function operatorContract(name: string): { readonly columns: readonly TypeSignature[]; readonly cells: readonly TypeSignature[] } | undefined {
+    name = name.replace(/\s+/g, '');
+    const cells = operatorSignatures[name];
+    return cells && { cells, columns: columnOperators.has(name) ? columnSignatures : [] };
+}
+
 export function operatorSignature(name: string, inputs?: readonly ValueFacts[]): string | undefined {
     name = name.replace(/\s+/g, '');
-    const declared = operatorSignatures[name];
-    if (!declared) return undefined;
-    const columns = columnOperators.has(name) ? columnSignatures : [];
+    const contract = operatorContract(name);
+    if (!contract) return undefined;
+    const { cells: declared, columns } = contract;
     const knownColumn = inputs?.some(input => input.types.length === 1 && input.types[0] === 'sqlite-expression');
     const signatures = knownColumn && columns.length ? columns : [...declared, ...columns];
     const selected = inputs ? matchingSignatures(signatures, inputs) : signatures;
