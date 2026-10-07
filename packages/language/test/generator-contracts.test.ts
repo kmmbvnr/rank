@@ -35,3 +35,13 @@ it('does not carry facts across a terminating branch', () => {
     const result = contract('fun f N\n if N greater 0\n  return\n else\n  X = 1\n end\n yield X\nend');
     expect(result.alternatives[0]).toEqual({ inputs: ['integer'], result: { collection: 'sequence', element: 'integer' } });
 });
+
+it('does not treat writes to an enclosing scope as stable generator locals', () => {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(
+        'fun outer\n X = 0\n fun inner N\n  X = 1\n  yield X\n end\n return inner\nend');
+    expect(parsed.parserErrors).toEqual([]);
+    const outer = parsed.value.statements[0];
+    if (!isFunctionStatement(outer)) throw new Error('missing outer function');
+    const inner = outer.statements.find(isFunctionStatement)!;
+    expect(inferGeneratorContract(inner).alternatives).toEqual([]);
+});

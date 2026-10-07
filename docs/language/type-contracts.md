@@ -353,8 +353,8 @@ shows `integer → sequence<integer>` for its integer input alternative. Sequenc
 length and termination remain unknown. Locals defined only inside a possibly
 empty loop or only on one continuing branch do not establish a cell type.
 
-This generator analysis is for display only. Captures, helper calls, ranked
-generators and unsupported statements keep their element domains unresolved;
+This generator analysis is for display only. Captures, helper calls, nested or
+ranked generators and unsupported statements keep their element domains unresolved;
 an ordinary generator can still display `a → sequence`. It shares a fixed work
 budget across candidate inputs and nested loops and retains the explicit
 unresolved remainder. It neither runs the body nor changes runtime type checks.

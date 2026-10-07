@@ -131,6 +131,8 @@ export function inferGeneratorContract(definition: FunctionStatement, limit = 10
             if (exhausted) break;
         }
     };
-    if (!definition.ranks.length) enumerate([]);
+    // Nested functions can assign an enclosing binding which can change while
+    // suspended. Only top-level functions establish these independent locals.
+    if (!definition.ranks.length && definition.$container.$type === 'Program') enumerate([]);
     return { alternatives, unresolved: true, exhausted };
 }
