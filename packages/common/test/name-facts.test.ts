@@ -291,7 +291,7 @@ describe('layoutNameFacts', () => {
 
 it('keeps body alternatives separate from concrete call signatures', () => {
     const definition = 'fun twice X\n return X + X\nend';
-    const general = 'a → a ; a: number ; numeric cells lift ; … (other domains)';
+    const general = 'a → a ; a: number ; c<a> → c<a> ; a: number ; c: array | sequence ; …';
     for (const calls of ['1 twice\n1.5 twice', '1.5 twice\n1 twice']) {
         const source = definition + '\n' + calls;
         expect(factsAt(source, source.indexOf('twice'))?.signature).toBe(general);

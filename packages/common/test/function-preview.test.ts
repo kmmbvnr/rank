@@ -3,11 +3,11 @@ import { createReplSession } from '../src/repl-session.js';
 
 describe('function result signatures', () => {
     it.each([
-        ['fun inc X\n return X + 1\nend', 'integer → integer ; numeric cells lift ; … (other domains)'],
+        ['fun inc X\n return X + 1\nend', 'integer → integer ; c<integer> → c<integer> ; c: array | sequence ; …'],
         ['fun identity X\n return X\nend', 'a → a'],
         ['fun pair X\n return tuple X "label"\nend', 'a → tuple(a, text)'],
-        ['fun add X Y\n return X + Y\nend', 'a a → a ; a: number ; numeric cells lift ; … (other domains)'],
-        ['fun countdown N\n for N greater 0\n  yield N\n  N -= 1\n end\nend', 'integer → sequence<integer> ; … (other domains)'],
+        ['fun add X Y\n return X + Y\nend', 'a a → a ; a: number ; c<a> a → c<a> ; a: number ; c: array | sequence ; a c<a> → c<a> ; a: number ; c: array | sequence ; …'],
+        ['fun countdown N\n for N greater 0\n  yield N\n  N -= 1\n end\nend', 'integer → sequence<integer> ; …'],
     ])('shows the inferred signature for %s', async (source, signature) => {
         const session = createReplSession();
         try {
@@ -36,7 +36,7 @@ describe('function result signatures', () => {
 it('does not cache example specialization as the general function contract', async () => {
     const session = createReplSession();
     const source = 'fun twice X\n return X + X\nend';
-    const general = 'a → a ; a: number ; numeric cells lift ; … (other domains)';
+    const general = 'a → a ; a: number ; c<a> → c<a> ; a: number ; c: array | sequence ; …';
     try {
         await session.execute(source, 0, [], 40, true);
         for (const expression of ['1 twice', '1.5 twice', '2 twice']) {
@@ -50,7 +50,7 @@ it('does not cache example specialization as the general function contract', asy
 it('shows a compact four-parameter contract in a 40-column session without caching a call specialization', async () => {
     const session = createReplSession();
     const source = 'fun sum4 A B C D\n return ((A + B) + C) + D\nend';
-    const general = 'a a a a → a ; a: number ; numeric cells lift ; … (other domains)';
+    const general = 'a a a a → a ; a: number ; c<a> a a a → c<a> ; a: number ; c: array | sequence ; a c<a> a a → c<a> ; a: number ; c: array | sequence ; …';
     try {
         expect((await session.execute(source, 0, [], 40, true)).output.map(row => row.text).join(' ')).toBe(general);
         expect((await session.execute('1 2 3 4 sum4', 1, [], 40, true)).output.map(row => row.text)).toEqual(['10']);
@@ -83,9 +83,9 @@ it('infers functions after CLI options and a loop in the full notebook context',
         expect((await session.execute('option N integer = 42', 1, file, 40, true)).ok).toBe(true);
         expect((await session.execute('for N greater 1\n N = 1\nend', 2, file, 40, true)).ok).toBe(true);
         expect((await session.execute(generator, 1, file, 40, true)).output.map(row => row.text).join(' '))
-            .toBe('integer → sequence<integer> ; … (other domains)');
+            .toBe('integer → sequence<integer> ; …');
         expect((await session.execute(inc, 2, file, 40, true)).output.map(row => row.text).join(' '))
-            .toBe('integer → integer ; numeric cells lift ; … (other domains)');
+            .toBe('integer → integer ; c<integer> → c<integer> ; c: array | sequence ; …');
     } finally { session.dispose(); }
 });
 

@@ -27,7 +27,7 @@ it('retains relationships through composed helpers', () => {
 
 it('uses example types without guessing unconstrained arithmetic domains', () => {
     const source = 'fun twice Value\n return Value + Value\nend';
-    expect(signature(source, 'twice')).toBe('a → a ; a: number ; numeric cells lift ; … (other domains)');
+    expect(signature(source, 'twice')).toBe('a → a ; a: number ; c<a> → c<a> ; a: number ; c: array | sequence ; …');
     expect(signature(source, 'twice', [{ types: ['integer'], rank: 0, shape: [] }])).toBe('integer → integer');
     expect(signature(source, 'twice', [{ types: ['array'], rank: 2, shape: [2, 3], elements: ['real'], callbackFreeScalarCells: true }]))
         .toBe('array[2, 3]<real> → array[2, 3]<real>');
@@ -69,7 +69,7 @@ it('infers generator locals across branches and loop back edges', () => {
   end
  end
 end`;
-    expect(signature(source, 'facts')).toBe('integer → sequence<integer> ; … (other domains)');
+    expect(signature(source, 'facts')).toBe('integer → sequence<integer> ; …');
 });
 
 it('does not advertise incompatible generator writes or heterogeneous cells', () => {
@@ -103,4 +103,10 @@ it('retains the inference limit when unsupported fields leave no preview alterna
         { types: ['record'], fields: { value: { types: ['integer'], rank: 0, shape: [] } } },
         ...Array.from({ length: 3 }, () => ({ types: ['integer'], rank: 0, shape: [] })),
     ])).toBe('record integer integer integer → integer');
+});
+
+
+it('shows the collection result element separately from its preserved container kind', () => {
+    expect(signature('fun half X\n return X / 2\nend', 'half'))
+        .toBe('integer → real ; c<integer> → c<real> ; c: array | sequence ; …');
 });

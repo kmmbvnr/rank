@@ -349,12 +349,13 @@ constant or an explicit conversion. These are related
 alternatives, not independent unions of inputs and outputs. Supported helper
 calls carry the intermediate types through the same analysis.
 
-The notebook displays the first two scalar alternatives, followed by
-`numeric cells lift` when numeric array or sequence alternatives apply.
+The notebook displays up to two scalar and two collection alternatives.
+Matching array and sequence alternatives share a container variable: for
+`return X + 1`, the collection signature is
+`c<integer> → c<integer> ; c: array | sequence`.
 Array rank remains generic. Adding a scalar preserves the numeric
-collection's shape; two collections still follow broadcasting rules, so
-this label does not require equal shapes. `… (other domains)` explicitly
-marks a partial display and unresolved domains. Duration, missing values
+collection's shape; two collections still follow broadcasting rules.
+`…` marks a partial display and unresolved domains. Duration, missing values
 and SQL expressions remain in the structured alternatives; SQL dispatch
 precedes missing propagation. Empty or untyped lazy collections cannot
 establish an element requirement from an unevaluated cell.
