@@ -193,6 +193,11 @@ or rank-1 arrays with one value per row; the output rows are read lazily and
 missing source cells remain missing. The source table is unchanged. Put
 `sort by` after an ordinary `select` when the exported rows need a guaranteed order.
 
+Explicit `integer` and `real` conversions also work on SQLite columns. They
+keep the query lazy, use the scalar conversion rules, and preserve SQL `NULL`.
+Inside a `select` block, use `.field real rank 0` to convert each numeric cell;
+the same expression works on an array table.
+
 Inside a `select` block, bare `rownumber` gives each row its one-based position:
 
 ```rank

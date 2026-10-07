@@ -321,3 +321,23 @@ test('raw SQL accepts mixed tuple parameters and reuses inspected parameters', (
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stdout, "O'Brien Court\n");
 }));
+
+
+test('explicit numeric conversions keep SQLite columns lazy and preserve missing cells', () => fixture((directory, dbPath) => {
+    const result = runSource(directory, `use io\nuse sequences\nuse tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
+        + 'Facilities = Db .facilities\nConverted = Facilities select\n'
+        + ' .id = .facid real rank 0\n .cost = .guestcost integer rank 0\n'
+        + ' .maintenance = .monthlymaintenance real rank 0\nend\n'
+        + 'Query = Converted sql\nQuery .text print\nRows = Converted array\n'
+        + '(Rows .id + 0.5) print\n(Rows .cost + 1) print\n'
+        + '(Rows .maintenance default 0.0) print\n');
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /rank_real\("facid"\)/);
+    assert.match(result.stdout, /rank_integer\("guestcost"\)/);
+    assert.deepEqual(result.stdout.trim().split('\n').slice(-3), ['0.5 1.5', '26 16', '200 0']);
+    const invalid = runSource(directory, `use io\nuse tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
+        + 'Facilities = Db .facilities\nConverted = Facilities select\n'
+        + ' .name = .name real rank 0\nend\nConverted print\n');
+    assert.notEqual(invalid.status, 0);
+    assert.match(invalid.stderr, /invalid real text/);
+}));

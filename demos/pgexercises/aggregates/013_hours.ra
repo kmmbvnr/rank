@@ -15,7 +15,7 @@ R = B F innerjoin by .facid
 R = R select
   .facid = .facid
   .name = .name
-  .hours = .slots * 0.5
+  .hours = (.slots real rank 0) * 0.5
 end
 G = R group by .facid .name
 Result = G select

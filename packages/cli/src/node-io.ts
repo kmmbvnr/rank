@@ -4,6 +4,7 @@ import * as pathModule from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { integerValue, realValue } from '@arrrank/interpreter';
 import type {
     RankFileHandle, RankFileMode, RankInput, RankIo,
     RankSqliteConnection, SqliteScalar,
@@ -29,6 +30,14 @@ interface NativeSqliteDatabase {
 function registerRankText(database: NativeSqliteDatabase): void {
     const add = (name: string, fn: (...args: SqliteScalar[]) => SqliteScalar) =>
         database.function(name, { deterministic: true, safeIntegers: true }, fn);
+    const numericConversion = (name: string, convert: (value: string | bigint | number) => SqliteScalar) =>
+        add(`rank_${name}`, value => {
+            if (value === null) return null;
+            if (typeof value === 'object') throw new TypeError(`${name} expects an integer, real or text`);
+            return convert(value);
+        });
+    numericConversion('integer', integerValue);
+    numericConversion('real', realValue);
     add('rank_text', value => value === null ? null : String(value));
     add('rank_boolean_text', value => value === null ? null : value ? 'true' : 'false');
     add('rank_lower', value => {

@@ -38,6 +38,14 @@ describe('column tables', () => {
         expect(show('Data .Age median')).toBe('26');
     });
 
+    it('uses explicit ranked numeric conversions inside a select block', () => {
+        const { show, runtime } = session();
+        try {
+            expect(show('Converted = Data select\n .id = .Id real rank 0\nend\nConverted .id + 0.5'))
+                .toBe('1.5 2.5 3.5 4.5');
+        } finally { runtime.dispose(); }
+    });
+
     it('reads a row as a snapshot and a cell inside it', () => {
         const { show } = session();
         expect(show('Data 0 .Sex')).toBe('male');
