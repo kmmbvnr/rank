@@ -396,6 +396,10 @@ function render(): void {
     const painted: string[] = [];
     frame.lines.forEach((line, index) => {
         const element = screen.children[index] as HTMLElement;
+        const target = frame.targets?.[index];
+        const comment = target?.kind === 'source' && /^\s*rem(?:\s|$)/.test(
+            repl.notebook.cells[target.cell]?.source.split('\n')[target.line - 1] ?? '');
+        element.classList.toggle('terminal-comment', comment);
         element.classList.toggle('terminal-facts', frame.factsRow !== undefined && index >= frame.factsRow
             && index < frame.factsRow + (frame.factsRowCount ?? 1) || index === frame.statusRow);
         // Results, values and errors, are drawn a little smaller than code on a phone.

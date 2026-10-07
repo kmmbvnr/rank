@@ -22,6 +22,7 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 #terminal { position: fixed; top: calc(var(--top) + var(--chrome-height) + var(--terminal-inset)); left: var(--terminal-inset); width: calc(100% - 2 * var(--terminal-inset) - var(--keyboard-width)); height: calc(var(--height) - var(--chrome-height) - var(--keyboard-height) - 2 * var(--terminal-inset)); overflow: hidden; touch-action: pan-y; }
 #screen { will-change: transform; margin: 0; font: inherit; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 .terminal-row { height: 1.5em; white-space: pre; }
+.terminal-row.terminal-comment { color: #aaa; }
 /* The name under the cursor: smaller, in the same 1.5em of row height. */
 .terminal-row.terminal-facts { font-size: .85em; height: calc(1.5em / .85); line-height: calc(1.5em / .85); }
 /* A result on a touch console, a value or an error: a little smaller than code, in the same 1.5em of row height so the grid and taps still line up. */
