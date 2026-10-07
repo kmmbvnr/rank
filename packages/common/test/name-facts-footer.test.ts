@@ -155,7 +155,7 @@ it('renders a proven notebook relationship and a concrete call signature in the 
         const definition = 'fun identity Value\n return Value\nend';
         expect(footer(repl, definition, definition.indexOf('identity') + 1)).toBe('facts: identity · a → a');
         const call = definition + '\n1 identity';
-        expect(footer(repl, call, call.lastIndexOf('identity') + 1)).toBe('facts: identity · integer → integer');
+        expect(footer(repl, call, call.lastIndexOf('identity') + 1)).toBe('facts: identity · i → i');
     } finally { session.dispose(); }
 });
 
