@@ -1,5 +1,5 @@
 import { operatorContract } from '../operator-signature.js';
-import { signatureType, type SignatureAtom, type SignatureType, type TypeSignature } from '../type-signature.js';
+import { instantiateTypeSignature, signatureType, type SignatureAtom, type SignatureType, type TypeSignature } from '../type-signature.js';
 import type { FunctionRelationship, TypeRelationship } from './function-relationships.js';
 
 export interface FunctionAlternative extends TypeSignature {
@@ -23,12 +23,6 @@ const domains: readonly SignatureType[] = [...atoms,
 const collection = (type: SignatureType): type is Extract<SignatureType, { collection: SignatureAtom }> =>
     typeof type === 'object' && 'collection' in type;
 
-function matches(pattern: SignatureType, actual: SignatureType): boolean {
-    if (typeof pattern === 'string') return pattern === 'unknown' || pattern === actual
-        || pattern === 'number' && (actual === 'integer' || actual === 'real');
-    if ('union' in pattern) return pattern.union.some(member => matches(member, actual));
-    return false;
-}
 
 /** Enumerate a small, fixed nominal domain, retaining whole input/result rows.
  * Each invocation owns its budget and state. An explicit remainder makes this a
@@ -74,13 +68,11 @@ export function inferFunctionContract(summary: FunctionRelationship, arity: numb
                 const contract = operatorContract(term.operation.name);
                 if (!contract) return undefined;
                 // SQL dispatch is prior to missing propagation and collection lifting.
-                const sql = contract.columns.find(row => row.inputs.length === 2
-                    && row.inputs.every((pattern, index) => matches(pattern, [left, right][index])));
+                const sql = contract.columns.map(row => instantiateTypeSignature(row, [left, right])).find(row => row !== undefined);
                 if (sql) return sql.result;
                 const a = collection(left) ? left.element : left;
                 const b = collection(right) ? right.element : right;
-                const row = contract.cells.find(row => row.inputs.length === 2
-                    && row.inputs.every((pattern, index) => matches(pattern, [a, b][index])));
+                const row = contract.cells.map(row => instantiateTypeSignature(row, [a, b])).find(row => row !== undefined);
                 if (!row) return undefined;
                 if (!collection(left) && !collection(right)) return row.result;
                 // Only numeric arithmetic lifting is represented here. Guards,

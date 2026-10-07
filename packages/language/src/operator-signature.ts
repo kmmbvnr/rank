@@ -5,12 +5,12 @@ const nullableBoolean: SignatureType = { union: ['boolean', 'missing'] };
 const binary = (left: SignatureType, right: SignatureType, result: SignatureType): TypeSignature =>
     ({ inputs: [left, right], result, ranks: [0, 0] });
 const missing = [binary('missing', 'unknown', 'missing'), binary('unknown', 'missing', 'missing')];
-const ordered = (['integer', 'real', 'text', 'boolean', 'symbol', 'date', 'datetime', 'record'] as const)
-    .map(type => binary(type, type, 'boolean'));
-const numeric = [binary('integer', 'integer', 'integer'), binary('real', 'real', 'real')];
+const number: SignatureType = { variable: 0, domain: ['integer', 'real'] };
+const ordered = [binary(number, number, 'boolean'), ...(['text', 'boolean', 'symbol', 'date', 'datetime', 'record'] as const)
+    .map(type => binary(type, type, 'boolean'))];
+const numeric = [binary(number, number, number)];
 const signs: readonly TypeSignature[] = [
-    { inputs: ['integer'], result: 'integer', ranks: [0] },
-    { inputs: ['real'], result: 'real', ranks: [0] },
+    { inputs: [number], result: number, ranks: [0] },
     { inputs: ['missing'], result: 'missing', ranks: [0] },
 ];
 
@@ -37,7 +37,7 @@ export const operatorSignatures: Readonly<Record<string, readonly TypeSignature[
         binary('datetime', 'duration', 'datetime'), binary('duration', 'datetime', 'datetime')],
     '-': [...signs, ...numeric, ...missing, binary('datetime', 'datetime', 'duration')],
     '*': [...numeric, ...missing, binary('duration', 'number', 'duration'), binary('number', 'duration', 'duration')],
-    '/': [binary('integer', 'integer', 'real'), binary('real', 'real', 'real'), ...missing],
+    '/': [binary(number, number, 'real'), ...missing],
     '//': [...numeric, ...missing],
     'mod': [...numeric, ...missing],
     // Integer exponents can be negative, so integer inputs alone do not prove an integer result.

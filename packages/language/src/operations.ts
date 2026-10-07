@@ -113,8 +113,6 @@ export interface Operation {
     readonly effects?: readonly Effect[];
     /** Operand domain in which scalar calls cannot invoke Rank callbacks. Throws are allowed. */
     readonly scalarNoCallback?: 'integer' | 'number';
-    /** A numeric scalar result keeps its operand's integer or real type. */
-    readonly preservesNumericScalarType?: true;
     /** Unary application maps each scalar cell of an array or sequence. */
     readonly mapsScalarCells?: true;
     /** Accepted cells for a callback-free reduction of one scalar-cell array. */
@@ -734,10 +732,10 @@ export const operations: readonly Operation[] = [
         summary: 'Solves A * X = B for a square coefficient matrix.' },
 
     { name: 'abs', module: 'numbers', arities: [1], form: 'Value abs', result: 'number',
-        signatures: [{ inputs: ['integer'], result: 'integer', ranks: [0] },
-            { inputs: ['real'], result: 'real', ranks: [0] }, { inputs: ['missing'], result: 'missing', ranks: [0] }],
+        signatures: [{ inputs: [{ variable: 0, domain: ['integer', 'real'] }],
+            result: { variable: 0 }, ranks: [0] }, { inputs: ['missing'], result: 'missing', ranks: [0] }],
         shape: [{ args: [[]], result: [] }],
-        monadicRank: 0, scalarNoCallback: 'number', preservesNumericScalarType: true,
+        monadicRank: 0, scalarNoCallback: 'number',
         summary: 'Absolute value, keeping the integer or real type.' },
     { name: 'acos', module: 'numbers', arities: [1], form: 'Value acos', result: 'real', mapsScalarCells: true,
         signatures: realMathSignatures,

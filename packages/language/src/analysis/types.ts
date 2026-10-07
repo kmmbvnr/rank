@@ -1,3 +1,5 @@
+import { inferSignatureResultTypes } from '../signature-matching.js';
+import type { SignatureAtom } from '../type-signature.js';
 import { joinTypes } from './value-domain.js';
 import { flattenApplication } from '../expressions.js';
 import { applicationForm } from '../application-forms.js';
@@ -306,7 +308,11 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
     const arity = unaryTail ? 1 : parts.length - 1;
     const source = typeOf(unaryTail ? expression.head : head, lookup);
     if (operation.arities.includes(arity)) {
-        if (arity === 1 && operation.preservesNumericScalarType && within(source, NUMBERS)) return source;
+        if (arity === 1 && within(source, NUMBERS)) {
+            const result = inferSignatureResultTypes(operation.signatures ?? [],
+                [{ union: source as readonly SignatureAtom[] }]);
+            if (result) return result;
+        }
         if ((arity === 1 && mapsScalarCells(operation) || arity === 2 && operation.preservesCollectionElements)
             && !same(source, 'array') && !same(source, 'sequence') && !within(source, NUMBERS)) return UNKNOWN;
         if (arity === 1 && mapsScalarCells(operation)

@@ -5,7 +5,7 @@ import {
 } from '../generated/ast.js';
 import { operatorContract } from '../operator-signature.js';
 import { possibleBindingTypeConflict, settledBindingTypes } from '../binding-rule.js';
-import type { SignatureAtom, SignatureType } from '../type-signature.js';
+import { instantiateTypeSignature, type SignatureAtom, type SignatureType } from '../type-signature.js';
 import type { FunctionAlternative, FunctionContract } from './function-contracts.js';
 
 type Domain = readonly SignatureAtom[];
@@ -15,9 +15,6 @@ const candidates: readonly SignatureAtom[] = ['integer', 'real', 'boolean', 'tex
 const union = (domains: readonly Domain[]): Domain => [...new Set(domains.flat())].sort();
 const contracts = (domains: readonly Domain[]): readonly Domain[] =>
     [...new Map(domains.map(domain => [domain.join(), domain])).values()].sort((a, b) => a.join().localeCompare(b.join()));
-const matches = (pattern: SignatureType, atom: SignatureAtom): boolean => typeof pattern === 'string'
-    ? pattern === atom || pattern === 'unknown' || pattern === 'number' && ['integer', 'real'].includes(atom)
-    : 'union' in pattern && pattern.union.some(member => matches(member, atom));
 const atoms = (type: SignatureType): Domain | undefined => typeof type === 'string' && type !== 'unknown'
     ? [type] : typeof type === 'object' && 'union' in type
         && type.union.every(member => typeof member === 'string' && member !== 'unknown')
@@ -41,8 +38,7 @@ export function inferGeneratorContract(definition: FunctionStatement, limit = 10
         const results: Domain[] = [];
         for (const a of left) for (const b of right) {
             if (!tick()) return undefined;
-            const row = rows?.find(row => row.inputs.length === 2
-                && matches(row.inputs[0], a) && matches(row.inputs[1], b));
+            const row = rows?.map(row => instantiateTypeSignature(row, [a, b])).find(row => row !== undefined);
             const result = row && atoms(row.result);
             if (!result) return undefined;
             results.push(result);

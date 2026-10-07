@@ -329,6 +329,14 @@ established relationship; unrelated unknowns display as `? → ?`.
 `array<real>` has unspecified rank. A `[rank 2]` annotation describes the
 processed cell rank, independently of the whole array's rank.
 
+Numeric-preserving contracts use a shared type variable with a finite domain:
+`a a → a ; a: number` requires the same concrete integer or real type in both
+operands. A known call substitutes that type into the result. `abs` uses
+`a → a ; a: number`, with a separate missing-value alternative. These shared
+contracts supply nominal result types; they do not prove callback safety,
+values, or array dimensions. Unknown inputs do not establish a concrete type.
+
+
 An uncalled single-return function can expose conditional input/result
 alternatives from the fixed contracts of built-in operators. For example,
 `return X + 1` shows `integer → integer`, whereas
