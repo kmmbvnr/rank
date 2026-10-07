@@ -69,14 +69,14 @@ it('infers generator locals across branches and loop back edges', () => {
   end
  end
 end`;
-    expect(signature(source, 'facts')).toBe('integer → sequence<integer> ; real → sequence<integer | real> ; … (other domains)');
+    expect(signature(source, 'facts')).toBe('integer → sequence<integer> ; … (other domains)');
 });
 
-it('unions generator domains over later iterations and continuing branches', () => {
+it('does not advertise incompatible generator writes or heterogeneous cells', () => {
     expect(signature('fun f N\n X = 1\n for N greater 0\n  yield X\n  X = X / 2\n  N -= 1\n end\nend', 'f'))
-        .toContain('integer → sequence<integer | real>');
+        .toBe('a → sequence');
     expect(signature('fun f N\n if N greater 0\n  X = 1\n else\n  X = 1.5\n end\n yield X\nend', 'f'))
-        .toContain('integer → sequence<integer | real>');
+        .toBe('a → sequence');
     expect(signature('fun f N\n for N greater 0\n  X = 1\n  N -= 1\n end\n yield X\nend', 'f')).toBe('a → sequence');
     expect(signature('fun f N\n yield N unknown_helper\nend', 'f')).toBe('a → sequence');
     expect(signature('fun f N\n yield 1.0\nend', 'f')).toContain('integer → sequence<real>');
