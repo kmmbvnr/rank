@@ -240,7 +240,7 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #value-viewer regular-table td.viewer-error { color: #ff6b5e; }
 
 /* The notebook drawer uses the reference's roomy rows with Rank's neutral palette. */
-#notebook-panel { position: fixed; inset: 0 auto 0 0; margin: 0; width: min(82vw, 380px); max-width: none; height: 100dvh; max-height: none; padding: max(20px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); border: 0; border-right: 1px solid #303030; color: #e5e5e5; background: #181818; font-family: "Helvetica Neue", "sans-serif-light", sans-serif; font-size: 17px; font-weight: 300; letter-spacing: .015em; line-height: 1.5; overflow: hidden; }
+#notebook-panel { position: fixed; inset: 0 auto 0 0; margin: 0; width: min(82vw, 380px); max-width: none; height: 100dvh; max-height: none; padding: max(20px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); border: 0; border-right: 1px solid #303030; color: #e5e5e5; background: #181818; font-family: "Helvetica Neue", "sans-serif-light", sans-serif; font-size: 15px; font-weight: 300; letter-spacing: .015em; line-height: 1.5; overflow: hidden; }
 #notebook-panel[open] { display: flex; flex-direction: column; animation: history-enter 180ms ease-out; }
 #notebook-panel::backdrop { background: rgba(0, 0, 0, .6); }
 #notebook-panel header { display: flex; align-items: center; flex: none; min-height: 56px; }
