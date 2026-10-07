@@ -6,6 +6,7 @@ import {
 } from '@arrrank/interpreter';
 import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@arrrank/language';
 import { preview } from './preview.js';
+import { keyAvailable } from './symbol-keyboard.js';
 import { nameFactsIn } from './name-facts.js';
 import { SequenceReplay, type SequenceExtension } from './sequence-replay.js';
 import { STALE, inspectValue, viewLabel, type InspectRequest, type Inspection } from './value-inspection.js';
@@ -683,10 +684,16 @@ function complete(source: string, interpreter: EditorBindings, state: CellState)
     const word = /[A-Za-z_][A-Za-z0-9_]*$/.exec(line)?.[0] ?? '';
     const before = line.slice(0, line.length - word.length).trimEnd();
     const pool = [...new Set(candidates(before, bindings, state))];
+    const last = tokenize(line).at(-1);
+    const lowercaseVariable = last?.kind === 'word' && last.end === line.length
+        && /^[a-z]/.test(word) && line[line.length - word.length - 1] !== '.';
+    const variableMatches = lowercaseVariable ? new Set(pool.filter(name => bindings.variables.has(name)
+        && /^[A-Z]/.test(name) && (name[0].toLowerCase() + name.slice(1)).startsWith(word)
+        && keyAvailable(name, before))) : new Set<string>();
     // A spelled operator is two words, so `at le` has to reach `at least`. Try
     // the longest run of typed words first and give back what it replaces.
     for (const typed of prefixes(line, word)) {
-        const hits = pool.filter(name => name.startsWith(typed)).sort();
+        const hits = pool.filter(name => name.startsWith(typed) || typed === word && variableMatches.has(name)).sort();
         if (hits.length === 0) continue;
         // One match means the next thing typed is a new word, so give it its space.
         return [hits.length === 1 ? [`${hits[0]} `] : hits, typed];

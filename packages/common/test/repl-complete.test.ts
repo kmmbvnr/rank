@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { NotebookRepl } from '../src/repl.js';
-import { createReplSession } from '../src/repl-session.js';
+import { createReplSession, sessionEditor } from '../src/repl-session.js';
 
 describe('Repl inline completion and cancel', () => {
     it('swiping right completes with a trailing space and cycles candidates', () => {
@@ -83,4 +83,51 @@ describe('Repl inline completion and cancel', () => {
         repl.complete();
         expect(repl.notebook.current.source).toBe('N mod ');
     });
+});
+
+
+describe('lowercase variable prefix completion', () => {
+    it('uses the same variable completion in the worker snapshot editor', () => {
+        const editor = sessionEditor({ names: ['Number'], modules: [], aliases: false });
+        expect(editor.complete('num')).toEqual([['Number '], 'num']);
+    });
+
+    it('completes a prefix from a previous binding and restores it on cancellation', async () => {
+        const session = createReplSession();
+        const repl = new NotebookRepl(session);
+        try {
+            await session.execute('Number = 5', 0, [], 40, true);
+            repl.notebook.replace('num');
+            repl.complete(true);
+            expect(repl.notebook.current.source).toBe('Number ');
+            expect(repl.cancelCompletion()).toBe(true);
+            expect(repl.notebook.current.source).toBe('num');
+        } finally { session.dispose(); }
+    });
+
+    it('completes and cycles local variable prefixes inside an unfinished function', () => {
+        const session = createReplSession();
+        const repl = new NotebookRepl(session);
+        try {
+            const prefix = 'fun count Number\n Total = 0\n TotalCount = 1\n return ';
+            repl.notebook.replace(prefix + 'tot');
+            repl.complete(true);
+            expect(repl.notebook.current.source).toBe(prefix + 'Total ');
+            repl.complete(true);
+            expect(repl.notebook.current.source).toBe(prefix + 'TotalCount ');
+            expect(session.names).not.toContain('Total');
+            repl.cancelCompletion();
+            expect(repl.notebook.current.source).toBe(prefix + 'tot');
+        } finally { session.dispose(); }
+    });
+
+    it.each(['"num', 'rem num', 'use num', 'option Limit num', 'Record.num'])
+        ('does not offer a variable where it is not an operand: %s', async source => {
+            const session = createReplSession();
+            try {
+                await session.execute('Number = 5', 0, [], 40, true);
+                expect(session.complete(source)[0]).not.toContain('Number ');
+                expect(session.complete(source)[0]).not.toContain('Number');
+            } finally { session.dispose(); }
+        });
 });
