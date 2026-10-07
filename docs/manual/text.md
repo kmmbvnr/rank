@@ -217,6 +217,85 @@ English.
 
 words, startswith
 
+## letter
+
+Test whether characters are letters.
+
+```rank
+use text
+"Hi 5" "" split letter
+```
+
+```result
+true true false false
+```
+
+### Usage
+
+```text
+Character letter
+```
+
+Works for every language. A text array
+gives one answer per character; each
+element must be exactly one character.
+
+### See also
+
+digit, alnum, split
+
+## digit
+
+Test whether characters are decimal digits.
+
+```rank
+use text
+"Hi 5" "" split digit
+```
+
+```result
+false false false true
+```
+
+### Usage
+
+```text
+Character digit
+```
+
+Any script's decimal digits count. A text
+array gives one answer per character.
+
+### See also
+
+letter, alnum, split
+
+## alnum
+
+Test whether characters are letters or numbers.
+
+```rank
+use text
+"Hi 5!" "" split alnum
+```
+
+```result
+true true false true false
+```
+
+### Usage
+
+```text
+Character alnum
+```
+
+The same characters that words keeps. A
+text array gives one answer per character.
+
+### See also
+
+letter, digit, words
+
 ## lpad
 
 Pad text on the left to a minimum width.

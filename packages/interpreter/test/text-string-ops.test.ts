@@ -15,6 +15,26 @@ describe('Unicode string operations', () => {
             .toBe('1 2');
     });
 
+    it('classifies Unicode characters elementwise', () => {
+        expect(run('use text\n"a" letter')).toBe('true');
+        expect(run('use text\n"é" letter')).toBe('true');
+        expect(run('use text\n"5" letter')).toBe('false');
+        expect(run('use text\n"٣" digit')).toBe('true');
+        expect(run('use text\n"²" digit')).toBe('false');
+        expect(run('use text\n"²" alnum')).toBe('true');
+        expect(run('use text\n" " alnum')).toBe('false');
+        expect(run('use text\n"Ab 1,é" "" split letter'))
+            .toBe('true true false false false true');
+        expect(run('use text\n"Ab 1" "" split digit'))
+            .toBe('false false false true');
+    });
+
+    it('rejects text that is not one character', () => {
+        expect(() => run('use text\n"ab" letter')).toThrowError('letter expects one');
+        expect(() => run('use text\n"" digit')).toThrowError('digit expects one');
+        expect(() => run('use text\n1 alnum')).toThrowError('alnum expects one');
+    });
+
     it('rejects invalid widths, fills and mismatched argument arrays', () => {
         expect(() => run('use text\n"A" (-1) "0" lpad'))
             .toThrowError('lpad expects text');

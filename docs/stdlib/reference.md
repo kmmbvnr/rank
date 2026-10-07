@@ -510,6 +510,9 @@ Splitting, formatting, parsing and code points.
 | `Text Separator split` | array | binary all / all | Splits at every exact occurrence of a separator, keeping empty parts. |
 | `Value Prefix startswith` | boolean | binary all / all | Exact text or byte prefix test; ordinary arrays broadcast elementwise. |
 | `Text lower` | text | unary all | Converts Unicode text to lowercase. |
+| `Character letter` | boolean | unary all | True where a character is a Unicode letter; text arrays map elementwise. |
+| `Character digit` | boolean | unary all | True where a character is a Unicode decimal digit; text arrays map elementwise. |
+| `Character alnum` | boolean | unary all | True where a character is a Unicode letter or number; text arrays map elementwise. |
 | `Text Width Fill lpad` | text | 3 operands: whole | Pads text on the left without truncating longer values. |
 | `Text Chars Replacement translate` | text | 3 operands: whole | Replaces listed characters, deleting those with no replacement. |
 | `Texts Limit vocab` | array | binary all / all | Most frequent words, at most Limit of them, ties by code point. |
