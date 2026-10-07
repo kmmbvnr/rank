@@ -371,7 +371,10 @@ signature does not prove termination, shape compatibility, callback safety
 or absence of value-dependent errors, and is not an optimization fact.
 Concrete calls and examples retain their observed signatures; notebook
 function previews cache the general contract rather than an example's
-specialization.
+specialization. Functions with local assignments and loops also use the
+existing return-flow analysis with unknown arguments. An initialized integer
+counter returned after integer increments therefore displays `a → i` before
+any call; a return path with an unknown result still displays `?`.
 
 Generator previews also infer scalar alternatives through local assignments,
 compound assignments, branches and condition loops. An established variable

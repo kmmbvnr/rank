@@ -50,6 +50,21 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
     try { analysis = analyzeValues(program, scope ? new Map(scope.bindings) : runtime,
         new Map(scope?.functions), examples.map(example => ({ ...example })), loadModule, scope?.imports); } catch { return undefined; }
 
+    const generalResults = new Map<FunctionStatement, ValueFacts>();
+    const generalResult = (definition: FunctionStatement): ValueFacts => {
+        if (analysis.functions.get(definition.name) !== definition) return UNKNOWN;
+        const cached = generalResults.get(definition);
+        if (cached) return cached;
+        // Use the existing body/loop analysis with unknown arguments, not a
+        // concrete example. A settled local can still prove a return type.
+        const result = analyzeValues(program, scope ? new Map(scope.bindings) : runtime,
+            new Map(scope?.functions), [{ name: definition.name,
+                arguments: definition.parameters.map(() => UNKNOWN) }], loadModule, scope?.imports)
+            .functionResults[0] ?? UNKNOWN;
+        generalResults.set(definition, result);
+        return result;
+    };
+
     const written = scope ? writtenNames(program) : new Set<string>();
     /** A catalogue name that nothing in the notebook or the run has bound is a function. */
     const isCatalogueFunction = (site: Site): boolean => site.kind === 'read' && !analysis.bindings.has(site.name)
@@ -127,7 +142,7 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
             ? examples.flatMap((example, index) => example.name === site.name
                 ? [{ arguments: example.arguments, result: analysis.functionResults[index] }] : []) : [];
         return observed.length ? [...new Set(observed.map(facts => functionSignature(definition, { ...facts, relationship })))].join(' ; ')
-            : functionSignature(definition, { relationship });
+            : functionSignature(definition, { relationship, result: relationship ? undefined : generalResult(definition) });
     };
 
     return offset => {

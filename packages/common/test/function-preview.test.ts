@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { createReplSession } from '../src/repl-session.js';
 
@@ -95,5 +96,33 @@ it('keeps an unproven fallback result unknown when notebook context cannot be pa
         const result = await session.execute('fun inc X\n return X + 1\nend', 0,
             ['for Missing greater 1', ' Missing = 1', 'end'], 40, true);
         expect(result.output.map(row => row.text).join(' ')).toBe('a → ?');
+    } finally { session.dispose(); }
+});
+
+
+it('infers the settled integer return of the Euler poker function before any call', async () => {
+    const demo = readFileSync(new URL('../../../demos/euler/054_poker.ra', import.meta.url), 'utf8');
+    const source = demo.slice(demo.indexOf('fun poker_wins'), demo.indexOf('rem Category')).trim();
+    const session = createReplSession();
+    try {
+        await session.execute('Input = ""', 0, [], 40, true);
+        const result = await session.execute(source, 1, demo.split('\n'), 40, true);
+        expect(result.ok).toBe(true);
+        expect(result.output.map(row => row.text).join(' ')).toBe('a → i');
+        expect(session.preview(source, 40, true).valueSummary).toBe('a → i');
+    } finally { session.dispose(); }
+});
+
+it.each([
+    ['Wins = 0\n for Line in Hands\n  if Line\n   Wins += 1\n  end\n end\n return Wins', 'a → i'],
+    ['Wins = 0.0\n for Line in Hands\n  Wins += 1.0\n end\n return Wins', 'a → r'],
+    ['Wins = 0\n if Hands\n  return Hands\n end\n return Wins', 'a → ?'],
+])('uses existing return-flow facts for unknown arguments: %s', async (body, signature) => {
+    const session = createReplSession();
+    try {
+        const source = `fun count Hands\n ${body}\nend`;
+        const result = await session.execute(source, 0, [], 40, true);
+        expect(result.ok).toBe(true);
+        expect(result.output.map(row => row.text).join(' ')).toBe(signature);
     } finally { session.dispose(); }
 });
