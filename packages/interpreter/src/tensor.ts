@@ -57,20 +57,15 @@ export function mapDenseArrays(
     let rightMod = rightArray ? trailingCells(rightArray.shape, shape) : 0;
     // Real arithmetic on real cells gives real cells, so the result goes straight
     // into a typed buffer: no boxed doubles, and one allocation outside the heap.
-    // Integers beside reals count as reals, as they do in scalar arithmetic.
     const isReal = (array: RankArray | undefined, scalar: RankValue) =>
         array ? realCells(array) !== undefined : typeof scalar === 'number';
     const leftReal = isReal(leftArray, left);
     const rightReal = isReal(rightArray, right);
     let a: Float64Array | number | undefined;
     let b: Float64Array | number | undefined;
-    if (realCode >= 0 && (leftReal || rightReal)) {
-        // Comparing an integer with a real is exact, so only arithmetic converts.
-        const mixed = realCode <= LAST_ARITHMETIC_CODE;
-        a = leftReal ? (leftArray ? float64Cells(leftArray)! : (left as number))
-            : mixed ? integersAsReals(leftArray, leftItems, left) : undefined;
-        b = rightReal ? (rightArray ? float64Cells(rightArray)! : (right as number))
-            : mixed ? integersAsReals(rightArray, rightItems, right) : undefined;
+    if (realCode >= 0 && leftReal && rightReal) {
+        a = leftArray ? float64Cells(leftArray)! : left as number;
+        b = rightArray ? float64Cells(rightArray)! : right as number;
     }
     const realMode = a !== undefined && b !== undefined;
     if (realMode) {
@@ -281,21 +276,6 @@ function expandOperand<T>(
             base -= step[axis] * shape[axis];
             counters[axis] = 0;
         }
-    }
-    return out;
-}
-
-/** The cells of an operand that holds only integers, as reals. */
-function integersAsReals(
-    array: RankArray | undefined, items: ArrayLike<RankValue> | undefined, scalar: RankValue,
-): Float64Array | number | undefined {
-    if (!array) return typeof scalar === 'bigint' ? Number(scalar) : undefined;
-    if (!items) return undefined;
-    const out = new Float64Array(items.length);
-    for (let index = 0; index < items.length; index += 1) {
-        const cell = items[index];
-        if (typeof cell !== 'bigint') return undefined;
-        out[index] = Number(cell);
     }
     return out;
 }

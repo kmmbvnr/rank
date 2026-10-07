@@ -12,6 +12,7 @@ import { missingBinary } from './missing.js';
 import { mapMaskedArrays } from './masked-kernels.js';
 import { binarySqlite, inSqlite } from './modules/sqlite.js';
 import { numericKernel } from './numeric-kernels.js';
+import { requireSameNumericType } from './numeric-types.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import { dyadicCells, tensorCells, tensorFrameAxes, type OuterCells } from './rank-application.js';
 import { reductionValues } from './reduction.js';
@@ -21,7 +22,7 @@ import {
 import { setValueKey } from './set.js';
 import { safeDimension } from './tensor-index.js';
 import { REAL_CODES, mapBroadcastArrays, mapDenseArrays } from './tensor.js';
-import { compareCells, equalValues } from './value-comparison.js';
+import { compareCells, equalMembershipValues, equalValues } from './value-comparison.js';
 import {
     addDateTimeDuration, expectBoolean, isRankArray, isRankCounter, isRankDate, isRankDuration, isRankIndex,
     isRankLabel, isRankMultiset, isRankObject, isRankQueue, isRankSequence, isRankSequenceMask, isRankSet,
@@ -303,6 +304,7 @@ export class Operators {
             const result = missingBinary(operator, left, right);
             if (result !== undefined) return result;
         }
+        requireSameNumericType(left, right);
         if (operator === 'equal' || operator === 'notequal') {
             const equal = equalValues(left, right);
             return operator === 'equal' ? equal : !equal;
@@ -638,7 +640,7 @@ function membershipTest(right: RankValue, indexed: boolean): (value: RankValue) 
                 throw new RankError('in requires bounded sequence or membership support');
             }
             for (const item of right.plan.iterate()) {
-                if (equalValues(value, item)) return true;
+                if (equalMembershipValues(value, item)) return true;
             }
             return false;
         };
@@ -658,7 +660,7 @@ function membershipLookup(values: Iterable<RankValue>): (value: RankValue) => bo
         else if (!(typeof value === 'number' && Number.isNaN(value))) scalars.add(key(value));
     }
     return value => typeof value === 'object'
-        ? composite.some(item => equalValues(value, item))
+        ? composite.some(item => equalMembershipValues(value, item))
         : scalars.has(key(value));
 }
 

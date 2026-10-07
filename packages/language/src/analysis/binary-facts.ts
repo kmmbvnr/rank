@@ -98,7 +98,7 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
         const integerArithmetic = scalarNumbers && ['+', '-', '*', '//', 'mod'].includes(operator)
             && left.types.join() === 'integer' && right.types.join() === 'integer';
         const scalarTypes = integerArithmetic ? ['integer'] as Types
-            : inferred.length ? inferred : scalarNumbers ? ['integer', 'real'] as Types : inferred;
+            : inferred;
         const collections = [left, right].map(value => value.types.join())
             .filter(type => type === 'array' || type === 'sequence');
         const types = collections.length && collections.every(type => type === collections[0])

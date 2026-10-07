@@ -107,7 +107,7 @@ A B same`;
   return Mapped sum
 end
 A = array 2.0 3.0
-B = array -1 -2
+B = array -1.0 -2.0
 A B powers`;
         const diagnostics = new RuntimeDiagnostics();
         expect(execute(source, diagnostics)).toBe(execute(source));

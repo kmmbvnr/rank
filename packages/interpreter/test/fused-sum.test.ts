@@ -63,7 +63,7 @@ describe('builtin sum semantics required by fusion', () => {
         for (const items of [[], [-0], [Infinity, -Infinity], [NaN], [1e16, 1, -1e16],
             [2n ** 100n, 1n, -(2n ** 100n)], [1, 0.25, 3]]) {
             for (const make of [vector, createArraySnapshot]) {
-                const a = make(items), b = make(items.map(() => 1n));
+                const a = make(items), b = make(items.map(item => typeof item === 'bigint' ? 1n : 1.0));
                 expect(call(runtime, 'fused', a, b)).toEqual(call(runtime, 'ordinary', a, b));
             }
         }

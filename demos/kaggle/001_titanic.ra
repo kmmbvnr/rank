@@ -24,12 +24,12 @@ rem Prepare the four numeric baseline features.
 rem Training medians also fill the test columns.
 fun prepare_features Train Test
   Age = Train .Age median
-  Train .Age = Train .Age / 1.0 default Age
-  Test .Age = Test .Age / 1.0 default Age
+  Train .Age = Train .Age real rank 0 default Age
+  Test .Age = Test .Age real rank 0 default Age
 
   Fare = Train .Fare median
-  Train .Fare = Train .Fare / 1.0 default Fare
-  Test .Fare = Test .Fare / 1.0 default Fare
+  Train .Fare = Train .Fare real rank 0 default Fare
+  Test .Fare = Test .Fare real rank 0 default Fare
 
   Train .Female = (Train .Sex equal "female") binary
   Test .Female = (Test .Sex equal "female") binary
@@ -51,10 +51,12 @@ fun logistic X Y Rate Steps
     .DimensionMismatch raise
   end
 
-  Center = X mean axis 0
-  Std = X std axis 0
-  Scale = (Std equal 0) 1.0 Std choose
-  Z = (X - Center) / Scale
+  Features = X real rank 0
+  Targets = Y real rank 0
+  Center = Features mean axis 0
+  Std = Features std axis 0
+  Scale = (Std equal 0.0) 1.0 Std choose
+  Z = (Features - Center) / Scale
 
   Weights = array shape Columns fill 0.0
   Bias = 0.0
@@ -62,8 +64,8 @@ fun logistic X Y Rate Steps
   for # in 0 till Steps
     Scores = Z Weights matmul + Bias
     Probability = Scores sigmoid
-    Error = Probability - Y
-    Gradient = Zt Error matmul / Rows
+    Error = Probability - Targets
+    Gradient = Zt Error matmul / (Rows real)
     Weights -= Rate * Gradient
     Bias -= Rate * (Error mean)
   end
@@ -79,7 +81,8 @@ end
 
 rem Predict integer classes with a 0.5 threshold.
 fun logistic_predict X Model
-  Z = (X - Model .center) / Model .scale
+  Features = X real rank 0
+  Z = (Features - Model .center) / Model .scale
   Score = Z Model .weights matmul + Model .bias
   return (Score sigmoid greater 0.5) binary
 end
@@ -87,7 +90,7 @@ end
 
 fun sigmoid Value
   Exp = (-Value) exp
-  return 1 / (1 + Exp)
+  return 1.0 / (1.0 + Exp)
 end
 
 

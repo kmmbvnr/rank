@@ -1,5 +1,5 @@
 import {
-    flattenApplication as flatten, applicationExpression, groupedExpression, COMPARISON_OPERATORS,
+    flattenApplication as flatten, applicationExpression, applicationForm, groupedExpression, COMPARISON_OPERATORS,
     isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
     isLabelLiteral, isNameExpression, isNumberLiteral, isParenthesizedExpression,
     isStringLiteral, isSubjectComparisonExpression, isUnaryExpression, groupModifiers,
@@ -136,6 +136,14 @@ export function tableExpression(
         }
         if (isApplicationExpression(node)) {
             const parts = flatten(node);
+            const form = applicationForm(node);
+            if (form.kind === 'rank') {
+                let body = lower(application([...form.parts]));
+                while (isParenthesizedExpression(body)) body = body.value;
+                return groupModifiers(applicationExpression([
+                    ...flatten(body), ...parts.slice(form.parts.length),
+                ], node));
+            }
             let pending: Expression[] = [];
             for (const part of parts) {
                 const arities = isNameExpression(part) ? callable(part.name) : undefined;

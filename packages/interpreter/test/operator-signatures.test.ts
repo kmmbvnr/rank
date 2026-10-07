@@ -5,8 +5,8 @@ import { typeName } from '../src/value.js';
 
 it('checks non-compiler arithmetic and missing contracts against runtime results', () => {
     for (const [source, operator, left, right, expected] of [
-        ['3.5 // 2', '//', 'real', 'integer', 'real'],
-        ['3.5 mod 2', 'mod', 'real', 'integer', 'real'],
+        ['3.5 // 2.0', '//', 'real', 'real', 'real'],
+        ['3.5 mod 2.0', 'mod', 'real', 'real', 'real'],
         ['2 ** -1', '**', 'integer', 'integer', 'real'],
         ['2 ** 3', '**', 'integer', 'integer', 'integer'],
         ['"a" + "b"', '+', 'text', 'text', 'text'],

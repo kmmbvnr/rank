@@ -122,7 +122,7 @@ describe('scan along an axis', () => {
     it('agrees with the rank-one scan on every column of a large real table', () => {
         const source = [
             'use sequences', 'use numbers',
-            'T = (0 till 6000) * 0.5 reshape 300 20',
+            'T = ((0 till 6000) real rank 0) * 0.5 reshape 300 20',
             'S = T scan + axis 0',
             'Column = T # 7',
             'Expected = Column scan +',

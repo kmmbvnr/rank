@@ -33,9 +33,9 @@ function compare(body: string, setup?: string, before?: string) {
 }
 describe('fused explicit copy', () => {
     it.each([
-        'return (A * A + A * 2.0 + 1.0) copy',
-        'Squared = A * A\n  Shifted = Squared + A * 2.0 + 1.0\n  return Shifted copy',
-        'Result = (A * A + A * 2.0 + 1.0) copy\n  return Result',
+        'return (A * A + A * 2 + 1) copy',
+        'Squared = A * A\n  Shifted = Squared + A * 2 + 1\n  return Shifted copy',
+        'Result = (A * A + A * 2 + 1) copy\n  return Result',
     ])('compiles readable form %s', body => {
         expect(compare(body)).toMatchObject({ output: ['4 9 16'], kernels: 1 });
     });
@@ -91,7 +91,7 @@ describe('copy kernel host values', () => {
             onTensorKernelCompiled: source => sources.push(source),
         });
         try {
-            runtime.execute('use sequences\nfun probe A\n  return (A * A + 1) copy\nend');
+            runtime.execute(`use sequences\nfun probe A\n  return (A * A + ${typeof items[0] === 'number' ? '1.0' : '1'}) copy\nend`);
             const fn = runtime.variables.get('probe')!;
             if (typeof fn !== 'object' || fn.kind !== 'function') throw new Error('missing probe');
             const result = fn.call([{ kind: 'array', items, shape }]);

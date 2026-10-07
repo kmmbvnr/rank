@@ -43,8 +43,6 @@ const booleanUnary: CompiledOperatorSignature<'boolean'> = { inputs: ['boolean']
 const tensorArithmetic: readonly CompiledOperatorSignature<CompiledTensorType>[] = [
     { inputs: ['integer', 'integer'], result: 'integer' },
     { inputs: ['real', 'real'], result: 'real' },
-    { inputs: ['integer', 'real'], result: 'real' },
-    { inputs: ['real', 'integer'], result: 'real' },
 ];
 const tensorSigned: readonly CompiledOperatorSignature<CompiledTensorType>[] = [
     integerUnary, { inputs: ['real'], result: 'real' }, ...tensorArithmetic,

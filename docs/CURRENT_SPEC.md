@@ -802,13 +802,15 @@ A literal may carry an exponent, `e` or `E` followed by digits. Without a decima
 with a non-negative exponent it is an integer (`4e6` is `4000000`, `2e+3` is `2000`); with a
 decimal point or a negative exponent it is a `real` (`1.5e3`, `1e-3`).
 
-Mixed integer/real arithmetic promotes the result to `real`. `/` always performs
-real division. `//` performs floor division as in Python; two integer operands
-produce an integer, while an operation involving a real produces a real.
+Arithmetic operands must have the same numeric type. Convert explicitly with
+`integer` or `real` when mixing integers and reals: `(Count real) + 0.5`.
+`/` always produces a real, including `5 / 2`. `//` performs floor division;
+two integers produce an integer and two reals produce a real. Numeric
+comparisons, including `equal` and `not equal`, also require matching types.
 
 `**` raises its left operand to the power of its right operand. Integer operands
 with a nonnegative exponent produce an arbitrary-precision `integer`. A negative
-or real exponent produces a `real`. Zero to a negative power and results outside
+integer exponent produces a `real`; two real operands also produce a `real`. Zero to a negative power and results outside
 the real number system are errors.
 
 ```rank
@@ -906,7 +908,7 @@ that binary64 cannot represent exactly; overflow raises `.InvalidNumber`.
 
 `text` explicitly renders a scalar, retaining its existing optional fixed
 format: `2.75 text ".1f"`. Parsing and formatting never happen implicitly on
-assignment. Mixed numeric arithmetic still promotes its result to real.
+assignment or arithmetic. Numeric operands require matching types.
 
 `round` changes the numeric value while retaining its type. To round first
 and then obtain an integer, write `Value round 0 integer` with `use numbers`.

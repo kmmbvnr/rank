@@ -20,9 +20,9 @@ describe('missing cells (.NA)', () => {
         expect(run('-.NA')).toBe('.NA');
         expect(run('.NA greater 1')).toBe('.NA');
         expect(run('.NA equal .NA')).toBe('.NA');
-        expect(run('(array 1.0 .NA 3.0) + 1')).toBe('2 .NA 4');
+        expect(run('(array 1.0 .NA 3.0) + 1.0')).toBe('2 .NA 4');
         expect(run('(array 1 2) + .NA')).toBe('.NA .NA');
-        expect(run('(array 1.0 .NA 3.0) greater 2')).toBe('false .NA true');
+        expect(run('(array 1.0 .NA 3.0) greater 2.0')).toBe('false .NA true');
     });
 
     it('follows three-valued logic', () => {
@@ -108,12 +108,12 @@ describe('missing cells in typed storage', () => {
         const size = 70;
         const text = Array.from({ length: size }, (_, index) => index % 7 === 3 ? '.NA' : `${index}.5`).join(' ');
         const expected = Array.from({ length: size }, (_, index) => index % 7 === 3 ? '.NA' : `${index + 2}.5`).join(' ');
-        expect(run(`X = array ${text}\nX + 2`)).toBe(expected);
-        expect(run(`use sequences\nX = array ${text}\n(X + 2) present count`)).toBe(String(size - 10));
+        expect(run(`X = array ${text}\nX + 2.0`)).toBe(expected);
+        expect(run(`use sequences\nX = array ${text}\n(X + 2.0) present count`)).toBe(String(size - 10));
         expect(run(`X = array ${text}\n(X default 0.0) sum`)).toBe(run(`X = array ${text}\nX sum`));
         expect(run(`X = array ${text}\nX max`)).toBe('69.5');
         expect(run(`X = array ${text}\nX min`)).toBe('0.5');
-        expect(run(`use stats\nX = array ${text}\nX mean`)).toBe(run(`use stats\nX = array ${text}\n(X default 0.0) sum / 60`));
+        expect(run(`use stats\nX = array ${text}\nX mean`)).toBe(run(`use stats\nX = array ${text}\n(X default 0.0) sum / 60.0`));
     });
 });
 

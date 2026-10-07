@@ -9,6 +9,7 @@ import {
     type ArrayAssignmentStatement, type Expression, type FunctionStatement, type Statement,
 } from '../generated/ast.js';
 import { applicationExpression, flattenApplication, groupedUnaryDyadicChain } from '../expressions.js';
+import { applicationForm } from '../application-forms.js';
 import { findOperation } from '../operations.js';
 import { expressionFacts } from './value-facts.js';
 import { isTrackedCollection, summarizedElement, withInsertedElement } from './collection-facts.js';
@@ -362,7 +363,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 }
                 if (!facts || operation.effects?.length) return false;
                 if (hasCompiledCallNoCallbackProof(operation, arguments_.map(fact))) return true;
-                if (name === 'integer' && arguments_.length === 1) {
+                if (['integer', 'real'].includes(name) && arguments_.length === 1) {
                     const input = fact(arguments_[0]);
                     return input.types.length > 0 && input.types.every(type => ['integer', 'real', 'text'].includes(type));
                 }
@@ -500,6 +501,18 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                     && !locals.has(name) && !isFunction(name));
                 if (grouped) return expression(grouped);
                 const parts = flattenApplication(value);
+                const form = applicationForm(value, name => isBound(name) || locals.has(name) ? false : findOperation(name));
+                if (form.kind === 'rank' && form.rank === 0n && form.rightRank === undefined
+                    && !form.axes && form.parts.length === 2 && isNameExpression(form.parts[1])
+                    && ['integer', 'real'].includes(form.parts[1].name)
+                    && !isBound(form.parts[1].name) && !locals.has(form.parts[1].name)
+                    && !isFunction(form.parts[1].name)) {
+                    const source = fact(form.parts[0]);
+                    return expression(form.parts[0]) && ['array', 'sequence'].includes(source.types.join())
+                        && !!(source.eagerScalarCells || source.callbackFreeScalarCells)
+                        && !!source.elements?.length
+                        && source.elements.every(type => ['integer', 'real', 'text'].includes(type));
+                }
                 if (parts.length === 2 && isNameExpression(parts[1]) && ['len', 'peek', 'pop'].includes(parts[1].name)
                     && !isBound(parts[1].name) && !locals.has(parts[1].name) && capturedCollection(parts[0])) return true;
                 // `Record .field` reads a field of a record whose schema is proven; a trailing operation

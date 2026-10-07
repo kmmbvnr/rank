@@ -14,12 +14,12 @@ F = Db .facilities
 R = B F innerjoin by .facid
 R = R select
   Guest = .memid equal 0
-  GCost = .slots * .guestcost
-  MCost = .slots * .membercost
+  GCost = (.slots real rank 0) * (.guestcost real rank 0)
+  MCost = (.slots real rank 0) * (.membercost real rank 0)
   .facid = .facid
   .name = .name
-  .outlay = .initialoutlay
-  .maintenance = .monthlymaintenance
+  .outlay = .initialoutlay real rank 0
+  .maintenance = .monthlymaintenance real rank 0
   .revenue = Guest GCost MCost choose
 end
 G = R group by .facid
@@ -32,7 +32,7 @@ end
 R = R select
   .name = .name
   .outlay = .outlay
-  .net = .revenue / 3 - .maintenance
+  .net = .revenue / 3.0 - .maintenance
 end
 R = R select
   .name = .name

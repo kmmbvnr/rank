@@ -198,6 +198,9 @@ export function binaryType(operator: string, left: Types, right: Types): Types {
         return same(left, 'queue') ? ['array'] : ['sequence'];
     }
     if (COMPARISONS.has(operator)) {
+        if (['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost'].includes(operator)
+            && within(left, NUMBERS) && within(right, NUMBERS)
+            && !left.some(type => right.includes(type))) return UNKNOWN;
         if (within(left, SCALARS) && within(right, SCALARS)) return ['boolean'];
         // Over a collection a comparison is a mask with the same shape.
         return operator === 'in' || operator === 'is'
@@ -218,6 +221,11 @@ export function binaryType(operator: string, left: Types, right: Types): Types {
     if (!within(left, NUMBERS) || !within(right, NUMBERS)) {
         return ARITHMETIC.has(operator) ? elementwise(left, right) ?? UNKNOWN : UNKNOWN;
     }
+    // Successful arithmetic selects one concrete numeric type shared by both operands.
+    const shared = left.filter(type => right.includes(type));
+    if (!shared.length) return UNKNOWN;
+    left = shared;
+    right = shared;
     // Division always produces a real, even when it divides exactly.
     if (operator === '/') return ['real'];
     if (operator === '//' || operator === 'mod') {

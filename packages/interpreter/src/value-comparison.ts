@@ -1,5 +1,6 @@
 import { readArrayItem } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
+import { requireSameNumericType } from './numeric-types.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import {
     formatValue, isRankTuple, isRankArray, isRankDate, isRankDuration, isRankRecord,
@@ -42,16 +43,23 @@ function compareCellOrder(left: RankValue, right: RankValue, compared: WeakMap<o
 }
 
 export function equalValues(left: RankValue, right: RankValue): boolean {
-    return equalNestedValues(left, right, new WeakMap());
+    return equalNestedValues(left, right, new WeakMap(), true);
+}
+
+// Membership retains value-based numeric keys, including nested record fields.
+export function equalMembershipValues(left: RankValue, right: RankValue): boolean {
+    return equalNestedValues(left, right, new WeakMap(), false);
 }
 
 function equalNestedValues(
     left: RankValue,
     right: RankValue,
     compared: WeakMap<object, WeakSet<object>>,
+    strictNumericTypes: boolean,
 ): boolean {
     if ((typeof left === 'bigint' || typeof left === 'number')
         && (typeof right === 'bigint' || typeof right === 'number')) {
+        if (strictNumericTypes) requireSameNumericType(left, right);
         if (typeof left === typeof right) return left === right;
         const integer = typeof left === 'bigint' ? left : right as bigint;
         const real = typeof left === 'number' ? left : right as number;
@@ -72,14 +80,14 @@ function equalNestedValues(
     if (isRankTuple(left) && isRankTuple(right)) {
         if (left.items.length !== right.items.length) return false;
         if (alreadyCompared(left, right, compared)) return true;
-        return left.items.every((item, index) => equalNestedValues(item, right.items[index], compared));
+        return left.items.every((item, index) => equalNestedValues(item, right.items[index], compared, strictNumericTypes));
     }
     if (isRankArray(left) && isRankArray(right)) {
         if (!sameShape(left.shape, right.shape)) return false;
         if (alreadyCompared(left, right, compared)) return true;
         const size = arraySize(left.shape);
         for (let index = 0; index < size; index += 1) {
-            if (!equalNestedValues(arrayItem(left, index), arrayItem(right, index), compared)) {
+            if (!equalNestedValues(arrayItem(left, index), arrayItem(right, index), compared, strictNumericTypes)) {
                 return false;
             }
         }
@@ -90,7 +98,7 @@ function equalNestedValues(
         if (alreadyCompared(left, right, compared)) return true;
         for (const [name, value] of left.entries) {
             const other = right.entries.get(name);
-            if (other === undefined || !equalNestedValues(value, other, compared)) return false;
+            if (other === undefined || !equalNestedValues(value, other, compared, strictNumericTypes)) return false;
         }
         return true;
     }
@@ -108,4 +116,3 @@ function alreadyCompared(
     else compared.set(left, new WeakSet([right]));
     return false;
 }
-

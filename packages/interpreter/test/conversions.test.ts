@@ -20,7 +20,8 @@ for (const compiled of [true, false]) describe(`explicit conversions (compiled=$
         expect(r.variables.get('Fraction')).toBe(2.7);
         expect(r.execute('Fraction = Whole real')).toBe(2);
         expect(formatValue(r.execute('Fraction type')!)).toBe('.real');
-        expect(r.execute('1 + 2.0')).toBe(3);
+        expect(() => r.execute('1 + 2.0')).toThrow('explicit conversion');
+        expect(r.execute('(1 real) + 2.0')).toBe(3);
     });
 
     it('truncates toward zero while round retains its own rounding and type', () => {

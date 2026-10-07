@@ -185,8 +185,8 @@ it('bounds expansion of a branching relationship graph', () => {
 
 
 it('derives numeric result relationships from shared operator signatures', () => {
-    const summary = functionRelationship(definition('fun twice Values\n return Values * 2\nend'))!;
-    expect(summary.result).toMatchObject({ kind: 'binary', operation: { name: '*' }, left: { kind: 'parameter', index: 0 } });
+    const summary = functionRelationship(definition('fun twice Values\n return Values + Values\nend'))!;
+    expect(summary.result).toMatchObject({ kind: 'binary', operation: { name: '+' }, left: { kind: 'parameter', index: 0 } });
     for (const value of [
         { types: ['integer'], rank: 0, shape: [] },
         { types: ['real'], rank: 0, shape: [] },
@@ -217,14 +217,14 @@ it('keeps operation errors on the ordinary diagnostic path', () => {
 
 
 it('reuses arithmetic relationships without turning lazy arrays eager', () => {
-    const source = 'fun twice Values\n return Values * 2\nend\n'
+    const source = 'fun twice Values\n return Values + Values\nend\n'
         + Array.from({ length: 120 }, (_, i) => `Result${i} = ${i}.5 twice`).join('\n');
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(parsed.parserErrors).toEqual([]);
     const result = analyzeValues(parsed.value);
     expect(result.diagnostics).toEqual([]);
     for (let i = 0; i < 120; i++) expect(result.bindings.get(`Result${i}`)?.types).toEqual(['real']);
-    const summary = functionRelationship(definition('fun twice Values\n return Values * 2\nend'))!;
+    const summary = functionRelationship(definition('fun twice Values\n return Values + Values\nend'))!;
     const value = instantiateRelationship(summary, [{ types: ['array'], rank: 1, shape: [null],
         elements: ['integer'], callbackFreeScalarCells: true }]);
     expect(value).toMatchObject({ types: ['array'], rank: 1, elements: ['integer'], callbackFreeScalarCells: true });
@@ -343,7 +343,7 @@ it('keeps semantic results independent of call order and array materialization e
         { types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'], callbackFreeScalarCells: true },
     ];
     const run = (order: number[]) => {
-        const fn = definition('fun twice Value\n return Value * 2\nend');
+        const fn = definition('fun twice Value\n return Value + Value\nend');
         const env = new Map<string, ValueFacts>([['twice', { types: ['function'] }]]);
         const diagnostics: Parameters<typeof createCallAnalysis>[2] = [];
         const calls = createCallAnalysis(env, new Map([['twice', fn]]), diagnostics, new Map(),

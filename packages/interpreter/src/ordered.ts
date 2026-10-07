@@ -1,4 +1,5 @@
 import { RankError } from './errors.js';
+import { requireSameNumericType } from './numeric-types.js';
 import { formatDate, isRankDate, isRankLabel, isRankRecord,
     type RankDate, type RankDateTime, type RankRecord, type RankValue } from './value.js';
 
@@ -35,6 +36,7 @@ function compareValues(
     }
     if (kind === 'record') return compareRecords(left as RankRecord, right as RankRecord, active);
     if (kind === 'numeric') {
+        requireSameNumericType(left, right);
         const a = left as bigint | number;
         const b = right as bigint | number;
         return a < b ? -1 : a > b ? 1 : 0;

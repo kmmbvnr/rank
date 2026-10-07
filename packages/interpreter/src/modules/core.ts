@@ -6,12 +6,14 @@ import { ByteArray } from '../bytes.js';
 import { withTypedCalls } from '../typed-native.js';
 import { readArrayItem } from '../array-storage.js';
 import {
-    formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankSequence, MISSING,
-    type RankValue, type SequencePredicate,
+    formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankSequence, isRankSqliteExpression, MISSING,
+    type SequencePredicate,
 } from '../value.js';
 import { numericExtreme, sumValue } from './numbers.js';
 import { chooseIndexed, chooseValue, lengthOf } from './sequences.js';
 import { native } from './shared.js';
+import { integerValue, realValue } from '../numeric-conversions.js';
+import { numericConversionSqlite } from './sqlite.js';
 import type { RuntimeModule } from './types.js';
 
 const encoder = new TextEncoder();
@@ -42,8 +44,10 @@ export const coreModule: RuntimeModule = {
         text: arguments_ => new ByteArray(encoder.encode(arguments_[0] as string)),
         bytes: arguments_ => arguments_[0],
     }),
-    integer: () => native('integer', 1, ([value]) => integerValue(value)),
-    real: () => native('real', 1, ([value]) => realValue(value)),
+    integer: () => native('integer', 1, ([value]) => isRankSqliteExpression(value)
+        ? numericConversionSqlite(value, 'integer') : integerValue(value)),
+    real: () => native('real', 1, ([value]) => isRankSqliteExpression(value)
+        ? numericConversionSqlite(value, 'real') : realValue(value)),
     text: () => native('text', 1, ([value]) => {
         if (typeof value === 'object' && !isRankLabel(value) && !isRankDate(value)) {
             throw new RankError('text expects a scalar value', 'TypeError');
@@ -81,35 +85,3 @@ export const coreModule: RuntimeModule = {
     min: () => numericExtreme('min', (left, right) => left < right),
     max: () => numericExtreme('max', (left, right) => left > right),
 };
-
-function integerValue(value: RankValue): bigint {
-    if (typeof value === 'bigint') return value;
-    if (typeof value === 'number') {
-        if (!Number.isFinite(value)) {
-            throw new RankError('integer expects a finite real', 'InvalidNumber', value);
-        }
-        return BigInt(Math.trunc(value));
-    }
-    if (typeof value !== 'string') {
-        throw new RankError('integer expects an integer, real or text', 'TypeError');
-    }
-    if (!/^[+-]?[0-9]+$/.test(value)) {
-        throw new RankError(`invalid integer text: ${value}`, 'InvalidNumber', value);
-    }
-    return BigInt(value);
-}
-
-function realValue(value: RankValue): number {
-    if (typeof value === 'number') return value;
-    if (typeof value !== 'bigint' && typeof value !== 'string') {
-        throw new RankError('real expects an integer, real or text', 'TypeError');
-    }
-    if (typeof value === 'string' && !/^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/.test(value)) {
-        throw new RankError(`invalid real text: ${value}`, 'InvalidNumber', value);
-    }
-    const result = Number(value);
-    if (!Number.isFinite(result)) {
-        throw new RankError('real conversion exceeds the finite range', 'InvalidNumber', value);
-    }
-    return result;
-}

@@ -41,11 +41,11 @@ B = Squares sum
 A + B`)).toBe(60n);
         expect(runtime.execute('use numbers\n((1 to 3) + (4 to 6)) sum')).toBe(21n);
         expect(runtime.execute('use numbers\n(10 - (1 to 3)) sum')).toBe(24n);
-        expect(runtime.execute('use numbers\n((1 to 3) * 0.5) sum')).toBe(3);
+        expect(runtime.execute('use numbers\n(((1 to 3) real rank 0) * 0.5) sum')).toBe(3);
         expect(runtime.execute('use numbers\n((1 till 1) ** (-1)) sum')).toBe(0n);
         expect(() => runtime.execute('use numbers\n((0 to 1) ** (-1)) sum'))
             .toThrow('zero cannot be raised to a negative power');
-        expect(() => runtime.execute('use numbers\n((-2 to -1) ** 0.5) sum'))
+        expect(() => runtime.execute('use numbers\n(((-2 to -1) real rank 0) ** 0.5) sum'))
             .toThrow('power result is not real');
         runtime.dispose();
     }, 15_000);
@@ -81,10 +81,11 @@ end
                 expect(items(call(runtime, 'prefix', vector(values)))).toEqual(prefix);
                 expect(items(call(runtime, 'binary', vector(values), vector([...values].reverse()))))
                     .toEqual(values.map((value, index) => call(runtime, 'binary', value, values[values.length - index - 1])));
-                expect(items(call(runtime, 'binary', vector(values), 2n)))
-                    .toEqual(values.map(value => call(runtime, 'binary', value, 2n)));
-                expect(items(call(runtime, 'binary', 2n, vector(values))))
-                    .toEqual(values.map(value => call(runtime, 'binary', 2n, value)));
+                const factor = typeof values[0] === 'bigint' ? 2n : 2.0;
+                expect(items(call(runtime, 'binary', vector(values), factor)))
+                    .toEqual(values.map(value => call(runtime, 'binary', value, factor)));
+                expect(items(call(runtime, 'binary', factor, vector(values))))
+                    .toEqual(values.map(value => call(runtime, 'binary', factor, value)));
             }
             runtime.dispose();
         });
@@ -95,11 +96,11 @@ end
         const fallback = (a: RankValue, b: RankValue) => { calls.push([a, b]); return 'fallback'; };
         const add = numericKernel('+', fallback);
         expect(add(1n, 2n)).toBe(3n);
-        expect(add(1n, 0.5)).toBe(1.5);
+        expect(add(1n, 0.5)).toBe('fallback');
         expect(add('a', 'b')).toBe('fallback');
         expect(add(true, 2n)).toBe('fallback');
         expect(numericKernel('mod', fallback)).toBe(fallback);
-        expect(calls).toEqual([['a', 'b'], [true, 2n]]);
+        expect(calls).toEqual([[1n, 0.5], ['a', 'b'], [true, 2n]]);
     });
 
     it('retains empty identities, singleton values and nonnumeric fallback', () => {

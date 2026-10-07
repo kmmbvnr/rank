@@ -38,6 +38,14 @@ describe('column tables', () => {
         expect(show('Data .Age median')).toBe('26');
     });
 
+    it('uses explicit ranked numeric conversions inside a select block', () => {
+        const { show, runtime } = session();
+        try {
+            expect(show('Converted = Data select\n .id = .Id real rank 0\nend\nConverted .id + 0.5'))
+                .toBe('1.5 2.5 3.5 4.5');
+        } finally { runtime.dispose(); }
+    });
+
     it('reads a row as a snapshot and a cell inside it', () => {
         const { show } = session();
         expect(show('Data 0 .Sex')).toBe('male');
@@ -93,7 +101,7 @@ describe('column tables', () => {
         const { show } = session();
         show('Data 1 .Age = 40');
         expect(show('Data .Age')).toBe('22 40 26 35');
-        show('Data 0 .Fare += 1');
+        show('Data 0 .Fare += 1.0');
         expect(show('Data .Fare default 0.0')).toBe('8.25 71.5 0 8.05');
         expect(() => show('Data 0 .Sex = 5')).toThrowError('cannot write integer into text column');
     });

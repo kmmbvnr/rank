@@ -146,9 +146,9 @@ it('bounds new signatures and leaves a recursive group without a base unknown', 
 });
 
 it('uses the successful assignment contract in later scalar arithmetic', () => {
-    const result = analyze('fun f Input\n Value = 0\n Value = Input\n return Value / 2.0\nend', [UNKNOWN_VALUE]);
+    const result = analyze('fun f Input\n Value = 0\n Value = Input\n return Value / 2\nend', [UNKNOWN_VALUE]);
     expect(result.functionResults[0]).toEqual({ types: ['real'], rank: 0, shape: [] });
-    const conflict = analyze('fun f Input\n Value = 0\n Value = Input\n return Value / 2.0\nend',
+    const conflict = analyze('fun f Input\n Value = 0\n Value = Input\n return Value / 2\nend',
         [{ types: ['text'], rank: 1, shape: [null] }]);
     expect(conflict.diagnostics.some(d => d.message.includes('cannot receive text'))).toBe(true);
 });
@@ -158,12 +158,12 @@ it('does not restore scalar constants or captured binding types from an unknown 
         + ' if Value equal 0\n return 1\n end\n return 2.0\nend', [UNKNOWN_VALUE]);
     expect(result.diagnostics.some(d => d.message.includes('returns incompatible types'))).toBe(true);
     const captured = analyze('fun f Input\n Value = 0\n fun change\n Value = Input\n return 0\n end\n'
-        + ' change\n return Value / 2.0\nend', [UNKNOWN_VALUE]);
+        + ' change\n return Value / 2\nend', [UNKNOWN_VALUE]);
     expect(captured.functionResults[0].types).toEqual([]);
 });
 
 it('uses inferred recursive operands for inline arithmetic', () => {
-    for (const step of ['return ((N - 1) f) / N', 'Previous = (N - 1) f\n return Previous / N']) {
+    for (const step of ['return ((N - 1) f) / (N real)', 'Previous = (N - 1) f\n return Previous / (N real)']) {
         const result = analyze(`fun f N\n if N less 2\n return 1.0\n end\n ${step}\nend`);
         expect(result.functionResults[0]).toEqual({ types: ['real'], rank: 0, shape: [] });
         expect(result.diagnostics).toEqual([]);

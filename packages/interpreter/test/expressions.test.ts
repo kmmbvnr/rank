@@ -59,7 +59,7 @@ describe('Rank expressions and sequences', () => {
         expect(run('A = array 2 3\nA A outer **')).toBe('4 8 9 27');
         expect(() => run('0 ** -1'))
             .toThrowError('zero cannot be raised to a negative power');
-        expect(() => run('(-2) ** 0.5')).toThrowError('power result is not real');
+        expect(() => run('(-2.0) ** 0.5')).toThrowError('power result is not real');
     });
 
     it('applies signs before postfix calls and negates completed predicates', () => {

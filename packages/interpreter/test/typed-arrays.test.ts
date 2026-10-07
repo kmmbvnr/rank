@@ -91,8 +91,8 @@ describe('typed results of real arithmetic', () => {
         expect(run(`${real}C = A + B\nC 0 = 100.0\nA 0`)).toBe('1.5');
     });
 
-    it('keeps mixed integer and real cells correct', () => {
-        expect(run('use stats\nA = array shape 2000 fill 3\nB = array shape 2000 fill 1.5\n(A * B) sum')).toBe('9000');
+    it('uses explicit conversion between integer and real cells', () => {
+        expect(run('use stats\nA = array shape 2000 fill 3\nB = array shape 2000 fill 1.5\n((A real rank 0) * B) sum')).toBe('9000');
         expect(run('use stats\nA = array shape 2000 fill 3\nB = array shape 2000 fill 2\n(A * B) sum')).toBe('12000');
     });
 

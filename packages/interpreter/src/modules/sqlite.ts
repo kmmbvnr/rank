@@ -163,6 +163,14 @@ export function sqliteScopedColumn(scope: RankSqliteScope, name: string): RankSq
         textual: scope.table.textColumns?.has(`${scope.name}.${name}`) ?? false };
 }
 
+/** Explicit numeric conversion over a lazy column uses the same scalar parser as arrays. */
+export function numericConversionSqlite(
+    value: RankSqliteExpression, type: 'integer' | 'real',
+): RankSqliteExpression {
+    return { kind: 'sqlite-expression', table: value.table,
+        text: `rank_${type}(${value.text})`, params: value.params, boolean: false };
+}
+
 /** A scalar text operation over columns from one lazy view. */
 export function textFunctionSqlite(
     name: string, values: readonly RankValue[], boolean = false,

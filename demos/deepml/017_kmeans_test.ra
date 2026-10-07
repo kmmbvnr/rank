@@ -20,7 +20,7 @@ test "official example"
   end
 
   Result = Points 2 Centroids 10 k_means
-  Result equal Expected
+  Result equal (Expected real rank 0)
 end
 
 test "reassigns points after first update"
@@ -41,7 +41,7 @@ test "reassigns points after first update"
   end
 
   Result = Points 2 Centroids 10 k_means
-  Result equal Expected
+  Result equal (Expected real rank 0)
 end
 
 test "empty clusters retain their centroid"
@@ -57,5 +57,5 @@ test "empty clusters retain their centroid"
   end
 
   Result = Points 3 Centroids 10 k_means
-  Result equal Centroids
+  Result equal (Centroids real rank 0)
 end

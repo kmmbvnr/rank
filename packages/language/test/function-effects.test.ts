@@ -883,3 +883,18 @@ it('does not infer native safety from an unknown domain, a bytes tag or a mixed 
     expect(analyze(source, 'helper', [], [text, text]).unknown).toBe(false);
     expect(analyze(source, 'helper', [], [text, { types: ['bytes'], rank: 1 }]).unknown).toBe(true);
 });
+
+
+it('proves explicit scalar and ranked numeric conversions only for known callback-free inputs', () => {
+    const integer: ValueFacts = { types: ['integer'], rank: 0 };
+    const array: ValueFacts = { types: ['array'], rank: 1, elements: ['integer'], eagerScalarCells: true };
+    for (const operation of ['integer', 'real']) {
+        const scalar = `fun helper X\n return X ${operation}\nend`;
+        expect(analyze(scalar, 'helper', [], [integer]).unknown).toBe(false);
+        const ranked = `fun helper X\n return X ${operation} rank 0\nend`;
+        expect(analyze(ranked, 'helper', [], [array]).unknown).toBe(false);
+        expect(analyze(ranked, 'helper', [], [{ ...array, eagerScalarCells: undefined }]).unknown).toBe(true);
+        expect(analyze(ranked, 'helper', [], [{ ...array, elements: [] }]).unknown).toBe(true);
+        expect(analyze(ranked, 'helper', [operation], [array]).unknown).toBe(true);
+    }
+});
