@@ -109,7 +109,7 @@ integer domain. For example:
 
 ```rank
 Pixels = array 0 128 255
-Normalized = Pixels / 255.0
+Normalized = (Pixels real rank 0) / 255.0
 ```
 
 ## Establishment and validation
@@ -331,8 +331,9 @@ processed cell rank, independently of the whole array's rank.
 
 An uncalled single-return function can expose conditional input/result
 alternatives from the fixed contracts of built-in operators. For example,
-`return X + 1` shows `integer → integer` and `real → real`, whereas
-`return X / 2` shows `integer → real` and `real → real`. These are related
+`return X + 1` shows `integer → integer`, whereas
+`return X / 2` shows `integer → real`. A real argument requires a real
+constant or an explicit conversion. These are related
 alternatives, not independent unions of inputs and outputs. Supported helper
 calls carry the intermediate types through the same analysis.
 

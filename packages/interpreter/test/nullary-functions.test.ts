@@ -27,7 +27,7 @@ for (const compiled of [true, false]) describe(`nullary calls (compiled: ${compi
         expect(run(definition + 'nine')).toBe('9');
         expect(run(definition + 'A = nine\nA + nine * 2')).toBe('27');
         expect(run(definition + '2 + nine sqrt')).toBe(String(Math.sqrt(11)));
-        expect(run(definition + 'nine sqrt + nine')).toBe('12');
+        expect(run(definition + 'nine sqrt + (nine real)')).toBe('12');
         expect(run(definition + 'nine equal nine')).toBe('true');
         expect(run(definition + 'array nine (nine + 1)')).toBe('9 10');
         expect(run(definition + 'fun relay\n return nine\nend\nrelay')).toBe('9');

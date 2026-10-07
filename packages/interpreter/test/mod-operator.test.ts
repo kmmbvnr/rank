@@ -8,7 +8,7 @@ describe('mod', () => {
         expect(run('17 mod 5')).toBe('2');
         expect(run('-7 mod 3')).toBe('2');
         expect(run('7 mod -3')).toBe('-2');
-        expect(run('5.5 mod 2')).toBe('1.5');
+        expect(run('5.5 mod 2.0')).toBe('1.5');
         expect(run('Total = 100\nTotal mod= 7\nTotal')).toBe('2');
         expect(() => run('5 mod 0')).toThrow('division by zero');
     });

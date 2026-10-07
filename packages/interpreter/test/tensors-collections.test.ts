@@ -802,9 +802,9 @@ describe('Rank tensors and collections', () => {
 
     it('evaluates real numbers and numeric vocabulary', () => {
         expect(run('1 / 2')).toBe('0.5');
-        expect(run('1 + 2.5')).toBe('3.5');
+        expect(run('1.0 + 2.5')).toBe('3.5');
         expect(run('9007199254740992 equal 9007199254740993')).toBe('false');
-        expect(run('2 equal 2.0')).toBe('true');
+        expect(run('(2 real) equal 2.0')).toBe('true');
         expect(run('use numbers\n-12 abs')).toBe('12');
         expect(run('use numbers\n-2.5 abs')).toBe('2.5');
         expect(run('use numbers\n(array -2 0 3) abs')).toBe('2 0 3');

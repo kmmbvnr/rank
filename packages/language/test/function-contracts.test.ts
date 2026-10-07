@@ -17,20 +17,20 @@ const has = (result: ReturnType<typeof contract>, inputs: unknown[], output: unk
     result.alternatives.some(row => JSON.stringify(row.inputs) === JSON.stringify(inputs)
         && JSON.stringify(row.result) === JSON.stringify(output));
 
-it('preserves promotion and generic lifted domains without requiring cells', () => {
+it('rejects implicit promotion and generic lifted domains without requiring cells', () => {
     const inc = contract('fun f X\n return X + 1\nend');
     expect(has(inc, ['integer'], 'integer')).toBe(true);
-    expect(has(inc, ['real'], 'real')).toBe(true);
+    expect(has(inc, ['real'], 'real')).toBe(false);
     expect(has(inc, ['integer'], 'real')).toBe(false);
     for (const collection of ['array', 'sequence']) {
-        const type = { collection, element: 'real' };
+        const type = { collection, element: 'integer' };
         expect(has(inc, [type], type)).toBe(true);
         expect(inc.alternatives.find(row => JSON.stringify(row.inputs) === JSON.stringify([type]))?.frameParameter).toBe(0);
     }
     expect(inc.unresolved).toBe(true); // empty and untyped lazy cells are not excluded
     const division = contract('fun f X\n return X / 2\nend');
     expect(has(division, ['integer'], 'real')).toBe(true);
-    expect(has(division, ['real'], 'real')).toBe(true);
+    expect(has(division, ['real'], 'real')).toBe(false);
 });
 
 it('keeps nonnumeric overloads and gives SQL priority over missing propagation', () => {
@@ -47,8 +47,8 @@ it('keeps nonnumeric overloads and gives SQL priority over missing propagation',
 });
 
 it('carries intermediate domains through helpers and repeated parameters', () => {
-    const helper = contract('fun half X\n return X / 2\nend\nfun f X\n return (X half) + X\nend');
-    expect(has(helper, ['integer'], 'real')).toBe(true);
+    const helper = contract('fun half X\n return X / 2.0\nend\nfun f X\n return (X half) + X\nend');
+    expect(has(helper, ['integer'], 'real')).toBe(false);
     expect(has(helper, ['real'], 'real')).toBe(true);
     expect(has(contract('fun f X\n return X + X\nend'), ['text'], 'text')).toBe(true);
 });

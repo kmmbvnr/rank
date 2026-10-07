@@ -22,7 +22,7 @@ import {
 import { setValueKey } from './set.js';
 import { safeDimension } from './tensor-index.js';
 import { REAL_CODES, mapBroadcastArrays, mapDenseArrays } from './tensor.js';
-import { compareCells, equalValues } from './value-comparison.js';
+import { compareCells, equalMembershipValues, equalValues } from './value-comparison.js';
 import {
     addDateTimeDuration, expectBoolean, isRankArray, isRankCounter, isRankDate, isRankDuration, isRankIndex,
     isRankLabel, isRankMultiset, isRankObject, isRankQueue, isRankSequence, isRankSequenceMask, isRankSet,
@@ -640,7 +640,7 @@ function membershipTest(right: RankValue, indexed: boolean): (value: RankValue) 
                 throw new RankError('in requires bounded sequence or membership support');
             }
             for (const item of right.plan.iterate()) {
-                if (equalValues(value, item)) return true;
+                if (equalMembershipValues(value, item)) return true;
             }
             return false;
         };
@@ -660,7 +660,7 @@ function membershipLookup(values: Iterable<RankValue>): (value: RankValue) => bo
         else if (!(typeof value === 'number' && Number.isNaN(value))) scalars.add(key(value));
     }
     return value => typeof value === 'object'
-        ? composite.some(item => equalValues(value, item))
+        ? composite.some(item => equalMembershipValues(value, item))
         : scalars.has(key(value));
 }
 

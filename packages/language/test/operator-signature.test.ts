@@ -5,8 +5,8 @@ import type { ValueFacts } from '../src/analysis/value-domain.js';
 const facts = (...types: string[]): ValueFacts[] => types.map(type => ({ types: [type] }));
 
 it('describes arithmetic domains independently of compiler eligibility', () => {
-    expect(operatorSignature('//', facts('real', 'integer'))).toBe('real integer → real [rank 0 0]');
-    expect(operatorSignature('**', facts('integer', 'integer'))).toBe('number number → number [rank 0 0]');
+    expect(operatorSignature('//', facts('real', 'real'))).toBe('real real → real [rank 0 0]');
+    expect(operatorSignature('**', facts('integer', 'integer'))).toBe('integer integer → number [rank 0 0]');
     expect(operatorSignature('+', facts('datetime', 'duration'))).toBe('datetime duration → datetime [rank 0 0]');
     expect(operatorSignature('-', facts('datetime', 'datetime'))).toBe('datetime datetime → duration [rank 0 0]');
     expect(operatorSignature('*', facts('duration', 'real'))).toBe('duration number → duration [rank 0 0]');
@@ -16,7 +16,7 @@ it('describes arithmetic domains independently of compiler eligibility', () => {
 it('does not assert that equality operands have the same type or ignore missing', () => {
     expect(operatorSignature('equal', facts('text', 'integer'))).toBe('? ? → boolean | missing [rank 0 0]');
     expect(operatorSignature('not equal', facts('missing', 'integer'))).toContain('boolean | missing');
-    expect(operatorSignature('at least', facts('integer', 'real'))).toBe('number number → boolean [rank 0 0]');
+    expect(operatorSignature('at least', facts('integer', 'integer'))).toBe('integer integer → boolean [rank 0 0]');
     expect(operatorSignature('less', facts('missing', 'integer'))).toBe('missing ? → missing [rank 0 0]');
 });
 

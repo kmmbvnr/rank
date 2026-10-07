@@ -12,7 +12,7 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         expect(run('2 + 3 * 4 sqrt')).toBe(String(Math.sqrt(14)));
         expect(run('2 ** 3 ** 2')).toBe('512');
         expect(run('-2 ** 2')).toBe('-4');
-        expect(run('2 + 9 sqrt + 1')).toBe(String(Math.sqrt(11) + 1));
+        expect(run('2 + 9 sqrt + 1.0')).toBe(String(Math.sqrt(11) + 1));
         expect(run('2 + 9 3 gcd')).toBe('1');
         expect(run('2 + 9 type')).toBe('.integer');
     });
@@ -28,7 +28,7 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
 
     it('keeps addressing tight and allows explicit smaller operands', () => {
         expect(run('A = array 2 4\nB = array 3 5\nA 1 * B 0')).toBe('12');
-        expect(run('A = array 2 4\nA - (A mean)')).toBe('-1 1');
+        expect(run('A = array 2 4\n(A real rank 0) - (A mean)')).toBe('-1 1');
         expect(run('A = array 2 4\nA max + 1')).toBe('5');
         expect(run('A = array 2 4\nA * A mean round 1')).toBe('10');
         expect(run('M = array shape 2 2\n 1 7 4 2\nend\n2 + M 0 max axis 0')).toBe('9');
@@ -134,9 +134,9 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
     it('normalizes rounding parameters instead of interpreting subtraction as a call', () => {
         expect(run('12.34 round - 1')).toBe('10');
         expect(run('12.34 round - 1 sqrt')).toBe(String(Math.sqrt(10)));
-        expect(run('12.34 round - 1 * 2')).toBe('20');
+        expect(run('12.34 round - 1 * 2.0')).toBe('20');
         expect(run('12.34 round 1 sqrt')).toBe(String(Math.sqrt(12.3)));
-        expect(run('(12.34 round 1) - 1')).toBe('11.3');
+        expect(run('(12.34 round 1) - 1.0')).toBe('11.3');
         expect(run('2 + 9 round 1')).toBe('11');
     });
 });

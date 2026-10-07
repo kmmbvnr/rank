@@ -469,13 +469,13 @@ it('keeps numeric cells through callback-free sequence arithmetic', () => {
     expect(facts('46 - Codes', bindings).callbackFreeScalarCells).toBeUndefined();
 });
 
-it('keeps numeric result types for mixed integer-real division and remainder', () => {
+it('narrows successful numeric results to matching concrete operand types', () => {
     const bindings = new Map<string, ValueFacts>([['Total', {
         types: ['integer', 'real'], rank: 0, shape: [],
     }]]);
-    expect(facts('Total mod 10', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
-    expect(facts('Total // 10', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
-    expect(facts('3.5 mod 2')).toEqual({ types: ['real'], rank: 0, shape: [] });
+    expect(facts('Total mod 10', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Total // 10', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('3.5 mod 2.0')).toEqual({ types: ['real'], rank: 0, shape: [] });
     expect(facts('7 mod 2')).toMatchObject({ types: ['integer'], rank: 0 });
 });
 
@@ -613,7 +613,7 @@ it('keeps integer cells through integer-only array arithmetic', () => {
         callbackFreeScalarCells: true });
     expect(facts('(array 1 2) + (array 3 4)')).toMatchObject({ types: ['array'], elements: ['integer'] });
     expect(facts('(array 1 2) / 2')).toMatchObject({ types: ['array'], elements: ['real'] });
-    expect(facts('(array 1.5 2.5) * 2')).toMatchObject({ types: ['array'], elements: ['real'] });
+    expect(facts('(array 1.5 2.5) * 2.0')).toMatchObject({ types: ['array'], elements: ['real'] });
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     const bindings = new Map<string, ValueFacts>([['A', { types: ['array'], rank: 1,
         shape: [null], elements: ['integer'], eagerScalarCells: true }], ['I', integer]]);

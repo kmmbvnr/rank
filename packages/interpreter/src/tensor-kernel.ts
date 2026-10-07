@@ -320,8 +320,8 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                         lines.push(`const ${name} = ${a} ${token} ${b};`);
                     } else {
                         lines.push(`if (!${num(a)} || !${num(b)}) ${decline}`);
+                        lines.push(`if (typeof ${a} !== typeof ${b}) ${decline}`);
                         if (signatures.every(signature => signature.result === 'boolean')) {
-                            lines.push(`if (typeof ${a} !== typeof ${b}) ${decline}`);
                             lines.push(`const ${name} = ${a} ${token} ${b};`);
                         } else {
                             if (node.op === '/') lines.push(`if (${b} === 0n || ${b} === 0) ${decline}`);

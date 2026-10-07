@@ -26,7 +26,7 @@ it('retains relationships through composed helpers', () => {
 });
 
 it('uses example types without guessing unconstrained arithmetic domains', () => {
-    const source = 'fun twice Value\n return Value * 2\nend';
+    const source = 'fun twice Value\n return Value + Value\nend';
     expect(signature(source, 'twice')).toBe('integer → integer ; real → real ; numeric cells lift ; … (other domains)');
     expect(signature(source, 'twice', [{ types: ['integer'], rank: 0, shape: [] }])).toBe('integer → integer');
     expect(signature(source, 'twice', [{ types: ['array'], rank: 2, shape: [2, 3], elements: ['real'], callbackFreeScalarCells: true }]))

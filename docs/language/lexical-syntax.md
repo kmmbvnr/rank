@@ -701,7 +701,7 @@ comparisons, including `equal` and `not equal`, also require matching types.
 
 `**` raises its left operand to the power of its right operand. Integer operands
 with a nonnegative exponent produce an arbitrary-precision `integer`. A negative
-or real exponent produces a `real`. Zero to a negative power and results outside
+integer exponent produces a `real`; two real operands also produce a `real`. Zero to a negative power and results outside
 the real number system are errors.
 
 ```rank

@@ -29,9 +29,9 @@ describe('scalar compilation at ordinary function entry', () => {
     it('guards each invocation and recovers after invalid arguments', () => {
         const values = compare(`fun helper A B
   Value = A + B
-  return Value * 2
+  return Value + Value
 end`, [[2n, 3n], [1.5, 2.5], ['x', 'y'], [true, false],
-            [1n], [1n, 2n, 3n], [9007199254740993n, 2n]], 3);
+            [1n], [1n, 2n, 3n], [9007199254740993n, 2n]], 4);
         expect(values[0]).toEqual({ value: '10' });
         expect(values[1]).toEqual({ value: '8' });
         expect(values[6]).toEqual({ value: '18014398509481990' });

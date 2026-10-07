@@ -38,6 +38,18 @@ it('keeps integer division and makes conversion easy to request', () => {
     expect(run('A = array 1 2 3\nB = A real rank 0\n(B + 0.5) 2')).toBe('3.5');
 });
 
+it('keeps tensor fusion from bypassing numeric type checks', () => {
+    for (const tensorFusion of [false, true]) {
+        const runtime = new Interpreter(undefined, { tensorFusion });
+        try {
+            for (const expression of ['(A + 0.5) sum', '(A * 0.5) copy', '(A / 2.0) sum']) {
+                expect(() => runtime.execute(`use sequences\nA = array 1 2 3\n${expression}`))
+                    .toThrow('explicit conversion');
+            }
+        } finally { runtime.dispose(); }
+    }
+});
+
 it('keeps missing propagation and rejects implicit conversion in array construction', () => {
     expect(run('.NA + 2.0')).toBe('.NA');
     expect(run('.NA equal 2')).toBe('.NA');

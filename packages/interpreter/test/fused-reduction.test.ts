@@ -17,10 +17,10 @@ describe('inline arithmetic reduction', () => {
             const runtime = new Interpreter();
             runtime.execute(`
 fun fused A B
-  return (A * 2 + (B - A)) reduce ${operator}
+  return ((A + A) + (B - A)) reduce ${operator}
 end
 fun expression A B
-  return A * 2 + (B - A)
+  return (A + A) + (B - A)
 end
 fun total X
   return X reduce ${operator}

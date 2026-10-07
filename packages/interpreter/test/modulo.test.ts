@@ -13,7 +13,7 @@ describe('floor modulo', () => {
             expect(interpreter.execute('A // B')).toBe(expected);
             expect(interpreter.execute('(A // B) * B + A mod B')).toBeCloseTo(a, 14);
         }
-        expect(run('1 // 0.1')).toBe('9');
+        expect(run('1.0 // 0.1')).toBe('9');
         expect(run('X = 1.0\nX //= 0.1\nX')).toBe('9');
         expect(run('(array 1.0 (-1.0)) // 0.1')).toBe('9 -10');
         expect(interpreter.execute('-0.0 // 3.0')).toBe(-0);
@@ -31,13 +31,13 @@ describe('floor modulo', () => {
         expect(run('use numbers\n0 mod 3 equal 0')).toBe('true');
     });
 
-    it('uses the divisor sign for integer, real and mixed operands', () => {
+    it('uses the divisor sign for integer and real operands after explicit conversion', () => {
         for (const [a, b, expected] of [
             ['-5', '3', '1'], ['5', '-3', '-1'],
             ['-5', '-3', '-2'], ['5', '3', '2'],
             ['-5.5', '3.0', '0.5'], ['5.5', '-3.0', '-0.5'],
             ['-5.5', '-3.0', '-2.5'], ['5.5', '3.0', '2.5'],
-            ['-5', '3.0', '1'], ['5.0', '-3', '-1'],
+            ['(-5 real)', '3.0', '1'], ['5.0', '(-3 real)', '-1'],
         ]) {
             expect(run(`(${a}) mod (${b})`)).toBe(expected);
         }
@@ -78,7 +78,7 @@ describe('floor modulo', () => {
     }, 15_000);
 
     it('rejects zero divisors as Rank errors', () => {
-        for (const expression of ['5 mod 0', '5 mod 0.0', '5.0 mod -0.0', '5 // 0']) {
+        for (const expression of ['5 mod 0', '5.0 mod 0.0', '5.0 mod -0.0', '5 // 0']) {
             expect(() => run(expression)).toThrowError('division by zero');
         }
     });

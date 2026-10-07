@@ -210,9 +210,9 @@ describe('factsAt: grammar operator signatures', () => {
     });
 
     it('uses proven operand types and distinguishes unary and binary signs', () => {
-        const source = 'X = 1\n-X + 2.0';
+        const source = 'X = 1\n-X + 2';
         expect(factsAt(source, source.indexOf('-'))?.signature).toBe('integer → integer [rank 0]');
-        expect(factsAt(source, source.indexOf('+'))?.signature).toBe('integer real → real [rank 0 0]');
+        expect(factsAt(source, source.indexOf('+'))?.signature).toBe('integer integer → integer [rank 0 0]');
         expect(factsAt('"a" + "b"', 4)?.signature).toBe('text text → text');
         expect(factsAt('not true', 1)?.signature).toBe('boolean → boolean [rank 0]');
     });
@@ -290,12 +290,12 @@ describe('layoutNameFacts', () => {
 });
 
 it('keeps body alternatives separate from concrete call signatures', () => {
-    const definition = 'fun inc X\n return X + 1\nend';
+    const definition = 'fun twice X\n return X + X\nend';
     const general = 'integer → integer ; real → real ; numeric cells lift ; … (other domains)';
-    for (const calls of ['1 inc\n1.5 inc', '1.5 inc\n1 inc']) {
+    for (const calls of ['1 twice\n1.5 twice', '1.5 twice\n1 twice']) {
         const source = definition + '\n' + calls;
-        expect(factsAt(source, source.indexOf('inc'))?.signature).toBe(general);
-        const last = source.lastIndexOf('inc');
-        expect(factsAt(source, last)?.signature).toBe(calls.startsWith('1 inc') ? 'real → real' : 'integer → integer');
+        expect(factsAt(source, source.indexOf('twice'))?.signature).toBe(general);
+        const last = source.lastIndexOf('twice');
+        expect(factsAt(source, last)?.signature).toBe(calls.startsWith('1 twice') ? 'real → real' : 'integer → integer');
     }
 });

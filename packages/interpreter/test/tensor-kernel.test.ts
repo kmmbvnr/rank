@@ -203,7 +203,7 @@ A X rows print`;
     it('reuses a tensor body across integer and real calls without fixing an unknown input domain', () => {
         const result = compare(`use io
 fun total Values
-  Scaled = Values * 2
+  Scaled = Values + Values
   return Scaled sum
 end
 First = array 1 2
@@ -215,11 +215,11 @@ Third total`);
         expect(result).toMatchObject({ value: '22', output: ['6', '8'], kernels: 3 });
     });
 
-    it('preserves floating point order and mixed integer-real promotion', () => {
+    it('preserves floating point order and matching numeric operand types', () => {
         const result = compare(`use numbers
 use io
 A = array 10000000000000000.0 1.0 (-10000000000000000.0)
-S = (A + 0) sum
+S = (A + 0.0) sum
 S print`);
         expect(result.output).toEqual(['0']);
         expect(result.kernels).toBe(1);
@@ -291,7 +291,7 @@ S`);
             const source = `use numbers
 use stats
 fun f A
-  Shifted = A + 3
+  Shifted = A + ${sample % 2 ? '3.0' : '3'}
   Product = Shifted * A
   Result = Product ${sample % 2 ? 'mean' : 'sum'}
   return Result
@@ -350,7 +350,7 @@ A = array 1.2 2.8
 R = A round 0
 Warm = R sum
 A 0 = 100.0
-Answer = (R * 2) sum
+Answer = (R * 2.0) sum
 Answer
 `);
         // The write goes to storage of its own, so the completed cache stays
@@ -365,7 +365,7 @@ A = array 1.2 2.8
 R = A round 0
 First = R 0
 A 1 = 4.1
-Answer = (R * 2) sum
+Answer = (R * 2.0) sum
 Answer
 `);
         expect(result.value).toBe('8');
