@@ -2,8 +2,26 @@ import { expect, it } from 'vitest';
 import { findOperation } from '../src/operations.js';
 import { formatTypeSignature, operationSignature } from '../src/type-signature.js';
 
-it('gives unrelated unknown positions distinct letters', () => {
-    expect(formatTypeSignature({ inputs: ['unknown', 'unknown'], result: 'unknown' })).toBe('a b → c');
+it('compacts numeric families recursively while retaining concrete alternatives', () => {
+    expect(formatTypeSignature({ inputs: [{ union: ['integer', 'real'] }],
+        result: { collection: 'array', element: { union: ['integer', 'missing', 'real'] } } }))
+        .toBe('number → array<number | missing>');
+    expect(formatTypeSignature({ inputs: [{ union: ['real', 'text', 'integer', 'number'] }], result: 'real' }))
+        .toBe('(number | text) → real');
+    expect(formatTypeSignature({ inputs: ['integer'], result: 'integer' })).toBe('integer → integer');
+    expect(operationSignature(findOperation('abs')!, 1)).toContain('integer → integer');
+    expect(operationSignature(findOperation('abs')!, 1)).toContain('real → real');
+});
+
+it('keeps unknowns separate from variables and exact rank separate from cell rank', () => {
+    expect(formatTypeSignature({ inputs: ['unknown', { variable: 0 }], result: { variable: 0 } }))
+        .toBe('? a → a');
+    expect(formatTypeSignature({ inputs: [{ collection: 'array', element: 'real', rank: 2 }],
+        result: 'real', ranks: [2] })).toBe('array[#, #]<real> → real [rank 2]');
+});
+
+it('keeps unknown positions distinct from established relationships', () => {
+    expect(formatTypeSignature({ inputs: ['unknown', 'unknown'], result: 'unknown' })).toBe('? ? → ?');
 });
 
 it('reuses letters only for an explicit relationship', () => {
@@ -26,7 +44,7 @@ it('keeps collection, union, callback and rank information explicit', () => {
 
 it('formats nullary and wide tuple signatures without ambiguous variable names', () => {
     expect(formatTypeSignature({ inputs: [], result: 'integer' })).toBe('→ integer');
-    expect(formatTypeSignature({ inputs: Array(27).fill('unknown'), result: 'unknown' }))
+    expect(formatTypeSignature({ inputs: Array.from({ length: 27 }, (_, variable) => ({ variable })), result: { variable: 27 } }))
         .toMatch(/y z t27 → t28$/);
 });
 
@@ -167,7 +185,7 @@ it('preserves mutable collection elements without equating heap priorities with 
     expect(operationSignature(findOperation('popfront')!)).toBe('deque<a> → a');
     expect(operationSignature(findOperation('enqueue')!)).toBe(
         'heap<a> (number | boolean | text | symbol | date | datetime | record) a → heap<a>');
-    expect(operationSignature(findOperation('query')!)).toBe('segment integer integer → a');
+    expect(operationSignature(findOperation('query')!)).toBe('segment integer integer → ?');
     expect(operationSignature(findOperation('permutations')!, [{ types: ['text'] }])).toBe('text → sequence<text>');
     expect(operationSignature(findOperation('combinations')!, [{ types: ['array'] }, { types: ['integer'] }]))
         .toBe('array<a> integer → sequence<array<a>>');

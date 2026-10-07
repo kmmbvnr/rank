@@ -318,6 +318,17 @@ validation design is tracked in #33 and #116; it is not part of #153.
 
 ## Function body signatures
 
+Type previews use `number` for an `integer | real` family, including inside
+collections. A known `integer` or `real` keeps its concrete name. Separate
+input/result alternatives remain separate: `integer → integer ; real → real`
+preserves a relationship that `number → number` would hide.
+
+`?` means unknown information. Repeated letters such as `a → a` denote an
+established relationship; unrelated unknowns display as `? → ?`.
+`array[#, #]<real>` has exactly two axes of unspecified size, while
+`array<real>` has unspecified rank. A `[rank 2]` annotation describes the
+processed cell rank, independently of the whole array's rank.
+
 An uncalled single-return function can expose conditional input/result
 alternatives from the fixed contracts of built-in operators. For example,
 `return X + 1` shows `integer → integer` and `real → real`, whereas
