@@ -66,7 +66,7 @@ describe('factsAt: each kind of name position', () => {
     it('names a user function', () => {
         const program = 'fun f X\n return X\nend\n1 f\n';
         expect(formatNameFacts(factsAt(program, at(program, 'f X'))!)).toBe('f · a → a');
-        expect(formatNameFacts(factsAt(program, at(program, 'f', 2) + 1)!)).toBe('f · integer → integer');
+        expect(formatNameFacts(factsAt(program, at(program, 'f', 2) + 1)!)).toBe('f · i → i');
     });
 
     it('returns nothing for source that does not parse', () => {
@@ -162,7 +162,7 @@ describe('factsAt: functions', () => {
 
     it('shows an audited builtin and a proven notebook call', () => {
         expect(formatNameFacts(word('Xs = array 1 2 3\nXs sum\n', 'sum'), 60)).toBe('sum · array[3]<number> → number');
-        expect(formatNameFacts(word('fun twice X\n return X * 2\nend\n3 twice\n', 'twice'), 60)).toBe('twice · integer → integer');
+        expect(formatNameFacts(word('fun twice X\n return X * 2\nend\n3 twice\n', 'twice'), 60)).toBe('twice · i → i');
     });
 
     it('is not fooled by a variable or an unknown word', () => {
@@ -181,7 +181,7 @@ describe('function signatures in the type footer', () => {
     it('shows the notebook example signature and preserves unknown inputs', () => {
         const source = 'fun twice X\n Y = X * 2\n return Y\nend';
         expect(formatNameFacts(factsAt(source, source.indexOf('twice'), [], [{ name: 'twice', arguments: [integer()] }])!))
-            .toBe('twice · integer → integer');
+            .toBe('twice · i → i');
         expect(formatNameFacts(factsAt(source, source.indexOf('twice'))!)).toBe('twice · a → ?');
     });
 
@@ -241,7 +241,7 @@ it('shows range and proven outer signatures on operator words', () => {
     const named = '(array 1 2) (array 3 4) outer max';
     expect(factsAt(named, named.indexOf('outer'))?.signature).toBe('array[2]<integer> array[2]<integer> function → array');
     const shadowed = 'fun outer X\n return X\nend\n3 outer';
-    expect(factsAt(shadowed, shadowed.lastIndexOf('outer'))?.signature).toBe('integer → integer');
+    expect(factsAt(shadowed, shadowed.lastIndexOf('outer'))?.signature).toBe('i → i');
 });
 
 
@@ -260,7 +260,7 @@ it('shows segment form contracts without advertising callable marker signatures'
     const named = 'use algo\nfun combine A B\n return A + B\nend\n(array 1 2) segment combine';
     expect(factsAt(named, named.indexOf('segment'))?.signature).toBe('array[2]<integer> (? ? → ?) → segment');
     const shadowed = 'fun segment X\n return X\nend\n3 segment';
-    expect(factsAt(shadowed, shadowed.lastIndexOf('segment'))?.signature).toBe('integer → integer');
+    expect(factsAt(shadowed, shadowed.lastIndexOf('segment'))?.signature).toBe('i → i');
 });
 
 describe('layoutNameFacts', () => {
@@ -296,6 +296,6 @@ it('keeps body alternatives separate from concrete call signatures', () => {
         const source = definition + '\n' + calls;
         expect(factsAt(source, source.indexOf('twice'))?.signature).toBe(general);
         const last = source.lastIndexOf('twice');
-        expect(factsAt(source, last)?.signature).toBe(calls.startsWith('1 twice') ? 'real → real' : 'integer → integer');
+        expect(factsAt(source, last)?.signature).toBe(calls.startsWith('1 twice') ? 'r → r' : 'i → i');
     }
 });

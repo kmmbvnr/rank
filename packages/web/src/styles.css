@@ -25,11 +25,10 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 .terminal-row.terminal-comment { color: #aaa; }
 /* Draw the arrow in its fixed cell, centered on the lowercase letters rather
    than on a platform-dependent fallback font's baseline and side bearings. */
-.terminal-type-arrow { position: relative; height: 1ex; vertical-align: baseline; }
-.terminal-type-arrow > span { position: absolute; opacity: 0; }
-.terminal-type-arrow::before { content: ""; position: absolute; left: .08ch; right: .08ch; top: 50%; border-top: 1px solid currentColor; }
-.terminal-type-arrow::after { content: ""; position: absolute; right: .08ch; top: 50%; width: .35ch; height: .35ch; border-top: 1px solid currentColor; border-right: 1px solid currentColor; transform: translateY(-50%) rotate(45deg); }
-
+.terminal-type-arrow { position: relative; height: 1ex; vertical-align: baseline; overflow: hidden; }
+.terminal-type-arrow > span { color: transparent; }
+.terminal-type-arrow svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.terminal-type-arrow path { fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
 .terminal-gutter { display: inline-block; width: var(--notebook-gutter-width); font-size: 12px; }
 .terminal-row.terminal-result .terminal-gutter .terminal-marker { font-size: inherit; }
 .terminal-gutter.terminal-prompt { font-size: 13px; }

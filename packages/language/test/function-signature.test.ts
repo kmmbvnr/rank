@@ -28,9 +28,9 @@ it('retains relationships through composed helpers', () => {
 it('uses example types without guessing unconstrained arithmetic domains', () => {
     const source = 'fun twice Value\n return Value + Value\nend';
     expect(signature(source, 'twice')).toBe('a → a ; a: number ; c<a> → c<a> ; a: number');
-    expect(signature(source, 'twice', [{ types: ['integer'], rank: 0, shape: [] }])).toBe('integer → integer');
+    expect(signature(source, 'twice', [{ types: ['integer'], rank: 0, shape: [] }])).toBe('i → i');
     expect(signature(source, 'twice', [{ types: ['array'], rank: 2, shape: [2, 3], elements: ['real'], callbackFreeScalarCells: true }]))
-        .toBe('array[2, 3]<real> → array[2, 3]<real>');
+        .toBe('array[2, 3]<r> → array[2, 3]<r>');
 });
 
 it('does not mistake an unknown field requirement for a known field result', () => {
@@ -41,14 +41,14 @@ it('does not mistake an unknown field requirement for a known field result', () 
 });
 
 it('displays proven literals independently of unknown operands', () => {
-    expect(signature('fun answer Ignored\n return 42\nend', 'answer')).toBe('a → integer');
-    expect(signature('fun answer\n return 42\nend', 'answer')).toBe('→ integer');
+    expect(signature('fun answer Ignored\n return 42\nend', 'answer')).toBe('a → i');
+    expect(signature('fun answer\n return 42\nend', 'answer')).toBe('→ i');
 });
 
 it('retains ordinary result facts when a relationship cannot prove reader safety', () => {
     expect(signature('fun twice Value\n return Value * 2\nend', 'twice', [
         { types: ['array'], rank: 1, shape: [3], elements: ['integer'] },
-    ])).toBe('array[3]<integer> → array[3]<?>');
+    ])).toBe('array[3]<i> → array[3]<?>');
 });
 
 it('infers generator locals across branches and loop back edges', () => {
@@ -69,7 +69,7 @@ it('infers generator locals across branches and loop back edges', () => {
   end
  end
 end`;
-    expect(signature(source, 'facts')).toBe('integer → sequence<integer>');
+    expect(signature(source, 'facts')).toBe('i → sequence<i>');
 });
 
 it('does not advertise incompatible generator writes or heterogeneous cells', () => {
@@ -79,7 +79,7 @@ it('does not advertise incompatible generator writes or heterogeneous cells', ()
         .toBe('a → sequence');
     expect(signature('fun f N\n for N greater 0\n  X = 1\n  N -= 1\n end\n yield X\nend', 'f')).toBe('a → sequence');
     expect(signature('fun f N\n yield N unknown_helper\nend', 'f')).toBe('a → sequence');
-    expect(signature('fun f N\n yield 1.0\nend', 'f')).toContain('integer → sequence<real>');
+    expect(signature('fun f N\n yield 1.0\nend', 'f')).toContain('i → sequence<r>');
 });
 
 it('keeps concrete four-argument inference independent of the symbolic body preview', () => {
@@ -87,11 +87,11 @@ it('keeps concrete four-argument inference independent of the symbolic body prev
     const value = (type: 'integer' | 'real') => ({ types: [type], rank: 0, shape: [] });
     expect(signature(source, 'sum4')).toContain('a a a a → a ; a: number');
     expect(signature(source, 'sum4', Array(4).fill(value('integer'))))
-        .toBe('integer integer integer integer → integer');
+        .toBe('i i i i → i');
     expect(signature(source, 'sum4', Array(4).fill(value('real'))))
-        .toBe('real real real real → real');
+        .toBe('r r r r → r');
     expect(signature(source, 'sum4', [value('integer'), value('real'), value('integer'), value('integer')]))
-        .toBe('integer real integer integer → ?');
+        .toBe('i r i i → ?');
 });
 
 
@@ -102,11 +102,11 @@ it('keeps the result unknown when unsupported fields exhaust inference', () => {
     expect(signature(source, 'f', [
         { types: ['record'], fields: { value: { types: ['integer'], rank: 0, shape: [] } } },
         ...Array.from({ length: 3 }, () => ({ types: ['integer'], rank: 0, shape: [] })),
-    ])).toBe('record integer integer integer → integer');
+    ])).toBe('record i i i → i');
 });
 
 
 it('shows the collection result element separately from its preserved container kind', () => {
     expect(signature('fun half X\n return X / 2\nend', 'half'))
-        .toBe('integer → real ; c<integer> → c<real>');
+        .toBe('i → r ; c<i> → c<r>');
 });

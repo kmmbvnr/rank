@@ -3,11 +3,11 @@ import { createReplSession } from '../src/repl-session.js';
 
 describe('function result signatures', () => {
     it.each([
-        ['fun inc X\n return X + 1\nend', 'integer → integer ; c<integer> → c<integer>'],
+        ['fun inc X\n return X + 1\nend', 'i → i ; c<i> → c<i>'],
         ['fun identity X\n return X\nend', 'a → a'],
         ['fun pair X\n return tuple X "label"\nend', 'a → tuple(a, text)'],
         ['fun add X Y\n return X + Y\nend', 'a a → a ; a: number ; c<a> a → c<a> ; a: number ; a c<a> → c<a> ; a: number'],
-        ['fun countdown N\n for N greater 0\n  yield N\n  N -= 1\n end\nend', 'integer → sequence<integer>'],
+        ['fun countdown N\n for N greater 0\n  yield N\n  N -= 1\n end\nend', 'i → sequence<i>'],
     ])('shows the inferred signature for %s', async (source, signature) => {
         const session = createReplSession();
         try {
@@ -83,9 +83,9 @@ it('infers functions after CLI options and a loop in the full notebook context',
         expect((await session.execute('option N integer = 42', 1, file, 40, true)).ok).toBe(true);
         expect((await session.execute('for N greater 1\n N = 1\nend', 2, file, 40, true)).ok).toBe(true);
         expect((await session.execute(generator, 1, file, 40, true)).output.map(row => row.text).join(' '))
-            .toBe('integer → sequence<integer>');
+            .toBe('i → sequence<i>');
         expect((await session.execute(inc, 2, file, 40, true)).output.map(row => row.text).join(' '))
-            .toBe('integer → integer ; c<integer> → c<integer>');
+            .toBe('i → i ; c<i> → c<i>');
     } finally { session.dispose(); }
 });
 

@@ -13,7 +13,16 @@ function pinned(text: string): Node {
     const glyph = document.createElement('span');
     glyph.textContent = text;
     cell.append(glyph);
-    if (text === '→') cell.className = 'terminal-type-arrow';
+    if (text === '→') {
+        cell.className = 'terminal-type-arrow';
+        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        arrow.setAttribute('viewBox', '0 0 14 12');
+        arrow.setAttribute('aria-hidden', 'true');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M2 6H12M8 2L12 6L8 10');
+        arrow.append(path);
+        cell.append(arrow);
+    }
     return cell;
 }
 

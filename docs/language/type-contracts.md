@@ -343,8 +343,8 @@ values, or array dimensions. Unknown inputs do not establish a concrete type.
 
 An uncalled single-return function can expose conditional input/result
 alternatives from the fixed contracts of built-in operators. For example,
-`return X + 1` shows `integer → integer`, whereas
-`return X / 2` shows `integer → real`. A real argument requires a real
+`return X + 1` shows `i → i`, whereas
+`return X / 2` shows `i → r`. A real argument requires a real
 constant or an explicit conversion. These are related
 alternatives, not independent unions of inputs and outputs. Supported helper
 calls carry the intermediate types through the same analysis.
@@ -352,7 +352,8 @@ calls carry the intermediate types through the same analysis.
 The notebook displays up to two scalar and two collection alternatives.
 Matching array and sequence alternatives share a container variable: for
 `return X + 1`, the collection signature is
-`c<integer> → c<integer>`.
+`c<i> → c<i>`. Function previews abbreviate integer as `i` and real as
+`r`; source declarations still use their full names.
 Array rank remains generic. Adding a scalar preserves the numeric
 collection's shape; two collections still follow broadcasting rules.
 The preview shows supported alternatives; unresolved domains remain in the
