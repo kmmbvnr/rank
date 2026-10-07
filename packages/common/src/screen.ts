@@ -43,35 +43,80 @@ function lineNumbers(source: string): (offset: number) => number {
 const rowCache = new Map<string, TextRow[]>();
 
 /** Wrapped rows are identical for an unchanged cell, and every scroll frame lays all cells out again. */
-export function editableRows(source: string, columns: number): TextRow[] {
-    const key = columns + ':' + source;
+export function editableRows(source: string, columns: number, cursor?: number): TextRow[] {
+    const key = columns + ':' + (cursor ?? '') + ':' + source;
     let rows = rowCache.get(key);
     if (!rows) {
-        rows = layoutRows(source, columns);
+        rows = layoutRows(source, columns, cursor);
         if (rowCache.size >= 512) rowCache.delete(rowCache.keys().next().value!);
         rowCache.set(key, rows);
     }
     return rows;
 }
 
-function layoutRows(source: string, columns: number): TextRow[] {
+/** Display-only URL shortening with a map back to the untouched source. */
+function commentDisplay(line: string, width: number, cursor?: number): { text: string; offsets?: number[] } {
+    const links = [...line.matchAll(/https?:\/\/[^\s<>"']+/g)];
+    if (!links.length) return { text: line };
+    let text = '';
+    const offsets = [0];
+    let from = 0;
+    const appendSource = (to: number) => {
+        text += line.slice(from, to);
+        for (let index = from + 1; index <= to; index++) offsets.push(index);
+        from = to;
+    };
+    for (const match of links) {
+        const url = match[0].replace(/[.,;!?\)\]\}]+$/, '');
+        const start = match.index!;
+        const end = start + url.length;
+        appendSource(start);
+        if (cursor !== undefined && cursor >= start && cursor <= end) {
+            appendSource(end);
+            continue;
+        }
+        const scheme = /^https?:\/\//.exec(url)![0].length;
+        let shown = url.slice(scheme);
+        const budget = Math.max(1, width - 4);
+        const shortened = cellWidth(shown) > budget;
+        if (shortened) {
+            let prefix = '';
+            for (const part of graphemes(shown)) {
+                if (cellWidth(prefix + part.segment + '…') > budget) break;
+                prefix += part.segment;
+            }
+            shown = prefix + '…';
+        }
+        text += shown;
+        for (let index = 1; index <= shown.length; index++) {
+            offsets.push(shortened && index === shown.length ? end : start + scheme + index);
+        }
+        from = end;
+    }
+    appendSource(line.length);
+    return { text, offsets };
+}
+
+function layoutRows(source: string, columns: number, cursor?: number): TextRow[] {
     const width = Math.max(1, columns);
     const rows: TextRow[] = [];
     let offset = 0;
     for (const line of source.split('\n')) {
         const comment = /^\s*rem(?:\s|$)/.test(line);
+        const display = comment ? commentDisplay(line, width, cursor === undefined ? undefined : cursor - offset) : { text: line };
+        const sourceOffset = (index: number) => offset + (display.offsets?.[index] ?? index);
         let row: TextRow = { text: '', points: [{ offset, column: 0 }] };
         let column = 0;
         rows.push(row);
-        for (const part of graphemes(line)) {
+        for (const part of graphemes(display.text)) {
             // Wrap comment words visually, keeping every source offset and space intact.
             // Oversized words still use the ordinary grapheme-level fallback.
-            if (comment && !/\s/.test(part.segment) && part.index > 0 && /\s/.test(line[part.index - 1])) {
-                const rest = line.slice(part.index);
+            if (comment && !/\s/.test(part.segment) && part.index > 0 && /\s/.test(display.text[part.index - 1])) {
+                const rest = display.text.slice(part.index);
                 const end = rest.search(/\s/);
                 const wordWidth = cellWidth(end < 0 ? rest : rest.slice(0, end));
                 if (column > 0 && wordWidth <= width && column + wordWidth > width) {
-                    row = { text: '', points: [{ offset: offset + part.index, column: 0 }] };
+                    row = { text: '', points: [{ offset: sourceOffset(part.index), column: 0 }] };
                     rows.push(row);
                     column = 0;
                 }
@@ -80,7 +125,7 @@ function layoutRows(source: string, columns: number): TextRow[] {
             let size = cellWidth(shown);
             if (size > width) { shown = '?'; size = 1; }
             if (column + size > width) {
-                row = { text: '', points: [{ offset: offset + part.index, column: 0 }] };
+                row = { text: '', points: [{ offset: sourceOffset(part.index), column: 0 }] };
                 rows.push(row);
                 column = 0;
                 shown = visible(part.segment, column);
@@ -89,9 +134,9 @@ function layoutRows(source: string, columns: number): TextRow[] {
             }
             row.text += shown;
             column += size;
-            row.points.push({ offset: offset + part.index + part.segment.length, column });
+            row.points.push({ offset: sourceOffset(part.index + part.segment.length), column });
             if (column === width) {
-                row = { text: '', points: [{ offset: offset + part.index + part.segment.length, column: 0 }] };
+                row = { text: '', points: [{ offset: sourceOffset(part.index + part.segment.length), column: 0 }] };
                 rows.push(row);
                 column = 0;
             }
@@ -246,7 +291,7 @@ export function notebookFrame(
             : cell.status === 'error' && cell.executed === cell.source && (index === dirty || !pending) ? '\x1b[31m'
             : pending || cell.status === 'idle' ? '\x1b[90m'
             : !cell.command && notebook.isExperimental(index) ? '\x1b[38;5;208m' : '\x1b[32m';
-        const sourceRows = editableRows(cell.source, bodyWidth);
+        const sourceRows = editableRows(cell.source, bodyWidth, index === notebook.active ? notebook.cursor : undefined);
         const labelRow = prompt ? 0 : numbered ? sourceRows.findIndex(row => row.text.trim() !== '') : -1;
         const lineAt = lineNumbers(cell.source);
         for (const [line, item] of sourceRows.entries()) {

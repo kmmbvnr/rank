@@ -28,11 +28,50 @@ it('wraps comment words without changing source or losing caret offsets', () => 
 });
 
 it('hard-wraps oversized comment words and keeps Unicode graphemes intact', () => {
-    const source = 'rem https://example.org/abcdefghijklmnopqrstuvwxyz 👩‍💻 together';
+    const source = 'rem abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz 👩‍💻 together';
     const rows = editableRows(source, 12);
     expect(rows.map(row => row.text).join('')).toBe(source);
     expect(rows.every(row => cellWidth(row.text) <= 12)).toBe(true);
     expect(rows.some(row => row.text.includes('👩‍💻'))).toBe(true);
+});
+
+it('shortens comment URLs only for display and expands the link under the cursor', () => {
+    const url = 'https://example.org/a/very/long/path/to/the/original/problem?task=2';
+    const source = `rem See ${url}. Then https://short.io/x`;
+    const collapsed = editableRows(source, 40);
+    const shown = collapsed.map(row => row.text).join('');
+    expect(shown).toContain('example.org/');
+    expect(shown).toContain('…. Then short.io/x');
+    expect(shown).not.toContain('https://');
+    expect(collapsed.every(row => cellWidth(row.text) <= 40)).toBe(true);
+    const start = source.indexOf(url);
+    for (let cursor = start; cursor <= start + url.length; cursor++) {
+        const expanded = editableRows(source, 40, cursor);
+        expect(expanded.map(row => row.text).join('')).toBe(`rem See ${url}. Then short.io/x`);
+        expect(expanded.some(row => row.points.some(point => point.offset === cursor))).toBe(true);
+    }
+    expect(editableRows(source, 40, 0)).toEqual(collapsed);
+    expect(collapsed.at(-1)!.points.at(-1)!.offset).toBe(source.length);
+    // URL-valued code stays literal, including its scheme and full path.
+    const code = `Url = "${url}"`;
+    expect(editableRows(code, 40).map(row => row.text).join('')).toBe(code);
+});
+
+it('maps taps on abbreviated URLs to source positions that reveal the full link', () => {
+    const source = 'rem https://example.org/abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz';
+    const book = new Notebook();
+    book.enqueue(source);
+    const collapsed = notebookFrame(book, 46, 12);
+    const target = collapsed.targets?.find(target => target?.kind === 'source' && target.cell === 0)!;
+    expect(target).toBeDefined();
+    const point = target.points.find(point => point.offset > source.indexOf('https://'))!;
+    book.active = 0;
+    book.cursor = point.offset;
+    const expanded = notebookFrame(book, 46, 12);
+    expect(expanded.lines.map(stripAnsi).join('\n')).toContain('https://');
+    expect(book.current.source).toBe(source);
+    const caretTarget = expanded.targets?.[expanded.cursor.row];
+    expect(caretTarget?.points).toContainEqual({ offset: book.cursor, column: expanded.cursor.column });
 });
 
 it('gives a compact phone gutter one more source column with matching caret targets', () => {

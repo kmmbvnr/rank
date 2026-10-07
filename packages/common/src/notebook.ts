@@ -584,7 +584,7 @@ export class Notebook {
     }
 
     vertical(direction: number, columns: number, allowPrepend = false): void {
-        const rows = editableRows(this.current.source, columns);
+        const rows = editableRows(this.current.source, columns, this.cursor);
         // At a wrap boundary the caret belongs to the following visual row.
         let row = 0;
         rows.forEach((item, index) => {

@@ -228,7 +228,7 @@ export class KeyRouter {
                 const fromPrompt = book.atPrompt;
                 const line = book.current.source.slice(0, book.cursor).split('\n').length;
                 const header = key.name === 'up' ? line - 1 : line;
-                const rows = editableRows(book.current.source, textColumns(this.columns(), this.gutter));
+                const rows = editableRows(book.current.source, textColumns(this.columns(), this.gutter), book.cursor);
                 const row = rows.findIndex(row => row.points.some(point => point.offset === book.cursor));
                 const neighbor = rows[row + (key.name === 'up' ? -1 : 1)];
                 const nextLine = neighbor?.points[0] === undefined ? undefined

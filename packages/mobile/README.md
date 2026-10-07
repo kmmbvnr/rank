@@ -76,6 +76,8 @@ that local copy. Delete the local notebook in history to import it afresh.
 The phone console uses a five-column margin for line markers. Long comments
 wrap at word boundaries for display without changing the saved source;
 code and words wider than the screen still wrap by character.
+URLs in comments omit `http://` or `https://` and use an ellipsis when too long.
+Moving the editing cursor into a link reveals its complete original URL.
 
 On Android, `NotebooksPlugin` writes plain UTF-8 `.ra` files to the app's private
 `files/notebooks/<id>.ra` directory. A SQLite catalog stores titles, dates, cell
