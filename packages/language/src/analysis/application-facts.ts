@@ -925,8 +925,7 @@ function transferApplicationFacts(
                     elements: [...new Set([...source.elements, 'integer'])], callbackFreeScalarCells: true };
             }
             if (operation === findOperation('transpose') && arity === 1 && source.types.join() === 'array'
-                && source.shape) return { types: ['array'], rank: source.shape.length,
-                shape: [...source.shape].reverse(), elements: source.elements,
+                && shaped) return { ...shaped, elements: source.elements,
                 ...(hasNumericArrayNoCallbackProof(operation, operands)
                     ? { callbackFreeScalarCells: true as const } : {}) };
             if (arity === 2) {

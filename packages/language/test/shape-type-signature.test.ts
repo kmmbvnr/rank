@@ -2,6 +2,7 @@ import { constantDim, variableDim } from '../src/analysis/shape-index.js';
 import { expect, it } from 'vitest';
 import { findOperation } from '../src/operations.js';
 import { instantiateTypeSignatures, operationSignature, signatureType } from '../src/type-signature.js';
+import { operationShapeFacts } from '../src/analysis/operation-shape.js';
 import type { ValueFacts } from '../src/analysis/value-domain.js';
 
 const array = (shape: readonly (number | null)[], elements = ['real']): ValueFacts => ({ types: ['array'], shape, rank: shape.length, elements });
@@ -77,4 +78,27 @@ it('shows frames around determinant scalar cells without changing scalar matrix 
         .toBe('array[2, 4, 3, 3]<real> → array[2, 4]<number> [rank 2]');
     expect(display('det', array([null, 3, 3], ['integer'])))
         .toBe('array[#, 3, 3]<integer> → array[#]<integer> [rank 2]');
+});
+
+
+it('retains transposed matrix dimensions and the higher-rank overload', () => {
+    expect(operationSignature(findOperation('transpose')!))
+        .toBe('array[n, m]<a> → array[m, n]<a> ; array<a> → array<a>');
+    expect(display('transpose', array([2, 3], ['integer'])))
+        .toBe('array[2, 3]<integer> → array[3, 2]<integer>');
+    expect(display('transpose', array([2, 3, 4], ['integer'])))
+        .toBe('array[2, 3, 4]<integer> → array[4, 3, 2]<integer>');
+    expect(display('transpose', array([0, 3], ['integer'])))
+        .toBe('array[0, 3]<integer> → array[3, 0]<integer>');
+    expect(display('transpose', array([5], ['integer'])))
+        .toBe('array[5]<integer> → array[5]<integer>');
+});
+
+
+it('reuses rank and axis partitioning for transposed cells', () => {
+    const transpose = findOperation('transpose')!;
+    expect(operationShapeFacts(transpose, [array([2, 3, 4])], [2]))
+        .toMatchObject({ types: ['array'], rank: 3, shape: [2, 4, 3] });
+    expect(operationShapeFacts(transpose, [array([2, 3, 4])], [2], [1]))
+        .toMatchObject({ types: ['array'], rank: 3, shape: [3, 4, 2] });
 });
