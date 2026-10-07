@@ -346,9 +346,11 @@ function previews cache the general contract rather than an example's
 specialization.
 
 Generator previews also infer scalar alternatives through local assignments,
-compound assignments, branches and condition loops. Loop back edges widen local
-domains until they stabilize: an integer local later assigned `X / 2` contributes
-both integer and real cells. For example, the trial-division generator `facts`
+compound assignments, branches and condition loops. An established variable
+keeps its binding type across loop iterations: assigning `X / 2` to an integer
+local is a type conflict, not promotion to real. Branch joins track uncertainty
+without allowing a write to violate any of the possible binding contracts.
+For example, the trial-division generator `facts`
 shows `integer → sequence<integer>` for its integer input alternative. Sequence
 length and termination remain unknown. Locals defined only inside a possibly
 empty loop or only on one continuing branch do not establish a cell type.

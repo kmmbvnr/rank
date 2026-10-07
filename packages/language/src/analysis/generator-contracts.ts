@@ -1,16 +1,20 @@
 import {
     isAssignmentStatement, isBinaryExpression, isBooleanLiteral, isForStatement, isIfStatement,
-    isNameExpression, isNumberLiteral, isParenthesizedExpression, isReturnStatement,
+    isLabelLiteral, isNameExpression, isNumberLiteral, isParenthesizedExpression, isReturnStatement,
     isStringLiteral, isYieldStatement, type Expression, type FunctionStatement, type Statement,
 } from '../generated/ast.js';
 import { operatorContract } from '../operator-signature.js';
+import { possibleBindingTypeConflict, settledBindingTypes } from '../binding-rule.js';
 import type { SignatureAtom, SignatureType } from '../type-signature.js';
 import type { FunctionAlternative, FunctionContract } from './function-contracts.js';
 
 type Domain = readonly SignatureAtom[];
-type Environment = Map<string, Domain>;
+type Binding = { readonly types: Domain; readonly contracts: readonly Domain[] };
+type Environment = Map<string, Binding>;
 const candidates: readonly SignatureAtom[] = ['integer', 'real', 'boolean', 'text', 'missing'];
 const union = (domains: readonly Domain[]): Domain => [...new Set(domains.flat())].sort();
+const contracts = (domains: readonly Domain[]): readonly Domain[] =>
+    [...new Map(domains.map(domain => [domain.join(), domain])).values()].sort((a, b) => a.join().localeCompare(b.join()));
 const matches = (pattern: SignatureType, atom: SignatureAtom): boolean => typeof pattern === 'string'
     ? pattern === atom || pattern === 'unknown' || pattern === 'number' && ['integer', 'real'].includes(atom)
     : 'union' in pattern && pattern.union.some(member => matches(member, atom));
@@ -19,8 +23,8 @@ const atoms = (type: SignatureType): Domain | undefined => typeof type === 'stri
         && type.union.every(member => typeof member === 'string' && member !== 'unknown')
         ? type.union as Domain : undefined;
 
-/** Display-only scalar alternatives. A bounded monotone loop analysis unions
- * local domains across paths and back edges; it never executes a generator or
+/** Display-only scalar alternatives. A bounded loop analysis tracks settled
+ * binding contracts across paths and back edges; it never executes a generator or
  * turns conditional requirements into optimizer facts. Unsupported code declines.
  */
 export function inferGeneratorContract(definition: FunctionStatement, limit = 10000): FunctionContract {
@@ -48,10 +52,11 @@ export function inferGeneratorContract(definition: FunctionStatement, limit = 10
     const read = (node: Expression, env: Environment): Domain | undefined => {
         if (!tick()) return undefined;
         if (isParenthesizedExpression(node)) return read(node.value, env);
-        if (isNameExpression(node)) return env.get(node.name);
+        if (isNameExpression(node)) return env.get(node.name)?.types;
         if (isNumberLiteral(node)) return [typeof node.value === 'bigint' ? 'integer' : 'real'];
         if (isStringLiteral(node)) return ['text'];
         if (isBooleanLiteral(node)) return ['boolean'];
+        if (isLabelLiteral(node) && node.name === 'NA') return ['missing'];
         if (isBinaryExpression(node) && !node.step) {
             const left = read(node.left, env), right = read(node.right, env);
             return left && right && binary(node.operator, left, right);
@@ -62,12 +67,15 @@ export function inferGeneratorContract(definition: FunctionStatement, limit = 10
     const merge = (paths: readonly Environment[]): Environment => {
         const env: Environment = new Map();
         for (const name of paths[0]?.keys() ?? []) {
-            if (paths.every(path => path.has(name))) env.set(name, union(paths.map(path => path.get(name)!)));
+            if (paths.every(path => path.has(name))) env.set(name, {
+                types: union(paths.map(path => path.get(name)!.types)),
+                contracts: contracts(paths.flatMap(path => path.get(name)!.contracts)),
+            });
         }
         return env;
     };
     const equal = (left: Environment, right: Environment): boolean => left.size === right.size
-        && [...left].every(([name, types]) => types.join() === right.get(name)?.join());
+        && [...left].every(([name, binding]) => JSON.stringify(binding) === JSON.stringify(right.get(name)));
     const analyze = (inputs: readonly SignatureAtom[]): Domain | undefined => {
         const yields: Domain[] = [];
         let valid = true;
@@ -85,9 +93,16 @@ export function inferGeneratorContract(definition: FunctionStatement, limit = 10
                     const right = read(statement.value, env);
                     const left = env.get(statement.name);
                     const value = statement.operator === '=' ? right
-                        : left && right && binary(statement.operator.slice(0, -1), left, right);
+                        : left && right && binary(statement.operator.slice(0, -1), left.types, right);
                     if (!value) { valid = false; return undefined; }
-                    env.set(statement.name, value);
+                    // Check every possible established contract separately: a
+                    // branch join must not grant permission to change its type.
+                    if (left?.contracts.some(expected => possibleBindingTypeConflict(expected, value))) {
+                        valid = false; return undefined;
+                    }
+                    env.set(statement.name, { types: value, contracts: left
+                        ? contracts(left.contracts.flatMap(expected => value.map(type =>
+                            settledBindingTypes(expected, [type]) as Domain))) : value.map(type => [type]) });
                 } else if (isYieldStatement(statement)) {
                     const value = read(statement.value, env);
                     if (!value) { valid = false; return undefined; }
@@ -103,8 +118,8 @@ export function inferGeneratorContract(definition: FunctionStatement, limit = 10
                     env = merge(paths);
                 } else if (isForStatement(statement)) {
                     const initial = new Map(env);
-                    // At most all finite scalar domains can be added to each local.
-                    // The shared work budget also bounds nested loops and large bodies.
+                    // Joins describe path uncertainty, never a widening of an
+                    // established variable type. The work budget bounds nested loops.
                     for (;;) {
                         if (statement.condition && !condition(statement.condition, env)) { valid = false; return undefined; }
                         const back = walk(statement.statements, env);
@@ -117,8 +132,11 @@ export function inferGeneratorContract(definition: FunctionStatement, limit = 10
             }
             return env;
         };
-        walk(definition.statements, new Map(definition.parameters.map((name, index) => [name, [inputs[index]]])));
-        return valid && yields.length ? union(yields) : undefined;
+        walk(definition.statements, new Map(definition.parameters.map((name, index) =>
+            [name, { types: [inputs[index]], contracts: [[inputs[index]]] }])));
+        // Do not advertise heterogeneous cells as a supported sequence domain.
+        const cells = union(yields);
+        return valid && cells.length === 1 ? cells : undefined;
     };
     const enumerate = (inputs: readonly SignatureAtom[]): void => {
         if (!tick()) return;

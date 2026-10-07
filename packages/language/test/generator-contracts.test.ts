@@ -13,7 +13,7 @@ function contract(source: string, budget?: number) {
 }
 
 it('bounds nested loop inference and starts each inspection with a fresh budget', () => {
-    const source = 'fun f N\n X = 1\n for N greater 0\n  for N greater 0\n   yield X\n   X = X / 2\n   N -= 1\n  end\n end\nend';
+    const source = 'fun f N\n X = 1\n for N greater 0\n  for N greater 0\n   yield X\n   X = X // 2\n   N -= 1\n  end\n end\nend';
     const limited = contract(source, 10);
     expect(limited.exhausted).toBe(true);
     expect(limited.unresolved).toBe(true);
@@ -21,7 +21,7 @@ it('bounds nested loop inference and starts each inspection with a fresh budget'
     const full = contract(source);
     expect(full.exhausted).toBe(false);
     expect(full.alternatives[0]).toEqual({ inputs: ['integer'],
-        result: { collection: 'sequence', element: { union: ['integer', 'real'] } } });
+        result: { collection: 'sequence', element: 'integer' } });
 });
 
 it('keeps captured values, unknown calls and unsupported control flow unresolved', () => {
@@ -29,6 +29,8 @@ it('keeps captured values, unknown calls and unsupported control flow unresolved
         'if N greater 0\n X = 1\nend\nyield X']) {
         expect(contract(`fun f N\n${body}\nend`).alternatives).toEqual([]);
     }
+    expect(contract('fun f N\n X = 1\n X = .NA\n X = 2\n yield X\nend').alternatives[0])
+        .toEqual({ inputs: ['integer'], result: { collection: 'sequence', element: 'integer' } });
 });
 
 it('does not carry facts across a terminating branch', () => {
@@ -44,4 +46,13 @@ it('does not treat writes to an enclosing scope as stable generator locals', () 
     if (!isFunctionStatement(outer)) throw new Error('missing outer function');
     const inner = outer.statements.find(isFunctionStatement)!;
     expect(inferGeneratorContract(inner).alternatives).toEqual([]);
+});
+
+it('keeps the established binding contract through writes, missing values and joins', () => {
+    for (const body of ['X = 1\nX = X / 2\nyield X', 'X = 1\nX /= 2\nyield X',
+        'X = 1\nX = .NA\nX = 1.5\nyield X',
+        'X = N equal 0\nX = 2\nyield X',
+        'if N greater 0\n X = 1\nelse\n X = 1.5\nend\nX = 2.0\nyield X']) {
+        expect(contract(`fun f N\n${body}\nend`).alternatives).toEqual([]);
+    }
 });
