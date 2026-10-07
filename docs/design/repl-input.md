@@ -298,6 +298,10 @@ remain spacing. Output is stored separately and never written by `save`.
 
 ## Completion and text input
 
+A variable prefix may start with a lowercase letter: `num` can complete to
+`Number` where a variable is allowed. This applies to existing bindings and
+local declarations before the cursor, without executing the draft.
+
 Tab inserts a completion. When several candidates match, repeated Tab cycles them
 in place and one footer shows the current candidate and count. Typing or navigation
 removes the footer. Completion uses session names, module exports, keywords,
