@@ -15,6 +15,7 @@ import { moveParen, parenPartner, parenSnaps } from '@arrrank/common/paren-drag'
 import { browserSession } from './session.js';
 import { paintLine } from './terminal-colors.js';
 import { sourceSelection } from './source-selection.js';
+import { cellWidth as displayWidth } from '@arrrank/common/display-width';
 import { wrapCommentLines } from '@arrrank/common/comment-wrap';
 import { VoiceDictation, isVoiceSupported } from './voice-dictation.js';
 import { NotebookHistory } from './notebook-history.js';
@@ -73,10 +74,14 @@ if (!touchConsole) {
 }
 const compactResults = touchConsole;
 const notebookGutter = 6;
+const CODE_FONT_SIZE = 13;
+const GUTTER_FONT_SIZE = 12;
+if (touchConsole) document.documentElement.style.fontSize = CODE_FONT_SIZE + 'px';
 let columns = 47;
 let rows = 24;
 let cellWidth = 8;
 let cellHeight = 22;
+let gutterWidth = notebookGutter * cellWidth;
 let top = 0;
 let scrollFraction = 0;
 let follow = true;
@@ -238,7 +243,7 @@ function placeScreen(): void {
     screen.style.transform = shiftedTop ? `translateY(${-shiftedTop}px)` : '';
     const caretRow = windowedFrame && frame.caretRow !== undefined ? frame.caretRow - top : frame.cursor.row;
     if (windowedFrame) caret.hidden = caretRow < 0 || caretRow >= rows || !!repl.help || Boolean(activeVoiceDictation);
-    const left = frame.cursor.column * cellWidth;
+    const left = columnLeft(frame.cursor.column, frame.cursor.row);
     const y = caretRow * cellHeight - scrollFraction;
     const inputY = windowedFrame ? Math.max(0, Math.min(rows - 1, caretRow)) * cellHeight - (caretRow >= 0 && caretRow < rows ? scrollFraction : 0) : y;
     caret.style.transform = `translate(${left}px, ${y}px)`;
@@ -266,6 +271,42 @@ function keepMarkerFullSize(row: HTMLElement): void {
     const marker = document.createElement('span');
     marker.className = 'terminal-marker';
     range.surroundContents(marker);
+}
+
+/** The notebook keeps logical columns; only the phone's gutter has a smaller physical advance. */
+function hasCompactGutter(row: number): boolean {
+    if (row === frame.statusRow || frame.factsRow !== undefined && row >= frame.factsRow
+        && row < frame.factsRow + (frame.factsRowCount ?? 1)) return false;
+    return touchConsole && (!!frame.targets?.[row] || !!frame.resultRows?.includes(row));
+}
+function columnLeft(column: number, row: number): number {
+    if (!hasCompactGutter(row)) return column * cellWidth;
+    return column < notebookGutter ? column * gutterWidth / notebookGutter
+        : gutterWidth + (column - notebookGutter) * cellWidth;
+}
+function columnAt(left: number, row: number): number {
+    if (!hasCompactGutter(row)) return left / cellWidth;
+    return left < gutterWidth ? left * notebookGutter / gutterWidth
+        : notebookGutter + (left - gutterWidth) / cellWidth;
+}
+const gutterGraphemes = new Intl.Segmenter();
+function compactGutter(row: HTMLElement): void {
+    const range = document.createRange();
+    range.setStart(row, 0);
+    const walker = document.createTreeWalker(row, NodeFilter.SHOW_TEXT);
+    let used = 0;
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        for (const part of gutterGraphemes.segment(node.textContent ?? '')) {
+            used += displayWidth(part.segment);
+            if (used < notebookGutter) continue;
+            range.setEnd(node, part.index + part.segment.length);
+            const gutter = document.createElement('span');
+            gutter.className = 'terminal-gutter';
+            gutter.append(range.extractContents());
+            row.prepend(gutter);
+            return;
+        }
+    }
 }
 
 /** A viewer takes no typing, so neither keyboard stays up while it is open. */
@@ -405,12 +446,13 @@ function render(): void {
         // Results, values and errors, are drawn a little smaller than code on a phone.
         const compact = compactResults && resultRows.has(index);
         element.classList.toggle('terminal-result', compact);
-        const key = (compact ? '\u0001' : '') + line;
+        const key = (compact ? '\u0001' : '') + (hasCompactGutter(index) ? '\u0002' : '') + line;
         painted[index] = key;
         if (paintedLines[index] === key) return;
         element.replaceChildren();
         paintLine(element, line);
         if (compact) keepMarkerFullSize(element);
+        if (hasCompactGutter(index)) compactGutter(element);
     });
     paintedLines = painted;
     caret.style.width = (frame.cursorStyle === 6 ? 2 : cellWidth) + 'px';
@@ -1074,7 +1116,7 @@ async function locate(x: number, y: number): Promise<void> {
     if (busy || repl.running || repl.help) { if (!keyboardEnabled) return; focusInput(); return; }
     const rect = terminal.getBoundingClientRect();
     const row = Math.floor((y - rect.top + scrollFraction) / cellHeight) + (windowedFrame ? top - frame.top : 0);
-    const column = Math.round((x - rect.left) / cellWidth);
+    const column = Math.round(columnAt(x - rect.left, row));
     const target = frame.targets?.[row];
     repl.releaseValue();
     repl.notebook.clearSelection();
@@ -1342,7 +1384,7 @@ function parenUnder(x: number, y: number): ParenDrag | undefined {
     if (target?.kind !== 'source') return undefined;
     const source = repl.notebook.cells[target.cell]?.source;
     if (source === undefined) return undefined;
-    const reach = (x - rect.left) / cellWidth - 0.5;
+    const reach = columnAt(x - rect.left, row) - 0.5;
     const hit = target.points.filter(point => '()'.includes(source[point.offset] ?? ''))
         .filter(point => Math.abs(point.column - reach) * cellWidth <= 36)
         .sort((a, b) => Math.abs(a.column - reach) - Math.abs(b.column - reach))[0];
@@ -1367,17 +1409,17 @@ function drawGhost(drag: ParenDrag, column: number): void {
     ghost.hidden = false;
     ghost.textContent = drag.line[drag.offset];
     ghost.style.width = cellWidth + 'px';
-    ghost.style.transform = `translate(${column * cellWidth}px, ${y}px)`;
+    ghost.style.transform = `translate(${columnLeft(column, drag.row)}px, ${y}px)`;
     if (drag.partner === undefined) { scope.hidden = true; return; }
     const from = Math.min(column, drag.partner);
     const to = Math.max(column, drag.partner);
     scope.hidden = false;
     scope.style.width = (to - from + 1) * cellWidth + 'px';
-    scope.style.transform = `translate(${from * cellWidth}px, ${y}px)`;
+    scope.style.transform = `translate(${columnLeft(from, drag.row)}px, ${y}px)`;
 }
 function showGhost(drag: ParenDrag, x: number, y: number): void {
     const rect = terminal.getBoundingClientRect();
-    const reach = (x - rect.left) / cellWidth - 0.5;
+    const reach = columnAt(x - rect.left, drag.row) - 0.5;
     const away = Math.abs(y - drag.startY) > 3 * cellHeight;
     const near = away ? undefined : drag.snaps.reduce((best, snap) =>
         Math.abs(snap.column - reach) < Math.abs(best.column - reach) ? snap : best);
@@ -1472,7 +1514,10 @@ function resize(): void {
     document.documentElement.style.setProperty('--top', (viewport?.offsetTop ?? 0) + 'px');
     cellWidth = measure.getBoundingClientRect().width / 10;
     cellHeight = measure.getBoundingClientRect().height;
-    columns = Math.max(12, Math.floor(terminal.clientWidth / cellWidth));
+    gutterWidth = notebookGutter * cellWidth * (touchConsole ? GUTTER_FONT_SIZE / CODE_FONT_SIZE : 1);
+    document.documentElement.style.setProperty('--notebook-gutter-width', gutterWidth + 'px');
+    const savedGutterWidth = notebookGutter * cellWidth - gutterWidth;
+    columns = Math.max(12, Math.floor((terminal.clientWidth + savedGutterWidth) / cellWidth));
     rows = Math.max(2, Math.floor(terminal.clientHeight / cellHeight));
     follow = true;
     anchorCursor = true;
