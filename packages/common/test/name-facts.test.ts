@@ -369,7 +369,7 @@ it('shows builtin signatures at their own boundary in a pipeline', () => {
     ]) {
         const found = factsAt(source, source.lastIndexOf('sum'))!;
         expect(found.signature).toContain('→ number');
-        expect(found.signature).toContain('array');
+        expect(found.signature).toMatch(/^array\[(#|3)\]<number> → number$/);
         expect(formatNameFacts(found)).not.toContain('· function');
     }
 });

@@ -1,6 +1,6 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, applicationForm, formatTypeSignature, signatureType, describeTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
+    analyzeValues, expressionFacts, applicationForm, formatTypeSignature, signatureType, describeTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
     isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts,
 } from '@arrrank/language';
@@ -91,8 +91,21 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         };
         const head = unaryApplicationHead(call, arities,
             name => !analysis.bindings.has(name) && !runtime.has(name));
+        const facts = (part: Expression): ValueFacts => {
+            const found = analysis.expressions.get(part);
+            if (found) return found;
+            // Flattened calls may omit intermediate heads from the expression map.
+            // Reuse facts at their reads, never the final value of a changed binding.
+            const reads = new Map<string, ValueFacts>();
+            for (const node of AstUtils.streamAst(part)) {
+                if (isNameExpression(node)) reads.set(node.name, analysis.expressions.get(node) ?? UNKNOWN);
+            }
+            return expressionFacts(part, Object.assign((name: string) => reads.get(name), {
+                arity: (name: string) => analysis.functions.get(name)?.parameters.length,
+            }));
+        };
         return {
-            arguments: (head ? [head] : parts.slice(0, -1)).map(part => analysis.expressions.get(part) ?? UNKNOWN),
+            arguments: (head ? [head] : parts.slice(0, -1)).map(facts),
             result: analysis.expressions.get(call),
         };
     };

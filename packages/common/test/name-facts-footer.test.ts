@@ -224,7 +224,7 @@ it('shows the sum signature in a filtered pipeline on a touch console before and
         const source = 'N Mask sum';
         footer(repl, source, source.indexOf('sum'), 40, false);
         expect(repl.nameFacts?.signature).toContain('→ number');
-        const frame = notebookFrame(repl.notebook, 40, 30, 0, '', false, true, '', 'Running…', undefined, 'rank> ',
+        const frame = notebookFrame(repl.notebook, 40, 20, 0, '', false, true, '', 'Running…', undefined, 'rank> ',
             undefined, undefined, undefined, false, undefined, false, 0, repl.diagnosticOutputs, undefined, repl.nameFacts);
         expect(stripAnsi(frame.lines.join('\n'))).toContain('→ number');
         await repl.submit(true);
