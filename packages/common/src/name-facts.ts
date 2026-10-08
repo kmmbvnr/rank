@@ -163,7 +163,8 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
             ? examples.flatMap((example, index) => example.name === site.name
                 ? [{ arguments: example.arguments, result: analysis.functionResults[index] }] : []) : [];
         return observed.length ? [...new Set(observed.map(facts => functionSignature(definition, { ...facts, relationship })))].join(' ; ')
-            : functionSignature(definition, { relationship, result: relationship ? undefined : generalResult(definition) });
+            : functionSignature(definition, { relationship, result: relationship ? undefined : generalResult(definition),
+                requirements: (generalAnalysis(definition) ?? analysis).requirements.functions.get(definition)?.params });
     };
 
     return offset => {
@@ -382,8 +383,8 @@ function topLevelWords(text: string): string[] {
     let depth = 0;
     let word = '';
     for (const char of text) {
-        if (char === '(' || char === '<') depth++;
-        else if (char === ')' || char === '>') depth--;
+        if (char === '(' || char === '<' || char === '[') depth++;
+        else if (char === ')' || char === '>' || char === ']') depth--;
         if (char === ' ' && depth === 0) {
             if (word) words.push(word);
             word = '';
@@ -392,7 +393,7 @@ function topLevelWords(text: string): string[] {
     if (word) words.push(word);
     // `array # #<integer>` is one type written with an axis marker per axis.
     return words.reduce<string[]>((merged, item) => {
-        if (item.startsWith('#') && merged.length) merged[merged.length - 1] += ' ' + item;
+        if ((item.startsWith('#') || item.startsWith('[rank ')) && merged.length) merged[merged.length - 1] += ' ' + item;
         else merged.push(item);
         return merged;
     }, []);
@@ -404,8 +405,8 @@ function unionMembers(text: string): string[] {
     let depth = 0;
     let member = '';
     for (const char of text) {
-        if (char === '(' || char === '<') depth++;
-        else if (char === ')' || char === '>') depth--;
+        if (char === '(' || char === '<' || char === '[') depth++;
+        else if (char === ')' || char === '>' || char === ']') depth--;
         if (char === '|' && depth === 0) { members.push(member.trim()); member = ''; } else member += char;
     }
     members.push(member.trim());

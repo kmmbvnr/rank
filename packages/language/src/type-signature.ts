@@ -1,3 +1,4 @@
+import type { ValueRequirement } from './analysis/requirements.js';
 import { sameDim, type Dim } from './analysis/shape-index.js';
 import { formatShapePattern, type ShapePattern } from './shape-signature.js';
 import { instantiateTypeSignatures, containerVariableDomains, typeVariableDomains } from './signature-matching.js';
@@ -57,7 +58,7 @@ export function signatureType(value: ValueFacts, unknown: () => SignatureType = 
 }
 
 /** Format facts supplied by the catalogue or analyzer; never infer them from operand names. */
-export function formatTypeSignature(signature: TypeSignature, options: { shortNumericNames?: boolean } = {}): string {
+export function formatTypeSignature(signature: TypeSignature, options: { shortNumericNames?: boolean; variableRequirements?: ReadonlyMap<number, ValueRequirement> } = {}): string {
     const variables = new Map<number, string>();
     const constraints = new Map<number, readonly SignatureAtom[]>();
     const kinds = containerVariableDomains(signature);
@@ -81,6 +82,13 @@ export function formatTypeSignature(signature: TypeSignature, options: { shortNu
             : options.shortNumericNames && value === 'real' ? 'r' : value;
         if ('label' in value) return `.${value.label}`;
         if ('variable' in value) {
+            const required = options.variableRequirements?.get(value.variable);
+            if (required?.domains?.length) {
+                const cells = type({ union: required.domains as readonly SignatureAtom[] });
+                const rank = required.rank;
+                return `(${cells}) [rank ${rank.max === Infinity ? `≥ ${rank.min}` : rank.min === rank.max
+                    ? rank.min : `${rank.min}..${rank.max}`}]`;
+            }
             let name = variables.get(value.variable);
             if (!name) variables.set(value.variable, name = fresh());
             if (value.domain) constraints.set(value.variable, value.domain);

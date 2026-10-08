@@ -399,3 +399,11 @@ it('infers Euler 13 call results and uncalled locals, with backward parameter co
     expect(numbers.facts.types).toEqual([]);
     expect(numbers.requirement).toBe('(integer or missing or real) [rank ≥ 0]');
 });
+
+
+it('shows backward parameter requirements on the Euler 13 function definition', () => {
+    const source = readFileSync(new URL('../../../demos/euler/013_largesum.ra', import.meta.url), 'utf8');
+    const found = factsAt(source, source.indexOf('fun leading_sum') + 4)!;
+    expect(found.signature).toBe('(number | missing) [rank ≥ 0] i → i');
+    expect(layoutNameFacts(found, 40)).toEqual(['leading_sum ·', '  (number | missing) [rank ≥ 0]', '  i → i']);
+});

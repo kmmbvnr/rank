@@ -110,3 +110,17 @@ it('shows the collection result element separately from its preserved container 
     expect(signature('fun half X\n return X / 2\nend', 'half'))
         .toBe('i → r ; c<i> → c<r>');
 });
+
+
+it('renders backward parameter contracts without inventing a collection-only sum input', () => {
+    const source = 'fun leading_sum Numbers Digits\n Total = Numbers sum\n Text = Total text\n Prefix = Text take Digits\n return Prefix integer\nend';
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
+    const definition = parsed.value.statements.find(isFunctionStatement)!;
+    const analysis = analyzeValues(parsed.value, new Map(), new Map(), [{ name: 'leading_sum', arguments: [{ types: [] }, { types: [] }] }]);
+    const requirements = analysis.requirements.functions.get(definition)!.params;
+    expect(functionSignature(definition, { requirements, result: analysis.functionResults[0] }))
+        .toBe('(number | missing) [rank ≥ 0] i → i');
+    expect(functionSignature(definition, { requirements, result: { types: ['integer'], rank: 0, shape: [] },
+        arguments: [{ types: ['integer'], rank: 0, shape: [] }, { types: ['integer'], rank: 0, shape: [] }] }))
+        .toBe('i i → i');
+});
