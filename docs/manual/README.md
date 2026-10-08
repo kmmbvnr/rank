@@ -6,6 +6,11 @@ and web apps bundle the whole manual through `key-manual.ts`; opening a page
 never fetches anything from the internet. A long press on a key opens its
 page.
 
+The Core keyboard tab contains forms that need no import. Import-gated
+keywords appear on their module tabs. Android hides CLI from both the tabs
+and the module picker. Sort directions remain `.ascending` / `.descending`;
+there are no bare-word direction keys.
+
 Each page follows the same shape:
 
 ````markdown

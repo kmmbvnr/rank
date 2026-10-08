@@ -40,6 +40,20 @@ const SINGLE = new Set(['sort by', 'argsort by', 'group by', 'first where', 'fir
 /** Joins take two operands side by side: `Days Revenue leftjoin by .date`. */
 const PAIR = new Set(['leftjoin by', 'innerjoin by', 'leftjoin on', 'innerjoin on']);
 
+/** Grammar forms have import gates too, even when they are not named operations. */
+const MODULE_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
+    algo: ['new', 'push'],
+    cli: ['args', 'argument', 'flag', 'option'],
+    graph: ['new'],
+    io: ['stdin'],
+    sequences: ['sort by', 'argsort by'],
+    tables: ['group by', 'leftjoin by', 'innerjoin by', 'leftjoin on', 'innerjoin on', 'select'],
+    testing: ['test'],
+};
+const IMPORTED_KEYWORDS = new Set(Object.values(MODULE_KEYWORDS).flat());
+/** Directions are labels (`.ascending` / `.descending`), not bare-word keys. */
+const OMITTED_KEYS = new Set(['ascending', 'descending']);
+
 /** Words that only extend one construct earlier on the line. */
 const EXTENDS: Readonly<Record<string, (words: readonly string[]) => boolean>> = {
     by: words => words.includes('to') || words.includes('till'),
@@ -84,21 +98,25 @@ function trailingOperands(tokens: readonly Token[]): number {
  * no `use`. The phone keyboard already has the symbols, so there are none here.
  * A module that is not imported, or exports no names, has no tab.
  */
-export function keyboardTabs(modules: Iterable<string>): KeyboardTab[] {
+export function keyboardTabs(modules: Iterable<string>, hidden: readonly string[] = []): KeyboardTab[] {
     const used = new Set(modules);
     used.delete('core');
-    const words = (module: string) => [...new Set(moduleOperations(module).map(operation => operation.name))];
-    const core = [...STATEMENT_KEYWORDS, ...OPERATOR_KEYWORDS, ...words('core')];
+    for (const module of hidden) used.delete(module);
+    const words = (module: string) => [...new Set([
+        ...moduleOperations(module).map(operation => operation.name), ...(MODULE_KEYWORDS[module] ?? []),
+    ])];
+    const core = [...STATEMENT_KEYWORDS, ...OPERATOR_KEYWORDS]
+        .filter(key => !IMPORTED_KEYWORDS.has(key) && !OMITTED_KEYS.has(key));
     return [
-        { module: 'core', keys: [...new Set(core)] },
+        { module: 'core', keys: [...new Set([...core, ...words('core')])] },
         ...[...used].sort().map(module => ({ module, keys: words(module) }))
             .filter(tab => tab.keys.length > 0),
     ];
 }
 
 /** Built-in modules available to import, with the catalogue's descriptions. */
-export function keyboardModules(imported: Iterable<string>): readonly Module[] {
-    const used = new Set(['core', ...imported]);
+export function keyboardModules(imported: Iterable<string>, hidden: readonly string[] = []): readonly Module[] {
+    const used = new Set(['core', ...imported, ...hidden]);
     return builtinModules.filter(module => !used.has(module.name));
 }
 

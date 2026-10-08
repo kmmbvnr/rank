@@ -27,7 +27,8 @@ async page => {
     check(saved.cells.join('\n') === 'use text\nuse numbers', 'Persist imports at the top');
     await picker.click();
     await keys.getByRole('button', { name: /^testing Test/ }).click();
-    await page.getByRole('tab', { name: 'core', exact: true }).waitFor();
+    await page.getByRole('tab', { name: 'testing', exact: true }).waitFor();
+    check(await keys.getByRole('button', { name: 'test', exact: true }).count() === 1, 'Offer the imported test statement');
     await picker.click();
-    check(await keys.getByRole('button', { name: /^testing Test/ }).count() === 0, 'Hide imported modules without operator tabs');
+    check(await keys.getByRole('button', { name: /^testing Test/ }).count() === 0, 'Hide the imported testing module');
 }

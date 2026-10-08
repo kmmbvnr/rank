@@ -762,11 +762,12 @@ function focusInput(): void {
     }
     if (!symbolKeyboardShown()) input.focus({ preventScroll: true });
 }
+const hiddenKeyboardModules = import.meta.env.MODE === 'mobile' ? ['cli'] : [];
 const floatingKeyboard = matchMedia('(orientation: landscape) and (min-width: 640px)');
 floatingKeyboard.addEventListener('change', () => render());
 function renderKeyboard(): void {
     const floating = floatingKeyboard.matches;
-    const tabs = keyboardTabs(repl.session.modules);
+    const tabs = keyboardTabs(repl.session.modules, hiddenKeyboardModules);
     if (keyboardModule !== '+' && !tabs.some(tab => tab.module === keyboardModule)) keyboardModule = 'core';
     const modules = tabs.map(tab => tab.module).join(',');
     if (modules !== keyboardTabList.dataset.modules) {
@@ -792,7 +793,7 @@ function renderKeyboard(): void {
         keyboardLayout = layout;
         keyboardKeys.classList.toggle('module-picker', keyboardModule === '+');
         keyboardKeys.replaceChildren(...(keyboardModule === '+'
-            ? keyboardModules(repl.session.modules).map(module => {
+            ? keyboardModules(repl.session.modules, hiddenKeyboardModules).map(module => {
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.tabIndex = -1;
@@ -835,7 +836,7 @@ function renderKeyboard(): void {
 }
 async function importKeyboardModule(module: string): Promise<void> {
     if (busy || repl.running || repl.help || repl.liveIterationFocused || needsRestart
-        || !keyboardModules(repl.session.modules).some(item => item.name === module)) return;
+        || !keyboardModules(repl.session.modules, hiddenKeyboardModules).some(item => item.name === module)) return;
     haptic();
     if (activeVoiceDictation) stopVoiceDictation();
     const book = repl.notebook;
