@@ -10,6 +10,8 @@ The Core keyboard tab contains forms that need no import. Import-gated
 keywords appear on their module tabs. Android hides CLI from both the tabs
 and the module picker. Sort directions remain `.ascending` / `.descending`;
 there are no bare-word direction keys.
+Words are sorted alphabetically on each tab. The keyboard offers `first`
+without separate `first where`, `first index where` or `index` shortcuts.
 
 Each page follows the same shape:
 

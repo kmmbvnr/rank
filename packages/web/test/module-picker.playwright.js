@@ -15,7 +15,7 @@ async existingPage => {
         const coreKeys = await page.locator('#keyboard-keys button').allTextContents();
         for (const key of ['args', 'argument', 'flag', 'option', 'new', 'push', 'stdin', 'test',
             'sort by', 'argsort by', 'group by', 'leftjoin by', 'innerjoin by', 'leftjoin on',
-            'innerjoin on', 'select', 'ascending', 'descending'])
+            'innerjoin on', 'select', 'ascending', 'descending', 'index', 'first where', 'first index where'])
             check(!coreKeys.includes(key), `Core must not offer ${key}`);
         const picker = page.getByRole('tab', { name: 'Import a module' });
         await picker.click();

@@ -31,9 +31,10 @@ describe('symbol keyboard', () => {
         expect(keys('cli')).toContain('option');
         expect(keys('io')).toContain('stdin');
         expect(keys('sequences')).toContain('sort by');
+        expect(keys('sequences')).toContain('first');
         expect(keys('tables')).toContain('innerjoin by');
         expect(keys('testing')).toEqual(['test']);
-        for (const key of ['ascending', 'descending'])
+        for (const key of ['ascending', 'descending', 'index', 'first where', 'first index where'])
             expect(tabs.flatMap(tab => tab.keys)).not.toContain(key);
     });
 
@@ -42,6 +43,11 @@ describe('symbol keyboard', () => {
             .toEqual(['core', 'numbers']);
         expect(keyboardModules([], ['cli']).map(module => module.name)).not.toContain('cli');
         expect(keyboardModules([]).map(module => module.name)).toContain('cli');
+    });
+
+    it('sorts words alphabetically on every tab', () => {
+        for (const tab of keyboardTabs(modules.map(module => module.name)))
+            expect(tab.keys).toEqual([...tab.keys].sort());
     });
 
     it('drops unknown modules that have no keys', () => {
