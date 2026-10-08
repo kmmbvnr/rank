@@ -17,7 +17,7 @@ import {
     isTakeWhileExpression,
     isTableFilterExpression, isUnpackExpression,
     isSubjectComparisonExpression,
-    type Expression, type Program, type Statement, type FunctionStatement,
+    type Expression, type Program, type Statement, type FunctionStatement, type AssignmentStatement,
     type TryStatement,
 } from '../generated/ast.js';
 import { compoundType, declaredType } from './types.js';
@@ -59,6 +59,7 @@ export interface ValueAnalysis {
     readonly diagnostics: readonly ValueDiagnostic[];
     readonly bindings: ReadonlyMap<string, ValueFacts>;
     readonly expressions: ReadonlyMap<Expression, ValueFacts>;
+    readonly assignments: ReadonlyMap<AssignmentStatement, ValueFacts>;
     readonly functions: ReadonlyMap<string, FunctionStatement>;
     readonly functionResults: readonly ValueFacts[];
     /** The imported functions this pass bound, for a later pass over the next cell to start from. */
@@ -103,6 +104,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     initialImports?: ReadonlyMap<string, ImportedFunction>): ValueAnalysis {
     const diagnostics: ValueDiagnostic[] = builtinBindingDiagnostics(program, undefined, declarations.values(), loadModule);
     const expressions = new Map<Expression, ValueFacts>();
+    const assignments = new Map<AssignmentStatement, ValueFacts>();
     const bindings = new Map(initial);
     const numeric = new Set(['integer', 'real']);
     const functions = new Map(declarations);
@@ -1048,12 +1050,14 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     next = { ...next, collectionId: nextCollectionId++ };
                 }
                 if (next.bottom) throw new UnobservedReturn();
-                if (statement.operator !== '=') next = {
-                    ...expressionFacts({ $type: 'BinaryExpression', operator: statement.operator.slice(0, -1),
-                        left: { $type: 'NameExpression', name: statement.name }, right: statement.value } as Expression, name => env.get(name)),
-                    types: compoundType(statement.operator, previous?.types ?? [], next.types),
-                };
+                if (statement.operator !== '=') {
+                    const combined = expressionFacts({ $type: 'BinaryExpression', operator: statement.operator.slice(0, -1),
+                        left: { $type: 'NameExpression', name: statement.name }, right: statement.value } as Expression, name => env.get(name));
+                    next = { ...combined, types: combined.types.length ? combined.types
+                        : compoundType(statement.operator, previous?.types ?? [], next.types) };
+                }
                 bind(statement.name, next, statement.value, env);
+                assignments.set(statement, env.get(statement.name)!);
                 if (calls.directNoReturnCall(statement.value, env)) return false;
             } else if (isUnpackStatement(statement)) {
                 invalidateCalls(statement.value, env);
@@ -1408,7 +1412,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     diagnostics.push(...requirementDiagnostics(requirements.conflicts, diagnostics));
     const unique = diagnostics.filter((diagnostic, index) => !diagnostics.slice(0, index).some(previous =>
         previous.node === diagnostic.node && previous.message === diagnostic.message));
-    return { diagnostics: unique, bindings, expressions, functions, functionResults, requirements, imports: imported,
+    return { diagnostics: unique, bindings, expressions, assignments, functions, functionResults, requirements, imports: imported,
         relationships: calls.validRelationships(bindings) };
 }
 

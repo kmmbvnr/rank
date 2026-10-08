@@ -373,3 +373,16 @@ it('shows builtin signatures at their own boundary in a pipeline', () => {
         expect(formatNameFacts(found)).not.toContain('· function');
     }
 });
+
+
+it('keeps Euler 1 integer sequence sums and boolean masks, including compound assignment targets', () => {
+    const source = readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8');
+    for (const [site, expected] of [
+        ['N =', 'N · sequence<integer>'],
+        ['Mask =', 'Mask · sequence<boolean>'],
+        ['Mask or=', 'Mask · sequence<boolean>'],
+        ['Mask sum', 'Mask · sequence<boolean>'],
+        ['Answer =', 'Answer · integer'],
+        ['Answer print', 'Answer · integer'],
+    ]) expect(formatNameFacts(factsAt(source, source.indexOf(site))!)).toBe(expected);
+});

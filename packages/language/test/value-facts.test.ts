@@ -1596,3 +1596,25 @@ it('retains validated CLI values and infers integer powers from known exponent s
     expect(facts('10 ** 0')).toMatchObject({ types: ['integer'], rank: 0 });
     expect(facts('10.0 ** 2.0')).toMatchObject({ types: ['real'], rank: 0 });
 });
+
+
+it.each(['equal', 'not equal', 'less', 'greater', 'at least', 'at most'])(
+    'keeps primitive boolean sequence cells through %s', operator => {
+        const source: ValueFacts = { types: ['sequence'], elements: ['integer'], rank: 1, shape: [null], callbackFreeScalarCells: true };
+        expect(facts(`N ${operator} 0`, new Map([['N', source]]))).toMatchObject({
+            types: ['sequence'], elements: ['boolean'], rank: 1, shape: [null], callbackFreeScalarCells: true,
+        });
+        expect(facts(`N ${operator} 0`, new Map([['N', { ...source, callbackFreeScalarCells: undefined }]]))
+            .callbackFreeScalarCells).not.toBe(true);
+    });
+
+it('preserves integer sums after a proven primitive boolean sequence selection', () => {
+    const source: ValueFacts = { types: ['sequence'], elements: ['integer'], rank: 1, shape: [null], callbackFreeScalarCells: true };
+    const mask: ValueFacts = { ...source, elements: ['boolean'] };
+    const bindings = new Map([['N', source], ['Mask', mask]]);
+    expect(facts('N Mask', bindings)).toMatchObject({ types: ['sequence'], elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('N Mask sum', bindings)).toMatchObject({ types: ['integer'], rank: 0, shape: [] });
+    bindings.set('Mask', { ...mask, callbackFreeScalarCells: undefined });
+    expect(facts('N Mask', bindings).callbackFreeScalarCells).not.toBe(true);
+    expect(facts('N Mask sum', bindings).types).toEqual(['integer', 'real']);
+});

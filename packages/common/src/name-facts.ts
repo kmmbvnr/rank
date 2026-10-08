@@ -288,7 +288,8 @@ function staticFacts(site: Site, analysis: ReturnType<typeof analyzeValues>): Va
         }
         case 'function': return FUNCTION;
         case 'assignment':
-            return isAssignmentStatement(node) && node.operator === '=' ? known(node.value) : UNKNOWN;
+            return isAssignmentStatement(node) ? node.operator === '=' ? known(node.value)
+                : analysis.assignments.get(node) ?? UNKNOWN : UNKNOWN;
         case 'loop': return bodyRead(loopOf(node)!, name, analysis);
         case 'parameter': return bodyRead(node as FunctionStatement, name, analysis);
         default: return UNKNOWN;

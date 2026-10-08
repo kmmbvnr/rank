@@ -151,21 +151,21 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
         && binaryType(operator, left.types, right.types).join() === 'boolean') {
         return { types: ['boolean'], rank: 0, shape: [] };
     }
-    if (['equal', 'notequal', 'and', 'or', 'xor'].includes(operator)) {
-        const allowed = operator === 'equal' || operator === 'notequal'
-            ? ['integer', 'real', 'boolean', 'symbol'] : ['boolean'];
+    if (['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'and', 'or', 'xor'].includes(operator)) {
+        const allowed = ['and', 'or', 'xor'].includes(operator) ? ['boolean'] : ['integer', 'real', 'boolean', 'symbol'];
         const safe = (value: ValueFacts): boolean => (value.rank === 0 && value.types.length > 0
             && value.types.every(type => allowed.includes(type)))
-            || (value.types.join() === 'array' && !!value.shape
+            || (['array', 'sequence'].includes(value.types.join()) && !!value.shape
                 && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
                 && !!value.elements?.length && value.elements.every(type => allowed.includes(type)));
-        if ([left, right].every(safe) && (left.types.join() === 'array' || right.types.join() === 'array')) {
+        const types = binaryType(operator, left.types, right.types);
+        if ([left, right].every(safe) && ['array', 'sequence'].includes(types.join())) {
             const leftShape = left.rank === 0 ? [] : left.shape!;
             const rightShape = right.rank === 0 ? [] : right.shape!;
             if (!incompatibleShapes(left, right)) {
                 const shape = broadcastShape(leftShape, rightShape);
                 const dims = broadcastDims(left, right);
-                return { types: ['array'], rank: shape.length, shape, ...(dims ? { dims } : {}), elements: ['boolean'],
+                return { types, rank: shape.length, shape, ...(dims ? { dims } : {}), elements: ['boolean'],
                     callbackFreeScalarCells: true };
             }
         }

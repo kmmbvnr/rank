@@ -234,3 +234,24 @@ it('shows the sum signature in a filtered pipeline on a touch console before and
         expect(formatNameFacts(repl.nameFacts!)).not.toContain('· function');
     } finally { session.dispose(); }
 });
+
+
+it('keeps Euler 1 types across restored notebook cells before execution', () => {
+    const session = createReplSession();
+    const repl = new NotebookRepl(session);
+    try {
+        repl.notebook.restore(readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8'));
+        for (const [site, expected] of [
+            ['N =', 'N · sequence<integer>'],
+            ['Mask =', 'Mask · sequence<boolean>'],
+            ['Mask or=', 'Mask · sequence<boolean>'],
+            ['Mask sum', 'Mask · sequence<boolean>'],
+            ['Answer =', 'Answer · integer'],
+            ['Answer print', 'Answer · integer'],
+        ]) {
+            const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
+            repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site));
+            expect(formatNameFacts(repl.nameFacts!)).toBe(expected);
+        }
+    } finally { session.dispose(); }
+});

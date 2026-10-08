@@ -1076,9 +1076,17 @@ function transferApplicationFacts(
                 ...(source.eagerScalarCells || source.callbackFreeScalarCells
                     ? { elements: source.elements, callbackFreeScalarCells: true as const } : {}) };
         }
-        if (source.types.join() === 'sequence' || source.types.join() === 'queue') return {
-            types: ['array'], rank: 1, shape: [null], elements: source.elements,
-        };
+        if (source.types.join() === 'sequence' || source.types.join() === 'queue') {
+            const selector = infer(parts[1], lookup);
+            const booleanMask = selector.elements?.join() === 'boolean';
+            const safe = (source.eagerScalarCells || source.callbackFreeScalarCells)
+                && (selector.eagerScalarCells || selector.callbackFreeScalarCells)
+                && source.elements?.length && source.elements.every(type =>
+                    ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type));
+            return { types: source.types.join() === 'sequence' && booleanMask ? ['sequence'] : ['array'],
+                rank: 1, shape: [null], elements: source.elements,
+                ...(safe ? { callbackFreeScalarCells: true as const } : {}) };
+        }
     }
     // Only plain scalar and whole-axis addressing is proven here.
     if (source.types.length === 1 && ['array', 'bytes', 'sequence'].includes(source.types[0])
