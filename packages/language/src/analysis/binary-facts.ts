@@ -97,14 +97,28 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
             && value.types.length > 0 && value.types.every(type => type === 'integer' || type === 'real'));
         const integerArithmetic = scalarNumbers && ['+', '-', '*', '//', 'mod'].includes(operator)
             && left.types.join() === 'integer' && right.types.join() === 'integer';
+        const integerPower = scalarNumbers && operator === '**'
+            && left.types.join() === 'integer' && right.types.join() === 'integer'
+            && right.integer !== undefined;
         const scalarTypes = integerArithmetic ? ['integer'] as Types
-            : inferred;
+            : integerPower ? [BigInt(right.integer!) >= 0n ? 'integer' : 'real'] as Types : inferred;
         const collections = [left, right].map(value => value.types.join())
             .filter(type => type === 'array' || type === 'sequence');
         const types = collections.length && collections.every(type => type === collections[0])
             ? [collections[0]] : scalarTypes;
         if (types.join() === 'text') return { types, rank: 1, shape: [null] };
-        if (left.rank === 0 && right.rank === 0) return { types, rank: 0, shape: [] };
+        if (left.rank === 0 && right.rank === 0) {
+            let integer: string | undefined;
+            if (integerArithmetic && left.integer !== undefined && right.integer !== undefined
+                && ['+', '-', '*'].includes(operator)) {
+                const a = BigInt(left.integer), b = BigInt(right.integer);
+                const value = operator === '+' ? a + b : operator === '-' ? a - b : a * b;
+                if (value >= -BigInt(Number.MAX_SAFE_INTEGER) && value <= BigInt(Number.MAX_SAFE_INTEGER)) {
+                    integer = String(value);
+                }
+            }
+            return { types, rank: 0, shape: [], ...(integer !== undefined ? { integer } : {}) };
+        }
         const leftShape = isAtom(left) ? [] : left.shape;
         const rightShape = isAtom(right) ? [] : right.shape;
         if (leftShape && rightShape && !incompatibleShapes(left, right)) {

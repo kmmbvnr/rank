@@ -12,7 +12,7 @@ import {
     isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression,
     isExpressionStatement, isNewStructureExpression, isRecordExpression, isRecordUpdateExpression,
     isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement, isReturnStatement,
-    isArgumentStatement, isOptionStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
+    isArgumentStatement, isOptionStatement, isFlagStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isTakeWhileExpression,
     isTableFilterExpression, isUnpackExpression,
@@ -1306,13 +1306,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     insertCollectionElement(parts[0].name, expressionFacts(payload, name => env.get(name)), payload, env);
                 }
                 if (calls.directNoReturnCall(statement.value, env)) return false;
-            } else if (isOptionStatement(statement) && statement.many) {
-                if (statement.defaultValue) invalidateCalls(statement.defaultValue, env);
-                env.set(statement.name, externalArray(statement.valueType));
-            } else if (isArgumentStatement(statement)) {
+            } else if (isOptionStatement(statement) || isArgumentStatement(statement)) {
                 if (statement.defaultValue) invalidateCalls(statement.defaultValue, env);
                 env.set(statement.name, statement.many ? externalArray(statement.valueType)
-                    : invalidate(env.get(statement.name)));
+                    : externalScalar(statement.valueType, env.get(statement.name)));
+            } else if (isFlagStatement(statement)) {
+                env.set(statement.name, externalScalar('boolean', env.get(statement.name)));
             } else if (isUseStatement(statement) && statement.path && statement.alias && loadModule) {
                 if (importedAliases.has(statement.alias)) {
                     invalidateImportedAlias(statement.alias, env);
@@ -1402,4 +1401,13 @@ function externalArray(valueType: string): ValueFacts {
     const elements = declaredType(valueType, false);
     return { types: ['array'], rank: 1, shape: [null], dims: [freshDim('arg')], acceptedTypes: ['array'],
         acceptedArrayRank: 1, ...(elements.length ? { elements } : {}) };
+}
+
+/** A declared CLI scalar keeps a validated existing binding, but its default is not a constant. */
+function externalScalar(valueType: string, existing?: ValueFacts): ValueFacts {
+    const types = declaredType(valueType, false);
+    if (!types.length) return UNKNOWN_VALUE;
+    if (existing?.types.join() === types.join()) return existing;
+    return { types, acceptedTypes: types, rank: types.join() === 'text' ? 1 : 0,
+        shape: types.join() === 'text' ? [null] : [] };
 }

@@ -1574,3 +1574,25 @@ it.each(['equal', 'not equal', 'less', 'greater', 'at least', 'at most'])(
         expect(facts(`Unknown ${operator} "a"`)).toEqual({ types: [] });
     },
 );
+
+
+it('types declared CLI scalars without treating defaults as supplied values', () => {
+    const names = bound('option Digits integer = 3\nargument File path = "input"\nflag Verbose\nOther = 2\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n');
+    expect(names.get('Digits')).toMatchObject({ types: ['integer'], rank: 0 });
+    expect(names.get('Digits')!.integer).toBeUndefined();
+    expect(names.get('File')).toMatchObject({ types: ['text'], rank: 1 });
+    expect(names.get('Verbose')).toMatchObject({ types: ['boolean'], rank: 0 });
+    expect(names.get('Other')).toMatchObject({ types: ['integer'], integer: '2' });
+    expect(names.get('Lower')!.types).toEqual(['integer', 'real']);
+    expect(names.get('Upper')!.types).toEqual(['integer']);
+});
+
+it('retains validated CLI values and infers integer powers from known exponent signs', () => {
+    const names = bound('option Digits integer = 3\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n',
+        { Digits: { types: ['integer'], rank: 0, shape: [], integer: '3' } });
+    expect(names.get('Lower')!.types).toEqual(['integer']);
+    expect(names.get('Upper')!.types).toEqual(['integer']);
+    expect(facts('10 ** (0 - 1)')).toMatchObject({ types: ['real'], rank: 0 });
+    expect(facts('10 ** 0')).toMatchObject({ types: ['integer'], rank: 0 });
+    expect(facts('10.0 ** 2.0')).toMatchObject({ types: ['real'], rank: 0 });
+});

@@ -299,3 +299,15 @@ it('keeps body alternatives separate from concrete call signatures', () => {
         expect(factsAt(source, last)?.signature).toBe(calls.startsWith('1 twice') ? 'r → r' : 'i → i');
     }
 });
+
+
+it('infers Euler product bounds with a known CLI option and without a run', () => {
+    const source = 'use cli\noption Digits integer = 3\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n';
+    for (const name of ['Lower', 'Upper']) {
+        const offset = source.indexOf(`${name} =`);
+        expect(formatNameFacts(factsAt(source, offset)!)).toBe(`${name} · ${name === 'Lower' ? 'integer or real' : 'integer'}`);
+        expect(formatNameFacts(factsAt(source, offset,
+            [['Digits', { types: ['integer'], rank: 0, shape: [], integer: '3' }]])!))
+            .toBe(`${name} · integer`);
+    }
+});
