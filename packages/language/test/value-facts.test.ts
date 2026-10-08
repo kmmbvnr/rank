@@ -1562,3 +1562,15 @@ it('keeps infinite cardinality through scalar mapping but not filtering', () => 
         shape: [null], elements: ['integer', 'real'], unbounded: true });
     expect(analysis.bindings.get('Filtered')?.unbounded).toBeUndefined();
 });
+
+
+it.each(['equal', 'not equal', 'less', 'greater', 'at least', 'at most'])(
+    'infers a scalar boolean for text %s independently of character rank', operator => {
+        for (const text of [{ types: ['text'] }, { types: ['text'], rank: 1, shape: [null] }] as ValueFacts[]) {
+            expect(facts(`Left ${operator} Right`, new Map([['Left', text], ['Right', text]])))
+                .toEqual({ types: ['boolean'], rank: 0, shape: [] });
+        }
+        expect(facts(`"a" ${operator} "longer"`)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
+        expect(facts(`Unknown ${operator} "a"`)).toEqual({ types: [] });
+    },
+);

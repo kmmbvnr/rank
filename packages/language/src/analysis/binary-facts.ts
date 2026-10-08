@@ -125,6 +125,11 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
                     callbackFreeScalarCells: true as const } : {}) };
         }
     }
+    // Text comparisons compare whole strings, not their character axes.
+    if (['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost'].includes(operator)
+        && left.types.join() === 'text' && right.types.join() === 'text') {
+        return { types: ['boolean'], rank: 0, shape: [] };
+    }
     if (['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost',
         'and', 'or', 'xor'].includes(operator)
         && left.rank === 0 && right.rank === 0
