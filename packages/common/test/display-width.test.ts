@@ -120,3 +120,37 @@ it('keeps dots at the left edge and fits three-digit notebook numbers', () => {
         new Map([[continued.cells[0].id, new Set([2])]]));
     expect(stripAnsi(marked.lines.find(row => row.includes('N + 1'))!)).toBe('◆       N + 1');
 });
+
+
+it('keeps oversized integer rows compact and reveals only the focused literal', () => {
+    const first = '37107287533902102798797998220837590246510135740250';
+    const second = '46376937677490009712648124896970078050417018260538';
+    const source = `  ${first}\n  ${second}`;
+    const collapsed = editableRows(source, 33);
+    expect(collapsed).toHaveLength(2);
+    expect(editableRows(source, 33, undefined, false).map(row => row.text).join('')).toBe('  ' + first + '  ' + second);
+    expect(collapsed.every(row => cellWidth(row.text) < 33 && row.text.endsWith('…'))).toBe(true);
+    expect(collapsed[0].points.at(-1)!.offset).toBe(first.length + 2);
+    for (let cursor = 2; cursor <= first.length + 2; cursor++) {
+        const expanded = editableRows(source, 33, cursor);
+        expect(expanded.map(row => row.text).join('')).toContain(first);
+        expect(expanded.map(row => row.text).join('')).not.toContain(second);
+        expect(expanded.some(row => row.points.some(point => point.offset === cursor))).toBe(true);
+    }
+    expect(editableRows(`Text = "${first}"`, 33).map(row => row.text).join('')).toBe(`Text = "${first}"`);
+});
+
+it('maps a tap on an abbreviated integer back to the full editable source', () => {
+    const source = '  37107287533902102798797998220837590246510135740250';
+    const book = new Notebook();
+    book.enqueue(source);
+    const collapsed = notebookFrame(book, 40, 12);
+    const target = collapsed.targets!.find(target => target?.kind === 'source' && target.cell === 0)!;
+    book.active = 0;
+    book.cursor = target.points.at(-1)!.offset;
+    const expanded = notebookFrame(book, 40, 12);
+    expect(expanded.lines.map(stripAnsi).join('')).toContain(source.trim().slice(0, 25));
+    expect(book.current.source).toBe(source);
+    expect(editableRows(source, 33, book.cursor).map(row => row.text).join('')).toBe(source);
+    expect(expanded.targets?.[expanded.cursor.row]?.points).toContainEqual({ offset: book.cursor, column: expanded.cursor.column });
+});

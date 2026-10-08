@@ -1,3 +1,4 @@
+import type { ValueRequirement } from './analysis/requirements.js';
 import { inferFunctionContract, summarizeFunctionContract } from './analysis/function-contracts.js';
 import { inferGeneratorContract } from './analysis/generator-contracts.js';
 import { functionYields } from './analysis/function-yields.js';
@@ -13,6 +14,7 @@ export interface FunctionSignatureFacts {
     readonly arguments?: readonly ValueFacts[];
     readonly result?: ValueFacts;
     readonly relationship?: FunctionRelationship;
+    readonly requirements?: readonly ValueRequirement[];
 }
 
 /** Render observed facts and proven relationships without running the function.
@@ -31,10 +33,19 @@ export function functionSignature(definition: FunctionStatement, facts: Function
     }
     let nextVariable = 0;
     const budget = { remaining: 1000 };
+    const requiredVariables = new Map<number, ValueRequirement>();
     const unknown = (): SignatureType => ({ variable: nextVariable++ });
     const describe = (value: ValueFacts): SignatureType => signatureType(value);
     const arguments_ = definition.parameters.map((_, index) => facts.arguments?.[index] ?? UNKNOWN_VALUE);
-    const inputs = arguments_.map(value => !value.types.length && !facts.arguments ? unknown() : describe(value));
+    const inputs = arguments_.map((value, index) => {
+        if (value.types.length || facts.arguments) return describe(value);
+        const required = facts.requirements?.[index];
+        if (required?.domains?.length && required.rank.min === 0 && required.rank.max === 0)
+            return describe({ types: required.domains as ValueFacts['types'], rank: 0, shape: [] });
+        const variable = unknown() as { variable: number };
+        if (required?.domains?.length) requiredVariables.set(variable.variable, required);
+        return variable;
+    });
     const instantiate = (term: TypeRelationship, values: readonly ValueFacts[]) =>
         instantiateRelationship({ result: term, dependencies: [], expressions: new Map() }, values,
             undefined, budget) ?? UNKNOWN_VALUE;
@@ -59,7 +70,7 @@ export function functionSignature(definition: FunctionStatement, facts: Function
     const result = facts.relationship
         ? resultType(facts.relationship.result, inputs, arguments_)
         : describe(facts.result ?? (generator ? { types: ['sequence'] } : UNKNOWN_VALUE));
-    return formatFunctionType({ inputs, result });
+    return formatTypeSignature({ inputs, result }, { shortNumericNames: true, variableRequirements: requiredVariables });
 }
 
 function hasBinary(term: TypeRelationship, budget = { remaining: 1000 }): boolean {

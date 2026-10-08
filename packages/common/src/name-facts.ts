@@ -1,7 +1,7 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, applicationForm, formatTypeSignature, signatureType, describeTypes, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
-    isExpression, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackStatement,
+    analyzeValues, expressionFacts, applicationForm, formatTypeSignature, signatureType, describeTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
+    isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts,
 } from '@arrrank/language';
 import { parse } from '@arrrank/interpreter';
@@ -12,6 +12,8 @@ export interface NameFacts {
     readonly facts: ValueFacts;
     readonly source: 'runtime' | 'static';
     readonly signature?: string;
+    /** A parameter contract from backward analysis, separate from observed value facts. */
+    readonly requirement?: string;
 }
 
 /** A function the live preview calls with example arguments, so its parameters have facts. */
@@ -50,20 +52,20 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
     try { analysis = analyzeValues(program, scope ? new Map(scope.bindings) : runtime,
         new Map(scope?.functions), examples.map(example => ({ ...example })), loadModule, scope?.imports); } catch { return undefined; }
 
-    const generalResults = new Map<FunctionStatement, ValueFacts>();
-    const generalResult = (definition: FunctionStatement): ValueFacts => {
-        if (analysis.functions.get(definition.name) !== definition) return UNKNOWN;
-        const cached = generalResults.get(definition);
+    const generalAnalyses = new Map<FunctionStatement, ReturnType<typeof analyzeValues>>();
+    const generalAnalysis = (definition: FunctionStatement): ReturnType<typeof analyzeValues> | undefined => {
+        if (analysis.functions.get(definition.name) !== definition) return undefined;
+        const cached = generalAnalyses.get(definition);
         if (cached) return cached;
-        // Use the existing body/loop analysis with unknown arguments, not a
-        // concrete example. A settled local can still prove a return type.
+        // Unknown arguments still let the existing body analysis prove locals and returns.
         const result = analyzeValues(program, scope ? new Map(scope.bindings) : runtime,
             new Map(scope?.functions), [{ name: definition.name,
-                arguments: definition.parameters.map(() => UNKNOWN) }], loadModule, scope?.imports)
-            .functionResults[0] ?? UNKNOWN;
-        generalResults.set(definition, result);
+                arguments: definition.parameters.map(() => UNKNOWN) }], loadModule, scope?.imports);
+        generalAnalyses.set(definition, result);
         return result;
     };
+    const generalResult = (definition: FunctionStatement): ValueFacts =>
+        generalAnalysis(definition)?.functionResults[0] ?? UNKNOWN;
 
     const written = scope ? writtenNames(program) : new Set<string>();
     /** A catalogue name that nothing in the notebook or the run has bound is a function. */
@@ -81,14 +83,33 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
     };
     const callFacts = (site: Site): { arguments: ValueFacts[]; result?: ValueFacts } | undefined => {
         if (!isNameExpression(site.node)) return undefined;
-        let call: AstNode = site.node;
-        while (isApplicationExpression(call.$container)) call = call.$container;
+        const call = site.node.$container;
         if (!isApplicationExpression(call)) return undefined;
         const parts = flattenApplication(call);
-        return parts.at(-1) === site.node ? {
-            arguments: parts.slice(0, -1).map(part => analysis.expressions.get(part) ?? UNKNOWN),
+        if (parts.at(-1) !== site.node) return undefined;
+        const arities = (name: string): readonly number[] | undefined => {
+            const definition = analysis.functions.get(name);
+            return definition ? [definition.parameters.length] : findOperation(name)?.arities;
+        };
+        const head = unaryApplicationHead(call, arities,
+            name => !analysis.bindings.has(name) && !runtime.has(name));
+        const facts = (part: Expression): ValueFacts => {
+            const found = analysis.expressions.get(part);
+            if (found) return found;
+            // Flattened calls may omit intermediate heads from the expression map.
+            // Reuse facts at their reads, never the final value of a changed binding.
+            const reads = new Map<string, ValueFacts>();
+            for (const node of AstUtils.streamAst(part)) {
+                if (isNameExpression(node)) reads.set(node.name, analysis.expressions.get(node) ?? UNKNOWN);
+            }
+            return expressionFacts(part, Object.assign((name: string) => reads.get(name), {
+                arity: (name: string) => analysis.functions.get(name)?.parameters.length,
+            }));
+        };
+        return {
+            arguments: (head ? [head] : parts.slice(0, -1)).map(facts),
             result: analysis.expressions.get(call),
-        } : undefined;
+        };
     };
     const signatureFor = (site: Site): string | undefined => {
         const actualName = isNameExpression(site.node) ? site.node.name : site.name;
@@ -142,7 +163,8 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
             ? examples.flatMap((example, index) => example.name === site.name
                 ? [{ arguments: example.arguments, result: analysis.functionResults[index] }] : []) : [];
         return observed.length ? [...new Set(observed.map(facts => functionSignature(definition, { ...facts, relationship })))].join(' ; ')
-            : functionSignature(definition, { relationship, result: relationship ? undefined : generalResult(definition) });
+            : functionSignature(definition, { relationship, result: relationship ? undefined : generalResult(definition),
+                requirements: (generalAnalysis(definition) ?? analysis).requirements.functions.get(definition)?.params });
     };
 
     return offset => {
@@ -154,7 +176,7 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
             if (signature) return { name: site.name, source: 'static', facts: FUNCTION, signature };
         }
         const observed = runtime.get(site.name);
-        if (observed && !inFunction && site.kind !== 'parameter' && !written.has(site.name)) {
+        if (observed && !inFunction && site.kind !== 'parameter' && site.kind !== 'input' && !written.has(site.name)) {
             // A run records no element types; the analyzer's agree with it only when type, rank and shape do.
             const inferred = analysis.bindings.get(site.name);
             const same = inferred && observed.types.join() === inferred.types.join() && observed.rank === inferred.rank
@@ -164,9 +186,27 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
             return { name: site.name, source: 'runtime', facts: { ...observed, ...(elements ? { elements } : {}) },
                 ...(observed.types.join() === 'function' ? { signature: signatureFor(site) } : {}) };
         }
-        const facts = isCatalogueFunction(site) ? FUNCTION : staticFacts(site, analysis);
+        let facts = isCatalogueFunction(site) ? FUNCTION : staticFacts(site, analysis);
+        if (!facts.types.length && inFunction) {
+            const body = generalAnalysis(inFunction);
+            if (body) facts = staticFacts(site, body);
+        }
+        let requirement: string | undefined;
+        if (!facts.types.length && inFunction) {
+            const body = generalAnalysis(inFunction) ?? analysis;
+            const index = inFunction.parameters.indexOf(site.name);
+            const required = site.kind === 'parameter' && index >= 0
+                ? body.requirements.functions.get(inFunction)?.params[index]
+                : isNameExpression(site.node) ? body.requirements.expressions.get(site.node) : undefined;
+            if (required?.domains?.length) {
+                const domain = describeTypes(required.domains as ValueFacts['types']);
+                const rank = required.rank;
+                requirement = rank.min === 0 && rank.max === 0 ? domain
+                    : `(${domain}) [rank ${rank.max === Infinity ? `≥ ${rank.min}` : `${rank.min}..${rank.max}`}]`;
+            }
+        }
         if (site.kind === 'read' && !facts.types.length && !isDefined(site)) return undefined;
-        return { name: site.name, source: 'static', facts,
+        return { name: site.name, source: 'static', facts, ...(requirement ? { requirement } : {}),
             ...(facts.types.join() === 'function' ? { signature: signatureFor(site) } : {}) };
     };
 }
@@ -195,7 +235,7 @@ function writtenNames(program: Program): Set<string> {
 interface Site {
     readonly name: string;
     readonly node: AstNode;
-    readonly kind: 'read' | 'assignment' | 'loop' | 'parameter' | 'unpack' | 'function' | 'operator' | 'form';
+    readonly kind: 'read' | 'assignment' | 'input' | 'loop' | 'parameter' | 'unpack' | 'function' | 'operator' | 'form';
 }
 
 function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site | undefined {
@@ -219,6 +259,9 @@ function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site 
     }
     if (isAssignmentStatement(node) || isArrayAssignmentStatement(node)) {
         return ownsLeaf(node, 'name', leaf) ? { name: text, node, kind: 'assignment' } : undefined;
+    }
+    if (isOptionStatement(node) || isArgumentStatement(node) || isFlagStatement(node)) {
+        return ownsLeaf(node, 'name', leaf) ? { name: text, node, kind: 'input' } : undefined;
     }
     if (isFunctionStatement(node)) {
         if (ownsLeaf(node, 'name', leaf)) return { name: text, node, kind: 'function' };
@@ -252,9 +295,18 @@ function staticFacts(site: Site, analysis: ReturnType<typeof analyzeValues>): Va
             if (analysis.functions.has(name)) return FUNCTION;
             return known(node as Expression);
         }
+        case 'input': {
+            if (isFlagStatement(node)) return { types: ['boolean'], rank: 0, shape: [] };
+            if (!isOptionStatement(node) && !isArgumentStatement(node)) return UNKNOWN;
+            const types = declaredType(node.valueType, node.many);
+            if (!types.length) return UNKNOWN;
+            return node.many ? { types, rank: 1, shape: [null], elements: declaredType(node.valueType, false) }
+                : { types, rank: types.join() === 'text' ? 1 : 0, shape: types.join() === 'text' ? [null] : [] };
+        }
         case 'function': return FUNCTION;
         case 'assignment':
-            return isAssignmentStatement(node) && node.operator === '=' ? known(node.value) : UNKNOWN;
+            return isAssignmentStatement(node) ? node.operator === '=' ? known(node.value)
+                : analysis.assignments.get(node) ?? UNKNOWN : UNKNOWN;
         case 'loop': return bodyRead(loopOf(node)!, name, analysis);
         case 'parameter': return bodyRead(node as FunctionStatement, name, analysis);
         default: return UNKNOWN;
@@ -290,10 +342,18 @@ function loopNames(loop: ForStatement): string[] {
         .concat(isNameExpression(condition.left) ? [condition.left.name] : []);
 }
 
-/** How a fact reads in a report: its element type, and its shape when every axis is known. */
+/** Show exact dimensions when known, otherwise preserve the array kind and rank. */
 export function describeFacts(facts: ValueFacts, withShape = true): string {
     if (facts.types.join() === 'function') return 'function';
     if (!facts.types.length) return 'unknown';
+    if (facts.types.join() === 'sequence' && facts.elements?.length) {
+        return `sequence<${describeTypes(facts.elements)}>`;
+    }
+    if (facts.types.join() === 'array' && (!facts.shape || facts.shape.some(size => size === null))) {
+        const rank = facts.rank ?? facts.shape?.length;
+        const axes = rank !== undefined ? `[${Array(rank).fill('#').join(', ')}]` : '';
+        return axes || facts.elements?.length ? `array${axes}<${describeTypes(facts.elements ?? [])}>` : 'array';
+    }
     const shaped = facts.types[0] !== 'text' && facts.shape !== undefined && facts.shape.length > 0;
     const base = shaped && facts.types.join() === 'array' && facts.elements?.length
         ? describeTypes(facts.elements) : describeTypes(facts.types);
@@ -306,11 +366,11 @@ export function describeFacts(facts: ValueFacts, withShape = true): string {
  * goes first, then the front of the name.
  */
 export function formatNameFacts(found: NameFacts, width = Infinity): string {
-    const full = `${found.name} · ${found.signature ?? describeFacts(found.facts)}`;
+    const full = `${found.name} · ${found.signature ?? found.requirement ?? describeFacts(found.facts)}`;
     if (cellWidth(full) <= width) return full;
-    const bare = `${found.name} · ${found.signature ?? describeFacts(found.facts, false)}`;
+    const bare = `${found.name} · ${found.signature ?? found.requirement ?? describeFacts(found.facts, false)}`;
     if (cellWidth(bare) <= width) return bare;
-    const suffix = ` · ${found.signature ?? describeFacts(found.facts, false)}`;
+    const suffix = ` · ${found.signature ?? found.requirement ?? describeFacts(found.facts, false)}`;
     let name = found.name;
     while (name.length > 1 && cellWidth(`${name}…${suffix}`) > width) name = name.slice(0, -1);
     const clipped = `${name}…${suffix}`;
@@ -323,8 +383,8 @@ function topLevelWords(text: string): string[] {
     let depth = 0;
     let word = '';
     for (const char of text) {
-        if (char === '(' || char === '<') depth++;
-        else if (char === ')' || char === '>') depth--;
+        if (char === '(' || char === '<' || char === '[') depth++;
+        else if (char === ')' || char === '>' || char === ']') depth--;
         if (char === ' ' && depth === 0) {
             if (word) words.push(word);
             word = '';
@@ -333,7 +393,7 @@ function topLevelWords(text: string): string[] {
     if (word) words.push(word);
     // `array # #<integer>` is one type written with an axis marker per axis.
     return words.reduce<string[]>((merged, item) => {
-        if (item.startsWith('#') && merged.length) merged[merged.length - 1] += ' ' + item;
+        if ((item.startsWith('#') || item.startsWith('[rank ')) && merged.length) merged[merged.length - 1] += ' ' + item;
         else merged.push(item);
         return merged;
     }, []);
@@ -345,8 +405,8 @@ function unionMembers(text: string): string[] {
     let depth = 0;
     let member = '';
     for (const char of text) {
-        if (char === '(' || char === '<') depth++;
-        else if (char === ')' || char === '>') depth--;
+        if (char === '(' || char === '<' || char === '[') depth++;
+        else if (char === ')' || char === '>' || char === ']') depth--;
         if (char === '|' && depth === 0) { members.push(member.trim()); member = ''; } else member += char;
     }
     members.push(member.trim());
@@ -390,7 +450,7 @@ function wrapElement(text: string, width: number, indent: string): string[] {
  * Types are never broken apart unless one alone is wider than a row.
  */
 export function layoutNameFacts(found: NameFacts, width: number): string[] {
-    const text = `${found.name} · ${found.signature ?? describeFacts(found.facts)}`;
+    const text = `${found.name} · ${found.signature ?? found.requirement ?? describeFacts(found.facts)}`;
     if (cellWidth(text) <= width || !found.signature) return cellWidth(text) <= width ? [text] : wrapElement(text, width, '');
     return found.signature.split(' ; ').flatMap((alternative, index) => {
         const single = `${index === 0 ? found.name + ' · ' : '  '}${alternative}`;

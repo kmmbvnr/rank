@@ -126,3 +126,20 @@ it.each([
         expect(result.output.map(row => row.text).join(' ')).toBe(signature);
     } finally { session.dispose(); }
 });
+
+
+it('infers the boolean return of the Euler palindrome function before any call', async () => {
+    const demo = readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8');
+    const source = demo.slice(demo.indexOf('fun palindrome')).trim();
+    const session = createReplSession();
+    try {
+        await session.execute('use sequences', 0, [], 40, true);
+        await session.execute('Digits = 3', 0, [], 40, true);
+        const result = await session.execute(source, 1, demo.split('\n'), 40, true);
+        expect(result.ok).toBe(true);
+        expect(result.output.map(row => row.text).join(' ')).toBe('a → boolean');
+        expect(session.preview(source, 40, true).valueSummary).toBe('a → boolean');
+        expect((await session.execute('9009 palindrome', 2, [], 40, true)).output.map(row => row.text)).toEqual(['true']);
+        expect((await session.execute('9010 palindrome', 3, [], 40, true)).output.map(row => row.text)).toEqual(['false']);
+    } finally { session.dispose(); }
+});

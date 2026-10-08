@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { ValueFacts } from '@arrrank/language';
 import { factsAt, formatNameFacts, layoutNameFacts, describeFacts, type NameFacts } from '../src/name-facts.js';
@@ -143,8 +144,8 @@ describe('formatNameFacts', () => {
     });
 
     it('omits a shape with an axis it does not know, rather than guessing', () => {
-        expect(describeFacts(integer([3, null]))).toBe('integer');
-        expect(describeFacts({ types: ['array'], rank: 2 })).toBe('array');
+        expect(describeFacts(integer([3, null]))).toBe('array[#, #]<integer>');
+        expect(describeFacts({ types: ['array'], rank: 2 })).toBe('array[#, #]<unknown>');
     });
 
     it('drops the shape, then the front of the name, to fit the footer', () => {
@@ -298,4 +299,111 @@ it('keeps body alternatives separate from concrete call signatures', () => {
         const last = source.lastIndexOf('twice');
         expect(factsAt(source, last)?.signature).toBe(calls.startsWith('1 twice') ? 'r → r' : 'i → i');
     }
+});
+
+
+it('infers Euler product bounds with a known CLI option and without a run', () => {
+    const source = 'use cli\noption Digits integer = 3\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n';
+    for (const name of ['Lower', 'Upper']) {
+        const offset = source.indexOf(`${name} =`);
+        expect(formatNameFacts(factsAt(source, offset)!)).toBe(`${name} · ${name === 'Lower' ? 'integer or real' : 'integer'}`);
+        expect(formatNameFacts(factsAt(source, offset,
+            [['Digits', { types: ['integer'], rank: 0, shape: [], integer: '3' }]])!))
+            .toBe(`${name} · integer`);
+    }
+});
+
+
+it('keeps both Products axes visible when their sizes are not proven', () => {
+    const source = 'Factors = Upper to Lower by -1\nProducts = Factors Factors outer *\n';
+    const found = factsAt(source, source.indexOf('Products'), [
+        ['Upper', { types: ['integer'], rank: 0, shape: [] }],
+        ['Lower', { types: ['integer'], rank: 0, shape: [] }],
+    ])!;
+    expect(found.facts).toMatchObject({ types: ['array'], rank: 2, elements: ['integer'] });
+    expect(formatNameFacts(found)).toBe('Products · array[#, #]<integer>');
+});
+
+
+it('infers every Euler palindrome pipeline name before running the notebook', () => {
+    const source = readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8');
+    for (const [site, expected] of [
+        ['Candidates =', 'Candidates · sequence<integer>'],
+        ['Candidates filter', 'Candidates · sequence<integer>'],
+        ['Answer =', 'Answer · integer'],
+        ['Answer print', 'Answer · integer'],
+        ['Text =', 'Text · text'],
+        ['Text equal', 'Text · text'],
+        ['Text reverse', 'Text · text'],
+    ]) expect(formatNameFacts(factsAt(source, source.indexOf(site))!)).toBe(expected);
+});
+
+
+it.each([
+    ['option Digits integer = 3', 'Digits', 'integer'],
+    ['argument File path', 'File', 'text'],
+    ['option Values integer many', 'Values', 'array[#]<integer>'],
+    ['argument Files path many', 'Files', 'array[#]<text>'],
+    ['flag Verbose', 'Verbose', 'boolean'],
+])('shows the declared input type on its name: %s', (source, name, type) => {
+    const start = source.indexOf(name);
+    for (const offset of [start, start + 1, start + name.length]) {
+        expect(formatNameFacts(factsAt(source, offset)!)).toBe(`${name} · ${type}`);
+    }
+    expect(factsAt(source, 1)).toBeUndefined();
+});
+
+it('uses the input declaration type rather than stale runtime or later binding facts', () => {
+    const source = 'option Digits integer = 3\nDigits = "bad"';
+    expect(formatNameFacts(factsAt(source, source.indexOf('Digits'), [['Digits', { types: ['text'] }]])!))
+        .toBe('Digits · integer');
+    expect(factsAt('option Digits integer = 3', 'option Digits '.length + 2)).toBeUndefined();
+});
+
+
+it('shows builtin signatures at their own boundary in a pipeline', () => {
+    for (const source of [
+        'N = array 1 2 3\nMask = array true false true\nN Mask sum',
+        'N = array 1 2 3\nN reverse sum',
+        'N = array 1 2 3\nN sum print',
+    ]) {
+        const found = factsAt(source, source.lastIndexOf('sum'))!;
+        expect(found.signature).toContain('→ number');
+        expect(found.signature).toMatch(/^array\[(#|3)\]<number> → number$/);
+        expect(formatNameFacts(found)).not.toContain('· function');
+    }
+});
+
+
+it('keeps Euler 1 integer sequence sums and boolean masks, including compound assignment targets', () => {
+    const source = readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8');
+    for (const [site, expected] of [
+        ['N =', 'N · sequence<integer>'],
+        ['Mask =', 'Mask · sequence<boolean>'],
+        ['Mask or=', 'Mask · sequence<boolean>'],
+        ['Mask sum', 'Mask · sequence<boolean>'],
+        ['Answer =', 'Answer · integer'],
+        ['Answer print', 'Answer · integer'],
+    ]) expect(formatNameFacts(factsAt(source, source.indexOf(site))!)).toBe(expected);
+});
+
+
+it('infers Euler 13 call results and uncalled locals, with backward parameter contracts', () => {
+    const source = readFileSync(new URL('../../../demos/euler/013_largesum.ra', import.meta.url), 'utf8');
+    expect(formatNameFacts(factsAt(source, source.indexOf('Answer ='))!)).toBe('Answer · integer');
+    expect(formatNameFacts(factsAt(source, source.indexOf('Numbers Digits leading_sum'))!)).toBe('Numbers · integer [100]');
+    const definition = source.slice(source.indexOf('fun leading_sum'));
+    expect(formatNameFacts(factsAt(definition, definition.indexOf('Prefix ='))!)).toBe('Prefix · text');
+    expect(formatNameFacts(factsAt(definition, definition.indexOf('Digits'))!)).toBe('Digits · integer');
+    const numbers = factsAt(definition, definition.indexOf('Numbers'))!;
+    expect(numbers.facts.types).toEqual([]);
+    expect(numbers.requirement).toBe('(integer or missing or real) [rank ≥ 0]');
+});
+
+
+it('shows backward parameter requirements on the Euler 13 function definition', () => {
+    const source = readFileSync(new URL('../../../demos/euler/013_largesum.ra', import.meta.url), 'utf8');
+    const found = factsAt(source, source.indexOf('fun leading_sum') + 4)!;
+    expect(found.signature).toBe('(number | missing) [rank ≥ 0] i → i');
+    expect(layoutNameFacts(found, 40)).toEqual(['leading_sum ·', '  (number | missing) [rank ≥ 0]', '  i → i']);
 });

@@ -12,12 +12,12 @@ import {
     isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression,
     isExpressionStatement, isNewStructureExpression, isRecordExpression, isRecordUpdateExpression,
     isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement, isReturnStatement,
-    isArgumentStatement, isOptionStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
+    isArgumentStatement, isOptionStatement, isFlagStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isTakeWhileExpression,
     isTableFilterExpression, isUnpackExpression,
     isSubjectComparisonExpression,
-    type Expression, type Program, type Statement, type FunctionStatement,
+    type Expression, type Program, type Statement, type FunctionStatement, type AssignmentStatement,
     type TryStatement,
 } from '../generated/ast.js';
 import { compoundType, declaredType } from './types.js';
@@ -59,6 +59,7 @@ export interface ValueAnalysis {
     readonly diagnostics: readonly ValueDiagnostic[];
     readonly bindings: ReadonlyMap<string, ValueFacts>;
     readonly expressions: ReadonlyMap<Expression, ValueFacts>;
+    readonly assignments: ReadonlyMap<AssignmentStatement, ValueFacts>;
     readonly functions: ReadonlyMap<string, FunctionStatement>;
     readonly functionResults: readonly ValueFacts[];
     /** The imported functions this pass bound, for a later pass over the next cell to start from. */
@@ -103,6 +104,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     initialImports?: ReadonlyMap<string, ImportedFunction>): ValueAnalysis {
     const diagnostics: ValueDiagnostic[] = builtinBindingDiagnostics(program, undefined, declarations.values(), loadModule);
     const expressions = new Map<Expression, ValueFacts>();
+    const assignments = new Map<AssignmentStatement, ValueFacts>();
     const bindings = new Map(initial);
     const numeric = new Set(['integer', 'real']);
     const functions = new Map(declarations);
@@ -344,7 +346,17 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         && site.arguments.length === 1 && site.arguments[0] === node
                         && site.head.arguments.length + 1 === arity
                         ? [site.head.head, ...site.head.arguments] : undefined;
-                const operands = arguments_?.map(part => expressionFacts(part, name => env.get(name)));
+                const filter = isTableFilterExpression(site.$container) ? site.$container : undefined;
+                const condition = filter?.condition === site ? filter.condition
+                    : filter?.conditions.find(condition => condition === site);
+                const predicate = condition && filter?.sourceFields.length === 0
+                    ? filterPredicateForm(condition) : undefined;
+                const source = predicate && filter && expressionFacts(filter.source, name => env.get(name));
+                const cellInputs = source && arity === 1 && source.rank === 1 && (predicate?.rank ?? 0) === 0
+                    && ['array', 'sequence'].includes(source.types.join())
+                    && safeRead(source) && source.elements?.length
+                    ? [stableRecordField({ types: source.elements })] : undefined;
+                const operands = cellInputs ?? arguments_?.map(part => expressionFacts(part, name => env.get(name)));
                 const partition = ranked && operands ? rankedFunctionInputs(operands,
                     ranked.rightRank === undefined ? [Number(ranked.rank)] : [Number(ranked.rank), Number(ranked.rightRank)], ranked.axes) : undefined;
                 const inputs = ranked ? partition?.inputs : operands;
@@ -993,10 +1005,18 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 || fact.types.includes('array') && !fact.eagerScalarCells && !fact.callbackFreeScalarCells) return undefined;
             arguments_.push(fact);
         }
+        parts.slice(0, -1).forEach((part, index) => expressions.set(part, arguments_[index]));
         return calls.call(target.name, arguments_, new Map(env), value);
     }
 
     function statements(items: readonly Statement[], env: Map<string, ValueFacts>): boolean {
+        // Runtime registers function declarations before running their block.
+        for (const statement of items) if (isFunctionStatement(statement)) {
+            const fact: ValueFacts = { types: ['function'] };
+            env.set(statement.name, fact);
+            functionBindings.set(statement.name, fact);
+            functions.set(statement.name, statement);
+        }
         for (const statement of items) {
             if (isFunctionBindingStatement(statement)) {
                 const plan = functionBindingPlan(statement);
@@ -1020,6 +1040,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 invalidateCalls(statement.value, env);
                 const previous = env.get(statement.name);
                 let next = beforeEffects ?? inspect(statement.value, env);
+                if (beforeEffects) expressions.set(statement.value, beforeEffects);
                 let constructor = statement.value;
                 while (isParenthesizedExpression(constructor)) constructor = constructor.value;
                 if (isNewStructureExpression(constructor)
@@ -1031,12 +1052,14 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     next = { ...next, collectionId: nextCollectionId++ };
                 }
                 if (next.bottom) throw new UnobservedReturn();
-                if (statement.operator !== '=') next = {
-                    ...expressionFacts({ $type: 'BinaryExpression', operator: statement.operator.slice(0, -1),
-                        left: { $type: 'NameExpression', name: statement.name }, right: statement.value } as Expression, name => env.get(name)),
-                    types: compoundType(statement.operator, previous?.types ?? [], next.types),
-                };
+                if (statement.operator !== '=') {
+                    const combined = expressionFacts({ $type: 'BinaryExpression', operator: statement.operator.slice(0, -1),
+                        left: { $type: 'NameExpression', name: statement.name }, right: statement.value } as Expression, name => env.get(name));
+                    next = { ...combined, types: combined.types.length ? combined.types
+                        : compoundType(statement.operator, previous?.types ?? [], next.types) };
+                }
                 bind(statement.name, next, statement.value, env);
+                assignments.set(statement, env.get(statement.name)!);
                 if (calls.directNoReturnCall(statement.value, env)) return false;
             } else if (isUnpackStatement(statement)) {
                 invalidateCalls(statement.value, env);
@@ -1297,8 +1320,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         && key.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol',
                             'date', 'datetime'].includes(type)) || key.types.join() === 'array'
                             && key.eagerScalarCells === true);
+                // A direct leading argument is read before the call can change captured bindings.
+                const argument = isApplicationExpression(statement.value) && isNameExpression(parts[0]) ? parts[0] : undefined;
+                const argumentFacts = argument && env.get(argument.name);
                 if (!collectionAdd && !dequeInsert && !heapInsert && !collectionRemove) invalidateCalls(statement.value, env);
                 inspect(statement.value, env);
+                if (argument && argumentFacts?.types.length) expressions.set(argument, argumentFacts);
                 if (collectionAdd && isNameExpression(parts[0])) insertCollectionElement(parts[0].name,
                     key!, parts[2], env);
                 if ((dequeInsert || heapInsert) && isNameExpression(parts[0])) {
@@ -1306,13 +1333,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     insertCollectionElement(parts[0].name, expressionFacts(payload, name => env.get(name)), payload, env);
                 }
                 if (calls.directNoReturnCall(statement.value, env)) return false;
-            } else if (isOptionStatement(statement) && statement.many) {
-                if (statement.defaultValue) invalidateCalls(statement.defaultValue, env);
-                env.set(statement.name, externalArray(statement.valueType));
-            } else if (isArgumentStatement(statement)) {
+            } else if (isOptionStatement(statement) || isArgumentStatement(statement)) {
                 if (statement.defaultValue) invalidateCalls(statement.defaultValue, env);
                 env.set(statement.name, statement.many ? externalArray(statement.valueType)
-                    : invalidate(env.get(statement.name)));
+                    : externalScalar(statement.valueType, env.get(statement.name)));
+            } else if (isFlagStatement(statement)) {
+                env.set(statement.name, externalScalar('boolean', env.get(statement.name)));
             } else if (isUseStatement(statement) && statement.path && statement.alias && loadModule) {
                 if (importedAliases.has(statement.alias)) {
                     invalidateImportedAlias(statement.alias, env);
@@ -1388,7 +1414,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     diagnostics.push(...requirementDiagnostics(requirements.conflicts, diagnostics));
     const unique = diagnostics.filter((diagnostic, index) => !diagnostics.slice(0, index).some(previous =>
         previous.node === diagnostic.node && previous.message === diagnostic.message));
-    return { diagnostics: unique, bindings, expressions, functions, functionResults, requirements, imports: imported,
+    return { diagnostics: unique, bindings, expressions, assignments, functions, functionResults, requirements, imports: imported,
         relationships: calls.validRelationships(bindings) };
 }
 
@@ -1402,4 +1428,13 @@ function externalArray(valueType: string): ValueFacts {
     const elements = declaredType(valueType, false);
     return { types: ['array'], rank: 1, shape: [null], dims: [freshDim('arg')], acceptedTypes: ['array'],
         acceptedArrayRank: 1, ...(elements.length ? { elements } : {}) };
+}
+
+/** A declared CLI scalar keeps a validated existing binding, but its default is not a constant. */
+function externalScalar(valueType: string, existing?: ValueFacts): ValueFacts {
+    const types = declaredType(valueType, false);
+    if (!types.length) return UNKNOWN_VALUE;
+    if (existing?.types.join() === types.join()) return existing;
+    return { types, acceptedTypes: types, rank: types.join() === 'text' ? 1 : 0,
+        shape: types.join() === 'text' ? [null] : [] };
 }

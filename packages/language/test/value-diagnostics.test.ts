@@ -2235,7 +2235,7 @@ it('infers the unchanged self-power remainder despite an unknown lazy mapper', (
     const examples = functionTestExamples(testProgram.value, moduleName, new Set(['self_power_tail']));
     expect(examples).toHaveLength(1);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults[0].types)
-        .toEqual(['integer', 'real']);
+        .toEqual(['integer']);
 });
 
 it('infers unchanged nested-helper demos without assuming their collection contents', () => {

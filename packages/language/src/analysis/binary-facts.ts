@@ -97,14 +97,28 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
             && value.types.length > 0 && value.types.every(type => type === 'integer' || type === 'real'));
         const integerArithmetic = scalarNumbers && ['+', '-', '*', '//', 'mod'].includes(operator)
             && left.types.join() === 'integer' && right.types.join() === 'integer';
+        const integerPower = scalarNumbers && operator === '**'
+            && left.types.join() === 'integer' && right.types.join() === 'integer'
+            && right.integer !== undefined;
         const scalarTypes = integerArithmetic ? ['integer'] as Types
-            : inferred;
+            : integerPower ? [BigInt(right.integer!) >= 0n ? 'integer' : 'real'] as Types : inferred;
         const collections = [left, right].map(value => value.types.join())
             .filter(type => type === 'array' || type === 'sequence');
         const types = collections.length && collections.every(type => type === collections[0])
             ? [collections[0]] : scalarTypes;
         if (types.join() === 'text') return { types, rank: 1, shape: [null] };
-        if (left.rank === 0 && right.rank === 0) return { types, rank: 0, shape: [] };
+        if (left.rank === 0 && right.rank === 0) {
+            let integer: string | undefined;
+            if (integerArithmetic && left.integer !== undefined && right.integer !== undefined
+                && ['+', '-', '*'].includes(operator)) {
+                const a = BigInt(left.integer), b = BigInt(right.integer);
+                const value = operator === '+' ? a + b : operator === '-' ? a - b : a * b;
+                if (value >= -BigInt(Number.MAX_SAFE_INTEGER) && value <= BigInt(Number.MAX_SAFE_INTEGER)) {
+                    integer = String(value);
+                }
+            }
+            return { types, rank: 0, shape: [], ...(integer !== undefined ? { integer } : {}) };
+        }
         const leftShape = isAtom(left) ? [] : left.shape;
         const rightShape = isAtom(right) ? [] : right.shape;
         if (leftShape && rightShape && !incompatibleShapes(left, right)) {
@@ -125,6 +139,11 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
                     callbackFreeScalarCells: true as const } : {}) };
         }
     }
+    // Text comparisons compare whole strings, not their character axes.
+    if (['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost'].includes(operator)
+        && left.types.join() === 'text' && right.types.join() === 'text') {
+        return { types: ['boolean'], rank: 0, shape: [] };
+    }
     if (['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost',
         'and', 'or', 'xor'].includes(operator)
         && left.rank === 0 && right.rank === 0
@@ -132,21 +151,21 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
         && binaryType(operator, left.types, right.types).join() === 'boolean') {
         return { types: ['boolean'], rank: 0, shape: [] };
     }
-    if (['equal', 'notequal', 'and', 'or', 'xor'].includes(operator)) {
-        const allowed = operator === 'equal' || operator === 'notequal'
-            ? ['integer', 'real', 'boolean', 'symbol'] : ['boolean'];
+    if (['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'and', 'or', 'xor'].includes(operator)) {
+        const allowed = ['and', 'or', 'xor'].includes(operator) ? ['boolean'] : ['integer', 'real', 'boolean', 'symbol'];
         const safe = (value: ValueFacts): boolean => (value.rank === 0 && value.types.length > 0
             && value.types.every(type => allowed.includes(type)))
-            || (value.types.join() === 'array' && !!value.shape
+            || (['array', 'sequence'].includes(value.types.join()) && !!value.shape
                 && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
                 && !!value.elements?.length && value.elements.every(type => allowed.includes(type)));
-        if ([left, right].every(safe) && (left.types.join() === 'array' || right.types.join() === 'array')) {
+        const types = binaryType(operator, left.types, right.types);
+        if ([left, right].every(safe) && ['array', 'sequence'].includes(types.join())) {
             const leftShape = left.rank === 0 ? [] : left.shape!;
             const rightShape = right.rank === 0 ? [] : right.shape!;
             if (!incompatibleShapes(left, right)) {
                 const shape = broadcastShape(leftShape, rightShape);
                 const dims = broadcastDims(left, right);
-                return { types: ['array'], rank: shape.length, shape, ...(dims ? { dims } : {}), elements: ['boolean'],
+                return { types, rank: shape.length, shape, ...(dims ? { dims } : {}), elements: ['boolean'],
                     callbackFreeScalarCells: true };
             }
         }

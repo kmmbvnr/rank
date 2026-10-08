@@ -198,3 +198,15 @@ it('links checked CSV row lengths when a later dot product needs equal columns',
     expect(a.fields?.get('value')?.dimensions.get(0)?.equality).toEqual(a.dimensions.get(0)?.equality);
     expect(b.fields?.get('value')?.domains).toEqual(['integer', 'real']);
 });
+
+
+it('infers scalar integer count parameters after an unknown lazy reduction without assuming input values', () => {
+    const program = parse('fun prefix Numbers Digits\n Total = Numbers sum\n Text = Total text\n return Text take Digits\nend');
+    const definition = program.statements.find(isFunctionStatement)!;
+    const params = inferRequirements(program).functions.get(definition)!.params;
+    expect(params[0].domains).toEqual(['integer', 'real', 'missing']);
+    expect(params[1].rank).toMatchObject({ min: 0, max: 0 });
+    expect(params[1].domains).toEqual(['integer']);
+    const rebound = parse('fun prefix Digits\n Digits = Other\n return "abc" take Digits\nend');
+    expect(inferRequirements(rebound).functions.get(rebound.statements.find(isFunctionStatement)!)!.params[0].domains).toBeUndefined();
+});

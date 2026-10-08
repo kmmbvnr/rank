@@ -1562,3 +1562,66 @@ it('keeps infinite cardinality through scalar mapping but not filtering', () => 
         shape: [null], elements: ['integer', 'real'], unbounded: true });
     expect(analysis.bindings.get('Filtered')?.unbounded).toBeUndefined();
 });
+
+
+it.each(['equal', 'not equal', 'less', 'greater', 'at least', 'at most'])(
+    'infers a scalar boolean for text %s independently of character rank', operator => {
+        for (const text of [{ types: ['text'] }, { types: ['text'], rank: 1, shape: [null] }] as ValueFacts[]) {
+            expect(facts(`Left ${operator} Right`, new Map([['Left', text], ['Right', text]])))
+                .toEqual({ types: ['boolean'], rank: 0, shape: [] });
+        }
+        expect(facts(`"a" ${operator} "longer"`)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
+        expect(facts(`Unknown ${operator} "a"`)).toEqual({ types: [] });
+    },
+);
+
+
+it('types declared CLI scalars without treating defaults as supplied values', () => {
+    const names = bound('option Digits integer = 3\nargument File path = "input"\nflag Verbose\nOther = 2\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n');
+    expect(names.get('Digits')).toMatchObject({ types: ['integer'], rank: 0 });
+    expect(names.get('Digits')!.integer).toBeUndefined();
+    expect(names.get('File')).toMatchObject({ types: ['text'], rank: 1 });
+    expect(names.get('Verbose')).toMatchObject({ types: ['boolean'], rank: 0 });
+    expect(names.get('Other')).toMatchObject({ types: ['integer'], integer: '2' });
+    expect(names.get('Lower')!.types).toEqual(['integer', 'real']);
+    expect(names.get('Upper')!.types).toEqual(['integer']);
+});
+
+it('retains validated CLI values and infers integer powers from known exponent signs', () => {
+    const names = bound('option Digits integer = 3\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n',
+        { Digits: { types: ['integer'], rank: 0, shape: [], integer: '3' } });
+    expect(names.get('Lower')!.types).toEqual(['integer']);
+    expect(names.get('Upper')!.types).toEqual(['integer']);
+    expect(facts('10 ** (0 - 1)')).toMatchObject({ types: ['real'], rank: 0 });
+    expect(facts('10 ** 0')).toMatchObject({ types: ['integer'], rank: 0 });
+    expect(facts('10.0 ** 2.0')).toMatchObject({ types: ['real'], rank: 0 });
+});
+
+
+it.each(['equal', 'not equal', 'less', 'greater', 'at least', 'at most'])(
+    'keeps primitive boolean sequence cells through %s', operator => {
+        const source: ValueFacts = { types: ['sequence'], elements: ['integer'], rank: 1, shape: [null], callbackFreeScalarCells: true };
+        expect(facts(`N ${operator} 0`, new Map([['N', source]]))).toMatchObject({
+            types: ['sequence'], elements: ['boolean'], rank: 1, shape: [null], callbackFreeScalarCells: true,
+        });
+        expect(facts(`N ${operator} 0`, new Map([['N', { ...source, callbackFreeScalarCells: undefined }]]))
+            .callbackFreeScalarCells).not.toBe(true);
+    });
+
+it('preserves integer sums after a proven primitive boolean sequence selection', () => {
+    const source: ValueFacts = { types: ['sequence'], elements: ['integer'], rank: 1, shape: [null], callbackFreeScalarCells: true };
+    const mask: ValueFacts = { ...source, elements: ['boolean'] };
+    const bindings = new Map([['N', source], ['Mask', mask]]);
+    expect(facts('N Mask', bindings)).toMatchObject({ types: ['sequence'], elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('N Mask sum', bindings)).toMatchObject({ types: ['integer'], rank: 0, shape: [] });
+    bindings.set('Mask', { ...mask, callbackFreeScalarCells: undefined });
+    expect(facts('N Mask', bindings).callbackFreeScalarCells).not.toBe(true);
+    expect(facts('N Mask sum', bindings).types).toEqual(['integer', 'real']);
+});
+
+
+it('keeps the successful result kind of take and drop with an unknown count', () => {
+    expect(facts('"abcdef" take Count').types).toEqual(['text']);
+    expect(facts('"abcdef" drop Count').types).toEqual(['text']);
+    expect(facts('"abcdef" take Count', new Map([['Count', { types: ['real'], rank: 0, shape: [] }]])).types).toEqual([]);
+});

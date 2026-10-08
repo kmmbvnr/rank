@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { formatNameFacts } from '../src/name-facts.js';
 import { expect, it } from 'vitest';
 import stripAnsi from 'strip-ansi';
 import { NotebookRepl } from '../src/repl.js';
@@ -172,6 +174,103 @@ it('keeps the prompt row reachable when the footer appears over a full screen', 
             expect(frame.factsRow).toBe(11);
             expect(stripAnsi(frame.lines[10])).toBe('rank> ');
             expect(frame.cursorVisible).toBe(true);
+        }
+    } finally { session.dispose(); }
+});
+
+
+it('uses a later notebook predicate definition and analyzes uncalled function locals', () => {
+    const session = createReplSession();
+    const repl = new NotebookRepl(session);
+    try {
+        repl.notebook.restore(readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8'));
+        for (const [site, expected] of [
+            ['Candidates filter', 'Candidates · sequence<integer>'],
+            ['Answer =', 'Answer · integer'],
+            ['Answer print', 'Answer · integer'],
+            ['Text =', 'Text · text'],
+            ['Text equal', 'Text · text'],
+        ]) {
+            const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
+            repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site));
+            expect(formatNameFacts(repl.nameFacts!)).toBe(expected);
+        }
+    } finally { session.dispose(); }
+});
+
+
+it('shows the type after tapping the name in a CLI declaration on the touch console', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const source = 'option Digits integer = 3';
+        repl.notebook.replace(source);
+        repl.notebook.cursor = source.indexOf('Digits') + 2;
+        const frame = frameOf(repl, 12, false);
+        expect(frame.factsRow).toBeDefined();
+        expect(stripAnsi(frame.lines[frame.factsRow!])).toBe('Digits · integer');
+    } finally { session.dispose(); }
+});
+
+
+it('shows the sum signature in a filtered pipeline on a touch console before and after running', async () => {
+    const session = createReplSession();
+    const repl = new NotebookRepl(session);
+    try {
+        for (const source of ['N = array 1 2 3', 'Mask = array true false true']) {
+            repl.notebook.replace(source);
+            await repl.submit(true);
+        }
+        const source = 'N Mask sum';
+        footer(repl, source, source.indexOf('sum'), 40, false);
+        expect(repl.nameFacts?.signature).toContain('→ number');
+        const frame = notebookFrame(repl.notebook, 40, 20, 0, '', false, true, '', 'Running…', undefined, 'rank> ',
+            undefined, undefined, undefined, false, undefined, false, 0, repl.diagnosticOutputs, undefined, repl.nameFacts);
+        expect(stripAnsi(frame.lines.join('\n'))).toContain('→ number');
+        await repl.submit(true);
+        const index = repl.notebook.cells.findIndex(cell => cell.source === source);
+        repl.notebook.selectTo(index, source.indexOf('sum'));
+        expect(repl.nameFacts?.signature).toContain('→ number');
+        expect(formatNameFacts(repl.nameFacts!)).not.toContain('· function');
+    } finally { session.dispose(); }
+});
+
+
+it('keeps Euler 1 types across restored notebook cells before execution', () => {
+    const session = createReplSession();
+    const repl = new NotebookRepl(session);
+    try {
+        repl.notebook.restore(readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8'));
+        for (const [site, expected] of [
+            ['N =', 'N · sequence<integer>'],
+            ['Mask =', 'Mask · sequence<boolean>'],
+            ['Mask or=', 'Mask · sequence<boolean>'],
+            ['Mask sum', 'Mask · sequence<boolean>'],
+            ['Answer =', 'Answer · integer'],
+            ['Answer print', 'Answer · integer'],
+        ]) {
+            const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
+            repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site));
+            expect(formatNameFacts(repl.nameFacts!)).toBe(expected);
+        }
+    } finally { session.dispose(); }
+});
+
+
+it('infers Euler 13 types and parameter requirements across restored cells', () => {
+    const session = createReplSession();
+    const repl = new NotebookRepl(session);
+    try {
+        repl.notebook.restore(readFileSync(new URL('../../../demos/euler/013_largesum.ra', import.meta.url), 'utf8'));
+        for (const [site, expected] of [
+            ['Answer =', 'Answer · integer'], ['Answer print', 'Answer · integer'],
+            ['leading_sum Numbers', 'leading_sum · (number | missing) [rank ≥ 0] i → i'],
+            ['Prefix =', 'Prefix · text'], ['Digits\n', 'Digits · integer'],
+            ['Numbers Digits\n', 'Numbers · (integer or missing or real) [rank ≥ 0]'],
+        ]) {
+            const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
+            repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site));
+            expect(formatNameFacts(repl.nameFacts!)).toBe(expected);
         }
     } finally { session.dispose(); }
 });

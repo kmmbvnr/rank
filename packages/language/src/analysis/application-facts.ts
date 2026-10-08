@@ -84,7 +84,10 @@ function mergedSequenceFacts(operands: readonly ValueFacts[]): ValueFacts {
     const rows = operands.length === 2 && operands.every(value => value.rank === 1)
         || operands.length === 1 && operands[0].types.join() === 'array' && operands[0].rank === 2;
     return { types: ['sequence'], rank: 1, shape: [null],
-        ...(collections && rows && sameCells ? { elements: cells } : {}) };
+        ...(collections && rows && sameCells ? { elements: cells,
+            ...(cells.every(type => ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type))
+                && operands.every(value => value.eagerScalarCells || value.callbackFreeScalarCells)
+                ? { callbackFreeScalarCells: true as const } : {}) } : {}) };
 }
 
 function windowFacts(form: Extract<ApplicationForm, { kind: 'window' }>, lookup: FactLookup,
@@ -1073,9 +1076,17 @@ function transferApplicationFacts(
                 ...(source.eagerScalarCells || source.callbackFreeScalarCells
                     ? { elements: source.elements, callbackFreeScalarCells: true as const } : {}) };
         }
-        if (source.types.join() === 'sequence' || source.types.join() === 'queue') return {
-            types: ['array'], rank: 1, shape: [null], elements: source.elements,
-        };
+        if (source.types.join() === 'sequence' || source.types.join() === 'queue') {
+            const selector = infer(parts[1], lookup);
+            const booleanMask = selector.elements?.join() === 'boolean';
+            const safe = (source.eagerScalarCells || source.callbackFreeScalarCells)
+                && (selector.eagerScalarCells || selector.callbackFreeScalarCells)
+                && source.elements?.length && source.elements.every(type =>
+                    ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type));
+            return { types: source.types.join() === 'sequence' && booleanMask ? ['sequence'] : ['array'],
+                rank: 1, shape: [null], elements: source.elements,
+                ...(safe ? { callbackFreeScalarCells: true as const } : {}) };
+        }
     }
     // Only plain scalar and whole-axis addressing is proven here.
     if (source.types.length === 1 && ['array', 'bytes', 'sequence'].includes(source.types[0])
@@ -1117,7 +1128,7 @@ function parsePositions(format: string): Types[] | undefined {
 
 /** `Values take Count` and `Values drop Count` keep the kind and trailing shape of their source. */
 export function takeDropFacts(source: ValueFacts, count: ValueFacts, drop: boolean): ValueFacts | undefined {
-    if (count.types.join() !== 'integer' || count.rank !== 0
+    if (count.types.length && (count.types.join() !== 'integer' || count.rank !== 0)
         || (count.integer !== undefined && BigInt(count.integer) < 0n)) return undefined;
     const size = source.shape?.[0];
     const leading = !drop && source.unbounded && count.integer !== undefined

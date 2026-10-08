@@ -1,7 +1,7 @@
 import { EmptyFileSystem } from 'langium';
 import { expect, it } from 'vitest';
 import { createRankServices } from '../src/rank-module.js';
-import type { Program } from '../src/generated/ast.js';
+import { isExpressionStatement, isApplicationExpression, type Program } from '../src/generated/ast.js';
 import { analyzeValues } from '../src/analysis/value-diagnostics.js';
 
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
@@ -36,4 +36,33 @@ it('reserves the contextual graph merge name when graph is open', () => {
     expect(parsed.parserErrors).toEqual([]);
     expect(analyzeValues(parsed.value).diagnostics.map(diagnostic => diagnostic.message))
         .toContain('cannot redefine available builtin: merge');
+});
+
+
+it('preserves typed scalar merge cells through a filter with a later pure predicate', () => {
+    const parsed = parser.parse<Program>('use sequences\nProducts = array 9009 9010 shape 1 2\n'
+        + 'Candidates = Products merge .descending\nAnswer = Candidates filter palindrome first\n'
+        + 'fun palindrome X\n Text = X text\n return Text equal (Text reverse)\nend');
+    expect(parsed.parserErrors).toEqual([]);
+    const analysis = analyzeValues(parsed.value);
+    expect(analysis.bindings.get('Candidates')).toMatchObject({ types: ['sequence'], elements: ['integer'] });
+    expect(analysis.bindings.get('Answer')).toMatchObject({ types: ['integer'], rank: 0 });
+});
+
+it('does not keep source facts across an unknown filter callback', () => {
+    const parsed = parser.parse<Program>('use sequences\nCandidates = 1 to 3\n'
+        + 'Answer = Candidates filter opaque first\nfun opaque X\n return X unknown_callback\nend');
+    expect(parsed.parserErrors).toEqual([]);
+    expect(analyzeValues(parsed.value).bindings.get('Answer')?.types).toEqual([]);
+});
+
+
+it('records a direct argument before an effectful call without preserving the binding afterwards', () => {
+    const parsed = parser.parse<Program>('use io\nAnswer = 42\nAnswer print\nAnswer');
+    expect(parsed.parserErrors).toEqual([]);
+    const analysis = analyzeValues(parsed.value);
+    const print = parsed.value.statements[2];
+    if (!isExpressionStatement(print) || !isApplicationExpression(print.value)) throw new Error('expected print call');
+    expect(analysis.expressions.get(print.value.head)?.types).toEqual(['integer']);
+    expect(analysis.bindings.get('Answer')?.types).toEqual([]);
 });
