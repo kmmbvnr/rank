@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { ValueFacts } from '@arrrank/language';
 import { factsAt, formatNameFacts, layoutNameFacts, describeFacts, type NameFacts } from '../src/name-facts.js';
@@ -321,4 +322,18 @@ it('keeps both Products axes visible when their sizes are not proven', () => {
     ])!;
     expect(found.facts).toMatchObject({ types: ['array'], rank: 2, elements: ['integer'] });
     expect(formatNameFacts(found)).toBe('Products · array[#, #]<integer>');
+});
+
+
+it('infers every Euler palindrome pipeline name before running the notebook', () => {
+    const source = readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8');
+    for (const [site, expected] of [
+        ['Candidates =', 'Candidates · sequence<integer>'],
+        ['Candidates filter', 'Candidates · sequence<integer>'],
+        ['Answer =', 'Answer · integer'],
+        ['Answer print', 'Answer · integer'],
+        ['Text =', 'Text · text'],
+        ['Text equal', 'Text · text'],
+        ['Text reverse', 'Text · text'],
+    ]) expect(formatNameFacts(factsAt(source, source.indexOf(site))!)).toBe(expected);
 });

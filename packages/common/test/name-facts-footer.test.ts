@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { formatNameFacts } from '../src/name-facts.js';
 import { expect, it } from 'vitest';
 import stripAnsi from 'strip-ansi';
 import { NotebookRepl } from '../src/repl.js';
@@ -172,6 +174,26 @@ it('keeps the prompt row reachable when the footer appears over a full screen', 
             expect(frame.factsRow).toBe(11);
             expect(stripAnsi(frame.lines[10])).toBe('rank> ');
             expect(frame.cursorVisible).toBe(true);
+        }
+    } finally { session.dispose(); }
+});
+
+
+it('uses a later notebook predicate definition and analyzes uncalled function locals', () => {
+    const session = createReplSession();
+    const repl = new NotebookRepl(session);
+    try {
+        repl.notebook.restore(readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8'));
+        for (const [site, expected] of [
+            ['Candidates filter', 'Candidates · sequence<integer>'],
+            ['Answer =', 'Answer · integer'],
+            ['Answer print', 'Answer · integer'],
+            ['Text =', 'Text · text'],
+            ['Text equal', 'Text · text'],
+        ]) {
+            const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
+            repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site));
+            expect(formatNameFacts(repl.nameFacts!)).toBe(expected);
         }
     } finally { session.dispose(); }
 });

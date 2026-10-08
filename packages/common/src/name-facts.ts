@@ -50,20 +50,20 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
     try { analysis = analyzeValues(program, scope ? new Map(scope.bindings) : runtime,
         new Map(scope?.functions), examples.map(example => ({ ...example })), loadModule, scope?.imports); } catch { return undefined; }
 
-    const generalResults = new Map<FunctionStatement, ValueFacts>();
-    const generalResult = (definition: FunctionStatement): ValueFacts => {
-        if (analysis.functions.get(definition.name) !== definition) return UNKNOWN;
-        const cached = generalResults.get(definition);
+    const generalAnalyses = new Map<FunctionStatement, ReturnType<typeof analyzeValues>>();
+    const generalAnalysis = (definition: FunctionStatement): ReturnType<typeof analyzeValues> | undefined => {
+        if (analysis.functions.get(definition.name) !== definition) return undefined;
+        const cached = generalAnalyses.get(definition);
         if (cached) return cached;
-        // Use the existing body/loop analysis with unknown arguments, not a
-        // concrete example. A settled local can still prove a return type.
+        // Unknown arguments still let the existing body analysis prove locals and returns.
         const result = analyzeValues(program, scope ? new Map(scope.bindings) : runtime,
             new Map(scope?.functions), [{ name: definition.name,
-                arguments: definition.parameters.map(() => UNKNOWN) }], loadModule, scope?.imports)
-            .functionResults[0] ?? UNKNOWN;
-        generalResults.set(definition, result);
+                arguments: definition.parameters.map(() => UNKNOWN) }], loadModule, scope?.imports);
+        generalAnalyses.set(definition, result);
         return result;
     };
+    const generalResult = (definition: FunctionStatement): ValueFacts =>
+        generalAnalysis(definition)?.functionResults[0] ?? UNKNOWN;
 
     const written = scope ? writtenNames(program) : new Set<string>();
     /** A catalogue name that nothing in the notebook or the run has bound is a function. */
@@ -164,7 +164,11 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
             return { name: site.name, source: 'runtime', facts: { ...observed, ...(elements ? { elements } : {}) },
                 ...(observed.types.join() === 'function' ? { signature: signatureFor(site) } : {}) };
         }
-        const facts = isCatalogueFunction(site) ? FUNCTION : staticFacts(site, analysis);
+        let facts = isCatalogueFunction(site) ? FUNCTION : staticFacts(site, analysis);
+        if (!facts.types.length && inFunction) {
+            const body = generalAnalysis(inFunction);
+            if (body) facts = staticFacts(site, body);
+        }
         if (site.kind === 'read' && !facts.types.length && !isDefined(site)) return undefined;
         return { name: site.name, source: 'static', facts,
             ...(facts.types.join() === 'function' ? { signature: signatureFor(site) } : {}) };
@@ -294,6 +298,9 @@ function loopNames(loop: ForStatement): string[] {
 export function describeFacts(facts: ValueFacts, withShape = true): string {
     if (facts.types.join() === 'function') return 'function';
     if (!facts.types.length) return 'unknown';
+    if (facts.types.join() === 'sequence' && facts.elements?.length) {
+        return `sequence<${describeTypes(facts.elements)}>`;
+    }
     if (facts.types.join() === 'array' && (!facts.shape || facts.shape.some(size => size === null))) {
         const rank = facts.rank ?? facts.shape?.length;
         const axes = rank !== undefined ? `[${Array(rank).fill('#').join(', ')}]` : '';

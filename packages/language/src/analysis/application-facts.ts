@@ -84,7 +84,10 @@ function mergedSequenceFacts(operands: readonly ValueFacts[]): ValueFacts {
     const rows = operands.length === 2 && operands.every(value => value.rank === 1)
         || operands.length === 1 && operands[0].types.join() === 'array' && operands[0].rank === 2;
     return { types: ['sequence'], rank: 1, shape: [null],
-        ...(collections && rows && sameCells ? { elements: cells } : {}) };
+        ...(collections && rows && sameCells ? { elements: cells,
+            ...(cells.every(type => ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type))
+                && operands.every(value => value.eagerScalarCells || value.callbackFreeScalarCells)
+                ? { callbackFreeScalarCells: true as const } : {}) } : {}) };
 }
 
 function windowFacts(form: Extract<ApplicationForm, { kind: 'window' }>, lookup: FactLookup,

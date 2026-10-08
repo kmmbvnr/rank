@@ -344,7 +344,17 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         && site.arguments.length === 1 && site.arguments[0] === node
                         && site.head.arguments.length + 1 === arity
                         ? [site.head.head, ...site.head.arguments] : undefined;
-                const operands = arguments_?.map(part => expressionFacts(part, name => env.get(name)));
+                const filter = isTableFilterExpression(site.$container) ? site.$container : undefined;
+                const condition = filter?.condition === site ? filter.condition
+                    : filter?.conditions.find(condition => condition === site);
+                const predicate = condition && filter?.sourceFields.length === 0
+                    ? filterPredicateForm(condition) : undefined;
+                const source = predicate && filter && expressionFacts(filter.source, name => env.get(name));
+                const cellInputs = source && arity === 1 && source.rank === 1 && (predicate?.rank ?? 0) === 0
+                    && ['array', 'sequence'].includes(source.types.join())
+                    && safeRead(source) && source.elements?.length
+                    ? [stableRecordField({ types: source.elements })] : undefined;
+                const operands = cellInputs ?? arguments_?.map(part => expressionFacts(part, name => env.get(name)));
                 const partition = ranked && operands ? rankedFunctionInputs(operands,
                     ranked.rightRank === undefined ? [Number(ranked.rank)] : [Number(ranked.rank), Number(ranked.rightRank)], ranked.axes) : undefined;
                 const inputs = ranked ? partition?.inputs : operands;
@@ -997,6 +1007,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     }
 
     function statements(items: readonly Statement[], env: Map<string, ValueFacts>): boolean {
+        // Runtime registers function declarations before running their block.
+        for (const statement of items) if (isFunctionStatement(statement)) {
+            const fact: ValueFacts = { types: ['function'] };
+            env.set(statement.name, fact);
+            functionBindings.set(statement.name, fact);
+            functions.set(statement.name, statement);
+        }
         for (const statement of items) {
             if (isFunctionBindingStatement(statement)) {
                 const plan = functionBindingPlan(statement);
@@ -1297,8 +1314,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         && key.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol',
                             'date', 'datetime'].includes(type)) || key.types.join() === 'array'
                             && key.eagerScalarCells === true);
+                // A direct leading argument is read before the call can change captured bindings.
+                const argument = isApplicationExpression(statement.value) && isNameExpression(parts[0]) ? parts[0] : undefined;
+                const argumentFacts = argument && env.get(argument.name);
                 if (!collectionAdd && !dequeInsert && !heapInsert && !collectionRemove) invalidateCalls(statement.value, env);
                 inspect(statement.value, env);
+                if (argument && argumentFacts?.types.length) expressions.set(argument, argumentFacts);
                 if (collectionAdd && isNameExpression(parts[0])) insertCollectionElement(parts[0].name,
                     key!, parts[2], env);
                 if ((dequeInsert || heapInsert) && isNameExpression(parts[0])) {

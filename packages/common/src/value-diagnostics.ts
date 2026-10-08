@@ -35,6 +35,16 @@ export function notebookScope(book: Notebook, runtime: readonly [string, ValueFa
     let bindings = new Map<string, ValueFacts>();
     let functions = new Map<string, FunctionStatement>();
     let imports = new Map<string, ImportedFunction>();
+    // Notebook functions are registered before executing cells, including later definitions.
+    for (const cell of book.cells) {
+        if (cell.command) continue;
+        try {
+            for (const definition of parse(cell.source).statements.filter(isFunctionStatement)) {
+                functions.set(definition.name, definition);
+                bindings.set(definition.name, { types: ['function'] });
+            }
+        } catch { /* Incomplete cells cannot declare a proven function. */ }
+    }
     const cleanPrefix = book.atPrompt && book.dirtyFrom < 0
         && book.cells.slice(0, book.active).every(cell => cell.command || cell.status === 'ok' && cell.executed === cell.source);
     for (const cell of book.cells.slice(0, book.active)) {
