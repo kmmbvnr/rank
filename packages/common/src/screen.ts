@@ -43,11 +43,11 @@ function lineNumbers(source: string): (offset: number) => number {
 const rowCache = new Map<string, TextRow[]>();
 
 /** Wrapped rows are identical for an unchanged cell, and every scroll frame lays all cells out again. */
-export function editableRows(source: string, columns: number, cursor?: number): TextRow[] {
-    const key = columns + ':' + (cursor ?? '') + ':' + source;
+export function editableRows(source: string, columns: number, cursor?: number, compactNumbers = true): TextRow[] {
+    const key = columns + ':' + (cursor ?? '') + ':' + compactNumbers + ':' + source;
     let rows = rowCache.get(key);
     if (!rows) {
-        rows = layoutRows(source, columns, cursor);
+        rows = layoutRows(source, columns, cursor, compactNumbers);
         if (rowCache.size >= 512) rowCache.delete(rowCache.keys().next().value!);
         rowCache.set(key, rows);
     }
@@ -113,14 +113,15 @@ function numberDisplay(line: string, width: number, cursor?: number): { text: st
     return { text, offsets };
 }
 
-function layoutRows(source: string, columns: number, cursor?: number): TextRow[] {
+function layoutRows(source: string, columns: number, cursor?: number, compactNumbers = true): TextRow[] {
     const width = Math.max(1, columns);
     const rows: TextRow[] = [];
     let offset = 0;
     for (const line of source.split('\n')) {
         const comment = /^\s*rem(?:\s|$)/.test(line);
         const focus = cursor === undefined ? undefined : cursor - offset;
-        const display = comment ? commentDisplay(line, width, focus) : numberDisplay(line, width, focus);
+        const display = comment ? commentDisplay(line, width, focus)
+            : compactNumbers ? numberDisplay(line, width, focus) : { text: line };
         const sourceOffset = (index: number) => offset + (display.offsets?.[index] ?? index);
         let row: TextRow = { text: '', points: [{ offset, column: 0 }] };
         let column = 0;
@@ -183,7 +184,7 @@ function errorRows(text: string, columns: number): TextRow[] {
     const rows: TextRow[] = [];
     for (let line of text.split('\n')) {
         while (true) {
-            const first = editableRows(line, columns)[0];
+            const first = editableRows(line, columns, undefined, false)[0];
             const end = first.points.at(-1)!.offset;
             if (end === line.length) {
                 rows.push(first);
@@ -229,7 +230,7 @@ export function wrapped(text: string, width: number): string[] {
 }
 
 export function clipped(text: string, width: number): string {
-    return editableRows(clean(text), Math.max(1, width))[0].text;
+    return editableRows(clean(text), Math.max(1, width), undefined, false)[0].text;
 }
 
 export interface ScreenTarget {
@@ -351,7 +352,8 @@ export function notebookFrame(
                     const marker = output.error && gutter > 0
                         ? fitEnd('! ', gutter + indent) : ' '.repeat(gutter + indent);
                     const outputWidth = output.error ? Math.min(width, 40) - gutter - indent : bodyWidth - indent;
-                    const layout = output.error ? errorRows : editableRows;
+                    const layout = output.error ? errorRows
+                : (text: string, width: number) => editableRows(text, width, undefined, false);
                     for (const result of layout(clean(output.inlineText ?? output.text), Math.max(1, outputWidth))) {
                         if (!output.error && output.text.includes(' · iteration'))
                             targets[rows.length] = { kind: 'iteration', cell: index, line: sourceLine, points: [] };
@@ -422,7 +424,8 @@ export function notebookFrame(
             const cleaned = clean(output.inlineText ?? output.text);
             const text = output.error ? importPhrases(cleaned).text : cleaned;
             const outputWidth = output.error ? Math.max(1, Math.min(width, 40) - gutter) : bodyWidth;
-            const layout = output.error ? errorRows : editableRows;
+            const layout = output.error ? errorRows
+                : (text: string, width: number) => editableRows(text, width, undefined, false);
             for (const item of layout(text, outputWidth)) {
                 const shown = clipped(marker + item.text, width);
                 if (!output.error || !modules.length) {

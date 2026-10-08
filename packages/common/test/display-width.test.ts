@@ -128,6 +128,7 @@ it('keeps oversized integer rows compact and reveals only the focused literal', 
     const source = `  ${first}\n  ${second}`;
     const collapsed = editableRows(source, 33);
     expect(collapsed).toHaveLength(2);
+    expect(editableRows(source, 33, undefined, false).map(row => row.text).join('')).toBe('  ' + first + '  ' + second);
     expect(collapsed.every(row => cellWidth(row.text) < 33 && row.text.endsWith('…'))).toBe(true);
     expect(collapsed[0].points.at(-1)!.offset).toBe(first.length + 2);
     for (let cursor = 2; cursor <= first.length + 2; cursor++) {
