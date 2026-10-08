@@ -12,6 +12,8 @@ and the module picker. Sort directions remain `.ascending` / `.descending`;
 there are no bare-word direction keys.
 Words are sorted alphabetically on each tab. The keyboard offers `first`
 without separate `first where`, `first index where` or `index` shortcuts.
+Boolean literal keys are omitted. Control-flow keys are disabled outside
+their required block context.
 
 Each page follows the same shape:
 

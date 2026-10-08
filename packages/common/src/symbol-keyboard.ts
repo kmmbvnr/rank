@@ -1,5 +1,5 @@
 import { acceptsNext, moduleOperations, modules as builtinModules, nextTokens, type Module } from '@arrrank/language';
-import { OPERATOR_KEYWORDS, STATEMENT_KEYWORDS, endsOperand, insideText, tokenize, type Token } from './repl-input.js';
+import { EMPTY_CELL, OPERATOR_KEYWORDS, STATEMENT_KEYWORDS, addLine, endsOperand, insideText, tokenize, type Token } from './repl-input.js';
 
 export interface KeyboardTab {
     readonly module: string;
@@ -52,7 +52,27 @@ const MODULE_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
 };
 const IMPORTED_KEYWORDS = new Set(Object.values(MODULE_KEYWORDS).flat());
 /** Omit bare direction labels and redundant first/index shortcuts. */
-const OMITTED_KEYS = new Set(['ascending', 'descending', 'index', 'first where', 'first index where']);
+const OMITTED_KEYS = new Set(['ascending', 'descending', 'index', 'first where', 'first index where', 'true', 'false']);
+
+/** Statement syntax also depends on the surrounding loop, function and finally branch. */
+function statementAvailable(key: string, before: string): boolean {
+    let state = EMPTY_CELL;
+    for (const line of before.split('\n').slice(0, -1)) {
+        if (tokenize(line)[0]?.text === 'finally' && state.blocks.at(-1) === 'try')
+            state = { ...state, blocks: [...state.blocks.slice(0, -1), 'finally'] };
+        state = addLine(state, line, true);
+    }
+    if (state.pending) return false;
+    const blocks = state.blocks;
+    if (blocks.some(block => ['record', 'array', 'filter', 'select', 'update'].includes(block))) return false;
+    const functionAt = Math.max(blocks.lastIndexOf('fun'), blocks.lastIndexOf('memo'));
+    const local = blocks.slice(functionAt + 1);
+    if (key === 'break' || key === 'continue') return local.includes('for') && !local.includes('finally');
+    if (key === 'return') return functionAt >= 0 && !local.includes('finally');
+    if (key === 'yield') return functionAt >= 0;
+    if (key === 'fun' || key === 'memo') return blocks.length === 0 || ['fun', 'memo'].includes(blocks.at(-1)!);
+    return true;
+}
 
 /** Words that only extend one construct earlier on the line. */
 const EXTENDS: Readonly<Record<string, (words: readonly string[]) => boolean>> = {
@@ -134,7 +154,7 @@ export function keyAvailable(key: string, before: string): boolean {
     if (last?.kind === 'word' && (last.text === 'use' || last.text === 'ops')) return false;
     if (line.trim() === '') {
         if (CONTINUATIONS.has(key)) return nextTokens(before).has(key);
-        if (STATEMENT_HEADS.has(key)) return true;
+        if (STATEMENT_HEADS.has(key)) return statementAvailable(key, before);
         // The completion parser sees only a line break here, so ask what starts an expression.
         return !OPERATOR_KEYWORDS.includes(key) && acceptsNext('X = ', key)
             || PREFIX.has(key);

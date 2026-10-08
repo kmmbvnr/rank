@@ -15,8 +15,9 @@ async existingPage => {
         const coreKeys = await page.locator('#keyboard-keys button').allTextContents();
         for (const key of ['args', 'argument', 'flag', 'option', 'new', 'push', 'stdin', 'test',
             'sort by', 'argsort by', 'group by', 'leftjoin by', 'innerjoin by', 'leftjoin on',
-            'innerjoin on', 'select', 'ascending', 'descending', 'index', 'first where', 'first index where'])
+            'innerjoin on', 'select', 'ascending', 'descending', 'index', 'first where', 'first index where', 'true', 'false'])
             check(!coreKeys.includes(key), `Core must not offer ${key}`);
+        check(JSON.stringify(coreKeys) === JSON.stringify([...coreKeys].sort()), 'Sort Core keys alphabetically');
         const picker = page.getByRole('tab', { name: 'Import a module' });
         await picker.click();
         const keys = page.locator('#keyboard-keys');
@@ -46,6 +47,10 @@ async existingPage => {
         check(await keys.getByRole('button', { name: 'test', exact: true }).count() === 1, 'Offer the imported test statement');
         await picker.click();
         check(await keys.getByRole('button', { name: /^testing Test/ }).count() === 0, 'Hide the imported testing module');
+        await page.getByRole('tab', { name: 'core', exact: true }).click();
+        await page.getByRole('textbox').fill('');
+        for (const key of ['default', 'break', 'continue', 'return', 'yield'])
+            check(await page.locator('#keyboard-keys').getByRole('button', { name: key, exact: true }).getAttribute('aria-disabled') === 'true', `Disable ${key} at the start of a top-level line`);
     } finally {
         await context.close();
     }
