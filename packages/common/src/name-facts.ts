@@ -290,10 +290,15 @@ function loopNames(loop: ForStatement): string[] {
         .concat(isNameExpression(condition.left) ? [condition.left.name] : []);
 }
 
-/** How a fact reads in a report: its element type, and its shape when every axis is known. */
+/** Show exact dimensions when known, otherwise preserve the array kind and rank. */
 export function describeFacts(facts: ValueFacts, withShape = true): string {
     if (facts.types.join() === 'function') return 'function';
     if (!facts.types.length) return 'unknown';
+    if (facts.types.join() === 'array' && (!facts.shape || facts.shape.some(size => size === null))) {
+        const rank = facts.rank ?? facts.shape?.length;
+        const axes = rank !== undefined ? `[${Array(rank).fill('#').join(', ')}]` : '';
+        return axes || facts.elements?.length ? `array${axes}<${describeTypes(facts.elements ?? [])}>` : 'array';
+    }
     const shaped = facts.types[0] !== 'text' && facts.shape !== undefined && facts.shape.length > 0;
     const base = shaped && facts.types.join() === 'array' && facts.elements?.length
         ? describeTypes(facts.elements) : describeTypes(facts.types);

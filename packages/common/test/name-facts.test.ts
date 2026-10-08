@@ -143,8 +143,8 @@ describe('formatNameFacts', () => {
     });
 
     it('omits a shape with an axis it does not know, rather than guessing', () => {
-        expect(describeFacts(integer([3, null]))).toBe('integer');
-        expect(describeFacts({ types: ['array'], rank: 2 })).toBe('array');
+        expect(describeFacts(integer([3, null]))).toBe('array[#, #]<integer>');
+        expect(describeFacts({ types: ['array'], rank: 2 })).toBe('array[#, #]<unknown>');
     });
 
     it('drops the shape, then the front of the name, to fit the footer', () => {
@@ -310,4 +310,15 @@ it('infers Euler product bounds with a known CLI option and without a run', () =
             [['Digits', { types: ['integer'], rank: 0, shape: [], integer: '3' }]])!))
             .toBe(`${name} · integer`);
     }
+});
+
+
+it('keeps both Products axes visible when their sizes are not proven', () => {
+    const source = 'Factors = Upper to Lower by -1\nProducts = Factors Factors outer *\n';
+    const found = factsAt(source, source.indexOf('Products'), [
+        ['Upper', { types: ['integer'], rank: 0, shape: [] }],
+        ['Lower', { types: ['integer'], rank: 0, shape: [] }],
+    ])!;
+    expect(found.facts).toMatchObject({ types: ['array'], rank: 2, elements: ['integer'] });
+    expect(formatNameFacts(found)).toBe('Products · array[#, #]<integer>');
 });
