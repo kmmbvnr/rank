@@ -21,8 +21,31 @@ describe('symbol keyboard', () => {
         expect(tabs.flatMap(tab => tab.keys)).not.toContain('bfs');
     });
 
-    it('drops modules that export no names', () => {
-        expect(keyboardTabs(['testing']).map(tab => tab.module)).toEqual(['core']);
+    it('keeps import-gated forms in their module tabs', () => {
+        const tabs = keyboardTabs(['algo', 'cli', 'io', 'sequences', 'tables', 'testing']);
+        const keys = (module: string) => tabs.find(tab => tab.module === module)!.keys;
+        for (const key of ['args', 'argument', 'flag', 'option', 'new', 'push', 'stdin',
+            'sort by', 'argsort by', 'group by', 'leftjoin by', 'innerjoin on', 'select', 'test'])
+            expect(keys('core')).not.toContain(key);
+        expect(keys('algo')).toContain('push');
+        expect(keys('cli')).toContain('option');
+        expect(keys('io')).toContain('stdin');
+        expect(keys('sequences')).toContain('sort by');
+        expect(keys('tables')).toContain('innerjoin by');
+        expect(keys('testing')).toEqual(['test']);
+        for (const key of ['ascending', 'descending'])
+            expect(tabs.flatMap(tab => tab.keys)).not.toContain(key);
+    });
+
+    it('hides CLI from mobile tabs and the import picker', () => {
+        expect(keyboardTabs(['cli', 'numbers'], ['cli']).map(tab => tab.module))
+            .toEqual(['core', 'numbers']);
+        expect(keyboardModules([], ['cli']).map(module => module.name)).not.toContain('cli');
+        expect(keyboardModules([]).map(module => module.name)).toContain('cli');
+    });
+
+    it('drops unknown modules that have no keys', () => {
+        expect(keyboardTabs(['unknown']).map(tab => tab.module)).toEqual(['core']);
     });
 
     it('follows use statements in the session', async () => {
