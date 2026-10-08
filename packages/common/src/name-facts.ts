@@ -1,6 +1,6 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, applicationForm, formatTypeSignature, signatureType, describeTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
+    analyzeValues, applicationForm, formatTypeSignature, signatureType, describeTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
     isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts,
 } from '@arrrank/language';
@@ -81,14 +81,20 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
     };
     const callFacts = (site: Site): { arguments: ValueFacts[]; result?: ValueFacts } | undefined => {
         if (!isNameExpression(site.node)) return undefined;
-        let call: AstNode = site.node;
-        while (isApplicationExpression(call.$container)) call = call.$container;
+        const call = site.node.$container;
         if (!isApplicationExpression(call)) return undefined;
         const parts = flattenApplication(call);
-        return parts.at(-1) === site.node ? {
-            arguments: parts.slice(0, -1).map(part => analysis.expressions.get(part) ?? UNKNOWN),
+        if (parts.at(-1) !== site.node) return undefined;
+        const arities = (name: string): readonly number[] | undefined => {
+            const definition = analysis.functions.get(name);
+            return definition ? [definition.parameters.length] : findOperation(name)?.arities;
+        };
+        const head = unaryApplicationHead(call, arities,
+            name => !analysis.bindings.has(name) && !runtime.has(name));
+        return {
+            arguments: (head ? [head] : parts.slice(0, -1)).map(part => analysis.expressions.get(part) ?? UNKNOWN),
             result: analysis.expressions.get(call),
-        } : undefined;
+        };
     };
     const signatureFor = (site: Site): string | undefined => {
         const actualName = isNameExpression(site.node) ? site.node.name : site.name;

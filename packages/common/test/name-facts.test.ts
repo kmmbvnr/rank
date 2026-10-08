@@ -359,3 +359,17 @@ it('uses the input declaration type rather than stale runtime or later binding f
         .toBe('Digits · integer');
     expect(factsAt('option Digits integer = 3', 'option Digits '.length + 2)).toBeUndefined();
 });
+
+
+it('shows builtin signatures at their own boundary in a pipeline', () => {
+    for (const source of [
+        'N = array 1 2 3\nMask = array true false true\nN Mask sum',
+        'N = array 1 2 3\nN reverse sum',
+        'N = array 1 2 3\nN sum print',
+    ]) {
+        const found = factsAt(source, source.lastIndexOf('sum'))!;
+        expect(found.signature).toContain('→ number');
+        expect(found.signature).toContain('array');
+        expect(formatNameFacts(found)).not.toContain('· function');
+    }
+});

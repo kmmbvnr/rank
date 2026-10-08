@@ -211,3 +211,26 @@ it('shows the type after tapping the name in a CLI declaration on the touch cons
         expect(stripAnsi(frame.lines[frame.factsRow!])).toBe('Digits · integer');
     } finally { session.dispose(); }
 });
+
+
+it('shows the sum signature in a filtered pipeline on a touch console before and after running', async () => {
+    const session = createReplSession();
+    const repl = new NotebookRepl(session);
+    try {
+        for (const source of ['N = array 1 2 3', 'Mask = array true false true']) {
+            repl.notebook.replace(source);
+            await repl.submit(true);
+        }
+        const source = 'N Mask sum';
+        footer(repl, source, source.indexOf('sum'), 40, false);
+        expect(repl.nameFacts?.signature).toContain('→ number');
+        const frame = notebookFrame(repl.notebook, 40, 30, 0, '', false, true, '', 'Running…', undefined, 'rank> ',
+            undefined, undefined, undefined, false, undefined, false, 0, repl.diagnosticOutputs, undefined, repl.nameFacts);
+        expect(stripAnsi(frame.lines.join('\n'))).toContain('→ number');
+        await repl.submit(true);
+        const index = repl.notebook.cells.findIndex(cell => cell.source === source);
+        repl.notebook.selectTo(index, source.indexOf('sum'));
+        expect(repl.nameFacts?.signature).toContain('→ number');
+        expect(formatNameFacts(repl.nameFacts!)).not.toContain('· function');
+    } finally { session.dispose(); }
+});
