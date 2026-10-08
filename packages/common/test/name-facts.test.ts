@@ -337,3 +337,25 @@ it('infers every Euler palindrome pipeline name before running the notebook', ()
         ['Text reverse', 'Text · text'],
     ]) expect(formatNameFacts(factsAt(source, source.indexOf(site))!)).toBe(expected);
 });
+
+
+it.each([
+    ['option Digits integer = 3', 'Digits', 'integer'],
+    ['argument File path', 'File', 'text'],
+    ['option Values integer many', 'Values', 'array[#]<integer>'],
+    ['argument Files path many', 'Files', 'array[#]<text>'],
+    ['flag Verbose', 'Verbose', 'boolean'],
+])('shows the declared input type on its name: %s', (source, name, type) => {
+    const start = source.indexOf(name);
+    for (const offset of [start, start + 1, start + name.length]) {
+        expect(formatNameFacts(factsAt(source, offset)!)).toBe(`${name} · ${type}`);
+    }
+    expect(factsAt(source, 1)).toBeUndefined();
+});
+
+it('uses the input declaration type rather than stale runtime or later binding facts', () => {
+    const source = 'option Digits integer = 3\nDigits = "bad"';
+    expect(formatNameFacts(factsAt(source, source.indexOf('Digits'), [['Digits', { types: ['text'] }]])!))
+        .toBe('Digits · integer');
+    expect(factsAt('option Digits integer = 3', 'option Digits '.length + 2)).toBeUndefined();
+});

@@ -1,7 +1,7 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, applicationForm, formatTypeSignature, signatureType, describeTypes, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
-    isExpression, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackStatement,
+    analyzeValues, applicationForm, formatTypeSignature, signatureType, describeTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
+    isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts,
 } from '@arrrank/language';
 import { parse } from '@arrrank/interpreter';
@@ -154,7 +154,7 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
             if (signature) return { name: site.name, source: 'static', facts: FUNCTION, signature };
         }
         const observed = runtime.get(site.name);
-        if (observed && !inFunction && site.kind !== 'parameter' && !written.has(site.name)) {
+        if (observed && !inFunction && site.kind !== 'parameter' && site.kind !== 'input' && !written.has(site.name)) {
             // A run records no element types; the analyzer's agree with it only when type, rank and shape do.
             const inferred = analysis.bindings.get(site.name);
             const same = inferred && observed.types.join() === inferred.types.join() && observed.rank === inferred.rank
@@ -199,7 +199,7 @@ function writtenNames(program: Program): Set<string> {
 interface Site {
     readonly name: string;
     readonly node: AstNode;
-    readonly kind: 'read' | 'assignment' | 'loop' | 'parameter' | 'unpack' | 'function' | 'operator' | 'form';
+    readonly kind: 'read' | 'assignment' | 'input' | 'loop' | 'parameter' | 'unpack' | 'function' | 'operator' | 'form';
 }
 
 function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site | undefined {
@@ -223,6 +223,9 @@ function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site 
     }
     if (isAssignmentStatement(node) || isArrayAssignmentStatement(node)) {
         return ownsLeaf(node, 'name', leaf) ? { name: text, node, kind: 'assignment' } : undefined;
+    }
+    if (isOptionStatement(node) || isArgumentStatement(node) || isFlagStatement(node)) {
+        return ownsLeaf(node, 'name', leaf) ? { name: text, node, kind: 'input' } : undefined;
     }
     if (isFunctionStatement(node)) {
         if (ownsLeaf(node, 'name', leaf)) return { name: text, node, kind: 'function' };
@@ -255,6 +258,14 @@ function staticFacts(site: Site, analysis: ReturnType<typeof analyzeValues>): Va
         case 'form': case 'read': {
             if (analysis.functions.has(name)) return FUNCTION;
             return known(node as Expression);
+        }
+        case 'input': {
+            if (isFlagStatement(node)) return { types: ['boolean'], rank: 0, shape: [] };
+            if (!isOptionStatement(node) && !isArgumentStatement(node)) return UNKNOWN;
+            const types = declaredType(node.valueType, node.many);
+            if (!types.length) return UNKNOWN;
+            return node.many ? { types, rank: 1, shape: [null], elements: declaredType(node.valueType, false) }
+                : { types, rank: types.join() === 'text' ? 1 : 0, shape: types.join() === 'text' ? [null] : [] };
         }
         case 'function': return FUNCTION;
         case 'assignment':

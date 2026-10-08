@@ -197,3 +197,17 @@ it('uses a later notebook predicate definition and analyzes uncalled function lo
         }
     } finally { session.dispose(); }
 });
+
+
+it('shows the type after tapping the name in a CLI declaration on the touch console', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        const source = 'option Digits integer = 3';
+        repl.notebook.replace(source);
+        repl.notebook.cursor = source.indexOf('Digits') + 2;
+        const frame = frameOf(repl, 12, false);
+        expect(frame.factsRow).toBeDefined();
+        expect(stripAnsi(frame.lines[frame.factsRow!])).toBe('Digits · integer');
+    } finally { session.dispose(); }
+});
