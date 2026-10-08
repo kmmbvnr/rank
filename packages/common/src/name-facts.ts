@@ -12,6 +12,8 @@ export interface NameFacts {
     readonly facts: ValueFacts;
     readonly source: 'runtime' | 'static';
     readonly signature?: string;
+    /** A parameter contract from backward analysis, separate from observed value facts. */
+    readonly requirement?: string;
 }
 
 /** A function the live preview calls with example arguments, so its parameters have facts. */
@@ -188,8 +190,22 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
             const body = generalAnalysis(inFunction);
             if (body) facts = staticFacts(site, body);
         }
+        let requirement: string | undefined;
+        if (!facts.types.length && inFunction) {
+            const body = generalAnalysis(inFunction) ?? analysis;
+            const index = inFunction.parameters.indexOf(site.name);
+            const required = site.kind === 'parameter' && index >= 0
+                ? body.requirements.functions.get(inFunction)?.params[index]
+                : isNameExpression(site.node) ? body.requirements.expressions.get(site.node) : undefined;
+            if (required?.domains?.length) {
+                const domain = describeTypes(required.domains as ValueFacts['types']);
+                const rank = required.rank;
+                requirement = rank.min === 0 && rank.max === 0 ? domain
+                    : `(${domain}) [rank ${rank.max === Infinity ? `≥ ${rank.min}` : `${rank.min}..${rank.max}`}]`;
+            }
+        }
         if (site.kind === 'read' && !facts.types.length && !isDefined(site)) return undefined;
-        return { name: site.name, source: 'static', facts,
+        return { name: site.name, source: 'static', facts, ...(requirement ? { requirement } : {}),
             ...(facts.types.join() === 'function' ? { signature: signatureFor(site) } : {}) };
     };
 }
@@ -349,11 +365,11 @@ export function describeFacts(facts: ValueFacts, withShape = true): string {
  * goes first, then the front of the name.
  */
 export function formatNameFacts(found: NameFacts, width = Infinity): string {
-    const full = `${found.name} · ${found.signature ?? describeFacts(found.facts)}`;
+    const full = `${found.name} · ${found.signature ?? found.requirement ?? describeFacts(found.facts)}`;
     if (cellWidth(full) <= width) return full;
-    const bare = `${found.name} · ${found.signature ?? describeFacts(found.facts, false)}`;
+    const bare = `${found.name} · ${found.signature ?? found.requirement ?? describeFacts(found.facts, false)}`;
     if (cellWidth(bare) <= width) return bare;
-    const suffix = ` · ${found.signature ?? describeFacts(found.facts, false)}`;
+    const suffix = ` · ${found.signature ?? found.requirement ?? describeFacts(found.facts, false)}`;
     let name = found.name;
     while (name.length > 1 && cellWidth(`${name}…${suffix}`) > width) name = name.slice(0, -1);
     const clipped = `${name}…${suffix}`;
@@ -433,7 +449,7 @@ function wrapElement(text: string, width: number, indent: string): string[] {
  * Types are never broken apart unless one alone is wider than a row.
  */
 export function layoutNameFacts(found: NameFacts, width: number): string[] {
-    const text = `${found.name} · ${found.signature ?? describeFacts(found.facts)}`;
+    const text = `${found.name} · ${found.signature ?? found.requirement ?? describeFacts(found.facts)}`;
     if (cellWidth(text) <= width || !found.signature) return cellWidth(text) <= width ? [text] : wrapElement(text, width, '');
     return found.signature.split(' ; ').flatMap((alternative, index) => {
         const single = `${index === 0 ? found.name + ' · ' : '  '}${alternative}`;

@@ -1618,3 +1618,10 @@ it('preserves integer sums after a proven primitive boolean sequence selection',
     expect(facts('N Mask', bindings).callbackFreeScalarCells).not.toBe(true);
     expect(facts('N Mask sum', bindings).types).toEqual(['integer', 'real']);
 });
+
+
+it('keeps the successful result kind of take and drop with an unknown count', () => {
+    expect(facts('"abcdef" take Count').types).toEqual(['text']);
+    expect(facts('"abcdef" drop Count').types).toEqual(['text']);
+    expect(facts('"abcdef" take Count', new Map([['Count', { types: ['real'], rank: 0, shape: [] }]])).types).toEqual([]);
+});

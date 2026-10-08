@@ -1005,6 +1005,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 || fact.types.includes('array') && !fact.eagerScalarCells && !fact.callbackFreeScalarCells) return undefined;
             arguments_.push(fact);
         }
+        parts.slice(0, -1).forEach((part, index) => expressions.set(part, arguments_[index]));
         return calls.call(target.name, arguments_, new Map(env), value);
     }
 
@@ -1039,6 +1040,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 invalidateCalls(statement.value, env);
                 const previous = env.get(statement.name);
                 let next = beforeEffects ?? inspect(statement.value, env);
+                if (beforeEffects) expressions.set(statement.value, beforeEffects);
                 let constructor = statement.value;
                 while (isParenthesizedExpression(constructor)) constructor = constructor.value;
                 if (isNewStructureExpression(constructor)

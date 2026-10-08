@@ -97,13 +97,30 @@ function commentDisplay(line: string, width: number, cursor?: number): { text: s
     return { text, offsets };
 }
 
+/** A standalone oversized integer stays one row until its literal is focused. */
+function numberDisplay(line: string, width: number, cursor?: number): { text: string; offsets?: number[] } {
+    const match = /^(\s*)([+-]?\d(?:_?\d)*)(\s*)$/.exec(line);
+    if (!match) return { text: line };
+    const start = match[1].length, end = start + match[2].length;
+    if (cursor !== undefined && cursor >= start && cursor <= end) return { text: line };
+    const budget = width - cellWidth(match[1] + match[3]) - 1;
+    if (budget < 2 || match[2].length <= budget) return { text: line };
+    const prefix = match[2].slice(0, budget - 1);
+    const text = match[1] + prefix + '…' + match[3];
+    const offsets = Array.from({ length: start + prefix.length + 1 }, (_, index) => index);
+    offsets.push(end);
+    for (let index = end + 1; index <= line.length; index++) offsets.push(index);
+    return { text, offsets };
+}
+
 function layoutRows(source: string, columns: number, cursor?: number): TextRow[] {
     const width = Math.max(1, columns);
     const rows: TextRow[] = [];
     let offset = 0;
     for (const line of source.split('\n')) {
         const comment = /^\s*rem(?:\s|$)/.test(line);
-        const display = comment ? commentDisplay(line, width, cursor === undefined ? undefined : cursor - offset) : { text: line };
+        const focus = cursor === undefined ? undefined : cursor - offset;
+        const display = comment ? commentDisplay(line, width, focus) : numberDisplay(line, width, focus);
         const sourceOffset = (index: number) => offset + (display.offsets?.[index] ?? index);
         let row: TextRow = { text: '', points: [{ offset, column: 0 }] };
         let column = 0;

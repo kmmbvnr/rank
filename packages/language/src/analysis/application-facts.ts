@@ -1128,7 +1128,7 @@ function parsePositions(format: string): Types[] | undefined {
 
 /** `Values take Count` and `Values drop Count` keep the kind and trailing shape of their source. */
 export function takeDropFacts(source: ValueFacts, count: ValueFacts, drop: boolean): ValueFacts | undefined {
-    if (count.types.join() !== 'integer' || count.rank !== 0
+    if (count.types.length && (count.types.join() !== 'integer' || count.rank !== 0)
         || (count.integer !== undefined && BigInt(count.integer) < 0n)) return undefined;
     const size = source.shape?.[0];
     const leading = !drop && source.unbounded && count.integer !== undefined

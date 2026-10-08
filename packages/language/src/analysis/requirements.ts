@@ -3,7 +3,7 @@ import { AstUtils, type AstNode } from 'langium';
 import {
     isAllAxisExpression, isApplicationExpression, isArgumentStatement, isArrayAssignmentStatement,
     isAssignmentStatement, isBinaryExpression, isExpression, isExpressionStatement, isForStatement,
-    isFunctionStatement, isIfStatement, isLabelLiteral, isNameExpression,
+    isFunctionStatement, isIfStatement, isLabelLiteral, isNameExpression, isCountClauseExpression,
     isOptionStatement, isParenthesizedExpression, isReturnStatement, isTestStatement, isTryStatement,
     isUseStatement, type Expression, type FunctionStatement, type Program, type Statement,
 } from '../generated/ast.js';
@@ -131,6 +131,8 @@ export function inferRequirements(program: Program, options: RequirementOptions 
         const lookup = (name: string): ValueFacts | undefined => env.get(name)?.value.fact
             ?? (callees.has(name) ? { types: ['function'] } : opaqueImport && findOperation(name) ? { types: [] } : undefined);
         const bound = (name: string) => env.has(name) || callees.has(name) || opaqueImport;
+        const inputBindings = new Map([...env].filter(([name, binding]) =>
+            isFunctionStatement(binding.node) && binding.node.parameters.includes(name)));
         // A write through a closure or unsupported control flow is not a stable value source.
         const unstable = new Set<string>();
         for (const item of items) if (isFunctionStatement(item) || isIfStatement(item) || isTryStatement(item) || isForStatement(item)) {
@@ -320,6 +322,22 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 if (['/', '//', 'mod', '**'].includes(node.operator)) {
                     for (const value of [left, right]) graph.domains.push({ variable: value.domain,
                         types: ['integer', 'real', 'missing'], site: site(node, `${node.operator} needs numbers`) });
+                }
+                return output;
+            }
+            if (isCountClauseExpression(node)) {
+                expression(node.source);
+                const count = expression(node.count);
+                requireRank(count, 0, 0, node.count, `${node.operator} needs an integer count`);
+                graph.domains.push({ variable: count.domain, types: ['integer'],
+                    site: site(node.count, `${node.operator} needs an integer count`) });
+                // Unknown lazy calls can invalidate value facts, but cannot replace
+                // an unassigned scalar parameter binding in this function frame.
+                const input = isNameExpression(node.count) && inputBindings.get(node.count.name);
+                if (input && !unstable.has(input.name) && env.get(input.name)?.node === input.node) {
+                    requireRank(input.value, 0, 0, node.count, `${node.operator} needs an integer count`);
+                    graph.domains.push({ variable: input.value.domain, types: ['integer'],
+                        site: site(node.count, `${node.operator} needs an integer count`) });
                 }
                 return output;
             }

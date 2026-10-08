@@ -255,3 +255,21 @@ it('keeps Euler 1 types across restored notebook cells before execution', () => 
         }
     } finally { session.dispose(); }
 });
+
+
+it('infers Euler 13 types and parameter requirements across restored cells', () => {
+    const session = createReplSession();
+    const repl = new NotebookRepl(session);
+    try {
+        repl.notebook.restore(readFileSync(new URL('../../../demos/euler/013_largesum.ra', import.meta.url), 'utf8'));
+        for (const [site, expected] of [
+            ['Answer =', 'Answer · integer'], ['Answer print', 'Answer · integer'],
+            ['Prefix =', 'Prefix · text'], ['Digits\n', 'Digits · integer'],
+            ['Numbers Digits\n', 'Numbers · (integer or missing or real) [rank ≥ 0]'],
+        ]) {
+            const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
+            repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site));
+            expect(formatNameFacts(repl.nameFacts!)).toBe(expected);
+        }
+    } finally { session.dispose(); }
+});

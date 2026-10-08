@@ -386,3 +386,16 @@ it('keeps Euler 1 integer sequence sums and boolean masks, including compound as
         ['Answer print', 'Answer · integer'],
     ]) expect(formatNameFacts(factsAt(source, source.indexOf(site))!)).toBe(expected);
 });
+
+
+it('infers Euler 13 call results and uncalled locals, with backward parameter contracts', () => {
+    const source = readFileSync(new URL('../../../demos/euler/013_largesum.ra', import.meta.url), 'utf8');
+    expect(formatNameFacts(factsAt(source, source.indexOf('Answer ='))!)).toBe('Answer · integer');
+    expect(formatNameFacts(factsAt(source, source.indexOf('Numbers Digits leading_sum'))!)).toBe('Numbers · integer [100]');
+    const definition = source.slice(source.indexOf('fun leading_sum'));
+    expect(formatNameFacts(factsAt(definition, definition.indexOf('Prefix ='))!)).toBe('Prefix · text');
+    expect(formatNameFacts(factsAt(definition, definition.indexOf('Digits'))!)).toBe('Digits · integer');
+    const numbers = factsAt(definition, definition.indexOf('Numbers'))!;
+    expect(numbers.facts.types).toEqual([]);
+    expect(numbers.requirement).toBe('(integer or missing or real) [rank ≥ 0]');
+});
