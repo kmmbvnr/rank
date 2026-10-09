@@ -4,7 +4,7 @@ test "default input"
   use "003_primefactor"
   run
 
-  Answer equal 6857
+  N equal 6857
 end
 
 test "workspace input"
@@ -12,5 +12,5 @@ test "workspace input"
   N = 13195
   run
 
-  Answer equal 29
+  N equal 29
 end

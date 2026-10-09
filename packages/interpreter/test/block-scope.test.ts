@@ -10,6 +10,10 @@ describe('block scope', () => {
         expect(run('Kind = "lower"\nif true\n Kind = "record"\nend\nKind')).toBe('record');
     });
 
+    it('allows updating a declared option inside a loop', () => {
+        expect(run('use cli\noption N integer = 8\nfor N greater 1\n N = N // 2\nend\nN')).toBe('1');
+    });
+
     it('ends loop bindings and body names with the loop', () => {
         expect(() => run('for I in 0 to 2\n Last = I\nend\nLast')).toThrow('Last was assigned inside');
         expect(() => run('for I in 0 to 2\nend\nI')).toThrow('I was assigned inside');

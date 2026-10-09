@@ -56,26 +56,27 @@ rem Project Euler 3
 rem Largest prime factor of 600851475143
 rem https://projecteuler.net/problem=3
 
+use io
+
 N = 600851475143
-Remaining = N
 D = 2
 Step = 1
-for Remaining greater 1
-  Rest = Remaining // D
+for N greater 1
+  Rest = N // D
   if D greater Rest
     break
-  elif Rest * D equal Remaining
-    Remaining = Rest
+  elif Rest * D equal N
+    N = Rest
   else
     D += Step
     Step = 2
   end
 end
-Answer = Remaining
+N print
 ```
 
 The loop divides out each prime factor, trying 2 and then odd divisors.
-When the divisor exceeds the remaining quotient, `Remaining` is the largest prime factor.
+When the divisor exceeds the remaining quotient, `N` is the largest prime factor.
 
 ## 4. Largest palindrome product
 

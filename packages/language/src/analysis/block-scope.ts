@@ -12,7 +12,7 @@ import { functionBindingPlan } from '../function-binding.js';
 
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isAllAxisExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, isFunctionStatement,
+    isOptionStatement, isAllAxisExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, isFunctionStatement,
     isFunctionBindingStatement, isIfStatement, isNameExpression, isStatement, isTestStatement, isTryStatement, isUnpackStatement,
     type Expression, type Program, type Statement,
 } from '../generated/ast.js';
@@ -102,6 +102,9 @@ export function blockScopeDiagnostics(
                 bind(node.name);
             } else if (isFunctionStatement(node)) {
                 body(node.statements, [...scopes, direct, new Set(node.parameters)]);
+            } else if (isOptionStatement(node)) {
+                read(node.defaultValue);
+                bind(node.name);
             } else if (isTestStatement(node)) {
                 body(node.statements, []);
             } else if (isForStatement(node)) {
