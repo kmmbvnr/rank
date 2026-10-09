@@ -2,13 +2,25 @@ rem Largest Prime Factor
 rem https://projecteuler.net/problem=3
 rem Largest prime factor of 600851475143
 
-use numbers
 use io
 use cli
 
 rem Integer whose factors are inspected.
 option N integer = 600851475143
 
-Factors = N factors
-Answer = Factors max
+Remaining = N
+D = 2
+Step = 1
+for Remaining greater 1
+  Rest = Remaining // D
+  if D greater Rest
+    break
+  elif Rest * D equal Remaining
+    Remaining = Rest
+  else
+    D += Step
+    Step = 2
+  end
+end
+Answer = Remaining
 Answer print
