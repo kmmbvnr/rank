@@ -299,10 +299,12 @@ export function createReplSession(host: ReplHost = {}) {
     function run(interpreter: Interpreter, source: string, session: Session, cell: number, quiet = false): number | undefined {
         try {
             checkInterrupt();
+            const printedFrom = output.length;
             const result = interpreter.execute(source);
             checkInterrupt('evaluating cell');
             session.setLast(result);
             if (result === undefined || quiet) return undefined;
+            if (justPrinted(result, printedFrom)) return undefined;
             const first = output.length;
             show(result, functionPreview(result, source, session.file));
             const ref = nextRef++;
@@ -316,6 +318,16 @@ export function createReplSession(host: ReplHost = {}) {
             reportError(error, source);
             return undefined;
         }
+    }
+
+    /** `print` returns its argument, so a cell ending in it would show the value twice. */
+    function justPrinted(result: RankValue, from: number): boolean {
+        if (output.length === from || isRankSequence(result) || isNativeFunction(result)) return false;
+        try {
+            const text = formatValue(result);
+            const printed = output.slice(from).map(line => line.text).join('\n');
+            return printed === text || printed.endsWith(`\n${text}`);
+        } catch { return false; }
     }
 
     function reportError(error: unknown, source: string): false {
