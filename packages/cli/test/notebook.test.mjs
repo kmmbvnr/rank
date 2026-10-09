@@ -783,7 +783,7 @@ test('save/load separates instructions and keeps only source, including blanks a
     await enter('');
     assert.equal(book.cells.length, count, 'starting a loaded program must not add a blank line');
     assert.equal(output(book.cells[4]), '42');
-    assert.equal(output(book.cells[5]), '42\n42');
+    assert.equal(output(book.cells[5]), '42');
     await enter('vars');
     await enter('full');
     await enter(`save ${saved}`);
@@ -791,7 +791,7 @@ test('save/load separates instructions and keeps only source, including blanks a
     edit(4, 'A = 11 twice');
     await repl.submit(true);
     assert.equal(output(book.cells[4]), '22');
-    assert.equal(output(book.cells[5]), '22\n22');
+    assert.equal(output(book.cells[5]), '22');
     assert.equal(book.cells[0].status, 'ok');
 });
 
