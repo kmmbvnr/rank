@@ -363,12 +363,22 @@ export function notebookFrame(
                     const outputWidth = output.error ? Math.min(width, 40) - gutter - indent : bodyWidth - indent;
                     const layout = output.error ? errorRows
                 : (text: string, width: number) => editableRows(text, width, undefined, false);
-                    for (const result of layout(clean(output.inlineText ?? output.text), Math.max(1, outputWidth))) {
+                    const liveModules = output.error ? missingImports([output]) : [];
+                    const liveText = clean(output.inlineText ?? output.text);
+                    for (const result of layout(liveModules.length ? importPhrases(liveText).text : liveText, Math.max(1, outputWidth))) {
                         if (!output.error && output.text.includes(' · iteration'))
                             targets[rows.length] = { kind: 'iteration', cell: index, line: sourceLine, points: [] };
                         resultRows.push(rows.length);
+                        const shown = clipped(marker + result.text, width);
+                        const fixes: { index: number; module: string; from: number; to: number }[] = [];
+                        const painted = liveModules.length ? shown.replace(/use\u00a0([\w.-]+)/g, (phrase, module: string, at: number) => {
+                            const from = cellWidth(shown.slice(0, at));
+                            fixes.push({ index: liveModules.indexOf(module), module, from, to: from + cellWidth(phrase) });
+                            return '\x1b[4m' + phrase + '\x1b[24m';
+                        }).replace(/\u00a0/g, ' ') : shown;
+                        if (fixes.length) targets[rows.length] = { kind: 'autofix', cell: index, line: 0, points: [], fixes };
                         rows.push((output.error ? '\x1b[31m' : promptOutputFocus?.active && promptOutputFocus.line === sourceLine ? '\x1b[7m' : '\x1b[90m')
-                            + clipped(marker + result.text, width) + '\x1b[0m');
+                            + painted + '\x1b[0m');
                         if (!output.error && promptOutputFocus?.line === sourceLine) {
                             const point = result.points.find(point => point.offset === promptOutputFocus.offset);
                             if (point) caret = { row: rows.length - 1, column: gutter + indent + point.column };

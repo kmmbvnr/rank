@@ -1138,7 +1138,12 @@ async function locate(x: number, y: number): Promise<void> {
         repl.editSource();
         repl.notebook.focusError(target!.cell);
         // Enter on the focused suggestion runs the fix through the usual key path.
-        repl.focusImportFix();
+        if (!repl.focusImportFix()) {
+            // A live iteration error is not a stored cell error: apply its suggestion directly.
+            await repl.applyImportFix(fix.index, fix.module);
+            focusInput();
+            return;
+        }
         repl.moveImportFix(fix.index);
         focusInput();
         await press({ name: 'return' });

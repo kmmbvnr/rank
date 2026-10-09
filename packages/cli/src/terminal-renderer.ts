@@ -35,7 +35,7 @@ export class TerminalRenderer {
             this.repl.editSource();
             this.repl.notebook.focusError(target!.cell);
             this.followCursor = true;
-            void this.repl.applyImportFix(fix.index).then(() => this.render());
+            void this.repl.applyImportFix(fix.index, fix.module).then(() => this.render());
             this.render();
             return;
         }

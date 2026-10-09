@@ -188,8 +188,8 @@ export class NotebookRepl {
     }
 
     /** Adds `use module` among the imports, runs it, then reruns the failed instruction. */
-    async applyImportFix(index = this.importFixFocus ?? 0): Promise<boolean> {
-        const module = this.importFixes[index];
+    async applyImportFix(index = this.importFixFocus ?? 0, suggested?: string): Promise<boolean> {
+        const module = suggested ?? this.importFixes[index];
         this.importFocus = undefined;
         if (module === undefined || this.help || this.savePrompt) return false;
         const book = this.notebook;
