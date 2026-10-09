@@ -1,4 +1,4 @@
-import { acceptsNext, moduleOperations, modules as builtinModules, nextTokens, type Module } from '@arrrank/language';
+import { acceptsNext, findOperation, moduleOperations, modules as builtinModules, nextTokens, type Module } from '@arrrank/language';
 import { EMPTY_CELL, OPERATOR_KEYWORDS, STATEMENT_KEYWORDS, addLine, endsOperand, insideText, tokenize, type Token } from './repl-input.js';
 
 export interface KeyboardTab {
@@ -152,6 +152,17 @@ export function keyAvailable(key: string, before: string): boolean {
     const tokens = tokenize(line);
     const last = tokens.at(-1);
     if (last?.kind === 'word' && (last.text === 'use' || last.text === 'ops')) return false;
+    // A bare builtin is a valid function value, but the data-first keyboard should
+    // offer a call only after data. Keep explicit callback positions available.
+    const operation = findOperation(key);
+    if (operation?.arities.length && !operation.arities.includes(0)) {
+        const callback = /\b(?:sort|argsort|merge)\s+by\s*$/.test(line);
+        const data = endsOperand(last) && !PREFIX.has(last!.text) && !STATEMENT_HEADS.has(last!.text)
+            && !INFIX.has(last!.text) && !(last!.text in EXTENDS) && !(last!.text in MODIFIERS);
+        const predicate = last?.text === 'filter' || last?.text === 'where';
+        if (!data && !callback && !predicate) return false;
+    }
+    if (key === 'shape' && !endsOperand(last)) return false;
     if (line.trim() === '') {
         if (CONTINUATIONS.has(key)) return nextTokens(before).has(key);
         if (STATEMENT_HEADS.has(key)) return statementAvailable(key, before);

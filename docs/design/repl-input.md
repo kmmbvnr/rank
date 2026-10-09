@@ -4,6 +4,12 @@
 and their latest output. The bottom `rank>` prompt accepts new code. Source stays
 plain Rank and `save FILE` writes a `.ra` file.
 
+The mobile word keyboard dims operations that need left-hand data until an
+operand has been entered. A bare function reference is not offered as a call at
+the start of a line, after `=`, or after an operator. Explicit function positions,
+such as `Values sort by len`, remain available. Dimmed keys do not insert text;
+holding them still opens their manual page.
+
 ## Enter, editing and replay
 
 At the bottom prompt, Enter submits a complete instruction. A block or an

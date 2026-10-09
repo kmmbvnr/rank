@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from 'node:fs';
-import { modules } from '@arrrank/language';
+import { findOperation, modules } from '@arrrank/language';
 import { describe, expect, it } from 'vitest';
 import { keyAvailable, keyboardModules, keyboardTabs, keyText } from '../src/symbol-keyboard.js';
 import { createReplSession } from '../src/repl-session.js';
@@ -122,6 +122,28 @@ describe('symbol keyboard', () => {
             expect(keyAvailable(key, 'X =\n  ')).toBe(false);
         }
         expect(keyAvailable('fun', 'if true\n  ')).toBe(false);
+    });
+
+    it('requires data before builtin calls on every tab', () => {
+        const keys = keyboardTabs(modules.map(module => module.name)).flatMap(tab => tab.keys);
+        const calls = keys.filter(key => {
+            const operation = findOperation(key);
+            return operation?.arities.length && !operation.arities.includes(0);
+        });
+        for (const key of calls) {
+            for (const before of ['', '  ', 'X = ', 'X = (', 'X = 1 + ', 'return ', 'array '])
+                expect(keyAvailable(key, before), `${key} after ${JSON.stringify(before)}`).toBe(false);
+        }
+        for (const key of ['bytes', 'integer', 'real', 'text', 'sum', 'len', 'min', 'max', 'present']) {
+            expect(keyAvailable(key, 'X '), key).toBe(true);
+            expect(keyAvailable(key, 'X = (1 + 2) '), key).toBe(true);
+        }
+        expect(keyAvailable('shape', '')).toBe(false);
+        expect(keyAvailable('shape', 'array 1 ')).toBe(true);
+        expect(keyAvailable('sqrt', 'Values filter ')).toBe(true);
+        expect(keyAvailable('len', 'Values sort by ')).toBe(true);
+        expect(keyAvailable('integer', 'option N ')).toBe(true);
+        expect(keyAvailable('pi', '')).toBe(true);
     });
 
     it('spaces words apart from what precedes them', () => {
