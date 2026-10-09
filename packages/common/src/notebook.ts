@@ -64,6 +64,7 @@ export interface NotebookCell {
     command: boolean;
     fileSource?: boolean;
     errorOffset?: number;
+    errorSource?: Execution['errorSource'];
     status: 'idle' | 'running' | 'ok' | 'error' | 'interrupted';
 }
 
@@ -71,6 +72,7 @@ function clearEmptyResult(cell: NotebookCell): void {
     if (hasCode(cell.source)) return;
     cell.output = [];
     cell.errorOffset = undefined;
+    cell.errorSource = undefined;
     cell.status = 'idle';
 }
 
@@ -224,6 +226,7 @@ export class Notebook {
             cell.executed = undefined;
             cell.output = [];
             cell.errorOffset = undefined;
+            cell.errorSource = undefined;
             cell.status = 'idle';
         }
     }
@@ -687,6 +690,7 @@ export class Notebook {
         cell.command = result.command;
         cell.output = result.output;
         cell.errorOffset = result.errorOffset;
+        cell.errorSource = result.errorSource;
         cell.status = result.interrupted ? 'interrupted' : result.ok ? 'ok' : 'error';
         // Execution-time formatting is not another edit, but undo still reaches the typed source.
         if (index === this.cells.length - 1) this.append();

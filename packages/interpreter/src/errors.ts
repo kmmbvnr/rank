@@ -10,6 +10,8 @@ export interface RankErrorLocation {
 
 export class RankError extends Error {
     location?: RankErrorLocation;
+    /** The parsed source containing the origin, which may be an earlier function definition. */
+    sourceText?: string;
     private readonly calls: string[] = [];
 
     addCall(name: string, parameters: readonly string[], values: readonly RankValue[]): void {

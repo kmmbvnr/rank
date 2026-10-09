@@ -294,6 +294,14 @@ export function notebookFrame(
     let nextEvalRow: number | undefined;
     let nextEvalSourceLine: number | undefined;
     const dirty = notebook.dirtyFrom;
+    const errors = new Map<string, Set<number>>();
+    for (const cell of notebook.cells) {
+        if (cell.status !== 'error' || cell.executed !== cell.source || !cell.errorSource) continue;
+        const { source, offset } = cell.errorSource;
+        const lines = errors.get(source) ?? new Set<number>();
+        lines.add(source.slice(0, offset).split('\n').length);
+        errors.set(source, lines);
+    }
     let number = 0;
     for (const [index, cell] of notebook.cells.entries()) {
         const pending = dirty >= 0 && index >= dirty && index < notebook.cells.length - 1;
@@ -318,10 +326,11 @@ export function notebookFrame(
             const firstVisualRow = line === 0 || sourceLine !== lineAt(sourceRows[line - 1].points[0]?.offset ?? 0);
             const nextEval = sourceLine === nextEvalLine && firstVisualRow && !(prompt && line === labelRow);
             const breakpoint = breakpoints?.get(cell.id)?.has(sourceLine);
+            const errorLine = firstVisualRow && errors.get(cell.source)?.has(sourceLine);
             const liveProgress = live && !editingField && !breakpoint;
             const hiddenFocusedDraft = promptOutputFocus && item.text.trim() === '';
             const steppingNext = nextEval && (stepping || !!promptOutputFocus);
-            const marker = breakpoint ? '◆     ' : line === labelRow ? label : hiddenFocusedDraft ? '      '
+            const marker = breakpoint ? '◆     ' : line === labelRow ? label : errorLine ? '●     ' : hiddenFocusedDraft ? '      '
                 : steppingNext ? '●     '
                 : liveProgress ? '●     '
                 : item.text.trim() === '' || !numbered ? '      ' : '·     ';
@@ -329,7 +338,7 @@ export function notebookFrame(
             const progress = promptOutputs?.get(sourceLine);
             const progressColor = progress?.some(output => output.error) ? '\x1b[31m'
                 : progress ? '\x1b[38;5;208m' : '\x1b[90m';
-            const painted = breakpoint ? '\x1b[31m' + prefix + '\x1b[0m'
+            const painted = breakpoint || errorLine ? '\x1b[31m' + prefix + '\x1b[0m'
                 : steppingNext ? '\x1b[36m' + prefix + '\x1b[0m'
                 : liveProgress ? progressColor + prefix + '\x1b[0m'
                 : !prompt && line === labelRow ? color + prefix + '\x1b[0m' : prefix;

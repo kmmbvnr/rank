@@ -31,9 +31,10 @@ describe('symbol keyboard', () => {
         expect(keys('cli')).toContain('option');
         expect(keys('io')).toContain('stdin');
         expect(keys('sequences')).toContain('sort by');
+        expect(keys('sequences')).toContain('first');
         expect(keys('tables')).toContain('innerjoin by');
         expect(keys('testing')).toEqual(['test']);
-        for (const key of ['ascending', 'descending'])
+        for (const key of ['ascending', 'descending', 'index', 'first where', 'first index where', 'true', 'false'])
             expect(tabs.flatMap(tab => tab.keys)).not.toContain(key);
     });
 
@@ -42,6 +43,11 @@ describe('symbol keyboard', () => {
             .toEqual(['core', 'numbers']);
         expect(keyboardModules([], ['cli']).map(module => module.name)).not.toContain('cli');
         expect(keyboardModules([]).map(module => module.name)).toContain('cli');
+    });
+
+    it('sorts words alphabetically on every tab', () => {
+        for (const tab of keyboardTabs(modules.map(module => module.name)))
+            expect(tab.keys).toEqual([...tab.keys].sort());
     });
 
     it('drops unknown modules that have no keys', () => {
@@ -95,6 +101,27 @@ describe('symbol keyboard', () => {
         expect(keyAvailable('sqrt', 'X = "a ')).toBe(false);
         expect(keyAvailable('sqrt', 'rem ')).toBe(false);
         expect(keyAvailable('sqrt', 'X = 2 ')).toBe(true);
+    });
+
+    it('disables operators and control flow outside their required context', () => {
+        for (const key of ['default', 'break', 'continue', 'return', 'yield'])
+            expect(keyAvailable(key, '')).toBe(false);
+        expect(keyAvailable('default', 'X ')).toBe(true);
+        for (const key of ['break', 'continue']) {
+            expect(keyAvailable(key, 'for X in 1 to 3\n  ')).toBe(true);
+            expect(keyAvailable(key, 'for X in 1 to 3\nend\n')).toBe(false);
+            expect(keyAvailable(key, 'for X in 1 to 3\n  fun f Y\n    ')).toBe(false);
+            expect(keyAvailable(key, 'for X in 1 to 3\n  try\n    X\n  finally\n    ')).toBe(false);
+            expect(keyAvailable(key, 'rem for X in 1 to 3\n')).toBe(false);
+        }
+        expect(keyAvailable('return', 'fun f X\n  ')).toBe(true);
+        expect(keyAvailable('yield', 'memo f X\n  ')).toBe(true);
+        expect(keyAvailable('return', 'fun f X\n  try\n    X\n  finally\n    ')).toBe(false);
+        for (const key of ['if', 'fun', 'break', 'return']) {
+            expect(keyAvailable(key, 'X = record\n  ')).toBe(false);
+            expect(keyAvailable(key, 'X =\n  ')).toBe(false);
+        }
+        expect(keyAvailable('fun', 'if true\n  ')).toBe(false);
     });
 
     it('spaces words apart from what precedes them', () => {

@@ -26,6 +26,7 @@ export function locateError(error: unknown, node: AstNode, fallback: string): un
             column: start.character + 1,
             sourceLine: cst.root.fullText.split(/\r?\n/)[start.line] ?? '',
         };
+        error.sourceText = cst.root.fullText;
     }
     return error;
 }

@@ -33,6 +33,7 @@ describe('runtime diagnostics', () => {
     it('reports the source statement without changing the error message', () => {
         const error = failure('X = 1\n  X / 0');
         expect(error.message).toBe('division by zero');
+        expect(error.sourceText).toBe('X = 1\n  X / 0');
         expect(error.location).toEqual({ sourceId: 'contest.ra', line: 2, column: 3, sourceLine: '  X / 0' });
         expect(error.format()).toBe('RankError [Runtime]: division by zero\n  at contest.ra:2:3\n2 |   X / 0\n      ^');
         expect(error.toValue().trace).toBe(error.format());
@@ -45,6 +46,7 @@ describe('runtime diagnostics', () => {
     ])('keeps the origin inside direct, ordinary and generator functions: %s', source => {
         const error = failure(source);
         expect(error.location?.sourceLine).toContain('/ 0');
+        expect(error.sourceText).toBe(source);
         expect(error.location?.column).toBe(3);
         expect(error.formatCalls()).toContain('bad\n  N = 1');
     });

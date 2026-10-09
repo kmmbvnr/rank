@@ -133,6 +133,10 @@ Runtime errors inside user functions include the function name and argument
 values, including the actual cell passed by `rank`. Nested calls retain up to
 eight frames; tail calls show the current call. These details also appear in
 compact REPL errors without replacing the original error kind or source location.
+The failing source line also gets a small red dot in its gutter, including when
+the origin is in a function defined in another notebook cell. The code retains
+its ordinary color. The dot disappears when that source changes or the failed
+call is successfully rerun.
 
 Up above the first source row opens a blank instruction before it, so imports
 can be added above an unfinished first block. Up on that empty instruction does

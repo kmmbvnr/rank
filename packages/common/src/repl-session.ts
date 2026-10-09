@@ -46,6 +46,8 @@ export interface Execution {
     readonly exit: boolean;
     readonly ok: boolean;
     readonly errorOffset?: number;
+    /** The original source and offset of an error, including errors in previously defined functions. */
+    readonly errorSource?: { readonly source: string; readonly offset: number };
     readonly interrupted?: boolean;
     readonly loadedFile?: ProgramFile;
 }
@@ -69,6 +71,7 @@ export function createReplSession(host: ReplHost = {}) {
     let interrupted = false;
     let width = WIDTH;
     let errorOffset: number | undefined;
+    let errorSource: Execution['errorSource'];
     let loadedFile: ProgramFile | undefined;
     let savedFile: ProgramFile | undefined;
     let testExamples: { path: string; examples: FunctionTestExample[] } | undefined;
@@ -111,6 +114,7 @@ export function createReplSession(host: ReplHost = {}) {
         testExamples = undefined;
         output = [];
         errorOffset = undefined;
+        errorSource = undefined;
         loadedFile = undefined;
     };
 
@@ -190,6 +194,7 @@ export function createReplSession(host: ReplHost = {}) {
                 if (!first || !/^\s*(?:fun|memo)\b/.test(first)) return [];
                 output = [];
                 errorOffset = undefined;
+                errorSource = undefined;
                 try {
                     for (const name of interpreter.declareFunctionSource(source)) declarations.set(name, id);
                 } catch (error) { reportError(error, source); }
@@ -206,6 +211,7 @@ export function createReplSession(host: ReplHost = {}) {
             output = [];
             interrupted = false;
             errorOffset = undefined;
+            errorSource = undefined;
             width = Math.min(WIDTH, textColumns(columns));
             loadedFile = undefined;
             release(id);
@@ -248,7 +254,7 @@ export function createReplSession(host: ReplHost = {}) {
             return {
                 source, output, loadedFile, interrupted, valueRef,
                 command: cmd, exit,
-                ok: !interrupted && !output.some(line => line.error), errorOffset,
+                ok: !interrupted && !output.some(line => line.error), errorOffset, errorSource,
             };
         },
         preview(text: string, columns = 80, summaryOnly = false,
@@ -256,6 +262,7 @@ export function createReplSession(host: ReplHost = {}) {
             output = [];
             interrupted = false;
             errorOffset = undefined;
+            errorSource = undefined;
             width = Math.min(WIDTH, textColumns(columns));
             loadedFile = undefined;
             const localFunctions = new Set([...text.matchAll(/^\s*(?:fun|memo)\s+([a-z][A-Za-z0-9_]*|update)\b/gm)]
@@ -277,7 +284,7 @@ export function createReplSession(host: ReplHost = {}) {
             } catch (error) { reportError(error, source); }
             finally { fork.dispose(); }
             return { source, output, command: false, exit: false,
-                ok: !output.some(line => line.error), errorOffset, valueSummary };
+                ok: !output.some(line => line.error), errorOffset, errorSource, valueSummary };
         },
         dispose(): void {
             try { replay.dispose(); } finally { runtime.dispose(); }
@@ -314,8 +321,11 @@ export function createReplSession(host: ReplHost = {}) {
     function reportError(error: unknown, source: string): false {
         if (error instanceof RankError && error.location?.sourceId === sourceId) {
             const { line, column } = error.location;
-            errorOffset = source.split('\n').slice(0, line - 1).reduce((offset, line) => offset + line.length + 1, 0)
+            const original = error.sourceText ?? source;
+            const offset = original.split('\n').slice(0, line - 1).reduce((offset, line) => offset + line.length + 1, 0)
                 + column - 1;
+            errorSource = { source: original, offset };
+            if (original === source) errorOffset = offset;
         }
         if (error instanceof InterruptedError) {
             interrupted = true;
