@@ -14,7 +14,8 @@ export class ExecutionRunner {
         private readonly session: ReplSession,
         private readonly breakpoints: Map<number, Set<number>>,
         private readonly columns: () => number,
-        private readonly render: () => void,
+        /** A timer tick may update only the execution status, without laying out the notebook again. */
+        private readonly render: (statusOnly?: boolean) => void,
     ) {}
 
     get status(): string {
@@ -170,9 +171,9 @@ export class ExecutionRunner {
             if (nextInterval !== interval) {
                 clearInterval(timer);
                 interval = nextInterval;
-                timer = setInterval(() => this.render(), interval);
+                timer = setInterval(() => this.render(true), interval);
             }
-            this.render();
+            this.render(true);
         }, interval);
         try {
             if (!this.session.turboActive) {

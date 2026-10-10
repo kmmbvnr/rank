@@ -1,4 +1,5 @@
-import { type Module, type AstNode, type CstNode, type GrammarAST, type ValueType, type ParserOptions, DefaultValueConverter, inject, createLangiumParser } from 'langium';
+import { type Module, type AstNode, type CstNode, type GrammarAST, type ValueType, type ParserOptions, DefaultValueConverter, inject, createLangiumParser, createCompletionParser } from 'langium';
+import { LLStarLookaheadStrategy } from 'chevrotain-allstar';
 import { groupExpressions, type GroupingOptions } from './expression-grouping.js';
 import { normalizePrimaryApplications } from './primary-applications.js';
 import { isProgram } from './generated/ast.js';
@@ -33,6 +34,18 @@ export type RankAddedServices = {
  */
 export type RankServices = LangiumServices & RankAddedServices
 
+/** Keep adaptive LL(*) prediction, but bound the token paths enumerated for syntax errors. */
+function withBoundedErrorLookahead(services: RankServices, incomplete = false): RankServices {
+    const parser: RankServices['parser'] = Object.create(services.parser);
+    Object.defineProperty(parser, 'ParserConfig', { value: {
+        ...services.parser.ParserConfig,
+        maxLookahead: 1,
+        lookaheadStrategy: new LLStarLookaheadStrategy({ incomplete,
+            logging: services.LanguageMetaData.mode === 'production' ? () => {} : undefined }),
+    } });
+    return { ...services, parser };
+}
+
 /**
  * Dependency injection module that overrides Langium default services and contributes the
  * declared custom services. The Langium defaults can be partially specified to override only
@@ -42,7 +55,8 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
     parser: {
         ValueConverter: () => new RankValueConverter(),
         LangiumParser: services => {
-            const parser = createLangiumParser(services);
+            // Enumerating three-token error paths for an unfinished `array` blocks typing for hundreds of ms.
+            const parser = createLangiumParser(withBoundedErrorLookahead(services));
             const parse = parser.parse.bind(parser);
             parser.parse = <T extends AstNode>(input: string, options?: ParserOptions) => {
                 const result = parse<T>(input, options);
@@ -54,6 +68,7 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
             };
             return parser;
         },
+        CompletionParser: services => createCompletionParser(withBoundedErrorLookahead(services, true)),
     },
     validation: {
         RankValidator: services => new RankValidator(services)

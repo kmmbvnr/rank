@@ -1,6 +1,6 @@
-/** Guidance uses real notebook/keyboard actions; it never takes editor focus. */
-type Step = 'offer' | 'run' | 'keyboard' | 'commands' | 'letters' | 'notebooks' | 'new-notebook' | 'done';
-type Hint = 'hold' | 'modules';
+/** During the walkthrough every activation performs the current scripted action. */
+type Step = 'offer' | 'run' | 'keyboard' | 'commands' | 'letters' | 'autocomplete' | 'notebooks' | 'new-notebook' | 'done';
+type Hint = 'hold';
 interface SavedGuidance {
     step?: Step;
     hold?: boolean;
@@ -23,7 +23,7 @@ export interface GuidanceContext {
         brand: HTMLElement; newNotebook?: HTMLElement; modules?: HTMLElement };
 }
 const storageKey = 'rank-mobile-guidance-v1';
-const steps: Step[] = ['offer', 'run', 'keyboard', 'commands', 'letters', 'notebooks', 'new-notebook', 'done'];
+const steps: Step[] = ['offer', 'run', 'keyboard', 'commands', 'letters', 'autocomplete', 'notebooks', 'new-notebook', 'done'];
 
 export class MobileGuidance {
     private saved: SavedGuidance = {};
@@ -33,13 +33,17 @@ export class MobileGuidance {
     private readonly actions = document.createElement('div');
     private hint?: Hint;
     private shown = '';
-    private boundary = 0;
-    private nextBoundary = 0;
     private wasKeyboard = false;
-    private editing = false;
-    private timer?: ReturnType<typeof setTimeout>;
+    private routing = false;
+    private suppressClickUntil = 0;
+    private keyboardWasOpen = false;
+    private keyboardRequested = false;
+    private drawerRequested = false;
+    private completionPrepared = false;
+    private pointer?: { id: number; x: number; y: number; moved: boolean };
 
-    constructor(private context: () => GuidanceContext, private insertExample: () => void, private dismissKeyboard: () => void, private readonly preferenceKey = storageKey) {
+    constructor(private context: () => GuidanceContext, private insertExample: () => void, private dismissKeyboard: () => void,
+        private showKeyboard: () => void, private autocomplete: (complete: boolean) => void, private readonly preferenceKey = storageKey) {
         try {
             const data = JSON.parse(localStorage.getItem(this.preferenceKey) || '{}');
             if (data && typeof data === 'object') {
@@ -49,7 +53,6 @@ export class MobileGuidance {
                     this.saved[key] = data[key] === true;
             }
         } catch { /* An unavailable preference must not block the editor. */ }
-        if (this.saved.step === 'done') this.nextBoundary = 1;
         this.card.id = 'mobile-guidance';
         this.card.setAttribute('aria-label', 'Rank walkthrough');
         this.card.setAttribute('aria-live', 'polite');
@@ -60,34 +63,56 @@ export class MobileGuidance {
         this.card.addEventListener('mousedown', event => event.preventDefault());
         document.body.append(this.spotlight, this.card);
         this.hide();
-        document.addEventListener('pointerup', event => {
-            if (this.card.contains(event.target as Node)) return;
-            // Typing is not a quiet interaction boundary. A later deliberate tap is.
-            if ((event.target as HTMLElement).closest('textarea, #keyboard-keys')) return;
-            this.quietBoundary();
-        });
-        // Consume this gesture so the same tap cannot edit code or activate a toolbar action.
-        let dismissTap = false;
+        const consume = (event: Event) => { event.preventDefault(); event.stopImmediatePropagation(); };
         document.addEventListener('pointerdown', event => {
-            dismissTap = false;
-            if (this.card.hidden || this.hint || this.saved.step !== 'keyboard' || !this.context().softKeyboard
-                || event.target instanceof HTMLTextAreaElement) return;
-            dismissTap = true;
-            event.preventDefault(); event.stopPropagation();
+            this.suppressClickUntil = 0;
+            if (!this.active || this.routing) return;
+            consume(event);
+            if (event.isPrimary) this.pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+        }, true);
+        document.addEventListener('pointermove', event => {
+            if (!this.active) return;
+            if (this.pointer?.id === event.pointerId && Math.hypot(event.clientX - this.pointer.x, event.clientY - this.pointer.y) >= 12)
+                this.pointer.moved = true;
+            event.stopImmediatePropagation();
         }, true);
         document.addEventListener('pointerup', event => {
-            if (!dismissTap) return;
-            event.preventDefault(); event.stopPropagation();
-            this.dismissKeyboard();
+            if (!this.active || this.routing) return;
+            consume(event);
+            this.suppressClickUntil = Date.now() + 700;
+            const pointer = this.pointer;
+            this.pointer = undefined;
+            if (pointer?.id === event.pointerId && (!pointer.moved || this.saved.step === 'autocomplete'
+                && event.clientX - pointer.x >= 30 && event.clientX - pointer.x > 1.5 * Math.abs(event.clientY - pointer.y)))
+                this.activate();
         }, true);
-        for (const type of ['mousedown', 'mouseup', 'click']) document.addEventListener(type, event => {
-            if (!dismissTap) return;
-            event.preventDefault(); event.stopPropagation();
-            if (type === 'click') dismissTap = false;
+        document.addEventListener('click', event => {
+            if (this.routing) return;
+            // WebView may report a swipe's compatibility click with detail=0 too.
+            if (Date.now() < this.suppressClickUntil) { consume(event); return; }
+            if (!this.active) return;
+            consume(event);
+            this.activate();
         }, true);
-        document.addEventListener('pointercancel', () => { dismissTap = false; }, true);
+        for (const type of ['mousedown', 'mouseup', 'contextmenu', 'beforeinput', 'paste', 'drop', 'selectstart', 'compositionstart'])
+            document.addEventListener(type, event => { if (this.active && !this.routing) consume(event); }, true);
+        document.addEventListener('pointercancel', () => { this.pointer = undefined; }, true);
+        for (const type of ['touchstart', 'touchmove', 'touchend', 'wheel']) document.addEventListener(type, event => {
+            if (this.active && !(event.target as Element).closest('#key-manual .manual-body')) consume(event);
+        }, { capture: true, passive: false });
+        document.addEventListener('keydown', event => {
+            if (!this.active || this.routing) return;
+            consume(event);
+            if (!event.repeat && (['Enter', 'Escape'].includes(event.key)
+                || event.key === ' ' && !(event.target instanceof HTMLTextAreaElement))) this.activate();
+        }, true);
+        document.addEventListener('cancel', event => {
+            if (!this.active) return;
+            consume(event);
+            this.activate();
+        }, true);
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden) { clearTimeout(this.timer); this.hide(); }
+            if (document.hidden) this.hide();
             else this.update();
         });
         window.addEventListener('resize', () => this.update());
@@ -99,24 +124,45 @@ export class MobileGuidance {
         try { localStorage.setItem(this.preferenceKey, JSON.stringify(this.saved)); } catch { /* This session still remembers. */ }
     }
     private step(step: Step): void { this.saved.step = step; this.persist(); }
-    private defer(): void { clearTimeout(this.timer); this.nextBoundary = this.boundary + 1; this.hide(); }
-    private quietBoundary(): void {
-        clearTimeout(this.timer);
-        this.timer = setTimeout(() => { this.boundary++; this.editing = false; this.update(); }, 900);
+    get active(): boolean { return this.saved.step !== 'done'; }
+    get commandLessonActive(): boolean { return this.active && this.saved.step === 'commands'; }
+    back(): boolean { if (!this.active) return false; this.activate(); return true; }
+    private activate(): void {
+        if (!this.active || this.routing) return;
+        const context = this.context();
+        const closeManual = document.querySelector<HTMLButtonElement>('#key-manual[open] [aria-label="Close manual"]');
+        if (!context.ready || context.unavailable && !closeManual) return;
+        let target: HTMLElement | undefined;
+        if (closeManual) target = closeManual;
+        else if (this.hint === 'hold') target = context.targets.play;
+        else switch (this.saved.step) {
+            case 'offer': target = this.actions.querySelector<HTMLButtonElement>('button') ?? undefined; break;
+            case 'run': target = context.targets.play; break;
+            case 'keyboard': if (context.softKeyboard) this.dismissKeyboard(); return;
+            case 'commands': target = context.targets.commands; break;
+            case 'letters': target = context.targets.letters; break;
+            case 'autocomplete':
+                this.step('notebooks');
+                this.autocomplete(true);
+                return;
+            case 'notebooks': target = context.targets.brand; break;
+            case 'new-notebook': target = context.targets.newNotebook; break;
+        }
+        if (!this.visible(target)) return;
+        this.routing = true;
+        try { target.click(); } finally { this.routing = false; }
     }
     edited(): void {
-        clearTimeout(this.timer);
-        this.editing = true;
-        if (this.saved.step === 'offer') this.step('keyboard');
+        if (this.active) return;
         this.hide();
     }
     discovered(action: 'hold' | 'notebooks' | 'modules' | 'documentation' | 'letters' | 'newNotebook'): void {
         if (action !== 'newNotebook') this.saved[action] = true;
         if (action === 'documentation' && this.saved.step === 'commands') this.step('letters');
-        if (action === 'letters' && this.saved.step === 'letters') this.step('notebooks');
+        if (action === 'letters' && this.saved.step === 'letters') this.step('autocomplete');
         if (action === 'notebooks' && this.saved.step === 'notebooks') this.step('new-notebook');
-        if (action === 'newNotebook' && this.saved.step === 'new-notebook') { this.step('done'); this.defer(); }
-        if (action === this.hint) { this.hint = undefined; this.defer(); }
+        if (action === 'newNotebook' && this.saved.step === 'new-notebook') this.step('done');
+        if (action === this.hint) this.hint = undefined;
         this.persist();
         this.update();
     }
@@ -130,13 +176,14 @@ export class MobileGuidance {
     }
     replay(): void {
         this.hint = undefined;
-        this.editing = false;
-        this.nextBoundary = this.boundary;
-        this.saved.documentation = this.saved.letters = this.saved.notebooks = false;
+        this.saved.documentation = this.saved.letters = this.saved.notebooks = this.saved.hold = false;
+        this.keyboardWasOpen = this.keyboardRequested = false;
+        this.completionPrepared = false;
         this.step(this.context().empty ? 'offer' : 'keyboard');
         this.update();
     }
     private hide(): void { this.card.hidden = this.spotlight.hidden = true; }
+    get holdHintVisible(): boolean { return this.hint === 'hold' && !this.card.hidden; }
     private visible(target?: HTMLElement): target is HTMLElement {
         if (!target || target.closest('[hidden]') || target.matches(':disabled, [aria-disabled="true"]')) return false;
         const rect = target.getBoundingClientRect();
@@ -159,28 +206,59 @@ export class MobileGuidance {
             this.persist();
         }
         this.wasKeyboard = context.rankKeyboard;
-        if (!context.ready || context.unavailable || this.editing || document.hidden) { this.hide(); return; }
-        if (!this.saved.step) this.step(context.empty ? 'offer' : 'keyboard');
-        if (this.saved.step === 'offer' && !context.empty) { this.step('keyboard'); this.editing = true; this.hide(); return; }
-        if (this.saved.step === 'keyboard' && context.rankKeyboard) this.step(this.saved.documentation ? 'letters' : 'commands');
-        if (this.saved.step === 'letters' && this.saved.letters) this.step('notebooks');
-        if (this.boundary < this.nextBoundary) { this.hide(); return; }
+        if (!context.ready || context.unavailable || document.hidden) { this.hide(); return; }
+        if (!this.saved.step) this.step(context.empty ? 'offer' : 'done');
+        if (!this.active) { this.hide(); return; }
+        if (this.saved.step === 'new-notebook' && !context.notebookPanelOpen) {
+            this.hide();
+            if (!this.drawerRequested) {
+                this.drawerRequested = true;
+                this.routing = true;
+                try { context.targets.brand.click(); } finally { this.routing = false; }
+            }
+            return;
+        }
+        if (context.notebookPanelOpen) this.drawerRequested = false;
+        // Older optional guidance could reach the keyboard step without a demonstrated run.
+        if (this.saved.step === 'keyboard' && !this.saved.executed && !this.saved.hold) {
+            this.saved.hold = true;
+            this.persist();
+        }
+        if (this.saved.step === 'keyboard' && this.saved.hold) {
+            if (context.softKeyboard) { this.keyboardWasOpen = true; this.keyboardRequested = false; }
+            else if (this.keyboardWasOpen && context.rankKeyboard) this.step(this.saved.documentation ? 'letters' : 'commands');
+            else {
+                this.hide();
+                if (!this.keyboardRequested) { this.keyboardRequested = true; this.showKeyboard(); }
+                return;
+            }
+        }
+        if (this.saved.step === 'letters' && this.saved.letters) this.step('autocomplete');
+        if (this.saved.step === 'autocomplete' && !this.completionPrepared) {
+            this.completionPrepared = true;
+            this.autocomplete(false);
+            return;
+        }
+        // Android may reopen the IME on resume. Restore the keyboard required by the saved step.
+        if (this.saved.step === 'commands' || this.saved.step === 'letters') {
+            if (context.softKeyboard) {
+                this.hide();
+                if (!this.keyboardRequested) { this.keyboardRequested = true; this.dismissKeyboard(); }
+                return;
+            }
+            if (context.rankKeyboard) this.keyboardRequested = false;
+        }
         const targets = context.targets;
         let target: HTMLElement | undefined;
         let text = '';
         let action: { label: string; run: () => void } | undefined;
         let guided = true;
-        // Hold-to-run is a single, optional hint after successful execution.
+        // Restart is part of the script and precedes the keyboard introduction.
         if (this.saved.step !== 'new-notebook' && this.saved.executed && !this.saved.hold && context.codeLines >= 2 && this.visible(targets.play)
             && this.saved.step !== 'offer' && this.saved.step !== 'run') this.hint ??= 'hold';
-        if (this.saved.step === 'done' && !this.hint) {
-            if (!this.saved.modules && context.rankKeyboard && (this.saved.keyboardUses ?? 0) >= 2 && this.visible(targets.modules))
-                this.hint = 'modules';
-        }
         if (this.hint) {
             guided = false;
             if (this.hint === 'hold') { target = targets.play; text = 'Tap and hold Play to run everything from the start.'; }
-            if (this.hint === 'modules') { target = context.rankKeyboard ? targets.modules : undefined; text = 'Tap + to choose a module and add its commands to this keyboard.'; }
         } else switch (this.saved.step) {
             case 'offer':
                 target = targets.notebook; text = 'Let’s get to know Rank with a short example.';
@@ -203,6 +281,7 @@ export class MobileGuidance {
                 if (context.notebookPanelOpen) { target = targets.newNotebook; text = 'Start a new notebook and try your own ideas in Rank.'; }
                 break;
             case 'notebooks': target = targets.brand; text = 'Tap RANK to open the floating panel with your saved notebooks.'; break;
+            case 'autocomplete': target = targets.notebook; text = 'Swipe right across the editor to autocomplete arr to array.'; break;
             case 'letters':
                 if (context.rankKeyboard) { target = targets.letters; text = 'Tap this keyboard button to return to the system keyboard.'; }
                 break;
@@ -212,6 +291,20 @@ export class MobileGuidance {
         if (this.shown !== key) {
             this.shown = key;
             this.text.textContent = text;
+            const hideKey = 'hide key';
+            const hideAt = text.indexOf(hideKey);
+            if (hideAt >= 0) {
+                const label = document.createElement('span');
+                label.className = 'guidance-hide-key';
+                const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                icon.setAttribute('viewBox', '0 0 24 24');
+                icon.setAttribute('aria-hidden', 'true');
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', 'M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z');
+                icon.append(path);
+                label.append(hideKey, icon);
+                this.text.replaceChildren(text.slice(0, hideAt), label, text.slice(hideAt + hideKey.length));
+            }
             this.text.hidden = !text;
             this.actions.replaceChildren();
             if (action) this.button(action.label, action.run);
@@ -220,8 +313,9 @@ export class MobileGuidance {
         this.card.dataset.step = this.hint ?? this.saved.step;
         this.card.classList.toggle('guided', guided);
         this.card.hidden = false;
-        this.spotlight.hidden = !guided;
-        this.position(target, guided);
+        const outlined = guided && target !== targets.notebook;
+        this.spotlight.hidden = !outlined;
+        this.position(target, outlined, targets.play);
     }
     private button(label: string, run: () => void): void {
         const button = document.createElement('button');
@@ -229,29 +323,44 @@ export class MobileGuidance {
         button.onclick = run;
         this.actions.append(button);
     }
-    private position(target: HTMLElement, guided: boolean): void {
+    private position(target: HTMLElement, guided: boolean, play: HTMLElement): void {
         const box = target.getBoundingClientRect();
         const viewport = window.visualViewport;
-        const top = (viewport?.offsetTop ?? 0) + 8;
-        const bottom = top + (viewport?.height ?? innerHeight) - 16;
+        const viewportTop = viewport?.offsetTop ?? 0;
+        const viewportBottom = viewportTop + (viewport?.height ?? innerHeight);
+        const top = viewportTop + 8;
+        const bottom = viewportBottom - 8;
+        const safeTop = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-top')) || 0;
+        const cardTop = top + safeTop;
         const width = Math.min(320, innerWidth - 24);
         this.card.style.width = width + 'px';
         const height = this.card.offsetHeight;
         let y = box.top - height - 14;
-        if (y < top) y = box.bottom + 14;
-        y = Math.max(top, Math.min(y, bottom - height));
-        // A large notebook target reserves a readable card above the OS keyboard.
-        if (target.id === 'terminal') y = Math.max(top, box.bottom - height - 12);
+        // Full-width text must stay below the camera cutout, including inside a modal drawer.
+        if (y < cardTop) y = box.bottom + 14;
+        y = Math.max(cardTop, Math.min(y, bottom - height));
+        // Center editor-wide guidance in the space above Play, also when the IME shrinks the editor.
+        if (target.id === 'terminal') {
+            const contentBottom = this.visible(play) ? Math.min(box.bottom, play.getBoundingClientRect().top - 14) : box.bottom;
+            y = Math.max(cardTop, Math.min((box.top + contentBottom - height) / 2, bottom - height));
+        }
         this.card.style.left = Math.max(12, Math.min(box.left + box.width / 2 - width / 2, innerWidth - width - 12)) + 'px';
         this.card.style.top = y + 'px';
         if (guided) {
-            // Keep the outline inside the viewport, clear of rounded screen corners.
-            const left = Math.max(12, box.left - 4);
-            const right = Math.min(innerWidth - 12, box.right + 4);
-            const outlineTop = Math.max(top + 4, box.top - 4);
-            const outlineBottom = Math.min(bottom - 4, box.bottom + 4);
-            Object.assign(this.spotlight.style, { left: left + 'px', top: outlineTop + 'px',
-                width: Math.max(0, right - left) + 'px', height: Math.max(0, outlineBottom - outlineTop) + 'px' });
+            // The logo's 44px touch target is taller than its text; highlight the text with equal padding.
+            let outlineBox = box;
+            if (target.id === 'brand') {
+                const range = document.createRange();
+                range.selectNodeContents(target);
+                outlineBox = range.getBoundingClientRect();
+            }
+            // Use one inset on every side; independently clamping an edge squeezes the highlight against Play.
+            const padding = Math.max(0, Math.min(4, outlineBox.left, innerWidth - outlineBox.right,
+                outlineBox.top - viewportTop, viewportBottom - outlineBox.bottom));
+            const radius = parseFloat(getComputedStyle(target).borderTopLeftRadius) || 0;
+            Object.assign(this.spotlight.style, { left: outlineBox.left - padding + 'px', top: outlineBox.top - padding + 'px',
+                width: outlineBox.width + padding * 2 + 'px', height: outlineBox.height + padding * 2 + 'px',
+                borderRadius: Math.max(12, radius + padding) + 'px' });
         }
     }
 }

@@ -27,7 +27,8 @@ One ⋮ button at the top exposes stepping, running, selection and editing
 commands for the phone keyboard. The rounded square button at the bottom right runs
 pending instructions through the selected line on a tap; holding it for 700 ms
 runs the full document from the start. Drag
-vertically to scroll; the Running timer stays visible while scrolling. Selecting
+vertically to scroll; the Running timer stays fixed below the source while
+scrolling, and clock ticks do not reposition or lay out the source again. Selecting
 another notebook or Library example stops the current run before opening it. During execution the button shows a pause icon. Tap it to
 inspect the current line and variables, or hold it to stop execution. Use the
 menu to step into a line, advance
@@ -43,26 +44,35 @@ amber, and variables read by the next expression use muted blue.
 Function arguments and intermediate results appear in the CLI layout.
 Android hides system bars; an edge swipe temporarily reveals them.
 
-On first use, an optional walkthrough inserts `A = 1 to 5` and `A * 10`
+On first use, a scripted walkthrough inserts `A = 1 to 5` and `A * 10`
 into an empty notebook without running it. It selects the last line and explains
-Play, the Rank keyboard, command documentation and the system-keyboard button,
+Play, the Rank keyboard, command documentation, the system-keyboard button and
+swiping right across the editor to autocomplete `arr` to `array`,
 then opens the floating notebook panel through RANK and ends by highlighting
-New notebook with “Start a new notebook and try your own ideas in Rank.” Tapping outside
-the editor on the keyboard-dismissal step hides the system keyboard; the tour
-advances after the native keyboard reports that it has closed.
+New notebook with “Start a new notebook and try your own ideas in Rank.” The completed word
+stays visible after the swipe; opening the notebook panel needs a separate tap. During the walkthrough,
+any tap in the app performs the current step. Menus, source edits, notebook switching and
+other detours stay blocked. A short tap also opens the highlighted command's documentation;
+the next tap closes it. Back follows the same script. The keyboard-dismissal step hides
+the system keyboard and advances only after Android confirms that it has closed.
 Keyboard-dismissal instructions appear only while the system keyboard is confirmed open.
+The system keyboard opens as soon as the restored notebook accepts input, including
+after entering Release preview. Editor-wide messages sit in the center of the space above Play,
+without a frame around the editor. Later steps highlight individual controls.
 Each step uses one sentence without a heading or Skip button;
 The ⋮ menu contains Run program, plus Release preview in debug APKs for testing first use. It saves the current
 notebook, then opens a disposable sandbox with its own history and walkthrough.
-Each entry clears only the sandbox. Hold RANK for two seconds to return to the
+Each entry clears only the sandbox. After the walkthrough, hold RANK for two seconds to return to the
 original notebook and history. Release APKs have no sandbox switch and keep the
 normal persistent user history. New mobile users and the beginner sandbox also get three saved notebooks:
 arrays and matrices, sequences and pipelines, and user-defined functions. Each
 contains comments, expected results and a small change to try. They open from
 RANK without running; the walkthrough still starts in an empty notebook.
 Examples are added once, so edits and deletions survive restarts.
-A small “Tap and hold Play” hint without an acknowledgement button follows successful execution of
-at least two code lines. Module hints appear at later quiet interactions. Guidance remembers actions already discovered.
+After the first run, the walkthrough introduces “Tap and hold Play”. Any tap completes the hold ring
+and runs the notebook from the start. Creating the final empty notebook ends the walkthrough,
+unlocks normal interaction and stops all guidance. Reopening resumes an unfinished walkthrough
+at its saved step; completed walkthroughs do not repeat.
 
 Tap RANK to open notebook history and create a new notebook. RANK stays at the
 top on a translucent background that blurs the scrolling content beneath it.

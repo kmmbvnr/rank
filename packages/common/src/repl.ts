@@ -340,7 +340,7 @@ export class NotebookRepl {
 
     constructor(
         readonly session: ReplSession,
-        readonly render: () => void = () => {},
+        readonly render: (statusOnly?: boolean) => void = () => {},
         readonly columns = () => 80,
         functionExamples = false,
         /** Where `use "path"` finds a module, for analysis only; without it imports stay opaque. */

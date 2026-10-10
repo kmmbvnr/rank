@@ -8,7 +8,7 @@ import { NotebookRepl } from '@arrrank/common/repl';
 import { KeyRouter, type Key } from '@arrrank/common/key-router';
 import { importPosition } from '@arrrank/common/import-fix';
 import { TerminalModeRouter } from '@arrrank/common/terminal-modes';
-import { fixAt, notebookFrame, helpFrame, pauseFrame, viewerFrame, type ScreenFrame } from '@arrrank/common/screen';
+import { clipped, fixAt, notebookFrame, helpFrame, pauseFrame, viewerFrame, type ScreenFrame } from '@arrrank/common/screen';
 import { keyAvailable, keyboardModules, keyboardTabs, keyText } from '@arrrank/common/symbol-keyboard';
 import { textEdit } from '@arrrank/common/input-edit';
 import { moveParen, parenPartner, parenSnaps } from '@arrrank/common/paren-drag';
@@ -27,6 +27,7 @@ import { splitSource } from '@arrrank/common/notebook';
 
 const terminal = document.querySelector<HTMLElement>('#terminal')!;
 const screen = document.querySelector<HTMLElement>('#screen')!;
+const footer = document.querySelector<HTMLElement>('#terminal-footer')!;
 
 const input = document.querySelector<HTMLTextAreaElement>('#input')!;
 const caret = document.querySelector<HTMLElement>('#caret')!;
@@ -77,7 +78,11 @@ const compactResults = touchConsole;
 const notebookGutter = 6;
 const CODE_FONT_SIZE = 13;
 const GUTTER_FONT_SIZE = 12;
-if (touchConsole) document.documentElement.style.fontSize = CODE_FONT_SIZE + 'px';
+if (touchConsole) {
+    document.documentElement.style.fontSize = CODE_FONT_SIZE + 'px';
+    // Keep the source clear of rounded screen edges.
+    document.documentElement.style.setProperty('--terminal-inset', '16px');
+}
 let columns = 47;
 let rows = 24;
 let cellWidth = 8;
@@ -100,8 +105,9 @@ let frame: ScreenFrame;
 let storedNotebook = '';
 let lastPause: PauseSnapshot | undefined;
 let paintedLines: string[] = [];
+let paintedStatus: string | undefined;
 const session = browserSession(message => { failure = message; needsRestart = true; render(); }, () => render());
-const repl = new NotebookRepl(session, () => render(), () => columns, true);
+const repl = new NotebookRepl(session, statusOnly => render(statusOnly), () => columns, true);
 repl.rows = () => rows;
 const keys = new KeyRouter(repl, [], () => columns, {
     read: () => navigator.clipboard.readText(),
@@ -233,7 +239,7 @@ voiceIndicator.onclick = event => {
     focusInput();
 };
 
-(globalThis as typeof globalThis & { rankBack?: () => boolean }).rankBack = () => notebookPanel?.close() || valueOverlay.back();
+(globalThis as typeof globalThis & { rankBack?: () => boolean }).rankBack = () => guidance?.back() || notebookPanel?.close() || valueOverlay.back();
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden && activeVoiceDictation) {
@@ -354,7 +360,14 @@ function restoreKeyboardAfterViewer(): void {
     } else keyboardEnabled = true;
 }
 
-function render(): void {
+function paintStatus(line: string): void {
+    if (paintedStatus === line) return;
+    footer.replaceChildren();
+    paintLine(footer, line);
+    paintedStatus = line;
+}
+
+function render(statusOnly = false): void {
     // The first frame must contain the restored notebook, not its migration draft or reset state.
     if (!historyReady && !failure) return;
     showViewer();
@@ -397,11 +410,18 @@ function render(): void {
     // The steppers only make sense while the cursor sits on a loop being previewed.
     iterationControls.hidden = !!shownPause || repl.running || !repl.liveIterationAvailable;
     iterationPrev.disabled = iterationNext.disabled = busy;
+    // A timer tick changes no source or output. Keep it out of notebook layout, keyboard updates and autosave.
+    if (statusOnly && repl.running && !shownPause && !repl.help && !failure && !footer.hidden) {
+        const status = keyHints() ? repl.runningStatus : repl.runningStatus.split(' · ')[0];
+        paintStatus('\x1b[90m' + clipped(status, Math.min(40, columns - 1)) + '\x1b[0m');
+        return;
+    }
     renderKeyboard();
     const turboRun = commands.querySelector<HTMLButtonElement>('button[data-action="turbo-run"]');
     if (turboRun) turboRun.disabled = repl.running;
     // Replacing the DOM would destroy the phone's selection handles and Copy menu.
     if (nativeSelection()) return;
+    windowedFrame = false;
     if (shownPause) {
         scrollFraction = 0;
         frame = pauseFrame(shownPause, columns, rows, repl.pauseTop,
@@ -420,8 +440,8 @@ function render(): void {
         const nameFacts = repl.nameFacts;
         const shownFailure = failure === 'Stopped' ? stoppedMessage() : failure;
         // Flinging re-laid out and repainted the notebook at every row; a few screens of rows turn that into a slide.
-        windowedFrame = scrollWindow && !follow && !shownFailure && !repl.running && !showShortcutHints;
-        if (follow || shownFailure || repl.running) scrollFraction = 0;
+        windowedFrame = scrollWindow && !follow && !shownFailure && !showShortcutHints;
+        if (follow || shownFailure) scrollFraction = 0;
         frame = notebookFrame(repl.notebook, columns, rows, windowedFrame ? Math.max(0, top - rows) : top,
             shownFailure || (showShortcutHints ? repl.suggestion : repl.runTime), busy || repl.running, follow, '',
             shownFailure || (repl.running ? showShortcutHints ? repl.runningStatus : repl.runningStatus.split(' · ')[0] : 'Running…'),
@@ -433,6 +453,13 @@ function render(): void {
         else { top = frame.top; scrollWindow = false; }
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
         if (!anchorCursor && !windowedFrame) restingCursorRow = frame.cursor.row >= 0 && frame.cursor.row < rows ? frame.cursor.row : undefined;
+    }
+    // Quiet execution status belongs to the viewport, independently of the translated source rows.
+    footer.hidden = frame.statusRow === undefined;
+    if (frame.statusRow !== undefined) {
+        footer.style.top = frame.statusRow * cellHeight + 'px';
+        paintStatus(frame.lines[frame.statusRow]);
+        frame = { ...frame, lines: frame.lines.filter((_, index) => index !== frame.statusRow), statusRow: undefined };
     }
     if (screen.children.length !== frame.lines.length) {
         screen.replaceChildren(...frame.lines.map(() => {
@@ -569,6 +596,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 function applyInput(): void {
+    if (guidance?.active) { render(); return; }
     stopMomentum();
     if (activeVoiceDictation) stopVoiceDictation();
     if (busy || repl.running || repl.help || repl.liveIterationFocused) { render(); return; }
@@ -740,7 +768,7 @@ let softKeyboard = false;
 /** After ABC the system keyboard needs a moment to report itself, and must not be taken for closed. */
 let softKeyboardWantedUntil = 0;
 /** Android requests the IME only after the restored notebook accepts text input. */
-(globalThis as typeof globalThis & { rankShowKeyboard?: () => boolean }).rankShowKeyboard = () => {
+function showSystemKeyboard(): boolean {
     if (!historyReady || input.readOnly || changingNotebook || document.querySelector('dialog[open]')) return false;
     if (!keyboardOpening) startKeyboardOpening();
     keyboardEnabled = true;
@@ -748,7 +776,8 @@ let softKeyboardWantedUntil = 0;
     input.focus({ preventScroll: true });
     render();
     return true;
-};
+}
+(globalThis as typeof globalThis & { rankShowKeyboard?: () => boolean }).rankShowKeyboard = showSystemKeyboard;
 /**
  * A tap on a WebView with a focused text field reopens the system keyboard, so while the symbol
  * keyboard is up the field is left unfocused; keys edit the notebook directly.
@@ -815,9 +844,13 @@ function renderKeyboard(): void {
                 button.type = 'button';
                 button.tabIndex = -1;
                 button.textContent = key;
-                manualKey(button, () => {
+                const openManual = () => {
                     haptic('hold'); manualViewer.open(key, button); guidance?.discovered('documentation');
-                }, () => typeKey(key));
+                };
+                manualKey(button, openManual, () => {
+                    if (guidance?.commandLessonActive) openManual();
+                    else typeKey(key);
+                });
                 return button;
             })));
     }
@@ -959,7 +992,8 @@ async function moveIteration(direction: -1 | 1): Promise<void> {
 iterationControls.addEventListener('pointerdown', event => event.preventDefault());
 iterationPrev.onclick = () => { void moveIteration(-1); };
 iterationNext.onclick = () => { void moveIteration(1); };
-let hold: { pointerId: number; x: number; y: number; timer?: ReturnType<typeof setTimeout>; long: boolean; running: boolean; action: 'stop' | 'continue' | 'restart' } | undefined;
+let hold: { pointerId?: number; x: number; y: number; timer?: ReturnType<typeof setTimeout>; long: boolean; running: boolean;
+    automatic?: boolean; action: 'stop' | 'continue' | 'restart' } | undefined;
 function rippleRunButton(x: number, y: number): void {
     const box = runButton.getBoundingClientRect();
     runButton.style.setProperty('--ripple-x', `${x - box.left}px`);
@@ -971,8 +1005,13 @@ function rippleRunButton(x: number, y: number): void {
 runButton.addEventListener('animationend', event => {
     if (event.animationName === 'run-ripple') runButton.classList.remove('rippling');
 });
-function endHold(pointerId: number, step: boolean): void {
+function endHold(pointerId: number | undefined, step: boolean): void {
     if (!hold || hold.pointerId !== pointerId) return;
+    // In the hold lesson a short tap lets the same progress ring finish before restarting.
+    if (step && !hold.long && hold.action === 'restart' && guidance?.holdHintVisible) {
+        hold.automatic = true;
+        return;
+    }
     const wasLong = hold.long;
     const wasRunning = hold.running;
     clearTimeout(hold.timer);
@@ -980,6 +1019,29 @@ function endHold(pointerId: number, step: boolean): void {
     hold = undefined;
     runButton.classList.remove('holding', 'hold-complete');
     if (step && (!wasLong || wasTurbo) && wasRunning === repl.running) runAction();
+}
+function startRunHold(x: number, y: number, pointerId?: number, automatic = false): void {
+    const notebookId = notebookHistory?.current?.id;
+    runButton.classList.add('holding');
+    hold = { pointerId, x, y, automatic, long: false, running: repl.running,
+        action: session.pauseState ? 'continue' : repl.running ? 'stop' : 'restart',
+        timer: setTimeout(() => {
+            if (!hold || hold.pointerId !== pointerId) return;
+            hold.long = true;
+            runButton.classList.add('hold-complete');
+            const action = hold.action;
+            const automatic = hold.automatic;
+            const cancelled = automatic && (!guidance?.holdHintVisible || document.hidden || busy || changingNotebook
+                || notebookHistory?.current?.id !== notebookId);
+            if (!cancelled && !(action === 'stop' && !repl.running || action === 'continue' && !session.pauseState
+                || action === 'restart' && repl.running)) {
+                haptic('hold');
+                if (action === 'stop') void press({ name: 'c', ctrl: true });
+                else if (action === 'continue') { session.resume?.(); render(); }
+                else { guidance?.discovered('hold'); void press({ name: 'l', ctrl: true }); }
+            }
+            if (automatic) endHold(pointerId, false);
+        }, 700) };
 }
 runButton.addEventListener('pointerdown', event => {
     if (!event.isPrimary || hold || busy && !repl.running) return;
@@ -990,35 +1052,23 @@ runButton.addEventListener('pointerdown', event => {
         hold = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, long: false, running: repl.running, action: 'stop' };
         return;
     }
-    runButton.classList.add('holding');
-    hold = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, long: false, running: repl.running,
-        action: session.pauseState ? 'continue' : repl.running ? 'stop' : 'restart',
-        timer: setTimeout(() => {
-            if (!hold || hold.pointerId !== event.pointerId) return;
-            hold.long = true;
-            runButton.classList.add('hold-complete');
-            const action = hold.action;
-            if (action === 'stop' && !repl.running || action === 'continue' && !session.pauseState
-                || action === 'restart' && repl.running) return;
-            haptic('hold');
-            if (action === 'stop') void press({ name: 'c', ctrl: true });
-            else if (action === 'continue') { session.resume?.(); render(); }
-            else { guidance?.discovered('hold'); void press({ name: 'l', ctrl: true }); }
-        }, 700) };
+    startRunHold(event.clientX, event.clientY, event.pointerId);
 });
 runButton.addEventListener('pointermove', event => {
-    if (hold?.pointerId === event.pointerId && Math.hypot(event.clientX - hold.x, event.clientY - hold.y) > 16)
+    if (!hold?.automatic && hold?.pointerId === event.pointerId && Math.hypot(event.clientX - hold.x, event.clientY - hold.y) > 16)
         endHold(event.pointerId, false);
 });
 runButton.addEventListener('pointerup', event => endHold(event.pointerId, true));
 runButton.addEventListener('pointercancel', event => endHold(event.pointerId, false));
-runButton.addEventListener('lostpointercapture', event => endHold(event.pointerId, false));
+runButton.addEventListener('lostpointercapture', event => { if (!hold?.automatic) endHold(event.pointerId, false); });
 runButton.addEventListener('contextmenu', event => event.preventDefault());
 runButton.addEventListener('click', event => {
-    if (event.detail === 0) {
+    if (event.detail === 0 && !hold) {
         const box = runButton.getBoundingClientRect();
         rippleRunButton(box.left + box.width / 2, box.top + box.height / 2);
-        runAction();
+        if (guidance?.holdHintVisible && !busy && !repl.running && !session.pauseState)
+            startRunHold(box.left + box.width / 2, box.top + box.height / 2, undefined, true);
+        else runAction();
     }
 });
 document.addEventListener('paste', event => {
@@ -1072,6 +1122,7 @@ document.addEventListener('cut', event => {
     focusInput();
 });
 function syncInputSelection(): void {
+    if (guidance?.active) return;
     if (document.activeElement !== input || composing) return;
     if (busy || repl.running || repl.help || repl.liveIterationFocused) return;
     const book = editor();
@@ -1343,9 +1394,7 @@ function onTouchEnd(event: TouchEvent): void {
             tapped = false;
             if (!busy && !repl.running) {
                 if (dx > 0) {
-                    repl.complete(true);
-                    render();
-                    haptic('step');
+                    autocompleteWord();
                 } else if (repl.hasCompletion) {
                     repl.cancelCompletion();
                     render();
@@ -1358,6 +1407,11 @@ function onTouchEnd(event: TouchEvent): void {
     touchStart = undefined;
 }
 terminal.addEventListener('touchend', onTouchEnd);
+function autocompleteWord(): void {
+    repl.complete(true);
+    render();
+    haptic('step');
+}
 function onTouchCancel(): void {
     releaseTouchTarget();
     swipe = undefined;
@@ -1572,6 +1626,16 @@ function createGuidance(): MobileGuidance | undefined {
         const capacitor = (globalThis as typeof globalThis & { Capacitor?: { getPlatform(): string } }).Capacitor;
         if (capacitor?.getPlatform() === 'android')
             void fetch('/__rank_keyboard_hide', { cache: 'no-store' }).catch(() => {});
+    }, () => {
+        if (androidKeyboard) void fetch('/__rank_keyboard_show', { cache: 'no-store' }).catch(() => {});
+        else showSystemKeyboard();
+    }, complete => {
+        if (complete) { autocompleteWord(); return; }
+        repl.dismiss();
+        repl.notebook.selectTo(repl.notebook.cells.length - 1, 0);
+        repl.notebook.replace('arr');
+        follow = true;
+        render();
     }, debugPreferenceKey('rank-mobile-guidance-v1')) : undefined;
 }
 const beginnerButton = document.querySelector<HTMLButtonElement>('[data-action="walkthrough"]')!;
@@ -1702,6 +1766,9 @@ if (!example) {
             },
                 () => { closeMenu(); stopVoiceDictation(); setKeyboard(false); },
                 () => { brand.setAttribute('aria-expanded', 'false'); render(); }, !debugPreviewAvailable || beginnerPreview);
+            notebookPanel.dialog.addEventListener('animationend', event => {
+                if (event.target === notebookPanel!.dialog) guidance?.update();
+            });
             let returnTimer: ReturnType<typeof setTimeout> | undefined;
             let returning = false;
             brand.addEventListener('contextmenu', event => {

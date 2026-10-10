@@ -69,6 +69,11 @@ public class MainActivity extends BridgeActivity {
             .hide(WindowInsetsCompat.Type.ime());
     }
 
+    public void requestKeyboard() {
+        keyboardRequested = false;
+        scheduleKeyboard();
+    }
+
     private final Runnable showKeyboard = () -> {
         if (!resumed || !hasWindowFocus() || keyboardRequested || bridge == null) return;
         WebView webView = bridge.getWebView();
@@ -144,6 +149,8 @@ public class MainActivity extends BridgeActivity {
                         + color("--keyboard-accent", android.R.color.system_accent1_200), null);
                 }
                 imeVisible = null;
+                // Reloading Release preview replaces the focused field in this same Activity.
+                keyboardRequested = false;
                 scheduleKeyboard();
             }
         });

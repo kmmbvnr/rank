@@ -36,6 +36,7 @@
         "test": "vitest run"
     },
     "dependencies": {
+        "chevrotain-allstar": "~0.4.4",
         "langium": "~4.3.0"
     },
     "devDependencies": {
