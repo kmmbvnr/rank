@@ -133,10 +133,10 @@ test('error wrapping keeps words intact in both live and completed instructions'
             const lines = frame.lines.map(line => line.replace(/\x1b\[[0-9;]*m/g, ''))
                 .filter(line => line.startsWith('    ! '));
             assert.ok(lines.every(line => stringWidth(line) <= Math.min(40, columns - 1)));
-            // A completed error shows its import suggestion unquoted and underlined.
-            assert.equal(lines.map(line => line.slice(6)).join(' '), live ? message : message.replace(/`/g, ''));
+            // Live and completed errors both show their import suggestion unquoted and underlined.
+            assert.equal(lines.map(line => line.slice(6)).join(' '), message.replace(/`/g, ''));
             assert.ok(lines.some(line => /\bdid\b/.test(line)));
-            if (!live) assert.ok(lines.some(line => line.includes('use sequences')), 'the suggestion never wraps');
+            assert.ok(lines.some(line => line.includes('use sequences')), 'the suggestion never wraps');
         }
     }
 });
@@ -464,5 +464,20 @@ test('save dialog wraps a long filename and keeps its cursor visible after resiz
         assert.equal(terminal.buffer.active.cursorY, frame.cursor.row);
         assert.equal(terminal.buffer.active.cursorX, frame.cursor.column);
         for (const line of frame.lines) assert.ok(stringWidth(line) < columns);
+    }
+});
+
+test('running status stays on the footer while scrolling in CLI and mobile frames', () => {
+    const book = new Notebook();
+    for (let i = 0; i < 50; i++) book.enqueue(`rem Line ${i}`);
+    for (const hints of [false, true]) {
+        for (const elapsed of ['1.0', '2.5']) {
+            const status = `Running… ${elapsed}s`;
+            const frame = notebookFrame(book, 40, 12, 2, '', true, false, '', status,
+                undefined, 'rank> ', undefined, undefined, undefined, undefined, undefined, hints);
+            assert.equal(frame.statusRow, 11);
+            assert.equal(frame.lines[frame.statusRow].replace(/\x1b\[[0-9;]*m/g, ''), status);
+            assert.ok(frame.top > 0, 'Keep the scrolled position');
+        }
     }
 });

@@ -491,6 +491,7 @@ function render(): void {
     } catch { failure = 'Cannot save local draft'; }
 }
 
+let pressFinished: Promise<void> = Promise.resolve();
 async function press(key: Key, text = ''): Promise<void> {
     if (!historyReady || changingNotebook || notebookPanel?.dialog.open && !(key.ctrl && key.name === 'c')) return;
     stopMomentum();
@@ -516,6 +517,8 @@ async function press(key: Key, text = ''): Promise<void> {
     follow = key.name !== 'pageup' && key.name !== 'pagedown';
     failure = '';
     busy = true;
+    let finishPress!: () => void;
+    pressFinished = new Promise<void>(resolve => { finishPress = resolve; });
     input.setAttribute('aria-busy', 'true');
     try {
         if (key.ctrl && key.name === 'l') needsRestart = false;
@@ -529,6 +532,7 @@ async function press(key: Key, text = ''): Promise<void> {
         for (const cell of repl.notebook.cells) if (cell.status === 'running') cell.status = 'interrupted';
     } finally {
         busy = false;
+        finishPress();
         if (!failure && !needsRestart && (key.name === 'return' || key.ctrl && ['r', 'l'].includes(key.name ?? ''))
             && !repl.notebook.cells.some(cell => cell.status === 'error' || cell.status === 'interrupted')
             && repl.notebook.cells.some(cell => cell.status === 'ok'))
@@ -1623,11 +1627,15 @@ async function switchBeginnerPreview(preview: boolean): Promise<void> {
     }
 }
 async function changeNotebook(id?: string): Promise<void> {
-    if (busy || repl.running || repl.evaluating) throw new Error('Stop execution before switching notebooks');
+    if (changingNotebook) return;
     changingNotebook = true;
     input.readOnly = true;
     try {
         stopVoiceDictation();
+        if (busy || repl.running) {
+            repl.interrupt();
+            await pressFinished;
+        }
         notebookHistory!.schedule(notebookSnapshot());
         valueOverlay.back();
         await notebookHistory!.open(id, snapshot => repl.restoreNotebook(snapshot.cells, snapshot.draft));
@@ -1683,7 +1691,6 @@ if (!example) {
                 await changeNotebook(id);
                 if (id === undefined) guidance?.discovered('newNotebook');
             }, importNotebook, exportNotebook, async (path, source) => {
-                if (busy || repl.running || repl.evaluating) throw new Error('Stop execution before opening an example');
                 const id = await libraryNotebookId(path);
                 if (!await notebookHistory!.store.get(id)) {
                     const text = await source();

@@ -330,3 +330,12 @@ it('infers explicit conversion results without imports', async () => {
     expect(named(result, 'program', 'T').types).toEqual(['text']);
     expect(result.operations.every(op => op.module === 'core')).toBe(true);
 });
+
+it('uses extrema result modifiers instead of broadcasting their symbol argument', async () => {
+    for (const operation of ['min', 'max']) {
+        for (const [modifier, type] of [['index', 'integer'], ['indexed', 'tuple']]) {
+            const result = await facts(['Values = array 3 9 2', `Answer = Values ${operation} .${modifier}`]);
+            expect(named(result, 'program', 'Answer').types).toEqual([type]);
+        }
+    }
+});

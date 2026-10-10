@@ -27,7 +27,8 @@ One ⋮ button at the top exposes stepping, running, selection and editing
 commands for the phone keyboard. The rounded square button at the bottom right runs
 pending instructions through the selected line on a tap; holding it for 700 ms
 runs the full document from the start. Drag
-vertically to scroll. During execution the button shows a pause icon. Tap it to
+vertically to scroll; the Running timer stays visible while scrolling. Selecting
+another notebook or Library example stops the current run before opening it. During execution the button shows a pause icon. Tap it to
 inspect the current line and variables, or hold it to stop execution. Use the
 menu to step into a line, advance
 an iteration or return to the main program. While paused, the button shows a

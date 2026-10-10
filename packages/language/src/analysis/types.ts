@@ -1,5 +1,5 @@
 import { inferSignatureResultTypes } from '../signature-matching.js';
-import type { SignatureAtom } from '../type-signature.js';
+import type { SignatureAtom, SignatureType } from '../type-signature.js';
 import { joinTypes } from './value-domain.js';
 import { flattenApplication } from '../expressions.js';
 import { applicationForm } from '../application-forms.js';
@@ -266,6 +266,23 @@ function elementwise(left: Types, right: Types): Types | undefined {
  * catalogue vocabulary that no binding hides. Anything else — addressing, a
  * user function, a receiver method in the middle of the chain — is unknown.
  */
+/** Literal result modifiers choose a declared overload before ordinary array broadcasting. */
+export function modifierResultTypes(operation: Operation, operands: readonly Expression[], lookup: TypeLookup): Types | undefined {
+    const modifiers = operands.flatMap((operand, index) => isLabelLiteral(operand)
+        && operation.modifiers?.includes(operand.name) ? [{ index, name: operand.name }] : []);
+    if (!modifiers.length) return undefined;
+    const signatures = (operation.signatures ?? []).filter(signature => modifiers.every(({ index, name }) => {
+        const input = signature.inputs[index];
+        return typeof input === 'object' && 'label' in input && input.label === name;
+    }));
+    const inputs: SignatureType[] = operands.map(operand => {
+        if (isLabelLiteral(operand)) return { label: operand.name };
+        const types = typeOf(operand, lookup);
+        return types.length ? { union: types as readonly SignatureAtom[] } : 'unknown';
+    });
+    return inferSignatureResultTypes(signatures, inputs);
+}
+
 function applicationType(expression: ApplicationExpression, lookup: TypeLookup): Types {
     const parts = flattenApplication(expression);
     if (parts.some(part => isNameExpression(part) && part.name === 'window')) {
@@ -303,6 +320,8 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
     if (lookup(last.name) !== undefined) return UNKNOWN;
     const operation = findOperation(last.name);
     if (operation === undefined) return UNKNOWN;
+    const modified = modifierResultTypes(operation, parts.slice(0, -1), lookup);
+    if (modified) return modified;
     const unaryTail = isApplicationExpression(expression.head) && expression.arguments.length === 1
         && operation.arities.join() === '1';
     const arity = unaryTail ? 1 : parts.length - 1;

@@ -519,10 +519,10 @@ export function notebookFrame(
     } else if (footerRows) {
         const footerWidth = width;
         let status = '';
-        if (!followCursor) {
+        if (running) status = runningStatus;
+        else if (!followCursor) {
             if (showShortcutHints) status = 'PgUp/PgDn scroll · Esc return';
-        } else if (running) status = runningStatus;
-        else status = suggestion || (showShortcutHints
+        } else status = suggestion || (showShortcutHints
             ? notebook.atPrompt ? 'Ctrl-L run all' : 'Ctrl-R run · Ctrl-L run all' : '');
         if (showShortcutHints && followCursor && !running && promptOutputFocus && nextEvalRow !== undefined
             && (nextEvalRow < top || nextEvalRow >= top + viewportHeight))
@@ -540,7 +540,7 @@ export function notebookFrame(
             }
         }
         footerLine = clipped(label && followCursor ? `${label} · ${status}` : status, footerWidth);
-        if (followCursor && (running || RUN_TIME.test(suggestion))) {
+        if (running || followCursor && RUN_TIME.test(suggestion)) {
             footerLine = '\x1b[90m' + footerLine + '\x1b[0m';
             statusRow = viewportHeight;
         }

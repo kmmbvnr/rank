@@ -1625,3 +1625,17 @@ it('keeps the successful result kind of take and drop with an unknown count', ()
     expect(facts('"abcdef" drop Count').types).toEqual(['text']);
     expect(facts('"abcdef" take Count', new Map([['Count', { types: ['real'], rank: 0, shape: [] }]])).types).toEqual([]);
 });
+
+it('keeps extrema position modifiers scalar for array and sequence inputs', () => {
+    for (const operation of ['min', 'max']) {
+        for (const input of ['array 3 9 2', '1 to 10']) {
+            for (const [modifier, type] of [['index', 'integer'], ['indexed', 'tuple']]) {
+                expect(facts(`(${input}) ${operation} .${modifier}`)).toMatchObject({ types: [type], rank: 0, shape: [] });
+            }
+        }
+    }
+    expect(facts('Values max .index', new Map([['Values', { types: ['array'] }]])))
+        .toMatchObject({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Values max .index', new Map([['Values', { types: ['array'] }], ['max', { types: ['function'] }]])))
+        .not.toMatchObject({ types: ['integer'] });
+});

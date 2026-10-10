@@ -13,7 +13,7 @@ import {
 import { applicationExpression, flattenApplication, groupedUnaryDyadicChain, unaryApplicationHead } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { applicationForm, assertNever, type ApplicationForm } from '../application-forms.js';
-import { mapsScalarCells, resultTypes, type Types } from './types.js';
+import { mapsScalarCells, modifierResultTypes, resultTypes, type Types } from './types.js';
 import { broadcastShape, incompatibleShapes, isAtom, stableRecordField, UNKNOWN_VALUE,
     type FactLookup, type ValueFacts } from './value-domain.js';
 import {
@@ -653,6 +653,10 @@ function transferApplicationFacts(
     if (isNameExpression(last) && lastOperation) {
         const operation = lastOperation;
         const arity = unaryTail ? 1 : parts.length - 1;
+        const modified = modifierResultTypes(operation, parts.slice(0, -1), name => lookup(name)?.types);
+        if (modified?.length) return modified.every(type => ['integer', 'real', 'boolean', 'symbol',
+            'date', 'datetime', 'duration', 'tuple'].includes(type))
+            ? { types: modified, rank: 0, shape: [] } : { types: modified };
         if (operation?.arities.includes(arity)) {
             const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => infer(part, lookup));
             if (last.name === 'merge') {
