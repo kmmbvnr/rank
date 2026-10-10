@@ -10,6 +10,16 @@ end
 test "starts below fourteen"
   use "014_collatz"
 
-  Seqs = 1 till 14 collatz
-  ((Seqs max .index) + 1) equal 9
+  Limit = 14
+  run
+
+  Answer equal 9
+end
+
+test "smallest search with a Collatz step"
+  use "014_collatz"
+  Limit = 3
+  run
+
+  Answer equal 2
 end

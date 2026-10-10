@@ -1,0 +1,25 @@
+rem Longest Collatz Sequence
+rem https://projecteuler.net/problem=14
+rem Find the starting value below Limit
+rem with the longest Collatz chain
+
+use numbers
+use io
+use cli
+
+option Limit integer = 1000000
+
+memo collatz N rank 0
+  if N equal 1
+    return 1
+  elif N even
+    N = N // 2
+  else
+    N = 3 * N + 1
+  end
+  return N collatz + 1
+end
+
+Seqs = 1 till Limit collatz
+Answer = (Seqs max .index) + 1
+Answer print

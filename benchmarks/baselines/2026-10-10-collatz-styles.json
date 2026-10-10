@@ -1,0 +1,220 @@
+{
+  "date": "2026-10-10",
+  "cpu": "Apple M5",
+  "styles": {
+    "node": "v24.15.0",
+    "limit": 1000000,
+    "samples": 3,
+    "method": "fresh processes in alternating order; parse and forced reduction included; oracle and GC excluded",
+    "records": [
+      {
+        "sample": 0,
+        "variant": "memo",
+        "limit": 1000000,
+        "ms": 10425.219125,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 253038640
+      },
+      {
+        "sample": 0,
+        "variant": "shortcut",
+        "limit": 1000000,
+        "ms": 9305.606791,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 166667032
+      },
+      {
+        "sample": 0,
+        "variant": "halves",
+        "limit": 1000000,
+        "ms": 6921.715499999999,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 158545608
+      },
+      {
+        "sample": 0,
+        "variant": "shortcutHalf",
+        "limit": 1000000,
+        "ms": 10374.822083000001,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 164493032
+      },
+      {
+        "sample": 0,
+        "variant": "arrayCompact",
+        "limit": 1000000,
+        "ms": 31312.525333,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 78940216
+      },
+      {
+        "sample": 1,
+        "variant": "arrayCompact",
+        "limit": 1000000,
+        "ms": 31445.053458000002,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 78924712
+      },
+      {
+        "sample": 1,
+        "variant": "shortcutHalf",
+        "limit": 1000000,
+        "ms": 10451.490415999999,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 164495960
+      },
+      {
+        "sample": 1,
+        "variant": "halves",
+        "limit": 1000000,
+        "ms": 7005.039125,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 158556240
+      },
+      {
+        "sample": 1,
+        "variant": "shortcut",
+        "limit": 1000000,
+        "ms": 9292.722,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 166660144
+      },
+      {
+        "sample": 1,
+        "variant": "memo",
+        "limit": 1000000,
+        "ms": 10433.037541,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 253037664
+      },
+      {
+        "sample": 2,
+        "variant": "memo",
+        "limit": 1000000,
+        "ms": 10671.029917000002,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 253036568
+      },
+      {
+        "sample": 2,
+        "variant": "shortcut",
+        "limit": 1000000,
+        "ms": 9386.426209000001,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 166655328
+      },
+      {
+        "sample": 2,
+        "variant": "halves",
+        "limit": 1000000,
+        "ms": 6896.960209,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 158544200
+      },
+      {
+        "sample": 2,
+        "variant": "shortcutHalf",
+        "limit": 1000000,
+        "ms": 9363.065917,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 166669336
+      },
+      {
+        "sample": 2,
+        "variant": "arrayCompact",
+        "limit": 1000000,
+        "ms": 31307.324875,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 78938840
+      }
+    ],
+    "medians": {
+      "memo": 10433.037541,
+      "shortcut": 9305.606791,
+      "halves": 6921.715499999999,
+      "shortcutHalf": 10374.822083000001,
+      "arrayCompact": 31312.525333
+    }
+  },
+  "dense": {
+    "node": "v24.15.0",
+    "limit": 1000000,
+    "samples": 3,
+    "method": "fresh processes in alternating order; parse and forced reduction included; oracle and GC excluded",
+    "records": [
+      {
+        "sample": 0,
+        "variant": "memo",
+        "limit": 1000000,
+        "ms": 10475.493625,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 253038832
+      },
+      {
+        "sample": 0,
+        "variant": "dense",
+        "limit": 1000000,
+        "ms": 861.6788750000001,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 59592592
+      },
+      {
+        "sample": 1,
+        "variant": "dense",
+        "limit": 1000000,
+        "ms": 860.871125,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 59601192
+      },
+      {
+        "sample": 1,
+        "variant": "memo",
+        "limit": 1000000,
+        "ms": 10433.086583,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 253038376
+      },
+      {
+        "sample": 2,
+        "variant": "memo",
+        "limit": 1000000,
+        "ms": 10648.898459,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 253038896
+      },
+      {
+        "sample": 2,
+        "variant": "dense",
+        "limit": 1000000,
+        "ms": 830.403,
+        "answer": 837799,
+        "longest": 525,
+        "heapUsed": 59599848
+      }
+    ],
+    "medians": {
+      "memo": 10475.493625,
+      "dense": 860.871125
+    }
+  }
+}

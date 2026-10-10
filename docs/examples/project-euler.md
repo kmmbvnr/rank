@@ -285,26 +285,30 @@ answer is `5537376230`.
 rem Project Euler 14
 rem https://projecteuler.net/problem=14
 
-use numbers
-
-memo collatz N rank 0
-  if N equal 1
-    return 1
-  elif N even
-    N = N // 2
-  else
-    N = 3 * N + 1
+Limit = 1000000
+Lengths = array shape Limit fill 0
+Lengths 1 = 1
+for Start in 2 till Limit
+  N = Start
+  Steps = 0
+  for N at least Start
+    if N mod 2 equal 0
+      N = N // 2
+    else
+      N = 3 * N + 1
+    end
+    Steps += 1
   end
-  return N collatz + 1
+  Lengths Start = Steps + Lengths N
 end
 
-Seqs = 1 till 1000000 collatz
-Answer = (Seqs max .index) + 1
+Answer = Lengths max .index
 ```
 
-The memoized function reuses the length of each known suffix. Rank 0 applies
-it to every starting value below one million. The maximum's zero-based index
-plus one gives the starting value, `837799`.
+Starting values are processed in ascending order. Once a chain reaches a
+smaller starting value, its remaining length is already stored in the dense
+array. Each length is stored at its starting value's index, so the maximum's
+index directly gives the answer, `837799`.
 
 ## 15. Lattice paths
 

@@ -1,8 +1,4 @@
-rem Longest Collatz Sequence
-rem https://projecteuler.net/problem=14
-rem Find the starting value below Limit
-rem with the longest Collatz chain
-
+rem Reuse lengths of smaller starting values in a dense array.
 use io
 use cli
 

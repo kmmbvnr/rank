@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-10",
+  "device": "A059",
+  "userAgent": "Mozilla/5.0 (Linux; Android 16; A059 Build/BQ2A.250721.001-BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/153.0.8010.57 Mobile Safari/537.36",
+  "apkSha256": "118e859cea2a225db48af60159dcfc946fe5143589d6d96636a632c48ff821ca",
+  "method": "Three fresh workers per variant, alternating paired order, native Android interrupt signal and turboExecute; app remained visible; worker startup excluded; parsing, execution, one max reduction, output and response delivery included; each run verifies the answer and longest chain; original notebook source retained.",
+  "limitExclusive": 1000000,
+  "answer": 837799,
+  "longest": 525,
+  "menuBaseline": {
+    "wallMs": 32810.39999999851,
+    "displayedSeconds": 32.72
+  },
+  "batteryAtStart": {
+    "level": 87,
+    "temperatureC": 38,
+    "acPowered": true
+  },
+  "records": [
+    {
+      "variant": "dense",
+      "ms": 1637.3999999985099,
+      "output": [
+        "837799",
+        "525"
+      ]
+    },
+    {
+      "variant": "memo",
+      "ms": 28436.60000000149,
+      "output": [
+        "837799",
+        "525"
+      ]
+    },
+    {
+      "variant": "memo",
+      "ms": 30345.20000000298,
+      "output": [
+        "837799",
+        "525"
+      ]
+    },
+    {
+      "variant": "dense",
+      "ms": 1810.5,
+      "output": [
+        "837799",
+        "525"
+      ]
+    },
+    {
+      "variant": "dense",
+      "ms": 1854.7000000029802,
+      "output": [
+        "837799",
+        "525"
+      ]
+    },
+    {
+      "variant": "memo",
+      "ms": 27716.80000000447,
+      "output": [
+        "837799",
+        "525"
+      ]
+    }
+  ],
+  "medianMs": {
+    "memo": 28436.60000000149,
+    "dense": 1810.5
+  },
+  "speedup": 15.70648991991245
+}

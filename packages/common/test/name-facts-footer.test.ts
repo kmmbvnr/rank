@@ -15,7 +15,7 @@ function footer(repl: NotebookRepl, source: string, cursor: number, columns = 60
 }
 
 it('shows the recursive memo result under the cursor with rank declared on the function', () => {
-    const demo = readFileSync(new URL('../../../demos/euler/014_collatz.ra', import.meta.url), 'utf8');
+    const demo = readFileSync(new URL('../../../benchmarks/collatz-memo.ra', import.meta.url), 'utf8');
     const source = 'use numbers\n' + demo.slice(demo.indexOf('memo collatz'), demo.indexOf('Seqs =')).trim();
     const session = createReplSession();
     try {

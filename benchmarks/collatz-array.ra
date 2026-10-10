@@ -1,0 +1,26 @@
+rem Bulk transitions followed by doubling the distance along each chain.
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000
+
+Parents = (0 till Limit) copy
+Lengths = array shape Limit fill 0
+Work = (2 till Limit) copy
+for Work len greater 0
+  Values = (Parents Work) copy
+  Odd = Values mod 2
+  Parents Work = (Values // 2) * (1 - Odd) + (3 * Values + 1) * Odd
+  Lengths Work = ((Lengths Work) copy) + 1
+  Work = (Work ((Parents Work) at least Limit)) copy
+end
+
+for (Parents greater 1) any
+  NextLengths = (Lengths + Lengths Parents) copy
+  Parents = (Parents Parents) copy
+  Lengths = NextLengths
+end
+
+Answer = Lengths max .index
+Answer print
