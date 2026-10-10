@@ -63,6 +63,7 @@ async page => {
     await library.getByRole('button', { name: 'example.ra', exact: true }).click();
     await menu.waitFor({ state: 'hidden' });
     check((await page.locator('#screen').textContent()).includes('Value = 42'), 'example source missing');
+    check((await page.locator('#screen').textContent()).includes('AI-generated; not yet reviewed.'), 'Unreviewed debug example needs its comment');
     check(!(await page.locator('#screen').textContent()).includes('42\n'), 'example automatically executed');
     await input.fill('rem My local changes');
     await page.getByRole('button', { name: 'Open notebook history' }).click();
@@ -119,7 +120,7 @@ async page => {
     await page.waitForFunction(() => document.querySelectorAll('.history-row').length === 25);
     const headerTop = await menu.locator('header').evaluate(header => header.getBoundingClientRect().top);
     await menu.locator('.library-home').evaluate(home => { home.scrollTop = home.scrollHeight; });
-    await page.waitForFunction(() => document.querySelectorAll('.history-row').length === 32);
+    await page.waitForFunction(() => document.querySelectorAll('.history-row').length === 35);
     check(await menu.locator('.library-home').evaluate(home => {
         const top = home.getBoundingClientRect().top;
         return [...home.querySelectorAll('.history-shortcut')].every(button => button.getBoundingClientRect().bottom < top);

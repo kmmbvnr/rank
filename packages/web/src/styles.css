@@ -64,7 +64,7 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 /* Chrome's touch adjustment snaps a tap near this field onto it, and the native caret placement then wins over locate(). */
 .mobile #input { pointer-events: none; }
 #chrome { position: fixed; top: var(--top); right: 0; left: 0; height: var(--chrome-height); z-index: 2; background: #000; }
-#brand { position: absolute; left: max(16px, env(safe-area-inset-left)); bottom: 0; display: flex; align-items: center; height: 44px; padding: 0; background: transparent; color: #e5e5e5; font-family: system-ui, sans-serif; font-size: 17px; font-weight: 950; font-style: italic; font-synthesis: weight style; letter-spacing: -.06em; }
+#brand { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; position: absolute; left: max(16px, env(safe-area-inset-left)); bottom: 0; display: flex; align-items: center; height: 44px; padding: 0; background: transparent; color: #e5e5e5; font-family: system-ui, sans-serif; font-size: 17px; font-weight: 950; font-style: italic; font-synthesis: weight style; letter-spacing: -.06em; }
 #voice-indicator { position: absolute; left: 0; top: 0; width: 14px; height: 1.5em; display: flex; align-items: center; justify-content: center; background: transparent; padding: 0; margin: 0; border: 0; cursor: pointer; z-index: 2; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 #voice-indicator::after { content: ''; position: absolute; top: -10px; bottom: -10px; left: -12px; right: -12px; }
 #voice-indicator[hidden] { display: none; }

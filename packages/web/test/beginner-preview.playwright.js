@@ -7,17 +7,27 @@ async original => {
     const input = page.locator('#input');
     const enter = async () => {
         await page.locator('#menu-toggle').click();
-        await page.getByRole('button', { name: 'Beginner mode', exact: true }).click();
+        await Promise.all([page.waitForEvent('load'),
+            page.getByRole('button', { name: 'Release preview', exact: true }).click()]);
         await page.waitForFunction(() => localStorage.getItem('rank-debug-beginner-v1') === 'true'
-            && !document.querySelector('#brand')?.disabled);
+            && !document.querySelector('#brand')?.disabled).catch(async error => {
+                throw new Error(`${await page.evaluate(() => localStorage.getItem('rank-debug-beginner-v1'))}: ${await page.locator('#screen').textContent()} / ${error.message}`);
+            });
         await ready();
     };
     const leave = async () => {
+        check(await page.locator('#brand').evaluate(brand => {
+            const style = getComputedStyle(brand);
+            return style.userSelect === 'none' && style.touchAction === 'none'
+                && !brand.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+        }), 'RANK must reserve long press instead of selecting text or opening a copy menu');
         const box = await page.locator('#brand').boundingBox();
         await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
         await page.mouse.down(); await page.waitForTimeout(2200); await page.mouse.up();
         await page.waitForFunction(() => localStorage.getItem('rank-debug-beginner-v1') === 'false'
-            && !document.querySelector('#brand')?.disabled);
+            && !document.querySelector('#brand')?.disabled).catch(async error => {
+                throw new Error(`${await page.evaluate(() => localStorage.getItem('rank-debug-beginner-v1'))}: ${await page.locator('#screen').textContent()} / ${error.message}`);
+            });
         await ready();
     };
     try {
@@ -30,6 +40,8 @@ async original => {
         await input.fill('rem Sandbox only');
         await page.locator('#brand').click();
         await page.locator('#notebook-panel').waitFor();
+        for (const title of ['1. Arrays and matrices', '2. Sequences and pipelines', '3. Your own functions'])
+            await page.getByRole('button', { name: title, exact: true }).waitFor();
         check(await page.getByRole('button', { name: 'My work', exact: true }).count() === 0, 'developer history leaked');
         await page.getByRole('button', { name: 'Close notebook history' }).click();
         await page.waitForTimeout(250);
@@ -57,7 +69,7 @@ async original => {
         });
         await input.fill('Unsaved = 42');
         await page.locator('#menu-toggle').click();
-        await page.getByRole('button', { name: 'Beginner mode', exact: true }).click();
+        await page.getByRole('button', { name: 'Release preview', exact: true }).click();
         await page.waitForFunction(() => document.querySelector('#screen').textContent.includes('preview save failure'));
         check(await input.inputValue() === 'Unsaved = 42', 'failed save lost draft');
         check(await page.evaluate(() => localStorage.getItem('rank-debug-beginner-v1')) === 'false', 'failed save switched sandbox');

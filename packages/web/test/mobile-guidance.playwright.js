@@ -41,6 +41,9 @@ async original => {
         await page.locator('#notebook-panel').waitFor({ state: 'hidden' });
     };
     await step('offer');
+    const outline = await page.locator('#guidance-spotlight').boundingBox();
+    check(outline && outline.x >= 12 && outline.y >= 12 && outline.x + outline.width <= 378
+        && outline.y + outline.height <= 832, 'Notebook outline must stay clear of rounded screen edges');
     await card.getByRole('button', { name: 'Start' }).click();
     await step('run');
     check(await page.getByRole('textbox').inputValue() === 'A * 10', 'Select the final example line');
@@ -52,8 +55,12 @@ async original => {
     await page.screenshot({ path: 'output/playwright/mobile-guidance-result.png' });
     check((await page.locator('#screen').textContent()).includes('10 20 30 40 50'), 'Normal Play must evaluate both array lines');
     check(await page.locator('#guidance-spotlight').isHidden(), 'Hold hint must be nonblocking');
-    await card.getByRole('button', { name: 'Got it' }).click();
-    check(await card.isHidden(), 'Dismissal must not queue the next hint');
+    check(await card.getByRole('button').count() === 0, 'Hold hint needs no acknowledgement button');
+    check((await card.textContent()).includes('Tap and hold Play'), 'Explain the long press explicitly');
+    const firstPlayBox = await play.boundingBox();
+    await page.mouse.move(firstPlayBox.x + firstPlayBox.width / 2, firstPlayBox.y + firstPlayBox.height / 2);
+    await page.mouse.down(); await page.waitForTimeout(850); await page.mouse.up();
+    check(await card.isHidden(), 'Holding Play must dismiss its hint');
     // A separate quiet interaction resumes the guided keyboard introduction.
     await clickCore();
     await step('commands');
@@ -140,7 +147,7 @@ async original => {
     await page.locator('#menu-toggle').click();
     check((await saved()).step === 'keyboard', 'Tap waits for the real native dismissal report');
     check(await page.getByRole('textbox').inputValue() === sourceBefore, 'Dismissal tap must preserve source');
-    check(await page.getByRole('button', { name: 'Beginner mode' }).isHidden(), 'Dismissal tap must not open the menu');
+    check(await page.getByRole('button', { name: 'Release preview' }).isHidden(), 'Dismissal tap must not open the menu');
     await page.evaluate(() => window.rankSoftKeyboard(false));
     await step('commands');
     await page.setViewportSize({ width: 844, height: 390 });

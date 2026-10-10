@@ -49,14 +49,19 @@ then opens the floating notebook panel through RANK and ends by highlighting
 New notebook with “Start a new notebook and try your own ideas in Rank.” Tapping outside
 the editor on the keyboard-dismissal step hides the system keyboard; the tour
 advances after the native keyboard reports that it has closed.
+Keyboard-dismissal instructions appear only while the system keyboard is confirmed open.
 Each step uses one sentence without a heading or Skip button;
-The ⋮ menu contains Run program, plus Beginner mode in debug APKs for testing first use. It saves the current
+The ⋮ menu contains Run program, plus Release preview in debug APKs for testing first use. It saves the current
 notebook, then opens a disposable sandbox with its own history and walkthrough.
 Each entry clears only the sandbox. Hold RANK for two seconds to return to the
 original notebook and history. Release APKs have no sandbox switch and keep the
-normal persistent user history. Starter notebooks for the sandbox are not yet included.
-A small hold-Play hint follows successful execution of
-at least two code lines. Module hints appear at later quiet interactions. Guidance remembers dismissed hints and actions already discovered.
+normal persistent user history. New mobile users and the beginner sandbox also get three saved notebooks:
+arrays and matrices, sequences and pipelines, and user-defined functions. Each
+contains comments, expected results and a small change to try. They open from
+RANK without running; the walkthrough still starts in an empty notebook.
+Examples are added once, so edits and deletions survive restarts.
+A small “Tap and hold Play” hint without an acknowledgement button follows successful execution of
+at least two code lines. Module hints appear at later quiet interactions. Guidance remembers actions already discovered.
 
 Tap RANK to open notebook history and create a new notebook. RANK stays at the
 top on a translucent background that blurs the scrolling content beneath it.
@@ -69,11 +74,14 @@ lines, shortened to 40
 characters. The row's ⋮ menu offers Rename, Export and Delete. Rename and Delete open
 separate dialogs; Export saves the selected notebook without opening it. Import and export use Android's system file picker.
 
-Use RANK → Library to browse `demos/` in `kmmbvnr/rank` on GitHub's `main`
-branch. Each folder replaces the panel contents; Back returns to its parent,
+RANK → Library in release APKs and Release preview contains only Project Euler
+problems 1–14, bundled in the app and available offline. Normal debug mode can
+browse all of `demos/` in `kmmbvnr/rank` on GitHub's `main` branch. Examples
+outside the release catalog receive `rem AI-generated; not yet reviewed.`
+after their opening comments when imported. Each folder replaces the panel contents; Back returns to its parent,
 or to notebook history at the library root. Folder labels use the text of folder links in the parent folder's
 `README.md`, with the folder name as a fallback. Only `.ra`
-files appear; `_test.ra` files are excluded. Browsing requires an internet
+files appear; `_test.ra` files are excluded. Browsing the full debug catalog requires an internet
 connection. Opening an example saves a local notebook without executing it.
 Later edits stay on the device, and opening the same example again resumes
 that local copy. Delete the local notebook in history to import it afresh.

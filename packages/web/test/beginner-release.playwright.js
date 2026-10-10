@@ -17,7 +17,7 @@ async original => {
         await ready();
         check(await page.locator('#input').inputValue() === 'Unfinished = ', 'stale debug flag broke normal migration');
         await page.locator('#menu-toggle').click();
-        check(await page.getByRole('button', { name: 'Beginner mode', exact: true }).count() === 0, 'debug menu visible in production');
+        check(await page.getByRole('button', { name: 'Release preview', exact: true }).count() === 0, 'debug menu visible in production');
         await page.keyboard.press('Escape');
         await page.locator('#input').fill('User draft = 42');
         await page.waitForTimeout(250);

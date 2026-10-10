@@ -19,6 +19,7 @@ import { cellWidth as displayWidth } from '@arrrank/common/display-width';
 import { wrapCommentLines } from '@arrrank/common/comment-wrap';
 import { VoiceDictation, isVoiceSupported } from './voice-dictation.js';
 import { NotebookHistory } from './notebook-history.js';
+import { seedStarterNotebooks } from './starter-notebooks.js';
 import { libraryNotebookId } from './demo-library.js';
 import { NotebookPanel } from './notebook-panel.js';
 import { notebookStore, debugBeginnerStore, debugNotebookMode, notebookSource, validDraft, type NotebookDraft } from './notebook-store.js';
@@ -1548,7 +1549,7 @@ function createGuidance(): MobileGuidance | undefined {
             || !!repl.help || !!session.pauseState || nativeSelection() || !commands.hidden
             || !!document.querySelector('dialog[open]:not(#notebook-panel)')
             || repl.notebook.cells.some(cell => cell.status === 'error'),
-        softKeyboard,
+        softKeyboard: nativeSoftKeyboard ?? (softKeyboard && !keyboardOpening && Date.now() >= softKeyboardWantedUntil),
         notebookPanelOpen: notebookPanel?.dialog.open ?? false,
         rankKeyboard: symbolKeyboardShown() && !keyboard.hidden && !keyboardOpening,
         targets: { notebook: terminal, play: runButton, newNotebook: document.querySelector<HTMLElement>('#new-notebook') ?? undefined, brand: document.querySelector<HTMLElement>('#brand')!,
@@ -1613,7 +1614,7 @@ async function switchBeginnerPreview(preview: boolean): Promise<void> {
                 page = await store.list();
                 for (const book of page.items) await store.remove(book.id);
             } while (page.items.length);
-            for (const key of ['rank-beginner-active-notebook-v1', 'rank-beginner-mobile-guidance-v1']) localStorage.removeItem(key);
+            for (const key of ['rank-beginner-active-notebook-v1', 'rank-beginner-mobile-guidance-v1', 'rank-beginner-starter-notebooks-v1']) localStorage.removeItem(key);
         }
         localStorage.setItem('rank-debug-beginner-v1', String(preview));
         location.reload();
@@ -1693,11 +1694,11 @@ if (!example) {
                 await changeNotebook(id);
             },
                 () => { closeMenu(); stopVoiceDictation(); setKeyboard(false); },
-                () => { brand.setAttribute('aria-expanded', 'false'); render(); });
+                () => { brand.setAttribute('aria-expanded', 'false'); render(); }, !debugPreviewAvailable || beginnerPreview);
             let returnTimer: ReturnType<typeof setTimeout> | undefined;
             let returning = false;
             brand.addEventListener('contextmenu', event => {
-                if (beginnerPreview) event.preventDefault();
+                event.preventDefault();
             });
             brand.addEventListener('pointerdown', () => {
                 if (!debugPreviewAvailable || !beginnerPreview) return;
@@ -1721,8 +1722,16 @@ if (!example) {
                     void notebookHistory!.flush().catch(error => { failure = 'Cannot save notebook: ' + String(error); render(); });
                 }
             });
+            const starterKey = debugPreferenceKey('rank-starter-notebooks-v1');
+            const seedStarters = touchConsole && !localStorage.getItem(starterKey)
+                && (beginnerPreview || (!(await notebookHistory!.store.list()).items.length
+                    && (!legacyDraft || !notebookSource(legacyDraft).trim())));
             const snapshot = await notebookHistory!.initialize(beginnerPreview || localStorage.getItem('rank-history-migrated-v1') ? undefined : legacyDraft,
                 localStorage.getItem(debugPreferenceKey('rank-active-notebook-v1')));
+            if (seedStarters) {
+                await seedStarterNotebooks(notebookHistory!.store);
+                localStorage.setItem(starterKey, 'true');
+            }
             await repl.restoreNotebook(snapshot.cells, snapshot.draft);
             rememberNotebook();
             localStorage.setItem(debugPreferenceKey('rank-history-migrated-v1'), 'true');

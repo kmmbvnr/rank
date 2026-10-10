@@ -136,10 +136,6 @@ export class MobileGuidance {
         this.step(this.context().empty ? 'offer' : 'keyboard');
         this.update();
     }
-    private dismiss(): void {
-        if (this.hint) { this.saved[this.hint] = true; this.hint = undefined; this.persist(); }
-        this.defer();
-    }
     private hide(): void { this.card.hidden = this.spotlight.hidden = true; }
     private visible(target?: HTMLElement): target is HTMLElement {
         if (!target || target.closest('[hidden]') || target.matches(':disabled, [aria-disabled="true"]')) return false;
@@ -183,7 +179,7 @@ export class MobileGuidance {
         }
         if (this.hint) {
             guided = false;
-            if (this.hint === 'hold') { target = targets.play; text = 'Hold Play to run everything from the start.'; }
+            if (this.hint === 'hold') { target = targets.play; text = 'Tap and hold Play to run everything from the start.'; }
             if (this.hint === 'modules') { target = context.rankKeyboard ? targets.modules : undefined; text = 'Tap + to choose a module and add its commands to this keyboard.'; }
         } else switch (this.saved.step) {
             case 'offer':
@@ -200,7 +196,7 @@ export class MobileGuidance {
             case 'commands':
                 if (context.rankKeyboard) {
                     target = targets.commands;
-                    text = 'Hold a command on the Rank keyboard to open its documentation with an example.';
+                    text = 'Tap and hold a command on the Rank keyboard to open its documentation with an example.';
                 }
                 break;
             case 'new-notebook':
@@ -219,8 +215,7 @@ export class MobileGuidance {
             this.text.hidden = !text;
             this.actions.replaceChildren();
             if (action) this.button(action.label, action.run);
-            if (!guided) this.button('Got it', () => this.dismiss());
-            this.actions.hidden = guided && !action;
+            this.actions.hidden = !action;
         }
         this.card.dataset.step = this.hint ?? this.saved.step;
         this.card.classList.toggle('guided', guided);
@@ -250,8 +245,13 @@ export class MobileGuidance {
         this.card.style.left = Math.max(12, Math.min(box.left + box.width / 2 - width / 2, innerWidth - width - 12)) + 'px';
         this.card.style.top = y + 'px';
         if (guided) {
-            Object.assign(this.spotlight.style, { left: box.left - 4 + 'px', top: box.top - 4 + 'px',
-                width: box.width + 8 + 'px', height: box.height + 8 + 'px' });
+            // Keep the outline inside the viewport, clear of rounded screen corners.
+            const left = Math.max(12, box.left - 4);
+            const right = Math.min(innerWidth - 12, box.right + 4);
+            const outlineTop = Math.max(top + 4, box.top - 4);
+            const outlineBottom = Math.min(bottom - 4, box.bottom + 4);
+            Object.assign(this.spotlight.style, { left: left + 'px', top: outlineTop + 'px',
+                width: Math.max(0, right - left) + 'px', height: Math.max(0, outlineBottom - outlineTop) + 'px' });
         }
     }
 }

@@ -22,7 +22,7 @@ export class NotebookPanel {
         exportFile: (id: string) => Promise<void>,
         openLibrary: (path: string, source: () => Promise<string>) => Promise<void>,
         private readonly beforeOpen: () => void,
-        private readonly afterClose: () => void) {
+        private readonly afterClose: () => void, restrictedLibrary = true) {
         this.dialog.id = 'notebook-panel';
         this.dialog.setAttribute('aria-label', 'Notebook history');
         this.dialog.innerHTML = `<header><button class="history-brand" type="button" aria-label="Close notebook history">RANK</button></header><div class="library-home">
@@ -95,7 +95,7 @@ export class NotebookPanel {
             this.actions.hidePopover();
             void this.action(() => exportFile(id), false);
         };
-        this.library = new LibraryBrowser(this.dialog, openLibrary, () => { this.close(); });
+        this.library = new LibraryBrowser(this.dialog, openLibrary, () => { this.close(); }, restrictedLibrary);
         this.more.onclick = () => void this.load();
         this.dialog.querySelector('.library-home')!.addEventListener('scroll', event => {
             const element = event.currentTarget as HTMLElement;

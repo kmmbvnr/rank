@@ -1,0 +1,22 @@
+rem 2. Sequences and pipelines
+use sequences
+use numbers
+
+rem Functions follow their data. Read this from left to right.
+rem Take the numbers 1 through 10, then add them: 55.
+1 to 10 sum
+
+rem Fibonacci is an endless sequence, computed as needed.
+rem Take only its first eight values: 1 2 3 5 8 13 21 34.
+fibonacci take 8
+
+rem Keep Fibonacci numbers up to 100.
+Fib = fibonacci to 100
+rem A comparison produces one true or false for each value.
+Mask = Fib even
+rem Use that mask to select just the even numbers: 2 8 34.
+Fib Mask
+rem Select, then sum: 44.
+Fib Mask sum
+
+rem Try changing 100 to 4000000. The sum becomes 4613732.

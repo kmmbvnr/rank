@@ -1,4 +1,5 @@
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
+import { releaseExamples } from './release-library.js';
 
 interface TreeEntry { path: string; type: string }
 interface DemoTree { sha: string; tree: TreeEntry[]; truncated: boolean }
@@ -37,6 +38,7 @@ export async function libraryNotebookId(path: string): Promise<string> {
 }
 export class DemoLibrary {
     private tree?: Promise<DemoTree>;
+    constructor(private readonly restricted = true) {}
     private index(): Promise<DemoTree> {
         return this.tree ??= request(`${repository}/commits/main`, true).then(async text => {
             const { sha } = JSON.parse(text) as { sha: string };
@@ -46,10 +48,27 @@ export class DemoLibrary {
         }).catch(error => { this.tree = undefined; throw error; });
     }
     async source(path: string): Promise<string> {
+        if (this.restricted) {
+            const source = releaseExamples.get(path);
+            if (source === undefined) throw new Error('Example is not available in this release.');
+            return source;
+        }
         const tree = await this.index();
-        return request(`${raw}/${tree.sha}/${path.split('/').map(encodeURIComponent).join('/')}`);
+        const source = await request(`${raw}/${tree.sha}/${path.split('/').map(encodeURIComponent).join('/')}`);
+        if (!path.endsWith('.ra') || releaseExamples.has(path)) return source;
+        const lines = source.replace(/\r\n?/g, '\n').split('\n');
+        let header = 0;
+        while (header < lines.length && /^\s*(?:rem(?:\s|$)|$)/.test(lines[header])) header++;
+        lines.splice(header, 0, 'rem AI-generated; not yet reviewed.', '');
+        return lines.join('\n');
     }
     async list(path: string): Promise<LibraryEntry[]> {
+        if (this.restricted) {
+            if (path === 'demos') return [{ path: 'demos/euler', name: 'Project Euler', directory: true }];
+            if (path === 'demos/euler') return [...releaseExamples.keys()].map(path => ({
+                path, name: path.slice('demos/euler/'.length), directory: false }));
+            return [];
+        }
         const tree = await this.index();
         const entries = tree.tree.filter(entry => entry.path.startsWith(path + '/')
             && !entry.path.slice(path.length + 1).includes('/')
@@ -72,9 +91,10 @@ export class LibraryBrowser {
     private path = 'demos';
     private generation = 0;
     private opening = false;
-    private readonly library = new DemoLibrary();
+    private readonly library: DemoLibrary;
     constructor(menu: HTMLElement, private readonly open: (path: string, source: () => Promise<string>) => Promise<void>,
-        private readonly close: () => void) {
+        private readonly close: () => void, restricted = true) {
+        this.library = new DemoLibrary(restricted);
         this.home = menu.querySelector<HTMLElement>('.library-home')!;
         this.view.className = 'library-view';
         this.view.hidden = true;

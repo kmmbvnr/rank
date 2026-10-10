@@ -1,0 +1,18 @@
+rem 1. Arrays and matrices
+use sequences
+use numbers
+
+rem A range gives us the numbers 1 through 6.
+A = 1 to 6
+rem Arithmetic applies to every number: 10 20 30 40 50 60.
+A * 10
+rem Arrays can combine element by element: 2 4 6 8 10 12.
+A + A
+
+rem Reshape the same six numbers into two rows of three.
+M = A reshape 2 3
+M
+rem A scalar also works with a whole matrix.
+M + 100
+
+rem Try changing 100 to 10, or reshaping A into 3 rows of 2.

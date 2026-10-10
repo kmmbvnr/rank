@@ -1,0 +1,26 @@
+rem 3. Your own functions
+use sequences
+use numbers
+
+rem Define an operation once, then call it after its data.
+fun twice Value
+  return Value * 2
+end
+rem With one number the result is 42.
+21 twice
+rem The same function works on an array: 2 4 6 8 10.
+1 to 5 twice
+
+rem A function can choose a result with if and else.
+fun ticket Age
+  if Age less 12
+    return 5
+  else
+    return 10
+  end
+end
+rem A child's ticket costs 5; an adult's costs 10.
+8 ticket
+20 ticket
+
+rem Try changing the age limit or the multiplier in twice.
