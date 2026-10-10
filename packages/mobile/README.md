@@ -50,7 +50,12 @@ New notebook with “Start a new notebook and try your own ideas in Rank.” Tap
 the editor on the keyboard-dismissal step hides the system keyboard; the tour
 advances after the native keyboard reports that it has closed.
 Each step uses one sentence without a heading or Skip button;
-⋮ → Replay walkthrough starts it again without replacing existing code. A small hold-Play hint follows successful execution of
+The ⋮ menu contains Run program, plus Beginner mode in debug APKs for testing first use. It saves the current
+notebook, then opens a disposable sandbox with its own history and walkthrough.
+Each entry clears only the sandbox. Hold RANK for two seconds to return to the
+original notebook and history. Release APKs have no sandbox switch and keep the
+normal persistent user history. Starter notebooks for the sandbox are not yet included.
+A small hold-Play hint follows successful execution of
 at least two code lines. Module hints appear at later quiet interactions. Guidance remembers dismissed hints and actions already discovered.
 
 Tap RANK to open notebook history and create a new notebook. RANK stays at the

@@ -30,20 +30,44 @@ import org.json.JSONObject;
 @CapacitorPlugin(name = "Notebooks")
 public class NotebooksPlugin extends Plugin {
     private Catalog catalog;
+    private Catalog beginnerCatalog;
 
-    @Override public void load() { catalog = new Catalog(getContext()); }
-    @Override protected void handleOnDestroy() { if (catalog != null) catalog.close(); }
+    private boolean debugBuild() {
+        return (getContext().getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+    }
+
+    @PluginMethod public void environment(PluginCall call) {
+        JSObject result = new JSObject(); result.put("debug", debugBuild()); call.resolve(result);
+    }
+
+    private boolean debugPreview(PluginCall call) {
+        boolean preview = Boolean.TRUE.equals(call.getBoolean("debugPreview", false));
+        if (preview && !debugBuild()) throw new IllegalStateException("Beginner preview requires a debug build");
+        return preview;
+    }
+
+    private Catalog catalog(PluginCall call) {
+        if (!debugPreview(call)) return catalog;
+        if (beginnerCatalog == null) beginnerCatalog = new Catalog(getContext(), "beginner-notebooks");
+        return beginnerCatalog;
+    }
+
+    @Override public void load() { catalog = new Catalog(getContext(), "notebooks"); }
+    @Override protected void handleOnDestroy() { if (catalog != null) catalog.close(); if (beginnerCatalog != null) beginnerCatalog.close(); }
 
     private static class Catalog extends SQLiteOpenHelper {
         private final Context context;
-        Catalog(Context context) { super(context, "notebooks.db", null, 1); this.context = context; }
+        private final String directory;
+        Catalog(Context context, String directory) {
+            super(context, directory + ".db", null, 1); this.context = context; this.directory = directory;
+        }
         @Override public void onCreate(SQLiteDatabase db) {
             db.execSQL("CREATE TABLE notebooks (id TEXT PRIMARY KEY, title TEXT NOT NULL, manual INTEGER NOT NULL, "
                 + "created INTEGER NOT NULL, updated INTEGER NOT NULL, snapshot TEXT NOT NULL)");
             db.execSQL("CREATE INDEX notebooks_recent ON notebooks(updated DESC, id DESC)");
             // A missing/recreated catalog can recover the source from the plain .ra files.
             // Cell boundaries and manual titles require the catalog; recovered source becomes a draft.
-            File[] files = new File(context.getFilesDir(), "notebooks").listFiles((directory, name) -> name.endsWith(".ra"));
+            File[] files = new File(context.getFilesDir(), directory).listFiles((directory, name) -> name.endsWith(".ra"));
             if (files == null) return;
             for (File file : files) {
                 String key = file.getName().substring(0, file.getName().length() - 3);
@@ -87,8 +111,8 @@ public class NotebooksPlugin extends Plugin {
         return meta;
     }
 
-    private synchronized JSObject read(String key) throws Exception {
-        try (Cursor cursor = catalog.getReadableDatabase().query("notebooks",
+    private synchronized JSObject read(String key, PluginCall call) throws Exception {
+        try (Cursor cursor = catalog(call).getReadableDatabase().query("notebooks",
             new String[]{"id", "title", "manual", "created", "updated", "snapshot"},
             "id = ?", new String[]{id(key)}, null, null, null)) {
             if (!cursor.moveToFirst()) return null;
@@ -111,14 +135,14 @@ public class NotebooksPlugin extends Plugin {
         return text.append((String) draft).toString();
     }
 
-    private File file(String key) throws Exception {
-        File directory = new File(getContext().getFilesDir(), "notebooks");
+    private File file(String key, PluginCall call) throws Exception {
+        File directory = new File(getContext().getFilesDir(), debugPreview(call) ? "beginner-notebooks" : "notebooks");
         if (!directory.isDirectory() && !directory.mkdirs()) throw new IllegalStateException("Cannot create notebook folder");
         return new File(directory, id(key) + ".ra");
     }
 
-    private void writeSource(String key, String source) throws Exception {
-        AtomicFile file = new AtomicFile(file(key));
+    private void writeSource(String key, String source, PluginCall call) throws Exception {
+        AtomicFile file = new AtomicFile(file(key, call));
         FileOutputStream stream = null;
         try {
             stream = file.startWrite();
@@ -132,8 +156,8 @@ public class NotebooksPlugin extends Plugin {
 
     @PluginMethod public synchronized void get(PluginCall call) {
         try {
-            JSObject book = read(call.getString("id"));
-            if (book != null) writeSource(book.getString("id"), source(book.getJSONObject("snapshot")));
+            JSObject book = read(call.getString("id"), call);
+            if (book != null) writeSource(book.getString("id"), source(book.getJSONObject("snapshot")), call);
             JSObject result = new JSObject();
             if (book != null) result.put("book", book);
             call.resolve(result);
@@ -154,9 +178,9 @@ public class NotebooksPlugin extends Plugin {
             values.put("snapshot", snapshot.toString());
             // Commit the recovery snapshot first. If .ra writing fails, the draft is still durable,
             // and get/save repairs the file. A failed save is reported and blocks document switching.
-            if (catalog.getWritableDatabase().insertWithOnConflict("notebooks", null, values, SQLiteDatabase.CONFLICT_REPLACE) < 0)
+            if (catalog(call).getWritableDatabase().insertWithOnConflict("notebooks", null, values, SQLiteDatabase.CONFLICT_REPLACE) < 0)
                 throw new IllegalStateException("Cannot commit notebook snapshot");
-            writeSource(key, text);
+            writeSource(key, text, call);
             call.resolve();
         } catch (Exception error) { call.reject("Cannot save notebook", error); }
     }
@@ -171,7 +195,7 @@ public class NotebooksPlugin extends Plugin {
             JSArray items = new JSArray();
             JSObject last = null;
             JSObject next = null;
-            try (Cursor cursor = catalog.getReadableDatabase().query("notebooks",
+            try (Cursor cursor = catalog(call).getReadableDatabase().query("notebooks",
                 new String[]{"id", "title", "manual", "created", "updated"}, where, args, null, null,
                 "updated DESC, id DESC", String.valueOf(limit + 1))) {
                 while (cursor.moveToNext()) {
@@ -192,16 +216,16 @@ public class NotebooksPlugin extends Plugin {
         try {
             String key = id(call.getString("id"));
             // Remove the file first. If deletion fails, retain the catalog and recovery snapshot.
-            File source = file(key);
+            File source = file(key, call);
             if (source.exists() && !source.delete()) throw new IllegalStateException("Cannot delete notebook file");
-            catalog.getWritableDatabase().delete("notebooks", "id = ?", new String[]{key});
+            catalog(call).getWritableDatabase().delete("notebooks", "id = ?", new String[]{key});
             call.resolve();
         } catch (Exception error) { call.reject("Cannot delete notebook", error); }
     }
 
     @PluginMethod public void exportFile(PluginCall call) {
         try {
-            JSObject book = read(call.getString("id"));
+            JSObject book = read(call.getString("id"), call);
             if (book == null) throw new IllegalArgumentException("Notebook is no longer available");
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE); intent.setType("text/plain");
@@ -214,7 +238,7 @@ public class NotebooksPlugin extends Plugin {
         if (call == null) return;
         if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null) { call.resolve(); return; }
         try {
-            JSObject book = read(call.getString("id"));
+            JSObject book = read(call.getString("id"), call);
             if (book == null) throw new IllegalArgumentException("Notebook is no longer available");
             try (OutputStream stream = getContext().getContentResolver().openOutputStream(result.getData().getData(), "wt")) {
                 if (stream == null) throw new IllegalStateException("Cannot open export destination");

@@ -76,8 +76,6 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #commands { position: absolute; top: 100%; right: 8px; width: 280px; padding: 6px; background: #181818; border: 1px solid #333; border-radius: 6px; }
 #commands button { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 44px; padding: 8px; background: transparent; text-align: left; }
 #commands button:active, #commands button:focus-visible { background: #333; }
-.arrows { display: flex; }
-#commands .arrows button { justify-content: center; }
 #run-button { display: none; position: fixed; z-index: 3; top: calc(var(--top) + var(--height) - var(--keyboard-height) - 72px - var(--safe-bottom)); right: calc(max(12px, env(safe-area-inset-right)) + var(--keyboard-width)); width: 56px; height: 56px; padding: 0; align-items: center; justify-content: center; border: 0; border-radius: 16px; background: var(--run-background, #41465b); color: var(--run-foreground, #dce1f9); touch-action: none; user-select: none; }
 #run-button::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; background: radial-gradient(circle 54px at var(--ripple-x, 50%) var(--ripple-y, 50%), color-mix(in srgb, currentColor 24%, transparent) 0%, transparent 100%); transform-origin: var(--ripple-x, 50%) var(--ripple-y, 50%); }
 #run-button.rippling::before { animation: run-ripple 500ms ease-out; }

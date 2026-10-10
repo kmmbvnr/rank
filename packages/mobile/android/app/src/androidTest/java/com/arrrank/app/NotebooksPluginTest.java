@@ -3,6 +3,7 @@ package com.arrrank.app;
 import static org.junit.Assert.*;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.pm.ApplicationInfo;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.getcapacitor.JSObject;
@@ -36,6 +37,7 @@ public class NotebooksPluginTest {
         closePlugins();
         for (TestContext context : contexts) {
             context.getBaseContext().deleteDatabase(context.prefix + "notebooks.db");
+            context.getBaseContext().deleteDatabase(context.prefix + "beginner-notebooks.db");
             deleteFixture(new File(context.getBaseContext().getCacheDir(), context.prefix));
         }
     }
@@ -43,7 +45,14 @@ public class NotebooksPluginTest {
     private static class TestContext extends ContextWrapper {
         final String prefix = "notebooks-test-" + UUID.randomUUID() + "-";
         File files;
+        boolean debug = true;
         TestContext(Context base) { super(base); files = new File(base.getCacheDir(), prefix); files.mkdirs(); }
+        @Override public ApplicationInfo getApplicationInfo() {
+            ApplicationInfo info = new ApplicationInfo(super.getApplicationInfo());
+            if (debug) info.flags |= ApplicationInfo.FLAG_DEBUGGABLE;
+            else info.flags &= ~ApplicationInfo.FLAG_DEBUGGABLE;
+            return info;
+        }
         @Override public File getFilesDir() { return files; }
         @Override public File getDatabasePath(String name) { return getBaseContext().getDatabasePath(prefix + name); }
     }
@@ -116,4 +125,41 @@ public class NotebooksPluginTest {
         assertFalse(new File(context.files, "notebooks/" + id + ".ra").exists());
         Call invalid = call("id", "../../notebooks.db"); plugin.get(invalid); assertNotNull(invalid.error);
     }
+    private Call preview(String name, Object value) {
+        JSObject data = new JSObject(); data.put(name, value); data.put("debugPreview", true); return new Call(data);
+    }
+
+    @Test public void debugSandboxKeepsSameIdsAndFilesSeparateAcrossRestart() throws Exception {
+        TestContext context = context();
+        NotebooksPlugin plugin = plugin(context);
+        String id = UUID.randomUUID().toString();
+        Call normal = call("book", book(id, 100, "Real draft")); plugin.save(normal); assertNull(normal.error);
+        Call sandbox = preview("book", book(id, 101, "Sandbox draft")); plugin.save(sandbox); assertNull(sandbox.error);
+        assertTrue(new File(context.files, "notebooks/" + id + ".ra").isFile());
+        assertTrue(new File(context.files, "beginner-notebooks/" + id + ".ra").isFile());
+        closePlugins(); plugin = plugin(context);
+        Call get = preview("id", id); plugin.get(get); assertNull(get.error);
+        assertEquals("Sandbox draft", get.result.getJSONObject("book").getJSONObject("snapshot").getString("draft"));
+        Call remove = preview("id", id); plugin.remove(remove); assertNull(remove.error);
+        Call real = call("id", id); plugin.get(real); assertNull(real.error);
+        assertEquals("Real draft", real.result.getJSONObject("book").getJSONObject("snapshot").getString("draft"));
+        assertTrue(new File(context.files, "notebooks/" + id + ".ra").isFile());
+    }
+
+    @Test public void releaseRejectsSandboxAccessAndKeepsNormalHistory() throws Exception {
+        TestContext context = context(); context.debug = false;
+        NotebooksPlugin plugin = plugin(context);
+        Call environment = new Call(new JSObject()); plugin.environment(environment);
+        assertFalse(environment.result.getBoolean("debug"));
+        String id = UUID.randomUUID().toString();
+        Call real = call("book", book(id, 100, "User draft")); plugin.save(real); assertNull(real.error);
+        Call save = preview("book", book(id, 101, "Wrong draft")); plugin.save(save); assertNotNull(save.error);
+        Call get = preview("id", id); plugin.get(get); assertNotNull(get.error);
+        Call list = preview("limit", 25); plugin.list(list); assertNotNull(list.error);
+        Call remove = preview("id", id); plugin.remove(remove); assertNotNull(remove.error);
+        Call normal = call("id", id); plugin.get(normal); assertNull(normal.error);
+        assertEquals("User draft", normal.result.getJSONObject("book").getJSONObject("snapshot").getString("draft"));
+        assertFalse(new File(context.files, "beginner-notebooks").exists());
+    }
+
 }

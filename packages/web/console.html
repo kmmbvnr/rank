@@ -12,21 +12,8 @@
         <button id="brand" type="button" aria-label="Open notebook history" aria-haspopup="dialog">RANK</button>
         <button id="menu-toggle" aria-label="Terminal commands" aria-expanded="false" aria-controls="commands">⋮</button>
         <nav id="commands" aria-label="Terminal commands" hidden>
-            <button data-action="walkthrough">Replay walkthrough</button>
             <button data-action="turbo-run">Run program</button>
-            <button data-key="g" data-ctrl="true">Select iteration</button>
-            <div class="arrows">
-                <button data-key="left" aria-label="Left">←</button>
-                <button data-key="up" aria-label="Up">↑</button>
-                <button data-key="down" aria-label="Down">↓</button>
-                <button data-key="right" aria-label="Right">→</button>
-            </div>
-            <button data-debug data-key="t" hidden>Step into line</button>
-            <button data-debug data-key="n" hidden>Next iteration</button>
-            <button data-debug data-key="g" hidden>Return to main</button>
-            <button data-key="tab">Complete</button>
-            <button data-key="escape">Edit</button>
-            <button data-key="c" data-ctrl="true">Stop</button>
+            <button data-action="walkthrough" hidden>Beginner mode</button>
         </nav>
     </header>
     <main id="terminal" aria-label="Rank terminal">

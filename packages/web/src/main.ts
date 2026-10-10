@@ -21,7 +21,7 @@ import { VoiceDictation, isVoiceSupported } from './voice-dictation.js';
 import { NotebookHistory } from './notebook-history.js';
 import { libraryNotebookId } from './demo-library.js';
 import { NotebookPanel } from './notebook-panel.js';
-import { notebookStore, notebookSource, validDraft, type NotebookDraft } from './notebook-store.js';
+import { notebookStore, debugBeginnerStore, debugNotebookMode, notebookSource, validDraft, type NotebookDraft } from './notebook-store.js';
 import { splitSource } from '@arrrank/common/notebook';
 
 const terminal = document.querySelector<HTMLElement>('#terminal')!;
@@ -121,14 +121,19 @@ let changingNotebook = false;
 let legacyDraft: NotebookDraft | undefined;
 let notebookHistory: NotebookHistory | undefined;
 let notebookPanel: NotebookPanel | undefined;
+let beginnerPreview = false;
+let debugPreviewAvailable = false;
+const debugPreferenceKey = (key: string) => beginnerPreview ? key.replace('rank-', 'rank-beginner-') : key;
 
 try {
     const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
     if (validDraft({ ...saved, draft: typeof saved?.draft === 'string' ? saved.draft : '' })) {
         legacyDraft = { cells: saved.cells, draft: typeof saved.draft === 'string' ? saved.draft : '' };
-        for (const source of saved.cells) repl.notebook.restore(source);
-        repl.notebook.toPrompt();
-        repl.notebook.replace(typeof saved.draft === 'string' ? saved.draft : '');
+        if (example || localStorage.getItem('rank-debug-beginner-v1') !== 'true') {
+            for (const source of saved.cells) repl.notebook.restore(source);
+            repl.notebook.toPrompt();
+            repl.notebook.replace(typeof saved.draft === 'string' ? saved.draft : '');
+        }
     }
 } catch { /* An unavailable draft must not prevent opening the terminal. */ }
 
@@ -391,12 +396,7 @@ function render(): void {
     // The steppers only make sense while the cursor sits on a loop being previewed.
     iterationControls.hidden = !!shownPause || repl.running || !repl.liveIterationAvailable;
     iterationPrev.disabled = iterationNext.disabled = busy;
-    for (const button of commands.querySelectorAll<HTMLElement>('[data-debug]')) button.hidden = !shownPause;
     renderKeyboard();
-    for (const button of commands.querySelectorAll<HTMLButtonElement>('button[data-key]')) {
-        button.disabled = repl.running && button.dataset.key !== 'c'
-            && !(paused && (button.hasAttribute('data-debug') || ['up', 'down'].includes(button.dataset.key!)));
-    }
     const turboRun = commands.querySelector<HTMLButtonElement>('button[data-action="turbo-run"]');
     if (turboRun) turboRun.disabled = repl.running;
     // Replacing the DOM would destroy the phone's selection handles and Copy menu.
@@ -912,7 +912,7 @@ menuToggle.onclick = () => {
 };
 commands.onclick = event => {
     if ((event.target as HTMLElement).closest('[data-action=walkthrough]')) {
-        closeMenu(); keyboardKeys.scrollTop = 0; setKeyboard(true); guidance?.replay(); return;
+        closeMenu(); void switchBeginnerPreview(true).catch(error => { failure = String(error); render(); }); return;
     }
     const turboRun = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-action="turbo-run"]');
     if (turboRun && !turboRun.disabled) {
@@ -923,12 +923,6 @@ commands.onclick = event => {
         void press({ name: 'l', ctrl: true });
         return;
     }
-    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-key]');
-    if (!button || button.disabled) return;
-    haptic(button.dataset.key === 't' && !!session.pauseState ? 'step' : 'tap');
-    closeMenu();
-    focusInput();
-    void press({ name: button.dataset.key, ctrl: button.dataset.ctrl === 'true' });
 };
 turboButton.addEventListener('pointerdown', event => event.preventDefault());
 turboButton.onclick = () => {
@@ -1543,36 +1537,40 @@ function resize(): void {
 window.visualViewport?.addEventListener('resize', resize);
 window.visualViewport?.addEventListener('scroll', resize);
 window.addEventListener('resize', resize);
-const guidance = touchConsole && !example ? new MobileGuidance(() => ({
-    ready: historyReady && !changingNotebook,
-    empty: repl.notebook.cells.every(cell => !cell.source.trim()),
-    codeLines: repl.notebook.cells.filter(cell => !cell.command).flatMap(cell => cell.source.split('\n'))
-        .filter(line => line.trim() && !/^\s*rem(?:\s|$)/.test(line)).length,
-    unavailable: busy || repl.running || composing || !!activeVoiceDictation || !!failure || needsRestart
-        || !!repl.help || !!session.pauseState || nativeSelection() || !commands.hidden
-        || !!document.querySelector('dialog[open]:not(#notebook-panel)')
-        || repl.notebook.cells.some(cell => cell.status === 'error'),
-    softKeyboard,
-    notebookPanelOpen: notebookPanel?.dialog.open ?? false,
-    rankKeyboard: symbolKeyboardShown() && !keyboard.hidden && !keyboardOpening,
-    targets: { notebook: terminal, play: runButton, newNotebook: document.querySelector<HTMLElement>('#new-notebook') ?? undefined, brand: document.querySelector<HTMLElement>('#brand')!,
-        commands: keyboardKeys.querySelector<HTMLElement>('button:not([aria-disabled="true"])') ?? undefined,
-        letters: keyboardLetters, modules: keyboardTabList.querySelector<HTMLElement>('[aria-label="Import a module"]') ?? undefined },
-}), () => {
-    // Enqueue creates real editable cells and a trailing prompt, without evaluation.
-    if (!historyReady || busy || repl.running || repl.notebook.cells.some(cell => cell.source.trim())) return;
-    repl.notebook.enqueue('A = 1 to 5');
-    repl.notebook.enqueue('A * 10');
-    repl.notebook.selectTo(1, 'A * 10'.length);
-    follow = true;
-    render();
-}, () => {
-    input.blur();
-    const capacitor = (globalThis as typeof globalThis & { Capacitor?: { getPlatform(): string } }).Capacitor;
-    if (capacitor?.getPlatform() === 'android')
-        void fetch('/__rank_keyboard_hide', { cache: 'no-store' }).catch(() => {});
-}) : undefined;
-document.querySelector<HTMLButtonElement>('[data-action="walkthrough"]')!.hidden = !guidance;
+let guidance: MobileGuidance | undefined;
+function createGuidance(): MobileGuidance | undefined {
+    return touchConsole && !example ? new MobileGuidance(() => ({
+        ready: historyReady && !changingNotebook,
+        empty: repl.notebook.cells.every(cell => !cell.source.trim()),
+        codeLines: repl.notebook.cells.filter(cell => !cell.command).flatMap(cell => cell.source.split('\n'))
+            .filter(line => line.trim() && !/^\s*rem(?:\s|$)/.test(line)).length,
+        unavailable: busy || repl.running || composing || !!activeVoiceDictation || !!failure || needsRestart
+            || !!repl.help || !!session.pauseState || nativeSelection() || !commands.hidden
+            || !!document.querySelector('dialog[open]:not(#notebook-panel)')
+            || repl.notebook.cells.some(cell => cell.status === 'error'),
+        softKeyboard,
+        notebookPanelOpen: notebookPanel?.dialog.open ?? false,
+        rankKeyboard: symbolKeyboardShown() && !keyboard.hidden && !keyboardOpening,
+        targets: { notebook: terminal, play: runButton, newNotebook: document.querySelector<HTMLElement>('#new-notebook') ?? undefined, brand: document.querySelector<HTMLElement>('#brand')!,
+            commands: keyboardKeys.querySelector<HTMLElement>('button:not([aria-disabled="true"])') ?? undefined,
+            letters: keyboardLetters, modules: keyboardTabList.querySelector<HTMLElement>('[aria-label="Import a module"]') ?? undefined },
+    }), () => {
+        // Enqueue creates real editable cells and a trailing prompt, without evaluation.
+        if (!historyReady || busy || repl.running || repl.notebook.cells.some(cell => cell.source.trim())) return;
+        repl.notebook.enqueue('A = 1 to 5');
+        repl.notebook.enqueue('A * 10');
+        repl.notebook.selectTo(1, 'A * 10'.length);
+        follow = true;
+        render();
+    }, () => {
+        input.blur();
+        const capacitor = (globalThis as typeof globalThis & { Capacitor?: { getPlatform(): string } }).Capacitor;
+        if (capacitor?.getPlatform() === 'android')
+            void fetch('/__rank_keyboard_hide', { cache: 'no-store' }).catch(() => {});
+    }, debugPreferenceKey('rank-mobile-guidance-v1')) : undefined;
+}
+const beginnerButton = document.querySelector<HTMLButtonElement>('[data-action="walkthrough"]')!;
+beginnerButton.hidden = true;
 document.querySelector('#key-manual')?.addEventListener('close', () => guidance?.update());
 
 resize();
@@ -1596,7 +1594,32 @@ function notebookSnapshot(): NotebookDraft {
     };
 }
 function rememberNotebook(): void {
-    try { localStorage.setItem('rank-active-notebook-v1', notebookHistory!.current!.id); } catch { /* History still survives. */ }
+    try { localStorage.setItem(debugPreferenceKey('rank-active-notebook-v1'), notebookHistory!.current!.id); } catch { /* History still survives. */ }
+}
+async function switchBeginnerPreview(preview: boolean): Promise<void> {
+    if (!debugPreviewAvailable || !historyReady || changingNotebook) return;
+    if (busy || repl.running || repl.evaluating) throw new Error('Stop execution before switching modes');
+    changingNotebook = true;
+    input.readOnly = true;
+    try {
+        stopVoiceDictation();
+        notebookHistory!.schedule(notebookSnapshot());
+        await notebookHistory!.flush();
+        if (preview) {
+            // Only the disposable beginner workspace is reset. Developer storage is never migrated or cleared.
+            const store = debugBeginnerStore();
+            let page;
+            do {
+                page = await store.list();
+                for (const book of page.items) await store.remove(book.id);
+            } while (page.items.length);
+            for (const key of ['rank-beginner-active-notebook-v1', 'rank-beginner-mobile-guidance-v1']) localStorage.removeItem(key);
+        }
+        localStorage.setItem('rank-debug-beginner-v1', String(preview));
+        location.reload();
+    } catch (error) {
+        changingNotebook = false; input.readOnly = false; throw error;
+    }
 }
 async function changeNotebook(id?: string): Promise<void> {
     if (busy || repl.running || repl.evaluating) throw new Error('Stop execution before switching notebooks');
@@ -1646,43 +1669,63 @@ if (!example) {
     input.readOnly = true;
     const brand = document.querySelector<HTMLButtonElement>('#brand')!;
     brand.disabled = true;
-    notebookHistory = new NotebookHistory(notebookStore(), error => {
-        failure = 'Cannot save notebook: ' + String(error); render();
-    }, rememberNotebook);
-    notebookPanel = new NotebookPanel(notebookHistory, async id => {
-        await changeNotebook(id);
-        if (id === undefined) guidance?.discovered('newNotebook');
-    }, importNotebook, exportNotebook, async (path, source) => {
-        if (busy || repl.running || repl.evaluating) throw new Error('Stop execution before opening an example');
-        const id = await libraryNotebookId(path);
-        if (!await notebookHistory!.store.get(id)) {
-            const text = await source();
-            const now = Date.now();
-            await notebookHistory!.store.save({ id, title: path.split('/').at(-1)!, manual: true,
-                created: now, updated: now, snapshot: { cells: splitSource(text.replace(/\r\n?/g, '\n')), draft: '' } });
-        }
-        await changeNotebook(id);
-    },
-        () => { closeMenu(); stopVoiceDictation(); setKeyboard(false); },
-        () => { brand.setAttribute('aria-expanded', 'false'); render(); });
-    brand.onclick = async () => {
-        brand.setAttribute('aria-expanded', 'true');
-        await notebookPanel!.show();
-        guidance?.discovered('notebooks');
-    };
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden && historyReady) {
-            notebookHistory!.schedule(notebookSnapshot());
-            void notebookHistory!.flush().catch(error => { failure = 'Cannot save notebook: ' + String(error); render(); });
-        }
-    });
     void (async () => {
         try {
-            const snapshot = await notebookHistory!.initialize(localStorage.getItem('rank-history-migrated-v1') ? undefined : legacyDraft,
-                localStorage.getItem('rank-active-notebook-v1'));
+            debugPreviewAvailable = await debugNotebookMode().catch(() => false);
+            beginnerPreview = debugPreviewAvailable && localStorage.getItem('rank-debug-beginner-v1') === 'true';
+            guidance = createGuidance();
+            beginnerButton.hidden = !debugPreviewAvailable || !guidance || beginnerPreview;
+            notebookHistory = new NotebookHistory(beginnerPreview ? debugBeginnerStore() : notebookStore(), error => {
+                failure = 'Cannot save notebook: ' + String(error); render();
+            }, rememberNotebook);
+            notebookPanel = new NotebookPanel(notebookHistory, async id => {
+                await changeNotebook(id);
+                if (id === undefined) guidance?.discovered('newNotebook');
+            }, importNotebook, exportNotebook, async (path, source) => {
+                if (busy || repl.running || repl.evaluating) throw new Error('Stop execution before opening an example');
+                const id = await libraryNotebookId(path);
+                if (!await notebookHistory!.store.get(id)) {
+                    const text = await source();
+                    const now = Date.now();
+                    await notebookHistory!.store.save({ id, title: path.split('/').at(-1)!, manual: true,
+                        created: now, updated: now, snapshot: { cells: splitSource(text.replace(/\r\n?/g, '\n')), draft: '' } });
+                }
+                await changeNotebook(id);
+            },
+                () => { closeMenu(); stopVoiceDictation(); setKeyboard(false); },
+                () => { brand.setAttribute('aria-expanded', 'false'); render(); });
+            let returnTimer: ReturnType<typeof setTimeout> | undefined;
+            let returning = false;
+            brand.addEventListener('contextmenu', event => {
+                if (beginnerPreview) event.preventDefault();
+            });
+            brand.addEventListener('pointerdown', () => {
+                if (!debugPreviewAvailable || !beginnerPreview) return;
+                returnTimer = setTimeout(() => {
+                    returning = true;
+                    void switchBeginnerPreview(false).catch(error => { returning = false; failure = String(error); render(); });
+                }, 2000);
+            });
+            for (const event of ['pointerup', 'pointercancel', 'pointerleave'])
+                brand.addEventListener(event, () => clearTimeout(returnTimer));
+            brand.onclick = async () => {
+                if (returning) return;
+                brand.setAttribute('aria-expanded', 'true');
+                await notebookPanel!.show();
+                guidance?.discovered('notebooks');
+            };
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) clearTimeout(returnTimer);
+                if (document.hidden && historyReady) {
+                    notebookHistory!.schedule(notebookSnapshot());
+                    void notebookHistory!.flush().catch(error => { failure = 'Cannot save notebook: ' + String(error); render(); });
+                }
+            });
+            const snapshot = await notebookHistory!.initialize(beginnerPreview || localStorage.getItem('rank-history-migrated-v1') ? undefined : legacyDraft,
+                localStorage.getItem(debugPreferenceKey('rank-active-notebook-v1')));
             await repl.restoreNotebook(snapshot.cells, snapshot.draft);
             rememberNotebook();
-            localStorage.setItem('rank-history-migrated-v1', 'true');
+            localStorage.setItem(debugPreferenceKey('rank-history-migrated-v1'), 'true');
             // Keep the original draft as a migration backup; never overwrite it with another notebook.
             historyReady = true;
             input.readOnly = false;

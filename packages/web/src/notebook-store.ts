@@ -37,11 +37,12 @@ export function notebookTitle(snapshot: NotebookDraft): string {
 }
 
 const native = registerPlugin<{
-    get(options: { id: string }): Promise<{ book?: SavedNotebook }>;
-    save(options: { book: SavedNotebook }): Promise<void>;
-    list(options: { before?: HistoryPage['next']; limit: number }): Promise<HistoryPage>;
-    remove(options: { id: string }): Promise<void>;
-    exportFile(options: { id: string }): Promise<void>;
+    environment(): Promise<{ debug: boolean }>;
+    get(options: { id: string; debugPreview?: boolean }): Promise<{ book?: SavedNotebook }>;
+    save(options: { book: SavedNotebook; debugPreview?: boolean }): Promise<void>;
+    list(options: { before?: HistoryPage['next']; limit: number; debugPreview?: boolean }): Promise<HistoryPage>;
+    remove(options: { id: string; debugPreview?: boolean }): Promise<void>;
+    exportFile(options: { id: string; debugPreview?: boolean }): Promise<void>;
     importFile(): Promise<{ source?: string }>;
 }>('Notebooks');
 
@@ -114,14 +115,24 @@ export class BrowserNotebookStore implements NotebookStore {
     }
 }
 
-export function notebookStore(): NotebookStore {
-    if (Capacitor.getPlatform() !== 'android') return new BrowserNotebookStore();
+export async function debugNotebookMode(): Promise<boolean> {
+    return Capacitor.getPlatform() === 'android' ? (await native.environment()).debug : import.meta.env.DEV;
+}
+
+function createNotebookStore(debugPreview = false): NotebookStore {
+    if (Capacitor.getPlatform() !== 'android') return new BrowserNotebookStore(debugPreview ? 'rank-beginner-notebooks-v1' : undefined);
     return {
-        get: async id => (await native.get({ id })).book,
-        save: book => native.save({ book }),
-        list: before => native.list({ before, limit: HISTORY_PAGE_SIZE }),
-        remove: id => native.remove({ id }),
-        exportFile: id => native.exportFile({ id }),
+        get: async id => (await native.get({ id, debugPreview })).book,
+        save: book => native.save({ book, debugPreview }),
+        list: before => native.list({ before, limit: HISTORY_PAGE_SIZE, debugPreview }),
+        remove: id => native.remove({ id, debugPreview }),
+        exportFile: id => native.exportFile({ id, debugPreview }),
         importFile: () => native.importFile(),
     };
 }
+
+/** Normal user history keeps its original database and file paths. */
+export function notebookStore(): NotebookStore { return createNotebookStore(); }
+
+/** Called only after the native debug-build check. Never a user profile. */
+export function debugBeginnerStore(): NotebookStore { return createNotebookStore(true); }

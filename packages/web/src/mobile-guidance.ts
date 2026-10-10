@@ -39,9 +39,9 @@ export class MobileGuidance {
     private editing = false;
     private timer?: ReturnType<typeof setTimeout>;
 
-    constructor(private context: () => GuidanceContext, private insertExample: () => void, private dismissKeyboard: () => void) {
+    constructor(private context: () => GuidanceContext, private insertExample: () => void, private dismissKeyboard: () => void, private readonly preferenceKey = storageKey) {
         try {
-            const data = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            const data = JSON.parse(localStorage.getItem(this.preferenceKey) || '{}');
             if (data && typeof data === 'object') {
                 if (steps.includes(data.step)) this.saved.step = data.step;
                 this.saved.keyboardUses = data.keyboardUses === 2 ? 2 : data.keyboardUses === 1 ? 1 : 0;
@@ -96,7 +96,7 @@ export class MobileGuidance {
     }
 
     private persist(): void {
-        try { localStorage.setItem(storageKey, JSON.stringify(this.saved)); } catch { /* This session still remembers. */ }
+        try { localStorage.setItem(this.preferenceKey, JSON.stringify(this.saved)); } catch { /* This session still remembers. */ }
     }
     private step(step: Step): void { this.saved.step = step; this.persist(); }
     private defer(): void { clearTimeout(this.timer); this.nextBoundary = this.boundary + 1; this.hide(); }

@@ -58,7 +58,7 @@ async original => {
     await clickCore();
     await step('commands');
     check(!(await card.textContent()).includes('Dismiss the system'), 'Already visible Rank keyboard needs no OS dismissal instructions');
-    const command = page.locator('#keyboard-keys button').filter({ hasText: /^false$/ });
+    const command = page.locator('#keyboard-keys button:not([aria-disabled="true"])').first();
     await command.scrollIntoViewIfNeeded();
     const box = await command.boundingBox();
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
@@ -89,15 +89,7 @@ async original => {
     await page.locator('#brand').click();
     await page.locator('.history-title').filter({ hasText: /^A = 1 to 5$/ }).click();
     await page.locator('#notebook-panel').waitFor({ state: 'hidden' });
-    await page.locator('#menu-toggle').click();
-    await page.getByRole('button', { name: 'Replay walkthrough' }).click();
-    await page.evaluate(() => window.rankSoftKeyboard(false));
-    await step('commands');
-    check((await page.locator('#screen').textContent()).includes('A * 10'), 'Replay must preserve existing code');
-    check(await card.getByRole('button', { name: 'Start' }).count() === 0, 'Replay must not offer replacement code');
-    await finishTour();
-    await page.reload();
-    check(await card.isHidden(), 'Completion must persist across reopening');
+    check((await page.locator('#screen').textContent()).includes('A * 10'), 'Reopening preserves existing code');
 
     // Typing cancels the offer, preserves source, and suppresses hints while editing.
     await context.close();
@@ -111,8 +103,9 @@ async original => {
     await page.waitForTimeout(1100);
     check(await card.isHidden(), 'Typing must dismiss the example and suppress guidance');
     check(await page.getByRole('textbox').inputValue() === 'X = 42', 'Keep independent source');
-    await page.locator('#menu-toggle').click();
-    await page.getByRole('button', { name: 'Replay walkthrough' }).click();
+    // Resume the keyboard portion on an independently written notebook.
+    await page.evaluate(() => localStorage.setItem('rank-mobile-guidance-v1', JSON.stringify({ step: 'keyboard' })));
+    await page.reload();
     await page.evaluate(() => window.rankSoftKeyboard(false));
     await step('commands');
     await finishTour();
@@ -147,7 +140,7 @@ async original => {
     await page.locator('#menu-toggle').click();
     check((await saved()).step === 'keyboard', 'Tap waits for the real native dismissal report');
     check(await page.getByRole('textbox').inputValue() === sourceBefore, 'Dismissal tap must preserve source');
-    check(await page.getByRole('button', { name: 'Replay walkthrough' }).isHidden(), 'Dismissal tap must not open the menu');
+    check(await page.getByRole('button', { name: 'Beginner mode' }).isHidden(), 'Dismissal tap must not open the menu');
     await page.evaluate(() => window.rankSoftKeyboard(false));
     await step('commands');
     await page.setViewportSize({ width: 844, height: 390 });
