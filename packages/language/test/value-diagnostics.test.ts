@@ -2088,6 +2088,31 @@ it('retains a private scalar parameter type but not its value across an unknown 
     expect(analyzeValues(parse(withCapture)).bindings.get('A')?.types).toEqual([]);
 });
 
+it('infers a declared scalar body separately from its ranked call result', () => {
+    const source = `memo depth N rank 0
+ if N equal 1
+  return 1
+ end
+ return (N // 2) depth + 1
+end`;
+    const program = services.Rank.parser.LangiumParser.parse<Program>(source).value;
+    const result = (arguments_: ValueFacts[], body = false) =>
+        analyzeValues(program, new Map(), new Map(), [{ name: 'depth', arguments: arguments_, body }]).functionResults[0];
+    expect(result([{ types: [] }])).toEqual({ types: [] });
+    expect(result([{ types: [] }], true)).toMatchObject({ types: ['integer'], rank: 0 });
+    expect(result([{ types: ['array'], rank: 1, shape: [3], elements: ['integer'] }]))
+        .toMatchObject({ types: ['array'], shape: [3], elements: ['integer'] });
+});
+
+it('preserves an unknown private scalar rank across calls without preserving captured ranks', () => {
+    const source = 'fun outer N rank 0\n Unknown external\n return N + 1\nend';
+    const result = (source: string) => analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value,
+        new Map(), new Map(), [{ name: 'outer', arguments: [{ types: [] }], body: true }]).functionResults[0];
+    expect(result(source)).toMatchObject({ types: [], rank: 0 });
+    const captured = source.replace(' Unknown external', ' fun change\n  N = array 1 2\n  return 0\n end\n Unknown external');
+    expect(result(captured).rank).toBeUndefined();
+});
+
 it('keeps a local type when nested functions only read its binding', () => {
     const source = 'fun outer N\n fun read\n  return N\n end\n Unknown external\n return N + 1\nend\nA = 3 outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;

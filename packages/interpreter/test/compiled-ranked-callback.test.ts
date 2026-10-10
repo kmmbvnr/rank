@@ -132,7 +132,7 @@ describe('compiled ranked callbacks', () => {
         expect(result.kernels).toBe(0);
     });
 
-    it('keeps memo callbacks behind their memo wrapper', () => {
+    it('uses ranked batches without bypassing memo cache writes', () => {
         let kernels = 0;
         const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => kernels++ });
         const diagnostics = new RuntimeDiagnostics();
@@ -145,7 +145,49 @@ describe('compiled ranked callbacks', () => {
             });
             expect(result).toEqual([2n, 2n, 4n, 2n]);
             expect(kernels).toBe(2);
-            expect(diagnostics.rankedBatches).toBe(0);
+            expect(diagnostics.rankedBatches).toBeGreaterThan(0);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([false, true])('retries failed memo cells and retains successful ones (compiled=%s)', compiled => {
+        const calls: string[] = [];
+        const runtime = new Interpreter(line => calls.push(line), { scalarFunctionCompilation: compiled });
+        try {
+            runtime.execute(`use io
+memo helper X
+  X print
+  if X equal 2
+    .Oops raise
+  end
+  return X + 1
+end
+Mapped = (array 1 2 1) helper rank 0`);
+            const mapped = runtime.variables.get('Mapped');
+            if (!mapped || !isRankArray(mapped)) throw new Error('missing mapped array');
+            for (let attempt = 0; attempt < 2; attempt++) {
+                expect(() => mapped.items).toThrow('.Oops');
+            }
+            expect(calls).toEqual(['1', '2', '2']);
+            expect(runtime.execute('1 helper')).toBe(2n);
+            expect(calls).toEqual(['1', '2', '2']);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([false, true])('reuses memo values across sequence passes and aliases (compiled=%s)', compiled => {
+        const calls: string[] = [];
+        const runtime = new Interpreter(line => calls.push(line), { scalarFunctionCompilation: compiled });
+        try {
+            runtime.execute(`use io
+memo helper X rank 0
+  X print
+  return X + 1
+end
+alias_fn = helper
+Values = 1 to 3 helper`);
+            expect(runtime.execute('Values sum')).toBe(9n);
+            expect(runtime.execute('Values sum')).toBe(9n);
+            expect(runtime.execute('1 to 3 alias_fn sum')).toBe(9n);
+            expect(calls).toEqual(['1', '2', '3']);
         } finally { runtime.dispose(); }
     });
 

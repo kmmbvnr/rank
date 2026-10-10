@@ -3,58 +3,23 @@ rem https://projecteuler.net/problem=14
 rem Find the starting value below Limit
 rem with the longest Collatz chain
 
-use algo
 use numbers
 use io
 use cli
 
 option Limit integer = 1000000
 
-Answer = Limit longest_collatz
+memo collatz N rank 0
+  if N equal 1
+    return 1
+  elif N even
+    N = N // 2
+  else
+    N = 3 * N + 1
+  end
+  return N collatz + 1
+end
+
+Seqs = 1 till Limit collatz
+Answer = (Seqs max .index) + 1
 Answer print
-
-
-rem Reuse every known suffix length while
-rem searching all smaller starting values.
-fun longest_collatz Limit
-  Cache = new index
-  Cache 1 = 1
-  BestStart = 1
-  BestLength = 1
-
-  for Start in 2 till Limit
-    Length = Start Cache collatz_length
-    if Length greater BestLength
-      BestLength = Length
-      BestStart = Start
-    end
-  end
-
-  return BestStart
-end
-
-
-rem Walk to a cached suffix, then memoize
-rem the path in reverse order.
-fun collatz_length Start Cache
-  Path = new stack
-  N = Start
-
-  for not N in Cache
-    Path push N
-    if N even
-      N = N // 2
-    else
-      N = 3 * N + 1
-    end
-  end
-
-  Length = Cache N
-  for Path len greater 0
-    Value = Path pop
-    Length += 1
-    Cache Value = Length
-  end
-
-  return Cache Start
-end

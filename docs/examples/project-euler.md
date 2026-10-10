@@ -285,15 +285,26 @@ answer is `5537376230`.
 rem Project Euler 14
 rem https://projecteuler.net/problem=14
 
-Cache = new index
-Cache 1 = 1
-Answer = 1000000 longest_collatz
+use numbers
+
+memo collatz N rank 0
+  if N equal 1
+    return 1
+  elif N even
+    N = N // 2
+  else
+    N = 3 * N + 1
+  end
+  return N collatz + 1
+end
+
+Seqs = 1 till 1000000 collatz
+Answer = (Seqs max .index) + 1
 ```
 
-The implementation walks each unknown suffix into a stack, stops when it
-reaches a cached value, and writes the lengths back in reverse order. The
-shared sparse `index` avoids rebuilding overlapping chains. The answer is
-`837799`.
+The memoized function reuses the length of each known suffix. Rank 0 applies
+it to every starting value below one million. The maximum's zero-based index
+plus one gives the starting value, `837799`.
 
 ## 15. Lattice paths
 

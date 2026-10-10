@@ -269,16 +269,18 @@ export class FunctionInvocation {
             return this.host.inputs ? this.host.inputs.call(statement, inputRequirement, run) : run();
         };
         // Only successful, validated returns enter the closure's memo cache.
-        const cache = statement.memo ? new Map<string, RankValue>() : undefined;
-        const execute = cache ? (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> => {
-            const key = JSON.stringify(arguments_.map(memoScalarKey));
-            const cached = cache.get(key);
-            if (cached !== undefined) return completed(cached);
-            return mapResult(checkedBody(arguments_, inputRequirement), value => {
-                memoScalarKey(value);
+        const cache = statement.memo ? new Map<MemoKey, RankValue>() : undefined;
+        const memoMiss = cache ? (arguments_: RankValue[], key: MemoKey, inputRequirement?: CallRequirement): Evaluation<RankValue> =>
+            mapResult(checkedBody(arguments_, inputRequirement), value => {
+                memoValueKey(value);
                 cache.set(key, value);
                 return value;
-            });
+            }) : undefined;
+        const execute = cache && memoMiss ? (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> => {
+            const key = memoCallKey(arguments_, statement.parameters.length);
+            const cached = cache.get(key);
+            if (cached !== undefined) return completed(cached);
+            return memoMiss(arguments_, key, inputRequirement);
         } : checkedBody;
         const declared = declaredRanks(statement);
         if (typeof declared === 'string') throw this.host.locate(new RankError(declared, 'TypeError'), statement);
@@ -315,6 +317,17 @@ export class FunctionInvocation {
             // A memo call must return through its cache writer. Do not bypass it
             // via the tail-call path that enters an ordinary function body.
             if (!statement.memo) functionDefinitions.set(fn, { owner: this, statement, context, direct, specialization });
+            // Hits already passed the return contract. Misses retain the same
+            // execution stack, validation and cache writer as ordinary calls.
+            if (cache && memoMiss && this.options().scalarFunctionCompilation !== false
+                && this.options().scalarEntryCompilation !== false) scalarCallbacks.set(fn, arguments_ => {
+                const key = memoCallKey(arguments_, statement.parameters.length);
+                const cached = cache.get(key);
+                if (cached !== undefined) return cached;
+                enterRuntime();
+                try { return runExecution(memoMiss(arguments_, key)); }
+                finally { leaveRuntime(); }
+            });
             if (!statement.memo && this.options().scalarFunctionCompilation !== false
                 && this.options().scalarEntryCompilation !== false) scalarCallbacks.set(fn, arguments_ => {
                 // The caller already read the operands. A declined guard uses
@@ -702,6 +715,23 @@ export class FunctionInvocation {
         const source = sequence({ ...plan, singlePass: true });
         return this.options().wrapSinglePassSequence?.(source) ?? source;
     }
+}
+
+type MemoKey = string | bigint | number | boolean | symbol;
+const memoNegativeZero = Symbol('memo negative zero');
+
+function memoCallKey(arguments_: RankValue[], arity: number): MemoKey {
+    return arity === 1 && arguments_.length === 1
+        ? memoValueKey(arguments_[0]) : JSON.stringify(arguments_.map(memoScalarKey));
+}
+
+/** One scalar needs no tuple serialization. Map preserves primitive types,
+ * except signed zero, which needs its own key. Text and value objects retain
+ * tagged keys so labels/dates cannot collide with text of the same spelling. */
+function memoValueKey(value: RankValue): MemoKey {
+    if (typeof value === 'bigint' || typeof value === 'boolean') return value;
+    if (typeof value === 'number') return Object.is(value, -0) ? memoNegativeZero : value;
+    return memoScalarKey(value);
 }
 
 function memoScalarKey(value: RankValue): string {

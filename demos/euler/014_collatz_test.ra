@@ -10,5 +10,6 @@ end
 test "starts below fourteen"
   use "014_collatz"
 
-  14 longest_collatz equal 9
+  Seqs = 1 till 14 collatz
+  ((Seqs max .index) + 1) equal 9
 end

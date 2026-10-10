@@ -3,10 +3,35 @@ import { describe, expect, it } from 'vitest';
 import { createReplSession } from '../src/repl-session.js';
 
 describe('function result signatures', () => {
+    it.each(['fun', 'memo'])('retains the integer result of recursive %s with a declared scalar rank', async keyword => {
+        const session = createReplSession();
+        const source = `${keyword} collatz N rank 0
+ if N equal 1
+  return 1
+ elif N even
+  N = N // 2
+ else
+  N = 3 * N + 1
+ end
+ return N collatz + 1
+end`;
+        try {
+            await session.execute('use numbers', 0, [], 40, true);
+            const result = await session.execute(source, 1, [], 40, true);
+            expect(result.ok).toBe(true);
+            expect(result.output.map(line => line.text).join(' ')).toBe('a → i');
+            expect(session.preview(source, 40, true).valueSummary).toBe('a → i');
+            expect((await session.execute('collatz', 2, [], 40, true)).output.map(line => line.text).join(' '))
+                .toBe('a → i');
+        } finally { session.dispose(); }
+    });
+
     it.each([
         ['fun inc X\n return X + 1\nend', 'i → i ; c<i> → c<i>'],
         ['fun identity X\n return X\nend', 'a → a'],
         ['fun pair X\n return tuple X "label"\nend', 'a → tuple(a, text)'],
+        ['fun answer X rank 0\n return 42\nend', 'a → i'],
+        ['fun answer X rank 1\n return 42\nend', 'a → i'],
         ['fun add X Y\n return X + Y\nend', 'a a → a ; a: number ; c<a> a → c<a> ; a: number ; a c<a> → c<a> ; a: number'],
         ['fun countdown N\n for N greater 0\n  yield N\n  N -= 1\n end\nend', 'i → sequence<i>'],
     ])('shows the inferred signature for %s', async (source, signature) => {

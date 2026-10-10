@@ -1,4 +1,5 @@
 import { functionBindingPlan } from '../function-binding.js';
+import { declaredRanks } from '../function-ranks.js';
 import { applicationForm } from '../application-forms.js';
 import { rankedFunctionFacts, rankedFunctionInputs } from './ranked-function-facts.js';
 import type { FunctionRelationship } from './function-relationships.js';
@@ -99,6 +100,8 @@ function checkedSelectionFacts(required: ValueRequirement, base: ValueFacts, id:
 export function analyzeValues(program: Program, initial: ReadonlyMap<string, ValueFacts> = new Map(),
     declarations: ReadonlyMap<string, FunctionStatement> = new Map(),
     examples: readonly { name: string; arguments: readonly ValueFacts[];
+        /** Infer the body's cell contract, without lifting it over an unknown outer frame. */
+        body?: boolean;
         constructions?: readonly (readonly ConstructorCall[] | undefined)[] }[] = [],
     loadModule?: (path: string) => Program | undefined,
     initialImports?: ReadonlyMap<string, ImportedFunction>): ValueAnalysis {
@@ -269,6 +272,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         for (const [name, fact] of env) if (!fact.types.includes('function')) {
             const scalar = closureOnly ? scalarContract(name, fact) : undefined;
             if (scalar) { env.set(name, scalar); continue; }
+            // An uncaptured local cannot be rebound by a callee. A scalar's
+            // rank therefore survives even when its type is not yet known.
+            if (protectedNames?.has(name) && fact.rank === 0 && !fact.types.length) {
+                env.set(name, { ...invalidate(fact), rank: 0, shape: [] });
+                continue;
+            }
             const accepted = fact.acceptedTypes ?? fact.types;
             const privateValue = protectedNames?.has(name) && accepted.length > 0;
             const rank = contractRank(fact);
@@ -1396,8 +1405,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
 
     statements(program.statements, bindings);
     const functionResults = examples.map(example => {
+        const definition = functions.get(example.name);
+        const ranks = example.body && definition ? declaredRanks(definition) : undefined;
         // A collection the test filled with module-function results holds what those calls return.
         const inputs = example.arguments.map((fact, index) => {
+            if (ranks && typeof ranks !== 'string' && ranks.ranks[index] === 0
+                && !fact.types.length && fact.rank === undefined) fact = { ...fact, rank: 0, shape: [] };
             const sites = example.constructions?.[index];
             if (!sites) return fact;
             let collection: ValueFacts = { ...fact, elements: [], collectionId: nextCollectionId++ };
@@ -1408,7 +1421,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             return collection;
         });
         calls.resetBudget();
-        return calls.call(example.name, inputs, bindings);
+        return calls.call(example.name, inputs, bindings, undefined, example.body);
     });
     calls.validateDeclarations(bindings);
     diagnostics.push(...requirementDiagnostics(requirements.conflicts, diagnostics));

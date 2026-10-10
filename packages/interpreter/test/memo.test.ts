@@ -173,6 +173,29 @@ end
         expect(calls).toEqual(['1', '1']);
     });
 
+    it('keeps primitive unary keys separate from tagged text and labels', () => {
+        const calls: string[] = [];
+        const interpreter = new Interpreter(line => calls.push(line));
+        interpreter.execute('use io\nmemo identity X\n X print\n return X\nend');
+        const fn = interpreter.variables.get('identity')!;
+        if (!isNativeFunction(fn)) throw new Error('expected function');
+        for (const value of [2n, 2, -0, 0, NaN, Infinity, -Infinity, false, true,
+            '2', 'bigint:2', 'number:-0', 'label:Zero', 'date:2026-10-10']) {
+            expect(fn.call([value])).toBe(value);
+            expect(fn.call([value])).toBe(value);
+        }
+        interpreter.execute('.Zero identity\n.Zero identity');
+        expect(fn.call([{ kind: 'label', name: 'Zero' }])).toEqual({ kind: 'label', name: 'Zero' });
+        const date = { kind: 'date', year: 2026, month: 10, day: 10 } as const;
+        expect(fn.call([date])).toEqual(date);
+        expect(fn.call([{ ...date }])).toEqual(date);
+        expect(calls).toHaveLength(16);
+        // A cached unary value must not hide an invalid host-call arity.
+        expect(() => fn.call([])).toThrowError('expects 1 arguments');
+        expect(() => fn.call([2n, 3n])).toThrowError('expects 1 arguments');
+        interpreter.dispose();
+    });
+
     it('runs deep memo recursion without using the JavaScript call stack', () => {
         const interpreter = new Interpreter();
         expect(interpreter.execute(`

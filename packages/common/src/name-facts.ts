@@ -57,9 +57,10 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         if (analysis.functions.get(definition.name) !== definition) return undefined;
         const cached = generalAnalyses.get(definition);
         if (cached) return cached;
-        // Unknown arguments still let the existing body analysis prove locals and returns.
+        // A general signature describes one body invocation, before declared
+        // ranks lift its result over a caller's collection frame.
         const result = analyzeValues(program, scope ? new Map(scope.bindings) : runtime,
-            new Map(scope?.functions), [{ name: definition.name,
+            new Map(scope?.functions), [{ name: definition.name, body: true,
                 arguments: definition.parameters.map(() => UNKNOWN) }], loadModule, scope?.imports);
         generalAnalyses.set(definition, result);
         return result;

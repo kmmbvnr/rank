@@ -14,6 +14,16 @@ function footer(repl: NotebookRepl, source: string, cursor: number, columns = 60
     return frame.factsRow === undefined ? stripAnsi(frame.lines.at(-1) ?? '') : `facts: ${stripAnsi(frame.lines[frame.factsRow])}`;
 }
 
+it('shows the recursive memo result under the cursor with rank declared on the function', () => {
+    const demo = readFileSync(new URL('../../../demos/euler/014_collatz.ra', import.meta.url), 'utf8');
+    const source = 'use numbers\n' + demo.slice(demo.indexOf('memo collatz'), demo.indexOf('Seqs =')).trim();
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        expect(footer(repl, source, source.indexOf('collatz') + 2)).toBe('facts: collatz · a → i');
+    } finally { session.dispose(); }
+});
+
 it('shows the type of the name under the cursor instead of the hints', () => {
     const session = createReplSession();
     try {
