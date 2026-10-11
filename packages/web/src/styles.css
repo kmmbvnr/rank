@@ -25,10 +25,21 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 #history-recovery h2 { margin: 0 0 12px; font-size: 20px; }
 #history-recovery p { overflow-wrap: anywhere; }
 #history-recovery .recovery-error { color: #bbb; font-size: 13px; }
-#history-recovery button, #feedback button, #feedback a { min-height: 48px; padding: 12px 20px; border: 0; border-radius: 12px; background: #414968; color: #fff; font: inherit; cursor: pointer; }
-#feedback { width: min(440px, calc(100% - 32px)); max-height: calc(var(--height) - var(--chrome-height) - 32px); overflow: auto; padding: 24px; border: 1px solid #555; border-radius: 16px; background: #252535; color: #eee; font: 15px/1.5 sans-serif; }
-#feedback::backdrop { background: #0009; }
-#feedback h2 { margin: 0 0 16px; font-size: 22px; }
+#history-recovery button, #feedback button, #feedback a, #about button { min-height: 48px; padding: 12px 20px; border: 0; border-radius: 12px; background: #414968; color: #fff; font: inherit; cursor: pointer; }
+#feedback, #about { width: min(440px, calc(100% - 32px)); max-height: calc(var(--height) - var(--chrome-height) - 32px); overflow: auto; padding: 24px; border: 1px solid #555; border-radius: 16px; background: #252535; color: #eee; font: 15px/1.5 sans-serif; }
+#feedback::backdrop, #about::backdrop { background: #0009; }
+#feedback h2, #about h2 { margin: 0 0 16px; font-size: 22px; }
+#about { width: min(340px, calc(100% - 40px)); padding: 30px 24px 16px; border-color: #383940; border-radius: 20px; background: #202127; text-align: center; }
+#about::backdrop { background: #000b; }
+#about #about-title { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 22px; color: #fff; }
+#about-title span { font: italic 950 38px/1 system-ui, sans-serif; font-synthesis: weight style; letter-spacing: -.06em; text-transform: uppercase; }
+#about-title img { flex: none; display: block; }
+#about .about-description { max-width: 250px; margin: 0 auto 22px; color: #d0d1d7; font-size: 14px; line-height: 1.6; }
+#about .about-details { margin-bottom: 18px; color: #999ba6; font-size: 12px; }
+#about .about-details p { margin: 4px 0; }
+#about button { min-height: 44px; min-width: 100px; padding: 10px 20px; background: transparent; color: #c4c9e4; font-size: 14px; }
+#about button:hover { background: #ffffff08; }
+#about button:focus-visible { outline: 2px solid #aeb7e1; outline-offset: 2px; }
 #feedback textarea { display: block; width: 100%; margin: 8px 0; padding: 10px; color: #eee; background: #14141d; border: 1px solid #777; border-radius: 8px; font: inherit; }
 #feedback p { color: #bbb; }
 #feedback pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; user-select: text; }
@@ -38,6 +49,9 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 #screen { will-change: transform; margin: 0; font: inherit; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 .terminal-row { height: 1.5em; white-space: pre; }
 .terminal-row.terminal-comment { color: #aaa; }
+/* One pointer over the whole screen: left to the browser it flips between the text bar and the arrow from row to row. */
+#terminal { cursor: text; }
+.terminal-row.terminal-openable { cursor: pointer; }
 /* Draw the arrow in its fixed cell, centered on the lowercase letters rather
    than on a platform-dependent fallback font's baseline and side bearings. */
 .terminal-type-arrow { position: relative; height: 1ex; vertical-align: baseline; overflow: hidden; }
@@ -79,6 +93,17 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 }
 /* Chrome's touch adjustment snaps a tap near this field onto it, and the native caret placement then wins over locate(). */
 .mobile #input { pointer-events: none; }
+/* The website demo is small: a slimmer header leaves more of it for code. */
+html.example { --chrome-height: 30px; }
+html.example #brand { height: 30px; font-size: 15px; }
+html.example #menu-toggle { width: 34px; height: 30px; font-size: 20px; }
+html.example #terminal { top: calc(var(--top) + var(--chrome-height)); }
+/* A hamburger before the logo shows that it opens the notebook panel. */
+html.web #brand::before { content: ''; flex: none; width: 16px; height: 12px; margin-right: 10px; background:
+    linear-gradient(currentColor, currentColor) 0 0 / 100% 2px no-repeat,
+    linear-gradient(currentColor, currentColor) 0 50% / 100% 2px no-repeat,
+    linear-gradient(currentColor, currentColor) 0 100% / 100% 2px no-repeat; }
+html.example.web #brand::before { width: 14px; height: 10px; margin-right: 8px; }
 #chrome { position: fixed; top: var(--top); right: 0; left: 0; height: var(--chrome-height); z-index: 2; background: #000; }
 #brand { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; position: absolute; left: max(16px, env(safe-area-inset-left)); bottom: 0; display: flex; align-items: center; height: 44px; padding: 0; background: transparent; color: #e5e5e5; font-family: system-ui, sans-serif; font-size: 17px; font-weight: 950; font-style: italic; font-synthesis: weight style; letter-spacing: -.06em; }
 #voice-indicator { position: absolute; left: 0; top: 0; width: 14px; height: 1.5em; display: flex; align-items: center; justify-content: center; background: transparent; padding: 0; margin: 0; border: 0; cursor: pointer; z-index: 2; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
@@ -92,6 +117,7 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #commands { position: absolute; top: 100%; right: 8px; width: 280px; padding: 6px; background: #181818; border: 1px solid #333; border-radius: 6px; }
 #commands button { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 44px; padding: 8px; background: transparent; text-align: left; }
 #commands button:active, #commands button:focus-visible { background: #333; }
+#commands hr { margin: 6px 8px; border: 0; border-top: 1px solid #383838; }
 #run-button { display: none; position: fixed; z-index: 3; top: calc(var(--top) + var(--height) - var(--keyboard-height) - 72px - var(--safe-bottom)); right: calc(max(12px, env(safe-area-inset-right)) + var(--keyboard-width)); width: 56px; height: 56px; padding: 0; align-items: center; justify-content: center; border: 0; border-radius: 16px; background: var(--run-background, #41465b); color: var(--run-foreground, #dce1f9); touch-action: none; user-select: none; }
 #run-button::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; background: radial-gradient(circle 54px at var(--ripple-x, 50%) var(--ripple-y, 50%), color-mix(in srgb, currentColor 24%, transparent) 0%, transparent 100%); transform-origin: var(--ripple-x, 50%) var(--ripple-y, 50%); }
 #run-button.rippling::before { animation: run-ripple 500ms ease-out; }
@@ -267,6 +293,8 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #notebook-panel::backdrop { background: rgba(0, 0, 0, .6); }
 #notebook-panel header { display: flex; align-items: center; flex: none; min-height: 48px; }
 #notebook-panel .history-brand { font: italic 950 22px system-ui, sans-serif; letter-spacing: -.06em; }
+/* The panel focuses this first button as it opens; a ring around it right away looks like an error. */
+#notebook-panel .history-brand:focus-visible { outline: none; background: transparent; }
 #notebook-panel button { min-height: 44px; background: transparent; padding: 8px 10px; border-radius: 8px; text-align: left; }
 #notebook-panel button:focus-visible { background: #303030; }
 #notebook-panel .history-row[data-active] { background: #242424; }

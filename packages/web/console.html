@@ -14,9 +14,20 @@
         <nav id="commands" aria-label="Terminal commands" hidden>
             <button data-action="turbo-run">Run program</button>
             <button data-action="walkthrough" hidden>Release preview</button>
+            <hr>
             <button data-action="feedback">Send feedback</button>
+            <button data-action="about">About</button>
         </nav>
     </header>
+    <dialog id="about" aria-labelledby="about-title">
+        <h2 id="about-title"><span>Rank</span><img src="/src/assets/rank-cube.svg" alt="" width="32" height="35"></h2>
+        <p class="about-description">A modern BASIC for small screens and big algorithms.</p>
+        <div class="about-details">
+            <p>By Mikhail Podgurskiy</p>
+            <p id="about-version"></p>
+        </div>
+        <button type="button">Close</button>
+    </dialog>
     <section id="history-recovery" role="alert" aria-labelledby="history-recovery-title" hidden>
         <h2 id="history-recovery-title">Cannot open your notebooks</h2>
         <p>Your saved notebooks have not been deleted. Retry opening them. Do not clear app data.</p>

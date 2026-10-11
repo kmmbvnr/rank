@@ -22,8 +22,9 @@ import { VoiceDictation, isVoiceSupported } from './voice-dictation.js';
 import { NotebookHistory } from './notebook-history.js';
 import { seedStarterNotebooks } from './starter-notebooks.js';
 import { libraryNotebookId } from './demo-library.js';
+import { memoryNotebookStore } from './demo-store.js';
 import { NotebookPanel } from './notebook-panel.js';
-import { notebookStore, debugBeginnerStore, debugNotebookMode, notebookSource, validDraft, type NotebookDraft } from './notebook-store.js';
+import { notebookStore, debugBeginnerStore, debugNotebookMode, appVersion, notebookSource, validDraft, type NotebookDraft } from './notebook-store.js';
 import { splitSource } from '@arrrank/common/notebook';
 
 const terminal = document.querySelector<HTMLElement>('#terminal')!;
@@ -40,6 +41,14 @@ const historyRecovery = document.querySelector<HTMLElement>('#history-recovery')
 document.querySelector<HTMLButtonElement>('#history-retry')!.onclick = () => location.reload();
 const feedback = new Feedback();
 document.querySelector<HTMLButtonElement>('#history-feedback')!.onclick = () => { void feedback.open(); };
+const about = document.querySelector<HTMLDialogElement>('#about')!;
+about.querySelector('button')!.onclick = () => about.close();
+about.addEventListener('close', () => menuToggle.focus({ preventScroll: true }));
+function closeAbout(): boolean {
+    if (!about.open) return false;
+    about.close();
+    return true;
+}
 const voiceIndicator = document.querySelector<HTMLButtonElement>('#voice-indicator')!;
 const runButton = document.querySelector<HTMLButtonElement>('#run-button')!;
 const turboButton = document.querySelector<HTMLButtonElement>('#turbo-button')!;
@@ -71,14 +80,13 @@ if (import.meta.env.MODE === 'mobile') document.documentElement.classList.add('m
 /** How much smaller than code a result is drawn on a touch console; the same number is in the stylesheet as `--result-scale`. */
 const RESULT_SCALE = 0.88;
 document.documentElement.style.setProperty('--result-scale', String(RESULT_SCALE));
-const example = new URLSearchParams(location.search).get('example') === 'fibonacci';
+const example = new URLSearchParams(location.search).get('example') === 'euler9';
 // A phone browser needs the command menu and the symbol keyboard as much as the app does.
 const touchConsole = import.meta.env.MODE === 'mobile' || !example && matchMedia('(pointer: coarse)').matches;
 const androidKeyboard = Capacitor.getPlatform() === 'android';
-if (!touchConsole) {
-    chrome.hidden = true;
-    document.documentElement.style.setProperty('--chrome-height', '0px');
-}
+if (example) document.documentElement.classList.add('example');
+// Only the browser needs a hint that the logo opens the notebook panel; the Android app has it by habit.
+if (Capacitor.getPlatform() === 'web') document.documentElement.classList.add('web');
 const compactResults = touchConsole;
 const notebookGutter = 6;
 const CODE_FONT_SIZE = 13;
@@ -87,6 +95,9 @@ if (touchConsole) {
     document.documentElement.style.fontSize = CODE_FONT_SIZE + 'px';
     // Keep the source clear of rounded screen edges.
     document.documentElement.style.setProperty('--terminal-inset', '16px');
+} else if (example) {
+    // The narrow website demo must still fit a 6-column gutter and 40 characters of code.
+    document.documentElement.style.fontSize = '12px';
 }
 let columns = 47;
 let rows = 24;
@@ -127,7 +138,7 @@ const valueOverlay = new ValueOverlay(message => {
     render();
 });
 // The website example must never overwrite a user's main notebook (including on Android).
-const storageKey = example ? 'rank-example-fibonacci-v1' : 'rank-notebook-v1';
+const storageKey = example ? 'rank-example-euler9-v1' : 'rank-notebook-v1';
 let historyReady = example;
 let changingNotebook = false;
 let legacyDraft: NotebookDraft | undefined;
@@ -244,7 +255,7 @@ voiceIndicator.onclick = event => {
     focusInput();
 };
 
-(globalThis as typeof globalThis & { rankBack?: () => boolean }).rankBack = () => feedback.back() || guidance?.back() || notebookPanel?.close() || valueOverlay.back();
+(globalThis as typeof globalThis & { rankBack?: () => boolean }).rankBack = () => closeAbout() || feedback.back() || guidance?.back() || notebookPanel?.close() || valueOverlay.back();
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden && activeVoiceDictation) {
@@ -482,6 +493,8 @@ function render(statusOnly = false): void {
         const comment = target?.kind === 'source' && /^\s*rem(?:\s|$)/.test(
             repl.notebook.cells[target.cell]?.source.split('\n')[target.line - 1] ?? '');
         element.classList.toggle('terminal-comment', comment);
+        // A result that opens in the viewer is clickable: show the hand over it.
+        element.classList.toggle('terminal-openable', target?.kind === 'value');
         element.classList.toggle('terminal-facts', frame.factsRow !== undefined && index >= frame.factsRow
             && index < frame.factsRow + (frame.factsRowCount ?? 1) || index === frame.statusRow);
         // Results, values and errors, are drawn a little smaller than code on a phone.
@@ -515,7 +528,7 @@ function render(statusOnly = false): void {
             cells: repl.notebook.cells.slice(0, -1).filter(cell => !cell.command).map(cell => cell.source),
             draft: repl.notebook.cells.at(-1)!.source,
         });
-        if (!example && historyReady && !changingNotebook) notebookHistory?.schedule(JSON.parse(savedNotebook));
+        if (historyReady && !changingNotebook) notebookHistory?.schedule(JSON.parse(savedNotebook));
         if (example && savedNotebook !== storedNotebook) {
             localStorage.setItem(storageKey, savedNotebook);
             storedNotebook = savedNotebook;
@@ -954,6 +967,15 @@ menuToggle.onclick = () => {
     menuToggle.setAttribute('aria-expanded', String(!commands.hidden));
 };
 commands.onclick = event => {
+    if ((event.target as HTMLElement).closest('[data-action=about]')) {
+        closeMenu(); stopVoiceDictation();
+        const label = about.querySelector('#about-version')!;
+        label.textContent = 'Loading version…';
+        about.showModal();
+        void appVersion().then(version => { label.textContent = `Version ${version}`; },
+            () => { label.textContent = 'Version unavailable'; });
+        return;
+    }
     if ((event.target as HTMLElement).closest('[data-action=feedback]')) {
         closeMenu(); stopVoiceDictation(); void feedback.open(); return;
     }
@@ -1654,14 +1676,19 @@ resize();
 
 if (example) {
     if (repl.notebook.cells.length === 1 && !repl.notebook.current.source) {
-        for (const source of ['use sequences', 'use numbers', 'Limit = 100',
-            'Fib = fibonacci to Limit', 'Fib even sum']) {
+        for (const source of ['rem Project Euler 9: find a * b * c',
+            'rem where a + b + c = 1000 and', 'rem a * a + b * b = c * c',
+            'rem https://projecteuler.net/problem=9', 'use numbers', 'use sequences', '',
+            'Target = 1000', 'ALast = (Target - 1) // 3',
+            'As = 1 to ALast array', 'Rest = Target - As', '',
+            'Bs = Target * (Rest - As) / (2 * Rest)',
+            'Valid = Bs round 0 equal Bs', 'A = As Valid first',
+            'B = Bs Valid first', 'C = (A ** 2 + B ** 2) sqrt', '',
+            'A * B * C']) {
             repl.notebook.enqueue(source);
         }
         repl.notebook.toPrompt();
     }
-    // All displayed values come from the same execution path as Ctrl-L in the CLI.
-    void press({ name: 'l', ctrl: true });
 }
 
 function notebookSnapshot(): NotebookDraft {
@@ -1671,6 +1698,7 @@ function notebookSnapshot(): NotebookDraft {
     };
 }
 function rememberNotebook(): void {
+    if (example) return;
     try { localStorage.setItem(debugPreferenceKey('rank-active-notebook-v1'), notebookHistory!.current!.id); } catch { /* History still survives. */ }
 }
 async function switchBeginnerPreview(preview: boolean): Promise<void> {
@@ -1746,6 +1774,23 @@ async function exportNotebook(id: string): Promise<void> {
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 }
+function createNotebookPanel(history: NotebookHistory, brand: HTMLElement): NotebookPanel {
+    return new NotebookPanel(history, async id => {
+        await changeNotebook(id);
+        if (id === undefined) guidance?.discovered('newNotebook');
+    }, importNotebook, exportNotebook, async (path, source) => {
+        const id = await libraryNotebookId(path);
+        if (!await history.store.get(id)) {
+            const text = await source();
+            const now = Date.now();
+            await history.store.save({ id, title: path.split('/').at(-1)!, manual: true,
+                created: now, updated: now, snapshot: { cells: splitSource(text.replace(/\r\n?/g, '\n')), draft: '' } });
+        }
+        await changeNotebook(id);
+    },
+        () => { closeMenu(); stopVoiceDictation(); setKeyboard(false); },
+        () => { brand.setAttribute('aria-expanded', 'false'); render(); }, !debugPreviewAvailable || beginnerPreview);
+}
 if (!example) {
     input.readOnly = true;
     const brand = document.querySelector<HTMLButtonElement>('#brand')!;
@@ -1757,21 +1802,7 @@ if (!example) {
             notebookHistory = new NotebookHistory(beginnerPreview ? debugBeginnerStore() : notebookStore(), error => {
                 failure = 'Cannot save notebook: ' + String(error); render();
             }, rememberNotebook);
-            notebookPanel = new NotebookPanel(notebookHistory, async id => {
-                await changeNotebook(id);
-                if (id === undefined) guidance?.discovered('newNotebook');
-            }, importNotebook, exportNotebook, async (path, source) => {
-                const id = await libraryNotebookId(path);
-                if (!await notebookHistory!.store.get(id)) {
-                    const text = await source();
-                    const now = Date.now();
-                    await notebookHistory!.store.save({ id, title: path.split('/').at(-1)!, manual: true,
-                        created: now, updated: now, snapshot: { cells: splitSource(text.replace(/\r\n?/g, '\n')), draft: '' } });
-                }
-                await changeNotebook(id);
-            },
-                () => { closeMenu(); stopVoiceDictation(); setKeyboard(false); },
-                () => { brand.setAttribute('aria-expanded', 'false'); render(); }, !debugPreviewAvailable || beginnerPreview);
+            notebookPanel = createNotebookPanel(notebookHistory, brand);
             notebookPanel.dialog.addEventListener('animationend', event => {
                 if (event.target === notebookPanel!.dialog) guidance?.update();
             });
@@ -1831,4 +1862,14 @@ if (!example) {
             render();
         }
     })();
+} else {
+    // The website demo has the same notebook panel, over an in-memory history of its own.
+    const brand = document.querySelector<HTMLButtonElement>('#brand')!;
+    notebookHistory = new NotebookHistory(memoryNotebookStore(), error => {
+        failure = 'Cannot save notebook: ' + String(error); render();
+    });
+    void notebookHistory.initialize(notebookSnapshot(), null).then(() => {
+        notebookPanel = createNotebookPanel(notebookHistory!, brand);
+        brand.onclick = () => { brand.setAttribute('aria-expanded', 'true'); void notebookPanel!.show(); };
+    });
 }

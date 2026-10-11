@@ -2,7 +2,7 @@
 
 `npm run dev --workspace @arrrank/web` starts the website. `/console.html`
 opens the full-screen console. The landing page embeds that same page in a
-narrow iframe; `?example=fibonacci` starts an editable example, evaluated by
+narrow iframe; `?example=euler9` starts an editable example, evaluated by
 the real interpreter. Its local draft is separate from the main notebook.
 
 The console uses `NotebookRepl`, keyboard routing and screen frames from

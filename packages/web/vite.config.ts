@@ -4,10 +4,11 @@ import { defineConfig } from 'vite';
 import { execFileSync } from 'node:child_process';
 
 let revision = 'unknown';
+const version = JSON.parse(readFileSync(new URL('../mobile/package.json', import.meta.url), 'utf8')).version;
 try { revision = execFileSync('git', ['describe', '--always', '--dirty'], { cwd: fileURLToPath(new URL('../..', import.meta.url)), encoding: 'utf8' }).trim(); } catch { /* Source archives have no Git metadata. */ }
 
 export default defineConfig(({ mode }) => ({
-    define: { 'import.meta.env.VITE_RANK_REVISION': JSON.stringify(revision) },
+    define: { 'import.meta.env.VITE_RANK_REVISION': JSON.stringify(revision), 'import.meta.env.VITE_RANK_VERSION': JSON.stringify(version) },
     base: './',
     server: { headers: { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp' } },
     preview: { headers: { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp' } },

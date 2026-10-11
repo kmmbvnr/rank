@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 176 192">
+  <mask id="cells">
+    <g fill="white" stroke="black" stroke-width="4" stroke-linejoin="round">
+      <path d="M88 4 130 28 88 52 46 28Z"/>
+      <path d="M46 28 88 52 46 76 4 52Z"/>
+      <path d="M88 52 130 28 130 72 88 96Z"/>
+      <path d="M46 76 88 52 88 96 46 120Z"/>
+      <path d="M4 52 46 76 46 120 4 96Z"/>
+      <path d="M4 96 46 120 46 164 4 140Z"/>
+      <path d="M46 120 88 96 130 120 88 144Z"/>
+      <path d="M88 96 130 72 172 96 130 120Z"/>
+      <path d="M46 120 88 144 88 188 46 164Z"/>
+      <path d="M88 144 130 120 130 164 88 188Z"/>
+      <path d="M130 120 172 96 172 140 130 164Z"/>
+    </g>
+  </mask>
+  <path fill="white" mask="url(#cells)" d="M0 0H176V192H0Z"/>
+</svg>

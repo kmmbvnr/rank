@@ -119,6 +119,12 @@ export async function debugNotebookMode(): Promise<boolean> {
     return Capacitor.getPlatform() === 'android' ? (await native.environment()).debug : import.meta.env.DEV;
 }
 
+export async function appVersion(): Promise<string> {
+    if (Capacitor.getPlatform() !== 'android') return import.meta.env.VITE_RANK_VERSION;
+    const info = await native.environment();
+    return `${info.version} · build ${info.versionCode}`;
+}
+
 /** Explicitly requested diagnostics contain no notebook source or identifiers. */
 export async function appEnvironment(): Promise<string[]> {
     if (Capacitor.getPlatform() !== 'android') return ['Platform: browser'];
