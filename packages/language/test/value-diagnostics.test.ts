@@ -1891,7 +1891,7 @@ it('infers the lattice-paths numerator, denominator and result through integer r
     // Analyze the pure arithmetic with the CLI's integer Size supplied, before the effectful print.
     const body = { ...program.value, statements: program.value.statements.filter(isAssignmentStatement) };
     const analysis = analyzeValues(body, new Map([['Size', { types: ['integer'] }]]));
-    for (const name of ['Numerator', 'Denominator', 'Answer'])
+    for (const name of ['Num', 'Den', 'Answer'])
         expect(analysis.bindings.get(name)?.types).toEqual(['integer']);
 });
 

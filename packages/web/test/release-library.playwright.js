@@ -39,7 +39,7 @@ async original => {
         await library.getByRole('button', { name: '015_latticepaths.ra', exact: true }).click();
         await panel.waitFor({ state: 'hidden' });
         check((await page.locator('#screen').textContent()).includes('Lattice Paths'), 'Bundled Euler 15 opens offline');
-        check((await page.locator('#screen').textContent()).includes('Answer = Numerator // Denominator'), 'Bundle contains the simplified solution');
+        check((await page.locator('#screen').textContent()).includes('Answer = Num // Den'), 'Bundle contains the simplified solution');
         check(!(await page.locator('#screen').textContent()).includes('AI-generated'), 'Curated source has no unreviewed note');
         check(remoteRequests === 0, 'Restricted Library must not request GitHub');
         return 'Release Library: only Euler 1–15; simplified Euler 15 opens without GitHub';

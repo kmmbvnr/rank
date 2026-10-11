@@ -9,6 +9,23 @@ end
 
 test "official small power"
   use "016_powerdigits"
+  Exponent = 15
+  run
 
-  2 15 power_digit_sum equal 26
+  Answer equal 26
+end
+
+test "zero exponent"
+  use "016_powerdigits"
+  Exponent = 0
+  run
+
+  Answer equal 1
+end
+
+test "doubling with carry"
+  use "016_powerdigits"
+
+  "99" double equal "198"
+  "128" double equal "256"
 end

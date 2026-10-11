@@ -8,7 +8,10 @@ use cli
 
 option Size integer = 20
 
-Numerator = (Size + 1) to Size * 2 reduce *
-Denominator = 1 to Size reduce *
-Answer = Numerator // Denominator
+rem Compute the binomial coefficient
+rem with reduce. Alternatively:
+rem (Size * 2) Size binomial
+Num = (Size + 1) to Size * 2 reduce *
+Den = 1 to Size reduce *
+Answer = Num // Den
 Answer print
