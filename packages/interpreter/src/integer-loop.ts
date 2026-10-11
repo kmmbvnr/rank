@@ -482,13 +482,16 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
             if (iteration.names.length > 2 || iteration.names.some(name => name.includes('.'))
                 || new Set(iteration.names.filter(name => name !== '#')).size !== iteration.names.filter(name => name !== '#').length) return undefined;
             const indexed = iteration.names.length === 2 && iteration.names[1] !== '#';
-            const arrayIteration = isNameExpression(range);
-            const textIteration = isNameExpression(range) && (textSources.has(range.name) || localTypes.get(range.name) === 'text');
+            // Named inputs retain their guarded text/array variants. Pure text
+            // expressions are evaluated once in the loop's setup instead.
+            const textIteration = host.textLoops && (!isNameExpression(range) && knownType(range) === 'text'
+                || isNameExpression(range) && (textSources.has(range.name) || localTypes.get(range.name) === 'text'));
+            const collectionIteration = textIteration || isNameExpression(range);
             let elementType: 'integer' | 'text' = textIteration ? 'text' : 'integer';
-            if (textIteration && isNameExpression(range)) {
+            if (textIteration) {
                 const source = emit(range, tests, 'text');
                 if (source?.type !== 'text') return undefined;
-                setup = `const iterable = iterators[${iterators.length}](${source.code}); ${indexed ? 'let ordinal = 0n;' : ''}`;
+                setup = `${tests.join('\n')} const iterable = iterators[${iterators.length}](${source.code}); ${indexed ? 'let ordinal = 0n;' : ''}`;
                 iterators.push(source => host.iterationValues(iteration, source));
                 header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
             } else if (isNameExpression(range)) {
@@ -519,7 +522,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                 const type = index === 0 ? elementType : 'integer';
                 if (localTypes.has(name) && localTypes.get(name) !== type) return undefined;
                 localTypes.set(name, type);
-                const target = slot(name), value = index === 0 ? 'cursor' : arrayIteration ? 'ordinal++' : 'ordinal';
+                const target = slot(name), value = index === 0 ? 'cursor' : collectionIteration ? 'ordinal++' : 'ordinal';
                 bindings += `const bound${binders.length} = ${value}; binders[${binders.length}](bound${binders.length}); r${target} = bound${binders.length};\n`;
                 binders.push(host.writer(name));
                 binderNames.push(name);

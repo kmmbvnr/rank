@@ -27,6 +27,41 @@ function compare(source: string) {
 
 describe('guarded native loop calls', () => {
     it.each([
+        `use sequences\nText = "a😀é"\nOut = ""\nTotal = 0\nfor C i in Text reverse\n Text = "x"\n Out += C\n Total += i\nend\nOut + (Total text)`,
+        `use sequences\nOut = ""\nfor C i in ("a😀" + "b") reverse\n Out += C + (i text)\nend\nOut`,
+        `use sequences\nfun count_values Values\n Total = 0\n for C i in Values reverse\n  Total += i + 1\n end\n return Total\nend\narray ("a😀" count_values) ((array 1 2 3) count_values) ("" count_values) ("a" count_values)`,
+        `use sequences\nTotal = 0\nfor C in "12x3" reverse\n Total += 1\n N = C integer\n Total += N\nend`,
+    ])('compiles text expression iterators with matching state and errors: %s', source => {
+        expect(compare(source).loops).toBeGreaterThan(0);
+    });
+
+    it('retains empty text expression iterator binding checks', () => {
+        const result = compare('use sequences\nIndex = "held"\nTotal = 0\nfor C Index in "" reverse\n Total += 1\nend');
+        expect(result.error).toBeDefined();
+    });
+
+    it('doubles decimal text through the compiled digit loop', () => {
+        const result = compare(`use sequences
+fun double Text
+ Result = ""
+ Carry = 0
+ for C in Text reverse
+  Digit = C integer
+  D = Digit * 2 + Carry
+  Result = D mod 10 text + Result
+  Carry = D // 10
+ end
+ if Carry greater 0
+  Result = Carry text + Result
+ end
+ return Result
+end
+array ("0" double) ("99" double) ("128" double)`);
+        expect(result.result).toBe('0 198 256');
+        expect(result.loops).toBe(3);
+    });
+
+    it.each([
         'use text\nInput = "ABC"\nTotal = 0\nfor I in 1 to 3\n if Input equal ("abc" + "")\n  Total += 1\n end\nend\nTotal',
         'Total = 0\nfor I in 1 to 3\n Total += ("ёж" bytes) len\nend\nTotal',
     ])('uses shared expression facts to choose guarded specializations: %s', source => {

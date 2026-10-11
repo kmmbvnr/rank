@@ -1,8 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter } from '../src/index.js';
+import { Interpreter, type RankArray, type RankValue } from '../src/index.js';
 import { LocalFrame } from '../src/frame.js';
 
 describe('runtime fast paths', () => {
+    it('publishes lazy global arrays while checking rank and restores rejected writes', () => {
+        const values = new Map<string, RankValue>();
+        const frame = LocalFrame.over(values);
+        frame.define('Count', 1n, new Set(['integer']));
+        frame.set('Count', 2n);
+        expect(values.get('Count')).toBe(2n);
+        const original: RankArray = { kind: 'array', shape: [1], items: [1n] };
+        frame.define('A', original, new Set(['array']));
+        let observations = 0;
+        const replacement: RankArray = {
+            kind: 'array', items: [2n],
+            get shape() {
+                observations++;
+                expect(values.get('A')).toBe(replacement);
+                return [1, 1];
+            },
+        };
+        expect(() => frame.set('A', replacement)).toThrow('has rank 1 and cannot receive rank 2');
+        expect(observations).toBeGreaterThan(0);
+        expect(values.get('A')).toBe(original);
+        frame.set('Count', 3n);
+        expect(values.get('Count')).toBe(3n);
+    });
+
     it('keeps cached standard functions behind variable and module lookup', () => {
         const runtime = new Interpreter();
         expect(runtime.execute(`

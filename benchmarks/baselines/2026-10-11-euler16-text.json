@@ -1,0 +1,92 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "sourceSha256": "0789be0c3232cc4a7b611ee054384e262e2ae7df49d3b3c8b54734b0e9041187",
+  "timing": "Unchanged Euler 16, 2^1000; executeProgram excludes parsing and output IO. Two warmup runs, five timed runs per fresh process. Reference disables only whole-loop compilation.",
+  "results": [
+    {
+      "mode": "reference",
+      "firstMs": 257.89720900000003,
+      "warmMs": [
+        230.37791600000003,
+        231.47295900000017,
+        226.5094999999999,
+        226.20274999999992,
+        224.86204199999997
+      ],
+      "medianMs": 226.5094999999999,
+      "compiledLoops": 0,
+      "answer": "1366"
+    },
+    {
+      "mode": "reference",
+      "firstMs": 257.41162499999996,
+      "warmMs": [
+        227.86770799999988,
+        228.4259579999998,
+        227.7968330000001,
+        226.9888329999999,
+        226.6701250000001
+      ],
+      "medianMs": 227.7968330000001,
+      "compiledLoops": 0,
+      "answer": "1366"
+    },
+    {
+      "mode": "reference",
+      "firstMs": 270.753459,
+      "warmMs": [
+        232.1958749999999,
+        231.82129099999997,
+        232.70370900000012,
+        228.58887499999992,
+        230.55854199999976
+      ],
+      "medianMs": 231.82129099999997,
+      "compiledLoops": 0,
+      "answer": "1366"
+    },
+    {
+      "mode": "compiled",
+      "firstMs": 68.00079100000005,
+      "warmMs": [
+        39.94554099999999,
+        38.395374999999945,
+        38.158500000000004,
+        37.62416700000006,
+        37.91283299999998
+      ],
+      "medianMs": 38.158500000000004,
+      "compiledLoops": 1000,
+      "answer": "1366"
+    },
+    {
+      "mode": "compiled",
+      "firstMs": 67.96937499999996,
+      "warmMs": [
+        41.347249999999974,
+        39.131624999999985,
+        38.92929200000003,
+        37.91899999999998,
+        38.09979200000009
+      ],
+      "medianMs": 38.92929200000003,
+      "compiledLoops": 1000,
+      "answer": "1366"
+    },
+    {
+      "mode": "compiled",
+      "firstMs": 67.77416700000003,
+      "warmMs": [
+        39.968458,
+        38.78866700000003,
+        38.59229200000004,
+        38.18866700000001,
+        38.379249999999956
+      ],
+      "medianMs": 38.59229200000004,
+      "compiledLoops": 1000,
+      "answer": "1366"
+    }
+  ]
+}

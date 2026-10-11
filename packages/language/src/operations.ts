@@ -1148,6 +1148,7 @@ export const operations: readonly Operation[] = [
         summary: 'Converts UTF-8 text or a rank-1 array of integers in 0..255 to compact bytes.' },
     { name: 'integer', module: 'core', arities: [1], form: 'Value integer', result: 'integer',
         signatures: [{ inputs: [{ union: ['integer', 'real', 'text'] }], result: 'integer', ranks: [1] }],
+        compiledCall: { inputs: ['text'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         shape: [{ args: [null], result: [] }],
         monadicRank: 1, summary: 'Truncates a finite real toward zero, preserves an integer, or parses signed decimal integer text.' },
     { name: 'real', module: 'core', arities: [1], form: 'Value real', result: 'real',

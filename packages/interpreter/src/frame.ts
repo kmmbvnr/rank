@@ -213,6 +213,12 @@ export class LocalFrame {
     // paused there shows the new binding. A rejected rank restores the old value.
     private publish(name: string, value: RankValue): void {
         const values = this.mappedValues!;
+        // Scalars cannot trigger lazy shape evaluation or acquire a structural
+        // contract, so publishing them needs neither rollback nor a second write.
+        if (typeof value !== 'object') {
+            values.set(name, value);
+            return;
+        }
         const previous = values.get(name);
         values.set(name, value);
         try {
@@ -227,6 +233,7 @@ export class LocalFrame {
     }
 
     private checkBinding(name: string, value: RankValue): RankValue {
+        if (typeof value !== 'object') return value;
         if (isRankTuple(value)) {
             const contract = this.arrayElements?.get(name) ?? new ArrayBindingContract(name);
             const checked = contract.check(value);
