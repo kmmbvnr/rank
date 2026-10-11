@@ -54,13 +54,7 @@ export class DemoLibrary {
             return source;
         }
         const tree = await this.index();
-        const source = await request(`${raw}/${tree.sha}/${path.split('/').map(encodeURIComponent).join('/')}`);
-        if (!path.endsWith('.ra') || releaseExamples.has(path)) return source;
-        const lines = source.replace(/\r\n?/g, '\n').split('\n');
-        let header = 0;
-        while (header < lines.length && /^\s*(?:rem(?:\s|$)|$)/.test(lines[header])) header++;
-        lines.splice(header, 0, 'rem AI-generated; not yet reviewed.', '');
-        return lines.join('\n');
+        return request(`${raw}/${tree.sha}/${path.split('/').map(encodeURIComponent).join('/')}`);
     }
     async list(path: string): Promise<LibraryEntry[]> {
         if (this.restricted) {

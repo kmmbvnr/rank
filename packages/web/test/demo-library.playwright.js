@@ -31,6 +31,7 @@ async page => {
         const db = await new Promise(resolve => { const request = indexedDB.open('rank-notebooks-v1'); request.onsuccess = () => resolve(request.result); });
         await new Promise((resolve, reject) => { const tx = db.transaction(['meta', 'source'], 'readwrite'); tx.objectStore('meta').clear(); tx.objectStore('source').clear(); tx.oncomplete = resolve; tx.onabort = () => reject(tx.error); });
         db.close(); localStorage.clear();
+        localStorage.setItem('rank-mobile-guidance-v1', JSON.stringify({ step: 'done' }));
     });
     await page.reload();
     await page.waitForFunction(() => !document.querySelector('#brand').disabled);
@@ -63,7 +64,7 @@ async page => {
     await library.getByRole('button', { name: 'example.ra', exact: true }).click();
     await menu.waitFor({ state: 'hidden' });
     check((await page.locator('#screen').textContent()).includes('Value = 42'), 'example source missing');
-    check((await page.locator('#screen').textContent()).includes('AI-generated; not yet reviewed.'), 'Unreviewed debug example needs its comment');
+    check(!(await page.locator('#screen').textContent()).includes('AI-generated'), 'Import must not add AI comments');
     check(!(await page.locator('#screen').textContent()).includes('42\n'), 'example automatically executed');
     await input.fill('rem My local changes');
     await page.getByRole('button', { name: 'Open notebook history' }).click();

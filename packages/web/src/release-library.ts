@@ -13,6 +13,7 @@ import task11 from '../../../demos/euler/011_gridproduct.ra?raw';
 import task12 from '../../../demos/euler/012_triangledivisors.ra?raw';
 import task13 from '../../../demos/euler/013_largesum.ra?raw';
 import task14 from '../../../demos/euler/014_collatz.ra?raw';
+import task15 from '../../../demos/euler/015_latticepaths.ra?raw';
 
 export const releaseExamples = new Map<string, string>([
     ['demos/euler/001_multiples.ra', task1],
@@ -29,4 +30,5 @@ export const releaseExamples = new Map<string, string>([
     ['demos/euler/012_triangledivisors.ra', task12],
     ['demos/euler/013_largesum.ra', task13],
     ['demos/euler/014_collatz.ra', task14],
+    ['demos/euler/015_latticepaths.ra', task15],
 ]);

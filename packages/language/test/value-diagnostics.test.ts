@@ -1884,15 +1884,15 @@ it('infers the unchanged counting-Sundays result through boolean helper updates'
         .toEqual(examples.map(() => ['integer']));
 });
 
-it('infers the unchanged lattice-paths result through integer reductions', () => {
+it('infers the lattice-paths numerator, denominator and result through integer reductions', () => {
     const source = readFileSync(new URL('../../../demos/euler/015_latticepaths.ra', import.meta.url), 'utf8');
-    const tests = readFileSync(new URL('../../../demos/euler/015_latticepaths_test.ra', import.meta.url), 'utf8');
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
-    const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
-    const examples = functionTestExamples(testProgram.value, '015_latticepaths', new Set(['lattice_paths']));
-    expect(examples.length).toBeGreaterThan(0);
-    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
-        .toEqual(examples.map(() => ['integer']));
+    expect(program.parserErrors).toEqual([]);
+    // Analyze the pure arithmetic with the CLI's integer Size supplied, before the effectful print.
+    const body = { ...program.value, statements: program.value.statements.filter(isAssignmentStatement) };
+    const analysis = analyzeValues(body, new Map([['Size', { types: ['integer'] }]]));
+    for (const name of ['Numerator', 'Denominator', 'Answer'])
+        expect(analysis.bindings.get(name)?.types).toEqual(['integer']);
 });
 
 it('infers the unchanged removing-digits result through ranked digit conversion', () => {

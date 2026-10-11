@@ -86,10 +86,9 @@ characters. The row's ⋮ menu offers Rename, Export and Delete. Rename and Dele
 separate dialogs; Export saves the selected notebook without opening it. Import and export use Android's system file picker.
 
 RANK → Library in release APKs and Release preview contains only Project Euler
-problems 1–14, bundled in the app and available offline. Normal debug mode can
-browse all of `demos/` in `kmmbvnr/rank` on GitHub's `main` branch. Examples
-outside the release catalog receive `rem AI-generated; not yet reviewed.`
-after their opening comments when imported. Each folder replaces the panel contents; Back returns to its parent,
+problems 1–15, bundled in the app and available offline. Normal debug mode can
+browse all of `demos/` in `kmmbvnr/rank` on GitHub's `main` branch. Examples are imported
+without added comments. Each folder replaces the panel contents; Back returns to its parent,
 or to notebook history at the library root. Folder labels use the text of folder links in the parent folder's
 `README.md`, with the folder name as a fallback. Only `.ra`
 files appear; `_test.ra` files are excluded. Browsing the full debug catalog requires an internet

@@ -10,6 +10,10 @@ async original => {
     });
     const ready = () => page.waitForFunction(() => !document.querySelector('#brand')?.disabled);
     try {
+        await page.addInitScript(() => {
+            for (const key of ['rank-mobile-guidance-v1', 'rank-beginner-mobile-guidance-v1'])
+                localStorage.setItem(key, JSON.stringify({ step: 'done' }));
+        });
         await page.goto(original.url()); await ready();
         await page.locator('#menu-toggle').click();
         const preview = page.getByRole('button', { name: 'Release preview', exact: true });
@@ -28,15 +32,16 @@ async original => {
         await library.getByRole('button', { name: 'Project Euler ›', exact: true }).waitFor();
         check(await library.getByRole('button').count() === 2, 'Release root contains only Back and Project Euler');
         await library.getByRole('button', { name: 'Project Euler ›', exact: true }).click();
-        await library.getByRole('button', { name: '014_collatz.ra', exact: true }).waitFor();
+        await library.getByRole('button', { name: '015_latticepaths.ra', exact: true }).waitFor();
         const titles = await library.getByRole('button').allTextContents();
-        check(titles.length === 15, 'Exactly 14 tasks plus Back');
-        check(titles.slice(1).every((name, index) => name.startsWith(String(index + 1).padStart(3, '0') + '_')), 'Only tasks 1 through 14, in order');
-        await library.getByRole('button', { name: '001_multiples.ra', exact: true }).click();
+        check(titles.length === 16, 'Exactly 15 tasks plus Back');
+        check(titles.slice(1).every((name, index) => name.startsWith(String(index + 1).padStart(3, '0') + '_')), 'Only tasks 1 through 15, in order');
+        await library.getByRole('button', { name: '015_latticepaths.ra', exact: true }).click();
         await panel.waitFor({ state: 'hidden' });
-        check((await page.locator('#screen').textContent()).includes('Multiples of 3 or 5'), 'Bundled source opens offline');
+        check((await page.locator('#screen').textContent()).includes('Lattice Paths'), 'Bundled Euler 15 opens offline');
+        check((await page.locator('#screen').textContent()).includes('Answer = Numerator // Denominator'), 'Bundle contains the simplified solution');
         check(!(await page.locator('#screen').textContent()).includes('AI-generated'), 'Curated source has no unreviewed note');
         check(remoteRequests === 0, 'Restricted Library must not request GitHub');
-        return 'Release Library: only Euler 1–14; bundled source opens without GitHub';
+        return 'Release Library: only Euler 1–15; simplified Euler 15 opens without GitHub';
     } finally { await context.close(); }
 }

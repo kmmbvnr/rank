@@ -9,12 +9,16 @@ end
 
 test "two by two grid"
   use "015_latticepaths"
+  Size = 2
+  run
 
-  2 lattice_paths equal 6
+  Answer equal 6
 end
 
 test "zero-sized grid"
   use "015_latticepaths"
+  Size = 0
+  run
 
-  0 lattice_paths equal 1
+  Answer equal 1
 end
