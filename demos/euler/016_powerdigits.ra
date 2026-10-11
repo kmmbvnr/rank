@@ -26,11 +26,11 @@ fun double Text
   for C in Text reverse
     Digit = C integer
     D = Digit * 2 + Carry
-    Result = ((D mod 10) text) + Result
+    Result = D mod 10 text + Result
     Carry = D // 10
   end
   if Carry greater 0
-    Result = (Carry text) + Result
+    Result = Carry text + Result
   end
   return Result
 end
