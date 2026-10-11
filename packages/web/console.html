@@ -14,8 +14,16 @@
         <nav id="commands" aria-label="Terminal commands" hidden>
             <button data-action="turbo-run">Run program</button>
             <button data-action="walkthrough" hidden>Release preview</button>
+            <button data-action="feedback">Send feedback</button>
         </nav>
     </header>
+    <section id="history-recovery" role="alert" aria-labelledby="history-recovery-title" hidden>
+        <h2 id="history-recovery-title">Cannot open your notebooks</h2>
+        <p>Your saved notebooks have not been deleted. Retry opening them. Do not clear app data.</p>
+        <p class="recovery-error"></p>
+        <button type="button" id="history-retry">Retry</button>
+        <button type="button" id="history-feedback">Send feedback</button>
+    </section>
     <main id="terminal" aria-label="Rank terminal">
         <div id="screen" role="region" aria-label="Rank notebook"></div>
         <div id="terminal-footer" class="terminal-row terminal-facts" hidden></div>

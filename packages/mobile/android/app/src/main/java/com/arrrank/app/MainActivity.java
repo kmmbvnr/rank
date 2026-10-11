@@ -7,8 +7,6 @@ import android.os.Build;
 import android.graphics.Color;
 import android.webkit.WebView;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.List;
 import android.content.pm.PackageManager;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.view.ViewCompat;
@@ -116,18 +114,6 @@ public class MainActivity extends BridgeActivity {
                 setEnabled(true);
             }
         });
-        List<String> permissions = new ArrayList<>();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                permissions.add(android.Manifest.permission.POST_NOTIFICATIONS);
-            }
-        }
-        if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            permissions.add(android.Manifest.permission.RECORD_AUDIO);
-        }
-        if (!permissions.isEmpty()) {
-            requestPermissions(permissions.toArray(new String[0]), 101);
-        }
         bridge.setWebViewClient(new DebugSignalClient(bridge));
         getWindow().getDecorView().setBackgroundColor(Color.BLACK);
         hideSystemBars();
@@ -158,6 +144,17 @@ public class MainActivity extends BridgeActivity {
 
     private String color(String name, int id) {
         return String.format("document.documentElement.style.setProperty('%s','#%06x');", name, getColor(id) & 0xffffff);
+    }
+
+    /** Ask once, when a long computation first needs its notification. Audio
+     * permission is requested by Capacitor's WebChromeClient on actual capture. */
+    public void requestExecutionNotifications() {
+        if (!resumed || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+            || checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) return;
+        android.content.SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        if (preferences.getBoolean("execution-notifications-requested", false)) return;
+        preferences.edit().putBoolean("execution-notifications-requested", true).apply();
+        requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
     }
 
     /** The console shows its symbol keyboard only while the soft keyboard is closed. */

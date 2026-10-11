@@ -1,5 +1,6 @@
 import './styles.css';
 import { MobileGuidance } from './mobile-guidance.js';
+import { Feedback } from './feedback.js';
 import { Capacitor } from '@capacitor/core';
 import { ManualViewer, manualKey } from './manual-viewer.js';
 import { ValueOverlay } from './value-overlay.js';
@@ -35,6 +36,10 @@ const measure = document.querySelector<HTMLElement>('#measure')!;
 const chrome = document.querySelector<HTMLElement>('#chrome')!;
 const menuToggle = document.querySelector<HTMLButtonElement>('#menu-toggle')!;
 const commands = document.querySelector<HTMLElement>('#commands')!;
+const historyRecovery = document.querySelector<HTMLElement>('#history-recovery')!;
+document.querySelector<HTMLButtonElement>('#history-retry')!.onclick = () => location.reload();
+const feedback = new Feedback();
+document.querySelector<HTMLButtonElement>('#history-feedback')!.onclick = () => { void feedback.open(); };
 const voiceIndicator = document.querySelector<HTMLButtonElement>('#voice-indicator')!;
 const runButton = document.querySelector<HTMLButtonElement>('#run-button')!;
 const turboButton = document.querySelector<HTMLButtonElement>('#turbo-button')!;
@@ -239,7 +244,7 @@ voiceIndicator.onclick = event => {
     focusInput();
 };
 
-(globalThis as typeof globalThis & { rankBack?: () => boolean }).rankBack = () => guidance?.back() || notebookPanel?.close() || valueOverlay.back();
+(globalThis as typeof globalThis & { rankBack?: () => boolean }).rankBack = () => feedback.back() || guidance?.back() || notebookPanel?.close() || valueOverlay.back();
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden && activeVoiceDictation) {
@@ -949,6 +954,9 @@ menuToggle.onclick = () => {
     menuToggle.setAttribute('aria-expanded', String(!commands.hidden));
 };
 commands.onclick = event => {
+    if ((event.target as HTMLElement).closest('[data-action=feedback]')) {
+        closeMenu(); stopVoiceDictation(); void feedback.open(); return;
+    }
     if ((event.target as HTMLElement).closest('[data-action=walkthrough]')) {
         closeMenu(); void switchBeginnerPreview(true).catch(error => { failure = String(error); render(); }); return;
     }
@@ -1746,8 +1754,6 @@ if (!example) {
         try {
             debugPreviewAvailable = await debugNotebookMode().catch(() => false);
             beginnerPreview = debugPreviewAvailable && localStorage.getItem('rank-debug-beginner-v1') === 'true';
-            guidance = createGuidance();
-            beginnerButton.hidden = !debugPreviewAvailable || !guidance || beginnerPreview;
             notebookHistory = new NotebookHistory(beginnerPreview ? debugBeginnerStore() : notebookStore(), error => {
                 failure = 'Cannot save notebook: ' + String(error); render();
             }, rememberNotebook);
@@ -1813,11 +1819,15 @@ if (!example) {
             historyReady = true;
             input.readOnly = false;
             brand.disabled = false;
+            guidance = createGuidance();
+            beginnerButton.hidden = !debugPreviewAvailable || !guidance || beginnerPreview;
             top = 0; scrollFraction = 0; restingCursorRow = undefined; follow = true;
             render();
         } catch (error) {
             failure = 'Cannot open notebook history: ' + String(error);
             // Leave the existing draft visible and untouched if storage cannot be opened.
+            historyRecovery.querySelector('.recovery-error')!.textContent = String(error);
+            historyRecovery.hidden = false;
             render();
         }
     })();

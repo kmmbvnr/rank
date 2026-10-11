@@ -37,7 +37,16 @@ public class NotebooksPlugin extends Plugin {
     }
 
     @PluginMethod public void environment(PluginCall call) {
-        JSObject result = new JSObject(); result.put("debug", debugBuild()); call.resolve(result);
+        try {
+            android.content.pm.PackageInfo info = getContext().getPackageManager().getPackageInfo(getContext().getPackageName(), 0);
+            JSObject result = new JSObject();
+            result.put("debug", debugBuild());
+            result.put("version", info.versionName);
+            result.put("versionCode", androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(info));
+            result.put("android", android.os.Build.VERSION.RELEASE);
+            result.put("device", android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL);
+            call.resolve(result);
+        } catch (Exception error) { call.reject("Cannot read app version", error); }
     }
 
     private boolean debugPreview(PluginCall call) {

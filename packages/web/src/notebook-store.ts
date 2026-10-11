@@ -37,7 +37,7 @@ export function notebookTitle(snapshot: NotebookDraft): string {
 }
 
 const native = registerPlugin<{
-    environment(): Promise<{ debug: boolean }>;
+    environment(): Promise<{ debug: boolean; version: string; versionCode: number; android: string; device: string }>;
     get(options: { id: string; debugPreview?: boolean }): Promise<{ book?: SavedNotebook }>;
     save(options: { book: SavedNotebook; debugPreview?: boolean }): Promise<void>;
     list(options: { before?: HistoryPage['next']; limit: number; debugPreview?: boolean }): Promise<HistoryPage>;
@@ -117,6 +117,14 @@ export class BrowserNotebookStore implements NotebookStore {
 
 export async function debugNotebookMode(): Promise<boolean> {
     return Capacitor.getPlatform() === 'android' ? (await native.environment()).debug : import.meta.env.DEV;
+}
+
+/** Explicitly requested diagnostics contain no notebook source or identifiers. */
+export async function appEnvironment(): Promise<string[]> {
+    if (Capacitor.getPlatform() !== 'android') return ['Platform: browser'];
+    const info = await native.environment();
+    return [`Rank: ${info.version} (${info.versionCode})`, `Build type: ${info.debug ? 'debug' : 'release'}`,
+        `Android: ${info.android}`, `Device: ${info.device}`];
 }
 
 function createNotebookStore(debugPreview = false): NotebookStore {

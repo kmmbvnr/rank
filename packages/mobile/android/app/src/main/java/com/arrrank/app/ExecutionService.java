@@ -43,6 +43,7 @@ public class ExecutionService extends Service {
     private static final Runnable startForegroundRunnable = () -> {
         MainActivity activity = MainActivity.getCurrentActivity();
         if (activity != null && isExecutionActive(currentState)) {
+            activity.requestExecutionNotifications();
             startService(activity, currentState);
         }
     };
