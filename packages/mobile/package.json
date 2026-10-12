@@ -1,7 +1,7 @@
 {
     "name": "@arrrank/mobile",
     "description": "Android and iOS shell for the Rank web application",
-    "version": "0.0.1",
+    "version": "0.1.0-beta.1",
     "license": "MIT",
     "type": "module",
     "private": true,
@@ -10,6 +10,7 @@
         "build": "npm run build --workspace @arrrank/web -- --mode mobile && cap sync",
         "icon:android": "node scripts/generate-android-icon.mjs",
         "android:apk": "tsc -b ../../tsconfig.build.json && npm run build && cd android && ./gradlew assembleDebug",
+        "android:aab": "tsc -b ../../tsconfig.build.json && npm run build && cd android && ./gradlew bundleRelease -PrankRequireSigning=true",
         "open:android": "cap open android",
         "open:ios": "cap open ios"
     },

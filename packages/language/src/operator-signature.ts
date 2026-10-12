@@ -6,9 +6,10 @@ const binary = (left: SignatureType, right: SignatureType, result: SignatureType
     ({ inputs: [left, right], result, ranks: [0, 0] });
 const missing = [binary('missing', 'unknown', 'missing'), binary('unknown', 'missing', 'missing')];
 const number: SignatureType = { variable: 0, domain: ['integer', 'real'] };
-const ordered = [binary(number, number, 'boolean'), ...(['text', 'boolean', 'symbol', 'date', 'datetime', 'record'] as const)
+const ordered = [binary('number', 'number', 'boolean'), ...(['text', 'boolean', 'symbol', 'date', 'datetime', 'record'] as const)
     .map(type => binary(type, type, 'boolean'))];
-const numeric = [binary(number, number, number)];
+const numeric = [binary(number, number, number), binary('integer', 'real', 'real'),
+    binary('real', 'integer', 'real')];
 const signs: readonly TypeSignature[] = [
     { inputs: [number], result: number, ranks: [0] },
     { inputs: ['missing'], result: 'missing', ranks: [0] },
@@ -37,11 +38,12 @@ export const operatorSignatures: Readonly<Record<string, readonly TypeSignature[
         binary('datetime', 'duration', 'datetime'), binary('duration', 'datetime', 'datetime')],
     '-': [...signs, ...numeric, ...missing, binary('datetime', 'datetime', 'duration')],
     '*': [...numeric, ...missing, binary('duration', 'number', 'duration'), binary('number', 'duration', 'duration')],
-    '/': [binary(number, number, 'real'), ...missing],
+    '/': [binary('number', 'number', 'real'), ...missing],
     '//': [...numeric, ...missing],
     'mod': [...numeric, ...missing],
     // Integer exponents can be negative, so integer inputs alone do not prove an integer result.
-    '**': [binary('integer', 'integer', 'number'), binary('real', 'real', 'real'), ...missing],
+    '**': [binary('integer', 'integer', 'number'), binary('real', 'real', 'real'), binary('integer', 'real', 'real'),
+        binary('real', 'integer', 'real'), ...missing],
     equal: [binary('unknown', 'unknown', nullableBoolean)],
     notequal: [binary('unknown', 'unknown', nullableBoolean)],
     less: [...ordered, ...missing],

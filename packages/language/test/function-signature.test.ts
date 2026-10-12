@@ -91,7 +91,7 @@ it('keeps concrete four-argument inference independent of the symbolic body prev
     expect(signature(source, 'sum4', Array(4).fill(value('real'))))
         .toBe('r r r r → r');
     expect(signature(source, 'sum4', [value('integer'), value('real'), value('integer'), value('integer')]))
-        .toBe('i r i i → ?');
+        .toBe('i r i i → r');
 });
 
 
@@ -108,7 +108,7 @@ it('keeps the result unknown when unsupported fields exhaust inference', () => {
 
 it('shows the collection result element separately from its preserved container kind', () => {
     expect(signature('fun half X\n return X / 2\nend', 'half'))
-        .toBe('i → r ; c<i> → c<r>');
+        .toBe('a → r ; a: number ; c<a> → c<r> ; a: number');
 });
 
 

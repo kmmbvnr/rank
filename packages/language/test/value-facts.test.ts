@@ -469,12 +469,12 @@ it('keeps numeric cells through callback-free sequence arithmetic', () => {
     expect(facts('46 - Codes', bindings).callbackFreeScalarCells).toBeUndefined();
 });
 
-it('narrows successful numeric results to matching concrete operand types', () => {
+it('retains both possible numeric result types when an operand can be integer or real', () => {
     const bindings = new Map<string, ValueFacts>([['Total', {
         types: ['integer', 'real'], rank: 0, shape: [],
     }]]);
-    expect(facts('Total mod 10', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
-    expect(facts('Total // 10', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Total mod 10', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
+    expect(facts('Total // 10', bindings)).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
     expect(facts('3.5 mod 2.0')).toEqual({ types: ['real'], rank: 0, shape: [] });
     expect(facts('7 mod 2')).toMatchObject({ types: ['integer'], rank: 0 });
 });
@@ -1584,7 +1584,7 @@ it('types declared CLI scalars without treating defaults as supplied values', ()
     expect(names.get('Verbose')).toMatchObject({ types: ['boolean'], rank: 0 });
     expect(names.get('Other')).toMatchObject({ types: ['integer'], integer: '2' });
     expect(names.get('Lower')!.types).toEqual(['integer', 'real']);
-    expect(names.get('Upper')!.types).toEqual(['integer']);
+    expect(names.get('Upper')!.types).toEqual(['integer', 'real']);
 });
 
 it('retains validated CLI values and infers integer powers from known exponent signs', () => {

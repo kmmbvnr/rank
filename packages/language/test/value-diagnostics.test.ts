@@ -7,13 +7,11 @@ import { analyzeValues } from '../src/analysis/value-diagnostics.js';
 import { functionTestExamples } from '../src/analysis/test-examples.js';
 import type { ValueFacts } from '../src/analysis/value-domain.js';
 
-it('reports proven mixed numeric operands while leaving unknown inputs for runtime checks', () => {
+it('accepts mixed numeric operands and unknown function inputs', () => {
     for (const operator of ['+', '-', '*', '/', '//', 'mod', '**',
         'equal', 'not equal', 'less', 'greater', 'at least', 'at most']) {
-        expect(messages(`1 ${operator} 2.0`)).toContain(
-            'integer and real require explicit conversion with integer or real');
-        expect(messages(`(array 1 2) ${operator} 2.0`)).toContain(
-            'integer and real require explicit conversion with integer or real');
+        expect(messages(`1 ${operator} 2.0`)).toEqual([]);
+        expect(messages(`(array 1 2) ${operator} 2.0`)).toEqual([]);
         expect(messages(`(1 real) ${operator} 2.0`)).toEqual([]);
         expect(messages(`fun probe X Y\n return X ${operator} Y\nend`)).toEqual([]);
     }
@@ -985,11 +983,11 @@ it('checks recursive numeric specializations including empty median inputs', () 
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('fun change X\n if X less 1\n  return X\n end\n'
         + ' return (X / 2) change\nend\nR = 2 change\nR + "bad"'))
-        .toEqual(['change: change: integer and real require explicit conversion with integer or real']);
+        .toEqual(['change returns incompatible types: real and integer',
+            'operator + does not accept real and text']);
     expect(messages('fun swap A B\n if A less 1\n  return A\n end\n'
         + ' return B A swap\nend\nR = 2 1.0 swap\nR + "bad"'))
-        .toEqual(['swap: swap: integer and real require explicit conversion with integer or real',
-            'swap returns incompatible types: integer and real']);
+        .toEqual(['swap returns incompatible types: integer and real']);
     expect(messages('Hidden = 1\nfun captured X\n if X less 1\n  return Hidden\n end\n'
         + ' return (X - 1) captured\nend\nR = 2 captured\nR + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
@@ -2251,7 +2249,7 @@ it('infers the unchanged forest-query answers through numeric matrix rows', () =
         .toEqual(examples.map(() => ['array']));
 });
 
-it('infers the unchanged self-power remainder despite an unknown lazy mapper', () => {
+it('keeps an unknown lazy self-power mapper numeric without assuming integer cells', () => {
     const moduleName = '048_selfpowers';
     const source = readFileSync(new URL(`../../../demos/euler/${moduleName}.ra`, import.meta.url), 'utf8');
     const tests = readFileSync(new URL(`../../../demos/euler/${moduleName}_test.ra`, import.meta.url), 'utf8');
@@ -2260,7 +2258,7 @@ it('infers the unchanged self-power remainder despite an unknown lazy mapper', (
     const examples = functionTestExamples(testProgram.value, moduleName, new Set(['self_power_tail']));
     expect(examples).toHaveLength(1);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults[0].types)
-        .toEqual(['integer']);
+        .toEqual(['integer', 'real']);
 });
 
 it('infers unchanged nested-helper demos without assuming their collection contents', () => {

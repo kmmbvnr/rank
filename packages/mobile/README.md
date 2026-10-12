@@ -9,6 +9,21 @@ synchronizing the native projects:
 npm run build --workspace @arrrank/mobile
 ```
 
+For Google Play, build a signed release bundle with Android Studio's JDK:
+
+```sh
+JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" npm run android:aab --workspace @arrrank/mobile
+```
+
+The bundle is written to `android/app/build/outputs/bundle/release/app-release.aab`.
+Signing reads `android/.signing/keystore.properties`, with `storeFile` relative
+to `android/`, plus `storePassword`, `keyAlias` and `keyPassword`.
+The command fails if this configuration is missing. Keep the `.signing/`
+directory private and back up its upload key and passwords securely; Git
+excludes it. Use the same upload key for subsequent Google Play releases,
+and increase `versionCode` in `android/app/build.gradle` before each upload.
+The visible version comes from this package's `package.json`.
+
 To regenerate the Android launcher icons at all densities after changing their
 artwork, run `npm run icon:android --workspace @arrrank/mobile`.
 

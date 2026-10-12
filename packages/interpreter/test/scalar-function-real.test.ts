@@ -22,14 +22,8 @@ const numericPairs: [bigint | number, bigint | number][] = [
 
 describe('real scalar function kernels', () => {
     for (const operator of ['+', '-', '*', 'less', 'greater', 'at most', 'at least']) {
-        it(`matches ordinary ${operator} for matching real types and rejects mixed numeric operands`, () => {
+        it(`matches ordinary ${operator} for matching and mixed numeric operands`, () => {
             for (const pair of numericPairs) {
-                if (typeof pair[0] !== typeof pair[1]) {
-                    for (const compiled of [false, true]) {
-                        expect(() => run(compiled, `return X ${operator} Y`, pair)).toThrow('explicit conversion');
-                    }
-                    continue;
-                }
                 const source = `return X ${operator} Y`;
                 const reference = run(false, source, pair);
                 const compiled = run(true, source, pair);
@@ -39,14 +33,8 @@ describe('real scalar function kernels', () => {
         });
     }
 
-    it.each(['equal', 'not equal'])('rejects mixed equality and keeps IEEE real %s behavior', operator => {
+    it.each(['equal', 'not equal'])('compares mixed types exactly and keeps IEEE real %s behavior', operator => {
         for (const pair of numericPairs) {
-            if (typeof pair[0] !== typeof pair[1]) {
-                for (const compiled of [false, true]) {
-                    expect(() => run(compiled, `return X ${operator} Y`, pair)).toThrow('explicit conversion');
-                }
-                continue;
-            }
             const source = `return X ${operator} Y`;
             expect(run(true, source, pair)).toEqual({ ...run(false, source, pair), kernels: 1 });
         }

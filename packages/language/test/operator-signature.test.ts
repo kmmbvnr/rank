@@ -16,7 +16,7 @@ it('describes arithmetic domains independently of compiler eligibility', () => {
 it('does not assert that equality operands have the same type or ignore missing', () => {
     expect(operatorSignature('equal', facts('text', 'integer'))).toBe('? ? → boolean | missing [rank 0 0]');
     expect(operatorSignature('not equal', facts('missing', 'integer'))).toContain('boolean | missing');
-    expect(operatorSignature('at least', facts('integer', 'integer'))).toBe('integer integer → boolean [rank 0 0]');
+    expect(operatorSignature('at least', facts('integer', 'integer'))).toBe('number number → boolean [rank 0 0]');
     expect(operatorSignature('less', facts('missing', 'integer'))).toBe('missing ? → missing [rank 0 0]');
 });
 
@@ -50,11 +50,11 @@ it('distinguishes numeric ranges from collection bounds', () => {
 });
 
 
-it('shows compact numeric equality constraints for unknown operands', () => {
+it('distinguishes matching arithmetic types from independently numeric operands', () => {
     expect(operatorSignature('+',  [{ types: [] }, { types: [] }]))
         .toContain('a a → a [rank 0 0] ; a: number');
     expect(operatorSignature('/', [{ types: [] }, { types: [] }]))
-        .toContain('a a → real [rank 0 0] ; a: number');
+        .toContain('number number → real [rank 0 0]');
     expect(operatorSignature('less', [{ types: [] }, { types: [] }]))
-        .toContain('a a → boolean [rank 0 0] ; a: number');
+        .toContain('number number → boolean [rank 0 0]');
 });

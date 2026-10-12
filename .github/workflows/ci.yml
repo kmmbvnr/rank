@@ -52,6 +52,12 @@ jobs:
       - name: Test interpreter
         if: matrix.suite == 'interpreter'
         run: npm test --workspace @arrrank/interpreter -- --exclude test/types.test.ts
+      - name: Test release library Euler examples
+        if: matrix.suite == 'interpreter'
+        run: |
+          for file in demos/euler/0{01..15}_*_test.ra; do
+            node packages/cli/bin/cli.js test "$file" || exit 1
+          done
       - name: Audit inferred types
         if: matrix.suite == 'type-audit'
         env:

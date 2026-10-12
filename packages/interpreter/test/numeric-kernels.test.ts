@@ -96,11 +96,11 @@ end
         const fallback = (a: RankValue, b: RankValue) => { calls.push([a, b]); return 'fallback'; };
         const add = numericKernel('+', fallback);
         expect(add(1n, 2n)).toBe(3n);
-        expect(add(1n, 0.5)).toBe('fallback');
+        expect(add(1n, 0.5)).toBe(1.5);
         expect(add('a', 'b')).toBe('fallback');
         expect(add(true, 2n)).toBe('fallback');
         expect(numericKernel('mod', fallback)).toBe(fallback);
-        expect(calls).toEqual([[1n, 0.5], ['a', 'b'], [true, 2n]]);
+        expect(calls).toEqual([['a', 'b'], [true, 2n]]);
     });
 
     it('retains empty identities, singleton values and nonnumeric fallback', () => {

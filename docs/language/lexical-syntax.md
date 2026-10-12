@@ -693,11 +693,14 @@ Count = 2
 Ratio = 2.5
 ```
 
-Arithmetic operands must have the same numeric type. Convert explicitly with
-`integer` or `real` when mixing integers and reals: `(Count real) + 0.5`.
+Arithmetic may mix integers and reals: `Count + 0.5` produces a real.
+Mixed arithmetic converts the integer operand to binary64, which can lose
+precision for large integers. Arithmetic on two integers remains exact,
+except for `/` and negative powers.
 `/` always produces a real, including `5 / 2`. `//` performs floor division;
-two integers produce an integer and two reals produce a real. Numeric
-comparisons, including `equal` and `not equal`, also require matching types.
+two integers produce an integer; a real operand produces a real. Numeric
+comparisons, including `equal` and `not equal`, allow mixed types and compare
+their numeric values without rounding integers to binary64.
 
 `**` raises its left operand to the power of its right operand. Integer operands
 with a nonnegative exponent produce an arbitrary-precision `integer`. A negative
@@ -813,7 +816,8 @@ that binary64 cannot represent exactly; overflow raises `.InvalidNumber`.
 
 `text` explicitly renders a scalar, retaining its existing optional fixed
 format: `2.75 text ".1f"`. Parsing and formatting never happen implicitly on
-assignment or arithmetic. Numeric operands require matching types.
+assignment or arithmetic. Numeric arithmetic permits integer-to-real promotion;
+assignment still preserves the established variable type.
 
 `round` changes the numeric value while retaining its type. To round first
 and then obtain an integer, write `Value round 0 integer` with `use numbers`.

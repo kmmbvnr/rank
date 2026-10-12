@@ -12,7 +12,6 @@ import { missingBinary } from './missing.js';
 import { mapMaskedArrays } from './masked-kernels.js';
 import { binarySqlite, inSqlite } from './modules/sqlite.js';
 import { numericKernel } from './numeric-kernels.js';
-import { requireSameNumericType } from './numeric-types.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import { dyadicCells, tensorCells, tensorFrameAxes, type OuterCells } from './rank-application.js';
 import { reductionValues } from './reduction.js';
@@ -304,7 +303,6 @@ export class Operators {
             const result = missingBinary(operator, left, right);
             if (result !== undefined) return result;
         }
-        requireSameNumericType(left, right);
         if (operator === 'equal' || operator === 'notequal') {
             const equal = equalValues(left, right);
             return operator === 'equal' ? equal : !equal;
