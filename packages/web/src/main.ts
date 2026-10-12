@@ -488,6 +488,7 @@ function render(statusOnly = false): void {
     const footerRow = frame.statusRow ?? (touchConsole ? frame.factsRow : undefined);
     const footerCount = frame.statusRow !== undefined ? 1 : frame.factsRowCount ?? 1;
     typeFooterRow = frame.statusRow === undefined && touchConsole ? frame.factsRow : undefined;
+    footer.classList.toggle('terminal-name-facts', typeFooterRow !== undefined);
     footer.hidden = footerRow === undefined;
     if (footerRow !== undefined) {
         footer.style.top = footerRow * cellHeight + 'px';

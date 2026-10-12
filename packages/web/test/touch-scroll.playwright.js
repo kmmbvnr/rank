@@ -42,7 +42,8 @@ async original => {
             const sample = () => {
                 samples.push(position());
                 footers.push({ text: footer.textContent, top: footer.getBoundingClientRect().top, height: footer.getBoundingClientRect().height,
-                    hidden: footer.hidden, visibility: getComputedStyle(footer).visibility });
+                    hidden: footer.hidden, visibility: getComputedStyle(footer).visibility,
+                    scrolling: terminal.classList.contains('scrolling') });
             };
             for (let i = 0; i < 20; i++) {
                 y += 3.25; touch('touchmove');
@@ -82,6 +83,7 @@ async original => {
                 stableFooter: footers.every(next => !next.hidden && next.text === initialFooter.text
                     && Math.abs(next.top - initialFooter.top) < .1 && Math.abs(next.height - initialFooter.height) < .1),
                 factsHiddenAway: footers.slice(0, returnStart).some(next => next.visibility === 'hidden'),
+                factsHiddenDuringScroll: footers.filter(next => next.scrolling).every(next => next.visibility === 'hidden'),
                 factsRestored: footers.at(-1).visibility === 'visible',
                 reversed: samples.slice(1, returnStart).some((next, i) => next > samples[i] + .1),
                 reversedOnReturn: samples.slice(returnStart + 1).some((next, i) => next < samples[returnStart + i] - .1),
@@ -95,6 +97,7 @@ async original => {
         check(!gesture.reversedOnReturn, 'Returning to the cursor must not jump when the gesture settles');
         check(gesture.stableFooter, 'Type hints must keep their text, position and reserved height throughout scrolling and settling');
         check(gesture.factsHiddenAway, 'Hide type hints when their source cursor leaves the viewport');
+        check(gesture.factsHiddenDuringScroll, 'Keep type hints hidden throughout dragging, inertia and settling');
         check(gesture.factsRestored, 'Restore type hints when their source cursor returns to the viewport');
         check(gesture.distance > 90, 'Exercise both dragging and inertia');
         check(!gesture.scrollingAfterSettle, 'Restore idle rendering once the gesture and inertia finish');
