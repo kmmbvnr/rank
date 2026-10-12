@@ -57,3 +57,14 @@ it('does not freeze input cell values or infer text and sequence mapping as arra
             .toEqual({ types: [] });
     }
 });
+
+it('maps known sequence cells without claiming that the mapped reader is callback-free', () => {
+    const source: ValueFacts = { types: ['sequence'], rank: 1, shape: [null], elements: ['integer'],
+        callbackFreeScalarCells: true, unbounded: true };
+    expect(rankedFunctionFacts([source], [0], inputs => {
+        expect(inputs).toEqual([integer]);
+        return integer;
+    })).toEqual({ types: ['sequence'], rank: 1, shape: [null], elements: ['integer'], unbounded: true });
+    expect(rankedFunctionFacts([{ ...source, callbackFreeScalarCells: undefined }], [0], () => integer))
+        .toEqual({ types: [] });
+});

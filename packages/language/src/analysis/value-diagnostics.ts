@@ -63,6 +63,10 @@ export interface ValueAnalysis {
     readonly assignments: ReadonlyMap<AssignmentStatement, ValueFacts>;
     readonly functions: ReadonlyMap<string, FunctionStatement>;
     readonly functionResults: readonly ValueFacts[];
+    /** Proven signatures at earlier call sites; these do not restore current binding facts. */
+    readonly functionCalls: ReadonlyMap<FunctionStatement, readonly {
+        arguments: readonly ValueFacts[]; result: ValueFacts;
+    }[]>;
     /** The imported functions this pass bound, for a later pass over the next cell to start from. */
     readonly imports: ReadonlyMap<string, ImportedFunction>;
 }
@@ -1417,7 +1421,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     const unique = diagnostics.filter((diagnostic, index) => !diagnostics.slice(0, index).some(previous =>
         previous.node === diagnostic.node && previous.message === diagnostic.message));
     return { diagnostics: unique, bindings, expressions, assignments, functions, functionResults, requirements, imports: imported,
-        relationships: calls.validRelationships(bindings) };
+        relationships: calls.validRelationships(bindings),
+        functionCalls: new Map([...calls.observedCalls].map(([definition, instances]) => [definition, [...instances.values()]])) };
 }
 
 function dataDependentLength(operation: Operation): boolean {

@@ -163,9 +163,14 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         const observed = analysis.functions.get(site.name) === definition
             ? examples.flatMap((example, index) => example.name === site.name
                 ? [{ arguments: example.arguments, result: analysis.functionResults[index] }] : []) : [];
-        return observed.length ? [...new Set(observed.map(facts => functionSignature(definition, { ...facts, relationship })))].join(' ; ')
-            : functionSignature(definition, { relationship, result: relationship ? undefined : generalResult(definition),
-                requirements: (generalAnalysis(definition) ?? analysis).requirements.functions.get(definition)?.params });
+        if (observed.length) return [...new Set(observed.map(facts => functionSignature(definition, { ...facts, relationship })))].join(' ; ');
+        const result = relationship ? undefined : generalResult(definition);
+        // A later host call can erase captured-value facts. Keep signatures
+        // already proved at actual call sites for the definition's footer.
+        const earlierCalls = !relationship && !result?.types.length ? analysis.functionCalls.get(definition) : undefined;
+        if (earlierCalls?.length) return [...new Set(earlierCalls.map(facts => functionSignature(definition, facts)))].join(' ; ');
+        return functionSignature(definition, { relationship, result,
+            requirements: (generalAnalysis(definition) ?? analysis).requirements.functions.get(definition)?.params });
     };
 
     return offset => {

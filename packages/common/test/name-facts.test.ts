@@ -407,3 +407,17 @@ it('shows backward parameter requirements on the Euler 13 function definition', 
     expect(found.signature).toBe('(number | missing) [rank ≥ 0] i → i');
     expect(layoutNameFacts(found, 40)).toEqual(['leading_sum ·', '  (number | missing) [rank ≥ 0]', '  i → i']);
 });
+
+
+it('keeps the proved Euler 17 cell signature after printing its sum', () => {
+    const source = readFileSync(new URL('../../../demos/euler/017_numberletters.ra', import.meta.url), 'utf8');
+    const found = factsAt(source, source.indexOf('fun letters') + 4)!;
+    expect(found.signature).toBe('i → i');
+});
+
+it('uses earlier calls for a definition without restoring facts for later calls', () => {
+    const source = 'use io\nValues = array 3 5 7\nA = 0 lookup\nA print\n0 lookup\n'
+        + 'fun lookup N\n return Values N\nend';
+    expect(factsAt(source, source.indexOf('fun lookup') + 4)?.signature).toBe('i → i');
+    expect(factsAt(source, source.indexOf('lookup', source.indexOf('A print')))?.signature).toBe('i → ?');
+});

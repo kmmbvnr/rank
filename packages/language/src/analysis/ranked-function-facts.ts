@@ -12,6 +12,11 @@ export function rankedFunctionFacts(operands: readonly ValueFacts[], ranks: read
     if (!frame.length) return invoke(operands);
     const result = invoke(inputs);
     if (result.bottom || !result.types.length) return UNKNOWN_VALUE;
+    if (operands.length === 1 && operands[0].types.join() === 'sequence') {
+        return result.rank === 0 ? { types: ['sequence'], rank: 1,
+            shape: operands[0].shape ?? [null], elements: result.types,
+            ...(operands[0].unbounded ? { unbounded: true as const } : {}) } : UNKNOWN_VALUE;
+    }
     // Arrays stack their axes; other values (including text) are boxed cells.
     if (result.types.join() === 'array') {
         // Shape-only callback analysis also supplies axes for empty frames.
@@ -26,6 +31,12 @@ export function rankedFunctionFacts(operands: readonly ValueFacts[], ranks: read
 /** Cell facts used by both result inference and the independent effect analysis. */
 export function rankedFunctionInputs(operands: readonly ValueFacts[], ranks: readonly IntrinsicRank[],
     axes?: readonly number[]) {
+    const source = operands[0];
+    if (!axes && operands.length === 1 && ranks.length === 1 && ranks[0] === 0
+        && source.types.join() === 'sequence' && source.rank === 1
+        && (source.eagerScalarCells || source.callbackFreeScalarCells) && source.elements?.length) {
+        return { inputs: [{ types: source.elements, rank: 0, shape: [] }], frame: source.shape ?? [null] };
+    }
     const partition = rankedOperandShapes(operands, ranks, axes);
     if (!partition) return undefined;
     const { cells, frame } = partition;

@@ -45,6 +45,11 @@ export function createCallAnalysis(
     const functionBindings = new Map([...functions.keys()].map(name => [name, bindings.get(name)]));
     const imported = new Map<string, ImportedFunction>(initialImports);
     const importedAliases = new Set([...initialImports.keys()].map(qualified => qualified.slice(0, qualified.indexOf('.'))));
+    // Proven call-site signatures are historical observations, not facts about
+    // a later call after captured values may have changed.
+    const observedCalls = new Map<FunctionStatement, Map<string, {
+        arguments: readonly ValueFacts[]; result: ValueFacts;
+    }>>();
     const activeCalls = new WeakMap<FunctionStatement, Set<string>>();
     const recursiveProbes = new WeakMap<FunctionStatement, Map<string, { inputs: readonly ValueFacts[]; result: ValueFacts;
         seen: boolean; valid: boolean; pure: boolean }>>();
@@ -310,6 +315,13 @@ export function createCallAnalysis(
                 for (const [node, fact] of before) expressions.set(node, fact);
             }
             const ordinary = withPathDims(joinValueFacts(result));
+            if (!checkingReturns && site && !frame.recursive && ordinary.types.length
+                && arguments_.every(fact => fact.types.length)) {
+                const observed = { arguments: arguments_.map(returnInput), result: returnInput(ordinary) };
+                const instances = observedCalls.get(definition) ?? new Map();
+                if (instances.size < 100) instances.set(JSON.stringify(observed), observed);
+                observedCalls.set(definition, instances);
+            }
             if (!frame.recursive || ordinary.bottom) return ordinary;
             // Seed with bottom, not unknown: a recursive edge without a base
             // contributes no completed return. Unknown external calls still do.
@@ -380,7 +392,7 @@ export function createCallAnalysis(
 
     return {
         functionBindings, imported, importedAliases, globalCallEnvs, privateBindings, frameBindings,
-        directNoReturnCall, call, relationships,
+        directNoReturnCall, call, relationships, observedCalls,
         validRelationships: (env: ReadonlyMap<string, ValueFacts>) => {
             const result = new Map([...relationships].filter(([definition, summary]) =>
                 functions.get(definition.name) === definition
