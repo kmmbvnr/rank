@@ -23,6 +23,8 @@ async original => {
             const rect = terminal.getBoundingClientRect();
             const initialFooter = { text: footer.textContent, top: footer.getBoundingClientRect().top, height: footer.getBoundingClientRect().height };
             if (footer.hidden || !/Value.*integer/.test(initialFooter.text)) throw new Error('Start with the current variable type visible');
+            if (Math.abs(footer.getBoundingClientRect().bottom - rect.bottom) > .1)
+                throw new Error('Pin type hints to the terminal bottom instead of the last whole grid row');
             const position = () => {
                 const row = [...screen.children].find(row => /Scroll line \d+/.test(row.textContent)
                     && row.getBoundingClientRect().top >= rect.top + 20);
@@ -66,6 +68,8 @@ async original => {
                 await frames(1); sample();
             }
             const settled = position();
+            const factsHiddenAfterLeaving = getComputedStyle(footer).visibility === 'hidden';
+            const sourcePaintsToBottom = screen.lastElementChild.getBoundingClientRect().bottom >= rect.bottom - .1;
             window.dispatchEvent(new Event('resize'));
             await frames(2);
             const afterResize = position();
@@ -79,7 +83,7 @@ async original => {
             }
             touch('touchend');
             for (let i = 0; i < 80; i++) { await frames(1); sample(); }
-            return { beforePause, afterPause, settled, afterResize,
+            return { beforePause, afterPause, settled, afterResize, factsHiddenAfterLeaving, sourcePaintsToBottom,
                 stableFooter: footers.every(next => !next.hidden && next.text === initialFooter.text
                     && Math.abs(next.top - initialFooter.top) < .1 && Math.abs(next.height - initialFooter.height) < .1),
                 factsHiddenAway: footers.slice(0, returnStart).some(next => next.visibility === 'hidden'),
@@ -97,14 +101,67 @@ async original => {
         check(!gesture.reversedOnReturn, 'Returning to the cursor must not jump when the gesture settles');
         check(gesture.stableFooter, 'Type hints must keep their text, position and reserved height throughout scrolling and settling');
         check(gesture.factsHiddenAway, 'Hide type hints when their source cursor leaves the viewport');
+        check(gesture.factsHiddenAfterLeaving, 'Keep type hints hidden after stopping away from the cursor');
+        check(gesture.sourcePaintsToBottom, 'Hidden type hints must leave source painted to the bottom, without a blank strip');
         check(gesture.factsHiddenDuringScroll, 'Keep type hints hidden throughout dragging, inertia and settling');
         check(gesture.factsRestored, 'Restore type hints when their source cursor returns to the viewport');
         check(gesture.distance > 90, 'Exercise both dragging and inertia');
         check(!gesture.scrollingAfterSettle, 'Restore idle rendering once the gesture and inertia finish');
         check(Math.abs(gesture.afterResize - gesture.settled) < .1, 'Unchanged viewport geometry must preserve fractional scroll position');
+        // Stop with the cursor in the last source row: do not restore facts against it.
+        await page.evaluate(() => {
+            const terminal = document.querySelector('#terminal');
+            const footer = document.querySelector('#terminal-footer').getBoundingClientRect();
+            const caret = document.querySelector('#caret').getBoundingClientRect();
+            const bounds = terminal.getBoundingClientRect();
+            const gridFooterTop = bounds.top + Math.floor(bounds.height / caret.height) * caret.height - footer.height;
+            terminal.dispatchEvent(new WheelEvent('wheel', {
+                deltaY: -(gridFooterTop - caret.top - caret.height), bubbles: true, cancelable: true,
+            }));
+        });
+        await page.waitForTimeout(300);
+        const edgeCursor = await page.evaluate(() => ({
+            hidden: document.querySelector('#caret').hidden,
+            facts: getComputedStyle(document.querySelector('#terminal-footer')).visibility,
+        }));
+        check(!edgeCursor.hidden, 'Exercise a visible cursor in the last source row');
+        check(edgeCursor.facts === 'hidden', 'Keep facts hidden when the bottom cursor has no clear source row below it');
+        await page.locator('#screen .terminal-row').filter({ hasText: /^.*Value = 42$/ }).tap({ position: { x: 65, y: 5 } });
+        await page.waitForFunction(() => !document.querySelector('#caret').hidden
+            && getComputedStyle(document.querySelector('#terminal-footer')).visibility === 'visible');
+        const tappedCursor = await page.evaluate(() => ({
+            bottom: document.querySelector('#caret').getBoundingClientRect().bottom,
+            footerTop: document.querySelector('#terminal-footer').getBoundingClientRect().top,
+        }));
+        check(tappedCursor.bottom <= tappedCursor.footerTop, 'A bottom-row tap must reveal the cursor above its type hint');
+        await page.locator('#terminal').dispatchEvent('wheel', { deltaY: 100, deltaMode: 0 });
+        await page.waitForTimeout(300);
+        check(await page.locator('#terminal-footer').evaluate(footer => getComputedStyle(footer).visibility === 'visible'),
+            'Restore facts when scrolling makes room below the cursor');
+        // Move the bottom cursor only part of a row out of view, then let scrolling stop.
+        await page.evaluate(() => {
+            const terminal = document.querySelector('#terminal');
+            const footer = document.querySelector('#terminal-footer').getBoundingClientRect();
+            const caret = document.querySelector('#caret').getBoundingClientRect();
+            terminal.dispatchEvent(new WheelEvent('wheel', { deltaY: -(footer.top - caret.top - 3.25), bubbles: true, cancelable: true }));
+        });
+        await page.waitForTimeout(300);
+        const clippedCursor = await page.evaluate(() => ({
+            hidden: document.querySelector('#caret').hidden,
+            facts: getComputedStyle(document.querySelector('#terminal-footer')).visibility,
+        }));
+        check(clippedCursor.hidden, 'Exercise a cursor clipped at the bottom edge after settling');
+        check(clippedCursor.facts === 'hidden', 'A clipped cursor must not bring its hint back over the source');
+        await page.locator('#screen .terminal-row').filter({ hasText: /^.*Value = 42$/ }).tap({ position: { x: 65, y: 1 } });
+        await page.waitForFunction(() => !document.querySelector('#caret').hidden
+            && getComputedStyle(document.querySelector('#terminal-footer')).visibility === 'visible');
+        check(await page.evaluate(() => document.querySelector('#caret').getBoundingClientRect().bottom
+            <= document.querySelector('#terminal-footer').getBoundingClientRect().top),
+            'Tapping source under the hidden footer must scroll its cursor above the restored hint');
         await page.getByRole('textbox').fill('VariableWithANameLongEnoughToWrapTheTypeHint = array shape 100 200 fill 1');
         await page.getByRole('textbox').press('Home');
         await page.waitForFunction(() => !document.querySelector('#terminal-footer').hidden
+            && getComputedStyle(document.querySelector('#terminal-footer')).visibility === 'visible'
             && document.querySelector('#terminal-footer').children.length > 1);
         const multiline = await page.locator('#terminal-footer').evaluate(footer => {
             const height = document.querySelector('#measure').getBoundingClientRect().height;

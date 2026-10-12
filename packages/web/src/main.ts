@@ -124,7 +124,7 @@ let scheduledNotebookId: string | undefined;
 let lastPause: PauseSnapshot | undefined;
 let paintedLines: string[] = [];
 let paintedStatus: string | undefined;
-let typeFooterRow: number | undefined;
+let typeFooterTop: number | undefined;
 let paintedCaret = '';
 const session = browserSession(message => { failure = message; needsRestart = true; render(); }, () => render());
 const repl = new NotebookRepl(session, statusOnly => render(statusOnly), () => columns, true);
@@ -277,10 +277,12 @@ function placeScreen(): void {
     if (windowedFrame) caret.hidden = caretRow < 0 || caretRow >= rows || !!repl.help || Boolean(activeVoiceDictation);
     const left = columnLeft(frame.cursor.column, frame.cursor.row);
     const y = caretRow * cellHeight - scrollFraction;
-    // Keep the reserved footer space, but do not show facts for an offscreen source cursor.
+    // After scrolling, leave a source row below the cursor before restoring its facts.
+    // The reserved space stays fixed even when the hint is hidden.
     const sourceCaretY = (frame.caretRow !== undefined ? frame.caretRow - top : caretRow) * cellHeight - scrollFraction;
-    footer.style.visibility = typeFooterRow !== undefined
-        && (sourceCaretY + cellHeight <= 0 || sourceCaretY >= typeFooterRow * cellHeight) ? 'hidden' : '';
+    const factsClearance = follow ? cellHeight : 2 * cellHeight;
+    footer.style.visibility = typeFooterTop !== undefined
+        && (caret.hidden || sourceCaretY < 0 || sourceCaretY + factsClearance > typeFooterTop) ? 'hidden' : '';
     const inputY = windowedFrame ? Math.max(0, Math.min(rows - 1, caretRow)) * cellHeight - (caretRow >= 0 && caretRow < rows ? scrollFraction : 0) : y;
     caret.style.transform = `translate(${left}px, ${y}px)`;
     if (activeVoiceDictation && frame.cursorVisible && !repl.help) {
@@ -472,13 +474,17 @@ function render(statusOnly = false): void {
         // Flinging re-laid out and repainted the notebook at every row; a few screens of rows turn that into a slide.
         windowedFrame = scrollWindow && !follow && !shownFailure && !showShortcutHints;
         if (follow || shownFailure) scrollFraction = 0;
+        // Hidden mobile facts must expose source underneath their reserved space,
+        // including a fractional bottom row, even after the larger scroll window settles.
+        const overscan = windowedFrame ? rows * 3 : touchConsole && nameFacts ? Math.ceil(rows / 2) + 1
+            : !keyHints() && !shownFailure && !repl.running && !nameFacts ? 1 : 0;
         frame = notebookFrame(repl.notebook, columns, rows, windowedFrame ? Math.max(0, top - rows) : top,
             shownFailure || (showShortcutHints ? repl.suggestion : repl.runTime), busy || repl.running, follow, '',
             shownFailure || (repl.running ? showShortcutHints ? repl.runningStatus : repl.runningStatus.split(' · ')[0] : 'Running…'),
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
             repl.liveIterationFocus, repl.stepping,
             anchorCursor && restingCursorRow !== undefined ? Math.min(restingCursorRow, rows - 1) : undefined, showShortcutHints,
-            windowedFrame ? rows * 3 : !keyHints() && !shownFailure && !repl.running && !nameFacts ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus, nameFacts, repl.valueFocus, notebookGutter, touchConsole);
+            overscan, repl.diagnosticOutputs, repl.importFixFocus, nameFacts, repl.valueFocus, notebookGutter, touchConsole);
         if (windowedFrame) top = Math.min(top, frame.maxTop ?? 0);
         else { top = frame.top; scrollWindow = false; }
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
@@ -487,11 +493,12 @@ function render(statusOnly = false): void {
     // Execution status and mobile type hints belong to the viewport, not the sliding source rows.
     const footerRow = frame.statusRow ?? (touchConsole ? frame.factsRow : undefined);
     const footerCount = frame.statusRow !== undefined ? 1 : frame.factsRowCount ?? 1;
-    typeFooterRow = frame.statusRow === undefined && touchConsole ? frame.factsRow : undefined;
-    footer.classList.toggle('terminal-name-facts', typeFooterRow !== undefined);
+    typeFooterTop = frame.statusRow === undefined && touchConsole && frame.factsRow !== undefined
+        ? terminal.clientHeight - footerCount * cellHeight : undefined;
+    footer.classList.toggle('terminal-name-facts', typeFooterTop !== undefined);
     footer.hidden = footerRow === undefined;
     if (footerRow !== undefined) {
-        footer.style.top = footerRow * cellHeight + 'px';
+        footer.style.top = (typeFooterTop ?? footerRow * cellHeight) + 'px';
         footer.style.height = footerCount * cellHeight + 'px';
         paintStatus(frame.lines.slice(footerRow, footerRow + footerCount));
         frame = { ...frame, lines: frame.lines.filter((_, index) => index < footerRow || index >= footerRow + footerCount),
@@ -1300,10 +1307,20 @@ async function locate(x: number, y: number): Promise<void> {
     } else if (row < rows - 1) {
         repl.editSource(); repl.notebook.toPrompt();
     }
-    // Placing the cursor in a visible row must not shift the screen; typing brings the cursor into view later.
+    // Preserve a tapped source row unless its cursor needs room above the type footer.
     follow = !(touchConsole && target?.kind === 'source');
     scrollWindow = false;
+    terminal.classList.remove('scrolling');
+    clearTimeout(scrollIdle);
     render();
+    if (touchConsole && target?.kind === 'source') {
+        const cursorY = (frame.caretRow! - top) * cellHeight - scrollFraction;
+        if (!frame.cursorVisible || cursorY < 0 || cursorY + (typeFooterTop !== undefined ? 2 : 1) * cellHeight
+            > (typeFooterTop ?? terminal.clientHeight)) {
+            follow = true;
+            render();
+        }
+    }
     focusInput();
 }
 
