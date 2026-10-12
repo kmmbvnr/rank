@@ -529,8 +529,10 @@ export function layoutNameFacts(found: NameFacts, width: number): string[] {
         if (cellWidth(single) <= width) return [single];
         const words = topLevelWords(alternative);
         const arrow = words.indexOf('→');
-        const inputs = arrow < 0 ? [] : words.slice(0, arrow);
-        const result = (arrow < 0 ? words : words.slice(arrow + 1)).join(' ');
+        // Type/container bounds are annotations, not additional result signatures.
+        if (arrow < 0) return wrapElement(alternative, width, '  ');
+        const inputs = words.slice(0, arrow);
+        const result = words.slice(arrow + 1).join(' ');
         const rows: string[] = index === 0 ? [`${found.name} ·`] : [];
         const place = (line: string): void => {
             if (cellWidth(line) <= width) { rows.push(line); return; }

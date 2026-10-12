@@ -247,7 +247,7 @@ const metricInput: SignatureType = { union: ['number', numericArray, { collectio
 const metricSignatures: readonly TypeSignature[] = [{ inputs: [metricInput, metricInput], result: 'real' }];
 
 const numericReductionInputs: SignatureType = { union: ['number', 'missing', 'column',
-    ...(['array', 'sequence', 'queue', 'stack', 'deque', 'set'] as const).map(collection => ({ collection, element: numericCells }))] };
+    { container: 0, kinds: ['array', 'sequence', 'queue', 'stack', 'deque', 'set'], element: numericCells }] };
 
 /** Whole-value maps preserve the collection kind, independently of intrinsic rank lifting. */
 function mappingSignatures(input: SignatureType, result: SignatureType): readonly TypeSignature[] {

@@ -173,6 +173,17 @@ describe('factsAt: functions', () => {
 });
 
 describe('function signatures in the type footer', () => {
+    it('groups the general sum contract and narrows known collection calls', () => {
+        const general = factsAt('sum', 0)!;
+        expect(general.signature)
+            .toBe('(number | missing | column | c<number | missing>) → number ; c: array | sequence | queue | stack | deque | set');
+        const rows = layoutNameFacts(general, 40);
+        expect(rows.filter(row => row.includes('→'))).toHaveLength(1);
+        expect(rows.join(' ')).toContain('c: array | sequence | queue');
+        expect(rows.every(row => row.length <= 40)).toBe(true);
+        const source = 'N = 1 to 999\nN sum';
+        expect(factsAt(source, source.lastIndexOf('sum'))?.signature).toBe('sequence<number> → number');
+    });
     it('uses explicit builtin signatures with their actual overloads', () => {
         const split = 'use text\n"a,b" "," split';
         expect(formatNameFacts(factsAt(split, split.indexOf('split'))!))

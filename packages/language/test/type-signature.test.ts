@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { findOperation } from '../src/operations.js';
-import { formatTypeSignature, operationSignature } from '../src/type-signature.js';
+import { formatTypeSignature, instantiateTypeSignatures, operationSignature } from '../src/type-signature.js';
 
 it('omits implicit scalar ranks in compact footers while preserving other cell ranks', () => {
     const compact = { compact: true, shortNumericNames: true };
@@ -78,6 +78,20 @@ it('selects overloads using known argument facts and preserves alternatives for 
     expect(operationSignature(findOperation('reverse')!, [{ types: ['text'] }])).toBe('text → text');
     expect(operationSignature(max, [{ types: [] }, { types: [] }])).toContain('text text → text');
     expect(operationSignature(max, [{ types: ['text'] }, { types: ['integer'] }])).toContain('number number → number');
+});
+
+it('groups numeric reduction containers without broadening their accepted kinds', () => {
+    const sum = findOperation('sum')!;
+    expect(operationSignature(sum)).toBe('(number | missing | column | c<number | missing>) → number ; c: array | sequence | queue | stack | deque | set');
+    for (const collection of ['array', 'sequence', 'queue', 'stack', 'deque', 'set'] as const) {
+        expect(operationSignature(sum, [{ types: [collection], elements: ['integer'] }]))
+            .toBe(`${collection}<number> → number`);
+    }
+    expect(operationSignature(sum, [{ types: [] }])).toBe(operationSignature(sum));
+    for (const input of ['text', { collection: 'heap', element: 'integer' },
+        { collection: 'array', element: 'text' }] as const) {
+        expect(instantiateTypeSignatures(sum.signatures![0], [input])).toEqual([]);
+    }
 });
 
 it('keeps cell lifting separate from whole-operand overloads', () => {
