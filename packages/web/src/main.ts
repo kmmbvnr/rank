@@ -119,9 +119,12 @@ let failure = '';
 let needsRestart = false;
 let frame: ScreenFrame;
 let storedNotebook = '';
+let scheduledNotebook = '';
+let scheduledNotebookId: string | undefined;
 let lastPause: PauseSnapshot | undefined;
 let paintedLines: string[] = [];
 let paintedStatus: string | undefined;
+let paintedCaret = '';
 const session = browserSession(message => { failure = message; needsRestart = true; render(); }, () => render());
 const repl = new NotebookRepl(session, statusOnly => render(statusOnly), () => columns, true);
 repl.rows = () => rows;
@@ -512,6 +515,12 @@ function render(statusOnly = false): void {
     caret.style.width = (frame.cursorStyle === 6 ? 2 : cellWidth) + 'px';
     caret.hidden = !frame.cursorVisible || !!repl.help || Boolean(activeVoiceDictation);
     placeScreen();
+    const caretPosition = `${editor().current.id}:${editor().cursor}:${caret.style.transform}`;
+    if (caretPosition !== paintedCaret && !repl.running && !caret.hidden) {
+        // Movement must show immediately, even if the blink was in its invisible half.
+        for (const animation of caret.getAnimations()) animation.currentTime = 0;
+    }
+    paintedCaret = caretPosition;
     guidance?.update();
     input.setAttribute('aria-busy', String(busy || repl.running));
     if (!composing) {
@@ -528,7 +537,12 @@ function render(statusOnly = false): void {
             cells: repl.notebook.cells.slice(0, -1).filter(cell => !cell.command).map(cell => cell.source),
             draft: repl.notebook.cells.at(-1)!.source,
         });
-        if (historyReady && !changingNotebook) notebookHistory?.schedule(JSON.parse(savedNotebook));
+        if (historyReady && !changingNotebook && (savedNotebook !== scheduledNotebook
+            || notebookHistory?.current?.id !== scheduledNotebookId)) {
+            notebookHistory?.schedule(JSON.parse(savedNotebook));
+            scheduledNotebook = savedNotebook;
+            scheduledNotebookId = notebookHistory?.current?.id;
+        }
         if (example && savedNotebook !== storedNotebook) {
             localStorage.setItem(storageKey, savedNotebook);
             storedNotebook = savedNotebook;
@@ -537,6 +551,7 @@ function render(statusOnly = false): void {
 }
 
 let pressFinished: Promise<void> = Promise.resolve();
+let navigating = false;
 async function press(key: Key, text = ''): Promise<void> {
     if (!historyReady || changingNotebook || notebookPanel?.dialog.open && !(key.ctrl && key.name === 'c')) return;
     stopMomentum();
@@ -548,6 +563,12 @@ async function press(key: Key, text = ''): Promise<void> {
     }
     if (busy) {
         if (key.ctrl && key.name === 'c') session.interrupt?.();
+        // Rapid arrow events can arrive before the previous async handler settles.
+        // Preserve them in order, without queuing movement behind program execution.
+        if (navigating && !key.ctrl && !key.meta && ['left', 'right', 'up', 'down', 'home', 'end'].includes(key.name ?? '')) {
+            await pressFinished;
+            return press(key, text);
+        }
         return;
     }
     if (needsRestart && (key.name === 'return' || key.ctrl && key.name === 'r')) {
@@ -562,6 +583,7 @@ async function press(key: Key, text = ''): Promise<void> {
     follow = key.name !== 'pageup' && key.name !== 'pagedown';
     failure = '';
     busy = true;
+    navigating = !key.ctrl && !key.meta && ['left', 'right', 'up', 'down', 'home', 'end'].includes(key.name ?? '');
     let finishPress!: () => void;
     pressFinished = new Promise<void>(resolve => { finishPress = resolve; });
     input.setAttribute('aria-busy', 'true');
@@ -577,6 +599,7 @@ async function press(key: Key, text = ''): Promise<void> {
         for (const cell of repl.notebook.cells) if (cell.status === 'running') cell.status = 'interrupted';
     } finally {
         busy = false;
+        navigating = false;
         finishPress();
         if (!failure && !needsRestart && (key.name === 'return' || key.ctrl && ['r', 'l'].includes(key.name ?? ''))
             && !repl.notebook.cells.some(cell => cell.status === 'error' || cell.status === 'interrupted')

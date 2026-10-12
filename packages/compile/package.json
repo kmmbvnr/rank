@@ -1,6 +1,6 @@
 {
   "name": "@arrrank/compile",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "LLM-aided Rust rewrite: compile Rank source into a self-contained agent task",
   "license": "MIT",
   "type": "module",
@@ -14,8 +14,8 @@
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
-    "@arrrank/interpreter": "0.0.1",
-    "@arrrank/language": "0.0.1"
+    "@arrrank/interpreter": "0.0.2",
+    "@arrrank/language": "0.0.2"
   },
   "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
   "repository": {

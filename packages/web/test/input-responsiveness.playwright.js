@@ -36,7 +36,35 @@ async original => {
         await input.press('Backspace');
         await input.press('Backspace');
         if (await input.inputValue() !== 'arra') throw new Error('Keep both rapid Backspace presses');
+        await input.fill('0123456789abcdef');
+        await input.press('End');
+        const burst = async (key, count, shiftKey = false) => page.evaluate(({ key, count, shiftKey }) => {
+            const input = document.querySelector('textarea');
+            for (let i = 0; i < count; i++) input.dispatchEvent(new KeyboardEvent('keydown', {
+                key, shiftKey, bubbles: true, cancelable: true, repeat: i > 0,
+            }));
+        }, { key, count, shiftKey });
+        await burst('ArrowLeft', 8);
+        await page.waitForFunction(() => document.querySelector('textarea').selectionStart === 8);
+        await page.evaluate(() => {
+            for (const animation of document.querySelector('#caret').getAnimations()) animation.currentTime = 600;
+        });
+        await burst('ArrowRight', 8);
+        await page.waitForFunction(() => document.querySelector('textarea').selectionStart === 16);
+        if (await page.locator('#caret').evaluate(caret => getComputedStyle(caret).opacity) !== '1')
+            throw new Error('Moving the cursor must reveal it immediately during the invisible blink phase');
+        await input.fill('ab\ncd\nef');
+        await input.press('End');
+        await burst('ArrowUp', 2);
+        await page.waitForFunction(() => document.querySelector('textarea').selectionStart === 2);
+        await burst('ArrowDown', 2);
+        await page.waitForFunction(() => document.querySelector('textarea').selectionStart === 8);
+        await burst('ArrowLeft', 3, true);
+        await page.waitForFunction(() => {
+            const input = document.querySelector('textarea');
+            return input.selectionStart === 5 && input.selectionEnd === 8;
+        });
         if (errors.length) throw new Error(errors.join('\n'));
-        return { result: 'Autocomplete and every native/key deletion update the draft and cursor', nativeDeleteMs: timings };
+        return { result: 'Autocomplete, native deletion and rapid arrow/selection bursts preserve every input', nativeDeleteMs: timings };
     } finally { await context.close(); }
 }

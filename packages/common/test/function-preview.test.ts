@@ -27,13 +27,13 @@ end`;
     });
 
     it.each([
-        ['fun inc X\n return X + 1\nend', 'i → i ; c<i> → c<i>'],
+        ['fun inc X\n return X + 1\nend', 'i → i ; r → r ; c<i> → c<i> ; c<r> → c<r>'],
         ['fun identity X\n return X\nend', 'a → a'],
         ['fun pair X\n return tuple X "label"\nend', 'a → tuple(a, text)'],
         ['fun answer X rank 0\n return 42\nend', 'a → i'],
         ['fun answer X rank 1\n return 42\nend', 'a → i'],
-        ['fun add X Y\n return X + Y\nend', 'a a → a ; a: number ; c<a> a → c<a> ; a: number ; a c<a> → c<a> ; a: number'],
-        ['fun countdown N\n for N greater 0\n  yield N\n  N -= 1\n end\nend', 'i → sequence<i>'],
+        ['fun add X Y\n return X + Y\nend', 'a a → a ; a: number ; i r → r ; c<a> a → c<a> ; a: number ; a c<a> → c<a> ; a: number'],
+        ['fun countdown N\n for N greater 0\n  yield N\n  N -= 1\n end\nend', 'i → sequence<i> ; r → sequence<r>'],
     ])('shows the inferred signature for %s', async (source, signature) => {
         const session = createReplSession();
         try {
@@ -76,7 +76,7 @@ it('does not cache example specialization as the general function contract', asy
 it('shows a compact four-parameter contract in a 40-column session without caching a call specialization', async () => {
     const session = createReplSession();
     const source = 'fun sum4 A B C D\n return ((A + B) + C) + D\nend';
-    const general = 'a a a a → a ; a: number ; c<a> a a a → c<a> ; a: number ; a c<a> a a → c<a> ; a: number';
+    const general = 'a a a a → a ; a: number ; i i i r → r ; c<a> a a a → c<a> ; a: number ; a c<a> a a → c<a> ; a: number';
     try {
         expect((await session.execute(source, 0, [], 40, true)).output.map(row => row.text).join(' ')).toBe(general);
         expect((await session.execute('1 2 3 4 sum4', 1, [], 40, true)).output.map(row => row.text)).toEqual(['10']);
@@ -109,9 +109,9 @@ it('infers functions after CLI options and a loop in the full notebook context',
         expect((await session.execute('option N integer = 42', 1, file, 40, true)).ok).toBe(true);
         expect((await session.execute('for N greater 1\n N = 1\nend', 2, file, 40, true)).ok).toBe(true);
         expect((await session.execute(generator, 1, file, 40, true)).output.map(row => row.text).join(' '))
-            .toBe('i → sequence<i>');
+            .toBe('i → sequence<i> ; r → sequence<i>');
         expect((await session.execute(inc, 2, file, 40, true)).output.map(row => row.text).join(' '))
-            .toBe('i → i ; c<i> → c<i>');
+            .toBe('i → i ; r → r ; c<i> → c<i> ; c<r> → c<r>');
     } finally { session.dispose(); }
 });
 

@@ -8,7 +8,7 @@ import { enclosingIterationLine } from './live-preview.js';
 import { importPosition, missingImports } from './import-fix.js';
 import { type OutputLine } from './repl-session.js';
 import type { ReplSession } from './repl-types.js';
-import { notebookScope, notebookValueDiagnostics } from './value-diagnostics.js';
+import { notebookScope, notebookValueDiagnostics, type NotebookScope } from './value-diagnostics.js';
 import { createModuleLoader, importedPaths, type ModuleSource } from './module-loader.js';
 import { nameFactsIn, type NameFacts } from './name-facts.js';
 import { ValueViewer } from './value-viewer.js';
@@ -41,14 +41,14 @@ export class NotebookRepl {
     get diagnosticOutputs(): ReadonlyMap<number, OutputLine[]> | undefined {
         if (this.running) return undefined;
         const facts = this.session.diagnosticFacts;
-        const key = JSON.stringify([this.notebook.active, this.notebook.dirtyFrom,
-            this.notebook.cells.map(cell =>
-                [cell.id, cell.source, cell.executed, cell.command, cell.status]), facts, this.session.testExamples,
-            this.importedSources()]);
-        if (this.diagnosticCache?.key !== key) this.diagnosticCache = {
-            key, outputs: notebookValueDiagnostics(this.notebook, facts, this.session.testExamples, this.loadModule),
-        };
-        return this.diagnosticCache.outputs;
+        this.prepareAnalysis(facts);
+        const active = this.notebook.active;
+        if (!this.diagnosticCache.has(active)) {
+            this.diagnosticCache.set(active, notebookValueDiagnostics(this.notebook, facts, this.session.testExamples,
+                this.loadModule, notebookScope(this.notebook, facts, this.loadModule, this.scopePrefixes)));
+            if (this.diagnosticCache.size > 32) this.diagnosticCache.delete(this.diagnosticCache.keys().next().value!);
+        }
+        return this.diagnosticCache.get(active);
     }
     /** The name under the source cursor, while the source is being edited. Gone as soon as the source changes. */
     get nameFacts(): NameFacts | undefined {
@@ -57,14 +57,13 @@ export class NotebookRepl {
         const current = book.current;
         if (current.command || !current.source.trim()) return undefined;
         const facts = this.session.diagnosticFacts;
-        const key = JSON.stringify([book.active, book.dirtyFrom,
-            book.cells.map(cell => [cell.id, cell.source, cell.executed, cell.command, cell.status]), facts,
-            this.importedSources()]);
-        if (this.nameFactsCache?.key !== key) {
-            const scope = notebookScope(book, facts, this.loadModule);
-            this.nameFactsCache = { key, lookup: nameFactsIn(current.source, scope.clean ? facts : [], [], scope, this.loadModule) };
+        this.prepareAnalysis(facts);
+        if (!this.nameFactsCache.has(book.active)) {
+            const scope = notebookScope(book, facts, this.loadModule, this.scopePrefixes);
+            this.nameFactsCache.set(book.active, nameFactsIn(current.source, scope.clean ? facts : [], [], scope, this.loadModule));
+            if (this.nameFactsCache.size > 32) this.nameFactsCache.delete(this.nameFactsCache.keys().next().value!);
         }
-        return this.nameFactsCache.lookup?.(book.cursor);
+        return this.nameFactsCache.get(book.active)?.(book.cursor);
     }
     private readonly modules?: ModuleSource;
     private readonly loadModule?: ReturnType<typeof createModuleLoader>;
@@ -75,8 +74,21 @@ export class NotebookRepl {
             try { return this.modules!(path) ?? null; } catch { return null; }
         });
     }
-    private nameFactsCache?: { key: string; lookup: ReturnType<typeof nameFactsIn> };
-    private diagnosticCache?: { key: string; outputs: ReadonlyMap<number, OutputLine[]> };
+    private analysisKey?: string;
+    private readonly scopePrefixes = new Map<number, NotebookScope>();
+    private readonly nameFactsCache = new Map<number, ReturnType<typeof nameFactsIn>>();
+    private readonly diagnosticCache = new Map<number, ReadonlyMap<number, OutputLine[]>>();
+    private prepareAnalysis(facts: ReplSession['diagnosticFacts']): void {
+        // Cursor position and active cell do not change the notebook's source analysis.
+        const key = JSON.stringify([this.notebook.dirtyFrom,
+            this.notebook.cells.map(cell => [cell.id, cell.source, cell.executed, cell.command, cell.status]),
+            facts, this.session.testExamples, this.importedSources()]);
+        if (key === this.analysisKey) return;
+        this.analysisKey = key;
+        this.scopePrefixes.clear();
+        this.nameFactsCache.clear();
+        this.diagnosticCache.clear();
+    }
     get liveEditing(): boolean { return this.liveFunction.editing || this.liveConditional.editing; }
     get completingLiveFunction(): boolean { return this.liveFunction.completing; }
     get exampleEditor(): Notebook | undefined { return this.liveFunction.editor; }
@@ -378,8 +390,10 @@ export class NotebookRepl {
         this.evaluationCell = undefined;
         this.importFocus = undefined;
         this.valueFocusId = undefined;
-        this.nameFactsCache = undefined;
-        this.diagnosticCache = undefined;
+        this.analysisKey = undefined;
+        this.nameFactsCache.clear();
+        this.diagnosticCache.clear();
+        this.scopePrefixes.clear();
         this.pauseTop = 0;
         this.dismiss();
         this.notebook.clear();
