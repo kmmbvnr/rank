@@ -58,3 +58,10 @@ it('distinguishes matching arithmetic types from independently numeric operands'
     expect(operatorSignature('less', [{ types: [] }, { types: [] }]))
         .toContain('number number → boolean [rank 0 0]');
 });
+
+it('describes the two positional divmod results', () => {
+    expect(operatorSignature('divmod', facts('integer', 'integer')))
+        .toBe('integer integer → tuple(integer, integer) [rank 0 0]');
+    expect(operatorSignature('divmod', facts('integer', 'real')))
+        .toBe('integer real → tuple(real, real) [rank 0 0]');
+});

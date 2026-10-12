@@ -84,6 +84,11 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
         ? { ...value, rank: 0, shape: [] } : value;
     left = numericScalar(left);
     right = numericScalar(right);
+    if (operator === 'divmod') {
+        const quotient = binaryOperandFacts('//', left, right) ?? { types: binaryType('//', left.types, right.types) };
+        const remainder = binaryOperandFacts('mod', left, right) ?? { types: binaryType('mod', left.types, right.types) };
+        return { types: ['tuple'], rank: 0, shape: [], tupleItems: [quotient, remainder] };
+    }
     // `.NA` propagates through arithmetic and comparison; `and`/`or` can still decide.
     if (left.rank === 0 && right.rank === 0 && (left.types.join() === 'missing' || right.types.join() === 'missing')
         && left.types.length && right.types.length) {

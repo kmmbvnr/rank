@@ -1,3 +1,4 @@
+import { divideWithRemainder, floorDivide, floorDivideReal } from './numeric-division.js';
 import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
 import { RUNTIME_TYPE_NAMES, type ApplicationForm } from '@arrrank/language';
@@ -199,6 +200,7 @@ export class Operators {
         right: RankValue,
         rangeStep?: RankValue,
     ): RankValue {
+        if (operator === 'divmod') return divideWithRemainder(left, right);
         if ((operator === 'in' || operator === 'notin')
             && isRankSqliteExpression(left) && isRankSqliteTable(right)) {
             return inSqlite(left, right, operator === 'notin');
@@ -784,26 +786,4 @@ function power(base: bigint | number, exponent: bigint | number): bigint | numbe
     const result = Number(base) ** Number(exponent);
     if (Number.isNaN(result)) throw new RankError('power result is not real');
     return result;
-}
-
-function floorDivideReal(left: number, right: number): number {
-    const remainder = left % right;
-    // Derive the quotient from the remainder so rounding near an integer
-    // boundary cannot make // disagree with %.
-    let quotient = (left - remainder) / right;
-    if (remainder !== 0 && (remainder < 0) !== (right < 0)) quotient -= 1;
-    if (quotient === 0) {
-        const ratio = left / right;
-        return ratio < 0 || Object.is(ratio, -0) ? -0 : 0;
-    }
-    const floor = Math.floor(quotient);
-    return quotient - floor > 0.5 ? floor + 1 : floor;
-}
-
-function floorDivide(left: bigint, right: bigint): bigint {
-    const quotient = left / right;
-    const remainder = left % right;
-    return remainder !== 0n && (left < 0n) !== (right < 0n)
-        ? quotient - 1n
-        : quotient;
 }

@@ -200,7 +200,7 @@ ArrayRangeAddition returns Expression:
 ArrayRangeMultiplication returns Expression:
     ArrayRangePower
     ({infer BinaryExpression.left=current}
-        operator=('*' | '/' | '//' | 'mod') right=ArrayRangePower)*;
+        operator=('*' | '/' | '//' | 'mod' | 'divmod') right=ArrayRangePower)*;
 
 ArrayRangePower returns Expression:
     ArrayRangeAtom
@@ -272,7 +272,7 @@ SubjectComparison returns Expression:
         operator=ComparisonOperator right=DefaultExpression;
 
 SubjectStepOperator returns string:
-    '*' | '/' | '//' | 'mod';
+    '*' | '/' | '//' | 'mod' | 'divmod';
 
 OrExpression returns Expression:
     XorExpression
@@ -329,7 +329,7 @@ AdditionExpression returns Expression:
 MultiplicationExpression returns Expression:
     PowerExpression
     ({infer BinaryExpression.left=current}
-        operator=('*' | '/' | '//' | 'mod') right=PowerExpression)*;
+        operator=('*' | '/' | '//' | 'mod' | 'divmod') right=PowerExpression)*;
 
 PowerExpression returns Expression:
     ApplicationExpression
@@ -543,7 +543,7 @@ MultilineAdditionExpression returns Expression:
 MultilineMultiplicationExpression returns Expression:
     MultilinePowerExpression
     ({infer BinaryExpression.left=current}
-        NL* operator=('*' | '/' | '//' | 'mod') NL* right=MultilinePowerExpression)*;
+        NL* operator=('*' | '/' | '//' | 'mod' | 'divmod') NL* right=MultilinePowerExpression)*;
 
 MultilinePowerExpression returns Expression:
     ApplicationExpression

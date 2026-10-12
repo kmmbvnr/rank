@@ -48,3 +48,18 @@ it('knows the two array ranks returned by eigh', () => {
     expect(result.bindings.get('Values')?.rank).toBe(1);
     expect(result.bindings.get('Vectors')?.rank).toBe(2);
 });
+
+it('tracks divmod quotient and remainder through unpacking', () => {
+    const scalar = analyze('unpack Q R = 17 divmod 5');
+    expect(scalar.diagnostics).toEqual([]);
+    expect(scalar.bindings.get('Q')?.types).toEqual(['integer']);
+    expect(scalar.bindings.get('R')?.types).toEqual(['integer']);
+    const real = analyze('unpack Q R = 17.5 divmod 5');
+    expect(real.bindings.get('Q')?.types).toEqual(['real']);
+    expect(real.bindings.get('R')?.types).toEqual(['real']);
+    const arrays = analyze('unpack Q R = (array 7 9) divmod 3');
+    expect(arrays.diagnostics).toEqual([]);
+    expect(arrays.bindings.get('Q')?.types).toEqual(['array']);
+    expect(arrays.bindings.get('R')?.elements).toEqual(['integer']);
+    expect(arrays.bindings.get('Q')?.shape).toEqual([2]);
+});

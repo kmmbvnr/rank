@@ -819,7 +819,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         message: `rank ${integer} exceeds value rank ${left.rank}` });
                 }
             }
-            if (['+', '-', '*', '/', '//', 'mod', '**'].includes(expression.operator)) {
+            if (['+', '-', '*', '/', '//', 'mod', 'divmod', '**'].includes(expression.operator)) {
                 if (incompatibleShapes(left, right)) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
                     message: `shape mismatch: [${left.shape!.join(', ')}] and [${right.shape!.join(', ')}]` });
                 // Other scalar domains (dates/durations) have their own legal operators.
@@ -875,7 +875,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 || assignmentPosition < 0 || returnPosition <= assignmentPosition) return undefined;
             inner = assignment.value;
         } else return undefined;
-        const boolean = isBinaryExpression(inner) ? !['+', '-', '*', '/', '//', 'mod', '**', 'till', 'to', 'until', 'default'].includes(inner.operator)
+        const boolean = isBinaryExpression(inner) ? !['+', '-', '*', '/', '//', 'mod', 'divmod', '**', 'till', 'to', 'until', 'default'].includes(inner.operator)
             : (() => {
                 const last = flattenApplication(inner).at(-1);
                 const operation = isNameExpression(last) && !declared.parameters.includes(last.name) && !functions.has(last.name)

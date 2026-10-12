@@ -193,6 +193,7 @@ export function compoundType(operator: string, left: Types, right: Types): Types
 }
 
 export function binaryType(operator: string, left: Types, right: Types): Types {
+    if (operator === 'divmod') return ['tuple'];
     if (operator === 'default') return unionTypes(left, right);
     if (operator === 'to' || operator === 'till') {
         // After values the words bound them and keep their kind; after a number they build a range.

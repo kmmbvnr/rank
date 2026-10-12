@@ -58,7 +58,7 @@ const OPEN_SYMBOLS = new Set([
 /** Words that demand a right operand, so the line folds into the next one. */
 const OPEN_WORDS = new Set([
     'and', 'or', 'xor', 'not', 'to', 'till', 'by', 'default', 'fill', 'equal', 'less',
-    'greater', 'in', 'is', 'at', 'least', 'most', 'mod', 'use', 'as',
+    'greater', 'in', 'is', 'at', 'least', 'most', 'mod', 'divmod', 'use', 'as',
     'push', 'yield', 'unpack', 'new', 'stdin', 'catch', 'option', 'argument',
     'flag', 'args', 'on', 'group', 'leftjoin', 'innerjoin', 'where', 'while',
 ]);
@@ -81,7 +81,7 @@ const DEDENT_WORDS = new Set(['else', 'elif', 'catch', 'finally']);
  */
 export const OPERATOR_KEYWORDS = [
     'and', 'or', 'xor', 'not', 'equal', 'not equal', 'less', 'greater',
-    'at least', 'at most', 'mod', 'in', 'is', 'to', 'till', 'by',
+    'at least', 'at most', 'mod', 'divmod', 'in', 'is', 'to', 'till', 'by',
     'default', 'fill', 'as', 'axis', 'rank', 'reduce', 'scan', 'outer', 'sort by',
     'first where', 'first index where', 'take', 'drop', 'from', 'after',
     'argsort by', 'group by', 'leftjoin by', 'innerjoin by', 'leftjoin on',

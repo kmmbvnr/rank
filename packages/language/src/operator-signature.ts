@@ -41,6 +41,12 @@ export const operatorSignatures: Readonly<Record<string, readonly TypeSignature[
     '/': [binary('number', 'number', 'real'), ...missing],
     '//': [...numeric, ...missing],
     'mod': [...numeric, ...missing],
+    'divmod': [binary('integer', 'integer', { tuple: ['integer', 'integer'] }),
+        binary('real', 'real', { tuple: ['real', 'real'] }),
+        binary('integer', 'real', { tuple: ['real', 'real'] }),
+        binary('real', 'integer', { tuple: ['real', 'real'] }),
+        binary('missing', 'unknown', { tuple: ['missing', 'missing'] }),
+        binary('unknown', 'missing', { tuple: ['missing', 'missing'] })],
     // Integer exponents can be negative, so integer inputs alone do not prove an integer result.
     '**': [binary('integer', 'integer', 'number'), binary('real', 'real', 'real'), binary('integer', 'real', 'real'),
         binary('real', 'integer', 'real'), ...missing],
