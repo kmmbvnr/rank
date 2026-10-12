@@ -57,8 +57,15 @@ export function signatureType(value: ValueFacts, unknown: () => SignatureType = 
     return members.length === 1 ? members[0] : { union: members };
 }
 
+export interface SignatureFormatOptions {
+    readonly shortNumericNames?: boolean;
+    /** Scalar cell ranks are implicit in the compact editor footer. */
+    readonly compact?: boolean;
+    readonly variableRequirements?: ReadonlyMap<number, ValueRequirement>;
+}
+
 /** Format facts supplied by the catalogue or analyzer; never infer them from operand names. */
-export function formatTypeSignature(signature: TypeSignature, options: { shortNumericNames?: boolean; variableRequirements?: ReadonlyMap<number, ValueRequirement> } = {}): string {
+export function formatTypeSignature(signature: TypeSignature, options: SignatureFormatOptions = {}): string {
     const variables = new Map<number, string>();
     const constraints = new Map<number, readonly SignatureAtom[]>();
     const kinds = containerVariableDomains(signature);
@@ -124,7 +131,8 @@ export function formatTypeSignature(signature: TypeSignature, options: { shortNu
     const body = (value: TypeSignature): string => {
         const inputs = value.inputs.map(input => type(input, true)).join(' ');
         const result = type(value.result);
-        const ranks = value.ranks ? ` [rank ${value.ranks.join(' ')}]` : '';
+        const ranks = value.ranks && !(options.compact && value.ranks.every(rank => rank === 0))
+            ? ` [rank ${value.ranks.join(' ')}]` : '';
         return `${inputs ? inputs + ' ' : ''}→ ${result}${ranks}`;
     };
     const formatted = body(signature);
@@ -187,7 +195,7 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
 }
 
 /** Unknown metadata stays unknown; result roles and operand spelling are not type contracts. */
-export function operationSignature(operation: Operation, inputs?: number | readonly ValueFacts[]): string | undefined {
+export function operationSignature(operation: Operation, inputs?: number | readonly ValueFacts[], options: SignatureFormatOptions = {}): string | undefined {
     const signatures = typeof inputs === 'number'
         ? operation.signatures?.filter(signature => signature.inputs.length === inputs)
         : inputs ? matchingSignatures(operation.signatures ?? [], inputs) : operation.signatures;
@@ -214,5 +222,5 @@ export function operationSignature(operation: Operation, inputs?: number | reado
         }
         return { ...signature, result: shapeResult(result) };
     };
-    return signatures?.length ? [...new Set(signatures.map(signature => formatTypeSignature(ranked(signature))))].join(' ; ') : undefined;
+    return signatures?.length ? [...new Set(signatures.map(signature => formatTypeSignature(ranked(signature), options)))].join(' ; ') : undefined;
 }

@@ -212,10 +212,15 @@ describe('factsAt: grammar operator signatures', () => {
 
     it('uses proven operand types and distinguishes unary and binary signs', () => {
         const source = 'X = 1\n-X + 2';
-        expect(factsAt(source, source.indexOf('-'))?.signature).toBe('integer → integer [rank 0]');
-        expect(factsAt(source, source.indexOf('+'))?.signature).toBe('integer integer → integer [rank 0 0]');
+        expect(factsAt(source, source.indexOf('-'))?.signature).toBe('i → i');
+        expect(factsAt(source, source.indexOf('+'))?.signature).toBe('i i → i');
         expect(factsAt('"a" + "b"', 4)?.signature).toBe('text text → text');
-        expect(factsAt('not true', 1)?.signature).toBe('boolean → boolean [rank 0]');
+        expect(factsAt('not true', 1)?.signature).toBe('boolean → boolean');
+    });
+
+    it('uses the same compact numeric names for builtin functions', () => {
+        const source = 'use numbers\n2 sqrt';
+        expect(factsAt(source, source.indexOf('sqrt'))?.signature).toBe('number → r');
     });
 
     it('does not mistake operators in strings, comments, assignment or loop headers for calls', () => {
@@ -227,20 +232,20 @@ describe('factsAt: grammar operator signatures', () => {
 
     it('keeps runtime name bindings from replacing grammar operator contracts', () => {
         expect(factsAt('true and false', 6, [['and', { types: ['integer'] }]])?.signature)
-            .toBe('boolean boolean → boolean [rank 0 0]');
+            .toBe('boolean boolean → boolean');
     });
 });
 
 
 it('shows range and proven outer signatures on operator words', () => {
-    expect(factsAt('1 to 3', 3)?.signature).toBe('integer integer → sequence<integer>');
-    expect(factsAt('1 till 3', 4)?.signature).toBe('integer integer → sequence<integer>');
+    expect(factsAt('1 to 3', 3)?.signature).toBe('i i → sequence<i>');
+    expect(factsAt('1 till 3', 4)?.signature).toBe('i i → sequence<i>');
     const source = '(1 to 3) (1 to 4) outer +';
     for (const offset of [source.indexOf('outer'), source.length - 1, source.length]) {
-        expect(factsAt(source, offset)?.signature).toBe('sequence<integer> sequence<integer> → array[3, 4]<integer>');
+        expect(factsAt(source, offset)?.signature).toBe('sequence<i> sequence<i> → array[3, 4]<i>');
     }
     const named = '(array 1 2) (array 3 4) outer max';
-    expect(factsAt(named, named.indexOf('outer'))?.signature).toBe('array[2]<integer> array[2]<integer> function → array');
+    expect(factsAt(named, named.indexOf('outer'))?.signature).toBe('array[2]<i> array[2]<i> function → array');
     const shadowed = 'fun outer X\n return X\nend\n3 outer';
     expect(factsAt(shadowed, shadowed.lastIndexOf('outer'))?.signature).toBe('i → i');
 });
@@ -255,11 +260,11 @@ it('shows the flat document overload after grouping its trailing modifier', () =
 it('shows segment form contracts without advertising callable marker signatures', () => {
     for (const combine of ['+', 'maxsum']) {
         const source = `use algo\n(array 1 2 3) segment ${combine}`;
-        expect(factsAt(source, source.indexOf('segment'))?.signature).toBe('array[3]<integer> → segment');
-        if (combine === 'maxsum') expect(factsAt(source, source.indexOf('maxsum'))?.signature).toBe('array[3]<integer> → segment');
+        expect(factsAt(source, source.indexOf('segment'))?.signature).toBe('array[3]<i> → segment');
+        if (combine === 'maxsum') expect(factsAt(source, source.indexOf('maxsum'))?.signature).toBe('array[3]<i> → segment');
     }
     const named = 'use algo\nfun combine A B\n return A + B\nend\n(array 1 2) segment combine';
-    expect(factsAt(named, named.indexOf('segment'))?.signature).toBe('array[2]<integer> (? ? → ?) → segment');
+    expect(factsAt(named, named.indexOf('segment'))?.signature).toBe('array[2]<i> (? ? → ?) → segment');
     const shadowed = 'fun segment X\n return X\nend\n3 segment';
     expect(factsAt(shadowed, shadowed.lastIndexOf('segment'))?.signature).toBe('i → i');
 });
@@ -269,23 +274,23 @@ describe('layoutNameFacts', () => {
     const outer = () => factsAt(source, source.indexOf('outer') + 2)!;
 
     it('keeps a signature that fits on one row', () => {
-        expect(layoutNameFacts(outer(), 80)).toEqual(['outer * · sequence<integer> sequence<integer> → array[9, 9]<integer>']);
+        expect(layoutNameFacts(outer(), 80)).toEqual(['outer * · sequence<i> sequence<i> → array[9, 9]<i>']);
     });
 
     it('puts one parameter per row and the result beside the last one', () => {
         expect(layoutNameFacts(outer(), 42)).toEqual([
             'outer * ·',
-            '  sequence<integer>',
-            '  sequence<integer> → array[9, 9]<integer>',
+            '  sequence<i>',
+            '  sequence<i> → array[9, 9]<i>',
         ]);
     });
 
     it('moves the result to its own row when it would not fit beside the last parameter', () => {
         expect(layoutNameFacts(outer(), 24)).toEqual([
             'outer * ·',
-            '  sequence<integer>',
-            '  sequence<integer>',
-            '  → array[9, 9]<integer>',
+            '  sequence<i>',
+            '  sequence<i>',
+            '  → array[9, 9]<i>',
         ]);
     });
 });

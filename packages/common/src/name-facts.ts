@@ -24,6 +24,7 @@ export interface NameFactsExample {
 
 const UNKNOWN: ValueFacts = { types: [] };
 const FUNCTION: ValueFacts = { types: ['function'] };
+const FOOTER_SIGNATURE = { shortNumericNames: true, compact: true } as const;
 
 /**
  * The cells before an unexecuted draft: what they bind, and which functions they declare. A draft
@@ -99,6 +100,22 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
     const generalResult = (definition: FunctionStatement): ValueFacts =>
         generalAnalysis(definition)?.functionResults[0] ?? UNKNOWN;
 
+    /** Every footer consumer sees the same current, general and observed body facts. */
+    const expressionValue = (expression: Expression): ValueFacts => {
+        const current = analysis.expressions.get(expression);
+        if (current?.types.length) return current;
+        const definition = AstUtils.getContainerOfType(expression, isFunctionStatement);
+        if (definition) {
+            const general = generalAnalysis(definition)?.expressions.get(expression);
+            if (general?.types.length) return general;
+            const observed = observedBody(definition)?.expressions.get(expression);
+            if (observed?.types.length) return observed;
+        }
+        // Only syntax (for example a literal) can fill a missing observation;
+        // final/global bindings cannot stand in for a local read at this point.
+        return expressionFacts(expression, () => undefined);
+    };
+
     const written = scope ? writtenNames(program) : new Set<string>();
     /** A catalogue name that nothing in the notebook or the run has bound is a function. */
     const isCatalogueFunction = (site: Site): boolean => site.kind === 'read' && !analysis.bindings.has(site.name)
@@ -131,13 +148,13 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         const head = unaryApplicationHead(call, arities,
             name => !analysis.bindings.has(name) && !runtime.has(name));
         const facts = (part: Expression): ValueFacts => {
-            const found = analysis.expressions.get(part);
-            if (found) return found;
+            const found = expressionValue(part);
+            if (found.types.length) return found;
             // Flattened calls may omit intermediate heads from the expression map.
             // Reuse facts at their reads, never the final value of a changed binding.
             const reads = new Map<string, ValueFacts>();
             for (const node of AstUtils.streamAst(part)) {
-                if (isNameExpression(node)) reads.set(node.name, analysis.expressions.get(node) ?? UNKNOWN);
+                if (isNameExpression(node)) reads.set(node.name, expressionValue(node));
             }
             return expressionFacts(part, Object.assign((name: string) => reads.get(name), {
                 arity: (name: string) => analysis.functions.get(name)?.parameters.length,
@@ -157,14 +174,14 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
             for (let node: AstNode | undefined = site.node.$container; node && isExpression(node); node = node.$container) {
                 const form = applicationForm(node);
                 if (form.kind === 'segment' || form.kind === 'named-segment') {
-                    const inputs = [signatureType(analysis.expressions.get(form.source) ?? UNKNOWN)];
+                    const inputs = [signatureType(expressionValue(form.source))];
                     if (form.kind === 'named-segment') {
                         const isMaxSum = isNameExpression(form.operation) && form.operation.name === 'maxsum'
                             && !analysis.bindings.has('maxsum') && !runtime.has('maxsum');
                         if (!isMaxSum) inputs.push({ callback: { inputs: ['unknown', 'unknown'], result: 'unknown' } });
-                        if (form.identity) inputs.push(signatureType(analysis.expressions.get(form.identity) ?? UNKNOWN));
+                        if (form.identity) inputs.push(signatureType(expressionValue(form.identity)));
                     }
-                    return formatTypeSignature({ inputs, result: 'segment' });
+                    return formatTypeSignature({ inputs, result: 'segment' }, FOOTER_SIGNATURE);
                 }
                 const operands = form.kind === 'outer' ? form.operands
                     : form.kind === 'named-outer' ? [form.left, form.right, form.operation] : undefined;
@@ -172,10 +189,10 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
                     const result = analysis.expressions.get(node);
                     return formatTypeSignature({
                         inputs: operands.map(operand => form.kind === 'named-outer' && operand === form.operation
-                            ? 'function' : signatureType(analysis.expressions.get(operand) ?? UNKNOWN)),
+                            ? 'function' : signatureType(expressionValue(operand))),
                         // Every successful outer call builds an array; cell types still need analyzer evidence.
                         result: signatureType(result?.types.length ? result : { types: ['array'] }),
-                    });
+                    }, FOOTER_SIGNATURE);
                 }
             }
             return undefined;
@@ -184,10 +201,10 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
             const node = site.node;
             const operands = isBinaryExpression(node) ? [node.left, node.right]
                 : isUnaryExpression(node) ? [node.operand] : [];
-            return operatorSignature(site.name, operands.map(operand => analysis.expressions.get(operand) ?? UNKNOWN));
+            return operatorSignature(site.name, operands.map(expressionValue), FOOTER_SIGNATURE);
         }
         const call = callFacts(site);
-        if (isCatalogueFunction(site)) return operationSignature(findOperation(site.name)!, call?.arguments);
+        if (isCatalogueFunction(site)) return operationSignature(findOperation(site.name)!, call?.arguments, FOOTER_SIGNATURE);
         if (site.kind !== 'function' && site.kind !== 'read' && site.kind !== 'form') return undefined;
         if (site.kind !== 'function' && rebound.has(site.name)) return undefined;
         const definition = isFunctionStatement(site.node) ? site.node : analysis.functions.get(site.name);

@@ -65,3 +65,16 @@ it('describes the two positional divmod results', () => {
     expect(operatorSignature('divmod', facts('integer', 'real')))
         .toBe('integer real → tuple(real, real) [rank 0 0]');
 });
+
+it('keeps compact editor signatures separate from the full catalogue contracts', () => {
+    const compact = { compact: true, shortNumericNames: true };
+    const inputs: ValueFacts[] = [{ types: ['integer'], rank: 0, shape: [] },
+        { types: ['integer'], rank: 0, shape: [] }];
+    for (const name of ['less', 'greater', 'at least', 'at most']) {
+        expect(operatorSignature(name, inputs, compact)).toBe('i i → boolean');
+        expect(operatorSignature(name, inputs)).toBe('number number → boolean [rank 0 0]');
+    }
+    expect(operatorSignature('divmod', inputs, compact)).toBe('i i → tuple(i, i)');
+    expect(operatorSignature('less', [{ types: ['missing'], rank: 0 }, inputs[0]], compact))
+        .toBe('missing i → missing');
+});

@@ -2,6 +2,15 @@ import { expect, it } from 'vitest';
 import { findOperation } from '../src/operations.js';
 import { formatTypeSignature, operationSignature } from '../src/type-signature.js';
 
+it('omits implicit scalar ranks in compact footers while preserving other cell ranks', () => {
+    const compact = { compact: true, shortNumericNames: true };
+    expect(formatTypeSignature({ inputs: ['integer'], result: 'real', ranks: [0] }, compact)).toBe('i → r');
+    expect(formatTypeSignature({ inputs: ['array'], result: 'integer', ranks: [1] }, compact))
+        .toBe('array → i [rank 1]');
+    expect(formatTypeSignature({ inputs: ['array'], result: 'integer', ranks: ['all'] }, compact))
+        .toBe('array → i [rank all]');
+});
+
 it('compacts numeric families recursively while retaining concrete alternatives', () => {
     expect(formatTypeSignature({ inputs: [{ union: ['integer', 'real'] }],
         result: { collection: 'array', element: { union: ['integer', 'missing', 'real'] } } }))

@@ -32,6 +32,8 @@ it('shows the Euler 17 function signature in notebook calls and its later defini
                     .toEqual(name === 'Small' ? ['array'] : ['integer']);
                 if (name === 'Small') expect(repl.nameFacts?.facts.elements).toEqual(['integer']);
             }
+            repl.notebook.selectTo(index, source.indexOf('at least 20'));
+            expect(repl.nameFacts?.signature).toBe('i i → boolean');
         }
     } finally { session.dispose(); }
 });

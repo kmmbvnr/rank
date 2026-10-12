@@ -41,7 +41,7 @@ it('shows the normal hints on a keyword or a number, and signatures on operators
         const repl = new NotebookRepl(session);
         const source = 'Count = array shape 2 3 fill 0 + 1';
         expect(footer(repl, source, source.indexOf('array') + 2)).toContain('Ctrl-');
-        expect(footer(repl, source, source.indexOf('+') + 1)).toBe('facts: + · integer integer → integer [rank 0 0]');
+        expect(footer(repl, source, source.indexOf('+') + 1)).toBe('facts: + · i i → i');
         expect(footer(repl, source, source.indexOf('2'))).toContain('Ctrl-');
     } finally { session.dispose(); }
 });
