@@ -27,6 +27,19 @@ it('wraps comment words without changing source or losing caret offsets', () => 
     ]);
 });
 
+it('does not add an empty row after a comment that exactly fills the width', () => {
+    const comment = 'rem Count letters without constructing the';
+    for (const cursor of [undefined, comment.length]) {
+        const rows = editableRows(comment + '\nrem spelled-out text or its separators.', comment.length, cursor);
+        expect(rows.map(row => row.text)).toEqual([comment, 'rem spelled-out text or its separators.']);
+        expect(rows[0].points).toContainEqual({ offset: comment.length, column: comment.length });
+    }
+    expect(editableRows(comment + '\n\nrem next', comment.length).map(row => row.text))
+        .toEqual([comment, '', 'rem next']);
+    const long = 'rem ' + 'x'.repeat(16);
+    expect(editableRows(long, 10).map(row => row.text)).toEqual(['rem xxxxxx', 'xxxxxxxxxx']);
+});
+
 it('hard-wraps oversized comment words and keeps Unicode graphemes intact', () => {
     const source = 'rem abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz 👩‍💻 together';
     const rows = editableRows(source, 12);

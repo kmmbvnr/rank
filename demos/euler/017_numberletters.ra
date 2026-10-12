@@ -27,8 +27,10 @@ fun letters Value
   N = Value
   if N at least 100
     unpack Hundreds N = N divmod 100
+    rem "hundred" has 7 letters.
     Count += Small Hundreds + 7
     if N greater 0
+      rem "and" has 3 letters.
       Count += 3
     end
   end

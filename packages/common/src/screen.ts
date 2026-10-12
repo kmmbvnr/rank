@@ -153,7 +153,9 @@ function layoutRows(source: string, columns: number, cursor?: number, compactNum
             row.text += shown;
             column += size;
             row.points.push({ offset: sourceOffset(part.index + part.segment.length), column });
-            if (column === width) {
+            // The reserved terminal column fits a caret at the end of a full comment.
+            // Do not add an empty continuation row when there is no more text.
+            if (column === width && !(comment && part.index + part.segment.length === display.text.length)) {
                 row = { text: '', points: [{ offset: sourceOffset(part.index + part.segment.length), column: 0 }] };
                 rows.push(row);
                 column = 0;
