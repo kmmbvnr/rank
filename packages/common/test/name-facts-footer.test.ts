@@ -104,9 +104,30 @@ it('wraps a long fact onto more footer rows instead of clipping it', () => {
     } finally { session.dispose(); }
 });
 
-const frameOf = (repl: NotebookRepl, height: number, followCursor: boolean, overscan: number, previousTop = 0) =>
+const frameOf = (repl: NotebookRepl, height: number, followCursor: boolean, overscan: number, previousTop = 0, fixedFacts = false) =>
     notebookFrame(repl.notebook, 40, height, previousTop, '', false, followCursor, '', 'Running…', undefined, 'rank> ',
-        undefined, undefined, undefined, false, undefined, false, overscan, undefined, undefined, repl.nameFacts);
+        undefined, undefined, undefined, false, undefined, false, overscan, undefined, undefined, repl.nameFacts, undefined, 6, fixedFacts);
+
+it('keeps fixed mobile facts and source position unchanged across scrolling windows', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.replace(Array.from({ length: 30 }, (_, index) => `Fib${index} = ${index}`).join('\n'));
+        repl.notebook.cursor = repl.notebook.current.source.lastIndexOf('Fib') + 2;
+        const bottom = frameOf(repl, 6, true, 0, 0, true);
+        // Scrolling a little away from the end must not pull the cursor back into view.
+        const previousTop = bottom.maxTop! - 1;
+        for (const overscan of [0, 18]) {
+            const frame = frameOf(repl, 6, false, overscan, previousTop, true);
+            expect(frame.top).toBe(previousTop);
+            expect(frame.factsRow).toBe(bottom.factsRow);
+            expect(frame.maxTop).toBe(bottom.maxTop);
+            expect(stripAnsi(frame.lines[frame.factsRow!])).toBe('Fib29 · integer');
+        }
+        // The current name's footer stays fixed even when reading away from the cursor.
+        expect(frameOf(repl, 6, false, 18, 0, true).factsRow).toBe(bottom.factsRow);
+    } finally { session.dispose(); }
+});
 
 it('keeps the footer directly under the viewport when an overscan row follows it', () => {
     const session = createReplSession();

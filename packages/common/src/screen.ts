@@ -272,7 +272,8 @@ export interface ScreenFrame {
     readonly resultRows?: readonly number[];
 }
 
-/** Output and suggestions are model data, so old errors/listings disappear on the next frame. */
+/** Output and suggestions are model data, so old errors/listings disappear on the next frame.
+ * Fixed name facts retain their viewport space while a mobile reader scrolls away from the cursor. */
 export function notebookFrame(
     notebook: Notebook, columns: number, height: number, previousTop = 0,
     suggestion = '', running = false, followCursor = true, fileStatus = '', runningStatus = 'Running…',
@@ -283,7 +284,7 @@ export function notebookFrame(
     promptOutputFocus?: { readonly line: number; readonly offset: number; readonly active?: boolean; readonly nextLine?: number },
     stepping = false, anchoredCursorRow?: number, showShortcutHints = true, overscanRows = 0,
     diagnostics?: ReadonlyMap<number, readonly { text: string; error: boolean; inlineText?: string }[]>,
-    importFixFocus?: number, nameFacts?: NameFacts, valueFocus?: number, sourceGutter = 6,
+    importFixFocus?: number, nameFacts?: NameFacts, valueFocus?: number, sourceGutter = 6, fixedNameFacts = false,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const gutter = Math.min(Math.max(sourceGutter, cellWidth(promptLabel)), Math.max(0, width - 1));
@@ -476,7 +477,8 @@ export function notebookFrame(
     // Errors, running status, completion candidates and iteration hints keep the footer; otherwise a name under the cursor owns it.
     // A tap on a touch console places the cursor without following it, so the cursor being on screen is enough.
     const cursorShown = followCursor || caret.row >= previousTop && caret.row < previousTop + height;
-    const showFacts = !!nameFacts && cursorShown && overscanRows <= 1 && !running && !suggestion && !promptOutputFocus && valueFocus === undefined;
+    const showFacts = !!nameFacts && (fixedNameFacts || cursorShown && overscanRows <= 1)
+        && !running && !suggestion && !promptOutputFocus && valueFocus === undefined;
     // The name under the cursor wraps onto as many rows as it needs, within a third of the screen.
     const factsLines = showFacts ? layoutNameFacts(nameFacts!, width).slice(0, Math.max(1, Math.floor(height / 2))) : [];
     const footerRows = height > 1 && (showShortcutHints || running || !!suggestion || !!fileStatus || showFacts)
@@ -501,10 +503,11 @@ export function notebookFrame(
         top = Math.max(0, caret.row - Math.min(anchoredCursorRow, viewportHeight - 1));
     // The footer must not bury the last row (the prompt): if the end of the notebook was on screen
     // without it, scroll one row so it stays reachable, as long as the cursor remains in view.
-    if (footerRows && previousTop + height >= rows.length && top + viewportHeight < rows.length
+    if (footerRows && (followCursor || !fixedNameFacts || !showFacts)
+        && previousTop + height >= rows.length && top + viewportHeight < rows.length
         && caret.row >= maxTop) top = maxTop;
     // The footer takes the row that was the viewport's last; keep a cursor that sat there in view.
-    if (showFacts && !followCursor && caret.row >= top + viewportHeight && caret.row < top + height)
+    if (showFacts && !fixedNameFacts && !followCursor && caret.row >= top + viewportHeight && caret.row < top + height)
         top = Math.min(maxTop, caret.row - viewportHeight + 1);
     const renderedHeight = viewportHeight + Math.max(0, overscanRows);
     const lines = rows.slice(top, top + renderedHeight);

@@ -124,6 +124,7 @@ let scheduledNotebookId: string | undefined;
 let lastPause: PauseSnapshot | undefined;
 let paintedLines: string[] = [];
 let paintedStatus: string | undefined;
+let typeFooterRow: number | undefined;
 let paintedCaret = '';
 const session = browserSession(message => { failure = message; needsRestart = true; render(); }, () => render());
 const repl = new NotebookRepl(session, statusOnly => render(statusOnly), () => columns, true);
@@ -276,6 +277,10 @@ function placeScreen(): void {
     if (windowedFrame) caret.hidden = caretRow < 0 || caretRow >= rows || !!repl.help || Boolean(activeVoiceDictation);
     const left = columnLeft(frame.cursor.column, frame.cursor.row);
     const y = caretRow * cellHeight - scrollFraction;
+    // Keep the reserved footer space, but do not show facts for an offscreen source cursor.
+    const sourceCaretY = (frame.caretRow !== undefined ? frame.caretRow - top : caretRow) * cellHeight - scrollFraction;
+    footer.style.visibility = typeFooterRow !== undefined
+        && (sourceCaretY + cellHeight <= 0 || sourceCaretY >= typeFooterRow * cellHeight) ? 'hidden' : '';
     const inputY = windowedFrame ? Math.max(0, Math.min(rows - 1, caretRow)) * cellHeight - (caretRow >= 0 && caretRow < rows ? scrollFraction : 0) : y;
     caret.style.transform = `translate(${left}px, ${y}px)`;
     if (activeVoiceDictation && frame.cursorVisible && !repl.help) {
@@ -379,11 +384,17 @@ function restoreKeyboardAfterViewer(): void {
     } else keyboardEnabled = true;
 }
 
-function paintStatus(line: string): void {
-    if (paintedStatus === line) return;
+function paintStatus(content: string | readonly string[]): void {
+    const lines = typeof content === 'string' ? [content] : content;
+    const key = lines.join('\n');
+    if (paintedStatus === key) return;
     footer.replaceChildren();
-    paintLine(footer, line);
-    paintedStatus = line;
+    for (const line of lines) {
+        const row = document.createElement('div');
+        paintLine(row, line);
+        footer.append(row);
+    }
+    paintedStatus = key;
 }
 
 function render(statusOnly = false): void {
@@ -467,18 +478,23 @@ function render(statusOnly = false): void {
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
             repl.liveIterationFocus, repl.stepping,
             anchorCursor && restingCursorRow !== undefined ? Math.min(restingCursorRow, rows - 1) : undefined, showShortcutHints,
-            windowedFrame ? rows * 3 : !keyHints() && !shownFailure && !repl.running && !nameFacts ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus, nameFacts, repl.valueFocus, notebookGutter);
+            windowedFrame ? rows * 3 : !keyHints() && !shownFailure && !repl.running && !nameFacts ? 1 : 0, repl.diagnosticOutputs, repl.importFixFocus, nameFacts, repl.valueFocus, notebookGutter, touchConsole);
         if (windowedFrame) top = Math.min(top, frame.maxTop ?? 0);
         else { top = frame.top; scrollWindow = false; }
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
         if (!anchorCursor && !windowedFrame) restingCursorRow = frame.cursor.row >= 0 && frame.cursor.row < rows ? frame.cursor.row : undefined;
     }
-    // Quiet execution status belongs to the viewport, independently of the translated source rows.
-    footer.hidden = frame.statusRow === undefined;
-    if (frame.statusRow !== undefined) {
-        footer.style.top = frame.statusRow * cellHeight + 'px';
-        paintStatus(frame.lines[frame.statusRow]);
-        frame = { ...frame, lines: frame.lines.filter((_, index) => index !== frame.statusRow), statusRow: undefined };
+    // Execution status and mobile type hints belong to the viewport, not the sliding source rows.
+    const footerRow = frame.statusRow ?? (touchConsole ? frame.factsRow : undefined);
+    const footerCount = frame.statusRow !== undefined ? 1 : frame.factsRowCount ?? 1;
+    typeFooterRow = frame.statusRow === undefined && touchConsole ? frame.factsRow : undefined;
+    footer.hidden = footerRow === undefined;
+    if (footerRow !== undefined) {
+        footer.style.top = footerRow * cellHeight + 'px';
+        footer.style.height = footerCount * cellHeight + 'px';
+        paintStatus(frame.lines.slice(footerRow, footerRow + footerCount));
+        frame = { ...frame, lines: frame.lines.filter((_, index) => index < footerRow || index >= footerRow + footerCount),
+            statusRow: undefined, ...(touchConsole ? { factsRow: undefined, factsRowCount: undefined } : {}) };
     }
     if (screen.children.length !== frame.lines.length) {
         screen.replaceChildren(...frame.lines.map(() => {
@@ -789,7 +805,8 @@ const settledHeights: { open?: number; closed?: number } = {};
 try { Object.assign(settledHeights, JSON.parse(localStorage.getItem(settledHeightsKey) ?? '{}')); } catch { /* Measured on first use. */ }
 function beginKeyboardTransition(): void {
     transitionUntil = Date.now() + 450;
-    resize();
+    // Visibility can change without viewport geometry (for example, a floating IME).
+    if (!resize()) render();
     setTimeout(resize, 500);
 }
 /**
@@ -1338,15 +1355,21 @@ function scrollToPixels(position: number): boolean {
     scrollFraction = limited - top * cellHeight;
     // Pausing the caret blink while moving keeps the blended caret from repainting the screen every half second.
     terminal.classList.add('scrolling');
-    clearTimeout(scrollIdle);
-    scrollIdle = setTimeout(() => {
-        terminal.classList.remove('scrolling');
-        // The sliding window has no footer; once the scroll settles, draw an ordinary frame so the type under the cursor returns.
-        if (windowedFrame && momentumFrame === undefined) { scrollWindow = false; render(); }
-    }, 150);
+    scheduleScrollIdle();
     // Sliding inside one row only moves layers; re-laying out the notebook per touch event made scrolling stutter.
     if (sameRows) placeScreen(); else { scrollWindow = touchConsole; render(); }
     return limited !== position;
+}
+function scheduleScrollIdle(): void {
+    clearTimeout(scrollIdle);
+    scrollIdle = setTimeout(() => {
+        // A stationary finger still owns the gesture; changing the row window here
+        // needlessly rebuilds the DOM before the next movement.
+        if (swipe || momentumFrame !== undefined) return;
+        terminal.classList.remove('scrolling');
+        // Return to a viewport-sized source frame once the entire gesture has finished.
+        if (windowedFrame) { scrollWindow = false; render(); }
+    }, 150);
 }
 let scrollIdle: ReturnType<typeof setTimeout> | undefined;
 let pendingScroll: number | undefined;
@@ -1458,6 +1481,7 @@ function onTouchEnd(event: TouchEvent): void {
     }
     swipe = undefined;
     touchStart = undefined;
+    if (terminal.classList.contains('scrolling')) scheduleScrollIdle();
 }
 terminal.addEventListener('touchend', onTouchEnd);
 function autocompleteWord(): void {
@@ -1469,6 +1493,7 @@ function onTouchCancel(): void {
     releaseTouchTarget();
     swipe = undefined;
     touchStart = undefined;
+    if (terminal.classList.contains('scrolling')) scheduleScrollIdle();
 }
 terminal.addEventListener('touchcancel', onTouchCancel);
 // A finger on a bracket drags a ghost of it between valid landings; the text stays put until release.
@@ -1612,9 +1637,8 @@ terminal.addEventListener('wheel', event => {
     scrollToPixels(top * cellHeight + scrollFraction + event.deltaY * scale);
 }, { passive: false });
 
-function resize(): void {
-    stopMomentum();
-    scrollFraction = 0;
+let resizeGeometry = '';
+function resize(): boolean {
     const viewport = window.visualViewport;
     let height = viewport?.height ?? innerHeight;
     const wasSoftKeyboard = softKeyboard;
@@ -1642,9 +1666,18 @@ function resize(): void {
     const savedGutterWidth = notebookGutter * cellWidth - gutterWidth;
     columns = Math.max(12, Math.floor((terminal.clientWidth + savedGutterWidth) / cellWidth));
     rows = Math.max(2, Math.floor(terminal.clientHeight / cellHeight));
+    const bounds = terminal.getBoundingClientRect();
+    const geometry = [bounds.left, bounds.top, bounds.width, bounds.height, cellWidth, cellHeight].join(':');
+    // Keyboard settling timers and viewport events can report the same geometry.
+    // They must not stop a fling or send a reader back to the editing cursor.
+    if (geometry === resizeGeometry) return false;
+    resizeGeometry = geometry;
+    stopMomentum();
+    scrollFraction = 0;
     follow = true;
     anchorCursor = true;
     try { render(); } finally { anchorCursor = false; }
+    return true;
 }
 window.visualViewport?.addEventListener('resize', resize);
 window.visualViewport?.addEventListener('scroll', resize);

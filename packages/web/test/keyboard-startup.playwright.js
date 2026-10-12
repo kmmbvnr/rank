@@ -51,4 +51,10 @@ async page => {
     await page.evaluate(() => window.rankSoftKeyboard(true, 280));
     await page.waitForTimeout(500);
     check(await page.evaluate(() => document.activeElement.id === 'input'), 'resume lost IME focus');
+    // Landscape/floating IMEs can change visibility without resizing the viewport.
+    await page.setViewportSize({ width: 844, height: 390 });
+    await page.evaluate(() => window.rankSoftKeyboard(false));
+    await page.locator('#keyboard').waitFor({ state: 'visible' });
+    await page.evaluate(() => window.rankSoftKeyboard(true, 180));
+    await page.locator('#keyboard').waitFor({ state: 'hidden' });
 }
