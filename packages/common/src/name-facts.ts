@@ -2,7 +2,7 @@ import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from
 import {
     analyzeValues, expressionFacts, applicationForm, formatTypeSignature, signatureType, describeTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
     isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackStatement,
-    type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts,
+    type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts, type FunctionCallFacts,
 } from '@arrrank/language';
 import { parse } from '@arrrank/interpreter';
 import { cellWidth } from './display-width.js';
@@ -33,6 +33,7 @@ export interface NameFactsScope {
     readonly bindings: ReadonlyMap<string, ValueFacts>;
     readonly functions: ReadonlyMap<string, FunctionStatement>;
     readonly imports?: ReadonlyMap<string, ImportedFunction>;
+    readonly functionCalls?: ReadonlyMap<FunctionStatement, readonly FunctionCallFacts[]>;
 }
 
 /**
@@ -82,8 +83,13 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         }
         return false;
     };
-    const callFacts = (site: Site): { arguments: ValueFacts[]; result?: ValueFacts } | undefined => {
+    const callFacts = (site: Site): { arguments: readonly ValueFacts[]; result?: ValueFacts } | undefined => {
         if (!isNameExpression(site.node)) return undefined;
+        const definition = analysis.functions.get(site.name);
+        if (definition) for (let parent: AstNode | undefined = site.node.$container; isApplicationExpression(parent); parent = parent.$container) {
+            const found = analysis.functionCallSites.get(parent)?.get(definition);
+            if (found) return found;
+        }
         const call = site.node.$container;
         if (!isApplicationExpression(call)) return undefined;
         const parts = flattenApplication(call);
@@ -167,7 +173,15 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         const result = relationship ? undefined : generalResult(definition);
         // A later host call can erase captured-value facts. Keep signatures
         // already proved at actual call sites for the definition's footer.
-        const earlierCalls = !relationship && !result?.types.length ? analysis.functionCalls.get(definition) : undefined;
+        const previousDefinition = scope?.functions.get(definition.name);
+        // The active cell is parsed again. Match only the exact hoisted body;
+        // a changed/replaced declaration must not inherit an old signature.
+        const sameDeclaration = previousDefinition === definition || !!definition.$cstNode?.text
+            && previousDefinition?.$cstNode?.text === definition.$cstNode.text;
+        const earlierCalls = !relationship && !result?.types.length
+            ? analysis.functionCalls.get(definition)
+                ?? (sameDeclaration && previousDefinition ? scope?.functionCalls?.get(previousDefinition) : undefined)
+            : undefined;
         if (earlierCalls?.length) return [...new Set(earlierCalls.map(facts => functionSignature(definition, facts)))].join(' ; ');
         return functionSignature(definition, { relationship, result,
             requirements: (generalAnalysis(definition) ?? analysis).requirements.functions.get(definition)?.params });

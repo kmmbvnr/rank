@@ -1,4 +1,4 @@
-import { analyzeValues, describeTypes, functionTestExamples, isFunctionStatement, type ValueFacts, type FunctionStatement, type FunctionTestExample, type ImportedFunction, type Program } from '@arrrank/language';
+import { analyzeValues, describeTypes, functionTestExamples, isFunctionStatement, type ValueFacts, type FunctionStatement, type FunctionTestExample, type ImportedFunction, type Program, type FunctionCallFacts } from '@arrrank/language';
 import { isNativeFunction, isRankArray, parse, type RankValue } from '@arrrank/interpreter';
 import type { Notebook } from './notebook.js';
 import type { OutputLine } from './repl-session.js';
@@ -29,6 +29,7 @@ export function runtimeValueFacts(values: ReadonlyMap<string, RankValue>,
 export interface NotebookScope {
     bindings: Map<string, ValueFacts>; functions: Map<string, FunctionStatement>; clean: boolean;
     imports: Map<string, ImportedFunction>;
+    functionCalls: ReadonlyMap<FunctionStatement, readonly FunctionCallFacts[]>;
 }
 
 /** What the cells before the active one bind: analyzed, then replaced by the run's facts while those are fresh. */
@@ -38,6 +39,7 @@ export function notebookScope(book: Notebook, runtime: readonly [string, ValueFa
     let bindings = new Map<string, ValueFacts>();
     let functions = new Map<string, FunctionStatement>();
     let imports = new Map<string, ImportedFunction>();
+    let functionCalls: NotebookScope['functionCalls'] = new Map();
     // Notebook functions are registered before executing cells, including later definitions.
     for (const cell of prefixes?.has(0) ? [] : book.cells) {
         if (cell.command) continue;
@@ -48,11 +50,11 @@ export function notebookScope(book: Notebook, runtime: readonly [string, ValueFa
             }
         } catch { /* Incomplete cells cannot declare a proven function. */ }
     }
-    if (prefixes && !prefixes.has(0)) prefixes.set(0, { bindings, functions, imports, clean: false });
+    if (prefixes && !prefixes.has(0)) prefixes.set(0, { bindings, functions, imports, functionCalls, clean: false });
     let start = 0;
     for (const index of prefixes?.keys() ?? []) if (index <= book.active && index > start) start = index;
     const cached = prefixes?.get(start);
-    if (cached) ({ bindings, functions, imports } = cached);
+    if (cached) ({ bindings, functions, imports, functionCalls } = cached);
     const cleanPrefix = book.atPrompt && book.dirtyFrom < 0
         && book.cells.slice(0, book.active).every(cell => cell.command || cell.status === 'ok' && cell.executed === cell.source);
     for (let index = start; index < book.active; index++) {
@@ -63,10 +65,29 @@ export function notebookScope(book: Notebook, runtime: readonly [string, ValueFa
                 bindings = new Map(analysis.bindings);
                 functions = new Map(analysis.functions);
                 imports = new Map(analysis.imports);
-            } catch { bindings = new Map(); functions = new Map(); imports = new Map(); }
+                // Historical signatures describe the declaration, never restore
+                // captured bindings or supply results to future calls.
+                const retained = new Map(functionCalls);
+                for (const [definition, calls] of analysis.functionCalls) {
+                    const earlier = retained.get(definition) ?? [];
+                    retained.set(definition, [...new Map([...earlier, ...calls]
+                        .map(call => [JSON.stringify(call), call])).values()].slice(-100));
+                }
+                for (const definition of retained.keys()) {
+                    const current = functions.get(definition.name);
+                    if (current === definition) continue;
+                    // Re-parsing a declaration cell replaces its AST, not its body.
+                    if (current && definition.$cstNode?.text
+                        && current.$cstNode?.text === definition.$cstNode.text) {
+                        retained.set(current, retained.get(definition)!);
+                    }
+                    retained.delete(definition);
+                }
+                functionCalls = retained;
+            } catch { bindings = new Map(); functions = new Map(); imports = new Map(); functionCalls = new Map(); }
         }
         if (prefixes) {
-            prefixes.set(index + 1, { bindings, functions, imports, clean: false });
+            prefixes.set(index + 1, { bindings, functions, imports, functionCalls, clean: false });
             // Keep nearby prefixes without retaining a quadratic number of bindings in large files.
             if (prefixes.size > 33) prefixes.delete([...prefixes.keys()][1]);
         }
@@ -87,7 +108,7 @@ export function notebookScope(book: Notebook, runtime: readonly [string, ValueFa
             bindings.set(name, { ...fact, ...(elements && !fact.elements ? { elements } : {}) });
         }
     }
-    return { bindings, functions, clean: cleanPrefix, imports };
+    return { bindings, functions, clean: cleanPrefix, imports, functionCalls };
 }
 
 /** Source analysis replaces stale runtime facts as soon as an earlier cell changes. */

@@ -31,7 +31,7 @@ import { bindingRankConflict, bindingRankMessage, bindingTypeMessage, settledBin
     provenBindingTypeConflict } from '../binding-rule.js';
 import { functionEffects, isPlainArrayWrite } from './function-effects.js';
 import { functionYields, generatorCells, yieldTypes } from './function-yields.js';
-import { createCallAnalysis, type ImportedFunction } from './function-calls.js';
+import { createCallAnalysis, type ImportedFunction, type FunctionCallFacts } from './function-calls.js';
 import { createReturnPathAnalysis } from './return-paths.js';
 import { recordBindingContract, refineRecordContract, recordFieldConflict } from './return-contract.js';
 import { createLoopAnalysis } from './loop-analysis.js';
@@ -64,9 +64,9 @@ export interface ValueAnalysis {
     readonly functions: ReadonlyMap<string, FunctionStatement>;
     readonly functionResults: readonly ValueFacts[];
     /** Proven signatures at earlier call sites; these do not restore current binding facts. */
-    readonly functionCalls: ReadonlyMap<FunctionStatement, readonly {
-        arguments: readonly ValueFacts[]; result: ValueFacts;
-    }[]>;
+    readonly functionCalls: ReadonlyMap<FunctionStatement, readonly FunctionCallFacts[]>;
+    /** Body inputs/results at actual calls, including explicit and declared cell ranks. */
+    readonly functionCallSites: ReadonlyMap<Expression, ReadonlyMap<FunctionStatement, FunctionCallFacts>>;
     /** The imported functions this pass bound, for a later pass over the next cell to start from. */
     readonly imports: ReadonlyMap<string, ImportedFunction>;
 }
@@ -1422,7 +1422,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         previous.node === diagnostic.node && previous.message === diagnostic.message));
     return { diagnostics: unique, bindings, expressions, assignments, functions, functionResults, requirements, imports: imported,
         relationships: calls.validRelationships(bindings),
-        functionCalls: new Map([...calls.observedCalls].map(([definition, instances]) => [definition, [...instances.values()]])) };
+        functionCalls: new Map([...calls.observedCalls].map(([definition, instances]) => [definition, [...instances.values()]])),
+        functionCallSites: calls.callSites };
 }
 
 function dataDependentLength(operation: Operation): boolean {

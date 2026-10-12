@@ -1,7 +1,57 @@
 import { expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { NotebookRepl } from '../src/repl.js';
 import { createReplSession } from '../src/repl-session.js';
 import { notebookScope, type NotebookScope } from '../src/value-diagnostics.js';
+
+it('shows the Euler 17 function signature in notebook calls and its later definition before and after running', async () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.restore(readFileSync(new URL('../../../demos/euler/017_numberletters.ra', import.meta.url), 'utf8'));
+        for (const executed of [false, true]) {
+            if (executed) {
+                await repl.restart();
+                expect(repl.notebook.cells.some(cell => cell.status === 'error')).toBe(false);
+                expect(repl.notebook.cells.flatMap(cell => cell.output).some(line => line.text === '21124')).toBe(true);
+            }
+            for (const text of ['fun letters', 'Numbers letters', 'fun letters']) {
+                const index = repl.notebook.cells.findIndex(cell => cell.source.includes(text));
+                const source = repl.notebook.cells[index].source;
+                repl.notebook.selectTo(index, source.indexOf(text) + text.indexOf('letters'));
+                expect(repl.nameFacts?.signature, `${text}, executed=${executed}`).toBe('i → i');
+            }
+        }
+    } finally { session.dispose(); }
+});
+
+it('invalidates historical call signatures after editing captured values or the function', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.restore('use io\nValues = array 3 5 7\nA = 0 lookup\nA print\n0 lookup\nfun lookup N\n return Values N\nend');
+        const definition = repl.notebook.cells.findIndex(cell => cell.source.includes('fun lookup'));
+        const selectDefinition = () => {
+            const source = repl.notebook.cells[definition].source;
+            repl.notebook.selectTo(definition, source.indexOf('fun lookup') + 4);
+            return repl.nameFacts?.signature;
+        };
+        expect(selectDefinition()).toBe('i → i');
+        repl.notebook.restore('lookup');
+        const reference = repl.notebook.cells.findIndex(cell => cell.source.trim() === 'lookup');
+        repl.notebook.selectTo(reference, repl.notebook.cells[reference].source.indexOf('lookup'));
+        expect(repl.nameFacts?.signature).toBe('i → i');
+        const laterCall = repl.notebook.cells.findIndex(cell => cell.source.trim() === '0 lookup');
+        repl.notebook.selectTo(laterCall, repl.notebook.cells[laterCall].source.indexOf('lookup'));
+        expect(repl.nameFacts?.signature).toBe('i → ?');
+        const values = repl.notebook.cells.findIndex(cell => cell.source.includes('Values ='));
+        repl.notebook.selectTo(values, 0);
+        repl.notebook.replace('Values = array "a" "b" "c"');
+        expect(selectDefinition()).toBe('i → text');
+        repl.notebook.replace('fun lookup N\n return true\nend');
+        expect(selectDefinition()).toContain('→ b');
+    } finally { session.dispose(); }
+});
 
 it('reuses analysis across cursor navigation and refreshes after editing an earlier cell', () => {
     const session = createReplSession();

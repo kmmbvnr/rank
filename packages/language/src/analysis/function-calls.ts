@@ -32,6 +32,11 @@ export interface ImportedFunction {
     readonly functions: ReadonlyMap<string, FunctionStatement>;
 }
 
+export interface FunctionCallFacts {
+    readonly arguments: readonly ValueFacts[];
+    readonly result: ValueFacts;
+}
+
 /** State confined to call-site evaluation and bounded recursive probes. */
 export function createCallAnalysis(
     bindings: Map<string, ValueFacts>,
@@ -47,9 +52,8 @@ export function createCallAnalysis(
     const importedAliases = new Set([...initialImports.keys()].map(qualified => qualified.slice(0, qualified.indexOf('.'))));
     // Proven call-site signatures are historical observations, not facts about
     // a later call after captured values may have changed.
-    const observedCalls = new Map<FunctionStatement, Map<string, {
-        arguments: readonly ValueFacts[]; result: ValueFacts;
-    }>>();
+    const observedCalls = new Map<FunctionStatement, Map<string, FunctionCallFacts>>();
+    const callSites = new Map<Expression, Map<FunctionStatement, FunctionCallFacts>>();
     const activeCalls = new WeakMap<FunctionStatement, Set<string>>();
     const recursiveProbes = new WeakMap<FunctionStatement, Map<string, { inputs: readonly ValueFacts[]; result: ValueFacts;
         seen: boolean; valid: boolean; pure: boolean }>>();
@@ -315,6 +319,11 @@ export function createCallAnalysis(
                 for (const [node, fact] of before) expressions.set(node, fact);
             }
             const ordinary = withPathDims(joinValueFacts(result));
+            if (!checkingReturns && site && !frame.recursive) {
+                const sites = callSites.get(site) ?? new Map();
+                sites.set(definition, { arguments: arguments_.map(returnInput), result: returnInput(ordinary) });
+                callSites.set(site, sites);
+            }
             if (!checkingReturns && site && !frame.recursive && ordinary.types.length
                 && arguments_.every(fact => fact.types.length)) {
                 const observed = { arguments: arguments_.map(returnInput), result: returnInput(ordinary) };
@@ -392,7 +401,7 @@ export function createCallAnalysis(
 
     return {
         functionBindings, imported, importedAliases, globalCallEnvs, privateBindings, frameBindings,
-        directNoReturnCall, call, relationships, observedCalls,
+        directNoReturnCall, call, relationships, observedCalls, callSites,
         validRelationships: (env: ReadonlyMap<string, ValueFacts>) => {
             const result = new Map([...relationships].filter(([definition, summary]) =>
                 functions.get(definition.name) === definition
