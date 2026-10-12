@@ -6,8 +6,8 @@ import { argumentSignature, returnConflicts, returnInput } from './return-contra
 import { AstUtils, type AstNode } from 'langium';
 import {
     isApplicationExpression, isAssignmentStatement, isBinaryExpression, isForStatement, isFunctionStatement,
-    isNameExpression, isReturnStatement, isUnpackStatement,
-    type Expression, type FunctionStatement, type Program, type Statement,
+    isNameExpression, isReturnStatement, isUnpackStatement, isExpression,
+    type Expression, type FunctionStatement, type Program, type Statement, type AssignmentStatement,
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
 import { loopBinding, arrayRank, parameterFacts } from './control-flow.js';
@@ -35,6 +35,15 @@ export interface ImportedFunction {
 export interface FunctionCallFacts {
     readonly arguments: readonly ValueFacts[];
     readonly result: ValueFacts;
+    /** Display evidence inside this declaration at this call, not future binding facts. */
+    readonly body?: Readonly<Record<string, ValueFacts>>;
+}
+
+/** Stable across re-parsing an unchanged declaration in a notebook cell. */
+export function functionBodyKey(definition: FunctionStatement, node: AstNode): string | undefined {
+    const start = definition.$cstNode?.offset;
+    const offset = node.$cstNode?.offset;
+    return start === undefined || offset === undefined ? undefined : `${node.$type}:${offset - start}`;
 }
 
 /** State confined to call-site evaluation and bounded recursive probes. */
@@ -46,6 +55,7 @@ export function createCallAnalysis(
     returnValues: (items: readonly Statement[], env: Map<string, ValueFacts>) => ValueFacts[],
     analyzeImported: (program: Program, name: string, arguments_: readonly ValueFacts[]) => { result: ValueFacts; diagnostics: readonly CallDiagnostic[]; relationship?: FunctionRelationship },
     initialImports: ReadonlyMap<string, ImportedFunction> = new Map(),
+    assignments: ReadonlyMap<AssignmentStatement, ValueFacts> = new Map(),
 ) {
     const functionBindings = new Map([...functions.keys()].map(name => [name, bindings.get(name)]));
     const imported = new Map<string, ImportedFunction>(initialImports);
@@ -258,6 +268,16 @@ export function createCallAnalysis(
             const result = summarized
                 ? [instantiateRelationship(relationship, definition.parameters.map(name => local.get(name)!), expressions)!]
                 : returnValues(definition.statements, local);
+            // Snapshot before generic contract probes overwrite body observations.
+            // Store only display types/shapes, never captured environments or readers.
+            const body: Record<string, ValueFacts> = {};
+            const bodyNodes = summarized ? relationship.expressions.keys() : nodes;
+            if (!checkingReturns && site && !frame.recursive && arguments_.every(fact => fact.types.length)) for (const node of bodyNodes) {
+                const facts = isExpression(node) ? expressions.get(node)
+                    : isAssignmentStatement(node) ? assignments.get(node) : undefined;
+                const key = functionBodyKey(definition, node);
+                if (facts && key !== undefined) body[key] = returnInput(facts);
+            }
             // Reaching the end throws: only paths that actually return contribute
             // a result value. With no proven return, the result remains unknown.
             if (!checkingReturns) {
@@ -326,7 +346,7 @@ export function createCallAnalysis(
             }
             if (!checkingReturns && site && !frame.recursive && ordinary.types.length
                 && arguments_.every(fact => fact.types.length)) {
-                const observed = { arguments: arguments_.map(returnInput), result: returnInput(ordinary) };
+                const observed = { arguments: arguments_.map(returnInput), result: returnInput(ordinary), body };
                 const instances = observedCalls.get(definition) ?? new Map();
                 if (instances.size < 100) instances.set(JSON.stringify(observed), observed);
                 observedCalls.set(definition, instances);

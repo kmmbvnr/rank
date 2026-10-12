@@ -123,7 +123,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             const definition = analysis.functions.get(name);
             return { result: analysis.functionResults[0], diagnostics: analysis.diagnostics,
                 relationship: definition && analysis.relationships.get(definition) };
-        }, initialImports);
+        }, initialImports, assignments);
     const { functionBindings, imported, importedAliases, globalCallEnvs, privateBindings, frameBindings } = calls;
     function invalidateImportedAlias(alias: string, env: Map<string, ValueFacts>): void {
         for (const name of imported.keys()) if (name.startsWith(`${alias}.`)) {

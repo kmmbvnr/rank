@@ -21,6 +21,17 @@ it('shows the Euler 17 function signature in notebook calls and its later defini
                 repl.notebook.selectTo(index, source.indexOf(text) + text.indexOf('letters'));
                 expect(repl.nameFacts?.signature, `${text}, executed=${executed}`).toBe('i → i');
             }
+            const index = repl.notebook.cells.findIndex(cell => cell.source.includes('fun letters'));
+            const source = repl.notebook.cells[index].source;
+            for (const [text, name] of [['fun letters Value', 'Value'], ['N = Value', 'N'],
+                ['N = Value', 'Value'], ['unpack Hundreds N', 'Hundreds'], ['unpack Hundreds N', 'N'],
+                ['unpack Digit N', 'Digit'], ['unpack Digit N', 'N'],
+                ['return Count + Small N', 'Small'], ['return Count + Small N', 'N']] as const) {
+                repl.notebook.selectTo(index, source.indexOf(text) + text.lastIndexOf(name));
+                expect(repl.nameFacts?.facts.types, `${text}, name=${name}, executed=${executed}`)
+                    .toEqual(name === 'Small' ? ['array'] : ['integer']);
+                if (name === 'Small') expect(repl.nameFacts?.facts.elements).toEqual(['integer']);
+            }
         }
     } finally { session.dispose(); }
 });
@@ -50,6 +61,20 @@ it('invalidates historical call signatures after editing captured values or the 
         expect(selectDefinition()).toBe('i → text');
         repl.notebook.replace('fun lookup N\n return true\nend');
         expect(selectDefinition()).toContain('→ b');
+    } finally { session.dispose(); }
+});
+
+it('joins observed parameter and local types for a function analyzed through a relationship', () => {
+    const session = createReplSession();
+    try {
+        const repl = new NotebookRepl(session);
+        repl.notebook.restore('1 identity\n"text" identity\nfun identity Value\n N = Value\n return N\nend');
+        const index = repl.notebook.cells.findIndex(cell => cell.source.includes('fun identity'));
+        const source = repl.notebook.cells[index].source;
+        for (const [text, name] of [['fun identity Value', 'Value'], ['N = Value', 'N'], ['return N', 'N']]) {
+            repl.notebook.selectTo(index, source.indexOf(text) + text.lastIndexOf(name));
+            expect(repl.nameFacts?.facts.types.slice().sort(), text).toEqual(['integer', 'text']);
+        }
     } finally { session.dispose(); }
 });
 

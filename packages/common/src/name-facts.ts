@@ -1,6 +1,6 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, expressionFacts, applicationForm, formatTypeSignature, signatureType, describeTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement,
+    analyzeValues, expressionFacts, applicationForm, formatTypeSignature, signatureType, describeTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
     isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts, type FunctionCallFacts,
 } from '@arrrank/language';
@@ -52,6 +52,36 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
     let analysis: ReturnType<typeof analyzeValues>;
     try { analysis = analyzeValues(program, scope ? new Map(scope.bindings) : runtime,
         new Map(scope?.functions), examples.map(example => ({ ...example })), loadModule, scope?.imports); } catch { return undefined; }
+
+    const observedCalls = (definition: FunctionStatement): readonly FunctionCallFacts[] => {
+        const previous = scope?.functions.get(definition.name);
+        // The active cell is parsed again. Only the exact hoisted declaration
+        // can inherit observations from earlier notebook cells.
+        const same = previous === definition || !!definition.$cstNode?.text
+            && previous?.$cstNode?.text === definition.$cstNode.text;
+        return [...analysis.functionCalls.get(definition) ?? [],
+            ...(same && previous ? scope?.functionCalls?.get(previous) ?? [] : [])];
+    };
+    const observedBodies = new Map<FunctionStatement, ReturnType<typeof analyzeValues>>();
+    const observedBody = (definition: FunctionStatement): ReturnType<typeof analyzeValues> | undefined => {
+        const cached = observedBodies.get(definition);
+        if (cached) return cached;
+        const calls = observedCalls(definition).filter(call => call.body);
+        if (!calls.length) return undefined;
+        const expressions = new Map<Expression, ValueFacts>();
+        const assignments = new Map(analysis.assignments);
+        for (const node of AstUtils.streamAllContents(definition)) {
+            const key = functionBodyKey(definition, node);
+            const facts = key === undefined ? [] : calls.flatMap(call => call.body![key] ? [call.body![key]] : []);
+            if (!facts.length) continue;
+            const joined = joinValueFacts(facts);
+            if (isExpression(node)) expressions.set(node, joined);
+            else if (isAssignmentStatement(node)) assignments.set(node, joined);
+        }
+        const body = { ...analysis, expressions, assignments };
+        observedBodies.set(definition, body);
+        return body;
+    };
 
     const generalAnalyses = new Map<FunctionStatement, ReturnType<typeof analyzeValues>>();
     const generalAnalysis = (definition: FunctionStatement): ReturnType<typeof analyzeValues> | undefined => {
@@ -173,14 +203,8 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         const result = relationship ? undefined : generalResult(definition);
         // A later host call can erase captured-value facts. Keep signatures
         // already proved at actual call sites for the definition's footer.
-        const previousDefinition = scope?.functions.get(definition.name);
-        // The active cell is parsed again. Match only the exact hoisted body;
-        // a changed/replaced declaration must not inherit an old signature.
-        const sameDeclaration = previousDefinition === definition || !!definition.$cstNode?.text
-            && previousDefinition?.$cstNode?.text === definition.$cstNode.text;
         const earlierCalls = !relationship && !result?.types.length
-            ? analysis.functionCalls.get(definition)
-                ?? (sameDeclaration && previousDefinition ? scope?.functionCalls?.get(previousDefinition) : undefined)
+            ? observedCalls(definition)
             : undefined;
         if (earlierCalls?.length) return [...new Set(earlierCalls.map(facts => functionSignature(definition, facts)))].join(' ; ');
         return functionSignature(definition, { relationship, result,
@@ -210,6 +234,15 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         if (!facts.types.length && inFunction) {
             const body = generalAnalysis(inFunction);
             if (body) facts = staticFacts(site, body);
+        }
+        if (!facts.types.length && inFunction) {
+            const body = observedBody(inFunction);
+            if (body) facts = staticFacts(site, body);
+            if (site.kind === 'parameter') {
+                const index = inFunction.parameters.indexOf(site.name);
+                const inputs = observedCalls(inFunction).map(call => call.arguments[index] ?? UNKNOWN);
+                if (inputs.length) facts = joinValueFacts(inputs);
+            }
         }
         let requirement: string | undefined;
         if (!facts.types.length && inFunction) {
@@ -329,6 +362,8 @@ function staticFacts(site: Site, analysis: ReturnType<typeof analyzeValues>): Va
                 : analysis.assignments.get(node) ?? UNKNOWN : UNKNOWN;
         case 'loop': return bodyRead(loopOf(node)!, name, analysis);
         case 'parameter': return bodyRead(node as FunctionStatement, name, analysis);
+        case 'unpack': return isUnpackStatement(node)
+            ? known(node.value).tupleItems?.[node.names.indexOf(name)] ?? UNKNOWN : UNKNOWN;
         default: return UNKNOWN;
     }
 }

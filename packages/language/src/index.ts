@@ -19,6 +19,7 @@ export * from './analysis/value-domain.js';
 export * from './analysis/value-facts.js';
 export * from './analysis/value-diagnostics.js';
 export type { ImportedFunction, FunctionCallFacts } from './analysis/function-calls.js';
+export { functionBodyKey } from './analysis/function-calls.js';
 export * from './analysis/requirements.js';
 export * from './analysis/function-effects.js';
 export * from './analysis/function-yields.js';

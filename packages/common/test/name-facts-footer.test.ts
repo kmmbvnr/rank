@@ -276,7 +276,7 @@ it('infers Euler 13 types and parameter requirements across restored cells', () 
             ['Answer =', 'Answer · integer'], ['Answer print', 'Answer · integer'],
             ['leading_sum Numbers', 'leading_sum · (number | missing) [rank ≥ 0] i → i'],
             ['Prefix =', 'Prefix · text'], ['Digits\n', 'Digits · integer'],
-            ['Numbers Digits\n', 'Numbers · (integer or missing or real) [rank ≥ 0]'],
+            ['Numbers Digits\n', 'Numbers · array[#]<integer>'],
         ]) {
             const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
             repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site));
