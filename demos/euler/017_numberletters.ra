@@ -8,30 +8,61 @@ use cli
 
 option Limit integer = 1000
 
-Small = array 0 3 3 5 4 4 3 5 5 4
-Teens = array 3 6 6 8 8 7 7 9 8 8
-Tens = array 0 0 6 6 5 5 5 7 6 6
+Small = array shape 10
+  ""
+  "one"
+  "two"
+  "three"
+  "four"
+  "five"
+  "six"
+  "seven"
+  "eight"
+  "nine"
+end len rank 0
+
+Teens = array shape 10
+  "ten"
+  "eleven"
+  "twelve"
+  "thirteen"
+  "fourteen"
+  "fifteen"
+  "sixteen"
+  "seventeen"
+  "eighteen"
+  "nineteen"
+end len rank 0
+
+Tens = array shape 10
+  ""
+  ""
+  "twenty"
+  "thirty"
+  "forty"
+  "fifty"
+  "sixty"
+  "seventy"
+  "eighty"
+  "ninety"
+end len rank 0
 
 Numbers = 1 to Limit
 Counts = Numbers letters rank 0
 Counts sum print
 
-rem Count letters without constructing the
-rem spelled-out text or its separators.
 fun letters Value
   if Value equal 1000
-    return 11
+    return "one" len + ("thousand" len)
   end
 
   Count = 0
   N = Value
   if N at least 100
     unpack Hundreds N = N divmod 100
-    rem "hundred" has 7 letters.
-    Count += Small Hundreds + 7
+    Count += Small Hundreds + ("hundred" len)
     if N greater 0
-      rem "and" has 3 letters.
-      Count += 3
+      Count += "and" len
     end
   end
 

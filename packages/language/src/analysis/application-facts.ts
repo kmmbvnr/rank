@@ -381,6 +381,15 @@ function transferApplicationFacts(
         const name = form.parts.at(-1);
         const operation = isNameExpression(name) ? operationBinding(name.name, lookup) : undefined;
         const operands = form.parts.slice(0, -1).map(part => infer(part, lookup));
+        // Text is boxed in a tensor cell: `Words len rank 0` maps word lengths,
+        // preserving the frame rather than treating each word as another axis.
+        if (operation && operation.name === 'len' && form.rank === 0n && form.rightRank === undefined && !form.axes
+            && operands.length === 1 && ['array', 'sequence'].includes(operands[0].types.join())
+            && operands[0].elements?.join() === 'text'
+            && (operands[0].eagerScalarCells || operands[0].callbackFreeScalarCells)) {
+            const result = rankedFunctionFacts(operands, [0], () => ({ types: ['integer'], rank: 0, shape: [] }));
+            if (result.types.length) return { ...result, callbackFreeScalarCells: true };
+        }
         if (form.rank === 0n && form.rightRank === undefined && !form.axes
             && operands.length === 1 && operands[0].types.join() === 'sequence'
             && (operands[0].callbackFreeScalarCells || operands[0].eagerScalarCells)) {

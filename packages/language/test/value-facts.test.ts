@@ -321,6 +321,20 @@ it('gives finite collection lengths scalar rank', () => {
         .toEqual({ types: ['integer'], rank: 0, shape: [] });
 });
 
+it('maps word lengths over tensor frames without losing integer cells', () => {
+    expect(facts('array shape 2\n  "one"\n  "three"\nend len rank 0')).toEqual({
+        types: ['array'], rank: 1, shape: [2], elements: ['integer'], callbackFreeScalarCells: true,
+    });
+    const words: ValueFacts = { types: ['array'], rank: 2, shape: [2, 3], elements: ['text'], eagerScalarCells: true };
+    expect(facts('Words len rank 0', new Map([['Words', words]]))).toEqual({
+        types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'], callbackFreeScalarCells: true,
+    });
+    expect(facts('Words len rank 0', new Map([['Words', { ...words, eagerScalarCells: undefined }]])))
+        .toEqual({ types: [] });
+    expect(facts('Words len rank 0', new Map([['Words', words], ['len', { types: ['function'] }]])))
+        .toEqual({ types: [] });
+});
+
 it('keeps known record field facts and builtin record contracts', () => {
     expect(facts('(record\n  .count = 3\n  .name = "a"\nend) .count'))
         .toMatchObject({ types: ['integer'], rank: 0 });
