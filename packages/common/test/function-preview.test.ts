@@ -52,7 +52,7 @@ end`;
         try {
             const result = await session.execute('use numbers\nsqrt', 0, [], 40, true);
             expect(result.ok).toBe(true);
-            expect(result.output.map(line => line.text).join(' ')).toContain('→ real');
+            expect(result.output.map(line => line.text).join(' ')).toBe('number → r ; missing → missing');
             expect(result.output.map(line => line.text).join(' ')).not.toContain('<function');
             expect((await session.execute('9 sqrt', 1, [], 40, true)).output.map(line => line.text)).toEqual(['3']);
         } finally { session.dispose(); }
