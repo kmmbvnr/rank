@@ -1069,24 +1069,27 @@ array Q R
 ### Usage
 
 ```text
-unpack Quotient Remainder = Value divmod Divisor
+unpack Q R = Value divmod Divisor
 ```
 
 The results match `Value // Divisor` and
 `Value mod Divisor`. Integer inputs give
-integers; a real input gives real results.
-The quotient rounds down and the remainder
-has the divisor's sign: `-7 divmod 3`
-gives `-3 2`. A zero divisor is an error.
+integers; a real input gives real
+results.
+The quotient rounds down and the
+remainder has the divisor's sign:
+`-7 divmod 3` gives `-3 2`.
+A zero divisor is an error.
 
 Like `mod`, it has the precedence of
-multiplication and division. Use parentheses
-around an addition in either operand.
+multiplication and division. Use
+parentheses around an addition in either
+operand.
 
 Arrays broadcast as in arithmetic; the
-tuple contains two arrays of the broadcast
-shape, so `unpack` names the quotient array
-and the remainder array.
+tuple contains two arrays of the
+broadcast shape, so `unpack` names the
+quotient array and the remainder array.
 
 ### See also
 
