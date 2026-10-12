@@ -24,10 +24,11 @@ it('shows the Euler 17 function signature in notebook calls and its later defini
             const index = repl.notebook.cells.findIndex(cell => cell.source.includes('fun letters'));
             const source = repl.notebook.cells[index].source;
             for (const [text, name] of [['fun letters Value', 'Value'], ['N = Value', 'N'],
-                ['N = Value', 'Value'], ['unpack Hundreds N', 'Hundreds'], ['unpack Hundreds N', 'N'],
-                ['unpack Digit N', 'Digit'], ['unpack Digit N', 'N'],
+                ['N = Value', 'Value'], ['unpack D N = N divmod 100', 'D'], ['unpack D N = N divmod 100', 'N'],
+                ['unpack D N = N divmod 10\n', 'D'], ['unpack D N = N divmod 10\n', 'N'],
                 ['return Count + Small N', 'Small'], ['return Count + Small N', 'N']] as const) {
-                repl.notebook.selectTo(index, source.indexOf(text) + text.lastIndexOf(name));
+                const offset = text.startsWith('unpack ') ? text.indexOf(name, 'unpack '.length) : text.lastIndexOf(name);
+                repl.notebook.selectTo(index, source.indexOf(text) + offset);
                 expect(repl.nameFacts?.facts.types, `${text}, name=${name}, executed=${executed}`)
                     .toEqual(name === 'Small' ? ['array'] : ['integer']);
                 if (name === 'Small') expect(repl.nameFacts?.facts.elements).toEqual(['integer']);

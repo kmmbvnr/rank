@@ -59,16 +59,16 @@ fun letters Value
   Count = 0
   N = Value
   if N at least 100
-    unpack Hundreds N = N divmod 100
-    Count += Small Hundreds + ("hundred" len)
+    unpack D N = N divmod 100
+    Count += Small D + ("hundred" len)
     if N greater 0
       Count += "and" len
     end
   end
 
   if N at least 20
-    unpack Digit N = N divmod 10
-    Count += Tens Digit
+    unpack D N = N divmod 10
+    Count += Tens D
   elif N at least 10
     return Count + Teens (N - 10)
   end
