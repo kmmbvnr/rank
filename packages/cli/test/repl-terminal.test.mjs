@@ -852,7 +852,7 @@ test('arrow keys edit visible function arguments and return to them from the bod
     assert.match(frames[6].text.split('\n')[frames[6].cursorY], /^\s+Y = 2/);
     assert.doesNotMatch(frames[7].text, /\n\s+7\n/, 'the selected body line waits for Enter');
     assert.match(frames[8].text, /return X \+ Y\n\s+7/);
-    assert.match(frames[9].text, /a a → a ; a: number/);
+    assert.match(frames[9].text.replace(/\s+/g, ' '), /a a → a ; i r → r ; c<a> a → c<a> ; a c<a> → c<a> ; a: number/);
 });
 
 test('a live function named plus is not rewritten to an operator in its preview call', async t => {
@@ -1256,7 +1256,7 @@ test('Enter on a result row opens a full-screen viewer of a 3 by 4 array, and Es
     ], 50, 14);
     assert.match(frames[1].text, /Enter view · Esc back/);
     const viewer = frames[2].text.split('\n');
-    assert.match(viewer[0], /^M · array · integer · \[3 4\]/);
+    assert.match(viewer[0], /^M · c · integer · \[3 4\]/);
     assert.match(viewer[1], /0 +1 +2 +3/);
     assert.match(viewer[2], /^0 │ +7 +7 +7 +7/);
     assert.match(viewer[3], /^1 │/);
@@ -1276,7 +1276,7 @@ test('the viewer scrolls a wide table sideways without fetching the rest', async
     const LEFT = '\x1b[D', SHIFT_RIGHT = '\x1b[1;2C';
     const frames = await drive(t, [
         { keys: 'use tables' + ENTER, until: 'tables' },
-        { keys: `T = ${JSON.stringify(csv)} csv` + ENTER, until: 'table \\[2 12\\]' },
+        { keys: `T = ${JSON.stringify(csv)} csv` + ENTER, until: 'c \\[2 12\\]' },
         { keys: UP, until: 'Enter view' },
         { keys: ENTER, until: 'columns 1' },
         { keys: RIGHT, until: 'columns 2' },
@@ -1285,7 +1285,7 @@ test('the viewer scrolls a wide table sideways without fetching the rest', async
         { keys: '\x1b', until: 'Enter view' },
     ], 40, 12);
     const first = frames[3].text.split('\n');
-    assert.match(first[0], /^T · table · integer · \[2 12\]/);
+    assert.match(first[0], /^T · c · integer · \[2 12\]/);
     assert.match(first[1], /column_0/);
     assert.doesNotMatch(first[1], /column_5/);
     assert.match(first[11], /columns 1–\d of 12/);
@@ -1308,7 +1308,7 @@ test('the viewer switches the slice of a 3-D array with [ and ]', async t => {
         { keys: '\x1b', until: 'Enter view' },
     ], 44, 12);
     const first = frames[3].text.split('\n');
-    assert.match(first[0], /^A · array · integer · \[2 3 4\] \[0, :, :\]/);
+    assert.match(first[0], /^A · c · integer · \[2 3 4\] \[0, :, :\]/);
     assert.match(first[2], /^0 │ +1 +2 +3 +4/);
     const second = frames[4].text.split('\n');
     assert.match(second[0], /\[1, :, :\]/);

@@ -963,7 +963,7 @@ test('Ctrl-R replaces a declaration type while retaining other cells and their v
     edit(1, 'Ranks = "234567890" "" split');
     await repl.rerun();
     assert.equal(book.cells[1].status, 'ok', output(book.cells[1]));
-    assert.match(output(await session.execute('vars', 100, [])), /Ranks array 9/);
+    assert.match(output(await session.execute('vars', 100, [])), /Ranks c 9/);
     assert.equal((await session.execute('Count', 101, [])).output[0].text, '7');
     edit(1, 'Cards = "new"');
     await repl.rerun();
