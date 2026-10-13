@@ -1,0 +1,59 @@
+{
+  "cpu": "Apple M5",
+  "node": "v24.15.0",
+  "samples": 5,
+  "algorithm": "permutations",
+  "method": "Fresh processes, one warmup and calibrated 200 ms batch per sample; parsing, imports and printing excluded. Each solve retains and verifies all 92 boards against an independent oracle. Mode order rotates. Times are milliseconds per solve.",
+  "results": {
+    "reference": {
+      "runs": [
+        {
+          "ms": 1186.306458,
+          "iterations": 1
+        },
+        {
+          "ms": 1215.2261669999998,
+          "iterations": 1
+        },
+        {
+          "ms": 1206.300416,
+          "iterations": 1
+        },
+        {
+          "ms": 1205.7610829999999,
+          "iterations": 1
+        },
+        {
+          "ms": 1210.4396669999999,
+          "iterations": 1
+        }
+      ],
+      "medianMs": 1206.300416
+    },
+    "functionFusion": {
+      "runs": [
+        {
+          "ms": 318.2521670000001,
+          "iterations": 1
+        },
+        {
+          "ms": 320.96720800000014,
+          "iterations": 1
+        },
+        {
+          "ms": 321.24308299999996,
+          "iterations": 1
+        },
+        {
+          "ms": 322.3399579999999,
+          "iterations": 1
+        },
+        {
+          "ms": 320.35187500000006,
+          "iterations": 1
+        }
+      ],
+      "medianMs": 320.96720800000014
+    }
+  }
+}

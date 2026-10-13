@@ -48,11 +48,11 @@ The same prefix demo and timer, with five fresh-process samples on Apple M5 / No
 | Function fusion only | 66.56 ms |
 | Function and ranked fusion | 31.88 ms |
 
-Ranked rows are cached as private boolean buffers without writable-storage wrappers. This is a 6.30× improvement for this workload. The permutation demo's `unique len` predicate is outside this compiler's supported expressions. These measurements establish speed, not retained or peak memory savings.
+Ranked rows are cached as private boolean buffers without writable-storage wrappers. This is a 6.30× improvement for this workload. These first changes did not compile the permutation demo's `unique len` predicate. These measurements establish speed, not retained or peak memory savings.
 
 Raw samples are in [queens-fusion-results.json](../queens-fusion-results.json). Set `RANK_ARRAY_COMPILATION=false` or `RANK_RANKED_ARRAY_COMPILATION=false` when running `queens-languages.mjs` to disable the corresponding optimization for Rank workers.
 
-A fresh cross-language run of the final implementation gives:
+A cross-language run after membership fusion gives:
 
 | Runtime | Permutations | Prefixes |
 | --- | ---: | ---: |
@@ -62,3 +62,30 @@ A fresh cross-language run of the final implementation gives:
 | Ruby | 45.92 ms | 9.52 ms |
 
 See [queens-languages-fused-results.json](../queens-languages-fused-results.json) for all samples and runtime versions.
+
+## Distinct-count predicates and integer copies
+
+Pure integer-vector functions can now keep `unique len` counts private and compare them directly. The compiler accepts straight-line assignments, simple early-return branches and a final scalar return. Arithmetic uses integer readers without intermediate arrays; equality stops once the target distinct count becomes impossible. For a target equal to the vector length, the first duplicate is enough. Other target counts and standalone counts still return exact results.
+
+Integer permutation rows now have revision-tracked owned storage so the compiler can safely borrow them. Other permutation element types retain their previous representation. The tracked storage adds overhead to generating integer permutations alone; the measured overall gain comes from combining it with predicate fusion. Captured values are revalidated on every call. Builtin replacements, unsupported syntax/types, writes to captured locals and observable host readers retain ordinary execution.
+
+`copy` also borrows proven integer-view readers directly. It still produces independent writable storage, preserves metadata and uses ordinary reads for host/lazy inputs and during inspection. This removes derived-cell dispatch when copying selected `States` rows.
+
+```sh
+npx tsc -b tsconfig.build.json
+ALGORITHM=permutations node benchmarks/queens-fusion.mjs > benchmarks/queens-distinct-results.json
+node benchmarks/queens-languages.mjs > benchmarks/queens-languages-distinct-results.json
+```
+
+With the same tracked permutation rows, disabling function fusion gives 1206.30 ms versus 320.97 ms enabled (five fresh-process medians, 3.76×). Compared with the previous complete implementation's 1047.61 ms, the net improvement is about 3.3×. See [queens-distinct-results.json](../queens-distinct-results.json).
+
+The latest cross-language run gives:
+
+| Runtime | Permutations | Prefixes |
+| --- | ---: | ---: |
+| Rank | 330.20 ms | 29.21 ms |
+| TypeScript | 24.09 ms | 1.58 ms |
+| Python | 29.84 ms | 4.43 ms |
+| Ruby | 47.60 ms | 9.90 ms |
+
+All solves matched the independent ordered 92-board oracle. Raw samples are in [queens-languages-distinct-results.json](../queens-languages-distinct-results.json).

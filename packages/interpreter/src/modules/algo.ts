@@ -1,4 +1,5 @@
 import { checkpoint } from '../interrupt.js';
+import { ownedArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { expectDeque, expectHeap, peekCollection, pushCollection } from '../containers.js';
 import { addToCollection, removeFromCollection } from '../collections.js';
@@ -161,6 +162,7 @@ function missingBounds(value: RankValue): [bigint, bigint] {
 interface PermutationInput {
     readonly items: readonly RankValue[];
     readonly text: boolean;
+    readonly integers?: boolean;
 }
 
 function permutationInput(value: RankValue): PermutationInput {
@@ -168,7 +170,8 @@ function permutationInput(value: RankValue): PermutationInput {
     if (isRankArray(value) && value.shape.length !== 1) {
         throw new RankError('permutations expects text or a rank-1 collection');
     }
-    return { items: finiteItems(value, 'permutations'), text: false };
+    const items = finiteItems(value, 'permutations');
+    return { items, text: false, integers: items.every(item => typeof item === 'bigint') };
 }
 
 interface CombinationInput {
@@ -286,7 +289,8 @@ function* buildPermutation(
         if (input.text) {
             yield result.join('');
         } else {
-            yield { kind: 'array', items: [...result], shape: [result.length] };
+            yield input.integers ? ownedArray([...result], [result.length], true)
+                : { kind: 'array', items: [...result], shape: [result.length] };
         }
         return;
     }

@@ -3,7 +3,8 @@ import { collectionSize } from '../collection-size.js';
 import { elementSource } from '../element-source.js';
 import { inheritArrayDeclaration } from '../array-declaration.js';
 import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
-import { checkpoint, interruptibleCallback } from '../interrupt.js';
+import { checkpoint, inspectionEnabled, interruptibleCallback } from '../interrupt.js';
+import { prepareIntegerView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
 import { ownedArray, derivedArray, denseScalarItems, readArrayItem, realCells, typedArray, typedElementKind } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
@@ -275,9 +276,13 @@ function copyArray(value: RankValue): RankArray {
     if (!isRankArray(value)) throw new RankError('copy expects an array or sequence');
     const type = semanticArrayType(value);
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+    const integers = inspectionEnabled() ? undefined : prepareIntegerView(value);
     const items = Array.from(
         { length: size },
-        (_, index) => value.itemAt?.(index) ?? value.items[index],
+        (_, index) => {
+            if (integers) { checkpoint('copying integers'); return integers.read(index); }
+            return value.itemAt?.(index) ?? value.items[index];
+        },
     );
     // Cells that are arrays or finite sequences stack along new trailing axes, as sequence items do.
     if (!items.some(item => isRankArray(item) || isRankSequence(item))) {

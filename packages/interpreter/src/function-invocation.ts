@@ -22,6 +22,7 @@ import { ReturnContract, argumentRankSignature } from './return-contract.js';
 import { compiledArgumentType } from './compiled-argument-type.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
 import { compileMembershipFunction, type RankedMembership } from './membership-function.js';
+import { compileDistinctFunction } from './distinct-function.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { prepareCompiledBuiltin } from './typed-native.js';
 import { sequence } from './sequence.js';
@@ -259,11 +260,17 @@ export class FunctionInvocation {
                 && (!call.available || call.available()) ? call : undefined;
         };
         const membership = !generator && !statement.memo ? compileMembershipFunction(statement) : undefined;
+        const distinct = !generator && !statement.memo ? compileDistinctFunction(statement) : undefined;
+        const arrayFunction = membership ?? distinct;
         const body = (arguments_: RankValue[]): Evaluation<RankValue> => {
-            if (membership && !inspectionEnabled() && this.options().arrayFunctionCompilation !== false
+            if (arrayFunction && !inspectionEnabled() && this.options().arrayFunctionCompilation !== false
                 && this.options().tensorFusion !== false && this.modules.has('sequences')
-                && !membership.locals.some(name => context?.find(name))) {
-                const fused = membership.prepare(arguments_, name => context?.lookup(name) ?? this.bindings.globals.get(name));
+                && !arrayFunction.locals.some(name => context?.find(name))
+                && (!distinct || ['unique', 'len'].every(name => {
+                    const value = context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
+                    return value !== undefined && this.builtins.is(name === 'unique' ? 'sequences' : 'core', name, value);
+                }))) {
+                const fused = arrayFunction.prepare(arguments_, name => context?.lookup(name) ?? this.bindings.globals.get(name));
                 if (fused) {
                     if (this.depth >= this.maxDepth) throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
                     this.depth++;

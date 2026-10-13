@@ -1,0 +1,233 @@
+{
+  "cpu": "Apple M5",
+  "platform": "darwin/arm64",
+  "samples": 5,
+  "method": "Fresh process per sample, one warmup, calibrated batch targeting 200 ms, normalized per solve. Parsing, startup, imports and printing excluded; complete solutions retained. Every returned result matches an independent ordered oracle of 92 boards. Both algorithms use the same representations: full permutation rows, or full-width state rows plus blocked-column membership and flat parent/column indices.",
+  "notes": "Standard libraries only. Python itertools.permutations and Ruby Array#permutation are native builtins; TypeScript uses a recursive generator. TypeScript uses number for these exact small integers; Rank uses integer values. No NumPy or specialized bitboard search.",
+  "sourceHashes": {
+    "permutations": "0ec06ffd0f4048fa1a738a117f2c05f7bd7e8f3bdcede6e71e5ddff232fd920e",
+    "prefixes": "fd3ef6cc5f2e72797f54649ae92d0bfe75f9039a0080f488379ada0ce3dad15f"
+  },
+  "results": {
+    "Rank": {
+      "version": "v24.15.0",
+      "algorithms": {
+        "permutations": {
+          "runs": [
+            {
+              "ms": 328.7109170000001,
+              "iterations": 1
+            },
+            {
+              "ms": 327.90429099999994,
+              "iterations": 1
+            },
+            {
+              "ms": 363.432542,
+              "iterations": 1
+            },
+            {
+              "ms": 330.2025829999999,
+              "iterations": 1
+            },
+            {
+              "ms": 341.33124999999995,
+              "iterations": 1
+            }
+          ],
+          "medianMs": 330.2025829999999
+        },
+        "prefixes": {
+          "runs": [
+            {
+              "ms": 29.400739749999985,
+              "iterations": 4
+            },
+            {
+              "ms": 28.512114249999968,
+              "iterations": 4
+            },
+            {
+              "ms": 49.59991666666667,
+              "iterations": 3
+            },
+            {
+              "ms": 28.512926999999962,
+              "iterations": 4
+            },
+            {
+              "ms": 29.212802250000024,
+              "iterations": 4
+            }
+          ],
+          "medianMs": 29.212802250000024
+        }
+      }
+    },
+    "TypeScript": {
+      "version": "v24.15.0",
+      "algorithms": {
+        "permutations": {
+          "runs": [
+            {
+              "ms": 28.55610114285715,
+              "iterations": 7
+            },
+            {
+              "ms": 24.0924635,
+              "iterations": 8
+            },
+            {
+              "ms": 24.197640625000005,
+              "iterations": 8
+            },
+            {
+              "ms": 23.941583333333337,
+              "iterations": 9
+            },
+            {
+              "ms": 23.795437500000002,
+              "iterations": 8
+            }
+          ],
+          "medianMs": 24.0924635
+        },
+        "prefixes": {
+          "runs": [
+            {
+              "ms": 1.6187909482758618,
+              "iterations": 58
+            },
+            {
+              "ms": 1.5515088852459018,
+              "iterations": 61
+            },
+            {
+              "ms": 1.5802215333333332,
+              "iterations": 60
+            },
+            {
+              "ms": 1.6095854166666668,
+              "iterations": 60
+            },
+            {
+              "ms": 1.5356437499999998,
+              "iterations": 60
+            }
+          ],
+          "medianMs": 1.5802215333333332
+        }
+      }
+    },
+    "Python": {
+      "version": "3.9.6",
+      "algorithms": {
+        "permutations": {
+          "runs": [
+            {
+              "ms": 30.23847614285714,
+              "iterations": 7
+            },
+            {
+              "ms": 28.985630857142862,
+              "iterations": 7
+            },
+            {
+              "ms": 29.492476142857146,
+              "iterations": 7
+            },
+            {
+              "ms": 33.253940428571426,
+              "iterations": 7
+            },
+            {
+              "ms": 29.840482142857145,
+              "iterations": 7
+            }
+          ],
+          "medianMs": 29.840482142857145
+        },
+        "prefixes": {
+          "runs": [
+            {
+              "ms": 4.481238888888888,
+              "iterations": 45
+            },
+            {
+              "ms": 4.270128711111111,
+              "iterations": 45
+            },
+            {
+              "ms": 4.4096685454545455,
+              "iterations": 44
+            },
+            {
+              "ms": 5.134221311111111,
+              "iterations": 45
+            },
+            {
+              "ms": 4.431995377777778,
+              "iterations": 45
+            }
+          ],
+          "medianMs": 4.431995377777778
+        }
+      }
+    },
+    "Ruby": {
+      "version": "ruby 2.6.10p210 (2022-04-12 revision 67958) [universal.arm64e-darwin25]",
+      "algorithms": {
+        "permutations": {
+          "runs": [
+            {
+              "ms": 46.71380000654608,
+              "iterations": 5
+            },
+            {
+              "ms": 47.59880000492558,
+              "iterations": 5
+            },
+            {
+              "ms": 46.247399994172156,
+              "iterations": 5
+            },
+            {
+              "ms": 48.361200001090765,
+              "iterations": 5
+            },
+            {
+              "ms": 86.02340000215918,
+              "iterations": 5
+            }
+          ],
+          "medianMs": 47.59880000492558
+        },
+        "prefixes": {
+          "runs": [
+            {
+              "ms": 9.898549999343231,
+              "iterations": 20
+            },
+            {
+              "ms": 9.983388888132241,
+              "iterations": 18
+            },
+            {
+              "ms": 9.61866666607204,
+              "iterations": 21
+            },
+            {
+              "ms": 9.91868421030966,
+              "iterations": 19
+            },
+            {
+              "ms": 9.46895238233819,
+              "iterations": 21
+            }
+          ],
+          "medianMs": 9.898549999343231
+        }
+      }
+    }
+  }
+}

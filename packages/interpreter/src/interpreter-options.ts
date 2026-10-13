@@ -41,7 +41,7 @@ export interface InterpreterOptions {
     readonly arrayLoopCompilation?: boolean;
     readonly nestedLoopCompilation?: boolean;
     readonly tensorCellCompilation?: boolean;
-    /** Fuse pure integer-vector function bodies consumed by membership. */
+    /** Fuse pure integer-vector membership and distinct-count functions. */
     readonly arrayFunctionCompilation?: boolean;
     /** Prepare pure vector callbacks once for ranked materialization. */
     readonly rankedArrayCompilation?: boolean;
