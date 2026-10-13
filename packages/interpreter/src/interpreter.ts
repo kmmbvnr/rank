@@ -64,6 +64,8 @@ export class Interpreter {
             blockCompilation: false,
             scalarCompilation: false,
             tensorFusion: false,
+            arrayFunctionCompilation: false,
+            rankedArrayCompilation: false,
             functionBodyCompilation: false,
         } : this.baseOptions;
     }
@@ -127,6 +129,7 @@ export class Interpreter {
             (fn, args) => this.functions.invoke(fn, args),
             value => this.resources.ownFiles(value), this.builtins.functions,
             fn => this.functions.scalarCallback(fn),
+            (fn, source, axes) => this.functions.arrayBatch(fn, source, axes),
         );
         this.fastPaths = new FastPaths({
             bindings: this.bindings,

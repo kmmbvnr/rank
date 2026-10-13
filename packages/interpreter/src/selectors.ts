@@ -1,5 +1,6 @@
 import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
+import { registerIntegerView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
 import { denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
@@ -147,7 +148,8 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
         const length = arraySize(rest);
         return inheritSemanticArrayType(source, typedArray(stored.slice(offset, offset + length), rest));
     }
-    return inheritSemanticArrayType(source, derivedArray(rest, [source], index => arrayItem(source, offset + index)));
+    return inheritSemanticArrayType(source, registerIntegerView(
+        derivedArray(rest, [source], index => arrayItem(source, offset + index)), source, index => offset + index));
 }
 
 /** The cells a selection addresses: an array, or the one cell of an empty shape. */
@@ -175,6 +177,7 @@ export function sliceArray(
         return source.columnNames ? result : inheritSemanticArrayType(source, result);
     }
     const result = derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
+    registerIntegerView(result, source, selection.offsetAt);
     if (columnNames) Object.defineProperty(result, 'columnNames', { value: columnNames });
     return source.columnNames ? result : inheritSemanticArrayType(source, result);
 }

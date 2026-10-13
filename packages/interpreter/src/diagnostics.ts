@@ -10,6 +10,8 @@ export class RuntimeDiagnostics {
     loopElementScans = 0;
     compiledLoops = 0;
     compiledTensors = 0;
+    compiledArrayFunctions = 0;
+    rankedArrayBatches = 0;
     /** Full materialization attempts over a prepared scalar callback. */
     rankedBatches = 0;
     cowCopies = 0;

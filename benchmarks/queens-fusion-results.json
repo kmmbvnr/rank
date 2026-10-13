@@ -1,0 +1,83 @@
+{
+  "cpu": "Apple M5",
+  "node": "v24.15.0",
+  "samples": 5,
+  "method": "Fresh processes, one warmup and calibrated 200 ms batch per sample; parsing, imports and printing excluded. Each solve retains and verifies all 92 boards against an independent oracle. Mode order rotates. Times are milliseconds per solve.",
+  "results": {
+    "reference": {
+      "runs": [
+        {
+          "ms": 209.70550000000003,
+          "iterations": 1
+        },
+        {
+          "ms": 200.73079199999995,
+          "iterations": 1
+        },
+        {
+          "ms": 200.9230829999999,
+          "iterations": 1
+        },
+        {
+          "ms": 200.066958,
+          "iterations": 1
+        },
+        {
+          "ms": 199.90883400000007,
+          "iterations": 1
+        }
+      ],
+      "medianMs": 200.73079199999995
+    },
+    "functionFusion": {
+      "runs": [
+        {
+          "ms": 66.47598633333331,
+          "iterations": 3
+        },
+        {
+          "ms": 66.67925000000001,
+          "iterations": 3
+        },
+        {
+          "ms": 65.91615300000002,
+          "iterations": 3
+        },
+        {
+          "ms": 66.77529166666665,
+          "iterations": 3
+        },
+        {
+          "ms": 66.55822200000001,
+          "iterations": 3
+        }
+      ],
+      "medianMs": 66.55822200000001
+    },
+    "rankedFusion": {
+      "runs": [
+        {
+          "ms": 31.69231225,
+          "iterations": 4
+        },
+        {
+          "ms": 31.882802000000012,
+          "iterations": 4
+        },
+        {
+          "ms": 32.03583350000004,
+          "iterations": 4
+        },
+        {
+          "ms": 31.668135249999978,
+          "iterations": 4
+        },
+        {
+          "ms": 32.5592185,
+          "iterations": 4
+        }
+      ],
+      "medianMs": 31.882802000000012
+    }
+  }
+}

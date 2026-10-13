@@ -41,6 +41,10 @@ export interface InterpreterOptions {
     readonly arrayLoopCompilation?: boolean;
     readonly nestedLoopCompilation?: boolean;
     readonly tensorCellCompilation?: boolean;
+    /** Fuse pure integer-vector function bodies consumed by membership. */
+    readonly arrayFunctionCompilation?: boolean;
+    /** Prepare pure vector callbacks once for ranked materialization. */
+    readonly rankedArrayCompilation?: boolean;
     /** Iterate scalar streams without per-element entry wrappers. */
     readonly directIteration?: boolean;
     /** Carry ordinary loop jumps through blocks without throwing signals. */

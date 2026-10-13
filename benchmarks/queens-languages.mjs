@@ -32,7 +32,10 @@ if (worker) {
     const setupStatements = program.statements.filter(s => ['UseStatement', 'FunctionStatement'].includes(s.$type));
     const solveStatements = program.statements.filter(s => !setupStatements.includes(s));
     const run = () => {
-        const runtime = new Interpreter(() => {});
+        const runtime = new Interpreter(() => {}, {
+            arrayFunctionCompilation: process.env.RANK_ARRAY_COMPILATION !== 'false',
+            rankedArrayCompilation: process.env.RANK_RANKED_ARRAY_COMPILATION !== 'false',
+        });
         runtime.executeProgram({ ...program, statements: setupStatements });
         const start = performance.now();
         runtime.executeProgram({ ...program, statements: solveStatements });

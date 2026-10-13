@@ -1,5 +1,7 @@
 import { arrayRevision, derivedArray, materializeCells, ownedArray, registerArrayReadPlan, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
+import { registerIntegerView } from './integer-view.js';
+import type { RankedMembership } from './membership-function.js';
 import { completed, type Evaluation } from './execution.js';
 import { RankError } from './errors.js';
 import { checkpoint, inspectionEnabled } from './interrupt.js';
@@ -35,6 +37,8 @@ export class RankApplication {
         private readonly ownFiles: (value: RankValue) => void,
         private readonly standardFunctions: ReadonlyMap<RuntimeModule[string], NativeFunction>,
         private readonly scalarCallback: (fn: NativeFunction) => ((arguments_: RankValue[]) => RankValue) | undefined,
+        private readonly arrayBatch?: (fn: NativeFunction, source: RankArray, axes: readonly number[]) =>
+            (RankedMembership & { available(): boolean }) | undefined,
     ) {}
 
     applyUnaryAtRank(
@@ -349,6 +353,27 @@ export class RankApplication {
             };
         };
 
+        const prepareArrayRead = (): ((index: number) => RankValue) | undefined => {
+            if (inspectionEnabled() || resultCellShape?.length !== 1) return undefined;
+            const batch = this.arrayBatch?.(fn, value, frameAxes);
+            if (!batch || batch.width === 0 || batch.width !== resultCellShape[0]) return undefined;
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) diagnostics.rankedArrayBatches++;
+            return index => {
+                const frame = Math.floor(index / batch.width);
+                let cell = results.get(frame);
+                if (cell === undefined) {
+                    if (!batch.available()) return result.itemAt!(index);
+                    const items = new Array<boolean>(batch.width);
+                    batch.fill(frame, items);
+                    // This private boolean row is only exposed through scalar
+                    // reads of the framed result; it needs no writable storage.
+                    cell = retainResult({ kind: 'array', shape: [batch.width], items, containsFiles: false }, frame, true);
+                }
+                return isRankArray(cell) ? arrayItem(cell, index % batch.width) : cell;
+            };
+        };
+        const prepareRead = () => prepareScalarRead() ?? prepareArrayRead();
         const result: RankArray = {
             kind: 'array',
             get shape() {
@@ -364,10 +389,10 @@ export class RankApplication {
             get items() {
                 const shape = outputShape();
                 if (!materialized) {
-                    const read = prepareScalarRead();
+                    const read = prepareRead();
                     if (read) {
-                        const values: RankValue[] = new Array(frameSize);
-                        for (let index = 0; index < frameSize; index++) values[index] = read(index);
+                        const values: RankValue[] = new Array(arraySize(shape));
+                        for (let index = 0; index < values.length; index++) values[index] = read(index);
                         materialized = values;
                     } else materialized = Array.from(
                         { length: arraySize(shape) }, (_, index) => this.itemAt!(index));
@@ -375,7 +400,7 @@ export class RankApplication {
                 return materialized;
             },
         };
-        if (scalar) registerArrayReadPlan(result, prepareScalarRead);
+        registerArrayReadPlan(result, prepareRead);
         return builtin ? registerArrayDependencies(result, [value]) : result;
     }
 
@@ -502,13 +527,14 @@ export function tensorCells(source: RankArray, frameAxes: readonly number[]): Te
             if (cellShape.length === 0) {
                 return arrayItem(source, arrayOffset(source.shape, sourceCoordinates));
             }
-            return derivedArray(cellShape, [source], cellIndex => {
+            const offset = (cellIndex: number) => {
                 const coordinates = [...sourceCoordinates];
                 coordinatesAt(cellShape, cellIndex).forEach((coordinate, index) => {
                     coordinates[cellAxes[index]] = coordinate;
                 });
-                return arrayItem(source, arrayOffset(source.shape, coordinates));
-            });
+                return arrayOffset(source.shape, coordinates);
+            };
+            return registerIntegerView(derivedArray(cellShape, [source], index => arrayItem(source, offset(index))), source, offset);
         },
     };
 }

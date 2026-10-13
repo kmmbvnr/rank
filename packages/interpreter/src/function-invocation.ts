@@ -3,7 +3,7 @@ import {
     availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, expressionDiagnostics, flattenApplication, isNameExpression, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
     type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
-import { enterRuntime, isFlatScalarArray, isSharedArray, leaveRuntime } from './array-storage.js';
+import { arrayRevision, enterRuntime, isFlatScalarArray, isSharedArray, leaveRuntime } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './block-compiler.js';
@@ -21,12 +21,14 @@ import type { ResourceOwnership } from './resource-ownership.js';
 import { ReturnContract, argumentRankSignature } from './return-contract.js';
 import { compiledArgumentType } from './compiled-argument-type.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
+import { compileMembershipFunction, type RankedMembership } from './membership-function.js';
+import { currentDiagnostics } from './diagnostics.js';
 import { prepareCompiledBuiltin } from './typed-native.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
 import {
-    formatValue, isNativeFunction, isRankDate, isRankLabel, typeName,
-    type NativeFunction, type RankFile, type RankSequence, type RankValue,
+    formatValue, isNativeFunction, isRankArray, isRankDate, isRankLabel, typeName,
+    type NativeFunction, type RankArray, type RankFile, type RankSequence, type RankValue,
 } from './value.js';
 
 /** A user function as its call sites see it. `owner` tells this interpreter's functions from a module child's. */
@@ -65,6 +67,8 @@ interface BorrowProof {
 const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[], inputRequirement?: CallRequirement) => Evaluation<RankValue>>();
 const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
 const scalarCallbacks = new WeakMap<NativeFunction, (arguments_: RankValue[]) => RankValue>();
+const arrayBatches = new WeakMap<NativeFunction, (source: RankArray, axes: readonly number[]) =>
+    (RankedMembership & { available(): boolean }) | undefined>();
 
 /**
  * Defining and calling user functions: closures over their defining frame,
@@ -106,6 +110,10 @@ export class FunctionInvocation {
      * belongs to the defining interpreter and revalidates every actual call. */
     scalarCallback(fn: NativeFunction): ((arguments_: RankValue[]) => RankValue) | undefined {
         return inspectionEnabled() ? undefined : scalarCallbacks.get(fn);
+    }
+
+    arrayBatch(fn: NativeFunction, source: RankArray, axes: readonly number[]) {
+        return inspectionEnabled() ? undefined : arrayBatches.get(fn)?.(source, axes);
     }
 
     /** A call in tail position to one of this interpreter's own functions unwinds to the active call. */
@@ -250,7 +258,25 @@ export class FunctionInvocation {
             return call && !locals!.some(name => context?.find(name))
                 && (!call.available || call.available()) ? call : undefined;
         };
+        const membership = !generator && !statement.memo ? compileMembershipFunction(statement) : undefined;
         const body = (arguments_: RankValue[]): Evaluation<RankValue> => {
+            if (membership && !inspectionEnabled() && this.options().arrayFunctionCompilation !== false
+                && this.options().tensorFusion !== false && this.modules.has('sequences')
+                && !membership.locals.some(name => context?.find(name))) {
+                const fused = membership.prepare(arguments_, name => context?.lookup(name) ?? this.bindings.globals.get(name));
+                if (fused) {
+                    if (this.depth >= this.maxDepth) throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
+                    this.depth++;
+                    try {
+                        const diagnostics = currentDiagnostics();
+                        if (diagnostics) diagnostics.compiledArrayFunctions++;
+                        return completed(fused());
+                    } catch (error) {
+                        if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
+                        throw this.host.locate(error, statement);
+                    } finally { this.depth--; }
+                }
+            }
             const selected = selectScalar(arguments_);
             if (selected) return completed(selected(arguments_));
             return direct ? completed(this.callDirectFunction(statement, arguments_, context, direct))
@@ -312,6 +338,27 @@ export class FunctionInvocation {
             },
         };
         this.sources.set(fn, statement);
+        if (membership) {
+            const originalCall = fn.call;
+            const enabled = () => !inspectionEnabled() && fn.call === originalCall
+                && this.options().arrayFunctionCompilation !== false && this.options().tensorFusion !== false
+                && this.options().rankedArrayCompilation !== false && this.modules.has('sequences')
+                && this.depth < this.maxDepth && !membership.locals.some(name => context?.find(name));
+            const lookup = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name);
+            arrayBatches.set(fn, (source, axes) => {
+                if (!enabled()) return undefined;
+                const captureValues = membership.captures.map(lookup);
+                const captures = captureValues.map(value => ({ value, revision: value && isRankArray(value) ? arrayRevision(value) : undefined }));
+                const revision = arrayRevision(source);
+                const kernel = membership.prepareRanked(source, axes, lookup);
+                if (!kernel) return undefined;
+                return { ...kernel, available: () => enabled() && arrayRevision(source) === revision
+                    && membership.captures.every((name, i) => {
+                        const value = lookup(name), old = captures[i];
+                        return value === old.value && (!value || !isRankArray(value) || arrayRevision(value) === old.revision);
+                    }) };
+            });
+        }
         if (!generator) {
             functionExecutions.set(fn, execute);
             // A memo call must return through its cache writer. Do not bypass it

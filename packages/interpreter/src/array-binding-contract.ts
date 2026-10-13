@@ -7,6 +7,7 @@ import { arrayElementTypes } from './array-element-types.js';
 import { evaluateArrayItem, registerArrayCellEvaluation, arrayRevision, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies, registerCachedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
+import { registerIntegerView } from './integer-view.js';
 import { recordContract, retainRecordContract } from './record-contract.js';
 import { isRankArray, isRankRecord, isRankTuple, tuple, requireHomogeneous, MISSING, mergeCollectionElementType, typeName, unionElementType,
     type CollectionElementType, type RankArray, type RankValue } from './value.js';
@@ -304,6 +305,8 @@ export class ArrayBindingContract {
         registerArrayCellEvaluation(checked, evaluate);
         this.metadata(value, checked);
         holdArraySource(checked, value);
+        registerIntegerView(checked, value, index => index, () =>
+            this.at(path)?.elements?.some(cell => cell.type === 'integer') === true);
         prepared.value = checked;
         return prepared;
     }
