@@ -1,0 +1,23 @@
+use testing
+
+test "eight queens by permutations"
+  use "queens_permutations"
+  run
+
+  Sols len equal 92
+  (Sols shape equal (array 92 8)) all
+  (Boards shape equal (array 92 8 8)) all
+end
+
+test "matches prefix search"
+  use "queens"
+  run
+  PrefixStates = States copy
+  PrefixBoards = Boards copy
+
+  use "queens_permutations"
+  run
+
+  (Sols equal PrefixStates) all
+  (Boards equal PrefixBoards) all
+end

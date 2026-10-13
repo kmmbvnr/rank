@@ -7,6 +7,20 @@ import { ownedArray, readArrayItem, typedArray } from '../src/array-storage.js';
 for (const compiled of [true, false]) describe(`array binding contracts (compiled ${compiled})`, () => {
     const runtime = () => new Interpreter(() => {}, { integerLoopCompilation: compiled, scalarCompilation: compiled,
         tensorCellCompilation: compiled });
+    it.each([1n, 1.5, true, 'text'])('checks every lazy scalar read after establishing the type: %s', initial => {
+        const r = runtime();
+        let current = initial;
+        let reads = 0;
+        r.variables.set('Source', { kind: 'array', shape: [2], items: [],
+            itemAt: () => { reads++; return current; } });
+        r.execute('A = Source');
+        const before = reads;
+        expect(r.execute('A 0')).toBe(initial);
+        expect(r.execute('A 1')).toBe(initial);
+        expect(reads).toBeGreaterThan(before);
+        current = typeof initial === 'string' ? 2n : 'changed';
+        expect(() => r.execute('A 0')).toThrow(/array elements/);
+    });
     it.each(['A = array "x" "y"', 'A 0 = "x"', 'A # = "x"',
         'A (array 0 1) = array 3 "x"', 'A (array true true) = array 3 "x"', 'A 0 /= 2'])
     ('rejects %s without modifying the old value or its alias', write => {

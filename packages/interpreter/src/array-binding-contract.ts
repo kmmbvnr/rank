@@ -230,6 +230,20 @@ export class ArrayBindingContract {
         const prepared: Prepared = { value, contract: base };
         const size = value.shape.reduce((a, b) => a * b, 1);
         const validate = (item: RankValue): RankValue => {
+            // A scalar of an established root element type cannot refine the
+            // contract. Still inspect every read: host readers can change type.
+            if (path === undefined) {
+                const kind = typeof item;
+                if (kind === 'bigint' || kind === 'number' || kind === 'boolean' || kind === 'string') {
+                    const type = kind === 'bigint' ? 'integer' : kind === 'number'
+                        ? (!Number.isFinite(item as number) && !Number.isNaN(item as number) ? 'numeric-limit' : 'real')
+                        : kind === 'string' ? 'text' : 'boolean';
+                    if (this.contract?.elements?.some(cell => cell.type === type)) {
+                        checkpoint();
+                        return item;
+                    }
+                }
+            }
             const child = this.prepare(item, { parent: path, key: this.key(item) }, new Set([value]));
             const expected = this.at(path);
             // Every observed cell must fit the one element domain.

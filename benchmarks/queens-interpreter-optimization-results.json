@@ -1,0 +1,73 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 5,
+  "method": "Fresh process per sample, one warmup. Solve only: excludes parsing, setup, and printing. Exact ordered solutions checked against independent backtracking; prefix searches also verified for N=0..8.",
+  "interpreter": "workspace build",
+  "prefixStatesByDepth": [
+    1,
+    8,
+    42,
+    140,
+    344,
+    568,
+    550,
+    312
+  ],
+  "definitions": {
+    "permutations": "Columns = 0 till 8 array\nfun safe Q rank 1\n  Up = Q + Columns unique len\n  if Up not equal 8\n    return false\n  end\n  Down = Q - Columns unique len\n  return Down equal 8\nend",
+    "prefixes": "fun queens N\n  Cols = 0 till N array\n  States = array shape 1 N fill 0\n\n  for Row in 0 till N\n    Prefix = States # (0 till Row)\n    Free = Prefix available rank 1\n    Size = (States len) * N\n    Flat = Free reshape Size\n    Index = Flat indices\n\n    if Index len equal 0\n      return array shape 0 N fill 0\n    end\n\n    States = States (Index // N) copy\n    States # Row = Index mod N\n  end\n  return States\n\n  fun available Q\n    Depth = Q len\n    Rows = 0 till Depth array\n    Dy = Depth - Rows\n    Dx = Cols Q outer - abs\n    Hit = Dx equal 0 or Dx equal Dy\n    return not (Hit any axis 1)\n  end\nend",
+    "batched": "fun queens N\n  Cols = 0 till N array\n  States = array shape 1 N fill 0\n  for Row in 0 till N\n    Prefix = States # (0 till Row)\n    Dy = (Row - (0 till Row array)) reshape Row 1\n    Dx = Prefix Cols outer - abs\n    Hit = Dx equal 0 or Dx equal Dy\n    Free = not (Hit any axis 1)\n    Index = (Free reshape ((States len) * N)) indices\n    if Index len equal 0\n      return array shape 0 N fill 0\n    end\n    States = States (Index // N) copy\n    States # Row = Index mod N\n  end\n  return States\nend",
+    "membership": "fun queens N\n  Cols = 0 till N array\n  States = array shape 1 N fill 0\n\n  for Row in 0 till N\n    Prefix = States # (0 till Row)\n    Free = Prefix available rank 1\n    Size = (States len) * N\n    Flat = Free reshape Size\n    Index = Flat indices\n\n    if Index len equal 0\n      return array shape 0 N fill 0\n    end\n\n    States = States (Index // N) copy\n    States # Row = Index mod N\n  end\n  return States\n\n  fun available Q\n    Depth = Q len\n    Rows = 0 till Depth array\n    Dy = Depth - Rows\n    Blocked = concat Q (Q + Dy) (Q - Dy)\n    return Cols not in Blocked\n  end\nend",
+    "hoisted": "fun queens N\n  Cols = 0 till N array\n  States = array shape 1 N fill 0\n\n  for Row in 0 till N\n    Dy = Row - (0 till Row array)\n    Prefix = States # (0 till Row)\n    Free = Prefix available rank 1\n    Size = (States len) * N\n    Flat = Free reshape Size\n    Index = Flat indices\n\n    if Index len equal 0\n      return array shape 0 N fill 0\n    end\n\n    States = States (Index // N) copy\n    States # Row = Index mod N\n  end\n  return States\n\n  fun available Q\n    Blocked = concat Q (Q + Dy) (Q - Dy)\n    return Cols not in Blocked\n  end\nend"
+  },
+  "solves": {
+    "permutations": "Solutions = Columns permutations filter safe copy",
+    "prefixes": "Solutions = 8 queens",
+    "batched": "Solutions = 8 queens",
+    "membership": "Solutions = 8 queens",
+    "hoisted": "Solutions = 8 queens"
+  },
+  "variants": {
+    "prefixes": {
+      "runs": [
+        754.2246660000001,
+        756.312958,
+        734.4385000000002,
+        726.453125,
+        719.8907080000001
+      ],
+      "medianMs": 734.4385000000002
+    },
+    "batched": {
+      "runs": [
+        439.67712500000005,
+        425.61087499999996,
+        429.753916,
+        440.15983299999994,
+        420.008958
+      ],
+      "medianMs": 429.753916
+    },
+    "membership": {
+      "runs": [
+        269.75133300000005,
+        284.13537500000007,
+        269.42375000000004,
+        264.38041699999997,
+        262.20520799999997
+      ],
+      "medianMs": 269.42375000000004
+    },
+    "hoisted": {
+      "runs": [
+        207.74137499999995,
+        208.98558300000002,
+        207.43291699999997,
+        208.185792,
+        199.524
+      ],
+      "medianMs": 207.74137499999995
+    }
+  }
+}

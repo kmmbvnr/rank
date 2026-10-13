@@ -1,0 +1,33 @@
+use sequences
+use io
+
+Solutions = 8 queens
+Solutions len print
+Solutions print
+
+fun queens N
+  Cols = 0 till N array
+  States = array shape 1 N fill 0
+
+  for Row in 0 till N
+    Dy = Row - (0 till Row array)
+    Prefix = States # (0 till Row)
+    Free = Prefix available rank 1
+    Size = (States len) * N
+    Flat = Free reshape Size
+    Index = Flat indices
+
+    if Index len equal 0
+      return array shape 0 N fill 0
+    end
+
+    States = States (Index // N) copy
+    States # Row = Index mod N
+  end
+  return States
+
+  fun available Q
+    Blocked = concat Q (Q + Dy) (Q - Dy)
+    return Cols not in Blocked
+  end
+end

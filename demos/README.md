@@ -6,6 +6,7 @@ Rank examples from programming contests, numerical exercises and data-analysis p
 
 - [Advent of Code](aoc/) — Programming puzzles from [Advent of Code](https://adventofcode.com/), grouped by year.
 - [AtCoder](atcoder/) — Programming-contest exercises from [AtCoder](https://atcoder.jp/).
+- [Classic Problems](classic/) — Standalone solutions to classic algorithmic problems.
 - [MATLAB Cody](cody/) — Array, numerical and simulation exercises based on [MATLAB Cody](https://www.mathworks.com/matlabcentral/cody/problems.html), with Rank-specific contracts and tests.
 - [CSES Problem Set](cses/) — Algorithm exercises from the [CSES Problem Set](https://cses.fi/problemset/), grouped by topic.
 - [Deep-ML](deepml/) — Linear algebra, statistics and machine-learning exercises from [Deep-ML](https://www.deep-ml.com/).

@@ -12,6 +12,43 @@ end
 `;
 
 describe('sequences of array cells', () => {
+    it('preserves yielded axes in outer comparison and boolean choose', () => {
+        const runtime = new Interpreter();
+        runtime.execute(`use algo
+use sequences
+Columns = 0 till 3 array
+Sols = Columns permutations
+Mask = Sols Columns outer equal
+Boards = Mask choose "Q" "."
+Expected = (Sols copy) Columns outer equal choose "Q" "."`);
+        expect(runtime.variables.get('Mask')).toMatchObject({ shape: [6, 3, 3] });
+        expect(runtime.variables.get('Boards')).toMatchObject({ shape: [6, 3, 3] });
+        expect(runtime.execute('Boards equal Expected all')).toBe(true);
+        expect(run(`${rows}\nrows (array 1 2) outer + shape`)).toBe('2 3 2');
+        expect(run(`${rows}\n(array 1 2) rows outer + shape`)).toBe('2 2 3');
+    });
+
+    it('stacks unknown-size mutable generators in outer before advancing', () => {
+        expect(run(`use sequences
+fun cells
+  Row = array 1 2
+  yield Row
+  Row 0 = 3
+  yield Row
+  Row 0 = 9
+end
+cells (array 0) outer +`)).toBe('1 2 3 2');
+    });
+
+    it('rejects inconsistent outer operand cell shapes before producing a malformed tensor', () => {
+        expect(() => run(`use sequences
+fun cells
+  yield array 1 2
+  yield array 3
+end
+cells (array 0) outer +`)).toThrow('materialized sequence items must have the same shape');
+    });
+
     it.each(['copy', 'array'])('stacks rows through %s for tensor addressing and transpose', operation => {
         const runtime = new Interpreter();
         runtime.execute(`${rows}\nMatrix = rows ${operation}`);

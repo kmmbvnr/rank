@@ -1,0 +1,46 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 5,
+  "method": "Fresh process per sample, one warmup. Solve only: excludes parsing, setup, and printing. Exact ordered solutions checked against independent backtracking; prefix search also verified for N=1..8.",
+  "prefixStatesByDepth": [
+    1,
+    8,
+    42,
+    140,
+    344,
+    568,
+    550,
+    312
+  ],
+  "definitions": {
+    "permutations": "Columns = 0 till 8 array\nfun safe Q rank 1\n  Up = Q + Columns unique len\n  if Up not equal 8\n    return false\n  end\n  Down = Q - Columns unique len\n  return Down equal 8\nend",
+    "prefixes": "fun queens N\n  Cols = 0 till N array\n  States = array shape 1 N fill 0\n\n  for Row in 0 till N\n    Prefix = States # (0 till Row)\n    Free = Prefix available rank 1\n    Size = (States len) * N\n    Flat = Free reshape Size\n    Index = Flat indices\n\n    if Index len equal 0\n      return array shape 0 N fill 0\n    end\n\n    States = States (Index // N) copy\n    States # Row = Index mod N\n  end\n  return States\n\n  fun available Q\n    Depth = Q len\n    Rows = 0 till Depth array\n    Dy = Depth - Rows\n    Dx = Cols Q outer - abs\n    Hit = Dx equal 0 or Dx equal Dy\n    return not (Hit any axis 1)\n  end\nend"
+  },
+  "solves": {
+    "permutations": "Solutions = Columns permutations filter safe copy",
+    "prefixes": "Solutions = 8 queens"
+  },
+  "variants": {
+    "permutations": {
+      "runs": [
+        1164.093,
+        1141.563709,
+        1143.0211659999998,
+        1142.2175000000002,
+        1157.2075
+      ],
+      "medianMs": 1143.0211659999998
+    },
+    "prefixes": {
+      "runs": [
+        940.4996249999999,
+        923.5229999999999,
+        928.2931660000002,
+        930.3109589999999,
+        933.3334169999998
+      ],
+      "medianMs": 930.3109589999999
+    }
+  }
+}

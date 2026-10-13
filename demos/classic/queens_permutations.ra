@@ -1,0 +1,30 @@
+rem Eight Queens
+rem Filter all column permutations by diagonal conflicts.
+
+use algo
+use sequences
+use text
+use io
+
+Row = array 0 to 7
+Sols = Row permutations filter safe array
+Sols len print
+Mask = Sols Row outer equal
+Boards = Mask choose "Q" "."
+for Board i in Boards
+  i + 1 print
+  for Line in Board
+    Line " " join print
+  end
+  "" print
+end
+
+fun safe Q rank 1
+  Up = Q + Row unique len
+  if Up not equal 8
+    return false
+  end
+
+  Down = Q - Row unique len
+  return Down equal 8
+end

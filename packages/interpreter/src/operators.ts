@@ -17,7 +17,7 @@ import { compareOrderedValues, orderedKind } from './ordered.js';
 import { dyadicCells, tensorCells, tensorFrameAxes, type OuterCells } from './rank-application.js';
 import { reductionValues } from './reduction.js';
 import {
-    isPositionalMask, mapSequence, positionalMask, sequence, sequenceMask, sequenceValues, zipSequences,
+    isPositionalMask, mapSequence, materializeSequence, positionalMask, sequence, sequenceMask, sequenceValues, zipSequences,
 } from './sequence.js';
 import { setValueKey } from './set.js';
 import { safeDimension } from './tensor-index.js';
@@ -497,12 +497,9 @@ function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
             return read[index];
         });
     }
-    let items: RankValue[] | undefined;
-    const values = () => items ??= [...sequenceValues(value, 'outer')];
-    const size = value.plan.size.kind === 'exact'
-        ? safeDimension(value.plan.size.value, 'outer operand size')
-        : values().length;
-    return lazyArray([size], index => values()[index]);
+    // Finite operands read as a whole must stack yielded array cells just as
+    // explicit array/copy does, preserving their trailing axes and snapshots.
+    return materializeSequence(value);
 }
 
 function outerCells(

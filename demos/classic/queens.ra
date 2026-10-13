@@ -1,0 +1,43 @@
+rem N-Queens
+rem Place N queens so that none attack each other.
+
+use sequences
+use text
+use io
+use cli
+
+option Size integer = 8
+
+Cols = 0 till Size array
+States = array shape 1 Size fill 0
+
+for Row in 0 till Size
+  Dy = Row - (0 till Row array)
+  Prefix = States # (0 till Row)
+  Free = Prefix available rank 1
+  Index = (Free reshape ((States len) * Size)) indices
+
+  if Index len equal 0
+    States = array shape 0 Size fill 0
+    break
+  end
+
+  States = States (Index // Size) copy
+  States # Row = Index mod Size
+end
+
+States len print
+Mask = States Cols outer equal
+Boards = Mask choose "Q" "."
+for Board i in Boards
+  i + 1 print
+  for Row in Board
+    Row " " join print
+  end
+  "" print
+end
+
+fun available Q
+  Blocked = concat Q (Q + Dy) (Q - Dy)
+  return Cols not in Blocked
+end
