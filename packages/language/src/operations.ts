@@ -1,4 +1,5 @@
-import type { SignatureType, TypeSignature } from './type-signature.js';
+import { capabilityKinds, collectionProtocol, uniqueResultKind, type CollectionCapability } from './collection-capabilities.js';
+import type { SignatureAtom, SignatureContainer, SignatureType, TypeSignature } from './type-signature.js';
 import type { ShapePattern, ShapeSignature } from './shape-signature.js';
 
 /**
@@ -79,6 +80,12 @@ export interface Operation {
     readonly result: ResultKind;
     /** Audited language overloads for readers and editors, independent of compiler subsets. */
     readonly signatures?: readonly TypeSignature[];
+    /** Scalar contracts whose argument-wise array/SQL expansion is recorded in signatures. */
+    readonly argumentMapping?: {
+        readonly bases: readonly TypeSignature[];
+        /** SQL dispatch either recurses through array cells or rejects array/column mixtures. */
+        readonly columns: 'recursive' | 'separate';
+    };
     /** Syntax marker dispatched by application forms; its native placeholder cannot be called. */
     readonly formOnly?: true;
     /** Direct-call eligibility for existing compiler backends. Never use this
@@ -180,43 +187,51 @@ export const modules: readonly Module[] = [
     { name: 'xml', summary: 'XML decoding into a tree or a flat table of nodes.' },
 ];
 
-/** Scalar/collection extrema share the runtime's ordered scalar domains. */
-const extremaSignatures: readonly TypeSignature[] = (['number', 'text', 'boolean', 'symbol', 'date', 'datetime', 'record'] as const)
+const containerType = (kinds: readonly SignatureContainer[], element: SignatureType, container = 0): SignatureType =>
+    ({ container, kinds, element });
+
+/** Element-collection alternatives are derived from declarations; text has its own scalar row. */
+function capabilityInput(capability: CollectionCapability, element: SignatureType,
+    accept: (protocol: string) => boolean = () => true): SignatureType {
+    const members = capabilityKinds(capability).filter(kind => kind !== 'text' && accept(collectionProtocol(kind, capability)!))
+        .map(kind => ({ collection: kind as SignatureAtom, element }));
+    return members.length === 1 ? members[0] : { union: members };
+}
+
+/** Numeric extrema allow mixed integer/real inputs; other ordered domains stay correlated. */
+const extremeElement: SignatureType = { variable: 0, domain: ['text', 'boolean', 'symbol', 'date', 'datetime', 'record'] };
+const extremaSignatures: readonly TypeSignature[] = (['number', extremeElement] as const)
     .flatMap((type): TypeSignature[] => [
-        { inputs: [{ union: [type, ...(['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'multiset'] as const)
-            .map(collection => ({ collection, element: { union: [type, 'missing'] } } as SignatureType))] }], result: type },
+        { inputs: [{ union: [type, { collection: 'extrema-source', element: { union: [type, 'missing'] } }] }], result: type },
         { inputs: [type, type], result: type, ranks: [0, 0] },
     ]).concat([
         { inputs: ['missing', 'unknown'], result: 'missing', ranks: [0, 0] },
         { inputs: ['unknown', 'missing'], result: 'missing', ranks: [0, 0] },
     ]);
 /** `Values max .index` and `.indexed`: the position of the extreme, alone or beside it. */
-const genericCollection: SignatureType = { collection: 'array', element: { variable: 0 } };
 const positionSignatures: readonly TypeSignature[] = [
-    { inputs: [{ union: [genericCollection, { collection: 'sequence', element: { variable: 0 } }] }, { label: 'index' }], result: 'integer' },
-    { inputs: [{ union: [genericCollection, { collection: 'sequence', element: { variable: 0 } }] }, { label: 'indexed' }], result: 'tuple' },
+    { inputs: [capabilityInput('positioned', { variable: 0 }), { label: 'index' }], result: 'integer' },
+    { inputs: [capabilityInput('positioned', { variable: 0 }), { label: 'indexed' }], result: 'tuple' },
 ];
 const elementVariable: SignatureType = { variable: 0 };
 const genericArray: SignatureType = { collection: 'array', element: elementVariable };
 const randomInput: SignatureType = { union: [genericArray, { collection: 'sequence', element: elementVariable }] };
 const integerArray: SignatureType = { collection: 'array', element: 'integer' };
 const booleanArray: SignatureType = { collection: 'array', element: 'boolean' };
-const booleanCollection: SignatureType = { union: ['boolean', ...(['array', 'sequence', 'queue', 'stack', 'deque', 'heap'] as const)
-    .map(collection => ({ collection, element: 'boolean' as const }))] };
+const booleanCollection: SignatureType = { union: ['boolean',
+    { collection: 'boolean-source', element: 'boolean' }] };
 const collectionEnds: readonly TypeSignature[] = [
     { inputs: ['text'], result: 'text' },
-    { inputs: [genericArray], result: { union: [elementVariable, genericArray] } },
-    ...(['sequence', 'queue', 'stack', 'deque'] as const).map(collection => ({
-        inputs: [{ collection, element: elementVariable }], result: elementVariable,
-    })),
+    { inputs: [capabilityInput('ordered', elementVariable, protocol => protocol === 'array')], result: { union: [elementVariable, genericArray] } },
+    { inputs: [capabilityInput('ordered', elementVariable, protocol => protocol !== 'array')], result: elementVariable },
 ];
 const sortDirection: SignatureType = { union: [{ label: 'ascending' }, { label: 'descending' }] };
 const orderedValue: SignatureType = { union: ['number', 'boolean', 'text', 'symbol', 'date', 'datetime', 'record'] };
-const combinationInput: SignatureType = { union: (['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'counter'] as const)
-    .map(collection => ({ collection, element: elementVariable })) };
+const combinationInput = containerType(['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'counter'], elementVariable);
 const combinationResult: SignatureType = { collection: 'sequence', element: genericArray };
-const queueReadSignatures: readonly TypeSignature[] = (['queue', 'stack', 'deque', 'heap'] as const)
-    .map(collection => ({ inputs: [{ collection, element: elementVariable }], result: elementVariable }));
+const queueReadSignatures: readonly TypeSignature[] = [
+    { inputs: [containerType(['queue', 'stack', 'deque', 'heap'], elementVariable)], result: elementVariable },
+];
 const dequeReadSignatures: readonly TypeSignature[] = [
     { inputs: [{ collection: 'deque', element: elementVariable }], result: elementVariable },
 ];
@@ -237,17 +252,16 @@ const printableScalar: SignatureType = { union: ['number', 'boolean', 'text', 's
 const numericCells: SignatureType = { union: ['number', 'missing'] };
 const numericArray: SignatureType = { collection: 'array', element: 'number' };
 const realArray: SignatureType = { collection: 'array', element: 'real' };
-const statisticalInput: SignatureType = { union: ['number',
-    { collection: 'array', element: numericCells }, { collection: 'sequence', element: numericCells }] };
+const statisticalInput: SignatureType = { union: ['number', { collection: 'statistical-source', element: numericCells }] };
 const statisticalSignatures: readonly TypeSignature[] = [{ inputs: [statisticalInput], result: 'real' }];
 const quantileSignatures: readonly TypeSignature[] = [...statisticalSignatures,
     { inputs: [statisticalInput, 'number'], result: 'real' },
     { inputs: [statisticalInput, numericArray], result: realArray }];
-const metricInput: SignatureType = { union: ['number', numericArray, { collection: 'sequence', element: 'number' }] };
-const metricSignatures: readonly TypeSignature[] = [{ inputs: [metricInput, metricInput], result: 'real' }];
+const metricInput = (): SignatureType => ({ union: ['number', capabilityInput('series', 'number')] });
+const metricSignatures: readonly TypeSignature[] = [{ inputs: [metricInput(), metricInput()], result: 'real' }];
 
 const numericReductionInputs: SignatureType = { union: ['number', 'missing', 'column',
-    { container: 0, kinds: ['array', 'sequence', 'queue', 'stack', 'deque', 'set'], element: numericCells }] };
+    { collection: 'iterable', element: numericCells }] };
 
 /** Whole-value maps preserve the collection kind, independently of intrinsic rank lifting. */
 function mappingSignatures(input: SignatureType, result: SignatureType): readonly TypeSignature[] {
@@ -267,6 +281,13 @@ const integerDyadicSignatures: readonly TypeSignature[] = [
 /** Text helpers either map arrays or build SQL expressions. Only startswith
  * recurses through array cells before dispatching SQL; the others reject mixing
  * an array argument with a column expression. */
+function mappedTextSignatures(bases: readonly TypeSignature[], recursiveSql = false): Pick<Operation, 'signatures' | 'argumentMapping'> {
+    return {
+        signatures: bases.flatMap(base => textArgumentSignatures(base.inputs, base.result, recursiveSql)),
+        argumentMapping: { bases, columns: recursiveSql ? 'recursive' : 'separate' },
+    };
+}
+
 function textArgumentSignatures(inputs: readonly SignatureType[], result: SignatureType, recursiveSql = false): readonly TypeSignature[] {
     if (recursiveSql) {
         let rows: { inputs: SignatureType[]; array: boolean; column: boolean }[] = [{ inputs: [], array: false, column: false }];
@@ -361,8 +382,8 @@ export const operations: readonly Operation[] = [
         summary: 'Lazy sequence of the combinations of that size with repetition.' },
     { name: 'multiset', module: 'algo', arities: [1], form: 'Values multiset', result: 'collection',
         signatures: [{ inputs: ['text'], result: { collection: 'multiset', element: 'text' } },
-            { inputs: [{ union: [...(['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'counter', 'multiset'] as const)
-                .map(collection => ({ collection, element: elementVariable }))] }], result: { collection: 'multiset', element: elementVariable } }],
+            { inputs: [containerType(['array', 'sequence', 'queue', 'stack', 'deque', 'set', 'counter', 'multiset'], elementVariable)],
+                result: { collection: 'multiset', element: elementVariable } }],
         summary: 'Ordered multiset holding every value, duplicates kept.' },
     { name: 'peek', module: 'algo', arities: [1], form: 'Q peek', result: 'element',
         signatures: queueReadSignatures,
@@ -390,8 +411,8 @@ export const operations: readonly Operation[] = [
         signatures: dequeReadSignatures,
         effects: ['mutates'], summary: 'Removes and returns the first value of a deque.' },
     { name: 'push', module: 'algo', arities: [2], form: 'Q push Value', result: 'collection',
-        signatures: [...(['queue', 'stack', 'deque'] as const).map(collection => ({
-            inputs: [{ collection, element: elementVariable }, elementVariable], result: { collection, element: elementVariable } })),
+        signatures: [{ inputs: [containerType(['queue', 'stack', 'deque'], elementVariable), elementVariable],
+            result: containerType(['queue', 'stack', 'deque'], elementVariable) },
             { inputs: [{ collection: 'heap', element: orderedValue }, orderedValue], result: { collection: 'heap', element: orderedValue } }],
         effects: ['mutates'],
         summary: 'Appends a value to a queue, stack, deque or heap, which orders it by priority.' },
@@ -422,8 +443,7 @@ export const operations: readonly Operation[] = [
         dyadicRanks: ['all', 0],
         summary: 'Smallest stored value greater than the query.' },
     { name: 'wavelet', module: 'algo', arities: [1], form: 'Values wavelet', result: 'structure',
-        signatures: [{ inputs: [{ union: ['text', ...(['array', 'sequence', 'queue', 'stack', 'deque'] as const).map(collection => ({
-            collection, element: orderedValue }))] }], result: 'wavelet' }],
+        signatures: [{ inputs: [{ union: ['text', containerType(['array', 'sequence', 'queue', 'stack', 'deque'], orderedValue)] }], result: 'wavelet' }],
         summary: 'Immutable wavelet matrix for range counts and sums.' },
     { name: 'within', module: 'algo', arities: [5], form: 'Data Left Right Low High within',
         signatures: [{ inputs: ['wavelet', 'integer', 'integer', orderedValue, orderedValue], result: 'integer' }],
@@ -829,7 +849,7 @@ export const operations: readonly Operation[] = [
         summary: 'Exact integer floor of the square root, calculated without reals.' },
     { name: 'lcm', module: 'numbers', arities: [1, 2], form: 'A B lcm', result: 'integer',
         signatures: [...integerDyadicSignatures, { inputs: [{ union: ['integer',
-            { collection: 'array', element: 'integer' }, { collection: 'sequence', element: 'integer' }] }], result: 'integer' }],
+            { collection: 'statistical-source', element: 'integer' }] }], result: 'integer' }],
         shape: [{ args: [null], result: [] }, { args: [null, null], result: [] }],
         dyadicRanks: [0, 0],
         summary: 'Least common multiple, also a reduction over one finite collection.' },
@@ -921,8 +941,8 @@ export const operations: readonly Operation[] = [
         scalarCellArrayNoCallback: 'boolean',
         summary: 'True when one boolean cell is true; empty collections are false.' },
     { name: 'argsort', module: 'sequences', arities: [1, 2], form: 'Values argsort .descending', result: 'array', sortDirection: true,
-        signatures: [{ inputs: [{ union: ['text', { collection: 'array', element: orderedValue }] }], result: integerArray, ranks: [1] },
-            { inputs: [{ union: ['text', { collection: 'array', element: orderedValue }] }, sortDirection], result: integerArray }],
+        signatures: [{ inputs: [{ union: ['text', capabilityInput('sortable', orderedValue)] }], result: integerArray, ranks: [1] },
+            { inputs: [{ union: ['text', capabilityInput('sortable', orderedValue)] }, sortDirection], result: integerArray }],
         shape: [{ args: [['d']], result: ['d'] }, { args: [['d'], []], result: ['d'] }],
         monadicRank: 1, summary: 'Stable zero-based positions that put the values in order.' },
     { name: 'choose', module: 'core', arities: [2, 3],
@@ -963,8 +983,7 @@ export const operations: readonly Operation[] = [
     { name: 'reverse', module: 'sequences', arities: [1], form: 'Values reverse', result: 'value',
         signatures: [
             { inputs: ['text'], result: 'text' },
-            { inputs: [{ collection: 'array', element: { variable: 0 } }], result: { collection: 'array', element: { variable: 0 } } },
-            { inputs: [{ container: 0, kinds: ['queue', 'stack', 'deque', 'sequence'], element: { variable: 0 } }], result: { collection: 'array', element: { variable: 0 } } },
+            { inputs: [capabilityInput('ordered', elementVariable)], result: genericArray },
         ],
         compiledCall: { inputs: ['text'], result: 'text', callbacks: 'none', cost: 'input-dependent' },
         summary: 'Reverses text by code point, an array along its leading axis, or a queue or finite sequence into an array.' },
@@ -975,8 +994,7 @@ export const operations: readonly Operation[] = [
         signatures: collectionEnds,
         summary: 'Last item of text, an array, a queue or a finite sequence; missing when empty.' },
     { name: 'len', module: 'core', arities: [1], form: 'Value len', result: 'integer',
-        signatures: [{ inputs: [{ union: ['text', 'bytes', 'array', 'tuple', 'table', 'queue', 'stack', 'deque', 'heap',
-            'set', 'counter', 'multiset', 'object', 'graph', 'dsu', 'segment', 'wavelet', 'sequence'] }], result: 'integer' }],
+        signatures: [{ inputs: ['sized'], result: 'integer' }],
         compiledCall: { inputs: ['text-or-array'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         arrayHeaderNoCallback: true,
         summary: 'Code points of text, leading axis of an array, or size of a collection.' },
@@ -991,26 +1009,20 @@ export const operations: readonly Operation[] = [
         result: 'array',
         summary: 'Dense array in row-major order; unpack a shape vector or matrix of shape rows when needed.' },
     { name: 'shape', module: 'sequences', arities: [1], form: 'Value shape', result: 'array',
-        signatures: [{ inputs: [{ union: ['text', 'array', 'bytes', 'queue', 'stack', 'deque', 'multiset', 'segment', 'wavelet', 'sequence'] }], result: integerArray }],
+        signatures: [{ inputs: ['shaped'], result: integerArray }],
         arrayHeaderNoCallback: true,
         summary: 'Axis lengths as a rank-1 array.' },
     { name: 'merge', module: 'sequences', arities: [1, 2], form: 'Streams merge .descending', result: 'sequence', sortDirection: true,
         signatures: [{ inputs: [genericArray], result: { collection: 'sequence', element: elementVariable } },
-            { inputs: [genericArray, genericArray], result: { collection: 'sequence', element: elementVariable } },
-            { inputs: [{ collection: 'sequence', element: elementVariable },
-                { collection: 'sequence', element: elementVariable }],
-            result: { collection: 'sequence', element: elementVariable } },
-            { inputs: [genericArray, { collection: 'sequence', element: elementVariable }],
-                result: { collection: 'sequence', element: elementVariable } },
-            { inputs: [{ collection: 'sequence', element: elementVariable }, genericArray],
+            { inputs: [containerType(['array', 'sequence'], elementVariable, 0), containerType(['array', 'sequence'], elementVariable, 1)],
                 result: { collection: 'sequence', element: elementVariable } }],
         lazy: true,
         summary: 'Lazily merges sorted streams or matrix rows, ascending by default.' },
     { name: 'sort', module: 'sequences', arities: [1, 2], form: 'Values sort .descending', result: 'array', sortDirection: true,
         signatures: [{ inputs: ['text'], result: 'text', ranks: [1] },
-            { inputs: [{ collection: 'array', element: orderedValue }], result: { collection: 'array', element: orderedValue }, ranks: [1] },
+            { inputs: [capabilityInput('sortable', orderedValue)], result: { collection: 'array', element: orderedValue }, ranks: [1] },
             { inputs: ['text', sortDirection], result: 'text' },
-            { inputs: [{ collection: 'array', element: orderedValue }, sortDirection], result: { collection: 'array', element: orderedValue } }],
+            { inputs: [capabilityInput('sortable', orderedValue), sortDirection], result: { collection: 'array', element: orderedValue } }],
         shape: [{ args: [['d']], result: ['d'] }, { args: [['d'], []], result: ['d'] }],
         monadicRank: 1, summary: 'Stable sort into a new rank-1 array, ascending by default.' },
     { name: 'transpose', module: 'sequences', arities: [1], form: 'Matrix transpose',
@@ -1020,17 +1032,17 @@ export const operations: readonly Operation[] = [
         result: 'array', numericArrayNoCallback: true,
         summary: 'Reverses the axes of an array.' },
     { name: 'unique', module: 'sequences', arities: [1], form: 'Values unique', result: 'array',
-        signatures: [{ inputs: ['text'], result: 'text' }, { inputs: [genericArray], result: genericArray },
-            ...(['queue', 'stack', 'deque'] as const).map(collection => ({ inputs: [{ collection, element: elementVariable }],
-                result: { collection: 'queue' as const, element: elementVariable } })),
-            ...(['sequence', 'set'] as const).map(collection => ({ inputs: [{ collection, element: elementVariable }],
-                result: { collection, element: elementVariable } })), { inputs: ['view'], result: 'view' }],
+        signatures: [{ inputs: ['text'], result: 'text' },
+            ...capabilityKinds('unique').filter(kind => kind !== 'text').map((kind): TypeSignature => ({
+                inputs: [{ collection: kind as SignatureAtom, element: elementVariable }],
+                result: { collection: uniqueResultKind(kind) as SignatureAtom, element: elementVariable },
+            })),
+            { inputs: ['view'], result: 'view' }],
         shape: [{ args: [['d']], result: [{ exists: 'k' }] }],
         monadicRank: 1, summary: 'Distinct values in first-appearance order.' },
     { name: 'window', module: 'sequences', arities: [2], form: 'Values window Widths... | Values window unpack Shape',
         signatures: [{ inputs: ['text', { union: ['integer', integerArray] }], result: { collection: 'sequence', element: 'text' } },
-            { inputs: [{ union: (['array', 'queue', 'stack', 'deque'] as const).map(collection => ({
-                collection, element: elementVariable })) }, { union: ['integer', integerArray] }], result: genericArray },
+            { inputs: [containerType(['array', 'queue', 'stack', 'deque'], elementVariable), { union: ['integer', integerArray] }], result: genericArray },
             { inputs: [{ collection: 'sequence', element: elementVariable }, { union: ['integer', integerArray] }],
                 result: { union: [genericArray, { collection: 'sequence', element: genericArray }] } }],
         result: 'array', lazy: true,
@@ -1062,8 +1074,7 @@ export const operations: readonly Operation[] = [
         signatures: statisticalSignatures,
         summary: 'Middle value of a sorted copy, averaging the two middle values when even.' },
     { name: 'mode', module: 'stats', arities: [1], form: 'Values mode', result: 'value', axisReduction: true,
-        signatures: [{ inputs: [{ union: [{ collection: 'array', element: { variable: 0 } },
-            { collection: 'sequence', element: { variable: 0 } }] }], result: { variable: 0 } },
+        signatures: [{ inputs: [capabilityInput('series', { variable: 0 })], result: { variable: 0 } },
             { inputs: ['unknown'], result: 'unknown' }],
         summary: 'Most frequent value in a collection or array.' },
     { name: 'mse', module: 'stats', arities: [2], form: 'Pred Target mse', result: 'real',
@@ -1156,8 +1167,7 @@ export const operations: readonly Operation[] = [
         shape: [{ args: [null], result: [] }],
         monadicRank: 1, summary: 'Converts an integer or decimal text to a real, or preserves a real.' },
     { name: 'join', module: 'text', arities: [2], form: 'Values Separator join', result: 'text',
-        signatures: [{ inputs: [{ union: (['array', 'sequence', 'queue', 'stack', 'deque'] as const).map(collection => ({
-            collection, element: printableScalar })) }, 'text'], result: 'text', ranks: [1, 0] }],
+        signatures: [{ inputs: [containerType(['array', 'sequence', 'queue', 'stack', 'deque'], printableScalar), 'text'], result: 'text', ranks: [1, 0] }],
         compiledCall: { inputs: ['text-array', 'text'], result: 'text', callbacks: 'read-cells', cost: 'input-dependent' },
         shape: [{ args: [[null], []], result: null }],
         dyadicRanks: [1, 0],
@@ -1172,8 +1182,8 @@ export const operations: readonly Operation[] = [
         denseElements: ['text'],
         summary: 'Splits at every exact occurrence of a separator, keeping empty parts.' },
     { name: 'startswith', module: 'text', arities: [2], form: 'Value Prefix startswith',
-        signatures: [...textArgumentSignatures(['text', 'text'], 'boolean', true),
-            ...textArgumentSignatures(['bytes', 'bytes'], 'boolean', true)],
+        ...mappedTextSignatures([{ inputs: ['text', 'text'], result: 'boolean' },
+            { inputs: ['bytes', 'bytes'], result: 'boolean' }], true),
         compiledCall: { inputs: ['text-or-bytes', 'same'], result: 'boolean', callbacks: 'none', cost: 'input-dependent' },
         result: 'boolean',
         summary: 'Exact text or byte prefix test; ordinary arrays broadcast elementwise.' },
@@ -1200,10 +1210,10 @@ export const operations: readonly Operation[] = [
         operandDomains: [['text']],
         summary: 'True where a character is a Unicode letter or number; text arrays map elementwise.' },
     { name: 'lpad', module: 'text', arities: [3], form: 'Text Width Fill lpad', result: 'text',
-        signatures: textArgumentSignatures(['text', 'integer', 'text'], 'text'),
+        ...mappedTextSignatures([{ inputs: ['text', 'integer', 'text'], result: 'text' }]),
         summary: 'Pads text on the left without truncating longer values.' },
     { name: 'translate', module: 'text', arities: [3], form: 'Text Chars Replacement translate', result: 'text',
-        signatures: textArgumentSignatures(['text', 'text', 'text'], 'text'),
+        ...mappedTextSignatures([{ inputs: ['text', 'text', 'text'], result: 'text' }]),
         summary: 'Replaces listed characters, deleting those with no replacement.' },
     { name: 'text', module: 'core', arities: [1], form: 'Value text', result: 'text',
         signatures: [{ inputs: [printableScalar], result: 'text' }],

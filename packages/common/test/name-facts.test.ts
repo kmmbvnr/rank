@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import type { ValueFacts } from '@arrrank/language';
+import { operations, operationSignature, type ValueFacts } from '@arrrank/language';
 import { factsAt, formatNameFacts, layoutNameFacts, describeFacts, type NameFacts } from '../src/name-facts.js';
 
 /** The offset just before the `nth` occurrence of `text`. */
@@ -118,7 +118,7 @@ describe('factsAt: runtime facts', () => {
 
     it('does not borrow element types when the shapes disagree', () => {
         const run: [string, ValueFacts][] = [['M', { types: ['array'], rank: 2, shape: [2, 2] }]];
-        expect(formatNameFacts(factsAt('M = array shape 3 4 fill 1\n', 0, run)!)).toBe('M · array [2 2]');
+        expect(formatNameFacts(factsAt('M = array shape 3 4 fill 1\n', 0, run)!)).toBe('M · c [2 2]');
     });
 
     it('serves a read of a name bound by an earlier cell', () => {
@@ -144,8 +144,8 @@ describe('formatNameFacts', () => {
     });
 
     it('omits a shape with an axis it does not know, rather than guessing', () => {
-        expect(describeFacts(integer([3, null]))).toBe('array[#, #]<integer>');
-        expect(describeFacts({ types: ['array'], rank: 2 })).toBe('array[#, #]<unknown>');
+        expect(describeFacts(integer([3, null]))).toBe('c[#, #]<integer>');
+        expect(describeFacts({ types: ['array'], rank: 2 })).toBe('c[#, #]<unknown>');
     });
 
     it('drops the shape, then the front of the name, to fit the footer', () => {
@@ -162,7 +162,7 @@ describe('factsAt: functions', () => {
     const word = (source: string, text: string): NameFacts => factsAt(source, source.lastIndexOf(text) + 1)!;
 
     it('shows an audited builtin and a proven notebook call', () => {
-        expect(formatNameFacts(word('Xs = array 1 2 3\nXs sum\n', 'sum'), 60)).toBe('sum · array[3]<number> → number');
+        expect(formatNameFacts(word('Xs = array 1 2 3\nXs sum\n', 'sum'), 60)).toBe("sum · c[3]<number> → number");
         expect(formatNameFacts(word('fun twice X\n return X * 2\nend\n3 twice\n', 'twice'), 60)).toBe('twice · i → i');
     });
 
@@ -173,21 +173,70 @@ describe('factsAt: functions', () => {
 });
 
 describe('function signatures in the type footer', () => {
+    it('shows window results through the container family and keeps known text calls precise', () => {
+        const source = 'use sequences\nwindow';
+        const found = factsAt(source, source.lastIndexOf('window'))!;
+        expect(found.signature).toBe('text (i | c<i>) → c<text> ; c<a> (i | c<i>) → c<a> ; c<a> (i | c<i>) → c<a> | c<c<a>>');
+        expect(layoutNameFacts(found, 40).every(row => row.length <= 40)).toBe(true);
+        const call = 'use sequences\n"abcd" window 2';
+        expect(factsAt(call, call.lastIndexOf('window'))?.signature).toBe("text i → c<text>");
+        const shadowed = 'fun window X Y\n return X + Y\nend\n1 window 2';
+        expect(factsAt(shadowed, shadowed.lastIndexOf('window'))?.signature).toContain('a a → a');
+        expect(factsAt(shadowed, shadowed.lastIndexOf('window'))?.signature).not.toContain('widths:');
+        for (const dimensions of ['2 2', 'unpack (array 2 2)']) {
+            const matrix = `use sequences\nM = array shape 3 3 fill 1\nM window ${dimensions}`;
+            expect(factsAt(matrix, matrix.lastIndexOf('window'))?.signature)
+                .toMatch(/^c\[3, 3\]<i> c(?:\[2\])?<i> → c<i>$/);
+        }
+    });
+    it('shows unique with the container family and preserves a known element type', () => {
+        const source = 'use sequences\nunique';
+        const found = factsAt(source, source.lastIndexOf('unique'))!;
+        expect(found.signature).toBe('text → text ; c<a> → c<a> ; c → c');
+        const call = 'use sequences\nS unique';
+        expect(factsAt(call, call.lastIndexOf('unique'), [['S', { types: ['stack'], elements: ['integer'] }]])?.signature)
+            .toBe("c<i> → c<i>");
+    });
+    it('shows len and shape with one container receiver row instead of a type inventory', () => {
+        for (const name of ['len', 'shape']) {
+            const source = name === 'shape' ? 'use sequences\nshape' : 'len';
+            const found = factsAt(source, source.lastIndexOf(name))!;
+            const rows = layoutNameFacts(found, 40);
+            expect(rows).toEqual([`${name} · c → ${name === 'len' ? 'i' : 'c<i>'}`]);
+            expect(rows.filter(row => row.includes('→'))).toHaveLength(1);
+            expect(rows.every(row => row.length <= 40)).toBe(true);
+        }
+        expect(factsAt('"abc" len', 7)?.signature).toBe('text → i');
+    });
+    it('shows compact mapping rules on bare text helpers and precise signatures at known calls', () => {
+        for (const name of ['startswith', 'translate', 'lpad']) {
+            const source = `use text\n${name}`;
+            const found = factsAt(source, source.lastIndexOf(name))!;
+            expect(found.signature).toContain('containers: elementwise');
+            expect(found.signature).toContain('SQL: column result');
+            const rows = layoutNameFacts(found, 40);
+            expect(rows.length).toBeLessThanOrEqual(6);
+            expect(rows.every(row => row.length <= 40)).toBe(true);
+            expect(rows.filter(row => row.includes('→'))).toHaveLength(name === 'startswith' ? 2 : 1);
+        }
+        const source = 'use text\n"abc" "a" startswith';
+        expect(factsAt(source, source.lastIndexOf('startswith'))?.signature).toBe('text text → boolean');
+    });
     it('groups the general sum contract and narrows known collection calls', () => {
         const general = factsAt('sum', 0)!;
         expect(general.signature)
-            .toBe('(number | missing | column | c<number | missing>) → number ; c: array | sequence | queue | stack | deque | set');
+            .toBe("(number | missing | column | c<number | missing>) → number");
         const rows = layoutNameFacts(general, 40);
         expect(rows.filter(row => row.includes('→'))).toHaveLength(1);
-        expect(rows.join(' ')).toContain('c: array | sequence | queue');
+        expect(rows.join(' ')).not.toContain('c:');
         expect(rows.every(row => row.length <= 40)).toBe(true);
         const source = 'N = 1 to 999\nN sum';
-        expect(factsAt(source, source.lastIndexOf('sum'))?.signature).toBe('sequence<number> → number');
+        expect(factsAt(source, source.lastIndexOf('sum'))?.signature).toBe("c<number> → number");
     });
     it('uses explicit builtin signatures with their actual overloads', () => {
         const split = 'use text\n"a,b" "," split';
         expect(formatNameFacts(factsAt(split, split.indexOf('split'))!))
-            .toBe('split · text text → array[#]<text>');
+            .toBe("split · text text → c[#]<text>");
     });
 
     it('shows the notebook example signature and preserves unknown inputs', () => {
@@ -249,14 +298,14 @@ describe('factsAt: grammar operator signatures', () => {
 
 
 it('shows range and proven outer signatures on operator words', () => {
-    expect(factsAt('1 to 3', 3)?.signature).toBe('i i → sequence<i>');
-    expect(factsAt('1 till 3', 4)?.signature).toBe('i i → sequence<i>');
+    expect(factsAt('1 to 3', 3)?.signature).toBe("i i → c<i>");
+    expect(factsAt('1 till 3', 4)?.signature).toBe("i i → c<i>");
     const source = '(1 to 3) (1 to 4) outer +';
     for (const offset of [source.indexOf('outer'), source.length - 1, source.length]) {
-        expect(factsAt(source, offset)?.signature).toBe('sequence<i> sequence<i> → array[3, 4]<i>');
+        expect(factsAt(source, offset)?.signature).toBe("c<i> c<i> → c[3, 4]<i>");
     }
     const named = '(array 1 2) (array 3 4) outer max';
-    expect(factsAt(named, named.indexOf('outer'))?.signature).toBe('array[2]<i> array[2]<i> function → array');
+    expect(factsAt(named, named.indexOf('outer'))?.signature).toBe("c[2]<i> c[2]<i> function → c");
     const shadowed = 'fun outer X\n return X\nend\n3 outer';
     expect(factsAt(shadowed, shadowed.lastIndexOf('outer'))?.signature).toBe('i → i');
 });
@@ -264,18 +313,18 @@ it('shows range and proven outer signatures on operator words', () => {
 
 it('shows the flat document overload after grouping its trailing modifier', () => {
     const source = 'use json\n"{}" json .flat';
-    expect(factsAt(source, source.lastIndexOf('json'))?.signature).toBe('text .flat → array<object>');
+    expect(factsAt(source, source.lastIndexOf('json'))?.signature).toBe("text .flat → c<object>");
 });
 
 
 it('shows segment form contracts without advertising callable marker signatures', () => {
     for (const combine of ['+', 'maxsum']) {
         const source = `use algo\n(array 1 2 3) segment ${combine}`;
-        expect(factsAt(source, source.indexOf('segment'))?.signature).toBe('array[3]<i> → segment');
-        if (combine === 'maxsum') expect(factsAt(source, source.indexOf('maxsum'))?.signature).toBe('array[3]<i> → segment');
+        expect(factsAt(source, source.indexOf('segment'))?.signature).toBe("c[3]<i> → c");
+        if (combine === 'maxsum') expect(factsAt(source, source.indexOf('maxsum'))?.signature).toBe("c[3]<i> → c");
     }
     const named = 'use algo\nfun combine A B\n return A + B\nend\n(array 1 2) segment combine';
-    expect(factsAt(named, named.indexOf('segment'))?.signature).toBe('array[2]<i> (? ? → ?) → segment');
+    expect(factsAt(named, named.indexOf('segment'))?.signature).toBe("c[2]<i> (? ? → ?) → c");
     const shadowed = 'fun segment X\n return X\nend\n3 segment';
     expect(factsAt(shadowed, shadowed.lastIndexOf('segment'))?.signature).toBe('i → i');
 });
@@ -284,31 +333,49 @@ describe('layoutNameFacts', () => {
     const source = 'use sequences\nF = 1 to 9\nF F outer *';
     const outer = () => factsAt(source, source.indexOf('outer') + 2)!;
 
+    it('fits every general catalogue signature into forty columns, including nested unions', () => {
+        for (const operation of operations.filter(operation => operation.signatures?.length)) {
+            const found: NameFacts = { name: operation.name, source: 'static', facts: { types: ['function'] },
+                signature: operationSignature(operation, undefined, { compact: true, shortNumericNames: true }) };
+            const rows = layoutNameFacts(found, 40);
+            expect(rows.every(row => row.length <= 40), operation.name).toBe(true);
+        }
+    });
+
+    it('wraps local union definitions as annotations rather than result signatures', () => {
+        const found = factsAt('use graph\nG S T maxflow', 18)!;
+        expect(found.signature).toBe("c u u → record ; u = number | boolean | text | symbol");
+        const rows = layoutNameFacts(found, 30);
+        expect(rows.filter(row => row.includes('→'))).toHaveLength(1);
+        expect(rows.join(' ')).toContain('u = number');
+        expect(rows.every(row => row.length <= 30)).toBe(true);
+    });
+
     it('keeps a signature that fits on one row', () => {
-        expect(layoutNameFacts(outer(), 80)).toEqual(['outer * · sequence<i> sequence<i> → array[9, 9]<i>']);
+        expect(layoutNameFacts(outer(), 80)).toEqual(["outer * · c<i> c<i> → c[9, 9]<i>"]);
     });
 
     it('puts one parameter per row and the result beside the last one', () => {
-        expect(layoutNameFacts(outer(), 42)).toEqual([
+        expect(layoutNameFacts(outer(), 24)).toEqual([
             'outer * ·',
-            '  sequence<i>',
-            '  sequence<i> → array[9, 9]<i>',
+            '  c<i>',
+            "  c<i> → c[9, 9]<i>",
         ]);
     });
 
     it('moves the result to its own row when it would not fit beside the last parameter', () => {
-        expect(layoutNameFacts(outer(), 24)).toEqual([
+        expect(layoutNameFacts(outer(), 18)).toEqual([
             'outer * ·',
-            '  sequence<i>',
-            '  sequence<i>',
-            '  → array[9, 9]<i>',
+            '  c<i>',
+            '  c<i>',
+            "  → c[9, 9]<i>",
         ]);
     });
 });
 
 it('keeps body alternatives separate from concrete call signatures', () => {
     const definition = 'fun twice X\n return X + X\nend';
-    const general = 'a → a ; a: number ; c<a> → c<a> ; a: number';
+    const general = 'a → a ; c<a> → c<a> ; a: number';
     for (const calls of ['1 twice\n1.5 twice', '1.5 twice\n1 twice']) {
         const source = definition + '\n' + calls;
         expect(factsAt(source, source.indexOf('twice'))?.signature).toBe(general);
@@ -337,15 +404,15 @@ it('keeps both Products axes visible when their sizes are not proven', () => {
         ['Lower', { types: ['integer'], rank: 0, shape: [] }],
     ])!;
     expect(found.facts).toMatchObject({ types: ['array'], rank: 2, elements: ['integer'] });
-    expect(formatNameFacts(found)).toBe('Products · array[#, #]<integer>');
+    expect(formatNameFacts(found)).toBe('Products · c[#, #]<integer>');
 });
 
 
 it('infers every Euler palindrome pipeline name before running the notebook', () => {
     const source = readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8');
     for (const [site, expected] of [
-        ['Candidates =', 'Candidates · sequence<integer>'],
-        ['Candidates filter', 'Candidates · sequence<integer>'],
+        ['Candidates =', 'Candidates · c<integer>'],
+        ['Candidates filter', 'Candidates · c<integer>'],
         ['Answer =', 'Answer · integer'],
         ['Answer print', 'Answer · integer'],
         ['Text =', 'Text · text'],
@@ -358,8 +425,8 @@ it('infers every Euler palindrome pipeline name before running the notebook', ()
 it.each([
     ['option Digits integer = 3', 'Digits', 'integer'],
     ['argument File path', 'File', 'text'],
-    ['option Values integer many', 'Values', 'array[#]<integer>'],
-    ['argument Files path many', 'Files', 'array[#]<text>'],
+    ['option Values integer many', 'Values', 'c[#]<integer>'],
+    ['argument Files path many', 'Files', 'c[#]<text>'],
     ['flag Verbose', 'Verbose', 'boolean'],
 ])('shows the declared input type on its name: %s', (source, name, type) => {
     const start = source.indexOf(name);
@@ -385,7 +452,7 @@ it('shows builtin signatures at their own boundary in a pipeline', () => {
     ]) {
         const found = factsAt(source, source.lastIndexOf('sum'))!;
         expect(found.signature).toContain('→ number');
-        expect(found.signature).toMatch(/^array\[(#|3)\]<number> → number$/);
+        expect(found.signature).toMatch(/^c\[(#|3)\]<number> → number$/);
         expect(formatNameFacts(found)).not.toContain('· function');
     }
 });
@@ -394,10 +461,10 @@ it('shows builtin signatures at their own boundary in a pipeline', () => {
 it('keeps Euler 1 integer sequence sums and boolean masks, including compound assignment targets', () => {
     const source = readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8');
     for (const [site, expected] of [
-        ['N =', 'N · sequence<integer>'],
-        ['Mask =', 'Mask · sequence<boolean>'],
-        ['Mask or=', 'Mask · sequence<boolean>'],
-        ['Mask sum', 'Mask · sequence<boolean>'],
+        ['N =', 'N · c<integer>'],
+        ['Mask =', 'Mask · c<boolean>'],
+        ['Mask or=', 'Mask · c<boolean>'],
+        ['Mask sum', 'Mask · c<boolean>'],
         ['Answer =', 'Answer · integer'],
         ['Answer print', 'Answer · integer'],
     ]) expect(formatNameFacts(factsAt(source, source.indexOf(site))!)).toBe(expected);

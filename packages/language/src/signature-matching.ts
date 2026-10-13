@@ -1,6 +1,7 @@
 import { compareDims, constantDim, type Dim } from './analysis/shape-index.js';
 import { instantiateShapeSignature, type KnownShape, type ShapePattern, type ShapeTerm } from './shape-signature.js';
 import type { SignatureContainer, SignatureType, TypeSignature } from './type-signature.js';
+import { isCollectionRequirement, matchesCollectionKind } from './collection-capabilities.js';
 
 type Bindings = Map<number, SignatureType>;
 const union = (members: readonly SignatureType[]): SignatureType => {
@@ -25,17 +26,23 @@ export function intersectSignatureTypes(left: SignatureType, right: SignatureTyp
     }
     if (typeof left === 'string' || typeof right === 'string') {
         if (left === right) return left;
+        if (typeof left === 'string' && typeof right === 'string') {
+            if (isCollectionRequirement(left) && matchesCollectionKind(left, right)) return right;
+            if (isCollectionRequirement(right) && matchesCollectionKind(right, left)) return left;
+        }
         const atom = typeof left === 'string' ? left : right;
         const structured = typeof left === 'object' ? left : typeof right === 'object' ? right : undefined;
-        if (structured && ('collection' in structured && structured.collection === atom
+        if (structured && typeof atom === 'string' && ('collection' in structured
+            && (matchesCollectionKind(structured.collection, atom) || isCollectionRequirement(atom) && matchesCollectionKind(atom, structured.collection))
             || 'tuple' in structured && atom === 'tuple' || 'label' in structured && atom === 'symbol'
             || 'callback' in structured && atom === 'function')) return structured;
         return undefined;
     }
-    if ('collection' in left && 'collection' in right && left.collection === right.collection) {
+    if ('collection' in left && 'collection' in right
+        && (matchesCollectionKind(left.collection, right.collection) || matchesCollectionKind(right.collection, left.collection))) {
         if (left.rank !== undefined && right.rank !== undefined && left.rank !== right.rank) return undefined;
         const element = intersectSignatureTypes(left.element, right.element);
-        return element === undefined ? undefined : { collection: left.collection, element,
+        return element === undefined ? undefined : { collection: isCollectionRequirement(left.collection) ? right.collection : left.collection, element,
             ...((left.rank ?? right.rank) === undefined ? {} : { rank: left.rank ?? right.rank }) };
     }
     if ('tuple' in left && 'tuple' in right && left.tuple.length === right.tuple.length) {
@@ -72,8 +79,8 @@ function match(pattern: SignatureType, actual: SignatureType, bindings: Bindings
         return true;
     }
     if ('collection' in pattern) {
-        if (typeof actual === 'string') return actual === pattern.collection;
-        return 'collection' in actual && actual.collection === pattern.collection
+        if (typeof actual === 'string') return matchesCollectionKind(pattern.collection, actual);
+        return 'collection' in actual && matchesCollectionKind(pattern.collection, actual.collection)
             && (pattern.rank === undefined || actual.rank === undefined || pattern.rank === actual.rank)
             && match(pattern.element, actual.element, bindings);
     }

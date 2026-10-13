@@ -1,7 +1,7 @@
 import { checkpoint } from '../interrupt.js';
-import { extremeMasked, sumMasked } from '../masked-kernels.js';
+import { elementSource, type ElementSource } from '../element-source.js';
 import { markArrayMask } from '../array-mask.js';
-import { denseScalarItems, derivedArray, float64Cells, shouldStream, streamCells, typedArray, typedElementKind } from '../array-storage.js';
+import { denseScalarItems, derivedArray, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { mapBroadcastArrays } from '../tensor.js';
@@ -9,20 +9,16 @@ import { maxSqlite, sumSqlite } from './sqlite.js';
 import {
     mapSequence,
     numericSource,
-    reduceSequence,
     sequence,
     sequenceMask,
-    sequenceValues,
     zipSequences,
 } from '../sequence.js';
 import {
     isRankArray,
     isRankLabel,
-    isRankMultiset,
     isRankQueue,
     isRankSqliteExpression,
     isRankSequence,
-    isRankSet,
     MISSING,
     tuple,
     type RankValue,
@@ -108,7 +104,8 @@ export const numbersModule: RuntimeModule = {
             );
         }
         const value = numericSource(arguments_[0], 'lcm');
-        const items = isRankArray(value) ? value.items : sequenceValues(value, 'lcm');
+        const source = elementSource(value, 'lcm', 'series');
+        const items = source ? source.denseItems?.() ?? source.values() : [value];
         let result = 1n;
         for (const item of items) {
             checkpoint('computing numbers');
@@ -299,15 +296,11 @@ export function numericExtreme(
             throw new RankError(`${name} accepts only the .index and .indexed modifiers`, 'TypeError');
         }
         const value = numericSource(source, name);
-        if (isRankArray(value) && value.shape.length !== 1) {
+        const access = elementSource(value, name, 'positioned');
+        if (access?.rank !== undefined && access.rank !== 1)
             throw new RankError(`${name} .${mode} expects a rank-1 collection`, 'DimensionMismatch');
-        }
-        if (!isRankArray(value) && !isRankSequence(value)) {
-            throw new RankError(`${name} .${mode} expects an array or sequence`, 'TypeError');
-        }
-        const items = isRankArray(value)
-            ? shouldStream(value) ? streamCells(value) : value.items
-            : sequenceValues(value, name);
+        if (!access) throw new RankError(`${name} .${mode} expects an array or sequence`, 'TypeError');
+        const items = access.denseItems?.() ?? access.values();
         let result: RankValue | undefined;
         let position = 0n;
         let index = 0n;
@@ -336,29 +329,10 @@ export function numericExtreme(
         }
         const value = numericSource(arguments_[0], name);
         if (name === 'max' && isRankSqliteExpression(value)) return maxSqlite(value);
-        if (isRankMultiset(value)) {
-            const extreme = name === 'min' ? value.min() : value.max();
-            if (extreme === undefined) {
-                throw new RankError(`${name} requires at least one value`, 'EmptyReduction');
-            }
-            return expectExtremeOperand(extreme);
-        }
-        if (isRankSequence(value)) {
-            const planned = reduceSequence(value, name);
-            if (planned !== undefined) return expectExtremeOperand(planned);
-        }
-        const masked = isRankArray(value) ? extremeMasked(value, replaces) : undefined;
-        if (masked) {
-            if (!masked.found) throw new RankError(`${name} requires at least one value`, 'EmptyReduction');
-            return masked.result;
-        }
-        const items = isRankArray(value)
-            ? shouldStream(value) ? streamCells(value) : value.items
-            : isRankQueue(value)
-                ? value.items
-                : isRankSet(value)
-                    ? value.entries.values()
-                    : sequenceValues(value, name);
+        const source = elementSource(value, name, 'extrema');
+        const planned = source?.reduce?.(name);
+        if (planned !== undefined) return expectExtremeOperand(planned);
+        const items = source ? source.denseItems?.() ?? source.values() : [value];
         let result: RankValue | undefined;
         for (const item of items) {
             checkpoint('computing numbers');
@@ -373,8 +347,6 @@ export function numericExtreme(
     });
 }
 
-/** Sum integers without a generic numeric callback on every element.
- * Promotion happens at the first real value, in the original left-fold order. */
 /** The same left fold as `sumArray`, over cells read one at a time. */
 function sumStream(items: Iterable<RankValue>): bigint | number {
     let total: bigint | number = 0n;
@@ -385,6 +357,8 @@ function sumStream(items: Iterable<RankValue>): bigint | number {
     return total;
 }
 
+/** Sum integers without a generic numeric callback on every element.
+ * Promotion happens at the first real value, in the original left-fold order. */
 function sumArray(items: readonly RankValue[]): bigint | number {
     let integer = 0n;
     for (let index = 0; index < items.length; index++) {
@@ -681,34 +655,25 @@ function predicateFunction(name: string, test: (value: RankValue) => boolean) {
 export function sumValue(value: RankValue): RankValue {
     value = numericSource(value, 'sum');
     if (isRankSqliteExpression(value)) return sumSqlite(value);
-    if (isRankSequence(value)) {
-        const planned = reduceSequence(value, 'sum');
-        if (planned !== undefined) return expectNumeric(planned);
-    }
-    if (isRankArray(value)) {
-        const masked = sumMasked(value);
-        if (masked !== undefined) return masked;
-        // Real cells held in a typed buffer are added in place, not boxed one by one first.
-        const reals = typedElementKind(value) === 'real' ? float64Cells(value) : undefined;
-        if (reals?.length) {
-            let total = 0;
-            for (let index = 0; index < reals.length; index += 1) {
-                checkpoint('computing numbers');
-                total += reals[index];
-            }
-            return total;
+    const source = elementSource(value, 'sum');
+    if (!source) return sumStream([value]);
+    return sumElements(source);
+}
+
+/** The reduction depends on element access, not a collection's concrete kind. */
+export function sumElements(source: ElementSource): bigint | number {
+    const reduced = source.reduce?.('sum');
+    if (reduced !== undefined) return expectNumeric(reduced);
+    // Real cells held in a typed buffer are added in place, not boxed one by one first.
+    const reals = source.realCells?.();
+    if (reals?.length) {
+        let total = 0;
+        for (let index = 0; index < reals.length; index += 1) {
+            checkpoint('computing numbers');
+            total += reals[index];
         }
-        if (shouldStream(value)) return sumStream(streamCells(value));
-        return sumArray(value.items);
+        return total;
     }
-    if (isRankQueue(value)) return sumArray(value.items);
-    const items = isRankSet(value)
-        ? value.entries.values()
-        : sequenceValues(value, 'sum');
-    let total: bigint | number = 0n;
-    for (const item of items) {
-        checkpoint('computing numbers');
-        if (item !== MISSING) total = add(total, expectNumeric(item));
-    }
-    return total;
+    const items = source.denseItems?.();
+    return items ? sumArray(items) : sumStream(source.values());
 }

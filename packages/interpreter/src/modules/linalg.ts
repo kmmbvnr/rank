@@ -1,3 +1,4 @@
+import { tensorSource } from '../tensor-source.js';
 import { diagonalResultShape, matmulResultShape } from '@arrrank/language';
 import { tuple } from '../value.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
@@ -49,6 +50,7 @@ export const linalgModule: RuntimeModule = {
 };
 
 export function diagonal(value: RankValue, anti = false, offset = 0): RankArray {
+    value = tensorSource(value) ?? value;
     if (!isRankArray(value) || (value.shape.length !== 1 && value.shape.length !== 2)) {
         throw new RankError(
             'diag expects a rank-1 vector or rank-2 matrix',
@@ -112,6 +114,7 @@ function diagNumber(value: RankValue): bigint | number {
 }
 
 function symmetricEigendecomposition(value: RankValue): RankValue {
+    value = tensorSource(value) ?? value;
     if (!isRankArray(value) || value.shape.length !== 2
         || value.shape[0] !== value.shape[1]) {
         throw new RankError('eigh expects a square rank-2 matrix', 'DimensionMismatch');
@@ -259,6 +262,7 @@ function cleanReal(value: number): number {
 }
 
 export function determinant(value: RankValue): bigint | number {
+    value = tensorSource(value) ?? value;
     if (
         !isRankArray(value)
         || value.shape.length !== 2
@@ -349,6 +353,8 @@ function realDeterminant(items: readonly number[], size: number): number {
 }
 
 export function solveLinearSystem(coefficients: RankValue, right: RankValue): RankArray {
+    coefficients = tensorSource(coefficients) ?? coefficients;
+    right = tensorSource(right) ?? right;
     if (
         !isRankArray(coefficients)
         || coefficients.shape.length !== 2
@@ -437,6 +443,8 @@ export function matmulValues(
     right: RankValue,
     axes?: readonly [number, number],
 ): RankValue {
+    left = tensorSource(left) ?? left;
+    right = tensorSource(right) ?? right;
     if (!isRankArray(left) || left.shape.length === 0
         || !isRankArray(right) || right.shape.length === 0) {
         throw new RankError('matmul expects rank-1 or higher arrays');
@@ -613,6 +621,7 @@ function stridesOf(shape: readonly number[]): number[] {
 }
 
 function inverseMatrix(value: RankValue): RankArray {
+    value = tensorSource(value) ?? value;
     if (
         !isRankArray(value)
         || value.shape.length !== 2

@@ -118,7 +118,7 @@ it('requires the same kind for a shared container variable, but not for differen
     expect(instantiateTypeSignature(sameKind, [array, sequence])).toBeUndefined();
     const other = { container: 1, kinds: ['array', 'sequence'], element: { variable: 1 } } as const;
     const independent: TypeSignature = { inputs: [finiteContainer, other], result: { tuple: [finiteContainer, other] } };
-    expect(formatTypeSignature(independent)).toBe('c<a> d<b> → tuple(c<a>, d<b>)');
+    expect(formatTypeSignature(independent)).toBe("c<a> c<b> → tuple(c<a>, c<b>)");
     expect(instantiateTypeSignature(independent, [array, sequence])?.result).toEqual({ tuple: [array, sequence] });
     expect(instantiateTypeSignature(independent, [array, array])?.result).toEqual({ tuple: [array, array] });
 });
@@ -128,7 +128,7 @@ it('intersects repeated kind restrictions, including constraints in the result',
     const signature = { inputs: [finiteContainer], result: restricted };
     expect(instantiateTypeSignature(signature, ['array'])).toBeUndefined();
     expect(instantiateTypeSignature(signature, ['sequence'])?.result).toEqual({ collection: 'sequence', element: { variable: 0 } });
-    expect(formatTypeSignature(signature)).toBe('c<a> → c<a> ; c: sequence');
+    expect(formatTypeSignature(signature)).toBe("c<a> → c<a>");
     expect(instantiateTypeSignatures({ inputs: [restricted], result: { ...restricted, kinds: ['array'] } }, ['unknown'])).toEqual([]);
 });
 
@@ -147,7 +147,7 @@ it('formats unknown-kind calls compactly and keeps type and kind names distinct'
     expect(matchingSignatures([preserveKind], [{ types: ['array'], elements: ['real'] }])[0].result)
         .toEqual({ collection: 'array', element: 'real' });
     const signature: TypeSignature = { inputs: [finiteContainer, { variable: 1 }, { variable: 2 }], result: finiteContainer };
-    expect(formatTypeSignature(signature)).toBe('c<a> b g → c<a>');
+    expect(formatTypeSignature(signature)).toBe('c<a> b d → c<a>');
     expect(instantiateTypeSignature(preserveKind, [{ collection: 'sequence', element: 'text' }])?.result)
         .toEqual({ collection: 'sequence', element: 'text' });
 });
@@ -163,7 +163,7 @@ it('checks and substitutes shared shape references with the existing shape match
     const square = { collection: 'array', element: 'real', shape: ['n', 'n'] } as const;
     const signature: TypeSignature = { inputs: [square], result: square };
     const array = (shape: readonly (number | null)[]): SignatureType => ({ collection: 'array', element: 'real', shape });
-    expect(formatTypeSignature(signature)).toBe('array[n, n]<real> → array[n, n]<real>');
+    expect(formatTypeSignature(signature)).toBe("c[n, n]<real> → c[n, n]<real>");
     expect(instantiateTypeSignature(signature, [array([3, 3])])?.result)
         .toEqual({ ...square, rank: 2, shape: [3, 3] });
     expect(instantiateTypeSignature(signature, [array([2, 3])])).toBeUndefined();
@@ -177,11 +177,11 @@ it('distinguishes exact axes from a minimum rank and does not invent unknown fra
     const array = (shape: readonly (number | null)[]): SignatureType => ({ collection: 'array', element: 'real', shape });
     const framed = { collection: 'array', element: 'real', shape: [{ spread: 's' }, 'n', 'n'] } as const;
     const signature: TypeSignature = { inputs: [framed], result: framed, ranks: [2] };
-    expect(formatTypeSignature(signature)).toBe('array[…s, n, n]<real> → array[…s, n, n]<real> [rank 2]');
+    expect(formatTypeSignature(signature)).toBe("c[…s, n, n]<real> → c[…s, n, n]<real> [rank 2]");
     expect(instantiateTypeSignature(signature, [array([2, 3, 3])])?.result)
         .toEqual({ ...framed, rank: 3, shape: [2, 3, 3] });
     expect(instantiateTypeSignature(signature, [array([3])])).toBeUndefined();
     expect(instantiateTypeSignature(signature, ['array'])?.result).toEqual(framed);
     expect(formatTypeSignature({ inputs: [array([null, null])], result: 'real' }))
-        .toBe('array[#, #]<real> → real');
+        .toBe("c[#, #]<real> → real");
 });

@@ -44,9 +44,9 @@ describe('navigable result rows', () => {
             expect(at).toBeGreaterThan(0);
             expect(lines[at - 1]).toMatch(/\.\.\./);
             expect(lines[at - 1].length).toBeLessThanOrEqual(46);
-            const range = lines.findIndex(line => line.trim().startsWith('sequence'));
+            const range = lines.findIndex(line => line.trim().startsWith('c ·'));
             expect(range).toBeGreaterThan(0);
-            expect(lines[range]).toMatch(/sequence · 40 values/);
+            expect(lines[range]).toMatch(/c · 40 values/);
         } finally { session.dispose(); }
     });
 

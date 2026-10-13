@@ -1,7 +1,7 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, expressionFacts, applicationForm, formatTypeSignature, signatureType, describeTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
-    isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackStatement,
+    analyzeValues, expressionFacts, applicationForm, formatTypeSignature, signatureType, displayTypeName, describeTypes as nominalTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
+    isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts, type FunctionCallFacts,
 } from '@arrrank/language';
 import { parse } from '@arrrank/interpreter';
@@ -21,6 +21,8 @@ export interface NameFactsExample {
     readonly name: string;
     readonly arguments: readonly ValueFacts[];
 }
+
+const describeTypes = (types: ValueFacts['types']): string => nominalTypes([...new Set(types.map(displayTypeName))]);
 
 const UNKNOWN: ValueFacts = { types: [] };
 const FUNCTION: ValueFacts = { types: ['function'] };
@@ -170,9 +172,16 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         for (let parent = site.node.$container; parent; parent = parent.$container) {
             if (isFunctionStatement(parent) && parent.parameters.includes(actualName)) return undefined;
         }
-        if (site.kind === 'form' && !analysis.bindings.has(actualName) && !runtime.has(actualName)) {
+        const windowSite = site.kind === 'read' && site.name === 'window' && isCatalogueFunction(site);
+        if ((site.kind === 'form' || windowSite) && !analysis.bindings.has(actualName) && !runtime.has(actualName)) {
+            let windowForm: Extract<ReturnType<typeof applicationForm>, { kind: 'window' }> | undefined;
             for (let node: AstNode | undefined = site.node.$container; node && isExpression(node); node = node.$container) {
                 const form = applicationForm(node);
+                if (windowSite) {
+                    // Application nodes also contain prefixes such as `M window 2` in `M window 2 2`.
+                    if (form.kind === 'window' && (!windowForm || form.dimensions.length > windowForm.dimensions.length)) windowForm = form;
+                    continue;
+                }
                 if (form.kind === 'segment' || form.kind === 'named-segment') {
                     const inputs = [signatureType(expressionValue(form.source))];
                     if (form.kind === 'named-segment') {
@@ -195,7 +204,14 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
                     }, FOOTER_SIGNATURE);
                 }
             }
-            return undefined;
+            if (windowForm && !analysis.functions.has(actualName) && !scope?.functions.has(actualName)) {
+                const source = expressionValue(windowForm.source);
+                const dimensions = windowForm.dimensions.map(part => expressionValue(isUnpackExpression(part) ? part.value : part));
+                const widths: ValueFacts = dimensions.length === 1 ? dimensions[0]
+                    : { types: ['array'], elements: joinValueFacts(dimensions).types };
+                return operationSignature(findOperation('window')!, source.types.length ? [source, widths] : undefined, FOOTER_SIGNATURE);
+            }
+            if (site.kind === 'form') return undefined;
         }
         if (site.kind === 'operator') {
             const node = site.node;
@@ -419,12 +435,12 @@ export function describeFacts(facts: ValueFacts, withShape = true): string {
     if (facts.types.join() === 'function') return 'function';
     if (!facts.types.length) return 'unknown';
     if (facts.types.join() === 'sequence' && facts.elements?.length) {
-        return `sequence<${describeTypes(facts.elements)}>`;
+        return `c<${describeTypes(facts.elements)}>`;
     }
     if (facts.types.join() === 'array' && (!facts.shape || facts.shape.some(size => size === null))) {
         const rank = facts.rank ?? facts.shape?.length;
         const axes = rank !== undefined ? `[${Array(rank).fill('#').join(', ')}]` : '';
-        return axes || facts.elements?.length ? `array${axes}<${describeTypes(facts.elements ?? [])}>` : 'array';
+        return axes || facts.elements?.length ? `c${axes}<${describeTypes(facts.elements ?? [])}>` : 'c';
     }
     const shaped = facts.types[0] !== 'text' && facts.shape !== undefined && facts.shape.length > 0;
     const base = shaped && facts.types.join() === 'array' && facts.elements?.length
@@ -499,7 +515,7 @@ function wrapUnion(text: string, width: number, indent: string): string[] | unde
         else { rows.push(row); row = indent + (wrapped ? ' ' : '') + piece; }
     });
     rows.push(row);
-    return rows;
+    return rows.flatMap(line => cellWidth(line) <= width ? [line] : wrapElement(line.trimStart(), width, indent));
 }
 
 /** Break a text that is wider than a row at its spaces, indenting what follows the first row. */

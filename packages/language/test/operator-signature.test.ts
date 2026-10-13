@@ -41,12 +41,12 @@ it('shows cell types for arrays and does not assign signatures to unknown words'
 
 
 it('distinguishes numeric ranges from collection bounds', () => {
-    expect(operatorSignature('to', facts('integer', 'integer'))).toBe('integer integer → sequence<integer>');
+    expect(operatorSignature('to', facts('integer', 'integer'))).toBe("integer integer → c<integer>");
     expect(operatorSignature('till', [{ types: ['sequence'], elements: ['integer'] }, { types: ['integer'] }]))
-        .toBe('sequence<integer> number → sequence<integer>');
+        .toBe("c<integer> number → c<integer>");
     expect(operatorSignature('to', facts('text', 'text'))).toBe('text text → text');
     expect(operatorSignature('till', [{ types: ['queue'], elements: ['integer'] }, { types: ['integer'] }]))
-        .toBe('queue<integer> number → array<integer>');
+        .toBe("c<integer> number → c<integer>");
 });
 
 

@@ -1,10 +1,11 @@
+import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { positionalValue } from './positional-value.js';
 import { denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
-import { atSequence, sequence, sequenceValues } from './sequence.js';
-import { arrayOffset, coordinatesAt, safeDimension } from './tensor-index.js';
+import { sequenceValues } from './sequence.js';
+import { arrayOffset, coordinatesAt } from './tensor-index.js';
 import { isRankArray, isRankQueue, isRankSequence, typeName,
     MISSING, type RankArray, type RankValue } from './value.js';
 
@@ -12,7 +13,6 @@ export const ALL_AXIS = { kind: 'label', name: '#' } as const;
 const arrayItem = readArrayItem;
 const arraySize = (shape: readonly number[]): number =>
     shape.reduce((product, dimension) => product * dimension, 1);
-const array = (items: RankValue[]): RankArray => ownedArray(items);
 
 // A large slice of stored scalars is copied at once. A lazy slice would cache
 // each cell in a Map, several times the size of the cells themselves.
@@ -220,70 +220,30 @@ function gather(
 }
 
 export function selectAxis(source: RankValue, axis: number, selector: RankValue): RankValue {
+    const access = indexedSource(source);
+    if (!access) throw new RankError(`selection does not accept ${typeName(source)}`);
     const open = isRankSequence(selector) ? selector.plan.openRange : undefined;
-    if (open && isRankSequence(source) && source.plan.size.kind === 'infinite') {
-        if (axis !== 0) throw new RankError(`sequence has no axis ${axis}`);
-        if (open.start < 0n) throw new RankError('array index must be nonnegative on axis 0');
-        const count = open.step < 0n ? open.start / -open.step + 1n : undefined;
-        return sequence({
-            name: `${source.plan.name} slice`,
-            size: count === undefined ? { kind: 'infinite' } : { kind: 'exact', value: count },
-            at: index => atSequence(source, open.start + index * open.step),
-            *iterate() {
-                for (let i = 0n; count === undefined || i < count; i++) {
-                    checkpoint('reading sequence slice');
-                    yield atSequence(source, open.start + i * open.step);
-                }
-            },
-        });
-    }
-    const size = axisSize(source, axis);
-    if (isRankArray(source)) {
+    const openResult = open ? access.openSlice?.(open.start, open.step, axis) : undefined;
+    if (openResult !== undefined) return openResult;
+    const size = access.axisSize(axis);
+    if (access.tensor) {
         const selectors = Array(axis).fill(ALL_AXIS) as RankValue[];
         selectors.push(selector);
-        const selection = tensorSelection(source, selectors);
-        return sliceArray(source, selection);
+        return sliceArray(access.tensor, tensorSelection(access.tensor, selectors));
     }
     if (typeof selector === 'bigint') {
         if (selector < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
-        if (selector >= BigInt(size)) {
-            throw new MissingValueError(`array index out of bounds on axis ${axis}: ${selector}`);
-        }
-        if (typeof source === 'string') return [...source][Number(selector)];
-        if (isRankSequence(source)) return atSequence(source, selector);
-        if (isRankQueue(source)) return source.items[Number(selector)];
+        if (selector >= BigInt(size)) throw new MissingValueError(`array index out of bounds on axis ${axis}: ${selector}`);
+        return access.at(selector);
     }
     const indices = selectorIndices(selector, size, axis);
-    if (typeof source === 'string') {
-        const atoms = [...source];
-        return indices.map(index => atoms[index]).join('');
-    }
-    if (isRankSequence(source)) {
-        return array(indices.map(index => atSequence(source, BigInt(index))));
-    }
-    if (!isRankQueue(source)) throw new RankError(`selection does not accept ${typeName(source)}`);
-    return array(indices.map(index => source.items[index]));
+    return access.build(indices.map(index => access.at(BigInt(index))));
 }
 
 export function axisSize(source: RankValue, axis: number): number {
-    if (typeof source === 'string') {
-        if (axis !== 0) throw new RankError(`text has no axis ${axis}`);
-        return [...source].length;
-    }
-    if (isRankSequence(source)) {
-        if (axis !== 0) throw new RankError(`sequence has no axis ${axis}`);
-        if (source.plan.size.kind !== 'exact') {
-            throw new RankError('sequence selection requires an exact finite size');
-        }
-        return safeDimension(source.plan.size.value, 'sequence size');
-    }
-    if (isRankQueue(source)) {
-        if (axis !== 0) throw new RankError(`queue has no axis ${axis}`);
-        return source.items.length;
-    }
-    if (!isRankArray(source)) throw new RankError(`selection does not accept ${typeName(source)}`);
-    if (axis >= source.shape.length) throw new RankError(`array has no axis ${axis}`);
-    return source.shape[axis];
+    const access = indexedSource(source);
+    if (!access) throw new RankError(`selection does not accept ${typeName(source)}`);
+    return access.axisSize(axis);
 }
 
 function selectorIndices(selector: RankValue, size: number, axis: number): number[] {

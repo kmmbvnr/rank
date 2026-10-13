@@ -10,11 +10,11 @@ const display = (name: string, ...values: ValueFacts[]) => operationSignature(fi
 
 it('shows known dimensions and retains square requirements when dimensions are unresolved', () => {
     expect(display('inverse', array([3, 3])))
-        .toBe('array[3, 3]<number> → array[3, 3]<real> [rank 2]');
+        .toBe("c[3, 3]<number> → c[3, 3]<real> [rank 2]");
     expect(display('inverse', array([null, null])))
-        .toBe('array[n, n]<number> → array[n, n]<real> [rank 2]');
+        .toBe("c[n, n]<number> → c[n, n]<real> [rank 2]");
     expect(display('inverse', array([2, 3, 3])))
-        .toBe('array[2, 3, 3]<number> → array[2, 3, 3]<real> [rank 2]');
+        .toBe("c[2, 3, 3]<number> → c[2, 3, 3]<real> [rank 2]");
     const rows = findOperation('inverse')!.signatures!;
     expect(instantiateTypeSignatures(rows[0], [signatureType(array([2, 3]))])).toEqual([]);
     expect(instantiateTypeSignatures(rows[0], [signatureType(array([3]))])).toEqual([]);
@@ -24,25 +24,25 @@ it('shows known dimensions and retains square requirements when dimensions are u
 
 it('keeps vector creation, square and rectangular diagonal extraction visible', () => {
     expect(display('diag', array([3], ['integer'])))
-        .toBe('array[3]<integer> → array[3, 3]<integer>');
+        .toBe("c[3]<integer> → c[3, 3]<integer>");
     expect(display('diag', array([3, 3], ['integer'])))
-        .toBe('array[3, 3]<integer> → array[3]<integer> [rank 2]');
+        .toBe("c[3, 3]<integer> → c[3]<integer> [rank 2]");
     expect(display('diag', array([2, 3], ['integer'])))
-        .toBe('array[2, 3]<integer> → array[2]<integer> [rank 2]');
+        .toBe("c[2, 3]<integer> → c[2]<integer> [rank 2]");
     expect(display('diag', array([null, null], ['integer'])))
-        .toContain('→ array[#]<integer> [rank 2]');
-    expect(operationSignature(findOperation('diag')!)).toContain('array[n]<a> → array[n, n]<a>');
+        .toContain("→ c[#]<integer> [rank 2]");
+    expect(operationSignature(findOperation('diag')!)).toContain("c[n]<a> → c[n, n]<a>");
 });
 
 it('shows matmul dot, matrix/vector and higher-rank first-right-axis results', () => {
     expect(display('matmul', array([3]), array([3])))
-        .toBe('array[3]<number> array[3]<number> → number');
+        .toBe("c[3]<number> c[3]<number> → number");
     expect(display('matmul', array([2, 3]), array([3])))
-        .toBe('array[2, 3]<number> array[3]<number> → array[2]<number>');
+        .toBe("c[2, 3]<number> c[3]<number> → c[2]<number>");
     expect(display('matmul', array([2, 3]), array([3, 4])))
-        .toBe('array[2, 3]<number> array[3, 4]<number> → array[2, 4]<number>');
+        .toBe("c[2, 3]<number> c[3, 4]<number> → c[2, 4]<number>");
     expect(display('matmul', array([2, 3, 4]), array([4, 5, 6])))
-        .toBe('array[2, 3, 4]<number> array[4, 5, 6]<number> → array[2, 3, 5, 6]<number>');
+        .toBe("c[2, 3, 4]<number> c[4, 5, 6]<number> → c[2, 3, 5, 6]<number>");
     expect(instantiateTypeSignatures(findOperation('matmul')!.signatures![0],
         [signatureType(array([2, 3])), signatureType(array([4, 5]))])).toEqual([]);
 });
@@ -53,7 +53,7 @@ it('uses existing symbolic dimension identities without assuming unrelated dimen
     const identity = { inputs: [{ variable: 0 }], result: { variable: 0 } } as const;
     const known = instantiateTypeSignatures(identity, [signatureType(symbolic)])[0];
     expect(known.result).toEqual(signatureType(symbolic));
-    expect(display('inverse', symbolic)).toContain('array[n, n]');
+    expect(display('inverse', symbolic)).toContain('c[n, n]');
     const result = instantiateTypeSignatures(findOperation('inverse')!.signatures![0], [signatureType(symbolic)])[0].result;
     expect(typeof result === 'object' && 'collection' in result && result.dims).toEqual([n, n]);
     const independent: ValueFacts = { ...array([null, null]), dims: [n, variableDim('other-length')] };
@@ -69,29 +69,29 @@ it('rejects distinct symbolic constants without rejecting unrelated unknown symb
 
 it('shows frames around determinant scalar cells without changing scalar matrix results', () => {
     expect(display('det', array([3, 3], ['integer'])))
-        .toBe('array[3, 3]<integer> → integer [rank 2]');
+        .toBe("c[3, 3]<integer> → integer [rank 2]");
     expect(display('det', array([2, 3, 3], ['integer'])))
-        .toBe('array[2, 3, 3]<integer> → array[2]<integer> [rank 2]');
+        .toBe("c[2, 3, 3]<integer> → c[2]<integer> [rank 2]");
     expect(display('det', array([0, 3, 3], ['real'])))
-        .toBe('array[0, 3, 3]<real> → array[0]<number> [rank 2]');
+        .toBe("c[0, 3, 3]<real> → c[0]<number> [rank 2]");
     expect(display('det', array([2, 4, 3, 3], ['real'])))
-        .toBe('array[2, 4, 3, 3]<real> → array[2, 4]<number> [rank 2]');
+        .toBe("c[2, 4, 3, 3]<real> → c[2, 4]<number> [rank 2]");
     expect(display('det', array([null, 3, 3], ['integer'])))
-        .toBe('array[#, 3, 3]<integer> → array[#]<integer> [rank 2]');
+        .toBe("c[#, 3, 3]<integer> → c[#]<integer> [rank 2]");
 });
 
 
 it('retains transposed matrix dimensions and the higher-rank overload', () => {
     expect(operationSignature(findOperation('transpose')!))
-        .toBe('array[n, m]<a> → array[m, n]<a> ; array<a> → array<a>');
+        .toBe("c[n, m]<a> → c[m, n]<a> ; c<a> → c<a>");
     expect(display('transpose', array([2, 3], ['integer'])))
-        .toBe('array[2, 3]<integer> → array[3, 2]<integer>');
+        .toBe("c[2, 3]<integer> → c[3, 2]<integer>");
     expect(display('transpose', array([2, 3, 4], ['integer'])))
-        .toBe('array[2, 3, 4]<integer> → array[4, 3, 2]<integer>');
+        .toBe("c[2, 3, 4]<integer> → c[4, 3, 2]<integer>");
     expect(display('transpose', array([0, 3], ['integer'])))
-        .toBe('array[0, 3]<integer> → array[3, 0]<integer>');
+        .toBe("c[0, 3]<integer> → c[3, 0]<integer>");
     expect(display('transpose', array([5], ['integer'])))
-        .toBe('array[5]<integer> → array[5]<integer>');
+        .toBe("c[5]<integer> → c[5]<integer>");
 });
 
 

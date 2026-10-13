@@ -1,6 +1,6 @@
 import { RankSession } from './session.js';
 import { runtimeValueFacts } from './value-diagnostics.js';
-import { formatTypeSignature, functionTestExamples, isFunctionStatement, type FunctionTestExample, type ValueFacts } from '@arrrank/language';
+import { displayTypeName, formatTypeSignature, functionTestExamples, isFunctionStatement, type FunctionTestExample, type ValueFacts } from '@arrrank/language';
 import {
     Interpreter, RankError, InterruptedError, checkInterrupt, formatValue, summarizeValue, isNativeFunction, isRankArray, isRankSequence, standardModules, parse, type RankValue, type InterpreterOptions,
 } from '@arrrank/interpreter';
@@ -660,10 +660,10 @@ export function createReplSession(host: ReplHost = {}) {
         if (typeof value === 'number') return 'real';
         if (typeof value === 'boolean') return 'boolean';
         if (typeof value === 'string') return 'text';
-        if (isRankArray(value)) return `${value.kind} ${value.shape.join('x') || 'scalar'}`;
+        if (isRankArray(value)) return `c ${value.shape.join('x') || 'scalar'}`;
         if (value.kind === 'function') return `function ${value.arities.join('/')}`;
-        if (value.kind === 'sequence') return `sequence ${value.plan.size.kind}`;
-        return value.kind;
+        if (value.kind === 'sequence') return `c ${value.plan.size.kind}`;
+        return displayTypeName(value.kind);
     }
 
     function wrap(items: readonly string[], separator = ' ', columns = WIDTH - 2): string[] {

@@ -5,6 +5,64 @@ not a soundness proof. The wider documentation task is tracked in
 [#61](https://github.com/kmmbvnr/rank/issues/61); ordinary array contracts were
 added in [#147](https://github.com/kmmbvnr/rank/issues/147).
 
+## Editor signatures
+
+`c` is the common container family, not a variable bounded by a list of concrete
+collection implementations. `c<a>` records the element type; `c[3, 4]<i>` also
+records proven dimensions. Independent container arguments all use `c`:
+repeating that family name does not assert identical concrete implementations.
+Type variables such as `a` still express relationships between element types.
+
+Scalar/value categories retain their names, including `text`, `bytes`, `tuple`,
+`record` and SQL `column`. The footer uses `i` for integer, `r` for real, and
+`number` for either. Scalar cell ranks are implicit; other ranks remain explicit.
+
+General receiver signatures include `len · c → i` and `shape · c → c<i>`.
+The sum signature uses `c<number | missing>` without enumerating collection
+implementations. New collection types use the same display family automatically.
+Concrete kinds remain in the internal contracts for validation, dispatch and
+analysis; display abstraction does not make an unsupported operation callable.
+
+Common collection operations use capabilities in their actual contracts, not
+only in their displayed signatures. `sum` accepts an `iterable<number | missing>`;
+extrema, boolean reductions and statistics declare their own element requirements.
+The internal capability names display as `c`; they are not concrete runtime kinds.
+
+[Collection declarations](../../packages/language/src/collection-capabilities.ts)
+associate each kind with its capabilities and storage protocol. The analyzer checks
+those declarations and the runtime selects the corresponding adapters. New kinds
+reuse a protocol or supply an adapter; adding one does not require editing each
+consumer's kind list. TypeScript checks that every declared protocol has adapters
+for its capabilities.
+
+The runtime separates element traversal, size and axes, ordered access and
+rebuilding, slicing, indexed access and tensor storage. `min`, `max`, `all`, `any`,
+`count`, `reduce`, `lcm` and statistical reductions use element sources. `len` and
+`shape` use size/axis access; a tuple can have a length without exposing axes.
+`first`, `last`, `reverse`, `sort`, `argsort` and `unique` use ordered/rebuilding
+access. `take` and `drop` use slice access. Axis selection uses indexed access,
+and matrix algorithms obtain tensor storage views.
+
+Capabilities preserve each operation's successful-result rules: first/last select
+whole leading-axis cells of a matrix, reverse reverses that axis, queue unique
+returns a queue, and sequence unique stays lazy and restartable. A capability
+never implies a known size or finite traversal. Size inspection does not read
+known tensor cells; operations requiring a finite sequence still reject an infinite
+one. SQL retains its separate query execution paths.
+
+Optional source hooks preserve planned reductions, masked and dense numeric
+kernels and streaming access. The direct array indexing and compiled paths remain
+specialized optimizations; shared interfaces provide the general access path.
+
+Equivalent scalar bounds are defined once after the alternatives. Different
+bounds and independent variables keep different letters. A repeated scalar union
+can use `u = …`; that equality abbreviates a union without correlating its uses.
+
+Text helpers explain elementwise container mapping and SQL dispatch separately.
+Their actual supported argument combinations remain in the full contracts. Known
+arguments preserve their element types and proven dimensions; value-dependent
+results can still retain more than one alternative.
+
 ## Record bindings
 
 An ordinary record binding retains its field names and recursive field types
@@ -241,7 +299,7 @@ B = Material twice
 specialization. Reading cells, or calling `copy`, does not create another
 specialization. Multiplication propagates its result type using the same scalar
 operator rules as the analyzer; it does not execute a cell to discover its type.
-For matrices, transpose displays `array[n, m]<a> → array[m, n]<a>`.
+For matrices, transpose displays `c[n, m]<a> → c[m, n]<a>`.
 Its generic array alternative remains available for other ranks. Known
 input axes appear reversed in the result, including zero-length axes.
 
@@ -329,8 +387,8 @@ preserves a relationship that `number → number` would hide.
 
 `?` means unknown information. Repeated letters such as `a → a` denote an
 established relationship; unrelated unknowns display as `? → ?`.
-`array[#, #]<real>` has exactly two axes of unspecified size, while
-`array<real>` has unspecified rank. A `[rank 2]` annotation describes the
+`c[#, #]<real>` has exactly two axes of unspecified size, while
+`c<real>` has unspecified rank. A `[rank 2]` annotation describes the
 processed cell rank, independently of the whole array's rank.
 
 Numeric-preserving contracts use a shared type variable with a finite domain:
@@ -350,7 +408,7 @@ alternatives, not independent unions of inputs and outputs. Supported helper
 calls carry the intermediate types through the same analysis.
 
 The notebook displays up to two scalar and two collection alternatives.
-Matching array and sequence alternatives share a container variable: for
+Matching array and sequence alternatives use the container family: for
 `return X + 1`, the collection signature is
 `c<i> → c<i>`. Function previews abbreviate integer as `i` and real as
 `r`; source declarations still use their full names.
@@ -382,41 +440,34 @@ keeps its binding type across loop iterations: assigning `X / 2` to an integer
 local is a type conflict, not promotion to real. Branch joins track uncertainty
 without allowing a write to violate any of the possible binding contracts.
 For example, the trial-division generator `facts`
-shows `integer → sequence<integer>` for its integer input alternative. Sequence
+shows `integer → c<integer>` for its integer input alternative. Sequence
 length and termination remain unknown. Locals defined only inside a possibly
 empty loop or only on one continuing branch do not establish a cell type.
 
 This generator analysis is for display only. Captures, helper calls, nested or
 ranked generators and unsupported statements keep their element domains unresolved;
-an ordinary generator can still display `a → sequence`. It shares a fixed work
+an ordinary generator can still display `a → c`. It shares a fixed work
 budget across candidate inputs and nested loops and retains the explicit
 unresolved remainder. It neither runs the body nor changes runtime type checks.
 
-### Finite container variables in signatures
+### Container matching and display
 
-`c<a> → c<a>` abbreviates two concrete rows. By convention, `c`, `d`,
-`e` and `f` range over array and sequence, so this default domain is not
-repeated in the preview:
-`array<a> → array<a>` and `sequence<a> → sequence<a>`. Matching expands
-these alternatives and keeps each input/result relationship together. Known
-arguments select their concrete kind; unresolved kinds stay compact when all
-alternatives retain the same element relationship. The accepted set remains explicit in the structured contract; domains other
-than array and sequence are also printed. Repeated `c` means the same kind; separate `c` and `d` may be the same
-or different kinds. Type variables `a`, `b` and container variables `c`, `d`,
-`e`, `f` have separate names and are local to one signature.
+The structured contracts keep finite, nominal collection alternatives for matching.
+Their internal container IDs preserve input/result kind relationships. The public
+preview abstracts every such kind to `c`, without printing kind bounds. Repeated
+`c` describes the container family; only explicit element variables such as `a`
+assert a relationship in the display. Thus `reverse` can display `c<a> → c<a>`
+even when its result has a different concrete implementation from its input.
 
-A concrete result remains concrete: `reverse` accepts a queue, stack, deque or
-finite sequence through `c<a>`, but returns `array<a>`. Collection writes to a
-set, counter or multiset preserve their input kind. Scalar mapping operations
-that already support arrays and sequences use the same finite notation.
-These display and matching contracts do not establish shape relationships,
-callback safety or compiler eligibility.
+Adding a collection implementation does not require extending a display inventory.
+The operation's structured contract still determines which arguments it accepts.
+This notation does not establish callback safety or compiler eligibility.
 
 ### Array shape references in signatures
 
-An array signature can describe its axes: `array[n, m]`, a square
-`array[n, n]`, known sizes `array[3, 3]`, or anonymous sizes `array[#, #]`.
-These are exact axis lists. `array[…s, n, n]` accepts zero or more leading
+An array signature can describe its axes: `c[n, m]`, a square
+`c[n, n]`, known sizes `c[3, 3]`, or anonymous sizes `c[#, #]`.
+These are exact axis lists. `c[…s, n, n]` accepts zero or more leading
 frame axes and two trailing square axes. A `[rank 2]` annotation separately
 states the default processed cell rank. A queue or sequence does not acquire
 array axes through a container-kind variable.

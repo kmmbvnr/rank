@@ -114,7 +114,8 @@ export function inferFunctionContract(summary: FunctionRelationship, arity: numb
 /** A bounded summary; detailed alternatives retain all correlations above.
  * Numeric rows lead the display; unresolved alternatives stay in the contract. */
 export function summarizeFunctionContract(contract: FunctionContract,
-    format: (signature: TypeSignature) => string): string | undefined {
+    format: (signature: TypeSignature) => string,
+    formatAlternatives?: (signatures: readonly TypeSignature[]) => string): string | undefined {
     if (!contract.alternatives.length) return undefined;
     const scalar = contract.alternatives.filter(row => row.inputs.every(input => typeof input === 'string' || typeof input === 'object' && 'variable' in input));
     const numericInput = (type: SignatureType): boolean => type === 'integer' || type === 'real'
@@ -122,7 +123,7 @@ export function summarizeFunctionContract(contract: FunctionContract,
             || type.domain.length > 0 && type.domain.every(atom => atom === 'integer' || atom === 'real'));
     const numeric = scalar.filter(row => row.inputs.every(numericInput)
         && row.inputs.some(input => typeof input === 'string' || 'variable' in input && !!input.domain));
-    const rows = (contract.symbolic && numeric.length ? numeric : scalar).slice(0, 2).map(format);
+    const rows: TypeSignature[] = (contract.symbolic && numeric.length ? numeric : scalar).slice(0, 2);
     if (!rows.length) return undefined;
     // Collapse only matching array/sequence rows with the same inherited frame.
     // A shared container variable preserves the input/result kind correlation.
@@ -146,6 +147,6 @@ export function summarizeFunctionContract(contract: FunctionContract,
         lifted.set(key, group);
     }
     rows.push(...[...lifted.values()].filter(group => group.kinds.size === 2)
-        .slice(0, 2).map(group => format(group.signature)));
-    return rows.join(' ; ');
+        .slice(0, 2).map(group => group.signature));
+    return formatAlternatives ? formatAlternatives(rows) : rows.map(format).join(' ; ');
 }

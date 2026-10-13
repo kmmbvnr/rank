@@ -23,7 +23,7 @@ import { shuffleValue } from '../modules/random.js';
 import { directedMerge } from '../modules/sorted-merge.js';
 import {
     argsortAxis, directedSort, lengthOfAxis, materializeCollection, reshapeWithDimensions, reshapeWithShapeRows,
-    sortDescending, sortMode, stackValues, concatValues, transposeValue,
+    sortDescending, sortMode, stackValues, concatValues, transposeValue, uniqueLength,
     type SortMode,
 } from '../modules/sequences.js';
 import { correlationValue, covarianceValue, errorMetricValue, quantileValue } from '../modules/stats.js';
@@ -873,6 +873,17 @@ export class ApplicationEvaluator {
                 pending,
                 parts => context.select(parts),
             );
+            const next = values[index + 1];
+            if (arguments_.length === 1 && isNativeFunction(next)
+                && context.builtins.is('sequences', 'unique', value)
+                && context.builtins.is('core', 'len', next)) {
+                const count = uniqueLength(arguments_[0]);
+                if (count !== undefined) {
+                    pending = [count];
+                    index += 1;
+                    continue;
+                }
+            }
             if (tail && index === values.length - 1 && context.resources.currentScopeEmpty()) {
                 context.functions.throwTailCall(value, arguments_);
             }

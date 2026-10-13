@@ -1,3 +1,4 @@
+import { displayTypeName } from '@arrrank/language';
 import type { InspectAxis, InspectCell, InspectedValue } from './value-inspection.js';
 
 /** Where the window sits on one axis, so a viewer can draw a scroll bar and ask for the next page. */
@@ -50,15 +51,15 @@ const range = (offset: number, count: number): string[] => Array.from({ length: 
 /** The view of one window of a held value, titled by the name a viewer shows. */
 export function buildValueView(title: string, value: InspectedValue): ValueView {
     switch (value.kind) {
-        case 'scalar': return { kind: 'text', title, typeLine: value.type, text: value.text };
-        case 'opaque': return { kind: 'text', title, typeLine: value.type, text: value.text };
+        case 'scalar': return { kind: 'text', title, typeLine: displayTypeName(value.type), text: value.text };
+        case 'opaque': return { kind: 'text', title, typeLine: displayTypeName(value.type), text: value.text };
         case 'array': case 'table': {
             const [rows, columns] = value.axes;
             const element = commonType(value.cells);
             const shape = `[${value.shape.join(' ')}]`;
             return {
                 kind: 'grid', title,
-                typeLine: [value.type, element, shape].filter(Boolean).join(' · '),
+                typeLine: [displayTypeName(value.type), element && displayTypeName(element), shape].filter(Boolean).join(' · '),
                 rowLabels: range(rows.offset, rows.count),
                 columnLabels: value.columns ? [...value.columns]
                     : columns ? range(columns.offset, columns.count) : [''],
@@ -71,7 +72,7 @@ export function buildValueView(title: string, value: InspectedValue): ValueView 
         }
         case 'entries':
             return {
-                kind: 'list', title, typeLine: `${value.type} · ${value.size}`,
+                kind: 'list', title, typeLine: `${displayTypeName(value.type)} · ${value.size}`,
                 rows: value.entries.map(entry => [entry.key, entry.value.text] as const),
                 scroll: { length: value.size, offset: value.offset, count: value.entries.length },
             };
@@ -79,7 +80,7 @@ export function buildValueView(title: string, value: InspectedValue): ValueView 
             const size = value.size.kind === 'exact' ? `${value.size.value} values`
                 : value.size.kind === 'infinite' ? 'unbounded' : 'size unknown';
             return {
-                kind: 'list', title, typeLine: `sequence · ${size}`,
+                kind: 'list', title, typeLine: `c · ${size}`,
                 rows: value.items.map((item, index) => [String(value.offset + index), item.text] as const),
                 scroll: { length: value.forced, offset: value.offset, count: value.items.length },
                 note: `${value.forced} read so far${value.finished ? ', ended' : ''}`,

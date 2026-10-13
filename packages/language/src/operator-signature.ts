@@ -1,5 +1,5 @@
 import type { ValueFacts } from './analysis/value-domain.js';
-import { formatTypeSignature, matchingSignatures, signatureType, type SignatureFormatOptions, type SignatureType, type TypeSignature } from './type-signature.js';
+import { formatTypeSignature, formatTypeSignatures, matchingSignatures, signatureType, type SignatureFormatOptions, type SignatureType, type TypeSignature } from './type-signature.js';
 
 const nullableBoolean: SignatureType = { union: ['boolean', 'missing'] };
 const binary = (left: SignatureType, right: SignatureType, result: SignatureType): TypeSignature =>
@@ -92,10 +92,13 @@ export function operatorSignature(name: string, inputs?: readonly ValueFacts[], 
     const knownColumn = inputs?.some(input => input.types.length === 1 && input.types[0] === 'sqlite-expression');
     const signatures = knownColumn && columns.length ? columns : [...declared, ...columns];
     const selected = inputs ? matchingSignatures(signatures, inputs) : signatures;
-    return selected.length ? [...new Set(selected.map(signature => formatTypeSignature(options.compact && inputs
+    if (!selected.length) return undefined;
+    const rows = selected.map(signature => options.compact && inputs
         ? { ...signature, inputs: signature.inputs.map((input, index) => inputs[index]?.types.length
             && inputs[index].rank === 0 && (input === 'unknown'
                 || input === 'number' && inputs[index].types.every(type => type === 'integer' || type === 'real'))
             ? signatureType(inputs[index]) : input) }
-        : signature, options)))].join(' ; ') : undefined;
+        : signature);
+    return options.compact ? formatTypeSignatures(rows, options)
+        : [...new Set(rows.map(signature => formatTypeSignature(signature, options)))].join(' ; ');
 }

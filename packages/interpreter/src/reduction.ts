@@ -1,3 +1,4 @@
+import { elementSource } from './element-source.js';
 import { denseScalarItems, derivedArray, materializeCells, eagerOperandItems, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { standardModules } from './modules/index.js';
@@ -6,7 +7,7 @@ import { sumIndexed } from './modules/numbers.js';
 import { statisticsCell } from './modules/stats.js';
 import { numericKernel } from './numeric-kernels.js';
 import { reduceWindowCell, scanSequence } from './sequence.js';
-import { isNativeFunction, isRankArray, isRankQueue, isRankSequence, valueRank,
+import { isNativeFunction, isRankArray, isRankSequence, valueRank,
     type NativeFunction, type RankArray, type RankValue } from './value.js';
 
 const arrayItem = readArrayItem;
@@ -258,8 +259,8 @@ export class ReductionEvaluator {
 
     private reduceCell(operator: string, value: RankValue, seed?: RankValue): RankValue {
         if (isRankArray(value)) return this.reduceArrayCell(operator, value, 0, arraySize(value.shape), seed);
-        if (seed === undefined && isRankSequence(value)) {
-            const planned = value.plan.reduce?.(operator);
+        if (seed === undefined) {
+            const planned = elementSource(value, operator, 'reduce')?.reduce?.(operator);
             if (planned !== undefined) return planned;
         }
         const values = reductionValues(value, operator);
@@ -308,28 +309,8 @@ function realView(cells: ArrayLike<RankValue>): ArrayLike<number> | undefined {
 }
 
 export function* reductionValues(value: RankValue, operation: string): IterableIterator<RankValue> {
-    if (isRankArray(value)) {
-        for (let index = 0; index < arraySize(value.shape); index += 1) {
-            yield arrayItem(value, index);
-        }
-        return;
-    }
-    if (isRankQueue(value)) {
-        yield* value.items;
-        return;
-    }
-    if (typeof value === 'string') {
-        yield* value;
-        return;
-    }
-    if (isRankSequence(value)) {
-        if (value.plan.size.kind === 'infinite') {
-            throw new RankError(`reduce ${operation} requires a bounded sequence`);
-        }
-        yield* value.plan.iterate();
-        return;
-    }
-    yield value;
+    const source = elementSource(value, `reduce ${operation}`, 'reduce');
+    yield* source ? source.values() : [value];
 }
 
 function reductionIdentity(operator: string): RankValue {

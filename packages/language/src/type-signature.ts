@@ -1,11 +1,22 @@
 import type { ValueRequirement } from './analysis/requirements.js';
 import { sameDim, type Dim } from './analysis/shape-index.js';
 import { formatShapePattern, type ShapePattern } from './shape-signature.js';
-import { instantiateTypeSignatures, containerVariableDomains, typeVariableDomains } from './signature-matching.js';
+import { instantiateTypeSignatures, typeVariableDomains } from './signature-matching.js';
 export { instantiateTypeSignature, instantiateTypeSignatures, inferSignatureResultTypes } from './signature-matching.js';
 import type { ValueFacts } from './analysis/value-domain.js';
 import type { Operation } from './operations.js';
 import { operationShapeFacts } from './analysis/operation-shape.js';
+import { compactSignatures } from './signature-compaction.js';
+import { isCollectionRequirement, matchesCollectionKind } from './collection-capabilities.js';
+
+/** Public scalar/value categories. Concrete collection implementations all display as `c`. */
+const VALUE_TYPES = new Set(['unknown', 'integer', 'real', 'number', 'boolean', 'text', 'symbol', 'missing',
+    'date', 'datetime', 'duration', 'bytes', 'tuple', 'record', 'object', 'column', 'function', 'file', 'database']);
+
+export function displayTypeName(name: string): string {
+    const type = name === 'sqlite-expression' ? 'column' : name === 'sqlite-database' ? 'database' : name;
+    return VALUE_TYPES.has(type) ? type : 'c';
+}
 
 /** Public language types for display. Compiler eligibility is a separate contract. */
 export type SignatureAtom =
@@ -13,7 +24,10 @@ export type SignatureAtom =
     | 'date' | 'datetime' | 'duration' | 'bytes' | 'array' | 'sequence' | 'tuple' | 'record'
     | 'table' | 'view' | 'column' | 'object' | 'function' | 'file' | 'database' | 'queue' | 'stack' | 'deque' | 'heap'
     | 'set' | 'counter' | 'multiset' | 'index' | 'graph' | 'dsu' | 'segment' | 'fenwick'
-    | 'wavelet' | 'functional';
+    | 'wavelet' | 'functional'
+    /** A source of elements, matched by capability rather than nominal kind. */
+    | 'iterable' | 'extrema-source' | 'boolean-source' | 'statistical-source' | 'reducible'
+    | 'ordered-source' | 'sized' | 'shaped' | 'sortable' | 'distinct' | 'sliceable' | 'tensor';
 
 export type SignatureContainer = 'array' | 'sequence' | 'queue' | 'stack' | 'deque' | 'heap'
     | 'set' | 'counter' | 'multiset';
@@ -23,7 +37,7 @@ export type SignatureType = SignatureAtom
     | { readonly variable: number; readonly domain?: readonly SignatureAtom[] }
     | { readonly label: string }
     | { readonly union: readonly SignatureType[] }
-    /** `rank` counts the axes of an array whose rank is proven, written `array[#, #]<integer>`. */
+    /** `rank` counts the axes of an array whose rank is proven, written `c[#, #]<integer>`. */
     | { readonly collection: SignatureAtom; readonly element: SignatureType; readonly rank?: number; readonly shape?: ShapePattern; readonly dims?: readonly (Dim | null)[] }
     /** Finite sugar for concrete collection rows; repeated IDs share their kind. */
     | { readonly container: number; readonly kinds: readonly SignatureContainer[]; readonly element: SignatureType }
@@ -66,27 +80,48 @@ export interface SignatureFormatOptions {
 
 /** Format facts supplied by the catalogue or analyzer; never infer them from operand names. */
 export function formatTypeSignature(signature: TypeSignature, options: SignatureFormatOptions = {}): string {
+    return formatSignature(signature, options);
+}
+
+interface SignatureNames {
+    variable(domain: SignatureType | undefined, occurrence: number): string;
+}
+
+function variableNames(shortNumericNames: boolean | undefined): () => string {
+    let next = 0;
+    const fresh = (): string => {
+        let index = next++;
+        if (index === 2) return fresh(); // c is the container family, never a type variable.
+        if (shortNumericNames && (index === 8 || index === 17)) return fresh();
+        return index < 26 ? String.fromCharCode(97 + index) : `t${index + 1}`;
+    };
+    return fresh;
+}
+
+const domainKey = (domain: SignatureType | undefined): string => domain && typeof domain === 'object' && 'union' in domain
+    ? JSON.stringify(domain.union.map(domainKey).sort()) : JSON.stringify(domain) ?? 'unbounded';
+
+function formatSignature(signature: TypeSignature, options: SignatureFormatOptions, names?: SignatureNames): string {
     const variables = new Map<number, string>();
     const constraints = new Map<number, readonly SignatureAtom[]>();
-    const kinds = containerVariableDomains(signature);
-    const containers = new Map<number, string>();
+    const domains = typeVariableDomains(signature);
+    const occurrences = new Map<string, number>();
+    const occurrence = (key: string): number => {
+        const index = occurrences.get(key) ?? 0;
+        occurrences.set(key, index + 1);
+        return index;
+    };
     const dimensions: Dim[] = [];
     const dimensionName = (dim: Dim): string => {
         let index = dimensions.findIndex(prior => sameDim(prior, dim));
         if (index < 0) { index = dimensions.length; dimensions.push(dim); }
         return ['n', 'm', 'k'][index] ?? `n${index + 1}`;
     };
-    let next = 0;
-    const fresh = (): string => {
-        let index = next++;
-        if (kinds.size && index >= 2) index += 4;
-        if (options.shortNumericNames && (index === 8 || index === 17)) return fresh();
-        return index < 26 ? String.fromCharCode(97 + index) : `t${index + 1}`;
-    };
+    const fresh = variableNames(options.shortNumericNames);
     const type = (value: SignatureType, operand = false): string => {
         if (typeof value === 'string') return value === 'unknown' ? '?'
             : options.shortNumericNames && value === 'integer' ? 'i'
-            : options.shortNumericNames && value === 'real' ? 'r' : value;
+            : options.shortNumericNames && value === 'real' ? 'r' : displayTypeName(value);
         if ('label' in value) return `.${value.label}`;
         if ('variable' in value) {
             const required = options.variableRequirements?.get(value.variable);
@@ -97,7 +132,11 @@ export function formatTypeSignature(signature: TypeSignature, options: Signature
                     ? rank.min : `${rank.min}..${rank.max}`}]`;
             }
             let name = variables.get(value.variable);
-            if (!name) variables.set(value.variable, name = fresh());
+            if (!name) {
+                const domain = domains?.get(value.variable);
+                variables.set(value.variable, name = names
+                    ? names.variable(domain, occurrence(`type:${domainKey(domain)}`)) : fresh());
+            }
             if (value.domain) constraints.set(value.variable, value.domain);
             return name;
         }
@@ -114,16 +153,13 @@ export function formatTypeSignature(signature: TypeSignature, options: Signature
             return operand && compact.length > 1 ? `(${text})` : text;
         }
         if ('collection' in value) {
-            if (value.collection === 'array' && value.shape) return `array[${formatShapePattern(value.shape.map((size, axis) => size ?? (value.dims?.[axis] ? dimensionName(value.dims[axis]!) : null)))}]<${type(value.element)}>`;
+            if (value.collection === 'array' && value.shape) return `c[${formatShapePattern(value.shape.map((size, axis) => size ?? (value.dims?.[axis] ? dimensionName(value.dims[axis]!) : null)))}]<${type(value.element)}>`;
             // Exact rank: each `#` represents one axis of unknown size.
-            if (value.collection === 'array' && value.rank) return `array[${Array(value.rank).fill('#').join(', ')}]<${type(value.element)}>`;
-            return `${value.collection}<${type(value.element)}>`;
+            if (value.collection === 'array' && value.rank) return `c[${Array(value.rank).fill('#').join(', ')}]<${type(value.element)}>`;
+            return `c<${type(value.element)}>`;
         }
         if ('container' in value) {
-            let name = containers.get(value.container);
-            if (!name) containers.set(value.container, name = containers.size < 4
-                ? String.fromCharCode(99 + containers.size) : `c${containers.size + 1}`);
-            return `${name}<${type(value.element)}>`;
+            return `c<${type(value.element)}>`;
         }
         if ('tuple' in value) return `tuple(${value.tuple.map(item => type(item)).join(', ')})`;
         return `(${body(value.callback)})`;
@@ -136,14 +172,63 @@ export function formatTypeSignature(signature: TypeSignature, options: Signature
         return `${inputs ? inputs + ' ' : ''}→ ${result}${ranks}`;
     };
     const formatted = body(signature);
-    const domains = typeVariableDomains(signature);
     const bounds = [...constraints].map(([id, domain]) =>
         `${variables.get(id)}: ${type(domains?.get(id) ?? { union: domain })}`);
-    bounds.push(...[...containers].filter(([id]) => {
-        const domain = kinds.get(id)!;
-        return domain.length !== 2 || !domain.includes('array') || !domain.includes('sequence');
-    }).map(([id, name]) => `${name}: ${kinds.get(id)!.join(' | ')}`));
     return formatted + (bounds.length ? ` ; ${bounds.join(' ; ')}` : '');
+}
+
+/** Alternatives share a naming table, but never merge independent variables within one row. */
+export function formatTypeSignatures(signatures: readonly TypeSignature[], options: SignatureFormatOptions = {}): string {
+    const fresh = variableNames(options.shortNumericNames);
+    const variables = new Map<string, string>();
+    const names: SignatureNames = {
+        variable(domain, occurrence) {
+            const key = `${domainKey(domain)}:${occurrence}`;
+            let name = variables.get(key);
+            if (!name) variables.set(key, name = fresh());
+            return name;
+        },
+    };
+    const bodies = new Set<string>(), bounds = new Map<string, string>();
+    for (const signature of signatures) {
+        for (const part of formatSignature(signature, options, names).split(' ; ')) {
+            if (part.includes('→')) bodies.add(part);
+            else {
+                const name = part.slice(0, part.indexOf(':'));
+                if (!bounds.has(name)) bounds.set(name, part);
+            }
+        }
+    }
+    const formatted = [...bodies, ...bounds.values()];
+    return options.compact ? abbreviateUnions(formatted) : formatted.join(' ; ');
+}
+
+/** A union abbreviation is an equality, not a shared type variable: its uses remain independent. */
+function abbreviateUnions(formatted: readonly string[]): string {
+    const rows = formatted.join(' ; ');
+    const unions = new Map<string, number>();
+    // Only flat atom unions in signature bodies. Bounds retain their full definitions.
+    const atom = `(?:${[...VALUE_TYPES, 'i', 'r', 'c'].join('|')})`;
+    const pattern = new RegExp(`\\b${atom}(?: \\| ${atom}){3,}\\b`, 'g');
+    for (const row of rows.split(' ; ').filter(row => row.includes('→'))) {
+        for (const match of row.matchAll(pattern)) unions.set(match[0], (unions.get(match[0]) ?? 0) + 1);
+    }
+    const aliases: [string, string][] = [];
+    let index = 0;
+    for (const [union, count] of unions) {
+        if (count < 2) continue;
+        let name: string;
+        do { name = ['u', 'v', 'w'][index] ?? `u${index + 1}`; index++; }
+        while (new RegExp(`\\b${name}\\b`).test(rows));
+        aliases.push([union, name]);
+    }
+    const bodies = rows.split(' ; ').map(row => {
+        if (!row.includes('→')) return row;
+        for (const [union, name] of aliases) row = row.replace(new RegExp(`\\b${union.split('|').join('\\|')}\\b`, 'g'), name)
+            .split(`(${name})`).join(name);
+        return row;
+    });
+    return [...bodies, ...aliases.map(([union, name]) => `${name} = ${union}`)].join(' ; ');
 }
 
 /** Filter only proven domain mismatches. An incomplete or invalid call still shows the declared alternatives. */
@@ -155,7 +240,7 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
             pattern === 'number' ? type === 'integer' || type === 'real'
                 : pattern === 'column' ? type === 'sqlite-expression'
                 : pattern === 'view' ? type === 'sqlite-table'
-                : pattern === 'database' ? type === 'sqlite-database' : type === pattern);
+                : pattern === 'database' ? type === 'sqlite-database' : matchesCollectionKind(pattern, type));
         if ('label' in pattern) return value.types.includes('symbol');
         if ('variable' in pattern) return !pattern.domain || matches({ union: pattern.domain }, value);
         if ('union' in pattern) return pattern.union.some(part => matches(part, value));
@@ -175,14 +260,20 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
             ? { types: value.types[0] === 'bytes' ? ['integer'] : value.elements ?? [] } : value;
     };
     const narrow = (pattern: SignatureType, value: ValueFacts): SignatureType => {
-        if (!value.types.length || typeof pattern === 'string') return pattern;
+        if (!value.types.length) return pattern;
+        if (typeof pattern === 'string') return isCollectionRequirement(pattern) && value.types.length === 1
+            ? signatureType(value) : pattern;
         if ('union' in pattern) {
             const members = pattern.union.filter(part => matches(part, value)).map(part => narrow(part, value));
             return members.length === 1 ? members[0] : members.length ? { union: members } : pattern;
         }
-        if ('collection' in pattern && value.elements?.length) return { ...pattern,
-            element: narrow(pattern.element, { types: value.elements }), ...arrayRank(pattern.collection, value.rank),
-            ...(pattern.collection === 'array' && !pattern.shape && value.shape ? { shape: value.shape } : {}) };
+        if ('collection' in pattern && value.elements?.length) {
+            const collection = isCollectionRequirement(pattern.collection) && value.types.length === 1
+                ? value.types[0] as SignatureAtom : pattern.collection;
+            return { ...pattern, collection,
+                element: narrow(pattern.element, { types: value.elements }), ...arrayRank(collection, value.rank),
+                ...(collection === 'array' && !pattern.shape && value.shape ? { shape: value.shape } : {}) };
+        }
         return pattern;
     };
     const candidates = arity.flatMap(signature => {
@@ -196,6 +287,10 @@ export function matchingSignatures(signatures: readonly TypeSignature[], inputs:
 
 /** Unknown metadata stays unknown; result roles and operand spelling are not type contracts. */
 export function operationSignature(operation: Operation, inputs?: number | readonly ValueFacts[], options: SignatureFormatOptions = {}): string | undefined {
+    if (options.compact && operation.signatures?.length && operation.argumentMapping) {
+        const summary = argumentMappingSummary(operation.argumentMapping, inputs, options);
+        if (summary) return summary;
+    }
     const signatures = typeof inputs === 'number'
         ? operation.signatures?.filter(signature => signature.inputs.length === inputs)
         : inputs ? matchingSignatures(operation.signatures ?? [], inputs) : operation.signatures;
@@ -222,5 +317,26 @@ export function operationSignature(operation: Operation, inputs?: number | reado
         }
         return { ...signature, result: shapeResult(result) };
     };
-    return signatures?.length ? [...new Set(signatures.map(signature => formatTypeSignature(ranked(signature), options)))].join(' ; ') : undefined;
+    if (!signatures?.length) return undefined;
+    const rows = signatures.map(ranked);
+    return options.compact ? formatTypeSignatures(compactSignatures(rows), options)
+        : [...new Set(rows.map(signature => formatTypeSignature(signature, options)))].join(' ; ');
+}
+
+/** Explain argument-wise mapping once; proven calls continue through the full overload matcher. */
+function argumentMappingSummary(mapping: NonNullable<Operation['argumentMapping']>, inputs: number | readonly ValueFacts[] | undefined,
+    options: SignatureFormatOptions): string | undefined {
+    if (typeof inputs === 'object' && inputs.every(input => input.types.length === 1
+        && (input.types[0] !== 'array' || !!input.elements?.length))) return undefined;
+    const arity = typeof inputs === 'number' ? inputs : inputs?.length;
+    const bases = mapping.bases.filter(base => arity === undefined || base.inputs.length === arity);
+    if (!bases.length) return undefined;
+    const cells = typeof inputs === 'object' ? inputs.map((input): ValueFacts => {
+        const types = input.types.includes('array') ? input.elements?.length
+            ? [...new Set([...input.types.filter(type => type !== 'array'), ...input.elements])] : [] : input.types;
+        return { types: types.includes('sqlite-expression') ? [] : types };
+    }) : undefined;
+    const selected = cells ? matchingSignatures(bases, cells) : bases;
+    return [formatTypeSignatures(selected, options), 'containers: elementwise', 'SQL: column result',
+        mapping.columns === 'recursive' ? 'containers + SQL: c<column> result' : 'containers + SQL: unsupported'].join(' ; ');
 }

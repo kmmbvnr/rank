@@ -1,8 +1,11 @@
+import { orderedSource } from '../ordered-source.js';
+import { collectionSize } from '../collection-size.js';
+import { elementSource } from '../element-source.js';
 import { inheritArrayDeclaration } from '../array-declaration.js';
 import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, denseScalarItems, readArrayItem, realCells, shouldStream, streamCells, typedArray, typedElementKind } from '../array-storage.js';
+import { ownedArray, derivedArray, denseScalarItems, readArrayItem, realCells, typedArray, typedElementKind } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
@@ -15,20 +18,14 @@ import { mergeSorted } from './sorted-merge.js';
 import { broadcastShape, chooseDenseArrays } from '../tensor.js';
 import { isKnownFileFree } from '../resource-summary.js';
 import {
-    isRankTuple, isRankArray,
+    isRankArray,
     isRankCounter,
-    isRankGraph,
-    isRankDsu,
     isRankMultiset,
-    isRankObject,
     isRankQueue,
     isRankSequence,
     isRankSqliteExpression,
     isRankSqliteTable,
-    isRankTable,
     isRankTableAlias,
-    isRankSegment,
-    isRankWavelet,
     isRankSet,
     isRankLabel,
     tuple,
@@ -91,71 +88,17 @@ export const sequencesModule: RuntimeModule = {
  * queue, stack, deque or finite sequence as an array; a queue is left in place. The result is a new value; typed storage stays typed.
  */
 function reverseValue(value: RankValue): RankValue {
-    if (typeof value === 'string') {
-        let reversed = '';
-        for (let index = value.length - 1; index >= 0; index -= 1) {
-            const code = value.charCodeAt(index);
-            if (code >= 0xdc00 && code <= 0xdfff && index > 0) {
-                const prior = value.charCodeAt(index - 1);
-                if (prior >= 0xd800 && prior <= 0xdbff) {
-                    reversed += value.slice(index - 1, index + 1);
-                    index -= 1;
-                    continue;
-                }
-            }
-            reversed += value[index];
-        }
-        return reversed;
-    }
-    if (isRankArray(value) && value.shape.length > 0) {
-        const [rows, ...rest] = value.shape;
-        const width = rest.reduce((product, dimension) => product * dimension, 1);
-        const total = rows * width;
-        const kind = typedElementKind(value);
-        const reals = realCells(value) !== undefined;
-        const out: RankValue[] | Float64Array | BigInt64Array = reals ? new Float64Array(total)
-            : kind === 'integer' ? new BigInt64Array(total) : new Array(total);
-        const cells = out as unknown as RankValue[];
-        for (let row = 0; row < rows; row += 1) {
-            if ((row & 0xfff) === 0) checkpoint('reversing array');
-            const from = (rows - 1 - row) * width;
-            for (let column = 0; column < width; column += 1) {
-                cells[row * width + column] = readArrayItem(value, from + column);
-            }
-        }
-        if (!Array.isArray(out)) return typedArray(out, value.shape);
-        return ownedArray(out, value.shape, denseScalarItems(value) !== undefined);
-    }
-    if (value instanceof RankDeque || isRankQueue(value)) return ownedArray([...value.items].reverse());
-    if (isRankSequence(value)) {
-        if (value.plan.size.kind === 'infinite') {
-            throw new RankError('reverse requires a finite sequence', 'TypeError');
-        }
-        return ownedArray([...value.plan.iterate()].reverse());
-    }
-    throw new RankError('reverse expects text, an array, a queue or a finite sequence', 'TypeError');
+    const source = orderedSource(value, 'ordered', 'reverse');
+    if (!source?.reverse) throw new RankError('reverse expects text, an array, a queue or a finite sequence', 'TypeError');
+    return source.reverse();
 }
 
 /** `Values first` and `Values last`: an end of the leading axis, missing when it is empty. */
 function endItem(value: RankValue, back: boolean): RankValue {
     const name = back ? 'last' : 'first';
-    if (value instanceof RankDeque) return value.peek(back);
-    if (typeof value === 'string') {
-        const points = [...value];
-        if (!points.length) throw new MissingValueError('text is empty');
-        return points[back ? points.length - 1 : 0];
-    }
-    if (isRankArray(value) && value.shape.length > 0) {
-        if (!value.shape[0]) throw new MissingValueError('array is empty');
-        return atArray(value, [BigInt(back ? value.shape[0] - 1 : 0)]);
-    }
-    if (isRankSequence(value)) {
-        if (!back) return atSequence(value, 0n);
-        const length = lengthOf(value);
-        if (!length) throw new MissingValueError('sequence is empty');
-        return atSequence(value, length - 1n);
-    }
-    throw new RankError(`${name} expects text, an array, queue or finite sequence`, 'TypeError');
+    const source = orderedSource(value, 'ordered', name);
+    if (!source?.end) throw new RankError(`${name} expects text, an array, queue or finite sequence`, 'TypeError');
+    return source.end(back);
 }
 
 export function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse: RankValue): RankValue {
@@ -254,8 +197,8 @@ function booleanReduction(value: RankValue, operation: 'all' | 'any'): boolean {
 }
 
 function countTrue(value: RankValue): bigint {
-    if (isRankSequence(value)) {
-        const planned = value.plan.reduce?.('count');
+    {
+        const planned = elementSource(value, 'count', 'booleans')?.reduce?.('count');
         if (planned !== undefined) {
             if (typeof planned !== 'bigint') {
                 throw new RankError('count plan must return an integer');
@@ -323,27 +266,8 @@ function* findSource(source: RankValue, operation: string): IterableIterator<Ran
 }
 
 function* collectionValues(value: RankValue, operation: string): IterableIterator<RankValue> {
-    if (value instanceof RankDeque || value instanceof RankHeap) { yield* value.values(); return; }
-    if (isRankArray(value)) {
-        if (shouldStream(value)) { yield* streamCells(value); return; }
-        const size = value.shape.reduce((product, dimension) => product * dimension, 1);
-        for (let index = 0; index < size; index += 1) {
-            yield value.itemAt?.(index) ?? value.items[index];
-        }
-        return;
-    }
-    if (isRankQueue(value)) {
-        yield* value.items;
-        return;
-    }
-    if (isRankSequence(value)) {
-        if (value.plan.size.kind === 'infinite') {
-            throw new RankError(`${operation} requires a bounded sequence`);
-        }
-        yield* value.plan.iterate();
-        return;
-    }
-    yield value;
+    const source = elementSource(value, operation, 'booleans');
+    yield* source ? source.values() : [value];
 }
 
 function copyArray(value: RankValue): RankArray {
@@ -688,115 +612,82 @@ function coordinatesAt(shape: readonly number[], index: number): number[] {
 }
 
 export function lengthOfAxis(value: RankValue, axis: number): bigint {
-    if (isRankArray(value)) {
-        if (axis >= value.shape.length) throw new RankError(`array has no axis ${axis}`);
-        return BigInt(value.shape[axis]);
-    }
+    const source = collectionSize(value);
+    if (source?.axisLength) return source.axisLength(axis);
     if (axis !== 0) throw new RankError(`value has no axis ${axis}`);
-    if (typeof value === 'string' || isRankQueue(value) || isRankGraph(value) || isRankDsu(value)
-        || isRankSegment(value) || isRankWavelet(value)
-        || isRankMultiset(value) || isRankSequence(value)) {
-        return lengthOf(value);
-    }
     throw new RankError('len axis expects text, an array, queue, multiset or sequence');
 }
 
 function shapeOf(value: RankValue): RankValue {
-    const dimensions = isRankArray(value)
-        ? value.shape.map(dimension => BigInt(dimension))
-        : typeof value === 'string' || isRankQueue(value)
-            || isRankMultiset(value) || isRankSegment(value)
-            || isRankWavelet(value) || isRankSequence(value)
-            ? [lengthOf(value)]
-            : undefined;
-    if (!dimensions) {
-        throw new RankError('shape expects text, an array, queue, multiset or sequence');
-    }
-    return ownedArray(dimensions);
+    const dimensions = collectionSize(value, 'shape')?.axes?.();
+    if (!dimensions) throw new RankError('shape expects text, an array, queue, multiset or sequence');
+    return ownedArray([...dimensions]);
 }
 
 export function sortValue(value: RankValue, descending = false): RankValue {
-    const direction = descending ? -1 : 1;
-    if (typeof value === 'string') {
-        return [...value].sort(interruptibleCallback((left, right) =>
-            direction * compareOrderedValues(left, right, 'text'), 'sorting')).join('');
-    }
-    if (!isRankArray(value) || value.shape.length !== 1) {
-        throw new RankError('sort expects text or a rank-1 array');
-    }
-    const items = arrayItems(value);
+    const source = orderedSource(value, 'sortable', 'sort');
+    if (!source?.vector) throw new RankError('sort expects text or a rank-1 array');
+    const items = source.vector();
     const kind = sortableKind(items, 'sort');
-    items.sort(interruptibleCallback((left, right) => direction * compareOrderedValues(left, right, kind), 'sorting'));
-    return ownedArray(items);
+    items.sort(interruptibleCallback((left, right) => (descending ? -1 : 1) * compareOrderedValues(left, right, kind), 'sorting'));
+    return source.build(items);
 }
 
 export function argsortValue(value: RankValue, descending = false): RankArray {
-    const items = typeof value === 'string'
-        ? [...value]
-        : isRankArray(value) && value.shape.length === 1
-            ? arrayItems(value)
-            : undefined;
-    if (!items) throw new RankError('argsort expects text or a rank-1 array');
+    const source = orderedSource(value, 'sortable', 'argsort');
+    if (!source?.vector) throw new RankError('argsort expects text or a rank-1 array');
+    const items = source.vector();
     const order = stableOrder(items, sortableKind(items, 'argsort'), descending);
     return ownedArray(order.map(index => BigInt(index)));
 }
 
+/** Count distinct keys without building the collection produced by unique. */
+export function uniqueLength(value: RankValue): bigint | undefined {
+    // Joining distinct code points can form new surrogate pairs in text.
+    if (typeof value === 'string') return undefined;
+    // Higher-rank arrays use unique's intrinsic rank to process each row.
+    if (isRankArray(value) && value.shape.length > 1) return undefined;
+    // SQLite has its own unique/len query path.
+    if (isRankSqliteTable(value)) return undefined;
+    if (isRankSequence(value) && value.plan.size.kind === 'infinite') return undefined;
+    const source = orderedSource(value, 'unique', 'unique');
+    if (!source) return undefined;
+    if (source.alreadyDistinct) return lengthOf(value);
+    const values = source.values();
+    const keyOf = source.key ?? setValueKey;
+    const seen = new Set<string>();
+    let count = 0n;
+    for (const item of values) {
+        checkpoint('counting distinct values');
+        const key = keyOf(item);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        count += 1n;
+    }
+    return count;
+}
+
 function uniqueValue(value: RankValue): RankValue {
-    if (typeof value === 'string') return uniqueItems([...value]).join('');
-    if (isRankArray(value)) {
-        if (value.shape.length !== 1) throw new RankError('unique expects a rank-1 array');
-        if (value.columnNames) {
-            const seen = new Set<string>();
-            const items = arrayItems(value).filter(row => {
-                if (!isRankObject(row)) throw new RankError('table unique expects object rows', 'TypeError');
-                const key = JSON.stringify(value.columnNames!.map(name => {
-                    const cell = row.entries.get(name);
-                    return cell === undefined ? null : setValueKey(cell);
-                }));
-                if (seen.has(key)) return false;
-                seen.add(key);
-                return true;
-            });
-            const result = ownedArray(items);
-            Object.defineProperty(result, 'columnNames', { value: value.columnNames });
-            return result;
+    const source = orderedSource(value, 'unique', 'unique');
+    if (!source) throw new RankError('unique expects text or a collection');
+    if (source.alreadyDistinct) return value;
+    const values = source.values();
+    const keyOf = source.key ?? setValueKey;
+    const distinct = { *[Symbol.iterator]() {
+        const seen = new Set<string>();
+        for (const item of values) {
+            const key = keyOf(item);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            yield item;
         }
-        const items = uniqueItems(arrayItems(value));
-        return ownedArray(items);
-    }
-    if (isRankQueue(value)) return { kind: 'queue', items: uniqueItems(value.items) };
-    if (isRankSet(value)) return value;
-    if (isRankSequence(value)) {
-        return sequence({
-            name: `unique ${value.plan.name}`,
-            size: { kind: 'unknown' },
-            *iterate() {
-                const seen = new Set<string>();
-                for (const item of value.plan.iterate()) {
-                    const key = setValueKey(item);
-                    if (seen.has(key)) continue;
-                    seen.add(key);
-                    yield item;
-                }
-            },
-        });
-    }
-    throw new RankError('unique expects text or a collection');
+    } };
+    return source.build(distinct);
 }
 
 function arrayItems(value: RankArray): RankValue[] {
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
-    return Array.from({ length: size }, (_, index) => value.itemAt?.(index) ?? value.items[index]);
-}
-
-function uniqueItems(items: readonly RankValue[]): RankValue[] {
-    const seen = new Set<string>();
-    return items.filter(item => {
-        const key = setValueKey(item);
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-    });
+    return Array.from({ length: size }, (_, index) => readArrayItem(value, index));
 }
 
 function sortableKind(items: readonly RankValue[], operation: string): OrderedKind {
@@ -881,30 +772,11 @@ function reshapeItems(value: RankValue): RankValue[] {
 }
 
 export function lengthOf(value: RankValue): bigint {
-    if (isRankTuple(value)) return BigInt(value.items.length);
     if (isRankTableAlias(value)) return lengthOf(value.source);
     if (isRankSqliteTable(value)) return lengthSqlite(value);
-    if (isRankTable(value)) return BigInt(value.length);
-    if (value instanceof RankDeque || value instanceof RankHeap) return BigInt(value.size);
-    if (typeof value === 'string') return BigInt([...value].length);
-    if (isRankArray(value)) return BigInt(value.shape[0] ?? 0);
-    if (isRankQueue(value)) return BigInt(value.items.length);
-    if (isRankSet(value)) return BigInt(value.entries.size);
-    if (isRankCounter(value)) return BigInt(value.entries.size);
-    if (isRankMultiset(value)) return BigInt(value.size);
-    if (isRankObject(value)) return BigInt(value.entries.size);
-    if (isRankGraph(value)) return BigInt(value.size);
-    if (isRankDsu(value)) return BigInt(value.size);
-    if (isRankSegment(value)) return BigInt(value.size);
-    if (isRankWavelet(value)) return BigInt(value.size);
-    if (!isRankSequence(value)) throw new RankError('len expects text or a collection');
-    if (value.plan.size.kind === 'infinite') {
-        throw new RankError('len requires a finite sequence');
-    }
-    if (value.plan.size.kind === 'exact') return value.plan.size.value;
-    let length = 0n;
-    for (const _ of value.plan.iterate()) length += 1n;
-    return length;
+    const source = collectionSize(value);
+    if (!source) throw new RankError('len expects text or a collection');
+    return source.length();
 }
 
 function fibonacciPlan(

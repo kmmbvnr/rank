@@ -1,3 +1,4 @@
+import { indexedSource } from './indexed-source.js';
 import { ownedArray, readArrayItem } from './array-storage.js';
 import { RankDeque } from './containers.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -289,6 +290,12 @@ export function applySelectors(values: RankValue[], missing?: () => RankValue): 
         const selection = tensorSelection(source, values.slice(1));
         return sliceArray(source, selection);
     }
+    // Existing storage fast paths above remain direct; new indexed kinds use the shared protocol.
+    const indexed = indexedSource(values[0]);
+    if (indexed?.tensor && isTensorAddress(values.slice(1)))
+        return sliceArray(indexed.tensor, tensorSelection(indexed.tensor, values.slice(1)));
+    if (indexed && values.length === 2 && (typeof values[1] === 'bigint' || isIntegerCollectionSelector(values[1])))
+        return selectAxis(values[0], 0, values[1]);
     const last = values.at(-1);
     if (values.length > 2 && last !== undefined && isRankLabel(last) && last.name !== '#') {
         const receiver = applySelectors(values.slice(0, -1), missing);

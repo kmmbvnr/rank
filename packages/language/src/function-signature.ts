@@ -5,8 +5,10 @@ import { functionYields } from './analysis/function-yields.js';
 import type { FunctionStatement } from './generated/ast.js';
 import { instantiateRelationship, type FunctionRelationship, type TypeRelationship } from './analysis/function-relationships.js';
 import { UNKNOWN_VALUE, type ValueFacts } from './analysis/value-domain.js';
-import { formatTypeSignature, signatureType, type SignatureType } from './type-signature.js';
+import { formatTypeSignature, formatTypeSignatures, signatureType, type SignatureType } from './type-signature.js';
 
+const formatFunctionTypes = (signatures: Parameters<typeof formatTypeSignatures>[0]) =>
+    formatTypeSignatures(signatures, { shortNumericNames: true });
 const formatFunctionType = (signature: Parameters<typeof formatTypeSignature>[0]) =>
     formatTypeSignature(signature, { shortNumericNames: true });
 
@@ -23,12 +25,12 @@ export function functionSignature(definition: FunctionStatement, facts: Function
     const generator = !definition.ranks.length && functionYields(definition).length > 0;
     if (!facts.arguments && generator) {
         const contract = inferGeneratorContract(definition);
-        const inferred = summarizeFunctionContract(contract, formatFunctionType);
+        const inferred = summarizeFunctionContract(contract, formatFunctionType, formatFunctionTypes);
         if (inferred) return inferred;
     }
     if (facts.relationship && !facts.arguments && hasBinary(facts.relationship.result)) {
         const contract = inferFunctionContract(facts.relationship, definition.parameters.length);
-        const inferred = summarizeFunctionContract(contract, formatFunctionType);
+        const inferred = summarizeFunctionContract(contract, formatFunctionType, formatFunctionTypes);
         if (inferred) return inferred;
     }
     let nextVariable = 0;

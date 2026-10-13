@@ -341,7 +341,7 @@ describe('value view model', () => {
         const { session, ref } = await run(['use sequences', 'M = (1 to 12) reshape 3 4', 'M']);
         const view = buildValueView('M', opened(session.inspect(ref, { offset: [1, 2], count: [2, 2] })));
         expect(view).toEqual({
-            kind: 'grid', title: 'M', typeLine: 'array · integer · [3 4]',
+            kind: 'grid', title: 'M', typeLine: 'c · integer · [3 4]',
             rowLabels: ['1', '2'], columnLabels: ['2', '3'], cells: [['7', '8'], ['11', '12']],
             scroll: { rows: { length: 3, offset: 1, count: 2 }, columns: { length: 4, offset: 2, count: 2 } },
             slice: [], shape: [3, 4], windowAxes: [0, 1],
@@ -415,7 +415,7 @@ describe('value view model', () => {
         const csv = { read: () => new TextEncoder().encode('id,name\n1,A\n') };
         const { session, ref } = await run(['use tables', 'T = "/in.csv" csv', 'T'], csv);
         const view = buildValueView('T', opened(session.inspect(ref)));
-        expect(view).toMatchObject({ kind: 'grid', columnLabels: ['id', 'name'], typeLine: 'table · [1 2]' });
+        expect(view).toMatchObject({ kind: 'grid', columnLabels: ['id', 'name'], typeLine: 'c · [1 2]' });
     });
 
     it('lists a tuple by position, each item with its own type', async () => {
@@ -433,7 +433,7 @@ describe('value view model', () => {
         expect(buildValueView('A', opened(session.inspect(ref)))).toMatchObject({ kind: 'list', typeLine: 'record · 1', rows: [['x', '1']] });
         const primes = await run(['use sequences', 'P = primes', 'P']);
         expect(buildValueView('P', opened(primes.session.inspect(primes.ref)))).toMatchObject({
-            kind: 'list', typeLine: 'sequence · unbounded', rows: expect.arrayContaining([['0', '2']]), note: '100 read so far' });
+            kind: 'list', typeLine: 'c · unbounded', rows: expect.arrayContaining([['0', '2']]), note: '100 read so far' });
     });
 
     it('shows a scalar as its text', async () => {

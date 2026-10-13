@@ -70,7 +70,7 @@ describe('the value viewer', () => {
         const csv = `${header}\n${row}\n${row}\n`;
         const { session, press, screen } = await opened(36, 8, { '/in.csv': csv }, 'use tables', 'T = "/in.csv" csv');
         try {
-            expect(screen()[0]).toContain('table');
+            expect(screen()[0]).toContain('c ·');
             expect(screen()[1]).toContain('column_0');
             expect(screen()[1]).not.toContain('column_5');
             expect(screen().at(-1)).toMatch(/columns 1–\d of 12/);

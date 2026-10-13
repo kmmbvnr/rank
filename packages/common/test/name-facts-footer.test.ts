@@ -216,7 +216,7 @@ it('uses a later notebook predicate definition and analyzes uncalled function lo
     try {
         repl.notebook.restore(readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8'));
         for (const [site, expected] of [
-            ['Candidates filter', 'Candidates · sequence<integer>'],
+            ['Candidates filter', 'Candidates · c<integer>'],
             ['Answer =', 'Answer · integer'],
             ['Answer print', 'Answer · integer'],
             ['Text =', 'Text · text'],
@@ -273,10 +273,10 @@ it('keeps Euler 1 types across restored notebook cells before execution', () => 
     try {
         repl.notebook.restore(readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8'));
         for (const [site, expected] of [
-            ['N =', 'N · sequence<integer>'],
-            ['Mask =', 'Mask · sequence<boolean>'],
-            ['Mask or=', 'Mask · sequence<boolean>'],
-            ['Mask sum', 'Mask · sequence<boolean>'],
+            ['N =', 'N · c<integer>'],
+            ['Mask =', 'Mask · c<boolean>'],
+            ['Mask or=', 'Mask · c<boolean>'],
+            ['Mask sum', 'Mask · c<boolean>'],
             ['Answer =', 'Answer · integer'],
             ['Answer print', 'Answer · integer'],
         ]) {
@@ -297,7 +297,7 @@ it('infers Euler 13 types and parameter requirements across restored cells', () 
             ['Answer =', 'Answer · integer'], ['Answer print', 'Answer · integer'],
             ['leading_sum Numbers', 'leading_sum · (number | missing) [rank ≥ 0] i → i'],
             ['Prefix =', 'Prefix · text'], ['Digits\n', 'Digits · integer'],
-            ['Numbers Digits\n', 'Numbers · array[#]<integer>'],
+            ['Numbers Digits\n', 'Numbers · c[#]<integer>'],
         ]) {
             const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
             repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site));

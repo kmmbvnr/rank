@@ -1,9 +1,33 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, isRankArray, type RankArray, type RankValue } from '../src/index.js';
-import { reduceWindowCell, windowValue } from '../src/sequence.js';
+import { Interpreter, isRankArray, isRankSequence, type RankArray, type RankValue, type SequenceSize } from '../src/index.js';
+import { reduceWindowCell, sequence, windowValue } from '../src/sequence.js';
 
 const vector = (items: RankValue[]): RankArray => ({ kind: 'array', shape: [items.length], items });
 describe('window cell folds', () => {
+    it.each([{ kind: 'exact', value: 3n }, { kind: 'unknown' }, { kind: 'infinite' }] satisfies SequenceSize[])
+    ('uses runtime sequence size metadata for $kind window results', size => {
+        const source = sequence({
+            name: 'window footer contract', size,
+            *iterate() { for (let i = 1n; size.kind === 'infinite' || i <= 3n; i++) yield i; },
+        });
+        const result = windowValue(source, 2n);
+        if (size.kind === 'exact') {
+            expect(isRankArray(result)).toBe(true);
+            if (!isRankArray(result)) throw new Error('Expected array windows');
+            expect(result.shape).toEqual([2, 2]);
+        } else {
+            expect(isRankSequence(result)).toBe(true);
+            if (!isRankSequence(result)) throw new Error('Expected streaming windows');
+            const iterator = result.plan.iterate();
+            const first = iterator.next().value as RankArray;
+            const second = iterator.next().value as RankArray;
+            expect(first.shape).toEqual([2]);
+            expect(second.shape).toEqual([2]);
+            expect(first.items).toEqual([1n, 2n]);
+            expect(second.items).toEqual([2n, 3n]);
+            iterator.return?.();
+        }
+    });
     it.each([
         [[3], [], [], 1n, 0n],
         [[3, 4], [2, 2], [0, 1], 1n, 0n],

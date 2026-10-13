@@ -1,3 +1,4 @@
+import { displayTypeName } from '@arrrank/language';
 import {
     DemandBudgetExhausted, withDemandBudget, formatValue, isRankArray, isRankSequence, isRankSequenceMask, isRankTable, typeName,
     type RankArray, type RankSequence, type RankValue,
@@ -135,14 +136,14 @@ const COLLECTIONS = ['record', 'object', 'index', 'set', 'queue', 'tuple', 'coun
 export function viewLabel(value: RankValue): string | undefined {
     if (isRankArray(value) && value.shape.length > 0) {
         const shape = `[${value.shape.join(' ')}]`;
-        if (value.shape.some(length => length === 0)) return `array ${shape}`;
+        if (value.shape.some(length => length === 0)) return `c ${shape}`;
         let element: string | undefined;
         try { element = typeName((value.itemAt ?? ((index: number) => value.items[index]))(0)!); } catch { /* an unreadable cell is no type */ }
-        return element ? `${element} ${shape}` : `array ${shape}`;
+        return element ? `${displayTypeName(element)} ${shape}` : `c ${shape}`;
     }
-    if (isRankTable(value)) return `table [${value.length} ${value.columns.length}]`;
-    if (isRankSequenceMask(value) || isRankSequence(value)) return 'sequence';
-    if (typeof value === 'object' && COLLECTIONS.includes(value.kind)) return typeName(value);
+    if (isRankTable(value)) return `c [${value.length} ${value.columns.length}]`;
+    if (isRankSequenceMask(value) || isRankSequence(value)) return 'c';
+    if (typeof value === 'object' && COLLECTIONS.includes(value.kind)) return displayTypeName(typeName(value));
     return undefined;
 }
 

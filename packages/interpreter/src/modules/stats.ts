@@ -1,12 +1,12 @@
+import { tensorSource } from '../tensor-source.js';
+import { elementSource } from '../element-source.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
-import { derivedArray, arrayRevision, denseScalarItems, ownedArray, readArrayItem, shouldStream, streamCells } from '../array-storage.js';
+import { derivedArray, arrayRevision, ownedArray, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
-import { presentReals } from '../masked-kernels.js';
-import { numericSource, sequenceValues } from '../sequence.js';
+import { numericSource } from '../sequence.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import {
     isRankArray,
-    isRankSequence,
     MISSING,
     type RankArray,
     type RankValue,
@@ -79,9 +79,11 @@ function metricMean(losses: RankArray, metric: 'mse' | 'mae'): number {
 }
 
 function metricArray(value: RankValue, operation: string): RankArray {
-    if (isRankArray(value)) return value;
-    const items = [...sequenceValues(value, operation)];
-    return ownedArray(items, isRankSequence(value) ? [items.length] : []);
+    const tensor = tensorSource(value);
+    if (tensor) return tensor;
+    const source = elementSource(value, operation, 'series');
+    const items = [...(source ? source.values() : [value])];
+    return ownedArray(items, source ? [items.length] : []);
 }
 
 function metricByAxes(
@@ -279,6 +281,7 @@ export function quantileValue(
     axes?: readonly number[],
     isPercentile = false,
 ): RankValue {
+    value = tensorSource(value) ?? value;
     if (axes !== undefined) {
         if (!isRankArray(value)) {
             throw new RankError(`${isPercentile ? 'percentile' : 'quantile'} axis expects an array`);
@@ -382,6 +385,7 @@ export function covarianceValue(
     value: RankValue,
     axes?: readonly [number, number],
 ): RankArray {
+    value = tensorSource(value) ?? value;
     if (!isRankArray(value) || value.shape.length < 2) {
         throw new RankError('covariance expects a rank-2 or higher array', 'DimensionMismatch');
     }
@@ -490,7 +494,8 @@ export function correlationValue(
 }
 
 export function meanValue(value: RankValue): number {
-    const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
+    const source = elementSource(value, 'mean', 'series');
+    const stored = source?.scalarItems?.();
     if (stored) {
         if (stored.length === 0) throw new RankError('mean requires at least one value', 'EmptyReduction');
         let sum = 0;
@@ -501,10 +506,11 @@ export function meanValue(value: RankValue): number {
         }
         return sum / stored.length;
     }
-    if (isRankArray(value) && shouldStream(value)) {
+    const streaming = source?.streamingValues?.();
+    if (streaming) {
         let total = 0;
         let count = 0;
-        for (const item of streamCells(value)) {
+        for (const item of streaming) {
             checkpoint('computing statistics');
             if (item === MISSING) continue;
             total += Number(expectNumeric(item));
@@ -544,23 +550,12 @@ export function medianValue(value: RankValue): number {
 }
 
 function presentValues(value: RankValue, operation: string): RankValue[] {
-    if (!isRankArray(value)) return [...sequenceValues(value, operation)].filter(item => item !== MISSING);
-    const stored = denseScalarItems(value);
+    const source = elementSource(value, operation, 'series');
+    const stored = source?.presentItems?.();
     if (stored) return Array.from(stored);
-    const reals = presentReals(value);
-    if (reals) return Array.from(reals);
-    const items: RankValue[] = [];
-    const size = arraySize(value.shape);
-    for (let index = 0; index < size; index += 1) {
-        checkpoint('computing statistics');
-        try {
-            const item = arrayItem(value, index);
-            if (item !== MISSING) items.push(item);
-        } catch (error) {
-            if (!(error instanceof MissingValueError)) throw error;
-        }
-    }
-    return items;
+    if (source?.presentValues) return [...source.presentValues()];
+    const items = source ? source.values() : [value];
+    return [...items].filter(item => item !== MISSING);
 }
 
 function validateCovarianceAxis(shape: readonly number[], axis: number): void {
