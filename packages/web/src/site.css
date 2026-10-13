@@ -28,6 +28,7 @@ pre code { padding: 0; font-size: inherit; }
 .install-command button { flex: none; min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #00e; font: 14px serif; text-decoration: underline; cursor: pointer; }
 .install-command button:focus-visible { outline: 2px solid #274e88; outline-offset: -2px; }
 .store-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.store-badges a { display: block; }
 .store-badges img { display: block; height: 40px; width: auto; }
 .store-badges .soon img { filter: grayscale(1); opacity: .45; }
 .store-badges .soon { cursor: not-allowed; }
