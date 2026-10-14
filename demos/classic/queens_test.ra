@@ -1,4 +1,6 @@
 use testing
+use sequences
+use text
 
 test "eight queens"
   use "queens"

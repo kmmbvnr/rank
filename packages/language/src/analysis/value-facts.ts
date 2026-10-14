@@ -203,6 +203,12 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     }
     if (isMaterializeExpression(expression)) {
         const source = expressionFacts(expression.source, lookup);
+        // Sequence rank describes its outer stream. Array-valued or unknown
+        // cells can add axes when materialized, so that rank is not a tensor rank.
+        if (source.types.join() === 'sequence'
+            && (!source.elements?.length || source.elements.includes('array'))) {
+            return { types: ['array'] };
+        }
         return source.types.length === 1 && source.types[0] === 'sequence'
             ? { ...source, types: ['array'],
                 ...(isStdinExpression(expression.source) && source.elements?.length

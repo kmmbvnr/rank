@@ -1,4 +1,5 @@
 use testing
+use sequences
 
 test "eight queens by permutations"
   use "queens_permutations"

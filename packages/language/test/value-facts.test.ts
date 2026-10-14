@@ -217,6 +217,20 @@ it('keeps sequence element types after a plain filter predicate', () => {
     });
 });
 
+it('does not use stream rank as materialized tensor rank without known non-array cells', () => {
+    const bindings = new Map<string, ValueFacts>([
+        ['Unknown', { types: ['sequence'], rank: 1, shape: [null] }],
+        ['Rows', { types: ['sequence'], rank: 1, shape: [null], elements: ['array'] }],
+        ['Numbers', { types: ['sequence'], rank: 1, shape: [null], elements: ['integer'] }],
+    ]);
+    expect(facts('Unknown array', bindings)).toEqual({ types: ['array'] });
+    expect(facts('Rows array', bindings)).toEqual({ types: ['array'] });
+    expect(facts('Numbers array', bindings)).toEqual({
+        types: ['array'], rank: 1, shape: [null], elements: ['integer'],
+    });
+    expect(facts('(array 0 to 7) permutations filter safe array')).toEqual({ types: ['array'] });
+});
+
 it('infers a filtered numeric vector as a sequence of the same cells', () => {
     const vector: ValueFacts = { types: ['array'], rank: 1, shape: [4], elements: ['integer'] };
     const predicate: ValueFacts = { types: ['function'] };

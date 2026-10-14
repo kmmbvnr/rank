@@ -2788,7 +2788,10 @@ it('does not analyze statements after a definite no-return call', () => {
 it('infers a generator sequence without executing its body', () => {
     const source = 'fun stream\n if false\n  yield 1\n end\nend\nS = stream\n';
     expect(messages(source + 'S = 1')).toEqual(['S has type sequence and cannot receive integer']);
-    expect(messages(source + 'A = S array\nA # #')).toEqual(['2 selectors exceed array rank 1']);
+    // An unreachable yield supplies no cell facts for materialization.
+    expect(messages(source + 'A = S array\nA # #')).toEqual([]);
+    expect(messages('fun stream\n yield 1\nend\nA = stream array\nA # #'))
+        .toEqual(['2 selectors exceed array rank 1']);
     expect(messages('fun stream\n yield array 1 2\nend\nA = stream array\nA # #')).toEqual([]);
     expect(messages('fun outer\n fun inner\n  yield 1\n end\n return 2\nend\nA = outer\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
