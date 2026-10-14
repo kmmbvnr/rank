@@ -1,4 +1,5 @@
 rem Dyalog 2012, problem 4: Nurikabe.
+use bits
 use algo
 use sequences
 
@@ -100,8 +101,206 @@ fun valid Board
   return 1
 end
 
-Example = array shape 2 2
-  -1 -1
-   2  0
+rem Connected island placements encoded as arbitrary-width integer bit masks.
+fun islandOptions Flat Root Height Width
+  Target = Flat Root
+  Allowed = array shape (Height * Width) fill true
+  for Clue Position in Flat
+    if Clue greater 0 and Position not equal Root
+      Allowed Position = false
+      for Next in Position Height Width adjacent
+        Allowed Next = false
+      end
+    end
+  end
+  if Target greater (Allowed count)
+    return
+  end
+  if not Allowed Root
+    return
+  end
+  Initial = 1 Root shl
+  Seen = new set
+  Seen add Initial
+  Pending = new queue
+  Pending push Initial
+  for Mask in Pending
+    if (Mask popcount) equal Target
+      Halo = Mask
+      for Position in 0 till (Flat len)
+        if Mask Position bit
+          for Next in Position Height Width adjacent
+            Halo = Halo (1 Next shl) bor
+          end
+        end
+      end
+      yield record
+        .mask = Mask
+        .halo = Halo
+      end
+      continue
+    end
+    for Position in 0 till (Flat len)
+      if not Mask Position bit
+        continue
+      end
+      for Next in Position Height Width adjacent
+        if not (Allowed Next) or (Mask Next bit)
+          continue
+        end
+        Candidate = Mask (1 Next shl) bor
+        if Candidate not in Seen
+          Seen add Candidate
+          Pending push Candidate
+        end
+      end
+    end
+  end
 end
-Valid = Example valid
+
+fun islandGroups Flat Height Width
+  for Clue Root in Flat
+    if Clue greater 0
+      yield record
+        .root = Root
+        .choices = Flat Root Height Width islandOptions array
+      end
+    end
+  end
+end
+
+fun choiceCount Group
+  return Group .choices len
+end
+
+rem Cells outside all remaining placements are forced sea.
+fun canFinish Groups Index White Blocked Flat Height Width
+  Possible = White
+  for Group in Groups drop Index
+    Count = 0
+    for Choice in Group .choices
+      if ((Choice .mask) Blocked band) equal 0
+        Possible = Possible (Choice .mask) bor
+        Count += 1
+      end
+    end
+    if Count equal 0
+      return false
+    end
+  end
+  Forced = array shape (Flat len) fill 0
+  Start = -1
+  for Position in 0 till (Flat len)
+    if not Possible Position bit
+      Forced Position = -1
+      Start = Position
+    end
+  end
+  if Forced Height Width seaSquare
+    return false
+  end
+  if Start less 0
+    return true
+  end
+  rem Forced sea must remain connectable without crossing a chosen island.
+  Seen = array shape (Flat len) fill false
+  Pending = new queue
+  Pending push Start
+  Seen Start = true
+  for Position in Pending
+    for Next in Position Height Width adjacent
+      if not (Seen Next) and not (White Next bit)
+        Seen Next = true
+        Pending push Next
+      end
+    end
+  end
+  for Cell Position in Forced
+    if Cell equal -1 and not Seen Position
+      return false
+    end
+  end
+  return true
+end
+
+fun solvedBoard Flat White Height Width
+  Result = Flat copy
+  for Cell Position in Result
+    if not White Position bit
+      Result Position = -1
+    end
+  end
+  return Result reshape Height Width
+end
+
+fun solveIslands Groups Index White Blocked Flat Height Width
+  if not Groups Index White Blocked Flat Height Width canFinish
+    return -1
+  end
+  if Index equal (Groups len)
+    Board = Flat White Height Width solvedBoard
+    if Board valid equal 1
+      return White
+    end
+    return -1
+  end
+  Group = Groups Index
+  for Choice in Group .choices
+    if ((Choice .mask) Blocked band) not equal 0
+      continue
+    end
+    NextWhite = White (Choice .mask) bor
+    NextBlocked = Blocked (Choice .halo) bor
+    Result = Groups (Index + 1) NextWhite NextBlocked Flat Height Width solveIslands
+    if Result at least 0
+      return Result
+    end
+  end
+  return -1
+end
+
+fun nurikabe Puzzle
+  Shape = Puzzle shape
+  if (Shape len) not equal 2
+    .InvalidPuzzle "Nurikabe requires an integer matrix" raise
+  end
+  unpack Height Width = Shape
+  Flat = Puzzle reshape (Height * Width)
+  for Cell in Flat
+    if not Cell is .integer
+      .InvalidPuzzle "Nurikabe requires integer clues" raise
+    end
+    if Cell less 0
+      .InvalidPuzzle "Nurikabe requires positive clues and zero empty cells" raise
+    end
+  end
+  if (Flat sum) greater (Height * Width)
+    .NoSolution "Nurikabe puzzle has no solution: clues exceed the board size" raise
+  end
+  if (Flat sum) equal (Height * Width)
+    if Puzzle valid equal 1
+      return Puzzle copy
+    end
+    .NoSolution "Nurikabe puzzle has no solution" raise
+  end
+  Groups = Flat Height Width islandGroups array
+  Ordered = Groups sort by choiceCount
+  White = Ordered 0 0 0 Flat Height Width solveIslands
+  if White less 0
+    .NoSolution "Nurikabe puzzle has no solution" raise
+  end
+  return Flat White Height Width solvedBoard
+end
+
+use io
+Puzzle = array shape 7 7
+  0 3 0 0 0 1 0
+  0 0 0 0 0 0 0
+  2 0 0 1 0 0 0
+  0 0 0 0 0 0 0
+  0 1 0 0 2 0 0
+  0 0 2 0 0 0 0
+  1 0 0 0 1 0 6
+end
+Answer = Puzzle nurikabe
+Answer print
