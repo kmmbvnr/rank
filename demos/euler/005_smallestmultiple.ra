@@ -2,13 +2,24 @@ rem Smallest Multiple
 rem https://projecteuler.net/problem=5
 rem Smallest number divisible by 1..20
 
-use numbers
 use io
 use cli
 
-rem Inclusive upper boundary.
 option Limit integer = 20
 
 Range = 1 to Limit
-Answer = Range lcm
+Answer = Range reduce lcm with 1
 Answer print
+
+fun lcm A B
+  return A // (A B gcd) * B
+end
+
+fun gcd A B
+  for B not equal 0
+    R = A mod B
+    A = B
+    B = R
+  end
+  return A
+end

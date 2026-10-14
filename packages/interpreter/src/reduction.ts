@@ -98,6 +98,20 @@ export class ReductionEvaluator {
         });
     }
 
+    evaluateNamedReduction(operation: NativeFunction, value: RankValue, seed?: RankValue): RankValue {
+        const scalar = this.scalarCallback(operation);
+        const values = reductionValues(value, operation.name);
+        let result = seed;
+        for (const item of values) {
+            if (result === undefined) result = item;
+            else result = scalar ? scalar([result, item]) : operation.call([result, item]);
+        }
+        if (result === undefined) {
+            throw new RankError(`reduce ${operation.name} requires an initial value for an empty collection`);
+        }
+        return result;
+    }
+
     private scanAxis(operator: string, value: RankValue, axis: number,
         operation: (left: RankValue, right: RankValue) => RankValue): RankValue {
         if (!isRankArray(value)) throw new RankError(`scan ${operator} axis expects an array`);

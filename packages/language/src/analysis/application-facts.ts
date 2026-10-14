@@ -272,6 +272,8 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             return UNKNOWN_VALUE;
         case 'named-scan':
             return namedScanFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
+        case 'named-reduce':
+            return UNKNOWN_VALUE;
         case 'multiset-method':
             return multisetMethodFacts(form, lookup, infer);
         case 'segment': case 'scan': case 'reduce': case 'outer':

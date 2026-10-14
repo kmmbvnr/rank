@@ -1232,6 +1232,23 @@ Empty `+`, `*`, `and`, `or` and `xor` reductions produce `0`, `1`, `true`,
 `false` and `false` respectively. Other operations reject an empty cell. A
 reduction of an unbounded sequence is an error.
 
+A binary user function or named operation can also combine the values:
+
+```rank
+Total = A reduce add with 0
+Smallest = A reduce min
+
+fun add Acc Value
+  return Acc + Value
+end
+```
+
+The function receives the accumulator followed by the next source element.
+Without `with`, the first element initializes the accumulator; an empty source
+requires an explicit seed. The accumulator may have a different type from the
+source elements. Named reductions currently consume the whole source and do
+not accept `rank` or `axis` modifiers.
+
 Named reductions use the same data-first style:
 
 ```rank

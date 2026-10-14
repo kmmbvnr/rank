@@ -572,6 +572,7 @@ export class ApplicationEvaluator {
                     return namedSegment(source, operation, identity, context.builtins.standard('algo', 'maxsum'));
                 };
             }
+            case 'named-reduce':
             case 'named-scan': {
                 const namedScan = form;
                 const namedAxis = namedScan.axis === undefined ? undefined
@@ -582,7 +583,10 @@ export class ApplicationEvaluator {
                         ? undefined : yield* resume(context.evaluate(namedScan.seed));
                     const operation = yield* resume(context.evaluate(namedScan.operation));
                     if (!isNativeFunction(operation) || !operation.arities.includes(2)) {
-                        throw new RankError('scan requires a binary operation');
+                        throw new RankError(`${form.kind === 'named-reduce' ? 'reduce' : 'scan'} requires a binary operation`);
+                    }
+                    if (form.kind === 'named-reduce') {
+                        return context.reductions.evaluateNamedReduction(operation, source, seed);
                     }
                     if (namedAxis !== undefined) {
                         return context.reductions.evaluateNamedScanAxis(operation, source, namedAxis);

@@ -200,6 +200,16 @@ export function explicitNamedScanApplication(parts: Expression[]): NamedScanAppl
     return undefined;
 }
 
+export function explicitNamedReduceApplication(parts: Expression[]): NamedScanApplication | undefined {
+    if (parts.length === 5 && isNamed(parts[2], 'reduce') && isNamed(parts[3], 'with')) {
+        return { source: parts[0], seed: parts[4], operation: parts[1] };
+    }
+    if (parts.length === 3 && isNamed(parts[2], 'reduce')) {
+        return { source: parts[0], operation: parts[1] };
+    }
+    return undefined;
+}
+
 export function explicitNamedSegmentApplication(parts: Expression[]): NamedSegmentApplication | undefined {
     if (parts.length === 5 && isNamed(parts[2], 'segment') && isNamed(parts[3], 'with')) {
         return { source: parts[0], identity: parts[4], operation: parts[1] };
@@ -235,7 +245,8 @@ export function explicitCollectionMutation(
     }
     if (!isApplicationExpression(expression)) return undefined;
     const parts = flattenApplication(expression);
-    if (explicitNamedScanApplication(parts) || explicitNamedSegmentApplication(parts)) return undefined;
+    if (explicitNamedScanApplication(parts) || explicitNamedReduceApplication(parts)
+        || explicitNamedSegmentApplication(parts)) return undefined;
     const receiver = parts[0];
     const operation = parts[1];
     if (!isNameExpression(receiver)
@@ -379,6 +390,7 @@ export type ApplicationForm =
     | Recognized<'axis-transpose', typeof explicitAxisTranspose>
     | Recognized<'named-segment', typeof explicitNamedSegmentApplication>
     | Recognized<'named-scan', typeof explicitNamedScanApplication>
+    | Recognized<'named-reduce', typeof explicitNamedReduceApplication>
     | Recognized<'axis-selection', typeof explicitAxisSelection>
     | Recognized<'graph-edges', typeof explicitGraphEdges>
     | Recognized<'dsu-method', typeof explicitDsuMethod>
@@ -540,6 +552,8 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup): Applicat
     if (form14) return { ...form14, kind: 'named-segment' };
     const form15 = explicitNamedScanApplication(parts);
     if (form15) return { ...form15, kind: 'named-scan' };
+    const namedReduce = explicitNamedReduceApplication(parts);
+    if (namedReduce) return { ...namedReduce, kind: 'named-reduce' };
     const form16 = explicitAxisSelection(parts);
     if (form16) return { ...form16, kind: 'axis-selection' };
     const form17 = explicitGraphEdges(parts);

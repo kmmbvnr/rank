@@ -67,7 +67,7 @@ function boundary(parts: Expression[], standard: StandardName): number | undefin
         while (end < parts.length && isSortDirection(parts[end])) end++;
         return end < parts.length ? end : undefined;
     }
-    if (named(parts[2], 'segment') || named(parts[2], 'scan')) {
+    if (named(parts[2], 'segment') || named(parts[2], 'scan') || named(parts[2], 'reduce')) {
         const end = named(parts[3], 'with') || named(parts[3], 'axis') ? 5 : 3;
         return parts.length > end ? end : undefined;
     }

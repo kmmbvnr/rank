@@ -21,7 +21,7 @@ const precedence: Readonly<Record<string, number>> = {
 const isRangeOperator = (operator: string): boolean => operator === 'to' || operator === 'till' || operator === 'until';
 const comparisons = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'in', 'notin', 'is']);
 const symbolic = new Set(['reduce', 'scan', 'outer', 'segment', 'rank', 'axis']);
-const modifiers = new Set(['axis', 'rank', 'outer', 'segment', 'scan']);
+const modifiers = new Set(['axis', 'rank', 'outer', 'segment', 'scan', 'reduce']);
 /** Operations that take their combining function as the word after them. */
 const higherOrder = new Set(['scan', 'reduce', 'segment', 'outer']);
 /** Words after a higher-order operation that are its own parameters, not the function. */
@@ -222,7 +222,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             if (named > 0) {
                 const operation = raw[named] as NameExpression;
                 const next = raw[named + 1];
-                if (operation.name !== 'reduce' && isNameExpression(next) && !higherOrderParameters.has(next.name)) {
+                if (isNameExpression(next) && !higherOrderParameters.has(next.name)) {
                     raw[named] = next;
                     raw[named + 1] = operation;
                 } else {
