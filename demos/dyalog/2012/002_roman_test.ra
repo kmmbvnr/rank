@@ -53,3 +53,49 @@ test "every small canonical numeral round trips"
   Values = 0 to 1000 array
   (Values atoR rtoA) equal Values
 end
+
+test "Roman derives addition from an ordinary numeric function"
+  use "002_roman"
+  fun plus A B
+    return A + B
+  end
+  add = ((tuple plus) roman)
+  ((tuple "III" "II") add) equal "V"
+end
+
+test "Roman derives range and sum functions"
+  use "002_roman"
+  use sequences
+  fun range N
+    return 1 to N array
+  end
+  fun total Values
+    return Values sum
+  end
+  rangeRoman = ((tuple range) roman)
+  totalRoman = ((tuple total) roman)
+  Values = "X" rangeRoman
+  Values equal array "I" "II" "III" "IV" "V" "VI" "VII" "VIII" "IX" "X"
+  (Values totalRoman) equal "LV"
+end
+
+test "Roman derives reshape for Roman-valued dimensions and data"
+  use "002_roman"
+  use sequences
+  fun reshapeTo Dims Values
+    return Values reshape unpack Dims
+  end
+  shaped = ((tuple reshapeTo) roman)
+  Values = array "I" "II" "III" "IV" "V" "VI"
+  Actual = (tuple (array "II" "III") Values) shaped
+  Actual shape equal array 2 3
+  Actual equal (Values reshape 2 3)
+end
+
+test "the same Roman-derived builtin supports unary and binary calls"
+  use "002_roman"
+  use numbers
+  maximum = ((tuple max) roman)
+  ((array "II" "IX" "IV") maximum) equal "IX"
+  ((tuple "III" "II") maximum) equal "III"
+end

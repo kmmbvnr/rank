@@ -4,6 +4,18 @@ Rank solutions to the [2012 contest](https://www.dyalog.com/uploads/files/studen
 
 - [Hold’em Up!](001_poker.ra): Problem 1 Tasks 1–5 (#206–210). `handValue` accepts five rank/suit pairs with optional spaces and mixed case, and returns an integer ordered by poker strength. Categories and all kickers are encoded in base 13; suits do not break ties, and aces may be low in a straight. `bestHand` selects the strongest five cards from five community and two hole cards, returning space-separated card text. It checks all 21 subsets and preserves input order when values tie, considering hole cards first. `showdown` returns a table in player order with `.hand`, `.rank`, and `.used` columns. Tied values receive the same dense rank. `nuts` exhaustively checks legal unseen hole pairs and returns the smallest required set of hole cards; `*` marks an immaterial suit. `odds` enumerates all legal board completions without simulation or rounding. The first probability is an all-player tie; other entries are player win probabilities, sharing partial-tie equity equally between the tied winners. This resolves the contest’s unspecified partial-tie case while keeping the sum at one. Import with `use "001_poker"` and run `rank test demos/dyalog/2012/001_poker_test.ra`.
 
-- [When in Rome…](002_roman.ra): Problem 2 Tasks 1–2 (#211–212). `atoR` converts Arabic numbers to scalar Roman text cells, preserving array shape. It uses canonical subtractive forms, empty text for zero, `¯` for negatives, and unlimited leading `M`s. Non-integers round toward positive infinity at halfway values (`floor(x + 0.5)`). `rtoA` parses Roman text and text arrays with subtractive pairs and the leading `¯` sign, retaining array shape. Run `rank test demos/dyalog/2012/002_roman_test.ra`.
+- [When in Rome…](002_roman.ra): Problem 2 Tasks 1–3 (#211–213). `atoR` converts Arabic numbers to scalar Roman text cells, preserving array shape. It uses canonical subtractive forms, empty text for zero, `¯` for negatives, and unlimited leading `M`s. Non-integers round toward positive infinity at halfway values (`floor(x + 0.5)`). `rtoA` parses Roman text and text arrays with subtractive pairs and the leading `¯` sign, retaining array shape. Run `rank test demos/dyalog/2012/002_roman_test.ra`.
+
+`roman` returns a derived function that decodes its operands, calls the supplied numeric function, and encodes its result. Rank uses a one-element tuple to pass a function as data, and a two-element tuple to supply two operands to the derived function:
+
+```rank
+use "002_roman"
+use numbers
+maximum = ((tuple max) roman)
+(array "II" "IX" "IV") maximum
+(tuple "III" "II") maximum
+```
+
+These produce `IX` and `III`. Addition, range, sum and reshape examples are in the tests, including user-defined numeric functions and shape-preserving Roman matrices.
 
 Function names start with a lowercase letter in Rank, so the contest’s `HandValue` is named `handValue`. The remaining contest tasks are not implemented here yet.
