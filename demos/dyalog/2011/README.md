@@ -12,6 +12,22 @@ Rank examples based on tasks from the 2011 programming competition from [Dyalog]
   can be imported with `use "003_image"`; run the examples with
   `rank test demos/dyalog/2011/003_image_test.ra`.
 
+- [Genes](004_genes.ra): nucleotide frequency matrices, natural-log position
+  weights, sliding motif scores, and the five best subsequences. Run with
+  `rank demos/dyalog/2011/004_genes.ra`, or verify the contest examples with
+  `rank test demos/dyalog/2011/004_genes_test.ra`.
+
+The Genes demo implements [Problem 4 of the contest](https://www.dyalog.com/uploads/files/student_competition/2011_problems.pdf)
+with `freqMat`, `makePWM`, `score`, and `top5`. Training cells are individual
+`A/C/G/T` characters in an M by N matrix. Frequency and weight matrices are
+4 by N, with rows ordered A, C, G, T. Weights use natural logarithms after
+adding one to every count and normalizing each column; weights and scores
+retain their full precision. Scores follow the overlapping windows in source
+order. `top5` returns a 5 by N character matrix, preserving earlier positions
+on ties and retaining duplicate subsequences. Its input has at least N+4
+characters. Import the functions with `use "004_genes"`; `run` evaluates the
+published sample data and prints the matrices and results.
+
 The image functions follow [Problem 3 of the contest](https://www.dyalog.com/uploads/files/student_competition/2011_problems.pdf).
 RGB is `65536 * red + 256 * green + blue`; channel planes have shape `3 H W`.
 Grayscale conversion preserves the input shape. Byte quantization uses

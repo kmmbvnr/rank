@@ -1,0 +1,64 @@
+use testing
+
+test "published frequency matrix in A C G T order"
+  use "004_genes"
+  use sequences
+  run
+  Expected = array shape 4 16
+    1 0 0 0 0 3 0 10 10 5 1 1 4 3 4 2
+    3 4 0 0 0 0 0 0 0 5 7 2 2 1 3 1
+    3 0 10 0 10 7 10 0 0 0 1 4 2 4 2 2
+    3 6 0 10 0 0 0 0 0 0 1 3 2 2 1 5
+  end
+  (F equal Expected) all
+end
+
+test "pseudocounts and natural logs are unrounded"
+  use "004_genes"
+  use numbers
+  use sequences
+  run
+  Probabilities = PWM exp
+  Totals = Probabilities sum axis 0
+  Normalized = ((Totals - 1.0) abs less 0.000000000001) all
+  First = PWM 0 0
+  Expected = (2.0 / 14.0) log
+  Normalized and ((First - Expected) abs less 0.000000000001)
+end
+
+test "published window scores in sequence order"
+  use "004_genes"
+  use numbers
+  use sequences
+  run
+  Expected = array -28.76038363870397 -27.20181805664362 -24.33961717571415 -13.515892403228035 -24.398457675737085 -20.37310598500193 -26.79635294853545 -27.16099606212336
+  ((Scores - Expected) abs less 0.000000000001) all
+end
+
+test "published top five subsequences"
+  use "004_genes"
+  use sequences
+  use text
+  run
+  Expected = (array "TCGTGGGAAACACTTT" "GTGGGAAACACTTTCG" "ATCGTGGGAAACACTT" "CGTGGGAAACACTTTC" "TGGGAAACACTTTCGA") "" split rank 0
+  (Best equal Expected) all
+end
+
+test "tied scores preserve earlier windows and repeated strings"
+  use "004_genes"
+  use sequences
+  use text
+  Weights = array shape 4 2 fill 0.0
+  Actual = Weights "ACGTACGT" top5
+  Expected = (array "AC" "CG" "GT" "TA" "AC") "" split rank 0
+  (Actual equal Expected) all
+end
+
+test "five identical subsequences are retained"
+  use "004_genes"
+  use sequences
+  Weights = array shape 4 2 fill 0.0
+  Actual = Weights "AAAAAA" top5
+  CorrectShape = (Actual shape equal array 5 2) all
+  CorrectShape and ((Actual equal "A") all)
+end

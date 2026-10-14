@@ -1,0 +1,63 @@
+rem Dyalog 2011, task 4: Genes.
+rem Training cells and sequence text contain A, C, G, T.
+use numbers
+use sequences
+use text
+
+fun freqMat Train
+  Bases = array "A" "C" "G" "T"
+  Matches = Bases Train outer equal
+  return Matches count axis 1
+end
+
+rem Natural log probabilities; rounding is for display only.
+fun makePWM F
+  Counts = F + 1
+  Totals = Counts sum axis 0
+  return (Counts / Totals) log
+end
+
+fun pick Values Index
+  return Values Index
+end
+
+fun score PWM Sequence
+  Width = PWM len axis 1
+  Bases = "ACGT" "" split
+  Chars = Sequence "" split
+  Windows = Chars window Width
+  Codes = Bases Windows find rank 1 0
+  Columns = PWM transpose
+  Values = Columns Codes pick rank 1 0
+  return Values sum axis 1
+end
+
+rem Five positions, including equal strings; earlier ties come first.
+rem Sequence has at least Width + 4 characters.
+fun top5 PWM Sequence
+  Width = PWM len axis 1
+  Scores = PWM Sequence score
+  Order = Scores argsort .descending
+  Best = Order take 5
+  Chars = Sequence "" split
+  Windows = Chars window Width
+  return Windows Best
+end
+
+rem Published 10 by 16 training set and candidate sequence.
+use io
+Rows = array shape 10
+  "TCGTGAGAAACGAGAC" "ATGTGAGAAACCGAGT" "GCGTGGGAACCGAGCT" "TCGTGGGAACCCCGGA"
+  "GTGTGAGAAACTTACT" "CTGTGGGAACTGGTAG" "GTGTGGGAAACTACAA"
+  "CTGTGGGAACATTGCT" "CTGTGGGAACGGAAAG" "TCGTGGGAAACACTTT"
+end
+Train = Rows "" split rank 0
+Sequence = "CCATCGTGGGAAACACTTTCGAA"
+F = Train freqMat
+PWM = F makePWM
+Scores = PWM Sequence score
+Best = PWM Sequence top5
+F print
+PWM print
+Scores print
+Best print
