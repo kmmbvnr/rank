@@ -9,18 +9,18 @@ use cli
 option Size integer = 8
 
 Cols = 0 till Size array
-States = array shape 1 Size fill 0
 
-for Row in 0 till Size
-  Dy = Row - (0 till Row array)
+rem Each row of States is a board: States # Row is the column of the queen in
+rem that row. Row 0 may hold a queen in any column, so start with Size boards.
+States = array shape Size Size fill 0
+States # 0 = Cols
+
+rem Add a queen in the next row to every board, once per free column.
+for Row in 1 till Size
+  Dy = Row till 0 by -1 array
   Prefix = States # (0 till Row)
   Free = Prefix available rank 1
   Index = (Free reshape ((States len) * Size)) indices
-
-  if Index len equal 0
-    States = array shape 0 Size fill 0
-    break
-  end
 
   States = States (Index // Size) copy
   States # Row = Index mod Size
