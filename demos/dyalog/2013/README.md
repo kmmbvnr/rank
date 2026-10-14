@@ -15,6 +15,8 @@ Rank solutions to the 2013 issue tasks, added problem by problem.
 
 - [Global numeric range](006_range.ra): Problem 6 (#196). `numericRange` flattens every axis and computes maximum minus minimum, returning one real scalar. Empty arrays and scalars return 0.0; integer differences are computed before conversion to real.
 
+- [Fractional values](007_fractional.ra): Problem 7 (#197). `fractionalValues` selects values whose remainder modulo 1 is nonzero, preserving order and duplicates. Integer-valued reals are excluded; empty vectors remain rank 1.
+
 Run `rank demos/dyalog/2013/004_balanced.ra`, or verify the examples with
 `rank test demos/dyalog/2013/004_balanced_test.ra`. Import `balanced` with
 `use "004_balanced"`. Text iteration uses Unicode code points, so a combining
