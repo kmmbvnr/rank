@@ -72,7 +72,7 @@ export function buildValueView(title: string, value: InspectedValue): ValueView 
         }
         case 'entries':
             return {
-                kind: 'list', title, typeLine: `${displayTypeName(value.type)} · ${value.size}`,
+                kind: 'list', title, typeLine: value.type === 'print' ? `${value.size} lines` : `${displayTypeName(value.type)} · ${value.size}`,
                 rows: value.entries.map(entry => [entry.key, entry.value.text] as const),
                 scroll: { length: value.size, offset: value.offset, count: value.entries.length },
             };

@@ -220,8 +220,7 @@ seek, size
 
 Show a value as a line of output.
 
-print shows hello, then the REPL shows
-the value print hands back.
+The REPL shows a printed value once.
 
 ```rank
 use io
@@ -229,7 +228,6 @@ use io
 ```
 
 ```result
-hello
 hello
 ```
 
@@ -242,6 +240,13 @@ Value print
 print gives back the same value, so you
 can put it in the middle of a
 calculation to watch it.
+
+In the REPL, printed output takes at
+most five visible lines. Longer output
+shows four lines and an ellipsis.
+Tap the output to open all of it in
+the viewer. Program output itself is
+not shortened.
 
 ### See also
 

@@ -9,7 +9,7 @@ import { preview } from './preview.js';
 import { keyAvailable } from './symbol-keyboard.js';
 import { nameFactsIn } from './name-facts.js';
 import { SequenceReplay, type SequenceExtension } from './sequence-replay.js';
-import { STALE, inspectValue, viewLabel, type InspectRequest, type Inspection } from './value-inspection.js';
+import { STALE, inspectValue, inspectPrintedOutput, viewLabel, type InspectRequest, type Inspection } from './value-inspection.js';
 import { formatSource } from './source-format.js';
 import { textColumns } from './screen.js';
 import {
@@ -34,6 +34,8 @@ export interface OutputLine {
     readonly text: string; readonly error: boolean; readonly inlineText?: string; readonly ref?: number;
     /** On the first line of a result that can be opened in a viewer: its type and shape. */
     readonly view?: string;
+    /** Program output, kept separately from its returned value and diagnostics. */
+    readonly printed?: boolean;
 }
 export interface ProgramFile { readonly path: string; readonly source: string }
 export interface Execution {
@@ -78,11 +80,11 @@ export function createReplSession(host: ReplHost = {}) {
     const declarations = new Map<string, number>();
     const say = (text = ''): void => { output.push({ text, error: false }); };
     const warn = (text: string): void => { output.push({ text, error: true }); };
-    const emit = (text: string): void => {
-        for (const line of text.split('\n')) say(line);
+    const emit = (text: string, printed = false): void => {
+        for (const line of text.split('\n')) output.push({ text: line, error: false, ...(printed ? { printed: true } : {}) });
     };
     let replay = new SequenceReplay();
-    const createRuntime = () => new RankSession(emit, {
+    const createRuntime = () => new RankSession(text => emit(text, true), {
         wrapSinglePassSequence: replay.wrap,
         wrapStoredSequence: replay.store,
         persistentResources: true, ...host.options, sourceId,
@@ -94,11 +96,14 @@ export function createReplSession(host: ReplHost = {}) {
     const functionSignatures = new WeakMap<object, string>();
     // Results the viewer may open. Ids are never reused, so a released one cannot name a newer value.
     const held = new Map<number, RankValue>();
-    const heldByCell = new Map<number, number>();
+    const printedOutput = new Map<number, readonly string[]>();
+    const heldByCell = new Map<number, Set<number>>();
     let nextRef = 1;
     const release = (cell: number): void => {
-        const ref = heldByCell.get(cell);
-        if (ref !== undefined) held.delete(ref);
+        for (const ref of heldByCell.get(cell) ?? []) {
+            held.delete(ref);
+            printedOutput.delete(ref);
+        }
         heldByCell.delete(cell);
     };
     const resetExecution = (): void => {
@@ -109,6 +114,7 @@ export function createReplSession(host: ReplHost = {}) {
         aliases = true;
         last = undefined;
         held.clear();
+        printedOutput.clear();
         heldByCell.clear();
         declarations.clear();
         testExamples = undefined;
@@ -148,6 +154,8 @@ export function createReplSession(host: ReplHost = {}) {
         },
         /** The value behind a result line, a window at a time; stale once its cell reran or the document restarted. */
         inspect(ref: number, request: InspectRequest = {}): Inspection {
+            const printed = printedOutput.get(ref);
+            if (printed) return { status: 'ok', ...inspectPrintedOutput(printed, request) };
             const value = held.get(ref);
             if (value === undefined) return STALE;
             return { status: 'ok', ...replay.preview(() => inspectValue(value, request, replay)) };
@@ -251,6 +259,7 @@ export function createReplSession(host: ReplHost = {}) {
                     }
                 }
             }
+            if (!cmd) holdPrintedOutput(id);
             return {
                 source, output, loadedFile, interrupted, valueRef,
                 command: cmd, exit,
@@ -309,7 +318,7 @@ export function createReplSession(host: ReplHost = {}) {
             show(result, functionPreview(result, source, session.file));
             const ref = nextRef++;
             held.set(ref, result);
-            heldByCell.set(cell, ref);
+            rememberRef(cell, ref);
             const view = viewLabel(result);
             for (let line = first; line < output.length; line++)
                 output[line] = { ...output[line], ref, ...(line === first && view !== undefined ? { view } : {}) };
@@ -317,6 +326,27 @@ export function createReplSession(host: ReplHost = {}) {
         } catch (error) {
             reportError(error, source);
             return undefined;
+        }
+    }
+
+    function rememberRef(cell: number, ref: number): void {
+        const refs = heldByCell.get(cell) ?? new Set<number>();
+        refs.add(ref);
+        heldByCell.set(cell, refs);
+    }
+
+    function holdPrintedOutput(cell: number): void {
+        for (let start = 0; start < output.length; start++) {
+            if (!output[start].printed) continue;
+            let end = start + 1;
+            while (end < output.length && output[end].printed) end++;
+            const ref = nextRef++;
+            printedOutput.set(ref, output.slice(start, end).map(line => line.text));
+            rememberRef(cell, ref);
+            for (let index = start; index < end; index++) {
+                output[index] = { ...output[index], ref, ...(index === start ? { view: 'print' } : {}) };
+            }
+            start = end - 1;
         }
     }
 

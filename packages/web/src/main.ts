@@ -1292,7 +1292,7 @@ async function locate(x: number, y: number): Promise<void> {
         }
     } else if (target?.kind === 'value') {
         // The viewer takes no typing: opening it must not raise a keyboard, as the end of this function would.
-        await repl.openValue(repl.notebook.cells[target.cell].id);
+        await repl.openValue(repl.notebook.cells[target.cell].id, target.ref);
         render();
         return;
     } else if (target?.kind === 'iteration') {

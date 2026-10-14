@@ -42,7 +42,7 @@ export class TerminalRenderer {
         if (target?.kind === 'value') {
             this.mouseEditor = undefined;
             this.followCursor = true;
-            void this.repl.openValue(this.repl.notebook.cells[target.cell].id).then(() => this.render());
+            void this.repl.openValue(this.repl.notebook.cells[target.cell].id, target.ref).then(() => this.render());
             return;
         }
         if (!target || !target.points.length) return;

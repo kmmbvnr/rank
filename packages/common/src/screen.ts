@@ -24,6 +24,32 @@ function visible(segment: string, column: number): string {
     return segment.replace(/[\x00-\x1f\x7f-\x9f]/g, '?');
 }
 
+/** Lay out only enough printed text to decide whether a fifth-row ellipsis is needed. */
+function printedPreview(lines: readonly { readonly text: string }[], start: number, end: number, width: number): string[] {
+    const rows: string[] = [];
+    for (let index = start; index < end; index++) {
+        rows.push('');
+        if (rows.length > 5) return [...rows.slice(0, 4), '… · full output'];
+        let column = 0;
+        for (const part of segmenter.segment(clean(lines[index].text))) {
+            let text = visible(part.segment, column);
+            let size = cellWidth(text);
+            if (size > width) { text = '?'; size = 1; }
+            if (column + size > width) {
+                rows.push('');
+                if (rows.length > 5) return [...rows.slice(0, 4), '… · full output'];
+                column = 0;
+                text = visible(part.segment, column);
+                size = cellWidth(text);
+                if (size > width) { text = '?'; size = 1; }
+            }
+            rows[rows.length - 1] += text;
+            column += size;
+        }
+    }
+    return rows;
+}
+
 /** Every caret offset is mapped to a visual row using the same layout as drawing. */
 /** One-based source line of an offset, by binary search over the line starts. */
 function lineNumbers(source: string): (offset: number) => number {
@@ -424,9 +450,23 @@ export function notebookFrame(
             if (output.error && cell.executed !== undefined && cell.executed !== cell.source) continue;
             const marker = (output.error || pending) && gutter > 0
                 ? fitEnd(output.error ? '! ' : '~ ', gutter) : ' '.repeat(gutter);
+            if (output.printed && output.ref !== undefined) {
+                let end = at;
+                while (end < committed.length && committed[end].printed && committed[end].ref === output.ref) end++;
+                const preview = printedPreview(committed, at, end, bodyWidth);
+                at = end - 1;
+                const focused = cell.id === valueFocus && output.ref === cell.output.find(line => line.view)?.ref;
+                for (const [part, line] of preview.entries()) {
+                    targets[rows.length] = { kind: 'value', cell: index, line: 0, ref: output.ref, points: [] };
+                    if (focused && part === 0) caret = { row: rows.length, column: gutter };
+                    resultRows.push(rows.length);
+                    rows.push((focused ? '\x1b[7m' : '\x1b[90m') + clipped(marker + line, width) + '\x1b[0m');
+                }
+                continue;
+            }
             // A result that opens in a viewer says what it is, and is a stop for the arrow keys.
             const openable = !output.error && output.view !== undefined && output.ref !== undefined;
-            const focused = openable && cell.id === valueFocus;
+            const focused = openable && cell.id === valueFocus && output.ref === cell.output.find(line => line.view)?.ref;
             if (openable) {
                 // Two rows at most: the preview, kept to one row with its ends and a gap, and what the value is.
                 // The note under it (`shape 3 4, 12 values`) repeats the shape, so only a note that adds something stays.

@@ -85,6 +85,16 @@ export type Inspection =
 /** The answer for a reference that was released. */
 export const STALE: Inspection = { status: 'stale' };
 
+/** Printed lines are already text: page them without clipping or evaluating them again. */
+export function inspectPrintedOutput(lines: readonly string[], request: InspectRequest = {}): InspectedValue {
+    const offset = clamp(request.offset?.[0], 0, Math.max(0, lines.length - 1), 0);
+    const count = clamp(request.count?.[0], 0, INSPECT_LIMIT, INSPECT_COUNT);
+    return { kind: 'entries', type: 'print', size: lines.length, offset,
+        entries: lines.slice(offset, offset + count).map((text, index) => ({
+            key: String(offset + index + 1), value: { text, type: 'text' },
+        })) };
+}
+
 const clamp = (value: number | undefined, low: number, high: number, fallback: number): number =>
     Math.min(high, Math.max(low, Number.isFinite(value) ? Math.trunc(value!) : fallback));
 

@@ -224,10 +224,11 @@ export class NotebookRepl {
     private valueFocusId?: number;
 
     /** The cell's result that can be opened in a viewer, if it has one. */
-    private valueOutput(cell: NotebookCell): (OutputLine & { ref: number; view: string }) | undefined {
-        if (cell.command || cell.status !== 'ok' || cell.executed !== cell.source) return undefined;
+    private valueOutput(cell: NotebookCell, ref?: number): (OutputLine & { ref: number; view: string }) | undefined {
+        if (cell.command || cell.executed !== cell.source) return undefined;
         return cell.output.find((line): line is OutputLine & { ref: number; view: string } =>
-            !line.error && line.ref !== undefined && line.view !== undefined);
+            !line.error && (cell.status === 'ok' || !!line.printed) && line.ref !== undefined
+            && line.view !== undefined && (ref === undefined || line.ref === ref));
     }
 
     /** The cell whose result row has focus, while that row is still there. */
@@ -278,17 +279,18 @@ export class NotebookRepl {
     }
 
     /** Opens the focused result, or the one in `cellId`, in the full-screen viewer. */
-    async openValue(cellId = this.valueFocusId): Promise<boolean> {
+    async openValue(cellId = this.valueFocusId, ref?: number): Promise<boolean> {
         // Opened from the focused row (keys), closing goes back to it; opened by a tap, the row stays unselected.
         const fromFocus = cellId !== undefined && this.valueFocusId === cellId;
         this.valueFocusId = undefined;
         const cell = this.notebook.cells.find(cell => cell.id === cellId);
-        const line = cell && this.valueOutput(cell);
+        const line = cell && this.valueOutput(cell, ref);
         if (!cell || !line || this.running || this.help || this.savePrompt) return false;
         try {
             // The name a result was assigned to, or else the expression itself.
             const last = cell.source.trim().split('\n').at(-1)!.trim();
-            const title = /^([A-Za-z_]\w*)\s*=(?!=)/.exec(cell.source.trim())?.[1] ?? last;
+            const title = line.printed ? 'Printed output'
+                : /^([A-Za-z_]\w*)\s*=(?!=)/.exec(cell.source.trim())?.[1] ?? last;
             const viewer = new ValueViewer(title, cell.id, request => this.session.inspect(line.ref, request),
                 () => ({ rows: this.rows(), columns: this.columns() }),
                 count => this.session.extend(line.ref, count));
