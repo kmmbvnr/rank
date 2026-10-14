@@ -30,6 +30,19 @@ through program consumption rather than forced by the test harness. CI splits th
 corpus into four shards and verifies that every file was compared exactly once.
 Focused probes also assert that compiled code actually executes.
 
+## Debug sessions
+
+Interactive hosts own a `DebugSession` and pass it as the fourth argument to
+`withInterrupt(signal, run, onPause, session)`. `session.setBreakpoints(points)`
+copies the breakpoint list. CLI and web workers each own a separate session;
+module calls share the active execution scope. Nested calls to `withInterrupt`
+get fresh stepping state and restore the outer state when they return or throw.
+
+The exported `setDebugBreakpoints()` function remains as a deprecated adapter
+for callers using the default session. New hosts should pass an explicit session.
+Demand budgets and diagnostic scopes still restore their caller in `finally`.
+Storage revisions remain shared with the values whose mutations they track.
+
 ## Function environments
 
 `packages/interpreter/src/frame.ts` holds a function invocation's values and

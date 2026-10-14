@@ -1,13 +1,14 @@
 import { enableSqliteInterrupt } from './sqlite-interrupt.js';
 import { parentPort, workerData } from 'node:worker_threads';
-import { withInterrupt, setDebugBreakpoints } from '@arrrank/interpreter';
+import { withInterrupt, DebugSession } from '@arrrank/interpreter';
 import { createReplSession } from './repl-session.js';
 
 const port = parentPort!;
 const signal = new Int32Array(workerData.signal);
 enableSqliteInterrupt(signal);
 const onPause = (pause: import('@arrrank/interpreter').PauseSnapshot) => port.postMessage({ pause });
-const session = withInterrupt(signal, () => createReplSession(), onPause);
+const debuggerSession = new DebugSession();
+const session = withInterrupt(signal, () => createReplSession(), onPause, debuggerSession);
 // Messages are serialized even when a command awaits file I/O.
 let queue = Promise.resolve();
 let breakpoints: { source: string; line: number }[] = [];
@@ -15,7 +16,7 @@ port.postMessage({ snapshot: session.snapshot() });
 port.on('message', ({ id, method, args }) => {
     queue = queue.then(async () => {
         try {
-            setDebugBreakpoints(method === 'execute' || method === 'debugExecute' ? breakpoints : []);
+            debuggerSession.setBreakpoints(method === 'execute' || method === 'debugExecute' ? breakpoints : []);
             // execute() performs language evaluation and preview synchronously
             // before returning its promise; command `full` does the same.
             const value = await withInterrupt(signal, () => {
@@ -37,7 +38,7 @@ port.on('message', ({ id, method, args }) => {
                     case 'dispose': return session.dispose();
                     default: throw new Error(`Unknown session method: ${method}`);
                 }
-            }, method === 'turboExecute' ? undefined : onPause);
+            }, method === 'turboExecute' ? undefined : onPause, debuggerSession);
             port.postMessage({ id, value, snapshot: session.snapshot() });
         } catch (error) {
             port.postMessage({ id, error: String(error), snapshot: session.snapshot() });

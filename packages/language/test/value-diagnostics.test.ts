@@ -2876,3 +2876,16 @@ it('limits rename diagnostics to known receivers and builtin names', () => {
     expect(messages('use graph\nfun find D X\n return 99\nend\nD = new dsu (array "a")\nD "a" find')).toEqual([]);
     expect(messages('use sequences\nfun search D X\n return D X find\nend')).toEqual([]);
 });
+
+
+it('reports provable scalar juxtaposition without rejecting dynamic calls or indexing', () => {
+    expect(messages('A = 2\n1 A')).toContain('a number cannot be indexed');
+    expect(messages('N = 3\nA = 2\nfun g X\n return X\nend\nN - 1 A + 1 g')).toContain('a number cannot be indexed');
+    expect(messages('true 0')).toContain('a scalar cannot be indexed');
+    for (const source of [
+        '1 2 max', '1 abs', '(array 10 20) 0',
+        'fun apply X F\n return X F\nend',
+        'fun pick X\n return X 0\nend',
+        'fun g X Y\n return X + Y\nend\n1 2 g',
+    ]) expect(messages(source)).not.toContain('a number cannot be indexed');
+});
