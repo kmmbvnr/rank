@@ -1,9 +1,9 @@
-import { AstUtils, EmptyFileSystem } from 'langium';
+import { AstUtils, EmptyFileSystem, type CstNode } from 'langium';
 import type { Program } from '@arrrank/language';
 import {
     blockScopeDiagnostics, createRankServices, expressionDiagnostics, isTextBlockExpression, textBlockModeError, type GroupingOptions,
 } from '@arrrank/language';
-import { RankError } from './errors.js';
+import { RankError, type RankErrorLocation } from './errors.js';
 
 const services = createRankServices(EmptyFileSystem).Rank;
 
@@ -72,6 +72,15 @@ export function parse(
     source: string, sourceId = '<input>', grouping: GroupingOptions = {}, known?: ReadonlySet<string>,
     syntheticNames?: ReadonlySet<string>,
 ): Program {
+    let sourceLines: string[] | undefined;
+    const lines = () => sourceLines ??= source.split(/\r?\n/);
+    const at = (line: number, column: number): RankErrorLocation => ({
+        sourceId, line, column, sourceLine: lines()[line - 1] ?? '',
+    });
+    const locate = (cst: CstNode | undefined): RankErrorLocation => {
+        const start = cst?.range.start;
+        return at((start?.line ?? 0) + 1, (start?.character ?? 0) + 1);
+    };
     const result = services.parser.LangiumParser.parse<Program>(source, { ...grouping, rule: 'Program' });
     const error = result.lexerErrors[0] ?? result.parserErrors[0];
 
@@ -85,16 +94,12 @@ export function parse(
         let line = lexerLocation?.line ?? parserLocation?.startLine;
         let column = lexerLocation?.column ?? parserLocation?.startColumn;
         if (!Number.isFinite(line) || !Number.isFinite(column)) {
-            const lines = source.split('\n');
-            line = lines.length;
-            column = lines.at(-1)!.length + 1;
+            line = lines().length;
+            column = lines().at(-1)!.length + 1;
         }
         const location = ` at ${line}:${column}`;
         const diagnostic = new RankError(`${removedSpelling(error) ?? lowercaseVariable(error, source) ?? readableSyntaxError(error, source)}${location}`, 'Syntax');
-        diagnostic.location = {
-            sourceId, line: line!, column: column!,
-            sourceLine: source.split(/\r?\n/)[line! - 1] ?? '',
-        };
+        diagnostic.location = at(line!, column!);
         throw diagnostic;
     }
 
@@ -102,32 +107,20 @@ export function parse(
         const message = isTextBlockExpression(node) ? textBlockModeError(node) : undefined;
         if (!message) continue;
         const error = new RankError(message, 'Syntax');
-        const start = node.$cstNode?.range.start;
-        error.location = {
-            sourceId, line: (start?.line ?? 0) + 1, column: (start?.character ?? 0) + 1,
-            sourceLine: source.split(/\r?\n/)[start?.line ?? 0] ?? '',
-        };
+        error.location = locate(node.$cstNode);
         throw error;
     }
 
     const groupingError = expressionDiagnostics(result.value)[0];
     if (groupingError) {
         const error = new RankError(groupingError.message, 'Syntax');
-        const start = groupingError.cst?.range.start;
-        error.location = {
-            sourceId, line: (start?.line ?? 0) + 1, column: (start?.character ?? 0) + 1,
-            sourceLine: source.split(/\r?\n/)[start?.line ?? 0] ?? '',
-        };
+        error.location = locate(groupingError.cst);
         throw error;
     }
     const scopeError = blockScopeDiagnostics(result.value, known, syntheticNames)[0];
     if (scopeError) {
         const error = new RankError(scopeError.message, 'Scope');
-        const start = scopeError.node.$cstNode?.range.start;
-        error.location = {
-            sourceId, line: (start?.line ?? 0) + 1, column: (start?.character ?? 0) + 1,
-            sourceLine: source.split(/\r?\n/)[start?.line ?? 0] ?? '',
-        };
+        error.location = locate(scopeError.node.$cstNode);
         throw error;
     }
     return result.value;

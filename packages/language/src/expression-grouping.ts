@@ -43,19 +43,35 @@ export interface GroupingDiagnostic {
     readonly node: AstNode;
     readonly cst?: CstNode;
 }
-const diagnostics = new WeakMap<Program, GroupingDiagnostic[]>();
-const dataOperands = new WeakSet<Expression>();
-const directNames = new WeakSet<Expression>();
+/** Node-owned annotations survive expression spreads and stay out of JSON/CST traversal. */
+const annotations = Symbol('grouping annotations');
+const grouping = Symbol('grouped program');
+interface ExpressionAnnotations {
+    readonly callable?: boolean;
+    readonly arities?: readonly number[];
+    readonly directName?: boolean;
+    readonly dataOperand?: boolean;
+}
+type AnnotatedExpression = Expression & { [annotations]?: ExpressionAnnotations };
+export interface GroupedProgram {
+    readonly program: Program;
+    readonly diagnostics: readonly GroupingDiagnostic[];
+}
+type AnnotatedProgram = Program & { [grouping]?: GroupedProgram };
+const metadata = (node: Expression): ExpressionAnnotations => (node as AnnotatedExpression)[annotations] ?? {};
+function annotate(node: Expression, facts: ExpressionAnnotations): void {
+    (node as AnnotatedExpression)[annotations] = { ...metadata(node), ...facts };
+}
 /** Known nullary calls and unresolved module words need the execution stack. */
 export function nameNeedsExecution(expression: Expression): boolean {
-    return !directNames.has(expression);
+    return !metadata(expression).directName;
 }
 /** An unresolved operand cannot become an implicit call inside arithmetic. */
 export function requiresDataOperand(expression: Expression): boolean {
-    return dataOperands.has(expression);
+    return metadata(expression).dataOperand === true;
 }
 export function expressionDiagnostics(program: Program): readonly GroupingDiagnostic[] {
-    return diagnostics.get(program) ?? [];
+    return (program as AnnotatedProgram)[grouping]?.diagnostics ?? [];
 }
 
 /** A `-` after whitespace and before its operand, as in `A -1`, is a sign; `A - 1` and `A-1` subtract. */
@@ -80,40 +96,38 @@ export interface GroupingOptions {
  * formulas; arithmetic keeps its mathematical precedence, and comparisons bind
  * below it, so a call after a comparison applies to the comparison's result.
  */
-export function groupExpressions(program: Program, options: GroupingOptions = {}): void {
+export function groupExpressions(program: Program, options: GroupingOptions = {}): GroupedProgram {
+    // Regrouping (for example after resolving a function binding) recomputes semantic facts.
+    for (const node of AstUtils.streamAllContents(program)) {
+        if (isExpression(node)) delete (node as AnnotatedExpression)[annotations];
+    }
     resolveOperationAssignments(program, options);
     prepareFunctionBindings(program, options.bindings);
     const errors: GroupingDiagnostic[] = [];
-    diagnostics.set(program, errors);
+    const result: GroupedProgram = { program, diagnostics: errors };
+    (program as AnnotatedProgram)[grouping] = result;
     const externalFunctions = new Map<string, readonly number[]>();
     for (const [name, signature] of options.bindings ?? []) {
         if (signature !== false) externalFunctions.set(name, signature);
     }
-    const facts = analyzeBindings(program, [], externalFunctions);
-    const sites = new Map<string, boolean>();
-    const arities = new Map<string, readonly number[]>();
-    const directSites = new Set<string>();
-    const siteKey = (line: number, column: number) => `${line}:${column}`;
-    for (const scope of facts.scopes) for (const binding of scope.bindings) {
-        for (const read of binding.reads) {
-            const key = siteKey(read.line, read.column);
-            sites.set(key, (binding.kind === 'function' || binding.types.includes('function'))
-                && !binding.arities?.includes(0));
-            if (binding.arities) arities.set(key, binding.arities);
-            if (!binding.arities?.includes(0)) directSites.add(key);
-        }
-    }
-    // Source-module functions use the same lower-case spelling as local `fun`
-    // declarations; their implementations need not be loaded to group a call.
-    for (const word of facts.words) {
-        if (/^[a-z]/.test(word.name.split('.').at(-1)!)) {
-            for (const read of word.sites) sites.set(siteKey(read.line, read.column), true);
-        }
+    const unresolved: NameExpression[] = [];
+    const facts = analyzeBindings(program, [], externalFunctions, (node, binding) => {
+        if (!isNameExpression(node)) return;
+        if (!binding) { unresolved.push(node); return; }
+        annotate(node, {
+            callable: (binding.kind === 'function' || binding.types.includes('function')) && !binding.arities?.includes(0),
+            arities: binding.arities,
+            directName: !binding.arities?.includes(0),
+        });
+    });
+    // Source-module functions need not be loaded to group their calls.
+    const words = new Set(facts.words.map(word => word.name));
+    for (const node of unresolved) {
+        if (!options.bindings?.has(node.name) && words.has(node.name) && /^[a-z]/.test(node.name.split('.').at(-1)!)) annotate(node, { callable: true });
     }
     const callable = (part: Expression): boolean => {
         if (!isNameExpression(part)) return false;
-        const start = part.$cstNode?.range.start;
-        const bound = start && sites.get(siteKey(start.line + 1, start.character + 1));
+        const bound = metadata(part).callable;
         if (bound !== undefined) return bound;
         const supplied = options.bindings?.get(part.name);
         if (supplied !== undefined) return supplied !== false && !supplied.includes(0);
@@ -121,12 +135,13 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
     };
     const rebound = new Set<string>();
     for (const scope of facts.scopes) for (const binding of scope.bindings) rebound.add(binding.name);
-    const standardOperation = (name: string): boolean => !rebound.has(name) && options.bindings?.get(name) === undefined;
-    const standard = (part: NameExpression): boolean => {
-        const start = part.$cstNode?.range.start;
-        return !(start && sites.has(siteKey(start.line + 1, start.character + 1)))
-            && options.bindings?.get(part.name) === undefined;
+    const standard = (part: NameExpression | string): boolean => {
+        const name = typeof part === 'string' ? part : part.name;
+        return (typeof part === 'string' ? !rebound.has(name) : metadata(part).callable === undefined)
+            && options.bindings?.get(name) === undefined;
     };
+    const standardOperation = (part: NameExpression | string) =>
+        standard(part) ? findOperation(typeof part === 'string' ? part : part.name) : undefined;
     const report = (node: AstNode, message: string, property?: string) => {
         errors.push({ node, message, cst: property ? GrammarUtils.findNodeForProperty(node.$cstNode, property) : node.$cstNode });
     };
@@ -154,7 +169,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         if (isBinaryExpression(expression) && precedence[expression.operator]) {
             const left = flatten(expression.left);
             const last = left.at(-1);
-            if (expression.operator === '-' && isNameExpression(last) && last.name === 'round' && standard(last)) {
+            if (expression.operator === '-' && isNameExpression(last) && standardOperation(last)?.grouping?.signedOperand) {
                 const right = tokens(expression.right);
                 const first = right[0];
                 if (first.kind === 'value') {
@@ -166,7 +181,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             // Symbolic modifiers remain one postfix operation, not an arithmetic RHS.
             const right = flatten(expression.right);
             if (isNameExpression(right[0]) && symbolic.has(right[0].name)) {
-                if (higherOrder.has(right[0].name) && standardOperation(right[0].name)) {
+                if (higherOrder.has(right[0].name) && standard(right[0].name)) {
                     const name = right[0].name;
                     report(right[0], `\`${name}\` takes its combining operation after it. Write \`A ${name} ${expression.operator}\` instead of \`A ${expression.operator} ${name}\`.`);
                 }
@@ -211,7 +226,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             if (joined > 0) {
                 // `A scan + with 0` is the call form `A scan + with 0` that grouping and execution share.
                 const { name, operator } = higherOrderParts(raw[joined] as HigherOrderOperator);
-                if (!standardOperation(name)) {
+                if (!standard(name)) {
                     report(raw[joined], `\`${name}\` is rebound in this program, so \`${name} ${operator}\` cannot name the standard operation.`);
                 }
                 const nameExpression = { $type: 'NameExpression', name, $cstNode: raw[joined].$cstNode } as Expression;
@@ -222,7 +237,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             }
             // `Steps scan next with Start` is the call form `Steps next scan with Start`.
             const named = raw.findIndex((part, index) => index > 0 && isNameExpression(part) && higherOrder.has(part.name)
-                && standardOperation(part.name));
+                && standard(part.name));
             if (named > 0) {
                 const operation = raw[named] as NameExpression;
                 const next = raw[named + 1];
@@ -236,7 +251,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             const original = raw.map(part => visit(part) as Expression);
             for (let cursor = 1; cursor < original.length; cursor++) {
                 const part = original[cursor];
-                if (!isNameExpression(part) || part.name !== 'choose' || !standardOperation(part.name)) continue;
+                if (!isNameExpression(part) || standardOperation(part)?.grouping?.trailingOperands !== 'alternatives') continue;
                 let previousCall = -1;
                 for (let index = cursor - 1; index >= 0; index--) {
                     if (callable(original[index])) { previousCall = index; break; }
@@ -254,15 +269,15 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             for (let index = 0; index < original.length; index++) {
                 const part = original[index];
                 const next = original[index + 1];
-                if (isNameExpression(part) && part.name === 'round' && standard(part) && next && !callable(next)) {
+                if (isNameExpression(part) && standardOperation(part)?.grouping?.trailingOperands === 1 && next && !callable(next)) {
                     parts.push(next, part);
                     index++;
                 } else {
                     // `Left max Right` was an infix form; a chain such as `A B max 5 min` continues with a call.
-                    if (isNameExpression(part) && (part.name === 'min' || part.name === 'max') && standard(part)
+                    if (isNameExpression(part) && standardOperation(part)?.grouping?.rejectInfix
                         && parts.length > 0 && next && index + 2 === original.length && !callable(next)
                         && !(isNameExpression(next) && modifiers.has(next.name))
-                        && !(isLabelLiteral(next) && findOperation(part.name)?.modifiers?.includes(next.name))) {
+                        && !(isLabelLiteral(next) && standardOperation(part)?.modifiers?.includes(next.name))) {
                         report(part, `${part.name} is a postfix call. Write \`Left Right ${part.name}\` instead of \`Left ${part.name} Right\`.`);
                     }
                     parts.push(part);
@@ -283,7 +298,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         if (input.some(token => token.kind === 'operator')) {
             for (const token of input) if (token.kind === 'value') {
                 for (const part of flatten(token.value).slice(1)) {
-                    if (!callable(part)) dataOperands.add(part);
+                    if (!callable(part)) annotate(part, { dataOperand: true });
                 }
             }
         }
@@ -310,8 +325,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                 // takes `len` itself. Literals keep the formula rule, so `1 till 5 len` counts.
                 const bound = values.at(-1);
                 if (token.kind === 'call' && operators.length && isRangeOperator(operators.at(-1)!.operator)
-                    && token.parts.length === 1 && isNameExpression(token.parts[0]) && token.parts[0].name === 'len'
-                    && standardOperation('len') && isNameExpression(bound) && !callable(bound)) {
+                    && token.parts.length === 1 && isNameExpression(token.parts[0]) && standardOperation(token.parts[0])?.grouping?.rangeBound && isNameExpression(bound) && !callable(bound)) {
                     values.push(application([values.pop()!, ...token.parts], token.original));
                     continue;
                 }
@@ -321,8 +335,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                 if (token.kind === 'call' && operators.length && isNameExpression(token.parts[0])) {
                     const name = token.parts[0].name;
                     const pending = flatten(values.pop()!);
-                    const start = token.parts[0].$cstNode?.range.start;
-                    const local = start && arities.get(siteKey(start.line + 1, start.character + 1));
+                    const local = metadata(token.parts[0]).arities;
                     const supplied = options.bindings?.get(name);
                     const accepted = local ?? (supplied || undefined) ?? operationArities(name) ?? [1];
                     const modifier = token.parts[1];
@@ -355,8 +368,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             if (plan.value) node.value = visit(plan.value) as Expression;
             for (const definition of plan.definitions) {
                 const wrapped = { $type: 'Program', statements: [definition] } as Program;
-                groupExpressions(wrapped, options);
-                errors.push(...expressionDiagnostics(wrapped));
+                errors.push(...groupExpressions(wrapped, options).diagnostics);
             }
             return node;
         }
@@ -364,13 +376,12 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             report(node, `\`${node.text}\` needs the values it applies to on its left.`);
         }
         if (isNameExpression(node) && !node.name.includes('.')) {
-            const start = node.$cstNode?.range.start;
-            const key = start && siteKey(start.line + 1, start.character + 1);
+            const binding = metadata(node);
             const supplied = options.bindings?.get(node.name);
-            const standard = operationArities(node.name);
-            if (key && sites.has(key) ? directSites.has(key)
+            const arities = operationArities(node.name);
+            annotate(node, { directName: binding.callable !== undefined ? binding.directName === true
                 : supplied !== undefined ? supplied === false || !supplied.includes(0)
-                : standard !== undefined && !standard.includes(0)) directNames.add(node);
+                : arities !== undefined && !arities.includes(0) });
         }
         // Newly grouped nodes do not have container links until the final pass.
         const record = node as unknown as Record<string, unknown>;
@@ -401,12 +412,12 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         callable,
         arities: part => {
             if (!isNameExpression(part)) return [];
-            const start = part.$cstNode?.range.start;
-            const local = start && arities.get(siteKey(start.line + 1, start.character + 1));
+            const local = metadata(part).arities;
             const supplied = options.bindings?.get(part.name);
             return local || (supplied || undefined) || operationArities(part.name) || [];
         },
     });
     visitChildren(program);
     AstUtils.linkContentToContainer(program, { deep: true });
+    return result;
 }

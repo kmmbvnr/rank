@@ -1,4 +1,4 @@
-import { inferRequirements, isNameExpression, isUseStatement, type CallRequirement, type Expression, type FunctionStatement, type Program, type ValueFacts, type ValueRequirement } from '@arrrank/language';
+import { inferRequirements, applicationForm, isApplicationExpression, isNameExpression, isUseStatement, type CallRequirement, type Expression, type FunctionStatement, type Program, type ValueFacts, type ValueRequirement } from '@arrrank/language';
 import { AstUtils } from 'langium';
 import type { AstNode } from 'langium';
 import { readArrayItem } from './array-storage.js';
@@ -92,8 +92,12 @@ export class CheckedInputContracts {
     prepare(program: Program, initial: ReadonlyMap<string, ValueFacts>,
         declarations: ReadonlyMap<string, FunctionStatement> = new Map(),
         loadModule?: (path: string, importSite?: AstNode) => Program | undefined): void {
-        const containsCheck = (source: Program | FunctionStatement) =>
-            [...AstUtils.streamAllContents(source)].some(node => isNameExpression(node) && node.name === 'check');
+        const containsCheck = (source: Program | FunctionStatement): boolean => {
+            const nodes = [...AstUtils.streamAllContents(source)];
+            // The token is a cheap prefilter; only a classified read enables contracts.
+            return nodes.some(node => isNameExpression(node) && node.name === 'check')
+                && nodes.some(node => isApplicationExpression(node) && applicationForm(node).kind === 'checked-read');
+        };
         const importedCheck = (source: Program, visited: Set<Program>): boolean => {
             if (visited.has(source)) return false;
             visited.add(source);

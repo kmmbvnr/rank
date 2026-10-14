@@ -55,8 +55,8 @@ describe('compiled scalar expressions', () => {
     });
 
     it('reuses generated code while binding separate local closures', () => {
-        let compiled = 0;
-        const runtime = new Interpreter(undefined, { onScalarCompiled: () => compiled++ });
+        let compiled = 0, executed = 0;
+        const runtime = new Interpreter(undefined, { onScalarCompiled: () => compiled++, onScalarExecuted: () => executed++ });
         const value = runtime.execute(`fun outer A
   fun inner X
     return A * 2 + X
@@ -68,14 +68,20 @@ B = 7 outer
 array A B
 `);
         expect(formatValue(value!)).toBe('11 17');
-        expect(compiled).toBe(1);
+        expect(compiled).toBeLessThanOrEqual(1);
+        expect(executed).toBeGreaterThan(0);
         runtime.dispose();
     });
 
-    it('falls back when dynamic code generation is unavailable', () => {
+    it('falls back when dynamic code generation is unavailable and retries later', async () => {
+        vi.resetModules();
+        const { compileScalarExpression: compile } = await import('../src/scalar-compiler.js');
+        const expression = scalarExpression('(A + B) * C');
+        const host = scalarHost();
         const blocked = vi.spyOn(globalThis, 'Function').mockImplementation(() => { throw new Error('CSP'); });
-        try { expect(evaluate('A * 3 + B', 2n, 4n, true)).toEqual({ value: 10n, entries: 0 }); }
+        try { expect(compile(expression, host)).toBeUndefined(); }
         finally { blocked.mockRestore(); }
+        expect(compile(expression, host)?.()).toBe(9n);
     });
 });
 
@@ -227,3 +233,52 @@ end
         expect(entries).toBe(20000);
     } finally { runtime.dispose(); }
 }, 30000);
+
+function scalarExpression(source: string) {
+    const statement = parse(`fun calc A B C D\nreturn ${source}\nend`).statements[0];
+    if (!isFunctionStatement(statement)) throw new Error('expected function');
+    const returned = statement.statements[0];
+    if (!isReturnStatement(returned) || !returned.value) throw new Error('expected return');
+    return returned.value;
+}
+
+function scalarHost() {
+    const values: Record<string, RankValue> = { A: 1n, B: 2n, C: 3n, D: 4n };
+    const fallback = (): never => { throw new Error('unexpected arithmetic fallback'); };
+    return { leaf: (node: import('@arrrank/language').Expression) => isNameExpression(node) ? () => values[node.name]! : undefined,
+        binary: fallback, unary: fallback };
+}
+
+it('shares factories between equivalent trees while binding fresh readers', async () => {
+    vi.resetModules();
+    const { compileScalarExpression: compile } = await import('../src/scalar-compiler.js');
+    let compiled = 0;
+    const host = { ...scalarHost(), compiled: () => compiled++ };
+    const first = compile(scalarExpression('(A + B) * C'), host);
+    const second = compile(scalarExpression('(A + B) * C'), {
+        ...host, leaf: node => isNameExpression(node) ? () => 2n : undefined,
+    });
+    expect(first?.()).toBe(9n);
+    expect(second?.()).toBe(8n);
+    expect(compiled).toBe(1);
+});
+
+it('keys resumable factories by emitted code when leaf coverage changes', async () => {
+    const { compileResumableScalarExpression: compile } = await import('../src/scalar-compiler.js');
+    const { completed, runExecution } = await import('../src/execution.js');
+    const expression = scalarExpression('((A + B) * C) + D');
+    const base = scalarHost();
+    const first = compile(expression, { ...base, leaf: node => {
+        const read = base.leaf(node);
+        return read && (() => completed(read()));
+    } });
+    const second = compile(expression, { ...base, leaf: node => {
+        if (isNameExpression(node) && node.name === 'A') return undefined;
+        const read = base.leaf(node);
+        return read ? () => completed(read()) : () => completed(3n);
+    } });
+    expect(first).toBeDefined();
+    expect(second).toBeDefined();
+    expect(runExecution(first!())).toBe(13n);
+    expect(runExecution(second!())).toBe(13n);
+});
