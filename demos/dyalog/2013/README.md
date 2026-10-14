@@ -13,6 +13,8 @@ Rank solutions to the 2013 issue tasks, added problem by problem.
 
 - [Identity matrix](005_identity.ra): Problem 5 (#195). `identity` applies outer equality to indices and casts the mask to integers. N=0 retains the matrix shape `0 0`.
 
+- [Global numeric range](006_range.ra): Problem 6 (#196). `numericRange` flattens every axis and computes maximum minus minimum, returning one real scalar. Empty arrays and scalars return 0.0; integer differences are computed before conversion to real.
+
 Run `rank demos/dyalog/2013/004_balanced.ra`, or verify the examples with
 `rank test demos/dyalog/2013/004_balanced_test.ra`. Import `balanced` with
 `use "004_balanced"`. Text iteration uses Unicode code points, so a combining
