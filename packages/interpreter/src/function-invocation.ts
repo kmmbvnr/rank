@@ -1,6 +1,6 @@
 import type { AstNode } from 'langium';
 import {
-    availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, expressionDiagnostics, flattenApplication, isNameExpression, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
+    availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
     type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { arrayRevision, enterRuntime, isFlatScalarArray, isSharedArray, leaveRuntime } from './array-storage.js';
@@ -157,8 +157,7 @@ export class FunctionInvocation {
             }
             const copy = { ...statement };
             const program = { $type: 'Program', statements: [copy] } as Program;
-            groupExpressions(program, { bindings: signatures });
-            const diagnostic = expressionDiagnostics(program)[0];
+            const diagnostic = groupExpressions(program, { bindings: signatures }).diagnostics[0];
             if (diagnostic) throw new RankError(diagnostic.message, 'Syntax');
             plan = functionBindingPlan(copy);
         }

@@ -92,6 +92,13 @@ export interface Operation {
     };
     /** Syntax marker dispatched by application forms; its native placeholder cannot be called. */
     readonly formOnly?: true;
+    /** Binding-aware surface forms normalized before application analysis. */
+    readonly grouping?: {
+        readonly trailingOperands?: 1 | 'alternatives';
+        readonly signedOperand?: true;
+        readonly rejectInfix?: true;
+        readonly rangeBound?: true;
+    };
     /** Direct-call eligibility for existing compiler backends. Never use this
      * restricted subset as a complete operand-domain rule or displayed signature. */
     readonly compiledCall?: CompiledCallSignature;
@@ -869,14 +876,14 @@ export const operations: readonly Operation[] = [
     { name: 'log', module: 'numbers', arities: [1], form: 'Value log', result: 'real', mapsScalarCells: true,
         signatures: realMathSignatures,
         summary: 'Natural logarithm of a positive finite number.' },
-    { name: 'max', module: 'core', arities: [1, 2], form: 'Left Right max', result: 'number', axisReduction: true,
+    { name: 'max', grouping: { rejectInfix: true }, module: 'core', arities: [1, 2], form: 'Left Right max', result: 'number', axisReduction: true,
         modifiers: ['index', 'indexed'],
         signatures: [...extremaSignatures, { inputs: ['column'], result: 'number' }, ...positionSignatures],
         shape: [{ args: [null], result: [] }, { args: [[], []], result: [] }],
         dyadicRanks: [0, 0], scalarCellArrayNoCallback: 'number', numericArrayNoCallback: true,
         selectsNumericCell: true,
         summary: 'Larger of two numbers, or the largest of one collection.' },
-    { name: 'min', module: 'core', arities: [1, 2], form: 'Left Right min', result: 'number', axisReduction: true,
+    { name: 'min', grouping: { rejectInfix: true }, module: 'core', arities: [1, 2], form: 'Left Right min', result: 'number', axisReduction: true,
         modifiers: ['index', 'indexed'],
         signatures: [...extremaSignatures, ...positionSignatures],
         shape: [{ args: [null], result: [] }, { args: [[], []], result: [] }],
@@ -910,7 +917,7 @@ export const operations: readonly Operation[] = [
     { name: 'fromDigits', module: 'numbers', arities: [2], form: 'Digits Bases fromDigits', result: 'value',
         signatures: [{ inputs: [{ collection: 'array', element: 'integer' }, { collection: 'array', element: 'integer' }], result: { union: ['integer', { collection: 'array', element: 'integer' }] } }],
         summary: 'Packs the leading mixed-base digit axis into integers.' },
-    { name: 'round', module: 'numbers', arities: [2], form: 'Value Places round', result: 'number',
+    { name: 'round', grouping: { trailingOperands: 1, signedOperand: true }, module: 'numbers', arities: [2], form: 'Value Places round', result: 'number',
         signatures: [{ inputs: ['integer', 'integer'], result: 'integer', ranks: [0, 0] },
             { inputs: ['real', 'integer'], result: 'real', ranks: [0, 0] }],
         shape: [{ args: [[{ spread: 's' }], null], result: [{ spread: 's' }] }],
@@ -975,7 +982,7 @@ export const operations: readonly Operation[] = [
             { inputs: [{ union: ['text', capabilityInput('sortable', orderedValue)] }, sortDirection], result: integerArray }],
         shape: [{ args: [['d']], result: ['d'] }, { args: [['d'], []], result: ['d'] }],
         monadicRank: 1, summary: 'Stable zero-based positions that put the values in order.' },
-    { name: 'choose', module: 'core', arities: [2, 3],
+    { name: 'choose', grouping: { trailingOperands: 'alternatives' }, module: 'core', arities: [2, 3],
         signatures: [{ inputs: [{ union: ['integer', integerArray] }, genericArray], result: { union: [elementVariable, 'array'] } },
             { inputs: [{ union: ['boolean', booleanArray, 'column'] }, { variable: 0 }, { variable: 1 }],
                 result: { union: [{ variable: 0 }, { variable: 1 }, 'array', 'column'] } }],
@@ -1023,7 +1030,7 @@ export const operations: readonly Operation[] = [
     { name: 'last', module: 'sequences', arities: [1], form: 'Values last', result: 'element',
         signatures: collectionEnds,
         summary: 'Last item of text, an array, a queue or a finite sequence; missing when empty.' },
-    { name: 'len', module: 'core', arities: [1], form: 'Value len', result: 'integer',
+    { name: 'len', grouping: { rangeBound: true }, module: 'core', arities: [1], form: 'Value len', result: 'integer',
         signatures: [{ inputs: ['sized'], result: 'integer' }],
         compiledCall: { inputs: ['text-or-array'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         arrayHeaderNoCallback: true,
