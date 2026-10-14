@@ -17,6 +17,8 @@ Rank solutions to the 2013 issue tasks, added problem by problem.
 
 - [Fractional values](007_fractional.ra): Problem 7 (#197). `fractionalValues` selects values whose remainder modulo 1 is nonzero, preserving order and duplicates. Integer-valued reals are excluded; empty vectors remain rank 1.
 
+- [Multiplication table](008_times.ra): Problem 8 (#198). `timesTable` takes the outer product of indices 1 through N. The empty result retains matrix shape `0 0`.
+
 Run `rank demos/dyalog/2013/004_balanced.ra`, or verify the examples with
 `rank test demos/dyalog/2013/004_balanced_test.ra`. Import `balanced` with
 `use "004_balanced"`. Text iteration uses Unicode code points, so a combining
