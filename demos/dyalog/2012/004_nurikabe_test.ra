@@ -1,0 +1,51 @@
+use testing
+
+test "published small validation examples"
+  use "004_nurikabe"
+  use sequences
+  ((array 1) reshape 1 1) valid equal 1
+  ((array -1 -1 -1 1) reshape 2 2) valid equal 1
+  ((array -1 -1 2 0) reshape 2 2) valid equal 1
+  ((array 1 -1 -1 1) reshape 2 2) valid equal 0
+end
+
+test "published seven by seven solution"
+  use "004_nurikabe"
+  Board = array shape 7 7
+    -1 3 0 0 -1 1 -1
+    -1 -1 -1 -1 -1 -1 -1
+    2 0 -1 1 -1 0 0
+    -1 -1 -1 -1 -1 -1 0
+    -1 1 -1 0 2 -1 0
+    -1 -1 2 -1 -1 -1 0
+    1 -1 0 -1 1 -1 6
+  end
+  Board valid equal 1
+end
+
+test "islands need exactly one clue and the exact size"
+  use "004_nurikabe"
+  use sequences
+  ((array 0) reshape 1 1) valid equal 0
+  ((array 2) reshape 1 1) valid equal 0
+  ((array 1 1) reshape 1 2) valid equal 0
+  ((array 2 0 0) reshape 1 3) valid equal 0
+  ((array 3 0 0) reshape 1 3) valid equal 1
+end
+
+test "sea is connected and contains no two by two square"
+  use "004_nurikabe"
+  use sequences
+  ((array -1 1 -1) reshape 1 3) valid equal 0
+  ((array -1 -1 1 -1 -1 -1) reshape 2 3) valid equal 0
+  ((array -1 -1 -1) reshape 1 3) valid equal 1
+end
+
+test "invalid cell values and matrix shapes are rejected"
+  use "004_nurikabe"
+  use sequences
+  ((array -2) reshape 1 1) valid equal 0
+  ((array 1.0) reshape 1 1) valid equal 0
+  (array 1) valid equal 0
+  (array shape 0 2 fill 0) valid equal 0
+end

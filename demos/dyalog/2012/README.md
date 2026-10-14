@@ -8,6 +8,8 @@ Rank solutions to the [2012 contest](https://www.dyalog.com/uploads/files/studen
 
 - [Digital Fun](003_digits.ra): Problem 3 (#214). `problem3` evaluates 100 expressions to return exactly 1 through 100. Each right-hand side contains `123456789` exactly once, in order, with only `+`, `-`, and `*` inserted. Expressions were selected by exhaustively searching all 65,536 ways to insert these operations or concatenate adjacent digits, retaining the shortest expression for each target. This is a minimum within that search space, not a global minimum over Rank syntax. Run `rank test demos/dyalog/2012/003_digits_test.ra`.
 
+- [Nurikabe](004_nurikabe.ra): Problem 4 Task 1 (#215). `valid` returns integer 1 for a completed valid board and 0 otherwise. White cells are 0 or positive clues; sea cells are -1. Flood filling checks each island’s clue count and size and sea connectivity, and a separate check rejects all-sea 2 by 2 blocks. Run `rank test demos/dyalog/2012/004_nurikabe_test.ra`.
+
 `roman` returns a derived function that decodes its operands, calls the supplied numeric function, and encodes its result. Rank uses a one-element tuple to pass a function as data, and a two-element tuple to supply two operands to the derived function:
 
 ```rank
