@@ -44,6 +44,11 @@ interface LoadedProgram {
     readonly program: Program;
 }
 
+function splitQualified(name: string): { alias: string; member: string } | undefined {
+    const dot = name.indexOf('.');
+    return dot < 0 ? undefined : { alias: name.slice(0, dot), member: name.slice(dot + 1) };
+}
+
 /**
  * The public runtime: executes Rank source and exposes its bindings to a
  * host. Each execution step has its own owner; this class creates them,
@@ -332,9 +337,10 @@ export class Interpreter {
         for (const name of this.bindings.sourceBindings) fork.bindings.sourceBindings.add(name);
         for (const [name, child] of this.aliases) fork.aliases.set(name, child.forkForPreview(output, environment));
         for (const [name, value] of this.variables) {
-            const source = isNativeFunction(value) ? this.functions.sourceOf(value) : undefined;
-            if (source && isNativeFunction(value)) fork.functions.adoptSource(value, source);
-            const definition = isNativeFunction(value) ? this.functions.definitionOf(value) : undefined;
+            const fn = isNativeFunction(value) ? value : undefined;
+            const source = fn && this.functions.sourceOf(fn);
+            if (fn && source) fork.functions.adoptSource(fn, source);
+            const definition = fn && this.functions.definitionOf(fn);
             if (!definition || definition.context) {
                 const copy = clonePreviewValue(value);
                 if (isNativeFunction(copy)) {
@@ -426,10 +432,9 @@ export class Interpreter {
     // theirs, then bindings and finally the open builtins.
 
     private resolve(name: string): RankValue {
-        const dot = name.indexOf('.');
-        if (dot >= 0) {
-            const alias = name.slice(0, dot);
-            const member = name.slice(dot + 1);
+        const qualified = splitQualified(name);
+        if (qualified) {
+            const { alias, member } = qualified;
             const child = this.aliases.get(alias);
             if (!child) throw new RankError(`unknown module alias: ${alias}`);
             if (member === 'run') throw new RankError(`${alias}.run is only valid as a statement`);
@@ -450,13 +455,11 @@ export class Interpreter {
     }
 
     private resolveVariable(name: string): RankValue {
-        // Most names are plain, and scanning for the dot here keeps the common
-        // read from calling out and building a pair it throws away.
-        const dot = name.indexOf('.');
-        if (dot >= 0) {
-            const child = this.aliases.get(name.slice(0, dot));
-            if (!child) throw new RankError(`unknown module alias: ${name.slice(0, dot)}`);
-            return child.resolveVariable(name.slice(dot + 1));
+        const qualified = splitQualified(name);
+        if (qualified) {
+            const child = this.aliases.get(qualified.alias);
+            if (!child) throw new RankError(`unknown module alias: ${qualified.alias}`);
+            return child.resolveVariable(qualified.member);
         }
         const value = this.bindings.find(name);
         if (value === undefined) {
@@ -466,10 +469,10 @@ export class Interpreter {
     }
 
     private checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[] {
-        const dot = name.indexOf('.');
-        if (dot > 0) {
-            const child = this.aliases.get(name.slice(0, dot));
-            if (child) return child.checkArrayWrite(name.slice(dot + 1), target, values, offsets);
+        const qualified = splitQualified(name);
+        if (qualified?.alias) {
+            const child = this.aliases.get(qualified.alias);
+            if (child) return child.checkArrayWrite(qualified.member, target, values, offsets);
         }
         return (this.bindings.current?.find(name) ?? this.bindings.globals).checkArrayWrite(name, target, values, offsets);
     }
@@ -479,12 +482,12 @@ export class Interpreter {
     }
 
     private assign(name: string, value: RankValue): void {
-        const dot = name.indexOf('.');
-        if (dot >= 0) {
-            const alias = name.slice(0, dot);
+        const qualified = splitQualified(name);
+        if (qualified) {
+            const { alias, member } = qualified;
             const child = this.aliases.get(alias);
             if (!child) throw new RankError(`unknown module alias: ${alias}`);
-            child.assign(name.slice(dot + 1), value);
+            child.assign(member, value);
             return;
         }
         this.bindings.assign(name, value);
