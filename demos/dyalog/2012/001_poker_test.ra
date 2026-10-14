@@ -1,0 +1,61 @@
+use testing
+
+test "all categories and royal flush increase in value"
+  use "001_poker"
+  Hands = array shape 10
+    "2H 4C 6S 8D TH"
+    "2H 2C 6S 8D TH"
+    "2H 2C 6S 6D TH"
+    "2H 2C 2S 8D TH"
+    "2H 3C 4S 5D 6H"
+    "2H 4H 6H 8H TH"
+    "2H 2C 2S 8D 8H"
+    "2H 2C 2S 2D TH"
+    "2H 3H 4H 5H 6H"
+    "TH JH QH KH AH"
+  end
+  Values = Hands handValue rank 0
+  Values drop 1 greater Values take 9
+end
+
+test "case, spaces, order and suits do not change values"
+  use "001_poker"
+  Value = "QC QD 9H 7D 2C" handValue
+  Value equal ("qcqD9h7D2c" handValue)
+  Value equal ("2S 7H 9D QH QS" handValue)
+end
+
+test "every combination and kicker breaks ties"
+  use "001_poker"
+  Strong = array shape 9
+    "AH AD 2C 3S 4H"
+    "AH AD 2C 2S 3H"
+    "AH AD KC KS 3H"
+    "AH AD KC KS 4H"
+    "8H 8D 8C 2S 3H"
+    "4H 4D 4C 2S 2H"
+    "8H 8D 8C 8S 2H"
+    "5H 5D AH KC 3H"
+    "AH JH 9H 5H 3H"
+  end
+  Weak = array shape 9
+    "KH KD QC JS TH"
+    "KH KD QC QS JH"
+    "AC AS QC QS JH"
+    "AC AS KH KD 3H"
+    "7H 7D 7C AS KH"
+    "3H 3D 3C AS AH"
+    "7H 7D 7C 7S AH"
+    "5C 5S AS KD 2H"
+    "AS JS 9S 5S 2S"
+  end
+  Strong handValue rank 0 greater Weak handValue rank 0
+end
+
+test "ace is low only in the five-high straight"
+  use "001_poker"
+  "2H 3C 4S 5D 6H" handValue greater "AH 2C 3S 4D 5H" handValue
+  "2S 3S 4S 5S 6S" handValue greater "AH 2H 3H 4H 5H" handValue
+  "AS KD QS JH TC" handValue greater "9S TD JC QH KC" handValue
+  "AH 2C 3S 4D 6H" handValue less "2H 2C 6S 8D TH" handValue
+end

@@ -1,0 +1,108 @@
+rem Dyalog 2012, problem 1: Hold'em Up!
+use sequences
+use text
+
+rem Normalize optional spaces and mixed case into scalar card texts.
+fun cards Text
+  Compact = Text " " "" translate
+  Compact = Compact "akqjtshdc" "AKQJTSHDC" translate
+  Chars = Compact "" split
+  if (Chars len mod 2) not equal 0
+    fail "cards require rank/suit pairs"
+  end
+  Pairs = Chars reshape (Chars len // 2) 2
+  return Pairs "" join rank 1
+end
+
+rem Base 13 packs the category and five tie-break ranks into one integer.
+fun handValue Text
+  Cards = Text cards
+  if Cards len not equal 5
+    fail "handValue requires five cards"
+  end
+  Score = Cards hand_score
+  Value = 0
+  for Digit in Score
+    Value = Value * 13 + Digit
+  end
+  return Value
+end
+
+rem Category followed by five tie-break ranks, highest first.
+fun hand_score Cards
+  Values = Cards card_value rank 0
+  Suits = Cards card_suit rank 0
+
+  Sorted = Values sort
+  Distinct = Sorted unique len
+  Span = Sorted 4 - Sorted 0
+
+  Straight = Distinct equal 5
+  Straight and= Span equal 4
+
+  Wheel = Sorted (array 0 1 2 3 12) equal rank 1
+  Straight or= Wheel
+
+  Flush = Suits unique len equal 1
+
+  Same = Values Values outer equal
+  Freq = Same count rank 1
+
+  MaxFreq = Freq max
+  PairCards = (Freq equal 2) count
+  Pairs = PairCards // 2
+
+  Trips = MaxFreq equal 3
+  Quads = MaxFreq equal 4
+  HasPair = Pairs equal 1
+  FullHouse = Trips and HasPair
+
+  Kind = 0
+  if Straight and Flush
+    Kind = 8
+  elif Quads
+    Kind = 7
+  elif FullHouse
+    Kind = 6
+  elif Flush
+    Kind = 5
+  elif Straight
+    Kind = 4
+  elif Trips
+    Kind = 3
+  elif Pairs equal 2
+    Kind = 2
+  elif HasPair
+    Kind = 1
+  end
+
+  Keys = Freq * 13 + Values
+  Order = Keys argsort .descending
+  Ties = Values Order
+
+  if Straight
+    High = Sorted 4
+    if Wheel
+      High = 3
+    end
+    Ties = array High 0 0 0 0
+  end
+
+  unpack T0 T1 T2 T3 T4 = Ties
+  return array Kind T0 T1 T2 T3 T4
+end
+
+
+rem Convert a card rank to 0..12.
+fun card_value Card
+  Rank = Card 0
+  return "23456789TJQKA" Rank find
+end
+
+
+rem Return the suit character.
+fun card_suit Card
+  return Card 1
+end
+
+Example = "QC QD 9H 7D 2C" handValue
