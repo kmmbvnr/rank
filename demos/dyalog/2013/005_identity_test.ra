@@ -1,0 +1,30 @@
+use testing
+
+test "four by four identity matrix"
+  use "005_identity"
+  Expected = array shape 4 4
+    1 0 0 0
+    0 1 0 0
+    0 0 1 0
+    0 0 0 1
+  end
+  (4 identity) equal Expected
+end
+
+test "zero produces an empty matrix with both axes"
+  use "005_identity"
+  use sequences
+  Empty = 0 identity
+  Empty shape equal array 0 0
+end
+
+test "identity matrices leave vectors unchanged"
+  use "005_identity"
+  use sequences
+  use linalg
+  for N in 1 to 8
+    Values = 1 to N array
+    Result = (N identity) Values matmul
+    Result equal Values
+  end
+end

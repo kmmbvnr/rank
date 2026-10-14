@@ -11,6 +11,8 @@ Rank solutions to the 2013 issue tasks, added problem by problem.
   scan. Every prefix must have nonnegative depth and the final depth must be
   zero. Other characters contribute zero; empty text is balanced.
 
+- [Identity matrix](005_identity.ra): Problem 5 (#195). `identity` applies outer equality to indices and casts the mask to integers. N=0 retains the matrix shape `0 0`.
+
 Run `rank demos/dyalog/2013/004_balanced.ra`, or verify the examples with
 `rank test demos/dyalog/2013/004_balanced_test.ra`. Import `balanced` with
 `use "004_balanced"`. Text iteration uses Unicode code points, so a combining
