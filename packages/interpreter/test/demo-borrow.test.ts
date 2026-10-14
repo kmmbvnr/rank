@@ -99,6 +99,7 @@ it('invalidates a cached reader-helper proof when that helper starts returning t
         });
         expect(stats.cowCopies).toBe(0);
 
+        runtime.forgetBindings(['read']);
         runtime.execute('fun read X\n return X\nend');
         const next = input(2n);
         stats.run(() => {

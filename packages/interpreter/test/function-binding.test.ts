@@ -2,6 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, isNativeFunction } from '../src/index.js';
 
 describe('single-expression function bindings', () => {
+    it('keeps inline bindings replaceable and fun declarations constant', () => {
+        const runtime = new Interpreter();
+        expect(runtime.execute('f X = X + 1\n3 f')).toBe(4n);
+        expect(runtime.execute('f X = X + 2\n3 f')).toBe(5n);
+        runtime.execute('fun fixed X\n  return X + 1\nend');
+        expect(() => runtime.execute('fixed X = X + 2')).toThrow(/function declaration/);
+        expect(() => runtime.execute('fun fixed X\n  return X + 2\nend')).toThrow(/function declaration/);
+        expect(runtime.execute('3 fixed')).toBe(4n);
+        runtime.forgetBindings(['fixed']);
+        expect(runtime.execute('fun fixed X\n  return X + 3\nend\n3 fixed')).toBe(6n);
+    });
     it('supports both definition forms and replacement', () => {
         const runtime = new Interpreter();
         expect(runtime.execute('use numbers\nf = abs sqrt\n9 f')).toBe(3);

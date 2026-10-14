@@ -10,6 +10,7 @@ import { analyzeBindings } from './analysis/bindings.js';
 import { flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped } from './expressions.js';
 import { findOperation, operationArities } from './operations.js';
 import { splitClauseConditions } from './clause-conditions.js';
+import { resolveOperationAssignments } from './operation-assignment.js';
 
 // A comparison takes one operand on each side and binds below arithmetic, so
 // calls after it apply to its result, as on a calculator: `A greater 2 sum`.
@@ -69,6 +70,8 @@ function attachedSign(expression: BinaryExpression): boolean {
 export interface GroupingOptions {
     /** Signatures from earlier REPL inputs; false marks a data binding. */
     readonly bindings?: ReadonlyMap<string, readonly number[] | false>;
+    readonly modules?: ReadonlySet<string>;
+    readonly writableOperations?: ReadonlyMap<string, string>;
 }
 
 /**
@@ -78,6 +81,7 @@ export interface GroupingOptions {
  * below it, so a call after a comparison applies to the comparison's result.
  */
 export function groupExpressions(program: Program, options: GroupingOptions = {}): void {
+    resolveOperationAssignments(program, options);
     prepareFunctionBindings(program, options.bindings);
     const errors: GroupingDiagnostic[] = [];
     diagnostics.set(program, errors);

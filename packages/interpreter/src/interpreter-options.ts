@@ -1,4 +1,5 @@
 import type { RankInput, RankIo } from './io.js';
+import type { RankEnvironment } from './environment.js';
 import type { RankSequence } from './value.js';
 
 export interface LoadedModule {
@@ -7,6 +8,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly environment?: RankEnvironment;
     /** Optional host MD5 implementation; portable hashing is the default.
      * Use pureHostFunction only for implementations that satisfy its contract. */
     readonly md5?: (value: string | Uint8Array) => Uint8Array;

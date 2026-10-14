@@ -447,6 +447,35 @@ continues to select matching atoms as a rank-1 result.
 Text uses the same rules over Unicode code points. Selection returns text rather
 than an array of one-character text values.
 
+## Writable operations
+
+An imported operation may declare a separate write capability. Its normal
+postfix call reads a value; the operation followed by its address arguments on
+the left of `=` writes to the resource:
+
+```rank
+use cli
+Host = "HOST" env default "localhost"
+env "HOST" = "example.org"
+Name = "HOST"
+env Name = .NA
+```
+
+For `env`, text sets a value and `.NA` removes it. This deletion convention
+belongs to `env`, not to every writable operation. An alias preserves the
+capability: `e = env` also permits `e Name = Value`. Operations without a write
+handler reject addressed assignment. Compound writes are currently rejected.
+
+The operation is resolved first, address arguments are evaluated once in source
+order, and the address is validated before the right-hand side is evaluated
+once. A failing RHS leaves the destination unchanged. Writes have their own
+signatures and effects, separate from the read call.
+
+Resolution precedes function-binding preparation. Available builtins cannot be
+redefined, so `env Name = Value` is a write after `use cli`. Without that import,
+the unopened name remains available for an ordinary function binding. There is
+no new assignment keyword, public port type or user-defined setter syntax.
+
 ## Missing-value defaults
 
 `default` provides a value when data is absent:

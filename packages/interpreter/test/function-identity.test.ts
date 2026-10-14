@@ -26,6 +26,7 @@ f = first
         expect(runtime.execute('first equal first')).toBe(true);
         expect(runtime.execute('f equal first')).toBe(true);
         expect(runtime.execute('first equal second')).toBe(false);
+        runtime.forgetBindings(['first']);
         runtime.execute('fun first X\n return X + 1\nend');
         expect(runtime.execute('f equal first')).toBe(false);
     });

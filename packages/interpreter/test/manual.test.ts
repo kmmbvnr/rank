@@ -45,7 +45,10 @@ function run(example: string): string {
     try {
         const value = runtime.execute(example);
         // Formatting forces lazy results, exposing delayed errors in sequences and tables.
-        if (value !== undefined) printed.push(formatValue(value));
+        if (value !== undefined) {
+            const text = formatValue(value);
+            if (printed.at(-1) !== text) printed.push(text);
+        }
         return printed.join('\n').replace(/\n+$/, '');
     } finally { runtime.dispose(); }
 }

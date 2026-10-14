@@ -2,7 +2,7 @@ import { RankSession } from './session.js';
 import { runtimeValueFacts } from './value-diagnostics.js';
 import { displayTypeName, formatTypeSignature, functionTestExamples, isFunctionStatement, type FunctionTestExample, type ValueFacts } from '@arrrank/language';
 import {
-    Interpreter, RankError, InterruptedError, checkInterrupt, formatValue, summarizeValue, isNativeFunction, isRankArray, isRankSequence, standardModules, parse, type RankValue, type InterpreterOptions,
+    Interpreter, EnvironmentOverlay, RankError, InterruptedError, checkInterrupt, formatValue, summarizeValue, isNativeFunction, isRankArray, isRankSequence, standardModules, parse, type RankValue, type InterpreterOptions,
 } from '@arrrank/interpreter';
 import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@arrrank/language';
 import { preview } from './preview.js';
@@ -84,10 +84,11 @@ export function createReplSession(host: ReplHost = {}) {
         for (const line of text.split('\n')) output.push({ text: line, error: false, ...(printed ? { printed: true } : {}) });
     };
     let replay = new SequenceReplay();
+    let environment = new EnvironmentOverlay(host.options?.environment);
     const createRuntime = () => new RankSession(text => emit(text, true), {
         wrapSinglePassSequence: replay.wrap,
         wrapStoredSequence: replay.store,
-        persistentResources: true, ...host.options, sourceId,
+        persistentResources: true, ...host.options, sourceId, environment,
     });
     let runtime = createRuntime();
     let interpreter = runtime.interpreter;
@@ -106,9 +107,10 @@ export function createReplSession(host: ReplHost = {}) {
         }
         heldByCell.delete(cell);
     };
-    const resetExecution = (): void => {
+    const resetExecution = (resetEnvironment = false): void => {
         try { replay.dispose(); } finally { runtime.dispose(); }
         replay = new SequenceReplay();
+        if (resetEnvironment) environment = new EnvironmentOverlay(host.options?.environment);
         runtime = createRuntime();
         interpreter = runtime.interpreter;
         aliases = true;
@@ -136,7 +138,7 @@ export function createReplSession(host: ReplHost = {}) {
                 diagnosticFacts: runtimeValueFacts(interpreter.variables, name => interpreter.bindingTypeNames(name), name => interpreter.bindingArrayRank(name)), testExamples };
         },
         replaceFile(file: ProgramFile): void {
-            resetExecution();
+            resetExecution(true);
             const source = file.source.replace(/\r\n?/g, '\n');
             savedFile = { path: file.path, source: source && !source.endsWith('\n') ? source + '\n' : source };
         },
@@ -204,6 +206,9 @@ export function createReplSession(host: ReplHost = {}) {
                 errorOffset = undefined;
                 errorSource = undefined;
                 try {
+                    const names = parse(source).statements.filter(isFunctionStatement).map(statement => statement.name)
+                        .filter(name => declarations.get(name) === id);
+                    interpreter.forgetBindings(names);
                     for (const name of interpreter.declareFunctionSource(source)) declarations.set(name, id);
                 } catch (error) { reportError(error, source); }
                 return [{ id, output, errorOffset }];
@@ -245,8 +250,18 @@ export function createReplSession(host: ReplHost = {}) {
                 replay.atLine(id);
                 if (cmd) await command(source.trim(), session);
                 else {
-                    if (replaceDeclarations) {
-                        const names = [...declarations].filter(([, owner]) => owner === id).map(([name]) => name);
+                    {
+                        // Replaying a declaration's own cell replaces that declaration through
+                        // the host; declarations in other cells remain constant.
+                        let functions = new Set<string>();
+                        try {
+                            if (/^\s*(?:fun|memo)\b/m.test(source)) {
+                                functions = new Set(parse(source).statements.filter(isFunctionStatement)
+                                    .map(statement => statement.name));
+                            }
+                        } catch { /* run reports unfinished or invalid source below. */ }
+                        const names = [...declarations].filter(([name, owner]) => owner === id
+                            && (replaceDeclarations || functions.has(name))).map(([name]) => name);
                         interpreter.forgetBindings(names);
                         for (const name of names) declarations.delete(name);
                     }
@@ -282,13 +297,16 @@ export function createReplSession(host: ReplHost = {}) {
                 return indent + (aliases ? expand(formatted, interpreter, localFunctions) : formatted);
             }).join('\n').trimEnd();
             const fork = interpreter.forkForPreview(emit);
+            fork.forgetBindings(localFunctions);
             let valueSummary: string | undefined;
             try {
                 const result = fork.execute(source, syntheticNames);
                 if (result !== undefined) {
-                    const signature = functionPreview(result, source);
-                    if (summaryOnly) valueSummary = signature ?? summarizeValue(result);
-                    else display(result, signature);
+                    fork.inEnvironment(() => {
+                        const signature = functionPreview(result, source);
+                        if (summaryOnly) valueSummary = signature ?? summarizeValue(result);
+                        else display(result, signature);
+                    });
                 }
             } catch (error) { reportError(error, source); }
             finally { fork.dispose(); }

@@ -593,7 +593,6 @@ run "hello.ra"
 
 ```result
 hello
-hello
 ```
 
 ### Usage

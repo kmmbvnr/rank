@@ -355,8 +355,9 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
     return resultTypes(operation);
 }
 
-export function resultTypes(operation: Pick<Operation, 'result'>): Types {
-    return RESULTS[operation.result] ?? UNKNOWN;
+export function resultTypes(operation: Pick<Operation, 'result' | 'nullable'>): Types {
+    const types = RESULTS[operation.result] ?? UNKNOWN;
+    return operation.nullable ? [...types, 'missing'] : types;
 }
 
 /** Every possible type of the value is in the set, and at least one is known. */

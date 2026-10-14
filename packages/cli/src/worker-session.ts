@@ -95,14 +95,14 @@ export async function createWorkerSession() {
         inspect(ref: number, request?: InspectRequest) { return call<Inspection>('inspect', ref, request); },
         extend(ref: number, count?: number) { return call<Extension>('extend', ref, count); },
         rewind(id: number): void { void call<void>('rewind', id).catch(fail); },
-        async resetExecution(): Promise<void> {
+        async resetExecution(resetEnvironment = false): Promise<void> {
             debugNext = false;
             stepToMain = false;
             stepNextCell = false;
             if (!turboRequested) turboActive = false;
             resume();
             Atomics.store(signal, 0, 0);
-            await call<void>('resetExecution');
+            await call<void>('resetExecution', resetEnvironment);
         },
         prepareFunctions(cells: { id: number; source: string }[]) {
             return call<{ id: number; output: Execution['output']; errorOffset?: number }[]>('prepareFunctions', cells);

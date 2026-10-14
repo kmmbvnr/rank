@@ -288,6 +288,7 @@ end
         expect(fn.call([0])).toBe(0);
         expect(() => fn.call([])).toThrowError('expects 1 arguments');
         expect(() => fn.call([2n, 3n])).toThrowError('expects 1 arguments');
+        interpreter.forgetBindings(['identity']);
         expect(interpreter.execute('memo identity X\n return X + 1\nend\n2 identity')).toBe(3n);
         expect(fn.call([2n])).toBe(2n);
     });

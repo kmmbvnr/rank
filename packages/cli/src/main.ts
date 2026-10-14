@@ -11,6 +11,7 @@ import * as url from 'node:url';
 import { loadModule } from './load-module.js';
 import { NodeInput, nodeIo } from './node-io.js';
 import { nodeMd5 } from './node-crypto.js';
+import { nodeEnvironment } from './node-environment.js';
 import { startRepl } from './repl.js';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
@@ -64,6 +65,7 @@ async function runFile(file: string, args: readonly string[]): Promise<void> {
     const sourceId = path.resolve(file);
     const source = await fs.readFile(sourceId, 'utf8');
     runProgram(source, console.log, {
+        environment: nodeEnvironment(),
         args,
         input: new NodeInput(),
         io: nodeIo,

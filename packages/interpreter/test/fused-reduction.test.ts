@@ -34,6 +34,7 @@ end
             ]) {
                 // Each fresh lazy input has no known element type until read.
                 // Keep this comparison independent of an earlier return contract.
+                runtime.forgetBindings(['total']);
                 runtime.execute(`fun total X\n return X reduce ${operator}\nend`);
                 const a = vector(values);
                 const b = vector([...values].reverse());

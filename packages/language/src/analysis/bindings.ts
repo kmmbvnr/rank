@@ -15,6 +15,7 @@ import {
     isTupleExpression, isApplicationExpression, isArgsStatement, isArgumentStatement,
     isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isFlagStatement,
     isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
+    isOperationAssignmentStatement,
     isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isKeyedMergeExpression,
     isMaterializeExpression, isNameExpression, isOptionStatement, isParenthesizedExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression, isSelectLocal,
@@ -318,6 +319,12 @@ class Analyzer {
                 : compoundType(statement.operator,
                     this.lookup(statement.name)?.types ?? UNKNOWN, value),
                 statement.operator === '=' ? this.functionArities(statement.value) : undefined);
+            return;
+        }
+        if (isOperationAssignmentStatement(statement)) {
+            this.read(statement.name, statement);
+            for (const index of statement.indices) if (index.value) this.expression(index.value);
+            this.expression(statement.value);
             return;
         }
         if (isArrayAssignmentStatement(statement)) {

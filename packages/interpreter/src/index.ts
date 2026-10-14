@@ -3,6 +3,7 @@ export { summarizeValue } from './value-summary.js';
 export * from './interpreter.js';
 export { pureHostFunction } from './host-effects.js';
 export * from './io.js';
+export { EnvironmentOverlay, type RankEnvironment } from './environment.js';
 export * from './parser.js';
 export * from './segment.js';
 export * from './wavelet.js';

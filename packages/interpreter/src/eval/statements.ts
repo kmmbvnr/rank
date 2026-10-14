@@ -3,6 +3,7 @@ import {
     isArrayAssignmentStatement, isAssignmentStatement, isBreakStatement, isContinueStatement, isExpressionStatement,
     isFlagStatement, isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
     isNameExpression, isOptionStatement, isParenthesizedExpression, isPushStatement, isReturnStatement,
+    isOperationAssignmentStatement,
     isRunStatement, isTestStatement, isTryStatement, isUnpackStatement, isUseStatement, isYieldStatement,
     type Expression, type FunctionBindingStatement, type FunctionStatement, type Operation, type Statement,
 } from '@arrrank/language';
@@ -14,7 +15,7 @@ import { emit, mapExecution, mapResult, resume, type Evaluation, type Execution 
 import {
     prepareIfStatement, prepareTryStatement, type ExecutionContext, type PreparedStatement,
 } from '../statement-control.js';
-import { formatValue, isRankArray, type RankValue } from '../value.js';
+import { formatValue, isNativeFunction, isRankArray, type RankValue } from '../value.js';
 import {
     prepareArrayAssignment, prepareAssignment, prepareCollectionMutation,
     preparePushStatement, prepareUnpackStatement, type AssignmentContext,
@@ -40,6 +41,7 @@ export interface StatementContext {
     /** Evaluation of a returned application that may become a tail call. */
     compileTail(expression: Expression): () => Evaluation<RankValue>;
     operationOf(name: string): Operation | undefined | false;
+    resolve(name: string): RankValue;
     execute(statements: Statement[], context: ExecutionContext): Evaluation<RankValue | undefined>;
     assign(name: string, value: RankValue): void;
     define(statement: FunctionStatement): RankValue;
@@ -90,6 +92,18 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
             return undefined;
         } };
     }
+    if (isOperationAssignmentStatement(statement)) return { stream: function* (): Execution<RankValue | undefined> {
+        const operation = host.resolve(statement.name);
+        if (!isNativeFunction(operation) || !operation.write) {
+            throw new RankError(`${statement.name} does not support addressed assignment`, 'TypeError');
+        }
+        if (statement.operator !== '=') throw new RankError('Operation writes do not support compound assignment', 'Syntax');
+        const arguments_ = (yield* resume(mapExecution(statement.indices, item => host.writes.evaluateAddressParts(item)))).flat();
+        if (arguments_.length !== operation.write.arity) throw new RankError(`${statement.name} write expects ${operation.write.arity} address arguments`, 'TypeError');
+        operation.write.validate(arguments_);
+        const value = yield* resume(host.evaluate(statement.value));
+        return operation.write.call(arguments_, value);
+    } };
     if (isFunctionBindingStatement(statement)) return { run: () => host.defineBinding(statement) };
     if (isFunctionStatement(statement)) {
         return { stream: function* (): Execution<RankValue | undefined> { return host.define(statement); } };

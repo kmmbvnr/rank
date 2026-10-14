@@ -6,6 +6,7 @@ import {
 } from '@arrrank/language';
 import { enterRuntime, leaveRuntime } from './array-storage.js';
 import { BindingEnvironment } from './binding-environment.js';
+import { EnvironmentOverlay, effectiveEnvironment, withEnvironment, type RankEnvironment } from './environment.js';
 import { bindInputs } from './cli-args.js';
 import { CheckedInputContracts } from './checked-input.js';
 import { DebugInspection } from './debug-inspection.js';
@@ -55,6 +56,7 @@ export class Interpreter {
     readonly testResults: RankTestResult[] = [];
     private readonly output: Output;
     private readonly baseOptions: InterpreterOptions;
+    private environmentOverride?: RankEnvironment;
     /** Inspection runs every statement through the reference paths, so a debugger can stop anywhere. */
     get options(): InterpreterOptions {
         return inspectionEnabled() ? { ...this.baseOptions,
@@ -97,13 +99,14 @@ export class Interpreter {
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
-        this.baseOptions = options;
+        this.baseOptions = { ...options, environment: options.environment ?? new EnvironmentOverlay() };
         this.random = seedableRandom(options.random);
         const requireOpen = (module: string, operation: string) => requireModule(this.modules, module, operation);
         const select = (values: RankValue[], missing?: () => RankValue) => selectValues(this.modules, values, missing);
         this.builtins = new BuiltinRegistry(this.modules, {
             output,
             io: options.io,
+            environment: this.baseOptions.environment,
             md5: options.md5,
             random: this.random,
             seedRandom: seed => reseed(this.random, seed),
@@ -215,6 +218,7 @@ export class Interpreter {
             operators: this.operators,
         };
         this.statements = {
+            resolve: name => this.resolve(name),
             bindings: this.bindings,
             evaluate: expression => this.expressions.evaluate(expression),
             compileDirect: expression => this.expressions.compileDirect(expression),
@@ -242,13 +246,15 @@ export class Interpreter {
         enterRuntime();
         const previous = this.syntheticNames;
         this.syntheticNames = syntheticNames;
-        try { return this.executeSource(source); }
+        try { return this.environmentOverride
+            ? withEnvironment(this.environmentOverride, () => this.executeSource(source)) : this.executeSource(source); }
         finally { this.syntheticNames = previous; leaveRuntime(); }
     }
 
     evaluate(expression: Expression): RankValue {
         try {
-            return runExecution(this.expressions.evaluate(expression));
+            const run = () => runExecution(this.expressions.evaluate(expression));
+            return this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run();
         } catch (error) {
             throw this.locateError(error, expression);
         }
@@ -259,6 +265,11 @@ export class Interpreter {
         args: readonly string[] = [],
         assertBooleanExpressions = false,
     ): RankValue | undefined {
+        const run = () => this.executeProgramBody(program, args, assertBooleanExpressions);
+        return this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run();
+    }
+
+    private executeProgramBody(program: Program, args: readonly string[], assertBooleanExpressions: boolean): RankValue | undefined {
         validateFunctionPlacement(program.statements, 'top');
         this.checkBuiltinBindings(program);
         const declarations = new Map<string, FunctionStatement>();
@@ -306,27 +317,48 @@ export class Interpreter {
         return this.bindings.globals.rankOf(name);
     }
 
+    /** Hosts force lazy preview results inside the same disposable environment. */
+    inEnvironment<T>(run: () => T): T {
+        return this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run();
+    }
+
     /** Copy the current bindings without rerunning the program that produced them. */
-    forkForPreview(output: Output = this.output): Interpreter {
+    forkForPreview(output: Output = this.output, environment: RankEnvironment = new EnvironmentOverlay(this.options.environment)): Interpreter {
         const { wrapSinglePassSequence: _singlePass, wrapStoredSequence: _stored,
             persistentResources: _persistent, ...options } = this.options;
-        const fork = new Interpreter(output, options);
+        const fork = new Interpreter(output, { ...options, environment });
+        fork.environmentOverride = environment;
         for (const module of this.modules) fork.modules.add(module);
         for (const name of this.bindings.sourceBindings) fork.bindings.sourceBindings.add(name);
-        for (const [name, child] of this.aliases) fork.aliases.set(name, child.forkForPreview(output));
+        for (const [name, child] of this.aliases) fork.aliases.set(name, child.forkForPreview(output, environment));
         for (const [name, value] of this.variables) {
             const source = isNativeFunction(value) ? this.functions.sourceOf(value) : undefined;
             if (source && isNativeFunction(value)) fork.functions.adoptSource(value, source);
             const definition = isNativeFunction(value) ? this.functions.definitionOf(value) : undefined;
-            if (!definition || definition.context) fork.variables.set(name, clonePreviewValue(value));
+            if (!definition || definition.context) {
+                const copy = clonePreviewValue(value);
+                if (isNativeFunction(copy)) {
+                    const isolated = { ...copy, call: (arguments_: RankValue[]) => withEnvironment(environment, () => copy.call(arguments_)),
+                        ...(copy.write ? { write: { ...copy.write,
+                            validate: (arguments_: RankValue[]) => withEnvironment(environment, () => copy.write!.validate(arguments_)),
+                            call: (arguments_: RankValue[], value: RankValue) => withEnvironment(environment, () => copy.write!.call(arguments_, value)),
+                        } } : {}) };
+                    BuiltinRegistry.inheritOperation(copy, isolated);
+                    if (source) fork.functions.adoptSource(isolated, source);
+                    fork.variables.set(name, isolated);
+                } else fork.variables.set(name, copy);
+            }
         }
         fork.bindings.globals.adoptContracts(this.bindings.globals);
         // Rebuild top-level user functions so their calls use the fork rather than
         // the original interpreter captured by the function object.
         for (const value of this.variables.values()) {
             const definition = isNativeFunction(value) ? this.functions.definitionOf(value) : undefined;
-            if (definition && !definition.context) fork.functions.define(definition.statement);
+            if (definition && !definition.context) fork.functions.define(definition.statement,
+                this.bindings.isConstant(definition.statement.name, this.bindings.globals));
         }
+        for (const name of this.variables.keys()) if (this.bindings.isConstant(name, this.bindings.globals)
+            && !fork.bindings.isConstant(name, fork.bindings.globals)) fork.bindings.lockFunction(name);
         return fork;
     }
 
@@ -359,6 +391,11 @@ export class Interpreter {
     private parse(source: string, syntheticNames?: ReadonlySet<string>): Program {
         const program = parse(source, this.options.sourceId, {
             bindings: new Map([...this.variables].map(([name, value]) => [name, isNativeFunction(value) ? value.arities : false])),
+            modules: this.modules,
+            writableOperations: new Map([...this.variables].flatMap(([name, value]) => {
+                const operation = isNativeFunction(value) && value.write && BuiltinRegistry.operationOf(value);
+                return operation ? [[name, operation.name] as const] : [];
+            })),
         }, new Set(this.variables.keys()), syntheticNames);
         registerSource(program, this.options.sourceId ?? '<input>');
         return program;
@@ -490,6 +527,7 @@ export class Interpreter {
             for (const statement of loaded.program.statements) {
                 if (!isFunctionStatement(statement) && !isFunctionBindingStatement(statement)) continue;
                 this.assign(statement.name, child.resolveVariable(statement.name));
+                if (isFunctionStatement(statement)) this.bindings.lockFunction(statement.name);
             }
             this.currentRunTarget = loaded;
         }
@@ -560,9 +598,11 @@ export class Interpreter {
         const output: string[] = [];
         const test = new Interpreter(line => output.push(line), {
             ...testOptions(this.options),
+            environment: new EnvironmentOverlay(effectiveEnvironment(this.options.environment!)),
             random: this.random,
             testing: true,
         });
+        test.environmentOverride = test.options.environment;
         test.modules.add('testing');
         const program = { $type: 'Program' as const, statements } as Program;
         const startedAt = performance.now();

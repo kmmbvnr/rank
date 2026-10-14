@@ -36,6 +36,7 @@ it('keeps closure instances and newly defined functions independent', () => {
     expect(runtime.execute('1 outer')).toBe(1n);
     expect(runtime.execute('true outer')).toBe(true);
     runtime.execute('fun value X\n return 1\nend\n0 value');
+    runtime.forgetBindings(['value']);
     expect(runtime.execute('fun value X\n return true\nend\n0 value')).toBe(true);
 });
 it('checks memoized functions and preserves successful cache entries after failure', () => {

@@ -3,6 +3,7 @@ import {
     isTupleExpression, isApplicationExpression, isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement,
     isBinaryExpression, isBooleanLiteral, isBreakStatement, isContinueStatement, isExpressionStatement,
     isForStatement, isFunctionStatement, isIfStatement, isLabelLiteral, isAllAxisExpression,
+    isOperationAssignmentStatement,
     isNameExpression, isNumberLiteral, isParenthesizedExpression, isPushStatement, isRecordExpression,
     isReturnStatement, isStdinExpression,
     isStringLiteral, isTextBlockExpression, isTryStatement, isUnaryExpression, isUnpackStatement, isYieldStatement,
@@ -586,6 +587,10 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             return false;
         };
         const run = (item: Statement): boolean => {
+            if (isOperationAssignmentStatement(item)) {
+                io = true;
+                return item.indices.every(index => !!index.value && expression(index.value)) && expression(item.value);
+            }
             if (isFunctionStatement(item)) return localFunctions.get(item.name) === item && !item.memo;
             if (isBreakStatement(item) || isContinueStatement(item)) return !!facts && snapshots.length > 0;
             if (isPushStatement(item)) {

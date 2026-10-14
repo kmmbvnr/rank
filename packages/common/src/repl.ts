@@ -381,7 +381,7 @@ export class NotebookRepl {
     /** Switch documents without carrying execution, previews or breakpoints into the next one. */
     async restoreNotebook(cells: readonly string[], draft: string): Promise<void> {
         if (this.running || this.evaluating) throw new Error('Stop execution before switching notebooks');
-        await this.session.resetExecution();
+        await this.session.resetExecution(true);
         this.liveFunction.clear();
         this.liveConditional.clear();
         this.breakpoints.clear();

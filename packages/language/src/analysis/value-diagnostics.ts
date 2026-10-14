@@ -1,4 +1,6 @@
 import { functionBindingPlan } from '../function-binding.js';
+import { signatureType } from '../type-signature.js';
+import { instantiateTypeSignatures } from '../signature-matching.js';
 import { declaredRanks } from '../function-ranks.js';
 import { applicationForm } from '../application-forms.js';
 import { rankedFunctionFacts, rankedFunctionInputs } from './ranked-function-facts.js';
@@ -11,6 +13,7 @@ import {
     isApplicationExpression, isAllAxisExpression, isNameExpression, isNumberLiteral, isStringLiteral, isParenthesizedExpression,
     isTupleExpression, isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
     isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression,
+    isOperationAssignmentStatement,
     isExpressionStatement, isNewStructureExpression, isRecordExpression, isRecordUpdateExpression,
     isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement, isReturnStatement,
     isArgumentStatement, isOptionStatement, isFlagStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
@@ -1012,6 +1015,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     }
 
     function statements(items: readonly Statement[], env: Map<string, ValueFacts>): boolean {
+        const constantFunctions = new Set(items.filter(isFunctionStatement).map(statement => statement.name));
         // Runtime registers function declarations before running their block.
         for (const statement of items) if (isFunctionStatement(statement)) {
             const fact: ValueFacts = { types: ['function'] };
@@ -1021,6 +1025,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         }
         for (const statement of items) {
             if (isFunctionBindingStatement(statement)) {
+                const previous = declarations.get(statement.name);
+                const previousInline = previous?.$cstNode && isFunctionBindingStatement(previous.$cstNode.astNode);
+                if (constantFunctions.has(statement.name) || items === program.statements && previous && !previousInline) {
+                    diagnostics.push({ node: statement, kind: 'TypeError',
+                        message: `cannot reassign function declaration: ${statement.name}` });
+                }
                 const plan = functionBindingPlan(statement);
                 const operation = plan.alias && findOperation(plan.alias);
                 const fact = plan.alias ? env.get(plan.alias) ?? (operation
@@ -1107,6 +1117,24 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 if (receiver && safeCollectionValue(statement.value, env)) {
                     insertCollectionElement(receiver,
                         expressionFacts(statement.value, name => env.get(name)), statement.value, env);
+                }
+            } else if (isOperationAssignmentStatement(statement)) {
+                const operation = findOperation(env.get(statement.name)?.builtinOperation ?? statement.name);
+                const arguments_ = statement.indices.map(index => {
+                    if (!index.value) return UNKNOWN_VALUE;
+                    invalidateCalls(index.value, env);
+                    return inspect(index.value, env);
+                });
+                invalidateCalls(statement.value, env);
+                const replacement = inspect(statement.value, env);
+                if (operation && !operation.write) diagnostics.push({ node: statement, kind: 'TypeError',
+                    message: `${statement.name} does not support addressed assignment` });
+                if (statement.operator !== '=') diagnostics.push({ node: statement, kind: 'TypeError',
+                    message: 'Operation writes do not support compound assignment' });
+                const inputs = [...arguments_, replacement];
+                if (operation?.write && inputs.every(input => input.types.length)
+                    && !operation.write.signatures.some(signature => instantiateTypeSignatures(signature, inputs.map(input => signatureType(input))).length)) {
+                    diagnostics.push({ node: statement, kind: 'TypeError', message: `${statement.name} write has incompatible argument types` });
                 }
             } else if (isArrayAssignmentStatement(statement)) {
                 const selectors = statement.indices.map(index => {

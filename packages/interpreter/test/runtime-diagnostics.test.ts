@@ -297,6 +297,7 @@ B = A * 3`);
                 (runtime.variables.get('B') as RankArray).items;
                 const first = stats.run(() => runtime.execute('B 3 total'));
                 const compiledBefore = stats.compiledLoops;
+                runtime.forgetBindings(['bump']);
                 runtime.execute('fun bump X\n return X + 2\nend');
                 const second = stats.run(() => runtime.execute('B 3 total'));
                 return { first, second, compiledBefore, compiledAfter: stats.compiledLoops,

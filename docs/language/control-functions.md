@@ -525,6 +525,12 @@ Executing a definition creates the function without executing its body. Its
 binding becomes available afterward. Block `fun` declarations retain their
 existing visibility throughout their scope, and `memo` remains unchanged.
 
+Inline bindings remain replaceable, including aliases and explicit-parameter
+bodies. A `fun` or `memo` declaration is constant within its scope: assigning
+another function to its name or declaring it again is an error. The REPL may
+explicitly release a declaration when replaying its edited source; a clean
+restart creates fresh declarations.
+
 A composition receives whole operands by default. Internal operations keep their
 own rank rules. A call-site `rank` applies to the complete composition:
 

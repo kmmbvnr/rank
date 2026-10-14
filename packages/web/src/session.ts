@@ -128,13 +128,13 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
         extend: (...args) => call<Extension>('extend', ...args),
         prepareFunctions: (...args) => call('prepareFunctions', ...args),
         rewind: id => { void call('rewind', id).catch(error => onFailure(String(error))); },
-        resetExecution: async () => {
+        resetExecution: async (resetEnvironment = false) => {
             debugNext = false; stepToMain = false;
             if (!turboRequested) turboActive = false;
             requested = false; pauseState = undefined;
             if (signal) signal.fill(0);
             else await control('reset');
-            await call<void>('resetExecution');
+            await call<void>('resetExecution', resetEnvironment);
         },
         replaceFile: () => { throw new Error('File loading is unavailable'); },
         saveFile: async () => ({ ok: false, output: [{ text: 'File saving is unavailable', error: true }] }),

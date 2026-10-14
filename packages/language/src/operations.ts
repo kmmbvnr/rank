@@ -80,6 +80,8 @@ export interface Operation {
     /** One sentence describing the result. */
     readonly summary: string;
     readonly result: ResultKind;
+    /** A whole-value read may be absent independently of its operand types. */
+    readonly nullable?: true;
     /** Audited language overloads for readers and editors, independent of compiler subsets. */
     readonly signatures?: readonly TypeSignature[];
     /** Scalar contracts whose argument-wise array/SQL expansion is recorded in signatures. */
@@ -120,6 +122,8 @@ export interface Operation {
     /** Present when the result is produced on demand rather than at once. */
     readonly lazy?: true;
     readonly effects?: readonly Effect[];
+    /** Assignment is a separate effectful entry, not an overload of the read call. */
+    readonly write?: { readonly arity: number; readonly signatures: readonly TypeSignature[]; readonly effects: readonly Effect[] };
     /** Operand domain in which scalar calls cannot invoke Rank callbacks. Throws are allowed. */
     readonly scalarNoCallback?: 'integer' | 'number';
     /** Unary application maps each scalar cell of an array or sequence. */
@@ -333,6 +337,10 @@ const productShape: ShapeSignature = {
 };
 
 export const operations: readonly Operation[] = [
+    { name: 'env', module: 'cli', arities: [1], form: 'Name env', result: 'text', nullable: true,
+        signatures: [{ inputs: ['text'], result: { union: ['text', 'missing'] }, ranks: ['all'] }],
+        effects: ['io'], write: { arity: 1, signatures: [{ inputs: ['text', { union: ['text', 'missing'] }], result: { union: ['text', 'missing'] } }], effects: ['io'] },
+        summary: 'Reads a session environment variable, or missing when absent.' },
     { name: 'add', module: 'algo', arities: [2], form: 'Seen add Value', result: 'collection',
         signatures: collectionWriteSignatures,
         effects: ['mutates'], summary: 'Adds a value to a set, counter or multiset.' },

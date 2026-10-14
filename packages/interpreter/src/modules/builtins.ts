@@ -65,6 +65,11 @@ export class BuiltinRegistry {
         return builtinOperations.get(fn);
     }
 
+    static inheritOperation(source: NativeFunction, target: NativeFunction): void {
+        const operation = builtinOperations.get(source);
+        if (operation) builtinOperations.set(target, operation);
+    }
+
     /** What a name means among the open modules, or undefined when none defines it. */
     lookup(name: string): RankValue | undefined {
         if (name === 'raise') return raiseFunction;

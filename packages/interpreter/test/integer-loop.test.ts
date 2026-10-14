@@ -2029,6 +2029,7 @@ fun perform N
 end`);
             expect(runtime.execute('3 perform')).toBe(9n);
             expect(loops).toBe(1);
+            runtime.forgetBindings(['helper']);
             runtime.execute(`fun helper X
   return X + 10
 end`);

@@ -1,6 +1,7 @@
 import { algoModule } from './algo.js';
 import { bitsModule } from './bits.js';
 import { coreModule } from './core.js';
+import { cliModule } from './cli.js';
 import { cryptoModule } from './crypto.js';
 import { datesModule } from './dates.js';
 import { graphModule } from './graph.js';
@@ -22,7 +23,7 @@ import type { RuntimeModule } from './types.js';
 export const standardModules: Record<string, RuntimeModule> = {
     algo: algoModule,
     bits: bitsModule,
-    cli: {},
+    cli: cliModule,
     core: coreModule,
     crypto: cryptoModule,
     dates: datesModule,

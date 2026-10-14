@@ -242,6 +242,11 @@ export interface RankRecord {
 export type IntrinsicRank = number | 'all';
 
 export interface NativeFunction {
+    readonly write?: {
+        readonly arity: number;
+        validate(arguments_: RankValue[]): void;
+        call(arguments_: RankValue[], value: RankValue): RankValue;
+    };
     readonly kind: 'function';
     readonly name: string;
     readonly arities: readonly number[];

@@ -231,6 +231,7 @@ First = A inspect`);
             const array = runtime.variables.get('A') as RankArray;
             expect(runtime.execute('A true inspect')).toBe(10n);
             expect(isSharedArray(array)).toBe(false);
+            runtime.forgetBindings(['branch']);
             runtime.execute('fun branch V Flag\n return V\nend');
             expect(() => runtime.execute('A true inspect')).toThrow('inspect returns rank 0 and cannot return rank 1');
             runtime.execute('B = A true branch');
@@ -334,6 +335,7 @@ First = A inspect`);
         try {
             runtime.execute('fun readat V I\n return V I\nend\nfun inspect V I\n return V I readat\nend\nA = array 10 20\nFirst = A 0 inspect');
             expect(isSharedArray(runtime.variables.get('A') as RankArray)).toBe(false);
+            runtime.forgetBindings(['readat']);
             runtime.execute('fun readat V I\n return V\nend');
             expect(() => runtime.execute('A 0 inspect')).toThrow('inspect returns rank 0 and cannot return rank 1');
             runtime.execute('Saved = A 0 readat');
@@ -349,6 +351,7 @@ First = A inspect`);
         try {
             runtime.execute('fun readat V I\n return V I\nend\nfun inspect V I\n Cell = V I readat\n return Cell\nend\nA = array 10 20\nFirst = A 0 inspect');
             expect(isSharedArray(runtime.variables.get('A') as RankArray)).toBe(false);
+            runtime.forgetBindings(['readat']);
             runtime.execute('fun readat V I\n return V\nend');
             expect(() => runtime.execute('A 0 inspect')).toThrow('inspect returns rank 0 and cannot return rank 1');
             runtime.execute('Saved = A 0 readat');
@@ -371,6 +374,7 @@ end
 A = array 10 20
 First = A inspect`);
             expect(isSharedArray(runtime.variables.get('A') as RankArray)).toBe(false);
+            runtime.forgetBindings(['read']);
             runtime.execute('fun read V\n return V\nend');
             expect(() => runtime.execute('A inspect')).toThrow('inspect returns rank 0 and cannot return rank 1');
             runtime.execute('B = A read');

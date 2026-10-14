@@ -30,7 +30,7 @@ port.on('message', ({ id, method, args }) => {
                     case 'inspect': return session.inspect(args[0], args[1]);
                     case 'extend': return session.extend(args[0], args[1]);
                     case 'rewind': return session.rewind(args[0]);
-                    case 'resetExecution': return session.resetExecution();
+                    case 'resetExecution': return session.resetExecution(args[0]);
                     case 'prepareFunctions': return session.prepareFunctions(args[0]);
                     case 'replaceFile': return session.replaceFile(args[0]);
                     case 'saveFile': return session.saveFile(args[0], args[1]);

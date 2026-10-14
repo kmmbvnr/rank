@@ -80,7 +80,7 @@ describe('filter over plain collections', () => {
         expect(run(`${matrix}M filter heavy rank 1`)).toBe('3 4 5 6');
         expect(run(`${matrix}(M filter heavy) shape`)).toBe('2 2');
         expect(run(`${matrix}M filter heavy`)).toBe('3 4 5 6');
-        expect(run(`${matrix}fun heavy V rank 0\n  return V sum greater 5\nend\nM filter heavy`))
+        expect(run(`${matrix.replace("fun heavy V", "fun heavy V rank 0")}M filter heavy`))
             .toBe('3 4 5 6');
         expect(run(`${matrix}fun wide V\n  return V sum greater 9\nend\n`
             + '(M filter wide axis 1 rank 1) shape')).toBe('3 1');

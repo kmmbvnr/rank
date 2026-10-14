@@ -18,6 +18,7 @@ import { typeName, type RankValue } from './value.js';
  * which the facade resolves before reaching here.
  */
 export class BindingEnvironment {
+    private readonly constants = new WeakMap<LocalFrame, Set<string>>();
     readonly globals: LocalFrame;
     current: LocalFrame | undefined;
     /** Global names written by source, as opposed to values the host injected. */
@@ -51,6 +52,7 @@ export class BindingEnvironment {
         const frame = this.current?.find(name) ?? this.current;
         if (!frame) this.sourceBindings.add(name);
         const scope = frame ?? this.globals;
+        if (this.isConstant(name, scope)) throw new RankError(`cannot reassign function declaration: ${name}`, 'TypeError');
         const received = typeName(value);
         if (received === 'function' && /^[A-Z]/.test(name.split('.').at(-1)!)) {
             throw new RankError(`Function bindings use lowercase names: ${name}`, 'TypeError');
@@ -92,6 +94,9 @@ export class BindingEnvironment {
         let slot = -1;
         let global: ReadonlySet<string> | undefined;
         return (value: RankValue): void => {
+            if (this.isConstant(name, this.current?.find(name) ?? this.current ?? this.globals)) {
+                throw new RankError(`cannot reassign function declaration: ${name}`, 'TypeError');
+            }
             const received = typeName(value);
             const frame = this.current;
             if (frame === undefined) {
@@ -134,15 +139,25 @@ export class BindingEnvironment {
 
     /** A name that ended with its block leaves with its value, type and rank. */
     unbind(name: string): void {
+        this.constants.get(this.scope)?.delete(name);
         this.scope.unset(name);
     }
 
     /** A notebook can replace declarations without relaxing assignment type checks. */
     forget(names: Iterable<string>): void {
         for (const name of names) {
+            this.constants.get(this.globals)?.delete(name);
             this.globals.unset(name);
             this.sourceBindings.delete(name);
         }
+    }
+
+    isConstant(name: string, scope = this.scope): boolean { return this.constants.get(scope)?.has(name) === true; }
+
+    lockFunction(name: string): void {
+        const names = this.constants.get(this.scope) ?? new Set<string>();
+        names.add(name);
+        this.constants.set(this.scope, names);
     }
 
     /**

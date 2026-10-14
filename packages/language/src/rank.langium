@@ -50,6 +50,7 @@ Statement:
     TestStatement |
     FunctionStatement |
     FunctionBindingStatement |
+    OperationAssignmentStatement |
     YieldStatement |
     ReturnStatement |
     BreakStatement |
@@ -94,6 +95,24 @@ FunctionStatement:
 
 FunctionBindingStatement:
     name=WORD parameters+=Identifier* '=' value=Expression;
+
+OperationAssignmentStatement:
+    name=WORD (
+        indices+=NamedAddressItem* indices+=NonNameAddressItem indices+=AddressItem* operator=AssignmentOperator |
+        indices+=NamedAddressItem+ operator=CompoundAssignmentOperator
+    ) value=Expression;
+
+NamedAddressItem infers AddressItem:
+    value=NameExpression;
+
+NonNameAddressItem infers AddressItem:
+    spread?='unpack' value=ArrayAtom |
+    sign=('+' | '-') value=ArrayAtom |
+    value=(NumberLiteral | StringLiteral | BooleanLiteral | LabelLiteral | NewStructureExpression | StdinExpression | ParenthesizedExpression) |
+    all?='#';
+
+CompoundAssignmentOperator returns string:
+    '+=' | '-=' | '*=' | '**=' | '/=' | '//=' | 'mod=' | 'and=' | 'or=' | 'xor=';
 
 RankSpec returns string:
     '-'? INTEGER | WORD;

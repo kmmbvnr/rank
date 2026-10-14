@@ -10,6 +10,7 @@ import type { CompiledBlock } from './block-compiler.js';
 import { ReturnSignal, TailCallSignal, type PreparedScalarCall } from './control-signals.js';
 import type { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
+import { effectiveEnvironment, withEnvironment } from './environment.js';
 import { ExecutionStack, completed, mapResult, resume, runExecution, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './call-specializations.js';
 import { LocalFrame } from './frame.js';
@@ -165,7 +166,7 @@ export class FunctionInvocation {
         const plain = stages?.every(stage => stage.length === 1 && isNameExpression(stage[0]));
         const alternatives = new Map<number, NativeFunction>();
         for (const definition of plain ? [] : plan.definitions) {
-            alternatives.set(definition.parameters.length, this.define(definition) as NativeFunction);
+            alternatives.set(definition.parameters.length, this.define(definition, false) as NativeFunction);
         }
         const fn: NativeFunction = {
             kind: 'function', name: statement.name, arities: plan.arities,
@@ -200,7 +201,19 @@ export class FunctionInvocation {
         return fn;
     }
 
-    define(statement: FunctionStatement): RankValue {
+    define(statement: FunctionStatement, constant = true): RankValue {
+        const existing = this.bindings.scope.get(statement.name);
+        if (this.bindings.isConstant(statement.name)) {
+            const definition = existing && isNativeFunction(existing) ? this.definitionOf(existing) : undefined;
+            const source = existing && isNativeFunction(existing) ? this.sources.get(existing) ?? definition?.statement : undefined;
+            if (source !== statement) {
+                throw new RankError(`cannot redefine function declaration: ${statement.name}`, 'TypeError');
+            }
+            if (!definition || definition.owner === this) return existing!;
+            // Running an imported program registers its original declarations in
+            // the run's scope, where its top-level values will be evaluated.
+            this.bindings.unbind(statement.name);
+        }
         if (availableBuiltin(statement.name, this.modules)) {
             throw new RankError(builtinBindingMessage(statement.name), 'TypeError');
         }
@@ -409,6 +422,7 @@ export class FunctionInvocation {
             });
         }
         this.bindings.assign(statement.name, fn);
+        if (constant) this.bindings.lockFunction(statement.name);
         return fn;
     }
 
@@ -686,6 +700,7 @@ export class FunctionInvocation {
     ): RankSequence {
         const frame = this.functionFrame(statement, arguments_, context);
         const invocation = this;
+        const environment = effectiveEnvironment(this.options().environment!);
         let consumed = false;
 
         this.bindings.withFrame(frame, () => {
@@ -718,10 +733,10 @@ export class FunctionInvocation {
                                 frame,
                                 resources,
                                 () => {
-                                    if (!inspectionEnabled()) return execution.next();
+                                    if (!inspectionEnabled()) return withEnvironment(effectiveEnvironment(environment), () => execution.next());
                                     const callerStatement = invocation.inspection.statement;
                                     invocation.inspection.enter(statement.name, frame);
-                                    try { return execution.next(); }
+                                    try { return withEnvironment(effectiveEnvironment(environment), () => execution.next()); }
                                     finally { invocation.inspection.leave(callerStatement); }
                                 },
                             );
@@ -739,8 +754,10 @@ export class FunctionInvocation {
                             frame,
                             resources,
                             () => {
-                                let result = execution.return(undefined);
-                                while (!result.done) result = execution.next();
+                                withEnvironment(effectiveEnvironment(environment), () => {
+                                    let result = execution.return(undefined);
+                                    while (!result.done) result = execution.next();
+                                });
                             },
                         );
                     } finally {
