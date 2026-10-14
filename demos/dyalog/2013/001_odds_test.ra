@@ -1,0 +1,28 @@
+use testing
+
+test "first ten positive odd numbers"
+  use "001_odds"
+  (10 firstOdds) equal array 1 3 5 7 9 11 13 15 17 19
+end
+
+test "one and zero retain vector shape"
+  use "001_odds"
+  use sequences
+  One = 1 firstOdds
+  One equal array 1
+  One shape equal array 1
+  Empty = 0 firstOdds
+  Empty shape equal array 0
+end
+
+test "odd numbers follow the formula for varied counts"
+  use "001_odds"
+  use sequences
+  for N in 0 to 30
+    Values = N firstOdds
+    Values len equal N
+    for Value I in Values
+      Value equal (2 * I + 1)
+    end
+  end
+end

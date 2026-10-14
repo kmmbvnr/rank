@@ -1,0 +1,11 @@
+rem Dyalog 2013, problem 1: first N positive odd numbers.
+use sequences
+use io
+
+fun firstOdds N
+  Indices = 0 till N array
+  return 2 * Indices + 1
+end
+
+Example = 10 firstOdds
+Example print
