@@ -209,7 +209,7 @@ export class Notebook {
 
     /** Replaying against retained state breaks the sequential-run provenance. */
     beginExecution(start: number): void {
-        if (this.cells.slice(start, -1).some(cell => !cell.command && cell.executed?.trim())) {
+        if (this.cells.slice(start, -1).some(cell => !cell.command && cell.executed !== undefined && hasCode(cell.executed))) {
             this.experimentalFrom = Math.min(this.experimentalFrom ?? Infinity, this.cells[start].id);
         }
     }
