@@ -109,7 +109,6 @@ Algorithmic collections, range structures and combinatorial generators.
 | `Heap Priority Value enqueue` | collection, mutates | 3 operands: whole | Inserts a payload into a heap under a separate priority. |
 | `Size fenwick` | fenwick | unary all | Fixed-size integer Fenwick tree with inclusive prefix sums. |
 | `Tree Target firstatleast` | integer | binary all / 0 | First position whose monotone prefix aggregate reaches the target. |
-| `Bag floor Limit` | element | binary all / 0 | Largest stored value at most the limit. |
 | `Bag lowerbound Value` | element | binary all / 0 | Smallest stored value at least the query, an alias for ceiling. |
 | `Values segment maxsum` | record | special form | Prefix and subarray sum profile: query returns sum, prefix, suffix and best. |
 | `Data Bounds missing` | integer | binary all / 1 | Smallest subset sum a wavelet position range cannot make. |
@@ -132,6 +131,7 @@ Algorithmic collections, range structures and combinatorial generators.
 | `Bag upperbound Value` | element | binary all / 0 | Smallest stored value greater than the query. |
 | `Values wavelet` | structure | unary all | Immutable wavelet matrix for range counts and sums. |
 | `Data Left Right Low High within` | integer | 5 operands: whole | Counts wavelet values inside inclusive position and value ranges. |
+| `Value floor | Bag floor Limit` | value | unary all (scalar map); binary all / 0 | Greatest integer at most a finite number, or largest stored value at most a limit. |
 
 These need `use algo` but have no name to look up.
 
@@ -160,7 +160,11 @@ Bitwise operations over arbitrary-precision integers.
 
 ## cli
 
-Command-line arguments, flags and options.
+Command-line arguments, flags, options and session environment.
+
+| Form | Result | Default cells | Summary |
+| --- | --- | --- | --- |
+| `Name env` | text, io | unary all | Reads a session environment variable, or missing when absent. |
 
 These need `use cli` but have no name to look up.
 
@@ -234,6 +238,8 @@ Graphs, disjoint sets, rooted trees and their algorithms.
 
 | Form | Result | Default cells | Summary |
 | --- | --- | --- | --- |
+| `Graph Start End MaxStops trips` | sequence, lazy | 4 operands: whole | Lazy simple vertex routes with at most MaxStops intermediate vertices. |
+| `Graph From To edgeweight` | number | 3 operands: whole | Minimum parallel connection weight; missing if no connection exists. |
 | `Rooted Vertex K ancestor` | element | 3 operands: whole | Vertex K parent edges above another in a rooted tree. |
 | `Graph Start bellmanford` | record | binary all / all | Shortest distances allowing negative weights, plus reachable negative cycles. |
 | `Graph Start bfs` | record | binary all / all | Breadth-first search returning distance, parent and discovery order. |
@@ -374,6 +380,10 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `nan` | real | source/value | The real not-a-number value, for a result or cell with no numeric value. |
 | `Value odd` | boolean | unary all | True for an odd integer. |
 | `Base Exponent Modulus powmod` | integer | 3 operands: whole | Modular exponentiation by repeated squaring, never building the full power. |
+| `Value floor | Bag floor Limit` | value | unary all (scalar map); binary all / 0 | Greatest integer at most a finite number, or largest stored value at most a limit. |
+| `Value ceil` | integer | unary all (scalar map) | Least integer at least a finite number. |
+| `Values Bases digits` | array | binary all / all | Nonnegative integers as mixed-base digits, with the digit axis leading. |
+| `Digits Bases fromDigits` | value | binary all / all | Packs the leading mixed-base digit axis into integers. |
 | `Value Places round` | number | binary 0 / 0 | Rounds to a signed number of decimal places, halfway values to even. |
 | `Angle sin` | real | unary all (scalar map) | Sine of an angle in radians. |
 | `Value sinh` | real | unary all (scalar map) | Hyperbolic sine. |

@@ -88,4 +88,12 @@ describe('single-expression function bindings', () => {
         const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'module.ra', source: 'use numbers\nf = abs sqrt\ng X = X f\n1 / 0' }) });
         expect(runtime.execute('use "module.ra"\n9 g')).toBe(3);
     });
+    it.each(['fun', 'memo', 'generator'])('runs imported %s declarations against the program globals', kind => {
+        const body = kind === 'generator' ? 'yield Seed + N' : 'return Seed + N';
+        const source = `use sequences\nSeed = 7\n${kind === 'memo' ? 'memo' : 'fun'} value N\n  ${body}\nend\n`
+            + (kind === 'generator' ? '(2 value) first' : '2 value');
+        const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'module.ra', source }) });
+        expect(runtime.execute('run "module.ra"')).toBe(9n);
+        expect(runtime.execute('run "module.ra"')).toBe(9n);
+    });
 });

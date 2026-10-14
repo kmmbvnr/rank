@@ -9,7 +9,8 @@
         "clean": "shx rm -fr dist",
         "build": "tsc --noEmit && vite build",
         "dev": "vite",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "test": "node --test test/*.test.mjs"
     },
     "dependencies": {
         "@arrrank/common": "0.0.2",

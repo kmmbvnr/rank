@@ -173,7 +173,7 @@ export const modules: readonly Module[] = [
     { name: 'algo',
         summary: 'Algorithmic collections, range structures and combinatorial generators.' },
     { name: 'bits', summary: 'Bitwise operations over arbitrary-precision integers.' },
-    { name: 'cli', summary: 'Command-line arguments, flags and options.' },
+    { name: 'cli', summary: 'Command-line arguments, flags, options and session environment.' },
     { name: 'core', summary: 'Always available: conversions, ranges, length, sums and extrema. No use required.' },
     { name: 'crypto', summary: 'Hashes and related byte operations.' },
     { name: 'dates', summary: 'Calendar dates and local date-times.' },

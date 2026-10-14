@@ -68,6 +68,9 @@ interface BorrowProof {
 // definitions are found from the function object rather than from a scope.
 const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[], inputRequirement?: CallRequirement) => Evaluation<RankValue>>();
 const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
+// Declaration ownership also covers memo functions and generators, which must
+// not enter the ordinary function-body optimization registry above.
+const functionDeclarations = new WeakMap<NativeFunction, { owner: FunctionInvocation; statement: FunctionStatement }>();
 const scalarCallbacks = new WeakMap<NativeFunction, (arguments_: RankValue[]) => RankValue>();
 const arrayBatches = new WeakMap<NativeFunction, (source: RankArray, axes: readonly number[]) =>
     (RankedMembership & { available(): boolean }) | undefined>();
@@ -131,6 +134,11 @@ export class FunctionInvocation {
     /** The declaration behind a function value, for diagnostics and previews. */
     sourceOf(fn: NativeFunction): FunctionStatement | undefined {
         return this.sources.get(fn);
+    }
+
+    /** Identity for host replay; it does not expose an imported function's private scope. */
+    isDeclaration(fn: NativeFunction, statement: FunctionStatement): boolean {
+        return (this.sources.get(fn) ?? functionDeclarations.get(fn)?.statement) === statement;
     }
 
     adoptSource(fn: NativeFunction, statement: FunctionStatement): void {
@@ -204,12 +212,11 @@ export class FunctionInvocation {
     define(statement: FunctionStatement, constant = true): RankValue {
         const existing = this.bindings.scope.get(statement.name);
         if (this.bindings.isConstant(statement.name)) {
-            const definition = existing && isNativeFunction(existing) ? this.definitionOf(existing) : undefined;
-            const source = existing && isNativeFunction(existing) ? this.sources.get(existing) ?? definition?.statement : undefined;
-            if (source !== statement) {
+            const declaration = existing && isNativeFunction(existing) ? functionDeclarations.get(existing) : undefined;
+            if (!existing || !isNativeFunction(existing) || !this.isDeclaration(existing, statement)) {
                 throw new RankError(`cannot redefine function declaration: ${statement.name}`, 'TypeError');
             }
-            if (!definition || definition.owner === this) return existing!;
+            if (!declaration || declaration.owner === this) return existing!;
             // Running an imported program registers its original declarations in
             // the run's scope, where its top-level values will be evaluated.
             this.bindings.unbind(statement.name);
@@ -358,6 +365,7 @@ export class FunctionInvocation {
             },
         };
         this.sources.set(fn, statement);
+        functionDeclarations.set(fn, { owner: this, statement });
         if (membership) {
             const originalCall = fn.call;
             const enabled = () => !inspectionEnabled() && fn.call === originalCall

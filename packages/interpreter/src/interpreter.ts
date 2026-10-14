@@ -526,6 +526,13 @@ export class Interpreter {
             }
             for (const statement of loaded.program.statements) {
                 if (!isFunctionStatement(statement) && !isFunctionBindingStatement(statement)) continue;
+                const existing = this.variables.get(statement.name);
+                if (isFunctionStatement(statement) && existing && isNativeFunction(existing)
+                    && this.functions.isDeclaration(existing, statement)) {
+                    // Loading the same program again is a host replay of its
+                    // declarations, not a replacement declaration in source.
+                    this.bindings.forget([statement.name]);
+                }
                 this.assign(statement.name, child.resolveVariable(statement.name));
                 if (isFunctionStatement(statement)) this.bindings.lockFunction(statement.name);
             }

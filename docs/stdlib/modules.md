@@ -65,8 +65,8 @@ Size = Values len
 Bound = 0 Size max 10 min
 ```
 
-`use cli` is required for `option`, `argument`, `flag` and `args`.
-`use testing` enables test blocks. Neither module exports ordinary functions.
+`use cli` is required for `option`, `argument`, `flag`, `args` and `env`.
+`env` reads and writes the session environment. `use testing` enables test blocks.
 
 ## Numbers
 
