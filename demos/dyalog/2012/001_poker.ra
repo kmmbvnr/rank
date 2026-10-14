@@ -2,6 +2,7 @@ rem Dyalog 2012, problem 1: Hold'em Up!
 use algo
 use sequences
 use text
+use tables
 
 rem Normalize optional spaces and mixed case into scalar card texts.
 fun cards Text
@@ -130,6 +131,32 @@ fun bestHand Community Hole
     fail "bestHand requires five community and two hole cards"
   end
   return (Cards bestCards) " " join
+end
+
+fun playerHands Community Players
+  for Hole in Players
+    yield Community Hole bestHand
+  end
+end
+
+rem Dense relative ranks: tied hands share a rank, next distinct value is next.
+fun showdownRows Community Players
+  Best = Community Players playerHands array
+  Values = Best handValue rank 0
+  Distinct = Values unique
+  for Hand I in Best
+    Used = ((Players I) cards in (Hand cards)) count
+    Place = (Distinct greater Values I) count + 1
+    yield record
+      .hand = Hand
+      .rank = Place
+      .used = Used
+    end
+  end
+end
+
+fun showdown Community Players
+  return (Community Players showdownRows array) table
 end
 
 Example = "QC QD 9H 7D 2C" handValue

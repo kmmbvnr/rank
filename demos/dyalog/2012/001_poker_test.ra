@@ -84,3 +84,21 @@ test "best hand is independent of input order and mixed case"
   Second = "AC QH 7S 8H QS" "7C AD" bestHand
   First handValue equal (Second handValue)
 end
+
+test "published showdown has dense ties and hole-card counts"
+  use "001_poker"
+  use tables
+  Players = array "AD 7C" "AS 4D" "QD 8S" "3S 2H"
+  Result = "QS 8H 7S QH AC" Players showdown
+  Result .hand equal array "AD AC QS QH 8H" "AS AC QS QH 8H" "QD QS QH 8S 8H" "QS QH AC 8H 7S"
+  Result .rank equal array 2 2 1 3
+  Result .used equal array 1 1 2 0
+end
+
+test "playing a royal-flush board ties every player"
+  use "001_poker"
+  use tables
+  Result = "AS KS QS JS TS" (array "2H 3D" "4H 5D" "6H 7D") showdown
+  Result .rank equal array 1 1 1
+  Result .used equal array 0 0 0
+end
