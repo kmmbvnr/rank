@@ -1,0 +1,70 @@
+use testing
+
+test "published two-equation system"
+  use "010_linear"
+  A = array shape 2 2
+    3 2
+    1 -1
+  end
+  B = array 13 1
+  (A B linearSolve) equal array 3 2
+end
+
+test "published three-equation system and its residual"
+  use "010_linear"
+  use linalg
+  use numbers
+  A = array shape 3 3
+    4 1 3
+    2 2 2
+    6 3 1
+  end
+  B = array 2 6 4
+  X = A B linearSolve
+  ((X - (array -1 3 1)) abs) less 0.0000000001
+  (((A X matmul) - B) abs) less 0.0000000001
+end
+
+test "pivoting and multiple right-hand sides"
+  use "010_linear"
+  A = array shape 2 2
+    0 2
+    1 3
+  end
+  (A (array 4 7) linearSolve) equal array 1 2
+  Coefficients = array shape 2 2
+    3 2
+    1 -1
+  end
+  B = array shape 2 2
+    13 26
+    1 2
+  end
+  Expected = array shape 2 2
+    3 6
+    2 4
+  end
+  (Coefficients B linearSolve) equal Expected
+end
+
+test "singular and incompatible systems retain linalg errors"
+  use "010_linear"
+  A = array shape 2 2
+    1 2
+    2 4
+  end
+  Singular = false
+  try
+    A (array 1 2) linearSolve
+  catch .SingularMatrix Error
+    Singular = true
+  end
+  Singular
+  Incompatible = false
+  try
+    A (array 1 2 3) linearSolve
+  catch .DimensionMismatch Error
+    Incompatible = true
+  end
+  Incompatible
+end
