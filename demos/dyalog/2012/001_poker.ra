@@ -10,7 +10,7 @@ fun cards Text
   Compact = Compact "akqjtshdc" "AKQJTSHDC" translate
   Chars = Compact "" split
   if (Chars len mod 2) not equal 0
-    fail "cards require rank/suit pairs"
+    .InvalidCards "cards require rank/suit pairs" raise
   end
   Pairs = Chars reshape (Chars len // 2) 2
   return Pairs "" join rank 1
@@ -20,7 +20,7 @@ rem Base 13 packs the category and five tie-break ranks into one integer.
 fun handValue Text
   Cards = Text cards
   if Cards len not equal 5
-    fail "handValue requires five cards"
+    .InvalidCards "handValue requires five cards" raise
   end
   return Cards cardsValue
 end
@@ -132,7 +132,7 @@ end
 fun bestHand Community Hole
   Cards = (Hole + " " + Community) cards
   if Cards len not equal 7
-    fail "bestHand requires five community and two hole cards"
+    .InvalidCards "bestHand requires five community and two hole cards" raise
   end
   return (Cards bestCards) " " join
 end
@@ -210,6 +210,36 @@ fun nuts Community
     end
   end
   return Required
+end
+
+rem Enumerate every legal completion; never simulate or round probabilities.
+fun odds Community Players
+  Board = Community cards
+  HoleCards = (Players " " join) cards
+  Seen = concat Board HoleCards
+  Unseen = deck array
+  Unseen = Unseen (Unseen not in Seen) array
+  Count = Players len
+  Totals = array shape (Count + 1) fill 0.0
+  Trials = 0
+  for Extra in Unseen (5 - (Board len)) combinations
+    Complete = (concat Board Extra) " " join
+    Best = Complete Players playerHands array
+    Values = Best handValue rank 0
+    Winners = Values equal (Values max)
+    Tied = Winners count
+    if Tied equal Count and Count greater 1
+      Totals 0 += 1.0
+    else
+      for Won I in Winners
+        if Won
+          Totals (I + 1) += 1.0 / Tied
+        end
+      end
+    end
+    Trials += 1
+  end
+  return Totals / Trials
 end
 
 Example = "QC QD 9H 7D 2C" handValue

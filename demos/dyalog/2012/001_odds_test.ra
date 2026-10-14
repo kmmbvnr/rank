@@ -1,0 +1,39 @@
+use testing
+
+test "published flop odds enumerate all 903 possible completions"
+  use "001_poker"
+  use numbers
+  use sequences
+  Players = array "QS 6S" "5H 5C" "TS 5D"
+  Actual = "TD AC JH" Players odds
+  Expected = (array 12 280 36 575) / 903
+  ((Actual - Expected) abs less 0.000000000001)
+  (Actual sum - 1.0) abs less 0.000000000001
+end
+
+test "a finished board has one certain winner"
+  use "001_poker"
+  Actual = "QS 8H 7S QH AC" (array "AD 7C" "AS 4D" "QD 8S" "3S 2H") odds
+  Actual equal array 0.0 0.0 0.0 1.0 0.0
+end
+
+test "an all-player tie belongs to the first bucket"
+  use "001_poker"
+  Actual = "AS KS QS JS TS" (array "2H 3D" "4H 5D") odds
+  Actual equal array 1.0 0.0 0.0
+end
+
+test "a partial tie splits equity only among the tied winners"
+  use "001_poker"
+  Actual = "QS 8H 7S QH AC" (array "AD 7C" "AS 4D" "3S 2H") odds
+  Actual equal array 0.0 0.5 0.5 0.0
+end
+
+test "turn completions exclude all visible and hole cards"
+  use "001_poker"
+  use numbers
+  use sequences
+  Actual = "AS KS QS JS" (array "TH 2D" "9S 3D") odds
+  Expected = (array 1 0 43) / 44
+  ((Actual - Expected) abs less 0.000000000001)
+end
