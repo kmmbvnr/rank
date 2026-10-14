@@ -1,11 +1,25 @@
-import { type Module, type AstNode, type CstNode, type GrammarAST, type ValueType, type ParserOptions, DefaultValueConverter, inject, createLangiumParser, createCompletionParser } from 'langium';
+import { type Module, type AstNode, type CstNode, type GrammarAST, type ValueType, type ParserOptions, DefaultTokenBuilder, GrammarUtils, DefaultValueConverter, inject, createLangiumParser, createCompletionParser } from 'langium';
 import { LLStarLookaheadStrategy } from 'chevrotain-allstar';
+import { ErrorLookaheadStrategy } from './error-lookahead.js';
 import { groupExpressions, type GroupingOptions } from './expression-grouping.js';
 import { normalizePrimaryApplications } from './primary-applications.js';
 import { isProgram } from './generated/ast.js';
 import { createDefaultModule, createDefaultSharedModule, type DefaultSharedModuleContext, type LangiumServices, type LangiumSharedServices, type PartialLangiumServices } from 'langium/lsp';
 import { RankGeneratedModule, RankGeneratedSharedModule } from './generated/module.js';
 import { RankValidator, registerValidationChecks } from './rank-validator.js';
+
+/** Match the comment's left boundary against the full input, including a preceding label dot. */
+class RankTokenBuilder extends DefaultTokenBuilder {
+    protected override buildTerminalToken(terminal: GrammarAST.TerminalRule) {
+        const token = super.buildTerminalToken(terminal);
+        if (terminal.name === 'REM_COMMENT') {
+            token.PATTERN = this.regexPatternFunction(GrammarUtils.terminalRegex(terminal));
+            token.LINE_BREAKS = false;
+            token.START_CHARS_HINT = ['r'];
+        }
+        return token;
+    }
+}
 
 /** An integer written with an exponent (`4e6`, `2E+3`) is the digits followed by that many zeros. */
 class RankValueConverter extends DefaultValueConverter {
@@ -35,12 +49,12 @@ export type RankAddedServices = {
 export type RankServices = LangiumServices & RankAddedServices
 
 /** Keep adaptive LL(*) prediction, but bound the token paths enumerated for syntax errors. */
-function withBoundedErrorLookahead(services: RankServices, incomplete = false): RankServices {
+function withBoundedErrorLookahead(services: RankServices, incomplete = false, strategy?: LLStarLookaheadStrategy): RankServices {
     const parser: RankServices['parser'] = Object.create(services.parser);
     Object.defineProperty(parser, 'ParserConfig', { value: {
         ...services.parser.ParserConfig,
         maxLookahead: 1,
-        lookaheadStrategy: new LLStarLookaheadStrategy({ incomplete,
+        lookaheadStrategy: strategy ?? new LLStarLookaheadStrategy({ incomplete,
             logging: services.LanguageMetaData.mode === 'production' ? () => {} : undefined }),
     } });
     return { ...services, parser };
@@ -53,13 +67,28 @@ function withBoundedErrorLookahead(services: RankServices, incomplete = false): 
  */
 export const RankModule: Module<RankServices, PartialLangiumServices & RankAddedServices> = {
     parser: {
+        TokenBuilder: () => new RankTokenBuilder(),
         ValueConverter: () => new RankValueConverter(),
         LangiumParser: services => {
             // Enumerating three-token error paths for an unfinished `array` blocks typing for hundreds of ms.
-            const parser = createLangiumParser(withBoundedErrorLookahead(services));
+            const strategy = new ErrorLookaheadStrategy({
+                logging: services.LanguageMetaData.mode === 'production' ? () => {} : undefined,
+            });
+            const parser = createLangiumParser(withBoundedErrorLookahead(services, false, strategy));
             const parse = parser.parse.bind(parser);
             parser.parse = <T extends AstNode>(input: string, options?: ParserOptions) => {
                 const result = parse<T>(input, options);
+                if (!result.lexerErrors.length && result.parserErrors.length) {
+                    strategy.failures.clear();
+                    strategy.diagnosing = true;
+                    try {
+                        parse<T>(input, options);
+                        strategy.locate(result.parserErrors[0], input);
+                    } finally {
+                        strategy.diagnosing = false;
+                        strategy.failures.clear();
+                    }
+                }
                 if (!result.lexerErrors.length && !result.parserErrors.length && isProgram(result.value)) {
                     normalizePrimaryApplications(result.value);
                     groupExpressions(result.value, options as GroupingOptions);

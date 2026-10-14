@@ -154,7 +154,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         if (isBinaryExpression(expression) && precedence[expression.operator]) {
             const left = flatten(expression.left);
             const last = left.at(-1);
-            if (expression.operator === '-' && isNameExpression(last) && last.name === 'round') {
+            if (expression.operator === '-' && isNameExpression(last) && last.name === 'round' && standard(last)) {
                 const right = tokens(expression.right);
                 const first = right[0];
                 if (first.kind === 'value') {
@@ -254,12 +254,12 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             for (let index = 0; index < original.length; index++) {
                 const part = original[index];
                 const next = original[index + 1];
-                if (isNameExpression(part) && part.name === 'round' && next && !callable(next)) {
+                if (isNameExpression(part) && part.name === 'round' && standard(part) && next && !callable(next)) {
                     parts.push(next, part);
                     index++;
                 } else {
                     // `Left max Right` was an infix form; a chain such as `A B max 5 min` continues with a call.
-                    if (isNameExpression(part) && (part.name === 'min' || part.name === 'max')
+                    if (isNameExpression(part) && (part.name === 'min' || part.name === 'max') && standard(part)
                         && parts.length > 0 && next && index + 2 === original.length && !callable(next)
                         && !(isNameExpression(next) && modifiers.has(next.name))
                         && !(isLabelLiteral(next) && findOperation(part.name)?.modifiers?.includes(next.name))) {

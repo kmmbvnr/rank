@@ -29,6 +29,27 @@ describe('syntax error wording', () => {
     });
 });
 
+describe('syntax errors inside blocks', () => {
+    it.each([
+        ['use io\nif 1 less 2\n  X = (1 +\nend', 3],
+        ['fun f X\n if true\n  Y = (X +\n end\nend', 3],
+        ['for true\n  X = (1 +\nend', 2],
+        ['try\n  X = (1 +\nfinally\n  1\nend', 2],
+        ['if true\n X = (1 + )\nend', 2],
+        ['if true\n X = (1 +\n', 2],
+    ])('locates the malformed statement in %j', (source, line) => {
+        const error = failure(source as string);
+        expect(error.location?.line).toBe(line);
+        expect(error.location?.sourceLine).toMatch(/[XY] =/);
+        expect(error.message).not.toMatch(/Unexpected '(if|for|fun|try)'/);
+    });
+
+    it('keeps lexer errors and ignores delimiters in comments and strings', () => {
+        expect(failure('if true\n X = @\nend').location?.line).toBe(2);
+        expect(() => new Interpreter().execute('if true\n X = "( end" rem (\nend')).not.toThrow();
+    });
+});
+
 describe('runtime diagnostics', () => {
     it('reports the source statement without changing the error message', () => {
         const error = failure('X = 1\n  X / 0');

@@ -14,6 +14,12 @@ describe('unfinished editor input', () => {
             for (const error of result.parserErrors) expect(error.message.length).toBeLessThan(8_000);
         });
 
+    it('reports the failed lookahead line instead of the enclosing block', () => {
+        const result = parser.parse('use io\nif 1 less 2\n  X = (1 +\nend');
+        expect(result.parserErrors[0].token.startLine).toBe(3);
+        expect(result.parserErrors[0].message).toBe('Unexpected end of line');
+    });
+
     it('still parses completed input after errors', () => {
         parser.parse('array');
         const result = parser.parse('A = array shape 2 3 fill 1\nA + 1');

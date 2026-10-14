@@ -1130,6 +1130,10 @@ uses the most recently opened source module. Execution starts at its first
 top-level line, reaches the end of the file and then returns to the statement
 after `run`.
 
+A named `run "worker"` also selects `worker` for subsequent bare runs. Imports
+and nested runs executed inside `worker` do not change that selection after it
+returns, including when execution raises an error.
+
 Running a file from the host, as in `rank worker.ra`, performs an implicit run.
 Rank does not require a `main` function.
 

@@ -580,11 +580,13 @@ export class Interpreter {
         }
         const args = this.pendingArgs ?? [];
         this.pendingArgs = undefined;
-        const previous = this.currentRunTarget;
+        // The named run becomes the target for later bare runs. Imports or nested
+        // runs inside it must not replace that target, even when execution fails.
+        const callerRunTarget = this.currentRunTarget;
         try {
             return this.resources.withResourceScope(() => this.executeProgram(target.program, args));
         } finally {
-            this.currentRunTarget = previous;
+            this.currentRunTarget = callerRunTarget;
         }
     }
 

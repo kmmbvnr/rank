@@ -468,6 +468,37 @@ describe('Rank IO, modules and programs', () => {
         expect(interpreter.execute('use "worker"\nLimit = 10\nrun\nAnswer')).toBe(11n);
     });
 
+    it.each([false, true])('restores the named run target after nested imports (throws: %s)', throws => {
+        const output: string[] = [];
+        const sources: Record<string, string> = {
+            old: 'use io\n"old" print',
+            a: `use "b"\nuse io\n"a" print${throws ? '\n.Broken raise' : ''}`,
+            b: 'use io\n"b" print',
+        };
+        const runtime = new Interpreter(line => output.push(line), {
+            loadModule: specifier => ({ id: specifier, source: sources[specifier] }),
+        });
+        runtime.execute('use "old"');
+        for (const command of ['run "a"', 'run']) {
+            if (throws) expect(() => runtime.execute(command)).toThrow('.Broken');
+            else runtime.execute(command);
+        }
+        expect(output).toEqual(['a', 'a']);
+    });
+
+    it('restores the caller target after a nested named run', () => {
+        const output: string[] = [];
+        const sources: Record<string, string> = {
+            a: 'run "b"\nuse io\n"a" print',
+            b: 'use io\n"b" print',
+        };
+        const runtime = new Interpreter(line => output.push(line), {
+            loadModule: specifier => ({ id: specifier, source: sources[specifier] }),
+        });
+        runtime.execute('run "a"\nrun');
+        expect(output).toEqual(['b', 'a', 'b', 'a']);
+    });
+
     it('runs a program through an explicit module alias', () => {
         const interpreter = new Interpreter(undefined, {
             loadModule: specifier => ({

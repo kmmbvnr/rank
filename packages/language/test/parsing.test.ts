@@ -5,6 +5,8 @@ import {
     type Program,
     createRankServices,
     isApplicationExpression,
+    isLabelLiteral,
+    isRecordExpression,
     isAliasedTableExpression,
     isArrayAssignmentStatement,
     isAssignmentStatement,
@@ -518,6 +520,27 @@ describe('Rank grammar', () => {
         if (!isApplicationExpression(statement.value)) return;
         expect(isUnaryExpression(statement.value.head)).toBe(true);
         expect(statement.value.arguments).toHaveLength(1);
+    });
+
+    it('keeps rem labels distinct from standalone comments', async () => {
+        const document = await parse([
+            'rem comment at line start',
+            'R = record',
+            '  .rem = 1 rem comment after a field',
+            'end',
+            'T = Rows select .rem .remember',
+            'R .rem rem comment after a label',
+            'remember',
+            'rem',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const labels = [...AstUtils.streamAllContents(document.parseResult.value)]
+            .filter(isLabelLiteral).map(node => node.name);
+        expect(labels).toEqual(['rem', 'remember', 'rem']);
+        const record = document.parseResult.value.statements[0];
+        expect(isAssignmentStatement(record) && isRecordExpression(record.value)
+            && record.value.fields.map(field => field.name)).toEqual(['rem']);
     });
 
     it('treats rem lines as comments', async () => {

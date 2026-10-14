@@ -582,7 +582,7 @@ ReferenceName returns string:
     VARIABLE | WORD | 'rank' | QUALIFIED_NAME | 'text' | 'first' | 'index' | 'shape' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
 
 hidden terminal WS: /[\t ]+/;
-hidden terminal REM_COMMENT: /rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;
+hidden terminal REM_COMMENT: /(?<![A-Za-z0-9_.])rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;
 terminal NL: /\r?\n/;
 terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;
 terminal ARGSORT_BY: /argsort[\t ]+by/;

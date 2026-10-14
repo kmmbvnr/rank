@@ -34,6 +34,7 @@ export function folderLabels(source: string, parent: string): Map<string, string
 export class DemoLibrary {
     private tree?: Promise<DemoTree>;
     constructor(private readonly restricted = true) {}
+    refresh(): void { this.tree = undefined; }
     private index(): Promise<DemoTree> {
         return this.tree ??= request(`${repository}/commits/main`, true).then(async text => {
             const { sha } = JSON.parse(text) as { sha: string };
@@ -99,7 +100,10 @@ export class LibraryBrowser {
         this.status.setAttribute('role', 'status');
         this.view.append(this.back, this.status, this.list);
         menu.append(this.view);
-        this.home.querySelector<HTMLButtonElement>('[data-action="library"]')!.onclick = () => void this.show('demos');
+        this.home.querySelector<HTMLButtonElement>('[data-action="library"]')!.onclick = () => {
+            this.library.refresh();
+            void this.show('demos');
+        };
     }
     reset(): void {
         this.generation++;
