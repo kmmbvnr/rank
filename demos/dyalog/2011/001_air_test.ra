@@ -1,0 +1,33 @@
+use testing
+
+test "bounded trips and their segment distances"
+  use "001_air"
+  run
+  Values = Totals array
+  (Values len equal 2) and ((Values 0 - 9529.425743) abs less 0.001) and ((Values 1 - 9145.506301) abs less 0.001)
+end
+
+test "one intermediate stop and disconnected airport"
+  use "001_air"
+  MaxStops = 1
+  run
+  (Routes len equal 1) and (Graph 0 4 10 trips len equal 0)
+end
+
+test "distance symmetry and coincident points"
+  use "001_air"
+  use numbers
+  A = array 0.0 0.0
+  B = array 0.0 90.0
+  AB = A B distancekm
+  BA = B A distancekm
+  ((AB - 10007.543398) abs less 0.001) and (AB equal BA) and (A A distancekm equal 0)
+end
+
+test "segment reduction includes repeated legs in an explicit route"
+  use "001_air"
+  run
+  Total = (array 0 1 0) tripdistance
+  Edge = Graph 0 1 edgeweight
+  (Total - 2 * Edge) abs less 0.001
+end

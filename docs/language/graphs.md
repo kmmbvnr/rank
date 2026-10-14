@@ -63,6 +63,24 @@ Integer and real weights are accepted. Negative weights are preserved for
 algorithms such as Bellman-Ford; the graph does not choose an algorithm or
 interpret their sign.
 
+`Graph add Flights` also accepts an edge record, or a finite rank-1 array or
+sequence of edge records. Each record has `.source` and `.target` vertices and
+an optional numeric `.weight` (default `1`). Other fields are ignored. This
+keeps text airport names and real distances in separate fields:
+
+```rank
+Flight = record
+  .source = "LAX"
+  .target = "ORD"
+  .weight = 2802.0
+end
+Graph add Flight
+```
+
+Closed graphs require both endpoints to belong to their vertex domain. Open
+graphs register them as usual. Records can be produced by a ranked function
+or a generator before being added.
+
 `Graph add A B` and `Graph add Edges` dispatch only after `Graph` evaluates to
 a graph. The word `add` remains available to user functions and other
 collections.
@@ -103,6 +121,63 @@ register the vertex. A closed graph raises `.Missing` for an unknown vertex.
 
 Graphs are reference values: assignment and argument passing share mutations.
 Removing vertices or edges is not part of the current API.
+
+## Trips and segment totals
+
+`Graph Start End MaxStops trips` returns a lazy sequence of rank-1 vertex
+arrays. Each route has one or more edges and at most `MaxStops` intermediate
+vertices. The limit must be a nonnegative integer; `0` permits direct trips
+only. No vertex may repeat, including the endpoints, so equal endpoints yield
+no trips. Reaching `End` completes a route.
+
+Routes follow depth-first neighbor insertion order. Parallel connections yield
+one vertex route, and self-loops are skipped. Disconnected endpoints yield an
+empty sequence. Unknown endpoints yield no trips in an open graph and raise
+`.Missing` in a closed graph.
+
+The operation snapshots adjacency when called, in `O(V + E)` space and time.
+Enumeration is replayable and uses `O(V)` traversal state; routes are generated
+only as demanded. The total number of routes can be exponential. Use `take`
+or `first` when only a prefix is needed:
+
+```rank
+Routes = Graph "LAX" "LHR" 2 trips
+FirstRoute = Routes first
+```
+
+`Graph From To edgeweight` returns the minimum weight among the current
+connections from `From` to `To`. It respects graph direction and raises
+`.Missing` if there is no connection, including unknown endpoints. It scans
+the outgoing edges of `From`. Unweighted connections have weight `1`.
+
+Combine `window 2`, a ranked function and a reduction to total any values over
+adjacent route vertices. The same pattern works for distances, fares or other
+segment values:
+
+```rank
+use sequences
+
+fun segmentcost Pair rank 1
+  return Graph (Pair 0) (Pair 1) edgeweight
+end
+
+fun tripcost Route
+  return (Route window 2) segmentcost reduce +
+end
+
+Total = (array "LAX" "ORD" "LHR") tripcost
+Totals = Routes tripcost rank 0
+```
+
+Empty and single-vertex routes total `0`. Explicit routes may repeat vertices;
+each adjacent pair contributes separately. A missing segment raises `.Missing`.
+Route enumeration snapshots connectivity, while `edgeweight` reads current
+weights, so finish evaluating totals before mutating the graph when both must
+describe the same network.
+
+The [Take To The Air example](../../demos/dyalog/2011/001_air.ra) builds flight
+records from airport coordinates, enumerates bounded trips, and totals their
+great-circle distances without a mutable traversal loop.
 
 ## Disjoint sets
 

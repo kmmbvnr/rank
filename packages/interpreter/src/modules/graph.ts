@@ -3,6 +3,7 @@ import { MissingValueError, RankError } from '../errors.js';
 import { RankDsu } from '../dsu.js';
 import { RankFunctionalGraph } from '../functional-graph.js';
 import { expectGraph, type GraphValue } from '../graph.js';
+import { edgeWeight, trips } from '../graph-trips.js';
 import { indexKey } from '../index-key.js';
 import { ResourceMap } from '../resource-summary.js';
 import { sequence } from '../sequence.js';
@@ -38,6 +39,10 @@ interface RootedTreeState {
 const rootedTrees = new WeakMap<RankRecord, RootedTreeState>();
 
 export const graphModule: RuntimeModule = {
+    trips: () => native('trips', 4, values =>
+        trips(expectGraph(values[0]), values[1], values[2], values[3])),
+    edgeweight: () => native('edgeweight', 3, values =>
+        edgeWeight(expectGraph(values[0]), values[1], values[2])),
     bfs: () => native('bfs', 2, values => {
         const graph = expectGraph(values[0]);
         return searchRecord(graph, breadthFirst(graph, values[1]));

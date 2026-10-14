@@ -1,0 +1,70 @@
+rem Dyalog 2011, task 1: Take To The Air.
+rem Airport ids are row indexes. E is disconnected.
+rem Trips have at most MaxStops intermediate airports,
+rem never revisit an airport, and stop at the destination.
+
+use graph
+use sequences
+use numbers
+use io
+use cli
+
+option MaxStops integer = 2
+
+Airports = array "A" "B" "C" "D" "E"
+rem Latitude and longitude in decimal degrees.
+Coordinates = array shape 5 2
+  33.9425 -118.408055556
+  41.979444444 -87.904444444
+  40.639722222 -73.778888889
+  51.4775 -0.461388889
+  0.0 0.0
+end
+Segments = array shape 4 2
+  0 1
+  1 2
+  1 3
+  2 3
+end
+
+rem Build flight records, then weighted adjacency.
+Flights = Segments flight
+Graph = new graph (0 to 4) .undirected
+Graph add Flights
+Routes = Graph 0 3 MaxStops trips
+Totals = Routes tripdistance rank 0
+Totals array print
+
+rem Reachability and minimum cost use existing operations.
+Reachable = Graph 0 bfs .order
+CheapestNetwork = Graph mst
+CheapestNetwork .weight print
+
+fun flight Pair rank 1
+  From = Pair 0
+  To = Pair 1
+  return record
+    .source = From
+    .target = To
+    .weight = (Coordinates From) (Coordinates To) distancekm
+  end
+end
+
+rem Great-circle distance; coordinates are degrees.
+fun distancekm A B
+  Radians = (-1 acos) / 180
+  LatA = A 0 * Radians
+  LatB = B 0 * Radians
+  Delta = (A 1 - B 1) * Radians
+  Cosine = (LatA sin) * (LatB sin) + (LatA cos) * (LatB cos) * (Delta cos)
+  return 6371 * (((Cosine -1 max) 1 min) acos)
+end
+
+rem Reusable adjacent-pair reduction, with no traversal loop.
+fun segmentcost Pair rank 1
+  return Graph (Pair 0) (Pair 1) edgeweight
+end
+
+fun tripdistance Route rank 1
+  return (Route window 2) segmentcost reduce +
+end

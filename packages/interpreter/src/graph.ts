@@ -4,6 +4,7 @@ import {
     tuple, isRankArray,
     isRankLabel,
     isRankSequence,
+    isRankRecord,
     type RankGraph,
     type RankSequence,
     type RankValue,
@@ -84,8 +85,15 @@ export class GraphValue implements RankGraph {
             }
             return;
         }
-        for (const vertex of graphVertices(value)) {
-            if (this.open) this.addVertex(vertex);
+        for (const vertex of isRankRecord(value) ? [value] : graphVertices(value)) {
+            if (isRankRecord(vertex)) {
+                const source = vertex.entries.get('source');
+                const target = vertex.entries.get('target');
+                if (source === undefined || target === undefined) {
+                    throw new RankError('graph edge records require .source and .target');
+                }
+                this.addEdge(source, target, vertex.entries.get('weight') ?? 1n);
+            } else if (this.open) this.addVertex(vertex);
             else this.requireVertex(vertex);
         }
     }

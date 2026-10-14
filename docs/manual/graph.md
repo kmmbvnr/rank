@@ -853,3 +853,88 @@ of leaving it.
 ### See also
 
 functional, upto
+
+## trips
+
+Lazy routes without repeated vertices.
+Limit the number of intermediate stops.
+
+```rank
+use graph
+use sequences
+G = new graph .undirected
+G add 1 2
+G add 2 3
+G 1 3 1 trips first
+```
+
+```result
+1 2 3
+```
+
+### Usage
+
+```text
+Graph Start End MaxStops trips
+```
+
+MaxStops is a nonnegative integer.
+Zero allows direct trips only. Equal
+endpoints give no routes. Each result
+is an array including both endpoints.
+
+Parallel edges give one vertex route.
+Disconnected vertices give no routes.
+Unknown endpoints give no routes in an
+open graph, or Missing in a closed one.
+
+### Notes
+
+Adjacency is snapshotted at the call.
+Routes follow depth-first neighbor
+order and can be read again. Use take
+or first to request a prefix: the full
+result can be exponential in size.
+
+### See also
+
+edgeweight, window, reduce, bfs
+
+## edgeweight
+
+The minimum weight of a connection.
+Parallel edges use their lowest weight.
+
+```rank
+use graph
+G = new graph .undirected
+G add "A" "B" 7
+G add "A" "B" 5
+G "A" "B" edgeweight
+```
+
+```result
+5
+```
+
+### Usage
+
+```text
+Graph From To edgeweight
+```
+
+Respects direction. An absent edge or
+unknown endpoint raises Missing. Edges
+without an explicit weight have weight
+1. Lookup scans From's outgoing edges.
+
+### Notes
+
+Reads current weights. Apply to route
+pairs from window 2, then reduce + to
+sum segment values. Empty routes total
+zero; missing segments raise Missing.
+
+### See also
+
+trips, window, reduce, dijkstra

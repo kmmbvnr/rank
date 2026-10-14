@@ -137,6 +137,13 @@ A set ignores a value it already has. A
 counter adds one to its count. A
 multiset keeps every copy.
 
+With use graph, Graph add also accepts
+vertices, an edge matrix, or records
+with .source and .target fields. An
+optional .weight defaults to 1. Supply
+one record or a finite rank-1 array or
+sequence of records.
+
 ### See also
 
 remove, new, multiset
