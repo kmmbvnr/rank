@@ -1,4 +1,5 @@
 use testing
+use graph
 
 test "bounded trips and their segment distances"
   use "001_air"
