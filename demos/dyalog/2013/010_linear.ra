@@ -1,0 +1,15 @@
+rem Dyalog 2013, problem 10: solve A X = B directly through linalg.
+use linalg
+use io
+
+fun linearSolve A B
+  return A B solve
+end
+
+A = array shape 2 2
+  3 2
+  1 -1
+end
+B = array 13 1
+Example = A B linearSolve
+Example print

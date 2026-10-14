@@ -1,0 +1,31 @@
+use testing
+
+test "published vector scalar and matrix ranges"
+  use "006_range"
+  use sequences
+  ((array 19.0 -3.0 7.6 22.0) numericRange) equal 25.0
+  (101 numericRange) equal 0.0
+  (((array 10 20 30 40 50 60) reshape 2 3) numericRange) equal 50.0
+end
+
+test "empty arrays of any rank have zero range"
+  use "006_range"
+  use sequences
+  ((array shape 0 fill 0) numericRange) equal 0.0
+  ((array shape 2 0 3 fill 0.0) numericRange) equal 0.0
+  ((array 1.5 4.5) numericRange) equal 3.0
+  ((array shape 0 fill 0.0) numericRange) equal 0.0
+end
+
+test "whole tensors are reduced rather than individual rows"
+  use "006_range"
+  use sequences
+  Tensor = (1 to 24 array) reshape 2 3 4
+  (Tensor numericRange) equal 23.0
+end
+
+test "large integer offsets are subtracted before real conversion"
+  use "006_range"
+  Values = array 1000000000000000000000000000000 1000000000000000000000000000005
+  (Values numericRange) equal 5.0
+end

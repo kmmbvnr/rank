@@ -1,0 +1,14 @@
+rem Dyalog 2013, problem 7: retain non-integral values in source order.
+use sequences
+use io
+
+fun fractionalValues A
+  if (A len) equal 0
+    return A copy
+  end
+  Mask = (A mod 1) not equal 0
+  return A Mask array
+end
+
+Example = (array 14.2 9.0 -3.0 3.1 0.0 -1.1) fractionalValues
+Example print

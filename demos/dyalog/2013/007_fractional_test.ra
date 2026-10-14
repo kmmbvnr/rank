@@ -1,0 +1,22 @@
+use testing
+
+test "published fractional values retain their order and sign"
+  use "007_fractional"
+  Actual = (array 14.2 9.0 -3.0 3.1 0.0 -1.1) fractionalValues
+  Actual equal array 14.2 3.1 -1.1
+end
+
+test "integral real values and integers are excluded"
+  use "007_fractional"
+  use sequences
+  ((array 9.0 -3.0 0.0) fractionalValues) shape equal array 0
+  ((array 9 -3 0) fractionalValues) shape equal array 0
+  ((array 0.25 -0.25) fractionalValues) equal array 0.25 -0.25
+end
+
+test "empty vectors stay empty and repeated fractions are retained"
+  use "007_fractional"
+  use sequences
+  ((array shape 0 fill 0.0) fractionalValues) shape equal array 0
+  ((array 1.5 2.0 1.5) fractionalValues) equal array 1.5 1.5
+end

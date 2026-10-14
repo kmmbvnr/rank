@@ -1,0 +1,20 @@
+use testing
+
+test "published word-count examples"
+  use "003_words"
+  ("Testing one, two, three" wordCount) equal 4
+  ("" wordCount) equal 0
+  (" this vector has extra blanks " wordCount) equal 5
+end
+
+test "leading trailing and repeated spaces never form words"
+  use "003_words"
+  ("   " wordCount) equal 0
+  ("  one   two  " wordCount) equal 2
+end
+
+test "punctuation and Unicode remain inside space-delimited words"
+  use "003_words"
+  ("a-b,c" wordCount) equal 1
+  ("😀 café é" wordCount) equal 3
+end

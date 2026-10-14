@@ -4,7 +4,10 @@ use io
 
 fun passRate Grades
   if not Grades is .array
-    return (Grades at least 65) choose 100.0 0.0
+    if Grades at least 65
+      return 100.0
+    end
+    return 0.0
   end
   Total = Grades len
   if Total equal 0
