@@ -142,12 +142,16 @@ const MODIFIERS = new Set([
  * Without them a program that loads a module reports every borrowed name as
  * unresolved, so a caller that can reach the file system should supply them.
  */
+/** Optional semantic consumer; source locations remain presentation-only facts. */
+export type BindingReadObserver = (node: AstNode, binding: Pick<Binding, 'kind' | 'types' | 'arities'> | undefined) => void;
+
 export function analyzeBindings(
     program: Program,
     imported: Iterable<string> = [],
     externalFunctions: ReadonlyMap<string, readonly number[]> = new Map(),
+    observeRead?: BindingReadObserver,
 ): ProgramFacts {
-    return new Analyzer(new Set(imported), externalFunctions).run(program);
+    return new Analyzer(new Set(imported), externalFunctions, observeRead).run(program);
 }
 
 interface Slot {
@@ -178,6 +182,7 @@ function site(node: AstNode | undefined): Site {
 
 /** A read whose name no binding explained yet, kept with the scopes it saw. */
 interface PendingRead {
+    readonly node: AstNode;
     readonly name: string;
     readonly at: Site;
     readonly chain: readonly ScopeState[];
@@ -208,7 +213,8 @@ export function analyzeWithImports(
 
 class Analyzer {
     constructor(private readonly imported: ReadonlySet<string>,
-        private readonly externalFunctions: ReadonlyMap<string, readonly number[]>) {}
+        private readonly externalFunctions: ReadonlyMap<string, readonly number[]>,
+        private readonly observeRead?: BindingReadObserver) {}
 
     private readonly modules: string[] = [];
     private readonly imports: Import[] = [];
@@ -623,13 +629,14 @@ class Analyzer {
      */
     private read(name: string, node: AstNode): void {
         this.pending.push({
-            name, at: site(node), chain: [...this.scopes], depth: this.loopDepth,
+            name, node, at: site(node), chain: [...this.scopes], depth: this.loopDepth,
         });
     }
 
     private settleReads(): void {
         for (const read of this.pending) {
             const slot = resolve(read.name, read.chain);
+            this.observeRead?.(read.node, slot);
             if (slot === undefined) {
                 const sites = this.free.get(read.name) ?? [];
                 sites.push(read.at);
