@@ -17,8 +17,10 @@ interface Host<T = RankValue> {
     executed?(): void;
 }
 type Factory = (readers: (() => unknown)[], binary: Host['binary'], unary: Host['unary']) => () => RankValue | Evaluation<RankValue>;
-const factories = new WeakMap<Expression, Factory | null>();
-const resumableFactories = new WeakMap<Expression, Factory | null>();
+// Readers belong to each invocation; only generated code is shared. Bound the
+// cache because source strings cannot be released like weak AST keys.
+const factories = new Map<string, Factory>();
+const factoryLimit = 256;
 
 
 /** Compile expression control flow once. Each unsupported value delegates at
@@ -34,7 +36,6 @@ export function compileResumableScalarExpression(expression: Expression, host: H
 }
 
 function compile(expression: Expression, host: Host<RankValue | Evaluation<RankValue>>, resumable: boolean) {
-    const cache = resumable ? resumableFactories : factories;
     const lines: string[] = [], readers: (() => unknown)[] = [];
     let serial = 0, count = 0;
     function emit(e: Expression): string | undefined {
@@ -111,14 +112,17 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
     if (!result) return undefined;
     if (count < 2) return recordFallback('scalar-expression:too-small');
     const source = `"use strict"; return function${resumable ? '*' : ''}() { ${lines.join('\n')} return ${result}; };`;
-    let factory = cache.get(expression);
-    if (factory === undefined) {
+    let factory = factories.get(source);
+    if (factory) {
+        factories.delete(source);
+        factories.set(source, factory);
+    } else {
         try { factory = new Function('readers', 'binary', 'unary', source) as Factory; }
-        catch { factory = null; } // Browser CSP: retain the ordinary prepared path.
-        cache.set(expression, factory);
-        if (factory) host.compiled?.(source);
+        catch { return recordFallback('scalar-expression:dynamic-code-unavailable'); }
+        factories.set(source, factory);
+        if (factories.size > factoryLimit) factories.delete(factories.keys().next().value!);
+        host.compiled?.(source);
     }
-    if (!factory) return recordFallback('scalar-expression:dynamic-code-unavailable');
     const run = factory(readers, host.binary, host.unary);
     return host.executed ? () => { host.executed!(); return run(); } : run;
 }
