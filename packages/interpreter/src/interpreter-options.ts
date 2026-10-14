@@ -8,6 +8,8 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    /** Disable every generated-code tier, including in child modules and tests. */
+    readonly compilation?: boolean;
     readonly environment?: RankEnvironment;
     /** Optional host MD5 implementation; portable hashing is the default.
      * Use pureHostFunction only for implementations that satisfy its contract. */

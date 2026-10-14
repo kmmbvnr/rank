@@ -61,20 +61,11 @@ export class Interpreter {
     readonly testResults: RankTestResult[] = [];
     private readonly output: Output;
     private readonly baseOptions: InterpreterOptions;
+    private readonly referenceOptions: InterpreterOptions;
     private environmentOverride?: RankEnvironment;
     /** Inspection runs every statement through the reference paths, so a debugger can stop anywhere. */
     get options(): InterpreterOptions {
-        return inspectionEnabled() ? { ...this.baseOptions,
-            integerLoopCompilation: false,
-            scalarFunctionCompilation: false,
-            scalarEntryCompilation: false,
-            blockCompilation: false,
-            scalarCompilation: false,
-            tensorFusion: false,
-            arrayFunctionCompilation: false,
-            rankedArrayCompilation: false,
-            functionBodyCompilation: false,
-        } : this.baseOptions;
+        return this.baseOptions.compilation === false || inspectionEnabled() ? this.referenceOptions : this.baseOptions;
     }
     private readonly random: SeedableRandom;
     private readonly openPrograms = new Map<string, LoadedProgram>();
@@ -105,6 +96,35 @@ export class Interpreter {
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
         this.baseOptions = { ...options, environment: options.environment ?? new EnvironmentOverlay() };
+        this.referenceOptions = { ...this.baseOptions, compilation: false, tensorFusion: false,
+            compiledScalarTailCalls: false,
+            scalarEntryCompilation: false,
+            scalarFunctionCompilation: false,
+            scalarCallCompilation: false,
+            scalarTextCompilation: false,
+            textArrayLoopCompilation: false,
+            textLoopCompilation: false,
+            absoluteLoopCompilation: false,
+            loopReturnCompilation: false,
+            arrayLocalCompilation: false,
+            booleanArrayCompilation: false,
+            booleanLoopCompilation: false,
+            scalarAddressCompilation: false,
+            extremaLoopCompilation: false,
+            compoundArrayCompilation: false,
+            arrayIterationCompilation: false,
+            arrayWriteCompilation: false,
+            arrayLoopCompilation: false,
+            nestedLoopCompilation: false,
+            tensorCellCompilation: false,
+            arrayFunctionCompilation: false,
+            rankedArrayCompilation: false,
+            nativeLoopCompilation: false,
+            functionBodyCompilation: false,
+            integerLoopCompilation: false,
+            blockCompilation: false,
+            scalarCompilation: false,
+        };
         this.random = seedableRandom(options.random);
         const requireOpen = (module: string, operation: string) => requireModule(this.modules, module, operation);
         const select = (values: RankValue[], missing?: () => RankValue) => selectValues(this.modules, values, missing);

@@ -12,7 +12,7 @@ const sum = `fun combine A B
   end
 end`;
 function fixture(source = sum, compiled = true) {
-    const runtime = new Interpreter(() => {}, { scalarFunctionCompilation: compiled });
+    const runtime = new Interpreter(() => {}, { compilation: compiled });
     runtime.execute('use algo\nuse sequences\nuse numbers\n' + source);
     const operation = runtime.variables.get('combine') as NativeFunction;
     const values = new FlatRecords(7, state(1n));
@@ -54,7 +54,7 @@ describe('compiled flat combine', () => {
   end
 end`;
         const operation = (compiled: boolean) => {
-            const runtime = new Interpreter(() => {}, { scalarFunctionCompilation: compiled });
+            const runtime = new Interpreter(() => {}, { compilation: compiled });
             runtime.execute(source);
             return runtime.variables.get('combine') as NativeFunction;
         };

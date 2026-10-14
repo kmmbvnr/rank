@@ -16,6 +16,20 @@ resource metadata and the measured tradeoff between reuse and write overhead.
 [Runtime diagnostics](runtime-diagnostics.md) documents optional counters and
 validated tensor readers in compiled loops.
 
+## Reference execution and differential checks
+
+`new Interpreter(output, { compilation: false })` disables every generated-code
+backend, including tensor-cell copies and flat-record combines. Imported modules
+and Rank test blocks inherit the setting. Individual tier switches remain available
+for isolating a backend. Debugger inspection uses the same reference options.
+
+The differential test runs every demo and embedded Rank test in both modes. It
+compares eager return values, output, errors and host effects using fixed random
+input, an isolated environment and in-memory files. Lazy streams are observed
+through program consumption rather than forced by the test harness. CI splits the
+corpus into four shards and verifies that every file was compared exactly once.
+Focused probes also assert that compiled code actually executes.
+
 ## Debug sessions
 
 Interactive hosts own a `DebugSession` and pass it as the fourth argument to
@@ -400,8 +414,11 @@ reference operator with operands already evaluated. There is no retry of an
 expression after partial execution, and no reassociation or common-subexpression
 elimination of name reads.
 
-Factories are weakly cached by AST identity. Local declarations bind new readers
-and environments to the shared code, so separate closures never share values.
+Factories are cached by emitted source, with at most 256 entries retained in
+least-recently-used order. The same AST can emit different code when a host changes
+which subtrees it can read. Local declarations bind new readers and environments
+to the shared code, so separate closures never share values. Failed code generation
+is not cached, allowing a later call to retry after a host restriction changes.
 Literals and user names are not interpolated into generated JavaScript. Unsupported
 syntax retains prepared handlers; browser CSP rejection also retains that path.
 
