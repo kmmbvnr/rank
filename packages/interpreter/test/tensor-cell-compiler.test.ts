@@ -12,7 +12,7 @@ function observe(compiled: boolean, mutate: Mutation, onRead: Mutation = () => {
         onRead(source, cells, reads.length);
         return storage;
     } };
-    const runtime = new Interpreter(undefined, { tensorCellCompilation: compiled });
+    const runtime = new Interpreter(undefined, { compilation: compiled });
     runtime.variables.set('A', source);
     runtime.variables.set('observe', native('observe', 1, ([value]) => {
         if (!isRankArray(value)) throw new Error('expected cell');

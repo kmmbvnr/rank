@@ -20,6 +20,10 @@ jobs:
           - { suite: type-audit, shard: 1 }
           - { suite: type-audit, shard: 2 }
           - { suite: type-audit, shard: 3 }
+          - { suite: differential, shard: 0 }
+          - { suite: differential, shard: 1 }
+          - { suite: differential, shard: 2 }
+          - { suite: differential, shard: 3 }
           - { suite: rust }
     name: ${{ matrix.suite }} ${{ matrix.shard }} (Node 24)
     steps:
@@ -51,7 +55,7 @@ jobs:
           npm test --workspace @arrrank/cli
       - name: Test interpreter
         if: matrix.suite == 'interpreter'
-        run: npm test --workspace @arrrank/interpreter -- --exclude test/types.test.ts
+        run: npm test --workspace @arrrank/interpreter -- --exclude test/types.test.ts --exclude test/differential.test.ts
       - name: Test release library Euler examples
         if: matrix.suite == 'interpreter'
         run: |
@@ -70,6 +74,18 @@ jobs:
         with:
           name: type-audit-${{ matrix.shard }}
           path: packages/interpreter/type-audit-${{ matrix.shard }}.json
+      - name: Compare compiled and reference execution
+        if: matrix.suite == 'differential'
+        env:
+          RANK_DIFFERENTIAL_SHARDS: 4
+          RANK_DIFFERENTIAL_SHARD: ${{ matrix.shard }}
+          RANK_DIFFERENTIAL_SUMMARY: differential-${{ matrix.shard }}.json
+        run: npm test --workspace @arrrank/interpreter -- test/differential.test.ts
+      - uses: actions/upload-artifact@v4
+        if: matrix.suite == 'differential'
+        with:
+          name: differential-${{ matrix.shard }}
+          path: packages/interpreter/differential-${{ matrix.shard }}.json
       - name: Verify Euler 1–10 Rust rewrites
         if: matrix.suite == 'rust'
         env:
@@ -87,3 +103,15 @@ jobs:
           path: type-audit-results
           merge-multiple: true
       - run: node scripts/check-type-audit.mjs type-audit-results/type-audit-*.json
+
+  differential-coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: differential-*
+          path: differential-results
+          merge-multiple: true
+      - run: node scripts/check-differential.mjs differential-results/differential-*.json
