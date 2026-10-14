@@ -1,4 +1,5 @@
 rem Dyalog 2012, problem 1: Hold'em Up!
+use algo
 use sequences
 use text
 
@@ -103,6 +104,32 @@ end
 rem Return the suit character.
 fun card_suit Card
   return Card 1
+end
+
+rem Choose the highest-valued five-card subset; equal values keep the first.
+fun bestCards Cards
+  Best = Cards take 5
+  Highest = -1
+  for Hand in Cards 5 combinations
+    Value = (Hand " " join) handValue
+    if Value greater Highest
+      Highest = Value
+      Best = Hand
+    end
+  end
+  rem Show the made combination before its kickers, highest ranks first.
+  Values = Best card_value rank 0
+  Freq = (Values Values outer equal) count rank 1
+  Order = (Freq * 13 + Values) argsort .descending
+  return Best Order
+end
+
+fun bestHand Community Hole
+  Cards = (Hole + " " + Community) cards
+  if Cards len not equal 7
+    fail "bestHand requires five community and two hole cards"
+  end
+  return (Cards bestCards) " " join
 end
 
 Example = "QC QD 9H 7D 2C" handValue

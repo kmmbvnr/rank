@@ -59,3 +59,28 @@ test "ace is low only in the five-high straight"
   "AS KD QS JH TC" handValue greater "9S TD JC QH KC" handValue
   "AH 2C 3S 4D 6H" handValue less "2H 2C 6S 8D TH" handValue
 end
+
+test "published best hand uses one hole card"
+  use "001_poker"
+  ("QS 8H 7S QH AC" "AD 7C" bestHand) equal "AD AC QS QH 8H"
+end
+
+test "best hand can use zero or two hole cards"
+  use "001_poker"
+  Board = "AS KS QS JS TS"
+  (Board "2H 3D" bestHand) handValue equal (Board handValue)
+  ("AH KH QH 2C 3D" "JH TH" bestHand) handValue equal (Board handValue)
+end
+
+test "best hand picks the higher full house from two triples"
+  use "001_poker"
+  Result = "AS AH KS KH 2D" "AD KD" bestHand
+  Result handValue equal ("AS AH AD KS KH" handValue)
+end
+
+test "best hand is independent of input order and mixed case"
+  use "001_poker"
+  First = "qs8h7sqhac" "ad7c" bestHand
+  Second = "AC QH 7S 8H QS" "7C AD" bestHand
+  First handValue equal (Second handValue)
+end
