@@ -170,7 +170,7 @@ Products = Windows reduce * rank 1
 Answer = Products max
 ```
 
-Explicit `rank 0` converts the text atoms into a lazy digit sequence. The loops
+Explicit `rank 0` converts the text atoms into a rank-1 digit array. The loops
 are unnecessary: `window` exposes each adjacent rank-1 digit cell and the
 ranked multiplication reduction produces one value per cell. The default width
 13 produces `23514624000`; width 4 produces `5832`.

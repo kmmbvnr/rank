@@ -1,0 +1,16 @@
+rem Dyalog 2013, problem 4: balanced parentheses.
+use sequences
+
+fun balanced Text
+  Open = Text "(" equal rank 0 integer
+  Close = Text ")" equal rank 0 integer
+  Delta = Open - Close
+  Depth = Delta scan +
+  Good = (Depth at least 0) all
+  return Good and Delta sum equal 0
+end
+
+Balanced = "((2×3)+4)" balanced
+Unclosed = "(()" balanced
+Overclosed = "())" balanced
+Empty = "" balanced

@@ -320,6 +320,8 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
     const arity = unaryTail ? 1 : parts.length - 1;
     const source = typeOf(unaryTail ? expression.head : head, lookup);
     if (operation.arities.includes(arity)) {
+        if (arity === 1 && operation.name === 'integer'
+            && source.length && source.every(type => ['integer', 'real', 'boolean', 'text'].includes(type))) return ['integer'];
         if (arity === 1 && within(source, NUMBERS)) {
             const result = inferSignatureResultTypes(operation.signatures ?? [],
                 [{ union: source as readonly SignatureAtom[] }]);

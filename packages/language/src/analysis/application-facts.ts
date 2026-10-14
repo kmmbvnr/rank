@@ -268,8 +268,9 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
         case 'collection-mutation': case 'unpack': case 'invalid': case 'axis-matmul': case 'axis-quantile':
         case 'axis-shift': case 'axis-shuffle': case 'axis-argsort': case 'axis-metric':
         case 'axis-transpose': case 'axis-selection':
-        case 'comparison-rank':
             return UNKNOWN_VALUE;
+        case 'comparison-rank':
+            return symbolicFormFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
         case 'named-scan':
             return namedScanFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
         case 'named-reduce':
@@ -373,8 +374,8 @@ function transferApplicationFacts(
             && (kind === 'text' || ['array', 'sequence'].includes(kind)
                 && (source.eagerScalarCells || source.callbackFreeScalarCells))
             && cells?.length && cells.every(type => operationName.name === 'codepoint'
-                ? type === 'text' : ['integer', 'real', 'text'].includes(type))) {
-            return { types: [kind === 'text' ? 'sequence' : kind],
+                ? type === 'text' : ['integer', 'real', 'text', ...(operationName.name === 'integer' ? ['boolean'] : [])].includes(type))) {
+            return { types: [kind === 'text' ? 'array' : kind],
                 elements: [operationName.name === 'real' ? 'real' : 'integer'],
                 rank: source.rank, shape: source.shape, callbackFreeScalarCells: true };
         }
@@ -670,6 +671,10 @@ function transferApplicationFacts(
             ? { types: modified, rank: 0, shape: [] } : { types: modified };
         if (operation?.arities.includes(arity)) {
             const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => infer(part, lookup));
+            if (arity === 1 && operation.name === 'integer' && source.types.length
+                && source.types.every(type => ['integer', 'real', 'boolean', 'text'].includes(type))) {
+                return { types: ['integer'], rank: 0, shape: [] };
+            }
             if (last.name === 'merge') {
                 return mergedSequenceFacts(operands);
             }

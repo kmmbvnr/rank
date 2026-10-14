@@ -1,0 +1,26 @@
+use testing
+
+test "balanced parentheses with surrounding text"
+  use "004_balanced"
+  "((2×3)+4)" balanced
+end
+
+test "unclosed parentheses"
+  use "004_balanced"
+  not "(()" balanced
+end
+
+test "negative prefix depth"
+  use "004_balanced"
+  (not "())" balanced) and (not ")(" balanced)
+end
+
+test "empty text"
+  use "004_balanced"
+  "" balanced
+end
+
+test "Unicode code points and combining marks"
+  use "004_balanced"
+  "(😀é)" balanced
+end

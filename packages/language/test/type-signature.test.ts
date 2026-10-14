@@ -191,7 +191,7 @@ it('describes numeric maps, missing propagation and integer-only reductions', ()
 
 
 it('keeps text conversion and positional parse result contracts explicit', () => {
-    expect(operationSignature(findOperation('integer')!, [{ types: ['text'] }])).toBe('text → integer [rank 1]');
+    expect(operationSignature(findOperation('integer')!, [{ types: ['text'] }])).toBe('text → integer');
     expect(operationSignature(findOperation('bytes')!, [{ types: ['array'], elements: ['integer'] }]))
         .toBe("c<integer> → bytes");
     expect(operationSignature(findOperation('parse')!)).toBe("text text → c | tuple");

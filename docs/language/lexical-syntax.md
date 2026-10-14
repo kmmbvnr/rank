@@ -806,7 +806,10 @@ Label = Fraction text
 `integer` preserves an integer, truncates a finite real toward zero, or parses
 signed decimal integer text exactly. Thus `(-2.9) integer` is `-2`.
 `"2.9" integer` is an error; write `"2.9" real integer` to request both steps.
-Nonfinite real values cannot become integers.
+Nonfinite real values cannot become integers. Booleans convert explicitly:
+`false integer` is `0`, and `true integer` is `1`. `Mask integer` converts
+each boolean in an array, preserving its shape. Boolean arithmetic remains
+an error; cast the mask before using it in numeric expressions.
 
 `real` preserves a real or converts an integer or decimal text to binary64.
 Text must be a complete decimal number, optionally signed and with a decimal
@@ -821,8 +824,8 @@ assignment still preserves the established variable type.
 
 `round` changes the numeric value while retaining its type. To round first
 and then obtain an integer, write `Value round 0 integer` with `use numbers`.
-For elementwise conversion, use `Values real rank 0` or
-`Values integer rank 0`. Text is parsed as a whole by default;
+For elementwise conversion, use `Values real rank 0` or `Values integer`.
+Text is parsed as a whole by default;
 `"1203" integer rank 0` instead converts its individual digits.
 
 ## Symbols
@@ -858,10 +861,12 @@ Text literals use quotes:
 Text = "hello"
 ```
 
-Text is a rank-1 sequence of Unicode code points. One code point is an atomic
-`text` value, so ordinary zero-based addressing and `for` iteration work on
-text. The editor should make quotes cheap to enter, but quotes remain ordinary
-source syntax.
+Text supports zero-based addressing and `for` iteration over Unicode code
+points. Each code point is a one-character `text` value; combining marks are
+separate elements. In an outer array, a whole text value occupies one scalar
+cell. Explicit `rank 0` exposes its code points and returns an array-shaped
+result, without first splitting the text into an array of strings. The editor
+should make quotes cheap to enter, but quotes remain ordinary source syntax.
 
 A quoted literal understands `\n`, `\t`, `\"` and `\\`.
 

@@ -8,11 +8,11 @@ import { checkpoint, inspectionEnabled } from './interrupt.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { textFunctionSqlite } from './modules/sqlite.js';
-import { mapSequence, sequence } from './sequence.js';
+import { mapSequence } from './sequence.js';
 import { broadcastShape, mapBroadcastArrays } from './tensor.js';
 import { arrayOffset, coordinatesAt, sameShape } from './tensor-index.js';
 import { isRankArray, isRankLabel, isRankSqliteExpression, isRankSequence, valueRank,
-    type IntrinsicRank, type NativeFunction, type RankArray, type RankSequence, type RankValue } from './value.js';
+    type IntrinsicRank, type NativeFunction, type RankArray, type RankValue } from './value.js';
 
 const arrayItem = readArrayItem;
 const DENSE_FRAME_CELLS = 1024;
@@ -61,7 +61,8 @@ export class RankApplication {
         }
         if (typeof value === 'string') {
             if (cellRank >= 1) return this.invoke(fn, [value]);
-            return completed(mapTextAtoms(value, atom => fn.call([atom]), fn.name));
+            const cells = textCells(value);
+            return completed(this.applyToTensorCells(lazyArray(cells.frameShape, cells.cellAt, true), fn, [0]));
         }
         if (isRankSequence(value)) {
             if (cellRank >= 1) return this.invoke(fn, [value]);
@@ -111,8 +112,8 @@ export class RankApplication {
         const [defaultLeftRank, defaultRightRank] = fn.dyadicRanks ?? ['all', 'all'];
         const leftRank = customLeftRank ?? defaultLeftRank;
         const rightRank = customRightRank ?? defaultRightRank;
-        const a = dyadicCells(left, leftRank);
-        const b = dyadicCells(right, rightRank);
+        const a = dyadicCells(left, leftRank, customLeftRank !== undefined);
+        const b = dyadicCells(right, rightRank, customRightRank !== undefined);
         const frameShape = broadcastShape(
             a.frameShape, b.frameShape,
         );
@@ -481,7 +482,9 @@ export function resolveCellRank(rank: IntrinsicRank, operandRank: number): numbe
 export function dyadicCells(
     value: RankValue,
     rank: IntrinsicRank,
+    textAtoms = false,
 ): OuterCells {
+    if (textAtoms && typeof value === 'string' && resolveCellRank(rank, 1) === 0) return textCells(value);
     if (!isRankArray(value)) {
         return { frameShape: [], cellShape: typeof value === 'string' ? [Array.from(value).length] : [], cellAt: () => value };
     }
@@ -539,22 +542,14 @@ export function tensorCells(source: RankArray, frameAxes: readonly number[]): Te
     };
 }
 
-function mapTextAtoms(
-    value: string,
-    operation: (atom: string) => RankValue,
-    name: string,
-): RankSequence {
-    const atoms = [...value];
-    return sequence({
-        name: `text ${name} rank 0`,
-        size: { kind: 'exact', value: BigInt(atoms.length) },
-        *iterate() {
-            for (const atom of atoms) yield operation(atom);
-        },
-        at(index) {
-            if (index >= BigInt(atoms.length)) return undefined;
-            return operation(atoms[Number(index)]);
-        },
-    });
+/** Index UTF-16 offsets, retaining the original text rather than a character array. */
+function textCells(value: string): OuterCells {
+    const offsets: number[] = [];
+    for (let offset = 0; offset < value.length;) {
+        if ((offsets.length & 0xfff) === 0) checkpoint('indexing text cells');
+        offsets.push(offset);
+        offset += value.codePointAt(offset)! > 0xffff ? 2 : 1;
+    }
+    return { frameShape: [offsets.length], cellShape: [],
+        cellAt: index => value.slice(offsets[index], offsets[index + 1] ?? value.length) };
 }
-

@@ -11,7 +11,7 @@ import {
 } from '../value.js';
 import { numericExtreme, sumValue } from './numbers.js';
 import { chooseIndexed, chooseValue, lengthOf } from './sequences.js';
-import { native } from './shared.js';
+import { mapValue, native } from './shared.js';
 import { integerValue, realValue } from '../numeric-conversions.js';
 import { numericConversionSqlite } from './sqlite.js';
 import type { RuntimeModule } from './types.js';
@@ -44,8 +44,9 @@ export const coreModule: RuntimeModule = {
         text: arguments_ => new ByteArray(encoder.encode(arguments_[0] as string)),
         bytes: arguments_ => arguments_[0],
     }),
-    integer: () => native('integer', 1, ([value]) => isRankSqliteExpression(value)
-        ? numericConversionSqlite(value, 'integer') : integerValue(value)),
+    integer: () => ({ ...native('integer', 1, ([value]) => isRankSqliteExpression(value)
+        ? numericConversionSqlite(value, 'integer') : mapValue(value, integerValue)),
+        monadicResultShape: shape => shape }),
     real: () => native('real', 1, ([value]) => isRankSqliteExpression(value)
         ? numericConversionSqlite(value, 'real') : realValue(value)),
     text: () => native('text', 1, ([value]) => {

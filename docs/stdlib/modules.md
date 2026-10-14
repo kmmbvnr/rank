@@ -37,7 +37,8 @@ construction and are then enabled semantically by the corresponding `use`.
 ## Core
 
 `integer`, `real` and `text` explicitly convert scalar values without imports.
-`integer` truncates finite reals toward zero or parses integer text; `real`
+`integer` converts booleans to 0 or 1, truncates finite reals toward zero,
+or parses integer text. It maps arrays and sequences, preserving shape. `real`
 converts integers or decimal text to binary64; `text` renders a scalar.
 Assignment itself never converts between numeric types. See
 [explicit conversions](../language/lexical-syntax.md#explicit-conversions).
@@ -978,9 +979,9 @@ Digits = "(844) 123-4567" "-() " "" translate
 Encoded = Bytes hex
 ```
 
-`integer` parses optional `+` or `-` followed by decimal digits. Its intrinsic
-unary rank is 1, so a complete text value is converted at once. Explicit
-`rank 0` converts each Unicode character and produces a lazy sequence:
+`integer` parses optional `+` or `-` followed by decimal digits. A complete
+text value is converted at once. Explicit `rank 0` converts each Unicode code
+point and produces a rank-1 array:
 
 ```rank
 Value = "-1203" integer

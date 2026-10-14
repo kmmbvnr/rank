@@ -122,7 +122,7 @@ end
     it('includes missing-value errors and invalid argument types', () => {
         expect(failure('A = array 1\nA 5').location?.line).toBe(2);
         expect(failure('use numbers\n.Bad sqrt').location?.line).toBe(2);
-        expect(failure('use numbers\nValues = "text" sqrt\nValues array').location?.line).toBe(3);
+        expect(failure('use numbers\nValues = "text" sqrt\nValues array').location?.line).toBe(2);
     });
 
     it('does not attach an import hint to a missing qualified member', () => {

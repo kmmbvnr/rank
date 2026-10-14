@@ -75,7 +75,7 @@ export class Operators {
                 if (!isRankArray(value)) throw new RankError('axis rank expects arrays');
                 return tensorCells(value, tensorFrameAxes(value.shape, spec.axes, spec.rank));
             }
-            return dyadicCells(value, spec.rank);
+            return dyadicCells(value, spec.rank, true);
         };
         const a = cells(left), b = cells(right);
         if (a.frameShape.length === 0 && b.frameShape.length === 0) {

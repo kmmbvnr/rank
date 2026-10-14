@@ -2,6 +2,7 @@ import { RankError } from './errors.js';
 import type { RankValue } from './value.js';
 
 export function integerValue(value: RankValue): bigint {
+    if (typeof value === 'boolean') return value ? 1n : 0n;
     if (typeof value === 'bigint') return value;
     if (typeof value === 'number') {
         if (!Number.isFinite(value)) {
@@ -10,7 +11,7 @@ export function integerValue(value: RankValue): bigint {
         return BigInt(Math.trunc(value));
     }
     if (typeof value !== 'string') {
-        throw new RankError('integer expects an integer, real or text', 'TypeError');
+        throw new RankError('integer expects an integer, real, boolean or text', 'TypeError');
     }
     if (!/^[+-]?[0-9]+$/.test(value)) {
         throw new RankError(`invalid integer text: ${value}`, 'InvalidNumber', value);

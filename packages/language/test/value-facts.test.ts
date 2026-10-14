@@ -674,7 +674,7 @@ it('tracks scalar conversions explicitly mapped over collection cells', () => {
     expect(facts('N text', new Map([['N', integer]]))).toEqual({ types: ['text'], rank: 1,
         shape: [null] });
     expect(facts('N text integer rank 0', new Map([['N', integer]]))).toMatchObject({
-        types: ['sequence'], elements: ['integer'], rank: 1, callbackFreeScalarCells: true,
+        types: ['array'], elements: ['integer'], rank: 1, callbackFreeScalarCells: true,
     });
     expect(facts('(array 1.2 2.3) integer rank 0')).toMatchObject({ types: ['array'],
         elements: ['integer'], rank: 1, shape: [2], callbackFreeScalarCells: true });

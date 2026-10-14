@@ -901,7 +901,10 @@ Label = Fraction text
 `integer` preserves an integer, truncates a finite real toward zero, or parses
 signed decimal integer text exactly. Thus `(-2.9) integer` is `-2`.
 `"2.9" integer` is an error; write `"2.9" real integer` to request both steps.
-Nonfinite real values cannot become integers.
+Nonfinite real values cannot become integers. Booleans convert explicitly:
+`false integer` is `0`, and `true integer` is `1`. `Mask integer` converts
+each boolean in an array, preserving its shape. Boolean arithmetic remains
+an error; cast the mask before using it in numeric expressions.
 
 `real` preserves a real or converts an integer or decimal text to binary64.
 Text must be a complete decimal number, optionally signed and with a decimal
@@ -916,8 +919,8 @@ assignment still preserves the established variable type.
 
 `round` changes the numeric value while retaining its type. To round first
 and then obtain an integer, write `Value round 0 integer` with `use numbers`.
-For elementwise conversion, use `Values real rank 0` or
-`Values integer rank 0`. Text is parsed as a whole by default;
+For elementwise conversion, use `Values real rank 0` or `Values integer`.
+Text is parsed as a whole by default;
 `"1203" integer rank 0` instead converts its individual digits.
 
 ## Symbols
@@ -953,10 +956,12 @@ Text literals use quotes:
 Text = "hello"
 ```
 
-Text is a rank-1 sequence of Unicode code points. One code point is an atomic
-`text` value, so ordinary zero-based addressing and `for` iteration work on
-text. The editor should make quotes cheap to enter, but quotes remain ordinary
-source syntax.
+Text supports zero-based addressing and `for` iteration over Unicode code
+points. Each code point is a one-character `text` value; combining marks are
+separate elements. In an outer array, a whole text value occupies one scalar
+cell. Explicit `rank 0` exposes its code points and returns an array-shaped
+result, without first splitting the text into an array of strings. The editor
+should make quotes cheap to enter, but quotes remain ordinary source syntax.
 
 A quoted literal understands `\n`, `\t`, `\"` and `\\`.
 
@@ -3600,8 +3605,9 @@ Sorted = M sort rank 1
 rem shape 0 3
 ```
 
-For example, `integer` has intrinsic unary rank 1. It converts a complete text
-value by default, while an explicit rank 0 converts its character atoms:
+`integer` converts a complete text value by default and maps arrays while
+preserving their shape. Explicit `rank 0` converts individual Unicode code
+points and returns a rank-1 array:
 
 ```rank
 Value = "1203" integer
@@ -3609,7 +3615,18 @@ Digits = "1203" integer rank 0
 rem Value is 1203; Digits are 1 2 0 3
 ```
 
-Rank-0 application over a lazy sequence remains lazy.
+Rank-0 application over text uses Unicode code points, including non-BMP
+characters as single elements. A one-code-point operand broadcasts across a
+longer text frame:
+
+```rank
+Open = "((2×3)+4)" "(" equal rank 0
+Delta = Open integer
+rem Open is a boolean array; Delta contains 1 or 0
+```
+
+Text remains a scalar cell within an outer array, so `Words len rank 0`
+measures whole words. Rank-0 application over a lazy sequence remains lazy.
 
 ### Binary comparison rank
 
@@ -6845,9 +6862,9 @@ Digits = "(844) 123-4567" "-() " "" translate
 Encoded = Bytes hex
 ```
 
-`integer` parses optional `+` or `-` followed by decimal digits. Its intrinsic
-unary rank is 1, so a complete text value is converted at once. Explicit
-`rank 0` converts each Unicode character and produces a lazy sequence:
+`integer` parses optional `+` or `-` followed by decimal digits. A complete
+text value is converted at once. Explicit `rank 0` converts each Unicode code
+point and produces a rank-1 array:
 
 ```rank
 Value = "-1203" integer
@@ -7548,7 +7565,7 @@ Products = Windows reduce * rank 1
 Answer = Products max
 ```
 
-Explicit `rank 0` converts the text atoms into a lazy digit sequence. The loops
+Explicit `rank 0` converts the text atoms into a rank-1 digit array. The loops
 are unnecessary: `window` exposes each adjacent rank-1 digit cell and the
 ranked multiplication reduction produces one value per cell. The default width
 13 produces `23514624000`; width 4 produces `5832`.

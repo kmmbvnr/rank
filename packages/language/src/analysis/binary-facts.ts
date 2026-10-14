@@ -4,6 +4,7 @@ import {
 } from '../generated/ast.js';
 import { rangeSliceOperands } from '../expressions.js';
 import { applicationForm, type ApplicationForm } from '../application-forms.js';
+import { rankedOperandShapes } from './operation-shape.js';
 import { findOperation } from '../operations.js';
 import { binaryType, type Types } from './types.js';
 import { broadcastDims, broadcastShape, incompatibleShapes, isAtom,
@@ -181,6 +182,20 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
 /** Transfer a classified modifier independently of the source spelling. */
 export function symbolicFormFacts(symbolic: ApplicationForm, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts | undefined {
+    if (symbolic.kind === 'comparison-rank') {
+        const operands = [infer(symbolic.left, lookup), infer(symbolic.right, lookup)];
+        const framed = operands.map(value => symbolic.rank === 0 && !symbolic.axes && value.types.join() === 'text'
+            ? { types: ['array'], rank: 1, shape: value.shape ?? [null] } : value);
+        const partition = rankedOperandShapes(framed, [symbolic.rank, symbolic.rank], symbolic.axes);
+        if (!partition) return undefined;
+        const shape = partition.frame;
+        return shape.length ? { types: ['array'], rank: shape.length, shape, elements: ['boolean'],
+            ...(symbolic.rank === 0 && operands.every(value => value.types.join() === 'text'
+                || value.eagerScalarCells || value.callbackFreeScalarCells || value.rank === 0)
+                ? { callbackFreeScalarCells: true as const } : {}) }
+            : { types: ['boolean'], rank: 0, shape: [] };
+    }
+
     if (symbolic?.kind === 'outer'
         && ['+', '-', '*', '/', '//', 'mod', '**'].includes(symbolic.operator)) {
         if (symbolic.operands.length === 2) {

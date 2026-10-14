@@ -1146,8 +1146,9 @@ Every cell result must have the same shape. Scalar results leave only the frame
 shape; array results append their shape to the frame. Source cells and the
 assembled result are lazy views, and a demanded cell result is cached.
 
-For example, `integer` has intrinsic unary rank 1. It converts a complete text
-value by default, while an explicit rank 0 converts its character atoms:
+`integer` converts a complete text value by default and maps arrays while
+preserving their shape. Explicit `rank 0` converts individual Unicode code
+points and returns a rank-1 array:
 
 ```rank
 Value = "1203" integer
@@ -1155,7 +1156,18 @@ Digits = "1203" integer rank 0
 rem Value is 1203; Digits are 1 2 0 3
 ```
 
-Rank-0 application over a lazy sequence remains lazy.
+Rank-0 application over text uses Unicode code points, including non-BMP
+characters as single elements. A one-code-point operand broadcasts across a
+longer text frame:
+
+```rank
+Open = "((2×3)+4)" "(" equal rank 0
+Delta = Open integer
+rem Open is a boolean array; Delta contains 1 or 0
+```
+
+Text remains a scalar cell within an outer array, so `Words len rank 0`
+measures whole words. Rank-0 application over a lazy sequence remains lazy.
 
 ### Binary comparison rank
 
