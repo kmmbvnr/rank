@@ -782,6 +782,16 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     message: `shape mismatch: [${conflict.left.join(', ')}] and [${conflict.right.join(', ')}]` });
             }
             const selectors = parts.slice(1);
+            // A later callable can consume the preceding values. Diagnose only
+            // when every operand is known data and the receiver cannot be indexed.
+            if (form.kind === 'plain' && selectors.length > 0 && source.types.length > 0
+                && source.types.every(type => ['integer', 'real', 'boolean'].includes(type))
+                && selectors.every(part => {
+                    const fact = expressions.get(part) ?? expressionFacts(part, lookup);
+                    return fact.types.length > 0 && fact.types.every(type => type !== 'function');
+                })) diagnostics.push({ node: expression, kind: 'TypeError',
+                    message: source.types.every(type => type === 'integer' || type === 'real')
+                        ? 'a number cannot be indexed' : 'a scalar cannot be indexed' });
             const last = parts.at(-1);
             const fenwickSelector = source.types.join() === 'fenwick'
                 && (selectors.length === 1 || selectors.length === 2

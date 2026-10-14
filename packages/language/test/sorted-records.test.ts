@@ -10,7 +10,7 @@ const project = 'fun project Start Finish Reward\n return record\n  .start = Sta
     + '  .reward = Reward\n end\nend\n';
 
 /** Facts for `f` called with a queue that the test filled from the given push lines. */
-function result(body: string, pushes: string[], extra = '') {
+function result(body: string, pushes: string[], extra = '', diagnostics: string[] = []) {
     const module = parser.parse<Program>(`${project}${extra}fun f Jobs\n${body}\nend\n`);
     expect(module.parserErrors).toEqual([]);
     const test = parser.parse<Program>('test "t"\n use "m"\n Jobs = new queue\n'
@@ -19,7 +19,7 @@ function result(body: string, pushes: string[], extra = '') {
     const examples = functionTestExamples(test.value, 'm', new Set(['project', 'f', 'mixed']));
     expect(examples).toHaveLength(1);
     const analysis = analyzeValues(module.value, new Map(), new Map(), examples);
-    expect(analysis.diagnostics).toEqual([]);
+    expect(analysis.diagnostics.map(diagnostic => diagnostic.message)).toEqual(diagnostics);
     return analysis.functionResults[0];
 }
 const jobs = ['2 4 4 project', '3 6 6 project'];
@@ -71,7 +71,8 @@ describe('claims the sorted record path must not make', () => {
     });
 
     it('drops the schema once a scalar is written over a cell', () => {
-        expect(result(`${first} Sorted 0 = 1\n Item = Sorted 0\n return Item .reward`, jobs).types).toEqual([]);
+        expect(result(`${first} Sorted 0 = 1\n Item = Sorted 0\n return Item .reward`, jobs, '',
+            ['a number cannot be indexed']).types).toEqual([]);
     });
 
     it('drops the schema when the loop inserts another record shape', () => {

@@ -1,10 +1,11 @@
 /// <reference lib="webworker" />
 
 import { createReplSession } from '@arrrank/common/repl-session';
-import { withInterrupt, setDebugBreakpoints, type PauseSnapshot, type InterruptSignal } from '@arrrank/interpreter';
+import { withInterrupt, DebugSession, type PauseSnapshot, type InterruptSignal } from '@arrrank/interpreter';
 import { nativeDebugSignal } from './debug-signal.js';
 import type { WorkerInit, WorkerRequest, WorkerResponse } from './protocol.js';
 
+let debuggerSession = new DebugSession();
 let session: ReturnType<typeof createReplSession>;
 let signal: Int32Array | InterruptSignal | undefined;
 let signalUrl: string | undefined;
@@ -16,7 +17,8 @@ self.addEventListener('message', (event: MessageEvent<WorkerRequest | WorkerInit
         signalUrl = event.data.signalUrl;
         signal = event.data.signal ? new Int32Array(event.data.signal)
             : event.data.signalUrl ? nativeDebugSignal(event.data.signalUrl) : undefined;
-        session = signal ? withInterrupt(signal, () => createReplSession(), onPause) : createReplSession();
+        debuggerSession = new DebugSession();
+        session = signal ? withInterrupt(signal, () => createReplSession(), onPause, debuggerSession) : createReplSession();
         self.postMessage({ id: 0, snapshot: session.snapshot() } satisfies WorkerResponse);
         return;
     }
@@ -25,7 +27,7 @@ self.addEventListener('message', (event: MessageEvent<WorkerRequest | WorkerInit
         try {
             // One ordered mailbox preserves rewind → prepare → execute semantics.
             if (signalUrl) signal = nativeDebugSignal(signalUrl);
-            setDebugBreakpoints(method === 'execute' || method === 'debugExecute' ? breakpoints : []);
+            debuggerSession.setBreakpoints(method === 'execute' || method === 'debugExecute' ? breakpoints : []);
             const run = () => {
                 if (method === 'setDebugBreakpoints') { breakpoints = args[0] as typeof breakpoints; return; }
                 if (method === 'debugExecute' && signal) {
@@ -35,7 +37,7 @@ self.addEventListener('message', (event: MessageEvent<WorkerRequest | WorkerInit
                 const call = session[method === 'debugExecute' || method === 'turboExecute' ? 'execute' : method] as (...args: unknown[]) => unknown;
                 return call(...args);
             };
-            const result = await (signal ? withInterrupt(signal, run, method === 'turboExecute' ? undefined : onPause) : run());
+            const result = await (signal ? withInterrupt(signal, run, method === 'turboExecute' ? undefined : onPause, debuggerSession) : run());
             self.postMessage({ id, result, snapshot: session.snapshot() } satisfies WorkerResponse);
         } catch (error) {
             self.postMessage({ id, error: String(error), snapshot: session.snapshot() } satisfies WorkerResponse);
