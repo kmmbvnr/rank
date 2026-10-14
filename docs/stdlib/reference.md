@@ -25,8 +25,7 @@ uses its requested window dimensions and axes. `matmul` contracts the last
 left axis with the first right axis; `solve` accepts a whole matrix and a
 vector or matrix right side. Batched solve requires `rank 2 1` or `rank 2 2`.
 
-`sort`, `argsort`, `unique` and `real` use rank 1. `integer` takes a whole
-value and maps array or sequence elements, preserving shape. Sort direction
+`sort`, `argsort`, `unique`, `integer` and `real` use rank 1. Sort direction
 labels configure that unary operation rather than adding a data operand.
 Numeric conversion overloads retain their existing element mapping; text
 parses as a whole string, with explicit rank 0 for individual digits.
@@ -189,7 +188,7 @@ Always available: conversions, ranges, length, sums and extrema. No use required
 | `Value len` | integer | unary all | Code points of text, leading axis of an array, or size of a collection. |
 | `Values present` | boolean | unary all | Mask of the cells that have a value: false for `.NA` and for cells that read as `.Missing`. |
 | `Value bytes` | bytes | unary all | Converts UTF-8 text or a rank-1 array of integers in 0..255 to compact bytes. |
-| `Value integer` | integer | unary all | Converts booleans to 0 or 1, truncates finite reals, preserves integers, or parses signed decimal text; maps collections preserving shape. |
+| `Value integer` | integer | unary all (scalar map) | Converts booleans to 0 or 1, truncates finite reals, preserves integers, or parses signed decimal text; maps collections preserving shape. |
 | `Value real` | real | unary 1 | Converts an integer or decimal text to a real, or preserves a real. |
 | `Value text` | text | unary all | Formats one scalar as text; a .Nf literal after it selects fixed decimals. |
 
