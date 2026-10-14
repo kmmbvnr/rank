@@ -22,6 +22,10 @@ fun handValue Text
   if Cards len not equal 5
     fail "handValue requires five cards"
   end
+  return Cards cardsValue
+end
+
+fun cardsValue Cards
   Score = Cards hand_score
   Value = 0
   for Digit in Score
@@ -112,7 +116,7 @@ fun bestCards Cards
   Best = Cards take 5
   Highest = -1
   for Hand in Cards 5 combinations
-    Value = (Hand " " join) handValue
+    Value = Hand cardsValue
     if Value greater Highest
       Highest = Value
       Best = Hand
@@ -157,6 +161,55 @@ end
 
 fun showdown Community Players
   return (Community Players showdownRows array) table
+end
+
+fun deck
+  for Rank in "23456789TJQKA"
+    for Suit in "SHDC"
+      yield Rank + Suit
+    end
+  end
+end
+
+rem All unseen hole pairs; keep a smallest set of cards used by a best hand.
+fun nuts Community
+  Board = Community cards
+  Unseen = deck array
+  Unseen = Unseen (Unseen not in Board) array
+  Highest = -1
+  Required = array shape 0 fill ""
+  for Hole in Unseen 2 combinations
+    Hand = (concat Board Hole) bestCards
+    Value = Hand cardsValue
+    Used = Hand (Hand not in Board) array
+    if (Value greater Highest) or (Value equal Highest and Used len less Required len)
+      Highest = Value
+      Required = Used
+    end
+  end
+  rem A suit is immaterial only if every legal replacement still makes the nuts.
+  Actual = Required copy
+  for Card I in Actual
+    Candidates = Unseen ((Unseen card_value rank 0) equal (Card card_value)) array
+    Wild = true
+    for Replacement in Candidates
+      Trial = Actual copy
+      Trial I = Replacement
+      if Trial unique len not equal Trial len
+        Wild = false
+        break
+      end
+      Hand = (concat Board Trial) bestCards
+      if (Hand cardsValue) not equal Highest
+        Wild = false
+        break
+      end
+    end
+    if Wild
+      Required I = (Card 0) + "*"
+    end
+  end
+  return Required
 end
 
 Example = "QC QD 9H 7D 2C" handValue

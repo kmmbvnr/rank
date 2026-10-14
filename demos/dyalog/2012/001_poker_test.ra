@@ -102,3 +102,25 @@ test "playing a royal-flush board ties every player"
   Result .rank equal array 1 1 1
   Result .used equal array 0 0 0
 end
+
+test "nuts on a flop allow any suits for a wheel"
+  use "001_poker"
+  use sequences
+  ("AS 5C 4D" nuts) sort equal (array "2*" "3*")
+end
+
+test "nuts on a paired board require both remaining fours"
+  use "001_poker"
+  use sequences
+  ("AS 5C 4D 4H" nuts) sort equal ((array "4S" "4C") sort)
+end
+
+test "nuts can require only one specific suited card"
+  use "001_poker"
+  ("AS KS QS TS" nuts) equal array "JS"
+end
+
+test "the board can already contain the nuts"
+  use "001_poker"
+  ("AS KS QD JH TC" nuts) len equal 0
+end
