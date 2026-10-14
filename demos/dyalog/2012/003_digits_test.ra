@@ -1,0 +1,16 @@
+use testing
+
+test "fixed digit expressions produce exactly one through one hundred"
+  use "003_digits"
+  use sequences
+  Actual = problem3
+  Actual shape equal array 100
+  Actual equal (1 to 100 array)
+end
+
+test "the demo exposes the complete result"
+  use "003_digits"
+  use sequences
+  run
+  Answer equal (1 to 100 array)
+end
