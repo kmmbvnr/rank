@@ -13,6 +13,6 @@ export { standardModules } from './modules/index.js';
 
 export { RuntimeDiagnostics } from './diagnostics.js';
 
-export { InterruptedError, DemandBudgetExhausted, withDemandBudget, withInterrupt, checkInterrupt, setDebugBreakpoints, detachInspection, type PauseSnapshot, type InterruptSignal } from './interrupt.js';
+export { InterruptedError, DemandBudgetExhausted, withDemandBudget, DebugSession, withInterrupt, checkInterrupt, setDebugBreakpoints, detachInspection, type PauseSnapshot, type InterruptSignal } from './interrupt.js';
 
 export { integerValue, realValue } from './numeric-conversions.js';
