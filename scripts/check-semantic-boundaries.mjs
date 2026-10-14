@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname, relative } from 'node:path';
+import { semanticSource } from './semantic-source.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const language = resolve(root, 'packages/language/src');
@@ -69,11 +70,11 @@ const edges = new Map();
 for (const file of [...sources(language), ...sources(runtime)]) {
     const name = relative(root, file);
     const source = readFileSync(file, 'utf8');
-    if (!file.startsWith(`${language}/`) && /\bfunction\s+(?:explicit\w+\s*\(|\w+Form\s*\([^)]*\b\w*Expression\b)/.test(source)) {
+    const facts = semanticSource(source, file);
+    if (!file.startsWith(`${language}/`) && facts.recognizer) {
         failures.push(`${name}: application-form recognizers belong in language`);
     }
-    const imports = [...source.matchAll(/\bfrom\s*['"]([^'"]+)['"]|\bimport\s*(?:\(\s*)?['"]([^'"]+)['"]/g)]
-        .map(match => match[1] ?? match[2]);
+    const imports = facts.imports.map(item => item.specifier);
     const target = specifier => specifier.startsWith('.')
         ? resolve(dirname(file), specifier.replace(/\.js$/, '.ts')) : undefined;
     if (file.startsWith(`${language}/`) && imports.some(specifier =>
@@ -90,14 +91,12 @@ for (const file of [...sources(language), ...sources(runtime)]) {
     // Other runtime owners may carry opaque call plans, but cannot solve or use
     // requirements as optimization proofs.
     const readTimeValidator = file === resolve(runtime, 'checked-input.ts');
-    if (proofConsumer && !readTimeValidator && /\b(?:inferRequirements|RequirementAnalysis)\b|\.requirements\b|from ['"][^'"]*\/requirement(?:s|-)/.test(source)) {
+    if (proofConsumer && !readTimeValidator && facts.requirements) {
         failures.push(`${name}: requirement facts must not enter runtime or optimization proofs`);
     }
     if (!owners.has(name)) continue;
     // Type-only imports are erased; a cycle among owners is a runtime dependency.
-    const values = source.replace(/\bimport\s+type\s[\s\S]*?from\s*['"][^'"]+['"]/g, '');
-    const valueImports = [...values.matchAll(/\bfrom\s*['"]([^'"]+)['"]|\bimport\s*(?:\(\s*)?['"]([^'"]+)['"]/g)]
-        .map(match => match[1] ?? match[2]);
+    const valueImports = facts.imports.filter(item => item.value).map(item => item.specifier);
     edges.set(name, valueImports.map(target).filter(Boolean)
         .map(dependency => relative(root, dependency))
         .filter(dependency => owners.has(dependency)));
