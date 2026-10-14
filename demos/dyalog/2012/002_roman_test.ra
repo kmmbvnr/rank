@@ -1,0 +1,30 @@
+use testing
+
+test "published Arabic to Roman example"
+  use "002_roman"
+  Actual = (array 49.0 1999.0 0.0 -7.0 4.3) atoR
+  Actual equal array "XLIX" "MCMXCIX" "" "¯VII" "IV"
+  (1903 atoR) equal "MCMIII"
+end
+
+test "canonical subtractive forms and unlimited thousands"
+  use "002_roman"
+  Actual = (array 4 9 40 90 400 900 3999 5005) atoR
+  Actual equal array "IV" "IX" "XL" "XC" "CD" "CM" "MMMCMXCIX" "MMMMMV"
+end
+
+test "halfway values round upward including negative numbers"
+  use "002_roman"
+  Actual = (array 0.49 0.5 1.5 2.5 -0.5 -1.5 -2.5) atoR
+  Actual equal array "" "I" "II" "III" "" "¯I" "¯II"
+end
+
+test "Roman text cells preserve matrix shape"
+  use "002_roman"
+  use sequences
+  Actual = ((1 to 6) reshape 2 3) atoR
+  Actual shape equal array 2 3
+  Actual equal ((array "I" "II" "III" "IV" "V" "VI") reshape 2 3)
+  Empty = (array shape 0 3 fill 0) atoR
+  Empty shape equal array 0 3
+end

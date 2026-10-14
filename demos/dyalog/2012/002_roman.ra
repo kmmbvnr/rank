@@ -1,0 +1,38 @@
+rem Dyalog 2012, problem 2: When in Rome...
+use numbers
+use sequences
+use text
+
+fun romanText Number
+  N = Number integer
+  if not Number is .integer
+    N = (Number + 0.5) floor
+  end
+  Prefix = ""
+  if N less 0
+    Prefix = "¯"
+    N = N abs
+  end
+  Values = array 1000 900 500 400 100 90 50 40 10 9 5 4 1
+  Symbols = array "M" "CM" "D" "CD" "C" "XC" "L" "XL" "X" "IX" "V" "IV" "I"
+  Result = Prefix
+  for Value I in Values
+    for N at least Value
+      Result += Symbols I
+      N -= Value
+    end
+  end
+  return Result
+end
+
+fun atoR Values
+  if Values is .array
+    if (Values shape reduce *) equal 0
+      Empty = array shape 0 fill ""
+      return Empty reshape unpack (Values shape)
+    end
+  end
+  return Values romanText rank 0
+end
+
+Example = (array 49.0 1999.0 0.0 -7.0 4.3) atoR
