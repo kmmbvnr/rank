@@ -745,6 +745,7 @@ W 1
 ```text
 Values window Widths...
 Values window unpack Sizes
+Values window Sizes padding Pad wrap
 ```
 
 Each window is one row of the result.
@@ -758,6 +759,17 @@ Supply one size for each axis. Use
 does not repeat across all axes.
 Continue with `M window 4 4 diag` to
 take diagonals.
+
+`stride` sets the step per selected
+axis.
+`padding` adds the same number of cells
+on both ends, filled with zero by
+default
+or `padding Pad with Value`. On arrays,
+`padding Pad wrap` repeats the source
+periodically instead. Padding may exceed
+the source size. Wrap padding cannot
+read an empty axis.
 
 ### See also
 

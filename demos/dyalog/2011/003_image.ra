@@ -1,0 +1,78 @@
+rem Dyalog 2011, task 3: It's All About Image.
+rem Pixels are 65536 * red + 256 * green + blue.
+use numbers
+use sequences
+use stats
+
+fun toGray Pixels
+  RGB = Pixels (array 256 256 256) digits
+  return RGB mean axis 0 / 255.0
+end
+
+rem Nearest-even byte quantization before integer conversion.
+fun toRGB Gray
+  Levels = (Gray * 255.0) 0 round
+  return (Levels integer rank 0) * 65793
+end
+
+fun scale Factors Image
+  unpack V H = Factors
+  if V less 0 or H less 0
+    .DomainError raise
+  end
+  unpack Rows Cols = Image shape
+  if V equal 0 or H equal 0
+    return array shape (Rows * V) (Cols * H) fill 0
+  end
+  RowIdx = ((0 till (Rows * V)) // V) array
+  ColIdx = ((0 till (Cols * H)) // H) array
+  Out = Image axis 0 RowIdx
+  return Out axis 1 ColIdx
+end
+
+rem Odd positive kernel dimensions; center at (shape - 1) // 2.
+rem Weights keep their orientation, as in the contest formula.
+fun convolve Kernel Image
+  Shape = Kernel shape
+  if Shape len not equal 2 or (Shape mod 2 equal 0 any)
+    .DimensionMismatch raise
+  end
+  Total = Kernel sum real
+  Divisor = 1.0
+  if Total greater 0
+    Divisor = Total
+  end
+  K = Kernel / Divisor
+  Pad = (Shape - 1) // 2
+  Blocks = Image window Shape padding Pad wrap
+  Weighted = Blocks * K
+  Result = Weighted sum rank 2
+  Result = 0.0 Result max
+  return Result 1.0 min
+end
+
+fun convolveRGB Kernel Image
+  Base = array 256 256 256
+  RGB = Image Base digits
+  Normalized = RGB / 255.0
+  fun apply Channel
+    return Kernel Channel convolve
+  end
+  Filtered = Normalized apply rank 2
+  Rounded = (Filtered * 255.0) 0 round
+  Bytes = Rounded integer rank 0
+  return Bytes Base fromDigits
+end
+
+rem Normalize the sampled kernel to sum to one.
+fun gaussianMat Sigma
+  if Sigma at most 0
+    .DomainError raise
+  end
+  Radius = (3.0 * Sigma) ceil
+  X = (-Radius to Radius) array
+  Powers = -(X ** 2) / (2.0 * Sigma ** 2)
+  Line = Powers exp
+  Kernel = Line Line outer *
+  return Kernel / (Kernel sum)
+end

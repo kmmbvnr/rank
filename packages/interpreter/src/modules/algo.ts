@@ -1,3 +1,4 @@
+import { numbersModule } from './numbers.js';
 import { checkpoint } from '../interrupt.js';
 import { ownedArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
@@ -95,8 +96,7 @@ export const algoModule: RuntimeModule = {
         addToCollection(arguments_[0], arguments_[1])),
     remove: () => native('remove', 2, arguments_ =>
         removeFromCollection(arguments_[0], arguments_[1])),
-    floor: () => native('floor', 2, arguments_ =>
-        expectMultiset(arguments_[0]).floor(arguments_[1])),
+    floor: numbersModule.floor,
     ceiling: () => native('ceiling', 2, arguments_ =>
         expectMultiset(arguments_[0]).ceiling(arguments_[1])),
     permutations: () => native('permutations', 1, arguments_ => {

@@ -451,11 +451,13 @@ export function windowValue(
     strideValue?: RankValue,
     paddingValue?: RankValue,
     fillValue?: RankValue,
+    wrap = false,
 ): RankValue {
     fillValue ??= isRankArray(source) && arrayElementTypes(source)?.join() === 'real' ? 0 : 0n;
     if (isRankArray(fillValue) || isRankSequence(fillValue) || isRankQueue(fillValue)) {
         throw new RankError('window padding fill must be a single value');
     }
+    if (wrap && !isRankArray(source)) throw new RankError('window wrap expects an array', 'TypeError');
     const widths = windowWidths(sizeValue);
     if (widths.some(width => width <= 0)) {
         throw new RankError('window sizes must be positive integers');
@@ -541,6 +543,7 @@ export function windowValue(
         padding,
         fillValue,
         [source],
+        wrap,
     );
 }
 
@@ -657,7 +660,17 @@ function arrayWindows(
     padding: readonly number[],
     fill: RankValue,
     dependencies?: readonly RankArray[],
+    wrap = false,
 ): RankArray {
+    if (wrap && sourceShape.some(n => n === 0) && padding.some(n => n > 0)) {
+        throw new RankError('window wrap cannot pad an empty axis', 'DomainError');
+    }
+    const readInput = (coordinates: readonly number[]): RankValue => {
+        if (wrap) return sourceItem(arrayOffset(sourceShape, coordinates.map((n, axis) =>
+            ((n % sourceShape[axis]) + sourceShape[axis]) % sourceShape[axis])));
+        return coordinates.some((n, axis) => n < 0 || n >= sourceShape[axis])
+            ? fill : sourceItem(arrayOffset(sourceShape, coordinates));
+    };
     const positionShape = [...sourceShape];
     const hasPadding = padding.some(amount => amount !== 0);
     axes.forEach((axis, index) => {
@@ -678,9 +691,7 @@ function arrayWindows(
                 - padding[index]
                 + offsets[index];
         });
-        if (hasPadding && input.some((coordinate, axis) =>
-            coordinate < 0 || coordinate >= sourceShape[axis])) return fill;
-        return sourceItem(arrayOffset(sourceShape, input));
+        return hasPadding ? readInput(input) : sourceItem(arrayOffset(sourceShape, input));
     };
     const result = dependencies ? derivedArray(resultShape, dependencies, read)
         : lazyArray(resultShape, read);
@@ -707,8 +718,7 @@ function arrayWindows(
             sourceStrides[axis] = sourceStrides[axis + 1] * sourceShape[axis + 1];
         }
         let offset = arrayOffset(sourceShape, coordinates);
-        const read = () => hasPadding && coordinates.some((coordinate, axis) =>
-            coordinate < 0 || coordinate >= sourceShape[axis]) ? fill : sourceItem(offset);
+        const read = () => hasPadding ? readInput(coordinates) : sourceItem(offset);
         let answer = read();
         for (let index = 1; index < size; index++) {
             for (let axis = widths.length - 1; axis >= 0; axis--) {

@@ -893,3 +893,129 @@ and 1.
 ### See also
 
 sinh, cosh, atanh
+
+## ceil
+
+Least integer greater than or equal to
+a finite number.
+
+```rank
+use numbers
+(array -1.2 1.2) ceil
+```
+
+```result
+-1 2
+```
+
+### Usage
+
+```text
+Value ceil
+```
+
+Maps arrays and sequences. The result
+is integer; integer input stays exact.
+Infinite values and nan are errors.
+
+### See also
+
+floor, round
+
+## floor
+
+Greatest integer less than or equal to
+a finite number.
+
+```rank
+use numbers
+(array -1.2 1.2) floor
+```
+
+```result
+-2 1
+```
+
+### Usage
+
+```text
+Value floor
+Bag floor Limit
+```
+
+Maps arrays and sequences. The result
+is integer; integer input stays exact.
+Infinite values and nan are errors.
+The two-argument form queries an ordered
+bag; also available in `use algo`.
+
+### See also
+
+ceil, round, multiset
+
+## digits
+
+Split nonnegative integers into digits
+using a vector of bases, most
+significant first.
+
+```rank
+use numbers
+Base = array 256 256 256
+16711680 Base digits
+```
+
+```result
+255 0 0
+```
+
+### Usage
+
+```text
+Values Bases digits
+```
+
+Bases is a nonempty rank-1 integer
+array;
+each base is at least 2. Values must fit
+in the supplied bases. The digit axis
+precedes every original axis: an H by W
+image becomes 3 by H by W with three
+base-256 digits. Integer arithmetic is
+exact. Negative values are errors.
+
+### See also
+
+fromDigits
+
+## fromDigits
+
+Pack a leading digit axis into integers.
+
+```rank
+use numbers
+Base = array 256 256 256
+(array 255 0 0) Base fromDigits
+```
+
+```result
+16711680
+```
+
+### Usage
+
+```text
+Digits Bases fromDigits
+```
+
+Bases follows the `digits` contract.
+The leading axis length must match
+Bases;
+each integer digit is between zero and
+its base minus one. Remaining axes keep
+their shape. A vector of digits packs to
+one scalar integer.
+
+### See also
+
+digits

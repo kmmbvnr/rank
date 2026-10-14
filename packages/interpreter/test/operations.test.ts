@@ -33,7 +33,7 @@ describe('the operation catalogue', () => {
     const runtime = runtimeNames();
 
     it('describes every name the standard modules export', () => {
-        const catalogued = new Set(operations.map(entry => `${entry.module}.${entry.name}`));
+        const catalogued = new Set(operations.flatMap(entry => [entry.module, ...entry.alsoModules ?? []].map(module => `${module}.${entry.name}`)));
         const missing = [...runtime.keys()].filter(key => !catalogued.has(key));
         expect(missing).toEqual([]);
     });
@@ -388,6 +388,7 @@ function gateMessage(source: string): string | undefined {
 function catalogueKeys(): Set<string> {
     const keys = new Set<string>();
     for (const entry of operations) {
+        for (const module of entry.alsoModules ?? []) keys.add(`${module}.${entry.name}`);
         const key = `${entry.module}.${entry.name}`;
         if (keys.has(key)) throw new Error(`duplicate catalogue entry: ${key}`);
         keys.add(key);

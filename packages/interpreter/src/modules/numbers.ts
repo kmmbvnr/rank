@@ -1,7 +1,8 @@
+import { expectMultiset } from '../multiset.js';
 import { checkpoint } from '../interrupt.js';
 import { elementSource, type ElementSource } from '../element-source.js';
 import { markArrayMask } from '../array-mask.js';
-import { denseScalarItems, derivedArray, typedArray } from '../array-storage.js';
+import { denseScalarItems, derivedArray, ownedArray, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { mapBroadcastArrays } from '../tensor.js';
@@ -74,6 +75,11 @@ export const numbersModule: RuntimeModule = {
         value => Number.isFinite(value) && value > 0,
     ),
     exp: () => unaryMath('exp', Math.exp),
+    floor: () => native('floor', [1, 2], args => args.length === 2
+        ? expectMultiset(args[0]).floor(args[1]) : integerBound(args[0], 'floor', Math.floor)),
+    ceil: () => native('ceil', 1, args => integerBound(args[0], 'ceil', Math.ceil)),
+    digits: () => native('digits', 2, args => radixDigits(args[0], args[1])),
+    fromDigits: () => native('fromDigits', 2, args => fromRadixDigits(args[0], args[1])),
     round: () => native('round', 2, arguments_ =>
         roundValue(arguments_[0], arguments_[1])),
     infinity: () => Number.POSITIVE_INFINITY,
@@ -676,4 +682,67 @@ export function sumElements(source: ElementSource): bigint | number {
     }
     const items = source.denseItems?.();
     return items ? sumArray(items) : sumStream(source.values());
+}
+
+function integerBound(value: RankValue, name: string, operation: (value: number) => number): RankValue {
+    const apply = (value: RankValue): RankValue => {
+        if (value === MISSING || typeof value === 'bigint') return value;
+        const number = numericReal(value, name);
+        if (!Number.isFinite(number)) throw new RankError(`${name} expects a finite number`, 'DomainError');
+        return BigInt(operation(number));
+    };
+    if (isRankSequence(value)) return mapSequence(value, name, apply);
+    return isRankArray(value) ? derivedArray(value.shape, [value], i => apply(value.itemAt?.(i) ?? value.items[i]), true)
+        : apply(value);
+}
+
+function radixBases(value: RankValue): bigint[] {
+    if (!isRankArray(value) || value.shape.length !== 1 || !value.shape[0]) {
+        throw new RankError('bases must be a nonempty rank-1 integer array', 'TypeError');
+    }
+    return Array.from({ length: value.shape[0] }, (_, i) => {
+        const base = expectInteger(value.itemAt?.(i) ?? value.items[i]);
+        if (base < 2n) throw new RankError('bases must be at least 2', 'DomainError');
+        return base;
+    });
+}
+
+function radixDigits(value: RankValue, basesValue: RankValue): RankValue {
+    const bases = radixBases(basesValue);
+    const shape = isRankArray(value) ? value.shape : [];
+    const size = shape.reduce((a, b) => a * b, 1);
+    const items: RankValue[] = new Array(size * bases.length);
+    for (let i = 0; i < size; i++) {
+        checkpoint('computing digits');
+        let remaining = expectInteger(isRankArray(value) ? value.itemAt?.(i) ?? value.items[i] : value);
+        if (remaining < 0n) throw new RankError('digits expects nonnegative integers', 'DomainError');
+        for (let axis = bases.length - 1; axis >= 0; axis--) {
+            items[axis * size + i] = remaining % bases[axis];
+            remaining /= bases[axis];
+        }
+        if (remaining) throw new RankError('integer does not fit the supplied bases', 'RangeError');
+    }
+    return ownedArray(items, [bases.length, ...shape]);
+}
+
+function fromRadixDigits(value: RankValue, basesValue: RankValue): RankValue {
+    const bases = radixBases(basesValue);
+    if (!isRankArray(value) || value.shape[0] !== bases.length) {
+        throw new RankError('fromDigits expects a leading digit axis matching the bases', 'DimensionMismatch');
+    }
+    const shape = value.shape.slice(1);
+    const size = shape.reduce((a, b) => a * b, 1);
+    const items: RankValue[] = new Array(size);
+    for (let i = 0; i < size; i++) {
+        checkpoint('computing fromDigits');
+        let result = 0n;
+        for (let axis = 0; axis < bases.length; axis++) {
+            const offset = axis * size + i;
+            const digit = expectInteger(value.itemAt?.(offset) ?? value.items[offset]);
+            if (digit < 0n || digit >= bases[axis]) throw new RankError('digit is outside its base', 'DomainError');
+            result = result * bases[axis] + digit;
+        }
+        items[i] = result;
+    }
+    return shape.length ? ownedArray(items, shape) : items[0];
 }

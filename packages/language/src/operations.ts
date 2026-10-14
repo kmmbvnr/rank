@@ -64,6 +64,8 @@ export interface Operation {
     readonly name: string;
     /** The owning module; `core` names are visible without an import. */
     readonly module: string;
+    /** Other modules exporting the same operation. */
+    readonly alsoModules?: readonly string[];
     /**
      * Operand counts the runtime accepts, the left-hand data included, so
      * `Values sum` is arity one and `Text Separator split` is arity two. Empty
@@ -357,11 +359,6 @@ export const operations: readonly Operation[] = [
         result: 'integer',
         dyadicRanks: ['all', 0],
         summary: 'First position whose monotone prefix aggregate reaches the target.' },
-    { name: 'floor', module: 'algo', arities: [2], form: 'Bag floor Limit', result: 'element',
-        signatures: orderedQuerySignatures,
-        shape: [{ args: [null, []], result: [] }],
-        dyadicRanks: ['all', 0],
-        summary: 'Largest stored value at most the limit.' },
     { name: 'lowerbound', module: 'algo', arities: [2], form: 'Bag lowerbound Value',
         signatures: orderedQuerySignatures,
         result: 'element',
@@ -888,6 +885,23 @@ export const operations: readonly Operation[] = [
         shape: [{ args: [null, null, null], result: [] }],
         result: 'integer', scalarNoCallback: 'integer',
         summary: 'Modular exponentiation by repeated squaring, never building the full power.' },
+    { name: 'floor', module: 'numbers', alsoModules: ['algo'], arities: [1, 2],
+        form: 'Value floor | Bag floor Limit', result: 'value', mapsScalarCells: true,
+        signatures: [{ inputs: ['number'], result: 'integer', ranks: [0] },
+            { inputs: ['missing'], result: 'missing', ranks: [0] }, ...orderedQuerySignatures],
+        shape: [{ args: [null, []], result: [] }], dyadicRanks: ['all', 0],
+        summary: 'Greatest integer at most a finite number, or largest stored value at most a limit.' },
+    { name: 'ceil', module: 'numbers', arities: [1], form: 'Value ceil', result: 'integer', mapsScalarCells: true,
+        signatures: [{ inputs: ['number'], result: 'integer', ranks: [0] },
+            { inputs: ['missing'], result: 'missing', ranks: [0] }],
+        summary: 'Least integer at least a finite number.' },
+    { name: 'digits', module: 'numbers', arities: [2], form: 'Values Bases digits', result: 'array',
+        signatures: [{ inputs: ['integer', { collection: 'array', element: 'integer' }], result: { collection: 'array', element: 'integer' } },
+            { inputs: [{ collection: 'array', element: 'integer' }, { collection: 'array', element: 'integer' }], result: { collection: 'array', element: 'integer' } }],
+        summary: 'Nonnegative integers as mixed-base digits, with the digit axis leading.' },
+    { name: 'fromDigits', module: 'numbers', arities: [2], form: 'Digits Bases fromDigits', result: 'value',
+        signatures: [{ inputs: [{ collection: 'array', element: 'integer' }, { collection: 'array', element: 'integer' }], result: { union: ['integer', { collection: 'array', element: 'integer' }] } }],
+        summary: 'Packs the leading mixed-base digit axis into integers.' },
     { name: 'round', module: 'numbers', arities: [2], form: 'Value Places round', result: 'number',
         signatures: [{ inputs: ['integer', 'integer'], result: 'integer', ranks: [0, 0] },
             { inputs: ['real', 'integer'], result: 'real', ranks: [0, 0] }],
@@ -1366,5 +1380,5 @@ export function operationArities(name: string): readonly number[] | undefined {
 
 /** Every name one module exports, in catalogue order. */
 export function moduleOperations(module: string): readonly Operation[] {
-    return operations.filter(operation => operation.module === module);
+    return operations.filter(operation => operation.module === module || operation.alsoModules?.includes(module));
 }

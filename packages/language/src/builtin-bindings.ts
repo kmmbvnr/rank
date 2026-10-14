@@ -11,7 +11,7 @@ export function availableBuiltin(name: string, modules: ReadonlySet<string>): bo
     // function named merge belongs to sequences.
     if (name === 'merge' && modules.has('graph')) return true;
     const operation = findOperation(name);
-    return operation !== undefined && (operation.module === 'core' || modules.has(operation.module));
+    return operation !== undefined && (operation.module === 'core' || modules.has(operation.module) || operation.alsoModules?.some(module => modules.has(module)) === true);
 }
 
 export function builtinBindingMessage(name: string): string {

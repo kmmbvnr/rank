@@ -71,3 +71,17 @@ it('does not read source cells when window dimensions are unpacked', () => {
     expect(r.execute('W 0 0 0 0')).toBe(0n);
     expect(reads).toBe(1);
 });
+
+for (const compiled of [true, false]) it(`wraps padded windows and reductions (compiled=${compiled})`, () => {
+    const r = new Interpreter(undefined, { tensorCellCompilation: compiled });
+    const run = (source: string) => formatValue(r.execute(source)!);
+    r.execute('use sequences\nM = array 1 2 3 4 5 6 shape 2 3');
+    expect(run('M window 3 3 padding 1 wrap shape')).toBe('2 3 3 3');
+    expect(run('M window 3 3 padding 1 wrap sum rank 2')).toBe('36 36 36 27 27 27');
+    expect(run('(array 1 2 3) window 3 padding 4 wrap sum rank 1')).toBe('6 6 6 6 6 6 6 6 6');
+    expect(run('M window 3 padding 1 wrap axis 1 sum rank 1')).toBe('6 6 6 15 15 15');
+    expect(run('M window 3 3 stride 2 padding 1 wrap shape')).toBe('1 2 3 3');
+    expect(() => run('(array shape 0 fill 0) window 3 padding 1 wrap')).toThrow(/empty axis/);
+    expect(() => run('(1 to 3) window 3 padding 1 wrap')).toThrow(/expects an array/);
+    r.dispose();
+});

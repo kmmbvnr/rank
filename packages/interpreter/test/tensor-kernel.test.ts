@@ -430,13 +430,13 @@ describe('text digits inside tensor kernels', () => {
     const program = `use text
 use numbers
 use io
-fun digits N Power
+fun digitpowers N Power
   Text = N text
   Digits = Text integer rank 0
   Powers = Digits ** Power
   return Powers sum
 end
-1634 4 digits`;
+1634 4 digitpowers`;
 
     it('fuses integer rendering, rank conversion, powers and reduction', () => {
         expect(compare(program)).toMatchObject({ value: '1634', kernels: 1 });
@@ -445,42 +445,42 @@ end
     it('preserves large integer rendering exactly', () => {
         const input = '9007199254740993';
         const expected = [...input].reduce((sum, digit) => sum + BigInt(digit), 0n);
-        expect(compare(program.replace('1634 4 digits', `${input} 1 digits`)))
+        expect(compare(program.replace('1634 4 digitpowers', `${input} 1 digitpowers`)))
             .toMatchObject({ value: String(expected), kernels: 1 });
     });
 
     it.each(['""', '"00012"'])('reduces digit text %s', input => {
         const source = `use text
 use numbers
-fun digits Text
+fun digitpowers Text
   Digits = Text integer rank 0
   Shifted = Digits + 1
   return Shifted sum
 end
-${input} digits`;
+${input} digitpowers`;
         expect(compare(source)).toMatchObject({ value: input === '""' ? '0' : '8', kernels: 1 });
     });
 
     it.each(['-12', '"1😀2"', '"1 2"', '"12\\n"'])('retains conversion errors for %s', input => {
         const source = typeof input === 'string' && input.startsWith('"')
-            ? program.replace('Text = N text', 'Text = N').replace('1634 4 digits', `${input} 2 digits`)
-            : program.replace('1634 4 digits', `${input} 2 digits`);
+            ? program.replace('Text = N text', 'Text = N').replace('1634 4 digitpowers', `${input} 2 digitpowers`)
+            : program.replace('1634 4 digitpowers', `${input} 2 digitpowers`);
         expect(compare(source)).toHaveProperty('error');
     });
 
     it('retains a user custominteger function under rank 0', () => {
-        const source = program.replace(/\binteger\b/g, 'custominteger').replace('fun digits N Power', `fun custominteger X
+        const source = program.replace(/\binteger\b/g, 'custominteger').replace('fun digitpowers N Power', `fun custominteger X
   return 2
 end
-fun digits N Power`);
+fun digitpowers N Power`);
         expect(compare(source)).toMatchObject({ value: '64' });
     });
 
     it('retains a user customtext function before the digit pipeline', () => {
-        const source = program.replace(/\btext\b/g, 'customtext').replace('use customtext', 'use text').replace('fun digits N Power', `fun customtext X
+        const source = program.replace(/\btext\b/g, 'customtext').replace('use customtext', 'use text').replace('fun digitpowers N Power', `fun customtext X
   return "99"
 end
-fun digits N Power`);
+fun digitpowers N Power`);
         expect(compare(source)).toMatchObject({ value: '13122' });
     });
 

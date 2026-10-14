@@ -313,36 +313,6 @@ should not be negative.
 
 segment, query
 
-## floor
-
-The largest value in a multiset that is
-at most a limit.
-
-```rank
-use algo
-Bag = (array 2 5 5 9) multiset
-Bag 6 floor
-```
-
-```result
-5
-```
-
-### Usage
-
-```text
-Bag Limit floor
-```
-
-### Notes
-
-If every value is above Limit, it is an
-error. Add default for a fallback.
-
-### See also
-
-ceiling, lowerbound, multiset
-
 ## lowerbound
 
 Another name for ceiling: the smallest

@@ -477,7 +477,7 @@ export class ApplicationEvaluator {
                     const result = windowValue(source, size, window.axes,
                         window.stride ? (yield* resume(context.evaluate(window.stride))) : undefined,
                         window.padding ? (yield* resume(context.evaluate(window.padding))) : undefined,
-                        window.fill ? (yield* resume(context.evaluate(window.fill))) : undefined);
+                        window.fill ? (yield* resume(context.evaluate(window.fill))) : undefined, window.wrap);
                     if (!window.rest.length) return result;
                     const rest = yield* resume(mapExecution(window.rest, part => context.evaluate(part)));
                     return yield* resume(application.apply([result, ...rest], missing, 0, [], tail));

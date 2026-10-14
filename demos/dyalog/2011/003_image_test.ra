@@ -1,0 +1,58 @@
+use testing
+
+test "contest grayscale and RGB examples"
+  use "003_image"
+  use numbers
+  use sequences
+  Gray = (array 0 16711680 65280 16777215) toGray
+  Expected = array 0.0 (1.0 / 3) (1.0 / 3) 1.0
+  Close = ((Gray - Expected) abs at most 0.000000001) all
+  RGB = (array 0.0 (1.0 / 3) 1.0) toRGB
+  Close and ((RGB equal array 0 5592405 16777215) all)
+end
+
+test "vertical then horizontal replication"
+  use "003_image"
+  use sequences
+  Image = array 1 2 3 4 5 6 7 8 9 shape 3 3
+  Scaled = (array 2 3) Image scale
+  Expected = array shape 6 9
+    1 1 1 2 2 2 3 3 3
+    1 1 1 2 2 2 3 3 3
+    4 4 4 5 5 5 6 6 6
+    4 4 4 5 5 5 6 6 6
+    7 7 7 8 8 8 9 9 9
+    7 7 7 8 8 8 9 9 9
+  end
+  (Scaled equal Expected) all
+end
+
+test "zero scaling makes an empty axis"
+  use "003_image"
+  use sequences
+  Image = array shape 3 3 fill 1
+  Out = (array 0 2) Image scale
+  (Out shape equal array 0 6) all
+end
+
+test "identity convolution preserves grayscale and RGB"
+  use "003_image"
+  use sequences
+  Identity = array 1 shape 1 1
+  Gray = array 0.0 0.25 0.75 1.0 shape 2 2
+  RGB = array 16711680 65280 255 16777215 shape 2 2
+  SameGray = (Identity Gray convolve equal Gray) all
+  SameRGB = (Identity RGB convolveRGB equal RGB) all
+  SameGray and SameRGB
+end
+
+test "Gaussian kernel is normalized and symmetric"
+  use "003_image"
+  use numbers
+  use sequences
+  Kernel = 1.0 gaussianMat
+  CorrectShape = (Kernel shape equal array 7 7) all
+  Normalized = (Kernel sum - 1.0) abs less 0.000000001
+  Symmetric = ((Kernel - (Kernel reverse)) abs at most 0.000000001) all
+  CorrectShape and Normalized and Symmetric
+end

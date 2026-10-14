@@ -61,6 +61,7 @@ const samples: readonly Sample[] = [
     ['numbers.binomial', () => [5n, 2n], []],
     ['numbers.binomialmod', () => [5n, 2n, 7n], []],
     ['numbers.divisors', () => [12n], [null]],
+    ['numbers.floor', () => [new RankMultiset().add(1n).add(5n), 3n], []],
     ['numbers.gcd', () => [6n, 4n], []],
     ['numbers.isqrt', () => [9n], []],
     ['numbers.lcm', () => [vector(6n, 4n)], []],

@@ -866,6 +866,7 @@ interface WindowApplication {
     readonly stride?: Expression;
     readonly padding?: Expression;
     readonly fill?: Expression;
+    readonly wrap?: boolean;
 }
 
 function explicitWindow(parts: Expression[], lookup: ApplicationLookup): WindowApplication | undefined {
@@ -885,6 +886,7 @@ function explicitWindow(parts: Expression[], lookup: ApplicationLookup): WindowA
     let stride: Expression | undefined;
     let padding: Expression | undefined;
     let fill: Expression | undefined;
+    let wrap = false;
     let axes: readonly number[] | undefined;
 
     if (isNamed(parts[position], 'stride')) {
@@ -896,7 +898,10 @@ function explicitWindow(parts: Expression[], lookup: ApplicationLookup): WindowA
         padding = parts[position + 1];
         if (!padding) throw new ApplicationSyntaxError('window padding expects a value');
         position += 2;
-        if (isNamed(parts[position], 'with')) {
+        if (isNamed(parts[position], 'wrap')) {
+            wrap = true;
+            position++;
+        } else if (isNamed(parts[position], 'with')) {
             fill = parts[position + 1];
             if (!fill) throw new ApplicationSyntaxError('window padding with expects a value');
             position += 2;
@@ -911,6 +916,6 @@ function explicitWindow(parts: Expression[], lookup: ApplicationLookup): WindowA
     }
     return {
         source: applicationExpression(parts.slice(0, operation)), dimensions,
-        rest: parts.slice(position), axes, stride, padding, fill,
+        rest: parts.slice(position), axes, stride, padding, fill, wrap,
     };
 }

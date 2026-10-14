@@ -130,7 +130,7 @@ const METHODS = new Set([
 ]);
 
 const MODIFIERS = new Set([
-    'axis', 'rank', 'by', 'with', 'reduce', 'scan', 'outer', 'stride', 'padding',
+    'axis', 'rank', 'by', 'with', 'reduce', 'scan', 'outer', 'stride', 'padding', 'wrap',
     'ascending', 'descending', 'array', 'shape', 'index', 'type', 'edges', 'value', 'key', 'from',
     'queue', 'stack', 'concat', 'deque', 'heap', 'set', 'counter', 'orderedset',
     'graph', 'dsu', 'multiset', 'fenwick', 'segment', 'wavelet',
@@ -240,8 +240,10 @@ class Analyzer {
                 }
                 continue;
             }
-            const use: WordUse = { module: operation.module, name, sites };
-            (opened.has(operation.module) ? operations : missing).push(use);
+            const module = opened.has(operation.module) ? operation.module
+                : operation.alsoModules?.find(module => opened.has(module)) ?? operation.module;
+            const use: WordUse = { module, name, sites };
+            (opened.has(module) ? operations : missing).push(use);
         }
         if (!opened.has('cli')) {
             for (const [name, sites] of this.cliForms) missing.push({ module: 'cli', name, sites });
