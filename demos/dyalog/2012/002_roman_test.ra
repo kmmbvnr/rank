@@ -28,3 +28,28 @@ test "Roman text cells preserve matrix shape"
   Empty = (array shape 0 3 fill 0) atoR
   Empty shape equal array 0 3
 end
+
+test "published Roman to Arabic scalar and vector examples"
+  use "002_roman"
+  ("MCMLXI" rtoA) equal 1961
+  ((array 49.0 1999.0 0.0 -7.0 4.3) atoR rtoA) equal array 49 1999 0 -7 4
+  ("" rtoA) equal 0
+end
+
+test "Roman round trips preserve matrices and empty shapes"
+  use "002_roman"
+  use sequences
+  Values = ((-50 to 49) reshape 10 10)
+  Actual = Values atoR rtoA
+  Actual equal Values
+  Actual shape equal array 10 10
+  Empty = (array shape 2 0 fill "") rtoA
+  Empty shape equal array 2 0
+end
+
+test "every small canonical numeral round trips"
+  use "002_roman"
+  use sequences
+  Values = 0 to 1000 array
+  (Values atoR rtoA) equal Values
+end

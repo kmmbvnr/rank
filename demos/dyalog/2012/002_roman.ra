@@ -35,4 +35,43 @@ fun atoR Values
   return Values romanText rank 0
 end
 
+fun romanNumber Text
+  Digits = Text
+  Sign = 1
+  if Digits len greater 0
+    if Digits 0 equal "¯"
+      Sign = -1
+      Digits = Digits drop 1
+    end
+  end
+  Letters = Digits "" split
+  Symbols = "IVXLCDM" "" split
+  Amounts = array 1 5 10 50 100 500 1000
+  Total = 0
+  for Letter I in Letters
+    Value = Amounts (Symbols Letter find)
+    Next = 0
+    if (I + 1) less (Letters len)
+      Next = Amounts (Symbols (Letters (I + 1)) find)
+    end
+    if Value less Next
+      Total -= Value
+    else
+      Total += Value
+    end
+  end
+  return Sign * Total
+end
+
+fun rtoA Values
+  if Values is .text
+    return Values romanNumber
+  end
+  if (Values shape reduce *) equal 0
+    Empty = array shape 0 fill 0
+    return Empty reshape unpack (Values shape)
+  end
+  return Values romanNumber rank 0
+end
+
 Example = (array 49.0 1999.0 0.0 -7.0 4.3) atoR
