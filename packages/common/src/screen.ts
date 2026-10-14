@@ -568,7 +568,9 @@ export function notebookFrame(
         else if (!followCursor) {
             if (showShortcutHints) status = 'PgUp/PgDn scroll · Esc return';
         } else status = suggestion || (showShortcutHints
-            ? notebook.atPrompt ? 'Ctrl-L run all' : 'Ctrl-R run · Ctrl-L run all' : '');
+            ? notebook.atPrompt ? 'Ctrl-L run all'
+                : notebook.current.status === 'error' ? 'Fix · Enter run · Esc prompt'
+                : 'Ctrl-R run · Ctrl-L run all' : '');
         if (showShortcutHints && followCursor && !running && promptOutputFocus && nextEvalRow !== undefined
             && (nextEvalRow < top || nextEvalRow >= top + viewportHeight))
             status = `next: line ${nextEvalSourceLine} · ${promptOutputFocus.active ? '←/→' : 'Enter'} · Esc · ^L run all`;

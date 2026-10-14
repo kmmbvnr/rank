@@ -377,7 +377,8 @@ Run hints fit within 40 terminal columns (reserving the last column for safe
 terminal rendering). On wider terminals the footer uses the available width to
 keep the file name and saved state visible. The bottom prompt shows `Ctrl-L run all`
 without an Enter hint. The source editor shows `Ctrl-R run · Ctrl-L run all`;
-`^` means Ctrl. During source evaluation the hint is `Enter newline · ^R run · ^L run all`
+`^` means Ctrl. In a cell whose last run failed the hint is `Fix · Enter run · Esc prompt`,
+because the cursor stays in the failed cell. During source evaluation the hint is `Enter newline · ^R run · ^L run all`
 (or `^R step` at the next instruction).
 An iteration row shows `Enter select · Esc edit · ^L run all`, and active
 selection shows `←/→ select · Esc edit · ^L run all`. A focused result row shows
