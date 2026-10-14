@@ -21,7 +21,6 @@ import { wrapCommentLines } from '@arrrank/common/comment-wrap';
 import { VoiceDictation, isVoiceSupported } from './voice-dictation.js';
 import { NotebookHistory } from './notebook-history.js';
 import { seedStarterNotebooks } from './starter-notebooks.js';
-import { libraryNotebookId } from './demo-library.js';
 import { memoryNotebookStore } from './demo-store.js';
 import { NotebookPanel } from './notebook-panel.js';
 import { notebookStore, debugBeginnerStore, debugNotebookMode, appVersion, notebookSource, validDraft, type NotebookDraft } from './notebook-store.js';
@@ -1853,13 +1852,11 @@ function createNotebookPanel(history: NotebookHistory, brand: HTMLElement): Note
         await changeNotebook(id);
         if (id === undefined) guidance?.discovered('newNotebook');
     }, importNotebook, exportNotebook, async (path, source) => {
-        const id = await libraryNotebookId(path);
-        if (!await history.store.get(id)) {
-            const text = await source();
-            const now = Date.now();
-            await history.store.save({ id, title: path.split('/').at(-1)!, manual: true,
-                created: now, updated: now, snapshot: { cells: splitSource(text.replace(/\r\n?/g, '\n')), draft: '' } });
-        }
+        const text = await source();
+        const id = crypto.randomUUID();
+        const now = Date.now();
+        await history.store.save({ id, title: path.split('/').at(-1)!, manual: true,
+            created: now, updated: now, snapshot: { cells: splitSource(text.replace(/\r\n?/g, '\n')), draft: '' } });
         await changeNotebook(id);
     },
         () => { closeMenu(); stopVoiceDictation(); setKeyboard(false); },

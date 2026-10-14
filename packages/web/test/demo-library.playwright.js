@@ -67,6 +67,7 @@ async page => {
     check(!(await page.locator('#screen').textContent()).includes('AI-generated'), 'Import must not add AI comments');
     check(!(await page.locator('#screen').textContent()).includes('42\n'), 'example automatically executed');
     await input.fill('rem My local changes');
+    const editedId = await page.evaluate(() => localStorage.getItem('rank-active-notebook-v1'));
     await page.getByRole('button', { name: 'Open notebook history' }).click();
     await page.getByRole('dialog', { name: 'Notebook history' }).getByRole('button', { name: 'Original draft', exact: true }).click();
     await page.getByRole('dialog', { name: 'Notebook history' }).waitFor({ state: 'hidden' });
@@ -76,11 +77,17 @@ async page => {
     await library.getByRole('button', { name: 'Year 2026 ›', exact: true }).click();
     await library.getByRole('button', { name: 'example.ra', exact: true }).click();
     await menu.waitFor({ state: 'hidden' });
-    check(await input.inputValue() === 'rem My local changes', 'repeat open overwrote local edits');
-    check(sourceRequests === 1, 'repeat open downloaded source again');
+    check(await input.inputValue() === '', 'repeat open reused edited draft');
+    check((await page.locator('#screen').textContent()).includes('Value = 42'), 'repeat open did not load Library source');
+    check(sourceRequests === 2, 'repeat open did not request Library source again');
+    check(await page.evaluate(() => localStorage.getItem('rank-active-notebook-v1')) !== editedId, 'Library reused the edited notebook ID');
     await page.reload();
     await page.waitForFunction(() => !document.querySelector('#brand').disabled);
-    check(await input.inputValue() === 'rem My local changes', 'restart lost edits');
+    check(await input.inputValue() === '' && (await page.locator('#screen').textContent()).includes('Value = 42'), 'restart lost fresh Library copy');
+    await page.getByRole('button', { name: 'Open notebook history', exact: true }).click();
+    await menu.locator(`.history-row[data-id="${editedId}"] .history-title`).click();
+    await menu.waitFor({ state: 'hidden' });
+    check(await input.inputValue() === 'rem My local changes', 'Library reopen lost edited copy in history');
     await enter();
     await library.getByRole('button', { name: 'Example Competition ›', exact: true }).waitFor();
     await library.getByRole('button', { name: 'Back', exact: true }).click();
@@ -121,7 +128,7 @@ async page => {
     await page.waitForFunction(() => document.querySelectorAll('.history-row').length === 25);
     const headerTop = await menu.locator('header').evaluate(header => header.getBoundingClientRect().top);
     await menu.locator('.library-home').evaluate(home => { home.scrollTop = home.scrollHeight; });
-    await page.waitForFunction(() => document.querySelectorAll('.history-row').length === 35);
+    await page.waitForFunction(() => document.querySelectorAll('.history-row').length === 36);
     check(await menu.locator('.library-home').evaluate(home => {
         const top = home.getBoundingClientRect().top;
         return [...home.querySelectorAll('.history-shortcut')].every(button => button.getBoundingClientRect().bottom < top);

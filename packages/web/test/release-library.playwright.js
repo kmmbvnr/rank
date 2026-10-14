@@ -41,7 +41,23 @@ async original => {
         check((await page.locator('#screen').textContent()).includes('Lattice Paths'), 'Bundled Euler 15 opens offline');
         check((await page.locator('#screen').textContent()).includes('Answer = Num // Den'), 'Bundle contains the simplified solution');
         check(!(await page.locator('#screen').textContent()).includes('AI-generated'), 'Curated source has no unreviewed note');
+        await page.locator('#input').fill('rem Edited offline example');
+        await page.locator('#brand').click();
+        await page.waitForFunction(() => document.querySelector('#notebook-panel').getAttribute('aria-busy') === 'false');
+        const editedId = await panel.locator('.history-row[data-active]').getAttribute('data-id');
+        await panel.getByRole('button', { name: 'Library', exact: true }).click();
+        await library.getByRole('button', { name: 'Project Euler ›', exact: true }).click();
+        await library.getByRole('button', { name: '015_latticepaths.ra', exact: true }).click();
+        await panel.waitFor({ state: 'hidden' });
+        check(await page.locator('#input').inputValue() === '', 'Offline Library reused edited draft');
+        check((await page.locator('#screen').textContent()).includes('Answer = Num // Den'), 'Offline Library did not reload original source');
+        await page.locator('#brand').click();
+        await page.waitForFunction(() => document.querySelector('#notebook-panel').getAttribute('aria-busy') === 'false');
+        check(await panel.locator('.history-row[data-active]').getAttribute('data-id') !== editedId, 'Offline Library reused notebook identity');
+        await panel.locator(`.history-row[data-id="${editedId}"] .history-title`).click();
+        await panel.waitFor({ state: 'hidden' });
+        check((await page.locator('#screen').textContent()).includes('rem Edited offline example'), 'Offline Library lost edited copy: ' + await page.locator('#screen').textContent());
         check(remoteRequests === 0, 'Restricted Library must not request GitHub');
-        return 'Release Library: only Euler 1–15; simplified Euler 15 opens without GitHub';
+        return 'Release Library: only Euler 1–15; fresh offline copies preserve edits in history';
     } finally { await context.close(); }
 }

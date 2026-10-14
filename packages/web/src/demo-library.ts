@@ -31,11 +31,6 @@ export function folderLabels(source: string, parent: string): Map<string, string
     }
     return labels;
 }
-export async function libraryNotebookId(path: string): Promise<string> {
-    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`kmmbvnr/rank/${path}`));
-    const hex = Array.from(new Uint8Array(digest)).slice(0, 16).map(byte => byte.toString(16).padStart(2, '0')).join('');
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-}
 export class DemoLibrary {
     private tree?: Promise<DemoTree>;
     constructor(private readonly restricted = true) {}
