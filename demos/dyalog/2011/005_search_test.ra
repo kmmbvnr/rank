@@ -1,0 +1,69 @@
+use testing
+
+test "published tokenization examples"
+  use "005_search"
+  use sequences
+  First = "APL and J (5): Operators - Inner Product, Each, Commute, Compose" tokenize
+  Expected = array "apl" "and" "j" "5" "operators" "inner" "product" "each" "commute" "compose"
+  Second = "GDDM / AP126 on APL.68000" tokenize
+  Other = array "gddm" "ap126" "on" "apl" "68000"
+  ((First equal Expected) all) and ((Second equal Other) all)
+end
+
+test "distinct vocabulary across titles"
+  use "005_search"
+  use sequences
+  Titles = array "Appropriate Use of APL in AI (1988)" "Why GKS is Unsuitable ..." "APL Experiences and Visual Basic for Windows"
+  Dict = Titles makeDict
+  Expected = array "appropriate" "use" "of" "apl" "in" "ai" "1988" "why" "gks" "is" "unsuitable" "experiences" "and" "visual" "basic" "for" "windows"
+  (Dict equal Expected) all
+end
+
+test "dictionary counts stay aligned and ignore unknown words"
+  use "005_search"
+  use sequences
+  Dict = array "and" "apl" "be" "experiences" "not" "or" "the" "to"
+  Counts = Dict "A to Be or not A to Be?" dictCount
+  (Counts equal array 0 0 2 0 1 1 0 2) all
+end
+
+test "published cosine examples"
+  use "005_search"
+  use numbers
+  A = (array 0 1) (array 0 1) cosine
+  B = (array 1 1) (array 0 1) cosine
+  C = (array 1 0) (array 0 1) cosine
+  D = (array 1 2 3) (array 4 5 6) cosine
+  (A equal 1.0) and (C equal 0.0) and ((B - 0.7071067811865475) abs less 0.000000000001) and ((D - 0.9746318461970762) abs less 0.000000000001)
+end
+
+test "published search checks on the example titles"
+  use "005_search"
+  use sequences
+  run
+  Miss = Titles "suduko" seek
+  Sudoku = Titles "sudoku" seek
+  Errors = Titles "Error Trapping" seek
+  Empty = (Miss shape equal array 0) all
+  SudokuMatches = (Sudoku equal Titles take 2) all
+  ErrorMatches = (Errors equal Titles drop 2) all
+  Empty and SudokuMatches and ErrorMatches
+end
+
+test "positive scores only, stable ties, and ten result limit"
+  use "005_search"
+  use sequences
+  Titles = array "x a" "x b" "x c" "x d" "x e" "x f" "x g" "x h" "x i" "x j" "x k" "x l" "unrelated"
+  Hits = Titles "x" seek
+  ((Hits shape equal array 10) all) and ((Hits equal Titles take 10) all)
+end
+
+test "empty query vocabulary returns an empty title vector"
+  use "005_search"
+  use sequences
+  Titles = array "APL" "J"
+  A = Titles "" seek
+  B = Titles "!?" seek
+  C = Titles "absent" seek
+  ((A shape equal array 0) all) and ((B shape equal array 0) all) and ((C shape equal array 0) all)
+end

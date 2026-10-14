@@ -42,3 +42,28 @@ the same rule independently on each channel. Gaussian kernels have radius
 This discrete normalization differs slightly from the contest's continuous
 Gaussian formula: at Sigma 1 the center is about `0.15924` rather than
 `0.15915`. Convolution normalizes either kernel by its sum.
+
+[Go Find It Yourself](005_search.ra) implements Problem 5 with `tokenize`,
+`makeDict`, `dictCount`, `cosine`, and `seek`. Run with
+`rank demos/dyalog/2011/005_search.ra`, or check the examples with
+`rank test demos/dyalog/2011/005_search_test.ra`. The sample corpus contains
+the eight titles printed in the contest search examples, rather than the
+full Vector journal corpus from the contest workspace. The script evaluates
+the named results `Misspelled`, `Sudoku`, and `ErrorTrapping` without printing.
+
+Tokens are lowercase contiguous Unicode letters or numbers. `makeDict`
+materializes distinct tokens from a lazy sequence. `dictCount` preserves
+dictionary order and returns D counts; applying it to T titles produces a
+T by D matrix. The declared cell ranks let `rank` assemble the vector results.
+`cosine` returns one scalar for two vectors and keeps the ordinary division
+by zero error for zero vectors. Search excludes titles with no query-token
+overlap before computing cosine, so tokenless titles cannot cause that error.
+
+`seek` returns a rank-1 title array with at most ten positive-scoring hits,
+ordered by descending cosine similarity. Ties retain source order and
+duplicate titles remain separate hits. A query with no dictionary word
+returns an empty title vector. Boolean selections are materialized before
+sorting. Empty title collections are allowed. No specialized vocabulary
+operation is needed. Import the helpers with `use "005_search"`; avoid
+importing `io` in the same scope because it exports a file operation also
+named `seek`.

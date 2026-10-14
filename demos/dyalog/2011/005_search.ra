@@ -1,0 +1,66 @@
+rem Dyalog 2011, task 5: Go Find It Yourself.
+use text
+use sequences
+use numbers
+use linalg
+
+fun tokenize Text
+  return Text words
+end
+
+fun allWords Titles
+  for Title in Titles
+    for Word in Title tokenize
+      yield Word
+    end
+  end
+end
+
+fun makeDict Titles
+  return Titles allWords unique array
+end
+
+fun dictCount Dict Text rank 1 0
+  Words = Text tokenize
+  Matches = Dict Words outer equal
+  return Matches count axis 1
+end
+
+fun cosine A B rank 1 1
+  Dot = A B matmul
+  MagA = (A A matmul) sqrt
+  MagB = (B B matmul) sqrt
+  return Dot / (MagA * MagB)
+end
+
+fun seek Titles Query
+  Dict = Titles makeDict
+  QueryVec = Dict Query dictCount
+  if QueryVec sum equal 0
+    return Titles take 0
+  end
+  TitleVecs = Dict Titles dictCount rank 1 0
+  rem Positive overlap also excludes tokenless titles before cosine.
+  Hits = (TitleVecs QueryVec matmul) greater 0
+  HitTitles = Titles Hits array
+  HitVecs = TitleVecs axis 0 Hits
+  HitScores = HitVecs QueryVec cosine rank 1 1
+  Order = HitScores argsort .descending
+  Best = Order take 10
+  return HitTitles Best
+end
+
+rem Titles printed in the contest examples, not the full workspace corpus.
+Titles = array shape 8
+  "Sudoku with Dyalog APL"
+  "A Sudoku Solver in J"
+  "Error Trapping Tutorial for APL.68000"
+  "Error Trapping Tutorial for APL*PLUS"
+  "Error Trapping Tutorial for IPSA APL"
+  "Error Trapping Tutorial in Dyalog APL"
+  "Tutorial on Error Trapping in APL2/PC"
+  "Letter: Chaos - Computer Error not to Blame"
+end
+Misspelled = Titles "suduko" seek
+Sudoku = Titles "sudoku" seek
+ErrorTrapping = Titles "Error Trapping" seek
