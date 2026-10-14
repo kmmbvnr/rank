@@ -1,0 +1,13 @@
+rem Dyalog 2013, problem 3: count nonempty space-delimited words.
+use sequences
+use text
+use io
+
+fun wordCount Text
+  Words = Text " " split
+  Lengths = Words len rank 0
+  return (Lengths greater 0) count
+end
+
+Example = "Testing one, two, three" wordCount
+Example print
