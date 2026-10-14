@@ -1,8 +1,8 @@
 import { AstUtils, type AstNode } from 'langium';
-import { isBinaryExpression, isCatchClause, isForStatement, isFunctionStatement, isFunctionBindingStatement,
-    isNameExpression, isSelectLocal, isUseStatement, type FunctionStatement, type Program } from './generated/ast.js';
+import { isCatchClause, isForStatement, isFunctionStatement, isFunctionBindingStatement,
+    isSelectLocal, isUseStatement, type FunctionStatement, type Program } from './generated/ast.js';
 import { findOperation } from './operations.js';
-import { flattenApplication } from './expressions.js';
+import { forIteration } from './expressions.js';
 
 /** Unopened library names remain available to user code. */
 export function availableBuiltin(name: string, modules: ReadonlySet<string>): boolean {
@@ -41,11 +41,8 @@ export function builtinBindingDiagnostics(
         if (isFunctionStatement(node) || isFunctionBindingStatement(node)) {
             check(node.name, node);
             for (const parameter of node.parameters) check(parameter, node);
-        } else if (isForStatement(node) && isBinaryExpression(node.condition)
-            && node.condition.operator === 'in') {
-            for (const part of flattenApplication(node.condition.left)) {
-                if (isNameExpression(part)) check(part.name, node);
-            }
+        } else if (isForStatement(node)) {
+            for (const name of forIteration(node.condition)?.names ?? []) if (name !== '#') check(name, node);
         } else if (isCatchClause(node)) check(node.errorName, node);
         else if (isSelectLocal(node)) check(node.name, node);
         else if (isUseStatement(node)) {

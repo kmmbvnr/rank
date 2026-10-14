@@ -16,6 +16,20 @@ export function flattenApplication(expression: Expression): Expression[] {
     return parts;
 }
 
+/** Syntactic iteration bindings; rank-dependent arity validation belongs to the runtime. */
+export interface ForBinding {
+    readonly names: readonly string[];
+    readonly iterable: Expression;
+}
+
+/** Preserve every tensor index and placeholder, without treating arbitrary membership as a binding. */
+export function forIteration(condition: Expression | undefined): ForBinding | undefined {
+    if (!isBinaryExpression(condition) || condition.operator !== 'in') return undefined;
+    const parts = flattenApplication(condition.left);
+    if (!parts.length || !parts.every(part => isNameExpression(part) || isAllAxisExpression(part))) return undefined;
+    return { names: parts.map(part => isNameExpression(part) ? part.name : '#'), iterable: condition.right };
+}
+
 /**
  * A contiguous slice is a range selector: `Values (A until B)` along the first
  * axis, `M # (A until B)` along the next. The range has no step.

@@ -1,11 +1,11 @@
 import { recordBindingContract } from './return-contract.js';
 import { arrayBindingContract, establishedArrayContract } from './array-binding-contract.js';
 import {
-    isAllAxisExpression, isBinaryExpression, isBooleanLiteral, isLabelLiteral, isNameExpression, isNumberLiteral,
+    isBinaryExpression, isBooleanLiteral, isLabelLiteral, isNameExpression, isNumberLiteral,
     isParenthesizedExpression, isUnaryExpression, type Expression, type IfStatement, type Statement,
 } from '../generated/ast.js';
 import { expressionFacts } from './value-facts.js';
-import { flattenApplication } from '../expressions.js';
+export { forIteration as loopBinding } from '../expressions.js';
 import { joinValueFacts, UNKNOWN_VALUE, withPathDims, type ValueFacts } from './value-domain.js';
 import type { Types } from './types.js';
 
@@ -21,16 +21,6 @@ export const settledShape = (types: Types, rank: number | undefined): Pick<Value
             'date', 'datetime', 'duration'].includes(type)) ? { rank: 0, shape: [] }
             : types.join() === 'text' ? { rank: 1, shape: [null] } : {};
 export const invalidate = (fact: ValueFacts | undefined): ValueFacts => ({ types: [], acceptedRecordContract: recordBindingContract(fact), acceptedArrayRank: contractRank(fact), acceptedArrayContract: arrayBindingContract(fact) });
-
-export function loopBinding(condition: Expression | undefined): {
-    names: readonly string[]; iterable: Expression;
-} | undefined {
-    if (!condition || !isBinaryExpression(condition) || condition.operator !== 'in') return undefined;
-    const parts = flattenApplication(condition.left);
-    if (parts.length < 1 || parts.length > 2 || !parts.every(part =>
-        isNameExpression(part) || isAllAxisExpression(part))) return undefined;
-    return { names: parts.map(part => isNameExpression(part) ? part.name : '#'), iterable: condition.right };
-}
 
 export function mergeEnvironments(env: Map<string, ValueFacts>, paths: readonly Map<string, ValueFacts>[]): void {
     const names = new Set(paths.flatMap(path => [...path.keys()]));

@@ -1,5 +1,5 @@
 import { functionBindingPlan } from '../function-binding.js';
-import { flattenApplication as flatten } from '../expressions.js';
+import { flattenApplication as flatten, forIteration } from '../expressions.js';
 /**
  * Binding and mutation facts: where every name is bound, read and written.
  *
@@ -402,12 +402,10 @@ class Analyzer {
         nested: ScopeState[],
     ): void {
         const condition = statement.condition;
-        const iteration = condition !== undefined && isBinaryExpression(condition)
-            && condition.operator === 'in' ? condition : undefined;
-        const binding = iteration && loopNames(iteration.left);
-        if (iteration && binding) {
-            this.expression(iteration.right);
-            for (const name of binding) this.bind(name, 'loop', iteration);
+        const iteration = forIteration(condition);
+        if (iteration) {
+            this.expression(iteration.iterable);
+            for (const name of iteration.names) if (name !== '#') this.bind(name, 'loop', condition!);
         } else if (condition !== undefined) {
             this.expression(condition);
         }
@@ -660,18 +658,6 @@ function resolve(name: string, chain: readonly ScopeState[]): Slot | undefined {
     }
     const dot = name.indexOf('.');
     return dot > 0 ? resolve(name.slice(0, dot), chain) : undefined;
-}
-
-function loopNames(left: Expression): string[] | undefined {
-    const parts = flatten(left);
-    if (parts.length === 0) return undefined;
-    const names: string[] = [];
-    for (const part of parts) {
-        if (isNameExpression(part)) names.push(part.name);
-        else if (part.$type === 'AllAxisExpression') names.push('#');
-        else return undefined;
-    }
-    return names.filter(name => name !== '#');
 }
 
 function finish(scope: ScopeState): ScopeFacts {

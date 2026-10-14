@@ -1,6 +1,6 @@
 import {
-    flattenApplication, isAllAxisExpression, isBinaryExpression, isNameExpression, isNumberLiteral,
-    type Expression, type ForStatement, type Statement,
+    flattenApplication, forIteration, isNameExpression, isNumberLiteral,
+    type Expression, type ForBinding, type ForStatement, type Statement,
 } from '@arrrank/language';
 import { ownedArray } from '../array-storage.js';
 import type { BindingEnvironment } from '../binding-environment.js';
@@ -222,10 +222,7 @@ export function iterationAtoms(
     return iterationValues(value);
 }
 
-export interface ForBinding {
-    readonly names: readonly string[];
-    readonly iterable: Expression;
-}
+export { forIteration, type ForBinding } from '@arrrank/language';
 
 interface ForEntry {
     readonly value: RankValue;
@@ -236,21 +233,6 @@ interface TensorIterationSpec {
     readonly source: Expression;
     readonly axes?: readonly number[];
     readonly cellRank: number;
-}
-
-export function forIteration(
-    condition: Expression | undefined,
-): ForBinding | undefined {
-    if (!condition || !isBinaryExpression(condition) || condition.operator !== 'in') return undefined;
-    const bindings = flattenApplication(condition.left);
-    if (bindings.length < 1 || !bindings.every(binding =>
-        isNameExpression(binding) || isAllAxisExpression(binding))) {
-        return undefined;
-    }
-    return {
-        names: bindings.map(binding => isNameExpression(binding) ? binding.name : '#'),
-        iterable: condition.right,
-    };
 }
 
 function tensorIterationSpec(expression: Expression): TensorIterationSpec | undefined {
