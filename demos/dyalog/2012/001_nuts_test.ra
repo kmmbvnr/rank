@@ -1,0 +1,11 @@
+use testing
+
+test "two matching ranks allow arbitrary distinct suits when alternatives exist"
+  use "001_poker"
+  ("7S AH KC" nuts) equal array "A*" "A*"
+end
+
+test "a sole remaining suit is required to complete four of a kind"
+  use "001_poker"
+  ("4S 4H 4D AS" nuts) equal array "4C"
+end

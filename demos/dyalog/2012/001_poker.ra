@@ -191,13 +191,17 @@ fun nuts Community
   Actual = Required copy
   for Card I in Actual
     Candidates = Unseen ((Unseen card_value rank 0) equal (Card card_value)) array
+    Needed = ((Actual card_value rank 0) equal (Card card_value)) count
+    rem When every remaining suit is required, name the specific cards.
+    if (Candidates len) at most Needed
+      continue
+    end
     Wild = true
     for Replacement in Candidates
       Trial = Actual copy
       Trial I = Replacement
-      if Trial unique len not equal Trial len
-        Wild = false
-        break
+      if (Trial unique len) not equal (Trial len)
+        continue
       end
       Hand = (concat Board Trial) bestCards
       if (Hand cardsValue) not equal Highest
