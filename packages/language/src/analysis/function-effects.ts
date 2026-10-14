@@ -9,7 +9,7 @@ import {
     isStringLiteral, isTextBlockExpression, isTryStatement, isUnaryExpression, isUnpackStatement, isYieldStatement,
     type ArrayAssignmentStatement, type Expression, type FunctionStatement, type Statement,
 } from '../generated/ast.js';
-import { applicationExpression, flattenApplication, groupedUnaryDyadicChain } from '../expressions.js';
+import { applicationExpression, flattenApplication, forIteration, groupedUnaryDyadicChain } from '../expressions.js';
 import { applicationForm } from '../application-forms.js';
 import { findOperation } from '../operations.js';
 import { expressionFacts } from './value-facts.js';
@@ -114,10 +114,10 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 if (AstUtils.getContainerOfType(node, isFunctionStatement) !== scope) continue;
                 if (isAssignmentStatement(node) || isFunctionStatement(node)) enclosingBindings.add(node.name);
                 if (isUnpackStatement(node)) for (const name of node.names) enclosingBindings.add(name);
-                if (isForStatement(node) && isBinaryExpression(node.condition) && node.condition.operator === 'in') {
-                    const names = [node.condition.left, ...AstUtils.streamAllContents(node.condition.left)]
-                        .filter(isNameExpression);
-                    for (const binder of names) enclosingBindings.add(binder.name);
+                if (isForStatement(node)) {
+                    for (const name of forIteration(node.condition)?.names ?? []) {
+                        if (name !== '#') enclosingBindings.add(name);
+                    }
                 }
             }
         }

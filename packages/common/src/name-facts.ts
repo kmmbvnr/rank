@@ -1,6 +1,6 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, expressionFacts, applicationForm, formatTypeSignature, signatureType, displayTypeName, describeTypes as nominalTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
+    analyzeValues, expressionFacts, forIteration, loopNames, applicationForm, formatTypeSignature, signatureType, displayTypeName, describeTypes as nominalTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
     isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts, type FunctionCallFacts,
 } from '@arrrank/language';
@@ -313,7 +313,7 @@ function writtenNames(program: Program): Set<string> {
     for (const node of AstUtils.streamAllContents(program)) {
         if (isAssignmentStatement(node) || isArrayAssignmentStatement(node)) names.add(node.name);
         else if (isUnpackStatement(node)) node.names.forEach(name => names.add(name));
-        else if (isForStatement(node)) loopNames(node).forEach(name => names.add(name));
+        else if (isForStatement(node)) loopNames(node.condition).forEach(name => names.add(name));
     }
     return names;
 }
@@ -369,7 +369,7 @@ function ownsLeaf(node: AstNode, property: string, leaf: LeafCstNode): boolean {
 function loopOf(node: AstNode): ForStatement | undefined {
     const loop = AstUtils.getContainerOfType(node, isForStatement);
     const condition = loop?.condition;
-    if (!loop || !isBinaryExpression(condition) || condition.operator !== 'in') return undefined;
+    if (!loop || !isBinaryExpression(condition) || !forIteration(condition)) return undefined;
     return AstUtils.streamAllContents(condition.left).includes(node) || condition.left === node ? loop : undefined;
 }
 
@@ -410,7 +410,7 @@ function bodyRead(scope: ForStatement | FunctionStatement, name: string,
     const body = [...AstUtils.streamAllContents(scope)].filter(node => !isInHeader(node, scope));
     if (body.some(node => (isAssignmentStatement(node) || isArrayAssignmentStatement(node)) && node.name === name
         || isUnpackStatement(node) && node.names.includes(name)
-        || isForStatement(node) && node !== scope && loopNames(node).includes(name))) return UNKNOWN;
+        || isForStatement(node) && node !== scope && loopNames(node.condition).includes(name))) return UNKNOWN;
     const read = body.find(node => isNameExpression(node) && node.name === name && analysis.expressions.has(node));
     return read ? analysis.expressions.get(read as Expression)! : UNKNOWN;
 }
@@ -421,13 +421,6 @@ function isInHeader(node: AstNode, scope: ForStatement | FunctionStatement): boo
         if (current === scope.condition) return true;
     }
     return false;
-}
-
-function loopNames(loop: ForStatement): string[] {
-    const condition = loop.condition;
-    if (!isBinaryExpression(condition) || condition.operator !== 'in') return [];
-    return [...AstUtils.streamAllContents(condition.left)].filter(isNameExpression).map(part => part.name)
-        .concat(isNameExpression(condition.left) ? [condition.left.name] : []);
 }
 
 /** Show exact dimensions when known, otherwise preserve the array kind and rank. */

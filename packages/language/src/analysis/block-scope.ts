@@ -12,11 +12,11 @@ import { functionBindingPlan } from '../function-binding.js';
 
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isOptionStatement, isAllAxisExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, isFunctionStatement,
+    isOptionStatement, isArrayAssignmentStatement, isAssignmentStatement, isForStatement, isFunctionStatement,
     isFunctionBindingStatement, isIfStatement, isNameExpression, isStatement, isTestStatement, isTryStatement, isUnpackStatement,
     type Expression, type Program, type Statement,
 } from '../generated/ast.js';
-import { flattenApplication } from '../expressions.js';
+import { forIteration } from '../expressions.js';
 
 export interface BlockScopeDiagnostic {
     readonly node: AstNode;
@@ -25,10 +25,7 @@ export interface BlockScopeDiagnostic {
 
 /** The names a `for` header binds: `for I in`, `for Row I in`. */
 export function loopNames(condition: Expression | undefined): string[] {
-    if (!condition || !isBinaryExpression(condition) || condition.operator !== 'in') return [];
-    const parts = flattenApplication(condition.left);
-    if (!parts.every(part => isNameExpression(part) || isAllAxisExpression(part))) return [];
-    return parts.filter(isNameExpression).map(part => part.name);
+    return forIteration(condition)?.names.filter(name => name !== '#') ?? [];
 }
 
 /** Every name a body binds anywhere outside its nested functions and tests. */
@@ -110,7 +107,7 @@ export function blockScopeDiagnostics(
             } else if (isForStatement(node)) {
                 const names = loopNames(node.condition);
                 // `for I in Items` binds I rather than reading it.
-                read(names.length && isBinaryExpression(node.condition) ? node.condition.right : node.condition);
+                read(forIteration(node.condition)?.iterable ?? node.condition);
                 block(node.statements, names, node);
             } else if (isIfStatement(node)) {
                 read(node.condition);
