@@ -1,0 +1,18 @@
+rem Dyalog 2013, problem 2: percentage of grades at least 65.
+use sequences
+use io
+
+fun passRate Grades
+  if not Grades is .array
+    return (Grades at least 65) choose 100.0 0.0
+  end
+  Total = Grades len
+  if Total equal 0
+    return 100.0
+  end
+  Passed = (Grades at least 65) count
+  return 100.0 * Passed / Total
+end
+
+Example = (array 25 90 100 64 65) passRate
+Example print

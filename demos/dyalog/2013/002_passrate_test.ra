@@ -1,0 +1,18 @@
+use testing
+
+test "published grade percentages including scalar and empty input"
+  use "002_passrate"
+  ((array 25 90 100 64 65) passRate) equal 60.0
+  (50 passRate) equal 0.0
+  ((array 80 90 100) passRate) equal 100.0
+  ((array shape 0 fill 0) passRate) equal 100.0
+end
+
+test "the threshold is inclusive and percentages retain precision"
+  use "002_passrate"
+  use numbers
+  (65 passRate) equal 100.0
+  ((array 64.9 65.0) passRate) equal 50.0
+  Actual = (array 64 64 65) passRate
+  (Actual - 100.0 / 3) abs less 0.000000000001
+end
