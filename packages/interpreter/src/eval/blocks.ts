@@ -12,6 +12,7 @@ import type { ExecutionContext, LoopControl, PreparedStatement } from '../statem
 import type { RankValue } from '../value.js';
 import type { CompiledBlock } from '../block-compiler.js';
 import { forIteration } from './loops.js';
+import { LocalFrame } from '../frame.js';
 
 /** What executing blocks needs: statement preparation and the paths that may replace it. */
 export interface BlockHost {
@@ -162,42 +163,23 @@ export class BlockExecution implements BlockSteps {
         return prepared;
     }
 
-    // A name a block introduces ends with the block, together with its type.
-    // Blocks inside a loop keep theirs until the outermost block ends: every
-    // iteration then binds a name with the same type, and the block-scope check
-    // has already rejected every read that could see a value kept that long.
-    // The first `known` names are provably unbound on entry and skip the lookup.
+    // Keep block locals out of the module and function workspaces. A closure
+    // retains this frame after the block exits; an unrelated callee never sees it.
     private scopeBlock(prepared: PreparedStatement, names: readonly string[], known: number): PreparedStatement {
         if (names.length === 0 || !('stream' in prepared)) return prepared;
-        // A bit per name marks the ones this run introduces, without allocating;
-        // a block with more names than bits groups them into words.
-        if (names.length > 30) {
-            let wrapped: PreparedStatement = prepared;
-            for (let index = 0; index < names.length; index += 30) {
-                wrapped = this.scopeBlock(wrapped, names.slice(index, index + 30),
-                    Math.min(30, Math.max(0, known - index)));
-            }
-            return wrapped;
-        }
-        const blocks = this;
+        const bindings = this.host.bindings;
         const inner = prepared.stream;
-        const release = (fresh: number) => {
-            for (let index = 0; fresh !== 0; index += 1, fresh >>>= 1) {
-                if (fresh & 1) blocks.host.bindings.unbind(names[index]);
-            }
-        };
-        const proven = known === 0 ? 0 : (1 << known) - 1;
         return { ...prepared, stream: context => {
-            let fresh = proven;
-            for (let index = known; index < names.length; index += 1) {
-                if (blocks.host.bindings.find(names[index]) === undefined) fresh |= 1 << index;
-            }
-            if (fresh === 0) return inner(context);
+            const fresh = new Set(names.filter((name, index) => index < known || bindings.find(name) === undefined));
+            if (fresh.size === 0) return inner(context);
+            const caller = bindings.current;
+            const frame = new LocalFrame(caller, new Map(), fresh);
+            bindings.current = frame;
             let task: Evaluation<RankValue | undefined>;
-            try { task = inner(context); } catch (error) { release(fresh); throw error; }
-            if ('done' in task) { release(fresh); return task; }
+            try { task = inner(context); } catch (error) { bindings.current = caller; throw error; }
+            if ('done' in task) { bindings.current = caller; return task; }
             return (function* (): Execution<RankValue | undefined> {
-                try { return yield* resume(task); } finally { release(fresh); }
+                try { return yield* resume(task); } finally { bindings.current = caller; }
             })();
         } };
     }

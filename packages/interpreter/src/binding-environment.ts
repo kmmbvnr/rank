@@ -33,6 +33,19 @@ export class BindingEnvironment {
         return this.current ?? this.globals;
     }
 
+    get insideFunction(): boolean {
+        let frame = this.current;
+        while (frame?.blockNames) frame = frame.parent;
+        return frame !== undefined;
+    }
+
+    /** Blocks introduce only their fresh names; other writes keep their enclosing scope. */
+    assignmentScope(name: string): LocalFrame {
+        let frame = this.current;
+        while (frame?.blockNames && !frame.blockNames.has(name)) frame = frame.parent;
+        return frame?.find(name) ?? frame ?? this.globals;
+    }
+
     find(name: string): RankValue | undefined {
         return this.current?.lookup(name) ?? this.globals.get(name);
     }
@@ -49,9 +62,8 @@ export class BindingEnvironment {
 
     assign(name: string, value: RankValue): void {
         if (availableBuiltin(name, this.modules)) throw new RankError(builtinBindingMessage(name), 'TypeError');
-        const frame = this.current?.find(name) ?? this.current;
-        if (!frame) this.sourceBindings.add(name);
-        const scope = frame ?? this.globals;
+        const scope = this.assignmentScope(name);
+        if (scope === this.globals) this.sourceBindings.add(name);
         if (this.isConstant(name, scope)) throw new RankError(`cannot reassign function declaration: ${name}`, 'TypeError');
         const received = typeName(value);
         if (received === 'function' && /^[A-Z]/.test(name.split('.').at(-1)!)) {
@@ -94,7 +106,7 @@ export class BindingEnvironment {
         let slot = -1;
         let global: ReadonlySet<string> | undefined;
         return (value: RankValue): void => {
-            if (this.isConstant(name, this.current?.find(name) ?? this.current ?? this.globals)) {
+            if (this.isConstant(name, this.assignmentScope(name))) {
                 throw new RankError(`cannot reassign function declaration: ${name}`, 'TypeError');
             }
             const received = typeName(value);
@@ -122,9 +134,9 @@ export class BindingEnvironment {
 
     /** A for loop settles the types its names will take before the first iteration binds them. */
     declareTypes(names: readonly string[], candidates: readonly ReadonlySet<string>[]): void {
-        const scope = this.scope;
         names.forEach((name, index) => {
             if (name === '#') return;
+            const scope = this.assignmentScope(name);
             const inferred = candidates[index];
             if (!inferred || inferred.size === 0) return;
             const held = scope.get(name);

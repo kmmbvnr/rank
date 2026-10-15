@@ -155,7 +155,7 @@ export class FastPaths {
         if (!isAssignmentStatement(last) && !isReturnStatement(last)) return undefined;
         const assign = isAssignmentStatement(last) ? this.context.compileAssign(last.name) : undefined;
         return { count: kernel.count, run: () => {
-            if (!assign && this.context.bindings.current === undefined) return undefined;
+            if (!assign && !this.context.bindings.insideFunction) return undefined;
             const value = kernel.run();
             if (value === undefined) return undefined;
             try { assign?.(value); }
@@ -192,7 +192,7 @@ export class FastPaths {
             arrayRead: atArray,
             textRead: (source, index) => applySelectors([source, index]) as string,
             returns: this.context.options().loopReturnCompilation !== false,
-            canReturn: () => this.context.bindings.current !== undefined,
+            canReturn: () => this.context.bindings.insideFunction,
             returnValue: value => { throw new ReturnSignal(value); },
             arrayLocals: this.context.options().arrayLocalCompilation !== false,
             dimension: checkedArrayDimension,

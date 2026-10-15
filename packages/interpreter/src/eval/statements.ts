@@ -125,7 +125,7 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
             if (insideFinally) {
                 throw new RankError('return is not valid inside finally');
             }
-            if (host.bindings.current === undefined) {
+            if (!host.bindings.insideFunction) {
                 throw new RankError('return is only valid inside a function');
             }
             if (insideGenerator && statement.value !== undefined) {

@@ -2437,7 +2437,10 @@ inferred type.
 Name lookup follows one fixed order: the function's own workspace, its captured
 outer workspaces from nearest to farthest, then the module workspace. A function
 does not see local values belonging only to its caller. Top-level functions
-therefore cannot accidentally depend on a caller's parameters.
+therefore cannot accidentally depend on a caller's parameters or block-local
+variables, including those in a top-level loop. Single-expression functions
+declared inside a block capture that block's workspace; an escaping function
+keeps it alive after the block ends.
 
 A local function declaration must be a direct statement of another function.
 It cannot be conditional or appear inside `if`, `for`, `try`, `catch` or

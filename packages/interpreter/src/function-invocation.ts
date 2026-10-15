@@ -728,6 +728,11 @@ export class FunctionInvocation {
                 consumed = true;
 
                 const resources = new Set<RankFile>();
+                let suspendedFrame = frame;
+                const inFrame = <T>(operation: () => T): T => invocation.withGeneratorFrame(suspendedFrame, resources, () => {
+                    try { return operation(); }
+                    finally { suspendedFrame = invocation.bindings.current!; }
+                });
                 invocation.resources.addGeneratorScope(resources);
                 const execution = new ExecutionStack((function* (): Execution<RankValue | undefined> {
                     return yield* resume(invocation.host.execute(statement.statements, true));
@@ -736,9 +741,7 @@ export class FunctionInvocation {
                     while (true) {
                         let next: IteratorResult<RankValue, RankValue | undefined>;
                         try {
-                            next = invocation.withGeneratorFrame(
-                                frame,
-                                resources,
+                            next = inFrame(
                                 () => {
                                     if (!inspectionEnabled()) return withEnvironment(effectiveEnvironment(environment), () => execution.next());
                                     const callerStatement = invocation.inspection.statement;
@@ -757,9 +760,7 @@ export class FunctionInvocation {
                     }
                 } finally {
                     try {
-                        invocation.withGeneratorFrame(
-                            frame,
-                            resources,
+                        inFrame(
                             () => {
                                 withEnvironment(effectiveEnvironment(environment), () => {
                                     let result = execution.return(undefined);

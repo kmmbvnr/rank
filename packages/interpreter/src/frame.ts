@@ -31,6 +31,7 @@ export class LocalFrame {
     constructor(
         readonly parent: LocalFrame | undefined,
         readonly layout = new Map<string, number>(),
+        readonly blockNames?: ReadonlySet<string>,
     ) {}
 
     /** A frame whose values live in a map someone else also holds: the

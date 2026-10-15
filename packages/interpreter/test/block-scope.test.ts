@@ -3,6 +3,65 @@ import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
 
 describe('block scope', () => {
+    describe.each([true, false])('lexical block frames (compilation %s)', compilation => {
+        it.each([
+            'for R in 1 till 3\n Dy = R\n 10 f\nend',
+            'if true\n Dy = 1\n 10 f\nend',
+            'try\n Dy = 1\n 10 f\nfinally\n 0\nend',
+            'fun caller Dy\n return 10 f\nend\n1 caller',
+        ])('does not expose caller-only names: %s', body => {
+            const runtime = new Interpreter(undefined, { compilation });
+            try {
+                expect(() => runtime.execute(`fun f Q
+ return Q + Dy
+end
+${body}`)).toThrow('unknown name: Dy');
+                expect(runtime.variables.has('Dy')).toBe(false);
+                expect(runtime.execute('42')).toBe(42n);
+            } finally { runtime.dispose(); }
+        });
+
+        it('keeps a block binding captured after its block ends', () => {
+            const runtime = new Interpreter(undefined, { compilation });
+            try {
+                expect(runtime.execute(`saved X = X
+for R in 1 till 3
+ Offset = R
+ addOffset X = X + Offset
+ saved = addOffset
+end
+10 saved`)).toBe(12n);
+                expect(runtime.variables.has('Offset')).toBe(false);
+                expect(runtime.variables.has('addOffset')).toBe(false);
+            } finally { runtime.dispose(); }
+        });
+
+        it('does not expose a sibling block to an enclosing local function', () => {
+            const runtime = new Interpreter(undefined, { compilation });
+            try {
+                expect(() => runtime.execute(`fun outer
+ fun f Q
+  return Q + Dy
+ end
+ if true
+  Dy = 1
+  10 f
+ end
+ return 0
+end
+outer`)).toThrow('unknown name: Dy');
+            } finally { runtime.dispose(); }
+        });
+
+        it('does not make a top-level block a function return context', () => {
+            const runtime = new Interpreter(undefined, { compilation });
+            try {
+                expect(() => runtime.execute('for I in 0 till 2\n X = I\n return X\nend'))
+                    .toThrow('return is only valid inside a function');
+            } finally { runtime.dispose(); }
+        });
+    });
+
     it('ends a name first assigned inside a branch with that branch', () => {
         expect(() => run('if true\n Kind = "record"\nend\nKind'))
             .toThrow('Kind was assigned inside the block that ends at line 3 and does not exist after it');
