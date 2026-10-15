@@ -76,6 +76,20 @@ for (const compilation of [false, true]) describe(`tensor indices (compiled=${co
         }
     });
 
+    it('grows queens placements by one column per placed queen', () => {
+        const demo = readFileSync(new URL('../../../demos/classic/queens.ra', import.meta.url), 'utf8');
+        const traced = demo.split('States len print')[0]
+            .replace('States = Cols reshape Size 1', 'States = Cols reshape Size 1\nStates shape print')
+            .replace('States = concat Previous Column axis 1',
+                'States = concat Previous Column axis 1\n  States shape print');
+        const shapes: string[] = [];
+        const runtime = new Interpreter(text => shapes.push(text), { compilation });
+        try {
+            runtime.execute(traced);
+            expect(shapes).toEqual(['8 1', '42 2', '140 3', '344 4', '568 5', '550 6', '312 7', '92 8']);
+        } finally { runtime.dispose(); }
+    });
+
     it('rejects scalars and non-boolean cells', () => {
         const runtime = new Interpreter(() => {}, { compilation });
         try {

@@ -1,0 +1,49 @@
+use testing
+use sequences
+use text
+
+test "eight queens"
+  use "queens_recursive"
+  run
+
+  Placements len equal 92
+  (Placements shape equal (array 92 8)) all
+  (Boards shape equal (array 92 8 8)) all
+end
+
+test "placements are safe and distinct"
+  use "queens_recursive"
+  use algo
+  use numbers
+  run
+
+  Seen = new set
+  Ok = true
+  for Q in Placements
+    Ok and= Q unique len equal Size
+    Ok and= (Q in Cols) all
+    Seen add (Q " " join)
+    for I in 0 till Size
+      for J in I + 1 till Size
+        Ok and= (Q I - Q J) abs not equal J - I
+      end
+    end
+  end
+  Ok and Seen len equal 92
+end
+
+test "recursive branches preserve their input placement"
+  use "queens_recursive"
+  run
+
+  Start = array 0
+  Solutions = Start solve array
+  (Start equal (array 0)) all
+  (Solutions shape equal (array 4 8)) all
+  (Solutions # 0 equal 0) all
+
+  Complete = Solutions 0
+  Finished = Complete solve array
+  (Finished shape equal (array 1 8)) all
+  (Finished 0 equal Complete) all
+end

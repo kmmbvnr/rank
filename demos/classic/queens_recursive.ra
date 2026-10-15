@@ -1,0 +1,45 @@
+rem N-Queens
+rem Place N queens so that none attack each other.
+
+use sequences
+use text
+use io
+
+Size = 8
+Cols = 0 till Size array
+
+rem Queens holds one column per occupied row. Each recursive call adds one
+rem queen to a new placement; it never changes the placement it received.
+fun solve Queens
+  if Queens len equal Size
+    yield Queens
+  else
+    Distances = Queens len till 0 by -1
+    Attacked = concat Queens (Queens + Distances) (Queens - Distances)
+    for Col in Cols
+      if Col not in Attacked
+        Next = concat Queens (array Col)
+        for Solution in Next solve
+          yield Solution
+        end
+      end
+    end
+  end
+end
+
+rem Start with no queens. Collect the completed placements into 92 rows of 8.
+Solutions = (array shape 0 fill 0) solve array
+rem Keep Size columns even when the search finds no solutions.
+Placements = Solutions reshape (Solutions len) Size
+Placements len print
+
+rem Expand each placement into an 8 by 8 board: 92 by 8 by 8 in total.
+Mask = Placements Cols outer equal
+Boards = Mask choose "Q" "."
+for Board i in Boards
+  i + 1 print
+  for Row in Board
+    Row " " join print
+  end
+  "" print
+end

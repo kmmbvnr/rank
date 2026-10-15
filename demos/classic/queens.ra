@@ -9,22 +9,21 @@ Size = 8
 
 Cols = 0 till Size array
 
-rem Each row of States is a board: States # Row is the column of the queen in
-rem that row. Row 0 may hold a queen in any column, so start with Size boards.
-States = array shape Size Size fill 0
-States # 0 = Cols
+rem Each row of States holds the columns of the queens placed so far.
+rem Start with Size placements of one queen, one for each possible column.
+States = Cols reshape Size 1
 
 rem Add a queen in the next row to every board, once per free column.
 for Row in 1 till Size
   Dy = Row till 0 by -1
-  Prefix = States # (0 till Row)
   hit Q = concat Q (Q + Dy) (Q - Dy)
   avail Q = Cols not in Q hit
-  Free = Prefix avail rank 1
+  Free = States avail rank 1
   Where = Free indices
 
-  States = States (Where # 0) copy
-  States # Row = Where # 1
+  Previous = States (Where # 0)
+  Column = (Where # 1) reshape (Where len) 1
+  States = concat Previous Column axis 1
 end
 
 States len print
