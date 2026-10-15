@@ -124,3 +124,36 @@ test "the board can already contain the nuts"
   use "001_poker"
   ("AS KS QD JH TC" nuts) len equal 0
 end
+
+test "direct evaluation equals the best of every five-card subset"
+  use "001_poker"
+  use sequences
+  use text
+  Low = array "AS" "AH" "2S" "2H" "3S" "3H" "4S" "4H" "5S" "5H" "KS" "KH"
+  Mid = array "AS" "AH" "AD" "AC" "KS" "KH" "KD" "KC" "QS" "QH" "QD" "QC" "JS" "JH" "JD" "JC" "TS" "TH" "TD" "TC" "9S" "9H" "9D" "9C" "8S" "8H" "8D" "8C"
+  Seed = 4242
+  Bad = 0
+  for Which in 0 till 3
+    Pool0 = deck array
+    if Which equal 1
+      Pool0 = Low
+    elif Which equal 2
+      Pool0 = Mid
+    end
+    for Round in 0 till 60
+      Pool = Pool0 copy
+      Cards = array shape 0 fill ""
+      for I in 0 till (5 + (Round mod 3))
+        Seed = (Seed * 1103515245 + 12345) mod 2147483648
+        J = (Seed // 65536) mod (Pool len)
+        Cards = concat Cards (array (Pool J))
+        Pool = Pool (Pool not equal (Pool J)) array
+      end
+      unpack Best Highest = Cards bestChoice
+      if (Cards quickValue) not equal Highest
+        Bad += 1
+      end
+    end
+  end
+  Bad equal 0
+end

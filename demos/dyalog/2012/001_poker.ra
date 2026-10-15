@@ -84,6 +84,138 @@ fun cardsValue Cards
 end
 
 
+rem Highest card of the best straight in 13 rank counts, or -1; the ace plays low in a wheel.
+fun straightHigh Counts
+  Run = 0
+  High = -1
+  for R in 12 to 0 by -1
+    if (Counts R) greater 0
+      Run += 1
+      if Run equal 5 and High less 0
+        High = R + 4
+      end
+    else
+      Run = 0
+    end
+  end
+  if High less 0 and Run equal 4 and (Counts 12) greater 0
+    High = 3
+  end
+  return High
+end
+
+rem The first Count ranks of Dist that are neither Skip1 nor Skip2, as base 13 digits.
+fun kickers Dist Skip1 Skip2 Count
+  Value = 0
+  Taken = 0
+  for Rank in Dist
+    if Rank equal Skip1 or Rank equal Skip2
+      continue
+    end
+    Value = Value * 13 + Rank
+    Taken += 1
+    if Taken equal Count
+      break
+    end
+  end
+  return Value
+end
+
+rem Value of the best five-card hand among five to seven cards, scored directly
+rem from rank counts instead of trying every subset; same encoding as cardsValue.
+fun quickValue Cards
+  Counts = array shape 13 fill 0
+  SuitCounts = array shape 4 fill 0
+  Ranks = array shape (Cards len) fill 0
+  Suits = array shape (Cards len) fill 0
+  for Card I in Cards
+    V = "23456789TJQKA" (Card 0) find
+    S = "SHDC" (Card 1) find
+    Ranks I = V
+    Suits I = S
+    Counts V += 1
+    SuitCounts S += 1
+  end
+  Quad = -1
+  Trip = -1
+  PairA = -1
+  PairB = -1
+  Dist = array shape 0 fill 0
+  for R in 12 to 0 by -1
+    C = Counts R
+    if C equal 0
+      continue
+    end
+    Dist = concat Dist (array R)
+    if C equal 4
+      Quad = R
+    end
+    if C at least 3 and Trip less 0
+      Trip = R
+    end
+    if C at least 2
+      if PairA less 0
+        PairA = R
+      elif PairB less 0
+        PairB = R
+      end
+    end
+  end
+  Flush = SuitCounts max .index
+  Suited = array shape 13 fill 0
+  FlushDigits = 0
+  if (SuitCounts Flush) at least 5
+    for Rank I in Ranks
+      if (Suits I) equal Flush
+        Suited Rank = 1
+      end
+    end
+    High = Suited straightHigh
+    if High at least 0
+      return (8 * 13 + High) * 28561
+    end
+    Taken = 0
+    for R in 12 to 0 by -1
+      if (Suited R) equal 1
+        FlushDigits = FlushDigits * 13 + R
+        Taken += 1
+        if Taken equal 5
+          break
+        end
+      end
+    end
+  end
+  Block = 371293
+  if Quad at least 0
+    return 7 * Block + ((Quad * 13 + Quad) * 13 + Quad) * 169 + Quad * 13 + (Dist Quad Quad 1 kickers)
+  end
+  Pair = PairA
+  if Pair equal Trip
+    Pair = PairB
+  end
+  if Trip at least 0 and Pair at least 0
+    return 6 * Block + (((Trip * 13 + Trip) * 13 + Trip) * 13 + Pair) * 13 + Pair
+  end
+  if (SuitCounts Flush) at least 5
+    return 5 * Block + FlushDigits
+  end
+  Straight = Counts straightHigh
+  if Straight at least 0
+    return 4 * Block + Straight * 28561
+  end
+  if Trip at least 0
+    return 3 * Block + ((Trip * 13 + Trip) * 13 + Trip) * 169 + (Dist Trip Trip 2 kickers)
+  end
+  if PairB at least 0
+    return 2 * Block + (((PairA * 13 + PairA) * 13 + PairB) * 13 + PairB) * 13 + (Dist PairA PairB 1 kickers)
+  end
+  if PairA at least 0
+    return 1 * Block + ((PairA * 13 + PairA) * 169) * 13 + (Dist PairA PairA 3 kickers)
+  end
+  return Dist -1 -1 5 kickers
+end
+
+
 rem Convert a card rank to 0..12.
 fun card_value Card
   Rank = Card 0
@@ -111,8 +243,7 @@ fun bestChoice Cards
 end
 
 fun bestValue Cards
-  unpack Best Highest = Cards bestChoice
-  return Highest
+  return Cards quickValue
 end
 
 rem Show the made combination before its kickers, highest ranks first.
@@ -179,10 +310,11 @@ fun nuts Community
   Required = array shape 0 fill ""
   for Hole in Unseen 2 combinations
     Cards = concat Board Hole
-    unpack Best Value = Cards bestChoice
-    if Value less Highest
+    Value = Cards quickValue
+    if Value less Highest or (Value equal Highest and Required len equal 0)
       continue
     end
+    unpack Best Chosen = Cards bestChoice
     Count = (Best not in Board) count
     if Value equal Highest and (Count at least (Required len))
       continue
