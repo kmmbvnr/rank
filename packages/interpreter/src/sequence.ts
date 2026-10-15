@@ -394,6 +394,17 @@ export function sequenceValues(value: RankValue, operation: string): Iterable<Ra
     return { [Symbol.iterator]: () => interruptibleValues(value.plan.iterate(), operation)[Symbol.iterator]() };
 }
 
+/** Mixed collection arithmetic uses the shape of the sequence's stacked cells.
+ * Keep scalar mapping and two-stream zipping on their existing lazy paths. */
+export function arraySequenceOperands(left: RankValue, right: RankValue): [RankValue, RankValue] {
+    if (isRankSequence(left) && (isRankArray(right) || isRankQueue(right))) {
+        left = materializeSequence(left);
+    } else if (isRankSequence(right) && (isRankArray(left) || isRankQueue(left))) {
+        right = materializeSequence(right);
+    }
+    return [left, right];
+}
+
 export function materializeSequence(source: RankSequence): RankArray {
     if (source.plan.size.kind === 'infinite') {
         throw new RankError('cannot materialize an infinite sequence');

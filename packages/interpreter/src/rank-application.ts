@@ -8,7 +8,7 @@ import { checkpoint, inspectionEnabled } from './interrupt.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { textFunctionSqlite } from './modules/sqlite.js';
-import { mapSequence } from './sequence.js';
+import { arraySequenceOperands, mapSequence } from './sequence.js';
 import { broadcastShape, mapBroadcastArrays } from './tensor.js';
 import { arrayOffset, coordinatesAt, sameShape } from './tensor-index.js';
 import { isRankArray, isRankLabel, isRankSqliteExpression, isRankSequence, valueRank,
@@ -112,6 +112,12 @@ export class RankApplication {
         const [defaultLeftRank, defaultRightRank] = fn.dyadicRanks ?? ['all', 'all'];
         const leftRank = customLeftRank ?? defaultLeftRank;
         const rightRank = customRightRank ?? defaultRightRank;
+        // Only an elementwise sequence operand participates in array broadcasting.
+        // Whole-sequence arguments (rank 1/all) retain their function contract.
+        if ((isRankSequence(left) && resolveCellRank(leftRank, 1) === 0)
+            || (isRankSequence(right) && resolveCellRank(rightRank, 1) === 0)) {
+            [left, right] = arraySequenceOperands(left, right);
+        }
         const a = dyadicCells(left, leftRank, customLeftRank !== undefined);
         const b = dyadicCells(right, rightRank, customRightRank !== undefined);
         const frameShape = broadcastShape(

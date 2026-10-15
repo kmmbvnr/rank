@@ -208,7 +208,9 @@ between -1 and 1. An input outside a function's mathematical domain raises
 Unary functions have intrinsic rank 0 and map lazily over arrays and
 sequences. `atan2` has intrinsic ranks `0 0`. It uses the general trailing-axis
 broadcasting rule for arrays, broadcasts a scalar over one array, and zips two
-sequences. It can also be supplied to `outer`.
+sequences. Mixed array/sequence operands use the shape of the materialized
+sequence and the same array broadcasting rule. It can also be supplied to
+`outer`.
 
 `factors` accepts a positive integer and returns its prime factors as a finite
 lazy sequence in ascending order, including repeated factors:

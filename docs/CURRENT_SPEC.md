@@ -1240,8 +1240,13 @@ without addressing each element:
 Answer equal array 7 0 8
 ```
 
-`equal` remains elementwise. Arrays and tensors being compared must have the
-same shape.
+Finite lazy boolean sequences and masks are also evaluated and checked element
+by element; a false element fails the test. Known infinite sequences cannot be
+used as standalone assertions: bound them first. Standalone sequence expressions
+are consumed by the test runner, including generator effects and errors.
+
+`equal` remains elementwise. Mixed sequence/array comparisons use array
+broadcasting rules, and incompatible shapes raise `.DimensionMismatch`.
 
 Arguments exercise the same input declarations through the host adapter:
 
@@ -3460,8 +3465,28 @@ rem Result shape is 2 3
 
 Broadcast results are lazy and cached. Incompatible shapes raise
 `.DimensionMismatch`. Scalar broadcasting is the rank-0 case of the same rule.
-Sequences retain their elementwise zip behavior and do not use tensor
-broadcasting.
+Two sequences retain their lazy elementwise zip behavior, ending at the shorter
+input. A sequence mixed with an array uses the shape and broadcasting rules of
+its materialized array, in either operand order:
+
+```rank
+Q = array shape 3 fill 10
+Q + (3 till 0 by -1)
+rem 13 12 11, just like Q + (3 till 0 by -1 array)
+```
+
+This also applies to elementwise comparisons and scalar numeric functions such
+as `max`. A length-3 range broadcasts across the last axis of a `2 3` matrix.
+Incompatible shapes raise `.DimensionMismatch`; mixed arithmetic never silently
+truncates the array or forms all pairs. Use `outer` explicitly for all pairs.
+
+The mixed operation currently materializes the sequence to determine its full
+shape, including any yielded array cells. The source must terminate; a known
+infinite sequence is rejected before iteration. Bound streaming sources with
+`take` or `till` first. This can use additional memory and runs generator effects
+when the operation is constructed. Scalar/sequence operations remain lazy.
+Membership (`in` / `not in`) and whole-collection ranked operations keep their
+own rules.
 
 Because scalar `+` concatenates two text values, the same array rule provides
 elementwise text concatenation and scalar broadcasting:
@@ -6153,7 +6178,9 @@ between -1 and 1. An input outside a function's mathematical domain raises
 Unary functions have intrinsic rank 0 and map lazily over arrays and
 sequences. `atan2` has intrinsic ranks `0 0`. It uses the general trailing-axis
 broadcasting rule for arrays, broadcasts a scalar over one array, and zips two
-sequences. It can also be supplied to `outer`.
+sequences. Mixed array/sequence operands use the shape of the materialized
+sequence and the same array broadcasting rule. It can also be supplied to
+`outer`.
 
 `factors` accepts a positive integer and returns its prime factors as a finite
 lazy sequence in ascending order, including repeated factors:

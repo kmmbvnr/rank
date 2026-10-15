@@ -35,8 +35,13 @@ without addressing each element:
 Answer equal array 7 0 8
 ```
 
-`equal` remains elementwise. Arrays and tensors being compared must have the
-same shape.
+Finite lazy boolean sequences and masks are also evaluated and checked element
+by element; a false element fails the test. Known infinite sequences cannot be
+used as standalone assertions: bound them first. Standalone sequence expressions
+are consumed by the test runner, including generator effects and errors.
+
+`equal` remains elementwise. Mixed sequence/array comparisons use array
+broadcasting rules, and incompatible shapes raise `.DimensionMismatch`.
 
 Arguments exercise the same input declarations through the host adapter:
 

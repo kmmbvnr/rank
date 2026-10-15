@@ -44,7 +44,7 @@ fun forest_updates Grid Queries
   for Row InitialRow in Grid
     Codes = Row codepoint rank 0
     Values = (46 - Codes) // 4
-    Cells = Values array
+    Cells = Values
     Trees InitialRow # = Cells
     Running = Cells scan +
     Above = Prefix InitialRow Columns

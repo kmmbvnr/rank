@@ -13,11 +13,15 @@ Cols = 0 till Size array
 rem Each row of States is a board: States # Row is the column of the queen in
 rem that row. Row 0 may hold a queen in any column, so start with Size boards.
 States = array shape Size Size fill 0
-States # 0 = Cols
+if Size equal 0
+  States = array shape 1 0 fill 0
+else
+  States # 0 = Cols
+end
 
 rem Add a queen in the next row to every board, once per free column.
 for Row in 1 till Size
-  Dy = Row till 0 by -1 array
+  Dy = Row till 0 by -1
   Prefix = States # (0 till Row)
   Free = Prefix available rank 1
   Index = (Free reshape ((States len) * Size)) indices

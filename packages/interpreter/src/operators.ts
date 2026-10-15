@@ -17,7 +17,7 @@ import { compareOrderedValues, orderedKind } from './ordered.js';
 import { dyadicCells, tensorCells, tensorFrameAxes, type OuterCells } from './rank-application.js';
 import { reductionValues } from './reduction.js';
 import {
-    isPositionalMask, mapSequence, materializeSequence, positionalMask, sequence, sequenceMask, sequenceValues, zipSequences,
+    arraySequenceOperands, isPositionalMask, mapSequence, materializeSequence, positionalMask, sequence, sequenceMask, sequenceValues, zipSequences,
 } from './sequence.js';
 import { setValueKey } from './set.js';
 import { safeDimension } from './tensor-index.js';
@@ -50,6 +50,7 @@ export class Operators {
             }
             return this.evaluateBinary(spec.operator, left, right);
         }
+        if (spec.rank === 0) [left, right] = arraySequenceOperands(left, right);
         if (spec.axes === undefined && spec.rank === 0
             && (isRankSequence(left) || isRankSequence(right))) {
             if (isRankSequence(left) && isRankSequence(right)) {
@@ -200,7 +201,7 @@ export class Operators {
         right: RankValue,
         rangeStep?: RankValue,
     ): RankValue {
-        if (operator === 'divmod') return divideWithRemainder(left, right);
+        if (operator === 'divmod') return divideWithRemainder(...arraySequenceOperands(left, right));
         if ((operator === 'in' || operator === 'notin')
             && isRankSqliteExpression(left) && isRankSqliteTable(right)) {
             return inSqlite(left, right, operator === 'notin');
@@ -273,6 +274,7 @@ export class Operators {
                 rangeStep === undefined ? undefined : expectInteger(rangeStep),
             );
         }
+        if (operator !== 'in') [left, right] = arraySequenceOperands(left, right);
         if ((isRankSequenceMask(left) || isRankSequenceMask(right) || isPositionalMask(left) || isPositionalMask(right))
             && ['and', 'or', 'xor'].includes(operator)) {
             return this.combineSequenceMasks(operator, left, right);

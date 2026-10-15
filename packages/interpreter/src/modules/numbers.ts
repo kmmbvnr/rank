@@ -8,6 +8,7 @@ import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import { maxSqlite, sumSqlite } from './sqlite.js';
 import {
+    arraySequenceOperands,
     mapSequence,
     numericSource,
     sequence,
@@ -187,6 +188,7 @@ function mapBinaryValue(
     name: string,
     operation: (left: RankValue, right: RankValue) => RankValue,
 ): RankValue {
+    [left, right] = arraySequenceOperands(left, right);
     // A cell with no value stays without one.
     const scalarOperation = (a: RankValue, b: RankValue): RankValue =>
         a === MISSING || b === MISSING ? MISSING : operation(a, b);

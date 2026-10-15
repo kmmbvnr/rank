@@ -10,12 +10,13 @@ import {
 import type { BindingEnvironment } from '../binding-environment.js';
 import { inputDeclarationName } from '../cli-args.js';
 import { BREAK_SIGNAL, CONTINUE_SIGNAL, ReturnSignal } from '../control-signals.js';
+import { materializeSequence } from '../sequence.js';
 import { RankError } from '../errors.js';
 import { emit, mapExecution, mapResult, resume, type Evaluation, type Execution } from '../execution.js';
 import {
     prepareIfStatement, prepareTryStatement, type ExecutionContext, type PreparedStatement,
 } from '../statement-control.js';
-import { formatValue, isNativeFunction, isRankArray, type RankValue } from '../value.js';
+import { formatValue, isNativeFunction, isRankArray, isRankSequence, type RankValue } from '../value.js';
 import {
     prepareArrayAssignment, prepareAssignment, prepareCollectionMutation,
     preparePushStatement, prepareUnpackStatement, type AssignmentContext,
@@ -219,6 +220,7 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
 }
 
 function assertTestExpression(value: RankValue): void {
+    if (isRankSequence(value)) value = materializeSequence(value);
     const failed = typeof value === 'boolean'
         ? !value
         : isRankArray(value)

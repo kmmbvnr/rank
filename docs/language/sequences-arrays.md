@@ -1021,8 +1021,28 @@ rem Result shape is 2 3
 
 Broadcast results are lazy and cached. Incompatible shapes raise
 `.DimensionMismatch`. Scalar broadcasting is the rank-0 case of the same rule.
-Sequences retain their elementwise zip behavior and do not use tensor
-broadcasting.
+Two sequences retain their lazy elementwise zip behavior, ending at the shorter
+input. A sequence mixed with an array uses the shape and broadcasting rules of
+its materialized array, in either operand order:
+
+```rank
+Q = array shape 3 fill 10
+Q + (3 till 0 by -1)
+rem 13 12 11, just like Q + (3 till 0 by -1 array)
+```
+
+This also applies to elementwise comparisons and scalar numeric functions such
+as `max`. A length-3 range broadcasts across the last axis of a `2 3` matrix.
+Incompatible shapes raise `.DimensionMismatch`; mixed arithmetic never silently
+truncates the array or forms all pairs. Use `outer` explicitly for all pairs.
+
+The mixed operation currently materializes the sequence to determine its full
+shape, including any yielded array cells. The source must terminate; a known
+infinite sequence is rejected before iteration. Bound streaming sources with
+`take` or `till` first. This can use additional memory and runs generator effects
+when the operation is constructed. Scalar/sequence operations remain lazy.
+Membership (`in` / `not in`) and whole-collection ranked operations keep their
+own rules.
 
 Because scalar `+` concatenates two text values, the same array rule provides
 elementwise text concatenation and scalar broadcasting:
