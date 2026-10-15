@@ -102,6 +102,28 @@ A in primes`);
         expect(reads).toBe(3);
     });
 
+    it.each([false, true])('negates a tensor mask in one pass without changing input effects (compiled=%s)', compilation => {
+        const runtime = new Interpreter(() => {}, { compilation });
+        const events: string[] = [];
+        try {
+            runtime.variables.set('Allowed', { kind: 'sequence', plan: {
+                name: 'single pass', singlePass: true, size: { kind: 'unknown' },
+                *iterate() { events.push('right'); yield 2n; },
+            } });
+            runtime.variables.set('Queries', { kind: 'array', shape: [2, 2], items: [],
+                itemAt: index => { events.push(`left ${index}`); return BigInt(index + 1); } });
+            const mask = runtime.execute('Mask = Queries not in Allowed\nMask');
+            expect(mask && isRankArray(mask) && mask.shape).toEqual([2, 2]);
+            expect(mask && isRankArray(mask) && mask.items).toEqual([true, false, true, true]);
+            expect(events).toEqual(['right', 'left 0', 'left 1', 'left 2', 'left 3']);
+            runtime.execute('Mask 0 0 = false');
+            expect(mask && isRankArray(mask) && mask.items).toEqual([false, false, true, true]);
+            expect(events).toHaveLength(5);
+            const empty = runtime.execute('Empty = array shape 0 3 fill 0\nEmpty not in (array 2)');
+            expect(empty && isRankArray(empty) && empty.shape).toEqual([0, 3]);
+        } finally { runtime.dispose(); }
+    });
+
     it('keeps structural equality for record elements', () => {
         expect(run('A = record\n .x = 1\nend\nB = record\n .x = 1.0\nend\n(array A) in (array B)'))
             .toBe('true');

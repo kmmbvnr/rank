@@ -440,3 +440,128 @@ reaching the first leaf of a left-nested concat still traverses its plan chain.
 Raw samples: [baseline arrays](../../benchmarks/baselines/2026-10-15-concat-before.json),
 [candidate arrays](../../benchmarks/baselines/2026-10-15-concat-after-array.json),
 [candidate sequences](../../benchmarks/baselines/2026-10-15-concat-after-sequence.json).
+
+
+## Queens: direct negated membership masks (2026-10-15)
+
+The measured concat-based `queens.ra` starts with an 8-by-1 array and adds a
+column per queen. Its source is preserved in `benchmarks/programs/queens-concat.ra`.
+The same program was used on both runtimes for this comparison. Its `avail`
+function evaluates `Cols not in Q hit` for each candidate placement.
+Previously array `not in` constructed the positive membership mask, then mapped
+unary `not` into another owned array. It now writes the final booleans directly,
+using the same indexed right-hand lookup. Scalar, sequence-mask and SQLite
+paths keep their existing behavior. This also applies to queue inputs.
+
+A CPU profile of 30 searches showed substantial temporary-array overhead:
+about 1.84 seconds in GC, 0.35 seconds in derived-cell type checking, and
+0.28 seconds in owned-array construction. These are sampled totals including
+startup and warmup, not isolated costs or evidence of a corresponding speedup.
+The change targets the redundant mask allocation and negation pass.
+
+Reproduce with two built runtimes:
+
+```sh
+node benchmarks/queens-membership.mjs --baseline=/path/to/baseline-checkout --source=benchmarks/programs/queens-concat.ra
+```
+
+Baseline `546a346e`, candidate is the accompanying operator change. Apple M5,
+Node v24.15.0, five warmup runs per variant and 15 measured runs per mode.
+Variant order alternates. Each execution uses a fresh interpreter; timings
+include parsing, search and full materialization of the 92-by-8 result, but
+exclude interpreter initialization, validation, display and printing. Every
+result's shape and all cells are checked against the other implementation.
+No assistant-launched tests or other benchmarks overlapped these comparisons;
+unrelated machine activity was uncontrolled. GC causes visible outliers in
+the raw samples, so the table uses medians.
+
+| Comparison | Mode | Before (ms) | After (ms) | Time reduction |
+| --- | --- | ---: | ---: | ---: |
+| Initial | Reference | 244.5 | 228.1 | 6.7% |
+| Initial | Compiled | 223.4 | 207.3 | 7.2% |
+| Repeat | Reference | 246.4 | 224.1 | 9.0% |
+| Repeat | Compiled | 225.9 | 209.9 | 7.1% |
+
+This is a modest 7–9% reduction for this demo, not a claim that the interpreter
+as a whole is that much faster. Retained and peak memory were not measured.
+The optimization removes one temporary mask per array `not in` operation;
+it does not remove the other allocation and validation costs visible in the
+profile. A regression test covers single-pass right-hand consumption, left
+cell read order, tensor/empty shapes, and writable output in both modes.
+
+[Raw samples and benchmark source](../../benchmarks/baselines/2026-10-15-queens-membership.json).
+
+Verification: TypeScript build and semantic-boundary checks passed. Interpreter
+tests excluding `test/differential.test.ts` passed: 184 files, 3,910 tests passed
+and 333 skipped, including the inferred-type demo audit. The full differential
+demo suite was not run for this change; the paired benchmark checks this demo
+in both execution modes.
+
+
+## Queens: stored boolean mask combinations (2026-10-15)
+
+The alternative queens helper accumulates three masks with `Mask and= ...`.
+Its benchmark passes `Dy` explicitly through a loop-local single-expression
+adapter, avoiding the caller-scope bug tracked in #276. Multiline declarations
+inside loops remain a separate proposal (#277). After this comparison, the
+main demo was switched to the explicit-distance mask helper.
+The exact workload is [queens-masks.ra](../../benchmarks/programs/queens-masks.ra).
+
+Profiling 30 searches showed repeated lazy-array and binding-wrapper work,
+including approximately 4.0 seconds of GC, 0.38 seconds in derived-cell checking,
+and 0.33 seconds in owned-array construction. These sampled totals include
+warmup and startup. The new kernel combines same-shaped, runtime-owned stored
+boolean arrays directly for `and`, `or`, and `xor`. It neither modifies its
+inputs nor reads lazy/opaque host cells during eligibility checks. Other shapes,
+non-boolean cells, scalar guards, and broadcasting keep the existing paths.
+
+A second 30-search profile sampled about 1.57 seconds of GC and 0.21 seconds
+in derived-cell checking after the change. Owned-array construction rose to
+about 0.49 seconds, consistent with replacing lazy wrappers with stored results.
+These separate profiles support the allocation explanation; the paired timings
+below measure the user-visible performance difference.
+
+The baseline already includes the preceding `not in` optimization. Thus the
+following gains measure the additional boolean kernel, not both changes together.
+Apple M5 / Node v24.15.0, five warmups and 15 measured executions per variant and
+mode, alternating order. Every result is materialized and checked for the same
+92-by-8 cells in the same order. Timing includes parsing and search, excluding
+initialization, validation, display and printing. No assistant-launched heavy
+jobs overlapped the benchmarks; unrelated machine activity was uncontrolled.
+
+| Run | Mode | Mask before (ms) | Mask after (ms) | Concat control (ms) |
+| --- | --- | ---: | ---: | ---: |
+| Natural GC | Reference | 281.6 | 222.4 | — |
+| Natural GC | Compiled | 289.0 | 226.9 | — |
+| GC between runs | Reference | 312.0 | 239.4 | 243.5 |
+| GC between runs | Compiled | 299.8 | 222.4 | 210.3 |
+
+The first comparison reduced median time by about 21%; the repeat reduced it by
+23–26%. Because natural GC caused substantial cross-run outliers, the repeat
+explicitly collected before each run, outside the timed interval. Collection
+inside the timed search remains included. Under that policy the candidate mask
+variant was close to concat in reference mode and about 6% slower in compiled
+mode. The explicit-argument adapter adds a call absent from the measured
+concat demo; the earlier caller-scope-dependent mask example is not the exact
+same workload. No retained-heap or peak-RSS improvement is claimed.
+
+To compare a saved baseline build with the candidate (build both first):
+
+```sh
+node --expose-gc benchmarks/queens-membership.mjs \
+  --baseline=/path/to/baseline-checkout \
+  --source=benchmarks/programs/queens-masks.ra
+```
+
+The baseline option also accepts a directory containing an interpreter `out/`
+build and its module dependencies. Without `--expose-gc`, the benchmark leaves
+collection to the runtime. The JSON report records which policy was used.
+
+[Raw samples](../../benchmarks/baselines/2026-10-15-queens-boolean-masks.json).
+
+Verification: TypeScript build and semantic-boundary checks passed. The
+interpreter suite excluding `test/differential.test.ts` passed: 185 files,
+3,918 tests passed and 333 skipped. New tests cover aliases under compound
+assignment, broadcasting, scalar guards, deferred type errors, empty tensors,
+and refusal to force opaque or lazy inputs. Full differential demos were not
+run; the benchmark compares every queens placement in both execution modes.

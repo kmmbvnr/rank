@@ -21,7 +21,7 @@ import {
 } from './sequence.js';
 import { setValueKey } from './set.js';
 import { safeDimension } from './tensor-index.js';
-import { REAL_CODES, mapBroadcastArrays, mapDenseArrays } from './tensor.js';
+import { REAL_CODES, mapBooleanArrays, mapBroadcastArrays, mapDenseArrays } from './tensor.js';
 import { compareCells, equalMembershipValues, equalValues } from './value-comparison.js';
 import {
     addDateTimeDuration, expectBoolean, isRankArray, isRankCounter, isRankDate, isRankDuration, isRankIndex,
@@ -207,6 +207,8 @@ export class Operators {
             return inSqlite(left, right, operator === 'notin');
         }
         if (operator === 'notin') {
+            const source = asRankArray(left);
+            if (source && !isRankSqliteExpression(right)) return arrayMembership(source, right, true);
             const result = this.evaluateBinary('in', left, right);
             return isRankSequence(result) && !isRankSequenceMask(result)
                 ? mapSequence(result, 'not in', item => this.evaluateUnary('not', item))
@@ -281,15 +283,8 @@ export class Operators {
         }
         if (operator === 'in') {
             const source = asRankArray(left);
-            const contains = membershipTest(right, !!source || isRankSequence(left));
-            if (source) {
-                const items: RankValue[] = [];
-                for (let index = 0; index < arraySize(source.shape); index += 1) {
-                    checkpoint('testing membership');
-                    items.push(contains(readArrayItem(source, index)));
-                }
-                return ownedArray(items, source.shape, true);
-            }
+            if (source) return arrayMembership(source, right, false);
+            const contains = membershipTest(right, isRankSequence(left));
             // A membership test over a sequence is a mask, so it can select from that sequence.
             if (isRankSequence(left)) return sequenceMask(left, { name: 'in', test: item => expectBoolean(contains(item)) });
             return contains(left);
@@ -618,6 +613,17 @@ function absolute(value: bigint): bigint {
     return value < 0n ? -value : value;
 }
 
+/** Compute the final mask directly; `not in` needs no intermediate positive mask. */
+function arrayMembership(source: RankArray, right: RankValue, invert: boolean): RankArray {
+    const contains = membershipTest(right, true);
+    const items: RankValue[] = [];
+    for (let index = 0; index < arraySize(source.shape); index++) {
+        checkpoint('testing membership');
+        items.push(contains(readArrayItem(source, index)) !== invert);
+    }
+    return ownedArray(items, source.shape, true);
+}
+
 function membershipTest(right: RankValue, indexed: boolean): (value: RankValue) => boolean {
     if (typeof right === 'string' || isRankObject(right)) return value => {
         if (typeof value !== 'string') throw new RankError('in expects text on the left for text or object membership');
@@ -712,6 +718,10 @@ function mapBinary(
     }
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
+    if (leftArray && rightArray && (name === 'and' || name === 'or' || name === 'xor')) {
+        const dense = mapBooleanArrays(leftArray, rightArray, name);
+        if (dense) return dense;
+    }
     if ((leftArray || rightArray) && REAL_CODES[name] !== undefined) {
         const masked = mapMaskedArrays(left, right, REAL_CODES[name]);
         if (masked) return masked;

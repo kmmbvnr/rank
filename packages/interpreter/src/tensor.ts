@@ -1,5 +1,5 @@
 import { mapPair, runExecution } from './execution.js';
-import { evaluateArrayItem, derivedArray, storedOperandItems, float64Cells, ownedArray, realCells, typedArray } from './array-storage.js';
+import { evaluateArrayItem, derivedArray, denseScalarItems, storedOperandItems, float64Cells, ownedArray, realCells, typedArray } from './array-storage.js';
 import { RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import type { RankArray, RankValue } from './value.js';
@@ -20,6 +20,23 @@ export function mapBroadcastArrays(
         operation,
     );
     return derivedArray(shape, [left, right], index => runExecution(evaluate(index)), true, evaluate);
+}
+
+/** Join already stored boolean masks without creating a lazy reader chain.
+ * Unread cells, non-boolean values and broadcasting retain the general path. */
+export function mapBooleanArrays(left: RankArray, right: RankArray, operator: 'and' | 'or' | 'xor'): RankArray | undefined {
+    if (left.shape.length !== right.shape.length
+        || left.shape.some((size, axis) => size !== right.shape[axis])) return undefined;
+    const a = denseScalarItems(left), b = denseScalarItems(right);
+    if (!a || !b) return undefined;
+    const items: boolean[] = new Array(a.length);
+    for (let index = 0; index < a.length; index++) {
+        if ((index & 4095) === 0) checkpoint('combining boolean masks');
+        const x = a[index], y = b[index];
+        if (typeof x !== 'boolean' || typeof y !== 'boolean') return undefined;
+        items[index] = operator === 'and' ? x && y : operator === 'or' ? x || y : x !== y;
+    }
+    return ownedArray(items, left.shape, true);
 }
 
 /**
