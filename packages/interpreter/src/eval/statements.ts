@@ -229,9 +229,9 @@ function assertTestExpression(value: RankValue): void {
     if (failed) throw new RankError('boolean test expression evaluated to false');
 }
 
-type FunctionPlacement = 'top' | 'function' | 'block';
+type FunctionPlacement = 'top' | 'function' | 'loop' | 'block';
 
-/** Functions are declared at top level or directly inside another function, never inside a block. */
+/** Declarations are allowed at top level, in function bodies and in for bodies. */
 export function validateFunctionPlacement(
     statements: readonly Statement[],
     placement: FunctionPlacement,
@@ -239,7 +239,7 @@ export function validateFunctionPlacement(
     for (const statement of statements) {
         if (isFunctionStatement(statement)) {
             if (placement === 'block') {
-                throw new RankError('a local function must be declared directly inside a function');
+                throw new RankError('a local function must be declared directly inside a function or for block');
             }
             validateFunctionPlacement(statement.statements, 'function');
         } else if (isTestStatement(statement)) {
@@ -251,7 +251,7 @@ export function validateFunctionPlacement(
             }
             validateFunctionPlacement(statement.elseStatements, 'block');
         } else if (isForStatement(statement)) {
-            validateFunctionPlacement(statement.statements, 'block');
+            validateFunctionPlacement(statement.statements, 'loop');
         } else if (isTryStatement(statement)) {
             validateFunctionPlacement(statement.statements, 'block');
             for (const clause of statement.catches) {

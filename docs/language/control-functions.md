@@ -663,10 +663,30 @@ variables, including those in a top-level loop. Single-expression functions
 declared inside a block capture that block's workspace; an escaping function
 keeps it alive after the block ends.
 
-A local function declaration must be a direct statement of another function.
-It cannot be conditional or appear inside `if`, `for`, `try`, `catch` or
-`finally`. Test blocks may declare test-local functions directly, as before.
-Local functions may recurse and may contain further direct local functions.
+A multiline function may also be declared directly inside a `for` body:
+
+```rank
+for R in 1 till 3
+  Offset = R
+  fun addOffset X
+    return X + Offset
+  end
+  10 addOffset print
+end
+```
+
+This prints `11`, then `12`. A loop-local declaration becomes available when
+execution reaches it, and its name does not exist after the loop. It captures
+loop bindings and enclosing function parameters by reference, just like a
+single-expression helper. Iterations update the same captured loop workspace:
+a function saved during an earlier iteration sees later updates, and keeps
+that workspace alive after the loop ends. Separate executions of the loop
+create separate workspaces. The declaration remains constant within its block.
+
+Declarations directly inside a function remain visible throughout the call.
+Declarations inside `if`, `try`, `catch` and `finally` are not supported.
+Test blocks may declare test-local functions directly, as before. Local
+functions may recurse and may contain further direct local functions.
 
 Resources in a captured workspace move with an escaping function and remain
 open for as long as the receiving resource scope owns that function.

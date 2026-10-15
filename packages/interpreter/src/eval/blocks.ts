@@ -146,8 +146,12 @@ export class BlockExecution implements BlockSteps {
         let prepared = cache.get(statement);
         if (!prepared) {
             prepared = this.host.prepare(statement);
+            // Non-capturing nested blocks can share the outer loop's storage.
+            // A helper needs its own loop frame so a later loop entry cannot
+            // overwrite an escaped closure or retain a previous declaration.
             if ((isForStatement(statement) || isIfStatement(statement) || isTryStatement(statement))
-                && !insideLoop(statement)) {
+                && (!insideLoop(statement) || isForStatement(statement)
+                    && statement.statements.some(node => isFunctionStatement(node) || isFunctionBindingStatement(node)))) {
                 const names = blockNames(statement, this.host.syntheticNames());
                 const known = alwaysFresh(statement, names);
                 prepared = this.scopeBlock(prepared, [...names.filter(name => known.has(name)),
@@ -256,7 +260,7 @@ function insideLoop(statement: Statement): boolean {
 function blockNames(statement: Statement, syntheticNames: ReadonlySet<string>): string[] {
     const names = new Set<string>();
     const visit = (node: Statement): void => {
-        if (isFunctionStatement(node)) return;
+        if (isFunctionStatement(node)) { names.add(node.name); return; }
         if (isFunctionBindingStatement(node) || isAssignmentStatement(node) && node.operator === '=' && !node.name.includes('.')) names.add(node.name);
         else if (isUnpackStatement(node)) for (const name of node.names) names.add(name);
         else if (isForStatement(node)) {

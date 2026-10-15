@@ -13,18 +13,18 @@ rem Each row of States holds the columns of the queens placed so far.
 rem Start with Size placements of one queen, one for each possible column.
 States = Cols reshape Size 1
 
-rem A column must be free vertically and on both diagonals.
-fun available Q Dy
-  Mask = Cols not in Q
-  Mask and= Cols not in (Q + Dy)
-  Mask and= Cols not in (Q - Dy)
-  return Mask
-end
-
 rem Add a queen in the next row to every board, once per free column.
 for Row in 1 till Size
   Dy = Row till 0 by -1
-  avail Q = Q Dy available
+
+  rem A column must be free vertically and on both diagonals.
+  fun avail Q
+    Mask = Cols not in Q
+    Mask and= Cols not in (Q + Dy)
+    Mask and= Cols not in (Q - Dy)
+    return Mask
+  end
+
   Free = States avail rank 1
   Where = Free indices
 

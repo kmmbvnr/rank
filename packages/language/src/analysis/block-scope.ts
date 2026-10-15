@@ -33,7 +33,8 @@ function boundNames(statements: readonly Statement[]): Set<string> {
     const names = new Set<string>();
     const visit = (node: AstNode): void => {
         if (isFunctionBindingStatement(node)) { names.add(node.name); return; }
-        if (isFunctionStatement(node) || isTestStatement(node)) return;
+        if (isFunctionStatement(node)) { names.add(node.name); return; }
+        if (isTestStatement(node)) return;
         // A compound assignment updates a name that must already exist, so it binds nothing.
         if (isAssignmentStatement(node) && node.operator === '=' && !node.name.includes('.')) names.add(node.name);
         else if (isUnpackStatement(node)) node.names.forEach(name => names.add(name));
@@ -54,7 +55,7 @@ export function blockScopeDiagnostics(
 
     /** Visible names per open block, innermost last, and names whose block ended. */
     function body(statements: readonly Statement[], outer: ReadonlySet<string>[]): void {
-        const scopes: Set<string>[] = [...outer as Set<string>[], new Set<string>()];
+        const scopes: Set<string>[] = [...outer as Set<string>[], new Set(statements.filter(isFunctionStatement).map(node => node.name))];
         const ended = new Map<string, number>();
         const local = boundNames(statements);
         const visible = (name: string) => scopes.some(scope => scope.has(name));
@@ -98,6 +99,7 @@ export function blockScopeDiagnostics(
                 for (const definition of plan.definitions) body(definition.statements, [...scopes, new Set(definition.parameters)]);
                 bind(node.name);
             } else if (isFunctionStatement(node)) {
+                bind(node.name);
                 body(node.statements, [...scopes, direct, new Set(node.parameters)]);
             } else if (isOptionStatement(node)) {
                 read(node.defaultValue);
