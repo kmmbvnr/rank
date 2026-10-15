@@ -96,8 +96,8 @@ fun card_suit Card
   return Card 1
 end
 
-rem Choose the highest-valued five-card subset; equal values keep the first.
-fun bestCards Cards
+rem The first highest-valued five-card subset and its value; equal values keep the first.
+fun bestChoice Cards
   Best = Cards take 5
   Highest = -1
   for Hand in Cards 5 combinations
@@ -107,11 +107,25 @@ fun bestCards Cards
       Best = Hand
     end
   end
-  rem Show the made combination before its kickers, highest ranks first.
+  return tuple Best Highest
+end
+
+fun bestValue Cards
+  unpack Best Highest = Cards bestChoice
+  return Highest
+end
+
+rem Show the made combination before its kickers, highest ranks first.
+fun arrange Best
   Values = Best card_value rank 0
   Freq = (Values Values outer equal) count rank 1
   Order = (Freq * 13 + Values) argsort .descending
   return Best Order
+end
+
+fun bestCards Cards
+  unpack Best Highest = Cards bestChoice
+  return Best arrange
 end
 
 fun bestHand Community Hole
@@ -164,13 +178,18 @@ fun nuts Community
   Highest = -1
   Required = array shape 0 fill ""
   for Hole in Unseen 2 combinations
-    Hand = (concat Board Hole) bestCards
-    Value = Hand cardsValue
-    Used = Hand (Hand not in Board) array
-    if (Value greater Highest) or (Value equal Highest and Used len less Required len)
-      Highest = Value
-      Required = Used
+    Cards = concat Board Hole
+    unpack Best Value = Cards bestChoice
+    if Value less Highest
+      continue
     end
+    Count = (Best not in Board) count
+    if Value equal Highest and (Count at least (Required len))
+      continue
+    end
+    Highest = Value
+    Hand = Best arrange
+    Required = Hand (Hand not in Board) array
   end
   rem A suit is immaterial only if every legal replacement still makes the nuts.
   Actual = Required copy
@@ -188,8 +207,7 @@ fun nuts Community
       if (Trial unique len) not equal (Trial len)
         continue
       end
-      Hand = (concat Board Trial) bestCards
-      if (Hand cardsValue) not equal Highest
+      if ((concat Board Trial) bestValue) not equal Highest
         Wild = false
         break
       end
@@ -204,6 +222,7 @@ end
 rem Enumerate every legal completion; never simulate or round probabilities.
 fun odds Community Players
   Board = Community cards
+  Holes = Players cards rank 0
   HoleCards = (Players " " join) cards
   Seen = concat Board HoleCards
   Unseen = deck array
@@ -212,9 +231,11 @@ fun odds Community Players
   Totals = array shape (Count + 1) fill 0.0
   Trials = 0
   for Extra in Unseen (5 - (Board len)) combinations
-    Complete = (concat Board Extra) " " join
-    Best = Complete Players playerHands array
-    Values = Best handValue rank 0
+    Complete = concat Board Extra
+    Values = array shape Count fill 0
+    for Hole I in Holes
+      Values I = (concat Complete Hole) bestValue
+    end
     Winners = Values equal (Values max)
     Tied = Winners count
     if Tied equal Count and Count greater 1
