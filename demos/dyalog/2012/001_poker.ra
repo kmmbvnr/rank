@@ -25,77 +25,194 @@ fun handValue Text
   return Cards cardsValue
 end
 
+rem Category followed by five tie-break ranks, highest first, packed in base 13.
+rem Counting ranks in a 13-slot array avoids sorting and pairwise comparisons.
 fun cardsValue Cards
-  Score = Cards hand_score
-  Value = 0
-  for Digit in Score
+  Values = array shape 5 fill 0
+  Counts = array shape 13 fill 0
+  Flush = true
+  First = Cards 0 1
+  for Card I in Cards
+    V = "23456789TJQKA" (Card 0) find
+    Values I = V
+    Counts V += 1
+    if (Card 1) not equal First
+      Flush = false
+    end
+  end
+  Distinct = (Counts greater 0) count
+  High = Values max
+  Low = Values min
+  Straight = Distinct equal 5 and ((High - Low) equal 4)
+  Wheel = Distinct equal 5 and High equal 12 and (((Counts take 4) equal 1) count equal 4)
+  Freq = Counts Values
+  MaxFreq = Freq max
+  PairCards = (Freq equal 2) count
+  Pairs = PairCards // 2
+  Kind = 0
+  if (Straight or Wheel) and Flush
+    Kind = 8
+  elif MaxFreq equal 4
+    Kind = 7
+  elif MaxFreq equal 3 and Pairs equal 1
+    Kind = 6
+  elif Flush
+    Kind = 5
+  elif Straight or Wheel
+    Kind = 4
+  elif MaxFreq equal 3
+    Kind = 3
+  elif Pairs equal 2
+    Kind = 2
+  elif Pairs equal 1
+    Kind = 1
+  end
+  Order = (Freq * 13 + Values) argsort .descending
+  Ties = Values Order
+  if Straight or Wheel
+    Top = High
+    if Wheel
+      Top = 3
+    end
+    Ties = array Top 0 0 0 0
+  end
+  Value = Kind
+  for Digit in Ties
     Value = Value * 13 + Digit
   end
   return Value
 end
 
-rem Category followed by five tie-break ranks, highest first.
-fun hand_score Cards
-  Values = Cards card_value rank 0
-  Suits = Cards card_suit rank 0
 
-  Sorted = Values sort
-  Distinct = Sorted unique len
-  Span = Sorted 4 - Sorted 0
-
-  Straight = Distinct equal 5
-  Straight and= Span equal 4
-
-  Wheel = Sorted (array 0 1 2 3 12) equal rank 1
-  Straight or= Wheel
-
-  Flush = Suits unique len equal 1
-
-  Same = Values Values outer equal
-  Freq = Same count rank 1
-
-  MaxFreq = Freq max
-  PairCards = (Freq equal 2) count
-  Pairs = PairCards // 2
-
-  Trips = MaxFreq equal 3
-  Quads = MaxFreq equal 4
-  HasPair = Pairs equal 1
-  FullHouse = Trips and HasPair
-
-  Kind = 0
-  if Straight and Flush
-    Kind = 8
-  elif Quads
-    Kind = 7
-  elif FullHouse
-    Kind = 6
-  elif Flush
-    Kind = 5
-  elif Straight
-    Kind = 4
-  elif Trips
-    Kind = 3
-  elif Pairs equal 2
-    Kind = 2
-  elif HasPair
-    Kind = 1
-  end
-
-  Keys = Freq * 13 + Values
-  Order = Keys argsort .descending
-  Ties = Values Order
-
-  if Straight
-    High = Sorted 4
-    if Wheel
-      High = 3
+rem Highest card of the best straight in 13 rank counts, or -1; the ace plays low in a wheel.
+fun straightHigh Counts
+  Run = 0
+  High = -1
+  for R in 12 to 0 by -1
+    if (Counts R) greater 0
+      Run += 1
+      if Run equal 5 and High less 0
+        High = R + 4
+      end
+    else
+      Run = 0
     end
-    Ties = array High 0 0 0 0
   end
+  if High less 0 and Run equal 4 and (Counts 12) greater 0
+    High = 3
+  end
+  return High
+end
 
-  unpack T0 T1 T2 T3 T4 = Ties
-  return array Kind T0 T1 T2 T3 T4
+rem The first Count ranks of Dist that are neither Skip1 nor Skip2, as base 13 digits.
+fun kickers Dist Skip1 Skip2 Count
+  Value = 0
+  Taken = 0
+  for Rank in Dist
+    if Rank equal Skip1 or Rank equal Skip2
+      continue
+    end
+    Value = Value * 13 + Rank
+    Taken += 1
+    if Taken equal Count
+      break
+    end
+  end
+  return Value
+end
+
+rem Value of the best five-card hand among five to seven cards, scored directly
+rem from rank counts instead of trying every subset; same encoding as cardsValue.
+fun quickValue Cards
+  Counts = array shape 13 fill 0
+  SuitCounts = array shape 4 fill 0
+  Ranks = array shape (Cards len) fill 0
+  Suits = array shape (Cards len) fill 0
+  for Card I in Cards
+    V = "23456789TJQKA" (Card 0) find
+    S = "SHDC" (Card 1) find
+    Ranks I = V
+    Suits I = S
+    Counts V += 1
+    SuitCounts S += 1
+  end
+  Quad = -1
+  Trip = -1
+  PairA = -1
+  PairB = -1
+  Dist = array shape 0 fill 0
+  for R in 12 to 0 by -1
+    C = Counts R
+    if C equal 0
+      continue
+    end
+    Dist = concat Dist (array R)
+    if C equal 4
+      Quad = R
+    end
+    if C at least 3 and Trip less 0
+      Trip = R
+    end
+    if C at least 2
+      if PairA less 0
+        PairA = R
+      elif PairB less 0
+        PairB = R
+      end
+    end
+  end
+  Flush = SuitCounts max .index
+  Suited = array shape 13 fill 0
+  FlushDigits = 0
+  if (SuitCounts Flush) at least 5
+    for Rank I in Ranks
+      if (Suits I) equal Flush
+        Suited Rank = 1
+      end
+    end
+    High = Suited straightHigh
+    if High at least 0
+      return (8 * 13 + High) * 28561
+    end
+    Taken = 0
+    for R in 12 to 0 by -1
+      if (Suited R) equal 1
+        FlushDigits = FlushDigits * 13 + R
+        Taken += 1
+        if Taken equal 5
+          break
+        end
+      end
+    end
+  end
+  Block = 371293
+  if Quad at least 0
+    return 7 * Block + ((Quad * 13 + Quad) * 13 + Quad) * 169 + Quad * 13 + (Dist Quad Quad 1 kickers)
+  end
+  Pair = PairA
+  if Pair equal Trip
+    Pair = PairB
+  end
+  if Trip at least 0 and Pair at least 0
+    return 6 * Block + (((Trip * 13 + Trip) * 13 + Trip) * 13 + Pair) * 13 + Pair
+  end
+  if (SuitCounts Flush) at least 5
+    return 5 * Block + FlushDigits
+  end
+  Straight = Counts straightHigh
+  if Straight at least 0
+    return 4 * Block + Straight * 28561
+  end
+  if Trip at least 0
+    return 3 * Block + ((Trip * 13 + Trip) * 13 + Trip) * 169 + (Dist Trip Trip 2 kickers)
+  end
+  if PairB at least 0
+    return 2 * Block + (((PairA * 13 + PairA) * 13 + PairB) * 13 + PairB) * 13 + (Dist PairA PairB 1 kickers)
+  end
+  if PairA at least 0
+    return 1 * Block + ((PairA * 13 + PairA) * 169) * 13 + (Dist PairA PairA 3 kickers)
+  end
+  return Dist -1 -1 5 kickers
 end
 
 
@@ -111,8 +228,8 @@ fun card_suit Card
   return Card 1
 end
 
-rem Choose the highest-valued five-card subset; equal values keep the first.
-fun bestCards Cards
+rem The first highest-valued five-card subset and its value; equal values keep the first.
+fun bestChoice Cards
   Best = Cards take 5
   Highest = -1
   for Hand in Cards 5 combinations
@@ -122,11 +239,24 @@ fun bestCards Cards
       Best = Hand
     end
   end
-  rem Show the made combination before its kickers, highest ranks first.
+  return tuple Best Highest
+end
+
+fun bestValue Cards
+  return Cards quickValue
+end
+
+rem Show the made combination before its kickers, highest ranks first.
+fun arrange Best
   Values = Best card_value rank 0
   Freq = (Values Values outer equal) count rank 1
   Order = (Freq * 13 + Values) argsort .descending
   return Best Order
+end
+
+fun bestCards Cards
+  unpack Best Highest = Cards bestChoice
+  return Best arrange
 end
 
 fun bestHand Community Hole
@@ -179,13 +309,19 @@ fun nuts Community
   Highest = -1
   Required = array shape 0 fill ""
   for Hole in Unseen 2 combinations
-    Hand = (concat Board Hole) bestCards
-    Value = Hand cardsValue
-    Used = Hand (Hand not in Board) array
-    if (Value greater Highest) or (Value equal Highest and Used len less Required len)
-      Highest = Value
-      Required = Used
+    Cards = concat Board Hole
+    Value = Cards quickValue
+    if Value less Highest or (Value equal Highest and Required len equal 0)
+      continue
     end
+    unpack Best Chosen = Cards bestChoice
+    Count = (Best not in Board) count
+    if Value equal Highest and (Count at least (Required len))
+      continue
+    end
+    Highest = Value
+    Hand = Best arrange
+    Required = Hand (Hand not in Board) array
   end
   rem A suit is immaterial only if every legal replacement still makes the nuts.
   Actual = Required copy
@@ -203,8 +339,7 @@ fun nuts Community
       if (Trial unique len) not equal (Trial len)
         continue
       end
-      Hand = (concat Board Trial) bestCards
-      if (Hand cardsValue) not equal Highest
+      if ((concat Board Trial) bestValue) not equal Highest
         Wild = false
         break
       end
@@ -219,6 +354,7 @@ end
 rem Enumerate every legal completion; never simulate or round probabilities.
 fun odds Community Players
   Board = Community cards
+  Holes = Players cards rank 0
   HoleCards = (Players " " join) cards
   Seen = concat Board HoleCards
   Unseen = deck array
@@ -227,9 +363,11 @@ fun odds Community Players
   Totals = array shape (Count + 1) fill 0.0
   Trials = 0
   for Extra in Unseen (5 - (Board len)) combinations
-    Complete = (concat Board Extra) " " join
-    Best = Complete Players playerHands array
-    Values = Best handValue rank 0
+    Complete = concat Board Extra
+    Values = array shape Count fill 0
+    for Hole I in Holes
+      Values I = (concat Complete Hole) bestValue
+    end
     Winners = Values equal (Values max)
     Tied = Winners count
     if Tied equal Count and Count greater 1
