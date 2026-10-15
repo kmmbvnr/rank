@@ -218,18 +218,24 @@ function countTrue(value: RankValue): bigint {
 }
 
 function trueIndices(value: RankValue): RankArray {
-    if (!isRankArray(value) || value.shape.length !== 1) {
-        throw new RankError('indices expects a rank-1 array', 'TypeError');
+    if (!isRankArray(value) || value.shape.length === 0) {
+        throw new RankError('indices expects an array of rank at least 1', 'TypeError');
     }
     const positions: bigint[] = [];
-    for (let index = 0; index < value.shape[0]; index += 1) {
+    const rank = value.shape.length;
+    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+    for (let index = 0; index < size; index += 1) {
+        if (index % 4096 === 0) checkpoint('finding indices');
         const item = readArrayItem(value, index);
         if (typeof item !== 'boolean') {
             throw new RankError('indices expects boolean values', 'TypeError');
         }
-        if (item) positions.push(BigInt(index));
+        if (item) {
+            if (rank === 1) positions.push(BigInt(index));
+            else for (const coordinate of coordinatesAt(value.shape, index)) positions.push(BigInt(coordinate));
+        }
     }
-    return ownedArray(positions, [positions.length]);
+    return ownedArray(positions, rank === 1 ? [positions.length] : [positions.length / rank, rank]);
 }
 
 function findValue(source: RankValue, target: RankValue): bigint {

@@ -1016,7 +1016,7 @@ export const operations: readonly Operation[] = [
         summary: 'Unbounded lazy Fibonacci numbers; bound with to, till, from or after.' },
     { name: 'indices', module: 'sequences', arities: [1], form: 'Mask indices', result: 'array',
         signatures: [{ inputs: [booleanArray], result: integerArray }],
-        summary: 'Zero-based positions of the true values in a boolean vector.' },
+        summary: 'Zero-based true positions in boolean vectors, or coordinate rows in boolean tensors.' },
     { name: 'reverse', module: 'sequences', arities: [1], form: 'Values reverse', result: 'value',
         signatures: [
             { inputs: ['text'], result: 'text' },

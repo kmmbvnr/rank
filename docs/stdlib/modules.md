@@ -730,6 +730,29 @@ Places = (array true false true false) indices
 rem 0 2
 ```
 
+For a boolean tensor of rank `k >= 2`, `indices` returns an integer matrix of
+shape `N × k`: one coordinate row per true cell, in zero-based row-major order.
+No matches produce `0 × k`; one match produces `1 × k`. Rank-1 masks continue
+to return vectors, including an empty vector when there are no matches.
+
+```rank
+Mask = array shape 2 3
+  false true false
+  true false true
+end
+Where = Mask indices
+rem Rows: 0 1; 1 0; 1 2
+Rows = Where # 0
+Columns = Where # 1
+```
+
+Scalars and non-boolean cells are rejected; empty arrays have no cells to
+validate and are accepted. The operation reads every cell once in logical
+row-major order, including computed cells, and stores `N * k` coordinate
+integers for tensors. Coordinate matrices are not directly usable as array
+selectors: extract their columns as above; integer-array selectors require
+rank 1.
+
 `Values Target find` returns the first zero-based position equal to `Target`.
 `findall` returns every matching position; an empty result is an empty vector.
 Both accept rank-1 arrays and text, indexed by Unicode code point.

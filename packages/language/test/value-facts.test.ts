@@ -1667,3 +1667,15 @@ it('keeps extrema position modifiers scalar for array and sequence inputs', () =
     expect(facts('Values max .index', new Map([['Values', { types: ['array'] }], ['max', { types: ['function'] }]])))
         .not.toMatchObject({ types: ['integer'] });
 });
+
+
+it('infers coordinate width for safe tensor indices without trusting computed masks', () => {
+    for (const rank of [2, 3]) {
+        const mask: ValueFacts = { types: ['array'], rank, shape: Array(rank).fill(2),
+            elements: ['boolean'], callbackFreeScalarCells: true };
+        expect(facts('Mask indices', new Map([['Mask', mask]]))).toEqual({ types: ['array'],
+            rank: 2, shape: [null, rank], elements: ['integer'], eagerScalarCells: true });
+        expect(facts('Mask indices', new Map([['Mask', { ...mask, callbackFreeScalarCells: undefined }]])))
+            .toEqual({ types: ['array'] });
+    }
+});

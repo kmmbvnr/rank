@@ -788,9 +788,11 @@ function transferApplicationFacts(
                 ...shaped, elements: operation.denseElements, eagerScalarCells: true,
             };
             if (arity === 1 && last.name === 'indices' && source.types.join() === 'array'
-                && source.rank === 1 && source.elements?.join() === 'boolean'
+                && source.rank !== undefined && source.rank >= 1 && source.elements?.join() === 'boolean'
                 && (source.eagerScalarCells || source.callbackFreeScalarCells)) {
-                return { types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true };
+                return { types: ['array'], rank: source.rank === 1 ? 1 : 2,
+                    shape: source.rank === 1 ? [null] : [null, source.rank],
+                    elements: ['integer'], eagerScalarCells: true };
             }
             if (arity === 1 && ['first', 'last'].includes(last.name) && source.rank === 1
                 && ['array', 'sequence'].includes(source.types.join()) && source.elements?.length) {

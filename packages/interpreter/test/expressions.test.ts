@@ -671,15 +671,7 @@ Result`)).toBe('itb');
         expect(() => run('use sequences\n(array 1 2) indices'))
             .toThrowError('indices expects boolean values');
         expect(() => run('use sequences\ntrue indices'))
-            .toThrowError('indices expects a rank-1 array');
-        expect(() => run([
-            'use sequences',
-            'Mask = array shape 2 2',
-            '  true false',
-            '  false true',
-            'end',
-            'Mask indices',
-        ].join('\n'))).toThrowError('indices expects a rank-1 array');
+            .toThrowError('indices expects an array of rank at least 1');
         expect(() => run('(array true false) indices'))
             .toThrowError('unknown name: indices');
     });

@@ -417,7 +417,7 @@ Shapes, orderings, windows and lazy sources.
 | `Values Target findall` | array | binary all / 0 | Every zero-based position equal to Target in a vector or text; an array of targets needs equal counts. |
 | `Values flat` | array | unary all; binary all / all | Copies records into fixed-width storage; Count State flat initializes a compact array. |
 | `fibonacci` | sequence, lazy | source/value | Unbounded lazy Fibonacci numbers; bound with to, till, from or after. |
-| `Mask indices` | array | unary all | Zero-based positions of the true values in a boolean vector. |
+| `Mask indices` | array | unary all | Zero-based true positions in boolean vectors, or coordinate rows in boolean tensors. |
 | `Values reverse` | value | unary all | Reverses text by code point, an array along its leading axis, or a queue or finite sequence into an array. |
 | `Values first` | element | unary all | First item of text, an array, a queue or a sequence; missing when empty. |
 | `Values last` | element | unary all | Last item of text, an array, a queue or a finite sequence; missing when empty. |
