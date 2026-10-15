@@ -18,7 +18,9 @@ rem Add a queen in the next row to every board, once per free column.
 for Row in 1 till Size
   Dy = Row till 0 by -1
   Prefix = States # (0 till Row)
-  Free = Prefix available rank 1
+  hit Q = concat Q (Q + Dy) (Q - Dy)
+  avail Q = Cols not in Q hit
+  Free = Prefix avail rank 1
   Where = Free indices
 
   States = States (Where # 0) copy
@@ -34,9 +36,4 @@ for Board i in Boards
     Row " " join print
   end
   "" print
-end
-
-fun available Q
-  Blocked = concat Q (Q + Dy) (Q - Dy)
-  return Cols not in Blocked
 end
