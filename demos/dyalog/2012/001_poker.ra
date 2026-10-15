@@ -25,77 +25,62 @@ fun handValue Text
   return Cards cardsValue
 end
 
+rem Category followed by five tie-break ranks, highest first, packed in base 13.
+rem Counting ranks in a 13-slot array avoids sorting and pairwise comparisons.
 fun cardsValue Cards
-  Score = Cards hand_score
-  Value = 0
-  for Digit in Score
-    Value = Value * 13 + Digit
+  Values = array shape 5 fill 0
+  Counts = array shape 13 fill 0
+  Flush = true
+  First = Cards 0 1
+  for Card I in Cards
+    V = "23456789TJQKA" (Card 0) find
+    Values I = V
+    Counts V += 1
+    if (Card 1) not equal First
+      Flush = false
+    end
   end
-  return Value
-end
-
-rem Category followed by five tie-break ranks, highest first.
-fun hand_score Cards
-  Values = Cards card_value rank 0
-  Suits = Cards card_suit rank 0
-
-  Sorted = Values sort
-  Distinct = Sorted unique len
-  Span = Sorted 4 - Sorted 0
-
-  Straight = Distinct equal 5
-  Straight and= Span equal 4
-
-  Wheel = Sorted (array 0 1 2 3 12) equal rank 1
-  Straight or= Wheel
-
-  Flush = Suits unique len equal 1
-
-  Same = Values Values outer equal
-  Freq = Same count rank 1
-
+  Distinct = (Counts greater 0) count
+  High = Values max
+  Low = Values min
+  Straight = Distinct equal 5 and ((High - Low) equal 4)
+  Wheel = Distinct equal 5 and High equal 12 and (((Counts take 4) equal 1) count equal 4)
+  Freq = Counts Values
   MaxFreq = Freq max
   PairCards = (Freq equal 2) count
   Pairs = PairCards // 2
-
-  Trips = MaxFreq equal 3
-  Quads = MaxFreq equal 4
-  HasPair = Pairs equal 1
-  FullHouse = Trips and HasPair
-
   Kind = 0
-  if Straight and Flush
+  if (Straight or Wheel) and Flush
     Kind = 8
-  elif Quads
+  elif MaxFreq equal 4
     Kind = 7
-  elif FullHouse
+  elif MaxFreq equal 3 and Pairs equal 1
     Kind = 6
   elif Flush
     Kind = 5
-  elif Straight
+  elif Straight or Wheel
     Kind = 4
-  elif Trips
+  elif MaxFreq equal 3
     Kind = 3
   elif Pairs equal 2
     Kind = 2
-  elif HasPair
+  elif Pairs equal 1
     Kind = 1
   end
-
-  Keys = Freq * 13 + Values
-  Order = Keys argsort .descending
+  Order = (Freq * 13 + Values) argsort .descending
   Ties = Values Order
-
-  if Straight
-    High = Sorted 4
+  if Straight or Wheel
+    Top = High
     if Wheel
-      High = 3
+      Top = 3
     end
-    Ties = array High 0 0 0 0
+    Ties = array Top 0 0 0 0
   end
-
-  unpack T0 T1 T2 T3 T4 = Ties
-  return array Kind T0 T1 T2 T3 T4
+  Value = Kind
+  for Digit in Ties
+    Value = Value * 13 + Digit
+  end
+  return Value
 end
 
 
