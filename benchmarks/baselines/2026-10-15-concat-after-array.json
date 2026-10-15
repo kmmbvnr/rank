@@ -1,0 +1,529 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "platform": "darwin",
+  "results": [
+    {
+      "sample": 0,
+      "n": 1000,
+      "kind": "array",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 177.27204099999997
+        },
+        "length": {
+          "ms": 3.2745409999999993
+        },
+        "first": {
+          "ms": 1.7484160000000202
+        },
+        "last": {
+          "ms": 0.508624999999995
+        },
+        "random": {
+          "ms": 37.9375
+        },
+        "traverse": {
+          "ms": 2.2569159999999897
+        }
+      },
+      "builtHeapMiB": 9.93304443359375,
+      "retainedHeapMiB": 10.881553649902344,
+      "peakRssMiB": 154.15625
+    },
+    {
+      "sample": 1,
+      "n": 1000,
+      "kind": "array",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 176.857917
+        },
+        "length": {
+          "ms": 3.238542000000052
+        },
+        "first": {
+          "ms": 1.7337079999999787
+        },
+        "last": {
+          "ms": 0.505958000000021
+        },
+        "random": {
+          "ms": 37.234875000000045
+        },
+        "traverse": {
+          "ms": 2.1889580000000137
+        }
+      },
+      "builtHeapMiB": 9.932289123535156,
+      "retainedHeapMiB": 11.0001220703125,
+      "peakRssMiB": 154.53125
+    },
+    {
+      "sample": 2,
+      "n": 1000,
+      "kind": "array",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 176.460333
+        },
+        "length": {
+          "ms": 3.105624999999975
+        },
+        "first": {
+          "ms": 1.713374999999985
+        },
+        "last": {
+          "ms": 0.49312500000002046
+        },
+        "random": {
+          "ms": 37.20600000000002
+        },
+        "traverse": {
+          "ms": 2.2245419999999854
+        }
+      },
+      "builtHeapMiB": 9.90277099609375,
+      "retainedHeapMiB": 10.835494995117188,
+      "peakRssMiB": 154.8125
+    },
+    {
+      "sample": 0,
+      "n": 1000,
+      "kind": "array",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 179.540625
+        },
+        "length": {
+          "ms": 3.2206669999999917
+        },
+        "first": {
+          "ms": 1.751292000000035
+        },
+        "last": {
+          "ms": 0.5213329999999701
+        },
+        "random": {
+          "ms": 38.81395900000001
+        },
+        "traverse": {
+          "ms": 2.422208000000012
+        }
+      },
+      "builtHeapMiB": 10.054855346679688,
+      "retainedHeapMiB": 11.042976379394531,
+      "peakRssMiB": 154.015625
+    },
+    {
+      "sample": 1,
+      "n": 1000,
+      "kind": "array",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 178.283375
+        },
+        "length": {
+          "ms": 3.176791000000037
+        },
+        "first": {
+          "ms": 1.7309169999999767
+        },
+        "last": {
+          "ms": 0.5234580000000051
+        },
+        "random": {
+          "ms": 38.45554100000004
+        },
+        "traverse": {
+          "ms": 2.402667000000008
+        }
+      },
+      "builtHeapMiB": 10.054695129394531,
+      "retainedHeapMiB": 11.042991638183594,
+      "peakRssMiB": 155.125
+    },
+    {
+      "sample": 2,
+      "n": 1000,
+      "kind": "array",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 179.050458
+        },
+        "length": {
+          "ms": 3.1897500000000036
+        },
+        "first": {
+          "ms": 1.7387079999999742
+        },
+        "last": {
+          "ms": 0.5281659999999988
+        },
+        "random": {
+          "ms": 38.60662499999995
+        },
+        "traverse": {
+          "ms": 2.3306250000000546
+        }
+      },
+      "builtHeapMiB": 10.090888977050781,
+      "retainedHeapMiB": 11.078483581542969,
+      "peakRssMiB": 155.0625
+    },
+    {
+      "sample": 0,
+      "n": 10000,
+      "kind": "array",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 407.50708399999996
+        },
+        "length": {
+          "ms": 3.526458000000048
+        },
+        "first": {
+          "ms": 1.839458000000036
+        },
+        "last": {
+          "ms": 0.5172919999999976
+        },
+        "random": {
+          "ms": 37.05808300000001
+        },
+        "traverse": {
+          "ms": 17.202333000000067
+        }
+      },
+      "builtHeapMiB": 38.07020568847656,
+      "retainedHeapMiB": 39.682701110839844,
+      "peakRssMiB": 299.65625
+    },
+    {
+      "sample": 1,
+      "n": 10000,
+      "kind": "array",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 403.66429099999993
+        },
+        "length": {
+          "ms": 3.6020839999999907
+        },
+        "first": {
+          "ms": 1.8172499999999445
+        },
+        "last": {
+          "ms": 0.5095839999999043
+        },
+        "random": {
+          "ms": 37.55191699999989
+        },
+        "traverse": {
+          "ms": 17.28991700000006
+        }
+      },
+      "builtHeapMiB": 38.06806182861328,
+      "retainedHeapMiB": 39.68043518066406,
+      "peakRssMiB": 299.9375
+    },
+    {
+      "sample": 2,
+      "n": 10000,
+      "kind": "array",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 405.11604200000005
+        },
+        "length": {
+          "ms": 3.4871250000001055
+        },
+        "first": {
+          "ms": 1.7964170000000195
+        },
+        "last": {
+          "ms": 0.5111670000000004
+        },
+        "random": {
+          "ms": 37.11833300000001
+        },
+        "traverse": {
+          "ms": 17.00675000000001
+        }
+      },
+      "builtHeapMiB": 38.067352294921875,
+      "retainedHeapMiB": 39.680763244628906,
+      "peakRssMiB": 298.875
+    },
+    {
+      "sample": 0,
+      "n": 10000,
+      "kind": "array",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 405.586375
+        },
+        "length": {
+          "ms": 3.528083000000038
+        },
+        "first": {
+          "ms": 1.8255829999999378
+        },
+        "last": {
+          "ms": 0.5154579999999669
+        },
+        "random": {
+          "ms": 38.766000000000076
+        },
+        "traverse": {
+          "ms": 17.50395800000001
+        }
+      },
+      "builtHeapMiB": 38.219627380371094,
+      "retainedHeapMiB": 39.893760681152344,
+      "peakRssMiB": 300.234375
+    },
+    {
+      "sample": 1,
+      "n": 10000,
+      "kind": "array",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 404.78658399999995
+        },
+        "length": {
+          "ms": 3.5442500000000337
+        },
+        "first": {
+          "ms": 1.8572920000000295
+        },
+        "last": {
+          "ms": 0.5173340000000053
+        },
+        "random": {
+          "ms": 38.36541599999998
+        },
+        "traverse": {
+          "ms": 17.426832999999988
+        }
+      },
+      "builtHeapMiB": 38.21747589111328,
+      "retainedHeapMiB": 39.890464782714844,
+      "peakRssMiB": 300.21875
+    },
+    {
+      "sample": 2,
+      "n": 10000,
+      "kind": "array",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 410.207167
+        },
+        "length": {
+          "ms": 3.57000000000005
+        },
+        "first": {
+          "ms": 1.9214170000000195
+        },
+        "last": {
+          "ms": 0.5167079999999942
+        },
+        "random": {
+          "ms": 38.83391599999993
+        },
+        "traverse": {
+          "ms": 17.87879099999998
+        }
+      },
+      "builtHeapMiB": 38.216827392578125,
+      "retainedHeapMiB": 39.886962890625,
+      "peakRssMiB": 299.640625
+    },
+    {
+      "sample": 0,
+      "n": 100000,
+      "kind": "array",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 3021.607875
+        },
+        "length": {
+          "ms": 4.12170900000001
+        },
+        "first": {
+          "ms": 1.9693750000001273
+        },
+        "last": {
+          "ms": 0.5451250000000982
+        },
+        "random": {
+          "ms": 49.903542000000016
+        },
+        "traverse": {
+          "ms": 186.83920800000033
+        }
+      },
+      "builtHeapMiB": 321.28309631347656,
+      "retainedHeapMiB": 326.64957427978516,
+      "peakRssMiB": 949.609375
+    },
+    {
+      "sample": 1,
+      "n": 100000,
+      "kind": "array",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 3061.053834
+        },
+        "length": {
+          "ms": 4.127083999999741
+        },
+        "first": {
+          "ms": 2.3108750000001237
+        },
+        "last": {
+          "ms": 0.5709170000000086
+        },
+        "random": {
+          "ms": 49.717625000000226
+        },
+        "traverse": {
+          "ms": 189.10687499999995
+        }
+      },
+      "builtHeapMiB": 320.78011322021484,
+      "retainedHeapMiB": 326.1464309692383,
+      "peakRssMiB": 904.796875
+    },
+    {
+      "sample": 2,
+      "n": 100000,
+      "kind": "array",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 3060.1486670000004
+        },
+        "length": {
+          "ms": 4.874291000000085
+        },
+        "first": {
+          "ms": 2.077125000000251
+        },
+        "last": {
+          "ms": 0.8308750000001055
+        },
+        "random": {
+          "ms": 53.012874999999894
+        },
+        "traverse": {
+          "ms": 187.97670900000003
+        }
+      },
+      "builtHeapMiB": 320.2994384765625,
+      "retainedHeapMiB": 325.66426849365234,
+      "peakRssMiB": 902.0625
+    },
+    {
+      "sample": 0,
+      "n": 100000,
+      "kind": "array",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 3048.048709
+        },
+        "length": {
+          "ms": 4.1325409999999465
+        },
+        "first": {
+          "ms": 2.0157909999998083
+        },
+        "last": {
+          "ms": 0.5705830000001697
+        },
+        "random": {
+          "ms": 54.337125000000015
+        },
+        "traverse": {
+          "ms": 186.57900000000018
+        }
+      },
+      "builtHeapMiB": 320.9009475708008,
+      "retainedHeapMiB": 326.34037017822266,
+      "peakRssMiB": 929.796875
+    },
+    {
+      "sample": 1,
+      "n": 100000,
+      "kind": "array",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 3004.839083
+        },
+        "length": {
+          "ms": 4.2268340000000535
+        },
+        "first": {
+          "ms": 1.9895000000001346
+        },
+        "last": {
+          "ms": 0.5560420000001614
+        },
+        "random": {
+          "ms": 52.17091699999992
+        },
+        "traverse": {
+          "ms": 192.5425409999998
+        }
+      },
+      "builtHeapMiB": 320.4756851196289,
+      "retainedHeapMiB": 325.9170608520508,
+      "peakRssMiB": 878.265625
+    },
+    {
+      "sample": 2,
+      "n": 100000,
+      "kind": "array",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 3120.219208
+        },
+        "length": {
+          "ms": 4.065458999999919
+        },
+        "first": {
+          "ms": 2.115957999999864
+        },
+        "last": {
+          "ms": 0.5744580000000497
+        },
+        "random": {
+          "ms": 52.07095799999979
+        },
+        "traverse": {
+          "ms": 181.91720900000018
+        }
+      },
+      "builtHeapMiB": 320.66271209716797,
+      "retainedHeapMiB": 326.1038131713867,
+      "peakRssMiB": 894.03125
+    }
+  ]
+}

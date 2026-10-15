@@ -1,0 +1,553 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "platform": "darwin",
+  "results": [
+    {
+      "sample": 0,
+      "n": 1000,
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 172.77720799999997
+        },
+        "length": {
+          "ms": 3.329582999999957
+        },
+        "first": {
+          "ms": 4.133833000000038,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.7172499999999786
+        },
+        "random": {
+          "ms": 355.697375
+        },
+        "traverse": {
+          "ms": 2.7598749999999654
+        }
+      },
+      "builtHeapMiB": 12.391494750976562,
+      "retainedHeapMiB": 31.63469696044922,
+      "peakRssMiB": 209.265625
+    },
+    {
+      "sample": 1,
+      "n": 1000,
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 172.613
+        },
+        "length": {
+          "ms": 3.519374999999968
+        },
+        "first": {
+          "ms": 3.8315830000000233,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.6963329999999814
+        },
+        "random": {
+          "ms": 353.900875
+        },
+        "traverse": {
+          "ms": 2.8442079999999805
+        }
+      },
+      "builtHeapMiB": 12.420143127441406,
+      "retainedHeapMiB": 31.572158813476562,
+      "peakRssMiB": 208.46875
+    },
+    {
+      "sample": 2,
+      "n": 1000,
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 173.36999999999998
+        },
+        "length": {
+          "ms": 3.4438749999999914
+        },
+        "first": {
+          "ms": 3.525082999999995,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.661707999999976
+        },
+        "random": {
+          "ms": 341.604292
+        },
+        "traverse": {
+          "ms": 2.7026670000000195
+        }
+      },
+      "builtHeapMiB": 12.390045166015625,
+      "retainedHeapMiB": 31.548492431640625,
+      "peakRssMiB": 208.78125
+    },
+    {
+      "sample": 0,
+      "n": 1000,
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 177.657417
+        },
+        "length": {
+          "ms": 3.6031660000000443
+        },
+        "first": {
+          "ms": 3.645916999999997,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.6462909999999624
+        },
+        "random": {
+          "ms": 356.232792
+        },
+        "traverse": {
+          "ms": 3.066915999999992
+        }
+      },
+      "builtHeapMiB": 12.544776916503906,
+      "retainedHeapMiB": 32.41560363769531,
+      "peakRssMiB": 209.359375
+    },
+    {
+      "sample": 1,
+      "n": 1000,
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 177.86404199999998
+        },
+        "length": {
+          "ms": 3.6657500000000027
+        },
+        "first": {
+          "ms": 4.033457999999996,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.6596250000000055
+        },
+        "random": {
+          "ms": 363.70908299999996
+        },
+        "traverse": {
+          "ms": 2.981834000000049
+        }
+      },
+      "builtHeapMiB": 12.574455261230469,
+      "retainedHeapMiB": 32.01441955566406,
+      "peakRssMiB": 208.84375
+    },
+    {
+      "sample": 2,
+      "n": 1000,
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 172.95079099999998
+        },
+        "length": {
+          "ms": 3.490957999999978
+        },
+        "first": {
+          "ms": 3.824874999999963,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.7207500000000095
+        },
+        "random": {
+          "ms": 352.43345800000003
+        },
+        "traverse": {
+          "ms": 3.2493329999999787
+        }
+      },
+      "builtHeapMiB": 12.545921325683594,
+      "retainedHeapMiB": 32.171531677246094,
+      "peakRssMiB": 208.90625
+    },
+    {
+      "sample": 0,
+      "n": 10000,
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 351.66125
+        },
+        "length": {
+          "ms": 3.875499999999988
+        },
+        "first": {
+          "ms": 3.722917000000052,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.6580840000000308
+        },
+        "random": {
+          "ms": 36.51541599999996,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "traverse": {
+          "ms": 2.92933400000004,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        }
+      },
+      "builtHeapMiB": 64.16817474365234,
+      "retainedHeapMiB": 65.04994201660156,
+      "peakRssMiB": 282.09375
+    },
+    {
+      "sample": 1,
+      "n": 10000,
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 345.437875
+        },
+        "length": {
+          "ms": 3.8612080000000333
+        },
+        "first": {
+          "ms": 3.7301670000000513,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.6646670000000086
+        },
+        "random": {
+          "ms": 36.47120799999993,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "traverse": {
+          "ms": 3.2686670000000504,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        }
+      },
+      "builtHeapMiB": 64.16161346435547,
+      "retainedHeapMiB": 65.04621887207031,
+      "peakRssMiB": 276.890625
+    },
+    {
+      "sample": 2,
+      "n": 10000,
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 358.17262500000004
+        },
+        "length": {
+          "ms": 3.933749999999918
+        },
+        "first": {
+          "ms": 3.8623329999999214,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.6818749999999909
+        },
+        "random": {
+          "ms": 36.02812499999993,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "traverse": {
+          "ms": 2.89808400000004,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        }
+      },
+      "builtHeapMiB": 64.13311004638672,
+      "retainedHeapMiB": 65.01870727539062,
+      "peakRssMiB": 266.15625
+    },
+    {
+      "sample": 0,
+      "n": 10000,
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 359.058166
+        },
+        "length": {
+          "ms": 3.829666999999972
+        },
+        "first": {
+          "ms": 4.025332999999932,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.6595829999999978
+        },
+        "random": {
+          "ms": 36.19158300000004,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "traverse": {
+          "ms": 3.3957920000000286,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        }
+      },
+      "builtHeapMiB": 64.25524139404297,
+      "retainedHeapMiB": 65.17906188964844,
+      "peakRssMiB": 252.203125
+    },
+    {
+      "sample": 1,
+      "n": 10000,
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 344.52404199999995
+        },
+        "length": {
+          "ms": 3.7830830000000333
+        },
+        "first": {
+          "ms": 3.8930420000000368,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.6762919999999895
+        },
+        "random": {
+          "ms": 38.822625000000016,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "traverse": {
+          "ms": 3.3511250000000246,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        }
+      },
+      "builtHeapMiB": 64.3140640258789,
+      "retainedHeapMiB": 65.23776245117188,
+      "peakRssMiB": 276.640625
+    },
+    {
+      "sample": 2,
+      "n": 10000,
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 367.96012500000006
+        },
+        "length": {
+          "ms": 3.965167000000065
+        },
+        "first": {
+          "ms": 4.655375000000049,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.7801670000000058
+        },
+        "random": {
+          "ms": 36.83308299999999,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "traverse": {
+          "ms": 3.102790999999911,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        }
+      },
+      "builtHeapMiB": 64.25526428222656,
+      "retainedHeapMiB": 65.1787338256836,
+      "peakRssMiB": 252.0625
+    },
+    {
+      "sample": 0,
+      "n": 100000,
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 2094.959167
+        },
+        "length": {
+          "ms": 4.2074579999998605
+        },
+        "first": {
+          "ms": 4.410292000000027,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 1.1965420000001359
+        },
+        "random": {
+          "ms": 44.37941600000022,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "traverse": {
+          "ms": 2.9518330000000788,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        }
+      },
+      "builtHeapMiB": 602.9648590087891,
+      "retainedHeapMiB": 605.0452117919922,
+      "peakRssMiB": 939.390625
+    },
+    {
+      "sample": 1,
+      "n": 100000,
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 2069.8660409999998
+        },
+        "length": {
+          "ms": 4.3661660000002485
+        },
+        "first": {
+          "ms": 4.032250000000204,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 1.0955000000003565
+        },
+        "random": {
+          "ms": 44.468624999999975,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "traverse": {
+          "ms": 3.306332999999995,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        }
+      },
+      "builtHeapMiB": 602.961311340332,
+      "retainedHeapMiB": 605.0408477783203,
+      "peakRssMiB": 945.28125
+    },
+    {
+      "sample": 2,
+      "n": 100000,
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 2107.4005420000003
+        },
+        "length": {
+          "ms": 4.39770899999985
+        },
+        "first": {
+          "ms": 4.921957999999904,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.9455840000000535
+        },
+        "random": {
+          "ms": 45.01599999999962,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "traverse": {
+          "ms": 2.8743329999997513,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        }
+      },
+      "builtHeapMiB": 602.9970016479492,
+      "retainedHeapMiB": 605.075813293457,
+      "peakRssMiB": 954.65625
+    },
+    {
+      "sample": 0,
+      "n": 100000,
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 2086.19825
+        },
+        "length": {
+          "ms": 4.188833000000159
+        },
+        "first": {
+          "ms": 4.787124999999833,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.9867079999999078
+        },
+        "random": {
+          "ms": 46.845458000000235,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "traverse": {
+          "ms": 3.4166250000002947,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        }
+      },
+      "builtHeapMiB": 603.109619140625,
+      "retainedHeapMiB": 605.2348480224609,
+      "peakRssMiB": 947.03125
+    },
+    {
+      "sample": 1,
+      "n": 100000,
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 2094.854375
+        },
+        "length": {
+          "ms": 4.1477090000003045
+        },
+        "first": {
+          "ms": 4.280041999999867,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 0.9570420000000013
+        },
+        "random": {
+          "ms": 44.93899999999985,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "traverse": {
+          "ms": 3.1193749999997635,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        }
+      },
+      "builtHeapMiB": 603.1146621704102,
+      "retainedHeapMiB": 605.2407150268555,
+      "peakRssMiB": 948.765625
+    },
+    {
+      "sample": 2,
+      "n": 100000,
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 2097.225208
+        },
+        "length": {
+          "ms": 4.175917000000027
+        },
+        "first": {
+          "ms": 4.929957999999715,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "last": {
+          "ms": 1.0519580000000133
+        },
+        "random": {
+          "ms": 45.506124999999884,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        },
+        "traverse": {
+          "ms": 2.9986250000001746,
+          "error": "nested host callbacks exceeded the JavaScript stack"
+        }
+      },
+      "builtHeapMiB": 603.1114959716797,
+      "retainedHeapMiB": 605.2378463745117,
+      "peakRssMiB": 941.03125
+    }
+  ]
+}

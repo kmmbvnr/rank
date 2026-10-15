@@ -324,6 +324,9 @@ Cells are read on demand. Rank-one sequences remain lazy, including sequences
 of unknown length; mixing rank-one arrays and sequences returns a sequence.
 Use `concat unpack Parts axis N` to spread a tensor's leading-axis cells or a
 tuple's items.
+Repeated same-axis concatenation shares array parts without reading their cells.
+Deep concat chains can be read without recursion through every earlier concat;
+this also applies to nested sequence concatenation.
 
 ## Derived values and mutation
 

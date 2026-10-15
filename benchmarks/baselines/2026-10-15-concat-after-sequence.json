@@ -1,0 +1,475 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "platform": "darwin",
+  "results": [
+    {
+      "sample": 0,
+      "n": 1000,
+      "kind": "sequence",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 150.860333
+        },
+        "length": {
+          "ms": 2.922042000000033
+        },
+        "first": {
+          "ms": 1.7102500000000305
+        },
+        "last": {
+          "ms": 1.690041000000008
+        },
+        "traverse": {
+          "ms": 4.480583000000024
+        }
+      },
+      "builtHeapMiB": 7.371253967285156,
+      "retainedHeapMiB": 7.7324371337890625,
+      "peakRssMiB": 128.15625
+    },
+    {
+      "sample": 1,
+      "n": 1000,
+      "kind": "sequence",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 152.09866600000004
+        },
+        "length": {
+          "ms": 3.429708000000005
+        },
+        "first": {
+          "ms": 1.825125000000014
+        },
+        "last": {
+          "ms": 1.9013329999999655
+        },
+        "traverse": {
+          "ms": 4.762958000000026
+        }
+      },
+      "builtHeapMiB": 7.370872497558594,
+      "retainedHeapMiB": 7.7229766845703125,
+      "peakRssMiB": 128.046875
+    },
+    {
+      "sample": 2,
+      "n": 1000,
+      "kind": "sequence",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 153.407583
+        },
+        "length": {
+          "ms": 2.9506660000000124
+        },
+        "first": {
+          "ms": 1.7317089999999666
+        },
+        "last": {
+          "ms": 1.7463750000000005
+        },
+        "traverse": {
+          "ms": 4.607290999999975
+        }
+      },
+      "builtHeapMiB": 7.391136169433594,
+      "retainedHeapMiB": 7.9022674560546875,
+      "peakRssMiB": 128.28125
+    },
+    {
+      "sample": 0,
+      "n": 1000,
+      "kind": "sequence",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 155.488667
+        },
+        "length": {
+          "ms": 3.077459000000033
+        },
+        "first": {
+          "ms": 1.786625000000015
+        },
+        "last": {
+          "ms": 1.75487499999997
+        },
+        "traverse": {
+          "ms": 5.180250000000001
+        }
+      },
+      "builtHeapMiB": 7.511955261230469,
+      "retainedHeapMiB": 8.323158264160156,
+      "peakRssMiB": 127.890625
+    },
+    {
+      "sample": 1,
+      "n": 1000,
+      "kind": "sequence",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 155.57904200000002
+        },
+        "length": {
+          "ms": 3.072125000000028
+        },
+        "first": {
+          "ms": 1.7964589999999703
+        },
+        "last": {
+          "ms": 1.7228749999999877
+        },
+        "traverse": {
+          "ms": 5.13575000000003
+        }
+      },
+      "builtHeapMiB": 7.4981231689453125,
+      "retainedHeapMiB": 7.880393981933594,
+      "peakRssMiB": 127.84375
+    },
+    {
+      "sample": 2,
+      "n": 1000,
+      "kind": "sequence",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 153.931167
+        },
+        "length": {
+          "ms": 3.1275420000000054
+        },
+        "first": {
+          "ms": 1.8207910000000425
+        },
+        "last": {
+          "ms": 1.7547079999999937
+        },
+        "traverse": {
+          "ms": 5.246332999999993
+        }
+      },
+      "builtHeapMiB": 7.498344421386719,
+      "retainedHeapMiB": 7.880378723144531,
+      "peakRssMiB": 128.125
+    },
+    {
+      "sample": 0,
+      "n": 10000,
+      "kind": "sequence",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 181.03166600000003
+        },
+        "length": {
+          "ms": 3.2382920000000013
+        },
+        "first": {
+          "ms": 3.8937080000000037
+        },
+        "last": {
+          "ms": 12.843459000000053
+        },
+        "traverse": {
+          "ms": 14.88591699999995
+        }
+      },
+      "builtHeapMiB": 17.81268310546875,
+      "retainedHeapMiB": 20.248138427734375,
+      "peakRssMiB": 153.65625
+    },
+    {
+      "sample": 1,
+      "n": 10000,
+      "kind": "sequence",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 185.71695900000003
+        },
+        "length": {
+          "ms": 3.2901669999999967
+        },
+        "first": {
+          "ms": 4.0495409999999765
+        },
+        "last": {
+          "ms": 13.972582999999986
+        },
+        "traverse": {
+          "ms": 15.276499999999999
+        }
+      },
+      "builtHeapMiB": 17.856903076171875,
+      "retainedHeapMiB": 20.28638458251953,
+      "peakRssMiB": 160.953125
+    },
+    {
+      "sample": 2,
+      "n": 10000,
+      "kind": "sequence",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 187.3625
+        },
+        "length": {
+          "ms": 3.238208000000043
+        },
+        "first": {
+          "ms": 3.757000000000005
+        },
+        "last": {
+          "ms": 13.356416999999965
+        },
+        "traverse": {
+          "ms": 14.653999999999996
+        }
+      },
+      "builtHeapMiB": 17.84772491455078,
+      "retainedHeapMiB": 20.27142333984375,
+      "peakRssMiB": 160.796875
+    },
+    {
+      "sample": 0,
+      "n": 10000,
+      "kind": "sequence",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 188.66891700000002
+        },
+        "length": {
+          "ms": 3.3040419999999813
+        },
+        "first": {
+          "ms": 4.04608300000001
+        },
+        "last": {
+          "ms": 13.944999999999993
+        },
+        "traverse": {
+          "ms": 15.740916000000027
+        }
+      },
+      "builtHeapMiB": 17.997116088867188,
+      "retainedHeapMiB": 20.579490661621094,
+      "peakRssMiB": 160.625
+    },
+    {
+      "sample": 1,
+      "n": 10000,
+      "kind": "sequence",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 188.517
+        },
+        "length": {
+          "ms": 3.3197910000000093
+        },
+        "first": {
+          "ms": 3.959541999999999
+        },
+        "last": {
+          "ms": 14.04479200000003
+        },
+        "traverse": {
+          "ms": 17.315750000000037
+        }
+      },
+      "builtHeapMiB": 17.99797821044922,
+      "retainedHeapMiB": 20.4508056640625,
+      "peakRssMiB": 160.859375
+    },
+    {
+      "sample": 2,
+      "n": 10000,
+      "kind": "sequence",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 183.756042
+        },
+        "length": {
+          "ms": 3.224166999999966
+        },
+        "first": {
+          "ms": 3.9965420000000336
+        },
+        "last": {
+          "ms": 12.16945899999996
+        },
+        "traverse": {
+          "ms": 15.847375
+        }
+      },
+      "builtHeapMiB": 17.97136688232422,
+      "retainedHeapMiB": 20.418663024902344,
+      "peakRssMiB": 153.96875
+    },
+    {
+      "sample": 0,
+      "n": 100000,
+      "kind": "sequence",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 457.06383299999993
+        },
+        "length": {
+          "ms": 3.8312089999999444
+        },
+        "first": {
+          "ms": 30.391707999999994
+        },
+        "last": {
+          "ms": 139.85395800000003
+        },
+        "traverse": {
+          "ms": 136.953125
+        }
+      },
+      "builtHeapMiB": 129.54764556884766,
+      "retainedHeapMiB": 153.0812530517578,
+      "peakRssMiB": 419.421875
+    },
+    {
+      "sample": 1,
+      "n": 100000,
+      "kind": "sequence",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 456.92754199999996
+        },
+        "length": {
+          "ms": 3.7372500000000173
+        },
+        "first": {
+          "ms": 32.03079200000002
+        },
+        "last": {
+          "ms": 141.862792
+        },
+        "traverse": {
+          "ms": 148.547375
+        }
+      },
+      "builtHeapMiB": 129.54486083984375,
+      "retainedHeapMiB": 153.18920135498047,
+      "peakRssMiB": 426.40625
+    },
+    {
+      "sample": 2,
+      "n": 100000,
+      "kind": "sequence",
+      "compilation": false,
+      "measurements": {
+        "build": {
+          "ms": 465.43833399999994
+        },
+        "length": {
+          "ms": 3.7493329999999787
+        },
+        "first": {
+          "ms": 38.25679200000002
+        },
+        "last": {
+          "ms": 146.67212499999994
+        },
+        "traverse": {
+          "ms": 156.946417
+        }
+      },
+      "builtHeapMiB": 129.57403564453125,
+      "retainedHeapMiB": 152.81497192382812,
+      "peakRssMiB": 419.75
+    },
+    {
+      "sample": 0,
+      "n": 100000,
+      "kind": "sequence",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 464.510166
+        },
+        "length": {
+          "ms": 3.6062500000000455
+        },
+        "first": {
+          "ms": 29.423708000000033
+        },
+        "last": {
+          "ms": 145.90912500000002
+        },
+        "traverse": {
+          "ms": 139.69350000000009
+        }
+      },
+      "builtHeapMiB": 129.6934051513672,
+      "retainedHeapMiB": 152.9940414428711,
+      "peakRssMiB": 426.59375
+    },
+    {
+      "sample": 1,
+      "n": 100000,
+      "kind": "sequence",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 465.23079099999995
+        },
+        "length": {
+          "ms": 3.5538329999999405
+        },
+        "first": {
+          "ms": 28.697291000000064
+        },
+        "last": {
+          "ms": 137.689208
+        },
+        "traverse": {
+          "ms": 143.75104199999987
+        }
+      },
+      "builtHeapMiB": 129.69589233398438,
+      "retainedHeapMiB": 152.99608612060547,
+      "peakRssMiB": 425.90625
+    },
+    {
+      "sample": 2,
+      "n": 100000,
+      "kind": "sequence",
+      "compilation": true,
+      "measurements": {
+        "build": {
+          "ms": 461.99029200000007
+        },
+        "length": {
+          "ms": 3.614749999999958
+        },
+        "first": {
+          "ms": 31.6785000000001
+        },
+        "last": {
+          "ms": 141.992791
+        },
+        "traverse": {
+          "ms": 138.60325000000012
+        }
+      },
+      "builtHeapMiB": 129.73290252685547,
+      "retainedHeapMiB": 153.2478790283203,
+      "peakRssMiB": 422.34375
+    }
+  ]
+}

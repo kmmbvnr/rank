@@ -1,3 +1,4 @@
+import { concatArrays } from '../concat-array.js';
 import { orderedSource } from '../ordered-source.js';
 import { collectionSize } from '../collection-size.js';
 import { elementSource } from '../element-source.js';
@@ -362,6 +363,31 @@ export function stackValues(values: readonly RankValue[], axis = 0): RankArray {
     });
 }
 
+const concatPlans = new WeakMap<SequencePlan, {
+    sources: readonly (RankArray | RankSequence)[];
+    iterate: SequencePlan['iterate'];
+}>();
+
+function* concatItems(sources: readonly (RankArray | RankSequence)[]): Generator<RankValue> {
+    const pending = [sources[Symbol.iterator]()];
+    while (pending.length) {
+        checkpoint('concatenating items');
+        const next = pending[pending.length - 1].next();
+        if (next.done) { pending.pop(); continue; }
+        const source = next.value;
+        if (isRankSequence(source)) {
+            const nested = concatPlans.get(source.plan);
+            if (nested && nested.iterate === source.plan.iterate) pending.push(nested.sources[Symbol.iterator]());
+            else yield* source.plan.iterate();
+        } else {
+            for (let index = 0; index < source.shape[0]; index++) {
+                checkpoint('concatenating items');
+                yield readArrayItem(source, index);
+            }
+        }
+    }
+}
+
 /** Join equal-rank arrays on an existing axis. Rank-one sequences retain their plans. */
 export function concatValues(values: readonly RankValue[], axis = 0): RankArray | RankSequence {
     const mismatch = (message: string) => new RankError(message, 'DimensionMismatch');
@@ -391,23 +417,16 @@ export function concatValues(values: readonly RankValue[], axis = 0): RankArray 
             else if (size.kind === 'infinite') infinite = true;
             else unknown = true;
         }
-        return sequence({
+        const result = sequence({
             name: 'concat',
             size: infinite ? { kind: 'infinite' } : unknown ? { kind: 'unknown' } : { kind: 'exact', value: exact },
             singlePass: sources.some(source => isRankSequence(source) && source.plan.singlePass),
-            *iterate() {
-                for (const source of sources) {
-                    if (isRankSequence(source)) yield* source.plan.iterate();
-                    else for (let index = 0; index < source.shape[0]; index += 1) {
-                        checkpoint('concatenating items');
-                        yield readArrayItem(source, index);
-                    }
-                }
-            },
+            iterate: () => concatItems(sources),
         });
+        concatPlans.set(result.plan, { sources, iterate: result.plan.iterate });
+        return result;
     }
     const shape = [...arrays[0]!.shape];
-    const bounds: number[] = [];
     let total = 0;
     for (const source of arrays) {
         checkpoint('concatenating items');
@@ -415,22 +434,9 @@ export function concatValues(values: readonly RankValue[], axis = 0): RankArray 
             index !== axis && length !== shape[index])) throw mismatch('concat items must match on non-concatenated axes');
         total += source.shape[axis];
         if (!Number.isSafeInteger(total)) throw mismatch('concat axis is too long');
-        bounds.push(total);
     }
     shape[axis] = total;
-    return derivedArray(shape, arrays, index => {
-        const coordinates = coordinatesAt(shape, index);
-        let low = 0, high = bounds.length;
-        while (low < high) {
-            const middle = (low + high) >>> 1;
-            if (coordinates[axis] < bounds[middle]) high = middle;
-            else low = middle + 1;
-        }
-        const sourceIndex = low;
-        const start = sourceIndex === 0 ? 0 : bounds[sourceIndex - 1];
-        coordinates[axis] -= start;
-        return readArrayItem(arrays[sourceIndex]!, offsetAt(arrays[sourceIndex]!.shape, coordinates));
-    });
+    return concatArrays(arrays, shape, axis);
 }
 
 export function transposeValue(value: RankValue, axes?: readonly number[]): RankValue {

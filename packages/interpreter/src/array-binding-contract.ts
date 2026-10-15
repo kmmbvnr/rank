@@ -1,3 +1,4 @@
+import { inheritConcatCheck } from './concat-array.js';
 import { resume, type Execution } from './execution.js';
 import { arrayDeclaration, declareArray } from './array-declaration.js';
 import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType } from './semantic-array-type.js';
@@ -149,7 +150,7 @@ export class ArrayBindingContract {
         return keys.reverse();
     }
 
-    private prepare(value: RankValue, path: Path | undefined, active: Set<RankArray>): Prepared {
+    private prepare(value: RankValue, path: Path | undefined, active: Set<RankArray>, forbidden?: WeakSet<RankArray>): Prepared {
         let result: Prepared;
         const tasks: (() => void)[] = [];
         const visit = (value: RankValue, path: Path | undefined, done: (prepared: Prepared) => void): void => {
@@ -177,7 +178,7 @@ export class ArrayBindingContract {
                 const complete = done;
                 done = prepared => complete({ ...prepared, contract: this.merge(declared, prepared.contract) });
             }
-            if (active.has(value)) throw new RankError(`${this.name}: cyclic arrays cannot establish an element contract`, 'TypeError');
+            if (active.has(value) || forbidden?.has(value)) throw new RankError(`${this.name}: cyclic arrays cannot establish an element contract`, 'TypeError');
             if (value.columnNames && value.shape.length === 2) {
                 active.add(value);
                 const columns: Prepared[] = [];
@@ -226,11 +227,12 @@ export class ArrayBindingContract {
         return result!;
     }
 
-    private lazy(value: RankArray, base: Contract, path: Path | undefined): Prepared {
-        const version = this.version ??= ownedArray([0n]);
-        const prepared: Prepared = { value, contract: base };
-        const size = value.shape.reduce((a, b) => a * b, 1);
-        const validate = (item: RankValue): RankValue => {
+    // The reusable concat check must not keep an obsolete reader alive. If its
+    // source has died, it cannot occur in a cell cycle; live sources retain the
+    // same recursive contract validation as an ordinary lazy binding.
+    private validator(value: RankArray, base: Contract, path: Path | undefined): (item: RankValue) => RankValue {
+        const source = new WeakSet([value]);
+        return (item: RankValue): RankValue => {
             // A scalar of an established root element type cannot refine the
             // contract. Still inspect every read: host readers can change type.
             if (path === undefined) {
@@ -245,7 +247,7 @@ export class ArrayBindingContract {
                     }
                 }
             }
-            const child = this.prepare(item, { parent: path, key: this.key(item) }, new Set([value]));
+            const child = this.prepare(item, { parent: path, key: this.key(item) }, new Set(), source);
             const expected = this.at(path);
             // Every observed cell must fit the one element domain.
             if (expected) {
@@ -254,6 +256,13 @@ export class ArrayBindingContract {
             }
             return child.value;
         };
+    }
+
+    private lazy(value: RankArray, base: Contract, path: Path | undefined): Prepared {
+        const version = this.version ??= ownedArray([0n]);
+        const prepared: Prepared = { value, contract: base };
+        const size = value.shape.reduce((a, b) => a * b, 1);
+        const validate = this.validator(value, base, path);
         const evaluate = function* (index: number): Execution<RankValue> {
             let item: RankValue;
             let missing: MissingValueError | undefined;
@@ -301,6 +310,7 @@ export class ArrayBindingContract {
         const checked = registerCachedArray(registerArrayDependencies({ kind: 'array' as const,
             shape: value.shape, itemAt: read, containsFiles: value.containsFiles,
             get items() { return all(); } }, [value, version]), peek);
+        if (path === undefined) inheritConcatCheck(value, checked, this, validate, version);
         registerArrayReadPlan(checked, prepare);
         registerArrayCellEvaluation(checked, evaluate);
         this.metadata(value, checked);

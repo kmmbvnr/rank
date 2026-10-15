@@ -356,3 +356,87 @@ regressions or different workload behavior.
 Verification: build, 429 JS tests, 154 demo files and all six judge-scale cases
 at N = 200,000 passed. The judge timeout results alone are not used to claim
 unchanged performance.
+
+
+## Deep lazy concat (#274, 2026-10-15)
+
+Repeated same-axis array concatenation now uses a persistent AVL rope. Leaves
+share source arrays; balanced joins copy only the affected tree paths. Indexed
+lookup descends iteratively. Binding checks travel with their ranges, and shared
+dependency nodes retain revision and copy-on-write proofs without retaining
+obsolete concat readers and their cell caches. Nested sequence concatenation
+uses an explicit traversal stack instead of recursive generator delegation.
+Different-axis concat inputs remain opaque; this does not promise stack safety
+for arbitrarily deep chains of other operations or alternating axes.
+
+Reproduce after building:
+
+```sh
+npx tsc -b tsconfig.build.json
+node --expose-gc benchmarks/concat.mjs --require-success=true
+node --expose-gc benchmarks/concat.mjs --kind=sequence --require-success=true
+```
+
+Apple M5, macOS, Node v24.15.0. Baseline: `212e495f`; candidate: the #274
+implementation accompanying this report. Each table entry is the median of
+three separate cold Node processes. Construction includes parsing and runtime
+execution. Each later operation is separately parsed; these are end-to-end
+timings, not isolated tree lookup costs. No assistant-launched test or benchmark
+overlapped the final candidate runs; unrelated machine activity was uncontrolled.
+
+Each array contains distinct integers from 0 to N-1. The benchmark checks length,
+first and last cells, 1,000 deterministic indexed reads, and the full traversal
+sum. Traversal follows the indexed reads, so some cells are already cached.
+`--require-success=true` rejects any failed operation or incorrect result.
+Baseline failures are retained in the raw data; a failure is not a usable timing.
+
+| Parts | Mode | Build before → after (ms) | First after (ms) | Last after (ms) | 1,000 reads after (ms) | Traverse after (ms) |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| 1,000 | Reference | 172.8 → 176.9 | 1.73 | 0.51 | 37.2 | 2.2 |
+| 1,000 | Compiled | 177.7 → 179.1 | 1.74 | 0.52 | 38.6 | 2.4 |
+| 10,000 | Reference | 351.7 → 405.1 | 1.82 | 0.51 | 37.1 | 17.2 |
+| 10,000 | Compiled | 359.1 → 405.6 | 1.86 | 0.52 | 38.8 | 17.5 |
+| 100,000 | Reference | 2095.0 → 3060.2 | 2.08 | 0.57 | 49.9 | 188.0 |
+| 100,000 | Compiled | 2094.9 → 3048.1 | 2.02 | 0.57 | 52.2 | 186.6 |
+
+Before the change, all three first-cell reads failed at every tested size in
+both modes. At 10,000 and 100,000 parts, indexed batches and full traversal also
+failed. At 1,000, later reads happened to succeed after the failed first access;
+the stack threshold depends on execution state. Length and last-cell reads
+succeeded before and after. Candidate length queries took 3.2–4.1 ms.
+
+| Parts | Mode | Heap after build before → after (MiB) | Heap after reads before → after (MiB) | Peak RSS before → after (MiB) |
+| ---: | --- | ---: | ---: | ---: |
+| 1,000 | Reference | 12.4 → 9.9 | 31.6 → 10.9 | 208.8 → 154.5 |
+| 1,000 | Compiled | 12.5 → 10.1 | 32.2 → 11.0 | 208.9 → 155.1 |
+| 10,000 | Reference | 64.2 → 38.1 | 65.0 → 39.7 | 276.9 → 299.7 |
+| 10,000 | Compiled | 64.3 → 38.2 | 65.2 → 39.9 | 252.2 → 300.2 |
+| 100,000 | Reference | 603.0 → 320.8 | 605.0 → 326.1 | 945.3 → 904.8 |
+| 100,000 | Compiled | 603.1 → 320.7 | 605.2 → 326.1 | 947.0 → 894.0 |
+
+Heap is the increase over an initialized interpreter after explicit GC. Peak
+RSS includes the entire process and transient allocations. The baseline's
+post-read heap follows failed reads, whereas the candidate completed all reads;
+these are different completed workloads. At 100,000 parts, retained build heap
+fell about 47%, but construction became about 46% slower. Peak RSS fell only
+4–6%, and increased at 10,000 parts. This fixes stack safety and avoids copying
+an ever-growing parts vector; it is not an across-the-board speed improvement.
+
+Sequence results (no baseline sequence timing was recorded):
+
+| Parts | Mode | Build (ms) | First (ms) | Last (ms) | Traverse (ms) | Build heap (MiB) | Peak RSS (MiB) |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1,000 | Reference | 152.1 | 1.73 | 1.75 | 4.6 | 7.4 | 128.2 |
+| 1,000 | Compiled | 155.5 | 1.80 | 1.75 | 5.2 | 7.5 | 127.9 |
+| 10,000 | Reference | 185.7 | 3.89 | 13.36 | 14.9 | 17.8 | 160.8 |
+| 10,000 | Compiled | 188.5 | 4.00 | 13.94 | 15.9 | 18.0 | 160.6 |
+| 100,000 | Reference | 457.1 | 32.03 | 141.86 | 148.6 | 129.5 | 419.8 |
+| 100,000 | Compiled | 464.5 | 29.42 | 141.99 | 139.7 | 129.7 | 425.9 |
+
+Sequences preserve stream behavior, including unknown lengths, infinite sources
+and single-pass iterators. They do not acquire logarithmic random access:
+reaching the first leaf of a left-nested concat still traverses its plan chain.
+
+Raw samples: [baseline arrays](../../benchmarks/baselines/2026-10-15-concat-before.json),
+[candidate arrays](../../benchmarks/baselines/2026-10-15-concat-after-array.json),
+[candidate sequences](../../benchmarks/baselines/2026-10-15-concat-after-sequence.json).

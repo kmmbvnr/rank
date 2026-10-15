@@ -557,11 +557,15 @@ export function holdArraySource(value: RankArray, source: RankArray): void {
 }
 
 function shareSources(value: RankArray): void {
-    for (const source of [...derivedRevisions.get(value)?.sources ?? [], ...heldSources.get(value) ?? []]) {
-        const record = ownershipFor(source);
-        if (record.owners === SHARED) continue;
-        record.owners = SHARED;
-        shareSources(source);
+    const pending = [value];
+    while (pending.length) {
+        const current = pending.pop()!;
+        for (const source of [...derivedRevisions.get(current)?.sources ?? [], ...heldSources.get(current) ?? []]) {
+            const record = ownershipFor(source);
+            if (record.owners === SHARED) continue;
+            record.owners = SHARED;
+            pending.push(source);
+        }
     }
 }
 
@@ -1010,6 +1014,14 @@ export function ownedObject(entries: Iterable<readonly [string, RankValue]>): Ra
         epoch: -1, values: () => map.values(), own: () => map.revision,
     });
     return map.resources.track(object);
+}
+
+/** A shared dependency/ownership node with no cell reader or cell cache. Keeping
+ * these nodes lets concat release obsolete readers while retaining source proofs. */
+export function arrayDependencyNode(sources: readonly RankArray[]): RankArray {
+    const node: RankArray = { kind: 'array', shape: [0], items: [] };
+    derivedRevisions.set(node, { epoch: -1, values: () => sources, sources });
+    return node;
 }
 
 /** Publish dependencies for a pure producer with a dynamically inferred shape. */

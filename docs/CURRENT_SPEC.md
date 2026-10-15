@@ -2927,6 +2927,9 @@ Its cells are read from the chosen source on demand. With rank-one sequences, in
 ones of unknown length, the result is a lazy sequence; mixing rank-one arrays
 and sequences also returns a sequence. An array or tuple of arguments can be
 spread with `concat unpack Items axis N`.
+Repeated same-axis concatenation shares array parts without reading their cells.
+Deep concat chains can be read without recursion through every earlier concat;
+this also applies to nested sequence concatenation.
 
 ## Sliding windows
 
