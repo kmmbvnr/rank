@@ -508,6 +508,14 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 if (grouped) return expression(grouped);
                 const parts = flattenApplication(value);
                 const form = applicationForm(value, name => isBound(name) || locals.has(name) ? false : findOperation(name));
+                // Zero repeat still evaluates its operands, but never invokes either callback.
+                // Only direct, known non-nullary function references can be skipped here.
+                if (form.kind === 'repeat' && fact(form.count).integer === '0') {
+                    const reference = (value: Expression, arity: number): boolean =>
+                        isNameExpression(value) && helperFor(value.name)?.parameters.length === arity;
+                    return expression(form.source) && expression(form.count)
+                        && reference(form.operation, 1) && (!form.until || reference(form.until, 2));
+                }
                 if (form.kind === 'rank' && form.rank === 0n && form.rightRank === undefined
                     && !form.axes && form.parts.length === 2 && isNameExpression(form.parts[1])
                     && ['integer', 'real'].includes(form.parts[1].name)
