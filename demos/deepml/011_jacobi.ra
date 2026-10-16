@@ -14,7 +14,7 @@ fun A B N jacobi
 
   X = array shape Size fill 0.0
 
-  for # in 0 till N
+  fun X step
     Next = array shape Size fill 0.0
 
     for i in 0 till Size
@@ -24,8 +24,8 @@ fun A B N jacobi
       Next i = Residual / Diagonal
     end
 
-    X = Next round 4
+    return Next round 4
   end
 
-  return X
+  return X step repeat N
 end

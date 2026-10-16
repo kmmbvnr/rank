@@ -15,20 +15,11 @@ Part2 print
 
 rem Return the lengths after 40 and 50 look-and-say rounds.
 fun Value solve
-  After40 = Value 40 describe
-  After50 = After40 10 describe
+  After40 = Value look repeat 40
+  After50 = After40 look repeat 10
   Part1 = After40 len
   Part2 = After50 len
   return array Part1 Part2
-end
-
-
-rem Apply the look-and-say description repeatedly.
-fun Value Rounds describe
-  for Round in 0 till Rounds
-    Value = Value look
-  end
-  return Value
 end
 
 

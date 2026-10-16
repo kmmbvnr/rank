@@ -1271,6 +1271,9 @@ export const operations: readonly Operation[] = [
 ];
 
 export const moduleForms: readonly ModuleForm[] = [
+    { module: 'core', form: 'Init next repeat Count',
+        example: 'fun X double = X * 2\nResult = 1 double repeat 3',
+        summary: 'Applies a unary function to the whole state a nonnegative integer number of times; zero returns Init.' },
     { module: 'sequences', form: 'stack A B ... axis N', example: 'X = array 1 2\nY = array 3 4\nPairs = stack X Y',
         summary: 'Lazily inserts an axis (default 0) between equally shaped arrays or exact-size sequences.' },
     { module: 'sequences', form: 'concat A B ... axis N', example: 'X = array 1 2\nY = array 3 4\nJoined = concat X Y',

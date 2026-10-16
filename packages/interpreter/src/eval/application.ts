@@ -3,6 +3,7 @@ import {
     isUnaryExpression, isParenthesizedExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression,
     renamedBuiltinCall, type DeclaredCallExpression, type ApplicationForm, type ArrayItem, type Expression, type Operation,
 } from '@arrrank/language';
+import { checkpoint } from '../interrupt.js';
 import { ownedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import {
@@ -629,6 +630,25 @@ export class ApplicationEvaluator {
                         ? yield* resume(context.evaluate(segment.identity)) : undefined;
                     const operation = yield* resume(context.evaluate(segment.operation));
                     return namedSegment(source, operation, identity, context.builtins.standard('algo', 'maxsum'));
+                };
+            }
+            case 'repeat': {
+                return function* (): Execution<RankValue> {
+                    let state = yield* resume(context.evaluate(form.source));
+                    const operation = yield* resume(context.evaluate(form.operation));
+                    const count = yield* resume(context.evaluate(form.count));
+                    if (!isNativeFunction(operation) || !operation.arities.includes(1)) {
+                        throw new RankError('repeat requires a unary function', 'TypeError');
+                    }
+                    if (typeof count !== 'bigint') {
+                        throw new RankError('repeat count must be an integer', 'TypeError');
+                    }
+                    if (count < 0n) throw new RankError('repeat count must be nonnegative', 'DomainError');
+                    for (let step = 0n; step < count; step++) {
+                        checkpoint('repeating function');
+                        state = yield* resume(context.functions.invoke(operation, [state]));
+                    }
+                    return state;
                 };
             }
             case 'named-reduce':

@@ -23,6 +23,7 @@ it.each([
     ['A window 2 axis 0', 'window'], ['A 1 shift with 9', 'axis-shift'],
     ['A 1 shift with 9 axis 1', 'axis-shift'], ['A 1 shift axis 1', 'axis-shift'], ['A 1 shift', 'plain'], ['A window 2 padding 1 with 9', 'window'],
     ['A window 2 stride 2 padding 1 with 9 axis 1', 'window'], ['A B equal rank 1', 'comparison-rank'],
+    ['A next repeat 3', 'repeat'],
     ['A scan min with 0', 'named-scan'], ['A segment min', 'named-segment'],
     ['A reduce min with 0', 'named-reduce'], ['A reduce min', 'named-reduce'],
     ['A B outer min', 'named-outer'], ['A sort .descending', 'sort-direction'],

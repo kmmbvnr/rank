@@ -78,13 +78,13 @@ for (const compilation of [false, true]) describe(`tensor indices (compiled=${co
 
     it('grows queens placements by one column per placed queen', () => {
         const demo = readFileSync(new URL('../../../demos/classic/queens.ra', import.meta.url), 'utf8');
-        const initial = 'States = array shape 1 0 fill 0';
-        const extend = 'States = concat (States Parent) (Where # (array 1)) axis 1';
+        const initial = 'Init = array shape 1 0 fill 0';
+        const extend = 'return concat Prev Col axis 1';
         expect(demo).toContain(initial);
         expect(demo).toContain(extend);
         const traced = demo.split('States len print')[0]
-            .replace(initial, initial + '\nStates shape print')
-            .replace(extend, extend + '\n  States shape print');
+            .replace(initial, initial + '\nInit shape print')
+            .replace(extend, 'Next = concat Prev Col axis 1\n  Next shape print\n  return Next');
         const shapes: string[] = [];
         const runtime = new Interpreter(text => shapes.push(text), { compilation });
         try {
