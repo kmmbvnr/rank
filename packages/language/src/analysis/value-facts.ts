@@ -209,9 +209,9 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     }
     if (isMaterializeExpression(expression)) {
         const source = expressionFacts(expression.source, lookup);
-        // Sequence rank describes its outer stream. Array-valued or unknown
-        // cells can add axes when materialized, so that rank is not a tensor rank.
-        if (source.types.join() === 'sequence'
+        // Streams and queues may hold array cells that add axes when stacked.
+        // Unknown cells therefore cannot establish the materialized tensor rank.
+        if (['sequence', 'queue'].includes(source.types.join())
             && (!source.elements?.length || source.elements.includes('array'))) {
             return { types: ['array'] };
         }

@@ -217,6 +217,17 @@ it('keeps sequence element types after a plain filter predicate', () => {
     });
 });
 
+it('does not assume a queue materializes to a vector without scalar cell evidence', () => {
+    const bindings = new Map<string, ValueFacts>([
+        ['Unknown', { types: ['queue'] }],
+        ['Rows', { types: ['queue'], elements: ['array'], elementRank: 1 }],
+        ['Numbers', { types: ['queue'], elements: ['integer'] }],
+    ]);
+    expect(facts('Unknown array', bindings)).toEqual({ types: ['array'] });
+    expect(facts('Rows array', bindings)).toEqual({ types: ['array'] });
+    expect(facts('Numbers array', bindings)).toMatchObject({ types: ['array'], rank: 1 });
+});
+
 it('does not use stream rank as materialized tensor rank without known non-array cells', () => {
     const bindings = new Map<string, ValueFacts>([
         ['Unknown', { types: ['sequence'], rank: 1, shape: [null] }],

@@ -504,3 +504,26 @@ it('uses earlier calls for a definition without restoring facts for later calls'
     expect(factsAt(source, source.indexOf('lookup', source.search(/^fun[^\n]*\blookup\b/m)))?.signature).toBe('i → i');
     expect(factsAt(source, source.indexOf('lookup', source.indexOf('A print')))?.signature).toBe('i → ?');
 });
+
+it('does not report a vector for a queue of boards returned from a nested search', () => {
+    const source = `use algo
+use sequences
+fun N solve
+  Board = array shape N fill 0
+  Results = new queue
+  fun visit
+    Results push (Board copy)
+    return 1
+  end
+  Count = visit
+  return Results array
+end
+Solutions = 8 solve
+Solutions len
+`;
+    for (const occurrence of [0, 1]) {
+        const found = factsAt(source, at(source, 'Solutions', occurrence))!;
+        expect(found.facts.types).toEqual(['array']);
+        expect([undefined, 2]).toContain(found.facts.rank);
+    }
+});
