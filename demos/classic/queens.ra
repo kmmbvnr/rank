@@ -3,39 +3,39 @@ rem Place N queens so that none attack
 rem each other.
 
 use sequences
+use bits
 use text
 use io
 
 Size = 8
+Cols = array 0 till Size
 
-Cols = 0 till Size array
+rem Start with one empty board. Each row
+rem of States holds its queen columns.
+States = array shape 1 0 fill 0
 
-rem Each row of States holds the columns
-rem of the queens placed so far.
-rem Start with Size placements of one
-rem queen, one for each possible column.
-States = Cols reshape Size 1
+rem One integer mask per board for used
+rem columns and attacks in the next row.
+Used = array 0
+Left = array 0
+Right = array 0
 
-rem Add a queen in the next row to every
-rem board, once per free column.
-for Row in 1 till Size
-  Dy = Row till 0 by -1
+for Row in 0 till Size
+  Blocked = Used Left bor
+  Blocked = Blocked Right bor
+  Where = (not (Blocked Cols outer bit)) indices
+  Parent = Where # 0
+  Col = Where # 1
 
-  rem A column must be free vertically
-  rem and on both diagonals.
-  fun Q avail
-    Mask = Cols not in Q
-    Mask and= Cols not in (Q + Dy)
-    Mask and= Cols not in (Q - Dy)
-    return Mask
-  end
+  rem Extend each board at every free column.
+  States = concat (States Parent) (Where # (array 1)) axis 1
 
-  Free = States avail rank 1
-  Where = Free indices
-
-  Prev = States (Where # 0)
-  Col = Where # (array 1)
-  States = concat Prev Col axis 1
+  rem Carry the masks to the new boards,
+  rem shifting diagonal attacks one row ahead.
+  Bit = 1 Col shl
+  Used = (Used Parent) Bit bor
+  Left = ((Left Parent) Bit bor) 1 shl
+  Right = ((Right Parent) Bit bor) 1 shr
 end
 
 States len print
