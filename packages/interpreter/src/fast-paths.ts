@@ -196,7 +196,7 @@ export class FastPaths {
             scalarText: this.context.options().scalarTextCompilation !== false,
             nativeCalls: this.context.options().nativeLoopCompilation !== false,
             prepareBuiltinCall: (module, name, types) => prepareCompiledBuiltin(this.context, module, name, types),
-            scalarFunction: (name, types) => this.scalarCall(name, types),
+            scalarFunction: (name, arity) => this.scalarCall(name, arity),
             absolute: this.context.options().absoluteLoopCompilation !== false,
             extrema: this.context.options().extremaLoopCompilation !== false,
             extremeParts: flattenApplication,
@@ -324,32 +324,42 @@ export class FastPaths {
      * when the callee's body is a proven scalar function. `bind` rechecks the
      * binding at loop entry, since the name can be rebound between runs.
      */
-    scalarCall(name: string, types: readonly CompiledCalleeType[]): CompiledCallee | undefined {
+    scalarCall(name: string, arity: number): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined {
         if (this.context.options().scalarCallCompilation === false) return undefined;
         const value = this.context.bindings.find(name);
         const definition = value && isNativeFunction(value) ? this.context.functions.definitionOf(value) : undefined;
-        if (!definition || definition.statement.parameters.length !== types.length) return undefined;
+        if (!definition || definition.statement.parameters.length !== arity) return undefined;
         const statement = definition.statement;
         if (statement.memo || statement.ranks.some(rank => rank !== 'all')) return undefined;
-        const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types, true);
-        if (!proof || typeof proof.type !== 'string') return undefined;
-        const captures = definition.context !== undefined;
-        return { parameters: types, effects: { writes: types.flatMap((type, index) => isCompiledContainer(type) ? [index] : []), stableArrayReads: !proof.containers && !proof.arrayWrites.size },
-            type: proof.type, locals: [...(captures ? proof.locals : []), ...proof.nativeReads], bind: () => {
-            const current = this.context.bindings.find(name);
-            if (!current || !isNativeFunction(current)) return undefined;
-            const active = this.context.functions.definitionOf(current);
-            if (active?.statement !== statement || (active.context !== undefined) !== captures
-                || proof.locals.some(local => active.context?.find(local))) return undefined;
-            const compiled = active.owner.prepareScalarCall(statement, active.context, types, true);
-            if (proof.nativeReads.length && !compiled || compiled?.available && !compiled.available()) return undefined;
-            return (arguments_, tail = false) => {
-                if (tail && active.owner === this.context.functions) {
-                    throw new TailCallSignal(active, arguments_,
-                        this.context.options().compiledScalarTailCalls !== false ? compiled : undefined);
-                }
-                return compiled ? compiled(arguments_) : current.call(arguments_);
+        return types => {
+            const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types, true);
+            if (!proof || typeof proof.type !== 'string') return undefined;
+            const captures = definition.context !== undefined;
+            return {
+                parameters: types,
+                effects: {
+                    writes: types.flatMap((type, index) => isCompiledContainer(type) ? [index] : []),
+                    stableArrayReads: !proof.containers && !proof.arrayWrites.size,
+                },
+                type: proof.type,
+                locals: [...(captures ? proof.locals : []), ...proof.nativeReads],
+                bind: () => {
+                    const current = this.context.bindings.find(name);
+                    if (!current || !isNativeFunction(current)) return undefined;
+                    const active = this.context.functions.definitionOf(current);
+                    if (active?.statement !== statement || (active.context !== undefined) !== captures
+                        || proof.locals.some(local => active.context?.find(local))) return undefined;
+                    const compiled = active.owner.prepareScalarCall(statement, active.context, types, true);
+                    if (proof.nativeReads.length && !compiled || compiled?.available && !compiled.available()) return undefined;
+                    return (arguments_, tail = false) => {
+                        if (tail && active.owner === this.context.functions) {
+                            throw new TailCallSignal(active, arguments_,
+                                this.context.options().compiledScalarTailCalls !== false ? compiled : undefined);
+                        }
+                        return compiled ? compiled(arguments_) : current.call(arguments_);
+                    };
+                },
             };
-        } };
+        };
     }
 }

@@ -78,7 +78,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     modules.add('algo');
                     return { type: source.structure === 'index' ? { kind: 'index' } : { kind: 'deque', mode: source.structure as 'stack' | 'queue' | 'deque' }, input: { name: source.structure, operation: 'new' } };
                 }
-                if (loops && isBinaryExpression(source) && ['in', 'not in'].includes(source.operator) && isNameExpression(source.right)) {
+                if (loops && isBinaryExpression(source) && ['in', 'notin'].includes(source.operator) && isNameExpression(source.right)) {
                     const domain = env.get(source.right.name);
                     if (domain && isCompiledContainer(domain) && domain.kind === 'index' && type(source.left, env) === 'integer') {
                         return { type: 'boolean', input: { name: source.right.name, operation: source.operator === 'in' ? 'contains' : 'not-contains', indices: [expressions.get(source.left)!] } };

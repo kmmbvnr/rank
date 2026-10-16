@@ -2292,9 +2292,10 @@ Total`);
         const result = compare(`fun S width
  return S len
 end
+Text = "hello"
 Total = 0
 for I in 0 till 3
- Total += "hello" width
+ Total += Text width
 end
 Total`);
         expect(result.value).toBe('15');
@@ -2427,10 +2428,10 @@ fun N localindex
  for J in 0 till N
   Cache J = J * 2
  end
- if 1 in Cache
-  return Cache 1
+ if 1 not in Cache
+  return 0
  end
- return 0
+ return Cache 1
 end
 Sum = 0
 for I in 0 till 4
