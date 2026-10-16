@@ -1,5 +1,6 @@
 rem N-Queens
-rem Place N queens so that none attack each other.
+rem Place N queens so that none attack
+rem each other.
 
 use sequences
 use text
@@ -9,15 +10,19 @@ Size = 8
 
 Cols = 0 till Size array
 
-rem Each row of States holds the columns of the queens placed so far.
-rem Start with Size placements of one queen, one for each possible column.
+rem Each row of States holds the columns
+rem of the queens placed so far.
+rem Start with Size placements of one
+rem queen, one for each possible column.
 States = Cols reshape Size 1
 
-rem Add a queen in the next row to every board, once per free column.
+rem Add a queen in the next row to every
+rem board, once per free column.
 for Row in 1 till Size
   Dy = Row till 0 by -1
 
-  rem A column must be free vertically and on both diagonals.
+  rem A column must be free vertically
+  rem and on both diagonals.
   fun avail Q
     Mask = Cols not in Q
     Mask and= Cols not in (Q + Dy)
@@ -28,9 +33,9 @@ for Row in 1 till Size
   Free = States avail rank 1
   Where = Free indices
 
-  Previous = States (Where # 0)
-  Column = (Where # 1) reshape (Where len) 1
-  States = concat Previous Column axis 1
+  Prev = States (Where # 0)
+  Col = (Where # 1) reshape (Where len) 1
+  States = concat Prev Col axis 1
 end
 
 States len print
