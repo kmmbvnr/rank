@@ -1,0 +1,47 @@
+rem N-Queens with iterative backtracking.
+
+use sequences
+use numbers
+use io
+
+fun N queens
+  Board = array shape N fill -1
+  if N equal 0
+    yield Board
+    return
+  end
+
+  Row = 0
+  for Row at least 0
+    Board Row += 1
+    for Board Row less N and not (Board Row safe)
+      Board Row += 1
+    end
+
+    if Board Row less N
+      if Row equal N - 1
+        yield Board
+      else
+        Row += 1
+        Board Row = -1
+      end
+    else
+      Row -= 1
+    end
+  end
+end
+
+fun Board Row safe
+  Col = Board Row
+  for Prev in 0 till Row
+    Dx = (Board Prev) - Col
+    if Dx equal 0 or Dx abs equal Row - Prev
+      return false
+    end
+  end
+  return true
+end
+
+for Board in 8 queens
+  Board print
+end
