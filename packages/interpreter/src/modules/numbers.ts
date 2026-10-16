@@ -4,6 +4,7 @@ import { elementSource, type ElementSource } from '../element-source.js';
 import { markArrayMask } from '../array-mask.js';
 import { denseScalarItems, derivedArray, ownedArray, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
+import { modularPower, probablePrime } from '../primality.js';
 import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import { maxSqlite, sumSqlite } from './sqlite.js';
@@ -87,7 +88,7 @@ export const numbersModule: RuntimeModule = {
     nan: () => Number.NaN,
     gcd: () => native('gcd', 2, arguments_ =>
         greatestCommonDivisor(expectInteger(arguments_[0]), expectInteger(arguments_[1]))),
-    powmod: () => native('powmod', 3, arguments_ => modularPower(
+    powmod: () => native('powmod', 3, arguments_ => checkedModularPower(
         expectInteger(arguments_[0]),
         expectInteger(arguments_[1]),
         expectInteger(arguments_[2]),
@@ -417,20 +418,10 @@ function leastCommonMultiple(left: bigint, right: bigint): bigint {
     return absolute(left / greatestCommonDivisor(left, right) * right);
 }
 
-function modularPower(base: bigint, exponent: bigint, modulus: bigint): bigint {
+function checkedModularPower(base: bigint, exponent: bigint, modulus: bigint): bigint {
     if (exponent < 0n) throw new RankError('powmod exponent must be nonnegative');
     if (modulus <= 0n) throw new RankError('powmod modulus must be positive');
-
-    let factor = ((base % modulus) + modulus) % modulus;
-    let power = exponent;
-    let result = 1n % modulus;
-    while (power > 0n) {
-        checkpoint('computing numbers', 1024);
-        if (power % 2n === 1n) result = result * factor % modulus;
-        factor = factor * factor % modulus;
-        power /= 2n;
-    }
-    return result;
+    return modularPower(base, exponent, modulus);
 }
 
 function exactBinomial(n: bigint, k: bigint): bigint {
@@ -497,40 +488,6 @@ function extendBinomialCache(cache: BinomialCache, limit: number, modulus: bigin
         cache.inverse[index] = inverse;
         cache.inverseFactorial[index] = cache.inverseFactorial[index - 1] * inverse % modulus;
     }
-}
-
-function probablePrime(value: bigint): boolean {
-    if (value < 2n) return false;
-    for (const prime of [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n]) {
-        checkpoint('computing numbers');
-        if (value === prime) return true;
-        if (value % prime === 0n) return false;
-    }
-    let odd = value - 1n;
-    let shifts = 0;
-    while (odd % 2n === 0n) {
-        checkpoint('computing numbers');
-        odd /= 2n;
-        shifts += 1;
-    }
-    for (const witness of [2n, 325n, 9375n, 28178n, 450775n, 9780504n, 1795265022n]) {
-        checkpoint('computing numbers');
-        const base = witness % value;
-        if (base === 0n) continue;
-        let power = modularPower(base, odd, value);
-        if (power === 1n || power === value - 1n) continue;
-        let composite = true;
-        for (let step = 1; step < shifts; step += 1) {
-            checkpoint('computing numbers');
-            power = power * power % value;
-            if (power === value - 1n) {
-                composite = false;
-                break;
-            }
-        }
-        if (composite) return false;
-    }
-    return true;
 }
 
 function absolute(value: bigint): bigint {
