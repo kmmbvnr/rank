@@ -89,7 +89,7 @@ test('live replay marks evaluated lines orange and remaining lines gray', () => 
     const frame = notebookFrame(book, 60, 10, 0, '', false, true, '', 'Running…',
         undefined, 'rank> ', outputs);
     const sourceLine = value => frame.lines.find(line => line.includes(value));
-    assert.match(sourceLine('fun inspect'), /\x1b\[38;5;208m/);
+    assert.match(sourceLine('fun N inspect'), /\x1b\[38;5;208m/);
     assert.match(sourceLine('A = N'), /\x1b\[38;5;208m/);
     assert.match(sourceLine('B = A'), /\x1b\[90m/);
     assert.doesNotMatch(sourceLine('B = A'), /▶/);

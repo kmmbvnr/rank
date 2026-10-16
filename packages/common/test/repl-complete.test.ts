@@ -137,6 +137,10 @@ it('completes declared optional words in live and snapshot editors', async () =>
     try {
         await session.execute('fun X sample .every Step=2 = X * Step', 0, [], 80, true);
         expect(session.complete('3 sample ev')).toEqual([['every '], 'ev']);
+        expect(session.format('3 sample every 4')).toBe('3 sample every 4');
+        expect(sessionEditor(session.snapshot()).format('3 sample every 4')).toBe('3 sample every 4');
+        expect(session.format('fun X sample .every Step=2')).toContain('.every');
+        expect(session.format('.every Step=2')).toContain('.every');
         expect(sessionEditor(session.snapshot()).complete('3 sample ev')).toEqual([['every '], 'ev']);
     } finally { session.dispose(); }
 });

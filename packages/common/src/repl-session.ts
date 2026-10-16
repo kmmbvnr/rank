@@ -740,7 +740,8 @@ interface EditorBindings {
 }
 
 function expand(text: string, interpreter: EditorBindings, localNames: ReadonlySet<string> = new Set()): string {
-    const isBound = (name: string): boolean => interpreter.variables.has(name) || localNames.has(name);
+    const words = new Set(tokenize(text).flatMap(token => callWords(token.text, interpreter)));
+    const isBound = (name: string): boolean => interpreter.variables.has(name) || localNames.has(name) || words.has(name);
     return expandOperators(expandCompoundKeywords(text, isBound), isBound);
 }
 
@@ -846,6 +847,13 @@ function prefixes(line: string, word: string): string[] {
  * word offers only that word: `use` takes a module, and a declared input takes
  * one of the five types before an optional `many`.
  */
+function callWords(name: string, interpreter: EditorBindings): readonly string[] {
+    const value = interpreter.variables.get(name) as RankValue | undefined;
+    return interpreter.callWords?.get(name)
+        ?? (value !== undefined && isNativeFunction(value) ? value.callSignature?.words.map(group => group.word) : undefined)
+        ?? [];
+}
+
 function candidates(
     before: string,
     interpreter: EditorBindings,
@@ -859,11 +867,7 @@ function candidates(
         if (words.length === 3 && INPUT_TYPES.includes(words[2])) return ['many'];
     }
     const declaredWords = words.flatMap(name => {
-        const value = interpreter.variables.get(name) as RankValue | undefined;
-        const declared = interpreter.callWords?.get(name)
-            ?? (value !== undefined && isNativeFunction(value)
-                ? value.callSignature?.words.map(group => group.word) : undefined);
-        return declared?.filter(word => !words.includes(word)) ?? [];
+        return callWords(name, interpreter).filter(word => !words.includes(word));
     });
     return [
         ...declaredWords,

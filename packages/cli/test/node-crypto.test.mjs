@@ -27,7 +27,7 @@ test('the host MD5 provider is inherited by imports and tests', () => {
     let calls = 0;
     const runtime = new Interpreter(undefined, {
         md5: value => { calls += 1; return nodeMd5(value); },
-        loadModule: () => ({ id: '/hash.ra', source: 'use crypto\nfun digest Value\n return Value md5\nend' }),
+        loadModule: () => ({ id: '/hash.ra', source: 'use crypto\nfun Value digest\n return Value md5\nend' }),
     });
     try {
         runtime.execute('use testing\nuse text\nuse "hash"\ntest "hash"\n use text\n use "hash"\n "abc" digest hex equal "900150983cd24fb0d6963f7d28e17f72"\nend');

@@ -161,10 +161,12 @@ function closingQuote(line: string, start: number): { at: number; closed: boolea
  */
 export function expandOperators(line: string, isBound: (name: string) => boolean): string {
     const tokens = tokenize(line);
+    const declaration = ['fun', 'memo'].includes(tokens[0]?.text);
+    const body = declaration ? declarationBody(tokens) ?? tokens.length : 0;
     const edits: { start: number; end: number; text: string }[] = [];
     for (let index = 0; index < tokens.length; index += 1) {
         const current = tokens[index];
-        if (current.kind !== 'word') continue;
+        if (index < body || current.kind !== 'word' || tokens[index - 1]?.text === '.') continue;
         const symbol = OPERATOR_ALIASES[current.text];
         if (symbol === undefined || isBound(current.text)) continue;
         if (current.text !== 'every' && !endsOperand(tokens[index - 1])) continue;
