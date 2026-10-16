@@ -1919,7 +1919,7 @@ for I in 1 to 2
 end
 Total`);
     expect(result.value).toBe('14');
-    expect(result.loops).toBe(0);
+    expect(result.loops).toBe(1);
 });
 
 describe('proven scalar calls from loop regions', () => {
@@ -2268,6 +2268,63 @@ fun N perform
   return 0
 end
 3 perform`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+});
+
+
+describe('typed callees in outer loop regions', () => {
+    it('links eager array reads and guards the outer region', () => {
+        const result = compare(`fun A I cellread
+ return A I
+end
+A = array 3 5 7
+Total = 0
+for I in 0 till 3
+ Total += A I cellread
+end
+Total`);
+        expect(result.value).toBe('15');
+        expect(result.loops).toBe(1);
+    });
+    it('links text parameters and scalar results', () => {
+        const result = compare(`fun S width
+ return S len
+end
+Total = 0
+for I in 0 till 3
+ Total += "hello" width
+end
+Total`);
+        expect(result.value).toBe('15');
+        expect(result.loops).toBe(1);
+    });
+    it('keeps array aliases and observes preceding caller writes', () => {
+        const result = compare(`fun A I cellread
+ return A I
+end
+A = array 3 5 7
+B = A
+Total = 0
+for I in 0 till 3
+ A I = I
+ Total += A I cellread
+end
+array Total (B sum)`);
+        expect(result.value).toBe('3 15');
+        expect(result.loops).toBe(1);
+    });
+    it('preserves bounds errors after caller mutations without replay', () => {
+        const result = compare(`fun A I cellread
+ return A I
+end
+A = array 3 5
+Done = 0
+for I in 0 till 3
+ Done += 1
+ X = A I cellread
+end`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
     });

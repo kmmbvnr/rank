@@ -1,3 +1,4 @@
+import { compiledArgumentType } from './compiled-argument-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
@@ -6,7 +7,7 @@ import {
     flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
-    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledExpression,
+    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledFunctionType, type CompiledExpression,
 } from '@arrrank/language';
 import { completed, type Completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -36,7 +37,7 @@ interface Host {
     readonly scalarText: boolean;
     prepareBuiltinCall(module: string, name: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
-    scalarFunction(name: string, arity: number): CompiledCallee | undefined;
+    scalarFunction(name: string, types: readonly CompiledFunctionType[]): CompiledCallee | undefined;
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
     readonly arrayLocals: boolean;
@@ -387,18 +388,36 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                     lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
                     return { code: name, type: signature.result };
                 }
-                const callable = host.scalarFunction(last.name, parts.length - 1);
+                const arguments_: string[] = [];
+                const types: CompiledFunctionType[] = [];
+                for (let part of parts.slice(0, -1)) {
+                    while (isParenthesizedExpression(part)) part = part.value;
+                    const existing = isNameExpression(part) ? arrays.get(part.name) : undefined;
+                    const current = isNameExpression(part) && !localTypes.has(part.name) ? host.read(part.name) : undefined;
+                    const type = existing ? { kind: 'array' as const, element: existing.type, rank: existing.rank }
+                        : current === undefined ? undefined : compiledArgumentType(current);
+                    if (type && typeof type !== 'string' && isNameExpression(part)) {
+                        if (!host.arrayReads || type.element === 'real' || type.element === 'bytes'
+                            || type.element === 'text' && !host.textArrayLoops
+                            || type.element === 'boolean' && !host.booleanArrays) return undefined;
+                        const info = existing ?? { slot: slot(part.name), rank: type.rank, type: type.element };
+                        arrays.set(part.name, info);
+                        if (!assigned.has(part.name)) arrayInputs.add(part.name);
+                        arguments_.push(`r${info.slot}`);
+                        types.push({ kind: 'array', element: type.element, rank: type.rank });
+                    } else {
+                        const value = emit(part, lines);
+                        if (!value || value.type === 'bytes') return undefined;
+                        arguments_.push(value.code);
+                        types.push(value.type);
+                    }
+                }
+                const callable = host.scalarFunction(last.name, types);
                 if (callable?.type === 'real') return reject(e, 'unsupported-type:real');
                 if (callable) {
-                    const arguments_: string[] = [];
-                    for (const part of parts.slice(0, -1)) {
-                        const value = emit(part, lines);
-                        if (value?.type !== 'integer') return undefined;
-                        arguments_.push(value.code);
-                    }
                     const name = `v${serial++}`, index = calls.length;
-                    // scalarFunctionResult proves that this callee uses only
-                    // scalar parameters and local values. Its binding is still
+                    // The proof permits only read-only inputs and local values.
+                    // The callee binding is still
                     // checked at each region entry.
                     calls.push({ name: last.name, locals: callable.locals, stableArrayReads: callable.effects.stableArrayReads, bind: callable.bind });
                     lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]${tail ? ', tailCallsAllowed' : ''});`);
