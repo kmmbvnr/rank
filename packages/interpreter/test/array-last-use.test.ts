@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RankError, RuntimeDiagnostics, isRankArray, type RankValue } from '../src/index.js';
 import { withInterrupt } from '../src/interrupt.js';
+import { ownedArray } from '../src/array-storage.js';
 
 const change = `fun A change
   A 0 = 9
@@ -26,6 +27,28 @@ describe.each([false, true])('last array use with integer compilation %s', compi
     it('transfers a uniquely owned parameter after addressed writes', () => {
         expect(execute(`${change}\nfun A forward\n A 1 = 4\n return A change\nend\n(array 1 2 3) forward`, compiled))
             .toEqual({ value: [9n, 4n, 3n], copies: 0 });
+    });
+
+    it.each(['First = A 0', 'First = (A (-0))', 'First = (A 0)\n  Second = A 1'])
+        ('transfers a private buffer after bound cell reads: %s', reads => {
+            expect(execute(`${change}\nfun A forward\n  ${reads}\n  return A change\nend\n(array 1 2 3) forward`, compiled))
+                .toEqual({ value: [9n, 2n, 3n], copies: 0 });
+        });
+
+    it('retains the scalar read before handing off a private local', () => {
+        expect(execute(`${change}\nfun solve\n A = array 1 2 3\n First = A 0\n B = A change\n return First + B 0\nend\nsolve`, compiled))
+            .toEqual({ value: 10n, copies: 0 });
+    });
+
+    it('keeps a matrix row alias on the ordinary ownership path', () => {
+        const runtime = new Interpreter(undefined, { integerLoopCompilation: compiled });
+        const diagnostics = new RuntimeDiagnostics();
+        runtime.variables.set('Input', ownedArray([1n, 2n, 3n, 4n], [2, 2]));
+        try {
+            const value = diagnostics.run(() => runtime.execute(`fun A change\n A 0 0 = 9\n return A\nend\nfun A forward\n First = A 0\n B = A change\n return First 0 + (B 0) 0\nend\nInput forward`));
+            expect(value).toBe(10n);
+            expect(diagnostics.cowCopies).toBeGreaterThan(0);
+        } finally { runtime.dispose(); }
     });
 
     it('preserves both caller and callee argument diagnostics during parameter transfer', () => {
@@ -106,13 +129,13 @@ describe.each([false, true])('last array use with integer compilation %s', compi
         expect(execute(`use sequences\nfun A changed\n A 0 = 9\n yield A\nend\nfun solve\n A = array 1 2 3\n Rows = A changed\n return Rows array\nend\nsolve`, compiled).copies).toBe(1);
     });
 
-    it('rejects a buffer previously exposed to a host callback', () => {
+    it.each(['retain', 'len'])('rejects a buffer previously exposed to the host callback %s', reader => {
         const runtime = new Interpreter(undefined, { integerLoopCompilation: compiled });
         let saved: RankValue | undefined;
-        runtime.variables.set('retain', { kind: 'function', name: 'retain', arities: [1], monadicRank: 'all',
+        runtime.variables.set(reader, { kind: 'function', name: reader, arities: [1], monadicRank: 'all',
             call: values => { saved = values[0]; return 0n; } });
         try {
-            runtime.execute(`${change}\nfun solve\n A = array 1 2 3\n Ignored = A retain\n return A change\nend\nsolve`);
+            runtime.execute(`${change}\nfun solve\n A = array 1 2 3\n First = A 0\n Ignored = A ${reader}\n return A change\nend\nsolve`);
             expect(saved !== undefined && isRankArray(saved) && [...saved.items]).toEqual([1n, 2n, 3n]);
         } finally { runtime.dispose(); }
     });

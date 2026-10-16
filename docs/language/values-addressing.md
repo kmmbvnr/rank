@@ -54,8 +54,10 @@ storage to a function that writes it. This does not change value semantics:
 if the caller reads the old value again, or another binding retains it, the
 ordinary copy-on-write path applies. The initial optimization covers flat
 scalar arrays passed directly from a function's straight-line body, after
-construction and addressed writes, or an exclusively owned parameter passed
-onward without earlier reads. Captures, protected blocks, generators and
+construction, addressed writes and cell reads assigned directly to local names
+with literal integer indices, or an exclusively owned parameter passed onward
+under the same conditions. Earlier whole-array uses and unclassified selectors
+keep the ordinary path. Captures, protected blocks, generators and
 debugger inspection keep the ordinary path.
 
 A generator that reuses one buffer therefore emits values, not its buffer:

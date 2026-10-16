@@ -1,8 +1,8 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isArrayAssignmentStatement, isAssignmentStatement, isExpressionStatement, isFunctionBindingStatement, isFunctionStatement,
-    isNameExpression, isParenthesizedExpression, isReturnStatement, isTryStatement, isYieldStatement,
-    type Expression, type FunctionStatement,
+    isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isExpressionStatement, isFunctionBindingStatement, isFunctionStatement,
+    isNameExpression, isNumberLiteral, isParenthesizedExpression, isReturnStatement, isTryStatement, isUnaryExpression, isYieldStatement,
+    type Expression, type FunctionStatement, type NameExpression,
 } from '../generated/ast.js';
 
 const cache = new WeakMap<Expression, readonly (string | undefined)[]>();
@@ -46,14 +46,35 @@ function analyze(expression: Expression, arguments_: readonly Expression[]): rea
         if (!caller.parameters.includes(name)
             && !caller.statements.slice(0, index).some(item => isAssignmentStatement(item) && item.name === name)) return undefined;
         // An earlier unclassified call may retain a local through a host callback
-        // without creating a Rank binding. Only construction and addressed writes
-        // may precede this first whole-value use in the initial proof.
+        // without creating a Rank binding. A directly bound cell read is safe:
+        // scalar cells cannot alias the buffer, and nested cells gain a binding
+        // that the runtime uniqueness check observes if this name is rebound.
         if (caller.statements.slice(0, index).some(item =>
-            [...AstUtils.streamAllContents(item)].some(node => isNameExpression(node) && node.name === name))) return undefined;
+            [...AstUtils.streamAllContents(item)].some(node => isNameExpression(node) && node.name === name
+                && !isBoundCellRead(node)))) return undefined;
         if (uses.filter(node => isNameExpression(node) && node.name === name).length !== 1) return undefined;
         if (later.some(node => 'name' in node && node.name === name)) return undefined;
         return name;
     });
+}
+
+/** No callable or collection selector may observe the whole buffer here. */
+function isBoundCellRead(node: NameExpression): boolean {
+    let head: AstNode = node;
+    while (isParenthesizedExpression(head.$container)) head = head.$container;
+    const read = head.$container;
+    if (!isApplicationExpression(read) || read.head !== head || read.arguments.length !== 1) return false;
+    let selector = read.arguments[0];
+    while (isParenthesizedExpression(selector)) selector = selector.value;
+    if (isUnaryExpression(selector) && (selector.operator === '-' || selector.operator === '+')) {
+        selector = selector.operand;
+        while (isParenthesizedExpression(selector)) selector = selector.value;
+    }
+    if (!isNumberLiteral(selector) || typeof selector.value !== 'bigint') return false;
+    let value: AstNode = read;
+    while (isParenthesizedExpression(value.$container)) value = value.$container;
+    const binding = value.$container;
+    return isAssignmentStatement(binding) && binding.value === value && binding.name !== node.name;
 }
 
 const writes = new WeakMap<FunctionStatement, ReadonlySet<number>>();
