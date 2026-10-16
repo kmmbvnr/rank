@@ -337,7 +337,20 @@ it('does not treat an empty iterator fact as proof that iteration has no callbac
     }
 });
 
-it('keeps the unchanged K-means zero-step call separate from its unsupported loop body', () => {
+it('skips zero-repeat callback bodies but not callback factories or unknown counts', () => {
+    const prefix = 'fun X step\n Unknown callback\n return X\nend\n'
+        + 'fun Prev Next done\n Unknown predicate\n return true\nend\n';
+    const source = prefix + 'fun N helper\n return 1 step repeat N till done\nend';
+    const count = (integer?: string): ValueFacts => ({ types: ['integer'], rank: 0, shape: [], integer });
+    expect(analyze(source, 'helper', [], [count('0')]).unknown).toBe(false);
+    expect(analyze(source, 'helper', [], [count('1')]).unknown).toBe(true);
+    expect(analyze(source, 'helper', [], [count()]).unknown).toBe(true);
+    const factory = prefix + 'fun X predicate\n Unknown factory\n return done\nend\n'
+        + 'fun N helper\n return 1 step repeat 0 till (N predicate)\nend';
+    expect(analyze(factory, 'helper', [], [count('0')]).unknown).toBe(true);
+});
+
+it('keeps the K-means zero-step call separate from its unsupported repeat callback', () => {
     const source = readFileSync(new URL('../../../demos/deepml/017_kmeans.ra', import.meta.url), 'utf8');
     const points: ValueFacts = { types: ['array'], rank: 2, shape: [2, 1], elements: ['integer'],
         eagerScalarCells: true };

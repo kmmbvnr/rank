@@ -1446,7 +1446,17 @@ it('retains a caller fact after the unchanged gradient-descent loop on numeric a
         .toEqual([]);
 });
 
-it('skips an unreachable K-means loop body for a proven zero-step call', () => {
+it('retains facts across zero repeat but still inspects predicate factories', () => {
+    const prefix = 'Count = 1\nfun X step\n Unknown callback\n return X\nend\n'
+        + 'fun Prev Next done\n Unknown predicate\n return true\nend\n';
+    expect(messages(prefix + '0 step repeat 0 till done\nCount + "bad"'))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(prefix + '0 step repeat 1 till done\nCount + "bad"')).toEqual([]);
+    const factory = 'fun X predicate\n Unknown factory\n return done\nend\n';
+    expect(messages(prefix + factory + '0 step repeat 0 till (0 predicate)\nCount + "bad"')).toEqual([]);
+});
+
+it('skips an unreachable K-means repeat callback for a proven zero-step call', () => {
     const source = readFileSync(new URL('../../../demos/deepml/017_kmeans.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*k_means\b/));
     const points = 'Points = array shape 2 1\n 0\n 10\nend';

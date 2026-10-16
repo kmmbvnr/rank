@@ -319,7 +319,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         forgetNonFunctions,
     });
     function invalidateCalls(expression: AstNode, env: Map<string, ValueFacts>): void {
-        const syntax = new Set(['reduce', 'scan', 'outer', 'rank', 'axis', 'with', 'segment', 'from', 'check']);
+        const syntax = new Set(['reduce', 'scan', 'outer', 'rank', 'axis', 'with', 'segment', 'from', 'check', 'repeat', 'till']);
         const effects = functionEffects(name => env.get(name) === functionBindings.get(name) ? functions.get(name) : undefined,
             name => env.get(name)?.types.includes('function') ?? false,
             name => env.has(name), name => env.get(name));
@@ -353,6 +353,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     ?? external?.functions.get(external.name)?.parameters.length;
                 const form = isApplicationExpression(site)
                     ? applicationForm(site, name => env.has(name) ? false : findOperation(name)) : undefined;
+                if (form?.kind === 'repeat' && (node === form.operation || node === form.until)
+                    && arity !== undefined && arity > 0
+                    && expressionFacts(form.count, name => env.get(name)).integer === '0') continue;
                 const ranked = form?.kind === 'rank' && form.parts.at(-1) === node
                     && form.parts.length - 1 === arity ? form : undefined;
                 const arguments_ = ranked ? ranked.parts.slice(0, -1)

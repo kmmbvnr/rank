@@ -2,13 +2,25 @@ import { EmptyFileSystem } from 'langium';
 import { parseHelper } from 'langium/test';
 import { describe, expect, it } from 'vitest';
 import {
-    createRankServices, isApplicationExpression, isBinaryExpression,
+    applicationForm, createRankServices, isApplicationExpression, isBinaryExpression,
     isExpressionStatement, isParenthesizedExpression, type Program,
 } from '../src/index.js';
 
 const parse = parseHelper<Program>(createRankServices(EmptyFileSystem).Rank);
 
 describe('shared expression grouping', () => {
+    it('groups repeat till as a call with a binary predicate', async () => {
+        const document = await parse('fun X step = X + 1\nfun Prev Next done = Next equal 3\n'
+            + '0 step repeat 10 till done', { validation: true });
+        expect(document.diagnostics).toEqual([]);
+        const statement = document.parseResult.value.statements.at(-1)!;
+        if (!isExpressionStatement(statement)) throw new Error('expected expression');
+        expect(applicationForm(statement.value)).toMatchObject({
+            kind: 'repeat', source: { value: 0n }, operation: { name: 'step' },
+            count: { value: 10n }, until: { name: 'done' },
+        });
+    });
+
     it('treats nullary names as data inside formulas and selector chains', async () => {
         const document = await parse('use numbers\nfun pos\n return 1\nend\nA = array 4 9\n2 + A pos sqrt', { validation: true });
         expect(document.diagnostics).toEqual([]);

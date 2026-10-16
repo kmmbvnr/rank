@@ -1349,7 +1349,7 @@ result unknown rather than assuming that its shape is unchanged.
 
 Calls execute sequentially. Captured values and callback effects behave as in
 ordinary calls; errors stop iteration immediately, and earlier effects are not
-rolled back. No callback is skipped or speculatively repeated. Long repetitions
+rolled back. Each required callback runs exactly once. Long repetitions
 remain interruptible. The operation does not itself copy the state each time;
 normal value and reference semantics still apply.
 
@@ -1368,10 +1368,46 @@ end
 This is state transformation, not value replication: `array shape ... fill`
 constructs repeated values. `reduce` and `scan` still consume collection items
 with binary callbacks; they do not accept unary callbacks that ignore those
-items. `repeat` does not collect intermediate history or stop at a fixed point.
+items. `repeat` does not collect intermediate history or detect a fixed point
+automatically.
 See [Queens](../../demos/classic/queens.ra),
 [look-and-say](../../demos/aoc/2015/010_looksay.ra) and
 [Jacobi iteration](../../demos/deepml/011_jacobi.ra).
+
+### Early stopping
+
+`Init next repeat Count till done` performs at most `Count` steps. After each
+step, `done Previous Current` receives both whole states, ignoring declared
+cell ranks, and must return one `boolean`. `true` stops iteration and returns
+`Current`, including the step that satisfied the condition. `false` continues;
+reaching the limit also returns the latest state.
+
+```rank
+fun X step = X + 1
+fun Prev Next done = Next equal 3
+Result = 0 step repeat 10 till done
+rem Result is 3
+```
+
+The predicate expression is evaluated once after the count, before iteration.
+Its binary arity is checked even at zero; zero invokes neither callback and
+returns `Init`. The predicate is not checked on the initial state. Invalid
+predicate arity or a non-boolean result raises `.TypeError`. A step error skips
+its predicate; a predicate error stops before the next step. Earlier effects
+remain visible. Both callbacks can capture values and use default words.
+
+The previous array value remains available when a step writes a new array
+value; ordinary copy-on-write rules apply. Reference-valued states retain their
+normal aliasing behavior: this operation does not deep-copy records or mutable
+containers into snapshots.
+
+Use parentheses to make `till` a range operator after a completed repeat, as
+in `(0 step repeat 2) till 5`. A compound count also needs parentheses.
+
+[K-means](../../demos/deepml/017_kmeans.ra) uses this form to compare consecutive
+centroids. A stopping test that needs intermediate work, such as Lasso's
+gradient, requires carrying that information in the state. Its existing loop
+can be clearer than constructing an extra state solely for the predicate.
 
 ## Reduce
 

@@ -169,6 +169,22 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         | { kind: 'materialize'; original: Expression };
 
     function tokens(expression: Expression): Token[] {
+        // In a repeat call, till introduces a predicate rather than a range bound.
+        if (isBinaryExpression(expression) && expression.operator === 'till') {
+            const before = tokens(expression.left);
+            const call = before.at(-1);
+            const repeat = call?.kind === 'call' && call.parts.some(part =>
+                isNameExpression(part) && part.name === 'repeat' && standard(part));
+            if (!repeat) return [...before, { kind: 'operator', value: expression }, ...tokens(expression.right),
+                ...(expression.step ? [{ kind: 'operator' as const, value: { ...expression, operator: 'by' } },
+                    ...tokens(expression.step)] : [])];
+            const left = flatten(visit(expression.left) as Expression);
+            if (isNameExpression(left[2]) && left[2].name === 'repeat' && standard(left[2])) {
+                if (expression.step) report(expression.step, 'repeat till does not accept a range step with by.');
+                const till = { $type: 'NameExpression', name: 'till', $cstNode: expression.$cstNode } as Expression;
+                return tokens(application([...left, till, ...flatten(expression.right)], expression));
+            }
+        }
         // A pipeline on the left of a comparison makes it symmetric: each side
         // keeps its own calls (`A len equal B len`). Only a bare left operand
         // lets later calls apply to the comparison's result (`A greater 2 sum`).
@@ -237,7 +253,10 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             // repeat receives the function value, including its default words.
             const repeated = new Set(ungrouped.filter((_, index) => {
                 const next = ungrouped[index + 1];
-                return isNameExpression(next) && next.name === 'repeat' && standard('repeat');
+                const previous = ungrouped[index - 1];
+                return isNameExpression(next) && next.name === 'repeat' && standard('repeat')
+                    || isNameExpression(previous) && previous.name === 'till'
+                        && isNameExpression(ungrouped[2]) && ungrouped[2].name === 'repeat' && standard(ungrouped[2]);
             }));
             const raw = groupDeclaredCalls(ungrouped,
                 part => repeated.has(part) ? undefined : declaredSignature(part),
