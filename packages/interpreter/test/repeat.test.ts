@@ -84,6 +84,87 @@ for (const compiled of [false, true]) describe(`repeat (compiled=${compiled})`, 
         expect(run('fun X iterate op N\n return X op repeat N\nend\n' + inc + '1 iterate inc 3')).toBe('4');
     });
 
+    it('stops after a step with previous/current arguments and returns the new state', () => {
+        const done = 'fun Prev Next done = Next at least 3\n';
+        expect(run(inc + done + '0 inc repeat 10 till done')).toBe('3');
+        expect(run(inc + done + '0 inc repeat 2 till done')).toBe('2');
+        expect(run(inc + done + '9 inc repeat 10 till done')).toBe('10');
+        expect(run(inc + done + '0 inc repeat 10 till done text')).toBe('3');
+        const output: string[] = [];
+        expect(run('use io\n' + inc + 'fun Prev Next done\n Prev print\n Next print\n return true\nend\n'
+            + '4 inc repeat 10 till done', output)).toBe('5');
+        expect(output).toEqual(['4', '5']);
+        output.length = 0;
+        expect(run('use io\nfun X step\n X print\n return X\nend\n'
+            + 'fun Prev Next done\n Prev print\n return true\nend\n4 step repeat 0 till done', output)).toBe('4');
+        expect(output).toEqual([]);
+    });
+
+    it('preserves the previous array while the step writes, including rank-declared predicates', () => {
+        const output: string[] = [];
+        const source = 'use io\nuse sequences\nfun A step\n A 0 += 1\n return A\nend\n'
+            + 'fun Prev Next done rank 0 0\n Prev print\n Next print\n return Next 0 at least 3\nend\n'
+            + 'A = array 0 9\nB = A step repeat 10 till done\n';
+        expect(run(source + 'B', output)).toBe('3 9');
+        expect(output).toEqual(['0 9', '1 9', '1 9', '2 9', '2 9', '3 9']);
+        expect(run(source + 'A')).toBe('0 9');
+    });
+
+    it('checks predicate arity at zero and requires a scalar boolean result', () => {
+        expect(() => run(inc + '0 inc repeat 0 till inc')).toThrow(/binary predicate/);
+        expect(() => run(inc + '0 inc repeat 0 till 5')).toThrow(/binary predicate/);
+        for (const result of ['1', 'array true false']) {
+            expect(() => run(inc + `fun Prev Next done = ${result}\n0 inc repeat 2 till done`))
+                .toThrow(/must return a boolean/);
+        }
+        expect(() => run(inc + '0 inc repeat 2 till')).toThrow();
+        expect(() => run(inc + 'fun Prev Next done = true\n0 inc repeat 2 till done by 2'))
+            .toThrow(/does not accept a range step/);
+        expect(() => run(inc + 'fun Prev Next done = true\n0 inc repeat -1 till done'))
+            .toThrow(/nonnegative/);
+    });
+
+    it('propagates predicate errors before another step', () => {
+        const output: string[] = [];
+        expect(() => run('use io\nfun X step\n X print\n return X + 1\nend\n'
+            + 'fun Prev Next done\n .Stop raise\nend\n0 step repeat 10 till done', output)).toThrow();
+        expect(output).toEqual(['0']);
+    });
+
+    it('supports captured predicates, default words, compound counts and normal ranges', () => {
+        expect(run(inc + 'Limit = 0\nfun Prev Next done .by Bound=3\n return Next at least (Bound + Limit)\nend\n'
+            + 'stop = done\n0 inc repeat (2 + 3) till stop')).toBe('3');
+        expect(run('use sequences\n(0 till 3) array')).toBe('0 1 2');
+        expect(run(inc + 'fun Prev Next done = Next at least 3\n(0 inc repeat 5 till done) + 7')).toBe('10');
+    });
+
+    it('handles changing shapes and stops without another callback', () => {
+        const source = 'use sequences\nfun X grow\n return concat X (array 7)\nend\n'
+            + 'fun Prev Next done\n return Next len equal 3\nend\n'
+            + 'N = 10\n(array 1) grow repeat N till done';
+        expect(run(source)).toBe('1 7 7');
+        expect(run('use sequences\n' + inc + '((0 inc repeat 2) till 5) array')).toBe('2 3 4');
+    });
+
+    it('evaluates the predicate expression once after the count', () => {
+        const output: string[] = [];
+        const source = 'use io\nfun X seed\n "seed" print\n return X\nend\n'
+            + 'fun X count\n "count" print\n return X\nend\n'
+            + 'fun Prev Next done = Next equal 2\n'
+            + 'fun X predicate\n "predicate" print\n return done\nend\n';
+        expect(run(source + inc + '(0 seed) inc repeat (5 count) till (0 predicate)', output)).toBe('2');
+        expect(output).toEqual(['seed', 'count', 'predicate']);
+    });
+
+    it('uses repeat in k-means without changing zero/one-step or convergence behavior', () => {
+        const demo = readFileSync(new URL('../../../demos/deepml/017_kmeans.ra', import.meta.url), 'utf8');
+        const source = demo + '\nPoints = array shape 4 1 fill 0\n'
+            + 'Points # 0 = array 0 2 3 10\nCenters = array shape 2 1 fill 0\nCenters 1 0 = 3\n';
+        expect(run(source + 'Points 2 Centers 0 k_means')).toBe('0 3');
+        expect(run(source + 'Points 2 Centers 1 k_means')).toBe('0 5');
+        expect(run(source + 'Points 2 Centers 10 k_means')).toBe('1.6667 10');
+    });
+
     it('evaluates the initial state and count only once before the steps', () => {
         const output: string[] = [];
         const source = 'use io\nfun X seed\n "seed" print\n return X\nend\n'

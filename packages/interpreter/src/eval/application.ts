@@ -637,6 +637,7 @@ export class ApplicationEvaluator {
                     let state = yield* resume(context.evaluate(form.source));
                     const operation = yield* resume(context.evaluate(form.operation));
                     const count = yield* resume(context.evaluate(form.count));
+                    const until = form.until ? yield* resume(context.evaluate(form.until)) : undefined;
                     if (!isNativeFunction(operation) || !operation.arities.includes(1)) {
                         throw new RankError('repeat requires a unary function', 'TypeError');
                     }
@@ -644,9 +645,20 @@ export class ApplicationEvaluator {
                         throw new RankError('repeat count must be an integer', 'TypeError');
                     }
                     if (count < 0n) throw new RankError('repeat count must be nonnegative', 'DomainError');
+                    if (form.until && (until === undefined || !isNativeFunction(until) || !until.arities.includes(2))) {
+                        throw new RankError('repeat till requires a binary predicate', 'TypeError');
+                    }
                     for (let step = 0n; step < count; step++) {
                         checkpoint('repeating function');
+                        const previous = state;
                         state = yield* resume(context.functions.invoke(operation, [state]));
+                        if (until !== undefined && isNativeFunction(until)) {
+                            const stop = yield* resume(context.functions.invoke(until, [previous, state]));
+                            if (typeof stop !== 'boolean') {
+                                throw new RankError('repeat till predicate must return a boolean', 'TypeError');
+                            }
+                            if (stop) break;
+                        }
                     }
                     return state;
                 };

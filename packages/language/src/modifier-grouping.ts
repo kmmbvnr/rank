@@ -42,7 +42,8 @@ function declaredModifier(parts: Expression[], standard: StandardName): number |
 /** The end of a modified call when another pipeline step follows it. */
 function boundary(parts: Expression[], standard: StandardName): number | undefined {
     if (named(parts[2], 'repeat') && isNameExpression(parts[2]) && standard(parts[2])) {
-        return parts.length > 4 ? 4 : undefined;
+        const end = named(parts[4], 'till') ? 6 : 4;
+        return parts.length > end ? end : undefined;
     }
     const window = parts.findIndex((part, index) => index > 0 && isNameExpression(part)
         && named(part, 'window') && standard(part));
