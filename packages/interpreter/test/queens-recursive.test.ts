@@ -6,7 +6,7 @@ for (const compilation of [false, true]) describe(`recursive queens demo (compil
     it('runs the queens demo with small boards and empty solution sets', () => {
         const demo = readFileSync(new URL('../../../demos/classic/queens_recursive.ra', import.meta.url), 'utf8');
         expect(demo).toContain('Size = 8');
-        for (const [size, count] of [[1, 1], [2, 0], [3, 0], [4, 2], [8, 92]]) {
+        for (const [size, count] of [[0, 1], [1, 1], [2, 0], [3, 0], [4, 2], [8, 92]]) {
             const runtime = new Interpreter(() => {}, { compilation });
             try {
                 runtime.execute(demo.replace('Size = 8', `Size = ${size}`));
