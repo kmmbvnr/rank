@@ -1,4 +1,6 @@
-import { arrayDependencyNode, arrayRevision, derivedArray, readArrayItem } from './array-storage.js';
+import { arrayDependencyNode, arrayRevision, derivedArray, readArrayItem, registerArrayReadPlan } from './array-storage.js';
+import { prepareIntegerView } from './integer-view.js';
+import { inspectionEnabled } from './interrupt.js';
 import { arrayOffset, coordinatesAt } from './tensor-index.js';
 import { MISSING, type RankArray, type RankValue } from './value.js';
 import { MissingValueError } from './errors.js';
@@ -121,5 +123,51 @@ export function concatArrays(arrays: readonly RankArray[], shape: readonly numbe
         return item;
     });
     concats.set(value, { axis, dependency, shape: [...shape], root, read: value.itemAt });
+    registerArrayReadPlan(value, () => prepareIntegerConcat(root, shape, axis));
     return value;
+}
+
+/** Copy pure integer leaves directly, without creating per-cell concat caches.
+ * Preparing a leaf must prove its storage without evaluating lazy/host cells. */
+function prepareIntegerConcat(root: Part | undefined, shape: readonly number[], axis: number):
+    ((index: number) => RankValue) | undefined {
+    if (inspectionEnabled() || !root) return undefined;
+    const leaves: { end: number; length: number; read: (index: number) => bigint; checks: Check[] }[] = [];
+    const pending: { part: Part; checks: readonly Check[] }[] = [{ part: root, checks: [] }];
+    let end = 0;
+    while (pending.length) {
+        const { part, checks } = pending.pop()!;
+        const inherited = [...checks, ...(part.checks ?? [])];
+        if ('left' in part) {
+            pending.push({ part: part.right, checks: inherited }, { part: part.left, checks: inherited });
+            continue;
+        }
+        const integers = prepareIntegerView(part.source, true);
+        if (!integers) return undefined;
+        const owners = new Set<object>();
+        const unique = inherited.reverse().filter(check => {
+            if (owners.has(check.owner)) return false;
+            owners.add(check.owner);
+            return true;
+        });
+        end += part.length;
+        leaves.push({ end, length: part.length, read: integers.read, checks: unique });
+    }
+    const stride = shape.slice(axis + 1).reduce((product, size) => product * size, 1);
+    const width = shape[axis];
+    return index => {
+        const coordinate = Math.floor(index / stride) % width;
+        let low = 0, high = leaves.length - 1;
+        while (low < high) {
+            const middle = (low + high) >>> 1;
+            if (coordinate < leaves[middle].end) high = middle;
+            else low = middle + 1;
+        }
+        const leaf = leaves[low];
+        const position = coordinate - (leaf.end - leaf.length);
+        const outer = Math.floor(index / (width * stride));
+        let item: RankValue = leaf.read((outer * leaf.length + position) * stride + index % stride);
+        for (const check of leaf.checks) item = check.apply(item);
+        return item;
+    };
 }

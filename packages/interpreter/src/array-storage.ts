@@ -55,6 +55,17 @@ export function materializedArrayItems(value: RankArray): RankValue[] | undefine
     return Array.isArray(items) ? items : undefined;
 }
 
+/** Copy only our completed storage: host arrays may override slice or expose
+ * observable index getters, and must keep the ordinary cell-reading path. */
+export function copyMaterializedArrayItems(value: RankArray, size: number): RankValue[] | undefined {
+    const owned = ownedStorage.get(value);
+    if (owned?.typed || (!owned && !cachedStorage.has(value)) || size >= STREAM_CELLS) return undefined;
+    const items = materializedArrayItems(value);
+    if (items?.length !== size) return undefined;
+    checkpoint('copying array', size);
+    return items.slice();
+}
+
 
 /** Prepared readers remove view dispatch, not validation or effects. Preparing
  * one must not read cells; using it may still execute callbacks or throw. */

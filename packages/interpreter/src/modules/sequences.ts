@@ -7,7 +7,7 @@ import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } fro
 import { checkpoint, inspectionEnabled, interruptibleCallback } from '../interrupt.js';
 import { prepareIntegerView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, denseScalarItems, readArrayItem, realCells, typedArray, typedElementKind } from '../array-storage.js';
+import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, prepareArrayRead, readArrayItem, realCells, typedArray, typedElementKind } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
@@ -283,11 +283,14 @@ function copyArray(value: RankValue): RankArray {
     if (!isRankArray(value)) throw new RankError('copy expects an array or sequence');
     const type = semanticArrayType(value);
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
-    const integers = inspectionEnabled() ? undefined : prepareIntegerView(value);
-    const items = Array.from(
+    const copied = inspectionEnabled() ? undefined : copyMaterializedArrayItems(value, size);
+    const integers = copied || inspectionEnabled() ? undefined : prepareIntegerView(value, true);
+    const prepared = copied || integers || inspectionEnabled() ? undefined : prepareArrayRead(value);
+    const items = copied ?? Array.from(
         { length: size },
         (_, index) => {
             if (integers) { checkpoint('copying integers'); return integers.read(index); }
+            if (prepared) { checkpoint('copying array'); return prepared(index); }
             return value.itemAt?.(index) ?? value.items[index];
         },
     );

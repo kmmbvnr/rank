@@ -316,7 +316,7 @@ export class ArrayBindingContract {
         this.metadata(value, checked);
         holdArraySource(checked, value);
         registerIntegerView(checked, value, index => index, () =>
-            this.at(path)?.elements?.some(cell => cell.type === 'integer') === true);
+            this.at(path)?.elements?.some(cell => cell.type === 'integer') === true, validate);
         prepared.value = checked;
         return prepared;
     }
