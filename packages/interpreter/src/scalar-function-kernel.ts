@@ -1,8 +1,9 @@
 import {
     findCompiledOperator,
-    isReturnStatement, isAssignmentStatement, isIfStatement,
+    isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration,
     type CompiledExpression, type CompiledFunctionType, type CompiledOperator, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
+import { checkpoint } from './interrupt.js';
 import { RankError } from './errors.js';
 import { recordFallback } from './diagnostics.js';
 import type { RankValue } from './value.js';
@@ -19,8 +20,8 @@ const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
 
 // Callers prove the selected argument types and private local assignments before binding.
 // The kernel has no environment access; cached code retains only syntax metadata.
-export function compileScalarFunction(statement: FunctionStatement, parameterTypes?: readonly CompiledFunctionType[]): Kernel | undefined {
-    const proof = scalarFunctionResult(statement, true, parameterTypes);
+export function compileScalarFunction(statement: FunctionStatement, parameterTypes?: readonly CompiledFunctionType[], loops = false): Kernel | undefined {
+    const proof = scalarFunctionResult(statement, true, parameterTypes, loops);
     if (!proof) return undefined;
     if (kernels.has(proof)) return kernels.get(proof) ?? recordFallback('scalar-function:code-generation');
     const expressions = proof.expressions;
@@ -103,6 +104,35 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 let value = emit(command.value, lines);
                 if (command.operator !== '=') value = binary(findCompiledOperator(command.operator.slice(0, -1))!, slot(command.name), value, lines, expressions.get(command.value)!.type);
                 lines.push(`${slot(command.name)} = ${value};`);
+            } else if (isForStatement(command)) {
+                const binding = forIteration(command.condition);
+                lines.push('{');
+                if (binding) {
+                    let range = binding.iterable;
+                    while (isParenthesizedExpression(range)) range = range.value;
+                    if (!isBinaryExpression(range)) throw new Error('Unproved loop range');
+                    const start = emit(range.left, lines), end = emit(range.right, lines);
+                    const step = range.step ? emit(range.step, lines) : '1n';
+                    const id = serial++;
+                    lines.push(`const start${id} = ${start}, end${id} = ${end}, step${id} = ${step};
+                        if (step${id} === 0n) throw new RankError('range step must be a nonzero integer');
+                        for (let cursor${id} = start${id}, ordinal${id} = 0n;
+                            step${id} > 0n ? cursor${id} ${range.operator === 'to' ? '<=' : '<'} end${id}
+                                : cursor${id} ${range.operator === 'to' ? '>=' : '>'} end${id};
+                            cursor${id} += step${id}, ordinal${id}++) {
+                            location = ${location}; checkpoint();`);
+                    binding.names.forEach((name, index) => {
+                        if (name !== '#') lines.push(`${slot(name)} = ${index ? 'ordinal' : 'cursor'}${id};`);
+                    });
+                } else {
+                    lines.push(`for (;;) { location = ${location}; checkpoint();`);
+                    if (command.condition) {
+                        const condition = emit(command.condition, lines);
+                        lines.push(`if (!(${condition})) break;`);
+                    }
+                }
+                commands(command.statements, lines);
+                lines.push('}}');
             } else if (isIfStatement(command)) {
                 const branches = [{ condition: command.condition, statements: command.thenStatements }, ...command.elifClauses];
                 for (const branch of branches) {
@@ -129,7 +159,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
     let kernel: Kernel | undefined;
-    try { kernel = { locations, calls, run: new Function('RankError', 'applySelectors', 'noteArrayBinding', source)(RankError, applySelectors, noteArrayBinding) as Kernel['run'] }; }
+    try { kernel = { locations, calls, run: new Function('RankError', 'applySelectors', 'noteArrayBinding', 'checkpoint', source)(RankError, applySelectors, noteArrayBinding, checkpoint) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

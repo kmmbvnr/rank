@@ -1,7 +1,7 @@
 import {
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, compiledFunctionTypeKey, sameCompiledFunctionType, flattenApplication, isApplicationExpression,
-    isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement,
+    isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration,
     type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compilerRejection } from './compiler-rejection.js';
@@ -18,16 +18,17 @@ export interface ScalarFunctionProof {
     readonly expressions: ReadonlyMap<Expression, CompiledExpression<CompiledFunctionType, ScalarFunctionInput>>;
 }
 const simpleProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | string>>();
+const loopProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | string>>();
 const blockProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | string>>();
 
 // The caller must additionally check that local assignment names neither exist
 // in the closure context nor can be created by the surrounding register region.
 export function scalarFunctionResult(statement: FunctionStatement, blocks = false,
-    parameterTypes?: readonly CompiledFunctionType[]): ScalarFunctionProof | undefined {
+    parameterTypes?: readonly CompiledFunctionType[], loops = false): ScalarFunctionProof | undefined {
     if (parameterTypes && parameterTypes.length !== statement.parameters.length) {
         return recordFallback('scalar-function:argument-count');
     }
-    const cache = blocks ? blockProofs : simpleProofs;
+    const cache = loops ? loopProofs : blocks ? blockProofs : simpleProofs;
     let proofs = cache.get(statement);
     if (!proofs) cache.set(statement, proofs = new Map());
     // The default remains the integer specialization used by loop call sites.
@@ -105,6 +106,29 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 settled.set(command.name, value);
                 env.set(command.name, value);
                 if (!parameters.has(command.name)) locals.add(command.name);
+                continue;
+            }
+            if (loops && isForStatement(command)) {
+                const body = new Map(env);
+                const binding = forIteration(command.condition);
+                if (binding) {
+                    let range = binding.iterable;
+                    while (isParenthesizedExpression(range)) range = range.value;
+                    if (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)
+                        || type(range.left, env) !== 'integer' || type(range.right, env) !== 'integer'
+                        || range.step && type(range.step, env) !== 'integer'
+                        || binding.names.length > 2 || new Set(binding.names).size !== binding.names.length) return reject(command, 'loop-range');
+                    for (const name of binding.names) {
+                        if (name === '#') continue;
+                        if (name.includes('.') || settled.has(name) && settled.get(name) !== 'integer') return reject(command, 'loop-binding');
+                        settled.set(name, 'integer');
+                        body.set(name, 'integer');
+                        if (!parameters.has(name)) locals.add(name);
+                    }
+                } else if (command.condition && type(command.condition, env) !== 'boolean') return reject(command, 'loop-condition');
+                if (flow(command.statements, body) === undefined) return undefined;
+                // A loop may execute zero times. New locals are not definitely
+                // assigned afterwards, and a return inside does not prove exit.
                 continue;
             }
             if (isIfStatement(command)) {

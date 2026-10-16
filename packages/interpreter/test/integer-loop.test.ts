@@ -2329,3 +2329,71 @@ end`);
         expect(result.loops).toBe(1);
     });
 });
+
+describe('callee-local numeric loops', () => {
+    it.each(['for J in 1 to N', 'J = 0\n for J less N\n  J += 1'])('compiles the outer loop calling a helper with %s', header => {
+        const result = compare(`fun N triangular
+ Total = 0
+ ${header}
+  Total += J
+ end
+ return Total
+end
+Sum = 0
+for I in 1 to 3
+ Sum += I triangular
+end
+Sum`);
+        expect(result.value).toBe('10');
+        // The interpreted caller would execute three compiled inner loops.
+        expect(result.loops).toBe(1);
+    });
+    it.each(['0', '-1', '1'])('preserves range setup and early returns for step %s', step => {
+        const result = compare(`fun N localrange
+ Total = 0
+ for J in N till 0 by ${step}
+  if J equal 2
+   return Total
+  end
+  Total += J
+ end
+ return Total
+end
+Sum = 0
+for I in 1 to 3
+ Sum += I localrange
+end
+Sum`);
+        expect(result.loops).toBe(1);
+        if (step === '0') expect(result).toHaveProperty('error');
+    });
+    it('rejects a local used after a potentially empty loop', () => {
+        const result = compare(`fun N unsetlocal
+ for J in 0 till N
+  Value = J
+ end
+ return Value
+end
+Sum = 0
+for I in 0 till 2
+ Sum += I unsetlocal
+end`);
+        expect(result).toHaveProperty('error');
+    });
+    it('keeps errors inside a callee loop and completed caller writes', () => {
+        const result = compare(`fun N failingloop
+ Total = 0
+ for J in 0 till N
+  Total += 10 // (J - 1)
+ end
+ return Total
+end
+Done = 0
+for I in 1 to 3
+ Done += 1
+ X = I failingloop
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+});

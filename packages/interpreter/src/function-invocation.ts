@@ -534,16 +534,16 @@ export class FunctionInvocation {
     }
 
     /** A proven scalar body compiled to a direct call, counted against the call depth. */
-    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame, types?: readonly CompiledFunctionType[]): PreparedScalarCall | undefined {
+    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame, types?: readonly CompiledFunctionType[], loops = false): PreparedScalarCall | undefined {
         if (this.options().scalarFunctionCompilation === false) return undefined;
         let cache = context ? this.localScalarCalls.get(context) : this.globalScalarCalls;
         if (!cache) this.localScalarCalls.set(context!, cache = new WeakMap());
         let instances = cache.get(statement);
         if (!instances) cache.set(statement, instances = new Map());
-        const key = types?.map(compiledFunctionTypeKey).join(',') ?? '';
+        const key = `${loops ? 'loops:' : ''}${types?.map(compiledFunctionTypeKey).join(',') ?? ''}`;
         const cached = instances.get(key);
         if (cached) return cached;
-        const kernel = compileScalarFunction(statement, types);
+        const kernel = compileScalarFunction(statement, types, loops);
         if (!kernel) return undefined;
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
         const binders = kernel.calls.map(({ operation, inputs }) => prepareCompiledBuiltin({

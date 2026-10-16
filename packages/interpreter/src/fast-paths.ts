@@ -330,7 +330,7 @@ export class FastPaths {
         if (!definition || definition.statement.parameters.length !== types.length) return undefined;
         const statement = definition.statement;
         if (statement.memo || statement.ranks.some(rank => rank !== 'all')) return undefined;
-        const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types);
+        const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types, true);
         if (!proof || typeof proof.type !== 'string') return undefined;
         const captures = definition.context !== undefined;
         return { parameters: types, effects: { writes: [], stableArrayReads: true },
@@ -340,7 +340,7 @@ export class FastPaths {
             const active = this.context.functions.definitionOf(current);
             if (active?.statement !== statement || (active.context !== undefined) !== captures
                 || proof.locals.some(local => active.context?.find(local))) return undefined;
-            const compiled = active.owner.prepareScalarCall(statement, active.context, types);
+            const compiled = active.owner.prepareScalarCall(statement, active.context, types, true);
             if (proof.nativeReads.length && !compiled || compiled?.available && !compiled.available()) return undefined;
             return (arguments_, tail = false) => {
                 if (tail && active.owner === this.context.functions) {
