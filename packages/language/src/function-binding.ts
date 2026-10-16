@@ -1,3 +1,4 @@
+import { functionCallSignature } from './function-call-signature.js';
 import {
     isFunctionBindingStatement, isFunctionStatement, isNameExpression,
     isParenthesizedExpression, type Expression, type FunctionBindingStatement,
@@ -25,7 +26,7 @@ export function functionBindingPlan(statement: FunctionBindingStatement): Functi
 export function prepareFunctionBindings(program: Program, signatures: ReadonlyMap<string, readonly number[] | false> = new Map()): void {
     let known = new Map(signatures);
     for (const node of program.statements) {
-        if (isFunctionStatement(node)) known.set(node.name, [node.parameters.length]);
+        if (isFunctionStatement(node)) known.set(node.name, [functionCallSignature(node).arity]);
     }
     const arities = (name: string): readonly number[] | undefined => {
         const local = known.get(name);
@@ -36,7 +37,7 @@ export function prepareFunctionBindings(program: Program, signatures: ReadonlyMa
             const outer = known;
             known = new Map(known);
             for (const declaration of node.statements) {
-                if (isFunctionStatement(declaration)) known.set(declaration.name, [declaration.parameters.length]);
+                if (isFunctionStatement(declaration)) known.set(declaration.name, [functionCallSignature(declaration).arity]);
             }
             node.statements.forEach(visit);
             known = outer;

@@ -1,9 +1,10 @@
 import {
-    isFunctionStatement, functionYields, flatArrayBorrowCandidates,
-    type FunctionStatement,
+    isFunctionStatement, functionYields, flatArrayBorrowCandidates, functionCallSignature,
+    type FunctionStatement, type FunctionCallSignature,
 } from '@arrrank/language';
 
 export interface PreparedFunction {
+    readonly signature: FunctionCallSignature;
     readonly generator: boolean;
     readonly locals: readonly FunctionStatement[];
     readonly layout: Map<string, number>;
@@ -17,10 +18,12 @@ export function prepareFunction(statement: FunctionStatement): PreparedFunction 
     let result = prepared.get(statement);
     if (!result) {
         const generator = functionYields(statement).length > 0;
+        const signature = functionCallSignature(statement);
         result = {
+            signature,
             generator,
             locals: statement.statements.filter(isFunctionStatement),
-            layout: new Map([...new Set(statement.parameters)].map((name, index) => [name, index])),
+            layout: new Map([...new Set(signature.parameters.map(parameter => parameter.name))].map((name, index) => [name, index])),
             borrowedParameters: inferBorrowedParameters(statement, generator),
         };
         prepared.set(statement, result);

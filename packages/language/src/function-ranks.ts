@@ -1,3 +1,4 @@
+import { functionCallSignature } from './function-call-signature.js';
 import type { FunctionStatement } from './generated/ast.js';
 
 export type DeclaredRank = number | 'all';
@@ -15,7 +16,7 @@ export interface DeclaredRanks {
 export function declaredRanks(statement: FunctionStatement): DeclaredRanks | string | undefined {
     const specs = statement.ranks;
     if (!specs || specs.length === 0) return undefined;
-    const count = statement.parameters.length;
+    const count = functionCallSignature(statement).arity;
     if (count === 0) return 'rank needs a function with parameters';
     if (count > 2) return 'rank is defined for functions of one or two parameters';
     if (specs.length !== count) {

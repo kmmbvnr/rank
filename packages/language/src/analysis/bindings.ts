@@ -1,3 +1,4 @@
+import { functionCallSignature } from '../function-call-signature.js';
 import { functionBindingPlan } from '../function-binding.js';
 import { flattenApplication as flatten, forIteration } from '../expressions.js';
 /**
@@ -270,7 +271,7 @@ class Analyzer {
     private block(statements: readonly Statement[], nested: ScopeState[]): void {
         for (const statement of statements) {
             if (isFunctionStatement(statement)) {
-                this.bind(statement.name, 'function', statement, ['function'], [statement.parameters.length]);
+                this.bind(statement.name, 'function', statement, ['function'], [functionCallSignature(statement).arity]);
             }
         }
         for (const statement of statements) this.statement(statement, nested);
@@ -299,8 +300,8 @@ class Analyzer {
             nested.push(scope);
             this.scopes.push(scope);
             if (isFunctionStatement(statement)) {
-                for (const parameter of statement.parameters) {
-                    this.bind(parameter, 'parameter', statement);
+                for (const parameter of functionCallSignature(statement).parameters) {
+                    this.bind(parameter.name, 'parameter', statement);
                 }
             }
             this.block(statement.statements, nested);

@@ -173,17 +173,17 @@ export class FunctionInvocation {
         const plain = stages?.every(stage => stage.length === 1 && isNameExpression(stage[0]));
         const alternatives = new Map<number, NativeFunction>();
         for (const definition of plain ? [] : plan.definitions) {
-            alternatives.set(definition.parameters.length, this.define(definition, false) as NativeFunction);
+            alternatives.set(prepareFunction(definition).signature.arity, this.define(definition, false) as NativeFunction);
         }
         const fn: NativeFunction = {
             kind: 'function', name: statement.name, arities: plan.arities,
             monadicRank: 'all', dyadicRanks: ['all', 'all'],
             monadicResultShape: shape => {
-                const definition = plan.definitions.find(item => item.parameters.length === 1);
+                const definition = plan.definitions.find(item => prepareFunction(item).signature.arity === 1);
                 return definition && this.userResultCellShape(definition, context, new Map(), [shape]);
             },
             dyadicResultShape: (left, right) => {
-                const definition = plan.definitions.find(item => item.parameters.length === 2);
+                const definition = plan.definitions.find(item => prepareFunction(item).signature.arity === 2);
                 return definition && this.userResultCellShape(definition, context, new Map(), [left, right]);
             },
             captures: this.bindings.current?.captures(),
@@ -223,7 +223,7 @@ export class FunctionInvocation {
         if (availableBuiltin(statement.name, this.modules)) {
             throw new RankError(builtinBindingMessage(statement.name), 'TypeError');
         }
-        const { generator } = prepareFunction(statement);
+        const { generator, signature } = prepareFunction(statement);
         if (statement.memo && generator) throw new RankError('memo functions cannot yield');
         const context = this.bindings.current;
         const only = statement.statements.length === 1 ? statement.statements[0] : undefined;
@@ -251,7 +251,7 @@ export class FunctionInvocation {
             readonly locals: readonly string[]; readonly call: PreparedScalarCall;
         } | null>();
         const selectScalar = (arguments_: RankValue[]): PreparedScalarCall | undefined => {
-            if (inspectionEnabled() || arguments_.length !== statement.parameters.length) return undefined;
+            if (inspectionEnabled() || arguments_.length !== signature.arity) return undefined;
             let call = scalar, locals = proof?.locals;
             if (!arguments_.every(value => typeof value === 'bigint')) {
                 let types: CompiledFunctionType[] | undefined;
@@ -329,7 +329,7 @@ export class FunctionInvocation {
                 return value;
             }) : undefined;
         const execute = cache && memoMiss ? (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> => {
-            const key = memoCallKey(arguments_, statement.parameters.length);
+            const key = memoCallKey(arguments_, signature.arity);
             const cached = cache.get(key);
             if (cached !== undefined) return completed(cached);
             return memoMiss(arguments_, key, inputRequirement);
@@ -339,14 +339,14 @@ export class FunctionInvocation {
         const fn: NativeFunction = {
             kind: 'function',
             name: statement.name,
-            arities: [statement.parameters.length],
+            arities: [signature.arity],
             monadicRank: declared?.ranks.length === 1 ? declared.ranks[0] : 'all',
             arrayCells: declared ? true : undefined,
             monadicResultShape: generator ? undefined
                 : cellShape => this.userResultCellShape(statement, context, returnRanks, [cellShape]),
             dyadicResultShape: generator ? undefined
                 : (left, right) => this.userResultCellShape(statement, context, returnRanks, [left, right]),
-            dyadicRanks: statement.parameters.length === 2
+            dyadicRanks: signature.arity === 2
                 ? declared?.ranks.length === 2 ? [declared.ranks[0], declared.ranks[1]] : ['all', 'all']
                 : undefined,
             captures: context?.captures(),
@@ -395,7 +395,7 @@ export class FunctionInvocation {
             // execution stack, validation and cache writer as ordinary calls.
             if (cache && memoMiss && this.options().scalarFunctionCompilation !== false
                 && this.options().scalarEntryCompilation !== false) scalarCallbacks.set(fn, arguments_ => {
-                const key = memoCallKey(arguments_, statement.parameters.length);
+                const key = memoCallKey(arguments_, signature.arity);
                 const cached = cache.get(key);
                 if (cached !== undefined) return cached;
                 enterRuntime();
@@ -537,25 +537,26 @@ export class FunctionInvocation {
         parent: LocalFrame | undefined,
         reusable?: LocalFrame,
     ): LocalFrame {
-        if (arguments_.length !== statement.parameters.length) {
+        const prepared = prepareFunction(statement);
+        const { signature } = prepared;
+        if (arguments_.length !== signature.arity) {
             throw new RankError(
-                `${statement.name} expects ${statement.parameters.length} arguments, got ${arguments_.length}`,
+                `${statement.name} expects ${signature.arity} arguments, got ${arguments_.length}`,
             );
         }
-        const prepared = prepareFunction(statement);
         const frame = reusable?.reset() ? reusable
             : new LocalFrame(parent, prepared.layout);
         const candidates = arguments_.some((argument, index) => isFlatScalarArray(argument) && !isSharedArray(argument)
             && !prepared.borrowedParameters.has(statement.parameters[index]))
             ? this.borrowCandidates(statement, parent) : undefined;
-        statement.parameters.forEach((parameter, index) => {
+        signature.parameters.forEach(({ name: parameter, index, acceptsFunction }) => {
             const argument = arguments_[index];
             const guards = candidates?.get(index);
             const borrowed = isFlatScalarArray(argument)
                 && (prepared.borrowedParameters.has(parameter)
                     || !!guards && [...guards].every(([selector, type]) => type === 'flat-array'
                         ? isFlatScalarArray(arguments_[selector]) : typeof arguments_[selector] === type));
-            if (isNativeFunction(argument) && /^[A-Z]/.test(parameter)) {
+            if (isNativeFunction(argument) && !acceptsFunction) {
                 throw new RankError(`Function parameters use lowercase names: ${parameter}`, 'TypeError');
             }
             frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);

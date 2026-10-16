@@ -1,6 +1,6 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, expressionFacts, forIteration, loopNames, applicationForm, formatTypeSignature, signatureType, displayTypeName, describeTypes as nominalTypes, declaredType, findOperation, functionSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
+    analyzeValues, expressionFacts, forIteration, loopNames, applicationForm, formatTypeSignature, signatureType, displayTypeName, describeTypes as nominalTypes, declaredType, findOperation, functionSignature, functionCallSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
     isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts, type FunctionCallFacts,
 } from '@arrrank/language';
@@ -145,7 +145,7 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         if (parts.at(-1) !== site.node) return undefined;
         const arities = (name: string): readonly number[] | undefined => {
             const definition = analysis.functions.get(name);
-            return definition ? [definition.parameters.length] : findOperation(name)?.arities;
+            return definition ? [functionCallSignature(definition).arity] : findOperation(name)?.arities;
         };
         const head = unaryApplicationHead(call, arities,
             name => !analysis.bindings.has(name) && !runtime.has(name));
@@ -159,7 +159,10 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
                 if (isNameExpression(node)) reads.set(node.name, expressionValue(node));
             }
             return expressionFacts(part, Object.assign((name: string) => reads.get(name), {
-                arity: (name: string) => analysis.functions.get(name)?.parameters.length,
+                arity: (name: string) => {
+                    const definition = analysis.functions.get(name);
+                    return definition ? functionCallSignature(definition).arity : undefined;
+                },
             }));
         };
         return {

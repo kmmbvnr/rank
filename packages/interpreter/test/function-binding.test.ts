@@ -73,6 +73,21 @@ describe('single-expression function bindings', () => {
         const apply = runtime.variables.get('apply')!;
         expect(() => isNativeFunction(apply) && apply.call([runtime.execute('abs')!, -3n])).toThrow(/lowercase/);
     });
+    it.each([false, true])('preserves positional parameter contracts (compilation=%s)', compilation => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute('fun accept value\n return value\nend\nfun scalar Value\n return Value\nend');
+            const accept = runtime.variables.get('accept')!;
+            const scalar = runtime.variables.get('scalar')!;
+            if (!isNativeFunction(accept) || !isNativeFunction(scalar)) throw new Error('expected functions');
+            // Lowercase permits a callback but does not require one.
+            expect(accept.call([7n])).toBe(7n);
+            expect(accept.call([scalar])).toBe(scalar);
+            expect(() => scalar.call([accept])).toThrow('Function parameters use lowercase names: Value');
+            expect(() => scalar.call([])).toThrow('scalar expects 1 arguments, got 0');
+            expect(() => scalar.call([1n, 2n])).toThrow('scalar expects 1 arguments, got 2');
+        } finally { runtime.dispose(); }
+    });
     it('counts operation parameters separately from input operands', () => {
         const runtime = new Interpreter();
         expect(runtime.execute('use sequences\nf = window 2 len\n(array 1 2 3 4) f')).toBe(3n);
