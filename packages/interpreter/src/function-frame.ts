@@ -1,6 +1,7 @@
 import { flatArrayBorrowProofs, type FunctionStatement } from '@arrrank/language';
 import { isFlatScalarArray, isSharedArray } from './array-storage.js';
 import type { BindingEnvironment } from './binding-environment.js';
+import { summarizeValue } from './value-summary.js';
 import { RankError } from './errors.js';
 import { LocalFrame } from './frame.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
@@ -14,6 +15,47 @@ interface BorrowProof {
 
 /** Bind call arguments in the defining scope, retaining array ownership and tail-frame rules. */
 export class FunctionFrames {
+    private readonly transfers = new WeakMap<RankValue[], ReadonlySet<number>>();
+    private readonly inputs = new WeakMap<LocalFrame, RankValue[]>();
+    private readonly summaries = new WeakMap<RankValue[], readonly (string | undefined)[]>();
+
+    /** Called only after all arguments have been evaluated and the call guarded. */
+    transfer(arguments_: RankValue[], names: readonly (string | undefined)[]): void {
+        const caller = this.bindings.current;
+        if (!caller) return;
+        const moved = new Set<number>();
+        const summaries: (string | undefined)[] = [];
+        names.forEach((name, index) => {
+            const value = arguments_[index];
+            if (!name || value === undefined || caller.get(name) !== value
+                || !isFlatScalarArray(value) || isSharedArray(value)
+                || arguments_.filter(argument => argument === value).length !== 1) return;
+            summaries[index] = summarizeValue(value);
+            // The caller's argument list also survives for error reporting. Keep
+            // its bounded diagnostic text before transferring a parameter onward.
+            const inputs = this.inputs.get(caller);
+            if (inputs) {
+                const saved = [...this.summaries.get(inputs) ?? []];
+                inputs.forEach((input, i) => {
+                    if (input === value) saved[i] ??= summaries[index];
+                });
+                this.summaries.set(inputs, saved);
+            }
+            caller.release(name);
+            moved.add(index);
+        });
+        if (moved.size) {
+            this.transfers.set(arguments_, moved);
+            this.summaries.set(arguments_, summaries);
+        }
+    }
+
+    hasTransfers(arguments_: RankValue[]): boolean { return this.transfers.has(arguments_); }
+
+    addCall(error: RankError, statement: FunctionStatement, arguments_: RankValue[]): void {
+        error.addCall(statement.name, statement.parameters, arguments_, this.summaries.get(arguments_));
+    }
+
     private readonly globalBorrowProofs = new WeakMap<FunctionStatement, BorrowProof>();
     private readonly localBorrowProofs = new WeakMap<LocalFrame, WeakMap<FunctionStatement, BorrowProof>>();
 
@@ -45,7 +87,7 @@ export class FunctionFrames {
             const argument = arguments_[index];
             const guards = candidates?.get(index);
             const borrowed = isFlatScalarArray(argument)
-                && (prepared.borrowedParameters.has(parameter)
+                && (this.transfers.get(arguments_)?.has(index) || prepared.borrowedParameters.has(parameter)
                     || !!guards && [...guards].every(([selector, type]) => type === 'flat-array'
                         ? isFlatScalarArray(arguments_[selector]) : typeof arguments_[selector] === type));
             if (isNativeFunction(argument) && !acceptsFunction) {
@@ -53,6 +95,8 @@ export class FunctionFrames {
             }
             frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
         });
+        if (arguments_.some(isFlatScalarArray)) this.inputs.set(frame, arguments_);
+        else this.inputs.delete(frame);
         return frame;
     }
 

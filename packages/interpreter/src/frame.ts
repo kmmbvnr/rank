@@ -137,6 +137,15 @@ export class LocalFrame {
         };
     }
 
+    /** A last-use transfer drops only the value, preserving assignment contracts. */
+    release(name: string): void {
+        if (this.mappedValues) this.mappedValues.delete(name);
+        else {
+            const slot = this.layout.get(name);
+            if (slot !== undefined) this.slots[slot] = undefined;
+        }
+    }
+
     /** Forgets a name that ended with its block: its value and the types it accepted. */
     unset(name: string): void {
         this.records?.delete(name);

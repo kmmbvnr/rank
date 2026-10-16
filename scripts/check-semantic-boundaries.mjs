@@ -20,6 +20,7 @@ const owners = new Set([
     'packages/language/src/analysis/binary-facts.ts',
     'packages/language/src/analysis/control-flow.ts',
     'packages/language/src/analysis/function-calls.ts',
+    'packages/language/src/analysis/last-array-use.ts',
     'packages/language/src/analysis/loop-analysis.ts',
     'packages/language/src/analysis/function-yields.ts',
     'packages/language/src/analysis/numeric-recursion.ts',
@@ -94,7 +95,7 @@ for (const file of [...sources(language), ...sources(runtime)]) {
         && imports.some(specifier => target(specifier) === resolve(runtime, 'interpreter.ts'))) {
         failures.push(`${name}: runtime module imports Interpreter facade`);
     }
-    const proofConsumer = file.startsWith(`${runtime}/`) || /\/(operation-proofs|flat-array-borrow|function-effects|value-facts)\.ts$/.test(file);
+    const proofConsumer = file.startsWith(`${runtime}/`) || /\/(operation-proofs|flat-array-borrow|last-array-use|function-effects|value-facts)\.ts$/.test(file);
     // #116 permits one runtime consumer: it validates actual input values.
     // Other runtime owners may carry opaque call plans, but cannot solve or use
     // requirements as optimization proofs.

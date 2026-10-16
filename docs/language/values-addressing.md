@@ -42,6 +42,15 @@ for I in 0 till 1000
 end
 ```
 
+For a proven last use of a private local array, the runtime can transfer its
+storage to a function that writes it. This does not change value semantics:
+if the caller reads the old value again, or another binding retains it, the
+ordinary copy-on-write path applies. The initial optimization covers flat
+scalar arrays passed directly from a function's straight-line body, after
+construction and addressed writes, or an exclusively owned parameter passed
+onward without earlier reads. Captures, protected blocks, generators and
+debugger inspection keep the ordinary path.
+
 A generator that reuses one buffer therefore emits values, not its buffer:
 
 ```rank

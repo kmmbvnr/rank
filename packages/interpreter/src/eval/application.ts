@@ -1,5 +1,5 @@
 import {
-    applicationExpression as applicationParts, applicationForm, assertNever, flattenApplication, isAllAxisExpression,
+    lastArrayUseArguments, applicationExpression as applicationParts, applicationForm, assertNever, flattenApplication, isAllAxisExpression,
     isUnaryExpression, isParenthesizedExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression,
     renamedBuiltinCall, type DeclaredCallExpression, type ApplicationForm, type ArrayItem, type Expression, type Operation,
 } from '@arrrank/language';
@@ -76,6 +76,7 @@ export class ApplicationEvaluator {
 
     compileDeclaredCall(expression: DeclaredCallExpression, tail: boolean): () => Evaluation<RankValue> {
         const context = this.context;
+        const lastUses = lastArrayUseArguments(expression, expression.arguments);
         return function* (): Execution<RankValue> {
             const fn = isNameExpression(expression.callee)
                 ? context.resolve(expression.callee.name)
@@ -98,6 +99,7 @@ export class ApplicationEvaluator {
             const axes = expression.axes.length ? expression.axes.map(axis => safeDimension(integerLiteral(axis, 'axis'), 'axis')) : undefined;
             if (!ranks.length && !axes && fn.monadicRank === 'all'
                 && (!fn.dyadicRanks || fn.dyadicRanks.every(rank => rank === 'all'))) {
+                context.functions.transferLastUses(fn, args, lastUses);
                 if (tail) context.functions.throwTailCall(fn, args);
                 return yield* resume(context.functions.invoke(fn, args));
             }
@@ -848,17 +850,18 @@ export class ApplicationEvaluator {
                             ? pending[0] : context.select(pending, missing);
                     };
                 }
-                return application.compileApplication(parts, missing, tail);
+                return application.compileApplication(expression, parts, missing, tail);
             }
             default: return assertNever(form);
         }
     }
 
     private compileApplication(
-        parts: Expression[], missing?: () => RankValue, tail = false,
+        expression: Expression, parts: Expression[], missing?: () => RankValue, tail = false,
     ): () => Evaluation<RankValue> {
         const context = this.context;
         const application = this;
+        const lastUses = lastArrayUseArguments(expression, parts.slice(0, -1));
         const renamed = renamedBuiltinCall(parts);
         const checkRename = renamed ? (receiver: RankValue): void => {
             if (typeName(receiver) === renamed.receiver
@@ -883,6 +886,7 @@ export class ApplicationEvaluator {
                         && !(b !== undefined && isRankLabel(b) && hasField(a, b.name));
                     const fn = (binary ? operation : right)();
                     if (simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
+                        context.functions.transferLastUses(fn, arguments_, lastUses);
                         const result = context.rankApplication.applyIntrinsicRank(fn, arguments_);
                         if ('done' in result) {
                             context.resources.ownFiles(result.value);
@@ -890,14 +894,14 @@ export class ApplicationEvaluator {
                         }
                         return application.finishApplication(result);
                     }
-                    return application.apply([...arguments_, fn], missing, 0, [], tail);
+                    return application.apply([...arguments_, fn], missing, 0, [], tail, lastUses);
                 };
             }
             return () => application.apply(directParts.map((part, index) => {
                 const value = part();
                 if (index === 0) checkRename?.(value);
                 return value;
-            }), missing, 0, [], tail);
+            }), missing, 0, [], tail, lastUses);
         }
         return () => flatMapResult(mapExecution(parts, part => {
             const task = isAllAxisExpression(part) ? completed(ALL_AXIS) : context.evaluate(part);
@@ -905,7 +909,7 @@ export class ApplicationEvaluator {
                 checkRename(value);
                 return value;
             }) : task;
-        }), values => application.apply(values, missing, 0, [], tail));
+        }), values => application.apply(values, missing, 0, [], tail, lastUses));
     }
 
     /** Applies each function in `values` to the data before it, left to right; plain data is selection. */
@@ -915,6 +919,7 @@ export class ApplicationEvaluator {
         start = 0,
         pending: RankValue[] = [],
         tail = false,
+        lastUses: readonly (string | undefined)[] = [],
     ): Evaluation<RankValue> {
         const context = this.context;
         const application = this;
@@ -944,6 +949,10 @@ export class ApplicationEvaluator {
                     index += 1;
                     continue;
                 }
+            }
+            if (index === values.length - 1 && arguments_.length === values.length - 1
+                && arguments_.every((argument, i) => argument === values[i])) {
+                context.functions.transferLastUses(value, arguments_, lastUses);
             }
             if (tail && index === values.length - 1 && context.resources.currentScopeEmpty()) {
                 context.functions.throwTailCall(value, arguments_);

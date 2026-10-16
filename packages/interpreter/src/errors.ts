@@ -14,10 +14,10 @@ export class RankError extends Error {
     sourceText?: string;
     private readonly calls: string[] = [];
 
-    addCall(name: string, parameters: readonly string[], values: readonly RankValue[]): void {
+    addCall(name: string, parameters: readonly string[], values: readonly RankValue[], summaries?: readonly (string | undefined)[]): void {
         if (this.calls.length >= 8) return;
         this.calls.push(`${name}\n` + parameters.slice(0, 8).map((parameter, index) =>
-            `  ${parameter} = ${values[index] === undefined ? '<missing>' : summarizeValue(values[index])}`).join('\n'));
+            `  ${parameter} = ${summaries?.[index] ?? (values[index] === undefined ? '<missing>' : summarizeValue(values[index]))}`).join('\n'));
     }
 
     formatCalls(): string { return this.calls.join('\n'); }

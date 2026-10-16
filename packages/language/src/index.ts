@@ -43,3 +43,5 @@ export * from './function-binding.js';
 
 export * from './analysis/function-contracts.js';
 export * from './function-call-signature.js';
+
+export * from './analysis/last-array-use.js';

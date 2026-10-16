@@ -1,6 +1,6 @@
 import type { AstNode } from 'langium';
 import {
-    availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
+    writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
     type FunctionCallSignature, type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
@@ -108,6 +108,18 @@ export class FunctionInvocation {
     invoke(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue> {
         const execution = functionExecutions.get(fn);
         return execution ? execution(arguments_, this.host.inputs?.pending) : completed(fn.call(arguments_));
+    }
+
+    /** Consume proven-dead locals only for ordinary, whole-array Rank calls. */
+    transferLastUses(fn: NativeFunction, arguments_: RankValue[], names: readonly (string | undefined)[]): void {
+        if (!names.some(Boolean) || inspectionEnabled()) return;
+        const definition = functionDefinitions.get(fn);
+        if (definition?.owner !== this || definition.context || definition.statement.memo
+            || fn.monadicRank !== 'all' || fn.dyadicRanks !== undefined) return;
+        const signature = prepareFunction(definition.statement).signature;
+        if (signature.words.length || signature.arity !== arguments_.length) return;
+        const writes = writtenArrayParameters(definition.statement);
+        if (writes.size) this.frames.transfer(arguments_, names.map((name, index) => writes.has(index) ? name : undefined));
     }
 
     /** A checked synchronous callback for ranked materialization. The closure
@@ -286,6 +298,7 @@ export class FunctionInvocation {
         const distinct = !generator && !statement.memo ? compileDistinctFunction(statement) : undefined;
         const arrayFunction = membership ?? distinct;
         const body = (arguments_: RankValue[]): Evaluation<RankValue> => {
+            if (this.frames.hasTransfers(arguments_)) return this.callFunction(statement, arguments_, context);
             if (arrayFunction && !inspectionEnabled() && this.options().arrayFunctionCompilation !== false
                 && this.options().tensorFusion !== false && this.modules.has('sequences')
                 && !arrayFunction.locals.some(name => context?.find(name))
@@ -302,7 +315,7 @@ export class FunctionInvocation {
                         if (diagnostics) diagnostics.compiledArrayFunctions++;
                         return completed(fused());
                     } catch (error) {
-                        if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
+                        if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
                         throw this.host.locate(error, statement);
                     } finally { this.depth--; }
                 }
@@ -315,7 +328,7 @@ export class FunctionInvocation {
         const checkReturn = (contract: ReturnContract, arguments_: RankValue[], value: RankValue): RankValue => {
             try { return contract.check(value); }
             catch (error) {
-                if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
+                if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
                 throw this.host.locate(error, statement);
             }
         };
@@ -547,7 +560,7 @@ export class FunctionInvocation {
                 this.options().onScalarFunctionExecuted?.();
                 return kernel.run(arguments_, locate, calls);
             } catch (error) {
-                if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
+                if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
                 throw error;
             } finally { if (!tail) this.depth -= 1; }
         };
@@ -580,7 +593,7 @@ export class FunctionInvocation {
             try {
                 return this.bindings.withFrame(frame, direct);
             } catch (error) {
-                if (error instanceof RankError) error.addCall(statement.name, statement.parameters, arguments_);
+                if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
                 throw error;
             } finally {
                 this.depth -= 1;
@@ -660,7 +673,7 @@ export class FunctionInvocation {
             this.depth -= 1;
             this.bindings.current = caller;
             if (inspectionEnabled()) this.inspection.leave(callerStatement);
-            if (pending instanceof RankError && !compiledTail) pending.addCall(statement.name, statement.parameters, arguments_);
+            if (pending instanceof RankError && !compiledTail) this.frames.addCall(pending, statement, arguments_);
             if (pending === undefined && result !== undefined) {
                 try { for (const contract of tailContracts) result = contract.check(result); }
                 catch (error) { pending = error; }
