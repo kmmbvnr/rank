@@ -1,7 +1,8 @@
+import type { CompiledCallee } from './compiled-callee.js';
 import type { AstNode } from 'langium';
 import {
     findOperation, flattenApplication, isBinaryExpression, isNameExpression, isUnaryExpression,
-    type ApplicationForm, type Operation, type CompiledScalarType, type CompiledFunctionType, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
+    type ApplicationForm, type Operation, type CompiledFunctionType, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
@@ -55,13 +56,6 @@ export interface FastPathContext {
 export interface ApplicationReference {
     reduce(operator: string, value: RankValue): RankValue;
     apply(values: RankValue[]): Evaluation<RankValue>;
-}
-
-/** A compiled loop's view of a user function it may call without leaving the loop. */
-export interface ScalarCallSite {
-    readonly type: CompiledScalarType;
-    readonly locals: readonly string[];
-    bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined;
 }
 
 /** How a compiled block reaches statement preparation and resumes after a suspension. */
@@ -329,7 +323,7 @@ export class FastPaths {
      * when the callee's body is a proven scalar function. `bind` rechecks the
      * binding at loop entry, since the name can be rebound between runs.
      */
-    scalarCall(name: string, arity: number): ScalarCallSite | undefined {
+    scalarCall(name: string, arity: number): CompiledCallee | undefined {
         if (this.context.options().scalarCallCompilation === false) return undefined;
         const value = this.context.bindings.find(name);
         const definition = value && isNativeFunction(value) ? this.context.functions.definitionOf(value) : undefined;
@@ -338,7 +332,8 @@ export class FastPaths {
         const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false);
         if (!proof || typeof proof.type !== 'string') return undefined;
         const captures = definition.context !== undefined;
-        return { type: proof.type, locals: [...(captures ? proof.locals : []), ...proof.nativeReads], bind: () => {
+        return { parameters: statement.parameters.map(() => 'integer'), effects: { writes: [], stableArrayReads: true },
+            type: proof.type, locals: [...(captures ? proof.locals : []), ...proof.nativeReads], bind: () => {
             const current = this.context.bindings.find(name);
             if (!current || !isNativeFunction(current)) return undefined;
             const active = this.context.functions.definitionOf(current);

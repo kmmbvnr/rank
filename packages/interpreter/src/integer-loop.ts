@@ -1,3 +1,4 @@
+import type { CompiledCallee } from './compiled-callee.js';
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
@@ -5,7 +6,7 @@ import {
     flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
-    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledScalarType, type CompiledExpression,
+    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledExpression,
 } from '@arrrank/language';
 import { completed, type Completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -35,11 +36,7 @@ interface Host {
     readonly scalarText: boolean;
     prepareBuiltinCall(module: string, name: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
-    scalarFunction(name: string, arity: number): {
-        type: CompiledScalarType;
-        locals: readonly string[];
-        bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined;
-    } | undefined;
+    scalarFunction(name: string, arity: number): CompiledCallee | undefined;
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
     readonly arrayLocals: boolean;
@@ -403,7 +400,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                     // scalarFunctionResult proves that this callee uses only
                     // scalar parameters and local values. Its binding is still
                     // checked at each region entry.
-                    calls.push({ name: last.name, locals: callable.locals, stableArrayReads: true, bind: callable.bind });
+                    calls.push({ name: last.name, locals: callable.locals, stableArrayReads: callable.effects.stableArrayReads, bind: callable.bind });
                     lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]${tail ? ', tailCallsAllowed' : ''});`);
                     return { code: name, type: callable.type };
                 }
