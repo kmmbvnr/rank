@@ -102,7 +102,6 @@ describe('inferred types against the values a run produced', () => {
     const results = new Map<string, Audit>();
     for (const file of files) {
         it(path.relative(demos, file), async context => {
-            await setImmediate();
             const result = audit(file);
             results.set(file, result);
             // Process worker messages and deadlines after each CPU-bound demo.

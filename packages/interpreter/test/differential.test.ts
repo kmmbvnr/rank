@@ -76,7 +76,6 @@ describe('compiled and reference demo execution', () => {
         createHash('sha256').update(relative(demos, file)).digest().readUInt32BE(0) % count === shard);
     let compared = 0, completed = 0, tests = 0, entries = 0;
     for (const file of files) it(relative(demos, file), async () => {
-        await setImmediate();
         console.log(`comparing ${relative(demos, file)}`);
         const reference = run(file, false), compiled = run(file, true);
         await setImmediate();
