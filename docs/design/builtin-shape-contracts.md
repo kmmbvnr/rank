@@ -34,8 +34,7 @@ postcondition overhead.
   `null` is reserved for a shape-determined but unexpressed length. Both
   instantiate to an unknown dimension in the signature matcher; the ragged-lift
   analysis added in #67 inspects the declaration to distinguish them. An entirely
-  `null` result pattern means the result rank also needs values; it does not
-  promise uniform cells.
+  `null` result pattern means the result rank also needs values; it does not promise uniform cells.
 - `permutations` removes duplicate permutations. Three distinct values produce
   six items and three equal values produce one, so its length is existential.
   `reshape` depends on target values; its specialized analysis still recovers
@@ -67,8 +66,8 @@ are a sidecar to concrete/unknown shapes, as described in
 The current [rank rules](../language/sequences-arrays.md#rank) describe assembly
 and empty-frame limits. Further compiler/Rust consumers and contracts for
 currently unannotated operations remain possible extensions. Shape facts do not
-establish element types, purity, callback safety or the absence of effects.
-Those require their existing independent proofs.
+establish element types, purity, callback safety or the absence of effects. Those require their existing independent
+proofs.
 
 An extension beyond #66 would be flattening each rank-k cell of a
 batch of dense tensors with scalar elements: `[3, 2, 4]` would become `[3, 8]`.
