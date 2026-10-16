@@ -1,7 +1,7 @@
 import {
-    lastArrayUseArguments, applicationExpression as applicationParts, applicationForm, assertNever, flattenApplication, isAllAxisExpression,
+    lastArrayUseProofs, applicationExpression as applicationParts, applicationForm, assertNever, flattenApplication, isAllAxisExpression,
     isUnaryExpression, isParenthesizedExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression,
-    renamedBuiltinCall, type DeclaredCallExpression, type ApplicationForm, type ArrayItem, type Expression, type Operation,
+    renamedBuiltinCall, type LastArrayUseProof, type DeclaredCallExpression, type ApplicationForm, type ArrayItem, type Expression, type Operation,
 } from '@arrrank/language';
 import { checkpoint } from '../interrupt.js';
 import { ownedArray } from '../array-storage.js';
@@ -77,7 +77,7 @@ export class ApplicationEvaluator {
 
     compileDeclaredCall(expression: DeclaredCallExpression, tail: boolean): () => Evaluation<RankValue> {
         const context = this.context;
-        const lastUses = lastArrayUseArguments(expression, expression.arguments);
+        const lastUses = lastArrayUseProofs(expression, expression.arguments);
         return function* (): Execution<RankValue> {
             const fn = isNameExpression(expression.callee)
                 ? context.resolve(expression.callee.name)
@@ -881,7 +881,7 @@ export class ApplicationEvaluator {
     ): () => Evaluation<RankValue> {
         const context = this.context;
         const application = this;
-        const lastUses = lastArrayUseArguments(expression, parts.slice(0, -1));
+        const lastUses = lastArrayUseProofs(expression, parts.slice(0, -1));
         const renamed = renamedBuiltinCall(parts);
         const checkRename = renamed ? (receiver: RankValue): void => {
             if (typeName(receiver) === renamed.receiver
@@ -939,7 +939,7 @@ export class ApplicationEvaluator {
         start = 0,
         pending: RankValue[] = [],
         tail = false,
-        lastUses: readonly (string | undefined)[] = [],
+        lastUses: readonly (LastArrayUseProof | undefined)[] = [],
     ): Evaluation<RankValue> {
         const context = this.context;
         const application = this;

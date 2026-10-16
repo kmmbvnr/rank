@@ -1,7 +1,7 @@
 import type { AstNode } from 'langium';
 import {
     writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
-    type FunctionCallSignature, type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
+    type LastArrayUseProof, type FunctionCallSignature, type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
@@ -111,7 +111,7 @@ export class FunctionInvocation {
     }
 
     /** Consume proven-dead locals only for ordinary, whole-array Rank calls. */
-    transferLastUses(fn: NativeFunction, arguments_: RankValue[], names: readonly (string | undefined)[]): void {
+    transferLastUses(fn: NativeFunction, arguments_: RankValue[], names: readonly (LastArrayUseProof | undefined)[]): void {
         if (!names.some(Boolean) || inspectionEnabled()) return;
         const definition = functionDefinitions.get(fn);
         if (definition?.owner !== this || definition.context || definition.statement.memo

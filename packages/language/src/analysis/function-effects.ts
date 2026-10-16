@@ -13,6 +13,7 @@ import { applicationExpression, flattenApplication, forIteration, groupedUnaryDy
 import { applicationForm } from '../application-forms.js';
 import { findOperation } from '../operations.js';
 import { expressionFacts } from './value-facts.js';
+import { scalarReadEffects } from './value-safety.js';
 import { isTrackedCollection, summarizedElement, withInsertedElement } from './collection-facts.js';
 import { hasCompiledCallNoCallbackProof, hasArrayHeaderNoCallbackProof, hasMappedScalarNoCallbackProof, hasNumericArrayNoCallbackProof,
     hasScalarCellArrayNoCallbackProof, hasScalarNoCallbackProof } from './operation-proofs.js';
@@ -483,25 +484,28 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             }
             return true;
         };
+        const valueReference = (name: string): boolean => {
+            if (localFunctions.has(name)) return propagate(name, []);
+            if (locals.has(name)) return true;
+            if (isFunction(name)) return propagate(name, []);
+            const builtin = isBound(name) ? undefined : findOperation(name);
+            if (builtin?.arities.length === 0 && !builtin.effects?.length) return true;
+            if (!name.includes('.') && /^[A-Z]/.test(name) && !isFunction(name)) {
+                valueCaptures.add(name);
+                if (definition.$container.$type === 'Program') globalValueCaptures.add(name);
+                return true;
+            }
+            return false;
+        };
         const expression = (value: Expression): boolean => {
+            const scalar = scalarReadEffects(value, lookup);
+            if (scalar) return [...scalar.values].every(valueReference) && [...scalar.arrays].every(read);
             if (isFunctionOperator(value)) return true;
             if (isDeclaredCallExpression(value)) {
                 return !value.ranks.length && !value.axes.length && isNameExpression(value.callee)
                     && propagate(value.callee.name, value.arguments);
             }
-            if (isNameExpression(value)) {
-                if (localFunctions.has(value.name)) return propagate(value.name, []);
-                if (locals.has(value.name)) return true;
-                if (isFunction(value.name)) return propagate(value.name, []);
-                const builtin = isBound(value.name) ? undefined : findOperation(value.name);
-                if (builtin?.arities.length === 0 && !builtin.effects?.length) return true;
-                if (!value.name.includes('.') && /^[A-Z]/.test(value.name) && !isFunction(value.name)) {
-                    valueCaptures.add(value.name);
-                    if (definition.$container.$type === 'Program') globalValueCaptures.add(value.name);
-                    return true;
-                }
-                return false;
-            }
+            if (isNameExpression(value)) return valueReference(value.name);
             if (isApplicationExpression(value)) {
                 const grouped = groupedUnaryDyadicChain(value, name => !isBound(name)
                     && !locals.has(name) && !isFunction(name));

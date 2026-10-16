@@ -1,4 +1,4 @@
-import { flatArrayBorrowProofs, type FunctionStatement } from '@arrrank/language';
+import { flatArrayBorrowProofs, type LastArrayUseProof, type FunctionStatement } from '@arrrank/language';
 import { isFlatScalarArray, isSharedArray } from './array-storage.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import { summarizeValue } from './value-summary.js';
@@ -20,14 +20,16 @@ export class FunctionFrames {
     private readonly summaries = new WeakMap<RankValue[], readonly (string | undefined)[]>();
 
     /** Called only after all arguments have been evaluated and the call guarded. */
-    transfer(arguments_: RankValue[], names: readonly (string | undefined)[]): void {
+    transfer(arguments_: RankValue[], names: readonly (LastArrayUseProof | undefined)[]): void {
         const caller = this.bindings.current;
         if (!caller) return;
         const moved = new Set<number>();
         const summaries: (string | undefined)[] = [];
-        names.forEach((name, index) => {
+        names.forEach((proof, index) => {
+            const name = proof?.name;
             const value = arguments_[index];
-            if (!name || value === undefined || caller.get(name) !== value
+            if (!proof || !name || value === undefined || caller.get(name) !== value
+                || proof.integerSelectors.some(selector => typeof caller.get(selector) !== 'bigint')
                 || !isFlatScalarArray(value) || isSharedArray(value)
                 || arguments_.filter(argument => argument === value).length !== 1) return;
             summaries[index] = summarizeValue(value);

@@ -54,9 +54,14 @@ storage to a function that writes it. This does not change value semantics:
 if the caller reads the old value again, or another binding retains it, the
 ordinary copy-on-write path applies. The initial optimization covers flat
 scalar arrays passed directly from a function's straight-line body, after
-construction, addressed writes and cell reads assigned directly to local names
-with literal integer indices, or an exclusively owned parameter passed onward
-under the same conditions. Earlier whole-array uses and unclassified selectors
+construction, addressed writes and callback-free scalar expressions that read
+cells, or an exclusively owned parameter passed onward under the same conditions.
+The shared value and effect analysis must prove a scalar result and integer
+selectors; this also covers computations such as `(A 0) + 1` and comparisons
+in conditions. Unchanged parameters or local names bound once before a
+straight-line read can supply selector values. The runtime checks that these
+bindings belong to the caller and hold integers before transferring storage.
+Mutable or captured indices, earlier whole-array uses and unclassified calls
 keep the ordinary path. Captures, protected blocks, generators and
 debugger inspection keep the ordinary path.
 

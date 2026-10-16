@@ -224,3 +224,23 @@ it.each([false, true])('keeps yielded queens boards independent without copying 
         expect(stats.cowCopies).toBe(0);
     } finally { runtime.dispose(); }
 });
+
+it.each([false, true])('keeps changing scalar captures visible in a proved array reader (compilation=%s)', compilation => {
+    const runtime = new Interpreter(undefined, { compilation });
+    try {
+        expect(runtime.execute(`fun outer
+ Offset = 1
+ fun A I read
+  return (A I) + Offset
+ end
+ A = array 1 2 3
+ Total = 0
+ for I in 0 till 2
+  Total += A 0 read
+  Offset += 1
+ end
+ return Total
+end
+outer`)).toBe(5n);
+    } finally { runtime.dispose(); }
+});

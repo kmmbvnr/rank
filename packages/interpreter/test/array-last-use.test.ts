@@ -40,6 +40,78 @@ describe.each([false, true])('last array use with integer compilation %s', compi
             .toEqual({ value: 10n, copies: 0 });
     });
 
+    it('transfers after a scalar computation that reads the buffer', () => {
+        expect(execute(`${change}\nfun solve\n A = array 1 2 3\n First = (A 0) + 1\n B = A change\n return First + B 0\nend\nsolve`, compiled))
+            .toEqual({ value: 11n, copies: 0 });
+    });
+
+    it('transfers after a scalar comparison in a condition', () => {
+        expect(execute(`${change}\nfun A forward\n if (A 0) equal 1\n  First = 0\n end\n return A change\nend\n(array 1 2 3) forward`, compiled))
+            .toEqual({ value: [9n, 2n, 3n], copies: 0 });
+    });
+
+    it.each(['I', '(I + 1)', '((I + 2) // 2)', '((I + 2) mod 3)', '(I ** 2)'])
+        ('transfers after reading with an unchanged integer parameter: %s', selector => {
+            expect(execute(`${change}\nfun A I forward\n First = A ${selector}\n return A change\nend\n(array 1 2 3) 0 forward`, compiled))
+                .toEqual({ value: [9n, 2n, 3n], copies: 0 });
+        });
+
+    it('transfers after a computed index bound once in the caller', () => {
+        expect(execute(`${change}\nfun solve\n A = array 1 2 3\n I = 0\n First = A (I + 1)\n B = A change\n return First + B 0\nend\nsolve`, compiled))
+            .toEqual({ value: 11n, copies: 0 });
+    });
+
+    it('keeps collection selectors on the ordinary copy path', () => {
+        expect(execute(`${change}\nfun A I forward\n First = A I\n B = A change\n return First 0 + B 0\nend\n(array 1 2 3) (array 0) forward`, compiled))
+            .toEqual({ value: 10n, copies: 1 });
+    });
+
+    it('does not infer the old selector from a later integer binding', () => {
+        expect(execute(`${change}\nfun solve\n A = array 1 2 3\n I = 0\n First = A I\n I += 1\n return A change\nend\nsolve`, compiled))
+            .toEqual({ value: [9n, 2n, 3n], copies: 1 });
+    });
+
+    it('does not borrow through a callable index bound once', () => {
+        const runtime = new Interpreter(undefined, { integerLoopCompilation: compiled });
+        let saved: RankValue | undefined;
+        runtime.variables.set('retain', { kind: 'function', name: 'retain', arities: [1], monadicRank: 'all',
+            call: values => { saved = values[0]; return 0n; } });
+        try {
+            runtime.execute(`${change}\nfun solve\n A = array 1 2 3\n i = retain\n First = A i\n return A change\nend\nsolve`);
+            expect(saved !== undefined && isRankArray(saved) && [...saved.items]).toEqual([1n, 2n, 3n]);
+        } finally { runtime.dispose(); }
+    });
+
+    it('rejects a callable parameter at the integer selector guard', () => {
+        const runtime = new Interpreter(undefined, { integerLoopCompilation: compiled });
+        let saved: RankValue | undefined;
+        runtime.variables.set('retain', { kind: 'function', name: 'retain', arities: [1], monadicRank: 'all',
+            call: values => { saved = values[0]; return 0n; } });
+        try {
+            runtime.execute(`${change}\nfun A forward i\n First = A i\n return A change\nend\n(array 1 2 3) forward retain`);
+            expect(saved !== undefined && isRankArray(saved) && [...saved.items]).toEqual([1n, 2n, 3n]);
+        } finally { runtime.dispose(); }
+    });
+
+    it('does not treat an assigned capture as a caller-local index', () => {
+        expect(execute(`${change}\nfun outer\n I = 0\n fun forward\n  A = array 1 2 3\n  I = 0\n  First = A I\n  return A change\n end\n return forward\nend\nouter`, compiled))
+            .toEqual({ value: [9n, 2n, 3n], copies: 1 });
+    });
+
+    it('does not infer a past global selector from its current integer value', () => {
+        const runtime = new Interpreter(undefined, { integerLoopCompilation: compiled });
+        let saved: RankValue | undefined;
+        runtime.variables.set('I', { kind: 'function', name: 'retain', arities: [1], monadicRank: 'all',
+            call: values => { saved = values[0]; return 0n; } });
+        runtime.variables.set('reset', { kind: 'function', name: 'reset', arities: [1], monadicRank: 'all',
+            call: () => { runtime.variables.set('I', 0n); return 0n; } });
+        try {
+            runtime.execute(`${change}\nfun solve\n A = array 1 2 3\n First = A I\n Ignored = 0 reset\n return A change\nend\nsolve`);
+            expect(runtime.variables.get('I')).toBe(0n);
+            expect(saved !== undefined && isRankArray(saved) && [...saved.items]).toEqual([1n, 2n, 3n]);
+        } finally { runtime.dispose(); }
+    });
+
     it('keeps a matrix row alias on the ordinary ownership path', () => {
         const runtime = new Interpreter(undefined, { integerLoopCompilation: compiled });
         const diagnostics = new RuntimeDiagnostics();

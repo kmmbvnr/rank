@@ -52,6 +52,26 @@ it('certifies only scalar writes that preserve a captured numeric array cell typ
     expect(mixed.numericCaptureWrites).toBeUndefined();
     expect(analyze(source, 'write', ['A'], [integer, integer]).unknown).toBe(true);
 });
+
+it('retains array read effects from the shared scalar-expression proof', () => {
+    const array: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true };
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const effects = analyze('fun A B I helper\n return (A (I ** 2)) + (B I)\nend', 'helper', [], [array, array, integer]);
+    expect(effects.unknown).toBe(false);
+    expect([...effects.readParameters]).toEqual([0, 1]);
+    expect(effects.parameters.size).toBe(0);
+    expect(effects.result).toMatchObject({ types: ['integer'], rank: 0 });
+});
+
+it('keeps captured scalar dependencies when a shared proof reads an array', () => {
+    const array: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true };
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const source = 'fun outer\n Offset = 1\n fun A I helper\n  return (A I) + Offset\n end\n return 0\nend';
+    const effects = analyze(source, 'helper', ['Offset'], [array, integer], new Map([['Offset', integer]]));
+    expect(effects.unknown).toBe(false);
+    expect([...effects.readParameters]).toEqual([0]);
+    expect([...effects.valueCaptures]).toEqual(['Offset']);
+});
 function borrowCandidates(source: string, name = 'helper', resolveHelpers = true) {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
