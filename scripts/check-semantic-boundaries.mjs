@@ -7,6 +7,8 @@ const language = resolve(root, 'packages/language/src');
 const runtime = resolve(root, 'packages/interpreter/src');
 const owners = new Set([
     'packages/language/src/application-forms.ts',
+    'packages/language/src/function-call-signature.ts',
+    'packages/language/src/function-pipeline.ts',
     'packages/language/src/builtin-bindings.ts',
     'packages/language/src/binding-rule.ts',
     'packages/language/src/type-names.ts',
@@ -39,6 +41,8 @@ const owners = new Set([
     'packages/interpreter/src/eval/statements.ts',
     'packages/interpreter/src/fast-paths.ts',
     'packages/interpreter/src/function-invocation.ts',
+    'packages/interpreter/src/function-frame.ts',
+    'packages/interpreter/src/prepared-function.ts',
     'packages/interpreter/src/modules/builtins.ts',
     'packages/interpreter/src/modules/keyed-sort.ts',
     'packages/interpreter/src/operators.ts',

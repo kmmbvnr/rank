@@ -1,9 +1,9 @@
 import type { AstNode } from 'langium';
 import {
-    availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, flatArrayBorrowProofs, functionEffects, isReturnStatement,
+    availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
     type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
-import { arrayRevision, enterRuntime, isFlatScalarArray, isSharedArray, leaveRuntime } from './array-storage.js';
+import { arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './block-compiler.js';
@@ -13,7 +13,8 @@ import { RankError } from './errors.js';
 import { effectiveEnvironment, withEnvironment } from './environment.js';
 import { ExecutionStack, completed, mapResult, resume, runExecution, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './call-specializations.js';
-import { LocalFrame } from './frame.js';
+import type { LocalFrame } from './frame.js';
+import { FunctionFrames } from './function-frame.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import { checkpoint, inspectionEnabled } from './interrupt.js';
 import { BuiltinRegistry } from './modules/builtins.js';
@@ -29,7 +30,7 @@ import { prepareCompiledBuiltin } from './typed-native.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
 import {
-    formatValue, isNativeFunction, isRankArray, isRankDate, isRankLabel, typeName,
+    formatValue, isNativeFunction, isRankArray, isRankDate, isRankLabel,
     type NativeFunction, type RankArray, type RankFile, type RankSequence, type RankValue,
 } from './value.js';
 
@@ -59,11 +60,6 @@ export interface FunctionHost {
     flatCombine(fn: NativeFunction, statement: FunctionStatement, available: (builtins: ReadonlySet<string>) => boolean): void;
 }
 
-interface BorrowProof {
-    readonly bindings: ReadonlyMap<string, RankValue | undefined>;
-    readonly candidates: ReadonlyMap<number, ReadonlyMap<number, 'bigint' | 'boolean' | 'flat-array'>>;
-}
-
 // Functions are values that outlive the interpreter that made them, so their
 // definitions are found from the function object rather than from a scope.
 const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[], inputRequirement?: CallRequirement) => Evaluation<RankValue>>();
@@ -87,8 +83,7 @@ export class FunctionInvocation {
     private readonly sources = new WeakMap<NativeFunction, FunctionStatement>();
     private readonly globalScalarCalls = new WeakMap<FunctionStatement, Map<string, PreparedScalarCall>>();
     private readonly localScalarCalls = new WeakMap<LocalFrame, WeakMap<FunctionStatement, Map<string, PreparedScalarCall>>>();
-    private readonly globalBorrowProofs = new WeakMap<FunctionStatement, BorrowProof>();
-    private readonly localBorrowProofs = new WeakMap<LocalFrame, WeakMap<FunctionStatement, BorrowProof>>();
+    private readonly frames: FunctionFrames;
 
     constructor(
         private readonly bindings: BindingEnvironment,
@@ -99,6 +94,10 @@ export class FunctionInvocation {
         private readonly options: () => InterpreterOptions,
         private readonly host: FunctionHost,
     ) {
+        this.frames = new FunctionFrames(bindings, builtins, (fn, parent) => {
+            const helper = functionDefinitions.get(fn);
+            return helper?.owner === this && helper.context === parent ? helper.statement : undefined;
+        });
         this.maxDepth = options().maxCallDepth ?? 200_000;
         if (!Number.isSafeInteger(this.maxDepth) || this.maxDepth < 1) {
             throw new RankError('maxCallDepth must be a positive safe integer');
@@ -531,69 +530,6 @@ export class FunctionInvocation {
         return run;
     }
 
-    private functionFrame(
-        statement: FunctionStatement,
-        arguments_: RankValue[],
-        parent: LocalFrame | undefined,
-        reusable?: LocalFrame,
-    ): LocalFrame {
-        const prepared = prepareFunction(statement);
-        const { signature } = prepared;
-        if (arguments_.length !== signature.arity) {
-            throw new RankError(
-                `${statement.name} expects ${signature.arity} arguments, got ${arguments_.length}`,
-            );
-        }
-        const frame = reusable?.reset() ? reusable
-            : new LocalFrame(parent, prepared.layout);
-        const candidates = arguments_.some((argument, index) => isFlatScalarArray(argument) && !isSharedArray(argument)
-            && !prepared.borrowedParameters.has(statement.parameters[index]))
-            ? this.borrowCandidates(statement, parent) : undefined;
-        signature.parameters.forEach(({ name: parameter, index, acceptsFunction }) => {
-            const argument = arguments_[index];
-            const guards = candidates?.get(index);
-            const borrowed = isFlatScalarArray(argument)
-                && (prepared.borrowedParameters.has(parameter)
-                    || !!guards && [...guards].every(([selector, type]) => type === 'flat-array'
-                        ? isFlatScalarArray(arguments_[selector]) : typeof arguments_[selector] === type));
-            if (isNativeFunction(argument) && !acceptsFunction) {
-                throw new RankError(`Function parameters use lowercase names: ${parameter}`, 'TypeError');
-            }
-            frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
-        });
-        return frame;
-    }
-
-    private borrowCandidates(statement: FunctionStatement, parent: LocalFrame | undefined): ReadonlyMap<number, ReadonlyMap<number, 'bigint' | 'boolean' | 'flat-array'>> {
-        const cache = parent ? this.localBorrowProofs.get(parent) : this.globalBorrowProofs;
-        const current = cache?.get(statement);
-        const lookup = (name: string) => parent?.lookup(name) ?? this.bindings.globals.get(name);
-        if (current && [...current.bindings].every(([name, value]) => lookup(name) === value)) {
-            return current.candidates;
-        }
-        const bindings = new Map<string, RankValue | undefined>();
-        const candidates = flatArrayBorrowProofs(statement, name => {
-            // These names bypass ordinary variable lookup in resolve().
-            if (name.includes('.') || name === 'index' || name === 'queue'
-                || name === 'set' || name === 'counter') return undefined;
-            const bound = lookup(name);
-            bindings.set(name, bound);
-            const helper = bound && isNativeFunction(bound) ? functionDefinitions.get(bound) : undefined;
-            return helper?.owner === this && helper.context === parent ? helper.statement : undefined;
-        }, name => {
-            const bound = lookup(name);
-            bindings.set(name, bound);
-            return this.builtins.is('core', name, bound ?? this.builtins.lookup(name)!);
-        });
-        const proof = { bindings, candidates };
-        if (parent) {
-            const local = cache ?? new WeakMap<FunctionStatement, BorrowProof>();
-            local.set(statement, proof);
-            if (!cache) this.localBorrowProofs.set(parent, local);
-        } else this.globalBorrowProofs.set(statement, proof);
-        return candidates;
-    }
-
     // A single return whose expression contains no applications cannot make a
     // direct Rank call. It needs a lexical/resource frame, but no suspended task.
     private callDirectFunction(
@@ -605,7 +541,7 @@ export class FunctionInvocation {
         if (this.depth >= this.maxDepth) {
             throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
         }
-        const frame = this.functionFrame(statement, arguments_, context);
+        const frame = this.frames.create(statement, arguments_, context);
         this.depth += 1;
         return this.resources.withResourceScope(() => {
             try {
@@ -627,7 +563,7 @@ export class FunctionInvocation {
         if (this.depth >= this.maxDepth) {
             throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
         }
-        let frame = this.functionFrame(statement, arguments_, context);
+        let frame = this.frames.create(statement, arguments_, context);
         const callerStatement = this.inspection.statement;
         const caller = this.bindings.current;
         const scope = new Set<RankFile>();
@@ -670,7 +606,7 @@ export class FunctionInvocation {
                             && frame.parent === error.definition.context ? frame : undefined;
                         statement = error.definition.statement;
                         arguments_ = error.arguments_;
-                        frame = this.functionFrame(statement, error.arguments_, error.definition.context, reusable);
+                        frame = this.frames.create(statement, error.arguments_, error.definition.context, reusable);
                         if (error.definition.direct) {
                             this.bindings.current = frame;
                             try {
@@ -706,7 +642,7 @@ export class FunctionInvocation {
         arguments_: RankValue[],
         context: LocalFrame | undefined,
     ): RankSequence {
-        const frame = this.functionFrame(statement, arguments_, context);
+        const frame = this.frames.create(statement, arguments_, context);
         const invocation = this;
         const environment = effectiveEnvironment(this.options().environment!);
         let consumed = false;
