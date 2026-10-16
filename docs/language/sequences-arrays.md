@@ -1321,6 +1321,58 @@ comparison `rank R` applies to both operands;
 `rank L R` selects their cell ranks separately. The explicit frame-axis forms
 in this subsection apply to these six comparisons.
 
+## Repeat
+
+`Init next repeat Count` applies a unary function to one state a fixed number
+of times, returning only the final state. It is a core call modifier and needs
+no import:
+
+```rank
+fun X double = X * 2
+Result = 1 double repeat 3
+rem Result is 8
+```
+
+The initial state, function and count are evaluated once, in that order, before
+iteration. The function must accept one argument, and `Count` must be a
+nonnegative `integer`: a negative count raises `.DomainError`; other count
+types or an incompatible function arity raise `.TypeError`. These checks also
+apply at zero. Zero returns the initial state without invoking the function.
+Use parentheses for a compound count, such as `repeat (N + 1)`.
+
+Each invocation receives the complete previous state, even if the function
+has declared cell ranks. Its body and any constituent pipeline operations keep
+their normal behavior. State shapes and ranks may change between steps;
+ordinary function parameter and return contracts still apply. Analysis currently
+preserves the initial facts for a known zero count and otherwise leaves the
+result unknown rather than assuming that its shape is unchanged.
+
+Calls execute sequentially. Captured values and callback effects behave as in
+ordinary calls; errors stop iteration immediately, and earlier effects are not
+rolled back. No callback is skipped or speculatively repeated. Long repetitions
+remain interruptible. The operation does not itself copy the state each time;
+normal value and reference semantics still apply.
+
+A named function, function alias or bound pipeline can be the step. Optional
+words use the function's defaults; wrap a configured call in a unary function
+when it needs fixed arguments or captures:
+
+```rank
+fun Start N advance
+  Offset = 2
+  fun X step = X + Offset
+  return Start step repeat N
+end
+```
+
+This is state transformation, not value replication: `array shape ... fill`
+constructs repeated values. `reduce` and `scan` still consume collection items
+with binary callbacks; they do not accept unary callbacks that ignore those
+items. `repeat` does not collect intermediate history or stop at a fixed point.
+See [Queens](../../demos/classic/queens.ra),
+[look-and-say](../../demos/aoc/2015/010_looksay.ra) and
+[Jacobi iteration](../../demos/deepml/011_jacobi.ra).
+
 ## Reduce
 
 A reduction collapses values:
