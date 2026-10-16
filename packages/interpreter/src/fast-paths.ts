@@ -1,3 +1,4 @@
+import { isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
 import type { AstNode } from 'langium';
 import {
@@ -323,7 +324,7 @@ export class FastPaths {
      * when the callee's body is a proven scalar function. `bind` rechecks the
      * binding at loop entry, since the name can be rebound between runs.
      */
-    scalarCall(name: string, types: readonly CompiledFunctionType[]): CompiledCallee | undefined {
+    scalarCall(name: string, types: readonly CompiledCalleeType[]): CompiledCallee | undefined {
         if (this.context.options().scalarCallCompilation === false) return undefined;
         const value = this.context.bindings.find(name);
         const definition = value && isNativeFunction(value) ? this.context.functions.definitionOf(value) : undefined;
@@ -333,7 +334,7 @@ export class FastPaths {
         const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types, true);
         if (!proof || typeof proof.type !== 'string') return undefined;
         const captures = definition.context !== undefined;
-        return { parameters: types, effects: { writes: [], stableArrayReads: true },
+        return { parameters: types, effects: { writes: types.flatMap((type, index) => isCompiledContainer(type) ? [index] : []), stableArrayReads: !proof.containers },
             type: proof.type, locals: [...(captures ? proof.locals : []), ...proof.nativeReads], bind: () => {
             const current = this.context.bindings.find(name);
             if (!current || !isNativeFunction(current)) return undefined;

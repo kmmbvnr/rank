@@ -1,7 +1,10 @@
+import { type CompiledCalleeType, isCompiledContainer } from './compiled-callee-type.js';
+import { newStructure } from './collections.js';
+import { indexKey } from './index-key.js';
 import {
     findCompiledOperator,
-    isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration,
-    type CompiledExpression, type CompiledFunctionType, type CompiledOperator, type Operation, type Expression, type FunctionStatement, type Statement,
+    isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement,
+    type CompiledExpression, type CompiledOperator, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { checkpoint } from './interrupt.js';
 import { RankError } from './errors.js';
@@ -13,6 +16,8 @@ import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInpu
 
 interface Kernel {
     readonly calls: readonly { operation: Operation; inputs: readonly string[] }[];
+    readonly guards: readonly string[];
+    readonly modules: readonly string[];
     readonly locations: readonly Statement[];
     run(arguments_: RankValue[], locate: (error: unknown, index: number) => unknown, calls?: readonly ((arguments_: RankValue[]) => RankValue)[]): RankValue;
 }
@@ -20,7 +25,7 @@ const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
 
 // Callers prove the selected argument types and private local assignments before binding.
 // The kernel has no environment access; cached code retains only syntax metadata.
-export function compileScalarFunction(statement: FunctionStatement, parameterTypes?: readonly CompiledFunctionType[], loops = false): Kernel | undefined {
+export function compileScalarFunction(statement: FunctionStatement, parameterTypes?: readonly CompiledCalleeType[], loops = false): Kernel | undefined {
     const proof = scalarFunctionResult(statement, true, parameterTypes, loops);
     if (!proof) return undefined;
     if (kernels.has(proof)) return kernels.get(proof) ?? recordFallback('scalar-function:code-generation');
@@ -34,7 +39,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const locations: Statement[] = [];
     const calls: { operation: Operation; inputs: readonly string[] }[] = [];
     let serial = 0;
-    function binary(operation: CompiledOperator, left: string, right: string, lines: string[], resultType?: CompiledFunctionType, inputs?: readonly CompiledFunctionType[]): string {
+    function binary(operation: CompiledOperator, left: string, right: string, lines: string[], resultType?: CompiledCalleeType, inputs?: readonly CompiledCalleeType[]): string {
         const op = operation.name;
         const result = `v${serial++}`;
         if ((op === 'equal' || op === 'notequal') && inputs?.includes('integer') && inputs.includes('real')) {
@@ -56,13 +61,25 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     function emit(expression: Expression, lines: string[]): string {
         return lower(expressions.get(expression)!, lines);
     }
-    function lower(expression: CompiledExpression<CompiledFunctionType, ScalarFunctionInput>, lines: string[]): string {
+    function lower(expression: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>, lines: string[]): string {
         if (expression.kind === 'group') return lower(expression.operand, lines);
         if (expression.kind === 'literal') return typeof expression.value === 'bigint'
             ? `${expression.value}n` : typeof expression.value === 'number'
                 ? Object.is(expression.value, -0) ? '-0' : String(expression.value) : JSON.stringify(expression.value);
         if (expression.kind === 'input') {
-            if (!expression.input.indices) return slot(expression.input.name);
+            const operation = expression.input.operation;
+            const receiver = slot(expression.input.name);
+            if (operation) {
+                const arguments_ = expression.input.indices?.map(index => lower(index, lines)) ?? [];
+                const result = `v${serial++}`;
+                const code = operation === 'new' ? `newStructure(${JSON.stringify(expression.input.name)})`
+                    : operation === 'pop' ? `${receiver}.pop()`
+                    : operation === 'len' ? `BigInt(${receiver}.kind === 'index' ? ${receiver}.entries.size : ${receiver}.size)`
+                    : `${receiver}.entries.has(indexKey([${arguments_.join(',')}]))`;
+                lines.push(`const ${result} = ${code};`);
+                return result;
+            }
+            if (!expression.input.indices) return receiver;
             const indices = expression.input.indices.map(index => lower(index, lines));
             const result = `v${serial++}`;
             lines.push(`const ${result} = applySelectors([${slot(expression.input.name)}, ${indices.join(',')}]);`);
@@ -76,7 +93,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         if (expression.kind === 'call') {
             const arguments_ = expression.arguments.map(argument => lower(argument, lines));
             const index = calls.push({ operation: expression.operation, inputs: expression.arguments.map(({ type }) => typeof type === 'string' ? type
-                : type.element === 'text' && type.rank === 1 ? 'text-array' : 'array') }) - 1;
+                : !isCompiledContainer(type) && type.element === 'text' && type.rank === 1 ? 'text-array' : 'array') }) - 1;
             const result = `v${serial++}`;
             lines.push(`const ${result} = calls[${index}]([${arguments_.join(',')}]);`);
             return result;
@@ -104,6 +121,13 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 let value = emit(command.value, lines);
                 if (command.operator !== '=') value = binary(findCompiledOperator(command.operator.slice(0, -1))!, slot(command.name), value, lines, expressions.get(command.value)!.type);
                 lines.push(`${slot(command.name)} = ${value};`);
+            } else if (isPushStatement(command) && isNameExpression(command.receiver)) {
+                const value = emit(command.value, lines);
+                lines.push(`${slot(command.receiver.name)}.push(${value});`);
+            } else if (isArrayAssignmentStatement(command)) {
+                const key = emit(command.indices[0].value!, lines);
+                const value = emit(command.value, lines);
+                lines.push(`${slot(command.name)}.entries.set(indexKey([${key}]), ${value});`);
             } else if (isForStatement(command)) {
                 const binding = forIteration(command.condition);
                 lines.push('{');
@@ -159,7 +183,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
     let kernel: Kernel | undefined;
-    try { kernel = { locations, calls, run: new Function('RankError', 'applySelectors', 'noteArrayBinding', 'checkpoint', source)(RankError, applySelectors, noteArrayBinding, checkpoint) as Kernel['run'] }; }
+    try { kernel = { locations, calls, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'applySelectors', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexKey', source)(RankError, applySelectors, noteArrayBinding, checkpoint, newStructure, indexKey) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

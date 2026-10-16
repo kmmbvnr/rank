@@ -1,3 +1,5 @@
+import { type CompiledCalleeType } from './compiled-callee-type.js';
+import { ResourceMap } from './resource-summary.js';
 import { compiledArgumentType } from './compiled-argument-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
 import { checkpoint } from './interrupt.js';
@@ -7,7 +9,7 @@ import {
     flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
-    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledFunctionType, type CompiledExpression,
+    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledExpression,
 } from '@arrrank/language';
 import { completed, type Completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -37,7 +39,7 @@ interface Host {
     readonly scalarText: boolean;
     prepareBuiltinCall(module: string, name: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
-    scalarFunction(name: string, types: readonly CompiledFunctionType[]): CompiledCallee | undefined;
+    scalarFunction(name: string, types: readonly CompiledCalleeType[]): CompiledCallee | undefined;
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
     readonly arrayLocals: boolean;
@@ -132,7 +134,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
     const binders: ((value: RankValue) => void)[] = [];
     const writerNames: string[] = [], binderNames: string[] = [];
     const written = new Set<string>();
-    const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean }>();
+    const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean; mode?: RankDeque['mode'] }>();
     const builtins = new Map<string, string>();
     const calls: { name: string; locals: readonly string[]; stableArrayReads: boolean;
         bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[] = [];
@@ -389,11 +391,24 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                     return { code: name, type: signature.result };
                 }
                 const arguments_: string[] = [];
-                const types: CompiledFunctionType[] = [];
+                const types: CompiledCalleeType[] = [];
                 for (let part of parts.slice(0, -1)) {
                     while (isParenthesizedExpression(part)) part = part.value;
                     const existing = isNameExpression(part) ? arrays.get(part.name) : undefined;
                     const current = isNameExpression(part) && !localTypes.has(part.name) ? host.read(part.name) : undefined;
+                    if (current && isNameExpression(part) && (current instanceof RankDeque
+                        || isRankIndex(current) && current.entries instanceof ResourceMap)) {
+                        const kind = current instanceof RankDeque ? 'deque' : 'index';
+                        const receiver = container(part.name, kind);
+                        if (!receiver) return undefined;
+                        containers.get(part.name)!.integers = true;
+                        arguments_.push(receiver);
+                        if (current instanceof RankDeque) {
+                            containers.get(part.name)!.mode = current.mode;
+                            types.push({ kind: 'deque', mode: current.mode });
+                        } else types.push({ kind: 'index' });
+                        continue;
+                    }
                     const type = existing ? { kind: 'array' as const, element: existing.type, rank: existing.rank }
                         : current === undefined ? undefined : compiledArgumentType(current);
                     if (type && typeof type !== 'string' && isNameExpression(part)) {
@@ -800,6 +815,10 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
     }
     const body: string[] = [];
     if (!statements(statement.statements, body, !iteration)) return undefined;
+    // Index aliases can be written under another name. All writes in a region
+    // with typed container arguments must preserve their integer cell domain.
+    if ([...containers.values()].some(info => info.kind === 'index' && info.integers)
+        && [...destinations.values()].some(info => info.type !== 'integer')) return reject(statement, 'container-write-type');
     // Container bindings must remain stable throughout the compiled region.
     if ([...containers].some(([name, info]) => written.has(name) || required.has(info.slot))) return reject(statement, 'unstable-bindings');
     if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return reject(statement, 'unstable-bindings');
@@ -926,8 +945,14 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
             const value = host.read(name);
             if (value === undefined) return entryGuard('input-type', name);
             if (info.kind === 'index' ? !isRankIndex(value) : !(value instanceof RankDeque)) return entryGuard('input-type', name);
-            if (info.integers && value instanceof RankDeque) {
-                for (const item of value.values()) if (typeof item !== 'bigint') return entryGuard('input-type', name);
+            if (info.mode && (!(value instanceof RankDeque) || value.mode !== info.mode)) return entryGuard('input-type', name);
+            if (info.integers) {
+                const entries = value instanceof RankDeque ? value.values() : isRankIndex(value) && value.entries instanceof ResourceMap ? value.entries.values() : undefined;
+                if (!entries) return entryGuard('input-type', name);
+                for (const item of entries) {
+                    checkpoint();
+                    if (typeof item !== 'bigint') return entryGuard('input-type', name);
+                }
             }
             values[info.slot] = value;
         }

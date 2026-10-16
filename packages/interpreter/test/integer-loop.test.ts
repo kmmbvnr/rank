@@ -2397,3 +2397,139 @@ end`);
         expect(result.loops).toBe(1);
     });
 });
+
+describe('integer reference containers in linked callees', () => {
+    it.each(['stack', 'queue', 'deque'])('allocates a fresh local %s per call', structure => {
+        const result = compare(`use algo
+fun N localwork
+ Path = new ${structure}
+ for J in 1 to N
+  Path push J
+ end
+ Total = 0
+ for Path len greater 0
+  Total += Path pop
+ end
+ return Total
+end
+Sum = 0
+for I in 1 to 3
+ Sum += I localwork
+end
+Sum`);
+        expect(result.value).toBe('10');
+        expect(result.loops).toBe(1);
+    });
+    it('allocates and writes a local index', () => {
+        const result = compare(`use algo
+fun N localindex
+ Cache = new index
+ for J in 0 till N
+  Cache J = J * 2
+ end
+ if 1 in Cache
+  return Cache 1
+ end
+ return 0
+end
+Sum = 0
+for I in 0 till 4
+ Sum += I localindex
+end
+Sum`);
+        expect(result.value).toBe('4');
+        expect(result.loops).toBe(1);
+    });
+    it('preserves reference aliases across calls and caller writes', () => {
+        const result = compare(`use algo
+fun Cache N updatecache
+ Cache N = N * 2
+ return Cache N
+end
+Cache = new index
+Alias = Cache
+Sum = 0
+for I in 1 to 3
+ Alias I = I
+ Sum += Cache I updatecache
+end
+array Sum (Alias 3)`);
+        expect(result.value).toBe('12 6');
+        expect(result.loops).toBe(1);
+    });
+    it('passes the same deque twice without copying', () => {
+        const result = compare(`use algo
+fun A B N roundtrip
+ A push N
+ return B pop
+end
+Path = new stack
+Sum = 0
+for I in 1 to 3
+ Sum += Path Path I roundtrip
+end
+array Sum (Path len)`);
+        expect(result.value).toBe('6 0');
+        expect(result.loops).toBe(1);
+    });
+    it('preserves completed mutations when a callee fails', () => {
+        const result = compare(`use algo
+fun Cache Path N mutatefail
+ Cache N = N
+ Path push N
+ X = Path pop
+ return Path pop
+end
+Cache = new index
+Path = new queue
+Done = 0
+for I in 1 to 3
+ Done += 1
+ X = Cache Path I mutatefail
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+    it('rejects an index cell type changed through a caller alias', () => {
+        const result = compare(`use algo
+fun Cache N readcache
+ return Cache N + 1
+end
+Cache = new index
+Alias = Cache
+Cache 1 = 2
+for I in 1 to 2
+ Alias I = "bad"
+ X = Cache I readcache
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+    it('does not bypass queue-family binding contracts', () => {
+        const result = compare(`use algo
+fun N changecontainer
+ Path = new stack
+ Path = new queue
+ return N
+end
+for I in 1 to 2
+ X = I changecontainer
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+    it('rejects mixed-value index input before the first mutation', () => {
+        const result = compare(`use algo
+fun Cache N readcache
+ Cache 0 = N
+ return Cache 1 + 1
+end
+Cache = new index
+Cache 1 = "bad"
+for I in 1 to 2
+ X = Cache I readcache
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+});
