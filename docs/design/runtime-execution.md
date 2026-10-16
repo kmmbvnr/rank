@@ -712,6 +712,56 @@ retain reference execution and its error timing. Index reads, compound index
 writes, other receiver classes and arbitrary calls are not yet lowered.
 
 
+### Typed helpers called by compiled loops
+
+A loop can directly link a proven user-function kernel with integer, boolean,
+text, eligible eager-array, or integer-valued index/queue/deque/stack arguments.
+`compiled-callee.ts` describes its argument/result domains, local binding
+constraints, and conservative mutation effects. The existing scalar proof and
+kernel have a separate loop-callee mode; ordinary scalar entry keeps its smaller
+proof. The caller resolves the function before analyzing arguments, so indexing
+expressions are not mistaken for helper calls.
+
+Callee bodies may use scalar assignments, branches, early returns, conditional
+loops and inline integer `to`/`till` ranges. They may allocate local indexes,
+queue-family containers, and `array shape ... fill ...` scratch storage. Index
+access in a callee is limited to one integer key and integer values; deque cells
+are integers. Full scalar array reads and plain `=` cell writes retain the
+proved element type and rank. A loop's potentially empty body does not establish
+new locals for subsequent reads. Unsupported control flow, collection returns,
+record arguments, recursion, memo functions and generators keep ordinary calls.
+No source-language syntax or ownership annotations are required.
+
+At each outer region entry, the runtime rechecks function/closure identity,
+local/capture collisions, modules, builtin identities, and argument storage and
+cell domains. Arrays must have owned eager scalar storage; lazy and host-backed
+storage cannot enter through an old cached specialization. Reference-container
+contents are checked once per region. The proof permits only integer writes to
+those containers, including caller writes through aliases. Queue-family modes
+are part of the callee specialization because their binding contracts differ.
+
+Array writes use `noteArrayBinding` and `arrayForWrite`: the callee gets its own
+version on a write, including when an array is passed twice or locally aliased.
+Index/deque mutations retain reference identity and use the existing resource-
+aware maps and container methods. A callee with container activity or array
+writes disables caller storage borrowing/reader hoisting. No resource tracking
+is removed. This conservative path can copy array parameters rather than apply
+the ordinary call path's last-use transfer optimization.
+
+Calls avoid generic signature discovery and lexical-frame allocation inside the
+outer loop. Kernels remain separately generated and cached; they are not inlined.
+They preserve call-depth accounting, source locations and call-stack diagnostics.
+Every callee loop checkpoints for cancellation. Inspection keeps reference
+execution. Entry guard misses may fall back; errors after execution begins
+propagate with completed mutations intact and never replay the region.
+
+`benchmarks/loop-callees.mjs` checks results and outer-region counts for array/text
+reads, numeric helper loops, scratch arrays, and an index/stack Collatz helper.
+Its `--reference` mode disables linked user calls while retaining other compiler
+passes. These fixtures exercise the missing boundary directly; the current
+Euler Collatz demo already compiles its inline loop without helper linking.
+
+
 ## Compiled function completion
 
 For nongenerator functions ending in a value-returning `return`, the runtime can
