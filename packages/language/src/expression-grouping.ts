@@ -24,7 +24,7 @@ const precedence: Readonly<Record<string, number>> = {
 const isRangeOperator = (operator: string): boolean => operator === 'to' || operator === 'till' || operator === 'until';
 const comparisons = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost', 'in', 'notin', 'is']);
 const symbolic = new Set(['reduce', 'scan', 'outer', 'segment', 'rank', 'axis']);
-const modifiers = new Set(['axis', 'rank', 'outer', 'segment', 'scan', 'reduce']);
+const modifiers = new Set(['repeat', 'axis', 'rank', 'outer', 'segment', 'scan', 'reduce']);
 /** Operations that take their combining function as the word after them. */
 const higherOrder = new Set(['scan', 'reduce', 'segment', 'outer']);
 /** Words after a higher-order operation that are its own parameters, not the function. */
@@ -233,8 +233,15 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             return [...tokens(expression.source), { kind: 'materialize', original: expression }];
         }
         if (isApplicationExpression(expression)) {
-            const raw = groupDeclaredCalls(flatten(expression),
-                declaredSignature, callable, (part, message) => report(part, message));
+            const ungrouped = flatten(expression);
+            // repeat receives the function value, including its default words.
+            const repeated = new Set(ungrouped.filter((_, index) => {
+                const next = ungrouped[index + 1];
+                return isNameExpression(next) && next.name === 'repeat' && standard('repeat');
+            }));
+            const raw = groupDeclaredCalls(ungrouped,
+                part => repeated.has(part) ? undefined : declaredSignature(part),
+                callable, (part, message) => report(part, message));
             const joined = raw.findIndex(part => isHigherOrderOperator(part));
             if (joined > 0) {
                 // `A scan + with 0` is the call form `A scan + with 0` that grouping and execution share.

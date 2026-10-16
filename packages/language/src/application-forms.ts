@@ -357,6 +357,7 @@ const FILLED_STRUCTURES: ReadonlySet<string> = new Set(['queue', 'stack', 'deque
 
 export type ApplicationForm =
     | { readonly kind: 'plain' }
+    | { readonly kind: 'repeat'; readonly source: Expression; readonly operation: Expression; readonly count: Expression }
     | { readonly kind: 'checked-read'; readonly reader: 'csv' | 'json' | 'xml'; readonly parts: readonly Expression[] }
     | { readonly kind: 'invalid'; readonly message: string }
     | { readonly kind: 'unpack' }
@@ -452,6 +453,11 @@ export function applicationForm(
 }
 
 function classifyParts(parts: Expression[], lookup: ApplicationLookup): ApplicationForm {
+    if (isNamed(parts[2], 'repeat')) {
+        return parts.length === 4
+            ? { kind: 'repeat', source: parts[0], operation: parts[1], count: parts[3] }
+            : { kind: 'invalid', message: 'repeat expects Init next repeat Count' };
+    }
     if (isNamed(parts[0], 'stack') || isNamed(parts[0], 'concat')) {
         const operation = isNamed(parts[0], 'stack') ? 'stack' : 'concat';
         const end = parts.findIndex((part, index) => {
