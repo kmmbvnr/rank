@@ -385,7 +385,9 @@ including right data parameters, receive cell ranks; function operands and
 optional configuration stay fixed. One data operand accepts one rank and an
 optional axis selection. With two data operands, `rank L R` sets both cell
 ranks; `rank L` changes the first and keeps the second operand's declared rank
-(or its whole value). These modifiers never bind a parameter in the body.
+(or its whole value). These modifiers never bind a parameter in the body. See the canonical
+[rank rules](sequences-arrays.md#rank) for frame agreement, result assembly
+and empty-frame limits.
 
 The [fold demo](../../demos/classic/fold.ra) implements reduction with
 `fun Values fold op .with Seed`. An omitted seed starts from the first item;

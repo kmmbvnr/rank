@@ -882,7 +882,9 @@ metric averages every broadcast result. An axis list averages only the named
 axes and preserves the others in their original order. Both metrics always
 return real values, keep framed tensor results lazy, and raise
 `.EmptyReduction` for an empty reduced cell. Incompatible shapes raise
-`.DimensionMismatch`. Binary `rank` application remains deferred.
+`.DimensionMismatch`. To apply a metric to corresponding cells, use
+`Pred Target mse rank 1 1`; the cell frames follow the common
+[rank rules](../language/sequences-arrays.md#rank).
 
 By default, `covariance` treats the last two axes as features and observations;
 earlier axes are independent batches. The explicit `axis F O` form selects the
