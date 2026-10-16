@@ -16,7 +16,7 @@ import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankBytes, isRankIndex, isNativeFunction, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { indexKey } from './index-key.js';
-import { materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray } from './array-storage.js';
+import { denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray } from './array-storage.js';
 
 
 interface IterationBinding {
@@ -140,6 +140,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
         bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[] = [];
     const arrays = new Map<string, { slot: number; rank: number; type: Term['type'] }>();
     const checkedCells = new WeakMap<RankArray, { revision: number; type: Term['type'] | undefined }>();
+    const calleeArrays = new Set<string>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
     const iterators: ((source: RankArray | string) => Iterable<RankValue>)[] = [];
@@ -417,6 +418,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                             || type.element === 'boolean' && !host.booleanArrays) return undefined;
                         const info = existing ?? { slot: slot(part.name), rank: type.rank, type: type.element };
                         arrays.set(part.name, info);
+                        calleeArrays.add(part.name);
                         if (!assigned.has(part.name)) arrayInputs.add(part.name);
                         arguments_.push(`r${info.slot}`);
                         types.push({ kind: 'array', element: type.element, rank: type.rank });
@@ -960,6 +962,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
             if (!arrayInputs.has(name)) continue;
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.shape.length !== info.rank) return entryGuard('input-type', name);
+            if (calleeArrays.has(name) && (!denseScalarItems(value) || value.itemAt !== undefined)) return entryGuard('callee-array-storage', name);
             if (writable.has(name) && (value.kind !== 'array' || value.itemAt !== undefined)) return entryGuard('writable-storage', name);
             if (!matchingCells(value, info.type)) return entryGuard('storage-or-cell-type', name);
             values[info.slot] = value;

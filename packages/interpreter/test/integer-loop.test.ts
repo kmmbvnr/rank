@@ -2533,3 +2533,67 @@ end`);
         expect(result.loops).toBe(0);
     });
 });
+
+describe('array scratch storage in linked callees', () => {
+    it('uses fresh local arrays and preserves local snapshot aliases', () => {
+        const result = compare(`fun N scratch
+ A = array shape N fill 1
+ B = A
+ Total = 0
+ for J in 0 till N
+  A J = J
+  Total += (A J) + (B J)
+ end
+ return Total
+end
+Sum = 0
+for I in 1 to 3
+ Sum += I scratch
+end
+Sum`);
+        expect(result.value).toBe('10');
+        expect(result.loops).toBe(1);
+    });
+    it('copies array parameters on write without changing caller snapshots', () => {
+        const result = compare(`fun A B N scratch
+ A 0 = N
+ return (A 0) + (B 0)
+end
+A = array 10 20
+B = A
+Sum = 0
+for I in 1 to 3
+ Sum += A A I scratch
+ A 1 = I
+end
+array Sum (A sum) (B sum)`);
+        expect(result.value).toBe('36 13 30');
+        expect(result.loops).toBe(1);
+    });
+    it.each(['-1', '9007199254740992'])('keeps allocation diagnostics for size %s', size => {
+        const result = compare(`fun N scratch
+ A = array shape N fill 0
+ return 0
+end
+for I in 1 to 2
+ X = ${size} scratch
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+    it('checks bounds before evaluating a write value', () => {
+        const result = compare(`use algo
+fun Path N scratch
+ A = array shape 1 fill 0
+ A 2 = Path pop
+ return 0
+end
+Path = new stack
+Path push 5
+for I in 1 to 2
+ X = Path I scratch
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+});

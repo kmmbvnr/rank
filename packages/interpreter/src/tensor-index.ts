@@ -26,3 +26,11 @@ export function sameShape(left: readonly number[], right: readonly number[]): bo
         && left.every((dimension, index) => dimension === right[index]);
 }
 
+
+export function checkedArrayDimension(dimension: bigint): number {
+    if (dimension < 0n) throw new RankError(`array dimension must be nonnegative: ${dimension}`);
+    if (dimension > BigInt(Number.MAX_SAFE_INTEGER)) {
+        throw new RankError(`array dimension is too large: ${dimension}`);
+    }
+    return Number(dimension);
+}

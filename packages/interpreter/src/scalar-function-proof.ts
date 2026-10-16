@@ -2,7 +2,7 @@ import { compiledCalleeTypeKey, sameCompiledCalleeType, isCompiledContainer, typ
 import {
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, flattenApplication, isApplicationExpression,
-    isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement,
+    isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression,
     type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compilerRejection } from './compiler-rejection.js';
@@ -10,7 +10,8 @@ import { recordFallback } from './diagnostics.js';
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array';
+    readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
 }
 export interface ScalarFunctionProof {
@@ -19,6 +20,7 @@ export interface ScalarFunctionProof {
     readonly nativeReads: readonly string[];
     readonly modules: readonly string[];
     readonly containers: boolean;
+    readonly arrayWrites: ReadonlySet<Statement>;
     readonly expressions: ReadonlyMap<Expression, CompiledExpression<CompiledCalleeType, ScalarFunctionInput>>;
 }
 const simpleProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | string>>();
@@ -50,6 +52,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const expressions = new Map<Expression, CompiledExpression<CompiledCalleeType, ScalarFunctionInput>>();
     const nativeReads = new Set<string>();
     const modules = new Set<string>();
+    const arrayWrites = new Set<Statement>();
     let containers = types.some(isCompiledContainer);
     const parameters = new Set(statement.parameters);
     const locals = new Set<string>();
@@ -60,15 +63,25 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         const inferred = inferCompiledExpression<CompiledCalleeType, ScalarFunctionInput>(expression, {
             atom: type => compiledScalarTypes.find(candidate => candidate === type),
             read: source => {
+                if (loops && isArrayExpression(source) && source.dimensions.length && source.fill
+                    && !source.rows.length && !source.items.length && !source.range) {
+                    if (source.dimensions.some(item => !item.value || type(item.value, env) !== 'integer')) return undefined;
+                    const element = type(source.fill, env);
+                    if (!element || typeof element !== 'string') return undefined;
+                    return { type: { kind: 'array', element, rank: source.dimensions.length }, input: {
+                        name: '', operation: 'array', indices: [expressions.get(source.fill)!],
+                        dimensions: source.dimensions.map(item => ({ value: expressions.get(item.value!)!, negative: item.sign === '-' })),
+                    } };
+                }
                 if (loops && isNewStructureExpression(source) && ['index', 'stack', 'queue', 'deque'].includes(source.structure)) {
                     containers = true;
                     modules.add('algo');
                     return { type: source.structure === 'index' ? { kind: 'index' } : { kind: 'deque', mode: source.structure as 'stack' | 'queue' | 'deque' }, input: { name: source.structure, operation: 'new' } };
                 }
-                if (loops && isBinaryExpression(source) && source.operator === 'in' && isNameExpression(source.right)) {
+                if (loops && isBinaryExpression(source) && ['in', 'not in'].includes(source.operator) && isNameExpression(source.right)) {
                     const domain = env.get(source.right.name);
                     if (domain && isCompiledContainer(domain) && domain.kind === 'index' && type(source.left, env) === 'integer') {
-                        return { type: 'boolean', input: { name: source.right.name, operation: 'contains', indices: [expressions.get(source.left)!] } };
+                        return { type: 'boolean', input: { name: source.right.name, operation: source.operator === 'in' ? 'contains' : 'not-contains', indices: [expressions.get(source.left)!] } };
                     }
                 }
                 if (loops && isApplicationExpression(source)) {
@@ -146,10 +159,11 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
             }
             if (loops && isArrayAssignmentStatement(command)) {
                 const receiver = env.get(command.name);
-                if (!receiver || !isCompiledContainer(receiver) || receiver.kind !== 'index'
-                    || command.operator !== '=' || command.indices.length !== 1
+                if (!receiver || typeof receiver === 'string' || isCompiledContainer(receiver) && receiver.kind !== 'index'
+                    || command.operator !== '=' || command.indices.length !== (isCompiledContainer(receiver) ? 1 : receiver.rank)
                     || command.indices.some(index => index.all || index.sign || !index.value || type(index.value, env) !== 'integer')
-                    || type(command.value, env) !== 'integer') return reject(command, 'container-write');
+                    || type(command.value, env) !== (isCompiledContainer(receiver) ? 'integer' : receiver.element)) return reject(command, 'container-write');
+                if (!isCompiledContainer(receiver)) arrayWrites.add(command);
                 continue;
             }
             if (loops && isForStatement(command)) {
@@ -195,7 +209,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         return env;
     }
     const outcome = flow(statement.statements, new Map(settled));
-    const result = outcome === null && resultType ? { type: resultType, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, expressions } : undefined;
+    const result = outcome === null && resultType ? { type: resultType, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, arrayWrites, expressions } : undefined;
     const reason = rejection ?? 'scalar-function:missing-return';
     proofs.set(key, result ?? reason);
     return result ?? recordFallback(reason);

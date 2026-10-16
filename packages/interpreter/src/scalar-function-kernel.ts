@@ -10,7 +10,9 @@ import { checkpoint } from './interrupt.js';
 import { RankError } from './errors.js';
 import { recordFallback } from './diagnostics.js';
 import type { RankValue } from './value.js';
-import { noteArrayBinding } from './array-storage.js';
+import { scalarArrayWriteOffset } from './selectors.js';
+import { checkedArrayDimension } from './tensor-index.js';
+import { arrayForWrite, ownedArray, noteArrayBinding } from './array-storage.js';
 import { applySelectors } from './value-selection.js';
 import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput } from './scalar-function-proof.js';
 
@@ -69,13 +71,25 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         if (expression.kind === 'input') {
             const operation = expression.input.operation;
             const receiver = slot(expression.input.name);
+            if (operation === 'array') {
+                const dimensions = expression.input.dimensions!.map(({ value, negative }) => {
+                    const size = lower(value, lines), result = `v${serial++}`;
+                    lines.push(`const ${result} = checkedArrayDimension(${negative ? `-(${size})` : size});`);
+                    return result;
+                });
+                const shape = `v${serial++}`, result = `v${serial++}`;
+                lines.push(`const ${shape} = [${dimensions.join(',')}];`);
+                const fill = lower(expression.input.indices![0], lines);
+                lines.push(`const ${result} = ownedArray(Array(Number(${shape}.reduce((a, b) => a * BigInt(b), 1n))).fill(${fill}), ${shape}, true);`);
+                return result;
+            }
             if (operation) {
                 const arguments_ = expression.input.indices?.map(index => lower(index, lines)) ?? [];
                 const result = `v${serial++}`;
                 const code = operation === 'new' ? `newStructure(${JSON.stringify(expression.input.name)})`
                     : operation === 'pop' ? `${receiver}.pop()`
                     : operation === 'len' ? `BigInt(${receiver}.kind === 'index' ? ${receiver}.entries.size : ${receiver}.size)`
-                    : `${receiver}.entries.has(indexKey([${arguments_.join(',')}]))`;
+                    : `${operation === 'not-contains' ? '!' : ''}${receiver}.entries.has(indexKey([${arguments_.join(',')}]))`;
                 lines.push(`const ${result} = ${code};`);
                 return result;
             }
@@ -121,13 +135,22 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 let value = emit(command.value, lines);
                 if (command.operator !== '=') value = binary(findCompiledOperator(command.operator.slice(0, -1))!, slot(command.name), value, lines, expressions.get(command.value)!.type);
                 lines.push(`${slot(command.name)} = ${value};`);
+                if (proof!.arrayWrites.size && typeof expressions.get(command.value)!.type !== 'string') lines.push(`noteArrayBinding(${value});`);
             } else if (isPushStatement(command) && isNameExpression(command.receiver)) {
                 const value = emit(command.value, lines);
                 lines.push(`${slot(command.receiver.name)}.push(${value});`);
             } else if (isArrayAssignmentStatement(command)) {
-                const key = emit(command.indices[0].value!, lines);
+                const keys = command.indices.map(index => emit(index.value!, lines));
+                const receiver = slot(command.name);
+                const offset = `v${serial++}`;
+                if (proof!.arrayWrites.has(command)) lines.push(`const ${offset} = scalarArrayWriteOffset(${receiver}, [${keys.join(',')}]);`);
                 const value = emit(command.value, lines);
-                lines.push(`${slot(command.name)}.entries.set(indexKey([${key}]), ${value});`);
+                if (proof!.arrayWrites.has(command)) {
+                    const copy = `v${serial++}`;
+                    lines.push(`const ${copy} = arrayForWrite(${receiver});
+                        if (${copy}) { ${receiver} = ${copy}; noteArrayBinding(${receiver}); }
+                        ${receiver}.items[${offset}] = ${value};`);
+                } else lines.push(`${receiver}.entries.set(indexKey([${keys.join(',')}]), ${value});`);
             } else if (isForStatement(command)) {
                 const binding = forIteration(command.condition);
                 lines.push('{');
@@ -179,11 +202,12 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     });
     const source = `"use strict"; return function(args, locate, calls) {
         ${declarations.length ? `let ${declarations.join(',')};` : ''}
+        ${proof.arrayWrites.size ? 'args.forEach(noteArrayBinding);' : ''}
         let location = -1;
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
     let kernel: Kernel | undefined;
-    try { kernel = { locations, calls, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'applySelectors', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexKey', source)(RankError, applySelectors, noteArrayBinding, checkpoint, newStructure, indexKey) as Kernel['run'] }; }
+    try { kernel = { locations, calls, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'applySelectors', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'scalarArrayWriteOffset', 'arrayForWrite', source)(RankError, applySelectors, noteArrayBinding, checkpoint, newStructure, indexKey, ownedArray, checkedArrayDimension, scalarArrayWriteOffset, arrayForWrite) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

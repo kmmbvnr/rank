@@ -334,7 +334,7 @@ export class FastPaths {
         const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types, true);
         if (!proof || typeof proof.type !== 'string') return undefined;
         const captures = definition.context !== undefined;
-        return { parameters: types, effects: { writes: types.flatMap((type, index) => isCompiledContainer(type) ? [index] : []), stableArrayReads: !proof.containers },
+        return { parameters: types, effects: { writes: types.flatMap((type, index) => isCompiledContainer(type) ? [index] : []), stableArrayReads: !proof.containers && !proof.arrayWrites.size },
             type: proof.type, locals: [...(captures ? proof.locals : []), ...proof.nativeReads], bind: () => {
             const current = this.context.bindings.find(name);
             if (!current || !isNativeFunction(current)) return undefined;
