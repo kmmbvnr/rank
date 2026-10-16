@@ -1,3 +1,7 @@
+import { type CompiledCalleeType } from './compiled-callee-type.js';
+import { ResourceMap } from './resource-summary.js';
+import { compiledArgumentType } from './compiled-argument-type.js';
+import type { CompiledCallee } from './compiled-callee.js';
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
@@ -5,14 +9,14 @@ import {
     flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
-    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledScalarType, type CompiledExpression,
+    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledExpression,
 } from '@arrrank/language';
 import { completed, type Completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankBytes, isRankIndex, isNativeFunction, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { indexKey } from './index-key.js';
-import { materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray } from './array-storage.js';
+import { denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray } from './array-storage.js';
 
 
 interface IterationBinding {
@@ -35,11 +39,7 @@ interface Host {
     readonly scalarText: boolean;
     prepareBuiltinCall(module: string, name: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
-    scalarFunction(name: string, arity: number): {
-        type: CompiledScalarType;
-        locals: readonly string[];
-        bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined;
-    } | undefined;
+    scalarFunction(name: string, arity: number): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined;
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
     readonly arrayLocals: boolean;
@@ -134,12 +134,13 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
     const binders: ((value: RankValue) => void)[] = [];
     const writerNames: string[] = [], binderNames: string[] = [];
     const written = new Set<string>();
-    const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean }>();
+    const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean; mode?: RankDeque['mode'] }>();
     const builtins = new Map<string, string>();
     const calls: { name: string; locals: readonly string[]; stableArrayReads: boolean;
         bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[] = [];
     const arrays = new Map<string, { slot: number; rank: number; type: Term['type'] }>();
     const checkedCells = new WeakMap<RankArray, { revision: number; type: Term['type'] | undefined }>();
+    const calleeArrays = new Set<string>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
     const iterators: ((source: RankArray | string) => Iterable<RankValue>)[] = [];
@@ -390,22 +391,56 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                     lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
                     return { code: name, type: signature.result };
                 }
-                const callable = host.scalarFunction(last.name, parts.length - 1);
-                if (callable?.type === 'real') return reject(e, 'unsupported-type:real');
-                if (callable) {
+                const prepareCallee = host.scalarFunction(last.name, parts.length - 1);
+                if (prepareCallee) {
                     const arguments_: string[] = [];
-                    for (const part of parts.slice(0, -1)) {
-                        const value = emit(part, lines);
-                        if (value?.type !== 'integer') return undefined;
-                        arguments_.push(value.code);
+                    const types: CompiledCalleeType[] = [];
+                    for (let part of parts.slice(0, -1)) {
+                        while (isParenthesizedExpression(part)) part = part.value;
+                        const existing = isNameExpression(part) ? arrays.get(part.name) : undefined;
+                        const current = isNameExpression(part) && !localTypes.has(part.name) ? host.read(part.name) : undefined;
+                        if (current && isNameExpression(part) && (current instanceof RankDeque
+                            || isRankIndex(current) && current.entries instanceof ResourceMap)) {
+                            const kind = current instanceof RankDeque ? 'deque' : 'index';
+                            const receiver = container(part.name, kind);
+                            if (!receiver) return undefined;
+                            containers.get(part.name)!.integers = true;
+                            arguments_.push(receiver);
+                            if (current instanceof RankDeque) {
+                                containers.get(part.name)!.mode = current.mode;
+                                types.push({ kind: 'deque', mode: current.mode });
+                            } else types.push({ kind: 'index' });
+                            continue;
+                        }
+                        const type = existing ? { kind: 'array' as const, element: existing.type, rank: existing.rank }
+                            : current === undefined ? undefined : compiledArgumentType(current);
+                        if (type && typeof type !== 'string' && isNameExpression(part)) {
+                            if (!host.arrayReads || type.element === 'real' || type.element === 'bytes'
+                                || type.element === 'text' && !host.textArrayLoops
+                                || type.element === 'boolean' && !host.booleanArrays) return undefined;
+                            const info = existing ?? { slot: slot(part.name), rank: type.rank, type: type.element };
+                            arrays.set(part.name, info);
+                            calleeArrays.add(part.name);
+                            if (!assigned.has(part.name)) arrayInputs.add(part.name);
+                            arguments_.push(`r${info.slot}`);
+                            types.push({ kind: 'array', element: type.element, rank: type.rank });
+                        } else {
+                            const value = emit(part, lines, knownType(part));
+                            if (!value || value.type === 'bytes') return undefined;
+                            arguments_.push(value.code);
+                            types.push(value.type);
+                        }
                     }
-                    const name = `v${serial++}`, index = calls.length;
-                    // scalarFunctionResult proves that this callee uses only
-                    // scalar parameters and local values. Its binding is still
-                    // checked at each region entry.
-                    calls.push({ name: last.name, locals: callable.locals, stableArrayReads: true, bind: callable.bind });
-                    lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]${tail ? ', tailCallsAllowed' : ''});`);
-                    return { code: name, type: callable.type };
+                    const callable = prepareCallee(types);
+                    if (callable?.type === 'real') return reject(e, 'unsupported-type:real');
+                    if (callable) {
+                        const name = `v${serial++}`, index = calls.length;
+                        // The proof fixes input domains and permitted mutations.
+                        // Binding identity is rechecked at every region entry.
+                        calls.push({ name: last.name, locals: callable.locals, stableArrayReads: callable.effects.stableArrayReads, bind: callable.bind });
+                        lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]${tail ? ', tailCallsAllowed' : ''});`);
+                        return { code: name, type: callable.type };
+                    }
                 }
             }
         }
@@ -784,6 +819,10 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
     }
     const body: string[] = [];
     if (!statements(statement.statements, body, !iteration)) return undefined;
+    // Index aliases can be written under another name. All writes in a region
+    // with typed container arguments must preserve their integer cell domain.
+    if ([...containers.values()].some(info => info.kind === 'index' && info.integers)
+        && [...destinations.values()].some(info => info.type !== 'integer')) return reject(statement, 'container-write-type');
     // Container bindings must remain stable throughout the compiled region.
     if ([...containers].some(([name, info]) => written.has(name) || required.has(info.slot))) return reject(statement, 'unstable-bindings');
     if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return reject(statement, 'unstable-bindings');
@@ -910,8 +949,14 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
             const value = host.read(name);
             if (value === undefined) return entryGuard('input-type', name);
             if (info.kind === 'index' ? !isRankIndex(value) : !(value instanceof RankDeque)) return entryGuard('input-type', name);
-            if (info.integers && value instanceof RankDeque) {
-                for (const item of value.values()) if (typeof item !== 'bigint') return entryGuard('input-type', name);
+            if (info.mode && (!(value instanceof RankDeque) || value.mode !== info.mode)) return entryGuard('input-type', name);
+            if (info.integers) {
+                const entries = value instanceof RankDeque ? value.values() : isRankIndex(value) && value.entries instanceof ResourceMap ? value.entries.values() : undefined;
+                if (!entries) return entryGuard('input-type', name);
+                for (const item of entries) {
+                    checkpoint();
+                    if (typeof item !== 'bigint') return entryGuard('input-type', name);
+                }
             }
             values[info.slot] = value;
         }
@@ -919,6 +964,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
             if (!arrayInputs.has(name)) continue;
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.shape.length !== info.rank) return entryGuard('input-type', name);
+            if (calleeArrays.has(name) && (!denseScalarItems(value) || value.itemAt !== undefined)) return entryGuard('callee-array-storage', name);
             if (writable.has(name) && (value.kind !== 'array' || value.itemAt !== undefined)) return entryGuard('writable-storage', name);
             if (!matchingCells(value, info.type)) return entryGuard('storage-or-cell-type', name);
             values[info.slot] = value;

@@ -1,7 +1,9 @@
+import { isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
+import type { CompiledCallee } from './compiled-callee.js';
 import type { AstNode } from 'langium';
 import {
     findOperation, flattenApplication, isBinaryExpression, isNameExpression, isUnaryExpression,
-    type ApplicationForm, type Operation, type CompiledScalarType, type CompiledFunctionType, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
+    type ApplicationForm, type Operation, type CompiledFunctionType, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
@@ -55,13 +57,6 @@ export interface FastPathContext {
 export interface ApplicationReference {
     reduce(operator: string, value: RankValue): RankValue;
     apply(values: RankValue[]): Evaluation<RankValue>;
-}
-
-/** A compiled loop's view of a user function it may call without leaving the loop. */
-export interface ScalarCallSite {
-    readonly type: CompiledScalarType;
-    readonly locals: readonly string[];
-    bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined;
 }
 
 /** How a compiled block reaches statement preparation and resumes after a suspension. */
@@ -325,34 +320,46 @@ export class FastPaths {
     }
 
     /**
-     * A compiled loop calling `name` with `arity` integer arguments may compile the call
+     * A compiled loop calling `name` with proven argument types may compile the call
      * when the callee's body is a proven scalar function. `bind` rechecks the
      * binding at loop entry, since the name can be rebound between runs.
      */
-    scalarCall(name: string, arity: number): ScalarCallSite | undefined {
+    scalarCall(name: string, arity: number): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined {
         if (this.context.options().scalarCallCompilation === false) return undefined;
         const value = this.context.bindings.find(name);
         const definition = value && isNativeFunction(value) ? this.context.functions.definitionOf(value) : undefined;
         if (!definition || definition.statement.parameters.length !== arity) return undefined;
         const statement = definition.statement;
-        const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false);
-        if (!proof || typeof proof.type !== 'string') return undefined;
-        const captures = definition.context !== undefined;
-        return { type: proof.type, locals: [...(captures ? proof.locals : []), ...proof.nativeReads], bind: () => {
-            const current = this.context.bindings.find(name);
-            if (!current || !isNativeFunction(current)) return undefined;
-            const active = this.context.functions.definitionOf(current);
-            if (active?.statement !== statement || (active.context !== undefined) !== captures
-                || proof.locals.some(local => active.context?.find(local))) return undefined;
-            const compiled = active.owner.prepareScalarCall(statement, active.context);
-            if (proof.nativeReads.length && !compiled || compiled?.available && !compiled.available()) return undefined;
-            return (arguments_, tail = false) => {
-                if (tail && active.owner === this.context.functions) {
-                    throw new TailCallSignal(active, arguments_,
-                        this.context.options().compiledScalarTailCalls !== false ? compiled : undefined);
-                }
-                return compiled ? compiled(arguments_) : current.call(arguments_);
+        if (statement.memo || statement.ranks.some(rank => rank !== 'all')) return undefined;
+        return types => {
+            const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types, true);
+            if (!proof || typeof proof.type !== 'string') return undefined;
+            const captures = definition.context !== undefined;
+            return {
+                parameters: types,
+                effects: {
+                    writes: types.flatMap((type, index) => isCompiledContainer(type) ? [index] : []),
+                    stableArrayReads: !proof.containers && !proof.arrayWrites.size,
+                },
+                type: proof.type,
+                locals: [...(captures ? proof.locals : []), ...proof.nativeReads],
+                bind: () => {
+                    const current = this.context.bindings.find(name);
+                    if (!current || !isNativeFunction(current)) return undefined;
+                    const active = this.context.functions.definitionOf(current);
+                    if (active?.statement !== statement || (active.context !== undefined) !== captures
+                        || proof.locals.some(local => active.context?.find(local))) return undefined;
+                    const compiled = active.owner.prepareScalarCall(statement, active.context, types, true);
+                    if (proof.nativeReads.length && !compiled || compiled?.available && !compiled.available()) return undefined;
+                    return (arguments_, tail = false) => {
+                        if (tail && active.owner === this.context.functions) {
+                            throw new TailCallSignal(active, arguments_,
+                                this.context.options().compiledScalarTailCalls !== false ? compiled : undefined);
+                        }
+                        return compiled ? compiled(arguments_) : current.call(arguments_);
+                    };
+                },
             };
-        } };
+        };
     }
 }

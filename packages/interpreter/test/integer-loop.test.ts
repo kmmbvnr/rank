@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { registerCachedArray } from '../src/array-storage.js';
 import { Interpreter, RankError, formatValue } from '../src/index.js';
 
-function execute(source: string, integerLoopCompilation: boolean, nestedLoopCompilation = true) {
+function execute(source: string, integerLoopCompilation: boolean, nestedLoopCompilation = true, scalarFunctionCompilation = true) {
     let loops = 0;
-    const runtime = new Interpreter(undefined, { integerLoopCompilation, nestedLoopCompilation,
+    const runtime = new Interpreter(undefined, { integerLoopCompilation, nestedLoopCompilation, scalarFunctionCompilation,
         onIntegerLoopExecuted: () => loops++ });
     const containers = () => [...runtime.variables].flatMap<unknown>(([name, value]) => {
         if (typeof value !== 'object' || value === null) return [];
@@ -1919,7 +1919,7 @@ for I in 1 to 2
 end
 Total`);
     expect(result.value).toBe('14');
-    expect(result.loops).toBe(0);
+    expect(result.loops).toBe(1);
 });
 
 describe('proven scalar calls from loop regions', () => {
@@ -2271,4 +2271,352 @@ end
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
     });
+});
+
+
+function compareLinked(source: string) {
+    const reference = execute(source, false, true, false), compiled = execute(source, true);
+    expect({ ...compiled, loops: 0 }).toEqual({ ...reference, loops: 0 });
+    return compiled;
+}
+
+describe('typed callees in outer loop regions', () => {
+    it('links eager array reads and guards the outer region', () => {
+        const result = compareLinked(`fun A I cellread
+ return A I
+end
+A = array 3 5 7
+Total = 0
+for I in 0 till 3
+ Total += A I cellread
+end
+Total`);
+        expect(result.value).toBe('15');
+        expect(result.loops).toBe(1);
+    });
+    it('links text parameters and scalar results', () => {
+        const result = compareLinked(`fun S width
+ return S len
+end
+Text = "hello"
+Total = 0
+for I in 0 till 3
+ Total += Text width
+end
+Total`);
+        expect(result.value).toBe('15');
+        expect(result.loops).toBe(1);
+    });
+    it('keeps array aliases and observes preceding caller writes', () => {
+        const result = compareLinked(`fun A I cellread
+ return A I
+end
+A = array 3 5 7
+B = A
+Total = 0
+for I in 0 till 3
+ A I = I
+ Total += A I cellread
+end
+array Total (B sum)`);
+        expect(result.value).toBe('3 15');
+        expect(result.loops).toBe(1);
+    });
+    it('preserves bounds errors after caller mutations without replay', () => {
+        const result = compareLinked(`fun A I cellread
+ return A I
+end
+A = array 3 5
+Done = 0
+for I in 0 till 3
+ Done += 1
+ X = A I cellread
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+});
+
+describe('callee-local numeric loops', () => {
+    it.each(['for J in 1 to N', 'J = 0\n for J less N\n  J += 1'])('compiles the outer loop calling a helper with %s', header => {
+        const result = compareLinked(`fun N triangular
+ Total = 0
+ ${header}
+  Total += J
+ end
+ return Total
+end
+Sum = 0
+for I in 1 to 3
+ Sum += I triangular
+end
+Sum`);
+        expect(result.value).toBe('10');
+        // The interpreted caller would execute three compiled inner loops.
+        expect(result.loops).toBe(1);
+    });
+    it.each(['0', '-1', '1'])('preserves range setup and early returns for step %s', step => {
+        const result = compareLinked(`fun N localrange
+ Total = 0
+ for J in N till 0 by ${step}
+  if J equal 2
+   return Total
+  end
+  Total += J
+ end
+ return Total
+end
+Sum = 0
+for I in 1 to 3
+ Sum += I localrange
+end
+Sum`);
+        expect(result.loops).toBe(1);
+        if (step === '0') expect(result).toHaveProperty('error');
+    });
+    it('rejects a local used after a potentially empty loop', () => {
+        const result = compareLinked(`fun N unsetlocal
+ for J in 0 till N
+  Value = J
+ end
+ return Value
+end
+Sum = 0
+for I in 0 till 2
+ Sum += I unsetlocal
+end`);
+        expect(result).toHaveProperty('error');
+    });
+    it('keeps errors inside a callee loop and completed caller writes', () => {
+        const result = compareLinked(`fun N failingloop
+ Total = 0
+ for J in 0 till N
+  Total += 10 // (J - 1)
+ end
+ return Total
+end
+Done = 0
+for I in 1 to 3
+ Done += 1
+ X = I failingloop
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+});
+
+describe('integer reference containers in linked callees', () => {
+    it.each(['stack', 'queue', 'deque'])('allocates a fresh local %s per call', structure => {
+        const result = compareLinked(`use algo
+fun N localwork
+ Path = new ${structure}
+ for J in 1 to N
+  Path push J
+ end
+ Total = 0
+ for Path len greater 0
+  Total += Path pop
+ end
+ return Total
+end
+Sum = 0
+for I in 1 to 3
+ Sum += I localwork
+end
+Sum`);
+        expect(result.value).toBe('10');
+        expect(result.loops).toBe(1);
+    });
+    it('allocates and writes a local index', () => {
+        const result = compareLinked(`use algo
+fun N localindex
+ Cache = new index
+ for J in 0 till N
+  Cache J = J * 2
+ end
+ if 1 not in Cache
+  return 0
+ end
+ return Cache 1
+end
+Sum = 0
+for I in 0 till 4
+ Sum += I localindex
+end
+Sum`);
+        expect(result.value).toBe('4');
+        expect(result.loops).toBe(1);
+    });
+    it('preserves reference aliases across calls and caller writes', () => {
+        const result = compareLinked(`use algo
+fun Cache N updatecache
+ Cache N = N * 2
+ return Cache N
+end
+Cache = new index
+Alias = Cache
+Sum = 0
+for I in 1 to 3
+ Alias I = I
+ Sum += Cache I updatecache
+end
+array Sum (Alias 3)`);
+        expect(result.value).toBe('12 6');
+        expect(result.loops).toBe(1);
+    });
+    it('passes the same deque twice without copying', () => {
+        const result = compareLinked(`use algo
+fun A B N roundtrip
+ A push N
+ return B pop
+end
+Path = new stack
+Sum = 0
+for I in 1 to 3
+ Sum += Path Path I roundtrip
+end
+array Sum (Path len)`);
+        expect(result.value).toBe('6 0');
+        expect(result.loops).toBe(1);
+    });
+    it('preserves completed mutations when a callee fails', () => {
+        const result = compareLinked(`use algo
+fun Cache Path N mutatefail
+ Cache N = N
+ Path push N
+ X = Path pop
+ return Path pop
+end
+Cache = new index
+Path = new queue
+Done = 0
+for I in 1 to 3
+ Done += 1
+ X = Cache Path I mutatefail
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+    it('rejects an index cell type changed through a caller alias', () => {
+        const result = compareLinked(`use algo
+fun Cache N readcache
+ return Cache N + 1
+end
+Cache = new index
+Alias = Cache
+Cache 1 = 2
+for I in 1 to 2
+ Alias I = "bad"
+ X = Cache I readcache
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+    it('does not bypass queue-family binding contracts', () => {
+        const result = compareLinked(`use algo
+fun N changecontainer
+ Path = new stack
+ Path = new queue
+ return N
+end
+for I in 1 to 2
+ X = I changecontainer
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+    it('rejects mixed-value index input before the first mutation', () => {
+        const result = compareLinked(`use algo
+fun Cache N readcache
+ Cache 0 = N
+ return Cache 1 + 1
+end
+Cache = new index
+Cache 1 = "bad"
+for I in 1 to 2
+ X = Cache I readcache
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+});
+
+describe('array scratch storage in linked callees', () => {
+    it('uses fresh local arrays and preserves local snapshot aliases', () => {
+        const result = compareLinked(`fun N scratch
+ A = array shape N fill 1
+ B = A
+ Total = 0
+ for J in 0 till N
+  A J = J
+  Total += (A J) + (B J)
+ end
+ return Total
+end
+Sum = 0
+for I in 1 to 3
+ Sum += I scratch
+end
+Sum`);
+        expect(result.value).toBe('10');
+        expect(result.loops).toBe(1);
+    });
+    it('copies array parameters on write without changing caller snapshots', () => {
+        const result = compareLinked(`fun A B N scratch
+ A 0 = N
+ return (A 0) + (B 0)
+end
+A = array 10 20
+B = A
+Sum = 0
+for I in 1 to 3
+ Sum += A A I scratch
+ A 1 = I
+end
+array Sum (A sum) (B sum)`);
+        expect(result.value).toBe('36 13 30');
+        expect(result.loops).toBe(1);
+    });
+    it.each(['-1', '9007199254740992'])('keeps allocation diagnostics for size %s', size => {
+        const result = compareLinked(`fun N scratch
+ A = array shape N fill 0
+ return 0
+end
+for I in 1 to 2
+ X = ${size} scratch
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+    it('checks bounds before evaluating a write value', () => {
+        const result = compareLinked(`use algo
+fun Path N scratch
+ A = array shape 1 fill 0
+ A 2 = Path pop
+ return 0
+end
+Path = new stack
+Path push 5
+for I in 1 to 2
+ X = Path I scratch
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+});
+
+
+it.each(['array shape 1 2 fill 3', 'array "a" "b"'])('preserves duplicate parameter contracts for %s', first => {
+    const result = compareLinked(`fun A A duplicate
+ return A 0
+end
+A = array 1 2
+B = ${first}
+X = 0
+for I in 1 to 1
+ X = B A duplicate
+end
+X`);
+    expect(result).toHaveProperty('error');
+    expect(result.loops).toBe(0);
 });

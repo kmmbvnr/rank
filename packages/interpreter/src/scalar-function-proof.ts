@@ -1,7 +1,8 @@
+import { compiledCalleeTypeKey, sameCompiledCalleeType, isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
 import {
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
-    type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, compiledFunctionTypeKey, sameCompiledFunctionType, flattenApplication, isApplicationExpression,
-    isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement,
+    type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, flattenApplication, isApplicationExpression,
+    isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression,
     type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compilerRejection } from './compiler-rejection.js';
@@ -9,50 +10,100 @@ import { recordFallback } from './diagnostics.js';
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly indices?: readonly CompiledExpression<CompiledFunctionType, ScalarFunctionInput>[];
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array';
+    readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
+    readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
 }
 export interface ScalarFunctionProof {
     readonly type: CompiledFunctionType;
     readonly locals: readonly string[];
     readonly nativeReads: readonly string[];
-    readonly expressions: ReadonlyMap<Expression, CompiledExpression<CompiledFunctionType, ScalarFunctionInput>>;
+    readonly modules: readonly string[];
+    readonly containers: boolean;
+    readonly arrayWrites: ReadonlySet<Statement>;
+    readonly expressions: ReadonlyMap<Expression, CompiledExpression<CompiledCalleeType, ScalarFunctionInput>>;
 }
 const simpleProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | string>>();
+const loopProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | string>>();
 const blockProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | string>>();
 
 // The caller must additionally check that local assignment names neither exist
 // in the closure context nor can be created by the surrounding register region.
 export function scalarFunctionResult(statement: FunctionStatement, blocks = false,
-    parameterTypes?: readonly CompiledFunctionType[]): ScalarFunctionProof | undefined {
+    parameterTypes?: readonly CompiledCalleeType[], loops = false): ScalarFunctionProof | undefined {
     if (parameterTypes && parameterTypes.length !== statement.parameters.length) {
         return recordFallback('scalar-function:argument-count');
     }
-    const cache = blocks ? blockProofs : simpleProofs;
+    const cache = loops ? loopProofs : blocks ? blockProofs : simpleProofs;
     let proofs = cache.get(statement);
     if (!proofs) cache.set(statement, proofs = new Map());
     // The default remains the integer specialization used by loop call sites.
     // This is preparation-time work; runtime callers cache their selected proof.
     const types = parameterTypes ?? statement.parameters.map(() => 'integer' as const);
-    const key = types.map(compiledFunctionTypeKey).join(',');
+    const key = types.map(compiledCalleeTypeKey).join(',');
     const cached = proofs.get(key);
     if (typeof cached === 'string') return recordFallback(cached);
     if (cached) return cached;
+    // Duplicate names are bound in order by the ordinary frame. Its array
+    // contracts can reject an earlier argument even if the body reads only the
+    // last binding. Equal domains are safe; mixed domains keep those checks.
+    const firstTypes = new Map<string, CompiledCalleeType>();
+    for (const [index, name] of statement.parameters.entries()) {
+        const previous = firstTypes.get(name);
+        if (previous && !sameCompiledCalleeType(previous, types[index])) return recordFallback('scalar-function:duplicate-parameter-domain');
+        firstTypes.set(name, types[index]);
+    }
     let rejection: string | undefined;
     function reject(node: Expression | Statement, detail?: string): undefined {
         rejection ??= compilerRejection('scalar-function', node, detail);
         return undefined;
     }
-    const expressions = new Map<Expression, CompiledExpression<CompiledFunctionType, ScalarFunctionInput>>();
+    const expressions = new Map<Expression, CompiledExpression<CompiledCalleeType, ScalarFunctionInput>>();
     const nativeReads = new Set<string>();
+    const modules = new Set<string>();
+    const arrayWrites = new Set<Statement>();
+    let containers = types.some(isCompiledContainer);
     const parameters = new Set(statement.parameters);
     const locals = new Set<string>();
-    const settled = new Map<string, CompiledFunctionType>(statement.parameters.map((name, index) => [name, types[index]]));
+    const settled = new Map<string, CompiledCalleeType>(statement.parameters.map((name, index) => [name, types[index]]));
     const budget = { remaining: blocks ? 256 : 129 };
     let resultType: CompiledFunctionType | undefined;
-    function type(expression: Expression, env: ReadonlyMap<string, CompiledFunctionType>): CompiledFunctionType | undefined {
-        const inferred = inferCompiledExpression<CompiledFunctionType, ScalarFunctionInput>(expression, {
+    function type(expression: Expression, env: ReadonlyMap<string, CompiledCalleeType>): CompiledCalleeType | undefined {
+        const inferred = inferCompiledExpression<CompiledCalleeType, ScalarFunctionInput>(expression, {
             atom: type => compiledScalarTypes.find(candidate => candidate === type),
             read: source => {
+                if (loops && isArrayExpression(source) && source.dimensions.length && source.fill
+                    && !source.rows.length && !source.items.length && !source.range) {
+                    if (source.dimensions.some(item => !item.value || type(item.value, env) !== 'integer')) return undefined;
+                    const element = type(source.fill, env);
+                    if (!element || typeof element !== 'string') return undefined;
+                    return { type: { kind: 'array', element, rank: source.dimensions.length }, input: {
+                        name: '', operation: 'array', indices: [expressions.get(source.fill)!],
+                        dimensions: source.dimensions.map(item => ({ value: expressions.get(item.value!)!, negative: item.sign === '-' })),
+                    } };
+                }
+                if (loops && isNewStructureExpression(source) && ['index', 'stack', 'queue', 'deque'].includes(source.structure)) {
+                    containers = true;
+                    modules.add('algo');
+                    return { type: source.structure === 'index' ? { kind: 'index' } : { kind: 'deque', mode: source.structure as 'stack' | 'queue' | 'deque' }, input: { name: source.structure, operation: 'new' } };
+                }
+                if (loops && isBinaryExpression(source) && ['in', 'notin'].includes(source.operator) && isNameExpression(source.right)) {
+                    const domain = env.get(source.right.name);
+                    if (domain && isCompiledContainer(domain) && domain.kind === 'index' && type(source.left, env) === 'integer') {
+                        return { type: 'boolean', input: { name: source.right.name, operation: source.operator === 'in' ? 'contains' : 'not-contains', indices: [expressions.get(source.left)!] } };
+                    }
+                }
+                if (loops && isApplicationExpression(source)) {
+                    const parts = flattenApplication(source);
+                    const [receiver, operation] = parts;
+                    const domain = isNameExpression(receiver) ? env.get(receiver.name) : undefined;
+                    if (parts.length === 2 && isNameExpression(receiver) && domain && isCompiledContainer(domain)
+                        && isNameExpression(operation) && !env.has(operation.name)
+                        && (operation.name === 'len' || operation.name === 'pop' && domain.kind === 'deque')) {
+                        nativeReads.add(operation.name);
+                        return { type: 'integer', input: { name: receiver.name, operation: operation.name } };
+                    }
+                }
                 if (isNameExpression(source)) {
                     const known = env.get(source.name);
                     return known ? { type: known, input: { name: source.name } } : undefined;
@@ -61,16 +112,17 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 const [head, ...indices] = flattenApplication(source);
                 if (!isNameExpression(head)) return undefined;
                 const array = env.get(head.name);
-                if (!array || typeof array === 'string' || indices.length !== array.rank) return undefined;
+                if (!array || typeof array === 'string' || (isCompiledContainer(array) ? array.kind !== 'index' || indices.length !== 1 : indices.length !== array.rank)) return undefined;
                 if (!indices.every(index => type(index, env) === 'integer')) return undefined;
-                return { type: array.element, input: { name: head.name, indices: indices.map(index => expressions.get(index)!) } };
+                return { type: isCompiledContainer(array) ? 'integer' : array.element, input: { name: head.name, indices: indices.map(index => expressions.get(index)!) } };
             },
             isBound: name => env.has(name),
             operator: (operation, inputs) => inputs.every((value): value is CompiledScalarType => typeof value === 'string')
                 ? matchCompiledOperatorSignature(operation.scalarFunction, inputs) : undefined,
             call: (operation, inputs) => {
+                if (inputs.some(isCompiledContainer)) return undefined;
                 const signature = matchCompiledCallSignature(operation, inputs.map(value => typeof value === 'string' ? value
-                    : value.element === 'text' && value.rank === 1 ? 'text-array' : 'array'));
+                    : !isCompiledContainer(value) && value.element === 'text' && value.rank === 1 ? 'text-array' : 'array'));
                 if (signature) nativeReads.add(operation.name);
                 return signature;
             },
@@ -81,13 +133,13 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         return inferred.expression.type;
     }
     // null: every path returned; undefined: unproved; map: continuing paths.
-    function flow(commands: readonly Statement[], env: Map<string, CompiledFunctionType>): Map<string, CompiledFunctionType> | null | undefined {
+    function flow(commands: readonly Statement[], env: Map<string, CompiledCalleeType>): Map<string, CompiledCalleeType> | null | undefined {
         for (let index = 0; index < commands.length; index++) {
             const command = commands[index];
             if (--budget.remaining < 0) return reject(command, 'budget');
             if (isReturnStatement(command) && command.value) {
                 const value = type(command.value, env);
-                if (!value || resultType && !sameCompiledFunctionType(resultType, value)) return reject(command, 'return-type');
+                if (!value || isCompiledContainer(value) || resultType && !sameCompiledCalleeType(resultType, value)) return reject(command, 'return-type');
                 resultType = value;
                 // Reject unreachable syntax as well: local functions are hoisted.
                 return index === commands.length - 1 ? null : reject(commands[index + 1], 'unreachable');
@@ -95,9 +147,9 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
             if (!blocks) return reject(command, 'blocks-disabled');
             if (isAssignmentStatement(command) && !command.name.includes('.')) {
                 const value = type(command.value, env);
-                if (!value || settled.has(command.name) && !sameCompiledFunctionType(settled.get(command.name)!, value)) return reject(command, 'binding-type');
+                if (!value || settled.has(command.name) && !sameCompiledCalleeType(settled.get(command.name)!, value)) return reject(command, 'binding-type');
                 if (command.operator !== '=') {
-                    if (!env.has(command.name) || !sameCompiledFunctionType(env.get(command.name)!, value)) return reject(command, 'compound-binding');
+                    if (!env.has(command.name) || !sameCompiledCalleeType(env.get(command.name)!, value)) return reject(command, 'compound-binding');
                     if (typeof value !== 'string') return reject(command, 'compound-type');
                     const signature = scalarOperatorSignature(command.operator.slice(0, -1), [value, value]);
                     if (!signature?.compound || signature.result !== value) return reject(command, `unsupported-op:${command.operator}`);
@@ -107,8 +159,47 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (!parameters.has(command.name)) locals.add(command.name);
                 continue;
             }
+            if (loops && isPushStatement(command)) {
+                const receiver = isNameExpression(command.receiver) ? env.get(command.receiver.name) : undefined;
+                if (!receiver || !isCompiledContainer(receiver) || receiver.kind !== 'deque'
+                    || type(command.value, env) !== 'integer') return reject(command, 'container-push');
+                modules.add('algo');
+                continue;
+            }
+            if (loops && isArrayAssignmentStatement(command)) {
+                const receiver = env.get(command.name);
+                if (!receiver || typeof receiver === 'string' || isCompiledContainer(receiver) && receiver.kind !== 'index'
+                    || command.operator !== '=' || command.indices.length !== (isCompiledContainer(receiver) ? 1 : receiver.rank)
+                    || command.indices.some(index => index.all || index.sign || !index.value || type(index.value, env) !== 'integer')
+                    || type(command.value, env) !== (isCompiledContainer(receiver) ? 'integer' : receiver.element)) return reject(command, 'container-write');
+                if (!isCompiledContainer(receiver)) arrayWrites.add(command);
+                continue;
+            }
+            if (loops && isForStatement(command)) {
+                const body = new Map(env);
+                const binding = forIteration(command.condition);
+                if (binding) {
+                    let range = binding.iterable;
+                    while (isParenthesizedExpression(range)) range = range.value;
+                    if (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)
+                        || type(range.left, env) !== 'integer' || type(range.right, env) !== 'integer'
+                        || range.step && type(range.step, env) !== 'integer'
+                        || binding.names.length > 2 || new Set(binding.names).size !== binding.names.length) return reject(command, 'loop-range');
+                    for (const name of binding.names) {
+                        if (name === '#') continue;
+                        if (name.includes('.') || settled.has(name) && settled.get(name) !== 'integer') return reject(command, 'loop-binding');
+                        settled.set(name, 'integer');
+                        body.set(name, 'integer');
+                        if (!parameters.has(name)) locals.add(name);
+                    }
+                } else if (command.condition && type(command.condition, env) !== 'boolean') return reject(command, 'loop-condition');
+                if (flow(command.statements, body) === undefined) return undefined;
+                // A loop may execute zero times. New locals are not definitely
+                // assigned afterwards, and a return inside does not prove exit.
+                continue;
+            }
             if (isIfStatement(command)) {
-                const continuing: Map<string, CompiledFunctionType>[] = [];
+                const continuing: Map<string, CompiledCalleeType>[] = [];
                 for (const branch of [{ condition: command.condition, statements: command.thenStatements }, ...command.elifClauses]) {
                     if (type(branch.condition, env) !== 'boolean') return reject(branch.condition, 'condition-type');
                     const outcome = flow(branch.statements, new Map(env));
@@ -119,7 +210,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (otherwise === undefined) return undefined;
                 if (otherwise) continuing.push(otherwise);
                 if (!continuing.length) return index === commands.length - 1 ? null : reject(commands[index + 1], 'unreachable');
-                env = new Map([...continuing[0]].filter(([name, value]) => continuing.every(branch => branch.has(name) && sameCompiledFunctionType(branch.get(name)!, value))));
+                env = new Map([...continuing[0]].filter(([name, value]) => continuing.every(branch => branch.has(name) && sameCompiledCalleeType(branch.get(name)!, value))));
                 continue;
             }
             return reject(command);
@@ -127,7 +218,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         return env;
     }
     const outcome = flow(statement.statements, new Map(settled));
-    const result = outcome === null && resultType ? { type: resultType, locals: [...locals], nativeReads: [...nativeReads], expressions } : undefined;
+    const result = outcome === null && resultType ? { type: resultType, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, arrayWrites, expressions } : undefined;
     const reason = rejection ?? 'scalar-function:missing-return';
     proofs.set(key, result ?? reason);
     return result ?? recordFallback(reason);

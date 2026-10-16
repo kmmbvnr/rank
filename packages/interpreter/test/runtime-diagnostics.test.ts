@@ -428,3 +428,32 @@ end`));
         } finally { runtime.dispose(); }
     });
 });
+
+it('rechecks linked helper array storage on each cached region entry', () => {
+    let loops = 0;
+    const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => loops++ });
+    try {
+        runtime.execute(`fun A I cellread
+ return A I
+end
+fun A outerread
+ Total = 0
+ for I in 0 till 1
+  Total += A I cellread
+ end
+ return Total
+end`);
+        const fn = runtime.variables.get('outerread');
+        if (!fn || typeof fn !== 'object' || !('call' in fn)) throw new Error('outerread');
+        expect(fn.call([createArraySnapshot([7n, 8n])])).toBe(7n);
+        expect(loops).toBe(1);
+        const items = new Proxy([9n, 10n], {
+            get(target, key, receiver) {
+                if (key === '1') throw new Error('unread host cell');
+                return Reflect.get(target, key, receiver);
+            },
+        });
+        expect(fn.call([{ kind: 'array', shape: [2], items }])).toBe(9n);
+        expect(loops).toBe(1);
+    } finally { runtime.dispose(); }
+});

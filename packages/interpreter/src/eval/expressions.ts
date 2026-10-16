@@ -1,3 +1,5 @@
+import { checkedArrayDimension } from '../tensor-index.js';
+export { checkedArrayDimension } from '../tensor-index.js';
 import { ArrayBindingContract } from '../array-binding-contract.js';
 import { tuple } from '../value.js';
 import {
@@ -702,12 +704,4 @@ function array(items: RankValue[], frame: readonly number[] = [items.length]): R
     }
     return derivedArray(shape, cells, index =>
         readArrayItem(cells[Math.floor(index / cellSize)]!, index % cellSize));
-}
-
-export function checkedArrayDimension(dimension: bigint): number {
-    if (dimension < 0n) throw new RankError(`array dimension must be nonnegative: ${dimension}`);
-    if (dimension > BigInt(Number.MAX_SAFE_INTEGER)) {
-        throw new RankError(`array dimension is too large: ${dimension}`);
-    }
-    return Number(dimension);
 }

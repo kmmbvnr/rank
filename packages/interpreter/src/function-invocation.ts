@@ -1,7 +1,8 @@
+import { compiledCalleeTypeKey, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { AstNode } from 'langium';
 import {
-    writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
-    type LastArrayUseProof, type FunctionCallSignature, type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
+    findOperation, writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
+    type LastArrayUseProof, type FunctionCallSignature, type CallRequirement, type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
@@ -534,16 +535,16 @@ export class FunctionInvocation {
     }
 
     /** A proven scalar body compiled to a direct call, counted against the call depth. */
-    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame, types?: readonly CompiledFunctionType[]): PreparedScalarCall | undefined {
+    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame, types?: readonly CompiledCalleeType[], loops = false): PreparedScalarCall | undefined {
         if (this.options().scalarFunctionCompilation === false) return undefined;
         let cache = context ? this.localScalarCalls.get(context) : this.globalScalarCalls;
         if (!cache) this.localScalarCalls.set(context!, cache = new WeakMap());
         let instances = cache.get(statement);
         if (!instances) cache.set(statement, instances = new Map());
-        const key = types?.map(compiledFunctionTypeKey).join(',') ?? '';
+        const key = `${loops ? 'loops:' : ''}${types?.map(compiledCalleeTypeKey).join(',') ?? ''}`;
         const cached = instances.get(key);
         if (cached) return cached;
-        const kernel = compileScalarFunction(statement, types);
+        const kernel = compileScalarFunction(statement, types, loops);
         if (!kernel) return undefined;
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
         const binders = kernel.calls.map(({ operation, inputs }) => prepareCompiledBuiltin({
@@ -565,7 +566,13 @@ export class FunctionInvocation {
                 throw error;
             } finally { if (!tail) this.depth -= 1; }
         };
-        if (binders.length) Object.defineProperty(run, 'available', { value: () => {
+        if (binders.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
+            if (kernel.modules.some(module => !this.modules.has(module))) return false;
+            for (const name of kernel.guards) {
+                const operation = findOperation(name);
+                const value = context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
+                if (!operation || !this.modules.has(operation.module) || !value || !this.builtins.is(operation.module, name, value)) return false;
+            }
             for (let index = 0; index < binders.length; index++) {
                 const call = binders[index]();
                 if (!call) return false;

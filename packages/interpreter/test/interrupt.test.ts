@@ -214,3 +214,31 @@ describe('interactive host cancellation', () => {
         })).toThrow(InterruptedError);
     });
 });
+
+it('cancels inside a linked callee loop without replaying caller writes', () => {
+    let loops = 0, polls = 0;
+    const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => loops++ });
+    const signal: InterruptSignal = {
+        length: 1,
+        load: () => 0,
+        store() {}, exchange: () => loops === 1 && ++polls > 3 ? 1 : 0, wait() {},
+    };
+    try {
+        runtime.execute(`fun N longhelper
+ Total = 0
+ for J in 0 till N
+  Total += J
+ end
+ return Total
+end`);
+        expect(() => withInterrupt(signal, () => runtime.execute(`Done = 0
+for I in 1 to 2
+ Done += 1
+ X = 100000 longhelper
+end
+After = 1`))).toThrow(InterruptedError);
+        expect(loops).toBe(1);
+        expect(runtime.variables.get('Done')).toBe(1n);
+        expect(runtime.variables.has('After')).toBe(false);
+    } finally { runtime.dispose(); }
+});
