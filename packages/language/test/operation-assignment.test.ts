@@ -1,6 +1,6 @@
 import { EmptyFileSystem } from 'langium';
 import { describe, expect, it } from 'vitest';
-import { analyzeBindings, analyzeValues, createRankServices, isFunctionBindingStatement,
+import { analyzeBindings, analyzeValues, createRankServices, isFunctionStatement,
     isOperationAssignmentStatement, type Program } from '../src/index.js';
 
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
@@ -20,8 +20,8 @@ describe('operation assignment resolution', () => {
         expect(name.reads).toHaveLength(2);
         expect(analyzeValues(program).diagnostics).toEqual([]);
     });
-    it('preserves unopened function bindings and reports unsupported writes', () => {
-        expect(isFunctionBindingStatement(parse('env Name = Name').statements[0])).toBe(true);
+    it('requires explicit declarations and reports unsupported writes', () => {
+        expect(isFunctionStatement(parse('fun Name env = Name').statements[0])).toBe(true);
         const diagnostics = analyzeValues(parse('use numbers\nabs Name = 1')).diagnostics;
         expect(diagnostics.some(diagnostic => /does not support addressed assignment/.test(diagnostic.message))).toBe(true);
     });
@@ -32,10 +32,10 @@ describe('operation assignment resolution', () => {
         expect(analyzeValues(parse('use cli\nenv "HOST" = .NA')).diagnostics).toEqual([]);
         expect(analyzeValues(parse('use cli\nenv "HOST" += "x"')).diagnostics.some(diagnostic => /compound/.test(diagnostic.message))).toBe(true);
     });
-    it('reports attempts to replace a constant declaration while preserving inline replacement', () => {
-        expect(analyzeValues(parse('fun fixed X\n return X\nend\nfixed X = X + 1')).diagnostics.some(diagnostic => /function declaration/.test(diagnostic.message))).toBe(true);
-        expect(analyzeValues(parse('f X = X\nf X = X + 1')).diagnostics).toEqual([]);
-        const inline = analyzeValues(parse('f X = X'));
-        expect(analyzeValues(parse('f X = X + 1'), inline.bindings, inline.functions).diagnostics).toEqual([]);
+    it('keeps declarations constant and function-expression bindings replaceable', () => {
+        expect(analyzeValues(parse('fun X fixed\n return X\nend\nfixed = abs')).diagnostics.some(diagnostic => /function declaration/.test(diagnostic.message))).toBe(true);
+        expect(analyzeValues(parse('f = abs\nf = sqrt')).diagnostics).toEqual([]);
+        const inline = analyzeValues(parse('f = abs'));
+        expect(analyzeValues(parse('f = sqrt'), inline.bindings, inline.functions).diagnostics).toEqual([]);
     });
 });

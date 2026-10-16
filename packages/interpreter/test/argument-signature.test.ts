@@ -23,7 +23,7 @@ describe('argument signature memo', () => {
 
     it('specializes separately for integer and real arrays', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun double Row\n  return Row + Row\nend\nA = array 1 2 3\nB = array 1.0 2.0 3.0');
+        runtime.execute('fun Row double\n  return Row + Row\nend\nA = array 1 2 3\nB = array 1.0 2.0 3.0');
         expect(formatValue(runtime.execute('A double')!)).toBe('2 4 6');
         expect(formatValue(runtime.execute('B double')!)).toBe('2 4 6');
     });
@@ -36,7 +36,7 @@ for (const compiled of [true, false]) describe(`semantic array specialization (c
 
     it('keeps the same signature across arithmetic, calls and materialization', () => {
         const interpreter = runtime();
-        interpreter.execute('use sequences\nfun twice Values\n return Values * 2\nend\nSource = array 1 2\nLazy = Source * 2');
+        interpreter.execute('use sequences\nfun Values twice\n return Values * 2\nend\nSource = array 1 2\nLazy = Source * 2');
         const source = interpreter.variables.get('Source')!;
         const lazy = interpreter.variables.get('Lazy')!;
         const key = argumentSignature([source]);
@@ -52,7 +52,7 @@ for (const compiled of [true, false]) describe(`semantic array specialization (c
 
     it('does not let copying an input evade its function return contract', () => {
         const interpreter = runtime();
-        interpreter.execute('use sequences\nState = false\nfun result Values\n if State\n return true\n end\n return 1\nend\nSource = array 1 2\nLazy = Source * 2\nLazy result\nState = true\nMaterial = Lazy copy');
+        interpreter.execute('use sequences\nState = false\nfun Values result\n if State\n return true\n end\n return 1\nend\nSource = array 1 2\nLazy = Source * 2\nLazy result\nState = true\nMaterial = Lazy copy');
         expect(() => interpreter.execute('Material result')).toThrow(/returns integer and cannot return boolean/);
     });
 });
@@ -66,7 +66,7 @@ it.each([3, 1024, 8192])('does not read lazy argument cells to call twice (size 
         return 2n;
     } };
     runtime.variables.set('Source', source);
-    runtime.execute('fun twice Values\n return Values * 2\nend\nResult = Source twice');
+    runtime.execute('fun Values twice\n return Values * 2\nend\nResult = Source twice');
     expect(reads).toBe(0);
     expect(formatValue(runtime.execute('Result 0')!)).toBe('4');
     expect(reads).toBe(1);
@@ -119,7 +119,7 @@ it('does not use host cell getters to select a specialization', () => {
 
 it.each([false, true])('keeps integer and real lazy arguments distinct in either call order (real first %s)', realFirst => {
     const runtime = new Interpreter();
-    runtime.execute('fun twice Values\n return Values * 2\nend\nIntegers = (array 1 2) * 2\nReals = (array 1.0 2.0) * 2');
+    runtime.execute('fun Values twice\n return Values * 2\nend\nIntegers = (array 1 2) * 2\nReals = (array 1.0 2.0) * 2');
     const integerKey = argumentSignature([runtime.variables.get('Integers')!]);
     const realKey = argumentSignature([runtime.variables.get('Reals')!]);
     expect(integerKey).not.toBe(realKey);

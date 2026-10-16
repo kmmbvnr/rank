@@ -195,7 +195,7 @@ describe('inspect: sequences', () => {
     it('leaves a sequence unconsumed: it reads the same after any number of inspections', async () => {
         const { session } = await run([
             'use sequences',
-            'fun upto N\n for I in 1 to N\n  yield I\n end\nend',
+            'fun N upto\n for I in 1 to N\n  yield I\n end\nend',
             'Source = 5 upto',
         ]);
         const before = await session.execute('Source', 3, []);
@@ -205,7 +205,7 @@ describe('inspect: sequences', () => {
     });
 
     it('shows the items a generator has already yielded, windowed', async () => {
-        const { session } = await run(['fun upto N\n for I in 1 to N\n  yield I\n end\nend']);
+        const { session } = await run(['fun N upto\n for I in 1 to N\n  yield I\n end\nend']);
         const made = await session.execute('Source = 5 upto', 1, []);
         const value = opened(session.inspect(made.valueRef!));
         if (value.kind !== 'sequence') throw new Error('expected a sequence');
@@ -261,7 +261,7 @@ describe('reading ahead of a sequence', () => {
     });
 
     it('stops at the end of a finite generator and says it ended', async () => {
-        const { session } = await run(['fun upto N\n for I in 1 to N\n  yield I\n end\nend']);
+        const { session } = await run(['fun N upto\n for I in 1 to N\n  yield I\n end\nend']);
         const made = await session.execute('Source = 5 upto', 1, []);
         expect(session.extend(made.valueRef!, 100)).toMatchObject({ status: 'ok', added: 0, finished: true });
         expect(session.extend(made.valueRef!, 100)).toMatchObject({ status: 'ok', added: 0, finished: true });

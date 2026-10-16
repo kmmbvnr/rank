@@ -9,14 +9,14 @@ Ranges inversion_text print
 
 
 rem Format the expected inversion count.
-fun inversion_text Ranges
+fun Ranges inversion_text
   Expected = Ranges expected_inversions
   return Expected text ".6f"
 end
 
 
 rem Add each pair's inversion chance.
-fun expected_inversions Ranges
+fun Ranges expected_inversions
   N = Ranges len
   Expected = 0.0
 

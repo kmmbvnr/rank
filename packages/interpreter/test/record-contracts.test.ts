@@ -9,7 +9,7 @@ describe('fixed record field contracts', () => {
         for (const replacement of ['array shape 2 2 fill 0', 'array "bad"', 'array 1.0']) {
             const runtime = new Interpreter();
             runtime.execute('R = record\n .items = array 1 2\nend\nAlias = R');
-            expect(() => runtime.execute(`fun change X\n X .items = ${replacement}\nend\nAlias change`)).toThrow(/record field .items/);
+            expect(() => runtime.execute(`fun X change\n X .items = ${replacement}\nend\nAlias change`)).toThrow(/record field .items/);
             expect(formatValue(runtime.execute('R .items')!)).toBe('1 2');
         }
     });
@@ -82,26 +82,26 @@ describe('structural record return contracts', () => {
     for (const field of ['.other = 1', '.value = "bad"', '.value = array 1']) {
         it(`rejects incompatible return ${field}`, () => {
             const runtime = new Interpreter();
-            runtime.execute(`fun decide Flag\n if Flag\n return record\n .value = 1\n end\n end\n return record\n ${field}\n end\nend\ntrue decide`);
+            runtime.execute(`fun Flag decide\n if Flag\n return record\n .value = 1\n end\n end\n return record\n ${field}\n end\nend\ntrue decide`);
             expect(() => runtime.execute('false decide')).toThrowError(expect.objectContaining({ rankKind: 'ReturnTypeMismatch' }));
         });
     }
 
     it('checks nested ranks on recursive returns', () => {
-        expect(() => run('fun build N\n if N equal 0\n return record\n .inner = record\n .data = array 1\n end\n end\n end\n Previous = (N - 1) build\n return record\n .inner = record\n .data = array shape 1 1 fill 1\n end\n end\nend\n1 build'))
+        expect(() => run('fun N build\n if N equal 0\n return record\n .inner = record\n .data = array 1\n end\n end\n end\n Previous = (N - 1) build\n return record\n .inner = record\n .data = array shape 1 1 fill 1\n end\n end\nend\n1 build'))
             .toThrowError(expect.objectContaining({ rankKind: 'ReturnTypeMismatch' }));
     });
 
     it('specializes separately for structurally different record arguments', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun identity R\n return R\nend\nA = record\n .x = 1\nend\nB = record\n .name = "text"\nend\nC = A identity\nD = B identity');
+        runtime.execute('fun R identity\n return R\nend\nA = record\n .x = 1\nend\nB = record\n .name = "text"\nend\nC = A identity\nD = B identity');
         expect(runtime.execute('C .x')).toBe(1n);
         expect(runtime.execute('D .name')).toBe('text');
     });
 
     it('does not change a tuple field to an array to match another return', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun decide Flag\n if Flag\n return record\n .items = tuple 1 "text"\n end\n end\n return record\n .items = array 1\n end\nend\ntrue decide');
+        runtime.execute('fun Flag decide\n if Flag\n return record\n .items = tuple 1 "text"\n end\n end\n return record\n .items = array 1\n end\nend\ntrue decide');
         expect(() => runtime.execute('false decide'))
             .toThrowError(expect.objectContaining({ rankKind: 'ReturnTypeMismatch' }));
     });

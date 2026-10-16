@@ -16,7 +16,7 @@ Result print
 
 
 rem Build lengths, then trace one LCS.
-fun longest_common A B
+fun A B longest_common
   N = A len
   M = B len
   R = N + 1

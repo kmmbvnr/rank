@@ -2,7 +2,7 @@ rem Median of Two Sorted Arrays
 rem Median of two sorted arrays in
 rem O(log(m+n)) time
 
-fun median A B
+fun A B median
   M = A len
   N = B len
 

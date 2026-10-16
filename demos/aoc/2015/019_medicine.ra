@@ -17,7 +17,7 @@ Part2 print
 
 
 rem Parse replacement rules and solve both molecule questions.
-fun solve Lines
+fun Lines solve
   Queue = new queue
   Target = ""
 
@@ -36,7 +36,7 @@ end
 
 
 rem Count distinct molecules made by applying exactly one rule once.
-fun variants Rules Target
+fun Rules Target variants
   Seen = new set
   for Rule in Rules
     From = Rule 0
@@ -58,7 +58,7 @@ end
 
 
 rem Test whether Pattern occurs at one Unicode position in Text.
-fun matchat Text Pattern Start
+fun Text Pattern Start matchat
   Finish = Start + (Pattern len)
   if Text len less Finish
     return false
@@ -69,7 +69,7 @@ end
 
 
 rem Replace one occurrence beginning at a known Unicode position.
-fun replaceat Text From To Start
+fun Text From To Start replaceat
   Prefix = Text (0 till Start)
   Tail = Start + (From len)
   Suffix = Text (Tail till (Text len))
@@ -78,7 +78,7 @@ end
 
 
 rem Count minimum steps implied by the puzzle input's medicine grammar.
-fun medicine_steps Text
+fun Text medicine_steps
   Elements = 0
   Rn = 0
   Ar = 0

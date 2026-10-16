@@ -14,7 +14,7 @@ Part2 print
 
 
 rem Return the lengths after 40 and 50 look-and-say rounds.
-fun solve Value
+fun Value solve
   After40 = Value 40 describe
   After50 = After40 10 describe
   Part1 = After40 len
@@ -24,7 +24,7 @@ end
 
 
 rem Apply the look-and-say description repeatedly.
-fun describe Value Rounds
+fun Value Rounds describe
   for Round in 0 till Rounds
     Value = Value look
   end
@@ -33,7 +33,7 @@ end
 
 
 rem Describe each consecutive run as its length followed by its value.
-fun look Value
+fun Value look
   Result = ""
   Last = Value 0
   Count = 0

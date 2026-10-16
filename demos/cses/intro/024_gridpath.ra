@@ -8,7 +8,7 @@ Path solve print
 
 
 rem Count matching paths with backtracking and prune paths that split the grid.
-fun solve Path
+fun Path solve
   DYs = array -1 1 0 0
   DXs = array 0 0 -1 1
   Moves = "UDLR"
@@ -25,7 +25,7 @@ fun solve Path
   return 0 1 1 walk
 
   rem Explore one path suffix from the current grid cell.
-  fun walk Step Y X
+  fun Step Y X walk
     if Y equal 7 and X equal 1
       if Step equal 48
         return 1

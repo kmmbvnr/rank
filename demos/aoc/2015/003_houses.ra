@@ -15,7 +15,7 @@ Part2 print
 
 
 rem Return the houses visited with one and two deliverers.
-fun solve Moves
+fun Moves solve
   Part1 = Moves houses
   Part2 = Moves robohouses
   return array Part1 Part2
@@ -23,7 +23,7 @@ end
 
 
 rem Return number of houses visited by Santa.
-fun houses Moves
+fun Moves houses
   Seen = new set
   X = 0
   Y = 0
@@ -42,7 +42,7 @@ end
 
 rem Return number of houses visited by Santa and Robo-Santa.
 rem Even moves belong to Santa, odd moves to Robo-Santa.
-fun robohouses Moves
+fun Moves robohouses
   Seen = new set
   SantaX = 0
   SantaY = 0
@@ -68,7 +68,7 @@ end
 
 
 rem Return horizontal movement for one direction.
-fun dx C
+fun C dx
   if C equal ">"
     return 1
   elif C equal "<"
@@ -79,7 +79,7 @@ end
 
 
 rem Return vertical movement for one direction.
-fun dy C
+fun C dy
   if C equal "^"
     return 1
   elif C equal "v"

@@ -7,7 +7,7 @@ use numbers
 use stats
 
 rem Predict probabilities and their MSE.
-fun single_neuron X Y W Bias
+fun X Y W Bias single_neuron
   Pred = X W matmul + Bias
   Pred = Pred sigmoid
 

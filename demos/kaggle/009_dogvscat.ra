@@ -22,7 +22,7 @@ Submission OutputPath csv
 
 
 rem File names cat.N and dog.N provide training labels.
-fun image_labels Train
+fun Train image_labels
   Y = array shape (Train len) fill 0
   for Name Row in Train .name
     if Name "dog." startswith
@@ -35,7 +35,7 @@ fun image_labels Train
 end
 
 
-fun solve_images Train Test Rate Steps
+fun Train Test Rate Steps solve_images
   Height = 8
   Width = 8
   Features = Height * Width * 3
@@ -61,14 +61,14 @@ fun solve_images Train Test Rate Steps
 end
 
 
-fun probability X Model
+fun X Model probability
   Z = (X - Model .center) / Model .scale
   Score = Z Model .weights matmul + Model .bias
   return Score Classifier.sigmoid
 end
 
 
-fun predictall X Y Xtest Rate Steps
+fun X Y Xtest Rate Steps predictall
   Pixels = (X real rank 0) / 255.0
   TestPixels = (Xtest real rank 0) / 255.0
   Model = Pixels Y Rate Steps Classifier.logistic

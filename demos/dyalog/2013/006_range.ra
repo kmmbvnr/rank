@@ -2,7 +2,7 @@ rem Dyalog 2013, problem 6: one numeric range across all cells.
 use sequences
 use io
 
-fun numericRange A
+fun A numericRange
   if not A is .array
     return 0.0
   end

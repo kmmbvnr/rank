@@ -6,7 +6,7 @@ use sequences
 use stats
 
 rem Correlate each X and Y feature pair.
-fun calculate_correlation X Y
+fun X Y calculate_correlation
   N = X len
   if Y len not equal N
     .DimensionMismatch raise
@@ -26,6 +26,6 @@ fun calculate_correlation X Y
 end
 
 rem Correlate one matrix with itself.
-fun correlation_matrix X
+fun X correlation_matrix
   return X X calculate_correlation
 end

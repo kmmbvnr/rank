@@ -26,7 +26,7 @@ rem scanned. Any other parameter is a nonnegative value,
 rem doubled from zero to a sign change of the gap and
 rem then bisected.
 rem Raises DomainError when no value reaches the target.
-fun seekvalue Target Params
+fun Target Params seekvalue
   Pos = Params isnan true find
   if Pos equal 2
     for Months in 1 to 600
@@ -77,7 +77,7 @@ end
 
 rem Final advantage minus the target, or nan where
 rem the model has no value, such as a zero rate.
-fun gap Value Pos Params Target
+fun Value Pos Params Target gap
   Trial = Params copy
   Trial Pos = Value
   try

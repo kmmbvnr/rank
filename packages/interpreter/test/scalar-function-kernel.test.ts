@@ -28,7 +28,7 @@ function compare(source: string, module?: string) {
 describe('compiled scalar function bodies', () => {
     it('compiles integer-to-text pipelines and preserves Unicode text operations', () => {
         expect(compare(`use sequences
-fun palindrome X
+fun X palindrome
   Text = X text
   Back = Text reverse
   return Text equal Back
@@ -36,7 +36,7 @@ end
 121 palindrome`)).toMatchObject({ value: 'true', calls: 1 });
         expect(compare(`use sequences
 use text
-fun helper X
+fun X helper
   Text = "İ😀é" lower reverse
   return Text len
 end
@@ -45,7 +45,7 @@ end
 
     it('keeps unary call boundaries before dyadic native calls', () => {
         expect(compare(`use text
-fun helper X
+fun X helper
   Prefix = "12"
   return X text Prefix startswith
 end
@@ -53,11 +53,11 @@ end
     });
 
     it('declines missing modules without evaluating an unused native call', () => {
-        expect(compare(`fun helper X
+        expect(compare(`fun X helper
   return true or ((X text reverse) equal "")
 end
 1 helper`)).toMatchObject({ value: 'true', calls: 0 });
-        const failure = compare(`fun helper X
+        const failure = compare(`fun X helper
   return X text reverse
 end
 1 helper`);
@@ -67,7 +67,7 @@ end
 
     it('preserves native error location and call stack', () => {
         const failure = compare(`use text
-fun helper X
+fun X helper
   return X character
 end
 (-1) helper`);
@@ -77,7 +77,7 @@ end
 
     it('uses the imported function owner to resolve native bindings', () => {
         expect(compare('use "helper.ra"\n121 palindrome', `use sequences
-fun palindrome X
+fun X palindrome
   return (X text reverse) equal (X text)
 end`)).toMatchObject({ value: 'true', calls: 1 });
     });
@@ -87,7 +87,7 @@ end`)).toMatchObject({ value: 'true', calls: 1 });
         const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => calls++ });
         try {
             runtime.execute(`use sequences
-fun helper X
+fun X helper
   return X text reverse
 end
 fun work
@@ -113,7 +113,7 @@ end`);
         const blocked = vi.spyOn(globalThis, 'Function').mockImplementation(() => { throw new Error('CSP'); });
         try {
             expect(runtime.execute(`use sequences
-fun helper X
+fun X helper
   return X text reverse
 end
 Result = ""
@@ -126,7 +126,7 @@ Result`)).toBe('31');
 
     it.each([['-13', '5'], ['13', '-5'], ['-13', '-5'], ['9007199254740993', '7']])(
         'preserves floor division and remainder for %s / %s', (a, b) => {
-            expect(compare(`fun helper A B
+            expect(compare(`fun A B helper
   Q = A // B
   R = A mod B
   return Q * 10 + R
@@ -139,7 +139,7 @@ Result`).calls).toBe(1);
         });
 
     it('keeps local values independent from caller names', () => {
-        expect(compare(`fun helper X
+        expect(compare(`fun X helper
   Value = X + 2
   Value *= 3
   return Value
@@ -153,7 +153,7 @@ array Result Value`)).toMatchObject({ value: '21 99', calls: 2 });
     });
 
     it('executes boolean locals, compounds and elif branches', () => {
-        expect(compare(`fun helper X
+        expect(compare(`fun X helper
   Good = X greater 0
   Good and= X less 4
   if X less 0
@@ -174,7 +174,7 @@ Count`)).toMatchObject({ value: '3', calls: 7 });
     });
 
     it('skips the right operand once and or or is decided', () => {
-        const result = compare(`fun helper X
+        const result = compare(`fun X helper
   Good = false and (1 // X greater 0)
   Bad = true or (1 // X greater 0)
   return Good or Bad
@@ -185,7 +185,7 @@ for I in 0 to 0
 end
 Result`);
         expect(result).toMatchObject({ value: 'true', calls: 1 });
-        expect(compare(`fun helper X
+        expect(compare(`fun X helper
   return true and (1 // X greater 0)
 end
 for I in 0 to 0
@@ -194,7 +194,7 @@ end`)).toHaveProperty('error');
     });
 
     it('preserves the existing last duplicate parameter binding', () => {
-        expect(compare(`fun helper X X
+        expect(compare(`fun X X helper
   return X
 end
 Result = 0
@@ -210,7 +210,7 @@ Result = 0
 for I in 1 to 3
   Result += I helper
 end
-Result`, `fun helper X
+Result`, `fun X helper
   Value = X + 1
   return Value * 2
 end`)).toMatchObject({ value: '18', calls: 3 });
@@ -220,7 +220,7 @@ end`)).toMatchObject({ value: '18', calls: 3 });
         const result = compare(`use "helper"
 for I in 1 to 1
   Result = I helper
-end`, `fun helper X
+end`, `fun X helper
   Value = X - 1
   return 1 // Value
 end`);
@@ -231,7 +231,7 @@ end`);
 
 
 it('declines generated function code when CSP blocks Function', () => {
-    const statement = parse('fun helper X\n  return X + 1\nend').statements[0];
+    const statement = parse('fun X helper\n  return X + 1\nend').statements[0];
     if (!isFunctionStatement(statement)) throw new Error('expected function');
     const blocked = vi.spyOn(globalThis, 'Function').mockImplementation(() => { throw new Error('CSP'); });
     try { expect(compileScalarFunction(statement)).toBeUndefined(); }
@@ -252,11 +252,11 @@ describe('compiled scalar tail completion', () => {
             try {
                 runtime.execute(`use io
 use text
-fun helper X
+fun X helper
   Value = X - 3
   return ${nativeCall ? fails ? '(1114112 + Value * 1114112) character' : '(Value + 4) text' : fails ? '10 // Value' : 'Value + 4'}
 end
-fun perform N
+fun N perform
   File = "/input" open
   for N greater 0
     return N helper

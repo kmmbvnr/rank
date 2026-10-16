@@ -12,7 +12,7 @@ Grid count_rooms print
 
 
 rem Count connected floor components.
-fun count_rooms Grid
+fun Grid count_rooms
   H = Grid len
   W = Grid 0 len
   Seen = array shape H W fill false
@@ -20,7 +20,7 @@ fun count_rooms Grid
   DXs = array 0 0 -1 1
 
   rem Mark one component with BFS.
-  fun flood Y X
+  fun Y X flood
     Seen Y X = true
     Pending = new queue
     Pending push Y * W + X

@@ -15,6 +15,6 @@ end
 
 
 rem Generate distinct strings in lexicographic order.
-fun strings Text
+fun Text strings
   return Text sort permutations
 end

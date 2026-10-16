@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/34
 use sequences
 
 rem Encode labels with a chosen width.
-fun to_categorical X Columns
+fun X Columns to_categorical
   if Columns less 0
     .DomainError raise
   end
@@ -26,7 +26,7 @@ fun to_categorical X Columns
 end
 
 rem Infer width from the largest label.
-fun categorical X
+fun X categorical
   if X len equal 0
     .EmptyInput raise
   end

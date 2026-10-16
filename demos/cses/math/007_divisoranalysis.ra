@@ -13,7 +13,7 @@ Factors analyze_divisors print
 
 
 rem Derive divisor stats from factors.
-fun analyze_divisors Factors
+fun Factors analyze_divisors
   Mod = 1000000007
   Phi = Mod - 1
   Number = 1

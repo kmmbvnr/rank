@@ -356,13 +356,30 @@ export interface LineScan {
     readonly folds: boolean;
 }
 
+/** A default belongs to its dotted header group; any other equals starts the inline body. */
+function declarationBody(tokens: readonly Token[]): number | undefined {
+    if (!['fun', 'memo'].includes(tokens[0]?.text)) return undefined;
+    for (let index = 1; index < tokens.length; index++) {
+        if (tokens[index].text === '=') return index + 1;
+        if (tokens[index].text !== '.' || tokens[index + 2]?.kind !== 'variable') continue;
+        index += 2;
+        if (tokens[index + 1]?.text !== '=') continue;
+        index += 2;
+        if (['-', '+', '.'].includes(tokens[index]?.text)) index++;
+    }
+    return undefined;
+}
+
 export function scanLine(line: string): LineScan {
     const tokens = tokenize(line).filter(item => item.kind !== 'comment');
+    const inlineBody = declarationBody(tokens);
+    const declaration = ['fun', 'memo'].includes(tokens[0]?.text);
     const opens: string[] = [];
     let closes = 0;
     let parens = 0;
     for (let index = 0; index < tokens.length; index += 1) {
         const current = tokens[index];
+        if (declaration && index > 0 && (inlineBody === undefined || index < inlineBody)) continue;
         if (current.kind === 'symbol') {
             if (current.text === '(') parens += 1;
             if (current.text === ')') parens = Math.max(0, parens - 1);
@@ -390,7 +407,7 @@ export function scanLine(line: string): LineScan {
             opens.push('array');
             continue;
         }
-        if (index === 0 && STATEMENT_BLOCKS.has(current.text)) opens.push(current.text);
+        if (index === 0 && STATEMENT_BLOCKS.has(current.text) && inlineBody === undefined) opens.push(current.text);
     }
     const last = tokens.at(-1);
     const unterminated = tokens.some(item => item.kind === 'string' && !item.closed);

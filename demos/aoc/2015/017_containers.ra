@@ -16,7 +16,7 @@ Part2 print
 
 
 rem Count fitting subsets and those using the fewest containers.
-fun solve Containers Target
+fun Containers Target solve
   N = Containers len
   Limit = 2 ** N
   Part1 = 0

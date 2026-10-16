@@ -21,7 +21,7 @@ Submission OutputPath csv
 
 
 rem Use the global training mean for a key absent from Train.
-fun forecast Train Test
+fun Train Test forecast
   Global = Train .sales mean
   Train .weekday = Train .date date weekday
   Test .weekday = Test .date date weekday

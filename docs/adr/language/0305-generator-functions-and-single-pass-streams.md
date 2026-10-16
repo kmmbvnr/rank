@@ -22,7 +22,7 @@ Rank needs an ergonomic generator mechanism that produces lazy sequences, manage
 Rank establishes **generator functions and single-pass lazy sequences via the `yield` keyword**:
 
 ```rank
-fun weird N
+fun N weird
   yield N
   for N not equal 1
     if N even

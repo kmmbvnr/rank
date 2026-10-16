@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/26
 use algo
 
 rem Create a scalar tape value.
-fun value Tape Data
+fun Tape Data value
   Node = record
     .data = Data
     .grad = 0.0
@@ -15,7 +15,7 @@ fun value Tape Data
 end
 
 rem Reuse a node or wrap a number.
-fun as_value Tape Item
+fun Tape Item as_value
   if Item is .record
     return Item
   end
@@ -23,7 +23,7 @@ fun as_value Tape Item
 end
 
 rem Record addition and its edges.
-fun addnode Tape A B
+fun Tape A B addnode
   Left = Tape A as_value
   Right = Tape B as_value
   Node = record
@@ -38,7 +38,7 @@ fun addnode Tape A B
 end
 
 rem Record multiplication and its edges.
-fun mul Tape A B
+fun Tape A B mul
   Left = Tape A as_value
   Right = Tape B as_value
   Node = record
@@ -53,7 +53,7 @@ fun mul Tape A B
 end
 
 rem Record a scalar ReLU.
-fun relu Tape A
+fun Tape A relu
   Input = Tape A as_value
   Data = Input .data
   if Data less 0
@@ -70,7 +70,7 @@ fun relu Tape A
 end
 
 rem Each call binds one node schema from the heterogeneous tape.
-fun backward_node Node
+fun Node backward_node
   G = Node .grad
 
   if Node .op equal .add
@@ -91,7 +91,7 @@ fun backward_node Node
 end
 
 rem Propagate accumulated gradients.
-fun backward Tape Out
+fun Tape Out backward
   Out .grad = 1.0
   I = Tape len
 

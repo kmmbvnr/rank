@@ -47,7 +47,7 @@ describe('modifier pipelines', () => {
         const output: string[] = [];
         new Interpreter(line => output.push(line)).execute([
             'use io', 'use text', 'use numbers',
-            'fun source N', '  N print', '  return "1203"', 'end',
+            'fun N source', '  N print', '  return "1203"', 'end',
             '7 source integer rank 0 sum print',
         ].join('\n'));
         expect(output).toEqual(['7', '6']);

@@ -16,7 +16,7 @@ export interface DeclaredRanks {
 export function declaredRanks(statement: FunctionStatement): DeclaredRanks | string | undefined {
     const specs = statement.ranks;
     if (!specs || specs.length === 0) return undefined;
-    const count = functionCallSignature(statement).arity;
+    const count = functionCallSignature(statement).dataParameters.length;
     if (count === 0) return 'rank needs a function with parameters';
     if (count > 2) return 'rank is defined for functions of one or two parameters';
     if (specs.length !== count) {

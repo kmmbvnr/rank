@@ -98,7 +98,7 @@ describe('structure queries keep the shape of their queries', () => {
 
     it('forgets the elements once the multiset can change', () => {
         for (const change of ['S add 2.5', 'grow S', 'for X in array 1 2\n  S add 2.5\nend']) {
-            const { bindings } = analyze(`fun grow B\n  B add 2.5\nend\n${bag}${change}\nT = S floor 2`);
+            const { bindings } = analyze(`fun B grow\n  B add 2.5\nend\n${bag}${change}\nT = S floor 2`);
             expect(bindings.get('T')?.types, change).toEqual([]);
         }
     });

@@ -6,7 +6,7 @@ use sequences
 use stats
 
 rem Return the sample covariance of feature rows.
-fun covmatrix V
+fun V covmatrix
   N = V len axis 1
   if N less 2
     .InsufficientData raise
@@ -17,7 +17,7 @@ fun covmatrix V
   return Centered Transposed matmul / (N - 1)
 
   rem Center one feature without copying it eagerly.
-  fun center Feature
+  fun Feature center
     return Feature - (Feature mean)
   end
 end

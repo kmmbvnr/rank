@@ -27,7 +27,7 @@ end
 
 
 rem Generate the first equal-sum set.
-fun left N
+fun N left
   Start = 1
   if N mod 4 equal 3
     yield 1
@@ -43,7 +43,7 @@ end
 
 
 rem Generate the second equal-sum set.
-fun right N
+fun N right
   Start = 2
   if N mod 4 equal 3
     yield 3

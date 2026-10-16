@@ -19,7 +19,7 @@ end
 
 
 rem Find the streets of a minimum cut.
-fun police_chase N Edges
+fun N Edges police_chase
   Nodes = 1 to N
   Graph = new graph Nodes .directed
   for Edge in Edges

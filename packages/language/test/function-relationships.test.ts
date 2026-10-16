@@ -19,7 +19,7 @@ function definition(source: string) {
 }
 
 it('retains identity without choosing a type for an unknown parameter', () => {
-    const summary = functionRelationship(definition('fun identity Value\n return Value\nend'))!;
+    const summary = functionRelationship(definition('fun Value identity\n return Value\nend'))!;
     expect(summary.result).toEqual({ kind: 'parameter', index: 0 });
     expect(instantiateRelationship(summary, [{ types: [] }])).toEqual({ types: [] });
     for (const value of [
@@ -31,7 +31,7 @@ it('retains identity without choosing a type for an unknown parameter', () => {
 });
 
 it('keeps tuple positions and distinct parameter relationships', () => {
-    const summary = functionRelationship(definition('fun pair Left Right\n return tuple Left (tuple Right "label")\nend'))!;
+    const summary = functionRelationship(definition('fun Left Right pair\n return tuple Left (tuple Right "label")\nend'))!;
     expect(summary.result).toMatchObject({ kind: 'tuple', items: [
         { kind: 'parameter', index: 0 },
         { kind: 'tuple', items: [{ kind: 'parameter', index: 1 }, { kind: 'constant' }] },
@@ -42,7 +42,7 @@ it('keeps tuple positions and distinct parameter relationships', () => {
 });
 
 it('projects only established record fields and declines other receiver domains', () => {
-    const summary = functionRelationship(definition('fun items State\n return State .items\nend'))!;
+    const summary = functionRelationship(definition('fun State items\n return State .items\nend'))!;
     expect(summary.result).toEqual({ kind: 'field', source: { kind: 'parameter', index: 0 }, name: 'items' });
     const items: ValueFacts = { types: ['array'], elements: ['integer'], rank: 1, shape: [null] };
     expect(instantiateRelationship(summary, [{ types: ['record'], fields: { items } }])).toBe(items);
@@ -52,7 +52,7 @@ it('projects only established record fields and declines other receiver domains'
 });
 
 it('preserves expression facts and does not grant cell-reader safety', () => {
-    const fn = definition('fun pair Value\n return tuple (Value) "label"\nend');
+    const fn = definition('fun Value pair\n return tuple (Value) "label"\nend');
     const summary = functionRelationship(fn)!;
     const argument: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['integer'] };
     const expressions = new Map();
@@ -66,13 +66,13 @@ it('preserves expression facts and does not grant cell-reader safety', () => {
 it('declines captures, calls, mutations and guarded returns', () => {
     for (const body of ['return Captured', 'return Value helper', 'Value = 1\n return Value',
         'if Value\n return 1\nelse\n return 2\nend']) {
-        expect(functionRelationship(definition(`fun sample Value\n ${body}\nend`))).toBeUndefined();
+        expect(functionRelationship(definition(`fun Value sample\n ${body}\nend`))).toBeUndefined();
     }
 });
 
 
 it('reuses relationships beyond the ordinary call-body budget', () => {
-    const source = 'fun identity Value\n return Value\nend\n'
+    const source = 'fun Value identity\n return Value\nend\n'
         + Array.from({ length: 120 }, (_, i) => `Result${i} = ${i} identity`).join('\n');
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(parsed.parserErrors).toEqual([]);
@@ -84,7 +84,7 @@ it('reuses relationships beyond the ordinary call-body budget', () => {
 
 
 it('instantiates one cached relationship without revisiting the return body', () => {
-    const fn = definition('fun identity Value\n return Value\nend');
+    const fn = definition('fun Value identity\n return Value\nend');
     const binding: ValueFacts = { types: ['function'] };
     const env = new Map([['identity', binding]]);
     let bodyVisits = 0;
@@ -106,20 +106,20 @@ it('instantiates one cached relationship without revisiting the return body', ()
 
 it('does not turn an unobserved recursive return into a returning tuple', () => {
     for (const body of ['Value', 'tuple Value 1', 'Value .items']) {
-        const summary = functionRelationship(definition(`fun sample Value\n return ${body}\nend`))!;
+        const summary = functionRelationship(definition(`fun Value sample\n return ${body}\nend`))!;
         expect(instantiateRelationship(summary, [{ types: [], bottom: true }])).toEqual({ types: [], bottom: true });
     }
 });
 
 it('composes structural relationships through nested calls beyond the body budget', () => {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(`
-fun pair Value
+fun Value pair
  return tuple Value "label"
 end
-fun wrap Value
+fun Value wrap
  return Value pair
 end
-fun outer Value
+fun Value outer
  return Value wrap
 end
 ${Array.from({ length: 120 }, (_, i) => `Result${i} = ${i} outer`).join('\n')}
@@ -140,7 +140,7 @@ ${Array.from({ length: 120 }, (_, i) => `Result${i} = ${i} outer`).join('\n')}
 
 it('drops a composed relationship when its callee binding changes', () => {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(
-        'fun helper Value\n return Value\nend\nfun wrap Value\n return Value helper\nend');
+        'fun Value helper\n return Value\nend\nfun Value wrap\n return Value helper\nend');
     expect(parsed.parserErrors).toEqual([]);
     const functions = new Map(parsed.value.statements.filter(isFunctionStatement).map(fn => [fn.name, fn]));
     const env = new Map<string, ValueFacts>([['helper', { types: ['function'] }], ['wrap', { types: ['function'] }]]);
@@ -160,8 +160,8 @@ it('drops a composed relationship when its callee binding changes', () => {
 
 it('keeps recursive and stateful callees on ordinary analysis', () => {
     for (const source of [
-        'fun first Value\n return Value second\nend\nfun second Value\n return Value first\nend',
-        'fun helper Value\n Captured += 1\n return Value\nend\nfun wrap Value\n return Value helper\nend',
+        'fun Value first\n return Value second\nend\nfun Value second\n return Value first\nend',
+        'fun Value helper\n Captured += 1\n return Value\nend\nfun Value wrap\n return Value helper\nend',
     ]) {
         const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
         expect(parsed.parserErrors).toEqual([]);
@@ -185,7 +185,7 @@ it('bounds expansion of a branching relationship graph', () => {
 
 
 it('derives numeric result relationships from shared operator signatures', () => {
-    const summary = functionRelationship(definition('fun twice Values\n return Values + Values\nend'))!;
+    const summary = functionRelationship(definition('fun Values twice\n return Values + Values\nend'))!;
     expect(summary.result).toMatchObject({ kind: 'binary', operation: { name: '+' }, left: { kind: 'parameter', index: 0 } });
     for (const value of [
         { types: ['integer'], rank: 0, shape: [] },
@@ -206,8 +206,8 @@ it('derives numeric result relationships from shared operator signatures', () =>
 
 it('keeps operation errors on the ordinary diagnostic path', () => {
     for (const [source, message] of [
-        ['fun twice Value\n return Value * 2\nend\nResult = "wrong" twice', 'operator * does not accept text and integer'],
-        ['fun plus A B\n return A + B\nend\nResult = (array 1 2) (array 1 2 3) plus', 'shape mismatch'],
+        ['fun Value twice\n return Value * 2\nend\nResult = "wrong" twice', 'operator * does not accept text and integer'],
+        ['fun A B plus\n return A + B\nend\nResult = (array 1 2) (array 1 2 3) plus', 'shape mismatch'],
     ]) {
         const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
         expect(parsed.parserErrors).toEqual([]);
@@ -217,14 +217,14 @@ it('keeps operation errors on the ordinary diagnostic path', () => {
 
 
 it('reuses arithmetic relationships without turning lazy arrays eager', () => {
-    const source = 'fun twice Values\n return Values + Values\nend\n'
+    const source = 'fun Values twice\n return Values + Values\nend\n'
         + Array.from({ length: 120 }, (_, i) => `Result${i} = ${i}.5 twice`).join('\n');
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(parsed.parserErrors).toEqual([]);
     const result = analyzeValues(parsed.value);
     expect(result.diagnostics).toEqual([]);
     for (let i = 0; i < 120; i++) expect(result.bindings.get(`Result${i}`)?.types).toEqual(['real']);
-    const summary = functionRelationship(definition('fun twice Values\n return Values + Values\nend'))!;
+    const summary = functionRelationship(definition('fun Values twice\n return Values + Values\nend'))!;
     const value = instantiateRelationship(summary, [{ types: ['array'], rank: 1, shape: [null],
         elements: ['integer'], callbackFreeScalarCells: true }]);
     expect(value).toMatchObject({ types: ['array'], rank: 1, elements: ['integer'], callbackFreeScalarCells: true });
@@ -233,7 +233,7 @@ it('reuses arithmetic relationships without turning lazy arrays eager', () => {
 
 
 it('does not treat a scalar boolean guard as an array mask operation', () => {
-    const summary = functionRelationship(definition('fun guard Flag Mask\n return Flag and Mask\nend'))!;
+    const summary = functionRelationship(definition('fun Flag Mask guard\n return Flag and Mask\nend'))!;
     expect(instantiateRelationship(summary, [
         { types: ['boolean'], rank: 0, shape: [] },
         { types: ['array'], rank: 1, shape: [3], elements: ['boolean'], eagerScalarCells: true },
@@ -242,7 +242,7 @@ it('does not treat a scalar boolean guard as an array mask operation', () => {
 
 
 it('reuses an imported relationship while its qualified binding remains unchanged', () => {
-    const fn = definition('fun identity Value\n return Value\nend');
+    const fn = definition('fun Value identity\n return Value\nend');
     const program = fn.$container as Program;
     const binding: ValueFacts = { types: ['function'] };
     const env = new Map([['M.identity', binding]]);
@@ -266,8 +266,8 @@ it('composes imported helpers and qualifies their transitive dependencies', () =
         expect(parsed.parserErrors).toEqual([]);
         return parsed.value;
     };
-    const module = parse('fun helper Value\n return tuple Value "label"\nend\nfun pair Value\n return Value helper\nend');
-    const source = 'use "helper" as M\nfun wrap Value\n return Value M.pair\nend\n'
+    const module = parse('fun Value helper\n return tuple Value "label"\nend\nfun Value pair\n return Value helper\nend');
+    const source = 'use "helper" as M\nfun Value wrap\n return Value M.pair\nend\n'
         + Array.from({ length: 120 }, (_, i) => `Result${i} = ${i} wrap`).join('\n');
     const result = analyzeValues(parse(source), new Map(), new Map(), [], () => module);
     expect(result.diagnostics).toEqual([]);
@@ -280,7 +280,7 @@ it('composes imported helpers and qualifies their transitive dependencies', () =
 });
 
 it('does not reuse imported summaries at the expense of module diagnostics', () => {
-    const fn = definition('fun identity Value\n return Value\nend');
+    const fn = definition('fun Value identity\n return Value\nend');
     const binding: ValueFacts = { types: ['function'] };
     const env = new Map([['M.identity', binding]]);
     const external = { program: fn.$container as Program, name: 'identity', binding, functions: new Map([['identity', fn]]) };
@@ -298,7 +298,7 @@ it('does not reuse imported summaries at the expense of module diagnostics', () 
 
 it('reuses a callback relationship over ranked array cells without granting purity', () => {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(`
-fun twice Value
+fun Value twice
  return Value * 2
 end
 Values = array 1 2 3
@@ -318,9 +318,9 @@ ${Array.from({ length: 120 }, (_, i) => `Result${i} = Values twice rank 0`).join
 
 it('infers stateful ranked callback results from captured contracts', () => {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(`
-fun solve Values
+fun Values solve
  Count = 0
- fun next Value
+ fun Value next
   Count += 1
   return Value + Count
  end
@@ -343,7 +343,7 @@ it('keeps semantic results independent of call order and array materialization e
         { types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'], callbackFreeScalarCells: true },
     ];
     const run = (order: number[]) => {
-        const fn = definition('fun twice Value\n return Value + Value\nend');
+        const fn = definition('fun Value twice\n return Value + Value\nend');
         const env = new Map<string, ValueFacts>([['twice', { types: ['function'] }]]);
         const diagnostics: Parameters<typeof createCallAnalysis>[2] = [];
         const calls = createCallAnalysis(env, new Map([['twice', fn]]), diagnostics, new Map(),
@@ -365,7 +365,7 @@ it('keeps semantic results independent of call order and array materialization e
 it('uses fresh relationships and diagnostics after an edited definition is reparsed', () => {
     const run = (returned: string) => {
         const parsed = services.Rank.parser.LangiumParser.parse<Program>(
-            `fun helper Value\n return ${returned}\nend\nfun wrap Value\n return Value helper\nend\nResult = 1 wrap`);
+            `fun Value helper\n return ${returned}\nend\nfun Value wrap\n return Value helper\nend\nResult = 1 wrap`);
         expect(parsed.parserErrors).toEqual([]);
         return analyzeValues(parsed.value);
     };
@@ -380,7 +380,7 @@ it('uses fresh relationships and diagnostics after an edited definition is repar
 });
 
 it('does not expose a relationship after its own function binding is replaced', () => {
-    const fn = definition('fun identity Value\n return Value\nend');
+    const fn = definition('fun Value identity\n return Value\nend');
     const env = new Map<string, ValueFacts>([['identity', { types: ['function'] }]]);
     const calls = createCallAnalysis(env, new Map([['identity', fn]]), [], new Map(), () => [{ types: [] }],
         () => { throw new Error('unexpected import'); });

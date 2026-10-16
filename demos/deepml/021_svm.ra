@@ -6,7 +6,7 @@ use sequences
 
 rem Train a deterministic kernel SVM.
 rem Visit every sample each iteration.
-fun pegasos X Y Kind Lambda Steps Sigma
+fun X Y Kind Lambda Steps Sigma pegasos
   N = X len
   Alpha = array shape N fill 0.0
   Bias = 0.0

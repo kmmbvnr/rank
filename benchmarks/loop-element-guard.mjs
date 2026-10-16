@@ -10,7 +10,7 @@ assert(Number.isSafeInteger(calls) && calls > 0);
 
 const runtime = new Interpreter();
 try {
-  runtime.execute(`fun first A
+  runtime.execute(`fun A first
  for I in 0 until 1
   return A I
  end

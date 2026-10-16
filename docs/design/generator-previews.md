@@ -12,7 +12,7 @@ them or allocate replay tapes.
 ```rank
 use sequences
 use numbers
-fun nums N
+fun N nums
   yield N
   yield N + 1
 end

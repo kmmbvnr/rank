@@ -7,7 +7,7 @@ use algo
 rem Parse the decimal prefix of Text.
 rem Accumulate a negative result so the
 rem lower 32-bit bound remains representable.
-fun atoi Text
+fun Text atoi
   Index = new index
   N = Text len
   Position = 0
@@ -75,7 +75,7 @@ fun atoi Text
 end
 
 rem Return the 32-bit bound for Sign.
-fun clamp Negative
+fun Negative clamp
   if Negative
     return -2147483648
   end

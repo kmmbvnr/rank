@@ -13,7 +13,7 @@ end
 
 
 rem Generate moves from From to To using Aux as temporary storage.
-fun hanoi N From To Aux
+fun N From To Aux hanoi
   if N equal 0
     return
   end

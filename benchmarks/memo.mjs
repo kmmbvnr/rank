@@ -5,11 +5,11 @@ import { Interpreter } from '../packages/interpreter/out/index.js';
 const runtime = new Interpreter();
 runtime.execute(`
 use algo
-fun manual N
+fun N manual
   Cache = index
   return N Cache fib
 
-  fun fib N Cache
+  fun N Cache fib
     if N in Cache
       return Cache N
     end
@@ -23,10 +23,10 @@ fun manual N
   end
 end
 
-fun fresh N
+fun N fresh
   return N fib
 
-  memo fib N
+  memo N fib
     if N less 2
       return N
     end
@@ -34,7 +34,7 @@ fun fresh N
   end
 end
 
-memo cached N
+memo N cached
   if N less 2
     return N
   end

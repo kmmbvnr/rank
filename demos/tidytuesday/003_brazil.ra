@@ -16,7 +16,7 @@ Summary OutputPath csv
 
 
 rem Summarize capital stock statistics by legal nature.
-fun legal_nature_stats Data
+fun Data legal_nature_stats
   Groups = Data group by .legal_nature
   Summary = Groups select
     .companies_count = count
@@ -30,7 +30,7 @@ end
 
 
 rem Summarize capital stock dispersion by company size.
-fun company_size_stats Data
+fun Data company_size_stats
   Groups = Data group by .company_size
   Summary = Groups select
     .companies_count = count
@@ -45,7 +45,7 @@ end
 
 
 rem Filter top capital stock companies and group by owner qualification.
-fun top_capital_owners Data
+fun Data top_capital_owners
   Threshold = Data .capital_stock 0.95 quantile
   TopCompanies = Data filter .capital_stock greater Threshold
   Groups = TopCompanies group by .owner_qualification
@@ -58,7 +58,7 @@ end
 
 
 rem Summarize multi-category breakdown by legal nature and company size.
-fun multicategory_summary Data
+fun Data multicategory_summary
   Groups = Data group by .legal_nature .company_size
   Summary = Groups select
     .companies_count = count
@@ -70,6 +70,6 @@ end
 
 
 rem Main solver returning legal nature stats.
-fun solve Data
+fun Data solve
   return Data legal_nature_stats
 end

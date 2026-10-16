@@ -3,7 +3,7 @@ import { Interpreter, isRankSequence } from '../src/index.js';
 import { MemoryIo } from './support.js';
 
 const count = `
-fun count N Total
+fun N Total count
   if N equal 0
     return Total
   end
@@ -21,13 +21,13 @@ describe('tail calls', () => {
     it('replaces frames for mutual recursion and parenthesized returns', () => {
         const interpreter = new Interpreter(undefined, { maxCallDepth: 1 });
         expect(interpreter.execute(`
-fun even N
+fun N even
   if N equal 0
     return true
   end
   return ((N - 1) odd)
 end
-fun odd N
+fun N odd
   if N equal 0
     return false
   end
@@ -40,11 +40,11 @@ end
     it('preserves captured caller frames when replacing them', () => {
         const interpreter = new Interpreter(undefined, { maxCallDepth: 1 });
         expect(interpreter.execute(`
-fun zero X
+fun X zero
   return 0
 end
-fun loop N Saved
-  fun capture X
+fun N Saved loop
+  fun X capture
     return N + X
   end
   if N equal 0
@@ -67,11 +67,11 @@ Saved = array zero
         const interpreter = new Interpreter(line => lines.push(line), { maxCallDepth: 1 });
         expect(interpreter.execute(`
 use io
-fun identity X
+fun X identity
   return X
 end
 f = identity
-fun forward N
+fun N forward
   return N print f
 end
 7 forward
@@ -88,7 +88,7 @@ end
     it('does not eliminate a call with arithmetic remaining after it', () => {
         const interpreter = new Interpreter(undefined, { maxCallDepth: 3 });
         expect(() => interpreter.execute(`
-fun down N
+fun N down
   if N equal 0
     return 0
   end
@@ -103,7 +103,7 @@ end
         const interpreter = new Interpreter(line => lines.push(line));
         expect(interpreter.execute(`
 use io
-fun visit N
+fun N visit
   try
     for N greater 0
       if N greater 0
@@ -126,7 +126,7 @@ end
     it('allows tail calls again after leaving a try block', () => {
         const interpreter = new Interpreter(undefined, { maxCallDepth: 1 });
         expect(interpreter.execute(`
-fun down N
+fun N down
   if N equal 0
     return 0
   end
@@ -150,18 +150,18 @@ end
         const interpreter = new Interpreter(line => lines.push(line));
         expect(interpreter.execute(`
 use io
-fun values N
+fun N values
   try
     yield N
   finally
     "closed" print
   end
 end
-fun leaf N
+fun N leaf
   "called" print
   return N
 end
-fun outer N
+fun N outer
   for V in N values
     return V leaf
   end
@@ -178,11 +178,11 @@ end
         const interpreter = new Interpreter(line => events.push([line, io.handles[0].closed]), { io });
         interpreter.execute(`
 use io
-fun leaf N
+fun N leaf
   "called" print
   return N
 end
-fun outer N
+fun N outer
   File = "/input" open
   return N leaf
 end
@@ -199,7 +199,7 @@ end
         });
         expect(interpreter.execute(`
 use "count.ra" as D
-fun forward N
+fun N forward
   return N 10 D.count
 end
 10000 forward
@@ -209,10 +209,10 @@ end
     it('leaves generator return values lazy and restores the caller frame', () => {
         const interpreter = new Interpreter(undefined, { maxCallDepth: 1 });
         interpreter.execute(`
-fun values N
+fun N values
   yield N
 end
-fun forward N
+fun N forward
   return N values
 end
 Values = 7 forward

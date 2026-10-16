@@ -13,7 +13,7 @@ assert(Number.isSafeInteger(limit) && limit >= 3 && limit <= 1000000);
 assert(Number.isSafeInteger(samples) && samples > 0);
 const sources = {
     memo: `use numbers
-memo collatz N rank 0
+memo N collatz rank 0
  if N equal 1
   return 1
  elif N even
@@ -27,7 +27,7 @@ Lengths = 1 till ${limit} collatz
 unpack Longest Position = Lengths max .indexed
 Answer = Position + 1`,
     shortcut: `use numbers
-memo collatz N rank 0
+memo N collatz rank 0
  if N equal 1
   return 1
  elif N even
@@ -64,7 +64,7 @@ sources.arrayCompact = sources.array
     .replaceAll('Lengths Active', 'Lengths Work')
     .replace(`Active = Parents at least ${limit}`, `Work = (Work ((Parents Work) at least ${limit})) copy`);
 sources.halves = `use numbers
-memo collatz N rank 0
+memo N collatz rank 0
  Steps = 0
  for N even
   N = N // 2

@@ -21,7 +21,7 @@ Submission OutputPath csv
 
 
 rem Approximate kilometers using 111 km per degree.
-fun distance Point
+fun Point distance
   unpack Lat1 Lon1 Lat2 Lon2 = Point
   DLat = Lat2 - Lat1
   DLon = Lon2 - Lon1
@@ -30,7 +30,7 @@ fun distance Point
 end
 
 
-fun taxi_features Data
+fun Data taxi_features
   Times = Data .pickup_datetime datetime
   GeoFields = array shape 4
     .pickup_latitude .pickup_longitude
@@ -50,7 +50,7 @@ fun taxi_features Data
 end
 
 
-fun solve Train Test Rate Steps
+fun Train Test Rate Steps solve
   X = Train taxi_features
   Xtest = Test taxi_features
   Y = Train .trip_duration + 1 log

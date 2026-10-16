@@ -7,7 +7,7 @@ Identity = record
   .count = 0
 end
 
-fun combine Left Right
+fun Left Right combine
   return record
     .sum = Left .sum + Right .sum
     .count = Left .count + Right .count

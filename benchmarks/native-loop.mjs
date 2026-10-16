@@ -60,7 +60,7 @@ if (!selected || selected === '--typed') {
     });
     try {
         runtime.execute(`use text\nuse crypto
-fun work Count
+fun Count work
   Total = 0
   Prefix = "item1" bytes
   Header = "item123payload" bytes

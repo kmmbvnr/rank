@@ -1,7 +1,7 @@
 import { arrayBindingContract, refineArrayContract } from './array-binding-contract.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isAllAxisExpression, isApplicationExpression, isArgumentStatement, isArrayAssignmentStatement,
+    isAllAxisExpression, isDeclaredCallExpression, isApplicationExpression, isArgumentStatement, isArrayAssignmentStatement,
     isAssignmentStatement, isBinaryExpression, isExpression, isExpressionStatement, isForStatement,
     isFunctionStatement, isIfStatement, isLabelLiteral, isNameExpression, isCountClauseExpression,
     isOptionStatement, isParenthesizedExpression, isReturnStatement, isTestStatement, isTryStatement,
@@ -339,6 +339,16 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                     graph.domains.push({ variable: input.value.domain, types: ['integer'],
                         site: site(node.count, `${node.operator} needs an integer count`) });
                 }
+                return output;
+            }
+            if (isDeclaredCallExpression(node)) {
+                const args = node.arguments.map(expression);
+                const definition = isNameExpression(node.callee) && !env.has(node.callee.name)
+                    ? callees.get(node.callee.name) : undefined;
+                if (definition && !node.ranks.length && !node.axes.length) {
+                    call(definition, definition.name, args, output, node);
+                    callEffects(definition.name, args);
+                } else forget();
                 return output;
             }
             if (!isApplicationExpression(node)) {

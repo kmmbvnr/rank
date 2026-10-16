@@ -3,7 +3,7 @@ rem https://www.deep-ml.com/problems/2
 
 use sequences
 
-fun transpose_matrix A
+fun A transpose_matrix
   unpack Rows Columns = A shape
 
   Result = array shape Columns Rows fill 0

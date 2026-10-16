@@ -21,7 +21,7 @@ describe('rank L R', () => {
     });
 
     it('applies a program function of two parameters to the paired cells', () => {
-        expect(run(`${prelude}fun pick A B\n  return A B find\nend\n(array 1 2 3) (array 3 1) pick rank 1 0`))
+        expect(run(`${prelude}fun A B pick\n  return A B find\nend\n(array 1 2 3) (array 3 1) pick rank 1 0`))
             .toBe('2 0');
     });
 

@@ -57,7 +57,7 @@ describe('short-circuiting sequence selectors', () => {
         expect(run('use sequences\nprimes from greater 7 take 2 array')).toBe('11 13');
         expect(run([
             'use sequences',
-            'fun big X',
+            'fun X big',
             '  return X greater 10',
             'end',
             'fibonacci till big array',

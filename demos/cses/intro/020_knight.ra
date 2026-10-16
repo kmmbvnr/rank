@@ -14,7 +14,7 @@ end
 
 
 rem Find every shortest distance with one breadth-first traversal of the board.
-fun solve N
+fun N solve
   DYs = array 1 1 -1 -1 2 2 -2 -2
   DXs = array 2 -2 2 -2 1 -1 1 -1
 

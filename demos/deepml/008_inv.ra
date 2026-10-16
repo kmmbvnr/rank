@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/8
 use sequences
 
 rem Return the inverse of a 2 by 2 matrix.
-fun inverse_2x2 A
+fun A inverse_2x2
   unpack Rows Cols = A shape
   if Rows not equal 2 or Cols not equal 2
     .DimensionMismatch raise

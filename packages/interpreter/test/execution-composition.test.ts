@@ -70,7 +70,7 @@ describe('evaluation composition', () => {
 
     it('keeps builtin extrema synchronous but rechecks shadowed functions', () => {
         const runtime = new Interpreter();
-        runtime.execute('use numbers\nA = array 3 7\nfun replacement X\n return X max + 10\nend');
+        runtime.execute('use numbers\nA = array 3 7\nfun X replacement\n return X max + 10\nend');
         const statement = parse('A min').statements[0];
         if (!isExpressionStatement(statement)) throw new Error('expected expression');
         const evaluator = (runtime as unknown as { expressions: { evaluate(expression: Expression): Evaluation<RankValue> } }).expressions;
@@ -94,7 +94,7 @@ describe('evaluation composition', () => {
         const output: string[] = [];
         const runtime = new Interpreter(line => output.push(line));
         runtime.execute(`use io
-fun visit V
+fun V visit
   V print
   return V
 end`);

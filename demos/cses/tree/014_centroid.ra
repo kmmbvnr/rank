@@ -16,7 +16,7 @@ Tree Rooted centroid print
 
 
 rem Follow any subtree larger than half.
-fun centroid Tree Rooted
+fun Tree Rooted centroid
   Sizes = Rooted .size
   Limit = Rooted .order len // 2
   Current = Rooted .root

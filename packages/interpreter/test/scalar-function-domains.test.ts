@@ -18,10 +18,10 @@ function evaluate(compiled: boolean, source: string) {
 
 describe('scalar function argument domains', () => {
     it.each([
-        ['fun combine X Y\nreturn X + Y\nend\n"𝄞" "é" combine', '𝄞é'],
-        ['fun both X Y\nreturn X and Y\nend\ntrue false both', 'false'],
-        ['fun picktext Flag Text\nif Flag\nreturn Text reverse\nelse\nreturn Text\nend\nend\ntrue "𝄞é" picktext', '́e𝄞'],
-        ['fun equaltext X Y\nreturn X equal Y\nend\n"𝄞" "𝄞" equaltext', 'true'],
+        ['fun X Y combine\nreturn X + Y\nend\n"𝄞" "é" combine', '𝄞é'],
+        ['fun X Y both\nreturn X and Y\nend\ntrue false both', 'false'],
+        ['fun Flag Text picktext\nif Flag\nreturn Text reverse\nelse\nreturn Text\nend\nend\ntrue "𝄞é" picktext', '́e𝄞'],
+        ['fun X Y equaltext\nreturn X equal Y\nend\n"𝄞" "𝄞" equaltext', 'true'],
     ])('matches ordinary execution for %s', (source, expected) => {
         const reference = evaluate(false, `use sequences\n${source}`);
         const compiled = evaluate(true, `use sequences\n${source}`);
@@ -34,7 +34,7 @@ describe('scalar function argument domains', () => {
         let kernels = 0;
         const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => kernels++ });
         try {
-            runtime.execute('fun combine X Y\nreturn X + Y\nend');
+            runtime.execute('fun X Y combine\nreturn X + Y\nend');
             const fn = runtime.variables.get('combine');
             if (!fn || !isNativeFunction(fn)) throw new Error('missing function');
             expect(fn.call([1n, 2n])).toBe(3n);
@@ -52,7 +52,7 @@ describe('scalar function argument domains', () => {
     it('rechecks native identity for a cached text specialization', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('use sequences\nfun flip Text\nreturn Text reverse\nend');
+            runtime.execute('use sequences\nfun Text flip\nreturn Text reverse\nend');
             const fn = runtime.variables.get('flip');
             if (!fn || !isNativeFunction(fn)) throw new Error('missing function');
             expect(fn.call(['abc'])).toBe('cba');
@@ -65,7 +65,7 @@ describe('scalar function argument domains', () => {
         let kernels = 0;
         const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => kernels++ });
         try {
-            const result = runtime.execute('use sequences\nfun flip Text\nreturn Text reverse\nend\n(array "ab" "𝄞é") flip rank 0');
+            const result = runtime.execute('use sequences\nfun Text flip\nreturn Text reverse\nend\n(array "ab" "𝄞é") flip rank 0');
             if (!result || !isRankArray(result)) throw new Error('missing array');
             expect([...result.items]).toEqual(['ba', '́e𝄞']);
             expect([...result.items]).toEqual(['ba', '́e𝄞']);
@@ -75,13 +75,13 @@ describe('scalar function argument domains', () => {
 
     it('retains captured assignments and native error locations', () => {
         for (const source of [
-            'fun outer X\nLocal = "before"\nfun rewrite Y\nLocal = Y reverse\nreturn Local\nend\nX rewrite\nreturn Local\nend\n"after" outer',
-            'use text\nfun point Text\nreturn Text codepoint\nend\n"" point',
+            'fun X outer\nLocal = "before"\nfun Y rewrite\nLocal = Y reverse\nreturn Local\nend\nX rewrite\nreturn Local\nend\n"after" outer',
+            'use text\nfun Text point\nreturn Text codepoint\nend\n"" point',
         ]) {
             const reference = evaluate(false, `use sequences\n${source}`);
             const compiled = evaluate(true, `use sequences\n${source}`);
             expect({ ...compiled, kernels: 0 }).toEqual(reference);
-            if (source.startsWith('fun outer')) expect(reference.value).toBe('retfa');
+            if (source.startsWith('fun X outer')) expect(reference.value).toBe('retfa');
             else expect(reference.error).toContain('point');
         }
     });

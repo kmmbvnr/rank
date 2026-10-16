@@ -22,7 +22,7 @@ Projects maximum_reward print
 
 rem Combine a project with its last
 rem compatible prefix.
-fun maximum_reward Jobs
+fun Jobs maximum_reward
   Sorted = Jobs sort by .finish .start
   Count = Sorted len
   Best = array shape (Count + 1) fill 0
@@ -52,7 +52,7 @@ end
 
 
 rem Build a project for direct callers.
-fun project Start Finish Reward
+fun Start Finish Reward project
   return record
     .start = Start
     .finish = Finish

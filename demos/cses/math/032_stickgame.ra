@@ -13,7 +13,7 @@ N Moves stick_game print
 
 
 rem Gather all possible predecessors.
-fun stick_game N Moves
+fun N Moves stick_game
   Queue = new queue
   Winning = array shape (N + 1) fill false
 

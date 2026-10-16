@@ -10,12 +10,12 @@ Board solve print
 
 
 rem Count placements by trying one column in each row.
-fun solve Board
+fun Board solve
   return 1 search
 
   rem State stores chosen columns in base 8,
   rem with leading 1 as a sentinel.
-  fun search State
+  fun State search
     Row = 0
     Temp = State
 

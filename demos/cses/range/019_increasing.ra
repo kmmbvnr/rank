@@ -17,7 +17,7 @@ Values Queries increase_costs print
 
 
 rem Sum blocks of running maxima.
-fun increase_costs Values Queries
+fun Values Queries increase_costs
   N = Values len
   Size = N + 1
   Next = array shape Size fill Size

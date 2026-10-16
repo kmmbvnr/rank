@@ -65,8 +65,8 @@ describe('factsAt: each kind of name position', () => {
     });
 
     it('names a user function', () => {
-        const program = 'fun f X\n return X\nend\n1 f\n';
-        expect(formatNameFacts(factsAt(program, at(program, 'f X'))!)).toBe('f · a → a');
+        const program = 'fun X f\n return X\nend\n1 f\n';
+        expect(formatNameFacts(factsAt(program, at(program, 'f\n'))!)).toBe('f · a → a');
         expect(formatNameFacts(factsAt(program, at(program, 'f', 2) + 1)!)).toBe('f · i → i');
     });
 
@@ -76,7 +76,7 @@ describe('factsAt: each kind of name position', () => {
 });
 
 describe('factsAt: functions with example arguments', () => {
-    const program = 'fun twice X\n Y = X * 2\n return Y\nend\n';
+    const program = 'fun X twice\n Y = X * 2\n return Y\nend\n';
     const examples = [{ name: 'twice', arguments: [integer()] }];
 
     it('takes a parameter\'s facts from the example arguments', () => {
@@ -101,7 +101,7 @@ describe('factsAt: functions with example arguments', () => {
     });
 
     it('reports a parameter as unknown once the body overwrites it', () => {
-        const rewritten = 'fun twice X\n X = "a"\n return X\nend\n';
+        const rewritten = 'fun X twice\n X = "a"\n return X\nend\n';
         expect(formatNameFacts(factsAt(rewritten, at(rewritten, 'X'), [], examples)!)).toBe('X · unknown');
     });
 });
@@ -163,7 +163,7 @@ describe('factsAt: functions', () => {
 
     it('shows an audited builtin and a proven notebook call', () => {
         expect(formatNameFacts(word('Xs = array 1 2 3\nXs sum\n', 'sum'), 60)).toBe("sum · c[3]<number> → number");
-        expect(formatNameFacts(word('fun twice X\n return X * 2\nend\n3 twice\n', 'twice'), 60)).toBe('twice · i → i');
+        expect(formatNameFacts(word('fun X twice\n return X * 2\nend\n3 twice\n', 'twice'), 60)).toBe('twice · i → i');
     });
 
     it('is not fooled by a variable or an unknown word', () => {
@@ -180,7 +180,7 @@ describe('function signatures in the type footer', () => {
         expect(layoutNameFacts(found, 40).every(row => row.length <= 40)).toBe(true);
         const call = 'use sequences\n"abcd" window 2';
         expect(factsAt(call, call.lastIndexOf('window'))?.signature).toBe("text i → c<text>");
-        const shadowed = 'fun window X Y\n return X + Y\nend\n1 window 2';
+        const shadowed = 'fun X Y window\n return X + Y\nend\n1 window 2';
         expect(factsAt(shadowed, shadowed.lastIndexOf('window'))?.signature).toContain('a a → a');
         expect(factsAt(shadowed, shadowed.lastIndexOf('window'))?.signature).not.toContain('widths:');
         for (const dimensions of ['2 2', 'unpack (array 2 2)']) {
@@ -240,20 +240,20 @@ describe('function signatures in the type footer', () => {
     });
 
     it('shows the notebook example signature and preserves unknown inputs', () => {
-        const source = 'fun twice X\n Y = X * 2\n return Y\nend';
+        const source = 'fun X twice\n Y = X * 2\n return Y\nend';
         expect(formatNameFacts(factsAt(source, source.indexOf('twice'), [], [{ name: 'twice', arguments: [integer()] }])!))
             .toBe('twice · i → i');
         expect(formatNameFacts(factsAt(source, source.indexOf('twice'))!)).toBe('twice · a → ?');
     });
 
     it('keeps tuple result relationships visible without example arguments', () => {
-        const source = 'fun pair X\n return tuple X "label"\nend';
+        const source = 'fun X pair\n return tuple X "label"\nend';
         expect(formatNameFacts(factsAt(source, source.indexOf('pair'))!)).toBe('pair · a → tuple(a, text)');
     });
 });
 
 it('does not use a global function signature for a shadowing callback parameter', () => {
-    const source = 'fun helper X\n return X\nend\nfun apply helper\n return 1 helper\nend';
+    const source = 'fun X helper\n return X\nend\nfun apply helper\n return 1 helper\nend';
     expect(factsAt(source, source.lastIndexOf('helper'))?.signature).toBeUndefined();
 });
 
@@ -306,7 +306,7 @@ it('shows range and proven outer signatures on operator words', () => {
     }
     const named = '(array 1 2) (array 3 4) outer max';
     expect(factsAt(named, named.indexOf('outer'))?.signature).toBe("c[2]<i> c[2]<i> function → c");
-    const shadowed = 'fun outer X\n return X\nend\n3 outer';
+    const shadowed = 'fun X outer\n return X\nend\n3 outer';
     expect(factsAt(shadowed, shadowed.lastIndexOf('outer'))?.signature).toBe('i → i');
 });
 
@@ -323,9 +323,9 @@ it('shows segment form contracts without advertising callable marker signatures'
         expect(factsAt(source, source.indexOf('segment'))?.signature).toBe("c[3]<i> → c");
         if (combine === 'maxsum') expect(factsAt(source, source.indexOf('maxsum'))?.signature).toBe("c[3]<i> → c");
     }
-    const named = 'use algo\nfun combine A B\n return A + B\nend\n(array 1 2) segment combine';
+    const named = 'use algo\nfun A B combine\n return A + B\nend\n(array 1 2) segment combine';
     expect(factsAt(named, named.indexOf('segment'))?.signature).toBe("c[2]<i> (? ? → ?) → c");
-    const shadowed = 'fun segment X\n return X\nend\n3 segment';
+    const shadowed = 'fun X segment\n return X\nend\n3 segment';
     expect(factsAt(shadowed, shadowed.lastIndexOf('segment'))?.signature).toBe('i → i');
 });
 
@@ -374,7 +374,7 @@ describe('layoutNameFacts', () => {
 });
 
 it('keeps body alternatives separate from concrete call signatures', () => {
-    const definition = 'fun twice X\n return X + X\nend';
+    const definition = 'fun X twice\n return X + X\nend';
     const general = 'a → a ; c<a> → c<a> ; a: number';
     for (const calls of ['1 twice\n1.5 twice', '1.5 twice\n1 twice']) {
         const source = definition + '\n' + calls;
@@ -475,7 +475,7 @@ it('infers Euler 13 call results and uncalled locals, with backward parameter co
     const source = readFileSync(new URL('../../../demos/euler/013_largesum.ra', import.meta.url), 'utf8');
     expect(formatNameFacts(factsAt(source, source.indexOf('Answer ='))!)).toBe('Answer · integer');
     expect(formatNameFacts(factsAt(source, source.indexOf('Numbers Digits leading_sum'))!)).toBe('Numbers · integer [100]');
-    const definition = source.slice(source.indexOf('fun leading_sum'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*leading_sum\b/));
     expect(formatNameFacts(factsAt(definition, definition.indexOf('Prefix ='))!)).toBe('Prefix · text');
     expect(formatNameFacts(factsAt(definition, definition.indexOf('Digits'))!)).toBe('Digits · integer');
     const numbers = factsAt(definition, definition.indexOf('Numbers'))!;
@@ -486,7 +486,7 @@ it('infers Euler 13 call results and uncalled locals, with backward parameter co
 
 it('shows backward parameter requirements on the Euler 13 function definition', () => {
     const source = readFileSync(new URL('../../../demos/euler/013_largesum.ra', import.meta.url), 'utf8');
-    const found = factsAt(source, source.indexOf('fun leading_sum') + 4)!;
+    const found = factsAt(source, source.indexOf('leading_sum', source.search(/^fun[^\n]*\bleading_sum\b/m)))!;
     expect(found.signature).toBe('(number | missing) [rank ≥ 0] i → i');
     expect(layoutNameFacts(found, 40)).toEqual(['leading_sum ·', '  (number | missing) [rank ≥ 0]', '  i → i']);
 });
@@ -494,13 +494,13 @@ it('shows backward parameter requirements on the Euler 13 function definition', 
 
 it('keeps the proved Euler 17 cell signature after printing its sum', () => {
     const source = readFileSync(new URL('../../../demos/euler/017_numberletters.ra', import.meta.url), 'utf8');
-    const found = factsAt(source, source.indexOf('fun letters') + 4)!;
+    const found = factsAt(source, source.indexOf('letters', source.search(/^fun[^\n]*\bletters\b/m)))!;
     expect(found.signature).toBe('i → i');
 });
 
 it('uses earlier calls for a definition without restoring facts for later calls', () => {
     const source = 'use io\nValues = array 3 5 7\nA = 0 lookup\nA print\n0 lookup\n'
-        + 'fun lookup N\n return Values N\nend';
-    expect(factsAt(source, source.indexOf('fun lookup') + 4)?.signature).toBe('i → i');
+        + 'fun N lookup\n return Values N\nend';
+    expect(factsAt(source, source.indexOf('lookup', source.search(/^fun[^\n]*\blookup\b/m)))?.signature).toBe('i → i');
     expect(factsAt(source, source.indexOf('lookup', source.indexOf('A print')))?.signature).toBe('i → ?');
 });

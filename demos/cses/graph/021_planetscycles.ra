@@ -10,7 +10,7 @@ Next planet_cycles print
 
 
 rem Count visits before a repeat.
-fun planet_cycles Next
+fun Next planet_cycles
   Planets = Next functional
   return Planets lengths
 end

@@ -120,7 +120,7 @@ test('worker keeps editing metadata and file state in sync', { timeout: 10000 },
     const s = await session(t);
     await s.execute('use numbers', 0, []);
     assert.ok(s.complete('fac')[0].includes('factors '));
-    assert.deepEqual(s.complete('fun lychel N\n  for # in 1 to 50\n    Back = N text reverse integer\n    N += B'),
+    assert.deepEqual(s.complete('fun N lychel\n  for # in 1 to 50\n    Back = N text reverse integer\n    N += B'),
         [['Back '], 'B']);
     await s.execute('alias off', 1, []);
     assert.equal(s.format('A plus B'), 'A plus B');
@@ -192,7 +192,7 @@ test('worker prepares notebook functions before stepping a call above their defi
     const s = await session(t);
     const repl = new NotebookRepl(s);
     repl.notebook.enqueue('Answer = 21 twice', true);
-    repl.notebook.enqueue('fun twice X\n  return X + X\nend', true);
+    repl.notebook.enqueue('fun X twice\n  return X + X\nend', true);
     s.debugNext();
     const pending = repl.submit(true);
     try {

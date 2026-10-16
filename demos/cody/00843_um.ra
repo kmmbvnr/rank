@@ -7,7 +7,7 @@ use sequences
 
 
 rem Fit fractions to one spectrum.
-fun unmix Basis Spectrum
+fun Basis Spectrum unmix
   BasisT = Basis transpose
   Gram = BasisT Basis matmul
   Projection = BasisT Spectrum matmul

@@ -8,7 +8,7 @@ N divisor_sum print
 
 
 rem Group divisors with equal quotients.
-fun divisor_sum N
+fun N divisor_sum
   Modulus = 1000000007
   Answer = 0
   Left = 1

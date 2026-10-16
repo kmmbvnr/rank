@@ -51,7 +51,7 @@ Numbers = 1 to Limit
 Counts = Numbers letters rank 0
 Counts sum print
 
-fun letters Value
+fun Value letters
   if Value equal 1000
     return "one" len + ("thousand" len)
   end

@@ -52,14 +52,14 @@ describe('running a line after a failed one', () => {
 
     it('opens a block on Play for a function header instead of reporting an error', async () => {
         const repl = new NotebookRepl(createReplSession());
-        repl.notebook.replace('fun inc N');
+        repl.notebook.replace('fun N inc');
         await repl.submit(true);
         expect(repl.notebook.cells.some(cell => cell.status === 'error')).toBe(false);
     });
 });
 
 describe('function error origin markers', () => {
-    const definition = 'fun leading_sum Numbers Digits\n  Total = Numbers sum\n  Text = Total text\n  Prefix = Text take Digits\n  return Prefix integer\nend';
+    const definition = 'fun Numbers Digits leading_sum\n  Total = Numbers sum\n  Text = Total text\n  Prefix = Text take Digits\n  return Prefix integer\nend';
 
     it('marks the failing function line once, retaining the call error and ordinary code colors', async () => {
         const session = createReplSession();
@@ -95,10 +95,10 @@ describe('function error origin markers', () => {
 
     it('retains the innermost definition when a function calls another function', async () => {
         const session = createReplSession();
-        const inner = 'fun inner X\n  return X / 0\nend';
+        const inner = 'fun X inner\n  return X / 0\nend';
         try {
             await session.execute(inner, 1, [], 80, true);
-            await session.execute('fun outer X\n  return X inner\nend', 2, [], 80, true);
+            await session.execute('fun X outer\n  return X inner\nend', 2, [], 80, true);
             const result = await session.execute('1 outer', 3, [], 80, true);
             expect(result.errorSource?.source).toBe(inner);
             expect(result.errorOffset).toBeUndefined();

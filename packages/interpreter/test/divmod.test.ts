@@ -6,7 +6,7 @@ import { run } from './support.js';
 describe('divmod', () => {
     it.each([false, true])('matches floor division and modulo (compiled=%s)', compiled => {
         const interpreter = new Interpreter(undefined, { scalarFunctionCompilation: compiled });
-        interpreter.execute('fun split N D\nreturn N divmod D\nend');
+        interpreter.execute('fun N D split\nreturn N divmod D\nend');
         for (const a of ['17', '-17', '0', '100000000000000000000000000000000000001',
             '17.5', '-17.5', '1.0', '0.0', '0.3']) {
             for (const b of ['5', '-5', '5.0', '-5.0', '0.1', '-0.1']) {

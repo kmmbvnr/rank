@@ -8,11 +8,11 @@ describe('block scope', () => {
             'for R in 1 till 3\n Dy = R\n 10 f\nend',
             'if true\n Dy = 1\n 10 f\nend',
             'try\n Dy = 1\n 10 f\nfinally\n 0\nend',
-            'fun caller Dy\n return 10 f\nend\n1 caller',
+            'fun Dy caller\n return 10 f\nend\n1 caller',
         ])('does not expose caller-only names: %s', body => {
             const runtime = new Interpreter(undefined, { compilation });
             try {
-                expect(() => runtime.execute(`fun f Q
+                expect(() => runtime.execute(`fun Q f
  return Q + Dy
 end
 ${body}`)).toThrow('unknown name: Dy');
@@ -24,10 +24,10 @@ ${body}`)).toThrow('unknown name: Dy');
         it('keeps a block binding captured after its block ends', () => {
             const runtime = new Interpreter(undefined, { compilation });
             try {
-                expect(runtime.execute(`saved X = X
+                expect(runtime.execute(`saved = len
 for R in 1 till 3
  Offset = R
- addOffset X = X + Offset
+ fun X addOffset = X + Offset
  saved = addOffset
 end
 10 saved`)).toBe(12n);
@@ -40,7 +40,7 @@ end
             const runtime = new Interpreter(undefined, { compilation });
             try {
                 expect(() => runtime.execute(`fun outer
- fun f Q
+ fun Q f
   return Q + Dy
  end
  if true
@@ -87,7 +87,7 @@ outer`)).toThrow('unknown name: Dy');
     });
 
     it('keeps the type of a body name for every iteration', () => {
-        expect(() => run(`fun compute I
+        expect(() => run(`fun I compute
  if I equal 0
   return 5
  end
@@ -107,9 +107,9 @@ end`)).toThrow('compute returns rank 0 and cannot return rank 1');
     });
 
     it('lets a nested function write the enclosing names from its own blocks', () => {
-        expect(run(`fun outer N
+        expect(run(`fun N outer
  Best = 0
- fun visit V
+ fun V visit
   if V greater Best
    Best = V
   end

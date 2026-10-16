@@ -16,7 +16,7 @@ describe('mutable collection element contracts', () => {
         it(`${kind}: aliases and calls share the contract after removal to empty`, () => {
             expect(() => run(prelude + `C = new ${kind}\n${insert('C', 'array 1 2')}\n${remove}
 Alias = C
-fun put Target
+fun Target put
   ${insert('Target', 'array "bad"')}
 end
 Alias put

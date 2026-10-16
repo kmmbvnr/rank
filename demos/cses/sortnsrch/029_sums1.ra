@@ -11,7 +11,7 @@ A X count_positive_sums print
 
 
 rem Count target sums with a positive window.
-fun count_positive_sums A Target
+fun A Target count_positive_sums
   Left = 0
   Sum = 0
   Answer = 0

@@ -13,7 +13,7 @@ H K min_cost print
 
 
 rem Cheapest way to hop from stone 1 to stone N, up to K stones at a time.
-fun min_cost H K
+fun H K min_cost
   N = H len
   Cost = array shape N fill 0
 

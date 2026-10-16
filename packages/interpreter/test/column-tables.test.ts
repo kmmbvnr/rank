@@ -91,7 +91,7 @@ describe('column tables', () => {
 
     it('keeps the caller table unchanged when a function writes to its argument', () => {
         const { show } = session();
-        show('fun patched T\n  T .Age = T .Age default 1\n  return T\nend');
+        show('fun T patched\n  T .Age = T .Age default 1\n  return T\nend');
         show('Filled = Data patched');
         expect(show('Filled .Age')).toBe('22 1 26 35');
         expect(show('Data .Age default 0')).toBe('22 0 26 35');

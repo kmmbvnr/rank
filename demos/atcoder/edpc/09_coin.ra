@@ -15,7 +15,7 @@ P more_than_half print
 
 
 rem Probability of strictly more than half heads across N biased coins.
-fun more_than_half P
+fun P more_than_half
   N = P len
   Size = N + 1
   Dp = array shape Size fill 0.0

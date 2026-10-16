@@ -17,7 +17,7 @@ Movies Queries movie_queries print
 
 
 rem Greedily jump to earliest endings.
-fun movie_queries Movies Queries
+fun Movies Queries movie_queries
   LastMovie = Movies max
   LastQuery = Queries max
   LastTime = LastMovie LastQuery max

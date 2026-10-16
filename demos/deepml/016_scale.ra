@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/16
 use numbers
 use stats
 
-fun feature_scaling Data
+fun Data feature_scaling
   Mean = Data mean axis 0
   Delta = Data - Mean
   Dev = (Delta * Delta mean axis 0) sqrt

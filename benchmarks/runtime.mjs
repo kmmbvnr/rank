@@ -10,14 +10,14 @@ runtime.execute(`
 use numbers
 use algo
 
-fun tree N
+fun N tree
   if N equal 0
     return 1
   end
   return ((N - 1) tree) + ((N - 1) tree)
 end
 
-fun total N
+fun N total
   Sum = 0
   for I in 0 until N
     Sum += I
@@ -25,11 +25,11 @@ fun total N
   return Sum
 end
 
-fun increment N
+fun N increment
   return N + 1
 end
 
-fun calls N
+fun N calls
   Sum = 0
   for I in 0 until N
     Sum += I increment
@@ -37,7 +37,7 @@ fun calls N
   return Sum
 end
 
-fun nativecalls N
+fun N nativecalls
   Sum = 0
   for I in 0 until N
     Sum += I abs
@@ -45,7 +45,7 @@ fun nativecalls N
   return Sum
 end
 
-fun conditional N
+fun N conditional
   Sum = 0
   I = 0
   for I less N
@@ -57,7 +57,7 @@ fun conditional N
   return Sum
 end
 
-fun addressing N
+fun N addressing
   Values = array 1 2 3 4
   Sum = 0
   for I in 0 until N
@@ -66,18 +66,18 @@ fun addressing N
   return Sum
 end
 
-fun tail N
+fun N tail
   if N equal 0
     return 0
   end
   return (N - 1) tail
 end
 
-fun add A B
+fun A B add
   return A + B
 end
 
-fun dyadiccalls N
+fun N dyadiccalls
   Sum = 0
   for I in 0 until N
     Sum += I 1 add
@@ -85,14 +85,14 @@ fun dyadiccalls N
   return Sum
 end
 
-fun tailacc N Total
+fun N Total tailacc
   if N equal 0
     return Total
   end
   return (N - 1) (Total + 1) tailacc
 end
 
-fun indexwork N
+fun N indexwork
   Cache = new index
   Sum = 0
   for I in 0 until N

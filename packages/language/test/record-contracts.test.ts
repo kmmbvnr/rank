@@ -46,25 +46,25 @@ describe('structural record facts', () => {
 
     it('rejects different return schemas before the function is called', () => {
         for (const right of ['.other = 1', '.value = "bad"', '.value = array 1']) {
-            const errors = messages(`fun pick Flag\n if Flag\n return record\n .value = 1\n end\n end\n return record\n ${right}\n end\nend`);
+            const errors = messages(`fun Flag pick\n if Flag\n return record\n .value = 1\n end\n end\n return record\n ${right}\n end\nend`);
             expect(errors.some(error => error.includes('returns incompatible record types'))).toBe(true);
         }
     });
 
     it('checks nested ranks on recursive returns', () => {
-        const source = 'fun build N\n if N equal 0\n return record\n .inner = record\n .data = array 1\n end\n end\n end\n Previous = (N - 1) build\n return record\n .inner = record\n .data = array shape 1 1 fill 1\n end\n end\nend\nX = 1 build';
+        const source = 'fun N build\n if N equal 0\n return record\n .inner = record\n .data = array 1\n end\n end\n end\n Previous = (N - 1) build\n return record\n .inner = record\n .data = array shape 1 1 fill 1\n end\n end\nend\nX = 1 build';
         expect(messages(source).some(error => error.includes('returns incompatible record types'))).toBe(true);
     });
 
     it('separates record argument schemas while allowing different axis lengths', () => {
-        const analysis = analyze('fun identity R\n return R\nend\nA = record\n .x = 1\nend\nB = record\n .name = "text"\nend\nC = A identity\nD = B identity');
+        const analysis = analyze('fun R identity\n return R\nend\nA = record\n .x = 1\nend\nB = record\n .name = "text"\nend\nC = A identity\nD = B identity');
         expect(analysis.diagnostics.map(item => item.message)).toEqual([]);
         expect(analysis.bindings.get('C')?.fields?.x.types).toEqual(['integer']);
         expect(analysis.bindings.get('D')?.fields?.name.types).toEqual(['text']);
     });
 
     it('does not invent fields for unknown record parameters', () => {
-        const result = analyze('fun read R\n return R .items\nend\nX = Unknown read');
+        const result = analyze('fun R read\n return R .items\nend\nX = Unknown read');
         expect(result.bindings.get('X')?.rank).toBeUndefined();
         expect(result.diagnostics.map(item => item.message)).toEqual([]);
     });
@@ -97,14 +97,14 @@ describe('ordinary record binding schemas', () => {
 });
 
 it('retains record contracts across callbacks while forgetting values and lengths', () => {
-    const result = analyze('fun apply F\n R = record\n .items = array 1 2\n .count = 7\n end\n 0 F\n return R\nend\nX = Callback apply');
+    const result = analyze('fun F apply\n R = record\n .items = array 1 2\n .count = 7\n end\n 0 F\n return R\nend\nX = Callback apply');
     expect(result.bindings.get('X')).toMatchObject({ types: ['record'], fields: {
         items: { types: ['array'], rank: 1, shape: [null], elements: ['integer'] },
         count: { types: ['integer'] },
     } });
     expect(result.bindings.get('X')?.fields?.count.integer).toBeUndefined();
     expect(result.bindings.get('X')?.fields?.items.eagerScalarCells).toBeUndefined();
-    expect(messages('fun apply F\n R = record\n .x = 1\n end\n 0 F\n R = record\n .y = 2\n end\n return R\nend\nCallback apply')
+    expect(messages('fun F apply\n R = record\n .x = 1\n end\n 0 F\n R = record\n .y = 2\n end\n return R\nend\nCallback apply')
         .some(message => message.includes('fields .x') && message.includes('fields .y'))).toBe(true);
 });
 

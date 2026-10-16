@@ -1,3 +1,4 @@
+import { bindCallWords } from './call-words.js';
 import {
     isAllAxisExpression, isExpression, isParenthesizedExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
     isApplicationExpression, isArrayExpression, isBinaryExpression, isLabelLiteral, isNameExpression,
@@ -886,21 +887,16 @@ function explicitWindow(parts: Expression[], lookup: ApplicationLookup): WindowA
     while (position < parts.length && !endsDimensions(parts[position])) position++;
     const dimensions = parts.slice(operation + 1, position);
     if (!dimensions.length) throw new ApplicationSyntaxError('window expects one or more sizes');
-    let stride: Expression | undefined;
-    let padding: Expression | undefined;
+    const groups = bindCallWords(parts, position, ['stride', 'padding'], 'window', () => true,
+        (_node, message) => { throw new ApplicationSyntaxError(message); });
+    position = groups.next;
+    const stride = groups.values.get('stride');
+    const padding = groups.values.get('padding');
     let fill: Expression | undefined;
     let wrap = false;
     let axes: readonly number[] | undefined;
 
-    if (isNamed(parts[position], 'stride')) {
-        stride = parts[position + 1];
-        if (!stride) throw new ApplicationSyntaxError('window stride expects a value');
-        position += 2;
-    }
-    if (isNamed(parts[position], 'padding')) {
-        padding = parts[position + 1];
-        if (!padding) throw new ApplicationSyntaxError('window padding expects a value');
-        position += 2;
+    if (padding) {
         if (isNamed(parts[position], 'wrap')) {
             wrap = true;
             position++;

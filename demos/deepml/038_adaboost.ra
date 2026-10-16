@@ -6,7 +6,7 @@ use numbers
 use sequences
 
 rem Predict with one decision stump.
-fun stump X Feature Limit Sign
+fun X Feature Limit Sign stump
   N = X len
   Pred = array shape N fill 1
   Negative = X axis 1 Feature less Limit
@@ -19,7 +19,7 @@ fun stump X Feature Limit Sign
 end
 
 rem Fit a sequence of decision stumps.
-fun adaboost_fit X Y Classifiers
+fun X Y Classifiers adaboost_fit
   Queue = new queue
   unpack N Features = X shape
   if Y len not equal N

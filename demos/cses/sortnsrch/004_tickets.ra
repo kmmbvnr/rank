@@ -13,7 +13,7 @@ Prices Customers sell print
 
 
 rem Sell the best affordable ticket.
-fun sell Prices Customers
+fun Prices Customers sell
   Queue = new queue
   Tickets = Prices multiset
 

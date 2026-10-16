@@ -16,7 +16,7 @@ Part2 print
 
 rem Compare source, decoded and newly
 rem encoded lengths for all literals.
-fun solve Lines
+fun Lines solve
   Part1 = 0
   Part2 = 0
 
@@ -35,7 +35,7 @@ end
 
 rem Count characters after escaping a
 rem literal for source code again.
-fun encodedlen S
+fun S encodedlen
   Count = 2
 
   for C in S
@@ -52,7 +52,7 @@ end
 
 rem Count decoded characters inside a
 rem valid source literal.
-fun memorylen S
+fun S memorylen
   Count = 0
   Position = 1
   Last = S len - 1

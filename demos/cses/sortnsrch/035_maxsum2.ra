@@ -13,7 +13,7 @@ X A B maximum_bounded_sum print
 
 
 rem Keep the smallest allowed prefix sum.
-fun maximum_bounded_sum X A B
+fun X A B maximum_bounded_sum
   N = X len
   Prefix = X scan + with 0
 

@@ -8,14 +8,14 @@ import { Interpreter, parse } from '../packages/interpreter/out/index.js';
 // npx tsc -b tsconfig.build.json && node benchmarks/queens-safe.mjs
 // Optional: SAMPLES=1 for screening, ONLY=unique,scalar for a subset.
 const definitions = {
-    unique: `fun safe Q rank 1
+    unique: `fun Q safe rank 1
   Up = Q + Columns unique len
   if Up not equal 8
     return false
   end
   return Q - Columns unique len equal 8
 end`,
-    'adjacent-unique': `fun safe Q rank 1
+    'adjacent-unique': `fun Q safe rank 1
   for I in 0 till 7
     if (Q I - Q (I + 1)) abs equal 1
       return false
@@ -28,13 +28,13 @@ end`,
   return Q - Columns unique len equal 8
 end`,
     'outer-count': `Dy = Columns Columns outer - abs copy
-fun safe Q rank 1
+fun Q safe rank 1
   Dx = Q Q outer - abs
   return (Dx equal Dy) count equal 8
 end`,
     'outer-any': `Dy = Columns Columns outer - abs copy
 Different = Dy greater 0 copy
-fun safe Q rank 1
+fun Q safe rank 1
   Dx = Q Q outer - abs
   Hit = Dx equal Dy and Different
   return not (Hit any)
@@ -43,11 +43,11 @@ end`,
 I = Pairs # 0 copy
 J = Pairs # 1 copy
 Distances = J - I copy
-fun safe Q rank 1
+fun Q safe rank 1
   Dx = (Q I - Q J) abs
   return (Dx not equal Distances) all
 end`,
-    shifts: `fun safe Q rank 1
+    shifts: `fun Q safe rank 1
   for D in 1 till 8
     Left = Q (0 till (8 - D) array)
     Right = Q (D till 8 array)
@@ -59,7 +59,7 @@ end`,
 end`,
     'shifts-hoisted': `LeftIndices = tuple ${Array.from({ length: 7 }, (_, i) => `(0 till ${7 - i} array)`).join(' ')}
 RightIndices = tuple ${Array.from({ length: 7 }, (_, i) => `(${i + 1} till 8 array)`).join(' ')}
-fun safe Q rank 1
+fun Q safe rank 1
   for D in 1 till 8
     Left = Q (LeftIndices (D - 1))
     Right = Q (RightIndices (D - 1))
@@ -70,14 +70,14 @@ fun safe Q rank 1
   return true
 end`,
     rank: `Offsets = (array -1 1) Columns outer * copy
-fun distinct A rank 1
+fun A distinct rank 1
   return A unique len equal 8
 end
-fun safe Q rank 1
+fun Q safe rank 1
   Diags = Offsets + Q
   return Diags distinct rank 1 all
 end`,
-    scalar: `fun safe Q rank 1
+    scalar: `fun Q safe rank 1
   for I in 0 till 7
     for J in I + 1 till 8
       if (Q I - Q J) abs equal J - I
@@ -87,7 +87,7 @@ end`,
   end
   return true
 end`,
-    'scalar-distance': `fun safe Q rank 1
+    'scalar-distance': `fun Q safe rank 1
   for D in 1 till 8
     for I in 0 till (8 - D)
       if (Q I - Q (I + D)) abs equal D
@@ -97,7 +97,7 @@ end`,
   end
   return true
 end`,
-    'scalar-signed': `fun safe Q rank 1
+    'scalar-signed': `fun Q safe rank 1
   for D in 1 till 8
     for I in 0 till (8 - D)
       Delta = Q I - Q (I + D)

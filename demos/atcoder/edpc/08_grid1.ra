@@ -13,7 +13,7 @@ Grid path_count print
 
 rem Count right/down paths from the top-left to the bottom-right, skipping
 rem walls, modulo 1e9+7.
-fun path_count Grid
+fun Grid path_count
   H = Grid len
   W = (Grid 0) len
   Ways = array shape H W fill 0

@@ -10,7 +10,7 @@ Left Right edit_distance print
 
 
 rem Keep only the prior distance row.
-fun edit_distance Left Right
+fun Left Right edit_distance
   Width = Right len
   Previous = 0 to Width array
 

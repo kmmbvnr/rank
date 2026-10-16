@@ -14,8 +14,8 @@
     312
   ],
   "definitions": {
-    "permutations": "Columns = 0 till 8 array\nfun safe Q rank 1\n  Up = Q + Columns unique len\n  if Up not equal 8\n    return false\n  end\n  Down = Q - Columns unique len\n  return Down equal 8\nend",
-    "prefixes": "fun queens N\n  Cols = 0 till N array\n  States = array shape 1 N fill 0\n\n  for Row in 0 till N\n    Prefix = States # (0 till Row)\n    Free = Prefix available rank 1\n    Size = (States len) * N\n    Flat = Free reshape Size\n    Index = Flat indices\n\n    if Index len equal 0\n      return array shape 0 N fill 0\n    end\n\n    States = States (Index // N) copy\n    States # Row = Index mod N\n  end\n  return States\n\n  fun available Q\n    Depth = Q len\n    Rows = 0 till Depth array\n    Dy = Depth - Rows\n    Dx = Cols Q outer - abs\n    Hit = Dx equal 0 or Dx equal Dy\n    return not (Hit any axis 1)\n  end\nend"
+    "permutations": "Columns = 0 till 8 array\nfun Q safe rank 1\n  Up = Q + Columns unique len\n  if Up not equal 8\n    return false\n  end\n  Down = Q - Columns unique len\n  return Down equal 8\nend",
+    "prefixes": "fun N queens\n  Cols = 0 till N array\n  States = array shape 1 N fill 0\n\n  for Row in 0 till N\n    Prefix = States # (0 till Row)\n    Free = Prefix available rank 1\n    Size = (States len) * N\n    Flat = Free reshape Size\n    Index = Flat indices\n\n    if Index len equal 0\n      return array shape 0 N fill 0\n    end\n\n    States = States (Index // N) copy\n    States # Row = Index mod N\n  end\n  return States\n\n  fun Q available\n    Depth = Q len\n    Rows = 0 till Depth array\n    Dy = Depth - Rows\n    Dx = Cols Q outer - abs\n    Hit = Dx equal 0 or Dx equal Dy\n    return not (Hit any axis 1)\n  end\nend"
   },
   "solves": {
     "permutations": "Solutions = Columns permutations filter safe copy",

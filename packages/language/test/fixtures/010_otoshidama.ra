@@ -11,7 +11,7 @@ N Y otoshidama print
 
 rem Find bill counts of 10000, 5000 and 1000 yen totalling N bills and Y yen.
 rem Any valid combination is acceptable; this returns the first by 10000-yen count.
-fun otoshidama N Y
+fun N Y otoshidama
   for Ten in 0 to N
     Rest = N - Ten
     Spent = 10000 * Ten + 1000 * Rest

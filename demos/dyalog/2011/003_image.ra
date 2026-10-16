@@ -4,18 +4,18 @@ use numbers
 use sequences
 use stats
 
-fun toGray Pixels
+fun Pixels toGray
   RGB = Pixels (array 256 256 256) digits
   return RGB mean axis 0 / 255.0
 end
 
 rem Nearest-even byte quantization before integer conversion.
-fun toRGB Gray
+fun Gray toRGB
   Levels = (Gray * 255.0) 0 round
   return (Levels integer rank 0) * 65793
 end
 
-fun scale Factors Image
+fun Factors Image scale
   unpack V H = Factors
   if V less 0 or H less 0
     .DomainError raise
@@ -32,7 +32,7 @@ end
 
 rem Odd positive kernel dimensions; center at (shape - 1) // 2.
 rem Weights keep their orientation, as in the contest formula.
-fun convolve Kernel Image
+fun Kernel Image convolve
   Shape = Kernel shape
   if Shape len not equal 2 or (Shape mod 2 equal 0 any)
     .DimensionMismatch raise
@@ -51,11 +51,11 @@ fun convolve Kernel Image
   return Result 1.0 min
 end
 
-fun convolveRGB Kernel Image
+fun Kernel Image convolveRGB
   Base = array 256 256 256
   RGB = Image Base digits
   Normalized = RGB / 255.0
-  fun apply Channel
+  fun Channel apply
     return Kernel Channel convolve
   end
   Filtered = Normalized apply rank 2
@@ -65,7 +65,7 @@ fun convolveRGB Kernel Image
 end
 
 rem Normalize the sampled kernel to sum to one.
-fun gaussianMat Sigma
+fun Sigma gaussianMat
   if Sigma at most 0
     .DomainError raise
   end

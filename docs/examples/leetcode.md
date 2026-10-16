@@ -9,7 +9,7 @@ rem LeetCode 1: Two Sum
 rem Return indices of two values
 rem whose sum equals Target.
 
-fun two_sum A Target
+fun A Target two_sum
   Index = new index
   for Value i in A
     Need = Target - Value
@@ -37,7 +37,7 @@ This demonstrates:
 rem LeetCode 2: Add Two Numbers
 rem Add reverse-order digit arrays.
 
-fun add_two A B
+fun A B add_two
   Queue = new queue
   N = A len
   M = B len
@@ -86,7 +86,7 @@ rem LeetCode 3: Longest Substring
 rem Find the longest window containing
 rem no repeated character.
 
-fun longest Text
+fun Text longest
   Index = new index
   Start = 0
   Best = 0
@@ -146,7 +146,7 @@ rem LeetCode 9: Palindrome Number
 rem Check whether X reads the same
 rem forward and backward.
 
-fun palindrome X
+fun X palindrome
   Text = X text
   Back = Text reverse
 
@@ -160,7 +160,7 @@ Follow-up without text conversion:
 rem Follow up:
 rem Do not convert X to text.
 
-fun palindrome X
+fun X palindrome
   if X less 0
     return false
   end

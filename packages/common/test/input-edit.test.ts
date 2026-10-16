@@ -17,7 +17,7 @@ it('anchors an insertion among repeated characters at the caret', () => {
 
 it('handles replacements, autocorrect and pastes', () => {
     for (const [previous, value, caret] of [
-        ['fun tset N', 'fun test N', 8], ['X = 1', 'X = 1 + 2', 9], ['abc', '', 0], ['', 'end', 3],
+        ['fun N tset', 'fun N test', 10], ['X = 1', 'X = 1 + 2', 9], ['abc', '', 0], ['', 'end', 3],
     ] as const) {
         const edit = textEdit(previous, value, caret);
         expect(apply(previous, edit)).toBe(value);

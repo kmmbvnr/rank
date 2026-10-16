@@ -3,7 +3,7 @@ import { findCompiledOperator } from '../compiled-operators.js';
 import { operatorContract } from '../operator-signature.js';
 import { parameterFacts } from './control-flow.js';
 import {
-    isApplicationExpression, isBinaryExpression, isBooleanLiteral, isLabelLiteral, isNameExpression, isNumberLiteral,
+    isDeclaredCallExpression, isApplicationExpression, isBinaryExpression, isBooleanLiteral, isLabelLiteral, isNameExpression, isNumberLiteral,
     isParenthesizedExpression, isReturnStatement, isStringLiteral, isTupleExpression,
     type Expression, type FunctionStatement,
 } from '../generated/ast.js';
@@ -59,8 +59,8 @@ export function functionRelationship(definition: FunctionStatement,
             const operation = operatorContract(node.operator) ? { name: node.operator } : undefined;
             const left = visit(node.left), right = visit(node.right);
             if (operation && left && right) term = { kind: 'binary', operation, left, right };
-        } else if (isApplicationExpression(node)) {
-            const parts = flattenApplication(node);
+        } else if (isApplicationExpression(node) || isDeclaredCallExpression(node) && !node.ranks.length && !node.axes.length) {
+            const parts = isDeclaredCallExpression(node) ? [...node.arguments, node.callee] : flattenApplication(node);
             if (parts.length === 2 && isLabelLiteral(parts[1])) {
                 const source = visit(parts[0]);
                 visit(parts[1]);

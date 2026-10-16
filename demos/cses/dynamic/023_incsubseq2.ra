@@ -11,7 +11,7 @@ Values increasing_subsequences print
 
 
 rem Count prefixes by compressed rank.
-fun increasing_subsequences Values
+fun Values increasing_subsequences
   Index = new index
   Modulus = 1000000007
   Sorted = Values sort unique

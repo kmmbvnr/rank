@@ -43,7 +43,7 @@ use sequences
 Seen = new set
 Counts = new counter
 Alias = Seen
-fun visit S C X
+fun S C X visit
   S add X
   C add X
   return 0
@@ -61,7 +61,7 @@ tuple (Seen len) (7 in Alias) (Counts 7)
 use algo
 use io
 Counts = new counter
-fun value N
+fun N value
   N print
   return N
 end
@@ -102,10 +102,10 @@ tuple (Seen len) (Counts (array 1 2))
     it('captures named structures in returned local functions', () => {
         expect(run(`
 use algo
-fun make N
+fun N make
   Counts = new counter
   return count
-  fun count X
+  fun X count
     Counts add X
     return Counts X
   end
@@ -129,7 +129,7 @@ Seen = new set
 Seen add 9
 Counts = new counter
 Counts add 9
-fun local N
+fun N local
   Queue = new queue
   Seen = new set
   Counts = new counter
@@ -151,7 +151,7 @@ use algo
 use sequences
 Seen = new set
 Seen add 9
-fun fresh N
+fun N fresh
   return new set
 end
 A = 0 fresh
@@ -174,7 +174,7 @@ Tickets add 4
 Tickets remove 3
 tuple (Seen len) (Counts 7) (Tickets len) (Tickets floor 4)
 `)).toBe('1 1 2 4');
-        expect(run('fun add A B\n return A + B\nend\n3 4 add')).toBe('7');
+        expect(run('fun A B add\n return A + B\nend\n3 4 add')).toBe('7');
     });
 
     it('removes set values through either application order', () => {
@@ -249,7 +249,7 @@ end
 A = Sets 0
 B = Sets 1
 A add 1
-fun down N
+fun N down
   Seen = new set
   Seen add N
   if N greater 0

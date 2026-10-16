@@ -16,7 +16,7 @@ Edges N flight_discount print
 
 
 rem Try the coupon on every flight.
-fun flight_discount Edges N
+fun Edges N flight_discount
   Nodes = 1 to N
   Graph = new graph Nodes .directed
   Back = new graph Nodes .directed
@@ -48,7 +48,7 @@ end
 
 
 rem Dijkstra distances from one start.
-fun distances Graph N Start
+fun Graph N Start distances
   Size = N + 1
   Dist = array shape Size fill infinity
   Dist Start = 0

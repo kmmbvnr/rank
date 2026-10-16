@@ -14,7 +14,7 @@ for (const compilation of [false, true]) describe(`functions in loops (compiled=
         const result = execute(`use io
 for R in 1 till 3
  Offset = R
- fun addOffset X
+ fun X addOffset
   return X + Offset
  end
  10 addOffset print
@@ -22,7 +22,7 @@ end`);
         expect(result.output).toEqual(['11', '12']);
         expect(result.names).not.toContain('addOffset');
         expect(() => execute(`for R in 1 till 3
- fun addOffset X
+ fun X addOffset
   return X + R
  end
 end
@@ -30,12 +30,12 @@ end
     });
 
     it('captures parameters and writes enclosing bindings in nested loops', () => {
-        expect(execute(`fun outer Base
+        expect(execute(`fun Base outer
  Total = 0
  for R in 1 till 3
   Offset = Base + R
   for C in 1 till 3
-   fun addOffset X
+   fun X addOffset
     Total += X + Offset + C
     return Total
    end
@@ -48,8 +48,8 @@ end
     });
 
     it('keeps escaping captures alive with the same reference semantics as expression helpers', () => {
-        for (const helper of ['addOffset X = X + Offset', 'fun addOffset X\n return X + Offset\nend']) {
-            expect(execute(`saved X = X
+        for (const helper of ['fun X addOffset = X + Offset', 'fun X addOffset\n return X + Offset\nend']) {
+            expect(execute(`saved = len
 for R in 1 till 3
  Offset = R
  ${helper}
@@ -62,11 +62,11 @@ end
     });
 
     it('creates separate captured workspaces for separate enclosing calls', () => {
-        expect(execute(`fun make Base
- saved X = X
+        expect(execute(`fun Base make
+ saved = len
  for R in 1 till 3
   Offset = Base + R
-  fun addOffset X
+  fun X addOffset
    return X + Offset
   end
   saved = addOffset
@@ -80,10 +80,10 @@ rightFn = (20 make)
 
     it('resumes loop-local helpers after a generator yields', () => {
         const result = execute(`use sequences
-fun values Base
+fun Base values
  for R in 1 till 3
   Offset = Base + R
-  fun addOffset X
+  fun X addOffset
    return X + Offset
   end
   yield 10 addOffset
@@ -94,9 +94,9 @@ end
     });
 
     it('isolates captures when a nested loop is entered again', () => {
-        for (const helper of ['addOffset X = X + Offset', 'fun addOffset X\n return X + Offset\nend']) {
-            expect(execute(`leftFn X = X
-rightFn X = X
+        for (const helper of ['fun X addOffset = X + Offset', 'fun X addOffset\n return X + Offset\nend']) {
+            expect(execute(`leftFn = len
+rightFn = len
 for R in 1 till 3
  for C in 1 till 3
   Offset = R * 10 + C
@@ -116,13 +116,13 @@ end
         expect(execute(`Total = 0
 for R in 1 till 3
  for C in 1 till 2
-  fun helper X
+  fun X helper
    return X + R
   end
   Total += 10 helper
  end
  for C in 1 till 2
-  fun helper X
+  fun X helper
    return X + R * 2
   end
   Total += 10 helper
@@ -134,7 +134,7 @@ Total`).value).toBe(49n);
     it('supports recursion and preserves declaration constants', () => {
         expect(execute(`Result = 0
 for R in 1 till 3
- fun descend N
+ fun N descend
   if N equal 0
    return R
   end
@@ -144,29 +144,29 @@ for R in 1 till 3
 end
 Result`).value).toBe(15n);
         expect(() => execute(`for R in 1 till 3
- fun helper X
+ fun X helper
   return X + R
  end
- helper X = X
+ fun X helper = X
 end`)).toThrow(/function declaration/);
     });
 
     it('does not hoist loop helpers before their declaration', () => {
         expect(() => execute(`for R in 1 till 3
  10 helper
- fun helper X
+ fun X helper
   return X + R
  end
 end`)).toThrow(/before|unknown/);
     });
 
     it('keeps a called top-level function out of the loop scope', () => {
-        expect(() => execute(`fun other X
+        expect(() => execute(`fun X other
  return X + Offset
 end
 for R in 1 till 3
  Offset = R
- fun helper X
+ fun X helper
   return X other
  end
  10 helper
@@ -175,8 +175,8 @@ end`)).toThrow('unknown name: Offset');
 
     it('preserves all queens placements and their order', () => {
         const source = readFileSync(new URL('../../../demos/classic/queens.ra', import.meta.url), 'utf8');
-        const before = source.replace(/  fun avail Q\n([\s\S]*?)  end/, '  avail Q = Q Dy available')
-            .replace('for Row in 1 till Size', `fun available Q Dy
+        const before = source.replace(/  fun Q avail\n([\s\S]*?)  end/, '  fun Q avail = Q Dy available')
+            .replace('for Row in 1 till Size', `fun Q Dy available
  Mask = Cols not in Q
  Mask and= Cols not in (Q + Dy)
  Mask and= Cols not in (Q - Dy)

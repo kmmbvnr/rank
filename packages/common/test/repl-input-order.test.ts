@@ -16,7 +16,7 @@ it('keeps body input typed while an example argument is being checked', async ()
     } }, undefined, undefined, true);
     const keys = new KeyRouter(repl);
     try {
-        await keys.press('fun inc N');
+        await keys.press('fun N inc');
         await keys.press('', { name: 'return' });
         await keys.press('4');
         const accept = keys.press('', { name: 'return' });
@@ -24,7 +24,7 @@ it('keeps body input typed while an example argument is being checked', async ()
         const typing = keys.press('Result = N + 1');
         release();
         await Promise.all([accept, typing]);
-        expect(repl.notebook.current.source).toBe('fun inc N\n  Result = N + 1');
+        expect(repl.notebook.current.source).toBe('fun N inc\n  Result = N + 1');
         expect(repl.exampleEditor).toBeUndefined();
     } finally {
         release();

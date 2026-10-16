@@ -4,17 +4,17 @@
   "samples": 3,
   "method": "Fresh process per sample, one warmup; solve includes lazy permutation generation, filtering and copying solutions; excludes parsing, setup and board output. Every run must exactly match an independent exhaustive oracle over all 40320 permutations.",
   "definitions": {
-    "unique": "fun safe Q rank 1\n  Up = Q + Columns unique len\n  if Up not equal 8\n    return false\n  end\n  return Q - Columns unique len equal 8\nend",
-    "adjacent-unique": "fun safe Q rank 1\n  for I in 0 till 7\n    if (Q I - Q (I + 1)) abs equal 1\n      return false\n    end\n  end\n  Up = Q + Columns unique len\n  if Up not equal 8\n    return false\n  end\n  return Q - Columns unique len equal 8\nend",
-    "outer-count": "Dy = Columns Columns outer - abs copy\nfun safe Q rank 1\n  Dx = Q Q outer - abs\n  return (Dx equal Dy) count equal 8\nend",
-    "outer-any": "Dy = Columns Columns outer - abs copy\nDifferent = Dy greater 0 copy\nfun safe Q rank 1\n  Dx = Q Q outer - abs\n  Hit = Dx equal Dy and Different\n  return not (Hit any)\nend",
-    "pairs": "Pairs = Columns 2 combinations array\nI = Pairs # 0 copy\nJ = Pairs # 1 copy\nDistances = J - I copy\nfun safe Q rank 1\n  Dx = (Q I - Q J) abs\n  return (Dx not equal Distances) all\nend",
-    "shifts": "fun safe Q rank 1\n  for D in 1 till 8\n    Left = Q (0 till (8 - D) array)\n    Right = Q (D till 8 array)\n    if ((Left - Right) abs equal D) any\n      return false\n    end\n  end\n  return true\nend",
-    "shifts-hoisted": "LeftIndices = tuple (0 till 7 array) (0 till 6 array) (0 till 5 array) (0 till 4 array) (0 till 3 array) (0 till 2 array) (0 till 1 array)\nRightIndices = tuple (1 till 8 array) (2 till 8 array) (3 till 8 array) (4 till 8 array) (5 till 8 array) (6 till 8 array) (7 till 8 array)\nfun safe Q rank 1\n  for D in 1 till 8\n    Left = Q (LeftIndices (D - 1))\n    Right = Q (RightIndices (D - 1))\n    if ((Left - Right) abs equal D) any\n      return false\n    end\n  end\n  return true\nend",
-    "rank": "Offsets = (array -1 1) Columns outer * copy\nfun distinct A rank 1\n  return A unique len equal 8\nend\nfun safe Q rank 1\n  Diags = Offsets + Q\n  return Diags distinct rank 1 all\nend",
-    "scalar": "fun safe Q rank 1\n  for I in 0 till 7\n    for J in I + 1 till 8\n      if (Q I - Q J) abs equal J - I\n        return false\n      end\n    end\n  end\n  return true\nend",
-    "scalar-distance": "fun safe Q rank 1\n  for D in 1 till 8\n    for I in 0 till (8 - D)\n      if (Q I - Q (I + D)) abs equal D\n        return false\n      end\n    end\n  end\n  return true\nend",
-    "scalar-signed": "fun safe Q rank 1\n  for D in 1 till 8\n    for I in 0 till (8 - D)\n      Delta = Q I - Q (I + D)\n      if Delta equal D or Delta equal -D\n        return false\n      end\n    end\n  end\n  return true\nend"
+    "unique": "fun Q safe rank 1\n  Up = Q + Columns unique len\n  if Up not equal 8\n    return false\n  end\n  return Q - Columns unique len equal 8\nend",
+    "adjacent-unique": "fun Q safe rank 1\n  for I in 0 till 7\n    if (Q I - Q (I + 1)) abs equal 1\n      return false\n    end\n  end\n  Up = Q + Columns unique len\n  if Up not equal 8\n    return false\n  end\n  return Q - Columns unique len equal 8\nend",
+    "outer-count": "Dy = Columns Columns outer - abs copy\nfun Q safe rank 1\n  Dx = Q Q outer - abs\n  return (Dx equal Dy) count equal 8\nend",
+    "outer-any": "Dy = Columns Columns outer - abs copy\nDifferent = Dy greater 0 copy\nfun Q safe rank 1\n  Dx = Q Q outer - abs\n  Hit = Dx equal Dy and Different\n  return not (Hit any)\nend",
+    "pairs": "Pairs = Columns 2 combinations array\nI = Pairs # 0 copy\nJ = Pairs # 1 copy\nDistances = J - I copy\nfun Q safe rank 1\n  Dx = (Q I - Q J) abs\n  return (Dx not equal Distances) all\nend",
+    "shifts": "fun Q safe rank 1\n  for D in 1 till 8\n    Left = Q (0 till (8 - D) array)\n    Right = Q (D till 8 array)\n    if ((Left - Right) abs equal D) any\n      return false\n    end\n  end\n  return true\nend",
+    "shifts-hoisted": "LeftIndices = tuple (0 till 7 array) (0 till 6 array) (0 till 5 array) (0 till 4 array) (0 till 3 array) (0 till 2 array) (0 till 1 array)\nRightIndices = tuple (1 till 8 array) (2 till 8 array) (3 till 8 array) (4 till 8 array) (5 till 8 array) (6 till 8 array) (7 till 8 array)\nfun Q safe rank 1\n  for D in 1 till 8\n    Left = Q (LeftIndices (D - 1))\n    Right = Q (RightIndices (D - 1))\n    if ((Left - Right) abs equal D) any\n      return false\n    end\n  end\n  return true\nend",
+    "rank": "Offsets = (array -1 1) Columns outer * copy\nfun A distinct rank 1\n  return A unique len equal 8\nend\nfun Q safe rank 1\n  Diags = Offsets + Q\n  return Diags distinct rank 1 all\nend",
+    "scalar": "fun Q safe rank 1\n  for I in 0 till 7\n    for J in I + 1 till 8\n      if (Q I - Q J) abs equal J - I\n        return false\n      end\n    end\n  end\n  return true\nend",
+    "scalar-distance": "fun Q safe rank 1\n  for D in 1 till 8\n    for I in 0 till (8 - D)\n      if (Q I - Q (I + D)) abs equal D\n        return false\n      end\n    end\n  end\n  return true\nend",
+    "scalar-signed": "fun Q safe rank 1\n  for D in 1 till 8\n    for I in 0 till (8 - D)\n      Delta = Q I - Q (I + D)\n      if Delta equal D or Delta equal -D\n        return false\n      end\n    end\n  end\n  return true\nend"
   },
   "variants": {
     "unique": {

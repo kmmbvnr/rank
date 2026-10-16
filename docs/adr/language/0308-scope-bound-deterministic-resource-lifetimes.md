@@ -22,7 +22,7 @@ Rank needs a deterministic, leak-proof resource management model that requires *
 Rank establishes **Scope-Bound Deterministic Resource Lifetimes with Move-on-Return semantics**:
 
 ```rank
-fun process Path
+fun Path process
   File = Path open
   Header = File 64 readbytes
   rem File is automatically closed when process returns!
@@ -41,7 +41,7 @@ end
 ### 2. Move-on-Return Semantics
 - Returning a resource transfers ownership from the callee to the caller's execution scope:
   ```rank
-  fun source Path
+  fun Path source
     File = Path open
     return File  rem Ownership moves to caller!
   end

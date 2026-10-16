@@ -15,7 +15,7 @@ Result .inside print
 
 
 rem Count containing and contained ranges.
-fun nested_range_counts Data
+fun Data nested_range_counts
   N = (Data shape) 0
   Start = Data # 0
   Finish = Data # 1

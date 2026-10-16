@@ -16,7 +16,7 @@ Part2 print
 
 
 rem Find the shortest and longest routes that visit every city once.
-fun solve Lines
+fun Lines solve
   Index = new index
   Queue = new queue
   Seen = new set
@@ -42,7 +42,7 @@ end
 
 
 rem Add the distances between adjacent cities in one route.
-fun distance Route Distances
+fun Route Distances distance
   Total = 0
 
   for Pair in Route window 2

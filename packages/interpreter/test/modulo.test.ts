@@ -45,7 +45,7 @@ describe('floor modulo', () => {
 
     it('preserves exact integer division identities beyond Number precision', () => {
         const interpreter = new Interpreter();
-        interpreter.execute('fun remainder A B\nreturn A mod B\nend\nfun quotient A B\nreturn A // B\nend');
+        interpreter.execute('fun A B remainder\nreturn A mod B\nend\nfun A B quotient\nreturn A // B\nend');
         for (const a of [-1000000000000000000000000000001n, -6n, -5n, -1n, 0n, 1n, 5n, 6n, 1000000000000000000000000000001n]) {
             for (const b of [-7n, -3n, -1n, 1n, 3n, 7n]) {
                 const r = interpreter.execute(`(${a}) (${b}) remainder`) as bigint;

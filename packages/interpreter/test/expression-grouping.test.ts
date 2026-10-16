@@ -35,7 +35,7 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
     });
 
     it('explains implicit addressing while preparing a postfix call', () => {
-        const source = 'A = array 1 2 3\nfun add X Y\n return X + Y\nend\n';
+        const source = 'A = array 1 2 3\nfun X Y add\n return X + Y\nend\n';
         expect(run(source + 'A copy A add')).toBe('2 4 6');
         expect(run(source + 'A copy (A copy) add')).toBe('2 4 6');
         expect(run(source + 'Indices = array 2 0\nA Indices copy')).toBe('3 1');
@@ -57,7 +57,7 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         const runtime = new Interpreter(() => {}, { scalarCompilation: compiled, blockCompilation: compiled, integerLoopCompilation: compiled, tensorFusion: compiled });
         runtime.execute('use sequences');
         runtime.execute('A = array 1 2 3');
-        runtime.execute('fun add X Y\n return X + Y\nend');
+        runtime.execute('fun X Y add\n return X + Y\nend');
         expect(() => runtime.execute('A copy A copy add')).toThrowError('While preparing arguments for copy');
         expect(formatValue(runtime.execute('A copy (A copy) add')!)).toBe('2 4 6');
     });
@@ -82,10 +82,10 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
     });
 
     it('groups user functions and aliases without depending on the input values', () => {
-        expect(run('fun twice X\n return X * 2\nend\n2 + 9 twice')).toBe('22');
+        expect(run('fun X twice\n return X * 2\nend\n2 + 9 twice')).toBe('22');
         expect(run('root = sqrt\n2 + 9 root')).toBe(String(Math.sqrt(11)));
         expect(run('op = gcd\n2 + 9 3 op')).toBe('1');
-        expect(run('fun pair A B\n return A * 10 + B\nend\n2 + 9 3 pair')).toBe('113');
+        expect(run('fun A B pair\n return A * 10 + B\nend\n2 + 9 3 pair')).toBe('113');
         const interpreter = new Interpreter(() => {}, { scalarCompilation: compiled, blockCompilation: compiled, integerLoopCompilation: compiled, tensorFusion: compiled });
         interpreter.execute('use numbers\nroot = sqrt');
         expect(formatValue(interpreter.execute('2 + 9 root')!)).toBe(String(Math.sqrt(11)));
@@ -160,7 +160,7 @@ describe('grouping diagnostics', () => {
             expect(() => parse('use numbers\nA = array 1 2\n' + expression))
                 .toThrowError('Name the result on the left, then apply the function');
         }
-        expect(() => parse('fun sigmoid X\n return X\nend\nuse linalg\nX W matmul + Bias sigmoid'))
+        expect(() => parse('fun X sigmoid\n return X\nend\nuse linalg\nX W matmul + Bias sigmoid'))
             .toThrowError('intermediate variable');
     });
 });

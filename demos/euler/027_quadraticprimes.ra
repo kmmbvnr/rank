@@ -15,7 +15,7 @@ Answer print
 
 rem Search odd a values and positive prime b
 rem values allowed by the constant term.
-fun quadratic_product Limit
+fun Limit quadratic_product
   BestLength = 0
   BestProduct = 0
 
@@ -35,7 +35,7 @@ end
 
 rem Count consecutive prime values generated
 rem by n squared plus a*n plus b.
-fun quadratic_run A B
+fun A B quadratic_run
   N = 0
   Value = B
   for Value is_prime
@@ -48,6 +48,6 @@ end
 
 rem Use optimized membership in the ordered
 rem infinite prime source.
-fun is_prime Value
+fun Value is_prime
   return Value in primes
 end

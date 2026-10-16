@@ -11,7 +11,7 @@ Coins Target minimum_coins print
 
 
 rem Find the fewest coins for every sum.
-fun minimum_coins Coins Target
+fun Coins Target minimum_coins
   Missing = Target + 1
   Best = array shape Missing fill Missing
   Best 0 = 0

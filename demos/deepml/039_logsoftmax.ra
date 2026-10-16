@@ -3,7 +3,7 @@ rem https://www.deep-ml.com/problems/39
 
 use numbers
 
-fun log_softmax Scores
+fun Scores log_softmax
   Shift = Scores - (Scores max)
   Normalizer = Shift exp sum log
   return Shift - Normalizer round 4

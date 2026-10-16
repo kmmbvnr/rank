@@ -32,7 +32,7 @@ describe('scan modifier', () => {
 
     it('scans with a user-defined binary function and a seed', () => {
         expect(run([
-            'fun next State Ignored',
+            'fun State Ignored next',
             '  return record',
             '    .num = State .num + 2 * State .den',
             '    .den = State .num + State .den',
@@ -45,7 +45,7 @@ describe('scan modifier', () => {
             'States = (1 to 3) scan next with Start',
             '(States 3) .num',
         ].join('\n'))).toBe('41');
-        expect(run('fun add A B\n  return A + B\nend\n(array 2 3 4) scan add'))
+        expect(run('fun A B add\n  return A + B\nend\n(array 2 3 4) scan add'))
             .toBe('2 5 9');
     });
 
@@ -58,7 +58,7 @@ describe('scan modifier', () => {
     });
 
     it('uses named scans with optional seeds and continues the pipeline', () => {
-        const setup = 'use sequences\nfun combine A B\n  return A + B\nend\n';
+        const setup = 'use sequences\nfun A B combine\n  return A + B\nend\n';
         expect(run(setup + '(array 2 3 4) scan combine with 0')).toBe('0 2 5 9');
         expect(run(setup + '(array 2 3 4) scan combine with (10 + 1) sum')).toBe('60');
         expect(run(setup + '(array 2 3 4) scan combine sum')).toBe('16');
@@ -73,7 +73,7 @@ describe('scan modifier', () => {
     });
 
     it.each(['combineadd', 'combineremove'])('uses a function named %s without treating scan as mutation', name => {
-        const setup = `fun ${name} A B\n  return A + B\nend\nValues = array 2 3 4\n`;
+        const setup = `fun A B ${name}\n  return A + B\nend\nValues = array 2 3 4\n`;
         expect(run(setup + `Values scan ${name} with 0`)).toBe('0 2 5 9');
         expect(run(setup + `Values scan ${name}`)).toBe('2 5 9');
         expect(run('use algo\n' + setup + `Values segment ${name} with 0`)).toBeDefined();
@@ -115,7 +115,7 @@ describe('scan along an axis', () => {
         const values = 'use sequences\nT = (array 3 1 4 1 5 9 2 6 5 3 5 8) reshape 3 4\n';
         expect(run(`${values}T scan max axis 0`)).toBe('3 1 4 1 5 9 4 6 5 9 5 8');
         expect(run(`${values}T scan min axis 1`)).toBe('3 1 1 1 5 5 2 2 5 3 3 3');
-        expect(run(`${values}fun tens Left Right\n  return Left * 10 + Right\nend\nT scan tens axis 1`))
+        expect(run(`${values}fun Left Right tens\n  return Left * 10 + Right\nend\nT scan tens axis 1`))
             .toBe('3 31 314 3141 5 59 592 5926 5 53 535 5358');
     });
 

@@ -12,7 +12,7 @@ A nearest_smaller print
 
 
 rem Keep increasing positions on a stack.
-fun nearest_smaller A
+fun A nearest_smaller
   Stack = new stack
   Answer = array shape (A len) fill 0
 

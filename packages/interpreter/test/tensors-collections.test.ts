@@ -459,7 +459,7 @@ describe('Rank tensors and collections', () => {
     it('applies unary functions to trailing or axis-selected tensor cells', () => {
         expect(run([
             'use sequences',
-            'fun cell_sum Cell',
+            'fun Cell cell_sum',
             '  return Cell reduce +',
             'end',
             'T = array shape 2 3 2',
@@ -483,7 +483,7 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toBe('true');
         expect(run([
             'use sequences',
-            'fun endpoints Row',
+            'fun Row endpoints',
             '  return array (Row 2) (Row 0)',
             'end',
             'M = array shape 2 3',
@@ -500,7 +500,7 @@ describe('Rank tensors and collections', () => {
             'Ok',
         ].join('\n'))).toBe('true');
         expect(() => run([
-            'fun total Cell',
+            'fun Cell total',
             '  return Cell reduce +',
             'end',
             'T = array shape 2 3 4 fill 0',
@@ -509,14 +509,14 @@ describe('Rank tensors and collections', () => {
             'axis count 2 plus cell rank 2 must equal tensor rank 3',
         );
         expect(() => run([
-            'fun total Cell',
+            'fun Cell total',
             '  return Cell reduce +',
             'end',
             'T = array shape 2 3 4 fill 0',
             'T total axis 0 0 rank 1',
         ].join('\n'))).toThrowError('axis numbers must be unique');
         expect(() => run([
-            'fun total Cell',
+            'fun Cell total',
             '  return Cell reduce +',
             'end',
             'T = array shape 2 3 4 fill 0',
@@ -527,7 +527,7 @@ describe('Rank tensors and collections', () => {
     it('pushes expression values into a function-local queue', () => {
         expect(run([
             'use algo',
-            'fun collect Value',
+            'fun Value collect',
             '  Queue = new queue',
             '  Queue push Value + 1',
             '  return Queue',
@@ -542,7 +542,7 @@ describe('Rank tensors and collections', () => {
         expect(run([
             'use algo',
             'use sequences',
-            'fun collect X Y',
+            'fun X Y collect',
             '  Seen = new set',
             '  Seen add array 0 0',
             '  Seen add array X Y',
@@ -553,7 +553,7 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toBe('2');
         expect(run([
             'use algo',
-            'fun contains Value',
+            'fun Value contains',
             '  Seen = new set',
             '  Seen add "Rank"',
             '  return Value in Seen',
@@ -563,7 +563,7 @@ describe('Rank tensors and collections', () => {
         expect(run([
             'use algo',
             'use sequences',
-            'fun one Value',
+            'fun Value one',
             '  Seen = new set',
             '  Seen add Value',
             '  return Seen len',
@@ -578,7 +578,7 @@ describe('Rank tensors and collections', () => {
         expect(run([
             'use algo',
             'use sequences',
-            'fun summarize Values',
+            'fun Values summarize',
             '  Counts = new counter',
             '  for Value in Values',
             '    Counts add Value',
@@ -590,7 +590,7 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toBe('2 0 2');
         expect(run([
             'use algo',
-            'fun composite X Y',
+            'fun X Y composite',
             '  Counts = new counter',
             '  Counts add array X Y',
             '  Counts add array X Y',
@@ -648,7 +648,7 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toThrowError('permutations requires a bounded sequence');
         expect(run([
             'use algo',
-            'fun collect Unused',
+            'fun Unused collect',
             '  Queue = new queue',
             '  Seen = new set',
             '  Seen add "B"',
@@ -666,7 +666,7 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toBe('true');
         expect(run([
             'use algo',
-            'fun first_route Unused',
+            'fun Unused first_route',
             '  Seen = new set',
             '  Seen add "B"',
             '  Seen add "A"',

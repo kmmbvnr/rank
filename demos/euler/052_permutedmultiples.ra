@@ -34,7 +34,7 @@ end
 
 
 rem Check X through 6X against one key.
-fun permuted X
+fun X permuted
   Key = X text sort
 
   for M in 2 to 6

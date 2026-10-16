@@ -24,7 +24,7 @@ describe('segment tree', () => {
             'Values = array 1 2 3 4',
             'Sums = Values segment +',
             'A = Sums 1 3 query',
-            'fun merge A B',
+            'fun A B merge',
             '  return A + B',
             'end',
             'Words = (array "a" "b" "c" "d") segment merge',
@@ -95,7 +95,7 @@ describe('segment tree', () => {
     it('honors a custom named operation', () => {
         expect(run([
             'use algo',
-            'fun combinecustom A B',
+            'fun A B combinecustom',
             '  return A + B',
             'end',
             'Tree = (array 2 3 4) segment combinecustom',
@@ -194,7 +194,7 @@ describe('segment tree', () => {
     it('honors a user function that replaces customcombine', () => {
         expect(run([
             'use algo',
-            'fun customcombine A B',
+            'fun A B customcombine',
             '  return A + B',
             'end',
             'Tree = (array 1 2 3) segment customcombine',

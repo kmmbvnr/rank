@@ -12,7 +12,7 @@ Answer print
 
 rem Advance month starts from the known
 rem Monday on 1 January 1900.
-fun count_sundays FirstYear LastYear
+fun FirstYear LastYear count_sundays
   Weekday = 1
   Count = 0
 
@@ -34,7 +34,7 @@ end
 
 
 rem Return the Gregorian length of one month.
-fun month_days Year Month
+fun Year Month month_days
   if Month equal 2
     Leap = Year mod 4 equal 0
     Leap and= (

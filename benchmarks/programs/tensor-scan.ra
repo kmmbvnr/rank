@@ -1,5 +1,5 @@
 rem Scalar traversal for copy-kernel control.
-fun tensor_sum T
+fun T tensor_sum
   Total = 0
   for V in T rank 0
     Total += V

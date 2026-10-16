@@ -14,16 +14,16 @@ function borrowed(source: string): ReadonlySet<string> {
 }
 
 it('borrows direct scalar reads but not array-derived results', () => {
-    expect(borrowed('fun read X\n return X 0\nend')).toEqual(new Set(['X']));
-    expect(borrowed('fun read X\n return (X 0) * 2\nend')).toEqual(new Set(['X']));
-    expect(borrowed('fun transform X\n return X * 2\nend')).toEqual(new Set());
-    expect(borrowed('fun transform X\n return X\nend')).toEqual(new Set());
+    expect(borrowed('fun X read\n return X 0\nend')).toEqual(new Set(['X']));
+    expect(borrowed('fun X read\n return (X 0) * 2\nend')).toEqual(new Set(['X']));
+    expect(borrowed('fun X transform\n return X * 2\nend')).toEqual(new Set());
+    expect(borrowed('fun X transform\n return X\nend')).toEqual(new Set());
 });
 
 it.each([false, true])('reuses primitive call preparations without serializing changing values (scalar kernels=%s)', scalarFunctionCompilation => {
     const runtime = new Interpreter(undefined, { scalarFunctionCompilation });
     try {
-        runtime.execute('fun identity Value\n return Value\nend');
+        runtime.execute('fun Value identity\n return Value\nend');
         const fn = runtime.variables.get('identity');
         if (!fn || !isNativeFunction(fn)) throw new Error('expected identity');
         // Create each specialization once, including rank-1 text.

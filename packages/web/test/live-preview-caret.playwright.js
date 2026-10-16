@@ -7,7 +7,7 @@ async page => {
     await page.reload();
     const input = page.getByRole('textbox', { name: 'Rank terminal input' });
     const idle = () => page.waitForFunction(() => document.querySelector('#input').getAttribute('aria-busy') === 'false');
-    await input.pressSequentially('fun f N');
+    await input.pressSequentially('fun N f');
     await input.press('Enter');
     await idle();
     await input.pressSequentially('1');

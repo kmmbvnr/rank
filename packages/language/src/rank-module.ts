@@ -2,8 +2,12 @@ import { type Module, type AstNode, type CstNode, type GrammarAST, type ValueTyp
 import { LLStarLookaheadStrategy } from 'chevrotain-allstar';
 import { ErrorLookaheadStrategy } from './error-lookahead.js';
 import { groupExpressions, type GroupingOptions } from './expression-grouping.js';
+import { SignatureLexer } from './signature-lexer.js';
+import { prepareFunctionDeclarations } from './function-declaration.js';
 import { normalizePrimaryApplications } from './primary-applications.js';
-import { isProgram } from './generated/ast.js';
+import { functionCallSignature } from './function-call-signature.js';
+import { functionBindingPlan } from './function-binding.js';
+import { isFunctionStatement, isFunctionBindingStatement, isProgram } from './generated/ast.js';
 import { createDefaultModule, createDefaultSharedModule, type DefaultSharedModuleContext, type LangiumServices, type LangiumSharedServices, type PartialLangiumServices } from 'langium/lsp';
 import { RankGeneratedModule, RankGeneratedSharedModule } from './generated/module.js';
 import { RankValidator, registerValidationChecks } from './rank-validator.js';
@@ -24,6 +28,7 @@ class RankTokenBuilder extends DefaultTokenBuilder {
 /** An integer written with an exponent (`4e6`, `2E+3`) is the digits followed by that many zeros. */
 class RankValueConverter extends DefaultValueConverter {
     protected override runConverter(rule: GrammarAST.AbstractRule, input: string, cstNode: CstNode): ValueType {
+        if (rule.name === 'SIGNATURE_WORD') return input.slice(1);
         const exponent = rule.name === 'INTEGER' ? /^([0-9]+)[eE]\+?([0-9]+)$/.exec(input) : undefined;
         if (exponent) {
             if (Number(exponent[2]) > 10_000) throw new Error('Integer exponent is too large');
@@ -68,6 +73,7 @@ function withBoundedErrorLookahead(services: RankServices, incomplete = false, s
 export const RankModule: Module<RankServices, PartialLangiumServices & RankAddedServices> = {
     parser: {
         TokenBuilder: () => new RankTokenBuilder(),
+        Lexer: services => new SignatureLexer(services),
         ValueConverter: () => new RankValueConverter(),
         LangiumParser: services => {
             // Enumerating three-token error paths for an unfinished `array` blocks typing for hundreds of ms.
@@ -77,6 +83,33 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
             const parser = createLangiumParser(withBoundedErrorLookahead(services, false, strategy));
             const parse = parser.parse.bind(parser);
             parser.parse = <T extends AstNode>(input: string, options?: ParserOptions) => {
+                const lexer = services.parser.Lexer as SignatureLexer;
+                let grouping = options as GroupingOptions | undefined;
+                if (grouping?.loadModule) {
+                    const signatures = new Map(grouping.signatures);
+                    const bindings = new Map(grouping.bindings);
+                    for (const entry of lexer.imports(input)) {
+                        const module = grouping.loadModule(entry.path);
+                        if (!module) continue;
+                        const exported = new Map<string, ReturnType<typeof functionCallSignature>>();
+                        for (const statement of module.statements) {
+                            if (isFunctionStatement(statement)) exported.set(statement.name, functionCallSignature(statement));
+                        }
+                        for (const statement of module.statements) {
+                            if (!isFunctionBindingStatement(statement)) continue;
+                            const target = functionBindingPlan(statement).alias;
+                            const signature = target && exported.get(target);
+                            if (signature) exported.set(statement.name, signature);
+                        }
+                        for (const [name, signature] of exported) {
+                            const qualified = entry.alias ? `${entry.alias}.${name}` : name;
+                            signatures.set(qualified, signature);
+                            bindings.set(qualified, [signature.leftCount + signature.rightParameters.length]);
+                        }
+                    }
+                    grouping = { ...grouping, signatures, bindings };
+                }
+                lexer.signatures = grouping?.signatures ?? new Map();
                 const result = parse<T>(input, options);
                 if (!result.lexerErrors.length && result.parserErrors.length) {
                     strategy.failures.clear();
@@ -90,8 +123,9 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
                     }
                 }
                 if (!result.lexerErrors.length && !result.parserErrors.length && isProgram(result.value)) {
+                    prepareFunctionDeclarations(result.value);
                     normalizePrimaryApplications(result.value);
-                    groupExpressions(result.value, options as GroupingOptions);
+                    groupExpressions(result.value, grouping);
                 }
                 return result;
             };

@@ -23,7 +23,7 @@ rem month, bank and parent interest, repayment and
 rem balance, tax savings, property tax, home value,
 rem savings while owning, cashout value, rent,
 rem savings while renting and advantage of buying.
-fun buyorrent Params
+fun Params buyorrent
   unpack Price Costs Term BankAmt BankRate DadAmt DadRate Infl Tax PropRate SavRate Rent = Params
   Month = (1 to (Term integer)) copy
   Bank = BankAmt (BankRate / 1200) Month loan
@@ -54,7 +54,7 @@ end
 
 rem Equal monthly payments over the whole term,
 rem each balance in closed form rather than a loop.
-fun loan Amount Rate Month
+fun Amount Rate Month loan
   Payment = Amount * Rate / (1 - (1 + Rate) ** -(Month len))
   Compound = (1 + Rate) ** Month
   Balance = Amount * Compound - Payment * (Compound - 1) / Rate
@@ -71,7 +71,7 @@ end
 rem Balance after each month: the previous balance
 rem grown by Growth, plus that month's flow.
 rem Discounting to month zero turns it into a sum.
-fun accrue Flow Growth Start
+fun Flow Growth Start accrue
   Discount = Growth ** -((1 to (Flow len)) copy)
   Saved = (Flow * Discount) scan +
   return (Start + Saved) / Discount

@@ -48,9 +48,9 @@ for (const compiled of [false, true]) describe(`open ranges (compiled=${compiled
     });
 
     it('stops demand at take and first match', () => {
-        expect(run('fun checked X rank 0\nif X greater 3\nfail "overread"\nend\nreturn X\nend\nN = (1 to #) checked\nN first where equal 3')).toBe('3');
-        expect(run('fun checked X rank 0\nif X greater 3\nfail "overread"\nend\nreturn X\nend\nN = (1 to #) checked\nN take 3')).toBe('1 2 3');
-        expect(run('fun checked X rank 0\nfail "read"\nend\nN = (1 to #) checked\nN take 0')).toBe('');
+        expect(run('fun X checked rank 0\nif X greater 3\nfail "overread"\nend\nreturn X\nend\nN = (1 to #) checked\nN first where equal 3')).toBe('3');
+        expect(run('fun X checked rank 0\nif X greater 3\nfail "overread"\nend\nreturn X\nend\nN = (1 to #) checked\nN take 3')).toBe('1 2 3');
+        expect(run('fun X checked rank 0\nfail "read"\nend\nN = (1 to #) checked\nN take 0')).toBe('');
     });
 
     it('preserves value bounds rather than inferring descending direction', () => {

@@ -4,7 +4,7 @@ rem both ways, without making a string
 
 use algo
 
-fun palindrome X
+fun X palindrome
   if X less 0
     return false
   end

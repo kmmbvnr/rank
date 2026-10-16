@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/23
 use numbers
 
 rem Normalize scores with stable exp.
-fun softmax X
+fun X softmax
   Shift = X - (X max)
   Exps = Shift exp
   return Exps / (Exps sum)

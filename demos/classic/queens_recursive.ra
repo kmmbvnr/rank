@@ -10,7 +10,7 @@ Cols = 0 till Size array
 
 rem Queens holds one column per occupied row. Each recursive call adds one
 rem queen to a new placement; it never changes the placement it received.
-fun solve Queens
+fun Queens solve
   if Queens len equal Size
     yield Queens
   else

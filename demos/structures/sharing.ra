@@ -13,7 +13,7 @@ A print
 B print
 
 rem A function cannot change what its caller passed in.
-fun bump V
+fun V bump
   V 0 = 99
   return V
 end

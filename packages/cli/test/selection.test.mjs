@@ -147,7 +147,7 @@ test('selection follows wrapped rows and paints only selected source characters'
 
 test('example fields support selection, replacement and clipboard without editing function source', async t => {
     const { router, repl, book, shift, ctrl, clipboard, key } = setup(t);
-    await router.press('fun inc N', {});
+    await router.press('fun N inc', {});
     await key('return');
     await router.press('123', {});
     await shift('home');
@@ -158,14 +158,14 @@ test('example fields support selection, replacement and clipboard without editin
     assert.match(frame.lines.join('\n'), /\x1b\[7m1/);
     await router.press('4', {});
     assert.equal(repl.exampleEditor.current.source, '4');
-    assert.equal(book.current.source, 'fun inc N');
+    assert.equal(book.current.source, 'fun N inc');
 });
 
 test('cutting across an unfinished function does not leave its example controller stuck', async t => {
     const { router, repl, book, key, ctrl } = setup(t);
     await router.press('A = 1', {});
     await key('return');
-    await router.press('fun old N', {});
+    await router.press('fun N old', {});
     await key('return');
     await router.press('3', {});
     await key('return');
@@ -173,7 +173,7 @@ test('cutting across an unfinished function does not leave its example controlle
     book.selectTo(1, book.cells[1].source.length, true);
     await ctrl('x');
     book.toPrompt();
-    await router.press('fun fresh N', {});
+    await router.press('fun N fresh', {});
     await key('return');
     assert.equal(repl.examplePrompt.name, 'fresh');
 });

@@ -13,7 +13,7 @@ A K count_distinct_windows print
 
 
 rem Count windows with at most K values.
-fun count_distinct_windows A K
+fun A K count_distinct_windows
   Index = new index
   Left = 0
   Distinct = 0

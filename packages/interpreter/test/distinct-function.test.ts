@@ -4,7 +4,7 @@ import { native } from '../src/modules/shared.js';
 
 const definition = `use sequences
 Rows = array 0 1 2 3
-fun safe Q
+fun Q safe
   Up = Q + Rows unique len
   if Up not equal 4
     return false
@@ -31,7 +31,7 @@ describe('integer distinct-count function fusion', () => {
 
     it.each([-1, 0, 1, 2, 3, 4, 5])('compares exact distinct counts with target %i', target => {
         const code = `use sequences
-fun predicate Q
+fun Q predicate
   Count = Q unique len
   return Count equal ${target}
 end
@@ -44,7 +44,7 @@ end
 
     it('supports reversed comparisons, lengths, negative arithmetic and boolean combinations', () => {
         const code = `use sequences
-fun predicate Q
+fun Q predicate
   Shifted = Q * -2 + 5
   return ((Q len) equal (Shifted unique len)) and (0 not equal (Q unique len))
 end
@@ -56,7 +56,7 @@ end
     });
 
     it('can return an actual distinct count instead of a predicate', () => {
-        const code = 'use sequences\nfun distinct Q\nN = Q unique len\nreturn N + 10\nend\n(array 1 1 2) distinct';
+        const code = 'use sequences\nfun Q distinct\nN = Q unique len\nreturn N + 10\nend\n(array 1 1 2) distinct';
         expect(run(code, true).value).toBe('12');
         expect(run(code, true).value).toBe(run(code, false).value);
     });
@@ -66,7 +66,7 @@ end
             const code = `${definition}\n(${input}) safe`;
             expect(run(code, true).value).toBe(run(code, false).value);
         }
-        const empty = 'use sequences\nfun empty Q\nreturn (Q unique len) equal (Q len)\nend\n(0 till 0 array) empty';
+        const empty = 'use sequences\nfun Q empty\nreturn (Q unique len) equal (Q len)\nend\n(0 till 0 array) empty';
         expect(run(empty, true).value).toBe(run(empty, false).value);
     });
 

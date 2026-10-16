@@ -10,7 +10,7 @@ Text longest print
 
 
 rem Find the longest run of one repeated character.
-fun longest Text
+fun Text longest
   Chars = Text window 1 array
   Previous = Chars 1 shift with ""
   Changes = Chars not equal Previous

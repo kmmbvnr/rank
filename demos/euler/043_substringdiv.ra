@@ -13,13 +13,13 @@ Answer print
 
 rem Build prefixes and reject each branch as
 rem soon as its newest three digits fail.
-fun substring_divisible_sum Digits
+fun Digits substring_divisible_sum
   Divisors = array 2 3 5 7 11 13 17
   Total = 0
   "" search
   return Total
 
-  fun search Prefix
+  fun Prefix search
     Length = Prefix len
     if Digits len equal Length
       Total += Prefix integer
@@ -42,7 +42,7 @@ end
 
 rem Check the newest required three-digit
 rem divisibility rule of one prefix.
-fun valid_suffix Prefix Divisors
+fun Prefix Divisors valid_suffix
   Length = Prefix len
   if Length equal 1 and Prefix equal "0"
     return false

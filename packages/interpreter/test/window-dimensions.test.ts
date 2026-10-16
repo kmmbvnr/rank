@@ -43,12 +43,12 @@ for (const compiled of [true, false]) describe(`window dimensions (compiled ${co
     it('evaluates computed and unpacked sizes exactly once', () => {
         expect(run('State = record\n .count = 0\nend\nfun sizes\n State .count += 1\n return array 2 2\nend\n'
             + `${grid}W = M window unpack (sizes)\nState .count`)).toBe('1');
-        expect(run('State = record\n .count = 0\nend\nfun size X\n State .count += 1\n return X\nend\n'
+        expect(run('State = record\n .count = 0\nend\nfun X size\n State .count += 1\n return X\nend\n'
             + `${grid}W = M window (2 size) (2 size)\nState .count`)).toBe('2');
     });
     it('respects a user-defined window and explicit rank on old calls', () => {
-        expect(new Interpreter().execute('fun window X Y\n return X + Y\nend\n1 2 window')).toBe(3n);
-        expect(run(`${grid}fun sliding X rank 1\n return X window 2\nend\nM sliding shape`)).toBe('3 2 2');
+        expect(new Interpreter().execute('fun X Y window\n return X + Y\nend\n1 2 window')).toBe(3n);
+        expect(run(`${grid}fun X sliding rank 1\n return X window 2\nend\nM sliding shape`)).toBe('3 2 2');
     });
     it('keeps runtime and analysis shapes consistent', () => {
         const source = `use sequences\nuse linalg\n${grid}A = M window 2 2\nB = M window unpack S\nC = M window 2 2 diag\nD = M window 2 2 axis 0 1`;

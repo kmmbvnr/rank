@@ -11,7 +11,7 @@ Coins missing_sum print
 
 
 rem Find the smallest unreachable sum.
-fun missing_sum Values
+fun Values missing_sum
   Coins = Values sort
   Missing = 1
 

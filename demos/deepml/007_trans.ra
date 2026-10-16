@@ -6,7 +6,7 @@ use sequences
 use linalg
 
 rem Transform A by T inverse times A times S.
-fun transform_matrix A T S
+fun A T S transform_matrix
   unpack ARows ACols = A shape
   unpack TRows TCols = T shape
   unpack SRows SCols = S shape
@@ -27,7 +27,7 @@ fun transform_matrix A T S
 end
 
 rem Compute a determinant on a private copy by elimination.
-fun determinant A
+fun A determinant
   unpack Rows Cols = A shape
   if Rows not equal Cols
     .DimensionMismatch raise

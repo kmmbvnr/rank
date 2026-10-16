@@ -32,7 +32,7 @@ function or returning it never lets a write through one name show through
 another:
 
 ```rank
-fun fill Data
+fun Data fill
   Data .Age = Data .Age default 30    rem the caller's table is unchanged
   return Data
 end

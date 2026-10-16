@@ -3,7 +3,7 @@ rem https://www.deep-ml.com/problems/48
 
 use sequences
 
-fun rref A
+fun A rref
   unpack Rows Cols = A shape
   Work = A * 1.0 copy
   Row = 0

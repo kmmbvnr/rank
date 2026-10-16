@@ -9,7 +9,7 @@ describe('memo functions and explicit index caches', () => {
 use algo
 use io
 Index = new index
-fun fib N Cache
+fun N Cache fib
   if N in Cache
     return Cache N
   end
@@ -37,7 +37,7 @@ end
 use algo
 Index = new index
 Alias = Index
-fun store Cache K V
+fun Cache K V store
   Cache K = V
   Cache K += 1
   return 0
@@ -60,7 +60,7 @@ Index "a|text:b" "c"
 use algo
 Cache = new index
 Cache 1 = 100
-fun local N
+fun N local
   Cache = new index
   Before = Cache 1 default -1
   Cache 1 = N
@@ -77,7 +77,7 @@ end
         const interpreter = new Interpreter(line => calls.push(line));
         expect(interpreter.execute(`
 use io
-memo fib N
+memo N fib
   N print
   if N less 2
     return N
@@ -98,8 +98,8 @@ end
         const interpreter = new Interpreter(line => calls.push(line));
         interpreter.execute(`
 use io
-fun make Base
-  memo value N
+fun Base make
+  memo N value
     N print
     return Base + N
   end
@@ -118,8 +118,8 @@ b = (20 make)
         const fresh = new Interpreter(line => localCalls.push(line));
         fresh.execute(`
 use io
-fun solve Base
-  memo value N
+fun Base solve
+  memo N value
     N print
     return Base + N
   end
@@ -137,11 +137,11 @@ end
         const interpreter = new Interpreter(line => calls.push(line));
         interpreter.execute(`
 use io
-memo first A B
+memo A B first
   A print
   return A
 end
-memo identity X
+memo X identity
   X print
   return X
 end
@@ -160,7 +160,7 @@ end
         const interpreter = new Interpreter(line => calls.push(line));
         interpreter.execute(`
 use io
-memo fail N
+memo N fail
   N print
   try
     return N
@@ -176,7 +176,7 @@ end
     it('keeps primitive unary keys separate from tagged text and labels', () => {
         const calls: string[] = [];
         const interpreter = new Interpreter(line => calls.push(line));
-        interpreter.execute('use io\nmemo identity X\n X print\n return X\nend');
+        interpreter.execute('use io\nmemo X identity\n X print\n return X\nend');
         const fn = interpreter.variables.get('identity')!;
         if (!isNativeFunction(fn)) throw new Error('expected function');
         for (const value of [2n, 2, -0, 0, NaN, Infinity, -Infinity, false, true,
@@ -196,10 +196,10 @@ end
         interpreter.dispose();
     });
 
-    it('runs deep memo recursion without using the JavaScript call stack', () => {
+    it('runs deep memo JavaScript recursion without using the call stack', () => {
         const interpreter = new Interpreter();
         expect(interpreter.execute(`
-memo down N
+memo N down
   if N equal 0
     return 0
   end
@@ -215,14 +215,14 @@ end
         const interpreter = new Interpreter(line => calls.push(line));
         interpreter.execute(`
 use io
-memo down N
+memo N down
   N print
   if N equal 0
     return 0
   end
   return (N - 1) down
 end
-fun forward N
+fun N forward
   return N down
 end
 `);
@@ -237,24 +237,24 @@ end
         const interpreter = new Interpreter(line => calls.push(line));
         interpreter.execute(`
 use io
-memo even N
+memo N even
   N print
   if N equal 0
     return true
   end
   return (N - 1) odd
 end
-memo odd N
+memo N odd
   N print
   if N equal 0
     return false
   end
   return (N - 1) even
 end
-fun add N
+fun N add
   return N + 1
 end
-memo forward N
+memo N forward
   N print
   return N add
 end
@@ -269,17 +269,17 @@ end
 
     it('rejects generators and mutable arguments or results', () => {
         const interpreter = new Interpreter();
-        expect(() => interpreter.execute('memo values N\n yield N\nend')).toThrowError('memo functions cannot yield');
-        interpreter.execute('memo identity X\n return X\nend');
+        expect(() => interpreter.execute('memo N values\n yield N\nend')).toThrowError('memo functions cannot yield');
+        interpreter.execute('memo X identity\n return X\nend');
         expect(() => interpreter.execute('(array 1 2) identity')).toThrowError('memo arguments and results must be scalar values');
-        interpreter.execute('memo values N\n return array N\nend');
+        interpreter.execute('memo N values\n return array N\nend');
         expect(() => interpreter.execute('1 values')).toThrowError('memo arguments and results must be scalar values');
         expect(interpreter.execute('2 identity')).toBe(2n);
     });
 
     it('checks arity on the host path and gives a redefinition a fresh cache', () => {
         const interpreter = new Interpreter();
-        interpreter.execute('memo identity X\n return X\nend');
+        interpreter.execute('memo X identity\n return X\nend');
         const fn = interpreter.variables.get('identity')!;
         if (!isNativeFunction(fn)) throw new Error('expected function');
         expect(fn.call([2n])).toBe(2n);
@@ -289,7 +289,7 @@ end
         expect(() => fn.call([])).toThrowError('expects 1 arguments');
         expect(() => fn.call([2n, 3n])).toThrowError('expects 1 arguments');
         interpreter.forgetBindings(['identity']);
-        expect(interpreter.execute('memo identity X\n return X + 1\nend\n2 identity')).toBe(3n);
+        expect(interpreter.execute('memo X identity\n return X + 1\nend\n2 identity')).toBe(3n);
         expect(fn.call([2n])).toBe(2n);
     });
 });

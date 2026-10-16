@@ -16,14 +16,14 @@ Answer print
 
 rem Reduce every power modulo the requested
 rem decimal place value before adding it.
-fun self_power_tail Limit Digits
+fun Limit Digits self_power_tail
   Modulus = 10 ** Digits
   Numbers = 1 to Limit
   Powers = Numbers modular_self_power rank 0
   Total = Powers sum
   return Total mod Modulus
 
-  fun modular_self_power N
+  fun N modular_self_power
     return N N Modulus powmod
   end
 end

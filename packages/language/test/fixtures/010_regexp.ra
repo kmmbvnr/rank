@@ -7,7 +7,7 @@ use algo
 rem Build a table where index i j says whether
 rem the first i characters match the first j
 rem pattern characters.
-fun match Text Pattern
+fun Text Pattern match
   Index = new index
   N = Text len
   M = Pattern len

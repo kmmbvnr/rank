@@ -2,7 +2,7 @@ rem Dyalog 2013, problem 8: multiplication table from an outer product.
 use sequences
 use io
 
-fun timesTable N
+fun N timesTable
   Indices = 1 to N array
   return Indices Indices outer *
 end

@@ -57,7 +57,7 @@ describe('intrinsic matrix cells', () => {
 
     it('uses the same tuple assembly for user functions, including empty batches', () => {
         for (const size of [0, 2]) {
-            const source = `${prefix}A = array shape ${size} 2 2 fill 1\nfun pair X rank 2\n return tuple X X\nend\n`;
+            const source = `${prefix}A = array shape ${size} 2 2 fill 1\nfun X pair rank 2\n return tuple X X\nend\n`;
             expect(run(`${source}A pair shape`)).toBe(String(size));
             expect(run(`${source}A eigh shape`)).toBe(String(size));
         }
@@ -91,7 +91,7 @@ describe('intrinsic matrix cells', () => {
     });
 
     it('keeps matrix application consistent through compiled and interpreted function bodies', () => {
-        const source = `${prefix}fun diagonal X\n return X diag\nend\nfun eigensystem X\n return X eigh\nend\nA = array 2 1 1 2 4 0 0 5 shape 2 2 2\n`;
+        const source = `${prefix}fun X diagonal\n return X diag\nend\nfun X eigensystem\n return X eigh\nend\nA = array 2 1 1 2 4 0 0 5 shape 2 2 2\n`;
         for (const operation of ['diagonal', 'eigensystem']) {
             const outputs = [false, true].map(enabled => {
                 const runtime = new Interpreter(() => {}, {
@@ -114,8 +114,8 @@ describe('intrinsic matrix cells', () => {
             const source = `${prefix}A = array shape ${size} 2 2 fill 0\nB = array 1 2\nC = array shape 2 3 fill 1\n`;
             const solve = `${source}R = A B solve rank 2 1`;
             const multiply = `${source}R = A C matmul rank 2 2`;
-            const user = `${source}fun right X Y rank 2 1\n return Y\nend\nR = A B right`;
-            const tuple = `${source}fun pair X Y rank 2 1\n return tuple X Y\nend\nR = A B pair`;
+            const user = `${source}fun X Y right rank 2 1\n return Y\nend\nR = A B right`;
+            const tuple = `${source}fun X Y pair rank 2 1\n return tuple X Y\nend\nR = A B pair`;
             // Shape queries on empty batches must not execute a singular solve.
             if (size === 0) expect(run(`${solve}\nR shape`)).toBe('0 2');
             expect(run(`${multiply}\nR shape`)).toBe(`${size} 2 3`);
@@ -134,7 +134,7 @@ describe('intrinsic matrix cells', () => {
     });
 
     it('lets explicit ranks override declared user ranks in runtime and analysis', () => {
-        const source = `${prefix}fun header X rank 1\n return X shape\nend\nA = array shape 2 3 fill 0\n`;
+        const source = `${prefix}fun X header rank 1\n return X shape\nend\nA = array shape 2 3 fill 0\n`;
         for (const [rank, shape] of [['', [2, 1]], [' rank 2', [2]]] as const) {
             const code = `${source}R = A header${rank}`;
             expect(run(`${code}\nR shape`)).toBe(shape.join(' '));

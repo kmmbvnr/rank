@@ -17,7 +17,7 @@ Tree K count_paths print
 
 
 rem Count unordered pairs K edges apart.
-fun count_paths Tree K
+fun Tree K count_paths
   Lengths = Tree pathlengths
   return (Lengths equal K) count
 end

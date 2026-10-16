@@ -3,7 +3,7 @@ rem https://www.deep-ml.com/problems/4
 
 use algo
 
-fun matrix_mean A Mode
+fun A Mode matrix_mean
   Queue = new queue
   if Mode equal "row"
     for Row in A

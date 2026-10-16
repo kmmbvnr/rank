@@ -40,7 +40,7 @@ Reachable = Graph 0 bfs .order
 CheapestNetwork = Graph mst
 CheapestNetwork .weight print
 
-fun flight Pair rank 1
+fun Pair flight rank 1
   From = Pair 0
   To = Pair 1
   return record
@@ -51,7 +51,7 @@ fun flight Pair rank 1
 end
 
 rem Great-circle distance; coordinates are degrees.
-fun distancekm A B
+fun A B distancekm
   Radians = (-1 acos) / 180
   LatA = A 0 * Radians
   LatB = B 0 * Radians
@@ -61,10 +61,10 @@ fun distancekm A B
 end
 
 rem Reusable adjacent-pair reduction, with no traversal loop.
-fun segmentcost Pair rank 1
+fun Pair segmentcost rank 1
   return Graph (Pair 0) (Pair 1) edgeweight
 end
 
-fun tripdistance Route rank 1
+fun Route tripdistance rank 1
   return (Route window 2) segmentcost reduce +
 end

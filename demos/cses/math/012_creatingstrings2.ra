@@ -11,7 +11,7 @@ Text string_count print
 
 
 rem Divide by repeated letter counts.
-fun string_count Text
+fun Text string_count
   Mod = 1000000007
   Length = Text len
   Size = Length + 1

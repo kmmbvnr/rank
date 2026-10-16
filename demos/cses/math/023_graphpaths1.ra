@@ -15,7 +15,7 @@ Nodes Edges Length path_count print
 
 
 rem Count fixed-length walks by powers.
-fun path_count Nodes Edges Length
+fun Nodes Edges Length path_count
   Mod = 1000000007
   Paths = array shape Nodes Nodes fill 0
   for Edge in Edges
@@ -28,7 +28,7 @@ end
 
 
 rem Raise a matrix modulo Mod.
-fun matrix_power Base Exponent Mod
+fun Base Exponent Mod matrix_power
   Size = Base len
   Result = Size identity
 
@@ -45,7 +45,7 @@ end
 
 
 rem Construct an identity matrix.
-fun identity Size
+fun Size identity
   Result = array shape Size Size fill 0
   for I in 0 till Size
     Result I I = 1

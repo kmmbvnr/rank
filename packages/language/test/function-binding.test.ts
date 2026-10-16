@@ -22,9 +22,9 @@ describe('function binding analysis', () => {
         expect(facts.scopes[0].bindings.find(binding => binding.name === 'positive_max')?.arities).toEqual([1, 2]);
     });
     it('separates parameter scope from sequential name availability', () => {
-        const program = parse('1 f\nf X = X + 1');
+        const program = parse('1 f\nf = abs');
         expect(blockScopeDiagnostics(program)[0]?.message).toMatch(/before it is assigned/);
-        const valid = parse('f X = X + 1\n1 f');
+        const valid = parse('fun X f = X + 1\n1 f');
         expect(blockScopeDiagnostics(valid)).toEqual([]);
         expect(expressionDiagnostics(valid)).toEqual([]);
     });

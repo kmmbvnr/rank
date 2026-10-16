@@ -12,7 +12,7 @@ end
 
 
 rem Locate the query in one fixed-width block, then select its decimal digit.
-fun digit K
+fun K digit
   Width = 1
   Count = 9
   First = 1

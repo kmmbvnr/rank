@@ -17,7 +17,7 @@ describe('direct binary extrema', () => {
 
     it('rechecks bindings and numeric types on every call', () => {
         const runtime = new Interpreter();
-        runtime.execute('use numbers\nfun extreme A B\n return A B max 10 min\nend');
+        runtime.execute('use numbers\nfun A B extreme\n return A B max 10 min\nend');
         const fn = runtime.variables.get('extreme');
         if (fn === undefined || !isNativeFunction(fn)) throw new Error('missing function');
         for (const [a, b, expected] of [[1n, 3n, 3n], [4.5, 2n, 4.5], [2n ** 100n, 3n, 10n]] as RankValue[][]) {
@@ -36,7 +36,7 @@ describe('direct binary extrema', () => {
     it('keeps effectful operands on the resumable path without replay', () => {
         expect(run(`use numbers
 use algo
-fun visit Log V
+fun Log V visit
  Log push V
  return V
 end
@@ -44,7 +44,7 @@ Log = new queue
 Answer = (Log 3 visit) (Log 2 visit) min (Log 4 visit) max
 Log`)).toBe('3 2 4');
         expect(run(`use numbers
-fun down N
+fun N down
  if N equal 0
   return 0
  end
@@ -64,22 +64,22 @@ end
     for (const name of ['min', 'max']) {
         for (const imports of ['', 'use numbers\n']) {
             it(`resolves custom ${name}custom as a postfix call and an alias (${imports || 'no imports'})`, () => {
-                const source = `${imports}fun ${name}custom A B\n return A * 10 + B\nend\n`;
+                const source = `${imports}fun A B ${name}custom\n return A * 10 + B\nend\n`;
                 expect(run(source + `3 4 ${name}custom`)).toBe('34');
                 expect(run(source + `op = ${name}custom\n3 4 op`)).toBe('34');
                 expect(run(source + `3 4 ${name}custom 5 ${name}custom`)).toBe('345');
             });
         }
         it(`resolves local and parameter bindings of ${name}custom`, () => {
-            expect(run(`fun outer X
- fun ${name}custom A B
+            expect(run(`fun X outer
+ fun A B ${name}custom
   return A + B + X
  end
  return 3 4 ${name}custom
 end
 10 outer`)).toBe('17');
             const runtime = new Interpreter();
-            runtime.execute(`fun add A B
+            runtime.execute(`fun A B add
  return A + B
 end
 fun invoke ${name}custom
@@ -91,11 +91,11 @@ end`);
             runtime.dispose();
         });
         it(`uses ordinary postfix arity for custom ${name}custom, including array arguments`, () => {
-            expect(run(`fun ${name}custom A B\n return B\nend\n(array 1 2) 99 ${name}custom`)).toBe('99');
-            expect(run(`fun ${name}custom A\n return 999\nend\n(array 1 2) ${name}custom`)).toBe('999');
+            expect(run(`fun A B ${name}custom\n return B\nend\n(array 1 2) 99 ${name}custom`)).toBe('99');
+            expect(run(`fun A ${name}custom\n return 999\nend\n(array 1 2) ${name}custom`)).toBe('999');
         });
         it(`supports deep recursive calls to ${name}custom`, () => {
-            expect(run(`fun ${name}custom A B
+            expect(run(`fun A B ${name}custom
  if A equal 0
   return B
  end
@@ -108,10 +108,10 @@ end
     it('rechecks function bindings in an already compiled binary call', () => {
         const runtime = new Interpreter();
         runtime.execute(`use numbers
-fun decide A B
+fun A B decide
  return A B max
 end
-fun replacement A B
+fun A B replacement
  return A + B
 end`);
         const fn = runtime.variables.get('decide');
@@ -126,7 +126,7 @@ end`);
 
     it('resolves the operation after the right operand, without replay', () => {
         const runtime = new Interpreter();
-        runtime.execute('use numbers\nfun replacement A B\n return A + B\nend');
+        runtime.execute('use numbers\nfun A B replacement\n return A + B\nend');
         let calls = 0;
         runtime.variables.set('change', {
             kind: 'function', name: 'change', arities: [1], monadicRank: 'all',

@@ -3,15 +3,15 @@ import { Interpreter, formatValue } from '../src/index.js';
 import { run } from './support.js';
 
 it('rejects core names, parameters and nested declarations', () => {
-    for (const source of ['fun sum X\n return X\nend',
+    for (const source of ['fun X sum\n return X\nend',
         'fun f sum\n return sum\nend',
-        'fun f X\n fun sum Y\n return Y\n end\n return X\nend']) {
+        'fun X f\n fun Y sum\n return Y\n end\n return X\nend']) {
         expect(() => run(source)).toThrow('cannot redefine available builtin: sum');
     }
 });
 
 it('rejects module conflicts in either declaration order', () => {
-    const declaration = 'fun solve X\n return X\nend';
+    const declaration = 'fun X solve\n return X\nend';
     for (const source of [`use linalg\n${declaration}`, `${declaration}\nuse linalg`]) {
         expect(() => run(source)).toThrow('cannot redefine available builtin: solve');
     }
@@ -20,7 +20,7 @@ it('rejects module conflicts in either declaration order', () => {
 
 it('checks module activation across separate executions without corrupting the session', () => {
     const runtime = new Interpreter();
-    runtime.execute('fun solve X\n return X\nend');
+    runtime.execute('fun X solve\n return X\nend');
     expect(() => runtime.execute('use linalg')).toThrow('cannot redefine available builtin: solve');
     expect(runtime.modules.has('linalg')).toBe(false);
     expect(formatValue(runtime.execute('7 solve')!)).toBe('7');
@@ -28,12 +28,12 @@ it('checks module activation across separate executions without corrupting the s
 
 it('retains builtin aliases and receiver methods', () => {
     expect(run('op = sum\n(array 1 2 3) op')).toBe('6');
-    expect(run('use graph\nfun find A B\n return 99\nend\nD = new dsu (array 1 2)\nD findroot 1')).toBe('1');
+    expect(run('use graph\nfun A B find\n return 99\nend\nD = new dsu (array 1 2)\nD findroot 1')).toBe('1');
 });
 
 it('checks retained function parameters and nested declarations before opening a module', () => {
     for (const source of ['fun f mean\n return mean\nend',
-        'fun f X\n fun mean Y\n return Y\n end\n return X\nend',
+        'fun X f\n fun Y mean\n return Y\n end\n return X\nend',
         'memo f mean\n return mean\nend']) {
         const runtime = new Interpreter();
         runtime.execute(source);
@@ -48,7 +48,7 @@ it('does not apply caller modules to the private scope of an imported function',
     const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'worker',
         source: 'fun f mean\n return mean\nend' }) });
     runtime.execute('use "worker"\nuse stats');
-    expect(runtime.execute('7 f')).toBe(7n);
+    expect(runtime.execute('fun N identity = N\nf identity')).toBe(runtime.variables.get('identity'));
 });
 
 it('retains declaration checks in previews and through function aliases', () => {
@@ -63,7 +63,7 @@ it('retains declaration checks in previews and through function aliases', () => 
 
 it('does not partially import functions when a later export conflicts', () => {
     const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'worker',
-        source: 'fun firstcustom X\n return X\nend\nfun solve X\n return X\nend' }) });
+        source: 'fun X firstcustom\n return X\nend\nfun X solve\n return X\nend' }) });
     runtime.execute('use linalg');
     expect(() => runtime.execute('use "worker"')).toThrow('cannot redefine available builtin: solve');
     expect(runtime.variables.has('firstcustom')).toBe(false);
@@ -74,13 +74,13 @@ it.each(['sum', 'min', 'max', 'len', 'integer', 'real', 'text', 'type', 'raise']
         for (const compiled of [true, false]) {
             const runtime = new Interpreter(undefined, { scalarCompilation: compiled,
                 scalarFunctionCompilation: compiled, integerLoopCompilation: compiled, tensorFusion: compiled });
-            expect(() => runtime.execute(`fun ${name} X\n return X\nend`))
+            expect(() => runtime.execute(`fun X ${name}\n return X\nend`))
                 .toThrow(`cannot redefine available builtin: ${name}`);
         }
     });
 
 it('checks imported user functions and allows qualified imports', () => {
-    const source = 'fun solve X\n return X\nend';
+    const source = 'fun X solve\n return X\nend';
     const create = () => new Interpreter(undefined, { loadModule: () => ({ id: 'worker', source }) });
     expect(() => create().execute('use linalg\nuse "worker"'))
         .toThrow('cannot redefine available builtin: solve');
@@ -118,5 +118,5 @@ it('explains the removed DSU find spelling before suggesting another module', ()
 });
 
 it('does not treat a user function named find as a removed builtin', () => {
-    expect(run('use graph\nfun find D X\n return 99\nend\nD = new dsu (array "a")\nD "a" find')).toBe('99');
+    expect(run('use graph\nfun D X find\n return 99\nend\nD = new dsu (array "a")\nD "a" find')).toBe('99');
 });

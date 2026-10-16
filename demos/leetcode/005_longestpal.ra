@@ -5,7 +5,7 @@ rem reads the same both ways
 rem Find the first longest palindrome.
 rem Try an odd and even center at every
 rem character and keep the longest result.
-fun longest Text
+fun Text longest
   Best = ""
 
   for C i in Text
@@ -18,7 +18,7 @@ end
 
 rem Grow a palindrome around L and R while
 rem both characters match, then return Best.
-fun expand Text L R Best
+fun Text L R Best expand
   N = Text len
 
   for L at least 0 and R less N

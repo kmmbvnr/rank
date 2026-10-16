@@ -9,7 +9,7 @@ const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
 it('recognizes lazy merge and keyed merge as sequences without reading their items', () => {
     const source = [
         'use sequences',
-        'fun identity X',
+        'fun X identity',
         '  return X',
         'end',
         'A = array 1 3 5',
@@ -32,7 +32,7 @@ it('recognizes lazy merge and keyed merge as sequences without reading their ite
 });
 
 it('reserves the contextual graph merge name when graph is open', () => {
-    const parsed = parser.parse<Program>('use graph\nfun merge A B\n  return A\nend');
+    const parsed = parser.parse<Program>('use graph\nfun A B merge\n  return A\nend');
     expect(parsed.parserErrors).toEqual([]);
     expect(analyzeValues(parsed.value).diagnostics.map(diagnostic => diagnostic.message))
         .toContain('cannot redefine available builtin: merge');
@@ -42,7 +42,7 @@ it('reserves the contextual graph merge name when graph is open', () => {
 it('preserves typed scalar merge cells through a filter with a later pure predicate', () => {
     const parsed = parser.parse<Program>('use sequences\nProducts = array 9009 9010 shape 1 2\n'
         + 'Candidates = Products merge .descending\nAnswer = Candidates filter palindrome first\n'
-        + 'fun palindrome X\n Text = X text\n return Text equal (Text reverse)\nend');
+        + 'fun X palindrome\n Text = X text\n return Text equal (Text reverse)\nend');
     expect(parsed.parserErrors).toEqual([]);
     const analysis = analyzeValues(parsed.value);
     expect(analysis.bindings.get('Candidates')).toMatchObject({ types: ['sequence'], elements: ['integer'] });
@@ -51,7 +51,7 @@ it('preserves typed scalar merge cells through a filter with a later pure predic
 
 it('does not keep source facts across an unknown filter callback', () => {
     const parsed = parser.parse<Program>('use sequences\nCandidates = 1 to 3\n'
-        + 'Answer = Candidates filter opaque first\nfun opaque X\n return X unknown_callback\nend');
+        + 'Answer = Candidates filter opaque first\nfun X opaque\n return X unknown_callback\nend');
     expect(parsed.parserErrors).toEqual([]);
     expect(analyzeValues(parsed.value).bindings.get('Answer')?.types).toEqual([]);
 });

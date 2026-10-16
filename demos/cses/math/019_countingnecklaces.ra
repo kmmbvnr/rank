@@ -11,7 +11,7 @@ N Colors necklaces print
 
 
 rem Count rotation classes by Burnside.
-fun necklaces N Colors
+fun N Colors necklaces
   Mod = 1000000007
   Total = 0
 
@@ -28,7 +28,7 @@ end
 
 
 rem Compute Euler's totient.
-fun totient N
+fun N totient
   Result = N
   Factors = N factors unique
   for Prime in Factors

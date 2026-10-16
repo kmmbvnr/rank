@@ -9,6 +9,6 @@ N bitstrings print
 
 
 rem Count N-bit strings modulo 1000000007.
-fun bitstrings N
+fun N bitstrings
   return 2 N 1000000007 powmod
 end

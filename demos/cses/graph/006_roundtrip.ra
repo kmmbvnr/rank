@@ -27,12 +27,12 @@ end
 
 
 rem Return one simple undirected cycle.
-fun find_cycle Graph NodeCount
+fun Graph NodeCount find_cycle
   Size = NodeCount + 1
   State = array shape Size fill 0
   Parent = array shape Size fill 0
 
-  fun visit Node Previous
+  fun Node Previous visit
     State Node = 1
     Parent Node = Previous
 

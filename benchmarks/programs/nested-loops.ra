@@ -1,6 +1,6 @@
 rem Three values starting at each outer I.
 
-fun nested_sum N
+fun N nested_sum
   Total = 0
   for I in 1 to N
     for J in I to (I + 2)

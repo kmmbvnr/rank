@@ -9,7 +9,7 @@ function run(operation: string, axes: string, shape: number[], cells: RankValue[
     const runtime = new Interpreter(undefined, { tensorFusion: fused });
     try {
         runtime.execute(`use stats
-fun probe A
+fun A probe
   return A ${operation} axis ${axes}
 end`);
         const source = { kind: 'array' as const, shape, items: cells, itemAt(i: number) {

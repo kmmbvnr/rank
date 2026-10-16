@@ -16,7 +16,7 @@ Answer print
 
 rem Extend or reset the consecutive run after
 rem counting unique factors of each integer.
-fun distinct_factor_run Count
+fun Count distinct_factor_run
   Run = 0
   Value = 2
   for

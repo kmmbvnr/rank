@@ -15,7 +15,7 @@ Values Queries polynomial print
 
 
 rem Store doubled prefix coefficients.
-fun polynomial Values Queries
+fun Values Queries polynomial
   Queue = new queue
   N = Values len
   Prefix = Values scan + with 0
@@ -54,7 +54,7 @@ end
 
 
 rem Evaluate one changed-array prefix.
-fun poly Quad Line Base X
+fun Quad Line Base X poly
   A = Quad sum X
   B = Line sum X
   C = Base sum X

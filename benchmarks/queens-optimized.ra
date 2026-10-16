@@ -5,7 +5,7 @@ Solutions = 8 queens
 Solutions len print
 Solutions print
 
-fun queens N
+fun N queens
   Cols = 0 till N array
   States = array shape 1 N fill 0
 
@@ -26,7 +26,7 @@ fun queens N
   end
   return States
 
-  fun available Q
+  fun Q available
     Blocked = concat Q (Q + Dy) (Q - Dy)
     return Cols not in Blocked
   end

@@ -31,7 +31,7 @@ describe('runtime fast paths', () => {
         const runtime = new Interpreter();
         expect(runtime.execute(`
 use numbers
-fun positive X
+fun X positive
   Result = X abs
   return Result
 end
@@ -40,7 +40,7 @@ abs equal abs
 `)).toBe(true);
         expect(runtime.execute('7 positive')).toBe(7n);
         runtime.execute(`
-fun replacement X
+fun X replacement
   return X + 100
 end
 `);
@@ -58,7 +58,7 @@ end
         expect(runtime.execute(`
 use io
 use numbers
-fun add A B
+fun A B add
   return A + B
 end
 Values = array 10 20
@@ -73,7 +73,7 @@ Values 1 abs
         const runtime = new Interpreter();
         runtime.execute(`
 Value = 50
-fun pick N
+fun N pick
   if N equal 0
     return Value
   end
@@ -90,7 +90,7 @@ end
         const runtime = new Interpreter(undefined, { maxCallDepth: 1 });
         expect(runtime.execute(`
 Value = 50
-fun pick N X
+fun N X pick
   if N equal 0
     return Value
   end
@@ -105,7 +105,7 @@ end
     it('retains inferred types within a slotted invocation', () => {
         const runtime = new Interpreter();
         expect(() => runtime.execute(`
-fun wrong N
+fun N wrong
   Value = N
   Value = "text"
   return Value

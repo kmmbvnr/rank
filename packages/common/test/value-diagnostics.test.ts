@@ -10,7 +10,7 @@ it('shows both requirement sites in a forty-column unexecuted notebook and retra
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        const draft = (value: string) => `fun check X\n A = X decode\n A # 0\n A = ${value}\nend`;
+        const draft = (value: string) => `fun X check\n A = X decode\n A # 0\n A = ${value}\nend`;
         repl.notebook.replace(draft('1'));
         const frame = notebookFrame(repl.notebook, 40, 20, 0, '', false, true, '', '',
             undefined, 'rank> ', undefined, undefined, undefined, false, undefined, true, 0, repl.diagnosticOutputs);
@@ -30,10 +30,10 @@ it('shows a proven mixed-yield error in an unexecuted REPL draft', () => {
     try {
         const repl = new NotebookRepl(session);
         const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
-        repl.notebook.replace('fun stream X\n yield 1\n yield X\nend\nS = "x" stream');
+        repl.notebook.replace('fun X stream\n yield 1\n yield X\nend\nS = "x" stream');
         expect(text()).toContain('stream yields incompatible types: integer and text');
         expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
-        repl.notebook.replace('fun stream X\n yield 1\n yield X\nend\nS = 2 stream');
+        repl.notebook.replace('fun X stream\n yield 1\n yield X\nend\nS = 2 stream');
         expect(text()).not.toContain('yields incompatible types');
     } finally { session.dispose(); }
 });
@@ -42,12 +42,12 @@ it('retains scalar diagnostics after a known write without executing the draft',
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        repl.notebook.replace('fun change X\n X 0 = 1\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"');
+        repl.notebook.replace('fun X change\n X 0 = 1\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"');
         const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
         expect(text()).toContain('does not accept integer and text');
         expect(session.diagnosticFacts.some(([name]) => name === 'A' || name === 'Count')).toBe(false);
         expect(repl.notebook.cells.every(cell => cell.executed === undefined)).toBe(true);
-        repl.notebook.replace('fun change X\n X external\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"');
+        repl.notebook.replace('fun X change\n X external\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"');
         expect(text()).not.toContain('does not accept');
     } finally { session.dispose(); }
 });
@@ -56,7 +56,7 @@ it('retains draft diagnostics across a proven eager-array reader and withdraws t
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        const prefix = 'fun read X\n return X 0\nend\nA = array 1 2\nCount = 3\n';
+        const prefix = 'fun X read\n return X 0\nend\nA = array 1 2\nCount = 3\n';
         repl.notebook.replace(prefix + 'A read\nCount + "bad"');
         const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
         expect(text()).toContain('does not accept integer and text');
@@ -68,7 +68,7 @@ it('retains draft diagnostics across a proven eager-array reader and withdraws t
 
 it('shows the unchanged maximum-subarray reader result in a draft and retracts an unsupported effect proof', () => {
     const source = readFileSync(new URL('./fixtures/008_maxsubarray.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun max_subarray'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*max_subarray\b/));
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
@@ -83,7 +83,7 @@ it('shows the unchanged maximum-subarray reader result in a draft and retracts a
         expect(text().match(/operator \+ does not accept integer and text/g)).toHaveLength(2);
         repl.notebook.replace(draft('array shape 3 fill Unknown'));
         expect(text()).not.toContain('operator + does not accept integer and text');
-        repl.notebook.replace(`${definition}\nfun max X Y\n X external\n return X\nend\n`
+        repl.notebook.replace(`${definition}\nfun X Y max\n X external\n return X\nend\n`
             + 'A = array 1 2 3\nCount = 3\nResult = A max_subarray\nCount + "bad"');
         expect(text()).not.toContain('operator + does not accept integer and text');
     } finally { session.dispose(); }
@@ -91,7 +91,7 @@ it('shows the unchanged maximum-subarray reader result in a draft and retracts a
 
 it('shows a caller diagnostic after the unchanged gradient-descent loop before execution', () => {
     const source = readFileSync(new URL('../../../demos/deepml/015_gd.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun linear_regression'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*linear_regression\b/));
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
@@ -109,7 +109,7 @@ it('shows a caller diagnostic after the unchanged gradient-descent loop before e
 
 it('keeps a caller diagnostic for an unexecuted zero-step K-means draft', () => {
     const source = readFileSync(new URL('../../../demos/deepml/017_kmeans.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun k_means'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*k_means\b/));
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
@@ -129,7 +129,7 @@ it('retains draft diagnostics across a helper that reads its own eager array', (
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        const prefix = 'fun read X\n return X 0\nend\nfun helper\n Temp = array 1 2\n return Temp read\nend\nCount = 3\n';
+        const prefix = 'fun X read\n return X 0\nend\nfun helper\n Temp = array 1 2\n return Temp read\nend\nCount = 3\n';
         repl.notebook.replace(prefix + 'helper\nCount + "bad"');
         const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
         expect(text()).toContain('does not accept integer and text');
@@ -156,7 +156,7 @@ it('retains shape diagnostics for a separate array after a draft write', () => {
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        const prefix = 'fun change X\n X 0 = 9\n return X\nend\nA = array 1 2\nB = A\nC = array 3 4 5\n';
+        const prefix = 'fun X change\n X 0 = 9\n return X\nend\nA = array 1 2\nB = A\nC = array 3 4 5\n';
         repl.notebook.replace(prefix + 'B change\nA + C');
         const text = () => [...(repl.diagnosticOutputs?.values() ?? [])].flat().map(line => line.text).join('\n');
         expect(text()).toContain('shape mismatch: [2] and [3]');
@@ -197,7 +197,7 @@ it('invalidates cached hints when a later local test changes', () => {
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        repl.notebook.enqueue('fun addone X\n return X + 1\nend');
+        repl.notebook.enqueue('fun X addone\n return X + 1\nend');
         repl.notebook.replace('test "local"\n (3 addone) equal 4\nend');
         repl.notebook.active = 0;
         expect(repl.diagnosticOutputs?.get(1)?.[0].text).toContain('Expected: integer');
@@ -208,7 +208,7 @@ it('invalidates cached hints when a later local test changes', () => {
 
 it('combines local and companion tests and refreshes local expectations after edits', () => {
     const book = new Notebook();
-    book.enqueue('fun addone X\n return X + 1\nend');
+    book.enqueue('fun X addone\n return X + 1\nend');
     book.replace('test "local"\n (3 addone) equal 4\nend');
     book.active = 0;
     const companion = { path: '/tmp/helpers_test.ra', examples: [{ name: 'addone',
@@ -298,7 +298,7 @@ it('checks function arguments and inferred results before execution and refreshe
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        for (const source of ['fun increment X\n Y = X + 1\n return Y\nend', 'Input = "bad"']) {
+        for (const source of ['fun X increment\n Y = X + 1\n return Y\nend', 'Input = "bad"']) {
             repl.notebook.replace(source);
             await repl.submit();
             expect(repl.notebook.cells.at(-2)?.status).toBe('ok');
@@ -315,7 +315,7 @@ it('checks function arguments and inferred results before execution and refreshe
             .toBe('TypeError: Result has type integer and cannot receive text');
         expect(session.names).not.toContain('Result');
         repl.notebook.replace('Input increment');
-        repl.notebook.cells[0].source = 'fun increment X\n Y = X + "suffix"\n return Y\nend';
+        repl.notebook.cells[0].source = 'fun X increment\n Y = X + "suffix"\n return Y\nend';
         expect(repl.diagnosticOutputs?.size).toBe(0);
     } finally { session.dispose(); }
 });
@@ -324,7 +324,7 @@ it('checks function argument shapes without changing runtime arrays', async () =
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        for (const source of ['fun combine A B\n Result = A + B\n return Result\nend',
+        for (const source of ['fun A B combine\n Result = A + B\n return Result\nend',
             'Left = array shape 2 3 fill 0', 'Right = array shape 2 4 fill 0']) {
             repl.notebook.replace(source);
             await repl.submit();
@@ -409,7 +409,7 @@ it('loads companion examples without executing tests and separates expected from
         return 'test "sample"\n use "helpers"\n (3 addone) equal 4\nend';
     } });
     try {
-        const source = 'fun addone X\n return X + 1\nend';
+        const source = 'fun X addone\n return X + 1\nend';
         session.replaceFile({ path: '/tmp/helpers.ra', source });
         await session.prepareFunctions([]);
         expect(reads).toEqual(['/tmp/helpers_test.ra']);
@@ -420,7 +420,7 @@ it('loads companion examples without executing tests and separates expected from
         expect(text).toContain('helpers_test.ra:3');
         expect(text).toContain('Expected: integer');
         expect(text).toContain('From code: integer');
-        repl.notebook.replace('fun addone X\n return "changed"\nend');
+        repl.notebook.replace('fun X addone\n return "changed"\nend');
         expect(repl.diagnosticOutputs?.get(1)?.map(line => line.text).join('\n')).toContain('From code: text');
         expect(reads).toHaveLength(1);
     } finally { session.dispose(); }
@@ -431,11 +431,11 @@ it('attributes a rounded companion array result to its function', async () => {
         'test "array"\n use "vectors"\n use numbers\n Result = (array 1 2) rescale\n'
         + ' Result round 2 equal array 0.5 1.0\nend' });
     try {
-        session.replaceFile({ path: '/tmp/vectors.ra', source: 'fun rescale X\n return X / 2\nend' });
+        session.replaceFile({ path: '/tmp/vectors.ra', source: 'fun X rescale\n return X / 2\nend' });
         await session.prepareFunctions([]);
         expect(session.testExamples?.examples).toMatchObject([{ name: 'rescale',
             expected: { types: ['array'], rank: 1, shape: [2] } }]);
-        await session.prepareFunctions([{ id: 1, source: 'fun rescale X\n return X +\nend' }]);
+        await session.prepareFunctions([{ id: 1, source: 'fun X rescale\n return X +\nend' }]);
         expect(session.testExamples?.examples).toMatchObject([{ name: 'rescale',
             expected: { types: ['array'], rank: 1, shape: [2] } }]);
     } finally { session.dispose(); }

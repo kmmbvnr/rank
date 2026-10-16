@@ -15,7 +15,7 @@ Next Queries planet_queries print
 
 
 rem Answer functional-graph jumps.
-fun planet_queries Next Queries
+fun Next Queries planet_queries
   Planets = Next functional
   Count = Queries len
   Answers = array shape Count fill 0

@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/22
 use numbers
 
 rem Return the logistic value of Z.
-fun sigmoid Z
+fun Z sigmoid
   Denom = 1.0 + (-Z exp)
   return 1.0 / Denom round 4
 end

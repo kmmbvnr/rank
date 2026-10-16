@@ -12,7 +12,7 @@ Weights Limit elevator_rides print
 
 
 rem Minimize rides, then final weight.
-fun elevator_rides Weights Limit
+fun Weights Limit elevator_rides
   Count = Weights len
   States = 1 Count shl
   Missing = Count + 1
@@ -20,7 +20,7 @@ fun elevator_rides Weights Limit
   Last = array shape States fill 0
   Rides 0 = 1
 
-  fun add_person Mask Person
+  fun Mask Person add_person
     if not Mask Person bit
       return 0
     end

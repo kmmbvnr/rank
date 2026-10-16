@@ -18,7 +18,7 @@ Graph N investigate print
 
 
 rem Describe all cheapest routes to N.
-fun investigate Graph N
+fun Graph N investigate
   Modulus = 1000000007
   Size = N + 1
   Dist = array shape Size fill infinity

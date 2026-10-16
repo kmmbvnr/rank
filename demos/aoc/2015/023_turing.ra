@@ -16,7 +16,7 @@ Part2 print
 
 
 rem Execute the two-register program and return register b.
-fun execute Program Start
+fun Program Start execute
   A = Start
   B = 0
   PC = 0

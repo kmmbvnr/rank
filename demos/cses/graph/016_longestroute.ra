@@ -23,7 +23,7 @@ end
 
 
 rem Find a longest path from 1 in a DAG.
-fun longest_route Graph N
+fun Graph N longest_route
   Size = N + 1
   Distance = array shape Size fill -1
   Parent = array shape Size fill 0

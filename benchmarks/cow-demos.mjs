@@ -36,7 +36,7 @@ const cases = [
   },
   {
     name: 'adam', path: 'demos/deepml/049_adam.ra', function: 'adam_optimizer',
-    setup: runtime => runtime.execute('fun gradient X\n return X * 2\nend'),
+    setup: runtime => runtime.execute('fun X gradient\n return X * 2\nend'),
     input: runtime => [{ kind: 'record', entries: new Map([
       ['parameters', array(Array(size).fill(1.0), [size])],
       ['gradient', runtime.variables.get('gradient')],

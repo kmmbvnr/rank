@@ -21,7 +21,7 @@ end
 
 
 rem Escape before a monster can arrive.
-fun escape_monsters Grid
+fun Grid escape_monsters
   H = Grid len
   W = Grid 0 len
   DYs = array -1 1 0 0
@@ -44,7 +44,7 @@ fun escape_monsters Grid
   end
 
   rem Test a passable grid position.
-  fun valid Row Column
+  fun Row Column valid
     if Row less 0 or Row at least H
       return false
     end

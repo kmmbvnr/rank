@@ -26,7 +26,7 @@ end
 
 
 rem Color components with two teams.
-fun build_teams Graph NodeCount
+fun Graph NodeCount build_teams
   Size = NodeCount + 1
   Teams = array shape Size fill 0
   Possible = true

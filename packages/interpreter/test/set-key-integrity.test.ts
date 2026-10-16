@@ -22,7 +22,7 @@ describe('set element key stability in debug runs', () => {
         const prefix = ['use algo', 'A = record', '  .value = 1', 'end', 'S = new set', 'S add A'];
         expect(() => debugRun([...prefix, 'B = A', 'B .value = 2', 'A in S'].join('\n'))).toThrow(modified);
         expect(() => debugRun([...prefix, 'A .value += 1', 'A in S'].join('\n'))).toThrow(modified);
-        const bump = ['use algo', 'fun bump R', '  R .value = 5', '  return 0', 'end', ...prefix.slice(1), 'A bump', 'A in S'];
+        const bump = ['use algo', 'fun R bump', '  R .value = 5', '  return 0', 'end', ...prefix.slice(1), 'A bump', 'A in S'];
         expect(() => debugRun(bump.join('\n'))).toThrow(modified);
     });
 

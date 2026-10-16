@@ -27,7 +27,7 @@ function compare(source: string, inputs: RankValue[][], expectedCalls: number) {
 
 describe('scalar compilation at ordinary function entry', () => {
     it('guards each invocation and recovers after invalid arguments', () => {
-        const values = compare(`fun helper A B
+        const values = compare(`fun A B helper
   Value = A + B
   return Value + Value
 end`, [[2n, 3n], [1.5, 2.5], ['x', 'y'], [true, false],
@@ -38,14 +38,14 @@ end`, [[2n, 3n], [1.5, 2.5], ['x', 'y'], [true, false],
     });
 
     it('preserves scalar and broadcast array behavior', () => {
-        compare(`fun helper A
+        compare(`fun A helper
   Value = A + 1
   return Value * 2
 end`, [[{ kind: 'array', shape: [2], items: [1n, 2n] }], [3n]], 1);
     });
 
     it('keeps memo cache hits outside the generated body', () => {
-        compare(`memo helper X
+        compare(`memo X helper
   Value = X + 1
   return Value * 2
 end`, [[3n], [3n], [4n], [4n]], 2);
@@ -53,11 +53,11 @@ end`, [[3n], [3n], [4n], [4n]], 2);
 
     it('handles zero parameters and duplicate parameter names', () => {
         expect(compare('fun helper\n  return 7\nend', [[], []], 2)[0]).toEqual({ value: '7' });
-        expect(compare('fun helper X X\n  return X\nend', [[1n, 2n]], 1)[0]).toEqual({ value: '2' });
+        expect(compare('fun X X helper\n  return X\nend', [[1n, 2n]], 1)[0]).toEqual({ value: '2' });
     });
 
     it('retains error location and recovers call depth', () => {
-        const values = compare(`fun helper X
+        const values = compare(`fun X helper
   Value = X - 1
   return 10 // Value
 end`, [[1n], [3n]], 2);
@@ -71,8 +71,8 @@ end`, [[1n], [3n]], 2);
             const runtime = new Interpreter(undefined, { scalarEntryCompilation,
                 onScalarFunctionExecuted: () => calls++ });
             try {
-                const value = runtime.execute(`fun outer X
-  fun helper N
+                const value = runtime.execute(`fun X outer
+  fun N helper
     Value = N + 1
     return Value
   end
@@ -90,7 +90,7 @@ end
 });
 
 it('keeps cell shapes and logical depth when called outside compiled loops', () => {
-    for (const source of [`fun helper X
+    for (const source of [`fun X helper
   Value = X + 1
   return Value * 2
 end
@@ -98,11 +98,11 @@ A = array shape 2 2 with
   1 2
   3 4
 end
-A helper rank 0`, `fun helper X
+A helper rank 0`, `fun X helper
   Value = X + 1
   return Value * 2
 end
-fun outer X
+fun X outer
   return (X helper) + 1
 end
 2 outer`]) {

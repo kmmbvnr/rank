@@ -13,7 +13,7 @@ end
 
 
 rem Construct the grid as the outer XOR of its row and column numbers.
-fun grid N
+fun N grid
   Values = 0 till N
   return Values Values outer bxor
 end

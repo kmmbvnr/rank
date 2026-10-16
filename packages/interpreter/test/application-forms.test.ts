@@ -19,7 +19,7 @@ it.each([
 
 it('reclassifies one cached function body for different builtin aliases', () => {
     const runtime = new Interpreter();
-    runtime.execute('fun f A op\n return A op axis 1\nend\nA = array shape 2 2\n 1 2\n 3 4\nend');
+    runtime.execute('fun A f op\n return A op axis 1\nend\nA = array shape 2 2\n 1 2\n 3 4\nend');
     const fn = runtime.variables.get('f');
     if (!fn || !isNativeFunction(fn)) throw new Error('missing function');
     expect(formatValue(fn.call([runtime.variables.get('A')!, runtime.execute('sum')!]))).toBe('3 7');
@@ -28,7 +28,7 @@ it('reclassifies one cached function body for different builtin aliases', () => 
 
 it('retains builtin identity when an alias crosses a source-module boundary', () => {
     const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'worker',
-        source: 'fun reduce_rows A op\n return A op axis 1\nend' }) });
+        source: 'fun A reduce_rows op\n return A op axis 1\nend' }) });
     runtime.execute('use "worker"\nA = array shape 2 2\n 1 2\n 3 4\nend');
     const fn = runtime.variables.get('reduce_rows');
     if (!fn || !isNativeFunction(fn)) throw new Error('missing function');

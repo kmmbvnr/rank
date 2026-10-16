@@ -40,7 +40,7 @@ if (!selected) {
     const runtime = new Interpreter(undefined, { md5: backend === 'node' ? nodeMd5 : undefined });
     try {
         runtime.execute(`use text\nuse crypto\nDoor = "abc"\nPrefix = (array 0 0) bytes
-fun search Start Count
+fun Start Count search
   Hits = 0
   N = Start
   Limit = Start + Count

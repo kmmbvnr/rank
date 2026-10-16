@@ -21,7 +21,7 @@ end
 
 
 rem Find one negative directed cycle.
-fun negative_cycle Edges N
+fun Edges N negative_cycle
   Size = N + 1
   Dist = array shape Size fill 0
   Parent = array shape Size fill 0

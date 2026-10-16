@@ -27,7 +27,7 @@ end
 
 
 rem Find a shortest unweighted path.
-fun message_route Graph Start Target
+fun Graph Start Target message_route
   Size = Target + 1
   Parent = array shape Size fill 0
   Parent Start = -1

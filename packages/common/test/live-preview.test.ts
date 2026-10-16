@@ -1,3 +1,5 @@
+import { parse } from '@arrrank/interpreter';
+import { functionCallSignature, isFunctionStatement } from '@arrrank/language';
 import { expect, it } from 'vitest';
 import { LiveFunctionSession } from '../src/live-function.js';
 import { LivePreviewRunner } from '../src/live-preview.js';
@@ -58,7 +60,7 @@ it('shows recursive call for lines invoking the function being defined', async (
     const runner = new LivePreviewRunner((source, syntheticNames) =>
         session.preview(source, 80, false, syntheticNames));
     const source = [
-        'memo fib N',
+        'memo N fib',
         '  if N less 2',
         '    return N',
         '  else',
@@ -68,7 +70,7 @@ it('shows recursive call for lines invoking the function being defined', async (
         '  end',
     ].join('\n');
     const live = new LiveFunctionSession(
-        { name: 'fib', parameters: ['N'], header: 'memo fib N', source,
+        { name: 'fib', parameters: ['N'], header: 'memo N fib', source,
           values: ['5'], cellId: 1, existing: false }, []);
     try {
         await runner.updateFunction(live, source, true);
@@ -167,25 +169,25 @@ async function previewFunction(name: string, parameters: string[], values: strin
 }
 
 it('shows no preview on the end of a conditional block', async () => {
-    const fib = ['memo fib N', '  if N at most 2', '    return N', '  else', '    Fib1 = N - 1 fib',
+    const fib = ['memo N fib', '  if N at most 2', '    return N', '  else', '    Fib1 = N - 1 fib',
         '    Fib2 = N - 2 fib', '    return Fib1 + Fib2', '  end'].join('\n');
     const outputs = await previewFunction('fib', ['N'], ['1'], fib);
     expect(outputs.has(8)).toBe(false);
     const branches = await previewFunction('f', ['N'], ['1'],
-        ['fun f N', '  if N at most 2', '    X = 1', '  else', '    Y = 2', '  end'].join('\n'));
+        ['fun N f', '  if N at most 2', '    X = 1', '  else', '    Y = 2', '  end'].join('\n'));
     expect(branches.has(6)).toBe(false);
     for (const lines of branches.values()) for (const line of lines) expect(line.error).toBe(false);
 });
 
 it('summarizes a loop on its end by the outer names it changes and its iteration count', async () => {
     const outputs = await previewFunction('g', ['N'], ['5'],
-        ['fun g N', '  Total = 0', '  for I in 1 to N', '    Sq = I * I', '    Total += Sq', '  end'].join('\n'));
+        ['fun N g', '  Total = 0', '  for I in 1 to N', '    Sq = I * I', '    Total += Sq', '  end'].join('\n'));
     expect(outputs.get(6)).toEqual([{ text: 'Total = 55 · 5 iterations', error: false }]);
 });
 
 it('shows only the iteration count for a loop that changes no outer name', async () => {
     const outputs = await previewFunction('g', ['N'], ['5'],
-        ['fun g N', '  for I in 1 to N', '    Sq = I * I', '  end'].join('\n'));
+        ['fun N g', '  for I in 1 to N', '    Sq = I * I', '  end'].join('\n'));
     expect(outputs.get(4)).toEqual([{ text: '5 iterations', error: false }]);
 });
 
@@ -210,4 +212,23 @@ it('reports a block-scope error without the generated program line numbers', asy
         expect(line.text).not.toMatch(/at line \d+/);
         expect(line.text).not.toContain('[Syntax]');
     }
+});
+
+
+it('previews a function after its optional-word header continuations', async () => {
+    const session = createReplSession();
+    const runner = new LivePreviewRunner((source, syntheticNames) =>
+        session.preview(source, 80, false, syntheticNames));
+    const header = 'fun X adjust Y\n .by Factor=2';
+    const source = `${header}\n return (X + Y) * Factor\nend`;
+    const definition = parse(source).statements[0];
+    if (!isFunctionStatement(definition)) throw new Error('Expected a function');
+    const live = new LiveFunctionSession({ name: definition.name, parameters: [...definition.parameters],
+        signature: functionCallSignature(definition), header, source, values: ['3', '4', '5'],
+        cellId: 1, existing: true }, []);
+    try {
+        await runner.updateFunction(live, source, true);
+        expect([...live.outputs.keys()]).toEqual([3]);
+        expect(live.outputs.get(3)).toEqual([{ text: '35', error: false }]);
+    } finally { session.dispose(); }
 });

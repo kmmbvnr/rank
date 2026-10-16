@@ -16,7 +16,7 @@ Grid Queries forest_queries print
 
 rem Build a two-dimensional prefix sum.
 rem Answer inclusive rectangles.
-fun forest_queries Grid Queries
+fun Grid Queries forest_queries
   Size = Grid len
   Side = Size + 1
   Prefix = array shape Side Side fill 0

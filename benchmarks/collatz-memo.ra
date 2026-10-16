@@ -9,7 +9,7 @@ use cli
 
 option Limit integer = 1000000
 
-memo collatz N rank 0
+memo N collatz rank 0
   if N equal 1
     return 1
   elif N even

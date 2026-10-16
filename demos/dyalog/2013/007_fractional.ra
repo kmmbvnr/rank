@@ -2,7 +2,7 @@ rem Dyalog 2013, problem 7: retain non-integral values in source order.
 use sequences
 use io
 
-fun fractionalValues A
+fun A fractionalValues
   if (A len) equal 0
     return A copy
   end

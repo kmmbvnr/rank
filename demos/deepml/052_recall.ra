@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/52
 use numbers
 use sequences
 
-fun recall Truth Predicted
+fun Truth Predicted recall
   if Truth len not equal Predicted len
     .DimensionMismatch raise
   end

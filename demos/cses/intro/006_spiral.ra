@@ -14,7 +14,7 @@ end
 
 
 rem Return the number at row Y and column X.
-fun spiral Y X
+fun Y X spiral
   M = X Y max
   Answer = M * M - M + 1
 

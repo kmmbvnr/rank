@@ -21,7 +21,7 @@ end
 
 
 rem Restore a one-based permutation.
-fun kth_permutation N K
+fun N K kth_permutation
   Queue = new queue
   Available = 1 to N multiset
   Block = N - 1 factorial
@@ -44,7 +44,7 @@ end
 
 
 rem Rank using counts of unused values.
-fun permutation_order P
+fun P permutation_order
   N = P len
   Available = N fenwick
   for I in 0 till N
@@ -70,7 +70,7 @@ end
 
 
 rem Return N factorial.
-fun factorial N
+fun N factorial
   Result = 1
   for Value in 2 to N
     Result *= Value

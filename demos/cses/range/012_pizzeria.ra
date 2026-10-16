@@ -23,7 +23,7 @@ Prices Queries deliveries print
 
 
 rem Split distance at the query point.
-fun deliveries Prices Queries
+fun Prices Queries deliveries
   N = Prices len
   Indices = 0 till N array
   LeftPrices = Prices - Indices

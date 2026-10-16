@@ -20,7 +20,7 @@ rem Decode a document and calculate both puzzle sums.
 rem Part 1 reads every number at any depth from the flat
 rem table of nodes; part 2 needs the nesting, so it walks
 rem the tree.
-fun solve Text
+fun Text solve
   Nodes = Text json .flat
   Numbers = Nodes filter .kind equal "integer"
   Part1 = Numbers .value integer rank 0 sum
@@ -30,7 +30,7 @@ end
 
 
 rem Sum values except inside an object containing the text "red".
-fun sumnored Value
+fun Value sumnored
   if Value is .integer or Value is .real
     return Value
   end

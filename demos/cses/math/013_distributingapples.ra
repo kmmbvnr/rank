@@ -11,7 +11,7 @@ Children Apples distributions print
 
 
 rem Place separators among apples.
-fun distributions Children Apples
+fun Children Apples distributions
   Mod = 1000000007
   Slots = Children + Apples - 1
   return Slots Apples Mod binomialmod

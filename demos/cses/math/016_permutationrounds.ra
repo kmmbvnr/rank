@@ -11,7 +11,7 @@ P rounds print
 
 
 rem Build the LCM of all cycle lengths.
-fun rounds P
+fun P rounds
   N = P len
   Powers = array shape (N + 1) fill 0
   Visited = array shape N fill false

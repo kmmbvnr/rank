@@ -15,7 +15,7 @@ A B K match_apartments print
 
 
 rem Match applicants to nearby homes.
-fun match_apartments A B K
+fun A B K match_apartments
   A = A sort
   B = B sort
   N = A len

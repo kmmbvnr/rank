@@ -29,7 +29,7 @@ Total`, expected: '230',
     },
     {
         name: 'branches after suspended function calls',
-        source: `fun odd N
+        source: `fun N odd
   return N mod 2 equal 1
 end
 Total = 0

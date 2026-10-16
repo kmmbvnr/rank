@@ -6,7 +6,7 @@ use numbers
 use random
 use sequences
 
-fun dense Inputs Units
+fun Inputs Units dense
   if Inputs at most 0 or Units at most 0
     .DomainError raise
   end
@@ -26,21 +26,21 @@ fun dense Inputs Units
   end
 end
 
-fun parameters Layer
+fun Layer parameters
   W = Layer .weights
   Bias = Layer .bias
   WSize = W shape reduce *
   return WSize + (Bias len)
 end
 
-fun forward_pass Layer X
+fun Layer X forward_pass
   Layer .input = X
   W = Layer .weights
   Bias = Layer .bias
   return X W matmul + Bias
 end
 
-fun backward_pass Layer Grad Rate
+fun Layer Grad Rate backward_pass
   X = Layer .input
   W = Layer .weights
   Bias = Layer .bias
@@ -58,7 +58,7 @@ fun backward_pass Layer Grad Rate
   return Grad Wt matmul
 end
 
-fun output_shape Layer
+fun Layer output_shape
   Units = Layer .units
   return array Units
 end

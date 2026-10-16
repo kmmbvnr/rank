@@ -6,7 +6,7 @@ use numbers
 use sequences
 
 rem Decompose a 2 by 2 matrix into U, singular values and V transpose.
-fun svd_2x2 A
+fun A svd_2x2
   Shape = A shape
   if Shape len not equal 2
     .DimensionMismatch raise

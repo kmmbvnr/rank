@@ -146,7 +146,7 @@ describe('Rank random operations', () => {
                 id: 'draw.ra',
                 source: [
                     'use random',
-                    'fun draw Values',
+                    'fun Values draw',
                     '  return Values shuffle',
                     'end',
                 ].join('\n'),

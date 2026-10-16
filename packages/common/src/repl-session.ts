@@ -135,6 +135,8 @@ export function createReplSession(host: ReplHost = {}) {
         get testExamples() { return testExamples; },
         snapshot(): SessionSnapshot {
             return { names: [...interpreter.variables.keys()], modules: [...interpreter.modules], aliases, savedFile,
+                callWords: [...interpreter.variables].flatMap(([name, value]) => isNativeFunction(value) && value.callSignature
+                    ? [[name, value.callSignature.words.map(group => group.word)] as [string, string[]]] : []),
                 diagnosticFacts: runtimeValueFacts(interpreter.variables, name => interpreter.bindingTypeNames(name), name => interpreter.bindingArrayRank(name)), testExamples };
         },
         replaceFile(file: ProgramFile): void {
@@ -289,7 +291,7 @@ export function createReplSession(host: ReplHost = {}) {
             errorSource = undefined;
             width = Math.min(WIDTH, textColumns(columns));
             loadedFile = undefined;
-            const localFunctions = new Set([...text.matchAll(/^\s*(?:fun|memo)\s+([a-z][A-Za-z0-9_]*|update)\b/gm)]
+            const localFunctions = new Set([...text.matchAll(/^\s*(?:fun|memo)\s+(?:[A-Z][A-Za-z0-9_]*\s+)*([a-z][A-Za-z0-9_]*|update)\b/gm)]
                 .map(match => match[1]));
             const source = text.split('\n').map(line => {
                 const indent = /^ */.exec(line)![0];
@@ -601,7 +603,7 @@ export function createReplSession(host: ReplHost = {}) {
             '  1 to 10 by 2 array',
             '  for i in 1 until N ... end',
             '  if A greater B ... else ... end',
-            '  fun name X ... return X ... end',
+            '  fun X name ... return X ... end',
             '  try ... catch Error ... end',
             '  Q push X',
             '  Q push unpack Items',
@@ -731,7 +733,11 @@ export function createReplSession(host: ReplHost = {}) {
     }
 }
 
-interface EditorBindings { variables: ReadonlyMap<string, unknown>; modules: ReadonlySet<string> }
+interface EditorBindings {
+    variables: ReadonlyMap<string, unknown>;
+    modules: ReadonlySet<string>;
+    callWords?: ReadonlyMap<string, readonly string[]>;
+}
 
 function expand(text: string, interpreter: EditorBindings, localNames: ReadonlySet<string> = new Set()): string {
     const isBound = (name: string): boolean => interpreter.variables.has(name) || localNames.has(name);
@@ -749,7 +755,7 @@ function complete(source: string, interpreter: EditorBindings, state: CellState)
     const start = source.lastIndexOf('\n') + 1;
     const line = source.slice(start);
     const localNames = draftBindings(source.slice(0, start));
-    const bindings = { modules: interpreter.modules, variables: new Map(interpreter.variables) };
+    const bindings = { modules: interpreter.modules, variables: new Map(interpreter.variables), callWords: interpreter.callWords };
     for (const name of localNames) bindings.variables.set(name, true);
     const word = /[A-Za-z_][A-Za-z0-9_]*$/.exec(line)?.[0] ?? '';
     const before = line.slice(0, line.length - word.length).trimEnd();
@@ -807,7 +813,7 @@ function draftBindings(source: string): Set<string> {
         } else if (first === 'fun' || first === 'memo') {
             blocks.push(names);
             names = new Set(names);
-            for (const token of tokens.slice(2)) {
+            for (const token of tokens.slice(1)) {
                 if (token.kind === 'variable') names.add(token.text);
             }
         } else {
@@ -852,7 +858,15 @@ function candidates(
         if (words.length === 2) return INPUT_TYPES;
         if (words.length === 3 && INPUT_TYPES.includes(words[2])) return ['many'];
     }
+    const declaredWords = words.flatMap(name => {
+        const value = interpreter.variables.get(name) as RankValue | undefined;
+        const declared = interpreter.callWords?.get(name)
+            ?? (value !== undefined && isNativeFunction(value)
+                ? value.callSignature?.words.map(group => group.word) : undefined);
+        return declared?.filter(word => !words.includes(word)) ?? [];
+    });
     return [
+        ...declaredWords,
         ...interpreter.variables.keys(),
         ...[...interpreter.modules].flatMap(
             name => Object.keys(standardModules[name] ?? {})),
@@ -865,6 +879,7 @@ function candidates(
 
 
 export interface SessionSnapshot {
+    callWords?: [string, string[]][];
     testExamples?: { path: string; examples: FunctionTestExample[] };
     diagnosticFacts?: [string, ValueFacts][];
     names: string[];
@@ -875,7 +890,8 @@ export interface SessionSnapshot {
 
 /** Editing needs names, not live values or sequence cursors. */
 export function sessionEditor(snapshot: SessionSnapshot, completeLoadPath: (text: string) => [string[], string] = text => [[], text]) {
-    const bindings = { variables: new Map(snapshot.names.map(name => [name, true])), modules: new Set(snapshot.modules) };
+    const bindings = { variables: new Map(snapshot.names.map(name => [name, true])), modules: new Set(snapshot.modules),
+        callWords: new Map(snapshot.callWords) };
     return {
         format(line: string): string {
             const formatted = formatLine(line);

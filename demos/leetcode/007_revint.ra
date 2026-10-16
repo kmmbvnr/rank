@@ -5,7 +5,7 @@ rem return 0 if it leaves 32-bit range
 rem Reverse the decimal digits of X.
 rem Check the 32-bit limit before adding
 rem each digit to the result.
-fun reverse X
+fun X reverse
   Sign = 1
 
   if X less 0

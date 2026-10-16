@@ -9,7 +9,7 @@ N bracket_count print
 
 
 rem Calculate a Catalan number.
-fun bracket_count N
+fun N bracket_count
   if N odd
     return 0
   end

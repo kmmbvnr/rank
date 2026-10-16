@@ -22,6 +22,6 @@ end
 Result = Result sort by .letter
 Result OutputPath csv
 
-fun initial Name
+fun Name initial
   return Name (0 till 1)
 end

@@ -24,7 +24,7 @@ Answers print
 
 
 rem Query heavy segments of each path.
-fun maximums Values Rooted Queries
+fun Values Rooted Queries maximums
   Entry = Rooted .entry
   Size = Values len
   Flat = array shape Size fill 0
@@ -50,7 +50,7 @@ end
 
 
 rem Climb one heavy path at a time.
-fun path_max Rooted Maxima A B
+fun Rooted Maxima A B path_max
   Heads = Rooted .head
   Depths = Rooted .depth
   Parents = Rooted .parent

@@ -3,7 +3,7 @@ use numbers
 use sequences
 use text
 
-fun romanText Number
+fun Number romanText
   N = Number integer
   if not Number is .integer
     N = (Number + 0.5) floor
@@ -25,7 +25,7 @@ fun romanText Number
   return Result
 end
 
-fun atoR Values
+fun Values atoR
   if Values is .array
     if (Values shape reduce *) equal 0
       Empty = array shape 0 fill ""
@@ -35,7 +35,7 @@ fun atoR Values
   return Values romanText rank 0
 end
 
-fun romanNumber Text
+fun Text romanNumber
   Digits = Text
   Sign = 1
   if Digits len greater 0
@@ -63,7 +63,7 @@ fun romanNumber Text
   return Sign * Total
 end
 
-fun rtoA Values
+fun Values rtoA
   if Values is .text
     return Values romanNumber
   end
@@ -76,11 +76,11 @@ end
 
 rem Box the numeric function in a tuple to pass it through data-first syntax.
 rem The derived function accepts one Roman operand or a tuple of two operands.
-fun roman Operation
+fun Operation roman
   op = (Operation 0)
   return derived
 
-  fun derived Arguments
+  fun Arguments derived
     if Arguments is .tuple
       unpack Left Right = Arguments
       A = Left rtoA

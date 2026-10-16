@@ -27,7 +27,7 @@ end
 
 
 rem Decide whether two permutations can have the requested scores.
-fun possible N A B
+fun N A B possible
   if A + B greater N
     return false
   end
@@ -41,7 +41,7 @@ end
 
 
 rem Shift the first A + B cards to give both players their wins.
-fun second N A B
+fun N A B second
   M = A + B
 
   for X in A + 1 to M

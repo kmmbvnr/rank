@@ -20,7 +20,7 @@ Submission OutputPath csv
 
 
 rem Train standardized linear regression with an intercept.
-fun linear X Y Rate Steps
+fun X Y Rate Steps linear
   unpack Rows Columns = X shape
   if Rows equal 0
     .DomainError raise
@@ -52,13 +52,13 @@ fun linear X Y Rate Steps
 end
 
 
-fun linear_predict X Model
+fun X Model linear_predict
   Z = (X - Model .center) / Model .scale
   return Z Model .weights matmul + Model .bias
 end
 
 
-fun predictall Train Test Rate Steps
+fun Train Test Rate Steps predictall
   Quality = Train .OverallQual median
   Area = Train .GrLivArea median
   Train .OverallQual = Train .OverallQual default Quality

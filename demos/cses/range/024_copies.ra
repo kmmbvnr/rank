@@ -25,7 +25,7 @@ Values Queries copies print
 
 
 rem Copy roots and path-copy on updates.
-fun copies Values Queries
+fun Values Queries copies
   Versions = new queue
   Versions push Values segment +
 

@@ -14,7 +14,7 @@ end
 
 
 rem Raise Base modulo the task modulus.
-fun power Base Exponent
+fun Base Exponent power
   Modulus = 1000000007
   return Base Exponent Modulus powmod
 end

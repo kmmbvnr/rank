@@ -93,7 +93,7 @@ for (const compiled of [true, false]) describe(`explicit conversions (compiled=$
         r.execute('cast = real\nCalls = array 0\nfun next\n Calls 0 += 1\n return 2\nend');
         expect(r.execute('next cast')).toBe(2);
         expect(r.execute('Calls 0')).toBe(1n);
-        expect(() => r.execute('fun real Value\n return Value + 10\nend')).toThrow('cannot redefine available builtin: real');
+        expect(() => r.execute('fun Value real\n return Value + 10\nend')).toThrow('cannot redefine available builtin: real');
         expect(r.execute('2 real')).toBe(2);
         expect(r.execute('2 cast')).toBe(2);
     });

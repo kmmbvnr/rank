@@ -42,10 +42,10 @@ for (const compiled of [true, false]) {
             const r = runtime();
             r.execute('total = sum');
             expect(r.execute('1 to 3 total')).toBe(6n);
-            expect(() => r.execute('fun sum Values\n return 99\nend')).toThrow('cannot redefine available builtin: sum');
+            expect(() => r.execute('fun Values sum\n return 99\nend')).toThrow('cannot redefine available builtin: sum');
             expect(r.execute('1 to 3 sum')).toBe(6n);
             expect(r.execute('1 to 3 total')).toBe(6n);
-            expect(() => r.execute('fun max A B\n return A + B\nend')).toThrow('cannot redefine available builtin: max');
+            expect(() => r.execute('fun A B max\n return A + B\nend')).toThrow('cannot redefine available builtin: max');
             expect(r.execute('3 4 max')).toBe(4n);
         });
 

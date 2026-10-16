@@ -11,14 +11,14 @@ Steps empty_text print
 
 
 rem Format the expected empty cells.
-fun empty_text Steps
+fun Steps empty_text
   Expected = Steps empty_cells
   return Expected text ".6f"
 end
 
 
 rem Combine all absence chances.
-fun empty_cells Steps
+fun Steps empty_cells
   Move = 8 transition_matrix
   Power = Move Steps matrix_power
   Absence = 1.0 - (Power transpose)
@@ -28,7 +28,7 @@ end
 
 
 rem Build the board transition matrix.
-fun transition_matrix Board
+fun Board transition_matrix
   Cells = Board ** 2
   Move = array shape Cells Cells fill 0.0
 
@@ -70,7 +70,7 @@ end
 
 
 rem Raise a real square matrix.
-fun matrix_power Base Exponent
+fun Base Exponent matrix_power
   Size = Base len
   Result = Size identity_real
 
@@ -87,7 +87,7 @@ end
 
 
 rem Construct a real identity matrix.
-fun identity_real Size
+fun Size identity_real
   Result = array shape Size Size fill 0.0
   for I in 0 till Size
     Result I I = 1.0

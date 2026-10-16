@@ -5,7 +5,7 @@ use numbers
 use sequences
 
 rem Approximate A X = B with N simultaneous Jacobi updates.
-fun jacobi A B N
+fun A B N jacobi
   unpack Rows Cols = A shape
   Size = B len
   if Rows not equal Cols or Rows not equal Size

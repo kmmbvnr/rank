@@ -10,7 +10,7 @@ Lower Upper count_numbers print
 
 
 rem Subtract two inclusive prefixes.
-fun count_numbers Lower Upper
+fun Lower Upper count_numbers
   High = Upper valid_up_to
   Low = Lower - 1 valid_up_to
   return High - Low
@@ -18,7 +18,7 @@ end
 
 
 rem Count values with no digit repeats.
-fun valid_up_to Limit
+fun Limit valid_up_to
   if Limit less 0
     return 0
   end
@@ -27,7 +27,7 @@ fun valid_up_to Limit
   Current = array shape 11 2 fill 0
   Current 10 1 = 1
 
-  fun add_state Prev Tight Maximum
+  fun Prev Tight Maximum add_state
     Ways = Current Prev Tight
     if Ways equal 0
       return 0

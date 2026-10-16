@@ -377,7 +377,7 @@ break, continue, to, till, rank-basics
 Define your own function.
 
 ```rank
-fun twice X
+fun X twice
   return X * 2
 end
 3 twice
@@ -390,7 +390,7 @@ end
 ### Usage
 
 ```text
-fun name Inputs
+fun Inputs name
   Statements
   return Value
 end
@@ -451,7 +451,7 @@ The second call returns the saved 9
 without computing it again.
 
 ```rank
-memo square N
+memo N square
   return N * N
 end
 3 square
@@ -465,7 +465,7 @@ end
 ### Usage
 
 ```text
-memo name Inputs
+memo Inputs name
   Statements
   return Value
 end
@@ -555,7 +555,7 @@ end, select, rank-basics
 Finish a function and give back a value.
 
 ```rank
-fun absolute X
+fun X absolute
   if X less 0
     return -X
   end
@@ -769,7 +769,7 @@ small array
 ### Usage
 
 ```text
-fun name Inputs
+fun Inputs name
   yield Value
 end
 ```

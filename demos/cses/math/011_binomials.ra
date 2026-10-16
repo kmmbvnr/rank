@@ -14,7 +14,7 @@ Queries binomials print
 
 
 rem Reuse cached modular factorials.
-fun binomials Queries
+fun Queries binomials
   Queue = new queue
   Mod = 1000000007
 

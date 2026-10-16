@@ -9,7 +9,7 @@ function evaluate(expression: string, a: RankValue, b: RankValue, enabled: boole
     const runtime = new Interpreter(undefined, { scalarEntryCompilation: false, scalarCompilation: enabled, tensorFusion: false,
         onScalarExecuted: () => entries++ });
     try {
-        runtime.execute(`fun calc A B\n  return ${expression}\nend`);
+        runtime.execute(`fun A B calc\n  return ${expression}\nend`);
         const fn = runtime.variables.get('calc');
         if (!fn || !isNativeFunction(fn)) throw new Error('missing calc');
         const value = fn.call([a, b]);
@@ -34,7 +34,7 @@ describe('compiled scalar expressions', () => {
     });
 
     it('preserves failure order before reading a later unknown name', () => {
-        const source = 'fun calc A B\n  return (A + B) * Missing\nend\n1 "text" calc';
+        const source = 'fun A B calc\n  return (A + B) * Missing\nend\n1 "text" calc';
         const errors = [false, true].map(scalarCompilation => {
             const runtime = new Interpreter(undefined, { scalarCompilation });
             try { runtime.execute(source); } catch (error) {
@@ -57,8 +57,8 @@ describe('compiled scalar expressions', () => {
     it('reuses generated code while binding separate local closures', () => {
         let compiled = 0, executed = 0;
         const runtime = new Interpreter(undefined, { onScalarCompiled: () => compiled++, onScalarExecuted: () => executed++ });
-        const value = runtime.execute(`fun outer A
-  fun inner X
+        const value = runtime.execute(`fun A outer
+  fun X inner
     return A * 2 + X
   end
   return 3 inner
@@ -97,7 +97,7 @@ describe('scalar-expression catalogue profiles', () => {
                 // This compiler deliberately requires at least two operations.
                 const expression = `${signature.result === 'boolean' ? 'not' : '+'} (${inner})`;
                 const a = values[signature.inputs[0]][0], b = values[signature.inputs[1] ?? signature.inputs[0]][1];
-                const statement = parse(`fun calc A B\nreturn ${expression}\nend`).statements[0];
+                const statement = parse(`fun A B calc\nreturn ${expression}\nend`).statements[0];
                 if (!isFunctionStatement(statement)) throw new Error('expected function');
                 const returned = statement.statements[0];
                 if (!isReturnStatement(returned) || !returned.value) throw new Error('expected return');
@@ -156,7 +156,7 @@ describe('resumable expression fallback', () => {
     it.each([
         `use io
 Count = 0
-fun tap X
+fun X tap
   Count += 1
   Count print
   return X
@@ -164,13 +164,13 @@ end
 Result = (2 tap) * 3 + (4 tap) * 5
 array Result Count`,
         `use io
-fun later X
+fun X later
   X print
   return X
 end
 (1 // 0) * 2 + (3 later) * 4`,
         `use io
-fun fail X
+fun X fail
   try
     return X // 0
   finally
@@ -179,7 +179,7 @@ fun fail X
 end
 (1 fail) * 2 + 3`,
         `use io
-fun forbidden X
+fun X forbidden
   X print
   return true
 end
@@ -199,10 +199,10 @@ it('keeps resumed child calls visible when inspection starts after preparation',
         onScalarExecuted: () => entries++,
     });
     try {
-        runtime.execute(`fun tap X
+        runtime.execute(`fun X tap
   return X
 end
-fun calc X
+fun X calc
   return (X tap) * 2 + 1
 end`);
         const calc = runtime.variables.get('calc');
@@ -223,7 +223,7 @@ it('resumes compiled arithmetic through 20000 non-tail recursive children', () =
         onScalarExecuted: () => entries++,
     });
     try {
-        expect(runtime.execute(`fun descend N
+        expect(runtime.execute(`fun N descend
   if N equal 0
     return 0
   end
@@ -235,7 +235,7 @@ end
 }, 30000);
 
 function scalarExpression(source: string) {
-    const statement = parse(`fun calc A B C D\nreturn ${source}\nend`).statements[0];
+    const statement = parse(`fun A B C D calc\nreturn ${source}\nend`).statements[0];
     if (!isFunctionStatement(statement)) throw new Error('expected function');
     const returned = statement.statements[0];
     if (!isReturnStatement(returned) || !returned.value) throw new Error('expected return');

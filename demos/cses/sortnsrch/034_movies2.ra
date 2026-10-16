@@ -14,7 +14,7 @@ Data K maximum_movies print
 
 
 rem Assign each movie to the latest free viewer.
-fun maximum_movies Data K
+fun Data K maximum_movies
   Begin = Data # 0
   Finish = Data # 1
   Order = Finish argsort

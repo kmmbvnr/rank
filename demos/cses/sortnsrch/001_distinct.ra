@@ -11,6 +11,6 @@ Values count_distinct print
 
 
 rem Count distinct values.
-fun count_distinct Values
+fun Values count_distinct
   return Values unique len
 end

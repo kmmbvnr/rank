@@ -8,7 +8,7 @@ N zeros print
 
 
 rem Count trailing zeroes in N factorial.
-fun zeros N
+fun N zeros
   Zeros = 0
 
   for N at least 5

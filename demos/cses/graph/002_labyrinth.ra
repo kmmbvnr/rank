@@ -21,7 +21,7 @@ end
 
 
 rem Find and rebuild a shortest path.
-fun labyrinth Grid
+fun Grid labyrinth
   H = Grid len
   W = Grid 0 len
   DYs = array -1 1 0 0

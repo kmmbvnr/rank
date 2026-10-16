@@ -17,6 +17,6 @@ Result = R select .memid .telephone
 Result = Result sort by .memid
 Result OutputPath csv
 
-fun hasparens Phone
+fun Phone hasparens
   return "(" in Phone or ")" in Phone
 end

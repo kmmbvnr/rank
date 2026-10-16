@@ -9,7 +9,7 @@ N grids print
 
 
 rem Average fixed colorings by rotation.
-fun grids N
+fun N grids
   Mod = 1000000007
   Cells = N * N
 

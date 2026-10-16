@@ -13,7 +13,7 @@ end
 
 
 rem Seek to the first prime after N.
-fun next_prime N
+fun N next_prime
   Candidates = primes from (N + 1)
   return Candidates 0
 end

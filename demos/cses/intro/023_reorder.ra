@@ -9,7 +9,7 @@ Text solve print
 
 
 rem Greedily choose the smallest safe letter, except when one count is forced.
-fun solve Text
+fun Text solve
   Index = new index
   Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   N = Text len

@@ -126,7 +126,7 @@ it('keeps dots at the left edge and fits three-digit notebook numbers', () => {
         expect(cellWidth(row.slice(0, row.indexOf(`V${number}`)))).toBe(6);
     }
     const continued = new Notebook();
-    continued.enqueue('fun f N\n  N + 1\nend');
+    continued.enqueue('fun N f\n  N + 1\nend');
     const rows = notebookFrame(continued, 46, 12).lines.map(stripAnsi);
     expect(rows.find(row => row.includes('N + 1'))).toBe('·       N + 1');
     const marked = notebookFrame(continued, 46, 12, 0, '', false, true, '', 'Running…',

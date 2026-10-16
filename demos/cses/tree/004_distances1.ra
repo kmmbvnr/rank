@@ -16,7 +16,7 @@ Tree tree_distances print
 
 
 rem Compare distances from both ends.
-fun tree_distances Tree
+fun Tree tree_distances
   First = Tree 1 bfs
   A = First .order last
   FromA = Tree A bfs

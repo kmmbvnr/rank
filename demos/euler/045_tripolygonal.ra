@@ -11,7 +11,7 @@ Answer print
 
 rem Every hexagonal number is triangular, so
 rem merge only hexagonal and pentagonal values.
-fun common_polygonal HexIndex PentIndex
+fun HexIndex PentIndex common_polygonal
   Hex = HexIndex hexagonal
   Pent = PentIndex pentagonal
 
@@ -29,12 +29,12 @@ end
 
 
 rem Return one hexagonal sequence value.
-fun hexagonal N
+fun N hexagonal
   return N * (2 * N - 1)
 end
 
 
 rem Return one pentagonal sequence value.
-fun pentagonal N
+fun N pentagonal
   return N * (3 * N - 1) // 2
 end

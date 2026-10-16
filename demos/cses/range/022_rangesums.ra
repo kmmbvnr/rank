@@ -25,7 +25,7 @@ Values Queries range_updates print
 
 
 rem Apply inclusive range operations.
-fun range_updates Values Queries
+fun Values Queries range_updates
   Tree = Values segment +
   for Query in Queries
     Type = Query 0

@@ -11,7 +11,7 @@ end
 
 
 rem Count nonattacking placements of two knights on a K by K board.
-fun knights K
+fun K knights
   Squares = K * K
   Total = Squares * (Squares - 1) // 2
   Attacking = 4 * (Squares - 3 * K + 2)

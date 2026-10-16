@@ -12,7 +12,7 @@ Answer print
 
 rem Test every shorter decimal prefix and
 rem suffix through optimized prime membership.
-fun truncatable_prime_sum Limit
+fun Limit truncatable_prime_sum
   Total = 0
   Found = 0
   for Value in primes till Limit
@@ -32,7 +32,7 @@ end
 
 rem Check all proper decimal prefixes and
 rem suffixes of one known prime.
-fun truncatable_prime Value
+fun Value truncatable_prime
   Text = Value text
   Length = Text len
   for Drop in 1 till Length

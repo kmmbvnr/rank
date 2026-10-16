@@ -134,7 +134,7 @@ describe('the value viewer', () => {
 
     it('offers nothing to read for a sequence that has ended, and m does nothing', async () => {
         const { session, viewer, press, screen } = await opened(60, 12, {},
-            'fun upto N\n for I in 1 to N\n  yield I\n end\nend', 'S = 5 upto');
+            'fun N upto\n for I in 1 to N\n  yield I\n end\nend', 'S = 5 upto');
         try {
             expect(viewer.view).toMatchObject({ kind: 'list' });
             expect(viewer.view.kind === 'list' && viewer.view.more).toBeUndefined();

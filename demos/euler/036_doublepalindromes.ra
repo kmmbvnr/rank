@@ -17,7 +17,7 @@ Answer print
 
 rem Even positive values end in binary zero,
 rem so only odd candidates can qualify.
-fun double_palindrome_sum Limit
+fun Limit double_palindrome_sum
   Total = 0
   for Value in 1 till Limit by 2
     Decimal = Value text

@@ -16,7 +16,7 @@ Params print
 
 
 rem Attributes of BuyRentParams as numbers.
-fun getparams Text
+fun Text getparams
   Fields = (
     "HomePrice ClosingCosts LoanTerm "
     + "BankAmount BankRate DadAmount "

@@ -19,7 +19,7 @@ W Weights Values max_value print
 
 rem Track the minimum weight for each achievable total value instead of the
 rem other way around, since the capacity can be far larger than the value sum.
-fun max_value W Weights Values
+fun W Weights Values max_value
   TotalValue = Values sum
   Inf = 1000000000000000000
   Size = TotalValue + 1

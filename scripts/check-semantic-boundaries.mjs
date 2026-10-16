@@ -8,6 +8,10 @@ const runtime = resolve(root, 'packages/interpreter/src');
 const owners = new Set([
     'packages/language/src/application-forms.ts',
     'packages/language/src/function-call-signature.ts',
+    'packages/language/src/call-words.ts',
+    'packages/language/src/declared-calls.ts',
+    'packages/language/src/function-declaration.ts',
+    'packages/language/src/signature-lexer.ts',
     'packages/language/src/function-pipeline.ts',
     'packages/language/src/builtin-bindings.ts',
     'packages/language/src/binding-rule.ts',

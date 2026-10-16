@@ -25,7 +25,7 @@ cells of A, in row-major order, as A was when the mask was made.
 Consult the parsed
 syntax below for grouping; do not infer grouping from whitespace alone.
 
-`fun palindrome X ... return Value ... end` declares a function of X. Function
+`fun X palindrome ... return Value ... end` declares a function of X. Function
 declarations can appear after their calls. A name holds its own value: `B = A`,
 passing an argument and `yield` each give the receiver a value, so no write can
 reach another name's data and a function cannot change what its caller passed.

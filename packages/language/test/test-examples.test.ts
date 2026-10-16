@@ -20,7 +20,7 @@ it('extracts arguments and expectations without running the test', () => {
     expect(result[0]).toMatchObject({ name: 'addone', arguments: [{ types: ['integer'] }], expected: { types: ['integer'] }, test: 'one', line: 5 });
 });
 it('extracts tests in the same file without an import', () => {
-    const source = 'fun addone X\n return X + 1\nend\ntest "local"\n Result = 3 addone\n Result equal 4\n (2 unrelated) equal "ignored"\nend';
+    const source = 'fun X addone\n return X + 1\nend\ntest "local"\n Result = 3 addone\n Result equal 4\n (2 unrelated) equal "ignored"\nend';
     expect(examples(source, null)).toMatchObject([{ name: 'addone', expected: { types: ['integer'] }, line: 6 }]);
     expect(examples(source.replace('Result =', 'use "other"\n Result ='), null)).toEqual([]);
 });
@@ -53,8 +53,8 @@ it('attributes a shape-preserving assertion to the imported function, not round'
 });
 
 describe('records built by the tested module', () => {
-    const module = 'fun make N\n return record\n .weights = array shape N N fill 0.0\n .count = 1\n end\nend\n'
-        + 'fun predict Model X\n W = Model .weights\n Model .count = 2\n return X W matmul\nend\n';
+    const module = 'fun N make\n return record\n .weights = array shape N N fill 0.0\n .count = 1\n end\nend\n'
+        + 'fun Model X predict\n W = Model .weights\n Model .count = 2\n return X W matmul\nend\n';
     const tests = (body: string) => 'test "t"\n use "m"\n use linalg\n Model = 2 make\n' + body + '\nend';
     const run = (body: string) => {
         const imported = services.Rank.parser.LangiumParser.parse<Program>(module);
@@ -103,19 +103,19 @@ describe('matrix predictions from record fields', () => {
     const matrix: ValueFacts = { types: ['array'], rank: 2, shape: [4, 3], elements: ['real'], eagerScalarCells: true };
 
     it('reads a field in the middle of an application', () => {
-        expect(analyze('use linalg\nfun f X Model\n return X Model .weights matmul + Model .bias\nend', matrix, model))
+        expect(analyze('use linalg\nfun X Model f\n return X Model .weights matmul + Model .bias\nend', matrix, model))
             .toMatchObject({ types: ['array'], rank: 1, shape: [4] });
     });
 
     it('keeps the array result after writing a different field first', () => {
         const layer: ValueFacts = { ...model, fields: { ...model.fields,
             input: { types: ['array'], rank: 2, shape: [null, null] } } };
-        expect(analyze('use linalg\nfun f Layer X\n Layer .input = X\n W = Layer .weights\n return X W matmul\nend',
+        expect(analyze('use linalg\nfun Layer X f\n Layer .input = X\n W = Layer .weights\n return X W matmul\nend',
             layer, matrix)).toMatchObject({ types: ['array'], rank: 1 });
     });
 
     it('selects numeric cells by a boolean mask with the broadcast shape', () => {
-        const source = 'use numbers\nuse sequences\nuse stats\nfun f X\n Std = X std axis 0\n'
+        const source = 'use numbers\nuse sequences\nuse stats\nfun X f\n Std = X std axis 0\n'
             + ' return (Std equal 0) 1.0 Std choose\nend';
         expect(analyze(source, matrix)).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['real'] });
         expect(analyze(source, { ...matrix, elements: ['integer'] })).toMatchObject({ types: ['array'], rank: 1,
@@ -124,14 +124,14 @@ describe('matrix predictions from record fields', () => {
     });
 
     it('keeps the selected scalar branch facts but leaves unsupported array masks unknown', () => {
-        const scalarMask = 'use sequences\nfun f A B\n return true A B choose\nend';
+        const scalarMask = 'use sequences\nfun A B f\n return true A B choose\nend';
         expect(analyze(scalarMask, matrix, matrix)).toMatchObject({ types: ['array'], rank: 2, shape: [4, 3] });
-        const textBranch = 'use sequences\nuse numbers\nfun f A\n return (A equal 0) "x" A choose\nend';
+        const textBranch = 'use sequences\nuse numbers\nfun A f\n return (A equal 0) "x" A choose\nend';
         expect(analyze(textBranch, { types: ['array'], rank: 1, shape: [3], elements: ['integer'] }).types).toEqual([]);
     });
 
     it('does not group a label after a name with no proven record field', () => {
-        const source = 'use linalg\nfun f X Model\n return X Model .weights matmul\nend';
+        const source = 'use linalg\nfun X Model f\n return X Model .weights matmul\nend';
         expect(analyze(source, matrix, { ...model, fields: { bias: model.fields!.bias } }).rank).toBeUndefined();
         expect(analyze(source, matrix, { types: [] }).rank).toBeUndefined();
     });

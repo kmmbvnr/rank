@@ -143,7 +143,7 @@ describe('shared expression grouping', () => {
         });
 
         it('leaves a program binding of the operation alone', async () => {
-            const bound = 'fun scan X\n  return X\nend\n';
+            const bound = 'fun X scan\n  return X\nend\n';
             const named = await grouped(`${bound}A scan next with Start`);
             expect(named.messages).toEqual([]);
             expect(named.tree).toBe('[[[[A scan] next] with] Start]');

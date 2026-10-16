@@ -3,7 +3,7 @@ use bits
 use algo
 use sequences
 
-fun adjacent Position Height Width
+fun Position Height Width adjacent
   Row = Position // Width
   Column = Position mod Width
   if Row greater 0
@@ -20,7 +20,7 @@ fun adjacent Position Height Width
   end
 end
 
-fun seaSquare Flat Height Width
+fun Flat Height Width seaSquare
   for Row in 0 till (Height - 1)
     for Column in 0 till (Width - 1)
       P = Row * Width + Column
@@ -33,7 +33,7 @@ fun seaSquare Flat Height Width
   return false
 end
 
-fun valid Board
+fun Board valid
   Shape = Board shape
   if (Shape len) not equal 2
     return 0
@@ -102,7 +102,7 @@ fun valid Board
 end
 
 rem Connected island placements encoded as arbitrary-width integer bit masks.
-fun islandOptions Flat Root Height Width
+fun Flat Root Height Width islandOptions
   Target = Flat Root
   Allowed = array shape (Height * Width) fill true
   for Clue Position in Flat
@@ -158,7 +158,7 @@ fun islandOptions Flat Root Height Width
   end
 end
 
-fun islandGroups Flat Height Width
+fun Flat Height Width islandGroups
   for Clue Root in Flat
     if Clue greater 0
       yield record
@@ -169,12 +169,12 @@ fun islandGroups Flat Height Width
   end
 end
 
-fun choiceCount Group
+fun Group choiceCount
   return Group .choices len
 end
 
 rem Cells outside all remaining placements are forced sea.
-fun canFinish Groups Index White Blocked Flat Height Width
+fun Groups Index White Blocked Flat Height Width canFinish
   Possible = White
   for Group in Groups drop Index
     Count = 0
@@ -223,7 +223,7 @@ fun canFinish Groups Index White Blocked Flat Height Width
   return true
 end
 
-fun solvedBoard Flat White Height Width
+fun Flat White Height Width solvedBoard
   Result = Flat copy
   for Cell Position in Result
     if not White Position bit
@@ -233,7 +233,7 @@ fun solvedBoard Flat White Height Width
   return Result reshape Height Width
 end
 
-fun solveIslands Groups Index White Blocked Flat Height Width
+fun Groups Index White Blocked Flat Height Width solveIslands
   if not Groups Index White Blocked Flat Height Width canFinish
     return -1
   end
@@ -259,7 +259,7 @@ fun solveIslands Groups Index White Blocked Flat Height Width
   return -1
 end
 
-fun nurikabe Puzzle
+fun Puzzle nurikabe
   Shape = Puzzle shape
   if (Shape len) not equal 2
     .InvalidPuzzle "Nurikabe requires an integer matrix" raise

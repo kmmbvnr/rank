@@ -1,8 +1,11 @@
+import { functionDeclarationErrors } from './function-declaration.js';
+import { groupDeclaredCalls } from './declared-calls.js';
+import type { FunctionCallSignature } from './function-call-signature.js';
 import { prepareFunctionBindings, functionBindingPlan } from './function-binding.js';
 import { groupModifiers } from './modifier-grouping.js';
 import { AstUtils, GrammarUtils, isAstNode, type AstNode, type CstNode } from 'langium';
 import {
-    isApplicationExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isHigherOrderOperator, isMaterializeExpression,
+    isFunctionStatement, isApplicationExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isHigherOrderOperator, isMaterializeExpression,
     isLabelLiteral, isNameExpression, type HigherOrderOperator,
     type BinaryExpression, type Expression, type NameExpression, type Program,
 } from './generated/ast.js';
@@ -10,7 +13,6 @@ import { analyzeBindings } from './analysis/bindings.js';
 import { flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped } from './expressions.js';
 import { findOperation, operationArities } from './operations.js';
 import { splitClauseConditions } from './clause-conditions.js';
-import { resolveOperationAssignments } from './operation-assignment.js';
 
 // A comparison takes one operand on each side and binds below arithmetic, so
 // calls after it apply to its result, as on a calculator: `A greater 2 sum`.
@@ -47,8 +49,10 @@ export interface GroupingDiagnostic {
 const annotations = Symbol('grouping annotations');
 const grouping = Symbol('grouped program');
 interface ExpressionAnnotations {
+    readonly bound?: boolean;
     readonly callable?: boolean;
     readonly arities?: readonly number[];
+    readonly callSignature?: FunctionCallSignature;
     readonly directName?: boolean;
     readonly dataOperand?: boolean;
 }
@@ -84,6 +88,8 @@ function attachedSign(expression: BinaryExpression): boolean {
 }
 
 export interface GroupingOptions {
+    readonly loadModule?: (path: string) => Program | undefined;
+    readonly signatures?: ReadonlyMap<string, FunctionCallSignature>;
     /** Signatures from earlier REPL inputs; false marks a data binding. */
     readonly bindings?: ReadonlyMap<string, readonly number[] | false>;
     readonly modules?: ReadonlySet<string>;
@@ -101,8 +107,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
     for (const node of AstUtils.streamAllContents(program)) {
         if (isExpression(node)) delete (node as AnnotatedExpression)[annotations];
     }
-    resolveOperationAssignments(program, options);
-    prepareFunctionBindings(program, options.bindings);
+    prepareFunctionBindings(program, options.bindings, options.signatures);
     const errors: GroupingDiagnostic[] = [];
     const result: GroupedProgram = { program, diagnostics: errors };
     (program as AnnotatedProgram)[grouping] = result;
@@ -113,18 +118,22 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
     const unresolved: NameExpression[] = [];
     const facts = analyzeBindings(program, [], externalFunctions, (node, binding) => {
         if (!isNameExpression(node)) return;
-        if (!binding) { unresolved.push(node); return; }
+        if (!binding || binding.kind === 'module') { unresolved.push(node); return; }
         annotate(node, {
+            bound: true,
             callable: (binding.kind === 'function' || binding.types.includes('function')) && !binding.arities?.includes(0),
             arities: binding.arities,
+            callSignature: binding.callSignature,
             directName: !binding.arities?.includes(0),
         });
-    });
+    }, options.signatures);
     // Source-module functions need not be loaded to group their calls.
     const words = new Set(facts.words.map(word => word.name));
     for (const node of unresolved) {
         if (!options.bindings?.has(node.name) && words.has(node.name) && /^[a-z]/.test(node.name.split('.').at(-1)!)) annotate(node, { callable: true });
     }
+    const declaredSignature = (part: Expression): FunctionCallSignature | undefined =>
+        metadata(part).callSignature ?? (isNameExpression(part) && !metadata(part).bound ? options.signatures?.get(part.name) : undefined);
     const callable = (part: Expression): boolean => {
         if (!isNameExpression(part)) return false;
         const bound = metadata(part).callable;
@@ -194,6 +203,9 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                 const parts = flatten(signed[0].value);
                 const negated = { $type: 'UnaryExpression', operator: '-', operand: parts[0],
                     $cstNode: parts[0].$cstNode } as Expression;
+                if (flatten(expression.left).some(part => declaredSignature(part))) {
+                    return [...tokens(application([...flatten(expression.left), negated, ...parts.slice(1)], expression)), ...signed.slice(1)];
+                }
                 const left = tokens(expression.left);
                 const final = left.at(-1);
                 if (final?.kind === 'call') {
@@ -221,7 +233,8 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             return [...tokens(expression.source), { kind: 'materialize', original: expression }];
         }
         if (isApplicationExpression(expression)) {
-            const raw = flatten(expression);
+            const raw = groupDeclaredCalls(flatten(expression),
+                declaredSignature, callable, (part, message) => report(part, message));
             const joined = raw.findIndex(part => isHigherOrderOperator(part));
             if (joined > 0) {
                 // `A scan + with 0` is the call form `A scan + with 0` that grouping and execution share.
@@ -362,6 +375,9 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         return { ...values[0], $cstNode: expression.$cstNode } as Expression;
     }
     function visitChildren(node: AstNode): AstNode {
+        if (isFunctionStatement(node)) {
+            for (const message of functionDeclarationErrors(node)) report(node, message);
+        }
         if (isFunctionBindingStatement(node)) {
             const plan = functionBindingPlan(node);
             if (plan.error) report(node, plan.error);

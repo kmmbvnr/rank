@@ -11,7 +11,7 @@ A K minimum_largest_sum print
 
 
 rem Find the smallest feasible part limit.
-fun minimum_largest_sum A K
+fun A K minimum_largest_sum
   Low = A max
   High = A sum
 

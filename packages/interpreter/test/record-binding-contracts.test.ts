@@ -53,13 +53,13 @@ for (const compiled of [true, false]) describe(`record binding contracts (compil
     });
     it('checks parameters, local slots and captured rebindings', () => {
         const r = runtime();
-        r.execute(`fun change R\n R = ${record('.y = 2')}\nend\nR = ${record('.x = 1')}`);
+        r.execute(`fun R change\n R = ${record('.y = 2')}\nend\nR = ${record('.x = 1')}`);
         expect(() => r.execute('R change')).toThrow(/cannot receive/);
         expect(() => r.execute(`fun outer\n R = ${record('.x = 1')}\n fun change_local\n R = ${record('.y = 2')}\n end\n change_local\nend\nouter`)).toThrow(/cannot receive/);
     });
     it('allows stateful closures and fresh schemas on separate invocations', () => {
         const r = runtime();
-        r.execute(`fun identity R\n R = R\n return R\nend\nA = ${record('.x = 1')}\nB = ${record('.y = 2')}\nC = A identity\nD = B identity`);
+        r.execute(`fun R identity\n R = R\n return R\nend\nA = ${record('.x = 1')}\nB = ${record('.y = 2')}\nC = A identity\nD = B identity`);
         expect(r.execute('D .y')).toBe(2n);
         expect(r.execute(`fun outer\n R = ${record('.x = 1')}\n fun increment\n R = ${record('.x = R .x + 1')}\n return R .x\n end\n increment\n increment\n return R .x\nend\nouter`)).toBe(3n);
     });

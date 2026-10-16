@@ -1,7 +1,7 @@
 import { valueElementContracts } from './array-binding-contract.js';
 import { freshDim } from './shape-index.js';
 import {
-    isTupleExpression, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral, isMaterializeExpression,
+    isDeclaredCallExpression, isFunctionOperator, isTupleExpression, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral, isMaterializeExpression,
     isFirstIndexWhereExpression, isFirstWhereExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
     isNumberLiteral,
     isParenthesizedExpression, isRecordExpression, isRecordUpdateExpression, isStdinExpression, isStringLiteral,
@@ -35,6 +35,12 @@ export function expressionFacts(expression: Expression, lookup: FactLookup): Val
 }
 
 function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
+    if (isFunctionOperator(expression)) return { types: ['function'] };
+    if (isDeclaredCallExpression(expression)) {
+        const inputs = expression.arguments.map(argument => expressionFacts(argument, lookup));
+        return !expression.ranks.length && !expression.axes.length && isNameExpression(expression.callee)
+            ? lookup.invoke?.(expression.callee.name, inputs) ?? UNKNOWN_VALUE : UNKNOWN_VALUE;
+    }
     if (isParenthesizedExpression(expression)) return expressionFacts(expression.value, lookup);
     if (isNameExpression(expression)) {
         const value = lookup(expression.name);

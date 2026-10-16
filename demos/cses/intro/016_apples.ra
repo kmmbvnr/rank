@@ -10,14 +10,14 @@ Weights solve print
 
 
 rem Find the minimum difference between the weights of two groups.
-fun solve Weights
+fun Weights solve
   Total = Weights sum
   N = Weights len
 
   return 1 (Weights 0) divide
 
   rem Try both groups for every apple after the first one.
-  fun divide Pos Left
+  fun Pos Left divide
     if Pos equal N
       Difference = Total - 2 * Left
       return Difference abs

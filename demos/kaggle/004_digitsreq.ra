@@ -19,7 +19,7 @@ Submission OutputPath csv
 
 
 rem Use CSV headers to retain pixel order in both files.
-fun solve_table Train Test
+fun Train Test solve_table
   Labels = Train labels
   Mask = Labels not equal .label
   Features = (Labels Mask) array
@@ -35,7 +35,7 @@ fun solve_table Train Test
 end
 
 
-fun centroids X Y Classes
+fun X Y Classes centroids
   unpack Rows Cols = X shape
   if Y len not equal Rows
     .DimensionMismatch raise
@@ -54,7 +54,7 @@ fun centroids X Y Classes
 end
 
 
-fun classify X Centers Classes
+fun X Centers Classes classify
   unpack Rows Cols = X shape
   Pred = array shape Rows fill 0
   for Row in 0 till Rows
@@ -68,7 +68,7 @@ fun classify X Centers Classes
 end
 
 
-fun solve X Y Xtest Classes
+fun X Y Xtest Classes solve
   Pixels = (X real rank 0) / 255.0
   TestPixels = (Xtest real rank 0) / 255.0
   Centers = Pixels Y Classes centroids

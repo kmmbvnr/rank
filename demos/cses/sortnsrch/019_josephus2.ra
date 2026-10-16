@@ -11,7 +11,7 @@ N K josephus print
 
 
 rem Remove every K-skipped child in order.
-fun josephus N K
+fun N K josephus
   Queue = new queue
   Kids = 1 to N multiset
   Pos = 0

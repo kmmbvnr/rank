@@ -12,7 +12,7 @@ X P longest_gaps print
 
 
 rem Find the longest segment after each light.
-fun longest_gaps Length Positions
+fun Length Positions longest_gaps
   Queue = new queue
   Lights = new multiset
   Gaps = new multiset

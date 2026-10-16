@@ -1,6 +1,6 @@
 import { AstUtils } from 'langium';
 import {
-    isTupleExpression, isApplicationExpression, isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement,
+    isTupleExpression, isDeclaredCallExpression, isFunctionOperator, isApplicationExpression, isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement,
     isBinaryExpression, isBooleanLiteral, isBreakStatement, isContinueStatement, isExpressionStatement,
     isForStatement, isFunctionStatement, isIfStatement, isLabelLiteral, isAllAxisExpression,
     isOperationAssignmentStatement,
@@ -484,6 +484,11 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
             return true;
         };
         const expression = (value: Expression): boolean => {
+            if (isFunctionOperator(value)) return true;
+            if (isDeclaredCallExpression(value)) {
+                return !value.ranks.length && !value.axes.length && isNameExpression(value.callee)
+                    && propagate(value.callee.name, value.arguments);
+            }
             if (isNameExpression(value)) {
                 if (localFunctions.has(value.name)) return propagate(value.name, []);
                 if (locals.has(value.name)) return true;

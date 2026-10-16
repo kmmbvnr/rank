@@ -30,7 +30,7 @@ function compare(source: string, input = '') {
 // all rather than any: this is a pipeline compiler, not a Stick Game rewrite.
 const probe = `use sequences
 use io
-fun probe A B Limit
+fun A B Limit probe
   Result = false
   for Tick in 1 to 2
     Mask = A less Limit
@@ -110,7 +110,7 @@ describe('tensor pipeline fusion', () => {
         expect(compare(source).kernels).toBe(0);
     });
     it('retains custom reduction dispatch', () => {
-        const source = probe.replace('fun probe', 'fun all V\n  return false\nend\nfun probe');
+        const source = probe.replace('fun A B Limit probe', 'fun V all\n  return false\nend\nfun A B Limit probe');
         expect(compare(source).kernels).toBe(0);
     });
     it('does not force a lazy input while guarding', () => {
@@ -161,7 +161,7 @@ describe('tensor pipeline fusion', () => {
         const source = `use numbers
 use stats
 use io
-fun calculate A B
+fun A B calculate
   Difference = A - B
   Squared = Difference * Difference
   Result = Squared ${reducer}
@@ -177,7 +177,7 @@ A B calculate print`;
     it('combines inline row addressing and a dot product', () => {
         const source = `use numbers
 use io
-fun rows A X
+fun A X rows
   Result = 0.0
   for I in 0 till 2
     S = (A I * X) sum
@@ -202,7 +202,7 @@ A X rows print`;
     });
     it('reuses a tensor body across integer and real calls without fixing an unknown input domain', () => {
         const result = compare(`use io
-fun total Values
+fun Values total
   Scaled = Values + Values
   return Scaled sum
 end
@@ -257,7 +257,7 @@ S print`);
     });
     it('does not accept multidimensional gather selectors', () => {
         const source = `use numbers
-fun f A I
+fun A I f
   V = A I
   S = (V * 2) sum
   return S
@@ -290,7 +290,7 @@ S`);
             const cells = values.map(value => `(${sample % 2 ? value.toFixed(3) : value})`).join(' ');
             const source = `use numbers
 use stats
-fun f A
+fun A f
   Shifted = A + ${sample % 2 ? '3.0' : '3'}
   Product = Shifted * A
   Result = Product ${sample % 2 ? 'mean' : 'sum'}
@@ -317,7 +317,7 @@ A f`;
     });
     it('does not hide scalar errors behind an empty filter', () => {
         const result = compare(`use numbers
-fun f A
+fun A f
   Mask = A greater 10
   Selected = A Mask
   Values = (1 / 0) * Selected
@@ -377,7 +377,7 @@ Answer
 describe('tensor return terminals', () => {
     it('fuses a named pipeline ending in return', () => {
         const result = compare(`use numbers
-fun squares A
+fun A squares
   Squared = A * A
   return Squared sum
 end
@@ -391,7 +391,7 @@ A squares
     it('fuses inline returns and still executes finally', () => {
         const result = compare(`use numbers
 use io
-fun squares A
+fun A squares
   try
     return (A * A) sum
   finally
@@ -408,15 +408,15 @@ A squares
 
     it.each([
         'use numbers\nA = array 1 2\nreturn (A * A) sum',
-        'use numbers\nfun bad A\n  try\n    return 1\n  finally\n    return (A * A) sum\n  end\nend\nA = array 1 2\nA bad',
-        'use numbers\nfun bad A\n  yield 1\n  return (A * A) sum\nend\nA = array 1 2\nB = A bad\nB array',
+        'use numbers\nfun A bad\n  try\n    return 1\n  finally\n    return (A * A) sum\n  end\nend\nA = array 1 2\nA bad',
+        'use numbers\nfun A bad\n  yield 1\n  return (A * A) sum\nend\nA = array 1 2\nB = A bad\nB array',
     ])('preserves invalid return diagnostics', source => {
         expect(compare(source)).toHaveProperty('error');
     });
 
     it('preserves reducer failures at the return statement', () => {
         const result = compare(`use numbers
-fun bad A
+fun A bad
   return (A / 0) sum
 end
 A = array 1 2
@@ -430,7 +430,7 @@ describe('text digits inside tensor kernels', () => {
     const program = `use text
 use numbers
 use io
-fun digitpowers N Power
+fun N Power digitpowers
   Text = N text
   Digits = Text integer rank 0
   Powers = Digits ** Power
@@ -452,7 +452,7 @@ end
     it.each(['""', '"00012"'])('reduces digit text %s', input => {
         const source = `use text
 use numbers
-fun digitpowers Text
+fun Text digitpowers
   Digits = Text integer rank 0
   Shifted = Digits + 1
   return Shifted sum
@@ -469,18 +469,18 @@ ${input} digitpowers`;
     });
 
     it('retains a user custominteger function under rank 0', () => {
-        const source = program.replace(/\binteger\b/g, 'custominteger').replace('fun digitpowers N Power', `fun custominteger X
+        const source = program.replace(/\binteger\b/g, 'custominteger').replace('fun N Power digitpowers', `fun X custominteger
   return 2
 end
-fun digitpowers N Power`);
+fun N Power digitpowers`);
         expect(compare(source)).toMatchObject({ value: '64' });
     });
 
     it('retains a user customtext function before the digit pipeline', () => {
-        const source = program.replace(/\btext\b/g, 'customtext').replace('use customtext', 'use text').replace('fun digitpowers N Power', `fun customtext X
+        const source = program.replace(/\btext\b/g, 'customtext').replace('use customtext', 'use text').replace('fun N Power digitpowers', `fun X customtext
   return "99"
 end
-fun digitpowers N Power`);
+fun N Power digitpowers`);
         expect(compare(source)).toMatchObject({ value: '13122' });
     });
 
@@ -494,7 +494,7 @@ fun digitpowers N Power`);
 it('fuses an inline literal digit conversion and reduction', () => {
     expect(compare(`use text
 use numbers
-fun answer Unused
+fun Unused answer
   return "1203" integer rank 0 sum
 end
 0 answer`)).toMatchObject({ value: '6', kernels: 1 });

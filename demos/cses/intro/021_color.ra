@@ -16,7 +16,7 @@ end
 
 
 rem Use disjoint two-color palettes on the two checkerboard parities.
-fun solve Grid
+fun Grid solve
   Rows = Grid len
   Answer = array shape Rows fill ""
 

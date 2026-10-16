@@ -15,7 +15,7 @@ Values Queries intervals print
 
 
 rem Count each index-value rectangle.
-fun intervals Values Queries
+fun Values Queries intervals
   Data = Values wavelet
   Answers = array shape (Queries len) fill 0
   for Query I in Queries

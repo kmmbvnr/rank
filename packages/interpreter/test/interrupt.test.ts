@@ -143,7 +143,7 @@ describe('interactive host cancellation', () => {
     it('switches a cached fused tensor between ordinary and interactive execution', () => {
         const generated: string[] = [];
         const runtime = new Interpreter(undefined, { onTensorKernelCompiled: source => generated.push(source) });
-        runtime.execute('use numbers\nfun squares A\n  Squared = A * A\n  return Squared sum\nend');
+        runtime.execute('use numbers\nfun A squares\n  Squared = A * A\n  return Squared sum\nend');
         const input = vector(8192);
         runtime.variables.set('A', input);
         try {

@@ -15,10 +15,10 @@ describe('function identity', () => {
     it('compares user functions and aliases by identity, not source or results', () => {
         const runtime = new Interpreter();
         runtime.execute(`
-fun first X
+fun X first
   return X + 1
 end
-fun second X
+fun X second
   return X + 1
 end
 f = first
@@ -27,15 +27,15 @@ f = first
         expect(runtime.execute('f equal first')).toBe(true);
         expect(runtime.execute('first equal second')).toBe(false);
         runtime.forgetBindings(['first']);
-        runtime.execute('fun first X\n return X + 1\nend');
+        runtime.execute('fun X first\n return X + 1\nend');
         expect(runtime.execute('f equal first')).toBe(false);
     });
 
     it('keeps separate closure instances distinct even with equal captures', () => {
         const runtime = new Interpreter();
         runtime.execute(`
-fun make Base
-  fun add X
+fun Base make
+  fun X add
     return Base + X
   end
   return add

@@ -15,7 +15,7 @@ Values Queries missing_queries print
 
 
 rem Grow the constructible prefix.
-fun missing_queries Values Queries
+fun Values Queries missing_queries
   Data = Values wavelet
   return Data (Queries - 1) missing
 end

@@ -41,7 +41,7 @@ test('an open top-level if previews its conditions and only the selected branch'
 test('a function previews if lines with its example and skips inactive nested code', async () => {
     const s = scenario();
     try {
-        await s.line('fun decide X');
+        await s.line('fun X decide');
         s.repl.exampleEditor.insert('2');
         await s.repl.submit();
 
@@ -221,7 +221,7 @@ test('a condition-controlled loop previews at most one iteration', async () => {
 test('a nested if follows the selected function-loop iteration', async () => {
     const s = scenario();
     try {
-        await s.line('fun inspect N');
+        await s.line('fun N inspect');
         s.repl.exampleEditor.insert('3');
         await s.repl.submit();
         await s.line('for I in 1 to N');

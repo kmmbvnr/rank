@@ -16,7 +16,7 @@ Part2 print
 
 
 rem Parse the boss description and find the cheapest win and dearest loss.
-fun solveinput Lines
+fun Lines solveinput
   Pattern = "/text: /integer"
   unpack Name BossHP = Lines 0 Pattern parse
   unpack Name BossDamage = Lines 1 Pattern parse
@@ -27,7 +27,7 @@ end
 
 
 rem Try every legal equipment set. Two zero rings represent choosing none.
-fun solve Boss
+fun Boss solve
   Weapons = array shape 5 3
     8 4 0
     10 5 0
@@ -83,7 +83,7 @@ end
 
 
 rem Compare the number of turns each fighter needs to defeat the other.
-fun wins Stats Boss
+fun Stats Boss wins
   unpack Cost Damage Defense = Stats
   unpack BossHP BossDamage BossArmor = Boss
 

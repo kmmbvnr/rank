@@ -11,7 +11,7 @@ Machines Target minimum_time print
 
 
 rem Find the first sufficient time.
-fun minimum_time Machines Target
+fun Machines Target minimum_time
   Low = 0
   High = Machines min * Target
 

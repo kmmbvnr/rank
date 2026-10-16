@@ -34,6 +34,26 @@ interface KeyedReachExpression extends Expression {
     to: LabelLiteral
 }
 
+interface DeclaredCallExpression extends Expression {
+    callee: Expression
+    arguments: Expression[]
+    dataParameters: number[]
+    ranks: Expression[]
+    axes: Expression[]
+}
+
+interface FunctionStatement {
+    name: string
+    memo: boolean
+    leftParameters: string[]
+    rightParameters: string[]
+    parameters: string[]
+    groups: FunctionCallGroup[]
+    ranks: string[]
+    statements: Statement[]
+    expressionBody?: Expression
+}
+
 entry Program:
     NL*
     (statements+=Statement
@@ -88,18 +108,31 @@ TestStatement:
     (statements+=Statement (NL+ statements+=Statement)*)?
     NL* 'end';
 
-FunctionStatement:
-    ('fun' | memo?='memo') name=(WORD | 'text' | 'first' | 'take' | 'update' | 'ascending' | 'descending') parameters+=Identifier* ('rank' ranks+=RankSpec+)? NL+
-    (statements+=Statement (NL+ statements+=Statement)*)?
-    NL* 'end';
+FunctionStatement returns FunctionStatement:
+    ('fun' | memo?='memo') leftParameters+=VARIABLE* name=FunctionName rightParameters+=Identifier*
+    groups+=FunctionCallGroup* ('rank' ranks+=RankSpec+)?
+    ('=' expressionBody=Expression |
+        (NL+ groups+=FunctionCallGroup+)* NL+
+        (statements+=Statement (NL+ statements+=Statement)*)?
+        NL* 'end');
+
+FunctionName returns string:
+    WORD | 'text' | 'first' | 'take' | 'update' | 'ascending' | 'descending';
+
+FunctionCallGroup:
+    word=SIGNATURE_WORD parameter=VARIABLE ('=' defaultValue=FunctionDefault)?;
+
+FunctionDefault returns Expression:
+    NumberLiteral | StringLiteral | BooleanLiteral | LabelLiteral |
+    {infer UnaryExpression} operator='-' operand=NumberLiteral;
 
 FunctionBindingStatement:
-    name=WORD parameters+=Identifier* '=' value=Expression;
+    name=WORD '=' value=Expression;
 
 OperationAssignmentStatement:
     name=WORD (
         indices+=NamedAddressItem* indices+=NonNameAddressItem indices+=AddressItem* operator=AssignmentOperator |
-        indices+=NamedAddressItem+ operator=CompoundAssignmentOperator
+        indices+=NamedAddressItem+ operator=AssignmentOperator
     ) value=Expression;
 
 NamedAddressItem infers AddressItem:
@@ -463,13 +496,16 @@ NonPrimaryArgument returns Expression:
     UnpackExpression | ArrayExpression | TupleExpression;
 
 PrimaryExpression returns Expression:
-    ArrayAtom | AllAxisExpression | HigherOrderOperator;
+    ArrayAtom | AllAxisExpression | HigherOrderOperator | FunctionOperator;
 
 // `A scan + with 0`: a higher-order operation followed by a combining symbol.
 // The lexer joins them so the symbol is not read as an infix operator; grouping
 // turns the pair back into the call form the runtime executes.
 HigherOrderOperator:
     text=HIGHER_ORDER;
+
+FunctionOperator:
+    operator=CALL_OPERATOR;
 
 AllAxisExpression:
     {infer AllAxisExpression} '#';
@@ -584,6 +620,8 @@ ReferenceName returns string:
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /(?<![A-Za-z0-9_.])rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;
 terminal NL: /\r?\n/;
+terminal CALL_OPERATOR: /\b\B/;
+terminal SIGNATURE_WORD: /\b\Bword/;
 terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;
 terminal ARGSORT_BY: /argsort[\t ]+by/;
 terminal SORT_BY: /sort[\t ]+by/;

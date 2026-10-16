@@ -13,7 +13,7 @@ Answer print
 
 rem Enumerate digit multisets instead of all
 rem 2.5 million integers below seven times 9!.
-fun digit_factorial_sum MaximumDigits
+fun MaximumDigits digit_factorial_sum
   Factorials = array shape 10
     1 1 2 6 24 120
     720 5040 40320 362880
@@ -27,7 +27,7 @@ fun digit_factorial_sum MaximumDigits
 
   rem Generate nondecreasing digit text and
   rem compare it with the factorial sum digits.
-  fun search First Remaining Digits Sum
+  fun First Remaining Digits Sum search
     if Remaining equal 0
       Candidate = Sum text sort
       if Candidate equal Digits

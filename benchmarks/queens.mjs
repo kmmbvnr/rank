@@ -10,14 +10,14 @@ import { Interpreter, parse } from '../packages/interpreter/out/index.js';
 const variant = process.argv.find(arg => arg.startsWith('--worker='))?.split('=')[1];
 const variants = ['materialized', 'streamed', 'streamed-hoisted'];
 const samples = Number(process.env.SAMPLES ?? 5);
-const safe = `fun safe Q rank 1
+const safe = `fun Q safe rank 1
   N = Q len
   Rows = 0 till N array
   Up = (Q + Rows) unique len
   Down = (Q - Rows) unique len
   return Up equal N and Down equal N
 end`;
-const hoisted = `fun safe Q rank 1
+const hoisted = `fun Q safe rank 1
   Up = (Q + Columns) unique len
   if Up not equal 8
     return false

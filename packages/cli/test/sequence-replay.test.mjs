@@ -6,7 +6,7 @@ import { SequenceReplay } from '../out/sequence-replay.js';
 import { preview } from '../out/preview.js';
 
 const definition = `use sequences
-fun nums N
+fun N nums
   yield N
   yield N + 1
   yield N + 2
@@ -101,7 +101,7 @@ test('an unread tail can be previewed before it is cached, through either alias'
 
 test('cached outer reads restore the actual consumed position of inner generators', t => {
     const s = session(t);
-    s.interpreter.execute('fun forward G\n  for V in G\n    yield V\n  end\nend');
+    s.interpreter.execute('fun G forward\n  for V in G\n    yield V\n  end\nend');
     const g = s.run(1, 'G = 3 nums');
     const h = s.run(2, 'H = G forward');
     assert.equal(s.look(h).text, '3 4 5');
@@ -139,7 +139,7 @@ test('aliases and two reads inside one statement still share consumption', t => 
 test('an abandoned read can replay and then request more without repeating effects', t => {
     const s = session(t);
     s.interpreter.execute(`use io
-fun logged N
+fun N logged
   N print
   yield N
   (N + 1) print
@@ -159,7 +159,7 @@ end`);
 test('preview of an endless generator pulls a bounded head and retains it', t => {
     const s = session(t);
     s.interpreter.execute(`use io
-fun forever N
+fun N forever
   for true
     N print
     yield N
@@ -188,7 +188,7 @@ test('generator masks and explicit selection use the source tape', t => {
 
 test('cached outer generators also restore consumption of their dependencies', t => {
     const s = session(t);
-    s.interpreter.execute(`fun forward G
+    s.interpreter.execute(`fun G forward
   for V in G
     yield V
   end
@@ -205,7 +205,7 @@ end`);
 test('a generator error is replayed at the same position without rerunning its body', t => {
     const s = session(t);
     s.interpreter.execute(`use io
-fun broken N
+fun N broken
   N print
   yield N
   yield 1 // 0
@@ -220,7 +220,7 @@ end`);
 test('session disposal finishes suspended generator finally blocks', t => {
     const s = session(t);
     s.interpreter.execute(`use io
-fun held N
+fun N held
   try
     yield N
     yield N + 1
@@ -239,7 +239,7 @@ test('session disposal closes files held by a suspended generator', t => {
     let closed = false;
     const s = session(t, { io: { open: () => ({ name: '/input', close() { closed = true; } }) } });
     s.interpreter.execute(`use io
-fun opened N
+fun N opened
   File = "/input" open
   yield N
   yield N + 1
@@ -286,7 +286,7 @@ test('ordinary execution still consumes once and closes an abandoned generator',
     try {
         interpreter.execute(`${definition}
 use io
-fun held N
+fun N held
   try
     yield N
   finally
@@ -311,7 +311,7 @@ test('the actual CLI previews assignment, a name and full without spending the g
 });
 
 test('an error beyond the preview head is reported by full without exiting the CLI', () => {
-    const source = `fun late N
+    const source = `fun N late
   for true
     yield N
     N += 1
@@ -402,7 +402,7 @@ test('filtered views retain their stream source when assigned and bounded again'
 
 test('cached generators cannot move a separately consumed native source backwards', t => {
     const s = session(t);
-    s.run(1, 'fun forward G\n for V in G till 1000\n  yield V\n end\nend\nG = primes\nH = G forward');
+    s.run(1, 'fun G forward\n for V in G till 1000\n  yield V\n end\nend\nG = primes\nH = G forward');
     s.look(s.interpreter.variables.get('H'));
     s.run(2, 'G till 100 sum');
     assert.throws(() => s.run(3, 'H 0'), /advanced since this value was buffered/);

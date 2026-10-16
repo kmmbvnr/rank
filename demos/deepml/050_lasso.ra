@@ -6,7 +6,7 @@ use numbers
 use sequences
 use stats
 
-fun lasso X Y L1 Lr N Eps
+fun X Y L1 Lr N Eps lasso
   unpack Rows Cols = X shape
   if Y len not equal Rows
     .DimensionMismatch raise

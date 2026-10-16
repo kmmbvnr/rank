@@ -13,7 +13,7 @@ Report .total print
 
 
 rem Sort values ascending and report their sum alongside them.
-fun sorted_report A
+fun A sorted_report
   Sorted = A sort
   return record
     .sorted = Sorted

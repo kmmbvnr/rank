@@ -38,7 +38,7 @@ end
 
 
 rem Solve the wishes as a 2-SAT graph.
-fun giant_pizza N Clauses
+fun N Clauses giant_pizza
   LiteralCount = 2 * N
   Literals = 1 to LiteralCount
   Graph = new graph Literals .directed
@@ -76,7 +76,7 @@ end
 
 
 rem Map a signed wish to a graph vertex.
-fun literal Wish N
+fun Wish N literal
   if Wish greater 0
     return Wish
   end
@@ -85,7 +85,7 @@ end
 
 
 rem Return the complementary literal.
-fun opposite Literal N
+fun Literal N opposite
   if Literal at most N
     return Literal + N
   end

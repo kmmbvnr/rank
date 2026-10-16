@@ -7,7 +7,7 @@ function run(compiled: boolean, body: string, args: RankValue[]) {
     const runtime = new Interpreter(undefined, { scalarFunctionCompilation: compiled,
         onScalarFunctionExecuted: () => kernels++ });
     try {
-        runtime.execute(`fun probe X Y\n${body}\nend`);
+        runtime.execute(`fun X Y probe\n${body}\nend`);
         const fn = runtime.variables.get('probe');
         if (!fn || !isNativeFunction(fn)) throw new Error('missing function');
         return { value: fn.call(args), kernels };

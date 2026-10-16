@@ -809,7 +809,7 @@ Kept = N filter Mask
 A named function of one argument is a predicate too:
 
 ```rank
-fun big X
+fun X big
   return X greater 10
 end
 Kept = N filter big
@@ -1273,7 +1273,7 @@ A binary user function or named operation can also combine the values:
 Total = A reduce add with 0
 Smallest = A reduce min
 
-fun add Acc Value
+fun Acc Value add
   return Acc + Value
 end
 ```
@@ -1338,7 +1338,7 @@ elementwise broadcasting. Parenthesize a compound operand, as in
 to write `Low High max`.
 
 A user-defined `min` or `max` takes precedence, even without `use numbers`.
-For example, after `fun max A B` returning `A + B`, `3 4 max` returns `7`.
+For example, after `fun A B max` returning `A + B`, `3 4 max` returns `7`.
 A named builtin (`op = max`) supports the same lazy binary broadcasting.
 Equal numeric operands preserve the left operand, including its integer/real
 representation.

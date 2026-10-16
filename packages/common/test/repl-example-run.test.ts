@@ -7,22 +7,22 @@ describe('Ctrl-R while typing an example argument', () => {
     it('accepts the value and moves to the next parameter, like Enter', async () => {
         const repl = new NotebookRepl(createReplSession(), () => {}, () => 80, true);
         const keys = new KeyRouter(repl);
-        repl.notebook.replace('fun add a b');
+        repl.notebook.replace('fun A B add');
 
         await keys.press('', { name: 'return' });
-        expect(repl.examplePrompt).toMatchObject({ parameter: 'a', index: 0 });
+        expect(repl.examplePrompt).toMatchObject({ parameter: 'A', index: 0 });
 
         await keys.press('1');
         await keys.press('', { ctrl: true, name: 'r' });
 
-        expect(repl.examplePrompt).toMatchObject({ parameter: 'b', index: 1 });
+        expect(repl.examplePrompt).toMatchObject({ parameter: 'B', index: 1 });
         expect(repl.exampleFields?.[0].source).toBe('1');
     });
 
     it('runs the body once the last example is accepted', async () => {
         const repl = new NotebookRepl(createReplSession(), () => {}, () => 80, true);
         const keys = new KeyRouter(repl);
-        repl.notebook.replace('fun add a b');
+        repl.notebook.replace('fun A B add');
 
         await keys.press('', { name: 'return' });
         await keys.press('1');

@@ -8,7 +8,7 @@ import { UNKNOWN_VALUE, type ValueFacts } from '../src/analysis/value-domain.js'
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
 const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
 function result(body: string, inputs: ValueFacts[] = [integer]) {
-    const parsed = parser.parse<Program>(`fun f N\n${body}\nend\n`);
+    const parsed = parser.parse<Program>(`fun N f\n${body}\nend\n`);
     expect(parsed.parserErrors).toEqual([]);
     const analysis = analyzeValues(parsed.value, new Map(), new Map(), [{ name: 'f', arguments: inputs }]);
     expect(analysis.diagnostics).toEqual([]);
@@ -59,7 +59,7 @@ describe('record fields through mutable stacks', () => {
 
 describe('record fields through nested calls that mutate a captured stack', () => {
     const outer = (helper: string, tail = ' Top = S pop\n return Top .path') =>
-        ` S = new stack\n fun add X\n${helper}\n return 0\n end\n for I in 0 till N\n  I add\n end\n${tail}`;
+        ` S = new stack\n fun X add\n${helper}\n return 0\n end\n for I in 0 till N\n  I add\n end\n${tail}`;
 
     it('summarizes insertions, removals and field writes of the callee', () => {
         const helper = `  Current = ${record('X')}\n  if S len equal 0\n   S push Current\n   return 0\n  end\n`

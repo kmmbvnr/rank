@@ -44,8 +44,8 @@ describe('Rank linear algebra', () => {
         }
         expect(run(matrix + 'K = -1\nM diag .anti K sum')).toBe('14');
         expect(run(matrix + 'M diag .anti (-1) sum')).toBe('14');
-        expect(run(matrix + 'total V = V sum\nM diag .anti total')).toBe('15');
-        expect(run(matrix + 'other V = V diag .anti -1 sum\nM other')).toBe('14');
+        expect(run(matrix + 'fun V total = V sum\nM diag .anti total')).toBe('15');
+        expect(run(matrix + 'fun V other = V diag .anti -1 sum\nM other')).toBe('14');
         expect(run(matrix + 'M diag 30 len')).toBe('0');
         expect(run(matrix + 'M diag -30 len')).toBe('0');
         expect(run(matrix + 'M window (array 2 2) diag .anti 1 rank 2 sum')).toBe('12');

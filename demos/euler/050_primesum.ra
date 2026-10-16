@@ -15,7 +15,7 @@ Answer print
 
 rem Prefix sums make each candidate interval
 rem constant time; lengths are tried longest first.
-fun longest_prime_sum Limit
+fun Limit longest_prime_sum
   Primes = primes till Limit array
   Count = Primes len
   Prefix = Primes scan + with 0

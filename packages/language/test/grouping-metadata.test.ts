@@ -14,7 +14,7 @@ const reads = (program: Program, name: string) =>
     [...AstUtils.streamAllContents(program)].filter(isNameExpression).filter(node => node.name === name);
 
 it.each(['shared', 'absent'])('resolves distinct binding reads with %s source locations', location => {
-    const program = parse('fun helper X\n return X\nend\nA = array 4 9\nResult = 2 + A 0 helper\n');
+    const program = parse('fun X helper\n return X\nend\nA = array 4 9\nResult = 2 + A 0 helper\n');
     const nodes = [...AstUtils.streamAllContents(program)];
     const shared = reads(program, 'helper')[0].$cstNode;
     for (const node of nodes) Object.assign(node, { $cstNode: location === 'shared' ? shared : undefined });

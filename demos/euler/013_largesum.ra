@@ -118,7 +118,7 @@ Answer print
 
 rem Sum with exact integers, then take the
 rem requested leading decimal digits.
-fun leading_sum Numbers Digits
+fun Numbers Digits leading_sum
   Total = Numbers sum
   Text = Total text
   Prefix = Text take Digits

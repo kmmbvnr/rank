@@ -12,7 +12,7 @@ Answer print
 
 rem Test every proper fraction once and keep
 rem identities preserved by one cancellation.
-fun digit_fraction_denominator Lower Upper
+fun Lower Upper digit_fraction_denominator
   NumeratorProduct = 1
   DenominatorProduct = 1
 
@@ -32,7 +32,7 @@ end
 
 rem Check the four positions where one common
 rem nonzero digit can be removed.
-fun curious Numerator Denominator
+fun Numerator Denominator curious
   NLeft = Numerator // 10
   NRight = Numerator mod 10
   DLeft = Denominator // 10

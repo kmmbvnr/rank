@@ -17,7 +17,7 @@ function scenario(compiled: boolean, body: string, values: RankValue[],
     const runtime = new Interpreter(undefined, { scalarFunctionCompilation: compiled,
         onScalarFunctionExecuted: () => kernels++ });
     try {
-        runtime.execute(`use sequences\nuse text\nfun helper X\n${body}\nend`);
+        runtime.execute(`use sequences\nuse text\nfun X helper\n${body}\nend`);
         runtime.variables.set('Source', { kind: 'array', shape: [values.length], containsFiles: false,
             items: [], itemAt: index => { reads.push(index); read(index, runtime); return values[index]; } });
         const diagnostics = new RuntimeDiagnostics();
@@ -87,7 +87,7 @@ describe('compiled ranked callbacks', () => {
         const reads: number[] = [];
         const runtime = new Interpreter(undefined, { scalarFunctionCompilation: compiled });
         try {
-            runtime.execute('Mapped = array 1 2 3\nfun helper X\nreturn X text\nend');
+            runtime.execute('Mapped = array 1 2 3\nfun X helper\nreturn X text\nend');
             runtime.variables.set('Source', { kind: 'array', shape: [3], containsFiles: false, items: [],
                 itemAt: index => { reads.push(index); return BigInt(index); } });
             runtime.execute('Mapped = Source helper rank 0');
@@ -103,7 +103,7 @@ describe('compiled ranked callbacks', () => {
             const reads: number[] = [];
             const runtime = new Interpreter(undefined, { scalarFunctionCompilation: compiled });
             try {
-                runtime.execute('fun helper X\nreturn X * 2\nend');
+                runtime.execute('fun X helper\nreturn X * 2\nend');
                 runtime.variables.set('Source', { kind: 'array', shape: [3], containsFiles: false, items: [],
                     itemAt: index => {
                         reads.push(index);
@@ -138,7 +138,7 @@ describe('compiled ranked callbacks', () => {
         const diagnostics = new RuntimeDiagnostics();
         try {
             const result = diagnostics.run(() => {
-                runtime.execute('memo helper X\nreturn X * 2\nend');
+                runtime.execute('memo X helper\nreturn X * 2\nend');
                 const mapped = runtime.execute('(array 1 1 2 1) helper rank 0');
                 if (!mapped || !isRankArray(mapped)) throw new Error('missing mapped array');
                 return [...mapped.items];
@@ -154,7 +154,7 @@ describe('compiled ranked callbacks', () => {
         const runtime = new Interpreter(line => calls.push(line), { scalarFunctionCompilation: compiled });
         try {
             runtime.execute(`use io
-memo helper X
+memo X helper
   X print
   if X equal 2
     .Oops raise
@@ -178,7 +178,7 @@ Mapped = (array 1 2 1) helper rank 0`);
         const runtime = new Interpreter(line => calls.push(line), { scalarFunctionCompilation: compiled });
         try {
             runtime.execute(`use io
-memo helper X rank 0
+memo X helper rank 0
   X print
   return X + 1
 end

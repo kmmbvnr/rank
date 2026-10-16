@@ -19,7 +19,7 @@ end
 
 
 rem Match each pair with an earlier pair.
-fun find_four A Target
+fun A Target find_four
   Index = new index
   N = A len
 

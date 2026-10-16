@@ -593,10 +593,10 @@ describe('Rank grammar', () => {
 
     it('parses a local function at the end of its enclosing function', async () => {
         const document = await parse([
-            'fun make Base',
+            'fun Base make',
             '  return add',
             '',
-            '  fun add Value',
+            '  fun Value add',
             '    return Base + Value',
             '  end',
             'end',
@@ -683,7 +683,7 @@ describe('Rank grammar', () => {
 
     it('parses functions, array construction and keyed index assignment', async () => {
         const document = await parse([
-            'fun two_sum A Target',
+            'fun A Target two_sum',
             '  for Value i in A',
             '    if Value in Index',
             '      return array Value i',
@@ -698,7 +698,7 @@ describe('Rank grammar', () => {
     });
 
     it('parses memo declarations as functions, including local declarations', async () => {
-        const document = await parse('fun solve N\n memo fib X\n  return X\n end\n return N fib\nend');
+        const document = await parse('fun N solve\n memo X fib\n  return X\n end\n return N fib\nend');
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
         expect(document.parseResult.value.statements[0]).toMatchObject({
@@ -710,7 +710,7 @@ describe('Rank grammar', () => {
     it('parses generator functions, bare return and typed stdin', async () => {
         const document = await parse([
             'use io',
-            'fun values N',
+            'fun N values',
             '  yield N',
             '  return',
             'end',

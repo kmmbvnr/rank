@@ -4,7 +4,7 @@ import { prepareArrayRead, readArrayItem } from '../src/array-storage.js';
 import { isRankArray } from '../src/value.js';
 
 const source = `use sequences
-fun mask Q
+fun Q mask
   A = Q + Dy
   Blocked = concat Q A (Q - Dy)
   return Cols not in Blocked
@@ -34,7 +34,7 @@ describe('fused integer membership functions', () => {
 
     it.each(['in', 'not in'])('handles scalar arithmetic, nested concat, negatives and %s', op => {
         const code = `use sequences
-fun mask Q
+fun Q mask
   A = Q * 2 - 1
   B = concat (concat Q A) (Q + 3)
   return Cols ${op} B
@@ -90,7 +90,7 @@ Q mask`;
         const code = `use sequences
 fun factory
   Blocked = array 0
-  fun mask Q
+  fun Q mask
     Blocked = concat Q Q
     return Cols in Blocked
   end
@@ -107,7 +107,7 @@ factory`;
         const code = `use sequences
 Cols = 0 till 4 array
 Dy = array 1 2
-fun mask Q
+fun Q mask
   Blocked = concat Q (Q + Dy) (Q - Dy)
   return Cols not in Blocked
 end
@@ -141,7 +141,7 @@ R reshape 8`;
     });
 
     it('can disable ranked preparation while retaining function fusion', () => {
-        const code = source.replace('Q mask', 'M = (array 1 3 2 0 0 2) reshape 3 2\nM = M copy\nR = M mask rank 1\nR reshape 18');
+        const code = source.replace('\nQ mask', '\nM = (array 1 3 2 0 0 2) reshape 3 2\nM = M copy\nR = M mask rank 1\nR reshape 18');
         const runtime = new Interpreter(() => {}, { rankedArrayCompilation: false });
         const diagnostics = new RuntimeDiagnostics();
         const result = diagnostics.run(() => runtime.execute(code));
@@ -153,7 +153,7 @@ R reshape 8`;
     it.each(['1', '2 0'])('preserves nonleading frame axes %s', axes => {
         const shape = axes === '1' ? '2 3' : '2 2 3';
         const size = axes === '1' ? 18 : 36;
-        const code = source.replace('Q mask', `M = (0 till ${size / 3} array) reshape ${shape}
+        const code = source.replace('\nQ mask', `\nM = (0 till ${size / 3} array) reshape ${shape}
 M = M copy
 R = M mask axis ${axes} rank 1
 R reshape ${size}`);

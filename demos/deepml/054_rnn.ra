@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/54
 use linalg
 use numbers
 
-fun rnn_forward Inputs H Wx Wh Bias
+fun Inputs H Wx Wh Bias rnn_forward
   for X in Inputs
     FromInput = Wx X matmul
     FromHidden = Wh H matmul

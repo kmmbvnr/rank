@@ -15,7 +15,7 @@ for (const operator of ['+', '-', '*', '/', '//', 'mod', '**',
             for (const [left, right] of [['1', '2.0'], ['1.0', '2']]) {
                 const expected = run(`(${left} real) ${operator} (${right} real)`, compiled);
                 expect(run(`${left} ${operator} ${right}`, compiled)).toBe(expected);
-                expect(run(`fun probe X Y\n return X ${operator} Y\nend\n${left} ${right} probe`, compiled)).toBe(expected);
+                expect(run(`fun X Y probe\n return X ${operator} Y\nend\n${left} ${right} probe`, compiled)).toBe(expected);
             }
         }
     });

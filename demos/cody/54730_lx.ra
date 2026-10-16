@@ -6,7 +6,7 @@ use numbers
 
 
 rem Keep strict eight-neighbor extrema.
-fun local_extrema Grid
+fun Grid local_extrema
   Size = array 3 3
   Above = Grid window Size padding 1 with -infinity
   Below = Grid window Size padding 1 with infinity
@@ -18,7 +18,7 @@ end
 
 
 rem One when no other cell reaches the center.
-fun peak Cell
+fun Cell peak
   Ties = Cell at least Cell 1 1
   if Ties count equal 1
     return 1
@@ -28,7 +28,7 @@ end
 
 
 rem One when no other cell falls to the center.
-fun valley Cell
+fun Cell valley
   Ties = Cell at most Cell 1 1
   if Ties count equal 1
     return 1

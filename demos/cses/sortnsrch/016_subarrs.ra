@@ -11,7 +11,7 @@ A distinct_subarrays print
 
 
 rem Count subarrays with distinct values.
-fun distinct_subarrays A
+fun A distinct_subarrays
   Index = new index
   Left = 0
   Answer = 0

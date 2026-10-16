@@ -17,8 +17,8 @@ function failure(source: string, interpreter = new Interpreter(() => {}, { sourc
 
 describe('syntax error wording', () => {
     it.each([
-        ['memo fib N\n  if N at leat 2\n    return 1\n  end\nend\n', "Unexpected 'at', did you mean 'at least'? at 2:8"],
-        ['fun inc N\n', 'Unexpected end of line at 1:10'],
+        ['memo N fib\n  if N at leat 2\n    return 1\n  end\nend\n', "Unexpected 'at', did you mean 'at least'? at 2:8"],
+        ['fun N inc\n', 'Unexpected end of line at 1:10'],
         ['X = 1 +\n', "Unexpected '+' at 1:7"],
         ['X = @\n', "Unexpected character '@' at 1:5"],
         ['X = "abc\n', 'Text is missing its closing quote at 1:5'],
@@ -32,7 +32,7 @@ describe('syntax error wording', () => {
 describe('syntax errors inside blocks', () => {
     it.each([
         ['use io\nif 1 less 2\n  X = (1 +\nend', 3],
-        ['fun f X\n if true\n  Y = (X +\n end\nend', 3],
+        ['fun X f\n if true\n  Y = (X +\n end\nend', 3],
         ['for true\n  X = (1 +\nend', 2],
         ['try\n  X = (1 +\nfinally\n  1\nend', 2],
         ['if true\n X = (1 + )\nend', 2],
@@ -61,9 +61,9 @@ describe('runtime diagnostics', () => {
     });
 
     it.each([
-        'fun bad N\n  return N / 0\nend\n1 bad',
-        'fun bad N\n  X = N\n  return X / 0\nend\n1 bad',
-        'fun bad N\n  yield N\n  yield N / 0\nend\n(1 bad) array',
+        'fun N bad\n  return N / 0\nend\n1 bad',
+        'fun N bad\n  X = N\n  return X / 0\nend\n1 bad',
+        'fun N bad\n  yield N\n  yield N / 0\nend\n(1 bad) array',
     ])('keeps the origin inside direct, ordinary and generator functions: %s', source => {
         const error = failure(source);
         expect(error.location?.sourceLine).toContain('/ 0');
@@ -76,7 +76,7 @@ describe('runtime diagnostics', () => {
         const error = failure(`use sequences
 use text
 Ranks = "23456789TJQKA"
-fun card_value Card
+fun Card card_value
   Rank = Card 0
   return Ranks Rank find
 end
@@ -88,10 +88,10 @@ Values 1`);
     });
 
     it('keeps arguments for nested and memoized calls', () => {
-        const error = failure(`memo bad N
+        const error = failure(`memo N bad
   return N / 0
 end
-fun outer X
+fun X outer
   Value = X bad
   return Value
 end
@@ -100,7 +100,7 @@ end
     });
 
     it('reports the current tail-call arguments', () => {
-        const error = failure('fun down N\n  if N equal 0\n    return 1 / 0\n  end\n  return (N - 1) down\nend\n10000 down');
+        const error = failure('fun N down\n  if N equal 0\n    return 1 / 0\n  end\n  return (N - 1) down\nend\n10000 down');
         expect(error.formatCalls()).toBe('down\n  N = 0');
     });
 
@@ -123,7 +123,7 @@ end
         for (const source of ['use "helper"\n1 bad', 'run "helper"']) {
             const interpreter = new Interpreter(() => {}, {
                 sourceId: 'contest.ra',
-                loadModule: () => ({ id: 'helper.ra', source: 'fun bad N\n  return N / 0\nend\n1 bad' }),
+                loadModule: () => ({ id: 'helper.ra', source: 'fun N bad\n  return N / 0\nend\n1 bad' }),
             });
             expect(failure(source, interpreter).location).toMatchObject({ sourceId: 'helper.ra', line: 2 });
         }
@@ -131,12 +131,12 @@ end
 
     it('retains old source text across REPL executions', () => {
         const interpreter = new Interpreter();
-        interpreter.execute('fun bad N\n  return N / 0\nend');
+        interpreter.execute('fun N bad\n  return N / 0\nend');
         expect(failure('1 bad', interpreter).location?.sourceLine).toBe('  return N / 0');
     });
 
     it('preserves the failing statement after tail-call replacement', () => {
-        const error = failure('fun down N\n  if N equal 0\n    return 1 / 0\n  end\n  return (N - 1) down\nend\n10000 down');
+        const error = failure('fun N down\n  if N equal 0\n    return 1 / 0\n  end\n  return (N - 1) down\nend\n10000 down');
         expect(error.location).toMatchObject({ line: 3, column: 5 });
     });
 
@@ -148,7 +148,7 @@ end
 
     it('does not attach an import hint to a missing qualified member', () => {
         const interpreter = new Interpreter(() => {}, {
-            loadModule: () => ({ id: 'helper.ra', source: 'fun identity N\n  return N\nend' }),
+            loadModule: () => ({ id: 'helper.ra', source: 'fun N identity\n  return N\nend' }),
         });
         expect(failure('use "helper" as Helper\n1 Helper.abs', interpreter).message).toBe('unknown variable: abs');
     });
@@ -159,7 +159,7 @@ end
 
     it('does not invent imports for unknown names or override local functions', () => {
         expect(failure('unknown_thing').message).toBe('unknown name: unknown_thing');
-        expect(new Interpreter().execute('fun abs N\n  return N\nend\n1 abs')).toBe(1n);
+        expect(new Interpreter().execute('fun N abs\n  return N\nend\n1 abs')).toBe(1n);
         expect(new Interpreter().execute('use numbers\n-1 abs')).toBe(1n);
     });
 

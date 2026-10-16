@@ -27,7 +27,7 @@ end
 Holder .tree sum (1 print) print
 `)).toBe(7n);
         expect(runtime.execute(`
-fun source N
+fun N source
   N print
   return F
 end
@@ -43,7 +43,7 @@ end
         expect(runtime.execute(`
 use algo
 use io
-fun customsum A B
+fun A B customsum
   return A + B
 end
 F = 2 fenwick
@@ -60,7 +60,7 @@ F 0 = 7
         expect(runtime.execute(`
 use numbers
 use io
-fun source N
+fun N source
   N print
   return array 1 2 3
 end
@@ -71,7 +71,7 @@ end
         expect(output.at(-1)).toBe('9');
         runtime.execute('use sequences\n(1 to 3) array sum print');
         expect(output.at(-1)).toBe('6');
-        runtime.execute('fun replacement A\n  return 99\nend');
+        runtime.execute('fun A replacement\n  return 99\nend');
         runtime.variables.set('sum', runtime.variables.get('replacement')!);
         expect(runtime.execute('(array 1 2) sum print')).toBe(99n);
         runtime.dispose();

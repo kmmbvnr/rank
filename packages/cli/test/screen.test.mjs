@@ -13,7 +13,7 @@ const text = terminal => Array.from({ length: terminal.rows }, (_, i) =>
     terminal.buffer.active.getLine(i).translateToString(true)).join('\n');
 
 test('pause context marks the current line in color and fits narrow terminals', async t => {
-    const source = 'fun count N\n  Total = 0\n  for I in 1 to N\n    Total += I\n  end\n  return Total\nend';
+    const source = 'fun N count\n  Total = 0\n  for I in 1 to N\n    Total += I\n  end\n  return Total\nend';
     for (const columns of [24, 80]) {
         const terminal = new Terminal({ cols: columns, rows: 24, allowProposedApi: true });
         t.after(() => terminal.dispose());
@@ -83,7 +83,7 @@ test('pause colors upcoming reads and writes without coloring unrelated variable
 
 test('live replay marks evaluated lines orange and remaining lines gray', () => {
     const book = new Notebook();
-    book.replace('fun inspect N\n  A = N + 1\n  B = A * 2\nend');
+    book.replace('fun N inspect\n  A = N + 1\n  B = A * 2\nend');
     book.cursor = book.current.source.indexOf('B =') + 'B = A * 2'.length;
     const outputs = new Map([[1, []], [2, [{ text: '3', error: false }]]]);
     const frame = notebookFrame(book, 60, 10, 0, '', false, true, '', 'Running…',

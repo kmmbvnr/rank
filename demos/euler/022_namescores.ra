@@ -18,7 +18,7 @@ Answer print
 
 rem Remove the surrounding quotes and split
 rem the quoted comma-separated input.
-fun names_from_text Text
+fun Text names_from_text
   Last = Text len - 1
   Body = Text (1 till Last)
   return Body "\",\"" split
@@ -27,7 +27,7 @@ end
 
 rem Sort names and multiply each letter sum
 rem by its one-based position.
-fun names_score Names
+fun Names names_score
   Sorted = Names sort
   Values = Sorted name_value rank 0
   Count = Sorted len
@@ -39,7 +39,7 @@ end
 
 rem Convert A through Z to values 1 through
 rem 26 using Unicode code points.
-fun name_value Name
+fun Name name_value
   Base = "A" codepoint
   Codes = Name codepoint rank 0
   Values = Codes - Base + 1

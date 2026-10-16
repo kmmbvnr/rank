@@ -24,7 +24,7 @@ Result print
 
 rem Compress salaries and boundaries.
 rem Count them with a Fenwick tree.
-fun salaries Salaries Types As Bs
+fun Salaries Types As Bs salaries
   N = Salaries len
   Q = Types len
   Total = N + Q * 2

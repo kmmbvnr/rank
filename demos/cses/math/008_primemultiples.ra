@@ -13,7 +13,7 @@ N Primes divisible_count print
 
 
 rem Apply inclusion-exclusion to primes.
-fun divisible_count N Primes
+fun N Primes divisible_count
   Subsets = 1 (Primes len) shl
   Answer = 0
 

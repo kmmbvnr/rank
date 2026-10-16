@@ -10,7 +10,7 @@ Height Width counting_tilings print
 
 
 rem Carry occupied cells across columns.
-fun counting_tilings Height Width
+fun Height Width counting_tilings
   Modulus = 1000000007
   States = 1 Height shl
   Current = array shape States fill 0
@@ -32,7 +32,7 @@ fun counting_tilings Height Width
   return Current 0
 
   rem Fill a column and emit its mask.
-  fun place Row NextMask
+  fun Row NextMask place
     if Row equal Height
       Next NextMask += Ways
       Next NextMask mod= Modulus

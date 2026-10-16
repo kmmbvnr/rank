@@ -17,7 +17,7 @@ Answer print
 
 rem Skip whole equal-width number blocks, then
 rem address the digit inside the target number.
-fun champernowne_digit Position
+fun Position champernowne_digit
   Digits = 1
   First = 1
   Count = 9

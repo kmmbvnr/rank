@@ -4,11 +4,11 @@ use sequences
 use numbers
 use linalg
 
-fun tokenize Text
+fun Text tokenize
   return Text words
 end
 
-fun allWords Titles
+fun Titles allWords
   for Title in Titles
     for Word in Title tokenize
       yield Word
@@ -16,24 +16,24 @@ fun allWords Titles
   end
 end
 
-fun makeDict Titles
+fun Titles makeDict
   return Titles allWords unique array
 end
 
-fun dictCount Dict Text rank 1 0
+fun Dict Text dictCount rank 1 0
   Words = Text tokenize
   Matches = Dict Words outer equal
   return Matches count axis 1
 end
 
-fun cosine A B rank 1 1
+fun A B cosine rank 1 1
   Dot = A B matmul
   MagA = (A A matmul) sqrt
   MagB = (B B matmul) sqrt
   return Dot / (MagA * MagB)
 end
 
-fun seek Titles Query
+fun Titles Query seek
   Dict = Titles makeDict
   QueryVec = Dict Query dictCount
   if QueryVec sum equal 0

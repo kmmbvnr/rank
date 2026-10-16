@@ -11,7 +11,7 @@ A tower_count print
 
 
 rem Keep the smallest possible top for every tower.
-fun tower_count A
+fun A tower_count
   Towers = new multiset
 
   for Cube in A

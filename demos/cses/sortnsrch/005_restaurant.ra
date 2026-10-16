@@ -18,7 +18,7 @@ Events busiest print
 
 
 rem Make one customer-count event.
-fun event Time Delta
+fun Time Delta event
   Event = record
     .time = Time
     .delta = Delta
@@ -28,7 +28,7 @@ end
 
 
 rem Add one customer's arrival and exit.
-fun visit Events Arrive Leave
+fun Events Arrive Leave visit
   Events push Arrive 1 event
   Events push Leave (-1) event
   return Events
@@ -36,7 +36,7 @@ end
 
 
 rem Find the peak active customer count.
-fun busiest Events
+fun Events busiest
   Sorted = Events sort by .time .delta
   Now = 0
   Best = 0

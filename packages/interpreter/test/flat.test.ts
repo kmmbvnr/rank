@@ -10,7 +10,7 @@ use sequences
 Zero = record
   .n = 0
 end
-fun combine A B
+fun A B combine
   return record
     .n = A .n + B .n
   end
@@ -53,7 +53,7 @@ array ((Tree 0 1 query) .n) ((Empty 0 (-1) query) .n) ((Plain 0 1 query) .n)`)).
 
     it('keeps noncommutative order and scalar neutral elements', () => {
         expect(run(`use algo
-fun merge A B
+fun A B merge
   return A + B
 end
 Tree = (array "a" "b" "c") segment merge with ""

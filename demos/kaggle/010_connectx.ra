@@ -9,7 +9,7 @@ use numbers
 use sequences
 
 
-fun move Board Player Rows Cols Need
+fun Board Player Rows Cols Need move
   Other = 3 - Player
 
   rem Win immediately.
@@ -50,13 +50,13 @@ fun move Board Player Rows Cols Need
 end
 
 
-fun legal Board C
+fun Board C legal
   return Board 0 C equal 0
 end
 
 
 rem Return a board with one added piece.
-fun place Board C Player
+fun Board C Player place
   Next = Board copy
   Rows = Board shape 0
   for R in (Rows - 1) to 0 by -1
@@ -69,7 +69,7 @@ fun place Board C Player
 end
 
 
-fun won Board Player Need
+fun Board Player Need won
   unpack Rows Cols = Board shape
   for R in 0 till Rows
     for C in 0 till Cols
@@ -88,7 +88,7 @@ fun won Board Player Need
 end
 
 
-fun line Board R C DR DC Need
+fun Board R C DR DC Need line
   unpack Rows Cols = Board shape
   Player = Board R C
   for K in 1 till Need

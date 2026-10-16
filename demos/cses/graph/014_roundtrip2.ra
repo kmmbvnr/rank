@@ -23,6 +23,6 @@ end
 
 
 rem Recover one directed cycle.
-fun round_trip Graph
+fun Graph round_trip
   return Graph cycle
 end

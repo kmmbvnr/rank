@@ -19,11 +19,11 @@ end
 
 
 rem Return one city from each component.
-fun components Cities Roads
+fun Cities Roads components
   Parent = 0 to Cities array
   Sizes = array shape (Cities + 1) fill 1
 
-  fun findroot City
+  fun City findroot
     for Parent City not equal City
       Next = Parent City
       Parent City = Parent Next
@@ -32,7 +32,7 @@ fun components Cities Roads
     return City
   end
 
-  fun unite A B
+  fun A B unite
     A = A findroot
     B = B findroot
     if A equal B

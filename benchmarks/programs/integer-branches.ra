@@ -1,7 +1,7 @@
 rem Exercise branching in a numeric loop.
 rem Restart Collatz when it reaches one.
 
-fun recurrence Limit
+fun Limit recurrence
   N = 837799
   Total = 0
   for I in 0 until Limit

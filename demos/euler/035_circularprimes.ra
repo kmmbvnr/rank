@@ -15,7 +15,7 @@ Answer print
 
 rem Visit each bounded prime and test every
 rem rotation through optimized prime membership.
-fun circular_prime_count Limit
+fun Limit circular_prime_count
   Candidates = primes till Limit
   Circular = Candidates circular_prime rank 0
   return Circular count
@@ -23,7 +23,7 @@ end
 
 
 rem Rotate the decimal text at every boundary.
-fun circular_prime Value
+fun Value circular_prime
   Text = Value text
   Length = Text len
   for Shift in 1 till Length

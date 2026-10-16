@@ -18,7 +18,7 @@ Part2 print
 
 rem Return the distance to the last block and to the first block visited twice.
 rem A part 2 of -1 means no block was visited twice.
-fun solve Text
+fun Text solve
   Seen = new set
   Seen add array 0 0
   Part2 = -1
@@ -42,7 +42,7 @@ rem Yield each block position after one step.
 rem The walk starts at the origin facing north. A right turn maps (X, Y)
 rem to (Y, -X): swap the coordinates and negate the second one. A left turn
 rem is the same with both signs flipped.
-fun walk Text
+fun Text walk
   Pos = array 0 0
   Dir = array 0 1
   Swap = array 1 0

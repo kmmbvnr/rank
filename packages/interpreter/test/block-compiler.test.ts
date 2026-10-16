@@ -45,12 +45,12 @@ Sum
 
     it('resumes after calls exactly once and preserves finally', () => {
         const result = compare(`use io
-fun next X
+fun X next
   Y = X + 1
   Y print
   return Y
 end
-fun work X
+fun X work
   try
     A = X next
     B = A next
@@ -67,7 +67,7 @@ Answer
     });
 
     it('resumes generators through catch and finally', () => {
-        expect(compare(`fun values Base
+        expect(compare(`fun Base values
   try
     for I in 0 till 2
       Value = Base + I
@@ -89,7 +89,7 @@ A
 
     it('jumps over fused tensor groups and then returns', () => {
         expect(compare(`use numbers
-fun calculate A
+fun A calculate
   B = A * 2
   C = B + 1
   Total = C sum
@@ -102,7 +102,7 @@ Values calculate
 
     it('preserves file cleanup and source locations after a suspended command', () => {
         const result = compare(`use io
-fun open_file Name
+fun Name open_file
   File = Name open
   return File
 end
@@ -151,7 +151,7 @@ for I less 0
 end
 I
 `,
-        `fun count N
+        `fun N count
   Total = 0
   for I in 1 to N
     X = I * 2
@@ -164,18 +164,18 @@ B = 5 count
 array A B
 `,
         `use io
-fun values X
+fun X values
   try
     yield X
   finally
     "closed" print
   end
 end
-fun finish X
+fun X finish
   "callee" print
   return X + 1
 end
-fun first Values
+fun Values first
   for V in Values
     A = V + 1
     return A finish

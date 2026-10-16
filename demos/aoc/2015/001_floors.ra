@@ -17,7 +17,7 @@ Part2 print
 
 rem Return the final floor and the first basement position.
 rem Ignore line endings and other characters around the directions.
-fun solve Text
+fun Text solve
   Floor = 0
   Basement = 0
 

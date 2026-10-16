@@ -15,7 +15,7 @@ Part2 print
 
 
 rem Return the final lit count and total brightness.
-fun solve Lines
+fun Lines solve
   Part1 = Lines lights
   Part2 = Lines brightness
   return array Part1 Part2
@@ -23,7 +23,7 @@ end
 
 
 rem Parse an instruction into its operation and inclusive rectangle.
-fun parseinstruction Line
+fun Line parseinstruction
   Words = Line " " split
 
   Op = Words 1
@@ -40,7 +40,7 @@ end
 
 
 rem Apply the binary light rules to a sparse grid.
-fun lights Lines
+fun Lines lights
   Index = new index
   Count = 0
 
@@ -74,7 +74,7 @@ end
 
 
 rem Apply the brightness rules to a sparse integer grid.
-fun brightness Lines
+fun Lines brightness
   Index = new index
   Total = 0
 

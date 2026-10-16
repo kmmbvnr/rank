@@ -19,7 +19,7 @@ A B C best_score print
 
 
 rem Maximum points over N days without repeating yesterday's activity.
-fun best_score A B C
+fun A B C best_score
   PrevA = 0
   PrevB = 0
   PrevC = 0

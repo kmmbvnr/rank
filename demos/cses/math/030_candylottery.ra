@@ -9,14 +9,14 @@ Children Choices candy_text print
 
 
 rem Format the expected maximum.
-fun candy_text Children Choices
+fun Children Choices candy_text
   Expected = Children Choices candy_max
   return Expected text ".6f"
 end
 
 
 rem Sum tails of the maximum.
-fun candy_max Children Choices
+fun Children Choices candy_max
   Below = 0 till Choices
   Ratios = Below / Choices
   Chances = Ratios ** Children

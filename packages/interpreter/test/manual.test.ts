@@ -40,7 +40,7 @@ function run(example: string): string {
     const runtime = new Interpreter(text => { printed.push(text); }, {
         io: new ManualIo({}), input: new TokenInput(['7']), testing: true,
         loadModule: path => ({ id: path, source: path === 'helpers.ra'
-            ? 'fun twice X\n  return X * 2\nend' : 'use io\n"hello" print' }),
+            ? 'fun X twice\n  return X * 2\nend' : 'use io\n"hello" print' }),
     });
     try {
         const value = runtime.execute(example);

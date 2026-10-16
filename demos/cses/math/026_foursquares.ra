@@ -13,7 +13,7 @@ end
 
 
 rem Meet two pairs of squares by sum.
-fun four_squares N
+fun N four_squares
   Index = new index
   Limit = N isqrt
   Width = Limit + 1
@@ -38,6 +38,6 @@ end
 
 
 rem Check the represented value.
-fun square_sum Values
+fun Values square_sum
   return Values ** 2 sum
 end

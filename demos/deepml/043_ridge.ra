@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/43
 use linalg
 use stats
 
-fun ridge_loss X W Truth Alpha
+fun X W Truth Alpha ridge_loss
   Predicted = X W matmul
   if Predicted len not equal Truth len
     .DimensionMismatch raise

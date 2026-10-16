@@ -1,7 +1,7 @@
 import type { AstNode } from 'langium';
 import {
     availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
-    type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
+    type FunctionCallSignature, type CallRequirement, type CompiledFunctionType, compiledFunctionTypeKey, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
@@ -30,7 +30,7 @@ import { prepareCompiledBuiltin } from './typed-native.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
 import {
-    formatValue, isNativeFunction, isRankArray, isRankDate, isRankLabel,
+    MISSING, formatValue, isNativeFunction, isRankArray, isRankDate, isRankLabel,
     type NativeFunction, type RankArray, type RankFile, type RankSequence, type RankValue,
 } from './value.js';
 
@@ -147,16 +147,21 @@ export class FunctionInvocation {
     /** Binds a function declaration in the current scope; the definition captures that scope. */
     defineBinding(statement: FunctionBindingStatement, resolve: (name: string) => RankValue, evaluate: (value: Expression) => RankValue): RankValue {
         let plan = functionBindingPlan(statement);
-        if (!statement.parameters.length && !plan.alias && !plan.value) {
+        if (!plan.alias && !plan.value) {
             const signatures = new Map<string, readonly number[] | false>();
+            const declarations = new Map<string, FunctionCallSignature>();
+            let words: readonly string[] = [];
             for (const part of flattenApplication(statement.value)) {
-                if (!isNameExpression(part) || ['rank', 'axis', 'with'].includes(part.name)) continue;
+                if (!isNameExpression(part) || ['rank', 'axis', 'with', ...words].includes(part.name)) continue;
                 const value = resolve(part.name);
                 signatures.set(part.name, isNativeFunction(value) ? value.arities : false);
+                const declaration = isNativeFunction(value) ? value.callSignature : undefined;
+                if (declaration) declarations.set(part.name, declaration);
+                words = declaration?.words.map(group => group.word) ?? [];
             }
             const copy = { ...statement };
             const program = { $type: 'Program', statements: [copy] } as Program;
-            const diagnostic = groupExpressions(program, { bindings: signatures }).diagnostics[0];
+            const diagnostic = groupExpressions(program, { bindings: signatures, signatures: declarations }).diagnostics[0];
             if (diagnostic) throw new RankError(diagnostic.message, 'Syntax');
             plan = functionBindingPlan(copy);
         }
@@ -327,25 +332,53 @@ export class FunctionInvocation {
                 cache.set(key, value);
                 return value;
             }) : undefined;
-        const execute = cache && memoMiss ? (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> => {
+        const executeBound = cache && memoMiss ? (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> => {
             const key = memoCallKey(arguments_, signature.arity);
             const cached = cache.get(key);
             if (cached !== undefined) return completed(cached);
             return memoMiss(arguments_, key, inputRequirement);
         } : checkedBody;
+        const defaults = signature.words.map(word => word.defaultValue
+            ? this.host.compileDirect(word.defaultValue)! : () => MISSING);
+        const bindArguments = (arguments_: RankValue[]): RankValue[] => {
+            const required = signature.leftCount + signature.rightParameters.length;
+            if (arguments_.length !== required && arguments_.length !== signature.arity) {
+                throw new RankError(`${statement.name} expects ${required} arguments, got ${arguments_.length}`);
+            }
+            let bound = arguments_;
+            for (const [i, word] of signature.words.entries()) {
+                if (bound[word.parameter] === undefined || bound[word.parameter] === MISSING) {
+                    if (bound === arguments_) bound = [...arguments_];
+                    bound[word.parameter] = defaults[i]();
+                }
+            }
+            for (const parameter of signature.rightParameters) {
+                if (parameter.kind === 'function' && !isNativeFunction(bound[parameter.index])) {
+                    throw new RankError(`${parameter.name} expects a function`, 'TypeError');
+                }
+            }
+            return bound;
+        };
+        const execute = signature.words.length || signature.rightParameters.some(parameter => parameter.kind === 'function')
+            ? (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> =>
+                executeBound(bindArguments(arguments_), inputRequirement)
+            : executeBound;
         const declared = declaredRanks(statement);
         if (typeof declared === 'string') throw this.host.locate(new RankError(declared, 'TypeError'), statement);
         const fn: NativeFunction = {
             kind: 'function',
             name: statement.name,
-            arities: [signature.arity],
+            arities: [signature.leftCount + signature.rightParameters.length],
+            callSignature: signature,
             monadicRank: declared?.ranks.length === 1 ? declared.ranks[0] : 'all',
             arrayCells: declared ? true : undefined,
+            resultCellShape: generator ? undefined
+                : cellShapes => this.userResultCellShape(statement, context, returnRanks, cellShapes),
             monadicResultShape: generator ? undefined
                 : cellShape => this.userResultCellShape(statement, context, returnRanks, [cellShape]),
             dyadicResultShape: generator ? undefined
                 : (left, right) => this.userResultCellShape(statement, context, returnRanks, [left, right]),
-            dyadicRanks: signature.arity === 2
+            dyadicRanks: signature.dataParameters.length === 2
                 ? declared?.ranks.length === 2 ? [declared.ranks[0], declared.ranks[1]] : ['all', 'all']
                 : undefined,
             captures: context?.captures(),
@@ -357,7 +390,7 @@ export class FunctionInvocation {
                 enterRuntime();
                 try {
                     return generator
-                        ? this.callGeneratorFunction(statement, arguments_, context)
+                        ? this.callGeneratorFunction(statement, bindArguments(arguments_), context)
                         : runExecution(execute(arguments_));
                 } finally { leaveRuntime(); }
             },

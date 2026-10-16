@@ -11,13 +11,13 @@ function analyze(source: string) {
 }
 describe('tuple facts', () => {
     it('tracks arity and each position across function returns and unpacking', () => {
-        const result = analyze('fun pair N\n return tuple N "x"\nend\nunpack X Y = 1 pair');
+        const result = analyze('fun N pair\n return tuple N "x"\nend\nunpack X Y = 1 pair');
         expect(result.bindings.get('X')?.types).toEqual(['integer']);
         expect(result.bindings.get('Y')?.types).toEqual(['text']);
     });
     it('checks tuple return paths before a call', () => {
         for (const result of ['tuple 2 3', 'tuple 2']) {
-            const analysis = analyze(`fun items Flag\n if Flag\n return tuple 1 "x"\n end\n return ${result}\nend`);
+            const analysis = analyze(`fun Flag items\n if Flag\n return tuple 1 "x"\n end\n return ${result}\nend`);
             expect(analysis.diagnostics.some(item => item.message.includes('returns incompatible tuple'))).toBe(true);
         }
     });

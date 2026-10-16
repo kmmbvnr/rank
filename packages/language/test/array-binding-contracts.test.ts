@@ -33,7 +33,7 @@ describe('array binding element contracts', () => {
         expect(result.bindings.get('Result')?.types).toEqual(['integer']);
     });
     it('retains a private array domain across a stateful unknown callback without read-safety proofs', () => {
-        const result = analyze('fun apply F\n A = array 1 2\n 0 F\n A = array "x"\n return A\nend\nCallback apply');
+        const result = analyze('fun F apply\n A = array 1 2\n 0 F\n A = array "x"\n return A\nend\nCallback apply');
         expect(result.diagnostics.some(item => item.message.includes('array elements'))).toBe(true);
     });
     it('checks record schemas in array cells', () => {

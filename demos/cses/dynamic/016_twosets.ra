@@ -8,7 +8,7 @@ N two_sets print
 
 
 rem Count each equal partition once.
-fun two_sets N
+fun N two_sets
   Modulus = 1000000007
   Total = N * (N + 1) // 2
 

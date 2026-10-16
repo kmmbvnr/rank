@@ -1,7 +1,7 @@
 import { ArrayBindingContract } from '../array-binding-contract.js';
 import { tuple } from '../value.js';
 import {
-    isTupleExpression, flattenApplication, isAliasedTableExpression, isAllAxisExpression, isApplicationExpression, isArrayExpression,
+    isDeclaredCallExpression, isFunctionOperator, isTupleExpression, flattenApplication, isAliasedTableExpression, isAllAxisExpression, isApplicationExpression, isArrayExpression,
     isBinaryExpression, isBooleanLiteral, isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression,
     isKeyedRollingExpression, isKeyedSortExpression, isKeyedMergeExpression, isLabelLiteral, isMaterializeExpression, isNameExpression,
     isNewStructureExpression, isNumberLiteral, isParenthesizedExpression, isRecordExpression,
@@ -119,6 +119,17 @@ export class ExpressionEvaluator {
     private compileDirectValue(expression: Expression): (() => RankValue) | undefined {
         const compiled = this.context.fastPaths.scalarExpression(expression, leaf => this.compileDirect(leaf));
         if (compiled) return compiled;
+        if (isFunctionOperator(expression)) {
+            const fn: NativeFunction = {
+                kind: 'function', name: expression.operator, arities: [2], monadicRank: 'all',
+                dyadicRanks: ['all', 'all'],
+                call: args => {
+                    if (args.length !== 2) throw new RankError(`${expression.operator} expects two operands`);
+                    return this.context.operators.evaluateBinary(expression.operator, args[0], args[1]);
+                },
+            };
+            return () => fn;
+        }
         if (isNewStructureExpression(expression)) return () => {
             if (expression.structure === 'graph') {
                 this.context.requireModule('graph', 'new graph');
@@ -206,7 +217,7 @@ export class ExpressionEvaluator {
     ): () => Evaluation<RankValue> {
         const run = this.compileInner(expression, missing, tail, classify, allowScalar);
         return classify && this.context.inputCall
-            && (isNameExpression(expression) || isApplicationExpression(expression) || isBinaryExpression(expression))
+            && (isDeclaredCallExpression(expression) || isNameExpression(expression) || isApplicationExpression(expression) || isBinaryExpression(expression))
             ? () => this.context.inputCall!(expression, run) : run;
     }
 
@@ -214,6 +225,7 @@ export class ExpressionEvaluator {
         expression: Expression, missing: (() => RankValue) | undefined,
         tail: boolean, classify: boolean, allowScalar: boolean,
     ): () => Evaluation<RankValue> {
+        if (isDeclaredCallExpression(expression)) return this.context.application.compileDeclaredCall(expression, tail);
         const expressions = this;
         const bound = compileClauseExpression(expression, () => this.clauseContext());
         if (bound && isBinaryExpression(expression)) return bound;

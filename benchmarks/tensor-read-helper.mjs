@@ -5,10 +5,10 @@ import { Interpreter, RuntimeDiagnostics } from '../packages/interpreter/out/ind
 
 const mode = process.argv[2] ?? 'scalar';
 assert(['scalar', 'builtin'].includes(mode));
-const source = `fun bump X
+const source = `fun X bump
  return X + 1
 end
-fun total B N
+fun B N total
  Total = 0
  for I in 0 until N
   Total += B (I % 10000) + (I bump)
@@ -17,7 +17,7 @@ fun total B N
 end
 A = (1 to 10000) array
 B = A * 2`;
-const program = mode === 'builtin' ? source.replace('fun bump X\n return X + 1\nend', 'use text')
+const program = mode === 'builtin' ? source.replace('fun X bump\n return X + 1\nend', 'use text')
     .replace('(I bump)', '("A" codepoint)') : source;
 const expected = mode === 'builtin' ? 1006600000n : 6000150000n;
 

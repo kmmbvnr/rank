@@ -29,7 +29,7 @@ describe('guarded native loop calls', () => {
     it.each([
         `use sequences\nText = "a😀é"\nOut = ""\nTotal = 0\nfor C i in Text reverse\n Text = "x"\n Out += C\n Total += i\nend\nOut + (Total text)`,
         `use sequences\nOut = ""\nfor C i in ("a😀" + "b") reverse\n Out += C + (i text)\nend\nOut`,
-        `use sequences\nfun count_values Values\n Total = 0\n for C i in Values reverse\n  Total += i + 1\n end\n return Total\nend\narray ("a😀" count_values) ((array 1 2 3) count_values) ("" count_values) ("a" count_values)`,
+        `use sequences\nfun Values count_values\n Total = 0\n for C i in Values reverse\n  Total += i + 1\n end\n return Total\nend\narray ("a😀" count_values) ((array 1 2 3) count_values) ("" count_values) ("a" count_values)`,
         `use sequences\nTotal = 0\nfor C in "12x3" reverse\n Total += 1\n N = C integer\n Total += N\nend`,
     ])('compiles text expression iterators with matching state and errors: %s', source => {
         expect(compare(source).loops).toBeGreaterThan(0);
@@ -42,7 +42,7 @@ describe('guarded native loop calls', () => {
 
     it('doubles decimal text through the compiled digit loop', () => {
         const result = compare(`use sequences
-fun double Text
+fun Text double
  Result = ""
  Carry = 0
  for C in Text reverse
@@ -69,7 +69,7 @@ array ("0" double) ("99" double) ("128" double)`);
     });
 
     it('rechecks shared type hints when a function is called with another type', () => {
-        const result = compare('fun check X\n Total = 0\n for I in 1 to 2\n'
+        const result = compare('fun X check\n Total = 0\n for I in 1 to 2\n'
             + '  if X equal ("abc" + "")\n   Total += 1\n  end\n end\n return Total\nend\n'
             + 'array ("abc" check) (42 check) ("abc" check)');
         expect(result.result).toBe('2 0 2');
@@ -225,7 +225,7 @@ fun work
 end`);
             expect(runtime.execute('work')).toBe(3n);
             expect(loops).toBe(1);
-            runtime.execute('fun hostreplacement A B\n return false\nend');
+            runtime.execute('fun A B hostreplacement\n return false\nend');
             runtime.variables.set('startswith', runtime.variables.get('hostreplacement')!);
             expect(runtime.execute('work')).toBe(0n);
             expect(loops).toBe(1);
@@ -237,7 +237,7 @@ end`);
         const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => loops++ });
         try {
             runtime.execute(`use text
-fun work S P
+fun S P work
   Total = 0
   for I in 1 to 3
     if S P startswith
@@ -260,7 +260,7 @@ end`);
         `use text\nA = array shape 2 2 fill "a"\nfor I in 0 till 2\n S = A "" join\nend\nS`,
         `use text\nfor I in 0 till 2\n A = array shape 2 fill "a"\n B = A\n A 0 = "😀"\n S = B "" join\nend\nS`,
         `use text\nfor I in 0 till 2\n A = array shape 2 fill "a"\n B = A\n B 0 = "😀"\n S = A "" join\nend\nS`,
-        `use text\nfor I in 1 to 2\n fun startswith A B\n  return false\n end\n B = "x" "x" startswith\nend\nB`,
+        `use text\nfor I in 1 to 2\n fun A B startswith\n  return false\n end\n B = "x" "x" startswith\nend\nB`,
         `use text\nfor I in 1 to 2\n B = (array "a" "b") "a" startswith\nend\nB`,
         `for I in 1 to 2\n B = "x" bytes\n B 0 = 120\nend\nB`,
         `for I in 1 to 2\n B = "x" bytes\n A = array shape 2 fill B\nend\nA`,

@@ -19,7 +19,7 @@ end
 
 
 rem Find one pair with the target sum.
-fun find_pair A Target
+fun A Target find_pair
   Index = new index
   for Value i in A
     Need = Target - Value

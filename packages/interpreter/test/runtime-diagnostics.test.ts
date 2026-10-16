@@ -75,7 +75,7 @@ Total`))).toBe(28n);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun read_one A\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
+            runtime.execute('fun A read_one\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
             const read = runtime.variables.get('read_one');
             const array = createArraySnapshot([7n, 8n, 9n]);
             if (!read || typeof read !== 'object' || !('call' in read)) throw new Error('read_one');
@@ -98,7 +98,7 @@ Total`))).toBe(28n);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun read_one A\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
+            runtime.execute('fun A read_one\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
             const read = runtime.variables.get('read_one');
             const array: RankArray = { kind: 'array', shape: [2], items: [7n, 8n] };
             if (!read || typeof read !== 'object' || !('call' in read)) throw new Error('read_one');
@@ -117,7 +117,7 @@ Total`))).toBe(28n);
     it.each([true, false])('does not inspect an unread host cell with compilation %s', integerLoopCompilation => {
         const runtime = new Interpreter(undefined, { integerLoopCompilation });
         try {
-            runtime.execute('fun read_one A\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
+            runtime.execute('fun A read_one\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
             const read = runtime.variables.get('read_one');
             if (!read || typeof read !== 'object' || !('call' in read)) throw new Error('read_one');
             const items = new Proxy([7n, 8n], {
@@ -134,7 +134,7 @@ Total`))).toBe(28n);
     it.each([true, false])('does not inspect an empty host iteration source with compilation %s', integerLoopCompilation => {
         const runtime = new Interpreter(undefined, { integerLoopCompilation });
         try {
-            runtime.execute('fun consume Source\n for Value in Source\n  return Value\n end\n return 0\nend');
+            runtime.execute('fun Source consume\n for Value in Source\n  return Value\n end\n return 0\nend');
             const consume = runtime.variables.get('consume');
             if (!consume || typeof consume !== 'object' || !('call' in consume)) throw new Error('consume');
             const items = new Proxy([] as bigint[], {
@@ -153,7 +153,7 @@ Total`))).toBe(28n);
             const stats = new RuntimeDiagnostics();
             const runtime = new Interpreter(undefined, { integerLoopCompilation });
             try {
-                runtime.execute(`fun alter A N\n for I in ${range}\n  A 0 = I\n end\n return A\nend`);
+                runtime.execute(`fun A N alter\n for I in ${range}\n  A 0 = I\n end\n return A\nend`);
                 const alter = runtime.variables.get('alter');
                 if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
                 stats.run(() => alter.call([createArraySnapshot([1n, 2n]), 1n]));
@@ -172,7 +172,7 @@ Total`))).toBe(28n);
             const stats = new RuntimeDiagnostics();
             const runtime = new Interpreter(undefined, { integerLoopCompilation });
             try {
-                runtime.execute('fun alter A\n for I in 0 till 1 by 0\n  A 0 = I\n end\n return A\nend');
+                runtime.execute('fun A alter\n for I in 0 till 1 by 0\n  A 0 = I\n end\n return A\nend');
                 const alter = runtime.variables.get('alter');
                 if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
                 const array = createArraySnapshot([1n, 2n]);
@@ -188,7 +188,7 @@ Total`))).toBe(28n);
             const stats = new RuntimeDiagnostics();
             const runtime = new Interpreter(undefined, { integerLoopCompilation });
             try {
-                runtime.execute('fun alter A Source\n for Value in Source\n  A 0 = Value\n end\n return A\nend');
+                runtime.execute('fun A Source alter\n for Value in Source\n  A 0 = Value\n end\n return A\nend');
                 const alter = runtime.variables.get('alter');
                 if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
                 stats.run(() => alter.call([createArraySnapshot([1n]), createArraySnapshot([2n])]));
@@ -205,7 +205,7 @@ Total`))).toBe(28n);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter(undefined, { integerLoopCompilation });
         try {
-            runtime.execute('fun alter A Flag\n for I in 0 till 1\n  if Flag\n   A I = 9\n  end\n end\n return A\nend');
+            runtime.execute('fun A Flag alter\n for I in 0 till 1\n  if Flag\n   A I = 9\n  end\n end\n return A\nend');
             const alter = runtime.variables.get('alter');
             if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
             expect(stats.run(() => alter.call([createArraySnapshot([1n, 2n]), true]))).toBeDefined();
@@ -222,7 +222,7 @@ Total`))).toBe(28n);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter(undefined, { integerLoopCompilation });
         try {
-            runtime.execute('fun alter A B Flag\n for I in 0 till 1\n  if Flag\n   A I = 9\n   B I = 8\n  end\n end\n return A\nend');
+            runtime.execute('fun A B Flag alter\n for I in 0 till 1\n  if Flag\n   A I = 9\n   B I = 8\n  end\n end\n return A\nend');
             const alter = runtime.variables.get('alter');
             if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
             stats.run(() => alter.call([createArraySnapshot([1n, 2n]), createArraySnapshot([3n, 4n]), true]));
@@ -261,7 +261,7 @@ Total`))).toBe(6n);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            stats.run(() => runtime.execute(`fun twice N
+            stats.run(() => runtime.execute(`fun N twice
   return N * 2
 end
 A = array 2
@@ -282,10 +282,10 @@ Total`))).toBe(30n);
             const stats = new RuntimeDiagnostics();
             const runtime = new Interpreter(undefined, { integerLoopCompilation });
             try {
-                runtime.execute(`fun bump X
+                runtime.execute(`fun X bump
  return X + 1
 end
-fun total B N
+fun B N total
  Total = 0
  for I in 0 till N
   Total += B 0 + (I bump)
@@ -298,7 +298,7 @@ B = A * 3`);
                 const first = stats.run(() => runtime.execute('B 3 total'));
                 const compiledBefore = stats.compiledLoops;
                 runtime.forgetBindings(['bump']);
-                runtime.execute('fun bump X\n return X + 2\nend');
+                runtime.execute('fun X bump\n return X + 2\nend');
                 const second = stats.run(() => runtime.execute('B 3 total'));
                 return { first, second, compiledBefore, compiledAfter: stats.compiledLoops,
                     hoistedReaders: stats.hoistedReaders, calleeFallbacks: stats.fallbacks['loop:callee'] ?? 0 };
@@ -314,10 +314,10 @@ B = A * 3`);
             const stats = new RuntimeDiagnostics();
             const runtime = new Interpreter(undefined, { integerLoopCompilation });
             try {
-                runtime.execute(`fun bump X
+                runtime.execute(`fun X bump
  return X + 1
 end
-fun total B N
+fun B N total
  Total = 0
  for I in 0 till N
   Total += B 0 + (I bump)
@@ -363,7 +363,7 @@ B = A * 3`);
         const runtime = new Interpreter();
         try {
             runtime.execute(`use text
-fun total B N
+fun B N total
  Total = 0
  for I in 0 till N
   Total += B 0 + ("A" codepoint)
@@ -376,7 +376,7 @@ B = A * 3`);
             expect(stats.run(() => runtime.execute('B 3 total'))).toBe(213n);
             expect(stats.compiledLoops).toBe(1);
             expect(stats.hoistedReaders).toBe(1);
-            runtime.execute('fun hostreplacement X\n return 7\nend');
+            runtime.execute('fun X hostreplacement\n return 7\nend');
             runtime.variables.set('codepoint', runtime.variables.get('hostreplacement')!);
             expect(stats.run(() => runtime.execute('B 3 total'))).toBe(39n);
             expect(stats.compiledLoops).toBe(1);
@@ -389,7 +389,7 @@ B = A * 3`);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            stats.run(() => runtime.execute('use text\nA = array 2\nB = A * 3\nfun hostreplacement X\n return 7\nend'));
+            stats.run(() => runtime.execute('use text\nA = array 2\nB = A * 3\nfun X hostreplacement\n return 7\nend'));
             runtime.variables.set('codepoint', runtime.variables.get('hostreplacement')!);
             (runtime.variables.get('B') as RankArray).items;
             expect(stats.run(() => runtime.execute('Total = 0\nfor I in 1 to 3\n Total += B 0 + ("A" codepoint)\nend\nTotal')))
@@ -402,7 +402,7 @@ B = A * 3`);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            stats.run(() => runtime.execute('fun change N\n C 0 = N\n return N\nend\nA = array 2\nB = A * 3\nC = array 0'));
+            stats.run(() => runtime.execute('fun N change\n C 0 = N\n return N\nend\nA = array 2\nB = A * 3\nC = array 0'));
             (runtime.variables.get('B') as RankArray).items;
             expect(stats.run(() => runtime.execute('Total = 0\nfor I in 1 to 3\n Total += B 0 + (I change)\nend\nTotal'))).toBe(24n);
             expect(stats.hoistedReaders).toBe(0);

@@ -14,7 +14,7 @@ import { applicationForm } from '../application-forms.js';
  */
 
 import {
-    isTupleExpression, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
+    isTupleExpression, isFunctionOperator, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isKeyedMergeExpression, isLabelLiteral, isMaterializeExpression,
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
@@ -180,6 +180,7 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
         return binaryType(expression.operator,
             typeOf(expression.left, lookup), typeOf(expression.right, lookup));
     }
+    if (isFunctionOperator(expression)) return ['function'];
     if (isApplicationExpression(expression)) return applicationType(expression, lookup);
     return UNKNOWN;
 }

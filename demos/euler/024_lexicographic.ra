@@ -16,7 +16,7 @@ Answer print
 
 rem Select each digit directly from its
 rem factorial-sized permutation block.
-fun lexicographic Digits Position
+fun Digits Position lexicographic
   Available = Digits multiset
   Remaining = Position - 1
   Size = Available len
@@ -41,7 +41,7 @@ end
 
 
 rem Multiply the inclusive range from one to N.
-fun factorial N
+fun N factorial
   if N equal 0
     return 1
   end

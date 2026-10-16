@@ -3,7 +3,7 @@ rem https://www.deep-ml.com/problems/30
 
 
 rem Lazily split X along its first axis.
-fun batch_iterator X Size
+fun X Size batch_iterator
   if Size at most 0
     .InvalidBatchSize raise
   end
@@ -19,7 +19,7 @@ fun batch_iterator X Size
 end
 
 rem Lazily split matching X and Y.
-fun batch_pairs X Y Size
+fun X Y Size batch_pairs
   if Size at most 0
     .InvalidBatchSize raise
   end

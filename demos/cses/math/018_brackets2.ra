@@ -10,7 +10,7 @@ N Prefix completions print
 
 
 rem Count valid suffixes after a prefix.
-fun completions N Prefix
+fun N Prefix completions
   if N odd
     return 0
   end

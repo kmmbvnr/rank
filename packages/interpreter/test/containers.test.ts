@@ -13,7 +13,7 @@ Q = new ${kind}
 Q push 1
 Q push 2
 Alias = Q
-fun takeitem C
+fun C takeitem
   return C pop
 end
 A = Q peek

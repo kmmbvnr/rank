@@ -20,13 +20,13 @@ it('accepts runtime-valid rank applications across scalar, text, tensor and empt
 });
 
 it('keeps runtime guards and empty-frame behavior independent of downstream requirements', () => {
-    const source = 'fun identity X\n return X\nend\nA = array shape 0 fill 0\nB = A identity rank 0\nB # 0';
+    const source = 'fun X identity\n return X\nend\nA = array shape 0 fill 0\nB = A identity rank 0\nB # 0';
     const before = new Interpreter();
     expect(() => formatValue(before.execute(source)!)).toThrow();
     inferRequirements(parse(source));
     const after = new Interpreter();
     expect(() => formatValue(after.execute(source)!)).toThrow();
-    const empty = 'use sequences\nfun matrix X\n return array shape 2 2 fill X\nend\n(array shape 0 fill 0) matrix rank 0 shape';
+    const empty = 'use sequences\nfun X matrix\n return array shape 2 2 fill X\nend\n(array shape 0 fill 0) matrix rank 0 shape';
     const expected = formatValue(new Interpreter().execute(empty)!);
     inferRequirements(parse(empty));
     expect(formatValue(new Interpreter().execute(empty)!)).toBe(expected);

@@ -8,7 +8,7 @@ use sequences
 
 
 rem Mark the four-neighbor seed region.
-fun tolerance_fill Grid StartY StartX T
+fun Grid StartY StartX T tolerance_fill
   H = Grid len
   W = Grid 0 len
   Seed = Grid StartY StartX

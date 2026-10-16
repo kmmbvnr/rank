@@ -77,7 +77,7 @@ Total`).value).toBe('4');
 
     it('closes a generator after the return callee finishes', () => {
         const result = compare(`use io
-fun values X
+fun X values
   try
     yield X
     yield X + 1
@@ -85,11 +85,11 @@ fun values X
     "closed" print
   end
 end
-fun echo X
+fun X echo
   "callee" print
   return X
 end
-fun first S
+fun S first
   for V in S
     return V echo
   end
@@ -103,7 +103,7 @@ S first`);
 
     it('closes a generator on a body error', () => {
         const result = compare(`use io
-fun values X
+fun X values
   try
     yield X
     yield X + 1

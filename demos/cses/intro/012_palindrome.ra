@@ -12,7 +12,7 @@ Text palindrome print
 
 
 rem Build an alphabetically deterministic palindrome rearrangement.
-fun palindrome Text
+fun Text palindrome
   Counts = new counter
   Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 

@@ -1,7 +1,7 @@
 rem Compiler fixture: ranked callbacks.
 use numbers
 
-fun bounded X
+fun X bounded
   Value = X - 100000
   if Value less 0
     return 0
@@ -11,7 +11,7 @@ fun bounded X
   return Value
 end
 
-fun scores N
+fun N scores
   Values = (0 until N) array
   Scores = Values bounded rank 0
   return Scores sum

@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/32
 use algo
 use sequences
 
-fun polynomial_features X Degree
+fun X Degree polynomial_features
   Shape = X shape
   if Shape len not equal 2
     .DimensionMismatch raise

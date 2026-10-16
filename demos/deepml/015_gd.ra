@@ -6,7 +6,7 @@ use numbers
 use sequences
 
 rem Fit linear coefficients with a fixed number of gradient updates.
-fun linear_regression X Y Rate Steps
+fun X Y Rate Steps linear_regression
   Shape = X shape
   YShape = Y shape
   if Shape len not equal 2

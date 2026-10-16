@@ -36,7 +36,7 @@ it('locates incompatible yields through a straight-line local alias', async () =
 });
 
 it('publishes a function return-contract error before the function is called', async () => {
-    const document = await parse('fun pick Flag\n if Flag\n return 1\n end\n return true\nend\n', { validation: true });
+    const document = await parse('fun Flag pick\n if Flag\n return 1\n end\n return true\nend\n', { validation: true });
     expect(document.diagnostics).toContainEqual(expect.objectContaining({
         message: 'pick returns incompatible types: integer and boolean', code: 'TypeError',
         range: expect.objectContaining({ start: expect.objectContaining({ line: 0 }) }),

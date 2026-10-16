@@ -8,7 +8,7 @@ N derangements print
 
 
 rem Count fixed-point-free permutations.
-fun derangements N
+fun N derangements
   Mod = 1000000007
   Previous = 1
   Current = 0

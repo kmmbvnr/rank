@@ -12,7 +12,7 @@ A stick_cost print
 
 
 rem Minimize moves to one common length.
-fun stick_cost Values
+fun Values stick_cost
   A = Values sort
   Target = A (A len // 2)
   Diffs = A - Target abs

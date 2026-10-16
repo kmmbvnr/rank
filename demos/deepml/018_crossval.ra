@@ -6,7 +6,7 @@ use random
 
 rem Build train and test indices
 rem for every fold.
-fun cross_validation N K Shuffle
+fun N K Shuffle cross_validation
   Queue = new queue
   if N less 0
     .DomainError raise

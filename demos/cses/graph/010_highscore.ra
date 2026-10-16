@@ -22,7 +22,7 @@ end
 
 
 rem Maximize a route with Bellman-Ford.
-fun high_score Edges N
+fun Edges N high_score
   Nodes = 1 to N
   Graph = new graph Nodes .directed
   Back = new graph Nodes .directed

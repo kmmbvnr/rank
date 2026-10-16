@@ -1,3 +1,4 @@
+import type { FunctionCallSignature } from '@arrrank/language';
 import { parse, RankError } from '@arrrank/interpreter';
 import { Notebook } from './notebook.js';
 import type { OutputLine } from './repl-session.js';
@@ -5,6 +6,7 @@ import type { OutputLine } from './repl-session.js';
 export interface LiveFunctionInit {
     name: string;
     parameters: string[];
+    signature?: FunctionCallSignature;
     header: string;
     source: string;
     values?: string[];
@@ -17,6 +19,7 @@ export interface LiveFunctionInit {
 export class LiveFunctionSession {
     readonly name: string;
     readonly parameters: string[];
+    readonly signature?: FunctionCallSignature;
     readonly header: string;
     source: string;
     values: string[];
@@ -38,6 +41,7 @@ export class LiveFunctionSession {
     constructor(init: LiveFunctionInit, names: readonly string[]) {
         this.name = init.name;
         this.parameters = init.parameters;
+        this.signature = init.signature;
         this.header = init.header;
         this.source = init.source;
         this.values = [...(init.values ?? [])];

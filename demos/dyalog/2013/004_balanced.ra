@@ -1,7 +1,7 @@
 rem Dyalog 2013, problem 4: balanced parentheses.
 use sequences
 
-fun balanced Text
+fun Text balanced
   Open = Text "(" equal rank 0 integer
   Close = Text ")" equal rank 0 integer
   Delta = Open - Close

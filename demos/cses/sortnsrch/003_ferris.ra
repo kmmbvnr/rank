@@ -12,7 +12,7 @@ A X gondolas print
 
 
 rem Find the minimum gondola count.
-fun gondolas Weights Limit
+fun Weights Limit gondolas
   A = Weights sort
   I = 0
   J = A len - 1

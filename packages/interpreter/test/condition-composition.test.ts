@@ -6,7 +6,7 @@ describe('condition composition', () => {
         const output: string[] = [];
         const runtime = new Interpreter(line => output.push(line));
         expect(runtime.execute(`use io
-fun check N
+fun N check
   N print
   return N equal 2
 end

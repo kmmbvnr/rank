@@ -3,7 +3,7 @@ rem https://www.deep-ml.com/problems/55
 
 use sequences
 
-fun translate_object Points Tx Ty
+fun Points Tx Ty translate_object
   Shape = Points shape
   if Shape len not equal 2
     .DimensionMismatch raise

@@ -51,13 +51,13 @@ describe('Rank over an empty frame', () => {
                 'use io',
                 'use numbers',
                 'use sequences',
-                'fun pair X',
+                'fun X pair',
                 '  return array X X',
                 'end',
-                'fun twice X',
+                'fun X twice',
                 '  return X * 2',
                 'end',
-                'fun shout X',
+                'fun X shout',
                 '  X print',
                 '  return array X X X',
                 'end',
@@ -74,7 +74,7 @@ describe('Rank over an empty frame', () => {
 
     it('agrees in rank with the same application over a nonempty frame', () => {
         const source = (rows: number) => [
-            'fun pair X',
+            'fun X pair',
             '  return array X X',
             'end',
             `A = array shape ${rows} fill 1`,

@@ -15,7 +15,7 @@ N Edges hamiltonian_flights print
 
 
 rem Count routes by visited-city masks.
-fun hamiltonian_flights N Edges
+fun N Edges hamiltonian_flights
   Modulus = 1000000007
   States = 1 N shl
   Full = States - 1

@@ -14,7 +14,7 @@ N Edges download_speed print
 
 
 rem Compute maximum network throughput.
-fun download_speed N Edges
+fun N Edges download_speed
   Graph = new graph (1 to N) .directed
   Graph add Edges
   Result = Graph 1 N maxflow

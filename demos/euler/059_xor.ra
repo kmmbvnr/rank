@@ -30,7 +30,7 @@ end
 
 
 rem Gather repeats the key; bxor applies to corresponding bytes.
-fun decrypt Cipher Key
+fun Cipher Key decrypt
   Size = Cipher len
   Positions = 0 till Size
   KeyLen = Key len
@@ -62,7 +62,7 @@ end
 
 
 rem Find the best single byte for a strided slice.
-fun best_byte Bytes Weights
+fun Bytes Weights best_byte
   BestScore = -101 * (Bytes len) - 1
   BestByte = 97
   for Byte in 97 to 122
@@ -78,7 +78,7 @@ end
 
 
 rem Solve each byte of the repeating key independently.
-fun best_key Cipher Weights
+fun Cipher Weights best_key
   Size = Cipher len
   B0 = (Cipher (0 till Size by 3)) Weights best_byte
   B1 = (Cipher (1 till Size by 3)) Weights best_byte

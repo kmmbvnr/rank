@@ -4,7 +4,7 @@ test "official equal parameters"
   use "049_adam"
   use numbers
 
-  fun gradient X
+  fun X gradient
     return X * 2
   end
 
@@ -23,7 +23,7 @@ test "official unequal parameters"
   use "049_adam"
   use numbers
 
-  fun gradient X
+  fun X gradient
     return X * 2
   end
 
@@ -43,7 +43,7 @@ end
 test "zero gradient keeps parameters"
   use "049_adam"
 
-  fun zero_gradient X
+  fun X zero_gradient
     return X * 0.0
   end
 

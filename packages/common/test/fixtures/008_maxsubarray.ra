@@ -10,7 +10,7 @@ A max_subarray print
 
 
 rem Find the largest contiguous sum.
-fun max_subarray A
+fun A max_subarray
   N = A len
   Current = A 0
   Best = A 0

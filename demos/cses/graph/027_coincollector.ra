@@ -15,7 +15,7 @@ N Coins Edges collect_coins print
 
 
 rem Maximize coins on the SCC graph.
-fun collect_coins N Coins Edges
+fun N Coins Edges collect_coins
   Rooms = 1 to N
   Graph = new graph Rooms .directed
   Graph add Edges

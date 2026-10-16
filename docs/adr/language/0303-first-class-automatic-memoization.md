@@ -24,7 +24,7 @@ Rank needs a first-class, ceremony-free mechanism to turn pure recurrences into 
 Rank establishes the **`memo` declaration keyword** directly within the language core:
 
 ```rank
-memo fib N
+memo N fib
   if N less 2
     return N
   end
@@ -44,8 +44,8 @@ end
 The memo cache belongs strictly to the function instance:
 - **Local memo functions:** When declared inside another function, each call to the outer function creates a fresh, isolated cache:
   ```rank
-  fun solve Target
-    memo search State
+  fun Target solve
+    memo State search
       ...
     end
     return Target search

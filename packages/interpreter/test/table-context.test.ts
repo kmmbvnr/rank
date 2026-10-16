@@ -29,7 +29,7 @@ describe('contextual table operations', () => {
 
     it('keeps select locals lexical inside functions and reads fields from the original input', () => {
         const { runtime } = setup();
-        runtime.execute('fun prices R Cost\n'
+        runtime.execute('fun R Cost prices\n'
             + '  Out = R select\n    Cost = .cost + Cost\n'
             + '    .cost = Cost\n    .original = .cost\n  end\n'
             + '  return Out\nend\nA = Rows 7 prices\nB = Rows 3 prices');
@@ -104,7 +104,7 @@ describe('sort directions', () => {
 
     it('supports function keys and tensor sort/argsort directions', () => {
         const { runtime } = setup();
-        runtime.execute('fun cost R\n  return R .cost\nend\n'
+        runtime.execute('fun R cost\n  return R .cost\nend\n'
             + 'Out = Rows sort by cost .descending\n'
             + 'M = array shape 2 3\n  3 1 2\n  0 5 4\nend\n'
             + 'S = M sort .descending\nI = M argsort axis 0 .descending\n'

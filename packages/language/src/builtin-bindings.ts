@@ -40,7 +40,7 @@ export function builtinBindingDiagnostics(
     for (const node of nodes) {
         if (isFunctionStatement(node) || isFunctionBindingStatement(node)) {
             check(node.name, node);
-            for (const parameter of node.parameters) check(parameter, node);
+            if (isFunctionStatement(node)) for (const parameter of node.parameters) check(parameter, node);
         } else if (isForStatement(node)) {
             for (const name of forIteration(node.condition)?.names ?? []) if (name !== '#') check(name, node);
         } else if (isCatchClause(node)) check(node.errorName, node);

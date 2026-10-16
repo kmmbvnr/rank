@@ -64,19 +64,19 @@ describe('Rank expressions and sequences', () => {
 
     it('applies signs before postfix calls and negates completed predicates', () => {
         expect(run([
-            'fun negative X',
+            'fun X negative',
             '  return X less 0',
             'end',
             '-7 negative',
         ].join('\n'))).toBe('true');
         expect(run([
-            'fun positive X',
+            'fun X positive',
             '  return X greater 0',
             'end',
             '+7 positive',
         ].join('\n'))).toBe('true');
         expect(run([
-            'fun always_false X',
+            'fun X always_false',
             '  return false',
             'end',
             'not false always_false',
@@ -90,7 +90,7 @@ describe('Rank expressions and sequences', () => {
         expect(run('(1 till 3) 2 default 99')).toBe('99');
         expect(run([
             'use algo',
-            'fun lookup Key',
+            'fun Key lookup',
             '  Index = new index',
             '  return Index Key default -1',
             'end',
@@ -112,7 +112,7 @@ describe('Rank expressions and sequences', () => {
     it('defaults sparse reads lazily without swallowing key or fallback errors', () => {
         const source = [
             'use algo',
-            'fun lookup Mode',
+            'fun Mode lookup',
             '  Index = new index',
             '  Index 1 2 = false',
             '  if Mode equal 0',
@@ -169,7 +169,7 @@ for I in 0 till 3
   Result += (Values I) tag
 end
 Result
-fun tag Value
+fun Value tag
   if Value is .integer
     return "i"
   end
@@ -271,7 +271,7 @@ Result`)).toBe('itb');
             'B = array 3 4',
             'Result = A B outer whole',
             '',
-            'fun whole A B',
+            'fun A B whole',
             '  Left = A sum',
             '  Right = B sum',
             '  return Left + Right',
@@ -294,7 +294,7 @@ Result`)).toBe('itb');
             'B = array 2',
             'Result = A B outer pair',
             '',
-            'fun pair A B',
+            'fun A B pair',
             '  return array 1 2',
             'end',
             '',
@@ -306,7 +306,7 @@ Result`)).toBe('itb');
         expect(run([
 
             'use numbers',
-            'fun even_value X',
+            'fun X even_value',
             '  return X mod 2 equal 0',
             'end',
             'A = 1 to 3',
@@ -536,7 +536,7 @@ Result`)).toBe('itb');
         expect(run([
             'use sequences',
             'use algo',
-            'fun matrix Unused',
+            'fun Unused matrix',
             '  Queue = new queue',
             '  Queue push 1',
             '  Queue push 2',
@@ -651,11 +651,11 @@ Result`)).toBe('itb');
             .toThrowError('unknown name: count');
         expect(run([
             'use sequences',
-            'fun not_all Dummy',
+            'fun Dummy not_all',
             '  yield false',
             '  .Demanded raise',
             'end',
-            'fun has_any Dummy',
+            'fun Dummy has_any',
             '  yield true',
             '  .Demanded raise',
             'end',
@@ -1042,14 +1042,14 @@ Result`)).toBe('itb');
 
     it('unpacks rank-1 arrays into application arguments', () => {
         expect(run([
-            'fun area Width Height',
+            'fun Width Height area',
             '  return Width * Height',
             'end',
             'Point = array 3 4',
             'unpack Point area',
         ].join('\n'))).toBe('12');
         expect(run([
-            'fun add_nested Values Tail',
+            'fun Values Tail add_nested',
             '  return Values 0 + Tail',
             'end',
             'Packed = tuple (array 4) 3',

@@ -11,14 +11,14 @@ N Low High probability_text print
 
 
 rem Format an exact-count probability.
-fun probability_text N Low High
+fun N Low High probability_text
   Chance = N Low High dice_probability
   return Chance text ".6f"
 end
 
 
 rem Count outcomes before dividing once.
-fun dice_probability N Low High
+fun N Low High dice_probability
   Size = 6 * N + 1
   Ways = array shape Size fill 0
   Ways 0 = 1

@@ -14,7 +14,7 @@ function run(body: string, fused: boolean, setup = 'A = array 1 2 3', before = '
 use numbers
 use io
 ${before}
-fun probe A
+fun A probe
   ${body}
 end
 ${setup}
@@ -56,7 +56,7 @@ describe('fused explicit copy', () => {
     });
     it('preserves shadowed copy', () => {
         expect(compare('return (A + 1) copy', undefined,
-            'fun copy X\n  return 42\nend').kernels).toBe(0);
+            'fun X copy\n  return 42\nend').kernels).toBe(0);
     });
     it('does not remove observable intermediates', () => {
         expect(compare('B = A + 1\n  C = (B * B) copy\n  B print\n  return C').kernels).toBe(0);
@@ -91,7 +91,7 @@ describe('copy kernel host values', () => {
             onTensorKernelCompiled: source => sources.push(source),
         });
         try {
-            runtime.execute(`use sequences\nfun probe A\n  return (A * A + ${typeof items[0] === 'number' ? '1.0' : '1'}) copy\nend`);
+            runtime.execute(`use sequences\nfun A probe\n  return (A * A + ${typeof items[0] === 'number' ? '1.0' : '1'}) copy\nend`);
             const fn = runtime.variables.get('probe')!;
             if (typeof fn !== 'object' || fn.kind !== 'function') throw new Error('missing probe');
             const result = fn.call([{ kind: 'array', items, shape }]);

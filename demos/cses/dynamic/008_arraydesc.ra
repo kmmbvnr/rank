@@ -11,7 +11,7 @@ Description Maximum descriptions print
 
 
 rem Keep counts for the prior position.
-fun descriptions Description Maximum
+fun Description Maximum descriptions
   Modulus = 1000000007
   Size = Maximum + 2
   Previous = array shape Size fill 0

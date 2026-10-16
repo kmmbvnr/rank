@@ -11,6 +11,6 @@ D distinct_sizes print
 
 
 rem Count distinct mochi diameters, the tallest possible tower height.
-fun distinct_sizes D
+fun D distinct_sizes
   return D unique len
 end

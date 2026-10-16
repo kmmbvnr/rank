@@ -1,3 +1,4 @@
+import type { FunctionCallSignature } from '@arrrank/language';
 import { arrayDeclaration } from './array-declaration.js';
 import { noteArrayBinding } from './array-storage.js';
 import { checkpoint, interruptibleValues } from './interrupt.js';
@@ -242,6 +243,7 @@ export interface RankRecord {
 export type IntrinsicRank = number | 'all';
 
 export interface NativeFunction {
+    readonly callSignature?: FunctionCallSignature;
     readonly write?: {
         readonly arity: number;
         validate(arguments_: RankValue[]): void;
@@ -254,6 +256,8 @@ export interface NativeFunction {
     /** Result cell shape for an argument cell of this shape, when known without
      * calling the function. Ranked application over an empty frame has no cell
      * to call. `undefined` leaves the shape unknown. */
+    /** Shape-only contract in declaration parameter order, including fixed configuration. */
+    readonly resultCellShape?: (cellShapes: readonly (readonly number[])[]) => readonly number[] | undefined;
     readonly monadicResultShape?: (cellShape: readonly number[]) => readonly number[] | undefined;
     /** Shape-only contract for two ranked operand cells, including empty frames. */
     readonly dyadicResultShape?: (leftShape: readonly number[], rightShape: readonly number[]) => readonly number[] | undefined;

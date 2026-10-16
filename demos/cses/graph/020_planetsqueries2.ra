@@ -15,7 +15,7 @@ Next Queries planet_distances print
 
 
 rem Find forward distances or -1.
-fun planet_distances Next Queries
+fun Next Queries planet_distances
   F = Next functional
   Count = Queries len
   Answers = array shape Count fill 0

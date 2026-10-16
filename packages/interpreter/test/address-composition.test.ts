@@ -23,13 +23,13 @@ describe('address operand composition', () => {
 
     it('resumes deep selectors and values without replaying their effects', () => {
         expect(run(`use algo
-fun down N
+fun N down
  if N equal 0
   return 0
  end
  return (N - 1) down
 end
-fun visit Log N
+fun Log N visit
  Log push N
  return N
 end
@@ -71,7 +71,7 @@ Cache unpack Point = Grid unpack Point
 Cache unpack Point`)).toBe('7');
         expect(run(`use algo
 use sequences
-fun coordinates Log
+fun Log coordinates
   Log push 1
   return array 0 1
 end

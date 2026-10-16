@@ -15,7 +15,7 @@ Answer print
 
 rem Append successive products until each
 rem candidate reaches nine decimal digits.
-fun pandigital_multiple MaximumBase
+fun MaximumBase pandigital_multiple
   Best = 0
   Digits = "123456789"
 

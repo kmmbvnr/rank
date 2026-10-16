@@ -124,7 +124,7 @@ describe('Rank records', () => {
 
     it('passes records by reference', () => {
         expect(run([
-            'fun accumulate Node Amount',
+            'fun Node Amount accumulate',
             '  Node .grad += Amount',
             '  return Node',
             'end',
@@ -138,7 +138,7 @@ describe('Rank records', () => {
 
     it('creates a fresh record each time', () => {
         expect(run([
-            'fun make Value',
+            'fun Value make',
             '  Item = record',
             '    .value = Value',
             '  end',

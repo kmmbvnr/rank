@@ -73,7 +73,7 @@ array A B I
     });
 
     it('binds fresh function inputs on every invocation', () => {
-        const result = compare(`fun totalcustom N
+        const result = compare(`fun N totalcustom
   I = 0
   Total = 0
   for I less N
@@ -387,7 +387,7 @@ end`);
         const result = compare(`use algo
 use sequences
 use numbers
-fun ${name} X
+fun X ${name}
   return 0
 end
 P = new stack
@@ -666,7 +666,7 @@ end`);
 
 describe('integer array reads in compiled loops', () => {
     it('preserves partial writes and error order with a scalar helper between reads', () => {
-        const result = compare('fun divide N\n return 10 // (N - 2)\nend\nB = array 6\nTotal = 0\nfor I in 1 to 3\n Total += B 0\n Value = I divide\nend');
+        const result = compare('fun N divide\n return 10 // (N - 2)\nend\nB = array 6\nTotal = 0\nfor I in 1 to 3\n Total += B 0\n Value = I divide\nend');
         expect(result.loops).toBe(1);
         expect(result).toHaveProperty('error');
         expect(result.variables).toContainEqual(['Total', '12']);
@@ -1014,7 +1014,7 @@ Total`);
 
     it.each(['min', 'max'])('respects a custom %s and compiles the builtin without imports', name => {
         const result = compare(`use numbers
-fun ${name}custom A B
+fun A B ${name}custom
   return A + B
 end
 X = 0
@@ -1093,7 +1093,7 @@ end`);
 
 describe('invocation-bound integer writers', () => {
     it('binds fresh local frames on repeated function calls', () => {
-        const result = compare(`fun tally Start
+        const result = compare(`fun Start tally
   Total = Start
   for I in 1 to 3
     Total += I
@@ -1108,9 +1108,9 @@ array A B`);
     });
 
     it('updates captured parent variables across nested calls', () => {
-        const result = compare(`fun outer Seed
+        const result = compare(`fun Seed outer
   Total = Seed
-  fun add N
+  fun N add
     for I in 1 to N
       Total += I
     end
@@ -1126,7 +1126,7 @@ end
     });
 
     it('checks a new invocation with a different parameter type', () => {
-        const result = compare(`fun replace Value
+        const result = compare(`fun Value replace
   for I in 0 till 2
     Done = I
     Value = I
@@ -1488,7 +1488,7 @@ B`);
 
 describe('compiled loop returns', () => {
     it('returns from both nested loops while keeping prior writes', () => {
-        const result = compare(`fun find N
+        const result = compare(`fun N find
   for I in 0 till N
     for J in 0 till N
       if I + J equal 5
@@ -1504,7 +1504,7 @@ end
     });
 
     it('returns a created array with its mutations', () => {
-        const result = compare(`fun build N
+        const result = compare(`fun N build
   for I in 1 to N
     Row = array shape 2 fill I
     Row 1 += 10
@@ -1520,7 +1520,7 @@ end
     });
 
     it('runs enclosing finally before completing the return', () => {
-        const result = compare(`fun perform A
+        const result = compare(`fun A perform
   try
     for I in 0 till 3
       A 0 += 1
@@ -1539,7 +1539,7 @@ A`);
     });
 
     it('retains return expression errors after earlier mutations', () => {
-        const result = compare(`fun perform A
+        const result = compare(`fun A perform
   for I in 0 till 3
     A 0 += 1
     return 1 // I
@@ -1561,7 +1561,7 @@ end`);
     });
 
     it('retains the ban on return inside finally', () => {
-        const result = compare(`fun perform N
+        const result = compare(`fun N perform
   try
     Result = N
   finally
@@ -1644,7 +1644,7 @@ Total`);
 
     it('retains a user function named customabs', () => {
         const result = compare(`use numbers
-fun customabs X
+fun X customabs
   return X + 10
 end
 Total = 0
@@ -1730,7 +1730,7 @@ end`);
     });
 
     it('returns text from a compiled loop', () => {
-        const result = compare(`fun decide Text
+        const result = compare(`fun Text decide
   for C in Text
     if C not equal "x"
       return C
@@ -1744,7 +1744,7 @@ end
     });
 
     it('keeps separate guarded variants across calls with different input kinds', () => {
-        const result = compare(`fun count_values Values
+        const result = compare(`fun Values count_values
   Total = 0
   for X i in Values
     Total += i + 1
@@ -1893,7 +1893,7 @@ Total`);
     it('compiles a proved text-returning user function without treating it as the text builtin', () => {
         const result = compare(`use text
 use sequences
-fun customtext X
+fun X customtext
   return "xx"
 end
 Total = 0
@@ -1909,7 +1909,7 @@ Total`);
 
 it('retains custom customlen on a known allocated array', () => {
     const result = compare(`use sequences
-fun customlen A
+fun A customlen
   return 7
 end
 Total = 0
@@ -1924,7 +1924,7 @@ Total`);
 
 describe('proven scalar calls from loop regions', () => {
     it('calls a two-argument scalar function in a compiled loop', () => {
-        const result = compare(`fun combine A B
+        const result = compare(`fun A B combine
   return A * 10 + B
 end
 Total = 0
@@ -1937,7 +1937,7 @@ Total`);
     });
 
     it('uses a boolean function result as a branch condition', () => {
-        const result = compare(`fun positive X
+        const result = compare(`fun X positive
   return X greater 0
 end
 Total = 0
@@ -1952,7 +1952,7 @@ Total`);
     });
 
     it('keeps callee diagnostics and earlier caller mutations', () => {
-        const result = compare(`fun divide X
+        const result = compare(`fun X divide
   return 10 // X
 end
 A = array 0
@@ -1967,7 +1967,7 @@ end`);
 
     it('does not assume a captured value is a parameter', () => {
         const result = compare(`Offset = 7
-fun plus X
+fun X plus
   return X + Offset
 end
 Total = 0
@@ -1981,7 +1981,7 @@ Total`);
 
     it('keeps effectful helpers on the ordinary path', () => {
         const result = compare(`A = array 0
-fun update X
+fun X update
   A 0 += X
   return X
 end
@@ -1996,8 +1996,8 @@ Total`);
     });
 
     it('binds local function instances separately on each invocation', () => {
-        const result = compare(`fun perform N
-  fun twice X
+        const result = compare(`fun N perform
+  fun X twice
     return X * 2
   end
   Total = 0
@@ -2017,10 +2017,10 @@ array A B`);
         let loops = 0;
         const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => loops++ });
         try {
-            runtime.execute(`fun helper X
+            runtime.execute(`fun X helper
   return X + 1
 end
-fun perform N
+fun N perform
   Total = 0
   for I in 1 to N
     Total += I helper
@@ -2030,7 +2030,7 @@ end`);
             expect(runtime.execute('3 perform')).toBe(9n);
             expect(loops).toBe(1);
             runtime.forgetBindings(['helper']);
-            runtime.execute(`fun helper X
+            runtime.execute(`fun X helper
   return X + 10
 end`);
             expect(runtime.execute('3 perform')).toBe(36n);
@@ -2042,10 +2042,10 @@ end`);
         const errors = [false, true].map(integerLoopCompilation => {
             const runtime = new Interpreter(undefined, { integerLoopCompilation, maxCallDepth: 1 });
             try {
-                runtime.execute(`fun helper X
+                runtime.execute(`fun X helper
   return X + 1
 end
-fun perform N
+fun N perform
   Total = 0
   for I in 1 to N
     Total += I helper
@@ -2064,7 +2064,7 @@ end
 
 describe('proven scalar function blocks', () => {
     it('tracks local assignments and early return branches', () => {
-        const result = compare(`fun bounded X
+        const result = compare(`fun X bounded
   Value = X - 2
   if Value less 0
     return 0
@@ -2083,7 +2083,7 @@ Total`);
     });
 
     it('merges definitions from both continuing branches', () => {
-        const result = compare(`fun magnitude X
+        const result = compare(`fun X magnitude
   Value = 0
   if X less 0
     Value = -X
@@ -2102,9 +2102,9 @@ Total`);
     });
 
     it('does not mutate a captured assignment through a compiled call', () => {
-        const result = compare(`fun perform N
+        const result = compare(`fun N perform
   Shared = 10
-  fun helper X
+  fun X helper
     Shared = X + 1
     return Shared
   end
@@ -2120,8 +2120,8 @@ end
     });
 
     it('rejects a collision created later by the caller region', () => {
-        const result = compare(`fun perform N
-  fun helper X
+        const result = compare(`fun N perform
+  fun X helper
     Shared = X + 1
     return Shared
   end
@@ -2140,7 +2140,7 @@ end
     });
 
     it('allows parameter writes without changing caller bindings', () => {
-        const result = compare(`fun increment X
+        const result = compare(`fun X increment
   X += 1
   return X
 end
@@ -2155,7 +2155,7 @@ array Total I`);
     });
 
     it('requires local reads to be defined on every continuing path', () => {
-        const result = compare(`fun helper X
+        const result = compare(`fun X helper
   if X greater 0
     Value = X
   end
@@ -2170,7 +2170,7 @@ end`);
     });
 
     it('keeps block function errors after prior caller writes', () => {
-        const result = compare(`fun helper X
+        const result = compare(`fun X helper
   Value = X - 1
   return 10 // Value
 end
@@ -2185,9 +2185,9 @@ end`);
     });
 
     it('rejects hoisted declarations after a terminal return', () => {
-        const result = compare(`fun helper X
+        const result = compare(`fun X helper
   return X
-  fun nested Y
+  fun Y nested
     return Y
   end
 end
@@ -2203,7 +2203,7 @@ Total`);
 
 
 it('allows independent local names in a global helper and its caller', () => {
-    const result = compare(`fun helper X
+    const result = compare(`fun X helper
   Value = X + 1
   return Value
 end
@@ -2233,10 +2233,10 @@ describe('tail calls from compiled loop returns', () => {
             let entries = 0;
             const runtime = new Interpreter(undefined, { integerLoopCompilation, maxCallDepth: 1,
                 onIntegerLoopExecuted: () => entries++ });
-            const source = `fun helper X
+            const source = `fun X helper
   return X + 1
 end
-fun perform N
+fun N perform
 ${String(loop).split('\n').map(line => '  ' + line).join('\n')}
   return 0
 end
@@ -2258,10 +2258,10 @@ A = array 0
     });
 
     it('retains the source location of an error after tail transfer', () => {
-        const result = compare(`fun helper X
+        const result = compare(`fun X helper
   return 10 // (X - 3)
 end
-fun perform N
+fun N perform
   for N greater 0
     return (N helper)
   end

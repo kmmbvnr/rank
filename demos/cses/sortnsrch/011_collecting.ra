@@ -11,7 +11,7 @@ A collecting_rounds print
 
 
 rem Count increasing position runs.
-fun collecting_rounds A
+fun A collecting_rounds
   Positions = A argsort
   Pairs = Positions window 2
   Left = Pairs # 0

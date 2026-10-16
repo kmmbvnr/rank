@@ -109,7 +109,7 @@ describe('lowercase variable prefix completion', () => {
         const session = createReplSession();
         const repl = new NotebookRepl(session);
         try {
-            const prefix = 'fun count Number\n Total = 0\n TotalCount = 1\n return ';
+            const prefix = 'fun Number count\n Total = 0\n TotalCount = 1\n return ';
             repl.notebook.replace(prefix + 'tot');
             repl.complete(true);
             expect(repl.notebook.current.source).toBe(prefix + 'Total ');
@@ -130,4 +130,13 @@ describe('lowercase variable prefix completion', () => {
                 expect(session.complete(source)[0]).not.toContain('Number');
             } finally { session.dispose(); }
         });
+});
+
+it('completes declared optional words in live and snapshot editors', async () => {
+    const session = createReplSession();
+    try {
+        await session.execute('fun X sample .every Step=2 = X * Step', 0, [], 80, true);
+        expect(session.complete('3 sample ev')).toEqual([['every '], 'ev']);
+        expect(sessionEditor(session.snapshot()).complete('3 sample ev')).toEqual([['every '], 'ev']);
+    } finally { session.dispose(); }
 });

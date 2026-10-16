@@ -294,7 +294,7 @@ non-obvious idea or constraint:
 ```rank
 rem Return the greatest common divisor.
 rem Use the Euclidean algorithm.
-fun gcd A B
+fun A B gcd
   for B not equal 0
     R = A mod B
     A = B
@@ -316,7 +316,7 @@ textual definition, and helper functions may be placed at the end of a program:
 ```rank
 Answer = 41 next
 
-fun next X
+fun X next
   return X + 1
 end
 ```
@@ -324,13 +324,73 @@ end
 Loading a source file with `use` registers its top-level functions without
 executing its ordinary top-level statements.
 
-Calls use Rank's data-first order. Arguments come first and the function name
-is the final word:
+For a function with only left operands, data comes before the function name:
 
 ```rank
 G = A B gcd
 Result print
 ```
+
+### Call-shaped signatures
+
+A header places each parameter where its argument appears in a call. Uppercase
+names before the first lowercase name are left data operands. That first
+lowercase name names the function. After it, uppercase names are right data
+parameters and lowercase names are function parameters:
+
+```rank
+use numbers
+fun Value rounded Places = Value round Places
+fun X Y apply op = X Y op
+
+1.234 rounded 2
+2 3 apply +
+```
+
+Function parameters accept named functions and binary arithmetic, comparison,
+and boolean operators. Inside the body, `X Y op` calls the supplied operation.
+Group a compound right operand with parentheses. An undeclared trailing value
+indexes the result, just as it does after an ordinary postfix call.
+
+A dotted lowercase word declares an optional group. Its argument is data; the
+call writes the word without the dot:
+
+```rank
+fun Value scaled
+  .by Factor=2
+  .plus Offset=0
+  return Value * Factor + Offset
+end
+
+3 scaled
+3 scaled plus 1
+3 scaled by 4 plus 1
+```
+
+Immediately following lines that start with `.word` continue the header. The
+first line that does not start with a dotted word begins the body. Keep optional
+groups in declaration order; groups may be omitted but cannot be repeated.
+A declared word takes precedence over a function of the same name at that
+position. Any lowercase word is allowed, including keywords such as `.if`,
+except `.axis` and `.rank`.
+
+Defaults are scalar literals: numbers (including negative numbers), text,
+booleans, and labels. They do not evaluate expressions or read names. Without
+an explicit default, the parameter receives `.NA`. Passing `.NA` explicitly
+uses the same default as omitting the group. Required positional parameters
+have no defaults.
+
+`rank` and `axis` belong to the interpreter. Only positional data operands,
+including right data parameters, receive cell ranks; function operands and
+optional configuration stay fixed. One data operand accepts one rank and an
+optional axis selection. With two data operands, `rank L R` sets both cell
+ranks; `rank L` changes the first and keeps the second operand's declared rank
+(or its whole value). These modifiers never bind a parameter in the body.
+
+The [fold demo](../../demos/classic/fold.ra) implements reduction with
+`fun Values fold op .with Seed`. An omitted seed starts from the first item;
+an explicit seed processes every item. Empty input requires a seed and returns
+it unchanged.
 
 ### Return contracts and argument ranks
 
@@ -340,7 +400,7 @@ values do not create new specializations. A vector and a matrix can therefore us
 the same function:
 
 ```rank
-fun double Values
+fun Values double
   return Values * 2
 end
 
@@ -388,7 +448,7 @@ For results with different meanings, return a record with an explicit tag and
 consistent fields:
 
 ```rank
-fun answer Found
+fun Found answer
   if Found
     return record
       .kind = .found
@@ -416,7 +476,7 @@ For integer input, this function has an integer base case and an integer
 recursive step:
 
 ```rank
-fun factorial N
+fun N factorial
   if N less 2
     return 1
   end
@@ -452,7 +512,7 @@ return contracts. Give the operations separate entry points. Alongside
 `factorial` above, define:
 
 ```rank
-fun reciprocal_factorial N
+fun N reciprocal_factorial
   if N less 2
     return 1.0
   end
@@ -511,25 +571,28 @@ arguments; each later stage receives one result, including an array or tuple as
 one value. A later stage that cannot accept one value is rejected when the
 definition is analyzed: `f = abs matmul` needs an explicit second operand.
 
-Parameters before `=` instead define a single expression with a fixed argument
-count:
+An explicit parameter declaration starts with `fun` (or `memo`). Its `=` body
+implicitly returns one expression:
 
 ```rank
-products V = V reduce * rank 1 max
-multiply_abs A B = A B matmul abs
-f A B = (A abs) B matmul
+fun V products = V reduce * rank 1 max
+fun A B multiply_abs = A B matmul abs
+fun A B f = (A abs) B matmul
 ```
 
-These forms replace the name's previous binding; they do not add overloads.
-Executing a definition creates the function without executing its body. Its
-binding becomes available afterward. Block `fun` declarations retain their
-existing visibility throughout their scope, and `memo` remains unchanged.
+Single-line and multiline declarations have the same scope, signature and
+constant binding. Defaults may precede the body delimiter:
 
-Inline bindings remain replaceable, including aliases and explicit-parameter
-bodies. A `fun` or `memo` declaration is constant within its scope: assigning
-another function to its name or declaring it again is an error. The REPL may
-explicitly release a declaration when replaying its edited source; a clean
-restart creates fresh declarations.
+```rank
+fun X scaled .with Factor=2 = X * Factor
+memo X square = X * X
+```
+
+The old `inc X = X + 1` spelling is removed; write `fun X inc = X + 1`.
+Parameterless function-expression bindings, including `test = first equal 1`,
+remain replaceable. A `fun` or `memo` declaration cannot be assigned another
+function or redeclared within its scope. The REPL releases a declaration when
+replaying its edited source; a clean restart creates fresh declarations.
 
 A composition receives whole operands by default. Internal operations keep their
 own rank rules. A call-site `rank` applies to the complete composition:
@@ -586,7 +649,7 @@ user functions. Aliases preserve the identity of the function they reference.
 `memo` declares a value-returning function with a cache:
 
 ```rank
-memo fib N
+memo N fib
   if N less 2
     return N
   end
@@ -594,7 +657,9 @@ memo fib N
 end
 ```
 
-Calls use the same syntax as `fun`. The complete, typed argument tuple is the
+The header uses the same parameter rules as `fun`, without an additional
+`fun` keyword. Defaults are applied before forming the cache key, so omitted
+and explicit `.NA` groups share a cache entry. The complete, typed argument tuple is the
 cache key. A cache hit returns the stored result without running the body.
 Successful results are stored after the call completes, including its
 `finally` blocks. Errors are not cached.
@@ -611,10 +676,10 @@ function creates a new cache. Each call of an outer function creates fresh
 local memoized functions:
 
 ```rank
-fun solve N
+fun N solve
   return N fib
 
-  memo fib X
+  memo X fib
     if X less 2
       return X
     end
@@ -640,10 +705,10 @@ registered when the enclosing call begins, so their definitions can stay after
 the executable lines and even after the outer `return`:
 
 ```rank
-fun make Base
+fun Base make
   return add
 
-  fun add Value
+  fun Value add
     return Base + Value
   end
 end
@@ -668,7 +733,7 @@ A multiline function may also be declared directly inside a `for` body:
 ```rank
 for R in 1 till 3
   Offset = R
-  fun addOffset X
+  fun X addOffset
     return X + Offset
   end
   10 addOffset print
@@ -699,7 +764,7 @@ asks for an element:
 
 ```rank
 rem Generate the Collatz values beginning with N.
-fun weird N
+fun N weird
   yield N
 
   for N not equal 1
@@ -750,7 +815,7 @@ program: the block ends the name, not the resource.
 Returning a resource moves it into the caller's ownership scope:
 
 ```rank
-fun source Path
+fun Path source
   File = Path open
   return File
 end

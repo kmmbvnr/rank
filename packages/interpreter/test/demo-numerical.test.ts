@@ -37,7 +37,7 @@ describe('numerical demo host oracles', () => {
 
     it('keeps the CSES maximum-subarray result across cached compiled entries and a changed array', () => {
         const source = readFileSync(new URL('../../../demos/cses/sortnsrch/008_maxsubarray.ra', import.meta.url), 'utf8');
-        const definition = source.slice(source.indexOf('fun max_subarray'));
+        const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*max_subarray\b/));
         const results = [false, true].map(integerLoopCompilation => {
             const runtime = new Interpreter(undefined, { integerLoopCompilation });
             const stats = new RuntimeDiagnostics();

@@ -5,7 +5,7 @@ import { scalarFunctionResult } from '../src/scalar-function-proof.js';
 import { compileScalarFunction } from '../src/scalar-function-kernel.js';
 
 function statement(body: string) {
-    const result = parse(`fun helper X Y\n${body}\nend`).statements[0];
+    const result = parse(`fun X Y helper\n${body}\nend`).statements[0];
     if (!isFunctionStatement(result)) throw new Error('expected function');
     return result;
 }
@@ -87,7 +87,7 @@ describe('scalar function operator eligibility', () => {
         'X and= Y\nreturn X', 'Good = true\nGood += false\nreturn Good',
         'Local += X\nreturn Local', 'X = true\nreturn X',
         'if X greater Y\nreturn X\nelse\nreturn true\nend',
-        'return X\nfun nested Z\nreturn Z\nend',
+        'return X\nfun Z nested\nreturn Z\nend',
     ])('retains block rejection for %s', body => {
         expect(scalarFunctionResult(statement(body), true)).toBeUndefined();
     });

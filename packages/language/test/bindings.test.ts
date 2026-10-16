@@ -109,7 +109,7 @@ describe('binding facts', () => {
     it('gives a function its own scope and sees what it hides', async () => {
         const result = await facts([
             'Value = 1',
-            'fun double Value',
+            'fun Value double',
             '  return Value * 2',
             'end',
             '(3 double) print',
@@ -123,9 +123,9 @@ describe('binding facts', () => {
 
     it('lets a nested function read the function that encloses it', async () => {
         const result = await facts([
-            'fun outer Grid',
+            'fun Grid outer',
             '  Width = Grid len',
-            '  fun inner X',
+            '  fun X inner',
             '    return X * Width',
             '  end',
             '  return 1 inner',
@@ -276,7 +276,7 @@ describe('type facts', () => {
 
     it('says nothing where nothing is proved', async () => {
         const result = await facts([
-            'fun decide Flag',
+            'fun Flag decide',
             '  if Flag',
             '    return 1',
             '  end',

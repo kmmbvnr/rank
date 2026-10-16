@@ -13,12 +13,12 @@ describe('environment reads and overlays', () => {
     });
     it('keeps unopened env names available for ordinary function bindings', () => {
         const runtime = new Interpreter();
-        expect(runtime.execute('env Name = Name + 1\n3 env')).toBe(4n);
+        expect(runtime.execute('fun Name env = Name + 1\n3 env')).toBe(4n);
     });
     it('isolates preview writes through imported functions and escaped closures', () => {
         const environment = EnvironmentOverlay.from([['HOST', 'original']]);
-        const source = 'use cli\nfun change Value\n  env "HOST" = Value\n  return "HOST" env\nend\n'
-            + 'fun make\n  fun changeit Value\n    env "HOST" = Value\n    return "HOST" env\n  end\n  return changeit\nend';
+        const source = 'use cli\nfun Value change\n  env "HOST" = Value\n  return "HOST" env\nend\n'
+            + 'fun make\n  fun Value changeit\n    env "HOST" = Value\n    return "HOST" env\n  end\n  return changeit\nend';
         const runtime = new Interpreter(undefined, { environment, loadModule: () => ({ id: 'module.ra', source }) });
         runtime.execute('use cli\nuse "module" as lib\nclosure = (lib.make)');
         const preview = runtime.forkForPreview();
@@ -34,7 +34,7 @@ describe('environment reads and overlays', () => {
     });
     it('keeps explicit memo caching while ordinary functions observe changes', () => {
         const runtime = new Interpreter();
-        runtime.execute('use cli\nenv "HOST" = "first"\nfun read Ignored\n  return "HOST" env\nend\nmemo cached Ignored\n  return "HOST" env\nend');
+        runtime.execute('use cli\nenv "HOST" = "first"\nfun Ignored read\n  return "HOST" env\nend\nmemo Ignored cached\n  return "HOST" env\nend');
         expect(runtime.execute('0 cached')).toBe('first');
         runtime.execute('env "HOST" = "second"');
         expect(runtime.execute('0 read')).toBe('second');
@@ -53,7 +53,7 @@ describe('environment reads and overlays', () => {
     it('keeps delayed generator effects inside the environment where the call was made', () => {
         const environment = EnvironmentOverlay.from([['HOST', 'original']]);
         const runtime = new Interpreter(undefined, { environment, loadModule: () => ({ id: 'module.ra', source:
-            'use cli\nfun changes Value\n  env "HOST" = Value\n  yield "HOST" env\nend' }) });
+            'use cli\nfun Value changes\n  env "HOST" = Value\n  yield "HOST" env\nend' }) });
         runtime.execute('use cli\nuse "module" as lib');
         const preview = runtime.forkForPreview();
         try {
@@ -67,7 +67,7 @@ describe('environment reads and overlays', () => {
     });
     it('isolates each test from the parent and other tests, including module calls', () => {
         const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'module.ra', source:
-            'use cli\nfun change Value\n  env "HOST" = Value\n  return "HOST" env\nend' }) });
+            'use cli\nfun Value change\n  env "HOST" = Value\n  return "HOST" env\nend' }) });
         runtime.execute('use cli\nuse testing\nenv "HOST" = "parent"\n'
             + 'test "first"\n  use cli\n  use "module" as lib\n  "child" lib.change\n  "HOST" env equal "child"\nend\n'
             + 'test "second"\n  use cli\n  "HOST" env equal "parent"\nend');

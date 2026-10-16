@@ -9,7 +9,7 @@ function run(expression: string, left: string, right: string, boolean: boolean, 
     });
     try {
         const value = runtime.execute(`use sequences
-fun probe A B
+fun A B probe
   Mapped = ${expression}
   return Mapped ${boolean ? 'count' : 'sum'}
 end

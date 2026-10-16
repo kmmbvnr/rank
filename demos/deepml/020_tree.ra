@@ -8,7 +8,7 @@ use tables
 
 rem Every node has a class, attribute and branches.
 rem Leaves have an empty attribute and no branches.
-fun learn_tree Data Attrs Target
+fun Data Attrs Target learn_tree
   Y = Data Target
 
   if Y unique len equal 1
@@ -53,7 +53,7 @@ end
 
 
 rem Build sorted branches for one split.
-fun branch Data Attr Rest T
+fun Data Attr Rest T branch
   Index = new index
   Values = Data Attr unique sort
 
@@ -68,7 +68,7 @@ end
 
 
 rem Compute information gain in bits.
-fun gain Data Attr Target
+fun Data Attr Target gain
   Base = Data Target entropy
   Cond = 0.0
   Values = Data Attr unique
@@ -87,7 +87,7 @@ end
 
 
 rem Compute Shannon entropy in bits.
-fun entropy Y
+fun Y entropy
   N = Y len
   H = 0.0
 
@@ -103,7 +103,7 @@ end
 
 
 rem Pick the alphabetic class on ties.
-fun majority Y
+fun Y majority
   Values = Y unique sort
   Best = Values 0
   BestCount = -1

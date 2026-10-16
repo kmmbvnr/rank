@@ -58,7 +58,7 @@ Checked against the current tree, so the plan does not rest on assumptions.
   the value of the last expression. Piping `A = 3`, `B = A * 2`, `B` prints
   `3 6 6`. The console is a new renderer over a session model that works, not
   new semantics.
-- **The terminal REPL cannot accept a block.** `fun double X` on its own line
+- **The terminal REPL cannot accept a block.** `fun X double` on its own line
   fails with a syntax error, because the grammar wants the body and `end` in the
   same parse. So the terminal cannot define a function or write a loop at all. A
   cell-based console fixes this for free: a cell submits a whole block.

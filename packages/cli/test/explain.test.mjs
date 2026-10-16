@@ -57,7 +57,7 @@ test('explain borrows the names of a loaded source module', t => {
     const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-explain-'));
     t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
     fs.writeFileSync(path.join(temporary, 'twice.ra'),
-        'fun twice X\n  return X * 2\nend\n');
+        'fun X twice\n  return X * 2\nend\n');
     const file = path.join(temporary, 'main.ra');
     fs.writeFileSync(file, 'use "twice"\nA = 3 twice\nB = A\n');
 

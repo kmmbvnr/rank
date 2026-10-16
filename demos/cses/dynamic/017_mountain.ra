@@ -10,10 +10,10 @@ Heights mountain_route print
 
 
 rem Collapse valleys into a stack.
-fun mountain_route Heights
+fun Heights mountain_route
   Mountains = new stack
 
-  fun add_height Height
+  fun Height add_height
     Current = record
       .height = Height
       .path = 1

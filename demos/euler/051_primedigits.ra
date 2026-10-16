@@ -30,7 +30,7 @@ fun smallest_prime_replacement
 end
 
 
-fun has_eight_prime_family Prime
+fun Prime has_eight_prime_family
   Digits = Prime text integer rank 0
   Last = Digits len - 1
   Places = 0 till Last
@@ -52,7 +52,7 @@ end
 
 rem Replace every selected decimal position with
 rem each legal digit by adding its combined weight.
-fun replacement_family Prime Pick
+fun Prime Pick replacement_family
   Digits = Prime text integer rank 0
   Width = Digits len
   Digit = Digits (Pick 0)

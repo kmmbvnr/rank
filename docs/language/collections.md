@@ -131,7 +131,7 @@ reference, so every name sees the write:
 use algo
 Cache = new index
 
-fun store Cache K V
+fun Cache K V store
   Cache K = V
   return 0
 end
@@ -356,7 +356,7 @@ These method words are contextual library names, not reserved words. Rank
 dispatches `floor`, `ceiling`, `lowerbound` and `upperbound` as multiset
 methods only when the expression before the operation evaluates to a
 multiset. Otherwise the operation resolves as an ordinary function, so a
-program may define and call `fun ceiling A B` as `3 ceiling 4`.
+program may define and call `fun A B ceiling` as `3 ceiling 4`.
 
 `remove` deletes one equal occurrence. Removing an absent value raises
 `.Missing`. `floor` returns the greatest value at most its argument;
@@ -429,7 +429,7 @@ Tree = Values segment combine with Identity
 
 Each input element is already a state. `combine Left Right` must return a
 state, be associative, and leave both operands unchanged. `Identity` must
-satisfy `combine Identity X = X` and `combine X Identity = X`; these laws are
+satisfy `fun Identity X combine = X` and `fun X Identity combine = X`; these laws are
 part of the caller's contract and are not checked at runtime. The function
 and identity are evaluated once during construction.
 

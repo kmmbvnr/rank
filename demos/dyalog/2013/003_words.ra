@@ -3,7 +3,7 @@ use sequences
 use text
 use io
 
-fun wordCount Text
+fun Text wordCount
   Words = Text " " split
   Lengths = Words len rank 0
   return (Lengths greater 0) count

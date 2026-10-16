@@ -22,6 +22,6 @@ end
 
 
 rem Find the cheapest connecting roads.
-fun road_reparation Graph
+fun Graph road_reparation
   return Graph mst
 end

@@ -17,10 +17,10 @@ const options = Object.fromEntries(process.argv.slice(2).map(arg => {
 }));
 const cases = {
     globals: { source: 'Total = 0\nfor I in 1 to 100000\n Total += I\nend\nTotal', expected: 5000050000n, generic: true },
-    locals: { source: 'fun work N\n Total = 0\n for I in 1 to N\n  Total += I\n end\n return Total\nend\n100000 work', expected: 5000050000n, generic: true },
-    text: { source: 'use text\nfun work N\n Total = 0\n for I in 0 till N\n  S = I text\n  if not (S "1" startswith)\n   Total += S len\n  end\n end\n return Total\nend\n100000 work', expected: 434569n, generic: true },
-    compiled: { source: 'fun work N\n Total = 0\n for I in 1 to N\n  Total += I\n end\n return Total\nend\n100000 work', expected: 5000050000n },
-    recursive: { source: 'fun fib N\n if N less 2\n  return N\n end\n A = (N - 1) fib\n B = (N - 2) fib\n return A + B\nend\n22 fib', expected: 17711n },
+    locals: { source: 'fun N work\n Total = 0\n for I in 1 to N\n  Total += I\n end\n return Total\nend\n100000 work', expected: 5000050000n, generic: true },
+    text: { source: 'use text\nfun N work\n Total = 0\n for I in 0 till N\n  S = I text\n  if not (S "1" startswith)\n   Total += S len\n  end\n end\n return Total\nend\n100000 work', expected: 434569n, generic: true },
+    compiled: { source: 'fun N work\n Total = 0\n for I in 1 to N\n  Total += I\n end\n return Total\nend\n100000 work', expected: 5000050000n },
+    recursive: { source: 'fun N fib\n if N less 2\n  return N\n end\n A = (N - 1) fib\n B = (N - 2) fib\n return A + B\nend\n22 fib', expected: 17711n },
     euler16: { source: readFileSync(resolve(root, 'demos/euler/016_powerdigits.ra'), 'utf8'), expected: 1366n, answer: 'Answer' },
 };
 const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];

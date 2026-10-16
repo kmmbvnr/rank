@@ -74,7 +74,7 @@ Conditional selection has a dedicated data-first form: `Condition choose IfTrue 
 ### 4. Function Definition Syntax
 Functions declare parameters without parentheses and terminate cleanly with `end`:
 ```rank
-fun gcd A B
+fun A B gcd
   for B greater 0
     T = B
     B = A mod B

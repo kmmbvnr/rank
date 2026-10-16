@@ -6,12 +6,12 @@ import { analyzeValues } from '../src/analysis/value-diagnostics.js';
 import { functionTestExamples } from '../src/analysis/test-examples.js';
 
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
-const project = 'fun project Start Finish Reward\n return record\n  .start = Start\n  .finish = Finish\n'
+const project = 'fun Start Finish Reward project\n return record\n  .start = Start\n  .finish = Finish\n'
     + '  .reward = Reward\n end\nend\n';
 
 /** Facts for `f` called with a queue that the test filled from the given push lines. */
 function result(body: string, pushes: string[], extra = '', diagnostics: string[] = []) {
-    const module = parser.parse<Program>(`${project}${extra}fun f Jobs\n${body}\nend\n`);
+    const module = parser.parse<Program>(`${project}${extra}fun Jobs f\n${body}\nend\n`);
     expect(module.parserErrors).toEqual([]);
     const test = parser.parse<Program>('test "t"\n use "m"\n Jobs = new queue\n'
         + pushes.map(line => ` Jobs push ${line}\n`).join('') + ' Jobs f equal 0\nend\n');

@@ -16,13 +16,13 @@ describe('inline arithmetic reduction', () => {
         it(`preserves ${operator} reduction order, types and empty behavior`, () => {
             const runtime = new Interpreter();
             runtime.execute(`
-fun fused A B
+fun A B fused
   return ((A + A) + (B - A)) reduce ${operator}
 end
-fun expression A B
+fun A B expression
   return (A + A) + (B - A)
 end
-fun total X
+fun X total
   return X reduce ${operator}
 end
 `);
@@ -35,7 +35,7 @@ end
                 // Each fresh lazy input has no known element type until read.
                 // Keep this comparison independent of an earlier return contract.
                 runtime.forgetBindings(['total']);
-                runtime.execute(`fun total X\n return X reduce ${operator}\nend`);
+                runtime.execute(`fun X total\n return X reduce ${operator}\nend`);
                 const a = vector(values);
                 const b = vector([...values].reverse());
                 if (values.length === 0 && operator === '-') {
@@ -53,13 +53,13 @@ end
     it('keeps broadcast and nested-value fallback', () => {
         const runtime = new Interpreter();
         runtime.execute(`
-fun fused A B
+fun A B fused
   return (A * 2 + B) reduce +
 end
-fun expression A B
+fun A B expression
   return A * 2 + B
 end
-fun total X
+fun X total
   return X reduce +
 end
 `);
@@ -75,7 +75,7 @@ end
 
     it('retains lazy read order and stops without replay on failure', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun fused A B\n  return (A * 2 + B) reduce +\nend');
+        runtime.execute('fun A B fused\n  return (A * 2 + B) reduce +\nend');
         const reads: string[] = [];
         const lazy = (name: string): RankArray => ({
             kind: 'array', shape: [3], containsFiles: false,
@@ -94,7 +94,7 @@ end
 
     it('does not probe host array cells while choosing the fast path', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun fused A B\n  return (A * 2 + B) reduce +\nend');
+        runtime.execute('fun A B fused\n  return (A * 2 + B) reduce +\nend');
         const reads: string[] = [];
         const host = (name: string): RankArray => ({
             kind: 'array', shape: [2], containsFiles: false,
@@ -112,7 +112,7 @@ end
 
     it('reads lazy operands in tree order and observes mutations between calls', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun fused A B\n  return (A + (B * 2)) reduce +\nend');
+        runtime.execute('fun A B fused\n  return (A + (B * 2)) reduce +\nend');
         const reads: string[] = [];
         const a: RankArray = { ...vector([1n, 2n]), itemAt: index => {
             if (index === 0) { reads.push('a0'); b.items[0] = 10n; }
@@ -131,7 +131,7 @@ end
 
     it('preserves cached named intermediates and explicit rank reductions', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun fused A B\n  return (A * 2 + B) reduce +\nend');
+        runtime.execute('fun A B fused\n  return (A * 2 + B) reduce +\nend');
         const a = vector([1n, 2n]);
         runtime.variables.set('A', a);
         runtime.execute('Temp = A + A');
@@ -153,7 +153,7 @@ end
         expect(() => runtime.execute('(A + B + Missing) reduce +')).toThrow('shape mismatch');
         runtime.variables.set('Flag', true);
         expect(() => runtime.execute('(Flag * 2 + Missing) reduce +')).toThrow('expected number, got boolean');
-        runtime.execute('fun fused A B\n  return (A * 2 + B) reduce +\nend');
+        runtime.execute('fun A B fused\n  return (A * 2 + B) reduce +\nend');
         try {
             call(runtime, 'fused', vector(['bad', 'bad']), 0n);
             throw new Error('expected failure');
@@ -167,11 +167,11 @@ end
     it('leaves effectful calls and nested modifiers on the ordinary path', () => {
         const runtime = new Interpreter();
         runtime.execute(`
-fun change A
+fun A change
   A 1 = 10
   return A
 end
-fun fused A
+fun A fused
   return (A + (A change)) reduce +
 end
 `);

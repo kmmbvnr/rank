@@ -10,7 +10,7 @@ N debruijn print
 
 
 rem Read bits from an Euler cycle.
-fun debruijn N
+fun N debruijn
   if N equal 1
     return "01"
   end

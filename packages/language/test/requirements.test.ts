@@ -18,15 +18,15 @@ it('infers selectors on an unknown producer without manufacturing a forward fact
     expect(analyzeValues(program).bindings.get('Rows')?.rank).toBeUndefined();
 });
 it('summarizes uncalled parameters and checks independent polymorphic calls', () => {
-    const source = 'fun spread M\n return M # 1 max - M # 1 min\nend\n';
+    const source = 'fun M spread\n return M # 1 max - M # 1 min\nend\n';
     const program = parse(source);
     const definition = program.statements.find(isFunctionStatement)!;
     expect(inferRequirements(program).functions.get(definition)?.params[0].rank.min).toBe(2);
     expect(infer(source + 'A = array 1 2\nA spread').conflicts.length).toBeGreaterThan(0);
-    expect(infer('fun identity X\n return X\nend\nA = 1 identity\nB = (array 1 2) identity').conflicts).toEqual([]);
+    expect(infer('fun X identity\n return X\nend\nA = 1 identity\nB = (array 1 2) identity').conflicts).toEqual([]);
 });
 it('carries a downstream requirement through a function result to its argument', () => {
-    const source = 'fun identity X\n return X\nend\nA = Input decode\nB = A identity\nB # 0';
+    const source = 'fun X identity\n return X\nend\nA = Input decode\nB = A identity\nB # 0';
     expect(binding(source, 'A').rank.min).toBe(2);
     expect(binding(source, 'B').rank.min).toBe(2);
 });
@@ -37,7 +37,7 @@ it('does not impose a lower bound for clamped or negative ordinary ranks', () =>
     expect(binding('A = Input decode\nA sum axis 0 rank 2', 'A').rank).toMatchObject({ min: 3, max: 3 });
 });
 it('propagates lifted-result requirements without merging separate calls', () => {
-    const source = 'fun parse X\n return X decode\nend\nData = array shape 3 4 fill 1\nRows = Data parse rank 1\nRows # 2';
+    const source = 'fun X parse\n return X decode\nend\nData = array shape 3 4 fill 1\nRows = Data parse rank 1\nRows # 2';
     expect(binding(source, 'Rows').rank.min).toBe(2);
     expect(infer(source).conflicts).toEqual([]);
 });
@@ -46,22 +46,22 @@ it('preserves binding ranks while allowing axis lengths to change on reassignmen
     expect(infer('A = array 1 2\nA = array shape 2 2 fill 0').conflicts.length).toBeGreaterThan(0);
 });
 it('does not confuse globals, parameters, nested functions or captured writes', () => {
-    expect(infer('M = 1\nfun spread M\n return M # 1\nend').conflicts).toEqual([]);
-    expect(infer('fun outer X\n fun inner M\n  return M # 1\n end\n return X inner\nend\n(array 1 2) outer').conflicts.length).toBeGreaterThan(0);
+    expect(infer('M = 1\nfun M spread\n return M # 1\nend').conflicts).toEqual([]);
+    expect(infer('fun X outer\n fun M inner\n  return M # 1\n end\n return X inner\nend\n(array 1 2) outer').conflicts.length).toBeGreaterThan(0);
     expect(infer('fun outer\n M = array 1 2\n fun change\n  M = array shape 2 2 fill 0\n end\n change\n return M # 1\nend').conflicts).toEqual([]);
 });
 it('keeps guarded uses and zero-trip loops from constraining all calls', () => {
-    expect(infer('fun pick X\n if X is .array\n  return X # 1\n end\n return X\nend\n1 pick').conflicts).toEqual([]);
-    expect(infer('fun pick X\n for I in 0 till 0\n  X # 1\n end\n return X\nend\n1 pick').conflicts).toEqual([]);
+    expect(infer('fun X pick\n if X is .array\n  return X # 1\n end\n return X\nend\n1 pick').conflicts).toEqual([]);
+    expect(infer('fun X pick\n for I in 0 till 0\n  X # 1\n end\n return X\nend\n1 pick').conflicts).toEqual([]);
 });
 it('does not assign requirements to an unknown callback parameter', () => {
-    const program = parse('fun apply X Callback\n return X Callback\nend');
+    const program = parse('fun X Callback apply\n return X Callback\nend');
     const definition = program.statements.find(isFunctionStatement)!;
     expect(inferRequirements(program).functions.get(definition)?.params.map(param => [param.rank.min, param.rank.max]))
         .toEqual([[0, Infinity], [0, Infinity]]);
 });
 it('instantiates imported summaries at each call', () => {
-    const module = parse('fun spread M\n return M # 1\nend');
+    const module = parse('fun M spread\n return M # 1\nend');
     const program = parse('use "matrix" as matrix\n(array 1 2) matrix.spread');
     expect(inferRequirements(program, { loadModule: () => module }).conflicts.length).toBeGreaterThan(0);
 });
@@ -88,7 +88,7 @@ it('reuses symbolic lengths and propagates exact square requirements across valu
     expect(infer(consistent).conflicts).toEqual([]);
 });
 it('carries dimensions through identity calls without mixing specializations', () => {
-    const source = 'use linalg\nfun identity X\n return X\nend\nN = stdin .integer\nA = array shape N 2 fill 1\nB = A identity\nB det';
+    const source = 'use linalg\nfun X identity\n return X\nend\nN = stdin .integer\nA = array shape N 2 fill 1\nB = A identity\nB det';
     expect(binding(source, 'A').dimensions.get(0)).toMatchObject({ min: 2, max: 2 });
     expect(infer(source + '\nC = (array shape 3 3 fill 1) identity\nC det').conflicts).toEqual([]);
 });
@@ -98,7 +98,7 @@ it('keeps missing seeds and typed text atoms out of tensor-only rank rules', () 
     expect(infer('X = .NA\nX / 2').conflicts).toEqual([]);
 });
 it('does not reuse a later return when an earlier conditional may return another shape', () => {
-    expect(infer('fun decide X\n if X equal 0\n  return array shape 2 2 fill 1\n end\n return X\nend\nA = 0 decide\nA # 1').conflicts).toEqual([]);
+    expect(infer('fun X decide\n if X equal 0\n  return array shape 2 2 fill 1\n end\n return X\nend\nA = 0 decide\nA # 1').conflicts).toEqual([]);
 });
 it('formats both source sites within forty columns', async () => {
     const { requirementMessage } = await import('../src/analysis/requirement-diagnostics.js');
@@ -112,13 +112,13 @@ it('formats both source sites within forty columns', async () => {
 });
 
 it('reuses one imported template under multiple aliases and terminates cyclic imports', () => {
-    const module = parse('use "self" as self\nfun spread M\n return M # 0\nend');
+    const module = parse('use "self" as self\nfun M spread\n return M # 0\nend');
     const source = parse('use "self" as first\nuse "self" as second\n(array 1 2) second.spread');
     expect(inferRequirements(source, { loadModule: () => module }).conflicts.length).toBeGreaterThan(0);
 });
 it('keeps requirement templates bounded when definitions duplicate calls', () => {
-    const sources = ['fun f0 X\n return X # 0\nend'];
-    for (let i = 1; i < 20; i++) sources.push(`fun f${i} X\n A = X f${i - 1}\n B = X f${i - 1}\n return A\nend`);
+    const sources = ['fun X f0\n return X # 0\nend'];
+    for (let i = 1; i < 20; i++) sources.push(`fun X f${i}\n A = X f${i - 1}\n B = X f${i - 1}\n return A\nend`);
     expect(infer(sources.join('\n')).limited).toBe(true);
 });
 
@@ -130,7 +130,7 @@ it('keeps completed unary pipelines separate from binary builtin operands', () =
 });
 
 it('preserves unresolved import boundaries inside function templates', () => {
-    expect(infer('use "unknown"\nfun f X\n return X 25 solve\nend\n(array 1 2) f').conflicts).toEqual([]);
+    expect(infer('use "unknown"\nfun X f\n return X 25 solve\nend\n(array 1 2) f').conflicts).toEqual([]);
 });
 
 it('attaches a selected CSV column requirement to the original value through an alias', () => {
@@ -163,7 +163,7 @@ it('still discards structural requirements across an unresolved callback', () =>
 });
 
 it('retains independent checked-read contracts for the callers of a reader function', () => {
-    const source = 'use tables\nuse text\nfun load Path\n return Path csv check\nend\nA = "first.csv" load\nA .price sum\nB = "second.csv" load\nB .name lower';
+    const source = 'use tables\nuse text\nfun Path load\n return Path csv check\nend\nA = "first.csv" load\nA .price sum\nB = "second.csv" load\nB .name lower';
     const program = parse(source);
     const answer = inferRequirements(program, { includeCalls: true });
     const calls = [...answer.calls.values()];
@@ -178,7 +178,7 @@ it('retains independent checked-read contracts for the callers of a reader funct
 });
 
 it('carries caller requirements to a checked read through a nested wrapper', () => {
-    const source = 'use tables\nfun readrows Path\n return Path csv check\nend\nfun load Path\n return Path readrows\nend\nRows = "data.csv" load\nRows .price sum';
+    const source = 'use tables\nfun Path readrows\n return Path csv check\nend\nfun Path load\n return Path readrows\nend\nRows = "data.csv" load\nRows .price sum';
     const answer = inferRequirements(parse(source), { includeCalls: true });
     const wrapper = [...answer.calls.values()][0];
     expect(wrapper.name).toBe('load');
@@ -201,12 +201,12 @@ it('links checked CSV row lengths when a later dot product needs equal columns',
 
 
 it('infers scalar integer count parameters after an unknown lazy reduction without assuming input values', () => {
-    const program = parse('fun prefix Numbers Digits\n Total = Numbers sum\n Text = Total text\n return Text take Digits\nend');
+    const program = parse('fun Numbers Digits prefix\n Total = Numbers sum\n Text = Total text\n return Text take Digits\nend');
     const definition = program.statements.find(isFunctionStatement)!;
     const params = inferRequirements(program).functions.get(definition)!.params;
     expect(params[0].domains).toEqual(['integer', 'real', 'missing']);
     expect(params[1].rank).toMatchObject({ min: 0, max: 0 });
     expect(params[1].domains).toEqual(['integer']);
-    const rebound = parse('fun prefix Digits\n Digits = Other\n return "abc" take Digits\nend');
+    const rebound = parse('fun Digits prefix\n Digits = Other\n return "abc" take Digits\nend');
     expect(inferRequirements(rebound).functions.get(rebound.statements.find(isFunctionStatement)!)!.params[0].domains).toBeUndefined();
 });

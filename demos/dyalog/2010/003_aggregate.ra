@@ -31,7 +31,7 @@ Years 29 print
 
 rem Complete periods only: a partial last period is
 rem dropped. An unknown code raises Missing.
-fun aggregate Data Period Ops
+fun Data Period Ops aggregate
   Values = Data / 1.0
   Groups = Values window Period stride Period axis 0
   Kinds = "SAMFL" "" split

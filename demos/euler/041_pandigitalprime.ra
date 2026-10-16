@@ -14,7 +14,7 @@ Answer print
 
 rem Descending input makes permutations arrive
 rem from largest to smallest candidate.
-fun largest_pandigital_prime Digits
+fun Digits largest_pandigital_prime
   CandidateTexts = Digits permutations
   Candidates = CandidateTexts integer rank 0
   Prime = Candidates in primes

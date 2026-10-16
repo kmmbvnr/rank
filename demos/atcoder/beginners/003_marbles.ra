@@ -9,7 +9,7 @@ S marbles print
 
 
 rem Count squares marked with a marble.
-fun marbles S
+fun S marbles
   Count = 0
 
   for C in S

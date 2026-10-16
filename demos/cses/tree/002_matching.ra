@@ -16,7 +16,7 @@ Tree tree_matching print
 
 
 rem Match free child and parent nodes.
-fun tree_matching Tree
+fun Tree tree_matching
   Walk = Tree 1 dfs
   Size = Tree len + 1
   Used = array shape Size fill false

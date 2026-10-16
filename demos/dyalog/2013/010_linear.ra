@@ -2,7 +2,7 @@ rem Dyalog 2013, problem 10: solve A X = B directly through linalg.
 use linalg
 use io
 
-fun linearSolve A B
+fun A B linearSolve
   return A B solve
 end
 

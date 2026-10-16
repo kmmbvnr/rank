@@ -15,7 +15,7 @@ A Swaps collecting_updates print
 
 
 rem Update the round count after swaps.
-fun collecting_updates Values Swaps
+fun Values Swaps collecting_updates
   Index = new index
   Queue = new queue
   A = Values copy

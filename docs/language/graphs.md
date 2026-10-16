@@ -157,11 +157,11 @@ segment values:
 ```rank
 use sequences
 
-fun segmentcost Pair rank 1
+fun Pair segmentcost rank 1
   return Graph (Pair 0) (Pair 1) edgeweight
 end
 
-fun tripcost Route
+fun Route tripcost
   return (Route window 2) segmentcost reduce +
 end
 

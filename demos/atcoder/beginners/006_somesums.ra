@@ -10,12 +10,12 @@ B = stdin .integer
 N A B some_sums print
 
 
-fun digit_sum X
+fun X digit_sum
   return X text integer rank 0 sum
 end
 
 rem Sum every value in 1..N whose digit sum falls in a range.
-fun some_sums N A B
+fun N A B some_sums
   Values = (1 to N) array
   Sums = Values digit_sum rank 0
   Mask = Sums at least A

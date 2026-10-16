@@ -16,7 +16,7 @@ Answer print
 
 rem Build each row exactly from two seeded
 rem cumulative products, then compare the quotient.
-fun large_choices N
+fun N large_choices
   Top = (N to 1 by -1) scan * with 1
   Bottom = (1 to N) scan * with 1
   Choices = Top // Bottom

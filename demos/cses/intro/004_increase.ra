@@ -11,7 +11,7 @@ Values moves print
 
 
 rem Count increments needed to make Values nondecreasing.
-fun moves Values
+fun Values moves
   Prefix = Values scan max
   Diffs = Prefix - Values
   return Diffs sum

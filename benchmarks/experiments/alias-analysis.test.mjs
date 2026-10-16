@@ -3,7 +3,7 @@ import test from 'node:test';
 import { parse } from '../../packages/interpreter/out/index.js';
 import { analyzeFunction } from './alias-analysis.mjs';
 
-const analyze = body => analyzeFunction(parse(`fun inspect N\n${body}\nend`).statements[0]);
+const analyze = body => analyzeFunction(parse(`fun N inspect\n${body}\nend`).statements[0]);
 const a = body => analyze(body).find(item => item.name === 'A');
 test('finds a fresh unused binding without claiming its element type', () => {
   assert.equal(a('A = array 1 2\nreturn 0').candidate, true);

@@ -49,14 +49,14 @@ test('disposing a paused worker wakes it and completes', { timeout: 10000 }, asy
 test('paused nested calls expose locals and continue to the same result', { timeout: 15000 }, async t => {
     const session = await createWorkerSession();
     t.after(() => session.dispose());
-    assert.equal((await session.execute(`fun inner N
+    assert.equal((await session.execute(`fun N inner
   Total = 0
   for I in 1 to N
     Total = Total + I
   end
   return Total
 end`, 0, [])).ok, true);
-    assert.equal((await session.execute(`fun outer N
+    assert.equal((await session.execute(`fun N outer
   Result = N inner
   return Result + 1
 end`, 1, [])).ok, true);
@@ -75,7 +75,7 @@ end`, 1, [])).ok, true);
 test('a lazy generator reports its frame without consuming it during inspection', { timeout: 10000 }, async t => {
     const session = await createWorkerSession();
     t.after(() => session.dispose());
-    const source = `fun items N
+    const source = `fun N items
   Total = 0
   for I in 1 to N
     Total = Total + I
@@ -104,7 +104,7 @@ async function nextPause(session) {
 test('step to main finishes a loop and preserves function breakpoints', { timeout: 10000 }, async t => {
     const session = await createWorkerSession();
     t.after(() => session.dispose());
-    const fn = 'fun inc X\n  return X + 1\nend';
+    const fn = 'fun X inc\n  return X + 1\nend';
     await session.execute(fn, 0, []);
     session.setDebugBreakpoints([{ source: fn, line: 2 }]);
     const execution = session.execute('Total = 0\nfor I in 1 to 20\n  Total += I inc\nend\nTotal', 1, []);
@@ -123,7 +123,7 @@ test('step to main finishes a loop and preserves function breakpoints', { timeou
 test('step to main leaves ranked callbacks and stops in the following cell', { timeout: 10000 }, async t => {
     const session = await createWorkerSession();
     t.after(() => session.dispose());
-    const fn = 'fun inc X\n  return X + 1\nend';
+    const fn = 'fun X inc\n  return X + 1\nend';
     await session.execute(fn, 0, []);
     session.setDebugBreakpoints([{ source: fn, line: 2 }]);
     const execution = session.execute('Total = ((1 to 20 array) inc rank 0) sum', 1, []);
@@ -146,7 +146,7 @@ test('inspection does not evaluate a ranked array shape while paused inside its 
     const session = await createWorkerSession();
     t.after(() => session.dispose());
     await session.execute('use text\nuse sequences', 0, []);
-    const fn = 'fun palindrome X\n  Text = X text\n  Back = Text reverse\n  return Text equal Back\nend';
+    const fn = 'fun X palindrome\n  Text = X text\n  Back = Text reverse\n  return Text equal Back\nend';
     await session.execute(fn, 1, []);
     session.setDebugBreakpoints([{ source: fn, line: 2 }]);
     const execution = session.execute('Factors = 100 to 999\nProducts = Factors Factors outer *\nMask = Products palindrome rank 0', 2, []);
@@ -235,9 +235,9 @@ test('inspection lists each call frame once and preserves shadowed values', { ti
     const session = await createWorkerSession();
     t.after(() => session.dispose());
     await session.execute('N = 99', 0, []);
-    const fn = 'fun inner N\n  A = 1\n  B = 2\n  A\n  B\n  return N + 0\nend';
+    const fn = 'fun N inner\n  A = 1\n  B = 2\n  A\n  B\n  return N + 0\nend';
     await session.execute(fn, 1, []);
-    await session.execute('fun outer N\n  Result = (N + 1) inner\n  return Result\nend', 2, []);
+    await session.execute('fun N outer\n  Result = (N + 1) inner\n  return Result\nend', 2, []);
     session.setDebugBreakpoints([{ source: fn, line: 6 }]);
     const execution = session.execute('10 outer', 3, []);
     const state = (await nextPause(session)).state;
@@ -293,7 +293,7 @@ test('breakpoints stop repeated loop visits and can be removed before replay', {
 test('line step enters functions; iteration skips calls and nested loops', { timeout: 10000 }, async t => {
     const session = await createWorkerSession();
     t.after(() => session.dispose());
-    const fn = 'fun inc N\n  return N + 1\nend';
+    const fn = 'fun N inc\n  return N + 1\nend';
     await session.execute(fn, 0, []);
     session.debugNext();
     const call = session.execute('1 inc', 1, []);
@@ -336,7 +336,7 @@ test('conditional loop steps inspect its state and cancellation runs finally wit
 test('source stepping resumes a lazy generator without skipping yields', { timeout: 10000 }, async t => {
     const session = await createWorkerSession();
     t.after(() => session.dispose());
-    const source = 'fun items N\n  for I in 1 to N\n    yield I\n  end\nend';
+    const source = 'fun N items\n  for I in 1 to N\n    yield I\n  end\nend';
     await session.execute(source, 0, []);
     session.setDebugBreakpoints([{ source, line: 3 }]);
     const execution = session.execute('2 items sum', 1, []);

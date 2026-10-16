@@ -20,7 +20,7 @@ Rooted Paths path_counts print
 
 
 rem Add path differences, then merge up.
-fun path_counts Rooted Paths
+fun Rooted Paths path_counts
   Order = Rooted .order
   Parents = Rooted .parent
   Root = Rooted .root

@@ -7,7 +7,7 @@ use sequences
 
 rem Compute U, singular values and
 rem the right factor V.
-fun svd_2x2 A
+fun A svd_2x2
   unpack Rows Columns = A shape
   if Rows not equal 2
     .DimensionMismatch raise

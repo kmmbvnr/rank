@@ -16,7 +16,7 @@ Answer print
 
 rem Materialize indexed values and a larger set
 rem covering every pair sum in the search.
-fun pentagonal_difference Limit
+fun Limit pentagonal_difference
   Values = array shape (Limit + 1) fill 0
   Pentagons = new set
   for N in 1 to Limit * 2
@@ -49,6 +49,6 @@ end
 
 
 rem Return the Nth positive pentagonal number.
-fun pentagonal N
+fun N pentagonal
   return N * (3 * N - 1) // 2
 end

@@ -25,7 +25,7 @@ Values Queries range_updates print
 
 rem Store only update differences.
 rem Original values remain unchanged.
-fun range_updates Values Queries
+fun Values Queries range_updates
   Updates = Values len fenwick
 
   for Query in Queries

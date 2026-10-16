@@ -22,7 +22,7 @@ end
 
 
 rem Walk every street and return.
-fun mail_delivery Graph EdgeCount
+fun Graph EdgeCount mail_delivery
   Path = Graph 1 euler
   Valid = Path len equal EdgeCount + 1
   if Valid and Path last equal 1

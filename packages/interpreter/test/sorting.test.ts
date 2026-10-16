@@ -80,7 +80,7 @@ describe('sort by', () => {
         expect(run([
             'use algo',
             'use sequences',
-            'fun event Name Time Delta',
+            'fun Name Time Delta event',
             '  Event = record',
             '    .name = Name',
             '    .time = Time',
@@ -108,7 +108,7 @@ describe('sort by', () => {
             'Calls = record',
             '  .count = 0',
             'end',
-            'fun magnitude Value',
+            'fun Value magnitude',
             '  Calls .count += 1',
             '  return Value abs',
             'end',
@@ -126,7 +126,7 @@ describe('sort by', () => {
         expect(run([
 
             'use sequences',
-            'fun descending Value',
+            'fun Value descending',
             '  return 0 - Value',
             'end',
             'Sorted = (1 to 4) sort by descending',
@@ -153,7 +153,7 @@ describe('sort by', () => {
         ].join('\n'))).toThrowError('sort by fields expects records');
         expect(() => run([
             'use sequences',
-            'fun pair A B',
+            'fun A B pair',
             '  return A + B',
             'end',
             'Values = array 1 2',
@@ -161,7 +161,7 @@ describe('sort by', () => {
         ].join('\n'))).toThrowError('sort by key must be a unary function');
         expect(() => run([
             'use sequences',
-            'fun composite Value',
+            'fun Value composite',
             '  return array Value',
             'end',
             'Values = array 1 2',
@@ -179,7 +179,7 @@ describe('argsort by', () => {
         expect(run([
             'use algo',
             'use sequences',
-            'fun event Name Time Delta',
+            'fun Name Time Delta event',
             '  Event = record',
             '    .name = Name',
             '    .time = Time',
@@ -205,7 +205,7 @@ describe('argsort by', () => {
             'Calls = record',
             '  .count = 0',
             'end',
-            'fun magnitude Value',
+            'fun Value magnitude',
             '  Calls .count += 1',
             '  return Value abs',
             'end',

@@ -15,15 +15,15 @@ it('shows the Euler 17 function signature in notebook calls and its later defini
                 expect(repl.notebook.cells.some(cell => cell.status === 'error')).toBe(false);
                 expect(repl.notebook.cells.flatMap(cell => cell.output).some(line => line.text === '21124')).toBe(true);
             }
-            for (const text of ['fun letters', 'Numbers letters', 'fun letters']) {
+            for (const text of ['fun Value letters', 'Numbers letters', 'fun Value letters']) {
                 const index = repl.notebook.cells.findIndex(cell => cell.source.includes(text));
                 const source = repl.notebook.cells[index].source;
                 repl.notebook.selectTo(index, source.indexOf(text) + text.indexOf('letters'));
                 expect(repl.nameFacts?.signature, `${text}, executed=${executed}`).toBe('i → i');
             }
-            const index = repl.notebook.cells.findIndex(cell => cell.source.includes('fun letters'));
+            const index = repl.notebook.cells.findIndex(cell => cell.source.includes('fun Value letters'));
             const source = repl.notebook.cells[index].source;
-            for (const [text, name] of [['fun letters Value', 'Value'], ['N = Value', 'N'],
+            for (const [text, name] of [['fun Value letters', 'Value'], ['N = Value', 'N'],
                 ['N = Value', 'Value'], ['unpack D N = N divmod 100', 'D'], ['unpack D N = N divmod 100', 'N'],
                 ['unpack D N = N divmod 10\n', 'D'], ['unpack D N = N divmod 10\n', 'N'],
                 ['return Count + Small N', 'Small'], ['return Count + Small N', 'N']] as const) {
@@ -43,11 +43,11 @@ it('invalidates historical call signatures after editing captured values or the 
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        repl.notebook.restore('use io\nValues = array 3 5 7\nA = 0 lookup\nA print\n0 lookup\nfun lookup N\n return Values N\nend');
-        const definition = repl.notebook.cells.findIndex(cell => cell.source.includes('fun lookup'));
+        repl.notebook.restore('use io\nValues = array 3 5 7\nA = 0 lookup\nA print\n0 lookup\nfun N lookup\n return Values N\nend');
+        const definition = repl.notebook.cells.findIndex(cell => cell.source.includes('fun N lookup'));
         const selectDefinition = () => {
             const source = repl.notebook.cells[definition].source;
-            repl.notebook.selectTo(definition, source.indexOf('fun lookup') + 4);
+            repl.notebook.selectTo(definition, source.indexOf('lookup', source.search(/^fun[^\n]*\blookup\b/m)));
             return repl.nameFacts?.signature;
         };
         expect(selectDefinition()).toBe('i → i');
@@ -62,7 +62,7 @@ it('invalidates historical call signatures after editing captured values or the 
         repl.notebook.selectTo(values, 0);
         repl.notebook.replace('Values = array "a" "b" "c"');
         expect(selectDefinition()).toBe('i → text');
-        repl.notebook.replace('fun lookup N\n return true\nend');
+        repl.notebook.replace('fun N lookup\n return true\nend');
         expect(selectDefinition()).toContain('→ b');
     } finally { session.dispose(); }
 });
@@ -71,10 +71,10 @@ it('joins observed parameter and local types for a function analyzed through a r
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        repl.notebook.restore('1 identity\n"text" identity\nfun identity Value\n N = Value\n return N\nend');
-        const index = repl.notebook.cells.findIndex(cell => cell.source.includes('fun identity'));
+        repl.notebook.restore('1 identity\n"text" identity\nfun Value identity\n N = Value\n return N\nend');
+        const index = repl.notebook.cells.findIndex(cell => cell.source.includes('fun Value identity'));
         const source = repl.notebook.cells[index].source;
-        for (const [text, name] of [['fun identity Value', 'Value'], ['N = Value', 'N'], ['return N', 'N']]) {
+        for (const [text, name] of [['fun Value identity', 'Value'], ['N = Value', 'N'], ['return N', 'N']]) {
             repl.notebook.selectTo(index, source.indexOf(text) + text.lastIndexOf(name));
             expect(repl.nameFacts?.facts.types.slice().sort(), text).toEqual(['integer', 'text']);
         }

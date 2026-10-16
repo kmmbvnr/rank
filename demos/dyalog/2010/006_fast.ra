@@ -24,7 +24,7 @@ Options Params variablefast print
 
 
 rem The task 5 shares, with the same die rolls.
-fun variablefast Options Params
+fun Options Params variablefast
   unpack Start Count = Options
   Sims = Count integer
   Quarters = Params 2 integer // 3
@@ -55,7 +55,7 @@ rem proportional to the balance at the start of the year,
 rem so a year is one factor and the balances are running
 rem products of them. The savings are the sum of what
 rem each year kept, grown by the years after it.
-fun fastdifference Changes Start Params
+fun Changes Start Params fastdifference
   unpack Price Costs Months BankAmt BankRate DadAmt DadRate Infl TaxPct PropRate SavRate Rent = Params
   Term = Months integer
   Sims = Changes shape 1
@@ -101,7 +101,7 @@ end
 
 
 rem The balance after Span equal payments.
-fun repay Balance Rate Payment Span
+fun Balance Rate Payment Span repay
   Grown = (1 + Rate) ** Span
   Annuity = Balance * Grown - Payment * (Grown - 1) / Rate
   Zero = Rate less 0.000000001
@@ -112,7 +112,7 @@ end
 rem Sum of Rise ** k * Growth ** (Span - 1 - k) for k
 rem below Span: a difference of powers over the Gap,
 rem or its first-order series when the two nearly meet.
-fun weight Rise Growth Span
+fun Rise Growth Span weight
   Gap = Rise - Growth
   Near = Span * Growth ** (Span - 1) + Span * (Span - 1) / 2 * Growth ** (Span - 2) * Gap
   Far = (Rise ** Span - Growth ** Span) / Gap

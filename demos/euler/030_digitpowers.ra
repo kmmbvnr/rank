@@ -14,7 +14,7 @@ Answer print
 
 rem Six times the largest digit power safely
 rem bounds the fourth- and fifth-power tasks.
-fun digit_power_numbers Power
+fun Power digit_power_numbers
   Upper = 6 * 9 ** Power
   Total = 0
   for N in 2 to Upper
@@ -29,7 +29,7 @@ end
 
 rem Apply the power to every decimal digit,
 rem then reduce the resulting values.
-fun digit_power_sum N Power
+fun N Power digit_power_sum
   Text = N text
   Digits = Text integer rank 0
   Powers = Digits ** Power

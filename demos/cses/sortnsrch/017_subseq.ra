@@ -11,7 +11,7 @@ A distinct_subsequences print
 
 
 rem Choose zero or one copy of each value.
-fun distinct_subsequences A
+fun A distinct_subsequences
   Index = new index
   Seen = new set
   for Value in A

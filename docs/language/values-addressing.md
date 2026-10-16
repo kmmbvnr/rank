@@ -20,7 +20,7 @@ function cannot change the data its caller passed in. To hand a changed value
 back, return it.
 
 ```rank
-fun bump V
+fun V bump
   V 0 = 99
   return V
 end

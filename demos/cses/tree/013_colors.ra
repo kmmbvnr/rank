@@ -19,7 +19,7 @@ Colors Rooted distinct_colors print
 
 
 rem Merge smaller color sets upward.
-fun distinct_colors Colors Rooted
+fun Colors Rooted distinct_colors
   Order = Rooted .order
   Parents = Rooted .parent
   Root = Rooted .root

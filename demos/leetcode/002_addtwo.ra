@@ -2,7 +2,7 @@ rem Add Two Numbers
 rem Two numbers as digit lists in reverse
 rem order, return their sum the same way
 
-fun add_two A B
+fun A B add_two
   Size = (A len) (B len) max
   Carry = 0
 

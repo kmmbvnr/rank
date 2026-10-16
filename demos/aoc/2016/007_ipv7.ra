@@ -20,7 +20,7 @@ Part2 print
 
 
 rem TLS needs an ABBA outside brackets and none inside them.
-fun tls Address
+fun Address tls
   Parts = Address (array "[" "]") split
 
   I = 0 till (Parts len)
@@ -38,7 +38,7 @@ end
 
 
 rem Test whether text contains ABBA.
-fun has_abba Text
+fun Text has_abba
   Windows = Text window 4
   Mask = Windows is_abba rank 0
   return Mask any
@@ -46,7 +46,7 @@ end
 
 
 rem Test one four-character window.
-fun is_abba Text
+fun Text is_abba
   A = Text 0
   B = Text 1
 
@@ -59,7 +59,7 @@ end
 
 
 rem SSL needs an outside ABA whose matching BAB occurs inside brackets.
-fun ssl Address
+fun Address ssl
   Parts = Address (array "[" "]") split
 
   I = 0 till (Parts len)
@@ -81,7 +81,7 @@ end
 
 
 rem Test one three-character window.
-fun is_aba Text
+fun Text is_aba
   A = Text 0
   B = Text 1
 
@@ -93,7 +93,7 @@ end
 
 
 rem Convert ABA to corresponding BAB.
-fun to_bab Text
+fun Text to_bab
   A = Text 0
   B = Text 1
   return B + A + B

@@ -2,7 +2,7 @@ rem Dyalog 2013, problem 2: percentage of grades at least 65.
 use sequences
 use io
 
-fun passRate Grades
+fun Grades passRate
   if not Grades is .array
     if Grades at least 65
       return 100.0

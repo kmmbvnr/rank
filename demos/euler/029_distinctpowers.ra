@@ -15,7 +15,7 @@ Answer print
 
 rem Exact integers make equality sufficient;
 rem the set removes repeated powers.
-fun distinct_powers Limit
+fun Limit distinct_powers
   Values = new set
   for A in 2 to Limit
     for B in 2 to Limit

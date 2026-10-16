@@ -5,7 +5,7 @@ use sequences
 
 
 rem Simulate until stopped or exhausted.
-fun brake Initial AccelSamples Delta
+fun Initial AccelSamples Delta brake
   Count = AccelSamples len
   Length = Count + 1
   Speeds = array shape Length fill 0.0

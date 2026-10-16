@@ -164,7 +164,7 @@ test('Ctrl-R anchors the screen cursor when examples appear and typing keeps tha
     const renderer = new TerminalRenderer(repl, new TerminalModeRouter(repl),
         { columns: 80, rows: 20, write: text => writes.push(text) });
     const book = repl.notebook;
-    book.replace('fun inc X'); await repl.submit();
+    book.replace('fun X inc'); await repl.submit();
     repl.exampleEditor.replace('2'); await repl.submit();
     book.insert('Result = X + 1'); await repl.submit();
     book.insert('end'); await repl.submit();

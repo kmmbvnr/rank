@@ -3,7 +3,7 @@ import { Interpreter, RankError, isNativeFunction, isRankSequence, type RankValu
 import { MemoryIo, run } from './support.js';
 
 const down = `
-fun down N
+fun N down
   if N equal 0
     return 0
   end
@@ -27,7 +27,7 @@ Seen = array shape 100000 fill false
 for I in 0 till 99999
   Edges I = I + 1
 end
-fun dfs V
+fun V dfs
   if Seen V
     return 0
   end
@@ -45,13 +45,13 @@ end
 
     it('supports mutual recursion and explicit scalar rank', () => {
         expect(run(`
-fun even N
+fun N even
   if N equal 0
     return true
   end
   return (N - 1) odd rank 0
 end
-fun odd N
+fun N odd
   if N equal 0
     return false
   end
@@ -63,9 +63,9 @@ end
 
     it('preserves operand order and evaluates side effects once across multiple calls', () => {
         expect(run(`
-fun exercise N
+fun N exercise
   Count = 0
-  fun tree V
+  fun V tree
     Count += 1
     if V equal 0
       return Count
@@ -81,9 +81,9 @@ end
 
     it('unwinds deep returns and caught errors through finally with captured locals', () => {
         expect(run(`
-fun exercise N
+fun N exercise
   Cleaned = 0
-  fun visit V
+  fun V visit
     try
       if V equal 0
         .Leaf 7 raise
@@ -107,7 +107,7 @@ end
         const interpreter = new Interpreter(line => lines.push(line));
         expect(() => interpreter.execute(`
 use io
-fun fail N
+fun N fail
   try
     if N equal 0
       .Leaf raise
@@ -129,7 +129,7 @@ end
         const interpreter = new Interpreter(undefined, { io });
         expect(() => interpreter.execute(`
 use io
-fun fail N
+fun N fail
   File = "/input" open
   if N equal 0
     .Leaf raise
@@ -145,7 +145,7 @@ end
     it('resumes generators around deep calls in the correct frame', () => {
         const interpreter = new Interpreter();
         interpreter.execute(`${down}
-fun values N
+fun N values
   yield N down
   yield (N + 1) down
 end
@@ -186,7 +186,7 @@ end
         const interpreter = new Interpreter(line => lines.push(line), { io });
         interpreter.execute(`${down}
 use io
-fun values N
+fun N values
   File = "/input" open
   try
     try
@@ -225,7 +225,7 @@ Values = 1 values
     it('reports nested synchronous lazy callbacks as Rank errors', () => {
         const interpreter = new Interpreter();
         expect(interpreter.execute(`
-fun down N
+fun N down
   if N equal 0
     return 0
   end
@@ -246,7 +246,7 @@ end
         for (let i = 0; i < 10000; i += 1) value = { kind: 'array', shape: [1], items: [value] };
         const interpreter = new Interpreter();
         interpreter.variables.set('Data', value);
-        expect(interpreter.execute('fun identity A\n  return A\nend\nData identity')).toBe(value);
+        expect(interpreter.execute('fun A identity\n  return A\nend\nData identity')).toBe(value);
     });
 
     it.each([
@@ -254,7 +254,7 @@ end
         'Item = record\n  .value = 0\nend\nItem .value = (N - 1) down + 1',
     ])('suspends recursive record fields: %s', body => {
         expect(run(`
-fun down N
+fun N down
   if N equal 0
     return 0
   end
@@ -267,11 +267,11 @@ end
 
     it('switches cached applications between immediate and suspended function values', () => {
         expect(run(`${down}
-fun increment N
+fun N increment
   return N + 1
 end
 f = increment
-fun wrapper N
+fun N wrapper
   Value = N f
   Value += 1
   return Value
@@ -287,13 +287,13 @@ array A B C
 
     it('continues a postfix application after suspension without repeating effects', () => {
         expect(run(`${down}
-fun exercise N
+fun N exercise
   Count = 0
-  fun tick X
+  fun X tick
     Count += 1
     return X
   end
-  fun increment X
+  fun X increment
     return X + 1
   end
   Answer = N tick down increment tick
@@ -308,7 +308,7 @@ end
         const interpreter = new Interpreter(line => lines.push(line));
         interpreter.execute(`
 use io
-fun values N
+fun N values
   N print
   yield N
 end
@@ -329,17 +329,17 @@ Values = 7 values
         const io = new MemoryIo({ '/input': 'Rank' });
         const interpreter = new Interpreter(undefined, { io, maxCallDepth: 1 });
         expect(() => interpreter.execute(`
-fun identity X
+fun X identity
   return X
 end
-fun outer N
+fun N outer
   return (N identity) + 0
 end
 1 outer
 `)).toThrowError('function call depth exceeds 1');
         expect(interpreter.execute(`
 use io
-fun openfile Path
+fun Path openfile
   File = Path open
   return File
 end

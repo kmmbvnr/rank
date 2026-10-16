@@ -55,7 +55,7 @@ for (const trailingBlank of [false, true]) {
     test(`Enter after the outer end finishes a new function after Ctrl-R (trailing blank: ${trailingBlank})`, async () => {
         const s = scenario();
         try {
-            await s.type('fun digit_sum N');
+            await s.type('fun N digit_sum');
             await s.enter();
             await s.type('"123456"');
             await s.enter();
@@ -80,7 +80,7 @@ for (const trailingBlank of [false, true]) {
 test('Enter after a nested end keeps a new function open after Ctrl-R', async () => {
     const s = scenario();
     try {
-        await s.type('fun identity N');
+        await s.type('fun N identity');
         await s.enter();
         await s.type('3');
         await s.enter();
@@ -104,7 +104,7 @@ for (const selectIteration of [false, true]) {
     test(`a for inside a new function closes separately from the function (select iteration: ${selectIteration})`, async () => {
         const s = scenario();
         try {
-            await s.type('fun total N');
+            await s.type('fun N total');
             await s.enter();
             await s.type('3');
             await s.enter();
@@ -251,12 +251,12 @@ test('generated live-function editing scenarios recover from likely user mistake
                     for (const replacement of ['2', '5']) {
                         const s = scenario();
                         try {
-                            await s.type(headerTypo ? 'func inc X' : 'fun inc X');
+                            await s.type(headerTypo ? 'func inc X' : 'fun X inc');
                             await s.enter();
                             if (headerTypo) {
                                 assert.match(s.book.current.output.map(line => line.text).join('\n'), /unknown name: func/);
                                 await s.clear();
-                                await s.type('fun inc X');
+                                await s.type('fun X inc');
                                 await s.enter();
                             }
 
@@ -322,7 +322,7 @@ test('generated live-function editing scenarios recover from likely user mistake
 test('real key routing edits all argument fields and returns from the body to them', async () => {
     const s = scenario();
     try {
-        await s.type('fun add X Y');
+        await s.type('fun X Y add');
         await s.enter();
         await s.type('1');
         await s.down();
@@ -410,7 +410,7 @@ test('Up leaves the iteration field through the loop header without losing the d
 test('arrow keys select a function loop iteration without evaluating its body', async () => {
     const s = scenario();
     try {
-        await s.type('fun total N');
+        await s.type('fun N total');
         await s.enter();
         await s.type('3');
         await s.enter();
@@ -660,7 +660,7 @@ test('repeated Ctrl-R evaluates line by line and stops being an Enter alias afte
 test('Ctrl-R on a function loop header directly selects using the existing example', async () => {
     const s = scenario();
     try {
-        await s.type('fun visit N');
+        await s.type('fun N visit');
         await s.enter();
         await s.type('3');
         await s.enter();
@@ -777,7 +777,7 @@ test('Ctrl-R previews code; Ctrl-G explicitly selects the loop and returns to th
 test('evaluation Enter inserts a disposable line and preserves entered code', async () => {
     const s = scenario();
     try {
-        await s.type('fun inc X'); await s.enter();
+        await s.type('fun X inc'); await s.enter();
         await s.type('2'); await s.enter();
         await s.type('Result = X + 1'); await s.enter();
         await s.type('end'); await s.enter();

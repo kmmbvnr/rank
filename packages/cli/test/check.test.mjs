@@ -18,7 +18,7 @@ test('check parses every program and reports the ones that do not', t => {
     fs.mkdirSync(path.join(temporary, 'nested'));
     fs.writeFileSync(path.join(temporary, 'good.ra'), 'use numbers\nA = 1 + 2\n');
     fs.writeFileSync(path.join(temporary, 'nested', 'also_good.ra'),
-        'fun double X\n  return X * 2\nend\n');
+        'fun X double\n  return X * 2\nend\n');
 
     const passing = check(temporary);
     assert.equal(passing.status, 0);

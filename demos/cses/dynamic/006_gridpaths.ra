@@ -11,7 +11,7 @@ Grid grid_paths print
 
 
 rem Reuse one row of path counts.
-fun grid_paths Grid
+fun Grid grid_paths
   Size = Grid len
   Ways = array shape Size fill 0
   Ways 0 = 1

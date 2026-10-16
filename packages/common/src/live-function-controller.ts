@@ -1,5 +1,5 @@
 import { parse } from '@arrrank/interpreter';
-import { isFunctionStatement } from '@arrrank/language';
+import { functionCallSignature, isFunctionStatement } from '@arrrank/language';
 import { LiveFunctionSession } from './live-function.js';
 import { enclosingIterationLine, LivePreviewRunner } from './live-preview.js';
 import type { Notebook } from './notebook.js';
@@ -149,13 +149,17 @@ export class LiveFunctionController {
     begin(source: string): boolean {
         if (this.live && !this.notebook.cells.some(cell => cell.id === this.live!.cellId)) this.clear();
         if (!this.enabled || this.live || source.includes('\n')) return false;
-        const match = /^\s*(?:fun|memo)\s+([a-z][A-Za-z0-9_]*|update)((?:\s+[A-Za-z][A-Za-z0-9_]*)*)\s*$/.exec(source);
-        if (!match) return false;
+        let definition;
+        try {
+            const statements = parse(`${source}\nend`).statements;
+            if (statements.length !== 1 || !isFunctionStatement(statements[0])) return false;
+            definition = statements[0];
+        } catch { return false; }
         const existing = !this.notebook.atPrompt;
-        const parameters = match[2].trim() ? match[2].trim().split(/\s+/) : [];
+        const parameters = [...definition.parameters];
         const body = `${source.trim()}\n  `;
         this.live = new LiveFunctionSession({
-            name: match[1], parameters, header: source.trim(), source: body,
+            name: definition.name, parameters, signature: functionCallSignature(definition), header: source.trim(), source: body,
             cellId: this.notebook.current.id, existing, originalSource: existing ? source.trim() : undefined,
         }, this.session.names);
         this.clearIterationFocus();
@@ -343,7 +347,7 @@ export class LiveFunctionController {
             statement = statements[0];
         } catch { return false; }
         this.live = new LiveFunctionSession({
-            name: statement.name, parameters: [...statement.parameters], header: source.split('\n')[0].trim(),
+            name: statement.name, parameters: [...statement.parameters], signature: functionCallSignature(statement), header: source.split('\n').slice(0, 1 + Math.max(0, ...statement.groups.map(group => group.$cstNode?.range.end.line ?? 0))).join('\n').trim(),
             source, values: [...(this.examples.get(statement.name) ?? [])], cellId: this.notebook.current.id,
             existing: true, originalSource: source, stopLine: selectedLine(source, this.notebook.cursor),
         }, this.session.names);

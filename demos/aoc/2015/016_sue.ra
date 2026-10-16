@@ -16,7 +16,7 @@ Part2 print
 
 
 rem Find the candidates matching exact and corrected evidence rules.
-fun solve Lines
+fun Lines solve
   Index = new index
   Index "children" = 3
   Index "cats" = 7
@@ -56,13 +56,13 @@ end
 
 
 rem Compare one reported property with the original exact reading.
-fun exact Property Value Targets
+fun Property Value Targets exact
   return Value equal Targets Property
 end
 
 
 rem Apply the corrected range rules to one reported property.
-fun corrected Property Value Targets
+fun Property Value Targets corrected
   Target = Targets Property
 
   if Property equal "cats"

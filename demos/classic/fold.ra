@@ -1,0 +1,21 @@
+rem A user-defined reduction: the signature places its operation after the name.
+use io
+
+fun Values fold op .with Seed
+  Result = Seed
+  for Value in Values
+    if Result is .missing
+      Result = Value
+    else
+      Result = Result Value op
+    end
+  end
+  if Result is .missing
+    .EmptyInput "fold needs a seed for empty input" raise
+  end
+  return Result
+end
+
+(array 1 2 3) fold + print
+(array 1 2 3) fold + with 10 print
+(array shape 0 fill 0) fold + with 0 print

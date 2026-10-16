@@ -5,7 +5,7 @@ import { createReplSession } from '../src/repl-session.js';
 describe('function result signatures', () => {
     it.each(['fun', 'memo'])('retains the integer result of recursive %s with a declared scalar rank', async keyword => {
         const session = createReplSession();
-        const source = `${keyword} collatz N rank 0
+        const source = `${keyword} N collatz rank 0
  if N equal 1
   return 1
  elif N even
@@ -27,13 +27,13 @@ end`;
     });
 
     it.each([
-        ['fun inc X\n return X + 1\nend', 'i → i ; r → r ; c<i> → c<i> ; c<r> → c<r>'],
-        ['fun identity X\n return X\nend', 'a → a'],
-        ['fun pair X\n return tuple X "label"\nend', 'a → tuple(a, text)'],
-        ['fun answer X rank 0\n return 42\nend', 'a → i'],
-        ['fun answer X rank 1\n return 42\nend', 'a → i'],
-        ['fun add X Y\n return X + Y\nend', 'a a → a ; i r → r ; c<a> a → c<a> ; a c<a> → c<a> ; a: number'],
-        ['fun countdown N\n for N greater 0\n  yield N\n  N -= 1\n end\nend', 'i → c<i> ; r → c<r>'],
+        ['fun X inc\n return X + 1\nend', 'i → i ; r → r ; c<i> → c<i> ; c<r> → c<r>'],
+        ['fun X identity\n return X\nend', 'a → a'],
+        ['fun X pair\n return tuple X "label"\nend', 'a → tuple(a, text)'],
+        ['fun X answer rank 0\n return 42\nend', 'a → i'],
+        ['fun X answer rank 1\n return 42\nend', 'a → i'],
+        ['fun X Y add\n return X + Y\nend', 'a a → a ; i r → r ; c<a> a → c<a> ; a c<a> → c<a> ; a: number'],
+        ['fun N countdown\n for N greater 0\n  yield N\n  N -= 1\n end\nend', 'i → c<i> ; r → c<r>'],
     ])('shows the inferred signature for %s', async (source, signature) => {
         const session = createReplSession();
         try {
@@ -42,7 +42,7 @@ end`;
             expect(result.output.map(line => line.text).join(' ')).toBe(signature);
             expect(session.preview(source).output.map(line => line.text).join(' ')).toBe(signature);
             expect(session.preview(source, 40, true).valueSummary).toBe(signature);
-            const name = source.split(' ')[1];
+            const name = source.split('\n')[0].split(/\s+/).slice(1).find(word => /^[a-z]/.test(word))!;
             expect((await session.execute(name, 1, [], 40, true)).output.map(line => line.text).join(' ')).toBe(signature);
         } finally { session.dispose(); }
     });
@@ -61,7 +61,7 @@ end`;
 
 it('does not cache example specialization as the general function contract', async () => {
     const session = createReplSession();
-    const source = 'fun twice X\n return X + X\nend';
+    const source = 'fun X twice\n return X + X\nend';
     const general = 'a → a ; c<a> → c<a> ; a: number';
     try {
         await session.execute(source, 0, [], 40, true);
@@ -75,7 +75,7 @@ it('does not cache example specialization as the general function contract', asy
 
 it('shows a compact four-parameter contract in a 40-column session without caching a call specialization', async () => {
     const session = createReplSession();
-    const source = 'fun sum4 A B C D\n return ((A + B) + C) + D\nend';
+    const source = 'fun A B C D sum4\n return ((A + B) + C) + D\nend';
     const general = 'a a a a → a ; i i i r → r ; c<a> a a a → c<a> ; a c<a> a a → c<a> ; a: number';
     try {
         expect((await session.execute(source, 0, [], 40, true)).output.map(row => row.text).join(' ')).toBe(general);
@@ -88,7 +88,7 @@ it('shows a compact four-parameter contract in a 40-column session without cachi
 
 it('keeps an exhausted general preview result unknown', async () => {
     const session = createReplSession();
-    const source = 'fun f A B C D\n return A .value + ((B + C) + D)\nend';
+    const source = 'fun A B C D f\n return A .value + ((B + C) + D)\nend';
     const general = 'a b d e → ?';
     try {
         expect((await session.execute(source, 0, [], 40, true)).output.map(row => row.text).join(' ')).toBe(general);
@@ -101,8 +101,8 @@ it('keeps an exhausted general preview result unknown', async () => {
 it('infers functions after CLI options and a loop in the full notebook context', async () => {
     const session = createReplSession();
     const prefix = 'use cli\noption N integer = 42\nfor N greater 1\n N = 1\nend';
-    const generator = 'fun factors N\n Rest = N\n D = 2\n for Rest greater 1\n  yield D\n  Rest = Rest // D\n end\nend';
-    const inc = 'fun inc X\n return X + 1\nend';
+    const generator = 'fun N factors\n Rest = N\n D = 2\n for Rest greater 1\n  yield D\n  Rest = Rest // D\n end\nend';
+    const inc = 'fun X inc\n return X + 1\nend';
     const file = [prefix, generator, inc].join('\n').split('\n');
     try {
         expect((await session.execute('use cli', 0, file, 40, true)).ok).toBe(true);
@@ -118,7 +118,7 @@ it('infers functions after CLI options and a loop in the full notebook context',
 it('keeps an unproven fallback result unknown when notebook context cannot be parsed', async () => {
     const session = createReplSession();
     try {
-        const result = await session.execute('fun inc X\n return X + 1\nend', 0,
+        const result = await session.execute('fun X inc\n return X + 1\nend', 0,
             ['for Missing greater 1', ' Missing = 1', 'end'], 40, true);
         expect(result.output.map(row => row.text).join(' ')).toBe('a → ?');
     } finally { session.dispose(); }
@@ -127,7 +127,7 @@ it('keeps an unproven fallback result unknown when notebook context cannot be pa
 
 it('infers the settled integer return of the Euler poker function before any call', async () => {
     const demo = readFileSync(new URL('../../../demos/euler/054_poker.ra', import.meta.url), 'utf8');
-    const source = demo.slice(demo.indexOf('fun poker_wins'), demo.indexOf('rem Category')).trim();
+    const source = demo.slice(demo.search(/\bfun (?:[A-Z]\w*[ \t]+)*poker_wins\b/), demo.indexOf('rem Category')).trim();
     const session = createReplSession();
     try {
         await session.execute('Input = ""', 0, [], 40, true);
@@ -145,7 +145,7 @@ it.each([
 ])('uses existing return-flow facts for unknown arguments: %s', async (body, signature) => {
     const session = createReplSession();
     try {
-        const source = `fun count Hands\n ${body}\nend`;
+        const source = `fun Hands count\n ${body}\nend`;
         const result = await session.execute(source, 0, [], 40, true);
         expect(result.ok).toBe(true);
         expect(result.output.map(row => row.text).join(' ')).toBe(signature);
@@ -155,7 +155,7 @@ it.each([
 
 it('infers the boolean return of the Euler palindrome function before any call', async () => {
     const demo = readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8');
-    const source = demo.slice(demo.indexOf('fun palindrome')).trim();
+    const source = demo.slice(demo.search(/\bfun (?:[A-Z]\w*[ \t]+)*palindrome\b/)).trim();
     const session = createReplSession();
     try {
         await session.execute('use sequences', 0, [], 40, true);

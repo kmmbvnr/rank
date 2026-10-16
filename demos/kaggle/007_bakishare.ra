@@ -20,7 +20,7 @@ Submission = Train Test 0.03 1200 solve
 Submission OutputPath csv
 
 
-fun bike_features Data
+fun Data bike_features
   Times = Data .datetime datetime
   Rows = Times len
   NumericFields = array shape 8
@@ -41,7 +41,7 @@ fun bike_features Data
 end
 
 
-fun solve Train Test Rate Steps
+fun Train Test Rate Steps solve
   X = Train bike_features
   Xtest = Test bike_features
   Y = Train .count + 1 log

@@ -1261,7 +1261,7 @@ it('resolves a negative explicit rank against the operand rank', () => {
 
 it('infers the frame of a function with declared ranks', () => {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(
-        'fun inc X rank 0\n  return X + 1\nend\nA = (array 1 2) inc\n');
+        'fun X inc rank 0\n  return X + 1\nend\nA = (array 1 2) inc\n');
     expect(parsed.parserErrors).toEqual([]);
     const analysis = analyzeValues(parsed.value);
     expect(analysis.bindings.get('A')?.rank).toBe(1);
@@ -1282,12 +1282,12 @@ it('warns when rank lifts a function with a data-dependent result length', () =>
     expect(ragged('M = array 1 1 2 3 shape 2 2\n(M distinct rank 1) print\n')).toEqual([]);
     expect(ragged('M = array 1 2 3 shape 3\n(M unique rank 1) print\n')).toEqual([]);
     expect(ragged('M = array 3 1 2 shape 2 3\n(M sort rank 1) print\n')).toEqual([]);
-    const fn = 'fun distinct Row\n  return Row unique sum\nend\nfun uniq Row\n  return Row unique\nend\n';
+    const fn = 'fun Row distinct\n  return Row unique sum\nend\nfun Row uniq\n  return Row unique\nend\n';
     expect(ragged(fn + 'M = array 1 1 2 3 shape 2 2\n(M uniq rank 1) print\n')[0].message)
         .toContain('`uniq` returns a data-dependent length (from `unique`)');
     expect(ragged(fn + 'M = array 1 1 2 3 shape 2 2\n(M distinct rank 1) print\n')).toEqual([]);
     expect(ragged('use text\nM = array 1 1 2 3 shape 2 2\n(M words rank 1) print\n')).toHaveLength(1);
-    const mask = 'fun positive Row\n  return Row (Row greater 0)\nend\n';
+    const mask = 'fun Row positive\n  return Row (Row greater 0)\nend\n';
     expect(ragged(mask + 'M = array 1 1 2 3 shape 2 2\n(M positive rank 1) print\n')[0].message)
         .toContain('(from `a mask selection`)');
 });
@@ -1298,12 +1298,12 @@ it('warns when explicit frame axes lift a data-dependent result', () => {
 });
 
 it('warns when a lifted function selects with a named boolean mask', () => {
-    const fn = 'fun positives Row\n  Mask = Row greater 0\n  return Row Mask\nend\n';
+    const fn = 'fun Row positives\n  Mask = Row greater 0\n  return Row Mask\nend\n';
     const matrix = 'M = array -1 1 2 3 shape 2 2\n(M positives rank 1) print\n';
     expect(ragged(fn + matrix)[0].message).toContain('(from `a mask selection`)');
-    const fixed = 'fun picks Row\n  Indices = array 0 1\n  return Row Indices\nend\n';
+    const fixed = 'fun Row picks\n  Indices = array 0 1\n  return Row Indices\nend\n';
     expect(ragged(fixed + matrix.replace('positives', 'picks'))).toEqual([]);
-    const reassigned = 'fun changed Row\n  Mask = Row greater 0\n  Mask = array true false\n  return Row Mask\nend\n';
+    const reassigned = 'fun Row changed\n  Mask = Row greater 0\n  Mask = array true false\n  return Row Mask\nend\n';
     expect(ragged(reassigned + matrix.replace('positives', 'changed'))).toEqual([]);
 });
 
@@ -1391,10 +1391,10 @@ it('gives a path-dependent length one variable of its own after a branch merge',
 it('carries symbolic lengths through user functions', () => {
     const input: ValueFacts = { types: ['array'], rank: 1, shape: [null], elements: ['integer'] };
     const names = bound([
-        'fun addone X',
+        'fun X addone',
         '  return X + 1',
         'end',
-        'fun pickone X',
+        'fun X pickone',
         '  if X len less 1',
         '    return X',
         '  end',
@@ -1481,7 +1481,7 @@ it('types a named scan as a rank-1 array and keeps the seed in its length', () =
 
 it('does not call the xor of unproved operands a scalar', () => {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(
-        'use bits\nuse sequences\nfun f Values Queries\n Prefix = Values scan bxor with 0\n'
+        'use bits\nuse sequences\nfun Values Queries f\n Prefix = Values scan bxor with 0\n'
         + ' Left = Queries # 0\n Right = Queries # 1\n Before = Prefix (Left - 1)\n After = Prefix Right\n'
         + ' return After Before bxor\nend\n');
     expect(parsed.parserErrors).toEqual([]);
@@ -1495,10 +1495,10 @@ it('does not call the xor of unproved operands a scalar', () => {
 
 it('does not give ordered extrema a numeric result before the operand domain is known', () => {
     const analyze = (source: string) => analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value);
-    const result = analyze('fun small X\n return X min\nend\nA = "b" small\nA = "a"');
+    const result = analyze('fun X small\n return X min\nend\nA = "b" small\nA = "a"');
     expect(result.diagnostics).toEqual([]);
     expect(result.bindings.get('A')).toMatchObject({ types: ['text'], rank: 1 });
-    expect(analyze('fun small X\n return X min\nend\nA = Unknown small').bindings.get('A')?.rank).toBeUndefined();
+    expect(analyze('fun X small\n return X min\nend\nA = Unknown small').bindings.get('A')?.rank).toBeUndefined();
 });
 
 

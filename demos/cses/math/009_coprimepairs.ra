@@ -14,7 +14,7 @@ Values coprime_pairs print
 
 
 rem Count earlier coprimes by exclusion.
-fun coprime_pairs Values
+fun Values coprime_pairs
   Counts = new counter
   Answer = 0
   Seen = 0

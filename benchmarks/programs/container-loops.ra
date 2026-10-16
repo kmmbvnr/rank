@@ -2,7 +2,7 @@ rem Push integers, then index running sums.
 use algo
 use sequences
 
-fun drain Limit
+fun Limit drain
   Path = new stack
   Cache = new index
   for I in 1 to Limit

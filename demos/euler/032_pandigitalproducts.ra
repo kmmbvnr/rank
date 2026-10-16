@@ -14,7 +14,7 @@ Answer print
 
 rem Search the only possible one-by-four and
 rem two-by-three digit factor shapes.
-fun pandigital_products Digits
+fun Digits pandigital_products
   Products = new set
 
   for A in 2 to 9
@@ -44,7 +44,7 @@ end
 
 
 rem Accept every requested digit exactly once.
-fun pandigital Text Digits
+fun Text Digits pandigital
   if Text len not equal Digits len
     return false
   end

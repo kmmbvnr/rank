@@ -56,10 +56,10 @@ for (const compiled of [true, false]) describe(`array binding contracts (compile
     });
     it('checks parameters and captured locals and resets contracts on each invocation', () => {
         const r = runtime();
-        r.execute('fun replace A\n A = array "x"\n return A\nend');
+        r.execute('fun A replace\n A = array "x"\n return A\nend');
         expect(() => r.execute('(array 1) replace')).toThrow(/array elements/);
         expect(formatValue(r.execute('(array "a") replace')!)).toBe('x');
-        r.execute('fun outer X\n A = array 1\n fun mutate Y\n A 0 = "x"\n end\n X mutate\nend');
+        r.execute('fun X outer\n A = array 1\n fun Y mutate\n A 0 = "x"\n end\n X mutate\nend');
         expect(() => r.execute('0 outer')).toThrow(/array elements/);
     });
     it('keeps compiled selection writes within the established domain', () => {
@@ -143,7 +143,7 @@ it('copies frame contracts without sharing later empty-array refinements and res
 
 it('keeps RHS effects but rejects an eager write before publishing any cell', () => {
     const r = new Interpreter();
-    r.execute('State = record\n .count = 0\nend\nfun wrong X\n State .count += 1\n return "bad"\nend\nA = array 1 2');
+    r.execute('State = record\n .count = 0\nend\nfun X wrong\n State .count += 1\n return "bad"\nend\nA = array 1 2');
     expect(() => r.execute('A # = 0 wrong')).toThrow(/array elements/);
     expect(formatValue(r.variables.get('A')!)).toBe('1 2');
     expect(r.execute('State .count')).toBe(1n);

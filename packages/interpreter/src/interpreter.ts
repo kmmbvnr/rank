@@ -68,6 +68,7 @@ export class Interpreter {
         return this.baseOptions.compilation === false || inspectionEnabled() ? this.referenceOptions : this.baseOptions;
     }
     private readonly random: SeedableRandom;
+    private readonly parsingPrograms = new Set<string>();
     private readonly openPrograms = new Map<string, LoadedProgram>();
     private readonly aliases = new Map<string, Interpreter>();
     private currentRunTarget: LoadedProgram | undefined;
@@ -415,9 +416,14 @@ export class Interpreter {
     }
 
     private parse(source: string, syntheticNames?: ReadonlySet<string>): Program {
+        const callableBindings = [...this.variables, ...[...this.aliases].flatMap(([alias, child]) =>
+            [...child.variables].map(([name, value]) => [`${alias}.${name}`, value] as const))];
         const program = parse(source, this.options.sourceId, {
-            bindings: new Map([...this.variables].map(([name, value]) => [name, isNativeFunction(value) ? value.arities : false])),
+            bindings: new Map(callableBindings.map(([name, value]) => [name, isNativeFunction(value) ? value.arities : false])),
             modules: this.modules,
+            loadModule: this.options.loadModule ? path => this.load(path).program : undefined,
+            signatures: new Map(callableBindings.flatMap(([name, value]) =>
+                isNativeFunction(value) && value.callSignature ? [[name, value.callSignature] as const] : [])),
             writableOperations: new Map([...this.variables].flatMap(([name, value]) => {
                 const operation = isNativeFunction(value) && value.write && BuiltinRegistry.operationOf(value);
                 return operation ? [[name, operation.name] as const] : [];
@@ -590,10 +596,16 @@ export class Interpreter {
             throw new RankError(`cannot load module without a loader: ${specifier}`);
         }
         const source = this.options.loadModule(specifier, fromId);
-        const loaded = { id: source.id, program: parse(source.source, source.id) };
-        registerSource(loaded.program, source.id);
-        this.openPrograms.set(key, loaded);
-        return loaded;
+        if (this.parsingPrograms.has(source.id)) throw new RankError(`cyclic module import: ${source.id}`);
+        this.parsingPrograms.add(source.id);
+        try {
+            const loaded = { id: source.id, program: parse(source.source, source.id, {
+                loadModule: path => this.load(path, source.id).program,
+            }) };
+            registerSource(loaded.program, source.id);
+            this.openPrograms.set(key, loaded);
+            return loaded;
+        } finally { this.parsingPrograms.delete(source.id); }
     }
 
     private run(specifier?: string): RankValue | undefined {

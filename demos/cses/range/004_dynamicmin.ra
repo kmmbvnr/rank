@@ -17,7 +17,7 @@ Values Queries dynamic_mins print
 
 rem Apply point assignments.
 rem Answer inclusive one-based ranges.
-fun dynamic_mins Values Queries
+fun Values Queries dynamic_mins
   Tree = Values segment min
 
   for Query in Queries

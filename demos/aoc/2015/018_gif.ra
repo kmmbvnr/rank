@@ -17,7 +17,7 @@ Part2 print
 
 
 rem Run the light grid, optionally keeping all four corners on.
-fun solve Lines Steps Stuck
+fun Lines Steps Stuck solve
   Grid = Lines Stuck makegrid
 
   for # in 1 to Steps
@@ -29,7 +29,7 @@ end
 
 
 rem Convert input rows into one dense square boolean matrix.
-fun makegrid Lines Stuck
+fun Lines Stuck makegrid
   Queue = new queue
   N = Lines len
 
@@ -48,7 +48,7 @@ end
 
 
 rem Apply one cellular-automaton step and preserve the matrix shape.
-fun evolve Grid Stuck
+fun Grid Stuck evolve
   Queue = new queue
   N = Grid len
 
@@ -70,7 +70,7 @@ end
 
 
 rem Count live cells in the eight valid neighboring positions.
-fun neighbors Grid X Y
+fun Grid X Y neighbors
   Count = 0
   N = Grid len
 
@@ -96,7 +96,7 @@ end
 
 
 rem Test whether a coordinate lies inside an N by N grid.
-fun inside X Y N
+fun X Y N inside
   XIn = X at least 0 and X less N
   YIn = Y at least 0 and Y less N
   return XIn and YIn
@@ -104,7 +104,7 @@ end
 
 
 rem Test whether a coordinate is one of the four corners.
-fun corner X Y N
+fun X Y N corner
   Last = N - 1
   XEdge = X equal 0 or X equal Last
   YEdge = Y equal 0 or Y equal Last

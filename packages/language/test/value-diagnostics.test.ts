@@ -13,31 +13,31 @@ it('accepts mixed numeric operands and unknown function inputs', () => {
         expect(messages(`1 ${operator} 2.0`)).toEqual([]);
         expect(messages(`(array 1 2) ${operator} 2.0`)).toEqual([]);
         expect(messages(`(1 real) ${operator} 2.0`)).toEqual([]);
-        expect(messages(`fun probe X Y\n return X ${operator} Y\nend`)).toEqual([]);
+        expect(messages(`fun X Y probe\n return X ${operator} Y\nend`)).toEqual([]);
     }
 });
 
 it('checks an unranked filter predicate against sequence element types', () => {
     const source = 'use sequences\nCandidates = (array 121 122) (array 123 131) merge\n';
-    expect(messages(source + 'fun good X\n  return X greater 100\nend\nCandidates filter good first'))
+    expect(messages(source + 'fun X good\n  return X greater 100\nend\nCandidates filter good first'))
         .toEqual([]);
-    expect(messages(source + 'fun wrong X\n  return X + "bad" equal 0\nend\nCandidates filter wrong first'))
+    expect(messages(source + 'fun X wrong\n  return X + "bad" equal 0\nend\nCandidates filter wrong first'))
         .toContain('wrong: operator + does not accept integer and text');
-    expect(messages(source + 'fun number X\n  return X + 1\nend\nCandidates filter number first'))
+    expect(messages(source + 'fun X number\n  return X + 1\nend\nCandidates filter number first'))
         .toContain('filter predicate must return boolean, got integer');
-    expect(messages(source + 'fun number X\n  return X + 1\nend\nCandidates filter\n  number\nend'))
+    expect(messages(source + 'fun X number\n  return X + 1\nend\nCandidates filter\n  number\nend'))
         .toContain('filter predicate must return boolean, got integer');
 });
 
 it('checks an unranked matrix filter predicate against row cells', () => {
     const source = 'M = array shape 2 2\n  1 2\n  3 4\nend\n';
-    expect(messages(source + 'fun heavy Row\n  return Row sum greater 3\nend\nM filter heavy'))
+    expect(messages(source + 'fun Row heavy\n  return Row sum greater 3\nend\nM filter heavy'))
         .toEqual([]);
-    expect(messages(source + 'fun wrong Row\n  return Row + "bad" equal 0\nend\nM filter wrong'))
+    expect(messages(source + 'fun Row wrong\n  return Row + "bad" equal 0\nend\nM filter wrong'))
         .toContain('wrong: operator + does not accept integer and text');
-    expect(messages(source + 'fun wrong Row rank 0\n  return Row + "bad" equal 0\nend\nM filter wrong'))
+    expect(messages(source + 'fun Row wrong rank 0\n  return Row + "bad" equal 0\nend\nM filter wrong'))
         .toContain('wrong: operator + does not accept integer and text');
-    expect(messages(source + 'fun wrong Column\n  return Column + "bad" equal 0\nend\nM filter wrong axis 1'))
+    expect(messages(source + 'fun Column wrong\n  return Column + "bad" equal 0\nend\nM filter wrong axis 1'))
         .toContain('wrong: operator + does not accept integer and text');
     expect(messages(source + 'M filter greater 3'))
         .toContain('filter needs one boolean per row');
@@ -47,21 +47,21 @@ it('checks an unranked matrix filter predicate against row cells', () => {
 it('checks tensor filter predicates against cells left by the selected axes', () => {
     const knownMessages = (predicate: string, filter: string): string[] => {
         const parsed = services.Rank.parser.LangiumParser.parse<Program>(predicate
-            + `fun apply T\n  return T filter ${filter}\nend\n`);
+            + `fun T apply\n  return T filter ${filter}\nend\n`);
         expect(parsed.parserErrors).toEqual([]);
         return analyzeValues(parsed.value, new Map(), new Map(), [{ name: 'apply', arguments: [{
             types: ['array'], rank: 3, shape: [2, 2, 2], elements: ['integer'],
         }] }]).diagnostics.map(item => item.message);
     };
-    expect(knownMessages('fun heavy V\n  return V sum greater 8\nend\n',
+    expect(knownMessages('fun V heavy\n  return V sum greater 8\nend\n',
         'heavy axis 1 2 rank 1')).toEqual([]);
-    expect(knownMessages('fun wrong V\n  return V + "bad" equal 0\nend\n',
+    expect(knownMessages('fun V wrong\n  return V + "bad" equal 0\nend\n',
         'wrong axis 0 2 rank 1'))
         .toContain('wrong: operator + does not accept integer and text');
-    expect(knownMessages('fun heavy V\n  return V sum greater 8\nend\n',
+    expect(knownMessages('fun V heavy\n  return V sum greater 8\nend\n',
         'heavy axis 0 rank 1'))
         .toContain('filter axis count plus cell rank must equal source rank, with distinct valid axes');
-    expect(knownMessages('fun heavy V\n  return V sum greater 8\nend\n',
+    expect(knownMessages('fun V heavy\n  return V sum greater 8\nend\n',
         '\n    heavy axis 0 2 rank 1\n    heavy axis 1 2 rank 1\n  end'))
         .toContain('filter conditions must traverse the same axes');
 });
@@ -70,7 +70,7 @@ it('analyzes data-first choose without opening sequences', () => {
     expect(messages('A = true choose 1 2\nB = 1 choose (array 10 20)\nA + B')).toEqual([]);
     expect(messages('A = false choose "no" "yes"\nA + 1'))
         .toContain('operator + does not accept text and integer');
-    expect(messages('fun choose X\n return X\nend'))
+    expect(messages('fun X choose\n return X\nend'))
         .toContain('cannot redefine available builtin: choose');
 });
 
@@ -82,14 +82,14 @@ it('accepts clamped and negative ordinary ranks but checks reduction ranks', () 
 });
 
 it('does not join an explicit raise with successful function returns', () => {
-    const source = 'fun decide Flag\n if Flag\n  return .Missing raise\n else\n  return 1\n end\nend\n';
+    const source = 'fun Flag decide\n if Flag\n  return .Missing raise\n else\n  return 1\n end\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const result = analyzeValues(program.value, new Map(), new Map(), [{ name: 'decide',
         arguments: [{ types: ['boolean'], rank: 0, shape: [] }] }]);
     expect(result.functionResults[0]).toMatchObject({ types: ['integer'], rank: 0 });
 
     const shadowed = services.Rank.parser.LangiumParser.parse<Program>(
-        'fun raise Error\n return "ok"\nend\n' + source);
+        'fun Error raise\n return "ok"\nend\n' + source);
     const shadowedResult = analyzeValues(shadowed.value, new Map(), new Map(), [{ name: 'decide',
         arguments: [{ types: ['boolean'], rank: 0, shape: [] }] }]);
     expect(shadowedResult.diagnostics.map(item => item.message))
@@ -150,7 +150,7 @@ it('rejects changing graph result cell types through a record alias', () => {
 });
 
 it('retains only stable record field types after a field write', () => {
-    const source = 'fun update Layer X\n Layer .input = X\n return Layer .weights\nend\n';
+    const source = 'fun Layer X update\n Layer .input = X\n return Layer .weights\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const result = analyzeValues(program.value, new Map(), new Map(), [{ name: 'update', arguments: [
         { types: ['record'], fields: { input: { types: ['array'] }, weights: { types: ['array'] } } },
@@ -437,7 +437,7 @@ it('checks known prefix stack arguments before execution', () => {
 });
 
 it('selects only reachable branches for exact integer comparisons', () => {
-    const source = 'fun decide Values\n N = Values len\n if N equal 0\n  return 1\n'
+    const source = 'fun Values decide\n N = Values len\n if N equal 0\n  return 1\n'
         + ' elif N less 2\n  return "one"\n else\n  return false\n end\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const args: ValueFacts[] = [
@@ -454,7 +454,7 @@ it('selects only reachable branches for exact integer comparisons', () => {
 });
 
 it('selects only reachable branches for an unchanged boolean literal binding', () => {
-    const source = 'fun decide Flag\n if Flag\n  return 1\n else\n  return "off"\n end\nend\n';
+    const source = 'fun Flag decide\n if Flag\n  return 1\n else\n  return "off"\n end\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect([true, false, undefined].map(boolean => analyzeValues(program.value, new Map(), new Map(), [
         { name: 'decide', arguments: [{ types: ['boolean'], rank: 0, shape: [],
@@ -466,25 +466,25 @@ it('selects only reachable branches for an unchanged boolean literal binding', (
 
 it('narrows type guards in reachable branches without changing a parameter contract', () => {
     const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
-    const source = parse('fun classify X\n if X is .integer\n  return X\n end\n return "other"\nend');
+    const source = parse('fun X classify\n if X is .integer\n  return X\n end\n return "other"\nend');
     const result = (input: ValueFacts) => analyzeValues(source, new Map(), new Map(), [
         { name: 'classify', arguments: [input] },
     ]).functionResults[0].types;
     expect(result({ types: [] })).toEqual(['integer', 'text']);
     expect(result({ types: ['boolean'], rank: 0, shape: [] })).toEqual(['text']);
     expect(result({ types: ['integer'], rank: 0, shape: [] })).toEqual(['integer']);
-    const numeric = parse('fun classify X\n if X is .integer or X is .real\n  return X\n end\n return "other"\nend');
+    const numeric = parse('fun X classify\n if X is .integer or X is .real\n  return X\n end\n return "other"\nend');
     expect(analyzeValues(numeric, new Map(), new Map(), [{ name: 'classify', arguments: [
         { types: [] },
     ] }]).functionResults[0].types).toEqual(['integer', 'real', 'text']);
-    const complement = parse('fun classify X\n if X is .integer\n  return X\n else\n  return X + "!"\n end\nend');
+    const complement = parse('fun X classify\n if X is .integer\n  return X\n else\n  return X + "!"\n end\nend');
     expect(analyzeValues(complement, new Map(), new Map(), [{ name: 'classify', arguments: [
         { types: ['integer', 'text'] },
     ] }]).functionResults[0].types).toEqual(['integer', 'text']);
 });
 
 it('lets an infinity-seeded accumulator hold the integers it settles on', () => {
-    const body = (tail: string) => `use numbers\nfun smallest Xs\n Best = infinity\n for X in Xs\n  Best = Best X min\n end\n${tail}\nend\n`;
+    const body = (tail: string) => `use numbers\nfun Xs smallest\n Best = infinity\n for X in Xs\n  Best = Best X min\n end\n${tail}\nend\n`;
     expect(messages(body(' if Best equal infinity\n  return -1\n end\n return Best'))).toEqual([]);
     expect(messages(body(' Best = 3\n return Best'))).toEqual([]);
     expect(messages('use numbers\nBest = 2.5\nBest = 3')).toEqual(['Best has type real and cannot receive integer']);
@@ -560,7 +560,7 @@ it('infers each type from a tuple and a parse pattern', () => {
         .toEqual(['operator + does not accept integer and text', 'operator + does not accept text and integer']);
     expect(messages('Values = array "one" "two"\nunpack First Second = Values\nFirst + 1'))
         .toEqual(['operator + does not accept text and integer']);
-    expect(messages('fun pair X\n return tuple X "two"\nend\nValues = 1 pair\n'
+    expect(messages('fun X pair\n return tuple X "two"\nend\nValues = 1 pair\n'
         + 'unpack Number Text = Values\nNumber + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use text\nPattern = "/integer:/word"\nValues = "42:abc" Pattern parse\n'
@@ -586,7 +586,7 @@ it('infers mixed parse positions in the unchanged AoC snow demo', () => {
 });
 
 it('keeps unrelated facts through a scalar minimum helper', () => {
-    expect(messages('fun minimum X Y\n return X Y min\nend\nCount = 1\n'
+    expect(messages('fun X Y minimum\n return X Y min\nend\nCount = 1\n'
         + 'R = 2 3 minimum\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
 });
@@ -594,9 +594,9 @@ it('keeps unrelated facts through a scalar minimum helper', () => {
 it('keeps unrelated facts through local index writes', () => {
     expect(messages('use algo\nCount = 1\nIndex = new index\nIndex "x" = 2\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun read X\n Index = new index\n Count = 1\n Index X = 2\n return Count\nend\nA = 0 read\nA + "bad"'))
+    expect(messages('use algo\nfun X read\n Index = new index\n Count = 1\n Index X = 2\n return Count\nend\nA = 0 read\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun read X\n Index = new index\n Count = 1\n for I in 0 till 1\n  Index I = 2\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
+    expect(messages('use algo\nfun X read\n Index = new index\n Count = 1\n for I in 0 till 1\n  Index I = 2\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nA = Unknown\nIndex = new index\nIndex (A 0) = 2\nCount + "bad"'))
         .toEqual([]);
@@ -638,7 +638,7 @@ it('keeps a closed named-index value type across loop iterations and aliases', (
         + ' for I in 0 till 3\n  Alias I = I\n end\n return Cache 1\nend\nR = lookup\n';
     expect(messages(source + 'R + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun lookup X\n Cache = new index\n'
+    expect(messages('use algo\nfun X lookup\n Cache = new index\n'
         + ' for I in 0 till 3\n  Cache I = X\n end\n return Cache 1\nend\n'
         + 'R = Unknown lookup\nR + "bad"')).toEqual([]);
 });
@@ -689,10 +689,10 @@ it('infers a fresh local index read from earlier iterations on an early-return p
     expect(examples).toHaveLength(2);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
         .toEqual([['integer'], ['integer']]);
-    expect(messages(source.slice(source.indexOf('fun cycle_length'))
+    expect(messages(source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*cycle_length\b/))
         + '\nR = 7 cycle_length\nR + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun lookup X\n Cache = new index\n'
+    expect(messages('use algo\nfun X lookup\n Cache = new index\n'
         + ' for I in 0 till 3\n  if I greater 0\n   return Cache 0\n  end\n'
         + '  Cache 0 = X\n end\n return 0\nend\nR = Unknown lookup\nR + "bad"'))
         .toEqual([]);
@@ -701,7 +701,7 @@ it('infers a fresh local index read from earlier iterations on an early-return p
 it('keeps unrelated facts through scalar set additions but not lazy array keys', () => {
     expect(messages('use algo\nCount = 1\nSeen = new set\nSeen add "x"\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun read X\n Counts = new counter\n Count = 1\n for I in 0 till 1\n  Counts add "x"\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
+    expect(messages('use algo\nfun X read\n Counts = new counter\n Count = 1\n for I in 0 till 1\n  Counts add "x"\n end\n return Count\nend\nA = 0 read\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nSeen = new set\nSeen add (array Unknown Unknown)\nCount + "bad"'))
         .toEqual([]);
@@ -718,20 +718,20 @@ it('keeps unrelated facts through scalar set additions but not lazy array keys',
 it('keeps unrelated facts through direct queue pushes but not computed receivers', () => {
     expect(messages('use algo\nCount = 1\nQ = new queue\nQ push 2\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('use algo\nfun append X\n Count = 1\n Q = new queue\n for I in 0 till 1\n  Q push X\n end\n return Count\nend\nA = 0 append\nA + "bad"'))
+    expect(messages('use algo\nfun X append\n Count = 1\n Q = new queue\n for I in 0 till 1\n  Q push X\n end\n return Count\nend\nA = 0 append\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nA = Unknown\n(A 0) push 2\nCount + "bad"'))
         .toEqual([]);
     expect(messages('use algo\nCount = 1\nQueue = new queue\nQueue push 2\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(
-        'use algo\nfun collect X\n Q = new queue\n Q push X\n return Q\nend\nA = 0 collect\n');
+        'use algo\nfun X collect\n Q = new queue\n Q push X\n return Q\nend\nA = 0 collect\n');
     expect(parsed.parserErrors).toEqual([]);
     expect(analyzeValues(parsed.value).bindings.get('A')?.types).toEqual(['queue']);
 });
 
 it('infers indexed text loops without trusting an unknown iterator', () => {
-    const reader = 'fun indexed Text\n Count = 0\n for C I in Text\n  Count += I\n end\n return Count\nend\n';
+    const reader = 'fun Text indexed\n Count = 0\n for C I in Text\n  Count += I\n end\n return Count\nend\n';
     expect(messages(reader + 'Result = "abc" indexed\nResult + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('Count = 1\nfor C I in Unknown\n Count += I\nend\nCount + "bad"'))
@@ -745,7 +745,7 @@ it('infers indexed text loops without trusting an unknown iterator', () => {
 });
 
 it('keeps types through a scalar lookup in the local index', () => {
-    expect(messages('use algo\nfun read X\n Index = new index\n Count = 1\n First = Index X default -1\n return Count\nend\n'
+    expect(messages('use algo\nfun X read\n Index = new index\n Count = 1\n First = Index X default -1\n return Count\nend\n'
         + 'Result = "x" read\nResult + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nA = Unknown\nIndex = new index\nFirst = Index (A 0) default -1\nCount + "bad"'))
@@ -757,9 +757,9 @@ it('infers value types written to a fresh function-local index', () => {
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nfun lookup\n Index = new index\n Index "a" = true\n return Index "b" default false\nend\nA = lookup\nA + 1'))
         .toEqual(['operator + does not accept boolean and integer']);
-    expect(messages('use algo\nfun lookup Key Value\n Index = new index\n Index "a" = 1\n Index Key = Value\n return Index "a"\nend\nA = Unknown Unknown lookup\nA + "bad"'))
+    expect(messages('use algo\nfun Key Value lookup\n Index = new index\n Index "a" = 1\n Index Key = Value\n return Index "a"\nend\nA = Unknown Unknown lookup\nA + "bad"'))
         .toEqual([]);
-    expect(messages('use algo\nfun lookup Key\n Index = new index\n Index "a" = 1\n Index "b" = "text"\n return Index Key\nend\nA = "a" lookup\nA = true'))
+    expect(messages('use algo\nfun Key lookup\n Index = new index\n Index "a" = 1\n Index "b" = "text"\n return Index Key\nend\nA = "a" lookup\nA = true'))
         .toEqual(['A has type integer or text and cannot receive boolean']);
     expect(messages('use algo\nfun lookup\n Index = new index\n for I in 0 to 1\n  Index I = I\n end\n return Index 0\nend\nA = lookup\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
@@ -773,16 +773,16 @@ it('keeps the type of a local index when a cell is copied with a default', () =>
 });
 
 it('keeps local index facts across a key computed from scalar arithmetic', () => {
-    expect(messages('use algo\nfun grid Text\n Index = new index\n Index 0 0 = true\n for Symbol I in Text\n  Index (I + 1) 0 = true\n end\n return Index 1 0 default false\nend\nA = "ab" grid\nA + 1'))
+    expect(messages('use algo\nfun Text grid\n Index = new index\n Index 0 0 = true\n for Symbol I in Text\n  Index (I + 1) 0 = true\n end\n return Index 1 0 default false\nend\nA = "ab" grid\nA + 1'))
         .toEqual(['operator + does not accept boolean and integer']);
     expect(messages('use algo\nfun grid\n Index = new index\n Index 0 0 = true\n Index (1 + 1) 0 = true\n return Index 1 0 default false\nend\nA = grid\nA + 1'))
         .toEqual(['operator + does not accept boolean and integer']);
 });
 
 it('forgets local index facts when a computed key is not plain scalar arithmetic', () => {
-    expect(messages('use algo\nfun grid Key\n Index = new index\n Index 0 0 = true\n Index (Key + 1) 0 = true\n return Index 1 0 default false\nend\nA = Unknown grid\nA + 1'))
+    expect(messages('use algo\nfun Key grid\n Index = new index\n Index 0 0 = true\n Index (Key + 1) 0 = true\n return Index 1 0 default false\nend\nA = Unknown grid\nA + 1'))
         .toEqual([]);
-    expect(messages('use algo\nfun grid Key\n Index = new index\n Index 0 0 = true\n Index (Key first) 0 = true\n return Index 1 0 default false\nend\nA = (array 1 2) grid\nA + 1'))
+    expect(messages('use algo\nfun Key grid\n Index = new index\n Index 0 0 = true\n Index (Key first) 0 = true\n return Index 1 0 default false\nend\nA = (array 1 2) grid\nA + 1'))
         .toEqual([]);
 });
 
@@ -797,11 +797,11 @@ it('reads a scalar array cell as the first operand of a trailing dyadic operatio
 });
 
 it('reverses a queue into an array', () => {
-    const reversed = (setup: string, read = '') => messages(`use algo\nuse sequences\nfun back Item\n Q = new queue\n${setup}\n return Q reverse${read}\nend\nA = 1 back\nA = 1`);
+    const reversed = (setup: string, read = '') => messages(`use algo\nuse sequences\nfun Item back\n Q = new queue\n${setup}\n return Q reverse${read}\nend\nA = 1 back\nA = 1`);
     expect(reversed(' Q push Item\n Q push 2'))
         .toEqual(['A has type array and cannot receive integer']);
     // The reversed array keeps the queue's item types only when they are proved.
-    const first = (setup: string) => messages(`use algo\nuse sequences\nfun back Item\n Q = new queue\n${setup}\n R = Q reverse\n return R first\nend\nA = 1 back\nA = "text"`);
+    const first = (setup: string) => messages(`use algo\nuse sequences\nfun Item back\n Q = new queue\n${setup}\n R = Q reverse\n return R first\nend\nA = 1 back\nA = "text"`);
     expect(first(' Q push Item\n Q push 2')).toEqual(['A has type integer and cannot receive text']);
     expect(first(' Q push (new queue)')).toEqual([]);
 });
@@ -819,7 +819,7 @@ it('keeps numeric cell types through shift', () => {
 });
 
 it('keeps outer loop facts when only a nested loop continues', () => {
-    const nested = (exit: string) => `fun count Width\n Current = array shape 4 fill 0\n for Column in 1 to Width\n  Next = array shape 4 fill 0\n${exit}\n  Current = Next\n end\n return Current 0\nend\nA = 3 count\nA + "bad"`;
+    const nested = (exit: string) => `fun Width count\n Current = array shape 4 fill 0\n for Column in 1 to Width\n  Next = array shape 4 fill 0\n${exit}\n  Current = Next\n end\n return Current 0\nend\nA = 3 count\nA + "bad"`;
     expect(messages(nested('  for Mask in 0 till 4\n   Ways = Current Mask\n   if Ways equal 0\n    continue\n   end\n   Next 0 += Ways\n  end')))
         .toEqual(['operator + does not accept integer and text']);
     // A continue loses values, but the element contract still holds.
@@ -841,8 +841,8 @@ it('infers the simplified regular-expression matcher from its local index writes
 });
 
 it('gives function locals their own rank contract', () => {
-    expect(messages('A = array 1 2\nfun make N\n A = array 1 2 3 4 shape 2 2\n return A\nend\nM = 0 make')).toEqual([]);
-    expect(messages('fun change A\n A = array 1 2 3 4 shape 2 2\n return A\nend\n(array 1 2) change'))
+    expect(messages('A = array 1 2\nfun N make\n A = array 1 2 3 4 shape 2 2\n return A\nend\nM = 0 make')).toEqual([]);
+    expect(messages('fun A change\n A = array 1 2 3 4 shape 2 2\n return A\nend\n(array 1 2) change'))
         .toEqual(['change: A has rank 1 and cannot receive rank 2']);
     expect(messages('A = array 1 2\nuse sequences\nA = array 1 2 3 4 shape 2 2'))
         .toEqual(['A has rank 1 and cannot receive rank 2']);
@@ -857,7 +857,7 @@ it('joins new bindings from nested branches and preserves their common rank', ()
     expect(messages(body + 'M # # #')).toEqual(['3 selectors exceed array rank 2']);
     expect(messages(body + 'M = array shape 7 8 fill 0')).toEqual([]);
     expect(messages(body + 'M = array 1 2')).toEqual(['M has rank 2 and cannot receive rank 1']);
-    expect(messages('fun decide Flag Other\n' + body + 'return M\nend\nA = X Y decide\nA # # #'))
+    expect(messages('fun Flag Other decide\n' + body + 'return M\nend\nA = X Y decide\nA # # #'))
         .toEqual(['3 selectors exceed array rank 2']);
     expect(messages('if Flag\n M = array shape 2 3 fill 0\nend\nM # # #')).toEqual([]);
 });
@@ -865,7 +865,7 @@ it('joins new bindings from nested branches and preserves their common rank', ()
 it('respects ordered elif reachability and unreachable side effects', () => {
     expect(messages('if false\n A = "bad"\nelif true\n A = 1\nelse\n A = "bad"\nend\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('fun decide X\n if false\n  return "bad"\n elif true\n  return 1\n else\n  return "bad"\n end\nend\nA = Flag decide\nA = "bad"'))
+    expect(messages('fun X decide\n if false\n  return "bad"\n elif true\n  return 1\n else\n  return "bad"\n end\nend\nA = Flag decide\nA = "bad"'))
         .toEqual(['A has type integer and cannot receive text']);
     expect(messages('A = array 1 2\nif true\n A = array 1 2 3\nelif change\n A = array 1\nend\nA + (array 1 2)'))
         .toEqual(['shape mismatch: [3] and [2]']);
@@ -893,12 +893,12 @@ it('does not diagnose empty or unproven loops or statements after a loop exit', 
 });
 
 it('keeps loop contracts in functions and after loops while discarding mutation facts', () => {
-    expect(messages('fun make X\n A = array shape 2 3 fill 0\n for I in 1 to 3\n A = array shape 4 3 fill 0\n end\n return A\nend\nM = 0 make\nM # # #'))
+    expect(messages('fun X make\n A = array shape 2 3 fill 0\n for I in 1 to 3\n A = array shape 4 3 fill 0\n end\n return A\nend\nM = 0 make\nM # # #'))
         .toEqual(['3 selectors exceed array rank 2']);
     expect(messages('A = array 1 2\nfor I in Items\n A = array 1 2 3\nend\nA = array shape 2 2 fill 0'))
         .toEqual(['A has rank 1 and cannot receive rank 2']);
     expect(messages('A = array 1 2\nfor I in 1 to 3\n A 0 = "text"\n A + (array 1 2)\nend')).toEqual(['A has array elements of type integer and cannot receive text']);
-    expect(messages('fun decide X\n for I in 1 to 3\n  return 1\n end\n return "text"\nend\nA = 0 decide\nA = true'))
+    expect(messages('fun X decide\n for I in 1 to 3\n  return 1\n end\n return "text"\nend\nA = 0 decide\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
 });
 
@@ -927,16 +927,16 @@ it('checks nested expressions and respects text rank', () => {
 });
 
 it('infers a helper result from its body and literal call arguments', () => {
-    expect(messages('fun addone X\n return X + 1\nend\nA = 3 addone\nA = "x"'))
+    expect(messages('fun X addone\n return X + 1\nend\nA = 3 addone\nA = "x"'))
         .toEqual(['A has type integer and cannot receive text']);
-    expect(messages('fun matrix X\n return array shape 2 3 fill X\nend\nA = 0 matrix\nA # # #'))
+    expect(messages('fun X matrix\n return array shape 2 3 fill X\nend\nA = 0 matrix\nA # # #'))
         .toEqual(['3 selectors exceed array rank 2']);
-    expect(messages('fun addone X\n return X + 1\nend\nInput = 3\nA = Input addone\nA = "x"'))
+    expect(messages('fun X addone\n return X + 1\nend\nInput = 3\nA = Input addone\nA = "x"'))
         .toEqual(['A has type integer and cannot receive text']);
 });
 
 it('checks variable arguments and results through local calculations and helper calls', () => {
-    const helpers = 'fun increment X\n Y = X + 1\n return Y\nend\nfun twice X\n Y = X increment\n return Y increment\nend\n';
+    const helpers = 'fun X increment\n Y = X + 1\n return Y\nend\nfun X twice\n Y = X increment\n return Y increment\nend\n';
     expect(messages(helpers + 'Input = "bad"\nInput twice'))
         .toContain('twice: increment: operator + does not accept text and integer');
     expect(messages(helpers + 'Input = 3\nResult = Input twice\nResult = "bad"'))
@@ -945,7 +945,7 @@ it('checks variable arguments and results through local calculations and helper 
 });
 
 it('checks array argument shapes and preserves the rank of computed results', () => {
-    const helper = 'fun combine A B\n Result = A + B\n return Result\nend\n';
+    const helper = 'fun A B combine\n Result = A + B\n return Result\nend\n';
     expect(messages(helper + 'A = array shape 2 3 fill 0\nB = array shape 2 4 fill 0\nA B combine'))
         .toEqual(['combine: shape mismatch: [2, 3] and [2, 4]']);
     expect(messages(helper + 'A = array shape 2 3 fill 0\nB = array shape 1 3 fill 0\nC = A B combine\nC # # #'))
@@ -955,17 +955,17 @@ it('checks array argument shapes and preserves the rank of computed results', ()
 it('does not preserve caller facts through unknown calls, mutations or recursive helpers', () => {
     for (const body of ['X external\n return X + 1', 'X 0 = 1\n return X + 1', 'return X helper',
         'X delete\n return X + 1', 'X += 1\n return X + 1', 'Y = stdin .integer\n return X + 1']) {
-        expect(messages(`fun helper X\n ${body}\nend\nInput = "bad"\nInput helper`)).toEqual([]);
+        expect(messages(`fun X helper\n ${body}\nend\nInput = "bad"\nInput helper`)).toEqual([]);
     }
 });
 
 it('does not guess results for recursion and joins all covered return paths', () => {
-    expect(messages('fun again X\n return X again\nend\nA = 1 again\nA = "x"')).toEqual([]);
-    expect(messages('fun decide X\n if X\n  return 1\n end\n return "x"\nend\nA = Flag decide\nA = true'))
+    expect(messages('fun X again\n return X again\nend\nA = 1 again\nA = "x"')).toEqual([]);
+    expect(messages('fun X decide\n if X\n  return 1\n end\n return "x"\nend\nA = Flag decide\nA = true'))
         .toEqual(['decide returns incompatible ranks: 0 and 1',
             'decide returns incompatible types: integer and text',
             'A has type integer or text and cannot receive boolean']);
-    expect(messages('fun decide X\n if X\n  return 1\n end\nend\nA = Flag decide\nA = true'))
+    expect(messages('fun X decide\n if X\n  return 1\n end\nend\nA = Flag decide\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
 });
 
@@ -978,17 +978,17 @@ it('checks recursive numeric specializations including empty median inputs', () 
     expect(examples).toHaveLength(8);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
         .toEqual(examples.map(() => ['real']));
-    expect(messages('fun gcd A B\n if B equal 0\n  return A\n end\n'
+    expect(messages('fun A B gcd\n if B equal 0\n  return A\n end\n'
         + ' return B (A mod B) gcd\nend\nR = 12 8 gcd\nR + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('fun change X\n if X less 1\n  return X\n end\n'
+    expect(messages('fun X change\n if X less 1\n  return X\n end\n'
         + ' return (X / 2) change\nend\nR = 2 change\nR + "bad"'))
         .toEqual(['change returns incompatible types: real and integer',
             'operator + does not accept real and text']);
-    expect(messages('fun swap A B\n if A less 1\n  return A\n end\n'
+    expect(messages('fun A B swap\n if A less 1\n  return A\n end\n'
         + ' return B A swap\nend\nR = 2 1.0 swap\nR + "bad"'))
         .toEqual(['swap returns incompatible types: integer and real']);
-    expect(messages('Hidden = 1\nfun captured X\n if X less 1\n  return Hidden\n end\n'
+    expect(messages('Hidden = 1\nfun X captured\n if X less 1\n  return Hidden\n end\n'
         + ' return (X - 1) captured\nend\nR = 2 captured\nR + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
 });
@@ -1003,7 +1003,7 @@ it('keeps cell facts through reads guarded by numeric conditions on an unchanged
         return analyzeValues(program.value, new Map(), new Map(), [{ name: 'pick', arguments: args }])
             .functionResults[0];
     };
-    const guarded = 'fun pick A I\n M = A len\n X = 0\n if I at least 0\n  if I less M\n   X = A I\n  end\n end\n'
+    const guarded = 'fun A I pick\n M = A len\n X = 0\n if I at least 0\n  if I less M\n   X = A I\n  end\n end\n'
         + ' return X\nend\n';
     for (const length of [null, 3]) {
         expect(result(guarded, cells(length), index)).toMatchObject({ types: ['integer'], rank: 0 });
@@ -1012,10 +1012,10 @@ it('keeps cell facts through reads guarded by numeric conditions on an unchanged
     // No index is in bounds for an empty array, so the read never contributes its cell type.
     expect(result(guarded, cells(0, 'real'), index)).toMatchObject({ types: ['integer'], rank: 0 });
     // The guard proves nothing outside its branch: a read after it is not claimed to be in bounds.
-    const unguarded = 'fun pick A I\n if I less 0\n  return 0\n end\n return A I\nend\n';
+    const unguarded = 'fun A I pick\n if I less 0\n  return 0\n end\n return A I\nend\n';
     expect(result(unguarded, cells(null, 'real'), index).types.slice().sort()).toEqual(['integer', 'real']);
     // A successful write must preserve the established element domain.
-    const rewritten = 'fun pick A I\n A I = "x"\n return A I\nend\n';
+    const rewritten = 'fun A I pick\n A I = "x"\n return A I\nend\n';
     expect(result(rewritten, cells(null), index).types).toEqual(['integer']);
 });
 
@@ -1029,7 +1029,7 @@ it('prunes branches that proven integer bounds make unreachable, and nothing els
         const result = analyzeValues(program.value, new Map(), new Map(), [{ name: 'pick', arguments: args }]);
         return { types: result.functionResults[0].types.slice().sort(), messages: result.diagnostics.map(item => item.message) };
     };
-    const guarded = 'fun pick A I\n M = A len\n if I at least 0\n  if I less M\n   return A I\n  end\n end\n return 0.5\nend\n';
+    const guarded = 'fun A I pick\n M = A len\n if I at least 0\n  if I less M\n   return A I\n  end\n end\n return 0.5\nend\n';
     // An empty array leaves no index that is both non-negative and below its length, so this call
     // cannot return a cell. The contract check over widened inputs still reports the mixed returns.
     expect(run(guarded, cells(0), index).types).toEqual(['real']);
@@ -1037,25 +1037,25 @@ it('prunes branches that proven integer bounds make unreachable, and nothing els
     expect(run(guarded, cells(3), index).types).toEqual(['integer', 'real']);
     expect(run(guarded, cells(null), index).types).toEqual(['integer', 'real']);
     // Conjunctions, negations and the else path narrow too.
-    expect(run('fun pick A I\n M = A len\n if I at least 0 and I less M\n  return A I\n end\n return 0.5\nend\n',
+    expect(run('fun A I pick\n M = A len\n if I at least 0 and I less M\n  return A I\n end\n return 0.5\nend\n',
         cells(0), index).types).toEqual(['real']);
-    expect(run('fun pick A I\n if I less 0\n  return 0.5\n end\n if I less 0\n  return "x"\n end\n return 1\nend\n',
+    expect(run('fun A I pick\n if I less 0\n  return 0.5\n end\n if I less 0\n  return "x"\n end\n return 1\nend\n',
         cells(null), index).types).toEqual(['integer', 'real']);
-    expect(run('fun pick A I\n if not (I at least 0)\n  return 0.5\n else\n  if I less 0\n   return "x"\n  end\n end\n return 1\nend\n',
+    expect(run('fun A I pick\n if not (I at least 0)\n  return 0.5\n else\n  if I less 0\n   return "x"\n  end\n end\n return 1\nend\n',
         cells(null), index).types).toEqual(['integer', 'real']);
     // A reassignment or update invalidates the bounds.
-    expect(run('fun pick A I\n if I at least 0\n  I = I - 5\n  if I less 0\n   return 0.5\n  end\n end\n return 1\nend\n',
+    expect(run('fun A I pick\n if I at least 0\n  I = I - 5\n  if I less 0\n   return 0.5\n  end\n end\n return 1\nend\n',
         cells(null), index).types).toEqual(['integer', 'real']);
-    expect(run('fun pick A I\n if I at least 0\n  I -= 5\n  if I less 0\n   return 0.5\n  end\n end\n return 1\nend\n',
+    expect(run('fun A I pick\n if I at least 0\n  I -= 5\n  if I less 0\n   return 0.5\n  end\n end\n return 1\nend\n',
         cells(null), index).types).toEqual(['integer', 'real']);
     // `-I` is at most -1 here; inheriting I's bounds would wrongly prove `J less 1` false.
-    expect(run('fun pick A I\n if I at least 1\n  J = -I\n  if J less 1\n   return 0.5\n  end\n end\n return 1\nend\n',
+    expect(run('fun A I pick\n if I at least 1\n  J = -I\n  if J less 1\n   return 0.5\n  end\n end\n return 1\nend\n',
         cells(null), index).types).toEqual(['integer', 'real']);
     // A loop can change the name between the guard and the inner test.
-    expect(run('fun pick A I\n if I at least 0\n  for I less 3\n   I = I - 10\n   if I less 0\n    return 0.5\n   end\n  end\n end\n return 1\nend\n',
+    expect(run('fun A I pick\n if I at least 0\n  for I less 3\n   I = I - 10\n   if I less 0\n    return 0.5\n   end\n  end\n end\n return 1\nend\n',
         cells(null), index).types).toEqual(['integer', 'real']);
     // Bounds do not outlive the branch that proved them.
-    expect(run('fun pick A I\n if I at least 0\n  X = 1\n end\n if I less 0\n  return 0.5\n end\n return 1\nend\n',
+    expect(run('fun A I pick\n if I at least 0\n  X = 1\n end\n if I less 0\n  return 0.5\n end\n return 1\nend\n',
         cells(null), index).types).toEqual(['integer', 'real']);
 });
 
@@ -1078,10 +1078,10 @@ it('closes a numeric recursive result through assignments and arithmetic', () =>
     expect(examples).toHaveLength(9);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
         .toEqual(Array.from({ length: 9 }, () => ['integer']));
-    expect(messages('fun change X\n if X less 1\n  return 1\n end\n'
+    expect(messages('fun X change\n if X less 1\n  return 1\n end\n'
         + ' Next = (X // 2) change\n return Next + 1\nend\nR = 2 change\nR + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('fun widenresult X\n if X less 1\n  return 1\n end\n'
+    expect(messages('fun X widenresult\n if X less 1\n  return 1\n end\n'
         + ' Next = (X - 1) widenresult\n return Next / 2\nend\nR = 2 widenresult\nR + "bad"'))
         .toEqual(['widenresult returns incompatible types: integer and real']);
 });
@@ -1109,7 +1109,7 @@ it('keeps a fresh numeric array through a proved nested scalar writer', () => {
 });
 
 it('uses a settled binding type for a direct return after an unknown branch', () => {
-    const source = 'fun decide Flag Next\n Result = 1\n if Flag\n  Result = Next\n end\n return Result\nend\n';
+    const source = 'fun Flag Next decide\n Result = 1\n if Flag\n  Result = Next\n end\n return Result\nend\n';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(parsed.parserErrors).toEqual([]);
     const result = analyzeValues(parsed.value, new Map(), new Map(), [{
@@ -1121,7 +1121,7 @@ it('uses a settled binding type for a direct return after an unknown branch', ()
 
 it('infers the result of the unchanged CSES maximum-subarray loop', () => {
     const source = readFileSync(new URL('./fixtures/008_maxsubarray.ra', import.meta.url), 'utf8');
-    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source.slice(source.indexOf('fun max_subarray')));
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*max_subarray\b/)));
     expect(parsed.parserErrors).toEqual([]);
     const result = analyzeValues(parsed.value, new Map(), new Map(), [{
         name: 'max_subarray', arguments: [{ types: ['array'], rank: 1, shape: [3], elements: ['integer'],
@@ -1129,7 +1129,7 @@ it('infers the result of the unchanged CSES maximum-subarray loop', () => {
     }]);
     expect(result.functionResults[0].types).toEqual(['integer']);
     expect(result.diagnostics).toEqual([]);
-    expect(messages(`${source.slice(source.indexOf('fun max_subarray'))}\nA = array 1 2 3\n`
+    expect(messages(`${source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*max_subarray\b/))}\nA = array 1 2 3\n`
         + 'Result = A max_subarray\nResult + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
 });
@@ -1176,7 +1176,7 @@ it('infers an accumulator across the unchanged CSES dice array-write loop', () =
 });
 
 it('proves scalar array cell types through closed plain and compound writes in nested loops', () => {
-    const source = 'fun fill_array N\n A = array shape (N + 1) fill 0\n for I in 1 to N\n'
+    const source = 'fun N fill_array\n A = array shape (N + 1) fill 0\n for I in 1 to N\n'
         + '  A I = A (I - 1) + 1\n end\n return A N\nend\n'
         + 'fun nested\n A = array 0 0\n for I in 0 to 1\n  for J in 0 to 1\n'
         + '   A J += 1\n  end\n end\n return A 0\nend\n';
@@ -1312,7 +1312,7 @@ it('does not infer scalar results for array-valued demo test examples', () => {
 
 it('retains unrelated facts after the unchanged maximum-subarray reader on eager input', () => {
     const source = readFileSync(new URL('./fixtures/008_maxsubarray.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun max_subarray'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*max_subarray\b/));
     expect(messages(`${definition}\nA = array 1 2 3\nCount = 3\nA max_subarray\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(`${definition}\nA = array shape 3 fill 1\nCount = 3\nA max_subarray\nCount + "bad"`))
@@ -1328,7 +1328,7 @@ it('retains unrelated facts after the unchanged maximum-subarray reader on eager
 
 it('retains unrelated facts after the unchanged AtCoder vacation loop', () => {
     const source = readFileSync(new URL('./fixtures/03_vacation.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun best_score'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*best_score\b/));
     expect(messages(`${definition}\nA = array 1 2 3\nB = array 3 2 1\nC = array 2 3 1\n`
         + 'Count = 3\nA B C best_score\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
@@ -1336,7 +1336,7 @@ it('retains unrelated facts after the unchanged AtCoder vacation loop', () => {
 
 it('retains unrelated facts after the unchanged bracket-count demo on integer input', () => {
     const source = readFileSync(new URL('../../../demos/cses/math/017_brackets1.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun bracket_count'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*bracket_count\b/));
     expect(messages(`${definition}\nCount = 3\n6 bracket_count\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(`${definition}\nCount = 3\nUnknown bracket_count\nCount + "bad"`))
@@ -1345,7 +1345,7 @@ it('retains unrelated facts after the unchanged bracket-count demo on integer in
 
 it('retains unrelated facts after the unchanged palindrome loop on integer input', () => {
     const source = readFileSync(new URL('./fixtures/009_palnum.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun palindrome'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*palindrome\b/));
     expect(messages(`${definition}\nCount = 3\n121 palindrome\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     const uncertain = definition.replace('Back = Back * 10 + Digit', 'Unknown external');
@@ -1354,7 +1354,7 @@ it('retains unrelated facts after the unchanged palindrome loop on integer input
 
 it('retains unrelated facts after the unchanged reverse-integer loop with an early return', () => {
     const source = readFileSync(new URL('../../../demos/leetcode/007_revint.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun reverse'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*reverse\b/));
     expect(messages(`${definition}\nCount = 3\n123 reverse\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(`${definition}\nResult = 123 reverse\nResult + "bad"`))
@@ -1365,7 +1365,7 @@ it('retains unrelated facts after the unchanged reverse-integer loop with an ear
 
 it('retains caller facts across the unchanged modular-power demo for proven integer inputs', () => {
     const source = readFileSync(new URL('../../../demos/cses/math/002_exponentiation.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun power'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*power\b/));
     expect(messages(`${definition}\nCount = 1\n3 4 power\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(`${definition}\nCount = 1\nUnknown 4 power\nCount + "bad"`)).toEqual([]);
@@ -1373,7 +1373,7 @@ it('retains caller facts across the unchanged modular-power demo for proven inte
 
 it('retains caller facts across the unchanged sigmoid demo only for scalar input', () => {
     const source = readFileSync(new URL('../../../demos/deepml/022_sigmoid.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun sigmoid'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*sigmoid\b/));
     expect(messages(`${definition}\nCount = 1\n0.5 sigmoid\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(`${definition}\nCount = 1\n(array 0 1) sigmoid\nCount + "bad"`)).toEqual([]);
@@ -1381,7 +1381,7 @@ it('retains caller facts across the unchanged sigmoid demo only for scalar input
 
 it('retains caller facts across the unchanged recall demo only for callback-free cells', () => {
     const source = readFileSync(new URL('../../../demos/deepml/052_recall.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun recall'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*recall\b/));
     expect(messages(`${definition}\nCount = 1\n(array 1 0) (array 1 1) recall\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(`${definition}\nCount = 1\nA = array shape 2 fill 1\nA (array 1 1) recall\nCount + "bad"`))
@@ -1391,7 +1391,7 @@ it('retains caller facts across the unchanged recall demo only for callback-free
 });
 
 it('drops a derived mask read proof after an indexed replacement', () => {
-    const reader = 'fun count_mask Mask\n return Mask count\nend';
+    const reader = 'fun Mask count_mask\n return Mask count\nend';
     const before = `${reader}\nMask = (array 1 0) equal 1\nCount = 1`;
     expect(messages(`${before}\nMask count_mask\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
@@ -1400,7 +1400,7 @@ it('drops a derived mask read proof after an indexed replacement', () => {
 
 it('retains caller facts after the unchanged CSES sum-and-max reader', () => {
     const source = readFileSync(new URL('../../../demos/cses/sortnsrch/025_books.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun minimum_reading_time'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*minimum_reading_time\b/));
     expect(messages(`${definition}\nCount = 1\n(array 2 3) minimum_reading_time\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(`${definition}\nCount = 1\nA = array shape 2 fill 1\nA minimum_reading_time\nCount + "bad"`))
@@ -1411,7 +1411,7 @@ it('retains caller facts after the unchanged CSES sum-and-max reader', () => {
 
 it('retains caller facts across the unchanged softmax pipeline only for safe cells', () => {
     const source = readFileSync(new URL('../../../demos/deepml/023_softmax.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun softmax'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*softmax\b/));
     expect(messages(`${definition}\nCount = 1\n(array 1 2 3) softmax\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(`${definition}\nCount = 1\nA = array shape 3 fill 1\nA softmax\nCount + "bad"`))
@@ -1422,7 +1422,7 @@ it('retains caller facts across the unchanged softmax pipeline only for safe cel
 
 it('retains a caller fact after the unchanged normal-equation pipeline on eager arrays', () => {
     const source = readFileSync(new URL('../../../demos/deepml/014_linreg.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun linear_regression'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*linear_regression\b/));
     const matrix = 'X = array shape 3 2\n 1 1\n 1 2\n 1 3\nend';
     const vector = 'Y = array 1 2 3';
     expect(messages(`${definition}\nCount = 1\n${matrix}\n${vector}\nX Y linear_regression\nCount + "bad"`))
@@ -1437,7 +1437,7 @@ it('retains a caller fact after the unchanged normal-equation pipeline on eager 
 
 it('retains a caller fact after the unchanged gradient-descent loop on numeric arrays', () => {
     const source = readFileSync(new URL('../../../demos/deepml/015_gd.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun linear_regression'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*linear_regression\b/));
     const matrix = 'X = array shape 3 2\n 1 1\n 1 2\n 1 3\nend';
     const vector = 'Y = array 1 2 3';
     expect(messages(`${definition}\nCount = 1\n${matrix}\n${vector}\nX Y 0.01 2 linear_regression\nCount + "bad"`))
@@ -1448,7 +1448,7 @@ it('retains a caller fact after the unchanged gradient-descent loop on numeric a
 
 it('skips an unreachable K-means loop body for a proven zero-step call', () => {
     const source = readFileSync(new URL('../../../demos/deepml/017_kmeans.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun k_means'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*k_means\b/));
     const points = 'Points = array shape 2 1\n 0\n 10\nend';
     const centroids = 'Centroids = array shape 2 1\n 0\n 10\nend';
     const draft = (steps: number) => `${definition}\nCount = 1\n${points}\n${centroids}`
@@ -1472,14 +1472,14 @@ it('keeps known empty arrays but not arbitrary empty sequences', () => {
 
 it('checks the result rank of the unchanged bill-count loop before execution', () => {
     const source = readFileSync(new URL('./fixtures/010_otoshidama.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun otoshidama'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*otoshidama\b/));
     expect(messages(`${definition}\nResult = 9 45000 otoshidama\nResult # #`))
         .toEqual(['2 selectors exceed array rank 1']);
 });
 
 it('collects returns from reachable loop paths with break and continue', () => {
     for (const exit of ['break', 'continue']) {
-        expect(messages(`fun decide N\n for I in 0 till N\n  if I equal 0\n   ${exit}\n  end\n  return 1\n end\n return "text"\nend\nA = 2 decide\nA = true`))
+        expect(messages(`fun N decide\n for I in 0 till N\n  if I equal 0\n   ${exit}\n  end\n  return 1\n end\n return "text"\nend\nA = 2 decide\nA = true`))
             .toEqual(['decide returns incompatible ranks: 0 and 1',
             'decide returns incompatible types: integer and text',
             'A has type integer or text and cannot receive boolean']);
@@ -1532,7 +1532,7 @@ it('infers the unchanged atoi function through both break and return paths', () 
 
 it('retains unrelated facts after the unchanged marble-count text loop', () => {
     const source = readFileSync(new URL('../../../demos/atcoder/beginners/003_marbles.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.indexOf('fun marbles'));
+    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*marbles\b/));
     expect(messages(`${definition}\nCount = 3\n"101" marbles\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     const uncertain = definition.replace('Count += 1', 'Unknown external');
@@ -1546,21 +1546,21 @@ it('still discards facts after an unknown call inside a loop', () => {
 
 it('does not snapshot a direct-call argument that executes another function', () => {
     expect(messages('fun touch\n Unknown external\n return 0\nend\n'
-        + 'fun inspect X Y\n return Y 0\nend\n'
+        + 'fun X Y inspect\n return Y 0\nend\n'
         + 'A = array 1 2\nResult = touch A inspect\nResult + "bad"')).toEqual([]);
 });
 
 it('preserves unrelated scalar facts across known parameter and captured writes', () => {
     for (const target of ['X', 'Shared']) {
-        expect(messages(`fun change X\n ${target} 0 = 1\n return 0\nend\nShared = array 1 2\nCount = 3\nShared change\nCount + "bad"`))
+        expect(messages(`fun X change\n ${target} 0 = 1\n return 0\nend\nShared = array 1 2\nCount = 3\nShared change\nCount + "bad"`))
             .toEqual(['operator + does not accept integer and text']);
     }
-    expect(messages('fun write X\n X 0 = 1\n return 0\nend\nfun helper X\n X write\n return 0\nend\nA = array 1 2\nCount = 3\nA helper\nCount + "bad"'))
+    expect(messages('fun X write\n X 0 = 1\n return 0\nend\nfun X helper\n X write\n return 0\nend\nA = array 1 2\nCount = 3\nA helper\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
 });
 
 it('retains caller facts after a helper writes only its caller’s private array', () => {
-    const code = 'fun write V\n V 0 = 9\n return 0\nend\n'
+    const code = 'fun V write\n V 0 = 9\n return 0\nend\n'
         + 'fun outer\n Temp = array 1 2\n Temp write\n return 0\nend\n';
     expect(messages(code + 'Count = 3\nouter\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
@@ -1569,20 +1569,20 @@ it('retains caller facts after a helper writes only its caller’s private array
 });
 
 it('maps a direct nested reader or writer to the enclosing argument', () => {
-    const reader = 'fun outer X\n fun read\n  return X 0\n end\n return read\nend\n';
+    const reader = 'fun X outer\n fun read\n  return X 0\n end\n return read\nend\n';
     expect(messages(reader + 'A = array 1 2\nCount = 3\nA outer\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    const writer = 'fun outer X\n fun change\n  X 0 = 9\n  return 0\n end\n change\n return 0\nend\n';
+    const writer = 'fun X outer\n fun change\n  X 0 = 9\n  return 0\n end\n change\n return 0\nend\n';
     expect(messages(writer + 'A = array 1 2\nCount = 3\nA outer\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(writer + 'A = array 1 2\nA outer\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('fun outer X\n X = Source\n fun read\n  return X 0\n end\n return read\nend\n'
+    expect(messages('fun X outer\n X = Source\n fun read\n  return X 0\n end\n return read\nend\n'
         + 'A = array 1 2\nCount = 3\nA outer\nCount + "bad"')).toEqual([]);
 });
 
 it('keeps unrelated facts across proven eager-cell reader helpers', () => {
-    const readers = 'fun read X\n return X 0\nend\nfun helper A\n return A read\nend\n';
+    const readers = 'fun X read\n return X 0\nend\nfun A helper\n return A read\nend\n';
     expect(messages(readers + 'A = array 1 2\nCount = 3\nA helper\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('fun read\n return Shared 0\nend\nShared = array 1 2\nCount = 3\nread\nCount + "bad"'))
@@ -1593,24 +1593,24 @@ it('keeps unrelated facts across proven eager-cell reader helpers', () => {
 
 it('reads top-level captures rather than equally named caller parameters', () => {
     const reader = 'Shared = array 1 2\nCount = 3\nfun read\n return Shared 0\nend\n'
-        + 'fun outer Shared\n return read\nend\n';
+        + 'fun Shared outer\n return read\nend\n';
     expect(messages(reader + '(array 3 4) outer\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(reader.replace('Shared = array 1 2', 'Shared = Unknown')
         + '(array 3 4) outer\nCount + "bad"')).toEqual([]);
 
-    expect(messages('Offset = 1\nfun read Ignored\n return Offset\nend\n'
-        + 'fun outer Offset\n return 1 read\nend\nResult = "x" outer\nResult + "y"'))
+    expect(messages('Offset = 1\nfun Ignored read\n return Offset\nend\n'
+        + 'fun Offset outer\n return 1 read\nend\nResult = "x" outer\nResult + "y"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('Shared = array 1 2\nfun read Ignored\n return Shared 0\nend\n'
-        + 'fun outer Ignored\n Shared 0 = 9\n return 0 read\nend\nResult = 0 outer\nResult + 1'))
+    expect(messages('Shared = array 1 2\nfun Ignored read\n return Shared 0\nend\n'
+        + 'fun Ignored outer\n Shared 0 = 9\n return 0 read\nend\nResult = 0 outer\nResult + 1'))
         .toEqual([]);
 });
 
 it('invalidates a global capture rather than an equally named caller parameter', () => {
     const prefix = 'Shared = array 1 2\nOther = array 3 4\nCount = 3\n'
-        + 'fun write Value\n Shared 0 = Value\n return 0\nend\n'
-        + 'fun outer Shared\n 9 write\n return Shared 0\nend\n';
+        + 'fun Value write\n Shared 0 = Value\n return 0\nend\n'
+        + 'fun Shared outer\n 9 write\n return Shared 0\nend\n';
     expect(messages(prefix + 'Other outer\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(prefix + 'Other outer\nShared + "bad"')).toEqual([]);
@@ -1619,7 +1619,7 @@ it('invalidates a global capture rather than an equally named caller parameter',
 });
 
 it('keeps unrelated facts across a reader of its own eager literal array', () => {
-    const reader = 'fun read X\n return X 0\nend\nfun helper\n Temp = array 1 2\n return Temp read\nend\n';
+    const reader = 'fun X read\n return X 0\nend\nfun helper\n Temp = array 1 2\n return Temp read\nend\n';
     expect(messages(reader + 'Count = 3\nhelper\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('fun helper\n Temp = Source\n return Temp 0\nend\nCount = 3\nhelper\nCount + "bad"'))
@@ -1636,7 +1636,7 @@ it('keeps unrelated shapes across a private literal array write', () => {
 });
 
 it('keeps unrelated facts across a nested reader of its parent eager array', () => {
-    const body = 'fun outer N\n Temp = array 1 2\n fun read\n  return Temp 0\n end\n return read\nend\n';
+    const body = 'fun N outer\n Temp = array 1 2\n fun read\n  return Temp 0\n end\n return read\nend\n';
     expect(messages(body + 'Count = 3\n0 outer\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(body.replace('fun read', 'Temp = Source\n fun read')
@@ -1647,7 +1647,7 @@ it('keeps unrelated facts across a nested reader of its parent eager array', () 
 });
 
 it('does not trust indexed readers of lazy or unsupported array values', () => {
-    const reader = 'fun read X\n return X 0\nend\n';
+    const reader = 'fun X read\n return X 0\nend\n';
     expect(messages(reader + 'A = Unknown\nCount = 3\nA read\nCount + "bad"')).toEqual([]);
     expect(messages(reader + 'A = array 1 2\nA # = Unknown\nCount = 3\nA read\nCount + "bad"')).toEqual([]);
     expect(messages(reader + 'A = array 1 2\nA 0 = Unknown\nCount = 3\nA read\nCount + "bad"')).toEqual([]);
@@ -1664,14 +1664,14 @@ it('invalidates facts across file I/O but not across stdin or an unrelated nativ
     expect(messages('use io\nCount = 3\nstdin .integer\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use io\nCount = 3\n"path" read\nCount + "bad"')).toEqual([]);
-    expect(messages('fun file Path\n return Path read\nend\nCount = 3\n"path" file\nCount + "bad"'))
+    expect(messages('fun Path file\n return Path read\nend\nCount = 3\n"path" file\nCount + "bad"'))
         .toEqual([]);
     expect(messages('use algo\nCount = 3\nQ = new queue\nQ pop\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
 });
 
 it('follows copy-on-write when a function writes a parameter array', () => {
-    const code = 'fun change X\n X 0 = 9\n return X\nend\nA = array 1 2\nB = A\nC = array 3 4 5\n';
+    const code = 'fun X change\n X 0 = 9\n return X\nend\nA = array 1 2\nB = A\nC = array 3 4 5\n';
     expect(messages(code + 'Result = B change\nA + C')).toEqual(['shape mismatch: [2] and [3]']);
     expect(messages(code + 'Result = B change\nB + C')).toEqual(['shape mismatch: [2] and [3]']);
     expect(messages('A = array 1 2\nB = A\nB 0 = 9\nA + (array 1 2 3)'))
@@ -1736,13 +1736,13 @@ it('distinguishes local assignment from a possible nested capture', () => {
 });
 
 it('retains unrelated shapes across a proven nested parameter rebinding', () => {
-    const body = 'fun outer X\n Y = array 1 2\n fun replace\n  X = array 3 4 5\n  return 0\n end\n replace\n return Y + (array 1 2 3)\nend\nA = array 1 2\nA outer';
+    const body = 'fun X outer\n Y = array 1 2\n fun replace\n  X = array 3 4 5\n  return 0\n end\n replace\n return Y + (array 1 2 3)\nend\nA = array 1 2\nA outer';
     expect(messages(body)).toEqual(['outer: shape mismatch: [2] and [3]']);
     expect(messages(body.replace('return Y + (array 1 2 3)', 'return X + (array 1 2)'))).toEqual([]);
 });
 
 it('invalidates a captured local binding without losing independent shapes', () => {
-    const body = 'fun outer X\n Y = array 1 2\n Z = array 3 4\n fun replace\n  Y = array 5 6 7\n  return 0\n end\n replace\n return Z + (array 1 2 3)\nend\n0 outer';
+    const body = 'fun X outer\n Y = array 1 2\n Z = array 3 4\n fun replace\n  Y = array 5 6 7\n  return 0\n end\n replace\n return Z + (array 1 2 3)\nend\n0 outer';
     expect(messages(body)).toEqual(['outer: shape mismatch: [2] and [3]']);
     expect(messages(body.replace('return Z + (array 1 2 3)', 'return Y + (array 1 2)'))).toEqual([]);
     const second = body.replace('Y = array 5 6 7', 'Z = array 5 6 7');
@@ -1758,43 +1758,43 @@ it('keeps independent facts through a grandchild replacement of an outer local',
 });
 
 it('drops caller facts when a nested helper name is redefined', () => {
-    const source = 'fun outer A\n fun reader X\n  X 0 = 9\n  return 0\n end\n A reader\n fun reader X\n  return X 0\n end\n return 0\nend\nA = array 1 2\nCount = 3\nA outer\nCount + "bad"';
+    const source = 'fun A outer\n fun X reader\n  X 0 = 9\n  return 0\n end\n A reader\n fun X reader\n  return X 0\n end\n return 0\nend\nA = array 1 2\nCount = 3\nA outer\nCount + "bad"';
     expect(messages(source)).toEqual([]);
 });
 
 it('falls back for unknown effects and reference-like writes', () => {
-    const prefix = 'fun change X\n X 0 = true\n return 0\nend\nA = array true false\nAlias = A\nCount = 3\n';
+    const prefix = 'fun X change\n X 0 = true\n return 0\nend\nA = array true false\nAlias = A\nCount = 3\n';
     expect(messages(prefix + 'A change\nAlias + 1')).toEqual(['operator + does not accept boolean and integer']);
     expect(messages(prefix + 'A external\nCount + "bad"')).toEqual([]);
     expect(messages(prefix + 'Unknown change\nCount + "bad"')).toEqual([]);
-    expect(messages('fun change X\n Alias = X\n Alias 0 = 1\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"')).toEqual([]);
+    expect(messages('fun X change\n Alias = X\n Alias 0 = 1\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"')).toEqual([]);
     expect(messages('A = array true false\nB = A\nA 0 += 1\nB + 1')).toEqual([]);
 });
 
 it('joins function result dimensions without freezing elastic lengths', () => {
-    expect(messages('fun decide X\n if X\n  return array shape 2 3 fill 0\n else\n  return array shape 4 3 fill 0\n end\nend\nA = Flag decide\nA # # #'))
+    expect(messages('fun X decide\n if X\n  return array shape 2 3 fill 0\n else\n  return array shape 4 3 fill 0\n end\nend\nA = Flag decide\nA # # #'))
         .toEqual(['3 selectors exceed array rank 2']);
 });
 
 it('infers result facts only from paths that return', () => {
-    expect(messages('fun decide Flag\n if Flag\n  return array 1 2\n end\nend\nA = true decide\nA # #'))
+    expect(messages('fun Flag decide\n if Flag\n  return array 1 2\n end\nend\nA = true decide\nA # #'))
         .toEqual(['2 selectors exceed array rank 1']);
-    expect(messages('fun decide Flag\n if Flag\n  return 1\n end\nend\nA = true decide\nA + "bad"'))
+    expect(messages('fun Flag decide\n if Flag\n  return 1\n end\nend\nA = true decide\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('fun fail\n Value = 1\nend\nA = fail\nA + "bad"')).toEqual([]);
 });
 
 it('keeps a text parameter when an implicit queue selects its characters', () => {
-    const source = 'fun reorder Text\n Queue = new queue\n for I in 0 till 2\n  Queue push I\n end\n return Text Queue\nend\nA = "abc" reorder';
+    const source = 'fun Text reorder\n Queue = new queue\n for I in 0 till 2\n  Queue push I\n end\n return Text Queue\nend\nA = "abc" reorder';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
     expect(analyzeValues(parsed.value).bindings.get('A')?.types).toEqual(['text']);
-    expect(messages('fun character Text I\n return Text I\nend\nA = "abc" 1 character\nA + 1'))
+    expect(messages('fun Text I character\n return Text I\nend\nA = "abc" 1 character\nA + 1'))
         .toEqual(['operator + does not accept text and integer']);
 });
 
 it('binds each matrix row as an array when iterating its first axis', () => {
-    const source = 'fun first_cell Matrix\n for Row in Matrix\n  return Row 0\n end\nend\n'
+    const source = 'fun Matrix first_cell\n for Row in Matrix\n  return Row 0\n end\nend\n'
         + 'A = (array 1 2 3 4 shape 2 2) first_cell';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
@@ -1809,7 +1809,7 @@ it('binds each matrix row as an array when iterating its first axis', () => {
 });
 
 it('preserves scalar cells through a proven integer spread index', () => {
-    const source = 'fun write Position\n A = array shape 2 2 fill 0\n for I in 0 till 2\n'
+    const source = 'fun Position write\n A = array shape 2 2 fill 0\n for I in 0 till 2\n'
         + '  A unpack Position += 1\n end\n return A 0 1\nend\nResult = (array 0 1) write';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
     expect(analyzeValues(parse(source)).bindings.get('Result')?.types).toEqual(['integer']);
@@ -1818,7 +1818,7 @@ it('preserves scalar cells through a proven integer spread index', () => {
 });
 
 it('keeps numeric matrix cells only when loop rebindings are closed', () => {
-    const source = 'fun combine Base\n Result = array shape 2 2 fill 1\n'
+    const source = 'fun Base combine\n Result = array shape 2 2 fill 1\n'
         + ' for I in 0 till 3\n  Result = Result Base matmul\n end\n return Result 0 0\nend\n'
         + 'A = (array 1 2 3 4 shape 2 2) combine';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
@@ -1831,7 +1831,7 @@ it('keeps numeric matrix cells only when loop rebindings are closed', () => {
 });
 
 it('settles infinity seeds while retaining the sentinel as a possible real value', () => {
-    const source = 'fun build_matrix Size\n M = array shape Size Size fill infinity\n'
+    const source = 'fun Size build_matrix\n M = array shape Size Size fill infinity\n'
         + ' for I in 0 till Size\n  M I I = 0\n end\n return M 0 0\nend\nA = 2 build_matrix';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
@@ -1852,7 +1852,7 @@ it('keeps the unchanged LCS element type before widening numeric loop cells', ()
 });
 
 it('does not close a numeric loop through an effectful helper', () => {
-    const source = 'fun impure X\n Unknown external\n return X\nend\n'
+    const source = 'fun X impure\n Unknown external\n return X\nend\n'
         + 'fun compute\n A = array 1 2\n for I in 0 till 2\n  A = A impure\n end\n return A 0\nend\nResult = compute';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(analyzeValues(parsed.value).bindings.get('Result')?.types).toEqual(['integer']);
@@ -2025,8 +2025,8 @@ it('infers the unchanged longest-palindrome result through numeric call argument
 });
 
 it('passes a preceding pipeline result to a unary user function', () => {
-    const source = 'use text\nfun count_parts Parts\n return Parts len\nend\n'
-        + 'fun count_source Source\n return Source "," split count_parts\nend\n';
+    const source = 'use text\nfun Parts count_parts\n return Parts len\nend\n'
+        + 'fun Source count_source\n return Source "," split count_parts\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(program.parserErrors).toEqual([]);
     expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'count_source', arguments: [{
@@ -2035,7 +2035,7 @@ it('passes a preceding pipeline result to a unary user function', () => {
 });
 
 it('passes a captured array to a return call before the callee changes its facts', () => {
-    const source = 'fun outer A\n fun change B\n  A 0 = 9\n  return B 0\n end\n return A change\nend\n';
+    const source = 'fun A outer\n fun B change\n  A 0 = 9\n  return B 0\n end\n return A change\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(program.parserErrors).toEqual([]);
     expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'outer', arguments: [{
@@ -2044,7 +2044,7 @@ it('passes a captured array to a return call before the callee changes its facts
 });
 
 it('passes a safe indexed scalar to a call before the callee changes its array', () => {
-    const source = 'fun outer A\n fun change X\n  A 0 = 9\n  return X\n end\n'
+    const source = 'fun A outer\n fun X change\n  A 0 = 9\n  return X\n end\n'
         + ' return (A 0) change\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(program.parserErrors).toEqual([]);
@@ -2079,7 +2079,7 @@ it('keeps the exact numeric cell type through unary min and max', () => {
 });
 
 it('retains a private scalar parameter type but not its value across an unknown call', () => {
-    const source = 'fun outer N\n Unknown external\n return N + 1\nend\nA = 3 outer';
+    const source = 'fun N outer\n Unknown external\n return N + 1\nend\nA = 3 outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
     expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['integer']);
     const withCapture = source.replace(' Unknown external', ' fun nested\n  N = 4\n  return 0\n end\n Unknown external');
@@ -2087,7 +2087,7 @@ it('retains a private scalar parameter type but not its value across an unknown 
 });
 
 it('infers a declared scalar body separately from its ranked call result', () => {
-    const source = `memo depth N rank 0
+    const source = `memo N depth rank 0
  if N equal 1
   return 1
  end
@@ -2103,7 +2103,7 @@ end`;
 });
 
 it('preserves an unknown private scalar rank across calls without preserving captured ranks', () => {
-    const source = 'fun outer N rank 0\n Unknown external\n return N + 1\nend';
+    const source = 'fun N outer rank 0\n Unknown external\n return N + 1\nend';
     const result = (source: string) => analyzeValues(services.Rank.parser.LangiumParser.parse<Program>(source).value,
         new Map(), new Map(), [{ name: 'outer', arguments: [{ types: [] }], body: true }]).functionResults[0];
     expect(result(source)).toMatchObject({ types: [], rank: 0 });
@@ -2112,7 +2112,7 @@ it('preserves an unknown private scalar rank across calls without preserving cap
 });
 
 it('keeps a local type when nested functions only read its binding', () => {
-    const source = 'fun outer N\n fun read\n  return N\n end\n Unknown external\n return N + 1\nend\nA = 3 outer';
+    const source = 'fun N outer\n fun read\n  return N\n end\n Unknown external\n return N + 1\nend\nA = 3 outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
     expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['integer']);
     const withRebinding = source.replace('  return N', '  N = "x"\n  return N');
@@ -2120,8 +2120,8 @@ it('keeps a local type when nested functions only read its binding', () => {
 });
 
 it('analyzes hoisted local functions declared after return without leaking their binding', () => {
-    const source = 'fun helper X\n return "text"\nend\n'
-        + 'fun outer X\n return X helper\n fun helper Y\n  return Y + 1\n end\nend\n'
+    const source = 'fun X helper\n return "text"\nend\n'
+        + 'fun X outer\n return X helper\n fun Y helper\n  return Y + 1\n end\nend\n'
         + 'A = 1 outer\nB = 1 helper\nA + "bad"\nB + 1';
     expect(messages(source)).toEqual([
         'operator + does not accept integer and text',
@@ -2143,12 +2143,12 @@ it('retains the rank of a private array but not its cells after an unknown call'
 it('retains the outer type of a private collection but not its contents after an unknown call', () => {
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
     for (const kind of ['queue', 'stack', 'deque', 'heap', 'set', 'counter', 'index', 'segment']) {
-        const source = `fun f Value\n C = Value\n Unknown external\n return C\nend\nR = f`;
+        const source = `fun Value f\n C = Value\n Unknown external\n return C\nend\nR = f`;
         const result = analyzeValues(parse(source), new Map(), new Map(), [{ name: 'f', arguments: [{ types: [kind] }] }]);
         expect(result.functionResults[0]).toMatchObject({ types: [kind] });
         expect(result.functionResults[0].elements).toBeUndefined();
     }
-    const withCapture = 'fun f Value\n C = Value\n fun change\n  C = 1\n  return 0\n end\n Unknown external\n return C\nend';
+    const withCapture = 'fun Value f\n C = Value\n fun change\n  C = 1\n  return 0\n end\n Unknown external\n return C\nend';
     expect(analyzeValues(parse(withCapture), new Map(), new Map(), [
         { name: 'f', arguments: [{ types: ['queue'] }] },
     ]).functionResults[0].types).toEqual([]);
@@ -2297,7 +2297,7 @@ it('does not discard unrelated facts when popping a known native container', () 
     }
     expect(messages('use algo\nA = array 1 2\nUnknown pop\nA 0 + "bad"')).toEqual([]);
     expect(messages('use algo\nA = array 1 2\nQ = new stack\n'
-        + 'fun pop X\n A 0 = 9\n return 0\nend\nQ pop\nA 0 + "bad"')).toEqual(['cannot redefine available builtin: pop', 'operator + does not accept integer and text']);
+        + 'fun X pop\n A 0 = 9\n return 0\nend\nQ pop\nA 0 + "bad"')).toEqual(['cannot redefine available builtin: pop', 'operator + does not accept integer and text']);
 });
 
 it('infers elements inserted into named collections and rejects a definite mismatch', () => {
@@ -2361,8 +2361,8 @@ it('infers table projection ranks from literal JSON test inputs', () => {
 
 it('uses only loaded and unchanged imported function bindings', () => {
     const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
-    const module = parse('fun twice X\n return X + X\nend');
-    const source = 'use "helper" as M\nfun solve X\n return X M.twice\nend';
+    const module = parse('fun X twice\n return X + X\nend');
+    const source = 'use "helper" as M\nfun X solve\n return X M.twice\nend';
     const example = [{ name: 'solve', arguments: [{ types: ['integer'], rank: 0, shape: [] }] }];
     const load = (path: string) => path === 'helper' ? module : undefined;
     expect(analyzeValues(parse(source), new Map(), new Map(), example, load).functionResults[0].types)
@@ -2414,7 +2414,7 @@ it('reports excess axes after a broadcast prefix test', () => {
 it('keeps a private outer type after unsupported iteration and unpacking', () => {
     const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
     for (const body of ['for X Y in Source\n  X = 0\n end', 'unpack X Y = Source']) {
-        const program = parse(`fun keep Source\n A = array 1 2\n ${body}\n return A\nend`);
+        const program = parse(`fun Source keep\n A = array 1 2\n ${body}\n return A\nend`);
         expect(analyzeValues(program, new Map(), new Map(), [{ name: 'keep', arguments: [{ types: [] }] }])
             .functionResults[0].types).toEqual(['array']);
     }
@@ -2449,7 +2449,7 @@ it('infers unchanged range-query results through native stack pops', () => {
 });
 
 it('retains a private container binding after an uncertain indexed write', () => {
-    const source = 'fun collect Tree Key\n Answers = new queue\n Tree Key = 1\n return Answers\nend\n';
+    const source = 'fun Tree Key collect\n Answers = new queue\n Tree Key = 1\n return Answers\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>('use algo\n' + source);
     expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'collect', arguments: [
         { types: [] }, { types: [] },
@@ -2462,7 +2462,7 @@ it('retains a private container binding after an uncertain indexed write', () =>
         { types: [] }, { types: [] },
     ] }]).functionResults[0].types).toEqual([]);
     const cells = services.Rank.parser.LangiumParser.parse<Program>(
-        'fun read Tree Key\n A = array 1 2\n Tree Key = 1\n return A 0\nend\n');
+        'fun Tree Key read\n A = array 1 2\n Tree Key = 1\n return A 0\nend\n');
     expect(analyzeValues(cells.value, new Map(), new Map(), [{ name: 'read', arguments: [
         { types: [] }, { types: [] },
     ] }]).functionResults[0].types).toEqual(['integer']);
@@ -2481,7 +2481,7 @@ it('infers the range-copy generator result despite an uncertain indexed write', 
 });
 
 it('retains a private text parameter type across an unknown call but not through a nested capture', () => {
-    const source = 'fun outer Text\n Unknown external\n return Text\nend\nA = "abc" outer';
+    const source = 'fun Text outer\n Unknown external\n return Text\nend\nA = "abc" outer';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body + '\n').value;
     expect(analyzeValues(parse(source)).bindings.get('A')?.types).toEqual(['text']);
     const withCapture = source.replace(' Unknown external',
@@ -2490,7 +2490,7 @@ it('retains a private text parameter type across an unknown call but not through
 });
 
 it('retains private scalar loop bindings across unknown calls', () => {
-    const source = 'fun outer Text\n for C I in Text\n  Unknown external\n  return I + 1\n end\n return 0\nend\n';
+    const source = 'fun Text outer\n for C I in Text\n  Unknown external\n  return I + 1\n end\n return 0\nend\n';
     const parse = (body: string) => services.Rank.parser.LangiumParser.parse<Program>(body);
     const argument = { types: ['text'], rank: 1, shape: [3], textLiteral: 'abc' };
     expect(analyzeValues(parse(source).value, new Map(), new Map(), [
@@ -2599,7 +2599,7 @@ it('infers indices of safe masks without trusting a lazy mask read', () => {
     expect(messages('use sequences\nMask = array true false true\nI = Mask indices\nI 0 + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     const program = services.Rank.parser.LangiumParser.parse<Program>(
-        'use sequences\nfun probe Mask\n A = array 1 2\n Mask indices\n return A 0\nend\n');
+        'use sequences\nfun Mask probe\n A = array 1 2\n Mask indices\n return A 0\nend\n');
     const input = { types: ['array'], rank: 1, shape: [2], elements: ['boolean'] };
     expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'probe', arguments: [input] }])
         .functionResults[0].types).toEqual(['integer']);
@@ -2618,7 +2618,7 @@ it('infers findall positions only after callback-free source and key reads', () 
     const target = { types: ['integer'], rank: 0, shape: [] };
     for (const operation of ['find', 'findall']) {
         const program = services.Rank.parser.LangiumParser.parse<Program>(
-            `use sequences\nfun probe Values Target\n A = array 1 2\n Values Target ${operation}\n return A 0\nend\n`);
+            `use sequences\nfun Values Target probe\n A = array 1 2\n Values Target ${operation}\n return A 0\nend\n`);
         const result = (...arguments_: ValueFacts[]) => analyzeValues(program.value, new Map(), new Map(), [
             { name: 'probe', arguments: arguments_ },
         ]).functionResults[0].types;
@@ -2641,7 +2641,7 @@ it('infers the unchanged CSES subarray-sums result through computed index values
 });
 
 it('retains a private scalar after loop widening and an unknown call', () => {
-    const source = 'fun decide Items\n Best = -1\n for I in 0 till 3\n'
+    const source = 'fun Items decide\n Best = -1\n for I in 0 till 3\n'
         + '  if Items I external\n   Best = I\n  end\n end\n return Best\nend\n';
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(program.parserErrors).toEqual([]);
@@ -2776,9 +2776,9 @@ it('does not analyze statements after a definite no-return call', () => {
     expect(messages('fun fail\n fun nested\n  return 1\n end\n nested\nend\nfail\nA = 1\nA + "bad"'))
         .toEqual([]);
     expect(messages(fail + 'if Flag\n fail\nelse\n A = 1\nend\nA + "bad"')).toEqual([]);
-    expect(messages(fail + 'fun decide Flag\n if Flag\n  fail\n else\n  return 1\n end\nend\nA = true decide\nA + "bad"'))
+    expect(messages(fail + 'fun Flag decide\n if Flag\n  fail\n else\n  return 1\n end\nend\nA = true decide\nA + "bad"'))
         .toEqual([]);
-    expect(messages(fail + 'fun decide Flag\n if Flag\n  fail\n else\n  return 1\n end\nend\nA = false decide\nA + "bad"'))
+    expect(messages(fail + 'fun Flag decide\n if Flag\n  fail\n else\n  return 1\n end\nend\nA = false decide\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('fun stream\n if false\n  yield 1\n end\nend\nstream\nA = 1\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
@@ -2796,7 +2796,7 @@ it('infers a generator sequence without executing its body', () => {
     expect(messages('fun outer\n fun inner\n  yield 1\n end\n return 2\nend\nA = outer\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
     const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
-    expect(analyzeValues(parse('fun stream X\n yield X\nend\nS = 1 stream')).bindings.get('S'))
+    expect(analyzeValues(parse('fun X stream\n yield X\nend\nS = 1 stream')).bindings.get('S'))
         .toMatchObject({ types: ['sequence'], elements: ['integer'], rank: 1 });
     expect(analyzeValues(parse('fun stream\n yield 1\n yield "x"\nend\nS = stream')).bindings.get('S')?.elements)
         .toEqual(['integer', 'text']);
@@ -2804,20 +2804,20 @@ it('infers a generator sequence without executing its body', () => {
         .toEqual(['stream yields incompatible types: integer and text']);
     expect(messages('fun stream\n if false\n  yield 1\n end\n yield "x"\nend')).toEqual([]);
     expect(messages('fun stream\n return\n yield 1\n yield "x"\nend')).toEqual([]);
-    expect(messages('fun stream Flag\n if Flag\n  return\n else\n  return\n end\n yield 1\n yield "x"\nend'))
+    expect(messages('fun Flag stream\n if Flag\n  return\n else\n  return\n end\n yield 1\n yield "x"\nend'))
         .toEqual([]);
-    expect(messages('fun stream X\n yield 1\n yield X\nend\nS = "x" stream'))
+    expect(messages('fun X stream\n yield 1\n yield X\nend\nS = "x" stream'))
         .toEqual(['stream yields incompatible types: integer and text']);
     expect(messages('fun stream\n Cell = 1\n yield Cell\n yield "x"\nend'))
         .toEqual(['stream yields incompatible types: integer and text']);
-    expect(messages('fun stream X\n Cell = X\n yield Cell\n yield 1\nend\nS = "x" stream'))
+    expect(messages('fun X stream\n Cell = X\n yield Cell\n yield 1\nend\nS = "x" stream'))
         .toEqual(['stream yields incompatible types: text and integer']);
     expect(messages('fun stream\n First = "x"\n Second = First\n yield Second\n yield 1\nend'))
         .toEqual(['stream yields incompatible types: text and integer']);
-    expect(messages('fun stream Flag\n Cell = 1\n if Flag\n  Cell = "x"\n end\n yield Cell\n yield "x"\nend'))
+    expect(messages('fun Flag stream\n Cell = 1\n if Flag\n  Cell = "x"\n end\n yield Cell\n yield "x"\nend'))
         .toEqual([]);
-    expect(messages('fun stream X\n yield 1\n yield X\nend\nS = Unknown stream')).toEqual([]);
-    expect(analyzeValues(parse('fun stream X\n X = "changed"\n yield X\nend\nS = 1 stream')).bindings.get('S')?.elements)
+    expect(messages('fun X stream\n yield 1\n yield X\nend\nS = Unknown stream')).toEqual([]);
+    expect(analyzeValues(parse('fun X stream\n X = "changed"\n yield X\nend\nS = 1 stream')).bindings.get('S')?.elements)
         .toBeUndefined();
     expect(analyzeValues(parse('Shared = 1\nfun stream\n yield Shared\nend\nS = stream')).bindings.get('S')?.elements)
         .toBeUndefined();
@@ -2846,13 +2846,13 @@ it('invalidates dimensions for a potentially effectful call inside a branch', ()
 });
 
 it('does not apply builtin reshape rules to a local function with the same name', () => {
-    expect(messages('fun reshape A B\n return 1\nend\nX = (array 1 2) (array 3 4) reshape'))
+    expect(messages('fun A B reshape\n return 1\nend\nX = (array 1 2) (array 3 4) reshape'))
         .toEqual([]);
 });
 
 it('does not report an error in an unproven or unreachable function branch', () => {
-    expect(messages('fun decide X\n if X\n  return 1 + "bad"\n end\n return 0\nend\nfalse decide')).toEqual([]);
-    expect(messages('fun decide X\n if false\n  return 1 + "bad"\n end\n return 0\nend\nfalse decide')).toEqual([]);
+    expect(messages('fun X decide\n if X\n  return 1 + "bad"\n end\n return 0\nend\nfalse decide')).toEqual([]);
+    expect(messages('fun X decide\n if false\n  return 1 + "bad"\n end\n return 0\nend\nfalse decide')).toEqual([]);
 });
 
 it('checks known array element types while treating text as a broadcast atom', () => {
@@ -2873,20 +2873,20 @@ it('reports the removed DSU find spelling with and without sequences', () => {
 it('limits rename diagnostics to known receivers and builtin names', () => {
     expect(messages('use sequences\n(array "a" "b") "b" find')).toEqual([]);
     expect(messages('use graph\nD = new dsu (array "a")\nD findroot "a"')).toEqual([]);
-    expect(messages('use graph\nfun find D X\n return 99\nend\nD = new dsu (array "a")\nD "a" find')).toEqual([]);
-    expect(messages('use sequences\nfun search D X\n return D X find\nend')).toEqual([]);
+    expect(messages('use graph\nfun D X find\n return 99\nend\nD = new dsu (array "a")\nD "a" find')).toEqual([]);
+    expect(messages('use sequences\nfun D X search\n return D X find\nend')).toEqual([]);
 });
 
 
 it('reports provable scalar juxtaposition without rejecting dynamic calls or indexing', () => {
     expect(messages('A = 2\n1 A')).toContain('a number cannot be indexed');
-    expect(messages('N = 3\nA = 2\nfun g X\n return X\nend\nN - 1 A + 1 g')).toContain('a number cannot be indexed');
+    expect(messages('N = 3\nA = 2\nfun X g\n return X\nend\nN - 1 A + 1 g')).toContain('a number cannot be indexed');
     expect(messages('true 0')).toContain('a scalar cannot be indexed');
     for (const source of [
         '1 2 max', '1 abs', '(array 10 20) 0',
-        'fun apply X F\n return X F\nend',
-        'fun pick X\n return X 0\nend',
-        'fun g X Y\n return X + Y\nend\n1 2 g',
+        'fun X F apply\n return X F\nend',
+        'fun X pick\n return X 0\nend',
+        'fun X Y g\n return X + Y\nend\n1 2 g',
     ]) expect(messages(source)).not.toContain('a number cannot be indexed');
 });
 
@@ -2900,5 +2900,5 @@ it('infers reshape placeholders from the total tensor size', () => {
         .toEqual(['reshape cannot divide 5 elements into dimensions with product 2']);
     expect(messages('use sequences\nA = (array shape 0 fill 0) reshape # 0'))
         .toEqual(['reshape cannot infer # when another dimension is zero']);
-    expect(messages('use sequences\nfun column A\n return A reshape # 1\nend')).toEqual([]);
+    expect(messages('use sequences\nfun A column\n return A reshape # 1\nend')).toEqual([]);
 });

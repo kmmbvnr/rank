@@ -16,7 +16,7 @@ Rows Variables Matrix solve_mod print
 
 
 rem Reduce a modular system to RREF.
-fun solve_mod Rows Variables Matrix
+fun Rows Variables Matrix solve_mod
   Mod = 1000000007
   A = Matrix copy
   Pivots = new queue

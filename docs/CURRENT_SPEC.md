@@ -493,7 +493,7 @@ keys and may use tuple keys.
 specialization has a fixed tuple arity and recursive type/rank at each position:
 
 ```rank
-fun item N
+fun N item
   return tuple N "item"
 end
 unpack Number Name = 1 item
@@ -1300,7 +1300,7 @@ function cannot change the data its caller passed in. To hand a changed value
 back, return it.
 
 ```rank
-fun bump V
+fun V bump
   V 0 = 99
   return V
 end
@@ -2080,7 +2080,7 @@ non-obvious idea or constraint:
 ```rank
 rem Return the greatest common divisor.
 rem Use the Euclidean algorithm.
-fun gcd A B
+fun A B gcd
   for B not equal 0
     R = A mod B
     A = B
@@ -2102,7 +2102,7 @@ textual definition, and helper functions may be placed at the end of a program:
 ```rank
 Answer = 41 next
 
-fun next X
+fun X next
   return X + 1
 end
 ```
@@ -2110,13 +2110,73 @@ end
 Loading a source file with `use` registers its top-level functions without
 executing its ordinary top-level statements.
 
-Calls use Rank's data-first order. Arguments come first and the function name
-is the final word:
+For a function with only left operands, data comes before the function name:
 
 ```rank
 G = A B gcd
 Result print
 ```
+
+### Call-shaped signatures
+
+A header places each parameter where its argument appears in a call. Uppercase
+names before the first lowercase name are left data operands. That first
+lowercase name names the function. After it, uppercase names are right data
+parameters and lowercase names are function parameters:
+
+```rank
+use numbers
+fun Value rounded Places = Value round Places
+fun X Y apply op = X Y op
+
+1.234 rounded 2
+2 3 apply +
+```
+
+Function parameters accept named functions and binary arithmetic, comparison,
+and boolean operators. Inside the body, `X Y op` calls the supplied operation.
+Group a compound right operand with parentheses. An undeclared trailing value
+indexes the result, just as it does after an ordinary postfix call.
+
+A dotted lowercase word declares an optional group. Its argument is data; the
+call writes the word without the dot:
+
+```rank
+fun Value scaled
+  .by Factor=2
+  .plus Offset=0
+  return Value * Factor + Offset
+end
+
+3 scaled
+3 scaled plus 1
+3 scaled by 4 plus 1
+```
+
+Immediately following lines that start with `.word` continue the header. The
+first line that does not start with a dotted word begins the body. Keep optional
+groups in declaration order; groups may be omitted but cannot be repeated.
+A declared word takes precedence over a function of the same name at that
+position. Any lowercase word is allowed, including keywords such as `.if`,
+except `.axis` and `.rank`.
+
+Defaults are scalar literals: numbers (including negative numbers), text,
+booleans, and labels. They do not evaluate expressions or read names. Without
+an explicit default, the parameter receives `.NA`. Passing `.NA` explicitly
+uses the same default as omitting the group. Required positional parameters
+have no defaults.
+
+`rank` and `axis` belong to the interpreter. Only positional data operands,
+including right data parameters, receive cell ranks; function operands and
+optional configuration stay fixed. One data operand accepts one rank and an
+optional axis selection. With two data operands, `rank L R` sets both cell
+ranks; `rank L` changes the first and keeps the second operand's declared rank
+(or its whole value). These modifiers never bind a parameter in the body.
+
+The [fold demo](../demos/classic/fold.ra) implements reduction with
+`fun Values fold op .with Seed`. An omitted seed starts from the first item;
+an explicit seed processes every item. Empty input requires a seed and returns
+it unchanged.
 
 ### Return contracts and argument ranks
 
@@ -2126,7 +2186,7 @@ values do not create new specializations. A vector and a matrix can therefore us
 the same function:
 
 ```rank
-fun double Values
+fun Values double
   return Values * 2
 end
 
@@ -2173,7 +2233,7 @@ For results with different meanings, return a record with an explicit tag and
 consistent fields:
 
 ```rank
-fun answer Found
+fun Found answer
   if Found
     return record
       .kind = .found
@@ -2201,7 +2261,7 @@ For integer input, this function has an integer base case and an integer
 recursive step:
 
 ```rank
-fun factorial N
+fun N factorial
   if N less 2
     return 1
   end
@@ -2237,7 +2297,7 @@ return contracts. Give the operations separate entry points. Alongside
 `factorial` above, define:
 
 ```rank
-fun reciprocal_factorial N
+fun N reciprocal_factorial
   if N less 2
     return 1.0
   end
@@ -2296,19 +2356,28 @@ arguments; each later stage receives one result, including an array or tuple as
 one value. A later stage that cannot accept one value is rejected when the
 definition is analyzed: `f = abs matmul` needs an explicit second operand.
 
-Parameters before `=` instead define a single expression with a fixed argument
-count:
+An explicit parameter declaration starts with `fun` (or `memo`). Its `=` body
+implicitly returns one expression:
 
 ```rank
-products V = V reduce * rank 1 max
-multiply_abs A B = A B matmul abs
-f A B = (A abs) B matmul
+fun V products = V reduce * rank 1 max
+fun A B multiply_abs = A B matmul abs
+fun A B f = (A abs) B matmul
 ```
 
-These forms replace the name's previous binding; they do not add overloads.
-Executing a definition creates the function without executing its body. Its
-binding becomes available afterward. Block `fun` declarations retain their
-existing visibility throughout their scope, and `memo` remains unchanged.
+Single-line and multiline declarations have the same scope, signature and
+constant binding. Defaults may precede the body delimiter:
+
+```rank
+fun X scaled .with Factor=2 = X * Factor
+memo X square = X * X
+```
+
+The old `inc X = X + 1` spelling is removed; write `fun X inc = X + 1`.
+Parameterless function-expression bindings, including `test = first equal 1`,
+remain replaceable. A `fun` or `memo` declaration cannot be assigned another
+function or redeclared within its scope. The REPL releases a declaration when
+replaying its edited source; a clean restart creates fresh declarations.
 
 A composition receives whole operands by default. Internal operations keep their
 own rank rules. A call-site `rank` applies to the complete composition:
@@ -2365,7 +2434,7 @@ user functions. Aliases preserve the identity of the function they reference.
 `memo` declares a value-returning function with a cache:
 
 ```rank
-memo fib N
+memo N fib
   if N less 2
     return N
   end
@@ -2373,7 +2442,9 @@ memo fib N
 end
 ```
 
-Calls use the same syntax as `fun`. The complete, typed argument tuple is the
+The header uses the same parameter rules as `fun`, without an additional
+`fun` keyword. Defaults are applied before forming the cache key, so omitted
+and explicit `.NA` groups share a cache entry. The complete, typed argument tuple is the
 cache key. A cache hit returns the stored result without running the body.
 Successful results are stored after the call completes, including its
 `finally` blocks. Errors are not cached.
@@ -2390,10 +2461,10 @@ function creates a new cache. Each call of an outer function creates fresh
 local memoized functions:
 
 ```rank
-fun solve N
+fun N solve
   return N fib
 
-  memo fib X
+  memo X fib
     if X less 2
       return X
     end
@@ -2419,10 +2490,10 @@ registered when the enclosing call begins, so their definitions can stay after
 the executable lines and even after the outer `return`:
 
 ```rank
-fun make Base
+fun Base make
   return add
 
-  fun add Value
+  fun Value add
     return Base + Value
   end
 end
@@ -2447,7 +2518,7 @@ A multiline function may also be declared directly inside a `for` body:
 ```rank
 for R in 1 till 3
   Offset = R
-  fun addOffset X
+  fun X addOffset
     return X + Offset
   end
   10 addOffset print
@@ -2503,7 +2574,7 @@ With parameters, arguments precede the generator's name:
 
 ```rank
 rem Generate the Collatz values beginning with N.
-fun weird N
+fun N weird
   yield N
 
   for N not equal 1
@@ -2554,7 +2625,7 @@ program: the block ends the name, not the resource.
 Returning a resource moves it into the caller's ownership scope:
 
 ```rank
-fun source Path
+fun Path source
   File = Path open
   return File
 end
@@ -3345,7 +3416,7 @@ Kept = N filter Mask
 A named function of one argument is a predicate too:
 
 ```rank
-fun big X
+fun X big
   return X greater 10
 end
 Kept = N filter big
@@ -3850,7 +3921,7 @@ elementwise broadcasting. Parenthesize a compound operand, as in
 to write `Low High max`.
 
 A user-defined `min` or `max` takes precedence, even without `use numbers`.
-For example, after `fun max A B` returning `A + B`, `3 4 max` returns `7`.
+For example, after `fun A B max` returning `A + B`, `3 4 max` returns `7`.
 A named builtin (`op = max`) supports the same lazy binary broadcasting.
 Equal numeric operands preserve the left operand, including its integer/real
 representation.
@@ -4124,7 +4195,7 @@ reference, so every name sees the write:
 use algo
 Cache = new index
 
-fun store Cache K V
+fun Cache K V store
   Cache K = V
   return 0
 end
@@ -4336,7 +4407,7 @@ These method words are contextual library names, not reserved words. Rank
 dispatches `floor`, `ceiling`, `lowerbound` and `upperbound` as multiset
 methods only when the expression before the operation evaluates to a
 multiset. Otherwise the operation resolves as an ordinary function, so a
-program may define and call `fun ceiling A B` as `3 ceiling 4`.
+program may define and call `fun A B ceiling` as `3 ceiling 4`.
 
 `remove` deletes one equal occurrence. Removing an absent value raises
 `.Missing`. `floor` returns the greatest value at most its argument;
@@ -4418,7 +4489,7 @@ Tree = Values segment combine with Identity
 
 Each input element is already a state. `combine Left Right` must return a
 state, be associative, and leave both operands unchanged. `Identity` must
-satisfy `combine Identity X = X` and `combine X Identity = X`; these laws are
+satisfy `fun Identity X combine = X` and `fun X Identity combine = X`; these laws are
 part of the caller's contract and are not checked at runtime. The function
 and identity are evaluated once during construction.
 
@@ -5983,14 +6054,14 @@ functions `band`, `bor`, `bxor`, `shl`, `shr`, `min`, `max`, `atan2`,
 `0 0`.
 
 A user-defined function declares its own ranks with a `rank` tail on the
-header, one entry per parameter, in parameter order:
+header, one entry per positional data operand, in declaration order:
 
 ```rank
-fun inc X Y rank 0 1
+fun X Y inc rank 0 1
   return X + Y
 end
 
-memo fun norm Row rank 1
+memo Row norm rank 1
   return Row sum
 end
 ```
@@ -5998,7 +6069,8 @@ end
 An entry is an integer (negative counts down from the operand's rank), as in a
 call-site `rank L R`, or `all` for the whole operand. Without a clause the
 ranks are `all all` and nothing changes. The clause needs exactly one entry per
-parameter, and a function takes it only with one or two parameters. A
+positional data operand, and a function takes it only with one or two data
+operands. Function operands and optional configuration do not receive ranks. A
 call-site `rank` still overrides the declaration. A function with a declared
 rank stacks array results under the frame, and every recursive call inside its
 body maps over cells too. Each cell calls a `memo` function on its own, and an
@@ -8467,7 +8539,7 @@ rem LeetCode 1: Two Sum
 rem Return indices of two values
 rem whose sum equals Target.
 
-fun two_sum A Target
+fun A Target two_sum
   Index = new index
   for Value i in A
     Need = Target - Value
@@ -8495,7 +8567,7 @@ This demonstrates:
 rem LeetCode 2: Add Two Numbers
 rem Add reverse-order digit arrays.
 
-fun add_two A B
+fun A B add_two
   Queue = new queue
   N = A len
   M = B len
@@ -8544,7 +8616,7 @@ rem LeetCode 3: Longest Substring
 rem Find the longest window containing
 rem no repeated character.
 
-fun longest Text
+fun Text longest
   Index = new index
   Start = 0
   Best = 0
@@ -8604,7 +8676,7 @@ rem LeetCode 9: Palindrome Number
 rem Check whether X reads the same
 rem forward and backward.
 
-fun palindrome X
+fun X palindrome
   Text = X text
   Back = Text reverse
 
@@ -8618,7 +8690,7 @@ Follow-up without text conversion:
 rem Follow up:
 rem Do not convert X to text.
 
-fun palindrome X
+fun X palindrome
   if X less 0
     return false
   end

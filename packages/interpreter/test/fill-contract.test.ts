@@ -28,7 +28,7 @@ for (const compiled of [true, false]) describe(`fill contracts (compiled ${compi
     it('retains filled empty result contracts in either call order', () => {
         for (const first of ['true', 'false']) {
             const r = runtime();
-            r.execute('fun result Flag\n if Flag\n return array shape 0 fill 0\n end\n return array "x"\nend');
+            r.execute('fun Flag result\n if Flag\n return array shape 0 fill 0\n end\n return array "x"\nend');
             r.execute(`${first} result`);
             expect(() => r.execute(`${first === 'true' ? 'false' : 'true'} result`)).toThrow();
         }

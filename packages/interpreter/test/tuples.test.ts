@@ -7,7 +7,7 @@ for (const compiled of [true, false]) describe(`tuples and homogeneous arrays (c
         tensorCellCompilation: compiled });
     it('unpacks fixed positions across repeated calls', () => {
         const r = runtime();
-        r.execute('fun items Flag\n if Flag\n return tuple 1 "yes"\n end\n return tuple 2 "no"\nend\nunpack X Y = true items\nunpack X Y = false items');
+        r.execute('fun Flag items\n if Flag\n return tuple 1 "yes"\n end\n return tuple 2 "no"\nend\nunpack X Y = true items\nunpack X Y = false items');
         expect(r.execute('X')).toBe(2n);
         expect(r.execute('Y')).toBe('no');
     });
@@ -15,7 +15,7 @@ for (const compiled of [true, false]) describe(`tuples and homogeneous arrays (c
         ['tuple (array 1) "x"', 'tuple (array "bad") "y"']])('checks every result position in either call order', (a, b) => {
         for (const flag of ['true', 'false']) {
             const r = runtime();
-            r.execute(`fun items Flag\n if Flag\n return ${a}\n end\n return ${b}\nend\n${flag} items`);
+            r.execute(`fun Flag items\n if Flag\n return ${a}\n end\n return ${b}\nend\n${flag} items`);
             expect(() => r.execute(`${flag === 'true' ? 'false' : 'true'} items`)).toThrow(/cannot receive/);
         }
     });

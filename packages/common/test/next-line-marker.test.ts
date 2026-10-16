@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { Notebook } from '../src/notebook.js';
 import { notebookFrame } from '../src/screen.js';
 
-const source = 'fun inspect N\n  A = N + 1\n  B = A * 2\nend';
+const source = 'fun N inspect\n  A = N + 1\n  B = A * 2\nend';
 const outputs = new Map([[1, []], [2, [{ text: '3', error: false }]]]);
 
 function frameOf(stepping: boolean, live: boolean) {

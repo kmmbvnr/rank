@@ -2,7 +2,7 @@ rem Dyalog 2013, problem 5: identity matrix from outer equality.
 use sequences
 use io
 
-fun identity N
+fun N identity
   Indices = 0 till N array
   return (Indices Indices outer equal) integer
 end

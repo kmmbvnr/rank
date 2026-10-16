@@ -9,12 +9,12 @@ Height Width rectangle_cuts print
 
 
 rem Try each distinct first cut.
-fun rectangle_cuts Height Width
+fun Height Width rectangle_cuts
   Rows = Height + 1
   Columns = Width + 1
   Cuts = array shape Rows Columns fill 0
 
-  fun best_cut H W
+  fun H W best_cut
     if H equal W
       return 0
     end

@@ -12,7 +12,7 @@ Answer print
 
 rem Visit odd composites until one has no
 rem representation of the proposed form.
-fun goldbach_counterexample Start
+fun Start goldbach_counterexample
   Candidate = Start
   for
     if not Candidate in primes
@@ -27,7 +27,7 @@ end
 
 rem Subtract twice each possible square and
 rem test whether the positive remainder is prime.
-fun goldbach_representation Value
+fun Value goldbach_representation
   Square = 1
   TwiceSquare = 2
   for TwiceSquare less Value

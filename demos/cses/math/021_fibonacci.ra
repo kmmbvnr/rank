@@ -9,7 +9,7 @@ N fibonacci_mod print
 
 
 rem Double a Fibonacci pair per bit.
-fun fibonacci_mod N
+fun N fibonacci_mod
   Mod = 1000000007
   Current = 0
   Next = 1

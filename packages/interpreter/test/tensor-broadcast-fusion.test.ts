@@ -9,7 +9,7 @@ function run(shapes: number[][], body: string, fused: boolean) {
     try {
         runtime.execute(`use sequences
 use numbers
-fun probe A B C
+fun A B C probe
   ${body}
 end`);
         const args = shapes.map((shape, n) => createArraySnapshot(

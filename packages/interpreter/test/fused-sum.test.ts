@@ -8,17 +8,17 @@ const call = (runtime: Interpreter, name: string, ...args: RankValue[]) => {
     return fn.call(args);
 };
 const source = `use numbers
-fun fused A B
+fun A B fused
   return (A * B) sum
 end
-fun ordinary A B
+fun A B ordinary
   Temp = A * B
   return Temp sum
 end
-fun addsum A B
+fun A B addsum
   return (A + B) sum
 end
-fun replacement A
+fun A replacement
   return 99
 end`;
 
@@ -38,7 +38,7 @@ describe('builtin sum semantics required by fusion', () => {
     });
     it('chooses the fused sum by binding identity, so an alias of sum fuses too', () => {
         const runtime = new Interpreter(undefined, { tensorFusion: false });
-        runtime.execute('total = sum\nfun aliased A B\n  return (A * B) total\nend');
+        runtime.execute('total = sum\nfun A B aliased\n  return (A * B) total\nend');
         const input = createArraySnapshot([1n, 2n]);
         const apply = vi.spyOn((runtime as unknown as {
             functions: { invoke(fn: { name: string }, args: RankValue[]): unknown };

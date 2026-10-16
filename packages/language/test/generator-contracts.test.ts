@@ -13,7 +13,7 @@ function contract(source: string, budget?: number) {
 }
 
 it('bounds nested loop inference and starts each inspection with a fresh budget', () => {
-    const source = 'fun f N\n X = 1\n for N greater 0\n  for N greater 0\n   yield X\n   X = X // 2\n   N -= 1\n  end\n end\nend';
+    const source = 'fun N f\n X = 1\n for N greater 0\n  for N greater 0\n   yield X\n   X = X // 2\n   N -= 1\n  end\n end\nend';
     const limited = contract(source, 10);
     expect(limited.exhausted).toBe(true);
     expect(limited.unresolved).toBe(true);
@@ -27,20 +27,20 @@ it('bounds nested loop inference and starts each inspection with a fresh budget'
 it('keeps captured values, unknown calls and unsupported control flow unresolved', () => {
     for (const body of ['yield Captured', 'yield N other', 'try\n yield N\nfinally\n X = 1\nend',
         'if N greater 0\n X = 1\nend\nyield X']) {
-        expect(contract(`fun f N\n${body}\nend`).alternatives).toEqual([]);
+        expect(contract(`fun N f\n${body}\nend`).alternatives).toEqual([]);
     }
-    expect(contract('fun f N\n X = 1\n X = .NA\n X = 2\n yield X\nend').alternatives[0])
+    expect(contract('fun N f\n X = 1\n X = .NA\n X = 2\n yield X\nend').alternatives[0])
         .toEqual({ inputs: ['integer'], result: { collection: 'sequence', element: 'integer' } });
 });
 
 it('does not carry facts across a terminating branch', () => {
-    const result = contract('fun f N\n if N greater 0\n  return\n else\n  X = 1\n end\n yield X\nend');
+    const result = contract('fun N f\n if N greater 0\n  return\n else\n  X = 1\n end\n yield X\nend');
     expect(result.alternatives[0]).toEqual({ inputs: ['integer'], result: { collection: 'sequence', element: 'integer' } });
 });
 
 it('does not treat writes to an enclosing scope as stable generator locals', () => {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(
-        'fun outer\n X = 0\n fun inner N\n  X = 1\n  yield X\n end\n return inner\nend');
+        'fun outer\n X = 0\n fun N inner\n  X = 1\n  yield X\n end\n return inner\nend');
     expect(parsed.parserErrors).toEqual([]);
     const outer = parsed.value.statements[0];
     if (!isFunctionStatement(outer)) throw new Error('missing outer function');
@@ -53,6 +53,6 @@ it('keeps the established binding contract through writes, missing values and jo
         'X = 1\nX = .NA\nX = 1.5\nyield X',
         'X = N equal 0\nX = 2\nyield X',
         'if N greater 0\n X = 1\nelse\n X = 1.5\nend\nX = 2.0\nyield X']) {
-        expect(contract(`fun f N\n${body}\nend`).alternatives).toEqual([]);
+        expect(contract(`fun N f\n${body}\nend`).alternatives).toEqual([]);
     }
 });

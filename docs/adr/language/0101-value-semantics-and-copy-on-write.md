@@ -36,7 +36,7 @@ B 0 = 99
 
 Functions cannot mutate caller arguments. To hand a modified array back, functions must return it:
 ```rank
-fun bump V
+fun V bump
   V 0 = 99
   return V
 end

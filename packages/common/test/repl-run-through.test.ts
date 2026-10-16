@@ -57,23 +57,23 @@ describe('Ctrl-R on a later instruction', () => {
 
     it('runs a function header typed above existing cells as one block with the cells down to its end', async () => {
         const repl = new NotebookRepl(createReplSession());
-        for (const source of ['Count = 1', 'fun twice Value', '  Doubled = Value * 2', '  return Doubled', 'end', 'Count twice']) repl.notebook.enqueue(source);
+        for (const source of ['Count = 1', 'fun Value twice', '  Doubled = Value * 2', '  return Doubled', 'end', 'Count twice']) repl.notebook.enqueue(source);
         repl.notebook.selectTo(1, 0);
 
         await new KeyRouter(repl).press('', { ctrl: true, name: 'r' });
 
         expect(repl.notebook.cells.map(cell => cell.source)).toEqual([
-            'Count = 1', 'fun twice Value\n  Doubled = Value * 2\n  return Doubled\nend', 'Count twice', '']);
+            'Count = 1', 'fun Value twice\n  Doubled = Value * 2\n  return Doubled\nend', 'Count twice', '']);
         expect(repl.notebook.cells[1].status).toBe('ok');
         expect(repl.notebook.cells[0].status).toBe('ok');
     });
 
     it('leaves a block header alone when nothing below closes it', async () => {
         const repl = new NotebookRepl(createReplSession());
-        for (const source of ['fun twice Value', '  Doubled = Value * 2', 'Doubled']) repl.notebook.enqueue(source);
+        for (const source of ['fun Value twice', '  Doubled = Value * 2', 'Doubled']) repl.notebook.enqueue(source);
         repl.notebook.selectTo(0, 0);
         repl.notebook.selectTo(2, 0);
 
-        expect(repl.notebook.cells.map(cell => cell.source)).toEqual(['fun twice Value', '  Doubled = Value * 2', 'Doubled', '']);
+        expect(repl.notebook.cells.map(cell => cell.source)).toEqual(['fun Value twice', '  Doubled = Value * 2', 'Doubled', '']);
     });
 });

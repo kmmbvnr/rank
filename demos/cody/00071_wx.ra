@@ -6,7 +6,7 @@ use text
 
 
 rem Parse readings and interpolate gaps.
-fun interpolate_weather Source
+fun Source interpolate_weather
   if Source type equal .text
     return Source "\n" split interpolate_readings
   end
@@ -14,7 +14,7 @@ fun interpolate_weather Source
 end
 
 
-fun interpolate_readings Lines
+fun Lines interpolate_readings
   Readings = Lines real rank 0 copy
   N = Readings len
 

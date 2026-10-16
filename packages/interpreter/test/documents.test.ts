@@ -66,7 +66,7 @@ describe('json .flat', () => {
     });
 
     it('leaves a label after a program function of the same name as a field read', () => {
-        expect(run('fun json T\n  return record\n    .flat = T\n  end\nend\n"x" json .flat')).toBe('x');
+        expect(run('fun T json\n  return record\n    .flat = T\n  end\nend\n"x" json .flat')).toBe('x');
     });
 
     it('keeps the tree as the default form', () => {

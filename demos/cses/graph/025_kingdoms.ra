@@ -18,7 +18,7 @@ Result .labels print
 
 
 rem Label strongly connected kingdoms.
-fun kingdoms Graph N
+fun Graph N kingdoms
   Found = Graph scc
   Part = Found .component
   Labels = array shape N fill 0

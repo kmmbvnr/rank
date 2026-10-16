@@ -5,18 +5,18 @@ const runtime = new Interpreter();
 runtime.execute(`
 use algo
 use sequences
-fun note Seen V
+fun Seen V note
   Seen add V
   return Seen
 end
-fun setwork N
+fun N setwork
   Seen = new set
   for V in 0 until N
     Seen V note
   end
   return Seen len
 end
-fun heapwork N
+fun N heapwork
   Heap = new heap
   for V in 0 until N
     Heap V V enqueue

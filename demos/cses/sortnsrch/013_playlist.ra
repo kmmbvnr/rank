@@ -11,7 +11,7 @@ A longest_distinct print
 
 
 rem Find the longest distinct segment.
-fun longest_distinct A
+fun A longest_distinct
   Index = new index
   Left = 0
   Best = 0

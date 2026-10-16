@@ -1,3 +1,5 @@
+import { functionCallSignature } from '../function-call-signature.js';
+import { expressionFacts } from './value-facts.js';
 import { declaredRanks } from '../function-ranks.js';
 import { rankedFunctionFacts } from './ranked-function-facts.js';
 import { functionRelationship, instantiateRelationship, type FunctionRelationship } from './function-relationships.js';
@@ -5,7 +7,7 @@ import { establishedArrayContract } from './array-binding-contract.js';
 import { argumentSignature, returnConflicts, returnInput } from './return-contract.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isApplicationExpression, isAssignmentStatement, isBinaryExpression, isForStatement, isFunctionStatement,
+    isDeclaredCallExpression, isApplicationExpression, isAssignmentStatement, isBinaryExpression, isForStatement, isFunctionStatement,
     isNameExpression, isReturnStatement, isUnpackStatement, isExpression,
     type Expression, type FunctionStatement, type Program, type Statement, type AssignmentStatement,
 } from '../generated/ast.js';
@@ -144,7 +146,8 @@ export function createCallAnalysis(
     }
 
     function directNoReturnCall(expression: Expression, env: ReadonlyMap<string, ValueFacts>): boolean {
-        const parts = isApplicationExpression(expression) ? flattenApplication(expression) : [expression];
+        const parts = isDeclaredCallExpression(expression) ? [...expression.arguments, expression.callee]
+            : isApplicationExpression(expression) ? flattenApplication(expression) : [expression];
         const target = parts.at(-1);
         if (!target || !isNameExpression(target)) return false;
         if (target.name === 'raise' && !env.has('raise') && (parts.length === 2 || parts.length === 3)) return true;
@@ -164,6 +167,22 @@ export function createCallAnalysis(
     function call(name: string, arguments_: readonly ValueFacts[], caller: Map<string, ValueFacts>, site?: Expression,
         cellCall = false): ValueFacts {
         const external = imported.get(name);
+        const target = external && caller.get(name) === external.binding
+            ? external.functions.get(external.name) : functions.get(name);
+        if (target) {
+            const declared = functionCallSignature(target);
+            const required = declared.leftCount + declared.rightParameters.length;
+            if (declared.words.length && (arguments_.length === required || arguments_.length === declared.arity)) {
+                const bound = [...arguments_];
+                for (const word of declared.words) {
+                    if (bound[word.parameter] === undefined || bound[word.parameter].types.join() === 'missing') {
+                        bound[word.parameter] = word.defaultValue ? expressionFacts(word.defaultValue, () => undefined)
+                            : { types: ['missing'], rank: 0, shape: [] };
+                    }
+                }
+                arguments_ = bound;
+            }
+        }
         if (external && caller.get(name) === external.binding
             && external.functions.get(external.name)?.parameters.length === arguments_.length) {
             const relationship = importedRelationship(name, caller);
@@ -182,8 +201,13 @@ export function createCallAnalysis(
         if (definition.ranks.length && !cellCall) {
             const declared = declaredRanks(definition);
             if (!declared || typeof declared === 'string') return UNKNOWN_VALUE;
-            return rankedFunctionFacts(arguments_, declared.ranks,
-                cells => call(name, cells, caller, site, true));
+            const dataParameters = functionCallSignature(definition).dataParameters;
+            return rankedFunctionFacts(dataParameters.map(index => arguments_[index]), declared.ranks,
+                cells => {
+                    const bound = [...arguments_];
+                    dataParameters.forEach((index, i) => { bound[index] = cells[i]; });
+                    return call(name, bound, caller, site, true);
+                });
         }
         const signature = argumentSignature(arguments_);
         let active = activeCalls.get(definition);

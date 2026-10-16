@@ -4,24 +4,24 @@ use numbers
 use sequences
 use text
 
-fun freqMat Train
+fun Train freqMat
   Bases = array "A" "C" "G" "T"
   Matches = Bases Train outer equal
   return Matches count axis 1
 end
 
 rem Natural log probabilities; rounding is for display only.
-fun makePWM F
+fun F makePWM
   Counts = F + 1
   Totals = Counts sum axis 0
   return (Counts / Totals) log
 end
 
-fun pick Values Index
+fun Values Index pick
   return Values Index
 end
 
-fun score PWM Sequence
+fun PWM Sequence score
   Width = PWM len axis 1
   Bases = "ACGT" "" split
   Chars = Sequence "" split
@@ -34,7 +34,7 @@ end
 
 rem Five positions, including equal strings; earlier ties come first.
 rem Sequence has at least Width + 4 characters.
-fun top5 PWM Sequence
+fun PWM Sequence top5
   Width = PWM len axis 1
   Scores = PWM Sequence score
   Order = Scores argsort .descending

@@ -216,7 +216,7 @@ Next (array "x" "x") weighted
 
     it('allows weighted when its module is unopened', () => {
         expect(run(`
-fun weighted A B
+fun A B weighted
   return A + B
 end
 3 4 weighted
@@ -232,7 +232,7 @@ end
 
     it('keeps functional method words contextual', () => {
         expect(run(`
-fun jump A B C
+fun A B C jump
   return A + B + C
 end
 1 jump 2 3
@@ -267,7 +267,7 @@ Union findroot 3
 
     it('keeps DSU method words contextual', () => {
         expect(run(`
-fun findroot A B
+fun A B findroot
   return A + B
 end
 3 findroot 4
@@ -448,7 +448,7 @@ tuple ((Branch 1 euler) shape) ((Split 1 euler) shape)
 
     it('keeps euler available to user functions', () => {
         expect(run(`
-fun euler A B
+fun A B euler
   return A + B
 end
 3 4 euler
@@ -632,7 +632,7 @@ Graph add (array shape 1 1 1 fill 0)
         expect(() => run('new graph .directed'))
             .toThrow('new graph requires: use graph');
         expect(run(`
-fun add A B
+fun A B add
   return A + B
 end
 3 4 add
@@ -670,7 +670,7 @@ Graph = new graph .directed
 Graph add 1 2 "heavy"
 `)).toThrow('graph edge weight must be numeric');
         expect(run(`
-fun edges A B
+fun A B edges
   return A + B
 end
 3 edges 4

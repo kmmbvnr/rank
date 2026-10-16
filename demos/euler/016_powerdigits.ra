@@ -20,7 +20,7 @@ Answer print
 
 
 rem Multiply decimal text by two.
-fun double Text
+fun Text double
   Result = ""
   Carry = 0
   for C in Text reverse

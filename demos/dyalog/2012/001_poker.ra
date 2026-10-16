@@ -5,7 +5,7 @@ use text
 use tables
 
 rem Normalize optional spaces and mixed case into scalar card texts.
-fun cards Text
+fun Text cards
   Compact = Text " " "" translate
   Compact = Compact "akqjtshdc" "AKQJTSHDC" translate
   Chars = Compact "" split
@@ -17,7 +17,7 @@ fun cards Text
 end
 
 rem Base 13 packs the category and five tie-break ranks into one integer.
-fun handValue Text
+fun Text handValue
   Cards = Text cards
   if Cards len not equal 5
     .InvalidCards "handValue requires five cards" raise
@@ -27,7 +27,7 @@ end
 
 rem Category followed by five tie-break ranks, highest first, packed in base 13.
 rem Counting ranks in a 13-slot array avoids sorting and pairwise comparisons.
-fun cardsValue Cards
+fun Cards cardsValue
   Values = array shape 5 fill 0
   Counts = array shape 13 fill 0
   Flush = true
@@ -85,7 +85,7 @@ end
 
 
 rem Highest card of the best straight in 13 rank counts, or -1; the ace plays low in a wheel.
-fun straightHigh Counts
+fun Counts straightHigh
   Run = 0
   High = -1
   for R in 12 to 0 by -1
@@ -105,7 +105,7 @@ fun straightHigh Counts
 end
 
 rem The first Count ranks of Dist that are neither Skip1 nor Skip2, as base 13 digits.
-fun kickers Dist Skip1 Skip2 Count
+fun Dist Skip1 Skip2 Count kickers
   Value = 0
   Taken = 0
   for Rank in Dist
@@ -123,7 +123,7 @@ end
 
 rem Value of the best five-card hand among five to seven cards, scored directly
 rem from rank counts instead of trying every subset; same encoding as cardsValue.
-fun quickValue Cards
+fun Cards quickValue
   Counts = array shape 13 fill 0
   SuitCounts = array shape 4 fill 0
   Ranks = array shape (Cards len) fill 0
@@ -217,19 +217,19 @@ end
 
 
 rem Convert a card rank to 0..12.
-fun card_value Card
+fun Card card_value
   Rank = Card 0
   return "23456789TJQKA" Rank find
 end
 
 
 rem Return the suit character.
-fun card_suit Card
+fun Card card_suit
   return Card 1
 end
 
 rem The first highest-valued five-card subset and its value; equal values keep the first.
-fun bestChoice Cards
+fun Cards bestChoice
   Best = Cards take 5
   Highest = -1
   for Hand in Cards 5 combinations
@@ -242,24 +242,24 @@ fun bestChoice Cards
   return tuple Best Highest
 end
 
-fun bestValue Cards
+fun Cards bestValue
   return Cards quickValue
 end
 
 rem Show the made combination before its kickers, highest ranks first.
-fun arrange Best
+fun Best arrange
   Values = Best card_value rank 0
   Freq = (Values Values outer equal) count rank 1
   Order = (Freq * 13 + Values) argsort .descending
   return Best Order
 end
 
-fun bestCards Cards
+fun Cards bestCards
   unpack Best Highest = Cards bestChoice
   return Best arrange
 end
 
-fun bestHand Community Hole
+fun Community Hole bestHand
   Cards = (Hole + " " + Community) cards
   if Cards len not equal 7
     .InvalidCards "bestHand requires five community and two hole cards" raise
@@ -267,14 +267,14 @@ fun bestHand Community Hole
   return (Cards bestCards) " " join
 end
 
-fun playerHands Community Players
+fun Community Players playerHands
   for Hole in Players
     yield Community Hole bestHand
   end
 end
 
 rem Dense relative ranks: tied hands share a rank, next distinct value is next.
-fun showdownRows Community Players
+fun Community Players showdownRows
   Best = Community Players playerHands array
   Values = Best handValue rank 0
   Distinct = Values unique
@@ -289,7 +289,7 @@ fun showdownRows Community Players
   end
 end
 
-fun showdown Community Players
+fun Community Players showdown
   return (Community Players showdownRows array) table
 end
 
@@ -302,7 +302,7 @@ fun deck
 end
 
 rem All unseen hole pairs; keep a smallest set of cards used by a best hand.
-fun nuts Community
+fun Community nuts
   Board = Community cards
   Unseen = deck array
   Unseen = Unseen (Unseen not in Board) array
@@ -352,7 +352,7 @@ fun nuts Community
 end
 
 rem Enumerate every legal completion; never simulate or round probabilities.
-fun odds Community Players
+fun Community Players odds
   Board = Community cards
   Holes = Players cards rank 0
   HoleCards = (Players " " join) cards

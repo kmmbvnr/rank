@@ -18,7 +18,7 @@ end
 
 
 rem Search sorted values from both ends.
-fun find_three A Target
+fun A Target find_three
   N = A len
   Order = A argsort
   B = A Order

@@ -11,7 +11,7 @@ S T longest_common print
 
 
 rem Build lengths, then trace one longest common subsequence.
-fun longest_common S T
+fun S T longest_common
   N = S len
   M = T len
   Rows = N + 1

@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/13
 use sequences
 
 rem Expand recursively along the first row and remove each chosen column.
-fun determinant A
+fun A determinant
   Shape = A shape
   if Shape len not equal 2
     .DimensionMismatch raise

@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/47
 use linalg
 use sequences
 
-fun descent X Y W Rate Iter Size Mode
+fun X Y W Rate Iter Size Mode descent
   N = Y len
   if X len not equal N
     .DimensionMismatch raise

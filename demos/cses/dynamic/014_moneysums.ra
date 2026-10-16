@@ -15,7 +15,7 @@ Sums print
 
 rem Mark sums backwards so every coin
 rem is used at most once.
-fun money_sums Coins
+fun Coins money_sums
   Maximum = Coins sum
   Reachable = array shape (Maximum + 1) fill false
   Reachable 0 = true

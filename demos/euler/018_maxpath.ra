@@ -30,7 +30,7 @@ Answer print
 
 rem Fold the triangle upward, keeping the
 rem better of each pair of child paths.
-fun maximum_path Triangle Rows
+fun Triangle Rows maximum_path
   Work = Triangle copy
 
   for Row in (Rows - 2) to 0 by -1

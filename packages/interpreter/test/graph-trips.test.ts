@@ -93,10 +93,10 @@ tuple (G 1 3 1 trips len) (G 3 2 0 trips len) (G 1 1 5 trips len)
 
     it('composes reusable adjacent-pair reduction for routes of any length', () => {
         expect(run(setup + `
-fun cost Pair rank 1
+fun Pair cost rank 1
   return G (Pair 0) (Pair 1) edgeweight
 end
-fun total Route
+fun Route total
   return (Route window 2) cost reduce +
 end
 tuple ((array 1 2 3 4) total) ((array 1 2 1) total) ((array 1) total) ((array shape 0 fill 0) total)

@@ -20,7 +20,7 @@ end
 
 
 rem Decompose a unit flow into routes.
-fun distinct_routes N Edges
+fun N Edges distinct_routes
   Graph = new graph (1 to N) .directed
   for Edge in Edges
     unpack From To = Edge
@@ -48,7 +48,7 @@ end
 
 
 rem Find one path with positive flow.
-fun flow_path N Graph Flow
+fun N Graph Flow flow_path
   Parent = array shape (N + 1) fill 0
   Parent 1 = -1
   Pending = new queue

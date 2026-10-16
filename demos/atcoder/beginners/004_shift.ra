@@ -10,13 +10,13 @@ A shifts print
 
 
 rem Count the shared factors of two across every value.
-fun shifts A
+fun A shifts
   return (A trailing_twos rank 0) min
 end
 
 
 rem Count trailing factors of two in a positive integer.
-fun trailing_twos V
+fun V trailing_twos
   Count = 0
 
   for V mod 2 equal 0

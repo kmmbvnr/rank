@@ -16,7 +16,7 @@ rem N/Occupied term already accounts for once solved algebraically.
 rem A 2-piece plate can only have come from a 3-piece one, and a 1-piece
 rem plate from either a 1- or 2-piece start, so both axes must be sized past
 rem their own initial counts; only their combined occupancy is bounded.
-fun expected_turns N A
+fun N A expected_turns
   C1 = (A equal 1) count
   C2 = (A equal 2) count
   C3 = (A equal 3) count

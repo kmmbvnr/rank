@@ -28,7 +28,7 @@ if (process.argv[4] === '--worker') {
     const before = performance.now();
     runtime.execute(`
 use numbers
-memo collatz N
+memo N collatz
   if N equal 1
     return 1
   elif N even

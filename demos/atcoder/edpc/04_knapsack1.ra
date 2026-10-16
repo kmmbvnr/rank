@@ -18,7 +18,7 @@ W Weights Values max_value print
 
 
 rem Visit capacities backwards so every item is used at most once.
-fun max_value W Weights Values
+fun W Weights Values max_value
   Best = array shape (W + 1) fill 0
 
   for Wt i in Weights

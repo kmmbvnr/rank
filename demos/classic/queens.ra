@@ -23,7 +23,7 @@ for Row in 1 till Size
 
   rem A column must be free vertically
   rem and on both diagonals.
-  fun avail Q
+  fun Q avail
     Mask = Cols not in Q
     Mask and= Cols not in (Q + Dy)
     Mask and= Cols not in (Q - Dy)

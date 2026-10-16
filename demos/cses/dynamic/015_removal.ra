@@ -10,7 +10,7 @@ Values removal_game print
 
 
 rem Store the best interval difference.
-fun removal_game Values
+fun Values removal_game
   N = Values len
   Difference = Values copy
 

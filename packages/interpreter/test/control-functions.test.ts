@@ -86,7 +86,7 @@ describe('Rank control flow and functions', () => {
 
     it('uses bare for as an unconditional loop', () => {
         expect(run([
-            'fun repeat_once Value',
+            'fun Value repeat_once',
             '  for',
             '    return Value',
             '  end',
@@ -227,7 +227,7 @@ describe('Rank control flow and functions', () => {
         const interpreter = new Interpreter(line => lines.push(line));
         const result = interpreter.execute([
             'use io',
-            'fun answer Ignored',
+            'fun Ignored answer',
             '  try',
             '    return 42',
             '  finally',
@@ -242,7 +242,7 @@ describe('Rank control flow and functions', () => {
 
     it('rejects return and break inside finally', () => {
         expect(() => run([
-            'fun answer Ignored',
+            'fun Ignored answer',
             '  try',
             '    return 1',
             '  finally',
@@ -264,7 +264,7 @@ describe('Rank control flow and functions', () => {
 
     it('does not catch return or break as errors', () => {
         expect(run([
-            'fun answer Ignored',
+            'fun Ignored answer',
             '  try',
             '    return 42',
             '  catch Error',
@@ -289,7 +289,7 @@ describe('Rank control flow and functions', () => {
     it('calls user functions with local indexes and returns arrays', () => {
         expect(run([
             'use algo',
-            'fun two_sum A Target',
+            'fun A Target two_sum',
             '  Index = new index',
             '  for Value i in A',
             '    Need = Target - Value',
@@ -309,7 +309,7 @@ describe('Rank control flow and functions', () => {
     it('registers top-level functions before executing the file', () => {
         expect(run([
             'Answer = 41 next',
-            'fun next X',
+            'fun X next',
             '  return X + 1',
             'end',
             'Answer',
@@ -321,7 +321,7 @@ describe('Rank control flow and functions', () => {
                 id: `/tests/${specifier}.ra`,
                 source: [
                     'TopLevel = 99',
-                    'fun next X',
+                    'fun X next',
                     '  return X + 1',
                     'end',
                 ].join('\n'),
@@ -333,10 +333,10 @@ describe('Rank control flow and functions', () => {
 
     it('registers local functions early and captures their lexical workspace', () => {
         expect(run([
-            'fun total N',
+            'fun N total',
             '  return N adddown',
             '',
-            '  fun adddown Value',
+            '  fun Value adddown',
             '    if Value equal 0',
             '      return 0',
             '    end',
@@ -347,10 +347,10 @@ describe('Rank control flow and functions', () => {
         ].join('\n'))).toBe('15');
 
         expect(run([
-            'fun make Base',
+            'fun Base make',
             '  return add',
             '',
-            '  fun add Value',
+            '  fun Value add',
             '    Base += 1',
             '    return Base + Value',
             '  end',
@@ -366,10 +366,10 @@ describe('Rank control flow and functions', () => {
 
     it('uses lexical rather than caller-local function lookup', () => {
         expect(() => run([
-            'fun caller X',
+            'fun X caller',
             '  return 1 helper',
             'end',
-            'fun helper Y',
+            'fun Y helper',
             '  return X + Y',
             'end',
             '3 caller',
@@ -379,10 +379,10 @@ describe('Rank control flow and functions', () => {
     it('keeps captured local generators alive after their outer call', () => {
         expect(run([
 
-            'fun multiples Factor',
+            'fun Factor multiples',
             '  return values',
             '',
-            '  fun values Limit',
+            '  fun Limit values',
             '    for Value in 1 to Limit',
             '      yield Value * Factor',
             '    end',
@@ -395,7 +395,7 @@ describe('Rank control flow and functions', () => {
 
     it('reevaluates prepared loop sources and assignments on each call', () => {
         expect(run([
-            'fun total Values',
+            'fun Values total',
             '  Sum = 0',
             '  for Value i in Values',
             '    Sum += Value + i',
@@ -414,7 +414,7 @@ describe('Rank control flow and functions', () => {
     it('preserves catch and finally across prepared generator commands', () => {
         expect(run([
 
-            'fun values Base',
+            'fun Base values',
             '  try',
             '    for I in 0 till 2',
             '      yield Base + I',
@@ -434,7 +434,7 @@ describe('Rank control flow and functions', () => {
 
     it('prepares operands only when execution reaches them', () => {
         expect(run([
-            'fun fail N',
+            'fun N fail',
             '  .First raise',
             '  return N',
             'end',
@@ -448,7 +448,7 @@ describe('Rank control flow and functions', () => {
 
     it('allocates arrays afresh when executing the same function body', () => {
         expect(run([
-            'fun make Value',
+            'fun Value make',
             '  Data = array shape 2 fill Value',
             '  return Data',
             'end',
@@ -461,15 +461,15 @@ describe('Rank control flow and functions', () => {
 
     it('restores the caller frame after a captured function raises', () => {
         expect(run([
-            'fun make Base',
+            'fun Base make',
             '  return fail',
-            '  fun fail N',
+            '  fun N fail',
             '    Base += N',
             '    .Failure Base raise',
             '    return 0',
             '  end',
             'end',
-            'fun caller N',
+            'fun N caller',
             '  f = (N make)',
             '  try',
             '    1 f',
@@ -485,7 +485,7 @@ describe('Rank control flow and functions', () => {
     it('keeps frames separate when generators from the same body interleave', () => {
         const interpreter = new Interpreter();
         interpreter.execute([
-            'fun values Base',
+            'fun Base values',
             '  yield Base',
             '  Base += 1',
             '  yield Base',
@@ -509,9 +509,9 @@ describe('Rank control flow and functions', () => {
 
     it('rejects conditional local function declarations', () => {
         expect(() => run([
-            'fun outer Enabled',
+            'fun Enabled outer',
             '  if Enabled',
-            '    fun inner Value',
+            '    fun Value inner',
             '      return Value',
             '    end',
             '  end',
@@ -530,7 +530,7 @@ describe('Rank control flow and functions', () => {
                 id: `/tests/${specifier}.ra`,
                 source: [
                     'use text',
-                    'fun pieces Text',
+                    'fun Text pieces',
                     '  return Text "," split',
                     'end',
                 ].join('\n'),

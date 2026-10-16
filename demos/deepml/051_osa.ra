@@ -3,7 +3,7 @@ rem https://www.deep-ml.com/problems/51
 
 use sequences
 
-fun osa Source Target
+fun Source Target osa
   M = Source len
   N = Target len
   D = array shape (M + 1) (N + 1) fill 0

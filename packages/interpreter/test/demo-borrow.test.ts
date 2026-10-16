@@ -5,7 +5,7 @@ import { arrayForWrite, isFlatScalarArray, noteArrayBinding, ownedArray } from '
 
 function demo(runtime: Interpreter, path: string, name: string) {
     const source = readFileSync(new URL(`../../../${path}`, import.meta.url), 'utf8');
-    runtime.execute(source.slice(source.indexOf(`fun ${name}`)));
+    runtime.execute(source.slice(source.search(new RegExp(`\\bfun (?:[A-Z]\\w*[ \t]+)*${name}\\b`))));
     const function_ = runtime.variables.get(name);
     if (!function_ || !isNativeFunction(function_)) throw new Error(`missing ${name}`);
     return function_;
@@ -53,7 +53,7 @@ it('rechecks builtin identity before borrowing after a host replacement', () => 
         const max = demo(runtime, 'demos/cses/sortnsrch/008_maxsubarray.ra', 'max_subarray');
         const first = input(1n);
         expect(max.call([first])).toBe(64n);
-        runtime.execute('fun hostreplacement X Y\n return X\nend');
+        runtime.execute('fun X Y hostreplacement\n return X\nend');
         runtime.variables.set('max', runtime.variables.get('hostreplacement')!);
         const next = input(1n);
         const stats = new RuntimeDiagnostics();
@@ -73,7 +73,7 @@ it('falls back when the host replaces len after a previously borrowed call', () 
     try {
         const max = demo(runtime, 'demos/cses/sortnsrch/008_maxsubarray.ra', 'max_subarray');
         expect(max.call([input(1n)])).toBe(64n);
-        runtime.execute('fun hostreplacement X\n return 64\nend');
+        runtime.execute('fun X hostreplacement\n return 64\nend');
         runtime.variables.set('len', runtime.variables.get('hostreplacement')!);
         const values = input(1n);
         const stats = new RuntimeDiagnostics();
@@ -88,7 +88,7 @@ it('falls back when the host replaces len after a previously borrowed call', () 
 it('invalidates a cached reader-helper proof when that helper starts returning the input', () => {
     const runtime = new Interpreter();
     try {
-        runtime.execute('fun read X\n return X 0\nend\nfun outer A\n return A read\nend');
+        runtime.execute('fun X read\n return X 0\nend\nfun A outer\n return A read\nend');
         const outer = runtime.variables.get('outer');
         if (!outer || !isNativeFunction(outer)) throw new Error('missing outer');
         const first = input(1n);
@@ -100,7 +100,7 @@ it('invalidates a cached reader-helper proof when that helper starts returning t
         expect(stats.cowCopies).toBe(0);
 
         runtime.forgetBindings(['read']);
-        runtime.execute('fun read X\n return X\nend');
+        runtime.execute('fun X read\n return X\nend');
         const next = input(2n);
         stats.run(() => {
             expect(() => outer.call([next])).toThrow('outer returns rank 0 and cannot return rank 1');
@@ -147,7 +147,7 @@ it('can borrow the same flat value in three read-only parameters', () => {
 it('does not borrow a returned array alias', () => {
     const runtime = new Interpreter();
     try {
-        runtime.execute('fun leak X\n return X\nend');
+        runtime.execute('fun X leak\n return X\nend');
         const function_ = runtime.variables.get('leak');
         if (!function_ || !isNativeFunction(function_)) throw new Error('missing leak');
         const values = input(1n);
@@ -163,9 +163,9 @@ it('does not borrow a returned array alias', () => {
 it('keeps the ordinary copy path for closure capture, yielded input and container retention', () => {
     const runtime = new Interpreter();
     try {
-        runtime.execute('fun closure X\n fun nested\n  return X\n end\n return X 0\nend\n'
-            + 'fun generated X\n yield X\nend\n'
-            + 'fun container X\n Saved = array X\n return X 0\nend');
+        runtime.execute('fun X closure\n fun nested\n  return X\n end\n return X 0\nend\n'
+            + 'fun X generated\n yield X\nend\n'
+            + 'fun X container\n Saved = array X\n return X 0\nend');
         const stats = new RuntimeDiagnostics();
         stats.run(() => {
             for (const name of ['closure', 'generated', 'container']) {

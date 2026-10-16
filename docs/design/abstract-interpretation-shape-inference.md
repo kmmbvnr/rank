@@ -296,7 +296,7 @@ end
 User functions in Rank do not declare parameter types:
 
 ```rank
-fun palindrome X
+fun X palindrome
   Text = X text
   Back = Text reverse
   return Text equal Back

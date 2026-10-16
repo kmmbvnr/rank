@@ -3,6 +3,7 @@ import {
     type Expression,
 } from './generated/ast.js';
 import { flattenApplication } from './expressions.js';
+import type { FunctionCallSignature } from './function-call-signature.js';
 import { findOperation } from './operations.js';
 
 export interface FunctionPipelinePlan {
@@ -16,6 +17,7 @@ export function functionPipelinePlan(
     expression: Expression,
     arities: (name: string) => readonly number[] | undefined,
     isDataBinding: (name: string) => boolean,
+    declarations: ReadonlyMap<string, FunctionCallSignature> = new Map(),
 ): FunctionPipelinePlan {
     const parts = flattenApplication(expression);
     const first = parts[0];
@@ -30,10 +32,11 @@ export function functionPipelinePlan(
             break;
         }
         const stage: Expression[] = [head];
+        const words = isNameExpression(head) ? declarations.get(head.name)?.words.map(group => group.word) ?? [] : [];
         // Operation parameters and rank/axis modifiers belong to this stage.
         while (index < parts.length) {
             const next = parts[index];
-            if (isNameExpression(next) && ['rank', 'axis', 'with'].includes(next.name)) {
+            if (isNameExpression(next) && ['rank', 'axis', 'with', ...words].includes(next.name)) {
                 stage.push(parts[index++]);
                 if (index < parts.length) stage.push(parts[index++]);
                 if (next.name === 'rank' && numeric(parts[index])) stage.push(parts[index++]);
@@ -47,9 +50,11 @@ export function functionPipelinePlan(
         : isNameExpression(first) ? arities(first.name) ?? [] : [];
     const fixed = (stage: Expression[]) => {
         let count = 0;
+        const head = stage[0];
+        const words = isNameExpression(head) ? declarations.get(head.name)?.words.map(group => group.word) ?? [] : [];
         for (let index = 1; index < stage.length; index++) {
             const part = stage[index];
-            if (isNameExpression(part) && ['rank', 'axis', 'with'].includes(part.name)) {
+            if (isNameExpression(part) && ['rank', 'axis', 'with', ...words].includes(part.name)) {
                 index++;
                 if (part.name === 'rank' && numeric(stage[index + 1])) index++;
                 if (part.name === 'axis') while (numeric(stage[index + 1])) index++;

@@ -18,7 +18,7 @@ Part2 print
 rem Return the triangle counts for sides read along rows and down columns.
 rem Part 2 groups every three rows into a block, so the triangles of a
 rem block run along axis 1 and the same count works without a transpose.
-fun solve Text
+fun Text solve
   Sides = Text words integer rank 0
   Height = Sides len // 3
   Table = Sides reshape Height 3
@@ -33,7 +33,7 @@ end
 
 rem Count the triangles whose sides lie along axis 1 of the data.
 rem A triangle is valid when the longest side is shorter than the other two.
-fun triangles Data
+fun Data triangles
   Total = Data sum axis 1
   Longest = Data max axis 1
   Twice = 2 * Longest

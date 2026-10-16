@@ -23,7 +23,7 @@ end
 
 
 rem Find a missing directed route.
-fun routes_check N Edges
+fun N Edges routes_check
   Nodes = 1 to N
   Graph = new graph Nodes .directed
   Back = new graph Nodes .directed
@@ -53,7 +53,7 @@ fun routes_check N Edges
 end
 
 
-fun route_failure From To
+fun From To route_failure
   return record
     .possible = false
     .source = From

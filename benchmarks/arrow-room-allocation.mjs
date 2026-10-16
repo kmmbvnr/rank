@@ -7,7 +7,7 @@ import { tableFromArrays } from 'apache-arrow';
 import { Interpreter } from '../packages/interpreter/out/index.js';
 import { ownedArray } from '../packages/interpreter/out/array-storage.js';
 
-const program = `use algo\nuse sequences\nfun allocate_rooms Data${readFileSync('demos/cses/sortnsrch/022_rooms.ra', 'utf8').split('fun allocate_rooms Data')[1]}`;
+const program = `use algo\nuse sequences\nfun Data allocate_rooms${readFileSync('demos/cses/sortnsrch/022_rooms.ra', 'utf8').split('fun Data allocate_rooms')[1]}`;
 const sizes = [1024, 20000, 100000];
 const samples = 5;
 const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];

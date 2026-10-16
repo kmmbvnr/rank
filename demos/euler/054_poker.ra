@@ -17,7 +17,7 @@ Answer print
 
 
 rem Compare each deal's category and tie-break cards.
-fun poker_wins Hands
+fun Hands poker_wins
   Wins = 0
   for Line in Hands
     if Line len equal 0
@@ -37,7 +37,7 @@ end
 
 
 rem Category followed by five tie-break ranks, highest first.
-fun hand_score Cards
+fun Cards hand_score
   Values = Cards card_value rank 0
   Suits = Cards card_suit rank 0
 
@@ -102,13 +102,13 @@ end
 
 
 rem Convert a card rank to 0..12.
-fun card_value Card
+fun Card card_value
   Rank = Card 0
   return Ranks Rank find
 end
 
 
 rem Return the suit character.
-fun card_suit Card
+fun Card card_suit
   return Card 1
 end

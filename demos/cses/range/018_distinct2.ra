@@ -16,7 +16,7 @@ Values Queries distinct2 print
 
 
 rem Track the next equal position.
-fun distinct2 Values Queries
+fun Values Queries distinct2
   N = Values len
   Positions = new index
   for Value I in Values

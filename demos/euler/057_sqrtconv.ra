@@ -17,13 +17,13 @@ Answer = Longer count
 Answer print
 
 
-fun next State Ignored
+fun State Ignored next
   return record
     .num = State .num + 2 * State .den
     .den = State .num + State .den
   end
 end
 
-fun longer State
+fun State longer
   return State .num text len greater State .den text len
 end

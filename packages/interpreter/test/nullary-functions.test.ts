@@ -87,7 +87,7 @@ G A sum`)).toBe('2');
     });
 
     it('preserves lexical captures, order and one evaluation per occurrence', () => {
-        expect(run(`fun exercise N
+        expect(run(`fun N exercise
   Count = 0
   fun next
     Count += 1
@@ -97,7 +97,7 @@ G A sum`)).toBe('2');
   return array A Count
 end
 0 exercise`)).toBe('7 3');
-        expect(run(`fun exercise N
+        expect(run(`fun N exercise
   Count = 0
   memo once
     Count += 1
@@ -110,7 +110,7 @@ end
     });
 
     it('keeps calls stack-safe and honors the depth limit', () => {
-        const source = `fun exercise N
+        const source = `fun N exercise
   fun down
     if N equal 0
       return 0

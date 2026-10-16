@@ -12,14 +12,14 @@ function messages(source: string) {
 }
 
 it('reports core, local and parameter conflicts', () => {
-    for (const source of ['fun sum X\n return X\nend', 'fun f sum\n return sum\nend',
-        'fun f X\n fun sum Y\n return Y\n end\n return X\nend']) {
+    for (const source of ['fun X sum\n return X\nend', 'fun f sum\n return sum\nend',
+        'fun X f\n fun Y sum\n return Y\n end\n return X\nend']) {
         expect(messages(source)).toContain('cannot redefine available builtin: sum');
     }
 });
 
 it('reserves module names only when the module is opened, in either order', () => {
-    const declaration = 'fun solve X\n return X\nend';
+    const declaration = 'fun X solve\n return X\nend';
     expect(messages(declaration)).toEqual([]);
     expect(messages(`use linalg\n${declaration}`)).toContain('cannot redefine available builtin: solve');
     expect(messages(`${declaration}\nuse linalg`)).toContain('cannot redefine available builtin: solve');

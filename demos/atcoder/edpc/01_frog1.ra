@@ -12,7 +12,7 @@ H min_cost print
 
 
 rem Cheapest way to hop from stone 1 to stone N, one or two steps at a time.
-fun min_cost H
+fun H min_cost
   N = H len
   Cost = array shape N fill 0
 

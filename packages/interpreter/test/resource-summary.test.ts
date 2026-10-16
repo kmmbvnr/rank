@@ -8,7 +8,7 @@ import { MemoryIo } from './support.js';
 describe('container resource summaries', () => {
     it.each(['index', 'set', 'counter'])('does not walk a growing numeric %s on return', kind => {
         const runtime = new Interpreter();
-        runtime.execute(`use algo\nfun identity A\n  return A\nend\nValues = new ${kind}`);
+        runtime.execute(`use algo\nfun A identity\n  return A\nend\nValues = new ${kind}`);
         const value = runtime.variables.get('Values')!;
         if (!('entries' in (value as object))) throw new Error('expected map');
         const entries = (value as { entries: Map<string, unknown> }).entries;
@@ -25,7 +25,7 @@ describe('container resource summaries', () => {
     it.each(['queue', 'deque', 'stack', 'heap'])('does not scan scalar records appended to %s', kind => {
         const runtime = new Interpreter();
         runtime.execute(`use algo\nValues = new ${kind}\nItem = record\n  .priority = 1\n  .payload = 2\nend`);
-        runtime.execute('fun note Q V\n  Q push V\n  return Q\nend');
+        runtime.execute('fun Q V note\n  Q push V\n  return Q\nend');
         const value = runtime.variables.get('Values')!;
         if (!(value instanceof RankDeque || value instanceof RankHeap)) throw new Error('expected container');
         const reads = vi.spyOn(value, 'values');
@@ -43,7 +43,7 @@ describe('container resource summaries', () => {
         expect(runtime.execute(`
 use io
 use algo
-fun build Path
+fun Path build
   Child = new queue
   Parent = new queue
   Parent push Child
@@ -63,7 +63,7 @@ File size
         const io = new MemoryIo({ '/input': 'Rank' });
         const file: RankFile = { kind: 'file', handle: io.open('/input', 'read'), closed: false };
         const runtime = new Interpreter(undefined, { persistentResources: true });
-        runtime.execute('fun identity A\n  return A\nend\nItem = record\n  .value = 0\nend');
+        runtime.execute('fun A identity\n  return A\nend\nItem = record\n  .value = 0\nend');
         const item = runtime.variables.get('Item')!;
         const index = newStructure('index');
         if (!isRankIndex(index) || !isRankRecord(item)) throw new Error('expected maps');
@@ -93,7 +93,7 @@ File size
         runtime.execute(`
 use io
 use algo
-fun build Path
+fun Path build
   File = Path open
   Q = new queue
   Q push 7
@@ -113,7 +113,7 @@ Q = "/input" build
             loadModule: () => ({ id: 'helper.ra', source: `
 use io
 use algo
-fun append_file Queue Path
+fun Queue Path append_file
   Queue push Path open
   return Queue
 end
@@ -139,7 +139,7 @@ Q "/input" Helper.append_file
         const queue = new RankDeque();
         queue.push({ kind: 'array', shape: [1], get items() { reads++; return [file]; } });
         runtime.variables.set('Q', queue);
-        runtime.execute('fun identity A\n  return A\nend\nQ identity');
+        runtime.execute('fun A identity\n  return A\nend\nQ identity');
         expect(reads).toBeGreaterThan(0);
         expect(file.closed).toBe(false);
         runtime.dispose();

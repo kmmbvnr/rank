@@ -14,7 +14,7 @@ end
 
 
 rem Find Kth removal without a circle.
-fun removed N K
+fun N K removed
   First = (N + 1) // 2
 
   if K at most First

@@ -14,7 +14,7 @@ Hotels Groups assign_hotels print
 
 
 rem Choose the first hotel with room.
-fun assign_hotels Hotels Groups
+fun Hotels Groups assign_hotels
   Tree = Hotels segment max
   Answers = array shape (Groups len) fill 0
 

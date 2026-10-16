@@ -15,7 +15,7 @@ end
 
 
 rem Generate all even values before all odd values for N at least 4.
-fun beautiful N
+fun N beautiful
   for I in 2 to N by 2
     yield I
   end

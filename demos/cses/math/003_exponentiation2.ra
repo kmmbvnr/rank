@@ -15,7 +15,7 @@ end
 
 
 rem Evaluate A raised to B raised to C.
-fun power_tower A B C
+fun A B C power_tower
   Modulus = 1000000007
   Phi = Modulus - 1
   Exponent = B C Phi powmod

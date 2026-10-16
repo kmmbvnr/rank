@@ -5,7 +5,7 @@ use linalg
 use numbers
 use sequences
 
-fun compute_qkv X Wq Wk Wv
+fun X Wq Wk Wv compute_qkv
   return record
     .q = X Wq matmul
     .k = X Wk matmul
@@ -13,7 +13,7 @@ fun compute_qkv X Wq Wk Wv
   end
 end
 
-fun self_attention Q K V
+fun Q K V self_attention
   Width = Q len axis 1
   Kt = K transpose
   Scores = (Q Kt matmul) / (Width sqrt)

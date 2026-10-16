@@ -22,6 +22,6 @@ end
 
 
 rem Order every course after its needs.
-fun course_schedule Graph
+fun Graph course_schedule
   return Graph topological
 end

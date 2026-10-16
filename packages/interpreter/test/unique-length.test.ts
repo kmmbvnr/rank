@@ -65,7 +65,7 @@ describe('unique followed by len', () => {
 
     it('keeps user functions named unique or len on the ordinary path', () => {
         const runtime = new Interpreter();
-        runtime.execute('use sequences\nu = unique\nn = len\nfun custom X\n return 99\nend');
+        runtime.execute('use sequences\nu = unique\nn = len\nfun X custom\n return 99\nend');
         const custom = runtime.variables.get('custom') as NativeFunction;
         runtime.variables.set('u', { ...custom, name: 'unique' });
         expect(() => runtime.execute('(array 1 1) u n')).toThrow();

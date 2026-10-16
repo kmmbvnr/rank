@@ -1,4 +1,4 @@
-import { functionCallSignature } from '../function-call-signature.js';
+import { functionCallSignature, type FunctionCallSignature } from '../function-call-signature.js';
 import { functionBindingPlan } from '../function-binding.js';
 import { flattenApplication as flatten, forIteration } from '../expressions.js';
 /**
@@ -13,7 +13,7 @@ import { flattenApplication as flatten, forIteration } from '../expressions.js';
  */
 
 import {
-    isTupleExpression, isApplicationExpression, isArgsStatement, isArgumentStatement,
+    isDeclaredCallExpression, isTupleExpression, isApplicationExpression, isArgsStatement, isArgumentStatement,
     isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isFlagStatement,
     isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
     isOperationAssignmentStatement,
@@ -65,6 +65,7 @@ export interface Binding {
     readonly types: Types;
     /** Known operand counts for a function declaration or a direct alias. */
     readonly arities?: readonly number[];
+    readonly callSignature?: FunctionCallSignature;
 }
 
 export type ScopeKind = 'program' | 'function' | 'test' | 'select' | 'update';
@@ -144,15 +145,16 @@ const MODIFIERS = new Set([
  * unresolved, so a caller that can reach the file system should supply them.
  */
 /** Optional semantic consumer; source locations remain presentation-only facts. */
-export type BindingReadObserver = (node: AstNode, binding: Pick<Binding, 'kind' | 'types' | 'arities'> | undefined) => void;
+export type BindingReadObserver = (node: AstNode, binding: Pick<Binding, 'kind' | 'types' | 'arities' | 'callSignature'> | undefined) => void;
 
 export function analyzeBindings(
     program: Program,
     imported: Iterable<string> = [],
     externalFunctions: ReadonlyMap<string, readonly number[]> = new Map(),
     observeRead?: BindingReadObserver,
+    signatures: ReadonlyMap<string, FunctionCallSignature> = new Map(),
 ): ProgramFacts {
-    return new Analyzer(new Set(imported), externalFunctions, observeRead).run(program);
+    return new Analyzer(new Set(imported), externalFunctions, observeRead, signatures).run(program);
 }
 
 interface Slot {
@@ -167,6 +169,7 @@ interface Slot {
     shadows: boolean;
     types: Types;
     arities?: readonly number[];
+    callSignature?: FunctionCallSignature;
 }
 
 interface ScopeState {
@@ -215,7 +218,8 @@ export function analyzeWithImports(
 class Analyzer {
     constructor(private readonly imported: ReadonlySet<string>,
         private readonly externalFunctions: ReadonlyMap<string, readonly number[]>,
-        private readonly observeRead?: BindingReadObserver) {}
+        private readonly observeRead?: BindingReadObserver,
+        private readonly signatures: ReadonlyMap<string, FunctionCallSignature> = new Map()) {}
 
     private readonly modules: string[] = [];
     private readonly imports: Import[] = [];
@@ -271,7 +275,8 @@ class Analyzer {
     private block(statements: readonly Statement[], nested: ScopeState[]): void {
         for (const statement of statements) {
             if (isFunctionStatement(statement)) {
-                this.bind(statement.name, 'function', statement, ['function'], [functionCallSignature(statement).arity]);
+                const signature = functionCallSignature(statement);
+                this.bind(statement.name, 'function', statement, ['function'], [signature.leftCount + signature.rightParameters.length]);
             }
         }
         for (const statement of statements) this.statement(statement, nested);
@@ -431,6 +436,11 @@ class Analyzer {
 
     private expression(expression: Expression | undefined): void {
         if (expression === undefined) return;
+        if (isDeclaredCallExpression(expression)) {
+            this.expression(expression.callee);
+            for (const part of [...expression.arguments, ...expression.ranks, ...expression.axes]) this.expression(part);
+            return;
+        }
         if (isNameExpression(expression)) {
             this.read(expression.name, expression);
             return;
@@ -577,6 +587,9 @@ class Analyzer {
         if (existing === undefined) {
             scope.slots.set(name, {
                 name, kind, bound: site(node), types, arities,
+                callSignature: kind === 'function' && isFunctionStatement(node) ? functionCallSignature(node)
+                    : isFunctionBindingStatement(node) && functionBindingPlan(node).alias
+                        ? (this.lookup(functionBindingPlan(node).alias!)?.callSignature ?? this.signatures.get(functionBindingPlan(node).alias!)) : undefined,
                 writes: [site(node)], reads: [],
                 writeDepths: new Set([this.loopDepth]), readDepths: new Set(),
                 shadows: scope !== this.program && this.program.slots.has(name),

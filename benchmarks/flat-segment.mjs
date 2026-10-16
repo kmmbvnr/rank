@@ -36,7 +36,7 @@ const combineJS = (left, right) => {
         max(max(l.get('best'), r.get('best')), l.get('suffix') + r.get('prefix')));
 };
 const source = `use numbers
-fun combine Left Right
+fun Left Right combine
   return record
     .sum = Left .sum + Right .sum
     .prefix = (Left .prefix) max (Left .sum + Right .prefix)

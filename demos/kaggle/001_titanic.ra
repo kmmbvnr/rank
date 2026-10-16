@@ -22,7 +22,7 @@ Submission OutputPath csv
 
 rem Prepare the four numeric baseline features.
 rem Training medians also fill the test columns.
-fun prepare_features Train Test
+fun Train Test prepare_features
   Age = Train .Age median
   Train .Age = Train .Age real rank 0 default Age
   Test .Age = Test .Age real rank 0 default Age
@@ -42,7 +42,7 @@ end
 
 
 rem Train a full-batch binary logistic regression.
-fun logistic X Y Rate Steps
+fun X Y Rate Steps logistic
   unpack Rows Columns = X shape
   if Rows equal 0
     .DomainError raise
@@ -80,7 +80,7 @@ end
 
 
 rem Predict integer classes with a 0.5 threshold.
-fun logistic_predict X Model
+fun X Model logistic_predict
   Features = X real rank 0
   Z = (Features - Model .center) / Model .scale
   Score = Z Model .weights matmul + Model .bias
@@ -88,13 +88,13 @@ fun logistic_predict X Model
 end
 
 
-fun sigmoid Value
+fun Value sigmoid
   Exp = (-Value) exp
   return 1.0 / (1.0 + Exp)
 end
 
 
-fun binary Mask
+fun Mask binary
   Result = array shape (Mask len) fill 0
   Result Mask = 1
   return Result
@@ -102,7 +102,7 @@ end
 
 
 rem Return only the two columns required by Kaggle.
-fun predictall Train Test Rate Steps
+fun Train Test Rate Steps predictall
   unpack X Xtest = Train Test prepare_features
   Y = Train .Survived
   Model = X Y Rate Steps logistic

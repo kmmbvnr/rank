@@ -14,7 +14,7 @@ Door part1 print
 Door part2 print
 
 
-fun part1 Door
+fun Door part1
   Password = ""
   Prefix = (array 0 0) bytes
   Digits = "0123456789abcdef"
@@ -39,7 +39,7 @@ fun part1 Door
 end
 
 
-fun part2 Door
+fun Door part2
   Password = array shape 8 fill ""
   Prefix = (array 0 0) bytes
   Digits = "0123456789abcdef"

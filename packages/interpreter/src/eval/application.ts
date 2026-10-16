@@ -1,12 +1,12 @@
 import {
     applicationExpression as applicationParts, applicationForm, assertNever, flattenApplication, isAllAxisExpression,
-    isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression,
-    renamedBuiltinCall, type ApplicationForm, type ArrayItem, type Expression, type Operation,
+    isUnaryExpression, isParenthesizedExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression,
+    renamedBuiltinCall, type DeclaredCallExpression, type ApplicationForm, type ArrayItem, type Expression, type Operation,
 } from '@arrrank/language';
 import { ownedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import {
-    completed, flatMapResult, mapExecution, mapResult, resume, type Evaluation, type Execution,
+    runExecution, completed, flatMapResult, mapExecution, mapResult, resume, type Evaluation, type Execution,
 } from '../execution.js';
 import type { FastPaths } from '../fast-paths.js';
 import type { FunctionInvocation } from '../function-invocation.js';
@@ -39,7 +39,7 @@ import { callArguments, canApplySelectors, hasField, unpackApplicationItems } fr
 import {
     isNativeFunction, isRankArray, isRankDsu, isRankFenwick, isRankFunctionalGraph, isRankGraph, isRankLabel,
     isRankMultiset, isRankSequence, typeName,
-    type RankValue,
+    type NativeFunction, type RankValue,
 } from '../value.js';
 
 /** What evaluating application forms needs from the rest of evaluation. */
@@ -73,6 +73,63 @@ export interface ApplicationContext {
  */
 export class ApplicationEvaluator {
     constructor(private readonly context: ApplicationContext) {}
+
+    compileDeclaredCall(expression: DeclaredCallExpression, tail: boolean): () => Evaluation<RankValue> {
+        const context = this.context;
+        return function* (): Execution<RankValue> {
+            const fn = isNameExpression(expression.callee)
+                ? context.resolve(expression.callee.name)
+                : yield* resume(context.evaluate(expression.callee));
+            if (!isNativeFunction(fn)) throw new RankError('Declared call expects a function');
+            const args: RankValue[] = [];
+            for (const [index, argument] of expression.arguments.entries()) {
+                let value = argument;
+                while (isParenthesizedExpression(value)) value = value.value;
+                args.push(fn.callSignature?.parameters[index]?.kind === 'function' && isNameExpression(value)
+                    ? context.resolve(value.name) : yield* resume(context.evaluate(argument)));
+            }
+            const data = expression.dataParameters.map(index => args[index]);
+            const ranks = expression.ranks.map(rank => {
+                const value = isUnaryExpression(rank) && rank.operator === '-'
+                    ? -integerLiteral(rank.operand, 'rank') : integerLiteral(rank, 'rank');
+                if (!Number.isSafeInteger(Number(value))) throw new RankError('rank is too large');
+                return Number(value);
+            });
+            const axes = expression.axes.length ? expression.axes.map(axis => safeDimension(integerLiteral(axis, 'axis'), 'axis')) : undefined;
+            if (!ranks.length && !axes && fn.monadicRank === 'all'
+                && (!fn.dyadicRanks || fn.dyadicRanks.every(rank => rank === 'all'))) {
+                if (tail) context.functions.throwTailCall(fn, args);
+                return yield* resume(context.functions.invoke(fn, args));
+            }
+            const resultShape = (cells: readonly (readonly number[])[]): readonly number[] | undefined => {
+                const shapes = args.map(value => isRankArray(value) ? value.shape : []);
+                expression.dataParameters.forEach((index, i) => { shapes[index] = [...cells[i]]; });
+                return fn.resultCellShape?.(shapes);
+            };
+            const ranked: NativeFunction = {
+                kind: 'function', name: fn.name, arities: [data.length],
+                monadicRank: fn.monadicRank, dyadicRanks: fn.dyadicRanks, arrayCells: true,
+                monadicResultShape: shape => resultShape([shape]),
+                dyadicResultShape: (left, right) => resultShape([left, right]),
+                call: cells => {
+                    const bound = [...args];
+                    expression.dataParameters.forEach((index, i) => { bound[index] = cells[i]; });
+                    return runExecution(context.functions.invoke(fn, bound));
+                },
+            };
+            if (data.length === 1) {
+                if (ranks.length > 1) throw new RankError('rank expects one entry for one data operand');
+                const rank = ranks[0] ?? (typeof fn.monadicRank === 'number' ? fn.monadicRank : 0);
+                return yield* resume(context.rankApplication.applyUnaryAtRank(data[0], ranked, rank, axes));
+            }
+            if (axes) throw new RankError('axis expects one data operand');
+            if (data.length === 2) {
+                if (ranks.length > 2) throw new RankError('rank expects at most two entries for two data operands');
+                return yield* resume(context.rankApplication.applyDyadicAtRank(data[0], data[1], ranked, ranks[0], ranks[1]));
+            }
+            throw new RankError('rank expects one or two data operands');
+        };
+    }
 
     /** The evaluation of one classified application form. */
     compileForm(

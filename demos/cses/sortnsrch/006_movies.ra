@@ -18,7 +18,7 @@ Movies watch print
 
 
 rem Describe one scheduled movie.
-fun movie Start Finish
+fun Start Finish movie
   Movie = record
     .start = Start
     .finish = Finish
@@ -28,7 +28,7 @@ end
 
 
 rem Choose movies by earliest finish.
-fun watch Movies
+fun Movies watch
   Sorted = Movies sort by .finish
   Last = 0
   Answer = 0

@@ -4,7 +4,7 @@ import { createReplSession } from '../src/repl-session.js';
 import { createModuleLoader, importedPaths } from '../src/module-loader.js';
 
 const BAD = 'A has type integer and cannot receive text';
-const TEXT_MODULE = 'fun label X\n return "x"\nend\n';
+const TEXT_MODULE = 'fun X label\n return "x"\nend\n';
 
 /** A REPL whose imports read `files`, for analysis and for the run. */
 function replWith(files: Record<string, string>) {
@@ -48,7 +48,7 @@ describe('imported calls in REPL diagnostics', () => {
     });
 
     it('says nothing when the module cannot be read, or has syntax errors', () => {
-        const { session, repl, text } = replWith({ broken: 'fun label X\n return "x"\nend\nB =\n' });
+        const { session, repl, text } = replWith({ broken: 'fun X label\n return "x"\nend\nB =\n' });
         try {
             repl.notebook.replace('use "missing" as M\nA = 1\nA = 2 M.label');
             expect(text()).toBe('');
@@ -63,7 +63,7 @@ describe('imported calls in REPL diagnostics', () => {
         try {
             repl.notebook.replace('use "helper" as M\nA = 1\nA = 2 M.label');
             expect(text()).toContain(BAD);
-            files.helper = 'fun label X\n return 1\nend\n';
+            files.helper = 'fun X label\n return 1\nend\n';
             expect(text()).not.toContain(BAD);
             files.helper = TEXT_MODULE;
             expect(text()).toContain(BAD);
@@ -71,7 +71,7 @@ describe('imported calls in REPL diagnostics', () => {
     });
 
     it('drops the summary after the alias or the name is rebound in a later cell', () => {
-        const { session, repl, text } = replWith({ helper: TEXT_MODULE, other: 'fun label X\n return 1\nend\n' });
+        const { session, repl, text } = replWith({ helper: TEXT_MODULE, other: 'fun X label\n return 1\nend\n' });
         try {
             repl.notebook.enqueue('use "helper" as M');
             repl.notebook.enqueue('use "other" as M');
@@ -98,8 +98,8 @@ describe('imported calls in REPL diagnostics', () => {
 
     it('survives modules that import each other', () => {
         const { session, repl, text } = replWith({
-            first: 'use "second" as S\nfun label X\n return 1 S.label\nend\n',
-            second: 'use "first" as F\nfun label X\n return 1 F.label\nend\n',
+            first: 'use "second" as S\nfun X label\n return 1 S.label\nend\n',
+            second: 'use "first" as F\nfun X label\n return 1 F.label\nend\n',
         });
         try {
             repl.notebook.replace('use "first" as M\nA = 1\nA = 2 M.label');
@@ -136,7 +136,7 @@ describe('createModuleLoader', () => {
         const first = load('helper');
         expect(load('helper')).toBe(first);
         expect(reads).toBe(2);
-        source = 'fun label X\n return 1\nend\n';
+        source = 'fun X label\n return 1\nend\n';
         expect(load('helper')).not.toBe(first);
     });
 

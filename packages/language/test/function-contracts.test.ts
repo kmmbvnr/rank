@@ -20,7 +20,7 @@ const has = (result: ReturnType<typeof contract>, inputs: unknown[], output: unk
         .some(instance => JSON.stringify(instance.result) === JSON.stringify(output)));
 
 it('promotes mixed numeric operands without requiring collection cells', () => {
-    const inc = contract('fun f X\n return X + 1\nend');
+    const inc = contract('fun X f\n return X + 1\nend');
     expect(has(inc, ['integer'], 'integer')).toBe(true);
     expect(has(inc, ['real'], 'real')).toBe(true);
     expect(has(inc, ['integer'], 'real')).toBe(false);
@@ -30,15 +30,15 @@ it('promotes mixed numeric operands without requiring collection cells', () => {
         expect(inc.alternatives.find(row => JSON.stringify(row.inputs) === JSON.stringify([type]))?.frameParameter).toBe(0);
     }
     expect(inc.unresolved).toBe(true); // empty and untyped lazy cells are not excluded
-    const division = contract('fun f X\n return X / 2\nend');
+    const division = contract('fun X f\n return X / 2\nend');
     expect(has(division, ['integer'], 'real')).toBe(true);
     expect(has(division, ['real'], 'real')).toBe(true);
 });
 
 it('keeps nonnumeric overloads and gives SQL priority over missing propagation', () => {
-    const multiply = contract('fun f X\n return X * 2\nend');
+    const multiply = contract('fun X f\n return X * 2\nend');
     expect(has(multiply, ['duration'], 'duration')).toBe(true);
-    const add = contract('fun f X Y\n return X + Y\nend');
+    const add = contract('fun X Y f\n return X + Y\nend');
     expect(has(add, ['text', 'text'], 'text')).toBe(true);
     expect(has(add, ['text', 'integer'], 'text')).toBe(false);
     expect(has(add, ['column', 'missing'], 'column')).toBe(true);
@@ -49,23 +49,23 @@ it('keeps nonnumeric overloads and gives SQL priority over missing propagation',
 });
 
 it('carries intermediate domains through helpers and repeated parameters', () => {
-    const helper = contract('fun half X\n return X / 2.0\nend\nfun f X\n return (X half) + X\nend');
+    const helper = contract('fun X half\n return X / 2.0\nend\nfun X f\n return (X half) + X\nend');
     expect(has(helper, ['integer'], 'real')).toBe(true);
     expect(has(helper, ['real'], 'real')).toBe(true);
-    expect(has(contract('fun f X\n return X + X\nend'), ['text'], 'text')).toBe(true);
+    expect(has(contract('fun X f\n return X + X\nend'), ['text'], 'text')).toBe(true);
 });
 
 it('keeps a conservative remainder when a fresh inference budget runs out', () => {
-    const source = 'fun f X Y Z\n return (X + Y) + Z\nend';
+    const source = 'fun X Y Z f\n return (X + Y) + Z\nend';
     const limited = contract(source, 'f', 20);
     expect(limited.exhausted).toBe(true);
     expect(limited.unresolved).toBe(true);
-    expect(contract('fun f X\n return X + 1\nend').exhausted).toBe(false);
+    expect(contract('fun X f\n return X + 1\nend').exhausted).toBe(false);
 });
 
 
 it('does not claim inherited bounds when a scalar constructs another collection', () => {
-    const result = contract('fun f X Y\n return X + (Y to 2)\nend');
+    const result = contract('fun X Y f\n return X + (Y to 2)\nend');
     const row = result.alternatives.find(row => JSON.stringify(row.inputs)
         === JSON.stringify([{ collection: 'sequence', element: 'integer' }, 'integer']));
     expect(row).toBeDefined();
@@ -73,7 +73,7 @@ it('does not claim inherited bounds when a scalar constructs another collection'
 });
 
 it('composes a four-parameter numeric branch without enumerating 21 to the fourth domains', () => {
-    const result = contract('fun f A B C D\n return ((A + B) + C) + D\nend');
+    const result = contract('fun A B C D f\n return ((A + B) + C) + D\nend');
     expect(result.symbolic).toBe(true);
     expect(result.exhausted).toBe(false);
     expect(result.alternatives.length).toBeLessThan(256);
@@ -88,7 +88,7 @@ it('composes a four-parameter numeric branch without enumerating 21 to the fourt
 });
 
 it('keeps independent numeric groups independent across tuple returns and helper calls', () => {
-    const source = 'fun add X Y\n return X + Y\nend\nfun f A B C D\n return tuple (A B add) (C D add)\nend';
+    const source = 'fun X Y add\n return X + Y\nend\nfun A B C D f\n return tuple (A B add) (C D add)\nend';
     const result = contract(source);
     expect(result.symbolic).toBe(true);
     expect(result.exhausted).toBe(false);
@@ -98,8 +98,8 @@ it('keeps independent numeric groups independent across tuple returns and helper
 });
 
 it('freshens shared operator variables and state for every function summary', () => {
-    const integer = contract('fun f X\n return X + 1\nend');
-    const real = contract('fun f X\n return X + 1.0\nend');
+    const integer = contract('fun X f\n return X + 1\nend');
+    const real = contract('fun X f\n return X + 1.0\nend');
     expect(has(integer, ['real'], 'real')).toBe(true);
     expect(has(real, ['real'], 'real')).toBe(true);
     expect(has(real, ['integer'], 'real')).toBe(true);
@@ -107,15 +107,15 @@ it('freshens shared operator variables and state for every function summary', ()
 });
 
 it('keeps enumeration as the explicit fallback for unsupported field and range expressions', () => {
-    const result = contract('fun f X Y\n return X + (Y to 2)\nend');
+    const result = contract('fun X Y f\n return X + (Y to 2)\nend');
     expect(result.symbolic).toBeUndefined();
     expect(result.exhausted).toBe(false);
 });
 
 it('composes a helper with more parameters than its caller and leaves unused values unconstrained', () => {
-    const result = contract('fun add X Y Z\n return (X + Y) + Z\nend\nfun f A\n return A A A add\nend');
+    const result = contract('fun X Y Z add\n return (X + Y) + Z\nend\nfun A f\n return A A A add\nend');
     expect(result.symbolic).toBe(true);
     expect(has(result, ['real'], 'real')).toBe(true);
-    const tuple = contract('fun f A B Ignored\n return tuple (A + B) Ignored\nend');
+    const tuple = contract('fun A B Ignored f\n return tuple (A + B) Ignored\nend');
     expect(tuple.alternatives.some(row => formatTypeSignature(row) === 'a a b → tuple(a, b) ; a: number')).toBe(true);
 });

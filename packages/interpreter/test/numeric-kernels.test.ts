@@ -54,13 +54,13 @@ A + B`)).toBe(60n);
         it(`matches scalar ${operator} for numeric domains and floating-point edge cases`, () => {
             const runtime = new Interpreter();
             runtime.execute(`
-fun binary A B
+fun A B binary
   return A ${operator} B
 end
-fun total A
+fun A total
   return A reduce ${operator}
 end
-fun prefix A
+fun A prefix
   return A scan ${operator}
 end
 `);
@@ -153,7 +153,7 @@ end
         expect(items(runtime.execute('Zeros sum axis 1')!)).toEqual([0, 0]);
         runtime.variables.set('Empty', vector([], [2, 0]));
         expect(items(runtime.execute('Empty sum axis 1')!)).toEqual([0n, 0n]);
-        runtime.execute('fun custom A\n  return 99\nend');
+        runtime.execute('fun A custom\n  return 99\nend');
         runtime.variables.set('sum', runtime.variables.get('custom')!);
         // A host replacement has no builtin axis-reduction identity.
         expect(() => runtime.execute('A sum axis 1')).toThrow('unknown name: axis');
@@ -188,7 +188,7 @@ end
 
     it('does not pre-read lazy inputs or replay a mixed-type failure', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun total A\n  return A reduce +\nend\nfun prefix A\n  return A scan +\nend');
+        runtime.execute('fun A total\n  return A reduce +\nend\nfun A prefix\n  return A scan +\nend');
         const reads: number[] = [];
         const input: RankArray = {
             kind: 'array', shape: [3], containsFiles: false,
@@ -209,7 +209,7 @@ end
 
     it('retains read-before-validation order for lazy axis sum cells', () => {
         const runtime = new Interpreter();
-        runtime.execute('use numbers\nfun rows A\n  return A sum axis 1\nend');
+        runtime.execute('use numbers\nfun A rows\n  return A sum axis 1\nend');
         const reads: number[] = [];
         const input: RankArray = {
             kind: 'array', shape: [1, 3], containsFiles: false,
@@ -236,7 +236,7 @@ end
 
     it('retains nested-array fallback and Rank error positions', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun total A\n  return A reduce +\nend');
+        runtime.execute('fun A total\n  return A reduce +\nend');
         expect(items(call(runtime, 'total', vector([vector([1n, 2n]), vector([3n, 4n])]))))
             .toEqual([4n, 6n]);
         try {

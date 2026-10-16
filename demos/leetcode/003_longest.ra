@@ -4,7 +4,7 @@ rem no repeated character
 
 use algo
 
-fun longest Text
+fun Text longest
   Index = new index
   Start = 0
   Best = 0

@@ -21,7 +21,7 @@ Part2 print
 
 
 rem Return the answers for five and six leading hexadecimal zeroes.
-fun solve Secret
+fun Secret solve
   Part1 = Secret "00000" mine
   Part2 = Secret "000000" mine
   return array Part1 Part2
@@ -29,7 +29,7 @@ end
 
 
 rem Return the first positive suffix whose MD5 hash has Prefix.
-fun mine Secret Prefix
+fun Secret Prefix mine
   N = 1
 
   for

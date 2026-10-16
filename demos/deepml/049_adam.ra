@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/49
 use numbers
 
 rem Run ten standard Adam steps.
-fun adam_optimizer Input
+fun Input adam_optimizer
   X = Input .parameters
   grad = (Input .gradient)
   Rate = 0.001

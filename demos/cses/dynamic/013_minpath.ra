@@ -10,7 +10,7 @@ Grid minimal_grid_path print
 
 
 rem Keep positions with the best prefix.
-fun minimal_grid_path Grid
+fun Grid minimal_grid_path
   Size = Grid len
   Current = new set
   Current add 0

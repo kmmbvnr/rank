@@ -37,34 +37,34 @@ const runtime = new Interpreter();
 runtime.execute(`
 use sequences
 use numbers
-fun total A B
+fun A B total
   return A reduce +
 end
-fun addition A B
+fun A B addition
   return A + B
 end
-fun chain A B
+fun A B chain
   return A * 2 + B
 end
-fun chainreduce A B
+fun A B chainreduce
   return (A * 2 + B) reduce +
 end
-fun namedreduce A B
+fun A B namedreduce
   Temp = A * 2 + B
   return Temp reduce +
 end
-fun reusedreduce A B
+fun A B reusedreduce
   Temp = A * 2 + B
   First = Temp reduce +
   return First + (Temp reduce +)
 end
-fun prefix A B
+fun A B prefix
   return A scan +
 end
-fun ordered A B
+fun A B ordered
   return A sort
 end
-fun rows A B
+fun A B rows
   return A sum axis 1
 end
 `);

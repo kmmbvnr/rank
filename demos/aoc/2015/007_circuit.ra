@@ -19,7 +19,7 @@ Part2 print
 
 rem Evaluate a twice. For Part 2, replace
 rem b with the first signal.
-fun solve Lines
+fun Lines solve
   Part1 = Lines "a" (-1) circuit
   Part2 = Lines "a" Part1 circuit
   return array Part1 Part2
@@ -28,7 +28,7 @@ end
 
 rem Resolve Target by repeatedly evaluating
 rem instructions with ready inputs.
-fun circuit Lines Target Override
+fun Lines Target Override circuit
   Index = new index
   if Override at least 0
     Index "b" = Override 65535 band
@@ -62,7 +62,7 @@ end
 
 
 rem Evaluate an expression or raise .NotReady if any wire is pending.
-fun eval_expr Expression Wires
+fun Expression Wires eval_expr
   Terms = Expression " " split
 
   if Terms len equal 1
@@ -81,7 +81,7 @@ end
 
 
 rem Read a decimal literal or wire signal, or fail if not yet resolved.
-fun signal Token Wires
+fun Token Wires signal
   try
     return Token integer
   catch .InvalidNumber Error
@@ -94,7 +94,7 @@ end
 
 
 rem Apply one binary circuit operation.
-fun operate Op Left Right
+fun Op Left Right operate
   if Op equal "AND"
     return Left Right band
   end

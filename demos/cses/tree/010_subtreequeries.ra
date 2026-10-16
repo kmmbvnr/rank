@@ -32,7 +32,7 @@ Answers print
 
 
 rem Flatten subtrees into sum ranges.
-fun subtree Values Rooted Queries
+fun Values Rooted Queries subtree
   Order = Rooted .order
   Entry = Rooted .entry
   Sizes = Rooted .size

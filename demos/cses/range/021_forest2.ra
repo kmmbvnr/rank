@@ -33,7 +33,7 @@ Grid Queries forest_updates print
 
 
 rem Keep static and changed tree counts.
-fun forest_updates Grid Queries
+fun Grid Queries forest_updates
   Size = Grid len
   Side = Size + 1
   Trees = array shape Size Size fill 0
@@ -96,7 +96,7 @@ end
 
 
 rem Sum a two-dimensional prefix.
-fun bit2sum Rows Y X
+fun Rows Y X bit2sum
   Total = 0
   for Y greater 0
     F = Rows Y

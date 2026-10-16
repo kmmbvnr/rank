@@ -72,7 +72,7 @@ Illustrative animated rings:
 use numbers
 use graphics
 
-fun rings X Y Time
+fun X Y Time rings
   Distance = X * X + Y * Y sqrt
   Wave = Distance * 20.0 - Time sin
   Light = Wave * 0.5 + 0.5

@@ -8,7 +8,7 @@ use stats
 
 rem Standardize samples using covariance
 rem Keep the K strongest eigenvectors
-fun pca Data K
+fun Data K pca
   Shape = Data shape
   if Shape len not equal 2
     .DimensionMismatch raise

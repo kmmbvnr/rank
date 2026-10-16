@@ -172,7 +172,7 @@ test('knows which array and record forms need an end', () => {
     assert.deepEqual(scanLine('A = array shape 2 3 fill 0').opens, []);
     assert.deepEqual(scanLine('A = array 1 2 3').opens, []);
     assert.deepEqual(scanLine('A = record').opens, ['record']);
-    assert.deepEqual(scanLine('fun double X').opens, ['fun']);
+    assert.deepEqual(scanLine('fun X double').opens, ['fun']);
     assert.deepEqual(scanLine('X = 1 fun').opens, []);
 });
 
@@ -184,7 +184,7 @@ test('collects table blocks without delaying inline select and filter', () => {
     assert.deepEqual(scanLine('R = Rows select Cols').opens, []);
     assert.deepEqual(scanLine('T update').opens, ['update']);
     assert.deepEqual(scanLine('sql T update').opens, ['update']);
-    assert.deepEqual(scanLine('fun update X').opens, ['fun']);
+    assert.deepEqual(scanLine('fun X update').opens, ['fun']);
     assert.deepEqual(scanLine('Label = .select').opens, []);
     const state = cell('R = Rows select', 'Cost = .price * 2', '.cost = Cost');
     assert.equal(isComplete(state), false);
@@ -205,9 +205,9 @@ test('executes contextual table blocks entered through the REPL', () => {
 });
 
 test('a blank line finishes every open construct', () => {
-    const open = cell('fun double X', 'return X * 2');
+    const open = cell('fun X double', 'return X * 2');
     assert.equal(isComplete(open), false);
-    assert.equal(cellSource(closeCell(open)), 'fun double X\n  return X * 2\nend');
+    assert.equal(cellSource(closeCell(open)), 'fun X double\n  return X * 2\nend');
 
     const nested = cell('for i in 1 to 3', 'if i greater 1', 'i print');
     assert.equal(cellSource(closeCell(nested)), [
@@ -232,7 +232,7 @@ test('prompt and indentation report what is open', () => {
 test('runs blocks, folded lines and aliases through the real REPL', () => {
     const source = [
         'use numbers',
-        'fun double X',
+        'fun X double',
         '  return X * 2',
         'end',
         '5 double',

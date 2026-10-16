@@ -17,7 +17,7 @@ Part2 print
 
 rem Find the first house reached by the required delivery total.
 rem A zero visit limit means that every multiple receives a delivery.
-fun firsthouse Target Multiplier MaxVisits
+fun Target Multiplier MaxVisits firsthouse
   Index = new index
   Limit = Target // Multiplier + 1
 

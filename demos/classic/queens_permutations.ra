@@ -19,7 +19,7 @@ for Board i in Boards
   "" print
 end
 
-fun safe Q rank 1
+fun Q safe rank 1
   Up = Q + Row unique len
   if Up not equal 8
     return false

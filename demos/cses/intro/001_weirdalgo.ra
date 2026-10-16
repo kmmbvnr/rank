@@ -9,7 +9,7 @@ N weird print
 
 
 rem Generate the Collatz sequence beginning with N.
-fun weird N
+fun N weird
   yield N
 
   for N not equal 1

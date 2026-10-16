@@ -18,7 +18,7 @@ Tree Low High count_paths print
 
 
 rem Count pairs within a distance range.
-fun count_paths Tree Low High
+fun Tree Low High count_paths
   Lengths = Tree pathlengths
   Mask = Lengths at least Low
   Mask and= Lengths at most High

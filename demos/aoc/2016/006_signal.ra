@@ -15,7 +15,7 @@ Part2 print
 
 
 rem Return the messages formed by the most and least frequent letters in each column.
-fun solve Lines
+fun Lines solve
   Rows = Lines len
   Cols = Lines 0 len
   Text = Lines "" join

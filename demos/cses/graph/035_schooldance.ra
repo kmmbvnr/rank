@@ -20,7 +20,7 @@ end
 
 
 rem Reduce bipartite matching to flow.
-fun school_dance Boys Girls Pairs
+fun Boys Girls Pairs school_dance
   Source = 0
   Sink = Boys + Girls + 1
   Nodes = 0 to Sink

@@ -2,7 +2,7 @@ rem Palindrome Number
 rem True if an integer reads the same
 rem both ways, without making a string
 
-fun palindrome X
+fun X palindrome
   if X less 0
     return false
   end

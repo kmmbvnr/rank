@@ -12,7 +12,7 @@ Answer print
 
 rem Search increasing prime pairs and derive
 rem the only possible third arithmetic term.
-fun prime_permutation_sequence Lower Upper
+fun Lower Upper prime_permutation_sequence
   Values = primes from Lower till Upper array
   for A in Values
     if A not equal 1487

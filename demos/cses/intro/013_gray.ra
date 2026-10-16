@@ -12,7 +12,7 @@ end
 
 
 rem Generate all N-bit Gray codes in order.
-fun gray N
+fun N gray
   Count = 2 ** N
 
   for I in 0 till Count

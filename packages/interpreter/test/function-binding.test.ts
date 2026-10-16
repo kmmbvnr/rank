@@ -2,21 +2,22 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, isNativeFunction } from '../src/index.js';
 
 describe('single-expression function bindings', () => {
-    it('keeps inline bindings replaceable and fun declarations constant', () => {
+    it('keeps both inline and multiline declarations constant', () => {
         const runtime = new Interpreter();
-        expect(runtime.execute('f X = X + 1\n3 f')).toBe(4n);
-        expect(runtime.execute('f X = X + 2\n3 f')).toBe(5n);
-        runtime.execute('fun fixed X\n  return X + 1\nend');
-        expect(() => runtime.execute('fixed X = X + 2')).toThrow(/function declaration/);
-        expect(() => runtime.execute('fun fixed X\n  return X + 2\nend')).toThrow(/function declaration/);
+        expect(runtime.execute('fun X f = X + 1\n3 f')).toBe(4n);
+        expect(() => runtime.execute('fun X f = X + 2')).toThrow(/function declaration/);
+        runtime.execute('fun X fixed\n  return X + 1\nend');
+        expect(() => runtime.execute('fun X fixed = X + 2')).toThrow(/function declaration/);
+        expect(() => runtime.execute('fun X fixed\n  return X + 2\nend')).toThrow(/function declaration/);
         expect(runtime.execute('3 fixed')).toBe(4n);
         runtime.forgetBindings(['fixed']);
-        expect(runtime.execute('fun fixed X\n  return X + 3\nend\n3 fixed')).toBe(6n);
+        expect(runtime.execute('fun X fixed\n  return X + 3\nend\n3 fixed')).toBe(6n);
     });
-    it('supports both definition forms and replacement', () => {
+    it('requires forgetting a binding before replacing it with a declaration', () => {
         const runtime = new Interpreter();
         expect(runtime.execute('use numbers\nf = abs sqrt\n9 f')).toBe(3);
-        expect(runtime.execute('f A B = (A abs) + B\n-3 2 f')).toBe(5n);
+        runtime.forgetBindings(['f']);
+        expect(runtime.execute('fun A B f = (A abs) + B\n-3 2 f')).toBe(5n);
     });
     it('preserves unary and binary entry arities', () => {
         const runtime = new Interpreter();
@@ -51,37 +52,37 @@ describe('single-expression function bindings', () => {
     });
     it('passes tuples as one result and resolves callback pipelines at definition time', () => {
         const runtime = new Interpreter();
-        expect(runtime.execute('fun pair A B\n return tuple A B\nend\nf = pair len\n3 4 f')).toBe(2n);
-        runtime.execute('use numbers\nfun apply op X\n composed = op abs\n return X composed\nend');
+        expect(runtime.execute('fun A B pair\n return tuple A B\nend\nf = pair len\n3 4 f')).toBe(2n);
+        runtime.execute('use numbers\nfun X apply op\n composed = op abs\n return X composed\nend');
         const apply = runtime.variables.get('apply')!;
-        expect(isNativeFunction(apply) && apply.call([runtime.execute('abs')!, -3n])).toBe(3n);
+        expect(isNativeFunction(apply) && apply.call([-3n, runtime.execute('abs')!])).toBe(3n);
         runtime.execute('through = apply abs');
         const through = runtime.variables.get('through')!;
-        expect(isNativeFunction(through) && through.call([runtime.execute('abs')!, -3n])).toBe(3n);
+        expect(isNativeFunction(through) && through.call([-3n, runtime.execute('abs')!])).toBe(3n);
     });
     it('distinguishes delayed explicit bodies from immediate grouped factories', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun make Base\n fun add X\n  return Base + X\n end\n return add\nend\nf = (10 make)');
+        runtime.execute('fun Base make\n fun X add\n  return Base + X\n end\n return add\nend\nf = (10 make)');
         expect(runtime.execute('5 f')).toBe(15n);
-        runtime.execute('fail X = .Failure raise');
+        runtime.execute('fun X fail = .Failure raise');
         expect(() => runtime.execute('1 fail')).toThrow();
     });
     it('requires lowercase function bindings and callback parameters', () => {
         expect(() => new Interpreter().execute('use numbers\nF = abs')).toThrow(/lowercase/);
         const runtime = new Interpreter();
-        runtime.execute('use numbers\nfun apply F X\n return X F\nend');
+        runtime.execute('use numbers\nfun F X apply\n return X F\nend');
         const apply = runtime.variables.get('apply')!;
         expect(() => isNativeFunction(apply) && apply.call([runtime.execute('abs')!, -3n])).toThrow(/lowercase/);
     });
     it.each([false, true])('preserves positional parameter contracts (compilation=%s)', compilation => {
         const runtime = new Interpreter(undefined, { compilation });
         try {
-            runtime.execute('fun accept value\n return value\nend\nfun scalar Value\n return Value\nend');
+            runtime.execute('fun accept value\n return value\nend\nfun Value scalar\n return Value\nend');
             const accept = runtime.variables.get('accept')!;
             const scalar = runtime.variables.get('scalar')!;
             if (!isNativeFunction(accept) || !isNativeFunction(scalar)) throw new Error('expected functions');
-            // Lowercase permits a callback but does not require one.
-            expect(accept.call([7n])).toBe(7n);
+            // Lowercase parameters require a callable operand.
+            expect(() => accept.call([7n])).toThrow('value expects a function');
             expect(accept.call([scalar])).toBe(scalar);
             expect(() => scalar.call([accept])).toThrow('Function parameters use lowercase names: Value');
             expect(() => scalar.call([])).toThrow('scalar expects 1 arguments, got 0');
@@ -100,12 +101,12 @@ describe('single-expression function bindings', () => {
         expect(() => runtime.execute('-3 local')).toThrow(/unknown/);
     });
     it('imports only function definitions in source order', () => {
-        const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'module.ra', source: 'use numbers\nf = abs sqrt\ng X = X f\n1 / 0' }) });
+        const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'module.ra', source: 'use numbers\nf = abs sqrt\nfun X g = X f\n1 / 0' }) });
         expect(runtime.execute('use "module.ra"\n9 g')).toBe(3);
     });
     it.each(['fun', 'memo', 'generator'])('runs imported %s declarations against the program globals', kind => {
         const body = kind === 'generator' ? 'yield Seed + N' : 'return Seed + N';
-        const source = `use sequences\nSeed = 7\n${kind === 'memo' ? 'memo' : 'fun'} value N\n  ${body}\nend\n`
+        const source = `use sequences\nSeed = 7\n${kind === 'memo' ? 'memo' : 'fun'} N value\n  ${body}\nend\n`
             + (kind === 'generator' ? '(2 value) first' : '2 value');
         const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'module.ra', source }) });
         expect(runtime.execute('run "module.ra"')).toBe(9n);

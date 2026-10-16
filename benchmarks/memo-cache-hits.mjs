@@ -19,7 +19,7 @@ if (mode) {
     const runtime = new Interpreter(() => {}, { scalarFunctionCompilation: mode === 'callback' });
     try {
         // Fill every argument before timing. No function bodies run in a measured pass.
-        runtime.execute(`memo value N rank 0\n return N + 1\nend\nWarm = 1 to ${size} value sum`);
+        runtime.execute(`memo N value rank 0\n return N + 1\nend\nWarm = 1 to ${size} value sum`);
         const expected = BigInt(size) * (BigInt(size) + 3n) / 2n;
         assert.equal(runtime.variables.get('Warm'), expected);
         if (form === 'array') runtime.variables.set('Source',
@@ -50,6 +50,6 @@ if (mode) {
     const medians = Object.fromEntries(['reference', 'callback'].map(variant => [variant,
         median(records.filter(record => record.variant === variant).map(record => record.medianMs))]));
     console.log(JSON.stringify({ node: process.version, cpu: cpus()[0]?.model, size, samples, form,
-        method: 'fresh processes, alternating modes, five cached passes per process; filling the memo cache and GC excluded; reference disables scalar callbacks; heapUsed is total live heap after GC, not peak',
+        method: 'fresh processes, alternating modes, five cached passes per process; filling the memo GC cache and excluded; reference disables scalar callbacks; heapUsed is total live heap after GC, not peak',
         records, medians }, null, 2));
 }

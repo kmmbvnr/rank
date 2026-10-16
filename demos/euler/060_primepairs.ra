@@ -22,7 +22,7 @@ Answer print
 
 rem Connect pairs when both decimal
 rem concatenations are prime.
-fun build Limit
+fun Limit build
   Vals = primes from 3 till Limit filter not equal 5 array
   Graph = new graph Vals .undirected
 
@@ -59,7 +59,7 @@ fun build Limit
 end
 
 
-fun compatible P Q
+fun P Q compatible
   PQ = P Q concat
   if PQ not in primes
     return false
@@ -69,7 +69,7 @@ fun compatible P Q
 end
 
 
-fun concat A B
+fun A B concat
   Scale = 10
   for Scale at most B
     Scale *= 10
@@ -81,13 +81,13 @@ end
 rem Keep Best if no cheaper set exists.
 rem Data holds ascending positive values
 rem and their graph.
-fun min_five Data Best
+fun Data Best min_five
   Graph = Data .graph
   Vals = Data .primes
   Vals 5 0 search
   return Best
 
-  fun search Rest Need Sum
+  fun Rest Need Sum search
     if Rest len less Need
       return Best
     end

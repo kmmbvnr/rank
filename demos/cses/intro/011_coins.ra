@@ -19,7 +19,7 @@ end
 
 
 rem Return true when both coin piles can be emptied.
-fun possible A B
+fun A B possible
   Total = A + B
   if Total mod 3 not equal 0
     return false

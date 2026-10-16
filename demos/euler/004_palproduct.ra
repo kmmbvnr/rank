@@ -25,7 +25,7 @@ Answer print
 
 rem Return true when a nonnegative integer
 rem reads the same in both directions.
-fun palindrome X
+fun X palindrome
   Text = X text
   return Text equal (Text reverse)
 end

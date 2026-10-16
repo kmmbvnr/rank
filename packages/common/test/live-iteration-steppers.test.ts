@@ -6,13 +6,13 @@ import { createReplSession } from '../src/repl-session.js';
 async function loopFunction(enterAfterHeader = true): Promise<{ repl: NotebookRepl; keys: KeyRouter }> {
     const repl = new NotebookRepl(createReplSession(), () => {}, () => 80, true);
     const keys = new KeyRouter(repl);
-    repl.notebook.replace('fun total n');
+    repl.notebook.replace('fun N total');
     await keys.press('', { name: 'return' });
     await keys.press('4');
     await keys.press('', { name: 'return' });
     for (const text of 'Total = 0') await keys.press(text);
     await keys.press('', { name: 'return' });
-    for (const text of 'for i in 1 to n') await keys.press(text);
+    for (const text of 'for I in 1 to N') await keys.press(text);
     if (enterAfterHeader) await keys.press('', { name: 'return' });
     return { repl, keys };
 }

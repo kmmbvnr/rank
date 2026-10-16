@@ -16,8 +16,8 @@ describe('session environments', () => {
             expect((await session.execute('fun answer\n  return 3\nend', 2, [], 40, true)).ok).toBe(false);
             expect((await session.execute('fun answer\n  return 4\nend', 0, [], 40, true)).ok).toBe(true);
             expect((await session.execute('answer', 1, [], 40, true)).output.map(line => line.text)).toEqual(['4']);
-            await session.execute('inc X = X + 1', 3, [], 40, true);
-            expect(session.preview('inc X = X + 2\n1 inc').output.map(line => line.text)).toEqual(['3']);
+            await session.execute('fun X inc = X + 1', 3, [], 40, true);
+            expect(session.preview('fun X inc = X + 2\n1 inc').output.map(line => line.text)).toEqual(['3']);
         } finally { session.dispose(); }
     });
     it('survives clean execution resets but clears at a notebook boundary', async () => {

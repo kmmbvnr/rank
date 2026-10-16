@@ -27,19 +27,19 @@ function compare(source: string, options?: InterpreterOptions) {
 
 describe('compiled function body completion', () => {
     it('keeps a function loop binder local when a global has the same name', () => {
-        const result = compare('I = 99\nfun count A\n Total = 0\n for I in 0 till (A len)\n  Total += A I\n end\n return Total\nend\n(array 2 3) count\nI');
+        const result = compare('I = 99\nfun A count\n Total = 0\n for I in 0 till (A len)\n  Total += A I\n end\n return Total\nend\n(array 2 3) count\nI');
         expect(result).toMatchObject({ value: '99' });
     });
 
     it.each(['0', 'false', '""'])('returns %s without treating it as missing', value => {
-        const result = compare(`fun answer X\n  Y = X\n  return Y\nend\n${value} answer`);
+        const result = compare(`fun X answer\n  Y = X\n  return Y\nend\n${value} answer`);
         expect(result.entries).toBeGreaterThan(0);
         expect(result).toHaveProperty('value');
     });
 
     it('preserves early returns and finally execution', () => {
         const result = compare(`use io
-fun answer X
+fun X answer
   try
     if X greater 0
       return X
@@ -57,8 +57,8 @@ array A B`);
     });
 
     it('retains tail calls and lexical captures', () => {
-        const result = compare(`fun outer Base
-  fun step N
+        const result = compare(`fun Base outer
+  fun N step
     if N equal 0
       return Base
     end
@@ -72,7 +72,7 @@ end
     });
 
     it('keeps ordinary recursion on the execution stack', () => {
-        const result = compare(`fun depth N
+        const result = compare(`fun N depth
   if N equal 0
     return 0
   end
@@ -84,7 +84,7 @@ end
 
     it('retains tensor fusion through the final return', () => {
         const result = compare(`use numbers
-fun calculate A
+fun A calculate
   B = A * 2
   C = B + 1
   return C sum
@@ -97,7 +97,7 @@ Values calculate`);
 
     it('retains a tensor kernel starting at the terminal return itself', () => {
         const result = compare(`use numbers
-fun calculate A
+fun A calculate
   return (A * A) sum
 end
 Values = array 1 2 3
@@ -108,7 +108,7 @@ Values calculate`);
 
     it('transfers returned file ownership through terminal completion', () => {
         const result = compare(`use io
-fun open_file Name
+fun Name open_file
   File = Name open
   return File
 end
@@ -122,11 +122,11 @@ Value`);
 
     it('closes local files and retains errors from a suspended final expression', () => {
         const result = compare(`use io
-fun fail X
+fun X fail
   .Failure raise
   return X
 end
-fun perform X
+fun X perform
   File = "/input" open
   return X fail
 end
@@ -136,15 +136,15 @@ end
     });
 
     it.each([
-        'fun f X\n  Y = X\n  return\nend\n1 f',
-        'fun f X\n  Y = X\nend\n1 f',
-        'fun f X\n  Y = X\n  return Missing\nend\n1 f',
+        'fun X f\n  Y = X\n  return\nend\n1 f',
+        'fun X f\n  Y = X\nend\n1 f',
+        'fun X f\n  Y = X\n  return Missing\nend\n1 f',
     ])('keeps invalid return diagnostics', source => {
         expect(compare(source)).toHaveProperty('error');
     });
 
     it('falls back when code generation is unavailable', () => {
-        const source = `fun f X\n${Array(62).fill('  Y = X').join('\n')}\n  return Y\nend\n1 f`;
+        const source = `fun X f\n${Array(62).fill('  Y = X').join('\n')}\n  return Y\nend\n1 f`;
         const spy = vi.spyOn(globalThis, 'Function').mockImplementation(() => { throw new Error('CSP'); });
         try {
             const result = execute(source, true);

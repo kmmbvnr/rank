@@ -11,7 +11,7 @@ A count_divisible_subarrays print
 
 
 rem Count equal prefix remainders.
-fun count_divisible_subarrays A
+fun A count_divisible_subarrays
   Index = new index
   N = A len
   Prefix = 0

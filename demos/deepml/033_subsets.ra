@@ -5,7 +5,7 @@ use algo
 use random
 use sequences
 
-fun random_subsets X Y N Replace Seed
+fun X Y N Replace Seed random_subsets
   Shape = X shape
   if Shape len not equal 2
     .DimensionMismatch raise

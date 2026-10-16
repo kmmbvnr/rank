@@ -47,7 +47,7 @@ describe('ordered multiset', () => {
     it('allows method names from unopened modules', () => {
         for (const name of ['floor', 'ceiling', 'lowerbound', 'upperbound']) {
             expect(run([
-                `fun ${name} A B`,
+                `fun A B ${name}`,
                 '  return A + B',
                 'end',
                 `3 ${name} 4`,
@@ -81,7 +81,7 @@ describe('ordered multiset', () => {
     it('iterates in sorted order with duplicates', () => {
         expect(run([
             'use algo',
-            'fun ordered Values',
+            'fun Values ordered',
             '  Queue = new queue',
             '  Bag = Values multiset',
             '  for Value in Bag',

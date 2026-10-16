@@ -14,6 +14,6 @@ end
 
 
 rem Count divisors without an array.
-fun divisor_count N
+fun N divisor_count
   return N divisors count
 end

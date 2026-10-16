@@ -12,7 +12,7 @@ Coins Target unordered_coin_ways print
 
 rem Add each denomination once
 rem to the dynamic program.
-fun unordered_coin_ways Coins Target
+fun Coins Target unordered_coin_ways
   Ways = array shape (Target + 1) fill 0
   Ways 0 = 1
 

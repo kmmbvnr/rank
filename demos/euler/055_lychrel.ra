@@ -15,7 +15,7 @@ Answer print
 
 
 rem Count candidates that remain non-palindromic after fifty steps.
-fun lychrel_count Limit
+fun Limit lychrel_count
   Count = 0
   for N in 1 till Limit
     if N lychrel
@@ -27,7 +27,7 @@ end
 
 
 rem Reverse and add N, stopping when a palindrome appears.
-fun lychrel N
+fun N lychrel
   Value = N
   for Iteration in 1 to 50
     Back = Value text reverse integer
@@ -41,7 +41,7 @@ end
 
 
 rem Return true when a nonnegative integer reads the same in both directions.
-fun palindrome Value
+fun Value palindrome
   Text = Value text
   return Text reverse equal Text
 end

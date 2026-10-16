@@ -45,7 +45,7 @@ export class LivePreviewRunner {
         live: LiveFunctionSession, source: string, reset = false, throughLine?: number,
     ): Promise<void> {
         if (live.skipped || live.values.length !== live.parameters.length) return;
-        await this.update(live, source, 1, functionBodyEnd(source, live.existing),
+        await this.update(live, source, live.header.split('\n').length, functionBodyEnd(source, live.existing),
             (text, target) => functionPreviewSource(live, text, target), reset, throughLine, live.name);
     }
 
@@ -256,11 +256,12 @@ function displayOutput(output: OutputLine[], control?: Control): OutputLine[] {
 
 function functionPreviewSource(live: LiveFunctionSession, source: string, target: number): GeneratedPreview {
     const lines = source.split('\n');
-    const active = enclosingLoopLines(lines, 1, target);
-    omitCompletedLoop(active, lines, 1, target);
-    const closing = closingLoop(lines, 1, target);
+    const start = live.header.split('\n').length;
+    const active = enclosingLoopLines(lines, start, target);
+    omitCompletedLoop(active, lines, start, target);
+    const closing = closingLoop(lines, start, target);
     let state: CellState = EMPTY_CELL;
-    for (let index = 1; index < target; index++) {
+    for (let index = start; index < target; index++) {
         if (!lines[index].trim()) continue;
         if (active.has(index)) {
             state = addActiveLoop(state, skippedReturn(lines[index].trim()), index + 1,
@@ -268,7 +269,13 @@ function functionPreviewSource(live: LiveFunctionSession, source: string, target
         } else if (index === closing) state = addCountedLoop(state, skippedReturn(lines[index].trim()));
         else state = addLine(state, skippedReturn(lines[index].trim()), true);
     }
-    const call = [...live.values.map(value => `(${value})`), live.name].join(' ');
+    const signature = live.signature;
+    const values = live.values.map((value, index) => signature?.parameters[index].kind === 'function' ? value : `(${value})`);
+    const call = signature ? [
+        ...values.slice(0, signature.leftCount), live.name,
+        ...signature.rightParameters.map(parameter => values[parameter.index]),
+        ...signature.words.flatMap(group => [group.word, values[group.parameter]]),
+    ].join(' ') : [...values, live.name].join(' ');
     const program = (final: CellState, result = VALUE): string => {
         const body = cellSource(closeCell(final)).split('\n').map(line => `  ${line}`).join('\n');
         return [
@@ -290,7 +297,7 @@ function functionPreviewSource(live: LiveFunctionSession, source: string, target
             live.iterations.get(target + 1) ?? 0)), syntheticNames };
     }
     const closed = addLine(state, 'end');
-    const names = loopOuterNames(lines, 1, closing, target, live.parameters);
+    const names = loopOuterNames(lines, start, closing, target, live.parameters);
     return { source: program(addResult(closed, COUNT, SUMMARY), SUMMARY),
         syntheticNames: new Set([...syntheticNames, COUNT, SUMMARY]),
         summary: { names, sources: names.map(name => program(addResult(closed, name, SUMMARY), SUMMARY)) } };

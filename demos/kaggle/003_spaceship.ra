@@ -18,7 +18,7 @@ Submission OutputPath csv
 
 
 rem Fill spending columns from Train and add their total.
-fun spending_features Train Test
+fun Train Test spending_features
   Money = array .RoomService .FoodCourt .ShoppingMall .Spa .VRDeck
   for Feature in Money
     Middle = Train Feature median
@@ -47,7 +47,7 @@ fun spending_features Train Test
 end
 
 
-fun solve Train Test Rate Steps
+fun Train Test Rate Steps solve
   unpack X Xtest = Train Test spending_features
   Y = Train .Transported Titanic.binary
   Model = X Y Rate Steps Titanic.logistic

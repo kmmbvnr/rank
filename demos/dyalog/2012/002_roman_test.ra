@@ -56,7 +56,7 @@ end
 
 test "Roman derives addition from an ordinary numeric function"
   use "002_roman"
-  fun plus A B
+  fun A B plus
     return A + B
   end
   add = ((tuple plus) roman)
@@ -66,10 +66,10 @@ end
 test "Roman derives range and sum functions"
   use "002_roman"
   use sequences
-  fun range N
+  fun N range
     return 1 to N array
   end
-  fun total Values
+  fun Values total
     return Values sum
   end
   rangeRoman = ((tuple range) roman)
@@ -82,7 +82,7 @@ end
 test "Roman derives reshape for Roman-valued dimensions and data"
   use "002_roman"
   use sequences
-  fun reshapeTo Dims Values
+  fun Dims Values reshapeTo
     return Values reshape unpack Dims
   end
   shaped = ((tuple reshapeTo) roman)

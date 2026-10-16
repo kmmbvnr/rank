@@ -8,7 +8,7 @@ N removing_digits print
 
 
 rem Reuse results for smaller values.
-fun removing_digits N
+fun N removing_digits
   Steps = array shape (N + 1) fill (N + 1)
   Steps 0 = 0
 

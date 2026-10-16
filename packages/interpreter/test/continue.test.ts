@@ -18,7 +18,7 @@ Sum
     it('rechecks conditional loops on both evaluation paths', () => {
         for (const condition of ['I less 5', 'I below']) {
             expect(run(`
-fun below N
+fun N below
   return N less 5
 end
 I = 0
@@ -103,7 +103,7 @@ end
 
     it('works after yields and inside a suspended generator loop', () => {
         expect(run(`
-fun values N
+fun N values
   for I in 1 to N
     if I mod 2 equal 0
       continue
@@ -124,7 +124,7 @@ Result
     it('does not close the iterated generator until the loop ends', () => {
         expect(run(`
 use algo
-fun values Log
+fun Log values
   try
     yield 1
     yield 2
@@ -144,7 +144,7 @@ Log
     it('rejects continue outside loops and across function boundaries', () => {
         expect(() => run('continue')).toThrow('continue is only valid inside a for loop');
         expect(() => run(`
-fun skip N
+fun N skip
   continue
 end
 for

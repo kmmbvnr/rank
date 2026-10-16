@@ -22,7 +22,7 @@ Part2 print
 
 
 rem Find the best circular seating before and after adding yourself.
-fun solve Lines
+fun Lines solve
   Index = new index
   Seen = new set
   Pattern = "/word would /word /integer happiness units by sitting next to /word."
@@ -53,7 +53,7 @@ end
 
 
 rem Return the greatest happiness among all permutations of the guests.
-fun best Guests Scores
+fun Guests Scores best
   Queue = new queue
   for Route in Guests permutations
     Queue push Route Scores happiness
@@ -65,7 +65,7 @@ end
 
 
 rem Sum both directed scores around one circular seating arrangement.
-fun happiness Route Scores
+fun Route Scores happiness
   Total = 0
   N = Route len
 

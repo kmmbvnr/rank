@@ -25,13 +25,13 @@ describe('Rank IO, modules and programs', () => {
             '  1 2',
             '  3 4',
             'end',
-            'fun above Value Limit',
+            'fun Value Limit above',
             '  return Value greater Limit',
             'end',
             'M 1 0 2 above',
         ].join('\n'))).toBe('true');
         expect(() => run([
-            'fun add A B',
+            'fun A B add',
             '  return A + B',
             'end',
             '1 2 3 add',
@@ -123,7 +123,7 @@ describe('Rank IO, modules and programs', () => {
     it('runs user generator functions lazily and once', () => {
         const interpreter = new Interpreter();
         interpreter.execute([
-            'fun values N',
+            'fun N values',
             '  Current = N',
             '  for Current greater 0',
             '    yield Current',
@@ -155,7 +155,7 @@ describe('Rank IO, modules and programs', () => {
 
     it('materializes a finite sequence with postfix array', () => {
         expect(run([
-            'fun values N',
+            'fun N values',
             '  for N greater 0',
             '    yield N',
             '    N -= 1',
@@ -165,7 +165,7 @@ describe('Rank IO, modules and programs', () => {
             'Values',
         ].join('\n'))).toBe('3 2 1');
         expect(run([
-            'fun none N',
+            'fun N none',
             '  if N greater 0',
             '    yield N',
             '  end',
@@ -199,7 +199,7 @@ describe('Rank IO, modules and programs', () => {
     it('supports bare return and preserves yielded array values', () => {
         const interpreter = new Interpreter();
         interpreter.execute([
-            'fun first Value',
+            'fun Value first',
             '  yield Value',
             '  return',
             '  yield 99',
@@ -217,7 +217,7 @@ describe('Rank IO, modules and programs', () => {
     it('rejects return values in generators when execution reaches them', () => {
         const interpreter = new Interpreter();
         interpreter.execute([
-            'fun invalid N',
+            'fun N invalid',
             '  yield N',
             '  return N',
             'end',
@@ -227,7 +227,7 @@ describe('Rank IO, modules and programs', () => {
         expect(values && isRankSequence(values)).toBe(true);
         if (!values || !isRankSequence(values)) return;
         expect(() => formatValue(values)).toThrowError('a generator cannot return a value');
-        expect(() => run('fun invalid N\n  return\nend\n1 invalid'))
+        expect(() => run('fun N invalid\n  return\nend\n1 invalid'))
             .toThrowError('a value-returning function must return a value');
         expect(() => run('yield 1'))
             .toThrowError('yield is only valid inside a generator function');
@@ -236,7 +236,7 @@ describe('Rank IO, modules and programs', () => {
     it('defers generator errors until the failing element is requested', () => {
         const interpreter = new Interpreter();
         interpreter.execute([
-            'fun values N',
+            'fun N values',
             '  yield N',
             '  yield 1 // 0',
             'end',
@@ -255,7 +255,7 @@ describe('Rank IO, modules and programs', () => {
         const interpreter = new Interpreter(undefined, { io });
         interpreter.execute([
             'use io',
-            'fun positions Path',
+            'fun Path positions',
             '  File = Path open',
             '  yield File position',
             '  yield File size',
@@ -277,11 +277,11 @@ describe('Rank IO, modules and programs', () => {
         const interpreter = new Interpreter(undefined, { io });
         interpreter.execute([
             'use io',
-            'fun reader Path',
+            'fun Path reader',
             '  File = Path open',
             '  return pick',
             '',
-            '  fun pick Count',
+            '  fun Count pick',
             '    return File Count readbytes',
             '  end',
             'end',
@@ -328,7 +328,7 @@ describe('Rank IO, modules and programs', () => {
             'Count = Data len',
             'Keys = Data keys',
             '',
-            'fun keys Object',
+            'fun Object keys',
             '  Result = ""',
             '  for Value Key in Object',
             '    Result += Key',
@@ -426,7 +426,7 @@ describe('Rank IO, modules and programs', () => {
             'File 2 seek',
             'Data = File 2 readbytes',
             '',
-            'fun source Path',
+            'fun Path source',
             '  File = Path open',
             '  return File',
             'end',
@@ -589,7 +589,7 @@ describe('Rank IO, modules and programs', () => {
             'use testing',
             'test "queue result"',
             '  use algo',
-            '  fun result Ignored',
+            '  fun Ignored result',
             '    Queue = new queue',
             '    Queue push 7',
             '    Queue push 0',

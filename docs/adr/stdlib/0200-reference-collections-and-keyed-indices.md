@@ -46,7 +46,7 @@ As codified in ADR-0101, algorithmic collections belong to Rank's closed set of 
 - **Implicit Local Structures:** When a function needs only one instance of a common container, the type name itself denotes a lazily allocated local instance:
   ```rank
 Queue = new queue
-  fun bfs Start
+  fun Start bfs
     Queue push Start
     for Queue
       Current = Queue pop

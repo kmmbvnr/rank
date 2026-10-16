@@ -15,7 +15,7 @@ Part2 print
 
 
 rem Return the sum of real room sector IDs and the northpole room sector ID.
-fun solve Lines
+fun Lines solve
   if Lines type equal .text
     Lines = Lines "\n" split
   end
@@ -42,14 +42,14 @@ end
 
 
 rem Parse a room line into name, sector ID, and checksum.
-fun room Line
+fun Line room
   return Line "/text-/integer[/word]" parse
 end
 
 
 rem Check if the room checksum matches the five most frequent letters.
 rem When frequencies tie, letters are compared alphabetically.
-fun valid Name Checksum
+fun Name Checksum valid
   Letters = Name "-" "" translate
   Chars = Letters "" split
   Common = Chars 5 vocab
@@ -60,7 +60,7 @@ end
 
 rem Decrypt a room name with a Caesar cipher shifted by sector ID.
 rem Dashes are replaced with spaces.
-fun decrypt Name Sector
+fun Name Sector decrypt
   Alphabet = "abcdefghijklmnopqrstuvwxyz"
   Shift = Sector mod 26
   Tail = Alphabet (Shift till 26)

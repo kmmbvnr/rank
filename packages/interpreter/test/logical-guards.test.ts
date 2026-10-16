@@ -26,7 +26,7 @@ describe('and and or after a single boolean', () => {
 
     it('skip effects on the right side, including suspended calls', () => {
         expect(run(`use algo
-fun visit Log V
+fun Log V visit
  Log push V
  return V
 end
@@ -82,7 +82,7 @@ Count`;
     });
 
     it('guard inside compiled scalar functions', () => {
-        const source = `fun safe X
+        const source = `fun X safe
  return X equal 0 or 10 // X equal 1
 end
 R = true

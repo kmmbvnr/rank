@@ -16,7 +16,7 @@ Tree tree_diameter print
 
 
 rem Find both ends with two searches.
-fun tree_diameter Tree
+fun Tree tree_diameter
   First = Tree 1 bfs
   End = First .order last
   Second = Tree End bfs

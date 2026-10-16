@@ -18,7 +18,7 @@ end
 Best print
 
 
-fun digit_sum N
+fun N digit_sum
   Digits = N text
   Values = Digits integer rank 0
   return Values sum

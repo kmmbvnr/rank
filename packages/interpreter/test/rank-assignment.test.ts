@@ -26,9 +26,9 @@ describe.each([true, false])('array binding rank (compiled=%s)', compiled => {
         'A = array 1 2\nA += array shape 2 2 fill 0',
         'A = array 1 2\nfor I in 1 to 2\n A = array shape 2 2 fill I\nend',
         'for I in 1 to 2\n A = array shape I fill 0\n A = array shape I I fill 0\nend',
-        'fun check X\n X = array shape 2 2 fill 0\n return X\nend\n(array 1 2) check',
-        'fun check N\n A = array 1 2\n for I in 1 to N\n  A = array shape 2 2 fill I\n end\n return A\nend\n2 check',
-        'fun check N\n A = array 1 2\n fun change X\n  A = array shape 2 2 fill X\n  return A\n end\n return N change\nend\n2 check',
+        'fun X check\n X = array shape 2 2 fill 0\n return X\nend\n(array 1 2) check',
+        'fun N check\n A = array 1 2\n for I in 1 to N\n  A = array shape 2 2 fill I\n end\n return A\nend\n2 check',
+        'fun N check\n A = array 1 2\n fun X change\n  A = array shape 2 2 fill X\n  return A\n end\n return N change\nend\n2 check',
     ])('rejects axis changes: %s', source => {
         const runtime = new Interpreter(undefined, options);
         try {
@@ -52,7 +52,7 @@ describe.each([true, false])('array binding rank (compiled=%s)', compiled => {
     it('resets local rank contracts for each function invocation', () => {
         const runtime = new Interpreter(undefined, options);
         try {
-            runtime.execute('fun check X\n A = X\n for I in 1 to 3\n  A = X\n end\n return A\nend');
+            runtime.execute('fun X check\n A = X\n for I in 1 to 3\n  A = X\n end\n return A\nend');
             runtime.execute('(array 1 2) check');
             runtime.execute('(array shape 2 2 fill 0) check');
             runtime.execute('(array 3 4) check');
@@ -65,7 +65,7 @@ it.each([false, true])('keeps a cached assignment site checked across repeated w
     try {
         const loop = 'for I in 1 to 3\n Shape = array 4\n if I equal 3\n  Shape = array 2 2\n end\n A = (array 1 2 3 4) reshape unpack Shape\nend';
         const source = 'use sequences\n'
-            + (local ? `fun check N\n${loop}\n return 0\nend\n3 check` : loop);
+            + (local ? `fun N check\n${loop}\n return 0\nend\n3 check` : loop);
         expect(() => runtime.execute(source)).toThrow('A has rank 1 and cannot receive rank 2');
     } finally { runtime.dispose(); }
 });

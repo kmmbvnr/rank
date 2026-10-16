@@ -12,12 +12,12 @@ X Y knight_tour print
 
 
 rem Search low-degree moves first.
-fun knight_tour StartX StartY
+fun StartX StartY knight_tour
   Board = array shape 8 8 fill 0
   DX = array 2 1 -1 -2 -2 -1 1 2
   DY = array 1 2 2 1 -1 -2 -2 -1
 
-  fun countopen X Y
+  fun X Y countopen
     if X less 0 or X at least 8
       return false
     end
@@ -27,7 +27,7 @@ fun knight_tour StartX StartY
     return Board Y X equal 0
   end
 
-  fun degree Position
+  fun Position degree
     X = Position mod 8
     Y = Position // 8
     Count = 0
@@ -41,7 +41,7 @@ fun knight_tour StartX StartY
     return Count
   end
 
-  fun visit X Y Step
+  fun X Y Step visit
     Board Y X = Step
     if Step equal 64
       return true
@@ -80,7 +80,7 @@ end
 
 
 rem Verify numbering and knight moves.
-fun valid_tour Board
+fun Board valid_tour
   Xs = array shape 65 fill 0
   Ys = array shape 65 fill 0
   for Y in 0 till 8

@@ -9,7 +9,7 @@ const { Interpreter, parse } = await import(process.env.RANK_INTERPRETER ?? '../
 // npx tsc -b tsconfig.build.json && node benchmarks/queens-search.mjs
 const definitions = {
     permutations: `Columns = 0 till 8 array
-fun safe Q rank 1
+fun Q safe rank 1
   Up = Q + Columns unique len
   if Up not equal 8
     return false
@@ -17,7 +17,7 @@ fun safe Q rank 1
   Down = Q - Columns unique len
   return Down equal 8
 end`,
-    prefixes: `fun queens N
+    prefixes: `fun N queens
   Cols = 0 till N array
   States = array shape 1 N fill 0
 
@@ -37,7 +37,7 @@ end`,
   end
   return States
 
-  fun available Q
+  fun Q available
     Depth = Q len
     Rows = 0 till Depth array
     Dy = Depth - Rows
@@ -48,7 +48,7 @@ end`,
 end`,
 };
 const solves = { permutations: 'Solutions = Columns permutations filter safe copy', prefixes: 'Solutions = 8 queens' };
-definitions.batched = `fun queens N
+definitions.batched = `fun N queens
   Cols = 0 till N array
   States = array shape 1 N fill 0
   for Row in 0 till N
@@ -77,7 +77,7 @@ definitions.hoisted = definitions.membership
     .replace('    Depth = Q len\n    Rows = 0 till Depth array\n    Dy = Depth - Rows\n', '');
 solves.hoisted = 'Solutions = 8 queens';
 const optimizedSource = readFileSync(new URL('./queens-optimized.ra', import.meta.url), 'utf8');
-assert.equal(optimizedSource.slice(optimizedSource.indexOf('fun queens N')).trim(), definitions.hoisted.trim());
+assert.equal(optimizedSource.slice(optimizedSource.indexOf('fun N queens')).trim(), definitions.hoisted.trim());
 const rowsOf = value => Array.from({ length: value.shape[0] }, (_, r) =>
     Array.from({ length: value.shape[1] }, (_, c) => Number(value.itemAt?.(r * value.shape[1] + c) ?? value.items[r * value.shape[1] + c])));
 function oracle(n) {

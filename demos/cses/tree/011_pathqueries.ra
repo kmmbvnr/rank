@@ -32,7 +32,7 @@ Answers print
 
 
 rem Mark each value across its subtree.
-fun paths Values Rooted Queries
+fun Values Rooted Queries paths
   Order = Rooted .order
   Entry = Rooted .entry
   Sizes = Rooted .size

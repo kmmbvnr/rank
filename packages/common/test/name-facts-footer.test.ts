@@ -16,7 +16,7 @@ function footer(repl: NotebookRepl, source: string, cursor: number, columns = 60
 
 it('shows the recursive memo result under the cursor with rank declared on the function', () => {
     const demo = readFileSync(new URL('../../../benchmarks/collatz-memo.ra', import.meta.url), 'utf8');
-    const source = 'use numbers\n' + demo.slice(demo.indexOf('memo collatz'), demo.indexOf('Seqs =')).trim();
+    const source = 'use numbers\n' + demo.slice(demo.indexOf('memo N collatz'), demo.indexOf('Seqs =')).trim();
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
@@ -185,7 +185,7 @@ it('renders a proven notebook relationship and a concrete call signature in the 
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        const definition = 'fun identity Value\n return Value\nend';
+        const definition = 'fun Value identity\n return Value\nend';
         expect(footer(repl, definition, definition.indexOf('identity') + 1)).toBe('facts: identity · a → a');
         const call = definition + '\n1 identity';
         expect(footer(repl, call, call.lastIndexOf('identity') + 1)).toBe('facts: identity · i → i');
@@ -293,14 +293,14 @@ it('infers Euler 13 types and parameter requirements across restored cells', () 
     const repl = new NotebookRepl(session);
     try {
         repl.notebook.restore(readFileSync(new URL('../../../demos/euler/013_largesum.ra', import.meta.url), 'utf8'));
-        for (const [site, expected] of [
+        for (const [site, expected, offset = 0] of [
             ['Answer =', 'Answer · integer'], ['Answer print', 'Answer · integer'],
-            ['leading_sum Numbers', 'leading_sum · (number | missing) [rank ≥ 0] i → i'],
-            ['Prefix =', 'Prefix · text'], ['Digits\n', 'Digits · integer'],
-            ['Numbers Digits\n', 'Numbers · c[#]<integer>'],
-        ]) {
+            ['fun Numbers Digits leading_sum', 'leading_sum · (number | missing) [rank ≥ 0] i → i', 19],
+            ['Prefix =', 'Prefix · text'], ['fun Numbers Digits leading_sum', 'Digits · integer', 12],
+            ['fun Numbers Digits leading_sum', 'Numbers · c[#]<integer>', 4],
+        ] as const) {
             const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
-            repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site));
+            repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site) + offset);
             expect(formatNameFacts(repl.nameFacts!)).toBe(expected);
         }
     } finally { session.dispose(); }

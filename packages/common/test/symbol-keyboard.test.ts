@@ -72,7 +72,7 @@ describe('symbol keyboard', () => {
 
     it('offers keywords only where they can stand', () => {
         expect(keyAvailable('if', '')).toBe(true);
-        expect(keyAvailable('if', 'fun f X\n  ')).toBe(true);
+        expect(keyAvailable('if', 'fun X f\n  ')).toBe(true);
         expect(keyAvailable('if', 'X = ')).toBe(false);
         expect(keyAvailable('to', '')).toBe(false);
         expect(keyAvailable('not equal', '')).toBe(false);
@@ -110,13 +110,13 @@ describe('symbol keyboard', () => {
         for (const key of ['break', 'continue']) {
             expect(keyAvailable(key, 'for X in 1 to 3\n  ')).toBe(true);
             expect(keyAvailable(key, 'for X in 1 to 3\nend\n')).toBe(false);
-            expect(keyAvailable(key, 'for X in 1 to 3\n  fun f Y\n    ')).toBe(false);
+            expect(keyAvailable(key, 'for X in 1 to 3\n  fun Y f\n    ')).toBe(false);
             expect(keyAvailable(key, 'for X in 1 to 3\n  try\n    X\n  finally\n    ')).toBe(false);
             expect(keyAvailable(key, 'rem for X in 1 to 3\n')).toBe(false);
         }
-        expect(keyAvailable('return', 'fun f X\n  ')).toBe(true);
-        expect(keyAvailable('yield', 'memo f X\n  ')).toBe(true);
-        expect(keyAvailable('return', 'fun f X\n  try\n    X\n  finally\n    ')).toBe(false);
+        expect(keyAvailable('return', 'fun X f\n  ')).toBe(true);
+        expect(keyAvailable('yield', 'memo X f\n  ')).toBe(true);
+        expect(keyAvailable('return', 'fun X f\n  try\n    X\n  finally\n    ')).toBe(false);
         for (const key of ['if', 'fun', 'break', 'return']) {
             expect(keyAvailable(key, 'X = record\n  ')).toBe(false);
             expect(keyAvailable(key, 'X =\n  ')).toBe(false);

@@ -55,14 +55,14 @@ it.each([
     ['array 1 2', ['array'], 1],
     ['record\n .value = 1\nend', ['record'], 0],
 ])('proves a recursive contract seeded by %s', (base, types, rank) => {
-    const result = analyze(`fun f N\n if N equal 0\n return ${base}\n end\n return (N - 1) f\nend`);
+    const result = analyze(`fun N f\n if N equal 0\n return ${base}\n end\n return (N - 1) f\nend`);
     expect(result.functionResults[0]).toMatchObject({ types, rank });
     expect(result.diagnostics).toEqual([]);
 });
 
 it('seeds mutually recursive functions from a returning member', () => {
-    const result = analyze('fun f N\n return N g\nend\n'
-        + 'fun g N\n if N equal 0\n return true\n end\n return (N - 1) f\nend');
+    const result = analyze('fun N f\n return N g\nend\n'
+        + 'fun N g\n if N equal 0\n return true\n end\n return (N - 1) f\nend');
     expect(result.functionResults[0]).toMatchObject({ types: ['boolean'], rank: 0 });
     expect(result.diagnostics).toEqual([]);
 });
@@ -74,34 +74,34 @@ it.each([
     'if N equal 0\n return External\n end\n return (N - 1) f',
     'if N equal 0\n return 1\n end\n X = (N - 1) f\n return External',
 ])('does not manufacture a seed or erase an unknown return: %s', body => {
-    expect(analyze(`fun f N\n ${body}\nend`).functionResults[0].types).toEqual([]);
+    expect(analyze(`fun N f\n ${body}\nend`).functionResults[0].types).toEqual([]);
 });
 
 it.each([
     ['1', 'Next / 2', 'types'],
     ['array 1 2', 'array shape 1 2 fill 1', 'ranks'],
 ])('rejects conflicting base and recursive returns', (base, next, kind) => {
-    const result = analyze(`fun f N\n if N equal 0\n return ${base}\n end\n Next = (N - 1) f\n return ${next}\nend`);
+    const result = analyze(`fun N f\n if N equal 0\n return ${base}\n end\n Next = (N - 1) f\n return ${next}\nend`);
     expect(result.functionResults[0].types).toEqual([]);
     expect(result.diagnostics.some(d => d.message.includes(`returns incompatible ${kind}`))).toBe(true);
 });
 
 it('checks conflicting contracts across a mutually recursive group', () => {
-    const result = analyze('fun f N\n if N equal 0\n return 1\n end\n return N g\nend\n'
-        + 'fun g N\n if N equal 0\n return "bad"\n end\n return N f\nend');
+    const result = analyze('fun N f\n if N equal 0\n return 1\n end\n return N g\nend\n'
+        + 'fun N g\n if N equal 0\n return "bad"\n end\n return N f\nend');
     expect(result.functionResults[0].types).toEqual([]);
     expect(result.diagnostics.some(d => d.message.includes('returns incompatible'))).toBe(true);
 });
 
 it('keeps polymorphic recursive specializations separate', () => {
-    const source = 'fun f X\n if X is .integer\n return "done" f\n end\n return X\nend';
+    const source = 'fun X f\n if X is .integer\n return "done" f\n end\n return X\nend';
     const result = analyze(source);
     expect(result.functionResults[0].types).toEqual(['text']);
     expect(result.diagnostics).toEqual([]);
 });
 
 it('keeps recursive effects conservative even when a return contract is known', () => {
-    const source = 'fun f N A\n if N equal 0\n return 1\n end\n A 0 = N\n return (N - 1) A f\nend';
+    const source = 'fun N A f\n if N equal 0\n return 1\n end\n A 0 = N\n return (N - 1) A f\nend';
     const program = parse(source);
     const array: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true };
     const result = analyze(source, [integer, array]);
@@ -130,7 +130,7 @@ it.each([
 
 it('proves Fibonacci and memoized recursion without evaluating concrete inputs', () => {
     for (const declaration of ['fun', 'memo']) {
-        const result = analyze(`${declaration} f N\n if N less 2\n return N\n end\n`
+        const result = analyze(`${declaration} N f\n if N less 2\n return N\n end\n`
             + ' return ((N - 1) f) + ((N - 2) f)\nend');
         expect(result.functionResults[0]).toEqual(integer);
         expect(result.diagnostics).toEqual([]);
@@ -138,33 +138,33 @@ it('proves Fibonacci and memoized recursion without evaluating concrete inputs',
 });
 
 it('bounds new signatures and leaves a recursive group without a base unknown', () => {
-    const result = analyze('fun f N\n return N g\nend\nfun g N\n return N f\nend');
+    const result = analyze('fun N f\n return N g\nend\nfun N g\n return N f\nend');
     expect(result.functionResults[0]).toEqual(UNKNOWN_VALUE);
     expect(result.diagnostics).toEqual([]);
-    const changing = analyze('fun f N\n return (array N) f\nend');
+    const changing = analyze('fun N f\n return (array N) f\nend');
     expect(changing.functionResults[0]).toEqual(UNKNOWN_VALUE);
 });
 
 it('uses the successful assignment contract in later scalar arithmetic', () => {
-    const result = analyze('fun f Input\n Value = 0\n Value = Input\n return Value / 2\nend', [UNKNOWN_VALUE]);
+    const result = analyze('fun Input f\n Value = 0\n Value = Input\n return Value / 2\nend', [UNKNOWN_VALUE]);
     expect(result.functionResults[0]).toEqual({ types: ['real'], rank: 0, shape: [] });
-    const conflict = analyze('fun f Input\n Value = 0\n Value = Input\n return Value / 2\nend',
+    const conflict = analyze('fun Input f\n Value = 0\n Value = Input\n return Value / 2\nend',
         [{ types: ['text'], rank: 1, shape: [null] }]);
     expect(conflict.diagnostics.some(d => d.message.includes('cannot receive text'))).toBe(true);
 });
 
 it('does not restore scalar constants or captured binding types from an unknown assignment', () => {
-    const result = analyze('fun f Input\n Value = 0\n Value = Input\n'
+    const result = analyze('fun Input f\n Value = 0\n Value = Input\n'
         + ' if Value equal 0\n return 1\n end\n return 2.0\nend', [UNKNOWN_VALUE]);
     expect(result.diagnostics.some(d => d.message.includes('returns incompatible types'))).toBe(true);
-    const captured = analyze('fun f Input\n Value = 0\n fun change\n Value = Input\n return 0\n end\n'
+    const captured = analyze('fun Input f\n Value = 0\n fun change\n Value = Input\n return 0\n end\n'
         + ' change\n return Value / 2\nend', [UNKNOWN_VALUE]);
     expect(captured.functionResults[0].types).toEqual([]);
 });
 
 it('uses inferred recursive operands for inline arithmetic', () => {
     for (const step of ['return ((N - 1) f) / (N real)', 'Previous = (N - 1) f\n return Previous / (N real)']) {
-        const result = analyze(`fun f N\n if N less 2\n return 1.0\n end\n ${step}\nend`);
+        const result = analyze(`fun N f\n if N less 2\n return 1.0\n end\n ${step}\nend`);
         expect(result.functionResults[0]).toEqual({ types: ['real'], rank: 0, shape: [] });
         expect(result.diagnostics).toEqual([]);
     }
@@ -178,11 +178,11 @@ it('widens numeric loop cells when the integer seed is not closed', () => {
 });
 
 const scalarSearch = (body: string, bound = 'Best') => `
-fun f Vals ${bound}
+fun Vals f ${bound}
   Vals 5 0 search
   return ${bound}
 
-  fun search Rest Need Sum
+  fun Rest Need Sum search
 ${body}
   end
 end

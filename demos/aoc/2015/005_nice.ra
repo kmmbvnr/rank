@@ -15,7 +15,7 @@ Part2 print
 
 
 rem Count strings accepted by each rule set.
-fun solve Lines
+fun Lines solve
   Part1 = 0
   Part2 = 0
 
@@ -33,7 +33,7 @@ end
 
 
 rem Check the original vowel, double-letter and forbidden-pair rules.
-fun nice1 S
+fun S nice1
   Vowels = 0
   Double = false
 
@@ -57,7 +57,7 @@ end
 
 
 rem Check for a repeated pair and a letter repeated after one position.
-fun nice2 S
+fun S nice2
   Index = new index
   Pair = false
 
@@ -84,7 +84,7 @@ end
 
 
 rem Return true for a forbidden adjacent pair.
-fun forbidden Pair
+fun Pair forbidden
   if Pair equal "ab" or Pair equal "cd"
     return true
   end

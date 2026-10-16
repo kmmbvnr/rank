@@ -38,9 +38,9 @@ test('preserves precedence, unary signs and grouped operands', () => {
 });
 
 test('folds a return expression without changing block indentation or behavior', () => {
-    const source = 'fun mask Fibs\n  return Fibs mod 5 equal 0 or Fibs mod 3 equal 0\nend';
+    const source = 'fun Fibs mask\n  return Fibs mod 5 equal 0 or Fibs mod 3 equal 0\nend';
     const formatted = formatSource(source);
-    assert.equal(formatted, 'fun mask Fibs\n  return (\n    Fibs mod 5 equal 0\n    or Fibs mod 3 equal 0\n  )\nend');
+    assert.equal(formatted, 'fun Fibs mask\n  return (\n    Fibs mod 5 equal 0\n    or Fibs mod 3 equal 0\n  )\nend');
     assert.equal(evaluate('use numbers\n' + formatted + '\n15 mask'), 'true');
 });
 

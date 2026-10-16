@@ -16,10 +16,10 @@ for (const [name, checkout] of Object.entries(checkouts)) {
   const runtime = new Interpreter();
   runtime.execute(`use sequences
 use stats
-fun polynomial A
+fun A polynomial
   return (A * A + A * 2.0 + 1.0) copy
 end
-fun columns A
+fun A columns
   return A mean axis 0
 end
 ${denseSource}`);

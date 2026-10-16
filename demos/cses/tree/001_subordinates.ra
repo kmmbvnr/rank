@@ -11,7 +11,7 @@ Bosses subordinates print
 
 
 rem Count all employees below each boss.
-fun subordinates Bosses
+fun Bosses subordinates
   N = Bosses len + 1
   Tree = new graph (1 to N) .directed
   for Boss i in Bosses

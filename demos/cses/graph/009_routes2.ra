@@ -32,7 +32,7 @@ end
 
 
 rem Floyd-Warshall with an outer sum.
-fun all_pairs Graph NodeCount
+fun Graph NodeCount all_pairs
   N = NodeCount + 1
   Dist = array shape N N fill infinity
 

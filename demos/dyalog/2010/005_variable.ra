@@ -27,7 +27,7 @@ rem Shares of simulations in which the variable loan
 rem is ahead by more than 50000, by more than 25000,
 rem within 25000, behind by more than 25000 and
 rem behind by more than 50000.
-fun variablerisk Options Params
+fun Options Params variablerisk
   unpack Start Count = Options
   Sims = Count integer
   Quarters = Params 2 integer // 3
@@ -45,7 +45,7 @@ rem remains is the savings from the payment and tax
 rem differences, less the difference of the balances.
 rem Every lane is a vector element, so the only loop is
 rem over months.
-fun difference Changes Start Params
+fun Changes Start Params difference
   unpack Price Costs Months BankAmt BankRate DadAmt DadRate Infl Tax PropRate SavRate Rent = Params
   Term = Months integer
   Sims = Changes shape 1
@@ -80,14 +80,14 @@ rem an equal share of the balance at a zero rate.
 rem Sums of quarterly steps can leave a rate a rounding
 rem error above zero, where 1 + Rate is exactly 1, so
 rem a rate below 1e-9 counts as zero.
-fun payment Balance Rate Months
+fun Balance Rate Months payment
   Annuity = Balance * Rate / (1 - (1 + Rate) ** -Months)
   Zero = Rate less 0.000000001
   return Zero (Balance / Months) Annuity choose
 end
 
 
-fun bins Difference
+fun Difference bins
   Far = (Difference greater 50000) count
   Ahead = ((Difference greater 25000) and (Difference at most 50000)) count
   Even = (Difference abs at most 25000) count

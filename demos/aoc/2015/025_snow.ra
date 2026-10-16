@@ -15,7 +15,7 @@ Answer print
 
 
 rem Parse the requested grid position from the manual sentence.
-fun solve Text
+fun Text solve
   Pattern = "/text row /integer, column /integer."
   unpack Description Row Column = Text Pattern parse
   return Row Column code
@@ -23,7 +23,7 @@ end
 
 
 rem Convert a row and column to its diagonal sequence position.
-fun code Row Column
+fun Row Column code
   Diagonal = Row + Column - 1
   Before = Diagonal - 1
   Position = Before * Diagonal // 2 + Column

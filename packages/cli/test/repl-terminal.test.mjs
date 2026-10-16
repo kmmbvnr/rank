@@ -118,7 +118,7 @@ test('type diagnostics appear while typing before Enter', async t => {
 
 test('function argument diagnostics appear before Enter and disappear after correction', async t => {
     const frames = await drive(t, [
-        { keys: '\x1b[200~fun increment X\n Y = X + 1\n return Y\nend\x1b[201~' + ENTER, until: 'a → \\?' },
+        { keys: '\x1b[200~fun X increment\n Y = X + 1\n return Y\nend\x1b[201~' + ENTER, until: 'a → \\?' },
         { keys: 'Input = "bad"' + ENTER, until: '2›' },
         { keys: 'Input increment', until: 'TypeError' },
         CLEAR + '3 increment'
@@ -154,7 +154,7 @@ test('loop rank diagnostics appear before executing the pasted draft', async t =
 
 test('scalar diagnostics survive a known array write in an unexecuted draft', async t => {
     const frames = await drive(t, [
-        '\x1b[200~fun change X\n X 0 = 1\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"\x1b[201~',
+        '\x1b[200~fun X change\n X 0 = 1\n return 0\nend\nA = array 1 2\nCount = 3\nA change\nCount + "bad"\x1b[201~',
     ], 80, 28);
     assert.match(frames[0].text, /TypeError/);
     assert.match(frames[0].text, /operator \+ does not/);
@@ -178,7 +178,7 @@ test('excess indices are diagnosed before Enter and an edited error disappears b
 
 test('Enter after end returns to rank prompt after previewing an unfinished function', async t => {
     const frames = await drive(t, [
-        { keys: 'fun digit_sum N' + ENTER, until: 'Example digit_sum' },
+        { keys: 'fun N digit_sum' + ENTER, until: 'Example digit_sum' },
         { keys: '"123456"' + ENTER, until: 'N = "123456"' },
         { keys: 'Digits = N text integer rank 0' + '\x12', until: 'Digits = N' },
         ENTER,
@@ -209,7 +209,7 @@ test('clearing an unknown name removes its error before removing the cell', asyn
 
 test('a function containing for returns to rank prompt after selecting an iteration', async t => {
     const frames = await drive(t, [
-        'fun total N' + ENTER,
+        'fun N total' + ENTER,
         '3' + ENTER,
         'Sum = 0' + ENTER,
         'for I in 1 to N' + '\x12',
@@ -268,14 +268,14 @@ test('Ctrl-H toggles source-only copying and restores the editor cursor', async 
 
 test('copy view hides live function example fields and preserves their focus', async t => {
     const frames = await drive(t, [
-        'fun hand_score Cards' + ENTER,
+        'fun Cards hand_score' + ENTER,
         '"example"' + '\x1b[D',
         '\x08',
         '\x08',
         ENTER,
         'Cards' + ENTER,
     ]);
-    assert.equal(frames[2].text.trimEnd(), 'fun hand_score Cards');
+    assert.equal(frames[2].text.trimEnd(), 'fun Cards hand_score');
     assert.equal(frames[3].text, frames[1].text);
     assert.equal(frames[3].cursorX, frames[1].cursorX);
     assert.equal(frames[3].cursorY, frames[1].cursorY);
@@ -725,43 +725,43 @@ test('an unknown debugger key is reported in the pause footer', async t => {
 
 test('bracketed paste uses the cursor in the focused function argument', async t => {
     const frames = await drive(t, [
-        'fun hand_score Cards' + ENTER,
+        'fun Cards hand_score' + ENTER,
         '""\x1b[D',
         '\x1b[200~5H 5C 6S 7S KD\x1b[201~',
         ENTER,
         'Cards' + ENTER,
     ], 100, 30);
     assert.match(frames[1].text, /Cards = ""/);
-    assert.match(frames[2].text, /rank> fun hand_score Cards\n\s+Cards = "5H 5C 6S 7S KD"/);
+    assert.match(frames[2].text, /rank> fun Cards hand_score\n\s+Cards = "5H 5C 6S 7S KD"/);
     assert.equal(frames[2].cursorX, '      Cards = "5H 5C 6S 7S KD'.length);
     assert.match(frames[4].text, /\n        5H 5C 6S 7S KD\n/);
 });
 
 test('an open function evaluates body lines immediately on example arguments', async t => {
     const frames = await drive(t, [
-        { keys: 'fun inc N' + ENTER, until: 'Example inc' },
+        { keys: 'fun N inc' + ENTER, until: 'Example inc' },
         { keys: '2' + ENTER, until: 'N = 2' },
         { keys: 'A = N + 1' + ENTER, until: '\\s+3' },
         { keys: 'A * 2' + ENTER, until: '\\s+6' },
         { keys: 'end' + ENTER, until: 'a → \\?' },
     ], 100, 30);
-    assert.match(frames[0].text, /rank> fun inc N\n\s+N = /);
+    assert.match(frames[0].text, /rank> fun N inc\n\s+N = /);
     assert.match(frames[0].text, /N = /);
     assert.match(frames[0].text, /Example inc · N \(1\/1\)/);
     assert.equal(frames[0].cursorX, 10, 'argument cursor belongs immediately after N =');
-    assert.match(frames[1].text, /fun inc N/);
-    assert.match(frames[1].text, /fun inc N\n\s+N = 2/);
+    assert.match(frames[1].text, /fun N inc/);
+    assert.match(frames[1].text, /fun N inc\n\s+N = 2/);
     assert.match(frames[2].text, /A = N \+ 1\n        3/);
-    assert.match(frames[2].text, /fun inc N\n\s+N = 2/);
+    assert.match(frames[2].text, /fun N inc\n\s+N = 2/);
     assert.match(frames[3].text, /A \* 2\n        6/);
     assert.doesNotMatch(frames[2].text + frames[3].text, /Paused/);
-    assert.match(frames[4].text, /●\s*1› fun inc N/);
+    assert.match(frames[4].text, /●\s*1› fun N inc/);
     assert.match(frames[4].text, /a → \?/);
 });
 
 test('up from the first body line reopens Cards for an array example', async t => {
     const frames = await drive(t, [
-        'fun hand_score Cards' + ENTER,
+        'fun Cards hand_score' + ENTER,
         '"5H 5C"' + ENTER,
         'return Cards',
         UP,
@@ -779,7 +779,7 @@ test('up from the first body line reopens Cards for an array example', async t =
 
 test('mouse clicks place the cursor in argument values and source', async t => {
     const frames = await drive(t, [
-        'fun hand_score Cards' + ENTER,
+        'fun Cards hand_score' + ENTER,
         '"ab"' + ENTER,
         'return Cards',
         '\x1b[<0;17;2M\x1b[<0;17;2m' + 'X',
@@ -795,7 +795,7 @@ test('mouse clicks place the cursor in argument values and source', async t => {
 
 test('arrows leave example fields in both directions without losing edits or evaluating', async t => {
     const frames = await drive(t, [
-        'fun hand_score Cards' + ENTER,
+        'fun Cards hand_score' + ENTER,
         'array "5H" "5C"' + ENTER,
         'Values = Cards',
         UP,
@@ -806,7 +806,7 @@ test('arrows leave example fields in both directions without losing edits or eva
         DOWN,
     ]);
     assert.match(frames[3].text.split('\n')[frames[3].cursorY], /Cards = array/);
-    assert.match(frames[4].text.split('\n')[frames[4].cursorY], /fun hand_score Cards/);
+    assert.match(frames[4].text.split('\n')[frames[4].cursorY], /fun Cards hand_score/);
     assert.match(frames[5].text.split('\n')[frames[5].cursorY], /Cards = array/);
     assert.match(frames[6].text.split('\n')[frames[6].cursorY], /Values = Cards/, frames[6].text);
     assert.match(frames[7].text.split('\n')[frames[7].cursorY], /Cards = array "KD"/);
@@ -816,8 +816,8 @@ test('arrows leave example fields in both directions without losing edits or eva
 
 test('function examples show split values and ranked failures show the failing card', async t => {
     const frames = await drive(t, [
-        { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun card_value Card\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER, until: 'a → i' },
-        'fun hand_score Cards' + ENTER,
+        { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun Card card_value\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER, until: 'a → i' },
+        'fun Cards hand_score' + ENTER,
         '"5H 5C" "" split' + ENTER,
         'Values = Cards card_value rank 0' + ENTER,
         UP,
@@ -834,7 +834,7 @@ test('function examples show split values and ranked failures show the failing c
 
 test('arrow keys edit visible function arguments and return to them from the body', async t => {
     const frames = await drive(t, [
-        { keys: 'fun add X Y' + ENTER, until: 'X =' },
+        { keys: 'fun X Y add' + ENTER, until: 'X =' },
         { keys: '1' + DOWN, until: 'Y =' },
         { keys: '2' + UP, until: 'X = 1' },
         { keys: CLEAR + '3' + DOWN, until: 'X = 3' },
@@ -858,7 +858,7 @@ test('arrow keys edit visible function arguments and return to them from the bod
 test('a live function named plus is not rewritten to an operator in its preview call', async t => {
     const frames = await drive(t, [
         { keys: 'A = array 1 2 3' + ENTER, until: '1›' },
-        { keys: 'fun plus X Y' + ENTER, until: 'X =' },
+        { keys: 'fun X Y plus' + ENTER, until: 'X =' },
         { keys: 'A' + ENTER, until: 'Y =' },
         { keys: 'A+1' + ENTER, until: 'A\\+1' },
         { keys: 'return X + Y - 1' + ENTER, until: '2 4 6' },
@@ -869,7 +869,7 @@ test('a live function named plus is not rewritten to an operator in its preview 
 
 test('Esc skips a function example without adding its draft to the program', async t => {
     const frames = await drive(t, [
-        'fun twice X' + ENTER,
+        'fun X twice' + ENTER,
         '21',
         '\x1b',
         'return X * 2' + ENTER,
@@ -878,7 +878,7 @@ test('Esc skips a function example without adding its draft to the program', asy
     ], 80, 20);
     assert.match(frames[0].text, /Example twice/);
     assert.match(frames[1].text, /X = 21/);
-    assert.match(frames[2].text, /fun twice X/);
+    assert.match(frames[2].text, /fun X twice/);
     assert.doesNotMatch(frames[3].text, /\n\s+42\n/);
     assert.match(frames[5].text, /\n      8\n/);
 });
@@ -886,7 +886,7 @@ test('Esc skips a function example without adding its draft to the program', asy
 test('an invalid function example reports syntax at its field and stays editable', async t => {
     const frames = await drive(t, [
         { keys: 'A = 1' + ENTER, until: '1›' },
-        { keys: 'fun inc X' + ENTER, until: 'Example inc' },
+        { keys: 'fun X inc' + ENTER, until: 'Example inc' },
         { keys: 'A = 1' + ENTER, until: 'Syntax' },
         { keys: CLEAR + 'A' + ENTER, until: 'X = A' },
     ], 80, 20);
@@ -899,7 +899,7 @@ test('an invalid function example reports syntax at its field and stays editable
 
 test('a runtime error in a function example stays on its argument field', async t => {
     const frames = await drive(t, [
-        'fun family Prime Pick' + ENTER,
+        'fun Prime Pick family' + ENTER,
         '123123' + ENTER,
         '0 1 2' + ENTER,
         { keys: CLEAR + 'array 0 1 2' + ENTER, until: 'Pick = array 0 1 2' },
@@ -914,11 +914,11 @@ test('a runtime error in a function example stays on its argument field', async 
 test('fixing func to fun turns the failed cell into live function input', async t => {
     const frames = await drive(t, [
         { keys: 'func inc2 Y' + ENTER, until: 'unknown name: func' },
-        { keys: CLEAR + 'fun inc2 Y' + ENTER, until: 'Example inc2' },
+        { keys: CLEAR + 'fun Y inc2' + ENTER, until: 'Example inc2' },
         '\x1b',
     ], 80, 18);
     assert.match(frames[0].text, /unknown name: func/);
-    assert.match(frames[1].text, /●\s*1› fun inc2 Y\n\s+Y = /);
+    assert.match(frames[1].text, /●\s*1› fun Y inc2\n\s+Y = /);
     assert.match(frames[1].text, /Example inc2 · Y \(1\/1\)/);
     assert.doesNotMatch(frames[1].text, /unknown name: func/);
     assert.match(frames[1].text.split('\n')[frames[1].cursorY], /Y = /);
@@ -926,7 +926,7 @@ test('fixing func to fun turns the failed cell into live function input', async 
 
 test('Ctrl-R reruns an unfinished function and leaves it open at the current line', async t => {
     const frames = await drive(t, [
-        'fun inc N' + ENTER,
+        'fun N inc' + ENTER,
         '4' + ENTER,
         'Result = N + 1',
         '\x12',
@@ -949,7 +949,7 @@ test('Ctrl-R reruns an unfinished function and leaves it open at the current lin
 
 test('Enter on an empty live-function line preserves a blank without inserting end', async t => {
     const frames = await drive(t, [
-        'fun inc X' + ENTER,
+        'fun X inc' + ENTER,
         '1' + ENTER,
         'return X + 1' + ENTER,
         ENTER,
@@ -964,7 +964,7 @@ test('Enter on an empty live-function line preserves a blank without inserting e
 
 test('Enter reevaluates an edited function line without inserting end', async t => {
     const frames = await drive(t, [
-        'fun inc X' + ENTER,
+        'fun X inc' + ENTER,
         '1' + ENTER,
         'Result = X + 1' + ENTER,
         UP + END + '\x7f' + '2' + ENTER,
@@ -979,7 +979,7 @@ test('Enter reevaluates an edited function line without inserting end', async t 
 
 test('a live eval error keeps the terminal cursor on the erroneous line', async t => {
     const frames = await drive(t, [
-        'fun inc X' + ENTER,
+        'fun X inc' + ENTER,
         '1' + ENTER,
         'resutl = X + 2' + ENTER,
     ], 80, 20);
@@ -1005,7 +1005,7 @@ test('postfix comparisons select whole arrays and column cells in the terminal',
 
 test('multiline assignment previews work in the terminal', async t => {
     const frames = await drive(t, [
-        '\x1b[200~fun hand_score Cards\n  WheelMask = (\n    Cards equal (array 0 1 2 3 12)\n  )\nend\x1b[201~' + ENTER,
+        '\x1b[200~fun Cards hand_score\n  WheelMask = (\n    Cards equal (array 0 1 2 3 12)\n  )\nend\x1b[201~' + ENTER,
         UP,
         UP,
         '\x12',
@@ -1018,7 +1018,7 @@ test('multiline assignment previews work in the terminal', async t => {
 
 test('Ctrl-R reopens a completed function at the selected line with its old example', async t => {
     const frames = await drive(t, [
-        'fun inc X' + ENTER,
+        'fun X inc' + ENTER,
         '2' + ENTER,
         'Result = X + 1' + ENTER,
         'Result *= 2' + ENTER,
@@ -1133,7 +1133,7 @@ test('loaded function below its call is available without executing the file on 
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-load-forward-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
     const target = path.join(directory, 'forward.ra');
-    fs.writeFileSync(target, 'Answer = 21 twice\nfun twice X\n  return X + X\nend\n');
+    fs.writeFileSync(target, 'Answer = 21 twice\nfun X twice\n  return X + X\nend\n');
     const frames = await drive(t, [
         { keys: `load ${target}` + ENTER, until: 'forward.ra' },
         { keys: 'twi\t', until: 'twice ' },
@@ -1149,7 +1149,7 @@ test('debugging a loaded file uses document line numbers for cells and function 
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-debug-lines-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
     const target = path.join(directory, 'forward.ra');
-    fs.writeFileSync(target, 'rem Example\n\nAnswer = 21 twice\n\nfun twice X\n  return X + X\nend\n');
+    fs.writeFileSync(target, 'rem Example\n\nAnswer = 21 twice\n\nfun X twice\n  return X + X\nend\n');
     const frames = await drive(t, [
         { keys: `load ${target}` + ENTER, until: 'forward.ra' },
         { keys: ENTER, until: 'a → a' },
@@ -1162,7 +1162,7 @@ test('debugging a loaded file uses document line numbers for cells and function 
     assert.match(frames[2].text, /● 3 │ Answer = 21 twice/);
     assert.match(frames[2].text, /1 │ rem Example/);
     assert.match(frames[3].text, /Paused · before line 5/);
-    assert.match(frames[3].text, /● 5 │ fun twice X/);
+    assert.match(frames[3].text, /● 5 │ fun X twice/);
     assert.match(frames[3].text, /3 │ Answer = 21 twice/);
     assert.ok(frames[3].text.indexOf('Call stack') < frames[3].text.indexOf('● 5 │'));
     assert.ok(frames[3].text.indexOf('Variables (current scope)') > frames[3].text.indexOf('● 5 │'));
@@ -1187,7 +1187,7 @@ test('mouse wheel scrolls source without moving the editing cursor', async t => 
 
 test('Esc leaves function evaluation so Enter inserts a line before end', async t => {
     const frames = await drive(t, [
-        'fun inc X' + ENTER,
+        'fun X inc' + ENTER,
         '2' + ENTER,
         'Result = X + 1' + ENTER,
         'end' + ENTER,
@@ -1210,7 +1210,7 @@ test('Esc leaves function evaluation so Enter inserts a line before end', async 
 
 test('Enter during evaluation inserts a temporary line that disappears when left empty', async t => {
     const frames = await drive(t, [
-        'fun inc X' + ENTER,
+        'fun X inc' + ENTER,
         '2' + ENTER,
         'Result = X + 1' + ENTER,
         'end' + ENTER,
@@ -1232,7 +1232,7 @@ test('Enter during evaluation inserts a temporary line that disappears when left
 
 test('Tab restores indentation on an empty function line before completion', async t => {
     const frames = await drive(t, [
-        { keys: '\x1b[200~fun identity X\n  return X\n\nend\x1b[201~', until: 'end' },
+        { keys: '\x1b[200~fun X identity\n  return X\n\nend\x1b[201~', until: 'end' },
         { keys: ENTER, until: 'a → a' },
         UP,
         UP,

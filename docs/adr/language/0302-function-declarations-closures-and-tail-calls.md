@@ -22,7 +22,7 @@ Rank establishes **parenthesis-free function declarations, file-level declaratio
 ### 1. Punctuation-Free Function Declarations
 Functions declare parameters separated by whitespace and terminate with `end`:
 ```rank
-fun gcd A B
+fun A B gcd
   for B not equal 0
     R = A mod B
     A = B
@@ -41,7 +41,7 @@ All top-level functions in a source file are parsed and registered before top-le
 ```rank
 Answer = 41 next
 
-fun next X
+fun X next
   return X + 1
 end
 ```
@@ -52,10 +52,10 @@ end
 ### 3. Lexical Closures and Nested Functions
 Functions can declare nested local functions. Local functions capture their enclosing lexical workspace by reference:
 ```rank
-fun make Base
+fun Base make
   return add
 
-  fun add Value
+  fun Value add
     return Base + Value
   end
 end
@@ -66,7 +66,7 @@ end
 ### 4. Guaranteed Proper Tail Calls (TCO)
 Rank **guarantees frame replacement for calls in tail position**:
 ```rank
-fun count N Total
+fun N Total count
   if N equal 0
     return Total
   end
@@ -77,14 +77,14 @@ end
 - The interpreter and compiler replace the current call frame rather than allocating a new stack frame.
 - **Mutual recursion** is fully supported:
   ```rank
-  fun even N
+  fun N even
     if N equal 0
       return true
     end
     return (N - 1) odd
   end
 
-  fun odd N
+  fun N odd
     if N equal 0
       return false
     end

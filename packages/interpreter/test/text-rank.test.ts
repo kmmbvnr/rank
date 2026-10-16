@@ -72,11 +72,11 @@ for (const compiled of [false, true]) describe(`text rank (compiled=${compiled})
         try {
             r.execute(`use sequences
 Calls = array 0
-fun point Text
+fun Text point
   Calls 0 += 1
   return Text
 end
-fun same Left Right rank 0 0
+fun Left Right same rank 0 0
   return Left equal Right
 end`);
             const result = r.execute('"😀é" point rank 0')!;

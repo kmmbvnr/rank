@@ -16,7 +16,7 @@ Answer print
 
 rem Build each amount from coins already seen,
 rem so permutations are never counted twice.
-fun coin_sums Coins Target
+fun Coins Target coin_sums
   Ways = array shape (Target + 1) fill 0
   Ways 0 = 1
 

@@ -10,7 +10,7 @@ Values increasing_length print
 
 
 rem Keep the smallest tail by length.
-fun increasing_length Values
+fun Values increasing_length
   Tails = new multiset
 
   for Value in Values

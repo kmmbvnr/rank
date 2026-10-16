@@ -22,7 +22,7 @@ Submission OutputPath csv
 
 
 rem Learn vocabulary only from training text.
-fun solve_table Train Test Limit Rate Steps
+fun Train Test Limit Rate Steps solve_table
   TrainTexts = Train .text default ""
   TestTexts = Test .text default ""
   Vocab = TrainTexts Limit vocab
@@ -34,7 +34,7 @@ end
 
 
 rem Count normalized Unicode words from the training vocabulary.
-fun term_counts Texts Vocab
+fun Texts Vocab term_counts
   Rows = Texts len
   Columns = Vocab len
   Counts = array shape Rows Columns fill 0.0
@@ -60,7 +60,7 @@ end
 
 
 rem Fit smoothed inverse document frequencies on Train only.
-fun tfidf_fit Texts Vocab
+fun Texts Vocab tfidf_fit
   Counts = Texts Vocab term_counts
   Documents = Texts len
   Present = (Counts greater 0.0) 1.0 0.0 choose
@@ -75,13 +75,13 @@ fun tfidf_fit Texts Vocab
 end
 
 
-fun tfidf_transform Texts Model
+fun Texts Model tfidf_transform
   Counts = Texts Model .vocab term_counts
   return Counts * Model .idf
 end
 
 
-fun solve TrainTexts Y TestTexts Vocab Rate Steps
+fun TrainTexts Y TestTexts Vocab Rate Steps solve
   TextModel = TrainTexts Vocab tfidf_fit
   X = TrainTexts TextModel tfidf_transform
   Xtest = TestTexts TextModel tfidf_transform

@@ -16,8 +16,8 @@ States = Cols reshape Size 1
 rem Add a queen in the next row to every board, once per free column.
 for Row in 1 till Size
   Dy = Row till 0 by -1
-  hit Q = concat Q (Q + Dy) (Q - Dy)
-  avail Q = Cols not in Q hit
+  fun Q hit = concat Q (Q + Dy) (Q - Dy)
+  fun Q avail = Cols not in Q hit
   Free = States avail rank 1
   Where = Free indices
 

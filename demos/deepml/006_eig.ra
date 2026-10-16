@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/6
 use numbers
 use sequences
 
-fun eigenvalues A
+fun A eigenvalues
   Shape = A shape
   if Shape len not equal 2
     .DimensionMismatch raise

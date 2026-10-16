@@ -100,7 +100,7 @@ contracts before it is installed. Rejected replacements leave the old binding.
 A heterogeneous traversal should process each record in a fresh function call:
 
 ```rank
-fun visit Node
+fun Node visit
   return Node .value
 end
 ```
@@ -246,7 +246,7 @@ and the same recursive type/rank at each position. Array lengths inside a tuple
 may vary. A tuple is rank 0; text remains rank 1.
 
 ```rank
-fun items Flag
+fun Flag items
   if Flag
     return tuple 1 "yes"
   end
@@ -285,7 +285,7 @@ from the cell cache:
 
 ```rank
 use sequences
-fun twice Values
+fun Values twice
   return Values * 2
 end
 Source = array 1 2
