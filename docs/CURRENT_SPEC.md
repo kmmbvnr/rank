@@ -15,6 +15,16 @@ The language is designed for:
 
 This wiki contains only the current design. Deprecated experiments are omitted.
 
+When semantics change, update the canonical section and affected examples in the
+same change. Link to shared rules instead of copying them between pages. The
+[cell/frame application model](language/sequences-arrays.md#rank) is maintained
+with `rank-shape-parity.test.ts`, `empty-frame-rank.test.ts`,
+`intrinsic-matrix-ranks.test.ts`, `function-ranks.test.ts` and
+`comparison-rank.test.ts` in `packages/interpreter/test`. Add missing behavioral
+cases there rather than testing documentation wording. Regenerate the stdlib
+reference from its catalogue/CLI preamble; `packages/cli/test/reference.test.mjs`
+checks that the published page matches the generator.
+
 ## Core principles
 
 1. Keep source narrow: target about 40 characters per line.

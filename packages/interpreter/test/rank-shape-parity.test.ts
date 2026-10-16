@@ -150,3 +150,70 @@ it('gets empty-frame shapes without reading lazy cells or calling the function',
     }
     expect([reads, calls]).toEqual([0, 0]);
 });
+
+it('preserves documented matrix batches in both execution modes', () => {
+    // Independent expectations: do not derive these with runtime shape helpers.
+    const cases: [Shape, Shape, Shape, bigint][] = [
+        [[8, 2, 3], [8, 3, 4], [8, 2, 4], 6n],
+        [[8, 1, 2, 3], [1, 6, 3, 4], [8, 6, 2, 4], 6n],
+        [[0, 2, 3], [1, 3, 4], [0, 2, 4], 6n],
+        [[1, 1, 2, 3], [1, 1, 3, 4], [1, 1, 2, 4], 6n],
+        [[2, 2, 0], [1, 0, 4], [2, 2, 4], 0n],
+    ];
+    for (const [left, right, expected, element] of cases) {
+        for (const call of ['A B matmul rank 2 2', 'A B multiply rank 2 2']) {
+            const source = [
+                'use linalg',
+                'fun X Y multiply',
+                '  return X Y matmul',
+                'end',
+                `A = array shape ${left.join(' ')} fill 1`,
+                `B = array shape ${right.join(' ')} fill 2`,
+                `R = ${call}`,
+            ].join('\n');
+            check(source, expected);
+            for (const enabled of [false, true]) {
+                const runtime = new Interpreter(() => {}, {
+                    blockCompilation: enabled, functionBodyCompilation: enabled,
+                    scalarFunctionCompilation: enabled, tensorFusion: enabled,
+                });
+                try {
+                    const result = runtime.execute(`${source}\nR`);
+                    if (!result || !isRankArray(result)) throw new Error('expected batched array');
+                    expect(result.shape, source).toEqual(expected);
+                    expect(result.items, source).toEqual(
+                        Array(expected.reduce((size, dimension) => size * dimension, 1)).fill(element));
+                } finally { runtime.dispose(); }
+            }
+        }
+    }
+});
+
+it('routes broadcast matrix cells in frame order without mixing contraction axes', () => {
+    const left = Array.from({ length: 12 }, (_, index) => BigInt(index + 1));
+    const right = Array.from({ length: 18 }, (_, index) => BigInt(index + 1));
+    const expected: bigint[] = [];
+    // Two left matrices crossed with three right matrices; ordinary scalar dot products.
+    for (let a = 0; a < 2; a++) for (let b = 0; b < 3; b++) {
+        for (let row = 0; row < 2; row++) for (let col = 0; col < 2; col++) {
+            let total = 0n;
+            for (let k = 0; k < 3; k++) total += left[a * 6 + row * 3 + k] * right[b * 6 + k * 2 + col];
+            expected.push(total);
+        }
+    }
+    for (const enabled of [false, true]) {
+        const runtime = new Interpreter(() => {}, {
+            blockCompilation: enabled, functionBodyCompilation: enabled,
+            scalarFunctionCompilation: enabled, tensorFusion: enabled,
+        });
+        try {
+            const source = `use linalg\nA = array ${left.join(' ')} shape 2 1 2 3\n`
+                + `B = array ${right.join(' ')} shape 1 3 3 2\nR = A B matmul rank 2 2`;
+            check(source, [2, 3, 2, 2]);
+            const result = runtime.execute(`${source}\nR`);
+            if (!result || !isRankArray(result)) throw new Error('expected batched array');
+            expect(result.shape).toEqual([2, 3, 2, 2]);
+            expect(result.items).toEqual(expected);
+        } finally { runtime.dispose(); }
+    }
+});

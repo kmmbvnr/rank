@@ -212,6 +212,8 @@ const REFERENCE_PREAMBLE = [
     '',
     '## Default cells',
     '',
+    'The [canonical rank rules](../language/sequences-arrays.md#rank) define',
+    'cell selection, frame broadcasting, result assembly and empty-frame limits.',
     'Every operation and supported arity below records its declared cell ranks.',
     'A numeric rank selects trailing axes; leading axes form a broadcast frame.',
     'Inputs with fewer axes are passed whole and validated by the operation.',

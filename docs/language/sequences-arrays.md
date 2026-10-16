@@ -1013,7 +1013,9 @@ Pred = Pred - 1
 Array operands use trailing-axis broadcasting. Shapes are aligned from the
 right; corresponding dimensions are compatible when they are equal or either
 dimension is `1`. Missing leading dimensions behave as dimensions of size `1`.
-The result has the larger compatible size on every axis:
+Equal sizes stay unchanged; if one size is `1`, the result uses the other
+size. Thus `0` with `1` produces `0`, while `0` with `2` is incompatible.
+See [Rank](#rank) for the common cell/frame application model:
 
 ```rank
 M = array shape 2 3 fill 1
@@ -1127,7 +1129,21 @@ until that equivalence is settled.
 
 ## Rank
 
-General cell-wise application follows J-like trailing-cell semantics:
+This section defines the common application model for arrays. Operation-specific
+examples in [Tensors](tensors.md#rank-based-application) and the
+[standard-library catalogue](../stdlib/reference.md#default-cells) use these rules.
+
+A ranked call has four parts: select cells, broadcast their frames, invoke the
+operation on corresponding cells, and assemble the results. Cell selection does
+not relax the operation's input requirements. For example, choosing matrix cells
+for `matmul` does not make unequal contracted dimensions compatible.
+
+### Cell selection
+
+A cell contains the trailing axes selected by its rank; the remaining leading
+axes form the frame. For shape `7 20 4`, rank 1 selects cells of shape `4` in a
+`7 20` frame; rank 2 selects cells of shape `20 4` in a `7` frame:
+
 
 ```rank
 A F rank 0
@@ -1146,7 +1162,10 @@ explicit modifier, that rank determines the cells it receives. `rank R`
 overrides the unary rank: if the argument rank is greater than `R`, the function
 is applied to each trailing `R`-cell and the leading frame is preserved. If the
 argument rank is at most `R`, the function receives the whole argument once.
-Rank values are currently nonnegative integers.
+A negative rank counts from the operand's own rank, clamped at zero: `rank -1`
+selects rows of a matrix and scalar items of a vector. User functions receive
+whole operands by default and may declare intrinsic ranks in their headers.
+A declaration may use `all` for a whole operand; call-site overrides use integers.
 
 An explicit `axis` list before `rank` names the frame axes. The remaining axes,
 kept in their original order, form the cell passed to the unary function:
@@ -1165,9 +1184,70 @@ shape `2 3 4 5`, `T F axis 1 3 rank 2` applies `F` to `2 4` cells and produces
 results in a `3 5` frame. The number of frame axes plus the cell rank must equal
 the tensor rank. Frame axes are zero-based, unique and in bounds.
 
-Every cell result must have the same shape. Scalar results leave only the frame
-shape; array results append their shape to the frame. Source cells and the
-assembled result are lazy views, and a demanded cell result is cached.
+### Frame agreement and binary calls
+
+Frames align from the right. Missing leading axes act as size 1. On each axis,
+equal sizes are retained; if one size is 1, use the other; otherwise raise
+`.DimensionMismatch`. In particular, `0` with `1` gives `0`, and a pair of
+size-1 axes remains an axis of size 1. There is no prefix-alignment fallback.
+An operand with no frame is reused whole for every cell of the other operand.
+
+A named binary call accepts separate cell ranks:
+
+```rank
+C = A B matmul rank 2 2
+```
+
+The frames broadcast independently of the matrix multiplication inside each
+cell. See [matrix multiplication](tensors.md#matrix-multiplication) for batching
+examples. For ordinary named binary functions, a single `rank L` changes the
+left cell rank and retains the right operand's declared rank. Binary comparisons
+have their own single-rank shorthand, described below.
+
+Only positional data operands participate in ranked application; function
+operands and optional configuration stay fixed. General lifting supports one or
+two data operands. Calls with more data operands receive whole values; they do
+not gain automatic n-ary lifting. General binary calls do not accept explicit
+frame axes; the comparison forms below do. Special forms such as `reduce`,
+`outer`, constructors and indexing retain their documented application rules.
+
+### Result assembly and validation
+
+Every array-valued cell result must have the same shape. Scalar results leave
+only the frame shape; array results append their shape to the frame. Text,
+sequences and tuples returned as cell values stay boxed rather than contributing
+array axes. Rank does not pad unequal results to a common size.
+
+Ranked array results can be lazy. Determining their shape can evaluate the first
+cell; reading later cells can discover incompatible result shapes or operation
+errors. A shape query therefore does not prove that every cell is valid. Pure
+scalar builtin paths may compute eagerly; laziness is not a guarantee that no
+computation occurs at construction. User callbacks can have effects, so do not
+assume arbitrary reordering or parallel execution is allowed.
+
+A zero-sized frame contains no calls. Known result-cell axes are retained:
+`sort` over shape `0 3` at rank 1 produces shape `0 3`. A nonempty frame of
+empty cells is different: shape `2 0` at rank 1 contains two empty vectors, so
+`sum` produces two zeros. Declared cell constraints still apply to empty frames:
+an empty batch does not make nonsquare matrix cells valid for `inverse`.
+
+For an empty frame, unknown lengths in a known result shape become zero at
+runtime; if the result rank is unknown, no cell axes are appended. For example,
+`unique` over shape `0 3` produces shape `0 0`. User-function result shapes are
+inferred without running their bodies; previously established return-rank
+contracts can also supply a rank with zero lengths. Inference is incomplete.
+Only pure builtins without a shape hook may use a bounded zero-filled prototype
+(currently at most 65,536 elements); a failed or oversized probe leaves the
+result-cell shape unknown. Binary empty-frame assembly uses its shape hook
+without a prototype call.
+
+Static analysis may know fewer dimensions than execution. Unknown dimensions
+are not proof of incompatibility, nor permission to skip runtime checks. Known
+facts must agree with execution. Shape facts alone establish neither element
+types nor purity. See [shape contracts](../stdlib/reference.md#shape-contracts)
+and [return contracts](control-functions.md#return-contracts-and-argument-ranks).
+
+### Text and sequences
 
 `integer` converts a complete text value by default and maps arrays while
 preserving their shape. Explicit `rank 0` converts individual Unicode code
@@ -1236,8 +1316,10 @@ array rank. Explicit axes require arrays on both sides.
 
 Sequences stay lazy at `rank 0`; a higher rank materializes a bounded sequence
 for comparison as one vector. Known infinite sequences are rejected for a
-whole-vector comparison. These explicit binary forms currently apply to the
-six comparison operators above; general binary function rank remains deferred.
+whole-vector comparison. Comparison ranks must be nonnegative. A single
+comparison `rank R` applies to both operands;
+`rank L R` selects their cell ranks separately. The explicit frame-axis forms
+in this subsection apply to these six comparisons.
 
 ## Reduce
 
@@ -1411,8 +1493,8 @@ Smallest = A B outer operation
 Cell ranks belong to the operation; `outer` combines the remaining frames.
 Symbolic binary operations have intrinsic ranks `0 0`. The named functions
 `band`, `bor`, `bxor`, `shl`, `shr`, `min` and `max` also declare ranks `0 0`.
-User-defined binary functions currently default to `all all`; syntax for
-declaring their intrinsic ranks remains deferred.
+User-defined binary functions default to `all all` and may declare intrinsic
+ranks, for example `fun X Y add rank 0 0`.
 
 The result shape is the concatenation of the left and right frame shapes.
 Therefore, if `A` has shape `2 3` and `B` has shape `4 5`, the result of atom
@@ -1434,8 +1516,8 @@ may depend only on its arguments and immutable captured values. The runtime does
 not yet prove this property; static effect analysis is tracked separately as
 tooling work.
 
-Explicit binary comparison rank and frame axes are supported as described
-in the Rank section. General binary function rank overrides remain deferred.
+For paired cells with broadcasting, use the [ranked-call forms](#rank).
+`outer` instead forms all pairs using the supplied operation's intrinsic ranks.
 
 An axis-qualified cell view may become an operand of `outer`. Its `axis` order
 will define frame order and its `rank` will define the cells, allowing rows of

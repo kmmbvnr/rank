@@ -32,9 +32,10 @@ postcondition overhead.
   and array concatenation examples are not contracts for these Rank operations.
 - `{ exists: 'k' }` marks a value-dependent output dimension. A result dimension
   `null` is reserved for a shape-determined but unexpressed length. Both
-  instantiate to an unknown dimension today; #67 can inspect the declaration
-  to distinguish them. An entirely `null` result pattern means the result rank
-  also needs values; it does not promise uniform cells.
+  instantiate to an unknown dimension in the signature matcher; the ragged-lift
+  analysis added in #67 inspects the declaration to distinguish them. An entirely
+  `null` result pattern means the result rank also needs values; it does not
+  promise uniform cells.
 - `permutations` removes duplicate permutations. Three distinct values produce
   six items and three equal values produce one, so its length is existential.
   `reshape` depends on target values; its specialized analysis still recovers
@@ -59,13 +60,17 @@ execution and static checking, without affecting collection search or user funct
 
 ## Remaining scope
 
-Symbolic shape propagation (#66), ragged-lift diagnostics (#67), compiler/Rust
-consumers and additional contracts for currently unannotated operations are
-follow-up work. Shape facts do not establish element types, purity, callback
-safety or the absence of effects. Those require their existing independent
-proofs.
+Symbolic shape propagation (#66) and ragged-lift diagnostics (#67) have since
+been implemented; these are no longer migration follow-ups. Symbolic dimensions
+are a sidecar to concrete/unknown shapes, as described in
+[the analysis architecture](../adr/implementation/0002-abstract-interpretation-and-symbolic-shape-inference.md).
+The current [rank rules](../language/sequences-arrays.md#rank) describe assembly
+and empty-frame limits. Further compiler/Rust consumers and contracts for
+currently unannotated operations remain possible extensions. Shape facts do not
+establish element types, purity, callback safety or the absence of effects.
+Those require their existing independent proofs.
 
-A product-dimension example for #66 would be flattening each rank-k cell of a
+An extension beyond #66 would be flattening each rank-k cell of a
 batch of dense tensors with scalar elements: `[3, 2, 4]` would become `[3, 8]`.
 Its cell length is `2 * 4`, uniformly across the batch, so an addition-only
 contract would need an unexpressed dimension rather than an existential one.
@@ -73,3 +78,23 @@ This remains a proposed tensor operation. Rank's current `flat` copies a
 rank-1 record array into compact storage, or initializes it from a count and
 record state; it does not flatten numeric tensors. Its missing contract is a
 separate catalogue addition, not a multiplication example.
+
+## Application-model maintenance (#281)
+
+The canonical language rules now live in the Rank section linked above.
+`rank-shape-parity.test.ts` checks independent frame/cell expectations against
+analysis and runtime, including batched contraction and zero-sized axes.
+
+The audit found separate concrete runtime and partial static partition/agreement
+helpers. They have different responsibilities: runtime creates readers and
+raises errors; analysis accepts unknown axes and conservatively returns facts.
+The shared signature instantiator already owns operation cell contracts.
+No additional universal plan or helper extraction was justified by this audit.
+Changes to optimizer eligibility remain separate from the shape contract.
+
+The conformance extension also exposed a runtime inconsistency: a binary user
+function without header ranks rejected array results when lifted with call-site
+ranks, although the same builtin call worked. User functions now advertise array
+cell results regardless of header ranks. Tests compare direct `matmul` and its
+user-function wrapper, including empty batches, preserved singleton axes and an
+empty contracted axis, with execution optimizations enabled and disabled.

@@ -397,21 +397,10 @@ Planes = T normalize axis 1 rank 2
 rem 64 cells of shape 2 128
 ```
 
-For `T shape = 2 3 4 5`, `T F axis 1 3 rank 2` has frame shape `3 5` and
-passes cells of shape `2 4` to `F`. Explicit axes are frame axes and their
-written order becomes the leading result-axis order. All remaining source axes
-form the cell in natural order. The number of frame axes plus the cell rank
-must equal the tensor rank.
-
-Scalar cell results have the frame shape. Array results append their common
-shape to the frame. Source cells and assembled results are lazy read-only views;
-each demanded function result is cached. This avoids a separate
-dataframe-specific row API.
-
-A binary operation takes one cell rank per operand with `rank L R`. The left
-operand is split into cells of rank `L`, the right into cells of rank `R`, and
-their frames broadcast by trailing axes. Keeping one side whole and taking the
-other item by item finds several values in one vector at once:
+The [canonical rank rules](sequences-arrays.md#rank) define frame-axis order,
+cell selection, broadcasting and result assembly, including array-valued results
+and empty frames. A binary operation accepts `rank L R`, one rank per operand.
+Keeping one side whole and taking the other item by item finds several values in one vector at once:
 
 ```rank
 Kinds = "SAMFL" "" split
@@ -420,7 +409,7 @@ rem one position for every code
 ```
 
 `M Targets find rank 1 0` pairs each row of `M` with its own target. Each cell
-result must currently be a scalar; `rank N` keeps its meaning.
+result here is a scalar position; other functions may return array cells.
 
 ## Iteration by axis and cell rank
 
@@ -494,8 +483,8 @@ Smallest = A B outer operation
 Cell ranks belong to the operation, while `outer` combines the remaining
 frames. Symbolic binary operations have intrinsic ranks `0 0`. The named
 functions `band`, `bor`, `bxor`, `shl`, `shr`, `min` and `max` also declare
-ranks `0 0`. User-defined binary functions currently default to `all all`;
-syntax for declaring their intrinsic ranks remains deferred.
+ranks `0 0`. User-defined binary functions default to `all all` and may declare
+intrinsic ranks in their headers; see the [rank rules](sequences-arrays.md#rank).
 
 The result shape is the concatenation of the left and right frame shapes. Thus
 atom-pairing operations preserve all operand axes. Left frame axes come first
@@ -508,9 +497,9 @@ therefore be pure: its result and observable behavior may depend only on its
 arguments and immutable captured values. The runtime does not yet prove this
 property; static effect analysis is tracked separately as tooling work.
 
-Comparisons support explicit binary cell rank and frame axes; see
-[Binary comparison rank](sequences-arrays.md#binary-comparison-rank).
-General binary function rank overrides remain deferred.
+For paired cells with broadcasting, use the
+[ranked-call forms](sequences-arrays.md#rank). `outer` instead forms all pairs
+using the supplied operation's intrinsic ranks.
 
 A future axis-qualified cell view can be passed to `outer`: `axis` order will
 define frame order and `rank` will define its cells. This will support pairings
@@ -537,8 +526,26 @@ the leading result axes, followed by all remaining axes from `B`:
 5 2 3     matmul 3 4   -> 5 2 4
 ```
 
-Two vectors produce a scalar dot product. There is no implicit broadcasting or
-pairing of leading axes.
+Two vectors produce a scalar dot product. The default call does not broadcast
+or pair leading axes. Use explicit matrix-cell ranks for batched multiplication:
+
+```rank
+use linalg
+A = array shape 8 1 2 3 fill 1
+B = array shape 1 6 3 4 fill 2
+C = A B matmul rank 2 2
+rem C shape is 8 6 2 4; each value is 6
+```
+
+| Left shape | Right shape | Result with `rank 2 2` |
+| --- | --- | --- |
+| `8 2 3` | `8 3 4` | `8 2 4` |
+| `8 1 2 3` | `1 6 3 4` | `8 6 2 4` |
+| `0 2 3` | `1 3 4` | `0 2 4` |
+
+Only the frames broadcast. The cells must still have matching contracted
+sizes. Empty frames preserve the matrix result axes without multiplying any
+cells; an empty contracted axis in a nonempty batch instead produces zeros.
 
 An explicit pair selects a different contracted axis from each operand. The
 first number belongs to the left operand and the second to the right:

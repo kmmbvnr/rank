@@ -384,7 +384,8 @@ export class FunctionInvocation {
             arities: [signature.leftCount + signature.rightParameters.length],
             callSignature: signature,
             monadicRank: declared?.ranks.length === 1 ? declared.ranks[0] : 'all',
-            arrayCells: declared ? true : undefined,
+            // Call-site ranks can lift array results even without header ranks.
+            arrayCells: true,
             resultCellShape: generator ? undefined
                 : cellShapes => this.userResultCellShape(statement, context, returnRanks, cellShapes),
             monadicResultShape: generator ? undefined
