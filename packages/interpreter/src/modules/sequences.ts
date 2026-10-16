@@ -40,6 +40,7 @@ import {
 } from '../value.js';
 import type { Operators } from '../operators.js';
 import { assignRecordField } from '../record-contract.js';
+import { probablePrime } from '../primality.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
@@ -935,7 +936,26 @@ function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
     };
 }
 
-const membershipPrimes = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n];
+// Below 4096^2 trial division by the primes under 4096 is exact and cheaper than
+// Miller-Rabin. Larger values only screen out small factors before it, so no
+// table grows toward the square root of the value tested.
+const trialLimit = 4096;
+const trialPrimes = primesBelow(trialLimit);
+const screenPrimes = trialPrimes.filter(prime => prime < 256n);
+const trialSquare = BigInt(trialLimit) ** 2n;
+
+function primesBelow(limit: number): bigint[] {
+    const composite = new Uint8Array(limit);
+    const primes: bigint[] = [];
+    for (let candidate = 2; candidate < limit; candidate += 1) {
+        if (composite[candidate]) continue;
+        primes.push(BigInt(candidate));
+        for (let multiple = candidate * candidate; multiple < limit; multiple += candidate) {
+            composite[multiple] = 1;
+        }
+    }
+    return primes;
+}
 
 function membershipInteger(value: RankValue): bigint | undefined {
     if (typeof value === 'bigint') return value;
@@ -947,37 +967,19 @@ function membershipInteger(value: RankValue): bigint | undefined {
 
 function primeMembership(value: bigint): boolean {
     if (value < 2n) return false;
-    for (const prime of membershipPrimes) {
+    for (const prime of value < trialSquare ? trialPrimes : screenPrimes) {
         if (prime * prime > value) return true;
         if (value % prime === 0n) return value === prime;
     }
-    // Reject known factors before generating any more trial divisors.
-    // Only newly generated primes need checking after the extension.
-    const checked = membershipPrimes.length;
-    extendMembershipPrimes(value);
-    for (let index = checked; index < membershipPrimes.length; index += 1) {
-        const prime = membershipPrimes[index];
-        if (prime * prime > value) return true;
-        if (value % prime === 0n) return false;
-    }
-    return true;
-}
-
-function extendMembershipPrimes(value: bigint): void {
-    let candidate = membershipPrimes[membershipPrimes.length - 1] + 2n;
-    while (membershipPrimes[membershipPrimes.length - 1] ** 2n <= value) {
-        if (isPrime(candidate, membershipPrimes)) membershipPrimes.push(candidate);
-        candidate += 2n;
-    }
+    return probablePrime(value);
 }
 
 function* primeIterator(
     boundary?: Boundary,
     lower?: Boundary,
 ): IterableIterator<bigint> {
-    // Trial division needs divisors only up to the square root, which the shared
-    // membership table keeps. Keeping every prime yielded instead would grow
-    // without end on a search that never stops.
+    // Each candidate is tested on its own. Keeping every prime yielded instead
+    // would grow without end on a search that never stops.
     let candidate = lower ? lower.limit + (lower.inclusive ? 0n : 1n) : 2n;
     if (candidate <= 2n) {
         if (!boundary || within(2n, boundary)) yield 2n;
@@ -988,14 +990,6 @@ function* primeIterator(
         checkpoint('reading sequence');
         if (primeMembership(candidate)) yield candidate;
     }
-}
-
-function isPrime(candidate: bigint, smallerPrimes: readonly bigint[]): boolean {
-    for (const prime of smallerPrimes) {
-        if (prime * prime > candidate) return true;
-        if (candidate % prime === 0n) return false;
-    }
-    return true;
 }
 
 /** The direction after an ordering operation: `.ascending` or `.descending`. */

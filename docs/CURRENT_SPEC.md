@@ -6806,6 +6806,9 @@ if Candidate in primes
 end
 ```
 
+The test is exact up to about `3.3e24`. Above that it is a Miller-Rabin
+probable-prime test, wrong for a composite with probability below `4 ** -14`.
+
 A boundary remains part of membership, so `23 in (primes till 20)` is false.
 `fibonacci` also supports membership without an upper bound: its plan advances
 only as far as the queried value and respects lower and upper boundaries.
