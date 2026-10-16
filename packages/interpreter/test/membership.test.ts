@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray } from '../src/index.js';
 import { run } from './support.js';
+import { MissingValueError } from '../src/errors.js';
+import { STREAM_CELLS } from '../src/array-storage.js';
 
 describe('collection membership', () => {
     it('tests every left cell against the whole right collection', () => {
@@ -127,5 +129,57 @@ A in primes`);
     it('keeps structural equality for record elements', () => {
         expect(run('A = record\n .x = 1\nend\nB = record\n .x = 1.0\nend\n(array A) in (array B)'))
             .toBe('true');
+    });
+
+    it.each([false, true])('reads a right array once, before queries, on every operation (compiled=%s)', compilation => {
+        const runtime = new Interpreter(() => {}, { compilation });
+        const events: string[] = [];
+        let allowed = 2n;
+        try {
+            runtime.variables.set('Allowed', { kind: 'array', shape: [2], items: [],
+                itemAt: index => { events.push(`right ${index}`); return allowed + BigInt(index); } });
+            runtime.variables.set('Queries', { kind: 'array', shape: [2], items: [],
+                itemAt: index => { events.push(`left ${index}`); return BigInt(index + 1); } });
+            for (const expected of [[false, true], [true, true]]) {
+                events.length = 0;
+                const mask = runtime.execute('Queries in Allowed');
+                expect(mask && isRankArray(mask) && mask.items).toEqual(expected);
+                expect(events).toEqual(['right 0', 'right 1', 'left 0', 'left 1']);
+                allowed = 1n;
+            }
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([false, true])('preserves right array failures before reading queries (soft=%s)', soft => {
+        const runtime = new Interpreter();
+        const events: string[] = [];
+        try {
+            runtime.variables.set('Allowed', { kind: 'array', shape: [2], items: [], itemAt: index => {
+                events.push(`right ${index}`);
+                if (index === 1) throw new MissingValueError('unavailable cell', soft);
+                return 1n;
+            } });
+            runtime.variables.set('Queries', { kind: 'array', shape: [1], items: [],
+                itemAt: () => { events.push('left'); return 1n; } });
+            expect(() => runtime.execute('Queries in Allowed')).toThrow('unavailable cell');
+            expect(events).toEqual(['right 0', 'right 1']);
+        } finally { runtime.dispose(); }
+    });
+
+    it('keeps streaming large right arrays, tolerating soft misses and stopping at hard failures', () => {
+        const runtime = new Interpreter();
+        const events: number[] = [];
+        try {
+            runtime.variables.set('Allowed', { kind: 'array', shape: [STREAM_CELLS], items: [],
+                itemAt: () => { throw new Error('must use the streaming reader'); },
+                streamAt: index => {
+                    events.push(index);
+                    if (index === 0) throw new MissingValueError('absent cell', true);
+                    if (index === 1) return 2n;
+                    throw new MissingValueError('failed cell');
+                } });
+            expect(() => runtime.execute('(array 1 2) in Allowed')).toThrow('failed cell');
+            expect(events).toEqual([0, 1, 2]);
+        } finally { runtime.dispose(); }
     });
 });

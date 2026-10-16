@@ -3,7 +3,7 @@ import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
 import { RUNTIME_TYPE_NAMES, type ApplicationForm } from '@arrrank/language';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
-import { evaluateArrayItem, derivedArray, materializeCells, ownedArray, readArrayItem } from './array-storage.js';
+import { evaluateArrayItem, derivedArray, materializeCells, ownedArray, readArrayItem, shouldStream, streamCells } from './array-storage.js';
 import { applyBound, valueBound } from './clause-expression.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexKey } from './index-key.js';
@@ -15,7 +15,6 @@ import { binarySqlite, inSqlite } from './modules/sqlite.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import { dyadicCells, tensorCells, tensorFrameAxes, type OuterCells } from './rank-application.js';
-import { reductionValues } from './reduction.js';
 import {
     arraySequenceOperands, isPositionalMask, mapSequence, materializeSequence, positionalMask, sequence, sequenceMask, sequenceValues, zipSequences,
 } from './sequence.js';
@@ -633,7 +632,7 @@ function membershipTest(right: RankValue, indexed: boolean): (value: RankValue) 
     if (isRankSet(right) || isRankCounter(right)) return value => right.entries.has(setValueKey(value));
     if (isRankMultiset(right)) return value => right.has(value);
     const source = asRankArray(right);
-    if (source) return membershipLookup(reductionValues(source, 'in'));
+    if (source) return membershipLookup(shouldStream(source) ? streamCells(source) : source);
     if (isRankSequence(right)) {
         if (!right.plan.contains && right.plan.size.kind !== 'infinite' && indexed) {
             return membershipLookup(right.plan.iterate());
@@ -654,15 +653,22 @@ function membershipTest(right: RankValue, indexed: boolean): (value: RankValue) 
 }
 
 // Hash scalar values once; retain structural equality for composite values.
-function membershipLookup(values: Iterable<RankValue>): (value: RankValue) => boolean {
+function membershipLookup(values: Iterable<RankValue> | RankArray): (value: RankValue) => boolean {
     const scalars = new Set<RankValue>();
     const composite: RankValue[] = [];
     const key = (value: RankValue): RankValue => typeof value === 'number'
         && Number.isFinite(value) && Number.isInteger(value) ? BigInt(value) : value;
-    for (const value of values) {
+    const add = (value: RankValue): void => {
         checkpoint('indexing membership');
         if (typeof value === 'object') composite.push(value);
         else if (!(typeof value === 'number' && Number.isNaN(value))) scalars.add(key(value));
+    };
+    if ('shape' in values) {
+        // Index arrays directly without wrapping each cell in reduction iterators.
+        const size = arraySize(values.shape);
+        for (let index = 0; index < size; index++) add(readArrayItem(values, index));
+    } else {
+        for (const value of values) add(value);
     }
     return value => typeof value === 'object'
         ? composite.some(item => equalMembershipValues(value, item))

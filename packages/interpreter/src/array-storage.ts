@@ -303,14 +303,22 @@ export function ownedArray(
     columnNames?: readonly string[],
 ): RankArray {
     if (!columnNames) {
-        const kinds = new Map<string, { type: string; rank?: number }>();
+        let firstType: string | undefined;
+        let firstRank: number | undefined;
+        let kinds: Map<string, { type: string; rank?: number }> | undefined;
         for (const item of items) {
             const type = typeof item === 'number' && !Number.isFinite(item) && !Number.isNaN(item)
                 ? 'numeric-limit' : typeName(item);
             const rank = isRankArray(item) ? item.shape.length : undefined;
-            kinds.set(`${type}:${rank}`, { type, ...(rank === undefined ? {} : { rank }) });
+            if (firstType === undefined) { firstType = type; firstRank = rank; }
+            else if (type !== firstType || rank !== firstRank) {
+                // Homogeneous arrays need no map, per-cell descriptors or type-key strings.
+                kinds ??= new Map([[`${firstType}:${firstRank}`, { type: firstType, rank: firstRank }]]);
+                const key = `${type}:${rank}`;
+                if (!kinds.has(key)) kinds.set(key, { type, rank });
+            }
         }
-        requireHomogeneous([...kinds.values()]);
+        if (kinds) requireHomogeneous([...kinds.values()]);
     }
     return createOwned(items, shape, scalarOnly, columnNames);
 }

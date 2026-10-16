@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, createArraySnapshot, isNativeFunction, type RankArray, type RankValue } from '../src/index.js';
-import { eagerArrayStorage, isSharedArray } from '../src/array-storage.js';
+import { Interpreter, MISSING, createArraySnapshot, isNativeFunction, type RankArray, type RankValue } from '../src/index.js';
+import { eagerArrayStorage, isSharedArray, ownedArray } from '../src/array-storage.js';
 import { MemoryIo } from './support.js';
 
 describe('eager array storage', () => {
@@ -521,5 +521,29 @@ Ignored = A outer`);
         } finally {
             runtime.dispose();
         }
+    });
+});
+
+
+describe('owned array element validation', () => {
+    it('accepts homogeneous cells, empty storage, and deferred numeric cells', () => {
+        for (const cells of [[], [true, true], [1n, 2n], [MISSING, 1n, MISSING],
+            [Infinity, 1n, -Infinity], [1.5, Infinity, 2.5]] as RankValue[][]) {
+            expect(ownedArray(cells).items).toEqual(cells);
+        }
+    });
+
+    it('still rejects a conflicting type after a homogeneous prefix', () => {
+        for (const cells of [[1n, 2n, 3n, 'x'], [MISSING, 1n, 2n, 3.5],
+            [Infinity, Infinity, true], [true, true, Infinity]] as RankValue[][]) {
+            expect(() => ownedArray(cells)).toThrow(/one element type/);
+        }
+    });
+
+    it('checks the rank of nested arrays without reading their cells', () => {
+        const row: RankArray = { kind: 'array', shape: [2], itemAt: () => { throw new Error('forced'); }, items: [] };
+        const matrix: RankArray = { ...row, shape: [1, 2] };
+        expect(ownedArray([row, row]).shape).toEqual([2]);
+        expect(() => ownedArray([row, row, matrix])).toThrow(/one element type/);
     });
 });
