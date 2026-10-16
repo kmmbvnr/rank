@@ -44,6 +44,15 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const cached = proofs.get(key);
     if (typeof cached === 'string') return recordFallback(cached);
     if (cached) return cached;
+    // Duplicate names are bound in order by the ordinary frame. Its array
+    // contracts can reject an earlier argument even if the body reads only the
+    // last binding. Equal domains are safe; mixed domains keep those checks.
+    const firstTypes = new Map<string, CompiledCalleeType>();
+    for (const [index, name] of statement.parameters.entries()) {
+        const previous = firstTypes.get(name);
+        if (previous && !sameCompiledCalleeType(previous, types[index])) return recordFallback('scalar-function:duplicate-parameter-domain');
+        firstTypes.set(name, types[index]);
+    }
     let rejection: string | undefined;
     function reject(node: Expression | Statement, detail?: string): undefined {
         rejection ??= compilerRejection('scalar-function', node, detail);

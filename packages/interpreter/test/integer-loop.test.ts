@@ -2604,3 +2604,19 @@ end`);
         expect(result.loops).toBe(1);
     });
 });
+
+
+it.each(['array shape 1 2 fill 3', 'array "a" "b"'])('preserves duplicate parameter contracts for %s', first => {
+    const result = compareLinked(`fun A A duplicate
+ return A 0
+end
+A = array 1 2
+B = ${first}
+X = 0
+for I in 1 to 1
+ X = B A duplicate
+end
+X`);
+    expect(result).toHaveProperty('error');
+    expect(result.loops).toBe(0);
+});
