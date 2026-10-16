@@ -118,7 +118,7 @@ export class FunctionFrames {
         }, name => {
             const bound = lookup(name);
             bindings.set(name, bound);
-            return this.builtins.is('core', name, bound ?? this.builtins.lookup(name)!);
+            return this.builtins.is(name === 'abs' ? 'numbers' : 'core', name, bound ?? this.builtins.lookup(name)!);
         });
         const proof = { bindings, candidates };
         if (parent) {

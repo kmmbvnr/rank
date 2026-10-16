@@ -42,6 +42,13 @@ for I in 0 till 1000
 end
 ```
 
+When the runtime proves that a function only reads scalar cells and cannot
+retain its array parameter, the call can borrow flat scalar storage. Counted
+loops, scalar comparisons and guarded built-ins such as `abs` can participate
+in this proof. The call then does not force a copy on the caller's next write.
+Returning the array, capturing it or passing it to an unknown callback keeps
+the ordinary sharing rules.
+
 For a proven last use of a private local array, the runtime can transfer its
 storage to a function that writes it. This does not change value semantics:
 if the caller reads the old value again, or another binding retains it, the

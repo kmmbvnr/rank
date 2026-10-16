@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import { Interpreter, RuntimeDiagnostics, isNativeFunction } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, isNativeFunction, isRankArray } from '../src/index.js';
 import { arrayForWrite, isFlatScalarArray, noteArrayBinding, ownedArray } from '../src/array-storage.js';
 
 function demo(runtime: Interpreter, path: string, name: string) {
@@ -177,5 +177,50 @@ it('keeps the ordinary copy path for closure capture, yielded input and containe
             }
         });
         expect(stats.cowCopies).toBe(3);
+    } finally { runtime.dispose(); }
+});
+
+it.each([false, true])('borrows the unchanged queens safety reader (compilation=%s)', compilation => {
+    const runtime = new Interpreter(undefined, { compilation });
+    try {
+        const source = readFileSync(new URL('../../../demos/classic/queens_iterative.ra', import.meta.url), 'utf8');
+        runtime.execute('use numbers\n' + source.slice(source.indexOf('fun Board Row safe'), source.indexOf('\nfor Board in 8 queens')));
+        const safe = runtime.variables.get('safe');
+        if (!safe || !isNativeFunction(safe)) throw Error('missing safe');
+        const board = ownedArray([0n, 2n, 4n]);
+        noteArrayBinding(board);
+        const stats = new RuntimeDiagnostics();
+        stats.run(() => {
+            expect(safe.call([board, 2n])).toBe(true);
+            expect(arrayForWrite(board) ?? board).toBe(board);
+            board.items[2] = 3n;
+            expect(safe.call([board, 2n])).toBe(false);
+        });
+        expect(stats.cowCopies).toBe(0);
+
+        // Replacing a previously guarded builtin must invalidate the proof.
+        runtime.variables.set('abs', { kind: 'function', name: 'hostabs', arities: [1], monadicRank: 'all',
+            call: values => { const n = values[0] as bigint; return n < 0n ? -n : n; } });
+        const next = ownedArray([0n, 2n, 4n]);
+        noteArrayBinding(next);
+        stats.run(() => {
+            expect(safe.call([next, 2n])).toBe(true);
+            expect(arrayForWrite(next)).not.toBe(next);
+        });
+        expect(stats.cowCopies).toBe(1);
+    } finally { runtime.dispose(); }
+});
+
+it.each([false, true])('keeps yielded queens boards independent without copying for safe calls (compilation=%s)', compilation => {
+    const runtime = new Interpreter(undefined, { compilation });
+    const stats = new RuntimeDiagnostics();
+    try {
+        const source = readFileSync(new URL('../../../demos/classic/queens_iterative.ra', import.meta.url), 'utf8')
+            .split('\nfor Board in 8 queens')[0];
+        const solutions = stats.run(() => runtime.execute(source + '\n4 queens array'));
+        if (!solutions || !isRankArray(solutions)) throw Error('missing solutions');
+        expect(solutions).toMatchObject({ shape: [2, 4] });
+        expect(solutions.items).toEqual([1n, 3n, 0n, 2n, 2n, 0n, 3n, 1n]);
+        expect(stats.cowCopies).toBe(0);
     } finally { runtime.dispose(); }
 });

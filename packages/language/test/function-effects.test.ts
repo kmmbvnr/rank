@@ -59,7 +59,7 @@ function borrowCandidates(source: string, name = 'helper', resolveHelpers = true
         .filter(isFunctionStatement).map(node => [node.name, node]));
     return flatArrayBorrowCandidates(definitions.get(name)!, helper => resolveHelpers ? definitions.get(helper) : undefined);
 }
-function borrowProofs(source: string, name = 'helper', builtins: readonly ('len' | 'min' | 'max')[] = []) {
+function borrowProofs(source: string, name = 'helper', builtins: readonly ('len' | 'min' | 'max' | 'abs')[] = []) {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
     const definitions = new Map([...AstUtils.streamAllContents(parsed.value)]
@@ -67,6 +67,27 @@ function borrowProofs(source: string, name = 'helper', builtins: readonly ('len'
     return flatArrayBorrowProofs(definitions.get(name)!, helper => definitions.get(helper),
         builtin => builtins.includes(builtin));
 }
+
+it('proves the unchanged queens safety check with a guarded scalar abs', () => {
+    const source = readFileSync(new URL('../../../demos/classic/queens_iterative.ra', import.meta.url), 'utf8');
+    expect(borrowProofs(source, 'safe', ['abs']).get(0)).toEqual(new Map([[1, 'bigint']]));
+    expect(borrowProofs(source, 'safe').has(0)).toBe(false);
+    expect(borrowProofs(source.replace('fun Board Row safe\n', 'fun Board Row safe\n  fun X abs\n    return X\n  end\n'), 'safe', ['abs']).has(0))
+        .toBe(false);
+});
+
+it('guards scalar comparisons and boolean combinations without accepting array escapes', () => {
+    const source = `fun A I Flag helper
+  if Flag and not ((A I) less 0) or I at most 0
+    return A 0
+  end
+  return A I
+end`;
+    expect(borrowProofs(source).get(0)).toEqual(new Map([[2, 'boolean'], [1, 'bigint']]));
+    expect(borrowProofs(source.replace('return A 0', 'return A')).has(0)).toBe(false);
+    expect(borrowProofs(source.replace('return A 0', 'A 0 = 9\n    return A 0')).has(0)).toBe(false);
+    expect(borrowProofs(source.replace('return A 0', 'return A (array 0)')).has(0)).toBe(false);
+});
 
 it('guards counted-loop lengths from another flat-array parameter', () => {
     const source = `fun A B helper

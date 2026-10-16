@@ -28,7 +28,7 @@ export function flatArrayBorrowCandidates(definition: FunctionStatement,
 /** Candidate guards are checked against actual argument types at the call boundary. */
 export function flatArrayBorrowProofs(definition: FunctionStatement,
     resolve: (name: string) => FunctionStatement | undefined,
-    builtin: (name: 'len' | 'min' | 'max') => boolean = () => false,
+    builtin: (name: 'len' | 'min' | 'max' | 'abs') => boolean = () => false,
 ): ReadonlyMap<number, ReadonlyMap<number, GuardType>> {
     const cache = new WeakMap<FunctionStatement, ReadonlyMap<number, Guards>>();
     const active = new WeakSet<FunctionStatement>();
@@ -106,10 +106,25 @@ export function flatArrayBorrowProofs(definition: FunctionStatement,
                     return guards;
                 }
                 const item = node as Record<string, unknown>;
+                const scalarReads = (value: Expression): Guards | undefined => {
+                    const integers = integerGuards(value, current, parameter, selectorLocals);
+                    return integers ? integerTypes(integers)
+                        : onlyReads(value, parameter, selectorLocals, scalarLocals, false);
+                };
                 const booleanGuards = (value: Expression): Guards | undefined => {
                     if (isParenthesizedExpression(value)) return booleanGuards(value.value);
                     if (isBooleanLiteral(value)) return new Map();
+                    if (isUnaryExpression(value) && value.operator === 'not') return booleanGuards(value.operand);
+                    if (isBinaryExpression(value) && !value.step) {
+                        const logical = ['and', 'or', 'xor'].includes(value.operator);
+                        if (logical || ['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost'].includes(value.operator)) {
+                            const left = logical ? booleanGuards(value.left) : scalarReads(value.left);
+                            const right = logical ? booleanGuards(value.right) : scalarReads(value.right);
+                            return left && right && mergeGuards(left, right) ? left : undefined;
+                        }
+                    }
                     if (!isNameExpression(value) || value.name === parameter) return undefined;
+                    if (scalarLocals.has(value.name)) return new Map();
                     const index = current.parameters.indexOf(value.name);
                     return index < 0 ? undefined : new Map([[index, 'boolean']]);
                 };
@@ -154,6 +169,9 @@ export function flatArrayBorrowProofs(definition: FunctionStatement,
                 if (isNameExpression(item)) return scalarLocals.has(item.name) ? new Map()
                     : selectorLocals.has(item.name) ? integerTypes(selectorLocals.get(item.name)!) : undefined;
                 if (isReturnStatement(item) && directName(item.value, parameter)) return undefined;
+                if ((isBinaryExpression(item)
+                    && ['and', 'or', 'xor', 'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost'].includes(item.operator))
+                    || (isUnaryExpression(item) && item.operator === 'not')) return booleanGuards(item);
                 if (isIfStatement(item)) {
                     const guards = booleanGuards(item.condition);
                     if (!guards) return undefined;
@@ -239,6 +257,10 @@ export function flatArrayBorrowProofs(definition: FunctionStatement,
                             if (!mergeGuards(guards, integerTypes(required))) return undefined;
                         }
                         return guards;
+                    }
+                    if (parts.length === 2 && isNameExpression(target) && target.name === 'abs'
+                        && !current.parameters.includes('abs') && builtin('abs')) {
+                        return scalarReads(parts[0]);
                     }
                     if (isNameExpression(target) && (target.name === 'min' || target.name === 'max')
                         && parts.length >= 3 && !current.parameters.includes(target.name)
