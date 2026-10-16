@@ -36,6 +36,13 @@ describe('fun headers declare intrinsic ranks', () => {
         expect(run(pair + '(array 1 2) pair shape')).toBe('2 2');
     });
 
+    it('call-site binary ranks stack array results without header ranks', () => {
+        const pair = 'fun X Y pair\n  return array X Y\nend\n';
+        expect(run(pair + 'R = (array 1 2) 5 pair rank 0 0\nR shape')).toBe('2 2');
+        expect(run(pair + '(array 1 2) 5 pair rank 0 0')).toBe('1 5 2 5');
+        expect(run(pair + '(array shape 0 fill 0) 5 pair rank 0 0 shape')).toBe('0 2');
+    });
+
     it('rank stays an ordinary word elsewhere', () => {
         expect(run('fun X f\n  return X + 1\nend\n(array 1 2) f')).toBe('2 3');
     });
@@ -47,6 +54,12 @@ describe('fun headers declare intrinsic ranks', () => {
 });
 
 describe('ragged lifts', () => {
+    it('checks array result uniformity for binary call-site ranks without header ranks', () => {
+        const distinct = 'fun Row Ignored distinct\n  return Row unique\nend\n';
+        expect(() => run(`${distinct}(array 1 1 2 3 shape 2 2) 0 distinct rank 1 0`))
+            .toThrow(/ranked results must have the same shape: 1 and 2/);
+    });
+
     it('name the function and the two cell shapes', () => {
         const rows = '(array 1 1 2 3) reshape 2 2';
         expect(() => run(`(${rows}) unique rank 1`)).toThrow(/`unique` gave 1 and 2 \(cell 1\)/);
