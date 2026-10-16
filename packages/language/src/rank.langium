@@ -144,9 +144,6 @@ NonNameAddressItem infers AddressItem:
     value=(NumberLiteral | StringLiteral | BooleanLiteral | LabelLiteral | NewStructureExpression | StdinExpression | ParenthesizedExpression) |
     all?='#';
 
-CompoundAssignmentOperator returns string:
-    '+=' | '-=' | '*=' | '**=' | '/=' | '//=' | 'mod=' | 'and=' | 'or=' | 'xor=';
-
 RankSpec returns string:
     '-'? INTEGER | WORD;
 

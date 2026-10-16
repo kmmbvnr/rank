@@ -3,7 +3,7 @@
   "compiler": "@arrrank/compile@0.0.1",
   "sourceName": "001_multiples.ra",
   "sourceSha256": "a853e4c9b30c31822a7d63573e9d93636d0b2d0ba6710a2fdb38a2c40ab3b1c2",
-  "taskSha256": "0f8a4fad16d92495309d30b490545bfc68396ffdec9810e4de5258c6b983fe09",
+  "taskSha256": "3f50fd59f735d0b956796d6440410b59301ab4e7784ac7812280e28df8dbe29f",
   "integers": "i64",
   "crate": "rank-001_multiples-i64"
 }

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "compiler": "@arrrank/compile@0.0.1",
   "sourceName": "004_palproduct.ra",
-  "sourceSha256": "2a904eaeec1cda50184fdce866e61b019f3dec7bfd9908bb145a126db97530c3",
-  "taskSha256": "73cd5e37c09318bd8d1bd6536f3a893826e3564ac2606a2e7328fbdcd43d19d7",
+  "sourceSha256": "57506eee0ac6f672e5e4664ada9392a532a90e9438082be738980dea7d55f4a0",
+  "taskSha256": "9352df571b861401d0be525194689a180faae5f4cd56c527f2a9012f2f9a978b",
   "integers": "i64",
   "crate": "rank-004_palproduct-i64"
 }

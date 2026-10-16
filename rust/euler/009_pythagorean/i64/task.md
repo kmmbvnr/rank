@@ -49,7 +49,7 @@ cells of A, in row-major order, as A was when the mask was made.
 Consult the parsed
 syntax below for grouping; do not infer grouping from whitespace alone.
 
-`fun palindrome X ... return Value ... end` declares a function of X. Function
+`fun X palindrome ... return Value ... end` declares a function of X. Function
 declarations can appear after their calls. A name holds its own value: `B = A`,
 passing an argument and `yield` each give the receiver a value, so no write can
 reach another name's data and a function cannot change what its caller passed.
@@ -105,7 +105,7 @@ zero or a default answer.
 `A B outer *` evaluates every pair into a multidimensional result. Broadcasting
 and axis/rank operations follow source shapes; `rank 0` applies to scalar cells,
 and `rank 1` applies to rows. A boolean mask selects matching elements.
-`Digits Width window` creates overlapping windows of positive width with default
+`Digits window Width` creates overlapping windows of positive width with default
 stride one. Width greater than the input produces no windows. Reducing each
 window with multiplication preserves all its digits, including zeros.
 
@@ -185,7 +185,22 @@ Answer print
 ## Existing tests (context, not a substitute for general behavior)
 
 ```rank
+use testing
 
+test "default input"
+  use "009_pythagorean"
+  run
+
+  Answer equal 31875000
+end
+
+test "workspace input"
+  use "009_pythagorean"
+  Target = 12
+  run
+
+  Answer equal 60
+end
 ```
 
 ## Resolved syntax and analysis
@@ -674,6 +689,9 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
   "operations": [
     {
       "name": "max",
+      "grouping": {
+        "rejectInfix": true
+      },
       "module": "core",
       "arities": [
         1,
@@ -682,6 +700,220 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       "form": "Left Right max",
       "result": "number",
       "axisReduction": true,
+      "modifiers": [
+        "index",
+        "indexed"
+      ],
+      "signatures": [
+        {
+          "inputs": [
+            {
+              "union": [
+                "number",
+                {
+                  "collection": "extrema-source",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "result": "number"
+        },
+        {
+          "inputs": [
+            "number",
+            "number"
+          ],
+          "result": "number",
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "union": [
+                {
+                  "variable": 0,
+                  "domain": [
+                    "text",
+                    "boolean",
+                    "symbol",
+                    "date",
+                    "datetime",
+                    "record"
+                  ]
+                },
+                {
+                  "collection": "extrema-source",
+                  "element": {
+                    "union": [
+                      {
+                        "variable": 0,
+                        "domain": [
+                          "text",
+                          "boolean",
+                          "symbol",
+                          "date",
+                          "datetime",
+                          "record"
+                        ]
+                      },
+                      "missing"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "result": {
+            "variable": 0,
+            "domain": [
+              "text",
+              "boolean",
+              "symbol",
+              "date",
+              "datetime",
+              "record"
+            ]
+          }
+        },
+        {
+          "inputs": [
+            {
+              "variable": 0,
+              "domain": [
+                "text",
+                "boolean",
+                "symbol",
+                "date",
+                "datetime",
+                "record"
+              ]
+            },
+            {
+              "variable": 0,
+              "domain": [
+                "text",
+                "boolean",
+                "symbol",
+                "date",
+                "datetime",
+                "record"
+              ]
+            }
+          ],
+          "result": {
+            "variable": 0,
+            "domain": [
+              "text",
+              "boolean",
+              "symbol",
+              "date",
+              "datetime",
+              "record"
+            ]
+          },
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            "missing",
+            "unknown"
+          ],
+          "result": "missing",
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            "unknown",
+            "missing"
+          ],
+          "result": "missing",
+          "ranks": [
+            0,
+            0
+          ]
+        },
+        {
+          "inputs": [
+            "column"
+          ],
+          "result": "number"
+        },
+        {
+          "inputs": [
+            {
+              "union": [
+                {
+                  "collection": "array",
+                  "element": {
+                    "variable": 0
+                  }
+                },
+                {
+                  "collection": "bytes",
+                  "element": {
+                    "variable": 0
+                  }
+                },
+                {
+                  "collection": "sequence",
+                  "element": {
+                    "variable": 0
+                  }
+                }
+              ]
+            },
+            {
+              "label": "index"
+            }
+          ],
+          "result": "integer"
+        },
+        {
+          "inputs": [
+            {
+              "union": [
+                {
+                  "collection": "array",
+                  "element": {
+                    "variable": 0
+                  }
+                },
+                {
+                  "collection": "bytes",
+                  "element": {
+                    "variable": 0
+                  }
+                },
+                {
+                  "collection": "sequence",
+                  "element": {
+                    "variable": 0
+                  }
+                }
+              ]
+            },
+            {
+              "label": "indexed"
+            }
+          ],
+          "result": "tuple"
+        }
+      ],
       "shape": [
         {
           "args": [
@@ -720,6 +952,18 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       ],
       "form": "Value print",
       "result": "same",
+      "signatures": [
+        {
+          "inputs": [
+            {
+              "variable": 0
+            }
+          ],
+          "result": {
+            "variable": 0
+          }
+        }
+      ],
       "effects": [
         "io"
       ],

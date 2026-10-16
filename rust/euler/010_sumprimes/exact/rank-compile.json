@@ -3,7 +3,7 @@
   "compiler": "@arrrank/compile@0.0.1",
   "sourceName": "010_sumprimes.ra",
   "sourceSha256": "397c3cbfd19a3acde267a64c64d12c28a3e9a1691758a15c67423473712ff425",
-  "taskSha256": "d4ff3703cdf082f71ffbdd0eeac6666c2eca81ac80e533f9d12d55df75d11328",
+  "taskSha256": "8189a6ab3a83b7ef1905ad6d1093e103edc4993dd0e6af8e42ace3b387b4529b",
   "integers": "exact",
   "crate": "rank-010_sumprimes-exact"
 }

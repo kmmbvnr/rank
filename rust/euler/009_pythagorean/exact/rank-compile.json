@@ -3,7 +3,7 @@
   "compiler": "@arrrank/compile@0.0.1",
   "sourceName": "009_pythagorean.ra",
   "sourceSha256": "c16ab5d27f2d5ca8ae3041e208eb216ff9fd5f9208c546bd04921760d765f9c3",
-  "taskSha256": "31c4e09d7b30e64973c4f9984e93a8b82f4ce02cabcdcf60b018a86d9684f96e",
+  "taskSha256": "0fe6d30f1b284833da5381e6c9e0418542cb4b5c80ed43822d4647ff1383f1ef",
   "integers": "exact",
   "crate": "rank-009_pythagorean-exact"
 }

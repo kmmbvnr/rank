@@ -3,7 +3,7 @@
   "compiler": "@arrrank/compile@0.0.1",
   "sourceName": "008_seriesproduct.ra",
   "sourceSha256": "c41fad325851ea5d42b2d6efc9687eb5cdb687890c2ae3fe75ffffe337edcead",
-  "taskSha256": "34a2098eafce96878c0bfe41c8af6769300df38bbae5e7ce7997177e94152aec",
+  "taskSha256": "e0fa7ad8db92badb56c0e649f1cef42dd87eda7ce13889d4f4d4ec95e0758ce0",
   "integers": "exact",
   "crate": "rank-008_seriesproduct-exact"
 }

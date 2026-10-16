@@ -49,7 +49,7 @@ cells of A, in row-major order, as A was when the mask was made.
 Consult the parsed
 syntax below for grouping; do not infer grouping from whitespace alone.
 
-`fun palindrome X ... return Value ... end` declares a function of X. Function
+`fun X palindrome ... return Value ... end` declares a function of X. Function
 declarations can appear after their calls. A name holds its own value: `B = A`,
 passing an argument and `yield` each give the receiver a value, so no write can
 reach another name's data and a function cannot change what its caller passed.
@@ -105,7 +105,7 @@ zero or a default answer.
 `A B outer *` evaluates every pair into a multidimensional result. Broadcasting
 and axis/rank operations follow source shapes; `rank 0` applies to scalar cells,
 and `rank 1` applies to rows. A boolean mask selects matching elements.
-`Digits Width window` creates overlapping windows of positive width with default
+`Digits window Width` creates overlapping windows of positive width with default
 stride one. Width greater than the input produces no windows. Reducing each
 window with multiplication preserves all its digits, including zeros.
 
@@ -170,7 +170,22 @@ Answer print
 ## Existing tests (context, not a substitute for general behavior)
 
 ```rank
+use testing
 
+test "default input"
+  use "002_evenfib"
+  run
+
+  Answer equal 4613732
+end
+
+test "workspace input"
+  use "002_evenfib"
+  Limit = 100
+  run
+
+  Answer equal 44
+end
 ```
 
 ## Resolved syntax and analysis
@@ -311,6 +326,34 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       ],
       "form": "Value even",
       "result": "boolean",
+      "signatures": [
+        {
+          "inputs": [
+            "integer"
+          ],
+          "result": "boolean"
+        },
+        {
+          "inputs": [
+            {
+              "container": 0,
+              "kinds": [
+                "array",
+                "sequence"
+              ],
+              "element": "integer"
+            }
+          ],
+          "result": {
+            "container": 0,
+            "kinds": [
+              "array",
+              "sequence"
+            ],
+            "element": "boolean"
+          }
+        }
+      ],
       "scalarNoCallback": "integer",
       "summary": "True for an even integer.",
       "sites": [
@@ -345,6 +388,18 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       ],
       "form": "Value print",
       "result": "same",
+      "signatures": [
+        {
+          "inputs": [
+            {
+              "variable": 0
+            }
+          ],
+          "result": {
+            "variable": 0
+          }
+        }
+      ],
       "effects": [
         "io"
       ],
@@ -365,6 +420,36 @@ Unknown types remain unknown. Integer literals are decimal strings tagged intege
       "form": "Values sum",
       "result": "number",
       "axisReduction": true,
+      "signatures": [
+        {
+          "inputs": [
+            {
+              "union": [
+                "number",
+                "missing",
+                "column",
+                {
+                  "collection": "iterable",
+                  "element": {
+                    "union": [
+                      "number",
+                      "missing"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "result": "number"
+        }
+      ],
+      "operandDomains": [
+        [
+          "integer",
+          "real",
+          "missing"
+        ]
+      ],
       "shape": [
         {
           "args": [
