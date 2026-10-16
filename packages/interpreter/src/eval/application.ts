@@ -261,12 +261,12 @@ export class ApplicationEvaluator {
                             ? reshapeWithShapeRows(source, value)
                             : reshapeWithDimensions(source, unpackApplicationItems(value));
                     } else {
-                        const dimensions: RankValue[] = [];
+                        const dimensions: (RankValue | undefined)[] = [];
                         for (const part of form.dimensions) {
                             if (isUnpackExpression(part)) {
                                 const value = yield* resume(context.evaluate(part.value));
                                 dimensions.push(...unpackApplicationItems(value));
-                            } else dimensions.push(yield* resume(context.evaluate(part)));
+                            } else dimensions.push(isAllAxisExpression(part) ? undefined : yield* resume(context.evaluate(part)));
                         }
                         result = reshapeWithDimensions(source, dimensions);
                     }

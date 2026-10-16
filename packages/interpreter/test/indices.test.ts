@@ -80,8 +80,8 @@ for (const compilation of [false, true]) describe(`tensor indices (compiled=${co
         const demo = readFileSync(new URL('../../../demos/classic/queens.ra', import.meta.url), 'utf8');
         const traced = demo.split('States len print')[0]
             .replace('States = Cols reshape Size 1', 'States = Cols reshape Size 1\nStates shape print')
-            .replace('States = concat Previous Column axis 1',
-                'States = concat Previous Column axis 1\n  States shape print');
+            .replace('States = concat Prev Col axis 1',
+                'States = concat Prev Col axis 1\n  States shape print');
         const shapes: string[] = [];
         const runtime = new Interpreter(text => shapes.push(text), { compilation });
         try {

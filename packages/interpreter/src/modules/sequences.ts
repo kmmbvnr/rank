@@ -734,20 +734,40 @@ function offsetAt(shape: readonly number[], coordinates: readonly number[]): num
     );
 }
 
-export function reshapeWithDimensions(value: RankValue, dimensions: readonly RankValue[]): RankValue {
+export function reshapeWithDimensions(value: RankValue, dimensions: readonly (RankValue | undefined)[]): RankValue {
     const type = isRankArray(value) && !value.columnNames ? semanticArrayType(value) : undefined;
-    if (!dimensions.every(item => typeof item === 'bigint')) {
+    const inferred = dimensions.indexOf(undefined);
+    if (dimensions.filter(item => item === undefined).length > 1) {
+        throw new RankError('reshape accepts at most one inferred dimension #', 'DimensionMismatch');
+    }
+    if (!dimensions.every(item => item === undefined || typeof item === 'bigint')) {
         throw new RankError('reshape dimensions must be integers');
     }
-    const shape = dimensions.map(item => reshapeDimension(item as bigint));
-    const expected = shape.reduce((product, dimension) => product * dimension, 1);
+    const shape = dimensions.map(item => item === undefined ? 1 : reshapeDimension(item as bigint));
+    let collected: RankValue[] | undefined;
+    if (inferred >= 0) {
+        const product = shape.reduce((total, dimension) => total * BigInt(dimension), 1n);
+        if (product === 0n) {
+            throw new RankError('reshape cannot infer # when another dimension is zero', 'DimensionMismatch');
+        }
+        // A generator is consumed once, and tensor counts include every axis.
+        const count = isRankArray(value) ? value.shape.reduce((total, size) => total * BigInt(size), 1n)
+            : BigInt((collected = reshapeItems(value)).length);
+        if (count % product !== 0n) {
+            throw new RankError(`reshape cannot divide ${count} elements into dimensions with product ${product}`, 'DimensionMismatch');
+        }
+        shape[inferred] = reshapeDimension(count / product);
+    }
+    const expected = inferred >= 0
+        ? Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n))
+        : shape.reduce((product, dimension) => product * dimension, 1);
     // A typed array reshapes into a typed array: the cells keep their order.
     const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
     if (stored && typedElementKind(value as RankArray) !== undefined && stored.length === expected) {
         const result = typedArray((stored as Float64Array | BigInt64Array).slice(), shape);
         return type ? setSemanticArrayType(result, type) : result;
     }
-    const items = reshapeItems(value);
+    const items = collected ?? reshapeItems(value);
     if (items.length !== expected) {
         throw new RankError(
             `reshape shape ${shape.join(' ')} expects ${expected} elements, got ${items.length}`,

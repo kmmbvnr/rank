@@ -2889,3 +2889,16 @@ it('reports provable scalar juxtaposition without rejecting dynamic calls or ind
         'fun g X Y\n return X + Y\nend\n1 2 g',
     ]) expect(messages(source)).not.toContain('a number cannot be indexed');
 });
+
+
+it('infers reshape placeholders from the total tensor size', () => {
+    const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
+    const source = 'use sequences\nA = array shape 2 3 fill 0\nB = A reshape # 2';
+    expect(messages(source)).toEqual([]);
+    expect(analyzeValues(parse(source)).bindings.get('B')?.shape).toEqual([3, 2]);
+    expect(messages('use sequences\nA = (1 to 5) reshape 2 #'))
+        .toEqual(['reshape cannot divide 5 elements into dimensions with product 2']);
+    expect(messages('use sequences\nA = (array shape 0 fill 0) reshape # 0'))
+        .toEqual(['reshape cannot infer # when another dimension is zero']);
+    expect(messages('use sequences\nfun column A\n return A reshape # 1\nend')).toEqual([]);
+});

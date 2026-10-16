@@ -700,6 +700,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const batch = form.dimensions.length === 1 && isUnpackExpression(form.dimensions[0])
                     && expressionFacts(form.dimensions[0].value, lookup).rank === 2;
                 const dimensions = form.dimensions.flatMap(part => {
+                    if (isAllAxisExpression(part)) return [1];
                     const valueFacts = expressionFacts(isUnpackExpression(part) ? part.value : part, lookup);
                     if (isUnpackExpression(part)) {
                         if (valueFacts.types.length && (valueFacts.types.join() !== 'array'
@@ -720,7 +721,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && source.shape?.every(n => n !== null)) {
                     const expected = dimensions.reduce<bigint>((size, n) => size * BigInt(n!), 1n);
                     const actual = source.shape.reduce<bigint>((size, n) => size * BigInt(n!), 1n);
-                    if (expected !== actual) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
+                    if (form.dimensions.some(isAllAxisExpression)) {
+                        if (expected === 0n) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
+                            message: 'reshape cannot infer # when another dimension is zero' });
+                        else if (actual % expected !== 0n) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
+                            message: `reshape cannot divide ${actual} elements into dimensions with product ${expected}` });
+                    } else if (expected !== actual) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
                         message: `reshape expects ${expected} elements, got ${actual}` });
                 }
             }

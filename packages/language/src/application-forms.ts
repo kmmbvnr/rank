@@ -1,5 +1,5 @@
 import {
-    isExpression, isParenthesizedExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
+    isAllAxisExpression, isExpression, isParenthesizedExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
     isApplicationExpression, isArrayExpression, isBinaryExpression, isLabelLiteral, isNameExpression,
     type ArrayExpression, type ArrayItem, type Expression,
 } from './generated/ast.js';
@@ -494,6 +494,9 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup): Applicat
             && lookup(part.name) !== false && lookup(part.name) !== undefined);
         const dimensions = parts.slice(2, end < 0 ? undefined : end);
         if (!dimensions.length) return { kind: 'invalid', message: 'reshape expects one or more dimensions' };
+        if (dimensions.filter(isAllAxisExpression).length > 1) {
+            return { kind: 'invalid', message: 'reshape accepts at most one inferred dimension #' };
+        }
         return { kind: 'reshape', source: parts[0], dimensions, rest: end < 0 ? [] : parts.slice(end) };
     }
     if (parts.slice(2).some(part => isNamed(part, 'reshape'))

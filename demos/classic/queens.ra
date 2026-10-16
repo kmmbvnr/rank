@@ -34,7 +34,7 @@ for Row in 1 till Size
   Where = Free indices
 
   Prev = States (Where # 0)
-  Col = (Where # 1) reshape (Where len) 1
+  Col = (Where # 1) reshape # 1
   States = concat Prev Col axis 1
 end
 

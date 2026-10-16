@@ -52,6 +52,23 @@ Reshape an existing value with:
 M = Values reshape Rows Columns
 ```
 
+One dimension may be `#`, inferred from the total number of elements:
+
+```rank
+Col = Values reshape # 1
+Row = Values reshape 1 #
+Pairs = Values reshape # 2
+Flat = Values reshape #
+```
+
+The other dimensions must have a positive product that divides the element
+count exactly. An empty source can reshape to `# 1` (shape `0 1`), but `# 0`
+is ambiguous and raises `DimensionMismatch`. Only one `#` is allowed, written
+directly among the reshape dimensions; it is not a value to store in a shape
+array. Negative dimensions, including `-1`, remain invalid. Finite sequences
+are consumed once. Transpose keeps its existing axis-permutation behavior.
+
+
 Dense storage may also be allocated with a fill value and updated in place:
 
 ```rank

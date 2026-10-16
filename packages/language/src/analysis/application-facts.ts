@@ -230,6 +230,20 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
                 const value = infer(part, lookup).integer;
                 return [value === undefined ? null : Number(value)];
             });
+            // Resolve a literal placeholder only when the source count and the
+            // other dimensions are known. Unknown lengths still keep the rank.
+            const placeholder = form.dimensions.findIndex(isAllAxisExpression);
+            if (placeholder >= 0 && !form.dimensions.some(isUnpackExpression)
+                && source.shape?.every(size => size !== null)) {
+                const others = dimensions.filter((_, index) => index !== placeholder);
+                if (others.every(size => size !== null && size >= 0)) {
+                    const product = others.reduce<bigint>((total, size) => total * BigInt(size!), 1n);
+                    const count = source.shape.reduce((total, size) => total * BigInt(size!), 1n);
+                    if (product > 0n && count % product === 0n && count / product <= BigInt(Number.MAX_SAFE_INTEGER)) {
+                        dimensions[placeholder] = Number(count / product);
+                    }
+                }
+            }
             const knownRank = form.dimensions.every(part => !isUnpackExpression(part)
                 || infer(part.value, lookup).integers !== undefined
                 || infer(part.value, lookup).shape?.[0] != null);

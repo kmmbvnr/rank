@@ -1094,7 +1094,13 @@ finite sequence. It rejects an infinite sequence.
 ```rank
 M = Values reshape Rows Columns
 N = Values reshape unpack Shape
+Col = Values reshape # 1
 ```
+
+One directly written `#` infers a dimension from the total element count. The
+product of the other dimensions must be positive and divide that count exactly.
+An empty source supports `# 1`, but `# 0` is ambiguous. Negative dimensions
+(including `-1`) remain invalid.
 
 Dimensions are nonnegative integers; `unpack` expands a rank-1 shape array. The source may be an
 array, queue, finite sequence or text, and its element count must exactly match
