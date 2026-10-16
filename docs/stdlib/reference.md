@@ -199,6 +199,7 @@ These constructs are always available.
 | Form | Summary |
 | --- | --- |
 | `Init next repeat Count` | Applies a unary function to the whole state a nonnegative integer number of times; zero returns Init. |
+| `Init next repeat Count till done` | Applies at most Count steps, stopping after done Previous Current returns true; returns Current. |
 | `Values mod N` | Floored remainder; with equal 0 it tests divisibility, elementwise on arrays. Written mod= to update in place. |
 | `Left Right max` | The larger of two numbers; min gives the smaller. |
 | `Low to High` | Counting range with an inclusive upper bound; after values, keeps those at most High. |

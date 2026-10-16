@@ -12,7 +12,7 @@ fun Points K InitialCentroids Max k_means
   N = Points len
   Labels = array shape N fill 0
 
-  for Step in 0 till Max
+  fun Centroids step
     for i in 0 till N
       Point = Samples i
       Best = 0
@@ -44,12 +44,13 @@ fun Points K InitialCentroids Max k_means
       end
     end
 
-    if Next Centroids equal rank 2
-      break
-    end
-
-    Centroids = Next
+    return Next
   end
 
-  return Centroids round 4
+  fun Prev Next done
+    return Prev Next equal rank 2
+  end
+
+  Result = Centroids step repeat Max till done
+  return Result round 4
 end
