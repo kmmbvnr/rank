@@ -76,7 +76,7 @@ const tasks = [
   { name: 'Money Sums, 100 coins of value 1000', path: 'demos/cses/dynamic/014_moneysums.ra', fn: 'money_sums', args: () => [array(Array(100).fill(1000n))], verify: value => assert.deepEqual(value.items, Array.from({length:100}, (_,i)=>BigInt((i+1)*1000))) },
   { name: 'Array Description, 1000 unknowns, Maximum=100', path: 'demos/cses/dynamic/008_arraydesc.ra', fn: 'descriptions', expected: descriptionAnswer(1000, 100), args: () => [array(Array(1000).fill(0n)), 100n] },
   { name: 'Minimizing Coins, six coins, Target=100000', path: 'demos/cses/dynamic/002_mincoins.ra', fn: 'minimum_coins', expected: 16667n, args: () => [array([1n, 2n, 3n, 4n, 5n, 6n]), 100000n] },
-  { name: 'Euler 18, 400 rows of ones', path: 'demos/euler/018_maxpath.ra', fn: 'maximum_path', expected: 400n, args: () => [array(Array(400*401/2).fill(1n)), 400n] },
+  { name: 'Euler 18, 400 rows of ones', path: 'benchmarks/programs/triangle-path.ra', fn: 'maximum_path', expected: 400n, args: () => [array(Array(400*401/2).fill(1n)), 400n] },
   { name: 'Coin Combinations I, six coins, Target=100000', path: 'demos/cses/dynamic/003_coincomb1.ra', fn: 'ordered_coin_ways', expected: diceAnswer(100000), args: () => [array([1n, 2n, 3n, 4n, 5n, 6n]), 100000n] },
   { name: 'Dice Combinations N=1000000', path: 'demos/cses/dynamic/001_dice.ra', fn: 'dice_combinations', expected: diceAnswer(1000000), args: () => [1000000n] },
   { name: 'Indexed integer dot product, 200000 atoms', path: 'benchmarks/programs/array-loop.ra', fn: 'dot', expected: 1200000n, args: () => [array(Array(200000).fill(2n)), array(Array(200000).fill(3n))] },

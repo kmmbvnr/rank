@@ -1,0 +1,15 @@
+rem Compiler fixture: Euler 18 fold over
+rem a dense triangle of any height.
+
+fun Triangle Rows maximum_path
+  for Row in (Rows - 2) to 0 by -1
+    for Col in 0 to Row
+      Cell = Row * (Row + 1) // 2 + Col
+      Left = Triangle (Cell + Row + 1)
+      Right = Triangle (Cell + Row + 2)
+      Best = Left Right max
+      Triangle Cell += Best
+    end
+  end
+  return Triangle 0
+end

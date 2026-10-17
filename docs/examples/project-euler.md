@@ -364,23 +364,21 @@ is `21124`.
 rem Project Euler 18
 rem https://projecteuler.net/problem=18
 
-Work = Triangle copy
 for Row in (Rows - 2) to 0 by -1
-  for Column in 0 to Row
-    Parent = Row * (Row + 1) // 2 + Column
-    Left = Parent + Row + 1
-    Right = Left + 1
-    LeftValue = Work Left
-    RightValue = Work Right
-    BestChild = LeftValue RightValue max
-    Work Parent += BestChild
+  for Col in 0 to Row
+    Cell = Row * (Row + 1) // 2 + Col
+    Left = Triangle (Cell + Row + 1)
+    Right = Triangle (Cell + Row + 2)
+    Best = Left Right max
+    Triangle Cell += Best
   end
 end
+Answer = Triangle 0
 ```
 
-The triangular input is stored densely in row-major triangular order. A
-writable `copy` is folded upward in place, so the algorithm also scales to the
-larger form of the problem. The first cell becomes `1074`.
+The triangular input is stored densely in row-major triangular order and
+folded upward in place, so the algorithm also scales to the larger form of
+the problem. The first cell becomes `1074`.
 
 ## 19. Counting Sundays
 

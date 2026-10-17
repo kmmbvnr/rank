@@ -1,9 +1,8 @@
 rem Maximum Path Sum I
 rem https://projecteuler.net/problem=18
-rem Find the largest top-to-bottom path sum
-rem through a number triangle
+rem Find the largest top-to-bottom path
+rem sum through a number triangle
 
-use sequences
 use io
 
 Triangle = array shape 120
@@ -24,26 +23,18 @@ Triangle = array shape 120
   4 62 98 27 23 9 70 98 73 93 38 53 60 4 23
 end
 
-Answer = Triangle 15 maximum_path
-Answer print
+Rows = 15
 
-
-rem Fold the triangle upward, keeping the
-rem better of each pair of child paths.
-fun Triangle Rows maximum_path
-  Work = Triangle copy
-
-  for Row in (Rows - 2) to 0 by -1
-    for Column in 0 to Row
-      Parent = Row * (Row + 1) // 2 + Column
-      Left = Parent + Row + 1
-      Right = Left + 1
-      LeftValue = Work Left
-      RightValue = Work Right
-      BestChild = LeftValue RightValue max
-      Work Parent += BestChild
-    end
+rem Fold upward: each cell adds the
+rem better of its two children.
+for Row in (Rows - 2) to 0 by -1
+  for Col in 0 to Row
+    Cell = Row * (Row + 1) // 2 + Col
+    Left = Triangle (Cell + Row + 1)
+    Right = Triangle (Cell + Row + 2)
+    Best = Left Right max
+    Triangle Cell += Best
   end
-
-  return Work 0
 end
+Answer = Triangle 0
+Answer print
