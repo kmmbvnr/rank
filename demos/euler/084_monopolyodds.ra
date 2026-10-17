@@ -9,7 +9,6 @@ use io
 use cli
 
 option Sides integer = 4
-option Steps integer = 500
 
 rem Land[p]: squares reached after
 rem landing on p and resolving
@@ -110,11 +109,24 @@ Row2 = concat Stay2 Zero Zero axis 1
 Size = 41 * 3
 Trans = concat Row0 Row1 Row2 axis 0
 
-Seen = array shape Size fill 0.0
-Seen 0 = 1.0
-for # in 1 to Steps
-  Seen = Seen Trans matmul
-end
+rem The long-run shares solve pi T = pi
+rem with the shares adding to 1: one
+rem balance equation is swapped for that
+rem sum.
+Cells = Size
+Ind = 0 till Cells array
+Down = Ind reshape Cells 1
+Across = Ind reshape 1 Cells
+Eye = Down equal Across
+Unit = Eye choose 1.0 0.0
+Flow = (Trans transpose) - Unit
+Top0 = Ind equal 0
+Ones = array shape Cells fill 1.0
+Pick = Top0 reshape Cells 1
+Norm = Ones reshape 1 Cells
+Mat = Pick choose Norm Flow
+Rhs = Top0 choose 1.0 0.0
+Seen = Mat Rhs solve
 Mid = Seen drop 41 take 41
 Last = Seen drop 82
 Sum = Seen take 41 + Mid + Last
