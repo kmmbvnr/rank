@@ -1,0 +1,40 @@
+use testing
+
+test "default input"
+  use "078_coinpartitions"
+  run
+
+  Answer equal 55374
+end
+
+test "small moduli"
+  use "078_coinpartitions"
+  Modulus = 7
+  run
+
+  Answer equal 5
+  Modulus = 1000
+  run
+
+  Answer equal 449
+end
+
+test "partition numbers"
+  use "078_coinpartitions"
+  Modulus = 1000000007
+  Limit = 100
+  run
+
+  Ways 5 equal 7
+  Ways 10 equal 42
+  Ways 100 equal 190569292
+end
+
+test "no multiple within the limit"
+  use "078_coinpartitions"
+  Modulus = 1000000
+  Limit = 100
+  run
+
+  Answer equal -1
+end

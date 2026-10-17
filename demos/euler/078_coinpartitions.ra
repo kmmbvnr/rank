@@ -1,0 +1,46 @@
+rem Coin Partitions
+rem https://projecteuler.net/problem=78
+rem Find the least n for which p(n) is
+rem divisible by a million
+
+use numbers
+use sequences
+use io
+use cli
+
+option Modulus integer = 1000000
+option Limit integer = 60000
+
+rem Pentagonal recurrence: p(n) is the
+rem signed sum of p(n - g) for the
+rem pentagonal numbers g <= n, kept
+rem modulo the divisor.
+Root = Limit isqrt
+K = 1 to Root array
+Odd = K mod 2 * 2 - 1
+Low = K * (3 * K - 1) // 2
+High = K * (3 * K + 1) // 2
+Size = K len * 2
+Gens = stack Low High transpose
+Gen = Gens reshape Size
+Signs = stack Odd Odd transpose
+Sign = Signs reshape Size
+Ways = array shape (Limit + 1) fill 0
+Ways 0 = 1
+Answer = -1
+for N in 1 to Limit
+  Total = 0
+  for J in 0 till Size
+    G = Gen J
+    if G greater N
+      break
+    end
+    Total += Sign J * Ways (N - G)
+  end
+  Ways N = Total mod Modulus
+  if Ways N equal 0
+    Answer = N
+    break
+  end
+end
+Answer print
