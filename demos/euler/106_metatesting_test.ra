@@ -1,0 +1,28 @@
+use testing
+
+test "default input"
+  use "106_metatesting"
+  run
+
+  Answer equal 21384
+end
+
+test "statement sizes"
+  use "106_metatesting"
+  Size = 4
+  run
+
+  Answer equal 1
+  Size = 7
+  run
+
+  Answer equal 70
+end
+
+test "too small to need tests"
+  use "106_metatesting"
+  Size = 3
+  run
+
+  Answer equal 0
+end

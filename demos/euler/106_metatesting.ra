@@ -1,0 +1,27 @@
+rem Special Subset Sums: Meta-testing
+rem https://projecteuler.net/problem=106
+rem Count the subset pairs of an n-set
+rem that still need an equality test.
+
+
+use numbers
+use sequences
+use io
+use cli
+
+option Size integer = 12
+
+rem For subsets of size k, choose 2k
+rem items and split them into two
+rem groups: half of C(2k, k) ways.
+rem Splits that stay ordered element by
+rem element, counted by the Catalan
+rem number, are decided by size alone.
+Half = Size // 2
+K = 2 to Half array
+Pairs = (K * 2) K binomial
+Pool = Size (K * 2) binomial
+Catalan = Pairs // (K + 1)
+Open = Pairs // 2 - Catalan
+Answer = (Pool * Open) sum
+Answer print
