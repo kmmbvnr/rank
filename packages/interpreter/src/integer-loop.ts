@@ -339,7 +339,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                 const value = emit(e.head, lines);
                 if (value?.type !== 'integer') return undefined;
                 builtins.set(op, 'numbers');
-                return { code: `((${value.code}) % 2n ${op === 'even' ? '===' : '!=='} 0n)`, type: 'boolean' };
+                return { code: `(BigInt.asUintN(1, ${value.code}) ${op === 'even' ? '===' : '!=='} 0n)`, type: 'boolean' };
             }
             if ((op === 'len' || op === 'pop') && isNameExpression(e.head)) {
                 const receiver = container(e.head.name, 'deque', op === 'pop');

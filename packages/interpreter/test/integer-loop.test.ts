@@ -57,6 +57,29 @@ array A B I
         expect(result.loops).toBe(1);
     });
 
+    it('tests parity of negative and multiword integers', () => {
+        const result = compare(`use numbers
+I = 0
+Big = 1267650600228229401496703205376
+Even = 0
+Odd = 0
+for I less 5
+  X = Big * (I - 2) - I
+  Y = 1 - I
+  if X even
+    Even += 1
+  end
+  if Y odd
+    Odd += 1
+  end
+  I += 1
+end
+array Even Odd
+`);
+        expect(result.value).toBe('3 3');
+        expect(result.loops).toBe(1);
+    });
+
     it.each([
         'I = 0\nDone = 0\nfor I less 3\n  I += 1\n  Done = I\n  Bad = 7 // (I - 1)\nend',
         'I = 0\nReal = 1.0\nfor I less 3\n  I += 1\n  Real = I + 1\nend',

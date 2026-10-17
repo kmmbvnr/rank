@@ -131,8 +131,9 @@ export const numbersModule: RuntimeModule = {
         if (value < 1n) throw new RankError('divisors expects a positive integer');
         return sequence(divisorPlan(value));
     }),
-    odd: () => predicateFunction('odd', value => expectInteger(value) % 2n !== 0n),
-    even: () => predicateFunction('even', value => expectInteger(value) % 2n === 0n),
+    // `asUintN` reads the low bit; `% 2n` divides the whole BigInt in V8.
+    odd: () => predicateFunction('odd', value => BigInt.asUintN(1, expectInteger(value)) !== 0n),
+    even: () => predicateFunction('even', value => BigInt.asUintN(1, expectInteger(value)) === 0n),
     isnan: () => predicateFunction('isnan', value => value !== MISSING && Number.isNaN(Number(expectNumeric(value)))),
 };
 
