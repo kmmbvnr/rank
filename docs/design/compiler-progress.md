@@ -1,5 +1,31 @@
 # Compiler progress
 
+## Depth-array search loops
+
+Integer loops use the shared native-call contracts for `band`, `bor`, `bxor`,
+`bnot`, `shl`, `shr`, `bit` and `popcount`. Calls retain the registered builtin
+identity, module and input-domain checks. They use the existing BigInt operations,
+including nonnegative shift positions and the nonnegative popcount domain.
+
+A complete region may contain up to 128 statements across nested branches and
+loops; the outer body still has a 32-statement limit and expression generation
+remains bounded. Exceeding the region limit reports `statement-budget` rather
+than an unsupported assignment.
+
+Euler 103 uses scalar leaf checks and copies a successful set into its output
+array element by element, allowing the full depth-array search to compile. The
+saved result remains independent of later candidate writes. Euler 88 retains
+its batch-array demo and adds `088_productsum_stack.ra` as an explicit DFS
+alternative. Array-valued stack frames still use ordinary container execution;
+this change does not claim a compiled frame-payload path.
+
+Run `node benchmarks/search-loops.mjs` after building to compare the frozen
+recursive and old depth-array fixtures with the demos. It checks answers,
+records executed compilation tiers, repeated fresh-process timings and peak RSS,
+and runs separate instrumented searches to report work without timing the added
+counters. Counter meanings differ: candidate attempts for recursive 103, outer
+iterations for depth 103, and visited frames/states for the 88 variants.
+
 ## Guarded homogeneous array arguments
 
 Function kernels can specialize on an array's element type and rank, independently
@@ -25,7 +51,7 @@ readers. Broader operations continue through the existing tensor/generic paths.
 
 ## Native call contracts
 
-The ten current compiled native-call profiles in `operations.ts` declare their
+Compiled native-call profiles in `operations.ts` declare their
 input/result domains, callback conditions, cost class and host override guard.
 These profiles describe compiler-supported subsets; they are not the full
 language signatures of their operations.

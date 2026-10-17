@@ -1,0 +1,37 @@
+rem Product-sum Numbers
+rem https://projecteuler.net/problem=88
+rem Sum the distinct minimal product-sum
+rem numbers for sizes 2 up to a limit
+
+use sequences
+use io
+use cli
+
+option Limit integer = 12000
+
+Big = Limit * 2
+Size = Limit + 1
+Best = array shape Size fill Big
+Ignore = 1 0 0 2 search
+Mins = Best drop 2 unique
+Answer = Mins sum
+Answer print
+
+rem Factors with product P, sum S and
+rem count n give k = P - S + n, the rest
+rem being ones. Search P up to twice the
+rem limit, with factors never
+rem decreasing.
+fun Prod Sum Cnt Low search
+  K = Prod - Sum + Cnt
+  if Cnt greater 1 and K at most Limit
+    if Prod less Best K
+      Best K = Prod
+    end
+  end
+  for F in Low to Big // Prod
+    Next = Prod * F
+    Next (Sum + F) (Cnt + 1) F search
+  end
+  return 0
+end

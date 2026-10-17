@@ -51,15 +51,25 @@ for Depth greater -1
   end
   Sum = Total Depth + X
   if Depth equal Size - 1
+    rem The k + 1 smallest must outweigh
+    rem the k largest for every k.
     Half = (Size - 1) // 2
-    Ks = 1 to Half array
-    Small = (Set scan +) Ks
-    Back = Set reverse
-    Big = (Back scan +) (Ks - 1)
-    Ok = (Small greater Big) all
+    Small = Set 0
+    Big = 0
+    Ok = true
+    for I in 1 to Half
+      Small += Set I
+      Big += Set (Size - I)
+      if Small at most Big
+        Ok = false
+        break
+      end
+    end
     if Ok
       Best = Sum
-      Found = Set copy
+      for I in 0 till Size
+        Found I = Set I
+      end
     end
     continue
   end

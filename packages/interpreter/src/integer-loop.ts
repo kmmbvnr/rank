@@ -577,7 +577,9 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
     function statements(commands: readonly Statement[], body: string[], allowTail: boolean): 'next' | 'stop' | undefined {
         for (const assignment of commands) {
             const location = locations.length;
-            if (location >= 32) return reject(assignment);
+            // Bound the complete region, including nested branches and loops.
+            // Search loops exceed 32 statements even with a small outer body.
+            if (location >= 128) return reject(assignment, 'statement-budget');
             locations.push(assignment);
             if (isForStatement(assignment)) {
                 if (!host.nestedLoops) return reject(assignment);
