@@ -1,0 +1,34 @@
+rem Digit Power Sum
+rem https://projecteuler.net/problem=119
+rem Find the Nth number, of two or more
+rem digits, that is a power of its digit
+rem sum
+
+use numbers
+use sequences
+use io
+use cli
+
+option Nth integer = 30
+option Digits integer = 16
+
+rem Below 10^Digits the digit sum is at
+rem most 9 * Digits. Try each base up to
+rem that and each power under the bound.
+Top = Digits * 9
+Rows = Top - 1
+Base = (2 to Top array) reshape Rows 1
+Exps = 2 to (Digits * 4) array
+Pow = Base ** Exps
+Limit = 10 ** Digits
+Fit = Pow less Limit
+Fit and= Pow at least 10
+Safe = Fit choose Pow 0
+Place = array shape Digits fill 10
+Ds = Safe Place digits
+Sums = Ds sum axis 0
+Hit = Fit and Sums equal Base
+Found = Pow filter Hit array
+Sorted = Found sort
+Answer = Sorted (Nth - 1)
+Answer print
