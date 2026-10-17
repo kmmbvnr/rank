@@ -10,7 +10,10 @@ use text
 use io
 use cli
 
-argument Input path = "demos/euler/fixtures/0107_network.txt"
+argument Input path = (
+  "demos/euler/fixtures/"
+  + "0107_network.txt"
+)
 
 rem Total link weight less the weight of
 rem a minimum spanning tree. A dash

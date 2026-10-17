@@ -9,7 +9,10 @@ use text
 use io
 use cli
 
-argument Input path = "demos/euler/fixtures/0105_sets.txt"
+argument Input path = (
+  "demos/euler/fixtures/"
+  + "0105_sets.txt"
+)
 
 rem A set counts when all 2^n subset
 rem sums differ and the k + 1 smallest

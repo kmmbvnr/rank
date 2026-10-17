@@ -9,7 +9,10 @@ use sequences
 use io
 use cli
 
-argument Input path = "demos/euler/fixtures/0079_keylog.txt"
+argument Input path = (
+  "demos/euler/fixtures/"
+  + "0079_keylog.txt"
+)
 
 rem Attempts order their digits, so the
 rem topological order is the passcode.

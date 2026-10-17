@@ -7,7 +7,10 @@ use text
 use io
 use cli
 
-argument Input path = "demos/euler/fixtures/0102_triangles.txt"
+argument Input path = (
+  "demos/euler/fixtures/"
+  + "0102_triangles.txt"
+)
 
 rem The origin is inside when the cross
 rem products of consecutive vertices all

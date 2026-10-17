@@ -9,7 +9,10 @@ use text
 use io
 use cli
 
-argument Input path = "demos/euler/fixtures/0099_base_exp.txt"
+argument Input path = (
+  "demos/euler/fixtures/"
+  + "0099_base_exp.txt"
+)
 
 rem Compare exponent * log(base) instead
 rem of the huge powers themselves.
