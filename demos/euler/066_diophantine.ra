@@ -4,22 +4,19 @@ rem Find D with the largest least x of
 rem x^2 - D y^2 = 1
 
 use numbers
-use sequences
 use io
 use cli
 
 option Limit integer = 1000
 
-Xs = 2 to Limit pell rank 0
-Answer = (Xs max .index) + 2
-Answer print
-
-rem Least x, 0 for squares. Walk the
-rem convergents of the sqrt D fraction.
-fun D pell
+rem Walk the convergents of the sqrt D
+rem fraction until x^2 - D y^2 = 1.
+Best = 0
+Answer = 0
+for D in 2 to Limit
   Root = D isqrt
   if Root * Root equal D
-    return 0
+    continue
   end
   Mid = 0
   Den = 1
@@ -39,5 +36,9 @@ fun D pell
     X = NextX
     Y = NextY
   end
-  return X
+  if X greater Best
+    Best = X
+    Answer = D
+  end
 end
+Answer print
