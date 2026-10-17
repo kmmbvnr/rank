@@ -9,26 +9,23 @@ use cli
 
 argument Input path = "demos/euler/fixtures/0102_triangles.txt"
 
-Answer = Input readlines containing
-Answer print
-
 rem The origin is inside when the cross
 rem products of consecutive vertices all
 rem have one sign.
-fun Lines containing
-  Flat = Lines "," join
-  Parts = Flat "," split
-  Nums = Parts integer
-  Rows = Lines len
-  Grid = Nums reshape Rows 6
-  Xs = Grid # (array 0 2 4)
-  Ys = Grid # (array 1 3 5)
-  Next = array 1 2 0
-  Nx = Xs # Next
-  Ny = Ys # Next
-  Cross = Xs * Ny - Ys * Nx
-  Left = (Cross greater 0) all axis 1
-  Right = (Cross less 0) all axis 1
-  Inside = Left or Right
-  return Inside count
-end
+Lines = Input readlines
+Flat = Lines "," join
+Parts = Flat "," split
+Nums = Parts integer
+Rows = Lines len
+Grid = Nums reshape Rows 6
+Xs = Grid # (array 0 2 4)
+Ys = Grid # (array 1 3 5)
+Next = array 1 2 0
+Nx = Xs # Next
+Ny = Ys # Next
+Cross = Xs * Ny - Ys * Nx
+Left = (Cross greater 0) all axis 1
+Right = (Cross less 0) all axis 1
+Inside = Left or Right
+Answer = Inside count
+Answer print

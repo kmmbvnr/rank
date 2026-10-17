@@ -9,18 +9,22 @@ end
 
 test "statement triangles"
   use "102_triangles"
+  use io
+  Input = "/tmp/euler102.txt"
+  "-340,495,-153,-910,835,-947\n" "/tmp/euler102.txt" write
+  run
 
-  Inside = array "-340,495,-153,-910,835,-947"
-  Inside containing equal 1
-  Outside = array "-175,41,-421,-714,574,-645"
-  Outside containing equal 0
-  Both = array "-340,495,-153,-910,835,-947" "-175,41,-421,-714,574,-645"
-  Both containing equal 1
-end
+  Answer equal 1
+  "-175,41,-421,-714,574,-645\n" "/tmp/euler102.txt" write
+  run
 
-test "single line"
-  use "102_triangles"
+  Answer equal 0
+  "-340,495,-153,-910,835,-947\n-175,41,-421,-714,574,-645\n" "/tmp/euler102.txt" write
+  run
 
-  Tri = array "-1,-1,2,-1,-1,2"
-  Tri containing equal 1
+  Answer equal 1
+  "-1,-1,2,-1,-1,2\n" "/tmp/euler102.txt" write
+  run
+
+  Answer equal 1
 end
