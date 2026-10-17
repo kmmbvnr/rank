@@ -174,6 +174,9 @@ export function typeOf(expression: Expression | undefined, lookup: TypeLookup): 
             : same(source, 'queue') ? ['array'] : UNKNOWN;
     }
     if (isBinaryExpression(expression)) {
+        const form = applicationForm(expression,
+            name => lookup(name) === undefined ? findOperation(name) : false);
+        if (form.kind === 'outer') return ['array'];
         if (['+', '*', 'and', 'or', 'xor'].includes(expression.operator)
             && isNameExpression(expression.right) && expression.right.name === 'segment'
             && lookup('segment') === undefined) return ['segment'];
@@ -279,15 +282,21 @@ export function modifierResultTypes(operation: Operation, operands: readonly Exp
 
 function applicationType(expression: ApplicationExpression, lookup: TypeLookup): Types {
     const parts = flattenApplication(expression);
-    if (parts.some(part => isNameExpression(part) && part.name === 'window')) {
-        const form = applicationForm(parts, name => lookup(name) === undefined ? findOperation(name) : false);
-        if (form.kind === 'window') {
-            const source = typeOf(form.source, lookup);
-            if (same(source, 'text')) return ['sequence'];
-            if (same(source, 'sequence')) return ['array', 'sequence'];
-            if (same(source, 'array') || same(source, 'queue')) return ['array'];
-            return source.length === 0 ? ['array', 'sequence'] : UNKNOWN;
-        }
+    const form = applicationForm(expression,
+        name => lookup(name) === undefined ? findOperation(name) : false);
+    if (form.kind === 'reshape' && !form.rest.length || form.kind === 'named-outer') return ['array'];
+    if (form.kind === 'array-combine-constructor' && !form.rest.length) {
+        if (form.operation === 'stack') return ['array'];
+        const operands = form.items.map(item => typeOf(item, lookup));
+        if (operands.every(types => same(types, 'array'))) return ['array'];
+        return ['array', 'sequence'];
+    }
+    if (form.kind === 'window') {
+        const source = typeOf(form.source, lookup);
+        if (same(source, 'text')) return ['sequence'];
+        if (same(source, 'sequence')) return ['array', 'sequence'];
+        if (same(source, 'array') || same(source, 'queue')) return ['array'];
+        return source.length === 0 ? ['array', 'sequence'] : UNKNOWN;
     }
     const last = parts.at(-1);
     if (parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'from'
