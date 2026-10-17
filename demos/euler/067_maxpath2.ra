@@ -3,6 +3,8 @@ rem https://projecteuler.net/problem=67
 rem Largest top-to-bottom path sum in
 rem a triangle of one hundred rows
 
+use graph
+use numbers
 use sequences
 use text
 use io
@@ -13,16 +15,34 @@ argument Input path = (
   + "0067_triangle.txt"
 )
 
-rem Fold upward: each cell adds the
-rem better of its two children.
-Rows = Input readlines
-Best = array shape (Rows len + 1) fill 0
-for Line in Rows reverse
-  Row = Line " " split integer rank 0
-  Size = Row len
-  Left = Best take Size
-  Right = Best drop 1 take Size
-  Best = Row + (Left Right max)
-end
-Answer = Best 0
+rem A longest path is a shortest path
+rem under costs 100 less the value of
+rem the cell entered. Cell i is in row
+rem (isqrt(8i + 1) - 1) / 2 and has two
+rem children in the next row.
+Text = Input read
+Flat = Text "\n" " " translate
+Words = Flat " " split
+Real = Words filter not equal "" array
+Vals = Real integer
+Count = Vals len
+Id = 0 till Count array
+Eight = Id * 8 + 1
+Row = (Eight isqrt - 1) // 2
+Last = Row max
+Parents = Id filter (Row less Last) copy
+Level = Row Parents
+Left = Parents + Level + 1
+Right = Left + 1
+From = concat Parents Parents
+To = concat Left Right
+Cost = 100 - (Vals To)
+Edges = stack From To Cost transpose
+Net = new graph .directed
+Net add Id
+Net add Edges
+Dist = Net 0 dijkstra .distance
+Base = Id (Row equal Last) array
+Short = (Dist Base) min
+Answer = Vals 0 + Last * 100 - Short
 Answer print
