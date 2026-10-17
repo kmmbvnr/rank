@@ -21,26 +21,34 @@ Ci = Ids reshape 1 41
 Land = (Ri equal Ci) choose 1.0 0.0 copy
 Land 30 = 0.0
 Land 30 40 = 1.0
-for P in array 2 17 33
-  Land P = 0.0
-  Land P P = 14.0 / 16
-  Land P 0 = 1.0 / 16
-  Land P 40 = 1.0 / 16
-end
-for P in array 7 22 36
-  Tens = (P + 5) // 10 * 10
-  Rail = (Tens + 5) mod 40
-  Mid = P at least 12 and P less 28
-  Util = Mid choose 28 12
-  Land P = 0.0
-  Land P P = 6.0 / 16
-  for Dest in array 0 40 11 24 39 5 Util
-    Land P Dest += 1.0 / 16
-  end
-  Land P Rail += 2.0 / 16
-  Back = P - 3
-  Land P += Land Back / 16
-end
+Chest = array 2 17 33
+At = Chest reshape 3 1
+Keep = (At equal Ci) choose 0.875 0.0
+Pass = (Ci equal 0) or (Ci equal 40)
+Gift = Pass choose 0.0625 0.0
+Land Chest = Keep + Gift
+Chance = array 7 22 36
+Cp = Chance reshape 3 1
+Tens = (Chance + 5) // 10 * 10
+Rail = (Tens + 5) mod 40
+Inner = Chance at least 12
+Inner and= Chance less 28
+Util = Inner choose 28 12
+Fixed = array 0 40 11 24 39 5
+Hits = Ci equal (Fixed reshape 6 1 1)
+Any = Hits any axis 0
+Same = Any choose 0.0625 0.0
+Ours = (Cp equal Ci) choose 0.375 0.0
+RailAt = Rail reshape 3 1
+UtilAt = Util reshape 3 1
+OnRail = Ci equal RailAt
+OnUtil = Ci equal UtilAt
+Rails = OnRail choose 0.125 0.0
+Utils = OnUtil choose 0.0625 0.0
+Behind = Chance - 3
+Back = Land Behind / 16
+Cards = Ours + Same + Rails + Utils
+Land Chance = Cards + Back
 
 rem Dice sums: counts of rolls that are
 rem not doubles and of doubles, per
