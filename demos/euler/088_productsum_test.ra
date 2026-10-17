@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "088_productsum"
+  run
+
+  Answer equal 7587457
+end
+
+test "statement sizes up to 6 and 12"
+  use "088_productsum"
+
+  6 product_sums equal 30
+  12 product_sums equal 61
+end
+
+test "single size"
+  use "088_productsum"
+
+  2 product_sums equal 4
+  3 product_sums equal 10
+end
