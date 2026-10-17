@@ -22,95 +22,78 @@ Text = Rows "" join
 Cells = Text integer rank 0
 Count = Cells len // 81
 Grids = Cells reshape Count 81
+Ids = 0 till 81 array
+RowK = Ids // 9
+ColK = Ids mod 9 + 9
+Band = Ids // 27 * 3
+Stack = Ids mod 9 // 3
+BoxK = Band + Stack + 18
+Bit = array 1 2 4 8 16 32 64 128 256
+Pop = (0 to 511 array) popcount
+Weight = array 100 10 1
+Grid = Grids 0 copy
+Used = array shape 27 fill 0
 Answer = 0
 for G in 0 till Count
-  Solved = Grids G sudoku
-  Answer += Solved take 3 corner
-end
-Answer print
-
-rem Number from the first three cells.
-fun Cells corner
-  return Cells (array 100 10 1) matmul
-end
-
-rem Backtracking on the cell with fewest
-rem candidates. Masks hold the digits
-rem used by rows, columns and boxes.
-fun Start sudoku
-  Grid = Start copy
-  Ids = 0 till 81 array
-  RowK = Ids // 9
-  ColK = Ids mod 9 + 9
-  Band = Ids // 27 * 3
-  Stack = Ids mod 9 // 3
-  BoxK = Band + Stack + 18
-  Bit = array 1 2 4 8 16 32 64 128 256
-  Pop = (0 to 511 array) popcount
+  Grid = Grids G copy
   Used = array shape 27 fill 0
   for C in 0 till 81
     D = Grid C
     if D greater 0
-      Grid C = 0
-      Ignore = C D put
+      B = Bit (D - 1)
+      Used (RowK C) += B
+      Used (ColK C) += B
+      Used (BoxK C) += B
     end
   end
   Ignore = 0 search
-  return Grid
+  Head = Grid take 3
+  Answer += Head Weight matmul
+end
+Answer print
 
-  rem Set or clear digit D in cell C.
-  fun C D put
-    B = Bit (D - 1)
-    Grid C = D
-    Used (RowK C) += B
-    Used (ColK C) += B
-    Used (BoxK C) += B
-    return 0
-  end
-
-  fun C D clear
-    B = Bit (D - 1)
-    Grid C = 0
-    Used (RowK C) -= B
-    Used (ColK C) -= B
-    Used (BoxK C) -= B
-    return 0
-  end
-
-  fun Depth search
-    Best = -1
-    BestN = 10
-    BestFree = 0
-    for C in 0 till 81
-      if Grid C equal 0
-        Row = Used (RowK C)
-        Col = Used (ColK C)
-        Box = Used (BoxK C)
-        RC = Row Col bor
-        Mask = RC Box bor
-        Free = 511 - Mask
-        N = Pop Free
-        if N less BestN
-          BestN = N
-          Best = C
-          BestFree = Free
-        end
+rem Backtracking on the cell with fewest
+rem candidates. Masks hold the digits
+rem used by rows, columns and boxes.
+fun Depth search
+  Best = -1
+  BestN = 10
+  BestFree = 0
+  for C in 0 till 81
+    if Grid C equal 0
+      Row = Used (RowK C)
+      Col = Used (ColK C)
+      Box = Used (BoxK C)
+      RC = Row Col bor
+      Mask = RC Box bor
+      Free = 511 - Mask
+      N = Pop Free
+      if N less BestN
+        BestN = N
+        Best = C
+        BestFree = Free
       end
     end
-    if Best less 0
-      return 1
-    end
-    for D in 1 to 9
-      Mine = Bit (D - 1)
-      Has = BestFree Mine band
-      if Has not equal 0
-        Ignore = Best D put
-        if (Depth + 1) search equal 1
-          return 1
-        end
-        Ignore = Best D clear
-      end
-    end
-    return 0
   end
+  if Best less 0
+    return 1
+  end
+  for D in 1 to 9
+    Mine = Bit (D - 1)
+    Has = BestFree Mine band
+    if Has not equal 0
+      Grid Best = D
+      Used (RowK Best) += Mine
+      Used (ColK Best) += Mine
+      Used (BoxK Best) += Mine
+      if (Depth + 1) search equal 1
+        return 1
+      end
+      Grid Best = 0
+      Used (RowK Best) -= Mine
+      Used (ColK Best) -= Mine
+      Used (BoxK Best) -= Mine
+    end
+  end
+  return 0
 end
