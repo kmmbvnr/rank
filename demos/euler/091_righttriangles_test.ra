@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "091_righttriangles"
+  run
+
+  Answer equal 14234
+end
+
+test "statement two by two grid"
+  use "091_righttriangles"
+  Size = 2
+  run
+
+  Answer equal 14
+end
+
+test "one by one grid"
+  use "091_righttriangles"
+  Size = 1
+  run
+
+  Answer equal 3
+end

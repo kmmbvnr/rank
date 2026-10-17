@@ -1,0 +1,26 @@
+rem Right Triangles with Integer Points
+rem https://projecteuler.net/problem=91
+rem Count right triangles OPQ on a grid
+rem of integer points 0 to Size
+
+use numbers
+use sequences
+use io
+use cli
+
+option Size integer = 50
+
+rem 3N^2 have the right angle at O or on
+rem an axis. Otherwise from P = (x, y)
+rem step along (y, -x) / gcd; both sides
+rem count alike by symmetry.
+Ids = 1 to Size array
+X = Ids reshape Size 1
+Y = Ids reshape 1 Size
+G = X Y gcd
+Down = (Size - X) * G // Y
+Left = Y * G // X
+Inner = Down Left min
+Cells = Inner sum
+Answer = 3 * Size * Size + 2 * Cells
+Answer print
