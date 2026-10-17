@@ -1,0 +1,32 @@
+use testing
+
+test "default input"
+  use "072_countfractions"
+  run
+
+  Answer equal 303963552391
+end
+
+test "statement example up to 8"
+  use "072_countfractions"
+  Limit = 8
+  run
+
+  Answer equal 21
+end
+
+test "limit ten thousand"
+  use "072_countfractions"
+  Limit = 10000
+  run
+
+  Answer equal 30397485
+end
+
+test "no fractions at limit one"
+  use "072_countfractions"
+  Limit = 1
+  run
+
+  Answer equal 0
+end

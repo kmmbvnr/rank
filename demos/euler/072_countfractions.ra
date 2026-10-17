@@ -1,0 +1,28 @@
+rem Counting Fractions
+rem https://projecteuler.net/problem=72
+rem Count reduced proper fractions with
+rem denominators up to a limit
+
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000
+
+rem Moebius sieve: each prime flips the
+rem sign of its multiples; squares go 0.
+Mu = array shape (Limit + 1) fill 1
+for P in primes to Limit
+  Mu (P to Limit by P) *= -1
+  if P * P at most Limit
+    Mu (P * P to Limit by P * P) = 0
+  end
+end
+
+rem Coprime pairs a <= b sum Mu k times
+rem pairs up to Limit // k. Drop 1/1.
+K = 1 to Limit
+Quot = Limit // K
+Pairs = Quot * (Quot + 1) // 2
+Answer = (Mu drop 1 * Pairs) sum - 1
+Answer print
