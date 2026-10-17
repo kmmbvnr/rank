@@ -1,0 +1,30 @@
+rem Counting Fractions in a Range
+rem https://projecteuler.net/problem=73
+rem Count reduced fractions between 1/3
+rem and 1/2, denominators up to a limit
+
+use sequences
+use io
+use cli
+
+option Limit integer = 12000
+
+rem Moebius sieve: each prime flips the
+rem sign of its multiples; squares go 0.
+Mu = array shape (Limit + 1) fill 1
+for P in primes to Limit
+  Mu (P to Limit by P) *= -1
+  if P * P at most Limit
+    Mu (P * P to Limit by P * P) = 0
+  end
+end
+
+rem All fractions strictly between, by
+rem denominator, then prefix totals. A
+rem Moebius sum keeps the reduced ones.
+D = 1 to Limit
+Per = (D - 1) // 2 - D // 3
+Tot = Per scan + with 0
+Quot = Limit // D
+Answer = (Mu drop 1 * (Tot Quot)) sum
+Answer print

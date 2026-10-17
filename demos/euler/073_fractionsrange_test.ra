@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "073_fractionsrange"
+  run
+
+  Answer equal 7295372
+end
+
+test "statement example up to 8"
+  use "073_fractionsrange"
+  Limit = 8
+  run
+
+  Answer equal 3
+end
+
+test "limit one thousand"
+  use "073_fractionsrange"
+  Limit = 1000
+  run
+
+  Answer equal 50695
+end
