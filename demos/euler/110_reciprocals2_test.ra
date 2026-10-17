@@ -9,8 +9,12 @@ end
 
 test "smaller targets"
   use "110_reciprocals2"
+  Target = 1000
+  run
 
-  1000 least_n equal 180180
-  100 least_n equal 1260
-  3 least_n equal 6
+  Answer equal 180180
+  Target = 3
+  run
+
+  Answer equal 6
 end
