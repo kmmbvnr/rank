@@ -61,6 +61,16 @@ describe('binding facts', () => {
         expect(named(result, 'program', 'Result').types).toEqual([]);
     });
 
+    it('allows both selection and gather kinds when only a selector collection type is known', async () => {
+        const result = await facts([
+            'use sequences',
+            'Values = array 1 2 3', 'Mask = Values greater 1',
+            'Selected = Values Mask', 'Gathered = Values (1 till 3)',
+        ]);
+        expect(named(result, 'program', 'Selected').types).toEqual(['array', 'sequence']);
+        expect(named(result, 'program', 'Gathered').types).toEqual(['array']);
+    });
+
     it('keeps window result kinds when the size follows the operation', async () => {
         const result = await facts([
             'use sequences',

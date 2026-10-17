@@ -1,7 +1,7 @@
 import { inferSignatureResultTypes } from '../signature-matching.js';
 import type { SignatureAtom, SignatureType } from '../type-signature.js';
 import { joinTypes } from './value-domain.js';
-import { flattenApplication } from '../expressions.js';
+import { flattenApplication, rangeSliceOperands } from '../expressions.js';
 import { applicationForm } from '../application-forms.js';
 /**
  * Type facts over the runtime's own type names.
@@ -14,7 +14,7 @@ import { applicationForm } from '../application-forms.js';
  */
 
 import {
-    isTupleExpression, isFunctionOperator, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
+    isAllAxisExpression, isTupleExpression, isFunctionOperator, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isKeyedMergeExpression, isLabelLiteral, isMaterializeExpression,
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
@@ -314,7 +314,13 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
         if (same(source, 'text') && same(selector, 'integer')) return ['text'];
         if (['array', 'queue', 'sequence'].some(type => same(selector, type))) {
             if (same(source, 'text')) return ['text'];
-            if (['array', 'queue', 'sequence'].some(type => same(source, type))) return ['array'];
+            if (same(source, 'queue')) return ['array'];
+            if (same(source, 'array') || same(source, 'sequence')) {
+                const range = rangeSliceOperands(expression);
+                // A syntactic range gathers positions. Other collections may
+                // be boolean masks, whose selection remains a lazy sequence.
+                return range && !isAllAxisExpression(range.end) ? ['array'] : ['array', 'sequence'];
+            }
         }
     }
     if (last === undefined || !isNameExpression(last)) return UNKNOWN;
