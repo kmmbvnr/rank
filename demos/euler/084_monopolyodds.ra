@@ -42,33 +42,65 @@ for P in array 7 22 36
   Land P += Land Back / 16
 end
 
+rem Dice sums: counts of rolls that are
+rem not doubles and of doubles, per
+rem total.
+Die = 1 to Sides array
+Side = Die reshape Sides 1
+Tot = Side + (Die reshape 1 Sides)
+IsD = Side equal (Die reshape 1 Sides)
+Plain = Tot (not IsD) array
+Twins = Tot IsD array
+Sq40 = 0 till 40 array
+Col40 = Sq40 reshape 40 1
+NP = Plain len
+NT = Twins len
+Wnd = Col40 equal (Plain reshape 1 NP)
+Wd = Col40 equal (Twins reshape 1 NT)
+NonCount = Wnd count axis 1
+TwinCount = Wd count axis 1
+
+rem From square q (41 = in jail, played
+rem from 10) a roll total s lands on
+rem (q + s) mod 40.
+Qs = 0 till 41 array
+Base = (Qs equal 40) choose 10 Qs
+Row40 = Sq40 reshape 1 40
+Col41 = Base reshape 41 1
+Gap = Row40 - Col41
+Where = (Gap mod 40) reshape 1640
+Rolls = Sides * Sides
+NonAt = NonCount Where
+TwinAt = TwinCount Where
+NonGrid = NonAt reshape 41 40
+TwinGrid = TwinAt reshape 41 40
+NonRoll = NonGrid / Rolls
+TwinRoll = TwinGrid / Rolls
+Reach = Land take 40
+NonD = NonRoll Reach matmul
+Dbl = TwinRoll Reach matmul
+
 rem State: square 0 to 39, or 40 if sent
 rem to jail, and 0 to 2 doubles so far.
+rem Jail is one state; a double either
+rem adds one to the count or, the third
+rem time, jails.
+Jail = (Qs equal 40) choose 1.0 0.0
+Gone = (Qs less 40) choose 1.0 0.0
+Mine = Dbl # 40
+Rows = Dbl sum axis 1
+Away = Dbl * (Gone reshape 1 41)
+JailRow = Jail reshape 1 41
+Jail0 = Mine reshape 41 1
+Jail2 = Rows reshape 41 1
+Stay0 = NonD + Jail0 * JailRow
+Stay2 = NonD + Jail2 * JailRow
+Zero = array shape 41 41 fill 0.0
+Row0 = concat Stay0 Away Zero axis 1
+Row1 = concat Stay0 Zero Away axis 1
+Row2 = concat Stay2 Zero Zero axis 1
 Size = 41 * 3
-Rolls = Sides * Sides
-Trans = array shape Size Size fill 0.0
-for Q in 0 till 41
-  Base = Q equal 40 choose 10 Q
-  for D in 0 till 3
-    for A in 1 to Sides
-      for B in 1 to Sides
-        Dbl = A equal B
-        From = Q + 41 * D
-        if Dbl and D equal 2
-          Trans From 40 += 1.0 / Rolls
-          continue
-        end
-        Next = Dbl choose (D + 1) 0
-        Wide = (0 till 41) + 41 * Next
-        Cols = Wide copy
-        Cols 40 = 40
-        Pos = (Base + A + B) mod 40
-        Dist = Land Pos
-        Trans From Cols += Dist / Rolls
-      end
-    end
-  end
-end
+Trans = concat Row0 Row1 Row2 axis 0
 
 Seen = array shape Size fill 0.0
 Seen 0 = 1.0

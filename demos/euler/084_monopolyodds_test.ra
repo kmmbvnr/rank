@@ -35,9 +35,11 @@ test "transition rows are probabilities"
 
   run
 
-  Rows = Trans sum axis 1
-  Gap = Rows 0 - 1.0
-  Gap abs less 0.000001
-  Late = Rows 60 - 1.0
-  Late abs less 0.000001
+  Sums = Trans sum axis 1
+  Off0 = Sums 0 - 1.0
+  Off0 abs less 0.000001
+  Off60 = Sums 60 - 1.0
+  Off60 abs less 0.000001
+  Off100 = Sums 100 - 1.0
+  Off100 abs less 0.000001
 end
