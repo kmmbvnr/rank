@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "098_anagramsquares"
+  run
+
+  Answer equal 18769
+end
+
+test "statement pair"
+  use "098_anagramsquares"
+
+  "CARE" "RACE" pair_best equal 9216
+  "BOARD" "BROAD" pair_best equal 18769
+end
+
+test "pairs without square mapping"
+  use "098_anagramsquares"
+
+  "ACT" "CAT" pair_best equal 0
+  "TO" "OT" pair_best equal 0
+end

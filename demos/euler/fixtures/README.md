@@ -13,3 +13,5 @@
 `0089_roman.txt` is the unmodified [official input for Roman Numerals](https://projecteuler.net/resources/documents/0089_roman.txt): one thousand numerals, one per line. See [Project Euler 89](https://projecteuler.net/problem=89).
 
 `0096_sudoku.txt` is the unmodified [official input for Su Doku](https://projecteuler.net/resources/documents/0096_sudoku.txt): fifty puzzles, each a `Grid NN` line followed by nine rows of nine digits (0 for an empty cell). See [Project Euler 96](https://projecteuler.net/problem=96).
+
+`0098_words.txt` is the unmodified [official input for Anagramic Squares](https://projecteuler.net/resources/documents/0098_words.txt): about 1,800 quoted, comma-separated English words. See [Project Euler 98](https://projecteuler.net/problem=98).
