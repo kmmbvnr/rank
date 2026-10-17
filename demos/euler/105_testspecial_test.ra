@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "105_testspecial"
+  run
+
+  Answer equal 73702
+end
+
+test "special sets from the statement"
+  use "105_testspecial"
+
+  "11,18,19,20,22,25" weight equal 115
+  "20,31,38,39,40,42,45" weight equal 255
+  "3,5,6,7" weight equal 21
+end
+
+test "sets that are not special"
+  use "105_testspecial"
+
+  "81,88,75,42,87,84,86,65" weight equal 0
+  "1,2,3,4" weight equal 0
+  "1,2,4,8,16,32,64" weight equal 0
+end
