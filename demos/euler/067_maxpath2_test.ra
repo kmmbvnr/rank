@@ -1,0 +1,21 @@
+use testing
+
+test "default input"
+  use "067_maxpath2"
+  run
+
+  Answer equal 7273
+end
+
+test "statement triangle"
+  use "067_maxpath2"
+
+  Rows = array "3" "7 4" "2 4 6" "8 5 9 3"
+  Rows best_path equal 23
+end
+
+test "single row"
+  use "067_maxpath2"
+
+  (array "42") best_path equal 42
+end

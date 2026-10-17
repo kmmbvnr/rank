@@ -1,0 +1,28 @@
+rem Maximum Path Sum II
+rem https://projecteuler.net/problem=67
+rem Largest top-to-bottom path sum in
+rem a triangle of one hundred rows
+
+use sequences
+use text
+use io
+use cli
+
+argument Input path = "demos/euler/fixtures/0067_triangle.txt"
+
+Answer = Input readlines best_path
+Answer print
+
+rem Fold upward: each cell adds the
+rem better of its two children.
+fun Rows best_path
+  Best = array shape (Rows len + 1) fill 0
+  for Line in Rows reverse
+    Row = Line " " split integer rank 0
+    Size = Row len
+    Left = Best take Size
+    Right = Best drop 1 take Size
+    Best = Row + (Left Right max)
+  end
+  return Best 0
+end
