@@ -15,3 +15,5 @@
 `0096_sudoku.txt` is the unmodified [official input for Su Doku](https://projecteuler.net/resources/documents/0096_sudoku.txt): fifty puzzles, each a `Grid NN` line followed by nine rows of nine digits (0 for an empty cell). See [Project Euler 96](https://projecteuler.net/problem=96).
 
 `0098_words.txt` is the unmodified [official input for Anagramic Squares](https://projecteuler.net/resources/documents/0098_words.txt): about 1,800 quoted, comma-separated English words. See [Project Euler 98](https://projecteuler.net/problem=98).
+
+`0099_base_exp.txt` is the unmodified [official input for Largest Exponential](https://projecteuler.net/resources/documents/0099_base_exp.txt): one thousand `base,exponent` pairs, one per line. See [Project Euler 99](https://projecteuler.net/problem=99).
