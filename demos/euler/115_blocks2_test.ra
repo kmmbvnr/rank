@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "115_blocks2"
+  run
+
+  Answer equal 168
+end
+
+test "statement minimum lengths"
+  use "115_blocks2"
+  Min = 3
+  run
+
+  Answer equal 30
+  Min = 10
+  run
+
+  Answer equal 57
+end

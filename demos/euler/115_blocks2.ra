@@ -1,0 +1,25 @@
+rem Counting Block Combinations II
+rem https://projecteuler.net/problem=115
+rem Find the least row length where the
+rem fill count with red blocks of a
+rem minimum length first exceeds a
+rem target
+
+use sequences
+use io
+use cli
+
+option Min integer = 50
+option Target integer = 1000000
+option Size integer = 300
+
+rem Same recurrence as problem 114, run
+rem to a generous length.
+Ways = array shape (Size + 1) fill 1
+for N in Min to Size
+  Pre = (Ways take (N - Min)) sum
+  Ways N = Ways (N - 1) + 1 + Pre
+end
+Over = Ways greater Target
+Answer = Ways first index where Over
+Answer print
