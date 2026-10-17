@@ -7,7 +7,10 @@ use sequences
 use bits
 use io
 
-Grid = (3 to 8) (1 to 150) outer figure
+Sides = (3 to 8) reshape 6 1
+Ns = (1 to 150) reshape 1 150
+Edge = Ns * (Sides - 2) - Sides + 4
+Grid = Ns * Edge // 2
 Mask = Grid at least 1000
 Mask and= Grid at most 9999
 Mask and= Grid mod 100 at least 10
@@ -17,36 +20,29 @@ Bit = 1 Kind shl
 Head = Vals // 100
 Tail = Vals mod 100
 
-rem Octagonal numbers start each chain.
-Answer = 0
-for S in (Kind equal 5) indices
-  Sum = S S (Bit S) (Vals S) walk
-  Answer = Answer Sum max
+rem Grow chains from the octagonal
+rem numbers. Each step joins every
+rem unused type whose number starts with
+rem the last two digits.
+Cur = (Kind equal 5) indices
+First = Cur
+Used = Bit Cur
+Sum = Vals Cur
+for # in 1 to 5
+  Rows = Cur len
+  Ends = Tail Cur
+  Last = Ends reshape Rows 1
+  Link = Head equal Last
+  Taken = Used reshape Rows 1
+  Free = (Taken Bit band) equal 0
+  Pairs = (Link and Free) indices
+  Old = Pairs # 0
+  New = Pairs # 1
+  First = First Old copy
+  Used = (Used Old) + (Bit New) copy
+  Sum = (Sum Old) + (Vals New) copy
+  Cur = New copy
 end
+Closed = Tail Cur equal Head First
+Answer = (Sum Closed) first
 Answer print
-
-rem N-th number with S sides.
-fun S N figure rank 0 0
-  return N * (N * (S - 2) - S + 4) // 2
-end
-
-rem Close the cycle, or extend it with
-rem an unused type matching the digits.
-fun First I Used Sum walk
-  if Used equal 63
-    if Tail I equal Head First
-      return Sum
-    end
-    return 0
-  end
-  Free = Used Bit band equal 0
-  Next = Head equal Tail I and Free
-  Best = 0
-  for J in Next indices
-    Mark = Used + Bit J
-    Tot = Sum + Vals J
-    Got = First J Mark Tot walk
-    Best = Best Got max
-  end
-  return Best
-end
