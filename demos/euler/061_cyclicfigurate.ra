@@ -1,0 +1,52 @@
+rem Cyclic Figurate Numbers
+rem https://projecteuler.net/problem=61
+rem Sum six cyclic 4-digit numbers, one
+rem from each polygonal type 3 to 8
+
+use sequences
+use bits
+use io
+
+Grid = (3 to 8) (1 to 150) outer figure
+Mask = Grid at least 1000
+Mask and= Grid at most 9999
+Mask and= Grid mod 100 at least 10
+Vals = Grid Mask array
+Kind = Mask indices # 0
+Bit = 1 Kind shl
+Head = Vals // 100
+Tail = Vals mod 100
+
+rem Octagonal numbers start each chain.
+Answer = 0
+for S in (Kind equal 5) indices
+  Sum = S S (Bit S) (Vals S) walk
+  Answer = Answer Sum max
+end
+Answer print
+
+rem N-th number with S sides.
+fun S N figure rank 0 0
+  return N * (N * (S - 2) - S + 4) // 2
+end
+
+rem Close the cycle, or extend it with
+rem an unused type matching the digits.
+fun First I Used Sum walk
+  if Used equal 63
+    if Tail I equal Head First
+      return Sum
+    end
+    return 0
+  end
+  Free = Used Bit band equal 0
+  Next = Head equal Tail I and Free
+  Best = 0
+  for J in Next indices
+    Mark = Used + Bit J
+    Tot = Sum + Vals J
+    Got = First J Mark Tot walk
+    Best = Best Got max
+  end
+  return Best
+end

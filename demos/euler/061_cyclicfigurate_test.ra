@@ -1,0 +1,27 @@
+use testing
+
+test "default input"
+  use "061_cyclicfigurate"
+  run
+
+  Answer equal 28684
+end
+
+test "figurate numbers"
+  use "061_cyclicfigurate"
+
+  (3 5 figure) equal 15
+  (4 5 figure) equal 25
+  (5 5 figure) equal 35
+  (6 5 figure) equal 45
+  (7 5 figure) equal 55
+  (8 5 figure) equal 65
+end
+
+test "example cycle from the statement"
+  use "061_cyclicfigurate"
+
+  run
+
+  8128 in Vals
+end
