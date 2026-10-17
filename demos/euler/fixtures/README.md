@@ -9,3 +9,5 @@
 `0079_keylog.txt` is the unmodified [official input for Passcode Derivation](https://projecteuler.net/resources/documents/0079_keylog.txt): fifty successful login attempts of three digits each. See [Project Euler 79](https://projecteuler.net/problem=79).
 
 `0081_matrix.txt` is the unmodified [official input for Path Sum: Two Ways](https://projecteuler.net/resources/documents/0081_matrix.txt): an 80 by 80 matrix, one comma-separated row per line. Problems [82](https://projecteuler.net/problem=82) and [83](https://projecteuler.net/problem=83) use the same matrix.
+
+`0089_roman.txt` is the unmodified [official input for Roman Numerals](https://projecteuler.net/resources/documents/0089_roman.txt): one thousand numerals, one per line. See [Project Euler 89](https://projecteuler.net/problem=89).

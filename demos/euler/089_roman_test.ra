@@ -1,0 +1,23 @@
+use testing
+
+test "default input"
+  use "089_roman"
+  run
+
+  Answer equal 743
+end
+
+test "statement example"
+  use "089_roman"
+
+  "XIIIIII" saved equal 4
+  "XVI" saved equal 0
+end
+
+test "several lines and subtractive forms"
+  use "089_roman"
+
+  "IIII\nXXXXVIIII\nMMMMDCLXXII\n" saved equal 7
+  "DCCCC\nLXXXX\nCCCC" saved equal 8
+  "IX\nXLIV\nCM\n" saved equal 0
+end
