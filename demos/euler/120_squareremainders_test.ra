@@ -1,0 +1,29 @@
+use testing
+
+test "default input"
+  use "120_squareremainders"
+  run
+
+  Answer equal 333082500
+end
+
+test "statement value for seven"
+  use "120_squareremainders"
+  Limit = 7
+  run
+
+  Best 4 equal 42
+  Answer equal 100
+end
+
+test "smaller limits"
+  use "120_squareremainders"
+  Limit = 30
+  run
+
+  Answer equal 8750
+  Limit = 100
+  run
+
+  Answer equal 330750
+end

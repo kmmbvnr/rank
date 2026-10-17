@@ -1,0 +1,20 @@
+rem Square Remainders
+rem https://projecteuler.net/problem=120
+rem Sum the maximum remainders of (a -
+rem 1)^n + (a + 1)^n divided by a^2
+
+use sequences
+use io
+use cli
+
+option Limit integer = 1000
+
+rem Even n leaves 2. Odd n leaves 2 a n
+rem mod a^2 = a (2 n mod a), whose best
+rem is a (a - 1) for odd a, a (a - 2)
+rem for even.
+A = 3 to Limit array
+Step = A - 2 + A mod 2
+Best = A * Step
+Answer = Best sum
+Answer print
