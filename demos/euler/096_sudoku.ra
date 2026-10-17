@@ -31,6 +31,10 @@ BoxK = Band + Stack + 18
 Bit = array 1 2 4 8 16 32 64 128 256
 Pop = (0 to 511 array) popcount
 Weight = array 100 10 1
+rem Backtrack on the cell with fewest
+rem candidates. Spot, Left and Put hold,
+rem per depth, the cell, the candidates
+rem not yet tried and the digit placed.
 Grid = Grids 0 copy
 Used = array shape 27 fill 0
 Answer = 0
@@ -46,54 +50,66 @@ for G in 0 till Count
       Used (BoxK C) += B
     end
   end
-  Ignore = 0 search
+  Depth = 0
+  Fresh = true
+  Spot = array shape 81 fill 0
+  Left = array shape 81 fill 0
+  Put = array shape 81 fill 0
+  for Depth greater -1
+    if Fresh
+      Pick = -1
+      PickN = 10
+      PickFree = 0
+      for C in 0 till 81
+        if Grid C equal 0
+          Row = Used (RowK C)
+          Col = Used (ColK C)
+          Box = Used (BoxK C)
+          RC = Row Col bor
+          Mask = RC Box bor
+          Free = 511 - Mask
+          N = Pop Free
+          if N less PickN
+            PickN = N
+            Pick = C
+            PickFree = Free
+          end
+        end
+      end
+      if Pick less 0
+        break
+      end
+      Spot Depth = Pick
+      Left Depth = PickFree
+    end
+    if Left Depth equal 0
+      Depth -= 1
+      if Depth less 0
+        break
+      end
+      At = Spot Depth
+      Mine = Put Depth
+      Grid At = 0
+      Used (RowK At) -= Mine
+      Used (ColK At) -= Mine
+      Used (BoxK At) -= Mine
+      Fresh = false
+      continue
+    end
+    Rem = Left Depth
+    Mine = Rem (0 - Rem) band
+    Left Depth = Rem - Mine
+    Put Depth = Mine
+    At = Spot Depth
+    Digit = (Mine - 1) popcount + 1
+    Grid At = Digit
+    Used (RowK At) += Mine
+    Used (ColK At) += Mine
+    Used (BoxK At) += Mine
+    Depth += 1
+    Fresh = true
+  end
   Head = Grid take 3
   Answer += Head Weight matmul
 end
 Answer print
-
-rem Backtracking on the cell with fewest
-rem candidates. Masks hold the digits
-rem used by rows, columns and boxes.
-fun Depth search
-  Best = -1
-  BestN = 10
-  BestFree = 0
-  for C in 0 till 81
-    if Grid C equal 0
-      Row = Used (RowK C)
-      Col = Used (ColK C)
-      Box = Used (BoxK C)
-      RC = Row Col bor
-      Mask = RC Box bor
-      Free = 511 - Mask
-      N = Pop Free
-      if N less BestN
-        BestN = N
-        Best = C
-        BestFree = Free
-      end
-    end
-  end
-  if Best less 0
-    return 1
-  end
-  for D in 1 to 9
-    Mine = Bit (D - 1)
-    Has = BestFree Mine band
-    if Has not equal 0
-      Grid Best = D
-      Used (RowK Best) += Mine
-      Used (ColK Best) += Mine
-      Used (BoxK Best) += Mine
-      if (Depth + 1) search equal 1
-        return 1
-      end
-      Grid Best = 0
-      Used (RowK Best) -= Mine
-      Used (ColK Best) -= Mine
-      Used (BoxK Best) -= Mine
-    end
-  end
-  return 0
-end
