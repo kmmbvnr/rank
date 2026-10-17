@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "085_countrectangles"
+  run
+
+  Answer equal 2772
+end
+
+test "statement three by two grid"
+  use "085_countrectangles"
+  Target = 18
+  run
+
+  Answer equal 6
+end
+
+test "single cell"
+  use "085_countrectangles"
+  Target = 1
+  run
+
+  Answer equal 1
+end
