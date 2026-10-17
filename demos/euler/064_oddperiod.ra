@@ -1,0 +1,35 @@
+rem Odd Period Square Roots
+rem https://projecteuler.net/problem=64
+rem Count continued fractions of sqrt N
+rem with odd period
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 10000
+
+Lens = 2 to Limit period rank 0
+Answer = Lens odd count
+Answer print
+
+rem Period of sqrt N, 0 for squares.
+rem Stops when a term reaches 2 * a0.
+fun N period
+  Root = N isqrt
+  if Root * Root equal N
+    return 0
+  end
+  Mid = 0
+  Den = 1
+  Term = Root
+  Len = 0
+  for Term not equal 2 * Root
+    Mid = Den * Term - Mid
+    Den = (N - Mid * Mid) // Den
+    Term = (Root + Mid) // Den
+    Len += 1
+  end
+  return Len
+end

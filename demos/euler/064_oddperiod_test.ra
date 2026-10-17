@@ -1,0 +1,25 @@
+use testing
+
+test "default input"
+  use "064_oddperiod"
+  run
+
+  Answer equal 1322
+end
+
+test "statement example up to 13"
+  use "064_oddperiod"
+  Limit = 13
+  run
+
+  Answer equal 4
+end
+
+test "periods"
+  use "064_oddperiod"
+
+  2 period equal 1
+  13 period equal 5
+  23 period equal 4
+  4 period equal 0
+end
