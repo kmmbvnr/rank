@@ -1,0 +1,31 @@
+rem Totient Permutation
+rem https://projecteuler.net/problem=70
+rem Find n below a limit with phi(n) a
+rem digit permutation, minimal n / phi
+
+use sequences
+use numbers
+use io
+use cli
+
+option Limit integer = 10000000
+
+rem A prime has phi = n - 1, never a
+rem permutation. The ratio is least for
+rem two primes near the square root.
+Root = Limit isqrt
+Low = Root // 2
+High = Root * 2
+Ps = primes from Low till High array
+Prod = Ps Ps outer *
+Tot = (Ps - 1) (Ps - 1) outer *
+Mask = Prod less Limit
+N = Prod Mask array
+Phi = Tot Mask array
+NKey = N text rank 0 sort rank 0
+PKey = Phi text rank 0 sort rank 0
+Same = NKey equal PKey
+Ns = N Same array
+Ratio = Ns / (Phi Same array)
+Answer = Ns (Ratio min .index)
+Answer print

@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "070_totientperm"
+  run
+
+  Answer equal 8319823
+end
+
+test "smaller limit"
+  use "070_totientperm"
+  Limit = 1000000
+  run
+
+  Answer equal 783169
+end
