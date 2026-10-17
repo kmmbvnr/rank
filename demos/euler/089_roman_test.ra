@@ -7,17 +7,28 @@ test "default input"
   Answer equal 743
 end
 
-test "statement example"
+test "statement and mixed lines"
   use "089_roman"
+  use io
+  Input = "/tmp/euler089.txt"
+  "XIIIIII\n" "/tmp/euler089.txt" write
+  run
 
-  "XIIIIII" saved equal 4
-  "XVI" saved equal 0
-end
+  Answer equal 4
+  "XVI\n" "/tmp/euler089.txt" write
+  run
 
-test "several lines and subtractive forms"
-  use "089_roman"
+  Answer equal 0
+  "IIII\nXXXXVIIII\nMMMMDCLXXII\n" "/tmp/euler089.txt" write
+  run
 
-  "IIII\nXXXXVIIII\nMMMMDCLXXII\n" saved equal 7
-  "DCCCC\nLXXXX\nCCCC" saved equal 8
-  "IX\nXLIV\nCM\n" saved equal 0
+  Answer equal 7
+  "DCCCC\nLXXXX\nCCCC" "/tmp/euler089.txt" write
+  run
+
+  Answer equal 8
+  "IX\nXLIV\nCM\n" "/tmp/euler089.txt" write
+  run
+
+  Answer equal 0
 end
