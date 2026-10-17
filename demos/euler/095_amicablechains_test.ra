@@ -1,0 +1,27 @@
+use testing
+
+test "default input"
+  use "095_amicablechains"
+  run
+
+  Answer equal 14316
+  Long equal 28
+end
+
+test "statement chain below twenty thousand"
+  use "095_amicablechains"
+  Limit = 20000
+  run
+
+  Answer equal 12496
+  Long equal 5
+end
+
+test "amicable pair below three hundred"
+  use "095_amicablechains"
+  Limit = 300
+  run
+
+  Answer equal 220
+  Long equal 2
+end

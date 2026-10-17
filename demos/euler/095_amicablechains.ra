@@ -1,0 +1,46 @@
+rem Amicable Chains
+rem https://projecteuler.net/problem=95
+rem Find the smallest member of the
+rem longest amicable chain with no
+rem element above a limit
+
+use graph
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000
+
+rem Divisor sums: each D up to the root
+rem adds D and its partner K to D * K.
+rem Vertex 1 loops on itself, as does
+rem the extra vertex over the limit.
+Sigma = array shape (Limit + 2) fill 1
+Sigma 0 = 0
+Sigma (Limit + 1) = Limit + 1
+Root = Limit isqrt
+for D in 2 to Root
+  for K in D to Limit // D
+    At = D * K
+    Sigma At += D + K
+  end
+  Sq = D * D
+  Sigma Sq -= D
+end
+
+rem Large sums go to the extra vertex.
+rem A cycle vertex has the length of its
+rem successor; a tail vertex has one
+rem more.
+Cap = Limit + 1
+Raw = Sigma drop 1
+Succ = Raw Cap min copy
+Lens = Succ functional lengths
+Ids = Succ - 1 copy
+Back = Lens Ids copy
+Cycle = Lens equal Back copy
+Long = (Lens Cycle) max
+Best = Cycle and Lens equal Long copy
+Answer = (Best indices) first + 1
+Answer print
