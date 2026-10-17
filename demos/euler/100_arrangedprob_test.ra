@@ -1,0 +1,30 @@
+use testing
+
+test "default input"
+  use "100_arrangedprob"
+  run
+
+  Answer equal 756872327473
+end
+
+test "statement example"
+  use "100_arrangedprob"
+  Limit = 20
+  run
+
+  Answer equal 15
+  All equal 21
+end
+
+test "first solutions"
+  use "100_arrangedprob"
+  Limit = 1
+  run
+
+  Answer equal 3
+  Limit = 100
+  run
+
+  Answer equal 85
+  All equal 120
+end

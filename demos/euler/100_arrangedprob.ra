@@ -1,0 +1,22 @@
+rem Arranged Probability
+rem https://projecteuler.net/problem=100
+rem Blue discs for the first total above
+rem a limit with chance 1/2 of two blue
+
+use io
+use cli
+
+option Limit integer = 1000000000000
+
+rem 2 b (b - 1) = n (n - 1) is a Pell
+rem equation: each solution (b, n) maps
+rem linearly to the next one.
+Blue = 3
+All = 4
+for All at most Limit
+  Next = 3 * Blue + 2 * All - 2
+  All = 4 * Blue + 3 * All - 3
+  Blue = Next
+end
+Answer = Blue
+Answer print
