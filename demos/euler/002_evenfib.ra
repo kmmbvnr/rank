@@ -2,7 +2,6 @@ rem Even Fibonacci Numbers
 rem https://projecteuler.net/problem=2
 rem Sum even Fibonacci terms <= 4e6
 
-use sequences
 use numbers
 use io
 use cli
@@ -10,7 +9,20 @@ use cli
 rem Upper boundary, included.
 option Limit integer = 4000000
 
-Fib = fibonacci to Limit
+rem Builtin: `use sequences`, `fibonacci to Limit`.
+Fib = fibonacci_terms to Limit
 Mask = Fib even
 Answer = Fib Mask sum
 Answer print
+
+
+fun fibonacci_terms
+  Previous = 1
+  Current = 2
+  for
+    yield Previous
+    Next = Previous + Current
+    Previous = Current
+    Current = Next
+  end
+end
