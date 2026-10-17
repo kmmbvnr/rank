@@ -10,10 +10,12 @@ end
 test "statement minimum lengths"
   use "115_blocks2"
   Min = 3
+  Size = 40
   run
 
   Answer equal 30
   Min = 10
+  Size = 70
   run
 
   Answer equal 57
