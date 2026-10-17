@@ -1,0 +1,29 @@
+use testing
+
+test "default input"
+  use "101_optimumpoly"
+  run
+
+  Answer equal 37076114526
+end
+
+test "generating polynomial values"
+  use "101_optimumpoly"
+  run
+
+  U 0 equal 1
+  U 1 equal 683
+  U 2 equal 44287
+end
+
+test "lower degrees"
+  use "101_optimumpoly"
+  Degree = 2
+  run
+
+  Answer equal 6
+  Degree = 3
+  run
+
+  Answer equal -55
+end

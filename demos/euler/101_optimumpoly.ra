@@ -1,0 +1,35 @@
+rem Optimum Polynomial
+rem https://projecteuler.net/problem=101
+rem Sum the first incorrect terms of the
+rem optimum polynomials of u(n) =
+rem 1 - n + n^2 - ... + n^10
+
+use numbers
+use sequences
+use io
+use cli
+
+option Degree integer = 10
+
+rem Newton form: with differences d_i of
+rem u(1), the fit to k terms predicts
+rem sum of C(k, i) d_i over i below k at
+rem n = k + 1.
+N = 1 to (Degree + 1) array
+Pow = (0 - N) ** (Degree + 1)
+U = (1 - Pow) // (1 + N)
+Level = U
+Firsts = array shape (Degree + 1) fill 0
+for I in 0 to Degree
+  Firsts I = Level 0
+  Next = Level drop 1
+  Prev = Level take (Degree - I)
+  Level = Next - Prev
+end
+K = 1 to Degree array
+J = 0 to (Degree - 1) array
+Bin = K J outer binomial
+Terms = Bin * (Firsts take Degree)
+Used = (K reshape Degree 1) greater J
+Answer = (Used choose Terms 0) sum
+Answer print
