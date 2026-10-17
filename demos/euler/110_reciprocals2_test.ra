@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "110_reciprocals2"
+  run
+
+  Answer equal 9350130049860600
+end
+
+test "smaller targets"
+  use "110_reciprocals2"
+
+  1000 least_n equal 180180
+  100 least_n equal 1260
+  3 least_n equal 6
+end
