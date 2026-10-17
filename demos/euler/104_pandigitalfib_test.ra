@@ -28,9 +28,11 @@ test "leading digits by logarithm"
   Lead 1 equal 516212329
 end
 
-test "pandigital check"
+test "pandigital candidates"
   use "104_pandigitalfib"
+  run
 
-  (array 123456789 987654321 143726895) pandigital
-  not (array 112345678 102345678 12345678) pandigital
+  Cands 0 equal 541
+  Good any equal true
+  Heads 0 equal false
 end
