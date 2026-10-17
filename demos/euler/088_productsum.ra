@@ -9,29 +9,46 @@ use cli
 
 option Limit integer = 12000
 
+rem Factors with product P, sum S and
+rem count n give k = P - S + n, the rest
+rem being ones. Grow all factor lists a
+rem factor at a time, never decreasing.
 Big = Limit * 2
-Size = Limit + 1
-Best = array shape Size fill Big
-Ignore = 1 0 0 2 search
+Best = array shape (Limit + 1) fill Big
+Prod = array 1
+Sum = array 0
+Cnt = array 0
+Low = array 2
+for Prod len greater 0
+  K = Prod - Sum + Cnt
+  Ok = Cnt greater 1 and K at most Limit
+  Ks = K Ok array
+  Ps = Prod Ok array
+  Cur = Best Ks
+  Val = Ps Cur min
+  Ord = Val argsort .descending
+  Best (Ks Ord) = Val Ord
+  Num = (Big // Prod) - Low + 1
+  Num0 = Num 0 max
+  Has = Num0 greater 0
+  P1 = Prod Has array
+  S1 = Sum Has array
+  C1 = Cnt Has array
+  L1 = Low Has array
+  N1 = Num0 Has array
+  Total = N1 sum
+  Starts = N1 scan + with 0
+  Marks = array shape Total fill 0
+  Marks (Starts take (N1 len)) += 1
+  Owner = (Marks scan +) - 1
+  Each = 0 till Total array
+  Pos = Each - (Starts Owner)
+  F = (L1 Owner) + Pos
+  Prod = (P1 Owner) * F
+  Sum = (S1 Owner) + F
+  Cnt = (C1 Owner) + 1
+  Low = F
+end
 Mins = Best drop 2 unique
 Answer = Mins sum
 Answer print
-
-rem Factors with product P, sum S and
-rem count n give k = P - S + n, the rest
-rem being ones. Search P up to twice the
-rem limit, with factors never
-rem decreasing.
-fun Prod Sum Cnt Low search
-  K = Prod - Sum + Cnt
-  if Cnt greater 1 and K at most Limit
-    if Prod less Best K
-      Best K = Prod
-    end
-  end
-  for F in Low to Big // Prod
-    Next = Prod * F
-    Next (Sum + F) (Cnt + 1) F search
-  end
-  return 0
-end
