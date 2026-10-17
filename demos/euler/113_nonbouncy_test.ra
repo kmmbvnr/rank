@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "113_nonbouncy"
+  run
+
+  Answer equal 51161058134250
+end
+
+test "statement counts"
+  use "113_nonbouncy"
+  Digits = 6
+  run
+
+  Answer equal 12951
+  Digits = 10
+  run
+
+  Answer equal 277032
+end
