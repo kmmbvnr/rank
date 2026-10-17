@@ -1,0 +1,31 @@
+use testing
+
+test "default input"
+  use "092_squarechains"
+  run
+
+  Answer equal 8581146
+end
+
+test "smaller numbers of digits"
+  use "092_squarechains"
+  Digits = 2
+  run
+
+  Answer equal 80
+  Digits = 3
+  run
+
+  Answer equal 857
+end
+
+test "statement chains"
+  use "092_squarechains"
+
+  Cur = array 44 85 1 89
+  Ends = Cur step repeat 20
+  Ends 0 equal 1
+  Ends 1 not equal 1
+  Ends 2 equal 1
+  Ends 3 not equal 1
+end
