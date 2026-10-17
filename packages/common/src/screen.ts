@@ -68,12 +68,13 @@ function lineNumbers(source: string): (offset: number) => number {
 
 const rowCache = new Map<string, TextRow[]>();
 
-/** Wrapped rows are identical for an unchanged cell, and every scroll frame lays all cells out again. */
-export function editableRows(source: string, columns: number, cursor?: number, compactNumbers = true): TextRow[] {
-    const key = columns + ':' + (cursor ?? '') + ':' + compactNumbers + ':' + source;
+/** Wrapped rows are identical for an unchanged cell, and every scroll frame lays all cells out again.
+ * `clip` keeps each source line on one row, ending a longer one in an ellipsis. */
+export function editableRows(source: string, columns: number, cursor?: number, compactNumbers = true, clip = false): TextRow[] {
+    const key = columns + ':' + (cursor ?? '') + ':' + compactNumbers + ':' + clip + ':' + source;
     let rows = rowCache.get(key);
     if (!rows) {
-        rows = layoutRows(source, columns, cursor, compactNumbers);
+        rows = layoutRows(source, columns, cursor, compactNumbers, clip);
         if (rowCache.size >= 512) rowCache.delete(rowCache.keys().next().value!);
         rowCache.set(key, rows);
     }
@@ -139,7 +140,7 @@ function numberDisplay(line: string, width: number, cursor?: number): { text: st
     return { text, offsets };
 }
 
-function layoutRows(source: string, columns: number, cursor?: number, compactNumbers = true): TextRow[] {
+function layoutRows(source: string, columns: number, cursor?: number, compactNumbers = true, clip = false): TextRow[] {
     const width = Math.max(1, columns);
     const rows: TextRow[] = [];
     let offset = 0;
@@ -149,13 +150,14 @@ function layoutRows(source: string, columns: number, cursor?: number, compactNum
         const display = comment ? commentDisplay(line, width, focus)
             : compactNumbers ? numberDisplay(line, width, focus) : { text: line };
         const sourceOffset = (index: number) => offset + (display.offsets?.[index] ?? index);
+        const lineStart = rows.length;
         let row: TextRow = { text: '', points: [{ offset, column: 0 }] };
         let column = 0;
         rows.push(row);
         for (const part of graphemes(display.text)) {
             // Wrap comment words visually, keeping every source offset and space intact.
             // Oversized words still use the ordinary grapheme-level fallback.
-            if (comment && !/\s/.test(part.segment) && part.index > 0 && /\s/.test(display.text[part.index - 1])) {
+            if (comment && !clip && !/\s/.test(part.segment) && part.index > 0 && /\s/.test(display.text[part.index - 1])) {
                 const rest = display.text.slice(part.index);
                 const end = rest.search(/\s/);
                 const wordWidth = cellWidth(end < 0 ? rest : rest.slice(0, end));
@@ -179,17 +181,30 @@ function layoutRows(source: string, columns: number, cursor?: number, compactNum
             row.text += shown;
             column += size;
             row.points.push({ offset: sourceOffset(part.index + part.segment.length), column });
-            // The reserved terminal column fits a caret at the end of a full comment.
-            // Do not add an empty continuation row when there is no more text.
-            if (column === width && !(comment && part.index + part.segment.length === display.text.length)) {
+            // A full row continues only for more text or, outside comments, for a caret at the line end;
+            // otherwise the reserved terminal column holds the line end.
+            const more = part.index + part.segment.length < display.text.length;
+            if (column === width && (more || !comment && focus === line.length)) {
                 row = { text: '', points: [{ offset: sourceOffset(part.index + part.segment.length), column: 0 }] };
                 rows.push(row);
                 column = 0;
             }
         }
+        if (clip && rows.length - lineStart > 1) clipLine(rows, lineStart, width, offset + line.length);
         offset += line.length + 1;
     }
     return rows;
+}
+
+/** Fold a wrapped line back into its first row; the ellipsis stands for the rest and leads to the line end. */
+function clipLine(rows: TextRow[], start: number, width: number, end: number): void {
+    const first = rows[start];
+    rows.length = start + 1;
+    const parts = graphemes(first.text);
+    let column = cellWidth(first.text);
+    while (parts.length && column > width - 1) column -= cellWidth(parts.pop()!.segment);
+    first.text = parts.map(part => part.segment).join('') + '…';
+    first.points = [...first.points.filter(point => point.column <= column), { offset: end, column: column + 1 }];
 }
 
 function selectedRow(row: TextRow, range?: { from: number; to: number }): string {
@@ -346,7 +361,9 @@ export function notebookFrame(
             : cell.status === 'error' && cell.executed === cell.source && (index === dirty || !pending) ? '\x1b[31m'
             : pending || cell.status === 'idle' ? '\x1b[90m'
             : !cell.command && notebook.isExperimental(index) ? '\x1b[38;5;208m' : '\x1b[32m';
-        const sourceRows = editableRows(cell.source, bodyWidth, index === notebook.active ? notebook.cursor : undefined);
+        // Only the cell being edited wraps its long lines; the others keep one row per line.
+        const sourceRows = index === notebook.active ? editableRows(cell.source, bodyWidth, notebook.cursor)
+            : editableRows(cell.source, bodyWidth, undefined, true, true);
         const labelRow = prompt ? 0 : numbered ? sourceRows.findIndex(row => row.text.trim() !== '') : -1;
         const lineAt = lineNumbers(cell.source);
         for (const [line, item] of sourceRows.entries()) {

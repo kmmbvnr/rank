@@ -29,7 +29,8 @@ has run, it adds a blank line.
 Gray circles mark pending instructions, yellow marks the current run, green marks
 success and red marks an error. Rerunning replaces the previous output. Long
 expressions are formatted to 40 columns with parentheses when a safe break exists.
-Terminal wrapping also fits the display to the window width.
+A longer line wraps to the window width in the instruction being edited; in
+the others it stays on one row and ends with `…`.
 
 During execution the footer shows elapsed time. Ctrl-C stops the current cell
 and returns to `rank>`; queued cells wait. The stopped cell keeps its source and

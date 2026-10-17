@@ -239,7 +239,8 @@ test('wraps by display width and maps Unicode cursor offsets without changing so
     assert.deepEqual(rows[1].points, [
         { offset: 3, column: 0 }, { offset: 5, column: 1 }, { offset: 6, column: 2 },
     ]);
-    assert.deepEqual(editableRows('abcd', 4).map(row => row.text), ['abcd', '']);
+    assert.deepEqual(editableRows('abcd', 4).map(row => row.text), ['abcd']);
+    assert.deepEqual(editableRows('abcd', 4, 4).map(row => row.text), ['abcd', '']);
 });
 
 test('a shortened wrapped line erases old rows and places the cursor at its real position', async t => {

@@ -72,11 +72,20 @@ describe('function error origin markers', () => {
             expect(result.errorSource).toEqual({ source: definition, offset: definition.indexOf('return') });
             expect(result.errorOffset).toBeUndefined();
             book.finish(1, result);
-            const frame = notebookFrame(book, 24, 200, 0, '', false, false);
-            const origin = frame.lines.filter((_, row) => {
-                const target = frame.targets?.[row];
-                return target?.kind === 'source' && target.cell === 0 && target.line === 5;
-            });
+            const originRows = () => {
+                const frame = notebookFrame(book, 24, 200, 0, '', false, false);
+                return frame.lines.filter((_, row) => {
+                    const target = frame.targets?.[row];
+                    return target?.kind === 'source' && target.cell === 0 && target.line === 5;
+                });
+            };
+            const clipped = originRows();
+            expect(clipped).toHaveLength(1);
+            expect(clipped[0]).toMatch(/^\x1b\[31m●     \x1b\[0m  return.*…$/);
+            const active = book.active;
+            book.active = 0;
+            const origin = originRows();
+            book.active = active;
             expect(origin.length).toBeGreaterThan(1);
             expect(origin.filter(line => line.startsWith('\x1b[31m●     \x1b[0m'))).toHaveLength(1);
             expect(origin[0]).toContain('\x1b[0m  return');
