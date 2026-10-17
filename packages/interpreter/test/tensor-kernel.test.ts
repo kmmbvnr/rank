@@ -113,6 +113,23 @@ describe('tensor pipeline fusion', () => {
         const source = probe.replace('fun A B Limit probe', 'fun V all\n  return false\nend\nfun A B Limit probe');
         expect(compare(source).kernels).toBe(0);
     });
+    it.each(['min', 'max'])('keeps dyadic %s separate from a monadic terminal', operation => {
+        for (const shape of ['', ' reshape 30 1']) {
+            const source = `use sequences
+A = (1 to 30 array)${shape}
+B = A * 2
+C = B 12 ${operation}
+C`;
+            const result = compare(source);
+            const expected = Array.from({ length: 30 }, (_, i) =>
+                operation === 'min' ? Math.min((i + 1) * 2, 12) : Math.max((i + 1) * 2, 12));
+            expect(result).toHaveProperty('value', expected.join(' '));
+        }
+        // Parentheses explicitly choose an element before reducing it.
+        expect(compare(`use sequences\nA = 1 to 30 array\n(A 12) ${operation}`))
+            .toHaveProperty('value', '13');
+    });
+
     it('does not force a lazy input while guarding', () => {
         const source = probe.replace('A B 3 probe', 'A = A (array 0 1 2)\nA B 3 probe');
         expect(compare(source).kernels).toBe(0);
