@@ -1,0 +1,28 @@
+use testing
+
+test "default input"
+  use "117_tiles2"
+  run
+
+  Answer equal 100808458960497
+end
+
+test "statement row of five"
+  use "117_tiles2"
+  Size = 5
+  run
+
+  Answer equal 15
+end
+
+test "short rows"
+  use "117_tiles2"
+  Size = 1
+  run
+
+  Answer equal 1
+  Size = 4
+  run
+
+  Answer equal 8
+end
