@@ -38,3 +38,19 @@ test "no multiple within the limit"
 
   Answer equal -1
 end
+
+test "empty search and the first term"
+  use "078_coinpartitions"
+  Limit = 0
+  run
+
+  Answer equal -1
+  Ways 0 equal 1
+  Limit = 1
+  Modulus = 1
+  run
+
+  Answer equal 1
+  Ways 0 equal 1
+  Ways 1 equal 0
+end

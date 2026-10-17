@@ -130,6 +130,24 @@ describe('vector dot', () => {
         expect(() => matmulValues(make(), ownedArray([1n, 1n], [2], true))).toThrow(message);
     });
 
+    it('retains mixed numeric domain failures through a table row view', () => {
+        const source = ownedArray([1n, 2.0], [1, 2], true, ['integer', 'real']);
+        const row = registerIntegerView(derivedArray([2], [source], index => readArrayItem(source, index)),
+            source, index => index);
+        expect(() => matmulValues(row, ownedArray([1n, 1n], [2], true)))
+            .toThrow('one element type');
+    });
+
+    it('does not borrow one side while the other can run an effect', () => {
+        const source = ownedArray([1n, 2n], [2], true);
+        const view = sliceArray(source, tensorSelection(source, [ownedArray([0n, 1n], [2], true)]));
+        const host: RankArray = { kind: 'array', shape: [2], items: [], itemAt(index) {
+            if (index === 0) source.items[1] = 100n;
+            return 1n;
+        } };
+        expect(matmulValues(view, host)).toBe(101n);
+    });
+
     it('checks vector dimensions and axes before reading any cells', () => {
         const host: RankArray = { kind: 'array', shape: [2], items: [], itemAt() { throw new Error('read'); } };
         expect(() => matmulValues(host, ownedArray([1n], [1], true))).toThrow('contracted dimensions');

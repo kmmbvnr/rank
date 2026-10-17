@@ -11,10 +11,9 @@ use cli
 
 option Total integer = 100
 
-rem Euler pentagonal recurrence: p(n) is
-rem the signed sum of p(n - g) over the
-rem pentagonal numbers g <= n. That is a
-rem recurrence over the earlier values.
+rem Euler pentagonal recurrence: p(n)
+rem sums signed p(n - g) terms for the
+rem pentagonal numbers g <= n.
 Root = Total isqrt
 K = 1 to Root array
 Odd = K mod 2 * 2 - 1
