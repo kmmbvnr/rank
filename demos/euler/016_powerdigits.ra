@@ -8,13 +8,11 @@ use sequences
 
 option Exponent integer = 1000
 
-rem With big integers, a one-line solution:
-rem Base ** Exponent text integer rank 0 sum
+rem With big integers:
+rem P = 2 ** Exponent
+rem P text integer rank 0 sum
 rem Here, double decimal text instead.
-Value = "1"
-for I in 1 to Exponent
-  Value = Value double
-end
+Value = "1" double repeat Exponent
 Answer = Value integer rank 0 sum
 Answer print
 
