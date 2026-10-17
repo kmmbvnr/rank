@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "079_passcode"
+  run
+
+  Answer equal 73162890
+end
+
+test "every attempt is a subsequence"
+  use "079_passcode"
+  run
+
+  Seq .possible equal true
+  Seq .order len equal 8
+  Pos = array shape 10 fill -1
+  for D i in Seq .order
+    Pos D = i
+  end
+  (Pos A less Pos B) all
+  (Pos B less Pos C) all
+end

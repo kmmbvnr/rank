@@ -1,0 +1,28 @@
+rem Passcode Derivation
+rem https://projecteuler.net/problem=79
+rem Find the shortest secret passcode
+rem from three-digit login attempts
+
+use graph
+use text
+use sequences
+use io
+use cli
+
+argument Input path = "demos/euler/fixtures/0079_keylog.txt"
+
+rem Attempts order their digits, so the
+rem topological order is the passcode.
+Keys = Input readlines integer rank 0
+A = Keys // 100
+B = Keys // 10 mod 10
+C = Keys mod 10
+AB = stack A B transpose
+BC = stack B C transpose
+Edges = concat AB BC
+Graph = new graph .directed
+Graph add Edges
+Seq = Graph topological
+Digits = Seq .order text rank 0
+Answer = Digits "" join integer
+Answer print
