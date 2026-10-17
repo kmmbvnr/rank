@@ -159,3 +159,12 @@ A B powers`;
     });
 
 });
+
+it('attributes the complete nested loop statement budget before executing any compiled writes', () => {
+    const branch = 'if I greater 0\n' + ' Total = I\n'.repeat(8) + 'end\n';
+    const source = 'Total = 0\nfor I in 1 to 2\n' + branch.repeat(20) + 'end\nTotal';
+    const diagnostics = new RuntimeDiagnostics();
+    expect(execute(source, diagnostics)).toBe('2');
+    expect(diagnostics.compiledLoops).toBe(0);
+    expect(diagnostics.fallbacks['loop:statement-budget:AssignmentStatement']).toBe(1);
+});

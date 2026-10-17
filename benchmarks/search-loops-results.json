@@ -1,0 +1,301 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "root": "/private/tmp/rank-294",
+  "results": {
+    "recursive103": {
+      "samples": [
+        {
+          "processMs": 3651.3991250000004,
+          "executeMs": 3385.003417,
+          "maxRSSMiB": 427.53125,
+          "executed": {
+            "loop": 0,
+            "scalar": 578547,
+            "scalarFunction": 0,
+            "block": 811752,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        },
+        {
+          "processMs": 3769.8245,
+          "executeMs": 3493.365042,
+          "maxRSSMiB": 426.203125,
+          "executed": {
+            "loop": 0,
+            "scalar": 578547,
+            "scalarFunction": 0,
+            "block": 811752,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        },
+        {
+          "processMs": 3710.1559580000003,
+          "executeMs": 3438.904,
+          "maxRSSMiB": 428.046875,
+          "executed": {
+            "loop": 0,
+            "scalar": 578547,
+            "scalarFunction": 0,
+            "block": 811752,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        }
+      ],
+      "work": "461956",
+      "medianExecuteMs": 3438.904,
+      "medianMaxRSSMiB": 427.53125
+    },
+    "depth103": {
+      "samples": [
+        {
+          "processMs": 7116.757374999999,
+          "executeMs": 6845.24675,
+          "maxRSSMiB": 419.734375,
+          "executed": {
+            "loop": 0,
+            "scalar": 1789517,
+            "scalarFunction": 0,
+            "block": 1348484,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        },
+        {
+          "processMs": 7011.046416999998,
+          "executeMs": 6732.795959,
+          "maxRSSMiB": 418.84375,
+          "executed": {
+            "loop": 0,
+            "scalar": 1789517,
+            "scalarFunction": 0,
+            "block": 1348484,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        },
+        {
+          "processMs": 7053.672082999998,
+          "executeMs": 6768.289207999999,
+          "maxRSSMiB": 419.21875,
+          "executed": {
+            "loop": 0,
+            "scalar": 1789517,
+            "scalarFunction": 0,
+            "block": 1348484,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        }
+      ],
+      "work": "557641",
+      "medianExecuteMs": 6768.289207999999,
+      "medianMaxRSSMiB": 419.21875
+    },
+    "demo103": {
+      "samples": [
+        {
+          "processMs": 740.7814580000049,
+          "executeMs": 466.568209,
+          "maxRSSMiB": 170.25,
+          "executed": {
+            "loop": 1,
+            "scalar": 0,
+            "scalarFunction": 0,
+            "block": 14,
+            "tensor": 0
+          },
+          "compiledLoops": 1,
+          "cowCopies": 0
+        },
+        {
+          "processMs": 790.4133750000037,
+          "executeMs": 497.263167,
+          "maxRSSMiB": 171.96875,
+          "executed": {
+            "loop": 1,
+            "scalar": 0,
+            "scalarFunction": 0,
+            "block": 14,
+            "tensor": 0
+          },
+          "compiledLoops": 1,
+          "cowCopies": 0
+        },
+        {
+          "processMs": 745.4309999999969,
+          "executeMs": 466.71912499999996,
+          "maxRSSMiB": 171.703125,
+          "executed": {
+            "loop": 1,
+            "scalar": 0,
+            "scalarFunction": 0,
+            "block": 14,
+            "tensor": 0
+          },
+          "compiledLoops": 1,
+          "cowCopies": 0
+        }
+      ],
+      "work": "557641",
+      "medianExecuteMs": 466.71912499999996,
+      "medianMaxRSSMiB": 171.703125
+    },
+    "recursive88": {
+      "samples": [
+        {
+          "processMs": 4982.017333000003,
+          "executeMs": 4646.240624999999,
+          "maxRSSMiB": 442.53125,
+          "executed": {
+            "loop": 0,
+            "scalar": 421978,
+            "scalarFunction": 0,
+            "block": 843964,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        },
+        {
+          "processMs": 4842.168958999995,
+          "executeMs": 4504.4337080000005,
+          "maxRSSMiB": 436.15625,
+          "executed": {
+            "loop": 0,
+            "scalar": 421978,
+            "scalarFunction": 0,
+            "block": 843964,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        },
+        {
+          "processMs": 4706.007125000004,
+          "executeMs": 4423.977041,
+          "maxRSSMiB": 435.140625,
+          "executed": {
+            "loop": 0,
+            "scalar": 421978,
+            "scalarFunction": 0,
+            "block": 843964,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        }
+      ],
+      "work": "421978",
+      "medianExecuteMs": 4504.4337080000005,
+      "medianMaxRSSMiB": 436.15625
+    },
+    "batch88": {
+      "samples": [
+        {
+          "processMs": 3354.9631669999944,
+          "executeMs": 3066.207959,
+          "maxRSSMiB": 619.625,
+          "executed": {
+            "loop": 0,
+            "scalar": 30,
+            "scalarFunction": 0,
+            "block": 253,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        },
+        {
+          "processMs": 3409.5785830000095,
+          "executeMs": 3109.7081660000003,
+          "maxRSSMiB": 617.671875,
+          "executed": {
+            "loop": 0,
+            "scalar": 30,
+            "scalarFunction": 0,
+            "block": 253,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        },
+        {
+          "processMs": 3348.023291999998,
+          "executeMs": 3059.757666,
+          "maxRSSMiB": 618.796875,
+          "executed": {
+            "loop": 0,
+            "scalar": 30,
+            "scalarFunction": 0,
+            "block": 253,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        }
+      ],
+      "work": "421978",
+      "medianExecuteMs": 3066.207959,
+      "medianMaxRSSMiB": 618.796875
+    },
+    "stack88": {
+      "samples": [
+        {
+          "processMs": 7141.600041999991,
+          "executeMs": 6849.9878340000005,
+          "maxRSSMiB": 1192.15625,
+          "executed": {
+            "loop": 0,
+            "scalar": 421978,
+            "scalarFunction": 0,
+            "block": 2109898,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        },
+        {
+          "processMs": 6819.345749999993,
+          "executeMs": 6500.036958,
+          "maxRSSMiB": 578.765625,
+          "executed": {
+            "loop": 0,
+            "scalar": 421978,
+            "scalarFunction": 0,
+            "block": 2109898,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        },
+        {
+          "processMs": 6932.413583000001,
+          "executeMs": 6614.50075,
+          "maxRSSMiB": 587.46875,
+          "executed": {
+            "loop": 0,
+            "scalar": 421978,
+            "scalarFunction": 0,
+            "block": 2109898,
+            "tensor": 0
+          },
+          "compiledLoops": 0,
+          "cowCopies": 0
+        }
+      ],
+      "work": "421978",
+      "medianExecuteMs": 6614.50075,
+      "medianMaxRSSMiB": 587.46875
+    }
+  }
+}
