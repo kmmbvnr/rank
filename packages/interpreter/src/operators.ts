@@ -1,4 +1,4 @@
-import { divideWithRemainder, floorDivide, floorDivideReal } from './numeric-division.js';
+import { divideWithRemainder, floorDivide, floorDivideReal, floorRemainder } from './numeric-division.js';
 import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
 import { RUNTIME_TYPE_NAMES, type ApplicationForm } from '@arrrank/language';
@@ -235,10 +235,7 @@ export class Operators {
                 case 'max': return left > right ? left : right;
                 case 'mod': {
                     if (right === 0n) throw new RankError('division by zero');
-                    const remainder = left % right;
-                    return remainder !== 0n && (remainder < 0n) !== (right < 0n)
-                        ? remainder + right
-                        : remainder;
+                    return floorRemainder(left, right);
                 }
                 case '//': {
                     if (right === 0n) throw new RankError('division by zero');
@@ -374,10 +371,7 @@ export class Operators {
             case '//': return bothIntegers ? floorDivide(a, b) : floorDivideReal(Number(a), Number(b));
             case 'mod': {
                 if (bothIntegers) {
-                    const remainder = a % b;
-                    return remainder !== 0n && (remainder < 0n) !== (b < 0n)
-                        ? remainder + b
-                        : remainder;
+                    return floorRemainder(a, b);
                 }
                 const divisor = Number(b);
                 const remainder = Number(a) % divisor;
@@ -697,7 +691,7 @@ function addressable(mapped: RankSequence, source: RankSequence, operation: (ite
     });
 }
 
-const DENSE_OPERATORS = new Set(['+', '-', '*', '/', '**', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal']);
+const DENSE_OPERATORS = new Set(['+', '-', '*', '/', '//', 'mod', '**', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal']);
 
 function mapBinary(
     left: RankValue,

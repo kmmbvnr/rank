@@ -1,5 +1,5 @@
 import { indexedSource } from './indexed-source.js';
-import { noteArrayBinding, ownedArray, readArrayItem } from './array-storage.js';
+import { denseScalarItems, noteArrayBinding, ownedArray, readArrayItem } from './array-storage.js';
 import { RankDeque } from './containers.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexKey } from './index-key.js';
@@ -481,10 +481,12 @@ export function canApplySelectors(values: RankValue[]): boolean {
     if (values.length === 2 && isRankSequence(values[0])
         && isIntegerCollectionSelector(values[1])) return true;
     if (values.length === 2 && isRankArray(values[0]) && isRankArray(values[1])) {
+        const stored = denseScalarItems(values[1]);
         return isTableFieldList(values[1])
-            || values[1].items.every(item => typeof item === 'bigint')
+            || isIntegerCollectionSelector(values[1])
             || (sameShape(values[0].shape, values[1].shape)
-                && values[1].items.every(item => typeof item === 'boolean'));
+                && (stored ? Array.prototype.every.call(stored, (item: RankValue) => typeof item === 'boolean')
+                    : values[1].items.every(item => typeof item === 'boolean')));
     }
     if (values.length === 2 && isRankArray(values[0])
         && (typeof values[1] === 'string' || isRankLabel(values[1]))) return true;
@@ -550,7 +552,10 @@ export function unpackApplicationItems(value: RankValue, axis?: number): RankVal
 }
 
 function isTableFieldList(value: RankValue, includeEmpty = true): boolean {
-    return isRankArray(value) && value.shape.length === 1
-        && ((includeEmpty && value.items.length === 0)
-            || value.items.some(item => typeof item === 'string' || isRankLabel(item)));
+    if (!isRankArray(value) || value.shape.length !== 1) return false;
+    const stored = denseScalarItems(value);
+    if (stored) return (includeEmpty && stored.length === 0)
+        || Array.prototype.some.call(stored, (item: RankValue) => typeof item === 'string' || isRankLabel(item));
+    return (includeEmpty && value.items.length === 0)
+        || value.items.some(item => typeof item === 'string' || isRankLabel(item));
 }

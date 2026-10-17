@@ -1,3 +1,5 @@
+import { denseScalarItems, ownedArray } from './array-storage.js';
+import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { ResourceMap } from './resource-summary.js';
 import {
@@ -78,7 +80,7 @@ export class RankFunctionalGraph {
     lengths(): RankArray {
         const items = this.depth.map((depth, vertex) =>
             BigInt(depth + this.cycleLength[vertex]));
-        return { kind: 'array', items, shape: [items.length] };
+        return ownedArray(items, [items.length], true);
     }
 
     upto(start: RankValue, limit: RankValue): RankValue {
@@ -253,9 +255,12 @@ function successorArray(value: RankValue): number[] {
     }
     const size = value.shape[0];
     if (size === 0) throw new RankError('functional graph cannot be empty');
+    const stored = denseScalarItems(value);
+    const bound = BigInt(size);
     return Array.from({ length: size }, (_, index) => {
-        const item = value.itemAt?.(index) ?? value.items[index];
-        if (typeof item !== 'bigint' || item < 1n || item > BigInt(size)) {
+        if ((index & 4095) === 0) checkpoint('reading functional successors');
+        const item = stored ? stored[index] : value.itemAt?.(index) ?? value.items[index];
+        if (typeof item !== 'bigint' || item < 1n || item > bound) {
             throw new RankError('functional successors must be integers from 1 to N');
         }
         return Number(item - 1n);

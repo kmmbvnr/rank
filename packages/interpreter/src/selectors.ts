@@ -275,7 +275,8 @@ function selectorIndices(selector: RankValue, size: number, axis: number): numbe
     }
     const length = count ?? values!.length;
     if (length === 0) return [];
-    const at = isRankArray(selector)
+    const stored = isRankArray(selector) ? denseScalarItems(selector) : undefined;
+    const at = stored ? (index: number) => stored[index] : isRankArray(selector)
         ? (index: number) => readCellOrMissing(selector, index)
         : isRankQueue(selector)
             ? (index: number) => selector.items[index]
@@ -317,6 +318,8 @@ export function isCollectionSelector(value: RankValue): boolean {
 export function isIntegerCollectionSelector(value: RankValue): boolean {
     if (isRankSequence(value)) return true;
     if (!isRankArray(value) && !isRankQueue(value)) return false;
-    return value.items.every(item => typeof item === 'bigint');
+    const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
+    return stored ? Array.prototype.every.call(stored, (item: RankValue) => typeof item === 'bigint')
+        : value.items.every(item => typeof item === 'bigint');
 }
 

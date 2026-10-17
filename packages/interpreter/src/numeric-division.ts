@@ -34,6 +34,12 @@ export function floorDivide(left: bigint, right: bigint): bigint {
         : quotient;
 }
 
+/** The remainder with the divisor's sign. The caller checks a zero divisor. */
+export function floorRemainder(left: bigint, right: bigint): bigint {
+    const remainder = left % right;
+    return remainder !== 0n && (remainder < 0n) !== (right < 0n) ? remainder + right : remainder;
+}
+
 /** A quotient rounded down and a remainder with the divisor's sign. */
 function divmod(left: RankValue, right: RankValue): [RankValue, RankValue] {
     if (left === MISSING || right === MISSING) return [MISSING, MISSING];
