@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "071_orderedfractions"
+  run
+
+  Answer equal 428570
+end
+
+test "statement example"
+  use "071_orderedfractions"
+  Limit = 8
+  run
+
+  Answer equal 2
+end
+
+test "denominator seven only"
+  use "071_orderedfractions"
+  Limit = 7
+  run
+
+  Answer equal 2
+end

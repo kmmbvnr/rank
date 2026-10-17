@@ -1,0 +1,18 @@
+rem Ordered Fractions
+rem https://projecteuler.net/problem=71
+rem Numerator of the fraction left of
+rem 3/7 with denominators up to a limit
+
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000
+
+rem Best numerator for each denominator
+rem below 3/7; keep the largest ratio.
+D = 1 to Limit array
+N = (3 * D - 1) // 7
+Ratio = N / D
+Answer = N (Ratio max .index)
+Answer print
