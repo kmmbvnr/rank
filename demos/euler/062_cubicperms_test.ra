@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "062_cubicperms"
+  run
+
+  Answer equal 127035954683
+end
+
+test "three permutations"
+  use "062_cubicperms"
+  Perms = 3
+  run
+
+  Answer equal 41063625
+end

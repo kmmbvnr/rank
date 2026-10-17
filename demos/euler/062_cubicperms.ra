@@ -1,0 +1,24 @@
+rem Cubic Permutations
+rem https://projecteuler.net/problem=62
+rem Smallest cube with exactly five cube
+rem permutations of its digits
+
+use sequences
+use algo
+use io
+use cli
+
+option Perms integer = 5
+
+Cubes = (1 to 10000) ** 3 array
+Keys = Cubes text rank 0 sort rank 0
+Seen = new counter Keys
+Good = new set
+for Key in Seen
+  if Seen Key equal Perms
+    Good add Key
+  end
+end
+Mask = Keys in Good
+Answer = Cubes Mask first
+Answer print
