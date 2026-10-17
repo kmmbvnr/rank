@@ -29,21 +29,18 @@ for Inner in (1 to 9) 5 combinations
     if not Same
       continue
     end
-    Text = Outer Ring Next ring_text
-    Answer = Answer Text max
+    rem Lines clockwise from the least
+    rem outer node, as one integer.
+    Cols = stack Outer Ring Next
+    Rows = Cols transpose
+    Start = Outer min .index
+    Order = ((0 to 4) + Start) mod 5
+    Picked = Rows Order
+    Flat = Picked reshape 15
+    Digits = Flat text rank 0
+    Joined = Digits "" join
+    Value = Joined integer
+    Answer = Answer Value max
   end
 end
 Answer print
-
-rem Read lines clockwise from the least
-rem outer node, as one integer.
-fun Outer Ring Next ring_text
-  Rows = stack Outer Ring Next transpose
-  Start = Outer min .index
-  Order = ((0 to 4) + Start) mod 5
-  Picked = Rows Order
-  Flat = Picked reshape 15
-  Digits = Flat text rank 0
-  Joined = Digits "" join
-  return Joined integer
-end
