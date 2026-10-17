@@ -1,0 +1,43 @@
+rem Diophantine Equation
+rem https://projecteuler.net/problem=66
+rem Find D with the largest least x of
+rem x^2 - D y^2 = 1
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 1000
+
+Xs = 2 to Limit pell rank 0
+Answer = (Xs max .index) + 2
+Answer print
+
+rem Least x, 0 for squares. Walk the
+rem convergents of the sqrt D fraction.
+fun D pell
+  Root = D isqrt
+  if Root * Root equal D
+    return 0
+  end
+  Mid = 0
+  Den = 1
+  Term = Root
+  PrevX = 1
+  X = Root
+  PrevY = 0
+  Y = 1
+  for X * X - D * Y * Y not equal 1
+    Mid = Den * Term - Mid
+    Den = (D - Mid * Mid) // Den
+    Term = (Root + Mid) // Den
+    NextX = Term * X + PrevX
+    NextY = Term * Y + PrevY
+    PrevX = X
+    PrevY = Y
+    X = NextX
+    Y = NextY
+  end
+  return X
+end

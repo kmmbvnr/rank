@@ -1,0 +1,26 @@
+use testing
+
+test "default input"
+  use "066_diophantine"
+  run
+
+  Answer equal 661
+end
+
+test "statement example up to 7"
+  use "066_diophantine"
+  Limit = 7
+  run
+
+  Answer equal 5
+end
+
+test "least solutions"
+  use "066_diophantine"
+
+  2 pell equal 3
+  3 pell equal 2
+  5 pell equal 9
+  61 pell equal 1766319049
+  4 pell equal 0
+end
