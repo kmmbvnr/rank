@@ -1,0 +1,36 @@
+use testing
+
+test "default input"
+  use "104_pandigitalfib"
+  run
+
+  Answer equal 329468
+end
+
+test "statement indices"
+  use "104_pandigitalfib"
+  run
+
+  Cands 0 equal 541
+  Tail 541 equal 839725641
+  Tail 2749 equal 2250249
+end
+
+test "leading digits by logarithm"
+  use "104_pandigitalfib"
+  run
+
+  Spin = (array 2749 541) * PhiLog - Half
+  Frac = Spin mod 1
+  Pow = 10 ** (Frac + 8)
+  Lead = Pow floor
+  Lead 0 equal 143726895
+  Lead 1 equal 516212329
+end
+
+test "pandigital check"
+  use "104_pandigitalfib"
+
+  (array 123456789 987654321 143726895) pandigital
+  not (array 112345678 102345678 12345678) pandigital
+end
