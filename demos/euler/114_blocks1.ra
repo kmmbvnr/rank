@@ -1,0 +1,24 @@
+rem Counting Block Combinations I
+rem https://projecteuler.net/problem=114
+rem Count the ways to fill a row with
+rem red blocks of a minimum length, any
+rem two separated by a black square
+
+use sequences
+use io
+use cli
+
+option Size integer = 50
+option Min integer = 3
+
+rem Ways[n]: the first square is black,
+rem or a red block of length L starts,
+rem then a black square and any fill of
+rem the rest, or the block ends the row.
+Ways = array shape (Size + 1) fill 1
+for N in Min to Size
+  Pre = (Ways take (N - Min)) sum
+  Ways N = Ways (N - 1) + 1 + Pre
+end
+Answer = Ways Size
+Answer print

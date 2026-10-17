@@ -1,0 +1,36 @@
+use testing
+
+test "default input"
+  use "114_blocks1"
+  run
+
+  Answer equal 16475640049
+end
+
+test "statement rows"
+  use "114_blocks1"
+  Size = 7
+  run
+
+  Answer equal 17
+  Size = 29
+  run
+
+  Answer equal 673135
+  Size = 30
+  run
+
+  Answer equal 1089155
+end
+
+test "short rows"
+  use "114_blocks1"
+  Size = 2
+  run
+
+  Answer equal 1
+  Size = 3
+  run
+
+  Answer equal 2
+end
