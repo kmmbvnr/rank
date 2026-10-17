@@ -662,6 +662,16 @@ mask with a following operation, or push predicates into a source such as a
 table scan. It may also materialize a mask eagerly when that produces the same
 observable result.
 
+Applying an array mask fixes the selected positions. Later writes to a
+materialized mask do not change an existing selection; a retained mask uses
+copy-on-write. Combining masks with `and=`, `or=` or `xor=` binds a new value
+and also leaves existing selections unchanged. Lazy array masks cannot be
+written by index; use `copy` to obtain a writable array.
+
+An array selected by a full-shape array mask remains lazy in its selected
+values, but knows its exact length. `len` therefore does not read those
+values or raise errors deferred in their readers; iteration still does.
+
 A mask contains one boolean per source item. Display, iteration, indexing,
 `count`, `any`, `all`, `copy`, and postfix `array` all consume those booleans.
 Selection is explicit:
