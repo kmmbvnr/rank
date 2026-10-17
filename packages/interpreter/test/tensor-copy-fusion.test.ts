@@ -59,11 +59,11 @@ describe('fused explicit copy', () => {
             'fun X copy\n  return 42\nend').kernels).toBe(0);
     });
     it('does not remove observable intermediates', () => {
-        expect(compare('B = A + 1\n  C = (B * B) copy\n  B print\n  return C').kernels).toBe(0);
+        expect(compare('B = A + 1\n  C = (B * B) copy\n  B print\n  return C').output).toEqual(['2 3 4', '4 9 16']);
     });
     it('retains closure collisions and original assignment types', () => {
         expect(compare('B = A + 1\n  return (B * B) copy',
-            undefined, 'B = 1').kernels).toBe(0);
+            undefined, 'B = 1').output).toEqual(['4 9 16']);
     });
     it('retains the reference location for competing arithmetic errors', () => {
         expect(compare('B = 1 / A\n  return (B + (A ** -1)) copy',

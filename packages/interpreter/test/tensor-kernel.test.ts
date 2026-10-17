@@ -114,7 +114,7 @@ describe('tensor pipeline fusion', () => {
         expect(compare(source).kernels).toBe(0);
     });
     it('does not force a lazy input while guarding', () => {
-        const source = probe.replace('A B 3 probe', 'A = A + 0\nA B 3 probe');
+        const source = probe.replace('A B 3 probe', 'A = A (array 0 1 2)\nA B 3 probe');
         expect(compare(source).kernels).toBe(0);
     });
     it('retains missing-module errors at the original statement', () => {

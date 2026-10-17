@@ -897,6 +897,13 @@ const derivedRevisions = new WeakMap<object, {
 
 type DerivedRecord = NonNullable<ReturnType<typeof derivedRevisions.get>>;
 
+// Pure stored-view consumers can retain the same observed element-domain
+// checks without entering the lazy cell cache or dependency validation path.
+const cellValidators = new WeakMap<RankArray, (cell: RankValue, index: number) => void>();
+export function arrayCellValidator(value: RankArray): ((cell: RankValue, index: number) => void) | undefined {
+    return cellValidators.get(value);
+}
+
 const MAX_CACHED_CELLS = 1 << 24;
 
 /** Cache a pure reader only while all its explicit dependencies have known revisions.
@@ -910,19 +917,28 @@ export function derivedArray(
 ): RankArray {
     const diagnostics = currentDiagnostics();
     const observedColumns = new Map<number, Map<string, { type: string; rank?: number }>>();
+    let lastColumn = -1;
+    let lastScalar: string | undefined;
     const checkCell = (cell: RankValue, index: number): void => {
         const column = value.columnNames && shape.length === 2 ? index % shape[1] : 0;
+        if (cell === MISSING) return;
+        const scalar = typeof cell;
+        // The common scalar domain has already been checked for this column.
+        // Reals still distinguish finite/NaN values from numeric limits below.
+        if (column === lastColumn && scalar === lastScalar) return;
         let observedKinds = observedColumns.get(column);
         if (!observedKinds) observedColumns.set(column, observedKinds = new Map());
-        if (cell === MISSING) return;
         const type = typeof cell === 'number' && !Number.isFinite(cell) && !Number.isNaN(cell)
             ? 'numeric-limit' : typeName(cell);
         const rank = isRankArray(cell) ? cell.shape.length : undefined;
         const key = `${type}:${rank}`;
-        if (observedKinds.has(key)) return;
-        const kind = { type, ...(rank === undefined ? {} : { rank }) };
-        requireHomogeneous([...observedKinds.values(), kind]);
-        observedKinds.set(key, kind);
+        if (!observedKinds.has(key)) {
+            const kind = { type, ...(rank === undefined ? {} : { rank }) };
+            requireHomogeneous([...observedKinds.values(), kind]);
+            observedKinds.set(key, kind);
+        }
+        lastColumn = column;
+        lastScalar = scalar === 'bigint' || scalar === 'boolean' || scalar === 'string' ? scalar : undefined;
     };
     const record: DerivedRecord = { values: () => dependencies, epoch: -1, sources: dependencies };
     let seen: number | undefined;
@@ -1027,6 +1043,7 @@ export function derivedArray(
         return items;
     }
     derivedRevisions.set(value, record);
+    cellValidators.set(value, checkCell);
     if (evaluate) registerArrayCellEvaluation(value, function* (index) {
         const entering = runtimeDepth === 0;
         if (entering) enterRuntime();

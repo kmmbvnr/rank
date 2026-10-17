@@ -526,7 +526,9 @@ the leading result axes, followed by all remaining axes from `B`:
 5 2 3     matmul 3 4   -> 5 2 4
 ```
 
-Two vectors produce a scalar dot product. The default call does not broadcast
+Two vectors produce a scalar dot product, with exact integer accumulation when
+both operands contain integers. An empty contraction returns integer zero.
+The default call does not broadcast
 or pair leading axes. Use explicit matrix-cell ranks for batched multiplication:
 
 ```rank

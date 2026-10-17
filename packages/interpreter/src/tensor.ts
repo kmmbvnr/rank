@@ -51,6 +51,7 @@ export function mapDenseArrays(
     right: RankValue,
     operation: (left: RankValue, right: RankValue) => RankValue,
     realCode = -1,
+    allowSmall = false,
 ): RankArray | undefined {
     const leftArray = isArrayValue(left) ? left : undefined;
     const rightArray = isArrayValue(right) ? right : undefined;
@@ -59,8 +60,21 @@ export function mapDenseArrays(
     const shape = leftArray && rightArray
         ? broadcastShape(leftArray.shape, rightArray.shape) : (leftArray ?? rightArray!).shape;
     const size = shape.reduce((product, dimension) => product * dimension, 1);
-    // A small array costs little to keep lazy; the layers only add up on large ones.
-    if (size < DENSE_MIN_CELLS) return undefined;
+    // Small stored numeric formulas need no lazy cell maps. Comparison masks
+    // retain their lazy/read-only interface; unread or host operands decline.
+    if (size < DENSE_MIN_CELLS) {
+        if (!allowSmall || realCode > LAST_ARITHMETIC_CODE) return undefined;
+        const numeric = (array: RankArray | undefined, scalar: RankValue) => {
+            if (!array) return isNumeric(scalar);
+            const items = denseScalarItems(array) && storedOperandItems(array);
+            if (!items) return false;
+            for (let index = 0; index < items.length; index++) {
+                if (!isNumeric(items[index])) return false;
+            }
+            return true;
+        };
+        if (!numeric(leftArray, left) || !numeric(rightArray, right)) return undefined;
+    }
     let leftItems = leftArray ? storedOperandItems(leftArray) : undefined;
     let rightItems = rightArray ? storedOperandItems(rightArray) : undefined;
     if (leftArray && !leftItems) return undefined;
