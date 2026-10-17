@@ -16,6 +16,10 @@ export class RuntimeDiagnostics {
     rankedBatches = 0;
     cowCopies = 0;
     cowCopiedCells = 0;
+    elementTypeScans = 0;
+    elementTypeScannedCells = 0;
+    selectionSnapshots = 0;
+    selectionSnapshotCells = 0;
     readonly fallbacks: Record<string, number> = Object.create(null);
 
     /** Scopes nest safely, including exceptions. Lazy readers retain their owner. */

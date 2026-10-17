@@ -2,7 +2,7 @@ import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { registerIntegerView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
-import { denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, typedArray, typedElementKind } from './array-storage.js';
+import { denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { sequenceValues } from './sequence.js';
@@ -15,9 +15,22 @@ const arrayItem = readArrayItem;
 const arraySize = (shape: readonly number[]): number =>
     shape.reduce((product, dimension) => product * dimension, 1);
 
-// A large slice of stored scalars is copied at once. A lazy slice would cache
-// each cell in a Map, several times the size of the cells themselves.
+// Large scalar slices are gathered eagerly to avoid a per-cell Map cache.
 const DENSE_SLICE_CELLS = 1 << 16;
+
+function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (index: number) => number): RankArray {
+    let current = source;
+    let position = offsetAt;
+    const dependencies = [source];
+    const result = derivedArray(shape, dependencies, index => arrayItem(current, position(index)));
+    registerIntegerView(result, () => current, index => position(index));
+    retainSelectionSnapshot(result, source, offsetAt, snapshot => {
+        current = snapshot;
+        position = index => index;
+        dependencies[0] = snapshot;
+    });
+    return result;
+}
 
 interface SelectedAxis {
     readonly preserve: boolean;
@@ -148,8 +161,7 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
         const length = arraySize(rest);
         return inheritSemanticArrayType(source, typedArray(stored.slice(offset, offset + length), rest));
     }
-    return inheritSemanticArrayType(source, registerIntegerView(
-        derivedArray(rest, [source], index => arrayItem(source, offset + index)), source, index => offset + index));
+    return inheritSemanticArrayType(source, selectionArray(rest, source, index => offset + index));
 }
 
 /** The cells a selection addresses: an array, or the one cell of an empty shape. */
@@ -165,8 +177,8 @@ export function sliceArray(
         ? Array.from({ length: columnAxis.size }, (_, column) => source.columnNames![columnAxis.indexAt(column)]) : undefined;
     const stored = denseScalarItems(source);
     const total = arraySize(selection.shape);
-    // A typed source is never written in place, so its slice is copied whatever
-    // its size; stored plain cells are copied once the slice is large.
+    // Typed and large plain slices are gathered eagerly. Smaller slices stay
+    // lazy, detaching their selected cells only before a Rank source write.
     const kind = typedElementKind(source);
     if (stored && (kind !== undefined || total >= DENSE_SLICE_CELLS)) {
         const reals = kind === 'real' || (kind === undefined && realCells(source) !== undefined);
@@ -176,8 +188,7 @@ export function sliceArray(
         const result = Array.isArray(out) ? ownedArray(out, selection.shape, true, columnNames) : typedArray(out, selection.shape, columnNames);
         return source.columnNames ? result : inheritSemanticArrayType(source, result);
     }
-    const result = derivedArray(selection.shape, [source], index => arrayItem(source, selection.offsetAt(index)));
-    registerIntegerView(result, source, selection.offsetAt);
+    const result = selectionArray(selection.shape, source, selection.offsetAt);
     if (columnNames) Object.defineProperty(result, 'columnNames', { value: columnNames });
     return source.columnNames ? result : inheritSemanticArrayType(source, result);
 }

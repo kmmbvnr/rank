@@ -610,8 +610,8 @@ An incomplete address preserves its trailing axes, and `#` preserves the axis
 at its position. A scalar right side fills the selected region. An array right
 side must have exactly the selected shape or `.DimensionMismatch` is raised.
 Negative and out-of-bounds indices are errors. Addressed assignment supports
-`=` and every compound assignment operator. Assignment changes the existing
-array object, so every alias of that array observes the new cells. The target,
+`=` and every compound assignment operator. A write gives the written name
+private storage when the array is shared; other names keep their values. The target,
 selectors, previous cell values and right side are evaluated before any write.
 This gives both ordinary and compound assignment snapshot semantics when
 selections overlap.
@@ -628,6 +628,11 @@ Part = A (2 till 6)
 Picked = A array 4 1 1
 Columns = M # (1 to 3)
 ```
+
+Before a Rank write to a material dense scalar array, retained selections can
+snapshot only their selected cells. This also protects computations over those
+selections without copying the whole source. Small selections keep their lazy,
+read-only interface; use `copy` when their result needs material storage.
 
 Ranges and integer arrays preserve the selected axis. A scalar integer removes
 its axis. The complete selector rules are defined in

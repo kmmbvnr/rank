@@ -1,3 +1,4 @@
+/// <reference lib="es2021.weakref" />
 import { completed, resume, type Evaluation, type Execution } from './execution.js';
 import { checkpoint, interruptibleCallback } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
@@ -93,13 +94,15 @@ interface OwnedStorage {
      * `scalarOnly`: kernels that do not read the bits must not see its buffer. */
     validity?: Uint32Array;
     convert?: () => void;
-    /** The revision at which every cell was last found to be a number, or not. */
-    realChecked?: { revision: number; real: boolean };
+    /** Physical scalar kinds, counted on demand and maintained by tracked writes.
+     * This is storage evidence, not a declaration of a binding's domain. */
+    elementKinds?: Map<string, number>;
     shape: readonly number[];
     revision: number;
     birth: number;
     scalarOnly: boolean;
     stable: boolean;
+    readOnlyCells?: boolean;
     resources: ResourceSummary;
     owners?: number;
     nestedEpoch?: number;
@@ -212,23 +215,66 @@ export function denseScalarItems(value: RankArray): ArrayLike<RankValue> | undef
     return storage?.stable && storage.scalarOnly ? storage.items : undefined;
 }
 
+function scalarKind(value: RankValue | undefined): string | undefined {
+    switch (typeof value) {
+        case 'number': return !Number.isFinite(value) && !Number.isNaN(value) ? 'numeric-limit' : 'real';
+        case 'bigint': return 'integer';
+        case 'boolean': return 'boolean';
+        case 'string': return 'text';
+        default: return undefined;
+    }
+}
+
+/** Exact kinds in trusted scalar storage, without forcing a reader or declaring
+ * a semantic type. Same-kind writes keep this proof valid across data revisions. */
+export function storedScalarKinds(value: RankArray): readonly string[] | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.scalarOnly) return undefined;
+    if (!state.elementKinds) {
+        const kinds = new Map<string, number>();
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) {
+            diagnostics.elementTypeScans++;
+            diagnostics.elementTypeScannedCells += state.items.length;
+        }
+        for (let index = 0; index < state.items.length; index++) {
+            if ((index & 4095) === 0) checkpoint('checking scalar storage');
+            const kind = scalarKind(state.items[index]);
+            if (kind === undefined) return undefined;
+            kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
+        }
+        state.elementKinds = kinds;
+    }
+    return [...state.elementKinds.keys()].sort();
+}
+
+function updateScalarKinds(state: OwnedStorage, previous: RankValue | undefined, value: RankValue): void {
+    const kinds = state.elementKinds;
+    if (!kinds) return;
+    const before = scalarKind(previous), after = scalarKind(value);
+    if (before === undefined || after === undefined) {
+        state.elementKinds = undefined;
+        return;
+    }
+    if (before === after) return;
+    const count = kinds.get(before)! - 1;
+    if (count) kinds.set(before, count);
+    else kinds.delete(before);
+    kinds.set(after, (kinds.get(after) ?? 0) + 1);
+}
+
 /**
  * The cells of an array when every one is a real number: a real typed buffer,
- * or stored cells checked once per revision. Real arithmetic on such cells
+ * or stored cells with tracked scalar-kind evidence. Real arithmetic on such cells
  * needs no type dispatch and can write straight into a typed buffer.
  */
 export function realCells(value: RankArray): ArrayLike<number> | undefined {
     const state = ownedStorage.get(value);
     if (!state?.stable || !state.scalarOnly) return undefined;
     if (state.typed) return state.typed instanceof Float64Array ? state.typed : undefined;
-    if (state.realChecked?.revision !== state.revision) {
-        let real = true;
-        for (let index = 0; index < state.items.length; index += 1) {
-            if (typeof state.items[index] !== 'number') { real = false; break; }
-        }
-        state.realChecked = { revision: state.revision, real };
-    }
-    return state.realChecked.real ? state.items as unknown as number[] : undefined;
+    const kinds = storedScalarKinds(value);
+    return kinds?.every(kind => kind === 'real' || kind === 'numeric-limit')
+        ? state.items as unknown as number[] : undefined;
 }
 
 /** The real cells of an array as one Float64Array, or undefined if any cell is
@@ -458,25 +504,55 @@ function createOwned(
         state.resources.invalidate();
         state.scalarOnly = false;
         state.stable = false;
+        state.elementKinds = undefined;
+    };
+    // Non-cell writes (length, new indexes, metadata) cannot update a cell count.
+    const previousCell = (target: RankValue[], key: PropertyKey): RankValue | undefined => {
+        if (!state.elementKinds || typeof key !== 'string') return undefined;
+        const index = Number(key);
+        return Number.isInteger(index) && index >= 0 && index < target.length && String(index) === key
+            ? target[index] : undefined;
     };
     const facadeOf = (target: RankValue[]) => new Proxy(target, {
         set(target, key, value) {
+            const previous = previousCell(target, key);
+            const length = target.length;
             const success = Reflect.set(target, key, value, target);
-            if (success) changed(value);
+            if (success) {
+                updateScalarKinds(state, previous, value);
+                changed(value);
+            } else if (target.length !== length) {
+                // Shrinking length can delete trailing cells before hitting a
+                // nonconfigurable index and failing. Those deletions still count.
+                state.elementKinds = undefined;
+                state.revision = noteMutation(state.birth);
+            }
             return success;
         },
         defineProperty(target, key, descriptor) {
+            const previous = previousCell(target, key);
+            const length = target.length;
             const success = Reflect.defineProperty(target, key, descriptor);
             if (success) {
+                if (descriptor.writable === false) state.readOnlyCells = true;
                 if ('get' in descriptor || 'set' in descriptor) uncertain();
-                else if ('value' in descriptor) changed(descriptor.value);
+                else if ('value' in descriptor) {
+                    updateScalarKinds(state, previous, descriptor.value);
+                    changed(descriptor.value);
+                }
                 else state.revision = noteMutation(state.birth);
+            } else if (target.length !== length) {
+                state.elementKinds = undefined;
+                state.revision = noteMutation(state.birth);
             }
             return success;
         },
         deleteProperty(target, key) {
             const success = Reflect.deleteProperty(target, key);
-            if (success) state.revision = noteMutation(state.birth);
+            if (success) {
+                state.elementKinds = undefined;
+                state.revision = noteMutation(state.birth);
+            }
             return success;
         },
         setPrototypeOf(target, prototype) {
@@ -568,6 +644,46 @@ function ownershipFor(value: RankArray): Ownership {
 // Arrays a value keeps reading after it is made, such as the source of a mask.
 const heldSources = new WeakMap<RankArray, RankArray[]>();
 
+// Retained scalar selections can detach just their cells before a Rank write.
+// Weak references keep an unmodified, long-lived source from owning its readers.
+interface SelectionSnapshot {
+    source?: RankArray;
+    freeze?: () => boolean;
+    reference?: WeakRef<SelectionSnapshot>;
+}
+const selectionSnapshots = new WeakMap<RankArray, SelectionSnapshot>();
+const pendingSelections = new WeakMap<RankArray, Set<WeakRef<SelectionSnapshot>>>();
+const releasedSelections = typeof FinalizationRegistry === 'function'
+    ? new FinalizationRegistry<{ pending: Set<WeakRef<SelectionSnapshot>>; reference: WeakRef<SelectionSnapshot> }>(
+        ({ pending, reference }) => pending.delete(reference)) : undefined;
+
+/** Only selector plans over trusted scalar storage qualify. Reading the selection
+ * remains lazy/live across host writes until Rank itself writes its source. */
+export function retainSelectionSnapshot(value: RankArray, source: RankArray,
+    offsetAt: (index: number) => number, detached: (snapshot: RankArray) => void): void {
+    if (!releasedSelections || typeof WeakRef !== 'function' || !denseScalarItems(source)) return;
+    const shape = value.shape;
+    selectionSnapshots.set(value, { source, freeze() {
+        const stored = denseScalarItems(source);
+        if (!stored || ownedStorage.get(source)?.readOnlyCells) return false;
+        const size = shape.reduce((a, b) => a * b, 1);
+        const items = Array.from({ length: size }, (_, index) => {
+            if ((index & 4095) === 0) checkpoint('snapshotting selection', Math.min(4096, size - index));
+            return stored[offsetAt(index)];
+        });
+        // Keep the selection's own lazy validation and read-only interface.
+        // This private buffer must not establish a semantic declaration.
+        const snapshot = createOwned(items, shape, true);
+        detached(snapshot);
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) {
+            diagnostics.selectionSnapshots++;
+            diagnostics.selectionSnapshotCells += size;
+        }
+        return true;
+    } });
+}
+
 /** A value that reads `source` later must see it as it is now. Binding the
  * value shares the source, so a later write to it copies instead. */
 export function holdArraySource(value: RankArray, source: RankArray): void {
@@ -579,7 +695,21 @@ function shareSources(value: RankArray): void {
     const pending = [value];
     while (pending.length) {
         const current = pending.pop()!;
-        for (const source of [...derivedRevisions.get(current)?.sources ?? [], ...heldSources.get(current) ?? []]) {
+        const selection = selectionSnapshots.get(current);
+        if (selection?.freeze) {
+            if (!selection.reference) {
+                let retained = pendingSelections.get(selection.source!);
+                if (!retained) pendingSelections.set(selection.source!, retained = new Set());
+                // The weak target is a small ticket, not the reader: WeakRef
+                // keeps its target alive until the host job ends. In particular
+                // it must not retain the reader's potentially large cell cache.
+                const reference = selection.reference = new WeakRef(selection);
+                retained.add(reference);
+                releasedSelections!.register(selection, { pending: retained, reference }, reference);
+            }
+        }
+        const dependencies = selection?.freeze ? [] : derivedRevisions.get(current)?.sources ?? [];
+        for (const source of [...dependencies, ...heldSources.get(current) ?? []]) {
             const record = ownershipFor(source);
             if (record.owners === SHARED) continue;
             record.owners = SHARED;
@@ -609,10 +739,10 @@ export function noteArrayBorrow(value: RankValue): void {
     }
 }
 
-/** True when a write has to take a private copy before it changes a cell. */
+/** True when a write must first protect aliases or retained selections. */
 export function isSharedArray(value: RankValue): boolean {
     return typeof value === 'object' && value.kind === 'array'
-        && (ownership(value)?.owners ?? 0) >= SHARED;
+        && ((ownership(value)?.owners ?? 0) >= SHARED || (pendingSelections.get(value)?.size ?? 0) > 0);
 }
 
 /** Storage this name owns alone. The result is unbound: the caller binds it. */
@@ -644,10 +774,31 @@ export function privateArrayCopy(value: RankArray): RankArray {
     return copy;
 }
 
-/** The private storage a write goes to, copied from shared storage if needed. */
+/** Protect retained selections, then copy storage if ordinary aliases need it. */
 export function arrayForWrite(value: RankValue): RankArray | undefined {
     if (!isSharedArray(value)) return undefined;
-    return privateArrayCopy(value as RankArray);
+    const source = value as RankArray;
+    // Ordinary aliases still require a whole-value copy; their lazy readers
+    // can keep reading the old source without detaching anything.
+    if ((ownership(source)?.owners ?? 0) >= SHARED) return privateArrayCopy(source);
+    const pending = pendingSelections.get(source)!;
+    for (const reference of pending) {
+        const selection = reference.deref();
+        if (selection?.freeze && !selection.freeze()) {
+            // The host changed the storage guarantees since selection.
+            // Preserve its reader and take the conservative value-copy path.
+            ownershipFor(source).owners = SHARED;
+            return privateArrayCopy(source);
+        }
+        if (selection) {
+            selection.source = undefined;
+            selection.freeze = undefined;
+        }
+        releasedSelections!.unregister(reference);
+        pending.delete(reference);
+    }
+    pendingSelections.delete(source);
+    return undefined;
 }
 
 /** Unknown host storage has no reliable revision and must not retain derived caches. */
@@ -932,6 +1083,7 @@ export function prepareScalarArrayWriter(value: RankValue | undefined, batch = f
             state.revision = noteMutation(state.birth);
             changed = true;
         }
+        updateScalarKinds(state, items[index], item);
         items[index] = item;
     };
 }
