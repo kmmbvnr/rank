@@ -7,17 +7,20 @@ test "default input"
   Answer equal 709
 end
 
-test "statement pair"
+test "statement pair and single line"
   use "099_largestexp"
+  use io
+  Input = "/tmp/euler099.txt"
+  "2,11\n3,7\n" "/tmp/euler099.txt" write
+  run
 
-  Lines = array "2,11" "3,7"
-  Lines largest_line equal 2
-  Back = array "3,7" "2,11"
-  Back largest_line equal 1
-end
+  Answer equal 2
+  "3,7\n2,11\n" "/tmp/euler099.txt" write
+  run
 
-test "single line"
-  use "099_largestexp"
+  Answer equal 1
+  "5,5\n" "/tmp/euler099.txt" write
+  run
 
-  (array "5,5") largest_line equal 1
+  Answer equal 1
 end
