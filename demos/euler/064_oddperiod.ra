@@ -4,22 +4,19 @@ rem Count continued fractions of sqrt N
 rem with odd period
 
 use numbers
-use sequences
 use io
 use cli
 
 option Limit integer = 10000
 
-Lens = 2 to Limit period rank 0
-Answer = Lens odd count
-Answer print
-
-rem Period of sqrt N, 0 for squares.
-rem Stops when a term reaches 2 * a0.
-fun N period
+rem The period of sqrt N ends when a
+rem term reaches 2 * a0. Squares have
+rem none.
+Answer = 0
+for N in 2 to Limit
   Root = N isqrt
   if Root * Root equal N
-    return 0
+    continue
   end
   Mid = 0
   Den = 1
@@ -31,5 +28,8 @@ fun N period
     Term = (Root + Mid) // Den
     Len += 1
   end
-  return Len
+  if Len odd
+    Answer += 1
+  end
 end
+Answer print
