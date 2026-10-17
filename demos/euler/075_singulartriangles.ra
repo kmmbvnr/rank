@@ -1,0 +1,32 @@
+rem Singular Integer Right Triangles
+rem https://projecteuler.net/problem=75
+rem Count lengths up to a limit giving
+rem exactly one integer right triangle
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 1500000
+
+rem Euclid: coprime m > n of opposite
+rem parity give a primitive triple of
+rem perimeter 2m(m + n). Count its
+rem multiples, then the single ones.
+Cnt = array shape (Limit + 1) fill 0
+Root = Limit // 2 isqrt
+for M in 2 to Root
+  Reach = Limit // (2 * M) - M
+  Top = Reach (M - 1) min
+  First = 1 + M mod 2
+  Ns = First to Top by 2 array
+  Coprime = Ns M gcd equal 1
+  Pick = Ns Coprime copy
+  Per = 2 * M * (M + Pick)
+  for P in Per
+    Cnt (P to Limit by P) += 1
+  end
+end
+Answer = Cnt equal 1 count
+Answer print

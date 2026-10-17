@@ -1,0 +1,27 @@
+use testing
+
+test "default input"
+  use "075_singulartriangles"
+  run
+
+  Answer equal 161667
+end
+
+test "statement limit 48"
+  use "075_singulartriangles"
+  Limit = 48
+  run
+
+  Answer equal 6
+end
+
+test "triangle counts per length"
+  use "075_singulartriangles"
+  Limit = 120
+  run
+
+  Cnt 12 equal 1
+  Cnt 48 equal 1
+  Cnt 60 equal 2
+  Cnt 120 equal 3
+end
