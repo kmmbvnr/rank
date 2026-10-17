@@ -1,0 +1,15 @@
+rem Large Non-Mersenne Prime
+rem https://projecteuler.net/problem=97
+rem 28433 * 2^7830457 + 1
+rem Last ten digits of the prime
+
+use numbers
+use io
+use cli
+
+option Exponent integer = 7830457
+option Modulus integer = 10000000000
+
+Power = 2 Exponent Modulus powmod
+Answer = (28433 * Power + 1) mod Modulus
+Answer print
