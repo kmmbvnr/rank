@@ -29,13 +29,12 @@ rem Every chain ends at 1 or in the 89
 rem cycle, which never reaches 1.
 Last = Size - 1
 Start = 0 to Last array
-Ends = Start step repeat 20
+Ends = Start
+for # in 1 to 20
+  Ds = Ends (array 10 10 10 10) digits
+  Ends = (Ds * Ds) sum axis 0
+end
 Mask = Ends not equal 1
 Mask and= Ends greater 0
 Answer = (Ways Mask) sum
 Answer print
-
-fun V step
-  Ds = V (array 10 10 10 10) digits
-  return (Ds * Ds) sum axis 0
-end

@@ -19,13 +19,12 @@ test "smaller numbers of digits"
   Answer equal 857
 end
 
-test "statement chains"
+test "chains end at 1 or the 89 cycle"
   use "092_squarechains"
+  run
 
-  Cur = array 44 85 1 89
-  Ends = Cur step repeat 20
-  Ends 0 equal 1
-  Ends 1 not equal 1
-  Ends 2 equal 1
-  Ends 3 not equal 1
+  Ends 1 equal 1
+  Ends 44 equal 1
+  Ends 85 not equal 1
+  Ends 89 not equal 1
 end
