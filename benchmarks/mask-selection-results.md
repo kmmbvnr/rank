@@ -54,8 +54,10 @@ costs; this measurement covers the array-mask layer only.
 Validation: TypeScript build and test type-check passed, along with 3,629
 interpreter tests (191 files, two workers) and semantic-boundary/application-form
 checks. A selected demo differential run compared 28 files with no differences
-between compiled and reference execution. The corresponding type audit had
-two failures: Euler 61 inferred integer for array `Bit`, and Euler 86 inferred
-boolean for array `Mask`. Both contradictions were reproduced with the
-baseline `value-selection.ts` in an isolated copy of the built interpreter;
-they are existing analyzer errors, not a clean type-audit result.
+between compiled and reference execution. The initial type audit exposed
+baseline analyzer errors, reproduced with the old selection implementation.
+A companion CI repair fixes type-only assumptions about mapped operations,
+mask selections and scalar vector contractions. All 1,105 language tests and
+the regression type audits for Euler 61, 80, 84, 86 and 91 pass. The CLI
+`explain` corpus check also passes after restoring missing sequence imports
+in two demo test modules. No demo outputs or audit assertions were changed.

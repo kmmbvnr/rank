@@ -1,7 +1,7 @@
 import { inferSignatureResultTypes } from '../signature-matching.js';
 import type { SignatureAtom, SignatureType } from '../type-signature.js';
 import { joinTypes } from './value-domain.js';
-import { flattenApplication } from '../expressions.js';
+import { flattenApplication, rangeSliceOperands } from '../expressions.js';
 import { applicationForm } from '../application-forms.js';
 /**
  * Type facts over the runtime's own type names.
@@ -14,7 +14,7 @@ import { applicationForm } from '../application-forms.js';
  */
 
 import {
-    isTupleExpression, isFunctionOperator, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
+    isAllAxisExpression, isTupleExpression, isFunctionOperator, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isKeyedMergeExpression, isLabelLiteral, isMaterializeExpression,
     isNameExpression, isNewStructureExpression, isNumberLiteral, isParenthesizedExpression,
@@ -278,6 +278,13 @@ export function modifierResultTypes(operation: Operation, operands: readonly Exp
 }
 
 function applicationType(expression: ApplicationExpression, lookup: TypeLookup): Types {
+    const slice = rangeSliceOperands(expression);
+    if (slice && !isAllAxisExpression(slice.end)) {
+        const source = typeOf(slice.source, lookup);
+        if (same(source, 'text')) return ['text'];
+        if (['array', 'sequence', 'queue'].some(type => same(source, type))) return ['array'];
+        return UNKNOWN;
+    }
     const parts = flattenApplication(expression);
     if (parts.some(part => isNameExpression(part) && part.name === 'window')) {
         const form = applicationForm(parts, name => lookup(name) === undefined ? findOperation(name) : false);
@@ -305,7 +312,10 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
         if (same(source, 'text') && same(selector, 'integer')) return ['text'];
         if (['array', 'queue', 'sequence'].some(type => same(selector, type))) {
             if (same(source, 'text')) return ['text'];
-            if (['array', 'queue', 'sequence'].some(type => same(source, type))) return ['array'];
+            if (same(source, 'queue')) return ['array'];
+            // Type-only facts cannot distinguish boolean masks (lazy
+            // selections) from integer gathers (arrays).
+            if (same(source, 'array') || same(source, 'sequence')) return ['array', 'sequence'];
         }
     }
     if (last === undefined || !isNameExpression(last)) return UNKNOWN;
@@ -338,9 +348,15 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
             const right = typeOf(parts[1], lookup);
             if (operation.name === 'startswith'
                 && (same(source, 'array') || same(right, 'array'))) return ['array'];
-            if (operation.dyadicRanks?.[0] === 0 && operation.dyadicRanks[1] === 0
-                && (same(source, 'array') || same(right, 'array'))) return ['array'];
-            if (operation === findOperation('matmul') && same(source, 'array') && same(right, 'array')) return UNKNOWN;
+            if (operation.dyadicRanks?.[0] === 0 && operation.dyadicRanks[1] === 0) {
+                if (same(source, 'array') || same(right, 'array')) return ['array'];
+                // Unknown operands can be arrays too. The scalar catalogue
+                // result applies only after both operands are known atoms.
+                if (!within(source, SCALARS) || !within(right, SCALARS)) return UNKNOWN;
+            }
+            // Vector contraction returns a scalar; without ranks the result
+            // cannot be taken from the catalogue's general array role.
+            if (operation === findOperation('matmul')) return UNKNOWN;
             if (operation.name === 'missing' && same(right, 'array')) return UNKNOWN;
         }
     }
