@@ -22,61 +22,58 @@ Body = Text (1 till Last)
 Words = Body "\",\"" split
 Keys = Words sort rank 0
 Seen = new counter Keys
+rem Map the letters of A onto the digits
+rem of each square of its length: equal
+rem letters, equal digits. B must then
+rem read as a square too.
 Answer = 0
 for Key in Seen
   if Seen Key greater 1
     Group = Words (Keys equal Key) array
     for A i in Group
       for B in Group drop (i + 1)
-        Found = A B pair_best
+        Size = A len
+        Low = 10 ** (Size - 1)
+        From = (Low - 1) isqrt + 1
+        To = (10 * Low - 1) isqrt
+        Roots = From to To array
+        Sq = Roots * Roots
+        Bases = array shape Size fill 10
+        Dm = Sq Bases digits
+        Ids = 0 till Size array
+        Col = Ids reshape Size 1
+        Row = Ids reshape 1 Size
+        Upper = Col less Row
+        Pairs = Upper indices
+        PI = Pairs # 0
+        PJ = Pairs # 1
+        Ca = A codepoint rank 0
+        Cb = B codepoint rank 0
+        Same = (Ca PI) equal (Ca PJ)
+        Rows = Pairs len
+        Hold = (Dm PI) equal (Dm PJ)
+        Want = Same reshape Rows 1
+        Match = Hold equal Want
+        Fit = Match all axis 0
+        Keep = Fit indices
+        Mine = Sq Keep
+        Perm = Ca Cb find
+        Dk = Dm # Keep
+        Power = 10 ** (Size - 1 - Ids)
+        Cols = Dk Perm
+        Val = Power Cols matmul
+        Root = Val isqrt
+        Back = Root * Root
+        Good = Back equal Val
+        Good and= Val at least Low
+        Ours = Mine Good
+        Theirs = Val Good
+        Zero = array 0
+        Hits = concat Zero Ours Theirs
+        Found = Hits max
         Answer = Answer Found max
       end
     end
   end
 end
 Answer print
-
-rem Map the letters of A onto the digits
-rem of each square of its length: equal
-rem letters, equal digits. B must then
-rem read as a square too.
-fun A B pair_best
-  Size = A len
-  Low = 10 ** (Size - 1)
-  From = (Low - 1) isqrt + 1
-  To = (10 * Low - 1) isqrt
-  Roots = From to To array
-  Sq = Roots * Roots
-  Bases = array shape Size fill 10
-  Dm = Sq Bases digits
-  Ids = 0 till Size array
-  Col = Ids reshape Size 1
-  Row = Ids reshape 1 Size
-  Upper = Col less Row
-  Pairs = Upper indices
-  PI = Pairs # 0
-  PJ = Pairs # 1
-  Ca = A codepoint rank 0
-  Cb = B codepoint rank 0
-  Same = (Ca PI) equal (Ca PJ)
-  Rows = Pairs len
-  Hold = (Dm PI) equal (Dm PJ)
-  Want = Same reshape Rows 1
-  Match = Hold equal Want
-  Fit = Match all axis 0
-  Keep = Fit indices
-  Mine = Sq Keep
-  Perm = Ca Cb find
-  Dk = Dm # Keep
-  Power = 10 ** (Size - 1 - Ids)
-  Cols = Dk Perm
-  Val = Power Cols matmul
-  Root = Val isqrt
-  Back = Root * Root
-  Good = Back equal Val
-  Good and= Val at least Low
-  Ours = Mine Good
-  Theirs = Val Good
-  Hits = concat (array 0) Ours Theirs
-  return Hits max
-end
