@@ -1,0 +1,26 @@
+use testing
+
+test "default input"
+  use "102_triangles"
+  run
+
+  Answer equal 228
+end
+
+test "statement triangles"
+  use "102_triangles"
+
+  Inside = array "-340,495,-153,-910,835,-947"
+  Inside containing equal 1
+  Outside = array "-175,41,-421,-714,574,-645"
+  Outside containing equal 0
+  Both = array "-340,495,-153,-910,835,-947" "-175,41,-421,-714,574,-645"
+  Both containing equal 1
+end
+
+test "single line"
+  use "102_triangles"
+
+  Tri = array "-1,-1,2,-1,-1,2"
+  Tri containing equal 1
+end

@@ -17,3 +17,5 @@
 `0098_words.txt` is the unmodified [official input for Anagramic Squares](https://projecteuler.net/resources/documents/0098_words.txt): about 1,800 quoted, comma-separated English words. See [Project Euler 98](https://projecteuler.net/problem=98).
 
 `0099_base_exp.txt` is the unmodified [official input for Largest Exponential](https://projecteuler.net/resources/documents/0099_base_exp.txt): one thousand `base,exponent` pairs, one per line. See [Project Euler 99](https://projecteuler.net/problem=99).
+
+`0102_triangles.txt` is the unmodified [official input for Triangle Containment](https://projecteuler.net/resources/documents/0102_triangles.txt): one thousand triangles, six comma-separated coordinates per line. See [Project Euler 102](https://projecteuler.net/problem=102).
