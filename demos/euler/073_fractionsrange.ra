@@ -3,21 +3,36 @@ rem https://projecteuler.net/problem=73
 rem Count reduced fractions between 1/3
 rem and 1/2, denominators up to a limit
 
+use numbers
 use sequences
 use io
 use cli
 
 option Limit integer = 12000
 
-rem Moebius sieve: each prime flips the
-rem sign of its multiples; squares go 0.
-Mu = array shape (Limit + 1) fill 1
-for P in primes to Limit
-  Mu (P to Limit by P) *= -1
-  if P * P at most Limit
-    Mu (P * P to Limit by P * P) = 0
-  end
-end
+rem Moebius of 1 to Limit from the
+rem primes up to the root: a repeated
+rem prime gives 0, else the sign counts
+rem the primes, plus one if a larger
+rem prime is left over.
+Root = Limit isqrt
+Ps = primes to Root array
+Num = 1 to Limit array
+N = Num reshape 1 Limit
+Col = Ps reshape (Ps len) 1
+Divs = N mod Col equal 0
+Twice = N mod (Col * Col) equal 0
+Square = Twice any axis 0
+Count = Divs count axis 0
+Kept = Divs choose Col 1
+Flip = Kept transpose
+Core = Flip reduce * rank 1
+Quo = Num // Core
+Left = Quo greater 1
+Extra = Left choose 1 0
+Odd = (Count + Extra) mod 2
+Signs = 1 - Odd * 2
+Mu = Square choose 0 Signs
 
 rem All fractions strictly between, by
 rem denominator, then prefix totals. A
@@ -26,5 +41,5 @@ D = 1 to Limit
 Per = (D - 1) // 2 - D // 3
 Tot = Per scan + with 0
 Quot = Limit // D
-Answer = (Mu drop 1 * (Tot Quot)) sum
+Answer = (Mu * (Tot Quot)) sum
 Answer print
