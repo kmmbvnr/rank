@@ -1,0 +1,29 @@
+use testing
+
+test "default input"
+  use "080_sqrtdigits"
+  run
+
+  Answer equal 40886
+end
+
+test "square root of two"
+  use "080_sqrtdigits"
+  Limit = 2
+  run
+
+  Answer equal 475
+end
+
+test "first digits only"
+  use "080_sqrtdigits"
+  Limit = 10
+  Digits = 1
+  run
+
+  Answer equal 13
+  Digits = 5
+  run
+
+  Answer equal 123
+end

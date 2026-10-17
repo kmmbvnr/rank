@@ -1,0 +1,26 @@
+rem Square Root Digital Expansion
+rem https://projecteuler.net/problem=80
+rem Sum the first hundred digits of all
+rem irrational square roots to a limit
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+option Limit integer = 100
+option Digits integer = 100
+
+rem isqrt of N * 100^(Digits - 1) holds
+rem the first Digits digits of sqrt N,
+rem for a limit up to 100.
+N = 1 to Limit array
+Scale = 100 ** (Digits - 1)
+Root = N isqrt
+Irrational = Root * Root not equal N
+Roots = N Irrational * Scale isqrt
+Text = Roots text rank 0
+Digs = Text "" join integer rank 0
+Answer = Digs sum
+Answer print
