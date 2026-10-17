@@ -1,8 +1,9 @@
 import { indexedSource } from './indexed-source.js';
-import { ownedArray, readArrayItem } from './array-storage.js';
+import { noteArrayBinding, ownedArray, readArrayItem } from './array-storage.js';
 import { RankDeque } from './containers.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexKey } from './index-key.js';
+import { checkpoint } from './interrupt.js';
 import { requireModule } from './modules/shared.js';
 import {
     filterSqlite, projectSqlite, sliceSqlite, sliceTextSqlite, sqliteColumn, sqliteScope, sqliteScopedColumn,
@@ -333,6 +334,9 @@ function sequenceMaskSelection(source: RankSequence, selector: RankArray): RankS
         throw new RankError(`mask shape [${selector.shape[0]}] does not match sequence size ${size.value}`, 'DimensionMismatch');
     }
     const mask = selector.items;
+    // The plan keeps reading this storage after it returns. A later Rank
+    // write must take a private copy, just as for a second array binding.
+    noteArrayBinding(selector);
     return sequence({
         name: 'sequence mask selection',
         size: { kind: 'unknown' },
@@ -358,18 +362,26 @@ export function maskSelection(source: RankArray, selector: RankArray): RankSeque
     if (!sameShape(source.shape, selector.shape)) {
         throw new RankError(`mask shape mismatch: ${source.shape} and ${selector.shape}`);
     }
-    if (!selector.items.every(item => typeof item === 'boolean' || item === MISSING)) {
+    const positions: number[] = [];
+    if (!selector.items.every((item, index) => {
+        checkpoint('selecting array positions');
+        // A cell with no value is not selected, as in SQL.
+        if (item === true && index < sourceSize) positions.push(index);
+        return typeof item === 'boolean' || item === MISSING;
+    })) {
         throw new RankError('array selector must be a boolean mask');
     }
 
-    // A cell with no value is not selected, as in SQL.
-    const mask = selector.items;
+    // Positions snapshot the mask without keeping its storage. The source is
+    // still read lazily, so it needs the ordinary array ownership protection.
+    noteArrayBinding(source);
     return sequence({
         name: 'array mask selection',
-        size: { kind: 'unknown' },
+        size: { kind: 'exact', value: BigInt(positions.length) },
         *iterate() {
-            for (let index = 0; index < sourceSize; index += 1) {
-                if (mask[index] === true) yield readArrayItem(source, index);
+            for (const index of positions) {
+                checkpoint('reading array selection');
+                yield readArrayItem(source, index);
             }
         },
     });
