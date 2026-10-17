@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "112_bouncy"
+  run
+
+  Answer equal 1587000
+end
+
+test "statement percentages"
+  use "112_bouncy"
+  Percent = 50
+  run
+
+  Answer equal 538
+  Percent = 90
+  run
+
+  Answer equal 21780
+end
