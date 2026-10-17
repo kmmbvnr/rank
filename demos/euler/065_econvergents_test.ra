@@ -1,0 +1,25 @@
+use testing
+
+test "default input"
+  use "065_econvergents"
+  run
+
+  Answer equal 272
+end
+
+test "tenth convergent from the statement"
+  use "065_econvergents"
+  Count = 10
+  run
+
+  Num equal 1457
+  Answer equal 17
+end
+
+test "second convergent"
+  use "065_econvergents"
+  Count = 2
+  run
+
+  Num equal 3
+end
