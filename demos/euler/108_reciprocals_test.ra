@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "108_reciprocals"
+  run
+
+  Answer equal 180180
+end
+
+test "small targets"
+  use "108_reciprocals"
+
+  3 least_n equal 6
+  10 least_n equal 24
+  50 least_n equal 360
+  100 least_n equal 1260
+end
+
+test "least targets"
+  use "108_reciprocals"
+
+  0 least_n equal 1
+  1 least_n equal 2
+end
