@@ -1,0 +1,33 @@
+rem Cube Digit Pairs
+rem https://projecteuler.net/problem=90
+rem Count pairs of six-digit cubes that
+rem show every square below 100
+
+use algo
+use sequences
+use io
+
+Dice = (0 to 9) 6 combinations copy
+Num = Dice len
+rem A 9 reads as 6, so fold it first.
+Nine = Dice equal 9
+Faces = Nine choose 6 Dice
+Cells = Faces reshape Num 6 1
+Seen = Cells equal (0 to 9)
+Has = Seen any axis 1
+First = array 0 0 0 1 2 3 4 6 8
+Last = array 1 4 6 6 5 6 6 4 1
+Lo = Has # First
+Hi = Has # Last
+A = Lo reshape Num 1 9
+B = Hi reshape Num 1 9
+C = Lo reshape 1 Num 9
+D = Hi reshape 1 Num 9
+Fits = (A and D) or (B and C)
+Both = Fits all axis 2
+Id = 0 till Num array
+Rows = Id reshape Num 1
+Cols = Id reshape 1 Num
+Order = Rows less Cols
+Answer = (Both and Order) count
+Answer print

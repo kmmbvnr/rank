@@ -1,0 +1,25 @@
+use testing
+
+test "default input"
+  use "090_cubedigitpairs"
+  run
+
+  Answer equal 1217
+end
+
+test "statement dice show all squares"
+  use "090_cubedigitpairs"
+  run
+
+  Num equal 210
+  Both 125 135 equal true
+  Both 135 125 equal true
+end
+
+test "identical dice fail"
+  use "090_cubedigitpairs"
+  run
+
+  Both 0 0 equal false
+  Both 125 125 equal false
+end
