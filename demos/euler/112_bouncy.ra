@@ -15,21 +15,22 @@ option Digits integer = 7
 
 rem List the non-bouncy numbers: their
 rem digits are a multiset in rising or
-rem falling order. With k of them up to
-rem n, a bouncy share of P percent means
-rem n = k * 100 / (100 - P).
-Up = 1 to 9 array
-Down = 9 to 0 by -1 array
-Found = array shape 0 fill 0
-for Len in 1 to Digits
-  Place = 0 till Len array
-  Weight = 10 ** (Len - 1 - Place)
-  Rise = Up Len multicomb copy
-  Fall = Down Len multicomb copy
-  Ups = Rise Weight matmul
-  Downs = Fall Weight matmul
-  Found = concat Found Ups Downs
-end
+rem falling order. A rising number pads
+rem with leading zeros, a falling one
+rem with blanks (10) that count as zero.
+rem With k of them up to n, a bouncy
+rem share of P percent means n = k * 100
+rem / (100 - P).
+Up = 0 to 9 array
+Down = 10 to 0 by -1 array
+Place = 0 till Digits array
+Weight = 10 ** (Digits - 1 - Place)
+Rise = Up Digits multicomb copy
+Blank = Down Digits multicomb copy
+Fall = Blank mod 10
+Ups = Rise Weight matmul
+Downs = Fall Weight matmul
+Found = concat Ups Downs
 Uniq = Found unique
 Plain = Uniq filter greater 0 array
 Sorted = Plain sort
