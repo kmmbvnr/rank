@@ -11,6 +11,37 @@ use cli
 option Sides integer = 4
 option Steps integer = 500
 
+rem Land[p]: squares reached after
+rem landing on p and resolving
+rem go-to-jail and cards. Chance rows
+rem reuse the chest row of 33.
+Ids = 0 till 41 array
+Ri = Ids reshape 41 1
+Ci = Ids reshape 1 41
+Land = (Ri equal Ci) choose 1.0 0.0 copy
+Land 30 = 0.0
+Land 30 40 = 1.0
+for P in array 2 17 33
+  Land P = 0.0
+  Land P P = 14.0 / 16
+  Land P 0 = 1.0 / 16
+  Land P 40 = 1.0 / 16
+end
+for P in array 7 22 36
+  Tens = (P + 5) // 10 * 10
+  Rail = (Tens + 5) mod 40
+  Mid = P at least 12 and P less 28
+  Util = Mid choose 28 12
+  Land P = 0.0
+  Land P P = 6.0 / 16
+  for Dest in array 0 40 11 24 39 5 Util
+    Land P Dest += 1.0 / 16
+  end
+  Land P Rail += 2.0 / 16
+  Back = P - 3
+  Land P += Land Back / 16
+end
+
 rem State: square 0 to 39, or 40 if sent
 rem to jail, and 0 to 2 doubles so far.
 Size = 41 * 3
@@ -32,16 +63,18 @@ for Q in 0 till 41
         Cols = Wide copy
         Cols 40 = 40
         Pos = (Base + A + B) mod 40
-        Dist = Pos land
+        Dist = Land Pos
         Trans From Cols += Dist / Rolls
       end
     end
   end
 end
 
-Now = array shape Size fill 0.0
-Now 0 = 1.0
-Seen = Now step repeat Steps
+Seen = array shape Size fill 0.0
+Seen 0 = 1.0
+for # in 1 to Steps
+  Seen = Seen Trans matmul
+end
 Mid = Seen drop 41 take 41
 Last = Seen drop 82
 Sum = Seen take 41 + Mid + Last
@@ -51,37 +84,3 @@ Rank = Sq take 40 argsort .descending
 Top = Rank take 3
 Answer = Top (array 10000 100 1) matmul
 Answer print
-
-fun V step = V Trans matmul
-
-rem Distribution over squares after
-rem landing on P and drawing a card.
-fun P land
-  Row = array shape 41 fill 0.0
-  if P equal 30
-    Row 40 = 1.0
-    return Row
-  end
-  if P in array 2 17 33
-    Row P = 14.0 / 16
-    Row 0 = 1.0 / 16
-    Row 40 = 1.0 / 16
-    return Row
-  end
-  if P in array 7 22 36
-    Tens = (P + 5) // 10 * 10
-    Rail = (Tens + 5) mod 40
-    Mid = P at least 12 and P less 28
-    Util = Mid choose 28 12
-    Row P = 6.0 / 16
-    Moves = array 0 40 11 24 39 5 Util
-    for Dest in Moves
-      Row Dest += 1.0 / 16
-    end
-    Row Rail += 2.0 / 16
-    Back = (P - 3) land
-    return Row + Back / 16
-  end
-  Row P = 1.0
-  return Row
-end
