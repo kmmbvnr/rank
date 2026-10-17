@@ -1,0 +1,18 @@
+use testing
+
+test "default input"
+  use "103_specialsubset"
+  run
+
+  Answer equal "20313839404245"
+  Found sum equal 255
+end
+
+test "special size rule"
+  use "103_specialsubset"
+
+  (array 20 31 38 39 40 42 45) special
+  (array 11 18 19 20 22 25) special
+  not (array 1 2 3 4 5 6 7) special
+  not (array 5 6 7 8 9 20 21) special
+end
