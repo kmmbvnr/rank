@@ -19,12 +19,10 @@ test "smaller numbers of digits"
   Answer equal 857
 end
 
-test "chains end at 1 or the 89 cycle"
+test "multiset counts cover all strings"
   use "092_squarechains"
   run
 
-  Ends 1 equal 1
-  Ends 44 equal 1
-  Ends 85 not equal 1
-  Ends 89 not equal 1
+  Mult sum equal 10000000
+  Combs len equal 11440
 end

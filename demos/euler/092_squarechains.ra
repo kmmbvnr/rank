@@ -3,6 +3,7 @@ rem https://projecteuler.net/problem=92
 rem Count starting numbers below 10 to
 rem the Digits that arrive at 89
 
+use algo
 use numbers
 use sequences
 use io
@@ -10,31 +11,32 @@ use cli
 
 option Digits integer = 7
 
-rem Ways[s]: digit strings with square
-rem sum s, built a digit at a time from
-rem shifted copies.
-Size = Digits * 81 + 1
-Ways = array shape Size fill 0
-Ways 0 = 1
-Squares = (0 to 9) ** 2
-for # in 1 to Digits
-  Next = array shape Size fill 0
-  for Sq in Squares
-    Next += Ways Sq shift
-  end
-  Ways = Next
-end
+rem Group the digit strings by the
+rem multiset of their digits: a multiset
+rem of counts c_d occurs Digits! /
+rem product c_d! times and has one
+rem square sum.
+Pool = 0 to 9 array
+Combs = Pool Digits multicomb copy
+Rows = Combs len
+Cells = Combs reshape Rows Digits 1
+Hist = Cells equal Pool
+Count = Hist count axis 1
+Fact = (1 to Digits array) scan * with 1
+Flat = Count reshape (Rows * 10)
+Fats = (Fact Flat) reshape Rows 10
+Den = Fats reduce * rank 1
+Mult = (Fact Digits) // Den
+Sums = (Combs * Combs) sum axis 1
 
 rem Every chain ends at 1 or in the 89
 rem cycle, which never reaches 1.
-Last = Size - 1
-Start = 0 to Last array
-Ends = Start
+Ends = Sums
 for # in 1 to 20
   Ds = Ends (array 10 10 10 10) digits
   Ends = (Ds * Ds) sum axis 0
 end
 Mask = Ends not equal 1
-Mask and= Ends greater 0
-Answer = (Ways Mask) sum
+Mask and= Sums greater 0
+Answer = (Mult Mask) sum
 Answer print
