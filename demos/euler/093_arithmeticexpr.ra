@@ -1,0 +1,94 @@
+rem Arithmetic Expressions
+rem https://projecteuler.net/problem=93
+rem Find the four digits that make the
+rem longest run 1 to n of target numbers
+
+use algo
+use bits
+use numbers
+use sequences
+use io
+
+rem Values reachable from a digit set,
+rem keyed by bit mask: split the set in
+rem two and combine the halves.
+Vals = new index
+for D in 0 to 9
+  Bit = 1 D shl
+  Vals Bit = array (D * 1.0)
+end
+Cand = 1 till 1024 array
+Pop = Cand popcount
+Fit = Pop at least 2 and Pop at most 4
+Masks = Cand Fit array
+Best = 0
+Answer = 0
+for Mask in Masks
+  Out = array shape 0 fill 0.0
+  for A in 1 till Mask
+    B = Mask A bxor
+    Sub = A Mask band equal A
+    if not Sub or B at most A
+      continue
+    end
+    L = Vals A
+    R = Vals B
+    Part = L R combine
+    Out = concat Out Part
+  end
+  Uniq = Out unique
+  Vals Mask = Uniq copy
+  if Mask popcount equal 4
+    Run = Uniq copy run_length
+    if Run greater Best
+      Best = Run
+      Answer = Mask digit_number
+    end
+  end
+end
+Answer print
+
+rem All values of two sets, no /0.
+fun L R combine
+  Rn = R filter not equal 0 array
+  Ln = L filter not equal 0 array
+  NL = L len
+  NR = R len
+  Cnt = NL * NR
+  Add = (L R outer +) reshape Cnt
+  Mul = (L R outer *) reshape Cnt
+  Sub = (L R outer -) reshape Cnt
+  Rev = (R L outer -) reshape Cnt
+  QR = Rn len
+  QL = Ln len
+  CntQ = NL * QR
+  CntI = NR * QL
+  Quo = (L Rn outer /) reshape CntQ
+  Inv = (R Ln outer /) reshape CntI
+  return concat Add Mul Sub Rev Quo Inv
+end
+
+rem Longest run 1, 2, ... of integers.
+fun Vs run_length
+  Off = Vs - (Vs 0 round)
+  Near = Off abs less 0.000001
+  Pos = Near and Vs greater 0.5
+  Whole = (Vs Pos) 0 round
+  Seen = array shape 7000 fill false
+  Seen 0 = true
+  Seen (Whole integer) = true
+  Miss = not Seen
+  Gap = Seen first index where Miss
+  return Gap - 1
+end
+
+rem Digits of the set as one integer.
+fun Mask digit_number
+  Num = 0
+  for D in 0 to 9
+    if Mask D bit
+      Num = Num * 10 + D
+    end
+  end
+  return Num
+end

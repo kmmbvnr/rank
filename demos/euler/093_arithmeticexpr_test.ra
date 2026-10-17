@@ -1,0 +1,38 @@
+use testing
+
+test "default input"
+  use "093_arithmeticexpr"
+  run
+
+  Answer equal 1258
+end
+
+test "statement digits 1 2 3 4 reach 28"
+  use "093_arithmeticexpr"
+  run
+
+  Set = Vals 30
+  Set run_length equal 28
+end
+
+test "best digits reach 51"
+  use "093_arithmeticexpr"
+  run
+
+  Set = Vals 294
+  Set run_length equal 51
+  Best equal 51
+end
+
+test "digit number and combine"
+  use "093_arithmeticexpr"
+  use sequences
+
+  30 digit_number equal 1234
+  294 digit_number equal 1258
+  Both = (array 6.0) (array 3.0 0.0) combine
+  Has = 2.0 in Both
+  Has equal true
+  Has = 9.0 in Both
+  Has equal true
+end
