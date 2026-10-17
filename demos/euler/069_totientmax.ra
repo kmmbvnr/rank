@@ -1,0 +1,17 @@
+rem Totient Maximum
+rem https://projecteuler.net/problem=69
+rem Find n up to a limit that maximises
+rem n / phi(n)
+
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000
+
+rem n / phi(n) = product of p / (p - 1)
+rem over primes p of n. More primes win,
+rem so take the largest primorial.
+Prods = primes scan * with 1
+Answer = Prods till greater Limit last
+Answer print

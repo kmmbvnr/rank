@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "069_totientmax"
+  run
+
+  Answer equal 510510
+end
+
+test "statement limit"
+  use "069_totientmax"
+  Limit = 10
+  run
+
+  Answer equal 6
+end
+
+test "limit below the first primorial"
+  use "069_totientmax"
+  Limit = 1
+  run
+
+  Answer equal 1
+end
