@@ -4,37 +4,27 @@ rem Count first-of-month Sundays in the
 rem twentieth century
 
 use numbers
+use sequences
 use io
-use cli
 
-option First integer = 1901
-option Last integer = 2000
-
-rem Step month starts from Monday,
-rem 1 January 1900.
-Days = array shape 12
+Years = (1900 to 2000) array
+Leap = Years mod 4 equal 0
+Leap and= (
+  not Years mod 100 equal 0
+  or Years mod 400 equal 0
+)
+Base = array shape 12
   31 28 31 30 31 30
   31 31 30 31 30 31
 end
-Day = 1
-Answer = 0
-for Year in 1900 to Last
-  Leap = Year mod 4 equal 0
-  Leap and= (
-    not Year mod 100 equal 0
-    or Year mod 400 equal 0
-  )
-  Days 1 = 28
-  if Leap
-    Days 1 = 29
-  end
-  for Month in 0 to 11
-    if Year at least First
-      if Day equal 0
-        Answer += 1
-      end
-    end
-    Day = (Day + Days Month) mod 7
-  end
-end
+Feb = (0 till 12) equal 1
+Extra = Leap Feb outer and
+Lens = Extra integer + Base
+Flat = Lens reshape #
+
+rem Month starts from Monday 1 Jan 1900;
+rem keep 1901-2000.
+Start = Flat scan + with 1
+Cent = Start drop 12 take 1200
+Answer = Cent mod 7 equal 0 count
 Answer print

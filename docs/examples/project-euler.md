@@ -386,36 +386,30 @@ the problem. The first cell becomes `1074`.
 rem Project Euler 19
 rem https://projecteuler.net/problem=19
 
-Days = array shape 12
+Years = (1900 to 2000) array
+Leap = Years mod 4 equal 0
+Leap and= (
+  not Years mod 100 equal 0
+  or Years mod 400 equal 0
+)
+Base = array shape 12
   31 28 31 30 31 30
   31 31 30 31 30 31
 end
-Day = 1
-Answer = 0
-for Year in 1900 to Last
-  Leap = Year mod 4 equal 0
-  Leap and= (
-    not Year mod 100 equal 0
-    or Year mod 400 equal 0
-  )
-  Days 1 = 28
-  if Leap
-    Days 1 = 29
-  end
-  for Month in 0 to 11
-    if Year at least First
-      if Day equal 0
-        Answer += 1
-      end
-    end
-    Day = (Day + Days Month) mod 7
-  end
-end
+Feb = (0 till 12) equal 1
+Extra = Leap Feb outer and
+Lens = Extra integer + Base
+Flat = Lens reshape #
+Start = Flat scan + with 1
+Cent = Start drop 12 take 1200
+Answer = Cent mod 7 equal 0 count
 ```
 
-The loop advances the weekday of each month start from the stated 1900
-anchor, reading month lengths from a table whose February entry follows the
-leap-year rule. The twentieth-century count is `171`.
+An outer `and` of the leap-year mask with a February mask adds the leap day
+to a 101 by 12 table of month lengths. Its running sum from the stated 1900
+Monday gives the weekday of every month start; `drop 12` skips 1900 and
+`take 1200` drops the extra start of January 2001. The twentieth-century
+count of Sundays is `171`.
 
 ## 20. Factorial digit sum
 

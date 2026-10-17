@@ -6,12 +6,3 @@ test "twentieth century"
 
   Answer equal 171
 end
-
-test "year 1901"
-  use "019_sundays"
-  First = 1901
-  Last = 1901
-  run
-
-  Answer equal 2
-end
