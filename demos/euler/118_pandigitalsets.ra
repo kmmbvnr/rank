@@ -1,0 +1,51 @@
+rem Pandigital Prime Sets
+rem https://projecteuler.net/problem=118
+rem Count the sets of primes that use
+rem each digit 1 to 9 exactly once
+
+use algo
+use bits
+use linalg
+use sequences
+use io
+
+rem Cnt[m]: primes whose digits are
+rem exactly the digit set m, a mask over
+rem 1 to 9.
+Bits = 0 to 8 array
+Cnt = array shape 512 fill 0
+for M in 1 to 511
+  Has = M Bits bit
+  Ds = (Bits + 1) filter Has array
+  K = Ds len
+  Total = Ds sum
+  if Total mod 3 equal 0 and K greater 1
+    continue
+  end
+  Perm = Ds permutations copy
+  Place = 0 till K array
+  Pow = 10 ** (K - 1 - Place)
+  Nums = Perm Pow matmul
+  Odd = Nums mod 2 equal 1 or K equal 1
+  Cand = Nums filter Odd array
+  Cnt M = (Cand in primes) count
+end
+
+rem Ways[m]: partitions of the digit set
+rem m into prime groups. The group
+rem holding the lowest digit comes
+rem first.
+Ways = array shape 512 fill 0
+Ways 0 = 1
+Cand = 1 to 511 array
+for M in 1 to 511
+  Low = M (0 - M) band
+  Inside = (Cand M band) equal Cand
+  Holds = (Cand Low band) not equal 0
+  Pick = Inside and Holds
+  Subs = Cand filter Pick array
+  Rest = M Subs bxor
+  Ways M = (Cnt Subs * Ways Rest) sum
+end
+Answer = Ways 511
+Answer print
