@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "111_primerunning"
+  run
+
+  Answer equal 612407567715
+end
+
+test "statement four digit primes"
+  use "111_primerunning"
+  Size = 4
+  run
+
+  Answer equal 273700
+end

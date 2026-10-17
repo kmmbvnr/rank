@@ -1,0 +1,54 @@
+rem Primes with Runs
+rem https://projecteuler.net/problem=111
+rem Sum the primes of Size digits with
+rem the most repeats of one digit, per
+rem digit
+
+use algo
+use linalg
+use numbers
+use sequences
+use io
+use cli
+
+option Size integer = 10
+
+rem A candidate is a run of digit d with
+rem Free positions changed to other
+rem digits. Grow Free until every digit
+rem has primes.
+Low = 10 ** (Size - 1)
+Pos = 0 till Size array
+Ones = (10 ** Pos) sum
+Digs = (0 to 9 array) reshape 10 1 1
+Found = array shape 10 fill false
+Answer = 0
+for Free in 1 to Size - 1
+  Sets = Pos Free combinations copy
+  Spots = 10 ** Sets
+  Count = 9 ** Free
+  Bases = array shape Free fill 9
+  Nums = 0 till Count array
+  Idx = Nums Bases digits
+  Past = Idx at least Digs
+  Next = Idx + 1
+  Moves = (Past choose Next Idx) - Digs
+  Shift = Spots Moves matmul rank 2 2
+  Cands = Digs * Ones + Shift
+  Hit = Cands at least Low
+  Hit and= Cands in primes
+  Rows = Sets len
+  Cells = Rows * Count
+  Kept = Hit choose Cands 0
+  Flat = Kept reshape 10 Cells
+  Sums = Flat reduce + rank 1
+  Seen = Hit reshape 10 Cells
+  Has = Seen any rank 1
+  Fresh = Has and not Found
+  Answer += (Fresh choose Sums 0) sum
+  Found = Found or Has
+  if Found all
+    break
+  end
+end
+Answer print
