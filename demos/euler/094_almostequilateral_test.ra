@@ -1,0 +1,28 @@
+use testing
+
+test "default input"
+  use "094_almostequilateral"
+  run
+
+  Answer equal 518408346
+end
+
+test "statement triangles"
+  use "094_almostequilateral"
+  Limit = 100
+  run
+
+  Answer equal 66
+end
+
+test "smaller limits"
+  use "094_almostequilateral"
+  Limit = 10000
+  run
+
+  Answer equal 3688
+  Limit = 1000000
+  run
+
+  Answer equal 716032
+end

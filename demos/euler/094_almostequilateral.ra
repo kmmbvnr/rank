@@ -1,0 +1,34 @@
+rem Almost Equilateral Triangles
+rem https://projecteuler.net/problem=94
+rem Sum perimeters up to a limit of the
+rem triangles with sides a, a, a +- 1
+rem and integral area
+
+use io
+use cli
+
+option Limit integer = 1000000000
+
+rem Pell solutions of x^2 - 3 y^2 = 1:
+rem x runs 2, 7, 26, 97, ... with next =
+rem 4 x - previous. The perimeter is
+rem 2x + 2 if 3 divides 2x + 1, else
+rem 2x - 2.
+Prev = 1
+Cur = 2
+Answer = 0
+for
+  Next = 4 * Cur - Prev
+  Prev = Cur
+  Cur = Next
+  Twice = 2 * Cur
+  Plus = (Twice + 1) mod 3 equal 0
+  Long = Twice + 2
+  Short = Twice - 2
+  Perim = Plus choose Long Short
+  if Perim greater Limit
+    break
+  end
+  Answer += Perim
+end
+Answer print
