@@ -44,11 +44,11 @@ describe('runtime diagnostics and stable tensor reads', () => {
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter(undefined, { tensorReadHoisting });
         try {
-            // Naming B freezes A against Rank writes, so the invalidation this
-            // test is about comes through storage the embedding still owns.
+            // Exercise internal lazy cache invalidation explicitly. Stored
+            // arithmetic may materialize instead of creating such a cache.
             const source = createArraySnapshot([1n, 2n, 3n]);
             runtime.variables.set('A', source);
-            stats.run(() => runtime.execute('B = A * 2'));
+            stats.run(() => runtime.variables.set('B', derivedArray([3], [source], i => source.items[i] as bigint * 2n)));
             (runtime.variables.get('B') as RankArray).items;
             const before = stats.validationRequests;
             expect(stats.run(() => runtime.execute(`Total = 0
@@ -265,7 +265,7 @@ Total`))).toBe(6n);
   return N * 2
 end
 A = array 2
-B = A * 3`));
+B = (A * 3) (array 0)`));
             (runtime.variables.get('B') as RankArray).items;
             expect(stats.run(() => runtime.execute(`Total = 0
 for I in 1 to 3
@@ -293,7 +293,7 @@ fun B N total
  return Total
 end
 A = array 2
-B = A * 3`);
+B = (A * 3) (array 0)`);
                 (runtime.variables.get('B') as RankArray).items;
                 const first = stats.run(() => runtime.execute('B 3 total'));
                 const compiledBefore = stats.compiledLoops;
@@ -325,7 +325,7 @@ fun B N total
  return Total
 end
 A = array 2
-B = A * 3`);
+B = (A * 3) (array 0)`);
                 (runtime.variables.get('B') as RankArray).items;
                 expect(stats.run(() => runtime.execute('B 3 total'))).toBe(24n);
                 const compiledBefore = stats.compiledLoops;
@@ -349,7 +349,7 @@ B = A * 3`);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            stats.run(() => runtime.execute('use text\nA = array 2\nB = A * 3'));
+            stats.run(() => runtime.execute('use text\nA = array 2\nB = (A * 3) (array 0)'));
             (runtime.variables.get('B') as RankArray).items;
             expect(stats.run(() => runtime.execute('Total = 0\nfor I in 1 to 3\n Total += B 0 + ("A" codepoint)\nend\nTotal')))
                 .toBe(213n);
@@ -371,7 +371,7 @@ fun B N total
  return Total
 end
 A = array 2
-B = A * 3`);
+B = (A * 3) (array 0)`);
             (runtime.variables.get('B') as RankArray).items;
             expect(stats.run(() => runtime.execute('B 3 total'))).toBe(213n);
             expect(stats.compiledLoops).toBe(1);
@@ -389,7 +389,7 @@ B = A * 3`);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            stats.run(() => runtime.execute('use text\nA = array 2\nB = A * 3\nfun X hostreplacement\n return 7\nend'));
+            stats.run(() => runtime.execute('use text\nA = array 2\nB = (A * 3) (array 0)\nfun X hostreplacement\n return 7\nend'));
             runtime.variables.set('codepoint', runtime.variables.get('hostreplacement')!);
             (runtime.variables.get('B') as RankArray).items;
             expect(stats.run(() => runtime.execute('Total = 0\nfor I in 1 to 3\n Total += B 0 + ("A" codepoint)\nend\nTotal')))
@@ -402,7 +402,7 @@ B = A * 3`);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            stats.run(() => runtime.execute('fun N change\n C 0 = N\n return N\nend\nA = array 2\nB = A * 3\nC = array 0'));
+            stats.run(() => runtime.execute('fun N change\n C 0 = N\n return N\nend\nA = array 2\nB = (A * 3) (array 0)\nC = array 0'));
             (runtime.variables.get('B') as RankArray).items;
             expect(stats.run(() => runtime.execute('Total = 0\nfor I in 1 to 3\n Total += B 0 + (I change)\nend\nTotal'))).toBe(24n);
             expect(stats.hoistedReaders).toBe(0);

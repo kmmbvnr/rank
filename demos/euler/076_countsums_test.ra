@@ -30,3 +30,11 @@ test "small totals"
 
   Answer equal 0
 end
+
+test "exact beyond real precision"
+  use "076_countsums"
+  Total = 300
+  run
+
+  Answer equal 9253082936723601
+end

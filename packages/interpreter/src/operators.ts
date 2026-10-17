@@ -727,7 +727,7 @@ function mapBinary(
         if (masked) return masked;
     }
     if ((leftArray || rightArray) && DENSE_OPERATORS.has(name)) {
-        const dense = mapDenseArrays(leftArray ?? left, rightArray ?? right, scalarOperation, REAL_CODES[name]);
+        const dense = mapDenseArrays(leftArray ?? left, rightArray ?? right, scalarOperation, REAL_CODES[name], !isPredicateOperator(name));
         if (dense) return dense;
     }
     if (leftArray && rightArray) {

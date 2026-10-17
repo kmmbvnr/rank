@@ -359,17 +359,20 @@ array; there is no promise of per-cell invalidation. Errors are not retained
 as successful cached values. An unrelated array write does not discard valid
 computed cells.
 
-A cached result is therefore invalidated by writes that value semantics does
-not redirect: writes made through the embedding's own storage, and writes to an
-array that only unnamed readers inside the same expression observe. This cache
-policy does not introduce implicit replay of I/O or generators. User-function
-effect and capture analysis is a separate concern from the built-in pure tensor
-operations described here.
+A cached result is invalidated by Rank writes that value semantics does not
+redirect, such as writes to an array observed only by unnamed readers inside
+one expression. This cache policy does not introduce implicit replay of I/O or
+generators. User-function effect and capture analysis is separate from the
+built-in pure tensor operations described here.
 
-For TypeScript embedding, `createArraySnapshot` makes owned array storage.
-Writes through its public `items` invalidate dependent computations. Plain
-host arrays or unknown mutable nested values have no reliable mutation proof;
-pure computations over them use live reads rather than retain an unsafe cache.
+The interpreter's JavaScript value objects are an internal repository protocol,
+not a supported public embedding API. Direct external writes to `items`, shape
+or nested storage do not promise to update existing Rank computations. Use Rank
+assignments for mutations with language semantics. `createArraySnapshot` remains
+an internal shallow-copy helper; it does not establish a reactive JS interface.
+Already stored numerical formulas may materialize their results, including small
+arrays. Lazy comparison masks retain their read-only interface; use `copy` or
+`array` to make mutable storage.
 
 ## Sliding windows
 

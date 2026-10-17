@@ -1,4 +1,4 @@
-import { arrayRevision, denseScalarItems, materializedArrayItems, storedScalarKinds } from './array-storage.js';
+import { arrayCellValidator, arrayRevision, denseScalarItems, materializedArrayItems, storedOperandItems, storedScalarKinds } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
@@ -62,4 +62,32 @@ export function prepareIntegerView(value: RankValue, allowChecks = false): { sha
         for (let i = checks.length - 1; i >= 0; i--) item = checks[i](item);
         return item as bigint;
     } };
+}
+
+/** Borrow trusted stored cells through established pure views without scanning
+ * the source or allocating lazy cell caches. Preserve observed-domain checks.
+ * Callers must not write or invoke callbacks while using the returned reader.
+ */
+export function prepareStoredScalarView(value: RankValue): { read(index: number): RankValue } | undefined {
+    if (!isRankArray(value)) return undefined;
+    const layers: { offset: (index: number) => number; validate: ReturnType<typeof arrayCellValidator> }[] = [];
+    let source = value;
+    for (let view = views.get(source); view; view = views.get(source)) {
+        if (source.itemAt !== view.reader || view.accepts && !view.accepts()) return undefined;
+        layers.push({ offset: view.offset, validate: arrayCellValidator(source) });
+        source = typeof view.source === 'function' ? view.source() : view.source;
+    }
+    const items = denseScalarItems(source) && storedOperandItems(source);
+    if (!items) return undefined;
+    let read = (index: number): RankValue => items[index];
+    for (let layer = layers.length - 1; layer >= 0; layer--) {
+        const previous: (index: number) => RankValue = read;
+        const { offset, validate } = layers[layer];
+        read = index => {
+            const cell = previous(offset(index));
+            validate?.(cell, index);
+            return cell;
+        };
+    }
+    return { read };
 }

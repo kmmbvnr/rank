@@ -3,6 +3,7 @@ rem https://projecteuler.net/problem=78
 rem Find the least n for which p(n) is
 rem divisible by a million
 
+use linalg
 use numbers
 use sequences
 use io
@@ -25,22 +26,23 @@ Gens = stack Low High transpose
 Gen = Gens reshape Size
 Signs = stack Odd Odd transpose
 Sign = Signs reshape Size
-Ways = array shape (Limit + 1) fill 0
-Ways 0 = 1
+rem Reverse storage lets future terms be
+rem zero padding, with no negative indices.
+Keep = Gen at most Limit
+Gen = Gen Keep copy
+Sign = Sign Keep copy
+Ways = array shape (2 * Limit + 1) fill 0
+Ways Limit = 1
 Answer = -1
 for N in 1 to Limit
-  Total = 0
-  for J in 0 till Size
-    G = Gen J
-    if G greater N
-      break
-    end
-    Total += Sign J * Ways (N - G)
-  end
-  Ways N = Total mod Modulus
-  if Ways N equal 0
+  Base = Limit - N
+  Total = (Ways (Gen + Base)) Sign matmul
+  Ways Base = Total mod Modulus
+  if Ways Base equal 0
     Answer = N
     break
   end
 end
+rem Publish p(n) at index n as before.
+Ways = Ways (Limit to 0 by -1) copy
 Answer print

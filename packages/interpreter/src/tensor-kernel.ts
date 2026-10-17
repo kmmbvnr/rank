@@ -2,7 +2,7 @@ import { checkpoint, interruptsEnabled } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    flattenApplication, findCompiledOperator, tensorOperatorSignatures, inferCompiledExpression, matchCompiledOperatorDomains,
+    flattenApplication, findOperation, unaryApplicationHead, findCompiledOperator, tensorOperatorSignatures, inferCompiledExpression, matchCompiledOperatorDomains,
     isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
     isNameExpression, isNumberLiteral,
     isParenthesizedExpression, isUnaryExpression,
@@ -127,6 +127,14 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
         const parts = pair(statement.value);
         const last = parts && unwrap(parts[1]);
         if (last && isNameExpression(last) && terminals.has(last.name)) {
+            // A dyadic overload such as `A 12 min` clips every cell; it is
+            // not indexing followed by a monadic reduction. An explicit
+            // `(A 12) min` or a completed unary call retains that boundary.
+            if (findOperation(last.name)?.arities.includes(2)
+                && flattenApplication(unwrap(statement.value)).length !== 2
+                && !unaryApplicationHead(unwrap(statement.value), name => findOperation(name)?.arities)) {
+                return reject(statement, 'dyadic-terminal');
+            }
             const root = parse(parts![0]);
             if (!root || root.kind === 'input' && names.length === 0) return reject(statement, 'group');
             if (!privateTensorNames(statements[0], names)

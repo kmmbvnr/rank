@@ -115,7 +115,7 @@ it('requires every other array read by the vacation function to be flat', () => 
     try {
         const vacation = demo(runtime, 'demos/atcoder/edpc/03_vacation.ra', 'best_score');
         const first = input(1n), third = input(3n);
-        const middle = runtime.execute('(array shape 64 fill 2) * 1');
+        const middle = runtime.execute('use sequences\n(array shape 64 fill 2) (0 till 64)');
         if (middle === undefined) throw new Error('missing derived array');
         expect(isFlatScalarArray(middle)).toBe(false);
         const stats = new RuntimeDiagnostics();

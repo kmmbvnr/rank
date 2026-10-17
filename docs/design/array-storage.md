@@ -1,48 +1,47 @@
 # Array storage and the internal JS boundary
 
-Rank arrays use ordinary JS data properties for eager cells and shape. There
-is no private ownership WeakMap, exposure getter, frozen storage or permanent
-"exposed" state. Rank assignments through aliases remain observable.
+The interpreter's JS value objects are an internal protocol used by this
+repository, not a stable public embedding API. We control their producers and
+consumers. CLI, web and mobile use the interpreter to run programs and inspect
+results; they do not require external writes to array cells to update earlier
+Rank computations.
 
-## Scope
+## Ownership and mutation
 
-The interpreter's JS objects are an internal protocol used by this repository.
-They are not a stable public embedding API. The project owner confirmed this
-scope during the optimization pass: we control both producers and consumers.
+Runtime-owned arrays keep private storage and revision/ownership metadata in
+WeakMaps. Public `items` facades are an internal access path. Rank assignments
+use the storage writer and COW rules so that aliases and retained derived values
+keep their language-level value semantics.
 
-Eager host arrays must have ordinary data properties and stable contents during
-a synchronous operation. Arbitrary Proxy traps, effectful property getters,
-prototype tricks and concurrent host mutation are outside this contract.
-Unsupported objects are not promised a deterministic rejection or a safe slow
-path. This is a precondition, not an untrusted-host security boundary.
+Direct external mutation of `items`, shape, buffers or nested values has no
+reactive-update contract, including mutations between interpreter calls. Some
+internal readers can still notice such changes; callers must not depend on that
+incidental behavior. Supply new inputs or execute Rank assignments instead.
+Arbitrary Proxy traps, effectful eager properties and concurrent host mutation
+are outside the internal eager-storage contract. This is not an untrusted-host
+security boundary.
 
-Mutations between calls remain supported. Rank callbacks and lazy evaluation
-remain part of language semantics; this restriction does not make them pure.
+Explicit lazy readers, callbacks, I/O and generators remain observable parts of
+execution. Optimization guards must not force unread cells, replay callbacks or
+reorder effects. Unknown readers keep ordinary evaluation. Removing external
+mutation guarantees does not make Rank callbacks pure.
 
-## Fusion checks
+## Numeric kernels
 
-An eager numeric reader requires a Rank array with no `itemAt`, an own data
-property containing a JS items array, and numeric or boolean cells. Eligibility
-is checked per operation, so replacing items or changing a cell between calls
-does not leave a stale proof. Nested/object cells take ordinary evaluation.
+Stored numerical arrays can use eager elementwise kernels even below 1024 cells.
+Unread operands and per-cell numeric errors retain the lazy fallback. Small
+comparison masks remain lazy and read-only; explicit `copy` or `array` makes
+mutable storage. Numeric kernels retain exact BigInt arithmetic.
 
-Lazy Rank arrays keep their readers and caches. Fusion is limited to inline
-arithmetic; named intermediates and broadcasting cases retain their ordinary
-path. Operand order, floating-point order, BigInt precision, shadowed standard
-functions and Rank error locations remain tested.
+A vector dot product uses linear offsets. Trusted selection views may borrow
+stored cells without allocating a per-cell cache, while retaining the view's
+observed element-domain checks and established binding contracts. Borrowing is
+confined to a synchronous operation with no callbacks or writes. Other operands
+keep their ordinary readers and left-to-right error/effect order.
 
-Tensor row copying reads the current source on each iteration. Files inserted
-into arrays remain visible to resource cleanup; there is no stale file-free
-marker derived from former numeric contents.
+`createArraySnapshot(items, shape?)` remains an internal shallow-copy helper for
+tests and inputs. It copies the iterable and shape, validates dimensions and
+preserves numeric values without coercion. It is not a reactive embedding API.
 
-## Copy helper
-
-`createArraySnapshot(items, shape?)` remains a shallow copy helper for tests and
-internal callers. It copies the iterable and shape, validates dimensions, and
-preserves numeric values without coercion. It neither freezes the result nor
-confers a special optimization capability. Ordinary eager arrays qualify for
-the same fusion. Mutating the copy does not change the original outer array.
-
-The old private-storage design and the short-array cutoff experiment are
-historical entries in the [optimization log](optimization-lab.md). Measurements
-before and after the boundary decision remain available there.
+Historical boundary experiments and their measurements remain in the
+[optimization log](optimization-lab.md); they do not define the current contract.

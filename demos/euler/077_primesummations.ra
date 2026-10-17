@@ -16,29 +16,21 @@ option Limit integer = 100
 rem Euler transform: n a(n) is the sum
 rem of b(k) a(n - k), where b(k) adds
 rem the distinct primes dividing k.
-rem Solve that lower triangular system
-rem for a(0..Limit).
-Cells = Limit + 1
 Ps = primes to Limit array
-Ids = 0 to Limit array
-Row = Ids reshape Cells 1
-Col = Ids reshape 1 Cells
+Ids = 1 to Limit array
+Row = Ids reshape Limit 1
 Dividing = Row mod Ps equal 0
 Sums = (Dividing choose Ps 0) sum rank 1
-Diff = Row - Col
-Valid = Diff greater 0
-Spot = Valid choose Diff 0
-Size2 = Cells * Cells
-Flat = Spot reshape Size2
-Picked = Sums Flat
-Grid = Picked reshape Cells Cells
-Back = Valid choose Grid 0
-Diag = (Ids greater 0) choose Ids 1
-Eye = Row equal Col choose Diag 0
-Mat = Eye - Back
-Unit = Ids equal 0 choose 1.0 0.0
-Raw = Mat Unit solve
-Ways = Raw 0 round
+rem Reverse storage gives zero for
+rem terms beyond the current n.
+Ways = array shape (2 * Limit + 1) fill 0
+Ways Limit = 1
+for N in 1 to Limit
+  Base = Limit - N
+  Sum = (Ways (Ids + Base)) Sums matmul
+  Ways Base = Sum // N
+end
+Ways = Ways (Limit to 0 by -1) copy
 Over = Ways greater Target
 Answer = Ways first index where Over
 Answer print

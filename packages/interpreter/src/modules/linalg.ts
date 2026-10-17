@@ -1,3 +1,4 @@
+import { prepareStoredScalarView } from '../integer-view.js';
 import { tensorSource } from '../tensor-source.js';
 import { diagonalResultShape, matmulResultShape } from '@arrrank/language';
 import { tuple } from '../value.js';
@@ -461,6 +462,10 @@ export function matmulValues(
         );
     }
 
+    if (left.shape.length === 1 && right.shape.length === 1) {
+        return vectorDot(left, right, left.shape[0]);
+    }
+
     const leftAxes = remainingAxes(left.shape, leftAxis);
     const rightAxes = remainingAxes(right.shape, rightAxis);
     const outputShape = [
@@ -495,6 +500,25 @@ export function matmulValues(
     const dense = denseMatmul(left, right, leftAxes, rightAxes, leftAxis, rightAxis, outputShape, contracted);
     if (dense) return dense;
     return derivedArray(outputShape, [left, right], resultAt, true);
+}
+
+/** A vector contraction is a scalar: no output coordinate plan is needed.
+ * Trusted views retain their normal cell validation but need no lazy cache.
+ * Host readers and unestablished contracts use the ordinary per-cell path.
+ */
+function vectorDot(left: RankArray, right: RankArray, size: number): bigint | number {
+    if (size === 0) return 0n;
+    const leftRead = prepareStoredScalarView(left), rightRead = prepareStoredScalarView(right);
+    const a = leftRead && rightRead ? leftRead : undefined;
+    const b = leftRead && rightRead ? rightRead : undefined;
+    let total: bigint | number = 0n;
+    for (let index = 0; index < size; index++) {
+        checkpoint('computing linear algebra');
+        const x = expectNumeric(a ? a.read(index) : arrayItem(left, index));
+        const y = expectNumeric(b ? b.read(index) : arrayItem(right, index));
+        total = addNumbers(total, multiplyNumbers(x, y));
+    }
+    return total;
 }
 
 /** Below this many multiplications a lazy result costs less than it saves. */

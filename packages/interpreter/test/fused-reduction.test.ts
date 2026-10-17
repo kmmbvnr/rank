@@ -129,17 +129,16 @@ end
         runtime.dispose();
     });
 
-    it('preserves cached named intermediates and explicit rank reductions', () => {
+    it('preserves named values across Rank writes and explicit rank reductions', () => {
         const runtime = new Interpreter();
         runtime.execute('fun A B fused\n  return (A * 2 + B) reduce +\nend');
         const a = vector([1n, 2n]);
         runtime.variables.set('A', a);
         runtime.execute('Temp = A + A');
         const temp = runtime.variables.get('Temp') as RankArray;
-        expect(temp.itemAt!(0)).toBe(2n);
-        a.items[0] = 10n;
-        a.items[1] = 20n;
-        expect(call(runtime, 'fused', temp, 0n)).toBe(120n);
+        expect(temp.items[0]).toBe(2n);
+        runtime.execute('A 0 = 10\nA 1 = 20');
+        expect(call(runtime, 'fused', temp, 0n)).toBe(12n);
         runtime.variables.set('M', vector([1n, 2n, 3n, 4n], [2, 2]));
         expect(force(runtime.execute('(M * 2 + M) reduce + rank 1')!))
             .toEqual({ shape: [2], items: [9n, 21n] });

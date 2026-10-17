@@ -23,3 +23,12 @@ test "small target"
 
   Answer equal 10
 end
+
+test "exact beyond real precision"
+  use "077_primesummations"
+  Limit = 1000
+  run
+
+  Ways 1000 equal 48278613741845757
+  Answer equal 71
+end
