@@ -13,7 +13,6 @@ test "statement example"
   run
 
   Answer equal 15
-  All equal 21
 end
 
 test "first solutions"
@@ -26,5 +25,8 @@ test "first solutions"
   run
 
   Answer equal 85
-  All equal 120
+  Limit = 120
+  run
+
+  Answer equal 493
 end
