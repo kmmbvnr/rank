@@ -21,7 +21,7 @@ end
 
 rem Coprime pairs a <= b sum Mu k times
 rem pairs up to Limit // k. Drop 1/1.
-K = 1 to Limit
+K = 1 to Limit array
 Quot = Limit // K
 Pairs = Quot * (Quot + 1) // 2
 Answer = (Mu drop 1 * Pairs) sum - 1

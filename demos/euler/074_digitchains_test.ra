@@ -5,6 +5,13 @@ test "default input"
   run
 
   Answer equal 402
+  Next 0 equal 1
+  Next 9 equal 2
+  Next 99 equal 3
+  Next 144 equal 145
+  Next 999 equal 4
+  Next 1999998 equal 2177281
+  Next 2177280 equal 50406
 end
 
 test "statement chain lengths"
