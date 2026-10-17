@@ -1,0 +1,14 @@
+use testing
+
+test "twentieth century"
+  use "019_sundays"
+  run
+
+  Answer equal 171
+end
+
+test "year 1901"
+  use "019_sundays"
+
+  1901 1901 count_sundays equal 2
+end

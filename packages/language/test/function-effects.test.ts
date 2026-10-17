@@ -217,7 +217,7 @@ it('summarizes scalar integer number operations only with proven inputs', () => 
 
 it('keeps scalar boolean compound assignments local with proven inputs', () => {
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
-    const source = readFileSync(new URL('../../../demos/euler/019_sundays.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/019_sundays.ra', import.meta.url), 'utf8');
     expect(analyze(source, 'month_days', [], [integer, integer]).unknown).toBe(false);
     expect(analyze(source, 'month_days', [], [{ types: [] }, integer]).unknown).toBe(true);
 });

@@ -9,6 +9,9 @@ end
 
 test "year 1901"
   use "019_sundays"
+  First = 1901
+  Last = 1901
+  run
 
-  1901 1901 count_sundays equal 2
+  Answer equal 2
 end

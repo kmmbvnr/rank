@@ -1882,8 +1882,8 @@ it('infers the unchanged CSES min-plus graph-path result through safe helpers', 
 });
 
 it('infers the unchanged counting-Sundays result through boolean helper updates', () => {
-    const source = readFileSync(new URL('../../../demos/euler/019_sundays.ra', import.meta.url), 'utf8');
-    const tests = readFileSync(new URL('../../../demos/euler/019_sundays_test.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/019_sundays.ra', import.meta.url), 'utf8');
+    const tests = readFileSync(new URL('./fixtures/019_sundays_test.ra', import.meta.url), 'utf8');
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
     const examples = functionTestExamples(testProgram.value, '019_sundays', new Set(['count_sundays']));

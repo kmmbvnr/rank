@@ -386,12 +386,36 @@ the problem. The first cell becomes `1074`.
 rem Project Euler 19
 rem https://projecteuler.net/problem=19
 
-Answer = 1901 2000 count_sundays
+Days = array shape 12
+  31 28 31 30 31 30
+  31 31 30 31 30 31
+end
+Day = 1
+Answer = 0
+for Year in 1900 to Last
+  Leap = Year mod 4 equal 0
+  Leap and= (
+    not Year mod 100 equal 0
+    or Year mod 400 equal 0
+  )
+  Days 1 = 28
+  if Leap
+    Days 1 = 29
+  end
+  for Month in 0 to 11
+    if Year at least First
+      if Day equal 0
+        Answer += 1
+      end
+    end
+    Day = (Day + Days Month) mod 7
+  end
+end
 ```
 
-The helper advances the weekday of each month start from the stated 1900
-anchor. Leap years use ordinary divisibility masks and boolean composition.
-The twentieth-century count is `171`.
+The loop advances the weekday of each month start from the stated 1900
+anchor, reading month lengths from a table whose February entry follows the
+leap-year rule. The twentieth-century count is `171`.
 
 ## 20. Factorial digit sum
 

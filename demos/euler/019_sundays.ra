@@ -1,58 +1,40 @@
 rem Counting Sundays
 rem https://projecteuler.net/problem=19
-rem Count Sundays falling on the first of a
-rem month during the twentieth century
+rem Count first-of-month Sundays in the
+rem twentieth century
 
 use numbers
 use io
+use cli
 
-Answer = 1901 2000 count_sundays
-Answer print
+option First integer = 1901
+option Last integer = 2000
 
-
-rem Advance month starts from the known
-rem Monday on 1 January 1900.
-fun FirstYear LastYear count_sundays
-  Weekday = 1
-  Count = 0
-
-  for Year in 1900 to LastYear
-    for Month in 1 to 12
-      if Year at least FirstYear
-        if Weekday equal 0
-          Count += 1
-        end
+rem Step month starts from Monday,
+rem 1 January 1900.
+Days = array shape 12
+  31 28 31 30 31 30
+  31 31 30 31 30 31
+end
+Day = 1
+Answer = 0
+for Year in 1900 to Last
+  Leap = Year mod 4 equal 0
+  Leap and= (
+    not Year mod 100 equal 0
+    or Year mod 400 equal 0
+  )
+  Days 1 = 28
+  if Leap
+    Days 1 = 29
+  end
+  for Month in 0 to 11
+    if Year at least First
+      if Day equal 0
+        Answer += 1
       end
-
-      Days = Year Month month_days
-      Weekday = (Weekday + Days) mod 7
     end
+    Day = (Day + Days Month) mod 7
   end
-
-  return Count
 end
-
-
-rem Return the Gregorian length of one month.
-fun Year Month month_days
-  if Month equal 2
-    Leap = Year mod 4 equal 0
-    Leap and= (
-      not Year mod 100 equal 0
-      or Year mod 400 equal 0
-    )
-    if Leap
-      return 29
-    end
-    return 28
-  end
-
-  Thirty = Month equal 4
-  Thirty or= Month equal 6
-  Thirty or= Month equal 9
-  Thirty or= Month equal 11
-  if Thirty
-    return 30
-  end
-  return 31
-end
+Answer print
