@@ -4,6 +4,7 @@ rem Count the ways to fill a row with
 rem red blocks of a minimum length, any
 rem two separated by a black square
 
+use numbers
 use sequences
 use io
 use cli
@@ -11,14 +12,25 @@ use cli
 option Size integer = 50
 option Min integer = 3
 
-rem Ways[n]: the first square is black,
-rem or a red block of length L starts,
-rem then a black square and any fill of
-rem the rest, or the block ends the row.
-Ways = array shape (Size + 1) fill 1
-for N in Min to Size
-  Pre = (Ways take (N - Min)) sum
-  Ways N = Ways (N - 1) + 1 + Pre
-end
-Answer = Ways Size
+rem K red blocks of total length R:
+rem split R into K parts of at least
+rem Min, then put the K blocks into the
+rem Size - R + 1 gaps around the black
+rem squares. Add the all black row.
+Most = Size // Min
+K = (1 to Most array) reshape Most 1
+Cols = Size + 1
+R = (0 to Size array) reshape 1 Cols
+Gaps = Size - R + 1
+Fits = R at least K * Min
+Fits and= Gaps at least K
+Cuts = R - K * (Min - 1) - 1
+Top = Fits choose Cuts K
+Low = Fits choose (K - 1) K
+Place = Fits choose Gaps K
+Split = Top Low binomial
+Spots = Place K binomial
+Ways = Split * Spots
+Total = (Fits choose Ways 0) sum
+Answer = Total + 1
 Answer print
