@@ -11,66 +11,59 @@ use cli
 
 option Size integer = 7
 
-Found = Size optimum
-Digits = Found text rank 0
-Answer = Digits "" join
-Answer print
-
-rem Special: the k + 1 smallest outweigh
-rem the k largest.
-fun Set special
-  Half = (Set len - 1) // 2
-  Ks = 1 to Half array
-  Small = (Set scan +) Ks
-  Big = ((Set reverse) scan +) (Ks - 1)
-  return (Small greater Big) all
-end
-
 rem Branch and bound under the
 rem near-optimum seed: {20} plus 20
 rem added to the n = 6 optimum. Reach
 rem has bit s set for each subset sum s;
 rem an element x clashes if two sums
 rem differ by x.
-fun Size optimum
-  Six = array 11 18 19 20 22 25
-  Seed = concat (array 20) (Six + 20)
-  Best = Seed sum
-  Found = Seed copy
-  Set = array shape Size fill 0
-  Ignore = 0 0 0 1 search
-  return Found
+Six = array 11 18 19 20 22 25
+Seed = concat (array 20) (Six + 20)
+Best = Seed sum
+Found = Seed copy
+Set = array shape Size fill 0
+Ignore = 0 0 0 1 search
+Digits = Found text rank 0
+Answer = Digits "" join
+Answer print
 
-  fun Depth Last Sum Reach search
-    if Depth equal Size
-      Ok = Set special
-      if Ok and Sum less Best
-        Best = Sum
-        Found = Set copy
-      end
-      return 0
-    end
-    Rest = Size - Depth
-    Extra = Rest * (Rest - 1) // 2
-    Cap = Best
-    if Depth at least 2
-      Cap = Set 0 + Set 1
-    end
-    for X in Last + 1 till Cap
-      Least = Sum + Rest * X + Extra
-      if Least at least Best
-        break
-      end
-      Down = Reach X shr
-      Both = Down Reach band
-      if Both equal 0
-        Set Depth = X
-        More = Reach (Reach X shl) bor
-        Next = Depth + 1
-        Total = Sum + X
-        Out = Next X Total More search
-      end
+rem At full depth the set is special
+rem when the k + 1 smallest outweigh the
+rem k largest.
+fun Depth Last Sum Reach search
+  if Depth equal Size
+    Half = (Size - 1) // 2
+    Ks = 1 to Half array
+    Small = (Set scan +) Ks
+    Back = Set reverse
+    Big = (Back scan +) (Ks - 1)
+    Ok = (Small greater Big) all
+    if Ok and Sum less Best
+      Best = Sum
+      Found = Set copy
     end
     return 0
   end
+  Rest = Size - Depth
+  Extra = Rest * (Rest - 1) // 2
+  Cap = Best
+  if Depth at least 2
+    Cap = Set 0 + Set 1
+  end
+  for X in Last + 1 till Cap
+    Least = Sum + Rest * X + Extra
+    if Least at least Best
+      break
+    end
+    Down = Reach X shr
+    Both = Down Reach band
+    if Both equal 0
+      Set Depth = X
+      More = Reach (Reach X shl) bor
+      Next = Depth + 1
+      Total = Sum + X
+      Out = Next X Total More search
+    end
+  end
+  return 0
 end

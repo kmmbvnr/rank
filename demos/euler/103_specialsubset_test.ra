@@ -8,11 +8,10 @@ test "default input"
   Found sum equal 255
 end
 
-test "special size rule"
+test "found set is special"
   use "103_specialsubset"
+  run
 
-  (array 20 31 38 39 40 42 45) special
-  (array 11 18 19 20 22 25) special
-  not (array 1 2 3 4 5 6 7) special
-  not (array 5 6 7 8 9 20 21) special
+  Found (array 20 31 38 39 40 42 45) equal rank 1
+  Best equal 255
 end
