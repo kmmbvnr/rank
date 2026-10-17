@@ -1,0 +1,48 @@
+use testing
+
+test "default input"
+  use "084_monopolyodds"
+  run
+
+  Answer equal 101524
+end
+
+test "six-sided dice from the statement"
+  use "084_monopolyodds"
+  Sides = 6
+  run
+
+  Answer equal 102400
+end
+
+test "landing distributions"
+  use "084_monopolyodds"
+  use sequences
+
+  Go = 30 land
+  Go 40 equal 1.0
+  Chest = 2 land
+  Chest 2 equal 0.875
+  Chest 0 equal 0.0625
+  Chest 40 equal 0.0625
+  Plain = 5 land
+  Plain 5 equal 1.0
+  Chance = 36 land
+  Chance sum equal 1.0
+  Chance 5 equal 0.1875
+  Chance 12 equal 0.0625
+end
+
+test "transition rows are probabilities"
+  use "084_monopolyodds"
+  use numbers
+  use sequences
+
+  run
+
+  Rows = Trans sum axis 1
+  Gap = Rows 0 - 1.0
+  Gap abs less 0.000001
+  Late = Rows 60 - 1.0
+  Late abs less 0.000001
+end

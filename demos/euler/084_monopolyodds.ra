@@ -1,0 +1,87 @@
+rem Monopoly Odds
+rem https://projecteuler.net/problem=84
+rem Modal string of the three most
+rem visited squares with two dice
+
+use linalg
+use sequences
+use io
+use cli
+
+option Sides integer = 4
+option Steps integer = 500
+
+rem State: square 0 to 39, or 40 if sent
+rem to jail, and 0 to 2 doubles so far.
+Size = 41 * 3
+Rolls = Sides * Sides
+Trans = array shape Size Size fill 0.0
+for Q in 0 till 41
+  Base = Q equal 40 choose 10 Q
+  for D in 0 till 3
+    for A in 1 to Sides
+      for B in 1 to Sides
+        Dbl = A equal B
+        From = Q + 41 * D
+        if Dbl and D equal 2
+          Trans From 40 += 1.0 / Rolls
+          continue
+        end
+        Next = Dbl choose (D + 1) 0
+        Wide = (0 till 41) + 41 * Next
+        Cols = Wide copy
+        Cols 40 = 40
+        Pos = (Base + A + B) mod 40
+        Dist = Pos land
+        Trans From Cols += Dist / Rolls
+      end
+    end
+  end
+end
+
+Now = array shape Size fill 0.0
+Now 0 = 1.0
+Seen = Now step repeat Steps
+Mid = Seen drop 41 take 41
+Last = Seen drop 82
+Sum = Seen take 41 + Mid + Last
+Sq = Sum copy
+Sq 10 += Sq 40
+Rank = Sq take 40 argsort .descending
+Top = Rank take 3
+Answer = Top (array 10000 100 1) matmul
+Answer print
+
+fun V step = V Trans matmul
+
+rem Distribution over squares after
+rem landing on P and drawing a card.
+fun P land
+  Row = array shape 41 fill 0.0
+  if P equal 30
+    Row 40 = 1.0
+    return Row
+  end
+  if P in array 2 17 33
+    Row P = 14.0 / 16
+    Row 0 = 1.0 / 16
+    Row 40 = 1.0 / 16
+    return Row
+  end
+  if P in array 7 22 36
+    Tens = (P + 5) // 10 * 10
+    Rail = (Tens + 5) mod 40
+    Mid = P at least 12 and P less 28
+    Util = Mid choose 28 12
+    Row P = 6.0 / 16
+    Moves = array 0 40 11 24 39 5 Util
+    for Dest in Moves
+      Row Dest += 1.0 / 16
+    end
+    Row Rail += 2.0 / 16
+    Back = (P - 3) land
+    return Row + Back / 16
+  end
+  Row P = 1.0
+  return Row
+end
