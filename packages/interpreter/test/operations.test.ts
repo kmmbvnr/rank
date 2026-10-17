@@ -293,6 +293,10 @@ describe('the operation catalogue', () => {
             startswith: ['"ёж" "ё"', '("ёж" bytes) ("ё" bytes)'],
             lower: ['"ЁЖ"'], codepoint: ['"😀"'], character: ['128512'],
             join: ['(array "ёж" "😀") ":"'],
+            band: ['123 456', '(-1) 1267650600228229401496703205376'],
+            bor: ['123 456'], bxor: ['123 456'], bnot: ['0', '(-123)'],
+            shl: ['1 100'], shr: ['1267650600228229401496703205376 99', '(-7) 1'],
+            bit: ['1267650600228229401496703205376 100'], popcount: ['0', '1267650600228229401496703205377'],
         };
         const profiles = operations.filter(entry => entry.compiledCall);
         // A new eligibility entry needs an actual runtime example as well.
@@ -300,7 +304,7 @@ describe('the operation catalogue', () => {
         for (const entry of profiles) for (const operands of examples[entry.name]) {
             const runtime = new Interpreter();
             try {
-                const value = runtime.execute(`use text\nuse crypto\nuse sequences\n${operands} ${entry.name}`)!;
+                const value = runtime.execute(`use text\nuse crypto\nuse sequences\nuse bits\n${operands} ${entry.name}`)!;
                 expect(typeName(value), `${entry.name}: ${operands}`).toBe(entry.compiledCall!.result);
             } finally { runtime.dispose(); }
         }
