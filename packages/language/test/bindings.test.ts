@@ -35,6 +35,42 @@ it('records a nullary result as data of unknown type, not a function alias', asy
 });
 
 describe('binding facts', () => {
+    it('retains array result kinds through reshapes, outer products and concatenation', async () => {
+        const result = await facts([
+            'use sequences', 'use numbers',
+            'Column = Input reshape Height 1',
+            'Row = Input reshape 1 Width',
+            'Grid = Column + Row',
+            'Mask = Grid greater 0',
+            'Pairs = Column Row outer *',
+            'Divisors = Column Row outer gcd',
+            'Joined = concat Column Row',
+            'Count = Input reshape Height Width len',
+        ], ['Input', 'Height', 'Width']);
+        for (const name of ['Column', 'Row', 'Grid', 'Mask', 'Pairs', 'Divisors', 'Joined']) {
+            expect(named(result, 'program', name).types).toEqual(['array']);
+        }
+        expect(named(result, 'program', 'Count').types).toEqual(['integer']);
+    });
+
+    it('does not treat a bound reshape name as standard vocabulary', async () => {
+        const result = await facts([
+            'fun X Y Z reshape', '  return X', 'end',
+            'Result = Input reshape Height Width',
+        ], ['Input', 'Height', 'Width']);
+        expect(named(result, 'program', 'Result').types).toEqual([]);
+    });
+
+    it('allows both selection and gather kinds when only a selector collection type is known', async () => {
+        const result = await facts([
+            'use sequences',
+            'Values = array 1 2 3', 'Mask = Values greater 1',
+            'Selected = Values Mask', 'Gathered = Values (1 till 3)',
+        ]);
+        expect(named(result, 'program', 'Selected').types).toEqual(['array', 'sequence']);
+        expect(named(result, 'program', 'Gathered').types).toEqual(['array']);
+    });
+
     it('keeps window result kinds when the size follows the operation', async () => {
         const result = await facts([
             'use sequences',
