@@ -3,7 +3,7 @@ import { checkpoint } from './interrupt.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 interface View {
-    readonly source: RankArray;
+    readonly source: RankArray | (() => RankArray);
     readonly offset: (index: number) => number;
     readonly accepts?: () => boolean;
     readonly check?: (item: RankValue) => RankValue;
@@ -14,7 +14,7 @@ const checked = new WeakMap<RankArray, { revision: number; integer: boolean }>()
 
 /** Only runtime-created selections and contract wrappers may publish views.
  * The public reader still owns its ordinary cache and validation behavior. */
-export function registerIntegerView<T extends RankArray>(value: T, source: RankArray,
+export function registerIntegerView<T extends RankArray>(value: T, source: RankArray | (() => RankArray),
     offset: (index: number) => number, accepts?: () => boolean, check?: (item: RankValue) => RankValue): T {
     views.set(value, { source, offset, accepts, check, reader: value.itemAt });
     return value;
@@ -35,7 +35,7 @@ export function prepareIntegerView(value: RankValue, allowChecks = false): { sha
             checks.push(view.check);
         }
         offsets.push(view.offset);
-        source = view.source;
+        source = typeof view.source === 'function' ? view.source() : view.source;
     }
     const revision = arrayRevision(source);
     if (revision === undefined) return undefined;

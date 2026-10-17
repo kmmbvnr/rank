@@ -33,6 +33,7 @@ A sum`));
     assert.equal(value, expected);
     const result = { name, limit, ms: Math.round(performance.now() - start),
       cowCopies: diagnostics.cowCopies, cowCopiedCells: diagnostics.cowCopiedCells,
+      selectionSnapshots: diagnostics.selectionSnapshots, selectionSnapshotCells: diagnostics.selectionSnapshotCells,
       elementTypeScans: diagnostics.elementTypeScans, elementTypeScannedCells: diagnostics.elementTypeScannedCells };
     console.log(JSON.stringify(result));
   } finally { runtime.dispose(); }

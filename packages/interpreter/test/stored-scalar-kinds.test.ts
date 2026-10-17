@@ -2,11 +2,26 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, MISSING, RuntimeDiagnostics, type RankArray } from '../src/index.js';
 import { arrayElementTypes } from '../src/array-element-types.js';
 import { arrayDeclaration } from '../src/array-declaration.js';
-import { borrowArrayStorage, ownedArray, prepareScalarArrayWriter, realCells, storedScalarKinds, typedArray } from '../src/array-storage.js';
+import { arrayRevision, borrowArrayStorage, ownedArray, prepareScalarArrayWriter, realCells, storedScalarKinds, typedArray } from '../src/array-storage.js';
 import { prepareIntegerView } from '../src/integer-view.js';
 import { semanticArrayType } from '../src/semantic-array-type.js';
 
 describe('physical scalar kind evidence', () => {
+    it.each(['set', 'defineProperty'])('invalidates after a partially failed length %s', operation => {
+        const array = ownedArray([1n, 2n, 3n, 4n]);
+        array.items[2] = true;
+        array.items[3] = 'tail';
+        expect(arrayElementTypes(array)).toEqual(['boolean', 'integer', 'text']);
+        Object.defineProperty(array.items, '1', { configurable: false });
+        const revision = arrayRevision(array)!;
+        const success = operation === 'set' ? Reflect.set(array.items, 'length', 0)
+            : Reflect.defineProperty(array.items, 'length', { value: 0 });
+        expect(success).toBe(false);
+        expect(array.items.length).toBe(2);
+        expect(arrayRevision(array)).toBeGreaterThan(revision);
+        expect(arrayElementTypes(array)).toEqual(['integer']);
+    });
+
     it('keeps one scan across same-kind public writes and shares the proof between consumers', () => {
         const array = ownedArray([1n, 2n, 3n]);
         const diagnostics = new RuntimeDiagnostics();
