@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "087_primepowertriples"
+  run
+
+  Answer equal 1097343
+end
+
+test "statement example below fifty"
+  use "087_primepowertriples"
+  use sequences
+  Limit = 50
+  run
+
+  Answer equal 4
+  Vals = Few unique array
+  Sorted = Vals sort
+  Sorted (array 28 33 47 49) equal rank 1
+end
