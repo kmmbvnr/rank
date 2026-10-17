@@ -1,0 +1,17 @@
+rem Powerful Digit Counts
+rem https://projecteuler.net/problem=63
+rem Count integers with N digits that
+rem are also an Nth power
+
+use sequences
+use io
+use cli
+
+rem Largest power, 22 is enough for 9.
+option Top integer = 25
+
+Pows = 1 to Top
+Grid = (1 to 9) Pows outer **
+Size = Grid text rank 0 len rank 0
+Answer = Size equal Pows count
+Answer print
