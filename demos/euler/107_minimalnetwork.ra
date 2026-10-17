@@ -12,33 +12,30 @@ use cli
 
 argument Input path = "demos/euler/fixtures/0107_network.txt"
 
-Answer = Input readlines saving
-Answer print
-
 rem Total link weight less the weight of
 rem a minimum spanning tree. A dash
 rem means no link.
-fun Lines saving
-  Flat = Lines "," join
-  Parts = Flat "," split
-  Linked = Parts not equal "-"
-  Safe = Linked choose Parts "0"
-  Weights = Safe integer
-  Size = Lines len
-  Ids = 0 till Size array
-  Rows = Ids reshape Size 1
-  Cols = Ids reshape 1 Size
-  Upper = Rows less Cols
-  Cells = Size * Size
-  Flat2 = Upper reshape Cells
-  Take = Flat2 and Linked
-  Spots = Take indices
-  From = Spots // Size
-  To = Spots mod Size
-  Cost = Weights Spots
-  Edges = stack From To Cost transpose
-  Net = new graph .undirected
-  Net add Edges
-  Tree = Net mst
-  return Cost sum - Tree .weight
-end
+Lines = Input readlines
+Flat = Lines "," join
+Parts = Flat "," split
+Linked = Parts not equal "-"
+Safe = Linked choose Parts "0"
+Weights = Safe integer
+Size = Lines len
+Ids = 0 till Size array
+Rows = Ids reshape Size 1
+Cols = Ids reshape 1 Size
+Upper = Rows less Cols
+Cells = Size * Size
+Flat2 = Upper reshape Cells
+Take = Flat2 and Linked
+Spots = Take indices
+From = Spots // Size
+To = Spots mod Size
+Cost = Weights Spots
+Edges = stack From To Cost transpose
+Net = new graph .undirected
+Net add Edges
+Tree = Net mst
+Answer = Cost sum - Tree .weight
+Answer print

@@ -10,8 +10,8 @@ end
 test "statement matrix"
   use "083_pathfourways"
   use io
-  Grid = "131,673,234,103,18\n201,96,342,965,150\n630,803,746,422,111\n537,699,497,121,956\n805,732,524,37,331\n"
-  Grid "/tmp/euler083.txt" write
+  Mat = "131,673,234,103,18\n201,96,342,965,150\n630,803,746,422,111\n537,699,497,121,956\n805,732,524,37,331\n"
+  Mat "/tmp/euler083.txt" write
   Input = "/tmp/euler083.txt"
   run
 
