@@ -1,0 +1,32 @@
+use testing
+
+test "default input"
+  use "074_digitchains"
+  run
+
+  Answer equal 402
+end
+
+test "statement chain lengths"
+  use "074_digitchains"
+  run
+
+  Lens 68 equal 5
+  Lens 77 equal 4
+  Lens 539 equal 2
+  Lens 144 equal 1
+  Lens 168 equal 3
+end
+
+test "smaller limits and term counts"
+  use "074_digitchains"
+  Limit = 100000
+  run
+
+  Answer equal 42
+  Limit = 10000
+  Terms = 30
+  run
+
+  Answer equal 146
+end

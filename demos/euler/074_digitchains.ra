@@ -1,0 +1,45 @@
+rem Digit Factorial Chains
+rem https://projecteuler.net/problem=74
+rem Count starts below a limit with a
+rem sixty-term digit factorial chain
+
+use sequences
+use graph
+use io
+use cli
+
+option Limit integer = 1000000
+option Terms integer = 60
+
+rem Digit factorial sum f up to 2541000:
+rem f(a * 1000 + b) = Head a + Pad b.
+rem Pad counts leading zeros as 0! = 1;
+rem Raw drops them for a lone b < 1000.
+Fact = array shape 10
+  1 1 2 6 24 120 720 5040 40320 362880
+end
+B = 0 to 999 array
+Hi = B // 100
+Mid = B // 10 mod 10
+Lo = B mod 10
+Pad = Fact Hi + Fact Mid + Fact Lo
+Tens = (B at least 10) integer
+Huns = (B at least 100) integer
+Raw = Pad - (2 - Tens - Huns)
+A = 0 to 2540 array
+Low = A mod 1000
+Thou = A // 1000
+Wide = A at least 1000
+Sum = Fact Thou + Pad Low
+Head = Wide choose Sum (Raw Low)
+Grid = Head Pad outer + copy
+Grid 0 = Raw
+
+rem Chains are paths of the successor
+rem graph; lengths counts terms.
+Flat = Grid reshape 2541000
+Next = Flat drop 1
+Lens = Next functional lengths
+Short = Lens take (Limit - 1)
+Answer = Short equal Terms count
+Answer print
