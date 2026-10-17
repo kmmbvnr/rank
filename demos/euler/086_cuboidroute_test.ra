@@ -1,0 +1,31 @@
+use testing
+
+test "default input"
+  use "086_cuboidroute"
+  run
+
+  Answer equal 1818
+end
+
+test "statement counts for 99 and 100"
+  use "086_cuboidroute"
+  Target = 1975
+  Limit = 200
+  run
+
+  Run 99 equal 1975
+  Run 100 equal 2060
+  Answer equal 100
+end
+
+test "counts for small sides"
+  use "086_cuboidroute"
+  Target = 1
+  Limit = 20
+  run
+
+  Run 3 equal 2
+  Run 5 equal 3
+  Run 6 equal 6
+  Answer equal 3
+end

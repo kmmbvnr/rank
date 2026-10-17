@@ -1,0 +1,51 @@
+rem Cuboid Route
+rem https://projecteuler.net/problem=86
+rem Find the least M for which more than
+rem a million cuboids up to M have an
+rem integer shortest surface route
+
+use numbers
+use sequences
+use io
+use cli
+
+option Target integer = 1000000
+option Limit integer = 2000
+
+rem Longest side c, s = a + b: the route
+rem sqrt(s^2 + c^2) makes a triple. Use
+rem primitive Euclid triples, legs as
+rem (c, s) in both orders with s <= 2c,
+rem and their multiples.
+Top = Limit * 2
+Root = Top isqrt + 1
+Ms = 1 to Root array
+M = Ms reshape Root 1
+N = Ms reshape 1 Root
+Gap = M - N
+Mask = M N gcd equal 1
+Mask and= Gap mod 2 equal 1
+Mask and= Gap at least 1
+Sq = M * M - N * N
+Pr = 2 * M * N
+Odd = Sq Mask array
+Even = Pr Mask array
+Long = concat Odd Even
+Wide = concat Even Odd
+Twice = 2 * Long
+Keep = Long at most Limit
+Keep and= Wide at most Twice
+Cs = Long Keep array
+Ss = Wide Keep array
+Cnt = array shape (Limit + 1) fill 0
+for C i in Cs
+  K = 1 to (Limit // C) array
+  Idx = K * C
+  Hi = K * Ss i
+  Over = (Hi - Idx - 1) 0 max
+  Cnt Idx += Hi // 2 - Over
+end
+Run = Cnt scan +
+Big = Run greater Target
+Answer = Run first index where Big
+Answer print
