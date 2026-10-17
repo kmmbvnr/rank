@@ -10,21 +10,18 @@ use cli
 
 argument Input path = "demos/euler/fixtures/0081_matrix.txt"
 
-Answer = Input readlines two_ways
-Answer print
-
 rem Row by row: a cell is its prefix sum
 rem plus the running minimum of the row
 rem above less the sums before it.
-fun Rows two_ways
-  Cols = Rows 0 "," split len
-  Up = array shape Cols fill 1000000000
-  Up 0 = 0
-  for Line in Rows
-    Row = Line "," split integer rank 0
-    Sum = Row scan +
-    Cost = Up - (Sum - Row)
-    Up = Sum + (Cost scan min)
-  end
-  return Up last
+Rows = Input readlines
+Cols = Rows 0 "," split len
+Up = array shape Cols fill 1000000000
+Up 0 = 0
+for Line in Rows
+  Row = Line "," split integer rank 0
+  Sum = Row scan +
+  Cost = Up - (Sum - Row)
+  Up = Sum + (Cost scan min)
 end
+Answer = Up last
+Answer print
