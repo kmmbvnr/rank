@@ -2,6 +2,7 @@ use testing
 
 test "default input"
   use "109_darts"
+  use sequences
   run
 
   Answer equal 38182
@@ -9,6 +10,7 @@ end
 
 test "smaller limits"
   use "109_darts"
+  use sequences
   Limit = 7
   run
 
@@ -21,6 +23,7 @@ end
 
 test "ways to check out with six"
   use "109_darts"
+  use sequences
   Limit = 7
   run
 

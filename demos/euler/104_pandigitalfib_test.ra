@@ -2,6 +2,8 @@ use testing
 
 test "default input"
   use "104_pandigitalfib"
+  use numbers
+  use sequences
   run
 
   Answer equal 329468
@@ -9,6 +11,8 @@ end
 
 test "statement indices"
   use "104_pandigitalfib"
+  use numbers
+  use sequences
   run
 
   Cands 0 equal 541
@@ -18,6 +22,8 @@ end
 
 test "leading digits by logarithm"
   use "104_pandigitalfib"
+  use numbers
+  use sequences
   run
 
   Spin = (array 2749 541) * PhiLog - Half
@@ -30,6 +36,8 @@ end
 
 test "pandigital candidates"
   use "104_pandigitalfib"
+  use numbers
+  use sequences
   run
 
   Cands 0 equal 541

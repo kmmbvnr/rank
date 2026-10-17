@@ -2,6 +2,7 @@ use testing
 
 test "default input"
   use "079_passcode"
+  use sequences
   run
 
   Answer equal 73162890
@@ -9,6 +10,7 @@ end
 
 test "every attempt is a subsequence"
   use "079_passcode"
+  use sequences
   run
 
   Seq .possible equal true
