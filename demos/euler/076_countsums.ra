@@ -1,0 +1,35 @@
+rem Counting Summations
+rem https://projecteuler.net/problem=76
+rem Count ways to write N as a sum of at
+rem least two positive integers
+
+use numbers
+use sequences
+use io
+use cli
+
+option Total integer = 100
+
+rem Euler pentagonal recurrence: p(n) is
+rem the signed sum of p(n - g) over the
+rem pentagonal numbers g <= n.
+Root = Total isqrt
+K = 1 to Root array
+Odd = K mod 2 * 2 - 1
+Low = K * (3 * K - 1) // 2
+High = K * (3 * K + 1) // 2
+Size = K len * 2
+Gens = stack Low High transpose
+Gen = Gens reshape Size
+Signs = stack Odd Odd transpose
+Sign = Signs reshape Size
+Ways = array shape (Total + 1) fill 0
+Ways 0 = 1
+for N in 1 to Total
+  Used = (Gen at most N) count
+  Prev = N - (Gen take Used)
+  Terms = Ways Prev * (Sign take Used)
+  Ways N = Terms sum
+end
+Answer = Ways Total - 1
+Answer print

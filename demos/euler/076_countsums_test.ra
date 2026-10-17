@@ -1,0 +1,32 @@
+use testing
+
+test "default input"
+  use "076_countsums"
+  run
+
+  Answer equal 190569291
+end
+
+test "statement example"
+  use "076_countsums"
+  Total = 5
+  run
+
+  Answer equal 6
+end
+
+test "small totals"
+  use "076_countsums"
+  Total = 10
+  run
+
+  Answer equal 41
+  Total = 2
+  run
+
+  Answer equal 1
+  Total = 1
+  run
+
+  Answer equal 0
+end
