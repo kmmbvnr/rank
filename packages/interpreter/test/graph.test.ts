@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { MissingValueError, RankError } from '../src/errors.js';
 import { run } from './support.js';
+import { RankFunctionalGraph } from '../src/functional-graph.js';
+import { denseScalarItems, ownedArray } from '../src/array-storage.js';
+import { type RankArray, type RankValue } from '../src/value.js';
 
 const prelude = 'use graph\nuse sequences\n';
 
@@ -675,5 +678,29 @@ fun A B edges
 end
 3 edges 4
 `)).toBe('7');
+    });
+});
+
+describe('functional graph storage', () => {
+    it('returns owned scalar lengths that later arithmetic can consume directly', () => {
+        const successors = ownedArray(Array(2048).fill(1n), [2048], true);
+        const graph = new RankFunctionalGraph(successors);
+        successors.items[1] = 2n;
+        const lengths = graph.lengths();
+        expect(denseScalarItems(lengths)).toBeDefined();
+        expect(lengths.items).toEqual([1n, ...Array(2047).fill(2n)]);
+        lengths.items[0] = 99n;
+        expect(graph.lengths().items[0]).toBe(1n);
+    });
+
+    it('keeps host demand order and stops at the first invalid successor', () => {
+        const reads: number[] = [];
+        const source: RankArray = {
+            kind: 'array', shape: [3],
+            itemAt(index) { reads.push(index); return index === 1 ? 0n : 1n; },
+            get items(): RankValue[] { throw new Error('materialized host'); },
+        };
+        expect(() => new RankFunctionalGraph(source)).toThrow('functional successors');
+        expect(reads).toEqual([0, 1]);
     });
 });

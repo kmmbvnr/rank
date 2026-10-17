@@ -1067,7 +1067,8 @@ Labels = (array "A" "B") + "!"
 rem A! B!
 ```
 
-`**`, `mod` and comparisons are also elementwise over compatible arrays:
+`//`, `mod`, `**` and comparisons are also elementwise over compatible arrays.
+With integer operands, floor division and remainder keep exact integer results:
 
 ```rank
 M3 = N mod 3 equal 0

@@ -1,7 +1,7 @@
 import { mapPair, runExecution } from './execution.js';
 import { evaluateArrayItem, derivedArray, denseScalarItems, storedOperandItems, float64Cells, ownedArray, realCells, typedArray } from './array-storage.js';
 import { RankError } from './errors.js';
-import { checkpoint } from './interrupt.js';
+import { checkpoint, InterruptedError } from './interrupt.js';
 import type { RankArray, RankValue } from './value.js';
 
 export function mapBroadcastArrays(
@@ -141,6 +141,7 @@ export function mapDenseArrays(
             }
         }
     } catch (error) {
+        if (error instanceof InterruptedError) throw error;
         if (error instanceof RankError) return undefined;
         throw error;
     }
@@ -174,6 +175,7 @@ export function chooseDenseArrays(
                 : expandOperand<RankValue>(items, operand.shape, shape, Array as never));
         }
     } catch (error) {
+        if (error instanceof InterruptedError) throw error;
         if (error instanceof RankError) return undefined;
         throw error;
     }

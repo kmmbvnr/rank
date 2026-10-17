@@ -99,7 +99,7 @@ end
         expect(add(1n, 0.5)).toBe(1.5);
         expect(add('a', 'b')).toBe('fallback');
         expect(add(true, 2n)).toBe('fallback');
-        expect(numericKernel('mod', fallback)).toBe(fallback);
+        expect(numericKernel('unhandled', fallback)).toBe(fallback);
         expect(calls).toEqual([['a', 'b'], [true, 2n]]);
     });
 

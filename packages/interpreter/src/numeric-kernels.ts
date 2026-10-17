@@ -1,3 +1,4 @@
+import { floorDivide, floorRemainder } from './numeric-division.js';
 import type { RankValue } from './value.js';
 
 type BinaryOperation = (left: RankValue, right: RankValue) => RankValue;
@@ -5,6 +6,14 @@ type BinaryOperation = (left: RankValue, right: RankValue) => RankValue;
 /** Select once per collection operation; guard each pair without probing lazy inputs. */
 export function numericKernel(operator: string, fallback: BinaryOperation): BinaryOperation {
     switch (operator) {
+        case '//': return (left, right) => {
+            if (typeof left === 'bigint' && typeof right === 'bigint' && right !== 0n) return floorDivide(left, right);
+            return fallback(left, right);
+        };
+        case 'mod': return (left, right) => {
+            if (typeof left === 'bigint' && typeof right === 'bigint' && right !== 0n) return floorRemainder(left, right);
+            return fallback(left, right);
+        };
         case '**': return (left, right) => {
             // Nonnegative integer powers have no real-domain checks. Keep
             // negative and real powers on the diagnostic-aware scalar path.
