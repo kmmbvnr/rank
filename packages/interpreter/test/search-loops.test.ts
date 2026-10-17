@@ -20,7 +20,11 @@ function compare(source: string) {
 }
 
 it('executes the complete depth-array search as one loop and preserves the output snapshot', () => {
-    const source = readFileSync(new URL('../../../demos/euler/103_specialsubset.ra', import.meta.url), 'utf8');
+    // The default seed is already optimal: force the successful leaf to write
+    // a new result, then mutate the candidate after the search has finished.
+    const source = readFileSync(new URL('../../../demos/euler/103_specialsubset.ra', import.meta.url), 'utf8')
+        .replace('Best = Seed sum', 'Best = Seed sum + 1')
+        .replace('Found = Seed copy', 'Found = array shape Size fill 0');
     const result = compare(source + '\nSet 0 = 999');
     expect(result.error).toBeUndefined();
     expect(result.values.Answer).toBe('20313839404245');
