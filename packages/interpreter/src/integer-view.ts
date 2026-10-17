@@ -1,4 +1,4 @@
-import { arrayRevision, denseScalarItems, materializedArrayItems } from './array-storage.js';
+import { arrayRevision, denseScalarItems, materializedArrayItems, storedScalarKinds } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
@@ -41,7 +41,8 @@ export function prepareIntegerView(value: RankValue, allowChecks = false): { sha
     if (revision === undefined) return undefined;
     const items = denseScalarItems(source) ?? materializedArrayItems(source);
     if (!items) return undefined;
-    let proof = checked.get(source);
+    const kinds = storedScalarKinds(source);
+    let proof = kinds ? { revision, integer: kinds.every(kind => kind === 'integer') } : checked.get(source);
     if (proof?.revision !== revision) {
         let integer = true;
         for (let i = 0; i < items.length; i++) {

@@ -1,4 +1,5 @@
-import { arrayRevision, denseScalarItems, materializedArrayItems, typedElementKind } from './array-storage.js';
+import { arrayRevision, denseScalarItems, materializedArrayItems, storedScalarKinds, typedElementKind } from './array-storage.js';
+import { currentDiagnostics } from './diagnostics.js';
 import { typeName, type RankArray, type RankValue } from './value.js';
 
 /** Inspect only already stored cells, without running lazy readers or host getters. */
@@ -7,6 +8,9 @@ const elementTypeCache = new WeakMap<RankArray, { revision: number; types: strin
 
 export function arrayElementTypes(value: RankArray, numericLimits = false): string[] | undefined {
     if (value.kind === 'bytes') return value.shape.some(size => size === 0) ? [] : ['integer'];
+    const stored = storedScalarKinds(value);
+    if (stored) return numericLimits ? [...stored]
+        : [...new Set(stored.map(kind => kind === 'numeric-limit' ? 'real' : kind))].sort();
     const cache = numericLimits ? numericLimitCache : elementTypeCache;
     const name = (item: RankValue): string => numericLimits && typeof item === 'number'
         && !Number.isFinite(item) && !Number.isNaN(item) ? 'numeric-limit' : typeName(item);
@@ -17,6 +21,11 @@ export function arrayElementTypes(value: RankArray, numericLimits = false): stri
     if (typed && !(typed === 'real' && numericLimits)) return [typed];
     const dense = denseScalarItems(value);
     if (dense) {
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) {
+            diagnostics.elementTypeScans++;
+            diagnostics.elementTypeScannedCells += dense.length;
+        }
         // Stored scalars cannot hide getters, so no descriptor lookup is needed.
         const types = new Set<string>();
         let last: string | undefined;
@@ -31,6 +40,11 @@ export function arrayElementTypes(value: RankArray, numericLimits = false): stri
     }
     const items = materializedArrayItems(value);
     if (!items) return undefined;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) {
+        diagnostics.elementTypeScans++;
+        diagnostics.elementTypeScannedCells += items.length;
+    }
     // Property descriptors avoid invoking getters on host-supplied cells.
     const types = new Set<string>();
     for (let index = 0; index < items.length; index++) {

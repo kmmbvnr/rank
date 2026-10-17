@@ -93,8 +93,9 @@ interface OwnedStorage {
      * `scalarOnly`: kernels that do not read the bits must not see its buffer. */
     validity?: Uint32Array;
     convert?: () => void;
-    /** The revision at which every cell was last found to be a number, or not. */
-    realChecked?: { revision: number; real: boolean };
+    /** Physical scalar kinds, counted on demand and maintained by tracked writes.
+     * This is storage evidence, not a declaration of a binding's domain. */
+    elementKinds?: Map<string, number>;
     shape: readonly number[];
     revision: number;
     birth: number;
@@ -212,23 +213,66 @@ export function denseScalarItems(value: RankArray): ArrayLike<RankValue> | undef
     return storage?.stable && storage.scalarOnly ? storage.items : undefined;
 }
 
+function scalarKind(value: RankValue | undefined): string | undefined {
+    switch (typeof value) {
+        case 'number': return !Number.isFinite(value) && !Number.isNaN(value) ? 'numeric-limit' : 'real';
+        case 'bigint': return 'integer';
+        case 'boolean': return 'boolean';
+        case 'string': return 'text';
+        default: return undefined;
+    }
+}
+
+/** Exact kinds in trusted scalar storage, without forcing a reader or declaring
+ * a semantic type. Same-kind writes keep this proof valid across data revisions. */
+export function storedScalarKinds(value: RankArray): readonly string[] | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.scalarOnly) return undefined;
+    if (!state.elementKinds) {
+        const kinds = new Map<string, number>();
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) {
+            diagnostics.elementTypeScans++;
+            diagnostics.elementTypeScannedCells += state.items.length;
+        }
+        for (let index = 0; index < state.items.length; index++) {
+            if ((index & 4095) === 0) checkpoint('checking scalar storage');
+            const kind = scalarKind(state.items[index]);
+            if (kind === undefined) return undefined;
+            kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
+        }
+        state.elementKinds = kinds;
+    }
+    return [...state.elementKinds.keys()].sort();
+}
+
+function updateScalarKinds(state: OwnedStorage, previous: RankValue | undefined, value: RankValue): void {
+    const kinds = state.elementKinds;
+    if (!kinds) return;
+    const before = scalarKind(previous), after = scalarKind(value);
+    if (before === undefined || after === undefined) {
+        state.elementKinds = undefined;
+        return;
+    }
+    if (before === after) return;
+    const count = kinds.get(before)! - 1;
+    if (count) kinds.set(before, count);
+    else kinds.delete(before);
+    kinds.set(after, (kinds.get(after) ?? 0) + 1);
+}
+
 /**
  * The cells of an array when every one is a real number: a real typed buffer,
- * or stored cells checked once per revision. Real arithmetic on such cells
+ * or stored cells with tracked scalar-kind evidence. Real arithmetic on such cells
  * needs no type dispatch and can write straight into a typed buffer.
  */
 export function realCells(value: RankArray): ArrayLike<number> | undefined {
     const state = ownedStorage.get(value);
     if (!state?.stable || !state.scalarOnly) return undefined;
     if (state.typed) return state.typed instanceof Float64Array ? state.typed : undefined;
-    if (state.realChecked?.revision !== state.revision) {
-        let real = true;
-        for (let index = 0; index < state.items.length; index += 1) {
-            if (typeof state.items[index] !== 'number') { real = false; break; }
-        }
-        state.realChecked = { revision: state.revision, real };
-    }
-    return state.realChecked.real ? state.items as unknown as number[] : undefined;
+    const kinds = storedScalarKinds(value);
+    return kinds?.every(kind => kind === 'real' || kind === 'numeric-limit')
+        ? state.items as unknown as number[] : undefined;
 }
 
 /** The real cells of an array as one Float64Array, or undefined if any cell is
@@ -458,25 +502,44 @@ function createOwned(
         state.resources.invalidate();
         state.scalarOnly = false;
         state.stable = false;
+        state.elementKinds = undefined;
+    };
+    // Non-cell writes (length, new indexes, metadata) cannot update a cell count.
+    const previousCell = (target: RankValue[], key: PropertyKey): RankValue | undefined => {
+        if (!state.elementKinds || typeof key !== 'string') return undefined;
+        const index = Number(key);
+        return Number.isInteger(index) && index >= 0 && index < target.length && String(index) === key
+            ? target[index] : undefined;
     };
     const facadeOf = (target: RankValue[]) => new Proxy(target, {
         set(target, key, value) {
+            const previous = previousCell(target, key);
             const success = Reflect.set(target, key, value, target);
-            if (success) changed(value);
+            if (success) {
+                updateScalarKinds(state, previous, value);
+                changed(value);
+            }
             return success;
         },
         defineProperty(target, key, descriptor) {
+            const previous = previousCell(target, key);
             const success = Reflect.defineProperty(target, key, descriptor);
             if (success) {
                 if ('get' in descriptor || 'set' in descriptor) uncertain();
-                else if ('value' in descriptor) changed(descriptor.value);
+                else if ('value' in descriptor) {
+                    updateScalarKinds(state, previous, descriptor.value);
+                    changed(descriptor.value);
+                }
                 else state.revision = noteMutation(state.birth);
             }
             return success;
         },
         deleteProperty(target, key) {
             const success = Reflect.deleteProperty(target, key);
-            if (success) state.revision = noteMutation(state.birth);
+            if (success) {
+                state.elementKinds = undefined;
+                state.revision = noteMutation(state.birth);
+            }
             return success;
         },
         setPrototypeOf(target, prototype) {
@@ -932,6 +995,7 @@ export function prepareScalarArrayWriter(value: RankValue | undefined, batch = f
             state.revision = noteMutation(state.birth);
             changed = true;
         }
+        updateScalarKinds(state, items[index], item);
         items[index] = item;
     };
 }
