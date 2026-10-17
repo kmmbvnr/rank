@@ -1,0 +1,25 @@
+use testing
+
+test "default input"
+  use "077_primesummations"
+  run
+
+  Answer equal 71
+end
+
+test "statement ways for ten"
+  use "077_primesummations"
+  run
+
+  Ways 10 equal 5
+  Ways 71 greater 5000
+  Ways 70 at most 5000
+end
+
+test "small target"
+  use "077_primesummations"
+  Target = 4
+  run
+
+  Answer equal 10
+end

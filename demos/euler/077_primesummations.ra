@@ -1,0 +1,25 @@
+rem Prime Summations
+rem https://projecteuler.net/problem=77
+rem Find the first value writable as a
+rem sum of primes in more than a target
+rem number of ways
+
+use sequences
+use io
+use cli
+
+option Target integer = 5000
+option Limit integer = 100
+
+rem Coin change over the primes: each
+rem prime extends ways of larger sums.
+Ways = array shape (Limit + 1) fill 0
+Ways 0 = 1
+for P in primes to Limit
+  for N in P to Limit
+    Ways N += Ways (N - P)
+  end
+end
+Over = Ways greater Target
+Answer = Ways first index where Over
+Answer print
