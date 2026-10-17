@@ -1,0 +1,26 @@
+use testing
+
+test "default input"
+  use "068_magic5gon"
+  run
+
+  Answer equal 6531031914842725
+end
+
+test "ring text from the answer"
+  use "068_magic5gon"
+
+  Outer = array 6 10 9 8 7
+  Ring = array 5 3 1 4 2
+  Next = array 3 1 4 2 5
+  Outer Ring Next ring_text equal 6531031914842725
+end
+
+test "ring starts at the least outer node"
+  use "068_magic5gon"
+
+  Outer = array 10 9 8 7 6
+  Ring = array 3 1 4 2 5
+  Next = array 1 4 2 5 3
+  Outer Ring Next ring_text equal 6531031914842725
+end
