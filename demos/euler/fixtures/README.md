@@ -11,3 +11,5 @@
 `0081_matrix.txt` is the unmodified [official input for Path Sum: Two Ways](https://projecteuler.net/resources/documents/0081_matrix.txt): an 80 by 80 matrix, one comma-separated row per line. Problems [82](https://projecteuler.net/problem=82) and [83](https://projecteuler.net/problem=83) use the same matrix.
 
 `0089_roman.txt` is the unmodified [official input for Roman Numerals](https://projecteuler.net/resources/documents/0089_roman.txt): one thousand numerals, one per line. See [Project Euler 89](https://projecteuler.net/problem=89).
+
+`0096_sudoku.txt` is the unmodified [official input for Su Doku](https://projecteuler.net/resources/documents/0096_sudoku.txt): fifty puzzles, each a `Grid NN` line followed by nine rows of nine digits (0 for an empty cell). See [Project Euler 96](https://projecteuler.net/problem=96).

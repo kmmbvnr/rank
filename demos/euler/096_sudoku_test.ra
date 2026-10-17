@@ -1,0 +1,37 @@
+use testing
+
+test "default input"
+  use "096_sudoku"
+  run
+
+  Answer equal 24702
+end
+
+test "statement puzzle"
+  use "096_sudoku"
+  run
+
+  Solved = Grids 0 sudoku
+  Solved take 3 corner equal 483
+end
+
+test "solution is a valid grid with the clues"
+  use "096_sudoku"
+  run
+
+  Start = Grids 0
+  Solved = Grids 0 sudoku
+  Board = Solved reshape 9 9
+  ((Board sum axis 1) equal 45) all
+  ((Board sum axis 0) equal 45) all
+  ((Start equal 0) or (Solved equal Start)) all
+end
+
+test "solved grid is unchanged"
+  use "096_sudoku"
+  run
+
+  Solved = Grids 0 sudoku
+  Again = Solved sudoku
+  (Again equal Solved) all
+end
