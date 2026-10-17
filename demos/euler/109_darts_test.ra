@@ -1,0 +1,28 @@
+use testing
+
+test "default input"
+  use "109_darts"
+  run
+
+  Answer equal 38182
+end
+
+test "smaller limits"
+  use "109_darts"
+  Limit = 7
+  run
+
+  Answer equal 22
+  Limit = 8
+  run
+
+  Answer equal 34
+end
+
+test "ways to check out with six"
+  use "109_darts"
+  Limit = 7
+  run
+
+  Direct count equal 3
+end
