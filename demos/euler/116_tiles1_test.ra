@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "116_tiles1"
+  run
+
+  Answer equal 20492570929
+end
+
+test "statement row of five"
+  use "116_tiles1"
+  Size = 5
+  run
+
+  Answer equal 12
+end
+
+test "row too short for any tile"
+  use "116_tiles1"
+  Size = 1
+  run
+
+  Answer equal 0
+end

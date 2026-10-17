@@ -1,0 +1,39 @@
+rem Counting Block Combinations II
+rem https://projecteuler.net/problem=115
+rem Find the least row length where the
+rem fill count with red blocks of a
+rem minimum length first exceeds a
+rem target
+
+use numbers
+use sequences
+use io
+use cli
+
+option Min integer = 50
+option Target integer = 1000000
+option Size integer = 200
+
+rem The closed form of problem 114 over
+rem all row lengths N at once.
+Most = Size // Min
+Cols = Size + 1
+N = (0 to Size array) reshape Cols 1 1
+K = (1 to Most array) reshape 1 Most 1
+R = (0 to Size array) reshape 1 1 Cols
+Gaps = N - R + 1
+Fits = R at least K * Min
+Fits and= Gaps at least K
+Cuts = R - K * (Min - 1) - 1
+Top = Fits choose Cuts K
+Low = Fits choose (K - 1) K
+Place = Fits choose Gaps K
+Split = Top Low binomial
+Spots = Place K binomial
+Ways = Fits choose (Split * Spots) 0
+Count = Ways sum axis 2
+Fills = Count sum axis 1
+Rows = Fills + 1
+Over = Rows greater Target
+Answer = Rows first index where Over
+Answer print

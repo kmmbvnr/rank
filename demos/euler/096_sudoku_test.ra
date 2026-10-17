@@ -1,38 +1,35 @@
 use testing
-use sequences
 
 test "default input"
   use "096_sudoku"
+  use sequences
   run
 
   Answer equal 24702
 end
 
-test "statement puzzle"
+test "last solved grid is valid"
   use "096_sudoku"
+  use sequences
   run
 
-  Solved = Grids 0 sudoku
-  Solved take 3 corner equal 483
-end
-
-test "solution is a valid grid with the clues"
-  use "096_sudoku"
-  run
-
-  Start = Grids 0
-  Solved = Grids 0 sudoku
-  Board = Solved reshape 9 9
+  Start = Grids 49
+  Board = Grid reshape 9 9
   ((Board sum axis 1) equal 45) all
   ((Board sum axis 0) equal 45) all
-  ((Start equal 0) or (Solved equal Start)) all
+  ((Start equal 0) or (Grid equal Start)) all
 end
 
-test "solved grid is unchanged"
+test "first puzzle is solved to 483"
   use "096_sudoku"
+  use io
+  use sequences
+  Puzzle = "Grid 01\n003020600\n900305001\n001806400\n008102900\n700000008\n006708200\n002609500\n800203009\n005010300\n"
+  Puzzle "/tmp/euler096.txt" write
+  Input = "/tmp/euler096.txt"
   run
 
-  Solved = Grids 0 sudoku
-  Again = Solved sudoku
-  (Again equal Solved) all
+  Answer equal 483
+  Grid 0 equal 4
+  Grid sum equal 405
 end

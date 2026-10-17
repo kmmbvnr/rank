@@ -9,14 +9,24 @@ end
 
 test "statement pair"
   use "098_anagramsquares"
+  use io
+  Input = "/tmp/euler098.txt"
+  "\"CARE\",\"RACE\"" "/tmp/euler098.txt" write
+  run
 
-  "CARE" "RACE" pair_best equal 9216
-  "BOARD" "BROAD" pair_best equal 18769
+  Answer equal 9216
+  "\"BOARD\",\"BROAD\",\"APPLE\"" "/tmp/euler098.txt" write
+  run
+
+  Answer equal 18769
 end
 
 test "pairs without square mapping"
   use "098_anagramsquares"
+  use io
+  Input = "/tmp/euler098.txt"
+  "\"ACT\",\"CAT\",\"TO\",\"OT\"" "/tmp/euler098.txt" write
+  run
 
-  "ACT" "CAT" pair_best equal 0
-  "TO" "OT" pair_best equal 0
+  Answer equal 0
 end

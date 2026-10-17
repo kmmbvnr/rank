@@ -13,14 +13,14 @@ test "statement example up to 7"
   run
 
   Answer equal 5
+  Best equal 9
 end
 
-test "least solutions"
+test "least solution of 61"
   use "066_diophantine"
+  Limit = 61
+  run
 
-  2 pell equal 3
-  3 pell equal 2
-  5 pell equal 9
-  61 pell equal 1766319049
-  4 pell equal 0
+  Best equal 1766319049
+  Answer equal 61
 end

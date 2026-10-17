@@ -1,0 +1,74 @@
+rem Special Subset Sums: Optimum
+rem https://projecteuler.net/problem=103
+rem Find the optimum special sum set for
+rem n = 7, printed as joined digits
+
+use bits
+use sequences
+use text
+use io
+use cli
+
+option Size integer = 7
+
+rem Branch and bound under the
+rem near-optimum seed: {20} plus 20
+rem added to the n = 6 optimum. Set
+rem holds the element tried at each
+rem depth; Reach has bit s set for each
+rem subset sum s of the elements above,
+rem so x clashes if two sums differ by
+rem x.
+Six = array 11 18 19 20 22 25
+Seed = concat (array 20) (Six + 20)
+Best = Seed sum
+Found = Seed copy
+Set = array shape Size fill 0
+Reach = array shape Size fill 0
+Reach 0 = 1
+Total = array shape Size fill 0
+Depth = 0
+for Depth greater -1
+  X = Set Depth + 1
+  Cap = Best
+  if Depth at least 2
+    Cap = Set 0 + Set 1
+  end
+  Rest = Size - Depth
+  Extra = Rest * (Rest - 1) // 2
+  Least = Total Depth + Rest * X + Extra
+  Done = X at least Cap
+  Done or= Least at least Best
+  if Done
+    Depth -= 1
+    continue
+  end
+  Set Depth = X
+  Mine = Reach Depth
+  Both = (Mine X shr) Mine band
+  if Both not equal 0
+    continue
+  end
+  Sum = Total Depth + X
+  if Depth equal Size - 1
+    Half = (Size - 1) // 2
+    Ks = 1 to Half array
+    Small = (Set scan +) Ks
+    Back = Set reverse
+    Big = (Back scan +) (Ks - 1)
+    Ok = (Small greater Big) all
+    if Ok
+      Best = Sum
+      Found = Set copy
+    end
+    continue
+  end
+  Next = Depth + 1
+  Reach Next = Mine (Mine X shl) bor
+  Total Next = Sum
+  Set Next = X
+  Depth = Next
+end
+Digits = Found text rank 0
+Answer = Digits "" join
+Answer print

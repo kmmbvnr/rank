@@ -1,0 +1,46 @@
+rem Bouncy Numbers
+rem https://projecteuler.net/problem=112
+rem Find the least number where the
+rem bouncy proportion first reaches a
+rem percentage
+
+use algo
+use linalg
+use sequences
+use io
+use cli
+
+option Percent integer = 99
+option Digits integer = 7
+
+rem List the non-bouncy numbers: their
+rem digits are a multiset in rising or
+rem falling order. A rising number pads
+rem with leading zeros, a falling one
+rem with blanks (10) that count as zero.
+rem With k of them up to n, a bouncy
+rem share of P percent means n = k * 100
+rem / (100 - P).
+Up = 0 to 9 array
+Down = 10 to 0 by -1 array
+Place = 0 till Digits array
+Weight = 10 ** (Digits - 1 - Place)
+Rise = Up Digits multicomb copy
+Blank = Down Digits multicomb copy
+Fall = Blank mod 10
+Ups = Rise Weight matmul
+Downs = Fall Weight matmul
+Found = concat Ups Downs
+Uniq = Found unique
+Plain = Uniq filter greater 0 array
+Sorted = Plain sort
+Count = Sorted len
+Ks = 1 to Count array
+Goal = Ks * (100 // (100 - Percent))
+Top = Goal max
+Tail = Sorted drop 1
+Next = concat Tail (array Top)
+Hit = Sorted at most Goal
+Hit and= Goal less Next
+Answer = (Goal Hit) first
+Answer print

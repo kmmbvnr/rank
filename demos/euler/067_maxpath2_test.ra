@@ -2,6 +2,7 @@ use testing
 
 test "default input"
   use "067_maxpath2"
+  use io
   run
 
   Answer equal 7273
@@ -9,13 +10,21 @@ end
 
 test "statement triangle"
   use "067_maxpath2"
+  use io
+  Text = "3\n7 4\n2 4 6\n8 5 9 3\n"
+  Text "/tmp/euler067.txt" write
+  Input = "/tmp/euler067.txt"
+  run
 
-  Rows = array "3" "7 4" "2 4 6" "8 5 9 3"
-  Rows best_path equal 23
+  Answer equal 23
 end
 
 test "single row"
   use "067_maxpath2"
+  use io
+  "42\n" "/tmp/euler067.txt" write
+  Input = "/tmp/euler067.txt"
+  run
 
-  (array "42") best_path equal 42
+  Answer equal 42
 end

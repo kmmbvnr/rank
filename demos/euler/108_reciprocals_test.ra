@@ -1,0 +1,32 @@
+use testing
+
+test "default input"
+  use "108_reciprocals"
+  run
+
+  Answer equal 180180
+end
+
+test "small targets"
+  use "108_reciprocals"
+  Target = 3
+  run
+
+  Answer equal 6
+  Target = 10
+  run
+
+  Answer equal 24
+  Target = 100
+  run
+
+  Answer equal 1260
+end
+
+test "least targets"
+  use "108_reciprocals"
+  Target = 1
+  run
+
+  Answer equal 2
+end

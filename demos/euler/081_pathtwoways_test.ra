@@ -9,14 +9,25 @@ end
 
 test "statement matrix"
   use "081_pathtwoways"
+  use io
+  Grid = "131,673,234,103,18\n201,96,342,965,150\n630,803,746,422,111\n537,699,497,121,956\n805,732,524,37,331\n"
+  Grid "/tmp/euler081.txt" write
+  Input = "/tmp/euler081.txt"
+  run
 
-  Rows = array "131,673,234,103,18" "201,96,342,965,150" "630,803,746,422,111" "537,699,497,121,956" "805,732,524,37,331"
-  Rows two_ways equal 2427
+  Answer equal 2427
 end
 
 test "single cell and single row"
   use "081_pathtwoways"
+  use io
+  "7\n" "/tmp/euler081.txt" write
+  Input = "/tmp/euler081.txt"
+  run
 
-  (array "7") two_ways equal 7
-  (array "1,2,3") two_ways equal 6
+  Answer equal 7
+  "1,2,3\n" "/tmp/euler081.txt" write
+  run
+
+  Answer equal 6
 end

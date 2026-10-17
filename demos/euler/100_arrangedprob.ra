@@ -3,20 +3,26 @@ rem https://projecteuler.net/problem=100
 rem Blue discs for the first total above
 rem a limit with chance 1/2 of two blue
 
+use numbers
+use sequences
 use io
 use cli
 
 option Limit integer = 1000000000000
 
-rem 2 b (b - 1) = n (n - 1) is a Pell
-rem equation: each solution (b, n) maps
-rem linearly to the next one.
-Blue = 3
-All = 4
-for All at most Limit
-  Next = 3 * Blue + 2 * All - 2
-  All = 4 * Blue + 3 * All - 3
-  Blue = Next
-end
-Answer = Blue
+rem 2 b (b - 1) = n (n - 1) becomes the
+rem Pell equation x^2 - 2 y^2 = -1 with
+rem x = 2n - 1 and y = 2b - 1. Its
+rem solutions are the odd powers of 1 +
+rem sqrt 2, taken in reals and rounded.
+Root = 2 sqrt
+Odd = 1 to 61 by 2 array
+Up = (1 + Root) ** Odd
+Down = (1 - Root) ** Odd
+X = (Up + Down) / 2
+Y = (Up - Down) / (Root * 2)
+All = ((X + 1) / 2) 0 round
+Blue = ((Y + 1) / 2) 0 round
+Past = All greater Limit
+Answer = (Blue Past) first integer
 Answer print

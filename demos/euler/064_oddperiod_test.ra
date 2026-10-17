@@ -15,11 +15,14 @@ test "statement example up to 13"
   Answer equal 4
 end
 
-test "periods"
+test "tiny limits"
   use "064_oddperiod"
+  Limit = 2
+  run
 
-  2 period equal 1
-  13 period equal 5
-  23 period equal 4
-  4 period equal 0
+  Answer equal 1
+  Limit = 4
+  run
+
+  Answer equal 1
 end

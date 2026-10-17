@@ -4,31 +4,30 @@ rem Sum perimeters up to a limit of the
 rem triangles with sides a, a, a +- 1
 rem and integral area
 
+use numbers
+use sequences
 use io
 use cli
 
 option Limit integer = 1000000000
 
-rem Pell solutions of x^2 - 3 y^2 = 1:
-rem x runs 2, 7, 26, 97, ... with next =
-rem 4 x - previous. The perimeter is
-rem 2x + 2 if 3 divides 2x + 1, else
-rem 2x - 2.
-Prev = 1
-Cur = 2
-Answer = 0
-for
-  Next = 4 * Cur - Prev
-  Prev = Cur
-  Cur = Next
-  Twice = 2 * Cur
-  Plus = (Twice + 1) mod 3 equal 0
-  Long = Twice + 2
-  Short = Twice - 2
-  Perim = Plus choose Long Short
-  if Perim greater Limit
-    break
-  end
-  Answer += Perim
-end
+rem Pell solutions of x^2 - 3 y^2 = 1
+rem are x = ((2 + sqrt 3)^n + (2 - sqrt
+rem 3)^n) / 2, rounded from reals. The
+rem perimeter is 2x + 2 if 3 divides 2x
+rem + 1, else 2x - 2. Skip the trivial x
+rem = 2.
+Root = 3 sqrt
+Pow = 2 to 40 array
+Up = (2 + Root) ** Pow
+Down = (2 - Root) ** Pow
+Half = (Up + Down) / 2
+X = Half 0 round integer
+Twice = X * 2
+Plus = (Twice + 1) mod 3 equal 0
+Long = Twice + 2
+Short = Twice - 2
+Perim = Plus choose Long Short
+Fits = Perim at most Limit
+Answer = (Perim Fits) sum
 Answer print

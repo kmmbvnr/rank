@@ -9,19 +9,21 @@ end
 
 test "figurate numbers"
   use "061_cyclicfigurate"
+  run
 
-  (3 5 figure) equal 15
-  (4 5 figure) equal 25
-  (5 5 figure) equal 35
-  (6 5 figure) equal 45
-  (7 5 figure) equal 55
-  (8 5 figure) equal 65
+  Grid 0 4 equal 15
+  Grid 1 4 equal 25
+  Grid 2 4 equal 35
+  Grid 3 4 equal 45
+  Grid 4 4 equal 55
+  Grid 5 4 equal 65
 end
 
 test "example cycle from the statement"
   use "061_cyclicfigurate"
-
   run
 
   8128 in Vals
+  8281 in Vals
+  2882 in Vals
 end

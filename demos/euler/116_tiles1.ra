@@ -1,0 +1,26 @@
+rem Red, Green or Blue Tiles
+rem https://projecteuler.net/problem=116
+rem Count the ways to replace grey
+rem squares in a row by tiles of one
+rem colour, using at least one tile
+
+use numbers
+use sequences
+use io
+use cli
+
+option Size integer = 50
+
+rem K tiles of length T can sit in
+rem C(Size - K (T - 1), K) ways. Sum
+rem over K from 1 and over the three
+rem lengths.
+Cnt = Size // 2
+Tiles = (2 to 4 array) reshape 3 1
+Ks = (1 to Cnt array) reshape 1 Cnt
+Pool = Size - Ks * (Tiles - 1)
+Fits = Ks * Tiles at most Size
+Safe = Fits choose Pool Ks
+Ways = Safe Ks binomial
+Answer = (Fits choose Ways 0) sum
+Answer print

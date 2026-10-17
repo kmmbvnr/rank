@@ -1,0 +1,36 @@
+rem Red, Green, and Blue Tiles
+rem https://projecteuler.net/problem=117
+rem Count the ways to tile a row with
+rem grey squares and tiles of length 2,
+rem 3 and 4
+
+use numbers
+use sequences
+use io
+use cli
+
+option Size integer = 50
+
+rem Take b, c, d tiles of lengths 2, 3,
+rem 4; a grey squares fill the rest.
+rem Order the a + b + c + d pieces in
+rem any way: a multinomial, as a product
+rem of binomials.
+HB = Size // 2
+HC = Size // 3
+HD = Size // 4
+B = (0 to HB array) reshape (HB + 1) 1 1
+C = (0 to HC array) reshape 1 (HC + 1) 1
+D = (0 to HD array) reshape 1 1 (HD + 1)
+Grey = Size - B * 2 - C * 3 - D * 4
+Fits = Grey at least 0
+A = Fits choose Grey 0
+Pieces = A + B + C + D
+Rest = B + C + D
+Mix = C + D
+First = Pieces A binomial
+Second = Rest B binomial
+Third = Mix C binomial
+Ways = First * Second * Third
+Answer = (Fits choose Ways 0) sum
+Answer print

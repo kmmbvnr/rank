@@ -1,0 +1,43 @@
+rem Special Subset Sums: Testing
+rem https://projecteuler.net/problem=105
+rem Sum the special sum sets in a file
+
+use bits
+use linalg
+use sequences
+use text
+use io
+use cli
+
+argument Input path = (
+  "demos/euler/fixtures/"
+  + "0105_sets.txt"
+)
+
+rem A set counts when all 2^n subset
+rem sums differ and the k + 1 smallest
+rem outweigh the k largest.
+Answer = 0
+for Line in Input readlines
+  Parts = Line "," split
+  Items = Parts integer sort
+  Size = Items len
+  Count = 2 ** Size
+  Subsets = 0 till Count array
+  Places = 0 till Size array
+  Rows = Subsets reshape Count 1
+  Cols = Places reshape 1 Size
+  Bits = Rows Cols bit integer
+  Sums = Bits Items matmul
+  Half = (Size - 1) // 2
+  Ks = 1 to Half array
+  Small = (Items scan +) Ks
+  Back = Items reverse
+  Big = (Back scan +) (Ks - 1)
+  Apart = Sums unique len equal Count
+  Heavy = (Small greater Big) all
+  if Apart and Heavy
+    Answer += Items sum
+  end
+end
+Answer print

@@ -4,6 +4,8 @@ rem Find the first value writable as a
 rem sum of primes in more than a target
 rem number of ways
 
+use linalg
+use numbers
 use sequences
 use io
 use cli
@@ -11,15 +13,32 @@ use cli
 option Target integer = 5000
 option Limit integer = 100
 
-rem Coin change over the primes: each
-rem prime extends ways of larger sums.
-Ways = array shape (Limit + 1) fill 0
-Ways 0 = 1
-for P in primes to Limit
-  for N in P to Limit
-    Ways N += Ways (N - P)
-  end
-end
+rem Euler transform: n a(n) is the sum
+rem of b(k) a(n - k), where b(k) adds
+rem the distinct primes dividing k.
+rem Solve that lower triangular system
+rem for a(0..Limit).
+Cells = Limit + 1
+Ps = primes to Limit array
+Ids = 0 to Limit array
+Row = Ids reshape Cells 1
+Col = Ids reshape 1 Cells
+Dividing = Row mod Ps equal 0
+Sums = (Dividing choose Ps 0) sum rank 1
+Diff = Row - Col
+Valid = Diff greater 0
+Spot = Valid choose Diff 0
+Size2 = Cells * Cells
+Flat = Spot reshape Size2
+Picked = Sums Flat
+Grid = Picked reshape Cells Cells
+Back = Valid choose Grid 0
+Diag = (Ids greater 0) choose Ids 1
+Eye = Row equal Col choose Diag 0
+Mat = Eye - Back
+Unit = Ids equal 0 choose 1.0 0.0
+Raw = Mat Unit solve
+Ways = Raw 0 round
 Over = Ways greater Target
 Answer = Ways first index where Over
 Answer print

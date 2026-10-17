@@ -37,15 +37,36 @@ Keep = Long at most Limit
 Keep and= Wide at most Twice
 Cs = Long Keep array
 Ss = Wide Keep array
+Reps = Limit // Cs
+Total = Reps sum
+Starts = Reps scan + with 0
+Marks = array shape Total fill 0
+Marks (Starts take (Cs len)) += 1
+Owner = (Marks scan +) - 1
+Each = 0 till Total array
+K = Each - (Starts Owner) + 1
+C = Cs Owner
+Hi = K * (Ss Owner)
+Big = K * C
+Over = (Hi - Big - 1) 0 max
+Val = Hi // 2 - Over
+rem Total the values by side, by
+rem sorting.
+Order = Big argsort
+Side = Big Order
+Part = Val Order
+Pre = Part scan + with 0
+Left = Total - 1
+Back = Side take Left
+Edge = Side drop 1 not equal Back
+Cut = concat (array true) Edge
+Heads = Cut indices
+Rest = Heads drop 1
+Tails = concat Rest (array Total)
+Sums = (Pre Tails) - (Pre Heads)
 Cnt = array shape (Limit + 1) fill 0
-for C i in Cs
-  K = 1 to (Limit // C) array
-  Idx = K * C
-  Hi = K * Ss i
-  Over = (Hi - Idx - 1) 0 max
-  Cnt Idx += Hi // 2 - Over
-end
+Cnt (Side Heads) = Sums
 Run = Cnt scan +
-Big = Run greater Target
-Answer = Run first index where Big
+Over2 = Run greater Target
+Answer = Run first index where Over2
 Answer print

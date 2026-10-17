@@ -3,22 +3,33 @@ rem https://projecteuler.net/problem=62
 rem Smallest cube with exactly five cube
 rem permutations of its digits
 
-use sequences
 use algo
+use sequences
 use io
 use cli
 
 option Perms integer = 5
 
+rem Sort cubes by their sorted digits: a
+rem run of equal keys is one anagram
+rem class.
 Cubes = (1 to 10000) ** 3 array
 Keys = Cubes text rank 0 sort rank 0
-Seen = new counter Keys
-Good = new set
-for Key in Seen
-  if Seen Key equal Perms
-    Good add Key
-  end
-end
-Mask = Keys in Good
-Answer = Cubes Mask first
+Order = Keys argsort
+Sorted = Keys Order
+Size = Sorted len
+Last = Size - 1
+Prev = Sorted take Last
+Next = Sorted drop 1
+Differ = Prev not equal Next
+Cut = concat (array true) Differ
+Starts = Cut indices
+Tail = Starts drop 1
+Ends = concat Tail (array Size)
+Runs = Ends - Starts
+Heads = Sorted Starts
+Good = Heads (Runs equal Perms) array
+Wanted = new set Good
+Mask = Keys in Wanted
+Answer = (Cubes Mask) first
 Answer print

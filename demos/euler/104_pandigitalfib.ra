@@ -1,0 +1,51 @@
+rem Pandigital Fibonacci Ends
+rem https://projecteuler.net/problem=104
+rem Find the first Fibonacci number
+rem whose first and last nine digits are
+rem both pandigital
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 400000
+
+rem Last nine digits by the recurrence
+rem modulo 10^9, with F(1) at index 1.
+Mod = 1000000000
+Tail = array shape (Limit + 1) fill 1
+for N in 3 to Limit
+  Prev = Tail (N - 1)
+  Back = Tail (N - 2)
+  Tail N = (Prev + Back) mod Mod
+end
+Idx = 1 to Limit array
+Tails = Tail Idx
+Nines = Tails mod 9 equal 0
+Near = Idx Nines array
+Ends = Tail Near
+Bases = array shape 9 fill 10
+Want = 1 to 9 array
+EDs = Ends Bases digits
+ESort = EDs transpose sort
+Good = (ESort equal Want) all axis 1
+Cands = Near Good array
+
+rem Leading digits come from the
+rem fraction of log10 F(n) = n
+rem log10(phi) - log10(5) / 2.
+Ten = 10 log
+Root = 5 sqrt
+Phi = (1 + Root) / 2
+PhiLog = Phi log / Ten
+Half = 5 log / Ten / 2
+Spin = Cands * PhiLog - Half
+Frac = Spin mod 1
+Pow = 10 ** (Frac + 8)
+Lead = Pow floor
+LDs = Lead Bases digits
+LSort = LDs transpose sort
+Heads = (LSort equal Want) all axis 1
+Answer = (Cands Heads) first
+Answer print

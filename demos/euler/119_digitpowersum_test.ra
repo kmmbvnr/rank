@@ -1,0 +1,28 @@
+use testing
+
+test "default input"
+  use "119_digitpowersum"
+  run
+
+  Answer equal 248155780267521
+end
+
+test "statement terms"
+  use "119_digitpowersum"
+  Nth = 2
+  run
+
+  Answer equal 512
+  Nth = 10
+  run
+
+  Answer equal 614656
+end
+
+test "first term"
+  use "119_digitpowersum"
+  Nth = 1
+  run
+
+  Answer equal 81
+end

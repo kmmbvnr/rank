@@ -19,3 +19,7 @@
 `0099_base_exp.txt` is the unmodified [official input for Largest Exponential](https://projecteuler.net/resources/documents/0099_base_exp.txt): one thousand `base,exponent` pairs, one per line. See [Project Euler 99](https://projecteuler.net/problem=99).
 
 `0102_triangles.txt` is the unmodified [official input for Triangle Containment](https://projecteuler.net/resources/documents/0102_triangles.txt): one thousand triangles, six comma-separated coordinates per line. See [Project Euler 102](https://projecteuler.net/problem=102).
+
+`0105_sets.txt` is the unmodified [official input for Special Subset Sums: Testing](https://projecteuler.net/resources/documents/0105_sets.txt): one hundred sets of seven to twelve positive integers, one set per line. See [Project Euler 105](https://projecteuler.net/problem=105).
+
+`0107_network.txt` is the unmodified [official input for Minimal Network](https://projecteuler.net/resources/documents/0107_network.txt): a 40 by 40 symmetric weight matrix, one comma-separated row per line, with `-` for no link. See [Project Euler 107](https://projecteuler.net/problem=107).

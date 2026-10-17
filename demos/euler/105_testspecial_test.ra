@@ -1,0 +1,32 @@
+use testing
+
+test "default input"
+  use "105_testspecial"
+  run
+
+  Answer equal 73702
+end
+
+test "special sets from the statement"
+  use "105_testspecial"
+  use io
+  Input = "/tmp/euler105.txt"
+  "11,18,19,20,22,25\n" "/tmp/euler105.txt" write
+  run
+
+  Answer equal 115
+  "20,31,38,39,40,42,45\n3,5,6,7\n" "/tmp/euler105.txt" write
+  run
+
+  Answer equal 276
+end
+
+test "sets that are not special"
+  use "105_testspecial"
+  use io
+  Input = "/tmp/euler105.txt"
+  "81,88,75,42,87,84,86,65\n1,2,3,4\n1,2,4,8,16,32,64\n" "/tmp/euler105.txt" write
+  run
+
+  Answer equal 0
+end

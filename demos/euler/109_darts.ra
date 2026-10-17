@@ -1,0 +1,39 @@
+rem Darts
+rem https://projecteuler.net/problem=109
+rem Count the distinct ways to check out
+rem with a score below a limit
+
+use sequences
+use io
+use cli
+
+option Limit integer = 100
+
+rem A checkout ends on a double, after
+rem up to two other darts in any order,
+rem so the earlier pair is unordered.
+Ring = 1 to 20 array
+Singles = concat Ring (array 25)
+Doubles = Singles * 2
+Trebles = Ring * 3
+Any = concat Singles Doubles Trebles
+Size = Any len
+Ways = Doubles len
+Ids = 0 till Size array
+Row = Ids reshape Size 1
+Col = Ids reshape 1 Size
+Order = Row at most Col
+Upper = Order reshape Size Size 1
+Sums = Any Any outer +
+Pair = Sums reshape Size Size 1
+Last = Doubles reshape 1 1 Ways
+Direct = Doubles less Limit
+One = Any Doubles outer +
+Quick = One less Limit
+Total = Pair + Last
+Fits = Total less Limit and Upper
+None = Direct count
+Ones = Quick count
+Twos = Fits count
+Answer = None + Ones + Twos
+Answer print

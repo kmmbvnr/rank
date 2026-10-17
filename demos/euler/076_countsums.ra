@@ -3,6 +3,7 @@ rem https://projecteuler.net/problem=76
 rem Count ways to write N as a sum of at
 rem least two positive integers
 
+use linalg
 use numbers
 use sequences
 use io
@@ -12,7 +13,8 @@ option Total integer = 100
 
 rem Euler pentagonal recurrence: p(n) is
 rem the signed sum of p(n - g) over the
-rem pentagonal numbers g <= n.
+rem pentagonal numbers g <= n. That is a
+rem unit lower triangular system.
 Root = Total isqrt
 K = 1 to Root array
 Odd = K mod 2 * 2 - 1
@@ -23,13 +25,28 @@ Gens = stack Low High transpose
 Gen = Gens reshape Size
 Signs = stack Odd Odd transpose
 Sign = Signs reshape Size
-Ways = array shape (Total + 1) fill 0
-Ways 0 = 1
-for N in 1 to Total
-  Used = (Gen at most N) count
-  Prev = N - (Gen take Used)
-  Terms = Ways Prev * (Sign take Used)
-  Ways N = Terms sum
-end
-Answer = Ways Total - 1
+Fit = Gen at most Total
+Use = Gen Fit array
+Sgn = Sign Fit array
+Cells = Total + 1
+Coef = array shape Cells fill 0
+Coef Use = Sgn
+Ids = 0 to Total array
+Row = Ids reshape Cells 1
+Col = Ids reshape 1 Cells
+Diff = Row - Col
+Valid = Diff at least 0
+Spot = Valid choose Diff 0
+Size2 = Cells * Cells
+Flat = Spot reshape Size2
+Picked = Coef Flat
+Grid = Picked reshape Cells Cells
+Eye = Row equal Col choose 1 0
+Lower = Valid choose Grid 0
+Mat = Eye - Lower
+Unit = Ids equal 0 choose 1.0 0.0
+Ways = Mat Unit solve
+Last = Ways Total
+Whole = Last 0 round integer
+Answer = Whole - 1
 Answer print

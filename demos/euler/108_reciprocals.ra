@@ -1,0 +1,45 @@
+rem Diophantine Reciprocals I
+rem https://projecteuler.net/problem=108
+rem Find the least n for which 1/x + 1/y
+rem = 1/n has more than a target number
+rem of solutions
+
+use sequences
+use io
+use cli
+
+option Target integer = 1000
+
+rem Solutions number (d(n^2) + 1) / 2,
+rem and d(n^2) is the product of 2e + 1
+rem over the prime exponents e of n. The
+rem least n takes the smallest primes
+rem with exponents never increasing.
+rem Grow the candidates one prime at a
+rem time.
+Need = Target * 2 - 1
+Ps = primes take 16 array
+Best = Ps reduce *
+Exp = 1 to 60 array
+Cols = Exp reshape 1 60
+N = array 1
+Cnt = array 1
+Top = array 60
+for P in Ps
+  Rows = N len
+  Big = N (P ** Exp) outer *
+  Level = (N * 0) Exp outer +
+  Cap = Top reshape Rows 1 at least Cols
+  Fit = Cap and Big less Best
+  Next = Cnt (Exp * 2 + 1) outer *
+  Done = Fit and Next greater Need
+  Hits = Big filter Done
+  Pool = concat (array Best) Hits
+  Best = Pool min
+  Keep = Fit and Next at most Need
+  Top = Level filter Keep array
+  N = Big filter Keep array
+  Cnt = Next filter Keep array
+end
+Answer = Best
+Answer print

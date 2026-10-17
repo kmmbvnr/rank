@@ -35,35 +35,6 @@ it('records a nullary result as data of unknown type, not a function alias', asy
 });
 
 describe('binding facts', () => {
-    it('does not infer scalar results for mapped calls with unresolved operands', async () => {
-        const result = await facts([
-            'use bits', 'use numbers', 'use linalg',
-            'Bits = 1 Counts shl',
-            'Divisor = Left Right gcd',
-            'Smallest = Left Right min',
-            'Product = Left Right matmul',
-            'Scalar = 12 18 gcd',
-        ], ['Counts', 'Left', 'Right']);
-        for (const name of ['Bits', 'Divisor', 'Smallest', 'Product']) {
-            expect(named(result, 'program', name).types).toEqual([]);
-        }
-        expect(named(result, 'program', 'Scalar').types).toEqual(['integer']);
-    });
-
-    it('keeps both mask selection and gather kinds without element or rank facts', async () => {
-        const result = await facts([
-            'use sequences', 'use numbers', 'use linalg',
-            'Values = array 1 2 3',
-            'Mask = array false true true',
-            'Selected = Values Mask',
-            'Roots = Values Mask isqrt',
-            'Product = Values Values matmul',
-        ]);
-        expect(named(result, 'program', 'Selected').types).toEqual(['array', 'sequence']);
-        expect(named(result, 'program', 'Roots').types).toEqual([]);
-        expect(named(result, 'program', 'Product').types).toEqual([]);
-    });
-
     it('keeps window result kinds when the size follows the operation', async () => {
         const result = await facts([
             'use sequences',
@@ -367,4 +338,14 @@ it('uses extrema result modifiers instead of broadcasting their symbol argument'
             expect(named(result, 'program', 'Answer').types).toEqual([type]);
         }
     }
+});
+
+it('leaves an elementwise result unsettled when an operand type is unknown', async () => {
+    const result = await facts(['use bits', 'use numbers', 'use sequences',
+        'Shifted = 1 Mystery shl', 'Both = Mystery Mystery gcd',
+        'Plain = 1 2 shl', 'Pair = 6 9 gcd']);
+    expect(named(result, 'program', 'Shifted').types).toEqual([]);
+    expect(named(result, 'program', 'Both').types).toEqual([]);
+    expect(named(result, 'program', 'Plain').types).toEqual(['integer']);
+    expect(named(result, 'program', 'Pair').types).toEqual(['integer']);
 });

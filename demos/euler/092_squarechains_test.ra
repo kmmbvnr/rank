@@ -19,13 +19,10 @@ test "smaller numbers of digits"
   Answer equal 857
 end
 
-test "statement chains"
+test "multiset counts cover all strings"
   use "092_squarechains"
+  run
 
-  Cur = array 44 85 1 89
-  Ends = Cur step repeat 20
-  Ends 0 equal 1
-  Ends 1 not equal 1
-  Ends 2 equal 1
-  Ends 3 not equal 1
+  Mult sum equal 10000000
+  Combs len equal 11440
 end
