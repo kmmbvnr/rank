@@ -1,0 +1,45 @@
+rem Path Sum: Four Ways
+rem https://projecteuler.net/problem=83
+rem Least path sum from top left to
+rem bottom right, moving any direction
+
+use graph
+use numbers
+use sequences
+use text
+use io
+use cli
+
+argument Input path = "demos/euler/fixtures/0081_matrix.txt"
+
+Answer = Input read four_ways
+Answer print
+
+rem Cells are vertices; entering a cell
+rem costs its value, so each edge into a
+rem cell carries that cell's weight.
+fun Src four_ways
+  Commas = Src "\n" "," translate
+  Parts = Commas "," split
+  Count = Parts len - 1
+  Side = Count isqrt
+  Cells = Parts take Count integer
+  Id = 0 till Count array
+  Col = Id mod Side
+  Last = Side - 1
+  Rows = Count - Side
+  Right = Id filter (Col less Last) copy
+  Down = Id filter less Rows copy
+  East = Right + 1
+  South = Down + Side
+  From = concat Right East Down South
+  To = concat East Right South Down
+  Cost = Cells To
+  Edges = stack From To Cost transpose
+  Net = new graph .directed
+  Net add Id
+  Net add Edges
+  Dist = Net 0 dijkstra .distance
+  End = Count - 1
+  return Cells 0 + Dist End
+end

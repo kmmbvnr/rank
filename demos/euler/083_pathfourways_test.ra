@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "083_pathfourways"
+  run
+
+  Answer equal 425185
+end
+
+test "statement matrix"
+  use "083_pathfourways"
+
+  Src = "131,673,234,103,18\n201,96,342,965,150\n630,803,746,422,111\n537,699,497,121,956\n805,732,524,37,331\n"
+  Src four_ways equal 2297
+end
+
+test "single cell and two by two"
+  use "083_pathfourways"
+
+  "5\n" four_ways equal 5
+  "1,9\n1,1\n" four_ways equal 3
+end
