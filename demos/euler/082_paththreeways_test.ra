@@ -1,0 +1,23 @@
+use testing
+
+test "default input"
+  use "082_paththreeways"
+  run
+
+  Answer equal 260324
+end
+
+test "statement matrix"
+  use "082_paththreeways"
+
+  Src = "131,673,234,103,18\n201,96,342,965,150\n630,803,746,422,111\n537,699,497,121,956\n805,732,524,37,331\n"
+  Src three_ways equal 994
+end
+
+test "one column and one row"
+  use "082_paththreeways"
+
+  "5\n" three_ways equal 5
+  "4,1\n2,9\n" three_ways equal 5
+  "9,9\n1,1\n" three_ways equal 2
+end

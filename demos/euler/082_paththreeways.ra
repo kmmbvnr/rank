@@ -1,0 +1,42 @@
+rem Path Sum: Three Ways
+rem https://projecteuler.net/problem=82
+rem Least path sum from the left column
+rem to the right column, moving up, down
+rem or right
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+argument Input path = "demos/euler/fixtures/0081_matrix.txt"
+
+Answer = Input read three_ways
+Answer print
+
+rem Per column: entering at row k and
+rem walking to row r costs a prefix sum
+rem difference; a running minimum picks
+rem the best entry, down then up.
+fun Src three_ways
+  Commas = Src "\n" "," translate
+  Parts = Commas "," split
+  Count = Parts len - 1
+  Side = Count isqrt
+  Cells = Parts take Count integer
+  Grid = Cells reshape Side Side
+  Left = array shape Side fill 0
+  for Col in Grid transpose
+    Down = Col scan +
+    Best = Left - (Down - Col)
+    Dn = Down + (Best scan min)
+    Back = Col reverse
+    Up = Back scan +
+    From = Left reverse
+    Rev = From - (Up - Back)
+    Lift = Up + (Rev scan min)
+    Left = Dn (Lift reverse) min
+  end
+  return Left min
+end
