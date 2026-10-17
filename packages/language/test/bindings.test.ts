@@ -339,3 +339,13 @@ it('uses extrema result modifiers instead of broadcasting their symbol argument'
         }
     }
 });
+
+it('leaves an elementwise result unsettled when an operand type is unknown', async () => {
+    const result = await facts(['use bits', 'use numbers', 'use sequences',
+        'Shifted = 1 Mystery shl', 'Both = Mystery Mystery gcd',
+        'Plain = 1 2 shl', 'Pair = 6 9 gcd']);
+    expect(named(result, 'program', 'Shifted').types).toEqual([]);
+    expect(named(result, 'program', 'Both').types).toEqual([]);
+    expect(named(result, 'program', 'Plain').types).toEqual(['integer']);
+    expect(named(result, 'program', 'Pair').types).toEqual(['integer']);
+});

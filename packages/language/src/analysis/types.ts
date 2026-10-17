@@ -340,6 +340,10 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
                 && (same(source, 'array') || same(right, 'array'))) return ['array'];
             if (operation.dyadicRanks?.[0] === 0 && operation.dyadicRanks[1] === 0
                 && (same(source, 'array') || same(right, 'array'))) return ['array'];
+            // An operand of unknown type may be an array, which the elementwise
+            // operation maps over, so the scalar result is not settled.
+            if (operation.dyadicRanks?.[0] === 0 && operation.dyadicRanks[1] === 0
+                && parts.length === 3 && !(within(source, SCALARS) && within(right, SCALARS))) return UNKNOWN;
             if (operation === findOperation('matmul') && same(source, 'array') && same(right, 'array')) return UNKNOWN;
             if (operation.name === 'missing' && same(right, 'array')) return UNKNOWN;
         }
