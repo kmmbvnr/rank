@@ -13,57 +13,62 @@ option Size integer = 7
 
 rem Branch and bound under the
 rem near-optimum seed: {20} plus 20
-rem added to the n = 6 optimum. Reach
-rem has bit s set for each subset sum s;
-rem an element x clashes if two sums
-rem differ by x.
+rem added to the n = 6 optimum. Set
+rem holds the element tried at each
+rem depth; Reach has bit s set for each
+rem subset sum s of the elements above,
+rem so x clashes if two sums differ by
+rem x.
 Six = array 11 18 19 20 22 25
 Seed = concat (array 20) (Six + 20)
 Best = Seed sum
 Found = Seed copy
 Set = array shape Size fill 0
-Ignore = 0 0 0 1 search
-Digits = Found text rank 0
-Answer = Digits "" join
-Answer print
-
-rem At full depth the set is special
-rem when the k + 1 smallest outweigh the
-rem k largest.
-fun Depth Last Sum Reach search
-  if Depth equal Size
+Reach = array shape Size fill 0
+Reach 0 = 1
+Total = array shape Size fill 0
+Depth = 0
+for Depth greater -1
+  X = Set Depth + 1
+  Cap = Best
+  if Depth at least 2
+    Cap = Set 0 + Set 1
+  end
+  Rest = Size - Depth
+  Extra = Rest * (Rest - 1) // 2
+  Least = Total Depth + Rest * X + Extra
+  Done = X at least Cap
+  Done or= Least at least Best
+  if Done
+    Depth -= 1
+    continue
+  end
+  Set Depth = X
+  Mine = Reach Depth
+  Both = (Mine X shr) Mine band
+  if Both not equal 0
+    continue
+  end
+  Sum = Total Depth + X
+  if Depth equal Size - 1
     Half = (Size - 1) // 2
     Ks = 1 to Half array
     Small = (Set scan +) Ks
     Back = Set reverse
     Big = (Back scan +) (Ks - 1)
     Ok = (Small greater Big) all
-    if Ok and Sum less Best
+    if Ok
       Best = Sum
       Found = Set copy
     end
-    return 0
+    continue
   end
-  Rest = Size - Depth
-  Extra = Rest * (Rest - 1) // 2
-  Cap = Best
-  if Depth at least 2
-    Cap = Set 0 + Set 1
-  end
-  for X in Last + 1 till Cap
-    Least = Sum + Rest * X + Extra
-    if Least at least Best
-      break
-    end
-    Down = Reach X shr
-    Both = Down Reach band
-    if Both equal 0
-      Set Depth = X
-      More = Reach (Reach X shl) bor
-      Next = Depth + 1
-      Total = Sum + X
-      Out = Next X Total More search
-    end
-  end
-  return 0
+  Next = Depth + 1
+  Reach Next = Mine (Mine X shl) bor
+  Total Next = Sum
+  Set Next = X
+  Depth = Next
 end
+Digits = Found text rank 0
+Answer = Digits "" join
+Answer print
