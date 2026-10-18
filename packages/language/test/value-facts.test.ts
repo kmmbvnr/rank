@@ -1807,3 +1807,10 @@ it('does not claim scalar bulk query results after operand facts are invalidated
     const env = new Map<string, ValueFacts>([['Keys', facts('array 10 20 30')], ['Queries', facts('array 20 99 10')]]);
     expect(facts('Keys Queries find', env)).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
 });
+
+
+it('keeps empty and unknown-length present selections sound', () => {
+    const empty: ValueFacts = { types: ['array'], rank: 1, shape: [0], elements: ['real', 'missing'] };
+    expect(facts('P (P present)', new Map([['P', empty]]))).toMatchObject({ types: ['array'], shape: [0], elements: ['real'] });
+    expect(facts('P (P present)', new Map([['P', { ...empty, shape: [null] }]]))).toMatchObject({ types: ['array', 'sequence'], elements: ['real'] });
+});

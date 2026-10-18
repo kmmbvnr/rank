@@ -365,7 +365,9 @@ function transferApplicationFacts(
         if (mask.length === 2 && isNameExpression(mask[0]) && mask[0].name === ranked[0].name
             && isNameExpression(mask[1]) && operationBinding(mask[1].name, lookup) === findOperation('present')
             && source.types.join() === 'array' && source.rank === 1 && source.elements) {
-            return { types: ['sequence'], rank: 1, shape: [null], elements: source.elements.filter(type => type !== 'missing') };
+            const length = source.shape?.[0];
+            return { types: length === 0 ? ['array'] : length != null ? ['sequence'] : ['array', 'sequence'],
+                rank: 1, shape: [length === 0 ? 0 : null], elements: source.elements.filter(type => type !== 'missing') };
         }
     }
 
