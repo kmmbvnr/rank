@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "145_reversible"
+  run
+
+  Answer equal 608720
+end
+
+test "statement value for 1000"
+  use "145_reversible"
+  Digits = 3
+  run
+
+  Answer equal 120
+  Digits = 7
+  run
+
+  Answer equal 68720
+end
