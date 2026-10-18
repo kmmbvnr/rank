@@ -242,8 +242,8 @@ rank-1 array (or a stacked array when every element is an array of one shape),
 in the order `for` visits the container: front to back for queues and deques,
 insertion order for stacks and sets, ascending order for multisets and
 ordered sets. The source is not consumed and later writes to it do not reach
-the copy. An empty container gives shape `0`. A counter or heap has no
-contract order and raises an error. This lets
+the copy. An empty container gives shape `0`. Postfix `array` is not supported
+for counters or heaps and raises an error. This lets
 `Reversed array reverse` turn a queue into a reversed array.
 
 Position disambiguates the three uses of `array`:

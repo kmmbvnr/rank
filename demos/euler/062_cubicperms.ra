@@ -10,26 +10,10 @@ use cli
 
 option Perms integer = 5
 
-rem Sort cubes by their sorted digits: a
-rem run of equal keys is one anagram
-rem class.
+rem Count cubes by their sorted digits.
 Cubes = (1 to 10000) ** 3 array
 Keys = Cubes text rank 0 sort rank 0
-Order = Keys argsort
-Sorted = Keys Order
-Size = Sorted len
-Last = Size - 1
-Prev = Sorted take Last
-Next = Sorted drop 1
-Differ = Prev not equal Next
-Cut = concat (array true) Differ
-Starts = Cut indices
-Tail = Starts drop 1
-Ends = concat Tail (array Size)
-Runs = Ends - Starts
-Heads = Sorted Starts
-Good = Heads (Runs equal Perms) array
-Wanted = new set Good
-Mask = Keys in Wanted
+Seen = new counter Keys
+Mask = Seen Keys equal Perms
 Answer = (Cubes Mask) first
 Answer print

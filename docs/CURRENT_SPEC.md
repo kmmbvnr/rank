@@ -2935,8 +2935,8 @@ rank-1 array (or a stacked array when every element is an array of one shape),
 in the order `for` visits the container: front to back for queues and deques,
 insertion order for stacks and sets, ascending order for multisets and
 ordered sets. The source is not consumed and later writes to it do not reach
-the copy. An empty container gives shape `0`. A counter or heap has no
-contract order and raises an error. This lets
+the copy. An empty container gives shape `0`. Postfix `array` is not supported
+for counters or heaps and raises an error. This lets
 `Reversed array reverse` turn a queue into a reversed array.
 
 Position disambiguates the three uses of `array`:
@@ -4712,7 +4712,14 @@ and `len` returns the number of distinct keys. Scalar and array keys use the
 same equality as `set` elements. Separate and recursive calls receive separate
 counters. `counter` is a first-class value with runtime type `.counter`.
 
-Counter iteration and direct frequency assignment are not defined yet.
+An array query gathers integer frequencies in the query's shape; a finite
+sequence query produces a rank-1 array. Text, scalar, tuple and record queries
+address one key. Use tuple/record keys for single composite-key reads, changing
+both insertion and lookup when migrating array keys.
+
+Counter iteration yields distinct keys in insertion order. Direct frequency
+assignment is not defined. See the
+[counter contract](language/collections.md#counter) for the complete rules.
 
 ## Design rule
 

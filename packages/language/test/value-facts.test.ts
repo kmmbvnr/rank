@@ -825,6 +825,34 @@ it('reads a counter entry as an integer when the key is known', () => {
     expect(facts('Counts type', bindings)).not.toMatchObject({ types: ['integer'] });
 });
 
+it('preserves array query shape for counter gathers without gathering scalar text', () => {
+    const bindings = new Map<string, ValueFacts>([['Counts', { types: ['counter'] }]]);
+    for (const [rank, shape] of [[0, []], [1, [3]], [2, [2, 3]], [2, [0, 3]]] as const) {
+        bindings.set('Keys', { types: ['array'], rank, shape: [...shape], elements: ['text'] });
+        expect(facts('Counts Keys', bindings)).toEqual({ types: ['array'], rank, shape: [...shape],
+            elements: ['integer'], eagerScalarCells: true });
+    }
+    bindings.set('Keys', { types: ['sequence'], rank: 1, shape: [null], elements: ['integer'] });
+    expect(facts('Counts Keys', bindings)).toEqual({ types: ['array'], rank: 1, shape: [null],
+        elements: ['integer'], eagerScalarCells: true });
+    expect(facts('Counts (1 to 3)', bindings)).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
+    expect(facts('Counts "ab"', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('Counts (tuple 2 3)', bindings)).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    bindings.set('Keys', { types: ['array', 'text'] });
+    expect(facts('Counts Keys', bindings)).toEqual({ types: [] });
+});
+
+it('retains symbolic dimensions in counter query results', async () => {
+    const { variableDim } = await import('../src/analysis/shape-index.js');
+    const dim = variableDim('keys');
+    for (const type of ['array', 'sequence']) {
+        const bindings = new Map<string, ValueFacts>([['Counts', { types: ['counter'] }],
+            ['Keys', { types: [type], rank: 1, shape: [null], dims: [dim] }]]);
+        expect(facts('Counts Keys', bindings)).toMatchObject({ types: ['array'], rank: 1,
+            shape: [null], dims: [dim], elements: ['integer'] });
+    }
+});
+
 it('proves eager cells for known atom array literals', () => {
     expect(facts('array true false').eagerScalarCells).toBe(true);
     expect(facts('array shape 2 2\n 1 2\n 3 4\nend').eagerScalarCells).toBe(true);

@@ -5,7 +5,11 @@ import { RankMultiset } from './multiset.js';
 import { dsuFrom } from './dsu.js';
 import { setValueKey } from './set.js';
 import { trackKeyedCollection } from './interrupt.js';
-import { checkCollectionElementType, isRankCounter, isRankMultiset, isRankSet, type RankCounterEntry, type RankValue } from './value.js';
+import { checkCollectionElementType, isRankCounter, isRankMultiset, isRankSet, type RankCounter, type RankCounterEntry, type RankValue } from './value.js';
+
+export function counterFrequency(counter: RankCounter, key: RankValue): bigint {
+    return counter.entries.get(setValueKey(key))?.count ?? 0n;
+}
 
 export function newStructure(name: string): RankValue {
     switch (name) {

@@ -1,6 +1,7 @@
 import { indexedSource } from './indexed-source.js';
 import { denseScalarItems, noteArrayBinding, ownedArray, readArrayItem } from './array-storage.js';
 import { RankDeque } from './containers.js';
+import { counterFrequency } from './collections.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexKey } from './index-key.js';
 import { checkpoint } from './interrupt.js';
@@ -16,7 +17,6 @@ import {
     tensorSelection,
 } from './selectors.js';
 import { atSequence, filterSequence, isPositionalMask, positionalSelection, sequence } from './sequence.js';
-import { setValueKey } from './set.js';
 import { applyTable, canApplyTable } from './table-access.js';
 import { sameShape } from './tensor-index.js';
 import {
@@ -216,7 +216,25 @@ export function applySelectors(values: RankValue[], missing?: () => RankValue): 
         return value;
     }
     if (isRankCounter(values[0]) && values.length === 2) {
-        return values[0].entries.get(setValueKey(values[1]))?.count ?? 0n;
+        const [counter, keys] = values;
+        if (isRankArray(keys)) {
+            return ownedArray(Array.from({ length: arraySize(keys.shape) }, (_, index) => {
+                checkpoint('gathering counter frequencies');
+                return counterFrequency(counter, readArrayItem(keys, index));
+            }), keys.shape);
+        }
+        if (isRankSequence(keys)) {
+            if (keys.plan.size.kind === 'infinite') {
+                throw new RankError('a counter cannot be gathered by an infinite sequence');
+            }
+            const counts: RankValue[] = [];
+            for (const key of keys.plan.iterate()) {
+                checkpoint('gathering counter frequencies');
+                counts.push(counterFrequency(counter, key));
+            }
+            return ownedArray(counts);
+        }
+        return counterFrequency(counter, keys);
     }
     if (isRankFenwick(values[0]) && values.length === 2
         && typeof values[1] === 'bigint') {
