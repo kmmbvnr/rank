@@ -10,7 +10,7 @@ import {
     flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
-    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledExpression,
+    type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledExpression, type Operation,
 } from '@arrrank/language';
 import { completed, type Completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -278,6 +278,45 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
         }
         return { code: name, type: node.type };
     }
+    /** Lower an audited catalogue call. Argument reads remain in source order;
+     * runtime binding still checks the module and current builtin on every entry. */
+    function emitBuiltinCall(operation: Operation, operands: readonly Expression[], lines: string[]): Term | undefined {
+        const signature = operation.compiledCall!;
+        const arguments_: string[] = [];
+        const types: string[] = [];
+        let firstType: Term['type'] | undefined;
+        for (const [index, input] of signature.inputs.entries()) {
+            let part = operands[index];
+            while (isParenthesizedExpression(part)) part = part.value;
+            if (input === 'text-array') {
+                if (!host.textArrayLoops || !isNameExpression(part) || part.name.includes('.')) return undefined;
+                const previous = arrays.get(part.name);
+                if (previous && (previous.rank !== 1 || previous.type !== 'text')
+                    || localTypes.has(part.name)) return undefined;
+                const info = previous ?? { slot: slot(part.name), rank: 1, type: 'text' as const };
+                arrays.set(part.name, info);
+                if (!assigned.has(part.name)) arrayInputs.add(part.name);
+                arguments_.push(`r${info.slot}`);
+                types.push('text-array');
+                continue;
+            }
+            const expected = input === 'text-or-array' ? 'text' : input === 'same' ? firstType
+                : input === 'text-or-bytes' ? knownType(part) ?? (isNameExpression(part) ? 'text' : undefined) : input;
+            const value = emit(operands[index], lines, expected);
+            if (!value || expected && value.type !== expected
+                || input === 'text-or-bytes' && !['text', 'bytes'].includes(value.type)) return undefined;
+            firstType ??= value.type;
+            arguments_.push(value.code);
+            types.push(value.type);
+        }
+        const name = `v${serial++}`, index = calls.length;
+        // Catalogue compiled calls are synchronous operations with
+        // no Rank callbacks; bind() checks the current builtin.
+        calls.push({ name: operation.name, locals: [], stableArrayReads: true,
+            bind: host.prepareBuiltinCall(operation.module, operation.name, types) });
+        lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
+        return { code: name, type: signature.result };
+    }
     function emitInput(e: Expression, lines: string[], hint?: Term['type'], tail = false): Term | undefined {
         if (serial > 256) return undefined;
         if (isNameExpression(e) && !e.name.includes('.')) {
@@ -357,43 +396,13 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
             if (last && isNameExpression(last) && !last.name.includes('.')) {
                 const operation = host.nativeCalls ? findOperation(last.name) : undefined;
                 const signature = operation?.compiledCall;
-                if (signature && signature.inputs.length === parts.length - 1) {
-                    const arguments_: string[] = [];
-                    const types: string[] = [];
-                    let firstType: Term['type'] | undefined;
-                    for (const [index, input] of signature.inputs.entries()) {
-                        let part = parts[index];
-                        while (isParenthesizedExpression(part)) part = part.value;
-                        if (input === 'text-array') {
-                            if (!host.textArrayLoops || !isNameExpression(part) || part.name.includes('.')) return undefined;
-                            const previous = arrays.get(part.name);
-                            if (previous && (previous.rank !== 1 || previous.type !== 'text')
-                                || localTypes.has(part.name)) return undefined;
-                            const info = previous ?? { slot: slot(part.name), rank: 1, type: 'text' as const };
-                            arrays.set(part.name, info);
-                            if (!assigned.has(part.name)) arrayInputs.add(part.name);
-                            arguments_.push(`r${info.slot}`);
-                            types.push('text-array');
-                            continue;
-                        }
-                        const expected = input === 'text-or-array' ? 'text' : input === 'same' ? firstType
-                            : input === 'text-or-bytes' ? knownType(part) ?? (isNameExpression(part) ? 'text' : undefined) : input;
-                        const value = emit(parts[index], lines, expected);
-                        if (!value || expected && value.type !== expected
-                            || input === 'text-or-bytes' && !['text', 'bytes'].includes(value.type)) return undefined;
-                        firstType ??= value.type;
-                        arguments_.push(value.code);
-                        types.push(value.type);
-                    }
-                    const name = `v${serial++}`, index = calls.length;
-                    // Catalogue compiled calls are synchronous operations with
-                    // no Rank callbacks; bind() checks the current builtin.
-                    calls.push({ name: last.name, locals: [], stableArrayReads: true,
-                        bind: host.prepareBuiltinCall(operation.module, last.name, types) });
-                    lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
-                    return { code: name, type: signature.result };
-                }
                 const prepareCallee = host.scalarFunction(last.name, parts.length - 1);
+                // Prefer a known user function while its namesake module is unopened.
+                // An unresolved name can still bind the builtin after a later import.
+                if (operation && signature && signature.inputs.length === parts.length - 1
+                    && (host.module(operation.module) || !prepareCallee)) {
+                    return emitBuiltinCall(operation, parts.slice(0, -1), lines);
+                }
                 if (prepareCallee) {
                     const arguments_: string[] = [];
                     const types: CompiledCalleeType[] = [];

@@ -41,6 +41,37 @@ The baseline runs the same final demo sources, isolating the runtime change from
 the demo rewrites. Full-process wall time is recorded separately. See the
 [benchmark report](../../benchmarks/slice-writes-results.md) for results and limits.
 
+## Integer number calls in loops
+
+Guarded native-call contracts now include scalar integer `gcd`, `isqrt`, binary
+`lcm`, `powmod` and `binomial`. The loop compiler delegates argument lowering to
+`emitBuiltinCall`; runtime entry still checks the imported module, builtin
+identity and complete scalar signature. These calls reuse the existing native
+implementations, including domain validation, exact BigInt arithmetic and
+interruption checkpoints. A catalogue name without its module open still uses
+the user-function path, so these profiles do not disable compilation of a user
+function named `gcd`. An unresolved native name can still bind after a later
+module import, including a cached loop whose first execution reported a missing
+import. No duplicate numeric algorithms or typed kernels were introduced. Integer `abs` retains its existing guarded lowering.
+
+Unary collection `lcm`, array/ranked operands and unsupported input types keep
+ordinary execution. This does not add real-valued loop registers or make numeric
+calls non-throwing. Short-circuiting and the assignments completed before an error
+remain observable. The numeric contract metadata is shared with scalar-function
+proofs and callback-free effect analysis.
+
+Euler 141 uses `gcd` and `isqrt` while retaining its residue filters. Euler 155 and
+170 use `gcd` in place of hand-written Euclid loops. Euler 127 already uses its
+array-based `gcd` formulation and keeps that algorithm.
+
+Run `node benchmarks/numeric-loop-calls.mjs` after building. It verifies the
+3000 × 3000 coprime count and compares the old/new demo formulations in fresh
+processes. Euler 155 uses Count 15; other demos use their defaults. Each of three
+samples reports parse/execution time separately from full-process time, and an
+additional untimed run records diagnostics. `--baseline=/path/to/out/index.js`
+adds the unmodified-runtime coprime call and unchanged Euler 127 comparisons.
+See the [measurements and raw samples](../../benchmarks/numeric-loop-calls-results.md).
+
 ## Depth-array search loops
 
 Integer loops use the shared native-call contracts for `band`, `bor`, `bxor`,

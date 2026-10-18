@@ -4,6 +4,7 @@ rem Count the distinct capacitances of
 rem circuits of up to Count equal
 rem capacitors
 
+use numbers
 use sequences
 use io
 use cli
@@ -38,14 +39,8 @@ for M in 2 to Count
         D = Store Q mod K
         Num = A * D + B * C
         Den = B * D
-        X = Num
-        Y = Den
-        for Y not equal 0
-          Z = X mod Y
-          X = Y
-          Y = Z
-        end
-        Key = Num // X * K + Den // X
+        G = Num Den gcd
+        Key = Num // G * K + Den // G
         Out Used = Key
         Used += 1
       end

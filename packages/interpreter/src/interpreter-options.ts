@@ -54,7 +54,7 @@ export interface InterpreterOptions {
     readonly directIteration?: boolean;
     /** Carry ordinary loop jumps through blocks without throwing signals. */
     readonly directLoopControl?: boolean;
-    /** Compile guarded synchronous text/byte builtin calls inside loops. */
+    /** Compile guarded synchronous numeric/text/byte builtin calls inside loops. */
     readonly nativeLoopCompilation?: boolean;
     /** Use checked native wrappers even in typed loops when false. */
     readonly typedNativeCalls?: boolean;

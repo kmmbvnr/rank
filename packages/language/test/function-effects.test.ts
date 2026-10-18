@@ -197,7 +197,7 @@ it('summarizes scalar integer number operations only with proven inputs', () => 
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     const unknown: ValueFacts = { types: [] };
     for (const [expression, count] of [['A abs', 1], ['A B gcd', 2], ['A isqrt', 1],
-        ['A B C powmod', 3], ['A binary', 1], ['A B binary', 2], ['A B bit', 2],
+        ['A B C powmod', 3], ['A B lcm', 2], ['A B binomial', 2], ['A binary', 1], ['A B binary', 2], ['A B bit', 2],
         ['A bnot', 1], ['A popcount', 1], ['A B shl', 2], ['A B shr', 2]] as const) {
         const parameters = ['A', 'B', 'C'].slice(0, count);
         const source = `fun helper ${parameters.join(' ')}\n return ${expression}\nend`;

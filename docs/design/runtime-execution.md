@@ -541,6 +541,10 @@ vectors, and `md5`. These calls preserve Unicode rules, errors and interruption
 checks. Byte length and single-integer indexing
 do not materialize a bigint array.
 
+Scalar integer `gcd`, `isqrt`, binary `lcm`, `powmod` and `binomial` use the same
+call contracts. They retain exact arithmetic, domain errors and cooperative
+cancellation. See [numeric loop support and measurements](compiler-progress.md#integer-number-calls-in-loops).
+
 These profiles describe the current compiler-supported subset, not a builtin's
 complete language signature. For example, `bytes` also accepts integer arrays
 at runtime, while this direct-call profile accepts only text and bytes. Do not
