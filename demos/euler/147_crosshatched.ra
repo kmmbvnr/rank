@@ -1,0 +1,46 @@
+rem Rectangles in Cross-hatched Grids
+rem https://projecteuler.net/problem=147
+rem Count the rectangles in all grids
+rem up to Wide by High with both cell
+rem diagonals drawn
+
+use sequences
+use io
+use cli
+
+option Wide integer = 47
+option High integer = 43
+
+rem Upright ones: T(w) T(h) per grid.
+rem Diagonal ones, in half units: from
+rem (X, Y) with X = Y mod 2 and sides
+rem i (1, 1), j (1, -1). X runs 0 to
+rem 2 w - i - j, Y runs j to 2 h - i.
+rem Count both parities of X and Y per
+rem grid; sums factor over w and h.
+W = 1 to Wide array
+H = 1 to High array
+Tw = W * (W + 1) // 2
+Th = H * (H + 1) // 2
+Tws = Tw sum
+Ths = Th sum
+Top = Tws * Ths
+Side = 1 to (2 * Wide) array
+Iv = Side reshape 1 (Side len) 1
+Jv = Side reshape 1 1 (Side len)
+Wc = W reshape (Wide) 1 1
+Hc = H reshape (High) 1 1
+Hx = 2 * Wc - Iv - Jv
+Ex = (Hx // 2 + 1) 0 max
+Ox = ((Hx + 1) // 2) 0 max
+Hy = 2 * Hc - Iv
+Ey = (Hy // 2 - (Jv - 1) // 2) 0 max
+Oy = ((Hy + 1) // 2 - Jv // 2) 0 max
+Sex = Ex sum axis 0
+Sey = Ey sum axis 0
+Sox = Ox sum axis 0
+Soy = Oy sum axis 0
+Diag = Sex * Sey + Sox * Soy
+Cnt = Diag sum
+Answer = Top + Cnt
+Answer print
