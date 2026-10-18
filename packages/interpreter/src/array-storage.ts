@@ -431,6 +431,18 @@ export function ownedArray(
     return createOwned(items, shape, scalarOnly, columnNames);
 }
 
+/** A scalar fill establishes its physical kind once, including for an empty
+ * shape. Nested/missing fills keep the ordinary storage and validity rules. */
+export function filledArray(fill: RankValue, shape: readonly number[]): RankArray {
+    const size = Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n));
+    const items = Array(size).fill(fill) as RankValue[];
+    const kind = scalarKind(fill);
+    if (!kind) return ownedArray(items, shape);
+    const value = createOwned(items, shape, true);
+    ownedStorage.get(value)!.elementKinds = new Map(size ? [[kind, size]] : []);
+    return value;
+}
+
 /**
  * An array of integers or of reals held in one typed buffer, 8 bytes a cell
  * where boxed cells cost several times that. Kernels read the cells in place.

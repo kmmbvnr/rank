@@ -164,3 +164,16 @@ it('can cancel a long bulk commit without replaying it', () => {
         expect(sum).toBeLessThan(10000n);
     } finally { r.dispose(); }
 });
+
+it('establishes scalar-fill type once without scanning repeated cells', () => {
+    const r = new Interpreter();
+    const d = new RuntimeDiagnostics();
+    try {
+        d.run(() => r.execute('A = array shape 10000 fill 0\nA (0 to 9999) += 1'));
+        expect(d.elementTypeScannedCells).toBe(0);
+        expect(r.execute('A sum')).toBe(10000n);
+        expect(() => r.execute('A (0 to 9999) = 1.0')).toThrow('cannot receive');
+        r.execute('Empty = array shape 0 fill 0');
+        expect(() => r.execute('Empty = array 1.0')).toThrow('cannot receive');
+    } finally { r.dispose(); }
+});
