@@ -99,11 +99,11 @@ fun work
 end`);
             expect(runtime.execute('12 helper')).toBe('21');
             expect(runtime.execute('work')).toBe('31');
-            expect(calls).toBe(3);
+            expect(calls).toBe(4);
             runtime.variables.set('reverse', native('replacement', 1, () => { replacements++; return 'changed'; }));
             expect(runtime.execute('12 helper')).toBe('changed');
             expect(runtime.execute('work')).toBe('changed');
-            expect(calls).toBe(3);
+            expect(calls).toBe(4);
             expect(replacements).toBe(3);
         } finally { runtime.dispose(); }
     });

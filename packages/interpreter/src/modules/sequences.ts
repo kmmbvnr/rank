@@ -1,3 +1,4 @@
+import { registerSequenceMembership } from '../sequence-membership.js';
 import { concatArrays } from '../concat-array.js';
 import { orderedSource } from '../ordered-source.js';
 import { collectionSize } from '../collection-size.js';
@@ -910,7 +911,7 @@ function fibonacciSize(
 }
 
 function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
-    return {
+    const plan: SequencePlan = {
         name: 'primes',
         size: boundary ? { kind: 'unknown' } : { kind: 'infinite' },
         iterate: () => primeIterator(boundary, lower),
@@ -936,6 +937,8 @@ function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
             return primePlan(boundary, strongerLower(lower, { limit, inclusive }));
         },
     };
+    registerSequenceMembership(plan);
+    return plan;
 }
 
 // Below 4096^2 trial division by the primes under 4096 is exact and cheaper than

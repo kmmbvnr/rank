@@ -197,6 +197,7 @@ export class FastPaths {
             nativeCalls: this.context.options().nativeLoopCompilation !== false,
             prepareBuiltinCall: (module, name, types) => prepareCompiledBuiltin(this.context, module, name, types),
             scalarFunction: (name, arity) => this.scalarCall(name, arity),
+            sequenceMembership: this.context.options().sequenceMembershipCompilation !== false,
             absolute: this.context.options().absoluteLoopCompilation !== false,
             extrema: this.context.options().extremaLoopCompilation !== false,
             extremeParts: flattenApplication,
@@ -346,7 +347,7 @@ export class FastPaths {
                     stableArrayReads: !proof.containers && !proof.arrayWrites.size,
                 },
                 type: proof.type,
-                locals: [...(captures ? proof.locals : []), ...proof.nativeReads],
+                locals: [...(captures ? proof.locals : []), ...proof.nativeReads, ...proof.dependencies],
                 bind: () => {
                     const current = this.context.bindings.find(name);
                     if (!current || !isNativeFunction(current)) return undefined;
@@ -354,7 +355,7 @@ export class FastPaths {
                     if (active?.statement !== statement || (active.context !== undefined) !== captures
                         || proof.locals.some(local => active.context?.find(local))) return undefined;
                     const compiled = active.owner.prepareScalarCall(statement, active.context, types, true);
-                    if (proof.nativeReads.length && !compiled || compiled?.available && !compiled.available()) return undefined;
+                    if ((proof.nativeReads.length || proof.dependencies.length) && !compiled || compiled?.available && !compiled.available()) return undefined;
                     return (arguments_, tail = false) => {
                         if (tail && active.owner === this.context.functions) {
                             throw new TailCallSignal(active, arguments_,

@@ -102,6 +102,7 @@ export class Interpreter {
             scalarEntryCompilation: false,
             scalarFunctionCompilation: false,
             scalarCallCompilation: false,
+            sequenceMembershipCompilation: false,
             scalarTextCompilation: false,
             textArrayLoopCompilation: false,
             textLoopCompilation: false,
