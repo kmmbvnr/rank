@@ -1,3 +1,4 @@
+import { registerRangePlan } from './range-plan.js';
 import { divideWithRemainder, floorDivide, floorDivideReal, floorRemainder } from './numeric-division.js';
 import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
@@ -570,7 +571,9 @@ function openRange(start: bigint, step: bigint): RankSequence {
 
 function rangeSequence(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {
     const range = buildRange(start, end, inclusive, stride);
-    return { kind: 'sequence', plan: { ...range.plan, at: index => start + index * (stride ?? 1n) } };
+    const result: RankSequence = { kind: 'sequence', plan: { ...range.plan, at: index => start + index * (stride ?? 1n) } };
+    if (result.plan.size.kind === 'exact') registerRangePlan(result.plan, { start, step: stride ?? 1n, count: result.plan.size.value });
+    return result;
 }
 
 function buildRange(start: bigint, end: bigint, inclusive: boolean, stride?: bigint): RankSequence {

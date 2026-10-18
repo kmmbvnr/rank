@@ -12,7 +12,7 @@ import {
     type AddressItem, type ArrayItem, type Expression, type SortField,
 } from '@arrrank/language';
 import { nameMask } from '../array-mask.js';
-import { allValid, createArraySnapshot, derivedArray, isPresentAt, maskedCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
+import { allValid, createArraySnapshot, filledArray, derivedArray, isPresentAt, maskedCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { compileClauseExpression, isBoundCondition, type ClauseExpressionContext } from '../clause-expression.js';
 import { newStructure } from '../collections.js';
@@ -321,7 +321,7 @@ export class ExpressionEvaluator {
                 if (expression.fill !== undefined) {
                     const fill = (yield* resume(expressions.evaluate(expression.fill)));
                     return new ArrayBindingContract('array fill').fill(
-                        ownedArray(Array(Number(size)).fill(fill), shape, typeof fill !== 'object'), fill);
+                        filledArray(fill, shape), fill);
                 }
                 if (BigInt(items.length) !== size) {
                     throw new RankError(
