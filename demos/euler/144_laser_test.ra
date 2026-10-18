@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "144_laser"
+  run
+
+  Answer equal 354
+end
+
+test "wider gap leaves sooner"
+  use "144_laser"
+  Gap = 0.5
+  run
+
+  Answer less 354
+end

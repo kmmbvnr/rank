@@ -1,0 +1,40 @@
+rem Laser Beam Reflections
+rem https://projecteuler.net/problem=144
+rem Count the hits on the ellipse
+rem 4 x^2 + y^2 = 100 before the beam
+rem leaves through the top gap
+
+use io
+use cli
+
+option Gap real = 0.01
+
+rem The beam enters at (0, 10.1) and
+rem first hits (1.4, -9.6). A hit
+rem mirrors the direction about the
+rem normal (4 x, y); the next hit is at
+rem t = -2 (4 x dx + y dy) / (4 dx^2 +
+rem dy^2) along the new direction.
+X = 1.4
+Y = -9.6
+Dx = 1.4
+Dy = -19.7
+Answer = 1
+for
+  Nx = 4 * X
+  Dot = Dx * Nx + Dy * Y
+  Dot = Dot / (Nx * Nx + Y * Y)
+  Dx -= 2 * Dot * Nx
+  Dy -= 2 * Dot * Y
+  T = -2 * (4 * X * Dx + Y * Dy)
+  T = T / (4 * Dx * Dx + Dy * Dy)
+  X += T * Dx
+  Y += T * Dy
+  if Y greater 0 and X at least 0 - Gap
+    if X at most Gap
+      break
+    end
+  end
+  Answer += 1
+end
+Answer print
