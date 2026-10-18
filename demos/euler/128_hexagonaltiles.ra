@@ -1,0 +1,33 @@
+rem Hexagonal Tile Differences
+rem https://projecteuler.net/problem=128
+rem Find the Nth tile of a hexagonal
+rem spiral with three prime differences
+rem to its neighbours
+
+use sequences
+use io
+use cli
+
+option Nth integer = 2000
+
+rem Only the first and last tile of a
+rem ring k can have three: their
+rem neighbour differences are primes
+rem 6k-1, 6k+1, 12k+5 and 6k-1, 6k+5,
+rem 12k-7. Tiles 1 and 2 are special.
+Top = Nth * 50
+K = 2 to Top array
+P1 = (6 * K - 1) in primes
+P1 and= (6 * K + 1) in primes
+P1 and= (12 * K + 5) in primes
+P2 = (6 * K - 1) in primes
+P2 and= (6 * K + 5) in primes
+P2 and= (12 * K - 7) in primes
+First = 3 * K * (K - 1) + 2
+Last = 3 * K * (K + 1) + 1
+Lo = First filter P1 array
+Hi = Last filter P2 array
+Hits = concat Lo Hi sort
+Tiles = concat (array 1 2) Hits
+Answer = Tiles (Nth - 1)
+Answer print
