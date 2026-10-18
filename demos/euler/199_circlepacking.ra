@@ -1,0 +1,37 @@
+rem Iterative Circle Packing
+rem https://projecteuler.net/problem=199
+rem Find the fraction of the unit circle
+rem left uncovered after Steps rounds of
+rem filling the gaps between tangent
+rem circles, to eight decimal places
+
+use numbers
+use sequences
+use io
+use cli
+
+option Steps integer = 10
+
+rem Three equal circles of curvature K
+rem fill the unit circle. Descartes
+rem gives the circle in a gap of three
+rem tangent curvatures a, b, c as
+rem a + b + c + 2 sqrt(ab + bc + ca),
+rem and every new circle opens three
+rem gaps. Areas are taken over pi.
+K = 1 + 2 / 3 ** 0.5
+Out = 0.0 - 1
+A = array Out Out Out K
+B = array K K K K
+C = array K K K K
+Covered = 3 / (K * K)
+for Step in 1 to Steps
+  Near = A * B + B * C + C * A
+  New = A + B + C + 2 * (Near sqrt)
+  Covered += (1 / (New * New)) sum
+  A = concat A B A
+  B = concat B C C
+  C = concat New New New
+end
+Answer = (1 - Covered) 8 round
+Answer print
