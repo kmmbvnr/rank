@@ -51,7 +51,9 @@ Big = K * C
 Over = (Hi - Big - 1) 0 max
 Val = Hi // 2 - Over
 rem Total the values by side, by
-rem sorting.
+rem sorting. Repeated indices in a
+rem slice write keep the last value;
+rem they do not accumulate each hit.
 Order = Big argsort
 Side = Big Order
 Part = Val Order

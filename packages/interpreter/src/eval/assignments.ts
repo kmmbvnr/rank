@@ -1,10 +1,11 @@
+import { checkpoint, inspectionEnabled } from '../interrupt.js';
 import { unpackApplicationItems } from '../value-selection.js';
 import {
     type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
     applicationExpression, flattenApplication, isApplicationExpression, isNameExpression, isNumberLiteral,
     isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
-import { arrayForWrite, readArrayItem } from '../array-storage.js';
+import { arrayForWrite, readArrayItem, writableIntegerCells, writeIntegerSelection } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
 import { pushCollection } from '../containers.js';
 import { RankError } from '../errors.js';
@@ -144,7 +145,8 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             ?? (yield* resume(host.evaluate(statement.value)));
         const operator = statement.operator === '='
             ? undefined : assignmentOperator(statement.operator);
-        let operands: RankValue[];
+        let operands: RankValue[] | undefined;
+        const count = arraySize(selection.shape);
         if (isRankArray(result)) {
             if (!sameShape(selection.shape, result.shape)) {
                 throw new RankError(
@@ -156,9 +158,37 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 { length: arraySize(selection.shape) },
                 (_, index) => readArrayItem(result, index),
             );
-        } else {
-            operands = Array(arraySize(selection.shape)).fill(result) as RankValue[];
         }
+        if (count > 0 && host.options().compilation !== false && !inspectionEnabled()
+            && target.shape.length === 1
+            && (statement.operator === '=' || statement.operator === '+=' || statement.operator === '-=' || statement.operator === '*=')
+            && (typeof result === 'bigint' || operands?.every(value => typeof value === 'bigint'))) {
+            const cells = writableIntegerCells(target);
+            if (cells) {
+                // Every replacement is an integer; the binding owns validation,
+                // independently of the physical storage proof above.
+                host.checkArrayWrite(statement.name, target, [typeof result === 'bigint' ? result : operands![0]]);
+                let values: bigint | readonly bigint[] = typeof result === 'bigint' ? result : operands as bigint[];
+                let operation = statement.operator;
+                if (!selection.unique && operation !== '=') {
+                    // Gather before scatter: repeated addresses all read the
+                    // original destination, and the last replacement wins.
+                    const replacements: bigint[] = [];
+                    for (let i = 0; i < count; i++) {
+                        checkpoint('preparing array write');
+                        const old = cells[selection.offsetAt(i)];
+                        const rhs = typeof values === 'bigint' ? values : values[i];
+                        replacements.push(operation === '+=' ? old + rhs : operation === '-=' ? old - rhs : old * rhs);
+                    }
+                    values = replacements;
+                    operation = '=';
+                }
+                const destination = owned(target) as typeof target;
+                writeIntegerSelection(destination, count, selection.offsetAt, values, operation);
+                return result;
+            }
+        }
+        operands ??= Array(count).fill(result) as RankValue[];
         const replacements = operands.map((operand, index) => operator === undefined
             ? operand
             : host.operators.evaluateBinary(

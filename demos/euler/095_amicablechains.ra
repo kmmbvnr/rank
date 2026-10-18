@@ -21,10 +21,9 @@ Sigma 0 = 0
 Sigma (Limit + 1) = Limit + 1
 Root = Limit isqrt
 for D in 2 to Root
-  for K in D to Limit // D
-    At = D * K
-    Sigma At += D + K
-  end
+  K = D to Limit // D array
+  At = D * K
+  Sigma At += D + K
   Sq = D * D
   Sigma Sq -= D
 end
