@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "125_palindromicsums"
+  run
+
+  Answer equal 2906969179
+end
+
+test "statement value for 1000"
+  use "125_palindromicsums"
+  Limit = 1000
+  run
+
+  Answer equal 4164
+end

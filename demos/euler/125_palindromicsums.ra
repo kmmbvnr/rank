@@ -1,0 +1,31 @@
+rem Palindromic Sums
+rem https://projecteuler.net/problem=125
+rem Sum the palindromes below a limit
+rem that are sums of two or more
+rem consecutive squares
+
+use algo
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 100000000
+
+Seen = new set
+Top = Limit isqrt
+for A in 1 to Top
+  Sum = A * A
+  for B in A + 1 to Top
+    Sum += B * B
+    if Sum at least Limit
+      break
+    end
+    Seen add Sum
+  end
+end
+Cand = Seen array
+Txt = Cand text rank 0
+Pal = Txt equal (Txt reverse rank 0)
+Answer = Cand filter Pal sum
+Answer print
