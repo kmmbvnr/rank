@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "129_repunitdiv"
+  run
+
+  Answer equal 1000023
+end
+
+test "statement value for ten"
+  use "129_repunitdiv"
+  Limit = 10
+  run
+
+  Answer equal 17
+end

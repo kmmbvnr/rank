@@ -1,0 +1,29 @@
+rem Repunit Divisibility
+rem https://projecteuler.net/problem=129
+rem Find the least n coprime to ten
+rem whose shortest repunit multiple has
+rem more than Limit digits
+
+use io
+use cli
+
+option Limit integer = 1000000
+
+rem A(n) <= n, so start above Limit.
+Answer = 0
+for N in Limit + 1 to Limit * 2
+  if N mod 2 equal 0 or N mod 5 equal 0
+    continue
+  end
+  R = 1 mod N
+  K = 1
+  for R not equal 0 and K at most Limit
+    R = (R * 10 + 1) mod N
+    K += 1
+  end
+  if K greater Limit
+    Answer = N
+    break
+  end
+end
+Answer print
