@@ -11,7 +11,7 @@ import { indexKey } from './index-key.js';
 import { ALL_AXIS } from './selectors.js';
 import { checkpoint } from './interrupt.js';
 import { missingBinary } from './missing.js';
-import { mapMaskedArrays } from './masked-kernels.js';
+import { mapMaskedArrays, mapMaskedIntegers } from './masked-kernels.js';
 import { binarySqlite, inSqlite } from './modules/sqlite.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
@@ -726,6 +726,8 @@ function mapBinary(
         const dense = mapBooleanArrays(leftArray, rightArray, name);
         if (dense) return dense;
     }
+    const maskedInteger = mapMaskedIntegers(left, right, name, scalarOperation);
+    if (maskedInteger) return maskedInteger;
     if ((leftArray || rightArray) && REAL_CODES[name] !== undefined) {
         const masked = mapMaskedArrays(left, right, REAL_CODES[name]);
         if (masked) return masked;

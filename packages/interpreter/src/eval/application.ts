@@ -1,3 +1,4 @@
+import { queryDefault } from '../query-default.js';
 import {
     lastArrayUseProofs, applicationExpression as applicationParts, applicationForm, assertNever, flattenApplication, isAllAxisExpression,
     isUnaryExpression, isParenthesizedExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression,
@@ -790,6 +791,10 @@ export class ApplicationEvaluator {
                         : yield* resume(application.apply(argumentParts));
                     if (isRankMultiset(receiverValue)) {
                         context.requireModule('algo', multisetMethod.operation);
+                        if (missing && multisetMethod.operation === 'floor') {
+                            const result = queryDefault('floor', receiverValue, argumentValue);
+                            if (result !== undefined) return result;
+                        }
                         if (isRankArray(argumentValue)) {
                             // Many queries against one structure: the operation's intrinsic ranks
                             // split the queries into scalar cells.
@@ -919,7 +924,7 @@ export class ApplicationEvaluator {
                     const simple = !isNativeFunction(a) && (b === undefined || !isNativeFunction(b))
                         && !(b !== undefined && isRankLabel(b) && hasField(a, b.name));
                     const fn = (binary ? operation : right)();
-                    if (simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
+                    if (!missing && simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
                         context.functions.transferLastUses(fn, arguments_, lastUses);
                         const result = context.rankApplication.applyIntrinsicRank(fn, arguments_);
                         if ('done' in result) {
@@ -973,6 +978,13 @@ export class ApplicationEvaluator {
                 pending,
                 parts => context.select(parts),
             );
+            if (missing && index === values.length - 1 && arguments_.length === 2) {
+                const name = context.builtins.is('sequences', 'find', value) ? 'find'
+                    : context.builtins.is('core', 'choose', value) ? 'choose'
+                    : context.builtins.is('numbers', 'floor', value) || context.builtins.is('algo', 'floor', value) ? 'floor' : undefined;
+                const result = name && queryDefault(name, arguments_[0], arguments_[1]);
+                if (result !== undefined && result !== false) return completed(result);
+            }
             const next = values[index + 1];
             if (arguments_.length === 1 && isNativeFunction(next)
                 && context.builtins.is('sequences', 'unique', value)

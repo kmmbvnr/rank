@@ -1396,6 +1396,10 @@ it('keeps missing cells apart from the numeric type and drops them at default', 
     expect(facts('R and N', env).types).toEqual(['boolean', 'missing']);
     // The numeric kernels' proof does not cover cells that may have no value.
     expect(facts('P + 1.0', env).callbackFreeScalarCells).toBeUndefined();
+    expect(facts('P + 1.0', env).elements).toEqual(['real', 'missing']);
+    expect(facts('P present', env)).toMatchObject({ types: ['array'], elements: ['boolean'], rank: 1, shape: [3] });
+    expect(facts('.NA present')).toMatchObject({ types: ['boolean'], rank: 0, shape: [] });
+    expect(facts('P filter greater 1.0', env).elements).toEqual(['real', 'missing']);
 });
 
 it('lets a name hold .NA before its first value and refuses other changes of type', () => {

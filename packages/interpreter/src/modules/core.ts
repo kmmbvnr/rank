@@ -1,6 +1,6 @@
 import { MissingValueError, RankError } from '../errors.js';
 import { markArrayMask } from '../array-mask.js';
-import { isPresentAt, maskedCells, ownedArray } from '../array-storage.js';
+import { isPresentAt, maskedNumericCells, ownedArray } from '../array-storage.js';
 import { sequenceMask } from '../sequence.js';
 import { ByteArray } from '../bytes.js';
 import { withTypedCalls } from '../typed-native.js';
@@ -61,7 +61,7 @@ export const coreModule: RuntimeModule = {
             return sequenceMask(value, predicate);
         }
         if (!isRankArray(value)) return value !== MISSING;
-        const masked = maskedCells(value);
+        const masked = maskedNumericCells(value);
         if (masked) {
             const size = masked.values.length;
             const bits: boolean[] = new Array(size);

@@ -30,6 +30,30 @@ function compare(source: string) {
 }
 
 describe('whole integer loops', () => {
+    it.each(['array 1 .NA 3', 'array 1.0 .NA 3.0'])('keeps missing cells in compiled-region reads: %s', input => {
+        const zero = input.includes('.0') ? '0.0' : '0';
+        const result = compare(`X = ${input}
+Total = ${zero}
+for I in 0 to 2
+  Total += (X I) default ${zero}
+end
+Total`);
+        expect(result.value).toBe('4');
+    });
+
+    it('preserves missing guards and partial writes with compilation enabled', () => {
+        const result = compare(`X = array true .NA false
+Done = 0
+for I in 0 to 2
+  if X I
+    Done += 1
+  end
+end
+Done`);
+        expect(result).toHaveProperty('error');
+        expect(result.variables).toContainEqual(['Done', '1']);
+    });
+
     it('keeps arithmetic in registers while writing final observable state', () => {
         const result = compare(`I = 0
 Total = 0

@@ -341,6 +341,16 @@ function transferApplicationFacts(
         return { types: ['heap'], ...(values?.elements?.length ? { elements: values.elements } : {}) };
     }
     const ranked = flattenApplication(expression);
+    if (ranked.length === 2 && isNameExpression(ranked[1])
+        && operationBinding(ranked[1].name, lookup) === findOperation('present')) {
+        const source = infer(ranked[0], lookup);
+        if (['array', 'sequence'].includes(source.types.join())) return {
+            types: source.types, elements: ['boolean'], rank: source.rank, shape: source.shape,
+            ...(source.dims ? { dims: source.dims } : {}),
+        };
+        if (source.types.length) return { types: ['boolean'], rank: 0, shape: [] };
+    }
+
     if (ranked.length === 2 && isNewStructureExpression(ranked[0]) && ranked[0].structure === 'dsu') {
         const values = infer(ranked[1], lookup);
         const allowed = ['integer', 'real', 'boolean', 'text', 'symbol'];
