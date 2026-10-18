@@ -445,14 +445,14 @@ it('uses the input declaration type rather than stale runtime or later binding f
 
 
 it('shows builtin signatures at their own boundary in a pipeline', () => {
-    for (const source of [
-        'N = array 1 2 3\nMask = array true false true\nN Mask sum',
-        'N = array 1 2 3\nN reverse sum',
-        'N = array 1 2 3\nN sum print',
-    ]) {
+    for (const [source, signature] of [
+        // A mask returns a sequence; sequence signatures omit array axes.
+        ['N = array 1 2 3\nMask = array true false true\nN Mask sum', /^c<number> → number$/],
+        ['N = array 1 2 3\nN reverse sum', /^c\[(#|3)\]<number> → number$/],
+        ['N = array 1 2 3\nN sum print', /^c\[(#|3)\]<number> → number$/],
+    ] as const) {
         const found = factsAt(source, source.lastIndexOf('sum'))!;
-        expect(found.signature).toContain('→ number');
-        expect(found.signature).toMatch(/^c\[(#|3)\]<number> → number$/);
+        expect(found.signature).toMatch(signature);
         expect(formatNameFacts(found)).not.toContain('· function');
     }
 });
