@@ -1,43 +1,36 @@
-rem Composites with P Repunit
+rem Composites with Prime Repunit
 rem Property
 rem https://projecteuler.net/problem=130
 rem Sum the first composites n, coprime
 rem to ten, whose A(n) divides n - 1
 
+use sequences
 use io
 use cli
 
 option Count integer = 25
+option Top integer = 20000
 
-rem Ps always pass A(n) | n - 1, so
-rem test the few passers for factors.
-Found = 0
-Answer = 0
-N = 5
-for Found less Count
-  N += 2
-  if N mod 5 equal 0
-    continue
-  end
-  R = 1
-  K = 1
-  for R not equal 0
-    R = (R * 10 + 1) mod N
-    K += 1
-  end
-  if (N - 1) mod K equal 0
-    D = 3
-    P = 1
-    for D * D at most N and P equal 1
-      if N mod D equal 0
-        P = 0
-      end
-      D += 2
-    end
-    if P equal 0
-      Found += 1
-      Answer += N
-    end
-  end
+rem A(n) is the order of 10 mod 9 n, so
+rem A(n) | n - 1 means 10^(n-1) = 1 mod
+rem 9 n. Raise 10 to n - 1 for every n
+rem at once by square and multiply.
+N = 7 to Top array
+Free = N mod 5 not equal 0
+Free and= N mod 2 equal 1
+N = N filter Free array
+M = 9 * N
+Base = 10 mod M
+Res = array shape (N len) fill 1
+E = N - 1
+for E max greater 0
+  Bit = E mod 2 equal 1
+  Mul = Res * Base mod M
+  Res = Bit choose Mul Res copy
+  Base = Base * Base mod M copy
+  E = E // 2
 end
+Hit = Res equal 1 and not (N in primes)
+Found = N filter Hit array
+Answer = Found take Count sum
 Answer print
