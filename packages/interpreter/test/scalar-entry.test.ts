@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { withInterrupt } from '../src/interrupt.js';
 import { Interpreter, RankError, isNativeFunction, formatValue, type RankValue } from '../src/index.js';
 
 function compare(source: string, inputs: RankValue[][], expectedCalls: number) {
@@ -116,4 +117,129 @@ end
             expect(results[1]).toEqual(results[0]);
         }
     }
+});
+
+
+describe('ordinary entry for local loops', () => {
+    const concat = `fun A B helper
+  Scale = 10
+  for Scale at most B
+    Scale *= 10
+  end
+  return A * Scale + B
+end`;
+
+    it('executes loop kernels with integer and real specializations', () => {
+        const values = compare(concat, [[13n, 7n], [7n, 13n], [3n, 10n], [1.5, 2n], [0n, 0n]], 5);
+        expect(values.map(value => value.value)).toEqual(['137', '713', '310', '17', '0']);
+    });
+
+    it('preserves errors in a loop and recovers for the next call', () => {
+        compare(`fun X helper
+  Total = 0
+  for I in 0 to 2
+    Total += 10 // (X - I)
+  end
+  return Total
+end`, [[1n], [4n]], 2);
+    });
+
+    it('keeps memo hits outside loop execution', () => {
+        compare(concat.replace('fun ', 'memo '), [[13n, 7n], [13n, 7n], [7n, 13n]], 2);
+    });
+
+    it('keeps writes to argument arrays on the framed path', () => {
+        compare(`fun A helper
+  for I in 0 till 2
+    A I = I
+  end
+  return A 0
+end`, [[{ kind: 'array', shape: [2], items: [9n, 9n] }]], 0);
+    });
+
+    it('keeps local containers on the framed path', () => {
+        compare(`use algo
+fun N helper
+  Values = new stack
+  for I in 0 till N
+    Values push I
+  end
+  return Values len
+end`, [[0n], [3n]], 0);
+    });
+
+    it('preserves range errors, empty ranges and duplicate parameters', () => {
+        compare(`fun X X Step helper
+  Total = 0
+  for I in 1 to X by Step
+    Total += I
+  end
+  return Total
+end`, [[1n, 3n, 1n], [9n, 0n, 1n], [1n, 3n, 0n]], 3);
+    });
+
+    it('rechecks native bindings before entering a cached loop kernel', () => {
+        let calls = 0;
+        const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => calls++ });
+        try {
+            runtime.execute(`use text
+fun helper
+  Total = 0
+  for I in 1 to 3
+    if "abc" "a" startswith
+      Total += 1
+    end
+  end
+  return Total
+end`);
+            expect(runtime.execute('helper')).toBe(3n);
+            expect(calls).toBe(1);
+            const original = runtime.variables.get('startswith');
+            runtime.execute('fun A B replacement\n return false\nend');
+            runtime.variables.set('startswith', runtime.variables.get('replacement')!);
+            expect(runtime.execute('helper')).toBe(0n);
+            // The replacement may compile, but the guarded helper must fall back.
+            calls = 0;
+            if (original) runtime.variables.set('startswith', original);
+            else runtime.variables.delete('startswith');
+            expect(runtime.execute('helper')).toBe(3n);
+            expect(calls).toBe(1);
+        } finally { runtime.dispose(); }
+    });
+
+    it('disables cached loop entry while inspecting and resumes afterward', () => {
+        let calls = 0;
+        const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => calls++ });
+        try {
+            runtime.execute(concat);
+            const fn = runtime.variables.get('helper');
+            if (!fn || !isNativeFunction(fn)) throw new Error('missing helper');
+            expect(fn.call([13n, 7n])).toBe(137n);
+            const signal = new Int32Array(new SharedArrayBuffer(12));
+            expect(withInterrupt(signal, () => fn.call([13n, 7n]), () => {})).toBe(137n);
+            expect(calls).toBe(1);
+            expect(fn.call([7n, 13n])).toBe(713n);
+            expect(calls).toBe(2);
+        } finally { runtime.dispose(); }
+    });
+
+    it('checks cancellation inside a loop entered through a host call', () => {
+        for (const scalarEntryCompilation of [false, true]) {
+            const runtime = new Interpreter(undefined, { scalarEntryCompilation });
+            try {
+                runtime.execute(`fun N helper
+  for N greater 0
+    N += 1
+  end
+  return N
+end`);
+                const fn = runtime.variables.get('helper');
+                if (!fn || !isNativeFunction(fn)) throw new Error('missing helper');
+                const signal = new Int32Array(new SharedArrayBuffer(4));
+                Atomics.store(signal, 0, 1);
+                expect(() => withInterrupt(signal, () => fn.call([1n]))).toThrow('Interrupted');
+                expect(fn.call([0n])).toBe(0n);
+            } finally { runtime.dispose(); }
+        }
+    });
 });

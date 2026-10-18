@@ -307,9 +307,13 @@ export class FastPaths {
     }
 
     /** A proven scalar body that the selected argument types may enter without a frame. */
-    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[]): { readonly locals: readonly string[] } | undefined {
-        return this.context.options().scalarEntryCompilation !== false && !generator
-            ? scalarFunctionResult(statement, true, types) : undefined;
+    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[]): { readonly locals: readonly string[]; readonly loops: true } | undefined {
+        if (this.context.options().scalarEntryCompilation === false || generator) return undefined;
+        const proof = scalarFunctionResult(statement, true, types, true);
+        // Ordinary entry does not have the ownership proof supplied by a linked
+        // region. Keep mutation and container lifetimes on the framed path.
+        return proof && !proof.containers && !proof.arrayWrites.size
+            ? { locals: proof.locals, loops: true } : undefined;
     }
 
     /** Lets flat combinators run a scalar user function without entering Rank. */

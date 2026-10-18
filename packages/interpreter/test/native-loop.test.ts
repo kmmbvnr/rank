@@ -4,7 +4,7 @@ import { Interpreter, RankError, formatValue, isRankArray, pureHostFunction } fr
 function run(source: string, nativeLoopCompilation: boolean, typedNativeCalls = true) {
     let loops = 0;
     const runtime = new Interpreter(undefined, {
-        nativeLoopCompilation, typedNativeCalls, onIntegerLoopExecuted: () => loops++,
+        scalarEntryCompilation: false, nativeLoopCompilation, typedNativeCalls, onIntegerLoopExecuted: () => loops++,
     });
     try {
         let result: string | undefined, error: string | undefined;
@@ -211,7 +211,7 @@ end`],
 
     it('guards rebound builtins on each invocation of a cached loop', () => {
         let loops = 0;
-        const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => loops++ });
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false, onIntegerLoopExecuted: () => loops++ });
         try {
             runtime.execute(`use text
 fun work
@@ -234,7 +234,7 @@ end`);
 
     it('guards changing text/byte inputs without replaying a body', () => {
         let loops = 0;
-        const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => loops++ });
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false, onIntegerLoopExecuted: () => loops++ });
         try {
             runtime.execute(`use text
 fun S P work

@@ -22,3 +22,16 @@ test "one-digit factors"
 
   Answer equal 9
 end
+
+
+test "numeric palindrome boundaries"
+  use "004_palproduct"
+
+  0 palindrome
+  9 palindrome
+  1221 palindrome
+  12321 palindrome
+  not 10 palindrome
+  not 1231 palindrome
+  not (-11) palindrome
+end

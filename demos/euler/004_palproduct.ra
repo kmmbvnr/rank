@@ -26,6 +26,11 @@ Answer print
 rem Return true when a nonnegative integer
 rem reads the same in both directions.
 fun X palindrome
-  Text = X text
-  return Text equal (Text reverse)
+  Original = X
+  Reversed = 0
+  for X greater 0
+    Reversed = Reversed * 10 + X mod 10
+    X = X // 10
+  end
+  return Original equal Reversed
 end
