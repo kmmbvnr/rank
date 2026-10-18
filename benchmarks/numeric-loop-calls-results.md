@@ -60,14 +60,15 @@ Numeric parity tests cover signed/zero operands, integers beyond Number/Int64,
 root boundaries, invalid arguments, formatted errors and partial assignments,
 short-circuiting, empty loops, function error frames, and interruption inside
 long gcd/powmod/binomial calls. User-defined functions with builtin spellings
-keep compiling when `numbers` is not imported. The existing identity/module
-binding checks remain in place.
+keep compiling when `numbers` is not imported. Cached loops also recover their
+native compilation after a missing-import error followed by `use numbers`.
+The existing identity/module binding checks remain in place.
 
-The module-visibility guard was added after the main timing samples. Generated
-JS and results were checked identical before/after that guard for imported
+The final binding-selection changes followed the main timing samples. Generated
+JS and results were checked identical before/after those changes for imported
 numeric calls and all three rewritten demos at reduced inputs; a final full-size
 coprime timing repeat is [recorded separately](baselines/2026-10-18-numeric-loop-calls-final.jsonl):
-call 1.509 s execute / 1.820 s cold, inline 4.696 s execute / 5.002 s cold
+call 1.565 s execute / 1.892 s cold, inline 4.859 s execute / 5.176 s cold
 (three samples each, same exact result and one compiled outer region).
 Timing is wall-clock and varies
 with machine load. These results do not add real-valued loop support, broaden

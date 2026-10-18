@@ -50,7 +50,9 @@ identity and complete scalar signature. These calls reuse the existing native
 implementations, including domain validation, exact BigInt arithmetic and
 interruption checkpoints. A catalogue name without its module open still uses
 the user-function path, so these profiles do not disable compilation of a user
-function named `gcd`. No duplicate numeric algorithms or typed kernels were introduced. Integer `abs` retains its existing guarded lowering.
+function named `gcd`. An unresolved native name can still bind after a later
+module import, including a cached loop whose first execution reported a missing
+import. No duplicate numeric algorithms or typed kernels were introduced. Integer `abs` retains its existing guarded lowering.
 
 Unary collection `lcm`, array/ranked operands and unsupported input types keep
 ordinary execution. This does not add real-valued loop registers or make numeric

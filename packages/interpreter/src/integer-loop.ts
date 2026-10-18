@@ -393,13 +393,14 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
             const parts = flattenApplication(e), last = parts.at(-1);
             if (last && isNameExpression(last) && !last.name.includes('.')) {
                 const operation = host.nativeCalls ? findOperation(last.name) : undefined;
-                // A catalogue spelling is not a builtin until its module is open.
-                // Otherwise a same-named user function keeps the ordinary callee path.
-                const signature = operation && host.module(operation.module) ? operation.compiledCall : undefined;
-                if (operation && signature && signature.inputs.length === parts.length - 1) {
+                const signature = operation?.compiledCall;
+                const prepareCallee = host.scalarFunction(last.name, parts.length - 1);
+                // Prefer a known user function while its namesake module is unopened.
+                // An unresolved name can still bind the builtin after a later import.
+                if (operation && signature && signature.inputs.length === parts.length - 1
+                    && (host.module(operation.module) || !prepareCallee)) {
                     return emitBuiltinCall(operation, parts.slice(0, -1), lines);
                 }
-                const prepareCallee = host.scalarFunction(last.name, parts.length - 1);
                 if (prepareCallee) {
                     const arguments_: string[] = [];
                     const types: CompiledCalleeType[] = [];

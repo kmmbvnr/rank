@@ -144,6 +144,26 @@ S`);
         expect(result.loops).toBe(1);
     });
 
+    it('binds a cached numeric loop after recovering from a missing import', () => {
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute(`fun helper
+ S = 0
+ for I in 1 to 3
+  S += I 2 gcd
+ end
+ return S
+end`);
+            expect(() => runtime.execute('helper')).toThrow('use numbers');
+            runtime.execute('use numbers');
+            for (let call = 0; call < 2; call++) {
+                expect(diagnostics.run(() => runtime.execute('helper'))).toBe(4n);
+            }
+            expect(diagnostics.compiledLoops).toBe(2);
+        } finally { runtime.dispose(); }
+    });
+
     it('rechecks function inputs across repeated calls and recovers after invalid arguments', () => {
         const runtime = new Interpreter();
         try {
