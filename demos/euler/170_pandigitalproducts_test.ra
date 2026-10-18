@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "170_pandigitalproducts"
+  run
+
+  Answer equal 9857164023
+end
+
+test "one to nine digits"
+  use "170_pandigitalproducts"
+  Low = 1
+  run
+
+  Answer equal 976835214
+end
