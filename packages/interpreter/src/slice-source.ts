@@ -1,5 +1,6 @@
 import { collectionProtocol, type CollectionProtocolFor } from '@arrrank/language';
 import { derivedArray, readArrayItem } from './array-storage.js';
+import { registerScalarView } from './integer-view.js';
 import { checkpoint } from './interrupt.js';
 import { sequence } from './sequence.js';
 import type { RankArray, RankSequence, RankValue, SequenceSize } from './value.js';
@@ -19,8 +20,9 @@ const adapters = {
         const offset = Number(count < BigInt(length) ? count : BigInt(length));
         const cellSize = source.shape.slice(1).reduce((a, b) => a * b, 1);
         const shape = [drop ? length - offset : offset, ...source.shape.slice(1)];
-        return derivedArray(shape, [source], index =>
-            readArrayItem(source, index + (drop ? offset * cellSize : 0)));
+        const position = (index: number) => index + (drop ? offset * cellSize : 0);
+        return registerScalarView(derivedArray(shape, [source], index =>
+            readArrayItem(source, position(index))), source, position, { linear: () => ({ offset: drop ? offset * cellSize : 0, stride: 1 }) });
     } }),
     sequence: (source: RankSequence): SliceSource => ({ slice(count, drop) {
         const name = drop ? 'drop' : 'take';

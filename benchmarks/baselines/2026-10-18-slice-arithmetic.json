@@ -1,0 +1,980 @@
+{
+  "baselineCommit": "7139cd5bca1c1d7f9756cc6b46cf3b420f846025",
+  "timing": "Loop parsing and execution; setup and process startup excluded. Three trials; use medians.",
+  "notes": [
+    "The whole control and slices process slightly different element counts. A distinct whole-array operand control and a strided case are also checked.",
+    "Background CPU load varied during the large run. Compare each size with its controls; do not interpret absolute cross-run changes as a whole-array optimization.",
+    "Diagnostic cases run separately from timings. Output allocation remains necessary; zero computed lazy cells is not a claim of zero allocations."
+  ],
+  "baselineQuick": [
+    {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "storage": "BigInt",
+      "timing": "loop parse and execution; setup and process startup excluded; three trials"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "whole",
+      "ms": 941.5794589999999,
+      "setupMs": 195.011208,
+      "result": "0"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "distinct",
+      "ms": 911.5276670000001,
+      "setupMs": 3.8140410000000884,
+      "result": "6680000"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "ranges",
+      "ms": 3718.6830419999997,
+      "setupMs": 4.200041999999939,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "slices",
+      "ms": 3246.4396669999996,
+      "setupMs": 4.684666000000107,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "strided",
+      "ms": 1740.6377499999999,
+      "setupMs": 4.055500000000393,
+      "result": "10675478606031"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "whole",
+      "ms": 816.7234580000004,
+      "setupMs": 3.1423330000015994,
+      "result": "0"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "distinct",
+      "ms": 936.8546249999999,
+      "setupMs": 3.0568339999990712,
+      "result": "6680000"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "ranges",
+      "ms": 3763.846125,
+      "setupMs": 3.8497090000000753,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "slices",
+      "ms": 3528.840082999999,
+      "setupMs": 2.8483330000017304,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "strided",
+      "ms": 1749.5979589999988,
+      "setupMs": 2.964292000000569,
+      "result": "10675478606031"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "whole",
+      "ms": 833.0792920000022,
+      "setupMs": 3.2795420000002196,
+      "result": "0"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "distinct",
+      "ms": 793.5321250000015,
+      "setupMs": 2.2817080000022543,
+      "result": "6680000"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "ranges",
+      "ms": 3639.4886659999975,
+      "setupMs": 2.7119170000005397,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "slices",
+      "ms": 3496.5258329999997,
+      "setupMs": 2.830416000000696,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "strided",
+      "ms": 1724.492000000002,
+      "setupMs": 3.1352919999990263,
+      "result": "10675478606031"
+    },
+    {
+      "name": "whole",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "distinct",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "ranges",
+      "cellsComputed": 29997,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "slices",
+      "cellsComputed": 29997,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "strided",
+      "cellsComputed": 15000,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    }
+  ],
+  "candidateQuick": [
+    {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "storage": "BigInt",
+      "timing": "loop parse and execution; setup and process startup excluded; three trials"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "whole",
+      "ms": 763.630584,
+      "setupMs": 156.6165,
+      "result": "0"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "distinct",
+      "ms": 820.8444579999998,
+      "setupMs": 13.157459000000017,
+      "result": "6680000"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "ranges",
+      "ms": 1083.027583,
+      "setupMs": 5.192000000000007,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "slices",
+      "ms": 1006.4279999999999,
+      "setupMs": 4.755333999999948,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "strided",
+      "ms": 605.1505830000006,
+      "setupMs": 3.836124999999811,
+      "result": "10675478606031"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "whole",
+      "ms": 953.4485829999994,
+      "setupMs": 9.863207999999759,
+      "result": "0"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "distinct",
+      "ms": 781.5515830000004,
+      "setupMs": 2.6214170000002923,
+      "result": "6680000"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "ranges",
+      "ms": 1030.466042,
+      "setupMs": 2.8820409999998446,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "slices",
+      "ms": 983.5223339999993,
+      "setupMs": 3.0390840000000026,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "strided",
+      "ms": 557.704040999999,
+      "setupMs": 3.2431670000005397,
+      "result": "10675478606031"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "whole",
+      "ms": 780.7509579999987,
+      "setupMs": 3.030957999999373,
+      "result": "0"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "distinct",
+      "ms": 766.1642499999998,
+      "setupMs": 2.7921669999996084,
+      "result": "6680000"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "ranges",
+      "ms": 1003.7033329999995,
+      "setupMs": 3.3186249999998836,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "slices",
+      "ms": 986.6884169999994,
+      "setupMs": 3.0305410000000848,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "strided",
+      "ms": 496.4612500000003,
+      "setupMs": 3.1497920000001614,
+      "result": "10675478606031"
+    },
+    {
+      "name": "whole",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "distinct",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "ranges",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "slices",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "strided",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    }
+  ],
+  "candidateLarge": [
+    {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "timing": "loop parse and execution; setup and process startup excluded; three trials"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "whole",
+      "ms": 1328.4352920000001,
+      "setupMs": 272.86437500000005,
+      "result": "0"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "distinct",
+      "ms": 1325.9161669999999,
+      "setupMs": 6.54058299999997,
+      "result": "6680000"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "ranges",
+      "ms": 1762.5613750000002,
+      "setupMs": 22.40866700000015,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "slices",
+      "ms": 1588.9934169999997,
+      "setupMs": 6.428374999999505,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "strided",
+      "ms": 843.1618750000007,
+      "setupMs": 5.746583000000101,
+      "result": "10675478606031"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "whole",
+      "ms": 1182.2657919999992,
+      "setupMs": 4.158292000000074,
+      "result": "0"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "distinct",
+      "ms": 1221.4210839999996,
+      "setupMs": 4.111249999999927,
+      "result": "6680000"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "ranges",
+      "ms": 1664.4453750000011,
+      "setupMs": 5.007666999999856,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "slices",
+      "ms": 1503.4563749999998,
+      "setupMs": 4.966875000000073,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "strided",
+      "ms": 491.6849170000005,
+      "setupMs": 3.240125000000262,
+      "result": "10675478606031"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "whole",
+      "ms": 674.6057920000003,
+      "setupMs": 2.600958000000901,
+      "result": "0"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "distinct",
+      "ms": 711.2054590000007,
+      "setupMs": 2.78070900000057,
+      "result": "6680000"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "ranges",
+      "ms": 890.259,
+      "setupMs": 2.7932920000002923,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "slices",
+      "ms": 887.3924999999999,
+      "setupMs": 2.7237500000010186,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "strided",
+      "ms": 453.23675000000003,
+      "setupMs": 2.796249999999418,
+      "result": "10675478606031"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 0,
+      "name": "whole",
+      "ms": 5439.304,
+      "setupMs": 9.387666999999055,
+      "result": "0"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 0,
+      "name": "distinct",
+      "ms": 5979.123625,
+      "setupMs": 34.06416700000045,
+      "result": "43778716"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 0,
+      "name": "ranges",
+      "ms": 7271.092042,
+      "setupMs": 7.99462499999936,
+      "result": "953210760580584"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 0,
+      "name": "slices",
+      "ms": 7657.211000000003,
+      "setupMs": 10.752584000001661,
+      "result": "953210760580584"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 0,
+      "name": "strided",
+      "ms": 4179.723540999999,
+      "setupMs": 10.74791600000026,
+      "result": "476605416130663"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 1,
+      "name": "whole",
+      "ms": 5661.563042000002,
+      "setupMs": 8.338833000001614,
+      "result": "0"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 1,
+      "name": "distinct",
+      "ms": 5879.918375000001,
+      "setupMs": 11.09804200000508,
+      "result": "43778716"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 1,
+      "name": "ranges",
+      "ms": 7353.497582999997,
+      "setupMs": 9.703207999998995,
+      "result": "953210760580584"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 1,
+      "name": "slices",
+      "ms": 7125.984083999996,
+      "setupMs": 8.616875000006985,
+      "result": "953210760580584"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 1,
+      "name": "strided",
+      "ms": 3384.2926670000015,
+      "setupMs": 9.567125000001397,
+      "result": "476605416130663"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 2,
+      "name": "whole",
+      "ms": 5148.3949589999975,
+      "setupMs": 8.377207999990787,
+      "result": "0"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 2,
+      "name": "distinct",
+      "ms": 5388.745374999999,
+      "setupMs": 18.76779099999112,
+      "result": "43778716"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 2,
+      "name": "ranges",
+      "ms": 6830.44608400001,
+      "setupMs": 14.37225000000035,
+      "result": "953210760580584"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 2,
+      "name": "slices",
+      "ms": 7261.50224999999,
+      "setupMs": 10.762333000006038,
+      "result": "953210760580584"
+    },
+    {
+      "size": 65537,
+      "iterations": 668,
+      "trial": 2,
+      "name": "strided",
+      "ms": 3726.1190829999978,
+      "setupMs": 8.81524999999965,
+      "result": "476605416130663"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 0,
+      "name": "whole",
+      "ms": 2776.7398329999996,
+      "setupMs": 161.48249999999825,
+      "result": "0"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 0,
+      "name": "distinct",
+      "ms": 3022.3548750000045,
+      "setupMs": 160.51637500000652,
+      "result": "20000000"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 0,
+      "name": "ranges",
+      "ms": 3530.4111249999987,
+      "setupMs": 141.48875000000407,
+      "result": "209997339997130"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 0,
+      "name": "slices",
+      "ms": 3404.663875000013,
+      "setupMs": 144.09387500000594,
+      "result": "209997339997130"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 0,
+      "name": "strided",
+      "ms": 1633.399040999997,
+      "setupMs": 129.39466600000742,
+      "result": "104998664999385"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 1,
+      "name": "whole",
+      "ms": 2543.0675839999894,
+      "setupMs": 146.8157920000085,
+      "result": "0"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 1,
+      "name": "distinct",
+      "ms": 2764.0443749999977,
+      "setupMs": 157.69616700000188,
+      "result": "20000000"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 1,
+      "name": "ranges",
+      "ms": 3367.214208000005,
+      "setupMs": 134.40679200000886,
+      "result": "209997339997130"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 1,
+      "name": "slices",
+      "ms": 3365.944125000009,
+      "setupMs": 136.86629199999152,
+      "result": "209997339997130"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 1,
+      "name": "strided",
+      "ms": 1623.2123750000028,
+      "setupMs": 142.45020799999475,
+      "result": "104998664999385"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 2,
+      "name": "whole",
+      "ms": 2556.4303329999966,
+      "setupMs": 125.81066599997575,
+      "result": "0"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 2,
+      "name": "distinct",
+      "ms": 2779.0594580000034,
+      "setupMs": 136.34500000000116,
+      "result": "20000000"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 2,
+      "name": "ranges",
+      "ms": 3390.957874999993,
+      "setupMs": 134.66566699999385,
+      "result": "209997339997130"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 2,
+      "name": "slices",
+      "ms": 3587.54579199999,
+      "setupMs": 126.01029199999175,
+      "result": "209997339997130"
+    },
+    {
+      "size": 1000000,
+      "iterations": 20,
+      "trial": 2,
+      "name": "strided",
+      "ms": 3515.883166000014,
+      "setupMs": 147.25675000000047,
+      "result": "104998664999385"
+    },
+    {
+      "name": "whole",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "distinct",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "ranges",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "slices",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "strided",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    }
+  ],
+  "candidateReal": [
+    {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "storage": "Float64",
+      "timing": "loop parse and execution; setup and process startup excluded; three trials"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "whole",
+      "ms": 139.88125000000002,
+      "setupMs": 180.443292,
+      "result": "0"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "distinct",
+      "ms": 116.04662499999995,
+      "setupMs": 13.100041000000033,
+      "result": "6680000"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "ranges",
+      "ms": 148.28300000000002,
+      "setupMs": 11.458041999999978,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "slices",
+      "ms": 128.14758400000005,
+      "setupMs": 12.187167000000045,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 0,
+      "name": "strided",
+      "ms": 98.02545799999996,
+      "setupMs": 10.558292000000051,
+      "result": "10675478606031"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "whole",
+      "ms": 119.73804199999995,
+      "setupMs": 14.163292000000183,
+      "result": "0"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "distinct",
+      "ms": 114.76983399999995,
+      "setupMs": 8.923541999999998,
+      "result": "6680000"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "ranges",
+      "ms": 122.11079199999995,
+      "setupMs": 9.771416999999929,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "slices",
+      "ms": 116.90029200000004,
+      "setupMs": 9.76887499999998,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 1,
+      "name": "strided",
+      "ms": 88.5603749999998,
+      "setupMs": 9.326749999999947,
+      "result": "10675478606031"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "whole",
+      "ms": 129.27812500000005,
+      "setupMs": 9.06658399999992,
+      "result": "0"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "distinct",
+      "ms": 169.921875,
+      "setupMs": 15.899999999999864,
+      "result": "6680000"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "ranges",
+      "ms": 179.40587499999992,
+      "setupMs": 12.554834000000028,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "slices",
+      "ms": 154.77545800000007,
+      "setupMs": 12.53012499999977,
+      "result": "21350910537566"
+    },
+    {
+      "size": 10000,
+      "iterations": 668,
+      "trial": 2,
+      "name": "strided",
+      "ms": 123.99716699999999,
+      "setupMs": 9.985583000000133,
+      "result": "10675478606031"
+    },
+    {
+      "name": "whole",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "distinct",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "ranges",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "slices",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    },
+    {
+      "name": "strided",
+      "cellsComputed": 0,
+      "cowCopies": 0,
+      "selectionSnapshotCells": 0
+    }
+  ],
+  "euler125ColdCli": {
+    "answer": "2906969179",
+    "wallMs": [
+      2825.6805409999997,
+      2531.7165000000005,
+      2472.892333
+    ],
+    "medianMs": 2531.7165000000005,
+    "timing": "Fresh Node CLI process, full source parse/setup/execution, output checked each run."
+  }
+}
