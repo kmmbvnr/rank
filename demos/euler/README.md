@@ -15,7 +15,6 @@ sequential (a recurrence, a depth-first search or a union-find).
 | Problem | Why a loop | Array form tried |
 |---|---|---|
 | 141 | 2 x 10^7 candidate squares | not run, ~75 s estimated |
-| 149 | Kadane along 12000 lines | 134 s against 4 s |
 | 150 | 1.7 x 10^8 sub-triangle sums | not run, over 200 s estimated |
 | 186 | union-find over 2.3M calls | sequential |
 | 193 | Moebius sieve to 2^25 | not run, ~50 s estimated |
