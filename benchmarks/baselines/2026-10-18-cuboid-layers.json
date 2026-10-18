@@ -337,5 +337,76 @@
         }
       }
     }
+  ],
+  "finalIntegratedMain": "9b01afa939358faf5275031feadcb0bf71e9c13e",
+  "finalIntegratedCandidate": [
+    {
+      "variant": "corrected bound",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "cuboids": 334886,
+      "values": 3954135,
+      "checksum": "52548758960",
+      "timing": "setup and loop parse/execution separately; startup excluded"
+    },
+    {
+      "trial": 0,
+      "setupMs": 556.872333,
+      "loopMs": 696.8180419999999,
+      "loopCpuMs": 1108.456,
+      "totalMs": 1253.690375
+    },
+    {
+      "trial": 1,
+      "setupMs": 269.5721659999999,
+      "loopMs": 575.5949999999998,
+      "loopCpuMs": 919.332,
+      "totalMs": 845.1671659999997
+    },
+    {
+      "trial": 2,
+      "setupMs": 249.46016699999973,
+      "loopMs": 543.141916,
+      "loopCpuMs": 877.976,
+      "totalMs": 792.6020829999998
+    },
+    {
+      "diagnostics": {
+        "validationRequests": 3777,
+        "dependencyValidations": 14,
+        "cacheHits": 0,
+        "cacheMisses": 3763,
+        "memoHits": 0,
+        "memoMisses": 0,
+        "cellsComputed": 3763,
+        "invalidations": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledTensors": 71,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskPositionReuses": 57,
+        "maskMaterializations": 142,
+        "maskMaterializedCells": 7908270,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:greater": 2,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:too-small": 2,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "tensor:output-shape": 71
+        }
+      }
+    }
   ]
 }

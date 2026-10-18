@@ -826,3 +826,8 @@ were 0.828/0.695/0.631 s; initialization plus loop took 1.484/1.012/0.966 s.
 All layer counts/checksums still matched the independent oracle. The integrated
 Euler 126 tests, including the upstream statement frequencies, passed with a
 10.33 s default-input run. Raw integrated samples are recorded separately.
+
+After also integrating main `9b01afa9` (#322, scalar helper entry), the loop
+remained at 0.697/0.576/0.543 s, with initialization plus loop at
+1.254/0.845/0.793 s. The combined scalar-entry, tensor, mask and cuboid tests
+passed (125 tests); diagnostics still show all 71 fused updates.
