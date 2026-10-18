@@ -44,3 +44,21 @@ node benchmarks/prime-sequences.mjs --baseline=/path/to/old/packages/interpreter
 run. The benchmark checks the candidate count's median execution time against
 1.5 s; performance comparisons should use the same otherwise idle machine.
 Raw samples: [JSONL](baselines/2026-10-18-prime-sequences.jsonl).
+
+## Verification after main integration
+
+Before merging, `main` advanced to `6c0fbbb4` (#327, graph traversal refactor).
+It was integrated in `efddb703`; the runtime source was then rebuilt and the
+focused prime/graph suites passed (145 tests). A fresh three-trial repeat on
+that combined runtime gave:
+
+| Case | Execution | Cold process |
+|---|---:|---:|
+| count-50M | 0.551 | 0.803 |
+| 136-simplified | 1.695 | 1.966 |
+| huge-start | 0.149 | 0.404 |
+
+All answers and the generation target passed again. The four Euler 136 demo
+tests passed after integration. These measurements verify the combined runtime;
+the earlier baseline comparison remains separate.
+[Repeat samples](baselines/2026-10-18-prime-sequences-final.jsonl).
