@@ -1,0 +1,48 @@
+rem abc-hits
+rem https://projecteuler.net/problem=127
+rem Sum c over triples a + b = c with
+rem gcd(a, b) = 1 and rad(abc) < c
+
+use sequences
+use io
+use cli
+
+option Limit integer = 120000
+
+rem The three are pairwise coprime, so
+rem rad(abc) = rad(a) rad(b) rad(c).
+rem Scan a by radical; stop when
+rem 2 rad(a) exceeds c / rad(c). Euclid
+rem is inline: a gcd call keeps the
+rem loop from compiling.
+Rad = array shape Limit fill 1
+for P in primes till Limit
+  Rad (P till Limit by P) *= P
+end
+Ord = Rad drop 1 argsort copy
+Answer = 0
+for C in 3 to Limit - 1
+  Max = (C - 1) // Rad C
+  for I in 0 to Limit - 2
+    A = Ord I + 1
+    if Rad A * 2 greater Max
+      break
+    end
+    B = C - A
+    if A less B
+      if Rad A * Rad B * Rad C less C
+        X = A
+        Y = C
+        for Y not equal 0
+          Z = X mod Y
+          X = Y
+          Y = Z
+        end
+        if X equal 1
+          Answer += C
+        end
+      end
+    end
+  end
+end
+Answer print
