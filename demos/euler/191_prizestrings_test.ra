@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "191_prizestrings"
+  run
+
+  Answer equal 1918080160
+end
+
+test "statement value for four days"
+  use "191_prizestrings"
+  Days = 4
+  run
+
+  Answer equal 43
+end
