@@ -31,3 +31,7 @@ and #316.
 Euler 126 uses stored mask compaction and fused arithmetic updates (#308).
 Its layer-generation benchmark and full counting costs are reported separately
 in [performance measurements](../../docs/design/performance-measurements.md#stored-mask-materialization-and-compound-arithmetic-308).
+
+Euler 141, 155 and 170 use numeric builtins inside compiled integer loops (#309).
+Their old/new formulations and the scalar `gcd` comparison are covered by
+[the numeric loop benchmark report](../../benchmarks/numeric-loop-calls-results.md).

@@ -9,6 +9,7 @@ rem a 0 to 9 pandigital
 
 use algo
 use bits
+use numbers
 use sequences
 use io
 use cli
@@ -56,14 +57,7 @@ for P in Digs permutations
     end
     G = 0
     for J in 0 to Cnt - 1
-      X = G
-      Y = Blk J
-      for Y not equal 0
-        Z = X mod Y
-        X = Y
-        Y = Z
-      end
-      G = X
+      G = G (Blk J) gcd
       if G equal 1
         break
       end
