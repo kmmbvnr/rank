@@ -50,6 +50,7 @@ export const coreModule: RuntimeModule = {
     real: () => native('real', 1, ([value]) => isRankSqliteExpression(value)
         ? numericConversionSqlite(value, 'real') : realValue(value)),
     text: () => native('text', 1, ([value]) => {
+        if (value === MISSING) return MISSING;
         if (typeof value === 'object' && !isRankLabel(value) && !isRankDate(value)) {
             throw new RankError('text expects a scalar value', 'TypeError');
         }

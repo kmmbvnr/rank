@@ -203,6 +203,11 @@ export function conditionalPaths(statement: IfStatement, env: Map<string, ValueF
         const start = diagnostics.length;
         inspect(clause.condition, pending);
         if (paths.length) diagnostics.length = start;
+        const conditionFacts = expressionFacts(clause.condition, name => pending.get(name));
+        if (conditionFacts.types.includes('missing')) diagnostics.push({
+            node: clause.condition, kind: 'TypeError', severity: 'warning', code: 'MissingValue',
+            message: `${conditionFacts.types.length === 1 ? 'missing value' : 'possibly missing value'} in condition; use default to supply a boolean`,
+        });
         const known = knownBooleanCondition(clause.condition, pending)
             ?? knownIntegerCondition(clause.condition, pending);
         if (known === false) continue;

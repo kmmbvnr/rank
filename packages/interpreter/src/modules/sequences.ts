@@ -20,6 +20,7 @@ import { mergeSorted } from './sorted-merge.js';
 import { broadcastShape, chooseDenseArrays } from '../tensor.js';
 import { isKnownFileFree } from '../resource-summary.js';
 import {
+    MISSING,
     isRankArray,
     isRankCounter,
     isRankMultiset,
@@ -211,6 +212,7 @@ function countTrue(value: RankValue): bigint {
     }
     let count = 0n;
     for (const item of collectionValues(value, 'count')) {
+        if (item === MISSING) continue;
         if (typeof item !== 'boolean') {
             throw new RankError('count expects boolean values', 'TypeError');
         }

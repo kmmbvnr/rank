@@ -1397,7 +1397,12 @@ it('keeps missing cells apart from the numeric type and drops them at default', 
     // The numeric kernels' proof does not cover cells that may have no value.
     expect(facts('P + 1.0', env).callbackFreeScalarCells).toBeUndefined();
     expect(facts('P + 1.0', env).elements).toEqual(['real', 'missing']);
+    expect(facts('P filter present', env).elements).toEqual(['real']);
+    expect(facts('P (P present)', env).elements).toEqual(['real']);
     expect(facts('P present', env)).toMatchObject({ types: ['array'], elements: ['boolean'], rank: 1, shape: [3] });
+    expect(facts('.NA text').types).toEqual(['missing']);
+    expect(facts('.NA 1 round').types).toEqual(['missing']);
+    expect(facts('.NA floor').types).toEqual(['missing']);
     expect(facts('.NA present')).toMatchObject({ types: ['boolean'], rank: 0, shape: [] });
     expect(facts('P filter greater 1.0', env).elements).toEqual(['real', 'missing']);
 });
@@ -1774,4 +1779,21 @@ it('does not use matmul catalogue result kinds for unresolved operands', () => {
     for (const left of [undefined, ['array']]) {
         expect(typeOf(statement.value, name => name === 'L' ? left : ['array'])).toEqual([]);
     }
+});
+
+
+it('warns about missing conditions, indices and keys without rejecting guarded uses', () => {
+    const warnings = (source: string, env = new Map<string, ValueFacts>()) => {
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        expect(program.parserErrors).toHaveLength(0);
+        return analyzeValues(program.value, env).diagnostics.filter(item => item.code === 'MissingValue');
+    };
+    expect(warnings('if .NA\n  1\nend')).toHaveLength(1);
+    expect(warnings('if X\n  1\nend', new Map([['X', { types: ['boolean', 'missing'], rank: 0 }]]))).toHaveLength(1);
+    expect(warnings('if .NA default false\n  1\nend')).toHaveLength(0);
+    expect(warnings('X = array 1 2\nX .NA')).toHaveLength(1);
+    expect(warnings('X = array 1 2\nX (.NA default 0)')).toHaveLength(0);
+    expect(warnings('X = array 1 2\n(X .NA) default 0')).toHaveLength(0);
+    expect(warnings('X = new index\nX .NA')).toHaveLength(1);
+
 });

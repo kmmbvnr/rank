@@ -7,7 +7,7 @@ import { operationShapeFacts, rankedOperandShapes } from './operation-shape.js';
 import { freshDim } from './shape-index.js';
 import { symbolicFormFacts } from './binary-facts.js';
 import {
-    isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
+    isParenthesizedExpression, isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
     isNumberLiteral, isStringLiteral, isUnpackExpression, type ApplicationExpression, type Expression,
 } from '../generated/ast.js';
 import { applicationExpression, flattenApplication, groupedUnaryDyadicChain, unaryApplicationHead } from '../expressions.js';
@@ -341,6 +341,34 @@ function transferApplicationFacts(
         return { types: ['heap'], ...(values?.elements?.length ? { elements: values.elements } : {}) };
     }
     const ranked = flattenApplication(expression);
+    const conversionName = ranked.at(-1);
+    const conversion = conversionName && isNameExpression(conversionName)
+        ? operationBinding(conversionName.name, lookup) : undefined;
+    if (conversion && ['text', 'floor', 'ceil', 'round'].includes(conversion.name)
+        && ranked.length === (conversion.name === 'round' ? 3 : 2)) {
+        const source = infer(ranked[0], lookup);
+        if (source.types.includes('missing')) {
+            if (source.types.length === 1) return { types: ['missing'], rank: 0, shape: [] };
+            if (source.rank === 0) return { types: [...new Set([
+                ...(conversion.name === 'text' ? ['text'] : conversion.name === 'round'
+                    ? source.types.filter(type => type === 'integer' || type === 'real') : ['integer']),
+                'missing',
+            ])] };
+        }
+    }
+
+    if (ranked.length === 2 && isNameExpression(ranked[0])) {
+        let selector = ranked[1];
+        while (isParenthesizedExpression(selector)) selector = selector.value;
+        const mask = flattenApplication(selector);
+        const source = infer(ranked[0], lookup);
+        if (mask.length === 2 && isNameExpression(mask[0]) && mask[0].name === ranked[0].name
+            && isNameExpression(mask[1]) && operationBinding(mask[1].name, lookup) === findOperation('present')
+            && source.types.join() === 'array' && source.rank === 1 && source.elements) {
+            return { types: ['sequence'], rank: 1, shape: [null], elements: source.elements.filter(type => type !== 'missing') };
+        }
+    }
+
     if (ranked.length === 2 && isNameExpression(ranked[1])
         && operationBinding(ranked[1].name, lookup) === findOperation('present')) {
         const source = infer(ranked[0], lookup);

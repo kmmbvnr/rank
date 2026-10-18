@@ -53,7 +53,7 @@ export interface ValueDiagnostic {
     readonly node: AstNode;
     readonly message: string;
     readonly kind: 'TypeError' | 'DimensionMismatch';
-    readonly code?: 'BuiltinRename' | 'RaggedLift' | 'RequirementConflict';
+    readonly code?: 'BuiltinRename' | 'RaggedLift' | 'RequirementConflict' | 'MissingValue';
     readonly severity?: 'warning';
 }
 
@@ -791,6 +791,29 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     message: `shape mismatch: [${conflict.left.join(', ')}] and [${conflict.right.join(', ')}]` });
             }
             const selectors = parts.slice(1);
+            if (form.kind === 'plain' && source.types.length
+                && source.types.every(type => ['array', 'bytes', 'text', 'index', 'object', 'record', 'counter'].includes(type))
+                && selectors.every(part => {
+                    const types = expressionFacts(part, lookup).types;
+                    return types.length && !types.includes('function');
+                })) {
+                let protectedByDefault = false;
+                let child: AstNode = expression;
+                for (let parent = child.$container; parent; child = parent, parent = parent.$container) {
+                    if (isBinaryExpression(parent) && parent.operator === 'default' && parent.left === child) {
+                        protectedByDefault = true;
+                        break;
+                    }
+                    if (isFunctionStatement(parent) || isExpressionStatement(parent) || isAssignmentStatement(parent)) break;
+                }
+                if (!protectedByDefault) for (const selector of selectors) {
+                    const types = expressionFacts(selector, lookup).types;
+                    if (types.includes('missing')) diagnostics.push({ node: selector, kind: 'TypeError',
+                        severity: 'warning', code: 'MissingValue',
+                        message: `${types.length === 1 ? 'missing value' : 'possibly missing value'} used as an index or key; use default to supply a value` });
+                }
+            }
+
             // A later callable can consume the preceding values. Diagnose only
             // when every operand is known data and the receiver cannot be indexed.
             if (form.kind === 'plain' && selectors.length > 0 && source.types.length > 0

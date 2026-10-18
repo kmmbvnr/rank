@@ -221,3 +221,28 @@ describe('a name that holds .NA keeps one type', () => {
         expect(run('fun f\n  Best = .NA\n  for I in 1 to 3\n    Best = I\n  end\n  return Best\nend\nf')).toBe('3');
     });
 });
+
+
+describe('missing-cell catalogue policies', () => {
+    it('propagates through conversions and rounding', () => {
+        expect(run('use numbers\n(array 1.25 .NA 3.75) 1 round')).toBe('1.2 .NA 3.8');
+        expect(run('use numbers\n(array 1.25 .NA) floor')).toBe('1 .NA');
+        expect(run('.NA text')).toBe('.NA');
+        expect(run('(array 1 .NA) text rank 0')).toBe('1 .NA');
+    });
+    it('skips missing reduction cells but retains structural positions', () => {
+        expect(run('use sequences\n(array true .NA false true) count')).toBe('2');
+        expect(run('use stats\n(array 3 .NA 3) mode')).toBe('3');
+        expect(run('(array 3 .NA 3) len')).toBe('3');
+        expect(run('use sequences\n(array 1 .NA 3) present count')).toBe('2');
+    });
+    it('requires present values for ordering and uniqueness', () => {
+        expect(() => run('use sequences\n(array 3 .NA 1) sort')).toThrow();
+        expect(() => run('use sequences\n(array 3 .NA 3) unique')).toThrow();
+        expect(run('use sequences\n((array 3 .NA 1) filter present) array sort')).toBe('1 3');
+    });
+    it('does not treat a missing query as a matching member', () => {
+        expect(run('.NA in (array 1 2)')).toBe('false');
+        expect(run('(array 1 .NA 3) in (array 1 2)')).toBe('true false false');
+    });
+});

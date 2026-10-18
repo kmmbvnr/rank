@@ -864,8 +864,8 @@ other combination with `.NA` is `.NA`. `default` replaces `.NA`, and `sum`,
 `min`, `max`, `mean`, `median`, `std` and the other statistics skip it. `.NA`
 reaching a place that needs one value, such as an `if` condition, raises
 `.Missing`, which `default` also handles. `nan` stays a number: `isnan` is false
-for `.NA`. Reading one absent cell, key or element still raises `.Missing`; see
-ADR-0108.
+for `.NA`. Reading an absent stored table cell returns `.NA`; reading a missing
+key or one absent `lookup` result still raises `.Missing`; see ADR-0108.
 
 A name accepts `.NA` whatever type it holds, and a name that has held only `.NA`
 takes the type of its first value, so `Best = .NA` followed by `Best = 1.0` is
@@ -880,6 +880,34 @@ A miss that is not data, such as an index outside the choices of `choose`,
 raises `.Missing` for the whole array, and so does a field no row has. A mask
 with `.NA` selects no row or element where it has no value, as in SQL:
 `X (X greater 2.0)` skips an `.NA` cell.
+
+Missing-cell policies are operation-specific:
+
+| Operations | Policy |
+| --- | --- |
+| Arithmetic, comparisons, scalar math, `round`, `floor`, `ceil`, `text` | Propagate `.NA` in data cells. Configuration arguments, such as the number of decimal places, must still be valid. |
+| `sum`, `min`, `max`, statistical reductions including `mode`, boolean `count` | Skip `.NA`. Empty-input rules still apply after skipping. |
+| `present`, `isnan`, `in` | Return booleans. `.NA` is not a present value, a NaN, or a matching membership query. |
+| `sort`, `argsort`, `unique`, ordered collection keys | Reject `.NA`; materialize `(Values filter present) array` first. |
+| Table grouping | Absent keys form one group; absent join keys do not match. |
+| `if`, scalar indices, required keys, integer-only number-theory operations | Require a value; fill or remove `.NA` first. |
+
+`len` counts positions, including missing cells; `present count` counts values.
+Structural operations such as reshape, transpose, copy and slicing retain missing
+cells in their corresponding positions. Operations requiring booleans, text,
+indices or configuration values keep their input checks; they do not acquire an
+implicit missing-value fallback. `default` is lazy: the fallback is evaluated
+only when needed, once for the resulting array.
+
+The analyzer warns when known or possibly missing values reach a condition,
+index or key without a fallback. `present` preserves shape and yields boolean
+elements. `X filter present` and `X (X present)` remove `missing` from the
+inferred element types; arbitrary filters retain it. Nullable arithmetic retains
+its numeric element type and `missing`, without asserting plain numeric storage.
+
+A column named `NA` cannot be selected with `Data .NA`: that spelling denotes the
+missing value. Use an unambiguous column name.
+
 
 `round` from `use numbers` preserves the numeric type of every scalar it
 rounds: an `integer` result remains an integer and a `real` result remains a
