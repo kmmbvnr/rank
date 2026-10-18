@@ -4,6 +4,7 @@ rem Sum the maximal digital root sums of
 rem the factorisations of every n from 2
 rem to Limit - 1
 
+use numbers
 use sequences
 use io
 use cli
@@ -11,21 +12,36 @@ use cli
 option Limit integer = 1000000
 
 rem Best[m] is the larger of dr(m) and
-rem dr(d) + Best[k] over m = k d. Settle
-rem k in order so Best[k] is final when
-rem it feeds the multiples k d.
+rem dr(d) + Best[k] over m = k d. Here
+rem Best[k] is final once all k up to
+rem k / 2 are done, so the ks of a block
+rem [B, 2 B) are settled together and
+rem each d pushes its products at once.
+rem Below the root go one k at a time.
 N = 0 till Limit array
 Dr = (N - 1) mod 9 + 1
 Dr 0 = 0
 Best = Dr copy
-for K in 2 to Limit // 2
-  Base = Best K
-  for D in 2 to (Limit - 1) // K
-    Val = Dr D + Base
-    if Val greater Best (K * D)
-      Best (K * D) = Val
-    end
+Root = Limit isqrt
+for K in 2 to Root - 1
+  Top = (Limit - 1) // K
+  Slot = K * 2 to K * Top by K
+  New = (Dr (2 to Top)) + Best K
+  Best Slot = (Best Slot) New max
+end
+B = Root
+for B at most Limit // 2
+  Ks = B to 2 * B - 1 array
+  Mine = Best Ks copy
+  for D in 2 to (Limit - 1) // B
+    Reach = (Limit - 1) // D
+    Hi = (2 * B - 1) Reach min
+    Cut = Hi - B + 1
+    Slot = B * D to Hi * D by D
+    New = (Mine take Cut) + Dr D
+    Best Slot = (Best Slot) New max
   end
+  B = B * 2
 end
 Rest = Best drop 2
 Answer = Rest sum
