@@ -243,6 +243,9 @@ describe('missing-cell catalogue policies', () => {
     });
     it('does not treat a missing query as a matching member', () => {
         expect(run('.NA in (array 1 2)')).toBe('false');
+        expect(run('.NA in (array .NA)')).toBe('false');
+        expect(run('(array 1 .NA) in (array 1 .NA)')).toBe('true false');
+        expect(run('(array 1 .NA) not in (array 1 .NA)')).toBe('false true');
         expect(run('(array 1 .NA 3) in (array 1 2)')).toBe('true false false');
     });
 });

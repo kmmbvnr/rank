@@ -622,6 +622,11 @@ function arrayMembership(source: RankArray, right: RankValue, invert: boolean): 
 }
 
 function membershipTest(right: RankValue, indexed: boolean): (value: RankValue) => boolean {
+    const contains = presentMembershipTest(right, indexed);
+    return value => value !== MISSING && contains(value);
+}
+
+function presentMembershipTest(right: RankValue, indexed: boolean): (value: RankValue) => boolean {
     if (typeof right === 'string' || isRankObject(right)) return value => {
         if (typeof value !== 'string') throw new RankError('in expects text on the left for text or object membership');
         return typeof right === 'string' ? right.includes(value) : right.entries.has(value);
