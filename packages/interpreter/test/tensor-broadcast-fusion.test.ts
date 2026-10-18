@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, createArraySnapshot, MISSING, formatValue } from '../src/index.js';
+import { Interpreter, createArraySnapshot, MISSING, formatValue, parse, type RankValue } from '../src/index.js';
+import { isFunctionStatement } from '@arrrank/language';
+import { compileTensorKernel } from '../src/tensor-kernel.js';
+import { withInterrupt, type InterruptSignal } from '../src/interrupt.js';
 
 function run(shapes: number[][], body: string, fused: boolean) {
     let kernels = 0;
@@ -141,4 +144,58 @@ end`);
     const reference = evaluate(false), actual = evaluate(true);
     expect(actual).toEqual({ ...reference, kernels: 1 });
     expect(actual.second).toBe('102 103');
+});
+
+
+it('keeps the active layout when an interrupt callback reenters the kernel', () => {
+    const statement = parse('fun A shifted\n return (A + 1) copy\nend').statements[0];
+    if (!isFunctionStatement(statement)) throw new Error('missing function');
+    const outer = createArraySnapshot(Array(2048).fill(1n));
+    const inner = createArraySnapshot([5n]);
+    let input = outer, armed = false, entered = false;
+    let nested: RankValue | undefined;
+    const kernel = compileTensorKernel(statement.statements, { lookup: () => input, builtin: () => true })!;
+    const signal: InterruptSignal = {
+        length: 1, load: () => 0, store() {}, wait() {},
+        exchange: () => {
+            if (armed && !entered) {
+                entered = true;
+                input = inner;
+                try { nested = kernel.run(); }
+                finally { input = outer; }
+            }
+            return 0;
+        },
+    };
+    withInterrupt(signal, () => kernel.run());
+    armed = true;
+    const result = withInterrupt(signal, () => kernel.run());
+    expect(entered).toBe(true);
+    expect(nested).toMatchObject({ shape: [1], items: [6n] });
+    expect(result).toMatchObject({ shape: [2048], items: Array(2048).fill(2n) });
+});
+
+
+it('pairs a layout with its own code when the compilation hook reenters', () => {
+    const statement = parse('fun A B shifted\n return (A - B) copy\nend').statements[0];
+    if (!isFunctionStatement(statement)) throw new Error('missing function');
+    const outerA = createArraySnapshot([1n, 2n, 3n, 4n], [2, 2]);
+    const outerB = createArraySnapshot([10n, 20n]);
+    let a = outerA, b = outerB, entered = false;
+    let nested: RankValue | undefined;
+    const kernel = compileTensorKernel(statement.statements, {
+        lookup: name => name === 'A' ? a : b, builtin: () => true,
+        compiled() {
+            if (entered) return;
+            entered = true;
+            a = createArraySnapshot([100n, 200n, 300n], [1, 3]);
+            b = createArraySnapshot([1n, 2n, 3n]);
+            try { nested = kernel!.run(); }
+            finally { a = outerA; b = outerB; }
+        },
+    })!;
+    const expected = { shape: [2, 2], items: [-9n, -18n, -7n, -16n] };
+    expect(kernel.run()).toMatchObject(expected);
+    expect(nested).toMatchObject({ shape: [1, 3], items: [99n, 198n, 297n] });
+    expect(kernel.run()).toMatchObject(expected);
 });

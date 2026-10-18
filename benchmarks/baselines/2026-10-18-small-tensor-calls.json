@@ -7,10 +7,6 @@
     "arch": "arm64",
     "cpu": "Apple M5"
   },
-  "candidateSources": {
-    "packages/interpreter/src/tensor-kernel.ts": "f42f7121c1803a0bbd43537bd3227af74a4f2f73bc144c94c2390f899603d04f",
-    "packages/interpreter/src/array-storage.ts": "6b097bf9538e3f5e416aa14fc32b4723c519424c87aa56e5c12f73d859408f12"
-  },
   "method": "Three separate-process runs per variant; seven batches of 5000 calls after 2000 warmups per shape. Order: base/binding/storage/combined, reverse, storage/base/combined/binding. Summary is median of process medians. Natural GC; async observations drained outside timed batches. No assistant-launched heavy jobs overlapped; unrelated machine load was uncontrolled. Profiles are separate whole-process runs of 301000 timed calls plus warmups and setup, not timing samples.",
   "variants": {
     "base": "main",
@@ -2866,33 +2862,38 @@
   },
   "rebasedComparison": {
     "baseline": "f7670f23c7b80cbd22b0140c910565f462c686f2",
+    "candidateSources": {
+      "packages/interpreter/src/tensor-kernel.ts": "ea5aed187bac22cfd8b867364a2b56c0ba240417bdf2eaa11579da2cd9d2788b",
+      "packages/interpreter/src/array-storage.ts": "6b097bf9538e3f5e416aa14fc32b4723c519424c87aa56e5c12f73d859408f12"
+    },
+    "method": "Final implementation including reentrant callback protection, measured before commit. Three alternating process pairs; seven batches of 5000 calls per shape, after 2000 warmups. Profiles run separately with 301000 timed calls plus warmups/setup. Source hashes identify the measured candidate.",
     "summary": {
       "baseline": [
         {
           "rows": 1,
-          "medianUs": 15.982958400000006
+          "medianUs": 15.839716799999998
         },
         {
           "rows": 8,
-          "medianUs": 25.238991799999987
+          "medianUs": 25.34955
         },
         {
           "rows": 128,
-          "medianUs": 196.9764668
+          "medianUs": 200.08822499999988
         }
       ],
       "candidate": [
         {
           "rows": 1,
-          "medianUs": 12.4407418
+          "medianUs": 12.37293340000001
         },
         {
           "rows": 8,
-          "medianUs": 19.065816600000016
+          "medianUs": 19.26591659999999
         },
         {
           "rows": 128,
-          "medianUs": 143.97446660000006
+          "medianUs": 144.06518340000002
         }
       ]
     },
@@ -2910,147 +2911,147 @@
             {
               "rows": 1,
               "calls": 5000,
-              "medianUs": 15.982958400000006,
+              "medianUs": 15.799233400000004,
               "samples": [
                 {
-                  "usPerCall": 18.00775000000001,
-                  "cpuUsPerCall": 31.3332,
+                  "usPerCall": 18.19128340000001,
+                  "cpuUsPerCall": 31.3754,
                   "gcCount": 4,
-                  "gcMs": 4.0355000495910645
+                  "gcMs": 3.890999972820282
                 },
                 {
-                  "usPerCall": 17.265175,
-                  "cpuUsPerCall": 37.944,
+                  "usPerCall": 16.941191600000003,
+                  "cpuUsPerCall": 37.4028,
                   "gcCount": 4,
-                  "gcMs": 8.035915970802307
+                  "gcMs": 7.56787496805191
                 },
                 {
-                  "usPerCall": 16.169208400000002,
-                  "cpuUsPerCall": 18.758,
+                  "usPerCall": 16.32290839999998,
+                  "cpuUsPerCall": 18.888,
                   "gcCount": 2,
-                  "gcMs": 3.0224170088768005
+                  "gcMs": 2.9813340306282043
                 },
                 {
-                  "usPerCall": 14.832275000000003,
-                  "cpuUsPerCall": 20.0382,
+                  "usPerCall": 14.754533400000016,
+                  "cpuUsPerCall": 19.8696,
                   "gcCount": 2,
-                  "gcMs": 3.0870839953422546
+                  "gcMs": 3.019457995891571
                 },
                 {
-                  "usPerCall": 14.27417499999999,
-                  "cpuUsPerCall": 17.8804,
+                  "usPerCall": 14.197325,
+                  "cpuUsPerCall": 17.8956,
                   "gcCount": 2,
-                  "gcMs": 3.610375940799713
+                  "gcMs": 3.3262909650802612
                 },
                 {
-                  "usPerCall": 15.982958400000006,
-                  "cpuUsPerCall": 23.7878,
+                  "usPerCall": 15.799233400000004,
+                  "cpuUsPerCall": 23.4858,
                   "gcCount": 2,
-                  "gcMs": 2.6826659440994263
+                  "gcMs": 2.609124004840851
                 },
                 {
-                  "usPerCall": 14.16097500000001,
-                  "cpuUsPerCall": 15.8296,
+                  "usPerCall": 14.085366599999997,
+                  "cpuUsPerCall": 15.801,
                   "gcCount": 2,
-                  "gcMs": 3.152541995048523
+                  "gcMs": 3.2981669902801514
                 }
               ]
             },
             {
               "rows": 8,
               "calls": 5000,
-              "medianUs": 25.39600820000005,
+              "medianUs": 24.851008200000024,
               "samples": [
                 {
-                  "usPerCall": 25.449675000000024,
-                  "cpuUsPerCall": 33.2854,
+                  "usPerCall": 24.825283400000036,
+                  "cpuUsPerCall": 33.0838,
                   "gcCount": 3,
-                  "gcMs": 3.8838760256767273
+                  "gcMs": 4.1423749923706055
                 },
                 {
-                  "usPerCall": 25.494974999999975,
-                  "cpuUsPerCall": 32.282,
+                  "usPerCall": 24.907766600000013,
+                  "cpuUsPerCall": 33.0052,
+                  "gcCount": 3,
+                  "gcMs": 4.503250956535339
+                },
+                {
+                  "usPerCall": 24.851008200000024,
+                  "cpuUsPerCall": 28.2696,
+                  "gcCount": 3,
+                  "gcMs": 4.507834017276764
+                },
+                {
+                  "usPerCall": 26.46324999999997,
+                  "cpuUsPerCall": 32.7204,
                   "gcCount": 2,
-                  "gcMs": 3.50458300113678
+                  "gcMs": 2.507207989692688
                 },
                 {
-                  "usPerCall": 25.248458400000025,
-                  "cpuUsPerCall": 27.908,
+                  "usPerCall": 25.068191800000022,
+                  "cpuUsPerCall": 29.8934,
                   "gcCount": 3,
-                  "gcMs": 3.579041004180908
+                  "gcMs": 4.391624987125397
                 },
                 {
-                  "usPerCall": 26.983008400000013,
-                  "cpuUsPerCall": 32.909,
-                  "gcCount": 2,
-                  "gcMs": 2.0039170384407043
-                },
-                {
-                  "usPerCall": 25.39600820000005,
-                  "cpuUsPerCall": 29.787,
+                  "usPerCall": 24.448141799999938,
+                  "cpuUsPerCall": 29.9584,
                   "gcCount": 3,
-                  "gcMs": 3.9034590125083923
+                  "gcMs": 4.012042939662933
                 },
                 {
-                  "usPerCall": 24.803716799999982,
-                  "cpuUsPerCall": 29.7862,
+                  "usPerCall": 24.5507834,
+                  "cpuUsPerCall": 27.8004,
                   "gcCount": 3,
-                  "gcMs": 3.4948750734329224
-                },
-                {
-                  "usPerCall": 24.966799999999964,
-                  "cpuUsPerCall": 27.2418,
-                  "gcCount": 2,
-                  "gcMs": 2.6642080545425415
+                  "gcMs": 4.220667004585266
                 }
               ]
             },
             {
               "rows": 128,
               "calls": 5000,
-              "medianUs": 199.64905820000004,
+              "medianUs": 194.44326660000007,
               "samples": [
                 {
-                  "usPerCall": 201.40500000000003,
-                  "cpuUsPerCall": 222.1746,
+                  "usPerCall": 198.37370840000003,
+                  "cpuUsPerCall": 218.9622,
                   "gcCount": 21,
-                  "gcMs": 21.429704904556274
+                  "gcMs": 21.283499002456665
                 },
                 {
-                  "usPerCall": 200.3804166,
-                  "cpuUsPerCall": 222.4518,
+                  "usPerCall": 195.16865000000007,
+                  "cpuUsPerCall": 217.277,
                   "gcCount": 22,
-                  "gcMs": 22.579541265964508
+                  "gcMs": 21.781125128269196
                 },
                 {
-                  "usPerCall": 198.44534999999996,
-                  "cpuUsPerCall": 215.8694,
+                  "usPerCall": 194.33543339999994,
+                  "cpuUsPerCall": 211.4004,
                   "gcCount": 22,
-                  "gcMs": 22.390126049518585
+                  "gcMs": 21.6950421333313
                 },
                 {
-                  "usPerCall": 200.2907831999999,
-                  "cpuUsPerCall": 216.3278,
+                  "usPerCall": 194.59740000000002,
+                  "cpuUsPerCall": 210.4174,
                   "gcCount": 22,
-                  "gcMs": 22.407916963100433
+                  "gcMs": 21.55983394384384
                 },
                 {
-                  "usPerCall": 199.64905820000004,
-                  "cpuUsPerCall": 215.0138,
+                  "usPerCall": 193.61783340000002,
+                  "cpuUsPerCall": 208.748,
                   "gcCount": 22,
-                  "gcMs": 20.97687393426895
+                  "gcMs": 20.915455043315887
                 },
                 {
-                  "usPerCall": 198.03236660000002,
-                  "cpuUsPerCall": 213.7288,
+                  "usPerCall": 194.3055333999999,
+                  "cpuUsPerCall": 209.9412,
                   "gcCount": 22,
-                  "gcMs": 22.47887498140335
+                  "gcMs": 21.870916068553925
                 },
                 {
-                  "usPerCall": 198.97514999999987,
-                  "cpuUsPerCall": 214.8856,
+                  "usPerCall": 194.44326660000007,
+                  "cpuUsPerCall": 210.1508,
                   "gcCount": 22,
-                  "gcMs": 22.150039970874786
+                  "gcMs": 21.586416125297546
                 }
               ]
             }
@@ -3064,147 +3065,147 @@
             {
               "rows": 1,
               "calls": 5000,
-              "medianUs": 12.506141600000001,
+              "medianUs": 12.670949999999994,
               "samples": [
                 {
-                  "usPerCall": 14.884216600000014,
-                  "cpuUsPerCall": 27.644,
+                  "usPerCall": 14.858008400000006,
+                  "cpuUsPerCall": 27.5418,
                   "gcCount": 3,
-                  "gcMs": 2.8787500262260437
+                  "gcMs": 2.89649897813797
                 },
                 {
-                  "usPerCall": 13.509358399999998,
-                  "cpuUsPerCall": 30.2066,
+                  "usPerCall": 13.4578168,
+                  "cpuUsPerCall": 30.1364,
                   "gcCount": 3,
-                  "gcMs": 5.298623979091644
+                  "gcMs": 5.399708986282349
                 },
                 {
-                  "usPerCall": 12.981600000000002,
-                  "cpuUsPerCall": 14.1772,
+                  "usPerCall": 13.077858400000013,
+                  "cpuUsPerCall": 14.2696,
                   "gcCount": 1,
-                  "gcMs": 1.8316670060157776
+                  "gcMs": 1.7818340063095093
                 },
                 {
-                  "usPerCall": 12.506141600000001,
-                  "cpuUsPerCall": 17.5424,
+                  "usPerCall": 12.487316600000009,
+                  "cpuUsPerCall": 17.5402,
                   "gcCount": 2,
-                  "gcMs": 3.720832943916321
+                  "gcMs": 3.7549999952316284
                 },
                 {
-                  "usPerCall": 11.787558400000012,
-                  "cpuUsPerCall": 13.917,
+                  "usPerCall": 11.694249999999988,
+                  "cpuUsPerCall": 13.7956,
                   "gcCount": 2,
-                  "gcMs": 3.6148340106010437
+                  "gcMs": 3.5737510323524475
                 },
                 {
-                  "usPerCall": 12.340258399999993,
-                  "cpuUsPerCall": 18.1944,
+                  "usPerCall": 12.670949999999994,
+                  "cpuUsPerCall": 18.5076,
                   "gcCount": 1,
-                  "gcMs": 1.209041953086853
+                  "gcMs": 1.1980420351028442
                 },
                 {
-                  "usPerCall": 11.581624999999985,
-                  "cpuUsPerCall": 13.5614,
+                  "usPerCall": 11.84551660000002,
+                  "cpuUsPerCall": 13.8412,
                   "gcCount": 2,
-                  "gcMs": 3.7260830402374268
+                  "gcMs": 3.7010409832000732
                 }
               ]
             },
             {
               "rows": 8,
               "calls": 5000,
-              "medianUs": 19.065816600000016,
+              "medianUs": 19.26591659999999,
               "samples": [
                 {
-                  "usPerCall": 19.065816600000016,
-                  "cpuUsPerCall": 24.8108,
+                  "usPerCall": 19.26591659999999,
+                  "cpuUsPerCall": 25.0312,
                   "gcCount": 2,
-                  "gcMs": 2.7036670446395874
+                  "gcMs": 2.677541971206665
                 },
                 {
-                  "usPerCall": 19.34125839999997,
-                  "cpuUsPerCall": 25.7914,
+                  "usPerCall": 19.599333400000024,
+                  "cpuUsPerCall": 26.0498,
                   "gcCount": 2,
-                  "gcMs": 2.6874579787254333
+                  "gcMs": 2.701665937900543
                 },
                 {
-                  "usPerCall": 19.250050000000012,
-                  "cpuUsPerCall": 20.8828,
+                  "usPerCall": 19.456674999999994,
+                  "cpuUsPerCall": 21.0898,
                   "gcCount": 2,
-                  "gcMs": 2.758165955543518
+                  "gcMs": 2.6809580326080322
                 },
                 {
-                  "usPerCall": 19.71307499999998,
-                  "cpuUsPerCall": 22.2528,
+                  "usPerCall": 20.039466600000015,
+                  "cpuUsPerCall": 22.6562,
                   "gcCount": 2,
-                  "gcMs": 2.2322919368743896
+                  "gcMs": 2.403457999229431
                 },
                 {
-                  "usPerCall": 18.94755,
-                  "cpuUsPerCall": 22.589,
+                  "usPerCall": 19.07569159999998,
+                  "cpuUsPerCall": 22.709,
                   "gcCount": 2,
-                  "gcMs": 3.114165961742401
+                  "gcMs": 3.040833055973053
                 },
                 {
-                  "usPerCall": 18.988599999999998,
-                  "cpuUsPerCall": 21.0692,
+                  "usPerCall": 19.07005840000006,
+                  "cpuUsPerCall": 21.1386,
                   "gcCount": 3,
-                  "gcMs": 3.794832944869995
+                  "gcMs": 3.7110830545425415
                 },
                 {
-                  "usPerCall": 18.629516599999988,
-                  "cpuUsPerCall": 20.7922,
+                  "usPerCall": 18.913341599999967,
+                  "cpuUsPerCall": 21.1164,
                   "gcCount": 2,
-                  "gcMs": 2.4469590187072754
+                  "gcMs": 2.5106670260429382
                 }
               ]
             },
             {
               "rows": 128,
               "calls": 5000,
-              "medianUs": 143.97446660000006,
+              "medianUs": 143.163775,
               "samples": [
                 {
-                  "usPerCall": 146.13339999999997,
-                  "cpuUsPerCall": 168.0648,
+                  "usPerCall": 145.62015840000004,
+                  "cpuUsPerCall": 166.6046,
                   "gcCount": 21,
-                  "gcMs": 22.91671121120453
+                  "gcMs": 21.65454190969467
                 },
                 {
-                  "usPerCall": 145.07198340000005,
-                  "cpuUsPerCall": 167.5902,
+                  "usPerCall": 144.30060000000003,
+                  "cpuUsPerCall": 166.5616,
                   "gcCount": 22,
-                  "gcMs": 21.789708018302917
+                  "gcMs": 21.25275206565857
                 },
                 {
-                  "usPerCall": 144.08344160000007,
-                  "cpuUsPerCall": 161.8864,
+                  "usPerCall": 142.91552499999997,
+                  "cpuUsPerCall": 160.0812,
                   "gcCount": 21,
-                  "gcMs": 23.000251829624176
+                  "gcMs": 21.83866411447525
                 },
                 {
-                  "usPerCall": 143.97446660000006,
-                  "cpuUsPerCall": 161.0204,
+                  "usPerCall": 142.6135167999999,
+                  "cpuUsPerCall": 157.9698,
+                  "gcCount": 21,
+                  "gcMs": 20.89487200975418
+                },
+                {
+                  "usPerCall": 143.163775,
+                  "cpuUsPerCall": 159.5084,
                   "gcCount": 22,
-                  "gcMs": 23.676248013973236
+                  "gcMs": 22.74799996614456
                 },
                 {
-                  "usPerCall": 143.3893,
-                  "cpuUsPerCall": 159.1856,
+                  "usPerCall": 142.34927499999995,
+                  "cpuUsPerCall": 157.5968,
                   "gcCount": 21,
-                  "gcMs": 21.32225000858307
+                  "gcMs": 20.26400202512741
                 },
                 {
-                  "usPerCall": 143.8340081999999,
-                  "cpuUsPerCall": 159.6298,
+                  "usPerCall": 143.16479999999993,
+                  "cpuUsPerCall": 159.3384,
                   "gcCount": 22,
-                  "gcMs": 22.016332924365997
-                },
-                {
-                  "usPerCall": 143.61704179999995,
-                  "cpuUsPerCall": 159.6222,
-                  "gcCount": 21,
-                  "gcMs": 21.69887489080429
+                  "gcMs": 22.246502935886383
                 }
               ]
             }
@@ -3218,147 +3219,147 @@
             {
               "rows": 1,
               "calls": 5000,
-              "medianUs": 12.4407418,
+              "medianUs": 12.37293340000001,
               "samples": [
                 {
-                  "usPerCall": 14.706250000000011,
-                  "cpuUsPerCall": 27.4308,
+                  "usPerCall": 14.821324999999991,
+                  "cpuUsPerCall": 27.6282,
                   "gcCount": 3,
-                  "gcMs": 2.931874990463257
+                  "gcMs": 3.003249943256378
                 },
                 {
-                  "usPerCall": 13.321724999999992,
-                  "cpuUsPerCall": 29.8974,
+                  "usPerCall": 13.33739999999998,
+                  "cpuUsPerCall": 29.9814,
                   "gcCount": 3,
-                  "gcMs": 5.359791040420532
+                  "gcMs": 5.433749973773956
                 },
                 {
-                  "usPerCall": 12.978800000000001,
-                  "cpuUsPerCall": 14.1796,
+                  "usPerCall": 12.895841599999994,
+                  "cpuUsPerCall": 14.0778,
                   "gcCount": 1,
-                  "gcMs": 1.8300840258598328
+                  "gcMs": 1.7828750014305115
                 },
                 {
-                  "usPerCall": 12.4407418,
-                  "cpuUsPerCall": 16.5768,
+                  "usPerCall": 12.347974999999996,
+                  "cpuUsPerCall": 16.7262,
                   "gcCount": 2,
-                  "gcMs": 3.900083005428314
+                  "gcMs": 3.7326250076293945
                 },
                 {
-                  "usPerCall": 11.744450000000006,
-                  "cpuUsPerCall": 13.934,
+                  "usPerCall": 11.7911834,
+                  "cpuUsPerCall": 13.922,
                   "gcCount": 2,
-                  "gcMs": 3.7868760228157043
+                  "gcMs": 3.638959050178528
                 },
                 {
-                  "usPerCall": 12.2539084,
-                  "cpuUsPerCall": 18.0872,
+                  "usPerCall": 12.37293340000001,
+                  "cpuUsPerCall": 18.1778,
                   "gcCount": 1,
-                  "gcMs": 1.1918339729309082
+                  "gcMs": 1.206499993801117
                 },
                 {
-                  "usPerCall": 11.393250000000036,
-                  "cpuUsPerCall": 13.3906,
+                  "usPerCall": 11.571791800000028,
+                  "cpuUsPerCall": 13.5246,
                   "gcCount": 2,
-                  "gcMs": 3.715916097164154
+                  "gcMs": 3.6860429644584656
                 }
               ]
             },
             {
               "rows": 8,
               "calls": 5000,
-              "medianUs": 19.03324160000002,
+              "medianUs": 19.1237666,
               "samples": [
                 {
-                  "usPerCall": 19.03324160000002,
-                  "cpuUsPerCall": 24.7404,
+                  "usPerCall": 19.1237666,
+                  "cpuUsPerCall": 24.9422,
                   "gcCount": 2,
-                  "gcMs": 2.6363749504089355
+                  "gcMs": 2.7391679883003235
                 },
                 {
-                  "usPerCall": 19.317766600000006,
-                  "cpuUsPerCall": 25.7838,
+                  "usPerCall": 19.485725000000002,
+                  "cpuUsPerCall": 26.0202,
                   "gcCount": 2,
-                  "gcMs": 2.7143749594688416
+                  "gcMs": 2.8023760318756104
                 },
                 {
-                  "usPerCall": 19.314541799999958,
-                  "cpuUsPerCall": 20.9552,
+                  "usPerCall": 19.336116600000015,
+                  "cpuUsPerCall": 20.94,
                   "gcCount": 2,
-                  "gcMs": 2.691457986831665
+                  "gcMs": 2.653458058834076
                 },
                 {
-                  "usPerCall": 19.66210000000001,
-                  "cpuUsPerCall": 22.2872,
+                  "usPerCall": 20.0255666,
+                  "cpuUsPerCall": 22.809,
                   "gcCount": 2,
-                  "gcMs": 2.2775830030441284
+                  "gcMs": 2.612625002861023
                 },
                 {
-                  "usPerCall": 18.786774999999988,
-                  "cpuUsPerCall": 22.5016,
+                  "usPerCall": 18.956916800000002,
+                  "cpuUsPerCall": 22.5382,
                   "gcCount": 2,
-                  "gcMs": 2.794957995414734
+                  "gcMs": 3.0225830078125
                 },
                 {
-                  "usPerCall": 18.890866800000005,
-                  "cpuUsPerCall": 21.014,
+                  "usPerCall": 19.044999999999984,
+                  "cpuUsPerCall": 21.1528,
                   "gcCount": 3,
-                  "gcMs": 3.8132930397987366
+                  "gcMs": 3.7854169607162476
                 },
                 {
-                  "usPerCall": 18.67355000000007,
-                  "cpuUsPerCall": 20.9136,
+                  "usPerCall": 18.703650000000017,
+                  "cpuUsPerCall": 20.8486,
                   "gcCount": 2,
-                  "gcMs": 2.618624985218048
+                  "gcMs": 2.459999978542328
                 }
               ]
             },
             {
               "rows": 128,
               "calls": 5000,
-              "medianUs": 143.38114160000003,
+              "medianUs": 144.06518340000002,
               "samples": [
                 {
-                  "usPerCall": 145.43287500000005,
-                  "cpuUsPerCall": 166.5776,
+                  "usPerCall": 146.1421166,
+                  "cpuUsPerCall": 167.4434,
                   "gcCount": 21,
-                  "gcMs": 21.6180819272995
+                  "gcMs": 21.496249973773956
                 },
                 {
-                  "usPerCall": 144.26724160000003,
-                  "cpuUsPerCall": 166.9154,
+                  "usPerCall": 144.77089160000006,
+                  "cpuUsPerCall": 167.3094,
                   "gcCount": 22,
-                  "gcMs": 21.815539956092834
+                  "gcMs": 21.80399799346924
                 },
                 {
-                  "usPerCall": 143.15573339999992,
-                  "cpuUsPerCall": 160.2252,
+                  "usPerCall": 143.93045839999996,
+                  "cpuUsPerCall": 160.6664,
                   "gcCount": 21,
-                  "gcMs": 21.45983201265335
+                  "gcMs": 21.224623024463654
                 },
                 {
-                  "usPerCall": 142.8688166,
-                  "cpuUsPerCall": 158.1706,
+                  "usPerCall": 143.84127499999997,
+                  "cpuUsPerCall": 159.4314,
                   "gcCount": 21,
-                  "gcMs": 20.946458160877228
+                  "gcMs": 21.35962587594986
                 },
                 {
-                  "usPerCall": 143.38114160000003,
-                  "cpuUsPerCall": 159.6074,
+                  "usPerCall": 144.06518340000002,
+                  "cpuUsPerCall": 160.4702,
                   "gcCount": 22,
-                  "gcMs": 22.363083004951477
+                  "gcMs": 23.00429207086563
                 },
                 {
-                  "usPerCall": 143.22901679999995,
-                  "cpuUsPerCall": 159.5888,
+                  "usPerCall": 144.44145839999985,
+                  "cpuUsPerCall": 161.605,
                   "gcCount": 21,
-                  "gcMs": 22.626123011112213
+                  "gcMs": 22.97066593170166
                 },
                 {
-                  "usPerCall": 143.60808319999998,
-                  "cpuUsPerCall": 160.2728,
+                  "usPerCall": 144.02757500000007,
+                  "cpuUsPerCall": 159.7084,
                   "gcCount": 22,
-                  "gcMs": 23.23708200454712
+                  "gcMs": 21.82841408252716
                 }
               ]
             }
@@ -3372,147 +3373,147 @@
             {
               "rows": 1,
               "calls": 5000,
-              "medianUs": 16.056491600000026,
+              "medianUs": 16.111608400000023,
               "samples": [
                 {
-                  "usPerCall": 18.299541799999997,
-                  "cpuUsPerCall": 31.5818,
+                  "usPerCall": 18.058399999999995,
+                  "cpuUsPerCall": 31.1268,
                   "gcCount": 4,
-                  "gcMs": 4.131585001945496
+                  "gcMs": 4.001209020614624
                 },
                 {
-                  "usPerCall": 17.069241599999984,
-                  "cpuUsPerCall": 37.6606,
+                  "usPerCall": 17.350225,
+                  "cpuUsPerCall": 37.793,
                   "gcCount": 4,
-                  "gcMs": 7.7026660442352295
+                  "gcMs": 8.058667004108429
                 },
                 {
-                  "usPerCall": 16.328674999999997,
-                  "cpuUsPerCall": 18.921,
+                  "usPerCall": 16.209124999999993,
+                  "cpuUsPerCall": 18.722,
                   "gcCount": 2,
-                  "gcMs": 3.0327919721603394
+                  "gcMs": 2.944959044456482
                 },
                 {
-                  "usPerCall": 14.820875,
-                  "cpuUsPerCall": 19.9562,
+                  "usPerCall": 14.975183400000015,
+                  "cpuUsPerCall": 20.0968,
                   "gcCount": 2,
-                  "gcMs": 3.0318750739097595
+                  "gcMs": 3.091082990169525
                 },
                 {
-                  "usPerCall": 14.343533200000003,
-                  "cpuUsPerCall": 17.9236,
+                  "usPerCall": 14.358891600000014,
+                  "cpuUsPerCall": 18.0812,
                   "gcCount": 2,
-                  "gcMs": 3.592833995819092
+                  "gcMs": 3.0884170532226562
                 },
                 {
-                  "usPerCall": 16.056491600000026,
-                  "cpuUsPerCall": 23.7262,
+                  "usPerCall": 16.111608400000023,
+                  "cpuUsPerCall": 23.7712,
                   "gcCount": 2,
-                  "gcMs": 2.5924999713897705
+                  "gcMs": 2.6232500076293945
                 },
                 {
-                  "usPerCall": 13.975191799999994,
-                  "cpuUsPerCall": 15.6696,
+                  "usPerCall": 14.137949999999956,
+                  "cpuUsPerCall": 15.8082,
                   "gcCount": 2,
-                  "gcMs": 3.17291796207428
+                  "gcMs": 3.1173750162124634
                 }
               ]
             },
             {
               "rows": 8,
               "calls": 5000,
-              "medianUs": 24.890216800000005,
+              "medianUs": 25.426916600000002,
               "samples": [
                 {
-                  "usPerCall": 24.890216800000005,
-                  "cpuUsPerCall": 32.4814,
+                  "usPerCall": 25.340475000000016,
+                  "cpuUsPerCall": 32.9756,
                   "gcCount": 3,
-                  "gcMs": 3.7584999799728394
+                  "gcMs": 3.7598739862442017
                 },
                 {
-                  "usPerCall": 24.947766599999976,
-                  "cpuUsPerCall": 31.5656,
+                  "usPerCall": 25.426916600000002,
+                  "cpuUsPerCall": 31.9148,
                   "gcCount": 2,
-                  "gcMs": 3.3224169611930847
+                  "gcMs": 3.1811660528182983
                 },
                 {
-                  "usPerCall": 25.018483200000038,
-                  "cpuUsPerCall": 27.6452,
+                  "usPerCall": 25.85801660000002,
+                  "cpuUsPerCall": 28.4788,
                   "gcCount": 3,
-                  "gcMs": 3.5597100853919983
+                  "gcMs": 3.5527499318122864
                 },
                 {
-                  "usPerCall": 26.44405819999997,
-                  "cpuUsPerCall": 32.3864,
+                  "usPerCall": 27.521450000000005,
+                  "cpuUsPerCall": 33.5388,
                   "gcCount": 2,
-                  "gcMs": 2.121042013168335
+                  "gcMs": 2.29549902677536
                 },
                 {
-                  "usPerCall": 24.884699999999977,
-                  "cpuUsPerCall": 29.1586,
+                  "usPerCall": 25.812874999999984,
+                  "cpuUsPerCall": 30.1046,
                   "gcCount": 3,
-                  "gcMs": 3.7334580421447754
+                  "gcMs": 3.752708077430725
                 },
                 {
-                  "usPerCall": 24.612474999999993,
-                  "cpuUsPerCall": 29.5442,
+                  "usPerCall": 25.324308199999997,
+                  "cpuUsPerCall": 30.2592,
                   "gcCount": 3,
-                  "gcMs": 3.3546249866485596
+                  "gcMs": 3.4227920174598694
                 },
                 {
-                  "usPerCall": 24.30427499999996,
-                  "cpuUsPerCall": 26.375,
+                  "usPerCall": 24.86712499999994,
+                  "cpuUsPerCall": 26.9404,
                   "gcCount": 2,
-                  "gcMs": 2.3145000338554382
+                  "gcMs": 2.340957999229431
                 }
               ]
             },
             {
               "rows": 128,
               "calls": 5000,
-              "medianUs": 196.28051660000003,
+              "medianUs": 204.4871417999999,
               "samples": [
                 {
-                  "usPerCall": 197.55592500000003,
-                  "cpuUsPerCall": 218.3588,
+                  "usPerCall": 205.10424160000002,
+                  "cpuUsPerCall": 225.8302,
                   "gcCount": 21,
-                  "gcMs": 21.69466596841812
+                  "gcMs": 21.261581003665924
                 },
                 {
-                  "usPerCall": 196.67981659999995,
-                  "cpuUsPerCall": 219.2114,
+                  "usPerCall": 204.09239160000007,
+                  "cpuUsPerCall": 226.6258,
                   "gcCount": 22,
-                  "gcMs": 22.214207887649536
+                  "gcMs": 22.661580860614777
                 },
                 {
-                  "usPerCall": 196.28051660000003,
-                  "cpuUsPerCall": 213.6934,
+                  "usPerCall": 203.2941084,
+                  "cpuUsPerCall": 220.3474,
                   "gcCount": 22,
-                  "gcMs": 22.043460965156555
+                  "gcMs": 22.023915946483612
                 },
                 {
-                  "usPerCall": 194.96001660000002,
-                  "cpuUsPerCall": 210.4172,
+                  "usPerCall": 204.11457499999997,
+                  "cpuUsPerCall": 220.0102,
                   "gcCount": 22,
-                  "gcMs": 21.610665917396545
+                  "gcMs": 22.221456944942474
                 },
                 {
-                  "usPerCall": 195.76499999999996,
-                  "cpuUsPerCall": 211.5164,
+                  "usPerCall": 204.61438339999987,
+                  "cpuUsPerCall": 220.3124,
                   "gcCount": 22,
-                  "gcMs": 22.220080077648163
+                  "gcMs": 22.25100213289261
                 },
                 {
-                  "usPerCall": 195.6600416000001,
-                  "cpuUsPerCall": 211.179,
+                  "usPerCall": 204.4871417999999,
+                  "cpuUsPerCall": 219.9212,
                   "gcCount": 22,
-                  "gcMs": 22.632582008838654
+                  "gcMs": 21.869543075561523
                 },
                 {
-                  "usPerCall": 196.4479582,
-                  "cpuUsPerCall": 211.7324,
+                  "usPerCall": 204.59875000000028,
+                  "cpuUsPerCall": 220.3718,
                   "gcCount": 22,
-                  "gcMs": 21.13350009918213
+                  "gcMs": 22.100709080696106
                 }
               ]
             }
@@ -3526,147 +3527,147 @@
             {
               "rows": 1,
               "calls": 5000,
-              "medianUs": 15.843449999999985,
+              "medianUs": 15.839716799999998,
               "samples": [
                 {
-                  "usPerCall": 18.172916599999997,
-                  "cpuUsPerCall": 31.2204,
+                  "usPerCall": 18.05316680000001,
+                  "cpuUsPerCall": 31.277,
                   "gcCount": 4,
-                  "gcMs": 4.104208052158356
+                  "gcMs": 3.9443740248680115
                 },
                 {
-                  "usPerCall": 17.1249916,
-                  "cpuUsPerCall": 37.622,
+                  "usPerCall": 17.02940819999999,
+                  "cpuUsPerCall": 37.4586,
                   "gcCount": 4,
-                  "gcMs": 7.972417950630188
+                  "gcMs": 7.705040991306305
                 },
                 {
-                  "usPerCall": 16.24514160000001,
-                  "cpuUsPerCall": 18.8382,
+                  "usPerCall": 16.1743418,
+                  "cpuUsPerCall": 18.6926,
                   "gcCount": 2,
-                  "gcMs": 3.0226659774780273
+                  "gcMs": 2.92787504196167
                 },
                 {
-                  "usPerCall": 14.831183399999986,
-                  "cpuUsPerCall": 19.9582,
+                  "usPerCall": 14.67261659999999,
+                  "cpuUsPerCall": 19.8166,
                   "gcCount": 2,
-                  "gcMs": 3.077249050140381
+                  "gcMs": 3.032042980194092
                 },
                 {
-                  "usPerCall": 14.320866600000024,
-                  "cpuUsPerCall": 17.9456,
+                  "usPerCall": 14.21786659999998,
+                  "cpuUsPerCall": 17.8646,
                   "gcCount": 2,
-                  "gcMs": 3.291583001613617
+                  "gcMs": 3.2156659960746765
                 },
                 {
-                  "usPerCall": 15.843449999999985,
-                  "cpuUsPerCall": 23.5506,
+                  "usPerCall": 15.839716799999998,
+                  "cpuUsPerCall": 23.5066,
                   "gcCount": 2,
-                  "gcMs": 2.60308301448822
+                  "gcMs": 2.6150830388069153
                 },
                 {
-                  "usPerCall": 14.035691599999973,
-                  "cpuUsPerCall": 15.6846,
+                  "usPerCall": 13.979516799999965,
+                  "cpuUsPerCall": 15.683,
                   "gcCount": 2,
-                  "gcMs": 3.1094589233398438
+                  "gcMs": 3.204083025455475
                 }
               ]
             },
             {
               "rows": 8,
               "calls": 5000,
-              "medianUs": 25.238991799999987,
+              "medianUs": 25.34955,
               "samples": [
                 {
-                  "usPerCall": 25.1044668,
-                  "cpuUsPerCall": 32.7696,
+                  "usPerCall": 24.977241599999978,
+                  "cpuUsPerCall": 32.6322,
                   "gcCount": 3,
-                  "gcMs": 3.817667007446289
+                  "gcMs": 3.702623963356018
                 },
                 {
-                  "usPerCall": 25.391066799999997,
-                  "cpuUsPerCall": 31.9326,
+                  "usPerCall": 25.399316599999974,
+                  "cpuUsPerCall": 32.0506,
                   "gcCount": 2,
-                  "gcMs": 3.201459050178528
+                  "gcMs": 3.3450839519500732
                 },
                 {
-                  "usPerCall": 25.238991799999987,
-                  "cpuUsPerCall": 27.8732,
+                  "usPerCall": 25.43651659999996,
+                  "cpuUsPerCall": 28.096,
                   "gcCount": 3,
-                  "gcMs": 3.5869999527931213
+                  "gcMs": 3.6349170804023743
                 },
                 {
-                  "usPerCall": 26.873300000000018,
-                  "cpuUsPerCall": 33.064,
+                  "usPerCall": 26.80477499999997,
+                  "cpuUsPerCall": 32.7572,
                   "gcCount": 2,
-                  "gcMs": 2.5612500309944153
+                  "gcMs": 2.137125015258789
                 },
                 {
-                  "usPerCall": 25.382433200000015,
-                  "cpuUsPerCall": 29.6062,
+                  "usPerCall": 25.34955,
+                  "cpuUsPerCall": 29.5982,
                   "gcCount": 3,
-                  "gcMs": 3.643417000770569
+                  "gcMs": 3.706583023071289
                 },
                 {
-                  "usPerCall": 24.77257499999996,
-                  "cpuUsPerCall": 29.7844,
+                  "usPerCall": 25.05663340000001,
+                  "cpuUsPerCall": 30.0308,
                   "gcCount": 3,
-                  "gcMs": 3.3287909626960754
+                  "gcMs": 3.3810009956359863
                 },
                 {
-                  "usPerCall": 24.467283399999996,
-                  "cpuUsPerCall": 26.5802,
+                  "usPerCall": 24.769741599999996,
+                  "cpuUsPerCall": 26.8088,
                   "gcCount": 2,
-                  "gcMs": 2.437291979789734
+                  "gcMs": 2.3007089495658875
                 }
               ]
             },
             {
               "rows": 128,
               "calls": 5000,
-              "medianUs": 196.9764668,
+              "medianUs": 200.08822499999988,
               "samples": [
                 {
-                  "usPerCall": 197.52285000000003,
-                  "cpuUsPerCall": 217.8646,
+                  "usPerCall": 202.994225,
+                  "cpuUsPerCall": 223.9034,
                   "gcCount": 21,
-                  "gcMs": 21.378084123134613
+                  "gcMs": 21.34645903110504
                 },
                 {
-                  "usPerCall": 196.1485834,
-                  "cpuUsPerCall": 218.705,
-                  "gcCount": 22,
-                  "gcMs": 22.283832013607025
+                  "usPerCall": 201.49401659999995,
+                  "cpuUsPerCall": 223.4586,
+                  "gcCount": 21,
+                  "gcMs": 20.79287302494049
                 },
                 {
-                  "usPerCall": 195.99570839999996,
-                  "cpuUsPerCall": 213.2748,
+                  "usPerCall": 200.62730840000003,
+                  "cpuUsPerCall": 217.935,
                   "gcCount": 22,
-                  "gcMs": 22.065955996513367
+                  "gcMs": 22.373459100723267
                 },
                 {
-                  "usPerCall": 197.06145840000008,
-                  "cpuUsPerCall": 212.796,
+                  "usPerCall": 199.95971659999995,
+                  "cpuUsPerCall": 215.7274,
                   "gcCount": 22,
-                  "gcMs": 22.377748012542725
+                  "gcMs": 22.32058411836624
                 },
                 {
-                  "usPerCall": 196.94323320000004,
-                  "cpuUsPerCall": 212.348,
+                  "usPerCall": 199.4403834000001,
+                  "cpuUsPerCall": 214.9174,
                   "gcCount": 22,
-                  "gcMs": 21.575915098190308
+                  "gcMs": 21.30187499523163
                 },
                 {
-                  "usPerCall": 196.9764668,
-                  "cpuUsPerCall": 212.9458,
+                  "usPerCall": 199.79030820000006,
+                  "cpuUsPerCall": 215.4636,
                   "gcCount": 22,
-                  "gcMs": 22.802667140960693
+                  "gcMs": 21.51958191394806
                 },
                 {
-                  "usPerCall": 197.90557499999994,
-                  "cpuUsPerCall": 214.0538,
+                  "usPerCall": 200.08822499999988,
+                  "cpuUsPerCall": 216.009,
                   "gcCount": 22,
-                  "gcMs": 22.336915969848633
+                  "gcMs": 22.179708063602448
                 }
               ]
             }
@@ -3680,147 +3681,147 @@
             {
               "rows": 1,
               "calls": 5000,
-              "medianUs": 12.375824999999985,
+              "medianUs": 12.267941599999993,
               "samples": [
                 {
-                  "usPerCall": 14.681566599999996,
-                  "cpuUsPerCall": 27.3682,
+                  "usPerCall": 14.5453666,
+                  "cpuUsPerCall": 27.3056,
                   "gcCount": 3,
-                  "gcMs": 2.9257500767707825
+                  "gcMs": 3.045542061328888
                 },
                 {
-                  "usPerCall": 13.31556680000001,
-                  "cpuUsPerCall": 29.816,
+                  "usPerCall": 13.31685,
+                  "cpuUsPerCall": 29.8466,
                   "gcCount": 3,
-                  "gcMs": 5.688834011554718
+                  "gcMs": 5.628332018852234
                 },
                 {
-                  "usPerCall": 12.817949999999996,
-                  "cpuUsPerCall": 13.9924,
+                  "usPerCall": 12.83611679999999,
+                  "cpuUsPerCall": 14,
                   "gcCount": 1,
-                  "gcMs": 1.83016699552536
+                  "gcMs": 1.8010419607162476
                 },
                 {
-                  "usPerCall": 12.300225,
-                  "cpuUsPerCall": 16.631,
+                  "usPerCall": 12.267941599999993,
+                  "cpuUsPerCall": 16.1792,
                   "gcCount": 2,
-                  "gcMs": 3.7118340134620667
+                  "gcMs": 3.6935420632362366
                 },
                 {
-                  "usPerCall": 11.678983199999994,
-                  "cpuUsPerCall": 13.8278,
+                  "usPerCall": 11.596691600000009,
+                  "cpuUsPerCall": 13.7468,
                   "gcCount": 2,
-                  "gcMs": 3.631500005722046
+                  "gcMs": 3.656125009059906
                 },
                 {
-                  "usPerCall": 12.375824999999985,
-                  "cpuUsPerCall": 18.2216,
+                  "usPerCall": 12.12918320000001,
+                  "cpuUsPerCall": 17.9996,
                   "gcCount": 1,
-                  "gcMs": 1.3030830025672913
+                  "gcMs": 1.2045829892158508
                 },
                 {
-                  "usPerCall": 11.561683399999993,
-                  "cpuUsPerCall": 13.57,
+                  "usPerCall": 11.359866599999986,
+                  "cpuUsPerCall": 13.3102,
                   "gcCount": 2,
-                  "gcMs": 3.766957998275757
+                  "gcMs": 3.665291965007782
                 }
               ]
             },
             {
               "rows": 8,
               "calls": 5000,
-              "medianUs": 19.1383918,
+              "medianUs": 19.293916799999987,
               "samples": [
                 {
-                  "usPerCall": 19.1383918,
-                  "cpuUsPerCall": 24.8974,
+                  "usPerCall": 19.379824999999983,
+                  "cpuUsPerCall": 25.2174,
                   "gcCount": 2,
-                  "gcMs": 2.6595420241355896
+                  "gcMs": 2.721833050251007
                 },
                 {
-                  "usPerCall": 19.56985,
-                  "cpuUsPerCall": 26.093,
+                  "usPerCall": 19.5507834,
+                  "cpuUsPerCall": 26.08,
                   "gcCount": 2,
-                  "gcMs": 2.7815420031547546
+                  "gcMs": 2.7585010528564453
                 },
                 {
-                  "usPerCall": 19.518358199999966,
-                  "cpuUsPerCall": 21.1562,
+                  "usPerCall": 19.293916799999987,
+                  "cpuUsPerCall": 20.9596,
                   "gcCount": 2,
-                  "gcMs": 2.7532079815864563
+                  "gcMs": 2.7823750376701355
                 },
                 {
-                  "usPerCall": 19.948016600000027,
-                  "cpuUsPerCall": 22.666,
+                  "usPerCall": 19.872899999999984,
+                  "cpuUsPerCall": 22.4556,
                   "gcCount": 2,
-                  "gcMs": 2.6234580278396606
+                  "gcMs": 2.2860410809516907
                 },
                 {
-                  "usPerCall": 19.042174999999997,
-                  "cpuUsPerCall": 22.6814,
+                  "usPerCall": 19.055108199999992,
+                  "cpuUsPerCall": 22.7168,
                   "gcCount": 2,
-                  "gcMs": 3.0352489948272705
+                  "gcMs": 3.165708005428314
                 },
                 {
-                  "usPerCall": 19.121100000000023,
-                  "cpuUsPerCall": 21.2512,
+                  "usPerCall": 19.130266600000006,
+                  "cpuUsPerCall": 21.3152,
                   "gcCount": 3,
-                  "gcMs": 3.870457947254181
+                  "gcMs": 3.868250012397766
                 },
                 {
-                  "usPerCall": 18.860991600000034,
-                  "cpuUsPerCall": 21.1534,
+                  "usPerCall": 18.736933399999998,
+                  "cpuUsPerCall": 20.9448,
                   "gcCount": 2,
-                  "gcMs": 2.6465409994125366
+                  "gcMs": 2.473459005355835
                 }
               ]
             },
             {
               "rows": 128,
               "calls": 5000,
-              "medianUs": 144.22675,
+              "medianUs": 144.24329160000008,
               "samples": [
                 {
-                  "usPerCall": 145.80835,
-                  "cpuUsPerCall": 167.0684,
+                  "usPerCall": 146.1737916,
+                  "cpuUsPerCall": 167.2216,
                   "gcCount": 21,
-                  "gcMs": 21.799957036972046
+                  "gcMs": 21.467331051826477
                 },
                 {
-                  "usPerCall": 144.95554999999996,
-                  "cpuUsPerCall": 167.8776,
+                  "usPerCall": 145.594675,
+                  "cpuUsPerCall": 167.8814,
                   "gcCount": 22,
-                  "gcMs": 22.498665273189545
+                  "gcMs": 21.837167143821716
                 },
                 {
-                  "usPerCall": 144.22675,
-                  "cpuUsPerCall": 162.3952,
+                  "usPerCall": 144.24329160000008,
+                  "cpuUsPerCall": 161.1048,
                   "gcCount": 21,
-                  "gcMs": 22.844122886657715
+                  "gcMs": 21.39375001192093
                 },
                 {
-                  "usPerCall": 143.91335,
-                  "cpuUsPerCall": 159.7128,
+                  "usPerCall": 144.1243333999999,
+                  "cpuUsPerCall": 160.3272,
                   "gcCount": 21,
-                  "gcMs": 21.498874962329865
+                  "gcMs": 21.88612288236618
                 },
                 {
-                  "usPerCall": 143.9201916,
-                  "cpuUsPerCall": 160.4832,
+                  "usPerCall": 144.55548340000004,
+                  "cpuUsPerCall": 161.028,
                   "gcCount": 22,
-                  "gcMs": 22.451543152332306
+                  "gcMs": 22.878123104572296
                 },
                 {
-                  "usPerCall": 143.85794160000003,
-                  "cpuUsPerCall": 159.6368,
+                  "usPerCall": 143.96210819999996,
+                  "cpuUsPerCall": 158.9676,
                   "gcCount": 21,
-                  "gcMs": 21.83800196647644
+                  "gcMs": 20.31250023841858
                 },
                 {
-                  "usPerCall": 144.3875916000001,
-                  "cpuUsPerCall": 161.9486,
-                  "gcCount": 22,
-                  "gcMs": 24.668209969997406
+                  "usPerCall": 144.06055820000003,
+                  "cpuUsPerCall": 160.3856,
+                  "gcCount": 21,
+                  "gcMs": 22.07704085111618
                 }
               ]
             }
@@ -3836,150 +3837,150 @@
             "rows": 0,
             "columns": 32,
             "tensorFusion": false,
-            "coldMs": 4.148834000000022,
+            "coldMs": 4.1800420000000145,
             "samplesMs": [
-              0.19433300000002873,
-              0.1348340000000121,
-              0.12450000000001182,
-              0.11454200000002857,
-              0.11362500000001319,
-              0.10829100000000835,
-              0.08162499999997408
+              0.20370799999994915,
+              0.1353330000000028,
+              0.12670800000000781,
+              0.11408399999999119,
+              0.11837500000001455,
+              0.10895899999997027,
+              0.0847919999999931
             ]
           },
           {
             "rows": 0,
             "columns": 32,
             "tensorFusion": true,
-            "coldMs": 1.4010410000000206,
+            "coldMs": 1.4202920000000177,
             "samplesMs": [
-              0.10404199999999264,
-              0.06629199999997581,
-              0.09079200000002174,
-              0.06779199999999719,
-              0.07774999999998045,
-              0.06520899999998164,
-              0.05829199999999446
+              0.10608300000001236,
+              0.06737500000002683,
+              0.10000000000002274,
+              0.06583299999999781,
+              0.07562500000000227,
+              0.06920799999994642,
+              0.061249999999972715
             ]
           },
           {
             "rows": 1,
             "columns": 32,
             "tensorFusion": false,
-            "coldMs": 0.49837500000001,
+            "coldMs": 0.5069169999999872,
             "samplesMs": [
-              0.1260000000000332,
-              0.12354199999998627,
-              0.12737499999997226,
-              0.11262500000003683,
-              0.09575000000000955,
-              0.10495900000000802,
-              0.09520800000001373
+              0.1258749999999509,
+              0.12204099999996743,
+              0.12987499999997,
+              0.11095899999997982,
+              0.09254199999998036,
+              0.10008299999998371,
+              0.09529199999997218
             ]
           },
           {
             "rows": 1,
             "columns": 32,
             "tensorFusion": true,
-            "coldMs": 0.4233329999999569,
+            "coldMs": 0.42549999999999955,
             "samplesMs": [
-              0.06925000000001091,
-              0.05908399999998437,
-              0.09770900000000893,
-              0.05933300000003783,
-              0.058209000000033484,
-              0.0695840000000203,
-              0.05733400000002575
+              0.06791699999996581,
+              0.058207999999979165,
+              0.09041600000000471,
+              0.05945800000000645,
+              0.057999999999992724,
+              0.06729100000001154,
+              0.05479099999996606
             ]
           },
           {
             "rows": 128,
             "columns": 32,
             "tensorFusion": false,
-            "coldMs": 2.9610419999999635,
+            "coldMs": 2.991542000000038,
             "samplesMs": [
-              0.6085419999999999,
-              0.5642910000000256,
-              0.5736249999999927,
-              0.575999999999965,
-              0.5686670000000049,
-              0.5555830000000128,
-              0.587333000000001
+              0.6100410000000238,
+              0.5660409999999843,
+              0.5887500000000045,
+              0.5735419999999749,
+              0.5799999999999841,
+              0.558749999999975,
+              0.5876669999999535
             ]
           },
           {
             "rows": 128,
             "columns": 32,
             "tensorFusion": true,
-            "coldMs": 0.8460000000000036,
+            "coldMs": 0.8702499999999986,
             "samplesMs": [
-              0.29187500000000455,
-              0.2951659999999947,
-              0.2980829999999628,
-              0.29108300000001464,
-              0.24112500000001091,
-              0.23629199999999173,
-              0.23970900000000483
+              0.28949999999997544,
+              0.2832089999999994,
+              0.30462499999998727,
+              0.2837499999999977,
+              0.23608300000000781,
+              0.2298340000000394,
+              0.24895900000001348
             ]
           },
           {
             "rows": 4096,
             "columns": 32,
             "tensorFusion": false,
-            "coldMs": 21.477750000000015,
+            "coldMs": 21.572000000000003,
             "samplesMs": [
-              17.512958000000026,
-              15.947499999999991,
-              15.876082999999994,
-              15.778833000000077,
-              15.83624999999995,
-              16.656417000000147,
-              23.75929199999996
+              17.703500000000076,
+              15.957499999999982,
+              16.04287499999998,
+              16.034999999999968,
+              16.226750000000038,
+              17.04858299999978,
+              24.13866699999994
             ]
           },
           {
             "rows": 4096,
             "columns": 32,
             "tensorFusion": true,
-            "coldMs": 8.170208000000002,
+            "coldMs": 8.288999999999987,
             "samplesMs": [
-              6.132665999999972,
-              8.704999999999927,
-              12.657040999999936,
-              6.0545419999999694,
-              6.475500000000011,
-              6.607332999999926,
-              6.045874999999796
+              6.210209000000077,
+              8.815041000000065,
+              13.730500000000006,
+              6.261833000000024,
+              6.583624999999984,
+              6.573917000000165,
+              6.160750000000007
             ]
           },
           {
             "rows": 32768,
             "columns": 32,
             "tensorFusion": false,
-            "coldMs": 347.2567919999999,
+            "coldMs": 349.7964159999999,
             "samplesMs": [
-              354.8030829999998,
-              351.04912499999955,
-              347.9320830000006,
-              350.5541669999993,
-              353.559166,
-              350.7297920000001,
-              344.44495800000004
+              352.54470800000036,
+              354.2664169999998,
+              347.39245800000026,
+              348.34950000000026,
+              347.88224999999966,
+              351.51979200000096,
+              349.0487919999996
             ]
           },
           {
             "rows": 32768,
             "columns": 32,
             "tensorFusion": true,
-            "coldMs": 72.73429100000021,
+            "coldMs": 70.31500000000005,
             "samplesMs": [
-              60.74024999999983,
-              57.36649999999918,
-              63.954499999999825,
-              57.83420800000022,
-              64.63895800000046,
-              58.92224999999962,
-              65.99775000000045
+              62.316916000000674,
+              56.705291999999645,
+              63.97862500000065,
+              58.11608299999989,
+              64.22879099999955,
+              58.17662500000006,
+              64.71649999999863
             ]
           }
         ]
@@ -3991,154 +3992,474 @@
             "rows": 0,
             "columns": 32,
             "tensorFusion": false,
-            "coldMs": 4.167542000000026,
+            "coldMs": 4.13129200000003,
             "samplesMs": [
-              0.19120800000001736,
-              0.1353330000000028,
-              0.13274999999998727,
-              0.11491699999999128,
-              0.1200420000000122,
-              0.10720800000001418,
-              0.083500000000015
+              0.19329100000004473,
+              0.14220899999997982,
+              0.12662499999999,
+              0.11916700000000446,
+              0.11487500000004047,
+              0.11091700000002902,
+              0.08620799999999917
             ]
           },
           {
             "rows": 0,
             "columns": 32,
             "tensorFusion": true,
-            "coldMs": 1.5235420000000204,
+            "coldMs": 1.5379159999999956,
             "samplesMs": [
-              0.10570899999999028,
-              0.061666999999999916,
-              0.08904100000000881,
-              0.05758299999996552,
-              0.06204200000001947,
-              0.05308299999995825,
-              0.057999999999992724
+              0.1049579999999537,
+              0.06387499999999591,
+              0.09179100000000062,
+              0.06158299999998462,
+              0.06675000000001319,
+              0.05429100000003473,
+              0.05841699999996308
             ]
           },
           {
             "rows": 1,
             "columns": 32,
             "tensorFusion": false,
-            "coldMs": 0.44054199999999355,
+            "coldMs": 0.45533399999999347,
             "samplesMs": [
-              0.11895899999996118,
-              0.11983400000002575,
-              0.11841600000002472,
-              0.1269580000000019,
-              0.09050000000002001,
-              0.09637500000002319,
-              0.09979199999997945
+              0.1220419999999649,
+              0.12274999999999636,
+              0.12016699999998082,
+              0.10949999999996862,
+              0.08920799999998508,
+              0.0973329999999919,
+              0.10254200000002811
             ]
           },
           {
             "rows": 1,
             "columns": 32,
             "tensorFusion": true,
-            "coldMs": 0.4359999999999786,
+            "coldMs": 0.44487500000002456,
             "samplesMs": [
-              0.053084000000012566,
-              0.044375000000002274,
-              0.06374999999997044,
-              0.04541700000004312,
-              0.047832999999968706,
-              0.047000000000025466,
-              0.055208000000050106
+              0.056541000000038366,
+              0.04712499999999409,
+              0.07175000000000864,
+              0.06787499999995816,
+              0.05000000000001137,
+              0.04966699999999946,
+              0.053375000000016826
             ]
           },
           {
             "rows": 128,
             "columns": 32,
             "tensorFusion": false,
-            "coldMs": 2.466542000000004,
+            "coldMs": 2.4992920000000254,
             "samplesMs": [
-              0.5064580000000092,
-              0.45154200000001765,
-              0.4597500000000423,
-              0.45462499999996453,
-              0.45966699999996763,
-              0.439707999999996,
-              0.4742909999999938
+              0.4998329999999669,
+              0.4613340000000221,
+              0.46912500000001955,
+              0.4630830000000401,
+              0.4652500000000259,
+              0.48133300000000645,
+              0.48304200000001174
             ]
           },
           {
             "rows": 128,
             "columns": 32,
             "tensorFusion": true,
-            "coldMs": 0.8377080000000205,
+            "coldMs": 0.8498329999999896,
             "samplesMs": [
-              0.22949999999997317,
-              0.2233749999999759,
-              0.23249999999995907,
-              0.22170799999997826,
-              0.17604199999999537,
-              0.16800000000000637,
-              0.17883299999999736
+              0.22879199999999855,
+              0.2260830000000169,
+              0.23287499999997863,
+              0.22116700000003675,
+              0.17295799999999417,
+              0.16866600000003018,
+              0.17829100000000153
             ]
           },
           {
             "rows": 4096,
             "columns": 32,
             "tensorFusion": false,
-            "coldMs": 18.015916000000004,
+            "coldMs": 17.65775000000002,
             "samplesMs": [
-              13.550624999999968,
-              15.106416999999965,
-              12.235707999999931,
-              12.205041999999935,
-              12.284207999999921,
-              13.194165999999996,
-              13.17333399999984
+              13.514542000000006,
+              12.724874999999997,
+              12.499041999999918,
+              12.450708000000077,
+              12.552500000000009,
+              13.34745799999996,
+              19.994457999999895
             ]
           },
           {
             "rows": 4096,
             "columns": 32,
             "tensorFusion": true,
-            "coldMs": 6.40949999999998,
+            "coldMs": 6.412832999999978,
             "samplesMs": [
-              4.32000000000005,
-              4.289040999999997,
-              4.320875000000001,
-              11.659875000000056,
-              4.516124999999988,
-              4.7531249999999545,
-              13.77541599999995
+              4.415082999999981,
+              7.1062500000000455,
+              11.753749999999968,
+              4.449040999999966,
+              4.844583000000057,
+              4.797874999999976,
+              4.344083000000182
             ]
           },
           {
             "rows": 32768,
             "columns": 32,
             "tensorFusion": false,
-            "coldMs": 309.376708,
+            "coldMs": 308.04491699999994,
             "samplesMs": [
-              304.51916600000004,
-              306.408042,
-              304.56737500000054,
-              305.37616699999944,
-              309.6387500000001,
-              307.205833,
-              306.8183749999989
+              307.3797079999995,
+              304.5819999999994,
+              302.6156660000006,
+              307.4182089999995,
+              303.66100000000006,
+              306.4167500000003,
+              307.6062090000014
             ]
           },
           {
             "rows": 32768,
             "columns": 32,
             "tensorFusion": true,
-            "coldMs": 56.12608399999999,
+            "coldMs": 56.67512500000021,
             "samplesMs": [
-              45.02879200000007,
-              43.18291700000009,
-              51.96270900000036,
-              42.61370799999986,
-              49.94366600000012,
-              43.912500000000364,
-              50.85462499999994
+              45.28454200000033,
+              42.74583300000086,
+              50.79962499999965,
+              41.2597080000005,
+              48.98304200000075,
+              42.27929199999926,
+              51.110083999999915
             ]
           }
         ]
       }
+    },
+    "profiles": {
+      "base": {
+        "totalMs": 5159.792,
+        "sha256": "6eb0088c4a10e4b1e658b4f9b9f14e2d15c277996a3814f6dd674a50f5b3fffe",
+        "selectedFiles": {
+          "tensor-kernel.js": {
+            "ms": 600.755,
+            "percent": 11.6430080902486
+          },
+          "return-contract.js": {
+            "ms": 120.29299999999999,
+            "percent": 2.3313536669695214
+          },
+          "array-element-types.js": {
+            "ms": 106.915,
+            "percent": 2.0720796497223146
+          },
+          "array-storage.js": {
+            "ms": 431.16100000000006,
+            "percent": 8.356170171200699
+          }
+        },
+        "selectedSelfTime": [
+          {
+            "file": "",
+            "function": "(garbage collector)",
+            "ms": 304.328,
+            "percent": 5.898067208910747
+          },
+          {
+            "file": "array-binding-contract.js",
+            "function": "visit",
+            "ms": 273.664,
+            "percent": 5.303779687243207
+          },
+          {
+            "file": "",
+            "function": "",
+            "ms": 245.795,
+            "percent": 4.763661015792884
+          },
+          {
+            "file": "",
+            "function": "(idle)",
+            "ms": 222.209,
+            "percent": 4.3065495663391085
+          },
+          {
+            "file": "tensor-kernel.js",
+            "function": "bindNode",
+            "ms": 196.836,
+            "percent": 3.8148049378734643
+          },
+          {
+            "file": "",
+            "function": "(program)",
+            "ms": 180.002,
+            "percent": 3.488551476493626
+          },
+          {
+            "file": "semantic-array-type.js",
+            "function": "elementType",
+            "ms": 175.79,
+            "percent": 3.406920278956981
+          },
+          {
+            "file": "tensor-kernel.js",
+            "function": "run",
+            "ms": 173.041,
+            "percent": 3.353642937544769
+          },
+          {
+            "file": "array-binding-contract.js",
+            "function": "check",
+            "ms": 168.247,
+            "percent": 3.260732215562178
+          },
+          {
+            "file": "fast-paths.js",
+            "function": "run",
+            "ms": 165.586,
+            "percent": 3.209160369255195
+          },
+          {
+            "file": "tensor-kernel.js",
+            "function": "",
+            "ms": 151.377,
+            "percent": 2.933781051639291
+          },
+          {
+            "file": "array-storage.js",
+            "function": "createOwned",
+            "ms": 143.539,
+            "percent": 2.781875703516731
+          },
+          {
+            "file": "execution.js",
+            "function": "advance",
+            "ms": 136.915,
+            "percent": 2.6534984355958535
+          },
+          {
+            "file": "value.js",
+            "function": "isRankArray",
+            "ms": 123.206,
+            "percent": 2.3878094310778417
+          },
+          {
+            "file": "",
+            "function": "run",
+            "ms": 121.877,
+            "percent": 2.362052578863644
+          },
+          {
+            "file": "frame.js",
+            "function": "checkArray",
+            "ms": 112.834,
+            "percent": 2.1867935761751633
+          },
+          {
+            "file": "array-element-types.js",
+            "function": "arrayElementTypes",
+            "ms": 106.915,
+            "percent": 2.0720796497223146
+          },
+          {
+            "file": "value.js",
+            "function": "typeName",
+            "ms": 99.708,
+            "percent": 1.9324034767292946
+          },
+          {
+            "file": "execution.js",
+            "function": "",
+            "ms": 99.457,
+            "percent": 1.9275389395541527
+          },
+          {
+            "file": "compiled-argument-type.js",
+            "function": "compiledArgumentType",
+            "ms": 95.334,
+            "percent": 1.8476326177489326
+          },
+          {
+            "file": "array-storage.js",
+            "function": "storedScalarKinds",
+            "ms": 81.081,
+            "percent": 1.571400552580414
+          },
+          {
+            "file": "return-contract.js",
+            "function": "argumentSignature",
+            "ms": 15.125,
+            "percent": 0.2931319712112426
+          }
+        ],
+        "otherSelfMs": 1766.9260000000008
+      },
+      "candidate": {
+        "totalMs": 4292.75,
+        "sha256": "a9522d6657b08753236b216b6ee48117eb54c34872b9bdbc2e732cdea7e85d36",
+        "selectedFiles": {
+          "tensor-kernel.js": {
+            "ms": 117.002,
+            "percent": 2.7255721856618713
+          },
+          "return-contract.js": {
+            "ms": 120.461,
+            "percent": 2.8061499039077513
+          },
+          "array-element-types.js": {
+            "ms": 25.626,
+            "percent": 0.5969599906819637
+          },
+          "array-storage.js": {
+            "ms": 373.205,
+            "percent": 8.693844272319609
+          }
+        },
+        "selectedSelfTime": [
+          {
+            "file": "",
+            "function": "(garbage collector)",
+            "ms": 292.921,
+            "percent": 6.8236212218275
+          },
+          {
+            "file": "array-binding-contract.js",
+            "function": "visit",
+            "ms": 282.416,
+            "percent": 6.578906295498224
+          },
+          {
+            "file": "",
+            "function": "",
+            "ms": 240.206,
+            "percent": 5.595620522974784
+          },
+          {
+            "file": "",
+            "function": "(idle)",
+            "ms": 221.251,
+            "percent": 5.154062081416341
+          },
+          {
+            "file": "semantic-array-type.js",
+            "function": "elementType",
+            "ms": 176.873,
+            "percent": 4.120272552559548
+          },
+          {
+            "file": "",
+            "function": "run",
+            "ms": 160.834,
+            "percent": 3.746642595073088
+          },
+          {
+            "file": "array-binding-contract.js",
+            "function": "check",
+            "ms": 151.084,
+            "percent": 3.519515462116359
+          },
+          {
+            "file": "",
+            "function": "(program)",
+            "ms": 145.748,
+            "percent": 3.3952128588899892
+          },
+          {
+            "file": "array-storage.js",
+            "function": "createOwned",
+            "ms": 136.875,
+            "percent": 3.188515520354086
+          },
+          {
+            "file": "execution.js",
+            "function": "advance",
+            "ms": 116.083,
+            "percent": 2.70416399743754
+          },
+          {
+            "file": "fast-paths.js",
+            "function": "run",
+            "ms": 114.625,
+            "percent": 2.670199755401549
+          },
+          {
+            "file": "compiled-argument-type.js",
+            "function": "compiledArgumentType",
+            "ms": 112.997,
+            "percent": 2.632275347970415
+          },
+          {
+            "file": "value.js",
+            "function": "isRankArray",
+            "ms": 111.582,
+            "percent": 2.59931279482849
+          },
+          {
+            "file": "execution.js",
+            "function": "",
+            "ms": 101.957,
+            "percent": 2.375097548191719
+          },
+          {
+            "file": "frame.js",
+            "function": "checkArray",
+            "ms": 93.085,
+            "percent": 2.1684235047463747
+          },
+          {
+            "file": "array-binding-contract.js",
+            "function": "equalContract",
+            "ms": 89.916,
+            "percent": 2.0946013627627975
+          },
+          {
+            "file": "return-contract.js",
+            "function": "memoizedSignature",
+            "ms": 85.962,
+            "percent": 2.002492574689884
+          },
+          {
+            "file": "function-frame.js",
+            "function": "create",
+            "ms": 85.209,
+            "percent": 1.9849513714984568
+          },
+          {
+            "file": "tensor-kernel.js",
+            "function": "run",
+            "ms": 76.21,
+            "percent": 1.7753188515520355
+          },
+          {
+            "file": "array-storage.js",
+            "function": "revisionFrame",
+            "ms": 73.957,
+            "percent": 1.7228350125211112
+          },
+          {
+            "file": "array-storage.js",
+            "function": "storedScalarKinds",
+            "ms": 25.5,
+            "percent": 0.5940248092714461
+          },
+          {
+            "file": "return-contract.js",
+            "function": "argumentSignature",
+            "ms": 13.541,
+            "percent": 0.3154388212684177
+          }
+        ],
+        "otherSelfMs": 1383.9179999999997
+      }
     }
+  },
+  "initialCandidateSources": {
+    "packages/interpreter/src/tensor-kernel.ts": "f42f7121c1803a0bbd43537bd3227af74a4f2f73bc144c94c2390f899603d04f",
+    "packages/interpreter/src/array-storage.ts": "6b097bf9538e3f5e416aa14fc32b4723c519424c87aa56e5c12f73d859408f12"
   }
 }

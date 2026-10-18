@@ -633,16 +633,24 @@ Profile separately from timing runs. `ROWS` selects comma-separated row counts;
 [Small-call samples and profile summaries](../../benchmarks/baselines/2026-10-18-small-tensor-calls.json),
 [numerical samples and repeats](../../benchmarks/baselines/2026-10-18-small-tensor-numerical.json).
 
-The final change was also compared with updated main `f7670f23` in three
-alternating baseline/candidate process pairs using the same batch sizes:
+The final change, including protection against reentrant host callbacks, was
+also compared with updated main `f7670f23` in three alternating
+baseline/candidate process pairs using the same batch sizes:
 
 | Shape | Updated main (µs) | Final candidate (µs) | Time reduction |
 | --- | ---: | ---: | ---: |
-| 1×32 | 15.98 | 12.44 | 22% |
-| 8×32 | 25.24 | 19.07 | 24% |
-| 128×32 | 196.98 | 143.97 | 27% |
+| 1×32 | 15.84 | 12.37 | 22% |
+| 8×32 | 25.35 | 19.27 | 24% |
+| 128×32 | 200.09 | 144.07 | 28% |
 
-The repeated large-array guard measured 6.48 to 4.52 ms at 4,096 rows and
-60.74 to 45.03 ms at 32,768 rows. These samples are included under
-`rebasedComparison` in the small-call results file above. The earlier profile
-and separate-optimization tables retain their original `cc3ca4de` baseline.
+The repeated large-array guard measured 6.57 to 4.80 ms at 4,096 rows and
+62.32 to 45.28 ms at 32,768 rows. These samples, final source hashes and fresh
+profile summaries are included under `rebasedComparison` in the small-call
+results file above. The earlier profile and separate-optimization tables retain
+their original `cc3ca4de` baseline.
+
+The final numerical suite also passed its result oracles. Short runs of the
+smallest k-means and matmul cases were sensitive to warmup, so they were repeated
+in three alternating process pairs with 15 samples each. Median-of-process
+medians were 4.17 to 3.77 ms for k-means and 1.04 to 1.04 ms for matmul. The
+numerical results file includes these controls and the full final comparison.
