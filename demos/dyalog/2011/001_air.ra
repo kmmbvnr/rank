@@ -4,6 +4,7 @@ rem Trips have at most MaxStops intermediate airports,
 rem never revisit an airport, and stop at the destination.
 
 use graph
+use algo
 use sequences
 use numbers
 use io
@@ -28,19 +29,23 @@ Segments = array shape 4 2
 end
 
 rem Build flight records, then weighted adjacency.
-Flights = Segments flight
+Flights = Segments Coordinates flight
 Graph = new graph (0 to 4) .undirected
 Graph add Flights
 Routes = Graph 0 3 MaxStops trips
-Totals = Routes tripdistance rank 0
-Totals array print
+Distances = new queue
+for Route in Routes
+  Distances push Route Graph tripdistance
+end
+Totals = Distances array
+Totals print
 
 rem Reachability and minimum cost use existing operations.
 Reachable = Graph 0 bfs .order
 CheapestNetwork = Graph mst
 CheapestNetwork .weight print
 
-fun Pair flight rank 1
+fun Pair Coordinates flight rank 1 2
   From = Pair 0
   To = Pair 1
   return record
@@ -61,10 +66,10 @@ fun A B distancekm
 end
 
 rem Reusable adjacent-pair reduction, with no traversal loop.
-fun Pair segmentcost rank 1
+fun Pair Graph segmentcost rank 1 all
   return Graph (Pair 0) (Pair 1) edgeweight
 end
 
-fun Route tripdistance rank 1
-  return (Route window 2) segmentcost reduce +
+fun Route Graph tripdistance
+  return (Route window 2) Graph segmentcost reduce +
 end

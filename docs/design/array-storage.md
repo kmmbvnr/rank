@@ -39,6 +39,25 @@ observed element-domain checks and established binding contracts. Borrowing is
 confined to a synchronous operation with no callbacks or writes. Other operands
 keep their ordinary readers and left-to-right error/effect order.
 
+Regular array selections and array `drop`/`take` publish trusted source mappings.
+Elementwise numeric operations can borrow these stored cells synchronously,
+without input copies or per-cell lazy caches. Flat mappings compose their offsets
+and strides; other tensor mappings keep their checked readers. Open array ranges
+compute their length and stride directly rather than building an index array.
+Binding checks and observed element domains still run, and arbitrary lazy or
+masked sources retain the ordinary fallback. Integer results are never narrowed
+to Int64 merely because an input uses typed storage. Float64 views enter the
+existing real kernel through zero-copy subarrays or explicit strides. With a
+single proved scalar kind, value-independent domain checks can observe one
+representative cell; column-specific or mixed-domain checks retain normal reads.
+
+Retained selections use the existing source ownership and selection-detachment
+rules. A borrowed layout is prepared anew for each operation, including after
+source writes. Selections that previously gathered eagerly (typed storage or
+large stored selections) retain their writable interface by deferring their
+private copy until a write. Small lazy selections and array `drop`/`take` retain
+their existing read-only interface; explicit `copy` creates mutable storage.
+
 `createArraySnapshot(items, shape?)` remains an internal shallow-copy helper for
 tests and inputs. It copies the iterable and shape, validates dimensions and
 preserves numeric values without coercion. It is not a reactive embedding API.

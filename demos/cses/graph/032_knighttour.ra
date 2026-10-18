@@ -17,7 +17,7 @@ fun StartX StartY knight_tour
   DX = array 2 1 -1 -2 -2 -1 1 2
   DY = array 1 2 2 1 -1 -2 -2 -1
 
-  fun X Y countopen
+  fun X Y Board countopen
     if X less 0 or X at least 8
       return false
     end
@@ -27,24 +27,24 @@ fun StartX StartY knight_tour
     return Board Y X equal 0
   end
 
-  fun Position degree
+  fun Position Board degree
     X = Position mod 8
     Y = Position // 8
     Count = 0
     for Move in 0 till 8
       NX = X + DX Move
       NY = Y + DY Move
-      if NX NY countopen
+      if NX NY Board countopen
         Count += 1
       end
     end
     return Count
   end
 
-  fun X Y Step visit
+  fun X Y Step Board visit
     Board Y X = Step
     if Step equal 64
-      return true
+      return Board
     end
 
     Moves = new queue
@@ -52,27 +52,25 @@ fun StartX StartY knight_tour
       NX = X + DX Move
       NY = Y + DY Move
       Next = NY * 8 + NX
-      if NX NY countopen
+      if NX NY Board countopen
         Moves push Next
       end
     end
-    Ordered = Moves sort by degree
+    Ordered = Moves sort by Board degree
     for Next in Ordered
       NX = Next mod 8
       NY = Next // 8
       NextStep = Step + 1
-      if NX NY NextStep visit
-        return true
+      Result = NX NY NextStep Board visit
+      if Result len greater 0
+        return Result
       end
     end
-    Board Y X = 0
-    return false
+    return array shape 0 0 fill 0
   end
 
-  X = StartX - 1
-  Y = StartY - 1
-  Found = X Y 1 visit
-  if not Found
+  Board = (StartX - 1) (StartY - 1) 1 Board visit
+  if Board len equal 0
     .Failure "tour not found" raise
   end
   return Board

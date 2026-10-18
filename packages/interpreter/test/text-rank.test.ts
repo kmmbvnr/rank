@@ -4,7 +4,7 @@ import { Interpreter, formatValue, isRankArray } from '../src/index.js';
 const balanced = readFileSync(new URL('../../../demos/dyalog/2013/004_balanced.ra', import.meta.url), 'utf8');
 
 for (const compiled of [false, true]) describe(`text rank (compiled=${compiled})`, () => {
-    const runtime = () => new Interpreter(undefined, {
+    const runtime = (print?: (line: string) => void) => new Interpreter(print, {
         scalarCompilation: compiled, scalarEntryCompilation: compiled, scalarFunctionCompilation: compiled,
         blockCompilation: compiled, integerLoopCompilation: compiled, tensorFusion: compiled,
     });
@@ -68,12 +68,13 @@ for (const compiled of [false, true]) describe(`text rank (compiled=${compiled})
     });
 
     it('applies explicit ranks to user functions over text', () => {
-        const r = runtime();
+        const calls: string[] = [];
+        const r = runtime(line => calls.push(line));
         try {
             r.execute(`use sequences
-Calls = array 0
+use io
 fun Text point
-  Calls 0 += 1
+  Text print
   return Text
 end
 fun Left Right same rank 0 0
@@ -82,7 +83,7 @@ end`);
             const result = r.execute('"😀é" point rank 0')!;
             expect(isRankArray(result)).toBe(true);
             if (isRankArray(result)) expect(result.items).toEqual(['😀', 'e', '́']);
-            expect(r.execute('Calls 0')).toBe(3n);
+            expect(calls).toEqual(['😀', 'e', '́']);
             expect(formatValue(r.execute('"aba" "a" same rank 0 0')!)).toBe('true false true');
         } finally { r.dispose(); }
     });

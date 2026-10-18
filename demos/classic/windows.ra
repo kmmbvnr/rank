@@ -1,0 +1,17 @@
+rem Windows and diagonals of a generated grid.
+use sequences
+use linalg
+use io
+
+fun N grid
+  Values = 1 to (N * N) array
+  return Values reshape N N
+end
+
+rem User calls can feed windows directly.
+Blocks = 3 grid window 2 2
+Main = 3 grid diag 0
+Anti = 3 grid diag .anti
+Blocks print
+Main print
+Anti print

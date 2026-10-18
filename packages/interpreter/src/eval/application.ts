@@ -1,3 +1,4 @@
+import { queryDefault } from '../query-default.js';
 import {
     lastArrayUseProofs, applicationExpression as applicationParts, applicationForm, assertNever, flattenApplication, isAllAxisExpression,
     isUnaryExpression, isParenthesizedExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression,
@@ -104,22 +105,24 @@ export class ApplicationEvaluator {
                 if (tail) context.functions.throwTailCall(fn, args);
                 return yield* resume(context.functions.invoke(fn, args));
             }
-            const resultShape = (cells: readonly (readonly number[])[]): readonly number[] | undefined => {
+            const resultShape = (fn: NativeFunction, cells: readonly (readonly number[])[]): readonly number[] | undefined => {
                 const shapes = args.map(value => isRankArray(value) ? value.shape : []);
                 expression.dataParameters.forEach((index, i) => { shapes[index] = [...cells[i]]; });
                 return fn.resultCellShape?.(shapes);
             };
-            const ranked: NativeFunction = {
+            const withOperands = (fn: NativeFunction): NativeFunction => ({
+                snapshot: fn.snapshot ? () => withOperands(fn.snapshot!()) : undefined,
                 kind: 'function', name: fn.name, arities: [data.length],
                 monadicRank: fn.monadicRank, dyadicRanks: fn.dyadicRanks, arrayCells: true,
-                monadicResultShape: shape => resultShape([shape]),
-                dyadicResultShape: (left, right) => resultShape([left, right]),
+                monadicResultShape: shape => resultShape(fn, [shape]),
+                dyadicResultShape: (left, right) => resultShape(fn, [left, right]),
                 call: cells => {
                     const bound = [...args];
                     expression.dataParameters.forEach((index, i) => { bound[index] = cells[i]; });
                     return runExecution(context.functions.invoke(fn, bound));
                 },
-            };
+            });
+            const ranked = withOperands(fn);
             if (data.length === 1) {
                 if (ranks.length > 1) throw new RankError('rank expects one entry for one data operand');
                 const rank = ranks[0] ?? (typeof fn.monadicRank === 'number' ? fn.monadicRank : 0);
@@ -788,6 +791,10 @@ export class ApplicationEvaluator {
                         : yield* resume(application.apply(argumentParts));
                     if (isRankMultiset(receiverValue)) {
                         context.requireModule('algo', multisetMethod.operation);
+                        if (missing && multisetMethod.operation === 'floor') {
+                            const result = queryDefault('floor', receiverValue, argumentValue);
+                            if (result !== undefined) return result;
+                        }
                         if (isRankArray(argumentValue)) {
                             // Many queries against one structure: the operation's intrinsic ranks
                             // split the queries into scalar cells.
@@ -917,7 +924,7 @@ export class ApplicationEvaluator {
                     const simple = !isNativeFunction(a) && (b === undefined || !isNativeFunction(b))
                         && !(b !== undefined && isRankLabel(b) && hasField(a, b.name));
                     const fn = (binary ? operation : right)();
-                    if (simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
+                    if (!missing && simple && isNativeFunction(fn) && fn.arities.includes(arguments_.length)) {
                         context.functions.transferLastUses(fn, arguments_, lastUses);
                         const result = context.rankApplication.applyIntrinsicRank(fn, arguments_);
                         if ('done' in result) {
@@ -971,6 +978,13 @@ export class ApplicationEvaluator {
                 pending,
                 parts => context.select(parts),
             );
+            if (missing && index === values.length - 1 && arguments_.length === 2) {
+                const name = context.builtins.is('sequences', 'find', value) ? 'find'
+                    : context.builtins.is('core', 'choose', value) ? 'choose'
+                    : context.builtins.is('numbers', 'floor', value) || context.builtins.is('algo', 'floor', value) ? 'floor' : undefined;
+                const result = name && queryDefault(name, arguments_[0], arguments_[1]);
+                if (result !== undefined && result !== false) return completed(result);
+            }
             const next = values[index + 1];
             if (arguments_.length === 1 && isNativeFunction(next)
                 && context.builtins.is('sequences', 'unique', value)

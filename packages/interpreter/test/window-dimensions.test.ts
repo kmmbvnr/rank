@@ -41,10 +41,10 @@ for (const compiled of [true, false]) describe(`window dimensions (compiled ${co
         expect(() => run(`${grid}M window ${sizes}`)).toThrow();
     });
     it('evaluates computed and unpacked sizes exactly once', () => {
-        expect(run('State = record\n .count = 0\nend\nfun sizes\n State .count += 1\n return array 2 2\nend\n'
-            + `${grid}W = M window unpack (sizes)\nState .count`)).toBe('1');
-        expect(run('State = record\n .count = 0\nend\nfun X size\n State .count += 1\n return X\nend\n'
-            + `${grid}W = M window (2 size) (2 size)\nState .count`)).toBe('2');
+        expect(run('State = record\n .count = 0\nend\nfun State sizes\n State .count += 1\n return array 2 2\nend\n'
+            + `${grid}W = M window unpack (State sizes)\nState .count`)).toBe('1');
+        expect(run('State = record\n .count = 0\nend\nfun X State size\n State .count += 1\n return X\nend\n'
+            + `${grid}W = M window (2 State size) (2 State size)\nState .count`)).toBe('2');
     });
     it('respects a user-defined window and explicit rank on old calls', () => {
         expect(new Interpreter().execute('fun X Y window\n return X + Y\nend\n1 2 window')).toBe(3n);

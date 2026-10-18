@@ -1,3 +1,4 @@
+import { prepareStoredScalarView, type LinearView } from './integer-view.js';
 import { mapPair, runExecution } from './execution.js';
 import { evaluateArrayItem, derivedArray, denseScalarItems, storedOperandItems, float64Cells, ownedArray, realCells, typedArray } from './array-storage.js';
 import { RankError } from './errors.js';
@@ -67,7 +68,10 @@ export function mapDenseArrays(
         const numeric = (array: RankArray | undefined, scalar: RankValue) => {
             if (!array) return isNumeric(scalar);
             const items = denseScalarItems(array) && storedOperandItems(array);
-            if (!items) return false;
+            if (!items) {
+                const view = prepareStoredScalarView(array, true);
+                return view?.regular && numericKinds(view.kinds);
+            }
             for (let index = 0; index < items.length; index++) {
                 if (!isNumeric(items[index])) return false;
             }
@@ -77,8 +81,9 @@ export function mapDenseArrays(
     }
     let leftItems = leftArray ? storedOperandItems(leftArray) : undefined;
     let rightItems = rightArray ? storedOperandItems(rightArray) : undefined;
-    if (leftArray && !leftItems) return undefined;
-    if (rightArray && !rightItems) return undefined;
+    if (leftArray && !leftItems || rightArray && !rightItems) {
+        return mapStoredViews(left, right, shape, operation, realCode);
+    }
     const same = !!leftArray && !!rightArray
         && leftArray.shape.length === rightArray.shape.length
         && leftArray.shape.every((dimension, axis) => dimension === rightArray.shape[axis]);
@@ -164,6 +169,69 @@ export function mapDenseArrays(
     return typedResult ? typedArray(cells as unknown as Float64Array, shape) : ownedArray(cells, shape, true);
 }
 
+/** Stored selections borrow their cells for this synchronous kernel only. No
+ * lazy readers or host getters are probed, and failed checks retain lazy errors. */
+function mapStoredViews(left: RankValue, right: RankValue, shape: readonly number[],
+    operation: (left: RankValue, right: RankValue) => RankValue, code: number): RankArray | undefined {
+    const a = isArrayValue(left) ? prepareStoredScalarView(left, true) : undefined;
+    const b = isArrayValue(right) ? prepareStoredScalarView(right, true) : undefined;
+    if (isArrayValue(left) && (!a?.regular || !numericKinds(a.kinds))
+        || isArrayValue(right) && (!b?.regular || !numericKinds(b.kinds))) return undefined;
+    const size = shape.reduce((product, dimension) => product * dimension, 1);
+    const leftShape = isArrayValue(left) ? left.shape : [];
+    const rightShape = isArrayValue(right) ? right.shape : [];
+    const leftStrides = arrayStrides(leftShape), rightStrides = arrayStrides(rightShape);
+    const sameLeft = leftShape.length === shape.length && leftShape.every((n, axis) => n === shape[axis]);
+    const sameRight = rightShape.length === shape.length && rightShape.every((n, axis) => n === shape[axis]);
+    const someReal = (view: typeof a, value: RankValue) => view ? view.kinds?.every(kind => kind === 'real' || kind === 'numeric-limit') : typeof value === 'number';
+    const real = code >= 0 && code <= LAST_ARITHMETIC_CODE && (someReal(a, left) || someReal(b, right));
+    // Contiguous Float64 slices use the existing typed kernel through zero-copy
+    // subarrays. Strided buffers keep their offset/stride in that kernel.
+    if (real && code <= LAST_ARITHMETIC_CODE && (!a || sameLeft) && (!b || sameRight)
+        && (!a || a.items instanceof Float64Array && a.linear && a.validateUniform)
+        && (!b || b.items instanceof Float64Array && b.linear && b.validateUniform)
+        && (a || typeof left === 'number') && (b || typeof right === 'number')) {
+        try {
+            if (size) {
+                if (a) a.validateUniform!(a.items[a.linear!.offset]);
+                if (b) b.validateUniform!(b.items[b.linear!.offset]);
+            }
+            const operand = (view: typeof a, value: RankValue): Float64Array | number => view
+                ? view.linear!.stride === 1 ? (view.items as Float64Array).subarray(view.linear!.offset, view.linear!.offset + size)
+                    : view.items as Float64Array : value as number;
+            const result = realKernel(code, size, operand(a, left), operand(b, right), 0, 0,
+                a?.linear?.stride === 1 ? undefined : a?.linear, b?.linear?.stride === 1 ? undefined : b?.linear);
+            return result ? typedArray(result, shape) : undefined;
+        } catch (error) {
+            if (error instanceof InterruptedError) throw error;
+            if (error instanceof RankError) return undefined;
+            throw error;
+        }
+    }
+    const cells: RankValue[] = real ? new Float64Array(size) as unknown as RankValue[] : new Array(size);
+    try {
+        for (let start = 0; start < size; start += DENSE_CHUNK) {
+            const end = Math.min(size, start + DENSE_CHUNK);
+            checkpoint('computing array', end - start);
+            for (let index = start; index < end; index++) {
+                const ai = sameLeft ? index : broadcastOffset(index, shape, leftShape, leftStrides);
+                const bi = sameRight ? index : broadcastOffset(index, shape, rightShape, rightStrides);
+                const x = a ? a.linear ? a.items[a.linear.offset + a.linear.stride * ai] : a.read(ai) : left;
+                const y = b ? b.linear ? b.items[b.linear.offset + b.linear.stride * bi] : b.read(bi) : right;
+                if (a?.linear) a.validate?.(x, ai);
+                if (b?.linear) b.validate?.(y, bi);
+                cells[index] = typeof x === 'number' && typeof y === 'number'
+                    ? realOperation(code, x, y, operation) : operation(x, y);
+            }
+        }
+    } catch (error) {
+        if (error instanceof InterruptedError) throw error;
+        if (error instanceof RankError) return undefined;
+        throw error;
+    }
+    return real ? typedArray(cells as unknown as Float64Array, shape) : ownedArray(cells, shape, true);
+}
+
 /**
  * `choose` at once when every operand is stored: the condition cells
  * must all be booleans and the branches scalars. Unread operands decline,
@@ -227,13 +295,13 @@ const DENSE_CHUNK = 4096;
  */
 function realKernel(
     code: number, size: number, a: Float64Array | number, b: Float64Array | number,
-    aMod: number, bMod: number,
+    aMod: number, bMod: number, aView?: LinearView, bView?: LinearView,
 ): Float64Array | undefined {
     const out = new Float64Array(size);
     for (let start = 0; start < size; start += DENSE_CHUNK) {
         checkpoint('computing array');
         const end = Math.min(size, start + DENSE_CHUNK);
-        if (typeof a !== 'number' && typeof b !== 'number' && aMod === 0 && bMod === 0 && code < 4) {
+        if (!aView && !bView && typeof a !== 'number' && typeof b !== 'number' && aMod === 0 && bMod === 0 && code < 4) {
             switch (code) {
                 case 0: for (let i = start; i < end; i += 1) out[i] = a[i] + b[i]; break;
                 case 1: for (let i = start; i < end; i += 1) out[i] = a[i] - b[i]; break;
@@ -244,7 +312,7 @@ function realKernel(
                         out[i] = a[i] / b[i];
                     }
             }
-        } else if (typeof b === 'number' && typeof a !== 'number' && aMod === 0 && code < 4) {
+        } else if (!aView && typeof b === 'number' && typeof a !== 'number' && aMod === 0 && code < 4) {
             switch (code) {
                 case 0: for (let i = start; i < end; i += 1) out[i] = a[i] + b; break;
                 case 1: for (let i = start; i < end; i += 1) out[i] = a[i] - b; break;
@@ -253,7 +321,7 @@ function realKernel(
                     if (b === 0) return undefined;
                     for (let i = start; i < end; i += 1) out[i] = a[i] / b;
             }
-        } else if (typeof a === 'number' && typeof b !== 'number' && bMod === 0 && code < 4) {
+        } else if (!bView && typeof a === 'number' && typeof b !== 'number' && bMod === 0 && code < 4) {
             switch (code) {
                 case 0: for (let i = start; i < end; i += 1) out[i] = a + b[i]; break;
                 case 1: for (let i = start; i < end; i += 1) out[i] = a - b[i]; break;
@@ -266,8 +334,8 @@ function realKernel(
             }
         } else {
             for (let i = start; i < end; i += 1) {
-                const x = typeof a === 'number' ? a : a[aMod ? i % aMod : i];
-                const y = typeof b === 'number' ? b : b[bMod ? i % bMod : i];
+                const x = typeof a === 'number' ? a : a[aView ? aView.offset + i * aView.stride : aMod ? i % aMod : i];
+                const y = typeof b === 'number' ? b : b[bView ? bView.offset + i * bView.stride : bMod ? i % bMod : i];
                 switch (code) {
                     case 0: out[i] = x + y; break;
                     case 1: out[i] = x - y; break;
@@ -381,6 +449,8 @@ function realOperation(
 const isArrayValue =(value: RankValue): value is RankArray =>
     typeof value === 'object' && value !== null && (value as { kind?: string }).kind === 'array';
 const isNumeric = (value: RankValue) => typeof value === 'number' || typeof value === 'bigint';
+const numericKinds = (kinds: readonly string[] | undefined): boolean => kinds !== undefined
+    && (kinds.every(kind => kind === 'integer') || kinds.every(kind => kind === 'real' || kind === 'numeric-limit'));
 
 export function broadcastShape(
     left: readonly number[],

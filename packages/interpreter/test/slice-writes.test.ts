@@ -77,9 +77,9 @@ describe.each([false, true])('slice writes (compilation=%s)', compilation => {
     it('evaluates RHS once and returns the original RHS', () => {
         const r = new Interpreter(undefined, { compilation });
         try {
-            r.execute('A = array 10 20 30 40\nCalls = array 0\nfun rhs\n Calls 0 += 1\n return 7\nend');
-            expect(r.execute('A (0 to 3) += rhs')).toBe(7n);
-            expect(r.execute('Calls 0')).toBe(1n);
+            r.execute('use algo\nA = array 10 20 30 40\nCalls = new queue\nfun Calls rhs\n Calls push 1\n return 7\nend');
+            expect(r.execute('A (0 to 3) += Calls rhs')).toBe(7n);
+            expect(r.execute('Calls len')).toBe(1n);
         } finally { r.dispose(); }
     });
 

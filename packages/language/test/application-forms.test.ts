@@ -1,4 +1,6 @@
+import { analyzeBindings, analyzeValues } from '../src/index.js';
 import { EmptyFileSystem } from 'langium';
+import { parseHelper } from 'langium/test';
 import { expect, it } from 'vitest';
 import { axisLengthForm, axisReductionForm, sortDirectionForm,
     symbolicApplicationForm, applicationForm } from '../src/application-forms.js';
@@ -126,4 +128,105 @@ it('does not interpret a CSV write as a checked read', () => {
     const assignment = parsed.value.statements[0];
     if (!isAssignmentStatement(assignment)) throw new Error('expected assignment');
     expect(applicationForm(assignment.value)).toMatchObject({ kind: 'invalid' });
+});
+
+it('returns the original nodes of a pipeline after a user function call', () => {
+    const parsed = parser.parse<Program>('Result = 6 upto array len\n');
+    const statement = parsed.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    const form = applicationForm(statement.value, name => name === 'upto' ? false : findOperation(name));
+    if (form.kind !== 'materialize-pipeline') throw new Error('expected materialize-pipeline');
+    expect(form.source).toEqual(flattenApplication(statement.value).slice(0, 2));
+    expect(form.source[1]).toBe(flattenApplication(statement.value)[1]);
+    expect(form.steps).toEqual(form.selector.items);
+    form.steps.forEach((step, index) => expect(step).toBe(form.selector.items[index]));
+});
+
+it.each(['1 to Lim', 'array Lim Lim'])('validates a pipeline after a user function returning %s', async body => {
+    const parse = parseHelper<Program>(createRankServices(EmptyFileSystem).Rank);
+    const messages = async (pipeline: string) => {
+        const source = `use sequences\nfun Lim upto\n return ${body}\nend\nX = ${pipeline}\n`;
+        const document = await parse(source, { validation: true });
+        return (document.diagnostics ?? []).map(diagnostic => diagnostic.message);
+    };
+    expect(await messages('6 upto array len')).toEqual(await messages('(6 upto) array len'));
+});
+
+it.each([
+    ['6 upto window 3', 'window'],
+    ['3 sq diag .anti', 'diagonal'],
+    ['3 sq diag 0', 'diagonal'],
+    ['3 sq diag .anti 0 rank 2', 'diagonal'],
+])('retains original operands in the synthesized source of %s', (source, kind) => {
+    const statement = parser.parse<Program>(`Result = ${source}`).value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    const parts = flattenApplication(statement.value);
+    const form = applicationForm(statement.value, name => ['upto', 'sq'].includes(name) ? false : findOperation(name));
+    expect(form.kind).toBe(kind);
+    if (form.kind !== 'window' && form.kind !== 'diagonal') throw new Error('expected source form');
+    flattenApplication(form.source).forEach((part, index) => expect(part).toBe(parts[index]));
+    expect(parts[1]).toMatchObject({ name: source.includes('upto') ? 'upto' : 'sq' });
+});
+
+it('resolves each classification independently without mutating a reused AST', () => {
+    const statement = parser.parse<Program>('Result = A Op 3').value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    const lookup = (name: string) => name === 'Op' ? findOperation('window') : findOperation(name);
+    expect(applicationForm(statement.value, lookup).kind).toBe('window');
+    expect(applicationForm(statement.value, name => name === 'Op' ? false : findOperation(name)).kind).toBe('plain');
+    expect(applicationForm(statement.value, lookup).kind).toBe('window');
+    expect(flattenApplication(statement.value)[1]).toMatchObject({ name: 'Op' });
+});
+
+it('keeps shadowed window groups as pipeline operands', () => {
+    const statement = parser.parse<Program>('Result = A window 2 stride 1').value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    const parts = flattenApplication(statement.value);
+    expect(applicationForm(statement.value)).toMatchObject({ kind: 'window', stride: parts[4], rest: [] });
+    expect(applicationForm(statement.value, name => name === 'stride' ? false : findOperation(name)))
+        .toMatchObject({ kind: 'window', stride: undefined, rest: parts.slice(3) });
+});
+
+it.each(['i', 'j', 'k'])('retains implicit %s as a window dimension', name => {
+    const statement = parser.parse<Program>(`Result = A window ${name}`).value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    expect(applicationForm(statement.value, key => key === name ? false : findOperation(key)))
+        .toMatchObject({ kind: 'window', dimensions: [{ name }], rest: [] });
+});
+
+
+it.each([
+    ['6 upto', 'window 3'],
+    ['3 sq', 'diag .anti'],
+    ['3 sq', 'diag 0'],
+])('checks %s %s through value, binding and editor analysis', async (source, suffix) => {
+    const prefix = `use sequences
+use linalg
+fun N upto
+ return 1 to N array
+end
+
+fun N sq
+ return array 1 2 3 4 5 6 7 8 9 shape N N
+end
+
+`;
+    const analyze = (call: string) => {
+        const parsed = parser.parse<Program>(`${prefix}Result = ${call} ${suffix}\n`);
+        expect(parsed.parserErrors).toEqual([]);
+        const values = analyzeValues(parsed.value);
+        const bindings = analyzeBindings(parsed.value);
+        expect(values.diagnostics).toEqual([]);
+        expect(bindings.words.some(word => word.name.startsWith('\0'))).toBe(false);
+        return {
+            value: values.bindings.get('Result'),
+            binding: bindings.scopes.find(scope => scope.kind === 'program')?.bindings.find(binding => binding.name === 'Result')?.types,
+        };
+    };
+    expect(analyze(source)).toEqual(analyze(`(${source})`));
+    const parse = parseHelper<Program>(createRankServices(EmptyFileSystem).Rank);
+    const direct = await parse(`${prefix}Result = ${source} ${suffix}\n`, { validation: true });
+    const grouped = await parse(`${prefix}Result = (${source}) ${suffix}\n`, { validation: true });
+    expect(direct.diagnostics?.map(diagnostic => diagnostic.message))
+        .toEqual(grouped.diagnostics?.map(diagnostic => diagnostic.message));
 });

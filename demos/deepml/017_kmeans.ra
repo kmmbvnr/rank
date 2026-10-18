@@ -10,9 +10,8 @@ fun Points K InitialCentroids Max k_means
   Samples = Points real rank 0
   Centroids = InitialCentroids real rank 0
   N = Points len
-  Labels = array shape N fill 0
-
   fun Centroids step
+    Labels = array shape N fill 0
     for i in 0 till N
       Point = Samples i
       Best = 0

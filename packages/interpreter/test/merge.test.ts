@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mergeSorted } from '../src/modules/sorted-merge.js';
 import { sequence } from '../src/sequence.js';
 import { ownedArray } from '../src/array-storage.js';
+import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
 
 describe('sorted sequence merge', () => {
@@ -35,14 +36,14 @@ describe('sorted sequence merge', () => {
             'Reads = record',
             '  .count = 0',
             'end',
-            'fun Start stream',
+            'fun Start Reads stream',
             '  for I in 0 to 3',
             '    Reads .count += 1',
             '    yield Start + I * 2',
             '  end',
             'end',
-            'A = 1 stream',
-            'B = 2 stream',
+            'A = 1 Reads stream',
+            'B = 2 Reads stream',
             'M = A B merge',
             'First = M first',
             'Reads .count',
@@ -55,14 +56,14 @@ describe('sorted sequence merge', () => {
             'Calls = record',
             '  .count = 0',
             'end',
-            'fun X hit',
+            'fun X Calls hit',
             '  Calls .count += 1',
             '  return X equal 11',
             'end',
             'A = array 11 33',
             'B = array 22 44',
             'Candidates = A B merge',
-            'Answer = Candidates filter hit first',
+            'Answer = Candidates filter Calls hit first',
             'array Answer (Calls .count)',
         ].join('\n'))).toBe('11 1');
     });
@@ -73,15 +74,15 @@ describe('sorted sequence merge', () => {
             'Reads = record',
             '  .count = 0',
             'end',
-            'fun Start stream',
+            'fun Start Reads stream',
             '  Reads .count += 1',
             '  yield Start',
             'end',
             'fun X hit',
             '  return X equal 1',
             'end',
-            'A = 1 stream',
-            'B = 2 stream',
+            'A = 1 Reads stream',
+            'B = 2 Reads stream',
             'First = A B merge filter hit first',
             'Reads .count',
         ].join('\n');
@@ -167,19 +168,20 @@ describe('sorted sequence merge', () => {
             'M = A B merge by magnitude',
             'M array',
         ].join('\n'))).toBe('-1 2 -3 4 -5 6');
-        expect(run([
-            'use sequences',
-            'Calls = record',
-            '  .count = 0',
-            'end',
-            'fun X key',
-            '  Calls .count += 1',
-            '  return X',
-            'end',
-            'M = (array 1 3 5) (array 2 4 6) merge by key',
-            'First = M first',
-            'Calls .count',
-        ].join('\n'))).toBe('2');
+        const calls: string[] = [];
+        const runtime = new Interpreter(line => calls.push(line));
+        try {
+            runtime.execute(`use sequences
+use io
+fun X key
+  X print
+  return X
+end
+M = (array 1 3 5) (array 2 4 6) merge by key`);
+            expect(calls).toEqual([]);
+            expect(runtime.execute('M first')).toBe(1n);
+            expect(calls).toEqual(['1', '2']);
+        } finally { runtime.dispose(); }
     });
 
     it('keeps graph DSU merge available when both modules are open', () => {

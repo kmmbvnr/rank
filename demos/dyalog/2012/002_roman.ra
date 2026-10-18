@@ -74,24 +74,18 @@ fun Values rtoA
   return Values romanNumber rank 0
 end
 
-rem Box the numeric function in a tuple to pass it through data-first syntax.
-rem The derived function accepts one Roman operand or a tuple of two operands.
-fun Operation roman
-  op = (Operation 0)
-  return derived
-
-  fun Arguments derived
-    if Arguments is .tuple
-      unpack Left Right = Arguments
-      A = Left rtoA
-      B = Right rtoA
-      Value = A B op
-      return Value atoR
-    end
-    A = Arguments rtoA
-    Value = A op
+rem Apply a numeric function to one Roman operand or a tuple of two operands.
+fun Arguments roman op
+  if Arguments is .tuple
+    unpack Left Right = Arguments
+    A = Left rtoA
+    B = Right rtoA
+    Value = A B op
     return Value atoR
   end
+  A = Arguments rtoA
+  Value = A op
+  return Value atoR
 end
 
 Example = (array 49.0 1999.0 0.0 -7.0 4.3) atoR

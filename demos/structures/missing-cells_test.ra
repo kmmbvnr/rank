@@ -1,0 +1,26 @@
+use testing
+
+test "missing measurements preserve their positions"
+  use "missing-cells"
+  run
+  (Adjusted default -1) equal array 15 -1 10 -1 24
+  Known equal array 12 7 21
+  Total equal 40
+  Filled equal array 12 0 7 0 21
+  Counts present equal array true false true false true
+end
+
+test "query default replaces only misses"
+  use "missing-cells"
+  run
+  Positions equal array 1 -1 0
+  Choices equal array 100 -1 300
+  Floors equal array -1 20 30
+end
+
+test "scalar conversions keep missing measurements"
+  use "missing-cells"
+  run
+  (Rounded default 0.0) equal array 1.2 0.0 3.8
+  Texts present equal array true false true
+end

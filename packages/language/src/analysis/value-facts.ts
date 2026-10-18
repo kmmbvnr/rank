@@ -251,6 +251,13 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     if (isFirstIndexWhereExpression(expression)) return { types: ['integer'], rank: 0, shape: [] };
     if (isTableFilterExpression(expression) && !expression.sourceFields.length) {
         const source = expressionFacts(expression.source, lookup);
+        const conditionsForPresence = expression.condition ? [expression.condition] : expression.conditions;
+        const presence = conditionsForPresence.map(filterPredicateForm);
+        if (presence.length === 1 && presence[0]?.name === 'present' && !lookup('present')
+            && (presence[0].rank === undefined || presence[0].rank === 0) && !presence[0].axes
+            && ['array', 'sequence'].includes(source.types.join()) && source.rank === 1 && source.elements) {
+            return { types: ['sequence'], rank: 1, shape: [null], elements: source.elements.filter(type => type !== 'missing') };
+        }
         if (source.types.join() === 'sequence') return { types: ['sequence'], rank: 1, shape: [null],
             ...(source.elements ? { elements: source.elements } : {}),
             ...(source.elementRecord ? { elementRecord: source.elementRecord } : {}) };
@@ -291,6 +298,8 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
         const filteredLength = source.checkedColumns ? freshDim('filtered') : undefined;
         if (source.types.join() === 'array' && source.rank === 1) return {
             types: ['array'], rank: 1, shape: [null],
+            ...(source.elements?.every(type => ['integer', 'real', 'boolean', 'text', 'symbol', 'missing'].includes(type))
+                ? { elements: source.elements } : {}),
             ...(filteredLength && source.checkedInputId !== undefined
                 ? { dims: [filteredLength], checkedInputId: source.checkedInputId, checkedColumns: Object.fromEntries(
                     Object.entries(source.checkedColumns ?? {}).map(([name, column]) => [name,

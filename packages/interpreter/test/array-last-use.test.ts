@@ -93,9 +93,9 @@ describe.each([false, true])('last array use with integer compilation %s', compi
         } finally { runtime.dispose(); }
     });
 
-    it('does not treat an assigned capture as a caller-local index', () => {
-        expect(execute(`${change}\nfun outer\n I = 0\n fun forward\n  A = array 1 2 3\n  I = 0\n  First = A I\n  return A change\n end\n return forward\nend\nouter`, compiled))
-            .toEqual({ value: [9n, 2n, 3n], copies: 1 });
+    it('rejects an index assignment colliding with an enclosing binding', () => {
+        expect(() => execute(`${change}\nfun outer\n I = 0\n fun forward\n  A = array 1 2 3\n  I = 0\n  First = A I\n  return A change\n end\n return forward\nend\nouter`, compiled))
+            .toThrow('I is bound in an enclosing function');
     });
 
     it('does not infer a past global selector from its current integer value', () => {

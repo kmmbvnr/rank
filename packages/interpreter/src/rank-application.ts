@@ -1,6 +1,6 @@
 import { arrayRevision, derivedArray, materializeCells, ownedArray, registerArrayReadPlan, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
-import { registerIntegerView } from './integer-view.js';
+import { registerScalarView } from './integer-view.js';
 import type { RankedMembership } from './membership-function.js';
 import { completed, type Evaluation } from './execution.js';
 import { RankError } from './errors.js';
@@ -66,6 +66,7 @@ export class RankApplication {
         }
         if (isRankSequence(value)) {
             if (cellRank >= 1) return this.invoke(fn, [value]);
+            fn = fn.snapshot?.() ?? fn;
             const scalar = this.scalarCallback(fn);
             return completed(mapSequence(value, fn.name, atom => scalar ? scalar([atom]) : fn.call([atom])));
         }
@@ -126,6 +127,7 @@ export class RankApplication {
         if (frameShape.length === 0) {
             return this.invoke(fn, [left, right]);
         }
+        fn = fn.snapshot?.() ?? fn;
         // A cell that returns an array, or an explicit rank on a function without its own
         // dyadic ranks, stacks its results under the frame.
         if (fn.arrayCells || (customLeftRank !== undefined && !fn.dyadicRanks)) {
@@ -294,6 +296,7 @@ export class RankApplication {
         fn: Extract<RankValue, { kind: 'function' }>,
         frameAxes: readonly number[],
     ): RankValue {
+        fn = fn.snapshot?.() ?? fn;
         const cells = tensorCells(value, frameAxes);
         const frameSize = arraySize(cells.frameShape);
         if (frameSize === 0) {
@@ -543,7 +546,7 @@ export function tensorCells(source: RankArray, frameAxes: readonly number[]): Te
                 });
                 return arrayOffset(source.shape, coordinates);
             };
-            return registerIntegerView(derivedArray(cellShape, [source], index => arrayItem(source, offset(index))), source, offset);
+            return registerScalarView(derivedArray(cellShape, [source], index => arrayItem(source, offset(index))), source, offset);
         },
     };
 }

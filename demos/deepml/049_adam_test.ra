@@ -9,11 +9,7 @@ test "official equal parameters"
   end
 
   X = array 1.0 1.0
-  Input = record
-    .parameters = X
-    .gradient = gradient
-  end
-  Actual = Input adam_optimizer
+  Actual = X adam_optimizer gradient
   Expected = array 0.99000325 0.99000325
   Rounded = Actual round 8
   Rounded Expected equal rank 1
@@ -28,11 +24,7 @@ test "official unequal parameters"
   end
 
   X = array 0.2 12.3
-  Input = record
-    .parameters = X
-    .gradient = gradient
-  end
-  Actual = Input adam_optimizer
+  Actual = X adam_optimizer gradient
   Expected = array shape 2
     0.19001678 12.29000026
   end
@@ -48,10 +40,6 @@ test "zero gradient keeps parameters"
   end
 
   X = array -2.0 4.0
-  Input = record
-    .parameters = X
-    .gradient = zero_gradient
-  end
-  Actual = Input adam_optimizer
+  Actual = X adam_optimizer zero_gradient
   Actual X equal rank 1
 end

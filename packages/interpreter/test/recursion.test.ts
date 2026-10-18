@@ -22,24 +22,25 @@ describe('stack-safe Rank calls', () => {
 
     it('visits a chain of 100,000 vertices and accumulates subtree sizes after returning', () => {
         expect(run(`
+use algo
 Edges = array shape 100000 fill -1
-Seen = array shape 100000 fill false
+Seen = new set
 for I in 0 till 99999
   Edges I = I + 1
 end
-fun V dfs
-  if Seen V
+fun V Seen dfs
+  if V in Seen
     return 0
   end
-  Seen V = true
+  Seen add V
   Size = 1
   Next = Edges V
   if Next at least 0
-    Size += Next dfs
+    Size += Next Seen dfs
   end
   return Size
 end
-0 dfs
+0 Seen dfs
 `)).toBe('100000');
     }, 30_000);
 
@@ -64,39 +65,43 @@ end
     it('preserves operand order and evaluates side effects once across multiple calls', () => {
         expect(run(`
 fun N exercise
-  Count = 0
-  fun V tree
-    Count += 1
-    if V equal 0
-      return Count
-    end
-    return ((V - 1) tree) - ((V - 1) tree)
+  Count = record
+    .value = 0
   end
-  Answer = N tree
-  return array Answer Count
+  fun V Count tree
+    Count .value += 1
+    if V equal 0
+      return Count .value
+    end
+    return ((V - 1) Count tree) - ((V - 1) Count tree)
+  end
+  Answer = N Count tree
+  return array Answer (Count .value)
 end
 10 exercise
 `)).toBe('0 2047');
     });
 
-    it('unwinds deep returns and caught errors through finally with captured locals', () => {
+    it('unwinds deep returns and caught errors through finally with explicit cleanup state', () => {
         expect(run(`
 fun N exercise
-  Cleaned = 0
-  fun V visit
+  Cleaned = record
+    .value = 0
+  end
+  fun V Cleaned visit
     try
       if V equal 0
         .Leaf 7 raise
       end
-      return (V - 1) visit + 1
+      return (V - 1) Cleaned visit + 1
     catch .Leaf Error
       return Error .Value
     finally
-      Cleaned += 1
+      Cleaned .value += 1
     end
   end
-  Answer = N visit
-  return array Answer Cleaned
+  Answer = N Cleaned visit
+  return array Answer (Cleaned .value)
 end
 5000 exercise
 `)).toBe('5007 5001');
@@ -288,16 +293,18 @@ array A B C
     it('continues a postfix application after suspension without repeating effects', () => {
         expect(run(`${down}
 fun N exercise
-  Count = 0
-  fun X tick
-    Count += 1
+  Count = record
+    .value = 0
+  end
+  fun X Count tick
+    Count .value += 1
     return X
   end
   fun X increment
     return X + 1
   end
-  Answer = N tick down increment tick
-  return array Answer Count
+  Answer = N Count tick down increment Count tick
+  return array Answer (Count .value)
 end
 1000 exercise
 `)).toBe('1001 2');

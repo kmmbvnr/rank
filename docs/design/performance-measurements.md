@@ -24,6 +24,9 @@ node --expose-gc benchmarks/arrays.mjs
 node --expose-gc benchmarks/arrays.mjs --json
 node --expose-gc benchmarks/arrays.mjs --fusion --json
 node benchmarks/runtime.mjs
+node benchmarks/slice-arithmetic.mjs --quick
+node benchmarks/slice-arithmetic.mjs --quick --real
+node benchmarks/slice-arithmetic.mjs
 node benchmarks/dense-writes.mjs --baseline=/path/to/built/baseline
 node benchmarks/memo.mjs
 node benchmarks/extrema.mjs --baseline=/path/to/built/baseline
@@ -565,3 +568,199 @@ interpreter suite excluding `test/differential.test.ts` passed: 185 files,
 assignment, broadcasting, scalar guards, deferred type errors, empty tensors,
 and refusal to force opaque or lazy inputs. Full differential demos were not
 run; the benchmark compares every queens placement in both execution modes.
+
+## Small tensor calls (issue #120)
+
+Measured on 2026-10-18 against `cc3ca4de`, Apple M5, macOS arm64,
+Node 24.15.0. A cached tensor layout reuses shape/slot planning while checking
+current operands on every call. Owned arrays also retain the primitive type
+counts already proved by their initial validation, avoiding a second scan for
+return contracts. Results still receive fresh storage.
+
+Three separate-process runs per variant, seven batches of 5,000 calls after
+2,000 warmups per shape; all inputs are interpreter-owned. The table reports
+the median of process medians in microseconds per call. The four variants were
+run in alternating orders. No assistant-launched heavy jobs overlapped these
+measurements; unrelated machine load was uncontrolled and produced outliers.
+Raw samples include elapsed time, process CPU time, GC count and GC duration.
+
+| Shape | Baseline | Layout only | Type counts only | Combined |
+| --- | ---: | ---: | ---: | ---: |
+| 1×32 | 16.28 | 13.42 | 15.05 | 12.98 |
+| 8×32 | 25.20 | 22.75 | 22.34 | 19.49 |
+| 128×32 | 196.12 | 205.37 | 158.29 | 154.27 |
+
+The combined change reduced median time by 20%, 23% and 21%. Layout caching
+alone did not improve 128×32. Median observed GC counts per 35,000 timed calls
+fell from 19 to 14 at 1×32 and from 18 to 15 at 8×32. This is not a claim of
+smaller retained results or lower peak memory.
+
+Separate whole-process CPU profiles used 301,000 timed 1×32 calls plus warmups
+and setup. Selected self-time shares were:
+
+| Profile entry | Baseline | Combined |
+| --- | ---: | ---: |
+| All `tensor-kernel.js` functions | 12.37% | 2.66% |
+| `arrayElementTypes` | 2.15% | 0.47% |
+| `storedScalarKinds` | 1.50% | 0.45% |
+| `createOwned` | 2.72% | 3.19% |
+| Garbage collector | 6.36% | 7.41% |
+
+Shares have a smaller denominator after optimization: sampled `createOwned`
+self time was 144 to 140 ms and GC time 338 to 325 ms. The improvement does
+not come from reusing reachable outputs or eliminating their ownership wrappers.
+
+Two alternating runs of the existing broadcast benchmark retained its result
+checks. Fused medians for 4,096 rows were 7.56/8.81 ms before and 4.77/4.75 ms
+after; for 32,768 rows they were 65.37/61.65 ms and 45.27/45.12 ms. The numerical
+demo benchmark also passed its independent result checks. Initial matmul,
+k-means and row-reduction outliers were repeated with five samples and reversed
+starting order: large matmul was 525.1 versus 528.1 ms, large k-means 340.8 versus
+346.7 ms, and large row reduction 66.6 versus 62.7 ms. These repeats did not
+show the initial 10–18% slowdowns.
+
+To reproduce against a separately built baseline:
+
+```sh
+CALLS=5000 node benchmarks/small-tensor-calls.mjs --baseline=/path/to/baseline --runs=3
+node benchmarks/broadcast-fusion.mjs
+node benchmarks/numerical-demos.mjs --baseline=/path/to/baseline --storage=snapshot
+ROWS=1 CALLS=43000 node --cpu-prof benchmarks/small-tensor-calls.mjs
+```
+
+The small-call harness checks fusion and output shape/values, excludes validation
+from timing, and drains asynchronous GC observations outside measured batches.
+Profile separately from timing runs. `ROWS` selects comma-separated row counts;
+`--checkout` runs the harness against another interpreter build.
+
+[Small-call samples and profile summaries](../../benchmarks/baselines/2026-10-18-small-tensor-calls.json),
+[numerical samples and repeats](../../benchmarks/baselines/2026-10-18-small-tensor-numerical.json).
+
+The final change, including protection against reentrant host callbacks, was
+also compared with updated main `f7670f23` in three alternating
+baseline/candidate process pairs using the same batch sizes:
+
+| Shape | Updated main (µs) | Final candidate (µs) | Time reduction |
+| --- | ---: | ---: | ---: |
+| 1×32 | 15.84 | 12.37 | 22% |
+| 8×32 | 25.35 | 19.27 | 24% |
+| 128×32 | 200.09 | 144.07 | 28% |
+
+The repeated large-array guard measured 6.57 to 4.80 ms at 4,096 rows and
+62.32 to 45.28 ms at 32,768 rows. These samples, final source hashes and fresh
+profile summaries are included under `rebasedComparison` in the small-call
+results file above. The earlier profile and separate-optimization tables retain
+their original `cc3ca4de` baseline.
+
+The final numerical suite also passed its result oracles. Short runs of the
+smallest k-means and matmul cases were sensitive to warmup, so they were repeated
+in three alternating process pairs with 15 samples each. Median-of-process
+medians were 4.17 to 3.77 ms for k-means and 1.04 to 1.04 ms for matmul. The
+numerical results file includes these controls and the full final comparison.
+
+### Indirect gather and bitwise reduction (#121)
+
+Measured against main `7139cd5b` on macOS arm64 / Apple M5, Node 24.15.0.
+The workload scores a 1,455-element ciphertext with a repeating three-byte key
+and a nonuniform lookup table. Each batch performs 1,000 iterations inside a
+Rank function. The benchmark checks an independent expected score of 8,104,799
+and records successful tensor-kernel executions. Three alternating process pairs
+per selector mode each run 20 warmup iterations and five measured batches.
+
+| Selector | Baseline median ms | Fused median ms | Baseline GC count | Fused GC count |
+| --- | ---: | ---: | ---: | ---: |
+| Lazy range/mod | 1,336.77 | 81.58 | 26 | 6 |
+| Materialized indices | 1,234.06 | 51.29 | 18 | 4 |
+
+These are medians across 15 batches per version and selector mode. Median CPU
+time fell from 1,583.86 to 87.43 ms for lazy selectors and from 1,513.09 to
+55.26 ms for materialized selectors. Median GC duration fell from 64.57 to
+0.70 ms and from 58.00 to 0.52 ms respectively. Timing runs did not overlap
+other assistant test or profiling jobs; unrelated machine activity was not
+controlled. These results describe this workload, not general interpreter speed.
+
+The existing tensor graph now lowers guarded `bxor`, `band`, and `bor` calls
+using BigInt operators. Gather loads use the selector's broadcast frame and
+then address the source table by the selected index. Runtime-created finite
+integer ranges and range/mod selectors carry a private proof; their indices
+are calculated inside the kernel without invoking sequence callbacks. This
+proof does not authorize general sequence arithmetic to use array broadcasting.
+The generated scoring kernel has one loop, direct array loads, and a scalar
+accumulator, with no intermediate tensor data arrays. Per-call binding objects
+and BigInt arithmetic still allocate. Arbitrary lazy readers, escaping locals,
+filters mixed with broadcasting, invalid indices, and unsupported layouts retain
+the reference path. Top-level observable assignments are not eliminated.
+
+Raw timings, generated code, source hashes, and separate profiling summaries
+are in [the gather-fusion results](../../benchmarks/baselines/2026-10-18-gather-fusion.json).
+Reproduce from a built checkout; build the baseline checkout separately:
+
+```sh
+node benchmarks/gather-fusion.mjs --checkout=/path/to/baseline
+node benchmarks/gather-fusion.mjs
+node benchmarks/gather-fusion.mjs --selector=materialized
+node benchmarks/gather-fusion.mjs --fusion=off
+node benchmarks/gather-fusion.mjs --profile=cpu --iterations=5000 --output=/tmp/gather.cpuprofile
+node benchmarks/gather-fusion.mjs --profile=allocation --output=/tmp/gather.heapprofile
+```
+
+CPU and allocation profiles run separately from ordinary timing samples.
+Allocation sampling includes objects collected by minor and major GC; its byte
+estimate is neither retained heap nor peak memory. The current Euler 59 demo
+already searches each key position independently. Its update materializes each
+reused strided slice once; it does not restore the historical 17,576-key search.
+
+Three separate allocation samples for lazy selectors estimated median total
+allocations of 1,143.65 MB before and 206.49 MB after fusion per 1,000 iterations
+(decimal MB). The CPU profile covers 5,000 iterations; the baseline spends
+substantial self-time in `readArrayItem` and `selectorIndices`, which the fused
+loop bypasses. Allocation and CPU-profile runs are excluded from the timing
+medians above.
+
+Three fresh-interpreter Euler 59 runs kept the answer 129,448. Median execution
+time, including parsing and module loading, changed from 368.64 to 303.06 ms;
+the updated demo executed 78 fused scoring kernels rather than zero. This small
+end-to-end sample is a check on the current demo, not evidence for the issue's
+historical 75-second baseline.
+
+## Stored slice arithmetic (#307)
+
+The [slice benchmark](../../benchmarks/slice-arithmetic.mjs) compares whole-array,
+shifted range, `drop`/`take` and strided differences. It checks every total against
+an independent BigInt formula. `--runtime=/absolute/path/to/out/index.js` runs the
+same workload against another built checkout. Timings include the loop's parse
+and execution, with setup and process startup excluded. Three trials are kept in
+the [recorded samples](../../benchmarks/baselines/2026-10-18-slice-arithmetic.json).
+
+Node 24.15.0, Apple M5; medians in seconds:
+
+| Workload | Whole array | Range slices | `drop` / `take` |
+|---|---:|---:|---:|
+| Baseline `7139cd5b`, 10,000 integers / 668 iterations | 0.833 | 3.719 | 3.497 |
+| Stored-view kernels, same workload | 0.781 | 1.031 | 0.987 |
+| 65,537 integers / 668 iterations | 5.439 | 7.271 | 7.261 |
+| 1,000,000 integers / 20 iterations | 2.556 | 3.391 | 3.405 |
+| 10,000 Float64 values / 668 iterations | 0.129 | 0.148 | 0.128 |
+
+The three spellings are within 1.5x at each measured size. The integer issue
+workload improves by about 3.5–3.6x for slice operations. Background CPU load
+varied during the larger run, so use its within-size ratios rather than treating
+absolute differences between runs as changes to whole-array performance. The
+strided case processes roughly half as many cells; compare cost per element.
+
+Separate dispatch samples over 9,999 selected cells report zero computed lazy
+cells, COW copies and selection-snapshot cells, compared with 29,997 computed
+lazy cells for either slice spelling on the baseline. The output still allocates
+storage. Retained selections and writes keep the existing COW protections.
+
+Euler 125 now uses prefix sums and shifted slice differences, processing one
+window length at a time. Its default answer is `2906969179`; the focused demo
+test took 1.78 seconds, with the small-limit and strict-boundary tests also
+passing. Three fresh CLI processes, including startup, parsing and execution,
+took 2.83/2.53/2.47 seconds (median 2.53 seconds); each answer was checked.
+
+After integrating main `e9c94e50` (#320), the 10K/668 quick check remained within
+1.5x: integer whole/range/drop-take medians were 1.133/1.487/1.489 seconds;
+Float64 medians were 0.195/0.207/0.218 seconds. The Euler 125 default-input test
+still returned the same answer in 3.06 seconds. These runs had higher background
+load than the first samples; their raw values are recorded separately.

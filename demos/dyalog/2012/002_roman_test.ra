@@ -54,16 +54,15 @@ test "every small canonical numeral round trips"
   (Values atoR rtoA) equal Values
 end
 
-test "Roman derives addition from an ordinary numeric function"
+test "Roman applies an ordinary numeric addition function"
   use "002_roman"
   fun A B plus
     return A + B
   end
-  add = ((tuple plus) roman)
-  ((tuple "III" "II") add) equal "V"
+  ((tuple "III" "II") roman plus) equal "V"
 end
 
-test "Roman derives range and sum functions"
+test "Roman applies range and sum functions"
   use "002_roman"
   use sequences
   fun N range
@@ -72,30 +71,26 @@ test "Roman derives range and sum functions"
   fun Values total
     return Values sum
   end
-  rangeRoman = ((tuple range) roman)
-  totalRoman = ((tuple total) roman)
-  Values = "X" rangeRoman
+  Values = "X" roman range
   Values equal array "I" "II" "III" "IV" "V" "VI" "VII" "VIII" "IX" "X"
-  (Values totalRoman) equal "LV"
+  (Values roman total) equal "LV"
 end
 
-test "Roman derives reshape for Roman-valued dimensions and data"
+test "Roman applies reshape to Roman-valued dimensions and data"
   use "002_roman"
   use sequences
   fun Dims Values reshapeTo
     return Values reshape unpack Dims
   end
-  shaped = ((tuple reshapeTo) roman)
   Values = array "I" "II" "III" "IV" "V" "VI"
-  Actual = (tuple (array "II" "III") Values) shaped
+  Actual = (tuple (array "II" "III") Values) roman reshapeTo
   Actual shape equal array 2 3
   Actual equal (Values reshape 2 3)
 end
 
-test "the same Roman-derived builtin supports unary and binary calls"
+test "Roman supports unary and binary builtin calls"
   use "002_roman"
   use numbers
-  maximum = ((tuple max) roman)
-  ((array "II" "IX" "IV") maximum) equal "IX"
-  ((tuple "III" "II") maximum) equal "III"
+  ((array "II" "IX" "IV") roman max) equal "IX"
+  ((tuple "III" "II") roman max) equal "III"
 end

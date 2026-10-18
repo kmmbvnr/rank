@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray, MISSING, RuntimeDiagnostics, type RankArray, type RankValue } from '../src/index.js';
 import { denseScalarItems, derivedArray, ownedArray, readArrayItem, typedArray } from '../src/array-storage.js';
-import { prepareStoredScalarView, registerIntegerView } from '../src/integer-view.js';
+import { prepareStoredScalarView, registerScalarView } from '../src/integer-view.js';
 import { matmulValues } from '../src/modules/linalg.js';
 import { checkpoint, InterruptedError, withInterrupt } from '../src/interrupt.js';
 import { sliceArray, tensorSelection } from '../src/selectors.js';
@@ -107,13 +107,13 @@ describe('vector dot', () => {
     it('does not bypass an unestablished contract or a replaced view reader', () => {
         const source = ownedArray([2n, 3n], [2], true);
         let reads = 0;
-        const view = registerIntegerView(derivedArray([2], [source], index => {
+        const view = registerScalarView(derivedArray([2], [source], index => {
             reads++; if (index === 1) throw new Error('contract'); return readArrayItem(source, index);
-        }), source, index => index, () => false);
+        }), source, index => index, { accepts: () => false });
         expect(prepareStoredScalarView(view)).toBeUndefined();
         expect(() => matmulValues(view, source)).toThrow('contract');
         expect(reads).toBe(2);
-        const changed = registerIntegerView(derivedArray([2], [source], index => readArrayItem(source, index)), source, index => index);
+        const changed = registerScalarView(derivedArray([2], [source], index => readArrayItem(source, index)), source, index => index);
         Object.defineProperty(changed, 'itemAt', { value: () => 10n });
         expect(prepareStoredScalarView(changed)).toBeUndefined();
         expect(matmulValues(changed, source)).toBe(50n);
@@ -121,7 +121,7 @@ describe('vector dot', () => {
 
     it('falls back to ordinary lazy validation for nonnumeric stored selections', () => {
         const source = ownedArray([1n, true], [2], true, ['a', 'b']);
-        const make = () => registerIntegerView(derivedArray([2], [source], index => readArrayItem(source, index)), source, index => index);
+        const make = () => registerScalarView(derivedArray([2], [source], index => readArrayItem(source, index)), source, index => index);
         const expected = make();
         readArrayItem(expected, 0);
         let message = '';
@@ -132,7 +132,7 @@ describe('vector dot', () => {
 
     it('retains mixed numeric domain failures through a table row view', () => {
         const source = ownedArray([1n, 2.0], [1, 2], true, ['integer', 'real']);
-        const row = registerIntegerView(derivedArray([2], [source], index => readArrayItem(source, index)),
+        const row = registerScalarView(derivedArray([2], [source], index => readArrayItem(source, index)),
             source, index => index);
         expect(() => matmulValues(row, ownedArray([1n, 1n], [2], true)))
             .toThrow('one element type');

@@ -135,5 +135,5 @@ Sq 10 += Sq 40
 Rank = Sq take 40 argsort .descending
 Top = Rank take 3
 Weight = array 10000 100 1
-Answer = (Top * Weight) sum
+Answer = Top Weight matmul
 Answer print

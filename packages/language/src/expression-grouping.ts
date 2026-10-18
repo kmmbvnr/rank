@@ -7,7 +7,7 @@ import { AstUtils, GrammarUtils, isAstNode, type AstNode, type CstNode } from 'l
 import {
     isFunctionStatement, isApplicationExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isHigherOrderOperator, isMaterializeExpression,
     isLabelLiteral, isNameExpression, type HigherOrderOperator,
-    type BinaryExpression, type Expression, type NameExpression, type Program,
+    type BinaryExpression, type Expression, type FunctionStatement, type NameExpression, type Program,
 } from './generated/ast.js';
 import { analyzeBindings } from './analysis/bindings.js';
 import { flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped } from './expressions.js';
@@ -89,11 +89,17 @@ function attachedSign(expression: BinaryExpression): boolean {
 
 export interface GroupingOptions {
     readonly loadModule?: (path: string) => Program | undefined;
+    readonly declarations?: ReadonlyMap<string, FunctionStatement>;
     readonly signatures?: ReadonlyMap<string, FunctionCallSignature>;
     /** Signatures from earlier REPL inputs; false marks a data binding. */
     readonly bindings?: ReadonlyMap<string, readonly number[] | false>;
     readonly modules?: ReadonlySet<string>;
     readonly writableOperations?: ReadonlyMap<string, string>;
+}
+
+const externalDeclarations = new WeakMap<Program, ReadonlyMap<string, FunctionStatement>>();
+export function programFunctionDeclarations(program: Program): ReadonlyMap<string, FunctionStatement> {
+    return externalDeclarations.get(program) ?? new Map();
 }
 
 /**
@@ -103,6 +109,7 @@ export interface GroupingOptions {
  * below it, so a call after a comparison applies to the comparison's result.
  */
 export function groupExpressions(program: Program, options: GroupingOptions = {}): GroupedProgram {
+    if (options.declarations) externalDeclarations.set(program, options.declarations);
     // Regrouping (for example after resolving a function binding) recomputes semantic facts.
     for (const node of AstUtils.streamAllContents(program)) {
         if (isExpression(node)) delete (node as AnnotatedExpression)[annotations];

@@ -398,13 +398,13 @@ B = (A * 3) (array 0)`);
         } finally { runtime.dispose(); }
     });
 
-    it('does not hoist across a callee that writes a captured array', () => {
+    it('does not hoist across a callee that writes explicit state', () => {
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter();
         try {
-            stats.run(() => runtime.execute('fun N change\n C 0 = N\n return N\nend\nA = array 2\nB = (A * 3) (array 0)\nC = array 0'));
+            stats.run(() => runtime.execute('fun N C change\n C .value = N\n return N\nend\nA = array 2\nB = (A * 3) (array 0)\nC = record\n .value = 0\nend'));
             (runtime.variables.get('B') as RankArray).items;
-            expect(stats.run(() => runtime.execute('Total = 0\nfor I in 1 to 3\n Total += B 0 + (I change)\nend\nTotal'))).toBe(24n);
+            expect(stats.run(() => runtime.execute('Total = 0\nfor I in 1 to 3\n Total += B 0 + (I C change)\nend\nTotal'))).toBe(24n);
             expect(stats.hoistedReaders).toBe(0);
         } finally { runtime.dispose(); }
     });

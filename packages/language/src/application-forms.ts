@@ -1,6 +1,6 @@
 import { bindCallWords } from './call-words.js';
 import {
-    isAllAxisExpression, isExpression, isParenthesizedExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
+    isAllAxisExpression, isParenthesizedExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
     isApplicationExpression, isArrayExpression, isBinaryExpression, isLabelLiteral, isNameExpression,
     type ArrayExpression, type ArrayItem, type Expression,
 } from './generated/ast.js';
@@ -28,24 +28,26 @@ export interface SortDirectionForm {
 }
 
 /** Parameters configure diag before cell ranking, rather than supplying data operands. */
-export function diagonalForm(parts: readonly Expression[], standard: (name: string) => boolean = () => true): {
+export function diagonalForm(
+    parts: readonly Expression[], standard: (name: string) => boolean = () => true, nameOf: NameOf = rawName,
+): {
     kind: 'diagonal'; source: Expression; mode?: Expression; offset?: Expression;
     rank?: bigint; axes?: readonly number[];
 } | undefined {
-    const index = parts.findIndex((part, index) => index > 0 && isNamed(part, 'diag') && standard('diag'));
-    if (index < 0 || index + 1 === parts.length || isNamed(parts[index + 1], 'rank')
-        || isNamed(parts[index + 1], 'axis')) return undefined;
+    const index = parts.findIndex((part, index) => index > 0 && isNamed(part, 'diag', nameOf) && standard('diag'));
+    if (index < 0 || index + 1 === parts.length || isNamed(parts[index + 1], 'rank', nameOf)
+        || isNamed(parts[index + 1], 'axis', nameOf)) return undefined;
     let end = index + 1;
     const mode = isLabelLiteral(parts[end]) ? parts[end++] : undefined;
     const next = parts[end];
     // A following function continues the pipeline; aliases may not have been
     // grouped by the spelling-specific modifier pass.
-    if (!mode && isNameExpression(next) && /^[a-z]/.test(next.name)
-        && !isNamed(next, 'rank') && !isNamed(next, 'axis')) return undefined;
-    const offset = next && !isNamed(next, 'rank') && !isNamed(next, 'axis') ? parts[end++] : undefined;
+    if (!mode && isNameExpression(next) && /^[a-z]/.test(nameOf(next))
+        && !isNamed(next, 'rank', nameOf) && !isNamed(next, 'axis', nameOf)) return undefined;
+    const offset = next && !isNamed(next, 'rank', nameOf) && !isNamed(next, 'axis', nameOf) ? parts[end++] : undefined;
     const base = [applicationExpression(parts.slice(0, index)), parts[index]];
     const suffix = parts.slice(end);
-    const ranked = suffix.length ? explicitRankApplication([...base, ...suffix]) : undefined;
+    const ranked = suffix.length ? explicitRankApplication([...base, ...suffix], nameOf) : undefined;
     if (suffix.length && !ranked) return undefined;
     return { kind: 'diagonal', source: base[0], mode, offset, rank: ranked?.rank, axes: ranked?.axes };
 }
@@ -58,41 +60,44 @@ export interface AxisLengthForm {
 
 /** Identify `Value len axis N` before either consumer interprets N. */
 export function axisLengthForm(
-    parts: readonly Expression[], standard: (name: string) => boolean = () => true,
+    parts: readonly Expression[], standard: (name: string) => boolean = () => true, nameOf: NameOf = rawName,
 ): AxisLengthForm | undefined {
-    if (parts.length !== 4 || !isNamed(parts[1], 'len') || !isNamed(parts[2], 'axis')
+    if (parts.length !== 4 || !isNamed(parts[1], 'len', nameOf) || !isNamed(parts[2], 'axis', nameOf)
         || !standard('len') || !standard('axis')) return undefined;
     return { kind: 'axis-length', source: parts[0], axis: parts[3] };
 }
 
 /** Recognize a trailing sort direction, including invalid labels for runtime diagnostics. */
 export function sortDirectionForm(
-    parts: readonly Expression[], standard: (name: string) => boolean = () => true,
+    parts: readonly Expression[], standard: (name: string) => boolean = () => true, nameOf: NameOf = rawName,
 ): SortDirectionForm | undefined {
     const direction = parts.at(-1);
     if (parts.length <= 2 || !direction || !(isLabelLiteral(direction)
-        || isNameExpression(direction) && /^[A-Z]/.test(direction.name))) return undefined;
+        || isNameExpression(direction) && /^[A-Z]/.test(nameOf(direction)))) return undefined;
     const operation = parts.slice(0, -1).find(part => isNameExpression(part)
-        && standard(part.name) && findOperation(part.name)?.sortDirection);
+        && standard(nameOf(part)) && findOperation(nameOf(part))?.sortDirection);
     if (!operation || !isNameExpression(operation)) return undefined;
-    return { kind: 'sort-direction', operation: findOperation(operation.name)!, direction };
+    return { kind: 'sort-direction', operation: findOperation(nameOf(operation))!, direction };
 }
 
 /** Recognize a reduction form without evaluating its axes or consulting runtime values. */
 export function axisReductionForm(
     parts: readonly Expression[],
-    standard: (name: string) => boolean = () => true,
+    standard: (name: string) => boolean = () => true, nameOf: NameOf = rawName,
 ): AxisReductionForm | undefined {
     if (parts.length < 4 || !isNameExpression(parts[1])
-        || !isNameExpression(parts[2]) || parts[2].name !== 'axis'
-        || !standard(parts[1].name)) return undefined;
-    const operation = findOperation(parts[1].name);
+        || !isNameExpression(parts[2]) || nameOf(parts[2]) !== 'axis'
+        || !standard(nameOf(parts[1]))) return undefined;
+    const operation = findOperation(nameOf(parts[1]));
     if (!operation?.axisReduction) return undefined;
     return { kind: 'axis-reduction', source: parts[0], operation, axes: parts.slice(3) };
 }
 
-function isNamed(expression: Expression | undefined, name: string): boolean {
-    return isNameExpression(expression) && expression.name === name;
+type NameOf = (expression: Expression | undefined) => string;
+const rawName: NameOf = expression => isNameExpression(expression) ? expression.name : '';
+
+function isNamed(expression: Expression | undefined, name: string, nameOf: NameOf = rawName): boolean {
+    return isNameExpression(expression) && nameOf(expression) === name;
 }
 
 export type SymbolicApplicationForm =
@@ -165,8 +170,8 @@ export interface NamedOuterApplication {
     readonly operation: Expression;
 }
 
-export function explicitNamedOuterApplication(parts: Expression[]): NamedOuterApplication | undefined {
-    if (parts.length !== 4 || !isNamed(parts[3], 'outer')) return undefined;
+export function explicitNamedOuterApplication(parts: Expression[], nameOf: NameOf = rawName): NamedOuterApplication | undefined {
+    if (parts.length !== 4 || !isNamed(parts[3], 'outer', nameOf)) return undefined;
     return {
         left: parts[0],
         right: parts[1],
@@ -187,35 +192,35 @@ export interface NamedScanApplication {
     readonly operation: Expression;
 }
 
-export function explicitNamedScanApplication(parts: Expression[]): NamedScanApplication | undefined {
-    if (parts.length === 5 && isNamed(parts[2], 'scan') && isNamed(parts[3], 'with')) {
+export function explicitNamedScanApplication(parts: Expression[], nameOf: NameOf = rawName): NamedScanApplication | undefined {
+    if (parts.length === 5 && isNamed(parts[2], 'scan', nameOf) && isNamed(parts[3], 'with', nameOf)) {
         return { source: parts[0], seed: parts[4], operation: parts[1] };
     }
-    if (parts.length === 5 && isNamed(parts[2], 'scan') && isNamed(parts[3], 'axis')
+    if (parts.length === 5 && isNamed(parts[2], 'scan', nameOf) && isNamed(parts[3], 'axis', nameOf)
         && isNumberLiteral(parts[4])) {
         return { source: parts[0], axis: parts[4], operation: parts[1] };
     }
-    if (parts.length === 3 && isNamed(parts[2], 'scan')) {
+    if (parts.length === 3 && isNamed(parts[2], 'scan', nameOf)) {
         return { source: parts[0], operation: parts[1] };
     }
     return undefined;
 }
 
-export function explicitNamedReduceApplication(parts: Expression[]): NamedScanApplication | undefined {
-    if (parts.length === 5 && isNamed(parts[2], 'reduce') && isNamed(parts[3], 'with')) {
+export function explicitNamedReduceApplication(parts: Expression[], nameOf: NameOf = rawName): NamedScanApplication | undefined {
+    if (parts.length === 5 && isNamed(parts[2], 'reduce', nameOf) && isNamed(parts[3], 'with', nameOf)) {
         return { source: parts[0], seed: parts[4], operation: parts[1] };
     }
-    if (parts.length === 3 && isNamed(parts[2], 'reduce')) {
+    if (parts.length === 3 && isNamed(parts[2], 'reduce', nameOf)) {
         return { source: parts[0], operation: parts[1] };
     }
     return undefined;
 }
 
-export function explicitNamedSegmentApplication(parts: Expression[]): NamedSegmentApplication | undefined {
-    if (parts.length === 5 && isNamed(parts[2], 'segment') && isNamed(parts[3], 'with')) {
+export function explicitNamedSegmentApplication(parts: Expression[], nameOf: NameOf = rawName): NamedSegmentApplication | undefined {
+    if (parts.length === 5 && isNamed(parts[2], 'segment', nameOf) && isNamed(parts[3], 'with', nameOf)) {
         return { source: parts[0], identity: parts[4], operation: parts[1] };
     }
-    if (parts.length !== 3 || !isNamed(parts[2], 'segment')) return undefined;
+    if (parts.length !== 3 || !isNamed(parts[2], 'segment', nameOf)) return undefined;
     return { source: parts[0], operation: parts[1] };
 }
 
@@ -269,13 +274,13 @@ export function explicitCollectionMutation(
     };
 }
 
-export function explicitMultisetMethod(parts: Expression[]): MultisetMethodApplication | undefined {
+export function explicitMultisetMethod(parts: Expression[], nameOf: NameOf = rawName): MultisetMethodApplication | undefined {
     const operations = ['floor', 'ceiling', 'lowerbound', 'upperbound'] as const;
     const position = parts.findIndex((part, index) =>
         index > 0 && index < parts.length - 1
-        && operations.some(operation => isNamed(part, operation)));
+        && operations.some(operation => isNamed(part, operation, nameOf)));
     if (position < 0) return undefined;
-    const operation = operations.find(candidate => isNamed(parts[position], candidate))!;
+    const operation = operations.find(candidate => isNamed(parts[position], candidate, nameOf))!;
     return {
         receiver: parts.slice(0, position),
         operation,
@@ -304,10 +309,10 @@ export interface FunctionalMethodApplication {
 }
 
 export function explicitFunctionalMethod(
-    parts: Expression[],
+    parts: Expression[], nameOf: NameOf = rawName,
 ): FunctionalMethodApplication | undefined {
     if (parts.length !== 4 || !isNameExpression(parts[1])) return undefined;
-    const operation = parts[1].name;
+    const operation = nameOf(parts[1]);
     if (operation !== 'jump' && operation !== 'distance') return undefined;
     return {
         receiver: parts[0], operation, operationExpression: parts[1],
@@ -315,13 +320,13 @@ export function explicitFunctionalMethod(
     };
 }
 
-export function explicitDsuMethod(parts: Expression[]): DsuMethodApplication | undefined {
+export function explicitDsuMethod(parts: Expression[], nameOf: NameOf = rawName): DsuMethodApplication | undefined {
     if (parts.length !== 3 && parts.length !== 4) return undefined;
-    if (parts.length === 4 && isNamed(parts[3], 'merge')) {
+    if (parts.length === 4 && isNamed(parts[3], 'merge', nameOf)) {
         return { receiver: parts[0], operation: 'merge', operationExpression: parts[3],
             arguments: parts.slice(1, 3) };
     }
-    const operation = isNameExpression(parts[1]) ? parts[1].name : undefined;
+    const operation = isNameExpression(parts[1]) ? nameOf(parts[1]) : undefined;
     if (operation === 'findroot' && parts.length === 3) {
         return {
             receiver: parts[0], operation, operationExpression: parts[1],
@@ -337,8 +342,8 @@ export function explicitDsuMethod(parts: Expression[]): DsuMethodApplication | u
     return undefined;
 }
 
-export function explicitGraphEdges(parts: Expression[]): GraphEdgesApplication | undefined {
-    if (parts.length !== 3 || !isNamed(parts[1], 'edges')) return undefined;
+export function explicitGraphEdges(parts: Expression[], nameOf: NameOf = rawName): GraphEdgesApplication | undefined {
+    if (parts.length !== 3 || !isNamed(parts[1], 'edges', nameOf)) return undefined;
     return {
         receiver: parts[0],
         operation: parts[1],
@@ -405,27 +410,20 @@ export function applicationForm(
     input: Expression | readonly Expression[], lookup: ApplicationLookup = findOperation,
     statement = false,
 ): ApplicationForm {
-    const originals = new Map<Expression, Expression>();
-    const normalize = (part: Expression): Expression => {
-        if (!isNameExpression(part)) return part;
+    // Binding-dependent names belong to this classification, never to AST nodes.
+    const names = new WeakMap<Expression, string>();
+    const nameOf: NameOf = part => {
+        if (!isNameExpression(part)) return '';
+        const cached = names.get(part);
+        if (cached !== undefined) return cached;
         const operation = lookup(part.name);
         // Receiver methods keep their contextual meaning even with a same-named function.
         const contextual = ['add', 'remove', 'findroot', 'merge', 'connected', 'jump', 'distance',
             'edges', 'floor', 'ceiling', 'lowerbound', 'upperbound'].includes(part.name);
         const name = operation === false ? (/^[A-Z]/.test(part.name) || contextual ? part.name : '\0' + part.name)
             : operation?.name ?? part.name;
-        if (name === part.name) return part;
-        const canonical = { ...part, name };
-        originals.set(canonical, part);
-        return canonical;
-    };
-    const restore = (value: unknown): unknown => {
-        if (isExpression(value)) return originals.get(value) ?? value;
-        if (value && typeof value === 'object' && 'module' in value && 'arities' in value) return value;
-        if (Array.isArray(value)) return value.map(restore);
-        if (value && typeof value === 'object') return Object.fromEntries(
-            Object.entries(value).map(([key, item]) => [key, restore(item)]));
-        return value;
+        names.set(part, name);
+        return name;
     };
     try {
         if (statement && !Array.isArray(input)) {
@@ -438,36 +436,35 @@ export function applicationForm(
             if (comparison) return { kind: 'comparison-rank', ...comparison };
             return symbolicApplicationForm(input, name => lookup(name) !== false) ?? { kind: 'plain' };
         }
-        const parts = (Array.isArray(input) ? input : flattenApplication(input as Expression)).map(normalize);
-        if (parts.length === 2 && isNamed(parts[1], 'check') && isParenthesizedExpression(parts[0])) {
+        const parts = [...(Array.isArray(input) ? input : flattenApplication(input as Expression))];
+        if (parts.length === 2 && isNamed(parts[1], 'check', nameOf) && isParenthesizedExpression(parts[0])) {
             let read = parts[0].value;
             while (isParenthesizedExpression(read)) read = read.value;
-            parts.splice(0, 1, ...flattenApplication(read).map(normalize));
+            parts.splice(0, 1, ...flattenApplication(read));
         }
-        const form = classifyParts(parts, lookup);
-        return originals.size ? restore(form) as ApplicationForm : form;
+        return classifyParts(parts, lookup, nameOf);
     } catch (error) {
         if (error instanceof ApplicationSyntaxError) return { kind: 'invalid', message: error.message };
         throw error;
     }
 }
 
-function classifyParts(parts: Expression[], lookup: ApplicationLookup): ApplicationForm {
-    if (isNamed(parts[2], 'repeat')) {
-        return parts.length === 4 || parts.length === 6 && isNamed(parts[4], 'till')
+function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: NameOf): ApplicationForm {
+    if (isNamed(parts[2], 'repeat', nameOf)) {
+        return parts.length === 4 || parts.length === 6 && isNamed(parts[4], 'till', nameOf)
             ? { kind: 'repeat', source: parts[0], operation: parts[1], count: parts[3], until: parts[5] }
             : { kind: 'invalid', message: 'repeat expects Init next repeat Count [till done]' };
     }
-    if (isNamed(parts[0], 'stack') || isNamed(parts[0], 'concat')) {
-        const operation = isNamed(parts[0], 'stack') ? 'stack' : 'concat';
+    if (isNamed(parts[0], 'stack', nameOf) || isNamed(parts[0], 'concat', nameOf)) {
+        const operation = isNamed(parts[0], 'stack', nameOf) ? 'stack' : 'concat';
         const end = parts.findIndex((part, index) => {
             if (index <= 1 || !isNameExpression(part)) return false;
-            const named = lookup(part.name);
-            return isNamed(part, 'axis') || !!named && named.arities.length > 0;
+            const named = lookup(nameOf(part));
+            return isNamed(part, 'axis', nameOf) || !!named && named.arities.length > 0;
         });
         const items = parts.slice(1, end < 0 ? undefined : end);
         if (!items.length) return { kind: 'invalid', message: `${operation} expects one or more arrays or sequences` };
-        if (end >= 0 && isNamed(parts[end], 'axis')) {
+        if (end >= 0 && isNamed(parts[end], 'axis', nameOf)) {
             if (!parts[end + 1]) return { kind: 'invalid', message: `${operation} axis expects an integer` };
             return { kind: 'array-combine-constructor', operation, items, axis: parts[end + 1],
                 rest: parts.slice(end + 2) };
@@ -475,15 +472,15 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup): Applicat
         return { kind: 'array-combine-constructor', operation, items,
             rest: end < 0 ? [] : parts.slice(end) };
     }
-    if (parts.slice(1).some(part => isNamed(part, 'stack') || isNamed(part, 'concat'))) {
+    if (parts.slice(1).some(part => isNamed(part, 'stack', nameOf) || isNamed(part, 'concat', nameOf))) {
         return { kind: 'invalid', message: 'use stack A B or concat A B to combine arrays' };
     }
-    if (isNamed(parts.at(-1), 'check')) {
+    if (isNamed(parts.at(-1), 'check', nameOf)) {
         const read = parts.slice(0, -1);
         const operation = read.find((part, index) => index > 0 && isNameExpression(part)
-            && ['csv', 'json', 'xml'].includes(part.name));
+            && ['csv', 'json', 'xml'].includes(nameOf(part)));
         if (isNameExpression(operation)) {
-            const reader = operation.name as 'csv' | 'json' | 'xml';
+            const reader = nameOf(operation) as 'csv' | 'json' | 'xml';
             const valid = read.length === 2 && read[1] === operation
                 || reader !== 'csv' && read.length === 3
                     && (read[1] === operation && isLabelLiteral(read[2])
@@ -492,13 +489,13 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup): Applicat
             return { kind: 'checked-read', reader, parts: read };
         }
     }
-    const diagonal = diagonalForm(parts, name => lookup(name) === findOperation(name));
+    const diagonal = diagonalForm(parts, name => lookup(name) === findOperation(name), nameOf);
     if (diagonal) return diagonal;
-    const direction = sortDirectionForm(parts);
+    const direction = sortDirectionForm(parts, undefined, nameOf);
     if (direction) return direction;
-    if (parts.length >= 2 && isNamed(parts[1], 'reshape') && lookup('reshape') === findOperation('reshape')) {
+    if (parts.length >= 2 && isNamed(parts[1], 'reshape', nameOf) && lookup('reshape') === findOperation('reshape')) {
         const end = parts.findIndex((part, index) => index > 1 && isNameExpression(part)
-            && lookup(part.name) !== false && lookup(part.name) !== undefined);
+            && lookup(nameOf(part)) !== false && lookup(nameOf(part)) !== undefined);
         const dimensions = parts.slice(2, end < 0 ? undefined : end);
         if (!dimensions.length) return { kind: 'invalid', message: 'reshape expects one or more dimensions' };
         if (dimensions.filter(isAllAxisExpression).length > 1) {
@@ -506,11 +503,11 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup): Applicat
         }
         return { kind: 'reshape', source: parts[0], dimensions, rest: end < 0 ? [] : parts.slice(end) };
     }
-    if (parts.slice(2).some(part => isNamed(part, 'reshape'))
+    if (parts.slice(2).some(part => isNamed(part, 'reshape', nameOf))
         && lookup('reshape') === findOperation('reshape')) {
         return { kind: 'invalid', message: 'reshape dimensions must follow reshape' };
     }
-    if (parts.some(isUnpackExpression) && !parts.some(part => isNamed(part, 'window'))) return { kind: 'unpack' };
+    if (parts.some(isUnpackExpression) && !parts.some(part => isNamed(part, 'window', nameOf))) return { kind: 'unpack' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'graph') return { kind: 'new-graph' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'dsu') return { kind: 'new-dsu' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'heap') {
@@ -524,55 +521,55 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup): Applicat
     if (isNewStructureExpression(parts[0]) && FILLED_STRUCTURES.has(parts[0].structure))
         return parts.length === 2 ? { kind: 'new-filled', structure: parts[0].structure }
             : { kind: 'invalid', message: `new ${parts[0].structure} takes one collection to fill it from` };
-    const form0 = explicitNamedOuterApplication(parts);
+    const form0 = explicitNamedOuterApplication(parts, nameOf);
     if (form0) return { ...form0, kind: 'named-outer' };
-    const form1 = explicitRankApplication(parts);
+    const form1 = explicitRankApplication(parts, nameOf);
     if (form1) return { ...form1, kind: 'rank' };
-    const form2 = explicitAxisMatmul(parts);
+    const form2 = explicitAxisMatmul(parts, nameOf);
     if (form2) return { ...form2, kind: 'axis-matmul' };
-    const form3 = explicitAxisCovariance(parts);
+    const form3 = explicitAxisCovariance(parts, nameOf);
     if (form3) return { ...form3, kind: 'axis-covariance' };
-    const form4 = explicitAxisCorrelation(parts);
+    const form4 = explicitAxisCorrelation(parts, nameOf);
     if (form4) return { ...form4, kind: 'axis-correlation' };
-    const form5 = explicitAxisQuantile(parts);
+    const form5 = explicitAxisQuantile(parts, nameOf);
     if (form5) return { ...form5, kind: 'axis-quantile' };
     const position = parts.findIndex((part, index) => index > 0
-        && isNamed(part, 'text') && isStringLiteral(parts[index + 1]));
+        && isNamed(part, 'text', nameOf) && isStringLiteral(parts[index + 1]));
     if (position >= 0) return { kind: 'text-format', position };
-    if (parts.length >= 3 && (isNamed(parts.at(-1), 'window')
-        || isNamed(parts[2], 'window') && ['axis', 'stride', 'padding'].some(name => isNamed(parts[3], name))))
+    if (parts.length >= 3 && (isNamed(parts.at(-1), 'window', nameOf)
+        || isNamed(parts[2], 'window', nameOf) && ['axis', 'stride', 'padding'].some(name => isNamed(parts[3], name, nameOf))))
         return { kind: 'invalid', message: 'window takes its size on the right: write Values window Width' };
-    const form7 = explicitWindow(parts, lookup);
+    const form7 = explicitWindow(parts, lookup, nameOf);
     if (form7) return { ...form7, kind: 'window' };
-    const formShift = explicitAxisShift(parts);
+    const formShift = explicitAxisShift(parts, nameOf);
     if (formShift) return { ...formShift, kind: 'axis-shift' };
-    const form8 = explicitAxisShuffle(parts);
+    const form8 = explicitAxisShuffle(parts, nameOf);
     if (form8) return { ...form8, kind: 'axis-shuffle' };
-    const form9 = explicitAxisLength(parts);
+    const form9 = explicitAxisLength(parts, nameOf);
     if (form9) return { ...form9, kind: 'axis-length' };
-    const form10 = explicitAxisArgsort(parts);
+    const form10 = explicitAxisArgsort(parts, nameOf);
     if (form10) return { ...form10, kind: 'axis-argsort' };
-    const form11 = explicitAxisMetric(parts);
+    const form11 = explicitAxisMetric(parts, nameOf);
     if (form11) return { ...form11, kind: 'axis-metric' };
-    const form12 = axisReductionForm(parts);
+    const form12 = axisReductionForm(parts, undefined, nameOf);
     if (form12) return { ...form12, kind: 'axis-reduction' };
-    const form13 = explicitAxisTranspose(parts);
+    const form13 = explicitAxisTranspose(parts, nameOf);
     if (form13) return { ...form13, kind: 'axis-transpose' };
-    const form14 = explicitNamedSegmentApplication(parts);
+    const form14 = explicitNamedSegmentApplication(parts, nameOf);
     if (form14) return { ...form14, kind: 'named-segment' };
-    const form15 = explicitNamedScanApplication(parts);
+    const form15 = explicitNamedScanApplication(parts, nameOf);
     if (form15) return { ...form15, kind: 'named-scan' };
-    const namedReduce = explicitNamedReduceApplication(parts);
+    const namedReduce = explicitNamedReduceApplication(parts, nameOf);
     if (namedReduce) return { ...namedReduce, kind: 'named-reduce' };
-    const form16 = explicitAxisSelection(parts);
+    const form16 = explicitAxisSelection(parts, nameOf);
     if (form16) return { ...form16, kind: 'axis-selection' };
-    const form17 = explicitGraphEdges(parts);
+    const form17 = explicitGraphEdges(parts, nameOf);
     if (form17) return { ...form17, kind: 'graph-edges' };
-    const form18 = explicitDsuMethod(parts);
+    const form18 = explicitDsuMethod(parts, nameOf);
     if (form18) return { ...form18, kind: 'dsu-method' };
-    const form19 = explicitFunctionalMethod(parts);
+    const form19 = explicitFunctionalMethod(parts, nameOf);
     if (form19) return { ...form19, kind: 'functional-method' };
-    const form20 = explicitMultisetMethod(parts);
+    const form20 = explicitMultisetMethod(parts, nameOf);
     if (form20) return { ...form20, kind: 'multiset-method' };
     const form21 = explicitMaterializePipeline(parts);
     if (form21) return { ...form21, kind: 'materialize-pipeline' };
@@ -599,9 +596,9 @@ function literalDimension(value: bigint, name: string): number {
 
 const COMPARISON_OPERATORS = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost']);
 function explicitAxisSelection(
-    parts: Expression[],
+    parts: Expression[], nameOf: NameOf,
 ): { source: Expression; axis: number; selector: Expression } | undefined {
-    if (parts.length !== 4 || !isNamed(parts[1], 'axis')
+    if (parts.length !== 4 || !isNamed(parts[1], 'axis', nameOf)
         || !isNumberLiteral(parts[2]) || typeof parts[2].value !== 'bigint') return undefined;
     return {
         source: parts[0],
@@ -611,9 +608,9 @@ function explicitAxisSelection(
 }
 
 function explicitAxisLength(
-    parts: Expression[],
+    parts: Expression[], nameOf: NameOf,
 ): { source: Expression; axis: number } | undefined {
-    const form = axisLengthForm(parts);
+    const form = axisLengthForm(parts, undefined, nameOf);
     if (!form) return undefined;
     return {
         source: form.source,
@@ -622,10 +619,10 @@ function explicitAxisLength(
 }
 
 function explicitAxisArgsort(
-    parts: Expression[],
+    parts: Expression[], nameOf: NameOf,
 ): { source: Expression; axis: number } | undefined {
-    if (parts.length !== 4 || !isNamed(parts[1], 'argsort')
-        || !isNamed(parts[2], 'axis')) return undefined;
+    if (parts.length !== 4 || !isNamed(parts[1], 'argsort', nameOf)
+        || !isNamed(parts[2], 'axis', nameOf)) return undefined;
     return {
         source: parts[0],
         axis: literalDimension(integerLiteral(parts[3], 'argsort axis'), 'argsort axis'),
@@ -633,10 +630,10 @@ function explicitAxisArgsort(
 }
 
 function explicitAxisShuffle(
-    parts: Expression[],
+    parts: Expression[], nameOf: NameOf,
 ): { source: Expression; seed?: Expression; axis: number } | undefined {
-    const shuffle = parts.findIndex(part => isNamed(part, 'shuffle'));
-    if (shuffle < 0 || !isNamed(parts[shuffle + 1], 'axis')) return undefined;
+    const shuffle = parts.findIndex(part => isNamed(part, 'shuffle', nameOf));
+    if (shuffle < 0 || !isNamed(parts[shuffle + 1], 'axis', nameOf)) return undefined;
     if ((shuffle !== 1 && shuffle !== 2) || parts.length !== shuffle + 3) {
         throw new ApplicationSyntaxError('shuffle axis expects data, an optional seed and one axis');
     }
@@ -648,15 +645,15 @@ function explicitAxisShuffle(
 }
 
 function explicitAxisQuantile(
-    parts: Expression[],
+    parts: Expression[], nameOf: NameOf,
 ): {
     source: Expression;
     q: Expression;
     isPercentile: boolean;
     axes: readonly number[];
 } | undefined {
-    if (parts.length < 5 || !isNamed(parts[3], 'axis')) return undefined;
-    const name = isNameExpression(parts[2]) ? parts[2].name : undefined;
+    if (parts.length < 5 || !isNamed(parts[3], 'axis', nameOf)) return undefined;
+    const name = isNameExpression(parts[2]) ? nameOf(parts[2]) : undefined;
     if (name !== 'quantile' && name !== 'percentile') return undefined;
     return {
         source: parts[0],
@@ -668,15 +665,15 @@ function explicitAxisQuantile(
 }
 
 function explicitAxisMetric(
-    parts: Expression[],
+    parts: Expression[], nameOf: NameOf,
 ): {
     left: Expression;
     right: Expression;
     metric: 'mse' | 'mae';
     axes: readonly number[];
 } | undefined {
-    if (parts.length < 4 || !isNamed(parts[3], 'axis')) return undefined;
-    const metric = isNameExpression(parts[2]) ? parts[2].name : undefined;
+    if (parts.length < 4 || !isNamed(parts[3], 'axis', nameOf)) return undefined;
+    const metric = isNameExpression(parts[2]) ? nameOf(parts[2]) : undefined;
     if (metric !== 'mse' && metric !== 'mae') return undefined;
     if (parts.length < 5) {
         throw new ApplicationSyntaxError(`${metric} axis expects one or more axes`);
@@ -691,10 +688,10 @@ function explicitAxisMetric(
 }
 
 function explicitAxisTranspose(
-    parts: Expression[],
+    parts: Expression[], nameOf: NameOf,
 ): { source: Expression; axes: readonly number[] } | undefined {
-    if (parts.length < 4 || !isNamed(parts[1], 'transpose')
-        || !isNamed(parts[2], 'axis')) return undefined;
+    if (parts.length < 4 || !isNamed(parts[1], 'transpose', nameOf)
+        || !isNamed(parts[2], 'axis', nameOf)) return undefined;
     return {
         source: parts[0],
         axes: parts.slice(3).map(axis =>
@@ -708,8 +705,8 @@ interface AxisMatmulApplication {
     readonly axes: readonly [number, number];
 }
 
-function explicitAxisMatmul(parts: Expression[]): AxisMatmulApplication | undefined {
-    if (parts.length < 4 || !isNamed(parts[2], 'matmul') || !isNamed(parts[3], 'axis')) {
+function explicitAxisMatmul(parts: Expression[], nameOf: NameOf): AxisMatmulApplication | undefined {
+    if (parts.length < 4 || !isNamed(parts[2], 'matmul', nameOf) || !isNamed(parts[3], 'axis', nameOf)) {
         return undefined;
     }
     if (parts.length !== 6) {
@@ -731,8 +728,8 @@ interface AxisCovarianceApplication {
     readonly axes: readonly [number, number];
 }
 
-function explicitAxisCovariance(parts: Expression[]): AxisCovarianceApplication | undefined {
-    if (parts.length < 3 || !isNamed(parts[1], 'covariance') || !isNamed(parts[2], 'axis')) {
+function explicitAxisCovariance(parts: Expression[], nameOf: NameOf): AxisCovarianceApplication | undefined {
+    if (parts.length < 3 || !isNamed(parts[1], 'covariance', nameOf) || !isNamed(parts[2], 'axis', nameOf)) {
         return undefined;
     }
     if (parts.length !== 5) {
@@ -748,11 +745,11 @@ function explicitAxisCovariance(parts: Expression[]): AxisCovarianceApplication 
     };
 }
 
-function explicitAxisCorrelation(parts: Expression[]): AxisCovarianceApplication | undefined {
-    if (parts.length < 3 || (!isNamed(parts[1], 'correlation') && !isNamed(parts[1], 'corr')) || !isNamed(parts[2], 'axis')) {
+function explicitAxisCorrelation(parts: Expression[], nameOf: NameOf): AxisCovarianceApplication | undefined {
+    if (parts.length < 3 || (!isNamed(parts[1], 'correlation', nameOf) && !isNamed(parts[1], 'corr', nameOf)) || !isNamed(parts[2], 'axis', nameOf)) {
         return undefined;
     }
-    const name = isNamed(parts[1], 'corr') ? 'corr' : 'correlation';
+    const name = isNamed(parts[1], 'corr', nameOf) ? 'corr' : 'correlation';
     if (parts.length !== 5) {
         throw new ApplicationSyntaxError(`${name} axis expects feature and observation axes`);
     }
@@ -780,27 +777,27 @@ function rankLiteral(part: Expression | undefined): number | undefined {
 }
 
 function explicitRankApplication(
-    parts: Expression[],
+    parts: Expression[], nameOf: NameOf,
 ): { parts: Expression[]; rank: bigint; rightRank?: bigint; axes?: readonly number[] } | undefined {
     // `rank L R` gives the left and right operands of a binary operation their own cell ranks.
     const [word, first, second] = parts.slice(-3);
-    const leftRank = isNamed(word, 'rank') ? rankLiteral(first) : undefined;
-    const rightRank = isNamed(word, 'rank') ? rankLiteral(second) : undefined;
+    const leftRank = isNamed(word, 'rank', nameOf) ? rankLiteral(first) : undefined;
+    const rightRank = isNamed(word, 'rank', nameOf) ? rankLiteral(second) : undefined;
     if (parts.length >= 3 && leftRank !== undefined && rightRank !== undefined) {
         const beforeRank = parts.slice(0, -3);
-        if (beforeRank.length !== 3 || beforeRank.some(part => isNamed(part, 'axis'))) {
+        if (beforeRank.length !== 3 || beforeRank.some(part => isNamed(part, 'axis', nameOf))) {
             throw new ApplicationSyntaxError('rank L R expects two operands and a binary operation');
         }
         return { parts: beforeRank, rank: BigInt(leftRank), rightRank: BigInt(rightRank) };
     }
     const modifier = parts.at(-2);
     const rank = parts.at(-1);
-    if (!modifier || !rank || !isNameExpression(modifier) || modifier.name !== 'rank') return undefined;
+    if (!modifier || !rank || !isNameExpression(modifier) || nameOf(modifier) !== 'rank') return undefined;
     const cellRank = rankLiteral(rank);
     if (cellRank === undefined) throw new ApplicationSyntaxError('rank expects an integer');
     const beforeRank = parts.slice(0, -2);
     if (beforeRank.length < 2) throw new ApplicationSyntaxError('rank requires data and a unary operation');
-    const axisPosition = beforeRank.findIndex(part => isNamed(part, 'axis'));
+    const axisPosition = beforeRank.findIndex(part => isNamed(part, 'axis', nameOf));
     if (axisPosition < 0) return { parts: beforeRank, rank: BigInt(cellRank) };
     if (axisPosition !== 2 || beforeRank.length === 3) {
         throw new ApplicationSyntaxError(
@@ -846,18 +843,18 @@ function explicitComparisonRank(expression: Expression): ComparisonRank | undefi
 
 /** `Values Count shift [with Fill] [axis K]`; the bare form is an ordinary operation. */
 function explicitAxisShift(
-    parts: Expression[],
+    parts: Expression[], nameOf: NameOf,
 ): { source: Expression; amount: Expression; fill?: Expression; axis?: number } | undefined {
-    if (parts.length < 5 || !isNamed(parts[2], 'shift')) return undefined;
+    if (parts.length < 5 || !isNamed(parts[2], 'shift', nameOf)) return undefined;
     let position = 3;
     let fill: Expression | undefined;
     let axis: number | undefined;
-    if (isNamed(parts[position], 'with')) {
+    if (isNamed(parts[position], 'with', nameOf)) {
         fill = parts[position + 1];
         if (!fill) return undefined;
         position += 2;
     }
-    if (isNamed(parts[position], 'axis')) {
+    if (isNamed(parts[position], 'axis', nameOf)) {
         if (position + 2 !== parts.length) {
             throw new ApplicationSyntaxError('shift axis expects exactly one axis');
         }
@@ -879,22 +876,24 @@ interface WindowApplication {
     readonly wrap?: boolean;
 }
 
-function explicitWindow(parts: Expression[], lookup: ApplicationLookup): WindowApplication | undefined {
-    const operation = parts.findIndex((part, index) => index > 0 && isNamed(part, 'window'));
+function explicitWindow(
+    parts: Expression[], lookup: ApplicationLookup, nameOf: NameOf,
+): WindowApplication | undefined {
+    const operation = parts.findIndex((part, index) => index > 0 && isNamed(part, 'window', nameOf));
     if (operation < 0 || operation + 1 >= parts.length) return undefined;
     const endsDimensions = (part: Expression): boolean => {
         if (!isNameExpression(part)) return false;
-        const named = lookup(part.name);
-        return ['stride', 'padding', 'axis'].includes(part.name)
+        const named = lookup(nameOf(part));
+        return ['stride', 'padding', 'axis'].includes(nameOf(part))
             || !!named && named.arities.length > 0
-            || part.name.startsWith('\0') && !['\0i', '\0j', '\0k'].includes(part.name);
+            || nameOf(part).startsWith('\0') && !['\0i', '\0j', '\0k'].includes(nameOf(part));
     };
     let position = operation + 1;
     while (position < parts.length && !endsDimensions(parts[position])) position++;
     const dimensions = parts.slice(operation + 1, position);
     if (!dimensions.length) throw new ApplicationSyntaxError('window expects one or more sizes');
     const groups = bindCallWords(parts, position, ['stride', 'padding'], 'window', () => true,
-        (_node, message) => { throw new ApplicationSyntaxError(message); });
+        (_node, message) => { throw new ApplicationSyntaxError(message); }, nameOf);
     position = groups.next;
     const stride = groups.values.get('stride');
     const padding = groups.values.get('padding');
@@ -903,16 +902,16 @@ function explicitWindow(parts: Expression[], lookup: ApplicationLookup): WindowA
     let axes: readonly number[] | undefined;
 
     if (padding) {
-        if (isNamed(parts[position], 'wrap')) {
+        if (isNamed(parts[position], 'wrap', nameOf)) {
             wrap = true;
             position++;
-        } else if (isNamed(parts[position], 'with')) {
+        } else if (isNamed(parts[position], 'with', nameOf)) {
             fill = parts[position + 1];
             if (!fill) throw new ApplicationSyntaxError('window padding with expects a value');
             position += 2;
         }
     }
-    if (isNamed(parts[position], 'axis')) {
+    if (isNamed(parts[position], 'axis', nameOf)) {
         const start = ++position;
         while (position < parts.length && !endsDimensions(parts[position])) position++;
         if (position === start) throw new ApplicationSyntaxError('window axis expects one or more axes');

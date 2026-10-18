@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, isNativeFunction } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, isNativeFunction } from '../src/index.js';
 
 describe('memo functions and explicit index caches', () => {
     it('memoizes Fibonacci with an index passed through recursive calls', () => {
@@ -73,12 +73,12 @@ end
     });
 
     it('caches every Fibonacci state and shares the cache through aliases', () => {
-        const calls: string[] = [];
-        const interpreter = new Interpreter(line => calls.push(line));
-        expect(interpreter.execute(`
+        const diagnostics = new RuntimeDiagnostics();
+        const interpreter = new Interpreter();
+        const execute = (source: string) => diagnostics.run(() => interpreter.execute(source));
+        expect(execute(`
 use io
 memo N fib
-  N print
   if N less 2
     return N
   end
@@ -86,82 +86,62 @@ memo N fib
 end
 30 fib
 `)).toBe(832040n);
-        expect(calls).toHaveLength(31);
-        expect(interpreter.execute('f = fib\n30 f')).toBe(832040n);
-        expect(calls).toHaveLength(31);
-        expect(interpreter.execute('31 fib')).toBe(1346269n);
-        expect(calls).toHaveLength(32);
+        expect(diagnostics.memoMisses).toBe(31);
+        expect(execute('f = fib\n30 f')).toBe(832040n);
+        expect(diagnostics.memoMisses).toBe(31);
+        expect(execute('31 fib')).toBe(1346269n);
+        expect(diagnostics.memoMisses).toBe(32);
     });
 
-    it('creates fresh caches on each outer call and preserves escaped closures', () => {
-        const calls: string[] = [];
-        const interpreter = new Interpreter(line => calls.push(line));
-        interpreter.execute(`
-use io
-fun Base make
-  memo N value
-    N print
-    return Base + N
-  end
-  return value
-end
-a = (10 make)
-b = (20 make)
-`);
-        expect(interpreter.execute('5 a')).toBe(15n);
-        expect(interpreter.execute('5 a')).toBe(15n);
-        expect(interpreter.execute('5 b')).toBe(25n);
-        expect(interpreter.execute('5 b')).toBe(25n);
-        expect(calls).toEqual(['5', '5']);
-        expect(interpreter.execute('a equal b')).toBe(false);
-        const localCalls: string[] = [];
-        const fresh = new Interpreter(line => localCalls.push(line));
-        fresh.execute(`
-use io
+    it('creates fresh local caches on each enclosing call', () => {
+        const diagnostics = new RuntimeDiagnostics();
+        const interpreter = new Interpreter();
+        const execute = (source: string) => diagnostics.run(() => interpreter.execute(source));
+        execute(`
 fun Base solve
   memo N value
-    N print
-    return Base + N
+    return N + 1
   end
-  X = 5 value
-  return 5 value
+  X = Base value
+  return Base value
 end
 `);
-        expect(fresh.execute('10 solve')).toBe(15n);
-        expect(fresh.execute('20 solve')).toBe(25n);
-        expect(localCalls).toEqual(['5', '5']);
+        expect(execute('10 solve')).toBe(11n);
+        expect(execute('10 solve')).toBe(11n);
+        expect(diagnostics.memoMisses).toBe(2);
+        expect(diagnostics.memoHits).toBe(2);
+        interpreter.dispose();
     });
 
     it('uses complete typed argument tuples without delimiter collisions', () => {
-        const calls: string[] = [];
-        const interpreter = new Interpreter(line => calls.push(line));
-        interpreter.execute(`
+        const diagnostics = new RuntimeDiagnostics();
+        const interpreter = new Interpreter();
+        const execute = (source: string) => diagnostics.run(() => interpreter.execute(source));
+        execute(`
 use io
 memo A B first
-  A print
   return A
 end
 memo X identity
-  X print
   return X
 end
 `);
-        expect(interpreter.execute('"a|string:b" "c" first')).toBe('a|string:b');
-        expect(interpreter.execute('"a" "b|string:c" first')).toBe('a');
+        expect(execute('"a|string:b" "c" first')).toBe('a|string:b');
+        expect(execute('"a" "b|string:c" first')).toBe('a');
         for (const source of ['0', 'false', '"0"', '.Zero', '0.5']) {
-            interpreter.execute(`${source} identity`);
-            interpreter.execute(`${source} identity`);
+            execute(`${source} identity`);
+            execute(`${source} identity`);
         }
-        expect(calls).toHaveLength(7);
+        expect(diagnostics.memoMisses).toBe(7);
     });
 
     it('does not cache errors or results whose finally block fails', () => {
-        const calls: string[] = [];
-        const interpreter = new Interpreter(line => calls.push(line));
-        interpreter.execute(`
+        const diagnostics = new RuntimeDiagnostics();
+        const interpreter = new Interpreter();
+        const execute = (source: string) => diagnostics.run(() => interpreter.execute(source));
+        execute(`
 use io
 memo N fail
-  N print
   try
     return N
   finally
@@ -169,27 +149,28 @@ memo N fail
   end
 end
 `);
-        for (let i = 0; i < 2; i++) expect(() => interpreter.execute('1 fail')).toThrowError('.Oops');
-        expect(calls).toEqual(['1', '1']);
+        for (let i = 0; i < 2; i++) expect(() => execute('1 fail')).toThrowError('.Oops');
+        expect(diagnostics.memoMisses).toBe(2);
     });
 
     it('keeps primitive unary keys separate from tagged text and labels', () => {
-        const calls: string[] = [];
-        const interpreter = new Interpreter(line => calls.push(line));
-        interpreter.execute('use io\nmemo X identity\n X print\n return X\nend');
+        const diagnostics = new RuntimeDiagnostics();
+        const interpreter = new Interpreter();
+        const execute = (source: string) => diagnostics.run(() => interpreter.execute(source));
+        execute('use io\nmemo X identity\n return X\nend');
         const fn = interpreter.variables.get('identity')!;
         if (!isNativeFunction(fn)) throw new Error('expected function');
         for (const value of [2n, 2, -0, 0, NaN, Infinity, -Infinity, false, true,
             '2', 'bigint:2', 'number:-0', 'label:Zero', 'date:2026-10-10']) {
-            expect(fn.call([value])).toBe(value);
-            expect(fn.call([value])).toBe(value);
+            expect(diagnostics.run(() => fn.call([value]))).toBe(value);
+            expect(diagnostics.run(() => fn.call([value]))).toBe(value);
         }
-        interpreter.execute('.Zero identity\n.Zero identity');
-        expect(fn.call([{ kind: 'label', name: 'Zero' }])).toEqual({ kind: 'label', name: 'Zero' });
+        execute('.Zero identity\n.Zero identity');
+        expect(diagnostics.run(() => fn.call([{ kind: 'label', name: 'Zero' }]))).toEqual({ kind: 'label', name: 'Zero' });
         const date = { kind: 'date', year: 2026, month: 10, day: 10 } as const;
-        expect(fn.call([date])).toEqual(date);
-        expect(fn.call([{ ...date }])).toEqual(date);
-        expect(calls).toHaveLength(16);
+        expect(diagnostics.run(() => fn.call([date]))).toEqual(date);
+        expect(diagnostics.run(() => fn.call([{ ...date }]))).toEqual(date);
+        expect(diagnostics.memoMisses).toBe(16);
         // A cached unary value must not hide an invalid host-call arity.
         expect(() => fn.call([])).toThrowError('expects 1 arguments');
         expect(() => fn.call([2n, 3n])).toThrowError('expects 1 arguments');
@@ -211,12 +192,12 @@ end
     }, 30_000);
 
     it('does not bypass cache writes for tail-position memo calls', () => {
-        const calls: string[] = [];
-        const interpreter = new Interpreter(line => calls.push(line));
-        interpreter.execute(`
+        const diagnostics = new RuntimeDiagnostics();
+        const interpreter = new Interpreter();
+        const execute = (source: string) => diagnostics.run(() => interpreter.execute(source));
+        execute(`
 use io
 memo N down
-  N print
   if N equal 0
     return 0
   end
@@ -226,26 +207,25 @@ fun N forward
   return N down
 end
 `);
-        expect(interpreter.execute('20 forward')).toBe(0n);
-        expect(calls).toHaveLength(21);
-        expect(interpreter.execute('19 down')).toBe(0n);
-        expect(calls).toHaveLength(21);
+        expect(execute('20 forward')).toBe(0n);
+        expect(diagnostics.memoMisses).toBe(21);
+        expect(execute('19 down')).toBe(0n);
+        expect(diagnostics.memoMisses).toBe(21);
     });
 
     it('supports mutual recursion and a memo body tail-calling an ordinary function', () => {
-        const calls: string[] = [];
-        const interpreter = new Interpreter(line => calls.push(line));
-        interpreter.execute(`
+        const diagnostics = new RuntimeDiagnostics();
+        const interpreter = new Interpreter();
+        const execute = (source: string) => diagnostics.run(() => interpreter.execute(source));
+        execute(`
 use io
 memo N even
-  N print
   if N equal 0
     return true
   end
   return (N - 1) odd
 end
 memo N odd
-  N print
   if N equal 0
     return false
   end
@@ -255,16 +235,15 @@ fun N add
   return N + 1
 end
 memo N forward
-  N print
   return N add
 end
 `);
-        expect(interpreter.execute('20 even')).toBe(true);
-        expect(interpreter.execute('19 odd')).toBe(true);
-        expect(calls).toHaveLength(21);
-        expect(interpreter.execute('5 forward')).toBe(6n);
-        expect(interpreter.execute('5 forward')).toBe(6n);
-        expect(calls).toHaveLength(22);
+        expect(execute('20 even')).toBe(true);
+        expect(execute('19 odd')).toBe(true);
+        expect(diagnostics.memoMisses).toBe(21);
+        expect(execute('5 forward')).toBe(6n);
+        expect(execute('5 forward')).toBe(6n);
+        expect(diagnostics.memoMisses).toBe(22);
     });
 
     it('rejects generators and mutable arguments or results', () => {

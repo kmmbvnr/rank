@@ -1402,6 +1402,15 @@ it('keeps missing cells apart from the numeric type and drops them at default', 
     expect(facts('R and N', env).types).toEqual(['boolean', 'missing']);
     // The numeric kernels' proof does not cover cells that may have no value.
     expect(facts('P + 1.0', env).callbackFreeScalarCells).toBeUndefined();
+    expect(facts('P + 1.0', env).elements).toEqual(['real', 'missing']);
+    expect(facts('P filter present', env).elements).toEqual(['real']);
+    expect(facts('P (P present)', env).elements).toEqual(['real']);
+    expect(facts('P present', env)).toMatchObject({ types: ['array'], elements: ['boolean'], rank: 1, shape: [3] });
+    expect(facts('.NA text').types).toEqual(['missing']);
+    expect(facts('.NA 1 round').types).toEqual(['missing']);
+    expect(facts('.NA floor').types).toEqual(['missing']);
+    expect(facts('.NA present')).toMatchObject({ types: ['boolean'], rank: 0, shape: [] });
+    expect(facts('P filter greater 1.0', env).elements).toEqual(['real', 'missing']);
 });
 
 it('lets a name hold .NA before its first value and refuses other changes of type', () => {
@@ -1723,4 +1732,91 @@ it('infers coordinate width for safe tensor indices without trusting computed ma
         expect(facts('Mask indices', new Map([['Mask', { ...mask, callbackFreeScalarCells: undefined }]])))
             .toEqual({ types: ['array'] });
     }
+});
+
+it('distinguishes boolean masks, integer gathers and unresolved selectors', () => {
+    const source: ValueFacts = { types: ['array'], rank: 2, shape: [2, 3],
+        elements: ['integer'], eagerScalarCells: true };
+    const select = (selector: ValueFacts) => facts('M S', new Map([['M', source], ['S', selector]]));
+    expect(select({ types: ['array'], rank: 2, shape: [2, 3], elements: ['boolean'], eagerScalarCells: true }))
+        .toMatchObject({ types: ['sequence'], rank: 1, shape: [null], elements: ['integer'] });
+    expect(select({ types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true }))
+        .toMatchObject({ types: ['array'], rank: 2, shape: [2, 3] });
+    for (const elements of [undefined, ['integer', 'boolean']]) {
+        const result = select({ types: ['array'], rank: 1, elements });
+        expect(result.types).toEqual(['array', 'sequence']);
+        expect(result.rank).toBeUndefined();
+        expect(result.shape).toBeUndefined();
+    }
+    expect(select({ types: ['array'], rank: 2, shape: [null, 3], elements: ['boolean'] }).types)
+        .toEqual(['array', 'sequence']);
+    // Runtime tries integer addressing first; an empty array satisfies it.
+    expect(select({ types: ['array'], rank: 1, shape: [0], elements: ['boolean'], eagerScalarCells: true }))
+        .toMatchObject({ types: ['array'], rank: 2, shape: [0, 3] });
+    expect(select({ types: ['array'], rank: 2, elements: ['boolean'] }).callbackFreeScalarCells)
+        .toBeUndefined();
+});
+
+it('infers matmul result kind from rank even when dimensions or rank are unknown', () => {
+    const array: ValueFacts = { types: ['array'], elements: ['integer'], eagerScalarCells: true };
+    const multiply = (left: ValueFacts, right: ValueFacts) => facts('L R matmul', new Map([['L', left], ['R', right]]));
+    expect(multiply(array, array).types).toEqual([]);
+    expect(multiply({ ...array, rank: 1 }, { ...array, rank: 1 }))
+        .toMatchObject({ types: ['integer'], rank: 0, shape: [] });
+    expect(multiply({ ...array, rank: 2 }, { ...array, rank: 1 }))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
+    expect(multiply({ ...array, rank: 1 }, { ...array, rank: 2 }))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [null] });
+    expect(multiply({ ...array, rank: 2 }, { ...array, rank: 2 }))
+        .toMatchObject({ types: ['array'], rank: 2, shape: [null, null] });
+    expect(multiply({ ...array, rank: 1, shape: [null] }, { ...array, rank: 1, shape: [null] }))
+        .toMatchObject({ types: ['integer'], rank: 0 });
+    const lazy = { ...array, rank: 1, eagerScalarCells: undefined };
+    expect(multiply(lazy, lazy).callbackFreeScalarCells).toBeUndefined();
+    const real = { ...array, rank: 1, shape: [0], elements: ['real'] };
+    expect(multiply(real, real).types).toContain('integer');
+});
+
+
+it('does not use matmul catalogue result kinds for unresolved operands', () => {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>('A = L R matmul\n');
+    const statement = parsed.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    for (const left of [undefined, ['array']]) {
+        expect(typeOf(statement.value, name => name === 'L' ? left : ['array'])).toEqual([]);
+    }
+});
+
+
+it('warns about missing conditions, indices and keys without rejecting guarded uses', () => {
+    const warnings = (source: string, env = new Map<string, ValueFacts>()) => {
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        expect(program.parserErrors).toHaveLength(0);
+        return analyzeValues(program.value, env).diagnostics.filter(item => item.code === 'MissingValue');
+    };
+    expect(warnings('if .NA\n  1\nend')).toHaveLength(1);
+    expect(warnings('if X\n  1\nend', new Map([['X', { types: ['boolean', 'missing'], rank: 0 }]]))).toHaveLength(1);
+    expect(warnings('if .NA default false\n  1\nend')).toHaveLength(0);
+    expect(warnings('X = array 1 2\nX .NA')).toHaveLength(1);
+    expect(warnings('X = array 1 2\nX (.NA default 0)')).toHaveLength(0);
+    expect(warnings('X = array 1 2\n(X .NA) default 0')).toHaveLength(0);
+    expect(warnings('X = new index\nX .NA')).toHaveLength(1);
+
+});
+
+
+it('does not claim scalar bulk query results after operand facts are invalidated', () => {
+    const program = services.Rank.parser.LangiumParser.parse<Program>(
+        'use sequences\nKeys = array 10 20 30\nQueries = array 20 99 10\nPositions = Keys Queries find default -1');
+    const result = analyzeValues(program.value).bindings.get('Positions')!;
+    expect(result.types.length === 0 || result.types.includes('array')).toBe(true);
+    const env = new Map<string, ValueFacts>([['Keys', facts('array 10 20 30')], ['Queries', facts('array 20 99 10')]]);
+    expect(facts('Keys Queries find', env)).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
+});
+
+
+it('keeps empty and unknown-length present selections sound', () => {
+    const empty: ValueFacts = { types: ['array'], rank: 1, shape: [0], elements: ['real', 'missing'] };
+    expect(facts('P (P present)', new Map([['P', empty]]))).toMatchObject({ types: ['array'], shape: [0], elements: ['real'] });
+    expect(facts('P (P present)', new Map([['P', { ...empty, shape: [null] }]]))).toMatchObject({ types: ['array', 'sequence'], elements: ['real'] });
 });

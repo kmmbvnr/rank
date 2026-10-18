@@ -10,13 +10,13 @@ use io
 Size = 8
 Cols = array 0 till Size
 
-rem Reuse one board during the search.
+rem Pass each search branch its board explicitly.
 rem Save a copy only for a solution.
 fun N solve
   Board = array shape N fill 0
   Results = new queue
 
-  fun Row visit
+  fun Row Board Results N visit
     if Row equal N
       Results push (Board copy)
       return 1
@@ -34,13 +34,13 @@ fun N solve
       end
       if Safe
         Board Row = Col
-        Count += (Row + 1) visit
+        Count += (Row + 1) Board Results N visit
       end
     end
     return Count
   end
 
-  Count = 0 visit
+  0 Board Results N visit
   return Results array
 end
 

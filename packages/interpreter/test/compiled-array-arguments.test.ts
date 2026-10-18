@@ -83,15 +83,14 @@ it('preserves selection errors, call locations and short circuiting', () => {
     }
 });
 
-it('binds text-array native calls and preserves captured assignments', () => {
+it('binds text-array native calls and rejects captured assignments', () => {
     let calls = 0;
     const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => calls++ });
     try {
         runtime.execute('use text\nfun A joined\nreturn A ":" join\nend');
         expect(runtime.execute('(array "λ" "😀") joined')).toBe('λ:😀');
         expect(calls).toBe(1);
-        const result = runtime.execute('fun A outer\nB = A\nfun C replace\nB = C\nreturn B\nend\n(array 9 8) replace\nreturn B\nend\n(array 1 2) outer');
-        expect(formatValue(result!)).toBe('9 8');
+        expect(() => runtime.execute('fun A outer\nB = A\nfun C replace\nB = C\nreturn B\nend\n(array 9 8) replace\nreturn B\nend\n(array 1 2) outer')).toThrow('B is bound in an enclosing function');
         expect(calls).toBe(1);
     } finally { runtime.dispose(); }
 });

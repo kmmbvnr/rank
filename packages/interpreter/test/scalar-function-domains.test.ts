@@ -73,9 +73,9 @@ describe('scalar function argument domains', () => {
         } finally { runtime.dispose(); }
     });
 
-    it('retains captured assignments and native error locations', () => {
+    it('returns local results explicitly and preserves native error locations', () => {
         for (const source of [
-            'fun X outer\nLocal = "before"\nfun Y rewrite\nLocal = Y reverse\nreturn Local\nend\nX rewrite\nreturn Local\nend\n"after" outer',
+            'fun X outer\nLocal = "before"\nfun Y rewrite\nReversed = Y reverse\nreturn Reversed\nend\nLocal = X rewrite\nreturn Local\nend\n"after" outer',
             'use text\nfun Text point\nreturn Text codepoint\nend\n"" point',
         ]) {
             const reference = evaluate(false, `use sequences\n${source}`);

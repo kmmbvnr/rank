@@ -184,7 +184,7 @@ describe('the operation catalogue', () => {
         ]) expect(typeName(new Interpreter().execute('use numbers\n' + expression)!), expression).toBe(expected);
         expect(() => new Interpreter().execute('use numbers\n.NA isqrt')).toThrow();
         expect(() => new Interpreter().execute('use numbers\n1.5 2 gcd')).toThrow();
-        expect(() => new Interpreter().execute('use numbers\n.NA 2 round')).toThrow();
+        expect(typeName(new Interpreter().execute('use numbers\n.NA 2 round')!)).toBe('missing');
         expect(() => new Interpreter().execute('use algo\nuse numbers\nQ = new queue\nQ push 2\nQ lcm')).toThrow();
     });
 
@@ -199,7 +199,7 @@ describe('the operation catalogue', () => {
             ['"ABC" lower', 'text'], ['(array "ABC" "DEF") lower', 'array'],
             ['"abc" len', 'integer'], ['(tuple 1 "a") len', 'integer'],
         ]) expect(typeName(new Interpreter().execute('use text\n' + expression)!), expression).toBe(expected);
-        expect(() => new Interpreter().execute('use text\n.NA text')).toThrow();
+        expect(typeName(new Interpreter().execute('use text\n.NA text')!)).toBe('missing');
         expect(() => new Interpreter().execute('use dates\n(1 duration) text')).toThrow();
         expect(() => new Interpreter().execute('use text\n(array .NA) "," join')).toThrow();
         expect(() => new Interpreter().execute('use text\n"ab" codepoint')).toThrow();

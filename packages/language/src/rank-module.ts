@@ -88,12 +88,17 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
                 if (grouping?.loadModule) {
                     const signatures = new Map(grouping.signatures);
                     const bindings = new Map(grouping.bindings);
+                    const declarations = new Map(grouping.declarations);
                     for (const entry of lexer.imports(input)) {
                         const module = grouping.loadModule(entry.path);
                         if (!module) continue;
                         const exported = new Map<string, ReturnType<typeof functionCallSignature>>();
+                        const definitions = new Map<string, import('./generated/ast.js').FunctionStatement>();
                         for (const statement of module.statements) {
-                            if (isFunctionStatement(statement)) exported.set(statement.name, functionCallSignature(statement));
+                            if (isFunctionStatement(statement)) {
+                                exported.set(statement.name, functionCallSignature(statement));
+                                definitions.set(statement.name, statement);
+                            }
                         }
                         for (const statement of module.statements) {
                             if (!isFunctionBindingStatement(statement)) continue;
@@ -104,10 +109,12 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
                         for (const [name, signature] of exported) {
                             const qualified = entry.alias ? `${entry.alias}.${name}` : name;
                             signatures.set(qualified, signature);
+                            const definition = definitions.get(name);
+                            if (definition) declarations.set(qualified, definition);
                             bindings.set(qualified, [signature.leftCount + signature.rightParameters.length]);
                         }
                     }
-                    grouping = { ...grouping, signatures, bindings };
+                    grouping = { ...grouping, signatures, bindings, declarations };
                 }
                 lexer.signatures = grouping?.signatures ?? new Map();
                 const result = parse<T>(input, options);

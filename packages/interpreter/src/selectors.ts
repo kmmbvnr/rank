@@ -1,7 +1,7 @@
 import { arithmeticRange } from './range-plan.js';
 import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
-import { registerIntegerView } from './integer-view.js';
+import { registerScalarView, deferSelectionCopy, type LinearView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
 import { denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
@@ -16,18 +16,20 @@ const arrayItem = readArrayItem;
 const arraySize = (shape: readonly number[]): number =>
     shape.reduce((product, dimension) => product * dimension, 1);
 
-// Large scalar slices are gathered eagerly to avoid a per-cell Map cache.
+// Large irregular scalar gathers avoid a per-cell Map cache.
 const DENSE_SLICE_CELLS = 1 << 16;
 
-function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (index: number) => number): RankArray {
+function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (index: number) => number, linear?: LinearView, regular = linear !== undefined): RankArray {
     let current = source;
     let position = offsetAt;
     const dependencies = [source];
     const result = derivedArray(shape, dependencies, index => arrayItem(current, position(index)));
-    registerIntegerView(result, () => current, index => position(index));
+    registerScalarView(result, () => current, index => position(index), { regular,
+        linear: linear ? () => linear! : undefined });
     retainSelectionSnapshot(result, source, offsetAt, snapshot => {
         current = snapshot;
         position = index => index;
+        linear = { offset: 0, stride: 1 };
         dependencies[0] = snapshot;
     });
     return result;
@@ -38,6 +40,7 @@ interface SelectedAxis {
     readonly size: number;
     readonly unique?: boolean;
     indexAt(coordinate: number): number;
+    readonly linear?: LinearView;
 }
 
 interface TensorSelection {
@@ -48,6 +51,7 @@ interface TensorSelection {
     /** The per-axis plan behind `offsetAt`, when there is one. */
     readonly axes?: readonly SelectedAxis[];
     readonly sourceShape?: readonly number[];
+    readonly linear?: LinearView;
 }
 
 function isAllAxisSelector(value: RankValue): boolean {
@@ -88,7 +92,7 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
     const axes = source.shape.map((size, axis) => {
         const selector = selectors[axis] ?? ALL_AXIS;
         if (isAllAxisSelector(selector)) {
-            return { preserve: true, size, unique: true, indexAt: (coordinate: number) => coordinate };
+            return { preserve: true, size, unique: true, linear: { offset: 0, stride: 1 }, indexAt: (coordinate: number) => coordinate };
         }
         if (typeof selector === 'bigint') {
             if (selector < 0n) {
@@ -97,10 +101,20 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
             if (selector >= BigInt(size)) {
                 throw new MissingValueError(`array index out of bounds on axis ${axis}: ${selector}`);
             }
-            return { preserve: false, size: 1, indexAt: () => Number(selector) };
+            return { preserve: false, size: 1, linear: { offset: Number(selector), stride: 0 }, indexAt: () => Number(selector) };
         }
         if (typeof selector === 'number') {
             throw new RankError(`array index must be an integer on axis ${axis}`);
+        }
+        const open = isRankSequence(selector) && selector.plan.openRange;
+        if (open) {
+            if (open.start < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+            if (open.start > BigInt(size)) throw new MissingValueError(`array index out of bounds on axis ${axis}: ${open.start}`);
+            const count = open.start === BigInt(size) ? 0n : open.step > 0n
+                ? (BigInt(size) - 1n - open.start) / open.step + 1n : open.start / -open.step + 1n;
+            const offset = count ? Number(open.start) : 0, stride = count > 1n ? Number(open.step) : 1;
+            return { preserve: true, size: Number(count), unique: true, linear: { offset, stride },
+                indexAt: (coordinate: number) => offset + coordinate * stride };
         }
         const range = isRankSequence(selector) && arithmeticRange(selector.plan);
         if (range) {
@@ -116,7 +130,7 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
                 }
             }
             const linear = { start: count ? Number(start) : 0, step: count > 1n ? Number(step) : 1 };
-            return { preserve: true, size: Number(count), unique: true, indexAt: (coordinate: number) => linear.start + coordinate * linear.step };
+            return { preserve: true, size: Number(count), unique: true, linear: { offset: linear.start, stride: linear.step }, indexAt: (coordinate: number) => linear.start + coordinate * linear.step };
         }
         // Trusted dense integer selectors can be checked into one compact
         // offset buffer. No getters, lazy cells or semantic contracts are read.
@@ -151,12 +165,12 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
     if (axes.length === 1) {
         const axis = axes[0];
         return {
-            shape, unique: axis.unique,
+            shape, unique: axis.unique, linear: axis.linear,
             offsetAt: axis.indexAt,
         };
     }
     return {
-        shape, axes, sourceShape: source.shape,
+        shape, axes, sourceShape: source.shape, linear: linearSelection(axes, source.shape),
         offsetAt(index) {
             const output = coordinatesAt(shape, index);
             let outputAxis = 0;
@@ -167,6 +181,29 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
             return arrayOffset(source.shape, sourceCoordinates);
         },
     };
+}
+
+/** A regular tensor selection is flat when its retained axes advance by
+ * one constant stride in output order (including a leading-axis slice). */
+function linearSelection(axes: readonly SelectedAxis[], sourceShape: readonly number[]): LinearView | undefined {
+    if (axes.some(axis => !axis.linear)) return undefined;
+    if (axes.some(axis => axis.preserve && axis.size === 0)) return { offset: 0, stride: 1 };
+    let sourceStride = 1, outputStride = 1, offset = 0;
+    let stride: number | undefined;
+    for (let i = axes.length - 1; i >= 0; i--) {
+        const axis = axes[i], linear = axis.linear!;
+        offset += linear.offset * sourceStride;
+        if (axis.preserve) {
+            if (axis.size > 1) {
+                const advance = linear.stride * sourceStride;
+                stride ??= advance / outputStride;
+                if (advance !== stride * outputStride) return undefined;
+            }
+            outputStride *= axis.size;
+        }
+        sourceStride *= sourceShape[i];
+    }
+    return { offset, stride: stride ?? 1 };
 }
 
 export function atArray(source: RankArray, indices: readonly bigint[]): RankValue {
@@ -200,7 +237,7 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
         const length = arraySize(rest);
         return inheritSemanticArrayType(source, typedArray(stored.slice(offset, offset + length), rest));
     }
-    return inheritSemanticArrayType(source, selectionArray(rest, source, index => offset + index));
+    return inheritSemanticArrayType(source, selectionArray(rest, source, index => offset + index, { offset, stride: 1 }));
 }
 
 /** The cells a selection addresses: an array, or the one cell of an empty shape. */
@@ -216,10 +253,12 @@ export function sliceArray(
         ? Array.from({ length: columnAxis.size }, (_, column) => source.columnNames![columnAxis.indexAt(column)]) : undefined;
     const stored = denseScalarItems(source);
     const total = arraySize(selection.shape);
-    // Typed and large plain slices are gathered eagerly. Smaller slices stay
-    // lazy, detaching their selected cells only before a Rank source write.
+    // Regular slices keep a stored-view plan; material selections copy only
+    // on write. Irregular gathers retain the eager threshold and fallback.
     const kind = typedElementKind(source);
-    if (stored && (kind !== undefined || total >= DENSE_SLICE_CELLS)) {
+    const regular = selection.linear || selection.axes?.every(axis => axis.linear);
+    const material = stored && (kind !== undefined || total >= DENSE_SLICE_CELLS);
+    if (!regular && material) {
         const reals = kind === 'real' || (kind === undefined && realCells(source) !== undefined);
         const out: RankValue[] | Float64Array | BigInt64Array = reals ? new Float64Array(total)
             : kind === 'integer' ? new BigInt64Array(total) : new Array(total);
@@ -227,7 +266,8 @@ export function sliceArray(
         const result = Array.isArray(out) ? ownedArray(out, selection.shape, true, columnNames) : typedArray(out, selection.shape, columnNames);
         return source.columnNames ? result : inheritSemanticArrayType(source, result);
     }
-    const result = selectionArray(selection.shape, source, selection.offsetAt);
+    const result = selectionArray(selection.shape, source, selection.offsetAt, selection.linear, !!regular);
+    if (material) deferSelectionCopy(result);
     if (columnNames) Object.defineProperty(result, 'columnNames', { value: columnNames });
     return source.columnNames ? result : inheritSemanticArrayType(source, result);
 }

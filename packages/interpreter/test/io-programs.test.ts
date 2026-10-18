@@ -142,14 +142,16 @@ describe('Rank IO, modules and programs', () => {
 
     it('executes generator effects when len must count its elements', () => {
         expect(run([
-            'fun stream',
-            '  A 0 = 9',
+            'fun A stream',
+            '  A .count = 9',
             '  yield 1',
             'end',
-            'S = stream',
-            'A = array 1 2',
+            'A = record',
+            '  .count = 0',
+            'end',
+            'S = A stream',
             'N = S len',
-            'A 0',
+            'A .count',
         ].join('\n'))).toBe('9');
     });
 
@@ -272,10 +274,10 @@ describe('Rank IO, modules and programs', () => {
         expect(io.handles[0].closed).toBe(true);
     });
 
-    it('keeps resources owned by an escaping local function', () => {
+    it('rejects an escaping local function before opening its captured resource', () => {
         const io = new MemoryIo({ '/input': 'Rank' });
         const interpreter = new Interpreter(undefined, { io });
-        interpreter.execute([
+        expect(() => interpreter.execute([
             'use io',
             'fun Path reader',
             '  File = Path open',
@@ -287,10 +289,10 @@ describe('Rank IO, modules and programs', () => {
             'end',
             'pick_bytes = ("/input" reader)',
             'Bytes = 2 pick_bytes',
-        ].join('\n'));
+        ].join('\n'))).toThrow('nested function pick cannot be returned, assigned, or stored');
 
-        expect(formatValue(interpreter.variables.get('Bytes')!)).toBe('0x5261');
-        expect(io.handles[0].closed).toBe(true);
+        expect(io.handles).toHaveLength(0);
+        interpreter.dispose();
     });
 
     it('reads and writes UTF-8 text through the host adapter', () => {

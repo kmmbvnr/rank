@@ -12,7 +12,7 @@ import {
     type AddressItem, type ArrayItem, type Expression, type SortField,
 } from '@arrrank/language';
 import { nameMask } from '../array-mask.js';
-import { allValid, createArraySnapshot, filledArray, derivedArray, isPresentAt, maskedCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
+import { allValid, createArraySnapshot, filledArray, derivedArray, isPresentAt, maskedNumericCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { compileClauseExpression, isBoundCondition, type ClauseExpressionContext } from '../clause-expression.js';
 import { newStructure } from '../collections.js';
@@ -417,13 +417,18 @@ export class ExpressionEvaluator {
                 }
                 const sort = keyedSort(source, operation);
                 if (!expression.key) throw new RankError(`${operation} requires a key`);
-                const key = yield* resume(expressions.evaluate(expression.key));
-                if (!isNativeFunction(key) || !key.arities.includes(1)) {
-                    throw new RankError(`${operation} key must be a unary function`);
+                const parts = flattenApplication(expression.key);
+                const key = yield* resume(expressions.evaluate(parts.at(-1)!));
+                const operands: RankValue[] = [];
+                for (const operand of parts.slice(0, -1)) operands.push(yield* resume(expressions.evaluate(operand)));
+                if (!isNativeFunction(key) || !key.arities.includes(operands.length + 1)) {
+                    throw new RankError(operands.length
+                        ? `${operation} key must accept the item followed by ${operands.length} bound operands`
+                        : `${operation} key must be a unary function`);
                 }
                 const keys: RankValue[][] = [];
                 for (const item of sort.items) {
-                    const value = yield* resume(expressions.context.invoke(key, [item]));
+                    const value = yield* resume(expressions.context.invoke(key, [item, ...operands]));
                     expressions.context.resources.ownFiles(value);
                     keys.push([value]);
                 }
@@ -486,12 +491,20 @@ export class ExpressionEvaluator {
                         left ??= expressions.compile(expression.left, () => absent);
                         const value = yield* resume(left());
                         if (isRankArray(value)) {
-                            const masked = maskedCells(value);
+                            const masked = maskedNumericCells(value);
                             let evaluated: RankValue | undefined;
                             if (masked) {
                                 if (allValid(masked.validity, masked.values.length)) return value;
                                 const fallback = evaluated = yield* resume(expressions.evaluate(expression.right));
-                                if (typeof fallback === 'number') {
+                                if (masked.values instanceof BigInt64Array && typeof fallback === 'bigint'
+                                    && BigInt.asIntN(64, fallback) === fallback) {
+                                    const out = masked.values.slice();
+                                    for (let index = 0; index < out.length; index += 1) {
+                                        if (!isPresentAt(masked.validity, index)) out[index] = fallback;
+                                    }
+                                    return typedArray(out, value.shape);
+                                }
+                                if (masked.values instanceof Float64Array && typeof fallback === 'number') {
                                     const out = masked.values.slice();
                                     for (let index = 0; index < out.length; index += 1) {
                                         if (!isPresentAt(masked.validity, index)) out[index] = fallback;
@@ -629,7 +642,8 @@ export class ExpressionEvaluator {
             if (!isNativeFunction(key) || !key.arities.includes(1)) {
                 throw new RankError('merge by key must be a unary function', 'TypeError');
             }
-            return mergeSorted(sources, descending, value => runExecution(expressions.context.invoke(key, [value])));
+            const frozen = key.snapshot?.() ?? key;
+            return mergeSorted(sources, descending, value => runExecution(expressions.context.invoke(frozen, [value])));
         };
     }
 

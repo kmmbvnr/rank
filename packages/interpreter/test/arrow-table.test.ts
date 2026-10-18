@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { parseCsvToArrow } from '../src/arrow-table.js';
+import { Vector } from 'apache-arrow';
+import { maskedNumericCells, readArrayItem } from '../src/array-storage.js';
+import { MISSING } from '../src/value.js';
+import { parseCsvToArrow, RankArrowTable, columnFromValues } from '../src/arrow-table.js';
 import type { RankObject, RankValue } from '../src/value.js';
 
 const rowsOf = (text: string) => parseCsvToArrow(text).toRows().items
@@ -119,4 +122,33 @@ describe('columnar CSV', () => {
             expect(() => parseCsvToArrow(text)).toThrowError(message);
         });
     }
+});
+
+
+describe('numeric Arrow validity', () => {
+    it.each(['integer', 'real'] as const)('copies sliced and chunked %s bitmaps without cell reads', kind => {
+        const values = Array.from({ length: 110 }, (_, i) => i % 5 === 0 ? undefined : kind === 'integer' ? BigInt(i) : i + 0.5);
+        const source = columnFromValues('n', values, kind).vector!;
+        for (const start of [0, 1, 7, 8, 31, 32, 33]) {
+            const vector = new Vector([...source.slice(start, start + 13).data, ...source.slice(51, 90).data]);
+            const expected = [...values.slice(start, start + 13), ...values.slice(51, 90)].map(x => x ?? MISSING);
+            const table = new RankArrowTable(expected.length, [{ name: 'n', kind, vector }]);
+            table.cell = () => { throw new Error('must not read individual cells'); };
+            const array = table.columnArray('n');
+            expect(maskedNumericCells(array)).toBeDefined();
+            expect(expected.map((_, i) => readArrayItem(array, i))).toEqual(expected);
+            expect(Array.from(source)).toEqual(values.map(x => x ?? null));
+        }
+    });
+
+    it('combines null-free and all-null chunks and preserves custom replacements', () => {
+        const full = columnFromValues('n', [1n, 2n, 3n]).vector!;
+        const empty = columnFromValues('n', Array(33).fill(undefined), 'integer').vector!;
+        const vector = new Vector([...full.data, ...empty.data, ...full.data]);
+        const table = new RankArrowTable(39, [{ name: 'n', kind: 'integer', vector }]);
+        expect(table.columnArray('n').items).toEqual([1n, 2n, 3n, ...Array(33).fill(MISSING), 1n, 2n, 3n]);
+        let calls = 0;
+        expect(table.columnArray('n', () => { calls++; return 9n; }).items).toEqual([1n, 2n, 3n, ...Array(33).fill(9n), 1n, 2n, 3n]);
+        expect(calls).toBe(33);
+    });
 });

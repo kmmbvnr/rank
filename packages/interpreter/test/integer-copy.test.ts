@@ -4,7 +4,7 @@ import { derivedArray, ownedArray, prepareArrayRead } from '../src/array-storage
 import { concatValues } from '../src/modules/sequences.js';
 import type { RankArray } from '../src/value.js';
 import { ArrayBindingContract } from '../src/array-binding-contract.js';
-import { prepareIntegerView, registerIntegerView } from '../src/integer-view.js';
+import { prepareIntegerView, registerScalarView } from '../src/integer-view.js';
 import { withInterrupt } from '../src/interrupt.js';
 
 it('copies a selected integer view into independent writable storage', () => {
@@ -125,7 +125,7 @@ it('keeps unestablished binding checks deferred until the prepared copy reads', 
 it('applies unestablished integer-view checks when copying a selection', () => {
     const contract = new ArrayBindingContract('Input');
     const source = ownedArray([1n, 2n]);
-    const selection = registerIntegerView(derivedArray([2], [source], index => source.items[index]), source, index => index);
+    const selection = registerScalarView(derivedArray([2], [source], index => source.items[index]), source, index => index);
     const checked = contract.check(selection) as RankArray;
     const read = prepareIntegerView(checked, true)!;
     expect(read).toBeDefined();

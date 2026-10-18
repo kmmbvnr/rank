@@ -400,6 +400,9 @@ Blocks = M window WindowShape
 Blocks = M window unpack WindowShape
 ```
 
+The source may be a user function call: `6 upto window 3` has the same
+meaning as `(6 upto) window 3`. The source call is evaluated once.
+
 Sizes may be variables or grouped computations: `M window Height Width` or
 `M window (Height + 1) Width`. Group a function call used to compute a size.
 Each size is evaluated once. The size list ends at `stride`, `padding`, `axis`,
@@ -634,8 +637,12 @@ Columns = M # (1 to 3)
 
 Before a Rank write to a material dense scalar array, retained selections can
 snapshot only their selected cells. This also protects computations over those
-selections without copying the whole source. Small selections keep their lazy,
-read-only interface; use `copy` when their result needs material storage.
+selections without copying the whole source. Arithmetic on regular slices of
+stored numeric arrays can read their cells directly, including shifted and
+strided differences. Small selections over plain arrays keep their lazy,
+read-only interface;
+use `copy` when their result needs material storage. Typed selections and large
+stored selections defer their private storage until a write needs it.
 
 Ranges and integer arrays preserve the selected axis. A scalar integer removes
 its axis. The complete selector rules are defined in
@@ -928,6 +935,19 @@ A single unary function may compute the key instead:
 ```rank
 Sorted = Values sort by magnitude
 ```
+
+A function key can take bound operands before its name. The item is its first
+argument; the bound operands are evaluated once when the sort is created:
+
+```rank
+fun X Limit distance = (X - Limit) abs
+Sorted = Values sort by Limit distance
+Order = Values argsort by (Limit * 2) distance
+```
+
+Use parentheses around an expression operand. A function-key sort accepts one
+function key; multiple function keys and mixed field/function keys are not
+supported. Multiple field keys remain available.
 
 `argsort by` accepts the same sources and keys but returns their zero-based
 source positions:

@@ -410,25 +410,35 @@ export function ownedArray(
     items: RankValue[], shape: readonly number[] = [items.length], scalarOnly = false,
     columnNames?: readonly string[],
 ): RankArray {
+    let scalarKinds: Map<string, number> | undefined;
     if (!columnNames) {
         let firstType: string | undefined;
         let firstRank: number | undefined;
+        let firstScalarKind: string | undefined;
         let kinds: Map<string, { type: string; rank?: number }> | undefined;
         for (const item of items) {
             const type = typeof item === 'number' && !Number.isFinite(item) && !Number.isNaN(item)
                 ? 'numeric-limit' : typeName(item);
             const rank = isRankArray(item) ? item.shape.length : undefined;
-            if (firstType === undefined) { firstType = type; firstRank = rank; }
+            if (firstType === undefined) { firstType = type; firstRank = rank; firstScalarKind = scalarKind(item); }
             else if (type !== firstType || rank !== firstRank) {
-                // Homogeneous arrays need no map, per-cell descriptors or type-key strings.
+                // Homogeneous arrays need no per-cell descriptors or type-key strings.
                 kinds ??= new Map([[`${firstType}:${firstRank}`, { type: firstType, rank: firstRank }]]);
                 const key = `${type}:${rank}`;
                 if (!kinds.has(key)) kinds.set(key, { type, rank });
             }
         }
         if (kinds) requireHomogeneous([...kinds.values()]);
+        else {
+            // Validation already proved every cell has the same primitive kind.
+            // Preserve that count for binding/return contracts and later writes.
+            const kind = firstScalarKind;
+            if (kind || items.length === 0) scalarKinds = new Map(kind ? [[kind, items.length]] : []);
+        }
     }
-    return createOwned(items, shape, scalarOnly, columnNames);
+    const value = createOwned(items, shape, scalarOnly, columnNames);
+    if (scalarKinds) ownedStorage.get(value)!.elementKinds = scalarKinds;
+    return value;
 }
 
 /** A scalar fill establishes its physical kind once, including for an empty
@@ -484,6 +494,13 @@ export function maskedCells(value: RankArray): { values: Float64Array; validity:
     return { values: state.typed, validity: state.validity };
 }
 
+/** Numeric storage with validity, without materializing missing cells. */
+export function maskedNumericCells(value: RankArray): { values: Float64Array | BigInt64Array; validity: Uint32Array } | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.validity || !state.typed) return undefined;
+    return { values: state.typed, validity: state.validity };
+}
+
 export function hasMaskedCells(value: RankArray): boolean {
     return ownedStorage.get(value)?.validity !== undefined;
 }
@@ -522,6 +539,8 @@ function scanForMissing(items: readonly RankValue[]): 'scalar' | { values: Float
     for (let index = 0; index < items.length; index += 1) {
         const item = items[index];
         if (item === MISSING) { missing = true; continue; }
+        // BigInt64Array assignment truncates; wide integers must keep plain storage.
+        if (typeof item === 'bigint' && BigInt.asIntN(64, item) !== item) return undefined;
         const type = typeof item === 'number' ? 1 : typeof item === 'bigint' ? 2 : 0;
         if (type === 0 || (kind !== 0 && type !== kind)) return undefined;
         kind = type;

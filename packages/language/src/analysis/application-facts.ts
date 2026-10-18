@@ -7,7 +7,7 @@ import { operationShapeFacts, rankedOperandShapes } from './operation-shape.js';
 import { freshDim } from './shape-index.js';
 import { symbolicFormFacts } from './binary-facts.js';
 import {
-    isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
+    isParenthesizedExpression, isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
     isNumberLiteral, isStringLiteral, isUnpackExpression, type ApplicationExpression, type Expression,
 } from '../generated/ast.js';
 import { applicationExpression, flattenApplication, groupedUnaryDyadicChain, unaryApplicationHead } from '../expressions.js';
@@ -341,6 +341,46 @@ function transferApplicationFacts(
         return { types: ['heap'], ...(values?.elements?.length ? { elements: values.elements } : {}) };
     }
     const ranked = flattenApplication(expression);
+    const conversionName = ranked.at(-1);
+    const conversion = conversionName && isNameExpression(conversionName)
+        ? operationBinding(conversionName.name, lookup) : undefined;
+    if (conversion && ['text', 'floor', 'ceil', 'round'].includes(conversion.name)
+        && ranked.length === (conversion.name === 'round' ? 3 : 2)) {
+        const source = infer(ranked[0], lookup);
+        if (source.types.includes('missing')) {
+            if (source.types.length === 1) return { types: ['missing'], rank: 0, shape: [] };
+            if (source.rank === 0) return { types: [...new Set([
+                ...(conversion.name === 'text' ? ['text'] : conversion.name === 'round'
+                    ? source.types.filter(type => type === 'integer' || type === 'real') : ['integer']),
+                'missing',
+            ])] };
+        }
+    }
+
+    if (ranked.length === 2 && isNameExpression(ranked[0])) {
+        let selector = ranked[1];
+        while (isParenthesizedExpression(selector)) selector = selector.value;
+        const mask = flattenApplication(selector);
+        const source = infer(ranked[0], lookup);
+        if (mask.length === 2 && isNameExpression(mask[0]) && mask[0].name === ranked[0].name
+            && isNameExpression(mask[1]) && operationBinding(mask[1].name, lookup) === findOperation('present')
+            && source.types.join() === 'array' && source.rank === 1 && source.elements) {
+            const length = source.shape?.[0];
+            return { types: length === 0 ? ['array'] : length != null ? ['sequence'] : ['array', 'sequence'],
+                rank: 1, shape: [length === 0 ? 0 : null], elements: source.elements.filter(type => type !== 'missing') };
+        }
+    }
+
+    if (ranked.length === 2 && isNameExpression(ranked[1])
+        && operationBinding(ranked[1].name, lookup) === findOperation('present')) {
+        const source = infer(ranked[0], lookup);
+        if (['array', 'sequence'].includes(source.types.join())) return {
+            types: source.types, elements: ['boolean'], rank: source.rank, shape: source.shape,
+            ...(source.dims ? { dims: source.dims } : {}),
+        };
+        if (source.types.length) return { types: ['boolean'], rank: 0, shape: [] };
+    }
+
     if (ranked.length === 2 && isNewStructureExpression(ranked[0]) && ranked[0].structure === 'dsu') {
         const values = infer(ranked[1], lookup);
         const allowed = ['integer', 'real', 'boolean', 'text', 'symbol'];
@@ -983,17 +1023,18 @@ function transferApplicationFacts(
                     ...(hasNumericArrayNoCallbackProof(operation, operands)
                         ? { callbackFreeScalarCells: true as const } : {}),
                 };
-                if (operation === findOperation('matmul') && source.types.join() === 'array'
-                    && right.types.join() === 'array' && source.shape?.length && right.shape?.length) {
+                if (operation === findOperation('matmul')) {
+                    // Numeric, callback-free inputs do not imply an array result:
+                    // vector contraction is scalar, and unknown rank stays unknown.
+                    if (!shaped || source.types.join() !== 'array' || right.types.join() !== 'array') return UNKNOWN_VALUE;
+                    const safe = hasNumericArrayNoCallbackProof(operation, operands);
                     const elements = [...(source.elements ?? []), ...(right.elements ?? [])];
                     const types: Types = source.elements?.length && right.elements?.length
                         && elements.every(type => type === 'integer')
-                        ? ['integer'] : elements.includes('real') ? ['real'] : ['integer', 'real'];
-                    const shape = [...source.shape.slice(0, -1), ...right.shape.slice(1)];
-                    return shape.length ? { types: ['array'], rank: shape.length, shape, elements: types,
-                        ...(hasNumericArrayNoCallbackProof(operation, operands)
-                            ? { callbackFreeScalarCells: true as const } : {}) }
-                        : { types, rank: 0, shape: [] };
+                        ? ['integer'] : ['integer', 'real'];
+                    return shaped.rank === 0 ? { ...shaped, types }
+                        : { ...shaped, elements: types,
+                            ...(safe ? { callbackFreeScalarCells: true as const } : {}) };
                 }
             }
             if (hasNumericArrayNoCallbackProof(operation, operands)
@@ -1126,25 +1167,36 @@ function transferApplicationFacts(
     if (parts.length === 2 && ['array', 'queue', 'sequence'].includes(
         infer(parts[1], lookup).types.join())) {
         if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
-        if (source.types.join() === 'array' && source.rank !== undefined && source.rank > 0) {
-            const shape = source.shape?.slice() ?? Array(source.rank).fill(null);
-            shape[0] = null;
-            return { types: ['array'], rank: source.rank, shape,
-                ...(source.eagerScalarCells || source.callbackFreeScalarCells
-                    ? { elements: source.elements, callbackFreeScalarCells: true as const } : {}) };
+        const selector = infer(parts[1], lookup);
+        const empty = selector.types.join() === 'array' && selector.shape?.includes(0);
+        const integerSelector = empty || selector.elements?.join() === 'integer'
+            || selector.types.join() === 'queue';
+        const booleanMask = !empty && selector.elements?.join() === 'boolean';
+        const safe = (source.eagerScalarCells || source.callbackFreeScalarCells)
+            && (selector.eagerScalarCells || selector.callbackFreeScalarCells)
+            && source.elements?.length && source.elements.every(type =>
+                ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type));
+        const cells = safe ? { elements: source.elements, callbackFreeScalarCells: true as const } : {};
+        if (source.types.join() === 'array') {
+            // A mask selects atoms into a sequence, not leading-axis rows.
+            if (booleanMask && (selector.types.join() === 'sequence'
+                || selector.shape?.length && selector.shape.every(size => size !== null && size > 0))) {
+                return { types: ['sequence'], rank: 1, shape: [null], ...cells };
+            }
+            if (integerSelector) {
+                const shape = source.shape?.slice() ?? (source.rank === undefined ? undefined : Array(source.rank).fill(null));
+                if (shape?.length) shape[0] = empty ? 0 : selector.shape?.[0] ?? null;
+                return { types: ['array'], rank: source.rank, shape, ...cells };
+            }
+            return { types: ['array', 'sequence'] };
         }
         if (source.types.join() === 'sequence' || source.types.join() === 'queue') {
-            const selector = infer(parts[1], lookup);
-            const booleanMask = selector.elements?.join() === 'boolean';
-            const safe = (source.eagerScalarCells || source.callbackFreeScalarCells)
-                && (selector.eagerScalarCells || selector.callbackFreeScalarCells)
-                && source.elements?.length && source.elements.every(type =>
-                    ['integer', 'real', 'boolean', 'symbol', 'text'].includes(type));
-            return { types: source.types.join() === 'sequence' && booleanMask ? ['sequence'] : ['array'],
-                rank: 1, shape: [null], elements: source.elements,
-                ...(safe ? { callbackFreeScalarCells: true as const } : {}) };
+            return { types: source.types.join() === 'queue' || integerSelector ? ['array']
+                : booleanMask ? ['sequence'] : ['array', 'sequence'],
+                rank: 1, shape: [null], elements: source.elements, ...cells };
         }
     }
+
     // Only plain scalar and whole-axis addressing is proven here.
     if (source.types.length === 1 && ['array', 'bytes', 'sequence'].includes(source.types[0])
         && (source.types[0] !== 'sequence' || source.callbackFreeScalarCells) && source.shape

@@ -430,7 +430,7 @@ PrimaryApplicationExpression returns Expression:
         {infer AliasedTableExpression.source=current} field=LabelLiteral?
             'alias' name=LabelLiteral |
         {infer KeyedSortExpression.source=current} operator=(SORT_BY | ARGSORT_BY | MERGE_BY)
-            (fields+=SortField+ | key=NameExpression direction=SortDirection?) |
+            (fields+=SortField+ | key=SortKeyExpression direction=SortDirection?) |
         {infer KeyedGroupExpression.source=current} operator=(GROUP_BY | ROLLUP_BY) fields+=LabelLiteral+ |
         // A second primary is shared by ordinary calls and keyed operations.
         // Normalize this temporary node to the public AST after parsing.
@@ -463,6 +463,17 @@ SelectEntry:
 
 SelectLocal:
     name=VARIABLE '=' value=Expression;
+
+// Bound key operands are atoms; expressions need parentheses, as in filter.
+// A leading label belongs to the existing field-key form.
+SortKeyExpression returns Expression:
+    SortKeyAtom ({infer ApplicationExpression.head=current} arguments+=SortKeyArgument+)?;
+
+SortKeyArgument returns Expression:
+    SortKeyAtom | LabelLiteral;
+
+SortKeyAtom returns Expression:
+    NameExpression | NumberLiteral | StringLiteral | BooleanLiteral | ParenthesizedExpression;
 
 SortField:
     field=LabelLiteral direction=SortDirection?;

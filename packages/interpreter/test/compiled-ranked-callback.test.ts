@@ -150,12 +150,12 @@ describe('compiled ranked callbacks', () => {
     });
 
     it.each([false, true])('retries failed memo cells and retains successful ones (compiled=%s)', compiled => {
-        const calls: string[] = [];
-        const runtime = new Interpreter(line => calls.push(line), { scalarFunctionCompilation: compiled });
+        const diagnostics = new RuntimeDiagnostics();
+        const runtime = new Interpreter(undefined, { scalarFunctionCompilation: compiled });
+        const execute = (source: string) => diagnostics.run(() => runtime.execute(source));
         try {
-            runtime.execute(`use io
+            execute(`use io
 memo X helper
-  X print
   if X equal 2
     .Oops raise
   end
@@ -165,29 +165,30 @@ Mapped = (array 1 2 1) helper rank 0`);
             const mapped = runtime.variables.get('Mapped');
             if (!mapped || !isRankArray(mapped)) throw new Error('missing mapped array');
             for (let attempt = 0; attempt < 2; attempt++) {
-                expect(() => mapped.items).toThrow('.Oops');
+                expect(() => diagnostics.run(() => mapped.items)).toThrow('.Oops');
             }
-            expect(calls).toEqual(['1', '2', '2']);
-            expect(runtime.execute('1 helper')).toBe(2n);
-            expect(calls).toEqual(['1', '2', '2']);
+            expect(diagnostics.memoMisses).toBe(3);
+            expect(execute('1 helper')).toBe(2n);
+            expect(diagnostics.memoMisses).toBe(3);
         } finally { runtime.dispose(); }
     });
 
     it.each([false, true])('reuses memo values across sequence passes and aliases (compiled=%s)', compiled => {
-        const calls: string[] = [];
-        const runtime = new Interpreter(line => calls.push(line), { scalarFunctionCompilation: compiled });
+        const diagnostics = new RuntimeDiagnostics();
+        const runtime = new Interpreter(undefined, { scalarFunctionCompilation: compiled });
+        const execute = (source: string) => diagnostics.run(() => runtime.execute(source));
         try {
-            runtime.execute(`use io
+            execute(`use io
 memo X helper rank 0
-  X print
   return X + 1
 end
 alias_fn = helper
 Values = 1 to 3 helper`);
-            expect(runtime.execute('Values sum')).toBe(9n);
-            expect(runtime.execute('Values sum')).toBe(9n);
-            expect(runtime.execute('1 to 3 alias_fn sum')).toBe(9n);
-            expect(calls).toEqual(['1', '2', '3']);
+            expect(execute('Values sum')).toBe(9n);
+            expect(execute('Values sum')).toBe(9n);
+            expect(execute('1 to 3 alias_fn sum')).toBe(9n);
+            expect(diagnostics.memoMisses).toBe(3);
+            expect(diagnostics.memoHits).toBeGreaterThanOrEqual(6);
         } finally { runtime.dispose(); }
     });
 

@@ -65,13 +65,13 @@ end`, [[1n], [3n]], 2);
         expect(values[1]).toEqual({ value: '5' });
     });
 
-    it('checks captured assignment collisions at every invocation', () => {
+    it('rejects captured assignment collisions before execution', () => {
         const results = [false, true].map(scalarEntryCompilation => {
             let calls = 0;
             const runtime = new Interpreter(undefined, { scalarEntryCompilation,
                 onScalarFunctionExecuted: () => calls++ });
             try {
-                const value = runtime.execute(`fun X outer
+                expect(() => runtime.execute(`fun X outer
   fun N helper
     Value = N + 1
     return Value
@@ -81,11 +81,11 @@ end`, [[1n], [3n]], 2);
   Second = 2 helper
   return First + Second + Value
 end
-0 outer`);
-                return { value, calls };
+0 outer`)).toThrow('Value is bound in an enclosing function');
+                return calls;
             } finally { runtime.dispose(); }
         });
-        expect(results).toEqual([{ value: 8n, calls: 0 }, { value: 8n, calls: 1 }]);
+        expect(results).toEqual([0, 0]);
     });
 });
 

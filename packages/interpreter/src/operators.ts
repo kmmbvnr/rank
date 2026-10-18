@@ -1,4 +1,4 @@
-import { registerRangePlan } from './range-plan.js';
+import { registerRangePlan, registerModularRange } from './range-plan.js';
 import { divideWithRemainder, floorDivide, floorDivideReal, floorRemainder } from './numeric-division.js';
 import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
@@ -11,7 +11,7 @@ import { indexKey } from './index-key.js';
 import { ALL_AXIS } from './selectors.js';
 import { checkpoint } from './interrupt.js';
 import { missingBinary } from './missing.js';
-import { mapMaskedArrays } from './masked-kernels.js';
+import { mapMaskedArrays, mapMaskedIntegers } from './masked-kernels.js';
 import { binarySqlite, inSqlite } from './modules/sqlite.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
@@ -113,6 +113,7 @@ export class Operators {
         if (!operation.arities.includes(2)) {
             throw new RankError(`outer operation ${operation.name} must accept 2 arguments`);
         }
+        operation = operation.snapshot?.() ?? operation;
         const [leftRank, rightRank] = operation.dyadicRanks ?? ['all', 'all'];
         const a = outerCells(left, leftRank, 'left');
         const b = outerCells(right, rightRank, 'right');
@@ -621,6 +622,11 @@ function arrayMembership(source: RankArray, right: RankValue, invert: boolean): 
 }
 
 function membershipTest(right: RankValue, indexed: boolean): (value: RankValue) => boolean {
+    const contains = presentMembershipTest(right, indexed);
+    return value => value !== MISSING && contains(value);
+}
+
+function presentMembershipTest(right: RankValue, indexed: boolean): (value: RankValue) => boolean {
     if (typeof right === 'string' || isRankObject(right)) return value => {
         if (typeof value !== 'string') throw new RankError('in expects text on the left for text or object membership');
         return typeof right === 'string' ? right.includes(value) : right.entries.has(value);
@@ -712,8 +718,10 @@ function mapBinary(
         }) : zipped;
     }
     if (isRankSequence(left)) {
-        return withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right)), left,
+        const mapped = withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right)), left,
             item => scalarOperation(item, right)), left, item => scalarOperation(item, right));
+        if (name === 'mod' && typeof right === 'bigint') registerModularRange(mapped.plan, left.plan, right);
+        return mapped;
     }
     if (isRankSequence(right)) {
         return withOrigin(addressable(mapSequence(right, name, item => scalarOperation(left, item)), right,
@@ -725,6 +733,8 @@ function mapBinary(
         const dense = mapBooleanArrays(leftArray, rightArray, name);
         if (dense) return dense;
     }
+    const maskedInteger = mapMaskedIntegers(left, right, name, scalarOperation);
+    if (maskedInteger) return maskedInteger;
     if ((leftArray || rightArray) && REAL_CODES[name] !== undefined) {
         const masked = mapMaskedArrays(left, right, REAL_CODES[name]);
         if (masked) return masked;

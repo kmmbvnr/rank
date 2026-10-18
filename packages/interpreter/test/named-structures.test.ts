@@ -99,22 +99,18 @@ tuple (Seen len) (Counts (tuple 1 2))
         }
     });
 
-    it('captures named structures in returned local functions', () => {
+    it('shares named structures explicitly between ordinary calls', () => {
         expect(run(`
 use algo
-fun N make
-  Counts = new counter
-  return count
-  fun X count
-    Counts add X
-    return Counts X
-  end
+fun X Counts count
+  Counts add X
+  return Counts X
 end
-a = (0 make)
-b = (0 make)
-First = 7 a
-Second = 7 a
-Other = 7 b
+A = new counter
+B = new counter
+First = 7 A count
+Second = 7 A count
+Other = 7 B count
 tuple First Second Other
 `)).toBe('1 2 1');
     });

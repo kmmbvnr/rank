@@ -445,14 +445,14 @@ it('uses the input declaration type rather than stale runtime or later binding f
 
 
 it('shows builtin signatures at their own boundary in a pipeline', () => {
-    for (const source of [
-        'N = array 1 2 3\nMask = array true false true\nN Mask sum',
-        'N = array 1 2 3\nN reverse sum',
-        'N = array 1 2 3\nN sum print',
-    ]) {
+    for (const [source, signature] of [
+        // A mask returns a sequence; sequence signatures omit array axes.
+        ['N = array 1 2 3\nMask = array true false true\nN Mask sum', /^c<number> → number$/],
+        ['N = array 1 2 3\nN reverse sum', /^c\[(#|3)\]<number> → number$/],
+        ['N = array 1 2 3\nN sum print', /^c\[(#|3)\]<number> → number$/],
+    ] as const) {
         const found = factsAt(source, source.lastIndexOf('sum'))!;
-        expect(found.signature).toContain('→ number');
-        expect(found.signature).toMatch(/^c\[(#|3)\]<number> → number$/);
+        expect(found.signature).toMatch(signature);
         expect(formatNameFacts(found)).not.toContain('· function');
     }
 });
@@ -511,11 +511,11 @@ use sequences
 fun N solve
   Board = array shape N fill 0
   Results = new queue
-  fun visit
+  fun Results visit
     Results push (Board copy)
     return 1
   end
-  Count = visit
+  Count = Results visit
   return Results array
 end
 Solutions = 8 solve
@@ -526,4 +526,10 @@ Solutions len
         expect(found.facts.types).toEqual(['array']);
         expect([undefined, 2]).toContain(found.facts.rank);
     }
+});
+
+it('does not label a bulk find fallback as a scalar', () => {
+    const source = 'use sequences\nKeys = array 10 20 30\nQueries = array 20 99 10\nPositions = Keys Queries find default -1';
+    const result = factsAt(source, at(source, 'Positions'))!.facts;
+    expect(result.types.length === 0 || result.types.includes('array')).toBe(true);
 });

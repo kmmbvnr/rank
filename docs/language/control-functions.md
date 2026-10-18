@@ -503,7 +503,7 @@ Use this checklist when a return conflicts or stays unknown:
 | A tree leaf returns a value, while a branch returns a container | Use the same record fields and recursive field types for both. Include a tag and same-typed unused values, or use separate functions. |
 | Different argument types select different cases | Use type guards. These cases may already have separate specializations and do not always need separate functions. |
 | A helper's result is unknown | Check that helper and its call arguments first. A wrapper around an unknown result does not prove its type. |
-| A recursive helper changes captured arrays or reads guarded indices | Check for an analysis limitation. A stable return contract alone does not prove cell types or safe reads. |
+| A recursive helper updates an array parameter or reads guarded indices | Check for an analysis limitation. A stable return contract alone does not prove cell types or safe reads. |
 
 #### When to split a function
 
@@ -539,16 +539,16 @@ explicit; adding another name around the same mixed return paths does not help.
 #### Current limits
 
 The analyzer can still report an unknown result for valid recursive code, for
-example when effects pass through an unknown callback or a captured write cannot
+example when effects pass through an unknown callback or an array write cannot
 be proved to preserve cell types. Rewriting a correct algorithm is optional;
 report a small example when a consistent return contract remains unknown.
 
 The original `leetcode/004_medarrs` and `cses/dynamic/021_tilings` demos now infer
 results for all their test examples. Median uses the existing scalar binding
 contracts after successful assignments; this does not prove every index safe.
-Tilings uses a separate effect proof for scalar self-recursion with numeric
-captured writes. Inline recursive arithmetic and a named intermediate result
-both retain the inferred operand types.
+Tilings passes its output array and per-mask state explicitly through recursive
+calls. Inline recursive arithmetic and a named intermediate result both retain
+the inferred operand types.
 
 Test the base case and recursive cases, including empty inputs and every result
 variant. Passing tests check those executions; they do not by themselves prove
@@ -669,9 +669,13 @@ Successful results are stored after the call completes, including its
 Arguments and results must be scalar integers, real numbers, booleans, text or
 labels. Integer and real keys are distinct. Collections, functions, files and
 sequences are rejected. A memoized function must not contain `yield`.
-The programmer must ensure that the result stays valid for its arguments:
-changes to captured data do not invalidate the cache, and side effects run
-only on cache misses.
+A memoized result must depend only on its arguments. Captured and module data
+are forbidden, including dependencies read through other functions. Local
+calculations and accumulators derived from arguments are allowed. Observable
+side effects such as printing or random input are forbidden, because a cache
+hit skips the body.
+Mutable function aliases are external dependencies too; call a declared helper
+directly so its dependencies can be checked.
 
 The cache belongs to the function object. Aliases share it; redefining the
 function creates a new cache. Each call of an outer function creates fresh
@@ -690,10 +694,9 @@ fun N solve
 end
 ```
 
-Each `solve` call starts with an empty cache. Once its local function and
-captured workspace are unreachable, the host garbage collector can reclaim
-them and the cache. Returning or saving the local function keeps its cache
-alive. There is no size limit, expiry or explicit clearing operation.
+Each `solve` call starts with an empty cache. Its local function cannot escape
+the call; the host garbage collector can reclaim the function and its cache
+afterward. There is no size limit, expiry or explicit clearing operation.
 
 Recursive and mutual calls use the cache and the explicit Rank call stack.
 Calls into memoized functions retain the continuation that stores the result;
@@ -707,8 +710,8 @@ registered when the enclosing call begins, so their definitions can stay after
 the executable lines and even after the outer `return`:
 
 ```rank
-fun Base make
-  return add
+fun Base addFive
+  return 5 add
 
   fun Value add
     return Base + Value
@@ -716,19 +719,63 @@ fun Base make
 end
 ```
 
-The local function is visible throughout that invocation of `make`. It captures
-the enclosing lexical workspace by reference, and a returned function keeps
-that workspace alive. Separate calls create separate captured workspaces.
-Assignment updates the nearest captured binding; every binding still keeps its
-inferred type.
+A local function can read its enclosing parameters and bindings. Module data
+is also readable. These dependencies are read-only: a function cannot rebind
+them, mutate their elements or fields, or pass them to a mutating helper.
+Pass mutable state explicitly as a parameter or return the updated result.
 
-Name lookup follows one fixed order: the function's own workspace, its captured
-outer workspaces from nearest to farthest, then the module workspace. A function
-does not see local values belonging only to its caller. Top-level functions
-therefore cannot accidentally depend on a caller's parameters or block-local
-variables, including those in a top-level loop. Single-expression functions
-declared inside a block capture that block's workspace; an escaping function
-keeps it alive after the block ends.
+Assignments belong to the current function. A local name that collides with
+an enclosing function's binding is an error; choose another name or declare an
+explicit parameter of that name. Parameters may shadow enclosing names.
+Blocks within the same function retain the block-scope rules above.
+
+Name lookup follows the function's own workspace, its enclosing lexical
+workspaces from nearest to farthest, then the module workspace. A function
+does not see local values belonging only to its caller.
+
+Local functions may recurse and may be passed directly to ordinary helpers,
+`rank`, `filter` and `sort by`. No callback annotation is required:
+
+```rank
+fun X check predicate = X predicate
+fun Limit checkFour
+  fun X below = X less Limit
+  return 4 check below
+end
+```
+
+Helpers imported from Rank source are checked through their bodies, including
+callback forwarding. An opaque host function cannot receive a nested callback,
+because its retention behavior cannot be checked. Passing captured or module
+state to an opaque helper is also rejected when its mutation behavior is unknown;
+pass that state explicitly through the enclosing function's parameters.
+
+A nested function cannot be returned, assigned to another name, or stored in a
+container or record. A lazy result retaining it must be materialized before it
+leaves the enclosing call:
+
+```rank
+fun Limit small
+  fun X below = X less Limit
+  S = 1 to 10 filter below
+  Limit = 3
+  return S array
+end
+rem 6 small returns 1 2 3 4 5
+```
+
+Materialize a lazy value before storing it in a container that will leave the
+call. Converting a queue to an array or copying that array does not evaluate
+lazy sequences stored inside its elements.
+
+Lazy operations record the current values of external dependencies when the
+operation is created. This includes module data and dependencies read through
+called helpers. Later reassignment does not change the pipeline. Scalar values
+and owned scalar arrays support capture snapshots; array storage is shared
+through copy-on-write without copying cells at creation. Mutable containers,
+resources and arbitrary lazy values cannot be captured by a lazy operation;
+pass explicit operands or materialize the data first. Ordinary direct calls
+read current values each time.
 
 A multiline function may also be declared directly inside a `for` body:
 
@@ -743,20 +790,14 @@ end
 ```
 
 This prints `11`, then `12`. A loop-local declaration becomes available when
-execution reaches it, and its name does not exist after the loop. It captures
-loop bindings and enclosing function parameters by reference, just like a
-single-expression helper. Iterations update the same captured loop workspace:
-a function saved during an earlier iteration sees later updates, and keeps
-that workspace alive after the loop ends. Separate executions of the loop
-create separate workspaces. The declaration remains constant within its block.
+execution reaches it, and its name does not exist after the loop. It can read
+loop bindings and enclosing parameters, but cannot be saved for later calls.
+The declaration remains constant within its block.
 
 Declarations directly inside a function remain visible throughout the call.
 Declarations inside `if`, `try`, `catch` and `finally` are not supported.
-Test blocks may declare test-local functions directly, as before. Local
-functions may recurse and may contain further direct local functions.
-
-Resources in a captured workspace move with an escaping function and remain
-open for as long as the receiving resource scope owns that function.
+Test blocks may declare test-local functions directly. Local functions may
+contain further direct local functions.
 
 ## Generator functions
 

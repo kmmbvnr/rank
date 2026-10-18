@@ -256,6 +256,7 @@ export function roundValue(value: RankValue, placesValue: RankValue): RankValue 
     }
     const places = Number(placesValue);
     const roundScalar = (scalar: RankValue): RankValue => {
+        if (scalar === MISSING) return MISSING;
         if (typeof scalar === 'bigint') return roundInteger(scalar, places);
         if (typeof scalar === 'number') return roundReal(scalar, places);
         throw new RankError('round expects numeric input', 'TypeError');

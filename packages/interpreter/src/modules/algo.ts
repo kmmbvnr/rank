@@ -388,6 +388,7 @@ export function namedSegment(
     if (!isNativeFunction(operation) || !operation.arities.includes(2)) {
         throw new RankError('segment requires a binary operation');
     }
+    operation = operation.snapshot?.() ?? operation;
     const values = source instanceof FlatRecords ? source : segmentItems(source);
     if (operation === maxSum && identity === undefined && !(values instanceof FlatRecords)) return new RankMaxSumSegment(values);
     return new RankSegment(

@@ -5,7 +5,8 @@ import {
     applicationExpression, flattenApplication, isApplicationExpression, isNameExpression, isNumberLiteral,
     isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
-import { arrayForWrite, readArrayItem, writableIntegerCells, writeIntegerSelection } from '../array-storage.js';
+import { hasDeferredSelectionCopy } from '../integer-view.js';
+import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
 import { pushCollection } from '../containers.js';
 import { RankError } from '../errors.js';
@@ -135,7 +136,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         if (!isRankArray(target) || target.kind !== 'array') {
             throw new RankError('array assignment expects an array target');
         }
-        if (target.itemAt !== undefined) {
+        if (target.itemAt !== undefined && !hasDeferredSelectionCopy(target)) {
             throw new RankError('cannot assign to a lazy array');
         }
         const selection = tensorSelection(target, selectors);
@@ -207,7 +208,8 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
     // becomes this name's own copy, which the name then keeps.
     const rebind = host.compileAssign(statement.name);
     const owned = (target: RankValue): RankValue => {
-        const copy = arrayForWrite(target);
+        const copy = isRankArray(target) && hasDeferredSelectionCopy(target)
+            ? privateArrayCopy(target) : arrayForWrite(target);
         if (copy === undefined) return target;
         rebind(copy);
         return copy;

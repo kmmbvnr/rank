@@ -351,6 +351,12 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
             && (same(source, 'array') || same(source, 'sequence'))) return source;
         if (arity === 2) {
             const right = typeOf(parts[1], lookup);
+            if (operation.dyadicRanks?.[0] === 'all' && operation.dyadicRanks[1] === 0) {
+                if (same(right, 'array')) return ['array'];
+                // The right operand supplies the query frame. Losing its type must
+                // not turn a bulk query into a claimed scalar result.
+                if (!right.length || right.includes('array') || right.includes('sequence')) return UNKNOWN;
+            }
             if (operation.name === 'startswith'
                 && (same(source, 'array') || same(right, 'array'))) return ['array'];
             if (operation.dyadicRanks?.[0] === 0 && operation.dyadicRanks[1] === 0
@@ -359,7 +365,9 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
             // operation maps over, so the scalar result is not settled.
             if (operation.dyadicRanks?.[0] === 0 && operation.dyadicRanks[1] === 0
                 && parts.length === 3 && !(within(source, SCALARS) && within(right, SCALARS))) return UNKNOWN;
-            if (operation === findOperation('matmul') && same(source, 'array') && same(right, 'array')) return UNKNOWN;
+            // Without rank facts even an unresolved operand can participate in a
+            // scalar vector contraction; the catalogue's array default is not proof.
+            if (operation === findOperation('matmul')) return UNKNOWN;
             if (operation.name === 'missing' && same(right, 'array')) return UNKNOWN;
         }
     }

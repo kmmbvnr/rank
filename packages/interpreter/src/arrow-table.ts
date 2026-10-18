@@ -1,7 +1,7 @@
 import { Bool, Dictionary, Float64, Int32, Int64, Utf8, Vector, makeData, type DataType } from 'apache-arrow';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
-import { ownedArray, ownedObject, typedArray } from './array-storage.js';
+import { ownedArray, ownedObject, typedArray, maskedArray, validityWords } from './array-storage.js';
 import { collectionElementType, mergeCollectionElementType, MISSING, type CollectionElementType, type RankArray, type RankObject, type RankRecord, type RankValue } from './value.js';
 
 const INT64_MIN = -(1n << 63n);
@@ -75,7 +75,7 @@ export class RankArrowTable {
         return cells;
     }
 
-    /** A rank-1 array holding the column. Absent cells raise when read, unless
+    /** A rank-1 array holding the column, with `.NA` for absent cells unless
      * `missing` supplies their replacement. */
     columnArray(name: string, missing?: () => RankValue): RankArray {
         const index = this.indexOf(name);
@@ -86,6 +86,27 @@ export class RankArrowTable {
             // Shared with the column: a typed array is never written in place,
             // a write converts it to plain cells first.
             return typedArray(vector.toArray() as Float64Array | BigInt64Array, [this.length]);
+        }
+        if ((column.kind === 'integer' || column.kind === 'real') && vector && missing === undefined) {
+            const validity = new Uint32Array(validityWords(this.length));
+            let base = 0;
+            for (const chunk of vector.data) {
+                // Arrow slices the numeric values, but keeps the original bitmap and bit offset.
+                for (let local = 0; local < chunk.length; local += 8) {
+                    if (local % 4096 === 0) checkpoint('processing table');
+                    const source = chunk.offset + local;
+                    const byte = source >>> 3, shift = source & 7;
+                    const bits = chunk.nullCount === 0 ? 255
+                        : ((chunk.nullBitmap[byte] >>> shift) | ((chunk.nullBitmap[byte + 1] ?? 0) << (8 - shift)));
+                    const count = Math.min(8, chunk.length - local);
+                    const present = bits & ((1 << count) - 1);
+                    const target = base + local, word = target >>> 5, offset = target & 31;
+                    validity[word] |= present << offset;
+                    if (offset > 24) validity[word + 1] |= present >>> (32 - offset);
+                }
+                base += chunk.length;
+            }
+            return maskedArray(vector.toArray() as Float64Array | BigInt64Array, validity, [this.length]);
         }
         const items: RankValue[] = new Array(this.length);
         let absent = false;

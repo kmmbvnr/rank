@@ -136,8 +136,18 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
                     && !!value.elements?.length
                     && value.elements.every(type => type === 'integer' || type === 'real'));
             const callbackFree = ['array', 'sequence'].includes(types.join()) && [left, right].every(safeNumeric);
+            const cellTypes = (value: ValueFacts): Types | undefined => value.rank === 0 ? value.types : value.elements;
+            const a = cellTypes(left), b = cellTypes(right);
+            const nullableNumeric = a?.length && b?.length
+                && [...a, ...b].every(type => ['integer', 'real', 'missing'].includes(type))
+                && [...a, ...b].includes('missing');
+            const nullableElements: Types | undefined = nullableNumeric ? [...new Set([
+                ...binaryType(operator, a!.filter(type => type !== 'missing'), b!.filter(type => type !== 'missing')),
+                'missing' as const,
+            ])] : undefined;
             const dims = broadcastDims(left, right);
             return { types, rank: shape.length, shape,
+                ...(nullableElements ? { elements: nullableElements } : {}),
                 ...(types.join() === 'sequence' && (left.unbounded && (right.rank === 0 || right.unbounded)
                     || right.unbounded && left.rank === 0) ? { unbounded: true as const } : {}), ...(dims ? { dims } : {}),
                 ...(callbackFree ? { elements: binaryType(operator,
