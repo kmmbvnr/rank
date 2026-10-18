@@ -1,9 +1,9 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isDeclaredCallExpression,
+    isApplicationExpression, isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isDeclaredCallExpression,
     isExpression, isExpressionStatement, isFunctionBindingStatement, isFunctionStatement, isKeyedSortExpression,
     isMaterializeExpression, isNameExpression, isParenthesizedExpression, isPushStatement,
-    isReturnStatement, isTableFilterExpression, isYieldStatement,
+    isRecordExpression, isReturnStatement, isTableFilterExpression, isTupleExpression, isYieldStatement,
     type Expression, type FunctionStatement,
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
@@ -12,12 +12,15 @@ import { functionCallSignature } from '../function-call-signature.js';
 import { findOperation } from '../operations.js';
 import { lexicalBinding, type FunctionScopeAnalysis, type LexicalBinding } from './function-scopes.js';
 
-type Flow = { functions: Set<FunctionStatement>; lazy: Set<FunctionStatement> };
-const empty = (): Flow => ({ functions: new Set(), lazy: new Set() });
+type Flow = { functions: Set<FunctionStatement>; lazy: Set<FunctionStatement>; stored: Set<FunctionStatement> };
+const empty = (): Flow => ({ functions: new Set(), lazy: new Set(), stored: new Set() });
 function union(values: readonly Flow[]): Flow {
     return { functions: new Set(values.flatMap(value => [...value.functions])),
-        lazy: new Set(values.flatMap(value => [...value.lazy])) };
+        lazy: new Set(values.flatMap(value => [...value.lazy])),
+        stored: new Set(values.flatMap(value => [...value.stored])) };
 }
+// Materialization consumes the outer iterator, not lazy values inside its cells.
+const materialized = (source: Flow): Flow => ({ ...source, lazy: new Set(source.stored) });
 
 /** Follow callback values through local bindings and ordinary Rank helpers.
  * A helper is inspected with its actual callback arguments; it needs no annotation. */
@@ -63,13 +66,13 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
                 if (!asCallback && functionCallSignature(binding.function).arity === 0) {
                     return invoke(binding.function, [], env, node);
                 }
-                return { functions: new Set([binding.function]), lazy: new Set() };
+                return { ...empty(), functions: new Set([binding.function]) };
             }
             const supplied = env.get(binding);
             if (supplied) {
                 if (asCallback) return supplied;
                 return union([{ functions: new Set([...supplied.functions].filter(fn => functionCallSignature(fn).arity > 0)),
-                    lazy: supplied.lazy }, ...[...supplied.functions].filter(fn => functionCallSignature(fn).arity === 0)
+                    lazy: supplied.lazy, stored: supplied.stored }, ...[...supplied.functions].filter(fn => functionCallSignature(fn).arity === 0)
                     .map(fn => invoke(fn, [], env, node))]);
             }
             if (reading.has(binding)) return empty();
@@ -86,9 +89,9 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
         if (isParenthesizedExpression(node)) return value(node.value, env, asCallback);
         if (isBinaryExpression(node) && ['equal', 'notequal'].includes(node.operator)) {
             const operands = union([value(node.left, env), value(node.right, env)]);
-            return { functions: new Set(), lazy: operands.lazy };
+            return { ...operands, functions: new Set() };
         }
-        if (isMaterializeExpression(node)) return { functions: value(node.source, env).functions, lazy: new Set() };
+        if (isMaterializeExpression(node)) return materialized(value(node.source, env));
         if (isTableFilterExpression(node)) {
             const source = value(node.source, env);
             const predicates = union((node.condition ? [node.condition] : node.conditions).map(condition => {
@@ -98,9 +101,9 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
                 if (callback.functions.size) return union([callback, ...parts.slice(0, -1).map(part => value(part, env))]);
                 return value(condition, env);
             }));
-            return { functions: source.functions, lazy: new Set([...source.lazy, ...predicates.functions, ...predicates.lazy]) };
+            return { ...source, lazy: new Set([...source.lazy, ...predicates.functions, ...predicates.lazy]) };
         }
-        if (isKeyedSortExpression(node)) return { functions: value(node.source, env).functions, lazy: new Set() };
+        if (isKeyedSortExpression(node)) return materialized(value(node.source, env));
         if (isDeclaredCallExpression(node)) {
             const fn = value(node.callee, env, true);
             const args = node.arguments.map((argument, index) => value(argument, env,
@@ -110,7 +113,7 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
             }
             const result = union([...fn.functions].map(callee => invoke(callee, args, env, node)));
             if (node.ranks.length || [...fn.functions].some(callee => callee.ranks.length)) {
-                return { functions: result.functions, lazy: new Set([...fn.functions, ...union(args).lazy]) };
+                return { ...result, lazy: new Set([...fn.functions, ...union(args).lazy, ...result.stored]) };
             }
             return result;
         }
@@ -137,14 +140,14 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
             const modifier = parts.findIndex(part => isNameExpression(part) && ['rank', 'outer', 'scan', 'segment'].includes(part.name));
             if (modifier >= 0) {
                 const input = union(parts.slice(0, modifier).map(part => value(part, env)));
-                return { functions: new Set(), lazy: new Set([...input.functions, ...input.lazy]) };
+                return { ...input, functions: new Set(), lazy: new Set([...input.functions, ...input.lazy]) };
             }
             const last = parts.at(-1)!;
             const fn = value(last, env, true), args = parts.slice(0, -1).map(part => value(part, env));
             if (fn.functions.size) return union([...fn.functions].map(callee => invoke(callee, args, env, node)));
             const operation = isNameExpression(last) ? findOperation(last.name) : undefined;
             if (operation && ['integer', 'real', 'number', 'boolean', 'text', 'bytes', 'date', 'datetime', 'duration'].includes(operation.result)) return empty();
-            if (operation?.name === 'array' || operation?.name === 'copy') return { functions: union(args).functions, lazy: new Set() };
+            if (operation?.name === 'array' || operation?.name === 'copy') return materialized(union(args));
             const result = union(args);
             // Opaque helpers cannot promise not to retain a nested callback.
             if (isNameExpression(last) && (!operation || lexicalBinding(scope, last.name))) {
@@ -152,7 +155,11 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
             }
             return result;
         }
-        return union([...AstUtils.streamContents(node)].map(child => value(child, env)));
+        const result = union([...AstUtils.streamContents(node)].map(child => value(child, env)));
+        if (isArrayExpression(node) || isRecordExpression(node) || isTupleExpression(node)) {
+            for (const fn of result.lazy) result.stored.add(fn);
+        }
+        return result;
     };
     const check = (node: AstNode, env: Environment, owner?: FunctionStatement): void => {
         let result: Flow | undefined;
@@ -172,7 +179,7 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
             if (binding) {
                 const target = env.get(binding) ?? union((values.get(binding) ?? []).map(expression => value(expression, env)));
                 for (const fn of result.functions) target.functions.add(fn);
-                for (const fn of result.lazy) target.lazy.add(fn);
+                for (const fn of result.lazy) { target.lazy.add(fn); target.stored.add(fn); }
                 env.set(binding, target);
             }
         }
@@ -197,11 +204,16 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
         try {
             const nodes = bodies.get(fn) ?? [];
             const returns: Flow[] = [];
+            const yields: Flow[] = [];
             for (const node of nodes) {
                 check(node, env, fn);
                 if (isReturnStatement(node)) returns.push(value(node.value, env));
+                if (isYieldStatement(node)) yields.push(value(node.value, env));
             }
-            if (nodes.some(isYieldStatement)) return { functions: new Set(), lazy: new Set([fn]) };
+            if (yields.length) {
+                const emitted = union(yields);
+                return { functions: emitted.functions, lazy: new Set([fn, ...emitted.lazy]), stored: new Set(emitted.lazy) };
+            }
             return union(returns);
         } finally { active.delete(fn); }
     };

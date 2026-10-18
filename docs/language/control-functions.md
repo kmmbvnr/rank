@@ -764,6 +764,10 @@ end
 rem 6 small returns 1 2 3 4 5
 ```
 
+Materialize a lazy value before storing it in a container that will leave the
+call. Converting a queue to an array or copying that array does not evaluate
+lazy sequences stored inside its elements.
+
 Lazy operations record the current values of external dependencies when the
 operation is created. This includes module data and dependencies read through
 called helpers. Later reassignment does not change the pipeline. Scalar values
