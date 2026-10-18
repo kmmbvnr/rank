@@ -816,7 +816,7 @@ test('arrows leave example fields in both directions without losing edits or eva
 
 test('function examples show split values and ranked failures show the failing card', async t => {
     const frames = await drive(t, [
-        { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun Card card_value\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER, until: 'a → i' },
+        { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun Card card_value\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER, until: 'a → \\?' },
         'fun Cards hand_score' + ENTER,
         '"5H 5C" "" split' + ENTER,
         'Values = Cards card_value rank 0' + ENTER,
