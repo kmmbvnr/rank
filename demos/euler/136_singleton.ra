@@ -14,12 +14,11 @@ rem As in problem 135 with u v = n, one
 rem solution occurs only for n = 4, 16,
 rem a prime p = 3 mod 4, or 4 p and 16 p
 rem for an odd prime p.
-Ps = primes till Limit array
-Odd = Ps greater 2
+Ps = primes after 2 till Limit array
 Mod3 = Ps mod 4 equal 3
 Max = Limit - 1
-By4 = Odd and Ps at most (Max // 4)
-By16 = Odd and Ps at most (Max // 16)
+By4 = Ps at most (Max // 4)
+By16 = Ps at most (Max // 16)
 Fix = array 4 16 at most Max
 Answer = Mod3 count
 Answer += By4 count

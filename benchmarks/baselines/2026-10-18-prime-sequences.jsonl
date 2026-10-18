@@ -1,0 +1,41 @@
+{"node":"v24.15.0","cpu":"Apple M5","timings":"fresh processes; execute includes parsing; cold includes imports and disposal"}
+{"case":"count-50M","executeMs":556.682291,"result":"3001134","variant":"candidate","trial":0,"coldMs":809.291459}
+{"case":"count-50M","executeMs":549.081958,"result":"3001134","variant":"candidate","trial":1,"coldMs":801.807042}
+{"case":"count-50M","executeMs":557.077792,"result":"3001134","variant":"candidate","trial":2,"coldMs":808.7108340000002}
+{"case":"count-50M","variant":"candidate","medianExecuteMs":556.682291,"medianColdMs":808.7108340000002}
+{"case":"count-50M","executeMs":8318.314459000001,"result":"3001134","variant":"baseline","trial":0,"coldMs":8588.140749999999}
+{"case":"count-50M","executeMs":8353.805375,"result":"3001134","variant":"baseline","trial":1,"coldMs":8618.9535}
+{"case":"count-50M","executeMs":8331.750541,"result":"3001134","variant":"baseline","trial":2,"coldMs":8596.190750000002}
+{"case":"count-50M","variant":"baseline","medianExecuteMs":8331.750541,"medianColdMs":8596.190750000002}
+{"case":"136-original","executeMs":1943.0407500000001,"result":"2544559","variant":"candidate","trial":0,"coldMs":2217.926166000001}
+{"case":"136-original","executeMs":1914.6418750000003,"result":"2544559","variant":"candidate","trial":1,"coldMs":2188.7152499999975}
+{"case":"136-original","executeMs":1918.896542,"result":"2544559","variant":"candidate","trial":2,"coldMs":2195.6671669999996}
+{"case":"136-original","variant":"candidate","medianExecuteMs":1918.896542,"medianColdMs":2195.6671669999996}
+{"case":"136-original","executeMs":9861.475124999999,"result":"2544559","variant":"baseline","trial":0,"coldMs":10135.712790999998}
+{"case":"136-original","executeMs":9835.86825,"result":"2544559","variant":"baseline","trial":1,"coldMs":10112.769499999995}
+{"case":"136-original","executeMs":9867.953959,"result":"2544559","variant":"baseline","trial":2,"coldMs":10144.223833000004}
+{"case":"136-original","variant":"baseline","medianExecuteMs":9861.475124999999,"medianColdMs":10135.712790999998}
+{"case":"136-simplified","executeMs":1739.5209169999998,"result":"2544559","variant":"candidate","trial":0,"coldMs":2004.9733750000014}
+{"case":"136-simplified","executeMs":1805.6650829999999,"result":"2544559","variant":"candidate","trial":1,"coldMs":2067.3756670000002}
+{"case":"136-simplified","executeMs":1688.5765000000001,"result":"2544559","variant":"candidate","trial":2,"coldMs":1951.6516669999983}
+{"case":"136-simplified","variant":"candidate","medianExecuteMs":1739.5209169999998,"medianColdMs":2004.9733750000014}
+{"case":"136-simplified","executeMs":9601.656208,"result":"2544559","variant":"baseline","trial":0,"coldMs":9874.806834000003}
+{"case":"136-simplified","executeMs":9631.0195,"result":"2544559","variant":"baseline","trial":1,"coldMs":9901.150749999986}
+{"case":"136-simplified","executeMs":9644.020542,"result":"2544559","variant":"baseline","trial":2,"coldMs":9921.246457999994}
+{"case":"136-simplified","variant":"baseline","medianExecuteMs":9631.0195,"medianColdMs":9901.150749999986}
+{"case":"bounded-membership","executeMs":277.79591700000003,"result":"78498","variant":"candidate","trial":0,"coldMs":534.7477089999884}
+{"case":"bounded-membership","executeMs":274.19783300000006,"result":"78498","variant":"candidate","trial":1,"coldMs":524.8984999999957}
+{"case":"bounded-membership","executeMs":283.815209,"result":"78498","variant":"candidate","trial":2,"coldMs":535.9262499999895}
+{"case":"bounded-membership","variant":"candidate","medianExecuteMs":277.79591700000003,"medianColdMs":534.7477089999884}
+{"case":"bounded-membership","executeMs":283.514,"result":"78498","variant":"baseline","trial":0,"coldMs":543.1409580000036}
+{"case":"bounded-membership","executeMs":272.602041,"result":"78498","variant":"baseline","trial":1,"coldMs":534.1028339999903}
+{"case":"bounded-membership","executeMs":284.22300000000007,"result":"78498","variant":"baseline","trial":2,"coldMs":543.5032079999946}
+{"case":"bounded-membership","variant":"baseline","medianExecuteMs":283.514,"medianColdMs":543.1409580000036}
+{"case":"huge-start","executeMs":148.19662499999998,"result":"1000000000000000003 1000000000000000009","variant":"candidate","trial":0,"coldMs":402.6932499999966}
+{"case":"huge-start","executeMs":149.17216600000003,"result":"1000000000000000003 1000000000000000009","variant":"candidate","trial":1,"coldMs":402.2529579999973}
+{"case":"huge-start","executeMs":149.17162500000003,"result":"1000000000000000003 1000000000000000009","variant":"candidate","trial":2,"coldMs":398.48949999999604}
+{"case":"huge-start","variant":"candidate","medianExecuteMs":149.17162500000003,"medianColdMs":402.2529579999973}
+{"case":"huge-start","executeMs":148.50449999999998,"result":"1000000000000000003 1000000000000000009","variant":"baseline","trial":0,"coldMs":405.00650000000314}
+{"case":"huge-start","executeMs":148.630666,"result":"1000000000000000003 1000000000000000009","variant":"baseline","trial":1,"coldMs":407.3105829999986}
+{"case":"huge-start","executeMs":150.575666,"result":"1000000000000000003 1000000000000000009","variant":"baseline","trial":2,"coldMs":414.723708000005}
+{"case":"huge-start","variant":"baseline","medianExecuteMs":148.630666,"medianColdMs":407.3105829999986}
