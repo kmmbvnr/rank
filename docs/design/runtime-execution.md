@@ -30,6 +30,22 @@ through program consumption rather than forced by the test harness. CI splits th
 corpus into four shards and verifies that every file was compared exactly once.
 Focused probes also assert that compiled code actually executes.
 
+## Graph traversal
+
+BFS, DFS and Dijkstra consume the internal `TraversalGraph` interface: start
+validation and a finite ordered iterable of outgoing weighted edges. Search state
+retains discovered vertex values, so result indices do not need an enumerated
+vertex table. Identity uses the existing scalar set/index keys. DFS buffers one
+outgoing iterable to retain its reverse-push discovery order; iteration has
+cancellation checkpoints.
+
+The public graph value still uses explicit mutable adjacency storage. Its
+Dijkstra entry point checks the start and scans every stored edge for negative
+weights before traversal, including unreachable edges. Global graph algorithms
+continue to use explicit storage. This interface is preparation for implicit
+graphs, not a public successor constructor or a termination guarantee for infinite
+searches. Neighbor sequences from mutable graphs retain snapshot semantics.
+
 ## Debug sessions
 
 Interactive hosts own a `DebugSession` and pass it as the fourth argument to
