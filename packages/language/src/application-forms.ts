@@ -1,3 +1,4 @@
+import { isAstNode } from 'langium';
 import { bindCallWords } from './call-words.js';
 import {
     isAllAxisExpression, isParenthesizedExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
@@ -420,7 +421,7 @@ export function applicationForm(
         return canonical;
     };
     // Forms are flat records: only fields and arrays hold nodes, never walked into.
-    const swap = (value: unknown): unknown => value && typeof value === 'object' && '$type' in value
+    const swap = (value: unknown): unknown => isAstNode(value)
         ? originals.get(value as Expression) ?? value
         : Array.isArray(value) ? value.map(swap) : value;
     const restore = (form: ApplicationForm): ApplicationForm => Object.fromEntries(

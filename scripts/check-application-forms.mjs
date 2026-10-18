@@ -41,9 +41,12 @@ const pilot = source.replace('            const comparison = lookup', `
             }
             const comparison = lookup`);
 assert.notEqual(pilot, source);
+// A data: module has no filesystem base for relative or package imports.
 const js = ts.transpileModule(pilot, { compilerOptions: { target: ts.ScriptTarget.ES2022,
-    module: ts.ModuleKind.ESNext } }).outputText.replace(/from '(\.\/[^']+)'/g,
-    (_, relative) => `from '${pathToFileURL(resolve(root, 'packages/language/out', relative)).href}'`);
+    module: ts.ModuleKind.ESNext } }).outputText.replace(/from (['"])([^'"]+)\1/g,
+    (_, quote, specifier) => `from '${specifier.startsWith('.')
+        ? pathToFileURL(resolve(root, 'packages/language/out', specifier)).href
+        : import.meta.resolve(specifier)}'`);
 const prototype = await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
 const { parse, Interpreter, formatValue } = await import('../packages/interpreter/out/index.js');
 const { runExecution } = await import('../packages/interpreter/out/execution.js');
