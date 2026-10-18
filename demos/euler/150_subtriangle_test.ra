@@ -1,0 +1,27 @@
+use testing
+
+test "statement array values"
+  use "150_subtriangle"
+  Rows = 3
+  run
+
+  T 0 equal 273519
+  T 1 equal -153582
+  T 2 equal 450905
+end
+
+test "smaller triangles"
+  use "150_subtriangle"
+  Rows = 7
+  run
+
+  Answer equal -488152
+  Rows = 100
+  run
+
+  Answer equal -38951741
+  Rows = 200
+  run
+
+  Answer equal -87957828
+end
