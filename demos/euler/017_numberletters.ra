@@ -5,6 +5,7 @@ rem from one through Limit
 
 use io
 use cli
+use sequences
 
 option Limit integer = 1000
 
@@ -19,7 +20,7 @@ Small = array shape 10
   "seven"
   "eight"
   "nine"
-end len rank 0
+end len rank 0 copy
 
 Teens = array shape 10
   "ten"
@@ -32,7 +33,7 @@ Teens = array shape 10
   "seventeen"
   "eighteen"
   "nineteen"
-end len rank 0
+end len rank 0 copy
 
 Tens = array shape 10
   ""
@@ -45,7 +46,7 @@ Tens = array shape 10
   "seventy"
   "eighty"
   "ninety"
-end len rank 0
+end len rank 0 copy
 
 Numbers = 1 to Limit
 Counts = Numbers letters rank 0

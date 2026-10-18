@@ -1130,17 +1130,17 @@ array A B`);
         expect(result.loops).toBe(2);
     });
 
-    it('updates captured parent variables across nested calls', () => {
+    it('threads explicit totals across nested calls', () => {
         const result = compare(`fun Seed outer
   Total = Seed
-  fun N add
+  fun N Total add
     for I in 1 to N
       Total += I
     end
     return Total
   end
-  First = 3 add
-  Second = 2 add
+  Total = 3 Total add
+  Total = 2 Total add
   return Total
 end
 10 outer`);
@@ -2004,13 +2004,14 @@ Total`);
 
     it('keeps effectful helpers on the ordinary path', () => {
         const result = compare(`A = array 0
-fun X update
+fun X A update
   A 0 += X
-  return X
+  return A
 end
 Total = 0
 for I in 1 to 3
-  Total += I update
+  A = I A update
+  Total += I
 end
 Total`);
         expect(result.value).toBe('6');
@@ -2138,7 +2139,7 @@ Total`);
   return Shared
 end
 3 perform`);
-        expect(result.value).toBe('4');
+        expect(result.error).toContain('Shared is bound in an enclosing function');
         expect(result.loops).toBe(0);
     });
 
@@ -2158,7 +2159,7 @@ end
   return array Total Shared
 end
 2 perform`);
-        expect(result.value).toBe('5 100');
+        expect(result.error).toContain('Shared is bound in an enclosing function');
         expect(result.loops).toBe(0);
     });
 
@@ -2250,7 +2251,7 @@ describe('tail calls from compiled loop returns', () => {
         ['range inside condition', 'for N greater 0\n  for I in 1 to N\n    return N helper\n  end\nend', false],
         ['condition inside range', 'for I in 1 to N\n  for N greater 0\n    return N helper\n  end\nend', false],
         ['arithmetic after call', 'for N greater 0\n  return (N helper) + 1\nend', false],
-        ['finally', 'try\n  for N greater 0\n    return N helper\n  end\nfinally\n  A 0 += 1\nend', false],
+        ['finally', 'try\n  for N greater 0\n    return N helper\n  end\nfinally\n  A .count += 1\nend', false],
     ])('preserves call depth through %s', (_name, loop, tail) => {
         const results = [false, true].map(integerLoopCompilation => {
             let entries = 0;
@@ -2259,18 +2260,20 @@ describe('tail calls from compiled loop returns', () => {
             const source = `fun X helper
   return X + 1
 end
-fun N perform
+fun N A perform
 ${String(loop).split('\n').map(line => '  ' + line).join('\n')}
   return 0
 end
-A = array 0
-3 perform`;
+A = record
+ .count = 0
+end
+3 A perform`;
             try {
                 const value = runtime.execute(source);
-                return { value, entries, array: formatValue(runtime.variables.get('A')!) };
+                return { value, entries, array: formatValue(runtime.execute('A .count')!) };
             } catch (error) {
                 return { error: error instanceof RankError ? error.format() : String(error), entries,
-                    array: formatValue(runtime.variables.get('A')!) };
+                    array: formatValue(runtime.execute('A .count')!) };
             } finally { runtime.dispose(); }
         });
         expect({ ...results[1], entries: 0 }).toEqual({ ...results[0], entries: 0 });

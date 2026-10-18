@@ -91,6 +91,7 @@ export class ReductionEvaluator {
     }
 
     evaluateNamedScan(operation: NativeFunction, value: RankValue, seed?: RankValue): RankValue {
+        if (isRankSequence(value)) operation = operation.snapshot?.() ?? operation;
         const scalar = this.scalarCallback(operation);
         return this.scanValues(value, operation.name, seed, (left, right) => {
             const arguments_ = [left, right];

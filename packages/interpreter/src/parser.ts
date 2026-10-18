@@ -1,7 +1,7 @@
 import { AstUtils, EmptyFileSystem, type CstNode } from 'langium';
 import type { Program } from '@arrrank/language';
 import {
-    blockScopeDiagnostics, createRankServices, expressionDiagnostics, isTextBlockExpression, textBlockModeError, type GroupingOptions,
+    functionScopeDiagnostics, blockScopeDiagnostics, createRankServices, expressionDiagnostics, isTextBlockExpression, textBlockModeError, type GroupingOptions,
 } from '@arrrank/language';
 import { RankError, type RankErrorLocation } from './errors.js';
 
@@ -117,7 +117,8 @@ export function parse(
         error.location = locate(groupingError.cst);
         throw error;
     }
-    const scopeError = blockScopeDiagnostics(result.value, known, syntheticNames)[0];
+    const scopeError = [...blockScopeDiagnostics(result.value, known, syntheticNames),
+        ...functionScopeDiagnostics(result.value)][0];
     if (scopeError) {
         const error = new RankError(scopeError.message, 'Scope');
         error.location = locate(scopeError.node.$cstNode);

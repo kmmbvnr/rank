@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, isRankArray } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, isRankArray } from '../src/index.js';
 
 describe('call-shaped function declarations', () => {
     for (const keyword of ['fun', 'memo']) {
@@ -126,13 +126,18 @@ it('ranks right-hand data and keeps the optional offset fixed', () => {
 });
 
 it('normalizes memo defaults before looking up the cache', () => {
-    const output: string[] = [];
-    const runtime = new Interpreter(text => output.push(text));
-    runtime.execute('use io\nmemo X scale .by Factor=2\n "called" print\n return X * Factor\nend');
-    expect(runtime.execute('3 scale')).toBe(6n);
-    expect(runtime.execute('3 scale by .NA')).toBe(6n);
-    expect(runtime.execute('3 scale by 2')).toBe(6n);
-    expect(output).toEqual(['called']);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter();
+    try {
+        runtime.execute('memo X scale .by Factor=2 = X * Factor');
+        diagnostics.run(() => {
+            expect(runtime.execute('3 scale')).toBe(6n);
+            expect(runtime.execute('3 scale by .NA')).toBe(6n);
+            expect(runtime.execute('3 scale by 2')).toBe(6n);
+        });
+        expect(diagnostics.memoMisses).toBe(1);
+        expect(diagnostics.memoHits).toBe(2);
+    } finally { runtime.dispose(); }
 });
 
 it('recognizes optional words that otherwise start comments or builtin operator forms', () => {

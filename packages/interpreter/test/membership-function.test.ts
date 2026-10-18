@@ -86,7 +86,7 @@ Q mask`;
         expect(() => runtime.execute('Input mask')).toThrow();
     });
 
-    it('keeps captured writes and effects on the reference path', () => {
+    it('rejects captured writes before selecting a compiled path', () => {
         const code = `use sequences
 fun factory
   Blocked = array 0
@@ -98,9 +98,9 @@ fun factory
 end
 Cols = array 1 2
 factory`;
-        const fused = execute(code, true);
-        expect(fused.result).toBe(execute(code, false).result);
-        expect(fused.diagnostics.compiledArrayFunctions).toBe(0);
+        for (const compiled of [false, true]) {
+            expect(() => execute(code, compiled)).toThrow('Blocked is bound in an enclosing function');
+        }
     });
 
     it('fuses trusted row/gather views and preserves ranked masks', () => {
@@ -121,7 +121,7 @@ R reshape 8`;
         expect(fused.diagnostics.rankedArrayBatches).toBeGreaterThan(0);
     });
 
-    it('keeps cached rows but revalidates captures between prepared reads', () => {
+    it('keeps the creation-time capture snapshot across prepared reads', () => {
         const runtime = new Interpreter(() => {});
         runtime.execute(source.slice(0, source.lastIndexOf('Q mask')));
         runtime.execute('M = (array 1 3 1 3 1 3) reshape 3 2\nM = M copy\nR = M mask rank 1');
@@ -136,7 +136,7 @@ R reshape 8`;
         expect(second).toEqual(first);
         runtime.execute('Dy = array 2 3');
         const third = Array.from({ length: 6 }, (_, i) => read(12 + i));
-        expect(third).toEqual([false, false, true, false, true, true]);
+        expect(third).toEqual(first);
         expect(Array.from({ length: 6 }, (_, i) => readArrayItem(value, 6 + i))).toEqual(second);
     });
 

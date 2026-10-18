@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue, isNativeFunction, isRankSequence } from '../src/index.js';
-import { MemoryIo } from './support.js';
+import { Interpreter, RuntimeDiagnostics, formatValue, isNativeFunction, isRankSequence } from '../src/index.js';
+import { MemoryIo, TokenInput } from './support.js';
 
 const generator = `fun tst
   yield 1
@@ -86,45 +86,45 @@ A = G mod 2 equal 0
 G A sum`)).toBe('2');
     });
 
-    it('preserves lexical captures, order and one evaluation per occurrence', () => {
-        expect(run(`fun N exercise
-  Count = 0
+    it('preserves lexical captures and one evaluation per occurrence', () => {
+        const output: string[] = [];
+        const interpreter = new Interpreter(line => output.push(line), { compilation: compiled });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            expect(interpreter.execute(`use io
+fun N exercise
   fun next
-    Count += 1
-    return Count
+    N print
+    return N + 1
   end
-  A = next + next * next
-  return array A Count
+  return next + next * next
 end
-0 exercise`)).toBe('7 3');
-        expect(run(`fun N exercise
-  Count = 0
-  memo once
-    Count += 1
-    return Count
-  end
-  A = once + once
-  return array A Count
-end
-0 exercise`)).toBe('2 1');
+2 exercise`)).toBe(12n);
+            expect(output).toEqual(['2', '2', '2']);
+            expect(diagnostics.run(() => interpreter.execute(`memo once = 1
+once + once`))).toBe(2n);
+            expect(diagnostics.memoMisses).toBe(1);
+            expect(diagnostics.memoHits).toBe(1);
+        } finally { interpreter.dispose(); }
     });
 
-    it('keeps calls stack-safe and honors the depth limit', () => {
-        const source = `fun N exercise
-  fun down
-    if N equal 0
-      return 0
-    end
-    N -= 1
-    return down + 1
+    it('keeps nullary calls stack-safe and honors the depth limit', () => {
+        const source = `use io
+fun down
+  if (stdin .integer) equal 0
+    return 0
   end
-  return down
+  return down + 1
 end`;
-        expect(run(source + '\n10000 exercise')).toBe('10000');
-        const interpreter = runtime({ maxCallDepth: 20 });
+        const input = new TokenInput([...Array<string>(10000).fill('1'), '0']);
+        const unlimited = runtime({ input });
+        try { expect(unlimited.execute(source + '\ndown')).toBe(10000n); }
+        finally { unlimited.dispose(); }
+        const boundedInput = new TokenInput([...Array<string>(100).fill('1'), '0']);
+        const interpreter = runtime({ maxCallDepth: 20, input: boundedInput });
         try {
-            expect(() => interpreter.execute(source + '\n100 exercise')).toThrow('function call depth exceeds 20');
-            expect(interpreter.execute('3 exercise')).toBe(3n);
+            expect(() => interpreter.execute(source + '\ndown')).toThrow('function call depth exceeds 20');
+            expect(interpreter.execute('1 + 2')).toBe(3n);
         } finally { interpreter.dispose(); }
     });
 

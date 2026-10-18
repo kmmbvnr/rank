@@ -1,10 +1,10 @@
 import { compiledCalleeTypeKey, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { AstNode } from 'langium';
 import {
-    findOperation, writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
+    functionScope, lexicalBinding, findOperation, writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
     type LastArrayUseProof, type FunctionCallSignature, type CallRequirement, type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
-import { arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
+import { isFlatScalarArray, arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './block-compiler.js';
@@ -14,7 +14,7 @@ import { RankError } from './errors.js';
 import { effectiveEnvironment, withEnvironment } from './environment.js';
 import { ExecutionStack, completed, mapResult, resume, runExecution, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './call-specializations.js';
-import type { LocalFrame } from './frame.js';
+import { LocalFrame } from './frame.js';
 import { FunctionFrames } from './function-frame.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import { checkpoint, inspectionEnabled } from './interrupt.js';
@@ -46,6 +46,7 @@ export interface FunctionDefinition {
 
 /** What defining and running a function body needs from execution and the fast-path owner. */
 export interface FunctionHost {
+    resolve(name: string): RankValue;
     apply(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue>;
     readonly inputs?: Pick<CheckedInputContracts, 'pending' | 'call' | 'tail'>;
     /** A synchronous closure for an expression that cannot call Rank code, when one exists. */
@@ -67,7 +68,8 @@ const functionExecutions = new WeakMap<NativeFunction, (arguments_: RankValue[],
 const functionDefinitions = new WeakMap<NativeFunction, FunctionDefinition>();
 // Declaration ownership also covers memo functions and generators, which must
 // not enter the ordinary function-body optimization registry above.
-const functionDeclarations = new WeakMap<NativeFunction, { owner: FunctionInvocation; statement: FunctionStatement }>();
+const frozenFunctions = new WeakSet<NativeFunction>();
+const functionDeclarations = new WeakMap<NativeFunction, { owner: FunctionInvocation; statement: FunctionStatement; context: LocalFrame | undefined }>();
 const scalarCallbacks = new WeakMap<NativeFunction, (arguments_: RankValue[]) => RankValue>();
 const arrayBatches = new WeakMap<NativeFunction, (source: RankArray, axes: readonly number[]) =>
     (RankedMembership & { available(): boolean }) | undefined>();
@@ -144,8 +146,8 @@ export class FunctionInvocation {
     }
 
     /** The declaration behind a function value, for diagnostics and previews. */
-    sourceOf(fn: NativeFunction): FunctionStatement | undefined {
-        return this.sources.get(fn);
+    sourceOf(fn: NativeFunction, includeImported = false): FunctionStatement | undefined {
+        return this.sources.get(fn) ?? (includeImported ? functionDeclarations.get(fn)?.statement : undefined);
     }
 
     /** Identity for host replay; it does not expose an imported function's private scope. */
@@ -223,6 +225,45 @@ export class FunctionInvocation {
         };
         this.bindings.assign(statement.name, fn);
         return fn;
+    }
+
+    /** Clone each referenced declaration into its own frozen lexical environment.
+     * Separate frames preserve distinct bindings with the same spelling. */
+    snapshot(fn: NativeFunction, seen = new Map<NativeFunction, NativeFunction>()): NativeFunction {
+        if (frozenFunctions.has(fn)) return fn;
+        const previous = seen.get(fn);
+        if (previous) return previous;
+        const declaration = functionDeclarations.get(fn);
+        if (!declaration) return fn;
+        if (declaration.owner !== this) return declaration.owner.snapshot(fn, seen);
+        const { statement, context } = declaration;
+        const scope = functionScope(statement);
+        if (!scope) throw new RankError(`cannot determine snapshot dependencies of ${statement.name}`, 'Scope');
+        // A function without external data needs no snapshot frame. In particular,
+        // a parameter-only memo retains one cache across aliases and lazy passes.
+        if (scope.captures.size === 0) return fn;
+        const frame = new LocalFrame(undefined);
+        const result = this.bindings.withFrame(frame, () => this.define(statement, false)) as NativeFunction;
+        seen.set(fn, result);
+        frozenFunctions.add(result);
+        const bindings = new Set([...scope.reads.values(), ...[...scope.captures].filter(binding =>
+            lexicalBinding(scope.scope, binding.name) === binding)]);
+        for (const binding of bindings) {
+            if (binding.scope.owner === statement && binding.kind !== 'function') continue;
+            // Functions declared inside this body are constructed on invocation.
+            if (binding.function && binding.scope.owner === statement) continue;
+            const value = this.bindings.withFrame(context, () => this.host.resolve(binding.name));
+            if (value === undefined) throw new RankError(`snapshot dependency ${binding.name} is not initialized`, 'Scope');
+            if (isNativeFunction(value)) frame.set(binding.name, this.snapshot(value, seen));
+            else {
+                if (typeof value === 'object' && !isRankLabel(value) && !isRankDate(value)
+                    && value !== MISSING && !isFlatScalarArray(value)) {
+                    throw new RankError(`snapshot capture ${binding.name} does not support value snapshots; pass explicit data or materialize it first`, 'Scope');
+                }
+                frame.set(binding.name, value);
+            }
+        }
+        return result;
     }
 
     define(statement: FunctionStatement, constant = true): RankValue {
@@ -340,15 +381,24 @@ export class FunctionInvocation {
         };
         // Only successful, validated returns enter the closure's memo cache.
         const cache = statement.memo ? new Map<MemoKey, RankValue>() : undefined;
-        const memoMiss = cache ? (arguments_: RankValue[], key: MemoKey, inputRequirement?: CallRequirement): Evaluation<RankValue> =>
-            mapResult(checkedBody(arguments_, inputRequirement), value => {
+        const memoMiss = cache ? (arguments_: RankValue[], key: MemoKey, inputRequirement?: CallRequirement): Evaluation<RankValue> => {
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) diagnostics.memoMisses++;
+            return mapResult(checkedBody(arguments_, inputRequirement), value => {
                 memoValueKey(value);
                 cache.set(key, value);
                 return value;
-            }) : undefined;
+            });
+        } : undefined;
+        const cachedMemoValue = cache ? (key: MemoKey): RankValue | undefined => {
+            const value = cache.get(key);
+            const diagnostics = currentDiagnostics();
+            if (value !== undefined && diagnostics) diagnostics.memoHits++;
+            return value;
+        } : undefined;
         const executeBound = cache && memoMiss ? (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> => {
             const key = memoCallKey(arguments_, signature.arity);
-            const cached = cache.get(key);
+            const cached = cachedMemoValue!(key);
             if (cached !== undefined) return completed(cached);
             return memoMiss(arguments_, key, inputRequirement);
         } : checkedBody;
@@ -397,6 +447,7 @@ export class FunctionInvocation {
                 ? declared?.ranks.length === 2 ? [declared.ranks[0], declared.ranks[1]] : ['all', 'all']
                 : undefined,
             captures: context?.captures(),
+            snapshot: () => this.snapshot(fn),
             // What a caller outside the runtime reaches. A Rank call made from a
             // Rank body takes a shorter path, so the stretch this opens is the
             // work our embedder asked for; readers over storage we cannot track
@@ -404,6 +455,10 @@ export class FunctionInvocation {
             call: arguments_ => {
                 enterRuntime();
                 try {
+                    if (generator && !frozenFunctions.has(fn)) {
+                        const frozen = this.snapshot(fn);
+                        if (frozen !== fn) return frozen.call(arguments_);
+                    }
                     return generator
                         ? this.callGeneratorFunction(statement, bindArguments(arguments_), context)
                         : runExecution(execute(arguments_));
@@ -411,7 +466,7 @@ export class FunctionInvocation {
             },
         };
         this.sources.set(fn, statement);
-        functionDeclarations.set(fn, { owner: this, statement });
+        functionDeclarations.set(fn, { owner: this, statement, context });
         if (membership) {
             const originalCall = fn.call;
             const enabled = () => !inspectionEnabled() && fn.call === originalCall
@@ -443,7 +498,7 @@ export class FunctionInvocation {
             if (cache && memoMiss && this.options().scalarFunctionCompilation !== false
                 && this.options().scalarEntryCompilation !== false) scalarCallbacks.set(fn, arguments_ => {
                 const key = memoCallKey(arguments_, signature.arity);
-                const cached = cache.get(key);
+                const cached = cachedMemoValue!(key);
                 if (cached !== undefined) return cached;
                 enterRuntime();
                 try { return runExecution(memoMiss(arguments_, key)); }

@@ -21,16 +21,16 @@ ${body}`)).toThrow('unknown name: Dy');
             } finally { runtime.dispose(); }
         });
 
-        it('keeps a block binding captured after its block ends', () => {
+        it('rejects saving a block-local function beyond its block', () => {
             const runtime = new Interpreter(undefined, { compilation });
             try {
-                expect(runtime.execute(`saved = len
+                expect(() => runtime.execute(`saved = len
 for R in 1 till 3
  Offset = R
  fun X addOffset = X + Offset
  saved = addOffset
 end
-10 saved`)).toBe(12n);
+10 saved`)).toThrow('nested function addOffset cannot be returned, assigned, or stored');
                 expect(runtime.variables.has('Offset')).toBe(false);
                 expect(runtime.variables.has('addOffset')).toBe(false);
             } finally { runtime.dispose(); }
@@ -106,8 +106,8 @@ end`)).toThrow('compute returns rank 0 and cannot return rank 1');
         expect(run('use text\nM = ""\ntry\n "x" integer\ncatch Error\n M = Error .Message\nend\nM len greater 0')).toBe('true');
     });
 
-    it('lets a nested function write the enclosing names from its own blocks', () => {
-        expect(run(`fun N outer
+    it('rejects enclosing binding writes inside nested function blocks', () => {
+        expect(() => run(`fun N outer
  Best = 0
  fun V visit
   if V greater Best
@@ -120,7 +120,7 @@ end`)).toThrow('compute returns rank 0 and cannot return rank 1');
  end
  return Best
 end
-4 outer`)).toBe('4');
+4 outer`)).toThrow(/Best.*enclosing/);
     });
 
     it.each([true, false])('removes body names at runtime with loop compilation %s', integerLoopCompilation => {

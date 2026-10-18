@@ -15,27 +15,25 @@ rem Build prefixes and reject each branch as
 rem soon as its newest three digits fail.
 fun Digits substring_divisible_sum
   Divisors = array 2 3 5 7 11 13 17
-  Total = 0
-  "" search
-  return Total
+  return "" search
 
   fun Prefix search
     Length = Prefix len
     if Digits len equal Length
-      Total += Prefix integer
-      return 0
+      return Prefix integer
     end
 
+    Total = 0
     for Digit in Digits
       if not Digit in Prefix
         Next = Prefix + Digit
         Valid = Next Divisors valid_suffix
         if Valid
-          Next search
+          Total += Next search
         end
       end
     end
-    return 0
+    return Total
   end
 end
 

@@ -929,6 +929,19 @@ A single unary function may compute the key instead:
 Sorted = Values sort by magnitude
 ```
 
+A function key can take bound operands before its name. The item is its first
+argument; the bound operands are evaluated once when the sort is created:
+
+```rank
+fun X Limit distance = (X - Limit) abs
+Sorted = Values sort by Limit distance
+Order = Values argsort by (Limit * 2) distance
+```
+
+Use parentheses around an expression operand. A function-key sort accepts one
+function key; multiple function keys and mixed field/function keys are not
+supported. Multiple field keys remain available.
+
 `argsort by` accepts the same sources and keys but returns their zero-based
 source positions:
 

@@ -2,6 +2,7 @@ rem CSES 1666: Building Roads
 rem https://cses.fi/problemset/task/1666
 
 use algo
+use graph
 use io
 use sequences
 
@@ -9,7 +10,7 @@ Cities = stdin .integer
 RoadCount = stdin .integer
 Count = RoadCount * 2
 Roads = stdin .integer Count array
-Components = Cities Roads components
+Components = Cities Roads road_components
 
 RoadsNeeded = Components len - 1
 RoadsNeeded print
@@ -19,47 +20,19 @@ end
 
 
 rem Return one city from each component.
-fun Cities Roads components
-  Parent = 0 to Cities array
-  Sizes = array shape (Cities + 1) fill 1
-
-  fun City findroot
-    for Parent City not equal City
-      Next = Parent City
-      Parent City = Parent Next
-      City = Next
-    end
-    return City
-  end
-
-  fun A B unite
-    A = A findroot
-    B = B findroot
-    if A equal B
-      return false
-    end
-
-    if Sizes A less Sizes B
-      Temp = A
-      A = B
-      B = Temp
-    end
-
-    Parent B = A
-    Sizes A += Sizes B
-    return true
-  end
+fun Cities Roads road_components
+  Union = new dsu (1 to Cities)
 
   Total = Roads len
   for i in 0 till Total by 2
     A = Roads i
     B = Roads (i + 1)
-    A B unite
+    Union A B merge
   end
 
   Roots = new queue
   for City in 1 to Cities
-    if City findroot equal City
+    if Union findroot City equal City
       Roots push City
     end
   end

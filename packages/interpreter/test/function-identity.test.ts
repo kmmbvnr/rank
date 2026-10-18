@@ -31,22 +31,17 @@ f = first
         expect(runtime.execute('f equal first')).toBe(false);
     });
 
-    it('keeps separate closure instances distinct even with equal captures', () => {
+    it('compares local functions synchronously without letting them escape', () => {
         const runtime = new Interpreter();
-        runtime.execute(`
-fun Base make
-  fun X add
-    return Base + X
-  end
-  return add
+        try {
+            expect(runtime.execute(`fun compare f g = f equal g
+fun Base check
+  fun X first = Base + X
+  fun X second = Base + X
+  return array (compare first first) (compare first second)
 end
-a = (1 make)
-b = (1 make)
-c = a
-`);
-        expect(runtime.execute('a equal b')).toBe(false);
-        expect(runtime.execute('a equal c')).toBe(true);
-        expect(runtime.execute('(5 a) equal (5 b)')).toBe(true);
+1 check`)).toMatchObject({ items: [true, false] });
+        } finally { runtime.dispose(); }
     });
 
     it('keeps cached functions and their host contexts private to each interpreter', () => {

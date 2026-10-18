@@ -112,6 +112,7 @@ export class Operators {
         if (!operation.arities.includes(2)) {
             throw new RankError(`outer operation ${operation.name} must accept 2 arguments`);
         }
+        operation = operation.snapshot?.() ?? operation;
         const [leftRank, rightRank] = operation.dyadicRanks ?? ['all', 'all'];
         const a = outerCells(left, leftRank, 'left');
         const b = outerCells(right, rightRank, 'right');

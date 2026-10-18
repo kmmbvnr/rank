@@ -1,7 +1,7 @@
 import { InterruptedError, inspectionEnabled } from './interrupt.js';
 import { type AstNode } from 'langium';
 import {
-    availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage, isFunctionStatement, isFunctionBindingStatement, isUseStatement,
+    functionScopeDiagnostics, availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage, isFunctionStatement, isFunctionBindingStatement, isUseStatement,
     type Expression, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { enterRuntime, leaveRuntime } from './array-storage.js';
@@ -140,6 +140,7 @@ export class Interpreter {
         });
         this.functions = new FunctionInvocation(this.bindings, this.resources, this.builtins, this.inspection,
             this.modules, () => this.options, {
+                resolve: name => this.resolve(name),
                 inputs: this.checkedInputs,
                 apply: (fn, args) => this.rankApplication.applyIntrinsicRank(fn, args),
                 compileDirect: expression => this.expressions.compileDirect(expression),
@@ -297,6 +298,8 @@ export class Interpreter {
 
     private executeProgramBody(program: Program, args: readonly string[], assertBooleanExpressions: boolean): RankValue | undefined {
         validateFunctionPlacement(program.statements, 'top');
+        const scopeError = functionScopeDiagnostics(program)[0];
+        if (scopeError) throw this.locateError(new RankError(scopeError.message, 'Scope'), scopeError.node);
         this.checkBuiltinBindings(program);
         const declarations = new Map<string, FunctionStatement>();
         const initial = new Map<string, ValueFacts>();
@@ -323,6 +326,8 @@ export class Interpreter {
     declareFunctionSource(source: string): string[] {
         const program = this.parse(source);
         validateFunctionPlacement(program.statements, 'top');
+        const scopeError = functionScopeDiagnostics(program)[0];
+        if (scopeError) throw this.locateError(new RankError(scopeError.message, 'Scope'), scopeError.node);
         this.checkBuiltinBindings(program);
         this.declareFunctions(program.statements);
         return program.statements.filter(isFunctionStatement).map(statement => statement.name);
@@ -424,6 +429,14 @@ export class Interpreter {
             loadModule: this.options.loadModule ? path => this.load(path).program : undefined,
             signatures: new Map(callableBindings.flatMap(([name, value]) =>
                 isNativeFunction(value) && value.callSignature ? [[name, value.callSignature] as const] : [])),
+            declarations: new Map(callableBindings.flatMap(([name, value]) => {
+                const dot = name.indexOf('.');
+                const owner = dot < 0 ? this : this.aliases.get(name.slice(0, dot));
+                const localName = dot < 0 ? name : name.slice(dot + 1);
+                if (!owner?.bindings.isConstant(localName, owner.bindings.globals)) return [];
+                const declaration = isNativeFunction(value) ? this.functions.sourceOf(value, true) : undefined;
+                return declaration ? [[name, declaration] as const] : [];
+            })),
             writableOperations: new Map([...this.variables].flatMap(([name, value]) => {
                 const operation = isNativeFunction(value) && value.write && BuiltinRegistry.operationOf(value);
                 return operation ? [[name, operation.name] as const] : [];
@@ -460,6 +473,9 @@ export class Interpreter {
     private resolve(name: string): RankValue {
         const qualified = splitQualified(name);
         if (qualified) {
+            // A lazy callback's snapshot can bind a qualified dependency.
+            const captured = this.bindings.current?.lookup(name);
+            if (captured !== undefined) return captured;
             const { alias, member } = qualified;
             const child = this.aliases.get(alias);
             if (!child) throw new RankError(`unknown module alias: ${alias}`);
@@ -572,6 +588,8 @@ export class Interpreter {
 
     private prepareModule(program: Program): void {
         validateFunctionPlacement(program.statements, 'top');
+        const scopeError = functionScopeDiagnostics(program)[0];
+        if (scopeError) throw this.locateError(new RankError(scopeError.message, 'Scope'), scopeError.node);
         this.checkBuiltinBindings(program);
         this.declareFunctions(program.statements);
         for (const statement of program.statements) {

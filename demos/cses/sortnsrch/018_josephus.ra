@@ -12,11 +12,11 @@ N josephus print
 rem Return the order of every second child.
 fun N josephus
   Order = new queue
-  N 1 0 emit
+  N 1 0 Order emit
   return Order
 
   rem Map one smaller problem to the rest.
-  fun N Mul Add emit
+  fun N Mul Add Order emit
     if N equal 1
       Order push Mul + Add
       return 0
@@ -35,6 +35,6 @@ fun N josephus
       NextAdd = Add + Mul
     end
 
-    return Half NextMul NextAdd emit
+    return Half NextMul NextAdd Order emit
   end
 end

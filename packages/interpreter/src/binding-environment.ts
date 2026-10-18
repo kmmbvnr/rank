@@ -43,7 +43,7 @@ export class BindingEnvironment {
     assignmentScope(name: string): LocalFrame {
         let frame = this.current;
         while (frame?.blockNames && !frame.blockNames.has(name)) frame = frame.parent;
-        return frame?.find(name) ?? frame ?? this.globals;
+        return frame ?? this.globals;
     }
 
     find(name: string): RankValue | undefined {

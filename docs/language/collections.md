@@ -65,8 +65,9 @@ Labels = Part Nodes default 0
 ```
 
 Assignment and argument passing preserve the structure's reference.
-`Alias = Seen` shares `Seen`. The assignment does not create a copy. Named structures can be captured by local
-functions and returned from functions.
+`Alias = Seen` shares `Seen`. The assignment does not create a copy. Named
+structures can be returned from functions. Local functions may read captured
+structures; mutation requires an explicit parameter.
 
 Named sets and counters accept `Name add Value`. A set keeps one equal
 element; a counter increments that element's frequency. The whole expression
@@ -76,7 +77,7 @@ queues accept `Name push Value`; named indices use addressed assignment.
 
 A function that needs a structure creates its own with `new`; separate and
 recursive calls each get a fresh one. To share a structure with another
-function, pass or capture its name. The bare words `index`, `queue`, `set` and
+function, pass its name; a read-only helper may capture it. The bare words `index`, `queue`, `set` and
 `counter` no longer name an instance and are an error that suggests `new`.
 
 `push` appends one value to a queue, stack, deque or heap, even an array.

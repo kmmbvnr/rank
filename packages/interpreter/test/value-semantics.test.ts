@@ -37,17 +37,17 @@ describe('value semantics for arrays', () => {
         expect(run(`${bump}C = A bump\nC`)).toBe('99 2 3');
     });
 
-    it('keeps top-level function assignments local and allows nested captures', () => {
+    it('keeps top-level assignments local and rejects nested rebindings', () => {
         const local = `${SEQ}A = array 1 2\nfun change\n A = array 1 2 3\n return 0\nend\nchange\n`;
         expect(run(`${local}A`)).toBe('1 2');
         const captured = `${SEQ}fun outer\n A = array 1 2\n B = A\n fun change\n  A = array 1 2 3\n  return 0\n end\n change\n return A\nend\n`;
-        expect(run(`${captured}outer`)).toBe('1 2 3');
+        expect(() => run(`${captured}outer`)).toThrow('A is bound in an enclosing function');
         const second = `${SEQ}fun outer\n Y = array 1 2\n Z = array 3 4\n fun change\n  Z = array 5 6 7\n  return 0\n end\n change\n return Z\nend\n`;
-        expect(run(`${second}outer`)).toBe('5 6 7');
-        expect(run(`${second.replace('return Z', 'return Y')}outer`)).toBe('1 2');
+        expect(() => run(`${second}outer`)).toThrow('Z is bound in an enclosing function');
+        expect(() => run(`${second.replace('return Z', 'return Y')}outer`)).toThrow('Z is bound in an enclosing function');
         const grandchild = `${SEQ}fun outer\n Z = array 1 2\n Y = array 3 4\n fun middle\n  fun change\n   Z = array 5 6 7\n   return 0\n  end\n  change\n  return 0\n end\n middle\n return Z\nend\n`;
-        expect(run(`${grandchild}outer`)).toBe('5 6 7');
-        expect(run(`${grandchild.replace('return Z', 'return Y')}outer`)).toBe('3 4');
+        expect(() => run(`${grandchild}outer`)).toThrow('Z is bound in an enclosing function');
+        expect(() => run(`${grandchild.replace('return Z', 'return Y')}outer`)).toThrow('Z is bound in an enclosing function');
     });
 
     it('returns a privately written array without changing an equal-named global', () => {
@@ -63,20 +63,20 @@ describe('value semantics for arrays', () => {
             + 'fun Offset outer\n return 1 read\nend\n"x" outer')).toBe('1');
     });
 
-    it('writes the global capture, not an equally named caller parameter', () => {
+    it('rejects global writes regardless of equally named caller parameters', () => {
         const source = `${SEQ}Shared = array 1 2\nOther = array 3 4\n`
             + 'fun Value write\n Shared 0 = Value\n return 0\nend\n'
             + 'fun Shared outer\n 9 write\n return Shared 0\nend\nOther outer\n';
-        expect(run(source + 'Shared 0')).toBe('9');
-        expect(run(source + 'Other 0')).toBe('3');
+        expect(() => run(source + 'Shared 0')).toThrow('Shared is read-only in write');
+        expect(() => run(source + 'Other 0')).toThrow('Shared is read-only in write');
     });
 
-    it('lets a direct nested helper read and write its parent argument', () => {
+    it('lets a nested helper read its parent argument and rejects captured writes', () => {
         const reader = `${SEQ}fun X outer\n fun read\n  return X 0\n end\n return read\nend\nA = array 1 2\n`;
         expect(run(reader + 'A outer')).toBe('1');
         const writer = `${SEQ}fun X outer\n fun change\n  X 0 = 9\n  return 0\n end\n change\n return X 0\nend\nA = array 1 2\n`;
-        expect(run(writer + 'A outer')).toBe('9');
-        expect(run(writer + 'Ignored = A outer\nA 0')).toBe('1');
+        expect(() => run(writer + 'A outer')).toThrow('X is read-only in change');
+        expect(() => run(writer + 'Ignored = A outer\nA 0')).toThrow('X is read-only in change');
     });
 
     it('reads a private eager array through two lexical helper frames', () => {

@@ -28,7 +28,7 @@ describe.each([true, false])('array binding rank (compiled=%s)', compiled => {
         'for I in 1 to 2\n A = array shape I fill 0\n A = array shape I I fill 0\nend',
         'fun X check\n X = array shape 2 2 fill 0\n return X\nend\n(array 1 2) check',
         'fun N check\n A = array 1 2\n for I in 1 to N\n  A = array shape 2 2 fill I\n end\n return A\nend\n2 check',
-        'fun N check\n A = array 1 2\n fun X change\n  A = array shape 2 2 fill X\n  return A\n end\n return N change\nend\n2 check',
+        'fun N check\n A = array 1 2\n fun X A change\n  A = array shape 2 2 fill X\n  return A\n end\n return N A change\nend\n2 check',
     ])('rejects axis changes: %s', source => {
         const runtime = new Interpreter(undefined, options);
         try {

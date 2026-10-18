@@ -4,6 +4,7 @@ import type { RankServices } from './rank-module.js';
 import { expressionDiagnostics } from './expression-grouping.js';
 import { analyzeValues } from './analysis/value-diagnostics.js';
 import { declaredRanks } from './function-ranks.js';
+import { functionScopeDiagnostics } from './analysis/function-scope-diagnostics.js';
 import { blockScopeDiagnostics } from './analysis/block-scope.js';
 
 export function registerValidationChecks(services: RankServices): void {
@@ -52,7 +53,7 @@ export class RankValidator {
         }
         const parsed = program.$document?.parseResult;
         if (parsed?.lexerErrors.length || parsed?.parserErrors.length || expressionDiagnostics(program).length) return;
-        for (const diagnostic of blockScopeDiagnostics(program)) {
+        for (const diagnostic of [...blockScopeDiagnostics(program), ...functionScopeDiagnostics(program)]) {
             accept('error', diagnostic.message, { node: diagnostic.node });
         }
         const loadModule = this.services && program.$document ? documentModuleLoader(this.services, program.$document) : undefined;

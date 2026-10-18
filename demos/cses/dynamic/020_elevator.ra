@@ -20,39 +20,34 @@ fun Weights Limit elevator_rides
   Last = array shape States fill 0
   Rides 0 = 1
 
-  fun Mask Person add_person
-    if not Mask Person bit
-      return 0
-    end
-
-    Bit = 1 Person shl
-    Previous = Mask Bit bxor
-    NewRides = Rides Previous
-    Weight = Weights Person
-    NewWeight = Last Previous + Weight
-
-    if NewWeight greater Limit
-      NewRides += 1
-      NewWeight = Weight
-    end
-
-    if NewRides greater Rides Mask
-      return 0
-    end
-    if NewRides equal Rides Mask
-      if NewWeight at least Last Mask
-        return 0
-      end
-    end
-
-    Rides Mask = NewRides
-    Last Mask = NewWeight
-    return 0
-  end
-
   for Mask in 1 till States
     for Person in 0 till Count
-      Mask Person add_person
+      if not Mask Person bit
+        continue
+      end
+
+      Bit = 1 Person shl
+      Previous = Mask Bit bxor
+      NewRides = Rides Previous
+      Weight = Weights Person
+      NewWeight = Last Previous + Weight
+
+      if NewWeight greater Limit
+        NewRides += 1
+        NewWeight = Weight
+      end
+
+      if NewRides greater Rides Mask
+        continue
+      end
+      if NewRides equal Rides Mask
+        if NewWeight at least Last Mask
+          continue
+        end
+      end
+
+      Rides Mask = NewRides
+      Last Mask = NewWeight
     end
   end
 

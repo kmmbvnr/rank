@@ -15,30 +15,32 @@ describe('environment reads and overlays', () => {
         const runtime = new Interpreter();
         expect(runtime.execute('fun Name env = Name + 1\n3 env')).toBe(4n);
     });
-    it('isolates preview writes through imported functions and escaped closures', () => {
+    it('isolates preview writes through imported functions and nested calls', () => {
         const environment = EnvironmentOverlay.from([['HOST', 'original']]);
         const source = 'use cli\nfun Value change\n  env "HOST" = Value\n  return "HOST" env\nend\n'
-            + 'fun make\n  fun Value changeit\n    env "HOST" = Value\n    return "HOST" env\n  end\n  return changeit\nend';
+            + 'fun Value nested\n  fun Value changeit\n    env "HOST" = Value\n    return "HOST" env\n  end\n  return Value changeit\nend';
         const runtime = new Interpreter(undefined, { environment, loadModule: () => ({ id: 'module.ra', source }) });
-        runtime.execute('use cli\nuse "module" as lib\nclosure = (lib.make)');
+        runtime.execute('use cli\nuse "module" as lib');
         const preview = runtime.forkForPreview();
         expect(preview.execute('"preview" lib.change')).toBe('preview');
         expect(preview.execute('"HOST" env')).toBe('preview');
-        expect(preview.execute('"closure" closure')).toBe('closure');
-        expect(preview.execute('"HOST" env')).toBe('closure');
-        const escaped = preview.variables.get('closure')!;
+        expect(preview.execute('"nested" lib.nested')).toBe('nested');
+        expect(preview.execute('"HOST" env')).toBe('nested');
+        const escaped = preview.execute('lib.nested')!;
         expect(typeof escaped === 'object' && 'call' in escaped && escaped.call(['outside'])).toBe('outside');
         expect(runtime.execute('"HOST" env')).toBe('original');
         preview.dispose();
-        expect(runtime.execute('"normal" closure')).toBe('normal');
+        expect(runtime.execute('"normal" lib.nested')).toBe('normal');
     });
-    it('keeps explicit memo caching while ordinary functions observe changes', () => {
+    it('rejects environment dependencies in memo while ordinary functions observe changes', () => {
         const runtime = new Interpreter();
-        runtime.execute('use cli\nenv "HOST" = "first"\nfun Ignored read\n  return "HOST" env\nend\nmemo Ignored cached\n  return "HOST" env\nend');
-        expect(runtime.execute('0 cached')).toBe('first');
-        runtime.execute('env "HOST" = "second"');
-        expect(runtime.execute('0 read')).toBe('second');
-        expect(runtime.execute('0 cached')).toBe('first');
+        try {
+            runtime.execute('use cli\nenv "HOST" = "first"\nfun Ignored read = "HOST" env');
+            expect(runtime.execute('0 read')).toBe('first');
+            expect(() => runtime.execute('memo Ignored cached = "HOST" env')).toThrow('external effects');
+            runtime.execute('env "HOST" = "second"');
+            expect(runtime.execute('0 read')).toBe('second');
+        } finally { runtime.dispose(); }
     });
     it.each([true, false])('observes writes inside repeated calls with compilation %s', compiled => {
         const runtime = new Interpreter(undefined, {

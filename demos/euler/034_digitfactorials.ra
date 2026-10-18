@@ -21,13 +21,13 @@ fun MaximumDigits digit_factorial_sum
   Matches = new set
 
   for Length in 2 to MaximumDigits
-    0 Length "" 0 search
+    0 Length "" 0 Matches search
   end
   return Matches sum
 
   rem Generate nondecreasing digit text and
   rem compare it with the factorial sum digits.
-  fun First Remaining Digits Sum search
+  fun First Remaining Digits Sum Matches search
     if Remaining equal 0
       Candidate = Sum text sort
       if Candidate equal Digits
@@ -40,7 +40,7 @@ fun MaximumDigits digit_factorial_sum
       NextDigits = Digits + (Digit text)
       NextRemaining = Remaining - 1
       NextSum = Sum + Factorials Digit
-      Digit NextRemaining NextDigits NextSum search
+      Digit NextRemaining NextDigits NextSum Matches search
     end
     return 0
   end

@@ -4,6 +4,8 @@ export class RuntimeDiagnostics {
     dependencyValidations = 0;
     cacheHits = 0;
     cacheMisses = 0;
+    memoHits = 0;
+    memoMisses = 0;
     cellsComputed = 0;
     invalidations = 0;
     hoistedReaders = 0;

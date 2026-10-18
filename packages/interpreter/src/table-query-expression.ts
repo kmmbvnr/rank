@@ -153,7 +153,8 @@ export function compileTableExpression(
                             && (sequencePredicate.rank === undefined || sequencePredicate.rank === 0)
                             && sequencePredicate.axes === undefined) {
                             const name = flattenApplication(conditions[0])[0];
-                            const predicate = yield* resume(context.evaluate(name));
+                            const resolved = yield* resume(context.evaluate(name));
+                            const predicate = isNativeFunction(resolved) ? resolved.snapshot?.() ?? resolved : resolved;
                             if (isNativeFunction(predicate) && predicate.arities.includes(1)) {
                                 return filterSequence(source, {
                                     name: predicate.name,

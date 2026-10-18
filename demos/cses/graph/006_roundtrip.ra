@@ -32,19 +32,35 @@ fun Graph NodeCount find_cycle
   State = array shape Size fill 0
   Parent = array shape Size fill 0
 
-  fun Node Previous visit
-    State Node = 1
-    Parent Node = Previous
+  Position = array shape Size fill 0
+  Pending = new stack
 
-    for Next in Graph Node
-      if Next equal Previous
+  for Start in 1 to NodeCount
+    if State Start not equal 0
+      continue
+    end
+    State Start = 1
+    Pending push Start
+
+    for Pending len greater 0
+      Node = Pending peek
+      Neighbors = Graph Node
+      Index = Position Node
+      if Index at least (Neighbors len)
+        State Node = 2
+        Pending pop
+        continue
+      end
+
+      Next = Neighbors Index
+      Position Node += 1
+      if Next equal Parent Node
         continue
       end
       if State Next equal 0
-        Cycle = Next Node visit
-        if Cycle len greater 0
-          return Cycle
-        end
+        Parent Next = Node
+        State Next = 1
+        Pending push Next
       elif State Next equal 1
         Path = new queue
         Path push Next
@@ -54,21 +70,7 @@ fun Graph NodeCount find_cycle
           Current = Parent Current
         end
         Path push Next
-
-        Length = Path len
-        return Path (0 till Length)
-      end
-    end
-
-    State Node = 2
-    return array shape 0 fill 0
-  end
-
-  for Start in 1 to NodeCount
-    if State Start equal 0
-      Cycle = Start 0 visit
-      if Cycle len greater 0
-        return Cycle
+        return Path array
       end
     end
   end

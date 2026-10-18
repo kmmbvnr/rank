@@ -104,22 +104,24 @@ export class ApplicationEvaluator {
                 if (tail) context.functions.throwTailCall(fn, args);
                 return yield* resume(context.functions.invoke(fn, args));
             }
-            const resultShape = (cells: readonly (readonly number[])[]): readonly number[] | undefined => {
+            const resultShape = (fn: NativeFunction, cells: readonly (readonly number[])[]): readonly number[] | undefined => {
                 const shapes = args.map(value => isRankArray(value) ? value.shape : []);
                 expression.dataParameters.forEach((index, i) => { shapes[index] = [...cells[i]]; });
                 return fn.resultCellShape?.(shapes);
             };
-            const ranked: NativeFunction = {
+            const withOperands = (fn: NativeFunction): NativeFunction => ({
+                snapshot: fn.snapshot ? () => withOperands(fn.snapshot!()) : undefined,
                 kind: 'function', name: fn.name, arities: [data.length],
                 monadicRank: fn.monadicRank, dyadicRanks: fn.dyadicRanks, arrayCells: true,
-                monadicResultShape: shape => resultShape([shape]),
-                dyadicResultShape: (left, right) => resultShape([left, right]),
+                monadicResultShape: shape => resultShape(fn, [shape]),
+                dyadicResultShape: (left, right) => resultShape(fn, [left, right]),
                 call: cells => {
                     const bound = [...args];
                     expression.dataParameters.forEach((index, i) => { bound[index] = cells[i]; });
                     return runExecution(context.functions.invoke(fn, bound));
                 },
-            };
+            });
+            const ranked = withOperands(fn);
             if (data.length === 1) {
                 if (ranks.length > 1) throw new RankError('rank expects one entry for one data operand');
                 const rank = ranks[0] ?? (typeof fn.monadicRank === 'number' ? fn.monadicRank : 0);
