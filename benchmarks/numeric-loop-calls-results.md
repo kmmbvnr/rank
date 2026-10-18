@@ -68,8 +68,10 @@ The final binding-selection changes followed the main timing samples. Generated
 JS and results were checked identical before/after those changes for imported
 numeric calls and all three rewritten demos at reduced inputs; a final full-size
 coprime timing repeat is [recorded separately](baselines/2026-10-18-numeric-loop-calls-final.jsonl):
-call 1.565 s execute / 1.892 s cold, inline 4.859 s execute / 5.176 s cold
-(three samples each, same exact result and one compiled outer region).
+call 1.467 s execute / 1.768 s cold, inline 4.496 s execute / 4.787 s cold
+(three samples each, same exact result and one compiled outer region). This
+repeat includes main `8cf439f1` (#324). Generated loops/results for the imported
+numeric calls and reduced-input demo cases also matched after that integration.
 Timing is wall-clock and varies
 with machine load. These results do not add real-valued loop support, broaden
 array/ranked call contracts, or claim that numeric calls cannot throw.
