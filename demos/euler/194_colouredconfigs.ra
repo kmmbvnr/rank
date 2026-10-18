@@ -1,0 +1,32 @@
+rem Coloured Configurations
+rem https://projecteuler.net/problem=194
+rem Count the proper colourings with
+rem Colours colours of a chain of Na
+rem type A and Nb type B units, modulo
+rem Modulo
+
+use numbers
+use io
+use cli
+
+option Na integer = 25
+option Nb integer = 75
+option Colours integer = 1984
+option Modulo integer = 100000000
+
+rem A unit is coloured in A(c) or B(c)
+rem ways once its first vertices are
+rem set; c (c - 1) colour the first
+rem edge, and the units may come in any
+rem of C(Na + Nb, Na) orders.
+C = Colours
+A = C ** 5 - 9 * C ** 4 + 34 * C ** 3
+A = A - 69 * C ** 2 + 77 * C - 38
+B = (C - 2) ** 3 * (C ** 2 - 2 * C + 3)
+Orders = (Na + Nb) Na binomial
+Ways = Orders * C * (C - 1) mod Modulo
+Pa = A Na Modulo powmod
+Pb = B Nb Modulo powmod
+Mix = Ways * Pa mod Modulo
+Answer = Mix * Pb mod Modulo
+Answer print

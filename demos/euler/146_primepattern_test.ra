@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "146_primepattern"
+  run
+
+  Answer equal 676333270
+end
+
+test "statement value below a million"
+  use "146_primepattern"
+  Limit = 1000000
+  run
+
+  Answer equal 1242490
+end

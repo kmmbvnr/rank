@@ -1,0 +1,31 @@
+rem Disc Game Prize Fund
+rem https://projecteuler.net/problem=121
+rem Find the greatest whole prize that
+rem a fair game can offer when winning
+rem takes a blue majority in N turns
+
+use bits
+use sequences
+use io
+use cli
+
+option Turns integer = 15
+
+rem Turn t draws blue with chance
+rem 1/(t+1). Over all 2^N blue/red
+rem outcomes a blue weighs 1 and a red
+rem weighs t; the total is (N+1)!.
+Size = 1 Turns shl
+Turn = 1 to Turns array
+M = (0 till Size array) reshape Size 1
+Blue = M (Turn - 1) bit
+Wt = Blue choose 1 Turn
+Ways = Wt reduce * rank 1
+Cnt = Blue count axis 1
+Win = Cnt * 2 greater Turns
+All = 2 to (Turns + 1) array
+Total = All reduce *
+Wins = Ways filter Win array
+Sum = Wins sum
+Answer = Total // Sum
+Answer print

@@ -1,0 +1,28 @@
+use testing
+
+test "default input"
+  use "178_stepnumbers"
+  run
+
+  Answer equal 126461847755
+end
+
+test "short lengths"
+  use "178_stepnumbers"
+  Len = 10
+  run
+
+  Answer equal 1
+  Len = 11
+  run
+
+  Answer equal 4
+  Len = 12
+  run
+
+  Answer equal 18
+  Len = 14
+  run
+
+  Answer equal 172
+end

@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "169_hyperbinary"
+  run
+
+  Answer equal 178653872807
+end
+
+test "small powers"
+  use "169_hyperbinary"
+  Power = 1
+  run
+
+  Answer equal 5
+  Power = 2
+  run
+
+  Answer equal 19
+  Power = 5
+  run
+
+  Answer equal 713
+end

@@ -9,13 +9,17 @@ test "default input"
   Cnt 19998 at least 1
 end
 
-test "ten ways"
+test "statement values"
   use "126_cuboidlayers"
   Num = 10
   Limit = 200
   run
 
   Answer equal 154
+  Cnt 22 equal 2
+  Cnt 46 equal 4
+  Cnt 78 equal 5
+  Cnt 118 equal 8
 end
 
 test "two ways"

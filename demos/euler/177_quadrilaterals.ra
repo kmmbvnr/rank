@@ -1,0 +1,129 @@
+rem Integer Angled Quadrilaterals
+rem https://projecteuler.net/problem=177
+rem Count convex quadrilaterals whose
+rem diagonals cut the corners into eight
+rem whole degree angles, up to turning
+rem and flipping
+
+use numbers
+use sequences
+use bits
+use io
+
+rem Corner pairs (a, p) (q, r) (s, c)
+rem (U-c, V-a), U = p + q, V = 180 - U.
+rem The sine rule closes the figure when
+rem sin p sin r / (sin q sin s) equals
+rem sin(U-c) sin a / (sin c sin(V-a)).
+rem Key each side by U and the rounded
+rem log of its ratio, sort both and join
+rem equal keys. The matches are closed
+rem under the 8 symmetries, so the
+rem orbits number the mean of matches
+rem each symmetry leaves fixed.
+Deg = 0 to 180 array
+Rad = Deg * 3.141592653589793 / 180
+Sn = Rad sin
+Pos = (0 to 7 array) reshape 1 8
+Shift = (0 to 3 array) * 2 reshape 4 1
+Rot = (Pos + Shift) mod 8
+Both = concat Rot (7 - Rot)
+Perms = Both reshape 64
+N = 179 * 178 * 177 // 6
+Big = 100000000000
+KX = array shape (N + 1) fill 0
+KY = array shape (N + 1) fill 0
+XI = array shape N fill 0
+YI = array shape N fill 0
+Off = 0
+for U in 2 to 178
+  V = 180 - U
+  Np = U - 1
+  Nr = V - 1
+  Cells = Np * Nr
+  Pv = 1 to Np array
+  Rv = 1 to Nr array
+  Sp = (Sn Pv) reshape Np 1
+  Sq = (Sn (U - Pv)) reshape Np 1
+  Sr = (Sn Rv) reshape 1 Nr
+  Ss = (Sn (V - Rv)) reshape 1 Nr
+  Lk = (Sp * Sr / (Sq * Ss)) log
+  Fk = (Lk * 1000000000 + 0.5) floor
+  Kk = Fk reshape Cells
+  Sa = (Sn Rv) reshape Nr 1
+  Sb = (Sn (V - Rv)) reshape Nr 1
+  Sc = (Sn Pv) reshape 1 Np
+  Sd = (Sn (U - Pv)) reshape 1 Np
+  Lr = (Sd * Sa / (Sc * Sb)) log
+  Fr = (Lr * 1000000000 + 0.5) floor
+  Rk = Fr reshape Cells
+  Rng = Off till Off + Cells
+  KX Rng = Kk + U * Big
+  KY Rng = Rk + U * Big
+  Idx = 0 till Cells array
+  XI Rng = Idx
+  YI Rng = Idx
+  Off += Cells
+end
+KX N = Big * 1000
+KY N = Big * 1000
+Ox = KX argsort
+Oy = KY argsort
+Xs = KX Ox
+Ys = KY Oy
+Xi = XI (Ox take N)
+Yi = YI (Oy take N)
+Tv = array shape 8 fill 0
+Fixed = 0
+Ix = 0
+Iy = 0
+for Ix less N and Iy less N
+  Kx = Xs Ix
+  Ky = Ys Iy
+  if Kx less Ky
+    Ix += 1
+  elif Kx greater Ky
+    Iy += 1
+  else
+    Ex = Ix
+    for Xs Ex equal Kx
+      Ex += 1
+    end
+    Ey = Iy
+    for Ys Ey equal Kx
+      Ey += 1
+    end
+    U = (Kx + Big // 2) // Big
+    V = 180 - U
+    Np = U - 1
+    Nr = V - 1
+    for I in Ix to Ex - 1
+      P = Xi I // Nr + 1
+      Q = Xi I mod Nr + 1
+      for J in Iy to Ey - 1
+        Tv 0 = Yi J // Np + 1
+        Tv 1 = P
+        Tv 2 = U - P
+        Tv 3 = Q
+        Tv 4 = V - Q
+        Tv 5 = Yi J mod Np + 1
+        Tv 6 = U - Tv 5
+        Tv 7 = V - Tv 0
+        for G in 0 to 7
+          Same = 1
+          for H in 0 to 7
+            At = Perms (G * 8 + H)
+            if Tv At not equal Tv H
+              Same = 0
+            end
+          end
+          Fixed += Same
+        end
+      end
+    end
+    Ix = Ex
+    Iy = Ey
+  end
+end
+Answer = Fixed // 8
+Answer print

@@ -1,0 +1,101 @@
+rem Investigating Ulam Sequences
+rem https://projecteuler.net/problem=167
+rem Sum the Kth terms of the Ulam
+rem sequences U(2, v) for odd v from 5
+rem to 21
+
+use bits
+use sequences
+use io
+use cli
+
+option K integer = 100000000000
+
+rem With g = v + 1 the only even terms
+rem are 2 and 2 g. The odd terms 2 t + 1
+rem follow b[t] = b[t-1] xor b[t-g],
+rem seeded by a brute-force Ulam run,
+rem and the bits repeat with a period
+rem that the seed window locates. Over
+rem GF(2) the recurrence also reads
+rem b[t] = b[t-L] xor b[t-g L] for L a
+rem power of 2, so the bits, held in one
+rem big integer, grow by blocks of L.
+Answer = 0
+for V in 5 to 21 by 2
+  G = V + 1
+  Lim = 4 * G + 10
+  Cnt = array shape (Lim + 1) fill 0
+  Terms = array 2 V
+  Cnt (V + 2) = 1
+  Last = V
+  Tail = Cnt (Last + 1 to #)
+  Hits = (Tail equal 1) indices
+  for Hits len greater 0
+    Next = Last + 1 + Hits first
+    Ok = Terms + Next at most Lim
+    Old = Terms filter Ok array
+    Cnt (Old + Next) += 1
+    Terms = concat Terms (array Next)
+    Last = Next
+    Tail = Cnt (Last + 1 to #)
+    Hits = (Tail equal 1) indices
+  end
+  Mem = array shape (Lim + 1) fill 0
+  Mem Terms = 1
+  Seed = Mem (1 to (2 * G - 1) by 2)
+  Shifts = 2 ** (0 till G array)
+  B = (Seed * Shifts) sum
+  T = G
+  Lag = 1
+  Per = 0
+  for Per equal 0
+    Need = T * 2
+    for T less Need
+      for G * Lag * 2 at most T
+        Lag *= 2
+      end
+      Size = Lag (Need - T) min
+      Mask = 2 ** Size - 1
+      Nr = (B (T - Lag) shr) Mask band
+      Far = T - G * Lag
+      Fr = (B Far shr) Mask band
+      B = B ((Nr Fr bxor) T shl) bor
+      T += Size
+    end
+    Match = 2 ** (T - G + 1) - 1
+    for I in 0 to G - 1
+      X = B I shr
+      if Seed I equal 1
+        Match = Match X band
+      else
+        Match = Match (X bnot) band
+      end
+    end
+    Rest = Match 1 shr
+    if Rest greater 0
+      Low = Rest (0 - Rest) band
+      Per = (Low binary) len
+    end
+  end
+  Whole = B (2 ** Per - 1) band
+  Txt = (Whole Per binary) reverse
+  Spots = Txt "1" findall
+  Ones = Spots len
+  Pos = Seed sum + 2
+  Val = 0
+  if K equal Pos
+    Val = 2 * G
+  else
+    R = K - 2
+    if K less Pos
+      R += 1
+    end
+    Laps = (R - 1) // Ones
+    Rm = (R - 1) mod Ones + 1
+    Idx = Spots (Rm - 1)
+    Val = 2 * (Laps * Per + Idx) + 1
+  end
+  Answer += Val
+end
+Answer print

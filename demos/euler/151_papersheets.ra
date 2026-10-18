@@ -1,0 +1,56 @@
+rem Paper Sheets of Standard Sizes
+rem https://projecteuler.net/problem=151
+rem Find the expected number of batches
+rem that start with a single sheet, not
+rem counting the first and last
+
+use linalg
+use numbers
+use sequences
+use io
+
+rem A state counts the sheets A2 to A5
+rem in the envelope, at most 1, 2, 4, 8
+rem of them. Picking an A(k) sheet cuts
+rem it and returns A(k+1) to A5. Build
+rem the transition matrix over all 270
+rem states and step the probabilities.
+Id = 0 till 270 array
+C2 = Id // 135
+C3 = Id // 45 mod 3
+C4 = Id // 9 mod 5
+C5 = Id mod 9
+Cm = stack C2 C3 C4 C5
+Cnt = C2 + C3 + C4 + C5
+Tot = Cnt 1 max
+Cap = (array 1 2 4 8) reshape 4 1
+Row1 = array -1 1 1 1
+Row2 = array 0 -1 1 1
+Row3 = array 0 0 -1 1
+Row4 = array 0 0 0 -1
+Chg = stack Row1 Row2 Row3 Row4
+Wgt = array 135 45 9 1
+Tm = array shape 72900 fill 0.0
+for K in 0 to 3
+  Ch = Chg K
+  Next = Cm + (Ch reshape 4 1)
+  Fit = (Next at most Cap) all axis 0
+  Has = Cm K
+  Ok = Has greater 0 and Fit
+  From = Id filter Ok array
+  To = (Wgt Next matmul) filter Ok array
+  Pr = (Has / Tot) filter Ok array
+  Tm (From * 270 + To) = Pr
+end
+Mat = Tm reshape 270 270
+P = array shape 270 fill 0.0
+P 190 = 1.0
+Single = Cnt equal 1 and C5 equal 0
+One = Single choose 1.0 0.0
+Answer = 0.0
+for Step in 1 to 20
+  Answer += (P * One) sum
+  P = P Mat matmul
+end
+Answer = Answer 6 round
+Answer print

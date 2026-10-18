@@ -1,0 +1,51 @@
+rem abc-hits
+rem https://projecteuler.net/problem=127
+rem Sum c over triples a + b = c with
+rem gcd(a, b) = 1 and rad(abc) < c
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 120000
+
+rem The three are pairwise coprime, so
+rem rad(abc) = rad(a) rad(b) rad(c).
+rem For each c only a with 2 rad(a) <=
+rem (c - 1) / rad(c) can work: they are
+rem a prefix of the numbers sorted by
+rem radical. Pair every c with its
+rem prefix and test the pairs at once.
+Rad = array shape Limit fill 1
+for P in primes till Limit
+  Rad (P till Limit by P) *= P
+end
+Ord = Rad drop 1 argsort
+Rs = (Rad drop 1) Ord
+Gap = 0 - 1
+Last = array shape (Limit + 1) fill Gap
+Last Rs = 0 till (Limit - 1) array
+Cum = (Last scan max) + 1
+C = 3 to Limit - 1 array
+Q = (C - 1) // (Rad C)
+Half = (Q // 2) Limit min
+Many = Cum Half
+Keep = Many greater 0
+Cs = C filter Keep array
+Ms = Many filter Keep array
+Tot = Ms sum
+Head = Ms scan + with 0
+Mark = array shape Tot fill 0
+Mark (Head take (Ms len)) += 1
+Own = (Mark scan +) - 1
+Pos = (0 till Tot array) - (Head Own)
+A = (Ord Pos) + 1
+Cc = Cs Own
+B = (Cc - A) 1 max
+Hit = A * 2 less Cc
+Prod = (Rad A) * (Rad B) * (Rad Cc)
+Hit and= Prod less Cc
+Hit and= (A Cc gcd) equal 1
+Answer = (Cc filter Hit array) sum
+Answer print

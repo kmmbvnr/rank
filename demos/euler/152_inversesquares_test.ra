@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "152_inversesquares"
+  run
+
+  Answer equal 301
+end
+
+test "statement value up to 45"
+  use "152_inversesquares"
+  Limit = 45
+  run
+
+  Answer equal 3
+end

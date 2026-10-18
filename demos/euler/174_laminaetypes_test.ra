@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "174_laminaetypes"
+  run
+
+  Answer equal 209566
+end
+
+test "smaller limits"
+  use "174_laminaetypes"
+  Tiles = 1000
+  Most = 3
+  run
+
+  Answer equal 173
+end

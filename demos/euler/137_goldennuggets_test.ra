@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "137_goldennuggets"
+  run
+
+  Answer equal 1120149658760
+end
+
+test "first nuggets"
+  use "137_goldennuggets"
+  Nth = 5
+  run
+
+  Nugget equal (array 2 15 104 714 4895)
+  Answer equal 4895
+end

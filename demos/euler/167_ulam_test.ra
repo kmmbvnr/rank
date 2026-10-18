@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "167_ulam"
+  run
+
+  Answer equal 3916160068885
+end
+
+test "brute force checked terms"
+  use "167_ulam"
+  K = 10
+  run
+
+  Answer equal 256
+  K = 100
+  run
+
+  Answer equal 3495
+end

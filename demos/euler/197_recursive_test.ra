@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "197_recursive"
+  run
+
+  Answer equal 1.710637717
+end
+
+test "sequence has period two"
+  use "197_recursive"
+  N = 1014
+  run
+
+  Answer equal 1.710637717
+end

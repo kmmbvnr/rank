@@ -1,0 +1,26 @@
+use testing
+
+test "default input"
+  use "188_hyperexponentiation"
+  run
+
+  Answer equal 95962097
+end
+
+test "small towers"
+  use "188_hyperexponentiation"
+  Base = 3
+  Height = 3
+  run
+
+  Answer equal 97484987
+  Base = 2
+  Height = 4
+  run
+
+  Answer equal 65536
+  Height = 5
+  run
+
+  Answer equal 19156736
+end

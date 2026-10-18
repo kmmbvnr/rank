@@ -1,0 +1,22 @@
+rem Investigating the Behaviour of a
+rem Recursively Defined Sequence
+rem https://projecteuler.net/problem=197
+rem Find u(N) + u(N + 1) for u(0) = -1
+rem and u(n + 1) = floor(2^(30.403243784
+rem - u(n)^2)) / 10^9, to nine places
+
+use numbers
+use io
+use cli
+
+option N integer = 1012
+
+fun U step
+  Power = 2 ** (30.403243784 - U * U)
+  return Power floor / 1000000000
+end
+
+First = -1.0 step repeat N
+Second = First step
+Answer = (First + Second) 9 round
+Answer print

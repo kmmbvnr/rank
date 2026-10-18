@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "198_ambiguous"
+  run
+
+  Answer equal 52374425
+end
+
+test "checkpoints"
+  use "198_ambiguous"
+  Limit = 120
+  run
+
+  Answer equal 10
+  Limit = 200000
+  run
+
+  Answer equal 100967
+  Limit = 1000000
+  run
+
+  Answer equal 509763
+end

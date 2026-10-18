@@ -1,0 +1,83 @@
+rem Prime Triplets
+rem https://projecteuler.net/problem=196
+rem Sum S(n) over the rows N1 and N2 of
+rem a number triangle, where S(n) adds
+rem the primes of row n that belong to a
+rem prime triplet
+
+use numbers
+use sequences
+use io
+use cli
+
+option N1 integer = 5678027
+option N2 integer = 7208785
+
+rem Row r holds r numbers from
+rem r (r - 1) / 2 + 1. A prime with two
+rem prime neighbours among the 8 around
+rem it starts a triplet, and joins its
+rem neighbours to it. Only rows n - 2 to
+rem n + 2 matter: sieve that strip, then
+rem scan the centres in rows n - 1 to
+rem n + 1 and mark primes of row n.
+Answer = 0
+for N in array N1 N2
+  First = (N - 2) * (N - 3) // 2 + 1
+  Len = 5 * N
+  Pr = array shape Len fill 1
+  Root = (First + Len) isqrt
+  for P in primes to Root
+    Start = (First + P - 1) // P * P
+    Start = Start (2 * P) max
+    Pr (Start - First till Len by P) = 0
+  end
+  if First equal 1
+    Pr 0 = 0
+  end
+  Offs = array shape 5 fill 0
+  for K in 0 to 4
+    R = N - 2 + K
+    Top = R * (R - 1) // 2 + 1
+    Offs K = Top - First
+  end
+  Mk = array shape N fill 0
+  M0 = Offs 2
+  for R in N - 1 to N + 1
+    Rows = R - N + 2
+    for C in 0 to R - 1
+      At = Offs Rows + C
+      if Pr At equal 1
+        Near = 0
+        for Dr in -1 to 1
+          Row = R + Dr
+          Base = Offs (Rows + Dr)
+          for Dc in -1 to 1
+            Col = C + Dc
+            if Col at least 0
+              if Col less Row
+                Near += Pr (Base + Col)
+              end
+            end
+          end
+        end
+        if Near at least 3
+          for Dc in -1 to 1
+            Col = C + Dc
+            if Col at least 0
+              if Col less N
+                if Pr (M0 + Col) equal 1
+                  Mk Col = 1
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  Row0 = N * (N - 1) // 2 + 1
+  Hit = (Mk equal 1) indices
+  Answer += (Row0 + Hit) sum
+end
+Answer print

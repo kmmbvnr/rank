@@ -1,0 +1,76 @@
+rem Triominoes
+rem https://projecteuler.net/problem=161
+rem Count the tilings of a Wide by High
+rem grid by straight and bent triominoes
+
+use bits
+use sequences
+use io
+use cli
+
+option Wide integer = 9
+option High integer = 12
+
+rem Fill cells in row order. A state is
+rem a mask of which of the next 2 Wide
+rem + 1 cells are covered, with the
+rem number of ways to reach it. An empty
+rem cell starts one of six pieces, given
+rem by its cell mask, the columns it
+rem reaches left and right, and rows
+rem down.
+W = Wide
+Shift = array 0 1 2 W (W + 1) (W - 1)
+Bit = 2 ** Shift
+Bit = concat Bit (array (2 ** (2 * W)))
+Mask = array 7 0 0 0 0 0
+Mask 0 = 7
+Mask 1 = Bit 0 + Bit 3 + Bit 6
+Mask 2 = Bit 0 + Bit 1 + Bit 3
+Mask 3 = Bit 0 + Bit 1 + Bit 4
+Mask 4 = Bit 0 + Bit 3 + Bit 4
+Mask 5 = Bit 0 + Bit 5 + Bit 3
+Left = array 0 0 0 0 0 -1
+Right = array 2 0 1 1 1 0
+Down = array 0 2 1 1 1 1
+Keys = array 0
+Cnts = array 1
+for C in 0 to Wide * High - 1
+  X = C mod W
+  R = C // W
+  Free = (Keys 1 band) equal 0
+  Busy = not Free
+  NewK = (Keys filter Busy array) 1 shr
+  NewC = Cnts filter Busy array
+  for P in 0 to 5
+    if X + Left P at least 0
+      Fits = X + Right P less W
+      Fits and= R + Down P less High
+      if Fits
+        Pm = Mask P
+        Hit = (Keys Pm band) equal 0
+        Ok = Free and Hit
+        Sel = Keys filter Ok array
+        Moved = (Sel Pm bor) 1 shr
+        More = Cnts filter Ok array
+        NewK = concat NewK Moved copy
+        NewC = concat NewC More copy
+      end
+    end
+  end
+  Ord = NewK argsort
+  K2 = NewK Ord
+  C2 = NewC Ord
+  Len = K2 len
+  Prev = K2 (0 till Len - 1)
+  Edge = K2 (1 to #) not equal Prev
+  Head = array true
+  Starts = (concat Head Edge) indices
+  Last = array Len
+  Ends = concat (Starts drop 1) Last
+  Cum = C2 scan + with 0
+  Keys = K2 Starts copy
+  Cnts = Cum Ends - Cum Starts copy
+end
+Answer = Cnts sum
+Answer print

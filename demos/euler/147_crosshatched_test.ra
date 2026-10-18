@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "147_crosshatched"
+  run
+
+  Answer equal 846910284
+end
+
+test "statement values"
+  use "147_crosshatched"
+  Wide = 3
+  High = 2
+  run
+
+  Answer equal 72
+  Wide = 1
+  High = 1
+  run
+
+  Answer equal 1
+end

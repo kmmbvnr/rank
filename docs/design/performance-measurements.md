@@ -820,3 +820,9 @@ or retained heap reduction was measured.
 
 Raw samples and diagnostics are in
 `benchmarks/baselines/2026-10-18-cuboid-layers.json`.
+
+After integrating main `065945b6` (#319, Euler 121–200), corrected-loop times
+were 0.828/0.695/0.631 s; initialization plus loop took 1.484/1.012/0.966 s.
+All layer counts/checksums still matched the independent oracle. The integrated
+Euler 126 tests, including the upstream statement frequencies, passed with a
+10.33 s default-input run. Raw integrated samples are recorded separately.

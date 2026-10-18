@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "168_rotations"
+  run
+
+  Answer equal 59206
+end
+
+test "numbers below ten to the fifth"
+  use "168_rotations"
+  Digits = 5
+  run
+
+  Total equal 555480
+  N len equal 36
+end

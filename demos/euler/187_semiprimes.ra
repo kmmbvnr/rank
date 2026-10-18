@@ -1,0 +1,52 @@
+rem Semiprimes
+rem https://projecteuler.net/problem=187
+rem Count the composite integers below
+rem Limit with exactly two prime
+rem factors, not necessarily distinct
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 100000000
+
+rem n = p q with p <= q <= M / p, M the
+rem last n, so the count is the sum over
+rem primes p up to the root of
+rem pi(M / p) - pi(p) + 1. Prime counts
+rem at every M / k come from Lucy's
+rem sieve: Lo[v] for v up to the root
+rem R, and Hi[k] for v = M / k.
+M = Limit - 1
+R = M isqrt
+V = 0 to R array
+Lo = ((V - 1) 0 max) copy
+K = 1 to R array
+Top = concat (array 0) (M // K - 1)
+Hi = Top copy
+for P in primes to R
+  Sp = Lo (P - 1)
+  Kmax = R (M // (P * P)) min
+  if Kmax greater 0
+    Ks = 1 to Kmax array
+    Kp = Ks * P
+    Pos = Kp R min
+    Low = (M // Kp) R min
+    Near = Hi Pos
+    Far = Lo Low
+    Big = Kp at most R
+    Src = Big choose Near Far
+    Cur = Hi (1 to Kmax)
+    Hi (1 to Kmax) = Cur - (Src - Sp)
+  end
+  if P * P at most R
+    Vs = P * P to R array
+    Cur = Lo (P * P to R)
+    Back = Lo (Vs // P)
+    Lo (P * P to R) = Cur - (Back - Sp)
+  end
+end
+Ps = primes to R array
+Answer = (Hi Ps - Lo Ps + 1) sum
+Answer print

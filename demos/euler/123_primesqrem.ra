@@ -1,0 +1,25 @@
+rem Prime Square Remainders
+rem https://projecteuler.net/problem=123
+rem Find the least n whose remainder of
+rem (p-1)^n + (p+1)^n by p^2 exceeds a
+rem limit, p being the nth prime
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 10000000000
+
+rem Even n leaves 2 and odd n leaves
+rem 2 n p mod p^2. As p > n, n up to
+rem the root of Limit suffices.
+Top = Limit isqrt
+Ps = primes take Top array
+N = 1 to Top array
+Odd = N mod 2 equal 1
+Big = 2 * N * Ps mod (Ps * Ps)
+R = Odd choose Big 2
+Hit = R greater Limit
+Answer = (N Hit) first
+Answer print

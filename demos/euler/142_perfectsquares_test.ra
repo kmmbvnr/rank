@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "142_perfectsquares"
+  run
+
+  Answer equal 1006193
+end
+
+test "no triple with small roots"
+  use "142_perfectsquares"
+  Top = 100
+  run
+
+  Answer equal 20000
+end

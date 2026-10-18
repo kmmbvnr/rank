@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "134_primepairs"
+  run
+
+  Answer equal 18613426663617118
+end
+
+test "smaller limits"
+  use "134_primepairs"
+  Limit = 19
+  run
+
+  Answer equal 4272
+  Limit = 100
+  run
+
+  Answer equal 69155
+end

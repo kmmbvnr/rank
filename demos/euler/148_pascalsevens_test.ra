@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "148_pascalsevens"
+  run
+
+  Answer equal 2129970655314432
+end
+
+test "statement value for 100 rows"
+  use "148_pascalsevens"
+  Rows = 100
+  run
+
+  Answer equal 2361
+end

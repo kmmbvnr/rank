@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "132_largerepunits"
+  run
+
+  Answer equal 843296
+end
+
+test "statement value for ten ones"
+  use "132_largerepunits"
+  Exp = 10
+  Count = 4
+  run
+
+  Answer equal 9414
+end

@@ -1,0 +1,25 @@
+use testing
+
+test "statement value for three"
+  use "155_capacitors"
+  Count = 3
+  run
+
+  Answer equal 7
+end
+
+test "smaller counts"
+  use "155_capacitors"
+  Count = 10
+  run
+
+  Answer equal 2525
+  Count = 12
+  run
+
+  Answer equal 15463
+  Count = 15
+  run
+
+  Answer equal 241519
+end

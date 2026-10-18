@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "122_efficientexp"
+  run
+
+  Answer equal 1582
+end
+
+test "statement values"
+  use "122_efficientexp"
+  Limit = 10
+  run
+
+  Answer equal 26
+  Limit = 15
+  run
+
+  Best 15 equal 5
+end

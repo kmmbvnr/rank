@@ -1,0 +1,18 @@
+use testing
+
+test "default input"
+  use "186_connectedness"
+  run
+
+  Answer equal 2325629
+end
+
+test "generator terms"
+  use "186_connectedness"
+  Calls = 100
+  Percent = 1
+  run
+
+  T 9 equal 106973
+  T 99 equal 586613
+end

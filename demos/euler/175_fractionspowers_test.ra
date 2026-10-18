@@ -1,0 +1,27 @@
+use testing
+
+test "default input"
+  use "175_fractionspowers"
+  run
+
+  Answer equal "1,13717420,8"
+end
+
+test "small fractions"
+  use "175_fractionspowers"
+  Num = 2
+  Den = 1
+  run
+
+  Answer equal "1,1"
+  Num = 3
+  Den = 2
+  run
+
+  Answer equal "2,1"
+  Num = 5
+  Den = 3
+  run
+
+  Answer equal "1,1,1,1"
+end

@@ -1,0 +1,26 @@
+use testing
+
+test "default input"
+  use "172_fewrepeats"
+  run
+
+  Answer equal 227485267000992000
+end
+
+test "smaller sizes"
+  use "172_fewrepeats"
+  Len = 4
+  Most = 2
+  run
+
+  Answer equal 8667
+  Len = 5
+  run
+
+  Answer equal 82296
+  Len = 6
+  Most = 3
+  run
+
+  Answer equal 888570
+end

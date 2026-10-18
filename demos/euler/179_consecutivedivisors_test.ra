@@ -1,0 +1,21 @@
+use testing
+
+test "smaller limits"
+  use "179_consecutivedivisors"
+  Limit = 14
+  run
+
+  Answer equal 1
+  Limit = 1000
+  run
+
+  Answer equal 118
+  Limit = 100000
+  run
+
+  Answer equal 10585
+  Limit = 1000000
+  run
+
+  Answer equal 102093
+end

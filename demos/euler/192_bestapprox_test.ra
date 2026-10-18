@@ -1,0 +1,27 @@
+use testing
+
+test "default input"
+  use "192_bestapprox"
+  run
+
+  Answer equal 57060635927998347
+end
+
+test "small bounds"
+  use "192_bestapprox"
+  Limit = 13
+  Bound = 20
+  run
+
+  Answer equal 159
+  Limit = 50
+  Bound = 100
+  run
+
+  Answer equal 2981
+  Limit = 200
+  Bound = 1000
+  run
+
+  Answer equal 112225
+end

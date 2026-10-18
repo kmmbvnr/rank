@@ -264,6 +264,78 @@
     "The corrected independent oracle visits 334886 cuboids and 3954135 layer values. The original issue bound excludes valid cuboids and visits 326019/3917148.",
     "Every layer count and the sum of all layer values are checked against independent scalar enumeration. The scalar reference also checks the full-problem answer 18522.",
     "Fresh CLI timings include startup, parsing, initialization and captured output. The full array demo additionally counts frequencies; those times are not the layer-only acceptance benchmark.",
-    "No claim of zero allocations or measured peak/retained memory reduction. Outputs and mask-position plans still allocate."
+    "No claim of zero allocations or measured peak/retained memory reduction. Outputs and mask-position plans still allocate.",
+    "After integrating main #319, repeated corrected layer-loop times were 0.828/0.695/0.631 s; all initialization-plus-loop trials were still below 1.5 s. All upstream Euler 126 frequency assertions are preserved."
+  ],
+  "integratedMain": "065945b610b302163f0f02c73ab035857645f18b",
+  "integratedCandidate": [
+    {
+      "variant": "corrected bound",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "cuboids": 334886,
+      "values": 3954135,
+      "checksum": "52548758960",
+      "timing": "setup and loop parse/execution separately; startup excluded"
+    },
+    {
+      "trial": 0,
+      "setupMs": 656.0986250000001,
+      "loopMs": 828.084167,
+      "loopCpuMs": 1275.973,
+      "totalMs": 1484.182792
+    },
+    {
+      "trial": 1,
+      "setupMs": 316.30620799999974,
+      "loopMs": 695.3960830000001,
+      "loopCpuMs": 1107.693,
+      "totalMs": 1011.7022909999998
+    },
+    {
+      "trial": 2,
+      "setupMs": 334.4062090000002,
+      "loopMs": 631.2989579999999,
+      "loopCpuMs": 869.38,
+      "totalMs": 965.7051670000001
+    },
+    {
+      "diagnostics": {
+        "validationRequests": 3777,
+        "dependencyValidations": 14,
+        "cacheHits": 0,
+        "cacheMisses": 3763,
+        "memoHits": 0,
+        "memoMisses": 0,
+        "cellsComputed": 3763,
+        "invalidations": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledTensors": 71,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskPositionReuses": 57,
+        "maskMaterializations": 142,
+        "maskMaterializedCells": 7908270,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:greater": 2,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:too-small": 2,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "tensor:output-shape": 71
+        }
+      }
+    }
   ]
 }

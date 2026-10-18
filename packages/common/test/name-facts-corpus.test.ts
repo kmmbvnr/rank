@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { setImmediate } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { AstUtils } from 'langium';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import {
     isAssignmentStatement, isForStatement, isFunctionStatement, isNameExpression,
     isUnpackStatement, type Program,
@@ -12,6 +12,8 @@ import { Interpreter, isRankArray, parse, typeName } from '@arrrank/interpreter'
 import { nameFactsIn } from '../src/name-facts.js';
 
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));
+// Runs for minutes with its real input (issue #316); its tests use small inputs.
+const tooSlow = new Set(['euler/154_pascalpyramid.ra']);
 
 function programs(): string[] {
     const files: string[] = [];
@@ -19,7 +21,7 @@ function programs(): string[] {
         for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
             const full = path.join(directory, entry.name);
             if (entry.isDirectory()) walk(full);
-            else if (entry.name.endsWith('.ra')) files.push(full);
+            else if (entry.name.endsWith('.ra') && !tooSlow.has(path.relative(demos, full))) files.push(full);
         }
     };
     walk(demos);
@@ -48,25 +50,28 @@ function settledNames(program: Program): Set<string> {
  * read, and the answer is checked against the value the run produced.
  */
 describe('facts at a name against the values a run produced', () => {
-    it('never contradicts the runtime, and answers for most names', async () => {
-        const contradictions: string[] = [];
-        let ran = 0;
-        let asked = 0;
-        let known = 0;
+    const files = programs();
+    let ran = 0;
+    let asked = 0;
+    let known = 0;
+    let finished = 0;
 
-        for (const file of programs()) {
+    for (const file of files) {
+        it(path.relative(demos, file), async context => {
+            const contradictions: string[] = [];
             await setImmediate();
+            finished += 1;
             const source = fs.readFileSync(file, 'utf8');
             let program: Program;
-            try { program = parse(source, file); } catch { continue; }
+            try { program = parse(source, file); } catch { return context.skip(); }
             const interpreter = new Interpreter(() => undefined, { sourceId: file, testing: true });
-            try { interpreter.execute(source); } catch { continue; } finally { interpreter.dispose(); }
+            try { interpreter.execute(source); } catch { return context.skip(); } finally { interpreter.dispose(); }
             ran += 1;
 
             const lookup = nameFactsIn(source);
-            if (!lookup) { contradictions.push(`${path.relative(demos, file)}: no analysis for a program that parses`); continue; }
-            const settled = settledNames(program);
             const label = path.relative(demos, file);
+            if (!lookup) { contradictions.push(`${label}: no analysis for a program that parses`); expect(contradictions).toEqual([]); return; }
+            const settled = settledNames(program);
             for (const node of AstUtils.streamAllContents(program)) {
                 const name = isAssignmentStatement(node) ? node.name : isNameExpression(node) ? node.name : undefined;
                 if (name === undefined || !settled.has(name) || AstUtils.getContainerOfType(node, isFunctionStatement)) continue;
@@ -91,12 +96,17 @@ describe('facts at a name against the values a run produced', () => {
                     }
                 }
             }
-        }
+            expect(contradictions).toEqual([]);
+        // Bound each program, rather than giving the growing corpus one deadline.
+        }, 300_000);
+    }
 
+    afterAll(() => {
+        // A name-filtered run checks its selected programs; only a full run owns the coverage gate.
+        if (finished !== files.length) return;
         console.log(`name facts: ${ran} demos run, ${asked} names asked, ${known} known`);
-        expect(contradictions).toEqual([]);
         // A vacuous pass proves nothing: the corpus must be run and the analyzer must answer for some of it.
         expect(ran).toBeGreaterThan(100);
         expect(known).toBeGreaterThan(50);
-    }, 600_000);
+    });
 });

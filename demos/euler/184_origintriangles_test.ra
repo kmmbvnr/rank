@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "184_origintriangles"
+  run
+
+  Answer equal 1725323624056
+end
+
+test "statement and small radii"
+  use "184_origintriangles"
+  R = 2
+  run
+
+  Answer equal 8
+  R = 3
+  run
+
+  Answer equal 360
+  R = 5
+  run
+
+  Answer equal 10600
+end

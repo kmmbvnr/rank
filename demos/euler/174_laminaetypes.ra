@@ -1,0 +1,29 @@
+rem Hollow Square Laminae of Distinct
+rem Arrangements
+rem https://projecteuler.net/problem=174
+rem Count the tile totals t up to Tiles
+rem that form between 1 and Most hollow
+rem square laminae
+
+use numbers
+use sequences
+use io
+use cli
+
+option Tiles integer = 1000000
+option Most integer = 10
+
+rem As in problem 173, t = 4 k j with
+rem j > k. Tally for each product k j
+rem how many pairs make it: for fixed
+rem k the products k (k + 1), k (k + 2)
+Pairs = Tiles // 4
+Lim = Pairs isqrt
+Ways = array shape (Pairs + 1) fill 0
+for K in 1 to Lim
+  Ways (K * (K + 1) to Pairs by K) += 1
+end
+Fit = Ways at least 1
+Fit and= Ways at most Most
+Answer = Fit count
+Answer print

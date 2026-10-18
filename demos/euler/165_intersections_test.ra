@@ -1,0 +1,24 @@
+use testing
+
+test "first segment from the statement"
+  use "165_intersections"
+  Segs = 300
+  run
+
+  X1 0 equal 27
+  Y1 0 equal 144
+  X2 0 equal 12
+  Y2 0 equal 232
+end
+
+test "smaller sets of segments"
+  use "165_intersections"
+  Segs = 300
+  run
+
+  Answer equal 11064
+  Segs = 1000
+  run
+
+  Answer equal 113849
+end

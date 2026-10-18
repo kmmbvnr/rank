@@ -1,0 +1,30 @@
+use testing
+
+test "default input"
+  use "194_colouredconfigs"
+  run
+
+  Answer equal 61190912
+end
+
+test "statement values"
+  use "194_colouredconfigs"
+  Na = 1
+  Nb = 0
+  Colours = 3
+  run
+
+  Answer equal 24
+  Na = 0
+  Nb = 2
+  Colours = 4
+  run
+
+  Answer equal 92928
+  Na = 2
+  Nb = 2
+  Colours = 3
+  run
+
+  Answer equal 20736
+end

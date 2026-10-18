@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "173_hollowlaminae"
+  run
+
+  Answer equal 1572729
+end
+
+test "statement value for 100 tiles"
+  use "173_hollowlaminae"
+  Tiles = 100
+  run
+
+  Answer equal 41
+end

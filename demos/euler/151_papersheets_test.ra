@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "151_papersheets"
+  run
+
+  Answer equal 0.464399
+end
+
+test "first pick from four sheets"
+  use "151_papersheets"
+  run
+
+  Mat 190 110 equal 0.25
+  Mat 190 190 equal 0.0
+end

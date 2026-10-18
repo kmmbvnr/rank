@@ -1,0 +1,23 @@
+use testing
+
+test "default input"
+  use "182_rsa"
+  run
+
+  Answer equal 399788195976
+end
+
+test "statement primes"
+  use "182_rsa"
+  P = 19
+  Q = 37
+  run
+
+  Answer equal 17766
+  Least equal 9
+  P = 11
+  Q = 23
+  run
+
+  Answer equal 5912
+end

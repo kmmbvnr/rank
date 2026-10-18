@@ -1,0 +1,60 @@
+rem Rational Zeros of a Function of
+rem Three Variables
+rem https://projecteuler.net/problem=180
+rem For fractions x, y, z of order Order
+rem with x^(k+1) + y^(k+1) = z^(k+1) and
+rem k = 1, 2, -1 or -2, sum the distinct
+rem x + y + z and print numerator +
+rem denominator
+
+use algo
+use numbers
+use sequences
+use io
+use cli
+
+option Order integer = 35
+
+rem Write every fraction as X / L over
+rem L = lcm(1..Order). Then z is x + y,
+rem x y / (x + y), the root of x^2 + y^2
+rem or x y over that root, kept when it
+rem is itself a fraction on the list.
+Ds = 2 to Order array
+Rows = Ds len
+Cols = Order - 1
+L = (1 to Order array) lcm
+Bm = Ds reshape Rows 1
+Am = (1 to Cols array) reshape 1 Cols
+Ok = Am less Bm
+Ok and= (Am Bm gcd) equal 1
+Xs = (Am * (L // Bm)) filter Ok array
+N = Xs len
+Cells = N * N
+Xr = Xs reshape N 1
+Yr = Xs reshape 1 N
+Xf = (Xr + Yr * 0) reshape Cells
+Yf = (Xr * 0 + Yr) reshape Cells
+Known = new counter Xs
+Prod = Xf * Yf
+Root = (Xf * Xf + Yf * Yf) isqrt
+Sq = Root * Root equal Xf * Xf + Yf * Yf
+Z1 = Xf + Yf
+Z2 = Root
+Z3 = Prod // (Xf + Yf)
+Z4 = Prod // (Root 1 max)
+E3 = Prod mod (Xf + Yf) equal 0
+E4 = Prod mod (Root 1 max) equal 0
+H1 = Known Z1 greater 0
+H2 = Sq and Known Z2 greater 0
+H3 = E3 and Known Z3 greater 0
+H4 = Sq and E4 and Known Z4 greater 0
+S1 = (Xf + Yf + Z1) filter H1 array
+S2 = (Xf + Yf + Z2) filter H2 array
+S3 = (Xf + Yf + Z3) filter H3 array
+S4 = (Xf + Yf + Z4) filter H4 array
+All = concat S1 S2 S3 S4 unique
+Total = All sum
+G = Total L gcd
+Answer = Total // G + L // G
+Answer print

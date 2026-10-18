@@ -1,0 +1,71 @@
+rem Cross-hatched Triangles
+rem https://projecteuler.net/problem=163
+rem Count the triangles in a size N
+rem triangle with its grid lines and
+rem the lines from vertices to midpoints
+
+use sequences
+use io
+use cli
+
+option Size integer = 36
+
+rem Points (a, b, c), a + b + c = M =
+rem 2 N. Six line families f = k with
+rem f = a, b, c, b - c, c - a, a - b;
+rem k runs 0, 2 .. M for the first
+rem three and -M, .. M for the rest.
+rem For each triple of families, test
+rem every line triple at once: three
+rem corners inside, not concurrent.
+M = 2 * Size
+U = array 1 0 -1 1 -2 1
+V = array 0 1 -1 2 -1 -1
+W = array 0 0 M (0 - M) M 0
+Lo = array 0 0 0 (0 - M) (0 - M) (0 - M)
+Answer = 0
+for D1 in 0 to 3
+  for D2 in D1 + 1 to 4
+    for D3 in D2 + 1 to 5
+      K1 = Lo D1 to M by 2 array
+      K2 = Lo D2 to M by 2 array
+      K3 = Lo D3 to M by 2 array
+      N1 = K1 len
+      N2 = K2 len
+      N3 = K3 len
+      A = K1 reshape N1 1 1
+      B = K2 reshape 1 N2 1
+      C = K3 reshape 1 1 N3
+      Det12 = U D1 * V D2 - U D2 * V D1
+      Det13 = U D1 * V D3 - U D3 * V D1
+      Det23 = U D2 * V D3 - U D3 * V D2
+      Ra = A - W D1
+      Rb = B - W D2
+      An = Ra * V D2 - Rb * V D1
+      Bn = U D1 * Rb - U D2 * Ra
+      In12 = An * Det12 at least 0
+      In12 and= Bn * Det12 at least 0
+      Rest = M * Det12 - An - Bn
+      In12 and= Rest * Det12 at least 0
+      Rc = C - W D3
+      Cn = Ra * V D3 - Rc * V D1
+      En = U D1 * Rc - U D3 * Ra
+      In13 = Cn * Det13 at least 0
+      In13 and= En * Det13 at least 0
+      Rest = M * Det13 - Cn - En
+      In13 and= Rest * Det13 at least 0
+      Fn = Rb * V D3 - Rc * V D2
+      Gn = U D2 * Rc - U D3 * Rb
+      In23 = Fn * Det23 at least 0
+      In23 and= Gn * Det23 at least 0
+      Rest = M * Det23 - Fn - Gn
+      In23 and= Rest * Det23 at least 0
+      Val = U D3 * An + V D3 * Bn
+      Val += W D3 * Det12
+      Ok = In12 and In13 and In23
+      Ok and= Val not equal C * Det12
+      Answer += Ok count
+    end
+  end
+end
+Answer print

@@ -1,0 +1,18 @@
+use testing
+
+test "default input"
+  use "135_samedifferences"
+  run
+
+  Answer equal 4989
+end
+
+test "statement values"
+  use "135_samedifferences"
+  Limit = 1156
+  run
+
+  Cnt 27 equal 2
+  Cnt 1155 equal 10
+  Answer equal 1
+end

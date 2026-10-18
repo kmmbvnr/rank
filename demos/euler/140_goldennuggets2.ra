@@ -1,0 +1,37 @@
+rem Modified Fibonacci Golden Nuggets
+rem https://projecteuler.net/problem=140
+rem Sum the first Count positive n for
+rem which the modified Fibonacci
+rem generating function is rational
+
+use numbers
+use sequences
+use io
+use cli
+
+option Count integer = 30
+
+rem The nuggets need 5 n^2 + 14 n + 1 to
+rem be a square s^2, so with x = 5 n + 7
+rem x^2 - 5 s^2 = 44. Find the small
+rem solutions of both signs, then walk
+rem each orbit by the unit 9 + 4 sqrt 5.
+Y = 0 to 60 array
+T = 5 * Y * Y + 44
+X = T isqrt
+Sq = X * X equal T
+X0 = X filter Sq array
+Y0 = Y filter Sq array
+Xs = concat X0 X0
+Ys = concat Y0 (0 - Y0)
+All = array shape 0 fill 0
+for Step in 1 to 14
+  Ok = Xs mod 5 equal 2 and Xs greater 7
+  Hit = Xs filter Ok array
+  All = concat All ((Hit - 7) // 5)
+  Next = 9 * Xs + 20 * Ys
+  Ys = 4 * Xs + 9 * Ys
+  Xs = Next
+end
+Answer = All unique sort take Count sum
+Answer print
