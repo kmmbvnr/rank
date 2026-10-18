@@ -486,6 +486,14 @@ vector dot products and higher-rank outputs. Known empty product shapes display
 a scalar result. Array facts with unresolved element types display `<?>`;
 unknown function results display `?` instead of a fresh type variable.
 
+Value analysis distinguishes boolean-mask selection (a rank-1 lazy sequence
+of atoms) from integer position gathers (arrays). If the selector could be
+either, the result remains `array or sequence` without a fixed shape. Empty
+array selectors follow the runtime's integer-addressing rule. For `matmul`,
+known operand ranks determine whether contraction returns a scalar or an
+array, even when dimension sizes are unknown; unknown ranks leave the result
+kind unresolved. These type and shape facts do not prove callback-free reads.
+
 ### Symbolic function previews
 
 For supported scalar arithmetic, ordered comparisons and boolean expressions,

@@ -102,3 +102,13 @@ it('reuses rank and axis partitioning for transposed cells', () => {
     expect(operationShapeFacts(transpose, [array([2, 3, 4])], [2], [1]))
         .toMatchObject({ types: ['array'], rank: 3, shape: [3, 4, 2] });
 });
+
+it('keeps dot-product scalar cells distinct from ranked result frames', () => {
+    const matmul = findOperation('matmul')!;
+    const vector: ValueFacts = { types: ['array'], rank: 1 };
+    expect(operationShapeFacts(matmul, [vector, vector]))
+        .toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
+    expect(operationShapeFacts(matmul, [array([2, 3]), array([2, 3])], [1, 1]))
+        .toEqual({ types: ['array'], rank: 1, shape: [2] });
+    expect(operationShapeFacts(matmul, [{ types: ['array'] }, vector])).toBeUndefined();
+});
