@@ -1,0 +1,77 @@
+rem Inscribed Circles of Triangles with
+rem One Angle of 60 Degrees
+rem https://projecteuler.net/problem=195
+rem Count the integer sided triangles
+rem with a 60 degree angle whose
+rem inradius is at most Limit
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 1053779
+
+rem Primitive triples z^2 = x^2 + x y +
+rem y^2 come from m > n, with t = m - n
+rem prime to n and not a multiple of 3.
+rem The triangles (y, x + y, z) and
+rem (x, x + y, z) have inradii
+rem sqrt(3) / 2 n (n + t) and
+rem sqrt(3) / 6 t (3 n + t). With bound
+rem C, the multiples k fit when
+rem 3 q^2 k^2 <= C^2, so a table of
+rem isqrt(C^2 / (3 q^2)) gives the count
+rem for every q at once.
+Cb = 2 * Limit
+Ca = 6 * Limit
+Qb = (Cb * Cb // 3) isqrt
+Qa = (Ca * Ca // 3) isqrt
+Qs = 1 to Qb array
+Rb = Cb * Cb // (3 * Qs * Qs)
+Tb = Rb isqrt copy
+Qs = 1 to Qa array
+Ra = Ca * Ca // (3 * Qs * Qs)
+Ta = Ra isqrt copy
+Total = 0
+for N in 1 to Qb
+  if N * (N + 1) greater Qb
+    break
+  end
+  for T in 1 to Qb // N - N
+    if T mod 3 not equal 0
+      X = N
+      Y = T
+      for Y not equal 0
+        Z = X mod Y
+        X = Y
+        Y = Z
+      end
+      if X equal 1
+        Total += Tb (N * (N + T) - 1)
+      end
+    end
+  end
+end
+for T in 1 to Qa
+  if T * (T + 3) greater Qa
+    break
+  end
+  if T mod 3 not equal 0
+    for N in 1 to (Qa // T - T) // 3
+      X = N
+      Y = T
+      for Y not equal 0
+        Z = X mod Y
+        X = Y
+        Y = Z
+      end
+      if X equal 1
+        Q = T * (3 * N + T)
+        Total += Ta (Q - 1)
+      end
+    end
+  end
+end
+Answer = Total
+Answer print

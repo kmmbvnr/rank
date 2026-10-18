@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "195_inscribedcircles"
+  run
+
+  Answer equal 75085391
+end
+
+test "statement values"
+  use "195_inscribedcircles"
+  Limit = 100
+  run
+
+  Answer equal 1234
+  Limit = 1000
+  run
+
+  Answer equal 22767
+  Limit = 10000
+  run
+
+  Answer equal 359912
+end
