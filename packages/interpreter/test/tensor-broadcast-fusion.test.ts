@@ -76,8 +76,9 @@ end`);
                 outputs.push(fn.call([a, mean, 2n]));
                 outputs.push(fn.call([createArraySnapshot([9n, 13n, 17n, 21n], [2, 2]), mean, 4n]));
                 outputs.push(fn.call([createArraySnapshot([5n, 9n], [1, 2]), mean, 2n]));
-                outputs.push(fn.call([createArraySnapshot([], [0, 2]), mean, 2n]));
+                // Keep the warmed shape when a missing cell forces fallback.
                 outputs.push(fn.call([createArraySnapshot([MISSING, 9n], [1, 2]), mean, 2n]));
+                outputs.push(fn.call([createArraySnapshot([], [0, 2]), mean, 2n]));
                 // Read earlier outputs only after later calls have completed.
                 return { outputs: outputs.map(value => {
                     if (typeof value !== 'object' || value.kind !== 'array') throw new Error('missing array');
