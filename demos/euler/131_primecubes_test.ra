@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "131_primecubes"
+  run
+
+  Answer equal 173
+end
+
+test "primes below one hundred"
+  use "131_primecubes"
+  Limit = 100
+  run
+
+  Answer equal 4
+end
