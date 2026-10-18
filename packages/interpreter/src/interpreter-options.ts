@@ -25,6 +25,7 @@ export interface InterpreterOptions {
     readonly onScalarFunctionExecuted?: () => void;
     readonly scalarBlockCalls?: boolean;
     readonly scalarCallCompilation?: boolean;
+    readonly sequenceMembershipCompilation?: boolean;
     readonly tensorTextDigits?: boolean;
     readonly scalarTextCompilation?: boolean;
     readonly directTextIteration?: boolean;

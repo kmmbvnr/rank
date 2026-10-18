@@ -1228,3 +1228,33 @@ continue to observe cancellation.
 `scalarEntryCompilation: false` disables this entry dispatch while keeping earlier
 compiled-loop calls available. `scalarFunctionCompilation: false` disables the
 underlying scalar bodies for both entry and compiled-loop dispatch.
+
+
+### Nested scalar calls and trusted sequence membership
+
+Loop-capable scalar kernels can link statically resolved user helpers with
+primitive arguments and a scalar result. The existing lexical-scope analysis
+resolves declarations, including later declarations and known imported helpers.
+Each helper has its own cached kernel; no function body is copied into another.
+Analysis rejects cycles, paths deeper than 16 functions and call expansions
+larger than 64 sites. Nested memo/generator calls, ranked calls, callback or
+optional-word parameters, containers and array writes retain ordinary execution.
+
+Before entry, the runtime checks each helper's current declaration, captured
+local collisions and transitive dependencies. Replaced helpers or native
+bindings force fallback before executing the kernel. Compiled loop callers also
+reject writes to dependency names within their region. Same-owner tail calls
+replace the logical frame, preserving call-depth limits and error stacks.
+`scalarCallCompilation: false` disables nested linking as well as loop linking;
+`compiledScalarTailCalls: false` retains the ordinary path for nested tail calls.
+
+Integer `in` and `not in` against an external sequence binding can compile in
+scalar functions and integer loops. Only plans registered by the runtime's
+sequence constructor are eligible. Currently this covers `primes` and its
+bounded forms. Plan names, copied host plans and arbitrary `contains` methods
+are insufficient; replacement of the registered methods invalidates the proof.
+Each entry resolves the current binding again, so a different bounded prime
+plan is used immediately. Membership still observes cancellation checkpoints.
+Unregistered plans, real inputs, sequence parameters and missing bindings retain
+ordinary evaluation. `sequenceMembershipCompilation: false` disables this
+capability for comparison with the previous execution path.

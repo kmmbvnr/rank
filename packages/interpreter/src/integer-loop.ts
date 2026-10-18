@@ -1,3 +1,4 @@
+import { compiledSequenceMembership } from './sequence-membership.js';
 import { type CompiledCalleeType } from './compiled-callee-type.js';
 import { ResourceMap } from './resource-summary.js';
 import { compiledArgumentType } from './compiled-argument-type.js';
@@ -39,6 +40,7 @@ interface Host {
     readonly scalarText: boolean;
     prepareBuiltinCall(module: string, name: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
+    readonly sequenceMembership: boolean;
     scalarFunction(name: string, arity: number): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined;
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
@@ -210,7 +212,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                 // Scalar operators use the shared inference. Loop-specific cell
                 // reads, calls and literal powers retain their guarded lowering.
                 if (isUnaryExpression(source) || isBinaryExpression(source)
-                    && source.operator !== '**' && source.operator !== 'in') return undefined;
+                    && source.operator !== '**' && source.operator !== 'in' && source.operator !== 'notin') return undefined;
                 const inputLines: string[] = [];
                 const term = emitInput(source, inputLines, expected, tail && source === tailSource);
                 return term ? { type: term.type, input: { term, lines: inputLines } } : undefined;
@@ -492,11 +494,23 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
             return { code: name, type };
         }
         if (!isBinaryExpression(e) || e.step) return undefined;
-        if (e.operator === 'in' && isNameExpression(e.right)) {
-            const receiver = container(e.right.name, 'index');
+        if (['in', 'notin'].includes(e.operator) && isNameExpression(e.right)) {
+            const name = e.right.name;
             const key = emit(e.left, lines);
-            if (!receiver || key?.type !== 'integer') return undefined;
-            return { code: `${receiver}.entries.has(key([${key.code}]))`, type: 'boolean' };
+            if (key?.type !== 'integer') return undefined;
+            const negate = e.operator === 'notin' ? '!' : '';
+            if (host.sequenceMembership && !localTypes.has(name) && !arrays.has(name)
+                && compiledSequenceMembership(host.read(name))) {
+                const index = calls.length;
+                calls.push({ name, locals: [], stableArrayReads: true, bind: () => {
+                    const contains = compiledSequenceMembership(host.read(name));
+                    return contains ? arguments_ => contains(arguments_[0] as bigint) : undefined;
+                } });
+                return { code: `${negate}calls[${index}]([${key.code}])`, type: 'boolean' };
+            }
+            const receiver = container(name, 'index');
+            if (!receiver) return undefined;
+            return { code: `${negate}${receiver}.entries.has(key([${key.code}]))`, type: 'boolean' };
         }
         if (isNameExpression(e.right) && ['reduce', 'scan', 'outer', 'segment'].includes(e.right.name)) return undefined;
         if (e.operator === '**') {
