@@ -4,7 +4,8 @@ import { Interpreter, RankError, formatValue } from '../src/index.js';
 
 function execute(source: string, integerLoopCompilation: boolean, nestedLoopCompilation = true, scalarFunctionCompilation = true) {
     let loops = 0;
-    const runtime = new Interpreter(undefined, { integerLoopCompilation, nestedLoopCompilation, scalarFunctionCompilation,
+    // Exercise loop compilation even when the enclosing function could compile.
+    const runtime = new Interpreter(undefined, { scalarEntryCompilation: false, integerLoopCompilation, nestedLoopCompilation, scalarFunctionCompilation,
         onIntegerLoopExecuted: () => loops++ });
     const containers = () => [...runtime.variables].flatMap<unknown>(([name, value]) => {
         if (typeof value !== 'object' || value === null) return [];

@@ -96,8 +96,8 @@ Answer = Candidates filter palindrome first
 
 Each row of `outer` is descending. `merge .descending` visits their products
 in global descending order without materializing the table; `filter` stops at
-the first palindrome, which is the largest. The helper converts each number
-to text and compares it with `reverse`.
+the first palindrome, which is the largest. The helper reverses decimal digits
+with integer arithmetic in a local loop and compares the result with its input.
 
 ## 5. Smallest multiple
 
@@ -984,12 +984,11 @@ An edge joins two primes when both decimal concatenations are prime. The
 builder excludes `2` and `5` and rejects pairs whose sum is divisible by three,
 except pairs involving `3`.
 
-`min_five Data Best` defines a local `search Rest Need Sum`. The local function
-captures the graph and updates `Best` in its enclosing call. Each recursive
-call passes only its remaining candidates, required count and current sum.
-`drop` selects later candidates; membership in the current vertex's neighbors
-filters them. An explicit `copy` stores the filtered candidates for recursive
-search. `take` selects the cheapest possible continuation for pruning.
+`Data Best min_five` defines a local `Rest Need Sum Best search`. The local
+function captures the graph and passes the current best sum explicitly to
+recursive calls, returning any improvement. `drop` selects later candidates;
+membership in the current vertex's neighbors filters them. `take` selects the
+cheapest possible continuation for pruning.
 
 The first pass finds a set with sum `26033`. Every member of a cheaper set
 would be below that sum, so the second pass searches all primes below `26033`.

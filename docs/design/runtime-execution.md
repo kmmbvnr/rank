@@ -718,8 +718,9 @@ A loop can directly link a proven user-function kernel with integer, boolean,
 text, eligible eager-array, or integer-valued index/queue/deque/stack arguments.
 `compiled-callee.ts` describes its argument/result domains, local binding
 constraints, and conservative mutation effects. The existing scalar proof and
-kernel have a separate loop-callee mode; ordinary scalar entry keeps its smaller
-proof. The caller resolves the function before analyzing arguments, so indexing
+kernel have a loop-capable mode shared with ordinary scalar entry. Ordinary
+entry excludes container bodies and array writes because it lacks the linked
+region's ownership proof. The caller resolves the function before analyzing arguments, so indexing
 expressions are not mistaken for helper calls.
 
 Callee bodies may use scalar assignments, branches, early returns, conditional
@@ -1204,17 +1205,25 @@ independently of compiled outer-loop entries.
 
 The same proven scalar bodies are now available through ordinary function calls,
 including callbacks used by rank application. At declaration time the interpreter
-prepares a candidate; every invocation checks exact arity, BigInt arguments and
-absence of captured bindings for assigned local names. Closure checks repeat on
+prepares a candidate; every invocation checks exact arity, eligible argument
+types and absence of captured bindings for assigned local names. Closure checks repeat on
 every call because an enclosing scope can create such a binding after declaration.
 Rejected guards use the existing function path, without executing/replaying effects.
 
 The memo wrapper remains outside dispatch, so cache hits do not execute a kernel.
 Generators keep their existing path. The owning interpreter still manages call
 depth and callee error locations; proof restrictions exclude resource operations.
-Zero-parameter and duplicate-parameter behavior is preserved. Non-integer calls,
-including array broadcasting, retain ordinary evaluation. Tail-frame replacement
+Zero-parameter and duplicate-parameter behavior is preserved. Integer, real,
+boolean, text and eligible eager-array arguments select cached specializations;
+unsupported domains retain ordinary evaluation. Scalar rank application uses
+the same guarded entry for each cell. Tail-frame replacement
 continues through its dedicated driver; ordinary entry does not intercept it.
+
+Local conditional loops and integer ranges use the existing loop-capable proof
+and kernel cache. Selection carries the loop mode into preparation, so the proof
+and generated body agree. Container bodies and array writes retain framed
+execution, as do transferred arguments and inspected calls. Loop checkpoints
+continue to observe cancellation.
 
 `scalarEntryCompilation: false` disables this entry dispatch while keeping earlier
 compiled-loop calls available. `scalarFunctionCompilation: false` disables the
