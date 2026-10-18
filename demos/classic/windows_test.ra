@@ -1,0 +1,21 @@
+use testing
+use sequences
+use linalg
+
+test "generated grid windows and diagonals"
+  use "windows"
+  run
+
+  (Blocks shape equal (array 2 2 2 2)) all
+  (Main equal (array 1 5 9)) all
+  (Anti equal (array 3 5 7)) all
+end
+
+test "window source agrees with a grouped call"
+  use "windows"
+  use sequences
+
+  Direct = 4 grid window 2 2 stride 2
+  Grouped = (4 grid) window 2 2 stride 2
+  (Direct equal Grouped) all
+end

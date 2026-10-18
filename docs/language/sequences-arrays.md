@@ -400,6 +400,9 @@ Blocks = M window WindowShape
 Blocks = M window unpack WindowShape
 ```
 
+The source may be a user function call: `6 upto window 3` has the same
+meaning as `(6 upto) window 3`. The source call is evaluated once.
+
 Sizes may be variables or grouped computations: `M window Height Width` or
 `M window (Height + 1) Width`. Group a function call used to compute a size.
 Each size is evaluated once. The size list ends at `stride`, `padding`, `axis`,
