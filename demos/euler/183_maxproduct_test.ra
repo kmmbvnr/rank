@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "183_maxproduct"
+  run
+
+  Answer equal 48861552
+end
+
+test "smaller limits"
+  use "183_maxproduct"
+  Limit = 11
+  run
+
+  Answer equal -26
+  Limit = 100
+  run
+
+  Answer equal 2438
+  Limit = 1000
+  run
+
+  Answer equal 452936
+end
