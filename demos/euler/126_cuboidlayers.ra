@@ -1,7 +1,7 @@
 rem Cuboid Layers
 rem https://projecteuler.net/problem=126
-rem Find the least layer count that
-rem exactly Num cuboid layers share
+rem Find the least layer size shared by
+rem exactly Num cuboid layers.
 
 use algo
 use numbers
@@ -12,11 +12,9 @@ use cli
 option Num integer = 1000
 option Limit integer = 20000
 
-rem Take the cuboids a <= b <= c whose
-rem first layer fits, grown a layer at
-rem a time: layer n + 1 has 4 (a + b +
-rem c + 2 n - 2) more cells than layer
-rem n. Tally the layer sizes.
+rem Enumerate a <= b <= c whose first
+rem layer fits. Expand each (a,b) pair
+rem into its possible values of c.
 Half = Limit // 2
 R = Half isqrt + 1
 Side = 1 to R array
@@ -41,22 +39,18 @@ B = Pb Own
 C = B + Seq - (Head Own)
 Val = 2 * (A * B + B * C + C * A)
 Sum = A + B + C
-All = array shape (Tot * 20) fill 0
-Used = 0
+Cnt = array shape (Limit + 1) fill 0
 Step = 1
 for Val len greater 0
   Fits = Val at most Limit
   Val = Val filter Fits array
   Sum = Sum filter Fits array
-  Size = Val len
-  Next = Used + Size
-  All (Used till Next) = Val
-  Used = Next
+  Batch = new counter Val
+  Keys = Val unique
+  Cnt Keys += Batch Keys
+  rem Grow from layer Step to Step + 1.
   Val += 4 * (Sum + 2 * Step - 2)
   Step += 1
 end
-Counts = new counter (All take Used)
-Layer = 0 to Limit array
-Cnt = Counts Layer
 Answer = Cnt first index where equal Num
 Answer print

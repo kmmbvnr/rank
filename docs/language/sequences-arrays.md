@@ -686,6 +686,11 @@ written by index; use `copy` to obtain a writable array.
 An array selected by a full-shape array mask remains lazy in its selected
 values, but knows its exact length. `len` therefore does not read those
 values or raise errors deferred in their readers; iteration still does.
+Postfix `array` materializes the selected values into an independently writable
+array. For stored scalar sources, this can copy selected cells directly without
+an intermediate sequence traversal. Reusing a stored boolean mask can reuse its
+selected positions; changing the mask creates a new selection while existing
+selections keep their original positions.
 
 A mask contains one boolean per source item. Display, iteration, indexing,
 `count`, `any`, `all`, `copy`, and postfix `array` all consume those booleans.

@@ -1,0 +1,412 @@
+{
+  "baseline": "a140d9064982be85aa4c155bf0bfe474707cd472",
+  "candidateRuntime": "f8582318 (subsequent changes are documentation, fixtures, tests and comments)",
+  "correctedBaseline": [
+    {
+      "variant": "corrected bound",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "cuboids": 334886,
+      "values": 3954135,
+      "checksum": "52548758960",
+      "timing": "setup and loop parse/execution separately; startup excluded"
+    },
+    {
+      "trial": 0,
+      "setupMs": 688.110459,
+      "loopMs": 2858.2103749999997,
+      "loopCpuMs": 3578.791,
+      "totalMs": 3546.3208339999996
+    },
+    {
+      "trial": 1,
+      "setupMs": 306.4910420000001,
+      "loopMs": 2534.74075,
+      "loopCpuMs": 3264.306,
+      "totalMs": 2841.231792
+    },
+    {
+      "trial": 2,
+      "setupMs": 317.953125,
+      "loopMs": 2526.4992089999996,
+      "loopCpuMs": 3128.554,
+      "totalMs": 2844.4523339999996
+    },
+    {
+      "diagnostics": {
+        "validationRequests": 3777,
+        "dependencyValidations": 14,
+        "cacheHits": 0,
+        "cacheMisses": 3763,
+        "memoHits": 0,
+        "memoMisses": 0,
+        "cellsComputed": 3763,
+        "invalidations": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledTensors": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:greater": 2,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:too-small": 2,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "tensor:group:AssignmentStatement": 3,
+          "scalar-expression:operator-guard:+": 71,
+          "scalar-expression:operator-guard:-": 71,
+          "scalar-expression:operator-guard:*": 71
+        }
+      }
+    }
+  ],
+  "correctedCandidate": [
+    {
+      "variant": "corrected bound",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "cuboids": 334886,
+      "values": 3954135,
+      "checksum": "52548758960",
+      "timing": "setup and loop parse/execution separately; startup excluded"
+    },
+    {
+      "trial": 0,
+      "setupMs": 642.2570000000001,
+      "loopMs": 684.0617090000001,
+      "loopCpuMs": 1289.888,
+      "totalMs": 1326.3187090000001
+    },
+    {
+      "trial": 1,
+      "setupMs": 317.2693750000001,
+      "loopMs": 547.366833,
+      "loopCpuMs": 880.769,
+      "totalMs": 864.6362080000001
+    },
+    {
+      "trial": 2,
+      "setupMs": 264.52941599999986,
+      "loopMs": 563.9914580000004,
+      "loopCpuMs": 948.708,
+      "totalMs": 828.5208740000003
+    },
+    {
+      "diagnostics": {
+        "validationRequests": 3777,
+        "dependencyValidations": 14,
+        "cacheHits": 0,
+        "cacheMisses": 3763,
+        "memoHits": 0,
+        "memoMisses": 0,
+        "cellsComputed": 3763,
+        "invalidations": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledTensors": 71,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskPositionReuses": 57,
+        "maskMaterializations": 142,
+        "maskMaterializedCells": 7908270,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:greater": 2,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:too-small": 2,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "tensor:output-shape": 71
+        }
+      }
+    }
+  ],
+  "originalBoundCandidate": [
+    {
+      "variant": "original bound",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "cuboids": 326019,
+      "values": 3917148,
+      "checksum": "51888985972",
+      "timing": "setup and loop parse/execution separately; startup excluded"
+    },
+    {
+      "trial": 0,
+      "setupMs": 583.868375,
+      "loopMs": 708.1635000000001,
+      "loopCpuMs": 1333.512,
+      "totalMs": 1292.0318750000001
+    },
+    {
+      "trial": 1,
+      "setupMs": 275.7957920000001,
+      "loopMs": 573.040667,
+      "loopCpuMs": 880.5,
+      "totalMs": 848.8364590000001
+    },
+    {
+      "trial": 2,
+      "setupMs": 263.94545800000014,
+      "loopMs": 560.6176249999999,
+      "loopCpuMs": 934.148,
+      "totalMs": 824.563083
+    },
+    {
+      "diagnostics": {
+        "validationRequests": 3777,
+        "dependencyValidations": 14,
+        "cacheHits": 0,
+        "cacheMisses": 3763,
+        "memoHits": 0,
+        "memoMisses": 0,
+        "cellsComputed": 3763,
+        "invalidations": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledTensors": 71,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskPositionReuses": 57,
+        "maskMaterializations": 142,
+        "maskMaterializedCells": 7834296,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:greater": 2,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:too-small": 2,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "tensor:output-shape": 71
+        }
+      }
+    }
+  ],
+  "freshCli": [
+    {
+      "name": "layer-loop",
+      "trial": 0,
+      "ms": 1742.945792
+    },
+    {
+      "name": "layer-loop",
+      "trial": 1,
+      "ms": 1705.892167
+    },
+    {
+      "name": "layer-loop",
+      "trial": 2,
+      "ms": 1721.3750839999998
+    },
+    {
+      "name": "scalar-full",
+      "trial": 0,
+      "ms": 1090.6613750000006
+    },
+    {
+      "name": "scalar-full",
+      "trial": 1,
+      "ms": 1084.8346249999995
+    },
+    {
+      "name": "scalar-full",
+      "trial": 2,
+      "ms": 1310.625583
+    },
+    {
+      "name": "array-full",
+      "trial": 0,
+      "ms": 9767.597749999999
+    },
+    {
+      "name": "array-full",
+      "trial": 1,
+      "ms": 10080.863249999999
+    },
+    {
+      "name": "array-full",
+      "trial": 2,
+      "ms": 9901.748667
+    }
+  ],
+  "notes": [
+    "Node 24.15.0, Apple M5; sequential baseline then candidate; three trials per variant. Background load varied. Earlier exploratory runs under concurrent test load are not included.",
+    "Operation timings include loop parsing/execution and exclude initialization and process startup. Initialization and CPU time are recorded separately. CPU time includes GC worker CPU and may exceed wall time.",
+    "The corrected independent oracle visits 334886 cuboids and 3954135 layer values. The original issue bound excludes valid cuboids and visits 326019/3917148.",
+    "Every layer count and the sum of all layer values are checked against independent scalar enumeration. The scalar reference also checks the full-problem answer 18522.",
+    "Fresh CLI timings include startup, parsing, initialization and captured output. The full array demo additionally counts frequencies; those times are not the layer-only acceptance benchmark.",
+    "No claim of zero allocations or measured peak/retained memory reduction. Outputs and mask-position plans still allocate.",
+    "After integrating main #319, repeated corrected layer-loop times were 0.828/0.695/0.631 s; all initialization-plus-loop trials were still below 1.5 s. All upstream Euler 126 frequency assertions are preserved."
+  ],
+  "integratedMain": "065945b610b302163f0f02c73ab035857645f18b",
+  "integratedCandidate": [
+    {
+      "variant": "corrected bound",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "cuboids": 334886,
+      "values": 3954135,
+      "checksum": "52548758960",
+      "timing": "setup and loop parse/execution separately; startup excluded"
+    },
+    {
+      "trial": 0,
+      "setupMs": 656.0986250000001,
+      "loopMs": 828.084167,
+      "loopCpuMs": 1275.973,
+      "totalMs": 1484.182792
+    },
+    {
+      "trial": 1,
+      "setupMs": 316.30620799999974,
+      "loopMs": 695.3960830000001,
+      "loopCpuMs": 1107.693,
+      "totalMs": 1011.7022909999998
+    },
+    {
+      "trial": 2,
+      "setupMs": 334.4062090000002,
+      "loopMs": 631.2989579999999,
+      "loopCpuMs": 869.38,
+      "totalMs": 965.7051670000001
+    },
+    {
+      "diagnostics": {
+        "validationRequests": 3777,
+        "dependencyValidations": 14,
+        "cacheHits": 0,
+        "cacheMisses": 3763,
+        "memoHits": 0,
+        "memoMisses": 0,
+        "cellsComputed": 3763,
+        "invalidations": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledTensors": 71,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskPositionReuses": 57,
+        "maskMaterializations": 142,
+        "maskMaterializedCells": 7908270,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:greater": 2,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:too-small": 2,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "tensor:output-shape": 71
+        }
+      }
+    }
+  ],
+  "finalIntegratedMain": "9b01afa939358faf5275031feadcb0bf71e9c13e",
+  "finalIntegratedCandidate": [
+    {
+      "variant": "corrected bound",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "cuboids": 334886,
+      "values": 3954135,
+      "checksum": "52548758960",
+      "timing": "setup and loop parse/execution separately; startup excluded"
+    },
+    {
+      "trial": 0,
+      "setupMs": 556.872333,
+      "loopMs": 696.8180419999999,
+      "loopCpuMs": 1108.456,
+      "totalMs": 1253.690375
+    },
+    {
+      "trial": 1,
+      "setupMs": 269.5721659999999,
+      "loopMs": 575.5949999999998,
+      "loopCpuMs": 919.332,
+      "totalMs": 845.1671659999997
+    },
+    {
+      "trial": 2,
+      "setupMs": 249.46016699999973,
+      "loopMs": 543.141916,
+      "loopCpuMs": 877.976,
+      "totalMs": 792.6020829999998
+    },
+    {
+      "diagnostics": {
+        "validationRequests": 3777,
+        "dependencyValidations": 14,
+        "cacheHits": 0,
+        "cacheMisses": 3763,
+        "memoHits": 0,
+        "memoMisses": 0,
+        "cellsComputed": 3763,
+        "invalidations": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledTensors": 71,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskPositionReuses": 57,
+        "maskMaterializations": 142,
+        "maskMaterializedCells": 7908270,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:greater": 2,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:too-small": 2,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "tensor:output-shape": 71
+        }
+      }
+    }
+  ]
+}

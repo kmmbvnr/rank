@@ -27,3 +27,7 @@ and then rewritten as array code.
 The speed gaps come from per-element costs of array operations and
 BigInt based compiled loops, see issues #307, #308, #309, #311, #312
 and #316.
+
+Euler 126 uses stored mask compaction and fused arithmetic updates (#308).
+Its layer-generation benchmark and full counting costs are reported separately
+in [performance measurements](../../docs/design/performance-measurements.md#stored-mask-materialization-and-compound-arithmetic-308).

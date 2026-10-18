@@ -16,6 +16,9 @@ export class RuntimeDiagnostics {
     rankedArrayBatches = 0;
     /** Full materialization attempts over a prepared scalar callback. */
     rankedBatches = 0;
+    maskPositionReuses = 0;
+    maskMaterializations = 0;
+    maskMaterializedCells = 0;
     bulkArrayWrites = 0;
     bulkArrayWriteCells = 0;
     cowCopies = 0;

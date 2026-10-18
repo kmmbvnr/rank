@@ -33,6 +33,27 @@ Unread operands and per-cell numeric errors retain the lazy fallback. Small
 comparison masks remain lazy and read-only; explicit `copy` or `array` makes
 mutable storage. Numeric kernels retain exact BigInt arithmetic.
 
+Stored homogeneous integer operands also specialize `+`, `-` and `*` without
+per-cell type dispatch. Fresh outputs carry their proved scalar kind into owned
+storage rather than validating every cell again. Results remain arbitrary-width
+BigInts, including when an input is an Int64 buffer.
+
+Pure arithmetic compound assignments using `+`, `-` and `*` can enter the tensor
+compiler as a single array-output expression. The previous target is an input;
+the kernel allocates one fresh output before ordinary binding validation and
+rebinding. Total numeric scalar subexpressions are evaluated before the array
+pass, including for an empty array. Their values are recomputed on every run;
+only code/layout may be cached. Unsupported expressions and unread inputs keep
+the reference path.
+
+Array-mask selection snapshots positions and retains the source through COW.
+A private plan registry lets explicit sequence materialization compact trusted
+stored scalar sources directly. Selection creation and `len` still do not demand
+source cells. Lazy, nested, missing and host sources keep ordinary iteration.
+Trusted stored boolean masks may reuse positions under an identity/revision
+check; binding/domain checks run on each use. Results receive fresh writable
+storage, never an in-place update of a retained source.
+
 A vector dot product uses linear offsets. Trusted selection views may borrow
 stored cells without allocating a per-cell cache, while retaining the view's
 observed element-domain checks and established binding contracts. Borrowing is

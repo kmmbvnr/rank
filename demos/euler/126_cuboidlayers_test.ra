@@ -5,6 +5,8 @@ test "default input"
   run
 
   Answer equal 18522
+  Tot equal 334886
+  Cnt 19998 at least 1
 end
 
 test "statement values"
@@ -18,4 +20,13 @@ test "statement values"
   Cnt 46 equal 4
   Cnt 78 equal 5
   Cnt 118 equal 8
+end
+
+test "two ways"
+  use "126_cuboidlayers"
+  Num = 2
+  Limit = 100
+  run
+
+  Answer equal 18
 end
