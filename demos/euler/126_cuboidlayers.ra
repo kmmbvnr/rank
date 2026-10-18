@@ -3,6 +3,8 @@ rem https://projecteuler.net/problem=126
 rem Find the least layer count that
 rem exactly Num cuboid layers share
 
+use algo
+use numbers
 use sequences
 use io
 use cli
@@ -10,33 +12,51 @@ use cli
 option Num integer = 1000
 option Limit integer = 20000
 
-rem Walk cuboids a <= b <= c and add
-rem each layer size to a tally. The next
-rem layer is 4 (a + b + c + 2 n - 2)
-rem cells larger than layer n.
-Cnt = array shape (Limit + 1) fill 0
-for A in 1 to Limit
-  if 6 * A * A greater Limit
-    break
-  end
-  for B in A to Limit
-    if 2 * B * (2 * A + B) greater Limit
-      break
-    end
-    for C in B to Limit
-      Val = 2 * (A * B + B * C + C * A)
-      Sum = A + B + C
-      N = 1
-      for Val at most Limit
-        Cnt Val += 1
-        Val += 4 * (Sum + 2 * N - 2)
-        N += 1
-      end
-      if N equal 1
-        break
-      end
-    end
-  end
+rem Take the cuboids a <= b <= c whose
+rem first layer fits, grown a layer at
+rem a time: layer n + 1 has 4 (a + b +
+rem c + 2 n - 2) more cells than layer
+rem n. Tally the layer sizes.
+Half = Limit // 2
+R = Half isqrt + 1
+Side = 1 to R array
+Ra = Side reshape R 1
+Rb = Side reshape 1 R
+Fit = 2 * Ra + Rb
+Ok = Rb at least Ra
+Ok and= 2 * Rb * Fit at most Limit
+Pos = Ok indices
+Pa = Side (Pos # 0)
+Pb = Side (Pos # 1)
+Room = Half - Pa * Pb
+Many = Room // (Pa + Pb) - Pb + 1
+Tot = Many sum
+Head = Many scan + with 0
+Mark = array shape Tot fill 0
+Mark (Head take (Many len)) += 1
+Own = (Mark scan +) - 1
+Seq = 0 till Tot array
+A = Pa Own
+B = Pb Own
+C = B + Seq - (Head Own)
+Val = 2 * (A * B + B * C + C * A)
+Sum = A + B + C
+All = array shape (Tot * 20) fill 0
+Used = 0
+Step = 1
+for Val len greater 0
+  Fits = Val at most Limit
+  Val = Val filter Fits array
+  Sum = Sum filter Fits array
+  Size = Val len
+  Next = Used + Size
+  All (Used till Next) = Val
+  Used = Next
+  Val += 4 * (Sum + 2 * Step - 2)
+  Step += 1
 end
+Counts = new counter (All take Used)
+Layer = 0 to Limit array
+Cnt = Counts Layer
 Answer = Cnt first index where equal Num
 Answer print
