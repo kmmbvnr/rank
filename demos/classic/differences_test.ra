@@ -1,0 +1,9 @@
+use testing
+
+test "shifted and strided square differences"
+  use "differences"
+  run
+
+  Adjacent equal array 3 5 7 9 11
+  (Even - Odd) equal array 3 7 11
+end

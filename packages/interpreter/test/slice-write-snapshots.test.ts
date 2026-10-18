@@ -25,8 +25,9 @@ A sum`));
             expect(value).toBe(30397486n);
             expect(diagnostics.cowCopies).toBe(0);
             expect(diagnostics.cowCopiedCells).toBe(0);
-            expect(diagnostics.selectionSnapshots).toBeGreaterThan(1000);
-            expect(diagnostics.selectionSnapshotCells).toBeLessThan(30000);
+            // Stored slice arithmetic consumes Cut before the source write.
+            expect(diagnostics.selectionSnapshots).toBe(0);
+            expect(diagnostics.selectionSnapshotCells).toBe(0);
             // One source scan plus work proportional to selected cells, rather
             // than one 10,001-cell scan per prime.
             expect(diagnostics.elementTypeScannedCells).toBeLessThan(100000);

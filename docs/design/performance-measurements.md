@@ -24,6 +24,9 @@ node --expose-gc benchmarks/arrays.mjs
 node --expose-gc benchmarks/arrays.mjs --json
 node --expose-gc benchmarks/arrays.mjs --fusion --json
 node benchmarks/runtime.mjs
+node benchmarks/slice-arithmetic.mjs --quick
+node benchmarks/slice-arithmetic.mjs --quick --real
+node benchmarks/slice-arithmetic.mjs
 node benchmarks/dense-writes.mjs --baseline=/path/to/built/baseline
 node benchmarks/memo.mjs
 node benchmarks/extrema.mjs --baseline=/path/to/built/baseline
@@ -719,3 +722,45 @@ time, including parsing and module loading, changed from 368.64 to 303.06 ms;
 the updated demo executed 78 fused scoring kernels rather than zero. This small
 end-to-end sample is a check on the current demo, not evidence for the issue's
 historical 75-second baseline.
+
+## Stored slice arithmetic (#307)
+
+The [slice benchmark](../../benchmarks/slice-arithmetic.mjs) compares whole-array,
+shifted range, `drop`/`take` and strided differences. It checks every total against
+an independent BigInt formula. `--runtime=/absolute/path/to/out/index.js` runs the
+same workload against another built checkout. Timings include the loop's parse
+and execution, with setup and process startup excluded. Three trials are kept in
+the [recorded samples](../../benchmarks/baselines/2026-10-18-slice-arithmetic.json).
+
+Node 24.15.0, Apple M5; medians in seconds:
+
+| Workload | Whole array | Range slices | `drop` / `take` |
+|---|---:|---:|---:|
+| Baseline `7139cd5b`, 10,000 integers / 668 iterations | 0.833 | 3.719 | 3.497 |
+| Stored-view kernels, same workload | 0.781 | 1.031 | 0.987 |
+| 65,537 integers / 668 iterations | 5.439 | 7.271 | 7.261 |
+| 1,000,000 integers / 20 iterations | 2.556 | 3.391 | 3.405 |
+| 10,000 Float64 values / 668 iterations | 0.129 | 0.148 | 0.128 |
+
+The three spellings are within 1.5x at each measured size. The integer issue
+workload improves by about 3.5–3.6x for slice operations. Background CPU load
+varied during the larger run, so use its within-size ratios rather than treating
+absolute differences between runs as changes to whole-array performance. The
+strided case processes roughly half as many cells; compare cost per element.
+
+Separate dispatch samples over 9,999 selected cells report zero computed lazy
+cells, COW copies and selection-snapshot cells, compared with 29,997 computed
+lazy cells for either slice spelling on the baseline. The output still allocates
+storage. Retained selections and writes keep the existing COW protections.
+
+Euler 125 now uses prefix sums and shifted slice differences, processing one
+window length at a time. Its default answer is `2906969179`; the focused demo
+test took 1.78 seconds, with the small-limit and strict-boundary tests also
+passing. Three fresh CLI processes, including startup, parsing and execution,
+took 2.83/2.53/2.47 seconds (median 2.53 seconds); each answer was checked.
+
+After integrating main `e9c94e50` (#320), the 10K/668 quick check remained within
+1.5x: integer whole/range/drop-take medians were 1.133/1.487/1.489 seconds;
+Float64 medians were 0.195/0.207/0.218 seconds. The Euler 125 default-input test
+still returned the same answer in 3.06 seconds. These runs had higher background
+load than the first samples; their raw values are recorded separately.

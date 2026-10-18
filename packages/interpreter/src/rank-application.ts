@@ -1,6 +1,6 @@
 import { arrayRevision, derivedArray, materializeCells, ownedArray, registerArrayReadPlan, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
-import { registerIntegerView } from './integer-view.js';
+import { registerScalarView } from './integer-view.js';
 import type { RankedMembership } from './membership-function.js';
 import { completed, type Evaluation } from './execution.js';
 import { RankError } from './errors.js';
@@ -546,7 +546,7 @@ export function tensorCells(source: RankArray, frameAxes: readonly number[]): Te
                 });
                 return arrayOffset(source.shape, coordinates);
             };
-            return registerIntegerView(derivedArray(cellShape, [source], index => arrayItem(source, offset(index))), source, offset);
+            return registerScalarView(derivedArray(cellShape, [source], index => arrayItem(source, offset(index))), source, offset);
         },
     };
 }

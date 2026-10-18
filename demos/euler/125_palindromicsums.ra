@@ -1,0 +1,31 @@
+rem Palindromic Sums
+rem https://projecteuler.net/problem=125
+rem Sum distinct palindromes below a limit
+rem made from consecutive squares.
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option Limit integer = 100000000
+
+N = 1 to (Limit isqrt) array
+Pre = N * N scan + with 0 copy
+Found = new set
+for L in 2 to N len
+  rem Each difference sums L squares.
+  Runs = (Pre drop L) - (Pre take (Pre len - L))
+  if (Runs 0) at least Limit
+    break
+  end
+  Runs = Runs filter less Limit array
+  Txt = Runs text rank 0
+  Pal = Txt equal (Txt reverse rank 0)
+  for Value in Runs filter Pal
+    Found add Value
+  end
+end
+Answer = Found sum
+Answer print
