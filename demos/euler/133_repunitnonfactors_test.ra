@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "133_repunitnonfactors"
+  run
+
+  Answer equal 453647705
+end
+
+test "primes below one hundred"
+  use "133_repunitnonfactors"
+  Limit = 100
+  run
+
+  Answer equal 918
+end
