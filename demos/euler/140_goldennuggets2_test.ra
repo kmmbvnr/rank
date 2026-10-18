@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "140_goldennuggets2"
+  run
+
+  Answer equal 5673835352990
+end
+
+test "first eight nuggets"
+  use "140_goldennuggets2"
+  Count = 8
+  run
+
+  Answer equal 3605
+end
