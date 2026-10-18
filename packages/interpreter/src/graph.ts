@@ -19,13 +19,23 @@ export interface GraphEdge {
     readonly id: number;
 }
 
+/** Local traversal needs no complete vertex table, mutation API, or edge IDs.
+ * Providers must return finite outgoing iterables in stable traversal order.
+ * Vertex identity follows Rank's scalar set/index equality.
+ */
+export interface TraversalGraph {
+    /** Validate the start and return setValueKey(vertex). */
+    requireStart(vertex: RankValue): string;
+    outgoingEdges(vertex: RankValue): Iterable<Pick<GraphEdge, 'target' | 'weight'>>;
+}
+
 export function expectGraph(value: RankValue): GraphValue {
     if (typeof value === 'object' && value.kind === 'graph') return value;
     throw new RankError('graph algorithm expects a graph');
 }
 
 /** Mutable adjacency storage behind Rank's graph value. */
-export class GraphValue implements RankGraph {
+export class GraphValue implements RankGraph, TraversalGraph {
     readonly kind = 'graph' as const;
     readonly vertices = new Map<string, RankValue>();
     readonly adjacency = new Map<string, GraphEdge[]>();
@@ -37,6 +47,16 @@ export class GraphValue implements RankGraph {
     ) {}
 
     get size(): number { return this.vertices.size; }
+
+    requireStart(vertex: RankValue): string {
+        const key = setValueKey(vertex);
+        if (!this.vertices.has(key)) throw new RankError('graph does not contain the start vertex');
+        return key;
+    }
+
+    outgoingEdges(vertex: RankValue): readonly GraphEdge[] {
+        return this.adjacency.get(setValueKey(vertex)) ?? [];
+    }
 
     addVertex(value: RankValue): void {
         const key = graphKey(value);

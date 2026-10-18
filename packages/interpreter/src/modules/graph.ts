@@ -2,7 +2,7 @@ import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDsu } from '../dsu.js';
 import { RankFunctionalGraph } from '../functional-graph.js';
-import { expectGraph, type GraphValue } from '../graph.js';
+import { expectGraph, type GraphValue, type TraversalGraph } from '../graph.js';
 import { edgeWeight, trips } from '../graph-trips.js';
 import { indexKey } from '../index-key.js';
 import { ResourceMap } from '../resource-summary.js';
@@ -23,7 +23,8 @@ import type { RuntimeModule } from './types.js';
 
 type Numeric = bigint | number;
 
-interface SearchState {
+export interface SearchState {
+    readonly vertices: Map<string, RankValue>;
     readonly distance: Map<string, Numeric>;
     readonly parent: Map<string, RankValue>;
     readonly order: RankValue[];
@@ -45,11 +46,11 @@ export const graphModule: RuntimeModule = {
         edgeWeight(expectGraph(values[0]), values[1], values[2])),
     bfs: () => native('bfs', 2, values => {
         const graph = expectGraph(values[0]);
-        return searchRecord(graph, breadthFirst(graph, values[1]));
+        return searchRecord(breadthFirst(graph, values[1]));
     }),
     dfs: () => native('dfs', 2, values => {
         const graph = expectGraph(values[0]);
-        return searchRecord(graph, depthFirst(graph, values[1]));
+        return searchRecord(depthFirst(graph, values[1]));
     }),
     components: () => native('components', 1, values => isRankDsu(values[0])
         ? values[0].components : componentRecord(expectGraph(values[0]))),
@@ -60,7 +61,10 @@ export const graphModule: RuntimeModule = {
         bipartiteRecord(expectGraph(values[0]))),
     dijkstra: () => native('dijkstra', 2, values => {
         const graph = expectGraph(values[0]);
-        return searchRecord(graph, dijkstra(graph, values[1]));
+        // Preserve explicit graphs' validation order and whole-graph weight check.
+        graph.requireStart(values[1]);
+        rejectNegativeWeights(graph);
+        return searchRecord(dijkstra(graph, values[1]));
     }),
     bellmanford: () => native('bellmanford', 2, values => {
         const graph = expectGraph(values[0]);
@@ -481,12 +485,12 @@ function rootedTree(graph: GraphValue, root: RankValue): RankRecord {
     }
     const result = record({
         root: graph.vertices.get(rootKey)!,
-        parent: indexFrom(graph, parentValues),
-        depth: indexFrom(graph, depths),
+        parent: indexFrom(graph.vertices, parentValues),
+        depth: indexFrom(graph.vertices, depths),
         order: array(vertices),
-        entry: indexFrom(graph, entries),
-        size: indexFrom(graph, subtreeSizes),
-        head: indexFrom(graph, pathHeads),
+        entry: indexFrom(graph.vertices, entries),
+        size: indexFrom(graph.vertices, subtreeSizes),
+        head: indexFrom(graph.vertices, pathHeads),
     });
     rootedTrees.set(result, { vertices, positions, depth, jumps });
     return result;
@@ -1010,8 +1014,9 @@ function minimumSpanningTreeRecord(graph: GraphValue): RankRecord {
     });
 }
 
-function breadthFirst(graph: GraphValue, start: RankValue): SearchState {
-    const startKey = requireVertex(graph, start);
+export function breadthFirst(graph: TraversalGraph, start: RankValue): SearchState {
+    const startKey = graph.requireStart(start);
+    const vertices = new Map<string, RankValue>([[startKey, start]]);
     const distance = new Map<string, Numeric>([[startKey, 0n]]);
     const parent = new Map<string, RankValue>();
     const order: RankValue[] = [];
@@ -1021,20 +1026,22 @@ function breadthFirst(graph: GraphValue, start: RankValue): SearchState {
         const current = queue[head];
         const currentKey = setValueKey(current);
         order.push(current);
-        for (const edge of graph.adjacency.get(currentKey) ?? []) {
+        for (const edge of graph.outgoingEdges(current)) {
             checkpoint('traversing graph');
             const nextKey = setValueKey(edge.target);
             if (distance.has(nextKey)) continue;
             distance.set(nextKey, BigInt(distance.get(currentKey) as bigint) + 1n);
+            vertices.set(nextKey, edge.target);
             parent.set(nextKey, current);
             queue.push(edge.target);
         }
     }
-    return { distance, parent, order };
+    return { vertices, distance, parent, order };
 }
 
-function depthFirst(graph: GraphValue, start: RankValue): SearchState {
-    const startKey = requireVertex(graph, start);
+export function depthFirst(graph: TraversalGraph, start: RankValue): SearchState {
+    const startKey = graph.requireStart(start);
+    const vertices = new Map<string, RankValue>([[startKey, start]]);
     const distance = new Map<string, Numeric>([[startKey, 0n]]);
     const parent = new Map<string, RankValue>();
     const order: RankValue[] = [];
@@ -1044,18 +1051,25 @@ function depthFirst(graph: GraphValue, start: RankValue): SearchState {
         const current = stack.pop()!;
         const currentKey = setValueKey(current);
         order.push(current);
-        const edges = graph.adjacency.get(currentKey) ?? [];
+        // Reverse push order preserves the explicit graph DFS contract. Only this
+        // expansion is buffered; providers need no random-access adjacency table.
+        const edges = [];
+        for (const edge of graph.outgoingEdges(current)) {
+            checkpoint('traversing graph');
+            edges.push(edge);
+        }
         for (let position = edges.length - 1; position >= 0; position -= 1) {
             checkpoint('traversing graph');
             const next = edges[position].target;
             const nextKey = setValueKey(next);
             if (distance.has(nextKey)) continue;
             distance.set(nextKey, BigInt(distance.get(currentKey) as bigint) + 1n);
+            vertices.set(nextKey, next);
             parent.set(nextKey, current);
             stack.push(next);
         }
     }
-    return { distance, parent, order };
+    return { vertices, distance, parent, order };
 }
 
 function topologicalRecord(graph: GraphValue): RankRecord {
@@ -1144,7 +1158,7 @@ function stronglyConnectedRecord(graph: GraphValue): RankRecord {
     }
     return record({
         count,
-        component: indexFrom(graph, component),
+        component: indexFrom(graph.vertices, component),
         roots: array(roots),
     });
 }
@@ -1174,9 +1188,10 @@ function finishFrom(
     }
 }
 
-function dijkstra(graph: GraphValue, start: RankValue): SearchState {
-    const startKey = requireVertex(graph, start);
-    rejectNegativeWeights(graph);
+/** Requires nonnegative weights; the explicit-graph caller validates all edges first. */
+export function dijkstra(graph: TraversalGraph, start: RankValue): SearchState {
+    const startKey = graph.requireStart(start);
+    const vertices = new Map<string, RankValue>([[startKey, start]]);
     const distance = new Map<string, Numeric>([[startKey, 0n]]);
     const parent = new Map<string, RankValue>();
     const order: RankValue[] = [];
@@ -1192,18 +1207,19 @@ function dijkstra(graph: GraphValue, start: RankValue): SearchState {
         }
         settled.add(key);
         order.push(entry.vertex);
-        for (const edge of graph.adjacency.get(key) ?? []) {
+        for (const edge of graph.outgoingEdges(entry.vertex)) {
             checkpoint('traversing graph');
             const nextKey = setValueKey(edge.target);
             const candidate = numericAdd(entry.distance, edge.weight);
             const previous = distance.get(nextKey);
             if (previous !== undefined && numericCompare(candidate, previous) >= 0) continue;
             distance.set(nextKey, candidate);
+            vertices.set(nextKey, edge.target);
             parent.set(nextKey, entry.vertex);
             heap.push({ vertex: edge.target, distance: candidate });
         }
     }
-    return { distance, parent, order };
+    return { vertices, distance, parent, order };
 }
 
 function bellmanFordRecord(graph: GraphValue, start: RankValue): RankRecord {
@@ -1261,8 +1277,8 @@ function bellmanFordRecord(graph: GraphValue, start: RankValue): RankRecord {
         }
     }
     return record({
-        distance: indexFrom(graph, distance),
-        parent: indexFrom(graph, parent),
+        distance: indexFrom(graph.vertices, distance),
+        parent: indexFrom(graph.vertices, parent),
         negative: setFrom(graph, negativeKeys),
     });
 }
@@ -1294,7 +1310,7 @@ function componentRecord(graph: GraphValue): RankRecord {
     }
     return record({
         count,
-        component: indexFrom(graph, component),
+        component: indexFrom(graph.vertices, component),
         roots: array(roots),
     });
 }
@@ -1326,25 +1342,25 @@ function bipartiteRecord(graph: GraphValue): RankRecord {
             }
         }
     }
-    return record({ possible, color: indexFrom(graph, color) });
+    return record({ possible, color: indexFrom(graph.vertices, color) });
 }
 
-function searchRecord(graph: GraphValue, state: SearchState): RankRecord {
+export function searchRecord(state: SearchState): RankRecord {
     return record({
-        distance: indexFrom(graph, state.distance),
-        parent: indexFrom(graph, state.parent),
+        distance: indexFrom(state.vertices, state.distance),
+        parent: indexFrom(state.vertices, state.parent),
         order: array(state.order),
     });
 }
 
 function indexFrom(
-    graph: GraphValue,
+    vertices: ReadonlyMap<string, RankValue>,
     values: ReadonlyMap<string, RankValue>,
 ): RankIndex {
     const entries = new ResourceMap<RankValue>(value => value);
     for (const [key, value] of values) {
         checkpoint('traversing graph');
-        const vertex = graph.vertices.get(key)!;
+        const vertex = vertices.get(key)!;
         entries.set(indexKey([vertex]), value);
     }
     return entries.resources.track({ kind: 'index', entries });
@@ -1384,9 +1400,7 @@ function valueType(value: RankValue): string {
 }
 
 function requireVertex(graph: GraphValue, vertex: RankValue): string {
-    const key = setValueKey(vertex);
-    if (!graph.vertices.has(key)) throw new RankError('graph does not contain the start vertex');
-    return key;
+    return graph.requireStart(vertex);
 }
 
 function requireUndirected(graph: GraphValue, operation: string): void {
