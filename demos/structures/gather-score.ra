@@ -1,0 +1,22 @@
+rem Score candidate repeating keys with an indirect lookup table.
+use sequences
+use bits
+
+fun Cipher Weights Key Slots score_key
+  KeyStream = Key Slots
+  Plain = Cipher KeyStream bxor
+  return Weights Plain sum
+end
+
+Cipher = array 4 5 6 7 8 9
+Weights = ((0 till 32) ** 2) copy
+Slots = (0 till (Cipher len)) mod 3
+Candidates = array shape 3 3
+  1 2 3
+  3 2 1
+  2 2 2
+end
+Scores = array shape 3 fill 0
+for Key I in Candidates
+  Scores I = Cipher Weights Key Slots score_key
+end

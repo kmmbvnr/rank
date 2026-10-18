@@ -18,3 +18,22 @@ export function arithmeticRange(plan: SequencePlan): ArithmeticRange | undefined
     return entry && plan.iterate === entry.iterate && plan.at === entry.at
         && plan.size.kind === 'exact' && plan.size.value === entry.range.count ? entry.range : undefined;
 }
+
+interface ModularRange extends ArithmeticRange { readonly divisor: bigint }
+const modularRanges = new WeakMap<SequencePlan, {
+    range: ModularRange; source: SequencePlan; iterate: SequencePlan['iterate']; at: SequencePlan['at'];
+}>();
+
+/** Register only the runtime's integer remainder over a proved finite range.
+ * The tensor backend can lower this without invoking sequence callbacks. */
+export function registerModularRange(plan: SequencePlan, source: SequencePlan, divisor: bigint): void {
+    const range = arithmeticRange(source);
+    if (!range || divisor === 0n) return;
+    modularRanges.set(plan, { range: { ...range, divisor }, source, iterate: plan.iterate, at: plan.at });
+}
+
+export function modularRange(plan: SequencePlan): ModularRange | undefined {
+    const entry = modularRanges.get(plan);
+    return entry && arithmeticRange(entry.source) && plan.iterate === entry.iterate && plan.at === entry.at
+        && plan.size.kind === 'exact' && plan.size.value === entry.range.count ? entry.range : undefined;
+}
