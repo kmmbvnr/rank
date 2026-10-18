@@ -34,3 +34,22 @@ it('retains builtin identity when an alias crosses a source-module boundary', ()
     if (!fn || !isNativeFunction(fn)) throw new Error('missing function');
     expect(formatValue(fn.call([runtime.variables.get('A')!, runtime.execute('sum')!]))).toBe('3 7');
 });
+
+it.each([
+    ['1 to Lim', '6'],
+    ['array Lim Lim', 'mask shape mismatch: 2 and 1'],
+])('evaluates a pipeline after a user function returning %s as after its group', (body, expected) => {
+    for (const compiled of [true, false]) {
+        const run = (pipeline: string) => {
+            const runtime = new Interpreter(undefined, { scalarCompilation: compiled, tensorFusion: compiled });
+            runtime.execute(`use sequences\nfun Lim upto\n return ${body}\nend`);
+            try {
+                return formatValue(runtime.execute(pipeline)!);
+            } catch (error) {
+                return error instanceof Error ? error.message : String(error);
+            }
+        };
+        expect(run('6 upto array len')).toBe(expected);
+        expect(run('(6 upto) array len')).toBe(expected);
+    }
+});

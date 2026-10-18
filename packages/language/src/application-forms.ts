@@ -1,6 +1,6 @@
 import { bindCallWords } from './call-words.js';
 import {
-    isAllAxisExpression, isExpression, isParenthesizedExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
+    isAllAxisExpression, isParenthesizedExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
     isApplicationExpression, isArrayExpression, isBinaryExpression, isLabelLiteral, isNameExpression,
     type ArrayExpression, type ArrayItem, type Expression,
 } from './generated/ast.js';
@@ -419,14 +419,12 @@ export function applicationForm(
         originals.set(canonical, part);
         return canonical;
     };
-    const restore = (value: unknown): unknown => {
-        if (isExpression(value)) return originals.get(value) ?? value;
-        if (value && typeof value === 'object' && 'module' in value && 'arities' in value) return value;
-        if (Array.isArray(value)) return value.map(restore);
-        if (value && typeof value === 'object') return Object.fromEntries(
-            Object.entries(value).map(([key, item]) => [key, restore(item)]));
-        return value;
-    };
+    // Forms are flat records: only fields and arrays hold nodes, never walked into.
+    const swap = (value: unknown): unknown => value && typeof value === 'object' && '$type' in value
+        ? originals.get(value as Expression) ?? value
+        : Array.isArray(value) ? value.map(swap) : value;
+    const restore = (form: ApplicationForm): ApplicationForm => Object.fromEntries(
+        Object.entries(form).map(([key, value]) => [key, swap(value)])) as ApplicationForm;
     try {
         if (statement && !Array.isArray(input)) {
             const mutation = explicitCollectionMutation(input as Expression);
@@ -445,7 +443,7 @@ export function applicationForm(
             parts.splice(0, 1, ...flattenApplication(read).map(normalize));
         }
         const form = classifyParts(parts, lookup);
-        return originals.size ? restore(form) as ApplicationForm : form;
+        return originals.size ? restore(form) : form;
     } catch (error) {
         if (error instanceof ApplicationSyntaxError) return { kind: 'invalid', message: error.message };
         throw error;
