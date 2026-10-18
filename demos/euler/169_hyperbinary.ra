@@ -1,0 +1,35 @@
+rem Sum of Powers of 2
+rem https://projecteuler.net/problem=169
+rem Count the ways to write 10^Power as
+rem a sum of powers of 2, each used at
+rem most twice
+
+use bits
+use linalg
+use numbers
+use sequences
+use io
+use cli
+
+option Power integer = 25
+
+rem Let x = b(m), y = b(m-1). The next
+rem bit of n maps (x, y) to (x + y, y)
+rem for 0 and (x, x + y) for 1, since
+rem b(2m) = b(m) + b(m-1), b(2m+1) =
+rem b(m). Multiply the 128 bit matrices
+rem pairwise, in order, 7 times; the
+rem number must be below 2^128.
+Bases = array shape 128 fill 2
+Ds = 10 ** Power Bases digits
+Zero = (Ds equal 0) reshape 128 1 1
+A0 = stack (array 1 1) (array 0 1)
+A1 = stack (array 1 0) (array 1 1)
+R = (Zero choose A0 A1) reverse
+for Step in 1 to 7
+  L = R (0 to # by 2)
+  Rt = R (1 to # by 2)
+  R = L Rt matmul rank 2 2
+end
+Answer = R 0 0 0
+Answer print

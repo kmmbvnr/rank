@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "153_gaussian"
+  run
+
+  Answer equal 17971254122360635
+end
+
+test "statement values"
+  use "153_gaussian"
+  Limit = 5
+  run
+
+  Answer equal 35
+  Limit = 100000
+  run
+
+  Answer equal 17924657155
+end

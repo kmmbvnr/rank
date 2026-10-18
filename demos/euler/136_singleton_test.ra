@@ -1,0 +1,25 @@
+use testing
+
+test "smaller limits"
+  use "136_singleton"
+  Limit = 100
+  run
+
+  Answer equal 25
+  Limit = 1000
+  run
+
+  Answer equal 158
+  Limit = 1000000
+  run
+
+  Answer equal 67641
+end
+
+test "singletons up to twenty"
+  use "136_singleton"
+  Limit = 21
+  run
+
+  Answer equal 8
+end

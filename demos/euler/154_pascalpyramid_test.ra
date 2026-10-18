@@ -1,0 +1,20 @@
+use testing
+
+test "smaller rows"
+  use "154_pascalpyramid"
+  N = 100
+  Power = 3
+  run
+
+  Answer equal 2121
+  N = 300
+  Power = 5
+  run
+
+  Answer equal 6216
+  N = 500
+  Power = 6
+  run
+
+  Answer equal 6762
+end

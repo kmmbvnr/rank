@@ -1,0 +1,32 @@
+rem Large Repunit Factors
+rem https://projecteuler.net/problem=132
+rem Sum the first prime factors of the
+rem repunit with Exp ones
+
+use sequences
+use io
+use cli
+
+option Exp integer = 1000000000
+option Count integer = 40
+option Limit integer = 200000
+
+rem A prime p other than 3 divides the
+rem repunit R(n) when 10^n = 1 mod 9 p.
+rem Square and multiply for all primes.
+Ps = primes from 7 till Limit array
+M = 9 * Ps
+Base = 10 mod M
+Res = array shape (Ps len) fill 1
+E = Exp
+for E greater 0
+  if E mod 2 equal 1
+    Res = Res * Base mod M
+  end
+  Base = Base * Base mod M
+  E = E // 2
+end
+Hit = Res equal 1
+Found = Ps filter Hit array
+Answer = Found take Count sum
+Answer print

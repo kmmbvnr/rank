@@ -1,0 +1,21 @@
+rem Prime Cube Partnership
+rem https://projecteuler.net/problem=131
+rem Count the primes p below a limit for
+rem which n^3 + n^2 p is a perfect cube
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000
+
+rem Only p = (k + 1)^3 - k^3 works,
+rem with n = k^3 and m = k^2 (k + 1).
+Top = (Limit // 3) isqrt + 1
+K = 1 to Top array
+P = 3 * K * K + 3 * K + 1
+Small = P less Limit
+Cand = P filter Small array
+Answer = (Cand in primes) count
+Answer print

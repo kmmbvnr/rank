@@ -1,0 +1,44 @@
+rem Solving the Diophantine Equation
+rem https://projecteuler.net/problem=157
+rem Count the solutions 0 < a <= b, p of
+rem 1/a + 1/b = p/10^n for n = 1 to
+rem Digits
+
+use numbers
+use sequences
+use io
+use cli
+
+option Digits integer = 9
+
+rem Write a = d x, b = d y with x, y
+rem coprime. Then x y divides 10^n and
+rem d divides 10^n (x + y) / (x y). The
+rem pairs are x = 2^a 5^b, y = 2^c 5^d
+rem sharing no prime.
+Answer = 0
+for N in 1 to Digits
+  E = 0 to N array
+  A = E reshape (N + 1) 1 1 1
+  C = E reshape 1 (N + 1) 1 1
+  B = E reshape 1 1 (N + 1) 1
+  D = E reshape 1 1 1 (N + 1)
+  Ok = (A C min) equal 0
+  Ok and= (B D min) equal 0
+  Ok and= A + C at most N
+  Ok and= B + D at most N
+  Pos = Ok indices
+  Ea = Pos # 0
+  Ec = Pos # 1
+  Eb = Pos # 2
+  Ed = Pos # 3
+  X = 2 ** Ea * 5 ** Eb
+  Y = 2 ** Ec * 5 ** Ed
+  Two = N - Ea - Ec
+  Five = N - Eb - Ed
+  Rest = 2 ** Two * 5 ** Five
+  Hit = X at most Y
+  Ms = (Rest * (X + Y)) filter Hit array
+  Answer += Ms divisors count rank 0 sum
+end
+Answer print

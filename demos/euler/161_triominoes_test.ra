@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "161_triominoes"
+  run
+
+  Answer equal 20574308184277971
+end
+
+test "statement value for 2 by 9"
+  use "161_triominoes"
+  Wide = 9
+  High = 2
+  run
+
+  Answer equal 41
+  Wide = 2
+  High = 9
+  run
+
+  Answer equal 41
+end

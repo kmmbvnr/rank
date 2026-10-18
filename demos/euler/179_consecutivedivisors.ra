@@ -1,0 +1,26 @@
+rem Consecutive Positive Divisors
+rem https://projecteuler.net/problem=179
+rem Count the integers 1 < n < Limit for
+rem which n and n + 1 have the same
+rem number of positive divisors
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 10000000
+
+rem Divisors pair up as d and n / d, so
+rem each d up to the root adds 2 to its
+rem multiples above d^2 and 1 to d^2.
+Cnt = array shape (Limit + 1) fill 0
+Root = Limit isqrt
+for D in 1 to Root
+  Cnt (D * D) += 1
+  Cnt (D * (D + 1) to Limit by D) += 2
+end
+Next = Cnt -1 shift
+Same = Cnt equal Next
+Answer = Same count
+Answer print

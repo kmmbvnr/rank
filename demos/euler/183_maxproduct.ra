@@ -1,0 +1,34 @@
+rem Maximum Product of Parts
+rem https://projecteuler.net/problem=183
+rem Sum N or -N for N from 5 to Limit,
+rem by whether the largest product of
+rem equal parts of N has a decimal
+rem expansion that ends or goes on
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 10000
+
+rem The product (N / k)^k is greatest
+rem for k near N / e. It terminates when
+rem the reduced denominator of N / k has
+rem only the factors 2 and 5.
+Ns = 5 to Limit array
+E = 1 exp
+Lo = (Ns / E) floor
+Hi = Lo + 1
+LogLo = (Ns / Lo) log
+LogHi = (Ns / Hi) log
+FLo = Lo * LogLo
+FHi = Hi * LogHi
+Up = FHi greater FLo
+K = Up choose Hi Lo
+Den = K // (Ns K gcd)
+Ten = 2 ** 14 * 5 ** 6
+Ends = Ten mod Den equal 0
+Sign = Ends choose (0 - Ns) Ns
+Answer = Sign sum
+Answer print

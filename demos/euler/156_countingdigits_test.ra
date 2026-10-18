@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "156_countingdigits"
+  run
+
+  Answer equal 21295121502550
+end
+
+test "statement value for digit one"
+  use "156_countingdigits"
+  Last = 1
+  run
+
+  Answer equal 22786974071
+end

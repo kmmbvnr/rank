@@ -1,0 +1,61 @@
+rem Writing 1/2 as a Sum of Inverse
+rem Squares
+rem https://projecteuler.net/problem=152
+rem Count the sets of distinct integers
+rem from 2 to Limit whose inverse
+rem squares sum to 1/2
+
+use algo
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 80
+
+rem Only numbers made of 2, 3, 5, 7, 13
+rem can occur. For p = 13, 7, 5 the
+rem chosen multiples of p must have a
+rem sum free of p in the denominator;
+rem drop those in no such set. Then meet
+rem in the middle over the rest. The
+rem Base is 2^6 3^3 5^2 7^2 13.
+Ns = 2 to Limit array
+Base = 27518400
+Div = Base mod Ns equal 0
+Cand = Ns filter Div array
+Sq = Cand * Cand
+L = Sq lcm
+for Pr in array 13 7 5
+  Pk = L (Pr ** 20) gcd
+  Mul = Cand mod Pr equal 0
+  Ms = Cand filter Mul array
+  K = Ms len
+  Size = 1 K shl
+  Seq = 0 till Size array
+  Mk = Seq reshape Size 1
+  Bt = Mk (0 till K array) bit
+  Vals = L // (Ms * Ms)
+  Sums = (Bt choose Vals 0) sum axis 1
+  Good = Sums mod Pk equal 0
+  Used = (Bt (Good indices)) any axis 0
+  Keep = Ms filter Used array
+  Free = Cand mod Pr not equal 0
+  Ok = Free or Cand in Keep
+  Cand = Cand filter Ok array
+end
+Vals = L // (Cand * Cand)
+Half = Cand len // 2
+Left = array 0
+for V in Vals take Half
+  Left = concat Left (Left + V)
+end
+Right = array 0
+for V in Vals drop Half
+  Right = concat Right (Right + V)
+end
+Seen = new counter Right
+Hits = Seen (L // 2 - Left)
+Answer = Hits sum
+Answer print

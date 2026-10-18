@@ -1,0 +1,24 @@
+rem Using up to One Million Tiles how
+rem Many Different Hollow Square Laminae
+rem can be Formed?
+rem https://projecteuler.net/problem=173
+rem Count the hollow square laminae of
+rem at most Tiles tiles
+
+use numbers
+use sequences
+use io
+use cli
+
+option Tiles integer = 1000000
+
+rem Outer side n, hole side m with the
+rem same parity: n - m = 2 k, n + m =
+rem 2 j with j > k, so tiles = 4 k j.
+rem For each k there are Tiles / (4 k)
+rem - k choices of j.
+Pairs = Tiles // 4
+Lim = Pairs isqrt
+K = 1 to Lim array
+Answer = (Pairs // K - K) sum
+Answer print

@@ -1,0 +1,17 @@
+use testing
+
+test "smaller powers"
+  use "193_squarefree"
+  Power = 10
+  run
+
+  Answer equal 624
+  Power = 20
+  run
+
+  Answer equal 637461
+  Power = 24
+  run
+
+  Answer equal 10199301
+end

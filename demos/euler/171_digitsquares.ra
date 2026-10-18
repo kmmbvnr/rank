@@ -1,0 +1,41 @@
+rem Numbers for which the Sum of the
+rem Squares of the Digits is a Square
+rem https://projecteuler.net/problem=171
+rem Sum the n below 10^Digits whose
+rem digit squares add to a square, and
+rem print the last nine digits
+
+use numbers
+use sequences
+use io
+use cli
+
+option Digits integer = 20
+
+rem State: the square sum s of the
+rem digits so far, with how many
+rem prefixes reach it and their total
+rem value. A digit d moves s up by d^2
+rem and turns a value v into 10 v + d.
+Mod = 1000000000
+Top = 81 * Digits + 1
+Cnt = array shape Top fill 0
+Cnt 0 = 1
+Sum = array shape Top fill 0
+for Pos in 1 to Digits
+  NewC = array shape Top fill 0
+  NewS = array shape Top fill 0
+  for D in 0 to 9
+    By = D * D
+    NewC += Cnt By shift
+    Add = Sum * 10 + D * Cnt
+    NewS += Add By shift
+  end
+  Cnt = NewC mod Mod
+  Sum = NewS mod Mod
+end
+Lim = (Top - 1) isqrt
+Roots = 1 to Lim array
+Pick = Sum (Roots * Roots)
+Answer = Pick sum mod Mod
+Answer print

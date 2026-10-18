@@ -1,0 +1,39 @@
+rem Numbers for which no three
+rem consecutive digits have a sum
+rem greater than a given value
+rem https://projecteuler.net/problem=164
+rem Count the numbers of Digits digits,
+rem no leading zero, where every three
+rem digits in a row sum to at most Cap
+
+use linalg
+use sequences
+use io
+use cli
+
+option Digits integer = 20
+option Cap integer = 9
+
+rem State (p, q): the last two digits as
+rem 10 p + q. Appending r is allowed
+rem when p + q + r <= Cap and moves to
+rem state (q, r). Step a count vector
+rem with the transition matrix.
+S = 0 till 100 array
+P = (S // 10) reshape 100 1
+Q = (S mod 10) reshape 100 1
+R = (0 till 10 array) reshape 1 10
+Ok = P + Q + R at most Cap
+To = Q * 10 + R
+From = S reshape 100 1
+Flat = From * 100 + To
+Tm = array shape 10000 fill 0
+Tm (Flat filter Ok array) = 1
+Mat = Tm reshape 100 100
+Start = S greater 9
+V = Start choose 1 0
+for Step in 3 to Digits
+  V = V Mat matmul
+end
+Answer = V sum
+Answer print

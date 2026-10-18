@@ -1,0 +1,70 @@
+rem Investigating the Torricelli Point
+rem https://projecteuler.net/problem=143
+rem Sum the distinct p + q + r up to a
+rem limit with integer distances p, q, r
+rem from the Torricelli point and sides
+
+use algo
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 120000
+
+rem x, y fit x^2 + x y + y^2 = z^2 when
+rem they are multiples of m^2 - n^2 and
+rem n (2 m + n) for coprime m > n with
+rem 3 not dividing m - n. Pairs form a
+rem graph, and triangles p < q < r in it
+rem are the answers.
+Top = Limit isqrt + 1
+Ms = (1 to Top array) reshape Top 1
+Ns = (1 to Top array) reshape 1 Top
+X0 = Ms * Ms - Ns * Ns
+Y0 = Ns * (2 * Ms + Ns)
+Ok = Ns less Ms and (Ms Ns gcd) equal 1
+Ok and= (Ms - Ns) mod 3 not equal 0
+Ok and= X0 + Y0 at most Limit
+Xs = X0 filter Ok array
+Ys = Y0 filter Ok array
+Num = Limit // (Xs + Ys)
+Tot = Num sum
+Starts = Num scan + with 0
+Marks = array shape Tot fill 0
+Marks (Starts take (Num len)) += 1
+Own = (Marks scan +) - 1
+Seq = 0 till Tot array
+Mult = Seq - (Starts Own) + 1
+P = (Xs Own) * Mult
+Q = (Ys Own) * Mult
+Lo = P Q min
+Hi = P Q max
+Key = Lo * (Limit + 1) + Hi
+Keys = Key unique sort
+Lo = Keys // (Limit + 1)
+Hi = Keys mod (Limit + 1)
+Idx = 0 till (Keys len) array
+Last = array shape (Limit + 1) fill 0
+Last Lo = Idx
+Left = (Last Lo) - Idx
+Has = Left greater 0
+Ids = Idx filter Has array
+Num = Left filter Has array
+Tot = Num sum
+Starts = Num scan + with 0
+Marks = array shape Tot fill 0
+Marks (Starts take (Num len)) += 1
+Own = (Marks scan +) - 1
+Seq = 0 till Tot array
+Pos = Seq - (Starts Own)
+A = Ids Own
+B = A + Pos + 1
+Sums = Lo A + Hi A + Hi B
+Fit = Sums at most Limit
+Edges = new set Keys
+Third = Hi A * (Limit + 1) + Hi B
+Hit = Fit and Third in Edges
+Found = Sums filter Hit array unique
+Answer = Found sum
+Answer print

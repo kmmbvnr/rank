@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "189_tricolouring"
+  run
+
+  Answer equal 10834893628237824
+end
+
+test "small grids"
+  use "189_tricolouring"
+  Rows = 2
+  run
+
+  Answer equal 24
+  Rows = 3
+  run
+
+  Answer equal 528
+  Rows = 4
+  run
+
+  Answer equal 31968
+end

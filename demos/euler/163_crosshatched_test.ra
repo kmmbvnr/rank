@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "163_crosshatched"
+  run
+
+  Answer equal 343047
+end
+
+test "statement values"
+  use "163_crosshatched"
+  Size = 1
+  run
+
+  Answer equal 16
+  Size = 2
+  run
+
+  Answer equal 104
+end

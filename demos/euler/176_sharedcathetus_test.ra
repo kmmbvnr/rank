@@ -1,0 +1,28 @@
+use testing
+
+test "default input"
+  use "176_sharedcathetus"
+  run
+
+  Answer equal 96818198400000
+end
+
+test "small counts"
+  use "176_sharedcathetus"
+  Ways = 1
+  run
+
+  Answer equal 3
+  Ways = 4
+  run
+
+  Answer equal 12
+  Ways = 7
+  run
+
+  Answer equal 24
+  Ways = 12
+  run
+
+  Answer equal 72
+end

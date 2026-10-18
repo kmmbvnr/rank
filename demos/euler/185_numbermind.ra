@@ -1,0 +1,213 @@
+rem Number Mind
+rem https://projecteuler.net/problem=185
+rem Find the 16 digit secret from the
+rem guesses that each tell how many
+rem digits are right and well placed
+
+use numbers
+use sequences
+use io
+
+Guess = array shape 22 16
+  5 6 1 6 1 8 5 6 5 0 5 1 8 2 9 3
+  3 8 4 7 4 3 9 6 4 7 2 9 3 0 4 7
+  5 8 5 5 4 6 2 9 4 0 8 1 0 5 8 7
+  9 7 4 2 8 5 5 5 0 7 0 6 8 3 5 3
+  4 2 9 6 8 4 9 6 4 3 6 0 7 5 4 3
+  3 1 7 4 2 4 8 4 3 9 4 6 5 8 5 8
+  4 5 1 3 5 5 9 0 9 4 1 4 6 1 1 7
+  7 8 9 0 9 7 1 5 4 8 9 0 8 0 6 7
+  8 1 5 7 3 5 6 3 4 4 1 1 8 4 8 3
+  2 6 1 5 2 5 0 7 4 4 3 8 6 8 9 9
+  8 6 9 0 0 9 5 8 5 1 5 2 6 2 5 4
+  6 3 7 5 7 1 1 9 1 5 0 7 7 0 5 0
+  6 9 1 3 8 5 9 1 7 3 1 2 1 3 6 0
+  6 4 4 2 8 8 9 0 5 5 0 4 2 7 6 8
+  2 3 2 1 3 8 6 1 0 4 3 0 3 8 4 5
+  2 3 2 6 5 0 9 4 7 1 2 7 1 4 4 8
+  5 2 5 1 5 8 3 3 7 9 6 4 4 3 2 2
+  1 7 4 8 2 7 0 4 7 6 7 5 8 2 7 6
+  4 8 9 5 7 2 2 6 5 2 1 9 0 3 0 6
+  3 0 4 1 6 3 1 1 1 7 2 2 4 6 3 5
+  1 8 4 1 2 3 6 4 5 4 3 2 4 5 8 9
+  2 6 5 9 8 6 2 6 3 7 3 1 6 8 6 7
+end
+Need = array shape 22
+  2 1 3 3 3 1 2 3 1 2 3
+  1 1 2 0 2 2 3 1 3 3 2
+end
+
+rem Keep a table of the digits each
+rem place may still hold. A clue with
+rem all its matches found bans its digit
+rem elsewhere; one that needs every
+rem place left fixes them. Then branch
+rem on the clue with the fewest ways
+rem left, taking one of its places as a
+rem match or not, on an explicit stack
+rem of tables.
+Gf = Guess reshape 352
+Rows = (0 to 16 array) reshape 17 1
+Cols = (0 to 3 array) reshape 1 4
+Used = Cols Rows min
+Fits = Cols at most Rows
+Pick = Rows Used binomial
+Ways = Fits choose Pick 0
+Bin = Ways reshape 68
+Stack = array shape 32000 fill 1
+Cn = array shape 16 fill 0
+Fv = array shape 22 fill 0
+Pv = array shape 22 fill 0
+Bj = array shape 200 fill 0
+Bd = array shape 200 fill 0
+Ph = array shape 200 fill 0
+Depth = 0
+Top = 0
+Mode = 3
+Done = 0
+Answer = 0
+for Done equal 0
+  Base = Top * 160
+  if Mode equal 3
+    Ok = 1
+    Changed = 1
+    for Changed equal 1 and Ok equal 1
+      Changed = 0
+      for J in 0 to 15
+        Row = Base + J * 10
+        N = 0
+        for E in 0 to 9
+          N += Stack (Row + E)
+        end
+        Cn J = N
+      end
+      for G in 0 to 21
+        F = 0
+        P = 0
+        for J in 0 to 15
+          D = Gf (G * 16 + J)
+          At = Base + J * 10 + D
+          if Stack At equal 1
+            if Cn J equal 1
+              F += 1
+            else
+              P += 1
+            end
+          end
+        end
+        Fv G = F
+        Pv G = P
+        K = Need G
+        if F greater K or F + P less K
+          Ok = 0
+        end
+        if Ok equal 1 and P greater 0
+          if F equal K
+            Changed = 1
+            for J in 0 to 15
+              D = Gf (G * 16 + J)
+              At = Base + J * 10 + D
+              Live = Stack At equal 1
+              if Live and Cn J greater 1
+                Stack At = 0
+                Cn J -= 1
+              end
+            end
+          elif F + P equal K
+            Changed = 1
+            for J in 0 to 15
+              Row = Base + J * 10
+              D = Gf (G * 16 + J)
+              if Stack (Row + D) equal 1
+                if Cn J greater 1
+                  for E in 0 to 9
+                    Stack (Row + E) = 0
+                  end
+                  Stack (Row + D) = 1
+                  Cn J = 1
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+    if Ok equal 1
+      Depth = Top
+      Mode = 0
+    else
+      Mode = 1
+      if Top equal 0
+        Done = 1
+      end
+    end
+  elif Mode equal 0
+    Best = 100000
+    Bg = 0 - 1
+    for G in 0 to 21
+      R = Need G - Fv G
+      Cost = Bin (Pv G * 4 + R)
+      if R greater 0 and Pv G greater R
+        if Cost less Best
+          Best = Cost
+          Bg = G
+        end
+      end
+    end
+    if Bg less 0
+      Done = 1
+      for J in 0 to 15
+        E = 9
+        for D in 0 to 9
+          At = Base + J * 10 + 9 - D
+          if Stack At equal 1
+            E = 9 - D
+          end
+        end
+        Answer = Answer * 10 + E
+      end
+    else
+      Picked = 0
+      for J in 0 to 15
+        D = Gf (Bg * 16 + J)
+        At = Base + J * 10 + D
+        Many = Cn J greater 1
+        if Picked equal 0 and Many
+          if Stack At equal 1
+            Bj Depth = J
+            Bd Depth = D
+            Picked = 1
+          end
+        end
+      end
+      Ph Depth = 0
+      Mode = 1
+    end
+  else
+    if Depth less 0
+      Done = 1
+    elif Ph Depth equal 2
+      Depth -= 1
+    else
+      From = Depth * 160
+      To = From + 160
+      for I in 0 to 159
+        Src = From + I
+        Stack (To + I) = Stack Src
+      end
+      Row = To + Bj Depth * 10
+      if Ph Depth equal 0
+        for E in 0 to 9
+          Stack (Row + E) = 0
+        end
+        Stack (Row + Bd Depth) = 1
+      else
+        Stack (Row + Bd Depth) = 0
+      end
+      Ph Depth += 1
+      Top = Depth + 1
+      Mode = 3
+    end
+  end
+end
+Answer print

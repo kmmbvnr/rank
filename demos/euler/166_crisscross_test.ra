@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "166_crisscross"
+  run
+
+  Answer equal 7130034
+end
+
+test "binary digits"
+  use "166_crisscross"
+  Base = 2
+  run
+
+  Answer equal 34
+end

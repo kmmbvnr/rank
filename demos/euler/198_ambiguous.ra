@@ -1,0 +1,57 @@
+rem Ambiguous Numbers
+rem https://projecteuler.net/problem=198
+rem Count the ambiguous fractions below
+rem 1 / 100 with denominator at most
+rem Limit
+
+use io
+use cli
+
+option Limit integer = 100000000
+
+rem An ambiguous number is the midpoint
+rem of Farey neighbours a/b < c/d, with
+rem denominator 2 b d. Walk the
+rem Stern-Brocot tree from 0/1 and 1/1
+rem keeping b d within Limit / 2 and
+rem a / b below 1 / 100. Follow the left
+rem child in a loop and stack the right.
+Half = Limit // 2
+Sa = array shape 100000 fill 0
+Sb = array shape 100000 fill 0
+Sc = array shape 100000 fill 0
+Sd = array shape 100000 fill 0
+Top = 1
+Sb 0 = 1
+Sc 0 = 1
+Sd 0 = 1
+Answer = 0
+for Top greater 0
+  Top -= 1
+  A = Sa Top
+  B = Sb Top
+  C = Sc Top
+  D = Sd Top
+  Prod = B * D
+  Low = A * 100 less B
+  for Prod at most Half and Low
+    Mid = (A * D + B * C) * 100
+    if Mid less 2 * Prod
+      Answer += 1
+    end
+    E = A + C
+    F = B + D
+    if F * D at most Half
+      Sa Top = E
+      Sb Top = F
+      Sc Top = C
+      Sd Top = D
+      Top += 1
+    end
+    C = E
+    D = F
+    Prod = B * D
+    Low = A * 100 less B
+  end
+end
+Answer print

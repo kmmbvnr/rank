@@ -1,0 +1,29 @@
+use testing
+
+test "default input"
+  use "149_maxsubsequence"
+  run
+
+  Answer equal 52852124
+end
+
+test "statement table values"
+  use "149_maxsubsequence"
+  N = 100
+  run
+
+  S 9 equal -393027
+  S 99 equal 86613
+end
+
+test "smaller tables"
+  use "149_maxsubsequence"
+  N = 10
+  run
+
+  Answer equal 1722603
+  N = 50
+  run
+
+  Answer equal 6047365
+end

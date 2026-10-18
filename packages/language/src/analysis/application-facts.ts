@@ -391,6 +391,11 @@ function transferApplicationFacts(
             return { types: ['dsu'], elements };
         }
     }
+    // `new counter Xs` fills the collection; it does not apply it to its operand.
+    if (ranked.length === 2 && isNewStructureExpression(ranked[0])
+        && ['set', 'counter', 'queue', 'stack', 'deque'].includes(ranked[0].structure)) {
+        return { types: [ranked[0].structure] };
+    }
     if (ranked.length === 3 && isNewStructureExpression(ranked[0]) && ranked[0].structure === 'graph'
         && isLabelLiteral(ranked[2]) && ['directed', 'undirected'].includes(ranked[2].name)) {
         const vertices = infer(ranked[1], lookup);

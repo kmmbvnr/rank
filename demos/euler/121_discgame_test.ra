@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "121_discgame"
+  run
+
+  Answer equal 2269
+end
+
+test "four turns from the statement"
+  use "121_discgame"
+  Turns = 4
+  run
+
+  Answer equal 10
+end

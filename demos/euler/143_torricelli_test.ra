@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "143_torricelli"
+  run
+
+  Answer equal 30758397
+end
+
+test "statement triangle"
+  use "143_torricelli"
+  Limit = 1000
+  run
+
+  Answer equal 784
+end

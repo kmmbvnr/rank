@@ -1,0 +1,42 @@
+rem Squarefree Numbers
+rem https://projecteuler.net/problem=193
+rem Count the squarefree numbers below
+rem two to the power Power
+
+use numbers
+use sequences
+use io
+use cli
+
+option Power integer = 50
+
+rem Q = sum of mu(d) floor(M / d^2) over
+rem d up to the root of M, the last n.
+rem A linear sieve gives mu on the way.
+M = 2 ** Power - 1
+Top = M isqrt
+Mu = array shape (Top + 1) fill 2
+Mu 1 = 1
+Pr = array shape (Top // 8 + 100) fill 0
+Cnt = 0
+Answer = M
+for I in 2 to Top
+  if Mu I equal 2
+    Pr Cnt = I
+    Cnt += 1
+    Mu I = 0 - 1
+  end
+  for J in 0 to Cnt - 1
+    V = I * Pr J
+    if V greater Top
+      break
+    end
+    if I mod Pr J equal 0
+      Mu V = 0
+      break
+    end
+    Mu V = 0 - Mu I
+  end
+  Answer += Mu I * (M // (I * I))
+end
+Answer print

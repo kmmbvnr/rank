@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "127_abchits"
+  run
+
+  Answer equal 18407904
+end
+
+test "statement value for 1000"
+  use "127_abchits"
+  Limit = 1000
+  run
+
+  Answer equal 12523
+end

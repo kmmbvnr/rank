@@ -1,0 +1,30 @@
+rem Repunit Nonfactors
+rem https://projecteuler.net/problem=133
+rem Sum the primes below a limit that
+rem divide no repunit R(10^n)
+
+use sequences
+use io
+use cli
+
+option Limit integer = 100000
+
+rem p divides R(10^n) when the order of
+rem 10 mod 9 p has only the factors 2
+rem and 5, so 10^(10^18) = 1 mod 9 p.
+rem The primes 2, 3, 5 never reach 1.
+Ps = primes till Limit array
+M = 9 * Ps
+Base = 10 mod M
+Res = array shape (Ps len) fill 1
+E = 10 ** 18
+for E greater 0
+  if E mod 2 equal 1
+    Res = Res * Base mod M
+  end
+  Base = Base * Base mod M
+  E = E // 2
+end
+Never = Res not equal 1
+Answer = Ps filter Never sum
+Answer print

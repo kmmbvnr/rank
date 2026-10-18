@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "200_primeproofsqube"
+  run
+
+  Answer equal 229161792008
+end
+
+test "first prime-proof squbes"
+  use "200_primeproofsqube"
+  N = 1
+  run
+
+  Answer equal 200
+  N = 2
+  run
+
+  Answer equal 1992008
+end

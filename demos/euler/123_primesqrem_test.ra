@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "123_primesqrem"
+  run
+
+  Answer equal 21035
+end
+
+test "statement value for seven"
+  use "123_primesqrem"
+  Limit = 1000000000
+  run
+
+  Answer equal 7037
+end

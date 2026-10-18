@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "199_circlepacking"
+  run
+
+  Answer equal 0.00396087
+end
+
+test "three circles only"
+  use "199_circlepacking"
+  Steps = 0
+  run
+
+  Answer equal 0.35382907
+end

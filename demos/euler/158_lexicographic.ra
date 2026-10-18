@@ -1,0 +1,23 @@
+rem Exploring Strings for which Only One
+rem Character Comes Lexicographically
+rem After its Neighbour to the Left
+rem https://projecteuler.net/problem=158
+rem Find the largest count p(n) of such
+rem strings of n distinct letters
+
+use numbers
+use sequences
+use io
+use cli
+
+option Letters integer = 26
+
+rem Choose the n letters, then arrange
+rem them with exactly one descent: the
+rem Eulerian number 2^n - n - 1.
+N = 2 to Letters array
+Sets = Letters N binomial
+Ways = 2 ** N - N - 1
+Counts = Sets * Ways
+Answer = Counts max
+Answer print

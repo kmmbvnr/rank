@@ -1,0 +1,29 @@
+rem Exploring Pascal's Triangle
+rem https://projecteuler.net/problem=148
+rem Count the entries in the first Rows
+rem rows of Pascal's triangle that are
+rem not divisible by 7
+
+use numbers
+use sequences
+use io
+use cli
+
+option Rows integer = 1000000000
+
+rem By Lucas' theorem row n has the
+rem product of (d + 1) over its base 7
+rem digits d. Rows below Rows split by
+rem the first digit that is smaller: a
+rem digit d gives d (d + 1) / 2 times
+rem the prefix product, times 28 for
+rem each free lower digit.
+Width = 20
+Bases = array shape Width fill 7
+D = Rows Bases digits
+Pre = (D + 1) scan * with 1 take Width
+Tri = D * (D + 1) // 2
+Pos = 0 till Width array
+Free = 28 ** (Width - 1 - Pos)
+Answer = (Pre * Tri * Free) sum
+Answer print

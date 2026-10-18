@@ -1,0 +1,15 @@
+use testing
+
+test "default input"
+  use "190_weightedproduct"
+  run
+
+  Answer equal 371048281
+end
+
+test "statement value for ten"
+  use "190_weightedproduct"
+  run
+
+  Best 8 equal 4112
+end

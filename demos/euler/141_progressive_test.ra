@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "141_progressive"
+  run
+
+  Answer equal 878454337159
+end
+
+test "smaller limits"
+  use "141_progressive"
+  Limit = 100000
+  run
+
+  Answer equal 124657
+  Limit = 10000000000
+  run
+
+  Answer equal 21630503507
+end

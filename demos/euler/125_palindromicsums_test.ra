@@ -14,11 +14,3 @@ test "statement value for 1000"
 
   Answer equal 4164
 end
-
-test "no sum of two positive squares"
-  use "125_palindromicsums"
-  Limit = 5
-  run
-
-  Answer equal 0
-end

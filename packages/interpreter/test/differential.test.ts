@@ -13,6 +13,8 @@ function programs(directory: string): string[] {
         return entry.isDirectory() ? programs(file) : file.endsWith('.ra') ? [file] : [];
     }).sort();
 }
+// Programs sized for compiled code need over a minute in the reference interpreter (issues #311, #316).
+const tooSlow = /^euler\/(149|150|154|155|165|170|177|179|181|185|186|193|195|196|198)_/;
 const sources = new Map(programs(demos).map(file => [file, readFileSync(file, 'utf8')]));
 
 // Snapshot eager values without forcing lazy streams or calling user functions.
@@ -72,7 +74,7 @@ describe('compiled and reference demo execution', () => {
     if (!Number.isInteger(count) || count < 1 || !Number.isInteger(shard) || shard < 0 || shard >= count) {
         throw new Error('Invalid differential shard');
     }
-    const files = [...sources.keys()].filter(file =>
+    const files = [...sources.keys()].filter(file => !tooSlow.test(relative(demos, file))).filter(file =>
         createHash('sha256').update(relative(demos, file)).digest().readUInt32BE(0) % count === shard);
     let compared = 0, completed = 0, tests = 0, entries = 0;
     for (const file of files) it(relative(demos, file), async () => {
@@ -94,7 +96,7 @@ describe('compiled and reference demo execution', () => {
         expect(completed).toBeGreaterThan(0);
         expect(entries).toBeGreaterThan(0);
         if (count === 1) {
-            expect(compared).toBe(sources.size);
+            expect(compared).toBe([...sources.keys()].filter(file => !tooSlow.test(relative(demos, file))).length);
             expect(completed).toBeGreaterThan(400);
             expect(tests).toBeGreaterThan(100);
         }

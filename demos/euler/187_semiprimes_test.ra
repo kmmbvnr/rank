@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "187_semiprimes"
+  run
+
+  Answer equal 17427258
+end
+
+test "smaller limits"
+  use "187_semiprimes"
+  Limit = 30
+  run
+
+  Answer equal 10
+  Limit = 1000
+  run
+
+  Answer equal 299
+  Limit = 100000
+  run
+
+  Answer equal 23378
+end

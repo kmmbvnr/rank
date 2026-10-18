@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "160_factorialdigits"
+  run
+
+  Answer equal 16576
+end
+
+test "statement values"
+  use "160_factorialdigits"
+  N = 9
+  run
+
+  Answer equal 36288
+  N = 10
+  run
+
+  Answer equal 36288
+  N = 20
+  run
+
+  Answer equal 17664
+end
