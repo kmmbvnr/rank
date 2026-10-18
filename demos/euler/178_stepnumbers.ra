@@ -1,0 +1,45 @@
+rem Step Numbers
+rem https://projecteuler.net/problem=178
+rem Count the pandigital step numbers,
+rem whose neighbouring digits differ by
+rem one, with at most Len digits
+
+use bits
+use sequences
+use io
+use cli
+
+option Len integer = 40
+
+rem Cnt[d, m]: step numbers of the
+rem current length ending in digit d
+rem that use the digit set m (a 10 bit
+rem mask). Appending d from d - 1 or
+rem d + 1 sets bit d, so the new count
+rem at m is the sum of the old counts at
+rem m and at m without bit d.
+M = (0 till 1024 array) reshape 1 1024
+D = (0 till 10 array) reshape 10 1
+Bit = 1 D shl
+Has = (M Bit band) not equal 0
+Off = D * 1024
+Gi = Off + (M Bit bxor)
+Gf = Gi reshape 10240
+Cnt = array shape 10240 fill 0
+Ds = 1 to 9 array
+Cnt (Ds * 1024 + 2 ** Ds) = 1
+Answer = 0
+for Step in 1 to Len
+  Mat = Cnt reshape 10 1024
+  Full = Mat # 1023
+  Answer += Full sum
+  Up = Mat 1 shift axis 0
+  Down = Mat -1 shift axis 0
+  Near = Up + Down
+  Flat = Near reshape 10240
+  Pick = (Flat Gf) reshape 10 1024
+  Both = Near + Pick
+  Next = Has choose Both 0
+  Cnt = Next reshape 10240
+end
+Answer print
