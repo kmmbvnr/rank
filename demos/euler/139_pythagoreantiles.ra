@@ -1,0 +1,25 @@
+rem Pythagorean Tiles
+rem https://projecteuler.net/problem=139
+rem Count the right triangles of integer
+rem sides and perimeter below a limit
+rem where the middle square tiles c
+
+use io
+use cli
+
+option Limit integer = 100000000
+
+rem In a primitive triple b - a is
+rem coprime to c, so it must be 1. Those
+rem perimeters 12, 70, 408... follow
+rem p = 6 p1 - p2; each has multiples.
+Prev = 2
+Cur = 12
+Answer = 0
+for Cur less Limit
+  Answer += (Limit - 1) // Cur
+  Next = 6 * Cur - Prev
+  Prev = Cur
+  Cur = Next
+end
+Answer print

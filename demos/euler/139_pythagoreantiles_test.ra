@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "139_pythagoreantiles"
+  run
+
+  Answer equal 10057761
+end
+
+test "smaller limits"
+  use "139_pythagoreantiles"
+  Limit = 100
+  run
+
+  Answer equal 9
+  Limit = 10000
+  run
+
+  Answer equal 1003
+  Limit = 1000000
+  run
+
+  Answer equal 100574
+end
