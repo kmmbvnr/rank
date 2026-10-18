@@ -1,0 +1,8 @@
+use testing
+
+test "default input"
+  use "185_numbermind"
+  run
+
+  Answer equal 4640261571849533
+end
