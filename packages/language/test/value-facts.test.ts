@@ -1797,3 +1797,13 @@ it('warns about missing conditions, indices and keys without rejecting guarded u
     expect(warnings('X = new index\nX .NA')).toHaveLength(1);
 
 });
+
+
+it('does not claim scalar bulk query results after operand facts are invalidated', () => {
+    const program = services.Rank.parser.LangiumParser.parse<Program>(
+        'use sequences\nKeys = array 10 20 30\nQueries = array 20 99 10\nPositions = Keys Queries find default -1');
+    const result = analyzeValues(program.value).bindings.get('Positions')!;
+    expect(result.types.length === 0 || result.types.includes('array')).toBe(true);
+    const env = new Map<string, ValueFacts>([['Keys', facts('array 10 20 30')], ['Queries', facts('array 20 99 10')]]);
+    expect(facts('Keys Queries find', env)).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
+});

@@ -527,3 +527,9 @@ Solutions len
         expect([undefined, 2]).toContain(found.facts.rank);
     }
 });
+
+it('does not label a bulk find fallback as a scalar', () => {
+    const source = 'use sequences\nKeys = array 10 20 30\nQueries = array 20 99 10\nPositions = Keys Queries find default -1';
+    const result = factsAt(source, at(source, 'Positions'))!.facts;
+    expect(result.types.length === 0 || result.types.includes('array')).toBe(true);
+});
