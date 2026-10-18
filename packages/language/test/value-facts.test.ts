@@ -427,6 +427,12 @@ it('keeps closed graph vertex types through neighbor lookup', () => {
         new Map([['Graph', graph]]))).toEqual({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
 });
 
+it('types a filled collection by its structure, not its operand', () => {
+    for (const structure of ['set', 'counter', 'queue', 'stack', 'deque']) {
+        expect(facts(`new ${structure} (1 to 4 array)`)).toEqual({ types: [structure] });
+    }
+});
+
 it('distinguishes dsu components from graph components and tracks closed dsu values', () => {
     const dsu = facts('new dsu (1 to 4)');
     expect(dsu).toEqual({ types: ['dsu'], elements: ['integer'] });
