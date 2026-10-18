@@ -1,3 +1,5 @@
+import { maskSelection } from './array-mask-selection.js';
+export { maskSelection };
 import { indexedSource } from './indexed-source.js';
 import { denseScalarItems, noteArrayBinding, ownedArray, readArrayItem } from './array-storage.js';
 import { RankDeque } from './containers.js';
@@ -369,37 +371,6 @@ function sequenceMaskSelection(source: RankSequence, selector: RankArray): RankS
             }
             if (index !== mask.length) {
                 throw new RankError(`mask shape [${mask.length}] does not match sequence size ${index}`, 'DimensionMismatch');
-            }
-        },
-    });
-}
-
-/** The atoms a boolean mask keeps, as a lazy selection even when nothing is kept. */
-export function maskSelection(source: RankArray, selector: RankArray): RankSequence {
-    const sourceSize = arraySize(source.shape);
-    if (!sameShape(source.shape, selector.shape)) {
-        throw new RankError(`mask shape mismatch: ${source.shape} and ${selector.shape}`);
-    }
-    const positions: number[] = [];
-    if (!selector.items.every((item, index) => {
-        checkpoint('selecting array positions');
-        // A cell with no value is not selected, as in SQL.
-        if (item === true && index < sourceSize) positions.push(index);
-        return typeof item === 'boolean' || item === MISSING;
-    })) {
-        throw new RankError('array selector must be a boolean mask');
-    }
-
-    // Positions snapshot the mask without keeping its storage. The source is
-    // still read lazily, so it needs the ordinary array ownership protection.
-    noteArrayBinding(source);
-    return sequence({
-        name: 'array mask selection',
-        size: { kind: 'exact', value: BigInt(positions.length) },
-        *iterate() {
-            for (const index of positions) {
-                checkpoint('reading array selection');
-                yield readArrayItem(source, index);
             }
         },
     });

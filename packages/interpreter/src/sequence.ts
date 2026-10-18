@@ -1,3 +1,4 @@
+import { materializeMaskSelection } from './array-mask-selection.js';
 import { sliceSource } from './slice-source.js';
 import { arrayElementTypes } from './array-element-types.js';
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
@@ -406,6 +407,8 @@ export function arraySequenceOperands(left: RankValue, right: RankValue): [RankV
 }
 
 export function materializeSequence(source: RankSequence): RankArray {
+    const selected = materializeMaskSelection(source);
+    if (selected) return selected;
     if (source.plan.size.kind === 'infinite') {
         throw new RankError('cannot materialize an infinite sequence');
     }

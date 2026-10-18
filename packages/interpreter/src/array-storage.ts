@@ -441,6 +441,14 @@ export function ownedArray(
     return value;
 }
 
+/** Takes fresh cells selected from storage with one proved primitive kind.
+ * Internal kernels must preserve that kind; this is not a validation entry. */
+export function ownedScalarArray(items: RankValue[], kind: string, shape: readonly number[] = [items.length]): RankArray {
+    const value = createOwned(items, shape, true);
+    ownedStorage.get(value)!.elementKinds = new Map(items.length ? [[kind, items.length]] : []);
+    return value;
+}
+
 /** A scalar fill establishes its physical kind once, including for an empty
  * shape. Nested/missing fills keep the ordinary storage and validity rules. */
 export function filledArray(fill: RankValue, shape: readonly number[]): RankArray {
