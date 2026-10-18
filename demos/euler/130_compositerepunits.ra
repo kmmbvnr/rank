@@ -1,0 +1,43 @@
+rem Composites with P Repunit
+rem Property
+rem https://projecteuler.net/problem=130
+rem Sum the first composites n, coprime
+rem to ten, whose A(n) divides n - 1
+
+use io
+use cli
+
+option Count integer = 25
+
+rem Ps always pass A(n) | n - 1, so
+rem test the few passers for factors.
+Found = 0
+Answer = 0
+N = 5
+for Found less Count
+  N += 2
+  if N mod 5 equal 0
+    continue
+  end
+  R = 1
+  K = 1
+  for R not equal 0
+    R = (R * 10 + 1) mod N
+    K += 1
+  end
+  if (N - 1) mod K equal 0
+    D = 3
+    P = 1
+    for D * D at most N and P equal 1
+      if N mod D equal 0
+        P = 0
+      end
+      D += 2
+    end
+    if P equal 0
+      Found += 1
+      Answer += N
+    end
+  end
+end
+Answer print

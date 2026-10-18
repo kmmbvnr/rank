@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "130_compositerepunits"
+  run
+
+  Answer equal 149253
+end
+
+test "first five from the statement"
+  use "130_compositerepunits"
+  Count = 5
+  run
+
+  Answer equal 1985
+end
