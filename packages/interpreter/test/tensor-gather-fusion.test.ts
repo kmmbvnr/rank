@@ -200,3 +200,22 @@ it('keeps gather bindings local when the compilation callback reenters', () => {
         expect(kernel.run()).toBe(43n);
     } finally { runtime.dispose(); }
 });
+
+it.each([
+    ['array shape 2 3\n  4 5 6\n  7 8 9\nend', '(0 till 3) mod 3', '43'],
+    ['array shape 2 3\n  4 5 6\n  7 8 9\nend', 'array 0', '39'],
+    ['array shape 2 0 fill 0', '0 till 0', '0'],
+])('broadcasts a gathered vector over a matrix (%s)', (cipher, slots, expected) => {
+    const source = `use sequences
+use bits
+fun Cipher Key Slots score
+  KeyStream = Key Slots
+  Plain = Cipher KeyStream bxor
+  return Plain sum
+end
+Cipher = ${cipher}
+Key = array 1 2 3
+Slots = ${slots}
+Cipher Key Slots score`;
+    expect(compare(source)).toMatchObject({ value: expected, kernels: 1 });
+});
