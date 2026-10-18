@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "171_digitsquares"
+  run
+
+  Answer equal 142989277
+end
+
+test "smaller sizes"
+  use "171_digitsquares"
+  Digits = 2
+  run
+
+  Answer equal 726
+  Digits = 3
+  run
+
+  Answer equal 28083
+  Digits = 5
+  run
+
+  Answer equal 161887270
+end
