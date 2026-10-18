@@ -1,0 +1,27 @@
+use testing
+
+test "default input"
+  use "181_groupingtwocolours"
+  run
+
+  Answer equal 83735848679360680
+end
+
+test "smaller sets"
+  use "181_groupingtwocolours"
+  Black = 2
+  White = 1
+  run
+
+  Answer equal 4
+  Black = 5
+  White = 7
+  run
+
+  Answer equal 975
+  Black = 10
+  White = 15
+  run
+
+  Answer equal 508866
+end

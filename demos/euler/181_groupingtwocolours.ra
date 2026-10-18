@@ -1,0 +1,48 @@
+rem Investigating in how many Ways
+rem Objects of Two Different Colours can
+rem be Grouped
+rem https://projecteuler.net/problem=181
+rem Count the ways to split Black black
+rem and White white objects into groups,
+rem when the order of groups and of
+rem objects of one colour is ignored
+
+use sequences
+use io
+use cli
+
+option Black integer = 40
+option White integer = 60
+
+rem Cnt[b, w] counts the splittings of b
+rem black and w white objects by the
+rem group types met so far. Allowing a
+rem type (db, dw) any number of times
+rem multiplies by 1 + m + m^2 + ..., m
+rem the shift by that type, which is
+rem (1 + m) (1 + m^2) (1 + m^4) ...
+Nb = Black
+Nw = White
+Rows = Nb + 1
+Cols = Nw + 1
+Cnt = array shape Rows Cols fill 0
+Cnt 0 0 = 1
+for Db in 0 to Nb
+  for Dw in 0 to Nw
+    Ok = Db + Dw greater 0
+    Bx = Db
+    By = Dw
+    for Ok and Bx at most Nb
+      if By greater Nw
+        break
+      end
+      Down = Cnt Bx shift axis 0
+      Moved = Down By shift axis 1
+      Cnt = (Cnt + Moved) copy
+      Bx *= 2
+      By *= 2
+    end
+  end
+end
+Answer = Cnt Nb Nw
+Answer print
