@@ -97,7 +97,7 @@ end`;
     it('retains ordinary execution for captures, side effects and mixed fields', () => {
         for (const source of [
             'Extra = 2\nfun A B combine\n return record\n .n = A .n + B .n + Extra\n end\nend',
-            'Calls = 0\nfun A B combine\n Calls += 1\n return record\n .n = A .n + B .n\n end\nend',
+            'use io\nfun A B combine\n A .n print\n return record\n .n = A .n + B .n\n end\nend',
             'fun A B combine\n return record\n .n = (A .n + B .n) mod 17\n end\nend',
         ]) {
             const { operation, values } = fixture(source);
@@ -108,31 +108,25 @@ end`;
         expect(flatCombine(operation, new FlatRecords(1, real))).toBeUndefined();
     });
 
-    it('proves builtin bindings separately for each closure instance', () => {
+    it('uses the current callback binding in each synchronous local combine', () => {
         const runtime = new Interpreter();
-        runtime.execute(`use numbers
-fun make op
+        try {
+            runtime.execute(`use numbers
+use sequences
+fun Values combine_with op
   fun A B combine
     return record
       .n = (A .n) (B .n) op
     end
   end
-  return combine
+  Result = Values reduce combine
+  return Result .n
 end
-fun A B custom
-  return A + B
-end`);
-        const make = runtime.variables.get('make') as NativeFunction;
-        const builtin = runtime.execute('max')!;
-        const custom = runtime.variables.get('custom')!;
-        const values = new FlatRecords(3, state(1n));
-        const fast = make.call([builtin]) as NativeFunction;
-        const slow = make.call([custom]) as NativeFunction;
-        expect(flatCombine(fast, values)).toBeUndefined();
-        expect(flatCombine(slow, values)).toBeUndefined();
-        const build = (fn: NativeFunction) => new RankSegment(values, (a, b) => fn.call([a, b]), 'combine', fn);
-        expect((build(fast).query(0n, 2n) as RankRecord).entries.get('n')).toBe(1n);
-        expect((build(slow).query(0n, 2n) as RankRecord).entries.get('n')).toBe(3n);
+fun A B custom = A + B`);
+            runtime.variables.set('Values', new FlatRecords(3, state(1n)));
+            expect(runtime.execute('Values combine_with max')).toBe(1n);
+            expect(runtime.execute('Values combine_with custom')).toBe(3n);
+        } finally { runtime.dispose(); }
     });
 
     it('falls back when dynamic code generation is blocked', () => {

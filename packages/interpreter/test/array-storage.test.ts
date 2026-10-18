@@ -212,12 +212,12 @@ First = A inspect`);
     it('does not borrow through a boolean condition supplied as a callback', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('use algo\nfun V inspect predicate\n if predicate\n  return V 0\n else\n  return V 1\n end\nend\n'
-                + 'A = array 10 20\nQ = new queue\nfun change\n Q push 1\n return true\nend');
+            runtime.execute('use algo\nfun V Q inspect predicate\n if Q predicate\n  return V 0\n else\n  return V 1\n end\nend\n'
+                + 'A = array 10 20\nQ = new queue\nfun Q change\n Q push 1\n return true\nend');
             const inspect = runtime.variables.get('inspect');
             if (!inspect || !isNativeFunction(inspect)) throw new Error('inspect');
             const array = runtime.variables.get('A') as RankArray;
-            expect(inspect.call([array, runtime.variables.get('change')!])).toBe(10n);
+            expect(inspect.call([array, runtime.variables.get('Q')!, runtime.variables.get('change')!])).toBe(10n);
             expect(runtime.execute('Q len')).toBe(1n);
             expect(isSharedArray(array)).toBe(true);
         } finally { runtime.dispose(); }
@@ -462,20 +462,20 @@ B = A bump`);
 
     it.each([
         'A 0 = 99\n  return V 0',
-        'Ignored = mutate\n  return V 0',
-        'return mutate + (V 0)',
+        'Ignored = A mutate\n  return V 0',
+        'return (A mutate) + (V 0)',
     ])('isolates writes through another name: %s', body => {
         const runtime = new Interpreter();
         try {
             expect(runtime.execute(`A = array 10 20
-fun mutate
+fun A mutate
   A 0 = 99
   return 0
 end
-fun V inspect
+fun V A inspect
   ${body}
 end
-A inspect`)).toBe(10n);
+A A inspect`)).toBe(10n);
             expect(runtime.execute('A 0')).toBe(10n);
         } finally {
             runtime.dispose();
@@ -486,12 +486,12 @@ A inspect`)).toBe(10n);
         const runtime = new Interpreter();
         try {
             runtime.execute(`A = array 10 20
-fun mutate
+fun A mutate
   A 0 = 99
   return 0
 end
 fun V inspect f
-  return f + (V 0)
+  return (V f) + (V 0)
 end`);
             const inspect = runtime.variables.get('inspect');
             if (!inspect || !isNativeFunction(inspect)) throw new Error('inspect');
@@ -504,15 +504,15 @@ end`);
         }
     });
 
-    it('copies a captured parameter before a nested function writes it', () => {
+    it('copies an explicit parameter before a nested function writes it', () => {
         const runtime = new Interpreter();
         try {
             runtime.execute(`fun V outer
-  fun mutate
+  fun V mutate
     V 0 = 99
     return 0
   end
-  Ignored = mutate
+  Ignored = V mutate
   return 0
 end
 A = array 10 20

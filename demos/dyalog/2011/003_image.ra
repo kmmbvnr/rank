@@ -55,10 +55,7 @@ fun Kernel Image convolveRGB
   Base = array 256 256 256
   RGB = Image Base digits
   Normalized = RGB / 255.0
-  fun Channel apply
-    return Kernel Channel convolve
-  end
-  Filtered = Normalized apply rank 2
+  Filtered = Kernel Normalized convolve rank 2 2
   Rounded = (Filtered * 255.0) 0 round
   Bytes = Rounded integer rank 0
   return Bytes Base fromDigits

@@ -155,14 +155,16 @@ describe('resumable expression fallback', () => {
 
     it.each([
         `use io
-Count = 0
-fun X tap
-  Count += 1
-  Count print
+Count = record
+ .value = 0
+end
+fun X Count tap
+  Count .value += 1
+  Count .value print
   return X
 end
-Result = (2 tap) * 3 + (4 tap) * 5
-array Result Count`,
+Result = (2 Count tap) * 3 + (4 Count tap) * 5
+array Result (Count .value)`,
         `use io
 fun X later
   X print

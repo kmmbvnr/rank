@@ -27,10 +27,10 @@ fun Limit valid_up_to
   Current = array shape 11 2 fill 0
   Current 10 1 = 1
 
-  fun Prev Tight Maximum add_state
+  fun Next Prev Tight Maximum add_state
     Ways = Current Prev Tight
     if Ways equal 0
-      return 0
+      return Next
     end
 
     Last = 9
@@ -54,7 +54,7 @@ fun Limit valid_up_to
 
       Next NewPrev NewTight += Ways
     end
-    return 0
+    return Next
   end
 
   for Maximum in Digits
@@ -62,7 +62,7 @@ fun Limit valid_up_to
 
     for Prev in 0 to 10
       for Tight in 0 to 1
-        Prev Tight Maximum add_state
+        Next = Next Prev Tight Maximum add_state
       end
     end
 

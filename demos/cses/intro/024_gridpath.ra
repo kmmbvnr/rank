@@ -22,10 +22,10 @@ fun Path solve
   end
   Seen 1 1 = true
 
-  return 0 1 1 walk
+  return 0 1 1 Seen walk
 
   rem Explore one path suffix from the current grid cell.
-  fun Step Y X walk
+  fun Step Y X Seen walk
     if Y equal 7 and X equal 1
       if Step equal 48
         return 1
@@ -110,7 +110,7 @@ fun Path solve
       end
 
       Seen NY NX = true
-      Ways += Next NY NX walk
+      Ways += Next NY NX Seen walk
       Seen NY NX = false
     end
 

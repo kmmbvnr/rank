@@ -24,7 +24,7 @@ fun Height Width counting_tilings
       if Ways equal 0
         continue
       end
-      0 0 place
+      Next = Next 0 0 Mask Ways place
     end
 
     Current = Next
@@ -33,28 +33,28 @@ fun Height Width counting_tilings
   return Current 0
 
   rem Fill a column and emit its mask.
-  fun Row NextMask place
+  fun Next Row NextMask Mask Ways place
     if Row equal Height
       Next NextMask += Ways
       Next NextMask mod= Modulus
-      return 0
+      return Next
     end
 
     NextRow = Row + 1
     if Mask Row bit
-      return NextRow NextMask place
+      return Next NextRow NextMask Mask Ways place
     end
 
     Bit = 1 Row shl
     NewMask = NextMask Bit bor
-    NextRow NewMask place
+    Next = Next NextRow NewMask Mask Ways place
 
     if NextRow equal Height
-      return 0
+      return Next
     end
     if Mask NextRow bit equal false
-      Row + 2 NextMask place
+      Next = Next (Row + 2) NextMask Mask Ways place
     end
-    return 0
+    return Next
   end
 end

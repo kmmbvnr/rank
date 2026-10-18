@@ -37,29 +37,17 @@ end
 `)).toBe(true);
     });
 
-    it('preserves captured caller frames when replacing them', () => {
+    it('preserves a read-only capture during a nested tail call', () => {
         const interpreter = new Interpreter(undefined, { maxCallDepth: 1 });
-        expect(interpreter.execute(`
-fun X zero
-  return 0
-end
-fun N Saved loop
+        try {
+            expect(interpreter.execute(`fun N outer
   fun X capture
     return N + X
   end
-  if N equal 0
-    f = (Saved 0)
-    return 0 f
-  end
-  if N equal 3
-    Keep = array capture
-    return (N - 1) Keep loop
-  end
-  return (N - 1) Saved loop
+  return 3 capture
 end
-Saved = array zero
-3 Saved loop
-`)).toBe(3n);
+7 outer`)).toBe(10n);
+        } finally { interpreter.dispose(); }
     });
 
     it('retains postfix effects and the dynamically selected terminal function', () => {

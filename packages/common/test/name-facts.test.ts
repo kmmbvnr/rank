@@ -511,11 +511,11 @@ use sequences
 fun N solve
   Board = array shape N fill 0
   Results = new queue
-  fun visit
+  fun Results visit
     Results push (Board copy)
     return 1
   end
-  Count = visit
+  Count = Results visit
   return Results array
 end
 Solutions = 8 solve

@@ -417,13 +417,18 @@ export class ExpressionEvaluator {
                 }
                 const sort = keyedSort(source, operation);
                 if (!expression.key) throw new RankError(`${operation} requires a key`);
-                const key = yield* resume(expressions.evaluate(expression.key));
-                if (!isNativeFunction(key) || !key.arities.includes(1)) {
-                    throw new RankError(`${operation} key must be a unary function`);
+                const parts = flattenApplication(expression.key);
+                const key = yield* resume(expressions.evaluate(parts.at(-1)!));
+                const operands: RankValue[] = [];
+                for (const operand of parts.slice(0, -1)) operands.push(yield* resume(expressions.evaluate(operand)));
+                if (!isNativeFunction(key) || !key.arities.includes(operands.length + 1)) {
+                    throw new RankError(operands.length
+                        ? `${operation} key must accept the item followed by ${operands.length} bound operands`
+                        : `${operation} key must be a unary function`);
                 }
                 const keys: RankValue[][] = [];
                 for (const item of sort.items) {
-                    const value = yield* resume(expressions.context.invoke(key, [item]));
+                    const value = yield* resume(expressions.context.invoke(key, [item, ...operands]));
                     expressions.context.resources.ownFiles(value);
                     keys.push([value]);
                 }
@@ -629,7 +634,8 @@ export class ExpressionEvaluator {
             if (!isNativeFunction(key) || !key.arities.includes(1)) {
                 throw new RankError('merge by key must be a unary function', 'TypeError');
             }
-            return mergeSorted(sources, descending, value => runExecution(expressions.context.invoke(key, [value])));
+            const frozen = key.snapshot?.() ?? key;
+            return mergeSorted(sources, descending, value => runExecution(expressions.context.invoke(frozen, [value])));
         };
     }
 

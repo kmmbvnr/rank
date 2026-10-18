@@ -243,6 +243,8 @@ export interface RankRecord {
 export type IntrinsicRank = number | 'all';
 
 export interface NativeFunction {
+    /** Bind external data now before retaining this callback in a lazy operation. */
+    readonly snapshot?: () => NativeFunction;
     readonly callSignature?: FunctionCallSignature;
     readonly write?: {
         readonly arity: number;

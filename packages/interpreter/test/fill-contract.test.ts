@@ -46,7 +46,7 @@ it('evaluates an empty fill once without reading a nested lazy prototype', () =>
     const r = new Interpreter();
     let reads = 0;
     r.variables.set('Lazy', { kind: 'array', shape: [1], items: [], containsFiles: false, itemAt: () => { reads++; return 1n; } } as RankArray);
-    r.execute('State = record\n .count = 0\nend\nfun seed\n State .count += 1\n return Lazy\nend\nA = array shape 0 fill seed');
+    r.execute('State = record\n .count = 0\nend\nfun State seed\n State .count += 1\n return Lazy\nend\nA = array shape 0 fill (State seed)');
     expect(r.execute('State .count')).toBe(1n);
     expect(reads).toBe(0);
 });

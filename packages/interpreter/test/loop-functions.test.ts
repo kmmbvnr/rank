@@ -29,17 +29,16 @@ end
 10 addOffset`)).toThrow('addOffset was assigned inside');
     });
 
-    it('captures parameters and writes enclosing bindings in nested loops', () => {
+    it('captures parameters and returns contributions from nested loops', () => {
         expect(execute(`fun Base outer
  Total = 0
  for R in 1 till 3
   Offset = Base + R
   for C in 1 till 3
    fun X addOffset
-    Total += X + Offset + C
-    return Total
+    return X + Offset + C
    end
-   10 addOffset
+   Total += 10 addOffset
   end
  end
  return Total
@@ -47,9 +46,9 @@ end
 100 outer`).value).toBe(452n);
     });
 
-    it('keeps escaping captures alive with the same reference semantics as expression helpers', () => {
+    it('rejects escaping block and expression helpers', () => {
         for (const helper of ['fun X addOffset = X + Offset', 'fun X addOffset\n return X + Offset\nend']) {
-            expect(execute(`saved = len
+            expect(() => execute(`saved = len
 for R in 1 till 3
  Offset = R
  ${helper}
@@ -57,25 +56,23 @@ for R in 1 till 3
   saved = addOffset
  end
 end
-10 saved`).value).toBe(12n);
+10 saved`)).toThrow('nested function addOffset cannot be returned, assigned, or stored');
         }
     });
 
-    it('creates separate captured workspaces for separate enclosing calls', () => {
+    it('creates separate captured workspaces for synchronous enclosing calls', () => {
         expect(execute(`fun Base make
- saved = len
+ Total = 0
  for R in 1 till 3
   Offset = Base + R
   fun X addOffset
    return X + Offset
   end
-  saved = addOffset
+  Total += 1 addOffset
  end
- return saved
+ return Total
 end
-leftFn = (10 make)
-rightFn = (20 make)
-(1 leftFn) + (1 rightFn)`).value).toBe(36n);
+(10 make) + (20 make)`).value).toBe(70n);
     });
 
     it('resumes loop-local helpers after a generator yields', () => {
@@ -93,9 +90,9 @@ end
         expect(formatValue(result.value!)).toBe('111 112');
     });
 
-    it('isolates captures when a nested loop is entered again', () => {
+    it('rejects retaining callbacks across nested loop iterations', () => {
         for (const helper of ['fun X addOffset = X + Offset', 'fun X addOffset\n return X + Offset\nend']) {
-            expect(execute(`leftFn = len
+            expect(() => execute(`leftFn = len
 rightFn = len
 for R in 1 till 3
  for C in 1 till 3
@@ -108,7 +105,7 @@ for R in 1 till 3
   end
  end
 end
-(1 leftFn) + (1 rightFn)`).value).toBe(36n);
+(1 leftFn) + (1 rightFn)`)).toThrow('nested function addOffset cannot be returned, assigned, or stored');
         }
     });
 

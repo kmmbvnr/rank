@@ -346,22 +346,20 @@ describe('Rank control flow and functions', () => {
             '5 total',
         ].join('\n'))).toBe('15');
 
-        expect(run([
-            'fun Base make',
-            '  return add',
-            '',
-            '  fun Value add',
-            '    Base += 1',
-            '    return Base + Value',
-            '  end',
-            'end',
-            'a = (10 make)',
-            'b = (20 make)',
-            'First = 0 a',
-            'Second = 0 a',
-            'Other = 0 b',
-            'array First Second Other',
-        ].join('\n'))).toBe('11 12 21');
+        expect(run(`fun Base make
+  Base += 1
+  First = 0 add
+  Base += 1
+  Second = 0 add
+  return array First Second
+
+  fun Value add
+    return Base + Value
+  end
+end
+A = 10 make
+B = 20 make
+array (A 0) (A 1) (B 0)`)).toBe('11 12 21');
     });
 
     it('uses lexical rather than caller-local function lookup', () => {
@@ -376,11 +374,11 @@ describe('Rank control flow and functions', () => {
         ].join('\n'))).toThrowError('unknown name: X');
     });
 
-    it('keeps captured local generators alive after their outer call', () => {
+    it('materializes captured local generators before leaving their outer call', () => {
         expect(run([
 
             'fun Factor multiples',
-            '  return values',
+            '  return 3 values array',
             '',
             '  fun Limit values',
             '    for Value in 1 to Limit',
@@ -388,8 +386,7 @@ describe('Rank control flow and functions', () => {
             '    end',
             '  end',
             'end',
-            'twos = (2 multiples)',
-            '3 twos array',
+            '2 multiples',
         ].join('\n'))).toBe('2 4 6');
     });
 
@@ -459,27 +456,20 @@ describe('Rank control flow and functions', () => {
         ].join('\n'))).toBe('9 1 2 2');
     });
 
-    it('restores the caller frame after a captured function raises', () => {
-        expect(run([
-            'fun Base make',
-            '  return fail',
-            '  fun N fail',
-            '    Base += N',
-            '    .Failure Base raise',
-            '    return 0',
-            '  end',
-            'end',
-            'fun N caller',
-            '  f = (N make)',
-            '  try',
-            '    1 f',
-            '  catch .Failure Error',
-            '    N += 10',
-            '  end',
-            '  return N',
-            'end',
-            'array (2 caller) (5 caller)',
-        ].join('\n'))).toBe('12 15');
+    it('restores the caller frame after a nested function raises', () => {
+        expect(run(`fun N caller
+  fun Amount fail
+    .Failure (N + Amount) raise
+    return 0
+  end
+  try
+    1 fail
+  catch .Failure Error
+    N += 10
+  end
+  return N
+end
+array (2 caller) (5 caller)`)).toBe('12 15');
     });
 
     it('keeps frames separate when generators from the same body interleave', () => {

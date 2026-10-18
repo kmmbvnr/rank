@@ -55,7 +55,9 @@ jobs:
           npm test --workspace @arrrank/cli
       - name: Test interpreter
         if: matrix.suite == 'interpreter'
-        run: npm test --workspace @arrrank/interpreter -- --exclude test/types.test.ts --exclude test/differential.test.ts
+        run: |
+          npm test --workspace @arrrank/interpreter -- --exclude test/types.test.ts --exclude test/differential.test.ts --exclude test/nurikabe.test.ts
+          npm test --workspace @arrrank/interpreter -- test/nurikabe.test.ts
       - name: Test release library Euler examples
         if: matrix.suite == 'interpreter'
         run: |

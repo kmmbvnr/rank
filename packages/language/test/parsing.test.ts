@@ -161,7 +161,7 @@ describe('Rank grammar', () => {
         expect(isKeyedSortExpression(key.value)).toBe(true);
         if (!isKeyedSortExpression(fields.value) || !isKeyedSortExpression(key.value)) return;
         expect(fields.value.fields.map(field => field.field.name)).toEqual(['time', 'delta']);
-        expect(key.value.key?.name).toBe('eventkey');
+        expect(key.value.key).toMatchObject({ $type: 'NameExpression', name: 'eventkey' });
         expect(document.parseResult.value.statements).toHaveLength(3);
     });
 

@@ -16,8 +16,9 @@ fun V covmatrix
   Transposed = Centered transpose
   return Centered Transposed matmul / (N - 1)
 
-  rem Center one feature without copying it eagerly.
-  fun Feature center
-    return Feature - (Feature mean)
-  end
+end
+
+rem Center one feature without copying it eagerly.
+fun Feature center
+  return Feature - (Feature mean)
 end

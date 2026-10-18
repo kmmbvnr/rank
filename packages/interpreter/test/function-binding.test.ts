@@ -60,10 +60,10 @@ describe('single-expression function bindings', () => {
         const through = runtime.variables.get('through')!;
         expect(isNativeFunction(through) && through.call([-3n, runtime.execute('abs')!])).toBe(3n);
     });
-    it('distinguishes delayed explicit bodies from immediate grouped factories', () => {
+    it('rejects grouped factories returning nested functions but keeps explicit bodies delayed', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun Base make\n fun X add\n  return Base + X\n end\n return add\nend\nf = (10 make)');
-        expect(runtime.execute('5 f')).toBe(15n);
+        expect(() => runtime.execute('fun Base make\n fun X add\n  return Base + X\n end\n return add\nend\nf = (10 make)'))
+            .toThrow('nested function add cannot be returned, assigned, or stored');
         runtime.execute('fun X fail = .Failure raise');
         expect(() => runtime.execute('1 fail')).toThrow();
     });
@@ -104,10 +104,12 @@ describe('single-expression function bindings', () => {
         const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'module.ra', source: 'use numbers\nf = abs sqrt\nfun X g = X f\n1 / 0' }) });
         expect(runtime.execute('use "module.ra"\n9 g')).toBe(3);
     });
-    it.each(['fun', 'memo', 'generator'])('runs imported %s declarations against the program globals', kind => {
+    it.each(['fun', 'memo', 'generator'])('runs imported %s declarations with permitted module dependencies', kind => {
         const body = kind === 'generator' ? 'yield Seed + N' : 'return Seed + N';
-        const source = `use sequences\nSeed = 7\n${kind === 'memo' ? 'memo' : 'fun'} N value\n  ${body}\nend\n`
-            + (kind === 'generator' ? '(2 value) first' : '2 value');
+        const parameters = kind === 'memo' ? 'N Seed' : 'N';
+        const call = kind === 'memo' ? '2 Seed value' : '2 value';
+        const source = `use sequences\nSeed = 7\n${kind === 'memo' ? 'memo' : 'fun'} ${parameters} value\n  ${body}\nend\n`
+            + (kind === 'generator' ? `(${call}) first` : call);
         const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'module.ra', source }) });
         expect(runtime.execute('run "module.ra"')).toBe(9n);
         expect(runtime.execute('run "module.ra"')).toBe(9n);

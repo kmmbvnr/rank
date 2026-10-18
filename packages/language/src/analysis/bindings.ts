@@ -531,7 +531,7 @@ class Analyzer {
         }
         if (isKeyedSortExpression(expression)) {
             this.expression(expression.source);
-            this.expression(expression.key);
+            if (expression.key) for (const part of flatten(expression.key)) this.expression(part);
             return;
         }
         if (isKeyedMergeExpression(expression)) {

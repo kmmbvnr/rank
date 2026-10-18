@@ -108,12 +108,12 @@ describe('sort by', () => {
             'Calls = record',
             '  .count = 0',
             'end',
-            'fun Value magnitude',
+            'fun Value Calls magnitude',
             '  Calls .count += 1',
             '  return Value abs',
             'end',
             'Values = array -3 1 -1 2',
-            'Sorted = Values sort by magnitude',
+            'Sorted = Values sort by Calls magnitude',
             'Order = (Sorted equal',
             '  array 1 -1 2 -3) and reduce',
             'Same = (Values equal',
@@ -205,16 +205,43 @@ describe('argsort by', () => {
             'Calls = record',
             '  .count = 0',
             'end',
-            'fun Value magnitude',
+            'fun Value Calls magnitude',
             '  Calls .count += 1',
             '  return Value abs',
             'end',
             'Values = array -3 1 -1 2',
-            'Order = Values argsort by magnitude',
+            'Order = Values argsort by Calls magnitude',
             'Expected = array 1 2 3 0',
             'Matches = Order equal Expected',
             'Same = Matches and reduce',
             'Same and Calls .count equal 4',
         ].join('\n'))).toBe('true');
+    });
+});
+
+describe('bound sort operands', () => {
+    it('passes bound operands after each item and preserves ties', () => {
+        expect(run(`use numbers
+use sequences
+fun X Limit distance = (X - Limit) abs
+Values = array 1 5 3 7
+Sorted = Values sort by 4 distance
+(Sorted equal array 5 3 1 7) and reduce`)).toBe('true');
+    });
+
+    it('accepts several operands and parenthesized expressions', () => {
+        expect(run(`use sequences
+fun X Scale Offset key = X * Scale + Offset
+Values = array 1 3 2
+Order = Values argsort by (0 - 2) 10 key
+(Order equal array 1 2 0) and reduce`)).toBe('true');
+    });
+
+    it('keeps the direction and following pipeline outside the key', () => {
+        expect(run(`use numbers
+use sequences
+fun X Limit distance = (X - Limit) abs
+Values = array 1 5 3 7
+Values sort by 4 distance .descending first`)).toBe('1');
     });
 });

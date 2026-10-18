@@ -1,7 +1,7 @@
 import { isAstNode, type AstNode } from 'langium';
 import {
     isApplicationExpression, isBinaryExpression, isBoundClauseExpression, isCountClauseExpression,
-    isFirstIndexWhereExpression, isFirstWhereExpression, isMaterializeExpression, isNameExpression, isNumberLiteral,
+    isFirstIndexWhereExpression, isFirstWhereExpression, isKeyedSortExpression, isLabelLiteral, isMaterializeExpression, isNameExpression, isNumberLiteral,
     isSubjectComparisonExpression, isTableFilterExpression, isTakeWhileExpression, isUnaryExpression,
     type Expression, type Program,
 } from './generated/ast.js';
@@ -75,12 +75,14 @@ function setSource(clause: Clause, source: Expression): void {
 function isClause(expression: Expression): expression is Clause {
     return isBound(expression) || isMaterializeExpression(expression) || isTableFilterExpression(expression) || isBoundClauseExpression(expression)
         || isCountClauseExpression(expression) || isTakeWhileExpression(expression)
-        || isFirstWhereExpression(expression) || isFirstIndexWhereExpression(expression);
+        || isFirstWhereExpression(expression) || isFirstIndexWhereExpression(expression)
+        || isKeyedSortExpression(expression) && !expression.operator.startsWith('merge');
 }
 
 /** The property holding a clause's one-line condition, if it has one. */
-function conditionKey(clause: Clause): 'condition' | 'mask' | 'right' | undefined {
+function conditionKey(clause: Clause): 'condition' | 'mask' | 'right' | 'key' | undefined {
     if (isBound(clause)) return 'right';
+    if (isKeyedSortExpression(clause)) return clause.key ? 'key' : undefined;
     if (isTableFilterExpression(clause)) return clause.condition ? 'condition' : undefined;
     if (isBoundClauseExpression(clause)) return 'condition';
     if (isTakeWhileExpression(clause) || isFirstWhereExpression(clause)
@@ -119,6 +121,14 @@ function transform(node: AstNode, names: ClauseNames): AstNode {
     const { extent, steps } = key === 'right' && !isCondition(condition)
         ? peelBound(condition, names) : peelTerm(condition, names);
     record[key] = extent;
+    if (isKeyedSortExpression(clause)) {
+        const direction = steps[0];
+        if (direction?.kind === 'argument' && isLabelLiteral(direction.value)
+            && ['ascending', 'descending'].includes(direction.value.name)) {
+            clause.direction = `.${direction.value.name}`;
+            return rebuild(clause, steps.slice(1));
+        }
+    }
     return rebuild(clause, steps);
 }
 

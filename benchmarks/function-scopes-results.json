@@ -1,0 +1,313 @@
+{
+  "baselineRevision": "b3d7e208",
+  "note": "The baseline and initial migration were measured on the same runtime build before scope enforcement. The implemented run verifies identical ordered outputs and final CoW counts. It ran alongside test suites, so its timings are not an isolated speed comparison. Three samples per case are exploratory; no speedup is claimed.",
+  "baseline": {
+    "node": "v24.15.0",
+    "sourceRef": "HEAD",
+    "method": "One warmup and three measured calls per case/mode; declarations and prime graph construction excluded; ordered queens output and prime result checked on every call.",
+    "results": [
+      {
+        "name": "queens_recursive",
+        "compilation": false,
+        "samples": [
+          {
+            "ms": 244.66229199999998,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 254.89533400000005,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 256.1262499999998,
+            "copies": 0,
+            "cells": 0
+          }
+        ],
+        "medianMs": 254.89533400000005,
+        "outputHash": "bba9198177134d3a0d78657d4c70a621229e2044591bfd9b8d78a6d2a75c97cf",
+        "sourceHash": "15582501c8d119b79e95c8a2b78418650eff7c9d3abf3137c878e67e149b5602"
+      },
+      {
+        "name": "queens_recursive",
+        "compilation": true,
+        "samples": [
+          {
+            "ms": 93.23812500000008,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 78.42158399999994,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 93.01049999999987,
+            "copies": 0,
+            "cells": 0
+          }
+        ],
+        "medianMs": 93.01049999999987,
+        "outputHash": "bba9198177134d3a0d78657d4c70a621229e2044591bfd9b8d78a6d2a75c97cf",
+        "sourceHash": "15582501c8d119b79e95c8a2b78418650eff7c9d3abf3137c878e67e149b5602"
+      },
+      {
+        "name": "prime_pair_search",
+        "compilation": false,
+        "samples": [
+          {
+            "ms": 959.2228329999998,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 932.8315829999992,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 940.1584999999995,
+            "copies": 0,
+            "cells": 0
+          }
+        ],
+        "medianMs": 940.1584999999995,
+        "outputHash": "ad7c26db722221bfb1bf7e3c36b501bedf8be857b1cfa8664fccb074b54354f9",
+        "sourceHash": "0d6c6081f22916e5caa21a1315273dccdc61d7f26772b693f3ec0be86210adb3"
+      },
+      {
+        "name": "prime_pair_search",
+        "compilation": true,
+        "samples": [
+          {
+            "ms": 973.7897919999996,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 1066.1899589999994,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 1192.1040409999987,
+            "copies": 0,
+            "cells": 0
+          }
+        ],
+        "medianMs": 1066.1899589999994,
+        "outputHash": "ad7c26db722221bfb1bf7e3c36b501bedf8be857b1cfa8664fccb074b54354f9",
+        "sourceHash": "0d6c6081f22916e5caa21a1315273dccdc61d7f26772b693f3ec0be86210adb3"
+      }
+    ]
+  },
+  "explicitState": {
+    "node": "v24.15.0",
+    "sourceRef": "working tree",
+    "method": "One warmup and three measured calls per case/mode; declarations and prime graph construction excluded; ordered queens output and prime result checked on every call.",
+    "results": [
+      {
+        "name": "queens_recursive",
+        "compilation": false,
+        "samples": [
+          {
+            "ms": 249.62762499999997,
+            "copies": 2056,
+            "cells": 16448
+          },
+          {
+            "ms": 268.332625,
+            "copies": 2056,
+            "cells": 16448
+          },
+          {
+            "ms": 233.02266699999996,
+            "copies": 2056,
+            "cells": 16448
+          }
+        ],
+        "medianMs": 249.62762499999997,
+        "outputHash": "bba9198177134d3a0d78657d4c70a621229e2044591bfd9b8d78a6d2a75c97cf",
+        "sourceHash": "389e711dd00ba732a0f78fb3fa31c7ecb17439f3c4823a18c7145dc4b5cece20"
+      },
+      {
+        "name": "queens_recursive",
+        "compilation": true,
+        "samples": [
+          {
+            "ms": 121.43187499999999,
+            "copies": 2056,
+            "cells": 16448
+          },
+          {
+            "ms": 100.37474999999995,
+            "copies": 2056,
+            "cells": 16448
+          },
+          {
+            "ms": 97.65608299999985,
+            "copies": 2056,
+            "cells": 16448
+          }
+        ],
+        "medianMs": 100.37474999999995,
+        "outputHash": "bba9198177134d3a0d78657d4c70a621229e2044591bfd9b8d78a6d2a75c97cf",
+        "sourceHash": "389e711dd00ba732a0f78fb3fa31c7ecb17439f3c4823a18c7145dc4b5cece20"
+      },
+      {
+        "name": "prime_pair_search",
+        "compilation": false,
+        "samples": [
+          {
+            "ms": 1121.750833,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 906.111832999999,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 945.6452910000007,
+            "copies": 0,
+            "cells": 0
+          }
+        ],
+        "medianMs": 945.6452910000007,
+        "outputHash": "ad7c26db722221bfb1bf7e3c36b501bedf8be857b1cfa8664fccb074b54354f9",
+        "sourceHash": "c91860234d8f7574e2b155d893e851746ffe36de2950665d115669c88cd85e96"
+      },
+      {
+        "name": "prime_pair_search",
+        "compilation": true,
+        "samples": [
+          {
+            "ms": 1000.8292500000025,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 1018.2811250000013,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 1001.4517919999998,
+            "copies": 0,
+            "cells": 0
+          }
+        ],
+        "medianMs": 1001.4517919999998,
+        "outputHash": "ad7c26db722221bfb1bf7e3c36b501bedf8be857b1cfa8664fccb074b54354f9",
+        "sourceHash": "c91860234d8f7574e2b155d893e851746ffe36de2950665d115669c88cd85e96"
+      }
+    ]
+  },
+  "implemented": {
+    "node": "v24.15.0",
+    "sourceRef": "working tree",
+    "method": "One warmup and three measured calls per case/mode; declarations and prime graph construction excluded; ordered queens output and prime result checked on every call.",
+    "results": [
+      {
+        "name": "queens_recursive",
+        "compilation": false,
+        "samples": [
+          {
+            "ms": 1251.1850840000002,
+            "copies": 2056,
+            "cells": 16448
+          },
+          {
+            "ms": 1084.6837079999996,
+            "copies": 2056,
+            "cells": 16448
+          },
+          {
+            "ms": 1131.1472079999994,
+            "copies": 2056,
+            "cells": 16448
+          }
+        ],
+        "medianMs": 1131.1472079999994,
+        "outputHash": "bba9198177134d3a0d78657d4c70a621229e2044591bfd9b8d78a6d2a75c97cf",
+        "sourceHash": "389e711dd00ba732a0f78fb3fa31c7ecb17439f3c4823a18c7145dc4b5cece20"
+      },
+      {
+        "name": "queens_recursive",
+        "compilation": true,
+        "samples": [
+          {
+            "ms": 426.925166,
+            "copies": 2056,
+            "cells": 16448
+          },
+          {
+            "ms": 449.91083400000025,
+            "copies": 2056,
+            "cells": 16448
+          },
+          {
+            "ms": 366.3957499999997,
+            "copies": 2056,
+            "cells": 16448
+          }
+        ],
+        "medianMs": 426.925166,
+        "outputHash": "bba9198177134d3a0d78657d4c70a621229e2044591bfd9b8d78a6d2a75c97cf",
+        "sourceHash": "389e711dd00ba732a0f78fb3fa31c7ecb17439f3c4823a18c7145dc4b5cece20"
+      },
+      {
+        "name": "prime_pair_search",
+        "compilation": false,
+        "samples": [
+          {
+            "ms": 4343.035499999998,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 4470.463167000002,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 4237.713041999996,
+            "copies": 0,
+            "cells": 0
+          }
+        ],
+        "medianMs": 4343.035499999998,
+        "outputHash": "ad7c26db722221bfb1bf7e3c36b501bedf8be857b1cfa8664fccb074b54354f9",
+        "sourceHash": "c91860234d8f7574e2b155d893e851746ffe36de2950665d115669c88cd85e96"
+      },
+      {
+        "name": "prime_pair_search",
+        "compilation": true,
+        "samples": [
+          {
+            "ms": 4895.333624999999,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 5165.914707999997,
+            "copies": 0,
+            "cells": 0
+          },
+          {
+            "ms": 4552.986084000004,
+            "copies": 0,
+            "cells": 0
+          }
+        ],
+        "medianMs": 4895.333624999999,
+        "outputHash": "ad7c26db722221bfb1bf7e3c36b501bedf8be857b1cfa8664fccb074b54354f9",
+        "sourceHash": "c91860234d8f7574e2b155d893e851746ffe36de2950665d115669c88cd85e96"
+      }
+    ]
+  }
+}

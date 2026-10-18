@@ -84,10 +84,10 @@ rem and their graph.
 fun Data Best min_five
   Graph = Data .graph
   Vals = Data .primes
-  Vals 5 0 search
+  Best = Vals 5 0 Best search
   return Best
 
-  fun Rest Need Sum search
+  fun Rest Need Sum Best search
     if Rest len less Need
       return Best
     end
@@ -110,7 +110,7 @@ fun Data Best min_five
       Later = Rest drop (i + 1)
       Neighbors = Graph P
       Next = Later filter in Neighbors
-      Next Left Total search
+      Best = Next Left Total Best search
     end
     return Best
   end
