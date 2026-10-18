@@ -1,0 +1,28 @@
+rem Same Differences
+rem https://projecteuler.net/problem=135
+rem Count the n below a limit for which
+rem x^2 - y^2 - z^2 = n has Ways
+rem solutions in arithmetic progression
+
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000
+option Ways integer = 10
+
+rem x, y, z = z + 2d, z + d, z gives
+rem n = u v with u = 3 d - z, v = d + z,
+rem u + v divisible by 4 and u < 3 v.
+rem For each u the n form a progression
+rem in steps of 4 u.
+Cnt = array shape Limit fill 0
+for U in 1 to Limit - 1
+  V = U // 3 + 1
+  V += (0 - U - V) mod 4
+  if U * V less Limit
+    Cnt (U * V till Limit by 4 * U) += 1
+  end
+end
+Answer = (Cnt equal Ways) count
+Answer print
