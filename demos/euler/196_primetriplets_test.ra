@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "196_primetriplets"
+  run
+
+  Answer equal 322303240771079935
+end
+
+test "statement values"
+  use "196_primetriplets"
+  N1 = 8
+  N2 = 9
+  run
+
+  Answer equal 97
+  N1 = 10000
+  N2 = 8
+  run
+
+  Answer equal 950007679
+end
