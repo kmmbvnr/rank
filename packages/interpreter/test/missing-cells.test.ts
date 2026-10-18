@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createArraySnapshot, hasMaskedCells, isPresentAt, maskedCells, readArrayItem } from '../src/array-storage.js';
-import { mapMaskedArrays } from '../src/masked-kernels.js';
+import { borrowArrayStorage, float64Cells, denseScalarItems, createArraySnapshot, hasMaskedCells, maskedArray, maskedNumericCells, isPresentAt, maskedCells, readArrayItem } from '../src/array-storage.js';
+import { mapMaskedArrays, mapMaskedIntegers, sumMasked, extremeMasked } from '../src/masked-kernels.js';
 import { MISSING } from '../src/value.js';
 import { run } from './support.js';
 
@@ -90,6 +90,62 @@ describe('missing cells in typed storage', () => {
         expect(hasMaskedCells(createArraySnapshot([true, MISSING]))).toBe(false);
     });
 
+    it('preserves integers outside signed 64-bit storage alongside missing cells', () => {
+        for (const wide of [1n << 63n, -(1n << 63n) - 1n]) {
+            const value = cells(wide, MISSING);
+            expect(hasMaskedCells(value)).toBe(false);
+            expect(readArrayItem(value, 0)).toBe(wide);
+            expect(run(`(array ${wide} .NA) sum`)).toBe(String(wide));
+        }
+    });
+
+    it('exposes integer validity without materializing the array', () => {
+        const value = cells(1n, MISSING, 3n);
+        expect(maskedNumericCells(value)?.values).toBeInstanceOf(BigInt64Array);
+        expect(maskedNumericCells(value)?.validity[0]).toBe(5);
+        expect(hasMaskedCells(value)).toBe(true);
+        expect(run('(array 1 .NA 3) present')).toBe('true false true');
+    });
+
+    it('never lends masked payloads as plain numeric cells', () => {
+        for (const input of [cells(1n, MISSING, 3n), cells(1.0, MISSING, 3.0)]) {
+            expect(denseScalarItems(input)).toBeUndefined();
+            expect(float64Cells(input)).toBeUndefined();
+            const borrowed = borrowArrayStorage(input) as typeof input;
+            expect(borrowed.items[1]).toBe(MISSING);
+            expect(readArrayItem(input, 1)).toBe(MISSING);
+        }
+    });
+
+    it('computes integer buffers without truncating results or losing validity', () => {
+        for (const size of [0, 1, 31, 32, 33, 70]) {
+            const bits = new Uint32Array(Math.ceil(size / 32));
+            for (let i = 0; i < size; i++) if (i % 3) bits[i >>> 5] |= 1 << (i & 31);
+            const input = maskedArray(BigInt64Array.from({ length: size }, (_, i) => BigInt(i)), bits);
+            const result = mapMaskedIntegers(input, 2n, '+', (a, b) => (a as bigint) + (b as bigint))!;
+            expect(result.items).toEqual(Array.from({ length: size }, (_, i) => i % 3 ? BigInt(i) + 2n : MISSING));
+            expect(hasMaskedCells(input)).toBe(true);
+        }
+        const max = (1n << 63n) - 1n;
+        const input = cells(max, MISSING, 3n);
+        expect(sumMasked(input)).toBe(max + 3n);
+        expect(extremeMasked(input, (a, b) => a > b)?.result).toBe(max);
+        const result = mapMaskedIntegers(input, 1n, '+', (a, b) => (a as bigint) + (b as bigint))!;
+        expect(result.items).toEqual([max + 1n, MISSING, 4n]);
+        expect(hasMaskedCells(input)).toBe(true);
+    });
+
+    it('preserves integer division, comparisons and default semantics', () => {
+        expect(run('(array -7 .NA 7) // 3')).toBe('-3 .NA 2');
+        expect(run('(array -7 .NA 7) mod 3')).toBe('2 .NA 1');
+        expect(run('(array 7 .NA) // (array .NA 0)')).toBe('.NA .NA');
+        expect(() => run('(array 7 .NA) // (array 0 1)')).toThrow('division by zero');
+        expect(run('(array 1 .NA 3) equal 1')).toBe('true .NA false');
+        expect(run('(array 1 .NA 3) default 9')).toBe('1 9 3');
+        expect(run('(array 1 .NA) default 9223372036854775808')).toBe('1 9223372036854775808');
+        expect(run('(array -9223372036854775808 .NA) // -1')).toBe('9223372036854775808 .NA');
+    });
+
     it('computes real arithmetic on the buffers and combines the bitmaps', () => {
         const left = cells(1, MISSING, 3, 4);
         const right = cells(10, 20, MISSING, 40);
@@ -163,5 +219,33 @@ describe('a name that holds .NA keeps one type', () => {
 
     it('does so inside a function and a loop', () => {
         expect(run('fun f\n  Best = .NA\n  for I in 1 to 3\n    Best = I\n  end\n  return Best\nend\nf')).toBe('3');
+    });
+});
+
+
+describe('missing-cell catalogue policies', () => {
+    it('propagates through conversions and rounding', () => {
+        expect(run('use numbers\n(array 1.25 .NA 3.75) 1 round')).toBe('1.2 .NA 3.8');
+        expect(run('use numbers\n(array 1.25 .NA) floor')).toBe('1 .NA');
+        expect(run('.NA text')).toBe('.NA');
+        expect(run('(array 1 .NA) text rank 0')).toBe('1 .NA');
+    });
+    it('skips missing reduction cells but retains structural positions', () => {
+        expect(run('use sequences\n(array true .NA false true) count')).toBe('2');
+        expect(run('use stats\n(array 3 .NA 3) mode')).toBe('3');
+        expect(run('(array 3 .NA 3) len')).toBe('3');
+        expect(run('use sequences\n(array 1 .NA 3) present count')).toBe('2');
+    });
+    it('requires present values for ordering and uniqueness', () => {
+        expect(() => run('use sequences\n(array 3 .NA 1) sort')).toThrow();
+        expect(() => run('use sequences\n(array 3 .NA 3) unique')).toThrow();
+        expect(run('use sequences\n((array 3 .NA 1) filter present) array sort')).toBe('1 3');
+    });
+    it('does not treat a missing query as a matching member', () => {
+        expect(run('.NA in (array 1 2)')).toBe('false');
+        expect(run('.NA in (array .NA)')).toBe('false');
+        expect(run('(array 1 .NA) in (array 1 .NA)')).toBe('true false');
+        expect(run('(array 1 .NA) not in (array 1 .NA)')).toBe('false true');
+        expect(run('(array 1 .NA 3) in (array 1 2)')).toBe('true false false');
     });
 });

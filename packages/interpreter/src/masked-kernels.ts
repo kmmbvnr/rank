@@ -1,6 +1,6 @@
 import {
-    allPresent, allValid, float64Cells, hasMaskedCells, isPresentAt, maskedArray, maskedCells, ownedArray,
-    typedArray, validityWords,
+    allPresent, allValid, float64Cells, hasMaskedCells, isPresentAt, maskedArray, maskedCells, maskedNumericCells, ownedArray,
+    typedArray, validityWords, storedOperandItems,
 } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { MISSING, type RankArray, type RankValue } from './value.js';
@@ -136,9 +136,17 @@ export function presentReals(value: RankArray): Float64Array | undefined {
 
 /** Sum of the cells with a value. As for any real array of no cells it is integer zero. */
 export function sumMasked(value: RankArray): number | bigint | undefined {
-    const masked = maskedCells(value);
+    const masked = maskedNumericCells(value);
     if (!masked) return undefined;
     const { values, validity } = masked;
+    if (values instanceof BigInt64Array) {
+        let total = 0n;
+        for (let index = 0; index < values.length; index += 1) {
+            if (index % CHUNK === 0) checkpoint('computing array');
+            if (isPresentAt(validity, index)) total += values[index];
+        }
+        return total;
+    }
     let total = 0;
     let any = false;
     for (let index = 0; index < values.length; index += 1) {
@@ -149,16 +157,58 @@ export function sumMasked(value: RankArray): number | bigint | undefined {
 
 /** `min` or `max` of the cells with a value, or undefined when none has one. */
 export function extremeMasked(
-    value: RankArray, replaces: (candidate: number, current: number) => boolean,
-): { found: boolean; result: number } | undefined {
-    const masked = maskedCells(value);
+    value: RankArray, replaces: (candidate: number | bigint, current: number | bigint) => boolean,
+): { found: boolean; result: number | bigint } | undefined {
+    const masked = maskedNumericCells(value);
     if (!masked) return undefined;
     const { values, validity } = masked;
-    let result = 0;
+    let result: number | bigint = 0;
     let found = false;
     for (let index = 0; index < values.length; index += 1) {
         if (!isPresentAt(validity, index)) continue;
         if (!found || replaces(values[index], result)) { result = values[index]; found = true; }
     }
     return { found, result };
+}
+
+/** Integer masked operations retain exact bigint arithmetic, including wide results. */
+export function mapMaskedIntegers(
+    left: RankValue, right: RankValue, name: string,
+    operation: (left: RankValue, right: RankValue) => RankValue,
+): RankArray | undefined {
+    if (!['+', '-', '*', '//', 'mod', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal'].includes(name)) return undefined;
+    const a = typeof left === 'object' && left.kind === 'array' ? left as RankArray : undefined;
+    const b = typeof right === 'object' && right.kind === 'array' ? right as RankArray : undefined;
+    if (!(a && hasMaskedCells(a)) && !(b && hasMaskedCells(b))) return undefined;
+    if (a && b && (a.shape.length !== b.shape.length || a.shape.some((n, i) => n !== b.shape[i]))) return undefined;
+    const operand = (value: RankValue, array: RankArray | undefined) => {
+        if (!array) return typeof value === 'bigint' ? { values: value, validity: undefined } : undefined;
+        const masked = maskedNumericCells(array);
+        if (masked) return masked.values instanceof BigInt64Array ? masked : undefined;
+        const values = storedOperandItems(array);
+        if (!values) return undefined;
+        for (let i = 0; i < values.length; i++) if (typeof values[i] !== 'bigint') return undefined;
+        return { values: values as ArrayLike<bigint>, validity: undefined };
+    };
+    const x = operand(left, a), y = operand(right, b);
+    if (!x || !y) return undefined;
+    const shape = (a ?? b)!.shape;
+    const size = shape.reduce((p, n) => p * n, 1);
+    const validity = combine(x.validity, y.validity, size);
+    const comparison = !['+', '-', '*', '//', 'mod'].includes(name);
+    const values = comparison ? undefined : new BigInt64Array(size);
+    let plain: RankValue[] | undefined = comparison ? new Array(size).fill(MISSING) : undefined;
+    for (let i = 0; i < size; i++) {
+        if (i % CHUNK === 0) checkpoint('computing array');
+        if (!isPresentAt(validity, i)) continue;
+        const result = operation(typeof x.values === 'bigint' ? x.values : x.values[i],
+            typeof y.values === 'bigint' ? y.values : y.values[i]);
+        if (!plain && typeof result === 'bigint' && BigInt.asIntN(64, result) !== result) {
+            plain = Array.from(values!, (value, index) => isPresentAt(validity, index) ? value : MISSING);
+        }
+        if (plain) plain[i] = result;
+        else values![i] = result as bigint;
+    }
+    if (plain) return ownedArray(plain, shape);
+    return allValid(validity, size) ? typedArray(values!, shape) : maskedArray(values!, validity, shape);
 }

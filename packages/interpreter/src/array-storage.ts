@@ -484,6 +484,13 @@ export function maskedCells(value: RankArray): { values: Float64Array; validity:
     return { values: state.typed, validity: state.validity };
 }
 
+/** Numeric storage with validity, without materializing missing cells. */
+export function maskedNumericCells(value: RankArray): { values: Float64Array | BigInt64Array; validity: Uint32Array } | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.validity || !state.typed) return undefined;
+    return { values: state.typed, validity: state.validity };
+}
+
 export function hasMaskedCells(value: RankArray): boolean {
     return ownedStorage.get(value)?.validity !== undefined;
 }
@@ -522,6 +529,8 @@ function scanForMissing(items: readonly RankValue[]): 'scalar' | { values: Float
     for (let index = 0; index < items.length; index += 1) {
         const item = items[index];
         if (item === MISSING) { missing = true; continue; }
+        // BigInt64Array assignment truncates; wide integers must keep plain storage.
+        if (typeof item === 'bigint' && BigInt.asIntN(64, item) !== item) return undefined;
         const type = typeof item === 'number' ? 1 : typeof item === 'bigint' ? 2 : 0;
         if (type === 0 || (kind !== 0 && type !== kind)) return undefined;
         kind = type;

@@ -11,7 +11,7 @@ import { indexKey } from './index-key.js';
 import { ALL_AXIS } from './selectors.js';
 import { checkpoint } from './interrupt.js';
 import { missingBinary } from './missing.js';
-import { mapMaskedArrays } from './masked-kernels.js';
+import { mapMaskedArrays, mapMaskedIntegers } from './masked-kernels.js';
 import { binarySqlite, inSqlite } from './modules/sqlite.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
@@ -622,6 +622,11 @@ function arrayMembership(source: RankArray, right: RankValue, invert: boolean): 
 }
 
 function membershipTest(right: RankValue, indexed: boolean): (value: RankValue) => boolean {
+    const contains = presentMembershipTest(right, indexed);
+    return value => value !== MISSING && contains(value);
+}
+
+function presentMembershipTest(right: RankValue, indexed: boolean): (value: RankValue) => boolean {
     if (typeof right === 'string' || isRankObject(right)) return value => {
         if (typeof value !== 'string') throw new RankError('in expects text on the left for text or object membership');
         return typeof right === 'string' ? right.includes(value) : right.entries.has(value);
@@ -726,6 +731,8 @@ function mapBinary(
         const dense = mapBooleanArrays(leftArray, rightArray, name);
         if (dense) return dense;
     }
+    const maskedInteger = mapMaskedIntegers(left, right, name, scalarOperation);
+    if (maskedInteger) return maskedInteger;
     if ((leftArray || rightArray) && REAL_CODES[name] !== undefined) {
         const masked = mapMaskedArrays(left, right, REAL_CODES[name]);
         if (masked) return masked;

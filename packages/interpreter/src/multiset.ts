@@ -139,9 +139,14 @@ export class RankMultiset {
     }
 
     private bound(value: RankValue, direction: 'floor' | 'ceiling'): RankValue {
-        if (!this.root) {
-            throw new MissingValueError(`multiset has no ${direction} value`);
-        }
+        const result = this.probeBound(value, direction);
+        if (result === undefined) throw new MissingValueError(`multiset has no ${direction} value`);
+        return result;
+    }
+
+    /** A normal miss is distinct from a type/comparison error. */
+    probeBound(value: RankValue, direction: 'floor' | 'ceiling'): RankValue | undefined {
+        if (!this.root) return undefined;
         this.assertComparable(value);
         let node: Node | undefined = this.root;
         let result: RankValue | undefined;
@@ -156,7 +161,6 @@ export class RankMultiset {
                 node = node.right;
             }
         }
-        if (result === undefined) throw new MissingValueError(`multiset has no ${direction} value`);
         return result;
     }
 

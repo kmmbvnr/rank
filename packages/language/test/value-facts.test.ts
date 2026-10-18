@@ -1396,6 +1396,15 @@ it('keeps missing cells apart from the numeric type and drops them at default', 
     expect(facts('R and N', env).types).toEqual(['boolean', 'missing']);
     // The numeric kernels' proof does not cover cells that may have no value.
     expect(facts('P + 1.0', env).callbackFreeScalarCells).toBeUndefined();
+    expect(facts('P + 1.0', env).elements).toEqual(['real', 'missing']);
+    expect(facts('P filter present', env).elements).toEqual(['real']);
+    expect(facts('P (P present)', env).elements).toEqual(['real']);
+    expect(facts('P present', env)).toMatchObject({ types: ['array'], elements: ['boolean'], rank: 1, shape: [3] });
+    expect(facts('.NA text').types).toEqual(['missing']);
+    expect(facts('.NA 1 round').types).toEqual(['missing']);
+    expect(facts('.NA floor').types).toEqual(['missing']);
+    expect(facts('.NA present')).toMatchObject({ types: ['boolean'], rank: 0, shape: [] });
+    expect(facts('P filter greater 1.0', env).elements).toEqual(['real', 'missing']);
 });
 
 it('lets a name hold .NA before its first value and refuses other changes of type', () => {
@@ -1770,4 +1779,38 @@ it('does not use matmul catalogue result kinds for unresolved operands', () => {
     for (const left of [undefined, ['array']]) {
         expect(typeOf(statement.value, name => name === 'L' ? left : ['array'])).toEqual([]);
     }
+});
+
+
+it('warns about missing conditions, indices and keys without rejecting guarded uses', () => {
+    const warnings = (source: string, env = new Map<string, ValueFacts>()) => {
+        const program = services.Rank.parser.LangiumParser.parse<Program>(source);
+        expect(program.parserErrors).toHaveLength(0);
+        return analyzeValues(program.value, env).diagnostics.filter(item => item.code === 'MissingValue');
+    };
+    expect(warnings('if .NA\n  1\nend')).toHaveLength(1);
+    expect(warnings('if X\n  1\nend', new Map([['X', { types: ['boolean', 'missing'], rank: 0 }]]))).toHaveLength(1);
+    expect(warnings('if .NA default false\n  1\nend')).toHaveLength(0);
+    expect(warnings('X = array 1 2\nX .NA')).toHaveLength(1);
+    expect(warnings('X = array 1 2\nX (.NA default 0)')).toHaveLength(0);
+    expect(warnings('X = array 1 2\n(X .NA) default 0')).toHaveLength(0);
+    expect(warnings('X = new index\nX .NA')).toHaveLength(1);
+
+});
+
+
+it('does not claim scalar bulk query results after operand facts are invalidated', () => {
+    const program = services.Rank.parser.LangiumParser.parse<Program>(
+        'use sequences\nKeys = array 10 20 30\nQueries = array 20 99 10\nPositions = Keys Queries find default -1');
+    const result = analyzeValues(program.value).bindings.get('Positions')!;
+    expect(result.types.length === 0 || result.types.includes('array')).toBe(true);
+    const env = new Map<string, ValueFacts>([['Keys', facts('array 10 20 30')], ['Queries', facts('array 20 99 10')]]);
+    expect(facts('Keys Queries find', env)).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
+});
+
+
+it('keeps empty and unknown-length present selections sound', () => {
+    const empty: ValueFacts = { types: ['array'], rank: 1, shape: [0], elements: ['real', 'missing'] };
+    expect(facts('P (P present)', new Map([['P', empty]]))).toMatchObject({ types: ['array'], shape: [0], elements: ['real'] });
+    expect(facts('P (P present)', new Map([['P', { ...empty, shape: [null] }]]))).toMatchObject({ types: ['array', 'sequence'], elements: ['real'] });
 });

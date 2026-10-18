@@ -12,7 +12,7 @@ import {
     type AddressItem, type ArrayItem, type Expression, type SortField,
 } from '@arrrank/language';
 import { nameMask } from '../array-mask.js';
-import { allValid, createArraySnapshot, filledArray, derivedArray, isPresentAt, maskedCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
+import { allValid, createArraySnapshot, filledArray, derivedArray, isPresentAt, maskedNumericCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { compileClauseExpression, isBoundCondition, type ClauseExpressionContext } from '../clause-expression.js';
 import { newStructure } from '../collections.js';
@@ -491,12 +491,20 @@ export class ExpressionEvaluator {
                         left ??= expressions.compile(expression.left, () => absent);
                         const value = yield* resume(left());
                         if (isRankArray(value)) {
-                            const masked = maskedCells(value);
+                            const masked = maskedNumericCells(value);
                             let evaluated: RankValue | undefined;
                             if (masked) {
                                 if (allValid(masked.validity, masked.values.length)) return value;
                                 const fallback = evaluated = yield* resume(expressions.evaluate(expression.right));
-                                if (typeof fallback === 'number') {
+                                if (masked.values instanceof BigInt64Array && typeof fallback === 'bigint'
+                                    && BigInt.asIntN(64, fallback) === fallback) {
+                                    const out = masked.values.slice();
+                                    for (let index = 0; index < out.length; index += 1) {
+                                        if (!isPresentAt(masked.validity, index)) out[index] = fallback;
+                                    }
+                                    return typedArray(out, value.shape);
+                                }
+                                if (masked.values instanceof Float64Array && typeof fallback === 'number') {
                                     const out = masked.values.slice();
                                     for (let index = 0; index < out.length; index += 1) {
                                         if (!isPresentAt(masked.validity, index)) out[index] = fallback;
