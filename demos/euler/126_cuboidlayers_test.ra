@@ -1,0 +1,28 @@
+use testing
+
+test "default input"
+  use "126_cuboidlayers"
+  run
+
+  Answer equal 18522
+  Tot equal 334886
+  Cnt 19998 at least 1
+end
+
+test "ten ways"
+  use "126_cuboidlayers"
+  Num = 10
+  Limit = 200
+  run
+
+  Answer equal 154
+end
+
+test "two ways"
+  use "126_cuboidlayers"
+  Num = 2
+  Limit = 100
+  run
+
+  Answer equal 18
+end

@@ -764,3 +764,59 @@ After integrating main `e9c94e50` (#320), the 10K/668 quick check remained withi
 Float64 medians were 0.195/0.207/0.218 seconds. The Euler 125 default-input test
 still returned the same answer in 3.06 seconds. These runs had higher background
 load than the first samples; their raw values are recorded separately.
+
+## Stored mask materialization and compound arithmetic (#308)
+
+`benchmarks/cuboid-layers.mjs` separates initialization from the layer loop and
+checks every layer size against independent scalar enumeration. A separate
+untimed run checks the sum of all generated layer values. Reproduce after build:
+
+```sh
+node benchmarks/cuboid-layers.mjs
+node benchmarks/cuboid-layers.mjs --runtime=/path/to/base/packages/interpreter/out/index.js
+node benchmarks/cuboid-layers.mjs --original-bound
+node packages/cli/bin/cli.js benchmarks/fixtures/cuboid-layers.ra
+node packages/cli/bin/cli.js benchmarks/fixtures/cuboid-layers-scalar.ra
+node packages/cli/bin/cli.js test demos/euler/126_cuboidlayers_test.ra
+```
+
+The original issue's bound `R = (Half // 2) isqrt + 1` excludes valid cuboids,
+including `(1,99,99)` at limit 20000. The corrected bound is `Half isqrt + 1`.
+There are 334886 starting cuboids and 3954135 valid layer values, whose sum is
+52548758960. The original bound visits 326019 cuboids and 3917148 layer values.
+The committed scalar fixture and benchmark oracle cover the corrected domain.
+
+Measurements on Node 24.15.0 / Apple M5, three trials per variant, base
+`a140d906` versus the #308 implementation:
+
+| Corrected repro | Baseline median | Candidate median |
+| --- | ---: | ---: |
+| Layer loop, including its parse | 2.535 s | 0.564 s |
+| Initialization | 0.318 s | 0.317 s |
+| Initialization plus loop | 2.844 s | 0.865 s |
+
+The loop improved about 4.5x. Candidate loop samples were 0.684/0.547/0.564 s;
+initialization plus loop took 1.326/0.865/0.829 s. With the original bound, the
+candidate loop median was 0.573 s. Timings above exclude process startup and
+capture the 71 output lines. Background CPU load varied; the artifact retains
+all samples and process CPU times rather than treating them as a memory result.
+
+Three fresh CLI processes took 1.743/1.706/1.721 s for the corrected layer-only
+repro (median 1.721 s), including startup, parsing, initialization and output.
+These cold timings are distinct from the issue's layer-loop criterion.
+
+The full Euler 126 demo includes frequency counting. It returns 18522, and its
+small cases return 154 for ten ways and 18 for two ways. Its fresh CLI median
+was 9.902 s, versus 1.091 s for the scalar full-problem fixture. Full counting
+therefore remains substantially slower than the scalar formulation; the
+layer-only speedup must not be presented as full-problem parity. The demo uses
+per-layer frequency batches so duplicate values contribute their multiplicity.
+
+Diagnostics show 142 direct mask materializations, 57 position-plan reuses and
+71 fused compound updates. A compound update produces one fresh result instead
+of its intermediate arithmetic arrays. Both source COW and binding/domain
+checks remain active. Mask positions and output storage still allocate; no peak
+or retained heap reduction was measured.
+
+Raw samples and diagnostics are in
+`benchmarks/baselines/2026-10-18-cuboid-layers.json`.

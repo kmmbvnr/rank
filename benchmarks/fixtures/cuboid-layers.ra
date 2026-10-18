@@ -1,0 +1,38 @@
+use algo
+use numbers
+use sequences
+use io
+
+Limit = 20000
+Half = Limit // 2
+R = Half isqrt + 1
+Ra = (1 to R array) reshape R 1
+Rb = (1 to R array) reshape 1 R
+Fit = 2 * Ra + Rb
+Ok = Rb at least Ra and 2 * Rb * Fit at most Limit
+Pos = Ok indices
+Pa = Pos # 0 + 1
+Pb = Pos # 1 + 1
+Room = Half - Pa * Pb
+Num = Room // (Pa + Pb) - Pb + 1
+Tot = Num sum
+Starts = Num scan + with 0
+Marks = array shape Tot fill 0
+Marks (Starts take (Num len)) += 1
+Own = (Marks scan +) - 1
+Off = (0 till Tot array) - (Starts Own)
+A = Pa Own
+B = Pb Own
+C = B + Off
+Val = 2 * (A * B + B * C + C * A)
+Sum = A + B + C
+Tally = array shape (Limit + 1) fill 0
+N = 1
+for Val len greater 0
+  Fits = Val at most Limit
+  Val = Val filter Fits array
+  Sum = Sum filter Fits array
+  Val len print
+  N += 1
+  Val += 4 * (Sum + 2 * N - 4)
+end

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue, RuntimeDiagnostics } from '../src/index.js';
+import { withInterrupt } from '../src/interrupt.js';
 
 function run(source: string, tensorFusion: boolean) {
     const diagnostics = new RuntimeDiagnostics(), runtime = new Interpreter(() => {}, { tensorFusion });
@@ -57,6 +58,18 @@ A += B
 A sum`;
         expect(run(source,true).value).toBe(run(source,false).value);
         expect(run(source,true).kernels).toBe(0);
+    });
+
+    it('does not publish partially computed output when the fused pass is cancelled', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute('use sequences\nA = 1 to 10000 array\nSaved = A\nB = A + 1\nN = 2');
+            const signal = new Int32Array(new SharedArrayBuffer(4)); signal[0] = 1;
+            expect(() => withInterrupt(signal, () => runtime.execute('A += 4 * (B + 2 * N - 4)')))
+                .toThrow('Interrupted while computing tensor');
+            expect(runtime.execute('A sum')).toBe(50005000n);
+            expect(runtime.execute('Saved sum')).toBe(50005000n);
+        } finally { runtime.dispose(); }
     });
 
     it('does not reuse folded scalar slots between calls or integer/real inputs', () => {

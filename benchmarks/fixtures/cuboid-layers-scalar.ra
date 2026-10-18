@@ -1,0 +1,32 @@
+rem Scalar reference for issue 308.
+rem Count cuboid layers without storing
+rem an array of active cuboids.
+use numbers
+use sequences
+use io
+
+Limit = 20000
+Num = 1000
+Half = Limit // 2
+MaxA = (Limit // 6) isqrt
+MaxB = Half isqrt
+Cnt = array shape (Limit + 1) fill 0
+for A in 1 to MaxA
+  for B in A to MaxB
+    if 2 * (2 * A * B + B * B) greater Limit
+      break
+    end
+    MaxC = (Half - A * B) // (A + B)
+    for C in B to MaxC
+      Value = 2 * (A * B + B * C + C * A)
+      Step = 0
+      for Value at most Limit
+        Cnt Value += 1
+        Value += 4 * (A + B + C + 2 * Step)
+        Step += 1
+      end
+    end
+  end
+end
+Answer = Cnt first index where equal Num
+Answer print

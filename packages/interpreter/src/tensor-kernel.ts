@@ -342,9 +342,8 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 }
                 if (scalar !== undefined && numeric(scalar)) result = { scalar, boolean: false, slot: scalars.push(scalar)-1 };
             }
-            // Scalar computations are evaluated before their surrounding
-            // tensor operation, even for an empty/fully filtered domain. Until
-            // scalar lowering preserves that timing, leave them to reference.
+            // Remaining scalar computations must also run before an empty or
+            // fully filtered domain. Leave unsupported lowering to reference.
             if (result && result.shape === undefined && result.scalar === undefined) return rejectBinding('tensor:scalar-evaluation-timing');
             if (result) {
                 if (result.view) {

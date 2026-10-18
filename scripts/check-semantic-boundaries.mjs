@@ -53,6 +53,7 @@ const owners = new Set([
     'packages/interpreter/src/operators.ts',
     'packages/interpreter/src/source-location.ts',
     'packages/interpreter/src/value-selection.ts',
+    'packages/interpreter/src/array-mask-selection.ts',
     'packages/interpreter/src/cli-args.ts',
     'packages/interpreter/src/keyed-table-expression.ts',
     'packages/interpreter/src/rank-application.ts',

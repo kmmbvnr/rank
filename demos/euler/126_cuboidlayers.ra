@@ -1,0 +1,56 @@
+rem Cuboid Layers
+rem https://projecteuler.net/problem=126
+rem Find the least layer size shared by
+rem exactly Num cuboid layers.
+
+use algo
+use numbers
+use sequences
+use io
+use cli
+
+option Num integer = 1000
+option Limit integer = 20000
+
+rem Enumerate a <= b <= c whose first
+rem layer fits. Expand each (a,b) pair
+rem into its possible values of c.
+Half = Limit // 2
+R = Half isqrt + 1
+Side = 1 to R array
+Ra = Side reshape R 1
+Rb = Side reshape 1 R
+Fit = 2 * Ra + Rb
+Ok = Rb at least Ra
+Ok and= 2 * Rb * Fit at most Limit
+Pos = Ok indices
+Pa = Side (Pos # 0)
+Pb = Side (Pos # 1)
+Room = Half - Pa * Pb
+Many = Room // (Pa + Pb) - Pb + 1
+Tot = Many sum
+Head = Many scan + with 0
+Mark = array shape Tot fill 0
+Mark (Head take (Many len)) += 1
+Own = (Mark scan +) - 1
+Seq = 0 till Tot array
+A = Pa Own
+B = Pb Own
+C = B + Seq - (Head Own)
+Val = 2 * (A * B + B * C + C * A)
+Sum = A + B + C
+Cnt = array shape (Limit + 1) fill 0
+Step = 1
+for Val len greater 0
+  Fits = Val at most Limit
+  Val = Val filter Fits array
+  Sum = Sum filter Fits array
+  Batch = new counter Val
+  Keys = Val unique
+  Cnt Keys += Batch Keys
+  rem Grow from layer Step to Step + 1.
+  Val += 4 * (Sum + 2 * Step - 2)
+  Step += 1
+end
+Answer = Cnt first index where equal Num
+Answer print
