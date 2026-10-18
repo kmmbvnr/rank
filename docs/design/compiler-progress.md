@@ -1,5 +1,46 @@
 # Compiler progress
 
+## Checked integer slice writes
+
+Rank-1 stored integer arrays now have a guarded bulk-write path for `=`, `+=`,
+`-=` and `*=`. A runtime range carries constructor-owned arithmetic metadata;
+selection validates its bounds before evaluating the RHS and retains a compact
+start/step/count plan. Trusted stored integer index vectors are checked into one
+numeric offset buffer. Other selectors retain their checked general path.
+
+The evaluator reads an array RHS completely before changing cells. An integer
+broadcast validates the binding contract once without allocating one operand per
+cell. Physical integer-storage evidence alone does not establish a binding's
+semantic type. Scalar `fill` records its homogeneous physical kind once, rather
+than rescanning identical cells during construction and binding. Empty fills
+still establish their declared element domain. The storage layer protects aliases and retained selections, then
+commits through tracked private storage without per-cell Proxy writes. BigInt
+arithmetic stays exact, including values outside signed 64-bit storage.
+
+Strictly increasing offsets and arithmetic progressions are unique, so safe
+integer arithmetic can stream into the destination. For unordered or repeated
+indices, replacements are gathered from the original destination before any
+scatter. Repeated indices keep the last replacement; they are not accumulating
+scatter operations. Array RHS/source overlap preserves the same snapshot rules.
+Unsupported operators, lazy destinations, noninteger data and inspected execution
+keep the general path. `compilation: false` keeps reference writes. Bulk commits
+publish mutation revisions and remain cancellable; no execution is replayed after
+a write or cancellation.
+
+Euler 73 uses the ordinary Moebius sieve instead of its prime-divisibility matrix.
+Euler 95 expresses the root-limited divisor-sum update with integer index arrays.
+Euler 72 and 75 already use slice writes. Euler 86 keeps its grouped sums and
+Euler 88 keeps descending replacement order: repeated-index `+=` would change
+86's result, while 88 needs the smallest replacement to be last.
+
+`node benchmarks/slice-writes.mjs --baseline=/path/to/built/baseline` compares
+fixed-source cases in fresh processes, verifies every answer and records three
+samples plus separate instrumented executions. Execute time includes parsing,
+allocation and final checksums; module imports and process startup are excluded.
+The baseline runs the same final demo sources, isolating the runtime change from
+the demo rewrites. Full-process wall time is recorded separately. See the
+[benchmark report](../../benchmarks/slice-writes-results.md) for results and limits.
+
 ## Depth-array search loops
 
 Integer loops use the shared native-call contracts for `band`, `bor`, `bxor`,

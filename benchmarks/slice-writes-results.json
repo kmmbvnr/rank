@@ -1,0 +1,1069 @@
+{
+  "metadata": {
+    "date": "2026-10-18T04:35:00.680Z",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": 3,
+    "timing": "Fresh processes; execute includes parsing, allocations and verified answer, excludes imports/startup. Microbenchmark instrumentation is separate.",
+    "sourceHashes": {
+      "scalar": "5402f0a224d298f757e3921d75dfb84794298867abaaafae909d66870685f69a",
+      "range": "ad0a256c50da4924ff7087cc80efd5271f3d660bb08fa19e64a870f5e1449fdc",
+      "stride": "624ea7a0f3af5ec1e0f0c62a4a1e79bf049e2ba9fd180d00de7a23eb8304885c",
+      "indexed": "43dd4fd4ab5871c0f8a62937b231585caa11463820d67eb03cbd6f29a59c0a8c",
+      "plain": "19b642379abec157d5131237c361dbdba0fcfc19e5893256926fa2f616d063f7",
+      "sieve": "7200b4918a1dc90a45ceb68819a4d1dcb5b1751cfdab0e811130336315f7661a",
+      "euler72": "4b48599709366855c5a86979923521af172b33af883c3410d9d4d5b0a0062103",
+      "euler73": "3e9cf135ea571820051ffe6544148f6bfa9275ea1658940ab6e2a2bf9985ef0d",
+      "euler75": "c87e41e9b6c538cd1bd3ec754f8d2f01593d7254ca688158d44e9457633d931d",
+      "euler86": "b7561b6785a64ceeae7e08467e6014764ab25f747c580ef2ad329ca65211b6ee",
+      "euler88": "c1a3ecfcfe705ebee1aef26509a2b861f167f5efe072a358eeac7433179f34fb",
+      "euler95": "d2c9e3c5bb5c4526b178485bfba1fe9c2737bc7e6b6e6c71bba33f28d40b97de"
+    }
+  },
+  "results": {
+    "candidate": {
+      "checkout": "/private/tmp/rank-292",
+      "revision": "198992e067078625638aac70415b99f2e4336656",
+      "cases": {
+        "scalar": {
+          "samples": [
+            {
+              "elapsedMs": 349.3175,
+              "answer": "1000001",
+              "peakRssMiB": 213.984375,
+              "wallMs": 598.7006670000001
+            },
+            {
+              "elapsedMs": 348.73412500000006,
+              "answer": "1000001",
+              "peakRssMiB": 213.203125,
+              "wallMs": 599.3290830000042
+            },
+            {
+              "elapsedMs": 360.70500000000004,
+              "answer": "1000001",
+              "peakRssMiB": 212.375,
+              "wallMs": 618.221332999994
+            }
+          ],
+          "medianMs": 349.3175,
+          "medianWallMs": 599.3290830000042,
+          "medianPeakRssMiB": 213.203125,
+          "instrumented": {
+            "elapsedMs": 359.6828750000001,
+            "answer": "1000001",
+            "peakRssMiB": 212.515625,
+            "loops": 1,
+            "diagnostics": {
+              "validationRequests": 0,
+              "dependencyValidations": 0,
+              "cacheHits": 0,
+              "cacheMisses": 0,
+              "cellsComputed": 0,
+              "invalidations": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 1,
+              "compiledLoops": 1,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "bulkArrayWrites": 0,
+              "bulkArrayWriteCells": 0,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 0,
+              "elementTypeScannedCells": 0,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 1,
+                "tensor:group:AssignmentStatement": 1
+              }
+            },
+            "wallMs": 625.4974159999983
+          }
+        },
+        "range": {
+          "samples": [
+            {
+              "elapsedMs": 447.322458,
+              "answer": "6000006",
+              "peakRssMiB": 271.8125,
+              "wallMs": 698.9636250000001
+            },
+            {
+              "elapsedMs": 448.02470800000003,
+              "answer": "6000006",
+              "peakRssMiB": 271.546875,
+              "wallMs": 698.8532919999998
+            },
+            {
+              "elapsedMs": 443.610542,
+              "answer": "6000006",
+              "peakRssMiB": 272.3125,
+              "wallMs": 695.7327910000022
+            }
+          ],
+          "medianMs": 447.322458,
+          "medianWallMs": 698.8532919999998,
+          "medianPeakRssMiB": 271.8125,
+          "instrumented": {
+            "elapsedMs": 455.00045800000004,
+            "answer": "6000006",
+            "peakRssMiB": 272.21875,
+            "loops": 0,
+            "diagnostics": {
+              "validationRequests": 0,
+              "dependencyValidations": 0,
+              "cacheHits": 0,
+              "cacheMisses": 0,
+              "cellsComputed": 0,
+              "invalidations": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 0,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "bulkArrayWrites": 6,
+              "bulkArrayWriteCells": 6000006,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 0,
+              "elementTypeScannedCells": 0,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 1,
+                "loop:unsupported-op:to": 1,
+                "scalar-expression:unsupported-op:to": 2,
+                "tensor:group:AssignmentStatement": 1
+              }
+            },
+            "wallMs": 709.6211659999972
+          }
+        },
+        "stride": {
+          "samples": [
+            {
+              "elapsedMs": 353.291708,
+              "answer": "3000006",
+              "peakRssMiB": 236.390625,
+              "wallMs": 624.1879159999999
+            },
+            {
+              "elapsedMs": 355.72183300000006,
+              "answer": "3000006",
+              "peakRssMiB": 234.765625,
+              "wallMs": 624.5539160000044
+            },
+            {
+              "elapsedMs": 356.98850000000004,
+              "answer": "3000006",
+              "peakRssMiB": 235.96875,
+              "wallMs": 621.6032920000143
+            }
+          ],
+          "medianMs": 355.72183300000006,
+          "medianWallMs": 624.1879159999999,
+          "medianPeakRssMiB": 235.96875,
+          "instrumented": {
+            "elapsedMs": 365.566375,
+            "answer": "3000006",
+            "peakRssMiB": 234.59375,
+            "loops": 0,
+            "diagnostics": {
+              "validationRequests": 0,
+              "dependencyValidations": 0,
+              "cacheHits": 0,
+              "cacheMisses": 0,
+              "cellsComputed": 0,
+              "invalidations": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 0,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "bulkArrayWrites": 6,
+              "bulkArrayWriteCells": 3000006,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 0,
+              "elementTypeScannedCells": 0,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 1,
+                "loop:unsupported-op:to": 1,
+                "scalar-expression:unsupported-op:to": 2,
+                "tensor:group:AssignmentStatement": 1
+              }
+            },
+            "wallMs": 630.5191250000207
+          }
+        },
+        "indexed": {
+          "samples": [
+            {
+              "elapsedMs": 628.9084580000001,
+              "answer": "6000006",
+              "peakRssMiB": 313.59375,
+              "wallMs": 908.759458999999
+            },
+            {
+              "elapsedMs": 621.103208,
+              "answer": "6000006",
+              "peakRssMiB": 314.796875,
+              "wallMs": 895.6708340000041
+            },
+            {
+              "elapsedMs": 630.756458,
+              "answer": "6000006",
+              "peakRssMiB": 316.53125,
+              "wallMs": 907.3442909999867
+            }
+          ],
+          "medianMs": 628.9084580000001,
+          "medianWallMs": 907.3442909999867,
+          "medianPeakRssMiB": 314.796875,
+          "instrumented": {
+            "elapsedMs": 630.933666,
+            "answer": "6000006",
+            "peakRssMiB": 314.46875,
+            "loops": 0,
+            "diagnostics": {
+              "validationRequests": 0,
+              "dependencyValidations": 0,
+              "cacheHits": 0,
+              "cacheMisses": 0,
+              "cellsComputed": 0,
+              "invalidations": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 0,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "bulkArrayWrites": 6,
+              "bulkArrayWriteCells": 6000006,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 1,
+              "elementTypeScannedCells": 1000001,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 1,
+                "tensor:unsupported-node:MaterializeExpression": 1,
+                "scalar-expression:unsupported-op:to": 2,
+                "loop:input-type:I:expected-integer": 1,
+                "loop:input-type": 1,
+                "tensor:group:AssignmentStatement": 1
+              }
+            },
+            "wallMs": 909.7427920000046
+          }
+        },
+        "plain": {
+          "samples": [
+            {
+              "elapsedMs": 308.26137500000004,
+              "answer": "1000001",
+              "peakRssMiB": 180.421875,
+              "wallMs": 572.644291999999
+            },
+            {
+              "elapsedMs": 354.96350000000007,
+              "answer": "1000001",
+              "peakRssMiB": 180.9375,
+              "wallMs": 660.6830000000045
+            },
+            {
+              "elapsedMs": 309.36033299999997,
+              "answer": "1000001",
+              "peakRssMiB": 179.671875,
+              "wallMs": 570.918416999979
+            }
+          ],
+          "medianMs": 309.36033299999997,
+          "medianWallMs": 572.644291999999,
+          "medianPeakRssMiB": 180.421875,
+          "instrumented": {
+            "elapsedMs": 311.5523340000001,
+            "answer": "1000001",
+            "peakRssMiB": 180.046875,
+            "loops": 0,
+            "diagnostics": {
+              "validationRequests": 0,
+              "dependencyValidations": 0,
+              "cacheHits": 0,
+              "cacheMisses": 0,
+              "cellsComputed": 0,
+              "invalidations": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 0,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "bulkArrayWrites": 6,
+              "bulkArrayWriteCells": 6000006,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 0,
+              "elementTypeScannedCells": 0,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 1,
+                "loop:unsupported-op:to": 1,
+                "scalar-expression:unsupported-op:to": 2,
+                "tensor:group:AssignmentStatement": 1
+              }
+            },
+            "wallMs": 576.3129999999946
+          }
+        },
+        "sieve": {
+          "samples": [
+            {
+              "elapsedMs": 2166.129833,
+              "answer": "322467618437",
+              "peakRssMiB": 512.5625,
+              "wallMs": 2430.602167000001
+            },
+            {
+              "elapsedMs": 2189.554,
+              "answer": "322467618437",
+              "peakRssMiB": 513.640625,
+              "wallMs": 2456.177291
+            },
+            {
+              "elapsedMs": 2079.853833,
+              "answer": "322467618437",
+              "peakRssMiB": 358.546875,
+              "wallMs": 2342.016208999994
+            }
+          ],
+          "medianMs": 2166.129833,
+          "medianWallMs": 2430.602167000001,
+          "medianPeakRssMiB": 512.5625,
+          "instrumented": {
+            "elapsedMs": 2121.18325,
+            "answer": "322467618437",
+            "peakRssMiB": 355.015625,
+            "loops": 0,
+            "diagnostics": {
+              "validationRequests": 0,
+              "dependencyValidations": 0,
+              "cacheHits": 0,
+              "cacheMisses": 0,
+              "cellsComputed": 0,
+              "invalidations": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 0,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "bulkArrayWrites": 500000,
+              "bulkArrayWriteCells": 12970034,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 0,
+              "elementTypeScannedCells": 0,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 3,
+                "loop:unsupported-op:to": 1,
+                "scalar-expression:unsupported-op:to": 2,
+                "tensor:group:AssignmentStatement": 1
+              }
+            },
+            "wallMs": 2379.087333000003
+          }
+        },
+        "euler72": {
+          "samples": [
+            {
+              "elapsedMs": 1306.9396669999999,
+              "answer": "303963552391",
+              "peakRssMiB": 517.71875,
+              "wallMs": 1610.9500410000037
+            },
+            {
+              "elapsedMs": 1330.2097079999999,
+              "answer": "303963552391",
+              "peakRssMiB": 517.25,
+              "wallMs": 1642.9550410000084
+            },
+            {
+              "elapsedMs": 1297.9028750000002,
+              "answer": "303963552391",
+              "peakRssMiB": 515.578125,
+              "wallMs": 1609.6570000000065
+            }
+          ],
+          "medianMs": 1306.9396669999999,
+          "medianWallMs": 1610.9500410000037,
+          "medianPeakRssMiB": 517.25
+        },
+        "euler73": {
+          "samples": [
+            {
+              "elapsedMs": 222.757667,
+              "answer": "7295372",
+              "peakRssMiB": 149.53125,
+              "wallMs": 483.38416600000346
+            },
+            {
+              "elapsedMs": 222.99237499999998,
+              "answer": "7295372",
+              "peakRssMiB": 149.59375,
+              "wallMs": 476.18891599999915
+            },
+            {
+              "elapsedMs": 222.788083,
+              "answer": "7295372",
+              "peakRssMiB": 149.265625,
+              "wallMs": 481.97058300001663
+            }
+          ],
+          "medianMs": 222.788083,
+          "medianWallMs": 481.97058300001663,
+          "medianPeakRssMiB": 149.53125
+        },
+        "euler75": {
+          "samples": [
+            {
+              "elapsedMs": 761.0145,
+              "answer": "161667",
+              "peakRssMiB": 328.03125,
+              "wallMs": 1021.1828329999989
+            },
+            {
+              "elapsedMs": 758.607375,
+              "answer": "161667",
+              "peakRssMiB": 323.265625,
+              "wallMs": 1018.0374999999913
+            },
+            {
+              "elapsedMs": 749.352584,
+              "answer": "161667",
+              "peakRssMiB": 321.953125,
+              "wallMs": 1004.3360000000102
+            }
+          ],
+          "medianMs": 758.607375,
+          "medianWallMs": 1018.0374999999913,
+          "medianPeakRssMiB": 323.265625
+        },
+        "euler86": {
+          "samples": [
+            {
+              "elapsedMs": 298.951791,
+              "answer": "1818",
+              "peakRssMiB": 190.359375,
+              "wallMs": 555.5095829999991
+            },
+            {
+              "elapsedMs": 297.81858400000004,
+              "answer": "1818",
+              "peakRssMiB": 190.25,
+              "wallMs": 550.50091599999
+            },
+            {
+              "elapsedMs": 297.228542,
+              "answer": "1818",
+              "peakRssMiB": 189.578125,
+              "wallMs": 558.5762090000208
+            }
+          ],
+          "medianMs": 297.81858400000004,
+          "medianWallMs": 555.5095829999991,
+          "medianPeakRssMiB": 190.25
+        },
+        "euler88": {
+          "samples": [
+            {
+              "elapsedMs": 2750.6623750000003,
+              "answer": "7587457",
+              "peakRssMiB": 624.09375,
+              "wallMs": 3009.3499999999985
+            },
+            {
+              "elapsedMs": 2778.502416,
+              "answer": "7587457",
+              "peakRssMiB": 638.40625,
+              "wallMs": 3046.6316249999945
+            },
+            {
+              "elapsedMs": 2770.067834,
+              "answer": "7587457",
+              "peakRssMiB": 609.390625,
+              "wallMs": 3033.619249999989
+            }
+          ],
+          "medianMs": 2770.067834,
+          "medianWallMs": 3033.619249999989,
+          "medianPeakRssMiB": 624.09375
+        },
+        "euler95": {
+          "samples": [
+            {
+              "elapsedMs": 2977.645083,
+              "answer": "14316",
+              "peakRssMiB": 684,
+              "wallMs": 3246.295874999996
+            },
+            {
+              "elapsedMs": 3220.754042,
+              "answer": "14316",
+              "peakRssMiB": 680.375,
+              "wallMs": 3491.2977079999982
+            },
+            {
+              "elapsedMs": 3044.2814999999996,
+              "answer": "14316",
+              "peakRssMiB": 670.0625,
+              "wallMs": 3322.2197500000184
+            }
+          ],
+          "medianMs": 3044.2814999999996,
+          "medianWallMs": 3322.2197500000184,
+          "medianPeakRssMiB": 680.375
+        }
+      }
+    },
+    "baseline": {
+      "checkout": "/private/tmp/rank-292-baseline",
+      "revision": "b3d7e208a361685015d1973ed30e0be9374aecf6",
+      "cases": {
+        "scalar": {
+          "samples": [
+            {
+              "elapsedMs": 376.157792,
+              "answer": "1000001",
+              "peakRssMiB": 210.75,
+              "wallMs": 634.517458
+            },
+            {
+              "elapsedMs": 379.366958,
+              "answer": "1000001",
+              "peakRssMiB": 210.0625,
+              "wallMs": 633.096749999997
+            },
+            {
+              "elapsedMs": 375.05150000000003,
+              "answer": "1000001",
+              "peakRssMiB": 214.765625,
+              "wallMs": 634.5583330000081
+            }
+          ],
+          "medianMs": 376.157792,
+          "medianWallMs": 634.517458,
+          "medianPeakRssMiB": 210.75,
+          "instrumented": {
+            "elapsedMs": 377.15275,
+            "answer": "1000001",
+            "peakRssMiB": 215.46875,
+            "loops": 1,
+            "diagnostics": {
+              "validationRequests": 0,
+              "dependencyValidations": 0,
+              "cacheHits": 0,
+              "cacheMisses": 0,
+              "cellsComputed": 0,
+              "invalidations": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 1,
+              "compiledLoops": 1,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 1,
+              "elementTypeScannedCells": 1000001,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 1,
+                "tensor:group:AssignmentStatement": 1
+              }
+            },
+            "wallMs": 645.5039589999942
+          }
+        },
+        "range": {
+          "samples": [
+            {
+              "elapsedMs": 4407.9912079999995,
+              "answer": "6000006",
+              "peakRssMiB": 964.765625,
+              "wallMs": 4684.2594579999995
+            },
+            {
+              "elapsedMs": 4462.846958,
+              "answer": "6000006",
+              "peakRssMiB": 973.640625,
+              "wallMs": 4732.191165999997
+            },
+            {
+              "elapsedMs": 4894.498791,
+              "answer": "6000006",
+              "peakRssMiB": 961.78125,
+              "wallMs": 5164.047166999997
+            }
+          ],
+          "medianMs": 4462.846958,
+          "medianWallMs": 4732.191165999997,
+          "medianPeakRssMiB": 964.765625,
+          "instrumented": {
+            "elapsedMs": 4447.321083,
+            "answer": "6000006",
+            "peakRssMiB": 978.640625,
+            "loops": 0,
+            "diagnostics": {
+              "validationRequests": 0,
+              "dependencyValidations": 0,
+              "cacheHits": 0,
+              "cacheMisses": 0,
+              "cellsComputed": 0,
+              "invalidations": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 0,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 1,
+              "elementTypeScannedCells": 1000001,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 1,
+                "loop:unsupported-op:to": 1,
+                "scalar-expression:unsupported-op:to": 2,
+                "tensor:group:AssignmentStatement": 1
+              }
+            },
+            "wallMs": 4723.6278340000135
+          }
+        },
+        "stride": {
+          "samples": [
+            {
+              "elapsedMs": 2283.9135,
+              "answer": "3000006",
+              "peakRssMiB": 590.4375,
+              "wallMs": 2547.856167
+            },
+            {
+              "elapsedMs": 2302.394083,
+              "answer": "3000006",
+              "peakRssMiB": 588.5625,
+              "wallMs": 2562.2746669999906
+            },
+            {
+              "elapsedMs": 2273.033417,
+              "answer": "3000006",
+              "peakRssMiB": 610.03125,
+              "wallMs": 2538.193708000006
+            }
+          ],
+          "medianMs": 2283.9135,
+          "medianWallMs": 2547.856167,
+          "medianPeakRssMiB": 590.4375,
+          "instrumented": {
+            "elapsedMs": 2324.800208,
+            "answer": "3000006",
+            "peakRssMiB": 592.109375,
+            "loops": 0,
+            "diagnostics": {
+              "validationRequests": 0,
+              "dependencyValidations": 0,
+              "cacheHits": 0,
+              "cacheMisses": 0,
+              "cellsComputed": 0,
+              "invalidations": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 0,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 1,
+              "elementTypeScannedCells": 1000001,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 1,
+                "loop:unsupported-op:to": 1,
+                "scalar-expression:unsupported-op:to": 2,
+                "tensor:group:AssignmentStatement": 1
+              }
+            },
+            "wallMs": 2592.80799999999
+          }
+        },
+        "indexed": {
+          "samples": [
+            {
+              "elapsedMs": 4156.903666,
+              "answer": "6000006",
+              "peakRssMiB": 1087.625,
+              "wallMs": 4440.380375000001
+            },
+            {
+              "elapsedMs": 4135.647625,
+              "answer": "6000006",
+              "peakRssMiB": 1082.546875,
+              "wallMs": 4414.924333000003
+            },
+            {
+              "elapsedMs": 4141.535875,
+              "answer": "6000006",
+              "peakRssMiB": 1081.03125,
+              "wallMs": 4426.523959000013
+            }
+          ],
+          "medianMs": 4141.535875,
+          "medianWallMs": 4426.523959000013,
+          "medianPeakRssMiB": 1082.546875,
+          "instrumented": {
+            "elapsedMs": 4299.995959,
+            "answer": "6000006",
+            "peakRssMiB": 1102.375,
+            "loops": 0,
+            "diagnostics": {
+              "validationRequests": 0,
+              "dependencyValidations": 0,
+              "cacheHits": 0,
+              "cacheMisses": 0,
+              "cellsComputed": 0,
+              "invalidations": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 0,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 2,
+              "elementTypeScannedCells": 2000002,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 1,
+                "tensor:unsupported-node:MaterializeExpression": 1,
+                "scalar-expression:unsupported-op:to": 2,
+                "loop:input-type:I:expected-integer": 1,
+                "loop:input-type": 1,
+                "tensor:group:AssignmentStatement": 1
+              }
+            },
+            "wallMs": 4581.625540999987
+          }
+        },
+        "plain": {
+          "samples": [
+            {
+              "elapsedMs": 3559.91975,
+              "answer": "1000001",
+              "peakRssMiB": 674.265625,
+              "wallMs": 3826.482500000002
+            },
+            {
+              "elapsedMs": 3793.0552500000003,
+              "answer": "1000001",
+              "peakRssMiB": 928.328125,
+              "wallMs": 4062.735541999995
+            },
+            {
+              "elapsedMs": 3608.7083329999996,
+              "answer": "1000001",
+              "peakRssMiB": 945.53125,
+              "wallMs": 3882.979915999982
+            }
+          ],
+          "medianMs": 3608.7083329999996,
+          "medianWallMs": 3882.979915999982,
+          "medianPeakRssMiB": 928.328125,
+          "instrumented": {
+            "elapsedMs": 3543.0445,
+            "answer": "1000001",
+            "peakRssMiB": 922.34375,
+            "loops": 0,
+            "diagnostics": {
+              "validationRequests": 0,
+              "dependencyValidations": 0,
+              "cacheHits": 0,
+              "cacheMisses": 0,
+              "cellsComputed": 0,
+              "invalidations": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 0,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 1,
+              "elementTypeScannedCells": 1000001,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 1,
+                "loop:unsupported-op:to": 1,
+                "scalar-expression:unsupported-op:to": 2,
+                "tensor:group:AssignmentStatement": 1
+              }
+            },
+            "wallMs": 3818.916833000025
+          }
+        },
+        "sieve": {
+          "samples": [
+            {
+              "elapsedMs": 11730.039042,
+              "answer": "322467618437",
+              "peakRssMiB": 885.953125,
+              "wallMs": 12017.106457999998
+            },
+            {
+              "elapsedMs": 11718.283333000001,
+              "answer": "322467618437",
+              "peakRssMiB": 873.96875,
+              "wallMs": 11987.456875000003
+            },
+            {
+              "elapsedMs": 11830.944041,
+              "answer": "322467618437",
+              "peakRssMiB": 860.6875,
+              "wallMs": 12120.527457999997
+            }
+          ],
+          "medianMs": 11730.039042,
+          "medianWallMs": 12017.106457999998,
+          "medianPeakRssMiB": 873.96875,
+          "instrumented": {
+            "elapsedMs": 12107.497292,
+            "answer": "322467618437",
+            "peakRssMiB": 639.046875,
+            "loops": 0,
+            "diagnostics": {
+              "validationRequests": 0,
+              "dependencyValidations": 0,
+              "cacheHits": 0,
+              "cacheMisses": 0,
+              "cellsComputed": 0,
+              "invalidations": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 0,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 1,
+              "elementTypeScannedCells": 1000001,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 3,
+                "loop:unsupported-op:to": 1,
+                "scalar-expression:unsupported-op:to": 2,
+                "tensor:group:AssignmentStatement": 1
+              }
+            },
+            "wallMs": 12411.807749999978
+          }
+        },
+        "euler72": {
+          "samples": [
+            {
+              "elapsedMs": 3617.705125,
+              "answer": "303963552391",
+              "peakRssMiB": 638.65625,
+              "wallMs": 3933.303082999999
+            },
+            {
+              "elapsedMs": 3659.027416,
+              "answer": "303963552391",
+              "peakRssMiB": 644.0625,
+              "wallMs": 3988.221792000011
+            },
+            {
+              "elapsedMs": 3688.752625,
+              "answer": "303963552391",
+              "peakRssMiB": 641.671875,
+              "wallMs": 4014.940499999997
+            }
+          ],
+          "medianMs": 3659.027416,
+          "medianWallMs": 3988.221792000011,
+          "medianPeakRssMiB": 641.671875
+        },
+        "euler73": {
+          "samples": [
+            {
+              "elapsedMs": 255.063125,
+              "answer": "7295372",
+              "peakRssMiB": 169.84375,
+              "wallMs": 509.9013750000013
+            },
+            {
+              "elapsedMs": 255.694584,
+              "answer": "7295372",
+              "peakRssMiB": 170.859375,
+              "wallMs": 510.2828749999899
+            },
+            {
+              "elapsedMs": 257.619375,
+              "answer": "7295372",
+              "peakRssMiB": 169.828125,
+              "wallMs": 515.0406249999942
+            }
+          ],
+          "medianMs": 255.694584,
+          "medianWallMs": 510.2828749999899,
+          "medianPeakRssMiB": 169.84375
+        },
+        "euler75": {
+          "samples": [
+            {
+              "elapsedMs": 1910.9226669999998,
+              "answer": "161667",
+              "peakRssMiB": 528.59375,
+              "wallMs": 2199.983499999995
+            },
+            {
+              "elapsedMs": 1899.1932500000003,
+              "answer": "161667",
+              "peakRssMiB": 471.546875,
+              "wallMs": 2164.7775420000107
+            },
+            {
+              "elapsedMs": 1935.690125,
+              "answer": "161667",
+              "peakRssMiB": 527.125,
+              "wallMs": 2221.894874999998
+            }
+          ],
+          "medianMs": 1910.9226669999998,
+          "medianWallMs": 2199.983499999995,
+          "medianPeakRssMiB": 527.125
+        },
+        "euler86": {
+          "samples": [
+            {
+              "elapsedMs": 300.16249999999997,
+              "answer": "1818",
+              "peakRssMiB": 190.046875,
+              "wallMs": 555.0033750000002
+            },
+            {
+              "elapsedMs": 300.22587500000003,
+              "answer": "1818",
+              "peakRssMiB": 189.4375,
+              "wallMs": 558.003291999994
+            },
+            {
+              "elapsedMs": 299.23725,
+              "answer": "1818",
+              "peakRssMiB": 190.28125,
+              "wallMs": 556.364499999996
+            }
+          ],
+          "medianMs": 300.16249999999997,
+          "medianWallMs": 556.364499999996,
+          "medianPeakRssMiB": 190.046875
+        },
+        "euler88": {
+          "samples": [
+            {
+              "elapsedMs": 2983.60925,
+              "answer": "7587457",
+              "peakRssMiB": 666.515625,
+              "wallMs": 3271.748375000003
+            },
+            {
+              "elapsedMs": 2966.394042,
+              "answer": "7587457",
+              "peakRssMiB": 671.921875,
+              "wallMs": 3247.340041000003
+            },
+            {
+              "elapsedMs": 3116.850625,
+              "answer": "7587457",
+              "peakRssMiB": 738.65625,
+              "wallMs": 3404.5115410000144
+            }
+          ],
+          "medianMs": 2983.60925,
+          "medianWallMs": 3271.748375000003,
+          "medianPeakRssMiB": 671.921875
+        },
+        "euler95": {
+          "samples": [
+            {
+              "elapsedMs": 7495.549125,
+              "answer": "14316",
+              "peakRssMiB": 718.9375,
+              "wallMs": 7768.809707999993
+            },
+            {
+              "elapsedMs": 7494.235792,
+              "answer": "14316",
+              "peakRssMiB": 735.421875,
+              "wallMs": 7768.626000000004
+            },
+            {
+              "elapsedMs": 7642.378208,
+              "answer": "14316",
+              "peakRssMiB": 751.09375,
+              "wallMs": 7926.058375000022
+            }
+          ],
+          "medianMs": 7495.549125,
+          "medianWallMs": 7768.809707999993,
+          "medianPeakRssMiB": 735.421875
+        }
+      }
+    }
+  }
+}
