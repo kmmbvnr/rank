@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "157_diophantine"
+  run
+
+  Answer equal 53490
+end
+
+test "statement value for n = 1"
+  use "157_diophantine"
+  Digits = 1
+  run
+
+  Answer equal 20
+end
