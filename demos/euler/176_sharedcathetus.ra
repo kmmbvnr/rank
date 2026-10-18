@@ -1,0 +1,43 @@
+rem Right-angled Triangles that Share a
+rem Cathetus
+rem https://projecteuler.net/problem=176
+rem Find the least cathetus shared by
+rem exactly Ways right-angled triangles
+
+use numbers
+use linalg
+use sequences
+use io
+use cli
+
+option Ways integer = 47547
+
+rem A cathetus n gives (d(n^2) - 1) / 2
+rem triangles, or (d(n^2 / 4) - 1) / 2
+rem if n is even, d counting divisors.
+rem So the odd divisor count 2 Ways + 1
+rem is a product of factors 2 e + 1, one
+rem per prime. Try every grouping of its
+rem prime factors, give the largest
+rem group to the smallest prime.
+F = (2 * Ways + 1) factors array
+K = F len
+Count = K ** K
+Ids = 0 till Count array
+Bases = array shape K fill (K 2 max)
+Lab = (Ids Bases digits) transpose
+Pos = 0 till K array
+Row = Lab reshape Count 1 K
+Hit = Row equal (Pos reshape 1 K 1)
+Fs = F reshape 1 1 K
+Gp = (Hit choose Fs 1) reduce * rank 1
+Gp = Gp sort .descending
+Pr = primes take (K + 1) array
+Two = (Pos equal 0) choose 1 0
+Even = ((Gp - 1) // 2 + Two)
+Even = (Pr take K) ** Even
+Odd = (Pr drop 1) ** ((Gp - 1) // 2)
+Ne = Even reduce * rank 1
+No = Odd reduce * rank 1
+Answer = (concat Ne No) min
+Answer print
