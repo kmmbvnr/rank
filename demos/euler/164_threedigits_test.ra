@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "164_threedigits"
+  run
+
+  Answer equal 378158756814587
+end
+
+test "two digit numbers"
+  use "164_threedigits"
+  Digits = 2
+  run
+
+  Answer equal 90
+end
