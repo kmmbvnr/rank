@@ -1,0 +1,32 @@
+rem Digital Root Sums of Factorisations
+rem https://projecteuler.net/problem=159
+rem Sum the maximal digital root sums of
+rem the factorisations of every n from 2
+rem to Limit - 1
+
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000
+
+rem Best[m] is the larger of dr(m) and
+rem dr(d) + Best[k] over m = k d. Settle
+rem k in order so Best[k] is final when
+rem it feeds the multiples k d.
+N = 0 till Limit array
+Dr = (N - 1) mod 9 + 1
+Dr 0 = 0
+Best = Dr copy
+for K in 2 to Limit // 2
+  Base = Best K
+  for D in 2 to (Limit - 1) // K
+    Val = Dr D + Base
+    if Val greater Best (K * D)
+      Best (K * D) = Val
+    end
+  end
+end
+Rest = Best drop 2
+Answer = Rest sum
+Answer print

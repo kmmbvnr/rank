@@ -1,0 +1,21 @@
+use testing
+
+test "default input"
+  use "159_digitalrootsums"
+  run
+
+  Answer equal 14489159
+end
+
+test "smaller limits"
+  use "159_digitalrootsums"
+  Limit = 100
+  run
+
+  Best 24 equal 11
+  Answer equal 856
+  Limit = 1000
+  run
+
+  Answer equal 10901
+end
