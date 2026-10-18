@@ -3,7 +3,7 @@ import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { registerIntegerView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
-import { denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, typedArray, typedElementKind } from './array-storage.js';
+import { denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { sequenceValues } from './sequence.js';
@@ -117,6 +117,24 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
             }
             const linear = { start: count ? Number(start) : 0, step: count > 1n ? Number(step) : 1 };
             return { preserve: true, size: Number(count), unique: true, indexAt: (coordinate: number) => linear.start + coordinate * linear.step };
+        }
+        // Trusted dense integer selectors can be checked into one compact
+        // offset buffer. No getters, lazy cells or semantic contracts are read.
+        const stored = isRankArray(selector) && selector.shape.length === 1 ? denseScalarItems(selector) : undefined;
+        const kinds = stored && storedScalarKinds(selector as RankArray);
+        if (stored && kinds?.length === 1 && kinds[0] === 'integer') {
+            const indices = new Float64Array(stored.length);
+            let unique = true;
+            for (let i = 0; i < stored.length; i++) {
+                checkpoint('checking array indices');
+                const value = stored[i] as bigint;
+                const offset = Number(value);
+                if (offset < 0) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+                if (offset >= size) throw new MissingValueError(`array index out of bounds on axis ${axis}: ${value}`);
+                indices[i] = offset;
+                if (i > 0 && offset <= indices[i - 1]) unique = false;
+            }
+            return { preserve: true, size: indices.length, unique, indexAt: (coordinate: number) => indices[coordinate] };
         }
         const indices = selectorIndices(selector, size, axis);
         return {

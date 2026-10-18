@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
+import { typedArray } from '../src/array-storage.js';
+import { InterruptedError, withInterrupt } from '../src/interrupt.js';
 import { RuntimeDiagnostics } from '../src/diagnostics.js';
 
 const samples: [string, string, string][] = [
@@ -109,4 +111,56 @@ it('executes the guarded bulk path and preserves a reference path', () => {
             expect(r.execute('A sum')).toBe(102n);
         } finally { r.dispose(); }
     }
+});
+
+it('does not infer a range from the name or host indexing hooks', () => {
+    const r = new Interpreter();
+    try {
+        r.execute('A = array 10 20 30 40');
+        r.variables.set('Host', { kind: 'sequence', plan: {
+            name: '0 to 3', size: { kind: 'exact', value: 2n },
+            at: () => 0n,
+            *iterate() { yield 3n; yield 1n; },
+        } });
+        r.execute('A Host += 2');
+        expect(formatValue(r.execute('A')!)).toBe('10 22 30 42');
+    } finally { r.dispose(); }
+});
+
+it('declines a range proof after its iterator is replaced by a host', () => {
+    const r = new Interpreter();
+    try {
+        r.execute('A = array 10 20 30 40\nR = 0 to 3');
+        const range = r.variables.get('R') as { plan: { iterate(): IterableIterator<bigint> } };
+        range.plan.iterate = function* () { yield 3n; };
+        r.execute('A R += 1');
+        expect(formatValue(r.execute('A')!)).toBe('10 20 30 41');
+    } finally { r.dispose(); }
+});
+
+it('promotes a fixed-width integer buffer before overflowing 64 bits', () => {
+    const r = new Interpreter();
+    try {
+        r.variables.set('A', typedArray(new BigInt64Array([9223372036854775807n, 1n])));
+        r.execute('A (0 to 1) += 1');
+        expect(formatValue(r.execute('A')!)).toBe('9223372036854775808 2');
+    } finally { r.dispose(); }
+});
+
+it('can cancel a long bulk commit without replaying it', () => {
+    const r = new Interpreter();
+    const d = new RuntimeDiagnostics();
+    try {
+        r.execute('A = array shape 10000 fill 0');
+        const signal = {
+            length: 1, load: () => 0, store() {}, wait() {},
+            exchange: () => d.bulkArrayWrites ? 1 : 0,
+        };
+        expect(() => withInterrupt(signal, () => d.run(() => r.execute('A (0 to 9999) += 1\nAfter = 1')))).toThrow(InterruptedError);
+        expect(d.bulkArrayWrites).toBe(1);
+        expect(r.variables.has('After')).toBe(false);
+        const sum = r.execute('A sum') as bigint;
+        expect(sum).toBeGreaterThan(0n);
+        expect(sum).toBeLessThan(10000n);
+    } finally { r.dispose(); }
 });
