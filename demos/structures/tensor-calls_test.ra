@@ -1,4 +1,5 @@
 use testing
+use sequences
 
 test "normalizing a later batch preserves earlier results"
   use "tensor-calls"
