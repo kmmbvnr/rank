@@ -6854,6 +6854,18 @@ end
 The test is exact up to about `3.3e24`. Above that it is a Miller-Rabin
 probable-prime test, wrong for a composite with probability below `4 ** -14`.
 
+Prime enumeration uses an odd-only segmented bit sieve for values below
+`2 ** 40`. Each traversal owns its buffer and prepares only the next demanded
+segment; a huge upper bound does not trigger an eager sieve through its square
+root. Larger starting points use the direct primality path. Segment storage and
+the base-prime table have fixed limits, so an infinite traversal does not retain
+every prime it has yielded.
+
+Membership in a bounded prime source uses an on-demand sieve segment in that
+same numeric region, with one cached segment per source plan. Unbounded prime
+membership and larger values use direct primality testing. Bounds, integer-valued
+real inputs and the primality guarantees above are unchanged.
+
 A boundary remains part of membership, so `23 in (primes till 20)` is false.
 `fibonacci` also supports membership without an upper bound: its plan advances
 only as far as the queried value and respects lower and upper boundaries.

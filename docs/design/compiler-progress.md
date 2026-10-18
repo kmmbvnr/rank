@@ -1809,3 +1809,22 @@ Evidence: `benchmarks/baselines/2026-09-12-named-sum.json` and
 Validation: 44 language and 926 interpreter tests passed. All 331 demo
 files / 1156 tests passed with unchanged digests (27.81 seconds for one
 full run; no stable whole-suite speedup claim).
+
+## Segmented prime sequences
+
+`prime-sequence.ts` owns the prime plan, direct primality fallback and trusted
+membership registration. `prime-sieve.ts` supplies a bounded odd-only bit sieve;
+`sequence-bounds.ts` keeps the boundary and membership normalization shared with
+Fibonacci. The sequence protocol and compiler membership guards are unchanged.
+
+Each iterator owns a 4 KiB segment and a base-prime table capped at primes below
+`2 ** 20`. Numeric positions stay exact below `2 ** 40`; larger values retain the
+BigInt primality path. Base preparation and composite marking are cancellable.
+Bounded membership owns a separate single-segment cache, so interleaved reads,
+indexing and compiled membership cannot mutate an iterator's workspace. Plans
+remain lazy and bounded size metadata stays unknown until consumed.
+
+Euler 136 excludes 2 at the source, removing its odd-prime mask while retaining
+the array formulation. [Measurements](../../benchmarks/prime-sequences-results.md)
+separate generation, membership, demo execution and cold startup. Segment bounds
+are structural guarantees; peak heap and allocation savings have not been measured.

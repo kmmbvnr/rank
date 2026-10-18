@@ -35,3 +35,7 @@ in [performance measurements](../../docs/design/performance-measurements.md#stor
 Euler 141, 155 and 170 use numeric builtins inside compiled integer loops (#309).
 Their old/new formulations and the scalar `gcd` comparison are covered by
 [the numeric loop benchmark report](../../benchmarks/numeric-loop-calls-results.md).
+
+Euler 136 consumes the segmented prime source and starts after 2, avoiding an
+extra odd-prime mask. Source generation, bounded membership and the complete
+demo are timed separately in [the prime sequence benchmark](../../benchmarks/prime-sequences-results.md).

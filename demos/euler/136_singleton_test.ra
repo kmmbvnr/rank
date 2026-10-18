@@ -23,3 +23,31 @@ test "singletons up to twenty"
 
   Answer equal 8
 end
+
+
+test "default input"
+  use "136_singleton"
+  run
+
+  Answer equal 2544559
+end
+
+test "exclusive endpoints"
+  use "136_singleton"
+  Limit = 4
+  run
+
+  Answer equal 1
+  Limit = 5
+  run
+
+  Answer equal 2
+  Limit = 16
+  run
+
+  Answer equal 5
+  Limit = 17
+  run
+
+  Answer equal 6
+end
