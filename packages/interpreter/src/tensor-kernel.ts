@@ -8,22 +8,26 @@ import {
     isParenthesizedExpression, isUnaryExpression,
     type Expression, type Statement, type CompiledAtomType, type CompiledExpression,
 } from '@arrrank/language';
-import { type RankValue, isRankArray } from './value.js';
+import { type RankValue, isRankArray, isRankSequence } from './value.js';
 import { broadcastShape } from './tensor.js';
 import { arrayRevision, materializedArrayItems, ownedArray } from './array-storage.js';
+import { arithmeticRange, modularRange } from './range-plan.js';
 import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
 type Terminal = 'copy' | 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
+const bitwiseTokens = { bxor: '^', band: '&', bor: '|' } as const;
+type Bitwise = keyof typeof bitwiseTokens;
+const bitwise = (name: string): name is Bitwise => Object.prototype.hasOwnProperty.call(bitwiseTokens, name);
 const terminals = new Set(['copy', 'sum', 'mean', 'any', 'all', 'count', 'min', 'max']);
 export type TensorNode =
     | { kind: 'input'; name?: string; value?: RankValue }
-    | { kind: 'binary'; op: string; left: TensorNode; right: TensorNode }
+    | { kind: 'binary'; op: string; native?: Bitwise; left: TensorNode; right: TensorNode }
     | { kind: 'unary'; op: string; operand: TensorNode }
     | { kind: 'select'; source: TensorNode; selector: TensorNode };
 export interface TensorKernelHost {
     readonly textDigits?: boolean;
     lookup(name: string): RankValue | undefined;
-    builtin(name: Terminal | 'text' | 'integer'): boolean;
+    builtin(name: Terminal | 'text' | 'integer' | Bitwise): boolean;
     compiled?(source: string): void;
 }
 const unwrap = (value: Expression): Expression => isParenthesizedExpression(value) ? unwrap(value.value) : value;
@@ -32,7 +36,7 @@ function pair(value: Expression): Expression[] | undefined {
     return isApplicationExpression(atom) && atom.arguments.length === 1 ? [atom.head, atom.arguments[0]] : undefined;
 }
 interface View { items: RankValue[]; offset: number; shape: readonly number[] }
-interface Bound { shape?: readonly number[]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean; digits?: boolean }
+interface Bound { shape?: readonly number[]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean; digits?: boolean; progression?: { start: number; step: number; divisor?: number } }
 const numeric = (value: unknown) => typeof value === 'bigint' || typeof value === 'number' && Number.isFinite(value);
 const same = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((n, i) => n === b[i]);
 
@@ -67,6 +71,9 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
             },
             isBound: name => definitions.has(name),
             operator: (operation, inputs) => matchCompiledOperatorDomains(operation.tensor, inputs),
+            call: (operation, inputs) => bitwise(operation.name)
+                && inputs.length === 2 && inputs.every(domain => domain.includes('integer'))
+                ? operation.compiledCall : undefined,
             budget: { remaining: 1024 },
         });
         if (result.failure) return reject(result.failure.source, result.failure.detail);
@@ -76,7 +83,12 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
         if (node.kind === 'group') return lower(node.operand);
         if (node.kind === 'input') return node.input;
         if (node.kind === 'literal') return typed({ kind: 'input', value: node.value }, node.type);
-        if (node.kind === 'call') return undefined;
+        if (node.kind === 'call') {
+            if (!bitwise(node.operation.name)) return undefined;
+            const left = lower(node.arguments[0]), right = lower(node.arguments[1]);
+            return left && right ? typed({ kind: 'binary', op: node.operation.name,
+                native: node.operation.name, left, right }, node.type) : undefined;
+        }
         if (node.kind === 'unary') {
             const operand = lower(node.operand);
             return operand ? typed({ kind: 'unary', op: node.operation.name, operand }, node.type) : undefined;
@@ -113,6 +125,9 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
                 return operand ? typed({ kind: 'unary', op: 'text', operand }, ['text']) : undefined;
             }
         }
+        // Native calls use the shared application frontend, not selection parsing.
+        const last = flattenApplication(e).at(-1);
+        if (last && isNameExpression(last) && bitwise(last.name) && !definitions.has(last.name)) return undefined;
         const parts = pair(e);
         if (parts) {
             const source = parse(parts[0]), selector = parse(parts[1]);
@@ -164,6 +179,10 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
 
 function build(root: TensorNode, names: string[], terminal: Terminal, count: number, host: TensorKernelHost,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>) {
+    const nativeCalls = [...new Set([...domains.keys()].flatMap(node =>
+        node.kind === 'binary' && node.native ? [node.native] : []))];
+    const sequenceSelectors = new Set([...domains.keys()].flatMap(node =>
+        node.kind === 'select' && node.selector.kind === 'input' ? [node.selector] : []));
     let cachedKey: string | undefined;
     type KernelRun = (data: RankValue[][], offsets: number[], scalars: RankValue[], size: number) => RankValue | RankValue[] | undefined;
     let cachedRun: KernelRun | undefined;
@@ -175,6 +194,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     let generated = '';
     let unavailable = false;
     return { count, get source() { return generated; }, run(): RankValue | undefined {
+        for (const name of nativeCalls) if (!host.builtin(name)) return recordFallback(`tensor:builtin:${name}`);
         if (unavailable) return recordFallback('tensor:code-generation');
         if (names.some(name => host.lookup(name) !== undefined)) return recordFallback('tensor:existing-binding');
         // Interrupt callbacks may enter this kernel again with another shape.
@@ -229,6 +249,15 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 const value = node.name === undefined ? node.value : host.lookup(node.name);
                 if (numeric(value) || typeof value === 'boolean' || host.textDigits && typeof value === 'string') {
                     result = { scalar: value, boolean: typeof value === 'boolean', slot: scalars.push(value!) - 1 };
+                } else if (value && isRankSequence(value)) {
+                    if (!sequenceSelectors.has(node)) return undefined;
+                    const modular = modularRange(value.plan);
+                    const range = modular ?? arithmeticRange(value.plan);
+                    if (!range || range.count < 0n || range.count > BigInt(Number.MAX_SAFE_INTEGER)) return undefined;
+                    result = { shape: [Number(range.count)], boolean: false, progression: {
+                        start: scalars.push(range.start) - 1, step: scalars.push(range.step) - 1,
+                        divisor: modular ? scalars.push(modular.divisor) - 1 : undefined,
+                    } };
                 } else if (value && isRankArray(value)) {
                     // Host-owned arrays can run getters while probing their
                     // cells. Only tracked storage is safe to inspect here.
@@ -241,7 +270,9 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 }
             } else if (node.kind === 'binary') {
                 const a = bind(node.left), b = bind(node.right);
-                if (!a || !b) return undefined;
+                // Sequence arithmetic zips streams; it does not broadcast like
+                // arrays. Proved progressions are used only as gather selectors.
+                if (!a || !b || a.progression || b.progression) return undefined;
                 let shape = a.shape ?? b.shape;
                 if (a.shape && b.shape && !same(a.shape, b.shape)) {
                     try { shape = broadcastShape(a.shape, b.shape); }
@@ -251,6 +282,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 result = { shape, boolean: domains.get(node)!.every(type => type === 'boolean') };
             } else if (node.kind === 'unary') {
                 const a = bind(node.operand);
+                if (a?.progression) return undefined;
                 if (node.op === 'text') {
                     if (a && typeof a.scalar === 'bigint' && host.builtin('text')) {
                         const value = a.scalar.toString();
@@ -263,7 +295,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 } else if (a) result = { shape: a.shape, boolean: domains.get(node)!.every(type => type === 'boolean') };
             } else {
                 const a = bind(node.source), b = bind(node.selector);
-                if (!a || !b || !a.shape || a.shape.length === 0) return undefined;
+                if (!a || !b || a.progression || !a.shape || a.shape.length === 0) return undefined;
                 if (typeof b.scalar === 'bigint' && a.view && b.scalar >= 0n && b.scalar < BigInt(a.shape[0])) {
                     const shape = a.shape.slice(1);
                     const stride = shape.reduce((p, n) => p * n, 1);
@@ -296,10 +328,12 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         if (!output) return undefined;
         if (!output.shape) return recordFallback('tensor:output-shape');
         if (!host.builtin(terminal)) return recordFallback(`tensor:builtin:${terminal}`);
-        // Gathers and filters have their own iteration domains. They require
-        // explicit domain composition before they can mix with broadcasting.
-        if (broadcasts && ([...bound.keys()].some(node => node.kind === 'select')
-            || [...bound.values()].some(info => info.digits))) return recordFallback('tensor:broadcast-selection');
+        // A gather preserves its selector's frame: broadcast its selector,
+        // then use that value to address the source, never broadcast the table.
+        // Filters change cardinality and still require a separate domain plan.
+        if (broadcasts && [...bound.values()].some(info => info.filter || info.digits)) {
+            return recordFallback('tensor:broadcast-selection');
+        }
         const size = output.shape.reduce((p, n) => p * n, 1);
         // A selection changes cardinality. Other operands must not zip an
         // unfiltered vector against it. Until domain algebra is implemented,
@@ -322,7 +356,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         // Array output initially requires a fixed cardinality.
         if (terminal === 'copy' && [...filtered.values()].some(Boolean)) return recordFallback('tensor:filtered-copy');
         const interruptible = interruptsEnabled();
-        const key = String(interruptible) + [...bound.values()].map(b => `${b.shape === undefined ? 's' : b.shape.join(',')}:${b.view ? 'v' : ''}:${b.boolean}:${b.filter ?? false}:${b.slot ?? ''}`).join(';');
+        const key = String(interruptible) + [...bound.values()].map(b => `${b.shape === undefined ? 's' : b.shape.join(',')}:${b.view ? 'v' : ''}:${b.boolean}:${b.filter ?? false}:${b.slot ?? ''}:${b.progression ? `${b.progression.start},${b.progression.step},${b.progression.divisor ?? ''}` : ''}`).join(';');
         let execute = cachedRun;
         if (cachedKey !== key) {
             const lines: string[] = [];
@@ -354,11 +388,26 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 const name = `v${emitted.size}`;
                 emitted.set(node, name);
                 if (info.scalar !== undefined) lines.push(`const ${name} = scalars[${info.slot}];`);
+                else if (info.progression) {
+                    const { start, step, divisor } = info.progression;
+                    const index = broadcasts ? address(info.shape!) : 'i';
+                    lines.push(`const ${name}raw = scalars[${start}] + BigInt(${index}) * scalars[${step}];`);
+                    if (divisor === undefined) lines.push(`const ${name} = ${name}raw;`);
+                    else {
+                        lines.push(`const ${name}rem = ${name}raw % scalars[${divisor}];`);
+                        lines.push(`const ${name} = ${name}rem !== 0n && (${name}rem < 0n) !== (scalars[${divisor}] < 0n) ? ${name}rem + scalars[${divisor}] : ${name}rem;`);
+                    }
+                }
                 else if (info.digits) lines.push(`const ${name} = BigInt(scalars[${info.slot}].charCodeAt(i) - 48);`);
                 else if (info.view) lines.push(`const ${name} = data[${info.slot}][offsets[${info.slot}] + ${broadcasts ? address(info.view.shape) : 'i'}];`);
                 else if (node.kind === 'binary') {
                     const a = emit(node.left), b = emit(node.right);
                     const decline = `return decline(${JSON.stringify(`tensor:operator-guard:${node.op}`)});`;
+                    if (node.native) {
+                        lines.push(`if (typeof ${a} !== 'bigint' || typeof ${b} !== 'bigint') ${decline}`);
+                        lines.push(`const ${name} = ${a} ${bitwiseTokens[node.native]} ${b};`);
+                        return name;
+                    }
                     const signatures = tensorOperatorSignatures(node.op, 2);
                     const token = findCompiledOperator(node.op)!.binary;
                     if (signatures.every(signature => signature.inputs[0] === 'boolean')) {
@@ -417,7 +466,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         }
         if ([...bound.keys()].every(node => node.kind !== 'select'
             && !(node.kind === 'unary' && (node.op === 'text' || node.op === 'integer0')))
-            && [...bound.values()].every(info => info.scalar === undefined || numeric(info.scalar) || typeof info.scalar === 'boolean')) {
+            && [...bound.values()].every(info => !info.progression && (info.scalar === undefined || numeric(info.scalar) || typeof info.scalar === 'boolean'))) {
             layout = { inputs: [...bound].flatMap(([node, info]) => node.kind === 'input' ? [{
                 name: node.name, value: node.value,
                 slot: info.slot!, shape: info.shape && [...info.shape], boolean: info.boolean,

@@ -1,0 +1,18 @@
+use testing
+use sequences
+
+test "gather, XOR and lookup score each candidate"
+  use "gather-score"
+  run
+  Scores equal (array 335 327 347)
+end
+
+test "one cipher byte broadcasts across the repeated key"
+  use sequences
+  use "gather-score"
+  Cipher = array 4
+  Weights = ((0 till 32) ** 2) copy
+  Key = array 1 2 3
+  Slots = (0 till 6) mod 3
+  (Cipher Weights Key Slots score_key) equal 220
+end
