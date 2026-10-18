@@ -1,0 +1,42 @@
+rem Fractions involving the Number of
+rem Different Ways a Number can be
+rem Expressed as a Sum of Powers of 2
+rem https://projecteuler.net/problem=175
+rem Find the shortened binary expansion
+rem of the least n with b(n) / b(n-1)
+rem equal to Num / Den, with b(n) the
+rem number of sums of powers of 2 that
+rem use each power at most twice
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+option Num integer = 123456789
+option Den integer = 987654321
+
+rem Undo the bit steps of problem 169
+rem on (x, y) = (b(n), b(n-1)): a 0 bit
+rem came from (x - y, y), a 1 bit from
+rem (x, y - x). Subtract in runs, as in
+rem the continued fraction, and keep the
+rem lengths of the runs of equal bits.
+G = Num Den gcd
+X = Num // G
+Y = Den // G
+Runs = array shape 0 fill 0
+Q = 0
+for X + Y greater 1
+  if X greater Y
+    Q = (X - 1) // Y
+    X -= Q * Y
+  else
+    Q = Y // X
+    Y -= Q * X
+  end
+  Runs = concat Runs (array Q)
+end
+Answer = Runs reverse "," join
+Answer print
