@@ -1,0 +1,10 @@
+use testing
+
+test "default input"
+  use "177_quadrilaterals"
+  run
+
+  Answer equal 129325
+  Fixed // 8 equal 129325
+  Fixed mod 8 equal 0
+end
