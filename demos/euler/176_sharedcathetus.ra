@@ -22,7 +22,7 @@ rem prime factors, give the largest
 rem group to the smallest prime.
 F = (2 * Ways + 1) factors array
 K = F len
-Count = K ** K
+Count = (array shape K fill K) reduce *
 Ids = 0 till Count array
 Bases = array shape K fill (K 2 max)
 Lab = (Ids Bases digits) transpose

@@ -32,7 +32,7 @@ for Pr in array 13 7 5
   Mul = Cand mod Pr equal 0
   Ms = Cand filter Mul array
   K = Ms len
-  Size = 2 ** K
+  Size = 1 K shl
   Seq = 0 till Size array
   Mk = Seq reshape Size 1
   Bt = Mk (0 till K array) bit
