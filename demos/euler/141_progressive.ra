@@ -1,0 +1,71 @@
+rem Investigating Progressive Numbers
+rem https://projecteuler.net/problem=141
+rem Sum the squares below a limit that
+rem are progressive: n = d q + r with
+rem r, d, q in geometric progression
+
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000000000
+
+rem Take r = c b^2, d = c a b, q = c a^2
+rem for coprime a > b, so n = c b (c a^3
+rem + b). Keep n only if its residues
+rem pass, then take an exact integer
+rem root by Newton steps.
+Root = 0 to 64 array
+Sq = Root * Root
+Sq64 = array shape 64 fill 0
+Sq64 (Sq mod 64) = 1
+Sq63 = array shape 63 fill 0
+Sq63 (Sq mod 63) = 1
+Sq65 = array shape 65 fill 0
+Sq65 (Sq mod 65) = 1
+Hits = array shape 1000 fill 0
+K = 0
+A = 2
+for A * A * A less Limit
+  Cube = A * A * A
+  for B in 1 to A - 1
+    if Cube * B + B * B at least Limit
+      break
+    end
+    X = A
+    Y = B
+    for Y not equal 0
+      Z = X mod Y
+      X = Y
+      Y = Z
+    end
+    if X equal 1
+      C = 1
+      N = B * (Cube + B)
+      for N less Limit
+        if Sq64 (N mod 64) equal 1
+          if Sq63 (N mod 63) equal 1
+            if Sq65 (N mod 65) equal 1
+              R = 1000000
+              S = (R + N // R) // 2
+              for S less R
+                R = S
+                S = (R + N // R) // 2
+              end
+              if R * R equal N
+                Hits K = N
+                K += 1
+              end
+            end
+          end
+        end
+        C += 1
+        N = C * B * (C * Cube + B)
+      end
+    end
+  end
+  A += 1
+end
+Used = Hits take K
+Answer = Used unique sum
+Answer print
