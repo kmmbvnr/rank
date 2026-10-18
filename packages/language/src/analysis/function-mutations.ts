@@ -137,7 +137,9 @@ export function functionMutationDiagnostics(analysis: FunctionScopeAnalysis): { 
                 && /^[a-z]/.test(call.callee.name);
         // Unknown callbacks may mutate any argument. Keep this conservative
         // effect in their parameter summary and substitute at the call site.
-        if (caller && !callees.size && opaque) {
+        // Memo validates scalar argument keys before entering its body, so an
+        // unknown function parameter cannot execute there in the first place.
+        if (caller && !caller.owner.memo && !callees.size && opaque) {
             for (const argument of call.arguments) addWrite(caller, receiver(argument, call.scope), call.node);
         }
         for (const callee of callees) {
