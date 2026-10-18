@@ -1,0 +1,31 @@
+rem RSA Encryption
+rem https://projecteuler.net/problem=182
+rem Sum the exponents e coprime to
+rem (p - 1) (q - 1) that leave the
+rem fewest messages unconcealed
+
+use numbers
+use sequences
+use io
+use cli
+
+option P integer = 1009
+option Q integer = 3643
+
+rem m^e = m mod p q has 1 + gcd(e - 1,
+rem p - 1) solutions mod p and likewise
+rem mod q. Their product counts the
+rem unconcealed messages.
+Phi = (P - 1) * (Q - 1)
+E = 2 to Phi - 1 array
+Coprime = (E Phi gcd) equal 1
+Prev = E - 1
+Gp = Prev (P - 1) gcd
+Gq = Prev (Q - 1) gcd
+Fixed = (1 + Gp) * (1 + Gq)
+Cand = Fixed filter Coprime array
+Least = Cand min
+Best = Fixed equal Least
+Pick = E filter (Coprime and Best) array
+Answer = Pick sum
+Answer print
