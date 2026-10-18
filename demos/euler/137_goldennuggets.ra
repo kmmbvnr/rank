@@ -1,0 +1,21 @@
+rem Fibonacci Golden Nuggets
+rem https://projecteuler.net/problem=137
+rem Find the Nth positive integer x for
+rem which the Fibonacci generating
+rem function takes a rational value
+
+use sequences
+use io
+use cli
+
+option Nth integer = 15
+
+rem The nuggets are products of
+rem consecutive Fibonacci numbers,
+rem F(2n) F(2n+1), from 2, 3, 5, 8...
+Fs = fibonacci take (2 * Nth) array
+Even = Fs (0 to # by 2)
+Odd = Fs (1 to # by 2)
+Nugget = Even * Odd
+Answer = Nugget (Nth - 1)
+Answer print
