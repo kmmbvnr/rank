@@ -1,0 +1,39 @@
+rem Investigating Numbers with Few
+rem Repeated Digits
+rem https://projecteuler.net/problem=172
+rem Count the numbers of Len digits
+rem with no leading zero where no digit
+rem occurs more than Most times
+
+use numbers
+use sequences
+use io
+use cli
+
+option Len integer = 18
+option Most integer = 3
+
+rem F[n] counts strings of n positions
+rem over the digits taken so far. A new
+rem digit fills k of the n positions in
+rem C(n, k) ways. By symmetry a tenth
+rem of the strings start with zero.
+Rows = Len + 1
+Cols = Most + 1
+Ns = (0 to Len array) reshape Rows 1
+Ks = (0 to Most array) reshape 1 Cols
+Used = Ks Ns min
+Fits = Ks at most Ns
+Ways = Fits choose (Ns Used binomial) 0
+F = array shape Rows fill 0
+F 0 = 1
+for Digit in 1 to 10
+  G = array shape Rows fill 0
+  for K in 0 to Most
+    G += (Ways # K) * (F K shift)
+  end
+  F = G
+end
+Total = F Len
+Answer = Total * 9 // 10
+Answer print
