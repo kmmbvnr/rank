@@ -8,17 +8,20 @@ Mathematical programming problems from [Project Euler](https://projecteuler.net/
 
 ## Scalar loops in problems 121-200
 
-Most solutions are array code. These keep a scalar loop because the
-array form was measured and is far slower, or because the work is
-sequential (a recurrence, a depth-first search or a union-find).
+Most solutions are array code. These keep a scalar loop because an
+array form would be far slower (estimated from operation counts at
+about 0.25 us per element and operation), or because the work is
+sequential (a depth-first search or a union-find). Problems 125,
+126, 127, 129, 130, 142, 149, 159 and 195 were first written as loops
+and then rewritten as array code.
 
-| Problem | Why a loop | Array form tried |
+| Problem | Why a loop | Array form |
 |---|---|---|
-| 141 | 2 x 10^7 candidate squares | not run, ~75 s estimated |
-| 150 | 1.7 x 10^8 sub-triangle sums | not run, over 200 s estimated |
+| 141 | 2 x 10^7 candidate squares | ~75 s estimated |
+| 150 | 1.7 x 10^8 sub-triangle sums | over 200 s estimated |
 | 186 | union-find over 2.3M calls | sequential |
-| 193 | Moebius sieve to 2^25 | not run, ~50 s estimated |
-| 196 | 5 row strip, neighbour counts | not run, ~100 s estimated |
+| 193 | Moebius sieve to 2^25 | ~50 s estimated |
+| 196 | 5 row strip, neighbour counts | ~100 s estimated |
 | 198 | Stern-Brocot walk | sequential |
 
 The speed gaps come from per-element costs of array operations and
