@@ -1,0 +1,1868 @@
+{
+  "initial": {
+    "metadata": {
+      "date": "2026-10-18T10:29:05.972Z",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "samples": 3,
+      "storage": "snapshot",
+      "gradient": {
+        "features": 8,
+        "steps": 20
+      },
+      "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+      "sources": {
+        "euler": {
+          "path": "demos/euler/006_sumsquarediff.ra",
+          "sha256": "3c34b8d9f1784959282fa1ce31a9343d0d3ed16e46502a2b8879cc99e63b615d"
+        },
+        "matvec": {
+          "path": "demos/deepml/001_matmul.ra",
+          "sha256": "1e11dccaa134cca3484f50ca87f0ac88a23db529f4346a0de21b8fb3dce3d844"
+        },
+        "kmeans": {
+          "path": "demos/deepml/017_kmeans.ra",
+          "sha256": "3471bb5eff1a876299158cb89a24919ad7270cc739ed383b0a4eb1f32587d9e7"
+        },
+        "row": {
+          "path": "demos/deepml/004_mean.ra",
+          "sha256": "9978351276ba040eb99d2305ae0292baa03c08893b7d0b6d85bbd7105bfd0bf1"
+        },
+        "column": {
+          "path": "demos/deepml/004_mean.ra",
+          "sha256": "9978351276ba040eb99d2305ae0292baa03c08893b7d0b6d85bbd7105bfd0bf1"
+        },
+        "matmul": {
+          "path": "demos/deepml/009_matmul.ra",
+          "sha256": "cd8e59af11566d18924cbfbe30d0ecddf5888a0f2798fc420cdaab288aa8b304"
+        },
+        "gradient": {
+          "path": "demos/deepml/015_gd.ra",
+          "sha256": "6817eb62182c5fbbf2ba1e2db690abb51b3cc6461860a788a9e3ccd018413ec5"
+        }
+      }
+    },
+    "versions": {
+      "candidate": {
+        "checkout": "/private/tmp/rank-120/",
+        "revision": "cc3ca4dea33761ffe9b04641af0ee8ae92e546c9",
+        "dirty": true
+      },
+      "baseline": {
+        "checkout": "/private/tmp/rank-120-baseline",
+        "revision": "cc3ca4dea33761ffe9b04641af0ee8ae92e546c9",
+        "dirty": true
+      }
+    },
+    "results": [
+      {
+        "name": "euler",
+        "scale": 0,
+        "version": "candidate",
+        "warmProcessMs": 433.13020900000004,
+        "size": 100,
+        "firstMs": 155.81625,
+        "warmMs": [
+          2.7941660000000184,
+          2.3164580000000115,
+          2.127084000000025
+        ],
+        "memory": {
+          "rss": 137936896,
+          "heapTotal": 67059712,
+          "heapUsed": 39714240,
+          "external": 2400855,
+          "arrayBuffers": 124802
+        },
+        "maxRSSKiB": 134704,
+        "coldProcessMs": [
+          408.3876670000002,
+          406.1696670000001,
+          410.913
+        ]
+      },
+      {
+        "name": "euler",
+        "scale": 0,
+        "version": "baseline",
+        "warmProcessMs": 423.92425000000003,
+        "size": 100,
+        "firstMs": 155.49879199999998,
+        "warmMs": [
+          2.7385000000000446,
+          2.314624999999978,
+          2.0633750000000077
+        ],
+        "memory": {
+          "rss": 137445376,
+          "heapTotal": 66535424,
+          "heapUsed": 47073672,
+          "external": 2363320,
+          "arrayBuffers": 87267
+        },
+        "maxRSSKiB": 134224,
+        "coldProcessMs": [
+          412.3130420000002,
+          412.3230000000003,
+          411.8540829999997
+        ]
+      },
+      {
+        "name": "euler",
+        "scale": 1,
+        "version": "baseline",
+        "warmProcessMs": 439.24691699999994,
+        "size": 20000,
+        "firstMs": 158.75254199999998,
+        "warmMs": [
+          5.189375000000041,
+          5.344209000000035,
+          4.576250000000016
+        ],
+        "memory": {
+          "rss": 139083776,
+          "heapTotal": 68370432,
+          "heapUsed": 45585184,
+          "external": 2357075,
+          "arrayBuffers": 81022
+        },
+        "maxRSSKiB": 135824,
+        "coldProcessMs": [
+          417.64437500000076,
+          414.5796250000003,
+          417.38475000000017
+        ]
+      },
+      {
+        "name": "euler",
+        "scale": 1,
+        "version": "candidate",
+        "warmProcessMs": 441.50054199999977,
+        "size": 20000,
+        "firstMs": 161.839792,
+        "warmMs": [
+          5.699625000000026,
+          4.6512500000000045,
+          4.707875000000001
+        ],
+        "memory": {
+          "rss": 139542528,
+          "heapTotal": 68632576,
+          "heapUsed": 34677888,
+          "external": 2343845,
+          "arrayBuffers": 67792
+        },
+        "maxRSSKiB": 136272,
+        "coldProcessMs": [
+          420.02741699999933,
+          410.3463750000001,
+          413.348833
+        ]
+      },
+      {
+        "name": "euler",
+        "scale": 2,
+        "version": "candidate",
+        "warmProcessMs": 558.6400410000006,
+        "size": 200000,
+        "firstMs": 179.98491700000002,
+        "warmMs": [
+          24.53316699999999,
+          24.099249999999984,
+          24.335207999999966
+        ],
+        "memory": {
+          "rss": 138657792,
+          "heapTotal": 69156864,
+          "heapUsed": 36473456,
+          "external": 2399594,
+          "arrayBuffers": 123541
+        },
+        "maxRSSKiB": 135408,
+        "coldProcessMs": [
+          432.9522500000003,
+          433.6326250000002,
+          432.84229199999936
+        ]
+      },
+      {
+        "name": "euler",
+        "scale": 2,
+        "version": "baseline",
+        "warmProcessMs": 559.4816249999994,
+        "size": 200000,
+        "firstMs": 180.119625,
+        "warmMs": [
+          24.693750000000023,
+          24.167457999999954,
+          23.975791999999956
+        ],
+        "memory": {
+          "rss": 139182080,
+          "heapTotal": 68894720,
+          "heapUsed": 36480968,
+          "external": 2367482,
+          "arrayBuffers": 91429
+        },
+        "maxRSSKiB": 135920,
+        "coldProcessMs": [
+          435.39787500000057,
+          436.72770800000035,
+          431.9790000000012
+        ]
+      },
+      {
+        "name": "matvec",
+        "scale": 0,
+        "version": "candidate",
+        "warmProcessMs": 430.36954200000037,
+        "size": 8,
+        "firstMs": 11.716209000000049,
+        "warmMs": [
+          0.4271669999999972,
+          0.41654199999999264,
+          0.37170800000001236
+        ],
+        "memory": {
+          "rss": 137756672,
+          "heapTotal": 66797568,
+          "heapUsed": 47010136,
+          "external": 2371512,
+          "arrayBuffers": 95459
+        },
+        "maxRSSKiB": 134528,
+        "coldProcessMs": [
+          429.1746660000008,
+          429.7268330000006,
+          430.72708299999977
+        ]
+      },
+      {
+        "name": "matvec",
+        "scale": 0,
+        "version": "baseline",
+        "warmProcessMs": 429.4842090000002,
+        "size": 8,
+        "firstMs": 11.560958999999968,
+        "warmMs": [
+          0.4525839999999448,
+          0.4380419999999958,
+          0.4024580000000242
+        ],
+        "memory": {
+          "rss": 137543680,
+          "heapTotal": 66797568,
+          "heapUsed": 46988024,
+          "external": 2343845,
+          "arrayBuffers": 67792
+        },
+        "maxRSSKiB": 134320,
+        "coldProcessMs": [
+          432.88287499999933,
+          432.65749999999935,
+          427.97699999999895
+        ]
+      },
+      {
+        "name": "matvec",
+        "scale": 1,
+        "version": "baseline",
+        "warmProcessMs": 476.6637919999994,
+        "size": 128,
+        "firstMs": 21.890625,
+        "warmMs": [
+          5.671042,
+          6.190709000000027,
+          4.709707999999978
+        ],
+        "memory": {
+          "rss": 144687104,
+          "heapTotal": 70090752,
+          "heapUsed": 41598592,
+          "external": 3460458,
+          "arrayBuffers": 1184405
+        },
+        "maxRSSKiB": 141328,
+        "coldProcessMs": [
+          438.58429200000137,
+          443.9618330000012,
+          475.1693750000013
+        ]
+      },
+      {
+        "name": "matvec",
+        "scale": 1,
+        "version": "candidate",
+        "warmProcessMs": 480.7767079999994,
+        "size": 128,
+        "firstMs": 21.674874999999986,
+        "warmMs": [
+          7.535874999999976,
+          4.877166999999986,
+          4.682749999999999
+        ],
+        "memory": {
+          "rss": 147079168,
+          "heapTotal": 103383040,
+          "heapUsed": 48248840,
+          "external": 3886311,
+          "arrayBuffers": 1610258
+        },
+        "maxRSSKiB": 143632,
+        "coldProcessMs": [
+          440.25183300000026,
+          436.57595800000126,
+          442.55412499999875
+        ]
+      },
+      {
+        "name": "matvec",
+        "scale": 2,
+        "version": "candidate",
+        "warmProcessMs": 803.5497910000013,
+        "size": 512,
+        "firstMs": 81.35920800000002,
+        "warmMs": [
+          53.46920799999998,
+          54.771541999999954,
+          55.588708
+        ],
+        "memory": {
+          "rss": 214745088,
+          "heapTotal": 130269184,
+          "heapUsed": 75305256,
+          "external": 10530068,
+          "arrayBuffers": 8254015
+        },
+        "maxRSSKiB": 209712,
+        "coldProcessMs": [
+          524.163790999999,
+          527.2340839999997,
+          523.7094999999972
+        ]
+      },
+      {
+        "name": "matvec",
+        "scale": 2,
+        "version": "baseline",
+        "warmProcessMs": 828.814875,
+        "size": 512,
+        "firstMs": 89.81245800000005,
+        "warmMs": [
+          57.78433299999995,
+          59.72529199999997,
+          58.04062499999998
+        ],
+        "memory": {
+          "rss": 215040000,
+          "heapTotal": 130531328,
+          "heapUsed": 80094096,
+          "external": 11132180,
+          "arrayBuffers": 8856127
+        },
+        "maxRSSKiB": 210016,
+        "coldProcessMs": [
+          532.9700420000008,
+          532.3157910000009,
+          536.5540409999994
+        ]
+      },
+      {
+        "name": "kmeans",
+        "scale": 0,
+        "version": "candidate",
+        "warmProcessMs": 530.7182079999984,
+        "size": 16,
+        "firstMs": 32.04095799999999,
+        "warmMs": [
+          5.1240830000000415,
+          6.9330830000000105,
+          4.216875000000016
+        ],
+        "memory": {
+          "rss": 163495936,
+          "heapTotal": 107429888,
+          "heapUsed": 51268784,
+          "external": 2371512,
+          "arrayBuffers": 95459
+        },
+        "maxRSSKiB": 159680,
+        "coldProcessMs": [
+          495.40766599999915,
+          497.5753330000007,
+          498.3092919999981
+        ]
+      },
+      {
+        "name": "kmeans",
+        "scale": 0,
+        "version": "baseline",
+        "warmProcessMs": 522.6381249999977,
+        "size": 16,
+        "firstMs": 31.533500000000004,
+        "warmMs": [
+          4.7714579999999955,
+          4.347541000000035,
+          4.198166999999955
+        ],
+        "memory": {
+          "rss": 149946368,
+          "heapTotal": 108740608,
+          "heapUsed": 58268216,
+          "external": 2399594,
+          "arrayBuffers": 123541
+        },
+        "maxRSSKiB": 146432,
+        "coldProcessMs": [
+          499.9281250000022,
+          484.98683300000266,
+          502.48845900000015
+        ]
+      },
+      {
+        "name": "kmeans",
+        "scale": 1,
+        "version": "baseline",
+        "warmProcessMs": 848.6193340000027,
+        "size": 256,
+        "firstMs": 91.35816700000004,
+        "warmMs": [
+          76.63162499999999,
+          49.13766700000008,
+          58.765750000000025
+        ],
+        "memory": {
+          "rss": 338608128,
+          "heapTotal": 254164992,
+          "heapUsed": 136490984,
+          "external": 2313492,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 330672,
+        "coldProcessMs": [
+          564.6064579999984,
+          562.9460839999992,
+          559.8114170000008
+        ]
+      },
+      {
+        "name": "kmeans",
+        "scale": 1,
+        "version": "candidate",
+        "warmProcessMs": 835.1167089999981,
+        "size": 256,
+        "firstMs": 90.73966600000006,
+        "warmMs": [
+          70.53829199999996,
+          44.34724999999992,
+          54.432042000000024
+        ],
+        "memory": {
+          "rss": 289619968,
+          "heapTotal": 201572352,
+          "heapUsed": 94474504,
+          "external": 2313492,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 282848,
+        "coldProcessMs": [
+          563.1002080000035,
+          564.4272500000006,
+          561.5980420000014
+        ]
+      },
+      {
+        "name": "kmeans",
+        "scale": 2,
+        "version": "candidate",
+        "warmProcessMs": 3334.546000000002,
+        "size": 2048,
+        "firstMs": 473.92879100000005,
+        "warmMs": [
+          342.65925000000016,
+          348.7661670000002,
+          399.8872919999999
+        ],
+        "memory": {
+          "rss": 724418560,
+          "heapTotal": 596197376,
+          "heapUsed": 504103008,
+          "external": 2313492,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 707456,
+        "coldProcessMs": [
+          926.1111659999951,
+          940.8421250000029,
+          920.317833000001
+        ]
+      },
+      {
+        "name": "kmeans",
+        "scale": 2,
+        "version": "baseline",
+        "warmProcessMs": 3268.899458,
+        "size": 2048,
+        "firstMs": 472.84387499999997,
+        "warmMs": [
+          343.7805000000001,
+          344.52499999999964,
+          594.6153750000003
+        ],
+        "memory": {
+          "rss": 641236992,
+          "heapTotal": 462503936,
+          "heapUsed": 161862696,
+          "external": 2313492,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 648256,
+        "coldProcessMs": [
+          939.695249999997,
+          912.2811250000013,
+          923.0600840000043
+        ]
+      },
+      {
+        "name": "row",
+        "scale": 0,
+        "version": "candidate",
+        "warmProcessMs": 439.4610829999947,
+        "size": 8,
+        "firstMs": 10.616583000000048,
+        "warmMs": [
+          0.3232079999999655,
+          0.3209160000000111,
+          0.32408299999997325
+        ],
+        "memory": {
+          "rss": 138985472,
+          "heapTotal": 67584000,
+          "heapUsed": 38201192,
+          "external": 2343845,
+          "arrayBuffers": 67792
+        },
+        "maxRSSKiB": 135728,
+        "coldProcessMs": [
+          435.515707999999,
+          433.1500420000011,
+          435.0654579999973
+        ]
+      },
+      {
+        "name": "row",
+        "scale": 0,
+        "version": "baseline",
+        "warmProcessMs": 438.2633330000026,
+        "size": 8,
+        "firstMs": 10.602458000000013,
+        "warmMs": [
+          0.35379199999999855,
+          0.3481249999999818,
+          0.3015839999999912
+        ],
+        "memory": {
+          "rss": 138559488,
+          "heapTotal": 67321856,
+          "heapUsed": 46147416,
+          "external": 2391402,
+          "arrayBuffers": 115349
+        },
+        "maxRSSKiB": 135312,
+        "coldProcessMs": [
+          432.4545419999995,
+          442.3752500000046,
+          434.7897499999963
+        ]
+      },
+      {
+        "name": "row",
+        "scale": 1,
+        "version": "baseline",
+        "warmProcessMs": 480.6860000000015,
+        "size": 128,
+        "firstMs": 21.93674999999996,
+        "warmMs": [
+          5.902708000000018,
+          6.3613750000000095,
+          4.961792000000003
+        ],
+        "memory": {
+          "rss": 143048704,
+          "heapTotal": 71139328,
+          "heapUsed": 41400856,
+          "external": 2399594,
+          "arrayBuffers": 123541
+        },
+        "maxRSSKiB": 139696,
+        "coldProcessMs": [
+          452.9035409999997,
+          494.6959579999966,
+          471.159249999997
+        ]
+      },
+      {
+        "name": "row",
+        "scale": 1,
+        "version": "candidate",
+        "warmProcessMs": 487.25908300000447,
+        "size": 128,
+        "firstMs": 19.471208000000047,
+        "warmMs": [
+          5.611500000000035,
+          5.369000000000028,
+          4.777917000000002
+        ],
+        "memory": {
+          "rss": 145129472,
+          "heapTotal": 104431616,
+          "heapUsed": 47884592,
+          "external": 2356458,
+          "arrayBuffers": 80405
+        },
+        "maxRSSKiB": 141728,
+        "coldProcessMs": [
+          497.77691600000253,
+          466.7911249999961,
+          487.38550000000396
+        ]
+      },
+      {
+        "name": "row",
+        "scale": 2,
+        "version": "candidate",
+        "warmProcessMs": 929.7803750000021,
+        "size": 512,
+        "firstMs": 88.84175000000005,
+        "warmMs": [
+          71.59629199999995,
+          76.56375000000003,
+          65.05720900000006
+        ],
+        "memory": {
+          "rss": 207847424,
+          "heapTotal": 121618432,
+          "heapUsed": 56097336,
+          "external": 2313492,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 205488,
+        "coldProcessMs": [
+          588.9149160000015,
+          550.4736670000057,
+          574.1070830000026
+        ]
+      },
+      {
+        "name": "row",
+        "scale": 2,
+        "version": "baseline",
+        "warmProcessMs": 973.2973749999946,
+        "size": 512,
+        "firstMs": 95.05204200000003,
+        "warmMs": [
+          69.6077919999999,
+          65.25633399999992,
+          65.23695799999996
+        ],
+        "memory": {
+          "rss": 208109568,
+          "heapTotal": 121094144,
+          "heapUsed": 55846352,
+          "external": 2313492,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 205568,
+        "coldProcessMs": [
+          593.8267080000005,
+          557.7014580000032,
+          649.5135000000009
+        ]
+      },
+      {
+        "name": "column",
+        "scale": 0,
+        "version": "candidate",
+        "warmProcessMs": 476.9087079999954,
+        "size": 8,
+        "firstMs": 11.191666999999995,
+        "warmMs": [
+          0.4259999999999877,
+          0.6324579999999855,
+          0.43787500000001955
+        ],
+        "memory": {
+          "rss": 139165696,
+          "heapTotal": 67321856,
+          "heapUsed": 37708944,
+          "external": 2387009,
+          "arrayBuffers": 110956
+        },
+        "maxRSSKiB": 135904,
+        "coldProcessMs": [
+          482.58000000000175,
+          491.7071670000005,
+          479.8764999999985
+        ]
+      },
+      {
+        "name": "column",
+        "scale": 0,
+        "version": "baseline",
+        "warmProcessMs": 483.45433400000184,
+        "size": 8,
+        "firstMs": 10.011541000000022,
+        "warmMs": [
+          0.34774999999996226,
+          0.35233299999998735,
+          0.3095000000000141
+        ],
+        "memory": {
+          "rss": 138706944,
+          "heapTotal": 67321856,
+          "heapUsed": 47969664,
+          "external": 2357075,
+          "arrayBuffers": 81022
+        },
+        "maxRSSKiB": 135472,
+        "coldProcessMs": [
+          481.815125000001,
+          478.63920900000085,
+          475.20645800000057
+        ]
+      },
+      {
+        "name": "column",
+        "scale": 1,
+        "version": "baseline",
+        "warmProcessMs": 575.8619580000013,
+        "size": 128,
+        "firstMs": 21.014749999999992,
+        "warmMs": [
+          5.9465000000000146,
+          7.1787910000000466,
+          5.985791999999947
+        ],
+        "memory": {
+          "rss": 143884288,
+          "heapTotal": 70877184,
+          "heapUsed": 41371616,
+          "external": 2400855,
+          "arrayBuffers": 124802
+        },
+        "maxRSSKiB": 140528,
+        "coldProcessMs": [
+          508.232207999994,
+          506.81458399999974,
+          492.9241669999974
+        ]
+      },
+      {
+        "name": "column",
+        "scale": 1,
+        "version": "candidate",
+        "warmProcessMs": 523.447874999998,
+        "size": 128,
+        "firstMs": 18.888791000000026,
+        "warmMs": [
+          5.991666000000009,
+          5.938249999999982,
+          5.473500000000001
+        ],
+        "memory": {
+          "rss": 145080320,
+          "heapTotal": 104431616,
+          "heapUsed": 48150712,
+          "external": 2391402,
+          "arrayBuffers": 115349
+        },
+        "maxRSSKiB": 141680,
+        "coldProcessMs": [
+          502.0473750000019,
+          489.40625,
+          496.02337499999703
+        ]
+      },
+      {
+        "name": "column",
+        "scale": 2,
+        "version": "candidate",
+        "warmProcessMs": 968.732290999993,
+        "size": 512,
+        "firstMs": 122.171292,
+        "warmMs": [
+          68.28591700000004,
+          68.083166,
+          65.87516600000004
+        ],
+        "memory": {
+          "rss": 207339520,
+          "heapTotal": 125550592,
+          "heapUsed": 76944088,
+          "external": 2313492,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 204704,
+        "coldProcessMs": [
+          646.3185410000006,
+          619.7197920000035,
+          616.3379169999971
+        ]
+      },
+      {
+        "name": "column",
+        "scale": 2,
+        "version": "baseline",
+        "warmProcessMs": 1018.5977089999942,
+        "size": 512,
+        "firstMs": 110.61645800000002,
+        "warmMs": [
+          81.9475829999999,
+          76.01587500000005,
+          74.19908299999997
+        ],
+        "memory": {
+          "rss": 207962112,
+          "heapTotal": 125812736,
+          "heapUsed": 53963304,
+          "external": 2313492,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 205216,
+        "coldProcessMs": [
+          605.6519169999956,
+          648.9876249999943,
+          579.1558749999967
+        ]
+      },
+      {
+        "name": "matmul",
+        "scale": 0,
+        "version": "candidate",
+        "warmProcessMs": 472.6349159999954,
+        "size": 4,
+        "firstMs": 18.113833999999997,
+        "warmMs": [
+          1.6599579999999605,
+          3.849625000000003,
+          1.4686659999999847
+        ],
+        "memory": {
+          "rss": 144474112,
+          "heapTotal": 104546304,
+          "heapUsed": 39448392,
+          "external": 2373402,
+          "arrayBuffers": 67792
+        },
+        "maxRSSKiB": 141088,
+        "coldProcessMs": [
+          450.3425000000134,
+          468.2170829999959,
+          462.08416700000816
+        ]
+      },
+      {
+        "name": "matmul",
+        "scale": 0,
+        "version": "baseline",
+        "warmProcessMs": 462.3762909999932,
+        "size": 4,
+        "firstMs": 17.88425000000001,
+        "warmMs": [
+          1.6374169999999708,
+          1.489417000000003,
+          1.3400409999999852
+        ],
+        "memory": {
+          "rss": 140034048,
+          "heapTotal": 69943296,
+          "heapUsed": 48249448,
+          "external": 2386632,
+          "arrayBuffers": 81022
+        },
+        "maxRSSKiB": 136752,
+        "coldProcessMs": [
+          453.70641599998635,
+          452.2479580000072,
+          454.59458299999824
+        ]
+      },
+      {
+        "name": "matmul",
+        "scale": 1,
+        "version": "baseline",
+        "warmProcessMs": 760.7348749999946,
+        "size": 24,
+        "firstMs": 73.97187500000001,
+        "warmMs": [
+          45.011167,
+          45.024374999999964,
+          60.97241600000007
+        ],
+        "memory": {
+          "rss": 288636928,
+          "heapTotal": 206438400,
+          "heapUsed": 83409128,
+          "external": 2373402,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 283072,
+        "coldProcessMs": [
+          519.5302919999958,
+          522.0828329999931,
+          519.5956250000017
+        ]
+      },
+      {
+        "name": "matmul",
+        "scale": 1,
+        "version": "candidate",
+        "warmProcessMs": 762.9798750000045,
+        "size": 24,
+        "firstMs": 73.32854099999997,
+        "warmMs": [
+          44.25649999999996,
+          45.10462499999994,
+          61.43512499999997
+        ],
+        "memory": {
+          "rss": 288866304,
+          "heapTotal": 206176256,
+          "heapUsed": 84730312,
+          "external": 2406492,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 283312,
+        "coldProcessMs": [
+          569.2677919999987,
+          522.0760410000075,
+          518.3484580000077
+        ]
+      },
+      {
+        "name": "matmul",
+        "scale": 2,
+        "version": "candidate",
+        "warmProcessMs": 3745.5787500000006,
+        "size": 64,
+        "firstMs": 562.1632500000001,
+        "warmMs": [
+          582.4032499999998,
+          493.8101660000002,
+          596.2054579999999
+        ],
+        "memory": {
+          "rss": 481673216,
+          "heapTotal": 385957888,
+          "heapUsed": 257160440,
+          "external": 2343049,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 470384,
+        "coldProcessMs": [
+          1068.026125000004,
+          1142.6764170000097,
+          1123.7035000000033
+        ]
+      },
+      {
+        "name": "matmul",
+        "scale": 2,
+        "version": "baseline",
+        "warmProcessMs": 3639.373749999999,
+        "size": 64,
+        "firstMs": 565.889666,
+        "warmMs": [
+          578.567041,
+          485.9557500000001,
+          498.50133300000016
+        ],
+        "memory": {
+          "rss": 480231424,
+          "heapTotal": 383336448,
+          "heapUsed": 259778096,
+          "external": 2343049,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 468976,
+        "coldProcessMs": [
+          1159.619749999998,
+          1079.2094579999975,
+          1187.028833000004
+        ]
+      },
+      {
+        "name": "gradient",
+        "scale": 0,
+        "version": "candidate",
+        "warmProcessMs": 575.26112499999,
+        "size": 16,
+        "firstMs": 31.90554199999997,
+        "warmMs": [
+          8.350124999999935,
+          10.39208300000007,
+          8.642165999999975
+        ],
+        "memory": {
+          "rss": 163627008,
+          "heapTotal": 106643456,
+          "heapUsed": 49735016,
+          "external": 2371512,
+          "arrayBuffers": 95459
+        },
+        "maxRSSKiB": 159792,
+        "coldProcessMs": [
+          525.6021659999969,
+          530.7318749999977,
+          514.767875000005
+        ]
+      },
+      {
+        "name": "gradient",
+        "scale": 0,
+        "version": "baseline",
+        "warmProcessMs": 577.8612920000014,
+        "size": 16,
+        "firstMs": 41.22287499999999,
+        "warmMs": [
+          8.086833999999953,
+          7.945416000000023,
+          10.231916999999953
+        ],
+        "memory": {
+          "rss": 151896064,
+          "heapTotal": 106905600,
+          "heapUsed": 59204144,
+          "external": 2357075,
+          "arrayBuffers": 81022
+        },
+        "maxRSSKiB": 148336,
+        "coldProcessMs": [
+          514.8537079999951,
+          588.0007500000065,
+          518.7601250000007
+        ]
+      },
+      {
+        "name": "gradient",
+        "scale": 1,
+        "version": "baseline",
+        "warmProcessMs": 860.2994999999937,
+        "size": 256,
+        "firstMs": 79.70154099999996,
+        "warmMs": [
+          50.26541700000007,
+          61.38258300000007,
+          56.28658399999995
+        ],
+        "memory": {
+          "rss": 246808576,
+          "heapTotal": 203554816,
+          "heapUsed": 77941248,
+          "external": 2357075,
+          "arrayBuffers": 81022
+        },
+        "maxRSSKiB": 241024,
+        "coldProcessMs": [
+          567.1351670000004,
+          571.7386669999978,
+          554.4822920000006
+        ]
+      },
+      {
+        "name": "gradient",
+        "scale": 1,
+        "version": "candidate",
+        "warmProcessMs": 810.5540000000037,
+        "size": 256,
+        "firstMs": 77.77683400000006,
+        "warmMs": [
+          45.91425000000004,
+          47.38599999999997,
+          54.7645
+        ],
+        "memory": {
+          "rss": 236814336,
+          "heapTotal": 200671232,
+          "heapUsed": 124395912,
+          "external": 2381451,
+          "arrayBuffers": 105398
+        },
+        "maxRSSKiB": 231264,
+        "coldProcessMs": [
+          561.4380830000009,
+          567.3263330000045,
+          645.1312909999979
+        ]
+      },
+      {
+        "name": "gradient",
+        "scale": 2,
+        "version": "candidate",
+        "warmProcessMs": 2091.346749999997,
+        "size": 2048,
+        "firstMs": 348.445458,
+        "warmMs": [
+          248.98758299999986,
+          259.34629199999995,
+          256.6885829999999
+        ],
+        "memory": {
+          "rss": 401424384,
+          "heapTotal": 237633536,
+          "heapUsed": 147107160,
+          "external": 2313492,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 422880,
+        "coldProcessMs": [
+          720.3818750000064,
+          728.2353330000042,
+          733.6199589999887
+        ]
+      },
+      {
+        "name": "gradient",
+        "scale": 2,
+        "version": "baseline",
+        "warmProcessMs": 2091.3675829999993,
+        "size": 2048,
+        "firstMs": 347.447417,
+        "warmMs": [
+          253.02054199999998,
+          255.0674590000001,
+          241.31283399999984
+        ],
+        "memory": {
+          "rss": 409763840,
+          "heapTotal": 230522880,
+          "heapUsed": 150985648,
+          "external": 2313492,
+          "arrayBuffers": 37439
+        },
+        "maxRSSKiB": 437216,
+        "coldProcessMs": [
+          737.0204169999924,
+          745.3917090000032,
+          749.2443750000093
+        ]
+      }
+    ]
+  },
+  "repeats": {
+    "matmul": {
+      "metadata": {
+        "date": "2026-10-18T10:31:09.653Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "samples": 5,
+        "storage": "snapshot",
+        "gradient": {
+          "features": 8,
+          "steps": 20
+        },
+        "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+        "sources": {
+          "euler": {
+            "path": "demos/euler/006_sumsquarediff.ra",
+            "sha256": "3c34b8d9f1784959282fa1ce31a9343d0d3ed16e46502a2b8879cc99e63b615d"
+          },
+          "matvec": {
+            "path": "demos/deepml/001_matmul.ra",
+            "sha256": "1e11dccaa134cca3484f50ca87f0ac88a23db529f4346a0de21b8fb3dce3d844"
+          },
+          "kmeans": {
+            "path": "demos/deepml/017_kmeans.ra",
+            "sha256": "3471bb5eff1a876299158cb89a24919ad7270cc739ed383b0a4eb1f32587d9e7"
+          },
+          "row": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "9978351276ba040eb99d2305ae0292baa03c08893b7d0b6d85bbd7105bfd0bf1"
+          },
+          "column": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "9978351276ba040eb99d2305ae0292baa03c08893b7d0b6d85bbd7105bfd0bf1"
+          },
+          "matmul": {
+            "path": "demos/deepml/009_matmul.ra",
+            "sha256": "cd8e59af11566d18924cbfbe30d0ecddf5888a0f2798fc420cdaab288aa8b304"
+          },
+          "gradient": {
+            "path": "demos/deepml/015_gd.ra",
+            "sha256": "6817eb62182c5fbbf2ba1e2db690abb51b3cc6461860a788a9e3ccd018413ec5"
+          }
+        }
+      },
+      "versions": {
+        "candidate": {
+          "checkout": "/private/tmp/rank-120/",
+          "revision": "cc3ca4dea33761ffe9b04641af0ee8ae92e546c9",
+          "dirty": true
+        },
+        "baseline": {
+          "checkout": "/private/tmp/rank-120-baseline",
+          "revision": "cc3ca4dea33761ffe9b04641af0ee8ae92e546c9",
+          "dirty": true
+        }
+      },
+      "results": [
+        {
+          "name": "matmul",
+          "scale": 0,
+          "version": "baseline",
+          "warmProcessMs": 464.453417,
+          "size": 4,
+          "firstMs": 17.99929099999997,
+          "warmMs": [
+            1.6708329999999592,
+            1.547625000000039,
+            1.3572090000000117,
+            1.3680840000000103,
+            1.281750000000045
+          ],
+          "memory": {
+            "rss": 140263424,
+            "heapTotal": 70205440,
+            "heapUsed": 48532224,
+            "external": 2420959,
+            "arrayBuffers": 115349
+          },
+          "maxRSSKiB": 136976,
+          "coldProcessMs": [
+            475.53645800000004,
+            488.4426669999998,
+            485.0950419999999,
+            448.9371250000004,
+            455.7940410000001
+          ]
+        },
+        {
+          "name": "matmul",
+          "scale": 0,
+          "version": "candidate",
+          "warmProcessMs": 467.3185000000001,
+          "size": 4,
+          "firstMs": 17.777499999999975,
+          "warmMs": [
+            3.9195419999999785,
+            1.5383749999999736,
+            1.3664169999999558,
+            1.3485000000000014,
+            1.3189590000000067
+          ],
+          "memory": {
+            "rss": 144146432,
+            "heapTotal": 104546304,
+            "heapUsed": 41884216,
+            "external": 2429151,
+            "arrayBuffers": 123541
+          },
+          "maxRSSKiB": 140768,
+          "coldProcessMs": [
+            446.07545800000025,
+            503.4880830000002,
+            467.94954199999984,
+            445.9955839999993,
+            485.2576250000002
+          ]
+        },
+        {
+          "name": "matmul",
+          "scale": 1,
+          "version": "candidate",
+          "warmProcessMs": 891.8147500000005,
+          "size": 24,
+          "firstMs": 90.65949999999998,
+          "warmMs": [
+            47.610917000000086,
+            45.14316599999995,
+            68.06004099999996,
+            43.65504199999998,
+            43.18995799999993
+          ],
+          "memory": {
+            "rss": 289259520,
+            "heapTotal": 206012416,
+            "heapUsed": 87373504,
+            "external": 2343049,
+            "arrayBuffers": 37439
+          },
+          "maxRSSKiB": 283344,
+          "coldProcessMs": [
+            529.8592920000001,
+            563.5379590000011,
+            569.2782090000001,
+            580.51325,
+            568.2260839999999
+          ]
+        },
+        {
+          "name": "matmul",
+          "scale": 1,
+          "version": "baseline",
+          "warmProcessMs": 930.8078329999998,
+          "size": 24,
+          "firstMs": 83.53416700000002,
+          "warmMs": [
+            45.03654100000006,
+            63.222083,
+            48.77687500000002,
+            61.66495899999995,
+            52.37095799999997
+          ],
+          "memory": {
+            "rss": 300335104,
+            "heapTotal": 221593600,
+            "heapUsed": 142229472,
+            "external": 2343049,
+            "arrayBuffers": 37439
+          },
+          "maxRSSKiB": 293296,
+          "coldProcessMs": [
+            548.2299999999996,
+            576.2952920000007,
+            524.0527499999989,
+            566.3256660000006,
+            553.9012920000005
+          ]
+        },
+        {
+          "name": "matmul",
+          "scale": 2,
+          "version": "baseline",
+          "warmProcessMs": 5047.566749999998,
+          "size": 64,
+          "firstMs": 612.4957079999999,
+          "warmMs": [
+            593.754042,
+            500.34479199999987,
+            508.6232500000001,
+            525.0793750000003,
+            638.5651250000001
+          ],
+          "memory": {
+            "rss": 562003968,
+            "heapTotal": 457801728,
+            "heapUsed": 136104336,
+            "external": 2343049,
+            "arrayBuffers": 37439
+          },
+          "maxRSSKiB": 557040,
+          "coldProcessMs": [
+            1083.6153750000012,
+            1039.792207999999,
+            1108.7763330000016,
+            1346.9765000000007,
+            1189.0881660000014
+          ]
+        },
+        {
+          "name": "matmul",
+          "scale": 2,
+          "version": "candidate",
+          "warmProcessMs": 5077.937749999997,
+          "size": 64,
+          "firstMs": 611.8399159999999,
+          "warmMs": [
+            516.3586670000004,
+            599.7513330000002,
+            503.8780419999998,
+            532.2003749999999,
+            528.1422919999995
+          ],
+          "memory": {
+            "rss": 574750720,
+            "heapTotal": 473022464,
+            "heapUsed": 351936416,
+            "external": 2343049,
+            "arrayBuffers": 37439
+          },
+          "maxRSSKiB": 561280,
+          "coldProcessMs": [
+            1102.882749999997,
+            1170.7922919999983,
+            1107.4904580000002,
+            1259.7774580000005,
+            1039.5123750000057
+          ]
+        }
+      ]
+    },
+    "kmeans": {
+      "metadata": {
+        "date": "2026-10-18T10:31:44.709Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "samples": 5,
+        "storage": "snapshot",
+        "gradient": {
+          "features": 8,
+          "steps": 20
+        },
+        "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+        "sources": {
+          "euler": {
+            "path": "demos/euler/006_sumsquarediff.ra",
+            "sha256": "3c34b8d9f1784959282fa1ce31a9343d0d3ed16e46502a2b8879cc99e63b615d"
+          },
+          "matvec": {
+            "path": "demos/deepml/001_matmul.ra",
+            "sha256": "1e11dccaa134cca3484f50ca87f0ac88a23db529f4346a0de21b8fb3dce3d844"
+          },
+          "kmeans": {
+            "path": "demos/deepml/017_kmeans.ra",
+            "sha256": "3471bb5eff1a876299158cb89a24919ad7270cc739ed383b0a4eb1f32587d9e7"
+          },
+          "row": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "9978351276ba040eb99d2305ae0292baa03c08893b7d0b6d85bbd7105bfd0bf1"
+          },
+          "column": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "9978351276ba040eb99d2305ae0292baa03c08893b7d0b6d85bbd7105bfd0bf1"
+          },
+          "matmul": {
+            "path": "demos/deepml/009_matmul.ra",
+            "sha256": "cd8e59af11566d18924cbfbe30d0ecddf5888a0f2798fc420cdaab288aa8b304"
+          },
+          "gradient": {
+            "path": "demos/deepml/015_gd.ra",
+            "sha256": "6817eb62182c5fbbf2ba1e2db690abb51b3cc6461860a788a9e3ccd018413ec5"
+          }
+        }
+      },
+      "versions": {
+        "candidate": {
+          "checkout": "/private/tmp/rank-120/",
+          "revision": "cc3ca4dea33761ffe9b04641af0ee8ae92e546c9",
+          "dirty": true
+        },
+        "baseline": {
+          "checkout": "/private/tmp/rank-120-baseline",
+          "revision": "cc3ca4dea33761ffe9b04641af0ee8ae92e546c9",
+          "dirty": true
+        }
+      },
+      "results": [
+        {
+          "name": "kmeans",
+          "scale": 0,
+          "version": "baseline",
+          "warmProcessMs": 545.071416,
+          "size": 16,
+          "firstMs": 31.677250000000015,
+          "warmMs": [
+            5.180791999999997,
+            6.670208000000002,
+            4.075958000000014,
+            3.7322090000000117,
+            4.139459000000045
+          ],
+          "memory": {
+            "rss": 168312832,
+            "heapTotal": 108511232,
+            "heapUsed": 60202672,
+            "external": 2367482,
+            "arrayBuffers": 91429
+          },
+          "maxRSSKiB": 164368,
+          "coldProcessMs": [
+            558.4351250000002,
+            530.9068750000001,
+            491.75916700000016,
+            491.3274169999995,
+            493.1367500000006
+          ]
+        },
+        {
+          "name": "kmeans",
+          "scale": 0,
+          "version": "candidate",
+          "warmProcessMs": 567.6027500000001,
+          "size": 16,
+          "firstMs": 33.56212500000004,
+          "warmMs": [
+            5.272665999999958,
+            7.283042000000023,
+            4.167124999999942,
+            3.7841669999999112,
+            4.207208000000037
+          ],
+          "memory": {
+            "rss": 167378944,
+            "heapTotal": 108773376,
+            "heapUsed": 60115696,
+            "external": 2343845,
+            "arrayBuffers": 67792
+          },
+          "maxRSSKiB": 163456,
+          "coldProcessMs": [
+            547.8595420000001,
+            536.0786669999998,
+            490.4021249999996,
+            491.29995899999994,
+            493.7847920000004
+          ]
+        },
+        {
+          "name": "kmeans",
+          "scale": 1,
+          "version": "candidate",
+          "warmProcessMs": 951.0784580000009,
+          "size": 256,
+          "firstMs": 92.763958,
+          "warmMs": [
+            38.22795899999994,
+            43.156875000000014,
+            69.06429100000003,
+            53.121667,
+            65.12937499999998
+          ],
+          "memory": {
+            "rss": 332726272,
+            "heapTotal": 244416512,
+            "heapUsed": 129844152,
+            "external": 2313492,
+            "arrayBuffers": 37439
+          },
+          "maxRSSKiB": 324928,
+          "coldProcessMs": [
+            554.7755420000012,
+            554.9153749999987,
+            556.963667,
+            563.1528330000001,
+            559.7054580000004
+          ]
+        },
+        {
+          "name": "kmeans",
+          "scale": 1,
+          "version": "baseline",
+          "warmProcessMs": 931.8272079999997,
+          "size": 256,
+          "firstMs": 88.92566700000003,
+          "warmMs": [
+            75.24725000000001,
+            48.429209000000014,
+            57.59187500000007,
+            40.765707999999904,
+            51.65487499999995
+          ],
+          "memory": {
+            "rss": 367493120,
+            "heapTotal": 280936448,
+            "heapUsed": 193846632,
+            "external": 2313492,
+            "arrayBuffers": 37439
+          },
+          "maxRSSKiB": 358880,
+          "coldProcessMs": [
+            554.4038330000003,
+            553.1597920000004,
+            555.3497910000006,
+            553.0761660000007,
+            559.1959170000009
+          ]
+        },
+        {
+          "name": "kmeans",
+          "scale": 2,
+          "version": "baseline",
+          "warmProcessMs": 3855.7410419999997,
+          "size": 2048,
+          "firstMs": 442.15816700000005,
+          "warmMs": [
+            340.83666700000003,
+            531.0124169999999,
+            331.97620800000004,
+            606.2652090000001,
+            321.0897500000001
+          ],
+          "memory": {
+            "rss": 645726208,
+            "heapTotal": 468795392,
+            "heapUsed": 242277808,
+            "external": 2313492,
+            "arrayBuffers": 37439
+          },
+          "maxRSSKiB": 634704,
+          "coldProcessMs": [
+            972.1157499999972,
+            978.7790830000013,
+            1036.8672079999997,
+            1007.2326250000006,
+            984.5536670000001
+          ]
+        },
+        {
+          "name": "kmeans",
+          "scale": 2,
+          "version": "candidate",
+          "warmProcessMs": 3884.3590829999994,
+          "size": 2048,
+          "firstMs": 444.19804199999993,
+          "warmMs": [
+            346.714166,
+            531.6234170000002,
+            329.3425420000003,
+            603.2912500000002,
+            328.8275410000001
+          ],
+          "memory": {
+            "rss": 647151616,
+            "heapTotal": 472989696,
+            "heapUsed": 237231344,
+            "external": 2313492,
+            "arrayBuffers": 37439
+          },
+          "maxRSSKiB": 635872,
+          "coldProcessMs": [
+            1042.9988330000015,
+            1032.4533749999973,
+            1025.8301250000004,
+            1023.5936660000007,
+            926.132999999998
+          ]
+        }
+      ]
+    },
+    "row": {
+      "metadata": {
+        "date": "2026-10-18T10:32:16.650Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "samples": 5,
+        "storage": "snapshot",
+        "gradient": {
+          "features": 8,
+          "steps": 20
+        },
+        "timing": "cold: fresh child, import, input setup, oracle, one execution/check; warm: function call and output forcing (Euler also parses); memory: process peak and final snapshot, not allocation counts",
+        "sources": {
+          "euler": {
+            "path": "demos/euler/006_sumsquarediff.ra",
+            "sha256": "3c34b8d9f1784959282fa1ce31a9343d0d3ed16e46502a2b8879cc99e63b615d"
+          },
+          "matvec": {
+            "path": "demos/deepml/001_matmul.ra",
+            "sha256": "1e11dccaa134cca3484f50ca87f0ac88a23db529f4346a0de21b8fb3dce3d844"
+          },
+          "kmeans": {
+            "path": "demos/deepml/017_kmeans.ra",
+            "sha256": "3471bb5eff1a876299158cb89a24919ad7270cc739ed383b0a4eb1f32587d9e7"
+          },
+          "row": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "9978351276ba040eb99d2305ae0292baa03c08893b7d0b6d85bbd7105bfd0bf1"
+          },
+          "column": {
+            "path": "demos/deepml/004_mean.ra",
+            "sha256": "9978351276ba040eb99d2305ae0292baa03c08893b7d0b6d85bbd7105bfd0bf1"
+          },
+          "matmul": {
+            "path": "demos/deepml/009_matmul.ra",
+            "sha256": "cd8e59af11566d18924cbfbe30d0ecddf5888a0f2798fc420cdaab288aa8b304"
+          },
+          "gradient": {
+            "path": "demos/deepml/015_gd.ra",
+            "sha256": "6817eb62182c5fbbf2ba1e2db690abb51b3cc6461860a788a9e3ccd018413ec5"
+          }
+        }
+      },
+      "versions": {
+        "candidate": {
+          "checkout": "/private/tmp/rank-120/",
+          "revision": "cc3ca4dea33761ffe9b04641af0ee8ae92e546c9",
+          "dirty": true
+        },
+        "baseline": {
+          "checkout": "/private/tmp/rank-120-baseline",
+          "revision": "cc3ca4dea33761ffe9b04641af0ee8ae92e546c9",
+          "dirty": true
+        }
+      },
+      "results": [
+        {
+          "name": "row",
+          "scale": 0,
+          "version": "baseline",
+          "warmProcessMs": 436.136292,
+          "size": 8,
+          "firstMs": 10.497833000000014,
+          "warmMs": [
+            0.3251250000000141,
+            0.3200420000000008,
+            0.3436669999999822,
+            0.29704199999997627,
+            0.2609170000000063
+          ],
+          "memory": {
+            "rss": 138395648,
+            "heapTotal": 67846144,
+            "heapUsed": 48803024,
+            "external": 2357075,
+            "arrayBuffers": 81022
+          },
+          "maxRSSKiB": 135152,
+          "coldProcessMs": [
+            428.180875,
+            426.5420830000003,
+            428.64133300000003,
+            435.6360000000004,
+            432.9093750000002
+          ]
+        },
+        {
+          "name": "row",
+          "scale": 0,
+          "version": "candidate",
+          "warmProcessMs": 431.59787499999993,
+          "size": 8,
+          "firstMs": 10.516333000000031,
+          "warmMs": [
+            0.330250000000035,
+            0.32220799999998917,
+            0.31229200000001356,
+            0.2868750000000091,
+            0.2637500000000159
+          ],
+          "memory": {
+            "rss": 138608640,
+            "heapTotal": 67846144,
+            "heapUsed": 39064672,
+            "external": 2343845,
+            "arrayBuffers": 67792
+          },
+          "maxRSSKiB": 135360,
+          "coldProcessMs": [
+            432.27591700000016,
+            426.2467499999998,
+            429.3999170000002,
+            427.8472079999997,
+            427.92620799999986
+          ]
+        },
+        {
+          "name": "row",
+          "scale": 1,
+          "version": "candidate",
+          "warmProcessMs": 484.24241600000005,
+          "size": 128,
+          "firstMs": 18.65637499999997,
+          "warmMs": [
+            5.461708000000044,
+            5.0815000000000055,
+            4.628749999999968,
+            4.548584000000005,
+            4.704207999999994
+          ],
+          "memory": {
+            "rss": 145489920,
+            "heapTotal": 103907328,
+            "heapUsed": 54548192,
+            "external": 2343845,
+            "arrayBuffers": 67792
+          },
+          "maxRSSKiB": 142080,
+          "coldProcessMs": [
+            442.4858750000003,
+            438.93320799999947,
+            449.54558299999917,
+            443.04729099999895,
+            441.20716699999866
+          ]
+        },
+        {
+          "name": "row",
+          "scale": 1,
+          "version": "baseline",
+          "warmProcessMs": 480.901167,
+          "size": 128,
+          "firstMs": 21.242250000000013,
+          "warmMs": [
+            5.8603330000000255,
+            6.253708000000017,
+            4.9109169999999835,
+            4.739791000000025,
+            4.68670800000001
+          ],
+          "memory": {
+            "rss": 142213120,
+            "heapTotal": 71139328,
+            "heapUsed": 50432952,
+            "external": 2357075,
+            "arrayBuffers": 81022
+          },
+          "maxRSSKiB": 138880,
+          "coldProcessMs": [
+            440.7840419999993,
+            441.13437499999964,
+            440.52549999999974,
+            440.1923339999994,
+            442.49454200000037
+          ]
+        },
+        {
+          "name": "row",
+          "scale": 2,
+          "version": "baseline",
+          "warmProcessMs": 1017.1509580000002,
+          "size": 512,
+          "firstMs": 93.68366600000002,
+          "warmMs": [
+            68.874458,
+            65.82495900000004,
+            65.73904200000004,
+            66.55620799999997,
+            67.80679199999997
+          ],
+          "memory": {
+            "rss": 218710016,
+            "heapTotal": 206028800,
+            "heapUsed": 75159824,
+            "external": 2313492,
+            "arrayBuffers": 37439
+          },
+          "maxRSSKiB": 213584,
+          "coldProcessMs": [
+            547.625333,
+            546.7515000000003,
+            552.9370420000014,
+            552.1734170000018,
+            549.5091670000002
+          ]
+        },
+        {
+          "name": "row",
+          "scale": 2,
+          "version": "candidate",
+          "warmProcessMs": 979.5661670000009,
+          "size": 512,
+          "firstMs": 85.35166600000002,
+          "warmMs": [
+            65.33400000000006,
+            61.91612500000008,
+            61.74225000000001,
+            62.68166599999995,
+            63.75079199999993
+          ],
+          "memory": {
+            "rss": 218480640,
+            "heapTotal": 205766656,
+            "heapUsed": 75793000,
+            "external": 2313492,
+            "arrayBuffers": 37439
+          },
+          "maxRSSKiB": 213360,
+          "coldProcessMs": [
+            539.7163340000006,
+            540.4701669999995,
+            545.1334999999999,
+            539.8799589999999,
+            541.0588329999991
+          ]
+        }
+      ]
+    }
+  }
+}

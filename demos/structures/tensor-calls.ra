@@ -1,0 +1,23 @@
+rem Normalize successive batches with shared column statistics.
+use sequences
+
+fun normalize Data Mean Dev
+  Centered = Data - Mean
+  return (Centered / Dev) copy
+end
+
+Mean = array 1 3
+Dev = array 2 4
+Batch = array shape 1 2
+  3 7
+end
+First = normalize Batch Mean Dev
+
+Batch 0 0 = 9
+Second = normalize Batch Mean Dev
+
+Batch = array shape 2 2
+  5 11
+  7 15
+end
+Third = normalize Batch Mean Dev

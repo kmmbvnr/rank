@@ -166,11 +166,45 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>) {
     let cachedKey: string | undefined;
     let cachedRun: ((data: RankValue[][], offsets: number[], scalars: RankValue[], size: number) => RankValue | RankValue[] | undefined) | undefined;
+    // Cache layout only: never retain operand storage or a previous result.
+    // Selections and text conversions keep the general binder below.
+    type InputLayout = { name?: string; value?: RankValue; slot: number; shape?: readonly number[]; boolean: boolean };
+    let layout: { inputs: InputLayout[]; offsets: number[]; shape: readonly number[]; size: number;
+        interruptible: boolean } | undefined;
     let generated = '';
     let unavailable = false;
     return { count, get source() { return generated; }, run(): RankValue | undefined {
         if (unavailable) return recordFallback('tensor:code-generation');
         if (names.some(name => host.lookup(name) !== undefined)) return recordFallback('tensor:existing-binding');
+        if (layout && layout.interruptible === interruptsEnabled() && host.builtin(terminal)) {
+            const data: RankValue[][] = [], scalars: RankValue[] = [];
+            let matches = true;
+            for (const input of layout.inputs) {
+                const value = input.name === undefined ? input.value : host.lookup(input.name);
+                if (input.shape) {
+                    if (!value || !isRankArray(value) || arrayRevision(value) === undefined
+                        || !same(value.shape, input.shape)) { matches = false; break; }
+                    const items = materializedArrayItems(value);
+                    if (!Array.isArray(items) || items.length !== input.shape.reduce((a, b) => a * b, 1)
+                        || (typeof items[0] === 'boolean') !== input.boolean) { matches = false; break; }
+                    data[input.slot] = items;
+                } else {
+                    if (!(numeric(value) || typeof value === 'boolean')
+                        || (typeof value === 'boolean') !== input.boolean) { matches = false; break; }
+                    scalars[input.slot] = value!;
+                }
+            }
+            if (matches) {
+                const result = cachedRun!(data, layout.offsets, scalars, layout.size);
+                return terminal === 'copy' && result !== undefined
+                    ? ownedArray(result as RankValue[], layout.shape, true) : result as RankValue | undefined;
+            }
+        }
+        return bindRun();
+    } };
+
+    function bindRun(): RankValue | undefined {
+        layout = undefined;
         const bound = new Map<TensorNode, Bound>();
         let broadcasts = false;
         const data: RankValue[][] = [], offsets: number[] = [], scalars: RankValue[] = [];
@@ -376,10 +410,18 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             cachedKey = key;
             host.compiled?.(generated);
         }
+        if ([...bound.keys()].every(node => node.kind !== 'select'
+            && !(node.kind === 'unary' && (node.op === 'text' || node.op === 'integer0')))
+            && [...bound.values()].every(info => info.scalar === undefined || numeric(info.scalar) || typeof info.scalar === 'boolean')) {
+            layout = { inputs: [...bound].flatMap(([node, info]) => node.kind === 'input' ? [{
+                name: node.name, value: node.value,
+                slot: info.slot!, shape: info.shape && [...info.shape], boolean: info.boolean,
+            }] : []), offsets: [...offsets], shape: [...output.shape], size, interruptible };
+        }
         const result = cachedRun!(data, offsets, scalars, size);
         if (terminal === 'copy' && result !== undefined) {
             return ownedArray(result as RankValue[], output.shape, true);
         }
         return result as RankValue | undefined;
-    } };
+    }
 }

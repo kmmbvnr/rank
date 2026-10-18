@@ -565,3 +565,70 @@ interpreter suite excluding `test/differential.test.ts` passed: 185 files,
 assignment, broadcasting, scalar guards, deferred type errors, empty tensors,
 and refusal to force opaque or lazy inputs. Full differential demos were not
 run; the benchmark compares every queens placement in both execution modes.
+
+## Small tensor calls (issue #120)
+
+Measured on 2026-10-18 against `cc3ca4de`, Apple M5, macOS arm64,
+Node 24.15.0. A cached tensor layout reuses shape/slot planning while checking
+current operands on every call. Owned arrays also retain the primitive type
+counts already proved by their initial validation, avoiding a second scan for
+return contracts. Results still receive fresh storage.
+
+Three separate-process runs per variant, seven batches of 5,000 calls after
+2,000 warmups per shape; all inputs are interpreter-owned. The table reports
+the median of process medians in microseconds per call. The four variants were
+run in alternating orders. No assistant-launched heavy jobs overlapped these
+measurements; unrelated machine load was uncontrolled and produced outliers.
+Raw samples include elapsed time, process CPU time, GC count and GC duration.
+
+| Shape | Baseline | Layout only | Type counts only | Combined |
+| --- | ---: | ---: | ---: | ---: |
+| 1×32 | 16.28 | 13.42 | 15.05 | 12.98 |
+| 8×32 | 25.20 | 22.75 | 22.34 | 19.49 |
+| 128×32 | 196.12 | 205.37 | 158.29 | 154.27 |
+
+The combined change reduced median time by 20%, 23% and 21%. Layout caching
+alone did not improve 128×32. Median observed GC counts per 35,000 timed calls
+fell from 19 to 14 at 1×32 and from 18 to 15 at 8×32. This is not a claim of
+smaller retained results or lower peak memory.
+
+Separate whole-process CPU profiles used 301,000 timed 1×32 calls plus warmups
+and setup. Selected self-time shares were:
+
+| Profile entry | Baseline | Combined |
+| --- | ---: | ---: |
+| All `tensor-kernel.js` functions | 12.37% | 2.66% |
+| `arrayElementTypes` | 2.15% | 0.47% |
+| `storedScalarKinds` | 1.50% | 0.45% |
+| `createOwned` | 2.72% | 3.19% |
+| Garbage collector | 6.36% | 7.41% |
+
+Shares have a smaller denominator after optimization: sampled `createOwned`
+self time was 144 to 140 ms and GC time 338 to 325 ms. The improvement does
+not come from reusing reachable outputs or eliminating their ownership wrappers.
+
+Two alternating runs of the existing broadcast benchmark retained its result
+checks. Fused medians for 4,096 rows were 7.56/8.81 ms before and 4.77/4.75 ms
+after; for 32,768 rows they were 65.37/61.65 ms and 45.27/45.12 ms. The numerical
+demo benchmark also passed its independent result checks. Initial matmul,
+k-means and row-reduction outliers were repeated with five samples and reversed
+starting order: large matmul was 525.1 versus 528.1 ms, large k-means 340.8 versus
+346.7 ms, and large row reduction 66.6 versus 62.7 ms. These repeats did not
+show the initial 10–18% slowdowns.
+
+To reproduce against a separately built baseline:
+
+```sh
+CALLS=5000 node benchmarks/small-tensor-calls.mjs --baseline=/path/to/baseline --runs=3
+node benchmarks/broadcast-fusion.mjs
+node benchmarks/numerical-demos.mjs --baseline=/path/to/baseline --storage=snapshot
+ROWS=1 CALLS=43000 node --cpu-prof benchmarks/small-tensor-calls.mjs
+```
+
+The small-call harness checks fusion and output shape/values, excludes validation
+from timing, and drains asynchronous GC observations outside measured batches.
+Profile separately from timing runs. `ROWS` selects comma-separated row counts;
+`--checkout` runs the harness against another interpreter build.
+
+[Small-call samples and profile summaries](../../benchmarks/baselines/2026-10-18-small-tensor-calls.json),
+[numerical samples and repeats](../../benchmarks/baselines/2026-10-18-small-tensor-numerical.json).

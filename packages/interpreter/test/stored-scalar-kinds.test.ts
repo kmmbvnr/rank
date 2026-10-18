@@ -22,7 +22,7 @@ describe('physical scalar kind evidence', () => {
         expect(arrayElementTypes(array)).toEqual(['integer']);
     });
 
-    it('keeps one scan across same-kind public writes and shares the proof between consumers', () => {
+    it('reuses validation across same-kind public writes and shares the proof between consumers', () => {
         const array = ownedArray([1n, 2n, 3n]);
         const diagnostics = new RuntimeDiagnostics();
         diagnostics.run(() => {
@@ -33,8 +33,8 @@ describe('physical scalar kind evidence', () => {
                 array.items[0] = BigInt(i + 2);
             }
         });
-        expect(diagnostics.elementTypeScans).toBe(1);
-        expect(diagnostics.elementTypeScannedCells).toBe(3);
+        expect(diagnostics.elementTypeScans).toBe(0);
+        expect(diagnostics.elementTypeScannedCells).toBe(0);
         expect(arrayDeclaration(array)).toBeUndefined();
     });
 
