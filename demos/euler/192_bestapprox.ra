@@ -1,0 +1,70 @@
+rem Best Approximations
+rem https://projecteuler.net/problem=192
+rem Sum the denominators of the best
+rem rational approximations, with
+rem denominator at most Bound, to the
+rem square roots of the non-squares up
+rem to Limit
+
+use io
+use cli
+
+option Limit integer = 100000
+option Bound integer = 1000000000000
+
+rem Walk the continued fraction of the
+rem root while the convergent keeps its
+rem denominator within Bound. The best
+rem fraction is the last convergent or
+rem the semiconvergent with the largest
+rem multiple of it that fits; compare
+rem them exactly through squares.
+Answer = 0
+R = 1
+for N in 2 to Limit
+  if (R + 1) * (R + 1) at most N
+    R += 1
+  end
+  if R * R not equal N
+    M = 0
+    D = 1
+    A = R
+    P0 = 1
+    Q0 = 0
+    P1 = R
+    Q1 = 1
+    for D greater 0
+      M = D * A - M
+      D = (N - M * M) // D
+      A = (R + M) // D
+      Pn = A * P1 + P0
+      Qn = A * Q1 + Q0
+      if Qn greater Bound
+        break
+      end
+      P0 = P1
+      Q0 = Q1
+      P1 = Pn
+      Q1 = Qn
+    end
+    T = (Bound - Q0) // Q1
+    Best = Q1
+    if T greater 0
+      Pc = T * P1 + P0
+      Qc = T * Q1 + Q0
+      Qq = Q1 * Qc
+      Low = Qq * Qq * 4 * N
+      Sum = P1 * Qc + Pc * Q1
+      Sum = Sum * Sum
+      Under = P1 * P1 less N * Q1 * Q1
+      Near = Low less Sum
+      if Under equal Near
+        Best = Q1
+      else
+        Best = Qc
+      end
+    end
+    Answer += Best
+  end
+end
+Answer print
