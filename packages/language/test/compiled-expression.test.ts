@@ -123,9 +123,21 @@ describe('shared compiled expression inference', () => {
             ] });
     });
 
+    it('infers nested integer number calls through the shared contract', () => {
+        const result = inferCompiledExpression(expression('(A B gcd) isqrt'), {
+            ...context({ A: 'integer', B: 'integer' }), call: matchCompiledCallSignature,
+        });
+        expect(result.expression).toMatchObject({ kind: 'call', type: 'integer', operation: { name: 'isqrt' },
+            arguments: [{ kind: 'group', operand: { kind: 'call', type: 'integer', operation: { name: 'gcd' },
+                arguments: [{ kind: 'input', input: 'A' }, { kind: 'input', input: 'B' }] } }] });
+    });
+
     it('requires complete native domains and declines a shadowed spelling', () => {
         for (const [source, bindings] of [
             ['X reverse', { X: 'integer' }],
+            ['X Y gcd', { X: 'real', Y: 'integer' }],
+            ['X Y gcd', { X: 'integer', Y: 'integer', gcd: 'integer' }],
+            ['X lcm', { X: 'integer' }],
             ['X reverse', { X: 'text', reverse: 'integer' }],
             ['X Y startswith', { X: 'text', Y: 'bytes' }],
         ] as const) {
