@@ -1,0 +1,41 @@
+rem The Hyperexponentiation of a Number
+rem https://projecteuler.net/problem=188
+rem Find the last Digits digits of the
+rem tower of Height copies of Base,
+rem a^^k, where a^^1 = a and
+rem a^^(k+1) = a^(a^^k)
+
+use numbers
+use sequences
+use io
+use cli
+
+option Base integer = 1777
+option Height integer = 1855
+option Digits integer = 8
+
+rem Reduce the exponent by Euler's phi:
+rem a^x = a^(x mod phi + phi) mod m for
+rem large x, and phi shrinks to 1 in a
+rem few dozen steps.
+fun A K M tower
+  if M equal 1
+    return 0
+  end
+  if K equal 1
+    return A mod M
+  end
+  if K equal 2
+    return A A M powmod
+  end
+  Ps = M factors array unique
+  Rad = Ps reduce *
+  Less = (Ps - 1) reduce *
+  Phi = M // Rad * Less
+  E = A (K - 1) Phi tower
+  return A (E + Phi) M powmod
+end
+
+Mod = 10 ** Digits
+Answer = Base Height Mod tower
+Answer print
