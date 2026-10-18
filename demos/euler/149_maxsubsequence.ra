@@ -1,0 +1,60 @@
+rem Searching for a Maximum-sum
+rem Subsequence
+rem https://projecteuler.net/problem=149
+rem Find the greatest sum of adjacent
+rem cells in a line of a lagged
+rem Fibonacci table
+
+use sequences
+use io
+use cli
+
+option N integer = 2000
+
+rem Fill the table, then run Kadane's
+rem scan along every row, column and
+rem diagonal from each line start.
+Cells = N * N
+Len = Cells 55 max
+S = array shape Len fill 0
+Ks = 1 to 55 array
+Seed = 100003 - 200003 * Ks
+Seed += 300007 * Ks * Ks * Ks
+M = 1000000
+H = 500000
+S (0 till 55) = Seed mod M - H
+for K in 56 to Len
+  Sum = S (K - 25) + S (K - 56)
+  S (K - 1) = (Sum + M) mod M - H
+end
+Dr = array 0 1 1 1
+Dc = array 1 0 1 -1
+Answer = S 0
+for D in 0 to 3
+  Dy = Dr D
+  Dx = Dc D
+  for Y in 0 to N - 1
+    for X in 0 to N - 1
+      Py = Y - Dy
+      Px = X - Dx
+      Edge = Py less 0 or Py at least N
+      Edge = Edge or Px less 0
+      Edge = Edge or Px at least N
+      if Edge
+        E = 0
+        R = Y
+        C = X
+        for R at least 0 and R less N
+          if C less 0 or C at least N
+            break
+          end
+          E = S (R * N + C) + (E 0 max)
+          Answer = Answer E max
+          R += Dy
+          C += Dx
+        end
+      end
+    end
+  end
+end
+Answer print
