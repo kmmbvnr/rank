@@ -1,0 +1,95 @@
+rem Intersections
+rem https://projecteuler.net/problem=165
+rem Count the distinct points where two
+rem of the pseudo-random segments cross
+rem strictly inside both
+
+use sequences
+use io
+use cli
+
+option Segs integer = 5000
+option Room integer = 3000000
+
+rem Test each pair by orientation signs.
+rem A crossing at t = o3 / (o3 - o4)
+rem along segment i is stored reduced as
+rem keys (x num * 2^19 + den, y num).
+T = array shape (4 * Segs) fill 0
+V = 290797
+for K in 0 to 4 * Segs - 1
+  V = V * V mod 50515093
+  T K = V mod 500
+end
+X1 = T (0 to # by 4) copy
+Y1 = T (1 to # by 4) copy
+X2 = T (2 to # by 4) copy
+Y2 = T (3 to # by 4) copy
+Kx = array shape Room fill 0
+Ky = array shape Room fill 0
+Used = 0
+for I in 0 to Segs - 2
+  Px = X1 I
+  Py = Y1 I
+  Dx = X2 I - Px
+  Dy = Y2 I - Py
+  for J in I + 1 to Segs - 1
+    Ax = X1 J
+    Ay = Y1 J
+    Ex = X2 J - Ax
+    Ey = Y2 J - Ay
+    Ux = Ax - Px
+    Uy = Ay - Py
+    Vx = X2 J - Px
+    Vy = Y2 J - Py
+    O1 = Dx * Uy - Dy * Ux
+    O2 = Dx * Vy - Dy * Vx
+    if O1 * O2 less 0
+      Wx = X2 I - Ax
+      Wy = Y2 I - Ay
+      O3 = Ey * Ux - Ex * Uy
+      O4 = Ex * Wy - Ey * Wx
+      if O3 * O4 less 0
+        Den = O3 - O4
+        Xn = Px * Den + Dx * O3
+        Yn = Py * Den + Dy * O3
+        if Den less 0
+          Den = 0 - Den
+          Xn = 0 - Xn
+          Yn = 0 - Yn
+        end
+        G = Xn
+        H = Den
+        for H not equal 0
+          R = G mod H
+          G = H
+          H = R
+        end
+        H = Yn
+        for H not equal 0
+          R = G mod H
+          G = H
+          H = R
+        end
+        Kx Used = Xn // G * 524288
+        Kx Used += Den // G
+        Ky Used = Yn // G
+        Used += 1
+      end
+    end
+  end
+end
+Cx = Kx take Used copy
+Cy = Ky take Used copy
+Ord = Cy argsort
+Qx = Cx Ord
+Qy = Cy Ord
+Ord = Qx argsort
+Rx = Qx Ord
+Ry = Qy Ord
+Sx = (Rx 1 shift with -1) copy
+Sy = (Ry 1 shift with -1) copy
+Newx = Rx not equal Sx
+Newy = Ry not equal Sy
+Answer = (Newx or Newy) count
+Answer print
