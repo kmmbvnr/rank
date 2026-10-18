@@ -1,3 +1,4 @@
+import { arithmeticRange } from './range-plan.js';
 import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { registerIntegerView } from './integer-view.js';
@@ -35,10 +36,13 @@ function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (
 interface SelectedAxis {
     readonly preserve: boolean;
     readonly size: number;
+    readonly unique?: boolean;
     indexAt(coordinate: number): number;
 }
 
 interface TensorSelection {
+    /** True only for selectors proved to contain no repeated offsets. */
+    readonly unique?: boolean;
     readonly shape: readonly number[];
     offsetAt(index: number): number;
     /** The per-axis plan behind `offsetAt`, when there is one. */
@@ -84,7 +88,7 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
     const axes = source.shape.map((size, axis) => {
         const selector = selectors[axis] ?? ALL_AXIS;
         if (isAllAxisSelector(selector)) {
-            return { preserve: true, size, indexAt: (coordinate: number) => coordinate };
+            return { preserve: true, size, unique: true, indexAt: (coordinate: number) => coordinate };
         }
         if (typeof selector === 'bigint') {
             if (selector < 0n) {
@@ -98,10 +102,27 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
         if (typeof selector === 'number') {
             throw new RankError(`array index must be an integer on axis ${axis}`);
         }
+        const range = isRankSequence(selector) && arithmeticRange(selector.plan);
+        if (range) {
+            const { start, step, count } = range;
+            if (count > 0n) {
+                if (start < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+                if (start >= BigInt(size)) throw new MissingValueError(`array index out of bounds on axis ${axis}: ${start}`);
+                const last = start + (count - 1n) * step;
+                if (last < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+                if (last >= BigInt(size)) {
+                    const firstBad = start + ((BigInt(size) - start + step - 1n) / step) * step;
+                    throw new MissingValueError(`array index out of bounds on axis ${axis}: ${firstBad}`);
+                }
+            }
+            const linear = { start: count ? Number(start) : 0, step: count > 1n ? Number(step) : 1 };
+            return { preserve: true, size: Number(count), unique: true, indexAt: (coordinate: number) => linear.start + coordinate * linear.step };
+        }
         const indices = selectorIndices(selector, size, axis);
         return {
             preserve: true,
             size: indices.length,
+            unique: indices.every((offset, index) => index === 0 || offset > indices[index - 1]),
             indexAt: (coordinate: number) => indices[coordinate],
         };
     });
@@ -112,8 +133,8 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
     if (axes.length === 1) {
         const axis = axes[0];
         return {
-            shape,
-            offsetAt(index) { return axis.indexAt(axis.preserve ? index : 0); },
+            shape, unique: axis.unique,
+            offsetAt: axis.indexAt,
         };
     }
     return {

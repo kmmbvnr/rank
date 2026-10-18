@@ -277,6 +277,57 @@ export function realCells(value: RankArray): ArrayLike<number> | undefined {
         ? state.items as unknown as number[] : undefined;
 }
 
+/** Trusted integer cells only. A bulk integer write preserves this physical
+ * kind, but its caller must separately validate the binding's semantic contract. */
+export function writableIntegerCells(value: RankArray): readonly bigint[] | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || state.readOnlyCells || !state.scalarOnly) return undefined;
+    const kinds = storedScalarKinds(value);
+    if (!kinds?.length || !kinds.every(kind => kind === 'integer')) return undefined;
+    state.convert?.();
+    return state.items as bigint[];
+}
+
+/** Commit a prevalidated integer selection without per-cell Proxy traffic.
+ * Callers have protected ownership, established an integer binding, and removed
+ * lazy reads/callbacks from operands and offsets. Compound writes require unique
+ * offsets; duplicate gathers supply precomputed replacements with '=' instead. */
+export function writeIntegerSelection(
+    value: RankArray, count: number, offsetAt: (index: number) => number,
+    operand: bigint | readonly bigint[], operator: '=' | '+=' | '-=' | '*=',
+): void {
+    const state = ownedStorage.get(value)!;
+    state.convert?.();
+    const cells = state.items as bigint[];
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) { diagnostics.bulkArrayWrites++; diagnostics.bulkArrayWriteCells += count; }
+    state.revision = noteMutation(state.birth);
+    const scalar = typeof operand === 'bigint';
+    // Separate operators outside the loop: no operator dispatch, broadcasting
+    // allocation, scalar-kind changes or user code during the commit.
+    if (operator === '=') {
+        for (let i = 0; i < count; i++) {
+            checkpoint('writing array');
+            cells[offsetAt(i)] = scalar ? operand : operand[i];
+        }
+    } else if (operator === '+=') {
+        for (let i = 0; i < count; i++) {
+            checkpoint('writing array');
+            cells[offsetAt(i)] += scalar ? operand : operand[i];
+        }
+    } else if (operator === '-=') {
+        for (let i = 0; i < count; i++) {
+            checkpoint('writing array');
+            cells[offsetAt(i)] -= scalar ? operand : operand[i];
+        }
+    } else {
+        for (let i = 0; i < count; i++) {
+            checkpoint('writing array');
+            cells[offsetAt(i)] *= scalar ? operand : operand[i];
+        }
+    }
+}
+
 /** The real cells of an array as one Float64Array, or undefined if any cell is
  * not a real number. A typed buffer is shared; plain cells are copied. */
 export function float64Cells(value: RankArray): Float64Array | undefined {
