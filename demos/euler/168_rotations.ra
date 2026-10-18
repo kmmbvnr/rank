@@ -1,0 +1,29 @@
+rem Number Rotations
+rem https://projecteuler.net/problem=168
+rem Sum the n with 10 < n < 10^Digits
+rem whose right rotation is a multiple
+rem of n, and print the last five digits
+
+use sequences
+use io
+use cli
+
+option Digits integer = 100
+
+rem Write n = 10 a + d with L digits.
+rem Its rotation d 10^(L-1) + a is k n,
+rem so a (10 k - 1) = d (10^(L-1) - k).
+Rows = Digits - 1
+L = (2 to Digits array) reshape Rows 1 1
+D = (1 to 9 array) reshape 1 9 1
+K = (1 to 9 array) reshape 1 1 9
+Num = D * (10 ** (L - 1) - K)
+Den = 10 * K - 1
+Ok = Num mod Den equal 0
+A = Num // Den
+Ok and= A at least 10 ** (L - 2)
+Ok and= A less 10 ** (L - 1)
+N = (10 * A + D) filter Ok array
+Total = N sum
+Answer = Total mod 100000
+Answer print
