@@ -639,6 +639,31 @@ returns zero without raising an error. `Key in Counts` checks whether an
 element currently has a non-zero count. `len` returns the number of distinct
 keys.
 
+Addressing with an array of keys gathers their frequencies into an eager
+integer array with the same shape, including empty dimensions. Order and
+repeated queries are preserved. A finite sequence of keys gathers into a
+rank-1 array; a known-infinite sequence is rejected. A sequence of unknown
+finiteness is consumed until it ends, so it may fail or not terminate.
+
+```rank
+Keys = array "ab" "ab" "cd"
+Counts = new counter Keys
+Frequencies = Counts Keys
+rem 2 2 1
+```
+
+Text remains one key, so `Counts "ab"` returns the scalar integer `2`.
+Tuples and records also remain single composite keys. Use these instead of
+an array when a query must address one composite key: `Counts (tuple 2 3)`.
+Both insertion and lookup must use the tuple/record representation; array
+and tuple keys are distinct. An array query always gathers, even when that
+whole array was previously inserted as a key.
+
+The result is independent of subsequent changes to the counter or query
+array. Query cells are read once in order, and each frequency is read
+immediately after its key. A query callback that mutates the counter can
+therefore affect later counts in the same gather.
+
 Iterating with `for Key in Counts` yields the distinct keys in insertion order,
 identical to `set`. Counters can also be converted to ordered multisets with
 `Counts multiset` or passed to collection sequences.

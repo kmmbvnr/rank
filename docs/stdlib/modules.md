@@ -1465,6 +1465,12 @@ Repeated = Values 2 multicomb
 `new set` and `new counter` create unique sets and stateful frequency maps
 supporting `add`, `remove`, `in` membership, `len`, and `for Key in Collection`
 iteration over keys in insertion order.
+Addressing a counter with an array of keys gathers integer frequencies in
+the query's shape; a finite sequence query produces a rank-1 array. Text,
+scalar, tuple and record queries address one key. Missing keys return zero.
+Use tuple/record keys for single composite-key reads, changing both insertion
+and lookup when migrating array keys. See the
+[counter contract](../language/collections.md#counter) for examples.
 `new stack`, `new deque` and `new heap` create empty named containers.
 `pop` and `peek` work on queues, stacks, deques and heaps. Deques also provide
 `pushfront`, `pushback`, `popfront`, `popback`, `peekfront` and `peekback`.
