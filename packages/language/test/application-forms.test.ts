@@ -1,3 +1,4 @@
+import { analyzeBindings, analyzeValues } from '../src/index.js';
 import { EmptyFileSystem } from 'langium';
 import { parseHelper } from 'langium/test';
 import { expect, it } from 'vitest';
@@ -149,4 +150,83 @@ it.each(['1 to Lim', 'array Lim Lim'])('validates a pipeline after a user functi
         return (document.diagnostics ?? []).map(diagnostic => diagnostic.message);
     };
     expect(await messages('6 upto array len')).toEqual(await messages('(6 upto) array len'));
+});
+
+it.each([
+    ['6 upto window 3', 'window'],
+    ['3 sq diag .anti', 'diagonal'],
+    ['3 sq diag 0', 'diagonal'],
+    ['3 sq diag .anti 0 rank 2', 'diagonal'],
+])('retains original operands in the synthesized source of %s', (source, kind) => {
+    const statement = parser.parse<Program>(`Result = ${source}`).value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    const parts = flattenApplication(statement.value);
+    const form = applicationForm(statement.value, name => ['upto', 'sq'].includes(name) ? false : findOperation(name));
+    expect(form.kind).toBe(kind);
+    if (form.kind !== 'window' && form.kind !== 'diagonal') throw new Error('expected source form');
+    flattenApplication(form.source).forEach((part, index) => expect(part).toBe(parts[index]));
+    expect(parts[1]).toMatchObject({ name: source.includes('upto') ? 'upto' : 'sq' });
+});
+
+it('resolves each classification independently without mutating a reused AST', () => {
+    const statement = parser.parse<Program>('Result = A Op 3').value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    const lookup = (name: string) => name === 'Op' ? findOperation('window') : findOperation(name);
+    expect(applicationForm(statement.value, lookup).kind).toBe('window');
+    expect(applicationForm(statement.value, name => name === 'Op' ? false : findOperation(name)).kind).toBe('plain');
+    expect(applicationForm(statement.value, lookup).kind).toBe('window');
+    expect(flattenApplication(statement.value)[1]).toMatchObject({ name: 'Op' });
+});
+
+it('keeps shadowed window groups as pipeline operands', () => {
+    const statement = parser.parse<Program>('Result = A window 2 stride 1').value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    const parts = flattenApplication(statement.value);
+    expect(applicationForm(statement.value)).toMatchObject({ kind: 'window', stride: parts[4], rest: [] });
+    expect(applicationForm(statement.value, name => name === 'stride' ? false : findOperation(name)))
+        .toMatchObject({ kind: 'window', stride: undefined, rest: parts.slice(3) });
+});
+
+it.each(['i', 'j', 'k'])('retains implicit %s as a window dimension', name => {
+    const statement = parser.parse<Program>(`Result = A window ${name}`).value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    expect(applicationForm(statement.value, key => key === name ? false : findOperation(key)))
+        .toMatchObject({ kind: 'window', dimensions: [{ name }], rest: [] });
+});
+
+
+it.each([
+    ['6 upto', 'window 3'],
+    ['3 sq', 'diag .anti'],
+    ['3 sq', 'diag 0'],
+])('checks %s %s through value, binding and editor analysis', async (source, suffix) => {
+    const prefix = `use sequences
+use linalg
+fun N upto
+ return 1 to N array
+end
+
+fun N sq
+ return array 1 2 3 4 5 6 7 8 9 shape N N
+end
+
+`;
+    const analyze = (call: string) => {
+        const parsed = parser.parse<Program>(`${prefix}Result = ${call} ${suffix}\n`);
+        expect(parsed.parserErrors).toEqual([]);
+        const values = analyzeValues(parsed.value);
+        const bindings = analyzeBindings(parsed.value);
+        expect(values.diagnostics).toEqual([]);
+        expect(bindings.words.some(word => word.name.startsWith('\0'))).toBe(false);
+        return {
+            value: values.bindings.get('Result'),
+            binding: bindings.scopes.find(scope => scope.kind === 'program')?.bindings.find(binding => binding.name === 'Result')?.types,
+        };
+    };
+    expect(analyze(source)).toEqual(analyze(`(${source})`));
+    const parse = parseHelper<Program>(createRankServices(EmptyFileSystem).Rank);
+    const direct = await parse(`${prefix}Result = ${source} ${suffix}\n`, { validation: true });
+    const grouped = await parse(`${prefix}Result = (${source}) ${suffix}\n`, { validation: true });
+    expect(direct.diagnostics?.map(diagnostic => diagnostic.message))
+        .toEqual(grouped.diagnostics?.map(diagnostic => diagnostic.message));
 });
