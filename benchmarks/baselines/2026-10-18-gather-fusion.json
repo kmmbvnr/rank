@@ -1,0 +1,1520 @@
+{
+  "baseline": "7139cd5bca1c1d7f9756cc6b46cf3b420f846025",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "protocol": "3 alternating process pairs; 20 warmup iterations; 5 batches of 1000; independent score oracle; profiling separate; no concurrent assistant tests",
+  "sourceHashes": {
+    "packages/interpreter/src/tensor-kernel.ts": "2140c63f1ce8e2fa80301f64b6a32062a8a86272e0348abc55670972326802e3",
+    "packages/interpreter/src/range-plan.ts": "b0526091bc490202a24808626f0729845c5399f9f51bd2e65d5185c156e7b8ae",
+    "packages/interpreter/src/operators.ts": "ec8de7006b3a683256c925a76160188c7926be7acc358eede577cb4b2daf3c24"
+  },
+  "records": [
+    {
+      "version": "baseline",
+      "pair": 0,
+      "checkout": "/private/tmp/rank-120",
+      "node": "v24.15.0",
+      "fusion": "on",
+      "selector": "lazy",
+      "iterations": 1000,
+      "expected": "8104799",
+      "records": [
+        {
+          "sample": 0,
+          "ms": 1405.47775,
+          "cpuMs": 1690.535,
+          "kernels": 0,
+          "gcCount": 27,
+          "gcMs": 67.46158200502396
+        },
+        {
+          "sample": 1,
+          "ms": 1373.1718750000002,
+          "cpuMs": 1610.808,
+          "kernels": 0,
+          "gcCount": 24,
+          "gcMs": 56.579793989658356
+        },
+        {
+          "sample": 2,
+          "ms": 1333.387875,
+          "cpuMs": 1553.981,
+          "kernels": 0,
+          "gcCount": 26,
+          "gcMs": 69.13570791482925
+        },
+        {
+          "sample": 3,
+          "ms": 1295.801625,
+          "cpuMs": 1578.966,
+          "kernels": 0,
+          "gcCount": 24,
+          "gcMs": 57.62312388420105
+        },
+        {
+          "sample": 4,
+          "ms": 1256.437,
+          "cpuMs": 1501.427,
+          "kernels": 0,
+          "gcCount": 26,
+          "gcMs": 64.56595802307129
+        }
+      ],
+      "generatedKernels": 0,
+      "generated": []
+    },
+    {
+      "version": "candidate",
+      "pair": 0,
+      "checkout": "/private/tmp/rank-121",
+      "node": "v24.15.0",
+      "fusion": "on",
+      "selector": "lazy",
+      "iterations": 1000,
+      "expected": "8104799",
+      "records": [
+        {
+          "sample": 0,
+          "ms": 85.38779199999999,
+          "cpuMs": 96.596,
+          "kernels": 1000,
+          "gcCount": 9,
+          "gcMs": 3.955959916114807
+        },
+        {
+          "sample": 1,
+          "ms": 80.399542,
+          "cpuMs": 82.234,
+          "kernels": 1000,
+          "gcCount": 6,
+          "gcMs": 0.6800849437713623
+        },
+        {
+          "sample": 2,
+          "ms": 78.729375,
+          "cpuMs": 87.426,
+          "kernels": 1000,
+          "gcCount": 6,
+          "gcMs": 0.632125973701477
+        },
+        {
+          "sample": 3,
+          "ms": 78.18287499999997,
+          "cpuMs": 80.941,
+          "kernels": 1000,
+          "gcCount": 6,
+          "gcMs": 0.6270009875297546
+        },
+        {
+          "sample": 4,
+          "ms": 78.19799999999987,
+          "cpuMs": 80.739,
+          "kernels": 1000,
+          "gcCount": 6,
+          "gcMs": 0.5647509694099426
+        }
+      ],
+      "generatedKernels": 1,
+      "generated": [
+        "\"use strict\"; return function(data, offsets, scalars, size) { let answer = 0n, length = 0; for (let i = 0; i < size; i++) { \nconst v2 = data[1][offsets[1] + i];\nconst v4raw = scalars[0] + BigInt(i) * scalars[1];\nconst v4rem = v4raw % scalars[2];\nconst v4 = v4rem !== 0n && (v4rem < 0n) !== (scalars[2] < 0n) ? v4rem + scalars[2] : v4rem;\nif (typeof v4 !== 'bigint' || v4 < 0n || v4 >= BigInt(3)) return decline('tensor:selection-guard');\nconst v3 = data[2][offsets[2] + Number(v4)];\nif (typeof v2 !== 'bigint' || typeof v3 !== 'bigint') return decline(\"tensor:operator-guard:bxor\");\nconst v1 = v2 ^ v3;\nif (typeof v1 !== 'bigint' || v1 < 0n || v1 >= BigInt(128)) return decline('tensor:selection-guard');\nconst v0 = data[0][offsets[0] + Number(v1)];\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return decline('tensor:terminal-type:sum');\nanswer = typeof answer === 'bigint' && typeof v0 === 'bigint' ? answer + v0 : Number(answer) + Number(v0);\nlength++;\n}  return answer; };"
+      ]
+    },
+    {
+      "version": "candidate",
+      "pair": 1,
+      "checkout": "/private/tmp/rank-121",
+      "node": "v24.15.0",
+      "fusion": "on",
+      "selector": "lazy",
+      "iterations": 1000,
+      "expected": "8104799",
+      "records": [
+        {
+          "sample": 0,
+          "ms": 109.67399999999998,
+          "cpuMs": 122.109,
+          "kernels": 1000,
+          "gcCount": 9,
+          "gcMs": 4.856207072734833
+        },
+        {
+          "sample": 1,
+          "ms": 81.57887500000004,
+          "cpuMs": 83.571,
+          "kernels": 1000,
+          "gcCount": 6,
+          "gcMs": 0.7350409626960754
+        },
+        {
+          "sample": 2,
+          "ms": 79.76166699999999,
+          "cpuMs": 90.057,
+          "kernels": 1000,
+          "gcCount": 6,
+          "gcMs": 0.6947079300880432
+        },
+        {
+          "sample": 3,
+          "ms": 83.60591599999998,
+          "cpuMs": 86.436,
+          "kernels": 1000,
+          "gcCount": 6,
+          "gcMs": 0.7184580564498901
+        },
+        {
+          "sample": 4,
+          "ms": 83.08854200000007,
+          "cpuMs": 85.557,
+          "kernels": 1000,
+          "gcCount": 6,
+          "gcMs": 0.7175001502037048
+        }
+      ],
+      "generatedKernels": 1,
+      "generated": [
+        "\"use strict\"; return function(data, offsets, scalars, size) { let answer = 0n, length = 0; for (let i = 0; i < size; i++) { \nconst v2 = data[1][offsets[1] + i];\nconst v4raw = scalars[0] + BigInt(i) * scalars[1];\nconst v4rem = v4raw % scalars[2];\nconst v4 = v4rem !== 0n && (v4rem < 0n) !== (scalars[2] < 0n) ? v4rem + scalars[2] : v4rem;\nif (typeof v4 !== 'bigint' || v4 < 0n || v4 >= BigInt(3)) return decline('tensor:selection-guard');\nconst v3 = data[2][offsets[2] + Number(v4)];\nif (typeof v2 !== 'bigint' || typeof v3 !== 'bigint') return decline(\"tensor:operator-guard:bxor\");\nconst v1 = v2 ^ v3;\nif (typeof v1 !== 'bigint' || v1 < 0n || v1 >= BigInt(128)) return decline('tensor:selection-guard');\nconst v0 = data[0][offsets[0] + Number(v1)];\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return decline('tensor:terminal-type:sum');\nanswer = typeof answer === 'bigint' && typeof v0 === 'bigint' ? answer + v0 : Number(answer) + Number(v0);\nlength++;\n}  return answer; };"
+      ]
+    },
+    {
+      "version": "baseline",
+      "pair": 1,
+      "checkout": "/private/tmp/rank-120",
+      "node": "v24.15.0",
+      "fusion": "on",
+      "selector": "lazy",
+      "iterations": 1000,
+      "expected": "8104799",
+      "records": [
+        {
+          "sample": 0,
+          "ms": 1429.0602090000002,
+          "cpuMs": 1722.591,
+          "kernels": 0,
+          "gcCount": 27,
+          "gcMs": 70.20462507009506
+        },
+        {
+          "sample": 1,
+          "ms": 1336.768875,
+          "cpuMs": 1571.548,
+          "kernels": 0,
+          "gcCount": 24,
+          "gcMs": 55.15479099750519
+        },
+        {
+          "sample": 2,
+          "ms": 1309.1147919999999,
+          "cpuMs": 1527.735,
+          "kernels": 0,
+          "gcCount": 26,
+          "gcMs": 66.80250018835068
+        },
+        {
+          "sample": 3,
+          "ms": 1307.938333,
+          "cpuMs": 1583.857,
+          "kernels": 0,
+          "gcCount": 24,
+          "gcMs": 54.00154405832291
+        },
+        {
+          "sample": 4,
+          "ms": 1286.9549159999997,
+          "cpuMs": 1524.048,
+          "kernels": 0,
+          "gcCount": 26,
+          "gcMs": 64.07316797971725
+        }
+      ],
+      "generatedKernels": 0,
+      "generated": []
+    },
+    {
+      "version": "baseline",
+      "pair": 2,
+      "checkout": "/private/tmp/rank-120",
+      "node": "v24.15.0",
+      "fusion": "on",
+      "selector": "lazy",
+      "iterations": 1000,
+      "expected": "8104799",
+      "records": [
+        {
+          "sample": 0,
+          "ms": 1402.533375,
+          "cpuMs": 1698.465,
+          "kernels": 0,
+          "gcCount": 27,
+          "gcMs": 68.35333490371704
+        },
+        {
+          "sample": 1,
+          "ms": 1335.915375,
+          "cpuMs": 1572.538,
+          "kernels": 0,
+          "gcCount": 24,
+          "gcMs": 56.03392094373703
+        },
+        {
+          "sample": 2,
+          "ms": 1523.7320840000002,
+          "cpuMs": 1746.046,
+          "kernels": 0,
+          "gcCount": 26,
+          "gcMs": 86.62721139192581
+        },
+        {
+          "sample": 3,
+          "ms": 1524.2080830000004,
+          "cpuMs": 1834.501,
+          "kernels": 0,
+          "gcCount": 24,
+          "gcMs": 59.65920901298523
+        },
+        {
+          "sample": 4,
+          "ms": 1653.442,
+          "cpuMs": 1943.315,
+          "kernels": 0,
+          "gcCount": 26,
+          "gcMs": 77.51129293441772
+        }
+      ],
+      "generatedKernels": 0,
+      "generated": []
+    },
+    {
+      "version": "candidate",
+      "pair": 2,
+      "checkout": "/private/tmp/rank-121",
+      "node": "v24.15.0",
+      "fusion": "on",
+      "selector": "lazy",
+      "iterations": 1000,
+      "expected": "8104799",
+      "records": [
+        {
+          "sample": 0,
+          "ms": 86.35500000000002,
+          "cpuMs": 97.828,
+          "kernels": 1000,
+          "gcCount": 9,
+          "gcMs": 4.204127907752991
+        },
+        {
+          "sample": 1,
+          "ms": 81.37291700000003,
+          "cpuMs": 83.174,
+          "kernels": 1000,
+          "gcCount": 6,
+          "gcMs": 0.6959989666938782
+        },
+        {
+          "sample": 2,
+          "ms": 80.043,
+          "cpuMs": 88.305,
+          "kernels": 1000,
+          "gcCount": 6,
+          "gcMs": 0.6826249957084656
+        },
+        {
+          "sample": 3,
+          "ms": 85.35424999999998,
+          "cpuMs": 88.156,
+          "kernels": 1000,
+          "gcCount": 6,
+          "gcMs": 0.7715819478034973
+        },
+        {
+          "sample": 4,
+          "ms": 86.70133400000009,
+          "cpuMs": 89.134,
+          "kernels": 1000,
+          "gcCount": 6,
+          "gcMs": 0.6619569659233093
+        }
+      ],
+      "generatedKernels": 1,
+      "generated": [
+        "\"use strict\"; return function(data, offsets, scalars, size) { let answer = 0n, length = 0; for (let i = 0; i < size; i++) { \nconst v2 = data[1][offsets[1] + i];\nconst v4raw = scalars[0] + BigInt(i) * scalars[1];\nconst v4rem = v4raw % scalars[2];\nconst v4 = v4rem !== 0n && (v4rem < 0n) !== (scalars[2] < 0n) ? v4rem + scalars[2] : v4rem;\nif (typeof v4 !== 'bigint' || v4 < 0n || v4 >= BigInt(3)) return decline('tensor:selection-guard');\nconst v3 = data[2][offsets[2] + Number(v4)];\nif (typeof v2 !== 'bigint' || typeof v3 !== 'bigint') return decline(\"tensor:operator-guard:bxor\");\nconst v1 = v2 ^ v3;\nif (typeof v1 !== 'bigint' || v1 < 0n || v1 >= BigInt(128)) return decline('tensor:selection-guard');\nconst v0 = data[0][offsets[0] + Number(v1)];\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return decline('tensor:terminal-type:sum');\nanswer = typeof answer === 'bigint' && typeof v0 === 'bigint' ? answer + v0 : Number(answer) + Number(v0);\nlength++;\n}  return answer; };"
+      ]
+    },
+    {
+      "version": "baseline",
+      "pair": 0,
+      "checkout": "/private/tmp/rank-120",
+      "node": "v24.15.0",
+      "fusion": "on",
+      "selector": "materialized",
+      "iterations": 1000,
+      "expected": "8104799",
+      "records": [
+        {
+          "sample": 0,
+          "ms": 1320.760417,
+          "cpuMs": 1630.745,
+          "kernels": 0,
+          "gcCount": 21,
+          "gcMs": 62.226624965667725
+        },
+        {
+          "sample": 1,
+          "ms": 1251.5745419999998,
+          "cpuMs": 1486.265,
+          "kernels": 0,
+          "gcCount": 18,
+          "gcMs": 50.3605420589447
+        },
+        {
+          "sample": 2,
+          "ms": 1226.3636670000005,
+          "cpuMs": 1568.789,
+          "kernels": 0,
+          "gcCount": 18,
+          "gcMs": 56.01570689678192
+        },
+        {
+          "sample": 3,
+          "ms": 1192.3355000000001,
+          "cpuMs": 1415.559,
+          "kernels": 0,
+          "gcCount": 17,
+          "gcMs": 57.99562311172485
+        },
+        {
+          "sample": 4,
+          "ms": 1253.0689159999993,
+          "cpuMs": 1501.973,
+          "kernels": 0,
+          "gcCount": 18,
+          "gcMs": 103.26254111528397
+        }
+      ],
+      "generatedKernels": 0,
+      "generated": []
+    },
+    {
+      "version": "candidate",
+      "pair": 0,
+      "checkout": "/private/tmp/rank-121",
+      "node": "v24.15.0",
+      "fusion": "on",
+      "selector": "materialized",
+      "iterations": 1000,
+      "expected": "8104799",
+      "records": [
+        {
+          "sample": 0,
+          "ms": 63.72950000000003,
+          "cpuMs": 75.33,
+          "kernels": 1000,
+          "gcCount": 7,
+          "gcMs": 4.1794580817222595
+        },
+        {
+          "sample": 1,
+          "ms": 52.41133400000001,
+          "cpuMs": 53.878,
+          "kernels": 1000,
+          "gcCount": 3,
+          "gcMs": 0.43470799922943115
+        },
+        {
+          "sample": 2,
+          "ms": 50.99558400000001,
+          "cpuMs": 56.076,
+          "kernels": 1000,
+          "gcCount": 4,
+          "gcMs": 0.48704296350479126
+        },
+        {
+          "sample": 3,
+          "ms": 50.42649999999992,
+          "cpuMs": 55.091,
+          "kernels": 1000,
+          "gcCount": 4,
+          "gcMs": 0.5220829248428345
+        },
+        {
+          "sample": 4,
+          "ms": 50.457583,
+          "cpuMs": 52.713,
+          "kernels": 1000,
+          "gcCount": 3,
+          "gcMs": 0.4312089681625366
+        }
+      ],
+      "generatedKernels": 1,
+      "generated": [
+        "\"use strict\"; return function(data, offsets, scalars, size) { let answer = 0n, length = 0; for (let i = 0; i < size; i++) { \nconst v2 = data[1][offsets[1] + i];\nconst v4 = data[3][offsets[3] + i];\nif (typeof v4 !== 'bigint' || v4 < 0n || v4 >= BigInt(3)) return decline('tensor:selection-guard');\nconst v3 = data[2][offsets[2] + Number(v4)];\nif (typeof v2 !== 'bigint' || typeof v3 !== 'bigint') return decline(\"tensor:operator-guard:bxor\");\nconst v1 = v2 ^ v3;\nif (typeof v1 !== 'bigint' || v1 < 0n || v1 >= BigInt(128)) return decline('tensor:selection-guard');\nconst v0 = data[0][offsets[0] + Number(v1)];\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return decline('tensor:terminal-type:sum');\nanswer = typeof answer === 'bigint' && typeof v0 === 'bigint' ? answer + v0 : Number(answer) + Number(v0);\nlength++;\n}  return answer; };"
+      ]
+    },
+    {
+      "version": "candidate",
+      "pair": 1,
+      "checkout": "/private/tmp/rank-121",
+      "node": "v24.15.0",
+      "fusion": "on",
+      "selector": "materialized",
+      "iterations": 1000,
+      "expected": "8104799",
+      "records": [
+        {
+          "sample": 0,
+          "ms": 58.11849999999998,
+          "cpuMs": 68.985,
+          "kernels": 1000,
+          "gcCount": 7,
+          "gcMs": 3.931834101676941
+        },
+        {
+          "sample": 1,
+          "ms": 52.790250000000015,
+          "cpuMs": 54.132,
+          "kernels": 1000,
+          "gcCount": 3,
+          "gcMs": 0.4579159617424011
+        },
+        {
+          "sample": 2,
+          "ms": 51.33400000000006,
+          "cpuMs": 59.704,
+          "kernels": 1000,
+          "gcCount": 4,
+          "gcMs": 0.5709599852561951
+        },
+        {
+          "sample": 3,
+          "ms": 50.517375000000015,
+          "cpuMs": 55.261,
+          "kernels": 1000,
+          "gcCount": 4,
+          "gcMs": 0.5542909502983093
+        },
+        {
+          "sample": 4,
+          "ms": 49.86508300000003,
+          "cpuMs": 52.094,
+          "kernels": 1000,
+          "gcCount": 3,
+          "gcMs": 0.35099905729293823
+        }
+      ],
+      "generatedKernels": 1,
+      "generated": [
+        "\"use strict\"; return function(data, offsets, scalars, size) { let answer = 0n, length = 0; for (let i = 0; i < size; i++) { \nconst v2 = data[1][offsets[1] + i];\nconst v4 = data[3][offsets[3] + i];\nif (typeof v4 !== 'bigint' || v4 < 0n || v4 >= BigInt(3)) return decline('tensor:selection-guard');\nconst v3 = data[2][offsets[2] + Number(v4)];\nif (typeof v2 !== 'bigint' || typeof v3 !== 'bigint') return decline(\"tensor:operator-guard:bxor\");\nconst v1 = v2 ^ v3;\nif (typeof v1 !== 'bigint' || v1 < 0n || v1 >= BigInt(128)) return decline('tensor:selection-guard');\nconst v0 = data[0][offsets[0] + Number(v1)];\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return decline('tensor:terminal-type:sum');\nanswer = typeof answer === 'bigint' && typeof v0 === 'bigint' ? answer + v0 : Number(answer) + Number(v0);\nlength++;\n}  return answer; };"
+      ]
+    },
+    {
+      "version": "baseline",
+      "pair": 1,
+      "checkout": "/private/tmp/rank-120",
+      "node": "v24.15.0",
+      "fusion": "on",
+      "selector": "materialized",
+      "iterations": 1000,
+      "expected": "8104799",
+      "records": [
+        {
+          "sample": 0,
+          "ms": 1320.229417,
+          "cpuMs": 1619.371,
+          "kernels": 0,
+          "gcCount": 21,
+          "gcMs": 62.15646094083786
+        },
+        {
+          "sample": 1,
+          "ms": 1288.781333,
+          "cpuMs": 1528.674,
+          "kernels": 0,
+          "gcCount": 18,
+          "gcMs": 52.46766686439514
+        },
+        {
+          "sample": 2,
+          "ms": 1226.9029159999995,
+          "cpuMs": 1562.54,
+          "kernels": 0,
+          "gcCount": 18,
+          "gcMs": 59.46766698360443
+        },
+        {
+          "sample": 3,
+          "ms": 1162.2921670000005,
+          "cpuMs": 1379.902,
+          "kernels": 0,
+          "gcCount": 16,
+          "gcMs": 52.56582999229431
+        },
+        {
+          "sample": 4,
+          "ms": 1225.105708,
+          "cpuMs": 1475.224,
+          "kernels": 0,
+          "gcCount": 19,
+          "gcMs": 103.59295892715454
+        }
+      ],
+      "generatedKernels": 0,
+      "generated": []
+    },
+    {
+      "version": "baseline",
+      "pair": 2,
+      "checkout": "/private/tmp/rank-120",
+      "node": "v24.15.0",
+      "fusion": "on",
+      "selector": "materialized",
+      "iterations": 1000,
+      "expected": "8104799",
+      "records": [
+        {
+          "sample": 0,
+          "ms": 1313.877333,
+          "cpuMs": 1595.501,
+          "kernels": 0,
+          "gcCount": 21,
+          "gcMs": 62.77020585536957
+        },
+        {
+          "sample": 1,
+          "ms": 1270.618417,
+          "cpuMs": 1513.086,
+          "kernels": 0,
+          "gcCount": 18,
+          "gcMs": 51.33950185775757
+        },
+        {
+          "sample": 2,
+          "ms": 1219.3642909999999,
+          "cpuMs": 1558.837,
+          "kernels": 0,
+          "gcCount": 18,
+          "gcMs": 57.90145802497864
+        },
+        {
+          "sample": 3,
+          "ms": 1190.358542,
+          "cpuMs": 1418.569,
+          "kernels": 0,
+          "gcCount": 16,
+          "gcMs": 54.3317089676857
+        },
+        {
+          "sample": 4,
+          "ms": 1234.059875,
+          "cpuMs": 1477.71,
+          "kernels": 0,
+          "gcCount": 18,
+          "gcMs": 107.45791804790497
+        }
+      ],
+      "generatedKernels": 0,
+      "generated": []
+    },
+    {
+      "version": "candidate",
+      "pair": 2,
+      "checkout": "/private/tmp/rank-121",
+      "node": "v24.15.0",
+      "fusion": "on",
+      "selector": "materialized",
+      "iterations": 1000,
+      "expected": "8104799",
+      "records": [
+        {
+          "sample": 0,
+          "ms": 62.776707999999985,
+          "cpuMs": 75.003,
+          "kernels": 1000,
+          "gcCount": 7,
+          "gcMs": 4.277459025382996
+        },
+        {
+          "sample": 1,
+          "ms": 52.469333000000006,
+          "cpuMs": 53.963,
+          "kernels": 1000,
+          "gcCount": 3,
+          "gcMs": 0.3669160008430481
+        },
+        {
+          "sample": 2,
+          "ms": 51.286749999999984,
+          "cpuMs": 56.327,
+          "kernels": 1000,
+          "gcCount": 4,
+          "gcMs": 0.5680840015411377
+        },
+        {
+          "sample": 3,
+          "ms": 50.80779099999995,
+          "cpuMs": 55.659,
+          "kernels": 1000,
+          "gcCount": 4,
+          "gcMs": 0.5600419640541077
+        },
+        {
+          "sample": 4,
+          "ms": 50.10845800000004,
+          "cpuMs": 52.314,
+          "kernels": 1000,
+          "gcCount": 3,
+          "gcMs": 0.4086260199546814
+        }
+      ],
+      "generatedKernels": 1,
+      "generated": [
+        "\"use strict\"; return function(data, offsets, scalars, size) { let answer = 0n, length = 0; for (let i = 0; i < size; i++) { \nconst v2 = data[1][offsets[1] + i];\nconst v4 = data[3][offsets[3] + i];\nif (typeof v4 !== 'bigint' || v4 < 0n || v4 >= BigInt(3)) return decline('tensor:selection-guard');\nconst v3 = data[2][offsets[2] + Number(v4)];\nif (typeof v2 !== 'bigint' || typeof v3 !== 'bigint') return decline(\"tensor:operator-guard:bxor\");\nconst v1 = v2 ^ v3;\nif (typeof v1 !== 'bigint' || v1 < 0n || v1 >= BigInt(128)) return decline('tensor:selection-guard');\nconst v0 = data[0][offsets[0] + Number(v1)];\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return decline('tensor:terminal-type:sum');\nanswer = typeof answer === 'bigint' && typeof v0 === 'bigint' ? answer + v0 : Number(answer) + Number(v0);\nlength++;\n}  return answer; };"
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "mode": "cpu",
+      "pair": 0,
+      "version": "baseline",
+      "summary": null,
+      "records": [
+        {
+          "sample": 0,
+          "ms": 6696.386417000001,
+          "cpuMs": 8042.784,
+          "kernels": 0,
+          "gcCount": 122,
+          "gcMs": 334.4479546546936
+        }
+      ],
+      "selfTimeUnit": "ms",
+      "topFrames": [
+        [
+          "readArrayItem file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          1225.629
+        ],
+        [
+          "selectorIndices file:///private/tmp/rank-120/packages/interpreter/out/selectors.js",
+          842.0490000000016
+        ],
+        [
+          "itemAt file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          458.9899999999992
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          442.20699999999925
+        ],
+        [
+          "finishRead file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          409.5089999999997
+        ],
+        [
+          "read file:///private/tmp/rank-120/packages/interpreter/out/array-binding-contract.js",
+          391.4119999999995
+        ],
+        [
+          "materializeCells file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          371.6629999999997
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/selectors.js",
+          340.91299999999967
+        ],
+        [
+          "(garbage collector) ",
+          338.3349999999995
+        ],
+        [
+          "readAll file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          231.82799999999997
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/rank-application.js",
+          195.916
+        ],
+        [
+          "(program) ",
+          150.75100000000003
+        ],
+        [
+          "iterate file:///private/tmp/rank-120/packages/interpreter/out/sequence.js",
+          131.91299999999998
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/numeric-kernels.js",
+          125.709
+        ],
+        [
+          "checkCell file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          118.29300000000002
+        ],
+        [
+          "isTableFieldList file:///private/tmp/rank-120/packages/interpreter/out/value-selection.js",
+          115.71200000000002
+        ],
+        [
+          "isIntegerCollectionSelector file:///private/tmp/rank-120/packages/interpreter/out/selectors.js",
+          101.917
+        ],
+        [
+          "iterate file:///private/tmp/rank-120/packages/interpreter/out/operators.js",
+          95.625
+        ],
+        [
+          "post node:inspector",
+          72.708
+        ],
+        [
+          "readCell file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          70.706
+        ]
+      ]
+    },
+    {
+      "mode": "cpu",
+      "pair": 0,
+      "version": "candidate",
+      "summary": null,
+      "records": [
+        {
+          "sample": 0,
+          "ms": 437.459125,
+          "cpuMs": 479.895,
+          "kernels": 5000,
+          "gcCount": 34,
+          "gcMs": 6.57037079334259
+        }
+      ],
+      "selfTimeUnit": "ms",
+      "topFrames": [
+        [
+          " ",
+          370.29099999999954
+        ],
+        [
+          "post node:inspector",
+          65.25
+        ],
+        [
+          "(program) ",
+          34.54400000000001
+        ],
+        [
+          "(idle) ",
+          31.749000000000002
+        ],
+        [
+          "(garbage collector) ",
+          14.875
+        ],
+        [
+          "bindNode file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          7.582000000000001
+        ],
+        [
+          " file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          4.543
+        ],
+        [
+          "bindRun file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          4.291
+        ],
+        [
+          "revisionFrame file:///private/tmp/rank-121/packages/interpreter/out/array-storage.js",
+          3.0
+        ],
+        [
+          "get file:///private/tmp/rank-121/packages/interpreter/out/frame.js",
+          1.542
+        ],
+        [
+          " file:///private/tmp/rank-121/packages/interpreter/out/function-frame.js",
+          1.5
+        ],
+        [
+          "iterate file:///private/tmp/rank-121/packages/interpreter/out/operators.js",
+          1.5
+        ],
+        [
+          "stream file:///private/tmp/rank-121/packages/interpreter/out/eval/loops.js",
+          1.166
+        ],
+        [
+          "lookup file:///private/tmp/rank-121/packages/interpreter/out/modules/builtins.js",
+          1.083
+        ],
+        [
+          "next node:internal/per_context/primordials",
+          0.875
+        ]
+      ]
+    },
+    {
+      "mode": "allocation",
+      "pair": 0,
+      "version": "baseline",
+      "summary": {
+        "sampledAllocatedBytes": 1130020184,
+        "note": "V8 sampling estimate including collected objects, not peak or retained heap"
+      },
+      "records": [
+        {
+          "sample": 0,
+          "ms": 1540.851584,
+          "cpuMs": 1838.838,
+          "kernels": 0,
+          "gcCount": 27,
+          "gcMs": 69.20037406682968
+        }
+      ],
+      "selfTimeUnit": "sampled bytes",
+      "topFrames": [
+        [
+          "set ",
+          339179904
+        ],
+        [
+          "selectorIndices file:///private/tmp/rank-120/packages/interpreter/out/selectors.js",
+          289486488
+        ],
+        [
+          "iterate file:///private/tmp/rank-120/packages/interpreter/out/operators.js",
+          116233528
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/rank-application.js",
+          91839992
+        ],
+        [
+          "sumArray file:///private/tmp/rank-120/packages/interpreter/out/modules/numbers.js",
+          57903600
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/numeric-kernels.js",
+          56985560
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/modules/bits.js",
+          55936320
+        ],
+        [
+          "iterate file:///private/tmp/rank-120/packages/interpreter/out/sequence.js",
+          45641288
+        ],
+        [
+          "from ",
+          23796768
+        ],
+        [
+          "derivedArray file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          5127544
+        ],
+        [
+          "lazy file:///private/tmp/rank-120/packages/interpreter/out/array-binding-contract.js",
+          4107424
+        ],
+        [
+          "Map ",
+          2593776
+        ],
+        [
+          "next ",
+          2459440
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/array-binding-contract.js",
+          2295976
+        ],
+        [
+          "shareSources file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          1705760
+        ],
+        [
+          "applyCell file:///private/tmp/rank-120/packages/interpreter/out/rank-application.js",
+          1639352
+        ],
+        [
+          "selectionArray file:///private/tmp/rank-120/packages/interpreter/out/selectors.js",
+          1508704
+        ],
+        [
+          "equalContract file:///private/tmp/rank-120/packages/interpreter/out/array-binding-contract.js",
+          1311552
+        ],
+        [
+          "values ",
+          1280608
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/eval/expressions.js",
+          1180488
+        ]
+      ]
+    },
+    {
+      "mode": "allocation",
+      "pair": 0,
+      "version": "candidate",
+      "summary": {
+        "sampledAllocatedBytes": 206759592,
+        "note": "V8 sampling estimate including collected objects, not peak or retained heap"
+      },
+      "records": [
+        {
+          "sample": 0,
+          "ms": 102.54329200000001,
+          "cpuMs": 114.173,
+          "kernels": 1000,
+          "gcCount": 9,
+          "gcMs": 4.500582993030548
+        }
+      ],
+      "selfTimeUnit": "sampled bytes",
+      "topFrames": [
+        [
+          " ",
+          200424240
+        ],
+        [
+          "bindNode file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          1541896
+        ],
+        [
+          " file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          1475248
+        ],
+        [
+          "bindRun file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          1148736
+        ],
+        [
+          "set ",
+          559416
+        ],
+        [
+          "join ",
+          262392
+        ],
+        [
+          "next ",
+          196720
+        ],
+        [
+          "Map ",
+          164160
+        ],
+        [
+          "same file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          131192
+        ],
+        [
+          "values ",
+          131160
+        ],
+        [
+          "map ",
+          98400
+        ],
+        [
+          "assign file:///private/tmp/rank-121/packages/interpreter/out/binding-environment.js",
+          98368
+        ],
+        [
+          "keys ",
+          98360
+        ],
+        [
+          "deprecate node:internal/util",
+          65856
+        ],
+        [
+          "setPrototypeOf ",
+          65856
+        ],
+        [
+          "availableBuiltin file:///private/tmp/rank-121/packages/language/out/builtin-bindings.js",
+          65600
+        ],
+        [
+          "iterate file:///private/tmp/rank-121/packages/interpreter/out/operators.js",
+          65560
+        ],
+        [
+          " file:///private/tmp/rank-121/packages/interpreter/out/binding-environment.js",
+          34848
+        ],
+        [
+          "observerCallback node:internal/perf/observe",
+          33120
+        ],
+        [
+          " node:internal/per_context/primordials",
+          32832
+        ]
+      ]
+    },
+    {
+      "mode": "allocation",
+      "pair": 1,
+      "version": "candidate",
+      "summary": {
+        "sampledAllocatedBytes": 202598616,
+        "note": "V8 sampling estimate including collected objects, not peak or retained heap"
+      },
+      "records": [
+        {
+          "sample": 0,
+          "ms": 103.77795800000001,
+          "cpuMs": 115.373,
+          "kernels": 1000,
+          "gcCount": 9,
+          "gcMs": 4.5540419816970825
+        }
+      ],
+      "selfTimeUnit": "sampled bytes",
+      "topFrames": [
+        [
+          " ",
+          195703312
+        ],
+        [
+          " file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          1704736
+        ],
+        [
+          "bindRun file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          1378160
+        ],
+        [
+          "bindNode file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          1279640
+        ],
+        [
+          "set ",
+          526416
+        ],
+        [
+          "join ",
+          360888
+        ],
+        [
+          "next ",
+          327920
+        ],
+        [
+          "Map ",
+          164032
+        ],
+        [
+          "availableBuiltin file:///private/tmp/rank-121/packages/language/out/builtin-bindings.js",
+          163960
+        ],
+        [
+          "(V8 API) ",
+          131208
+        ],
+        [
+          "push ",
+          98496
+        ],
+        [
+          "run ",
+          98360
+        ],
+        [
+          "map ",
+          65632
+        ],
+        [
+          "iterate file:///private/tmp/rank-121/packages/interpreter/out/operators.js",
+          65584
+        ],
+        [
+          "assign file:///private/tmp/rank-121/packages/interpreter/out/binding-environment.js",
+          65584
+        ],
+        [
+          "processTimers node:internal/timers",
+          35840
+        ],
+        [
+          " file:///private/tmp/rank-121/packages/interpreter/out/binding-environment.js",
+          34848
+        ],
+        [
+          "deprecate node:internal/util",
+          33024
+        ],
+        [
+          "stream file:///private/tmp/rank-121/packages/interpreter/out/eval/loops.js",
+          32960
+        ],
+        [
+          "observerCallback node:internal/perf/observe",
+          32832
+        ]
+      ]
+    },
+    {
+      "mode": "allocation",
+      "pair": 1,
+      "version": "baseline",
+      "summary": {
+        "sampledAllocatedBytes": 1148881280,
+        "note": "V8 sampling estimate including collected objects, not peak or retained heap"
+      },
+      "records": [
+        {
+          "sample": 0,
+          "ms": 1530.5369589999998,
+          "cpuMs": 1818.964,
+          "kernels": 0,
+          "gcCount": 27,
+          "gcMs": 70.54974806308746
+        }
+      ],
+      "selfTimeUnit": "sampled bytes",
+      "topFrames": [
+        [
+          "set ",
+          345396368
+        ],
+        [
+          "selectorIndices file:///private/tmp/rank-120/packages/interpreter/out/selectors.js",
+          293392272
+        ],
+        [
+          "iterate file:///private/tmp/rank-120/packages/interpreter/out/operators.js",
+          118331960
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/rank-application.js",
+          90429624
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/numeric-kernels.js",
+          60723400
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/modules/bits.js",
+          57280640
+        ],
+        [
+          "sumArray file:///private/tmp/rank-120/packages/interpreter/out/modules/numbers.js",
+          56952760
+        ],
+        [
+          "iterate file:///private/tmp/rank-120/packages/interpreter/out/sequence.js",
+          49215104
+        ],
+        [
+          "from ",
+          22522776
+        ],
+        [
+          "derivedArray file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          6640168
+        ],
+        [
+          "lazy file:///private/tmp/rank-120/packages/interpreter/out/array-binding-contract.js",
+          3778472
+        ],
+        [
+          "Map ",
+          3152648
+        ],
+        [
+          "next ",
+          2623960
+        ],
+        [
+          "shareSources file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          1771256
+        ],
+        [
+          "applyCell file:///private/tmp/rank-120/packages/interpreter/out/rank-application.js",
+          1704896
+        ],
+        [
+          "values ",
+          1576192
+        ],
+        [
+          "selectionArray file:///private/tmp/rank-120/packages/interpreter/out/selectors.js",
+          1508688
+        ],
+        [
+          "filter ",
+          1312560
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/array-binding-contract.js",
+          1311752
+        ],
+        [
+          "equalContract file:///private/tmp/rank-120/packages/interpreter/out/array-binding-contract.js",
+          1180392
+        ]
+      ]
+    },
+    {
+      "mode": "allocation",
+      "pair": 2,
+      "version": "baseline",
+      "summary": {
+        "sampledAllocatedBytes": 1143650792,
+        "note": "V8 sampling estimate including collected objects, not peak or retained heap"
+      },
+      "records": [
+        {
+          "sample": 0,
+          "ms": 1541.2836659999998,
+          "cpuMs": 1830.241,
+          "kernels": 0,
+          "gcCount": 27,
+          "gcMs": 68.93183201551437
+        }
+      ],
+      "selfTimeUnit": "sampled bytes",
+      "topFrames": [
+        [
+          "set ",
+          345932360
+        ],
+        [
+          "selectorIndices file:///private/tmp/rank-120/packages/interpreter/out/selectors.js",
+          291383616
+        ],
+        [
+          "iterate file:///private/tmp/rank-120/packages/interpreter/out/operators.js",
+          115151584
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/rank-application.js",
+          93086456
+        ],
+        [
+          "sumArray file:///private/tmp/rank-120/packages/interpreter/out/modules/numbers.js",
+          59543040
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/modules/bits.js",
+          57020632
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/numeric-kernels.js",
+          55706800
+        ],
+        [
+          "iterate file:///private/tmp/rank-120/packages/interpreter/out/sequence.js",
+          48625008
+        ],
+        [
+          "from ",
+          23025360
+        ],
+        [
+          "derivedArray file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          5522992
+        ],
+        [
+          "lazy file:///private/tmp/rank-120/packages/interpreter/out/array-binding-contract.js",
+          3811312
+        ],
+        [
+          "Map ",
+          2725984
+        ],
+        [
+          "next ",
+          2360880
+        ],
+        [
+          "shareSources file:///private/tmp/rank-120/packages/interpreter/out/array-storage.js",
+          1968168
+        ],
+        [
+          "selectionArray file:///private/tmp/rank-120/packages/interpreter/out/selectors.js",
+          1836680
+        ],
+        [
+          " file:///private/tmp/rank-120/packages/interpreter/out/array-binding-contract.js",
+          1738040
+        ],
+        [
+          "applyCell file:///private/tmp/rank-120/packages/interpreter/out/rank-application.js",
+          1442696
+        ],
+        [
+          "filter ",
+          1411400
+        ],
+        [
+          "values ",
+          1379216
+        ],
+        [
+          "equalContract file:///private/tmp/rank-120/packages/interpreter/out/array-binding-contract.js",
+          1245960
+        ]
+      ]
+    },
+    {
+      "mode": "allocation",
+      "pair": 2,
+      "version": "candidate",
+      "summary": {
+        "sampledAllocatedBytes": 206494768,
+        "note": "V8 sampling estimate including collected objects, not peak or retained heap"
+      },
+      "records": [
+        {
+          "sample": 0,
+          "ms": 118.80558300000007,
+          "cpuMs": 132.429,
+          "kernels": 1000,
+          "gcCount": 9,
+          "gcMs": 5.010957837104797
+        }
+      ],
+      "selfTimeUnit": "sampled bytes",
+      "topFrames": [
+        [
+          " ",
+          200325992
+        ],
+        [
+          " file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          1639152
+        ],
+        [
+          "bindNode file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          1312064
+        ],
+        [
+          "bindRun file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          984472
+        ],
+        [
+          "set ",
+          493680
+        ],
+        [
+          "join ",
+          459456
+        ],
+        [
+          "Map ",
+          295608
+        ],
+        [
+          "next ",
+          196720
+        ],
+        [
+          "assign file:///private/tmp/rank-121/packages/interpreter/out/binding-environment.js",
+          131168
+        ],
+        [
+          "deprecate node:internal/util",
+          98656
+        ],
+        [
+          "values ",
+          98344
+        ],
+        [
+          "push ",
+          65664
+        ],
+        [
+          "iterate file:///private/tmp/rank-121/packages/interpreter/out/operators.js",
+          65584
+        ],
+        [
+          "run file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          65576
+        ],
+        [
+          "same file:///private/tmp/rank-121/packages/interpreter/out/tensor-kernel.js",
+          65576
+        ],
+        [
+          "setPrototypeOf ",
+          33024
+        ],
+        [
+          "(V8 API) ",
+          32816
+        ],
+        [
+          "observerCallback node:internal/perf/observe",
+          32816
+        ],
+        [
+          "availableBuiltin file:///private/tmp/rank-121/packages/language/out/builtin-bindings.js",
+          32800
+        ],
+        [
+          "map ",
+          32800
+        ]
+      ]
+    }
+  ],
+  "euler59": [
+    {
+      "pair": 0,
+      "version": "baseline",
+      "ms": 360.48629100000005,
+      "kernels": 0,
+      "output": [
+        "129448"
+      ]
+    },
+    {
+      "pair": 0,
+      "version": "candidate",
+      "ms": 303.06458399999997,
+      "kernels": 78,
+      "output": [
+        "129448"
+      ]
+    },
+    {
+      "pair": 1,
+      "version": "candidate",
+      "ms": 301.038458,
+      "kernels": 78,
+      "output": [
+        "129448"
+      ]
+    },
+    {
+      "pair": 1,
+      "version": "baseline",
+      "ms": 368.6375,
+      "kernels": 0,
+      "output": [
+        "129448"
+      ]
+    },
+    {
+      "pair": 2,
+      "version": "baseline",
+      "ms": 400.92575,
+      "kernels": 0,
+      "output": [
+        "129448"
+      ]
+    },
+    {
+      "pair": 2,
+      "version": "candidate",
+      "ms": 345.9803340000001,
+      "kernels": 78,
+      "output": [
+        "129448"
+      ]
+    }
+  ]
+}

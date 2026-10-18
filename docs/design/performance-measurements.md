@@ -658,6 +658,71 @@ in three alternating process pairs with 15 samples each. Median-of-process
 medians were 4.17 to 3.77 ms for k-means and 1.04 to 1.04 ms for matmul. The
 numerical results file includes these controls and the full final comparison.
 
+### Indirect gather and bitwise reduction (#121)
+
+Measured against main `7139cd5b` on macOS arm64 / Apple M5, Node 24.15.0.
+The workload scores a 1,455-element ciphertext with a repeating three-byte key
+and a nonuniform lookup table. Each batch performs 1,000 iterations inside a
+Rank function. The benchmark checks an independent expected score of 8,104,799
+and records successful tensor-kernel executions. Three alternating process pairs
+per selector mode each run 20 warmup iterations and five measured batches.
+
+| Selector | Baseline median ms | Fused median ms | Baseline GC count | Fused GC count |
+| --- | ---: | ---: | ---: | ---: |
+| Lazy range/mod | 1,336.77 | 81.58 | 26 | 6 |
+| Materialized indices | 1,234.06 | 51.29 | 18 | 4 |
+
+These are medians across 15 batches per version and selector mode. Median CPU
+time fell from 1,583.86 to 87.43 ms for lazy selectors and from 1,513.09 to
+55.26 ms for materialized selectors. Median GC duration fell from 64.57 to
+0.70 ms and from 58.00 to 0.52 ms respectively. Timing runs did not overlap
+other assistant test or profiling jobs; unrelated machine activity was not
+controlled. These results describe this workload, not general interpreter speed.
+
+The existing tensor graph now lowers guarded `bxor`, `band`, and `bor` calls
+using BigInt operators. Gather loads use the selector's broadcast frame and
+then address the source table by the selected index. Runtime-created finite
+integer ranges and range/mod selectors carry a private proof; their indices
+are calculated inside the kernel without invoking sequence callbacks. This
+proof does not authorize general sequence arithmetic to use array broadcasting.
+The generated scoring kernel has one loop, direct array loads, and a scalar
+accumulator, with no intermediate tensor data arrays. Per-call binding objects
+and BigInt arithmetic still allocate. Arbitrary lazy readers, escaping locals,
+filters mixed with broadcasting, invalid indices, and unsupported layouts retain
+the reference path. Top-level observable assignments are not eliminated.
+
+Raw timings, generated code, source hashes, and separate profiling summaries
+are in [the gather-fusion results](../../benchmarks/baselines/2026-10-18-gather-fusion.json).
+Reproduce from a built checkout; build the baseline checkout separately:
+
+```sh
+node benchmarks/gather-fusion.mjs --checkout=/path/to/baseline
+node benchmarks/gather-fusion.mjs
+node benchmarks/gather-fusion.mjs --selector=materialized
+node benchmarks/gather-fusion.mjs --fusion=off
+node benchmarks/gather-fusion.mjs --profile=cpu --iterations=5000 --output=/tmp/gather.cpuprofile
+node benchmarks/gather-fusion.mjs --profile=allocation --output=/tmp/gather.heapprofile
+```
+
+CPU and allocation profiles run separately from ordinary timing samples.
+Allocation sampling includes objects collected by minor and major GC; its byte
+estimate is neither retained heap nor peak memory. The current Euler 59 demo
+already searches each key position independently. Its update materializes each
+reused strided slice once; it does not restore the historical 17,576-key search.
+
+Three separate allocation samples for lazy selectors estimated median total
+allocations of 1,143.65 MB before and 206.49 MB after fusion per 1,000 iterations
+(decimal MB). The CPU profile covers 5,000 iterations; the baseline spends
+substantial self-time in `readArrayItem` and `selectorIndices`, which the fused
+loop bypasses. Allocation and CPU-profile runs are excluded from the timing
+medians above.
+
+Three fresh-interpreter Euler 59 runs kept the answer 129,448. Median execution
+time, including parsing and module loading, changed from 368.64 to 303.06 ms;
+the updated demo executed 78 fused scoring kernels rather than zero. This small
+end-to-end sample is a check on the current demo, not evidence for the issue's
+historical 75-second baseline.
+
 ## Stored slice arithmetic (#307)
 
 The [slice benchmark](../../benchmarks/slice-arithmetic.mjs) compares whole-array,
@@ -693,3 +758,9 @@ window length at a time. Its default answer is `2906969179`; the focused demo
 test took 1.78 seconds, with the small-limit and strict-boundary tests also
 passing. Three fresh CLI processes, including startup, parsing and execution,
 took 2.83/2.53/2.47 seconds (median 2.53 seconds); each answer was checked.
+
+After integrating main `e9c94e50` (#320), the 10K/668 quick check remained within
+1.5x: integer whole/range/drop-take medians were 1.133/1.487/1.489 seconds;
+Float64 medians were 0.195/0.207/0.218 seconds. The Euler 125 default-input test
+still returned the same answer in 3.06 seconds. These runs had higher background
+load than the first samples; their raw values are recorded separately.

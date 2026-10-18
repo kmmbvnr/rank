@@ -639,7 +639,8 @@ Before a Rank write to a material dense scalar array, retained selections can
 snapshot only their selected cells. This also protects computations over those
 selections without copying the whole source. Arithmetic on regular slices of
 stored numeric arrays can read their cells directly, including shifted and
-strided differences. Small selections keep their lazy, read-only interface;
+strided differences. Small selections over plain arrays keep their lazy,
+read-only interface;
 use `copy` when their result needs material storage. Typed selections and large
 stored selections defer their private storage until a write needs it.
 

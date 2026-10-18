@@ -1,4 +1,4 @@
-import { registerRangePlan } from './range-plan.js';
+import { registerRangePlan, registerModularRange } from './range-plan.js';
 import { divideWithRemainder, floorDivide, floorDivideReal, floorRemainder } from './numeric-division.js';
 import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
@@ -718,8 +718,10 @@ function mapBinary(
         }) : zipped;
     }
     if (isRankSequence(left)) {
-        return withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right)), left,
+        const mapped = withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right)), left,
             item => scalarOperation(item, right)), left, item => scalarOperation(item, right));
+        if (name === 'mod' && typeof right === 'bigint') registerModularRange(mapped.plan, left.plan, right);
+        return mapped;
     }
     if (isRankSequence(right)) {
         return withOrigin(addressable(mapSequence(right, name, item => scalarOperation(left, item)), right,

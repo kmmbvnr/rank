@@ -77,11 +77,11 @@ fun Bytes Weights best_byte
 end
 
 
-rem Solve each byte of the repeating key independently.
+rem Solve each byte independently; materialize each reused slice once.
 fun Cipher Weights best_key
   Size = Cipher len
-  B0 = (Cipher (0 till Size by 3)) Weights best_byte
-  B1 = (Cipher (1 till Size by 3)) Weights best_byte
-  B2 = (Cipher (2 till Size by 3)) Weights best_byte
+  B0 = ((Cipher (0 till Size by 3)) copy) Weights best_byte
+  B1 = ((Cipher (1 till Size by 3)) copy) Weights best_byte
+  B2 = ((Cipher (2 till Size by 3)) copy) Weights best_byte
   return array B0 B1 B2
 end

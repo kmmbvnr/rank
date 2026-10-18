@@ -16,7 +16,7 @@ const arrayItem = readArrayItem;
 const arraySize = (shape: readonly number[]): number =>
     shape.reduce((product, dimension) => product * dimension, 1);
 
-// Large scalar slices are gathered eagerly to avoid a per-cell Map cache.
+// Large irregular scalar gathers avoid a per-cell Map cache.
 const DENSE_SLICE_CELLS = 1 << 16;
 
 function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (index: number) => number, linear?: LinearView, regular = linear !== undefined): RankArray {
