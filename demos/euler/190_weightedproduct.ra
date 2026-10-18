@@ -1,0 +1,26 @@
+rem Maximising a Weighted Product
+rem https://projecteuler.net/problem=190
+rem Sum the integer parts of the largest
+rem products x1 x2^2 ... xm^m with
+rem x1 + ... + xm = m, for m = 2 to Top
+
+use sequences
+use io
+use cli
+
+option Top integer = 15
+
+rem Lagrange multipliers give x[i] =
+rem 2 i / (m + 1), so the product is
+rem the product of (2 i)^i over
+rem (m + 1) to the power m (m + 1) / 2.
+Rows = Top - 1
+M = (2 to Top array) reshape Rows 1
+I = (1 to Top array) reshape 1 Top
+Pow = (2 * I) ** I
+Terms = (I at most M) choose Pow 1
+Num = Terms reduce * rank 1
+Den = (M + 1) ** (M * (M + 1) // 2)
+Best = Num // (Den reshape Rows)
+Answer = Best sum
+Answer print
