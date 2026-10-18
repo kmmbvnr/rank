@@ -21,7 +21,6 @@ sequential (a recurrence, a depth-first search or a union-find).
 | 159 | in-place divisor recurrence | not run, 5 x 10^5 vector steps |
 | 186 | union-find over 2.3M calls | sequential |
 | 193 | Moebius sieve to 2^25 | not run, ~50 s estimated |
-| 195 | 1.7 x 10^7 coprime pairs | not run, ~65 s estimated |
 | 196 | 5 row strip, neighbour counts | not run, ~100 s estimated |
 | 198 | Stern-Brocot walk | sequential |
 

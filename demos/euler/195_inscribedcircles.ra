@@ -38,39 +38,23 @@ for N in 1 to Qb
   if N * (N + 1) greater Qb
     break
   end
-  for T in 1 to Qb // N - N
-    if T mod 3 not equal 0
-      X = N
-      Y = T
-      for Y not equal 0
-        Z = X mod Y
-        X = Y
-        Y = Z
-      end
-      if X equal 1
-        Total += Tb (N * (N + T) - 1)
-      end
-    end
-  end
+  Ts = 1 to (Qb // N - N) array
+  Ok = Ts mod 3 not equal 0
+  Ok and= (N Ts gcd) equal 1
+  Qv = N * (N + Ts)
+  Hit = Tb (Qv - 1) filter Ok array
+  Total += Hit sum
 end
 for T in 1 to Qa
   if T * (T + 3) greater Qa
     break
   end
   if T mod 3 not equal 0
-    for N in 1 to (Qa // T - T) // 3
-      X = N
-      Y = T
-      for Y not equal 0
-        Z = X mod Y
-        X = Y
-        Y = Z
-      end
-      if X equal 1
-        Q = T * (3 * N + T)
-        Total += Ta (Q - 1)
-      end
-    end
+    Ns = 1 to ((Qa // T - T) // 3) array
+    Ok = (Ns T gcd) equal 1
+    Qv = T * (3 * Ns + T)
+    Hit = Ta (Qv - 1) filter Ok array
+    Total += Hit sum
   end
 end
 Answer = Total
