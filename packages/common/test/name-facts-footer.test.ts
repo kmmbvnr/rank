@@ -219,8 +219,8 @@ it('uses a later notebook predicate definition and analyzes uncalled function lo
             ['Candidates filter', 'Candidates · c<integer>'],
             ['Answer =', 'Answer · integer'],
             ['Answer print', 'Answer · integer'],
-            ['Text =', 'Text · text'],
-            ['Text equal', 'Text · text'],
+            ['Original =', 'Original · integer'],
+            ['Original equal', 'Original · integer'],
         ]) {
             const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
             repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site));

@@ -153,7 +153,7 @@ it.each([
 });
 
 
-it('infers the boolean return of the Euler palindrome function before any call', async () => {
+it('infers the numeric Euler palindrome signature from notebook context before any call', async () => {
     const demo = readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8');
     const source = demo.slice(demo.search(/\bfun (?:[A-Z]\w*[ \t]+)*palindrome\b/)).trim();
     const session = createReplSession();
@@ -162,9 +162,22 @@ it('infers the boolean return of the Euler palindrome function before any call',
         await session.execute('Digits = 3', 0, [], 40, true);
         const result = await session.execute(source, 1, demo.split('\n'), 40, true);
         expect(result.ok).toBe(true);
-        expect(result.output.map(row => row.text).join(' ')).toBe('a → boolean');
-        expect(session.preview(source, 40, true).valueSummary).toBe('a → boolean');
+        expect(result.output.map(row => row.text).join(' ')).toBe('i → boolean');
+        // Standalone preview lacks the notebook's integer argument facts.
+        expect(session.preview(source, 40, true).valueSummary).toBe('a → ?');
         expect((await session.execute('9009 palindrome', 2, [], 40, true)).output.map(row => row.text)).toEqual(['true']);
         expect((await session.execute('9010 palindrome', 3, [], 40, true)).output.map(row => row.text)).toEqual(['false']);
+    } finally { session.dispose(); }
+});
+
+
+it('infers a text palindrome result without notebook argument facts', async () => {
+    const source = 'fun X palindrome\n Text = X text\n return Text equal (Text reverse)\nend';
+    const session = createReplSession();
+    try {
+        await session.execute('use sequences', 0, [], 40, true);
+        const result = await session.execute(source, 1, [], 40, true);
+        expect(result.output.map(row => row.text).join(' ')).toBe('a → boolean');
+        expect(session.preview(source, 40, true).valueSummary).toBe('a → boolean');
     } finally { session.dispose(); }
 });

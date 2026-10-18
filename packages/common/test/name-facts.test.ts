@@ -415,9 +415,9 @@ it('infers every Euler palindrome pipeline name before running the notebook', ()
         ['Candidates filter', 'Candidates · c<integer>'],
         ['Answer =', 'Answer · integer'],
         ['Answer print', 'Answer · integer'],
-        ['Text =', 'Text · text'],
-        ['Text equal', 'Text · text'],
-        ['Text reverse', 'Text · text'],
+        ['Original =', 'Original · integer'],
+        ['Original equal', 'Original · integer'],
+        ['Reversed *', 'Reversed · integer'],
     ]) expect(formatNameFacts(factsAt(source, source.indexOf(site))!)).toBe(expected);
 });
 
