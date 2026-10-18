@@ -1,5 +1,6 @@
 import { compiledCalleeTypeKey, sameCompiledCalleeType, isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
 import {
+    functionScope, functionCallSignature, lexicalBinding, applicationForm, findOperation, unaryApplicationHead,
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, flattenApplication, isApplicationExpression,
     isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression,
@@ -10,12 +11,16 @@ import { recordFallback } from './diagnostics.js';
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'sequence-contains' | 'sequence-not-contains' | 'user-call';
+    readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof };
     readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
 }
 export interface ScalarFunctionProof {
     readonly type: CompiledFunctionType;
+    readonly dependencies: readonly string[];
+    readonly callDepth: number;
+    readonly callCount: number;
     readonly locals: readonly string[];
     readonly nativeReads: readonly string[];
     readonly modules: readonly string[];
@@ -30,7 +35,8 @@ const blockProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionPro
 // The caller must additionally check that local assignment names neither exist
 // in the closure context nor can be created by the surrounding register region.
 export function scalarFunctionResult(statement: FunctionStatement, blocks = false,
-    parameterTypes?: readonly CompiledCalleeType[], loops = false): ScalarFunctionProof | undefined {
+    parameterTypes?: readonly CompiledCalleeType[], loops = false, path: readonly FunctionStatement[] = []): ScalarFunctionProof | undefined {
+    if (path.includes(statement) || path.length >= 16) return recordFallback('scalar-function:call-graph');
     if (parameterTypes && parameterTypes.length !== statement.parameters.length) {
         return recordFallback('scalar-function:argument-count');
     }
@@ -60,6 +66,10 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     }
     const expressions = new Map<Expression, CompiledExpression<CompiledCalleeType, ScalarFunctionInput>>();
     const nativeReads = new Set<string>();
+    const dependencies = new Set<string>();
+    const lexical = functionScope(statement);
+    const scope = lexical?.scope;
+    let callDepth = 1, callCount = 0;
     const modules = new Set<string>();
     const arrayWrites = new Set<Statement>();
     let containers = types.some(isCompiledContainer);
@@ -68,6 +78,28 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const settled = new Map<string, CompiledCalleeType>(statement.parameters.map((name, index) => [name, types[index]]));
     const budget = { remaining: blocks ? 256 : 129 };
     let resultType: CompiledFunctionType | undefined;
+    function userCall(parts: readonly Expression[], env: ReadonlyMap<string, CompiledCalleeType>) {
+        const last = parts.at(-1);
+        if (!loops || !last || !isNameExpression(last) || env.has(last.name)) return undefined;
+        const callee = (lexical?.reads.get(last) ?? lexicalBinding(scope, last.name))?.function;
+        if (!callee || callee.memo || callee.parameters.length !== parts.length - 1
+            || callee.ranks.some(rank => rank !== 'all')) return undefined;
+        const signature = functionCallSignature(callee);
+        if (signature.words.length || signature.parameters.some(parameter => parameter.kind === 'function')) return undefined;
+        const arguments_ = parts.slice(0, -1);
+        const inputs = arguments_.map(argument => type(argument, env));
+        // Nested calls cannot borrow or mutate a caller's storage implicitly.
+        if (!inputs.every((input): input is CompiledScalarType => typeof input === 'string')) return undefined;
+        const proof = scalarFunctionResult(callee, true, inputs, true, [...path, statement]);
+        if (!proof || typeof proof.type !== 'string' || proof.containers || proof.arrayWrites.size
+            || proof.callDepth >= 16 || callCount + proof.callCount + 1 > 64) return undefined;
+        callDepth = Math.max(callDepth, proof.callDepth + 1);
+        callCount += proof.callCount + 1;
+        dependencies.add(last.name);
+        for (const name of [...proof.dependencies, ...proof.nativeReads, ...proof.locals]) dependencies.add(name);
+        return { type: proof.type, input: { name: last.name, operation: 'user-call' as const,
+            callee: { statement: callee, types: inputs, proof }, indices: arguments_.map(argument => expressions.get(argument)!) } };
+    }
     function type(expression: Expression, env: ReadonlyMap<string, CompiledCalleeType>): CompiledCalleeType | undefined {
         const inferred = inferCompiledExpression<CompiledCalleeType, ScalarFunctionInput>(expression, {
             atom: type => compiledScalarTypes.find(candidate => candidate === type),
@@ -89,6 +121,13 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 }
                 if (loops && isBinaryExpression(source) && ['in', 'notin'].includes(source.operator) && isNameExpression(source.right)) {
                     const domain = env.get(source.right.name);
+                    if (!domain && lexical && lexical.reads.get(source.right)?.scope.owner !== statement
+                        && type(source.left, env) === 'integer') {
+                        dependencies.add(source.right.name);
+                        return { type: 'boolean', input: { name: source.right.name,
+                            operation: source.operator === 'in' ? 'sequence-contains' : 'sequence-not-contains',
+                            indices: [expressions.get(source.left)!] } };
+                    }
                     if (domain && isCompiledContainer(domain) && domain.kind === 'index' && type(source.left, env) === 'integer') {
                         return { type: 'boolean', input: { name: source.right.name, operation: source.operator === 'in' ? 'contains' : 'not-contains', indices: [expressions.get(source.left)!] } };
                     }
@@ -106,9 +145,17 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 }
                 if (isNameExpression(source)) {
                     const known = env.get(source.name);
-                    return known ? { type: known, input: { name: source.name } } : undefined;
+                    return known ? { type: known, input: { name: source.name } } : userCall([source], env);
                 }
                 if (!isApplicationExpression(source)) return undefined;
+                const lookup = (name: string) => env.has(name) || lexicalBinding(scope, name) ? false : findOperation(name);
+                if (applicationForm(source, lookup).kind !== 'plain') return undefined;
+                const unary = unaryApplicationHead(source, name => {
+                    const fn = lexicalBinding(scope, name)?.function;
+                    return fn ? [fn.parameters.length] : undefined;
+                }, name => !env.has(name));
+                const call = userCall(unary ? [unary, source.arguments[0]] : flattenApplication(source), env);
+                if (call) return call;
                 const [head, ...indices] = flattenApplication(source);
                 if (!isNameExpression(head)) return undefined;
                 const array = env.get(head.name);
@@ -218,8 +265,9 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         return env;
     }
     const outcome = flow(statement.statements, new Map(settled));
-    const result = outcome === null && resultType ? { type: resultType, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, arrayWrites, expressions } : undefined;
+    const result = outcome === null && resultType ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, arrayWrites, expressions } : undefined;
     const reason = rejection ?? 'scalar-function:missing-return';
-    proofs.set(key, result ?? reason);
+    // A path-depth limit must not poison a helper that is shallow on its own.
+    if (result || !path.length) proofs.set(key, result ?? reason);
     return result ?? recordFallback(reason);
 }

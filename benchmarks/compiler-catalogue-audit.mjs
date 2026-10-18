@@ -59,7 +59,7 @@ async function files(directory) {
     return found.sort();
 }
 const reference = Object.fromEntries([
-    'scalarEntryCompilation', 'scalarFunctionCompilation', 'scalarCallCompilation',
+    'scalarEntryCompilation', 'scalarFunctionCompilation', 'scalarCallCompilation', 'sequenceMembershipCompilation',
     'scalarTextCompilation', 'textArrayLoopCompilation', 'textLoopCompilation',
     'absoluteLoopCompilation', 'loopReturnCompilation', 'arrayLocalCompilation',
     'booleanArrayCompilation', 'booleanLoopCompilation', 'scalarAddressCompilation',

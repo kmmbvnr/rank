@@ -2064,7 +2064,7 @@ array A B`);
 
     it('rechecks the function definition after replacement', () => {
         let loops = 0;
-        const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => loops++ });
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false, onIntegerLoopExecuted: () => loops++ });
         try {
             runtime.execute(`fun X helper
   return X + 1

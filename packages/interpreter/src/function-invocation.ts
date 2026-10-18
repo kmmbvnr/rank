@@ -1,3 +1,4 @@
+import { compiledSequenceMembership } from './sequence-membership.js';
 import { compiledCalleeTypeKey, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { AstNode } from 'langium';
 import {
@@ -600,7 +601,24 @@ export class FunctionInvocation {
         const cached = instances.get(key);
         if (cached) return cached;
         const kernel = compileScalarFunction(statement, types, loops);
-        if (!kernel) return undefined;
+        if (!kernel || kernel.userCalls.length && this.options().scalarCallCompilation === false
+            || kernel.memberships.length && this.options().sequenceMembershipCompilation === false
+            || kernel.userCalls.some(call => call.tail) && this.options().compiledScalarTailCalls === false) return undefined;
+        const resolve = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
+        const userBinders = kernel.userCalls.map(call => () => {
+            const value = resolve(call.name);
+            const definition = value && isNativeFunction(value) ? this.definitionOf(value) : undefined;
+            if (!definition || definition.statement !== call.statement
+                || call.locals.some(name => definition.context?.find(name))) return undefined;
+            const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true);
+            if (!compiled || compiled.available && !compiled.available()) return undefined;
+            return (arguments_: RankValue[], tail = false) => {
+                if (tail && definition.owner === this) throw new TailCallSignal(definition, arguments_, compiled);
+                return compiled(arguments_);
+            };
+        });
+        const users: ((arguments_: RankValue[], tail?: boolean) => RankValue)[] = [];
+        const memberships: ((value: bigint) => boolean)[] = [];
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
         const binders = kernel.calls.map(({ operation, inputs }) => prepareCompiledBuiltin({
             modules: this.modules, builtins: this.builtins, options: this.options,
@@ -615,14 +633,28 @@ export class FunctionInvocation {
             if (!tail) this.depth += 1;
             try {
                 this.options().onScalarFunctionExecuted?.();
-                return kernel.run(arguments_, locate, calls);
+                return kernel.run(arguments_, locate, calls, users, memberships);
             } catch (error) {
+                // A scalar tail callee replaces this logical frame. Errors from
+                // it must not acquire the discarded caller's stack entry.
+                if (error instanceof TailCallSignal && error.compiled) return error.compiled(error.arguments_, true);
                 if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
                 throw error;
             } finally { if (!tail) this.depth -= 1; }
         };
-        if (binders.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
+        if (binders.length || userBinders.length || kernel.memberships.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
+            if (inspectionEnabled()) return false;
             if (kernel.modules.some(module => !this.modules.has(module))) return false;
+            for (let index = 0; index < userBinders.length; index++) {
+                const bound = userBinders[index]();
+                if (!bound) return false;
+                users[index] = bound;
+            }
+            for (let index = 0; index < kernel.memberships.length; index++) {
+                const contains = compiledSequenceMembership(resolve(kernel.memberships[index]));
+                if (!contains) return false;
+                memberships[index] = contains;
+            }
             for (const name of kernel.guards) {
                 const operation = findOperation(name);
                 const value = context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
