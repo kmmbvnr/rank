@@ -1,0 +1,25 @@
+use testing
+
+test "default input"
+  use "124_orderedradicals"
+  run
+
+  Answer equal 21417
+end
+
+test "statement table for ten"
+  use "124_orderedradicals"
+  Limit = 10
+  K = 4
+  run
+
+  Answer equal 8
+  K = 6
+  run
+
+  Answer equal 9
+  K = 10
+  run
+
+  Answer equal 10
+end
