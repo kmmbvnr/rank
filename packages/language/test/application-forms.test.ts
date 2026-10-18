@@ -1,4 +1,5 @@
 import { EmptyFileSystem } from 'langium';
+import { parseHelper } from 'langium/test';
 import { expect, it } from 'vitest';
 import { axisLengthForm, axisReductionForm, sortDirectionForm,
     symbolicApplicationForm, applicationForm } from '../src/application-forms.js';
@@ -126,4 +127,26 @@ it('does not interpret a CSV write as a checked read', () => {
     const assignment = parsed.value.statements[0];
     if (!isAssignmentStatement(assignment)) throw new Error('expected assignment');
     expect(applicationForm(assignment.value)).toMatchObject({ kind: 'invalid' });
+});
+
+it('returns the original nodes of a pipeline after a user function call', () => {
+    const parsed = parser.parse<Program>('Result = 6 upto array len\n');
+    const statement = parsed.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    const form = applicationForm(statement.value, name => name === 'upto' ? false : findOperation(name));
+    if (form.kind !== 'materialize-pipeline') throw new Error('expected materialize-pipeline');
+    expect(form.source).toEqual(flattenApplication(statement.value).slice(0, 2));
+    expect(form.source[1]).toBe(flattenApplication(statement.value)[1]);
+    expect(form.steps).toEqual(form.selector.items);
+    form.steps.forEach((step, index) => expect(step).toBe(form.selector.items[index]));
+});
+
+it.each(['1 to Lim', 'array Lim Lim'])('validates a pipeline after a user function returning %s', async body => {
+    const parse = parseHelper<Program>(createRankServices(EmptyFileSystem).Rank);
+    const messages = async (pipeline: string) => {
+        const source = `use sequences\nfun Lim upto\n return ${body}\nend\nX = ${pipeline}\n`;
+        const document = await parse(source, { validation: true });
+        return (document.diagnostics ?? []).map(diagnostic => diagnostic.message);
+    };
+    expect(await messages('6 upto array len')).toEqual(await messages('(6 upto) array len'));
 });
