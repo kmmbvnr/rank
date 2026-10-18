@@ -14,33 +14,47 @@ rem Let x + y = a^2, x + z = c^2 and
 rem x - z = d^2. Then y - z = a^2 - c^2,
 rem y + z = a^2 - d^2 and x - y =
 rem c^2 + d^2 - a^2 must be squares too.
-rem A sum is under 1.5 a^2, so search a
-rem only while a^2 is below the best.
+rem Keep pairs (a, c) whose a^2 - c^2 is
+rem a square, pair each with every d of
+rem the parity of c, and test the other
+rem two differences.
 Root = 0 to Top array
-Sq = array shape (Top * Top + 1) fill 0
+Cap = Top * Top
+Sq = array shape (Cap + 1) fill 0
 Sq (Root * Root) = 1
-Answer = Top * Top * 2
-A = 3
-for A * A less Answer and A at most Top
-  A2 = A * A
-  for C in 2 to A - 1
-    C2 = C * C
-    if Sq (A2 - C2) equal 1
-      for D in C - 2 to 1 by -2
-        D2 = D * D
-        if C2 + D2 greater A2
-          if Sq (C2 + D2 - A2) equal 1
-            if Sq (A2 - D2) equal 1
-              Sum = A2 + (C2 - D2) // 2
-              if Sum less Answer
-                Answer = Sum
-              end
-            end
-          end
-        end
-      end
-    end
-  end
-  A += 1
-end
+Side = 2 to Top array
+Rows = Side len
+A = Side reshape Rows 1
+C = Side reshape 1 Rows
+Gap = (A * A - C * C) 0 max
+Pairs = Rows * Rows
+Flat = Gap reshape Pairs
+Ok = (Sq Flat equal 1) reshape Rows Rows
+Ok and= C less A
+Pos = Ok indices
+Pa = Side (Pos # 0)
+Pc = Side (Pos # 1)
+Cnt = Pa len
+D = (1 to Top array) reshape 1 Top
+A2 = (Pa * Pa) reshape Cnt 1
+C2 = (Pc * Pc) reshape Cnt 1
+D2 = D * D
+Cc = Pc reshape Cnt 1
+Low = C2 + D2 - A2
+Fit = D less Cc
+Fit and= (C2 - D2) mod 2 equal 0
+Fit and= Low greater 0
+Cells = Cnt * Top
+Lo1 = Low 0 max
+Hi1 = (Lo1 reshape Cells) Cap min
+Sq1 = (Sq Hi1) reshape Cnt Top
+Lo2 = (A2 - D2) 0 max
+Hi2 = (Lo2 reshape Cells) Cap min
+Sq2 = (Sq Hi2) reshape Cnt Top
+Hit = Fit and Sq1 equal 1
+Hit and= Sq2 equal 1
+Total = A2 + (C2 - D2) // 2
+Sums = Total filter Hit array
+Best = concat Sums (array 2 * Cap)
+Answer = Best min
 Answer print
