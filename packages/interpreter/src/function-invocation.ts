@@ -57,7 +57,7 @@ export interface FunctionHost {
     execute(statements: Statement[], generator: boolean): Evaluation<RankValue | undefined>;
     locate(error: unknown, node: AstNode): unknown;
     /** A proven scalar body that the selected argument types may enter directly, when that path is enabled. */
-    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[]): { readonly locals: readonly string[] } | undefined;
+    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[]): { readonly locals: readonly string[]; readonly loops: true } | undefined;
     /** Offers a function to flat combinators; `available` is checked before each use. */
     flatCombine(fn: NativeFunction, statement: FunctionStatement, available: (builtins: ReadonlySet<string>) => boolean): void;
 }
@@ -292,7 +292,7 @@ export class FunctionInvocation {
             catch (error) { throw this.host.locate(error, only!); }
         } : undefined;
         const proof = this.host.scalarEntry(statement, generator);
-        const scalar = proof ? this.prepareScalarCall(statement, context) : undefined;
+        const scalar = proof ? this.prepareScalarCall(statement, context, undefined, proof.loops) : undefined;
         const instances = new CallSpecializations<ReturnContract>();
         const returnRanks = new Map<string, { rank?: number }>();
         const specialization = (arguments_: RankValue[]): ReturnContract => {
@@ -326,7 +326,7 @@ export class FunctionInvocation {
                 if (entry === undefined) {
                     types ??= arguments_.map(value => compiledArgumentType(value)!);
                     const typedProof = this.host.scalarEntry(statement, generator, types);
-                    const typedCall = typedProof ? this.prepareScalarCall(statement, context, types) : undefined;
+                    const typedCall = typedProof ? this.prepareScalarCall(statement, context, types, typedProof.loops) : undefined;
                     entry = typedCall ? { locals: typedProof!.locals, call: typedCall } : null;
                     typedEntries.set(arguments_, entry);
                 }

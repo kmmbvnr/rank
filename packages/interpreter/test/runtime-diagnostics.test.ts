@@ -73,7 +73,7 @@ Total`))).toBe(28n);
 
     it('reuses an element-type guard only while owned storage has the same revision', () => {
         const stats = new RuntimeDiagnostics();
-        const runtime = new Interpreter();
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
         try {
             runtime.execute('fun A read_one\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
             const read = runtime.variables.get('read_one');

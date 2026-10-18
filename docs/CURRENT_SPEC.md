@@ -7740,7 +7740,8 @@ Answer = Palindromes max
 `outer` constructs the multiplication table lazily. Ranked `palindrome` checks
 each scalar product, and `filter` selects the candidates for `max` without
 naming the table twice.
-The helper converts each number to text and compares it with `reverse`.
+The helper reverses decimal digits with integer arithmetic in a local loop
+and compares the result with its input.
 
 ## 5. Smallest multiple
 

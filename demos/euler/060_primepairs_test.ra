@@ -89,3 +89,14 @@ test "no five-clique leaves the supplied bound unchanged"
   end
   Data 100 min_five equal 100
 end
+
+
+test "concatenation at decimal boundaries"
+  use "060_primepairs"
+
+  (12 0 concat) equal 120
+  (12 9 concat) equal 129
+  (12 10 concat) equal 1210
+  (12 99 concat) equal 1299
+  (12 100 concat) equal 12100
+end
