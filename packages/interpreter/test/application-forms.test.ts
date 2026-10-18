@@ -53,3 +53,56 @@ it.each([
         expect(run('(6 upto) array len')).toBe(expected);
     }
 });
+
+it.each([false, true])('evaluates ungrouped user sources without internal names (compilation=%s)', compilation => {
+    const runtime = new Interpreter(undefined, { compilation });
+    try {
+        runtime.execute(`use sequences
+use linalg
+fun N upto
+ return 1 to N array
+end
+
+fun N sq
+ return array 1 2 3 4 5 6 7 8 9 shape N N
+end
+
+win = window
+diagonal = diag
+source = upto`);
+        for (const [index, [source, operation, expected]] of [
+            ['6 upto', 'window 3', '1 2 3 2 3 4 3 4 5 4 5 6'],
+            ['6 upto', 'window 3 stride 2', '1 2 3 3 4 5'],
+            ['6 upto', 'win 3', '1 2 3 2 3 4 3 4 5 4 5 6'],
+            ['6 source', 'window 3', '1 2 3 2 3 4 3 4 5 4 5 6'],
+            ['3 sq', 'diagonal .anti', '3 5 7'],
+            ['3 sq', 'diag .anti', '3 5 7'],
+            ['3 sq', 'diag 0', '1 5 9'],
+            ['3 sq', 'diag .anti 0 rank 2', '3 5 7'],
+        ].entries()) {
+            expect(formatValue(runtime.execute(`${source} ${operation}`)!)).toBe(expected);
+            expect(formatValue(runtime.execute(`(${source}) ${operation}`)!)).toBe(expected);
+            runtime.execute(`Result${index} = ${source} ${operation}`);
+            expect(formatValue(runtime.variables.get(`Result${index}`)!)).toBe(expected);
+        }
+    } finally { runtime.dispose(); }
+});
+
+
+it.each([false, true])('evaluates a window source once (compilation=%s)', compilation => {
+    const runtime = new Interpreter(undefined, { compilation });
+    try {
+        runtime.execute(`use sequences
+fun N State source
+ State .calls += 1
+ return 1 to N array
+end
+
+State = record
+ .calls = 0
+end
+Result = 6 State source window 3`);
+        expect(formatValue(runtime.variables.get('Result')!)).toBe('1 2 3 2 3 4 3 4 5 4 5 6');
+        expect(runtime.execute('State .calls')).toBe(1n);
+    } finally { runtime.dispose(); }
+});
