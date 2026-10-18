@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "138_isosceles"
+  run
+
+  Answer equal 1118049290473932
+end
+
+test "first legs"
+  use "138_isosceles"
+  Count = 3
+  run
+
+  Legs equal (array 17 305 5473)
+  Answer equal 5795
+end

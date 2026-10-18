@@ -1,0 +1,21 @@
+rem Special Isosceles Triangles
+rem https://projecteuler.net/problem=138
+rem Sum the legs L of the Nth smallest
+rem isosceles triangles whose height is
+rem one less or more than the base
+
+use sequences
+use io
+use cli
+
+option Count integer = 12
+
+rem The legs are L = F(6n + 3) / 2:
+rem 17, 305, 5473... The language
+rem Fibonacci starts at F(2), so these
+rem sit at positions 7, 13, 19...
+Len = 6 * Count + 2
+Fs = fibonacci take Len array
+Legs = Fs (7 to # by 6) // 2
+Answer = Legs sum
+Answer print
