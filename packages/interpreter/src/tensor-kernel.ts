@@ -165,12 +165,49 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
 function build(root: TensorNode, names: string[], terminal: Terminal, count: number, host: TensorKernelHost,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>) {
     let cachedKey: string | undefined;
-    let cachedRun: ((data: RankValue[][], offsets: number[], scalars: RankValue[], size: number) => RankValue | RankValue[] | undefined) | undefined;
+    type KernelRun = (data: RankValue[][], offsets: number[], scalars: RankValue[], size: number) => RankValue | RankValue[] | undefined;
+    let cachedRun: KernelRun | undefined;
+    // Cache layout only: never retain operand storage or a previous result.
+    // Selections and text conversions keep the general binder below.
+    type InputLayout = { name?: string; value?: RankValue; slot: number; shape?: readonly number[]; boolean: boolean };
+    let layout: { inputs: InputLayout[]; offsets: number[]; shape: readonly number[]; size: number;
+        interruptible: boolean; execute: KernelRun } | undefined;
     let generated = '';
     let unavailable = false;
     return { count, get source() { return generated; }, run(): RankValue | undefined {
         if (unavailable) return recordFallback('tensor:code-generation');
         if (names.some(name => host.lookup(name) !== undefined)) return recordFallback('tensor:existing-binding');
+        // Interrupt callbacks may enter this kernel again with another shape.
+        const plan = layout;
+        if (plan && plan.interruptible === interruptsEnabled() && host.builtin(terminal)) {
+            const data: RankValue[][] = [], scalars: RankValue[] = [];
+            let matches = true;
+            for (const input of plan.inputs) {
+                const value = input.name === undefined ? input.value : host.lookup(input.name);
+                if (input.shape) {
+                    if (!value || !isRankArray(value) || arrayRevision(value) === undefined
+                        || !same(value.shape, input.shape)) { matches = false; break; }
+                    const items = materializedArrayItems(value);
+                    if (!Array.isArray(items) || items.length !== input.shape.reduce((a, b) => a * b, 1)
+                        || (typeof items[0] === 'boolean') !== input.boolean) { matches = false; break; }
+                    data[input.slot] = items;
+                } else {
+                    if (!(numeric(value) || typeof value === 'boolean')
+                        || (typeof value === 'boolean') !== input.boolean) { matches = false; break; }
+                    scalars[input.slot] = value!;
+                }
+            }
+            if (matches) {
+                const result = plan.execute(data, plan.offsets, scalars, plan.size);
+                return terminal === 'copy' && result !== undefined
+                    ? ownedArray(result as RankValue[], plan.shape, true) : result as RankValue | undefined;
+            }
+        }
+        return bindRun();
+    } };
+
+    function bindRun(): RankValue | undefined {
+        layout = undefined;
         const bound = new Map<TensorNode, Bound>();
         let broadcasts = false;
         const data: RankValue[][] = [], offsets: number[] = [], scalars: RankValue[] = [];
@@ -286,6 +323,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         if (terminal === 'copy' && [...filtered.values()].some(Boolean)) return recordFallback('tensor:filtered-copy');
         const interruptible = interruptsEnabled();
         const key = String(interruptible) + [...bound.values()].map(b => `${b.shape === undefined ? 's' : b.shape.join(',')}:${b.view ? 'v' : ''}:${b.boolean}:${b.filter ?? false}:${b.slot ?? ''}`).join(';');
+        let execute = cachedRun;
         if (cachedKey !== key) {
             const lines: string[] = [];
             const emitted = new Map<TensorNode, string>();
@@ -371,15 +409,24 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             lines.push('length++;');
             const initial = terminal === 'copy' ? 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
             generated = `"use strict"; return function(data, offsets, scalars, size) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
-            try { cachedRun = new Function('checkpoint', 'decline', generated)(checkpoint, recordFallback) as typeof cachedRun; }
+            try { execute = new Function('checkpoint', 'decline', generated)(checkpoint, recordFallback) as KernelRun; }
             catch { unavailable = true; return recordFallback('tensor:code-generation'); }
             cachedKey = key;
+            cachedRun = execute;
             host.compiled?.(generated);
         }
-        const result = cachedRun!(data, offsets, scalars, size);
+        if ([...bound.keys()].every(node => node.kind !== 'select'
+            && !(node.kind === 'unary' && (node.op === 'text' || node.op === 'integer0')))
+            && [...bound.values()].every(info => info.scalar === undefined || numeric(info.scalar) || typeof info.scalar === 'boolean')) {
+            layout = { inputs: [...bound].flatMap(([node, info]) => node.kind === 'input' ? [{
+                name: node.name, value: node.value,
+                slot: info.slot!, shape: info.shape && [...info.shape], boolean: info.boolean,
+            }] : []), offsets: [...offsets], shape: [...output.shape], size, interruptible, execute: execute! };
+        }
+        const result = execute!(data, offsets, scalars, size);
         if (terminal === 'copy' && result !== undefined) {
             return ownedArray(result as RankValue[], output.shape, true);
         }
         return result as RankValue | undefined;
-    } };
+    }
 }

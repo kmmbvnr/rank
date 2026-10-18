@@ -410,25 +410,35 @@ export function ownedArray(
     items: RankValue[], shape: readonly number[] = [items.length], scalarOnly = false,
     columnNames?: readonly string[],
 ): RankArray {
+    let scalarKinds: Map<string, number> | undefined;
     if (!columnNames) {
         let firstType: string | undefined;
         let firstRank: number | undefined;
+        let firstScalarKind: string | undefined;
         let kinds: Map<string, { type: string; rank?: number }> | undefined;
         for (const item of items) {
             const type = typeof item === 'number' && !Number.isFinite(item) && !Number.isNaN(item)
                 ? 'numeric-limit' : typeName(item);
             const rank = isRankArray(item) ? item.shape.length : undefined;
-            if (firstType === undefined) { firstType = type; firstRank = rank; }
+            if (firstType === undefined) { firstType = type; firstRank = rank; firstScalarKind = scalarKind(item); }
             else if (type !== firstType || rank !== firstRank) {
-                // Homogeneous arrays need no map, per-cell descriptors or type-key strings.
+                // Homogeneous arrays need no per-cell descriptors or type-key strings.
                 kinds ??= new Map([[`${firstType}:${firstRank}`, { type: firstType, rank: firstRank }]]);
                 const key = `${type}:${rank}`;
                 if (!kinds.has(key)) kinds.set(key, { type, rank });
             }
         }
         if (kinds) requireHomogeneous([...kinds.values()]);
+        else {
+            // Validation already proved every cell has the same primitive kind.
+            // Preserve that count for binding/return contracts and later writes.
+            const kind = firstScalarKind;
+            if (kind || items.length === 0) scalarKinds = new Map(kind ? [[kind, items.length]] : []);
+        }
     }
-    return createOwned(items, shape, scalarOnly, columnNames);
+    const value = createOwned(items, shape, scalarOnly, columnNames);
+    if (scalarKinds) ownedStorage.get(value)!.elementKinds = scalarKinds;
+    return value;
 }
 
 /** A scalar fill establishes its physical kind once, including for an empty
