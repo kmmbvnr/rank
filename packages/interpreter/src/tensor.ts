@@ -1,6 +1,6 @@
 import { prepareStoredScalarView, type LinearView } from './integer-view.js';
 import { mapPair, runExecution } from './execution.js';
-import { evaluateArrayItem, derivedArray, denseScalarItems, storedOperandItems, float64Cells, ownedArray, realCells, typedArray } from './array-storage.js';
+import { evaluateArrayItem, derivedArray, denseScalarItems, storedOperandItems, float64Cells, ownedArray, ownedScalarArray, realCells, storedScalarKinds, typedArray } from './array-storage.js';
 import { RankError } from './errors.js';
 import { checkpoint, InterruptedError } from './interrupt.js';
 import type { RankArray, RankValue } from './value.js';
@@ -91,6 +91,28 @@ export function mapDenseArrays(
     // of the result's, so its cell is the index modulo n; -1: general broadcast.
     let leftMod = leftArray ? trailingCells(leftArray.shape, shape) : 0;
     let rightMod = rightArray ? trailingCells(rightArray.shape, shape) : 0;
+    // Exact stored integers need neither per-cell numeric dispatch nor a
+    // second output type scan. No narrowing to Number or signed 64-bit occurs.
+    const integer = (array: RankArray | undefined, scalar: RankValue) => array
+        ? denseScalarItems(array) !== undefined && storedScalarKinds(array)?.every(kind => kind === 'integer') === true
+        : typeof scalar === 'bigint';
+    if (realCode >= 0 && realCode <= 2 && leftMod >= 0 && rightMod >= 0
+        && integer(leftArray, left) && integer(rightArray, right)) {
+        const a = leftItems as ArrayLike<bigint> | undefined, b = rightItems as ArrayLike<bigint> | undefined;
+        const op = realCode === 0 ? (a: bigint, b: bigint) => a + b
+            : realCode === 1 ? (a: bigint, b: bigint) => a - b : (a: bigint, b: bigint) => a * b;
+        const cells: bigint[] = new Array(size);
+        for (let start = 0; start < size; start += DENSE_CHUNK) {
+            const end = Math.min(size, start + DENSE_CHUNK);
+            checkpoint('computing integer array', end - start);
+            for (let index = start; index < end; index++) {
+                const x = a ? a[leftMod ? index % leftMod : index] : left as bigint;
+                const y = b ? b[rightMod ? index % rightMod : index] : right as bigint;
+                cells[index] = op(x, y);
+            }
+        }
+        return ownedScalarArray(cells, 'integer', shape);
+    }
     // Real arithmetic on real cells gives real cells, so the result goes straight
     // into a typed buffer: no boxed doubles, and one allocation outside the heap.
     // Integers beside reals count as reals, as they do in scalar arithmetic.

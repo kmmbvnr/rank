@@ -135,6 +135,21 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
         }
         return undefined;
     }
+    // A compound arithmetic assignment is one observable rebinding. Its old
+    // value remains an input, never an output buffer or a private temporary.
+    const first = statements[0];
+    if (isAssignmentStatement(first) && ['+=', '-=', '*='].includes(first.operator) && !first.name.includes('.')) {
+        const right = parse(first.value);
+        const arithmetic = (node: TensorNode): boolean => node.kind === 'input'
+            || node.kind === 'unary' && ['+', '-'].includes(node.op) && arithmetic(node.operand)
+            || node.kind === 'binary' && ['+', '-', '*'].includes(node.op) && arithmetic(node.left) && arithmetic(node.right);
+        if (!right || !arithmetic(right)) return undefined;
+        const left = typed({ kind: 'input', name: first.name }, unknown);
+        const op = first.operator.slice(0, -1);
+        const matched = matchCompiledOperatorDomains(tensorOperatorSignatures(op, 2), [unknown, domains.get(right)!]);
+        if (!matched) return undefined;
+        return build(typed({ kind: 'binary', op, left, right }, matched.result), [], 'copy', 1, host, domains);
+    }
     for (let index = 0; index < Math.min(statements.length, 16); index++) {
         const statement = statements[index];
         const assignment = isAssignmentStatement(statement) && statement.operator === '=';
@@ -311,6 +326,22 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     result = { shape: b.shape, boolean: a.boolean };
                 }
             }
+            // Fold only total numeric arithmetic, before entering the array
+            // domain. Other scalar operations retain the reference timing path.
+            if (result && result.shape === undefined && result.scalar === undefined) {
+                let scalar: RankValue | undefined;
+                if (node.kind === 'binary' && ['+', '-', '*'].includes(node.op)) {
+                    const a = bound.get(node.left)?.scalar, b = bound.get(node.right)?.scalar;
+                    if (numeric(a) && numeric(b)) {
+                        if (typeof a === 'bigint' && typeof b === 'bigint') scalar = node.op === '+' ? a+b : node.op === '-' ? a-b : a*b;
+                        else scalar = node.op === '+' ? Number(a)+Number(b) : node.op === '-' ? Number(a)-Number(b) : Number(a)*Number(b);
+                    }
+                } else if (node.kind === 'unary' && ['+', '-'].includes(node.op)) {
+                    const a = bound.get(node.operand)?.scalar;
+                    if (numeric(a)) scalar = node.op === '+' ? a : typeof a === 'bigint' ? -a : -Number(a);
+                }
+                if (scalar !== undefined && numeric(scalar)) result = { scalar, boolean: false, slot: scalars.push(scalar)-1 };
+            }
             // Scalar computations are evaluated before their surrounding
             // tensor operation, even for an empty/fully filtered domain. Until
             // scalar lowering preserves that timing, leave them to reference.
@@ -466,6 +497,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         }
         if ([...bound.keys()].every(node => node.kind !== 'select'
             && !(node.kind === 'unary' && (node.op === 'text' || node.op === 'integer0')))
+            && [...bound].every(([node, info]) => node.kind === 'input' || info.scalar === undefined)
             && [...bound.values()].every(info => !info.progression && (info.scalar === undefined || numeric(info.scalar) || typeof info.scalar === 'boolean'))) {
             layout = { inputs: [...bound].flatMap(([node, info]) => node.kind === 'input' ? [{
                 name: node.name, value: node.value,
