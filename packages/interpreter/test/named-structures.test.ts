@@ -79,9 +79,9 @@ Seen = new set
 Counts = new counter
 Seen add array 1 2
 Seen add array 1 2
-Counts add array 1 2
-Counts add array 1 2
-tuple (Seen len) (Counts (array 1 2))
+Counts add tuple 1 2
+Counts add tuple 1 2
+tuple (Seen len) (Counts (tuple 1 2))
 `)).toBe('1 2');
         expect(run('use algo\nSeen = new set\nSeen add 7\nSeen add 2\nSeen add 7\nResult = 0\nfor Value in Seen\n Result = Result * 10 + Value\nend\nResult')).toBe('72');
     });

@@ -1055,9 +1055,21 @@ function transferApplicationFacts(
         && infer(parts[1], lookup).types.join() === 'integer') {
         return { types: ['text'], rank: 1, shape: [1] };
     }
-    if (parts.length === 2 && source.types.join() === 'counter'
-        && infer(parts[1], lookup).types.length > 0) {
-        return { types: ['integer'], rank: 0, shape: [] };
+    if (parts.length === 2 && source.types.join() === 'counter') {
+        const keys = infer(parts[1], lookup);
+        if (keys.types.join() === 'array') {
+            return { types: ['array'], rank: keys.rank, shape: keys.shape,
+                ...(keys.dims ? { dims: keys.dims } : {}),
+                elements: ['integer'], eagerScalarCells: true };
+        }
+        if (keys.types.join() === 'sequence') {
+            return { types: ['array'], rank: 1, shape: [keys.shape?.[0] ?? null],
+                ...(keys.dims ? { dims: keys.dims } : {}),
+                elements: ['integer'], eagerScalarCells: true };
+        }
+        if (keys.types.length > 0 && !keys.types.some(type => type === 'array' || type === 'sequence')) {
+            return { types: ['integer'], rank: 0, shape: [] };
+        }
     }
     if (parts.length === 2 && ['sequence', 'text', 'queue'].includes(source.types.join())) {
         const open = infer(parts[1], lookup).openRange;

@@ -574,7 +574,7 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toBe('11');
     });
 
-    it('counts scalar and array values in a function-local counter', () => {
+    it('counts scalar and tuple values in a function-local counter', () => {
         expect(run([
             'use algo',
             'use sequences',
@@ -592,9 +592,9 @@ describe('Rank tensors and collections', () => {
             'use algo',
             'fun X Y composite',
             '  Counts = new counter',
-            '  Counts add array X Y',
-            '  Counts add array X Y',
-            '  return Counts (array X Y)',
+            '  Counts add tuple X Y',
+            '  Counts add tuple X Y',
+            '  return Counts (tuple X Y)',
             'end',
             '2 3 composite',
         ].join('\n'))).toBe('2');
