@@ -1718,3 +1718,56 @@ it('infers coordinate width for safe tensor indices without trusting computed ma
             .toEqual({ types: ['array'] });
     }
 });
+
+it('distinguishes boolean masks, integer gathers and unresolved selectors', () => {
+    const source: ValueFacts = { types: ['array'], rank: 2, shape: [2, 3],
+        elements: ['integer'], eagerScalarCells: true };
+    const select = (selector: ValueFacts) => facts('M S', new Map([['M', source], ['S', selector]]));
+    expect(select({ types: ['array'], rank: 2, shape: [2, 3], elements: ['boolean'], eagerScalarCells: true }))
+        .toMatchObject({ types: ['sequence'], rank: 1, shape: [null], elements: ['integer'] });
+    expect(select({ types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true }))
+        .toMatchObject({ types: ['array'], rank: 2, shape: [2, 3] });
+    for (const elements of [undefined, ['integer', 'boolean']]) {
+        const result = select({ types: ['array'], rank: 1, elements });
+        expect(result.types).toEqual(['array', 'sequence']);
+        expect(result.rank).toBeUndefined();
+        expect(result.shape).toBeUndefined();
+    }
+    expect(select({ types: ['array'], rank: 2, shape: [null, 3], elements: ['boolean'] }).types)
+        .toEqual(['array', 'sequence']);
+    // Runtime tries integer addressing first; an empty array satisfies it.
+    expect(select({ types: ['array'], rank: 1, shape: [0], elements: ['boolean'], eagerScalarCells: true }))
+        .toMatchObject({ types: ['array'], rank: 2, shape: [0, 3] });
+    expect(select({ types: ['array'], rank: 2, elements: ['boolean'] }).callbackFreeScalarCells)
+        .toBeUndefined();
+});
+
+it('infers matmul result kind from rank even when dimensions or rank are unknown', () => {
+    const array: ValueFacts = { types: ['array'], elements: ['integer'], eagerScalarCells: true };
+    const multiply = (left: ValueFacts, right: ValueFacts) => facts('L R matmul', new Map([['L', left], ['R', right]]));
+    expect(multiply(array, array).types).toEqual([]);
+    expect(multiply({ ...array, rank: 1 }, { ...array, rank: 1 }))
+        .toMatchObject({ types: ['integer'], rank: 0, shape: [] });
+    expect(multiply({ ...array, rank: 2 }, { ...array, rank: 1 }))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
+    expect(multiply({ ...array, rank: 1 }, { ...array, rank: 2 }))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [null] });
+    expect(multiply({ ...array, rank: 2 }, { ...array, rank: 2 }))
+        .toMatchObject({ types: ['array'], rank: 2, shape: [null, null] });
+    expect(multiply({ ...array, rank: 1, shape: [null] }, { ...array, rank: 1, shape: [null] }))
+        .toMatchObject({ types: ['integer'], rank: 0 });
+    const lazy = { ...array, rank: 1, eagerScalarCells: undefined };
+    expect(multiply(lazy, lazy).callbackFreeScalarCells).toBeUndefined();
+    const real = { ...array, rank: 1, shape: [0], elements: ['real'] };
+    expect(multiply(real, real).types).toContain('integer');
+});
+
+
+it('does not use matmul catalogue result kinds for unresolved operands', () => {
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>('A = L R matmul\n');
+    const statement = parsed.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    for (const left of [undefined, ['array']]) {
+        expect(typeOf(statement.value, name => name === 'L' ? left : ['array'])).toEqual([]);
+    }
+});
