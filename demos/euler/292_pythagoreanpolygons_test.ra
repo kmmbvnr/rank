@@ -1,0 +1,17 @@
+use testing
+
+test "small perimeters"
+  use "292_pythagoreanpolygons"
+  N = 4
+  run
+
+  Answer equal 1
+  N = 30
+  run
+
+  Answer equal 3655
+  N = 60
+  run
+
+  Answer equal 891045
+end
