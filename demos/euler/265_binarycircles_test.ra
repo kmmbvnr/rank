@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "265_binarycircles"
+  run
+
+  Answer equal 209110240768
+end
+
+test "short windows"
+  use "265_binarycircles"
+  N = 3
+  run
+
+  Answer equal 52
+  N = 4
+  run
+
+  Answer equal 51504
+end
