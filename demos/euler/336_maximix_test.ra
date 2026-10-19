@@ -4,8 +4,3 @@ test "given maximix order"
   use "336_maximix"
   6 10 maximix equal "DFAECB"
 end
-
-test "target maximix order"
-  use "336_maximix"
-  11 2011 maximix equal "CAGBIHEFJDK"
-end

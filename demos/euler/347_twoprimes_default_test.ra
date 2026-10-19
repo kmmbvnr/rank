@@ -1,0 +1,7 @@
+use testing
+
+test "full two prime maxima"
+  use "347_twoprimes"
+  run
+  Answer equal 11109800204052
+end

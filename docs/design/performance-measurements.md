@@ -15,12 +15,14 @@ memory and feature preparation on synthetic Titanic rows.
 
 ## CI execution budget
 
-Type and differential audits execute the demo corpus. Default-scale workloads
+Type, differential and editor-name-fact audits execute the demo corpus. Default-scale workloads
 that exceed the regular CI time or memory budget are listed with reasons in
 [`scripts/demo-execution-exclusions.json`](../../scripts/demo-execution-exclusions.json).
-Both audits and the differential coverage gate read that same explicit list.
+All three execution audits and the differential coverage gate read that same explicit list.
 New full-workload exclusions keep the corresponding small `_test.ra` fixtures;
-existing exclusions from issues #311 and #316 are retained. This policy applies
+Large assertions mixed into small fixtures are preserved in separate
+`*_default_test.ra` files for manual execution. Existing exclusions from issues
+#311 and #316 are retained. This policy applies
 to execution audits only: parsing, static analysis and CLI source checks still
 inspect the excluded programs. Full-scale performance runs remain manual
 benchmarks and must be reported separately from CI correctness coverage.
