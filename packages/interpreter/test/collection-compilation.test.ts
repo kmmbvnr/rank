@@ -1,6 +1,6 @@
 import { GraphValue } from '../src/graph.js';
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RuntimeDiagnostics, formatValue, RankError } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, formatValue, RankError, withInterrupt, InterruptedError } from '../src/index.js';
 import type { InterpreterOptions } from '../src/interpreter-options.js';
 
 function execute(source: string, options: InterpreterOptions = {}) {
@@ -10,7 +10,11 @@ function execute(source: string, options: InterpreterOptions = {}) {
     try {
         try { diagnostics.run(() => measured.execute(source)); }
         catch (failure) { error = failure instanceof RankError ? failure.format() : String(failure); }
-        return { diagnostics, calls, observation: { error, graphs: [...measured.variables].filter(([, value]) => value instanceof GraphValue).map(([name, graph]) => [name, [...(graph as GraphValue).adjacency].map(([key, edges]) => [key, edges.map(edge => [formatValue(edge.target), formatValue(edge.weight), edge.id])])]), variables: [...measured.variables].map(([name, value]) => [name, formatValue(value)]) } };
+        const graphs = [...measured.variables].flatMap(([name, value]) => value instanceof GraphValue
+            ? [[name, [...value.adjacency].map(([key, edges]) => [key,
+                edges.map(edge => [formatValue(edge.target), formatValue(edge.weight), edge.id])])]] : []);
+        const variables = [...measured.variables].map(([name, value]) => [name, formatValue(value)]);
+        return { diagnostics, calls, observation: { error, graphs, variables } };
     } finally { measured.dispose(); }
 }
 function compare(source: string) {
@@ -234,6 +238,45 @@ for I in 1 to 3
 end`);
         expect(result.observation.variables).toContainEqual(['S', '3']);
         expect(result.observation.variables).toContainEqual(['Alias', '1 2']);
+    });
+
+    it('declines overridden graph mutation methods before any compiled effects', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use graph\nGraph = new graph .directed');
+            const graph = runtime.variables.get('Graph') as GraphValue, add = graph.add;
+            let calls = 0;
+            graph.add = function (values) { calls++; add.call(this, values); };
+            diagnostics.run(() => runtime.execute('for I in 1 to 3\n Graph add 1 I\nend'));
+            expect(calls).toBe(3);
+            expect(diagnostics.compiledGraphAdds).toBe(0);
+            expect(graph.outgoingEdges(1n).map(edge => edge.target)).toEqual([1n, 2n, 3n]);
+        } finally { runtime.dispose(); }
+    });
+
+    it('cancels effect regions cooperatively and runs finally without replay', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use graph\nGraph = new graph .directed\nS = 0\nFinished = false');
+            const graph = runtime.variables.get('Graph') as GraphValue;
+            const signal = { length: 1, load: () => 0, store: () => {}, wait: () => {},
+                exchange: () => graph.outgoingEdges(1n).length >= 10 ? 1 : 0 };
+            expect(() => withInterrupt(signal, () => diagnostics.run(() => runtime.execute(`try
+ for I in 1 to 10000
+  Graph add 1 I
+  S += 1
+ end
+finally
+ Finished = true
+end`)))).toThrow(InterruptedError);
+            const targets = graph.outgoingEdges(1n).map(edge => edge.target);
+            expect(targets.length).toBeGreaterThanOrEqual(10);
+            expect(targets.length).toBeLessThan(10000);
+            expect(targets).toEqual(Array.from({ length: targets.length }, (_, i) => BigInt(i + 1)));
+            expect(runtime.variables.get('S')).toBe(BigInt(targets.length));
+            expect(runtime.variables.get('Finished')).toBe(true);
+            expect(diagnostics.compiledLoops).toBe(1);
+        } finally { runtime.dispose(); }
     });
 
 });
