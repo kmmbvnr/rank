@@ -1,0 +1,21 @@
+rem Gathering the Beans
+rem https://projecteuler.net/problem=335
+
+use numbers
+use io
+
+1000000000000000000 solve print
+
+fun E solve
+  Mod = 7 ** 9
+  Pow = E + 1
+  P2 = 2 Pow Mod powmod
+  P3 = 3 Pow Mod powmod
+  P4 = 4 Pow Mod powmod
+  Inv2 = (Mod + 1) // 2
+  Inv3 = (2 * Mod + 1) // 3
+  A = 2 * (P2 - 1) mod Mod
+  B = (P4 - 1) * Inv3 mod Mod
+  C = (P3 - 1) * Inv2 mod Mod
+  return (A + B - C) mod Mod
+end
