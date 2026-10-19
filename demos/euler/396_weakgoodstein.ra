@@ -1,0 +1,109 @@
+rem Weak Goodstein Sequence
+rem https://projecteuler.net/problem=396
+
+use bits
+use numbers
+use sequences
+use io
+
+Mod = 1000000000
+M5 = 1953125
+M2 = 512
+Inv = M2 1562499 M5 powmod
+M0 = array 1953125 1562500 625000
+M1 = array 250000 100000 40000
+M2s = array 16000 6400 2560
+M3 = array 1024 512 256 128
+M4 = array 64 32 16 8 4 2 1
+Mods = concat M0 M1 M2s M3 M4
+Base = array 2 3 5 7 23 63 383 2047
+Small = Base - 2
+Vals = array shape 16 fill 0
+Vals (0 to 7) = Base
+for N in 8 to 15
+  X = Base (N - 8)
+  Times = X + 1
+  R5 = X Times f5
+  R2 = X Times f2
+  T = ((R5 - R2) * Inv) mod M5
+  Vals N = (R2 + M2 * T) mod Mod
+end
+Sum = (Vals (1 to 15) - 2) sum
+Answer = Sum mod Mod
+Answer print
+
+fun X Times f5
+  Res = X mod Mods
+  Exact = X
+  for Try in 1 to Times
+    New = array shape (Mods len) fill 0
+    for I in 0 till (Mods len - 1)
+      Next = Res (I + 1)
+      New I = Mods I Next Exact p2
+    end
+    Res = ((Res + 1) * New - 1) mod Mods
+    if Exact at most 20
+      Exact = Exact fexact
+    else
+      Exact = -1
+    end
+  end
+  return Res 0
+end
+
+fun X Times f2
+  R = X mod M2
+  Exact = X
+  for Try in 1 to Times
+    P = 0
+    if Exact at least 0
+      if Exact + 1 less 9
+        P = 1 (Exact + 1) shl
+      end
+    end
+    R = ((R + 1) * P - 1) mod M2
+    if Exact at most 20
+      Exact = Exact fexact
+    else
+      Exact = -1
+    end
+  end
+  return R
+end
+
+fun M Next Exact p2
+  A = 0
+  Five = M
+  for Five mod 2 equal 0
+    Five //= 2
+    A += 1
+  end
+  if Five equal 1
+    return 0
+  end
+  Phi = 4 * (Five // 5)
+  R = 2 ((Next mod Phi) + 1) Five powmod
+  if A equal 0
+    return R
+  end
+  Two = 1 A shl
+  R2 = 0
+  if Exact at least 0
+    if Exact + 1 less A
+      R2 = 1 (Exact + 1) shl
+    end
+  end
+  Inv2 = 1
+  if Two equal 2
+    Inv2 = 1
+  else
+    Exp = Two // 2 - 1
+    Inv2 = Five Exp Two powmod
+  end
+  K = ((R2 - R) * Inv2) mod Two
+  return R + Five * K
+end
+
+fun X fexact
+  return (X + 1) * (1 (X + 1) shl) - 1
+end
