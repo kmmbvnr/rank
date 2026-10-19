@@ -1,0 +1,14 @@
+use testing
+
+test "migrating ants"
+  use "393_ants"
+  N = 2
+  run
+  Answer equal 2
+  N = 3
+  run
+  Answer equal 0
+  N = 4
+  run
+  Answer equal 88
+end
