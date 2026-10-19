@@ -1,0 +1,14 @@
+use testing
+
+rem The default input takes minutes.
+test "small limits"
+  use "216_primality"
+  Limit = 100
+  run
+
+  Answer equal 45
+  Limit = 10000
+  run
+
+  Answer equal 2202
+end
