@@ -4,6 +4,8 @@ import { isForStatement } from '@arrrank/language';
 import { ownedArray } from '../src/array-storage.js';
 import { compileTensorKernel } from '../src/tensor-kernel.js';
 import { withInterrupt } from '../src/interrupt.js';
+import { ArrayBindingContract } from '../src/array-binding-contract.js';
+import { sliceSource } from '../src/slice-source.js';
 
 function run(source: string, tensorFusion: boolean) {
     let kernels = 0, compiled = 0;
@@ -24,6 +26,20 @@ function compare(source: string) {
 }
 
 describe('concat in tensor expressions', () => {
+    it('does not establish an unread input contract when a slice guard declines', () => {
+        const loop = parse(`for K in 1 to 1
+ Head = A take R
+ Tail = A drop R
+ Result = (A + concat Tail Head) mod M copy
+end`).statements[0];
+        if (!isForStatement(loop)) throw new Error('expected loop');
+        const contract = new ArrayBindingContract('Input');
+        const source = sliceSource(ownedArray([1n, 2n]))!.slice(2n, false);
+        const values = new Map<string, RankValue>([['A', contract.check(source)], ['R', -1n], ['M', 10n]]);
+        const kernel = compileTensorKernel(loop.statements, { lookup: name => values.get(name), builtin: () => true })!;
+        expect(kernel.run()).toBeUndefined();
+        expect(() => contract.check(ownedArray(['text']))).not.toThrow();
+    });
     it('fuses private loop slices and declines if an outer name or inspection observes them', () => {
         const loop = parse(`for K in 1 to 1
  Head = A take R

@@ -5,10 +5,12 @@ import { InterruptedError } from './interrupt.js';
 import { RankError } from './errors.js';
 import type { RankArray, RankValue } from './value.js';
 
-export interface TensorInput { items: RankValue[]; offset: number; shape: readonly number[]; kind?: string }
+export interface TensorInput {
+    items: RankValue[]; offset: number; shape: readonly number[]; kind?: string; validate?(): void;
+}
 
-/** Inspect tracked storage only. A contiguous homogeneous view validates its
- * scalar domain once before the synchronous callback-free kernel borrows it. */
+/** Inspect tracked storage without observing cells. Binding/cell validation is
+ * deferred until all layout and scalar guards have accepted the kernel. */
 export function tensorInput(value: RankArray): TensorInput | undefined {
     const view = privateLoopPolling() ? prepareStoredScalarView(value, true) : undefined;
     if (!view?.linear || view.linear.stride !== 1 || !view.validateUniform
@@ -21,12 +23,18 @@ export function tensorInput(value: RankArray): TensorInput | undefined {
         }
         return undefined;
     }
+    const validate = view.validate && value.shape.every(n => n > 0)
+        ? () => view.validateUniform!(view.items[view.linear!.offset]) : undefined;
+    return { items: view.items, offset: view.linear.offset, shape: value.shape, kind: 'integer', validate };
+}
+
+export function validateTensorInputs(checks: readonly (() => void)[] | undefined): boolean {
     try {
-        if (value.shape.every(n => n > 0)) view.validateUniform(view.items[view.linear.offset]);
+        if (checks) for (const check of checks) check();
+        return true;
     } catch (error) {
         if (error instanceof InterruptedError) throw error;
-        if (error instanceof RankError) return undefined;
+        if (error instanceof RankError) return false;
         throw error;
     }
-    return { items: view.items, offset: view.linear.offset, shape: value.shape, kind: 'integer' };
 }

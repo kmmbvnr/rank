@@ -1,4 +1,4 @@
-import { tensorInput } from './tensor-input.js';
+import { tensorInput, validateTensorInputs } from './tensor-input.js';
 import { applicationForm } from '@arrrank/language';
 import { checkpoint, interruptsEnabled, privateLoopPolling } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
@@ -251,6 +251,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         if (plan && plan.interruptible === interruptsEnabled() && host.builtin(terminal)) {
             const data: RankValue[][] = [], scalars: RankValue[] = [], offsets = [...plan.offsets];
             const keys: string[] | undefined = hasConcat ? [] : undefined;
+            let validations: (() => void)[] | undefined;
             let matches = true;
             for (const input of plan.inputs) {
                 const value = input.name === undefined ? input.value : host.lookup(input.name);
@@ -261,6 +262,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                         || (typeof view.items[view.offset] === 'boolean') !== input.boolean)) { matches = false; break; }
                     data[input.slot] = view.items;
                     offsets[input.slot] = view.offset;
+                    if (view.validate) (validations ??= []).push(view.validate);
                     keys?.push(inputKey(view.shape, view.kind, typeof view.items[view.offset] === 'boolean', input.slot));
                 } else {
                     if (!(numeric(value) || typeof value === 'boolean')
@@ -272,6 +274,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             if (matches) {
                 const selected = keys ? layouts.get(String(plan.interruptible) + keys.join(';')) : plan;
                 if (selected) {
+                    if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
                     layout = selected;
                     generated = selected.source;
                     const result = selected.execute(data, offsets, scalars, selected.size);
@@ -288,6 +291,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         const bound = new Map<TensorNode, Bound>();
         let broadcasts = false;
         const data: RankValue[][] = [], offsets: number[] = [], scalars: RankValue[] = [];
+        let validations: (() => void)[] | undefined;
         let bindingRejected = false;
         function rejectBinding(reason: string): undefined {
             if (!bindingRejected) recordFallback(reason);
@@ -322,6 +326,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     const view = tensorInput(value);
                     if (!view) return arrayRevision(value) === undefined
                         ? rejectBinding('tensor:untracked-storage') : undefined;
+                    if (view.validate) (validations ??= []).push(view.validate);
                     result = { shape: view.shape, view, boolean: typeof view.items[view.offset] === 'boolean' };
                 }
             } else if (node.kind === 'slice') {
@@ -592,6 +597,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     inputKey(input.shape, input.kind, input.boolean, input.slot)).join(';'), layout);
             }
         }
+        if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
         const result = execute!(data, offsets, scalars, size);
         if (terminal === 'copy' && result !== undefined) {
             return copied(result as RankValue[], output.shape);
