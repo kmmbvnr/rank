@@ -33,6 +33,37 @@ Unread operands and per-cell numeric errors retain the lazy fallback. Small
 comparison masks remain lazy and read-only; explicit `copy` or `array` makes
 mutable storage. Numeric kernels retain exact BigInt arithmetic.
 
+Stored rank-1 integer, real and boolean arrays also have numeric collection
+kernels. `sequence-order.ts` and `sequence-distinct.ts` retain the generic
+implementations; `numeric-collections.ts` admits only complete runtime-owned
+scalar storage. Stored buffers are borrowed read-only without materializing
+public `items`; sorting always owns a fresh buffer. Integer sorting checks every
+cell before narrowing to signed Int64. Wider integers and mixed physical kinds
+retain the generic path. Real ordering with NaN or negative zero also stays
+generic because native Float64 ordering differs from Rank's stable comparator.
+`argsort` uses a stable three-pass radix permutation for Int32 keys and
+exact comparison for wider values. It preserves source positions on ties in
+either direction and along explicit axes; numeric `sort .indexed` computes a single permutation.
+
+`unique` and fused `unique len` share one numeric hash kernel. Keys preserve
+numeric equality, boolean separation and first appearance; outputs retain the
+first original value, including signed zero and NaN. Wider-than-Int64 integer
+arrays use structural keys. Missing, nested, lazy and unestablished binding
+wrappers keep ordinary reads and validation. Numeric sorting declines whenever
+an interrupt signal is installed, retaining the checkpointed generic sorter;
+conversion, distinct and search loops have cooperative checkpoints.
+
+`sequence-search.ts` retains ordinary structural search. A stored numeric source
+can use an exact early-exit scalar scan without string keys. Intrinsic ranked
+`find` lazily builds one first-position numeric index per invocation and source
+revision, sharing that index across target cells. The eager `find ... default`
+query path uses the same builder. Misses remain errors at the demanded target,
+and `default` remains elementwise. Source writes retain existing COW snapshots;
+new queries see current storage. No global numeric mirror or search index is
+retained. Runtime diagnostics count numeric sorts, distinct operations, searches
+and index builds separately. [Measurements](../../benchmarks/numeric-collections-results.md)
+include input admission, conversion and creation of the result.
+
 Stored homogeneous integer operands also specialize `+`, `-` and `*` without
 per-cell type dispatch. Fresh outputs carry their proved scalar kind into owned
 storage rather than validating every cell again. Results remain arbitrary-width
