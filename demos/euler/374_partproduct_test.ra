@@ -1,0 +1,14 @@
+use testing
+
+test "partition product sum"
+  use "374_partproduct"
+  Limit = 5
+  run
+  Answer equal 22
+  Limit = 10
+  run
+  Answer equal 254
+  Limit = 100
+  run
+  Answer equal 611162873
+end
