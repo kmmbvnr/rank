@@ -1,0 +1,8 @@
+use testing
+
+test "default input"
+  use "238_infinitestring"
+  run
+
+  Answer equal 9922545104535661
+end

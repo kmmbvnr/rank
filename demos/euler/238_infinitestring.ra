@@ -1,0 +1,175 @@
+rem Infinite string tour
+rem https://projecteuler.net/problem=238
+rem The infinite string w joins the
+rem digits of s(0) = 14025256 and s(n +
+rem 1) = s(n)^2 mod 20300713. For each
+rem k, p(k) is where the first run of
+rem digits with digit sum k starts. Add
+rem up p(k) for k up to Top.
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option Top integer = 2000000000000000
+
+rem The string repeats with a period of
+rem Len digits and digit sum Dw, so p(k)
+rem depends on k mod Dw. With S[i] the
+rem digit sums of the first i digits, a
+rem run of sum k starts after S[i] when
+rem S[i] + k is also a prefix sum, mod
+rem Dw. So p(k) is 1 + the first index
+rem of the least such S[i]. The residues
+rem that work for a sum a are the bits
+rem of B, the set of the S[i] mod Dw,
+rem turned down by a. Take the sums a in
+rem order and give every residue its
+rem first a. A whole period then adds
+rem Weight; Top adds Top // Dw periods
+rem and the residues up to Top mod Dw.
+rem The built in popcount is slow on a
+rem number this long, so count bits with
+rem masks that add the bits in pairs,
+rem then in fours and so on, up to 64
+rem bit fields that sum to a count less
+rem than 2^64 - 1, which is their sum
+rem mod it.
+fun P W Total rep
+  Cur = P
+  Width = W
+  for
+    if Width at least Total
+      break
+    end
+    Cur = Cur (Cur Width shl) bor
+    Width = Width * 2
+  end
+  return Cur
+end
+fun X popc
+  Xs = X 1 shr
+  A = X - (Xs M1 band)
+  As = A 2 shr
+  B = (A M2 band) + (As M2 band)
+  Bs = B 4 shr
+  C = (B + Bs) M4 band
+  Cs = C 8 shr
+  D = (C + Cs) M8 band
+  Ds = D 16 shr
+  E = (D + Ds) M16 band
+  Es = E 32 shr
+  F = (E + Es) M32 band
+  return F mod 18446744073709551615
+end
+Mod = 20300713
+Start = 14025256
+Pw10 = 10 ** (7 to 0 by -1)
+Pw2 = 2 ** (0 to 31 array)
+Dw = 0
+Cur = Start
+for
+  for P in Pw10
+    Dw += Cur // P mod 10
+  end
+  Cur = Cur * Cur mod Mod
+  if Cur equal Start
+    break
+  end
+end
+Nw = Dw // 32 + 2
+Words = array shape Nw fill 0
+Words 0 = 1
+Pre = 0
+Cur = Start
+for
+  for P in Pw10
+    Pre += Cur // P mod 10
+    if Pre less Dw
+      Ix = Pre // 32
+      Bt = Pw2 (Pre mod 32)
+      Old = Words Ix
+      if Old // Bt mod 2 equal 0
+        Words Ix = Old + Bt
+      end
+    end
+  end
+  Cur = Cur * Cur mod Mod
+  if Cur equal Start
+    break
+  end
+end
+Nw = Words len
+Size = 1
+for Step in 1 to 40
+  if Size less Nw
+    Size = Size * 2
+  end
+end
+Pad = array shape (Size - Nw) fill 0
+Ws = concat Words Pad
+Width = 32
+for Step in 1 to 40
+  Nl = Ws len
+  if Nl greater 1
+    Pair = Ws reshape (Nl // 2) 2
+    Tr = Pair transpose
+    Lo = Tr 0
+    Hi = Tr 1
+    Ws = Lo + (Hi Width shl)
+    Width = Width * 2
+  end
+end
+B = Ws 0
+Full = (1 Dw shl) - 1
+Left = Full
+M1 = 1 2 Dw rep
+M2 = 3 4 Dw rep
+M4 = 15 8 Dw rep
+M8 = 255 16 Dw rep
+M16 = 65535 32 Dw rep
+M32 = 4294967295 64 Dw rep
+Weight = 0
+Part = 0
+Mask = (1 ((Top mod Dw) + 1) shl) - 1
+Ev = 0
+Idx = 0
+Pre = 0
+Has = true
+Cur = Start
+Done = false
+for
+  Begun = false
+  for P in Pw10
+    if Has and not Done
+      Up = B Ev shr
+      Dn = B (Dw - Ev) shl
+      Turn = (Up Dn bor) Full band
+      New = Turn Left band
+      Weight += (New popc) * (1 + Idx)
+      Cut = (New Mask band) popc
+      Part += Cut * (1 + Idx)
+      Left = Left New bxor
+      Done = Left equal 0
+    end
+    Dg = Cur // P mod 10
+    Has = false
+    if Dg greater 0 or Begun
+      Begun = true
+      Idx += 1
+      if Dg greater 0
+        Pre += Dg
+        Has = true
+        Ev = Pre
+      end
+    end
+  end
+  if Done
+    break
+  end
+  Cur = Cur * Cur mod Mod
+end
+Answer = (Top // Dw) * Weight + Part - 1
+Answer print
