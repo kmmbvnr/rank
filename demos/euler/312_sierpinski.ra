@@ -1,0 +1,48 @@
+rem Cyclic Paths on Sierpinski Graphs
+rem https://projecteuler.net/problem=312
+
+use numbers
+use io
+
+A = 10000 4 cycles
+AA = A 4 lift
+B = AA 6 cycles
+BB = B 6 lift
+Answer = BB 8 cycles
+Answer print
+
+fun R K cycles
+  Mod = 13 ** K
+  Ord = 2 * (13 ** (K - 1))
+  Twice = 2 * Ord
+  Lambda = 2
+  if K at least 2
+    Lambda = 12 * (13 ** (K - 2))
+  end
+  Exp = (R + Lambda - 2) mod Lambda
+  X = 3 Exp Twice powmod
+  Num = (X + Twice - 3) mod Twice
+  E = Num // 2
+  P = 12 E Mod powmod
+  return 8 * P mod Mod
+end
+
+fun A K lift
+  Mod = 13 ** K
+  Phi = Mod - Mod // 13
+  Inv = 12 (Phi - 1) Mod powmod
+  return 12 * (A * Inv mod Mod)
+end
+
+fun N Mod iterative
+  C = 1
+  if N at least 3
+    C = 8 mod Mod
+    for I in 4 to N
+      C = 3 * C mod Mod
+      C = C * C mod Mod
+      C = C * C mod Mod
+    end
+  end
+  return C
+end

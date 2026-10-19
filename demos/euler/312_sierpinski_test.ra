@@ -1,0 +1,14 @@
+use testing
+
+test "statement small value"
+  use "312_sierpinski"
+  Mod = 10 ** 15
+  5 Mod iterative equal 71328803586048
+end
+
+test "statement residues"
+  use "312_sierpinski"
+  Mod = 10 ** 8
+  10000 Mod iterative equal 37652224
+  10000 8 cycles equal 617720485
+end
