@@ -1,0 +1,21 @@
+use testing
+
+rem The default input takes about 15 s.
+test "default input"
+  use "233_circlepoints"
+  run
+
+  Answer equal 271204031455541309
+end
+
+test "smaller limits"
+  use "233_circlepoints"
+  Limit = 10000000
+  run
+
+  Answer equal 1722531830
+  Limit = 20000000
+  run
+
+  Answer equal 7843770952
+end
