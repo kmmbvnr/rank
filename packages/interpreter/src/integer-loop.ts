@@ -1,78 +1,23 @@
+import type { IterationBinding, LoopHost, LoopTerm, CompiledLoop } from './integer-loop-plan.js';
+import { prepareIntegerLoop } from './integer-loop-runtime.js';
 import { compiledSequenceMembership } from './sequence-membership.js';
 import { type CompiledCalleeType } from './compiled-callee-type.js';
 import { ResourceMap } from './resource-summary.js';
 import { compiledArgumentType } from './compiled-argument-type.js';
-import type { CompiledCallee } from './compiled-callee.js';
-import { checkpoint } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
     flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
-    isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isBooleanLiteral, isNameExpression,
+    isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression,
     type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledExpression, type Operation,
 } from '@arrrank/language';
-import { completed, type Completed } from './execution.js';
-import { MissingValueError, RankError } from './errors.js';
-import { isRankArray, isRankBytes, isRankIndex, isNativeFunction, type RankArray, type RankValue } from './value.js';
+import { isRankArray, isRankBytes, isRankIndex, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
-import { indexKey } from './index-key.js';
-import { denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray } from './array-storage.js';
+import { materializedArrayItems, arrayRevision } from './array-storage.js';
 
 
-interface IterationBinding {
-    readonly names: readonly string[];
-    readonly iterable: Expression;
-}
-interface Host {
-    readonly tensorReadHoisting: boolean;
-    readonly textLoops: boolean;
-    readonly textArrayLoops: boolean;
-    readonly nestedLoops: boolean;
-    readonly arrayReads: boolean;
-    readonly arrayIteration: boolean;
-    iterationValues(binding: IterationBinding, source: RankArray | string, elementType?: 'integer' | 'text'): Iterable<RankValue>;
-    readonly arrayWrites: boolean;
-    readonly inlineWriteOffsets: boolean;
-    readonly compoundWrites: boolean;
-    readonly extrema: boolean;
-    readonly absolute: boolean;
-    readonly scalarText: boolean;
-    prepareBuiltinCall(module: string, name: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
-    readonly nativeCalls: boolean;
-    readonly sequenceMembership: boolean;
-    scalarFunction(name: string, arity: number): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined;
-    readonly booleanLocals: boolean;
-    readonly booleanArrays: boolean;
-    readonly arrayLocals: boolean;
-    readonly returns: boolean;
-    canReturn(): boolean;
-    returnValue(value: RankValue): never;
-    dimension(value: bigint): number;
-    extremeParts(expression: Expression): Expression[] | undefined;
-    arrayOffset(source: RankArray, indices: readonly bigint[]): number;
-    arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
-    textRead(source: string, index: bigint): string;
-    iteration(condition: Expression | undefined): IterationBinding | undefined;
-    read(name: string): RankValue | undefined;
-    writer(name: string): (value: RankValue) => void;
-    prepareWriter?(name: string, checked: (value: RankValue) => void): (value: RankValue) => void;
-    locate(error: unknown, statement: Statement): unknown;
-    module(name: string): boolean;
-    builtin(module: string, name: string): boolean;
-    compiled?(source: string): void;
-    executed?(): void;
-}
-interface Term { code: string; type: CompiledLoopType; ascii?: boolean }
-
-/** Whole numeric loop: keep reads in local registers and commit every assignment.
- * Writers retain fixed-type checks and partial state on errors; optional bound
- * writers specialize repeated known-value stores within one invocation. */
-type CompiledLoop = {
-    run(insideFinally?: boolean, insideGenerator?: boolean, tailCallsAllowed?: boolean): Completed<RankValue | undefined> | undefined;
-};
-
-export function compileIntegerLoop(statement: ForStatement, host: Host, iteration?: IterationBinding): CompiledLoop | undefined {
+export function compileIntegerLoop(statement: ForStatement, host: LoopHost, iteration?: IterationBinding): CompiledLoop | undefined {
     const numeric = compileTypedLoop(statement, host, iteration, new Set(), new Set());
     if (!host.textLoops) return numeric;
     const candidates = new Set<string>();
@@ -116,21 +61,21 @@ export function compileIntegerLoop(statement: ForStatement, host: Host, iteratio
     } };
 }
 
-function compileTypedLoop(statement: ForStatement, host: Host, iteration: IterationBinding | undefined, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>): CompiledLoop | undefined {
+function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: IterationBinding | undefined, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>): CompiledLoop | undefined {
     let failure: string | undefined;
     const result = buildTypedLoop(statement, host, iteration, textSources, textArrays, reason => { failure ??= reason; });
     if (!result && currentDiagnostics()) recordFallback(failure ?? compilerRejection('loop', statement));
     return result;
 }
 
-function buildTypedLoop(statement: ForStatement, host: Host, iteration: IterationBinding | undefined,
+function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: IterationBinding | undefined,
     textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, failed: (reason: string) => void): CompiledLoop | undefined {
     function reject(node: Expression | Statement, detail?: string): undefined {
         failed(compilerRejection('loop', node, detail));
         return undefined;
     }
     if (!statement.statements.length || statement.statements.length > 32) return reject(statement, 'statement-budget');
-    const localTypes = new Map<string, Term['type']>();
+    const localTypes = new Map<string, LoopTerm['type']>();
     const names: string[] = [], required = new Set<number>(), assigned = new Set<string>();
     const writers: ((value: RankValue) => void)[] = [];
     const binders: ((value: RankValue) => void)[] = [];
@@ -140,13 +85,12 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
     const builtins = new Map<string, string>();
     const calls: { name: string; locals: readonly string[]; stableArrayReads: boolean;
         bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[] = [];
-    const arrays = new Map<string, { slot: number; rank: number; type: Term['type'] }>();
-    const checkedCells = new WeakMap<RankArray, { revision: number; type: Term['type'] | undefined }>();
+    const arrays = new Map<string, { slot: number; rank: number; type: LoopTerm['type'] }>();
     const calleeArrays = new Set<string>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
     const iterators: ((source: RankArray | string) => Iterable<RankValue>)[] = [];
-    const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: Term['type'] }>();
+    const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type'] }>();
     let needsAlgo = false, hasControl = false, hasReturn = false;
     let serial = 0;
     function container(name: string, kind: 'index' | 'deque', integers = false): string | undefined {
@@ -163,7 +107,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
         if (index < 0) { index = names.length; names.push(name); }
         return index;
     }
-    function knownType(expression: Expression): Term['type'] | undefined {
+    function knownType(expression: Expression): LoopTerm['type'] | undefined {
         const fact = expressionFacts(expression, name => {
             const local = localTypes.get(name);
             if (local) return { types: [local] };
@@ -186,7 +130,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
         if (parts.length === 2 || parts.length === 3) return !isExtreme(parts[0]) && !isExtreme(parts.at(-2));
         return parts.length > 3 && !isExtreme(parts.at(-2)) && extremeChain(parts.slice(0, -2));
     }
-    function emitExtreme(parts: readonly Expression[], lines: string[]): Term | undefined {
+    function emitExtreme(parts: readonly Expression[], lines: string[]): LoopTerm | undefined {
         const last = parts.at(-1);
         if (!isNameExpression(last)) return undefined;
         const left = parts.length > 3 ? emitExtreme(parts.slice(0, -2), lines) : emit(parts[0], lines);
@@ -199,8 +143,8 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
         lines.push(`const ${name} = (${right.code}) ${last.name === 'min' ? '<' : '>'} (${left.code}) ? (${right.code}) : (${left.code});`);
         return { code: name, type: 'integer' };
     }
-    interface LoopInput { readonly term: Term; readonly lines: readonly string[] }
-    function emit(e: Expression, lines: string[], hint?: Term['type'], tail = false): Term | undefined {
+    interface LoopInput { readonly term: LoopTerm; readonly lines: readonly string[] }
+    function emit(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopTerm | undefined {
         let tailSource = e;
         while (isParenthesizedExpression(tailSource)) tailSource = tailSource.value;
         const booleanPairs = new Map<Expression, boolean>();
@@ -241,7 +185,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
         if (inferred.failure) return reject(inferred.failure.source, inferred.failure.detail);
         return lower(inferred.expression, lines) ?? reject(e);
     }
-    function lower(node: CompiledExpression<CompiledLoopType, LoopInput>, lines: string[]): Term | undefined {
+    function lower(node: CompiledExpression<CompiledLoopType, LoopInput>, lines: string[]): LoopTerm | undefined {
         if (serial > 256) return undefined;
         if (node.kind === 'group') return lower(node.operand, lines);
         if (node.kind === 'literal') return { type: node.type,
@@ -280,11 +224,11 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
     }
     /** Lower an audited catalogue call. Argument reads remain in source order;
      * runtime binding still checks the module and current builtin on every entry. */
-    function emitBuiltinCall(operation: Operation, operands: readonly Expression[], lines: string[]): Term | undefined {
+    function emitBuiltinCall(operation: Operation, operands: readonly Expression[], lines: string[]): LoopTerm | undefined {
         const signature = operation.compiledCall!;
         const arguments_: string[] = [];
         const types: string[] = [];
-        let firstType: Term['type'] | undefined;
+        let firstType: LoopTerm['type'] | undefined;
         for (const [index, input] of signature.inputs.entries()) {
             let part = operands[index];
             while (isParenthesizedExpression(part)) part = part.value;
@@ -317,7 +261,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
         lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
         return { code: name, type: signature.result };
     }
-    function emitInput(e: Expression, lines: string[], hint?: Term['type'], tail = false): Term | undefined {
+    function emitInput(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopTerm | undefined {
         if (serial > 256) return undefined;
         if (isNameExpression(e) && !e.name.includes('.')) {
             if (arrays.has(e.name)) return undefined;
@@ -662,7 +606,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                 if (knownArray && knownArray.rank !== assignment.indices.length) return reject(assignment);
                 const previous = destinations.get(assignment.name);
                 if (previous && previous.rank !== assignment.indices.length) return reject(assignment);
-                const target = previous ?? { slot: slot(assignment.name), rank: assignment.indices.length, compound, type: undefined as Term['type'] | undefined };
+                const target = previous ?? { slot: slot(assignment.name), rank: assignment.indices.length, compound, type: undefined as LoopTerm['type'] | undefined };
                 target.compound ||= compound;
                 destinations.set(assignment.name, target);
                 if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
@@ -762,7 +706,7 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
                 if (isArrayExpression(expression) || source) {
                     if (localTypes.has(assignment.name)) return reject(assignment);
                     const lines: string[] = [];
-                    let rank: number, type: Term['type'], value: string;
+                    let rank: number, type: LoopTerm['type'], value: string;
                     if (isArrayExpression(expression)) {
                         if (!expression.dimensions.length || !expression.fill || expression.rows.length) return reject(assignment);
                         const dimensions: string[] = [];
@@ -864,183 +808,5 @@ function buildTypedLoop(statement: ForStatement, host: Host, iteration: Iteratio
     // at region entry. Keep those writes interpreted until that lowering exists.
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
         && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
-    const source = `"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads) {
-        ${names.length ? `let ${names.map((name, index) => {
-            const value = `r${index} = input[${index}]`;
-            // Scalar/container slots never use tensor accessors. In short loops,
-            // preparing those unused closures costs more than the loop itself.
-            const rank = arrays.get(name)?.rank ?? destinations.get(name)?.rank;
-            return rank !== undefined
-                ? `${value}, storage${index} = access(input[${index}]), reader${index} = read(storage${index}, stableReads, ${rank === 1}), write${index} = write(storage${index}, batchWrites)`
-                : value;
-        }).join(',')};` : ''}
-        let result, location = -1;
-        try { ${root.setup} ${root.header}
-            let iterationResult;
-            ${root.bindings} ${body.join('\n')}
-            result = iterationResult; location = -1;
-        } return result; } catch (error) { throw locate(error, location); }
-    };`;
-    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', source)(
-        () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
-        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
-        (index: bigint, axis: number) => index < 0n
-            ? new RankError(`array index must be nonnegative on axis ${axis}`)
-            : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`),
-        calls.some(call => !call.stableArrayReads) || iterators.length
-            ? (value: RankValue) => value : borrowArrayStorage,
-        prepareScalarArrayWriter, (value: RankValue, stableReads: boolean, oneAxis: boolean) => oneAxis
-            ? prepareScalarArrayReader(value, host.arrayRead, stableReads)
-            : prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint, host.textRead); }
-    catch { return reject(statement, 'code-generation'); }
-    host.compiled?.(source);
-    const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0
-        && calls.every(call => call.stableArrayReads) && iterators.length === 0 && containers.size === 0
-        && destinations.size === 0 && arrayDefinitions.size === 0;
-    function matchingCells(value: RankArray, type: Term['type'] | undefined): boolean {
-        const revision = arrayRevision(value);
-        // Untracked host arrays can expose getters in their cell storage.
-        // Scanning them here may read cells the loop never reaches.
-        if (revision === undefined) return false;
-        const items = materializedArrayItems(value);
-        if (!items) return false;
-        const checked = checkedCells.get(value);
-        if (checked?.revision === revision && checked.type === type) return true;
-        const diagnostics = currentDiagnostics();
-        if (diagnostics) diagnostics.loopElementScans++;
-        if (!items.every(item => typeof item === (type === 'text' ? 'string' : type === 'boolean' ? 'boolean' : 'bigint'))) return false;
-        checkedCells.set(value, { revision, type });
-        return true;
-    }
-    function noFirstIteration(): boolean {
-        if (!iteration) return isBooleanLiteral(statement.condition) && !statement.condition.value;
-        let source = iteration.iterable;
-        while (isParenthesizedExpression(source)) source = source.value;
-        if (isNameExpression(source)) {
-            const value = host.read(source.name);
-            return typeof value === 'string' ? value.length === 0
-                : !!value && isRankArray(value) && value.shape[0] === 0;
-        }
-        if (!isBinaryExpression(source) || !['to', 'till'].includes(source.operator)) return false;
-        const integer = (value: Expression): bigint | undefined => {
-            const fact = expressionFacts(value, name => {
-                const current = host.read(name);
-                return typeof current === 'bigint' ? { types: ['integer'], integer: String(current) } : undefined;
-            });
-            return fact.integer === undefined ? undefined : BigInt(fact.integer);
-        };
-        const start = integer(source.left), end = integer(source.right);
-        const step = source.step ? integer(source.step) : 1n;
-        if (start === undefined || end === undefined || step === undefined) return false;
-        if (step === 0n) return true;
-        return step > 0n ? source.operator === 'to' ? start > end : start >= end
-            : source.operator === 'to' ? start < end : start <= end;
-    }
-    function entryGuard(reason: string, name: string): undefined {
-        if (currentDiagnostics()) recordFallback(`loop:${reason}:${name}`);
-        return recordFallback(`loop:${reason}`);
-    }
-    return { run: (insideFinally = false, insideGenerator = false, tailCallsAllowed = true) => {
-        if (hasControl && insideFinally) return recordFallback('loop:control-context');
-        if (hasReturn && (insideGenerator || !host.canReturn())) return recordFallback('loop:control-context');
-        if (needsAlgo && !host.module('algo')) return entryGuard('builtin', 'algo');
-        for (const [name, module] of builtins) if (!host.builtin(module, name)) return entryGuard('builtin', name);
-        const activeCalls = calls.map(call => call.bind());
-        const rejectedCall = activeCalls.findIndex(call => !call);
-        if (rejectedCall >= 0) return entryGuard('callee', calls[rejectedCall].name);
-        if ([...destinations].some(([name]) => {
-            const value = host.read(name);
-            return arrayInputs.has(name) && value !== undefined && isSharedArray(value);
-        })
-            && noFirstIteration()) return recordFallback('loop:empty-shared-destination');
-        const values: (RankValue | undefined)[] = [];
-        for (const index of required) {
-            const value = host.read(names[index]);
-            const type = localTypes.get(names[index]);
-            if (type === 'bytes' ? value === undefined || !isRankBytes(value)
-                : typeof value !== (type === 'text' ? 'string' : type === 'boolean' ? 'boolean' : 'bigint')) {
-                if (currentDiagnostics()) {
-                    // Builtin vocabulary is not stored among variable bindings.
-                    const callable = value === undefined ? findOperation(names[index]) !== undefined : isNativeFunction(value);
-                    recordFallback(callable ? `loop:unsupported-op:${names[index]}`
-                        : `loop:input-type:${names[index]}:expected-${type ?? 'integer'}`);
-                }
-                return recordFallback('loop:input-type');
-            }
-            values[index] = value;
-        }
-        for (const [name, info] of containers) {
-            const value = host.read(name);
-            if (value === undefined) return entryGuard('input-type', name);
-            if (info.kind === 'index' ? !isRankIndex(value) : !(value instanceof RankDeque)) return entryGuard('input-type', name);
-            if (info.mode && (!(value instanceof RankDeque) || value.mode !== info.mode)) return entryGuard('input-type', name);
-            if (info.integers) {
-                const entries = value instanceof RankDeque ? value.values() : isRankIndex(value) && value.entries instanceof ResourceMap ? value.entries.values() : undefined;
-                if (!entries) return entryGuard('input-type', name);
-                for (const item of entries) {
-                    checkpoint();
-                    if (typeof item !== 'bigint') return entryGuard('input-type', name);
-                }
-            }
-            values[info.slot] = value;
-        }
-        for (const [name, info] of arrays) {
-            if (!arrayInputs.has(name)) continue;
-            const value = host.read(name);
-            if (!value || !isRankArray(value) || value.shape.length !== info.rank) return entryGuard('input-type', name);
-            if (calleeArrays.has(name) && (!denseScalarItems(value) || value.itemAt !== undefined)) return entryGuard('callee-array-storage', name);
-            if (writable.has(name) && (value.kind !== 'array' || value.itemAt !== undefined)) return entryGuard('writable-storage', name);
-            if (!matchingCells(value, info.type)) return entryGuard('storage-or-cell-type', name);
-            values[info.slot] = value;
-        }
-        for (const [name, info] of destinations) {
-            if (!arrayInputs.has(name)) {
-                if (!host.arrayWrites) return entryGuard('input-type', name);
-                continue;
-            }
-            const value = host.read(name);
-            if (!value) return entryGuard('input-type', name);
-            if (isRankIndex(value) && info.compound) return entryGuard('input-type', name);
-            if (!isRankIndex(value)) {
-                if (!host.arrayWrites || !isRankArray(value) || value.kind !== 'array'
-                    || value.itemAt !== undefined || value.shape.length !== info.rank) return entryGuard('writable-storage', name);
-                if (!matchingCells(value, info.type)) return entryGuard('storage-or-cell-type', name);
-            }
-            values[info.slot] = value;
-        }
-        for (const [name, info] of destinations) {
-            if (!arrayInputs.has(name)) continue;
-            let value = values[info.slot]!;
-            // Generated code writes cells straight into borrowed storage, so a
-            // shared array becomes this name's own copy before the region runs
-            // rather than at the first write inside it.
-            const privately = arrayForWrite(value);
-            if (privately !== undefined) {
-                host.writer(name)(privately);
-                value = privately;
-            }
-            values[info.slot] = value;
-        }
-        host.executed?.();
-        // No computation can observe an intermediate revision in this region:
-        // every array read is owned/eager, and there are no callbacks/iterators.
-        const batchWrites = calls.length === 0 && iterators.length === 0 && containers.size === 0
-            && [...arrayInputs].every(name => {
-                const value = values[names.indexOf(name)];
-                return value !== undefined && isRankArray(value) && value.itemAt === undefined
-                    && arrayRevision(value) !== undefined;
-            });
-        const stableReads = stableReadRegion && [...arrayInputs].every(name => {
-            const value = values[names.indexOf(name)];
-            return value !== undefined && isRankArray(value) && arrayRevision(value) !== undefined;
-        });
-        const diagnostics = currentDiagnostics();
-        if (diagnostics) diagnostics.compiledLoops++;
-        const activeWriters = host.prepareWriter
-            ? writers.map((checked, index) => host.prepareWriter!(writerNames[index], checked)) : writers;
-        const activeBinders = host.prepareWriter
-            ? binders.map((checked, index) => host.prepareWriter!(binderNames[index], checked)) : binders;
-        return completed(run(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed, batchWrites, stableReads));
-    } };
+    return prepareIntegerLoop({ statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration }, host, () => reject(statement, 'code-generation'));
 }
