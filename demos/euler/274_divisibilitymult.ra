@@ -1,0 +1,28 @@
+rem Divisibility Multipliers
+rem https://projecteuler.net/problem=274
+rem Sum the divisibility multipliers of
+rem the primes below Limit that are
+rem prime to 10
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 10000000
+
+rem The multiplier of p is m with
+rem 10 m = 1 mod p: n = 10 a + b is
+rem divisible by p when a + m b is. So
+rem m = (k p + 1) / 10, with k from
+rem the last digit of p: 1, 3, 7, 9 take
+rem k = 9, 3, 7, 1.
+Ps = primes till Limit array
+Odd = Ps mod 2 equal 1
+Five = Ps mod 5 not equal 0
+Cop = Odd and Five
+Ps = Ps filter Cop array
+Ks = array 0 9 0 3 0 0 0 7 0 1
+K = Ks (Ps mod 10)
+Answer = ((K * Ps + 1) // 10) sum
+Answer print
