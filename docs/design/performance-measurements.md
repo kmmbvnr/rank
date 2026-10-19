@@ -958,15 +958,16 @@ bit calls. Existing index equality and mutation semantics are preserved.
 The larger 1608-file corpus exposed a pre-existing retained prediction-cache
 failure on main: after two passes the parser held about 455 MiB after GC,
 exceeding the existing 384 MiB assertion. The parser now retires its adaptive
-lookahead generation between parses, every 64 calls, using the library's public
+lookahead generation between parses, after 65,536 UTF-16 source code units, using
+the library's public
 initialization and predictor-building APIs. It does not clear predictions during
 a parse or change the grammar. A history test checks declaration grouping and
 syntax errors repeatedly across generation changes.
 
 [Single-run observations](../../benchmarks/baselines/2026-10-20-parser-history.json)
-show 27.3 / 27.6 MiB retained after the two corpus passes, with the original
+show 29.1 / 29.7 MiB retained after the two candidate corpus passes, with the original
 512 MiB process ceiling and all heap assertions preserved. The sampled passes
-took about 55 seconds each on the shared host; this is a memory reduction claim,
+took about 50 seconds each on the shared host; this is a memory reduction claim,
 not a parser speed improvement. The memory test waits asynchronously for its
 child so it does not block Vitest reporting, and has a 150-second child deadline.
 The large imported-ML analysis fixture has its own 20-second test deadline.

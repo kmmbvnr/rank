@@ -5,7 +5,7 @@ import { LLStarLookaheadStrategy } from 'chevrotain-allstar';
 export class ErrorLookaheadStrategy extends LLStarLookaheadStrategy {
     diagnosing = false;
     private rules?: Rule[];
-    private parses = 0;
+    private sourceUnits = 0;
     private readonly rebuild: (() => void)[] = [];
 
     override initialize(options: { rules: Rule[] }): void {
@@ -16,11 +16,16 @@ export class ErrorLookaheadStrategy extends LLStarLookaheadStrategy {
     /** Prediction paths are reusable hints, not parse state. Retire their
      * generation between parses so unrelated documents cannot retain an
      * ever-growing adaptive DFA. Rebuild through the library's public API. */
-    beginParse(): void {
-        if (++this.parses < 64 || !this.rules) return;
-        this.parses = 0;
-        super.initialize({ rules: this.rules });
-        for (const rebuild of this.rebuild) rebuild();
+    beginParse(input: string): void {
+        const size = Math.max(1, input.length);
+        // Charge source volume rather than calls: tiny repeated REPL commands
+        // should retain their hot predictions while large documents retire them.
+        if (this.sourceUnits && this.sourceUnits + size >= 64 * 1024 && this.rules) {
+            super.initialize({ rules: this.rules });
+            for (const rebuild of this.rebuild) rebuild();
+            this.sourceUnits = 0;
+        }
+        this.sourceUnits += size;
     }
 
     readonly failures = new Map<number, IToken>();

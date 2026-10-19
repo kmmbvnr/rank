@@ -13,7 +13,7 @@ it('keeps declaration grouping and syntax diagnostics stable across many documen
     };
     const expected = error();
     for (let index = 0; index < 128; index++) {
-        const result = parser.parse(`fun X plus = X + 1\nValue${index} = 2 plus\n`);
+        const result = parser.parse(`fun X plus = X + 1\nValue${index} = 2 plus\nrem ${'x'.repeat(1024)}\n`);
         expect(result.lexerErrors).toEqual([]);
         expect(result.parserErrors).toEqual([]);
         expect(error()).toEqual(expected);

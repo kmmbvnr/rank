@@ -83,7 +83,6 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
             const parser = createLangiumParser(withBoundedErrorLookahead(services, false, strategy));
             const parse = parser.parse.bind(parser);
             parser.parse = <T extends AstNode>(input: string, options?: ParserOptions) => {
-                strategy.beginParse();
                 const lexer = services.parser.Lexer as SignatureLexer;
                 let grouping = options as GroupingOptions | undefined;
                 if (grouping?.loadModule) {
@@ -118,6 +117,7 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
                     grouping = { ...grouping, signatures, bindings, declarations };
                 }
                 lexer.signatures = grouping?.signatures ?? new Map();
+                strategy.beginParse(input);
                 const result = parse<T>(input, options);
                 if (!result.lexerErrors.length && result.parserErrors.length) {
                     strategy.failures.clear();

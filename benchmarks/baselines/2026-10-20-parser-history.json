@@ -1,9 +1,9 @@
 {
   "notes": [
-    "Same 1608-file corpus, two passes, 512 MiB V8 ceiling.",
-    "Retained heap measured after explicit GC.",
+    "Baseline has 1608 files; candidate has 1609 after splitting a full-scale fixture.",
+    "Two passes; 512 MiB V8 ceiling; retained heap measured after explicit GC.",
     "Exploratory single samples on shared host; not an isolated throughput comparison.",
-    "Candidate retires predictor generations every 64 parses."
+    "Candidate retires predictor generations after 65,536 UTF-16 source code units."
   ],
   "baseline": [
     {
@@ -35,26 +35,26 @@
     {
       "name": "sigmoid",
       "count": 1,
-      "milliseconds": 108,
-      "heapMiB": 19.336715698242188
+      "milliseconds": 99,
+      "heapMiB": 19.316383361816406
     },
     {
       "name": "nested calls",
       "count": 4,
-      "milliseconds": 976,
-      "heapMiB": 35.612220764160156
+      "milliseconds": 805,
+      "heapMiB": 35.31764221191406
     },
     {
       "name": "demos 1",
-      "count": 1608,
-      "milliseconds": 55593,
-      "heapMiB": 27.283416748046875
+      "count": 1609,
+      "milliseconds": 50307,
+      "heapMiB": 29.07677459716797
     },
     {
       "name": "demos 2",
-      "count": 1608,
-      "milliseconds": 55020,
-      "heapMiB": 27.605911254882812
+      "count": 1609,
+      "milliseconds": 49155,
+      "heapMiB": 29.653427124023438
     }
   ]
 }
