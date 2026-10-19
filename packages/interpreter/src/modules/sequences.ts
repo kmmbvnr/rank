@@ -1,3 +1,4 @@
+import { findValue, findAllValues } from './sequence-search.js';
 import { numericSort } from '../numeric-collections.js';
 import { sortValue, argsortValue, sortableKind, stableOrder } from './sequence-order.js';
 export { sortValue, argsortValue } from './sequence-order.js';
@@ -21,7 +22,6 @@ import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { atSequence, materializeSequence, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
 import { atArray } from '../selectors.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
-import { setValueKey } from '../set.js';
 import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
 import { mergeSorted } from './sorted-merge.js';
 import { broadcastShape, chooseDenseArrays } from '../tensor.js';
@@ -241,40 +241,6 @@ function trueIndices(value: RankValue): RankArray {
         }
     }
     return ownedArray(positions, rank === 1 ? [positions.length] : [positions.length / rank, rank]);
-}
-
-function findValue(source: RankValue, target: RankValue): bigint {
-    const values = findSource(source, 'find');
-    const targetKey = setValueKey(target);
-    let index = 0n;
-    for (const value of values) {
-        if (setValueKey(value) === targetKey) return index;
-        index += 1n;
-    }
-    throw new MissingValueError('find found no matching value');
-}
-
-function findAllValues(source: RankValue, target: RankValue): RankArray {
-    const values = findSource(source, 'findall');
-    const targetKey = setValueKey(target);
-    const positions: bigint[] = [];
-    let index = 0n;
-    for (const value of values) {
-        if (setValueKey(value) === targetKey) positions.push(index);
-        index += 1n;
-    }
-    return ownedArray(positions, [positions.length]);
-}
-
-function* findSource(source: RankValue, operation: string): IterableIterator<RankValue> {
-    if (typeof source === 'string') {
-        yield* source;
-        return;
-    }
-    if (!isRankArray(source) || source.shape.length !== 1) {
-        throw new RankError(`${operation} expects text or a rank-1 array`, 'TypeError');
-    }
-    for (let index = 0; index < source.shape[0]; index += 1) yield readArrayItem(source, index);
 }
 
 function* collectionValues(value: RankValue, operation: string): IterableIterator<RankValue> {

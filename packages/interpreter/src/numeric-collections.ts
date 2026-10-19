@@ -8,8 +8,10 @@ type NumericBuffer = BigInt64Array | Float64Array | Uint8Array;
 
 /** Admission inspects no host/lazy cells, contracts or public items getter. */
 export function numericCells(value: RankValue): ArrayLike<RankValue> | undefined {
-    if (!privateLoopPolling() || !isRankArray(value) || value.shape.length !== 1 || value.columnNames) return undefined;
-    return storedScalarCells(value);
+    if (!privateLoopPolling() || !isRankArray(value)) return undefined;
+    const cells = storedScalarCells(value);
+    if (!cells || value.shape.length !== 1 || value.columnNames) return undefined;
+    return cells;
 }
 
 /** A private, exactly representable homogeneous numeric copy. NaNs and negative

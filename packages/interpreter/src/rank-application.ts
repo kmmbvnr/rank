@@ -1,3 +1,4 @@
+import { rankedNumericFind } from './numeric-search.js';
 import { arrayRevision, derivedArray, materializeCells, ownedArray, registerArrayReadPlan, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { registerScalarView } from './integer-view.js';
@@ -126,6 +127,18 @@ export class RankApplication {
         );
         if (frameShape.length === 0) {
             return this.invoke(fn, [left, right]);
+        }
+        // The standard find holds the complete left vector and maps scalar
+        // targets. Keep error demand lazy and share one revision-checked index.
+        if (customLeftRank === undefined && customRightRank === undefined
+            && fn === this.standardFunctions.get(standardModules.sequences.find)
+            && a.frameShape.length === 0 && rightRank === 0) {
+            const search = rankedNumericFind(left);
+            const sources = [left, right].filter(isRankArray);
+            return completed(derivedArray(frameShape, sources, index => {
+                const target = b.cellAt(index);
+                return search(target) ?? fn.call([left, target]);
+            }, true));
         }
         fn = fn.snapshot?.() ?? fn;
         // A cell that returns an array, or an explicit rank on a function without its own
