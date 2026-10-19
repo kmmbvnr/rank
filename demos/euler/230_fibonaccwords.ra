@@ -1,0 +1,57 @@
+rem Fibonacci Words
+rem https://projecteuler.net/problem=230
+rem For the strings F1 = A, F2 = B and
+rem Fk = F(k-1) F(k-2) of 100 digits
+rem blocks, find the sum of 10^n times
+rem the digit D((127 + 19 n) 7^n)
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+option Top integer = 90
+
+A1 = "1415926535897932384626433"
+A2 = "8327950288419716939937510"
+A3 = "5820974944592307816406286"
+A4 = "2089986280348253421170679"
+B1 = "8214808651328230664709384"
+B2 = "4609550582231725359408128"
+B3 = "4811174502841027019385211"
+B4 = "0555964462294895493038196"
+A = (array A1 A2 A3 A4) "" join
+B = (array B1 B2 B3 B4) "" join
+
+rem The terms are F1 = A, F2 = B and
+rem Fk = F(k-2) F(k-1), and D(n) is a
+rem digit of the first long enough term.
+rem A position in Fk lies in F(k-2), or
+rem past it in F(k-1). Both strings have
+rem 100 digits so Lens[k] = 100 Fib[k].
+rem Walk all positions down to F1 or F2.
+Fs = fibonacci take Top array
+Fib = concat (array 0 1) Fs
+Lens = 100 * Fib
+N = 0 to 17 array
+Pos = (127 + 19 * N) * 7 ** N
+Col = Pos reshape 18 1
+Lv = (Lens less Col) count axis 1
+for Step in 1 to Top
+  Live = Lv at least 3
+  Bk = (Lv - 2) 0 max
+  Prev = Lens Bk
+  Back = Live and (Pos greater Prev)
+  Pos = Back choose (Pos - Prev) Pos
+  Skip = Back choose 1 2
+  Lv = Live choose (Lv - Skip) Lv
+end
+Ia = (Pos - 1) mod 100
+Ta = A Ia
+Tb = B Ia
+Da = Ta integer rank 0
+Db = Tb integer rank 0
+Digit = (Lv equal 1) choose Da Db
+Answer = (Digit * 10 ** N) sum
+Answer print
