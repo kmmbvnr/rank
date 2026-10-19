@@ -1,0 +1,14 @@
+use testing
+
+test "triangle triples"
+  use "378_triangles"
+  Limit = 20
+  run
+  Answer equal 14
+  Limit = 100
+  run
+  Answer equal 5772
+  Limit = 1000
+  run
+  Answer equal 11174776
+end
