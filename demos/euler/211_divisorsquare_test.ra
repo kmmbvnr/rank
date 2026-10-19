@@ -1,0 +1,15 @@
+use testing
+
+rem The default input takes minutes.
+test "small limits"
+  use "211_divisorsquare"
+  Limit = 1000
+  run
+
+  Answer equal 1304
+  Limit = 100000
+  Block = 30000
+  run
+
+  Answer equal 462294
+end
