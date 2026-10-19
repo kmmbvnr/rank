@@ -1,0 +1,26 @@
+use testing
+
+rem The default input takes minutes.
+test "short chains"
+  use "214_totientchains"
+  Block = 5000
+  Limit = 10
+  Len = 3
+  run
+
+  Answer equal 3
+  Len = 4
+  run
+
+  Answer equal 12
+  Limit = 10000
+  Len = 10
+  run
+
+  Answer equal 93430
+  Limit = 100000
+  Len = 15
+  run
+
+  Answer equal 162726509
+end
