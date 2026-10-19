@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "202_laserbeam"
+  run
+
+  Answer equal 1209002624
+end
+
+test "problem examples"
+  use "202_laserbeam"
+  Bounces = 11
+  run
+
+  Answer equal 2
+  Bounces = 1000001
+  run
+
+  Answer equal 80840
+end
