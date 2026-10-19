@@ -19,6 +19,8 @@ export class RuntimeDiagnostics {
     hoistedReaders = 0;
     loopElementScans = 0;
     compiledLoops = 0;
+    integerMembershipFilters = 0;
+    compiledGraphAdds = 0;
     numericSorts = 0;
     numericDistincts = 0;
     numericSearches = 0;

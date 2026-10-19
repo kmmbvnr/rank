@@ -1,14 +1,15 @@
+import { loopTraversal } from './loop-traversal.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
 import type { IterationBinding, LoopHost, LoopTerm, CompiledLoop } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
-import { compiledSequenceMembership } from './sequence-membership.js';
+import { compiledIntegerMembership } from './integer-membership.js';
 import { type CompiledCalleeType } from './compiled-callee-type.js';
 import { ResourceMap } from './resource-summary.js';
 import { compiledArgumentType } from './compiled-argument-type.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression, loopOperatorSignature,
+    applicationForm, isExpressionStatement, flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression,
     type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledExpression, type Operation,
@@ -98,6 +99,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     const calleeArrays = new Set<string>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
+    const graphMutations: string[] = [];
     const vectorIterations: { slot: number; binding: IterationBinding }[] = [];
     const iterators: ((source: RankArray | string) => Iterable<RankValue>)[] = [];
     const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type'] }>();
@@ -466,10 +468,12 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             if (key?.type !== 'integer') return undefined;
             const negate = e.operator === 'notin' ? '!' : '';
             if (host.sequenceMembership && !localTypes.has(name) && !arrays.has(name)
-                && compiledSequenceMembership(host.read(name))) {
+                && compiledIntegerMembership(host.read(name))) {
                 const index = calls.length;
                 calls.push({ name, locals: [], stableArrayReads: true, bind: () => {
-                    const contains = compiledSequenceMembership(host.read(name));
+                    const domain = host.read(name);
+                    if (domain && isRankArray(domain) && (destinations.size || calls.some(call => !call.stableArrayReads))) return undefined;
+                    const contains = compiledIntegerMembership(domain);
                     return contains ? arguments_ => contains(arguments_[0] as bigint) : undefined;
                 } });
                 return { code: `${negate}calls[${index}]([${key.code}])`, type: 'boolean' };
@@ -501,11 +505,9 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         const tests: string[] = [];
         let setup = '', header: string, bindings = '';
         if (iteration) {
-            let range = iteration.iterable;
-            while (isParenthesizedExpression(range)) range = range.value;
-            if (iteration.names.length > 2 || iteration.names.some(name => name.includes('.'))
-                || new Set(iteration.names.filter(name => name !== '#')).size !== iteration.names.filter(name => name !== '#').length) return undefined;
-            const indexed = iteration.names.length === 2 && iteration.names[1] !== '#';
+            const traversal = loopTraversal(iteration);
+            if (!traversal) return undefined;
+            const { source: range, indexed, slice } = traversal;
             // Named inputs retain their guarded text/array variants. Pure text
             // expressions are evaluated once in the loop's setup instead.
             const textIteration = host.textLoops && (!isNameExpression(range) && knownType(range) === 'text'
@@ -513,6 +515,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             const collectionIteration = textIteration || isNameExpression(range);
             let elementType: 'integer' | 'text' = textIteration ? 'text' : 'integer';
             if (textIteration) {
+                if (slice) return undefined;
                 const source = emit(range, tests, 'text');
                 if (source?.type !== 'text') return undefined;
                 setup = `${tests.join('\n')} const iterable = iterators[${iterators.length}](${source.code}); ${indexed ? 'let ordinal = 0n;' : ''}`;
@@ -529,13 +532,20 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 const binding = iteration;
                 const vector = vectorIterations.length;
                 if (elementType === 'integer') vectorIterations.push({ slot: info.slot, binding });
+                const count = slice ? emit(slice.count, tests, 'integer') : undefined;
+                if (slice && (elementType !== 'integer' || count?.type !== 'integer')) return undefined;
                 if (numberMode) {
                     if (elementType !== 'integer') return undefined;
-                    setup = `const iterable = cells[${info.slot}]; entered[${vector}] = true; ${indexed ? 'let ordinal = 0;' : ''}`;
-                    header = `for (let position = 0; position < iterable.length; position++) {
+                    setup = `${tests.join('\n')} const iterable = cells[${info.slot}];
+                        ${slice ? `const count = ${count!.code}; if (count < 0) throw badSlice(${JSON.stringify(slice.drop ? 'drop' : 'take')});` : ''}
+                        const offset = ${slice?.drop ? 'Math.min(count, iterable.length)' : '0'};
+                        const limit = ${slice && !slice.drop ? 'Math.min(count, iterable.length)' : 'iterable.length'};
+                        entered[${vector}] = true; ${indexed ? 'let ordinal = 0;' : ''}`;
+                    header = `for (let position = offset; position < limit; position++) {
                         location = ${location}; checkpoint(); const cursor = iterable[position];`;
                 } else {
-                    setup = `const iterable = iterators[${iterators.length}](r${info.slot}); ${indexed ? 'let ordinal = 0n;' : ''}`;
+                    const source = slice ? `slice(r${info.slot}, ${count!.code}, ${slice.drop})` : `r${info.slot}`;
+                    setup = `${tests.join('\n')} const iterable = iterators[${iterators.length}](${source}); ${indexed ? 'let ordinal = 0n;' : ''}`;
                     iterators.push(source => host.iterationValues(binding, source, elementType));
                     header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
                 }
@@ -618,6 +628,23 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 hasControl = true;
                 body.push(`location = ${location}; ${isBreakStatement(assignment) ? 'break' : 'continue'};`);
                 return 'stop';
+            }
+            if (isExpressionStatement(assignment)) {
+                const mutation = applicationForm(assignment.value, findOperation, true);
+                if (mutation.kind !== 'collection-mutation' || mutation.operation !== 'add'
+                    || !isNameExpression(mutation.receiver) || mutation.receiver.name.includes('.') || numberMode) return reject(assignment);
+                const operands = mutation.arguments;
+                if (!operands || operands.length < 2 || operands.length > 3) return reject(assignment);
+                const lines: string[] = [], arguments_: string[] = [];
+                for (const operand of operands) {
+                    const value = emit(operand, lines, 'integer');
+                    if (value?.type !== 'integer') return reject(assignment);
+                    arguments_.push(value.code);
+                }
+                const index = graphMutations.push(mutation.receiver.name) - 1;
+                body.push(`location = ${location};`, ...lines,
+                    `graphAdds[${index}]([${arguments_.join(',')}]); iterationResult = undefined;`);
+                continue;
             }
             if (isPushStatement(assignment)) {
                 if (numberMode) return undefined;
@@ -832,6 +859,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return reject(statement, 'unstable-bindings');
     if ([...destinations].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot))) return reject(statement, 'unstable-bindings');
     if ([...builtins.keys()].some(name => written.has(name)) || calls.some(call => written.has(call.name) || call.locals.some(name => written.has(name)))) return reject(statement, 'unstable-bindings');
+    if (graphMutations.some(name => written.has(name) || names.includes(name))) return reject(statement, 'unstable-graph');
     const writable = new Set(destinations.keys());
     for (let changed = true; changed;) {
         changed = false;
@@ -843,6 +871,6 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     // at region entry. Keep those writes interpreted until that lowering exists.
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
         && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
-    const plan = { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration };
+    const plan = { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, graphMutations, vectorIterations, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration };
     return numberMode ? prepareNumberLoop(plan, host) : prepareIntegerLoop(plan, host, () => reject(statement, 'code-generation'));
 }

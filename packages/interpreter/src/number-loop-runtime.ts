@@ -22,7 +22,7 @@ const rankInteger = (value: unknown): RankValue | undefined =>
 export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): CompiledLoop | undefined {
     const { names, localTypes, arrays, required, body, root, locations, statement } = plan;
     if (host.observableEntry || !host.canDeferWrites || plan.calls.length || plan.iterators.length || plan.containers.size
-        || plan.destinations.size || plan.arrayDefinitions.size || plan.hasReturn
+        || plan.graphMutations.length || plan.destinations.size || plan.arrayDefinitions.size || plan.hasReturn
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean')
         || [...arrays.values()].some(info => info.type !== 'integer' || info.rank !== 1)) return undefined;
     if (plan.vectorIterations.length && !host.declareIteration) return undefined;
@@ -53,10 +53,11 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     type Run = (input: unknown[], cells: Float64Array[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown } | undefined;
     let run: Run;
     try {
-        run = new Function('safe', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badIndex', source)(
+        run = new Function('safe', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', source)(
             safe, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
+            (name: string) => new RankError(`${name} expects a nonnegative integer count`),
             (index: number) => new MissingValueError(index < 0
                 ? 'array index out of bounds on axis 0' : `array index out of bounds on axis 0: ${index}`));
     } catch { return undefined; }
