@@ -1,0 +1,67 @@
+rem Divisibility Comparison Between
+rem Factorials
+rem https://projecteuler.net/problem=383
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option Limit integer = 10 ** 18
+
+Answer = 0
+P = 5
+A = 1
+for P at most Limit
+  M = Limit // P
+  Ds = array shape 0 fill 0
+  for M greater 0
+    Ds = concat Ds (array (M mod 5))
+    M //= 5
+  end
+  Memo = new index
+  Answer += 0 0 0 0 A Ds Memo tally
+  A += 1
+  P *= 5
+end
+Answer print
+
+rem Count m with fewer than A carries.
+fun Pos Carry Used Rel A Ds Memo tally
+  if Pos equal (Ds len)
+    if Used less A and Rel at most 0
+      return 1
+    end
+    return 0
+  end
+  Key = Pos * 2 + Carry
+  Key = Key * (A + 1) + Used
+  Key = Key * 3 + Rel + 1
+  if Key in Memo
+    return Memo Key
+  end
+  Total = 0
+  for X in 0 to 4
+    if Pos equal 0 and X equal 0
+      continue
+    end
+    Next = (2 * X + Carry) // 5
+    New = Used + Next
+    if New at least A
+      continue
+    end
+    R = Rel
+    if X less Ds Pos
+      R = -1
+    end
+    if X greater Ds Pos
+      R = 1
+    end
+    Z = Pos + 1
+    Hit = Z Next New R A Ds Memo tally
+    Total += Hit
+  end
+  Memo Key = Total
+  return Total
+end
