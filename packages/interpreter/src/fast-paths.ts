@@ -21,7 +21,7 @@ import { compileTensorKernel } from './tensor-kernel.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import { recordFallback } from './diagnostics.js';
 import { checkedArrayDimension } from './eval/expressions.js';
-import { forIteration, iterationAtoms, type ForBinding } from './eval/loops.js';
+import { forIteration, iterationAtoms, declareIterationTypes, type ForBinding } from './eval/loops.js';
 import type { FunctionInvocation } from './function-invocation.js';
 import { ReturnSignal } from './control-signals.js';
 import { compileIntegerLoop } from './integer-loop.js';
@@ -205,6 +205,7 @@ export class FastPaths {
             extremeParts: flattenApplication,
             compoundWrites: this.context.options().compoundArrayCompilation !== false,
             arrayIteration: this.context.options().arrayIterationCompilation !== false,
+            declareIteration: (binding, source) => declareIterationTypes(this.context.bindings, binding, source, 'integer'),
             // The region guards cell types before entry and preserves them.
             iterationValues: (binding, source, elementType = 'integer') => iterationAtoms(this.context.bindings, binding, source,
                 this.context.options().provenIterationTypes !== false ? elementType : undefined,

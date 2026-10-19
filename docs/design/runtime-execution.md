@@ -712,13 +712,27 @@ specialization. Both use the existing shared typed-expression frontend and
 operator catalogue.
 
 The Number specialization accepts safe integer/boolean scalars, supported nested
-numeric/conditional loops, and rank-one eager stored integer arrays. It proves
+numeric/conditional loops, and rank-one eager stored integer arrays, including
+direct traversal of a named vector. It proves
 scalar stores cannot fail their binding contracts before deferring them. Calls,
 collection/array mutation, returns, powers, arbitrary iterators, lazy arrays and
 unsupported contracts retain the BigInt backend. Array reads use an
 invocation-owned Float64 buffer after checking every cell's type and magnitude;
-there is no retained numeric mirror. A loop-entry execution hook keeps the
+there is no retained numeric mirror. Number code reads those buffers directly,
+with a bounds check at every indexed read; it does not bypass checks or narrow
+integer values to Int32. A loop-entry execution hook keeps the
 BigInt backend because that hook may mutate inputs or binding contracts.
+
+Stored-vector traversal captures its invocation-owned buffer once and maintains
+an independent numeric cursor/ordinal; assignments to visible loop variables do
+not change traversal. The plan distinguishes this case from opaque iterators.
+Binding declarations are staged when a traversal is reached and published on
+success, ordinary error or cancellation, along with scalar state. Overflow
+discards both values and staged declarations before exact replay. Empty vectors
+retain their existing element/ordinal contracts; unreached nested traversals do
+not declare bindings. Entry guards decline incompatible contracts before any
+private execution. Mutating/rebinding arrays, lazy or host storage, arbitrary
+iterators and observable hooks retain the existing backend.
 
 Each integer intermediate and range increment is checked for safe-integer
 exactness. Division retains floor rounding and remainder retains the divisor's

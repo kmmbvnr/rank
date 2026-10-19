@@ -98,6 +98,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     const calleeArrays = new Set<string>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
+    const vectorIterations: { slot: number; binding: IterationBinding }[] = [];
     const iterators: ((source: RankArray | string) => Iterable<RankValue>)[] = [];
     const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type'] }>();
     let needsAlgo = false, hasControl = false, hasReturn = false;
@@ -447,7 +448,15 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             arrays.set(head.name, info);
             if (!assigned.has(head.name)) arrayInputs.add(head.name);
             const name = `v${serial++}`;
-            lines.push(`const ${name} = reader${info.slot}(${info.rank === 1 ? indices[0] : `[${indices.join(',')}]`});`);
+            if (numberMode) {
+                if (info.rank !== 1) return undefined;
+                const coordinate = `index${serial++}`;
+                lines.push(`const ${coordinate} = ${indices[0]};
+                    if (${coordinate} < 0 || ${coordinate} >= cells${info.slot}.length) throw badIndex(${coordinate});
+                    const ${name} = cells${info.slot}[${coordinate}];`);
+            } else {
+                lines.push(`const ${name} = reader${info.slot}(${info.rank === 1 ? indices[0] : `[${indices.join(',')}]`});`);
+            }
             return { code: name, type };
         }
         if (!isBinaryExpression(e) || e.step) return undefined;
@@ -492,7 +501,6 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         const tests: string[] = [];
         let setup = '', header: string, bindings = '';
         if (iteration) {
-            if (numberMode && isNameExpression(iteration.iterable)) return undefined;
             let range = iteration.iterable;
             while (isParenthesizedExpression(range)) range = range.value;
             if (iteration.names.length > 2 || iteration.names.some(name => name.includes('.'))
@@ -519,9 +527,18 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 arrays.set(range.name, info);
                 if (!assigned.has(range.name)) arrayInputs.add(range.name);
                 const binding = iteration;
-                setup = `const iterable = iterators[${iterators.length}](r${info.slot}); ${indexed ? 'let ordinal = 0n;' : ''}`;
-                iterators.push(source => host.iterationValues(binding, source, elementType));
-                header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
+                const vector = vectorIterations.length;
+                if (elementType === 'integer') vectorIterations.push({ slot: info.slot, binding });
+                if (numberMode) {
+                    if (elementType !== 'integer') return undefined;
+                    setup = `const iterable = cells[${info.slot}]; entered[${vector}] = true; ${indexed ? 'let ordinal = 0;' : ''}`;
+                    header = `for (let position = 0; position < iterable.length; position++) {
+                        location = ${location}; checkpoint(); const cursor = iterable[position];`;
+                } else {
+                    setup = `const iterable = iterators[${iterators.length}](r${info.slot}); ${indexed ? 'let ordinal = 0n;' : ''}`;
+                    iterators.push(source => host.iterationValues(binding, source, elementType));
+                    header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
+                }
             } else {
                 if (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)) return undefined;
                 const start = emit(range.left, tests), end = emit(range.right, tests);
@@ -826,6 +843,6 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     // at region entry. Keep those writes interpreted until that lowering exists.
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
         && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
-    const plan = { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration };
+    const plan = { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration };
     return numberMode ? prepareNumberLoop(plan, host) : prepareIntegerLoop(plan, host, () => reject(statement, 'code-generation'));
 }

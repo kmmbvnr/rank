@@ -8,8 +8,6 @@ import { analyzeBindings, analyzeValues } from '@arrrank/language';
 import { Interpreter, isRankArray, parse, typeName } from '../src/index.js';
 
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));
-// Runs for minutes with its real input (issue #316); its tests use small inputs.
-const tooSlow = new Set(['euler/154_pascalpyramid.ra']);
 
 function programs(): string[] {
     const files: string[] = [];
@@ -17,7 +15,7 @@ function programs(): string[] {
         for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
             const full = path.join(directory, entry.name);
             if (entry.isDirectory()) walk(full);
-            else if (entry.name.endsWith('.ra') && !tooSlow.has(path.relative(demos, full))) files.push(full);
+            else if (entry.name.endsWith('.ra')) files.push(full);
         }
     };
     walk(demos);
