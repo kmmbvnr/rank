@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "284_steadysquares"
+  run
+
+  Answer equal "5a411d7b"
+end
+
+test "problem example"
+  use "284_steadysquares"
+  N = 9
+  run
+
+  Answer equal "2d8"
+end
