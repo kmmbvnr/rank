@@ -22,6 +22,7 @@ Xs = 2 to (Q * 50) array
 Pow = (Xs (Xs - 1) band) equal 0
 Perf = (Pow choose 1 0) scan +
 Low = (Xs - 1) greater Q * Perf
-X = Xs filter Low array min
+Hits = Xs filter Low array
+X = Hits min
 Answer = X * (X - 1)
 Answer print

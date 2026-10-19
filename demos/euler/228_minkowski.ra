@@ -29,5 +29,6 @@ Ns = Lo to Hi array
 Rows = Q reshape Hi 1
 Zero = Ns mod Rows equal 0
 Divides = Zero any axis 1
-Answer = Phi filter Divides array sum
+Used = Phi filter Divides array
+Answer = Used sum
 Answer print

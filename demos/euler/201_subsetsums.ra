@@ -32,5 +32,6 @@ Top = One K
 Cap = (1 to Count array) ** 2 sum
 Sums = 0 to Cap array
 Hit = Top Sums bit
-Answer = Sums filter Hit array sum
+Used = Sums filter Hit array
+Answer = Used sum
 Answer print

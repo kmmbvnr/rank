@@ -24,5 +24,6 @@ Sq = (primes till Rows array) ** 2
 Col = Vals reshape (Vals len) 1
 Div = Col mod Sq equal 0
 Free = not (Div any axis 1)
-Answer = Vals filter Free array sum
+Kept = Vals filter Free array
+Answer = Kept sum
 Answer print
