@@ -1,0 +1,11 @@
+use testing
+
+test "small prime range"
+  use "304_primonacci"
+  Start = 10
+  Count = 4
+  Mod = 1000000007
+  run
+
+  Answer equal 6100
+end

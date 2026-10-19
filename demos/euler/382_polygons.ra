@@ -1,0 +1,76 @@
+rem Generating Polygons
+rem https://projecteuler.net/problem=382
+
+use numbers
+use io
+use cli
+
+option Limit integer = 10 ** 18
+
+Mod = 10 ** 9
+M = array shape 12 12 fill 0
+M 0 2 = 2
+M 0 3 = 1
+M 0 5 = Mod - 1
+M 0 9 = 5
+M 0 11 = 1
+for I in 1 to 5
+  M I (I - 1) = 1
+end
+M 6 6 = 2
+M 7 6 = 1
+M 8 7 = 1
+M 9 8 = 1
+M 10 10 = 1
+for J in 0 to 11
+  M 10 J += M 0 J
+end
+M 11 11 = 1
+V = array 20 11 6 4 2 1 32 16 8 4 44 1
+R = array shape 12 12 fill 0
+for I in 0 to 11
+  R I I = 1
+end
+E = Limit - 6
+for E greater 0
+  if E mod 2 equal 1
+    R = M R mul
+  end
+  M = M M mul
+  E //= 2
+end
+Bad = (R V apply) 10
+Answer = 2 Limit Mod powmod
+Answer -= Bad + 1
+Answer mod= Mod
+if Limit at most 5
+  Small = array 0 0 0 2 7
+  Answer = Small (Limit - 1)
+end
+Answer print
+
+fun A B mul
+  C = array shape 12 12 fill 0
+  for I in 0 to 11
+    for K in 0 to 11
+      if A I K not equal 0
+        for J in 0 to 11
+          C I J += (A I K) * (B K J)
+          C I J mod= Mod
+        end
+      end
+    end
+  end
+  return C
+end
+
+fun A V apply
+  W = array shape 12 fill 0
+  for I in 0 to 11
+    for J in 0 to 11
+      W I += (A I J) * (V J)
+      W I mod= Mod
+    end
+  end
+  return W
+end

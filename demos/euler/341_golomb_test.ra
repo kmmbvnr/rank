@@ -1,0 +1,11 @@
+use testing
+
+test "given Golomb terms"
+  use "341_golomb"
+  1000 term equal 86
+end
+
+test "given Golomb cube sum"
+  use "341_golomb"
+  1000 cubes equal 153506976
+end

@@ -1,0 +1,6 @@
+use testing
+
+test "target maximix order"
+  use "336_maximix"
+  11 2011 maximix equal "CAGBIHEFJDK"
+end

@@ -2,17 +2,38 @@ import type { AstNode } from 'langium';
 import {
     isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isDeclaredCallExpression,
     isFunctionBindingStatement, isFunctionStatement, isNameExpression, isOperationAssignmentStatement, isParenthesizedExpression,
-    isPushStatement, type Expression, type FunctionStatement,
+    isPushStatement, isProgram, type Expression, type FunctionStatement,
 } from '../generated/ast.js';
 import { applicationForm } from '../application-forms.js';
 import { flattenApplication } from '../expressions.js';
 import { functionCallSignature } from '../function-call-signature.js';
 import { findOperation, type Operation } from '../operations.js';
-import { lexicalBinding, type FunctionScopeAnalysis, type LexicalBinding, type LexicalScope } from './function-scopes.js';
+import { analyzeFunctionScopes, lexicalBinding, type FunctionScopeAnalysis, type LexicalBinding, type LexicalScope } from './function-scopes.js';
+
+interface MutationAnalysis {
+    readonly diagnostics: { node: AstNode; message: string }[];
+    readonly parameters: ReadonlyMap<FunctionStatement, ReadonlySet<number>>;
+}
+const summaries = new WeakMap<FunctionScopeAnalysis, MutationAnalysis>();
+
+export function functionMutationDiagnostics(analysis: FunctionScopeAnalysis): { node: AstNode; message: string }[] {
+    return analyzeMutations(analysis).diagnostics;
+}
+
+/** Possible writes through parameters, including aliases and transitive helpers.
+ * A missing lexical tree is not a proof of read-only input. */
+export function mutatedFunctionParameters(definition: FunctionStatement): ReadonlySet<number> | undefined {
+    let root: AstNode = definition;
+    while (root.$container) root = root.$container;
+    if (!isProgram(root)) return undefined;
+    return analyzeMutations(analyzeFunctionScopes(root)).parameters.get(definition);
+}
 
 /** Mutation provenance, including aliases and calls through ordinary helpers.
  * Bindings are identities from the lexical pass; no spelling-based capture guesses. */
-export function functionMutationDiagnostics(analysis: FunctionScopeAnalysis): { node: AstNode; message: string }[] {
+function analyzeMutations(analysis: FunctionScopeAnalysis): MutationAnalysis {
+    const cached = summaries.get(analysis);
+    if (cached) return cached;
     type Callable = FunctionStatement | Operation;
     const builtinAliases = new Map<LexicalBinding, Operation>();
     const aliases = new Map<LexicalBinding, Set<LexicalBinding>>();
@@ -187,6 +208,15 @@ export function functionMutationDiagnostics(analysis: FunctionScopeAnalysis): { 
         else if (owner.memo && binding.kind === 'parameter') diagnostics.push({ node,
             message: `memo ${owner.name} cannot mutate parameter ${binding.name}; use a local copy.` });
     }
-    return diagnostics.filter((item, index) => !diagnostics.slice(0, index)
-        .some(previous => previous.node === item.node && previous.message === item.message));
+    const parameters = new Map<FunctionStatement, Set<number>>([...analysis.functions.keys()].map(fn => [fn, new Set()]));
+    for (const { owner, writes: own } of contexts.values()) {
+        const names = functionCallSignature(owner).parameters;
+        for (const binding of own.keys()) if (binding.scope.owner === owner && binding.kind === 'parameter') {
+            parameters.get(owner)!.add(names.findIndex(parameter => parameter.name === binding.name));
+        }
+    }
+    const result = { parameters, diagnostics: diagnostics.filter((item, index) => !diagnostics.slice(0, index)
+        .some(previous => previous.node === item.node && previous.message === item.message)) };
+    summaries.set(analysis, result);
+    return result;
 }

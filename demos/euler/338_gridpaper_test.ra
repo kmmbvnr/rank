@@ -1,0 +1,9 @@
+use testing
+
+test "given grid-paper sums"
+  use "338_gridpaper"
+  10 grid equal 55
+  1000 grid equal 971745
+  V = 100000 grid mod 100000000
+  V equal 92617687
+end

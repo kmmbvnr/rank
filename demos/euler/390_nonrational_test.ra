@@ -1,0 +1,11 @@
+use testing
+
+test "non-rational side triangles"
+  use "390_nonrational"
+  Limit = 10 ** 6
+  run
+  Answer equal 18018206
+  Limit = 10 ** 10
+  run
+  Answer equal 2919133642971
+end

@@ -1,12 +1,14 @@
-import { checkpoint, inspectionEnabled } from '../interrupt.js';
+import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { unpackApplicationItems } from '../value-selection.js';
 import {
     type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
     applicationExpression, flattenApplication, isApplicationExpression, isNameExpression, isNumberLiteral,
-    isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
+    isUnpackExpression, sequenceRetentionCandidate, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
 import { hasDeferredSelectionCopy } from '../integer-view.js';
-import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection } from '../array-storage.js';
+import { retainSequence } from '../sequence-retention.js';
+import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection,
+    hasWritableBooleanCells, fillBooleanSelection } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
 import { pushCollection } from '../containers.js';
 import { RankError } from '../errors.js';
@@ -189,6 +191,14 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 return result;
             }
         }
+        if (count > 0 && host.options().compilation !== false && host.options().booleanSelectionCompilation !== false
+            && privateLoopPolling()
+            && target.shape.length === 1 && statement.operator === '='
+            && typeof result === 'boolean' && hasWritableBooleanCells(target)) {
+            host.checkArrayWrite(statement.name, target, [result]);
+            fillBooleanSelection(owned(target) as typeof target, count, selection.offsetAt, result);
+            return result;
+        }
         operands ??= Array(count).fill(result) as RankValue[];
         const replacements = operands.map((operand, index) => operator === undefined
             ? operand
@@ -264,8 +274,15 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
         ? undefined : assignmentOperator(statement.operator);
     const direct = host.compileDirect(statement.value);
     const write = host.compileAssign(statement.name);
-    const stored = (value: RankValue): RankValue => isRankSequence(value)
-        ? host.options().wrapStoredSequence?.(value) ?? value : value;
+    const retain = sequenceRetentionCandidate(statement);
+    const stored = (value: RankValue): RankValue => {
+        if (!isRankSequence(value)) return value;
+        if (retain && host.options().sequenceReuse !== false
+            && !(host.options().wrapStoredSequence && value.plan.replCursor)) {
+            value = retainSequence(value, host.options().sequenceCacheBytes);
+        }
+        return host.options().wrapStoredSequence?.(value) ?? value;
+    };
     if (direct) {
         return { run: () => {
             const result = stored(operator === undefined ? direct() : host.operators.evaluateBinary(

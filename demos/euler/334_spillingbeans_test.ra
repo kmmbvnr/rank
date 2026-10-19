@@ -1,0 +1,8 @@
+use testing
+
+test "given bean spills"
+  use "334_spillingbeans"
+  2 beans equal array 289 145
+  (array 2 3) moves equal 8
+  (array 289 145) moves equal 3419100
+end

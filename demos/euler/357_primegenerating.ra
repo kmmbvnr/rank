@@ -1,0 +1,38 @@
+rem Prime Generating Integers
+rem https://projecteuler.net/problem=357
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 10 ** 8
+
+fun N good
+  if N equal 1
+    return true
+  end
+  if N mod 2 equal 1 or N mod 4 equal 0
+    return false
+  end
+  if 2 + N // 2 not in primes
+    return false
+  end
+  for D in 3 to (N isqrt)
+    if N mod D equal 0
+      if D + N // D not in primes
+        return false
+      end
+    end
+  end
+  return true
+end
+
+Answer = 0
+for P in primes to (Limit + 1)
+  N = P - 1
+  if N good
+    Answer += N
+  end
+end
+Answer print

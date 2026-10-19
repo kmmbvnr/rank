@@ -1,0 +1,7 @@
+use testing
+
+test "small modulo sums"
+  use "326_modulosums"
+  10 10 pairs equal 4
+  100 10 pairs equal 568
+end

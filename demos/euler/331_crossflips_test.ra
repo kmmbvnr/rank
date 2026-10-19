@@ -1,0 +1,43 @@
+use testing
+
+test "given cross-flip counts"
+  use "331_crossflips"
+  5 turns equal 3
+  7 turns equal 0
+  10 turns equal 29
+  1000 turns equal 395253
+  10000 turns equal 38413231
+end
+
+test "small boards match direct flips"
+  use "331_crossflips"
+  fun N direct
+    P = array shape N fill 0
+    Low = (N - 1) ** 2
+    High = N ** 2
+    for X in 0 till N
+      for Y in 0 till N
+        D = X * X + Y * Y
+        if D at least Low and D less High
+          P X = 1 - P X
+        end
+      end
+    end
+    Count = 0
+    for X in 0 till N
+      for Y in 0 till N
+        D = X * X + Y * Y
+        Black = 0
+        if D at least Low and D less High
+          Black = 1
+        end
+        Count += (Black + P X + P Y) mod 2
+      end
+    end
+    return Count
+  end
+
+  for N in 2 to 32 by 2
+    N turns equal (N direct)
+  end
+end

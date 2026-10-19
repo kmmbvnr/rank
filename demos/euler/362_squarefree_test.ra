@@ -1,0 +1,20 @@
+use testing
+use algo
+
+test "squarefree fac"
+  use "362_squarefree"
+  use algo
+  Mu = array 0 1 -1 -1 0 -1 1 -1 0 0 1
+  Cs = array 0 0 1 2 2 3 4 5 5 5 6
+  Sq = new queue
+  Sq push 2
+  Sq push 3
+  Sq push 5
+  Sq push 6
+  Sq push 7
+  Sq push 10
+  Q = new index
+  C = new index
+  Mu Cs Q 10 squarefree equal 6
+  Mu Cs Sq Q C 100 0 fac equal 193
+end

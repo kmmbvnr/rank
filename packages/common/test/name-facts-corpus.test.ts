@@ -12,53 +12,8 @@ import { Interpreter, isRankArray, parse, typeName } from '@arrrank/interpreter'
 import { nameFactsIn } from '../src/name-facts.js';
 
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));
-// These run a minute or more with their real input (issues #316, #333, #338);
-// their tests use small inputs.
-const tooSlow = new Set([
-    'euler/154_pascalpyramid.ra',
-    'euler/210_obtuse.ra',
-    'euler/224_almostright.ra',
-    'euler/250_subsets.ra',
-    'euler/250_subsets_test.ra',
-    'euler/266_pseudosquareroot.ra',
-    'euler/268_fourprimes.ra',
-    'euler/211_divisorsquare.ra',
-    'euler/212_combinedvolume.ra',
-    'euler/213_fleacircus.ra',
-    'euler/214_totientchains.ra',
-    'euler/216_primality.ra',
-    'euler/223_almostright.ra',
-    'euler/229_foursquares.ra',
-    'euler/236_luxuryhampers.ra',
-    'euler/238_infinitestring.ra',
-    'euler/245_coresilience.ra',
-    'euler/248_eulertotient.ra',
-    'euler/249_primesubsetsums.ra',
-    'euler/251_cardanotriplets.ra',
-    'euler/253_tidyingup.ra',
-    'euler/254_digitfactorials.ra',
-    'euler/260_stonegame.ra',
-    'euler/262_mountainrange.ra',
-    'euler/272_modularcubes.ra',
-    'euler/275_balancedsculptures.ra',
-    'euler/283_integertriangles.ra',
-    'euler/289_eulerianloops.ra',
-    'euler/291_panaitopolprimes.ra',
-    'euler/292_pythagoreanpolygons.ra',
-    'euler/295_lenticularholes.ra',
-    'euler/300_proteinfolding.ra',
-    'euler/229_foursquares_test.ra',
-    'euler/236_luxuryhampers_test.ra',
-    'euler/238_infinitestring_test.ra',
-    'euler/245_coresilience_test.ra',
-    'euler/251_cardanotriplets_test.ra',
-    'euler/254_digitfactorials_test.ra',
-    'euler/260_stonegame_test.ra',
-    'euler/283_integertriangles_test.ra',
-    'euler/289_eulerianloops_test.ra',
-    'euler/291_panaitopolprimes_test.ra',
-    'euler/295_lenticularholes_test.ra',
-]);
+const executionExclusions = new Set(Object.keys(JSON.parse(fs.readFileSync(
+    new URL('../../../scripts/demo-execution-exclusions.json', import.meta.url), 'utf8'))));
 
 function programs(): string[] {
     const files: string[] = [];
@@ -66,7 +21,7 @@ function programs(): string[] {
         for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
             const full = path.join(directory, entry.name);
             if (entry.isDirectory()) walk(full);
-            else if (entry.name.endsWith('.ra') && !tooSlow.has(path.relative(demos, full))) files.push(full);
+            else if (entry.name.endsWith('.ra')) files.push(full);
         }
     };
     walk(demos);
@@ -90,12 +45,12 @@ function settledNames(program: Program): Set<string> {
 
 /**
  * The rule that makes the footer worth reading: the analyzer may say `unknown`, but it may
- * never say something false. Every demo that runs without a host — no standard input, no
+ * never say something false. Every eligible demo that runs without a host — no standard input, no
  * files, no database — is asked about each settled name, where it is written and where it is
  * read, and the answer is checked against the value the run produced.
  */
 describe('facts at a name against the values a run produced', () => {
-    const files = programs();
+    const files = programs().filter(file => !executionExclusions.has(path.relative(demos, file)));
     let ran = 0;
     let asked = 0;
     let known = 0;

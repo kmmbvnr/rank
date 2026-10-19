@@ -1,0 +1,134 @@
+rem Squarefree Fibonacci Numbers
+rem https://projecteuler.net/problem=399
+
+use numbers
+use bits
+use algo
+use sequences
+use text
+use io
+use cli
+
+option Count integer = 100000000
+option Limit integer = 200000000
+option PrimeLimit integer = 5714285
+
+rem Wall gives p z(p) as forbidden
+rem indices for each prime p.
+Pr = primes to PrimeLimit array
+Mods = array shape 0 fill 0
+for P in Pr
+  D = 0
+  if P equal 2
+    D = 3
+  else
+    if P equal 5
+      D = 5
+    else
+      R = P mod 5
+      C = P + 1
+      if R equal 1 or R equal 4
+        C = P - 1
+      end
+      D = C
+      Fs = C factors unique array
+      for Q in Fs
+        for D mod Q equal 0
+          Part = D // Q
+          Zero = Part P fibmod equal 0
+          if not Zero
+            break
+          end
+          D = Part
+        end
+      end
+    end
+  end
+  M = P * D
+  if M greater Limit
+    continue
+  end
+  Keep = true
+  for Old in Mods
+    if M mod Old equal 0
+      Keep = false
+      break
+    end
+  end
+  if Keep
+    Mods = concat Mods (array M)
+  end
+end
+
+rem Group inclusion-exclusion
+rem by LCM.
+Coef = new index
+Coef 1 = 1
+Keys = new set
+Keys add 1
+for M in Mods
+  Old = Keys array
+  for L in Old
+    C = Coef L default 0
+    if C equal 0
+      continue
+    end
+    Nl = L M lcm
+    if Nl at most Limit
+      Coef Nl = (Coef Nl default 0) - C
+      Keys add Nl
+    end
+  end
+end
+
+rem Find the Count-th allowed index.
+Lo = 1
+Hi = Limit
+for Lo less Hi
+  Mid = (Lo + Hi) // 2
+  Have = 0
+  for L in Keys
+    C = Coef L default 0
+    Term = C * (Mid // L)
+    Have += Term
+  end
+  if Have at least Count
+    Hi = Mid
+  else
+    Lo = Mid + 1
+  end
+end
+Index = Lo
+
+Mod = 10000000000000000
+Last = Index Mod fibmod
+Root = 5 sqrt
+Phi = (1 + Root) / 2
+Ten = 10 log
+Log = Phi log / Ten
+Half = (5 log) / (2 * Ten)
+Exp = (Index * Log - Half) floor
+Lead = 10 ** (Index * Log - Half - Exp)
+Answer = Last text + ","
+Answer += Lead text ".1f"
+Answer += "e" + (Exp text)
+Answer print
+
+rem Fast doubling F(n) modulo Mod.
+fun N Mod fibmod
+  A = 0
+  B = 1
+  for Bit in N binary
+    C = A * (2 * B - A) mod Mod
+    C = (C + Mod) mod Mod
+    D = (A ** 2 + B ** 2) mod Mod
+    if Bit equal "0"
+      A = C
+      B = D
+    else
+      A = D
+      B = (C + D) mod Mod
+    end
+  end
+  return A
+end

@@ -1,0 +1,94 @@
+rem Badugi
+rem https://projecteuler.net/problem=369
+
+use bits
+use io
+use cli
+
+option Ranks integer = 13
+option Max integer = 13
+
+Answer = Ranks Max badugi
+Answer print
+
+fun T cards
+  A = T 1 band
+  B = (T 2 band) // 2
+  C = (T 4 band) // 4
+  D = (T 8 band) // 8
+  return A + B + C + D
+end
+
+fun R T extend
+  Base = R
+  if T 1 band not equal 0
+    R = R ((Base 21845 band) 1 shl) bor
+  end
+  if T 2 band not equal 0
+    R = R ((Base 13107 band) 2 shl) bor
+  end
+  if T 4 band not equal 0
+    R = R ((Base 3855 band) 4 shl) bor
+  end
+  if T 8 band not equal 0
+    R = R ((Base 255 band) 8 shl) bor
+  end
+  return R
+end
+
+fun Ranks Max table
+  States = 2 ** 16
+  Cells = (Max + 1) * States
+  Cur = array shape Cells fill 0
+  Cur 1 = 1
+  for I in 1 to Ranks
+    Next = array shape Cells fill 0
+    for N in 0 to Max
+      At = N * States
+      for R in 0 till States
+        Ways = Cur (At + R)
+        if Ways not equal 0
+          for T in 0 to 15
+            Count = T cards
+            if N + Count at most Max
+              To = R T extend
+              New = N + Count
+              Pos = New * States + To
+              Next Pos += Ways
+            end
+          end
+        end
+      end
+    end
+    Cur = Next
+  end
+  return Cur
+end
+
+fun Ranks Max N hands
+  States = 2 ** 16
+  T = Ranks Max table
+  Sum = 0
+  At = N * States
+  for R in 0 till States
+    if R 32768 band not equal 0
+      Sum += T (At + R)
+    end
+  end
+  return Sum
+end
+
+fun Ranks Max badugi
+  T = Ranks Max table
+  States = 2 ** 16
+  Sum = 0
+  for N in 4 to Max
+    At = N * States
+    for R in 0 till States
+      if R 32768 band not equal 0
+        Sum += T (At + R)
+      end
+    end
+  end
+  return Sum
+end

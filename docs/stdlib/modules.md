@@ -138,7 +138,8 @@ It maps lazily over arrays and sequences. A negative input raises
 `.DomainError`; positive infinity remains infinity.
 
 `isqrt` has intrinsic rank 0 and returns the exact integer floor of the square
-root of a nonnegative `integer`:
+root of a nonnegative `integer`. A bounded floating-point estimate is verified
+using exact integer arithmetic; larger inputs use integer Newton iteration:
 
 ```rank
 Root = Value isqrt
@@ -258,6 +259,10 @@ containing zero is zero, and the `lcm` of an empty sequence is one.
 
 `powmod` raises an integer base to a nonnegative integer exponent while reducing
 every step modulo a positive integer:
+
+Scalar and array operands may be mixed in any of the three positions. Arrays
+broadcast as in arithmetic and return integer cells; sequences are not implicitly
+materialized. Invalid or missing cells raise when the corresponding result is read.
 
 ```rank
 Value = Base Exponent Modulus powmod
@@ -609,7 +614,9 @@ Word = Value bnot 65535 band
 
 Shifts require a nonnegative bit count. `shr` is an arithmetic right shift.
 `bit` tests a zero-based position and returns a boolean. `popcount` returns the
-number of set bits. `bit` and `popcount` require a nonnegative input value.
+number of set bits as an integer, including zero for zero. Its work is linear
+in the input bit length, with temporary storage proportional to that length.
+`bit` and `popcount` require a nonnegative input value.
 The module does not introduce a separate bit-mask type: bit masks are ordinary
 integers and remain distinct from boolean array masks.
 
@@ -753,9 +760,13 @@ integers for tensors. Coordinate matrices are not directly usable as array
 selectors: extract their columns as above; integer-array selectors require
 rank 1.
 
-`Values Target find` returns the first zero-based position equal to `Target`.
+`Values Target find` returns the first zero-based position of an equal array
+element or matching text substring.
 `findall` returns every matching position; an empty result is an empty vector.
-Both accept rank-1 arrays and text, indexed by Unicode code point.
+Both accept rank-1 arrays and text, indexed by Unicode code point. A text
+target in text matches a substring, including overlapping occurrences for
+`findall`. An empty target has no matches. Matching is case-sensitive, without
+Unicode normalization. Arrays continue to compare whole elements.
 
 `Values reverse` reverses text by Unicode code point, an array along its leading
 axis, and a queue, stack, deque or finite sequence, which becomes an array

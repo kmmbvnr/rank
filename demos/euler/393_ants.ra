@@ -1,0 +1,134 @@
+rem Migrating Ants
+rem https://projecteuler.net/problem=393
+
+use bits
+use sequences
+use algo
+use io
+use cli
+
+option N integer = 10
+
+Mask = 1 N shl - 1
+Dp = new index
+Dp 0 = 1
+Now = new set
+Now add 0
+Cache = new index
+CacheTo = new index
+for Row in 0 to N - 1
+  Last = Row equal (N - 1)
+  Next = new index
+  Then = new set
+  for Key in Now
+    Ways = Dp Key
+    In1 = Key Mask band
+    In2 = Key N shr
+    Code = In1 + (In2 N shl)
+    Code = Code * 2
+    if Last
+      Code += 1
+    end
+    if Code not in Cache
+      Out = new index
+      Tos = new set
+      0 In1 In2 0 0 Last Out Tos rows
+      Cache Code = Out
+      CacheTo Code = Tos
+    end
+    Out = Cache Code
+    Tos = CacheTo Code
+    for To in Tos
+      if To not in Next
+        Next To = 0
+        Then add To
+      end
+      Next To += Ways * (Out To)
+    end
+  end
+  Dp = Next
+  Now = Then
+end
+Answer = Dp 0 default 0
+Answer print
+
+rem Fill one row in two matching layers.
+fun C D E F G H I J rows
+  if C equal N
+    Key = F + (G N shl)
+    if Key not in I
+      I Key = 0
+    end
+    I Key += 1
+    J add Key
+    return 0
+  end
+  Bit = 1 C shl
+  Have1 = D Bit band not equal 0
+  Have2 = E Bit band not equal 0
+  for D1 in 0 to 2
+    if Have1 and D1 not equal 0
+      continue
+    end
+    if not Have1 and D1 equal 0
+      continue
+    end
+    if D1 equal 1
+      if C equal (N - 1)
+        continue
+      end
+      Right = 1 (C + 1) shl
+      if D Right band not equal 0
+        continue
+      end
+    end
+    if D1 equal 2 and H
+      continue
+    end
+    for D2 in 0 to 2
+      if Have2 and D2 not equal 0
+        continue
+      end
+      if not Have2 and D2 equal 0
+        continue
+      end
+      if D2 equal 1
+        if C equal (N - 1)
+          continue
+        end
+        Right = 1 (C + 1) shl
+        if E Right band not equal 0
+          continue
+        end
+      end
+      if D2 equal 2 and H
+        continue
+      end
+      if D1 equal D2
+        if D1 greater 0
+          continue
+        end
+      end
+      P1 = D
+      P2 = E
+      V1 = F
+      V2 = G
+      if D1 equal 1
+        P1 = P1 Bit bor
+        P1 = P1 (1 (C + 1) shl) bor
+      end
+      if D1 equal 2
+        V1 = V1 Bit bor
+      end
+      if D2 equal 1
+        P2 = P2 Bit bor
+        P2 = P2 (1 (C + 1) shl) bor
+      end
+      if D2 equal 2
+        V2 = V2 Bit bor
+      end
+      (C + 1) P1 P2 V1 V2 H I J rows
+    end
+  end
+  return 0
+end

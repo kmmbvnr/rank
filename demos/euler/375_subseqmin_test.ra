@@ -1,0 +1,13 @@
+use testing
+
+test "subsequence minima"
+  use "375_subseqmin"
+  Limit = 10
+  Period = 10
+  run
+  Answer equal 432256955
+  Limit = 10000
+  Period = 10000
+  run
+  Answer equal 3264567774119
+end

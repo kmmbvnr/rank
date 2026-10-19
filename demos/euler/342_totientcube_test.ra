@@ -1,0 +1,23 @@
+use testing
+
+test "small totient cubes"
+  use "342_totientcube"
+  Limit = 10
+  run
+  Answer equal 4
+end
+
+test "given totient cube"
+  use "342_totientcube"
+  50 squarephi cube
+  Limit = 100
+  run
+  Answer equal 158
+end
+
+test "medium totient cubes"
+  use "342_totientcube"
+  Limit = 10000
+  run
+  Answer equal 62061
+end

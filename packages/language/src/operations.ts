@@ -133,7 +133,7 @@ export interface Operation {
     readonly write?: { readonly arity: number; readonly signatures: readonly TypeSignature[]; readonly effects: readonly Effect[] };
     /** Operand domain in which scalar calls cannot invoke Rank callbacks. Throws are allowed. */
     readonly scalarNoCallback?: 'integer' | 'number';
-    /** Unary application maps each scalar cell of an array or sequence. */
+    /** Scalar application maps array cells; unary forms also map sequences. */
     readonly mapsScalarCells?: true;
     /** Accepted cells for a callback-free reduction of one scalar-cell array. */
     readonly scalarCellArrayNoCallback?: 'number' | 'boolean';
@@ -881,7 +881,7 @@ export const operations: readonly Operation[] = [
         signatures: [{ inputs: ['integer'], result: 'integer', ranks: [0] }],
         shape: [{ args: [[]], result: [] }],
         monadicRank: 0, scalarNoCallback: 'integer',
-        summary: 'Exact integer floor of the square root, calculated without reals.' },
+        summary: 'Exact integer floor of the square root, verified with integer arithmetic.' },
     { name: 'lcm', module: 'numbers', arities: [1, 2], form: 'A B lcm', result: 'integer',
         compiledCall: { inputs: ['integer', 'integer'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         signatures: [...integerDyadicSignatures, { inputs: [{ union: ['integer',
@@ -913,9 +913,13 @@ export const operations: readonly Operation[] = [
         scalarNoCallback: 'integer', summary: 'True for an odd integer.' },
     { name: 'powmod', module: 'numbers', arities: [3], form: 'Base Exponent Modulus powmod',
         compiledCall: { inputs: ['integer', 'integer', 'integer'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
-        signatures: [{ inputs: ['integer', 'integer', 'integer'], result: 'integer' }],
-        shape: [{ args: [null, null, null], result: [] }],
-        result: 'integer', scalarNoCallback: 'integer',
+        signatures: Array.from({ length: 8 }, (_, mask): TypeSignature => ({
+            inputs: [0, 1, 2].map(index => mask & (1 << index)
+                ? { collection: 'array', element: 'integer' } : 'integer'),
+            result: mask ? { collection: 'array', element: 'integer' } : 'integer',
+        })),
+        shape: [{ args: [[], [], []], result: [] }],
+        result: 'integer', scalarNoCallback: 'integer', mapsScalarCells: true,
         summary: 'Modular exponentiation by repeated squaring, never building the full power.' },
     { name: 'floor', module: 'numbers', alsoModules: ['algo'], arities: [1, 2],
         form: 'Value floor | Bag floor Limit', result: 'value', mapsScalarCells: true,
@@ -1019,12 +1023,12 @@ export const operations: readonly Operation[] = [
         signatures: [{ inputs: [{ union: ['text', 'array'] }, 'unknown'], result: 'integer', ranks: ['all', 0] }],
         shape: [{ args: [null, []], result: [] }],
         dyadicRanks: ['all', 0],
-        summary: 'First zero-based position equal to Target in a vector or text; an array of targets finds each.' },
+        summary: 'First zero-based position of an equal array element or text substring; an array of targets finds each.' },
     { name: 'findall', module: 'sequences', arities: [2], form: 'Values Target findall', result: 'array',
         signatures: [{ inputs: [{ union: ['text', 'array'] }, 'unknown'], result: integerArray, ranks: ['all', 0] }],
         dyadicRanks: ['all', 0], arrayCells: true, dataLength: true,
         shape: [{ args: [null, []], result: null }],
-        summary: 'Every zero-based position equal to Target in a vector or text; an array of targets needs equal counts.' },
+        summary: 'Every zero-based position of an equal array element or overlapping text substring; target arrays need equal counts.' },
     { name: 'flat', module: 'sequences', arities: [1, 2], form: 'Values flat', result: 'array',
         signatures: [{ inputs: [{ collection: 'array', element: 'record' }], result: { collection: 'array', element: 'record' } },
             { inputs: ['integer', 'record'], result: { collection: 'array', element: 'record' } }],

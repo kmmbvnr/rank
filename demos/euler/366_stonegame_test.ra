@@ -1,0 +1,11 @@
+use testing
+
+test "first hundred moves"
+  use "366_stonegame"
+  100 stones equal 728
+end
+
+test "small interval recurrence"
+  use "366_stonegame"
+  1000 stones equal 83085
+end

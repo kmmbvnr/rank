@@ -1,3 +1,9 @@
+import { findValue, findAllValues } from './sequence-search.js';
+import { numericSort } from '../numeric-collections.js';
+import { sortValue, argsortValue, sortableKind, stableOrder } from './sequence-order.js';
+export { sortValue, argsortValue } from './sequence-order.js';
+import { uniqueValue } from './sequence-distinct.js';
+export { uniqueLength } from './sequence-distinct.js';
 import { primePlan } from '../prime-sequence.js';
 import { above, within, strongerLower, membershipInteger, type Boundary } from '../sequence-bounds.js';
 import { concatArrays } from '../concat-array.js';
@@ -12,11 +18,10 @@ import { FlatRecords, flatRecords } from '../flat.js';
 import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, prepareArrayRead, readArrayItem, realCells, typedArray, typedElementKind } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
-import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.js';
+import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { atSequence, materializeSequence, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
 import { atArray } from '../selectors.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
-import { setValueKey } from '../set.js';
 import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
 import { mergeSorted } from './sorted-merge.js';
 import { broadcastShape, chooseDenseArrays } from '../tensor.js';
@@ -236,40 +241,6 @@ function trueIndices(value: RankValue): RankArray {
         }
     }
     return ownedArray(positions, rank === 1 ? [positions.length] : [positions.length / rank, rank]);
-}
-
-function findValue(source: RankValue, target: RankValue): bigint {
-    const values = findSource(source, 'find');
-    const targetKey = setValueKey(target);
-    let index = 0n;
-    for (const value of values) {
-        if (setValueKey(value) === targetKey) return index;
-        index += 1n;
-    }
-    throw new MissingValueError('find found no matching value');
-}
-
-function findAllValues(source: RankValue, target: RankValue): RankArray {
-    const values = findSource(source, 'findall');
-    const targetKey = setValueKey(target);
-    const positions: bigint[] = [];
-    let index = 0n;
-    for (const value of values) {
-        if (setValueKey(value) === targetKey) positions.push(index);
-        index += 1n;
-    }
-    return ownedArray(positions, [positions.length]);
-}
-
-function* findSource(source: RankValue, operation: string): IterableIterator<RankValue> {
-    if (typeof source === 'string') {
-        yield* source;
-        return;
-    }
-    if (!isRankArray(source) || source.shape.length !== 1) {
-        throw new RankError(`${operation} expects text or a rank-1 array`, 'TypeError');
-    }
-    for (let index = 0; index < source.shape[0]; index += 1) yield readArrayItem(source, index);
 }
 
 function* collectionValues(value: RankValue, operation: string): IterableIterator<RankValue> {
@@ -643,86 +614,9 @@ function shapeOf(value: RankValue): RankValue {
     return ownedArray([...dimensions]);
 }
 
-export function sortValue(value: RankValue, descending = false): RankValue {
-    const source = orderedSource(value, 'sortable', 'sort');
-    if (!source?.vector) throw new RankError('sort expects text or a rank-1 array');
-    const items = source.vector();
-    const kind = sortableKind(items, 'sort');
-    items.sort(interruptibleCallback((left, right) => (descending ? -1 : 1) * compareOrderedValues(left, right, kind), 'sorting'));
-    return source.build(items);
-}
-
-export function argsortValue(value: RankValue, descending = false): RankArray {
-    const source = orderedSource(value, 'sortable', 'argsort');
-    if (!source?.vector) throw new RankError('argsort expects text or a rank-1 array');
-    const items = source.vector();
-    const order = stableOrder(items, sortableKind(items, 'argsort'), descending);
-    return ownedArray(order.map(index => BigInt(index)));
-}
-
-/** Count distinct keys without building the collection produced by unique. */
-export function uniqueLength(value: RankValue): bigint | undefined {
-    // Joining distinct code points can form new surrogate pairs in text.
-    if (typeof value === 'string') return undefined;
-    // Higher-rank arrays use unique's intrinsic rank to process each row.
-    if (isRankArray(value) && value.shape.length > 1) return undefined;
-    // SQLite has its own unique/len query path.
-    if (isRankSqliteTable(value)) return undefined;
-    if (isRankSequence(value) && value.plan.size.kind === 'infinite') return undefined;
-    const source = orderedSource(value, 'unique', 'unique');
-    if (!source) return undefined;
-    if (source.alreadyDistinct) return lengthOf(value);
-    const values = source.values();
-    const keyOf = source.key ?? setValueKey;
-    const seen = new Set<string>();
-    let count = 0n;
-    for (const item of values) {
-        checkpoint('counting distinct values');
-        const key = keyOf(item);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        count += 1n;
-    }
-    return count;
-}
-
-function uniqueValue(value: RankValue): RankValue {
-    const source = orderedSource(value, 'unique', 'unique');
-    if (!source) throw new RankError('unique expects text or a collection');
-    if (source.alreadyDistinct) return value;
-    const values = source.values();
-    const keyOf = source.key ?? setValueKey;
-    const distinct = { *[Symbol.iterator]() {
-        const seen = new Set<string>();
-        for (const item of values) {
-            const key = keyOf(item);
-            if (seen.has(key)) continue;
-            seen.add(key);
-            yield item;
-        }
-    } };
-    return source.build(distinct);
-}
-
 function arrayItems(value: RankArray): RankValue[] {
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
     return Array.from({ length: size }, (_, index) => readArrayItem(value, index));
-}
-
-function sortableKind(items: readonly RankValue[], operation: string): OrderedKind {
-    if (items.length === 0) return 'numeric';
-    const kinds = new Set(items.map(orderedKind));
-    if (kinds.size !== 1) {
-        throw new RankError(`${operation} array elements must have one comparable type`);
-    }
-    return [...kinds][0];
-}
-
-function stableOrder(items: readonly RankValue[], kind: OrderedKind, descending = false): number[] {
-    return items
-        .map((_, position) => position)
-        .sort(interruptibleCallback((left, right) =>
-            (descending ? -1 : 1) * compareOrderedValues(items[left], items[right], kind) || left - right, 'sorting'));
 }
 
 function arraySize(shape: readonly number[]): number {
@@ -825,6 +719,8 @@ function fibonacciPlan(
 ): SequencePlan {
     return {
         name: evenOnly ? 'even fibonacci' : 'fibonacci',
+        replay: 'pure',
+        replCursor: true,
         size: boundary
             ? { kind: 'exact', value: fibonacciSize(boundary, evenOnly, lower) }
             : { kind: 'infinite' },
@@ -916,7 +812,11 @@ export function directedSort(
     if (name === 'argsort') return { ...fn, call: args => argsortValue(args[0], descending) };
     if (mode === 'indexes') return { ...fn, call: args => argsortValue(args[0], descending) };
     if (mode === 'indexed') {
-        return { ...fn, call: args => tuple([sortValue(args[0], descending), argsortValue(args[0], descending)]) };
+        return { ...fn, call: args => {
+            const fast = numericSort(args[0], descending, 'indexed');
+            return fast ? tuple([fast.values!, fast.indexes!])
+                : tuple([sortValue(args[0], descending), argsortValue(args[0], descending)]);
+        } };
     }
     return { ...fn, call: args => sortValue(args[0], descending) };
 }

@@ -1,0 +1,9 @@
+use testing
+
+test "statement limit"
+  use "310_nimsquare"
+  Limit = 29
+  run
+
+  Answer equal 1160
+end

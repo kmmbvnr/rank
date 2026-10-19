@@ -1,0 +1,14 @@
+use testing
+
+test "small Eulerian sums"
+  use "330_eulerian"
+  0 7 residue equal 0
+  1 7 residue equal 6
+  2 7 residue equal 2
+  10 solve equal 64356042
+end
+
+test "given modulus"
+  use "330_eulerian"
+  1000000000 solve equal 15955822
+end

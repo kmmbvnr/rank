@@ -1,0 +1,19 @@
+use testing
+
+test "published ten thousand"
+  use "311_biclinic"
+  Limit = 10000
+  Block = 4000
+  run
+
+  Answer equal 49
+end
+
+test "published million"
+  use "311_biclinic"
+  Limit = 1000000
+  Block = 400000
+  run
+
+  Answer equal 38239
+end

@@ -2,6 +2,7 @@ import { expect, it, vi } from 'vitest';
 import { Interpreter, formatValue, type InterpreterOptions } from '../src/index.js';
 
 const probes: { tier: keyof InterpreterOptions; source: string; options?: InterpreterOptions }[] = [
+    { tier: 'onGeneratorLoopExecuted', source: 'fun values\n for N in 1 to 3\n  yield N\n end\nend\nvalues array' },
     { tier: 'onIntegerLoopExecuted', source: 'Sum = 0\nfor I in 1 to 20\n Sum += I\nend\nSum' },
     { tier: 'onScalarExecuted', options: { scalarEntryCompilation: false, scalarFunctionCompilation: false },
         source: 'fun A B calc\n return A * 3 + B\nend\n2 4 calc' },
@@ -40,7 +41,8 @@ it.each(probes)('executes $tier only with compilation enabled', ({ tier, source,
 });
 
 it('disables all compilation switches even when individual tiers are explicitly enabled', () => {
-    const runtime = new Interpreter(undefined, { compilation: false, tensorCellCompilation: true, scalarCompilation: true });
+    const runtime = new Interpreter(undefined, { compilation: false, tensorCellCompilation: true, scalarCompilation: true,
+        generatorLoopCompilation: true, booleanSelectionCompilation: true });
     try {
         for (const [name, value] of Object.entries(runtime.options)) {
             if (name.endsWith('Compilation') || name === 'tensorFusion') expect(value, name).toBe(false);

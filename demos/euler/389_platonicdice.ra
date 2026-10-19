@@ -1,0 +1,17 @@
+rem Platonic Dice
+rem https://projecteuler.net/problem=389
+
+use numbers
+use io
+
+rem Carry mean and variance, not a PMF.
+Mean = 2.5
+Var = 1.25
+for S in array 6 8 12 20
+  A = (S + 1) / 2
+  B = (S * S - 1) / 12
+  Var = B * Mean + A * A * Var
+  Mean *= A
+end
+Answer = Var round 4
+Answer print

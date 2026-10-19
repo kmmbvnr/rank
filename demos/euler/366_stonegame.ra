@@ -1,0 +1,108 @@
+rem Stone Game III
+rem https://projecteuler.net/problem=366
+
+use sequences
+use io
+use cli
+
+option Limit integer = 10 ** 18
+
+Answer = Limit stones mod (10 ** 8)
+Answer print
+
+fun N tri
+  return N * (N + 1) // 2
+end
+
+fun A B rangesum
+  if B less A
+    return 0
+  end
+  return (A + B) * (B - A + 1) // 2
+end
+
+fun Pre K J tailpref
+  if K at most 4
+    return 0
+  end
+  if K equal 5
+    return 1
+  end
+  if K equal 6
+    return 2
+  end
+  A = Pre (K - 3)
+  B = Pre (K - 2) - 1
+  Len = B - A + 1
+  if J less Len
+    return A (A + J) rangesum
+  end
+  Left = A B rangesum
+  Right = Pre (K - 2) (J - Len) tailpref
+  return Left + Right
+end
+
+fun F Pre Tail Full K I intpref
+  Len = F (K - 1)
+  if I at least Len - 1
+    return Full K
+  end
+  if K at most 2
+    return 0
+  end
+  P = Pre K
+  if I less P
+    return I tri
+  end
+  Left = (P - 1) tri
+  Right = Pre K (I - P) tailpref
+  return Left + Right
+end
+
+fun N stones
+  F = array 1 1 2
+  for F (F len - 1) at most N
+    L = F len
+    Next = F (L - 1) + F (L - 2)
+    F = concat F (array Next)
+  end
+  Last = F len - 2
+  Pre = array shape (F len) fill 0
+  Tail = array shape (F len) fill 0
+  Full = array shape (F len) fill 0
+  All = array shape (F len) fill 0
+  Pre 1 = 1
+  Pre 2 = 1
+  Pre 3 = 2
+  Pre 4 = 3
+  Pre 5 = 4
+  for I in 6 to Last
+    Pre I = F (I - 2) + Pre (I - 3)
+  end
+  Tail 5 = 1
+  Tail 6 = 2
+  for I in 7 to Last
+    A = Pre (I - 3)
+    B = Pre (I - 2) - 1
+    Block = A B rangesum
+    Tail I = Tail (I - 2) + Block
+  end
+  for I in 3 to Last
+    Base = (Pre I - 1) tri
+    Full I = Base + Tail I
+  end
+  for I in 1 to Last
+    Value = Full I
+    All I = All (I - 1) + Value
+  end
+  K = 1
+  for (K + 1) less (F len)
+    if F (K + 1) greater N
+      break
+    end
+    K += 1
+  end
+  I = N - F K
+  Rest = F Pre Tail Full K I intpref
+  return All (K - 1) + Rest
+end

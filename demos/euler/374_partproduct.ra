@@ -1,0 +1,57 @@
+rem Maximum Integer Partition Product
+rem https://projecteuler.net/problem=374
+
+use numbers
+use io
+use cli
+
+option Limit integer = 10 ** 14
+
+Mod = 982451653
+M = ((8 * Limit + 9) isqrt - 3) // 2
+Top = M + 3
+Inv = array shape (Top + 1) fill 0
+Inv 1 = 1
+for I in 2 to Top
+  V = (Mod // I) * (Inv (Mod mod I))
+  Inv I = (Mod - V mod Mod) mod Mod
+end
+Answer = 1
+Fact = 1
+Harm = 0
+Upto = 1
+for M in 1 to M
+  Target = M + 2
+  for Upto less Target
+    Upto += 1
+    Fact = Fact * Upto mod Mod
+    Harm += Inv Upto
+    Harm = Harm mod Mod
+  end
+  Start = M * (M + 3) // 2
+  End = (M + 1) * (M + 4) // 2 - 1
+  Len = (Limit End min) - Start + 1
+  Base = (M mod Mod) * Fact mod Mod
+  Add = 0
+  if Len at most M
+    Part = 0
+    for D in (M + 3 - Len) to (M + 2)
+      Part += Inv D
+      Part = Part mod Mod
+    end
+    Add = Base * Part mod Mod
+  else
+    Add = Base * Harm mod Mod
+    if Len equal M + 2
+      More = Fact * (M + 3) mod Mod
+      More = More * (M mod Mod) mod Mod
+      Half = (Mod + 1) // 2
+      More = More * Half mod Mod
+      Div = Inv (M + 2)
+      More = More * Div mod Mod
+      Add = (Add + More) mod Mod
+    end
+  end
+  Answer = (Answer + Add) mod Mod
+end
+Answer print

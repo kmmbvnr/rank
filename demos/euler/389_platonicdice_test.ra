@@ -1,0 +1,9 @@
+use testing
+
+test "Platonic dice variance"
+  use "389_platonicdice"
+  run
+  Mean equal 2687.34375
+  Var round 4 equal 2406376.3623
+  Answer equal 2406376.3623
+end

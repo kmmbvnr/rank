@@ -1,0 +1,17 @@
+use testing
+
+test "given expected black sheep"
+  use "339_peredur"
+  use numbers
+  5 expected round 6 equal 6.871346
+end
+
+test "small expected black sheep"
+  use "339_peredur"
+  use numbers
+  1 expected round 12 equal 1.0
+  Two = 2 expected round 12
+  Three = 3 expected round 12
+  Two equal 2.291666666667
+  Three equal 3.751893939394
+end

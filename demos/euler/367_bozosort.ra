@@ -1,0 +1,167 @@
+rem Bozo Sort
+rem https://projecteuler.net/problem=367
+
+use algo
+use linalg
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 11
+
+Answer = N bozo 0 round
+Answer print
+
+fun R Top Code Out parts
+  if R equal 0
+    Out push Code
+    return Out
+  end
+  End = R Top min
+  for X in 1 to End reverse
+    Next = Code * 12 + X
+    Out = (R - X) X Next Out parts
+  end
+  return Out
+end
+
+fun N Code rep
+  P = array shape N fill 0
+  At = 0
+  for Code greater 0
+    Len = Code mod 12
+    for I in 0 till (Len - 1)
+      P (At + I) = At + I + 1
+    end
+    P (At + Len - 1) = At
+    At += Len
+    Code //= 12
+  end
+  return P
+end
+
+fun P kind
+  N = P len
+  Seen = array shape N fill false
+  Ls = new queue
+  for I in 0 till N
+    if not Seen I
+      J = I
+      Len = 0
+      for not Seen J
+        Seen J = true
+        J = P J
+        Len += 1
+      end
+      Ls push Len
+    end
+  end
+  Key = 0
+  for Len in Ls array sort reverse
+    Key = Key * 12 + Len
+  end
+  return Key
+end
+
+fun Cs Key lookup
+  for I in 0 till (Cs len)
+    if Cs I equal Key
+      return I
+    end
+  end
+  return -1
+end
+
+fun N fact
+  R = 1
+  for I in 2 to N
+    R *= I
+  end
+  return R
+end
+
+fun N Code classsize
+  Freq = array shape (N + 1) fill 0
+  for Code greater 0
+    Len = Code mod 12
+    Freq Len += 1
+    Code //= 12
+  end
+  Den = 1
+  for Len in 1 to N
+    Pow = 1
+    Count = Freq Len
+    for I in 1 to Count
+      Pow *= Len
+    end
+    Ways = Count fact
+    Den *= Pow * Ways
+  end
+  return N fact // Den
+end
+
+fun N bozo
+  Q = new queue
+  Q = N N 0 Q parts
+  Cs = Q array
+  Cnt = Cs len
+  M = Cnt - 1
+  A = array shape M M fill 0.0
+  B = array shape M fill 1.0
+  Pairs = N * (N - 1) // 2
+  Cycles = N * (N - 1) * (N - 2) // 3
+  for I in 0 till M
+    P = N (Cs I) rep
+    C2 = array shape Cnt fill 0
+    C3 = array shape Cnt fill 0
+    for X in 0 till N
+      for Y in (X + 1) till N
+        T = P copy
+        V = T X
+        T X = T Y
+        T Y = V
+        Key = T kind
+        To = Cs Key lookup
+        C2 To += 1
+        for Z in (Y + 1) till N
+          T = P copy
+          U = T X
+          V = T Y
+          W = T Z
+          T X = V
+          T Y = W
+          T Z = U
+          Key = T kind
+          To = Cs Key lookup
+          C3 To += 1
+          T = P copy
+          U = T X
+          V = T Y
+          W = T Z
+          T X = W
+          T Y = U
+          T Z = V
+          Key = T kind
+          To = Cs Key lookup
+          C3 To += 1
+        end
+      end
+    end
+    for J in 0 till M
+      Coef = -0.5 * C2 J / Pairs
+      Coef -= C3 J / (3.0 * Cycles)
+      if I equal J
+        Coef += 5.0 / 6.0
+      end
+      A I J = Coef
+    end
+  end
+  H = A B solve
+  Num = 0.0
+  Den = N fact
+  for I in 0 till M
+    Num += N (Cs I) classsize * H I
+  end
+  return Num / Den
+end

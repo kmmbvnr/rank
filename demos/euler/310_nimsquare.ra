@@ -1,0 +1,40 @@
+rem Nim Square
+rem https://projecteuler.net/problem=310
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 100000
+
+G = array shape (Limit + 1) fill 0
+Seen = array shape 128 fill -1
+for N in 1 to Limit
+  Root = (N ** 0.5) floor
+  K = 1 to Root array
+  V = G (N - K * K)
+  Seen V = N
+  Missing = Seen not equal N
+  G N = Seen first index where Missing
+end
+Max = G max
+Pre = array shape (Max + 1) fill 0
+Suf = array shape (Max + 1) fill 0
+for V in G
+  Suf V += 1
+end
+Answer = 0
+for B in 0 to Limit
+  Gb = G B
+  Pre Gb += 1
+  for Ga in 0 to Max
+    Gc = Ga Gb bxor
+    if Gc at most Max
+      Answer += Pre Ga * Suf Gc
+    end
+  end
+  Suf Gb -= 1
+end
+Answer print

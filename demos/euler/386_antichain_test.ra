@@ -1,0 +1,20 @@
+use testing
+
+test "maximum antichain"
+  use "386_antichain"
+  Limit = 10
+  run
+  Answer equal 12
+  Limit = 100
+  run
+  Answer equal 178
+  Limit = 1000
+  run
+  Answer equal 2385
+  Limit = 10000
+  run
+  Answer equal 29860
+  Limit = 100000
+  run
+  Answer equal 357503
+end

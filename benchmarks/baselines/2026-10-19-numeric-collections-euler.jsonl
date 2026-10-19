@@ -1,0 +1,3 @@
+{"baselineCommit":"96a22cbdb1206c3229c579287444373b255abef2","candidateCommit":"d44ed2e1e0172c8e327db3cb5d20103289f3904f","program":"demos/euler/155_capacitors.ra","count":18}
+{"label":"baseline","coldMs":31424.784625,"answer":"3857447","exitCode":0}
+{"label":"candidate","coldMs":18198.734290999997,"answer":"3857447","exitCode":0}

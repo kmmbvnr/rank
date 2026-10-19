@@ -1,0 +1,79 @@
+rem A Huge Binomial Coefficient
+rem https://projecteuler.net/problem=365
+
+use sequences
+use numbers
+use io
+use cli
+
+option N integer = 10 ** 18
+option K integer = 10 ** 9
+option Lo integer = 1000
+option Hi integer = 5000
+
+Ps = primes from Lo till Hi array
+Answer = N K Ps triples
+Answer print
+
+fun N K P lucas
+  F = array shape P fill 1
+  for I in 1 till P
+    F I = F (I - 1) * I mod P
+  end
+  R = 1
+  A = N
+  B = K
+  for A + B greater 0
+    X = A mod P
+    Y = B mod P
+    if Y greater X
+      return 0
+    end
+    R = R * F X mod P
+    U = F Y (P - 2) P powmod
+    V = F (X - Y) (P - 2) P powmod
+    R = R * U mod P
+    R = R * V mod P
+    A //= P
+    B //= P
+  end
+  return R
+end
+
+fun N K Ps triples
+  M = Ps len
+  Rs = array shape M fill 0
+  for I in 0 till M
+    Rs I = N K (Ps I) lucas
+  end
+  Inv = array shape M M fill 0
+  for I in 0 till M
+    for J in (I + 1) till M
+      P = Ps I
+      Q = Ps J
+      V = P mod Q
+      Inv I J = V (Q - 2) Q powmod
+    end
+  end
+  Sum = 0
+  for I in 0 till (M - 2)
+    P = Ps I
+    A = Rs I
+    for J in (I + 1) till (M - 1)
+      Q = Ps J
+      B = Rs J
+      T = (B - A + Q) * (Inv I J) mod Q
+      X = A + P * T
+      PQ = P * Q
+      for L in (J + 1) till M
+        R = Ps L
+        C = Rs L
+        D = C - X mod R + R
+        U = Inv I L * Inv J L mod R
+        U = D * U mod R
+        Sum += X + PQ * U
+      end
+    end
+  end
+  return Sum
+end

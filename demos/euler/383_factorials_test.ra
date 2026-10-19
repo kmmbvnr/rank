@@ -1,0 +1,11 @@
+use testing
+
+test "factorial divisibility"
+  use "383_factorials"
+  Limit = 1000
+  run
+  Answer equal 68
+  Limit = 10 ** 9
+  run
+  Answer equal 2408210
+end

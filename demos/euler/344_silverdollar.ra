@@ -1,0 +1,107 @@
+rem Silver Dollar Game
+rem https://projecteuler.net/problem=344
+
+use bits
+use numbers
+use io
+use cli
+
+option N integer = 1000000
+option C integer = 100
+
+M = 1000036000099
+P0 = 1000003
+P1 = 1000033
+
+fun Max P comb
+  Side = Max + 1
+  A = array shape Side Side fill 0
+  for I in 0 to Max
+    A I 0 = 1
+    A I I = 1
+    for J in 1 till I
+      X = A (I-1) (J-1)
+      A I J = X + A (I-1) J
+      A I J = A I J mod P
+    end
+  end
+  return A
+end
+
+fun N K P combmod
+  R = 1
+  for I in 1 to K
+    R = R * (N - K + I) mod P
+    R = R * (I (P - 2) P powmod) mod P
+  end
+  return R
+end
+
+fun A K R P ways
+  W = array shape (K + R + 1) fill 0
+  for X in 0 to K by 2
+    for Y in 0 to R
+      S = X + Y
+      W S += A K X * A R Y
+      W S = W S mod P
+    end
+  end
+  return W
+end
+
+fun S W P count
+  Z = W len - 1
+  D = array shape (Z + 1) fill 0
+  D 0 = 1
+  for B in 0 to 40
+    E = array shape (Z + 1) fill 0
+    Bit = (S B shr) 1 band
+    for Carry in 0 to Z
+      for Ones in 0 to Z
+        Total = Carry + Ones
+        if Total mod 2 equal Bit
+          Next = Total // 2
+          E Next += D Carry * W Ones
+          E Next = E Next mod P
+        end
+      end
+    end
+    D = E
+  end
+  return D 0
+end
+
+fun N C P solvep
+  if C equal 0
+    return N mod P
+  end
+  Coins = C + 1
+  Empty = N - Coins
+  A = Coins P comb
+  K = (Coins + 1) // 2
+  R = Coins - K + 1
+  W0 = A K R P ways
+  L0 = Empty W0 P count
+  Lose = 0
+  if Coins mod 2 equal 0
+    Lose = (Coins - 1) * L0
+  else
+    W1 = A (K - 1) R P ways
+    L1 = (Empty + 1) W0 P count
+    L1 -= (Empty + 1) W1 P count
+    Lose = L0 + (Coins - 2) * L1
+  end
+  Total = Coins * (N Coins P combmod)
+  return (Total - Lose) mod P
+end
+
+fun A B crt
+  T = (B - A) mod P1
+  I = (P0 mod P1) (P1 - 2) P1 powmod
+  return (A + P0 * (T * I mod P1)) mod M
+end
+
+A = N C P0 solvep
+B = N C P1 solvep
+Answer = A B crt
+Answer print

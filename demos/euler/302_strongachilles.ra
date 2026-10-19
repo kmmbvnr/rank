@@ -1,0 +1,120 @@
+rem Strong Achilles Numbers
+rem https://projecteuler.net/problem=302
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option Limit integer = 10 ** 18
+
+rem The largest prime has exponent at
+rem least three, so it is below cbrt N.
+Root = (Limit ** (1 / 3)) floor
+for (Root + 1) ** 3 less Limit
+  Root += 1
+end
+for Root ** 3 at least Limit
+  Root -= 1
+end
+Pr = primes to Root array
+Spf = array shape (Root + 1) fill 0
+for P in Pr
+  Ix = P to Root by P array
+  Old = Spf Ix
+  Free = Ix filter (Old equal 0) array
+  Spf Free = P
+end
+Facs = new index
+Empty = array shape 0 fill 0
+Last = Pr len - 1
+Answer = 1 Empty 0 0 Last Facs g
+Answer print
+
+rem Fs holds unfinished factors of phi.
+rem Gp holds finished exponent gcds.
+fun N Fs Gn Gp Max C g
+  Total = 0
+  if Gn equal 1
+    G = Gp
+    Done = true
+    if Fs len greater 0
+      Ks = Fs unique
+      Cnt = new counter Fs
+      Es = Cnt Ks
+      if (Es less 2) any
+        Done = false
+      else
+        for E in Es
+          G = G E gcd
+        end
+      end
+    end
+    if Done
+      if G equal 1
+        Total = 1
+      end
+    end
+  end
+  Cnt = new counter Fs
+  for I in 0 to Max
+    P = Pr I
+    Pow = P * P
+    if N * Pow at least Limit
+      break
+    end
+    Have = Cnt P
+    Exp = 2
+    if Have equal 0
+      Pow *= P
+      Exp += 1
+    end
+    if N * Pow at least Limit
+      continue
+    end
+    High = Fs filter Fs greater P array
+    Low = Fs filter Fs less P array
+    G2 = Gp
+    Ok = true
+    if High len greater 0
+      Hs = High unique
+      Hc = new counter High
+      He = Hc Hs
+      if (He less 2) any
+        Ok = false
+      else
+        for E in He
+          G2 = G2 E gcd
+        end
+      end
+    end
+    if not Ok
+      continue
+    end
+    Base = P - 1
+    if Base not in C
+      V = Base
+      F = array shape 0 fill 0
+      for V greater 1
+        Q = Spf V
+        F = concat F (array Q)
+        V //= Q
+      end
+      C Base = F
+    end
+    for N * Pow less Limit
+      Next = N * Pow
+      F2 = concat Low (C Base)
+      Gn2 = Gn Exp gcd
+      Ep = Have + Exp - 1
+      Gp2 = G2 Ep gcd
+      Prev = I - 1
+      More = Next F2 Gn2 Gp2 Prev C g
+      Total += More
+      Pow *= P
+      Exp += 1
+    end
+  end
+  return Total
+end

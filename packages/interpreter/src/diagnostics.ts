@@ -6,11 +6,26 @@ export class RuntimeDiagnostics {
     cacheMisses = 0;
     memoHits = 0;
     memoMisses = 0;
+    sequenceReplayHits = 0;
+    sequencePredicateCalls = 0;
+    sequenceCachedValues = 0;
+    /** Accounted payload minus explicit evictions, without observing host GC.
+     * Use heap/RSS measurements for actual process memory. */
+    sequenceCacheBytes = 0;
+    sequenceCachePeakBytes = 0;
+    sequenceCacheEvictions = 0;
     cellsComputed = 0;
     invalidations = 0;
     hoistedReaders = 0;
     loopElementScans = 0;
     compiledLoops = 0;
+    compiledGeneratorLoops = 0;
+    integerMembershipFilters = 0;
+    compiledGraphAdds = 0;
+    numericSorts = 0;
+    numericDistincts = 0;
+    numericSearches = 0;
+    numericSearchIndexes = 0;
     numberLoops = 0;
     numberLoopOverflows = 0;
     compiledTensors = 0;

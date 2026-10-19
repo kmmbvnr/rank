@@ -1,0 +1,54 @@
+rem Hopping Game
+rem https://projecteuler.net/problem=391
+
+use numbers
+use io
+use cli
+
+option Limit integer = 1000
+
+rem Rows map residues zero through N.
+Stride = Limit + 1
+Rows = Limit + 2
+Size = Stride * Rows
+A = array shape Size fill 0
+B = array shape Size fill 0
+for V in 0 to Limit
+  A V = V
+  B V = V
+end
+Answer = 0
+for N in 1 to Limit
+  Step = N + 1
+  for S in 1 to Step
+    for M in 1 to S
+      Add = S - M + 1
+      Prev = (M - 1) * Stride
+      Cur = M * Stride
+      for V in 0 to N
+        X = B (Prev + V) + Add
+        if X at least Step
+          X = 0
+        end
+        B (Cur + V) = A (Prev + X)
+      end
+    end
+    Row = S * Stride
+    Val = B Row
+    Same = true
+    for V in 1 to N
+      if B (Row + V) not equal Val
+        Same = false
+        break
+      end
+    end
+    if Same
+      Answer += Val ** 3
+      break
+    end
+    Tmp = A
+    A = B
+    B = Tmp
+  end
+end
+Answer print

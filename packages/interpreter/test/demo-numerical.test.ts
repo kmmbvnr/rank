@@ -38,8 +38,8 @@ describe('numerical demo host oracles', () => {
     it('keeps the CSES maximum-subarray result across cached compiled entries and a changed array', () => {
         const source = readFileSync(new URL('../../../demos/cses/sortnsrch/008_maxsubarray.ra', import.meta.url), 'utf8');
         const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*max_subarray\b/));
-        const results = [false, true].map(integerLoopCompilation => {
-            const runtime = new Interpreter(undefined, { integerLoopCompilation });
+        const results = [{ integerLoopCompilation: false }, { numberLoopCompilation: false }, {}].map(options => {
+            const runtime = new Interpreter(undefined, options);
             const stats = new RuntimeDiagnostics();
             try {
                 runtime.execute(definition);
@@ -50,11 +50,14 @@ describe('numerical demo host oracles', () => {
                 const second = stats.run(() => fn.call([input]));
                 input.items[3] = 10n;
                 const changed = stats.run(() => fn.call([input]));
-                return { first, second, changed, scans: stats.loopElementScans, loops: stats.compiledLoops };
+                return { first, second, changed, scans: stats.loopElementScans, loops: stats.compiledLoops, numberLoops: stats.numberLoops };
             } finally { runtime.dispose(); }
         });
         expect(results[0]).toMatchObject({ first: 6n, second: 6n, changed: 12n });
-        expect({ ...results[1], scans: 0, loops: 0 }).toEqual(results[0]);
-        expect(results[1]).toMatchObject({ scans: 2, loops: 3 });
+        for (const result of results.slice(1)) {
+            expect({ ...result, scans: 0, loops: 0, numberLoops: 0 }).toEqual(results[0]);
+        }
+        expect(results[1]).toMatchObject({ scans: 2, loops: 3, numberLoops: 0 });
+        expect(results[2]).toMatchObject({ scans: 0, loops: 3, numberLoops: 3 });
     });
 });

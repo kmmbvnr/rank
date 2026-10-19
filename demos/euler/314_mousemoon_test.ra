@@ -1,0 +1,11 @@
+use testing
+use numbers
+
+test "small lattice ratio"
+  use "314_mousemoon"
+  Grid = 10
+  run
+
+  Off = Answer - 5.28335868
+  Off abs less 0.00000001
+end

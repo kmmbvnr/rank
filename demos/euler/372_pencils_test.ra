@@ -1,0 +1,7 @@
+use testing
+
+test "small ray counts"
+  use "372_pencils"
+  0 100 pencils equal 3019
+  100 1000 pencils equal 254713
+end

@@ -1,0 +1,10 @@
+use testing
+
+test "stone game sums"
+  use "325_stonegame"
+  1 solve equal 0
+  2 solve equal 0
+  10 solve equal 211
+  100000000 solve equal 258929048
+  10000000000000000 solve equal 54672965
+end

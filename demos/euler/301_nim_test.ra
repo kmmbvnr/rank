@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "301_nim"
+  run
+
+  Answer equal 2178309
+end
+
+test "small bit counts"
+  use "301_nim"
+  Bits = 3
+  run
+
+  Answer equal 5
+  Bits = 10
+  run
+
+  Answer equal 144
+end

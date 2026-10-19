@@ -1,0 +1,8 @@
+use testing
+use numbers
+
+test "given spherical area"
+  use "332_sphericaltriangles"
+  use numbers
+  14 sphere round 6 equal 3.294040
+end

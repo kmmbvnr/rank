@@ -1,0 +1,17 @@
+use testing
+
+test "statement prime limit"
+  use "313_sliding"
+  PrimeLimit = 100
+  run
+
+  Answer equal 5482
+end
+
+test "small prime limit"
+  use "313_sliding"
+  PrimeLimit = 10
+  run
+
+  Answer equal 8
+end

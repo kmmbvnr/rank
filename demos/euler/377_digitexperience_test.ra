@@ -1,0 +1,8 @@
+use testing
+
+test "first power of thirteen"
+  use "377_digitexperience"
+  Terms = 1
+  run
+  Answer equal 856884757
+end

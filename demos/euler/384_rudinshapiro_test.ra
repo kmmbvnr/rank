@@ -1,0 +1,11 @@
+use testing
+use algo
+
+test "Rudin-Shapiro visits"
+  use "384_rudinshapiro"
+  use algo
+  M = new index
+  M 3 3 find equal 6
+  M 4 2 find equal 7
+  M 54321 12345 find equal 1220847710
+end

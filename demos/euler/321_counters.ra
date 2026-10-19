@@ -1,0 +1,27 @@
+rem Swapping Counters
+rem https://projecteuler.net/problem=321
+
+use io
+use cli
+
+option Terms integer = 40
+
+AX = 5
+AY = 2
+BX = 11
+BY = 4
+Answer = 0
+for I in 1 to Terms
+  if AY less BY
+    Answer += AY - 1
+    NX = 3 * AX + 8 * AY
+    AY = AX + 3 * AY
+    AX = NX
+  else
+    Answer += BY - 1
+    NX = 3 * BX + 8 * BY
+    BY = BX + 3 * BY
+    BX = NX
+  end
+end
+Answer print

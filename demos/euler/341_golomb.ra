@@ -1,0 +1,58 @@
+rem Golomb's Self-describing Sequence
+rem https://projecteuler.net/problem=341
+
+use io
+use cli
+
+option Count integer = 1000000
+
+Count cubes print
+
+fun Count cubes
+  Max = (Count - 1) ** 3
+  Cap = 12 * Count
+  G = array shape Cap fill 0
+  G 1 = 1
+  Prod = 1
+  I = 2
+  for Prod less Max
+    Prev = I - 1
+    PrevG = G Prev
+    At = I - (G PrevG)
+    G I = 1 + G At
+    Prod += I * (G I)
+    I += 1
+  end
+  Idx = 1
+  Sum = 1
+  Products = 1
+  PrevSum = 0
+  PrevProd = 0
+  Answer = 0
+  for N in 1 till Count
+    Cube = N ** 3
+    for Products less Cube
+      Idx += 1
+      PrevSum = Sum
+      PrevProd = Products
+      V = G Idx
+      Sum += V
+      Products += Idx * V
+    end
+    Gap = Cube - PrevProd
+    Offset = (Gap + Idx - 1) // Idx
+    Answer += PrevSum + Offset
+  end
+  return Answer
+end
+
+fun N term
+  G = array shape (N + 1) fill 0
+  G 1 = 1
+  for I in 2 to N
+    Prev = I - 1
+    At = I - (G (G Prev))
+    G I = 1 + G At
+  end
+  return G N
+end

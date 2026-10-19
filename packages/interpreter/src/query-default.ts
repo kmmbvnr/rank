@@ -1,3 +1,6 @@
+import { isSingleCodePoint } from './text-search.js';
+import { numericFindPositions } from './numeric-search.js';
+import { numericKey } from './numeric-collections.js';
 import { denseScalarItems, ownedArray } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { setValueKey } from './set.js';
@@ -11,16 +14,36 @@ export function queryDefault(operation: 'find' | 'floor' | 'choose', left: RankV
     if (!items) return undefined;
     let probe: (query: RankValue) => RankValue;
     if (operation === 'find') {
+        // The character index only answers single-code-point text queries.
+        if (typeof left === 'string') {
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (typeof item === 'string' && !isSingleCodePoint(item)) return undefined;
+            }
+        }
         const source = typeof left === 'string' ? Array.from(left)
             : isRankArray(left) && left.shape.length === 1 ? denseScalarItems(left) : undefined;
         if (!source) return undefined;
-        const positions = new Map<string, bigint>();
-        for (let i = 0; i < source.length; i++) {
-            if (i % 4096 === 0) checkpoint('indexing queries');
-            const key = setValueKey(source[i]);
-            if (!positions.has(key)) positions.set(key, BigInt(i));
+        let numericQueries = true;
+        for (let i = 0; i < items.length; i++) {
+            if (numericKey(items[i]) === undefined) { numericQueries = false; break; }
         }
-        probe = value => positions.get(setValueKey(value)) ?? MISSING;
+        const numeric = numericQueries ? numericFindPositions(left) : undefined;
+        if (numeric) {
+            const positions = numeric;
+            probe = value => {
+                const position = positions.get(numericKey(value)!);
+                return position === undefined ? MISSING : BigInt(position);
+            };
+        } else {
+            const positions = new Map<string, bigint>();
+            for (let i = 0; i < source.length; i++) {
+                if (i % 4096 === 0) checkpoint('indexing queries');
+                const key = setValueKey(source[i]);
+                if (!positions.has(key)) positions.set(key, BigInt(i));
+            }
+            probe = value => positions.get(setValueKey(value)) ?? MISSING;
+        }
     } else if (operation === 'floor') {
         if (!isRankMultiset(left)) return undefined;
         probe = value => left.probeBound(value, 'floor') ?? MISSING;

@@ -1,0 +1,6 @@
+use testing
+
+test "millionth Golomb term"
+  use "341_golomb"
+  1000000 term equal 6137
+end

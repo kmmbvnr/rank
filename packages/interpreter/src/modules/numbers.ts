@@ -1,3 +1,5 @@
+import { integerSquareRoot } from '../integer-square-root.js';
+import { mapScalarArrays } from '../scalar-array-map.js';
 import { expectMultiset } from '../multiset.js';
 import { checkpoint } from '../interrupt.js';
 import { elementSource, type ElementSource } from '../element-source.js';
@@ -28,7 +30,7 @@ import {
     type SequencePlan,
     type SequencePredicate,
 } from '../value.js';
-import { expectInteger, expectNumeric, mapValue, native } from './shared.js';
+import { expectInteger, expectNumeric, mapValue, native, scalarNative } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const numbersModule: RuntimeModule = {
@@ -64,8 +66,8 @@ export const numbersModule: RuntimeModule = {
         }
         return Math.sqrt(Number(value));
     }),
-    isqrt: () => native('isqrt', 1, arguments_ => {
-        const value = expectInteger(arguments_[0]);
+    isqrt: () => scalarNative('isqrt', argument => {
+        const value = expectInteger(argument);
         if (value < 0n) {
             throw new RankError('isqrt expects a nonnegative integer', 'DomainError');
         }
@@ -88,11 +90,11 @@ export const numbersModule: RuntimeModule = {
     nan: () => Number.NaN,
     gcd: () => native('gcd', 2, arguments_ =>
         greatestCommonDivisor(expectInteger(arguments_[0]), expectInteger(arguments_[1]))),
-    powmod: () => native('powmod', 3, arguments_ => checkedModularPower(
+    powmod: () => native('powmod', 3, args => mapScalarArrays(args, arguments_ => checkedModularPower(
         expectInteger(arguments_[0]),
         expectInteger(arguments_[1]),
         expectInteger(arguments_[2]),
-    )),
+    ))),
     binomial: () => native('binomial', 2, arguments_ => mapBinaryValue(
         arguments_[0],
         arguments_[1],
@@ -162,7 +164,7 @@ function mapUnaryNumeric(
     // A cell with no value stays without one.
     const apply = (item: RankValue): RankValue =>
         item === MISSING ? MISSING : operation(numericReal(item, name));
-    if (isRankSequence(value)) return mapSequence(value, name, apply);
+    if (isRankSequence(value)) return mapSequence(value, name, apply, true);
     if (!isRankArray(value)) return apply(value);
     // A large stored array is mapped at once; a cell that raises leaves the
     // lazy path to raise it when read.
@@ -195,13 +197,13 @@ function mapBinaryValue(
     const scalarOperation = (a: RankValue, b: RankValue): RankValue =>
         a === MISSING || b === MISSING ? MISSING : operation(a, b);
     if (isRankSequence(left) && isRankSequence(right)) {
-        return zipSequences(left, right, name, scalarOperation);
+        return zipSequences(left, right, name, scalarOperation, true);
     }
     if (isRankSequence(left)) {
-        return mapSequence(left, name, item => scalarOperation(item, right));
+        return mapSequence(left, name, item => scalarOperation(item, right), typeof right !== 'object');
     }
     if (isRankSequence(right)) {
-        return mapSequence(right, name, item => scalarOperation(left, item));
+        return mapSequence(right, name, item => scalarOperation(left, item), typeof left !== 'object');
     }
     if (isRankQueue(left)) left = { kind: 'array', items: left.items, shape: [left.items.length] };
     if (isRankQueue(right)) right = { kind: 'array', items: right.items, shape: [right.items.length] };
@@ -233,18 +235,6 @@ function unitDomain(value: number): boolean {
     return value >= -1 && value <= 1;
 }
 
-/** Return the exact floor of the square root using integer Newton iteration. */
-function integerSquareRoot(value: bigint): bigint {
-    if (value < 2n) return value;
-    const bits = BigInt(value.toString(2).length);
-    let root = 1n << ((bits + 1n) / 2n);
-    for (;;) {
-        checkpoint('computing numbers');
-        const next = (root + value / root) / 2n;
-        if (next >= root) return root;
-        root = next;
-    }
-}
 
 export function roundValue(value: RankValue, placesValue: RankValue): RankValue {
     if (typeof placesValue !== 'bigint') {
@@ -261,7 +251,7 @@ export function roundValue(value: RankValue, placesValue: RankValue): RankValue 
         if (typeof scalar === 'number') return roundReal(scalar, places);
         throw new RankError('round expects numeric input', 'TypeError');
     };
-    if (isRankSequence(value)) return mapSequence(value, 'round', roundScalar);
+    if (isRankSequence(value)) return mapSequence(value, 'round', roundScalar, true);
     if (!isRankArray(value)) return roundScalar(value);
 
     return derivedArray(value.shape, [value], index =>
@@ -652,7 +642,7 @@ function integerBound(value: RankValue, name: string, operation: (value: number)
         if (!Number.isFinite(number)) throw new RankError(`${name} expects a finite number`, 'DomainError');
         return BigInt(operation(number));
     };
-    if (isRankSequence(value)) return mapSequence(value, name, apply);
+    if (isRankSequence(value)) return mapSequence(value, name, apply, true);
     return isRankArray(value) ? derivedArray(value.shape, [value], i => apply(value.itemAt?.(i) ?? value.items[i]), true)
         : apply(value);
 }

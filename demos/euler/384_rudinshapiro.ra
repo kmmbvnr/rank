@@ -1,0 +1,66 @@
+rem Rudin-Shapiro Sequence
+rem https://projecteuler.net/problem=384
+
+use io
+use algo
+
+F = array shape 46 fill 0
+F 0 = 1
+F 1 = 1
+for I in 2 to 45
+  F I = F (I - 1) + F (I - 2)
+end
+Memo = new index
+Answer = 0
+for I in 2 to 45
+  Answer += Memo (F I) (F (I - 1)) find
+end
+Answer print
+
+rem Position of Cth visit to T.
+fun Memo T C find
+  if T equal 1
+    return 0
+  end
+  Key = T * (T + 1) // 2 + C
+  if Key in Memo
+    return Memo Key
+  end
+  H = 1
+  for 2 * H at most T
+    H *= 2
+  end
+  D = T - H
+  Result = 0
+  if D equal 0
+    if C at most T // 2
+      Part = Memo (T // 2) C find
+      Result = T * T // 4 + Part
+    else
+      Part = Memo T (C - T // 2) find
+      Result = T * T // 2 + Part
+    end
+  else
+    if C greater H
+      U = 2 * H - D
+      W = C - H
+      Part = Memo U W find
+      Result = H * H + Part
+    else
+      if C greater H - D
+        Part = Memo D (C + D - H) find
+        Result = H * H + Part
+      else
+        if C at most D
+          Part = Memo D C find
+          Result = H * H // 2 + Part
+        else
+          Part = Memo (2 * H - T) C find
+          Result = H * H // 2 + Part
+        end
+      end
+    end
+  end
+  Memo Key = Result
+  return Result
+end

@@ -1,0 +1,68 @@
+rem Sum of a Square and a Cube
+rem https://projecteuler.net/problem=348
+
+use numbers
+use algo
+use io
+use cli
+
+option Want integer = 5
+
+fun Prefix Odd mirror
+  Tail = Prefix
+  if Odd
+    Tail //= 10
+  end
+  Value = Prefix
+  for Tail greater 0
+    Value = Value * 10 + Tail mod 10
+    Tail //= 10
+  end
+  return Value
+end
+
+fun N reps
+  Count = 0
+  for B in 2 to (N isqrt)
+    Cube = B * B * B
+    if Cube + 4 greater N
+      break
+    end
+    Rest = N - Cube
+    A = Rest isqrt
+    if A * A equal Rest
+      Count += 1
+    end
+  end
+  return Count
+end
+
+fun Want solve
+  Hits = new queue
+  Len = 1
+  for Hits len less Want
+    Odd = Len mod 2 equal 1
+    Half = (Len + 1) // 2
+    From = 1
+    if Len greater 1
+      From = 10 ** (Half - 1)
+    end
+    To = 10 ** Half - 1
+    for Prefix in From to To
+      Value = Prefix Odd mirror
+      if Value at least 12
+        if Value reps equal 4
+          Hits push Value
+          if Hits len equal Want
+            break
+          end
+        end
+      end
+    end
+    Len += 1
+  end
+  return Hits sum
+end
+
+Answer = Want solve
+Answer print

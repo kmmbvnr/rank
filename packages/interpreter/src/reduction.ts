@@ -1,6 +1,7 @@
 import { elementSource } from './element-source.js';
 import { denseScalarItems, derivedArray, materializeCells, eagerOperandItems, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
+import { pureLazyFunction } from './lazy-function.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { sumIndexed } from './modules/numbers.js';
@@ -91,7 +92,7 @@ export class ReductionEvaluator {
     }
 
     evaluateNamedScan(operation: NativeFunction, value: RankValue, seed?: RankValue): RankValue {
-        if (isRankSequence(value)) operation = operation.snapshot?.() ?? operation;
+        if (isRankSequence(value)) operation = pureLazyFunction(operation);
         const scalar = this.scalarCallback(operation);
         return this.scanValues(value, operation.name, seed, (left, right) => {
             const arguments_ = [left, right];
@@ -159,7 +160,7 @@ export class ReductionEvaluator {
             throw new RankError(`scan ${operator} expects a rank-1 value`);
         }
         if (isRankSequence(value)) {
-            return scanSequence(value, operator, seed, operation);
+            return scanSequence(value, operator, seed, operation, true);
         }
         const result: RankValue[] = [];
         if (seed !== undefined) result.push(seed);

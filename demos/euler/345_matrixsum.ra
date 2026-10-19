@@ -1,0 +1,71 @@
+rem Matrix Sum
+rem https://projecteuler.net/problem=345
+
+use bits
+use sequences
+use text
+use io
+
+Rows = array shape 30 fill ""
+Rows 0 = "7 53 183 439 863 497 383 563"
+Rows 1 = "79 973 287 63 343 169 583"
+Rows 2 = "627 343 773 959 943"
+Rows 2 += " 767 473 103"
+Rows 3 = "699 303 957 703 583 639 913"
+Rows 4 = "447 283 463 29 23 487 463 993"
+Rows 5 = "119 883 327 493 423 159 743"
+Rows 6 = "217 623 3 399 853 407 103 983"
+Rows 7 = "89 463 290 516 212 462 350"
+Rows 8 = "960 376 682 962 300"
+Rows 8 += " 780 486 502"
+Rows 9 = "912 800 250 346 172 812 350"
+Rows 10 = "870 456 192 162 593"
+Rows 10 += " 473 915 45"
+Rows 11 = "989 873 823 965 425 329 803"
+Rows 12 = "973 965 905 919 133"
+Rows 12 += " 673 665 235"
+Rows 13 = "509 613 673 815 165 992 326"
+Rows 14 = "322 148 972 962 286"
+Rows 14 += " 255 941 541"
+Rows 15 = "265 323 925 281 601 95 973"
+Rows 16 = "445 721 11 525 473"
+Rows 16 += " 65 511 164"
+Rows 17 = "138 672 18 428 154 448 848"
+Rows 18 = "414 456 310 312 798"
+Rows 18 += " 104 566 520"
+Rows 19 = "302 248 694 976 430 392 198"
+Rows 20 = "184 829 373 181 631"
+Rows 20 += " 101 969 613"
+Rows 21 = "840 740 778 458 284 760 390"
+Rows 22 = "821 461 843 513 17"
+Rows 22 += " 901 711 993"
+Rows 23 = "293 157 274 94 192 156 574"
+Rows 24 = "34 124 4 878 450 476 712 914"
+Rows 25 = "838 669 875 299 823 329 699"
+Rows 26 = "815 559 813 459 522"
+Rows 26 += " 788 168 586"
+Rows 27 = "966 232 308 833 251 631 107"
+Rows 28 = "813 883 451 509 615"
+Rows 28 += " 77 281 613"
+Rows 29 = "459 205 380 274 302 35 805"
+Text = Rows " " join
+Nums = Text " " split integer rank 0
+A = Nums reshape 15 15
+
+Dp = array shape (2 ** 15) fill -1
+Dp 0 = 0
+for Mask in 0 till (2 ** 15)
+  Row = Mask popcount
+  if Dp Mask at least 0
+    for Col in 0 till 15
+      Bit = 1 Col shl
+      if (Mask Bit band) equal 0
+        Next = Mask Bit bor
+        Value = Dp Mask + A Row Col
+        Dp Next = Dp Next Value max
+      end
+    end
+  end
+end
+Answer = Dp ((2 ** 15) - 1)
+Answer print

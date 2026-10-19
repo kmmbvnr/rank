@@ -1,0 +1,6 @@
+use testing
+
+test "small two prime maxima"
+  use "347_twoprimes"
+  100 twoprimes equal 2262
+end

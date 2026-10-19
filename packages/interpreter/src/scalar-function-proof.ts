@@ -11,7 +11,7 @@ import { recordFallback } from './diagnostics.js';
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'sequence-contains' | 'sequence-not-contains' | 'user-call';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call';
     readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof };
     readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
@@ -104,6 +104,16 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         const inferred = inferCompiledExpression<CompiledCalleeType, ScalarFunctionInput>(expression, {
             atom: type => compiledScalarTypes.find(candidate => candidate === type),
             read: source => {
+                if (loops && isArrayExpression(source) && source.items.length
+                    && !source.dimensions.length && !source.fill && !source.rows.length && !source.range) {
+                    if (source.items.some(item => item.sign)) return undefined;
+                    const types = source.items.map(item => type(item.value, env));
+                    const element = types[0];
+                    if (typeof element !== 'string' || types.some(type => type !== element)) return undefined;
+                    return { type: { kind: 'array', element, rank: 1 }, input: {
+                        name: '', operation: 'vector', indices: source.items.map(item => expressions.get(item.value)!),
+                    } };
+                }
                 if (loops && isArrayExpression(source) && source.dimensions.length && source.fill
                     && !source.rows.length && !source.items.length && !source.range) {
                     if (source.dimensions.some(item => !item.value || type(item.value, env) !== 'integer')) return undefined;
@@ -126,6 +136,12 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                         dependencies.add(source.right.name);
                         return { type: 'boolean', input: { name: source.right.name,
                             operation: source.operator === 'in' ? 'sequence-contains' : 'sequence-not-contains',
+                            indices: [expressions.get(source.left)!] } };
+                    }
+                    if (domain && typeof domain === 'object' && domain.kind === 'array'
+                        && domain.element === 'integer' && domain.rank === 1 && type(source.left, env) === 'integer') {
+                        return { type: 'boolean', input: { name: source.right.name,
+                            operation: source.operator === 'in' ? 'array-contains' : 'array-not-contains',
                             indices: [expressions.get(source.left)!] } };
                     }
                     if (domain && isCompiledContainer(domain) && domain.kind === 'index' && type(source.left, env) === 'integer') {

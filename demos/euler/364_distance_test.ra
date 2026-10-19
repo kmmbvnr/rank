@@ -1,0 +1,15 @@
+use testing
+
+test "comfortable distance"
+  use "364_distance"
+  N = 10
+  run
+  Answer equal 61632
+end
+
+test "distance modulo"
+  use "364_distance"
+  N = 1000
+  run
+  Answer equal 47255094
+end

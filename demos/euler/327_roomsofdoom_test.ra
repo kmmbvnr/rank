@@ -1,0 +1,7 @@
+use testing
+
+test "room cards"
+  use "327_roomsofdoom"
+  (array 3) 6 cards equal 123
+  (array 4) 6 cards equal 23
+end

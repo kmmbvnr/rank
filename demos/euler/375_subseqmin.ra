@@ -1,0 +1,98 @@
+rem Minimum of Subsequences
+rem https://projecteuler.net/problem=375
+
+use numbers
+use io
+use cli
+
+option Limit integer = 2000000000
+option Period integer = 6308948
+
+Mod = 50515093
+A = array shape Period fill 0
+S = 290797
+for I in 0 till Period
+  S = S * S mod Mod
+  A I = S
+end
+Prev = array shape Period fill 0
+St = array shape (Period + 1) fill 0
+Top = 0
+for I in 0 till (2 * Period)
+  X = A (I mod Period)
+  for Top greater 0
+    Y = A (St (Top - 1) mod Period)
+    if Y less X
+      break
+    end
+    Top -= 1
+  end
+  if I at least Period
+    J = I - Period
+    Prev J = -1
+    if Top greater 0
+      Prev J = I - St (Top - 1)
+    end
+  end
+  St Top = I
+  Top += 1
+end
+Full = Limit // Period
+Rest = Limit mod Period
+Answer = 0
+Top = 0
+for I in (2 * Period - 1) to 0 by -1
+  X = A (I mod Period)
+  for Top greater 0
+    Y = A (St (Top - 1) mod Period)
+    if Y at most X
+      break
+    end
+    Top -= 1
+  end
+  if I less Period
+    Right = Period
+    if Top greater 0
+      Right = St (Top - 1) - I
+    end
+    Times = Full
+    if I less Rest
+      Times += 1
+    end
+    if Times greater 0
+      Left = Prev I
+      if Left equal -1
+        if Times at least 2
+          M = Times - 1
+          Add = M * (I + 1)
+          Tri = (M - 1) * M // 2
+          Add += Period * Tri
+          Answer += X * Right * Add
+        end
+        Last = I + (Times - 1) * Period
+        Span = Last + 1
+        Span *= Limit - Last
+        Answer += X * Span
+      else
+        if Times equal 1
+          A0 = Left (I + 1) min
+          B0 = Right (Limit - I) min
+          Answer += X * A0 * B0
+        else
+          A0 = Left (I + 1) min
+          Answer += X * A0 * Right
+          More = Times - 1
+          Last = I + More * Period
+          B0 = Right (Limit - Last) min
+          Answer += X * Left * B0
+          Mid = (Times - 2) * Left
+          Mid *= Right
+          Answer += X * Mid
+        end
+      end
+    end
+  end
+  St Top = I
+  Top += 1
+end
+Answer print

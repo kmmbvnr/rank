@@ -1,0 +1,358 @@
+rem Subsequence of Thue-Morse Sequence
+rem https://projecteuler.net/problem=361
+
+use numbers
+use algo
+use io
+use cli
+
+option Power integer = 18
+option Mod integer = 10 ** 9
+
+rem Factors beginning with one.
+fun N count
+  if N at most 3
+    return N
+  end
+  H = N // 2
+  A = H count
+  B = (H + 1) count
+  if N mod 2 equal 0
+    return A + B
+  end
+  return 2 * B
+end
+
+rem Cumulative factor count.
+fun N prefix
+  if N at most 3
+    return N * (N + 1) // 2
+  end
+  H = N // 2
+  A = H prefix
+  B = (H + 1) prefix
+  if N mod 2 equal 0
+    return 3 * A + B - 4
+  end
+  C = (H + 1) count
+  D = (2 * H) prefix
+  return D + 2 * C
+end
+
+rem Locate the bit length of A(N).
+fun N length
+  Lo = 1
+  Hi = 1
+  for Hi prefix less N
+    Hi *= 2
+  end
+  for Lo less Hi
+    Mid = (Lo + Hi) // 2
+    if Mid prefix at least N
+      Hi = Mid
+    else
+      Lo = Mid + 1
+    end
+  end
+  return Lo
+end
+
+rem Nodes: kind, child, length, value.
+fun Ns K C L V node
+  Ns push array K C L V
+  return Ns len - 1
+end
+
+fun Ns Id first
+  N = Ns Id
+  K = N 0
+  C = N 1
+  L = N 2
+  V = N 3
+  if K equal 0
+    return V // (2 ** (L - 1))
+  end
+  A = Ns C first
+  if K equal 1 or K equal 3
+    return 1 - A
+  end
+  return A
+end
+
+fun Ns Id last
+  N = Ns Id
+  K = N 0
+  C = N 1
+  L = N 2
+  V = N 3
+  if K equal 0
+    return V mod 2
+  end
+  A = Ns C last
+  if K equal 1
+    return 1 - A
+  end
+  Odd = L mod 2 equal 1
+  if K equal 2
+    if Odd
+      return A
+    end
+    return 1 - A
+  end
+  if Odd
+    return 1 - A
+  end
+  return A
+end
+
+fun Ns F Id dropfirst
+  if Id in F
+    return F Id
+  end
+  N = Ns Id
+  K = N 0
+  C = N 1
+  L = N 2
+  V = N 3
+  if L at most 1
+    R = Ns 0 0 0 0 node
+    F Id = R
+    return R
+  end
+  if K equal 0
+    Bits = L - 1
+    Base = 2 ** Bits
+    R = Ns 0 0 Bits (V mod Base) node
+    F Id = R
+    return R
+  end
+  if K equal 1
+    D = Ns F C dropfirst
+    R = Ns 1 D (L - 1) 0 node
+    F Id = R
+    return R
+  end
+  if K equal 2
+    R = Ns 3 C (L - 1) 0 node
+    F Id = R
+    return R
+  end
+  D = Ns F C dropfirst
+  R = Ns 2 D (L - 1) 0 node
+  F Id = R
+  return R
+end
+
+fun Ns J Id droplast
+  if Id in J
+    return J Id
+  end
+  N = Ns Id
+  K = N 0
+  C = N 1
+  L = N 2
+  V = N 3
+  if L at most 1
+    R = Ns 0 0 0 0 node
+    J Id = R
+    return R
+  end
+  if K equal 0
+    R = Ns 0 0 (L - 1) (V // 2) node
+    J Id = R
+    return R
+  end
+  if K equal 1
+    D = Ns J C droplast
+    R = Ns 1 D (L - 1) 0 node
+    J Id = R
+    return R
+  end
+  Odd = L mod 2 equal 1
+  if K equal 2
+    D = C
+    if Odd
+      D = Ns J C droplast
+    end
+    R = Ns 2 D (L - 1) 0 node
+    J Id = R
+    return R
+  end
+  D = C
+  if not Odd
+    D = Ns J C droplast
+  end
+  R = Ns 3 D (L - 1) 0 node
+  J Id = R
+  return R
+end
+
+fun P K Mod xp
+  if K in P
+    return P K
+  end
+  X = 2 (2 ** K) Mod powmod
+  P K = X
+  return X
+end
+
+fun P Z K N Mod geom
+  Key = N * 100 + K
+  if Key in Z
+    return Z Key
+  end
+  if N equal 0
+    return 0
+  end
+  if N equal 1
+    Z Key = 1
+    return 1
+  end
+  X = P K Mod xp
+  H = N // 2
+  A = X H Mod powmod
+  G = P Z K H Mod geom
+  R = G * (A + 1) mod Mod
+  if N mod 2 equal 1
+    T = A * A mod Mod
+    R = (R + T) mod Mod
+  end
+  Z Key = R
+  return R
+end
+
+fun P K E Mod powx
+  X = P K Mod xp
+  return X E Mod powmod
+end
+
+fun Ns F J W Y Z P Id K Mod mu
+  Key = Id * 100 + K
+  if Key in Y
+    return Y Key
+  end
+  N = Ns Id
+  L = N 2
+  X = P K Mod xp
+  K1 = K + 1
+  E = Ns F J W Y Z P Id K1 Mod eval
+  G = P Z K1 L Mod geom
+  R = ((X - 1) * E + G) mod Mod
+  Y Key = R
+  return R
+end
+
+fun Ns F J W Y Z P Id K Mod eval
+  Key = Id * 100 + K
+  if Key in W
+    return W Key
+  end
+  N = Ns Id
+  T = N 0
+  C = N 1
+  L = N 2
+  V = N 3
+  X = P K Mod xp
+  R = 0
+  if L equal 0
+    W Key = R
+    return R
+  end
+  if T equal 0
+    for I in 1 to L
+      Bit = V // (2 ** (L - I)) mod 2
+      R = (R * X + Bit) mod Mod
+    end
+    W Key = R
+    return R
+  end
+  if T equal 1
+    G = P Z K L Mod geom
+    E = Ns F J W Y Z P C K Mod eval
+    R = (G - E) mod Mod
+    W Key = R
+    return R
+  end
+  Odd = L mod 2 equal 1
+  if T equal 2
+    if not Odd
+      K1 = K + 1
+      E = Ns F J W Y Z P C K1 Mod eval
+      G = P Z K1 (L // 2) Mod geom
+      R = ((X - 1) * E + G) mod Mod
+      W Key = R
+      return R
+    end
+    D = Ns J C droplast
+    M = Ns F J W Y Z P D K Mod mu
+    B = Ns C last
+    R = (M * X + B) mod Mod
+    W Key = R
+    return R
+  end
+  A = Ns C first
+  B = Ns C last
+  H = L // 2
+  if Odd
+    D = Ns F C dropfirst
+    M = Ns F J W Y Z P D K Mod mu
+    Pow = P K (2 * H) Mod powx
+    R = ((1 - A) * Pow + M) mod Mod
+    W Key = R
+    return R
+  end
+  D = Ns F C dropfirst
+  D = Ns J D droplast
+  M = Ns F J W Y Z P D K Mod mu
+  Pow = P K (2 * H - 1) Mod powx
+  R = (1 - A) * Pow + M * X + B
+  R = R mod Mod
+  W Key = R
+  return R
+end
+
+fun Ns Len Rank Start word
+  if Start equal 0
+    Total = Len count
+    R = Total - 1 - Rank
+    C = Ns Len R 1 word
+    return Ns 1 C Len 0 node
+  end
+  if Len equal 1
+    return Ns 0 0 1 1 node
+  end
+  if Len equal 2
+    return Ns 0 0 2 (2 + Rank) node
+  end
+  if Len equal 3
+    return Ns 0 0 3 (4 + Rank) node
+  end
+  E = (Len + 1) // 2
+  Count = E count
+  if Rank less Count
+    C = Ns E Rank 1 word
+    return Ns 2 C Len 0 node
+  end
+  O = Len // 2 + 1
+  C = Ns O (Rank - Count) 0 word
+  return Ns 3 C Len 0 node
+end
+
+Z = new index
+P = new index
+Answer = 0
+for K in 1 to Power
+  N = 10 ** K
+  L = N length
+  Before = (L - 1) prefix
+  Ns = new queue
+  F = new index
+  J = new index
+  W = new index
+  Y = new index
+  Id = Ns L (N - 1 - Before) 1 word
+  V = Ns F J W Y Z P Id 0 Mod eval
+  Answer += V
+  Answer mod= Mod
+end
+Answer print

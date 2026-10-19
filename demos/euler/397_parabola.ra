@@ -1,0 +1,123 @@
+rem Triangle on Parabola
+rem https://projecteuler.net/problem=397
+
+use sequences
+use numbers
+use algo
+use io
+use cli
+
+option K integer = 1000000
+option X integer = 1000000000
+
+Hits = new index
+Hits 0 = 0
+Hits 1 = 0
+Hits 2 = 0
+Hits 3 = 0
+for N in 1 to K
+  Fs = (2 * N * N) factors array
+  Fs 0 1 (2 * N * N) N X Hits divs
+end
+Answer = 2 * (Hits 0) + Hits 1
+Answer -= 2 * (Hits 2) + Hits 3
+Answer print
+
+fun Fs I Cur D K X Hits divs
+  if I equal (Fs len)
+    Cur D K X Hits score
+    return 0
+  end
+  P = Fs I
+  J = I
+  for J less (Fs len) and Fs J equal P
+    J += 1
+  end
+  Pow = 1
+  for E in 0 to J - I
+    Fs J (Cur * Pow) D K X Hits divs
+    Pow *= P
+  end
+  return 0
+end
+
+fun D D0 K X Hits score
+  U = D0 // D
+  S = K - U
+  T = D - K
+  Range = 2 * X
+  Good = S at least (-Range)
+  Good = Good and S at most Range
+  if Good
+    Good = T at least (-Range)
+    Good = Good and T at most Range
+    if Good
+      Hits 0 += S T X left
+      Den = S + K
+      if Den not equal 0
+        Q = K * (S - K)
+        if Q mod Den equal 0
+          V = Q // Den
+          S T V X Hits 2 overlap
+        end
+      end
+      Den = K - T
+      if Den not equal 0
+        Q = K * (K + T)
+        if Q mod Den equal 0
+          V = Q // Den
+          S T V X Hits 3 overlap
+        end
+      end
+    end
+  end
+  P = -(K + U)
+  Q = K + D
+  Good = P at least (-Range)
+  Good = Good and Q at most Range
+  if Good
+    Hits 1 += P Q X middle
+  end
+  return 0
+end
+
+fun S T X left
+  Lo = T - X
+  Lo = Lo (-X) max
+  Hi = S + X
+  Hi = Hi X min
+  Hi = Hi ((S - 1) // 2) min
+  if Hi less Lo
+    return 0
+  end
+  return Hi - Lo + 1
+end
+
+fun P Q X middle
+  Lo = P - X
+  Lo = Lo (-X) max
+  Lo = Lo (Q - X) max
+  Lo = Lo (P // 2 + 1) max
+  Hi = P + X
+  Hi = Hi X min
+  Hi = Hi ((Q - 1) // 2) min
+  if Hi less Lo
+    return 0
+  end
+  return Hi - Lo + 1
+end
+
+fun S T Q X Hits At overlap
+  if ((S + T - Q) mod 2) not equal 0
+    return 0
+  end
+  A = (S + T - Q) // 2
+  B = (S + Q - T) // 2
+  C = (T + Q - S) // 2
+  if A at least (-X) and A less B
+    if B less C and C at most X
+      Hits At += 1
+    end
+  end
+  return 0
+end

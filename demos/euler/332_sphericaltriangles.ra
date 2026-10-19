@@ -1,0 +1,73 @@
+rem Spherical Triangles
+rem https://projecteuler.net/problem=332
+
+use numbers
+use io
+
+Answer = 0.0
+for R in 1 to 50
+  Answer += R sphere
+end
+Answer print
+
+fun R sphere
+  Max = 2 * (2 * R + 1) ** 2
+  U = array shape Max fill 0
+  V = array shape Max fill 0
+  W = array shape Max fill 0
+  Cnt = 0
+  RR = R * R
+  for X in -R to R
+    for Y in -R to R
+      Z2 = RR - X * X - Y * Y
+      if Z2 at least 0
+        Z = Z2 isqrt
+        if Z * Z equal Z2
+          U Cnt = X
+          V Cnt = Y
+          W Cnt = Z
+          Cnt += 1
+          if Z not equal 0
+            U Cnt = X
+            V Cnt = Y
+            W Cnt = -Z
+            Cnt += 1
+          end
+        end
+      end
+    end
+  end
+  Best = RR * (-1 acos) / 2
+  for I in 0 till Cnt - 2
+    for J in I + 1 till Cnt - 1
+      for K in J + 1 till Cnt
+        D = I J K U V W det3
+        if D not equal 0
+          A = D abs
+          Area = I J K U V W RR A area
+          Best = Best Area min
+        end
+      end
+    end
+  end
+  return Best
+end
+
+fun I J K U V W det3
+  A = V I * W J - W I * V J
+  B = W I * U J - U I * W J
+  C = U I * V J - V I * U J
+  return A * U K + B * V K + C * W K
+end
+
+fun I J K U V W RR D area
+  AB = U I * U J + V I * V J
+  AB += W I * W J
+  BC = U J * U K + V J * V K
+  BC += W J * W K
+  CA = U K * U I + V K * V I
+  CA += W K * W I
+  Top = D / (RR * (RR ** 0.5))
+  Bot = 1 + (AB + BC + CA) / RR
+  return 2 * (Top Bot atan2) * RR
+end

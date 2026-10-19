@@ -13,52 +13,9 @@ function programs(directory: string): string[] {
         return entry.isDirectory() ? programs(file) : file.endsWith('.ra') ? [file] : [];
     }).sort();
 }
-// Full comparisons over the time/resource budget remain excluded (issues #311, #316).
-const tooSlow = new RegExp('^euler/(?:' + [
-    '150_subtriangle(?:_default_test)?',
-    '154_pascalpyramid',
-    '155_capacitors',
-    '165_intersections',
-    '170_pandigitalproducts(?:_test)?',
-    '177_quadrilaterals(?:_test)?',
-    '179_consecutivedivisors',
-    '185_numbermind(?:_test)?',
-    '186_connectedness(?:_test)?',
-    '193_squarefree',
-    '196_primetriplets(?:_test)?',
-    '198_ambiguous(?:_test)?',
-    '210_obtuse',
-    '224_almostright',
-    '250_subsets(?:_test)?',
-    '266_pseudosquareroot',
-    '268_fourprimes',
-    '211_divisorsquare',
-    '212_combinedvolume(?:_test)?',
-    '213_fleacircus',
-    '214_totientchains',
-    '216_primality',
-    '223_almostright',
-    '229_foursquares(?:_test)?',
-    '236_luxuryhampers(?:_test)?',
-    '238_infinitestring(?:_test)?',
-    '245_coresilience(?:_test)?',
-    '248_eulertotient',
-    '249_primesubsetsums',
-    '251_cardanotriplets(?:_test)?',
-    '252_convexholes(?:_test)?',
-    '253_tidyingup(?:_test)?',
-    '254_digitfactorials(?:_test)?',
-    '260_stonegame(?:_test)?',
-    '262_mountainrange(?:_test)?',
-    '272_modularcubes(?:_test)?',
-    '275_balancedsculptures(?:_test)?',
-    '283_integertriangles(?:_test)?',
-    '289_eulerianloops(?:_test)?',
-    '291_panaitopolprimes(?:_test)?',
-    '292_pythagoreanpolygons(?:_test)?',
-    '295_lenticularholes(?:_test)?',
-    '300_proteinfolding(?:_test)?',
-].join('|') + ')\\.ra$');
+// Default-scale workloads outside the CI execution budget; small fixtures remain.
+const executionExclusions = new Set(Object.keys(JSON.parse(readFileSync(
+    new URL('../../../scripts/demo-execution-exclusions.json', import.meta.url), 'utf8'))));
 const sources = new Map(programs(demos).map(file => [file, readFileSync(file, 'utf8')]));
 
 // Snapshot eager values without forcing lazy streams or calling user functions.
@@ -119,7 +76,7 @@ describe('compiled and reference demo execution', () => {
     if (!Number.isInteger(count) || count < 1 || !Number.isInteger(shard) || shard < 0 || shard >= count) {
         throw new Error('Invalid differential shard');
     }
-    const files = [...sources.keys()].filter(file => !tooSlow.test(relative(demos, file))).filter(file =>
+    const files = [...sources.keys()].filter(file => !executionExclusions.has(relative(demos, file))).filter(file =>
         createHash('sha256').update(relative(demos, file)).digest().readUInt32BE(0) % count === shard);
     let compared = 0, completed = 0, tests = 0, entries = 0, numberEntries = 0;
     for (const file of files) it(relative(demos, file), async () => {
@@ -142,7 +99,7 @@ describe('compiled and reference demo execution', () => {
         expect(completed).toBeGreaterThan(0);
         expect(entries).toBeGreaterThan(0);
         if (count === 1) {
-            expect(compared).toBe([...sources.keys()].filter(file => !tooSlow.test(relative(demos, file))).length);
+            expect(compared).toBe([...sources.keys()].filter(file => !executionExclusions.has(relative(demos, file))).length);
             expect(completed).toBeGreaterThan(400);
             expect(tests).toBeGreaterThan(100);
             expect(numberEntries).toBeGreaterThan(0);

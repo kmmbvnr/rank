@@ -2490,9 +2490,13 @@ Successful results are stored after the call completes, including its
 Arguments and results must be scalar integers, real numbers, booleans, text or
 labels. Integer and real keys are distinct. Collections, functions, files and
 sequences are rejected. A memoized function must not contain `yield`.
-The programmer must ensure that the result stays valid for its arguments:
-changes to captured data do not invalidate the cache, and side effects run
-only on cache misses.
+A memoized result must depend only on its arguments. Captured and module data
+are forbidden, including dependencies read through other functions. Local
+calculations and accumulators derived from arguments are allowed. Observable
+side effects such as printing or random input are forbidden, because a cache
+hit skips the body.
+Mutable function aliases are external dependencies too; call a declared helper
+directly so its dependencies can be checked.
 
 The cache belongs to the function object. Aliases share it; redefining the
 function creates a new cache. Each call of an outer function creates fresh
@@ -2511,10 +2515,9 @@ fun N solve
 end
 ```
 
-Each `solve` call starts with an empty cache. Once its local function and
-captured workspace are unreachable, the host garbage collector can reclaim
-them and the cache. Returning or saving the local function keeps its cache
-alive. There is no size limit, expiry or explicit clearing operation.
+Each `solve` call starts with an empty cache. Its local function cannot escape
+the call; the host garbage collector can reclaim the function and its cache
+afterward. There is no size limit, expiry or explicit clearing operation.
 
 Recursive and mutual calls use the cache and the explicit Rank call stack.
 Calls into memoized functions retain the continuation that stores the result;
@@ -2528,8 +2531,8 @@ registered when the enclosing call begins, so their definitions can stay after
 the executable lines and even after the outer `return`:
 
 ```rank
-fun Base make
-  return add
+fun Base addFive
+  return 5 add
 
   fun Value add
     return Base + Value
@@ -2537,19 +2540,63 @@ fun Base make
 end
 ```
 
-The local function is visible throughout that invocation of `make`. It captures
-the enclosing lexical workspace by reference, and a returned function keeps
-that workspace alive. Separate calls create separate captured workspaces.
-Assignment updates the nearest captured binding; every binding still keeps its
-inferred type.
+A local function can read its enclosing parameters and bindings. Module data
+is also readable. These dependencies are read-only: a function cannot rebind
+them, mutate their elements or fields, or pass them to a mutating helper.
+Pass mutable state explicitly as a parameter or return the updated result.
 
-Name lookup follows one fixed order: the function's own workspace, its captured
-outer workspaces from nearest to farthest, then the module workspace. A function
-does not see local values belonging only to its caller. Top-level functions
-therefore cannot accidentally depend on a caller's parameters or block-local
-variables, including those in a top-level loop. Single-expression functions
-declared inside a block capture that block's workspace; an escaping function
-keeps it alive after the block ends.
+Assignments belong to the current function. A local name that collides with
+an enclosing function's binding is an error; choose another name or declare an
+explicit parameter of that name. Parameters may shadow enclosing names.
+Blocks within the same function retain the block-scope rules above.
+
+Name lookup follows the function's own workspace, its enclosing lexical
+workspaces from nearest to farthest, then the module workspace. A function
+does not see local values belonging only to its caller.
+
+Local functions may recurse and may be passed directly to ordinary helpers,
+`rank`, `filter` and `sort by`. No callback annotation is required:
+
+```rank
+fun X check predicate = X predicate
+fun Limit checkFour
+  fun X below = X less Limit
+  return 4 check below
+end
+```
+
+Helpers imported from Rank source are checked through their bodies, including
+callback forwarding. An opaque host function cannot receive a nested callback,
+because its retention behavior cannot be checked. Passing captured or module
+state to an opaque helper is also rejected when its mutation behavior is unknown;
+pass that state explicitly through the enclosing function's parameters.
+
+A nested function cannot be returned, assigned to another name, or stored in a
+container or record. A lazy result retaining it must be materialized before it
+leaves the enclosing call:
+
+```rank
+fun Limit small
+  fun X below = X less Limit
+  S = 1 to 10 filter below
+  Limit = 3
+  return S array
+end
+rem 6 small returns 1 2 3 4 5
+```
+
+Materialize a lazy value before storing it in a container that will leave the
+call. Converting a queue to an array or copying that array does not evaluate
+lazy sequences stored inside its elements.
+
+Lazy operations record the current values of external dependencies when the
+operation is created. This includes module data and dependencies read through
+called helpers. Later reassignment does not change the pipeline. Scalar values
+and owned scalar arrays support capture snapshots; array storage is shared
+through copy-on-write without copying cells at creation. Mutable containers,
+resources and arbitrary lazy values cannot be captured by a lazy operation;
+pass explicit operands or materialize the data first. Ordinary direct calls
+read current values each time.
 
 A multiline function may also be declared directly inside a `for` body:
 
@@ -2564,20 +2611,14 @@ end
 ```
 
 This prints `11`, then `12`. A loop-local declaration becomes available when
-execution reaches it, and its name does not exist after the loop. It captures
-loop bindings and enclosing function parameters by reference, just like a
-single-expression helper. Iterations update the same captured loop workspace:
-a function saved during an earlier iteration sees later updates, and keeps
-that workspace alive after the loop ends. Separate executions of the loop
-create separate workspaces. The declaration remains constant within its block.
+execution reaches it, and its name does not exist after the loop. It can read
+loop bindings and enclosing parameters, but cannot be saved for later calls.
+The declaration remains constant within its block.
 
 Declarations directly inside a function remain visible throughout the call.
 Declarations inside `if`, `try`, `catch` and `finally` are not supported.
-Test blocks may declare test-local functions directly, as before. Local
-functions may recurse and may contain further direct local functions.
-
-Resources in a captured workspace move with an escaping function and remain
-open for as long as the receiving resource scope owns that function.
+Test blocks may declare test-local functions directly. Local functions may
+contain further direct local functions.
 
 ## Generator functions
 
@@ -2745,6 +2786,60 @@ Fib = fibonacci to 100
 SixthPrime = primes 5
 ```
 
+### Reusing pure sequences
+
+A pure sequence may reuse computed items when the current program has multiple
+consumers. Direct aliases and ordinary helper parameters participate in this
+analysis. A source used by only one pipeline stage can remain a stream; naming
+an intermediate does not require saving its history. Cheap arithmetic ranges
+continue to compute their values directly. Constructor-certified membership
+queries and modular range selectors also keep their specialized plans.
+
+```rank
+use sequences
+fun X odd = X mod 2 equal 1
+Candidates = 1 to 100
+Selected = Candidates filter odd
+Count = Selected len
+Total = Selected sum
+```
+
+Here the filter retains its 50 accepted values for the second read. It does not
+retain the 100 candidates. Readers have independent positions; reading a prefix
+does not force the tail. Completing a retained sequence also discovers its
+length, including zero for an empty result.
+
+Lazy sequence predicates, rank-0 callbacks and scan callbacks must be pure.
+They may use local working state, but cannot mutate their inputs, perform
+input/output, use randomness, or depend on changing external state. Copy an input
+before modifying it. Captures use the creation-time snapshots
+described under [local functions](language/control-functions.md#local-functions-and-closures).
+Unresolved callable behavior is rejected conservatively. Ordinary eager calls
+and effectful single-pass generators keep their existing contracts.
+
+Caching is an optimization, not a promise never to recompute. In particular,
+future REPL commands are unknown when a sequence is created. A later command can
+reuse retained results or recompute a pure value. Existing stored native cursors
+and user generators keep their consumption and rewind rules.
+
+Retention is bounded. The default interpreter limit is 8 MiB of estimated
+payload per cached sequence; it counts scalar-array cells as well as outer
+items. It is not a measurement of JavaScript heap overhead. Crossing the limit,
+or encountering a result without a supported stable-value representation,
+discards that cache and continues streaming. Subsequent readers may recompute.
+Supported retained values include scalars and owned eager scalar arrays; Rank
+writes to a reader's array do not modify the retained value.
+
+A retained source failure is reported at its position on later reads. Host
+cancellation and preview-budget exhaustion are different: a later read may
+restart pure computation to recover the interrupted iterator. It does not replay
+an old cancellation event. A new budget must be sufficient to reach the requested
+position; interrupted work is not guaranteed to resume without recomputation.
+
+Use `array` when an operation needs an array's shape or indexing interface, and
+`copy` when materialized independent storage is needed. Neither is required solely
+to request reuse of a pure sequence with known repeated consumers.
+
 ## Open numeric ranges
 
 `#` in a range endpoint means that no boundary is supplied. It is a contextual
@@ -2902,7 +2997,8 @@ remaining dimensions. Writes to the source are visible through those views;
 use `copy` for an independent snapshot.
 
 Sequences remain lazy, including user generators. `take` stops without
-requesting an extra item and closes the source iterator. `drop` traverses the
+requesting an extra item and closes its reader. A shared pure replay source
+remains available to other readers. `drop` traverses the
 skipped prefix when demanded. Neither operation makes a single-pass source
 replayable. `take` bounds an infinite source by count; `drop` alone leaves it
 infinite. Materializing a bounded sequence uses postfix `array`.
@@ -2942,6 +3038,19 @@ array:
 ```rank
 Values = 3 weird array
 ```
+
+Stored integer `+`, `-`, `*`, `//`, and `mod` can evaluate eagerly over proven
+storage and trusted views, including concat segments. This creates fresh results
+and preserves earlier aliases; it bounds numeric recurrences without requiring
+an explicit `copy` at every iteration. Unsafe readers, inspection, and operations
+with deferred failures keep their ordinary path.
+
+Unmaterialized array expressions are limited to 8192 reader layers. Constructing
+a deeper chain raises `ResourceLimit` with a suggestion to use `copy` on an
+intermediate array. The check reads dependency metadata only and never forces a
+cell. Metadata-only dependency nodes add no reader layer, so a balanced concat
+rope is not counted as one nested reader per append. Materialization starts a new
+chain; retaining old array values intentionally still retains their storage.
 
 Materialization is eager. Scalar or record items produce a rank-1 array.
 Array items with the same shape are stacked along a new leading axis: `N`
@@ -3945,11 +4054,15 @@ integers for tensors. Coordinate matrices are not directly usable as array
 selectors: extract their columns as above; integer-array selectors require
 rank 1.
 
-`Values Target find` returns the zero-based position of the first value equal
-to `Target`. It raises `.Missing` when no value matches, so `default` supplies
+`Values Target find` returns the zero-based position of the first equal array
+element or matching text substring. It raises `.Missing` when no value matches, so `default` supplies
 a fallback. `Values Target findall` returns every matching position and returns
 an empty vector when there are none. Both accept rank-1 arrays and text, whose
-positions count Unicode code points.
+positions count Unicode code points. For text and a text target, they search
+for a substring; `findall` includes overlapping matches. An empty target has
+no matches. Matching is case-sensitive and does not normalize Unicode.
+Array sources still compare whole elements. Arrays of targets keep their frame;
+`findall` requires the same number of matches for each target.
 
 `min` and `max` with one argument reduce one finite collection. With two
 arguments they choose between numeric values and broadcast over arrays. Like
@@ -6320,7 +6433,8 @@ It maps lazily over arrays and sequences. A negative input raises
 `.DomainError`; positive infinity remains infinity.
 
 `isqrt` has intrinsic rank 0 and returns the exact integer floor of the square
-root of a nonnegative `integer`:
+root of a nonnegative `integer`. A bounded floating-point estimate is verified
+using exact integer arithmetic; larger inputs use integer Newton iteration:
 
 ```rank
 Root = Value isqrt
@@ -6440,6 +6554,10 @@ containing zero is zero, and the `lcm` of an empty sequence is one.
 
 `powmod` raises an integer base to a nonnegative integer exponent while reducing
 every step modulo a positive integer:
+
+Scalar and array operands may be mixed in any of the three positions. Arrays
+broadcast as in arithmetic and return integer cells; sequences are not implicitly
+materialized. Invalid or missing cells raise when the corresponding result is read.
 
 ```rank
 Value = Base Exponent Modulus powmod
@@ -6790,7 +6908,9 @@ Word = Value bnot 65535 band
 
 Shifts require a nonnegative bit count. `shr` is an arithmetic right shift.
 `bit` tests a zero-based position and returns a boolean. `popcount` returns the
-number of set bits. `bit` and `popcount` require a nonnegative input value.
+number of set bits as an integer, including zero for zero. Its work is linear
+in the input bit length, with temporary storage proportional to that length.
+`bit` and `popcount` require a nonnegative input value.
 The module does not introduce a separate bit-mask type: bit masks are ordinary
 integers and remain distinct from boolean array masks.
 

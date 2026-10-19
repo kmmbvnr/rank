@@ -1,0 +1,49 @@
+rem Triangle Triples
+rem https://projecteuler.net/problem=378
+
+use algo
+use io
+use sequences
+use cli
+
+option Limit integer = 60000000
+
+rem D(n) is the divisor count of T(n).
+Max = Limit + 1
+Div = array shape (Max + 1) fill 0
+for D in 1 to Max
+  Div (D to Max by D) += 1
+end
+Top = 0
+for N in 1 to Limit
+  V = Div N * Div (N + 1)
+  if N mod 2 equal 0
+    V = Div (N // 2) * Div (N + 1)
+  else
+    V = Div N * Div ((N + 1) // 2)
+  end
+  Top = Top V max
+end
+Cnt = (Top + 1) fenwick
+Pair = (Top + 1) fenwick
+Seen = 0
+Pairs = 0
+Mod = 10 ** 18
+Answer = 0
+for N in 1 to Limit
+  V = Div N * Div (N + 1)
+  if N mod 2 equal 0
+    V = Div (N // 2) * Div (N + 1)
+  else
+    V = Div N * Div ((N + 1) // 2)
+  end
+  More = Seen - (Cnt sum V)
+  Tri = Pairs - (Pair sum V)
+  Pair V += More
+  Cnt V += 1
+  Seen += 1
+  Pairs += More
+  Answer += Tri
+  Answer = Answer mod Mod
+end
+Answer print

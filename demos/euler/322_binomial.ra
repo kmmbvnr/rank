@@ -1,0 +1,95 @@
+rem Binomial Coefficients Divisible
+rem by 10
+rem https://projecteuler.net/problem=322
+
+use bits
+use algo
+use numbers
+use sequences
+use io
+use cli
+
+option Top integer = 10 ** 18
+option Pick integer = 10 ** 12 - 10
+
+Limit = Top - Pick
+A2 = Pick Limit 2 nocarry
+A5 = Pick Limit 5 nocarry
+Lows = array 0
+Place = 1
+D = Pick
+for D greater 0
+  Cap = 4 - D mod 5
+  Ds = 0 to Cap array
+  Size = (Lows len) * (Ds len)
+  Grid = Lows (Ds * Place) outer +
+  Lows = Grid reshape Size
+  Place *= 5
+  D //= 5
+end
+MaxH = (Top - 1) // Place
+Mod = 1
+for Mod at most MaxH
+  Mod *= 2
+end
+Inv = Place (Mod // 2 - 1) Mod powmod
+Need = Pick mod Mod
+Mods = new queue
+for R in 0 till Mod
+  if R Need band equal 0
+    Mods push R
+  end
+end
+Both = 0
+for Low in Lows
+  MaxH = (Limit - 1 - Low) // Place
+  LowMod = Low mod Mod
+  for R in Mods
+    H = (R - LowMod) * Inv mod Mod
+    if H at most MaxH
+      Value = Low + Place * H
+      if Value Pick band equal 0
+        Both += 1
+      end
+    end
+  end
+end
+Answer = Limit - A2 - A5 + Both
+Answer print
+
+fun N Limit Base nocarry
+  if Limit equal 0
+    return 0
+  end
+  Max = Limit - 1
+  MaxN = N Max max
+  Len = 1
+  Scale = Base
+  for Scale at most MaxN
+    Len += 1
+    Scale *= Base
+  end
+  Bases = array shape Len fill Base
+  Nds = N Bases digits
+  Bds = Max Bases digits
+  Tight = 1
+  Loose = 0
+  for I in 0 till Len
+    ND = Nds I
+    BD = Bds I
+    Cap = Base - 1 - ND
+    Small = Cap BD min
+    NextLoose = Loose * (Cap + 1)
+    NextTight = 0
+    for D in 0 to Small
+      if D less BD
+        NextLoose += Tight
+      else
+        NextTight += Tight
+      end
+    end
+    Tight = NextTight
+    Loose = NextLoose
+  end
+  return Tight + Loose
+end

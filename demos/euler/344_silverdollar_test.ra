@@ -1,0 +1,16 @@
+use testing
+
+test "small silver dollar game"
+  use "344_silverdollar"
+  N = 10
+  C = 2
+  N C 1000003 solvep equal 324
+  N C 1000033 solvep equal 324
+end
+
+test "one coin always wins"
+  use "344_silverdollar"
+  N = 8
+  C = 0
+  N C 1000003 solvep equal 8
+end

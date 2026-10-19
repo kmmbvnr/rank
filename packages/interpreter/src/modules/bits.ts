@@ -1,6 +1,9 @@
+import { checkpoint } from '../interrupt.js';
 import { RankError } from '../errors.js';
 import { expectInteger, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
+
+const nibbleCounts = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
 
 export const bitsModule: RuntimeModule = {
     band: () => binaryOperation('band', (left, right) => left & right),
@@ -16,12 +19,17 @@ export const bitsModule: RuntimeModule = {
     }),
     popcount: () => native('popcount', 1, arguments_ => {
         let value = nonnegative('popcount', expectInteger(arguments_[0]));
-        let count = 0n;
-        while (value !== 0n) {
-            value &= value - 1n;
-            count += 1n;
+        // A fixed bound keeps tiny/sparse values cheap without a quadratic tail.
+        let count = 0;
+        for (; count < 4 && value !== 0n; count++) value &= value - 1n;
+        if (value === 0n) return BigInt(count);
+        const digits = value.toString(16);
+        for (let i = 0; i < digits.length; i++) {
+            if ((i & 0xfff) === 0) checkpoint('popcount', 4096);
+            const code = digits.charCodeAt(i);
+            count += nibbleCounts[code >= 97 ? code - 87 : code - 48];
         }
-        return count;
+        return BigInt(count);
     }),
     binary: () => native('binary', [1, 2], arguments_ => {
         const value = nonnegative('binary', expectInteger(arguments_[0]));

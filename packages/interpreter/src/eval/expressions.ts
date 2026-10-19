@@ -332,6 +332,7 @@ export class ExpressionEvaluator {
             };
         }
         const tableQuery = compileTableExpression(expression, () => ({
+            integerMembership: expressions.context.options().sequenceMembershipCompilation !== false,
             get localFrame() { return expressions.context.bindings.current; },
             set localFrame(frame) { expressions.context.bindings.current = frame; },
             requireModule: (module, operation) => expressions.context.requireModule(module, operation),

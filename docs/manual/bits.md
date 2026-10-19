@@ -183,7 +183,10 @@ use bits
 Number popcount
 ```
 
-Number cannot be negative.
+Number cannot be negative. Zero has no
+set bits. The result is an integer.
+Work and temporary storage grow linearly
+with the input's bit length.
 
 ### See also
 

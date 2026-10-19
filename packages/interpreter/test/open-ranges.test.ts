@@ -36,11 +36,11 @@ for (const compiled of [false, true]) describe(`open ranges (compiled=${compiled
     it('stops the Euler divisor pipeline at its first matching triangle', () => {
         const runtime = new Interpreter(undefined, { scalarFunctionCompilation: compiled });
         let last = 0n, calls = 0;
-        runtime.variables.set('checked', native('checked', 1, ([value]) => {
+        runtime.variables.set('checked', { lazySafe: () => true, ...native('checked', 1, ([value]) => {
             if (typeof value !== 'bigint' || value > 76576500n) throw new Error('Euler overread');
             last = value; calls++;
             return value;
-        }));
+        }) });
         const answer = runtime.execute('use numbers\nuse sequences\nN = 1 to #\nTriangles = N * (N + 1) // 2\ndivisor_count = checked divisors count\nCounts = Triangles divisor_count rank 0\nTriangles first where (Counts greater 500)');
         expect(answer).toBe(76576500n);
         expect(last).toBe(76576500n);
@@ -87,10 +87,10 @@ for (const compiled of [false, true]) describe(`open ranges (compiled=${compiled
         const signal = new Int32Array(new SharedArrayBuffer(4));
         const runtime = new Interpreter();
         let calls = 0;
-        runtime.variables.set('never', native('never', 1, () => {
+        runtime.variables.set('never', { lazySafe: () => true, ...native('never', 1, () => {
             if (++calls === 10) Atomics.store(signal, 0, 1);
             return 1n;
-        }));
+        }) });
         expect(() => withInterrupt(signal, () => runtime.execute('N = 1 to #\nMask = (N never rank 0) less 0\nN first where Mask'))).toThrow(/interrupt|cancel/i);
         expect(calls).toBeGreaterThanOrEqual(10);
         expect(calls).toBeLessThan(2000);

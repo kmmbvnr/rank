@@ -18,6 +18,7 @@ export interface LoopHost {
     readonly nestedLoops: boolean;
     readonly arrayReads: boolean;
     readonly arrayIteration: boolean;
+    declareIteration?(binding: IterationBinding, source: RankArray): void;
     iterationValues(binding: IterationBinding, source: RankArray | string, elementType?: 'integer' | 'text'): Iterable<RankValue>;
     readonly arrayWrites: boolean;
     readonly inlineWriteOffsets: boolean;
@@ -74,6 +75,8 @@ export interface IntegerLoopPlan {
     containers: Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean; mode?: RankDeque['mode'] }>;
     builtins: Map<string, string>;
     calls: { name: string; locals: readonly string[]; stableArrayReads: boolean; bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[];
+    graphMutations: string[];
+    vectorIterations: { slot: number; binding: IterationBinding }[];
     iterators: ((source: RankArray | string) => Iterable<RankValue>)[];
     writerNames: string[];
     binderNames: string[];

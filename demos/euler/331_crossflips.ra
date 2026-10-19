@@ -1,0 +1,78 @@
+rem Cross Flips
+rem https://projecteuler.net/problem=331
+
+use io
+
+Sum = 3
+for I in 4 to 30 by 2
+  Sum += (2 ** I - I) turns
+end
+Sum print
+
+fun N turns
+  if N mod 2 equal 1
+    if N equal 5
+      return 3
+    end
+    return 0
+  end
+  F = N real
+  rem Final product uses exact integers.
+  unpack Odd Fix = (F boundary) integer
+  return Fix + 2 * Odd * (N - Odd)
+end
+
+rem For this problem N is below 2 ** 30.
+rem Residuals stay within +/- 2 * N.
+rem Counts stay below 12 * N + 9.
+rem Reals keep these integers exact.
+fun N boundary
+  X = 0.0
+  Y = N - 1.0
+  R = 0.0
+  C = 1.0
+  Odd = 0.0
+  Parity = 1.0
+  Was = 0.0
+  Fix = 0.0
+  Edge = 2.0 * (N - 1.0)
+  for X less Y
+    if 2.0 * X less Edge - R
+      R += X
+      X += 1.0
+      R += X
+      C += 1.0
+      Parity = 1.0 - Parity
+    else
+      R -= Y
+      Y -= 1.0
+      R -= Y
+      New = 1.0
+      if R less 0.0
+        R += X
+        X += 1.0
+        R += X
+        New = 0.0
+      end
+      Was += New
+      if Parity equal 1.0
+        Fix += 2.0 * (C - 2.0 * Was)
+      else
+        Fix -= 2.0 * (C - 2.0 * Was)
+      end
+      Odd += C + Parity - Was
+      Was = New
+      C = 1.0
+      Parity = 1.0
+    end
+  end
+  if X equal Y
+    Odd += 1.0 - Was
+    if C greater 1.0
+      Fix += 4.0 * Was - 1.0
+    else
+      Fix += 1.0
+    end
+  end
+  return array Odd Fix
+end

@@ -1,0 +1,11 @@
+use testing
+
+test "Harshad primes"
+  use "387_harshad"
+  Limit = 10000
+  run
+  Answer equal 90619
+  Limit = 10 ** 14
+  run
+  Answer equal 696067597313468
+end

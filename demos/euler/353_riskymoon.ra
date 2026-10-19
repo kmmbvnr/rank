@@ -1,0 +1,78 @@
+rem Risky Moon
+rem https://projecteuler.net/problem=353
+
+use numbers
+use io
+use cli
+
+option Last integer = 15
+
+fun R moon
+  Cap = 8 * R * R + 2
+  Xs = array shape Cap fill 0
+  Ys = array shape Cap fill 0
+  Zs = array shape Cap fill 0
+  Count = 0
+  for X in (0 - R) to R
+    for Y in (0 - R) to R
+      Z2 = R * R - X * X - Y * Y
+      if Z2 at least 0
+        Z = Z2 isqrt
+        if Z * Z equal Z2
+          Xs Count = X
+          Ys Count = Y
+          Zs Count = Z
+          Count += 1
+          if Z greater 0
+            Xs Count = X
+            Ys Count = Y
+            Zs Count = 0 - Z
+            Count += 1
+          end
+        end
+      end
+    end
+  end
+  Dist = array shape Count fill 2.0
+  Done = array shape Count fill false
+  Start = 0
+  Goal = 0
+  for I in 0 till Count
+    if Xs I equal 0 and Ys I equal 0
+      if Zs I equal R
+        Start = I
+      end
+      if Zs I equal 0 - R
+        Goal = I
+      end
+    end
+  end
+  Dist Start = 0.0
+  Pi = -1 acos
+  for Step in 1 to Count
+    At = -1
+    Best = 3.0
+    for I in 0 till Count
+      if not Done I and Dist I less Best
+        At = I
+        Best = Dist I
+      end
+    end
+    Done At = true
+    for I in 0 till Count
+      Dot = Xs At * Xs I + Ys At * Ys I
+      Dot += Zs At * Zs I
+      Angle = (Dot / (R * R)) acos / Pi
+      Value = Best + Angle * Angle
+      Dist I = Dist I Value min
+    end
+  end
+  return Dist Goal
+end
+
+Sum = 0.0
+for N in 1 to Last
+  Sum += (2 ** N - 1) moon
+end
+Answer = Sum 10 round
+Answer print

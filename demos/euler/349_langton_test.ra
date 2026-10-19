@@ -1,0 +1,18 @@
+use testing
+
+test "small Langton states"
+  use "349_langton"
+  10 ants equal 6
+  100 ants equal 20
+end
+
+test "highway period"
+  use "349_langton"
+  10000 ants + 12 equal 10104 ants
+end
+
+test "full Langton count"
+  use "349_langton"
+  run
+  Answer equal 115384615384614952
+end

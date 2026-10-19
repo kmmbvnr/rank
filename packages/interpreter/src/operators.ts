@@ -1,3 +1,4 @@
+import { membershipLookup } from './membership-lookup.js';
 import { registerRangePlan, registerModularRange } from './range-plan.js';
 import { divideWithRemainder, floorDivide, floorDivideReal, floorRemainder } from './numeric-division.js';
 import { mapResult, runExecution } from './execution.js';
@@ -142,10 +143,11 @@ export class Operators {
 
     private evaluateUnaryValue(operator: string, value: RankValue): RankValue {
         if (operator === 'not' && isPositionalMask(value)) {
-            return positionalMask(mapSequence(value, 'not', item => item !== true).plan);
+            return positionalMask(mapSequence(value, 'not', item => item !== true, true).plan);
         }
         if (operator === 'not' && isRankSequenceMask(value)) {
             return sequenceMask(value.source, {
+                pure: value.predicate.pure,
                 name: `not ${value.predicate.name}`,
                 expression: {
                     kind: 'not',
@@ -396,6 +398,7 @@ export class Operators {
         const source = mapped.origin?.source ?? mapped;
         const lift = mapped.origin?.map ?? ((item: RankValue) => item);
         const predicate: SequencePredicate = {
+            pure: mapped.plan.replay !== undefined && typeof scalar !== 'object',
             name: operator,
             ...(mapped.origin ? {} : { expression: {
                 kind: 'comparison' as const,
@@ -423,10 +426,11 @@ export class Operators {
             const zipped = zipSequences(left, right, operator, (a, b) => {
                 if (typeof a !== 'boolean' || typeof b !== 'boolean') throw new RankError(`${operator} expects boolean masks`);
                 return combine(a, b);
-            });
+            }, true);
             return positionalMask(zipped.plan);
         }
         return sequenceMask(left.source, {
+            pure: left.predicate.pure && right.predicate.pure,
             name: `${left.predicate.name} ${operator} ${right.predicate.name}`,
             expression: {
                 kind: 'logical',
@@ -549,6 +553,7 @@ function openRange(start: bigint, step: bigint): RankSequence {
     if (step === 0n) throw new RankError('range step must be a nonzero integer');
     return sequence({
         name: `${start} to # by ${step}`,
+        replay: 'direct',
         size: { kind: 'infinite' },
         openRange: { start, step },
         at: index => start + index * step,
@@ -591,6 +596,7 @@ function buildRange(start: bigint, end: bigint, inclusive: boolean, stride?: big
         : (value: bigint) => inclusive ? value >= end : value > end;
     return sequence({
         name: `${start} ${inclusive ? 'to' : 'till'} ${end}${stride === undefined ? '' : ` by ${stride}`}`,
+        replay: 'direct',
         size: {
             kind: 'exact',
             value: size,
@@ -655,28 +661,6 @@ function presentMembershipTest(right: RankValue, indexed: boolean): (value: Rank
     throw new RankError('in expects text, an object, index, set, multiset, array, queue or sequence on the right');
 }
 
-// Hash scalar values once; retain structural equality for composite values.
-function membershipLookup(values: Iterable<RankValue> | RankArray): (value: RankValue) => boolean {
-    const scalars = new Set<RankValue>();
-    const composite: RankValue[] = [];
-    const key = (value: RankValue): RankValue => typeof value === 'number'
-        && Number.isFinite(value) && Number.isInteger(value) ? BigInt(value) : value;
-    const add = (value: RankValue): void => {
-        checkpoint('indexing membership');
-        if (typeof value === 'object') composite.push(value);
-        else if (!(typeof value === 'number' && Number.isNaN(value))) scalars.add(key(value));
-    };
-    if ('shape' in values) {
-        // Index arrays directly without wrapping each cell in reduction iterators.
-        const size = arraySize(values.shape);
-        for (let index = 0; index < size; index++) add(readArrayItem(values, index));
-    } else {
-        for (const value of values) add(value);
-    }
-    return value => typeof value === 'object'
-        ? composite.some(item => equalMembershipValues(value, item))
-        : scalars.has(key(value));
-}
 
 function withAt(source: RankSequence, at: (index: bigint) => RankValue | undefined): RankSequence {
     return { kind: 'sequence', plan: { ...source.plan, at } };
@@ -710,7 +694,7 @@ function mapBinary(
 ): RankValue {
     const scalarOperation = numericKernel(name, operation);
     if (isRankSequence(left) && isRankSequence(right)) {
-        const zipped = zipSequences(left, right, name, scalarOperation);
+        const zipped = zipSequences(left, right, name, scalarOperation, true);
         const [a, b] = [left.plan.at, right.plan.at];
         return a && b ? withAt(zipped, index => {
             const x = a.call(left.plan, index), y = b.call(right.plan, index);
@@ -718,13 +702,13 @@ function mapBinary(
         }) : zipped;
     }
     if (isRankSequence(left)) {
-        const mapped = withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right)), left,
+        const mapped = withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right), typeof right !== 'object'), left,
             item => scalarOperation(item, right)), left, item => scalarOperation(item, right));
         if (name === 'mod' && typeof right === 'bigint') registerModularRange(mapped.plan, left.plan, right);
         return mapped;
     }
     if (isRankSequence(right)) {
-        return withOrigin(addressable(mapSequence(right, name, item => scalarOperation(left, item)), right,
+        return withOrigin(addressable(mapSequence(right, name, item => scalarOperation(left, item), typeof left !== 'object'), right,
             item => scalarOperation(left, item)), right, item => scalarOperation(left, item));
     }
     const leftArray = asRankArray(left);
@@ -740,7 +724,7 @@ function mapBinary(
         if (masked) return masked;
     }
     if ((leftArray || rightArray) && DENSE_OPERATORS.has(name)) {
-        const dense = mapDenseArrays(leftArray ?? left, rightArray ?? right, scalarOperation, REAL_CODES[name], !isPredicateOperator(name));
+        const dense = mapDenseArrays(leftArray ?? left, rightArray ?? right, scalarOperation, REAL_CODES[name], !isPredicateOperator(name), name);
         if (dense) return dense;
     }
     if (leftArray && rightArray) {

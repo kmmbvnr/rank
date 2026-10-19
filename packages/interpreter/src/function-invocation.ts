@@ -1,8 +1,10 @@
-import { compiledSequenceMembership } from './sequence-membership.js';
+import { membershipLookup } from './membership-lookup.js';
+import { isPureLazyFunction } from './lazy-function.js';
+import { compiledIntegerMembership } from './integer-membership.js';
 import { compiledCalleeTypeKey, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { AstNode } from 'langium';
 import {
-    functionScope, lexicalBinding, findOperation, writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
+    functionScope, lazyFunctionFailure, lazyBuiltinDependencies, lexicalBinding, findOperation, writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
     type LastArrayUseProof, type FunctionCallSignature, type CallRequirement, type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { isFlatScalarArray, arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
@@ -224,8 +226,34 @@ export class FunctionInvocation {
                 return selected.call(args);
             },
         };
-        this.bindings.assign(statement.name, fn);
-        return fn;
+        const snapshot = (): NativeFunction => {
+            const operations = plain ? this.bindings.withFrame(context, () => stages!.map(stage => {
+                const head = stage[0];
+                if (!isNameExpression(head)) throw new RankError('Pipeline stage must name a function');
+                const operation = resolve(head.name);
+                if (!isNativeFunction(operation)) throw new RankError('Pipeline stage must be a function', 'TypeError');
+                return operation.snapshot?.() ?? operation;
+            })) : [...alternatives.values()].map(operation => operation.snapshot?.() ?? operation);
+            const frozen: NativeFunction = {
+                ...fn,
+                snapshot: () => frozen,
+                lazySafe: () => operations.every(isPureLazyFunction),
+                call: args => {
+                    if (plain) {
+                        let operands = args;
+                        for (const operation of operations) operands = [runExecution(this.host.apply(operation, operands))];
+                        return operands[0];
+                    }
+                    const selected = operations.find(operation => operation.arities.includes(args.length));
+                    if (!selected) throw new RankError(`${statement.name} does not accept ${args.length} arguments`);
+                    return selected.call(args);
+                },
+            };
+            return frozen;
+        };
+        const bound = { ...fn, snapshot, lazySafe: () => isPureLazyFunction(snapshot()) };
+        this.bindings.assign(statement.name, bound);
+        return bound;
     }
 
     /** Clone each referenced declaration into its own frozen lexical environment.
@@ -235,7 +263,7 @@ export class FunctionInvocation {
         const previous = seen.get(fn);
         if (previous) return previous;
         const declaration = functionDeclarations.get(fn);
-        if (!declaration) return fn;
+        if (!declaration) return fn.snapshot?.() ?? fn;
         if (declaration.owner !== this) return declaration.owner.snapshot(fn, seen);
         const { statement, context } = declaration;
         const scope = functionScope(statement);
@@ -265,6 +293,30 @@ export class FunctionInvocation {
             }
         }
         return result;
+    }
+
+    private lazySafe(fn: NativeFunction, seen = new Set<NativeFunction>(), checkParameters = true): boolean {
+        if (seen.has(fn)) return true;
+        const builtin = BuiltinRegistry.operationOf(fn);
+        if (builtin) return !builtin.effects?.length && (fn.lazySafe?.() ?? true);
+        const declaration = functionDeclarations.get(fn);
+        if (!declaration) return fn.lazySafe?.() ?? false;
+        if (declaration.owner !== this) return declaration.owner.lazySafe(fn, seen, checkParameters);
+        seen.add(fn);
+        const { statement, context } = declaration;
+        if (lazyFunctionFailure(statement, undefined, checkParameters)) return false;
+        for (const name of lazyBuiltinDependencies(statement)) {
+            const value = this.bindings.withFrame(context, () => this.host.resolve(name));
+            if (isNativeFunction(value) && BuiltinRegistry.operationOf(value)
+                && value.lazySafe && !value.lazySafe()) return false;
+        }
+        const scope = functionScope(statement)!;
+        for (const binding of new Set([...scope.reads.values(), ...scope.captures])) {
+            if (binding.scope.owner === statement) continue;
+            const value = this.bindings.withFrame(context, () => this.host.resolve(binding.name));
+            if (isNativeFunction(value) && !this.lazySafe(value, seen, false)) return false;
+        }
+        return true;
     }
 
     define(statement: FunctionStatement, constant = true): RankValue {
@@ -449,6 +501,7 @@ export class FunctionInvocation {
                 : undefined,
             captures: context?.captures(),
             snapshot: () => this.snapshot(fn),
+            lazySafe: () => this.lazySafe(fn),
             // What a caller outside the runtime reaches. A Rank call made from a
             // Rank body takes a shorter path, so the stretch this opens is the
             // work our embedder asked for; readers over storage we cannot track
@@ -651,9 +704,13 @@ export class FunctionInvocation {
                 users[index] = bound;
             }
             for (let index = 0; index < kernel.memberships.length; index++) {
-                const contains = compiledSequenceMembership(resolve(kernel.memberships[index]));
+                const name = kernel.memberships[index], value = resolve(name);
+                const contains = compiledIntegerMembership(value);
                 if (!contains) return false;
-                memberships[index] = contains;
+                // Captured array bindings may receive a COW replacement inside
+                // a linked caller. Resolve them at the actual expression, not entry.
+                memberships[index] = value && isRankArray(value)
+                    ? integer => membershipLookup(resolve(name) as RankArray)(integer) : contains;
             }
             for (const name of kernel.guards) {
                 const operation = findOperation(name);

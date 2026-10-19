@@ -1,3 +1,4 @@
+import { membershipLookup } from './membership-lookup.js';
 import { type CompiledCalleeType, isCompiledContainer } from './compiled-callee-type.js';
 import { newStructure } from './collections.js';
 import { indexKey } from './index-key.js';
@@ -76,6 +77,12 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 ? Object.is(expression.value, -0) ? '-0' : String(expression.value) : JSON.stringify(expression.value);
         if (expression.kind === 'input') {
             const operation = expression.input.operation;
+            if (operation === 'vector') {
+                const values = expression.input.indices!.map(item => lower(item, lines));
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = ownedArray([${values.join(',')}], [${values.length}], true);`);
+                return result;
+            }
             if (operation === 'user-call') {
                 const callee = expression.input.callee!;
                 const arguments_ = expression.input.indices!.map(argument => lower(argument, lines));
@@ -92,6 +99,12 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 return result;
             }
             const receiver = slot(expression.input.name);
+            if (operation === 'array-contains' || operation === 'array-not-contains') {
+                const value = lower(expression.input.indices![0], lines);
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = ${operation === 'array-not-contains' ? '!' : ''}membershipLookup(${receiver})(${value});`);
+                return result;
+            }
             if (operation === 'array') {
                 const dimensions = expression.input.dimensions!.map(({ value, negative }) => {
                     const size = lower(value, lines), result = `v${serial++}`;
@@ -228,7 +241,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
     let kernel: Kernel | undefined;
-    try { kernel = { locations, calls, userCalls, memberships, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'applySelectors', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'scalarArrayWriteOffset', 'arrayForWrite', source)(RankError, applySelectors, noteArrayBinding, checkpoint, newStructure, indexKey, ownedArray, checkedArrayDimension, scalarArrayWriteOffset, arrayForWrite) as Kernel['run'] }; }
+    try { kernel = { locations, calls, userCalls, memberships, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'applySelectors', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', source)(RankError, applySelectors, noteArrayBinding, checkpoint, newStructure, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

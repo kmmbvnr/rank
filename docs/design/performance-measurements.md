@@ -13,6 +13,20 @@ The [speed follow-up](flat-segment-speed.md) measures scalar combine specializat
 The [Arrow table experiment](arrow-titanic-experiment.md) compares retained
 memory and feature preparation on synthetic Titanic rows.
 
+## CI execution budget
+
+Type, differential and editor-name-fact audits execute the demo corpus. Default-scale workloads
+that exceed the regular CI time or memory budget are listed with reasons in
+[`scripts/demo-execution-exclusions.json`](../../scripts/demo-execution-exclusions.json).
+All three execution audits and the differential coverage gate read that same explicit list.
+New full-workload exclusions keep the corresponding small `_test.ra` fixtures;
+Large assertions mixed into small fixtures are preserved in separate
+`*_default_test.ra` files for manual execution. Existing exclusions from issues
+#311 and #316 are retained. This policy applies
+to execution audits only: parsing, static analysis and CLI source checks still
+inspect the excluded programs. Full-scale performance runs remain manual
+benchmarks and must be reported separately from CI correctness coverage.
+
 ## Benchmark commands
 
 From a built checkout:
@@ -831,3 +845,72 @@ After also integrating main `9b01afa9` (#322, scalar helper entry), the loop
 remained at 0.697/0.576/0.543 s, with initialization plus loop at
 1.254/0.845/0.793 s. The combined scalar-entry, tensor, mask and cuboid tests
 passed (125 tests); diagnostics still show all 71 fused updates.
+
+## Euler 7: boolean fills and yielding loops
+
+The Euler 7 demo implements a finite sieve as a user generator. It yields each
+prime and marks its multiples with `Marked (P * P to Limit by P) = true`.
+
+Boolean scalar selection writes now validate the binding once and commit to
+owned boolean storage without constructing replacement arrays or an extra array
+of offsets for type checking. Bounds validation, selection snapshots and
+copy-on-write still precede the commit. Other element types, compound boolean
+writes and arbitrary host polling callbacks keep their existing paths.
+
+Iterable generator loops can compile their branches and yields into a native
+JavaScript generator. Values stay in Rank bindings, so resuming does not reuse
+stale array buffers or scalar registers. Nested loops, protected blocks and
+ordinary statements use the existing prepared operations. Inspection retains
+the reference path, as does `compilation: false`. Conditional loops and yields
+hidden entirely inside protected blocks retain the existing loop dispatcher.
+
+Reproduce the four-way comparison after building:
+
+```sh
+npx tsc -b tsconfig.build.json
+node benchmarks/sieve-generator.mjs
+```
+
+The benchmark compares both paths disabled, each enabled separately, and both
+enabled. Each sample runs in a separate process after two warmups, includes
+parsing and execution, and checks the answer `104743`. Run it without competing
+tests. Its timings exclude process startup; it does not measure peak or retained
+memory.
+
+On 2026-10-19, Node 24.15.0 / Apple M5, five samples per variant gave:
+
+| Enabled paths | Median |
+| --- | ---: |
+| Neither (previous execution paths) | 813.82 ms |
+| Boolean fills only | 436.00 ms |
+| Generator loops only | 577.61 ms |
+| Both | 315.43 ms |
+
+The combined speedup is 2.58x for this workload. Raw samples and switches are in
+`benchmarks/baselines/2026-10-19-sieve-generator.json`. An earlier five-sample
+pass before adding the host-polling fallback measured 709.55 → 331.77 ms
+(2.14x); the timings vary between runs and are not a general interpreter claim.
+
+Verification passed the main interpreter batch (221 files, 4382 tests), the
+final focused suites (71 selection-write, 18 generator-loop and 8 reference-mode
+tests), and both Euler 7 demo tests. Targeted type and differential audits passed
+for Euler 7 and the queens demos (10 programs per audit). The unrestricted
+demo-corpus audit was stopped during execution; it was not a completed full
+suite run.
+
+## Exact integer square roots (#333)
+
+[The square-root measurements](../../benchmarks/integer-square-root-results.md)
+separate forced array materialization, `isqrt sum`, input setup and cold process
+cost. The implementation combines a BigInt-verified floating estimate below
+`2^63` with checked stored scalar-array application; larger integers retain
+Newton iteration. The report includes raw samples and the host-load limitation.
+
+## Short stored arrays and modular subset counts (#335)
+
+[The short-array measurements](../../benchmarks/short-array-updates-results.md)
+cover the original 250250-step array update with and without `copy`, scalar
+loops, cold startup, GC and peak RSS. Three explicit-copy runs meet the 20-second
+criterion. A full no-copy run also succeeds with compilation disabled and a
+256 MiB V8 old-space limit. The report distinguishes heap limits from total RSS
+and records the raw observations and source provenance.

@@ -186,7 +186,12 @@ it('describes numeric maps, missing propagation and integer-only reductions', ()
         .toBe("(integer | c<integer>) → integer");
     expect(operationSignature(findOperation('round')!, [{ types: ['real'] }, { types: ['integer'] }]))
         .toBe('real integer → real [rank 0 0]');
-    expect(operationSignature(findOperation('powmod')!)).toBe('integer integer integer → integer');
+    const powmod = findOperation('powmod')!;
+    const integer = { types: ['integer'] };
+    const array = { types: ['array'], elements: ['integer'] };
+    expect(operationSignature(powmod, [integer, integer, integer])).toBe('integer integer integer → integer');
+    expect(operationSignature(powmod, [array, integer, integer])).toBe('c<integer> integer integer → c<integer>');
+    expect(operationSignature(powmod, [integer, integer, array])).toBe('integer integer c<integer> → c<integer>');
 });
 
 

@@ -572,8 +572,8 @@ Number isqrt
 
 Number must be a nonnegative integer.
 The answer is exact even for very large
-integers, because no decimal rounding is
-involved.
+integers. Integer arithmetic verifies
+the result.
 
 ### See also
 
@@ -719,6 +719,25 @@ All three are integers. Exponent cannot
 be negative and Modulus must be
 positive. The full power is never built,
 so huge exponents stay fast.
+
+Array operands map cell by cell, with
+the same broadcasting as arithmetic.
+Scalars repeat across the array shape.
+
+```rank
+use numbers
+Ks = array 1 2 3
+Ks Ks 250 powmod
+```
+
+```result
+1 4 27
+```
+
+Use arrays for this form; sequences are
+not implicitly materialized. Missing
+cells and nonintegers raise an error
+when their result cell is read.
 
 ### See also
 

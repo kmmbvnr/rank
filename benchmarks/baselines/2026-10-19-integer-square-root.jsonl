@@ -1,0 +1,13 @@
+{"node":"v24.15.0","cpu":"Apple M5","trials":3,"inputSha256":"4e050942139155737cc8ee116a994ed51ceedd3dc67af808a332bdce2d6b39b9","baseline":{"runtime":"/private/tmp/rank-326/packages/interpreter/out/index.js","commit":"d6c27f088ef2be35d49ebc13148c54f9206d9b8c","tree":"97aecea95e6f054cc15ed56c0677a39cf0da8f4f"},"candidate":{"runtime":"/private/tmp/rank-333/packages/interpreter/out/index.js","commit":"cd739c2b77a9b75427fa6cb4b62aaf1349c9ac01","tree":"59be9f62d697de17bdf8ca3445c0de9ea2a51516"},"driverSha256":"111a53e31e2f905345dbe29e2af3b7325c1cf33191c5197cb0c19635bfb4cd84"}
+{"mode":"baseline","workload":"sum","trial":0,"coldMs":40087.110959,"setupMs":6943.6377919999995,"operationMs":30997.071,"answer":"883765608673157"}
+{"mode":"candidate","workload":"sum","trial":0,"coldMs":4997.985499999995,"setupMs":2228.297125,"operationMs":1304.2764590000002,"answer":"883765608673157"}
+{"mode":"baseline","workload":"materialize","trial":0,"coldMs":30005.584917,"setupMs":1887.8717080000001,"operationMs":25044.399625000002,"answer":"883765608673157"}
+{"mode":"candidate","workload":"materialize","trial":0,"coldMs":15998.356583,"setupMs":6792.575792,"operationMs":4610.409334,"answer":"883765608673157"}
+{"mode":"candidate","workload":"sum","trial":1,"coldMs":16025.081625000006,"setupMs":8402.490042,"operationMs":5275.014042000001,"answer":"883765608673157"}
+{"mode":"baseline","workload":"sum","trial":1,"coldMs":79669.58575,"setupMs":10662.404416,"operationMs":65594.318833,"answer":"883765608673157"}
+{"mode":"candidate","workload":"materialize","trial":1,"coldMs":10095.790542000002,"setupMs":3556.341,"operationMs":3103.3837079999994,"answer":"883765608673157"}
+{"mode":"baseline","workload":"materialize","trial":1,"coldMs":38732.522708000004,"setupMs":4205.524083,"operationMs":30098.815333000002,"answer":"883765608673157"}
+{"mode":"baseline","workload":"sum","trial":2,"coldMs":60607.43187500001,"setupMs":8605.959667,"operationMs":48609.3655,"answer":"883765608673157"}
+{"mode":"candidate","workload":"sum","trial":2,"coldMs":14129.425665999996,"setupMs":7674.538583999999,"operationMs":4316.713707999999,"answer":"883765608673157"}
+{"mode":"baseline","workload":"materialize","trial":2,"coldMs":31942.82233300002,"setupMs":5391.808875,"operationMs":23928.3125,"answer":"883765608673157"}
+{"mode":"candidate","workload":"materialize","trial":2,"coldMs":11310.92975000001,"setupMs":4264.163084,"operationMs":3581.626541999999,"answer":"883765608673157"}

@@ -1,0 +1,54 @@
+rem Largest Roots of Cubic Polynomials
+rem https://projecteuler.net/problem=356
+
+use numbers
+use sequences
+use io
+use cli
+
+option Count integer = 30
+option Power integer = 987654321
+option Mod integer = 10 ** 8
+
+fun A B Mod mul
+  C = array shape 9 fill 0
+  for I in 0 till 3
+    for J in 0 till 3
+      for K in 0 till 3
+        X = A (I * 3 + K)
+        Y = B (K * 3 + J)
+        C (I * 3 + J) += X * Y
+      end
+      C (I * 3 + J) mod= Mod
+    end
+  end
+  return C
+end
+
+fun N Power Mod psum
+  A = 2 ** N mod Mod
+  M = array A 0 ((Mod - N) mod Mod)
+  M = concat M (array 1 0 0)
+  M = concat M (array 0 1 0)
+  P = array 1 0 0 0 1 0 0 0 1
+  E = Power - 2
+  for E greater 0
+    if E mod 2 equal 1
+      P = P M Mod mul
+    end
+    M = M M Mod mul
+    E //= 2
+  end
+  S2 = A * A mod Mod
+  S1 = A
+  Total = P 0 * S2 + P 1 * S1
+  Total += P 2 * 3
+  return Total mod Mod
+end
+
+Answer = 0
+for N in 1 to Count
+  Answer += N Power Mod psum - 1
+  Answer mod= Mod
+end
+Answer print

@@ -74,6 +74,96 @@ describe('private safe-integer loop registers', () => {
         expect(diagnostics.numberLoops).toBe(1);
     });
 
+    it.each([
+        'A = array 10 20 30\nS = 0\nfor V Index in A\n if Index equal 1\n  continue\n end\n S += V + Index\n V = 99\n Index = 99\nend',
+        'A = array 1 2 3\nS = 0\nfor I in 1 to 2\n for V in A\n  S += I * V\n end\nend',
+        'A = array 1 2 3\nS = 0\nfor V in A\n for W OtherIndex in A\n  S += V * W + OtherIndex\n  if OtherIndex equal 1\n   break\n  end\n end\nend',
+        'A = array 10 20\nS = 0\nfor # Index in A\n S += Index\nend\nfor V # in A\n S += V\nend',
+        'A = array 1 2 3\nS = 0\nfor V Index in (A)\n S += V\n Last = Index\nend',
+        'A = array shape 0 fill 0\nfor V Index in A\n Unused = V\nend',
+    ])('runs trusted vector traversal with private cursors: %s', source => {
+        expect(execute(source).observation.error).toBeUndefined();
+        expect(compare(source).numberLoops).toBeGreaterThan(0);
+    });
+
+    it('publishes preceding vector assignments at the original error location', () => {
+        const source = 'A = array 1 2 3\nS = 0\nfor V Index in A\n S += V\n Bad = 7 // (2 - V)\nend';
+        expect(execute(source).observation.error).toContain('division by zero');
+        expect(compare(source).numberLoops).toBe(1);
+    });
+
+    it('replays overflowing vector regions from their original scalar inputs', () => {
+        const diagnostics = compare('A = array 1 2 3\nS = 9007199254740990\nfor V Index in A\n S += V\nend');
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+    });
+
+    it.each([
+        'A = array shape 0 fill 0\nV = "kept"\nfor V Index in A\n Unused = 1\nend',
+        'A = array shape 0 fill 0\nIndex = "held"\nfor V Index in A\n Unused = 1\nend',
+        'A = array 1 2\nV = "held"\nfor V in A\n Before = 1\nend',
+        'A = array 1 9007199254740992\nS = 0\nfor V in A\n S += V\nend',
+        'A = array 1 2 3\nB = A\nS = 0\nfor V in A\n B 2 = 10\n S += V\nend',
+    ])('retains exact fallback for incompatible bindings, unsafe cells and mutation: %s', source => {
+        expect(compare(source).numberLoops).toBe(0);
+    });
+
+    it('does not leak fresh empty-vector bindings outside the loop scope', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        try {
+            diagnostics.run(() => runtime.execute('A = array shape 0 fill 0\nfor V Index in A\n Unused = 1\nend'));
+            expect(diagnostics.numberLoops).toBe(1);
+            expect(runtime.variables.has('Index')).toBe(false);
+            runtime.execute('V = "allowed"');
+            runtime.execute('Index = "allowed too"');
+        } finally { runtime.dispose(); }
+    });
+
+    it('does not declare a vector binding in an unreached nested loop', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        try {
+            diagnostics.run(() => runtime.execute('A = array 1 2\nfor I in 0 till 0\n for V Index in A\n  Unused = V\n end\nend'));
+            expect(diagnostics.numberLoops).toBe(1);
+            runtime.execute('V = "allowed"\nIndex = "also allowed"');
+        } finally { runtime.dispose(); }
+    });
+
+    it.each(['-1', '3'])('preserves direct-load bounds failures and partial state at index %s', index => {
+        const source = `A = array 1 2 3\nS = 0\nfor V in A\n S += V\n Bad = A (${index})\n After = V\nend`;
+        const candidate = execute(source);
+        expect(candidate.observation.error).toContain('out of bounds');
+        expect(candidate.observation).toEqual(execute(source, { compilation: false }).observation);
+        // The existing generic BigInt iterator reader appends a negative
+        // coordinate to its message; both paths must retain the same state.
+        const exact = execute(source, { numberLoopCompilation: false });
+        expect(exact.observation.error).toContain('out of bounds');
+        expect(candidate.observation.variables).toEqual(exact.observation.variables);
+        expect(candidate.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('publishes vector progress and runs finally on Atomics cancellation', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        const flag = new Int32Array(1); flag[0] = 1;
+        try {
+            expect(() => withInterrupt(flag, () => diagnostics.run(() => runtime.execute(`A = array 1 2 3
+S = 0
+Done = 0
+try
+ for V Index in A
+  for I in 1 to 1000000
+   S += V
+  end
+ end
+finally
+ Done = 1
+end`)))).toThrow('Interrupted');
+            expect(diagnostics.numberLoops).toBe(1);
+            expect(runtime.variables.get('Done')).toBe(1n);
+            expect(runtime.variables.get('S')).toBeGreaterThan(0n);
+            expect(runtime.variables.get('S')).toBeLessThan(1000000n);
+        } finally { runtime.dispose(); }
+    });
+
     it('declines arrays with unsafe cells before publishing any scalar', () => {
         const diagnostics = compare('A = array 1 9007199254740992\nS = 0\nfor I in 0 to 1\n S += A I\nend');
         expect(diagnostics.numberLoops).toBe(0);

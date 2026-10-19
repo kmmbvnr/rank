@@ -1,0 +1,103 @@
+rem Ellipses Inside Triangles
+rem https://projecteuler.net/problem=385
+
+use numbers
+use sequences
+use text
+use algo
+use io
+use cli
+
+option Limit integer = 10 ** 9
+
+Dirs = new queue
+for M in -12 to 12
+  for N in -21 to 21
+    if M equal 0 and N equal 0
+      continue
+    end
+    if (M abs) (N abs) gcd not equal 1
+      continue
+    end
+    D = N * N + 3 * M * M
+    if 468 mod D not equal 0
+      continue
+    end
+    K = 468 // D
+    if K equal 468
+      Dirs push array M N D K 24 6
+      Dirs push array M N D K 30 12
+    end
+    if K equal 117
+      Dirs push array M N D K 12 3
+      Dirs push array M N D K 15 6
+    end
+    if K equal 36
+      Dirs push array M N D K 6 0
+    end
+    if K equal 9
+      Dirs push array M N D K 3 0
+    end
+  end
+end
+Seen = new set
+Num = 0
+for Item in Dirs
+  M = Item 0
+  N = Item 1
+  D = Item 2
+  S = Item 4
+  T = Item 5
+  for (S T max) at most 6 * Limit + 10
+    if T not equal 0
+      for U in -1 to 1 by 2
+        for V in -1 to 1 by 2
+          Ss = S * U
+          Tt = T * V
+          if Ss * N mod 3 not equal 0
+            continue
+          end
+          A = Ss * M
+          B = -Tt * N
+          C = Ss * N // 3
+          E = Tt * M
+          if (A + C) mod 2 not equal 0
+            continue
+          end
+          if (B + E) mod 2 not equal 0
+            continue
+          end
+          X1 = (A + C) // 2
+          Y1 = (B + E) // 2
+          X2 = (C - A) // 2
+          Y2 = (E - B) // 2
+          X3 = -C
+          Y3 = -E
+          Top = X1 abs
+          Top = Top (Y1 abs) max
+          Top = Top (X2 abs) max
+          Top = Top (Y2 abs) max
+          Top = Top (X3 abs) max
+          Top = Top (Y3 abs) max
+          if Top greater Limit
+            continue
+          end
+          P1 = (array X1 Y1) "," join
+          P2 = (array X2 Y2) "," join
+          P3 = (array X3 Y3) "," join
+          Pts = array P1 P2 P3
+          Key = (Pts sort) "|" join
+          if Key not in Seen
+            Seen add Key
+            Num += D * (S * T abs)
+          end
+        end
+      end
+    end
+    Old = S
+    S = 2 * S + 3 * T
+    T = Old + 2 * T
+  end
+end
+Answer = Num // 4
+Answer print

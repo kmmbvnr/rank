@@ -1,10 +1,13 @@
-import { arrayRevision, derivedArray, materializeCells, ownedArray, registerArrayReadPlan, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
-import { currentDiagnostics } from './diagnostics.js';
+import { scalarBuiltinArray } from './scalar-builtin.js';
+import { rankedCells } from './ranked-cells.js';
+import { rankedNumericFind } from './numeric-search.js';
+import { arrayRevision, derivedArray, materializeCells, ownedArray, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
 import { registerScalarView } from './integer-view.js';
 import type { RankedMembership } from './membership-function.js';
 import { completed, type Evaluation } from './execution.js';
 import { RankError } from './errors.js';
-import { checkpoint, inspectionEnabled } from './interrupt.js';
+import { pureLazyFunction } from './lazy-function.js';
+import { checkpoint } from './interrupt.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { textFunctionSqlite } from './modules/sqlite.js';
@@ -62,13 +65,15 @@ export class RankApplication {
         if (typeof value === 'string') {
             if (cellRank >= 1) return this.invoke(fn, [value]);
             const cells = textCells(value);
-            return completed(this.applyToTensorCells(lazyArray(cells.frameShape, cells.cellAt, true), fn, [0]));
+            // Text is immutable: publish a stable dependency so pure ranked
+            // results are cached when overlapping selections reread its cells.
+            return completed(this.applyToTensorCells(derivedArray(cells.frameShape, [], cells.cellAt, true), fn, [0]));
         }
         if (isRankSequence(value)) {
             if (cellRank >= 1) return this.invoke(fn, [value]);
-            fn = fn.snapshot?.() ?? fn;
+            fn = pureLazyFunction(fn);
             const scalar = this.scalarCallback(fn);
-            return completed(mapSequence(value, fn.name, atom => scalar ? scalar([atom]) : fn.call([atom])));
+            return completed(mapSequence(value, fn.name, atom => scalar ? scalar([atom]) : fn.call([atom]), true));
         }
         if (isRankArray(value)) {
             if (frameAxes === undefined && cellRank >= value.shape.length) return this.invoke(fn, [value]);
@@ -126,6 +131,18 @@ export class RankApplication {
         );
         if (frameShape.length === 0) {
             return this.invoke(fn, [left, right]);
+        }
+        // The standard find holds the complete left vector and maps scalar
+        // targets. Keep error demand lazy and share one revision-checked index.
+        if (customLeftRank === undefined && customRightRank === undefined
+            && fn === this.standardFunctions.get(standardModules.sequences.find)
+            && a.frameShape.length === 0 && rightRank === 0) {
+            const search = rankedNumericFind(left);
+            const sources = [left, right].filter(isRankArray);
+            return completed(derivedArray(frameShape, sources, index => {
+                const target = b.cellAt(index);
+                return search(target) ?? fn.call([left, target]);
+            }, true));
         }
         fn = fn.snapshot?.() ?? fn;
         // A cell that returns an array, or an explicit rank on a function without its own
@@ -307,111 +324,12 @@ export class RankApplication {
         }
         if (frameAxes.length === 0) return fn.call([cells.cellAt(0)]);
 
-        const builtin = this.isPureBuiltin(fn);
-        const scalar = cells.cellShape.length === 0 ? this.scalarCallback(fn) : undefined;
-        const results = new Map<number, RankValue>();
-        let inputRevision: number | undefined;
-        let materialized: RankValue[] | undefined;
-        const refresh = () => {
-            if (!builtin) return true;
-            const current = arrayRevision(value);
-            if (current === undefined || current !== inputRevision) {
-                results.clear();
-                materialized = undefined;
-                if (current !== inputRevision) resultCellShape = undefined;
-                inputRevision = current;
-            }
-            return current !== undefined;
-        };
-        let resultCellShape: readonly number[] | undefined;
-        const retainResult = (result: RankValue, frameIndex: number, cacheable: boolean): RankValue => {
-            const shape = isRankArray(result) ? result.shape : [];
-            if (resultCellShape === undefined) {
-                resultCellShape = [...shape];
-            } else if (!sameShape(resultCellShape, shape)) {
-                throw new RankError(
-                    `rank results must have one shape: \`${fn.name ?? 'function'}\` gave ${resultCellShape.join(' ') || 'a scalar'}`
-                    + ` and ${shape.join(' ') || 'a scalar'} (cell ${frameIndex}); `
-                    + 'reduce inside a function you lift, or pad to a fixed width',
-                );
-            }
-            this.ownFiles(result);
-            if (cacheable) results.set(frameIndex, result);
-            return result;
-        };
-        const resultAt = (frameIndex: number): RankValue => {
-            const cacheable = refresh();
-            const cached = results.get(frameIndex);
-            if (cached !== undefined) return cached;
-            const arguments_ = [cells.cellAt(frameIndex)];
-            return retainResult(scalar ? scalar(arguments_) : fn.call(arguments_), frameIndex, cacheable);
-        };
-        const outputShape = (): readonly number[] => {
-            resultAt(0);
-            return [...cells.frameShape, ...resultCellShape!];
-        };
+        const scalarBuiltin = scalarBuiltinArray(value, fn, frameAxes);
+        if (scalarBuiltin) return scalarBuiltin;
 
-        const prepareScalarRead = (): ((index: number) => RankValue) | undefined => {
-            if (!scalar || inspectionEnabled() || resultCellShape?.length !== 0) return undefined;
-            const diagnostics = currentDiagnostics();
-            if (diagnostics) diagnostics.rankedBatches++;
-            return index => {
-                checkpoint('ranked callback');
-                let cell = results.get(index);
-                if (cell === undefined) cell = retainResult(scalar([cells.cellAt(index)]), index, true);
-                return isRankArray(cell) ? arrayItem(cell, 0) : cell;
-            };
-        };
-
-        const prepareArrayRead = (): ((index: number) => RankValue) | undefined => {
-            if (inspectionEnabled() || resultCellShape?.length !== 1) return undefined;
-            const batch = this.arrayBatch?.(fn, value, frameAxes);
-            if (!batch || batch.width === 0 || batch.width !== resultCellShape[0]) return undefined;
-            const diagnostics = currentDiagnostics();
-            if (diagnostics) diagnostics.rankedArrayBatches++;
-            return index => {
-                const frame = Math.floor(index / batch.width);
-                let cell = results.get(frame);
-                if (cell === undefined) {
-                    if (!batch.available()) return result.itemAt!(index);
-                    const items = new Array<boolean>(batch.width);
-                    batch.fill(frame, items);
-                    // This private boolean row is only exposed through scalar
-                    // reads of the framed result; it needs no writable storage.
-                    cell = retainResult({ kind: 'array', shape: [batch.width], items, containsFiles: false }, frame, true);
-                }
-                return isRankArray(cell) ? arrayItem(cell, index % batch.width) : cell;
-            };
-        };
-        const prepareRead = () => prepareScalarRead() ?? prepareArrayRead();
-        const result: RankArray = {
-            kind: 'array',
-            get shape() {
-                return outputShape();
-            },
-            itemAt(index) {
-                outputShape();
-                const cellSize = arraySize(resultCellShape!);
-                const frameIndex = Math.floor(index / cellSize);
-                const result = resultAt(frameIndex);
-                return isRankArray(result) ? arrayItem(result, index % cellSize) : result;
-            },
-            get items() {
-                const shape = outputShape();
-                if (!materialized) {
-                    const read = prepareRead();
-                    if (read) {
-                        const values: RankValue[] = new Array(arraySize(shape));
-                        for (let index = 0; index < values.length; index++) values[index] = read(index);
-                        materialized = values;
-                    } else materialized = Array.from(
-                        { length: arraySize(shape) }, (_, index) => this.itemAt!(index));
-                }
-                return materialized;
-            },
-        };
-        registerArrayReadPlan(result, prepareRead);
-        return builtin ? registerArrayDependencies(result, [value]) : result;
+        return rankedCells(value, fn, cells, this.isPureBuiltin(fn),
+            cells.cellShape.length === 0 ? this.scalarCallback(fn) : undefined,
+            this.ownFiles, () => this.arrayBatch?.(fn, value, frameAxes));
     }
 
     private isPureBuiltin(fn: Extract<RankValue, { kind: 'function' }>): boolean {

@@ -1,0 +1,21 @@
+use testing
+
+test "statement chain"
+  use "315_digitalclocks"
+  137 segments equal 11
+  137 clock_diff equal 10
+end
+
+test "single digit is equal"
+  use "315_digitalclocks"
+  7 clock_diff equal 0
+end
+
+test "small prime range"
+  use "315_digitalclocks"
+  From = 100
+  To = 200
+  run
+
+  Answer equal 278
+end

@@ -1,0 +1,25 @@
+rem Strong Repunits
+rem https://projecteuler.net/problem=346
+
+use numbers
+use algo
+use io
+use cli
+
+option Limit integer = 10 ** 12
+
+fun Limit strong
+  Seen = new set
+  Seen add 1
+  for Base in 2 to ((Limit - 1) isqrt)
+    Value = Base * Base + Base + 1
+    for Value less Limit
+      Seen add Value
+      Value = Value * Base + 1
+    end
+  end
+  return Seen sum
+end
+
+Answer = Limit strong
+Answer print

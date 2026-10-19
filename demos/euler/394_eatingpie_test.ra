@@ -1,0 +1,17 @@
+use testing
+
+test "eating pie"
+  use "394_eatingpie"
+  X = 10
+  run
+  Answer equal 1.0
+  X = 20
+  run
+  Answer equal 1.2676536759
+  X = 75
+  run
+  Answer equal 2.1215732071
+  X = 400
+  run
+  Answer equal 3.2370342194
+end

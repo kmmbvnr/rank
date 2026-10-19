@@ -1,0 +1,14 @@
+use testing
+
+test "triple digits are omitted"
+  use "368_kempner"
+  110 valid
+  not 111 valid
+  not 1000 valid
+end
+
+test "two-prefix estimate"
+  use "368_kempner"
+  16 2 kempner greater 253
+  16 2 kempner less 254
+end

@@ -1,0 +1,15 @@
+use testing
+
+test "statement pattern"
+  use "316_decimals"
+  535 waiting equal 1008
+end
+
+test "statement sum"
+  use "316_decimals"
+  Num = 1000000
+  Top = 999
+  run
+
+  Answer equal 27280188
+end

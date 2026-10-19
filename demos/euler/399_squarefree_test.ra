@@ -1,0 +1,21 @@
+use testing
+
+test "statement example"
+  use "399_squarefree"
+  Count = 200
+  Limit = 300
+  PrimeLimit = 53
+  run
+  Index equal 260
+  Answer equal "1608739584170445,9.7e53"
+end
+
+test "Legendre candidate at eleven"
+  use "399_squarefree"
+  Count = 1
+  Limit = 120
+  PrimeLimit = 11
+  run
+  110 in Mods
+end
+

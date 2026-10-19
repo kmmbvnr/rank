@@ -1,0 +1,17 @@
+rem Firecracker
+rem https://projecteuler.net/problem=317
+
+use numbers
+use io
+use cli
+
+option Height real = 100.0
+option Speed real = 20.0
+option Gravity real = 9.81
+
+Height Speed Gravity volume print
+
+fun H V G volume
+  A = H + V * V / (2 * G)
+  return (-1 acos) * V * V * A * A / G
+end

@@ -1,0 +1,6 @@
+use testing
+
+test "given maximix order"
+  use "336_maximix"
+  6 10 maximix equal "DFAECB"
+end

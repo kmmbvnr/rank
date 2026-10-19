@@ -1,0 +1,14 @@
+use testing
+
+test "Legendre valuation"
+  use "320_factorials"
+  10 2 valuation equal 8
+  10 3 valuation equal 4
+end
+
+test "statement sample"
+  use "320_factorials"
+  Upper = 1000
+  run
+  Answer equal 614538266565663
+end

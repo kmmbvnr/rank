@@ -1,0 +1,13 @@
+use testing
+
+test "published counts"
+  use "302_strongachilles"
+  Limit = 10000
+  run
+
+  Answer equal 7
+  Limit = 100000000
+  run
+
+  Answer equal 656
+end

@@ -1,0 +1,84 @@
+rem Least Common Multiple Count
+rem https://projecteuler.net/problem=379
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 10 ** 12
+
+rem S(v) sums d(n^2) to v. Keep it for
+rem every distinct value floor(N / i).
+M = Limit isqrt
+H = Limit // (M + 1)
+Lo = array shape (M + 1) fill 0
+Hi = array shape (H + 1) fill 0
+for I in 1 to M
+  Lo I = I - 1
+end
+for I in 1 to H
+  Hi I = Limit // I - 1
+end
+Pr = primes to M array
+rem Lucy sieve: prime counts at each v.
+for P in Pr
+  P2 = P * P
+  if P2 greater Limit
+    break
+  end
+  Sp = Lo (P - 1)
+  End = H (Limit // P2) min
+  for I in 1 to End
+    V = Limit // I // P
+    Q = 0
+    if V at most M
+      Q = Lo V
+    else
+      Q = Hi (Limit // V)
+    end
+    Hi I -= Q - Sp
+  end
+  for V in M to P2 by -1
+    Lo V -= Lo (V // P) - Sp
+  end
+end
+Lo *= 3
+Hi *= 3
+rem Expand prime sums to d(n^2) sums.
+for P in Pr reverse
+  P2 = P * P
+  if P2 greater Limit
+    continue
+  end
+  Sp = Lo P
+  End = H (Limit // P2) min
+  for I in 1 to End
+    V = Limit // I // P
+    E = 1
+    for V at least P
+      Q = 0
+      if V at most M
+        Q = Lo V
+      else
+        Q = Hi (Limit // V)
+      end
+      Hi I += (2 * E + 1) * (Q - Sp)
+      Hi I += 2 * (E + 1) + 1
+      E += 1
+      V //= P
+    end
+  end
+  for X in M to P2 by -1
+    V = X // P
+    E = 1
+    for V at least P
+      Lo X += (2 * E + 1) * (Lo V - Sp)
+      Lo X += 2 * (E + 1) + 1
+      E += 1
+      V //= P
+    end
+  end
+end
+Answer = (Hi 1 + Limit + 1) // 2
+Answer print

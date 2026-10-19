@@ -1,0 +1,13 @@
+use testing
+
+test "Lucas residues"
+  use "365_hugebinomial"
+  30 12 11 lucas equal 5
+  20 8 7 lucas equal 5
+end
+
+test "CRT triple sum"
+  use "365_hugebinomial"
+  Ps = array 7 11 13 17
+  20 8 Ps triples equal 3803
+end
