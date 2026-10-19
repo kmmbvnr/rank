@@ -3,9 +3,10 @@ import { unpackApplicationItems } from '../value-selection.js';
 import {
     type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
     applicationExpression, flattenApplication, isApplicationExpression, isNameExpression, isNumberLiteral,
-    isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
+    isUnpackExpression, sequenceRetentionCandidate, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
 import { hasDeferredSelectionCopy } from '../integer-view.js';
+import { retainSequence } from '../sequence-retention.js';
 import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
 import { pushCollection } from '../containers.js';
@@ -264,8 +265,15 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
         ? undefined : assignmentOperator(statement.operator);
     const direct = host.compileDirect(statement.value);
     const write = host.compileAssign(statement.name);
-    const stored = (value: RankValue): RankValue => isRankSequence(value)
-        ? host.options().wrapStoredSequence?.(value) ?? value : value;
+    const retain = sequenceRetentionCandidate(statement);
+    const stored = (value: RankValue): RankValue => {
+        if (!isRankSequence(value)) return value;
+        if (retain && host.options().sequenceReuse !== false
+            && !(host.options().wrapStoredSequence && value.plan.replCursor)) {
+            value = retainSequence(value, host.options().sequenceCacheBytes);
+        }
+        return host.options().wrapStoredSequence?.(value) ?? value;
+    };
     if (direct) {
         return { run: () => {
             const result = stored(operator === undefined ? direct() : host.operators.evaluateBinary(

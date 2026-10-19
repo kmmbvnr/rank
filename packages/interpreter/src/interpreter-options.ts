@@ -8,6 +8,10 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    /** Retain eligible sequence results with known repeated consumers. */
+    readonly sequenceReuse?: boolean;
+    /** Per-sequence logical retained payload budget, in bytes. */
+    readonly sequenceCacheBytes?: number;
     /** Disable every generated-code tier, including in child modules and tests. */
     readonly compilation?: boolean;
     readonly environment?: RankEnvironment;

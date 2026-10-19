@@ -243,6 +243,8 @@ export interface RankRecord {
 export type IntrinsicRank = number | 'all';
 
 export interface NativeFunction {
+    /** Runtime-owned proof for calls on stable values in a lazy computation. */
+    readonly lazySafe?: () => boolean;
     /** Bind external data now before retaining this callback in a lazy operation. */
     readonly snapshot?: () => NativeFunction;
     readonly callSignature?: FunctionCallSignature;
@@ -270,6 +272,7 @@ export interface NativeFunction {
 }
 
 export interface SequencePredicate {
+    readonly pure?: boolean;
     readonly name: string;
     readonly optimizationKey?: string;
     readonly expression?: SequencePredicateExpression;
@@ -300,6 +303,11 @@ export type SequenceSize =
     | { readonly kind: 'infinite' };
 
 export interface SequencePlan {
+    /** Explicit replay capability; absence is unknown, never a purity promise.
+     * Direct sources are cheap to read again and do not need retained history. */
+    readonly replay?: 'pure' | 'direct';
+    /** Preserve native REPL cursor behavior when this source is explicitly stored. */
+    readonly replCursor?: boolean;
     /** Reads share state rather than starting an independent traversal. */
     readonly singlePass?: boolean;
     readonly name: string;

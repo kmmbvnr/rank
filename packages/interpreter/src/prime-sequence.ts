@@ -9,6 +9,8 @@ export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
     let membershipSieve: PrimeSieve | undefined;
     const plan: SequencePlan = {
         name: 'primes',
+        replay: 'pure',
+        replCursor: true,
         size: boundary ? { kind: 'unknown' } : { kind: 'infinite' },
         iterate: () => primeIterator(boundary, lower),
         contains(value) {

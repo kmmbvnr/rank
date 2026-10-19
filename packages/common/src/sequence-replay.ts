@@ -161,6 +161,9 @@ export class SequenceReplay {
 
     /** Store sources with numeric bounds as cursors; ranges and aliases retain their identity. */
     readonly store = (source: RankSequence): RankSequence => {
+        // Pure derived values own their optional reuse cache. Do not add a
+        // consumption tape or turn their independent readers into a cursor.
+        if (source.plan.replay && !source.plan.replCursor) return source;
         // Open arithmetic ranges are reusable values, including their slice metadata.
         // A shared cursor would interleave the two reads in N * (N + 1).
         if (source.plan.openRange) return source;

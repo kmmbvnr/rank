@@ -5,6 +5,7 @@ import { registerScalarView } from './integer-view.js';
 import type { RankedMembership } from './membership-function.js';
 import { completed, type Evaluation } from './execution.js';
 import { RankError } from './errors.js';
+import { pureLazyFunction } from './lazy-function.js';
 import { checkpoint, inspectionEnabled } from './interrupt.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
@@ -67,9 +68,9 @@ export class RankApplication {
         }
         if (isRankSequence(value)) {
             if (cellRank >= 1) return this.invoke(fn, [value]);
-            fn = fn.snapshot?.() ?? fn;
+            fn = pureLazyFunction(fn);
             const scalar = this.scalarCallback(fn);
-            return completed(mapSequence(value, fn.name, atom => scalar ? scalar([atom]) : fn.call([atom])));
+            return completed(mapSequence(value, fn.name, atom => scalar ? scalar([atom]) : fn.call([atom]), true));
         }
         if (isRankArray(value)) {
             if (frameAxes === undefined && cellRank >= value.shape.length) return this.invoke(fn, [value]);

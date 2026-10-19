@@ -142,10 +142,11 @@ export class Operators {
 
     private evaluateUnaryValue(operator: string, value: RankValue): RankValue {
         if (operator === 'not' && isPositionalMask(value)) {
-            return positionalMask(mapSequence(value, 'not', item => item !== true).plan);
+            return positionalMask(mapSequence(value, 'not', item => item !== true, true).plan);
         }
         if (operator === 'not' && isRankSequenceMask(value)) {
             return sequenceMask(value.source, {
+                pure: value.predicate.pure,
                 name: `not ${value.predicate.name}`,
                 expression: {
                     kind: 'not',
@@ -396,6 +397,7 @@ export class Operators {
         const source = mapped.origin?.source ?? mapped;
         const lift = mapped.origin?.map ?? ((item: RankValue) => item);
         const predicate: SequencePredicate = {
+            pure: mapped.plan.replay !== undefined && typeof scalar !== 'object',
             name: operator,
             ...(mapped.origin ? {} : { expression: {
                 kind: 'comparison' as const,
@@ -423,10 +425,11 @@ export class Operators {
             const zipped = zipSequences(left, right, operator, (a, b) => {
                 if (typeof a !== 'boolean' || typeof b !== 'boolean') throw new RankError(`${operator} expects boolean masks`);
                 return combine(a, b);
-            });
+            }, true);
             return positionalMask(zipped.plan);
         }
         return sequenceMask(left.source, {
+            pure: left.predicate.pure && right.predicate.pure,
             name: `${left.predicate.name} ${operator} ${right.predicate.name}`,
             expression: {
                 kind: 'logical',
@@ -549,6 +552,7 @@ function openRange(start: bigint, step: bigint): RankSequence {
     if (step === 0n) throw new RankError('range step must be a nonzero integer');
     return sequence({
         name: `${start} to # by ${step}`,
+        replay: 'direct',
         size: { kind: 'infinite' },
         openRange: { start, step },
         at: index => start + index * step,
@@ -591,6 +595,7 @@ function buildRange(start: bigint, end: bigint, inclusive: boolean, stride?: big
         : (value: bigint) => inclusive ? value >= end : value > end;
     return sequence({
         name: `${start} ${inclusive ? 'to' : 'till'} ${end}${stride === undefined ? '' : ` by ${stride}`}`,
+        replay: 'direct',
         size: {
             kind: 'exact',
             value: size,
@@ -710,7 +715,7 @@ function mapBinary(
 ): RankValue {
     const scalarOperation = numericKernel(name, operation);
     if (isRankSequence(left) && isRankSequence(right)) {
-        const zipped = zipSequences(left, right, name, scalarOperation);
+        const zipped = zipSequences(left, right, name, scalarOperation, true);
         const [a, b] = [left.plan.at, right.plan.at];
         return a && b ? withAt(zipped, index => {
             const x = a.call(left.plan, index), y = b.call(right.plan, index);
@@ -718,13 +723,13 @@ function mapBinary(
         }) : zipped;
     }
     if (isRankSequence(left)) {
-        const mapped = withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right)), left,
+        const mapped = withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right), typeof right !== 'object'), left,
             item => scalarOperation(item, right)), left, item => scalarOperation(item, right));
         if (name === 'mod' && typeof right === 'bigint') registerModularRange(mapped.plan, left.plan, right);
         return mapped;
     }
     if (isRankSequence(right)) {
-        return withOrigin(addressable(mapSequence(right, name, item => scalarOperation(left, item)), right,
+        return withOrigin(addressable(mapSequence(right, name, item => scalarOperation(left, item), typeof left !== 'object'), right,
             item => scalarOperation(left, item)), right, item => scalarOperation(left, item));
     }
     const leftArray = asRankArray(left);

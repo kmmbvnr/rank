@@ -67,7 +67,7 @@ export function mapValue(
     value: RankValue,
     operation: (scalar: RankValue) => RankValue,
 ): RankValue {
-    if (isRankSequence(value)) return mapSequence(value, 'map', operation);
+    if (isRankSequence(value)) return mapSequence(value, 'map', operation, true);
     return isRankArray(value) ? ownedArray(value.items.map(operation), value.shape) : operation(value);
 }
 
