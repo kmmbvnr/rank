@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { Interpreter, isRankArray, type RankValue } from '../src/index.js';
+import { Interpreter, isRankArray, parse, type RankValue } from '../src/index.js';
 
 const source = readFileSync(new URL('../../../demos/dyalog/2012/004_nurikabe.ra', import.meta.url), 'utf8');
 
@@ -57,12 +57,14 @@ for (const compiled of [false, true]) describe(`Nurikabe (compiled=${compiled})`
     };
     it('validates every two by two board with cells -1 through 4', () => {
         const r = runtime();
+        // Reuse the fixed query while assigning and checking every board.
+        const validation = parse('Board valid');
         try {
             for (let code = 0; code < 6 ** 4; code++) {
                 let n = code;
                 const cells = Array.from({ length: 4 }, () => { const cell = n % 6 - 1; n = Math.floor(n / 6); return cell; });
                 r.execute(`Board = ${literal(cells, 2, 2)}`);
-                expect(r.execute('Board valid'), cells.join(',')).toBe(valid(cells, 2, 2) ? 1n : 0n);
+                expect(r.executeProgram(validation), cells.join(',')).toBe(valid(cells, 2, 2) ? 1n : 0n);
             }
         } finally { r.dispose(); }
     }, 30_000);
