@@ -20,34 +20,45 @@ Answer = Full Upper min_five
 Answer print
 
 
-rem Connect pairs when both decimal
-rem concatenations are prime.
+rem Check each residue group in batches.
+rem Share decimal scales across pairs.
+rem Build every compatible pair, without
+rem a cutoff on the larger primes.
 fun Limit build
   Vals = primes from 3 till Limit filter not equal 5 array
   Graph = new graph Vals .undirected
+  Scales = array shape (Vals len) fill 10
+  Scale = 10
+  for P i in Vals
+    for Scale at most P
+      Scale *= 10
+    end
+    Scales i = Scale
+  end
 
   if 3 in Vals
-    Three = 3
     for Q in Vals drop 1
-      if Three Q compatible
-        Graph add Three Q
+      if 3 Q compatible
+        Graph add 3 Q
       end
     end
   end
 
-  Mod1 = Vals (Vals mod 3 equal 1)
-  Mod2 = Vals (Vals mod 3 equal 2)
-
-  for Group in array Mod1 Mod2
+  Id = 0 till (Vals len) array
+  Mod1 = Id (Vals mod 3 equal 1)
+  Mod2 = Id (Vals mod 3 equal 2)
+  for Positions in array Mod1 Mod2
+    Group = Vals Positions
+    Factors = Scales Positions
     for P i in Group
-      if P at least 10000
-        break
-      end
-      Later = Group drop (i + 1)
-      for Q in Later
-        if P Q compatible
-          Graph add P Q
-        end
+      Later = Group drop (i + 1) copy
+      Powers = Factors drop (i + 1) copy
+      Forward = P * Powers + Later
+      Candidates = Later (Forward in primes) copy
+      Backward = Candidates * (Factors i) + P
+      Good = Candidates (Backward in primes) copy
+      for Q in Good
+        Graph add P Q
       end
     end
   end
@@ -80,7 +91,9 @@ end
 
 rem Keep Best if no cheaper set exists.
 rem Data holds ascending positive values
-rem and their graph.
+rem and their graph. Intersect the short
+rem neighbor list with current candidates
+rem and keep the result sorted.
 fun Data Best min_five
   Graph = Data .graph
   Vals = Data .primes
@@ -96,9 +109,9 @@ fun Data Best min_five
       return Best
     end
 
-    for P i in Rest
+    for P in Rest
       Total = Sum + P
-      if Total at least Best
+      if Sum + P * Need at least Best
         break
       end
       Left = Need - 1
@@ -107,9 +120,8 @@ fun Data Best min_five
         return Best
       end
 
-      Later = Rest drop (i + 1)
       Neighbors = Graph P
-      Next = Later filter in Neighbors
+      Next = Neighbors filter greater P filter in Rest array sort
       Best = Next Left Total Best search
     end
     return Best

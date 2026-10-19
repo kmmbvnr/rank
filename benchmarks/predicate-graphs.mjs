@@ -10,7 +10,8 @@ import { PredicateGraph } from '../packages/interpreter/out/graph.js';
 // --cache compares uncached, Map-pair and two-bit-pair representations.
 // --memory runs once per mode with GC and releases pair storage after measuring.
 // --count instruments compatibility calls; do not use those timings as benchmarks.
-const demo = readFileSync(new URL('../demos/euler/060_primepairs.ra', import.meta.url), 'utf8');
+// Preserve the search used by the recorded cache experiment as the demo evolves.
+const demo = readFileSync(new URL('./fixtures/euler060-before-batching.ra', import.meta.url), 'utf8');
 const definitions = 'use graph\nuse sequences\nuse io\n' + demo.slice(demo.indexOf('\nfun '));
 // Retain the explicit builder's residue and large-endpoint exclusions. The
 // recursive search, sum bounds and candidate order are identical in both modes.
