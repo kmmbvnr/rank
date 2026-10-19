@@ -1,3 +1,4 @@
+import { numericSort, numericOrderItems } from '../numeric-collections.js';
 import { ownedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { interruptibleCallback } from '../interrupt.js';
@@ -6,6 +7,8 @@ import { compareOrderedValues, orderedKind, type OrderedKind } from '../ordered.
 import { type RankValue, type RankArray } from '../value.js';
 
 export function sortValue(value: RankValue, descending = false): RankValue {
+    const fast = numericSort(value, descending);
+    if (fast) return fast.values!;
     const source = orderedSource(value, 'sortable', 'sort');
     if (!source?.vector) throw new RankError('sort expects text or a rank-1 array');
     const items = source.vector();
@@ -15,6 +18,8 @@ export function sortValue(value: RankValue, descending = false): RankValue {
 }
 
 export function argsortValue(value: RankValue, descending = false): RankArray {
+    const fast = numericSort(value, descending, 'indexes');
+    if (fast) return fast.indexes!;
     const source = orderedSource(value, 'sortable', 'argsort');
     if (!source?.vector) throw new RankError('argsort expects text or a rank-1 array');
     const items = source.vector();
@@ -32,6 +37,8 @@ export function sortableKind(items: readonly RankValue[], operation: string): Or
 }
 
 export function stableOrder(items: readonly RankValue[], kind: OrderedKind, descending = false): number[] {
+    const fast = numericOrderItems(items, descending);
+    if (fast) return fast;
     return items
         .map((_, position) => position)
         .sort(interruptibleCallback((left, right) =>

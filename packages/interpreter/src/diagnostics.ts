@@ -11,6 +11,10 @@ export class RuntimeDiagnostics {
     hoistedReaders = 0;
     loopElementScans = 0;
     compiledLoops = 0;
+    numericSorts = 0;
+    numericDistincts = 0;
+    numericSearches = 0;
+    numericSearchIndexes = 0;
     numberLoops = 0;
     numberLoopOverflows = 0;
     compiledTensors = 0;

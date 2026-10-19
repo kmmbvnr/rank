@@ -1,3 +1,4 @@
+import { numericDistinct } from '../numeric-collections.js';
 import { collectionSize } from '../collection-size.js';
 import { RankError } from '../errors.js';
 import { checkpoint } from '../interrupt.js';
@@ -14,6 +15,8 @@ export function uniqueLength(value: RankValue): bigint | undefined {
     // SQLite has its own unique/len query path.
     if (isRankSqliteTable(value)) return undefined;
     if (isRankSequence(value) && value.plan.size.kind === 'infinite') return undefined;
+    const fast = numericDistinct(value, true);
+    if (typeof fast === 'bigint') return fast;
     const source = orderedSource(value, 'unique', 'unique');
     if (!source) return undefined;
     if (source.alreadyDistinct) return collectionSize(value)!.length();
@@ -32,6 +35,8 @@ export function uniqueLength(value: RankValue): bigint | undefined {
 }
 
 export function uniqueValue(value: RankValue): RankValue {
+    const fast = numericDistinct(value);
+    if (fast !== undefined) return fast;
     const source = orderedSource(value, 'unique', 'unique');
     if (!source) throw new RankError('unique expects text or a collection');
     if (source.alreadyDistinct) return value;

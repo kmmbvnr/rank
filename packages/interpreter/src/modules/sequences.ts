@@ -1,3 +1,4 @@
+import { numericSort } from '../numeric-collections.js';
 import { sortValue, argsortValue, sortableKind, stableOrder } from './sequence-order.js';
 export { sortValue, argsortValue } from './sequence-order.js';
 import { uniqueValue } from './sequence-distinct.js';
@@ -843,7 +844,11 @@ export function directedSort(
     if (name === 'argsort') return { ...fn, call: args => argsortValue(args[0], descending) };
     if (mode === 'indexes') return { ...fn, call: args => argsortValue(args[0], descending) };
     if (mode === 'indexed') {
-        return { ...fn, call: args => tuple([sortValue(args[0], descending), argsortValue(args[0], descending)]) };
+        return { ...fn, call: args => {
+            const fast = numericSort(args[0], descending, 'indexed');
+            return fast ? tuple([fast.values!, fast.indexes!])
+                : tuple([sortValue(args[0], descending), argsortValue(args[0], descending)]);
+        } };
     }
     return { ...fn, call: args => sortValue(args[0], descending) };
 }
