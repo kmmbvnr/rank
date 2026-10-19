@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "243_resilience"
+  run
+
+  Answer equal 892371480
+end
+
+test "problem example"
+  use "243_resilience"
+  Num = 4
+  Den = 10
+  run
+
+  Answer equal 12
+end
