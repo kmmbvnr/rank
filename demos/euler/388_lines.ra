@@ -1,0 +1,71 @@
+rem Distinct Lines
+rem https://projecteuler.net/problem=388
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10 ** 10
+option Cut integer = 4641589
+
+rem Mertens values up to N^(2/3).
+Mu = array shape (Cut + 1) fill 1
+Mu 0 = 0
+Mu 1 = 1
+for P in primes to Cut
+  Mu (P to Cut by P) *= -1
+  P2 = P * P
+  if P2 at most Cut
+    Mu (P2 to Cut by P2) = 0
+  end
+end
+for I in 1 to Cut
+  Mu I += Mu (I - 1)
+end
+
+Sent = N + 1
+Size = N isqrt + 2
+Cache = array shape Size fill Sent
+Answer = 0
+L = 1
+for L at most N
+  Q = N // L
+  R = N // Q
+  M = R Cache mertens
+  Before = (L - 1) Cache mertens
+  F = (Q + 1) ** 3 - 1
+  Answer += (M - Before) * F
+  L = R + 1
+end
+Text = Answer text
+Len = Text len
+Token = Text
+if Len greater 18
+  Head = Text take 9
+  Tail = Text drop (Len - 9)
+  Token = Head + Tail
+end
+Token print
+
+fun X Cache mertens
+  if X at most Cut
+    return Mu X
+  end
+  Slot = N // X
+  if Cache Slot not equal Sent
+    return Cache Slot
+  end
+  Total = 1
+  L = 2
+  for L at most X
+    Q = X // L
+    R = X // Q
+    Count = R - L + 1
+    Part = Q Cache mertens
+    Total -= Count * Part
+    L = R + 1
+  end
+  Cache Slot = Total
+  return Total
+end

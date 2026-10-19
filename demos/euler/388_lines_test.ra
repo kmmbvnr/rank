@@ -1,0 +1,18 @@
+use testing
+
+test "distinct lines"
+  use "388_lines"
+  N = 1
+  Cut = 1
+  run
+  Answer equal 7
+  N = 40
+  Cut = 40
+  run
+  Answer equal 56335
+  N = 10 ** 6
+  Cut = 10 ** 6
+  run
+  Answer equal 831909254469114121
+  Token equal "831909254469114121"
+end
