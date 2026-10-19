@@ -1,0 +1,20 @@
+use testing
+
+rem The default input takes minutes.
+test "small targets"
+  use "248_eulertotient"
+  Target = 720
+  Rank = 1
+  run
+
+  Answer equal 779
+  Rank = 5
+  run
+
+  Answer equal 925
+  Target = 40320
+  Rank = 10
+  run
+
+  Answer equal 44659
+end
