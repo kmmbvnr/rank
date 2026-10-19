@@ -1324,6 +1324,13 @@ and generated body agree. Container bodies and array writes retain framed
 execution, as do transferred arguments and inspected calls. Loop checkpoints
 continue to observe cancellation.
 
+Ordinary entry can also return a fresh homogeneous vector of proven scalar
+expressions, such as `array Odd Fix` after a numeric loop. Elements retain their
+evaluation order and scalar types; each invocation owns a new result array.
+This lets a compiled traversal return several counters without repeating the
+loop. Mixed, nested, signed-item and shaped literals retain their existing paths;
+the separate shape-and-fill allocation profile remains supported.
+
 `scalarEntryCompilation: false` disables this entry dispatch while keeping earlier
 compiled-loop calls available. `scalarFunctionCompilation: false` disables the
 underlying scalar bodies for both entry and compiled-loop dispatch.

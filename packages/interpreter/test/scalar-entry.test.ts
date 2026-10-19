@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { withInterrupt } from '../src/interrupt.js';
+import { ByteArray } from '../src/bytes.js';
 import { Interpreter, RankError, isNativeFunction, formatValue, type RankValue } from '../src/index.js';
 
 function compare(source: string, inputs: RankValue[][], expectedCalls: number) {
@@ -27,6 +28,50 @@ function compare(source: string, inputs: RankValue[][], expectedCalls: number) {
 }
 
 describe('scalar compilation at ordinary function entry', () => {
+    it('returns homogeneous scalar vectors from a compiled loop', () => {
+        const values = compare(`fun X helper
+  Sum = X
+  Count = X - X
+  for I in 0 to 4
+    Sum += X
+    Count += X - X + 1
+  end
+  return array Sum Count
+end`, [[3n], [2.0], [-0]], 3);
+        expect(values[0].value).toBe('18 5');
+    });
+
+    it('keeps vector results independently owned across calls and writes', () => {
+        const runtime = new Interpreter(undefined);
+        try {
+            runtime.execute(`fun X helper
+  return array X (X + 1)
+end
+A = 3 helper
+B = 7 helper
+Saved = A
+A 0 = 99`);
+            expect(formatValue(runtime.variables.get('A')!)).toBe('99 4');
+            expect(formatValue(runtime.variables.get('Saved')!)).toBe('3 4');
+            expect(formatValue(runtime.variables.get('B')!)).toBe('7 8');
+        } finally { runtime.dispose(); }
+    });
+
+    it('declines mixed scalar and nested vector literals', () => {
+        compare('fun X helper\n return array X 1.0\nend', [[2n]], 0);
+        compare('fun X helper\n return array (array X X)\nend', [[2n]], 0);
+        compare('fun X helper\n return array -X X\nend', [[2n]], 0);
+        compare('fun X helper\n return array X X\nend', [[new ByteArray(new Uint8Array([1, 2]))]], 0);
+    });
+
+    it('preserves scalar kinds and signed zero in vector results', () => {
+        compare('fun X helper\n return array X X\nend', [[3n], [-0], [true], ['hello']], 4);
+    });
+
+    it('locates vector element errors and recovers for the next call', () => {
+        compare('fun X helper\n return array X (10 // X)\nend', [[0n], [2n]], 2);
+    });
+
     it('guards each invocation and recovers after invalid arguments', () => {
         const values = compare(`fun A B helper
   Value = A + B

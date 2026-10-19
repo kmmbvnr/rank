@@ -18,8 +18,9 @@ fun N turns
   end
   F = N real
   rem Final product uses exact integers.
-  Odd = (F true boundary) integer
-  Fix = (F false boundary) integer
+  Counts = F boundary
+  Odd = (Counts 0) integer
+  Fix = (Counts 1) integer
   return Fix + 2 * Odd * (N - Odd)
 end
 
@@ -27,8 +28,7 @@ rem For this problem N is below 2 ** 30.
 rem Residuals stay within +/- 2 * N.
 rem Counts stay below 12 * N + 9.
 rem Reals keep these integers exact.
-rem Two passes keep both results scalar.
-fun N WantOdd boundary
+fun N boundary
   X = 0.0
   Y = N - 1.0
   R = 0.0
@@ -76,8 +76,5 @@ fun N WantOdd boundary
       Fix += 1.0
     end
   end
-  if WantOdd
-    return Odd
-  end
-  return Fix
+  return array Odd Fix
 end
