@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "205_dicegame"
+  run
+
+  Answer equal 0.5731441
+end
+
+test "one die each"
+  use "205_dicegame"
+  Pn = 1
+  Cn = 1
+  run
+
+  Answer equal 0.25
+end
