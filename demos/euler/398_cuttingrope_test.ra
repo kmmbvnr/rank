@@ -1,0 +1,17 @@
+use testing
+
+test "cutting rope"
+  use "398_cuttingrope"
+  N = 3
+  M = 2
+  run
+  Answer equal 2.0
+  N = 8
+  M = 3
+  run
+  Answer equal 2.28571
+  N = 10000000
+  M = 100
+  run
+  Answer equal 2010.59096
+end

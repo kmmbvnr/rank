@@ -1,0 +1,12 @@
+use testing
+
+test "weak Goodstein sequence"
+  use "396_weakgoodstein"
+  run
+  Small 2 equal 3
+  Small 4 equal 21
+  Small 6 equal 381
+  Small sum equal 2517
+  Vals 8 - 2 equal 722374141
+  Answer equal 173214653
+end

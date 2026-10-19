@@ -77,6 +77,12 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 ? Object.is(expression.value, -0) ? '-0' : String(expression.value) : JSON.stringify(expression.value);
         if (expression.kind === 'input') {
             const operation = expression.input.operation;
+            if (operation === 'vector') {
+                const values = expression.input.indices!.map(item => lower(item, lines));
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = ownedArray([${values.join(',')}], [${values.length}], true);`);
+                return result;
+            }
             if (operation === 'user-call') {
                 const callee = expression.input.callee!;
                 const arguments_ = expression.input.indices!.map(argument => lower(argument, lines));
