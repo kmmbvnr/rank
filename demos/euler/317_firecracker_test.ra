@@ -1,0 +1,17 @@
+use testing
+
+test "ground closed form"
+  use "317_firecracker"
+  use numbers
+  Got = 0 10 5 volume
+  Want = (-1 acos) * 10 ** 6
+  Want /= 4 * 5 ** 3
+  (Got - Want) abs less 0.0000000001
+end
+
+test "problem data"
+  use "317_firecracker"
+  use numbers
+  Got = 100 20 9.81 volume
+  (Got - 1856532.8455) abs less 0.0001
+end
