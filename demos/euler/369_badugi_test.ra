@@ -1,0 +1,14 @@
+use testing
+
+test "rank transition"
+  use "369_badugi"
+  1 1 extend equal 3
+  1 2 extend equal 5
+  1 3 extend equal 7
+end
+
+test "small Badugi hands"
+  use "369_badugi"
+  13 5 4 hands equal 17160
+  13 5 5 hands equal 514800
+end
