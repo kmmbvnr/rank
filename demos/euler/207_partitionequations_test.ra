@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "207_partitionequations"
+  run
+
+  Answer equal 44043947822
+end
+
+test "small ratios"
+  use "207_partitionequations"
+  Q = 2
+  run
+
+  Answer equal 30
+  Q = 3
+  run
+
+  Answer equal 110
+end
