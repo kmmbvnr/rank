@@ -16,8 +16,8 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
     if (!operation || inspectionEnabled() || !privateLoopPolling()) return undefined;
     const a = isRankArray(left) ? prepareIntegerView(left, true) : undefined;
     const b = isRankArray(right) ? prepareIntegerView(right, true) : undefined;
-    if (isRankArray(left) ? !a : typeof left !== 'bigint') return undefined;
-    if (isRankArray(right) ? !b : typeof right !== 'bigint') return undefined;
+    if (isRankArray(left) ? !a?.regular : typeof left !== 'bigint') return undefined;
+    if (isRankArray(right) ? !b?.regular : typeof right !== 'bigint') return undefined;
     if (!a && !b) return undefined;
     const shape = broadcastShape(a?.shape ?? [], b?.shape ?? []);
     const offset = (operand: typeof a) => {

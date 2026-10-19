@@ -59,30 +59,38 @@ export function hasDeferredSelectionCopy(value: RankArray): boolean {
 /** Prove an allocation-free integer reader without forcing lazy/host cells.
  * Copying may retain unestablished binding checks and apply them on demand.
  * Callers must not write or call user code while using the returned reader. */
-export function prepareIntegerView(value: RankValue, allowChecks = false): { shape: readonly number[]; read(index: number): bigint } | undefined {
+export function prepareIntegerView(value: RankValue, allowChecks = false): { shape: readonly number[]; read(index: number): bigint; regular: boolean } | undefined {
     if (!isRankArray(value)) return undefined;
-    const offsets: ((index: number) => number)[] = [];
-    const checks: ((item: RankValue) => RankValue)[] = [];
+    const layers: { regular: boolean; offset: (index: number) => number; validate: ReturnType<typeof arrayCellValidator>;
+        check?: (item: RankValue) => RankValue }[] = [];
     let source = value;
     for (let view = views.get(source); view; view = views.get(source)) {
         if (source.itemAt !== view.reader) return undefined;
-        if (view.accepts && !view.accepts()) {
-            if (!allowChecks || !view.check) return undefined;
-            checks.push(view.check);
-        }
-        offsets.push(view.offset);
+        const needsCheck = view.accepts && !view.accepts();
+        if (needsCheck && (!allowChecks || !view.check)) return undefined;
+        layers.push({ regular: view.linear !== undefined || view.regular === true, offset: view.offset, validate: arrayCellValidator(source),
+            check: needsCheck ? view.check : undefined });
         source = typeof view.source === 'function' ? view.source() : view.source;
     }
+    const regular = layers.every(layer => layer.regular);
+    const wrap = (raw: (index: number) => bigint) => {
+        if (!layers.length) return { shape: value.shape, read: raw, regular };
+        const positions = new Array<number>(layers.length);
+        return { shape: value.shape, regular, read(index: number): bigint {
+            for (let i = 0; i < layers.length; i++) { positions[i] = index; index = layers[i].offset(index); }
+            let item: RankValue = raw(index);
+            for (let i = layers.length - 1; i >= 0; i--) {
+                layers[i].validate?.(item, positions[i]);
+                if (layers[i].check) item = layers[i].check!(item);
+            }
+            return item as bigint;
+        } };
+    };
     const revision = arrayRevision(source);
     if (revision === undefined) return undefined;
     const plan = integerPlans.get(source);
     const segmented = plan?.reader === source.itemAt ? plan?.prepare() : undefined;
-    if (segmented) return { shape: value.shape, read(index) {
-        for (const offset of offsets) index = offset(index);
-        let item: RankValue = segmented(index);
-        for (let i = checks.length - 1; i >= 0; i--) item = checks[i](item);
-        return item as bigint;
-    } };
+    if (segmented) return wrap(segmented);
     const items = denseScalarItems(source) ?? materializedArrayItems(source);
     if (!items) return undefined;
     const kinds = storedScalarKinds(source);
@@ -96,16 +104,7 @@ export function prepareIntegerView(value: RankValue, allowChecks = false): { sha
         checked.set(source, proof = { revision, integer });
     }
     if (!proof.integer) return undefined;
-    const read = (index: number): bigint => {
-        for (const offset of offsets) index = offset(index);
-        return items[index] as bigint;
-    };
-    if (!checks.length) return { shape: value.shape, read };
-    return { shape: value.shape, read(index) {
-        let item: RankValue = read(index);
-        for (let i = checks.length - 1; i >= 0; i--) item = checks[i](item);
-        return item as bigint;
-    } };
+    return wrap(index => items[index] as bigint);
 }
 
 /** Borrow trusted stored cells through pure views without lazy cell caches.

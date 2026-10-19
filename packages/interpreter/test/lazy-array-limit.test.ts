@@ -9,7 +9,7 @@ it.each([true, false])('bounds opaque lazy reader chains without forcing them (c
     try {
         let failure: unknown;
         try {
-            runtime.execute('A = Opaque\nfor I in 0 till 2000\n A = A + 1\nend');
+            runtime.execute('A = Opaque\nfor I in 0 till 6000\n A = A + 1\nend');
         } catch (error) { failure = error; }
         expect(failure).toBeInstanceOf(RankError);
         expect(failure).toMatchObject({ rankKind: 'ResourceLimit' });

@@ -3045,7 +3045,7 @@ and preserves earlier aliases; it bounds numeric recurrences without requiring
 an explicit `copy` at every iteration. Unsafe readers, inspection, and operations
 with deferred failures keep their ordinary path.
 
-Unmaterialized array expressions are limited to 1024 reader layers. Constructing
+Unmaterialized array expressions are limited to 8192 reader layers. Constructing
 a deeper chain raises `ResourceLimit` with a suggestion to use `copy` on an
 intermediate array. The check reads dependency metadata only and never forces a
 cell. Metadata-only dependency nodes add no reader layer, so a balanced concat

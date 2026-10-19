@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray, type RankArray, type RankValue } from '../src/index.js';
 import { denseScalarItems, ownedArray } from '../src/array-storage.js';
 import { mapStoredIntegers } from '../src/integer-array-kernel.js';
+import { sliceSource } from '../src/slice-source.js';
+import { readArrayItem } from '../src/array-storage.js';
 import { checkpoint, InterruptedError, withInterrupt } from '../src/interrupt.js';
 
 describe('stored segmented integer arithmetic', () => {
@@ -84,6 +86,14 @@ C = B + array 1 2 3 4`);
             Object.defineProperty(value, 'itemAt', { value: () => 99n });
             expect(mapStoredIntegers(value, 1n, '+')).toBeUndefined();
         } finally { runtime.dispose(); }
+    });
+
+    it('retains a slice cell domain observed by a prepared integer kernel', () => {
+        const source = ownedArray([1n], [1], true);
+        const view = sliceSource(source)!.slice(1n, false) as RankArray;
+        expect(mapStoredIntegers(view, 1n, '+')!.items).toEqual([2n]);
+        source.items[0] = 2.5;
+        expect(() => readArrayItem(view, 0)).toThrow('one element type');
     });
 
     it('retains floor division and modulo signs for huge integers', () => {

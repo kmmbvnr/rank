@@ -12,7 +12,7 @@ import {
 } from '@arrrank/language';
 import { type RankValue, isRankArray, isRankSequence } from './value.js';
 import { broadcastShape } from './tensor.js';
-import { ownedArray } from './array-storage.js';
+import { arrayRevision, ownedArray } from './array-storage.js';
 import { arithmeticRange, modularRange } from './range-plan.js';
 import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
@@ -292,7 +292,8 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     // cells. Only tracked storage is safe to inspect here.
                     if (!value.shape.every(n => Number.isSafeInteger(n) && n >= 0)) return undefined;
                     const view = tensorInput(value);
-                    if (!view) return undefined;
+                    if (!view) return arrayRevision(value) === undefined
+                        ? rejectBinding('tensor:untracked-storage') : undefined;
                     result = { shape: view.shape, view, boolean: typeof view.items[view.offset] === 'boolean' };
                 }
             } else if (node.kind === 'concat') {

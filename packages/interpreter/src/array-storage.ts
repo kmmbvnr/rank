@@ -995,7 +995,7 @@ export function arrayCellValidator(value: RankArray): ((cell: RankValue, index: 
 }
 
 const MAX_CACHED_CELLS = 1 << 24;
-const MAX_LAZY_ARRAY_DEPTH = 1024;
+const MAX_LAZY_ARRAY_DEPTH = 8192;
 const lazyDepth = new WeakMap<RankArray, number>();
 
 /** Count reader layers, not the height of metadata-only dependency DAGs.
@@ -1005,7 +1005,7 @@ function arrayReaderDepth(sources: readonly RankArray[], layer: number): number 
     for (const source of sources) depth = Math.max(depth, lazyDepth.get(source) ?? 0);
     depth += layer;
     if (depth > MAX_LAZY_ARRAY_DEPTH) {
-        throw new RankError('lazy array chain exceeds 1024 reader layers; use copy to materialize an intermediate array', 'ResourceLimit');
+        throw new RankError('lazy array chain exceeds 8192 reader layers; use copy to materialize an intermediate array', 'ResourceLimit');
     }
     return depth;
 }

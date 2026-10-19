@@ -124,13 +124,13 @@ export function concatArrays(arrays: readonly RankArray[], shape: readonly numbe
     });
     concats.set(value, { axis, dependency, shape: [...shape], root, read: value.itemAt });
     registerArrayReadPlan(value, () => prepareIntegerConcat(root, shape, axis));
-    registerIntegerReadPlan(value, () => prepareIntegerConcat(root, shape, axis));
+    registerIntegerReadPlan(value, () => prepareIntegerConcat(root, shape, axis, true));
     return value;
 }
 
 /** Copy pure integer leaves directly, without creating per-cell concat caches.
  * Preparing a leaf must prove its storage without evaluating lazy/host cells. */
-function prepareIntegerConcat(root: Part | undefined, shape: readonly number[], axis: number):
+function prepareIntegerConcat(root: Part | undefined, shape: readonly number[], axis: number, regular = false):
     ((index: number) => bigint) | undefined {
     if (inspectionEnabled() || !root) return undefined;
     const leaves: { end: number; length: number; read: (index: number) => bigint; checks: Check[] }[] = [];
@@ -144,7 +144,7 @@ function prepareIntegerConcat(root: Part | undefined, shape: readonly number[], 
             continue;
         }
         const integers = prepareIntegerView(part.source, true);
-        if (!integers) return undefined;
+        if (!integers || regular && !integers.regular) return undefined;
         const owners = new Set<object>();
         const unique = inherited.reverse().filter(check => {
             if (owners.has(check.owner)) return false;

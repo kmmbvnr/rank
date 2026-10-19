@@ -176,7 +176,7 @@ filter, indices
 Stored integer arithmetic evaluates
 eagerly when its operands can be read
 without callbacks. Other array formulas
-can remain lazy. A chain exceeding 1024
+can remain lazy. A chain exceeding 8192
 reader layers raises `ResourceLimit`;
 use `copy` on an intermediate array to
 start a new chain. No cells are forced
