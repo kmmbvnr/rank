@@ -1,0 +1,9 @@
+use testing
+
+test "given cross-flip counts"
+  use "331_crossflips"
+  5 turns equal 3
+  7 turns equal 0
+  10 turns equal 29
+  1000 turns equal 395253
+end
