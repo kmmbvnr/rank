@@ -1,0 +1,40 @@
+rem Semidivisible Numbers
+rem https://projecteuler.net/problem=234
+rem Sum the numbers up to Limit that are
+rem divisible by exactly one of the
+rem primes next to their square root
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 999966663333
+
+rem Between the squares of consecutive
+rem primes p < q the neighbours of the
+rem root are p and q. Add the multiples
+rem of p and of q, and take away twice
+rem the multiples of p q, which both
+rem divide. The squares themselves are
+rem divisible by none or by both.
+Top = (Limit isqrt) + 1000
+Ps = primes to Top array
+P = Ps take (Ps len - 1)
+Q = Ps drop 1
+Use = P * P less Limit
+P = P filter Use array
+Q = Q filter Use array
+N = P len
+Lo = P * P
+Hi = (Q * Q) (Limit + 1) min
+Dv = concat P Q (P * Q)
+D = Dv reshape 3 N
+K1 = (Hi - 1) // D
+K0 = Lo // D
+Tri1 = K1 * (K1 + 1) // 2
+Tri0 = K0 * (K0 + 1) // 2
+Mult = D * (Tri1 - Tri0)
+Wt = (array 1 1 -2) reshape 3 1
+Answer = (Mult * Wt) sum
+Answer print
