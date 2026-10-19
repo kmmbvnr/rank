@@ -1,0 +1,10 @@
+use testing
+
+test "geometric triangle counts"
+  use "370_triangles"
+  100 triangles equal 42
+  1000 triangles equal 532
+  10000 triangles equal 6427
+  100000 triangles equal 75243
+  1000000 triangles equal 861805
+end

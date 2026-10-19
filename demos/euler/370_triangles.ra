@@ -1,0 +1,119 @@
+rem Geometric Triangles
+rem https://projecteuler.net/problem=370
+
+use numbers
+use algo
+use sequences
+use io
+use cli
+
+option Limit integer = 25000000000000
+
+Answer = Limit triangles
+Answer print
+
+fun P triq
+  Q = (1.618034 * P) integer
+  for Q * Q at least P * P + P * Q
+    Q -= 1
+  end
+  Next = Q + 1
+  for Next * Next less P * P + P * Next
+    Q += 1
+    Next = Q + 1
+  end
+  return Q
+end
+
+fun P Limit normq
+  if 3 * P * P greater Limit
+    return 0
+  end
+  D = 4 * Limit - 3 * P * P
+  Q = (D isqrt - P) // 2
+  Norm = Q * Q + P * Q + P * P
+  for Norm greater Limit
+    Q -= 1
+    Norm = Q * Q + P * Q + P * P
+  end
+  Next = Q + 1
+  Norm = Next * Next + P * Next + P * P
+  for Norm at most Limit
+    Q += 1
+    Next = Q + 1
+    Norm = Next * Next + P * Next + P * P
+  end
+  return Q
+end
+
+fun Fs I D Sign Lo Hi inc
+  Len = Fs len
+  if I equal Len
+    Count = Hi // D - (Lo - 1) // D
+    return Sign * Count
+  end
+  A = Fs (I + 1) D Sign Lo Hi inc
+  Next = D * Fs I
+  B = Fs (I + 1) Next (0 - Sign) Lo Hi inc
+  return A + B
+end
+
+fun Spf P primesof
+  Fs = new queue
+  for P greater 1
+    D = Spf P
+    Fs push D
+    for P mod D equal 0
+      P //= D
+    end
+  end
+  return Fs array
+end
+
+fun Spf Limit P countp
+  End = P triq
+  Nq = P Limit normq
+  if Nq less End
+    End = Nq
+  end
+  if End less P
+    return 0
+  end
+  Fs = Spf P primesof
+  Sum = 0
+  Lo = P
+  for Lo at most End
+    Norm = Lo * Lo + P * Lo + P * P
+    Q = Limit // Norm
+    Top = Limit // Q
+    Hi = P Top normq
+    if Hi greater End
+      Hi = End
+    end
+    Cop = Fs 0 1 1 Lo Hi inc
+    Sum += Cop * Q
+    Lo = Hi + 1
+  end
+  return Sum
+end
+
+fun Limit triangles
+  Top = (Limit // 3) isqrt
+  Spf = array shape (Top + 1) fill 0
+  Spf 1 = 1
+  for P in 2 to Top
+    if Spf P equal 0
+      Spf P = P
+      for Q in P * P to Top by P
+        if Spf Q equal 0
+          Spf Q = P
+        end
+      end
+    end
+  end
+  Sum = 0
+  for P in 1 to Top
+    Sum += Spf Limit P countp
+  end
+  return Sum
+end
