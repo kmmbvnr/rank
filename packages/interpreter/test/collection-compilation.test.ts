@@ -192,4 +192,48 @@ end`;
         expect(candidate.observation.variables).toContainEqual(['After', '3']);
     });
 
+    it('keeps a prepared lazy sequence mask fixed across later domain writes', () => {
+        const result = compare(`use graph
+Graph = new graph .directed
+Graph add 1 2
+Graph add 1 3
+Domain = array 2 4
+Next = (Graph 1) filter in Domain
+Domain 0 = 3
+Answer = Next array`);
+        expect(result.observation.variables.at(-1)).toEqual(['Answer', '2']);
+    });
+
+    it('does not bind a stale array membership index across writes in a loop', () => {
+        const source = `Domain = array 1 2
+Alias = Domain
+S = 0
+for I in 1 to 3
+ Domain 0 = I
+ if I in Domain
+  S += 1
+ end
+end`;
+        const result = compare(source);
+        expect(result.observation.variables).toContainEqual(['S', '3']);
+        expect(result.observation.variables).toContainEqual(['Alias', '1 2']);
+    });
+
+    it('reads a captured domain after a linked caller replaces its COW storage', () => {
+        const result = compare(`Domain = array 1 2
+Alias = Domain
+fun X member
+ return X in Domain
+end
+S = 0
+for I in 1 to 3
+ Domain 0 = I
+ if I member
+  S += 1
+ end
+end`);
+        expect(result.observation.variables).toContainEqual(['S', '3']);
+        expect(result.observation.variables).toContainEqual(['Alias', '1 2']);
+    });
+
 });

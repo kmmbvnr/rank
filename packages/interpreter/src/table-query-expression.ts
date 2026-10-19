@@ -163,7 +163,7 @@ export function compileTableExpression(
                             const domain = context.findVariable(condition.right.name);
                             const view = isRankArray(source) && source.shape.length === 1 ? prepareIntegerView(source, true) : undefined;
                             const sequenceSource = isRankSequence(source);
-                            const contains = view || sequenceSource ? compiledIntegerMembership(domain) : undefined;
+                            const contains = view || sequenceSource ? compiledIntegerMembership(domain, true) : undefined;
                             if (view && contains && isRankArray(source)) {
                                 const inverted = condition.operator === 'notin';
                                 const mask: RankValue[] = [];

@@ -471,7 +471,9 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 && compiledIntegerMembership(host.read(name))) {
                 const index = calls.length;
                 calls.push({ name, locals: [], stableArrayReads: true, bind: () => {
-                    const contains = compiledIntegerMembership(host.read(name));
+                    const domain = host.read(name);
+                    if (domain && isRankArray(domain) && (destinations.size || calls.some(call => !call.stableArrayReads))) return undefined;
+                    const contains = compiledIntegerMembership(domain);
                     return contains ? arguments_ => contains(arguments_[0] as bigint) : undefined;
                 } });
                 return { code: `${negate}calls[${index}]([${key.code}])`, type: 'boolean' };
