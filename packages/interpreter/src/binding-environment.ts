@@ -132,6 +132,18 @@ export class BindingEnvironment {
         };
     }
 
+    /** A private scalar region can publish once only when all its stores are total.
+     * No callbacks run between this proof and publication. */
+    canDeferWrites(bindings: readonly [string, 'integer' | 'boolean'][]): boolean {
+        return bindings.every(([name, type]) => {
+            const scope = this.assignmentScope(name);
+            if (availableBuiltin(name, this.modules) || this.isConstant(name, scope)) return false;
+            const held = scope.get(name);
+            const accepted = scope.typeOf(name) ?? (held === undefined ? undefined : new Set([typeName(held)]));
+            return accepted === undefined || acceptsBindingType(accepted, type);
+        });
+    }
+
     /** A for loop settles the types its names will take before the first iteration binds them. */
     declareTypes(names: readonly string[], candidates: readonly ReadonlySet<string>[]): void {
         names.forEach((name, index) => {

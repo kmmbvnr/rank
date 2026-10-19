@@ -1,3 +1,4 @@
+import { prepareNumberLoop } from './number-loop-runtime.js';
 import type { IterationBinding, LoopHost, LoopTerm, CompiledLoop } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
 import { compiledSequenceMembership } from './sequence-membership.js';
@@ -18,7 +19,12 @@ import { materializedArrayItems, arrayRevision } from './array-storage.js';
 
 
 export function compileIntegerLoop(statement: ForStatement, host: LoopHost, iteration?: IterationBinding): CompiledLoop | undefined {
-    const numeric = compileTypedLoop(statement, host, iteration, new Set(), new Set());
+    const sources: string[] = [];
+    const numericHost = host.compiled ? { ...host, compiled: (source: string) => sources.push(source) } : host;
+    const exact = compileTypedLoop(statement, numericHost, iteration, new Set(), new Set());
+    const fast = exact && buildTypedLoop(statement, numericHost, iteration, new Set(), new Set(), () => {}, true);
+    if (sources.length) host.compiled?.(sources.join('\n'));
+    const numeric: CompiledLoop | undefined = exact && fast ? { run: (...context) => fast.run(...context) ?? exact.run(...context) } : exact;
     if (!host.textLoops) return numeric;
     const candidates = new Set<string>();
     function collect(node: Statement) {
@@ -69,7 +75,10 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
 }
 
 function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: IterationBinding | undefined,
-    textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, failed: (reason: string) => void): CompiledLoop | undefined {
+    textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, failed: (reason: string) => void, numberMode = false): CompiledLoop | undefined {
+    const zero = numberMode ? '0' : '0n', one = numberMode ? '1' : '1n';
+    const safe = (code: string) => numberMode ? `safe(${code})` : code;
+    const dirty = (slot: number) => numberMode ? `if (!d${slot}) d${slot} = ++order;` : '';
     function reject(node: Expression | Statement, detail?: string): undefined {
         failed(compilerRejection('loop', node, detail));
         return undefined;
@@ -188,8 +197,10 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     function lower(node: CompiledExpression<CompiledLoopType, LoopInput>, lines: string[]): LoopTerm | undefined {
         if (serial > 256) return undefined;
         if (node.kind === 'group') return lower(node.operand, lines);
-        if (node.kind === 'literal') return { type: node.type,
-            code: typeof node.value === 'bigint' ? `${node.value}n` : JSON.stringify(node.value) };
+        if (node.kind === 'literal') {
+            if (numberMode && typeof node.value === 'bigint' && !Number.isSafeInteger(Number(node.value))) return undefined;
+            return { type: node.type, code: typeof node.value === 'bigint' ? `${node.value}${numberMode ? '' : 'n'}` : JSON.stringify(node.value) };
+        }
         if (node.kind === 'input') {
             lines.push(...node.input.lines);
             return node.input.term;
@@ -198,7 +209,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         if (node.kind === 'unary') {
             const value = lower(node.operand, lines), token = node.operation.unary;
             if (!value || token === undefined) return undefined;
-            return { code: token === '' ? value.code : `${token}(${value.code})`, type: node.type };
+            return { code: token === '' ? value.code : node.type === 'integer' ? safe(`${token}(${value.code})`) : `${token}(${value.code})`, type: node.type };
         }
         const left = lower(node.left, lines);
         const token = node.operation.binary;
@@ -213,18 +224,20 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             return { code: name, type: node.type };
         }
         if (token !== '//' && token !== '%') {
-            lines.push(`const ${name} = (${a}) ${token} (${b});`);
+            lines.push(`const ${name} = ${node.type === 'integer' ? safe(`(${a}) ${token} (${b})`) : `(${a}) ${token} (${b})`};`);
         } else {
-            lines.push(`if ((${b}) === 0n) throw zero();`);
+            lines.push(`if ((${b}) === ${zero}) throw zero();`);
             lines.push(`const m${serial} = (${a}) % (${b});`);
-            const adjust = `(m${serial} !== 0n && (m${serial} < 0n) !== ((${b}) < 0n))`;
-            lines.push(`const ${name} = ${op === '//' ? `(${a}) / (${b}) - (${adjust} ? 1n : 0n)` : `m${serial} + (${adjust} ? (${b}) : 0n)`};`);
+            const adjust = `(m${serial} !== ${zero} && (m${serial} < ${zero}) !== ((${b}) < ${zero}))`;
+            const quotient = numberMode ? safe(`${safe(`(${a}) - m${serial}`)} / (${b})`) : `(${a}) / (${b})`;
+            lines.push(`const ${name} = ${safe(op === '//' ? `${quotient} - (${adjust} ? ${one} : ${zero})` : `m${serial} + (${adjust} ? (${b}) : ${zero})`)};`);
         }
         return { code: name, type: node.type };
     }
     /** Lower an audited catalogue call. Argument reads remain in source order;
      * runtime binding still checks the module and current builtin on every entry. */
     function emitBuiltinCall(operation: Operation, operands: readonly Expression[], lines: string[]): LoopTerm | undefined {
+        if (numberMode) return undefined;
         const signature = operation.compiledCall!;
         const arguments_: string[] = [];
         const types: string[] = [];
@@ -278,7 +291,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         }
         if (isApplicationExpression(e) && e.arguments.length === 1 && isNameExpression(e.arguments[0])) {
             const op = e.arguments[0].name;
-            if (op === 'text' && host.scalarText) {
+            if (!numberMode && op === 'text' && host.scalarText) {
                 const value = emit(e.head, lines);
                 if (value?.type !== 'integer') return undefined;
                 builtins.set(op, 'core');
@@ -287,7 +300,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 // Decimal integer rendering has one UTF-16 unit per code point.
                 return { code: name, type: 'text', ascii: true };
             }
-            if (op === 'len' && host.scalarText) {
+            if (!numberMode && op === 'len' && host.scalarText) {
                 if (host.nativeCalls && knownType(e.head) === 'bytes') {
                     const value = emit(e.head, lines, 'bytes');
                     if (!value) return undefined;
@@ -317,16 +330,16 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 if (value?.type !== 'integer') return undefined;
                 builtins.set(op, 'numbers');
                 const name = `v${serial++}`;
-                lines.push(`const ${name} = (${value.code}) < 0n ? -(${value.code}) : (${value.code});`);
+                lines.push(`const ${name} = (${value.code}) < ${zero} ? -(${value.code}) : (${value.code});`);
                 return { code: name, type: 'integer' };
             }
             if (op === 'even' || op === 'odd') {
                 const value = emit(e.head, lines);
                 if (value?.type !== 'integer') return undefined;
                 builtins.set(op, 'numbers');
-                return { code: `(BigInt.asUintN(1, ${value.code}) ${op === 'even' ? '===' : '!=='} 0n)`, type: 'boolean' };
+                return { code: numberMode ? `((${value.code}) % 2 ${op === 'even' ? '===' : '!=='} 0)` : `(BigInt.asUintN(1, ${value.code}) ${op === 'even' ? '===' : '!=='} 0n)`, type: 'boolean' };
             }
-            if ((op === 'len' || op === 'pop') && isNameExpression(e.head)) {
+            if (!numberMode && (op === 'len' || op === 'pop') && isNameExpression(e.head)) {
                 const receiver = container(e.head.name, 'deque', op === 'pop');
                 if (!receiver) return undefined;
                 builtins.set(op, op === 'len' ? 'core' : 'algo');
@@ -347,7 +360,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                     && (host.module(operation.module) || !prepareCallee)) {
                     return emitBuiltinCall(operation, parts.slice(0, -1), lines);
                 }
-                if (prepareCallee) {
+                if (prepareCallee && !numberMode) {
                     const arguments_: string[] = [];
                     const types: CompiledCalleeType[] = [];
                     for (let part of parts.slice(0, -1)) {
@@ -403,7 +416,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             if (!host.arrayReads) return undefined;
             const [head, ...arguments_] = flattenApplication(e);
             if (!isNameExpression(head) || head.name.includes('.')) return undefined;
-            if (host.nativeCalls && host.textLoops && knownType(head) === 'text') {
+            if (!numberMode && host.nativeCalls && host.textLoops && knownType(head) === 'text') {
                 if (arguments_.length !== 1) return undefined;
                 const receiver = emit(head, lines, 'text'), index = emit(arguments_[0], lines, 'integer');
                 if (!receiver || index?.type !== 'integer') return undefined;
@@ -411,7 +424,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 lines.push(`const ${name} = textRead(${receiver.code}, ${index.code});`);
                 return { code: name, type: 'text' };
             }
-            if (host.nativeCalls && knownType(head) === 'bytes') {
+            if (!numberMode && host.nativeCalls && knownType(head) === 'bytes') {
                 if (arguments_.length !== 1) return undefined;
                 const receiver = emit(head, lines, 'bytes'), index = emit(arguments_[0], lines, 'integer');
                 if (!receiver || index?.type !== 'integer') return undefined;
@@ -438,7 +451,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             return { code: name, type };
         }
         if (!isBinaryExpression(e) || e.step) return undefined;
-        if (['in', 'notin'].includes(e.operator) && isNameExpression(e.right)) {
+        if (!numberMode && ['in', 'notin'].includes(e.operator) && isNameExpression(e.right)) {
             const name = e.right.name;
             const key = emit(e.left, lines);
             if (key?.type !== 'integer') return undefined;
@@ -457,7 +470,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             return { code: `${negate}${receiver}.entries.has(key([${key.code}]))`, type: 'boolean' };
         }
         if (isNameExpression(e.right) && ['reduce', 'scan', 'outer', 'segment'].includes(e.right.name)) return undefined;
-        if (e.operator === '**') {
+        if (!numberMode && e.operator === '**') {
             let exponent = e.right;
             while (isParenthesizedExpression(exponent)) exponent = exponent.value;
             if (!isNumberLiteral(exponent) || typeof exponent.value !== 'bigint' || exponent.value < 0n) return undefined;
@@ -479,6 +492,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         const tests: string[] = [];
         let setup = '', header: string, bindings = '';
         if (iteration) {
+            if (numberMode && isNameExpression(iteration.iterable)) return undefined;
             let range = iteration.iterable;
             while (isParenthesizedExpression(range)) range = range.value;
             if (iteration.names.length > 2 || iteration.names.some(name => name.includes('.'))
@@ -511,13 +525,13 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             } else {
                 if (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)) return undefined;
                 const start = emit(range.left, tests), end = emit(range.right, tests);
-                const step = range.step ? emit(range.step, tests) : { code: '1n', type: 'integer' };
+                const step = range.step ? emit(range.step, tests) : { code: one, type: 'integer' };
                 if (start?.type !== 'integer' || end?.type !== 'integer' || step?.type !== 'integer') return undefined;
                 setup = `${tests.join('\n')} const start = ${start.code}, end = ${end.code}, stride = ${step.code};
-                    if (stride === 0n) throw badStep();`;
-                header = `for (let cursor = start${indexed ? ', ordinal = 0n' : ''};
-                    stride > 0n ? cursor ${range.operator === 'to' ? '<=' : '<'} end : cursor ${range.operator === 'to' ? '>=' : '>'} end;
-                    cursor += stride${indexed ? ', ordinal += 1n' : ''}) { location = ${location}; checkpoint();`;
+                    if (stride === ${zero}) throw badStep();`;
+                header = `for (let cursor = start${indexed ? `, ordinal = ${zero}` : ''};
+                    stride > ${zero} ? cursor ${range.operator === 'to' ? '<=' : '<'} end : cursor ${range.operator === 'to' ? '>=' : '>'} end;
+                    cursor = ${safe('cursor + stride')}${indexed ? `, ordinal = ${safe(`ordinal + ${one}`)}` : ''}) { location = ${location}; checkpoint();`;
             }
             for (const [index, name] of iteration.names.entries()) {
                 if (name === '#') continue;
@@ -525,7 +539,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 if (localTypes.has(name) && localTypes.get(name) !== type) return undefined;
                 localTypes.set(name, type);
                 const target = slot(name), value = index === 0 ? 'cursor' : collectionIteration ? 'ordinal++' : 'ordinal';
-                bindings += `const bound${binders.length} = ${value}; binders[${binders.length}](bound${binders.length}); r${target} = bound${binders.length};\n`;
+                bindings += `const bound${binders.length} = ${value}; ${numberMode ? dirty(target) : `binders[${binders.length}](bound${binders.length});`} r${target} = bound${binders.length};\n`;
                 binders.push(host.writer(name));
                 binderNames.push(name);
                 assigned.add(name);
@@ -564,6 +578,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 continue;
             }
             if (isReturnStatement(assignment)) {
+                if (numberMode) return undefined;
                 if (!host.returns || !assignment.value) return reject(assignment);
                 hasControl = true; hasReturn = true;
                 const lines: string[] = [];
@@ -588,6 +603,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 return 'stop';
             }
             if (isPushStatement(assignment)) {
+                if (numberMode) return undefined;
                 if (!isNameExpression(assignment.receiver)) return reject(assignment);
                 const receiver = container(assignment.receiver.name, 'deque');
                 const lines: string[] = [];
@@ -598,6 +614,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 continue;
             }
             if (isArrayAssignmentStatement(assignment)) {
+                if (numberMode) return undefined;
                 const compound = assignment.operator !== '=';
                 const booleanUpdate = loopOperatorSignature(assignment.operator.slice(0, -1), ['boolean', 'boolean'], host.nativeCalls)?.compound;
                 if (compound && (!host.compoundWrites || !findCompiledOperator(assignment.operator.slice(0, -1))?.integerLoop.some(signature => signature.compound))) return reject(assignment);
@@ -768,20 +785,21 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 const signature = loopOperatorSignature(op, [value.type, value.type], host.nativeCalls);
                 const token = findCompiledOperator(op)?.binary;
                 if (!signature?.compound || signature.result !== value.type || !token) return reject(assignment);
-                if (token !== '%' && token !== '//') result = `(r${destination}) ${token} (${result})`;
+                if (token !== '%' && token !== '//') result = value.type === 'integer' ? safe(`(r${destination}) ${token} (${result})`) : `(r${destination}) ${token} (${result})`;
                 else if (op === 'mod' || op === '//') {
-                    lines.push(`if ((${result}) === 0n) throw zero();`);
+                    lines.push(`if ((${result}) === ${zero}) throw zero();`);
                     const remainder = `c${index}`;
                     lines.push(`const ${remainder} = r${destination} % (${result});`);
-                    const adjust = `(${remainder} !== 0n && (${remainder} < 0n) !== ((${result}) < 0n))`;
-                    result = op === 'mod' ? `${remainder} + (${adjust} ? (${result}) : 0n)`
-                        : `r${destination} / (${result}) - (${adjust} ? 1n : 0n)`;
+                    const adjust = `(${remainder} !== ${zero} && (${remainder} < ${zero}) !== ((${result}) < ${zero}))`;
+                    const quotient = numberMode ? safe(`${safe(`r${destination} - ${remainder}`)} / (${result})`) : `r${destination} / (${result})`;
+                    result = safe(op === 'mod' ? `${remainder} + (${adjust} ? (${result}) : ${zero})`
+                        : `${quotient} - (${adjust} ? ${one} : ${zero})`);
                 } else return reject(assignment);
             }
             writers.push(host.writer(assignment.name));
             writerNames.push(assignment.name);
             body.push(`location = ${location};`, ...lines, `const out${index} = ${result};`,
-                `writers[${index}](out${index}); r${destination} = out${index}; iterationResult = out${index};`);
+                `${numberMode ? dirty(destination) : `writers[${index}](out${index});`} r${destination} = out${index}; iterationResult = out${index};`);
             assigned.add(assignment.name);
         }
         return 'next';
@@ -808,5 +826,6 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     // at region entry. Keep those writes interpreted until that lowering exists.
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
         && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
-    return prepareIntegerLoop({ statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration }, host, () => reject(statement, 'code-generation'));
+    const plan = { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration };
+    return numberMode ? prepareNumberLoop(plan, host) : prepareIntegerLoop(plan, host, () => reject(statement, 'code-generation'));
 }
