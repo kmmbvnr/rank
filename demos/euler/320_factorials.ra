@@ -1,0 +1,72 @@
+rem Factorials Divisible by
+rem a Huge Integer
+rem https://projecteuler.net/problem=320
+
+use numbers
+use io
+use cli
+
+option Upper integer = 1000000
+
+K = 1234567890
+Mod = 10 ** 18
+Spf = 0 to Upper array
+Root = Upper isqrt
+for P in 2 to Root
+  if Spf P equal P
+    for X in P * P to Upper by P
+      if Spf X equal X
+        Spf X = P
+      end
+    end
+  end
+end
+Need = array shape (Upper + 1) fill 0
+Want = array shape (Upper + 1) fill 0
+Best = 0
+Answer = 0
+for I in 2 to Upper
+  X = I
+  for X greater 1
+    P = Spf X
+    E = 0
+    for X mod P equal 0
+      X //= P
+      E += 1
+    end
+    Want P += K * E
+    Need P = P (Want P) (Need P) minimum
+    Best = Best (Need P) max
+  end
+  if I at least 10
+    Answer = (Answer + Best) mod Mod
+  end
+end
+Answer print
+
+fun P Target Prev minimum
+  Low = Prev (Target * (P - 1)) max
+  High = Low
+  for (High P valuation) less Target
+    Have = High P valuation
+    High += (Target - Have) * (P - 1)
+  end
+  for Low less High
+    Mid = Low + (High - Low) // 2
+    if (Mid P valuation) at least Target
+      High = Mid
+    else
+      Low = Mid + 1
+    end
+  end
+  return Low
+end
+
+fun N P valuation
+  Sum = 0
+  for N greater 0
+    N //= P
+    Sum += N
+  end
+  return Sum
+end
