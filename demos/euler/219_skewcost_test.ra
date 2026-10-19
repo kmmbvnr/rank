@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "219_skewcost"
+  run
+
+  Answer equal 64564225042
+end
+
+test "six words"
+  use "219_skewcost"
+  N = 6
+  run
+
+  Answer equal 35
+end
