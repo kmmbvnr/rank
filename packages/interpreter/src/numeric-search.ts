@@ -12,14 +12,17 @@ export function numericFind(source: RankValue, target: RankValue): bigint | unde
     const targetKey = numericKey(target), cells = numericCells(source);
     if (targetKey === undefined || !cells) return undefined;
     const diagnostics = currentDiagnostics();
-    if (diagnostics) diagnostics.numericSearches++;
     for (let index = 0; index < cells.length; index++) {
         if ((index & 4095) === 0) checkpoint('finding indices', 4096);
         const key = numericKey(cells[index]);
         if (key === undefined) return undefined;
         if (key === targetKey || typeof key === 'number' && Number.isNaN(key)
-            && typeof targetKey === 'number' && Number.isNaN(targetKey)) return BigInt(index);
+            && typeof targetKey === 'number' && Number.isNaN(targetKey)) {
+            if (diagnostics) diagnostics.numericSearches++;
+            return BigInt(index);
+        }
     }
+    if (diagnostics) diagnostics.numericSearches++;
     return missing();
 }
 

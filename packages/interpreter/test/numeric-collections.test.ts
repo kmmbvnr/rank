@@ -16,6 +16,7 @@ const signal = () => new Int32Array(new SharedArrayBuffer(4));
 describe('stored numeric collection kernels', () => {
     it.each([
         [3n, -2n, 3n, 0n, -2n],
+        [-2147483648n, 2147483647n, 0n, -1n, -2147483648n],
         [-(1n << 63n), (1n << 63n) - 1n, 1n, 1n],
         [9007199254740993n, 9007199254740992n, -9007199254740993n],
         [3.5, -2.5, 3.5, 0, Infinity, -Infinity],
@@ -48,6 +49,34 @@ describe('stored numeric collection kernels', () => {
         const host: RankArray = { kind: 'array', shape: [input.length], items: input };
         expect(cells(uniqueValue(source))).toEqual(cells(uniqueValue(host)));
         expect(uniqueLength(source)).toBe(uniqueLength(host));
+    });
+
+    it('matches the generic kernels over deterministic duplicate-heavy and distinct inputs', () => {
+        for (let seed = 1; seed <= 12; seed++) {
+            const input = Array.from({ length: 127 }, (_, i) => BigInt(((i * 7919 + seed * 101) % (seed * 29)) - seed * 11));
+            if (seed % 2) input[0] = 9007199254740993n;
+            const source = ownedArray(input, [input.length], true);
+            const generic: RankArray = { kind: 'array', shape: [input.length], items: input };
+            for (const descending of [false, true]) {
+                expect(cells(sortValue(source, descending))).toEqual(cells(withInterrupt(signal(), () => sortValue(generic, descending))));
+                expect(cells(argsortValue(source, descending))).toEqual(cells(withInterrupt(signal(), () => argsortValue(generic, descending))));
+            }
+            expect(cells(uniqueValue(source))).toEqual(cells(uniqueValue(generic)));
+            expect(uniqueLength(source)).toBe(uniqueLength(generic));
+        }
+    });
+
+    it('declines changed mixed storage and opaque host shape getters', () => {
+        const mixed = ownedArray([1n, 2n]);
+        mixed.items[1] = 2;
+        expect(numericSort(mixed, false)).toBeUndefined();
+        expect(numericDistinct(mixed)).toBeUndefined();
+        expect(() => sortValue(mixed)).toThrow('arrays require one element type');
+        let shapes = 0;
+        const host: RankArray = { kind: 'array', get shape() { shapes++; return [1]; }, items: [1n] };
+        expect(numericSort(host, false)).toBeUndefined();
+        expect(numericDistinct(host)).toBeUndefined();
+        expect(shapes).toBe(0);
     });
 
     it('keeps typed sources typed and does not mutate or alias them', () => {

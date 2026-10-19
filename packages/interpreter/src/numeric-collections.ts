@@ -74,7 +74,38 @@ export function numericSort(value: RankValue, descending: boolean, mode: 'values
     return { indexes: typedArray(indexes), values: mode === 'indexed' ? resultValues(values, order) : undefined };
 }
 
+/** Stable three-pass radix permutation for signed Int32 keys. The wider exact
+ * buffers keep the native comparator fallback; keys never truncate to fit. */
+function radixOrder(values: NumericBuffer, descending: boolean): Uint32Array | undefined {
+    const keys = new Uint32Array(values.length);
+    for (let index = 0; index < keys.length; index++) {
+        const cell = Number(values[index]);
+        if (!Number.isInteger(cell) || cell < -2147483648 || cell > 2147483647) return undefined;
+        const key = (cell ^ 0x80000000) >>> 0;
+        keys[index] = descending ? ~key : key;
+    }
+    let order = new Uint32Array(values.length), scratch = new Uint32Array(values.length);
+    for (let index = 0; index < order.length; index++) order[index] = index;
+    const counts = new Uint32Array(2048);
+    for (let shift = 0; shift < 32; shift += 11) {
+        counts.fill(0);
+        for (let index = 0; index < order.length; index++) counts[(keys[order[index]] >>> shift) & 2047]++;
+        let offset = 0;
+        for (let bucket = 0; bucket < counts.length; bucket++) {
+            const count = counts[bucket]; counts[bucket] = offset; offset += count;
+        }
+        for (let index = 0; index < order.length; index++) {
+            const position = order[index];
+            scratch[counts[(keys[position] >>> shift) & 2047]++] = position;
+        }
+        [order, scratch] = [scratch, order];
+    }
+    return order;
+}
+
 function numericOrder(values: NumericBuffer, descending: boolean): Uint32Array {
+    const radix = radixOrder(values, descending);
+    if (radix) return radix;
     const order = Uint32Array.from({ length: values.length }, (_, index) => index);
     order.sort((a, b) => {
         const x = values[a], y = values[b];
