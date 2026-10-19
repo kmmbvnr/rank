@@ -1,4 +1,4 @@
-import { storedScalarCells, typedArray, ownedScalarArray } from './array-storage.js';
+import { denseScalarItems, typedArray, ownedScalarArray } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { checkpoint, interruptsEnabled, privateLoopPolling } from './interrupt.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
@@ -9,7 +9,7 @@ type NumericBuffer = BigInt64Array | Float64Array | Uint8Array;
 /** Admission inspects no host/lazy cells, contracts or public items getter. */
 export function numericCells(value: RankValue): ArrayLike<RankValue> | undefined {
     if (!privateLoopPolling() || !isRankArray(value)) return undefined;
-    const cells = storedScalarCells(value);
+    const cells = denseScalarItems(value);
     if (!cells || value.shape.length !== 1 || value.columnNames) return undefined;
     return cells;
 }

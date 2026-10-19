@@ -215,13 +215,6 @@ export function denseScalarItems(value: RankArray): ArrayLike<RankValue> | undef
     return storage?.stable && storage.scalarOnly ? storage.items : undefined;
 }
 
-/** Borrow complete runtime-owned scalar cells without forcing typed storage to
- * box. Callers must not write the cells or invoke observable callbacks. */
-export function storedScalarCells(value: RankArray): ArrayLike<RankValue> | undefined {
-    const state = ownedStorage.get(value);
-    return state?.stable && state.scalarOnly && !state.validity ? state.items : undefined;
-}
-
 function scalarKind(value: RankValue | undefined): string | undefined {
     switch (typeof value) {
         case 'number': return !Number.isFinite(value) && !Number.isNaN(value) ? 'numeric-limit' : 'real';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue, type RankValue, type RankArray } from '../src/index.js';
-import { ownedArray, typedArray, maskedArray, readArrayItem } from '../src/array-storage.js';
+import { ownedArray, typedArray, maskedArray, typedElementKind, readArrayItem } from '../src/array-storage.js';
 import { RuntimeDiagnostics } from '../src/diagnostics.js';
 import { withInterrupt, InterruptedError } from '../src/interrupt.js';
 import { numericSort, numericDistinct } from '../src/numeric-collections.js';
@@ -83,6 +83,7 @@ describe('stored numeric collection kernels', () => {
         const buffer = new BigInt64Array([3n, 1n, 2n, 1n]);
         const source = typedArray(buffer);
         const sorted = sortValue(source) as RankArray;
+        expect(typedElementKind(source)).toBe('integer');
         expect(buffer).toEqual(new BigInt64Array([3n, 1n, 2n, 1n]));
         sorted.items[0] = 9n;
         expect(cells(source)).toEqual([3n, 1n, 2n, 1n]);
