@@ -16,49 +16,68 @@ fun N turns
     end
     return 0
   end
-  X = 0
-  Y = N - 1
-  R = 0
-  C = 1
-  Odd = 0
-  Was = 0
-  Fix = 0
-  Edge = 2 * (N - 1)
+  F = N real
+  rem Final product uses exact integers.
+  Odd = (F true boundary) integer
+  Fix = (F false boundary) integer
+  return Fix + 2 * Odd * (N - Odd)
+end
+
+rem For this problem N is below 2 ** 30.
+rem Residuals stay within +/- 2 * N.
+rem Counts stay below 12 * N + 9.
+rem Reals keep these integers exact.
+rem Two passes keep both results scalar.
+fun N WantOdd boundary
+  X = 0.0
+  Y = N - 1.0
+  R = 0.0
+  C = 1.0
+  Odd = 0.0
+  Parity = 1.0
+  Was = 0.0
+  Fix = 0.0
+  Edge = 2.0 * (N - 1.0)
   for X less Y
-    if 2 * X less Edge - R
+    if 2.0 * X less Edge - R
       R += X
-      X += 1
+      X += 1.0
       R += X
-      C += 1
+      C += 1.0
+      Parity = 1.0 - Parity
     else
       R -= Y
-      Y -= 1
+      Y -= 1.0
       R -= Y
-      New = 1
-      if R less 0
+      New = 1.0
+      if R less 0.0
         R += X
-        X += 1
+        X += 1.0
         R += X
-        New = 0
+        New = 0.0
       end
       Was += New
-      if C mod 2 equal 1
-        Fix += 2 * (C - 2 * Was)
+      if Parity equal 1.0
+        Fix += 2.0 * (C - 2.0 * Was)
       else
-        Fix -= 2 * (C - 2 * Was)
+        Fix -= 2.0 * (C - 2.0 * Was)
       end
-      Odd += C + C mod 2 - Was
+      Odd += C + Parity - Was
       Was = New
-      C = 1
+      C = 1.0
+      Parity = 1.0
     end
   end
   if X equal Y
-    Odd += 1 - Was
-    if C greater 1
-      Fix += 4 * Was - 1
+    Odd += 1.0 - Was
+    if C greater 1.0
+      Fix += 4.0 * Was - 1.0
     else
-      Fix += 1
+      Fix += 1.0
     end
   end
-  return Fix + 2 * Odd * (N - Odd)
+  if WantOdd
+    return Odd
+  end
+  return Fix
 end
