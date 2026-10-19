@@ -87,11 +87,44 @@ describe('private safe-integer loop registers', () => {
         expect(diagnostics.numberLoops).toBe(0);
     });
 
-    it('retains interruptible execution on the publishing backend', () => {
+    it('supports ordinary cancellation polling with private registers', () => {
         const source = 'S = 0\nfor I in 0 to 3\n S += I\nend';
         const interrupted = execute(source, {}, true);
         expect(interrupted.observation).toEqual(execute(source, { compilation: false }).observation);
-        expect(interrupted.diagnostics.numberLoops).toBe(0);
+        expect(interrupted.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('publishes completed assignments on cancellation and runs finally', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        const flag = new Int32Array(1); flag[0] = 1;
+        try {
+            expect(() => withInterrupt(flag, () => diagnostics.run(() => runtime.execute(`S = 0
+Last = 0
+Done = 0
+try
+ for I in 1 to 1000000
+  S += I
+  Last = I
+ end
+finally
+ Done = 1
+end`)))).toThrow('Interrupted');
+            const index = runtime.variables.get('Last') as bigint;
+            expect(index).toBeGreaterThan(0n);
+            expect(runtime.variables.get('S')).toBe(index * (index + 1n) / 2n);
+            expect(runtime.variables.get('Done')).toBe(1n);
+            expect(diagnostics.numberLoops).toBe(1);
+        } finally { runtime.dispose(); }
+    });
+
+    it('declines arbitrary host polling callbacks that could observe state', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        const signal = { length: 1, load: () => 0, store: () => {}, exchange: () => 0, wait: () => {} };
+        try {
+            withInterrupt(signal, () => diagnostics.run(() => runtime.execute('S = 0\nfor I in 0 to 3\n S += I\nend')));
+            expect(runtime.variables.get('S')).toBe(6n);
+            expect(diagnostics.numberLoops).toBe(0);
+        } finally { runtime.dispose(); }
     });
 
     it('retains live array semantics for observable loop-entry hooks', () => {

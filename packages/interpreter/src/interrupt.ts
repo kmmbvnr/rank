@@ -18,6 +18,7 @@ export interface InterruptSignal {
 }
 
 let flag: InterruptSignal | undefined;
+let opaquePolling = true;
 let ticks = 0;
 let cancelled = false;
 export interface PauseSnapshot {
@@ -105,6 +106,8 @@ export function withInterrupt<T>(signal: Int32Array | InterruptSignal, run: () =
     const previousDebug = debug;
     debug = { session, targetDepth: 0 };
     const previous = flag;
+    const previousOpaquePolling = opaquePolling;
+    opaquePolling = signal instanceof Int32Array;
     const previousTicks = ticks;
     const previousPause = paused;
     const previousInspect = inspect;
@@ -125,6 +128,7 @@ export function withInterrupt<T>(signal: Int32Array | InterruptSignal, run: () =
         cancelled = previousCancelled;
         debug = previousDebug;
         flag = previous;
+        opaquePolling = previousOpaquePolling;
         ticks = previousTicks;
         paused = previousPause;
         inspect = previousInspect;
@@ -134,6 +138,10 @@ export function withInterrupt<T>(signal: Int32Array | InterruptSignal, run: () =
 
 /** Interactive workers install a signal. File and pipe execution do not. */
 export function interruptsEnabled(): boolean { return flag !== undefined; }
+
+/** Atomics-only cancellation cannot observe private loop registers. Inspection
+ * and arbitrary host polling callbacks retain per-assignment publication. */
+export function privateLoopPolling(): boolean { return opaquePolling && !paused; }
 
 /**
  * A look that ran out of reading before it found the next item. Not a

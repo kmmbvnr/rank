@@ -1,7 +1,7 @@
 import { MissingValueError, RankError } from './errors.js';
 import { completed } from './execution.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
-import { interruptsEnabled } from './interrupt.js';
+import { checkpoint, privateLoopPolling } from './interrupt.js';
 import { arrayRevision, materializedArrayItems } from './array-storage.js';
 import { isRankArray, type RankValue } from './value.js';
 import type { CompiledLoop, IntegerLoopPlan, LoopHost } from './integer-loop-plan.js';
@@ -18,7 +18,7 @@ const rankInteger = (value: unknown): RankValue | undefined =>
 /** Only private scalar writes and trusted eager reads qualify. Nothing is
  * published until success, so overflow can discard this attempt and enter the
  * original BigInt loop with its original inputs. Errors publish partial state.
- * Interactive/interruptible execution retains the existing publishing backend. */
+ * Inspection and custom host polling retain the existing publishing backend. */
 export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): CompiledLoop | undefined {
     const { names, localTypes, arrays, required, body, root, locations, statement } = plan;
     if (host.observableEntry && arrays.size || !host.canDeferWrites || plan.calls.length || plan.iterators.length || plan.containers.size
@@ -53,12 +53,12 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     try {
         run = new Function('safe', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', source)(
             safe, overflow, () => new RankError('division by zero'),
-            () => new RankError('range step must be a nonzero integer'), () => {},
+            () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]));
     } catch { return undefined; }
     host.compiled?.(source);
     return { run: (insideFinally = false) => {
-        if (plan.hasControl && insideFinally || interruptsEnabled()) return undefined;
+        if (plan.hasControl && insideFinally || !privateLoopPolling()) return undefined;
         for (const [name, module] of plan.builtins) if (!host.builtin(module, name)) return undefined;
         if (!host.canDeferWrites!(bindings)) return recordFallback('number-loop:binding-contract');
         const input: unknown[] = [], readers: ((index: number) => number)[] = [];
@@ -81,6 +81,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             // lazy cells, and no mutation/callback can invalidate it in the region.
             const cells = new Float64Array(items.length);
             for (let index = 0; index < items.length; index++) {
+                if ((index & 4095) === 0) checkpoint('preparing numeric loop storage');
                 const item = items[index];
                 if (typeof item !== 'bigint' || !Number.isSafeInteger(Number(item))) return recordFallback('number-loop:unsafe-cell');
                 cells[index] = Number(item);
