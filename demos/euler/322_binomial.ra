@@ -3,35 +3,57 @@ rem by 10
 rem https://projecteuler.net/problem=322
 
 use bits
+use algo
 use numbers
 use sequences
 use io
 use cli
 
-option Top integer = 1000000000000000000
-option Pick integer = 999999999990
+option Top integer = 10 ** 18
+option Pick integer = 10 ** 12 - 10
 
 Limit = Top - Pick
 A2 = Pick Limit 2 nocarry
 A5 = Pick Limit 5 nocarry
-Vals = array 0
+Lows = array 0
 Place = 1
-N = Pick
-for Place less Limit
-  Cap = 4
-  if N greater 0
-    Cap = 4 - N mod 5
-    N //= 5
-  end
-  Ds = 0 to Cap array
-  Size = (Vals len) * (Ds len)
-  Grid = Vals (Ds * Place) outer +
-  Vals = Grid reshape Size
+D = Pick
+for D greater 0
+  Min = D mod 5
+  Ds = Min to 4 array
+  Size = (Lows len) * (Ds len)
+  Grid = Lows (Ds * Place) outer +
+  Lows = Grid reshape Size
   Place *= 5
+  D //= 5
 end
-Vals = Vals filter less Limit array
-Mask = (Vals Pick band) equal 0
-Both = Mask count
+MaxH = (Top - 1) // Place
+Mod = 1
+for Mod at most MaxH
+  Mod *= 2
+end
+Inv = Place (Mod // 2 - 1) Mod powmod
+Need = Pick mod Mod
+Mods = new queue
+for R in 0 till Mod
+  if R Need band equal Need
+    Mods push R
+  end
+end
+Both = 0
+for Low in Lows
+  MaxH = (Top - 1 - Low) // Place
+  LowMod = Low mod Mod
+  for R in Mods
+    H = (R - LowMod) * Inv mod Mod
+    if H at most MaxH
+      Value = Low + Place * H
+      if Value Pick band equal Pick
+        Both += 1
+      end
+    end
+  end
+end
 Answer = Limit - A2 - A5 + Both
 Answer print
 
