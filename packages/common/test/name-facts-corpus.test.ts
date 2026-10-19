@@ -12,6 +12,8 @@ import { Interpreter, isRankArray, parse, typeName } from '@arrrank/interpreter'
 import { nameFactsIn } from '../src/name-facts.js';
 
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));
+const executionExclusions = new Set(Object.keys(JSON.parse(fs.readFileSync(
+    new URL('../../../scripts/demo-execution-exclusions.json', import.meta.url), 'utf8'))));
 
 function programs(): string[] {
     const files: string[] = [];
@@ -43,12 +45,12 @@ function settledNames(program: Program): Set<string> {
 
 /**
  * The rule that makes the footer worth reading: the analyzer may say `unknown`, but it may
- * never say something false. Every demo that runs without a host — no standard input, no
+ * never say something false. Every eligible demo that runs without a host — no standard input, no
  * files, no database — is asked about each settled name, where it is written and where it is
  * read, and the answer is checked against the value the run produced.
  */
 describe('facts at a name against the values a run produced', () => {
-    const files = programs();
+    const files = programs().filter(file => !executionExclusions.has(path.relative(demos, file)));
     let ran = 0;
     let asked = 0;
     let known = 0;

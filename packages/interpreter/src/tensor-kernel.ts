@@ -1,16 +1,19 @@
-import { checkpoint, interruptsEnabled } from './interrupt.js';
+import { tensorInput, validateTensorInputs } from './tensor-input.js';
+import { applicationForm } from '@arrrank/language';
+import { checkpoint, interruptsEnabled, privateLoopPolling } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
     flattenApplication, findOperation, unaryApplicationHead, findCompiledOperator, tensorOperatorSignatures, inferCompiledExpression, matchCompiledOperatorDomains,
     isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
     isNameExpression, isNumberLiteral,
-    isParenthesizedExpression, isUnaryExpression,
+    isParenthesizedExpression, isUnaryExpression, isCountClauseExpression,
     type Expression, type Statement, type CompiledAtomType, type CompiledExpression,
 } from '@arrrank/language';
 import { type RankValue, isRankArray, isRankSequence } from './value.js';
 import { broadcastShape } from './tensor.js';
-import { arrayRevision, materializedArrayItems, ownedArray } from './array-storage.js';
+import { arraySliceLayout } from './tensor-layout.js';
+import { arrayRevision, ownedArray, ownedScalarArray } from './array-storage.js';
 import { arithmeticRange, modularRange } from './range-plan.js';
 import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
@@ -23,6 +26,8 @@ export type TensorNode =
     | { kind: 'input'; name?: string; value?: RankValue }
     | { kind: 'binary'; op: string; native?: Bitwise; left: TensorNode; right: TensorNode }
     | { kind: 'unary'; op: string; operand: TensorNode }
+    | { kind: 'concat'; sources: TensorNode[] }
+    | { kind: 'slice'; source: TensorNode; count: TensorNode; drop: boolean }
     | { kind: 'select'; source: TensorNode; selector: TensorNode };
 export interface TensorKernelHost {
     readonly textDigits?: boolean;
@@ -35,8 +40,8 @@ function pair(value: Expression): Expression[] | undefined {
     const atom = unwrap(value);
     return isApplicationExpression(atom) && atom.arguments.length === 1 ? [atom.head, atom.arguments[0]] : undefined;
 }
-interface View { items: RankValue[]; offset: number; shape: readonly number[] }
-interface Bound { shape?: readonly number[]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean; digits?: boolean; progression?: { start: number; step: number; divisor?: number } }
+interface View { items: RankValue[]; offset: number; shape: readonly number[]; kind?: string }
+interface Bound { segments?: Bound[]; shape?: readonly number[]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean; digits?: boolean; progression?: { start: number; step: number; divisor?: number } }
 const numeric = (value: unknown) => typeof value === 'bigint' || typeof value === 'number' && Number.isFinite(value);
 const same = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((n, i) => n === b[i]);
 
@@ -97,6 +102,17 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
         return left && right ? typed({ kind: 'binary', op: node.operation.name, left, right }, node.type) : undefined;
     }
     function parseInput(e: Expression): TensorNode | undefined {
+        if (isCountClauseExpression(e)) {
+            const source = parse(e.source), count = parse(e.count);
+            return source && count ? typed({ kind: 'slice', source, count, drop: e.operator === 'drop' }, domains.get(source)!) : undefined;
+        }
+        const form = applicationForm(e, name => definitions.has(name) ? undefined : findOperation(name));
+        if (form.kind === 'array-combine-constructor' && form.operation === 'concat'
+            && !form.axis && !form.rest.length) {
+            const sources = form.items.map(item => parse(item));
+            if (sources.some(node => !node)) return undefined;
+            return typed({ kind: 'concat', sources: sources as TensorNode[] }, unknown);
+        }
         if (isNameExpression(e) && !e.name.includes('.')) {
             reads.set(e.name, (reads.get(e.name) ?? 0) + 1);
             return definitions.get(e.name) ?? typed({ kind: 'input', name: e.name }, unknown);
@@ -177,6 +193,8 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
                 reached.add(node);
                 if (node.kind === 'binary') { visit(node.left); visit(node.right); }
                 if (node.kind === 'unary') visit(node.operand);
+                if (node.kind === 'concat') node.sources.forEach(visit);
+                if (node.kind === 'slice') { visit(node.source); visit(node.count); }
                 if (node.kind === 'select') { visit(node.source); visit(node.selector); }
             };
             visit(root);
@@ -194,6 +212,12 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
 
 function build(root: TensorNode, names: string[], terminal: Terminal, count: number, host: TensorKernelHost,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>) {
+    const outputDomain = domains.get(root);
+    const integerOutput = outputDomain?.length === 1 && outputDomain[0] === 'integer';
+    // A successful integer-only kernel has already checked every output cell.
+    // Preserve that proof instead of scanning the fresh array a second time.
+    const copied = (items: RankValue[], shape: readonly number[]) => integerOutput
+        ? ownedScalarArray(items, 'integer', shape) : ownedArray(items, shape, true);
     const nativeCalls = [...new Set([...domains.keys()].flatMap(node =>
         node.kind === 'binary' && node.native ? [node.native] : []))];
     const sequenceSelectors = new Set([...domains.keys()].flatMap(node =>
@@ -201,41 +225,62 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     let cachedKey: string | undefined;
     type KernelRun = (data: RankValue[][], offsets: number[], scalars: RankValue[], size: number) => RankValue | RankValue[] | undefined;
     let cachedRun: KernelRun | undefined;
+    // Concat segment lengths vary between calls; retain bounded code layouts,
+    // never source arrays, so recurring shapes do not recompile every step.
+    const variants = new Map<string, { run: KernelRun; source: string }>();
+    const hasConcat = [...domains.keys()].some(node => node.kind === 'concat');
+    const hasSlices = [...domains.keys()].some(node => node.kind === 'slice');
     // Cache layout only: never retain operand storage or a previous result.
     // Selections and text conversions keep the general binder below.
-    type InputLayout = { name?: string; value?: RankValue; slot: number; shape?: readonly number[]; boolean: boolean };
-    let layout: { inputs: InputLayout[]; offsets: number[]; shape: readonly number[]; size: number;
-        interruptible: boolean; execute: KernelRun } | undefined;
+    type InputLayout = { name?: string; value?: RankValue; slot: number; shape?: readonly number[]; boolean: boolean; kind?: string };
+    type Layout = { inputs: InputLayout[]; offsets: number[]; shape: readonly number[]; size: number;
+        interruptible: boolean; execute: KernelRun; source: string };
+    let layout: Layout | undefined;
+    const layouts = new Map<string, Layout>();
+    const inputKey = (shape: readonly number[] | undefined, kind: string | undefined, boolean: boolean, slot: number) =>
+        `${shape === undefined ? 's' : shape.join(',')}:${kind ?? ''}:${boolean}:${slot}`;
     let generated = '';
     let unavailable = false;
     return { count, get source() { return generated; }, run(): RankValue | undefined {
+        if (hasSlices && !privateLoopPolling()) return recordFallback('tensor:observable-slices');
         for (const name of nativeCalls) if (!host.builtin(name)) return recordFallback(`tensor:builtin:${name}`);
         if (unavailable) return recordFallback('tensor:code-generation');
         if (names.some(name => host.lookup(name) !== undefined)) return recordFallback('tensor:existing-binding');
         // Interrupt callbacks may enter this kernel again with another shape.
         const plan = layout;
         if (plan && plan.interruptible === interruptsEnabled() && host.builtin(terminal)) {
-            const data: RankValue[][] = [], scalars: RankValue[] = [];
+            const data: RankValue[][] = [], scalars: RankValue[] = [], offsets = [...plan.offsets];
+            const keys: string[] | undefined = hasConcat ? [] : undefined;
+            let validations: (() => void)[] | undefined;
             let matches = true;
             for (const input of plan.inputs) {
                 const value = input.name === undefined ? input.value : host.lookup(input.name);
                 if (input.shape) {
-                    if (!value || !isRankArray(value) || arrayRevision(value) === undefined
-                        || !same(value.shape, input.shape)) { matches = false; break; }
-                    const items = materializedArrayItems(value);
-                    if (!Array.isArray(items) || items.length !== input.shape.reduce((a, b) => a * b, 1)
-                        || (typeof items[0] === 'boolean') !== input.boolean) { matches = false; break; }
-                    data[input.slot] = items;
+                    if (!value || !isRankArray(value) || !hasConcat && !same(value.shape, input.shape)) { matches = false; break; }
+                    const view = tensorInput(value);
+                    if (!view || !hasConcat && (view.kind !== input.kind
+                        || (typeof view.items[view.offset] === 'boolean') !== input.boolean)) { matches = false; break; }
+                    data[input.slot] = view.items;
+                    offsets[input.slot] = view.offset;
+                    if (view.validate) (validations ??= []).push(view.validate);
+                    keys?.push(inputKey(view.shape, view.kind, typeof view.items[view.offset] === 'boolean', input.slot));
                 } else {
                     if (!(numeric(value) || typeof value === 'boolean')
-                        || (typeof value === 'boolean') !== input.boolean) { matches = false; break; }
+                        || !hasConcat && (typeof value === 'boolean') !== input.boolean) { matches = false; break; }
                     scalars[input.slot] = value!;
+                    keys?.push(inputKey(undefined, undefined, typeof value === 'boolean', input.slot));
                 }
             }
             if (matches) {
-                const result = plan.execute(data, plan.offsets, scalars, plan.size);
-                return terminal === 'copy' && result !== undefined
-                    ? ownedArray(result as RankValue[], plan.shape, true) : result as RankValue | undefined;
+                const selected = keys ? layouts.get(String(plan.interruptible) + keys.join(';')) : plan;
+                if (selected) {
+                    if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
+                    layout = selected;
+                    generated = selected.source;
+                    const result = selected.execute(data, offsets, scalars, selected.size);
+                    return terminal === 'copy' && result !== undefined
+                        ? copied(result as RankValue[], selected.shape) : result as RankValue | undefined;
+                }
             }
         }
         return bindRun();
@@ -246,6 +291,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         const bound = new Map<TensorNode, Bound>();
         let broadcasts = false;
         const data: RankValue[][] = [], offsets: number[] = [], scalars: RankValue[] = [];
+        let validations: (() => void)[] | undefined;
         let bindingRejected = false;
         function rejectBinding(reason: string): undefined {
             if (!bindingRejected) recordFallback(reason);
@@ -276,13 +322,30 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 } else if (value && isRankArray(value)) {
                     // Host-owned arrays can run getters while probing their
                     // cells. Only tracked storage is safe to inspect here.
-                    if (arrayRevision(value) === undefined) return rejectBinding('tensor:untracked-storage');
-                    const items = materializedArrayItems(value);
-                    if (!Array.isArray(items) || !value.shape.every(n => Number.isSafeInteger(n) && n >= 0)
-                        || value.shape.reduce((p, n) => p * n, 1) !== items.length) return undefined;
-                    const view = { items, offset: 0, shape: value.shape };
-                    result = { shape: view.shape, view, boolean: typeof items[0] === 'boolean' };
+                    if (!value.shape.every(n => Number.isSafeInteger(n) && n >= 0)) return undefined;
+                    const view = tensorInput(value);
+                    if (!view) return arrayRevision(value) === undefined
+                        ? rejectBinding('tensor:untracked-storage') : undefined;
+                    if (view.validate) (validations ??= []).push(view.validate);
+                    result = { shape: view.shape, view, boolean: typeof view.items[view.offset] === 'boolean' };
                 }
+            } else if (node.kind === 'slice') {
+                const a = bind(node.source), b = bind(node.count);
+                if (!a?.view || !a.shape?.length || typeof b?.scalar !== 'bigint' || b.scalar < 0n) return undefined;
+                const sliced = arraySliceLayout(a.shape, b.scalar, node.drop);
+                const view = { ...a.view, shape: sliced.shape, offset: a.view.offset + sliced.offset };
+                result = { shape: view.shape, view, boolean: a.boolean };
+            } else if (node.kind === 'concat') {
+                const segments = node.sources.map(source => bind(source));
+                const first = segments[0];
+                const kind = segments.find(segment => segment?.shape?.every(n => n > 0))?.view?.kind;
+                if (!first?.view || !first.shape?.length || segments.some(segment => !segment?.view
+                    || segment.shape?.every(n => n > 0) && (!kind || segment.view.kind !== kind)
+                    || segment.shape?.length !== first.shape!.length
+                    || segment.shape.some((n, i) => i > 0 && n !== first.shape![i]))) return undefined;
+                result = { segments: segments as Bound[], boolean: first.boolean,
+                    shape: [segments.reduce((n, segment) => n + segment!.shape![0], 0), ...first.shape.slice(1)] };
+                if (!Number.isSafeInteger(result.shape![0])) return undefined;
             } else if (node.kind === 'binary') {
                 const a = bind(node.left), b = bind(node.right);
                 // Sequence arithmetic zips streams; it does not broadcast like
@@ -388,6 +451,8 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         const interruptible = interruptsEnabled();
         const key = String(interruptible) + [...bound.values()].map(b => `${b.shape === undefined ? 's' : b.shape.join(',')}:${b.view ? 'v' : ''}:${b.boolean}:${b.filter ?? false}:${b.slot ?? ''}:${b.progression ? `${b.progression.start},${b.progression.step},${b.progression.divisor ?? ''}` : ''}`).join(';');
         let execute = cachedRun;
+        const variant = variants.get(key);
+        if (variant) { execute = variant.run; generated = variant.source; cachedKey = key; cachedRun = execute; }
         if (cachedKey !== key) {
             const lines: string[] = [];
             const emitted = new Map<TensorNode, string>();
@@ -430,6 +495,17 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 }
                 else if (info.digits) lines.push(`const ${name} = BigInt(scalars[${info.slot}].charCodeAt(i) - 48);`);
                 else if (info.view) lines.push(`const ${name} = data[${info.slot}][offsets[${info.slot}] + ${broadcasts ? address(info.view.shape) : 'i'}];`);
+                else if (info.segments) {
+                    const index = broadcasts ? `(${address(info.shape!)})` : 'i';
+                    let end = 0;
+                    const parts = info.segments.map((segment, position) => {
+                        const start = end;
+                        end += segment.shape!.reduce((n, dimension) => n * dimension, 1);
+                        const read = `data[${segment.slot}][offsets[${segment.slot}] + ${index} - ${start}]`;
+                        return position === info.segments!.length - 1 ? read : `${index} < ${end} ? ${read} : `;
+                    });
+                    lines.push(`const ${name} = ${parts.join('')};`);
+                }
                 else if (node.kind === 'binary') {
                     const a = emit(node.left), b = emit(node.right);
                     const decline = `return decline(${JSON.stringify(`tensor:operator-guard:${node.op}`)});`;
@@ -440,6 +516,15 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     }
                     const signatures = tensorOperatorSignatures(node.op, 2);
                     const token = findCompiledOperator(node.op)!.binary;
+                    if (node.op === 'mod' || node.op === '//') {
+                        lines.push(`if (typeof ${a} !== 'bigint' || typeof ${b} !== 'bigint' || ${b} === 0n) ${decline}`);
+                        lines.push(`const ${name}rem = ${a} % ${b};`);
+                        const adjust = `${name}rem !== 0n && (${name}rem < 0n) !== (${b} < 0n)`;
+                        lines.push(`const ${name} = ${node.op === 'mod'
+                            ? `${adjust} ? ${name}rem + ${b} : ${name}rem`
+                            : `${a} / ${b} - (${adjust} ? 1n : 0n)`};`);
+                        return name;
+                    }
                     if (signatures.every(signature => signature.inputs[0] === 'boolean')) {
                         lines.push(`if (typeof ${a} !== 'boolean' || typeof ${b} !== 'boolean') ${decline}`);
                         lines.push(`const ${name} = ${a} ${token} ${b};`);
@@ -493,19 +578,29 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             cachedKey = key;
             cachedRun = execute;
             host.compiled?.(generated);
+            if ([...bound.keys()].some(node => node.kind === 'concat')) {
+                if (variants.size >= 256) variants.delete(variants.keys().next().value!);
+                variants.set(key, { run: execute!, source: generated });
+            }
         }
-        if ([...bound.keys()].every(node => node.kind !== 'select'
+        if ([...bound.keys()].every(node => node.kind !== 'select' && node.kind !== 'slice'
             && !(node.kind === 'unary' && (node.op === 'text' || node.op === 'integer0')))
             && [...bound].every(([node, info]) => node.kind === 'input' || info.scalar === undefined)
             && [...bound.values()].every(info => !info.progression && (info.scalar === undefined || numeric(info.scalar) || typeof info.scalar === 'boolean'))) {
             layout = { inputs: [...bound].flatMap(([node, info]) => node.kind === 'input' ? [{
                 name: node.name, value: node.value,
-                slot: info.slot!, shape: info.shape && [...info.shape], boolean: info.boolean,
-            }] : []), offsets: [...offsets], shape: [...output.shape], size, interruptible, execute: execute! };
+                slot: info.slot!, shape: info.shape && [...info.shape], boolean: info.boolean, kind: info.view?.kind,
+            }] : []), offsets: [...offsets], shape: [...output.shape], size, interruptible, execute: execute!, source: generated };
+            if (hasConcat) {
+                if (layouts.size >= 256) layouts.delete(layouts.keys().next().value!);
+                layouts.set(String(interruptible) + layout.inputs.map(input =>
+                    inputKey(input.shape, input.kind, input.boolean, input.slot)).join(';'), layout);
+            }
         }
+        if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
         const result = execute!(data, offsets, scalars, size);
         if (terminal === 'copy' && result !== undefined) {
-            return ownedArray(result as RankValue[], output.shape, true);
+            return copied(result as RankValue[], output.shape);
         }
         return result as RankValue | undefined;
     }

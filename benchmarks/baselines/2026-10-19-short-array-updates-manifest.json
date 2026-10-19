@@ -1,0 +1,59 @@
+{
+  "driverSha256": "6f1f3704757e65908e95c8152a4e76207c225610f72f0975dfe9a4dfa9b05d9c",
+  "candidateRuntimeCommit": "a7b83414b5487dae66a68fdb66df3369fa644dd4",
+  "candidateInterpreterSourceTree": "85efa28465c9217ed627e29bee4ec4adf0defa62",
+  "candidateLanguageSourceTree": "891ea0ba76d6a5699fc07140f692087dfecac383",
+  "baselineRuntimeCommit": "fba5bf74b37d9f47622853b5a3db73e544308087",
+  "baselineMainEquivalent": "d385b5e10fe35105b41d1afd17f9f045d8175b84",
+  "baselineTree": "5a2b6d61ba19a3f5bc9cd41008405b0fd3c52807",
+  "headerCommitMeaning": "The JSONL commit field identifies the driver checkout; runtime provenance is assigned here.",
+  "runs": {
+    "full": {
+      "file": "2026-10-19-short-array-updates-full.jsonl",
+      "sha256": "1dc20d34ab06ed8059ae110e406bae633379f7bcbad7087a550132ccef76036b",
+      "runtime": "candidate",
+      "heapLimitMiB": null,
+      "runtimeCommit": "a7b83414b5487dae66a68fdb66df3369fa644dd4"
+    },
+    "baseline-small": {
+      "file": "2026-10-19-short-array-updates-baseline-small.jsonl",
+      "sha256": "c79917a0b2c601bb339583e9dc696367731889a4172862ec84a88968fbbdf6f5",
+      "runtime": "baseline",
+      "heapLimitMiB": null,
+      "runtimeCommit": "fba5bf74b37d9f47622853b5a3db73e544308087"
+    },
+    "candidate-small": {
+      "file": "2026-10-19-short-array-updates-candidate-small.jsonl",
+      "sha256": "14d7276528b460a20e886563eecbc6dbf666b310b2efe4a590186fb77956ff80",
+      "runtime": "candidate",
+      "heapLimitMiB": null,
+      "runtimeCommit": "a7b83414b5487dae66a68fdb66df3369fa644dd4"
+    },
+    "bounded": {
+      "file": "2026-10-19-short-array-updates-bounded.jsonl",
+      "sha256": "30934adc46ffc616d47272e289e17931900e130cfeeeebd0d69860c7d4be3e75",
+      "runtime": "candidate",
+      "heapLimitMiB": 256,
+      "runtimeCommit": "a7b83414b5487dae66a68fdb66df3369fa644dd4"
+    },
+    "baseline-scalar": {
+      "file": "2026-10-19-short-array-updates-baseline-scalar.jsonl",
+      "sha256": "1aa1b29b60dfb51c38309cb71d8420cd5f7f0e1bd700765b817030677a491689",
+      "runtime": "baseline",
+      "heapLimitMiB": null,
+      "runtimeCommit": "fba5bf74b37d9f47622853b5a3db73e544308087"
+    },
+    "confirmation": {
+      "file": "2026-10-19-short-array-updates-confirmation.jsonl",
+      "sha256": "361696e0acedfcde4a1b510cb96abcbf428ac3567fe2ead690cd510f3ea59a0d",
+      "runtime": "final",
+      "heapLimitMiB": null,
+      "runtimeCommit": "c776554460d9425ec3563c38213d93cecd4b7744"
+    }
+  },
+  "integratedMainCommit": "15af80f802357010888264440a7ac7d95b6b11d5",
+  "finalRuntimeCommit": "c776554460d9425ec3563c38213d93cecd4b7744",
+  "finalInterpreterSourceTree": "18d184ff9605eb47fa82af2aa71ae2e5a3dd0dc8",
+  "finalLanguageSourceTree": "891ea0ba76d6a5699fc07140f692087dfecac383",
+  "integrationNote": "The three-sample candidate series precedes a main integration affecting ranked text cells only. The confirmation measures the final integrated runtime; production source is unchanged by the report commit."
+}

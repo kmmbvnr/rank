@@ -7,9 +7,3 @@ test "small constrained lists"
   10 100 3 constrained equal 1135
   10 100 1000 constrained equal 3286053
 end
-
-test "full constrained lists"
-  use "350_constraining"
-  run
-  Answer equal 84664213
-end

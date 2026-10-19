@@ -1,0 +1,7 @@
+use testing
+
+test "full square cube sum"
+  use "348_squarecube"
+  run
+  Answer equal 1004195061
+end

@@ -1,0 +1,7 @@
+use testing
+
+test "full strong repunits"
+  use "346_strongrepunits"
+  run
+  Answer equal 336108797689259276
+end

@@ -60,7 +60,8 @@ of each implementation revision, not promises of the language specification.
 
 The default interpreter now uses `tensor-kernel.ts` for compatible assignment
 expressions and groups of consecutive assignments. It lowers them into input,
-binary, unary and selection nodes with a terminal reduction. Runtime binding
+binary, unary, selection, first-axis slice and default-axis concat nodes with a
+terminal reduction or explicit `copy`. Runtime binding
 supplies shapes, scalar values and storage offsets before emitting a cached
 JavaScript loop. `tensor-use.ts` provides lexical read/definition counts and
 conservative barriers for escaping or multiply defined intermediates.
@@ -71,29 +72,42 @@ kernels assign their terminal value through the usual typed write site. Failed
 guards execute the original statements through the existing resumable executor.
 There is no experimental loop VM in this implementation.
 
-Supported operations currently include `+`, `-`, `*`, `/`, guarded powers,
+Supported operations currently include `+`, `-`, `*`, `/`, exact integer `//`
+and `mod`, guarded powers, first-axis `take`/`drop`, default-axis concat,
 numeric comparisons, boolean operations, integer indexing of leading matrix
 axes, vector masks, vector gathers and `sum`, `mean`, `min`, `max`, `any`, `all`,
-`count`. Arithmetic arrays must have matching shapes or scalar operands.
+`count`. Arithmetic arrays use ordinary trailing-axis broadcasting.
 Elementwise reductions may traverse an entire multidimensional array; filtered
 and gathered domains are currently restricted to vectors.
 
-Lazy inputs, arbitrary sequences, broadcasting between different shapes,
-explicit `axis`/`rank` reductions and unsupported calls retain reference
-execution. Named intermediates are eliminated only inside functions, after
-checking their definitions, uses and existing lexical bindings. Top-level names
-remain observable; inline assignment expressions can still be fused there.
+Unread lazy inputs, arbitrary sequences, explicit `axis`/`rank` reductions and
+unsupported calls retain reference execution. Checked contiguous stored integer
+views can be borrowed without forcing lazy cells. Named intermediates can be
+eliminated inside functions or top-level counted loops after checking their
+definitions, uses and existing lexical bindings. Function-wide capture barriers
+still apply inside functions; an existing outer binding prevents elimination at
+runtime. Top-level global names remain observable; inline assignment expressions
+can still be fused there. Private slice groups decline during inspection or
+arbitrary host polling.
 Private temporary names may have multiple reads within the fused calculation,
 for example `Difference * Difference`.
 
-Scalar operation subexpressions currently retain reference execution, so their
+Total numeric `+`, `-`, `*` and unary signs can fold before the array domain.
+Other scalar operation subexpressions retain reference execution, so their
 errors cannot disappear when the surrounding tensor or selection is empty.
+
+Concat code variants and eligible input layouts have bounded caches containing
+only code and metadata. Every execution rebinds current storage and validates its
+kind, shape and offsets. Binding/cell validation runs only after all layout and
+scalar guards accept the kernel; a declined candidate does not establish an
+unread input contract. No old operand buffers or results are retained. Proven integer output kinds avoid a second type scan of copied results.
 
 The compiler retains ordinary BigInt integers, mixed numeric promotion and the
 original arithmetic tree and reduction order. It validates numeric and boolean
 items without converting storage to another representation. It does not silently
 materialize lazy inputs. Array storage must follow the interpreter's existing
-protocol of ordinary stable data properties during synchronous execution.
+protocol of tracked stable storage or checked stored views during synchronous
+execution.
 
 `InterpreterOptions.tensorFusion: false` selects reference statement execution.
 The option propagates into imported modules and test interpreters. Diagnostic
@@ -103,9 +117,9 @@ is disabled and ordinary evaluation continues.
 
 ## Next extensions
 
-The [2026-09-12 implementation plan](tensor-fusion-plan.md) prioritizes explicit
-array materialization through `copy`, followed by coverage of readable expression
-forms and measured iteration-domain extensions. The [worker experiment](tensor-workers-results.md)
+The [2026-09-12 implementation plan](tensor-fusion-plan.md) records the initial
+stages: explicit materialization through `copy`, readable expression forms and
+measured iteration-domain extensions. The [worker experiment](tensor-workers-results.md)
 provides the evidence for improving local fusion before automatic parallelism.
 
 Use benchmark evidence to extend coverage: preserve observable caches while

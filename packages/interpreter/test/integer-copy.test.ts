@@ -114,12 +114,12 @@ it('keeps unestablished binding checks deferred until the prepared copy reads', 
     const contract = new ArrayBindingContract('Input');
     const checked = contract.check(concatValues([ownedArray([1n]), ownedArray([2n])])) as RankArray;
     const copy = prepareIntegerView(checked, true);
-    // The concat itself is not a direct integer view, but its prepared reader
-    // must still apply the outer contract after the source cell is read.
-    expect(copy).toBeUndefined();
+    // Both prepared paths retain the outer binding contract on each read.
+    expect(copy).toBeDefined();
     const read = prepareArrayRead(checked)!;
     contract.check(ownedArray(['text']));
     expect(() => read(0)).toThrow(/text|integer/);
+    expect(() => copy!.read(0)).toThrow(/text|integer/);
 });
 
 it('applies unestablished integer-view checks when copying a selection', () => {

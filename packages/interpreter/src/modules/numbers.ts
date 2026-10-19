@@ -1,4 +1,5 @@
 import { integerSquareRoot } from '../integer-square-root.js';
+import { mapScalarArrays } from '../scalar-array-map.js';
 import { expectMultiset } from '../multiset.js';
 import { checkpoint } from '../interrupt.js';
 import { elementSource, type ElementSource } from '../element-source.js';
@@ -89,11 +90,11 @@ export const numbersModule: RuntimeModule = {
     nan: () => Number.NaN,
     gcd: () => native('gcd', 2, arguments_ =>
         greatestCommonDivisor(expectInteger(arguments_[0]), expectInteger(arguments_[1]))),
-    powmod: () => native('powmod', 3, arguments_ => checkedModularPower(
+    powmod: () => native('powmod', 3, args => mapScalarArrays(args, arguments_ => checkedModularPower(
         expectInteger(arguments_[0]),
         expectInteger(arguments_[1]),
         expectInteger(arguments_[2]),
-    )),
+    ))),
     binomial: () => native('binomial', 2, arguments_ => mapBinaryValue(
         arguments_[0],
         arguments_[1],
