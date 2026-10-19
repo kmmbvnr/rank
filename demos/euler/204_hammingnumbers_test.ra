@@ -1,0 +1,21 @@
+use testing
+
+test "default input"
+  use "204_hammingnumbers"
+  run
+
+  Answer equal 2944730
+end
+
+test "Hamming numbers"
+  use "204_hammingnumbers"
+  Limit = 100000000
+  Max = 5
+  run
+
+  Answer equal 1105
+  Max = 100
+  run
+
+  Answer equal 924573
+end
