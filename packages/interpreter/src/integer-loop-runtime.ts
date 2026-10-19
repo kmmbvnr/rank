@@ -1,3 +1,4 @@
+import { prepareGraphAdd } from './graph-mutation.js';
 import { takeDropValue } from './sequence.js';
 import { expressionFacts, findOperation, isBinaryExpression, isBooleanLiteral, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
 import type { IntegerLoopPlan, LoopHost, LoopTerm, CompiledLoop } from './integer-loop-plan.js';
@@ -13,9 +14,9 @@ import { denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareSc
 
 /** Bind invocation values and owned storage separately from loop analysis/lowering. */
 export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject: () => undefined): CompiledLoop | undefined {
-    const { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration } = plan;
+    const { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, graphMutations, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration } = plan;
     const checkedCells = new WeakMap<RankArray, { revision: number; type: LoopTerm['type'] | undefined }>();
-    const source = `"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads) {
+    const source = `"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads, graphAdds) {
         ${names.length ? `let ${names.map((name, index) => {
             const value = `r${index} = input[${index}]`;
             // Scalar/container slots never use tensor accessors. In short loops,
@@ -32,14 +33,14 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
             result = iterationResult; location = -1;
         } return result; } catch (error) { throw locate(error, location); }
     };`;
-    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean) => RankValue | undefined;
+    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, graphAdds: ((values: RankValue[]) => void)[]) => RankValue | undefined;
     try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
             ? new RankError(`array index must be nonnegative on axis ${axis}`)
             : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`),
-        calls.some(call => !call.stableArrayReads) || iterators.length
+        calls.some(call => !call.stableArrayReads) || iterators.length || graphMutations.length
             ? (value: RankValue) => value : borrowArrayStorage,
         prepareScalarArrayWriter, (value: RankValue, stableReads: boolean, oneAxis: boolean) => oneAxis
             ? prepareScalarArrayReader(value, host.arrayRead, stableReads)
@@ -47,7 +48,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
     catch { return reject(); }
     host.compiled?.(source);
     const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0
-        && calls.every(call => call.stableArrayReads) && iterators.length === 0 && containers.size === 0
+        && graphMutations.length === 0 && calls.every(call => call.stableArrayReads) && iterators.length === 0 && containers.size === 0
         && destinations.size === 0 && arrayDefinitions.size === 0;
     function matchingCells(value: RankArray, type: LoopTerm['type'] | undefined): boolean {
         const revision = arrayRevision(value);
@@ -97,6 +98,9 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         if (hasReturn && (insideGenerator || !host.canReturn())) return recordFallback('loop:control-context');
         if (needsAlgo && !host.module('algo')) return entryGuard('builtin', 'algo');
         for (const [name, module] of builtins) if (!host.builtin(module, name)) return entryGuard('builtin', name);
+        if (graphMutations.length && !host.module('graph')) return entryGuard('builtin', 'graph');
+        const graphAdds = graphMutations.map(name => prepareGraphAdd(host.read(name)));
+        if (graphAdds.some(add => !add)) return recordFallback('loop:graph-receiver');
         const activeCalls = calls.map(call => call.bind());
         const rejectedCall = activeCalls.findIndex(call => !call);
         if (rejectedCall >= 0) return entryGuard('callee', calls[rejectedCall].name);
@@ -176,7 +180,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         host.executed?.();
         // No computation can observe an intermediate revision in this region:
         // every array read is owned/eager, and there are no callbacks/iterators.
-        const batchWrites = calls.length === 0 && iterators.length === 0 && containers.size === 0
+        const batchWrites = graphMutations.length === 0 && calls.length === 0 && iterators.length === 0 && containers.size === 0
             && [...arrayInputs].every(name => {
                 const value = values[names.indexOf(name)];
                 return value !== undefined && isRankArray(value) && value.itemAt === undefined
@@ -192,6 +196,6 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
             ? writers.map((checked, index) => host.prepareWriter!(writerNames[index], checked)) : writers;
         const activeBinders = host.prepareWriter
             ? binders.map((checked, index) => host.prepareWriter!(binderNames[index], checked)) : binders;
-        return completed(run(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed, batchWrites, stableReads));
+        return completed(run(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed, batchWrites, stableReads, graphAdds as ((values: RankValue[]) => void)[]));
     } };
 }

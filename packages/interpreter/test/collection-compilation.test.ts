@@ -1,3 +1,4 @@
+import { GraphValue } from '../src/graph.js';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, formatValue, RankError } from '../src/index.js';
 import type { InterpreterOptions } from '../src/interpreter-options.js';
@@ -9,7 +10,7 @@ function execute(source: string, options: InterpreterOptions = {}) {
     try {
         try { diagnostics.run(() => measured.execute(source)); }
         catch (failure) { error = failure instanceof RankError ? failure.format() : String(failure); }
-        return { diagnostics, calls, observation: { error, variables: [...measured.variables].map(([name, value]) => [name, formatValue(value)]) } };
+        return { diagnostics, calls, observation: { error, graphs: [...measured.variables].filter(([, value]) => value instanceof GraphValue).map(([name, graph]) => [name, [...(graph as GraphValue).adjacency].map(([key, edges]) => [key, edges.map(edge => [formatValue(edge.target), formatValue(edge.weight), edge.id])])]), variables: [...measured.variables].map(([name, value]) => [name, formatValue(value)]) } };
     } finally { measured.dispose(); }
 }
 function compare(source: string) {
@@ -120,6 +121,75 @@ end`;
         expect(candidate.observation).toEqual(execute(source, { compilation: false }).observation);
         expect(candidate.observation).toEqual(execute(source, { numberLoopCompilation: false }).observation);
         expect(candidate.observation.error).toContain('nonnegative integer count');
+    });
+
+    it.each(['directed', 'undirected'])('compiles graph edge effects for %s graphs', direction => {
+        const result = compare(`use graph
+Graph = new graph (1 to 30 array) .${direction}
+for P in 1 to 30
+ for Q in (P + 1) to 30
+  if (P + Q) mod 7 equal 0
+   Graph add P Q
+  end
+ end
+end
+Answer = (Graph 1) array`);
+        expect(result.diagnostics.compiledLoops).toBe(1);
+        expect(result.diagnostics.numberLoops).toBe(0);
+        let edges = 0;
+        for (let p = 1; p <= 30; p++) for (let q = p + 1; q <= 30; q++) if ((p + q) % 7 === 0) edges++;
+        expect(result.diagnostics.compiledGraphAdds).toBe(edges);
+        expect(result.observation.variables.at(-1)).toEqual(['Answer', '6 13 20 27']);
+    });
+
+    it('combines suffix traversal with graph effects and exact arithmetic without replay', () => {
+        const source = `use graph
+Vals = array 1 2 3
+Graph = new graph Vals .undirected
+S = 9007199254740991
+for P Index in Vals
+ for Q in Vals drop (Index + 1)
+  Graph add P Q
+  S += 1
+ end
+end
+Answer = (Graph 1) array`;
+        const result = compare(source);
+        expect(result.diagnostics.compiledLoops).toBe(1);
+        expect(result.diagnostics.compiledGraphAdds).toBe(3);
+        expect(result.diagnostics.numberLoops).toBe(0);
+        expect(result.observation.variables).toContainEqual(['S', '9007199254740994']);
+        expect(result.observation.variables.at(-1)).toEqual(['Answer', '2 3']);
+    });
+
+    it('preserves weighted parallel edges, self-loops and insertion order', () => {
+        const result = compare(`use graph
+Graph = new graph .undirected
+for I in 1 to 2
+ Graph add 1 2 I
+ Graph add 1 1
+end
+Answer = (Graph 1) array`);
+        expect(result.diagnostics.compiledGraphAdds).toBe(4);
+        expect(result.observation.variables.at(-1)).toEqual(['Answer', '2 1 2 1']);
+    });
+
+    it('publishes preceding scalar writes and graph effects before a failure', () => {
+        const source = `use graph
+Graph = new graph (array 1 2 3) .directed
+Before = 0
+After = -1
+for I in 1 to 4
+ Before += 1
+ Graph add 1 I
+ After = I
+end`;
+        const candidate = execute(source);
+        expect(candidate.observation).toEqual(execute(source, { compilation: false }).observation);
+        expect(candidate.observation.error).toContain('graph does not contain the vertex');
+        expect(candidate.diagnostics.compiledLoops).toBe(1);
+        expect(candidate.observation.variables).toContainEqual(['Before', '4']);
+        expect(candidate.observation.variables).toContainEqual(['After', '3']);
     });
 
 });

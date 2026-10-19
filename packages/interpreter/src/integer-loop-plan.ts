@@ -75,6 +75,7 @@ export interface IntegerLoopPlan {
     containers: Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean; mode?: RankDeque['mode'] }>;
     builtins: Map<string, string>;
     calls: { name: string; locals: readonly string[]; stableArrayReads: boolean; bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[];
+    graphMutations: string[];
     vectorIterations: { slot: number; binding: IterationBinding }[];
     iterators: ((source: RankArray | string) => Iterable<RankValue>)[];
     writerNames: string[];

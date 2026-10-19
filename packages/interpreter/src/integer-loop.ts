@@ -9,7 +9,7 @@ import { compiledArgumentType } from './compiled-argument-type.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression, loopOperatorSignature,
+    applicationForm, isExpressionStatement, flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement, isPushStatement, isArrayAssignmentStatement, isApplicationExpression, isBinaryExpression, isUnaryExpression,
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression,
     type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledExpression, type Operation,
@@ -99,6 +99,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     const calleeArrays = new Set<string>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
+    const graphMutations: string[] = [];
     const vectorIterations: { slot: number; binding: IterationBinding }[] = [];
     const iterators: ((source: RankArray | string) => Iterable<RankValue>)[] = [];
     const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type'] }>();
@@ -626,6 +627,23 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 body.push(`location = ${location}; ${isBreakStatement(assignment) ? 'break' : 'continue'};`);
                 return 'stop';
             }
+            if (isExpressionStatement(assignment)) {
+                const mutation = applicationForm(assignment.value, findOperation, true);
+                if (mutation.kind !== 'collection-mutation' || mutation.operation !== 'add'
+                    || !isNameExpression(mutation.receiver) || mutation.receiver.name.includes('.') || numberMode) return reject(assignment);
+                const operands = mutation.arguments;
+                if (!operands || operands.length < 2 || operands.length > 3) return reject(assignment);
+                const lines: string[] = [], arguments_: string[] = [];
+                for (const operand of operands) {
+                    const value = emit(operand, lines, 'integer');
+                    if (value?.type !== 'integer') return reject(assignment);
+                    arguments_.push(value.code);
+                }
+                const index = graphMutations.push(mutation.receiver.name) - 1;
+                body.push(`location = ${location};`, ...lines,
+                    `graphAdds[${index}]([${arguments_.join(',')}]); iterationResult = undefined;`);
+                continue;
+            }
             if (isPushStatement(assignment)) {
                 if (numberMode) return undefined;
                 if (!isNameExpression(assignment.receiver)) return reject(assignment);
@@ -839,6 +857,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return reject(statement, 'unstable-bindings');
     if ([...destinations].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot))) return reject(statement, 'unstable-bindings');
     if ([...builtins.keys()].some(name => written.has(name)) || calls.some(call => written.has(call.name) || call.locals.some(name => written.has(name)))) return reject(statement, 'unstable-bindings');
+    if (graphMutations.some(name => written.has(name) || names.includes(name))) return reject(statement, 'unstable-graph');
     const writable = new Set(destinations.keys());
     for (let changed = true; changed;) {
         changed = false;
@@ -850,6 +869,6 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     // at region entry. Keep those writes interpreted until that lowering exists.
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
         && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
-    const plan = { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration };
+    const plan = { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, graphMutations, vectorIterations, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration };
     return numberMode ? prepareNumberLoop(plan, host) : prepareIntegerLoop(plan, host, () => reject(statement, 'code-generation'));
 }
