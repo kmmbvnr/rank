@@ -1,0 +1,27 @@
+use testing
+
+test "default input"
+  use "289_eulerianloops"
+  run
+
+  Answer equal 6567944538
+end
+
+test "small grids"
+  use "289_eulerianloops"
+  M = 1
+  N = 2
+  run
+
+  Answer equal 2
+  M = 2
+  N = 2
+  run
+
+  Answer equal 37
+  M = 3
+  N = 3
+  run
+
+  Answer equal 104290
+end
