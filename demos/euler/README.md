@@ -44,3 +44,20 @@ Their old/new formulations and the scalar `gcd` comparison are covered by
 Euler 136 consumes the segmented prime source and starts after 2, avoiding an
 extra odd-prime mask. Source generation, bounded membership and the complete
 demo are timed separately in [the prime sequence benchmark](../../benchmarks/prime-sequences-results.md).
+
+## Problems 201-300
+
+Written so far: 201-210, 213, 215, 217-222, 224-228, 230-235, 237, 239, 240,
+242-244, 247, 250, 265-268, 271, 274, 276-278, 281, 282, 284-286, 288, 290,
+293, 294 and 297. Not written, mostly for the cost of the array form in Rank:
+
+| Problem | Why not |
+|---|---|
+| 211, 214, 223 | tables of 4 x 10^7 to 6.4 x 10^7 numbers run out of memory (#339) |
+| 212, 238, 249, 258, 259 | no array form below minutes: 3-D union volume, tables of 10^8 sums, polynomial powers of degree 2000 |
+| 216, 229, 251, 291 | millions of primality tests or square roots modulo primes |
+| 248, 272, 298, 300 | need a map from a key to an array, or about 10^7 states |
+| the rest | not attempted |
+
+Demos whose default input takes more than about ten seconds keep their tests
+on smaller inputs: 210 (#333), 213, 224, 247 (#338), 266 and 268.
