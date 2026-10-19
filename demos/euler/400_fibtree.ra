@@ -1,0 +1,55 @@
+rem Fibonacci Tree Game
+rem https://projecteuler.net/problem=400
+
+use bits
+use algo
+use sequences
+use text
+use io
+use cli
+
+option K integer = 10000
+
+Mod = 1000000000000000000
+Gs = array shape (K + 1) fill 0
+if K at least 2
+  Gs 2 = 1
+end
+for N in 3 to K
+  A = 1 + Gs (N - 1)
+  B = 1 + Gs (N - 2)
+  Gs N = A B bxor
+end
+
+Memo = new index
+Answer = K 0 Memo cuts
+Answer print
+
+rem Count cuts leaving Grundy value T.
+fun N T Memo cuts
+  if T equal -1
+    return 1
+  end
+  if T less -1 or N at most 1
+    return 0
+  end
+  if N equal 2
+    if T equal 0
+      return 1
+    end
+    return 0
+  end
+  Key = N text + ":" + (T text)
+  if Key in Memo
+    return Memo Key
+  end
+  A = 1 + Gs (N - 1)
+  B = 1 + Gs (N - 2)
+  Right = (A T bxor) - 1
+  Left = (B T bxor) - 1
+  Total = (N - 2) Right Memo cuts
+  Total += (N - 1) Left Memo cuts
+  Total mod= Mod
+  Memo Key = Total
+  return Total
+end
