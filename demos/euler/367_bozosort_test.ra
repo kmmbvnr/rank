@@ -1,0 +1,7 @@
+use testing
+
+test "three-element shuffle"
+  use "367_bozosort"
+  4 bozo greater 27
+  4 bozo less 28
+end
