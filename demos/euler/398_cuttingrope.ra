@@ -1,0 +1,32 @@
+rem Cutting Rope
+rem https://projecteuler.net/problem=398
+
+use sequences
+use numbers
+use io
+use cli
+
+option N integer = 10000000
+option M integer = 100
+
+R = M - 1
+Js = 0 till R array
+Den = N - 1 - Js
+A = N - 1
+B = N - 1
+Answer = 0.0
+for A at least R
+  P = ((A - Js) / Den) reduce *
+  if P less 0.00000000000001
+    break
+  end
+  Q = 0.0
+  if B at least R
+    Q = ((B - Js) / (A - Js)) reduce *
+  end
+  Answer += P * (M - R * Q)
+  A -= R
+  B -= M
+end
+Answer = Answer round 5
+Answer print
