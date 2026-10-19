@@ -1,0 +1,14 @@
+use testing
+
+test "coprime maxima"
+  use "355_coprime"
+  Limit = 10
+  run
+  Answer equal 30
+  Limit = 30
+  run
+  Answer equal 193
+  Limit = 100
+  run
+  Answer equal 1356
+end

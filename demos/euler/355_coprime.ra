@@ -1,0 +1,104 @@
+rem Maximal Coprime Subset
+rem https://projecteuler.net/problem=355
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 200000
+
+fun N P power
+  V = P
+  for V at most N // P
+    V *= P
+  end
+  return V
+end
+
+rem Hungarian maximum-weight assignment.
+fun S R W hungarian
+  U = array shape (S + 1) fill 0
+  V = array shape (R + 1) fill 0
+  P = array shape (R + 1) fill 0
+  Way = array shape (R + 1) fill 0
+  Inf = 10 ** 30
+  for I in 1 to S
+    P 0 = I
+    J0 = 0
+    Min = array shape (R + 1) fill Inf
+    Used = array shape (R + 1) fill 0
+    for P J0 not equal 0
+      Used J0 = 1
+      I0 = P J0
+      Delta = Inf
+      J1 = 0
+      for J in 1 to R
+        if Used J equal 0
+          Ix = (I0 - 1) * R + J - 1
+          Cur = -(W Ix)
+          Cur -= U I0 + V J
+          if Cur less Min J
+            Min J = Cur
+            Way J = J0
+          end
+          if Min J less Delta
+            Delta = Min J
+            J1 = J
+          end
+        end
+      end
+      for J in 0 to R
+        if Used J not equal 0
+          U (P J) += Delta
+          V J -= Delta
+        else
+          Min J -= Delta
+        end
+      end
+      J0 = J1
+    end
+    for J0 not equal 0
+      J1 = Way J0
+      P J0 = P J1
+      J0 = J1
+    end
+  end
+  Gain = 0
+  for J in 1 to R
+    if P J not equal 0
+      Gain += W ((P J - 1) * R + J - 1)
+    end
+  end
+  return Gain
+end
+
+Pr = primes to Limit array
+Base = 1
+for P in Pr
+  Base += Limit P power
+end
+Root = Limit isqrt
+Lo = Pr at most Root
+Small = Pr filter Lo array
+Large = Pr filter (not Lo) array
+S = Small len
+R = Large len + S
+W = array shape (S * R) fill 0
+for I in 0 till S
+  P = Small I
+  PP = Limit P power
+  for J in 0 till (Large len)
+    Q = Large J
+    if P * Q greater Limit
+      break
+    end
+    Pair = (Limit // Q) P power * Q
+    Gain = Pair - PP - Q
+    if Gain greater 0
+      W (I * R + J) = Gain
+    end
+  end
+end
+Answer = Base + (S R W hungarian)
+Answer print
