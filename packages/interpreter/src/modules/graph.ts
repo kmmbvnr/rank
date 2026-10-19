@@ -4,7 +4,7 @@ import { RankDsu } from '../dsu.js';
 import { RankFunctionalGraph } from '../functional-graph.js';
 import { expectGraph, expectReadableGraph, expectFiniteGraph, graphKey, PredicateGraph, type GraphValue, type TraversalGraph } from '../graph.js';
 import { edgeWeight, trips } from '../graph-trips.js';
-import { indexKey } from '../index-key.js';
+import { indexKey, type IndexKey } from '../index-key.js';
 import { ResourceMap } from '../resource-summary.js';
 import { sequence } from '../sequence.js';
 import { setValueKey } from '../set.js';
@@ -786,8 +786,8 @@ function maximumFlowRecord(
         }
     }
 
-    const flowEntries = new ResourceMap<RankValue>(item => item);
-    const totals = new Map<string, Numeric>();
+    const flowEntries = new ResourceMap<RankValue, IndexKey>(item => item);
+    const totals = new Map<IndexKey, Numeric>();
     for (const edge of originals) {
         checkpoint('traversing graph');
         const key = indexKey([vertices[edge.from], vertices[edge.to]]);
@@ -943,7 +943,7 @@ function floydRecord(graph: GraphValue): RankRecord {
             }
         }
     }
-    const entries = new ResourceMap<RankValue>(value => value);
+    const entries = new ResourceMap<RankValue, IndexKey>(value => value);
     const negative = new Set<string>();
     for (let from = 0; from < size; from += 1) {
         checkpoint('traversing graph');
@@ -1410,7 +1410,7 @@ function indexFrom(
     vertices: ReadonlyMap<string, RankValue>,
     values: ReadonlyMap<string, RankValue>,
 ): RankIndex {
-    const entries = new ResourceMap<RankValue>(value => value);
+    const entries = new ResourceMap<RankValue, IndexKey>(value => value);
     for (const [key, value] of values) {
         checkpoint('traversing graph');
         const vertex = vertices.get(key)!;

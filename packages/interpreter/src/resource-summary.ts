@@ -40,12 +40,12 @@ export class ResourceSummary {
 }
 
 /** Public Map writes must invalidate proofs too, including writes made by JS. */
-export class ResourceMap<T> extends Map<string, T> {
+export class ResourceMap<T, K = string> extends Map<K, T> {
     readonly resources = new ResourceSummary();
 
     constructor(private readonly valueOfEntry: (entry: T) => RankValue) { super(); }
 
-    override set(key: string, value: T): this {
+    override set(key: K, value: T): this {
         const entry = this.valueOfEntry(value);
         this.resources.include(entry);
         noteArrayBinding(entry);

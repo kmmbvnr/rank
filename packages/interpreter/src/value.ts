@@ -1,3 +1,4 @@
+import type { IndexKey } from './index-key.js';
 import type { FunctionCallSignature } from '@arrrank/language';
 import { arrayDeclaration } from './array-declaration.js';
 import { noteArrayBinding } from './array-storage.js';
@@ -180,7 +181,7 @@ export interface RankErrorValue {
 
 export interface RankIndex {
     readonly kind: 'index';
-    readonly entries: Map<string, RankValue>;
+    readonly entries: Map<IndexKey, RankValue>;
 }
 
 export interface RankQueue {
