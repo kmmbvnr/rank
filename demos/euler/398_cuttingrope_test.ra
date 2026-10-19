@@ -15,3 +15,23 @@ test "cutting rope"
   run
   Answer equal 2010.59096
 end
+
+test "cutting rope boundary cases"
+  use "398_cuttingrope"
+  N = 2
+  M = 2
+  run
+  Answer equal 1.0
+  N = 8
+  M = 2
+  run
+  Answer equal (40 / 7 round 5)
+  N = 8
+  M = 8
+  run
+  Answer equal 1.0
+  N = 100
+  M = 99
+  run
+  Answer equal 1.0
+end

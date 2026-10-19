@@ -9,22 +9,25 @@ use cli
 option N integer = 10000000
 option M integer = 100
 
+rem Requires 2 <= M <= N.
 R = M - 1
-Js = 0 till R array
-Den = N - 1 - Js
-A = N - 1
-B = N - 1
+Js = (0 till R array) + 0.0
+Inv = 1 / (N - 1 - Js)
+A = N - 1.0
+B = A
+rem At most N / R terms, each <= M * P.
+Eps = 0.00000001 * R / (N * M)
 Answer = 0.0
 for A at least R
-  P = ((A - Js) / Den) reduce *
-  if P less 0.00000000000001
+  P = ((A - Js) * Inv) reduce *
+  if P less Eps
     break
   end
   Q = 0.0
   if B at least R
-    Q = ((B - Js) / (A - Js)) reduce *
+    Q = ((B - Js) * Inv) reduce *
   end
-  Answer += P * (M - R * Q)
+  Answer += M * P - R * Q
   A -= R
   B -= M
 end
