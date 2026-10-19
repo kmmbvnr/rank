@@ -1,0 +1,19 @@
+use testing
+
+rem The default input takes about a
+rem minute: smaller limits only.
+test "small limits"
+  use "273_sumofsquares"
+  Limit = 20
+  run
+
+  Answer equal 80
+  Limit = 40
+  run
+
+  Answer equal 12006
+  Limit = 60
+  run
+
+  Answer equal 2579619
+end
