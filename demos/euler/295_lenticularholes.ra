@@ -1,0 +1,218 @@
+rem Lenticular Holes
+rem https://projecteuler.net/problem=295
+rem Two circles with centres on lattice
+rem points meet in two lattice points
+rem and enclose a lens with no lattice
+rem point inside. A pair (r1, r2) of
+rem radii is lenticular when two such
+rem circles have them. Count the pairs
+rem with r1 <= r2 <= N.
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option N integer = 100000
+
+rem Put the chord from (0, 0) to (a, b),
+rem a and b odd and coprime, s2 = a^2 +
+rem b^2. Its circles have the radii r^2
+rem = s2 (1 + k^2) / 4 for odd k, and a
+rem lens is free of lattice points when
+rem both k are at least t, the least odd
+rem number above (m (s2 - m) - 1) / s2,
+rem where m is the root of m^2 = -1 mod
+rem s2 from the lattice point next to
+rem the chord. Chords with s2 above 6 N
+rem have too big a t and families (s2,
+rem t) once are lists of radii. Two
+rem radii make a pair when they are in a
+rem common family. Count the pairs in
+rem one family, C(n, 2) each, less the
+rem double counts by sets J of two or
+rem more families that both radii are
+rem in: the sum over J of +- C(c, 2), c
+rem the radii in all of J. Add each
+rem radius once for the pairs (r, r).
+Lim = 6 * N
+Fam = new index
+Fs = array shape 5000 fill 0
+Ft = array shape 5000 fill 0
+Nf = 0
+Total = 0
+for A in 1 to 2000 by 2
+  if A * A + 1 greater Lim
+    break
+  end
+  for B in 1 to A by 2
+    S2 = A * A + B * B
+    if S2 greater Lim
+      break
+    end
+    G1 = A
+    G2 = B
+    U0 = 1
+    V0 = 0
+    U1 = 0
+    V1 = 1
+    for
+      if G2 equal 0
+        break
+      end
+      Qt = G1 // G2
+      R = G1 - Qt * G2
+      G1 = G2
+      G2 = R
+      Nu = U0 - Qt * U1
+      U0 = U1
+      U1 = Nu
+      Nv = V0 - Qt * V1
+      V0 = V1
+      V1 = Nv
+    end
+    if G1 not equal 1
+      continue
+    end
+    M = (B * U0 - A * V0) mod S2
+    Nm = M * (S2 - M) - 1
+    T = 1
+    if Nm greater 0
+      T = (Nm + S2 - 1) // S2
+    end
+    if T mod 2 equal 0
+      T += 1
+    end
+    Lm = 4 * N * N
+    if S2 * (1 + T * T) at most Lm
+      Key = S2 * 1000000 + T
+      if Key in Fam
+        continue
+      end
+      Fam Key = Nf
+      Fs Nf = S2
+      Ft Nf = T
+      Nf += 1
+    end
+  end
+end
+Cn = array shape Nf fill 0
+Tt = 0
+for F in 0 till Nf
+  Qm = 4 * N * N // Fs F - 1
+  Km = Qm isqrt
+  Cn F = (Km - Ft F) // 2 + 1
+  Tt += Cn F
+end
+Rr = array shape Tt fill 0
+Fi = array shape Tt fill 0
+At = 0
+for F in 0 till Nf
+  S2 = Fs F
+  for J in 0 till (Cn F)
+    K = Ft F + 2 * J
+    Rr At = S2 * (1 + K * K) // 4
+    Fi At = F
+    At += 1
+  end
+end
+Od = Rr argsort
+Rs = Rr Od copy
+Fs2 = Fi Od copy
+Dist = 0
+Gm = array shape Tt fill 0
+Gs = array shape Tt fill 0
+Gl = array shape Tt fill 0
+Ng = 0
+Pm = 0
+I = 0
+for
+  if I at least Tt
+    break
+  end
+  E = I
+  for
+    if E + 1 at least Tt
+      break
+    end
+    if Rs (E + 1) not equal Rs I
+      break
+    end
+    E += 1
+  end
+  Dist += 1
+  Sz = E - I + 1
+  if Sz greater 1
+    Gs Ng = Pm
+    Gl Ng = Sz
+    for J in 0 till Sz
+      Gm (Pm + J) = Fs2 (I + J)
+    end
+    Pm += Sz
+    Ng += 1
+  end
+  I = E + 1
+end
+Jx = new index
+Jc = array shape 400000 fill 0
+Jz = array shape 400000 fill 0
+Nj = 0
+Mem = array shape 20 fill 0
+for Gi in 0 till Ng
+  Sz = Gl Gi
+  for J in 0 till Sz
+    Mem J = Gm (Gs Gi + J)
+  end
+  for J in 1 to (Sz - 1)
+    Tv = Mem J
+    Q = J - 1
+    for
+      if Q less 0
+        break
+      end
+      if Mem Q at most Tv
+        break
+      end
+      Mem (Q + 1) = Mem Q
+      Q -= 1
+    end
+    Mem (Q + 1) = Tv
+  end
+  for Mk in 1 to (2 ** Sz - 1)
+    Bits = 0
+    Key = 0
+    for J in 0 till Sz
+      if (Mk // 2 ** J) mod 2 equal 1
+        Bits += 1
+        Key = Key * 2048 + Mem J + 1
+      end
+    end
+    if Bits at least 2
+      Id = 0
+      if Key in Jx
+        Id = Jx Key
+      else
+        Id = Nj
+        Jx Key = Nj
+        Jz Nj = Bits
+        Nj += 1
+      end
+      Jc Id += 1
+    end
+  end
+end
+Total = Dist
+for F in 0 till Nf
+  Total += Cn F * (Cn F - 1) // 2
+end
+for J in 0 till Nj
+  W = Jc J * (Jc J - 1) // 2
+  if Jz J mod 2 equal 1
+    Total += W
+  else
+    Total -= W
+  end
+end
+Answer = Total
+Answer print

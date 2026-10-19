@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "295_lenticularholes"
+  run
+
+  Answer equal 4884650818
+end
+
+test "small limits"
+  use "295_lenticularholes"
+  N = 10
+  run
+
+  Answer equal 30
+  N = 100
+  run
+
+  Answer equal 3442
+  N = 1000
+  run
+
+  Answer equal 393451
+end
