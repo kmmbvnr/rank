@@ -1,0 +1,175 @@
+rem Modular Cubes, part 2
+rem https://projecteuler.net/problem=272
+rem Let C(n) count the x with 1 < x < n
+rem and x^3 = 1 mod n. Find the sum of
+rem the n up to Limit with C(n) = 242
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 100000000000
+
+rem x^3 = 1 mod n has 3^t solutions,
+rem where t counts the primes of n with
+rem p = 1 mod 3 plus one when 9 divides
+rem n, and 242 = 3^5 - 1 is for t = 5.
+rem So n is a number u with exactly 5,
+rem or 4 when 9 divides n, such primes,
+rem each to any power, times v, a number
+rem of 2 and primes p = 2 mod 3, and a
+rem power of 3, which is 1 or 3 in the
+rem first case and at least 9 in the
+rem other. With A the product of the
+rem distinct primes, u = A f with f made
+rem of the same primes, and the v up to
+rem Limit / u are summed from tables,
+rem the sums of the numbers of 2 and
+rem primes = 2 mod 3 with the powers of
+rem 3 added. A is found by loops over
+rem primes one inside the other.
+Mm = Limit // 53599
+Pm = Limit // 15561 + 10
+Ps = primes till Pm
+P1 = Ps filter (Ps mod 3 equal 1) array
+Np = P1 len
+Good = array shape (Mm + 1) fill 1
+Good 0 = 0
+for P in Ps
+  if P greater Mm
+    break
+  end
+  if P mod 3 less 2
+    for J in P to Mm by P
+      Good J = 0
+    end
+  end
+end
+Pre = array shape (Mm + 1) fill 0
+Run = 0
+for I in 1 to Mm
+  if Good I equal 1
+    Run += I
+  end
+  Pre I = Run
+end
+Va = array shape (Mm + 1) fill 0
+Vb = array shape (Mm + 1) fill 0
+for I in 1 to Mm
+  Va I = Pre I + 3 * Pre (I // 3)
+  Pw = 9
+  Sb = 0
+  for
+    if Pw greater I
+      break
+    end
+    Sb += Pw * Pre (I // Pw)
+    Pw = Pw * 3
+  end
+  Vb I = Sb
+end
+Fl = array shape 400 fill 0
+Fp = array shape 5 fill 1
+Total = 0
+for Mode in 0 to 1
+  Vt = Va
+  Lim = Limit
+  if Mode equal 1
+    Vt = Vb
+    Lim = Limit // 9
+  end
+  for I1 in 0 till Np
+    Fp 0 = P1 I1
+    A1 = P1 I1
+    Pw1 = A1
+    for Rp in 2 to (3 - Mode)
+      Pw1 = Pw1 * A1
+    end
+    if A1 * Pw1 greater Lim
+      break
+    end
+    for I2 in (I1 + 1) till Np
+      Fp 1 = P1 I2
+      A2 = A1 * P1 I2
+      Pw2 = P1 I2
+      for Rp in 2 to (2 - Mode)
+        Pw2 = Pw2 * P1 I2
+      end
+      if A2 * Pw2 greater Lim
+        break
+      end
+      for I3 in (I2 + 1) till Np
+        Fp 2 = P1 I3
+        A3 = A2 * P1 I3
+        Pw3 = 1
+        if Mode equal 0
+          Pw3 = P1 I3
+        end
+        if A3 * Pw3 greater Lim
+          break
+        end
+        for I4 in (I3 + 1) till Np
+          Fp 3 = P1 I4
+          A4 = A3 * P1 I4
+          Pw4 = 1
+          if Mode equal 0
+            Pw4 = P1 I4
+          end
+          if A4 * Pw4 greater Lim
+            break
+          end
+          Lo5 = I4 + 1
+          Hi5 = Np - 1
+          if Mode equal 1
+            Lo5 = 0
+            Hi5 = 0
+          end
+          for I5 in Lo5 to Hi5
+            P5 = P1 I5
+            if Mode equal 1
+              P5 = 1
+            end
+            Fp 4 = P5
+            A5 = A4 * P5
+            if A5 greater Lim
+              break
+            end
+            M = Limit // A5
+            Sm = 0
+            if M less 7
+              Sm = Vt M
+            else
+              Fl 0 = 1
+              Nf = 1
+              for K in 0 to 4
+                Pk = Fp K
+                if Pk greater 1
+                  Old = Nf
+                  for L in 0 till Old
+                    Cur = Fl L * Pk
+                    for
+                      if Cur greater M
+                        break
+                      end
+                      Fl Nf = Cur
+                      Nf += 1
+                      Cur = Cur * Pk
+                    end
+                  end
+                end
+              end
+              for L in 0 till Nf
+                Fq = Fl L
+                Sm += Fq * Vt (M // Fq)
+              end
+            end
+            Total += A5 * Sm
+          end
+        end
+      end
+    end
+  end
+end
+Answer = Total
+Answer print
