@@ -1,3 +1,4 @@
+import { integerSquareRoot } from '../integer-square-root.js';
 import { expectMultiset } from '../multiset.js';
 import { checkpoint } from '../interrupt.js';
 import { elementSource, type ElementSource } from '../element-source.js';
@@ -233,18 +234,6 @@ function unitDomain(value: number): boolean {
     return value >= -1 && value <= 1;
 }
 
-/** Return the exact floor of the square root using integer Newton iteration. */
-function integerSquareRoot(value: bigint): bigint {
-    if (value < 2n) return value;
-    const bits = BigInt(value.toString(2).length);
-    let root = 1n << ((bits + 1n) / 2n);
-    for (;;) {
-        checkpoint('computing numbers');
-        const next = (root + value / root) / 2n;
-        if (next >= root) return root;
-        root = next;
-    }
-}
 
 export function roundValue(value: RankValue, placesValue: RankValue): RankValue {
     if (typeof placesValue !== 'bigint') {
