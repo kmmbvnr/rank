@@ -1,0 +1,14 @@
+use testing
+
+test "least common multiple count"
+  use "379_lcmcount"
+  Limit = 10
+  run
+  Answer equal 29
+  Limit = 100
+  run
+  Answer equal 647
+  Limit = 1000000
+  run
+  Answer equal 37429395
+end
