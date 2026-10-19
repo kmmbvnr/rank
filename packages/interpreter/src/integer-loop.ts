@@ -1,3 +1,4 @@
+import { loopTraversal } from './loop-traversal.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
 import type { IterationBinding, LoopHost, LoopTerm, CompiledLoop } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
@@ -501,11 +502,9 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         const tests: string[] = [];
         let setup = '', header: string, bindings = '';
         if (iteration) {
-            let range = iteration.iterable;
-            while (isParenthesizedExpression(range)) range = range.value;
-            if (iteration.names.length > 2 || iteration.names.some(name => name.includes('.'))
-                || new Set(iteration.names.filter(name => name !== '#')).size !== iteration.names.filter(name => name !== '#').length) return undefined;
-            const indexed = iteration.names.length === 2 && iteration.names[1] !== '#';
+            const traversal = loopTraversal(iteration);
+            if (!traversal) return undefined;
+            const { source: range, indexed } = traversal;
             // Named inputs retain their guarded text/array variants. Pure text
             // expressions are evaluated once in the loop's setup instead.
             const textIteration = host.textLoops && (!isNameExpression(range) && knownType(range) === 'text'
