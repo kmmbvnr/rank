@@ -1,0 +1,110 @@
+rem Reachable Numbers
+rem https://projecteuler.net/problem=259
+rem Add up the positive integers that
+rem can be made from the digits 1 to Top
+rem in order, joined into numbers or
+rem combined with + - * / and brackets
+
+use numbers
+use sequences
+use io
+use cli
+
+option Top integer = 9
+
+rem Keep for every run i..j of digits
+rem the set of fractions it can make, in
+rem lowest terms, packed as (n + 2^27)
+rem 2^25 + d. A run makes its own
+rem number, or the sum, difference,
+rem product or quotient of the fractions
+rem of its two parts, for every place to
+rem split. Equal fractions merge by
+rem sorting. All the sets live in one
+rem long table with an offset for each
+rem run.
+Shift = 134217728
+Wide = 33554432
+Keys = array shape 8000000 fill 0
+Off = array shape 100 fill 0
+Cnt = array shape 100 fill 0
+At = 0
+for L in 1 to Top
+  for I in 1 to (Top - L + 1)
+    J = I + L - 1
+    Own = 0
+    for D in I to J
+      Own = Own * 10 + D
+    end
+    First = (Own + Shift) * Wide + 1
+    Pool = array First
+    for K in I to (J - 1)
+      Ia = Off (I * 10 + K)
+      Na = Cnt (I * 10 + K)
+      Ib = Off ((K + 1) * 10 + J)
+      Nb = Cnt ((K + 1) * 10 + J)
+      Ka = Keys (Ia till (Ia + Na))
+      Kb = Keys (Ib till (Ib + Nb))
+      An = Ka // Wide - Shift
+      Ad = Ka mod Wide
+      Bn = Kb // Wide - Shift
+      Bd = Kb mod Wide
+      Cn = An reshape Na 1
+      Cd = Ad reshape Na 1
+      Cross1 = Cn * Bd
+      Cross2 = Bn * Cd
+      Den = Cd * Bd
+      Sn = Cross1 + Cross2
+      Dn = Cross1 - Cross2
+      Pn = Cn * Bn
+      Qd = Cd * Bn
+      Neg = 0 - 1
+      Sg = (Qd less 0) choose Neg 1
+      Qn = Cross1 * Sg
+      Qd = Qd * Sg
+      Full = Den greater 0
+      Ok = Full and (Bn not equal 0)
+      for W in 0 to 3
+        Num = Sn
+        Dd = Den
+        Use = Full
+        if W equal 1
+          Num = Dn
+        end
+        if W equal 2
+          Num = Pn
+        end
+        if W equal 3
+          Num = Qn
+          Dd = Qd
+          Use = Ok
+        end
+        Flat = Num reshape (Na * Nb)
+        Fd = Dd reshape (Na * Nb)
+        Mask = Use reshape (Na * Nb)
+        Fn = Flat filter Mask array
+        Fq = Fd filter Mask array
+        G = Fn abs Fq gcd
+        Rn = Fn // G
+        Rd = Fq // G
+        More = (Rn + Shift) * Wide + Rd
+        Pool = concat Pool More
+      end
+    end
+    Sorted = Pool unique sort
+    Size = Sorted len
+    Keys (At till (At + Size)) = Sorted
+    Off (I * 10 + J) = At
+    Cnt (I * 10 + J) = Size
+    At += Size
+  end
+end
+Whole = 10 + Top
+From = Off Whole
+Total = Cnt Whole
+Fin = Keys (From till (From + Total))
+Unit = Fin mod Wide equal 1
+Vals = Fin // Wide - Shift
+Good = Unit and (Vals greater 0)
+Answer = (Vals filter Good array) sum
+Answer print
