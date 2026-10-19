@@ -1,0 +1,18 @@
+use testing
+
+test "smallest multiples"
+  use "303_smalldigits"
+
+  2 smallest equal 2
+  3 smallest equal 12
+  7 smallest equal 21
+  42 smallest equal 210
+end
+
+test "published sum"
+  use "303_smalldigits"
+  Limit = 100
+  run
+
+  Answer equal 11363107
+end
