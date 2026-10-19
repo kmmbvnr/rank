@@ -148,6 +148,33 @@ end
         expect(result.itemAt!(9999)).toBe(99n);
     });
 
+    it('cancels a stored pass using Atomics-only polling', () => {
+        const { result } = mapped(Array.from({ length: 10000 }, (_, i) => BigInt(i)));
+        const signal = new Int32Array(new SharedArrayBuffer(4));
+        Atomics.store(signal, 0, 1);
+        expect(() => withInterrupt(signal, () => result.items)).toThrow(InterruptedError);
+        expect(result.items).toHaveLength(10000);
+    });
+
+    it('observes source writes from arbitrary host polling', () => {
+        const { source, result } = mapped(Array.from({ length: 10000 }, () => 4n));
+        let changed = false;
+        const signal: InterruptSignal = { length: 1, load: () => 0, store() {}, wait() {}, exchange() {
+            if (!changed) { source.items[9999] = 81n; changed = true; }
+            return 0;
+        } };
+        expect(withInterrupt(signal, () => result.items).at(-1)).toBe(9n);
+        expect(changed).toBe(true);
+        expect(result.items.at(-1)).toBe(9n);
+    });
+
+    it('does not recognize copied or overridden native implementations by name', () => {
+        const source = ownedArray([4n, 9n], [2]), fn = rootFunction();
+        expect(scalarBuiltinArray(source, { ...fn }, [0])).toBeUndefined();
+        Object.defineProperty(fn, 'call', { value: () => 7n });
+        expect(scalarBuiltinArray(source, fn, [0])).toBeUndefined();
+    });
+
     it('retains ordinary dispatch while inspecting', () => {
         const source = ownedArray([4n, 9n], [2]);
         const signal: InterruptSignal = { length: 2, load: () => 0, store() {}, wait() {}, exchange: () => 0 };
