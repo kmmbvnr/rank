@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '{"include":[{"suite":"packages"},{"suite":"cli"},{"suite":"interpreter"},{"suite":"type-audit","shard":0},{"suite":"type-audit","shard":1},{"suite":"type-audit","shard":2},{"suite":"type-audit","shard":3},{"suite":"differential","shard":0},{"suite":"differential","shard":1},{"suite":"differential","shard":2},{"suite":"differential","shard":3},{"suite":"rust"}]}' || '{"include":[{"suite":"packages"},{"suite":"interpreter"}]}') }}
+      matrix: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '{"include":[{"suite":"packages"},{"suite":"cli"},{"suite":"interpreter"},{"suite":"name-facts"},{"suite":"type-audit","shard":0},{"suite":"type-audit","shard":1},{"suite":"type-audit","shard":2},{"suite":"type-audit","shard":3},{"suite":"differential","shard":0},{"suite":"differential","shard":1},{"suite":"differential","shard":2},{"suite":"differential","shard":3},{"suite":"rust"}]}' || '{"include":[{"suite":"packages"},{"suite":"interpreter"}]}') }}
     name: ${{ matrix.suite }} ${{ matrix.shard }} (Node 24)
     steps:
       - uses: actions/checkout@v5
@@ -40,12 +40,16 @@ jobs:
         run: |
           npm run check:semantic-boundaries
           npm run check:application-forms
-          npm test --workspace @arrrank/language --workspace @arrrank/common --workspace @arrrank/compile
+          npm test --workspace @arrrank/language --workspace @arrrank/compile
+          npm test --workspace @arrrank/common -- --exclude test/name-facts-corpus.test.ts
       - name: Test CLI
         if: matrix.suite == 'cli'
         run: |
           npm run build --workspace @arrrank/cli
           npm test --workspace @arrrank/cli
+      - name: Audit name facts against demo execution
+        if: matrix.suite == 'name-facts'
+        run: npm test --workspace @arrrank/common -- test/name-facts-corpus.test.ts --maxWorkers=1 --reporter=verbose
       - name: Test interpreter
         if: matrix.suite == 'interpreter'
         run: |

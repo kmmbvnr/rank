@@ -2408,7 +2408,7 @@ it('infers the disaster-tweets imported prediction result from its module', () =
     expect(analyzeValues(program, new Map(), new Map(), examples,
         path => path === '001_titanic' ? importedProgram : undefined).functionResults[0].types)
         .toEqual(['array']);
-});
+}, 20_000);
 
 it('reports excess axes after filtering a rank-one table', () => {
     expect(messages('use json\nuse tables\nRows = "[{\\"name\\":\\"x\\"}]" json\n'

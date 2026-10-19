@@ -1,0 +1,9 @@
+use testing
+
+test "default input"
+  use "110_reciprocals2"
+  run
+
+  Answer equal 9350130049860600
+end
+
