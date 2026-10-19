@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "282_ackermann"
+  run
+
+  Answer equal 1098988351
+end
+
+test "other moduli"
+  use "282_ackermann"
+  Pow = 3
+  run
+
+  Answer equal 2631
+  Pow = 4
+  run
+
+  Answer equal 21839
+end
