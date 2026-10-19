@@ -1,0 +1,27 @@
+use testing
+
+test "default input"
+  use "201_subsetsums"
+  run
+
+  Answer equal 115039000
+end
+
+test "small sets"
+  use "201_subsetsums"
+  Count = 8
+  K = 2
+  run
+
+  Answer equal 1298
+  Count = 10
+  K = 3
+  run
+
+  Answer equal 8421
+  Count = 12
+  K = 4
+  run
+
+  Answer equal 25758
+end

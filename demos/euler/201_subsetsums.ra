@@ -1,0 +1,36 @@
+rem Subsets with a Unique Sum
+rem https://projecteuler.net/problem=201
+rem Add the sums reached by exactly one
+rem K-element subset of the first Count
+rem squares
+
+use bits
+use sequences
+use io
+use cli
+
+option Count integer = 100
+option K integer = 50
+
+rem One[k] and Many[k] are bit sets of
+rem the sums reached by one, or by more
+rem than one, k-subset. Each square
+rem shifts both sets up one size.
+One = array shape (K + 1) fill 0
+One 0 = 1
+Many = One - One
+Z = array 0
+for Q in 1 to Count
+  Sq = Q * Q
+  S1 = (concat Z (One take K)) Sq shl
+  SM = (concat Z (Many take K)) Sq shl
+  Both = One S1 band
+  Many = Many SM bor Both bor
+  One = (One S1 bor) (Many bnot) band
+end
+Top = One K
+Cap = (1 to Count array) ** 2 sum
+Sums = 0 to Cap array
+Hit = Top Sums bit
+Answer = Sums filter Hit array sum
+Answer print
