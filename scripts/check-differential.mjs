@@ -41,6 +41,7 @@ const tooSlow = new RegExp('^euler/(?:' + [
     '248_eulertotient',
     '249_primesubsetsums',
     '251_cardanotriplets(?:_test)?',
+    '252_convexholes(?:_test)?',
     '253_tidyingup(?:_test)?',
     '254_digitfactorials(?:_test)?',
     '260_stonegame(?:_test)?',
