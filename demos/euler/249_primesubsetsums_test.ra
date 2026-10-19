@@ -1,0 +1,18 @@
+use testing
+
+rem The default input takes minutes.
+test "small limits"
+  use "249_primesubsetsums"
+  Limit = 10
+  run
+
+  Answer equal 7
+  Limit = 30
+  run
+
+  Answer equal 237
+  Limit = 100
+  run
+
+  Answer equal 5253640
+end
