@@ -1,7 +1,7 @@
 import { membershipLookup } from './membership-lookup.js';
 import { type CompiledCalleeType, isCompiledContainer } from './compiled-callee-type.js';
 import { newStructure } from './collections.js';
-import { indexKey } from './index-key.js';
+import { indexHas, indexSet, indexKey } from './index-storage.js';
 import {
     findCompiledOperator,
     isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement,
@@ -123,7 +123,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 const code = operation === 'new' ? `newStructure(${JSON.stringify(expression.input.name)})`
                     : operation === 'pop' ? `${receiver}.pop()`
                     : operation === 'len' ? `BigInt(${receiver}.kind === 'index' ? ${receiver}.entries.size : ${receiver}.size)`
-                    : `${operation === 'not-contains' ? '!' : ''}${receiver}.entries.has(indexKey([${arguments_.join(',')}]))`;
+                    : `${operation === 'not-contains' ? '!' : ''}indexHas(${receiver}, indexKey([${arguments_.join(',')}]))`;
                 lines.push(`const ${result} = ${code};`);
                 return result;
             }
@@ -184,7 +184,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                     lines.push(`const ${copy} = arrayForWrite(${receiver});
                         if (${copy}) { ${receiver} = ${copy}; noteArrayBinding(${receiver}); }
                         ${receiver}.items[${offset}] = ${value};`);
-                } else lines.push(`${receiver}.entries.set(indexKey([${keys.join(',')}]), ${value});`);
+                } else lines.push(`indexSet(${receiver}, indexKey([${keys.join(',')}]), ${value});`);
             } else if (isForStatement(command)) {
                 const binding = forIteration(command.condition);
                 lines.push('{');
@@ -241,7 +241,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
     let kernel: Kernel | undefined;
-    try { kernel = { locations, calls, userCalls, memberships, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'applySelectors', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', source)(RankError, applySelectors, noteArrayBinding, checkpoint, newStructure, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite) as Kernel['run'] }; }
+    try { kernel = { locations, calls, userCalls, memberships, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'applySelectors', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', source)(RankError, applySelectors, noteArrayBinding, checkpoint, newStructure, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

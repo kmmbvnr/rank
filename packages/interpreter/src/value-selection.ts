@@ -5,7 +5,7 @@ import { denseScalarItems, noteArrayBinding, ownedArray, readArrayItem } from '.
 import { RankDeque } from './containers.js';
 import { counterFrequency } from './collections.js';
 import { MissingValueError, RankError } from './errors.js';
-import { indexKey } from './index-key.js';
+import { indexGet, indexKey } from './index-storage.js';
 import { checkpoint } from './interrupt.js';
 import { requireModule } from './modules/shared.js';
 import {
@@ -195,7 +195,7 @@ export function applySelectors(values: RankValue[], missing?: () => RankValue): 
         const source = values[0];
         const keys = values[1];
         const read = (key: RankValue): RankValue => {
-            const value = source.entries.get(indexKey([key]));
+            const value = indexGet(source, indexKey([key]));
             if (value !== undefined) return value;
             if (missing) return missing();
             throw new MissingValueError('missing keyed value');
@@ -209,7 +209,7 @@ export function applySelectors(values: RankValue[], missing?: () => RankValue): 
         return ownedArray(Array.from(keys.items, read), keys.shape);
     }
     if (isRankIndex(values[0])) {
-        const value = values[0].entries.get(indexKey(values.slice(1)));
+        const value = indexGet(values[0], indexKey(values.slice(1)));
         if (value === undefined) {
             // Missing keys under default are ordinary sparse reads, not exceptions.
             if (missing) return missing();

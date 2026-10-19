@@ -480,7 +480,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             }
             const receiver = container(name, 'index');
             if (!receiver) return undefined;
-            return { code: `${negate}${receiver}.entries.has(key([${key.code}]))`, type: 'boolean' };
+            return { code: `${negate}indexHas(${receiver}, key([${key.code}]))`, type: 'boolean' };
         }
         if (isNameExpression(e.right) && ['reduce', 'scan', 'outer', 'segment'].includes(e.right.name)) return undefined;
         if (!numberMode && e.operator === '**') {
@@ -722,7 +722,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 } else {
                     body.push(`location = ${location};`, ...lines, `if (${receiver}.kind === 'array') {
                         write${target.slot}(${name}, ${result}); iterationResult = ${value.code};
-                    } else { ${receiver}.entries.set(${name}, ${value.code}); iterationResult = undefined; }`);
+                    } else { indexSet(${receiver}, ${name}, ${value.code}); iterationResult = undefined; }`);
                 }
                 continue;
             }

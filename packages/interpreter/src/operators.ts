@@ -8,7 +8,7 @@ import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { evaluateArrayItem, derivedArray, materializeCells, ownedArray, readArrayItem, shouldStream, streamCells } from './array-storage.js';
 import { applyBound, valueBound } from './clause-expression.js';
 import { MissingValueError, RankError } from './errors.js';
-import { indexKey } from './index-key.js';
+import { indexHas, indexKey } from './index-storage.js';
 import { ALL_AXIS } from './selectors.js';
 import { checkpoint } from './interrupt.js';
 import { missingBinary } from './missing.js';
@@ -637,7 +637,7 @@ function presentMembershipTest(right: RankValue, indexed: boolean): (value: Rank
         if (typeof value !== 'string') throw new RankError('in expects text on the left for text or object membership');
         return typeof right === 'string' ? right.includes(value) : right.entries.has(value);
     };
-    if (isRankIndex(right)) return value => right.entries.has(indexKey([value]));
+    if (isRankIndex(right)) return value => indexHas(right, indexKey([value]));
     if (isRankSet(right) || isRankCounter(right)) return value => right.entries.has(setValueKey(value));
     if (isRankMultiset(right)) return value => right.has(value);
     const source = asRankArray(right);

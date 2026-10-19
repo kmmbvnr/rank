@@ -6,7 +6,7 @@ import { expectDeque, expectHeap, peekCollection, pushCollection } from '../cont
 import { addToCollection, removeFromCollection } from '../collections.js';
 import { RankFenwick, expectFenwick } from '../fenwick.js';
 import { FlatRecords } from '../flat.js';
-import { indexKey } from '../index-key.js';
+import { indexGet, indexSet, indexKey } from '../index-storage.js';
 import type { Operators } from '../operators.js';
 import {
     RankMaxSumSegment, RankPersistentSumSegment, RankRangeSumSegment, RankSegment, expectSegment,
@@ -426,11 +426,11 @@ export function structureWrite(
     if (isRankIndex(target)) {
         const key = indexKey(selectors);
         return value => {
-            if (combine === undefined) target.entries.set(key, value);
+            if (combine === undefined) indexSet(target, key, value);
             else {
-                const previous = target.entries.get(key);
+                const previous = indexGet(target, key);
                 if (previous === undefined) throw new MissingValueError('index key not found');
-                target.entries.set(key, operators.evaluateBinary(combine, previous, value));
+                indexSet(target, key, operators.evaluateBinary(combine, previous, value));
             }
             return undefined;
         };

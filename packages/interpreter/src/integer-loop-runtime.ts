@@ -9,7 +9,7 @@ import { completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankBytes, isRankIndex, isNativeFunction, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
-import { indexKey } from './index-key.js';
+import { indexHas, indexSet, indexKey } from './index-storage.js';
 import { denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray } from './array-storage.js';
 
 /** Bind invocation values and owned storage separately from loop analysis/lowering. */
@@ -34,9 +34,9 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, graphAdds: ((values: RankValue[]) => void)[]) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
-        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
+        (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
             ? new RankError(`array index must be nonnegative on axis ${axis}`)
             : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`),
