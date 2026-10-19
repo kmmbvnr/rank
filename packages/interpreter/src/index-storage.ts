@@ -1,3 +1,4 @@
+import { currentDiagnostics } from './diagnostics.js';
 import type { IndexKey } from './index-key.js';
 import type { RankIndex, RankValue } from './value.js';
 
@@ -6,7 +7,13 @@ import type { RankIndex, RankValue } from './value.js';
 export { indexKey, type IndexKey } from './index-key.js';
 
 export function indexGet(index: RankIndex, key: IndexKey): RankValue | undefined {
-    return index.entries.get(key);
+    const value = index.entries.get(key), diagnostics = currentDiagnostics();
+    if (diagnostics) {
+        diagnostics.indexReads++;
+        if (value === undefined) diagnostics.indexReadMisses++;
+        else diagnostics.indexReadHits++;
+    }
+    return value;
 }
 
 export function indexHas(index: RankIndex, key: IndexKey): boolean {
@@ -15,4 +22,6 @@ export function indexHas(index: RankIndex, key: IndexKey): boolean {
 
 export function indexSet(index: RankIndex, key: IndexKey, value: RankValue): void {
     index.entries.set(key, value);
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.indexWrites++;
 }

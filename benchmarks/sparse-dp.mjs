@@ -14,14 +14,16 @@ if (process.argv[2] === '--worker') {
     const source = readFileSync(new URL('../demos/euler/400_fibtree.ra', import.meta.url), 'utf8')
         .replace('option K integer = 10000', `option K integer = ${size}`);
     const diagnostics = new RuntimeDiagnostics();
-    const runtime = new Interpreter(() => {});
+    let compiledEntries = 0;
+    const runtime = new Interpreter(() => {}, { onScalarFunctionExecuted: () => compiledEntries++ });
     const cpu = process.cpuUsage(), start = performance.now();
     try {
         diagnostics.run(() => runtime.execute(source));
         console.log(JSON.stringify({ size, answer: String(runtime.variables.get('Answer')),
             executionMs: performance.now() - start, cpu: process.cpuUsage(cpu),
             peakRss: process.resourceUsage().maxRSS * 1024,
-            states: runtime.variables.get('Memo')?.entries.size,
+            states: runtime.variables.get('Memo')?.entries.size ?? diagnostics.indexWrites,
+            compiledEntries,
             diagnostics }));
     } finally { runtime.dispose(); }
 } else {
@@ -43,6 +45,7 @@ if (process.argv[2] === '--worker') {
         const coldMs = performance.now() - start;
         if (child.error?.code === 'ETIMEDOUT') {
             console.log(JSON.stringify({ size, timedOut: true, coldMs }));
+            process.exitCode = 1;
             continue;
         }
         assert.ifError(child.error);

@@ -6,6 +6,10 @@ export class RuntimeDiagnostics {
     cacheMisses = 0;
     memoHits = 0;
     memoMisses = 0;
+    indexReads = 0;
+    indexReadHits = 0;
+    indexReadMisses = 0;
+    indexWrites = 0;
     sequenceReplayHits = 0;
     sequencePredicateCalls = 0;
     sequenceCachedValues = 0;
