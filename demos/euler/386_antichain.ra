@@ -1,0 +1,135 @@
+rem Maximum Length of an Antichain
+rem https://projecteuler.net/problem=386
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 10 ** 8
+
+rem Exponents fix the divisor width.
+rem Equal powers use rising primes.
+Ps = primes to Limit array
+Es = array shape 0 fill 0
+More = 0 26 1 Es Ps pats
+Answer = 1 + More
+Answer print
+
+fun N E root
+  Lo = 1
+  Hi = N
+  for Lo less Hi
+    Mid = (Lo + Hi + 1) // 2
+    if Mid ** E at most N
+      Lo = Mid
+    else
+      Hi = Mid - 1
+    end
+  end
+  return Lo
+end
+
+fun Ps X pi
+  Lo = 0
+  Hi = Ps len
+  for Lo less Hi
+    Mid = (Lo + Hi) // 2
+    if Ps Mid at most X
+      Lo = Mid + 1
+    else
+      Hi = Mid
+    end
+  end
+  return Lo
+end
+
+fun Es width
+  D = array 1
+  for E in Es
+    Len = D len + E
+    Next = array shape Len fill 0
+    for I in 0 to D len - 1
+      for J in 0 to E
+        Next (I + J) += D I
+      end
+    end
+    D = Next
+  end
+  return D max
+end
+
+fun Es Pos Lim Low Used Ps cnt
+  E = Es Pos
+  if Pos equal (Es len - 1)
+    Top = Lim E root
+    High = Ps Top pi
+    Before = Ps (Low - 1) pi
+    Total = High - Before
+    for U in Used
+      if U at least Low
+        if U at most Top
+          Total -= 1
+        end
+      end
+    end
+    return Total
+  end
+  Same = 1
+  Len = Es len
+  At = Pos + Same
+  for At less Len
+    if Es At not equal E
+      break
+    end
+    Same += 1
+    At += 1
+  end
+  Top = Lim (E * Same) root
+  Total = 0
+  for P in Ps
+    if P less Low
+      continue
+    end
+    if P greater Top
+      break
+    end
+    if P in Used
+      continue
+    end
+    Pow = P ** E
+    Next = concat Used (array P)
+    New = 2
+    Pos2 = Pos + 1
+    if Pos2 less Len
+      if Es Pos2 equal E
+        New = P + 1
+      end
+    end
+    Part = Lim // Pow
+    Hit = Es Pos2 Part New Next Ps cnt
+    Total += Hit
+  end
+  return Total
+end
+
+fun I Last V Es Ps pats
+  P = Ps I
+  Pow = 1
+  Total = 0
+  for E in 1 to Last
+    Pow *= P
+    Next = V * Pow
+    if Next greater Limit
+      break
+    end
+    More = concat Es (array E)
+    Empty = array shape 0 fill 0
+    Ways = More 0 Limit 2 Empty Ps cnt
+    Total += More width * Ways
+    J = I + 1
+    Sub = J E Next More Ps pats
+    Total += Sub
+  end
+  return Total
+end
