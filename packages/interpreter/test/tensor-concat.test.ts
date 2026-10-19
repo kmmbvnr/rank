@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Interpreter, formatValue } from '../src/index.js';
+import { Interpreter, formatValue, parse, type RankValue } from '../src/index.js';
+import { ownedArray } from '../src/array-storage.js';
+import { compileTensorKernel } from '../src/tensor-kernel.js';
 
 function run(source: string, tensorFusion: boolean) {
     let kernels = 0, compiled = 0;
@@ -20,6 +22,27 @@ function compare(source: string) {
 }
 
 describe('concat in tensor expressions', () => {
+    it('rebinds cached layouts to fresh buffers and changed scalar/array slots', () => {
+        const values = new Map<string, RankValue>([
+            ['A', ownedArray([1n, 2n])], ['B', ownedArray([3n])], ['M', 7n],
+        ]);
+        const kernel = compileTensorKernel(parse('X = ((concat A B) + M) copy').statements, {
+            lookup: name => values.get(name), builtin: () => true,
+        })!;
+        expect(formatValue(kernel.run()!)).toBe('8 9 10');
+        values.set('A', ownedArray([5n])); values.set('B', ownedArray([6n, 7n])); values.set('M', 5n);
+        expect(formatValue(kernel.run()!)).toBe('10 11 12');
+        values.set('A', ownedArray([2n, 3n])); values.set('B', ownedArray([4n])); values.set('M', 7n);
+        expect(formatValue(kernel.run()!)).toBe('9 10 11');
+        values.set('M', ownedArray([2n, 3n, 4n]));
+        expect(formatValue(kernel.run()!)).toBe('4 6 8');
+        values.set('M', ownedArray([7n], []));
+        expect(formatValue(kernel.run()!)).toBe('9 10 11');
+        values.set('M', 0.5);
+        expect(formatValue(kernel.run()!)).toBe('2.5 3.5 4.5');
+        values.set('A', ownedArray([2.0, 3.0]));
+        expect(kernel.run()).toBeUndefined();
+    });
     it.each([0, 1, 3, 4])('copies a rotation by %s with no transient concat array', rotation => {
         const result = compare(`A = array 9007199254740993 -2 3 -4
 Head = A take ${4 - rotation}

@@ -221,11 +221,16 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     // Concat segment lengths vary between calls; retain bounded code layouts,
     // never source arrays, so recurring shapes do not recompile every step.
     const variants = new Map<string, { run: KernelRun; source: string }>();
+    const hasConcat = [...domains.keys()].some(node => node.kind === 'concat');
     // Cache layout only: never retain operand storage or a previous result.
     // Selections and text conversions keep the general binder below.
     type InputLayout = { name?: string; value?: RankValue; slot: number; shape?: readonly number[]; boolean: boolean; kind?: string };
-    let layout: { inputs: InputLayout[]; offsets: number[]; shape: readonly number[]; size: number;
-        interruptible: boolean; execute: KernelRun } | undefined;
+    type Layout = { inputs: InputLayout[]; offsets: number[]; shape: readonly number[]; size: number;
+        interruptible: boolean; execute: KernelRun; source: string };
+    let layout: Layout | undefined;
+    const layouts = new Map<string, Layout>();
+    const inputKey = (shape: readonly number[] | undefined, kind: string | undefined, boolean: boolean, slot: number) =>
+        `${shape === undefined ? 's' : shape.join(',')}:${kind ?? ''}:${boolean}:${slot}`;
     let generated = '';
     let unavailable = false;
     return { count, get source() { return generated; }, run(): RankValue | undefined {
@@ -236,26 +241,34 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         const plan = layout;
         if (plan && plan.interruptible === interruptsEnabled() && host.builtin(terminal)) {
             const data: RankValue[][] = [], scalars: RankValue[] = [], offsets = [...plan.offsets];
+            const keys: string[] | undefined = hasConcat ? [] : undefined;
             let matches = true;
             for (const input of plan.inputs) {
                 const value = input.name === undefined ? input.value : host.lookup(input.name);
                 if (input.shape) {
-                    if (!value || !isRankArray(value) || !same(value.shape, input.shape)) { matches = false; break; }
+                    if (!value || !isRankArray(value) || !hasConcat && !same(value.shape, input.shape)) { matches = false; break; }
                     const view = tensorInput(value);
-                    if (!view || view.kind !== input.kind
-                        || (typeof view.items[view.offset] === 'boolean') !== input.boolean) { matches = false; break; }
+                    if (!view || !hasConcat && (view.kind !== input.kind
+                        || (typeof view.items[view.offset] === 'boolean') !== input.boolean)) { matches = false; break; }
                     data[input.slot] = view.items;
                     offsets[input.slot] = view.offset;
+                    keys?.push(inputKey(view.shape, view.kind, typeof view.items[view.offset] === 'boolean', input.slot));
                 } else {
                     if (!(numeric(value) || typeof value === 'boolean')
-                        || (typeof value === 'boolean') !== input.boolean) { matches = false; break; }
+                        || !hasConcat && (typeof value === 'boolean') !== input.boolean) { matches = false; break; }
                     scalars[input.slot] = value!;
+                    keys?.push(inputKey(undefined, undefined, typeof value === 'boolean', input.slot));
                 }
             }
             if (matches) {
-                const result = plan.execute(data, offsets, scalars, plan.size);
-                return terminal === 'copy' && result !== undefined
-                    ? copied(result as RankValue[], plan.shape) : result as RankValue | undefined;
+                const selected = keys ? layouts.get(String(plan.interruptible) + keys.join(';')) : plan;
+                if (selected) {
+                    layout = selected;
+                    generated = selected.source;
+                    const result = selected.execute(data, offsets, scalars, selected.size);
+                    return terminal === 'copy' && result !== undefined
+                        ? copied(result as RankValue[], selected.shape) : result as RankValue | undefined;
+                }
             }
         }
         return bindRun();
@@ -557,7 +570,12 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             layout = { inputs: [...bound].flatMap(([node, info]) => node.kind === 'input' ? [{
                 name: node.name, value: node.value,
                 slot: info.slot!, shape: info.shape && [...info.shape], boolean: info.boolean, kind: info.view?.kind,
-            }] : []), offsets: [...offsets], shape: [...output.shape], size, interruptible, execute: execute! };
+            }] : []), offsets: [...offsets], shape: [...output.shape], size, interruptible, execute: execute!, source: generated };
+            if (hasConcat) {
+                if (layouts.size >= 256) layouts.delete(layouts.keys().next().value!);
+                layouts.set(String(interruptible) + layout.inputs.map(input =>
+                    inputKey(input.shape, input.kind, input.boolean, input.slot)).join(';'), layout);
+            }
         }
         const result = execute!(data, offsets, scalars, size);
         if (terminal === 'copy' && result !== undefined) {
