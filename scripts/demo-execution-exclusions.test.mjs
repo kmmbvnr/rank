@@ -18,7 +18,9 @@ test('execution exclusions name existing workloads and explain the resource cost
 
 test('new full-scale exclusions retain their small test fixtures', () => {
     for (const file of files) {
-        if (!/^euler\/3\d\d_/.test(file)) continue;
+        const problem = Number(file.match(/^euler\/(\d+)_/)?.[1]);
+        // Euler 300 belongs to the legacy 201-300 execution-budget batch.
+        if (!(problem >= 301 && problem <= 399)) continue;
         assert.ok(!file.endsWith('_test.ra') || file.endsWith('_default_test.ra'), file);
         const fixture = file.endsWith('_default_test.ra')
             ? file.replace('_default_test.ra', '_test.ra') : file.replace(/\.ra$/, '_test.ra');
