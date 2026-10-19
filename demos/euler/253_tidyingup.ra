@@ -1,0 +1,136 @@
+rem Tidying Up
+rem https://projecteuler.net/problem=253
+rem N numbered pieces are picked at
+rem random and put in place in a line,
+rem in segments that merge as the line
+rem builds up. Find the expected most
+rem segments seen at any time, to 6
+rem places.
+
+use numbers
+use algo
+use sequences
+use io
+use cli
+
+option N integer = 40
+
+rem Run backward, the full line has one
+rem segment and a random cell goes each
+rem turn. A state is the multiset of
+rem segment lengths, as counts of each
+rem length, found from the full line
+rem with the moves, each cell of a
+rem segment splitting it in a and L - 1
+rem - a, equal pairs once and others
+rem twice. For each state and j, G is
+rem the chance the segments never exceed
+rem j from there on. It is zero when the
+rem state has more than j, else the
+rem average of G over the next states, 1
+rem when none is left. The expected most
+rem is the sum over j of 1 - G of the
+rem full line.
+Rd = N + 1
+Pw = Rd ** (0 to N array)
+Cap = 60000
+Cnt = array shape (Cap * (N + 1)) fill 0
+Ky = array shape Cap fill 0
+Prt = array shape Cap fill 0
+Tot = array shape Cap fill 0
+Tb = array shape (Cap + 1) fill 0
+To = array shape 800000 fill 0
+Wt = array shape 800000 fill 0
+Idx = new index
+Cnt N = 1
+Ky 0 = Pw N
+Prt 0 = 1
+Tot 0 = N
+Idx (Pw N) = 0
+Ns = 1
+Nt = 0
+I = 0
+for
+  if I equal Ns
+    break
+  end
+  Tb I = Nt
+  Bs = I * (N + 1)
+  for L in 1 to N
+    C = Cnt (Bs + L)
+    if C equal 0
+      continue
+    end
+    for A in 0 to ((L - 1) // 2)
+      B = L - 1 - A
+      W = C
+      if A not equal B
+        W = 2 * C
+      end
+      Nk = Ky I - Pw L
+      Np = Prt I - 1
+      if A greater 0
+        Nk += Pw A
+        Np += 1
+      end
+      if B greater 0
+        Nk += Pw B
+        Np += 1
+      end
+      Nid = 0
+      if Nk in Idx
+        Nid = Idx Nk
+      else
+        Nid = Ns
+        Idx Nk = Ns
+        Nb = Nid * (N + 1)
+        for J in 1 to N
+          Cnt (Nb + J) = Cnt (Bs + J)
+        end
+        Cnt (Nb + L) = Cnt (Nb + L) - 1
+        if A greater 0
+          Ca = Nb + A
+          Cnt Ca = Cnt Ca + 1
+        end
+        if B greater 0
+          Cb = Nb + B
+          Cnt Cb = Cnt Cb + 1
+        end
+        Ky Nid = Nk
+        Prt Nid = Np
+        Tot Nid = Tot I - 1
+        Ns += 1
+      end
+      To Nt = Nid
+      Wt Nt = W
+      Nt += 1
+    end
+  end
+  I += 1
+end
+Tb Ns = Nt
+Jm = N + 2
+G = array shape (Ns * Jm) fill 0.0
+Js = 0 till Jm array
+for K in 0 till Ns
+  S = Ns - 1 - K
+  Rw = S * Jm
+  if Tot S equal 0
+    for J in 0 till Jm
+      G (Rw + J) = 1.0
+    end
+    continue
+  end
+  V = array shape Jm fill 0.0
+  for T in (Tb S) till (Tb (S + 1))
+    Rt = To T * Jm
+    V = V + G (Rt till (Rt + Jm)) * Wt T
+  end
+  V = V / Tot S copy
+  for J in (Prt S) till Jm
+    G (Rw + J) = V J
+  end
+end
+G0 = G (0 till Jm)
+Answer = (1 - G0) sum 6 round
+Answer print

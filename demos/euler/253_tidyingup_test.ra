@@ -1,0 +1,19 @@
+use testing
+
+rem The default input takes 15 min, so
+rem only fewer pieces are tested.
+test "fewer pieces"
+  use "253_tidyingup"
+  N = 6
+  run
+
+  Answer equal 2.255556
+  N = 10
+  run
+
+  Answer equal 3.400732
+  N = 20
+  run
+
+  Answer equal 6.156946
+end
