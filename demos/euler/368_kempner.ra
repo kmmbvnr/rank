@@ -1,0 +1,113 @@
+rem A Kempner-like Series
+rem https://projecteuler.net/problem=368
+
+use linalg
+use numbers
+use io
+use cli
+
+option Terms integer = 16
+option Digits integer = 3
+
+Answer = Terms Digits kempner 10 round
+Answer print
+
+fun N valid
+  Last = -1
+  Run = 0
+  for N greater 0
+    D = N mod 10
+    if D equal Last
+      Run += 1
+    else
+      Last = D
+      Run = 1
+    end
+    if Run at least 3
+      return false
+    end
+    N //= 10
+  end
+  return true
+end
+
+fun Max moments
+  Side = Max + 1
+  Bin = array shape Side Side fill 0
+  for I in 0 to Max
+    Bin I 0 = 1
+    Bin I I = 1
+    for J in 1 till I
+      Left = Bin (I - 1) (J - 1)
+      Right = Bin (I - 1) J
+      Bin I J = Left + Right
+    end
+  end
+  H = array shape 20 (Max + 1) fill 0.0
+  for M in 0 to Max
+    C = 1.0 / (10.0 ** (M + 1))
+    A = array shape 20 20 fill 0.0
+    B = array shape 20 fill 0.0
+    for S in 0 to 19
+      A S S = 1.0
+      D = S // 2
+      Run = S mod 2 + 1
+      for X in 0 to 9
+        if X equal D and Run equal 2
+          continue
+        end
+        To = X * 2
+        if X equal D
+          To += 1
+        end
+        A S To -= C
+        for J in 0 till M
+          Pow = X ** (M - J)
+          Term = C * Bin M J
+          Term = Term * Pow * H To J
+          B S += Term
+        end
+      end
+      if M equal 0
+        B S += 1.0
+      end
+    end
+    V = A B solve
+    for S in 0 to 19
+      H S M = V S
+    end
+  end
+  return H
+end
+
+fun Max Digits kempner
+  H = Max moments
+  Low = 10 ** (Digits - 1)
+  Sum = 0.0
+  for N in 1 till Low
+    if N valid
+      Sum += 1.0 / N
+    end
+  end
+  for P in Low till (10 * Low)
+    if P valid
+      Last = P mod 10
+      Prev = (P // 10) mod 10
+      S = Last * 2
+      if Last equal Prev
+        S += 1
+      end
+      Inv = 1.0 / P
+      Power = Inv
+      Add = 0.0
+      Sign = 1.0
+      for M in 0 to Max
+        Add += Sign * H S M * Power
+        Power *= Inv
+        Sign = -Sign
+      end
+      Sum += Add
+    end
+  end
+  return Sum
+end
