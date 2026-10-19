@@ -1,0 +1,112 @@
+rem Circumscribed Circles
+rem https://projecteuler.net/problem=373
+
+use algo
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 10000000
+
+Root = Limit isqrt
+Data = new index
+Cnt = new counter
+for M in 2 to Root
+  for N in 1 till M
+    if (M + N) mod 2 equal 0
+      continue
+    end
+    if M N gcd not equal 1
+      continue
+    end
+    D = M * M + N * N
+    if D greater Limit
+      break
+    end
+    I = Cnt D
+    Data D I = M * M - N * N
+    Cnt add D
+    I = Cnt D
+    Data D I = 2 * M * N
+    Cnt add D
+  end
+end
+Spf = array shape (Limit + 1) fill 0
+for P in 2 to Root
+  if Spf P not equal 0
+    continue
+  end
+  for Q in P to Limit by P
+    if Spf Q equal 0
+      Spf Q = P
+    end
+  end
+end
+Answer = 0
+for R in 1 to Limit
+  Answer += R * (R Spf Data Cnt circles)
+end
+Answer print
+
+fun R Spf Data Cnt circles
+  Ds = R Spf divs
+  Sides = new queue
+  Sides push 2 * R
+  for D in Ds
+    for I in 0 till (Cnt D)
+      Scale = 2 * (R // D)
+      Sides push Scale * (Data D I)
+    end
+  end
+  Vals = Sides array unique sort
+  Len = Vals len
+  Total = 0
+  for I in 0 till Len
+    A = Vals I
+    for J in I till Len
+      B = Vals J
+      for K in J till Len
+        C = Vals K
+        if A + B at most C
+          break
+        end
+        if A B C R radius
+          Total += 1
+        end
+      end
+    end
+  end
+  return Total
+end
+
+fun N Spf divs
+  Ds = new queue
+  Ds push 1
+  for N greater 1
+    P = Spf N
+    if P equal 0
+      P = N
+    end
+    Pow = 1
+    Base = Ds len
+    for N mod P equal 0
+      N //= P
+      Pow *= P
+      for I in 0 till Base
+        Ds push (Ds I) * Pow
+      end
+    end
+  end
+  return Ds
+end
+
+fun A B C R radius
+  Left = A * A * B * B * C * C
+  X = A + B + C
+  Y = A + B - C
+  Z = A - B + C
+  W = -A + B + C
+  Right = R * R * X * Y * Z * W
+  return Left equal Right
+end

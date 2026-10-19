@@ -1,0 +1,11 @@
+use testing
+
+test "circle sums"
+  use "373_circles"
+  Limit = 100
+  run
+  Answer equal 4950
+  Limit = 1200
+  run
+  Answer equal 1653605
+end
