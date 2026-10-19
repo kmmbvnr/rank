@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "203_squarefreebinom"
+  run
+
+  Answer equal 34029210557338
+end
+
+test "first eight rows"
+  use "203_squarefreebinom"
+  Rows = 8
+  run
+
+  Answer equal 105
+end

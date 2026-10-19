@@ -1,0 +1,28 @@
+rem Squarefree Binomial Coefficients
+rem https://projecteuler.net/problem=203
+rem Sum the distinct squarefree numbers
+rem in the first Rows rows of Pascal's
+rem triangle
+
+use numbers
+use sequences
+use io
+use cli
+
+option Rows integer = 51
+
+rem K is clipped to the row, which only
+rem repeats values of that row. A
+rem coefficient has only prime factors
+rem below Rows, so it is squarefree when
+rem no prime square divides it.
+N = 0 till Rows array
+Row = N reshape Rows 1
+Grid = Row (N Row min) binomial
+Vals = Grid reshape (Rows * Rows) unique
+Sq = (primes till Rows array) ** 2
+Col = Vals reshape (Vals len) 1
+Div = Col mod Sq equal 0
+Free = not (Div any axis 1)
+Answer = Vals filter Free array sum
+Answer print
