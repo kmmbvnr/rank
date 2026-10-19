@@ -1,0 +1,9 @@
+use testing
+
+test "Bezier arc"
+  use "363_bezier"
+  Steps = 10000
+  run
+  Answer greater -2.02765
+  Answer less -2.02763
+end

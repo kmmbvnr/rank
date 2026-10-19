@@ -1,0 +1,30 @@
+rem Bezier Curves
+rem https://projecteuler.net/problem=363
+
+use numbers
+use io
+use cli
+
+option Steps integer = 1000000
+
+Pi = (-1) acos
+V = 5 * Pi / 12 - 5 / 6
+A = 3 * V - 3
+B = 2 - 3 * V
+C = 3 * V
+D = 3 - 6 * V
+E = 3 * V - 2
+Odd = (1 to (Steps - 1) by 2) / Steps
+Even = (2 to (Steps - 2) by 2) / Steps
+Dx = 2 * A * Odd + 3 * B * Odd ** 2
+OO = Odd ** 2
+Dy = C + 2 * D * Odd + 3 * E * OO
+SO = (Dx ** 2 + Dy ** 2) sqrt sum
+Dx = 2 * A * Even + 3 * B * Even ** 2
+EE = Even ** 2
+Dy = C + 2 * D * Even + 3 * E * EE
+SE = (Dx ** 2 + Dy ** 2) sqrt sum
+Length = (6 * V + 4 * SO + 2 * SE)
+Length = Length / (3 * Steps)
+Answer = (Length / (Pi / 2) - 1) * 100
+Answer print
