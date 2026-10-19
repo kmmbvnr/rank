@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "229_foursquares"
+  run
+
+  Answer equal 11325263
+end
+
+test "small limits"
+  use "229_foursquares"
+  Limit = 1000000
+  run
+
+  Answer equal 8637
+  Limit = 10000000
+  run
+
+  Answer equal 75373
+end

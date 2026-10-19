@@ -1,0 +1,226 @@
+rem Four Representations using Squares
+rem https://projecteuler.net/problem=229
+rem Count the n up to Limit that are
+rem a^2 + b^2, a^2 + 2 b^2, a^2 + 3 b^2
+rem and a^2 + 7 b^2 for positive a and b
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 2000000000
+
+rem With a and b allowed to be 0, n is
+rem all four when n = q m^2, q
+rem squarefree with every prime p = 1,
+rem 25 or 121 mod 168. Those n number
+rem the m up to sqrt(Limit / q) for each
+rem such q, so the sum is over the
+rem primes p, and the pairs and triples
+rem of them, with the count of m with q
+rem m^2 up to Limit being a count of the
+rem primes up to Limit / (q' m^2) for
+rem the last prime, found by binary
+rem search on the sorted list of these
+rem primes, sieved by classes mod 168.
+rem Squares have b = 0 too often: q = 1
+rem is dropped and the squares m^2 = a^2
+rem + d b^2, with a, b above 0 for all
+rem four d, are counted from the
+rem divisors u v = d b^2 of m + a and m
+rem - a, which are m = (u + v) / 2 up to
+rem the root of Limit.
+Rt = Limit isqrt
+Pq = primes till (Rt + 1) array
+Gp = array shape 0 fill 0
+Rc = array 1 25 121
+for R in Rc
+  Kn = (Limit - R) // 168 + 1
+  Sv = array shape Kn fill 0
+  for Q in Pq
+    if Q less 5 or Q equal 7
+      continue
+    end
+    Iv = 1
+    Bs = 168 mod Q
+    Ex = Q - 2
+    for
+      if Ex equal 0
+        break
+      end
+      if Ex mod 2 equal 1
+        Iv = Iv * Bs mod Q
+      end
+      Bs = Bs * Bs mod Q
+      Ex = Ex // 2
+    end
+    K0 = (Q - R mod Q) mod Q * Iv mod Q
+    Ks = (Q * Q - R + 167) // 168
+    if Ks less 0
+      Ks = 0
+    end
+    Fk = Ks + (K0 - Ks) mod Q
+    for K in Fk to (Kn - 1) by Q
+      Sv K = 1
+    end
+  end
+  Ix = 0 till Kn array
+  Vals = Ix * 168 + R
+  Keep = Sv equal 0
+  Pm = Vals filter Keep array
+  Gp = concat Gp Pm copy
+end
+Gp = Gp filter (Gp greater 1) array
+Gp = Gp sort
+Ng = Gp len
+Qx = array shape 100000 fill 0
+Qs = array shape 100000 fill 0
+Nq = 0
+for M in 1 to Rt
+  X = Limit // (M * M)
+  if X less 193
+    break
+  end
+  Qx Nq = X
+  Nq += 1
+end
+for I in 0 till Ng
+  P1 = Gp I
+  if P1 * P1 greater Limit
+    break
+  end
+  for M in 1 to Rt
+    X = Limit // (P1 * M * M)
+    if X at most P1
+      break
+    end
+    Qx Nq = X
+    Qs Nq = I + 1
+    Nq += 1
+  end
+  for J in (I + 1) till Ng
+    P2 = Gp J
+    if P1 * P2 * P2 greater Limit
+      break
+    end
+    for M in 1 to Rt
+      X = Limit // (P1 * P2 * M * M)
+      if X at most P2
+        break
+      end
+      Qx Nq = X
+      Qs Nq = J + 1
+      Nq += 1
+    end
+  end
+end
+Total = 0
+for Qi in 0 till Nq
+  X = Qx Qi
+  Lo = 0
+  Hi = Ng
+  for
+    if Lo at least Hi
+      break
+    end
+    Md = (Lo + Hi) // 2
+    if Gp Md at most X
+      Lo = Md + 1
+    else
+      Hi = Md
+    end
+  end
+  Total += Lo - Qs Qi
+end
+Sp = array shape (Rt + 1) fill 0
+for P in 2 to (Rt isqrt)
+  if Sp P equal 0
+    for J in (P * P) to Rt by P
+      if Sp J equal 0
+        Sp J = P
+      end
+    end
+  end
+end
+W = Rt + 1
+Tab = array shape (4 * W) fill 0
+Ds = array 1 2 3 7
+Pl = array shape 20 fill 0
+El = array shape 20 fill 0
+Dv = array shape 20000 fill 0
+for Di in 0 to 3
+  D = Ds Di
+  for B in 1 to Rt
+    Np = 0
+    V = B
+    for
+      if V equal 1
+        break
+      end
+      P = Sp V
+      if P equal 0
+        P = V
+      end
+      Ex = 0
+      for
+        if V mod P greater 0
+          break
+        end
+        V = V // P
+        Ex += 1
+      end
+      Pl Np = P
+      El Np = 2 * Ex
+      Np += 1
+    end
+    if D greater 1
+      Fd = 0 - 1
+      for I in 0 till Np
+        if Pl I equal D
+          Fd = I
+        end
+      end
+      if Fd less 0
+        Pl Np = D
+        El Np = 1
+        Np += 1
+      else
+        El Fd = El Fd + 1
+      end
+    end
+    Dv 0 = 1
+    Nd = 1
+    for I in 0 till Np
+      Old = Nd
+      Pw = 1
+      for E in 1 to (El I)
+        Pw = Pw * Pl I
+        for L in 0 till Old
+          Dv Nd = Dv L * Pw
+          Nd += 1
+        end
+      end
+    end
+    N = D * B * B
+    for L in 0 till Nd
+      U = Dv L
+      if U * U less N
+        Vv = N // U
+        if (U + Vv) mod 2 equal 0
+          Mm = (U + Vv) // 2
+          if Mm at most Rt
+            Tab (Di * W + Mm) = 1
+          end
+        end
+      end
+    end
+  end
+end
+T0 = Tab (0 till W)
+T1 = Tab (W till (2 * W))
+T2 = Tab ((2 * W) till (3 * W))
+T3 = Tab ((3 * W) till (4 * W))
+Sq = (T0 * T1 * T2 * T3) sum
+Answer = Total + Sq
+Answer print
