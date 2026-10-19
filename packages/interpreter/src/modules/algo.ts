@@ -103,6 +103,7 @@ export const algoModule: RuntimeModule = {
         const input = permutationInput(arguments_[0]);
         return sequence({
             name: 'permutations',
+            replay: input.items.every(item => typeof item !== 'object') ? 'pure' : undefined,
             size: { kind: 'exact', value: permutationCount(input.items) },
             *iterate() {
                 yield* permute(input);

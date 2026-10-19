@@ -1,0 +1,97 @@
+{
+  "revision": "96a22cbdb1206c3229c579287444373b255abef2",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "runs": [
+    {
+      "name": "queens",
+      "totalMs": 697.451083,
+      "retainedHeapBytes": 159050216,
+      "peakRssKiB": 400880
+    },
+    {
+      "name": "queens-once",
+      "totalMs": 443.464375,
+      "retainedHeapBytes": 83104664,
+      "peakRssKiB": 317088
+    },
+    {
+      "name": "queens-demo",
+      "totalMs": 479.848292,
+      "retainedHeapBytes": 85526536,
+      "peakRssKiB": 320288
+    },
+    {
+      "name": "queens-iterative",
+      "totalMs": 598.3571670000001,
+      "retainedHeapBytes": 13748456,
+      "peakRssKiB": 214192
+    },
+    {
+      "name": "euler60",
+      "totalMs": 5497.17,
+      "retainedHeapBytes": 67939880,
+      "peakRssKiB": 580240
+    },
+    {
+      "name": "queens",
+      "totalMs": 730.604791,
+      "retainedHeapBytes": 159038592,
+      "peakRssKiB": 407616
+    },
+    {
+      "name": "queens-once",
+      "totalMs": 596.9520419999999,
+      "retainedHeapBytes": 83095944,
+      "peakRssKiB": 315568
+    },
+    {
+      "name": "queens-demo",
+      "totalMs": 766.3659579999999,
+      "retainedHeapBytes": 85530160,
+      "peakRssKiB": 321232
+    },
+    {
+      "name": "queens-iterative",
+      "totalMs": 816.956041,
+      "retainedHeapBytes": 13746336,
+      "peakRssKiB": 202288
+    },
+    {
+      "name": "euler60",
+      "totalMs": 5835.136084000001,
+      "retainedHeapBytes": 67508832,
+      "peakRssKiB": 559296
+    },
+    {
+      "name": "queens",
+      "totalMs": 702.5475000000001,
+      "retainedHeapBytes": 159051184,
+      "peakRssKiB": 400944
+    },
+    {
+      "name": "queens-once",
+      "totalMs": 443.76420799999994,
+      "retainedHeapBytes": 83104888,
+      "peakRssKiB": 322976
+    },
+    {
+      "name": "queens-demo",
+      "totalMs": 476.82604100000003,
+      "retainedHeapBytes": 85529832,
+      "peakRssKiB": 328256
+    },
+    {
+      "name": "queens-iterative",
+      "totalMs": 585.111416,
+      "retainedHeapBytes": 13750016,
+      "peakRssKiB": 203008
+    },
+    {
+      "name": "euler60",
+      "totalMs": 5437.675292,
+      "retainedHeapBytes": 67931032,
+      "peakRssKiB": 587904
+    }
+  ]
+}

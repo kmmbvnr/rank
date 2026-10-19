@@ -27,7 +27,7 @@ export function sequenceMask(
     source: RankSequence,
     predicate: SequencePredicate,
 ): RankSequenceMask {
-    const mapped = mapSequence(source, predicate.name, value => predicate.test(value));
+    const mapped = mapSequence(source, predicate.name, value => predicate.test(value), predicate.pure);
     return { kind: 'sequence', plan: mapped.plan, source, predicate };
 }
 
@@ -50,6 +50,7 @@ export function filterSequence(
  */
 function filteredPlan(source: SequencePlan, predicate: SequencePredicate): SequencePlan {
     return {
+        replay: source.replay && predicate.pure ? 'pure' : undefined,
         name: `${source.name} where ${predicate.name}`,
         singlePass: source.singlePass,
         size: filteredSize(source.size),
@@ -128,10 +129,12 @@ export function mapSequence(
     source: RankSequence,
     name: string,
     operation: (value: RankValue) => RankValue,
+    pure = false,
 ): RankSequence {
     const sourcePlan = source.plan;
     return sequence({
         name: `${sourcePlan.name} ${name}`,
+        replay: sourcePlan.replay && pure ? 'pure' : undefined,
         singlePass: sourcePlan.singlePass,
         size: sourcePlan.size,
         *iterate() {
@@ -145,10 +148,12 @@ export function scanSequence(
     name: string,
     seed: RankValue | undefined,
     operation: (left: RankValue, right: RankValue) => RankValue,
+    pure = false,
 ): RankSequence {
     const sourcePlan = source.plan;
     return sequence({
         name: `${sourcePlan.name} scan ${name}`,
+        replay: sourcePlan.replay && pure && typeof seed !== 'object' ? 'pure' : undefined,
         singlePass: sourcePlan.singlePass,
         size: scanSize(sourcePlan.size, seed !== undefined),
         captures: sourcePlan.captures,
@@ -206,6 +211,13 @@ export function positionalMask(plan: SequencePlan): RankSequence {
 
 export function isPositionalMask(value: RankValue): value is RankSequence {
     return isRankSequence(value) && positionalMasks.has(value);
+}
+
+/** Preserve internal mask identity when an execution owner replaces a plan. */
+export function withSequencePlan(source: RankSequence, plan: SequencePlan): RankSequence {
+    const result = { ...source, plan };
+    if (positionalMasks.has(source)) positionalMasks.add(result);
+    return result;
 }
 
 /**
@@ -358,9 +370,11 @@ export function zipSequences(
     right: RankSequence,
     name: string,
     operation: (left: RankValue, right: RankValue) => RankValue,
+    pure = false,
 ): RankSequence {
     return sequence({
         name: `${left.plan.name} ${name} ${right.plan.name}`,
+        replay: left.plan.replay && right.plan.replay && pure ? 'pure' : undefined,
         singlePass: left.plan.singlePass || right.plan.singlePass,
         size: zippedSize(left.plan.size, right.plan.size),
         *iterate() {

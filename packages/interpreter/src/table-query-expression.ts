@@ -8,6 +8,8 @@ import { AstUtils } from 'langium';
 import { derivedArray, ownedArray, readArrayItem } from './array-storage.js';
 import { resume, mapExecution, type Evaluation, type Execution } from './execution.js';
 import { RankError } from './errors.js';
+import { pureLazyFunction } from './lazy-function.js';
+import { currentDiagnostics } from './diagnostics.js';
 import { LocalFrame } from './frame.js';
 import { ResourceMap } from './resource-summary.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
@@ -154,14 +156,17 @@ export function compileTableExpression(
                             && sequencePredicate.axes === undefined) {
                             const name = flattenApplication(conditions[0])[0];
                             const resolved = yield* resume(context.evaluate(name));
-                            const predicate = isNativeFunction(resolved) ? resolved.snapshot?.() ?? resolved : resolved;
+                            const predicate = isNativeFunction(resolved) ? pureLazyFunction(resolved) : resolved;
                             if (isNativeFunction(predicate) && predicate.arities.includes(1)) {
+                                const diagnostics = currentDiagnostics();
                                 return filterSequence(source, {
+                                    pure: true,
                                     name: predicate.name,
                                     ...(predicate.name === 'even'
                                         && context.isStandardFunction('numbers', 'even', predicate)
                                         ? { optimizationKey: 'even' } : {}),
                                     test: item => {
+                                        if (diagnostics) diagnostics.sequencePredicateCalls++;
                                         const result = predicate.call([item]);
                                         if (typeof result !== 'boolean') {
                                             throw new RankError('filter predicate must return boolean', 'TypeError');

@@ -135,7 +135,7 @@ function timeComponent(name: string, read: (value: RankDateTime) => bigint): Ran
 }
 
 function mapDates(value: RankValue, name: string, parse: (value: RankValue) => RankValue): RankValue {
-    if (isRankSequence(value)) return mapSequence(value, name, parse);
+    if (isRankSequence(value)) return mapSequence(value, name, parse, true);
     if (!isRankArray(value)) return parse(value);
     return derivedArray(value.shape, [value], index =>
         parse(readArrayItem(value, index)), true);

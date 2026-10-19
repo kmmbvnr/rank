@@ -2,7 +2,7 @@ import { compiledSequenceMembership } from './sequence-membership.js';
 import { compiledCalleeTypeKey, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { AstNode } from 'langium';
 import {
-    functionScope, lexicalBinding, findOperation, writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
+    functionScope, lazyFunctionFailure, lazyBuiltinDependencies, lexicalBinding, findOperation, writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
     type LastArrayUseProof, type FunctionCallSignature, type CallRequirement, type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { isFlatScalarArray, arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
@@ -267,6 +267,30 @@ export class FunctionInvocation {
         return result;
     }
 
+    private lazySafe(fn: NativeFunction, seen = new Set<NativeFunction>(), checkParameters = true): boolean {
+        if (seen.has(fn)) return true;
+        const builtin = BuiltinRegistry.operationOf(fn);
+        if (builtin) return !builtin.effects?.length && (fn.lazySafe?.() ?? true);
+        const declaration = functionDeclarations.get(fn);
+        if (!declaration) return false;
+        if (declaration.owner !== this) return declaration.owner.lazySafe(fn, seen, checkParameters);
+        seen.add(fn);
+        const { statement, context } = declaration;
+        if (lazyFunctionFailure(statement, undefined, checkParameters)) return false;
+        for (const name of lazyBuiltinDependencies(statement)) {
+            const value = this.bindings.withFrame(context, () => this.host.resolve(name));
+            if (isNativeFunction(value) && BuiltinRegistry.operationOf(value)
+                && value.lazySafe && !value.lazySafe()) return false;
+        }
+        const scope = functionScope(statement)!;
+        for (const binding of new Set([...scope.reads.values(), ...scope.captures])) {
+            if (binding.scope.owner === statement) continue;
+            const value = this.bindings.withFrame(context, () => this.host.resolve(binding.name));
+            if (isNativeFunction(value) && !this.lazySafe(value, seen, false)) return false;
+        }
+        return true;
+    }
+
     define(statement: FunctionStatement, constant = true): RankValue {
         const existing = this.bindings.scope.get(statement.name);
         if (this.bindings.isConstant(statement.name)) {
@@ -449,6 +473,7 @@ export class FunctionInvocation {
                 : undefined,
             captures: context?.captures(),
             snapshot: () => this.snapshot(fn),
+            lazySafe: () => this.lazySafe(fn),
             // What a caller outside the runtime reaches. A Rank call made from a
             // Rank body takes a shorter path, so the stretch this opens is the
             // work our embedder asked for; readers over storage we cannot track

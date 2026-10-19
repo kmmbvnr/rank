@@ -719,6 +719,8 @@ function fibonacciPlan(
 ): SequencePlan {
     return {
         name: evenOnly ? 'even fibonacci' : 'fibonacci',
+        replay: 'pure',
+        replCursor: true,
         size: boundary
             ? { kind: 'exact', value: fibonacciSize(boundary, evenOnly, lower) }
             : { kind: 'infinite' },

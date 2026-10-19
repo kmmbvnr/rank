@@ -162,7 +162,7 @@ function mapUnaryNumeric(
     // A cell with no value stays without one.
     const apply = (item: RankValue): RankValue =>
         item === MISSING ? MISSING : operation(numericReal(item, name));
-    if (isRankSequence(value)) return mapSequence(value, name, apply);
+    if (isRankSequence(value)) return mapSequence(value, name, apply, true);
     if (!isRankArray(value)) return apply(value);
     // A large stored array is mapped at once; a cell that raises leaves the
     // lazy path to raise it when read.
@@ -195,13 +195,13 @@ function mapBinaryValue(
     const scalarOperation = (a: RankValue, b: RankValue): RankValue =>
         a === MISSING || b === MISSING ? MISSING : operation(a, b);
     if (isRankSequence(left) && isRankSequence(right)) {
-        return zipSequences(left, right, name, scalarOperation);
+        return zipSequences(left, right, name, scalarOperation, true);
     }
     if (isRankSequence(left)) {
-        return mapSequence(left, name, item => scalarOperation(item, right));
+        return mapSequence(left, name, item => scalarOperation(item, right), typeof right !== 'object');
     }
     if (isRankSequence(right)) {
-        return mapSequence(right, name, item => scalarOperation(left, item));
+        return mapSequence(right, name, item => scalarOperation(left, item), typeof left !== 'object');
     }
     if (isRankQueue(left)) left = { kind: 'array', items: left.items, shape: [left.items.length] };
     if (isRankQueue(right)) right = { kind: 'array', items: right.items, shape: [right.items.length] };
@@ -261,7 +261,7 @@ export function roundValue(value: RankValue, placesValue: RankValue): RankValue 
         if (typeof scalar === 'number') return roundReal(scalar, places);
         throw new RankError('round expects numeric input', 'TypeError');
     };
-    if (isRankSequence(value)) return mapSequence(value, 'round', roundScalar);
+    if (isRankSequence(value)) return mapSequence(value, 'round', roundScalar, true);
     if (!isRankArray(value)) return roundScalar(value);
 
     return derivedArray(value.shape, [value], index =>
@@ -652,7 +652,7 @@ function integerBound(value: RankValue, name: string, operation: (value: number)
         if (!Number.isFinite(number)) throw new RankError(`${name} expects a finite number`, 'DomainError');
         return BigInt(operation(number));
     };
-    if (isRankSequence(value)) return mapSequence(value, name, apply);
+    if (isRankSequence(value)) return mapSequence(value, name, apply, true);
     return isRankArray(value) ? derivedArray(value.shape, [value], i => apply(value.itemAt?.(i) ?? value.items[i]), true)
         : apply(value);
 }

@@ -255,7 +255,7 @@ export function formattedText(value: RankValue, format: string): RankValue {
         const sign = negative && /[1-9]/.test(integer + decimal) ? '-' : '';
         return sign + integer + (places ? '.' + decimal : '');
     };
-    if (isRankSequence(value)) return mapSequence(value, 'text', scalar);
+    if (isRankSequence(value)) return mapSequence(value, 'text', scalar, true);
     if (isRankArray(value)) return { kind: 'array', shape: value.shape, items: value.items.map(scalar) };
     return scalar(value);
 }

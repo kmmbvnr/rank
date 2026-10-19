@@ -37,6 +37,7 @@ const adapters = {
                     : { kind: 'unknown' };
         return sequence({
             name: `${plan.name} ${count} ${name}`,
+            replay: plan.replay,
             singlePass: plan.singlePass,
             captures: plan.captures,
             size,

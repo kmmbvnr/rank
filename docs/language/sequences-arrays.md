@@ -24,6 +24,58 @@ Fib = fibonacci to 100
 SixthPrime = primes 5
 ```
 
+### Reusing pure sequences
+
+A pure sequence may reuse computed items when the current program has multiple
+consumers. Direct aliases and ordinary helper parameters participate in this
+analysis. A source used by only one pipeline stage can remain a stream; naming
+an intermediate does not require saving its history. Cheap arithmetic ranges
+continue to compute their values directly.
+
+```rank
+use sequences
+fun X odd = X mod 2 equal 1
+Candidates = 1 to 100
+Selected = Candidates filter odd
+Count = Selected len
+Total = Selected sum
+```
+
+Here the filter retains its 50 accepted values for the second read. It does not
+retain the 100 candidates. Readers have independent positions; reading a prefix
+does not force the tail. Completing a retained sequence also discovers its
+length, including zero for an empty result.
+
+Lazy sequence predicates, rank-0 callbacks and scan callbacks must be pure.
+They may use local working state, but cannot perform input/output, use randomness,
+or depend on changing external state. Captures use the creation-time snapshots
+described under [local functions](control-functions.md#local-functions-and-closures).
+Unresolved callable behavior is rejected conservatively. Ordinary eager calls
+and effectful single-pass generators keep their existing contracts.
+
+Caching is an optimization, not a promise never to recompute. In particular,
+future REPL commands are unknown when a sequence is created. A later command can
+reuse retained results or recompute a pure value. Existing stored native cursors
+and user generators keep their consumption and rewind rules.
+
+Retention is bounded. The default interpreter limit is 8 MiB of estimated
+payload per cached sequence; it counts scalar-array cells as well as outer
+items. It is not a measurement of JavaScript heap overhead. Crossing the limit,
+or encountering a result without a supported stable-value representation,
+discards that cache and continues streaming. Subsequent readers may recompute.
+Supported retained values include scalars and owned eager scalar arrays; Rank
+writes to a reader's array do not modify the retained value.
+
+A retained source failure is reported at its position on later reads. Host
+cancellation and preview-budget exhaustion are different: a later read may
+restart pure computation to recover the interrupted iterator. It does not replay
+an old cancellation event. A new budget must be sufficient to reach the requested
+position; interrupted work is not guaranteed to resume without recomputation.
+
+Use `array` when an operation needs an array's shape or indexing interface, and
+`copy` when materialized independent storage is needed. Neither is required solely
+to request reuse of a pure sequence with known repeated consumers.
+
 ## Open numeric ranges
 
 `#` in a range endpoint means that no boundary is supplied. It is a contextual
@@ -181,7 +233,8 @@ remaining dimensions. Writes to the source are visible through those views;
 use `copy` for an independent snapshot.
 
 Sequences remain lazy, including user generators. `take` stops without
-requesting an extra item and closes the source iterator. `drop` traverses the
+requesting an extra item and closes its reader. A shared pure replay source
+remains available to other readers. `drop` traverses the
 skipped prefix when demanded. Neither operation makes a single-pass source
 replayable. `take` bounds an infinite source by count; `drop` alone leaves it
 infinite. Materializing a bounded sequence uses postfix `array`.
