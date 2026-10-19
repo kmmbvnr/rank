@@ -1,3 +1,4 @@
+import { registerScalarBuiltin } from '../scalar-builtin.js';
 import { findOperation, instantiateShapeSignature } from '@arrrank/language';
 import { checkInterrupt, interruptsEnabled } from '../interrupt.js';
 import { ownedArray } from '../array-storage.js';
@@ -61,6 +62,11 @@ export function native(
             return result;
         },
     };
+}
+
+/** Register the checked scalar body without exposing a new NativeFunction ABI. */
+export function scalarNative(name: string, call: (value: RankValue) => RankValue): NativeFunction {
+    return registerScalarBuiltin(native(name, 1, args => call(args[0])), call);
 }
 
 export function mapValue(
