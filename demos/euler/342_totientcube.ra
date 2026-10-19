@@ -1,0 +1,45 @@
+rem Totient of a Square Is a Cube
+rem https://projecteuler.net/problem=342
+
+use numbers
+use io
+use cli
+
+option Limit integer = 10000000000
+
+Answer = 0
+for N in 2 till Limit
+  Phi = N squarephi
+  if Phi cube
+    Answer += N
+  end
+end
+Answer print
+
+fun N squarephi
+  Phi = N * N
+  X = N
+  for P in 2 to (N isqrt)
+    if X mod P equal 0
+      for X mod P equal 0
+        X //= P
+      end
+      Phi -= Phi // P
+    end
+  end
+  if X greater 1
+    Phi -= Phi // X
+  end
+  return Phi
+end
+
+fun X cube
+  R = (X ** (1 / 3)) floor
+  for R * R * R less X
+    R += 1
+  end
+  for R * R * R greater X
+    R -= 1
+  end
+  return R * R * R equal X
+end
