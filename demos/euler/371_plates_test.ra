@@ -1,0 +1,13 @@
+use testing
+
+test "one pair plates"
+  use "371_plates"
+  3 plates greater 4
+  3 plates less 5
+end
+
+test "statement range"
+  use "371_plates"
+  999 plates greater 40
+  999 plates less 41
+end

@@ -1,0 +1,33 @@
+rem Licence Plates
+rem https://projecteuler.net/problem=371
+
+use numbers
+use sequences
+use io
+use cli
+
+option Max integer = 999
+
+Answer = Max plates 8 round
+Answer print
+
+fun Max plates
+  Pairs = (Max - 1) // 2
+  N = 2 * Pairs + 2
+  E0 = array shape (Pairs + 1) fill 0.0
+  E1 = array shape (Pairs + 1) fill 0.0
+  for K in 0 to Pairs reverse
+    Den = N - (K + 1)
+    Grow = 2 * (Pairs - K)
+    if K equal Pairs
+      E1 K = N / Den
+      E0 K = (N + E1 K) / Den
+    else
+      Next = E1 (K + 1)
+      E1 K = (N + Grow * Next) / Den
+      Top = N + Grow * E0 (K + 1) + E1 K
+      E0 K = Top / Den
+    end
+  end
+  return E0 0
+end
