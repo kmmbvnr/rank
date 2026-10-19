@@ -1,0 +1,43 @@
+rem Scoring probabilities
+rem https://projecteuler.net/problem=286
+rem Find q for which the chance of
+rem exactly Hits scores in Shots shots
+rem is Target, when shot x scores with
+rem chance 1 - x / q
+
+use numbers
+use sequences
+use io
+use cli
+
+option Shots integer = 50
+option Hits integer = 20
+option Target real = 0.02
+
+rem Dist[k] is the chance of k scores in
+rem the shots so far. Each shot x moves
+rem a share p of every chance up one
+rem place, the rest stays. That chance
+rem falls as q rises, so bisect on q.
+Lo = Shots + 0.0
+Hi = 100.0
+Xs = 1 to Shots array
+Zero = array 0.0
+for I in 1 to 100
+  Q = (Lo + Hi) / 2
+  Dist = array 1.0
+  for X in Xs
+    P = 1 - X / Q
+    Stay = concat Dist Zero * (1 - P)
+    Move = concat Zero Dist * P
+    Dist = Stay + Move
+  end
+  Mid = Dist Hits
+  if Mid greater Target
+    Lo = Q
+  else
+    Hi = Q
+  end
+end
+Answer = (Lo + Hi) / 2 10 round
+Answer print
