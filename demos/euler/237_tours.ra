@@ -1,0 +1,39 @@
+rem Tours on a 4 x n Playing Board
+rem https://projecteuler.net/problem=237
+rem Count the tours of a 4 by N board
+rem from the top left to the bottom left
+rem square, modulo 10^8
+
+use bits
+use linalg
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000000
+option Mod integer = 100000000
+
+rem The counts 1, 1, 4, 8, 23, 55, 144
+rem follow T(n) = 2 T(n-1) + 2 T(n-2)
+rem - 2 T(n-3) + T(n-4). Raise the
+rem companion matrix to the power N - 4
+rem by squaring, one bit at a time.
+R0 = array 2 2 -2 1
+R1 = array 1 0 0 0
+R2 = array 0 1 0 0
+R3 = array 0 0 1 0
+Step = (concat R0 R1 R2 R3) reshape 4 4
+Ids = 0 till 4 array
+Unit = (Ids reshape 4 1) equal Ids
+Acc = Unit choose 1 0
+Start = array 8 4 1 1
+for B in 0 to 40
+  if (N - 4) B bit
+    Acc = (Acc Step matmul) mod Mod
+  end
+  Step = (Step Step matmul) mod Mod
+end
+Last = Acc Start matmul
+Answer = (Last 0) mod Mod
+Answer print
