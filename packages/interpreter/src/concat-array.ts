@@ -1,5 +1,5 @@
 import { arrayDependencyNode, arrayRevision, derivedArray, readArrayItem, registerArrayReadPlan } from './array-storage.js';
-import { prepareIntegerView } from './integer-view.js';
+import { prepareIntegerView, registerIntegerReadPlan } from './integer-view.js';
 import { inspectionEnabled } from './interrupt.js';
 import { arrayOffset, coordinatesAt } from './tensor-index.js';
 import { MISSING, type RankArray, type RankValue } from './value.js';
@@ -124,13 +124,14 @@ export function concatArrays(arrays: readonly RankArray[], shape: readonly numbe
     });
     concats.set(value, { axis, dependency, shape: [...shape], root, read: value.itemAt });
     registerArrayReadPlan(value, () => prepareIntegerConcat(root, shape, axis));
+    registerIntegerReadPlan(value, () => prepareIntegerConcat(root, shape, axis));
     return value;
 }
 
 /** Copy pure integer leaves directly, without creating per-cell concat caches.
  * Preparing a leaf must prove its storage without evaluating lazy/host cells. */
 function prepareIntegerConcat(root: Part | undefined, shape: readonly number[], axis: number):
-    ((index: number) => RankValue) | undefined {
+    ((index: number) => bigint) | undefined {
     if (inspectionEnabled() || !root) return undefined;
     const leaves: { end: number; length: number; read: (index: number) => bigint; checks: Check[] }[] = [];
     const pending: { part: Part; checks: readonly Check[] }[] = [{ part: root, checks: [] }];
@@ -168,6 +169,6 @@ function prepareIntegerConcat(root: Part | undefined, shape: readonly number[], 
         const outer = Math.floor(index / (width * stride));
         let item: RankValue = leaf.read((outer * leaf.length + position) * stride + index % stride);
         for (const check of leaf.checks) item = check.apply(item);
-        return item;
+        return item as bigint;
     };
 }

@@ -18,6 +18,17 @@ interface View {
 const views = new WeakMap<RankArray, View>();
 const deferredCopies = new WeakSet<RankArray>();
 const checked = new WeakMap<RankArray, { revision: number; integer: boolean }>();
+const integerPlans = new WeakMap<RankArray, {
+    reader: RankArray['itemAt']; prepare(): ((index: number) => bigint) | undefined;
+}>();
+
+/** Internal segmented storage may publish a checked integer reader. Unlike a
+ * general array read plan, this must never evaluate lazy cells or host code. */
+export function registerIntegerReadPlan<T extends RankArray>(value: T,
+    prepare: () => ((index: number) => bigint) | undefined): T {
+    integerPlans.set(value, { reader: value.itemAt, prepare });
+    return value;
+}
 
 /** Only runtime-created selections and contract wrappers may publish views.
  * The public reader still owns its ordinary cache and validation behavior. */
@@ -64,6 +75,14 @@ export function prepareIntegerView(value: RankValue, allowChecks = false): { sha
     }
     const revision = arrayRevision(source);
     if (revision === undefined) return undefined;
+    const plan = integerPlans.get(source);
+    const segmented = plan?.reader === source.itemAt ? plan?.prepare() : undefined;
+    if (segmented) return { shape: value.shape, read(index) {
+        for (const offset of offsets) index = offset(index);
+        let item: RankValue = segmented(index);
+        for (let i = checks.length - 1; i >= 0; i--) item = checks[i](item);
+        return item as bigint;
+    } };
     const items = denseScalarItems(source) ?? materializedArrayItems(source);
     if (!items) return undefined;
     const kinds = storedScalarKinds(source);
