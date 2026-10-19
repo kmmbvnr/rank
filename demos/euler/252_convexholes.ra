@@ -1,0 +1,181 @@
+rem Convex Holes
+rem https://projecteuler.net/problem=252
+rem Points P(i) = (t(2 i - 1), t(2 i)),
+rem with s(0) = 290797, s(n) = s(n -
+rem 1)^2 mod 50515093 and t(n) = s(n)
+rem mod 2000 - 1000. Find the largest
+rem area of a convex polygon on N of
+rem them with no point inside it, others
+rem may be on its sides.
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 500
+
+rem Each polygon is taken from its
+rem lowest point A, then the points
+rem above A in order of angle and
+rem distance, as the fan of triangles
+rem from A. A triangle (A, j, k) is
+rem empty when no point between j and k
+rem in angle is on the A side of the
+rem line j k, kept for a fixed j by the
+rem counterclockwise most point seen so
+rem far. A chain A, ..., h, j, k is best
+rem by the doubled area, the triangle
+rem plus the best chain to j, from an h
+rem that turns left at j, A j being free
+rem of other points when j is inside.
+Sv = 290797
+Tv = array shape (2 * N) fill 0
+for I in 0 till (2 * N)
+  Sv = Sv * Sv mod 50515093
+  Tv I = Sv mod 2000 - 1000
+end
+Px = array shape N fill 0
+Py = array shape N fill 0
+for I in 0 till N
+  Px I = Tv (2 * I)
+  Py I = Tv (2 * I + 1)
+end
+Best = 0
+Hd = array shape N fill 0
+En = array shape 150000 fill 0
+Eh = array shape 150000 fill 0
+Ev = array shape 150000 fill 0
+Ge = array shape N fill 0
+Inr = array shape N fill 0
+for Ai in 0 till N
+  Ax = Px Ai
+  Ay = Py Ai
+  Dx = Px - Ax
+  Dy = Py - Ay
+  Pos = Dy * 4000 + Dx
+  Sel = Pos greater 0
+  Ux = Dx filter Sel array
+  Uy = Dy filter Sel array
+  M = Ux len
+  if M less 2
+    continue
+  end
+  Ds = Ux * Ux + Uy * Uy
+  O1 = Ds argsort
+  Vx = Ux O1
+  Vy = Uy O1
+  Dz = 1 - (Vy 1 min)
+  Dm = Vy 1 max
+  Kk = (0 - Vx) / Dm - 1000000 * Dz
+  O2 = Kk argsort
+  Sx = Vx O2 copy
+  Sy = Vy O2 copy
+  for I in 0 till M
+    Hd I = 0 - 1
+    Inr I = 0
+    if I greater 0
+      Pxy = Sx (I - 1) * Sy I
+      Qxy = Sy (I - 1) * Sx I
+      if Pxy equal Qxy
+        Inr I = 1
+      end
+    end
+  end
+  Gc = M - 1
+  for I in 0 till M
+    J = M - 1 - I
+    Ge J = J
+    if J less M - 1
+      Pxy = Sx J * Sy (J + 1)
+      Qxy = Sy J * Sx (J + 1)
+      if Pxy equal Qxy
+        Ge J = Ge (J + 1)
+      end
+    end
+  end
+  Ec = 0
+  for J in 0 till M
+    Jx = Sx J
+    Jy = Sy J
+    Mi = 0 - 1
+    K = Ge J + 1
+    for
+      if K at least M
+        break
+      end
+      E = Ge K
+      for Q in K to E
+        Qx = Sx Q
+        Qy = Sy Q
+        Ok = 1
+        if Mi at least 0
+          Mx = Sx Mi
+          My = Sy Mi
+          T1 = (Qx - Jx) * (My - Jy)
+          T2 = (Qy - Jy) * (Mx - Jx)
+          Cm = T1 - T2
+          if Cm greater 0
+            Ok = 0
+          end
+        end
+        if Ok equal 1
+          Tri = Jx * Qy - Jy * Qx
+          V = Tri
+          if Inr J equal 0
+            Ed = Hd J
+            for
+              if Ed less 0
+                break
+              end
+              Hh = Eh Ed
+              Hx = Sx Hh
+              Hy = Sy Hh
+              T1 = (Jx - Hx) * (Qy - Hy)
+              T2 = (Jy - Hy) * (Qx - Hx)
+              Cv = T1 - T2
+              if Cv greater 0
+                Cd = Ev Ed + Tri
+                if Cd greater V
+                  V = Cd
+                end
+              end
+              Ed = En Ed
+            end
+          end
+          Eh Ec = J
+          Ev Ec = V
+          En Ec = Hd Q
+          Hd Q = Ec
+          Ec += 1
+          if V greater Best
+            Best = V
+          end
+        end
+      end
+      for Q in K to E
+        Qx = Sx Q
+        Qy = Sy Q
+        Up = 0
+        if Mi less 0
+          Up = 1
+        else
+          Mx = Sx Mi
+          My = Sy Mi
+          T1 = (Mx - Jx) * (Qy - Jy)
+          T2 = (My - Jy) * (Qx - Jx)
+          Cm = T1 - T2
+          if Cm greater 0
+            Up = 1
+          end
+        end
+        if Up equal 1
+          Mi = Q
+        end
+      end
+      K = E + 1
+    end
+  end
+end
+Answer = Best / 2
+Answer print
