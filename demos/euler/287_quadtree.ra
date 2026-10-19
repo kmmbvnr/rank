@@ -1,11 +1,11 @@
-rem Quadtree Encoding (a simple compression
-rem algorithm)
+rem Quadtree Encoding (a simple
+rem compression algorithm)
 rem https://projecteuler.net/problem=287
-rem Find the length of the minimal quadtree
-rem sequence of the black disk D(N): the
-rem pixels of a 2^N square with
-rem (x - 2^(N-1))^2 + (y - 2^(N-1))^2 <=
-rem 2^(2N-2)
+rem Find the length of the minimal
+rem quadtree sequence of the black disk
+rem D(N): the pixels of a 2^N square
+rem with (x - 2^(N-1))^2 + (y -
+rem 2^(N-1))^2 <= 2^(2N-2)
 
 use numbers
 use io
@@ -13,11 +13,12 @@ use cli
 
 option N integer = 24
 
-rem A region that is all black or all white
-rem costs 2 bits, any other 1 bit and the
-rem cost of its four quarters. Walk the
-rem quarters depth first, keeping the open
-rem regions on a stack of corner and size.
+rem A region that is all black or all
+rem white costs 2 bits, any other 1 bit
+rem and the cost of its four quarters.
+rem Walk the quarters depth first,
+rem keeping the open regions on a stack
+rem of corner and size.
 C = 2 ** (N - 1)
 R2 = C * C
 Cap = 4 * N + 8
@@ -63,8 +64,11 @@ for
   if C greater Y1
     Ny = Y1
   end
-  Near = (Nx - C) * (Nx - C) + (Ny - C) * (Ny - C)
-  if Far + Fary at most R2 or Near greater R2
+  Dx = Nx - C
+  Dy = Ny - C
+  Near = Dx * Dx + Dy * Dy
+  Dark = Far + Fary at most R2
+  if Dark or Near greater R2
     Bits += 2
   else
     Bits += 1

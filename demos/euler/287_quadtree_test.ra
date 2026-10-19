@@ -1,0 +1,22 @@
+use testing
+
+rem The default input takes about 80 s.
+test "small images"
+  use "287_quadtree"
+  N = 2
+  run
+
+  Answer equal 30
+  N = 3
+  run
+
+  Answer equal 86
+  N = 8
+  run
+
+  Answer equal 4552
+  N = 12
+  run
+
+  Answer equal 75658
+end
