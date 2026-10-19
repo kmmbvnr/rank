@@ -13,7 +13,8 @@ export function operationShapeFacts(
         && operands[0].types.join() === 'array';
     if (!signature && operation.name !== 'matmul' && !transpose) return;
     const ranks = explicitRanks ?? (operands.length === 1
-        ? [operation.monadicRank ?? 'all'] : operation.dyadicRanks ?? operands.map(() => 'all'));
+        ? [operation.monadicRank ?? 'all'] : operation.dyadicRanks
+            ?? operands.map(() => operands.length > 2 && operation.mapsScalarCells ? 0 : 'all'));
     const partition = rankedOperandShapes(operands, ranks, axes);
     if (!partition) return;
     const { cells, frame } = partition;

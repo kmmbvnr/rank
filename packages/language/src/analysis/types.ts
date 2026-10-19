@@ -336,6 +336,11 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
     const arity = unaryTail ? 1 : parts.length - 1;
     const source = typeOf(unaryTail ? expression.head : head, lookup);
     if (operation.arities.includes(arity)) {
+        if (arity > 2 && operation.mapsScalarCells) {
+            const operands = parts.slice(0, -1).map(part => typeOf(part, lookup));
+            if (operands.some(value => same(value, 'array'))) return ['array'];
+            if (!operands.every(value => within(value, SCALARS))) return UNKNOWN;
+        }
         if (arity === 1 && operation.name === 'integer'
             && source.length && source.every(type => ['integer', 'real', 'boolean', 'text'].includes(type))) return ['integer'];
         if (arity === 1 && within(source, NUMBERS)) {

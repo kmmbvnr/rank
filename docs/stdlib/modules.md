@@ -260,6 +260,10 @@ containing zero is zero, and the `lcm` of an empty sequence is one.
 `powmod` raises an integer base to a nonnegative integer exponent while reducing
 every step modulo a positive integer:
 
+Scalar and array operands may be mixed in any of the three positions. Arrays
+broadcast as in arithmetic and return integer cells; sequences are not implicitly
+materialized. Invalid or missing cells raise when the corresponding result is read.
+
 ```rank
 Value = Base Exponent Modulus powmod
 ```
