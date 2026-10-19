@@ -1,3 +1,4 @@
+import { scalarBuiltinArray } from './scalar-builtin.js';
 import { rankedCells } from './ranked-cells.js';
 import { rankedNumericFind } from './numeric-search.js';
 import { arrayRevision, derivedArray, materializeCells, ownedArray, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
@@ -320,6 +321,9 @@ export class RankApplication {
             });
         }
         if (frameAxes.length === 0) return fn.call([cells.cellAt(0)]);
+
+        const scalarBuiltin = scalarBuiltinArray(value, fn, frameAxes);
+        if (scalarBuiltin) return scalarBuiltin;
 
         return rankedCells(value, fn, cells, this.isPureBuiltin(fn),
             cells.cellShape.length === 0 ? this.scalarCallback(fn) : undefined,

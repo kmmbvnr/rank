@@ -29,7 +29,7 @@ import {
     type SequencePlan,
     type SequencePredicate,
 } from '../value.js';
-import { expectInteger, expectNumeric, mapValue, native } from './shared.js';
+import { expectInteger, expectNumeric, mapValue, native, scalarNative } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const numbersModule: RuntimeModule = {
@@ -65,8 +65,8 @@ export const numbersModule: RuntimeModule = {
         }
         return Math.sqrt(Number(value));
     }),
-    isqrt: () => native('isqrt', 1, arguments_ => {
-        const value = expectInteger(arguments_[0]);
+    isqrt: () => scalarNative('isqrt', argument => {
+        const value = expectInteger(argument);
         if (value < 0n) {
             throw new RankError('isqrt expects a nonnegative integer', 'DomainError');
         }
