@@ -1,0 +1,25 @@
+rem Bitwise-OR Operations on
+rem Random Integers
+rem https://projecteuler.net/problem=323
+
+use numbers
+use io
+use cli
+
+option Bits integer = 32
+
+Answer = Bits expected
+Answer print
+
+fun Bits expected
+  Sum = 0.0
+  for N in 0 to 100
+    Zero = 0.5 ** N
+    Term = 1.0 - (1.0 - Zero) ** Bits
+    Sum += Term
+    if Term less 0.00000000000000000001
+      break
+    end
+  end
+  return Sum
+end

@@ -1,0 +1,22 @@
+use testing
+
+test "one bit"
+  use "323_bitwiseor"
+  use numbers
+  Off = (1 expected) - 2.0
+  Off abs less 0.000000000000001
+end
+
+test "two bits"
+  use "323_bitwiseor"
+  use numbers
+  Off = (2 expected) - (8.0 / 3.0)
+  Off abs less 0.000000000000001
+end
+
+test "problem value"
+  use "323_bitwiseor"
+  use numbers
+  Off = (32 expected) - 6.3551758451
+  Off abs less 0.0000000001
+end
