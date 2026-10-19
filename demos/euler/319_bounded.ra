@@ -1,0 +1,86 @@
+rem Bounded Sequences
+rem https://projecteuler.net/problem=319
+
+use numbers
+use io
+use cli
+
+option N integer = 10000000000
+option Limit integer = 4641589
+
+Mod = 1000000000
+Sent = N + 1
+Mu = array shape (Limit + 1) fill 2
+Mu 0 = 0
+Mu 1 = 1
+PrimeSize = Limit // 2 + 1
+Pr = array shape PrimeSize fill 0
+Cnt = 0
+for I in 2 to Limit
+  if Mu I equal 2
+    Pr Cnt = I
+    Cnt += 1
+    Mu I = -1
+  end
+  for J in 0 till Cnt
+    V = I * Pr J
+    if V greater Limit
+      break
+    end
+    if I mod (Pr J) equal 0
+      Mu V = 0
+      break
+    end
+    Mu V = -(Mu I)
+  end
+end
+for I in 1 to Limit
+  Mu I += Mu (I - 1)
+end
+Root = N isqrt + 2
+Cache = array shape Root fill Sent
+Answer = 1
+L = 1
+for L at most N
+  Q = N // L
+  R = N // Q
+  A = (R coeff) - ((L - 1) coeff)
+  M = Q Cache mertens
+  Answer = (Answer + A * M) mod Mod
+  L = R + 1
+end
+Answer print
+
+fun M coeff
+  if M at most 0
+    return 0
+  end
+  Twice = 2 * Mod
+  P3 = 3 (M + 1) Twice powmod
+  S3 = (P3 - 3) mod Twice
+  S3 //= 2
+  P2 = 2 (M + 1) Mod powmod
+  S2 = (P2 - 2) mod Mod
+  return (S3 - S2 - M) mod Mod
+end
+
+fun X Cache mertens
+  if X at most Limit
+    return Mu X
+  end
+  Slot = N // X
+  if Cache Slot not equal Sent
+    return Cache Slot
+  end
+  Sum = 1
+  L = 2
+  for L at most X
+    Q = X // L
+    R = X // Q
+    M = Q Cache mertens
+    Sum -= (R - L + 1) * M
+    L = R + 1
+  end
+  Cache Slot = Sum
+  return Sum
+end

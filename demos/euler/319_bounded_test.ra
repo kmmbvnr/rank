@@ -1,0 +1,19 @@
+use testing
+
+test "given small counts"
+  use "319_bounded"
+  N = 2
+  Limit = 2
+  run
+  1 coeff equal 0
+  2 coeff equal 4
+  Answer equal 5
+end
+
+test "given medium counts"
+  use "319_bounded"
+  N = 20
+  Limit = 20
+  run
+  Answer equal 227991891
+end
