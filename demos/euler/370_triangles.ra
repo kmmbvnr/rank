@@ -41,7 +41,8 @@ fun P Limit normq
   for Norm at most Limit
     Q += 1
     Next = Q + 1
-    Norm = Next * Next + P * Next + P * P
+    Norm = Next * Next
+    Norm += P * Next + P * P
   end
   return Q
 end
@@ -54,7 +55,8 @@ fun Fs I D Sign Lo Hi inc
   end
   A = Fs (I + 1) D Sign Lo Hi inc
   Next = D * Fs I
-  B = Fs (I + 1) Next (0 - Sign) Lo Hi inc
+  Neg = 0 - Sign
+  B = Fs (I + 1) Next Neg Lo Hi inc
   return A + B
 end
 
