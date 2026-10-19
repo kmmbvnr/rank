@@ -58,6 +58,13 @@ describe('numeric search', () => {
         expect(() => run('use sequences\n(array 1 2) (array 2 9) find copy')).toThrow('no matching value');
     });
 
+    it('declines nonnumeric default queries before allocating a numeric source index', () => {
+        const runtime = new Interpreter(), diagnostics = new RuntimeDiagnostics();
+        const result = diagnostics.run(() => runtime.execute('use sequences\nV = array 1 2\nQ = array "x" "y"\nV Q find default -1'));
+        expect(format(result)).toBe('-1 -1');
+        expect(diagnostics.numericSearchIndexes).toBe(0);
+    });
+
     it('retains snapshots and leaves overrides and user functions alone', () => {
         const runtime = new Interpreter();
         runtime.execute('use sequences\nV = array 1 2 1\nQ = array 1 2\nR = V Q find');

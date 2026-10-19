@@ -16,10 +16,11 @@ export function queryDefault(operation: 'find' | 'floor' | 'choose', left: RankV
         const source = typeof left === 'string' ? Array.from(left)
             : isRankArray(left) && left.shape.length === 1 ? denseScalarItems(left) : undefined;
         if (!source) return undefined;
-        let numeric = numericFindPositions(left);
-        for (let i = 0; numeric && i < items.length; i++) {
-            if (numericKey(items[i]) === undefined) numeric = undefined;
+        let numericQueries = true;
+        for (let i = 0; i < items.length; i++) {
+            if (numericKey(items[i]) === undefined) { numericQueries = false; break; }
         }
+        const numeric = numericQueries ? numericFindPositions(left) : undefined;
         if (numeric) {
             const positions = numeric;
             probe = value => {

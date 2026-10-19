@@ -2,8 +2,10 @@
 
 Issue [#312](https://github.com/kmmbvnr/rank/issues/312). Node v24.15.0,
 darwin/arm64. Baseline: `96a22cbdb1206c3229c579287444373b255abef2`;
-measured runtime: `d44ed2e1e0172c8e327db3cb5d20103289f3904f`. Later report/documentation commits
-do not change runtime source. Baseline samples come from the preceding comparison;
+measured runtime: `d44ed2e1e0172c8e327db3cb5d20103289f3904f`. The measured ordering, distinct and search kernels are unchanged in the final
+implementation; a later query/default admission cleanup avoids building an
+unusable numeric index for nonnumeric targets. That default-specific path is
+covered by tests and is not one of the timed cases below. Baseline samples come from the preceding comparison;
 final candidate samples follow the storage-reader cleanup. Each sample uses a
 fresh process, with three samples per operation and medians below.
 
