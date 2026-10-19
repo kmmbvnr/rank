@@ -10,6 +10,7 @@ rem the one in memory longest. Find the
 rem expected |L - R|.
 
 use numbers
+use sequences
 use io
 use cli
 
@@ -49,11 +50,9 @@ for
   Code = Sc I
   L = Code // Bs
   R = Code mod Bs // Pw mod 7
-  Zs = (R equal 0) sum
-  M = 5 - Zs
-  O = (R equal 1) sum
-  for Ev in 0 to (L + M)
-    Fresh = Ev equal L + M
+  O = (R equal 1) count
+  for Ev in 0 to (L + 5)
+    Fresh = Ev equal L + 5
     Wt = 1
     Dl = 0
     L2 = L
@@ -99,14 +98,10 @@ for
     Ok = Ok and Wt greater 0
     if Ok
       if Dl equal 1 or Fresh
-        if M equal 5
-          for J in 0 to 3
-            R2 J = R2 (J + 1)
-          end
-          R2 4 = L2 + 1
-        else
-          R2 M = L2 + 1
+        for J in 0 to 3
+          R2 J = R2 (J + 1)
         end
+        R2 4 = L2 + 1
       end
       if Ev at least L and not Fresh
         R2 (Ev - L) = L2 + 1
