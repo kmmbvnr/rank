@@ -11,6 +11,8 @@ export class RuntimeDiagnostics {
     hoistedReaders = 0;
     loopElementScans = 0;
     compiledLoops = 0;
+    numberLoops = 0;
+    numberLoopOverflows = 0;
     compiledTensors = 0;
     compiledArrayFunctions = 0;
     rankedArrayBatches = 0;

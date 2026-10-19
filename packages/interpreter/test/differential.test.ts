@@ -3,7 +3,7 @@ import { resolve, dirname, relative } from 'node:path';
 import { createHash } from 'node:crypto';
 import { setImmediate } from 'node:timers/promises';
 import { afterAll, describe, expect, it } from 'vitest';
-import { Interpreter, RankError, type RankValue } from '../src/index.js';
+import { Interpreter, RankError, RuntimeDiagnostics, type RankValue } from '../src/index.js';
 import { MemoryIo, TokenInput } from './support.js';
 
 const demos = resolve(import.meta.dirname, '../../../demos');
@@ -13,8 +13,21 @@ function programs(directory: string): string[] {
         return entry.isDirectory() ? programs(file) : file.endsWith('.ra') ? [file] : [];
     }).sort();
 }
-// Programs sized for compiled code need over a minute in the reference interpreter (issues #311, #316).
-const tooSlow = /^euler\/(149|150|154|155|165|170|177|179|181|185|186|193|195|196|198)_/;
+// Full comparisons over the time/resource budget remain excluded (issues #311, #316).
+const tooSlow = new RegExp('^euler/(?:' + [
+    '150_subtriangle(?:_default_test)?',
+    '154_pascalpyramid',
+    '155_capacitors',
+    '165_intersections',
+    '170_pandigitalproducts(?:_test)?',
+    '177_quadrilaterals(?:_test)?',
+    '179_consecutivedivisors',
+    '185_numbermind(?:_test)?',
+    '186_connectedness(?:_test)?',
+    '193_squarefree',
+    '196_primetriplets(?:_test)?',
+    '198_ambiguous(?:_test)?',
+].join('|') + ')\\.ra$');
 const sources = new Map(programs(demos).map(file => [file, readFileSync(file, 'utf8')]));
 
 // Snapshot eager values without forcing lazy streams or calling user functions.
@@ -43,6 +56,7 @@ function run(file: string, compilation: boolean) {
     const io = new MemoryIo({}), input = new TokenInput([]);
     let seed = 12345, entries = 0;
     const executed = () => entries++;
+    const diagnostics = new RuntimeDiagnostics();
     const runtime = new Interpreter(text => output.push(text), {
         compilation, sourceId: file, testing: true, io, input,
         environment: { get: name => environment.get(name), set: (name, value) => {
@@ -55,14 +69,14 @@ function run(file: string, compilation: boolean) {
             if (source === undefined) throw new Error(`No corpus module: ${relative(demos, id)}`);
             return { id, source };
         },
-        onScalarExecuted: executed, onIntegerLoopExecuted: executed, onBlockExecuted: executed,
+        onScalarExecuted: executed, onBlockExecuted: executed,
         onScalarFunctionExecuted: executed, onTensorKernelExecuted: executed, onFunctionBodyExecuted: executed,
     });
     let value: unknown, error: string | undefined;
-    try { value = snapshot(runtime.execute(sources.get(file)!)); }
+    try { value = snapshot(diagnostics.run(() => runtime.execute(sources.get(file)!))); }
     catch (failure) { error = failure instanceof RankError ? failure.format() : String(failure); }
     finally { runtime.dispose(); }
-    return { entries, observation: { value, error, output, environment: [...environment],
+    return { entries: entries + diagnostics.compiledLoops, numberEntries: diagnostics.numberLoops, observation: { value, error, output, environment: [...environment],
         files: [...io.files], closed: io.handles.map(handle => handle.closed), inputReads: input.reads,
         tests: runtime.testResults.map(({ durationMs: _, ...result }) => result),
     } };
@@ -76,7 +90,7 @@ describe('compiled and reference demo execution', () => {
     }
     const files = [...sources.keys()].filter(file => !tooSlow.test(relative(demos, file))).filter(file =>
         createHash('sha256').update(relative(demos, file)).digest().readUInt32BE(0) % count === shard);
-    let compared = 0, completed = 0, tests = 0, entries = 0;
+    let compared = 0, completed = 0, tests = 0, entries = 0, numberEntries = 0;
     for (const file of files) it(relative(demos, file), async () => {
         console.log(`comparing ${relative(demos, file)}`);
         const reference = run(file, false), compiled = run(file, true);
@@ -87,18 +101,20 @@ describe('compiled and reference demo execution', () => {
         completed += Number(!compiled.observation.error);
         tests += compiled.observation.tests.length;
         entries += compiled.entries;
+        numberEntries += compiled.numberEntries;
     }, 300_000);
     afterAll(() => {
-        console.log(`differential: ${compared}/${files.length} compared, ${completed} completed, ${tests} test blocks, ${entries} compiled entries`);
+        console.log(`differential: ${compared}/${files.length} compared, ${completed} completed, ${tests} test blocks, ${entries} compiled entries, ${numberEntries} Number loop entries`);
         if (compared !== files.length) return; // A name-filtered run reports only selected fixtures.
         const summary = process.env.RANK_DIFFERENTIAL_SUMMARY;
-        if (summary) writeFileSync(summary, JSON.stringify({ shard, count, files: files.map(file => relative(demos, file)), completed, tests, entries }));
+        if (summary) writeFileSync(summary, JSON.stringify({ shard, count, files: files.map(file => relative(demos, file)), completed, tests, entries, numberEntries }));
         expect(completed).toBeGreaterThan(0);
         expect(entries).toBeGreaterThan(0);
         if (count === 1) {
             expect(compared).toBe([...sources.keys()].filter(file => !tooSlow.test(relative(demos, file))).length);
             expect(completed).toBeGreaterThan(400);
             expect(tests).toBeGreaterThan(100);
+            expect(numberEntries).toBeGreaterThan(0);
         }
     });
 });

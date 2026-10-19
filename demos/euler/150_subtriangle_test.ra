@@ -25,3 +25,16 @@ test "smaller triangles"
 
   Answer equal -87957828
 end
+
+
+test "smallest triangles"
+  use "150_subtriangle"
+  Rows = 1
+  run
+
+  Answer equal 273519
+  Rows = 2
+  run
+
+  Answer equal -153582
+end

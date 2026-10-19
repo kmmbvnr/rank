@@ -1,5 +1,29 @@
 # Compiler progress
 
+## Safe Number registers in private integer loops
+
+Integer-loop planning and lowering are separate from invocation binding and
+storage access. A second backend uses safe Number registers for integer/boolean
+regions with private scalar writes and eager rank-one integer array reads. Every
+potentially unsafe integer intermediate is guarded. An overflow discards the
+unpublished region and uses its existing BigInt backend; calls, mutations,
+unsupported contracts and observable readers do not enter this specialization.
+Normal/error exits preserve exact integer bindings and partial state. Atomics
+cancellation publishes completed assignments before unwinding through `finally`.
+Inspection and arbitrary host polling keep the existing publishing backend.
+
+Euler 150 accumulates the flat row start once per row instead of recomputing its
+triangular number for every apex. Its array construction remains on the BigInt
+backend; the expensive read-only search uses Number registers. The default
+answer and one-/two-row boundaries are checked by the demo tests. The runtime
+optimization also applies to the frozen original demo without source changes.
+
+`node benchmarks/number-loops.mjs --baseline=/path/to/out/index.js` verifies the
+100-million-iteration repro and original/current default Euler 150, with repeated
+fresh-process execution and cold timings plus separate diagnostic runs. See the
+[benchmark report](../../benchmarks/number-loops-results.md) for measurements,
+numeric-buffer memory costs and the differential exclusion audit.
+
 ## Checked integer slice writes
 
 Rank-1 stored integer arrays now have a guarded bulk-write path for `=`, `+=`,

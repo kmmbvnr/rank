@@ -25,10 +25,11 @@ for I in 0 to Cells - 1
 end
 Cum = T scan + with 0 copy
 Answer = T min
+Start = 0
 for R in 0 to Rows - 1
   for C in 0 to R
     Sum = 0
-    A = R * (R + 1) // 2 + C
+    A = Start + C
     for H in 0 to Rows - 1 - R
       Sum += Cum (A + H + 1) - Cum A
       if Sum less Answer
@@ -37,5 +38,6 @@ for R in 0 to Rows - 1
       A += R + H + 1
     end
   end
+  Start += R + 1
 end
 Answer print

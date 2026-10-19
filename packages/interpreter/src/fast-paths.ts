@@ -166,6 +166,8 @@ export class FastPaths {
     /** A numeric loop compiled to straight-line code over local registers. */
     compileLoop(statement: ForStatement, binding: ForBinding | undefined): CompiledLoop | undefined {
         const compiled = this.context.options().integerLoopCompilation !== false ? compileIntegerLoop(statement, {
+            observableEntry: this.context.options().onIntegerLoopExecuted !== undefined,
+            canDeferWrites: bindings => this.context.options().numberLoopCompilation !== false && this.context.bindings.canDeferWrites(bindings),
             tensorReadHoisting: this.context.options().tensorReadHoisting !== false,
             read: name => this.context.bindings.find(name),
             writer: name => this.context.compileAssign(name),

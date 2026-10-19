@@ -62,6 +62,8 @@ export interface InterpreterOptions {
     readonly functionBodyCompilation?: boolean;
     readonly onFunctionBodyCompiled?: (source: string) => void;
     readonly onFunctionBodyExecuted?: () => void;
+    /** Use private safe-Number registers in replay-safe integer loops. */
+    readonly numberLoopCompilation?: boolean;
     readonly integerLoopCompilation?: boolean;
     readonly onIntegerLoopCompiled?: (source: string) => void;
     readonly onIntegerLoopExecuted?: () => void;

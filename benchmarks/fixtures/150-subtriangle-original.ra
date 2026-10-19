@@ -1,0 +1,41 @@
+rem Searching a Triangular Array for a
+rem Sub-triangle having Minimum-sum
+rem https://projecteuler.net/problem=150
+rem Find the least sum of any
+rem sub-triangle of a pseudo-random
+rem triangular array
+
+use sequences
+use io
+use cli
+
+option Rows integer = 1000
+
+rem The array is stored row by row. A
+rem prefix sum of the flat array gives
+rem each row segment, and a triangle
+rem grows from its apex one row down at
+rem a time.
+Cells = Rows * (Rows + 1) // 2
+T = array shape Cells fill 0
+V = 0
+for I in 0 to Cells - 1
+  V = (615949 * V + 797807) mod 1048576
+  T I = V - 524288
+end
+Cum = T scan + with 0 copy
+Answer = T min
+for R in 0 to Rows - 1
+  for C in 0 to R
+    Sum = 0
+    A = R * (R + 1) // 2 + C
+    for H in 0 to Rows - 1 - R
+      Sum += Cum (A + H + 1) - Cum A
+      if Sum less Answer
+        Answer = Sum
+      end
+      A += R + H + 1
+    end
+  end
+end
+Answer print

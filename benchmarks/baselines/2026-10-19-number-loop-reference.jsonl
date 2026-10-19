@@ -1,0 +1,33 @@
+{"file":"149_maxsubsequence.ra","heap":1536,"elapsedMs":28006.095166,"status":0,"signal":null,"output":["52852124"],"testBlocks":0,"testsPassed":true}
+{"file":"149_maxsubsequence_test.ra","heap":1536,"elapsedMs":28378.069666,"status":0,"signal":null,"output":[],"testBlocks":3,"testsPassed":true}
+{"file":"150_subtriangle.ra","heap":1536,"elapsedMs":60010.43462500001,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"150_subtriangle_test.ra","heap":1536,"elapsedMs":4444.590542000005,"status":0,"signal":null,"output":[],"testBlocks":2,"testsPassed":true}
+{"file":"154_pascalpyramid.ra","heap":1536,"elapsedMs":60013.485292,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"154_pascalpyramid_test.ra","heap":1536,"elapsedMs":684.749542000005,"status":0,"signal":null,"output":[],"testBlocks":1,"testsPassed":true}
+{"file":"155_capacitors.ra","heap":1536,"elapsedMs":60022.82779099999,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"155_capacitors_test.ra","heap":1536,"elapsedMs":6550.942500000005,"status":0,"signal":null,"output":[],"testBlocks":2,"testsPassed":true}
+{"file":"165_intersections.ra","heap":1536,"elapsedMs":60010.682207999984,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"165_intersections_test.ra","heap":1536,"elapsedMs":8986.192958,"status":0,"signal":null,"output":[],"testBlocks":2,"testsPassed":true}
+{"file":"170_pandigitalproducts.ra","heap":1536,"elapsedMs":60019.935,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"170_pandigitalproducts_test.ra","heap":1536,"elapsedMs":60013.07545800001,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"177_quadrilaterals.ra","heap":1536,"elapsedMs":60024.318750000035,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"177_quadrilaterals_test.ra","heap":1536,"elapsedMs":60037.36170800007,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"179_consecutivedivisors.ra","heap":1536,"elapsedMs":13200.215292000095,"status":null,"signal":"SIGABRT"}
+{"file":"179_consecutivedivisors_test.ra","heap":1536,"elapsedMs":10348.071958000073,"status":0,"signal":null,"output":[],"testBlocks":1,"testsPassed":true}
+{"file":"181_groupingtwocolours.ra","heap":1536,"elapsedMs":18931.063832999906,"status":0,"signal":null,"output":["83735848679360680"],"testBlocks":0,"testsPassed":true}
+{"file":"181_groupingtwocolours_test.ra","heap":1536,"elapsedMs":16434.617249999894,"status":0,"signal":null,"output":[],"testBlocks":2,"testsPassed":true}
+{"file":"185_numbermind.ra","heap":1536,"elapsedMs":60017.24666599999,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"185_numbermind_test.ra","heap":1536,"elapsedMs":60017.64041600004,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"186_connectedness.ra","heap":1536,"elapsedMs":60016.632291999995,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"186_connectedness_test.ra","heap":1536,"elapsedMs":60023.50262500008,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"193_squarefree.ra","heap":1536,"elapsedMs":60027.95400000003,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"193_squarefree_test.ra","heap":1536,"elapsedMs":630.5276669999585,"status":0,"signal":null,"output":[],"testBlocks":1,"testsPassed":true}
+{"file":"195_inscribedcircles.ra","heap":1536,"elapsedMs":16107.247790999943,"status":0,"signal":null,"output":["75085391"],"testBlocks":0,"testsPassed":true}
+{"file":"195_inscribedcircles_test.ra","heap":1536,"elapsedMs":16149.615624999977,"status":0,"signal":null,"output":[],"testBlocks":2,"testsPassed":true}
+{"file":"196_primetriplets.ra","heap":1536,"elapsedMs":4346.555249999976,"status":null,"signal":"SIGABRT"}
+{"file":"196_primetriplets_test.ra","heap":1536,"elapsedMs":4529.283916000044,"status":null,"signal":"SIGABRT"}
+{"file":"198_ambiguous.ra","heap":1536,"elapsedMs":60008.23108299996,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"198_ambiguous_test.ra","heap":1536,"elapsedMs":60011.29454100004,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"179_consecutivedivisors.ra","heap":"Node default","elapsedMs":60101.455708,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"196_primetriplets.ra","heap":"Node default","elapsedMs":60062.58479200001,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
+{"file":"196_primetriplets_test.ra","heap":"Node default","elapsedMs":60059.36962499999,"status":null,"signal":"SIGTERM","error":"ETIMEDOUT"}
