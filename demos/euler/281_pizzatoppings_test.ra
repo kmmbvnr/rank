@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "281_pizzatoppings"
+  run
+
+  Answer equal 1485776387445623
+end
+
+test "small limits"
+  use "281_pizzatoppings"
+  Limit = 2
+  run
+
+  Answer equal 5
+  Limit = 16
+  run
+
+  Answer equal 41
+end
