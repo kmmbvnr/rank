@@ -1,0 +1,7 @@
+use testing
+
+test "full constrained lists"
+  use "350_constraining"
+  run
+  Answer equal 84664213
+end

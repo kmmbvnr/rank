@@ -1,6 +1,10 @@
+import { mapStoredIntegers } from './integer-array-kernel.js';
+import { prepareDenseOperands, isArrayValue, numericKinds, DENSE_MIN_CELLS } from './tensor-operands.js';
+import { arrayStrides, broadcastOffset, broadcastShape, trailingCells } from './tensor-layout.js';
+export { broadcastShape } from './tensor-layout.js';
 import { prepareStoredScalarView, type LinearView } from './integer-view.js';
 import { mapPair, runExecution } from './execution.js';
-import { evaluateArrayItem, derivedArray, denseScalarItems, storedOperandItems, float64Cells, ownedArray, ownedScalarArray, realCells, storedScalarKinds, typedArray } from './array-storage.js';
+import { evaluateArrayItem, derivedArray, denseScalarItems, storedOperandItems, float64Cells, ownedArray, realCells, typedArray } from './array-storage.js';
 import { RankError } from './errors.js';
 import { checkpoint, InterruptedError } from './interrupt.js';
 import type { RankArray, RankValue } from './value.js';
@@ -53,34 +57,14 @@ export function mapDenseArrays(
     operation: (left: RankValue, right: RankValue) => RankValue,
     realCode = -1,
     allowSmall = false,
+    integerOperation = ['+', '-', '*'][realCode],
 ): RankArray | undefined {
-    const leftArray = isArrayValue(left) ? left : undefined;
-    const rightArray = isArrayValue(right) ? right : undefined;
-    if (!leftArray && !isNumeric(left)) return undefined;
-    if (!rightArray && !isNumeric(right)) return undefined;
-    const shape = leftArray && rightArray
-        ? broadcastShape(leftArray.shape, rightArray.shape) : (leftArray ?? rightArray!).shape;
-    const size = shape.reduce((product, dimension) => product * dimension, 1);
-    // Small stored numeric formulas need no lazy cell maps. Comparison masks
-    // retain their lazy/read-only interface; unread or host operands decline.
-    if (size < DENSE_MIN_CELLS) {
-        if (!allowSmall || realCode > LAST_ARITHMETIC_CODE) return undefined;
-        const numeric = (array: RankArray | undefined, scalar: RankValue) => {
-            if (!array) return isNumeric(scalar);
-            const items = denseScalarItems(array) && storedOperandItems(array);
-            if (!items) {
-                const view = prepareStoredScalarView(array, true);
-                return view?.regular && numericKinds(view.kinds);
-            }
-            for (let index = 0; index < items.length; index++) {
-                if (!isNumeric(items[index])) return false;
-            }
-            return true;
-        };
-        if (!numeric(leftArray, left) || !numeric(rightArray, right)) return undefined;
-    }
-    let leftItems = leftArray ? storedOperandItems(leftArray) : undefined;
-    let rightItems = rightArray ? storedOperandItems(rightArray) : undefined;
+    const integers = mapStoredIntegers(left, right, integerOperation);
+    if (integers) return integers;
+    const operands = prepareDenseOperands(left, right, realCode, allowSmall);
+    if (!operands) return undefined;
+    const { leftArray, rightArray, shape, size } = operands;
+    let { leftItems, rightItems } = operands;
     if (leftArray && !leftItems || rightArray && !rightItems) {
         return mapStoredViews(left, right, shape, operation, realCode);
     }
@@ -91,28 +75,6 @@ export function mapDenseArrays(
     // of the result's, so its cell is the index modulo n; -1: general broadcast.
     let leftMod = leftArray ? trailingCells(leftArray.shape, shape) : 0;
     let rightMod = rightArray ? trailingCells(rightArray.shape, shape) : 0;
-    // Exact stored integers need neither per-cell numeric dispatch nor a
-    // second output type scan. No narrowing to Number or signed 64-bit occurs.
-    const integer = (array: RankArray | undefined, scalar: RankValue) => array
-        ? denseScalarItems(array) !== undefined && storedScalarKinds(array)?.every(kind => kind === 'integer') === true
-        : typeof scalar === 'bigint';
-    if (realCode >= 0 && realCode <= 2 && leftMod >= 0 && rightMod >= 0
-        && integer(leftArray, left) && integer(rightArray, right)) {
-        const a = leftItems as ArrayLike<bigint> | undefined, b = rightItems as ArrayLike<bigint> | undefined;
-        const op = realCode === 0 ? (a: bigint, b: bigint) => a + b
-            : realCode === 1 ? (a: bigint, b: bigint) => a - b : (a: bigint, b: bigint) => a * b;
-        const cells: bigint[] = new Array(size);
-        for (let start = 0; start < size; start += DENSE_CHUNK) {
-            const end = Math.min(size, start + DENSE_CHUNK);
-            checkpoint('computing integer array', end - start);
-            for (let index = start; index < end; index++) {
-                const x = a ? a[leftMod ? index % leftMod : index] : left as bigint;
-                const y = b ? b[rightMod ? index % rightMod : index] : right as bigint;
-                cells[index] = op(x, y);
-            }
-        }
-        return ownedScalarArray(cells, 'integer', shape);
-    }
     // Real arithmetic on real cells gives real cells, so the result goes straight
     // into a typed buffer: no boxed doubles, and one allocation outside the heap.
     // Integers beside reals count as reals, as they do in scalar arithmetic.
@@ -307,7 +269,6 @@ export function chooseDenseArrays(
 const isScalarCell = (cell: RankValue) => typeof cell === 'number' || typeof cell === 'bigint'
     || typeof cell === 'boolean' || typeof cell === 'string';
 
-const DENSE_MIN_CELLS = 1024;
 const DENSE_CHUNK = 4096;
 
 /**
@@ -441,14 +402,6 @@ function compareKernel(
     return out;
 }
 
-function trailingCells(operand: readonly number[], result: readonly number[]): number {
-    if (operand.length === result.length) return operand.every((size, axis) => size === result[axis]) ? 0 : -1;
-    if (operand.length > result.length) return -1;
-    const offset = result.length - operand.length;
-    return operand.every((size, axis) => size === result[offset + axis])
-        ? operand.reduce((product, size) => product * size, 1) : -1;
-}
-
 /** Codes for the real operations that run without a call through `operation`. */
 export const REAL_CODES: Readonly<Record<string, number>> = {
     '+': 0, '-': 1, '*': 2, '/': 3, '**': 4, less: 5, greater: 6, atmost: 7, atleast: 8,
@@ -467,57 +420,4 @@ function realOperation(
         case 3: return b === 0 ? operation(a, b) : a / b;
         default: return operation(a, b);
     }
-}
-const isArrayValue =(value: RankValue): value is RankArray =>
-    typeof value === 'object' && value !== null && (value as { kind?: string }).kind === 'array';
-const isNumeric = (value: RankValue) => typeof value === 'number' || typeof value === 'bigint';
-const numericKinds = (kinds: readonly string[] | undefined): boolean => kinds !== undefined
-    && (kinds.every(kind => kind === 'integer') || kinds.every(kind => kind === 'real' || kind === 'numeric-limit'));
-
-export function broadcastShape(
-    left: readonly number[],
-    right: readonly number[],
-): readonly number[] {
-    const rank = Math.max(left.length, right.length);
-    const shape = Array(rank).fill(1) as number[];
-    for (let offset = 1; offset <= rank; offset += 1) {
-        const a = left.at(-offset) ?? 1;
-        const b = right.at(-offset) ?? 1;
-        if (a !== b && a !== 1 && b !== 1) {
-            throw new RankError(
-                `shape mismatch: ${left.join(',')} and ${right.join(',')}`,
-                'DimensionMismatch',
-            );
-        }
-        shape[rank - offset] = a === 1 ? b : b === 1 ? a : a;
-    }
-    return shape;
-}
-
-function broadcastOffset(
-    index: number,
-    resultShape: readonly number[],
-    sourceShape: readonly number[],
-    sourceStrides: readonly number[],
-): number {
-    const leading = resultShape.length - sourceShape.length;
-    let remaining = index;
-    let offset = 0;
-    for (let axis = resultShape.length - 1; axis >= 0; axis -= 1) {
-        const coordinate = remaining % resultShape[axis];
-        remaining = Math.floor(remaining / resultShape[axis]);
-        const sourceAxis = axis - leading;
-        if (sourceAxis >= 0 && sourceShape[sourceAxis] !== 1) {
-            offset += coordinate * sourceStrides[sourceAxis];
-        }
-    }
-    return offset;
-}
-
-function arrayStrides(shape: readonly number[]): number[] {
-    const strides = Array(shape.length).fill(1) as number[];
-    for (let axis = shape.length - 2; axis >= 0; axis -= 1) {
-        strides[axis] = strides[axis + 1] * shape[axis + 1];
-    }
-    return strides;
 }

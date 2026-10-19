@@ -748,6 +748,12 @@ function transferApplicationFacts(
             }
             const shaped = operation.sortDirection && arity === 2 ? undefined
                 : operationShapeFacts(operation, operands);
+            if (arity > 2 && operation.mapsScalarCells) {
+                if (operands.some(operand => operand.types.join() === 'array')) {
+                    return { ...(shaped ?? { types: ['array'] }), elements: resultTypes(operation) };
+                }
+                return shaped ?? UNKNOWN_VALUE;
+            }
             // Extrema select an ordered value, including text, rather than
             // manufacturing a number. The numeric shape signature alone cannot
             // establish their result domain or text's runtime rank.

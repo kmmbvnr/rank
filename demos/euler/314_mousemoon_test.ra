@@ -1,4 +1,5 @@
 use testing
+use numbers
 
 test "small lattice ratio"
   use "314_mousemoon"

@@ -133,7 +133,7 @@ export interface Operation {
     readonly write?: { readonly arity: number; readonly signatures: readonly TypeSignature[]; readonly effects: readonly Effect[] };
     /** Operand domain in which scalar calls cannot invoke Rank callbacks. Throws are allowed. */
     readonly scalarNoCallback?: 'integer' | 'number';
-    /** Unary application maps each scalar cell of an array or sequence. */
+    /** Scalar application maps array cells; unary forms also map sequences. */
     readonly mapsScalarCells?: true;
     /** Accepted cells for a callback-free reduction of one scalar-cell array. */
     readonly scalarCellArrayNoCallback?: 'number' | 'boolean';
@@ -913,9 +913,13 @@ export const operations: readonly Operation[] = [
         scalarNoCallback: 'integer', summary: 'True for an odd integer.' },
     { name: 'powmod', module: 'numbers', arities: [3], form: 'Base Exponent Modulus powmod',
         compiledCall: { inputs: ['integer', 'integer', 'integer'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
-        signatures: [{ inputs: ['integer', 'integer', 'integer'], result: 'integer' }],
-        shape: [{ args: [null, null, null], result: [] }],
-        result: 'integer', scalarNoCallback: 'integer',
+        signatures: Array.from({ length: 8 }, (_, mask): TypeSignature => ({
+            inputs: [0, 1, 2].map(index => mask & (1 << index)
+                ? { collection: 'array', element: 'integer' } : 'integer'),
+            result: mask ? { collection: 'array', element: 'integer' } : 'integer',
+        })),
+        shape: [{ args: [[], [], []], result: [] }],
+        result: 'integer', scalarNoCallback: 'integer', mapsScalarCells: true,
         summary: 'Modular exponentiation by repeated squaring, never building the full power.' },
     { name: 'floor', module: 'numbers', alsoModules: ['algo'], arities: [1, 2],
         form: 'Value floor | Bag floor Limit', result: 'value', mapsScalarCells: true,

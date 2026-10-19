@@ -8,6 +8,9 @@ import { analyzeBindings, analyzeValues } from '@arrrank/language';
 import { Interpreter, isRankArray, parse, typeName } from '../src/index.js';
 
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));
+// Share the execution budget with differential tests; static checks still see every source.
+const executionExclusions = new Set(Object.keys(JSON.parse(fs.readFileSync(
+    new URL('../../../scripts/demo-execution-exclusions.json', import.meta.url), 'utf8'))));
 
 function programs(): string[] {
     const files: string[] = [];
@@ -24,9 +27,10 @@ function programs(): string[] {
 
 /**
  * The rule that makes static types worth showing: the analyzer may say nothing,
- * but it may never say something false. Every demo that runs without a host —
+ * but it may never say something false. Each eligible demo that runs without a host —
  * no standard input, no files, no database — is checked name by name against
- * the values its run actually produced.
+ * the values its run actually produced. Default-scale execution exclusions are
+ * shared with the differential audit; static source checks remain unchanged.
  */
 interface Audit {
     readonly contradictions: string[];
@@ -97,11 +101,12 @@ describe('inferred types against the values a run produced', () => {
     if (!Number.isInteger(shardCount) || shardCount < 1 || !Number.isInteger(shard) || shard < 0 || shard >= shardCount) {
         throw new Error('Invalid type audit shard');
     }
-    const files = programs().filter(file =>
+    const files = programs().filter(file => !executionExclusions.has(path.relative(demos, file))).filter(file =>
         createHash('sha256').update(path.relative(demos, file)).digest().readUInt32BE(0) % shardCount === shard);
     const results = new Map<string, Audit>();
     for (const file of files) {
         it(path.relative(demos, file), async context => {
+            console.log(`auditing ${path.relative(demos, file)}`);
             const result = audit(file);
             results.set(file, result);
             // Process worker messages and deadlines after each CPU-bound demo.

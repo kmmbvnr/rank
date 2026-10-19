@@ -1017,6 +1017,20 @@ export function arrayCellValidator(value: RankArray): ((cell: RankValue, index: 
 }
 
 const MAX_CACHED_CELLS = 1 << 24;
+const MAX_LAZY_ARRAY_DEPTH = 8192;
+const lazyDepth = new WeakMap<RankArray, number>();
+
+/** Count reader layers, not the height of metadata-only dependency DAGs.
+ * In particular balanced concat ropes do not grow one layer per append. */
+function arrayReaderDepth(sources: readonly RankArray[], layer: number): number {
+    let depth = 0;
+    for (const source of sources) depth = Math.max(depth, lazyDepth.get(source) ?? 0);
+    depth += layer;
+    if (depth > MAX_LAZY_ARRAY_DEPTH) {
+        throw new RankError('lazy array chain exceeds 8192 reader layers; use copy to materialize an intermediate array', 'ResourceLimit');
+    }
+    return depth;
+}
 
 /** Cache a pure reader only while all its explicit dependencies have known revisions.
  * Untracked host buffers remain live: retained aliases can mutate outside Rank.
@@ -1027,6 +1041,7 @@ export function derivedArray(
     read: (index: number) => RankValue, fileFree = false,
     evaluate?: (index: number) => Evaluation<RankValue>,
 ): RankArray {
+    const depth = arrayReaderDepth(dependencies, 1);
     const diagnostics = currentDiagnostics();
     const observedColumns = new Map<number, Map<string, { type: string; rank?: number }>>();
     let lastColumn = -1;
@@ -1155,6 +1170,7 @@ export function derivedArray(
         return items;
     }
     derivedRevisions.set(value, record);
+    lazyDepth.set(value, depth);
     cellValidators.set(value, checkCell);
     if (evaluate) registerArrayCellEvaluation(value, function* (index) {
         const entering = runtimeDepth === 0;
@@ -1321,12 +1337,15 @@ export function ownedObject(entries: Iterable<readonly [string, RankValue]>): Ra
 export function arrayDependencyNode(sources: readonly RankArray[]): RankArray {
     const node: RankArray = { kind: 'array', shape: [0], items: [] };
     derivedRevisions.set(node, { epoch: -1, values: () => sources, sources });
+    lazyDepth.set(node, arrayReaderDepth(sources, 0));
     return node;
 }
 
 /** Publish dependencies for a pure producer with a dynamically inferred shape. */
 export function registerArrayDependencies<T extends RankArray>(value: T, sources: readonly RankArray[]): T {
+    const depth = arrayReaderDepth(sources, 1);
     derivedRevisions.set(value, { epoch: -1, values: () => sources });
+    lazyDepth.set(value, depth);
     return value;
 }
 

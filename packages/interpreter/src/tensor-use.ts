@@ -1,18 +1,29 @@
 import {
-    isAssignmentStatement, isNameExpression, isFunctionStatement,
-    type Statement,
+    isAssignmentStatement, isNameExpression, isFunctionStatement, isForStatement,
+    type Statement, type ForStatement,
 } from '@arrrank/language';
 
 interface Uses { reads: Map<string, number>; writes: Map<string, number>; safe: boolean }
 const cache = new WeakMap<object, Uses>();
 
+function tensorOwner(first: Statement) {
+    let owner = first.$container;
+    let loop: ForStatement | undefined;
+    while (owner) {
+        // Keep function-wide capture barriers even for a loop-local group.
+        if (isFunctionStatement(owner)) return owner;
+        if (!loop && isForStatement(owner)) loop = owner;
+        owner = owner.$container as typeof owner;
+    }
+    return loop;
+}
+
 /** Lexical def/use summary. Captures, handlers and indirect module writes are
  * barriers until a richer control-flow analysis can reconstruct locals. */
 export function privateTensorNames(first: Statement, names: string[]): boolean {
     if (names.length === 0) return true;
-    let owner = first.$container;
-    while (owner && !isFunctionStatement(owner)) owner = owner.$container as typeof owner;
-    if (!owner || !isFunctionStatement(owner)) return false;
+    const owner = tensorOwner(first);
+    if (!owner) return false;
     let uses = cache.get(owner);
     if (!uses) {
         uses = { reads: new Map(), writes: new Map(), safe: true };
@@ -29,7 +40,7 @@ export function privateTensorNames(first: Statement, names: string[]): boolean {
             if (['FunctionStatement', 'TryStatement', 'UseStatement', 'RunStatement', 'YieldStatement'].includes(String(node.$type))) summary.safe = false;
             for (const [key, child] of Object.entries(node)) if (!key.startsWith('$')) visit(child);
         }
-        owner.parameters.forEach(write);
+        if (isFunctionStatement(owner)) owner.parameters.forEach(write);
         visit(owner.statements);
         cache.set(owner, uses);
     }
@@ -40,7 +51,6 @@ export function privateTensorNames(first: Statement, names: string[]): boolean {
 }
 
 export function tensorReadCount(first: Statement, name: string): number {
-    let owner = first.$container;
-    while (owner && !isFunctionStatement(owner)) owner = owner.$container as typeof owner;
+    const owner = tensorOwner(first);
     return owner ? cache.get(owner)?.reads.get(name) ?? 0 : 0;
 }

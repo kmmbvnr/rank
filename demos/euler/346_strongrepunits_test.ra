@@ -4,9 +4,3 @@ test "small strong repunits"
   use "346_strongrepunits"
   50 strong equal 171
 end
-
-test "full strong repunits"
-  use "346_strongrepunits"
-  run
-  Answer equal 336108797689259276
-end

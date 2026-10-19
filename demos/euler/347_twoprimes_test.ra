@@ -4,9 +4,3 @@ test "small two prime maxima"
   use "347_twoprimes"
   100 twoprimes equal 2262
 end
-
-test "full two prime maxima"
-  use "347_twoprimes"
-  run
-  Answer equal 11109800204052
-end

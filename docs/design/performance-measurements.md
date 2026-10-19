@@ -13,6 +13,20 @@ The [speed follow-up](flat-segment-speed.md) measures scalar combine specializat
 The [Arrow table experiment](arrow-titanic-experiment.md) compares retained
 memory and feature preparation on synthetic Titanic rows.
 
+## CI execution budget
+
+Type, differential and editor-name-fact audits execute the demo corpus. Default-scale workloads
+that exceed the regular CI time or memory budget are listed with reasons in
+[`scripts/demo-execution-exclusions.json`](../../scripts/demo-execution-exclusions.json).
+All three execution audits and the differential coverage gate read that same explicit list.
+New full-workload exclusions keep the corresponding small `_test.ra` fixtures;
+Large assertions mixed into small fixtures are preserved in separate
+`*_default_test.ra` files for manual execution. Existing exclusions from issues
+#311 and #316 are retained. This policy applies
+to execution audits only: parsing, static analysis and CLI source checks still
+inspect the excluded programs. Full-scale performance runs remain manual
+benchmarks and must be reported separately from CI correctness coverage.
+
 ## Benchmark commands
 
 From a built checkout:
@@ -891,3 +905,12 @@ separate forced array materialization, `isqrt sum`, input setup and cold process
 cost. The implementation combines a BigInt-verified floating estimate below
 `2^63` with checked stored scalar-array application; larger integers retain
 Newton iteration. The report includes raw samples and the host-load limitation.
+
+## Short stored arrays and modular subset counts (#335)
+
+[The short-array measurements](../../benchmarks/short-array-updates-results.md)
+cover the original 250250-step array update with and without `copy`, scalar
+loops, cold startup, GC and peak RSS. Three explicit-copy runs meet the 20-second
+criterion. A full no-copy run also succeeds with compilation disabled and a
+256 MiB V8 old-space limit. The report distinguishes heap limits from total RSS
+and records the raw observations and source provenance.

@@ -44,8 +44,8 @@ describe('tensor catalogue overloads', () => {
     it.each([
         ['A equal B', samples.boolean, samples.boolean, true],
         ['A less B', samples.integer, samples.real, true],
-        ['A // B', samples.integer, samples.integer, false],
-        ['A mod B', samples.integer, samples.integer, false],
+        ['A // B', samples.real, samples.real, false],
+        ['A mod B', samples.real, samples.real, false],
         ['A ** B', samples.integer, 'array -1 -2', false],
     ] as const)('preserves fallback for %s on %s and %s', (expression, left, right, boolean) => {
         const reference = run(expression, left, right, boolean, false);

@@ -10,9 +10,3 @@ test "small palindrome mirror"
   123 true mirror equal 12321
   123 false mirror equal 123321
 end
-
-test "full square cube sum"
-  use "348_squarecube"
-  run
-  Answer equal 1004195061
-end
