@@ -1,0 +1,31 @@
+rem Paper-strip Game
+rem https://projecteuler.net/problem=306
+
+use bits
+use io
+use cli
+
+option Limit integer = 1000000
+
+Last = 133
+G = array shape (Last + 1) fill 0
+for L in 1 to Last
+  Seen = array shape 64 fill false
+  for A in 0 to ((L - 2) // 2)
+    Left = G A
+    Right = G (L - A - 2)
+    V = Left Right bxor
+    Seen V = true
+  end
+  G L = Seen first index where not Seen
+end
+Small = Limit 100 min
+Wins = G (1 to Small)
+Answer = (Wins not equal 0) sum
+if Limit greater 100
+  Rest = 101 to Limit array
+  Pos = (Rest - 100) mod 34 + 100
+  More = G Pos
+  Answer += (More not equal 0) sum
+end
+Answer print
