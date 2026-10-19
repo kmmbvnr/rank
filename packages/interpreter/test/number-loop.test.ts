@@ -30,6 +30,10 @@ describe('private safe-integer loop registers', () => {
         expect(diagnostics.compiledLoops).toBe(1);
     });
 
+    it.each(['for false\n continue\nend', 'for true\n break\nend'])('supports control regions without scalar registers: %s', source => {
+        expect(compare(source).numberLoops).toBe(1);
+    });
+
     it.each([
         'S = 9007199254740990\nfor I in 0 to 3\n S += 1\nend',
         'S = -9007199254740990\nfor I in 0 to 3\n S -= 1\nend',

@@ -33,7 +33,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     for (const info of arrays.values()) registers.push(`reader${info.slot} = readers[${info.slot}]`);
     const publish = `publish([${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
     const source = `"use strict"; return function(input, readers, publish) {
-        let ${registers.join(',')}, result, location = -1, order = 0;
+        let ${registers.length ? `${registers.join(',')}, ` : ''}result, location = -1, order = 0;
         try {
             ${root.setup} ${root.header}
                 let iterationResult;
