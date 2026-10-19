@@ -1,0 +1,14 @@
+use testing
+
+test "hopping game"
+  use "391_hopping"
+  Limit = 2
+  run
+  Answer equal 8
+  Limit = 7
+  run
+  Answer equal 90
+  Limit = 20
+  run
+  Answer equal 8150
+end
