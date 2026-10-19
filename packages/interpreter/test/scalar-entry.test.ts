@@ -240,6 +240,35 @@ fun N helper
 end`, [[0n], [3n]], 0);
     });
 
+    it('compiles scalar index defaults without evaluating a present fallback', () => {
+        const values = compare(`use algo
+fun N helper
+  Cache = new index
+  Key = N
+  Before = Cache Key default 0
+  Cache Key = 7
+  Found = Cache Key default (1 // 0)
+  return Before + Found
+end`, [[1n], [2n]], 2);
+        expect(values.map(value => value.value)).toEqual(['7', '7']);
+        const errors = compare(`use algo
+fun N helper
+  Cache = new index
+  return Cache N default (1 // 0)
+end`, [[1n]], 1);
+        expect(errors[0]).toHaveProperty('error', expect.stringContaining('division by zero'));
+    });
+
+    it('retains defaults for missing intermediate selector expressions', () => {
+        const values = compare(`use algo
+fun N helper
+  Cache = new index
+  Keys = array 1 2
+  return Cache (Keys N) default 9
+end`, [[10n]], 0);
+        expect(values[0]).toEqual({ value: '9' });
+    });
+
     it('preserves the unsupported index length error', () => {
         const values = compare(`use algo
 fun N helper

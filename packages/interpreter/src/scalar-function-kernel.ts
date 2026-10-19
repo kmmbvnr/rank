@@ -1,7 +1,7 @@
 import { membershipLookup } from './membership-lookup.js';
 import { type CompiledCalleeType, isCompiledContainer } from './compiled-callee-type.js';
 import { newStructure } from './collections.js';
-import { indexHas, indexSet, indexKey } from './index-storage.js';
+import { indexGet, indexHas, indexSet, indexKey } from './index-storage.js';
 import {
     findCompiledOperator,
     isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement,
@@ -14,7 +14,7 @@ import type { RankValue } from './value.js';
 import { scalarArrayWriteOffset } from './selectors.js';
 import { checkedArrayDimension } from './tensor-index.js';
 import { arrayForWrite, ownedArray, noteArrayBinding } from './array-storage.js';
-import { applySelectors } from './value-selection.js';
+import { scalarSelection } from './scalar-selection.js';
 import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput } from './scalar-function-proof.js';
 
 interface Kernel {
@@ -117,6 +117,13 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 lines.push(`const ${result} = ownedArray(Array(Number(${shape}.reduce((a, b) => a * BigInt(b), 1n))).fill(${fill}), ${shape}, true);`);
                 return result;
             }
+            if (operation === 'index-default') {
+                const key = lower(expression.input.indices![0], lines), result = `v${serial++}`, fallback: string[] = [];
+                const value = lower(expression.input.indices![1], fallback);
+                lines.push(`let ${result} = indexGet(${receiver}, indexKey([${key}]));
+                    if (${result} === undefined) { ${fallback.join('\n')} ${result} = ${value}; }`);
+                return result;
+            }
             if (operation) {
                 const arguments_ = expression.input.indices?.map(index => lower(index, lines)) ?? [];
                 const result = `v${serial++}`;
@@ -130,7 +137,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             if (!expression.input.indices) return receiver;
             const indices = expression.input.indices.map(index => lower(index, lines));
             const result = `v${serial++}`;
-            lines.push(`const ${result} = applySelectors([${slot(expression.input.name)}, ${indices.join(',')}]);`);
+            lines.push(`const ${result} = scalarSelection(${slot(expression.input.name)}, [${indices.join(',')}]);`);
             return result;
         }
         if (expression.kind === 'unary') {
@@ -241,7 +248,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
     let kernel: Kernel | undefined;
-    try { kernel = { locations, calls, userCalls, memberships, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'applySelectors', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', source)(RankError, applySelectors, noteArrayBinding, checkpoint, newStructure, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite) as Kernel['run'] }; }
+    try { kernel = { locations, calls, userCalls, memberships, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

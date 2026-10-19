@@ -11,7 +11,7 @@ import { recordFallback } from './diagnostics.js';
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'index-default';
     readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof };
     readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
@@ -128,6 +128,23 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     containers = true;
                     modules.add('algo');
                     return { type: source.structure === 'index' ? { kind: 'index' } : { kind: 'deque', mode: source.structure as 'stack' | 'queue' | 'deque' }, input: { name: source.structure, operation: 'new' } };
+                }
+                if (loops && isBinaryExpression(source) && source.operator === 'default') {
+                    let left = source.left;
+                    while (isParenthesizedExpression(left)) left = left.value;
+                    if (isApplicationExpression(left)) {
+                        const parts = flattenApplication(left), [receiver, key] = parts;
+                        const domain = isNameExpression(receiver) ? env.get(receiver.name) : undefined;
+                        // A scalar slot cannot itself raise MissingValueError.
+                        // Broader selector expressions retain ordinary default
+                        // evaluation, which catches missing intermediate reads.
+                        if (parts.length === 2 && isNameExpression(receiver) && isNameExpression(key)
+                            && domain && isCompiledContainer(domain) && domain.kind === 'index'
+                            && type(key, env) === 'integer' && type(source.right, env) === 'integer') {
+                            return { type: 'integer', input: { name: receiver.name, operation: 'index-default',
+                                indices: [expressions.get(key)!, expressions.get(source.right)!] } };
+                        }
+                    }
                 }
                 if (loops && isBinaryExpression(source) && ['in', 'notin'].includes(source.operator) && isNameExpression(source.right)) {
                     const domain = env.get(source.right.name);
