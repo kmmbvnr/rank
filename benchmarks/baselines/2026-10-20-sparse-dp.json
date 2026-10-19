@@ -7,7 +7,8 @@
     "Execution includes parsing; cold wall also includes Node imports/startup.",
     "CPU times are microseconds. peakRss is bytes.",
     "Candidate was measured with runtime diagnostics enabled.",
-    "No claim of reduced peak memory or meeting a 30-second wall deadline."
+    "No claim of reduced peak memory or meeting a 30-second wall deadline.",
+    "Final verification is a separate completed run, not a controlled speed or memory comparison."
   ],
   "demoSha256": "44a85d9258a7cf51b160d05b0c9a5dd9a01cd76f1a1ae0fbe463764508afc4f5",
   "baseline": [
@@ -331,5 +332,88 @@
       },
       "coldMs": 72421.066791
     }
-  ]
+  ],
+  "finalVerification": {
+    "sourceCommit": "c05f3ee0cd4e5799f24e4fa9c737c7b35ddc5bb0",
+    "metadata": {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "timeout": 120000,
+      "timing": "Fresh process per size; execution includes parse; cold wall includes imports/startup"
+    },
+    "result": {
+      "size": 10000,
+      "answer": "438505383468410633",
+      "executionMs": 46153.131541999996,
+      "cpu": {
+        "user": 25939650,
+        "system": 335883
+      },
+      "peakRss": 1233469440,
+      "states": 16734773,
+      "compiledEntries": 1,
+      "diagnostics": {
+        "validationRequests": 0,
+        "dependencyValidations": 0,
+        "cacheHits": 0,
+        "cacheMisses": 0,
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 33469547,
+        "indexReadHits": 16726584,
+        "indexReadMisses": 16742963,
+        "indexWrites": 16734773,
+        "sequenceReplayHits": 0,
+        "sequencePredicateCalls": 0,
+        "sequenceCachedValues": 0,
+        "sequenceCacheBytes": 0,
+        "sequenceCachePeakBytes": 0,
+        "sequenceCacheEvictions": 0,
+        "cellsComputed": 0,
+        "invalidations": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 1,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "numericSorts": 0,
+        "numericDistincts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskPositionReuses": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "tensor:unsupported-type:array": 2,
+          "scalar-expression:too-small": 4,
+          "tensor:group:ForStatement": 1,
+          "scalar-expression:unsupported-op:max": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:atmost": 2,
+          "number-loop:unsafe-input": 1,
+          "loop:input-type:Gs:expected-integer": 1,
+          "loop:input-type": 1,
+          "tensor:output-shape": 13,
+          "tensor:group:ExpressionStatement": 1
+        }
+      },
+      "coldMs": 46841.689207999996
+    }
+  }
 }
