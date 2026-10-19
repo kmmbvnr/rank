@@ -376,6 +376,13 @@ export function requireHomogeneous(elements: readonly CollectionElementType[]): 
 export function checkCollectionElementType(
     collection: string, expected: CollectionElementType | undefined | (() => CollectionElementType | undefined), value: RankValue,
 ): CollectionElementType {
+    if (typeof value !== 'object') {
+        const current = typeof expected === 'function' ? expected() : expected;
+        const type = typeName(value);
+        if (current?.type === type && current.rank === undefined && !current.elements
+            && !current.positions && !current.fields) return current;
+        return mergeCollectionElementType(collection, current, { type });
+    }
     const received = isRankArray(value) || isRankTuple(value) ? collectionElementType(value, new Set()) : { type: typeName(value) };
     // Reading lazy cells can re-enter Rank and insert through another alias.
     return mergeCollectionElementType(collection, typeof expected === 'function' ? expected() : expected, received);

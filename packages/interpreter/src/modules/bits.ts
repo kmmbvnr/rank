@@ -1,3 +1,4 @@
+import { withTypedCalls } from '../typed-native.js';
 import { checkpoint } from '../interrupt.js';
 import { RankError } from '../errors.js';
 import { expectInteger, native } from './shared.js';
@@ -48,8 +49,10 @@ export const bitsModule: RuntimeModule = {
 };
 
 function binaryOperation(name: string, operation: (left: bigint, right: bigint) => bigint) {
-    return native(name, 2, arguments_ =>
-        operation(expectInteger(arguments_[0]), expectInteger(arguments_[1])));
+    return withTypedCalls(native(name, 2, arguments_ =>
+        operation(expectInteger(arguments_[0]), expectInteger(arguments_[1]))), {
+        'integer,integer': arguments_ => operation(arguments_[0] as bigint, arguments_[1] as bigint),
+    });
 }
 
 function shiftCount(value: bigint): bigint {
