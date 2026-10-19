@@ -1,0 +1,76 @@
+rem Triangles with integral sides and an
+rem integral angle
+rem https://projecteuler.net/problem=279
+rem Count the integer sided triangles
+rem with a perimeter up to Limit and an
+rem angle of a whole number of degrees
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 100000000
+
+rem Only 60, 90 and 120 degrees have a
+rem rational cosine, so the triangles
+rem are the multiples of the primitive
+rem ones with such an angle; one of
+rem perimeter p has Limit // p of them.
+rem With coprime m > n the primitive
+rem ones are,
+rem at 90 degrees, (m^2 - n^2, 2 m n,
+rem m^2 + n^2) with m - n odd; at 60,
+rem (m^2 - n^2, 2 m n - n^2,
+rem m^2 - m n + n^2) with n < m < 2 n,
+rem divided by 3 when 3 divides m + n;
+rem at 120, (m^2 - n^2, 2 m n + n^2,
+rem m^2 + m n + n^2), divided by 3 when
+rem 3 divides m - n, each arising twice.
+rem The equilateral triangle has 60 too.
+Total = Limit // 3
+Twice = 0
+Top = (3 * Limit) isqrt + 2
+for M in 2 to Top
+  Room = Limit // (2 * M) - M
+  Hi = Room (M - 1) min
+  if Hi at least 1
+    Ns = 1 to Hi array
+    Co = Ns M gcd equal 1
+    Odd = (M - Ns) mod 2 equal 1
+    P = 2 * M * (M + Ns)
+    Ok = Co and Odd
+    Pk = P filter Ok array
+    Total += (Limit // Pk) sum
+  end
+  Disc = (M * M + 12 * Limit) isqrt
+  Cap = (Disc - 3 * M) // 2
+  Hi = Cap (M - 1) min
+  if Hi at least 1
+    Ns = 1 to Hi array
+    Co = Ns M gcd equal 1
+    By3 = (M - Ns) mod 3 equal 0
+    Div = 1 + 2 * (By3 choose 1 0)
+    Q = (2 * M + Ns) * (M + Ns) // Div
+    Ok = Co and (Q at most Limit)
+    Qk = Q filter Ok array
+    Twice += (Limit // Qk) sum
+  end
+end
+for N in 1 to Top
+  Disc = (9 * N * N + 24 * Limit) isqrt
+  Hi = (Disc - N) // 4
+  Hi = Hi (2 * N - 1) min
+  if Hi at least N + 1
+    Ms = (N + 1) to Hi array
+    Co = Ms N gcd equal 1
+    By3 = (Ms + N) mod 3 equal 0
+    Div = 1 + 2 * (By3 choose 1 0)
+    P = (2 * Ms - N) * (Ms + N) // Div
+    Ok = Co and (P at most Limit)
+    Pk = P filter Ok array
+    Total += (Limit // Pk) sum
+  end
+end
+Answer = Total + Twice // 2
+Answer print
