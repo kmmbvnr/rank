@@ -1,0 +1,20 @@
+use testing
+
+test "fractional last value"
+  use "343_fractional"
+  2 lpf equal 2
+  21 lpf equal 7
+  Limit = 1
+  run
+  Answer equal 1
+end
+
+test "fractional sequence sum"
+  use "343_fractional"
+  Limit = 20
+  run
+  Answer equal 1371
+  Limit = 100
+  run
+  Answer equal 118937
+end
