@@ -1,0 +1,17 @@
+use testing
+
+test "published small ranges"
+  use "306_paperstrip"
+  Limit = 5
+  run
+
+  Answer equal 3
+end
+
+test "periodic range"
+  use "306_paperstrip"
+  Limit = 50
+  run
+
+  Answer equal 40
+end

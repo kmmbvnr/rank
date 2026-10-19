@@ -1,0 +1,23 @@
+use testing
+
+test "sqrt two plus sqrt three"
+  use "318_nines"
+  use numbers
+  P = 2
+  Q = 3
+  Beta = (Q sqrt) - (P sqrt)
+  Rate = (Beta * Beta) log
+  Rate = -Rate / (10 log)
+  (1 / Rate) ceil equal 2
+  (2 / Rate) ceil equal 3
+  (3 / Rate) ceil equal 4
+end
+
+test "small sum"
+  use "318_nines"
+  Top = 5
+  Nines = 1
+  run
+
+  Answer equal 8
+end

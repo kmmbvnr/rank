@@ -1,0 +1,7 @@
+use testing
+
+test "prime frog"
+  use "329_primefrog"
+  Got = 500 "PPPPNNPPPNPPNPN" frog
+  Got equal "199740353/29386561536000"
+end

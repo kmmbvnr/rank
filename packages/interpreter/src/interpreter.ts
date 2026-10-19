@@ -110,6 +110,8 @@ export class Interpreter {
             loopReturnCompilation: false,
             arrayLocalCompilation: false,
             booleanArrayCompilation: false,
+            booleanSelectionCompilation: false,
+            generatorLoopCompilation: false,
             booleanLoopCompilation: false,
             scalarAddressCompilation: false,
             extremaLoopCompilation: false,
@@ -232,6 +234,8 @@ export class Interpreter {
             point: (statement, iteration) => this.inspection.point(statement, iteration),
             options: () => this.options,
             compileLoop: (statement, binding) => this.fastPaths.compileLoop(statement, binding),
+            prepareStatement: (statements, index) => this.blocks.preparedStatement(statements, index),
+            locate: (error, statement) => this.locateError(error, statement),
         };
         this.writes = {
             checkArrayWrite: (name, target, values, offsets) => this.checkArrayWrite(name, target, values, offsets),

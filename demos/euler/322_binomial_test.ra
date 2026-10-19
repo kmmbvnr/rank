@@ -1,0 +1,15 @@
+use testing
+
+test "small digit DP"
+  use "322_binomial"
+  5 10 2 nocarry equal 3
+  5 10 5 nocarry equal 10
+end
+
+test "statement sample"
+  use "322_binomial"
+  Top = 1000000000
+  Pick = 9999990
+  run
+  Answer equal 989697000
+end

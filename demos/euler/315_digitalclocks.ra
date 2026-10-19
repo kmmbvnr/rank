@@ -1,0 +1,75 @@
+rem Digital Root Clocks
+rem https://projecteuler.net/problem=315
+
+use bits
+use sequences
+use io
+use cli
+
+option From integer = 10000000
+option To integer = 20000000
+
+Masks = array 109 80 55 117 90
+Tail = array 109 111 89 127 123
+Masks = concat Masks Tail
+Answer = 0
+for P in primes from From till To
+  Answer += P clock_diff
+end
+Answer print
+
+fun N digit_sum
+  Sum = 0
+  for N greater 0
+    Sum += N mod 10
+    N //= 10
+  end
+  return Sum
+end
+
+fun N segments
+  Count = 0
+  for N greater 0
+    D = N mod 10
+    Count += (Masks D) popcount
+    N //= 10
+  end
+  return Count
+end
+
+fun A B changes
+  Count = 0
+  for A greater 0 or B greater 0
+    MA = 0
+    MB = 0
+    if A greater 0
+      MA = Masks (A mod 10)
+      A //= 10
+    end
+    if B greater 0
+      MB = Masks (B mod 10)
+      B //= 10
+    end
+    X = MA MB bxor
+    Count += X popcount
+  end
+  return Count
+end
+
+fun N clock_diff
+  Sam = 0
+  Max = 0
+  Prev = 0
+  Cur = N
+  for true
+    Sam += 2 * (Cur segments)
+    Max += Prev Cur changes
+    if Cur less 10
+      break
+    end
+    Prev = Cur
+    Cur = Cur digit_sum
+  end
+  Max += Cur 0 changes
+  return Sam - Max
+end

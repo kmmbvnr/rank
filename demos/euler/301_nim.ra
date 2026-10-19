@@ -1,0 +1,14 @@
+rem Nim
+rem https://projecteuler.net/problem=301
+rem Count n with no adjacent binary ones
+
+use sequences
+use io
+use cli
+
+option Bits integer = 30
+
+rem n, 2n and 3n have xor zero when n
+rem has no adjacent binary one bits.
+Answer = fibonacci Bits
+Answer print

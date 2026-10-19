@@ -1,0 +1,41 @@
+rem Special Partitions
+rem https://projecteuler.net/problem=333
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000
+Limit solve print
+
+fun Limit solve
+  Cnt = array shape Limit fill 0
+  Base = 2 log
+  Max = (Limit log / Base) floor
+  Cnt = 0 1000 0 Limit Cnt Max walk
+  Ps = primes till Limit
+  Good = Cnt Ps equal 1
+  return (Ps filter Good) sum
+end
+
+fun I J Sum Limit Cnt Max walk
+  if I greater Max
+    if Sum greater 0
+      Cnt Sum += 1
+    end
+    return Cnt
+  end
+  Cnt = (I + 1) J Sum Limit Cnt Max walk
+  V = 2 ** I
+  for K in 0 till J
+    if Sum + V greater Limit - 1
+      break
+    end
+    I1 = I + 1
+    S1 = Sum + V
+    Cnt = I1 K S1 Limit Cnt Max walk
+    V *= 3
+  end
+  return Cnt
+end

@@ -113,6 +113,51 @@ it('executes the guarded bulk path and preserves a reference path', () => {
     }
 });
 
+describe.each([false, true])('boolean fills (compilation=%s)', compilation => {
+    it('fills strided and duplicate selections while preserving snapshots', () => {
+        const r = new Interpreter(undefined, { compilation });
+        const d = new RuntimeDiagnostics();
+        try {
+            r.execute('A = array shape 10 fill false\nAlias = A\nCut = A (2 to 4)');
+            d.run(() => r.execute('A (2 to 8 by 2) = true\nA (array 4 4) = false'));
+            expect(formatValue(r.execute('A')!)).toBe('false false true false false false true false true false');
+            expect(formatValue(r.execute('Alias')!)).toBe(Array(10).fill('false').join(' '));
+            expect(formatValue(r.execute('Cut')!)).toBe('false false false');
+            expect(d.bulkArrayWrites).toBe(compilation ? 2 : 0);
+            expect(d.bulkArrayWriteCells).toBe(compilation ? 6 : 0);
+            r.execute('A (A equal true) = false');
+            expect(formatValue(r.execute('A')!)).toBe(Array(10).fill('false').join(' '));
+        } finally { r.dispose(); }
+    });
+
+    it('keeps bounds, empty selection and type errors on the reference contract', () => {
+        const r = new Interpreter(undefined, { compilation });
+        try {
+            r.execute('A = array shape 4 fill false');
+            expect(() => r.execute('A (0 to 4) = true')).toThrow('out of bounds');
+            expect(() => r.execute('A (0 to 3) = 1')).toThrow('cannot receive');
+            r.execute('A (8 to 4) = true');
+            expect(formatValue(r.execute('A')!)).toBe('false false false false');
+            r.execute('I = array shape 4 fill 0');
+            expect(() => r.execute('I (0 to 3) = true')).toThrow('cannot receive');
+        } finally { r.dispose(); }
+    });
+});
+
+it('keeps boolean fills observable to arbitrary host polling callbacks', () => {
+    const r = new Interpreter();
+    const d = new RuntimeDiagnostics();
+    let polls = 0;
+    try {
+        r.execute('A = array shape 10000 fill false');
+        const signal = { length: 1, load: () => 0, store() {}, wait() {}, exchange: () => { polls++; return 0; } };
+        withInterrupt(signal, () => d.run(() => r.execute('A (0 to 9999) = true')));
+        expect(d.bulkArrayWrites).toBe(0);
+        expect(polls).toBeGreaterThan(1);
+        expect(r.execute('use sequences\nA all')).toBe(true);
+    } finally { r.dispose(); }
+});
+
 it('does not infer a range from the name or host indexing hooks', () => {
     const r = new Interpreter();
     try {

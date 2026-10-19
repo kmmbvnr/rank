@@ -1,0 +1,90 @@
+rem Lowest-cost Search
+rem https://projecteuler.net/problem=328
+
+use io
+
+Answer = 200000 costs
+Answer print
+
+fun N costs
+  Dp = array shape (N + 1) fill 0
+  Ok = array shape (N + 1) fill false
+  for I in 1 till (N + 1)
+    I Ok good
+  end
+  Sum = 0
+  for I in 2 till (N + 1)
+    Best = 1000000000000
+    Start = (4 * I) // 5 - 20
+    Start = Start 0 max
+    for K in Start till I
+      Size = I - 1 - K
+      if I at most 100 or Ok Size
+        Left = Dp K
+        Right = (K + 1) Size tree
+        Cost = K + 1 + (Left Right max)
+        Best = Best Cost min
+      end
+    end
+    Dp I = Best
+    Sum += Best
+  end
+  return Sum
+end
+
+fun N Good good
+  if N less 2
+    Good N = false
+    return 0
+  end
+  H = N height
+  if N equal 2 ** (H + 1) - 1
+    Good N = H at least 2
+    return 0
+  end
+  L = 0
+  R = 0
+  if N at least (2 ** H + 2 ** (H - 1))
+    L = 2 ** H - 1
+    R = N - 1 - L
+  else
+    R = 2 ** (H - 1) - 1
+    L = N - 1 - R
+  end
+  Good N = (Good L) and (Good R)
+  return 0
+end
+
+fun Base Size tree
+  if Size less 2
+    return 0
+  end
+  H = Size height
+  if Size equal 2 ** (H + 1) - 1
+    Part = 2 * ((H - 1) * 2 ** H + 1)
+    return Part + H * Base
+  end
+  L = 0
+  R = 0
+  Split = 2 ** H + 2 ** (H - 1)
+  if Size at least Split
+    L = 2 ** H - 1
+    R = Size - 1 - L
+  else
+    R = 2 ** (H - 1) - 1
+    L = Size - 1 - R
+  end
+  Left = Base L tree
+  Right = (Base + L + 1) R tree
+  return (Left Right max) + Base + L + 1
+end
+
+fun N height
+  H = 0
+  P = 1
+  for P * 2 at most N
+    P *= 2
+    H += 1
+  end
+  return H
+end

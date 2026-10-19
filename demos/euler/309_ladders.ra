@@ -1,0 +1,53 @@
+rem Integer Ladders
+rem https://projecteuler.net/problem=309
+
+use algo
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000
+
+Top = Limit - 1
+Data = new index
+Cnt = new counter
+Root = (Top ** 0.5) floor + 2
+for M in 2 to Root
+  for N in 1 till M
+    if M N gcd not equal 1
+      continue
+    end
+    A = M * M - N * N
+    B = 2 * M * N
+    C = M * M + N * N
+    for K in 1 to (Top // C)
+      W1 = A * K
+      H1 = B * K
+      I1 = Cnt W1
+      Data W1 I1 = H1
+      Cnt add W1
+      W2 = B * K
+      H2 = A * K
+      I2 = Cnt W2
+      Data W2 I2 = H2
+      Cnt add W2
+    end
+  end
+end
+Answer = 0
+for W in 1 to Top
+  Size = Cnt W
+  Hs = array shape Size fill 0
+  for I in 0 till Size
+    Hs I = Data W I
+  end
+  Hs = Hs unique sort
+  for I in 1 till Hs len
+    H = Hs I
+    Lo = Hs till I
+    Good = (H * Lo) mod (H + Lo) equal 0
+    Answer += Good count
+  end
+end
+Answer print

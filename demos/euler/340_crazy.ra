@@ -1,0 +1,37 @@
+rem Crazy Function
+rem https://projecteuler.net/problem=340
+
+use io
+
+A = 21 ** 7
+B = 7 ** 21
+C = 12 ** 7
+A B C 1000000000 crazy print
+
+fun A B C M crazy
+  K = B // A
+  Ar = A mod M
+  Br = B mod M
+  Cr = C mod M
+  Sum = (Br + 1) * Br // 2
+  Sum = Sum mod M
+  T = (K - 1) * K // 2
+  T *= 4 * Ar * Ar - 3 * Ar * Cr
+  Sum += T mod M
+  T = 4 * Ar * K * (Ar - Cr)
+  Sum += T mod M
+  R = (B - K * A + 1) mod M
+  T = 4 * (K + 1) * Ar
+  T -= (3 * K + 4) * Cr
+  Sum += R * T mod M
+  return Sum mod M
+end
+
+fun N A B C value
+  if N greater B
+    return N - C
+  end
+  K = (B - N) // A
+  V = 4 * (K + 1) * A + N
+  return V - (3 * K + 4) * C
+end

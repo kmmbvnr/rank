@@ -1,0 +1,9 @@
+use testing
+
+test "power-of-two bean cycles"
+  use "335_gatheringbeans"
+  0 solve equal 2
+  1 solve equal 7
+  2 solve equal 22
+  3 solve equal 75
+end

@@ -1,0 +1,68 @@
+rem Eulerian Numbers
+rem https://projecteuler.net/problem=330
+
+use numbers
+use io
+
+1000000000 solve print
+
+fun N solve
+  Ps = array shape 5 fill 0
+  Ps 0 = 7
+  Ps 1 = 11
+  Ps 2 = 73
+  Ps 3 = 101
+  Ps 4 = 137
+  Rs = array shape 5 fill 0
+  for I in 0 till 5
+    Rs I = N (Ps I) residue
+  end
+  return Rs Ps crt
+end
+
+fun N P residue
+  Inv = 2 (P - 2) P powmod
+  R = array shape P fill 0
+  V = 1
+  Prev = 1
+  for I in 1 till P
+    V = V * Inv mod P
+    R I = (V - Prev) mod P
+    Prev = V
+  end
+  E = array shape (P - 1) fill 0
+  for J in 0 till P - 1
+    for I in 1 till P
+      E J += R I * (I J P powmod) mod P
+    end
+    E J = E J mod P
+  end
+  N0 = N mod P
+  F = 1
+  C = 1
+  Sum = 0
+  for M in 0 to N0
+    X = (N - M) mod (P - 1)
+    Sum += F * C * (E X) mod P
+    if M less N0
+      F = F * (M + 1) mod P
+      D = (M + 1) (P - 2) P powmod
+      C = C * (N0 - M) mod P
+      C = C * D mod P
+    end
+  end
+  return Sum mod P
+end
+
+fun Rs Ps crt
+  X = 0
+  M = 1
+  for I in 0 till (Ps len)
+    P = Ps I
+    D = (Rs I - X) mod P
+    T = D * ((M mod P) (P - 2) P powmod)
+    X += M * (T mod P)
+    M *= P
+  end
+  return X mod M
+end

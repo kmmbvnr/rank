@@ -1,0 +1,70 @@
+rem Building a Tower
+rem https://projecteuler.net/problem=324
+
+use sequences
+use numbers
+use io
+use cli
+
+option Exp integer = 5 * 10 ** 9999
+
+Mod = 100000007
+K = 23
+A0 = array 1 229 117805
+A0 = concat A0 (array 64647289 69563725)
+A0 = concat A0 (array 96149360 40041351)
+A0 = concat A0 (array 13625499 49444743)
+A0 = concat A0 (array 7047816 63444149)
+A0 = concat A0 (array 71774943 18904145)
+A0 = concat A0 (array 72062 58262981)
+A0 = concat A0 (array 68125412 64015488)
+A0 = concat A0 (array 12253197 9101639)
+A0 = concat A0 (array 63312159 47925805)
+A0 = concat A0 (array 75412110 81862504)
+C = array 679 99923830 3519127
+C = concat C (array 14088452 35862961)
+C = concat C (array 76806653 56470433)
+C = concat C (array 33422571 39262562)
+C = concat C (array 84928070 25900794)
+C = concat C (array 74099213 15071937)
+C = concat C (array 60737445 66577436)
+C = concat C (array 43529574 23193354)
+C = concat C (array 64137046 85911555)
+C = concat C (array 96480880 76177)
+C = concat C (array 99999328 1)
+Answer = Exp recurrence
+Answer print
+
+fun N recurrence
+  if N less K
+    return A0 N
+  end
+  A = array shape K fill 0
+  A 0 = 1
+  B = array shape K fill 0
+  B 1 = 1
+  for N greater 0
+    if N odd
+      A = A B combine
+    end
+    B = B B combine
+    N //= 2
+  end
+  return (A * A0) sum mod Mod
+end
+
+fun A B combine
+  P = array shape (K * 2 - 1) fill 0
+  for I in 0 till K
+    for J in 0 till K
+      P (I + J) += A I * B J mod Mod
+    end
+  end
+  for I in (K * 2 - 2) to K by -1
+    for J in 1 to K
+      Add = P I * C (J - 1) mod Mod
+      P (I - J) += Add
+    end
+  end
+  return P take K
+end

@@ -1,0 +1,113 @@
+rem Stone Game II
+rem https://projecteuler.net/problem=325
+
+use numbers
+use io
+
+Mod = 7 ** 10
+Inv2 = 141237625
+Inv6 = 235396041
+
+Limit = 10 ** 16
+
+fun N solve
+  Mod = 282475249
+  Inv2 = 141237625
+  Cut = (N + 1) phi
+  S = Cut beatty
+  G = S 0
+  Q = S 1
+  P = S 2
+  Head = (4 * P + Q + G) mod Mod
+  Head = Head * Inv2 mod Mod
+  if Cut equal N
+    return Head
+  end
+  Cnt = (N - Cut) mod Mod
+  SX = ((N tri) - (Cut tri)) mod Mod
+  SX2 = (N squares) - (Cut squares)
+  X = N mod Mod
+  N2 = X * X + X
+  Coeff = 2 * X - 1
+  Tail = Cnt * N2 mod Mod
+  Term = Coeff * SX mod Mod
+  Tail += Term
+  Tail -= 3 * SX2
+  Tail = Tail mod Mod
+  Tail = Tail * Inv2 mod Mod
+  return (Head + Tail) mod Mod
+end
+
+fun N beatty
+  Mod = 282475249
+  Inv2 = 141237625
+  Len = 0
+  T = N
+  for T greater 0
+    Len += 1
+    T = T phi
+  end
+  Ns = array shape Len fill 0
+  T = N
+  for I in 0 till Len
+    Ns I = T
+    T = T phi
+  end
+  G = 0
+  Q = 0
+  P = 0
+  for I in (Len - 1) to 0 by -1
+    X = Ns I mod Mod
+    Y = (Ns I phi) mod Mod
+    TM = Ns I phi tri
+    SM = Ns I phi squares
+    G0 = G
+    Q0 = Q
+    P0 = P
+    G = X * Y - TM - G0
+    Q = X * Y mod Mod
+    Q = Q * Y - 2 * SM - 2 * P0
+    Q += TM + G0
+    P = X * Y mod Mod
+    P = P * ((Ns I + 1) mod Mod)
+    P = P * Inv2
+    Z = SM + 2 * P0 + Q0 + TM + G0
+    P -= Z * Inv2
+  end
+  R = array shape 3 fill 0
+  R 0 = G mod Mod
+  R 1 = Q mod Mod
+  R 2 = P mod Mod
+  return R
+end
+
+fun N phi
+  Root = (5 * N * N) isqrt
+  return (Root - N) // 2
+end
+
+fun N tri
+  Mod = 282475249
+  Inv2 = 141237625
+  T = (N mod Mod) * ((N + 1) mod Mod)
+  return T * Inv2 mod Mod
+end
+
+fun N squares
+  Mod = 282475249
+  Inv6 = 235396041
+  A = N mod Mod
+  B = (N + 1) mod Mod
+  C = (2 * N + 1) mod Mod
+  T = A * B mod Mod
+  T = T * C mod Mod
+  return T * Inv6 mod Mod
+end
+
+fun start
+  N = Limit
+  return N solve
+end
+
+Answer = start
+Answer print

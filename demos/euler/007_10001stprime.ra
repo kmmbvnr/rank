@@ -2,13 +2,28 @@ rem 10001st Prime
 rem https://projecteuler.net/problem=7
 rem Find the 10001st prime
 
-use sequences
+use numbers
 use io
 use cli
 
 rem One-based position in the sequence.
 option Count integer = 10001
 
-Index = Count - 1
-Answer = primes Index
+fun Limit sieve
+  Marked = array shape (Limit + 1) fill false
+  for P in 2 to Limit
+    if not Marked P
+      yield P
+      Marked (P * P to Limit by P) = true
+    end
+  end
+end
+
+rem Upper bound for the nth prime, n >= 6.
+rem https://www.maths.tcd.ie/EMIS/journals/JIS/VOL22/Axler/axler17.pdf
+Limit = 11
+if Count greater 5
+  Limit = Count * (Count log + (Count log log)) integer
+end
+Answer = (Limit sieve) (Count - 1)
 Answer print

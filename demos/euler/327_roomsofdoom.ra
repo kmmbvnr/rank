@@ -1,0 +1,24 @@
+rem Rooms of Doom
+rem https://projecteuler.net/problem=327
+
+use io
+
+Answer = (3 to 40) 30 cards
+Answer print
+
+fun Cs Rooms cards
+  Answer = 0
+  for C in Cs
+    Need = 1
+    for Rooms greater 0
+      Moves = 0
+      if Need at least C
+        Moves = (Need - 2) // (C - 2)
+      end
+      Need += 2 * Moves + 1
+      Rooms -= 1
+    end
+    Answer += Need
+  end
+  return Answer
+end

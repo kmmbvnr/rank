@@ -1,0 +1,58 @@
+rem Prime-generating Automaton
+rem https://projecteuler.net/problem=308
+
+use numbers
+use sequences
+use io
+use cli
+
+option Target integer = 10001
+
+Ps = primes take Target array
+Top = Ps (Ps len - 1)
+Spf = array shape (Top + 1) fill 0
+for P in Ps
+  Ix = P to Top by P array
+  Old = Spf Ix
+  Free = Ix filter Old equal 0 array
+  Spf Free = P
+end
+Start = 2
+Found = 0
+Answer = 0
+for N in 2 to Top
+  S = Spf N
+  M = N // S
+  if S equal N
+    Found += 1
+    if Found equal Target
+      F = N 2 (N - 1) floors
+      A = 2 * N - 1
+      B = (6 * N + 2) * (N - 2)
+      C = 6 * N + 2
+      Answer = Start + A + B + 2 * F + C
+    end
+  end
+  Cnt = N - M - 1
+  F = N (M + 1) (N - 1) floors
+  A = 2 * N - 1
+  B = (6 * N + 2) * Cnt + 2 * F
+  C = 5 * N + M + 2 * (N // M) + 2
+  Start += A + B + C
+end
+Answer print
+
+fun N Lo Hi floors
+  if Lo greater Hi or Hi equal 0
+    return 0
+  end
+  Total = 0
+  Left = Lo
+  for Left at most Hi
+    Q = N // Left
+    Right = (N // Q) Hi min
+    Total += Q * (Right - Left + 1)
+    Left = Right + 1
+  end
+  return Total
+end

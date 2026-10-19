@@ -1,0 +1,17 @@
+use testing
+
+test "statement range"
+  use "309_ladders"
+  Limit = 200
+  run
+
+  Answer equal 5
+end
+
+test "larger range"
+  use "309_ladders"
+  Limit = 1000
+  run
+
+  Answer equal 76
+end

@@ -40,6 +40,12 @@ export interface InterpreterOptions {
     readonly loopReturnCompilation?: boolean;
     readonly arrayLocalCompilation?: boolean;
     readonly booleanArrayCompilation?: boolean;
+    /** Commit scalar boolean selection fills without per-cell contract checks. */
+    readonly booleanSelectionCompilation?: boolean;
+    /** Compile iterable loop control flow that suspends at yield statements. */
+    readonly generatorLoopCompilation?: boolean;
+    readonly onGeneratorLoopCompiled?: (source: string) => void;
+    readonly onGeneratorLoopExecuted?: () => void;
     readonly booleanLoopCompilation?: boolean;
     readonly boundIntegerWrites?: boolean;
     readonly scalarAddressCompilation?: boolean;

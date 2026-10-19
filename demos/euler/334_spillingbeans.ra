@@ -1,0 +1,39 @@
+rem Spilling the Beans
+rem https://projecteuler.net/problem=334
+
+use bits
+use io
+
+1500 beans moves print
+
+fun N beans
+  Bs = array shape N fill 0
+  T = 123456
+  for I in 0 till N
+    if T mod 2 equal 0
+      T //= 2
+    else
+      T = (T // 2) 926252 bxor
+    end
+    Bs I = T mod 2048 + 1
+  end
+  return Bs
+end
+
+fun Bs moves
+  N = Bs sum
+  Pos = 0 till (Bs len) array
+  S1 = (Pos * Bs) sum
+  S2 = (Pos * Pos * Bs) sum
+  K1 = N * (N + 1) // 2
+  K2 = N * (N + 1) * (2 * N + 1) // 6
+  L = (S1 - K1) // N
+  H = (N + 1) * L + K1 - S1
+  if H less L or H greater L + N
+    L += 1
+    H = (N + 1) * L + K1 - S1
+  end
+  Last = (N + 1) * L * L
+  Last += 2 * L * K1 + K2 - H * H
+  return (Last - S2) // 2
+end

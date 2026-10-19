@@ -288,6 +288,28 @@ export function writableIntegerCells(value: RankArray): readonly bigint[] | unde
     return state.items as bigint[];
 }
 
+/** A scalar boolean fill preserves this storage's physical kind. */
+export function hasWritableBooleanCells(value: RankArray): boolean {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || state.readOnlyCells || !state.scalarOnly || state.typed) return false;
+    const kinds = storedScalarKinds(value);
+    return kinds?.length === 1 && kinds[0] === 'boolean';
+}
+
+/** Ownership, selection bounds and the binding contract are checked by the caller. */
+export function fillBooleanSelection(
+    value: RankArray, count: number, offsetAt: (index: number) => number, operand: boolean,
+): void {
+    const state = ownedStorage.get(value)!;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) { diagnostics.bulkArrayWrites++; diagnostics.bulkArrayWriteCells += count; }
+    state.revision = noteMutation(state.birth);
+    for (let i = 0; i < count; i++) {
+        checkpoint('writing array');
+        state.items[offsetAt(i)] = operand;
+    }
+}
+
 /** Commit a prevalidated integer selection without per-cell Proxy traffic.
  * Callers have protected ownership, established an integer binding, and removed
  * lazy reads/callbacks from operands and offsets. Compound writes require unique
