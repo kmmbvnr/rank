@@ -1,0 +1,16 @@
+use testing
+
+test "small reflexive positions"
+  use "305_reflexive"
+  Power = 1
+  run
+
+  Answer equal 12
+end
+
+test "published checkpoints"
+  use "305_reflexive"
+  5 solve equal 81
+  12 solve equal 271
+  7780 solve equal 111111365
+end
