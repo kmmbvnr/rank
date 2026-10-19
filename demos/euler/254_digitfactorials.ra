@@ -1,0 +1,88 @@
+rem Sums of Digit Factorials
+rem https://projecteuler.net/problem=254
+rem f(n) is the sum of the factorials of
+rem the digits of n and sf(n) the digit
+rem sum of f(n). With g(i) the least n
+rem with sf(n) = i and sg(i) its digit
+rem sum, add up sg(i) for i up to Top.
+
+use numbers
+use sequences
+use io
+use cli
+
+option Top integer = 150
+
+rem A least n has at most d of the digit
+rem d below 9, as d + 1 of them could be
+rem swapped for a (d + 1) with the same
+rem factorial sum. So f is written in
+rem the factorial base, with all the
+rem rest in 9s: c9 = f // 9!. The digits
+rem are fewest for the least f with
+rem digit sum i, up to 36 more than c9.
+rem So look at the f with digit sum i
+rem while c9 does not pass the best
+rem count, each next one found by
+rem raising the lowest digit that may
+rem rise, and take the shortest n, the
+rem least on ties, with digits in order.
+Fa = array 1 1 2 6 24 120 720 5040
+Fb = array 40320 362880
+Fa = concat Fa Fb
+Pw = 10 ** (0 to 22 array)
+Dd = 0 to 9 array
+Total = 0
+for I in 1 to Top
+  Q = I // 9
+  Tn = 10 ** Q
+  Low = (I mod 9) * Tn + Tn - 1
+  Bk = 0
+  Bc = array shape 10 fill 0
+  F = Low
+  for
+    Cn = F // 362880
+    if Bk greater 0 and Cn greater Bk
+      break
+    end
+    C = array shape 10 fill 0
+    C 9 = F // 362880
+    Rm = F mod 362880
+    for D in 8 to 1 by -1
+      C D = Rm // (Fa D)
+      Rm = Rm mod (Fa D)
+    end
+    K = C sum
+    Pick = Bk equal 0 or K less Bk
+    if K equal Bk
+      for D in 1 to 9
+        if C D equal Bc D
+          continue
+        end
+        Pick = C D greater Bc D
+        break
+      end
+    end
+    if Pick
+      Bk = K
+      Bc = C
+    end
+    Dg = F // Pw mod 10
+    Sb = 0
+    for P in 1 to 22
+      Sb += Dg (P - 1)
+      if Dg P less 9 and Sb at least 1
+        S = Sb - 1
+        M = S // 9
+        Tn = 10 ** M
+        Tail = (S mod 9) * Tn + Tn - 1
+        Pp = Pw P
+        F = (F // Pp + 1) * Pp + Tail
+        break
+      end
+    end
+  end
+  Total += (Bc * Dd) sum
+end
+Answer = Total
+Answer print
