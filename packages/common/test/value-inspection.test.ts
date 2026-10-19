@@ -310,6 +310,21 @@ describe('inspect: collections', () => {
         expect(second.entries.map(entry => entry.key)).toEqual(['y']);
     });
 
+    it('keeps index key labels and order stable for integer and encoded storage', async () => {
+        const { session, ref } = await run(['use algo', `Cache = new index
+Cache 1 = 10
+Cache "x" = 20
+Cache 9007199254740993 = 30
+Cache 1.0 = 11
+Cache`, 'Cache']);
+        const value = opened(session.inspect(ref));
+        if (value.kind !== 'entries') throw new Error('expected entries');
+        expect(value.entries.map(entry => [entry.key, entry.value.text])).toEqual([
+            ['["number:1"]', '11'], [JSON.stringify(['text:' + JSON.stringify('x')]), '20'],
+            ['["number:9007199254740993"]', '30'],
+        ]);
+    });
+
     it('pages the elements of a set', async () => {
         const { session, ref } = await run(['use algo', 'S = new set\nS add 3\nS add 1\nS add 3', 'S']);
         const value = opened(session.inspect(ref));

@@ -253,8 +253,12 @@ function inspectUnrecorded(
 /** The entries of a collection in the order it keeps them, or nothing for a value that has none. */
 function collectionEntries(value: Exclude<RankValue, bigint | number | boolean | string>): InspectEntry[] | undefined {
     switch (value.kind) {
-        case 'record': case 'object': case 'index':
+        case 'record': case 'object':
             return [...value.entries].map(([key, item]) => ({ key, value: cellOf(item) }));
+        case 'index':
+            return [...value.entries].map(([key, item]) => ({
+                key: typeof key === 'string' ? key : JSON.stringify([`number:${key}`]), value: cellOf(item),
+            }));
         case 'set':
             return [...value.entries.values()].map((item, index) => ({ key: String(index), value: cellOf(item) }));
         case 'queue': case 'tuple':
