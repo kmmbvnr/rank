@@ -1,0 +1,73 @@
+rem Binomial Coefficients Divisible
+rem by 10
+rem https://projecteuler.net/problem=322
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option Top integer = 1000000000000000000
+option Pick integer = 999999999990
+
+Limit = Top - Pick
+A2 = Pick Limit 2 nocarry
+A5 = Pick Limit 5 nocarry
+Vals = array 0
+Place = 1
+N = Pick
+for Place less Limit
+  Cap = 4
+  if N greater 0
+    Cap = 4 - N mod 5
+    N //= 5
+  end
+  Ds = 0 to Cap array
+  Size = (Vals len) * (Ds len)
+  Grid = Vals (Ds * Place) outer +
+  Vals = Grid reshape Size
+  Place *= 5
+end
+Vals = Vals filter less Limit array
+Mask = (Vals Pick band) equal 0
+Both = Mask count
+Answer = Limit - A2 - A5 + Both
+Answer print
+
+fun N Limit Base nocarry
+  if Limit equal 0
+    return 0
+  end
+  Max = Limit - 1
+  MaxN = N Max max
+  Len = 1
+  Scale = Base
+  for Scale at most MaxN
+    Len += 1
+    Scale *= Base
+  end
+  Bases = array shape Len fill Base
+  Nds = N Bases digits
+  Bds = Max Bases digits
+  Tight = 1
+  Loose = 0
+  for I in 0 till Len
+    ND = Nds I
+    BD = Bds I
+    Cap = Base - 1 - ND
+    Small = Cap BD min
+    NextLoose = Loose * (Cap + 1)
+    NextTight = 0
+    for D in 0 to Small
+      if D less BD
+        NextLoose += Tight
+      else
+        NextTight += Tight
+      end
+    end
+    Tight = NextTight
+    Loose = NextLoose
+  end
+  return Tight + Loose
+end
