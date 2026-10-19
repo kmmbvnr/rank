@@ -98,6 +98,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     const calleeArrays = new Set<string>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
+    const vectorIterations: { slot: number; binding: IterationBinding; iterator: number }[] = [];
     const iterators: ((source: RankArray | string) => Iterable<RankValue>)[] = [];
     const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type'] }>();
     let needsAlgo = false, hasControl = false, hasReturn = false;
@@ -519,6 +520,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 arrays.set(range.name, info);
                 if (!assigned.has(range.name)) arrayInputs.add(range.name);
                 const binding = iteration;
+                if (elementType === 'integer') vectorIterations.push({ slot: info.slot, binding, iterator: iterators.length });
                 setup = `const iterable = iterators[${iterators.length}](r${info.slot}); ${indexed ? 'let ordinal = 0n;' : ''}`;
                 iterators.push(source => host.iterationValues(binding, source, elementType));
                 header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
@@ -826,6 +828,6 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     // at region entry. Keep those writes interpreted until that lowering exists.
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
         && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
-    const plan = { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration };
+    const plan = { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, needsAlgo, arrayDefinitions, writable, iteration };
     return numberMode ? prepareNumberLoop(plan, host) : prepareIntegerLoop(plan, host, () => reject(statement, 'code-generation'));
 }

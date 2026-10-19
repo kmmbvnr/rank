@@ -197,6 +197,16 @@ export function iterationAtoms(
     bindings: BindingEnvironment, binding: ForBinding, value: RankValue,
     provenType?: 'integer' | 'text', directText = false,
 ): Iterable<RankValue> {
+    declareIterationTypes(bindings, binding, value, provenType);
+    if (directText && typeof value === 'string') return value;
+    return iterationValues(value);
+}
+
+/** Binding contracts are independent of how a trusted traversal obtains cells. */
+export function declareIterationTypes(
+    bindings: BindingEnvironment, binding: ForBinding, value: RankValue,
+    provenType?: 'integer' | 'text',
+): void {
     validateForBindings(binding.names, 1);
     if (isRankArray(value)) {
         const types = provenType
@@ -218,8 +228,6 @@ export function iterationAtoms(
     } else if (typeof value === 'string') {
         bindings.declareTypes(binding.names, [new Set(['text']), new Set(['integer'])]);
     }
-    if (directText && typeof value === 'string') return value;
-    return iterationValues(value);
 }
 
 export { forIteration, type ForBinding } from '@arrrank/language';
