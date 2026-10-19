@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "264_trianglecentres"
+  run
+
+  Answer equal 2816417.1055
+end
+
+test "small limits"
+  use "264_trianglecentres"
+  Limit = 50
+  run
+
+  Answer equal 291.0089
+  Limit = 300
+  run
+
+  Answer equal 3082.1168
+end
