@@ -1,4 +1,4 @@
-import { checkpoint, inspectionEnabled } from '../interrupt.js';
+import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { unpackApplicationItems } from '../value-selection.js';
 import {
     type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
@@ -7,7 +7,8 @@ import {
 } from '@arrrank/language';
 import { hasDeferredSelectionCopy } from '../integer-view.js';
 import { retainSequence } from '../sequence-retention.js';
-import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection } from '../array-storage.js';
+import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection,
+    hasWritableBooleanCells, fillBooleanSelection } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
 import { pushCollection } from '../containers.js';
 import { RankError } from '../errors.js';
@@ -189,6 +190,14 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 writeIntegerSelection(destination, count, selection.offsetAt, values, operation);
                 return result;
             }
+        }
+        if (count > 0 && host.options().compilation !== false && host.options().booleanSelectionCompilation !== false
+            && privateLoopPolling()
+            && target.shape.length === 1 && statement.operator === '='
+            && typeof result === 'boolean' && hasWritableBooleanCells(target)) {
+            host.checkArrayWrite(statement.name, target, [result]);
+            fillBooleanSelection(owned(target) as typeof target, count, selection.offsetAt, result);
+            return result;
         }
         operands ??= Array(count).fill(result) as RankValue[];
         const replacements = operands.map((operand, index) => operator === undefined

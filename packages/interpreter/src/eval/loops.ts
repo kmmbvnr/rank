@@ -10,7 +10,8 @@ import { RankError } from '../errors.js';
 import { resume, type Evaluation } from '../execution.js';
 import type { CompiledLoop } from '../fast-paths.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
-import { checkpoint } from '../interrupt.js';
+import { checkpoint, inspectionEnabled } from '../interrupt.js';
+import { compileGeneratorLoop } from '../generator-loop.js';
 import { tensorFrameAxes } from '../rank-application.js';
 import { sequenceValues } from '../sequence.js';
 import type { ExecutionContext, LoopControl, PreparedStatement } from '../statement-control.js';
@@ -38,6 +39,8 @@ export interface LoopContext {
     options(): InterpreterOptions;
     /** The compiled loop the fast-path owner selects, if any. */
     compileLoop(statement: ForStatement, binding: ForBinding | undefined): CompiledLoop | undefined;
+    prepareStatement(statements: Statement[], index: number): PreparedStatement;
+    locate(error: unknown, statement: Statement): unknown;
 }
 
 const NO_INDICES: readonly RankValue[] = [];
@@ -55,6 +58,15 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
         ? binding.names.slice(1).map(name =>
             name === '#' ? undefined : loop.compileAssign(name))
         : [];
+    const generator = binding && loop.options().compilation !== false && loop.options().generatorLoopCompilation !== false
+        ? compileGeneratorLoop(statement.statements, {
+            evaluate: expression => loop.evaluate(expression),
+            compileDirect: expression => loop.compileDirect(expression),
+            prepare: (statements, index) => loop.prepareStatement(statements, index),
+            locate: (error, statement) => loop.locate(error, statement),
+            compiled: loop.options().onGeneratorLoopCompiled,
+            executed: loop.options().onGeneratorLoopExecuted,
+        }) : undefined;
     const reference: PreparedStatement = { stream: function* (context) {
         // Each loop owns its jumps. Branches share this carrier, while
         // protected try/catch/finally blocks retain exception unwinding.
@@ -68,6 +80,12 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
                 && !isRankObject(iterable) && !(isRankArray(iterable) && iterable.shape.length > 1);
             const entries = flat ? iterationAtoms(loop.bindings, binding, iterable)
                 : forEntries(loop.bindings, binding, iterable, loop.options().tensorCellCompilation !== false);
+            if (generator && flat && context.insideGenerator && !context.insideFinally && !inspectionEnabled()) {
+                return yield* resume(generator(entries as Iterable<RankValue>, (value, ordinal) => {
+                    bindValue?.(value);
+                    bindIndex[0]?.(ordinal);
+                }, context));
+            }
             let ordinal = 0n;
             for (const entry of entries) {
                 checkpoint();

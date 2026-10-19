@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-19",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "command": "node benchmarks/sieve-generator.mjs",
+  "measurement": "parse + execution in milliseconds; fresh process per sample; two warmups; no concurrent test runs",
+  "source": "demos/euler/007_10001stprime.ra",
+  "expected": "104743",
+  "variants": {
+    "before": { "booleanSelectionCompilation": false, "generatorLoopCompilation": false },
+    "boolean": { "generatorLoopCompilation": false },
+    "generator": { "booleanSelectionCompilation": false },
+    "both": {}
+  },
+  "samples": {
+    "before": [719.851083, 813.822125, 741.270292, 874.599333, 895.572833],
+    "boolean": [435.998583, 432.652417, 441.920667, 423.079917, 439.834583],
+    "generator": [577.612000, 516.210292, 587.949000, 538.975541, 608.666625],
+    "both": [315.434875, 319.647375, 304.058583, 315.170375, 317.452041]
+  },
+  "medians": {
+    "before": 813.822125,
+    "boolean": 435.998583,
+    "generator": 577.612000,
+    "both": 315.434875
+  },
+  "speedup": 2.580000467608408
+}
