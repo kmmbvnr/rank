@@ -1,0 +1,64 @@
+rem Flea Circus
+rem https://projecteuler.net/problem=213
+rem Find the expected number of empty
+rem squares of an N by N board after
+rem Rings rings, each flea leaping to a
+rem random neighbour square
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 30
+option Rings integer = 50
+
+rem Row s of D holds, for each flea of
+rem one quarter of the board, the chance
+rem that it is on square s; row Z is a
+rem zero pad that off-board neighbours
+rem point to. A ring gathers the four
+rem neighbours, each share split by the
+rem degree of its square. A square is
+rem empty when no flea is on it; the
+rem other quarters are mirror images.
+H = N // 2
+Z = N * N
+Fn = H * H
+Cell = 0 till Z array
+Rw = Cell // N
+Cl = Cell mod N
+Up = (Rw at least 1) choose (Cell - N) Z
+Last = N - 1
+Dn = (Rw less Last) choose (Cell + N) Z
+Lf = (Cl at least 1) choose (Cell - 1) Z
+Rt = (Cl less Last) choose (Cell + 1) Z
+Nb = concat Up Dn Lf Rt
+Real = (Nb not equal Z) reshape 4 Z
+Deg = Real count axis 0
+Inv = 1 / Deg
+Fl = 0 till Fn array
+Home = (Fl // H) * N + Fl mod H
+Hit = (Cell reshape Z 1) equal Home
+Ones = Fl - Fl + 1
+Wc = (Inv reshape Z 1) * Ones
+Wt = Wc reshape (Z * Fn) copy
+Grid = (Nb reshape (4 * Z) 1) * Fn + Fl
+Src = Grid reshape (4 * Z * Fn) copy
+Pad = array shape Fn fill 0.0
+Real0 = Hit choose 1.0 0.0
+D = Real0 reshape (Z * Fn)
+for R in 1 to Rings
+  Qz = concat (D * Wt) Pad
+  G = (Qz Src) reshape 4 (Z * Fn)
+  D = G sum axis 0 copy
+end
+Dm = D reshape Z Fn
+Pq = (1 - Dm) reduce * rank 1
+M = Pq reshape N N
+Mv = M reverse
+Mh = M transpose reverse transpose
+Mb = Mv transpose reverse transpose
+Empty = M * Mv * Mh * Mb
+Answer = Empty sum 6 round
+Answer print
