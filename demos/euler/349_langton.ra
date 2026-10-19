@@ -1,0 +1,65 @@
+rem Langton's Ant
+rem https://projecteuler.net/problem=349
+
+use algo
+use io
+use cli
+
+option Moves integer = 10 ** 18
+
+fun Steps ants
+  Black = new set
+  X = 0
+  Y = 0
+  Dir = 0
+  Dx = array 1 0 -1 0
+  Dy = array 0 1 0 -1
+  for I in 1 to Steps
+    Key = (X + 1000) * 4096 + Y + 1000
+    if Key in Black
+      Black = Black Key remove
+      Dir = (Dir + 3) mod 4
+    else
+      Black add Key
+      Dir = (Dir + 1) mod 4
+    end
+    X += Dx Dir
+    Y += Dy Dir
+  end
+  return Black len
+end
+
+fun Moves solve
+  Base = 10000
+  Period = 104
+  Size = Period + 1
+  Counts = array shape Size fill 0
+  Black = new set
+  X = 0
+  Y = 0
+  Dir = 0
+  Dx = array 1 0 -1 0
+  Dy = array 0 1 0 -1
+  for I in 1 to (Base + Period)
+    Key = (X + 1000) * 4096 + Y + 1000
+    if Key in Black
+      Black = Black Key remove
+      Dir = (Dir + 3) mod 4
+    else
+      Black add Key
+      Dir = (Dir + 1) mod 4
+    end
+    X += Dx Dir
+    Y += Dy Dir
+    if I at least Base
+      Counts (I - Base) = Black len
+    end
+  end
+  Cycles = (Moves - Base) // Period
+  Rest = (Moves - Base) mod Period
+  Gain = Counts Rest - Counts 0
+  return Counts 0 + Cycles * 12 + Gain
+end
+
+Answer = Moves solve
+Answer print
