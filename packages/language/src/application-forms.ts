@@ -368,7 +368,7 @@ export type ApplicationForm =
     | { readonly kind: 'unpack' }
     | { readonly kind: 'reshape'; readonly source: Expression; readonly dimensions: readonly Expression[];
         readonly rest: readonly Expression[] }
-    | { readonly kind: 'new-graph' }
+    | { readonly kind: 'new-graph'; readonly predicate?: Expression; readonly domain?: Expression; readonly direction?: Expression }
     | { readonly kind: 'new-dsu' }
     | { readonly kind: 'new-filled'; readonly structure: string }
     | { readonly kind: 'new-heap'; readonly priorities?: Expression; readonly values?: Expression;
@@ -508,7 +508,15 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: N
         return { kind: 'invalid', message: 'reshape dimensions must follow reshape' };
     }
     if (parts.some(isUnpackExpression) && !parts.some(part => isNamed(part, 'window', nameOf))) return { kind: 'unpack' };
-    if (isNewStructureExpression(parts[0]) && parts[0].structure === 'graph') return { kind: 'new-graph' };
+    if (isNewStructureExpression(parts[0]) && parts[0].structure === 'graph') {
+        if (parts.some(part => isNamed(part, 'with', nameOf))) {
+            if (parts.length !== 5 || !isNamed(parts[2], 'with', nameOf)) {
+                return { kind: 'invalid', message: 'new graph with expects Domain with Predicate and a direction' };
+            }
+            return { kind: 'new-graph', domain: parts[1], predicate: parts[3], direction: parts[4] };
+        }
+        return { kind: 'new-graph' };
+    }
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'dsu') return { kind: 'new-dsu' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'heap') {
         const direction = isLabelLiteral(parts.at(-1)) ? parts.at(-1) : undefined;

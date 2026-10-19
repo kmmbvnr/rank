@@ -12,6 +12,9 @@ import { createRankServices } from '../src/rank-module.js';
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
 
 it.each([
+    ['new graph Nodes with linked .directed', 'new-graph'],
+    ['new graph with linked .directed', 'invalid'],
+    ['new graph Nodes with linked .directed .cached', 'invalid'],
     ['A diag .anti', 'diagonal'], ['A diag -1', 'diagonal'],
     ['A diag .anti K rank 2', 'diagonal'], ['A diag .anti 1 axis 0 rank 2', 'diagonal'],
     ['A len axis 1', 'axis-length'], ['A sum axis 1', 'axis-reduction'],
@@ -229,4 +232,17 @@ end
     const grouped = await parse(`${prefix}Result = (${source}) ${suffix}\n`, { validation: true });
     expect(direct.diagnostics?.map(diagnostic => diagnostic.message))
         .toEqual(grouped.diagnostics?.map(diagnostic => diagnostic.message));
+});
+
+it('keeps callback-bearing neighbor facts conservative after replacing an explicit graph', () => {
+    const parsed = parser.parse<Program>(`use graph
+fun A B linked = A less B
+G = new graph (array 1 2 3) .directed
+G = new graph (array 1 2 3) with linked .directed
+N = G 1
+`);
+    expect(parsed.parserErrors).toEqual([]);
+    const result = analyzeValues(parsed.value);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.bindings.get('N')?.callbackFreeScalarCells).not.toBe(true);
 });

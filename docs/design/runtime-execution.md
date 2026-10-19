@@ -39,12 +39,14 @@ vertex table. Identity uses the existing scalar set/index keys. DFS buffers one
 outgoing iterable to retain its reverse-push discovery order; iteration has
 cancellation checkpoints.
 
-The public graph value still uses explicit mutable adjacency storage. Its
-Dijkstra entry point checks the start and scans every stored edge for negative
+Explicit graph values use mutable adjacency storage. Finite predicate graph
+values retain a deduplicated domain and a callback, and implement the same local
+traversal interface with unit weights. Their neighbor membership invokes only
+the requested pair and is not a callback-free compiler capability. For explicit
+graphs, the Dijkstra entry point checks the start and scans every stored edge for negative
 weights before traversal, including unreachable edges. Global graph algorithms
-continue to use explicit storage. This interface is preparation for implicit
-graphs, not a public successor constructor or a termination guarantee for infinite
-searches. Neighbor sequences from mutable graphs retain snapshot semantics.
+continue to use explicit storage. Successor constructors and bounded searches
+remain future work. Neighbor sequences from mutable graphs retain snapshot semantics.
 
 ## Debug sessions
 

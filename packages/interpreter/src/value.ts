@@ -6,7 +6,7 @@ import type { RankMultiset } from './multiset.js';
 import type { RankFenwick } from './fenwick.js';
 import type { RankSegmentValue } from './segment.js';
 import type { RankHeap } from './containers.js';
-import type { GraphValue } from './graph.js';
+import type { GraphValue, PredicateGraph } from './graph.js';
 import type { RankDsu } from './dsu.js';
 import type { RankFunctionalGraph } from './functional-graph.js';
 import type { RankWavelet } from './wavelet.js';
@@ -341,10 +341,10 @@ export type RankValue = bigint | number | boolean | string | RankMissing | RankA
     RankLabel | RankDate | RankDateTime | RankDuration | RankErrorValue | RankIndex | RankQueue | RankSet | RankCounter |
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
     RankGroupedTable | RankArrowTable | NativeFunction |
-    RankSequence | RankSequenceMask | GraphValue | RankDsu | RankFunctionalGraph |
+    RankSequence | RankSequenceMask | RankGraph | RankDsu | RankFunctionalGraph |
     RankWavelet;
 
-export type RankGraph = GraphValue;
+export type RankGraph = GraphValue | PredicateGraph;
 
 export interface CollectionElementType {
     readonly type: string;

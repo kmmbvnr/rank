@@ -1,7 +1,50 @@
 # Graphs
 
-`use graph` provides a mutable graph value for traversal algorithms. Its public
+`use graph` provides mutable explicit graphs and read-only finite predicate graphs. Its public
 behavior does not expose adjacency-list, CSR or other physical storage.
+
+## Predicate graphs
+
+A finite domain and a binary function can define edges without storing them:
+
+```rank
+use graph
+use sequences
+fun A B next = A + 1 equal B
+Graph = new graph (1 to 5) with next .directed
+Graph 2 3 adjacent
+Neighbors = Graph 2
+Chosen = (array 1 3 5) filter in Neighbors array
+```
+
+Construction snapshots and deduplicates the scalar domain in first-occurrence
+order without evaluating the predicate. `Graph U V adjacent` tests one pair;
+unknown endpoints raise a missing-value error. `Graph U` lazily enumerates the
+domain and yields matching neighbors in domain order. Membership in that sequence
+checks the requested candidate directly, so candidate filtering does not scan the
+whole domain. Candidates outside the domain are absent. Self-edges are included
+when the predicate returns true. `Graph edges U` yields `(neighbor, 1)` tuples.
+
+The predicate must return a Boolean. For `.undirected`, the caller must supply a
+symmetric predicate: Rank does not test symmetry or combine both directions.
+Use a deterministic relation with stable dependencies during each traversal.
+Captured bindings remain live; there is no cache or implicit snapshot of the
+predicate's environment. Repeating a query invokes the predicate again. A nested
+predicate may be used inside its enclosing call, but a graph or neighbor sequence
+retaining it cannot escape that call. Materialize neighbor values before returning
+them, or return the eager result of BFS, DFS or Dijkstra. Predicates use ordinary
+named `fun` declarations.
+
+BFS, DFS and unit-weight Dijkstra accept predicate graphs. `len` counts domain
+vertices. Mutation and other graph algorithms currently require explicit graphs
+and reject predicate graphs. These are finite graphs: no successor generator,
+goal-directed stopping, or `.cached` modifier is provided by this constructor.
+
+One adjacency query costs one predicate evaluation plus key lookups. Enumerating
+all neighbors costs one predicate evaluation per domain vertex. Repeatedly
+scanning all vertices can still do quadratic work; filter the search's narrowed
+candidate set when possible. The graph retains its domain and callback, not an
+adjacency table.
 
 ## Construction
 
@@ -87,7 +130,7 @@ collections.
 
 ## Neighbors and size
 
-Address a graph with one vertex to obtain a finite lazy sequence of its
+Address an explicit graph with one vertex to obtain a finite lazy sequence of its
 neighbors:
 
 ```rank

@@ -2,7 +2,7 @@ import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDsu } from '../dsu.js';
 import { RankFunctionalGraph } from '../functional-graph.js';
-import { expectGraph, type GraphValue, type TraversalGraph } from '../graph.js';
+import { expectGraph, expectReadableGraph, PredicateGraph, type GraphValue, type TraversalGraph } from '../graph.js';
 import { edgeWeight, trips } from '../graph-trips.js';
 import { indexKey } from '../index-key.js';
 import { ResourceMap } from '../resource-summary.js';
@@ -45,25 +45,27 @@ export const graphModule: RuntimeModule = {
     edgeweight: () => native('edgeweight', 3, values =>
         edgeWeight(expectGraph(values[0]), values[1], values[2])),
     bfs: () => native('bfs', 2, values => {
-        const graph = expectGraph(values[0]);
+        const graph = expectReadableGraph(values[0]);
         return searchRecord(breadthFirst(graph, values[1]));
     }),
     dfs: () => native('dfs', 2, values => {
-        const graph = expectGraph(values[0]);
+        const graph = expectReadableGraph(values[0]);
         return searchRecord(depthFirst(graph, values[1]));
     }),
     components: () => native('components', 1, values => isRankDsu(values[0])
         ? values[0].components : componentRecord(expectGraph(values[0]))),
     findroot: () => native('findroot', 2, values => expectDsu(values[0]).find(values[1])),
+    adjacent: () => native('adjacent', 3, values =>
+        expectReadableGraph(values[0]).adjacent(values[1], values[2])),
     connected: () => native('connected', 3, values =>
         expectDsu(values[0]).connected(values[1], values[2])),
     bipartite: () => native('bipartite', 1, values =>
         bipartiteRecord(expectGraph(values[0]))),
     dijkstra: () => native('dijkstra', 2, values => {
-        const graph = expectGraph(values[0]);
+        const graph = expectReadableGraph(values[0]);
         // Preserve explicit graphs' validation order and whole-graph weight check.
         graph.requireStart(values[1]);
-        rejectNegativeWeights(graph);
+        if (!(graph instanceof PredicateGraph)) rejectNegativeWeights(graph);
         return searchRecord(dijkstra(graph, values[1]));
     }),
     bellmanford: () => native('bellmanford', 2, values => {

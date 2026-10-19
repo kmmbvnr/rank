@@ -263,6 +263,8 @@ function collectionEntries(value: Exclude<RankValue, bigint | number | boolean |
             return [...value.entries.values()].map(entry => ({
                 key: preview(entry.value, CELL_WIDTH).text, value: { text: entry.count.toString(), type: 'integer' } }));
         case 'graph':
+            // Inspecting an implicit relation must not execute user predicates.
+            if (!('adjacency' in value)) return undefined;
             return [...value.vertices].map(([key, vertex]) => ({
                 key: preview(vertex, CELL_WIDTH).text,
                 value: { text: (value.adjacency.get(key) ?? []).map(edge =>

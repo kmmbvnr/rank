@@ -119,6 +119,10 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
         }
         if (isApplicationExpression(node)) {
             const form = applicationForm(node);
+            if (form.kind === 'new-graph' && form.predicate) {
+                const callback = value(form.predicate, env, true);
+                return { ...empty(), lazy: new Set([...callback.functions, ...callback.lazy]) };
+            }
             if (form.kind === 'named-reduce') {
                 const source = value(form.source, env);
                 const seed = form.seed ? value(form.seed, env) : source;
@@ -147,6 +151,10 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
             if (fn.functions.size) return union([...fn.functions].map(callee => invoke(callee, args, env, node)));
             const operation = isNameExpression(last) ? findOperation(last.name) : undefined;
             if (operation && ['integer', 'real', 'number', 'boolean', 'text', 'bytes', 'date', 'datetime', 'duration'].includes(operation.result)) return empty();
+            // Local graph traversals eagerly consume the relation and return only
+            // scalar vertex/weight data, never the graph's retained callback.
+            if (operation?.module === 'graph' && ['bfs', 'dfs', 'dijkstra'].includes(operation.name)
+                && isNameExpression(last) && !lexicalBinding(scope, last.name)) return empty();
             if (operation?.name === 'array' || operation?.name === 'copy') return materialized(union(args));
             const result = union(args);
             // Opaque helpers cannot promise not to retain a nested callback.

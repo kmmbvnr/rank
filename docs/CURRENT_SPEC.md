@@ -4759,8 +4759,15 @@ additions are tracked in the
 
 # Graphs
 
-`use graph` provides a mutable graph value for traversal algorithms. Its public
-behavior does not expose adjacency-list, CSR or other physical storage.
+`use graph` provides mutable explicit graphs and read-only finite predicate graphs.
+Its public behavior does not expose adjacency-list, CSR or other physical storage.
+
+`new graph Domain with Predicate .directed` (or `.undirected`) snapshots a finite
+scalar domain and evaluates its binary Boolean predicate on demand. `Graph U V
+adjacent` tests one pair; membership in `Graph U` tests only the requested candidate.
+Predicate graphs support BFS, DFS and unit-weight Dijkstra, and reject mutation and
+other graph algorithms. For callback lifetime, symmetry, iteration and complexity
+contracts, see [predicate graphs](language/graphs.md#predicate-graphs).
 
 ## Construction
 
@@ -4828,7 +4835,7 @@ collections.
 
 ## Neighbors and size
 
-Address a graph with one vertex to obtain a finite lazy sequence of its
+Address an explicit graph with one vertex to obtain a finite lazy sequence of its
 neighbors:
 
 ```rank

@@ -12,7 +12,7 @@ import {
 } from '../execution.js';
 import type { FastPaths } from '../fast-paths.js';
 import type { FunctionInvocation } from '../function-invocation.js';
-import { graphConstructor } from '../graph.js';
+import { graphConstructor, PredicateGraph } from '../graph.js';
 import { addToCollection, newStructure } from '../collections.js';
 import { pushCollection, RankHeap } from '../containers.js';
 import { dsuFrom } from '../dsu.js';
@@ -341,6 +341,17 @@ export class ApplicationEvaluator {
             case 'new-graph': {
                 return function* (): Execution<RankValue> {
                     context.requireModule('graph', 'new graph');
+                    if (form.predicate) {
+                        const domain = yield* resume(context.evaluate(form.domain!));
+                        let callback = form.predicate;
+                        while (isParenthesizedExpression(callback)) callback = callback.value;
+                        const predicate = isNameExpression(callback) ? context.resolve(callback.name)
+                            : yield* resume(context.evaluate(callback));
+                        const direction = yield* resume(context.evaluate(form.direction!));
+                        if (!isNativeFunction(predicate)) throw new RankError('graph predicate expects a function');
+                        return new PredicateGraph(domain, direction, predicate, (left, right) =>
+                            runExecution(context.functions.invoke(predicate, [left, right])));
+                    }
                     const constructor = graphConstructor();
                     if (!isNativeFunction(constructor)) {
                         throw new RankError('invalid graph constructor');

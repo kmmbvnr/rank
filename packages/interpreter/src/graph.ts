@@ -6,9 +6,11 @@ import {
     isRankSequence,
     isRankRecord,
     type RankGraph,
+    type NativeFunction,
     type RankSequence,
     type RankValue,
 } from './value.js';
+import { checkpoint } from './interrupt.js';
 import { native } from './modules/shared.js';
 
 type GraphDirection = 'directed' | 'undirected';
@@ -30,12 +32,18 @@ export interface TraversalGraph {
 }
 
 export function expectGraph(value: RankValue): GraphValue {
+    const graph = expectReadableGraph(value);
+    if (graph instanceof PredicateGraph) throw new RankError('graph algorithm requires an explicit graph');
+    return graph;
+}
+
+export function expectReadableGraph(value: RankValue): RankGraph {
     if (typeof value === 'object' && value.kind === 'graph') return value;
     throw new RankError('graph algorithm expects a graph');
 }
 
 /** Mutable adjacency storage behind Rank's graph value. */
-export class GraphValue implements RankGraph, TraversalGraph {
+export class GraphValue implements TraversalGraph {
     readonly kind = 'graph' as const;
     readonly vertices = new Map<string, RankValue>();
     readonly adjacency = new Map<string, GraphEdge[]>();
@@ -56,6 +64,17 @@ export class GraphValue implements RankGraph, TraversalGraph {
 
     outgoingEdges(vertex: RankValue): readonly GraphEdge[] {
         return this.adjacency.get(setValueKey(vertex)) ?? [];
+    }
+
+    adjacent(left: RankValue, right: RankValue): boolean {
+        this.requireVertex(left);
+        this.requireVertex(right);
+        const target = graphKey(right);
+        for (const edge of this.outgoingEdges(left)) {
+            checkpoint('checking graph adjacency');
+            if (graphKey(edge.target) === target) return true;
+        }
+        return false;
     }
 
     addVertex(value: RankValue): void {
@@ -162,6 +181,83 @@ export class GraphValue implements RankGraph, TraversalGraph {
     }
 }
 
+/** Finite, read-only relation. Captured callback state remains live; no results are cached. */
+export class PredicateGraph implements TraversalGraph {
+    readonly kind = 'graph' as const;
+    readonly directed: boolean;
+    readonly captures: readonly ReadonlyMap<string, RankValue>[];
+    private readonly domain = new Map<string, RankValue>();
+
+    constructor(
+        values: RankValue,
+        direction: RankValue,
+        predicate: NativeFunction,
+        private readonly invoke: (left: RankValue, right: RankValue) => RankValue,
+    ) {
+        this.directed = graphDirection(direction);
+        if (!predicate.arities.includes(2)) throw new RankError('graph predicate expects two arguments');
+        this.captures = [new Map([['predicate', predicate]])];
+        for (const vertex of graphVertices(values)) {
+            checkpoint('constructing predicate graph');
+            const key = graphKey(vertex);
+            if (!this.domain.has(key)) this.domain.set(key, vertex);
+        }
+    }
+
+    get size(): number { return this.domain.size; }
+
+    requireStart(vertex: RankValue): string {
+        const key = graphKey(vertex);
+        if (!this.domain.has(key)) throw new RankError('graph does not contain the start vertex');
+        return key;
+    }
+
+    private requireVertex(vertex: RankValue): void {
+        if (!this.domain.has(graphKey(vertex))) throw new MissingValueError('graph does not contain the vertex');
+    }
+
+    adjacent(left: RankValue, right: RankValue): boolean {
+        this.requireVertex(left);
+        this.requireVertex(right);
+        checkpoint('checking graph adjacency');
+        const result = this.invoke(this.domain.get(graphKey(left))!, this.domain.get(graphKey(right))!);
+        if (typeof result !== 'boolean') throw new RankError('graph predicate must return a boolean');
+        return result;
+    }
+
+    *outgoingEdges(vertex: RankValue): IterableIterator<Pick<GraphEdge, 'target' | 'weight'>> {
+        this.requireVertex(vertex);
+        for (const target of this.domain.values()) {
+            if (this.adjacent(vertex, target)) yield { target, weight: 1n };
+        }
+    }
+
+    neighbors(vertex: RankValue): RankSequence {
+        this.requireVertex(vertex);
+        const graph = this;
+        return { kind: 'sequence', plan: {
+            name: 'predicate graph neighbors', size: { kind: 'unknown' }, captures: this.captures,
+            *iterate() { for (const edge of graph.outgoingEdges(vertex)) yield edge.target; },
+            contains(value) {
+                return isGraphVertex(value) && graph.domain.has(graphKey(value)) && graph.adjacent(vertex, value);
+            },
+        } };
+    }
+
+    edges(vertex: RankValue): RankSequence {
+        this.requireVertex(vertex);
+        const graph = this;
+        return { kind: 'sequence', plan: {
+            name: 'predicate graph edges', size: { kind: 'unknown' }, captures: this.captures,
+            *iterate() { for (const edge of graph.outgoingEdges(vertex)) yield tuple([edge.target, edge.weight]); },
+        } };
+    }
+
+    add(_arguments: readonly RankValue[]): never {
+        throw new RankError('predicate graph is read-only');
+    }
+}
+
 /** Constructor used by the `new graph ...` application. */
 export function graphConstructor(): RankValue {
     return native('new graph', [1, 2], arguments_ => {
@@ -200,10 +296,13 @@ function graphVertices(value: RankValue): Iterable<RankValue> {
     return [value];
 }
 
+function isGraphVertex(value: RankValue): boolean {
+    return typeof value === 'bigint' || typeof value === 'number'
+        || typeof value === 'boolean' || typeof value === 'string' || isRankLabel(value);
+}
+
 function graphKey(value: RankValue): string {
-    if (typeof value === 'bigint' || typeof value === 'number'
-        || typeof value === 'boolean' || typeof value === 'string'
-        || isRankLabel(value)) return setValueKey(value);
+    if (isGraphVertex(value)) return setValueKey(value);
     throw new RankError('graph vertices must be scalar values');
 }
 

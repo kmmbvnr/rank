@@ -1,5 +1,38 @@
 # graph manual
 
+## adjacent
+
+Tests whether one edge connects two
+vertices. DSU connected instead tests
+membership in the same component.
+
+```rank
+use graph
+G = new graph (array 1 2 3) .undirected
+G add 1 2
+G add 2 3
+G 1 3 adjacent
+```
+
+```result
+false
+```
+
+### Usage
+
+```text
+Graph U V adjacent
+```
+
+Both vertices must belong to the graph.
+Explicit graphs scan outgoing edges.
+Predicate graphs evaluate their binary
+predicate for the pair.
+
+### See also
+
+connected, bfs
+
 ## ancestor
 
 The vertex K steps above another in a
