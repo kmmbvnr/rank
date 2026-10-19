@@ -12,7 +12,7 @@ import {
 } from '@arrrank/language';
 import { type RankValue, isRankArray, isRankSequence } from './value.js';
 import { broadcastShape } from './tensor.js';
-import { arrayRevision, ownedArray } from './array-storage.js';
+import { arrayRevision, ownedArray, ownedScalarArray } from './array-storage.js';
 import { arithmeticRange, modularRange } from './range-plan.js';
 import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
@@ -205,6 +205,12 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
 
 function build(root: TensorNode, names: string[], terminal: Terminal, count: number, host: TensorKernelHost,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>) {
+    const outputDomain = domains.get(root);
+    const integerOutput = outputDomain?.length === 1 && outputDomain[0] === 'integer';
+    // A successful integer-only kernel has already checked every output cell.
+    // Preserve that proof instead of scanning the fresh array a second time.
+    const copied = (items: RankValue[], shape: readonly number[]) => integerOutput
+        ? ownedScalarArray(items, 'integer', shape) : ownedArray(items, shape, true);
     const nativeCalls = [...new Set([...domains.keys()].flatMap(node =>
         node.kind === 'binary' && node.native ? [node.native] : []))];
     const sequenceSelectors = new Set([...domains.keys()].flatMap(node =>
@@ -249,7 +255,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             if (matches) {
                 const result = plan.execute(data, offsets, scalars, plan.size);
                 return terminal === 'copy' && result !== undefined
-                    ? ownedArray(result as RankValue[], plan.shape, true) : result as RankValue | undefined;
+                    ? copied(result as RankValue[], plan.shape) : result as RankValue | undefined;
             }
         }
         return bindRun();
@@ -555,7 +561,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         }
         const result = execute!(data, offsets, scalars, size);
         if (terminal === 'copy' && result !== undefined) {
-            return ownedArray(result as RankValue[], output.shape, true);
+            return copied(result as RankValue[], output.shape);
         }
         return result as RankValue | undefined;
     }
