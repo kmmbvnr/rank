@@ -1,0 +1,37 @@
+rem Amazing Mazes!
+rem https://projecteuler.net/problem=380
+
+use numbers
+use sequences
+use io
+use cli
+
+option Rows integer = 100
+option Cols integer = 500
+
+rem Matrix-tree eigenvalue product.
+Pi = 0.0 (0.0 - 1.0) atan2
+R = 0 till Rows array
+C = 0 till Cols array
+Rx = (Pi * R / Rows) cos
+Cx = (Pi * C / Cols) cos
+Sum = 0.0
+Fix = 0.0
+for A in Rx
+  for B in Cx
+    V = 4.0 - 2.0 * A - 2.0 * B
+    if V greater 0.0
+      Add = V log - Fix
+      Next = Sum + Add
+      Fix = (Next - Sum) - Add
+      Sum = Next
+    end
+  end
+end
+Sum -= (Rows * Cols) log
+Power = Sum / (10.0 log)
+Expo = Power floor
+Lead = 10.0 ** (Power - Expo)
+LeadText = Lead text ".4f"
+Answer = LeadText + "e" + (Expo text)
+Answer print
