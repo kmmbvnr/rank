@@ -1,0 +1,18 @@
+use testing
+
+rem The default input takes about 11 s.
+test "default input"
+  use "247_hyperbolasquares"
+  run
+
+  Answer equal 782252
+end
+
+test "problem example"
+  use "247_hyperbolasquares"
+  Right = 1
+  Up = 1
+  run
+
+  Answer equal 50
+end

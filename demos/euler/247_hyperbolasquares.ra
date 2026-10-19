@@ -1,0 +1,74 @@
+rem Squares under a hyperbola
+rem https://projecteuler.net/problem=247
+rem Find the largest n for which the nth
+rem square under y = 1 / x, x >= 1, in
+rem order of size has Right squares to
+rem its left and Up squares below it
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option Right integer = 3
+option Up integer = 3
+option Cap integer = 1000000
+
+rem A square with its lower left corner
+rem at (a, b) has the side s with
+rem (a + s) (b + s) = 1. It opens a
+rem region to its right at (a + s, b)
+rem and one above at (a, b + s), so the
+rem squares of index (Right, Up) come
+rem from the paths of Right steps right
+rem and Up steps up. The smallest of
+rem them is last, and n counts every
+rem square as large, found by a
+rem depth-first walk.
+Steps = Right + Up
+Paths = 0 till (1 Steps shl) array
+Ones = Paths popcount
+Fit = Ones equal Right
+Paths = Paths filter Fit array
+A = Paths - Paths + 1.0
+B = A - A
+for T in 0 till Steps
+  Tot = A + B
+  Disc = Tot * Tot - 4 * (A * B - 1)
+  Rt = Disc sqrt
+  S = (Rt - Tot) / 2
+  Go = (Paths T bit) choose 1.0 0.0
+  A += S * Go
+  B += S * (1.0 - Go)
+end
+Tot = A + B
+Rt = (Tot * Tot - 4 * (A * B - 1)) sqrt
+Sides = (Rt - Tot) / 2
+Eps = 1 - 0.000000000001
+Small = (Sides min) * Eps
+Xs = array shape Cap fill 0.0
+Ys = array shape Cap fill 0.0
+Xs 0 = 1.0
+Top = 1
+Answer = 0
+for Step in 1 to (Cap * 4)
+  Top -= 1
+  X = Xs Top
+  Y = Ys Top
+  Sm = X + Y
+  Dd = (Sm * Sm - 4 * (X * Y - 1)) sqrt
+  S = (Dd - Sm) / 2
+  if S at least Small
+    Answer += 1
+    Xs Top = X + S
+    Ys Top = Y
+    Xs (Top + 1) = X
+    Ys (Top + 1) = Y + S
+    Top += 2
+  end
+  if Top equal 0
+    break
+  end
+end
+Answer print
