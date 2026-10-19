@@ -1,0 +1,71 @@
+rem Balanced Numbers
+rem https://projecteuler.net/problem=217
+rem Sum the balanced numbers below
+rem 10^Digits modulo 3^15, where the
+rem first and last half of the digits
+rem have equal sums
+
+use numbers
+use sequences
+use io
+use cli
+
+option Digits integer = 47
+
+rem A number of 2k or 2k + 1 digits is
+rem balanced when its first k and last k
+rem digits have equal sums, the middle
+rem digit being free. For k digit
+rem strings and each digit sum s, keep
+rem the count and the sum of values,
+rem for strings with a free (B) or a
+rem nonzero (A) first digit. Halves
+rem with the same sum pair up.
+Mod = 3 ** 15
+Size = 9 * Digits + 10
+Z = array shape Size fill 0
+Cb = Z
+Cb 0 = 1
+Sb = Z
+Ca = Z
+Sa = Z
+Total = 0
+if Digits at least 1
+  Total = 45
+end
+for K in 1 to ((Digits + 1) // 2)
+  P = 10 ** (K - 1) mod Mod
+  Nc = Z
+  Ns = Z
+  Mc = Z
+  Ms = Z
+  for D in 0 to 9
+    Pad = array shape D fill 0
+    Fc = concat Pad (Cb take (Size - D))
+    Fs = concat Pad (Sb take (Size - D))
+    Fv = (Fs + D * P * Fc) mod Mod
+    Nc += Fc
+    Ns += Fv
+    if D at least 1
+      Mc += Fc
+      Ms += Fv
+    end
+  end
+  Cb = Nc mod Mod
+  Sb = Ns mod Mod
+  Ca = Mc mod Mod
+  Sa = Ms mod Mod
+  Pk = 10 ** K mod Mod
+  if 2 * K at most Digits
+    Two = Sa * Pk * Cb + Ca * Sb mod Mod
+    Total += Two sum
+  end
+  if 2 * K + 1 at most Digits
+    Mid = Sa * Pk * 10 * Cb * 10
+    Mid += Ca * Cb mod Mod * 45 * Pk
+    Mid += Ca * Sb * 10
+    Total += (Mid mod Mod) sum
+  end
+end
+Answer = Total mod Mod
+Answer print

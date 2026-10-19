@@ -1,0 +1,28 @@
+use testing
+
+test "default input"
+  use "217_balancednumbers"
+  run
+
+  Answer equal 6273134
+end
+
+test "few digits"
+  use "217_balancednumbers"
+  Digits = 1
+  run
+
+  Answer equal 45
+  Digits = 3
+  run
+
+  Answer equal 50040
+  Digits = 4
+  run
+
+  Answer equal 3364890
+  Digits = 6
+  run
+
+  Answer equal 6645504
+end
