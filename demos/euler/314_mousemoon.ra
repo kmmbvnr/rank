@@ -1,0 +1,148 @@
+rem The Mouse on the Moon
+rem https://projecteuler.net/problem=314
+
+use numbers
+use io
+use cli
+
+option Grid integer = 250
+option Rounds integer = 12
+
+Answer = 130.87
+Eps = 0.000000000001
+for I in 1 to Rounds
+  Best = Grid Answer optimize
+  Next = Best .area / Best .length
+  if (Next - Answer) abs less Eps
+    Answer = Next
+    break
+  end
+  Answer = Next
+end
+Answer print
+
+fun A SA B SB Dx Ratio Grid cross
+  K = B - A
+  Diff = SB - SA
+  if Diff at least 0.0
+    return B
+  end
+  if Diff + Ratio * K at most 0.0
+    return Grid + 1
+  end
+  C = (SA - SB) / Ratio
+  Q = K * K - C * C
+  Z = 1.0 + 4 * Dx * Dx / Q
+  U = (-K + C * Z ** 0.5) / 2
+  J = (B + U) floor
+  if J less B
+    J = B
+  end
+  for J at most Grid
+    DB = J - B
+    DA = J - A
+    QB = Dx * Dx + DB * DB
+    QA = Dx * Dx + DA * DA
+    FB = SB - Ratio * QB ** 0.5
+    FA = SA - Ratio * QA ** 0.5
+    if FB at least FA - 0.0000000000001
+      return J
+    end
+    J += 1
+  end
+  return Grid + 1
+end
+
+fun Grid Ratio optimize
+  Neg = -1.0 * 10 ** 100
+  Dim = Grid + 1
+  Score = array shape Dim Dim fill Neg
+  Area = array shape Dim Dim fill 0.0
+  Length = array shape Dim Dim fill 0.0
+  Ys = 0 to Grid array
+  Score 0 = 0.0 - Ratio * Ys
+  for I in 1 to Grid
+    Best = array shape Dim fill Neg
+    BestA = array shape Dim fill 0.0
+    BestL = array shape Dim fill 0.0
+    for X in 0 till I
+      Dx = I - X
+      D = Dx
+      R = Ratio
+      G = Grid
+      Half = Dx / 2.0
+      Site = array shape Dim fill 0
+      Start = array shape Dim fill 0
+      Val = array shape Dim fill 0.0
+      Size = 0
+      for Y in 0 to Grid
+        Old = Score X Y
+        if Old at most Neg / 2
+          continue
+        end
+        Sy = Old + Half * Y
+        if Size equal 0
+          Site 0 = Y
+          Start 0 = Y
+          Val 0 = Sy
+          Size = 1
+          continue
+        end
+        J = 0
+        for Size greater 0
+          Last = Size - 1
+          A = Site Last
+          SA = Val Last
+          J = A SA Y Sy D R G cross
+          if J at most Start Last
+            Size -= 1
+          else
+            break
+          end
+        end
+        if Size equal 0
+          Site 0 = Y
+          Start 0 = Y
+          Val 0 = Sy
+          Size = 1
+        else
+          Site Size = Y
+          Start Size = J
+          Val Size = Sy
+          Size += 1
+        end
+      end
+      Pick = 0
+      for J in 0 to Grid
+        for Pick + 1 less Size
+          if J less Start (Pick + 1)
+            break
+          end
+          Pick += 1
+        end
+        Y = Site Pick
+        if Y greater J
+          continue
+        end
+        Dy = J - Y
+        Sq = Dx * Dx + Dy * Dy
+        Dist = Sq ** 0.5
+        Cand = Val Pick - Ratio * Dist
+        Cand += Half * J
+        if Cand greater Best J
+          Best J = Cand
+          BestA J = Area X Y
+          BestA J += Half * (Y + J)
+          BestL J = Length X Y + Dist
+        end
+      end
+    end
+    Score I = Best
+    Area I = BestA
+    Length I = BestL
+  end
+  return record
+    .area = Area Grid Grid
+    .length = Length Grid Grid
+  end
+end
