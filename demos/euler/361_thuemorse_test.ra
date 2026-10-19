@@ -1,0 +1,42 @@
+use testing
+use algo
+
+test "Thue-Morse factors"
+  use "361_thuemorse"
+  use algo
+  1 count equal 1
+  3 count equal 3
+  4 count equal 5
+  5 count equal 6
+  4 prefix equal 11
+  5 prefix equal 17
+  100 length equal 12
+  N = 100
+  L = N length
+  B = (L - 1) prefix
+  Ns = new queue
+  F = new index
+  J = new index
+  W = new index
+  Y = new index
+  Z = new index
+  P = new index
+  Id = Ns L (N - 1 - B) 1 word
+  Big = 10 ** 20
+  A = Ns F J W Y Z P Id 0 Big eval
+  A equal 3251
+  N = 1000
+  L = N length
+  B = (L - 1) prefix
+  Ns = new queue
+  F = new index
+  J = new index
+  W = new index
+  Y = new index
+  Z = new index
+  P = new index
+  Id = Ns L (N - 1 - B) 1 word
+  Big = 10 ** 20
+  A = Ns F J W Y Z P Id 0 Big eval
+  A equal 80852364498
+end
