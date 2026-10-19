@@ -1,0 +1,6 @@
+use testing
+
+test "given special partitions"
+  use "333_specialpartitions"
+  100 solve equal 233
+end
