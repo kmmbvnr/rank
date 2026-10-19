@@ -1,0 +1,335 @@
+rem Mountain Range
+rem https://projecteuler.net/problem=262
+rem The height at (x, y) in the square 0
+rem to 1600 is h(x, y) = (5000 - (x^2 +
+rem y^2 + x y) / 200 + 25 (x + y) / 2)
+rem e^(-|(x^2 + y^2) / 10^6 - 3 (x + y)
+rem / 2000 + 7/10|). A mosquito flies
+rem from above (200, 200) to above
+rem (1400, 1400) at a constant height f,
+rem as low as it can. Find the length of
+rem its shortest path at that f, to 3
+rem places.
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option Step integer = 2
+
+rem On a grid of the given spacing the
+rem least f is the height of the cell at
+rem which the cells, taken from the
+rem lowest, first join A and B in one
+rem piece, by a union find. The ground
+rem above f is cut out along its contour
+rem by marching squares, each crossing
+rem point being a grid edge with the
+rem place found by linear interpolation,
+rem and the longest closed contour is
+rem the mountain. The shortest path goes
+rem from A to a contour point it sees,
+rem along the contour the short way, and
+rem to B from a point it sees. The sight
+rem is tested every half unit along the
+rem line.
+fun X Y hgt
+  Sq = X * X + Y * Y
+  Q = 0.000001 * Sq
+  Q = Q - 0.0015 * (X + Y) + 0.7
+  Aq = Q abs
+  Ex = (0 - Aq) exp
+  Hp = 5000 - 0.005 * (Sq + X * Y)
+  Hp = Hp + 12.5 * (X + Y)
+  return Hp * Ex
+end
+Gn = 1600 // Step + 1
+Xs = (0 till Gn array) * (Step * 1.0)
+Hh = (Xs reshape Gn 1) Xs hgt
+Hf = Hh reshape (Gn * Gn) copy
+Ord = Hf argsort
+Par = (0 till (Gn * Gn) array) copy
+Act = array shape (Gn * Gn) fill 0
+Ia = (200 // Step) * Gn + 200 // Step
+Ib = (1400 // Step) * Gn + 1400 // Step
+Dr = array 1 -1 0 0
+Dc = array 0 0 1 -1
+Cb = 0
+for K in 0 till (Gn * Gn)
+  C = Ord K
+  Act C = 1
+  Cr = C // Gn
+  Cc = C mod Gn
+  for D in 0 to 3
+    R2 = Cr + Dr D
+    C2 = Cc + Dc D
+    if R2 at least 0 and R2 less Gn
+      if C2 at least 0 and C2 less Gn
+        N2 = R2 * Gn + C2
+        if Act N2 equal 1
+          X1 = C
+          for
+            if Par X1 equal X1
+              break
+            end
+            Par X1 = Par (Par X1)
+            X1 = Par X1
+          end
+          X2 = N2
+          for
+            if Par X2 equal X2
+              break
+            end
+            Par X2 = Par (Par X2)
+            X2 = Par X2
+          end
+          if X1 not equal X2
+            Par X1 = X2
+          end
+        end
+      end
+    end
+  end
+  if Act Ia equal 1 and Act Ib equal 1
+    X1 = Ia
+    for
+      if Par X1 equal X1
+        break
+      end
+      Par X1 = Par (Par X1)
+      X1 = Par X1
+    end
+    X2 = Ib
+    for
+      if Par X2 equal X2
+        break
+      end
+      Par X2 = Par (Par X2)
+      X2 = Par X2
+    end
+    if X1 equal X2
+      Cb = C
+      break
+    end
+  end
+end
+F = Hf Cb
+In = (Hf greater F) choose 1 0
+Ln = (Gn - 1) * Gn - 1
+G1 = Gn + 1
+Gl = Gn + Ln
+S4 = In (0 till Ln) + In (Gn till Gl)
+S4 = S4 + In (G1 till (G1 + Ln))
+S4 = S4 + In (1 till (1 + Ln))
+Cx = 0 till Ln array
+Wm = Gn - 1
+Vi = ((Cx mod Gn) less Wm) choose 1 0
+Xc = S4 * (4 - S4) * Vi
+Cells = Cx filter (Xc greater 0) array
+Nc = Cells len
+Ep = new index
+Px = array shape (4 * Nc + 4) fill 0.0
+Py = array shape (4 * Nc + 4) fill 0.0
+Nb1 = array shape (4 * Nc + 4) fill -1
+Nb2 = array shape (4 * Nc + 4) fill -1
+Np = 0
+Ck = array shape 4 fill 0
+Ek = array shape 4 fill 0
+for Ci in 0 till Nc
+  A = Cells Ci
+  Ck 0 = A
+  Ck 1 = A + Gn
+  Ck 2 = A + Gn + 1
+  Ck 3 = A + 1
+  Ne = 0
+  for J in 0 to 3
+    K2 = (J + 1) mod 4
+    P = Ck J
+    Q = Ck K2
+    Ip = Hf P greater F
+    Iq = Hf Q greater F
+    if Ip not equal Iq
+      Lo = P
+      Hi = Q
+      if Q less P
+        Lo = Q
+        Hi = P
+      end
+      Ky = 2 * Lo
+      if Hi - Lo equal Gn
+        Ky += 1
+      end
+      Pid = 0
+      if Ky in Ep
+        Pid = Ep Ky
+      else
+        Pid = Np
+        Ep Ky = Np
+        Tt = (F - Hf P) / (Hf Q - Hf P)
+        Pr = P // Gn
+        Pc = P mod Gn
+        Qr = Q // Gn
+        Qc = Q mod Gn
+        Fx = Pr + (Qr - Pr) * Tt
+        Fy = Pc + (Qc - Pc) * Tt
+        Px Np = Fx * Step
+        Py Np = Fy * Step
+        Np += 1
+      end
+      Ek Ne = Pid
+      Ne += 1
+    end
+  end
+  Pa = 0
+  if Ne equal 4
+    A2 = A + Gn
+    Cen = Hf A + Hf A2 + Hf (A2 + 1)
+    Cen = (Cen + Hf (A + 1)) / 4
+    Ins0 = Hf A greater F
+    Cn = Cen greater F
+    Pa = 1
+    if Cn equal Ins0
+      Pa = 0
+    end
+  end
+  Nsg = 1
+  if Ne equal 4
+    Nsg = 2
+  end
+  for Sg in 0 to (Nsg - 1)
+    U = Ek 0
+    V = Ek 1
+    if Ne equal 4
+      if Pa equal 0
+        if Sg equal 0
+          V = Ek 3
+        else
+          U = Ek 1
+          V = Ek 2
+        end
+      else
+        if Sg equal 1
+          U = Ek 2
+          V = Ek 3
+        end
+      end
+    end
+    if Nb1 U less 0
+      Nb1 U = V
+    else
+      Nb2 U = V
+    end
+    if Nb1 V less 0
+      Nb1 V = U
+    else
+      Nb2 V = U
+    end
+  end
+end
+Seen = array shape (Np + 1) fill 0
+Ord2 = array shape (Np + 1) fill 0
+Tmp = array shape (Np + 1) fill 0
+Bl = 0
+for P0 in 0 till Np
+  if Seen P0 equal 1
+    continue
+  end
+  Ln2 = 0
+  Cur = P0
+  for
+    Seen Cur = 1
+    Tmp Ln2 = Cur
+    Ln2 += 1
+    Nx = Nb1 Cur
+    if Nx less 0 or Seen Nx equal 1
+      Nx = Nb2 Cur
+    end
+    if Nx less 0
+      break
+    end
+    if Seen Nx equal 1
+      break
+    end
+    Cur = Nx
+  end
+  if Ln2 greater Bl
+    Bl = Ln2
+    for J in 0 till Ln2
+      Ord2 J = Tmp J
+    end
+  end
+end
+Lid = Ord2 take Bl
+Lx = Px Lid copy
+Ly = Py Lid copy
+Rx = Lx (1 till Bl)
+Hx = Lx (0 till 1)
+Ry = Ly (1 till Bl)
+Hy = Ly (0 till 1)
+Nx1 = concat Rx Hx
+Ny1 = concat Ry Hy
+Ex = Nx1 - Lx
+Ey = Ny1 - Ly
+Sg = (Ex * Ex + Ey * Ey) sqrt
+Cs = Sg scan + with 0.0
+Sc = Cs (0 till Bl) copy
+Lt = Cs Bl
+Ap = 200.0
+Bp = 1400.0
+fun Bx By Cx Cy vis
+  Xd = Cx - Bx
+  Yd = Cy - By
+  Dd = (Xd * Xd + Yd * Yd) sqrt
+  Fl = (Dd / 0.5) floor
+  Ms = Fl 2 max
+  Tq = (0 till Ms array) / (Ms - 1.0)
+  Xq = Bx + (Cx - Bx) * Tq
+  Yq = By + (Cy - By) * Tq
+  Hq = Xq Yq hgt
+  return Hq max
+end
+Lim = F + 0.000000001
+Best = 1000000.0
+Dm = Ap Ap Bp Bp vis
+if Dm at most Lim
+  Best = 1200.0 * (2.0 sqrt)
+end
+Da = array shape Bl fill 0.0
+Db = array shape Bl fill 0.0
+Va = array shape Bl fill 0
+Vb = array shape Bl fill 0
+for I in 0 till Bl
+  Qx = Lx I
+  Qy = Ly I
+  Ha = Ap Ap Qx Qy vis
+  if Ha at most Lim
+    Va I = 1
+    Xd = Qx - Ap
+    Yd = Qy - Ap
+    Da I = (Xd * Xd + Yd * Yd) sqrt
+  end
+  Hb = Bp Bp Qx Qy vis
+  if Hb at most Lim
+    Vb I = 1
+    Xd = Qx - Bp
+    Yd = Qy - Bp
+    Db I = (Xd * Xd + Yd * Yd) sqrt
+  end
+end
+Ix = 0 till Bl array
+Ja = Ix filter (Va equal 1) array
+Jb = Ix filter (Vb equal 1) array
+Sb = Sc Jb copy
+Dbb = Db Jb copy
+for I in Ja
+  Dd = (Sb - Sc I) abs
+  Rv = Lt - Dd
+  Arc = Dd Rv min
+  Tt2 = Da I + Arc + Dbb
+  Tm = Tt2 min
+  Best = Best Tm min
+end
+Answer = Best 3 round
+Answer print
