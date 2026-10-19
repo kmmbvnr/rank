@@ -25,4 +25,3 @@ export function membershipLookup(values: Iterable<RankValue> | RankArray): (valu
         ? composite.some(item => equalMembershipValues(value, item))
         : scalars.has(key(value));
 }
-

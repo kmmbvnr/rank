@@ -734,6 +734,27 @@ not declare bindings. Entry guards decline incompatible contracts before any
 private execution. Mutating/rebinding arrays, lazy or host storage, arbitrary
 iterators and observable hooks retain the existing backend.
 
+`loop-traversal.ts` normalizes bindings and named-vector `take`/`drop`
+headers before backend lowering. A slice count is evaluated once on each
+traversal entry, must be nonnegative, and clamps to the source length before
+address conversion. Visible ordinals start at zero for the slice. The Number
+backend uses bounds on its invocation-owned source buffer rather than allocating
+a buffer for each suffix; the exact backend uses the existing slice/iteration
+adapters. Unsupported source expressions and storage keep ordinary evaluation.
+
+Concrete graphs support two-integer-vertex `Graph add P Q` statements, with an
+optional integer weight, inside exact compiled loops. The loop plan records
+these graph mutations explicitly. Entry checks the graph module and the concrete
+runtime graph's method identities; overridden methods, read-only graph variants,
+unstable bindings and unsupported argument forms retain normal dispatch.
+`graph-mutation.ts` calls the existing graph implementation, preserving edge
+order, parallel edges, self-loops, weights and partial state on failure. These
+effect regions disable borrowed-read and batched-write assumptions and never
+enter the replaying Number backend. Scalar stores and graph changes occur in
+source order; cancellation still unwinds through ordinary `finally` handling.
+`compiledGraphAdds` counts attempted compiled mutation calls, including calls
+whose existing graph validation throws.
+
 Each integer intermediate and range increment is checked for safe-integer
 exactness. Division retains floor rounding and remainder retains the divisor's
 sign. Overflow discards the entire unpublished attempt and executes the original
@@ -1326,13 +1347,35 @@ replace the logical frame, preserving call-depth limits and error stacks.
 `scalarCallCompilation: false` disables nested linking as well as loop linking;
 `compiledScalarTailCalls: false` retains the ordinary path for nested tail calls.
 
-Integer `in` and `not in` against an external sequence binding can compile in
-scalar functions and integer loops. Only plans registered by the runtime's
-sequence constructor are eligible. Currently this covers `primes` and its
-bounded forms. Plan names, copied host plans and arbitrary `contains` methods
-are insufficient; replacement of the registered methods invalidates the proof.
-Each entry resolves the current binding again, so a different bounded prime
-plan is used immediately. Membership still observes cancellation checkpoints.
-Unregistered plans, real inputs, sequence parameters and missing bindings retain
-ordinary evaluation. `sequenceMembershipCompilation: false` disables this
-capability for comparison with the previous execution path.
+Integer `in` and `not in` against an external binding can compile in scalar
+functions and integer loops. Sequence operands require constructor registration:
+this covers `primes`, its bounded forms, and immutable integer neighbor snapshots
+from concrete graphs. Plan names, copied host plans and arbitrary `contains`
+methods are insufficient; replacement of registered methods invalidates proof.
+Graph membership observes the snapshot captured before any later mutation.
+
+`integer-membership.ts` also prepares invocation-owned hash lookups for trusted
+rank-one stored integer arrays and eligible pure views. Kernel entry does not
+force pending contract checks or cells on an untaken branch. Direct loop lookup
+binding declines array-writing regions and callees that invalidate stable reads.
+Captured array membership in a scalar kernel resolves the current binding at
+the expression, so a caller's COW storage replacement remains visible. Integer
+array parameters use the shared generic membership lookup at the expression.
+No global index or numeric mirror is retained.
+
+The collection branch of `table-query-expression.ts` recognizes one plain
+`filter in Domain` / `filter not in Domain` condition with a bound domain name.
+Trusted integer array sources use a checked mask loop; sequence sources retain
+the ordinary lazy positional mask, including mixed-value scalar equality. The
+right-hand array/view is indexed once for this filter evaluation, including its
+pending binding checks, and remains a snapshot if the domain is later written.
+Order and duplicates come from the filtered source. Generic domains, higher-rank
+sources, compound conditions, effectful domain expressions and inspection retain
+the existing evaluator. `integerMembershipFilters` counts prepared filters,
+separately from `compiledLoops`.
+
+Each entry resolves current sequence bindings again. Lookup preparation and
+membership retain cancellation checkpoints. Real scalar inputs, sequence
+parameters and unsupported storage retain ordinary kernel evaluation.
+`sequenceMembershipCompilation: false` disables trusted membership linking and
+the prepared filter path for comparison with ordinary execution.
