@@ -1,0 +1,22 @@
+rem 2011 Nines
+rem https://projecteuler.net/problem=318
+
+use numbers
+use io
+use cli
+
+option Top integer = 2011
+option Nines integer = 2011
+
+Answer = 0
+for P in 1 till Top
+  for Q in P + 1 to Top - P
+    Beta = (Q sqrt) - (P sqrt)
+    if Beta less 1.0
+      Rate = (Beta * Beta) log
+      Rate = -Rate / (10 log)
+      Answer += (Nines / Rate) ceil
+    end
+  end
+end
+Answer print
