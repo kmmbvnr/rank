@@ -1,0 +1,117 @@
+rem Prime Pair Sets
+rem https://projecteuler.net/problem=60
+rem Minimum sum of five primes whose
+rem pairwise concatenations are prime
+
+use graph
+use sequences
+use io
+
+Seed = 10000 build
+Upper = Seed 50000 min_five
+if Upper equal 50000
+  raise "no five-prime set in seed"
+end
+
+rem A better set has every prime
+rem below Upper.
+Full = Upper build
+Answer = Full Upper min_five
+Answer print
+
+
+rem Connect pairs when both decimal
+rem concatenations are prime.
+fun Limit build
+  Vals = primes from 3 till Limit filter not equal 5 array
+  Graph = new graph Vals .undirected
+
+  if 3 in Vals
+    Three = 3
+    for Q in Vals drop 1
+      if Three Q compatible
+        Graph add Three Q
+      end
+    end
+  end
+
+  Mod1 = Vals (Vals mod 3 equal 1)
+  Mod2 = Vals (Vals mod 3 equal 2)
+
+  for Group in array Mod1 Mod2
+    for P i in Group
+      if P at least 10000
+        break
+      end
+      Later = Group drop (i + 1)
+      for Q in Later
+        if P Q compatible
+          Graph add P Q
+        end
+      end
+    end
+  end
+
+  return record
+    .primes = Vals
+    .graph = Graph
+  end
+end
+
+
+fun P Q compatible
+  PQ = P Q concat
+  if PQ not in primes
+    return false
+  end
+  QP = Q P concat
+  return QP in primes
+end
+
+
+fun A B concat
+  Scale = 10
+  for Scale at most B
+    Scale *= 10
+  end
+  return A * Scale + B
+end
+
+
+rem Keep Best if no cheaper set exists.
+rem Data holds ascending positive values
+rem and their graph.
+fun Data Best min_five
+  Graph = Data .graph
+  Vals = Data .primes
+  Best = Vals 5 0 Best search
+  return Best
+
+  fun Rest Need Sum Best search
+    if Rest len less Need
+      return Best
+    end
+    Small = Rest take Need
+    if Sum + Small sum at least Best
+      return Best
+    end
+
+    for P i in Rest
+      Total = Sum + P
+      if Total at least Best
+        break
+      end
+      Left = Need - 1
+      if Left equal 0
+        Best = Total
+        return Best
+      end
+
+      Later = Rest drop (i + 1)
+      Neighbors = Graph P
+      Next = Later filter in Neighbors
+      Best = Next Left Total Best search
+    end
+    return Best
+  end
+end

@@ -1,0 +1,127 @@
+{
+  "date": "2026-10-19",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "command": "node benchmarks/euler60-search.mjs",
+  "baselineCommit": "5c0fd17c",
+  "methodology": "Five fresh Node processes per version, alternating order. Timed runtime.execute includes parsing, compilation and execution; module loading is excluded. Peak RSS measures the entire worker process. Earlier runs with competing CPU workloads were excluded.",
+  "graphDifference": "The batched version builds all compatible pairs; the baseline omits pairs whose smaller prime is at least 10000. storedEdges counts directed adjacency entries for Seed and Full.",
+  "summary": {
+    "before": {
+      "medianMs": 8627.004166,
+      "minMs": 8535.945792,
+      "maxMs": 8683.952833,
+      "medianPeakRssKiB": 506976
+    },
+    "batched": {
+      "medianMs": 5317.542167,
+      "minMs": 5315.005,
+      "maxMs": 5330.979916,
+      "medianPeakRssKiB": 568320
+    }
+  },
+  "speedup": 1.6223668557887716,
+  "timeReductionPercent": 38.36165991484002,
+  "samples": [
+    {
+      "mode": "before",
+      "totalMs": 8535.945792,
+      "storedEdges": [
+        36352,
+        103906
+      ],
+      "peakRssKiB": 507200,
+      "answer": "26033"
+    },
+    {
+      "mode": "batched",
+      "totalMs": 5315.005,
+      "storedEdges": [
+        36352,
+        143146
+      ],
+      "peakRssKiB": 564688,
+      "answer": "26033"
+    },
+    {
+      "mode": "batched",
+      "totalMs": 5322.085416000001,
+      "storedEdges": [
+        36352,
+        143146
+      ],
+      "peakRssKiB": 568320,
+      "answer": "26033"
+    },
+    {
+      "mode": "before",
+      "totalMs": 8627.259833,
+      "storedEdges": [
+        36352,
+        103906
+      ],
+      "peakRssKiB": 506192,
+      "answer": "26033"
+    },
+    {
+      "mode": "before",
+      "totalMs": 8683.952833,
+      "storedEdges": [
+        36352,
+        103906
+      ],
+      "peakRssKiB": 506976,
+      "answer": "26033"
+    },
+    {
+      "mode": "batched",
+      "totalMs": 5317.542167,
+      "storedEdges": [
+        36352,
+        143146
+      ],
+      "peakRssKiB": 567264,
+      "answer": "26033"
+    },
+    {
+      "mode": "batched",
+      "totalMs": 5316.389584,
+      "storedEdges": [
+        36352,
+        143146
+      ],
+      "peakRssKiB": 585632,
+      "answer": "26033"
+    },
+    {
+      "mode": "before",
+      "totalMs": 8595.260125,
+      "storedEdges": [
+        36352,
+        103906
+      ],
+      "peakRssKiB": 506832,
+      "answer": "26033"
+    },
+    {
+      "mode": "before",
+      "totalMs": 8627.004166,
+      "storedEdges": [
+        36352,
+        103906
+      ],
+      "peakRssKiB": 507488,
+      "answer": "26033"
+    },
+    {
+      "mode": "batched",
+      "totalMs": 5330.979916,
+      "storedEdges": [
+        36352,
+        143146
+      ],
+      "peakRssKiB": 569280,
+      "answer": "26033"
+    }
+  ]
+}

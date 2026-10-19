@@ -6,6 +6,10 @@ test "official minimum over the complete upper-bound search"
 
   Upper equal 26033
   Answer equal 26033
+
+  use graph
+  Graph = Full .graph
+  Graph 10007 10709 adjacent
 end
 
 test "concatenation and compatibility in both directions"
@@ -99,4 +103,28 @@ test "concatenation at decimal boundaries"
   (12 10 concat) equal 1210
   (12 99 concat) equal 1299
   (12 100 concat) equal 12100
+end
+
+
+test "batched construction matches scalar compatibility across decimal boundaries"
+  use "060_primepairs"
+  use graph
+  use sequences
+
+  for Limit in array 3 4 10 100 120
+    Data = Limit build
+    Vals = Data .primes
+    Graph = Data .graph
+    for P i in Vals
+      for Q in Vals drop (i + 1)
+        if (Graph P Q adjacent) not equal (P Q compatible)
+          return false
+        end
+        if (Graph Q P adjacent) not equal (P Q compatible)
+          return false
+        end
+      end
+    end
+  end
+  true
 end
