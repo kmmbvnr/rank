@@ -202,7 +202,7 @@ end`, [[1n], [4n]], 2);
 end`, [[{ kind: 'array', shape: [2], items: [9n, 9n] }]], 0);
     });
 
-    it('keeps local containers on the framed path', () => {
+    it('compiles private integer containers at ordinary entry', () => {
         compare(`use algo
 fun N helper
   Values = new stack
@@ -210,7 +210,44 @@ fun N helper
     Values push I
   end
   return Values len
+end`, [[0n], [3n]], 2);
+    });
+
+    it('keeps local index aliases private and fresh across calls', () => {
+        const values = compare(`use algo
+fun N helper
+  Cache = new index
+  Alias = Cache
+  Before = N in Alias
+  Alias N = N + 1
+  return Before
+end`, [[0n], [4n], [2n]], 3);
+        expect(values.map(value => value.value)).toEqual(['false', 'false', 'false']);
+    });
+
+    it('retains framed calls for escaping containers and noninteger payloads', () => {
+        compare(`use algo
+fun N helper
+  Values = new stack
+  Values push N
+  return Values
 end`, [[0n], [3n]], 0);
+        compare(`use algo
+fun N helper
+  Cache = new index
+  Cache N = "text"
+  return Cache N
+end`, [[0n], [3n]], 0);
+    });
+
+    it('preserves the unsupported index length error', () => {
+        const values = compare(`use algo
+fun N helper
+  Cache = new index
+  Cache N = N
+  return Cache len
+end`, [[1n]], 0);
+        expect(values[0]).toHaveProperty('error', expect.stringContaining('len expects text or a collection'));
     });
 
     it('preserves range errors, empty ranges and duplicate parameters', () => {

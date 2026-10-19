@@ -314,9 +314,10 @@ export class FastPaths {
     scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[]): { readonly locals: readonly string[]; readonly loops: true } | undefined {
         if (this.context.options().scalarEntryCompilation === false || generator) return undefined;
         const proof = scalarFunctionResult(statement, true, types, true);
-        // Ordinary entry does not have the ownership proof supplied by a linked
-        // region. Keep mutation and container lifetimes on the framed path.
-        return proof && !proof.containers && !proof.arrayWrites.size
+        // Entry arguments admit only scalars and checked arrays. Local index/
+        // deque storage is integer-only, cannot escape through a scalar return,
+        // and needs no resource frame. Argument array writes still need one.
+        return proof && !proof.arrayWrites.size
             ? { locals: proof.locals, loops: true } : undefined;
     }
 

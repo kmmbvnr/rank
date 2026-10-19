@@ -153,6 +153,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     const [receiver, operation] = parts;
                     const domain = isNameExpression(receiver) ? env.get(receiver.name) : undefined;
                     if (parts.length === 2 && isNameExpression(receiver) && domain && isCompiledContainer(domain)
+                        && domain.kind === 'deque'
                         && isNameExpression(operation) && !env.has(operation.name)
                         && (operation.name === 'len' || operation.name === 'pop' && domain.kind === 'deque')) {
                         nativeReads.add(operation.name);
