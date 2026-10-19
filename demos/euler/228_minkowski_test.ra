@@ -1,0 +1,21 @@
+use testing
+
+test "default input"
+  use "228_minkowski"
+  run
+
+  Answer equal 86226
+end
+
+test "small ranges"
+  use "228_minkowski"
+  Lo = 3
+  Hi = 5
+  run
+
+  Answer equal 10
+  Hi = 7
+  run
+
+  Answer equal 18
+end
