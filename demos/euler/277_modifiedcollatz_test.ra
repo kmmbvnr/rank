@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "277_modifiedcollatz"
+  run
+
+  Answer equal 1125977393124310
+end
+
+test "smaller limit"
+  use "277_modifiedcollatz"
+  Limit = 1000000
+  run
+
+  Answer equal 96521732651065
+end

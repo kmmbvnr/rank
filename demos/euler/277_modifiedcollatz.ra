@@ -1,0 +1,49 @@
+rem A Modified Collatz Sequence
+rem https://projecteuler.net/problem=277
+rem Find the least start above Limit
+rem whose sequence begins with Steps
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+option Limit integer = 1000000000000000
+Steps = "UDDDUdddDDUDDddDdDddDDUDDdUUDd"
+
+rem Step D takes n = 3 m to m, U takes
+rem 3 m + 1 to 4 m + 2 and d takes
+rem 3 m + 2 to 2 m - 1: the step is
+rem read from n mod 3 as 0, 1, 2. The
+rem first k steps fix n mod 3^k, found
+rem one digit at a time by trying the
+rem three extensions and replaying k
+rem steps.
+Codes = Steps "DUd" "012" translate
+Want = Codes integer rank 0
+Len = Want len
+Cand = array 0
+for K in 1 to Len
+  Rows = Cand len
+  Ext = 3 ** (K - 1) * (0 to 2 array)
+  Both = (Cand reshape Rows 1) + Ext
+  Cand = Both reshape (Rows * 3)
+  N = Cand
+  Ok = N equal N
+  for J in 0 to (K - 1)
+    R = N mod 3
+    Ok = Ok and (R equal (Want J))
+    Dn = N // 3
+    Up = (N * 4 + 2) // 3
+    Dw = (N * 2 - 1) // 3
+    Mid = (R equal 1) choose Up Dw
+    N = (R equal 0) choose Dn Mid
+  end
+  Cand = Cand filter Ok array
+end
+Mod = 3 ** Len
+R0 = Cand 0
+Jumps = (Limit - R0) // Mod + 1
+Answer = R0 + Mod * Jumps
+Answer print
