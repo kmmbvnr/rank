@@ -11,7 +11,7 @@ import { recordFallback } from './diagnostics.js';
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'sequence-contains' | 'sequence-not-contains' | 'user-call';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call';
     readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof };
     readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
@@ -126,6 +126,12 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                         dependencies.add(source.right.name);
                         return { type: 'boolean', input: { name: source.right.name,
                             operation: source.operator === 'in' ? 'sequence-contains' : 'sequence-not-contains',
+                            indices: [expressions.get(source.left)!] } };
+                    }
+                    if (domain && typeof domain === 'object' && domain.kind === 'array'
+                        && domain.element === 'integer' && domain.rank === 1 && type(source.left, env) === 'integer') {
+                        return { type: 'boolean', input: { name: source.right.name,
+                            operation: source.operator === 'in' ? 'array-contains' : 'array-not-contains',
                             indices: [expressions.get(source.left)!] } };
                     }
                     if (domain && isCompiledContainer(domain) && domain.kind === 'index' && type(source.left, env) === 'integer') {

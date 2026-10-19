@@ -1,5 +1,5 @@
 import { isPureLazyFunction } from './lazy-function.js';
-import { compiledSequenceMembership } from './sequence-membership.js';
+import { compiledIntegerMembership } from './integer-membership.js';
 import { compiledCalleeTypeKey, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { AstNode } from 'langium';
 import {
@@ -703,7 +703,7 @@ export class FunctionInvocation {
                 users[index] = bound;
             }
             for (let index = 0; index < kernel.memberships.length; index++) {
-                const contains = compiledSequenceMembership(resolve(kernel.memberships[index]));
+                const contains = compiledIntegerMembership(resolve(kernel.memberships[index]));
                 if (!contains) return false;
                 memberships[index] = contains;
             }

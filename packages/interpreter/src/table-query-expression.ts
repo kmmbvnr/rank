@@ -1,3 +1,6 @@
+import { prepareIntegerView } from './integer-view.js';
+import { compiledIntegerMembership } from './integer-membership.js';
+import { checkpoint, inspectionEnabled } from './interrupt.js';
 import {
     filterPredicateForm, findOperation, flattenApplication, isLabelLiteral, isNameExpression, isNumberLiteral, isRecordField,
     isSubjectComparisonExpression,
@@ -13,7 +16,7 @@ import { currentDiagnostics } from './diagnostics.js';
 import { LocalFrame } from './frame.js';
 import { ResourceMap } from './resource-summary.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
-import { filterSequence, positionalSelection, sequence } from './sequence.js';
+import { filterSequence, positionalSelection, sequence, sequenceMask } from './sequence.js';
 import { selectAxis } from './selectors.js';
 import { TABLE_INPUT, collectionExpression, frameAxes, readsFields, tableExpression } from './table-expression.js';
 import { arrayOffset, coordinatesAt } from './tensor-index.js';
@@ -30,6 +33,7 @@ import {
 
 export interface TableExpressionContext {
     localFrame: LocalFrame | undefined;
+    readonly integerMembership: boolean;
     requireModule(module: string, operation: string): void;
     evaluate(expression: Expression): Evaluation<RankValue>;
     select(values: RankValue[]): RankValue;
@@ -150,6 +154,39 @@ export function compileTableExpression(
                 };
                 try {
                     if (isTableFilterExpression(expression)) {
+                        const condition = conditions.length === 1 ? conditions[0] : undefined;
+                        if (collection && context.integerMembership && !inspectionEnabled()
+                            && condition && isSubjectComparisonExpression(condition) && !condition.stepOperator
+                            && ['in', 'notin'].includes(condition.operator) && isNameExpression(condition.right)) {
+                            // Resolve only a bound name here: declining the specialization
+                            // must not evaluate an effectful operand twice.
+                            const domain = context.findVariable(condition.right.name);
+                            const view = isRankArray(source) && source.shape.length === 1 ? prepareIntegerView(source, true) : undefined;
+                            const sequenceSource = isRankSequence(source);
+                            const contains = view || sequenceSource ? compiledIntegerMembership(domain) : undefined;
+                            if (view && contains && isRankArray(source)) {
+                                const inverted = condition.operator === 'notin';
+                                const mask: RankValue[] = [];
+                                for (let index = 0; index < view.shape[0]; index++) {
+                                    checkpoint('filtering integer membership');
+                                    mask.push(contains(view.read(index)) !== inverted);
+                                }
+                                const diagnostics = currentDiagnostics();
+                                if (diagnostics) diagnostics.integerMembershipFilters++;
+                                return context.maskSelection(source, ownedArray(mask, [mask.length]));
+                            }
+                            if (sequenceSource && contains && isRankSequence(source)) {
+                                const inverted = condition.operator === 'notin';
+                                const diagnostics = currentDiagnostics();
+                                if (diagnostics) diagnostics.integerMembershipFilters++;
+                                const mask = sequenceMask(source, { name: 'integer membership', test: item => {
+                                    const integer = typeof item === 'bigint' ? item
+                                        : typeof item === 'number' && Number.isFinite(item) && Number.isInteger(item) ? BigInt(item) : undefined;
+                                    return (integer !== undefined && contains(integer)) !== inverted;
+                                } });
+                                return context.select([source, mask]);
+                            }
+                        }
                         const sequencePredicate = conditions.length === 1 ? filterPredicateForm(conditions[0]) : undefined;
                         if (collection && isRankSequence(source) && sequencePredicate
                             && (sequencePredicate.rank === undefined || sequencePredicate.rank === 0)

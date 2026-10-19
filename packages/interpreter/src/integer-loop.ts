@@ -2,7 +2,7 @@ import { loopTraversal } from './loop-traversal.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
 import type { IterationBinding, LoopHost, LoopTerm, CompiledLoop } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
-import { compiledSequenceMembership } from './sequence-membership.js';
+import { compiledIntegerMembership } from './integer-membership.js';
 import { type CompiledCalleeType } from './compiled-callee-type.js';
 import { ResourceMap } from './resource-summary.js';
 import { compiledArgumentType } from './compiled-argument-type.js';
@@ -467,10 +467,10 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             if (key?.type !== 'integer') return undefined;
             const negate = e.operator === 'notin' ? '!' : '';
             if (host.sequenceMembership && !localTypes.has(name) && !arrays.has(name)
-                && compiledSequenceMembership(host.read(name))) {
+                && compiledIntegerMembership(host.read(name))) {
                 const index = calls.length;
                 calls.push({ name, locals: [], stableArrayReads: true, bind: () => {
-                    const contains = compiledSequenceMembership(host.read(name));
+                    const contains = compiledIntegerMembership(host.read(name));
                     return contains ? arguments_ => contains(arguments_[0] as bigint) : undefined;
                 } });
                 return { code: `${negate}calls[${index}]([${key.code}])`, type: 'boolean' };
