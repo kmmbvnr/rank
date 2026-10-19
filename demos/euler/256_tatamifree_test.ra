@@ -1,0 +1,30 @@
+use testing
+
+test "default input"
+  use "256_tatamifree"
+  run
+
+  Answer equal 85765680
+end
+
+test "every even area"
+  use "256_tatamifree"
+  Start = 2
+  Step = 2
+  Target = 1
+  run
+
+  Answer equal 70
+  Target = 2
+  run
+
+  Answer equal 198
+  Target = 5
+  run
+
+  Answer equal 1320
+  Target = 7
+  run
+
+  Answer equal 3696
+end
