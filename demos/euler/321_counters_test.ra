@@ -1,0 +1,15 @@
+use testing
+
+test "first term"
+  use "321_counters"
+  Terms = 1
+  run
+  Answer equal 1
+end
+
+test "statement prefix"
+  use "321_counters"
+  Terms = 5
+  run
+  Answer equal 99
+end
