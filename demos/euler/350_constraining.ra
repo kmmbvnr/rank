@@ -1,0 +1,55 @@
+rem Constraining the Least and Greatest
+rem https://projecteuler.net/problem=350
+
+use numbers
+use io
+use cli
+
+option G integer = 10 ** 6
+option L integer = 10 ** 12
+option N integer = 10 ** 18
+
+Mod = 101 ** 4
+
+fun G L N constrained
+  Mod = 101 ** 4
+  Top = L // G
+  Spf = array shape (Top + 1) fill 0
+  for P in 2 to Top
+    if Spf P equal 0
+      for V in P to Top by P
+        if Spf V equal 0
+          Spf V = P
+        end
+      end
+    end
+  end
+  Loc = array shape 32 fill 0
+  for E in 1 to 31
+    A = (E + 1) N Mod powmod
+    B = E N Mod powmod
+    C = (E - 1) N Mod powmod
+    Loc E = (A - 2 * B + C) mod Mod
+  end
+  Sum = 0
+  for M in 1 to Top
+    H = 1
+    X = M
+    for X greater 1
+      P = Spf X
+      E = 0
+      for X mod P equal 0
+        X //= P
+        E += 1
+      end
+      H = H * Loc E mod Mod
+    end
+    W = L // M - G + 1
+    Sum += H * W
+    Sum = Sum mod Mod
+  end
+  return Sum
+end
+
+Answer = G L N constrained
+Answer print

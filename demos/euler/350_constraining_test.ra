@@ -1,0 +1,15 @@
+use testing
+
+test "small constrained lists"
+  use "350_constraining"
+  10 100 1 constrained equal 91
+  10 100 2 constrained equal 327
+  10 100 3 constrained equal 1135
+  10 100 1000 constrained equal 3286053
+end
+
+test "full constrained lists"
+  use "350_constraining"
+  run
+  Answer equal 84664213
+end
