@@ -1,3 +1,4 @@
+import { textMatchPositions } from '../text-search.js';
 import { numericFind } from '../numeric-search.js';
 import { ownedArray, readArrayItem } from '../array-storage.js';
 import { RankError, MissingValueError } from '../errors.js';
@@ -5,6 +6,10 @@ import { setValueKey } from '../set.js';
 import { isRankArray, type RankArray, type RankValue } from '../value.js';
 
 export function findValue(source: RankValue, target: RankValue): bigint {
+    if (typeof source === 'string' && typeof target === 'string') {
+        for (const position of textMatchPositions(source, target)) return position;
+        throw new MissingValueError('find found no matching value');
+    }
     const fast = numericFind(source, target);
     if (fast !== undefined) return fast;
     const values = findSource(source, 'find');
@@ -18,6 +23,9 @@ export function findValue(source: RankValue, target: RankValue): bigint {
 }
 
 export function findAllValues(source: RankValue, target: RankValue): RankArray {
+    if (typeof source === 'string' && typeof target === 'string') {
+        return ownedArray([...textMatchPositions(source, target)]);
+    }
     const values = findSource(source, 'findall');
     const targetKey = setValueKey(target);
     const positions: bigint[] = [];

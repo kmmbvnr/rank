@@ -1,3 +1,4 @@
+import { isSingleCodePoint } from './text-search.js';
 import { numericFindPositions } from './numeric-search.js';
 import { numericKey } from './numeric-collections.js';
 import { denseScalarItems, ownedArray } from './array-storage.js';
@@ -13,6 +14,13 @@ export function queryDefault(operation: 'find' | 'floor' | 'choose', left: RankV
     if (!items) return undefined;
     let probe: (query: RankValue) => RankValue;
     if (operation === 'find') {
+        // The character index only answers single-code-point text queries.
+        if (typeof left === 'string') {
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (typeof item === 'string' && !isSingleCodePoint(item)) return undefined;
+            }
+        }
         const source = typeof left === 'string' ? Array.from(left)
             : isRankArray(left) && left.shape.length === 1 ? denseScalarItems(left) : undefined;
         if (!source) return undefined;

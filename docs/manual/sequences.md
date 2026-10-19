@@ -312,8 +312,8 @@ sum, filter, group by
 
 ## find
 
-The position of the first item equal to
-a value.
+The position of the first equal array
+item or matching text substring.
 
 ```rank
 use sequences
@@ -330,14 +330,19 @@ use sequences
 Values Target find
 ```
 
-Works on arrays and text. Positions
-start at zero. With an array of targets,
-finds each one.
+Works on arrays and text. Text targets
+match substrings. Positions start at
+zero and count Unicode code points in
+text.
+With an array of targets, finds each
+one.
 
 ### Notes
 
 Not found is an error. Add default for a
-fallback.
+fallback. An empty text target has no
+matches. Matching is case-sensitive and
+does not normalize Unicode.
 
 ### See also
 
@@ -345,8 +350,8 @@ findall, first index where, default
 
 ## findall
 
-The positions of every item equal to a
-value.
+The positions of every equal array item
+or matching text substring.
 
 ```rank
 use sequences
@@ -363,8 +368,24 @@ use sequences
 Values Target findall
 ```
 
-Works on arrays and text. No match gives
-an empty array.
+Works on arrays and text. Text matches
+include overlaps:
+
+```rank
+use sequences
+"aaaa" "aa" findall
+```
+
+```result
+0 1 2
+```
+
+Positions count Unicode code points in
+text. No match or an empty text target
+gives an empty array. Matching is
+case-sensitive without normalization.
+An array of targets requires equal match
+counts so the results can be stacked.
 
 ### See also
 

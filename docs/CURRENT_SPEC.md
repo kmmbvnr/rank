@@ -4041,11 +4041,15 @@ integers for tensors. Coordinate matrices are not directly usable as array
 selectors: extract their columns as above; integer-array selectors require
 rank 1.
 
-`Values Target find` returns the zero-based position of the first value equal
-to `Target`. It raises `.Missing` when no value matches, so `default` supplies
+`Values Target find` returns the zero-based position of the first equal array
+element or matching text substring. It raises `.Missing` when no value matches, so `default` supplies
 a fallback. `Values Target findall` returns every matching position and returns
 an empty vector when there are none. Both accept rank-1 arrays and text, whose
-positions count Unicode code points.
+positions count Unicode code points. For text and a text target, they search
+for a substring; `findall` includes overlapping matches. An empty target has
+no matches. Matching is case-sensitive and does not normalize Unicode.
+Array sources still compare whole elements. Arrays of targets keep their frame;
+`findall` requires the same number of matches for each target.
 
 `min` and `max` with one argument reduce one finite collection. With two
 arguments they choose between numeric values and broadcast over arrays. Like
@@ -6886,7 +6890,9 @@ Word = Value bnot 65535 band
 
 Shifts require a nonnegative bit count. `shr` is an arithmetic right shift.
 `bit` tests a zero-based position and returns a boolean. `popcount` returns the
-number of set bits. `bit` and `popcount` require a nonnegative input value.
+number of set bits as an integer, including zero for zero. Its work is linear
+in the input bit length, with temporary storage proportional to that length.
+`bit` and `popcount` require a nonnegative input value.
 The module does not introduce a separate bit-mask type: bit masks are ordinary
 integers and remain distinct from boolean array masks.
 

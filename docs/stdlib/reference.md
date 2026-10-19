@@ -420,8 +420,8 @@ Shapes, orderings, windows and lazy sources.
 | `Values argsort .descending` | array | unary 1; binary all / all | Stable zero-based positions that put the values in order. |
 | `Values copy` | array | unary all | Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack. |
 | `Mask count` | integer | unary all | Number of true cells, or of source items a lazy mask selects. |
-| `Values Target find` | integer | binary all / 0 | First zero-based position equal to Target in a vector or text; an array of targets finds each. |
-| `Values Target findall` | array | binary all / 0 | Every zero-based position equal to Target in a vector or text; an array of targets needs equal counts. |
+| `Values Target find` | integer | binary all / 0 | First zero-based position of an equal array element or text substring; an array of targets finds each. |
+| `Values Target findall` | array | binary all / 0 | Every zero-based position of an equal array element or overlapping text substring; target arrays need equal counts. |
 | `Values flat` | array | unary all; binary all / all | Copies records into fixed-width storage; Count State flat initializes a compact array. |
 | `fibonacci` | sequence, lazy | source/value | Unbounded lazy Fibonacci numbers; bound with to, till, from or after. |
 | `Mask indices` | array | unary all | Zero-based true positions in boolean vectors, or coordinate rows in boolean tensors. |
