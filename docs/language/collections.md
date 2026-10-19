@@ -125,6 +125,9 @@ higher-dimensional tensor. It does not infer rectangular dimensions or carry a
 dense shape; programs keep those dimensions separately when needed. The key
 and value types are inferred from uses within the function.
 
+Integer and integral real selectors address the same key: `Cache 1` and
+`Cache 1.0` read the same entry. Text `"1"` is a different key.
+
 An index is a reference structure. Passing it to a function preserves that
 reference, so every name sees the write:
 

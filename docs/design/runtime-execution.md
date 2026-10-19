@@ -818,8 +818,8 @@ text, eligible eager-array, or integer-valued index/queue/deque/stack arguments.
 `compiled-callee.ts` describes its argument/result domains, local binding
 constraints, and conservative mutation effects. The existing scalar proof and
 kernel have a loop-capable mode shared with ordinary scalar entry. Ordinary
-entry excludes container bodies and array writes because it lacks the linked
-region's ownership proof. The caller resolves the function before analyzing arguments, so indexing
+entry admits private integer-valued containers but excludes argument container
+domains and array writes that need the linked region's ownership proof. The caller resolves the function before analyzing arguments, so indexing
 expressions are not mistaken for helper calls.
 
 Callee bodies may use scalar assignments, branches, early returns, conditional
@@ -1320,9 +1320,27 @@ continues through its dedicated driver; ordinary entry does not intercept it.
 
 Local conditional loops and integer ranges use the existing loop-capable proof
 and kernel cache. Selection carries the loop mode into preparation, so the proof
-and generated body agree. Container bodies and array writes retain framed
-execution, as do transferred arguments and inspected calls. Loop checkpoints
-continue to observe cancellation.
+and generated body agree. Private indexes and queue-family containers can enter
+when their cells are proved integers and no container escapes through the result.
+Array writes, container arguments, transferred arguments and inspected calls
+retain framed execution. Loop checkpoints continue to observe cancellation.
+
+Proved full scalar array addresses and integer index reads use `scalar-selection.ts`
+without generic table/selector dispatch. Read bounds, missing-value errors and
+callee source locations remain checked. An index read with `default` can use one
+lookup when its selector is a proved integer local slot; the fallback runs only
+for an absent key. Selector expressions that can themselves encounter missing
+values retain ordinary `default` evaluation.
+
+`index-storage.ts` centralizes keyed reads, membership and writes. Single integer
+keys use exact primitive storage, normalizing integral reals to the same key;
+other scalars and selector tuples retain the encoded-key path. Memo cache keys
+retain their separate typed equality rules. Index writes still pass through the
+resource-aware map, and preview snapshots copy both key representations.
+
+LIFO stacks use dense backing storage until a front operation or live iteration
+needs the deque representation. Aliases, element contracts, resource tracking,
+iteration behavior and empty-pop errors remain the same.
 
 Ordinary entry can also return a fresh homogeneous vector of proven scalar
 expressions, such as `array Odd Fix` after a numeric loop. Elements retain their
