@@ -1,5 +1,6 @@
+import { membershipLookup } from './membership-lookup.js';
 import { isPureLazyFunction } from './lazy-function.js';
-import { compiledSequenceMembership } from './sequence-membership.js';
+import { compiledIntegerMembership } from './integer-membership.js';
 import { compiledCalleeTypeKey, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { AstNode } from 'langium';
 import {
@@ -703,9 +704,13 @@ export class FunctionInvocation {
                 users[index] = bound;
             }
             for (let index = 0; index < kernel.memberships.length; index++) {
-                const contains = compiledSequenceMembership(resolve(kernel.memberships[index]));
+                const name = kernel.memberships[index], value = resolve(name);
+                const contains = compiledIntegerMembership(value);
                 if (!contains) return false;
-                memberships[index] = contains;
+                // Captured array bindings may receive a COW replacement inside
+                // a linked caller. Resolve them at the actual expression, not entry.
+                memberships[index] = value && isRankArray(value)
+                    ? integer => membershipLookup(resolve(name) as RankArray)(integer) : contains;
             }
             for (const name of kernel.guards) {
                 const operation = findOperation(name);

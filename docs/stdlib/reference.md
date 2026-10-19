@@ -381,7 +381,7 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `A B gcd` | integer | binary 0 / 0 | Greatest common divisor, always nonnegative. |
 | `infinity` | real | source/value | The positive infinite real value. |
 | `Value isnan` | boolean | unary all | True for the real value nan; it does not equal itself. |
-| `Value isqrt` | integer | unary 0 | Exact integer floor of the square root, calculated without reals. |
+| `Value isqrt` | integer | unary 0 | Exact integer floor of the square root, verified with integer arithmetic. |
 | `A B lcm` | integer | unary all; binary 0 / 0 | Least common multiple, also a reduction over one finite collection. |
 | `Value log` | real | unary all (scalar map) | Natural logarithm of a positive finite number. |
 | `nan` | real | source/value | The real not-a-number value, for a result or cell with no numeric value. |

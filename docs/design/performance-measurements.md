@@ -883,3 +883,11 @@ tests), and both Euler 7 demo tests. Targeted type and differential audits passe
 for Euler 7 and the queens demos (10 programs per audit). The unrestricted
 demo-corpus audit was stopped during execution; it was not a completed full
 suite run.
+
+## Exact integer square roots (#333)
+
+[The square-root measurements](../../benchmarks/integer-square-root-results.md)
+separate forced array materialization, `isqrt sum`, input setup and cold process
+cost. The implementation combines a BigInt-verified floating estimate below
+`2^63` with checked stored scalar-array application; larger integers retain
+Newton iteration. The report includes raw samples and the host-load limitation.

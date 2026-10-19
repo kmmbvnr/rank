@@ -1,3 +1,4 @@
+import { registerSequenceMembership } from './sequence-membership.js';
 import { MissingValueError, RankError } from './errors.js';
 import { setValueKey } from './set.js';
 import {
@@ -143,14 +144,25 @@ export class GraphValue implements TraversalGraph {
             throw new MissingValueError('graph does not contain the vertex');
         }
         const neighbors = [...this.adjacency.get(key) ?? []].map(edge => edge.target);
-        return {
-            kind: 'sequence',
-            plan: {
-                name: 'graph neighbors',
-                size: { kind: 'exact', value: BigInt(neighbors.length) },
-                *iterate() { yield* neighbors; },
-            },
+        // Membership and iteration share the same immutable snapshot. Only
+        // integer snapshots certify the compiler's narrower scalar contract.
+        const integers = neighbors.every(value => typeof value === 'bigint');
+        let keys: Set<RankValue> | undefined;
+        const plan = {
+            name: 'graph neighbors',
+            size: { kind: 'exact' as const, value: BigInt(neighbors.length) },
+            *iterate() { yield* neighbors; },
+            ...(integers ? { contains(value: RankValue): boolean {
+                if (!keys) {
+                    keys = new Set();
+                    for (const neighbor of neighbors) { checkpoint('indexing graph neighbors'); keys.add(neighbor); }
+                }
+                return typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value)
+                    ? keys.has(BigInt(value)) : keys.has(value);
+            } } : {}),
         };
+        if (integers) registerSequenceMembership(plan);
+        return { kind: 'sequence', plan };
     }
 
     edges(vertex: RankValue): RankSequence {
