@@ -689,11 +689,13 @@ disabled, in separate sequential processes. See the
 loops into JavaScript regions when the conditions and bodies are supported.
 Inputs are guarded before execution; unsupported types or syntax retain the
 reference loop. Register variables hold integer values between operations and
-iterations. Scalar assignments commit immediately, retaining fixed-type checks,
-lexical binding behavior and partial state if a later operation fails. The
-invocation-bound writer optimization below avoids repeating known type checks. Errors carry the original body-command or loop-condition location.
+iterations. The exact BigInt backend commits scalar assignments immediately,
+retaining fixed-type checks, lexical binding behavior and partial state if a
+later operation fails. A guarded Number backend can defer publication in a
+proved private region, as described below. Errors carry the original
+body-command or loop-condition location.
 
-The scope includes conditional and `to`/`till` range loops with at most 32 commands (including nested branches and loops),
+The scope includes conditional and `to`/`till` range loops with at most 32 outer commands and 128 commands across nested branches and loops,
 integer arithmetic `+ - * // %`, powers with a nonnegative integer literal exponent,
 comparisons and boolean conditions. Power preserves sign precedence and exact
 bigint arithmetic. Guarded array reads/writes, containers and vector iteration are
@@ -703,8 +705,40 @@ Modifier spellings such as `scan` must not be mistaken for integer operands.
 CSP rejection retains reference execution. `integerLoopCompilation: false`
 disables this pass; compilation/execution callbacks support diagnostics.
 
-Typed writes remain runtime calls; invocation-bound integer writers specialize
-the checks as described below.
+`integer-loop-plan.ts` describes analyzed requirements and lowered control flow;
+`integer-loop-runtime.ts` owns the existing BigInt entry guards, storage access
+and invocation binding. `number-loop-runtime.ts` binds the private Number
+specialization. Both use the existing shared typed-expression frontend and
+operator catalogue.
+
+The Number specialization accepts safe integer/boolean scalars, supported nested
+numeric/conditional loops, and rank-one eager stored integer arrays. It proves
+scalar stores cannot fail their binding contracts before deferring them. Calls,
+collection/array mutation, returns, powers, arbitrary iterators, lazy arrays and
+unsupported contracts retain the BigInt backend. Array reads use an
+invocation-owned Float64 buffer after checking every cell's type and magnitude;
+there is no retained numeric mirror. A loop-entry execution hook keeps the
+BigInt backend because that hook may mutate inputs or binding contracts.
+
+Each integer intermediate and range increment is checked for safe-integer
+exactness. Division retains floor rounding and remainder retains the divisor's
+sign. Overflow discards the entire unpublished attempt and executes the original
+BigInt region from its original inputs. No array writes or callbacks may have
+occurred in that attempt. Successful exits publish exact BigInt/boolean values;
+ordinary errors and cancellation publish preceding successful assignments in
+first-write order before propagating the original located error. No rounded
+Number is converted into an overflow result.
+
+Atomics-only cancellation remains cooperative, including while preparing numeric
+array storage. Inspection and arbitrary host polling callbacks use the existing
+publishing backend. `numberLoopCompilation: false` selects the BigInt backend;
+`compilation: false` still disables all generated tiers. Diagnostics distinguish
+`numberLoops` and `numberLoopOverflows` from total `compiledLoops`. The generated
+source callback receives the two backend sources in one notification for a
+numeric specialization.
+
+Typed writes on the BigInt backend remain runtime calls; invocation-bound
+integer writers specialize the checks as described below.
 
 Numeric range lowering supports `by`, descending steps, an optional index binding
 and `#` discard bindings. Start, end and step are evaluated once; progression uses

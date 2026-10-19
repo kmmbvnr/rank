@@ -1,0 +1,8 @@
+use testing
+
+test "default input"
+  use "150_subtriangle"
+  run
+
+  Answer equal -271248680
+end

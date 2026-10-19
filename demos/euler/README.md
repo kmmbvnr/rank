@@ -24,9 +24,14 @@ and then rewritten as array code.
 | 196 | 5 row strip, neighbour counts | ~100 s estimated |
 | 198 | Stern-Brocot walk | sequential |
 
-The speed gaps come from per-element costs of array operations and
-BigInt based compiled loops, see issues #307, #308, #309, #311, #312
-and #316.
+These costs depend on the operation and whether a loop qualifies for safe Number
+registers or uses exact BigInt operations. See issues #307, #308, #309, #311,
+#312 and #316.
+
+Euler 150 accumulates its row start once per row. Its read-only search uses
+safe Number registers while public integer values remain exact BigInts.
+The original and current formulations, runtime-only comparison and differential
+coverage audit are recorded in [the integer-loop benchmark](../../benchmarks/number-loops-results.md).
 
 Euler 126 uses stored mask compaction and fused arithmetic updates (#308).
 Its layer-generation benchmark and full counting costs are reported separately
