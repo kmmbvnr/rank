@@ -27,8 +27,10 @@ export function operationShapeFacts(
     // Ranked assembly boxes non-array collections instead of adding their axes.
     if (frame.length && ['text', 'sequence'].includes(operation.result)) return;
     const shape = [...frame, ...cellShape];
+    const mappedArray = operands.length > 2 && operation.mapsScalarCells
+        && operands.some(operand => operand.types.join() === 'array');
     const types = operation.name === 'matmul' ? (shape.length ? ['array'] : ['integer', 'real'])
-        : frame.length ? ['array']
+        : frame.length || mappedArray ? ['array']
         : operation.preservesCollectionElements && ['array', 'sequence'].includes(operands[0].types.join())
             ? operands[0].types : resultTypes(operation);
     return { types, rank: shape.length, shape };

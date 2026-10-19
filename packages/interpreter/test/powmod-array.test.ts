@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray, type RankArray } from '../src/index.js';
+import { ownedArray } from '../src/array-storage.js';
 
 function execute(source: string) {
     const runtime = new Interpreter();
@@ -10,6 +11,16 @@ function execute(source: string) {
 }
 
 describe('powmod array operands', () => {
+    it('preserves the array container for a rank-zero operand', () => {
+        const runtime = new Interpreter();
+        runtime.variables.set('A', ownedArray([2n], []));
+        try {
+            const result = runtime.execute('use numbers\nA 3 7 powmod')!;
+            expect(isRankArray(result)).toBe(true);
+            expect((result as RankArray).shape).toEqual([]);
+            expect((result as RankArray).items).toEqual([1n]);
+        } finally { runtime.dispose(); }
+    });
     it.each([
         ['Ks Ks 250 powmod', [1n, 4n, 27n]],
         ['Ks 2 250 powmod', [1n, 4n, 9n]],

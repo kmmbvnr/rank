@@ -28,6 +28,12 @@ it('infers all powmod operand frames without claiming an unknown call is scalar'
     }
     expect(facts('2 3 7 powmod')).toMatchObject({ types: ['integer'], rank: 0, shape: [] });
     expect(facts('X Y 7 powmod')).not.toMatchObject({ rank: 0 });
+    expect(facts('X 3 7 powmod', new Map([['X', {
+        types: ['array'], rank: 0, shape: [], elements: ['integer'],
+    }]]))).toMatchObject({ types: ['array'], rank: 0, shape: [], elements: ['integer'] });
+    expect(facts('X 3 7 powmod', new Map([['X', {
+        types: ['array'], elements: ['integer'],
+    }]]))).toEqual({ types: ['array'], elements: ['integer'] });
 });
 
 it('separates scalar type, array elements, rank and dimensions', () => {
