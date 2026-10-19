@@ -1,0 +1,19 @@
+use testing
+
+rem The default input takes 30 min, so
+rem only smaller limits are tested.
+test "small limits"
+  use "245_coresilience"
+  Limit = 100000
+  run
+
+  Answer equal 595394
+  Limit = 10000000
+  run
+
+  Answer equal 275069018
+  Limit = 1000000000
+  run
+
+  Answer equal 145645009845
+end
