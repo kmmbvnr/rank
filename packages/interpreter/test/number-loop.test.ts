@@ -122,6 +122,42 @@ describe('private safe-integer loop registers', () => {
         } finally { runtime.dispose(); }
     });
 
+    it.each(['-1', '3'])('preserves direct-load bounds failures and partial state at index %s', index => {
+        const source = `A = array 1 2 3\nS = 0\nfor V in A\n S += V\n Bad = A (${index})\n After = V\nend`;
+        const candidate = execute(source);
+        expect(candidate.observation.error).toContain('out of bounds');
+        expect(candidate.observation).toEqual(execute(source, { compilation: false }).observation);
+        // The existing generic BigInt iterator reader appends a negative
+        // coordinate to its message; both paths must retain the same state.
+        const exact = execute(source, { numberLoopCompilation: false });
+        expect(exact.observation.error).toContain('out of bounds');
+        expect(candidate.observation.variables).toEqual(exact.observation.variables);
+        expect(candidate.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('publishes vector progress and runs finally on Atomics cancellation', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        const flag = new Int32Array(1); flag[0] = 1;
+        try {
+            expect(() => withInterrupt(flag, () => diagnostics.run(() => runtime.execute(`A = array 1 2 3
+S = 0
+Done = 0
+try
+ for V Index in A
+  for I in 1 to 1000000
+   S += V
+  end
+ end
+finally
+ Done = 1
+end`)))).toThrow('Interrupted');
+            expect(diagnostics.numberLoops).toBe(1);
+            expect(runtime.variables.get('Done')).toBe(1n);
+            expect(runtime.variables.get('S')).toBeGreaterThan(0n);
+            expect(runtime.variables.get('S')).toBeLessThan(1000000n);
+        } finally { runtime.dispose(); }
+    });
+
     it('declines arrays with unsafe cells before publishing any scalar', () => {
         const diagnostics = compare('A = array 1 9007199254740992\nS = 0\nfor I in 0 to 1\n S += A I\nend');
         expect(diagnostics.numberLoops).toBe(0);

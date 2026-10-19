@@ -31,9 +31,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     const slots = [...written].map(name => names.indexOf(name));
     const registers = names.map((_, index) => `r${index} = input[${index}]`);
     for (const slot of slots) registers.push(`d${slot} = 0`);
-    for (const info of arrays.values()) registers.push(`reader${info.slot} = readers[${info.slot}]`);
+    for (const info of arrays.values()) registers.push(`cells${info.slot} = cells[${info.slot}]`);
     const publish = `publish(entered, [${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
-    const source = `"use strict"; return function(input, readers, cells, publish) {
+    const source = `"use strict"; return function(input, cells, publish) {
         let ${registers.length ? `${registers.join(',')}, ` : ''}result, location = -1, order = 0;
         const entered = [];
         try {
@@ -50,20 +50,22 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         ${publish}
         return { value: result };
     };`;
-    type Run = (input: unknown[], readers: ((index: number) => number)[], cells: Float64Array[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown } | undefined;
+    type Run = (input: unknown[], cells: Float64Array[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown } | undefined;
     let run: Run;
     try {
-        run = new Function('safe', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', source)(
+        run = new Function('safe', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badIndex', source)(
             safe, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
-            (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]));
+            (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
+            (index: number) => new MissingValueError(index < 0
+                ? 'array index out of bounds on axis 0' : `array index out of bounds on axis 0: ${index}`));
     } catch { return undefined; }
     host.compiled?.(source);
     return { run: (insideFinally = false) => {
         if (plan.hasControl && insideFinally || !privateLoopPolling()) return undefined;
         for (const [name, module] of plan.builtins) if (!host.builtin(module, name)) return undefined;
         if (!host.canDeferWrites!(bindings)) return recordFallback('number-loop:binding-contract');
-        const input: unknown[] = [], readers: ((index: number) => number)[] = [];
+        const input: unknown[] = [];
         const buffers: Float64Array[] = [], sources: RankArray[] = [];
         for (const slot of required) {
             const value = host.read(names[slot]);
@@ -91,16 +93,10 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             }
             buffers[info.slot] = cells;
             sources[info.slot] = value;
-            const length = value.shape[0];
-            readers[info.slot] = index => {
-                if (index < 0) throw new MissingValueError('array index out of bounds on axis 0');
-                if (index >= length) throw new MissingValueError(`array index out of bounds on axis 0: ${index}`);
-                return cells[index];
-            };
         }
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.numberLoops++;
-        const result = run(input, readers, buffers, (entered, values) => {
+        const result = run(input, buffers, (entered, values) => {
             // Declarations are private too: overflow must leave even empty-loop
             // binding contracts untouched before the original exact region runs.
             plan.vectorIterations.forEach(({ binding, slot }, index) => {

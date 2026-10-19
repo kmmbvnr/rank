@@ -98,7 +98,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     const calleeArrays = new Set<string>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
-    const vectorIterations: { slot: number; binding: IterationBinding; iterator: number }[] = [];
+    const vectorIterations: { slot: number; binding: IterationBinding }[] = [];
     const iterators: ((source: RankArray | string) => Iterable<RankValue>)[] = [];
     const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type'] }>();
     let needsAlgo = false, hasControl = false, hasReturn = false;
@@ -448,7 +448,15 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             arrays.set(head.name, info);
             if (!assigned.has(head.name)) arrayInputs.add(head.name);
             const name = `v${serial++}`;
-            lines.push(`const ${name} = reader${info.slot}(${info.rank === 1 ? indices[0] : `[${indices.join(',')}]`});`);
+            if (numberMode) {
+                if (info.rank !== 1) return undefined;
+                const coordinate = `index${serial++}`;
+                lines.push(`const ${coordinate} = ${indices[0]};
+                    if (${coordinate} < 0 || ${coordinate} >= cells${info.slot}.length) throw badIndex(${coordinate});
+                    const ${name} = cells${info.slot}[${coordinate}];`);
+            } else {
+                lines.push(`const ${name} = reader${info.slot}(${info.rank === 1 ? indices[0] : `[${indices.join(',')}]`});`);
+            }
             return { code: name, type };
         }
         if (!isBinaryExpression(e) || e.step) return undefined;
@@ -520,7 +528,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 if (!assigned.has(range.name)) arrayInputs.add(range.name);
                 const binding = iteration;
                 const vector = vectorIterations.length;
-                if (elementType === 'integer') vectorIterations.push({ slot: info.slot, binding, iterator: iterators.length });
+                if (elementType === 'integer') vectorIterations.push({ slot: info.slot, binding });
                 if (numberMode) {
                     if (elementType !== 'integer') return undefined;
                     setup = `const iterable = cells[${info.slot}]; entered[${vector}] = true; ${indexed ? 'let ordinal = 0;' : ''}`;
