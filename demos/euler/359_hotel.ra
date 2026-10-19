@@ -1,0 +1,39 @@
+rem Hilbert's New Hotel
+rem https://projecteuler.net/problem=359
+
+use numbers
+use io
+
+fun F R person
+  A = F * F // 2
+  S = F
+  if F equal 1
+    A = 1
+    S = 2
+  else
+    if F mod 2 equal 0
+      S += 1
+    end
+  end
+  K = (R + 1) // 2
+  if R mod 2 equal 1
+    D = 2 * S + 2 * K - 3
+    return A + (K - 1) * D
+  end
+  A = S * S - A
+  K = R // 2
+  D = 2 * S + 2 * K - 1
+  return A + (K - 1) * D
+end
+
+N = 2 ** 27 * 3 ** 12
+Answer = 0
+for A in 0 to 27
+  for B in 0 to 12
+    F = 2 ** A * 3 ** B
+    R = N // F
+    Answer += F R person
+  end
+end
+Answer mod= 10 ** 8
+Answer print
