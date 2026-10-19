@@ -1,3 +1,4 @@
+import { takeDropValue } from './sequence.js';
 import { expressionFacts, findOperation, isBinaryExpression, isBooleanLiteral, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
 import type { IntegerLoopPlan, LoopHost, LoopTerm, CompiledLoop } from './integer-loop-plan.js';
 import { ResourceMap } from './resource-summary.js';
@@ -32,7 +33,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
@@ -42,7 +43,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
             ? (value: RankValue) => value : borrowArrayStorage,
         prepareScalarArrayWriter, (value: RankValue, stableReads: boolean, oneAxis: boolean) => oneAxis
             ? prepareScalarArrayReader(value, host.arrayRead, stableReads)
-            : prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint, host.textRead); }
+            : prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint, host.textRead, takeDropValue); }
     catch { return reject(); }
     host.compiled?.(source);
     const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0

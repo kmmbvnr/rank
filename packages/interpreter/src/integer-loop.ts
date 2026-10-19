@@ -504,7 +504,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         if (iteration) {
             const traversal = loopTraversal(iteration);
             if (!traversal) return undefined;
-            const { source: range, indexed } = traversal;
+            const { source: range, indexed, slice } = traversal;
             // Named inputs retain their guarded text/array variants. Pure text
             // expressions are evaluated once in the loop's setup instead.
             const textIteration = host.textLoops && (!isNameExpression(range) && knownType(range) === 'text'
@@ -512,6 +512,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             const collectionIteration = textIteration || isNameExpression(range);
             let elementType: 'integer' | 'text' = textIteration ? 'text' : 'integer';
             if (textIteration) {
+                if (slice) return undefined;
                 const source = emit(range, tests, 'text');
                 if (source?.type !== 'text') return undefined;
                 setup = `${tests.join('\n')} const iterable = iterators[${iterators.length}](${source.code}); ${indexed ? 'let ordinal = 0n;' : ''}`;
@@ -528,13 +529,20 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 const binding = iteration;
                 const vector = vectorIterations.length;
                 if (elementType === 'integer') vectorIterations.push({ slot: info.slot, binding });
+                const count = slice ? emit(slice.count, tests, 'integer') : undefined;
+                if (slice && (elementType !== 'integer' || count?.type !== 'integer')) return undefined;
                 if (numberMode) {
                     if (elementType !== 'integer') return undefined;
-                    setup = `const iterable = cells[${info.slot}]; entered[${vector}] = true; ${indexed ? 'let ordinal = 0;' : ''}`;
-                    header = `for (let position = 0; position < iterable.length; position++) {
+                    setup = `${tests.join('\n')} const iterable = cells[${info.slot}];
+                        ${slice ? `const count = ${count!.code}; if (count < 0) throw badSlice(${JSON.stringify(slice.drop ? 'drop' : 'take')});` : ''}
+                        const offset = ${slice?.drop ? 'Math.min(count, iterable.length)' : '0'};
+                        const limit = ${slice && !slice.drop ? 'Math.min(count, iterable.length)' : 'iterable.length'};
+                        entered[${vector}] = true; ${indexed ? 'let ordinal = 0;' : ''}`;
+                    header = `for (let position = offset; position < limit; position++) {
                         location = ${location}; checkpoint(); const cursor = iterable[position];`;
                 } else {
-                    setup = `const iterable = iterators[${iterators.length}](r${info.slot}); ${indexed ? 'let ordinal = 0n;' : ''}`;
+                    const source = slice ? `slice(r${info.slot}, ${count!.code}, ${slice.drop})` : `r${info.slot}`;
+                    setup = `${tests.join('\n')} const iterable = iterators[${iterators.length}](${source}); ${indexed ? 'let ordinal = 0n;' : ''}`;
                     iterators.push(source => host.iterationValues(binding, source, elementType));
                     header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
                 }

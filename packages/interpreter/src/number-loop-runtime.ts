@@ -53,10 +53,11 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     type Run = (input: unknown[], cells: Float64Array[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown } | undefined;
     let run: Run;
     try {
-        run = new Function('safe', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badIndex', source)(
+        run = new Function('safe', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', source)(
             safe, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
+            (name: string) => new RankError(`${name} expects a nonnegative integer count`),
             (index: number) => new MissingValueError(index < 0
                 ? 'array index out of bounds on axis 0' : `array index out of bounds on axis 0: ${index}`));
     } catch { return undefined; }

@@ -70,4 +70,56 @@ OtherAnswer = Other array`);
         expect(result.diagnostics.compiledLoops).toBe(1);
         expect(result.observation.variables.at(-1)).toEqual(['S', '2']);
     });
+    it('compiles indexed suffix traversal with independent relative ordinals', () => {
+        const source = `Vals = 1 to 30 array
+S = 0
+for P i in Vals
+ for Q Index in Vals drop (i + 1)
+  if (P + Q) mod 7 equal 0
+   S += 1
+  end
+  Index = 99
+ end
+end`;
+        const result = compare(source);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.observation).toEqual(execute(source, { numberLoopCompilation: false }).observation);
+        expect(result.observation.variables.at(-1)).toEqual(['S', '62']);
+    });
+
+    it.each(['take 0', 'drop 0', 'take 99', 'drop 99', 'drop 999999999999999999999'])('retains slice boundaries for %s', clause => {
+        const source = `Vals = array 10 20 30\nS = 0\nfor V Index in Vals ${clause}\n S += V + Index\nend`;
+        const result = compare(source);
+        expect(result.diagnostics.compiledLoops).toBe(1);
+        expect(result.observation).toEqual(execute(source, { numberLoopCompilation: false }).observation);
+    });
+
+    it('evaluates nested slice bounds at traversal entry and preserves control flow', () => {
+        const source = `Vals = array 10 20 30 40
+S = 0
+Count = 0
+for Outer in 0 to 2
+ for V Index in Vals drop Count
+  Count = 99
+  if Index equal 0
+   continue
+  end
+  S += V + Index
+  break
+ end
+ Count = Outer
+end`;
+        const result = compare(source);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.observation).toEqual(execute(source, { numberLoopCompilation: false }).observation);
+    });
+
+    it.each(['take (-1)', 'drop (-1)'])('keeps preceding assignments and errors for %s', clause => {
+        const source = `Vals = array 1 2\nBefore = 0\nfor Outer in 0 to 1\n Before += 1\n for V in Vals ${clause}\n  Before += V\n end\nend`;
+        const candidate = execute(source);
+        expect(candidate.observation).toEqual(execute(source, { compilation: false }).observation);
+        expect(candidate.observation).toEqual(execute(source, { numberLoopCompilation: false }).observation);
+        expect(candidate.observation.error).toContain('nonnegative integer count');
+    });
+
 });
