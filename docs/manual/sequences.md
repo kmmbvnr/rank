@@ -173,6 +173,15 @@ filter, indices
 
 ## copy
 
+Stored integer arithmetic evaluates
+eagerly when its operands can be read
+without callbacks. Other array formulas
+can remain lazy. A chain exceeding 1024
+reader layers raises `ResourceLimit`;
+use `copy` on an intermediate array to
+start a new chain. No cells are forced
+just to enforce this limit.
+
 Make an independent copy of an array.
 
 ```rank

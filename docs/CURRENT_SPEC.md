@@ -3039,6 +3039,19 @@ array:
 Values = 3 weird array
 ```
 
+Stored integer `+`, `-`, `*`, `//`, and `mod` can evaluate eagerly over proven
+storage and trusted views, including concat segments. This creates fresh results
+and preserves earlier aliases; it bounds numeric recurrences without requiring
+an explicit `copy` at every iteration. Unsafe readers, inspection, and operations
+with deferred failures keep their ordinary path.
+
+Unmaterialized array expressions are limited to 1024 reader layers. Constructing
+a deeper chain raises `ResourceLimit` with a suggestion to use `copy` on an
+intermediate array. The check reads dependency metadata only and never forces a
+cell. Metadata-only dependency nodes add no reader layer, so a balanced concat
+rope is not counted as one nested reader per append. Materialization starts a new
+chain; retaining old array values intentionally still retains their storage.
+
 Materialization is eager. Scalar or record items produce a rank-1 array.
 Array items with the same shape are stacked along a new leading axis: `N`
 items of shape `3` produce shape `N 3`, and `N` items of shape `2 3` produce
