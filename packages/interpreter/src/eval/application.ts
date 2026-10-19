@@ -1,3 +1,4 @@
+import { isPureLazyFunction, snapshotLazyOperand } from '../lazy-function.js';
 import { queryDefault } from '../query-default.js';
 import {
     lastArrayUseProofs, applicationExpression as applicationParts, applicationForm, assertNever, flattenApplication, isAllAxisExpression,
@@ -110,14 +111,16 @@ export class ApplicationEvaluator {
                 expression.dataParameters.forEach((index, i) => { shapes[index] = [...cells[i]]; });
                 return fn.resultCellShape?.(shapes);
             };
-            const withOperands = (fn: NativeFunction): NativeFunction => ({
-                snapshot: fn.snapshot ? () => withOperands(fn.snapshot!()) : undefined,
+            const withOperands = (fn: NativeFunction, fixed = args): NativeFunction => ({
+                snapshot: () => withOperands(fn.snapshot?.() ?? fn, fixed.map((value, index) =>
+                    expression.dataParameters.includes(index) ? value : snapshotLazyOperand(value))),
+                lazySafe: () => isPureLazyFunction(fn),
                 kind: 'function', name: fn.name, arities: [data.length],
                 monadicRank: fn.monadicRank, dyadicRanks: fn.dyadicRanks, arrayCells: true,
                 monadicResultShape: shape => resultShape(fn, [shape]),
                 dyadicResultShape: (left, right) => resultShape(fn, [left, right]),
                 call: cells => {
-                    const bound = [...args];
+                    const bound = [...fixed];
                     expression.dataParameters.forEach((index, i) => { bound[index] = cells[i]; });
                     return runExecution(context.functions.invoke(fn, bound));
                 },

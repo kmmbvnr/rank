@@ -30,7 +30,8 @@ A pure sequence may reuse computed items when the current program has multiple
 consumers. Direct aliases and ordinary helper parameters participate in this
 analysis. A source used by only one pipeline stage can remain a stream; naming
 an intermediate does not require saving its history. Cheap arithmetic ranges
-continue to compute their values directly.
+continue to compute their values directly. Constructor-certified membership
+queries and modular range selectors also keep their specialized plans.
 
 ```rank
 use sequences
@@ -47,8 +48,9 @@ does not force the tail. Completing a retained sequence also discovers its
 length, including zero for an empty result.
 
 Lazy sequence predicates, rank-0 callbacks and scan callbacks must be pure.
-They may use local working state, but cannot perform input/output, use randomness,
-or depend on changing external state. Captures use the creation-time snapshots
+They may use local working state, but cannot mutate their inputs, perform
+input/output, use randomness, or depend on changing external state. Copy an input
+before modifying it. Captures use the creation-time snapshots
 described under [local functions](control-functions.md#local-functions-and-closures).
 Unresolved callable behavior is rejected conservatively. Ordinary eager calls
 and effectful single-pass generators keep their existing contracts.

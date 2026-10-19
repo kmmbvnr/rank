@@ -26,6 +26,52 @@ A equal 50 and B equal 2500`);
         expect(stats.sequenceReplayHits).toBe(50);
     });
 
+    it('retains pure composed callbacks', () => {
+        const { result, stats } = run(`use numbers
+use sequences
+divisor_count = divisors count
+S = (1 to 6) divisor_count rank 0
+A = S sum
+B = S sum
+A + B`);
+        expect(result).toBe(28n);
+        expect(stats.sequenceCachedValues).toBe(6);
+    });
+
+    it('snapshots fixed array configuration of ranked callbacks', () => {
+        const { result, stats } = run(`use sequences
+fun X scale .by Factors = X * (Factors 0)
+Factors = array 2 3
+S = (1 to 3) scale by Factors rank 0
+Factors 0 = 10
+A = S sum
+B = S sum
+A + B`);
+        expect(result).toBe(24n);
+        expect(stats.sequenceCachedValues).toBe(3);
+    });
+
+    it('freezes composed callback identities before later rebinding', () => {
+        const { result } = run(`use numbers
+use sequences
+fun X double = X * 2
+step = double
+pipeline = step abs
+S = (1 to 3) pipeline rank 0
+fun X triple = X * 3
+step = triple
+S sum`);
+        expect(result).toBe(12n);
+    });
+
+    it('rejects effects hidden in composed callbacks', () => {
+        expect(() => run(`use io
+use numbers
+use sequences
+pipeline = print abs
+S = (1 to 3) pipeline rank 0`)).toThrow(/must be pure/);
+    });
+
     it('keeps a single consumer uncached', () => {
         const { result, stats } = run(prelude + 'S = 1 to 100 filter odd\nS sum');
         expect(result).toBe(2500n);
@@ -167,7 +213,8 @@ S sum`);
     });
 
     it('retains a pure mapped sequence and resumes it after a prefix', () => {
-        const { result, stats } = run(`use sequences
+        const { result, stats } = run(`use numbers
+use sequences
 fun X doubled = X * 2
 S = (1 to 10) doubled rank 0
 A = (S take 3) sum

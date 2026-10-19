@@ -1,3 +1,4 @@
+import { isPureLazyFunction } from './lazy-function.js';
 import { compiledSequenceMembership } from './sequence-membership.js';
 import { compiledCalleeTypeKey, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { AstNode } from 'langium';
@@ -224,8 +225,34 @@ export class FunctionInvocation {
                 return selected.call(args);
             },
         };
-        this.bindings.assign(statement.name, fn);
-        return fn;
+        const snapshot = (): NativeFunction => {
+            const operations = plain ? this.bindings.withFrame(context, () => stages!.map(stage => {
+                const head = stage[0];
+                if (!isNameExpression(head)) throw new RankError('Pipeline stage must name a function');
+                const operation = resolve(head.name);
+                if (!isNativeFunction(operation)) throw new RankError('Pipeline stage must be a function', 'TypeError');
+                return operation.snapshot?.() ?? operation;
+            })) : [...alternatives.values()].map(operation => operation.snapshot?.() ?? operation);
+            const frozen: NativeFunction = {
+                ...fn,
+                snapshot: () => frozen,
+                lazySafe: () => operations.every(isPureLazyFunction),
+                call: args => {
+                    if (plain) {
+                        let operands = args;
+                        for (const operation of operations) operands = [runExecution(this.host.apply(operation, operands))];
+                        return operands[0];
+                    }
+                    const selected = operations.find(operation => operation.arities.includes(args.length));
+                    if (!selected) throw new RankError(`${statement.name} does not accept ${args.length} arguments`);
+                    return selected.call(args);
+                },
+            };
+            return frozen;
+        };
+        const bound = { ...fn, snapshot, lazySafe: () => isPureLazyFunction(snapshot()) };
+        this.bindings.assign(statement.name, bound);
+        return bound;
     }
 
     /** Clone each referenced declaration into its own frozen lexical environment.
@@ -235,7 +262,7 @@ export class FunctionInvocation {
         const previous = seen.get(fn);
         if (previous) return previous;
         const declaration = functionDeclarations.get(fn);
-        if (!declaration) return fn;
+        if (!declaration) return fn.snapshot?.() ?? fn;
         if (declaration.owner !== this) return declaration.owner.snapshot(fn, seen);
         const { statement, context } = declaration;
         const scope = functionScope(statement);
@@ -272,7 +299,7 @@ export class FunctionInvocation {
         const builtin = BuiltinRegistry.operationOf(fn);
         if (builtin) return !builtin.effects?.length && (fn.lazySafe?.() ?? true);
         const declaration = functionDeclarations.get(fn);
-        if (!declaration) return false;
+        if (!declaration) return fn.lazySafe?.() ?? false;
         if (declaration.owner !== this) return declaration.owner.lazySafe(fn, seen, checkParameters);
         seen.add(fn);
         const { statement, context } = declaration;

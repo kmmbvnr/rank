@@ -2,6 +2,8 @@ import { denseScalarItems, noteArrayBinding } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { RankError } from './errors.js';
 import { checkpoint, DemandBudgetExhausted, InterruptedError } from './interrupt.js';
+import { modularRange } from './range-plan.js';
+import { compiledSequenceMembership } from './sequence-membership.js';
 import { withSequencePlan } from './sequence.js';
 import { isRankArray, isRankDate, isRankLabel, MISSING, type RankSequence, type RankValue, type SequencePlan } from './value.js';
 
@@ -9,6 +11,9 @@ const retained = new WeakMap<RankSequence, RankSequence>();
 
 /** Aliases selected by consumer analysis share one cache, not nested wrappers. */
 export function retainSequence(source: RankSequence, maxBytes?: number): RankSequence {
+    // Preserve constructor-certified direct queries and modular index lowering.
+    // Retaining these cheap native plans would hide their specialized capabilities.
+    if (modularRange(source.plan) || compiledSequenceMembership(source)) return source;
     const previous = retained.get(source);
     if (previous) return previous;
     const plan = retainSequencePlan(source.plan, maxBytes);
