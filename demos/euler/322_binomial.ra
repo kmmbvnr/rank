@@ -19,8 +19,8 @@ Lows = array 0
 Place = 1
 D = Pick
 for D greater 0
-  Min = D mod 5
-  Ds = Min to 4 array
+  Cap = 4 - D mod 5
+  Ds = 0 to Cap array
   Size = (Lows len) * (Ds len)
   Grid = Lows (Ds * Place) outer +
   Lows = Grid reshape Size
@@ -36,19 +36,19 @@ Inv = Place (Mod // 2 - 1) Mod powmod
 Need = Pick mod Mod
 Mods = new queue
 for R in 0 till Mod
-  if R Need band equal Need
+  if R Need band equal 0
     Mods push R
   end
 end
 Both = 0
 for Low in Lows
-  MaxH = (Top - 1 - Low) // Place
+  MaxH = (Limit - 1 - Low) // Place
   LowMod = Low mod Mod
   for R in Mods
     H = (R - LowMod) * Inv mod Mod
     if H at most MaxH
       Value = Low + Place * H
-      if Value Pick band equal Pick
+      if Value Pick band equal 0
         Both += 1
       end
     end
