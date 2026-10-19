@@ -1,0 +1,48 @@
+rem Enmeshed Unit Circle
+rem https://projecteuler.net/problem=392
+
+use numbers
+use io
+use cli
+
+option N integer = 400
+
+M = N // 2
+Xs = array shape (M + 2) fill 0.0
+Lo = 0.000000000000000001
+Hi = 0.999999999999
+for Try in 1 to 260
+  Xs 0 = 0.0
+  Xs 1 = (Lo + Hi) / 2
+  Good = true
+  for K in 1 to M
+    Prev = Xs (K - 1)
+    Here = Xs K
+    F0 = (1.0 - Prev * Prev) ** 0.5
+    F1 = (1.0 - Here * Here) ** 0.5
+    Next = Here + (F0 - F1) * F1 / Here
+    Xs (K + 1) = Next
+    if Next greater 1.0
+      Good = false
+      break
+    end
+  end
+  if Good
+    if Xs (M + 1) at most 1.0
+      Lo = Xs 1
+    else
+      Hi = Xs 1
+    end
+  else
+    Hi = Xs 1
+  end
+end
+Xs (M + 1) = 1.0
+Quarter = 0.0
+for K in 0 to M
+  X = Xs K
+  Y = (1.0 - X * X) ** 0.5
+  Quarter += (Xs (K + 1) - X) * Y
+end
+Answer = (4.0 * Quarter) round 10
+Answer print
