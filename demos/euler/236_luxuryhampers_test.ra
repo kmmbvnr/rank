@@ -1,0 +1,17 @@
+use testing
+
+rem The default input takes about 1 min.
+test "default input"
+  use "236_luxuryhampers"
+  run
+
+  Answer equal "123/59"
+end
+
+test "fewer candidates"
+  use "236_luxuryhampers"
+  Top = 300
+  run
+
+  Answer equal "123/59"
+end

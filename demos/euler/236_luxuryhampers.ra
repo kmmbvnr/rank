@@ -1,0 +1,232 @@
+rem Luxury Hampers
+rem https://projecteuler.net/problem=236
+rem Two suppliers send five products
+rem each, A and B, in the amounts below.
+rem The spoiled share of each product is
+rem m times higher for B than for A, yet
+rem the total share is m times higher
+rem for A. Find the largest m as u/v.
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+option Top integer = 5248
+
+rem With a spoiled of A and b of B for a
+rem product, b / B = m a / A, so product
+rem 1 gives m = 41 b / (5 a) for a up to
+rem Top and b up to 640: these are the m
+rem to test. For m = u / v the products
+rem fall in three groups of equal B / A:
+rem 5/41, 59/41 and 59/90, so the
+rem spoiled a = d t and b = n t for each
+rem product, with n/d the ratio of its
+rem group times m, and t from 1 up to a
+rem bound. Sums of t in a group may take
+rem every value between the number of
+rem products and the sum of the bounds,
+rem and the total share gives one
+rem equation c0 s0 + c1 s1 + c2 s2 = 0,
+rem tried with s0 and solved for s1, s2
+rem by the extended Euclid algorithm.
+Ap = array 5248 1312 2624 5760 3936
+Bp = array 640 1888 3776 3776 5664
+Gi = array 0 1 1 2 1
+Gb = array 5 59 59
+Ga = array 41 41 90
+Sa = 18880
+Sb = 15744
+Gn = array shape 3 fill 0
+Gd = array shape 3 fill 0
+Lo = array shape 3 fill 0
+Hi = array shape 3 fill 0
+Cc = array shape 3 fill 0
+fun Bs St Lw Hg trng
+  Tl = 0
+  Th = 0
+  if St greater 0
+    Tl = 0 - ((Bs - Lw) // St)
+    Th = (Hg - Bs) // St
+  else
+    Tl = 0 - ((Bs - Hg) // St)
+    Th = (Lw - Bs) // St
+  end
+  return array Tl Th
+end
+Bu = 1
+Bv = 1
+Cnt = 0
+for A in 1 to Top
+  for B in 1 to 640
+    U = 41 * B
+    V = 5 * A
+    if U at most V
+      continue
+    end
+    G1 = U
+    G2 = V
+    for
+      if G2 equal 0
+        break
+      end
+      Tt = G1 mod G2
+      G1 = G2
+      G2 = Tt
+    end
+    U = U // G1
+    V = V // G1
+    G5 = 5 V gcd
+    G41 = 41 U gcd
+    Km = (5 // G5) * (41 // G41)
+    if V * Km // 5 not equal A
+      continue
+    end
+    Ok = 1
+    for G in 0 to 2
+      N = U * Gb G
+      D = V * Ga G
+      G1 = N
+      G2 = D
+      for
+        if G2 equal 0
+          break
+        end
+        Tt = G1 mod G2
+        G1 = G2
+        G2 = Tt
+      end
+      Gn G = N // G1
+      Gd G = D // G1
+      Lo G = 0
+      Hi G = 0
+      Cd = V * Sb * D
+      Cn = U * Sa * N
+      Cc G = (Cd - Cn) // G1
+    end
+    for I in 0 to 4
+      G = Gi I
+      Ub = Ap I // (Gd G)
+      Ub2 = Bp I // (Gn G)
+      if Ub2 less Ub
+        Ub = Ub2
+      end
+      if Ub less 1
+        Ok = 0
+      end
+      Lo G += 1
+      Hi G += Ub
+    end
+    if Ok equal 0
+      continue
+    end
+    C0 = Cc 0
+    C1 = Cc 1
+    C2 = Cc 2
+    A1 = C1 abs
+    A2 = C2 abs
+    R0 = A1
+    R1 = A2
+    S0 = 1
+    S1 = 0
+    T0 = 0
+    T1 = 1
+    for
+      if R1 equal 0
+        break
+      end
+      Qt = R0 // R1
+      Nr = R0 - Qt * R1
+      R0 = R1
+      R1 = Nr
+      Ns = S0 - Qt * S1
+      S0 = S1
+      S1 = Ns
+      Nt = T0 - Qt * T1
+      T0 = T1
+      T1 = Nt
+    end
+    Gg = R0
+    X0 = S0
+    Y0 = T0
+    if C1 less 0
+      X0 = 0 - X0
+    end
+    if C2 less 0
+      Y0 = 0 - Y0
+    end
+    Found = 0
+    for S in (Lo 0) to (Hi 0)
+      Rhs = 0 - C0 * S
+      if C1 equal 0 and C2 equal 0
+        if Rhs equal 0
+          Found = 1
+        end
+      end
+      if C1 equal 0 and C2 not equal 0
+        Q1 = Rhs // C2
+        L2 = Lo 2
+        Dv2 = Rhs mod C2 equal 0
+        if Dv2 and Q1 at least L2
+          if Q1 at most (Hi 2)
+            Found = 1
+          end
+        end
+      end
+      if C2 equal 0 and C1 not equal 0
+        Q1 = Rhs // C1
+        L1 = Lo 1
+        Dv1 = Rhs mod C1 equal 0
+        if Dv1 and Q1 at least L1
+          if Q1 at most (Hi 1)
+            Found = 1
+          end
+        end
+      end
+      Z1 = C1 not equal 0
+      Z2 = C2 not equal 0
+      Nz = Z1 and Z2
+      if Nz
+        if Rhs mod Gg equal 0
+          Kq = Rhs // Gg
+          St1 = C2 // Gg
+          St2 = 0 - C1 // Gg
+          Lw1 = Lo 1
+          Hg1 = Hi 1
+          Lw2 = Lo 2
+          Hg2 = Hi 2
+          Bs1 = X0 * Kq
+          Bs2 = Y0 * Kq
+          Ra = Bs1 St1 Lw1 Hg1 trng
+          Rb = Bs2 St2 Lw2 Hg2 trng
+          Tl = Ra 0
+          if Rb 0 greater Tl
+            Tl = Rb 0
+          end
+          Th = Ra 1
+          if Rb 1 less Th
+            Th = Rb 1
+          end
+          if Tl at most Th
+            Found = 1
+          end
+        end
+      end
+      if Found equal 1
+        break
+      end
+    end
+    if Found equal 1
+      Cnt += 1
+      if U * Bv greater Bu * V
+        Bu = U
+        Bv = V
+      end
+    end
+  end
+end
+Pair = array Bu Bv
+Answer = Pair "/" join
+Answer print
