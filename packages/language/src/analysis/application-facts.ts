@@ -272,7 +272,12 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             }
             return isApplicationExpression(expression)
                 ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
-        case 'plain': case 'new-dsu': case 'new-filled': case 'new-heap': case 'new-graph': case 'text-format': case 'rank':
+        case 'new-graph':
+            // Do not attach explicit graph's callback-free neighbor facts to a relation.
+            if (form.predicate || form.successor) return { types: ['graph'] };
+            return isApplicationExpression(expression)
+                ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
+        case 'plain': case 'new-dsu': case 'new-filled': case 'new-heap': case 'text-format': case 'rank':
         case 'named-segment': case 'named-outer': case 'sort-direction':
         case 'axis-length': case 'axis-reduction': case 'axis-covariance': case 'axis-correlation':
         case 'functional-method': case 'graph-edges': case 'materialize-pipeline':

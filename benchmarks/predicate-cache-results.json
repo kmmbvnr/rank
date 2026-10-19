@@ -1,0 +1,147 @@
+{
+  "runtimeCommit": "a57655ba",
+  "environment": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5"
+  },
+  "commands": [
+    "node --test benchmarks/predicate-pair-cache.test.mjs",
+    "node benchmarks/predicate-graphs.mjs --cache",
+    "node benchmarks/predicate-graphs.mjs --cache --memory"
+  ],
+  "methodology": [
+    "Three fresh processes per mode, rotating mode order. Total includes seed/full construction, cache installation and both searches. Every run asserts answer 26033.",
+    "Same search and pruning for all modes. The original Euler demo is unchanged. Both experimental caches retain true and false results and canonicalize undirected pairs.",
+    "Memory runs are separate from reported timings. Peak RSS describes the whole process, not cache storage. Heap change after GC/clear includes unrelated GC noise; packed array byte lengths measure backing storage exactly.",
+    "This benchmark adapter assumes deterministic callbacks and stable captures. It is not a public Rank .cached implementation."
+  ],
+  "results": [
+    {
+      "mode": "explicit",
+      "seconds": [
+        8.378574,
+        8.43529,
+        8.464211
+      ],
+      "medianSeconds": 8.43529,
+      "medianPeakProcessRssMiB": 496.0,
+      "domainVertices": [
+        1227,
+        2862
+      ],
+      "storedAdjacencyEntries": [
+        36352,
+        103906
+      ],
+      "cacheStats": [],
+      "memoryPass": {
+        "retainedHeapBytes": 51657216,
+        "retainedArrayBufferBytes": 31295,
+        "afterClearingPairsBytes": 51240080,
+        "afterClearingPairsArrayBufferBytes": 31295
+      }
+    },
+    {
+      "mode": "predicate",
+      "seconds": [
+        20.201209,
+        20.07551,
+        19.982901
+      ],
+      "medianSeconds": 20.07551,
+      "medianPeakProcessRssMiB": 448.594,
+      "domainVertices": [
+        1227,
+        2862
+      ],
+      "storedAdjacencyEntries": [
+        0,
+        0
+      ],
+      "cacheStats": [],
+      "memoryPass": {
+        "retainedHeapBytes": 41178680,
+        "retainedArrayBufferBytes": 31295,
+        "afterClearingPairsBytes": 40591232,
+        "afterClearingPairsArrayBufferBytes": 31295
+      }
+    },
+    {
+      "mode": "cached",
+      "seconds": [
+        19.477819,
+        19.68857,
+        19.467255
+      ],
+      "medianSeconds": 19.477819,
+      "medianPeakProcessRssMiB": 737.141,
+      "domainVertices": [
+        1227,
+        2862
+      ],
+      "storedAdjacencyEntries": [
+        0,
+        0
+      ],
+      "cacheStats": [
+        {
+          "entries": 752151,
+          "hits": 362492,
+          "misses": 752151,
+          "packedBytes": 0
+        },
+        {
+          "entries": 4094091,
+          "hits": 1425516,
+          "misses": 4094091,
+          "packedBytes": 0
+        }
+      ],
+      "memoryPass": {
+        "retainedHeapBytes": 188310976,
+        "retainedArrayBufferBytes": 31295,
+        "afterClearingPairsBytes": 40923272,
+        "afterClearingPairsArrayBufferBytes": 31295
+      }
+    },
+    {
+      "mode": "packed",
+      "seconds": [
+        16.881695,
+        16.932337,
+        16.897544
+      ],
+      "medianSeconds": 16.897544,
+      "medianPeakProcessRssMiB": 450.703,
+      "domainVertices": [
+        1227,
+        2862
+      ],
+      "storedAdjacencyEntries": [
+        0,
+        0
+      ],
+      "cacheStats": [
+        {
+          "entries": 752151,
+          "hits": 362492,
+          "misses": 752151,
+          "packedBytes": 188345
+        },
+        {
+          "entries": 4094091,
+          "hits": 1425516,
+          "misses": 4094091,
+          "packedBytes": 1024239
+        }
+      ],
+      "memoryPass": {
+        "retainedHeapBytes": 41520072,
+        "retainedArrayBufferBytes": 1243879,
+        "afterClearingPairsBytes": 40932432,
+        "afterClearingPairsArrayBufferBytes": 31295
+      }
+    }
+  ],
+  "conclusion": "Pair caching helps the predicate variant but does not beat the existing explicit graph on Euler 60. Retain the explicit demo; do not add a public cache policy on this evidence alone."
+}
