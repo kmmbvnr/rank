@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Interpreter, formatValue, parse, type RankValue } from '../src/index.js';
+import { isForStatement } from '@arrrank/language';
 import { ownedArray } from '../src/array-storage.js';
 import { compileTensorKernel } from '../src/tensor-kernel.js';
+import { withInterrupt } from '../src/interrupt.js';
 
 function run(source: string, tensorFusion: boolean) {
     let kernels = 0, compiled = 0;
@@ -22,6 +24,29 @@ function compare(source: string) {
 }
 
 describe('concat in tensor expressions', () => {
+    it('fuses private loop slices and declines if an outer name or inspection observes them', () => {
+        const loop = parse(`for K in 1 to 1
+ Head = A take R
+ Tail = A drop R
+ Result = (A + concat Tail Head) mod M copy
+end`).statements[0];
+        if (!isForStatement(loop)) throw new Error('expected loop');
+        const values = new Map<string, RankValue>([
+            ['A', ownedArray([1n, 2n, 3n])], ['R', 1n], ['M', 10n],
+        ]);
+        const kernel = compileTensorKernel(loop.statements, {
+            lookup: name => values.get(name), builtin: () => true,
+        })!;
+        expect(kernel.count).toBe(3);
+        expect(formatValue(kernel.run()!)).toBe('3 5 4');
+        values.set('R', 2n ** 100n);
+        expect(formatValue(kernel.run()!)).toBe('2 4 6');
+        values.set('Head', ownedArray([9n]));
+        expect(kernel.run()).toBeUndefined();
+        values.delete('Head');
+        const signal = new Int32Array(new SharedArrayBuffer(12));
+        withInterrupt(signal, () => expect(kernel.run()).toBeUndefined(), () => {});
+    });
     it('rebinds cached layouts to fresh buffers and changed scalar/array slots', () => {
         const values = new Map<string, RankValue>([
             ['A', ownedArray([1n, 2n])], ['B', ownedArray([3n])], ['M', 7n],

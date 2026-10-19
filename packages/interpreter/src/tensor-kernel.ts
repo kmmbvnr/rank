@@ -1,17 +1,18 @@
 import { tensorInput } from './tensor-input.js';
 import { applicationForm } from '@arrrank/language';
-import { checkpoint, interruptsEnabled } from './interrupt.js';
+import { checkpoint, interruptsEnabled, privateLoopPolling } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
     flattenApplication, findOperation, unaryApplicationHead, findCompiledOperator, tensorOperatorSignatures, inferCompiledExpression, matchCompiledOperatorDomains,
     isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
     isNameExpression, isNumberLiteral,
-    isParenthesizedExpression, isUnaryExpression,
+    isParenthesizedExpression, isUnaryExpression, isCountClauseExpression,
     type Expression, type Statement, type CompiledAtomType, type CompiledExpression,
 } from '@arrrank/language';
 import { type RankValue, isRankArray, isRankSequence } from './value.js';
 import { broadcastShape } from './tensor.js';
+import { arraySliceLayout } from './tensor-layout.js';
 import { arrayRevision, ownedArray, ownedScalarArray } from './array-storage.js';
 import { arithmeticRange, modularRange } from './range-plan.js';
 import { privateTensorNames, tensorReadCount } from './tensor-use.js';
@@ -26,6 +27,7 @@ export type TensorNode =
     | { kind: 'binary'; op: string; native?: Bitwise; left: TensorNode; right: TensorNode }
     | { kind: 'unary'; op: string; operand: TensorNode }
     | { kind: 'concat'; sources: TensorNode[] }
+    | { kind: 'slice'; source: TensorNode; count: TensorNode; drop: boolean }
     | { kind: 'select'; source: TensorNode; selector: TensorNode };
 export interface TensorKernelHost {
     readonly textDigits?: boolean;
@@ -100,6 +102,10 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
         return left && right ? typed({ kind: 'binary', op: node.operation.name, left, right }, node.type) : undefined;
     }
     function parseInput(e: Expression): TensorNode | undefined {
+        if (isCountClauseExpression(e)) {
+            const source = parse(e.source), count = parse(e.count);
+            return source && count ? typed({ kind: 'slice', source, count, drop: e.operator === 'drop' }, domains.get(source)!) : undefined;
+        }
         const form = applicationForm(e, name => definitions.has(name) ? undefined : findOperation(name));
         if (form.kind === 'array-combine-constructor' && form.operation === 'concat'
             && !form.axis && !form.rest.length) {
@@ -188,6 +194,7 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
                 if (node.kind === 'binary') { visit(node.left); visit(node.right); }
                 if (node.kind === 'unary') visit(node.operand);
                 if (node.kind === 'concat') node.sources.forEach(visit);
+                if (node.kind === 'slice') { visit(node.source); visit(node.count); }
                 if (node.kind === 'select') { visit(node.source); visit(node.selector); }
             };
             visit(root);
@@ -222,6 +229,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     // never source arrays, so recurring shapes do not recompile every step.
     const variants = new Map<string, { run: KernelRun; source: string }>();
     const hasConcat = [...domains.keys()].some(node => node.kind === 'concat');
+    const hasSlices = [...domains.keys()].some(node => node.kind === 'slice');
     // Cache layout only: never retain operand storage or a previous result.
     // Selections and text conversions keep the general binder below.
     type InputLayout = { name?: string; value?: RankValue; slot: number; shape?: readonly number[]; boolean: boolean; kind?: string };
@@ -234,6 +242,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     let generated = '';
     let unavailable = false;
     return { count, get source() { return generated; }, run(): RankValue | undefined {
+        if (hasSlices && !privateLoopPolling()) return recordFallback('tensor:observable-slices');
         for (const name of nativeCalls) if (!host.builtin(name)) return recordFallback(`tensor:builtin:${name}`);
         if (unavailable) return recordFallback('tensor:code-generation');
         if (names.some(name => host.lookup(name) !== undefined)) return recordFallback('tensor:existing-binding');
@@ -315,6 +324,12 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                         ? rejectBinding('tensor:untracked-storage') : undefined;
                     result = { shape: view.shape, view, boolean: typeof view.items[view.offset] === 'boolean' };
                 }
+            } else if (node.kind === 'slice') {
+                const a = bind(node.source), b = bind(node.count);
+                if (!a?.view || !a.shape?.length || typeof b?.scalar !== 'bigint' || b.scalar < 0n) return undefined;
+                const sliced = arraySliceLayout(a.shape, b.scalar, node.drop);
+                const view = { ...a.view, shape: sliced.shape, offset: a.view.offset + sliced.offset };
+                result = { shape: view.shape, view, boolean: a.boolean };
             } else if (node.kind === 'concat') {
                 const segments = node.sources.map(source => bind(source));
                 const first = segments[0];
@@ -563,7 +578,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                 variants.set(key, { run: execute!, source: generated });
             }
         }
-        if ([...bound.keys()].every(node => node.kind !== 'select'
+        if ([...bound.keys()].every(node => node.kind !== 'select' && node.kind !== 'slice'
             && !(node.kind === 'unary' && (node.op === 'text' || node.op === 'integer0')))
             && [...bound].every(([node, info]) => node.kind === 'input' || info.scalar === undefined)
             && [...bound.values()].every(info => !info.progression && (info.scalar === undefined || numeric(info.scalar) || typeof info.scalar === 'boolean'))) {

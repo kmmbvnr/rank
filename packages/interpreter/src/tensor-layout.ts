@@ -1,5 +1,13 @@
 import { RankError } from './errors.js';
 
+/** First-axis take/drop layout; callers validate a nonnegative integer count. */
+export function arraySliceLayout(source: readonly number[], count: bigint, drop: boolean) {
+    const length = source[0];
+    const clipped = Number(count < BigInt(length) ? count : BigInt(length));
+    const cellSize = source.slice(1).reduce((a, b) => a * b, 1);
+    return { shape: [drop ? length - clipped : clipped, ...source.slice(1)], offset: drop ? clipped * cellSize : 0 };
+}
+
 export function trailingCells(operand: readonly number[], result: readonly number[]): number {
     if (operand.length === result.length) return operand.every((size, axis) => size === result[axis]) ? 0 : -1;
     if (operand.length > result.length) return -1;
