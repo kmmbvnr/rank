@@ -81,9 +81,15 @@ describe('private safe-integer loop registers', () => {
         'A = array 10 20\nS = 0\nfor # Index in A\n S += Index\nend\nfor V # in A\n S += V\nend',
         'A = array 1 2 3\nS = 0\nfor V Index in (A)\n S += V\n Last = Index\nend',
         'A = array shape 0 fill 0\nfor V Index in A\n Unused = V\nend',
-        'A = array 1 2 3\nS = 0\nfor V Index in A\n S += V\n Bad = 7 // (2 - V)\nend',
     ])('runs trusted vector traversal with private cursors: %s', source => {
+        expect(execute(source).observation.error).toBeUndefined();
         expect(compare(source).numberLoops).toBeGreaterThan(0);
+    });
+
+    it('publishes preceding vector assignments at the original error location', () => {
+        const source = 'A = array 1 2 3\nS = 0\nfor V Index in A\n S += V\n Bad = 7 // (2 - V)\nend';
+        expect(execute(source).observation.error).toContain('division by zero');
+        expect(compare(source).numberLoops).toBe(1);
     });
 
     it('replays overflowing vector regions from their original scalar inputs', () => {
