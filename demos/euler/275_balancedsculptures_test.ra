@@ -1,0 +1,23 @@
+use testing
+
+rem The default input takes 15 min, so
+rem only smaller orders are tested.
+test "small orders"
+  use "275_balancedsculptures"
+  N = 6
+  run
+
+  Answer equal 18
+  N = 10
+  run
+
+  Answer equal 964
+  N = 12
+  run
+
+  Answer equal 9657
+  N = 15
+  run
+
+  Answer equal 360505
+end

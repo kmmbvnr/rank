@@ -1,0 +1,151 @@
+rem Balanced Sculptures
+rem https://projecteuler.net/problem=275
+rem A sculpture of order N is a
+rem polyomino of N blocks at height 1 or
+rem more, standing on a plinth at (0,
+rem 0), with their centre of mass at x =
+rem 0. Count them, mirror images being
+rem the same.
+
+use numbers
+use io
+use cli
+
+option N integer = 18
+
+rem The blocks are connected through the
+rem cell (0, 1), so every block is
+rem within y + |x| <= N, and they are
+rem counted by the Redelmeier search: a
+rem list of the cells that may be added
+rem next, each tried once and then
+rem closed for the rest of the branch. A
+rem child list is the rest of its
+rem parent's and the new neighbors, one
+rem array with no copies. A branch ends
+rem when the x sum cannot be brought to
+rem 0 by the blocks left, each further
+rem out than the last at best. With a
+rem count of all and of the mirror
+rem symmetric, the answer is half their
+rem sum.
+Sd = 64
+Rw = N + 2
+Mc = array shape (N + 1) fill 0
+for R in 0 to N
+  Sm = 0
+  Lf = R
+  for K in 1 to (N - 1)
+    X = N - K
+    if Lf greater 0
+      Cn = N - X
+      Tk = Lf
+      if Cn less Tk
+        Tk = Cn
+      end
+      Sm += Tk * X
+      Lf -= Tk
+    end
+  end
+  Mc R = Sm
+end
+G = array shape 8192 fill 0
+Seen = array shape (Sd * Rw) fill 0
+Occ = array shape (Sd * Rw) fill 0
+Fs = array shape (N + 2) fill 0
+Fe = array shape (N + 2) fill 0
+Fi = array shape (N + 2) fill 0
+Fx = array shape (N + 2) fill 0
+Fl = array shape (N + 2) fill 0
+Fr = array shape (N + 2) fill 0
+Pd = array shape (N + 2) fill 0
+Dir = array 1 -1 64 -64
+G 0 = 96
+Seen 96 = 1
+Fe 0 = 1
+CountA = 0
+CountS = 0
+D = 0
+for
+  if Fi D at least Fe D
+    if D equal 0
+      break
+    end
+    D -= 1
+    Occ (Pd D) = 0
+    for J in (Fe D) till (Fe (D + 1))
+      Seen (G J) = 0
+    end
+    continue
+  end
+  C = G (Fi D)
+  Fi D += 1
+  Cx = C mod 64 - 32
+  Pd D = C
+  Occ C = 1
+  Ns = Fx D + Cx
+  Nl = Fl D
+  if Cx less Nl
+    Nl = Cx
+  end
+  Nr = Fr D
+  if Cx greater Nr
+    Nr = Cx
+  end
+  Rm = N - D - 1
+  Tr = Rm * (Rm + 1) // 2
+  Ok = 1
+  if Ns abs greater Mc Rm
+    Ok = 0
+  end
+  if Ns + Rm * Nr + Tr less 0
+    Ok = 0
+  end
+  if Ns + Rm * Nl - Tr greater 0
+    Ok = 0
+  end
+  if Ok equal 1 and Rm equal 0
+    if Ns equal 0
+      CountA += 1
+      Sy = 1
+      for J in 0 to (N - 1)
+        Cj = Pd J
+        Yr = Cj // 64 * 64
+        Mj = Yr + 64 - Cj mod 64
+        if Occ Mj equal 0
+          Sy = 0
+        end
+      end
+      CountS += Sy
+    end
+    Occ C = 0
+    continue
+  end
+  if Ok equal 0
+    Occ C = 0
+    continue
+  end
+  Na = Fe D
+  for K in 0 to 3
+    C2 = C + Dir K
+    Y2 = C2 // 64
+    X2 = (C2 mod 64 - 32) abs
+    Ya = Y2 + X2
+    if Y2 at least 1 and Ya at most N
+      if Seen C2 equal 0
+        Seen C2 = 1
+        G Na = C2
+        Na += 1
+      end
+    end
+  end
+  Fs (D + 1) = Fi D
+  Fe (D + 1) = Na
+  Fi (D + 1) = Fi D
+  Fx (D + 1) = Ns
+  Fl (D + 1) = Nl
+  Fr (D + 1) = Nr
+  D += 1
+end
+Answer = (CountA + CountS) // 2
+Answer print
