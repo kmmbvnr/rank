@@ -1,0 +1,37 @@
+rem Modular Cubes, part 1
+rem https://projecteuler.net/problem=271
+rem Sum the x with 1 < x < n and x^3 = 1
+rem mod n, where n is the product of the
+rem primes up to Top
+
+use numbers
+use sequences
+use io
+use cli
+
+option Top integer = 43
+
+rem The roots of x^3 = 1 mod n pair up
+rem across the primes by the Chinese
+rem remainder theorem: root r mod p
+rem becomes r (n / p) (n / p)^-1 mod n,
+rem and the roots are the sums mod n of
+rem one such term per prime.
+Ps = primes to Top array
+N = Ps reduce *
+Sums = array 0
+for P in Ps
+  Xs = 0 till P array
+  Cube = (Xs * Xs * Xs) mod P
+  Roots = Xs filter (Cube equal 1) array
+  Q = N // P
+  Inv = (Q mod P) (P - 2) P powmod
+  Terms = (Roots * Q * Inv) mod N
+  Rows = Sums len
+  Col = Sums reshape Rows 1
+  Both = (Col + Terms) mod N
+  Cells = Rows * (Terms len)
+  Sums = Both reshape Cells
+end
+Answer = Sums sum - 1
+Answer print

@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "271_modularcubes"
+  run
+
+  Answer equal 4617456485273129588
+end
+
+test "small products"
+  use "271_modularcubes"
+  Top = 13
+  run
+
+  Answer equal 126398
+  Top = 17
+  run
+
+  Answer equal 2378648
+end
