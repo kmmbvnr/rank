@@ -1,0 +1,18 @@
+use testing
+
+test "default input"
+  use "288_enormousfactorial"
+  run
+
+  Answer equal 605857431263981935
+end
+
+test "problem example"
+  use "288_enormousfactorial"
+  P = 3
+  Q = 10000
+  Exp = 20
+  run
+
+  Answer equal 624955285
+end

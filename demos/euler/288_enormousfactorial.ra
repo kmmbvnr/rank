@@ -1,0 +1,44 @@
+rem An Enormous Factorial
+rem https://projecteuler.net/problem=288
+rem Count the factors p in the factorial
+rem of N = sum of T[n] p^n, n up to Q,
+rem with T[n] = S[n] mod p, S[n+1] =
+rem S[n]^2 mod 50515093, S[0] = 290797,
+rem modulo p^Exp
+
+use numbers
+use io
+use cli
+
+option P integer = 61
+option Q integer = 10000000
+option Exp integer = 10
+
+rem By Legendre the count is
+rem (N - s) / (p - 1) with s the digit
+rem sum of N in base p: the T[n] are the
+rem digits. Take N modulo M =
+rem (p - 1) p^Exp. As p^n = p^Exp mod M
+rem from n = Exp on, the tail of T only
+rem enters as its sum.
+Mod = (P - 1) * P ** Exp
+S = 290797
+Low = 0
+Tail = 0
+Total = 0
+Pw = 1
+for K in 0 to Q
+  T = S mod P
+  Total += T
+  if K less Exp
+    Low += T * Pw
+    Pw *= P
+  else
+    Tail += T
+  end
+  S = S * S mod 50515093
+end
+Rest = Low + Tail * P ** Exp
+Count = (Rest - Total) // (P - 1)
+Answer = Count mod (P ** Exp)
+Answer print
