@@ -1,0 +1,45 @@
+rem Obtuse Angled Triangles
+rem https://projecteuler.net/problem=210
+rem Count points B, |x| + |y| <= R,
+rem for which triangle O B C is obtuse,
+rem with C = (R/4, R/4); R is a
+rem multiple of 8
+
+use numbers
+use sequences
+use io
+use cli
+
+option R integer = 1000000000
+option Chunk integer = 5000000
+
+rem The angle is obtuse at O below the
+rem line x + y = 0, at C above x + y =
+rem R/2, and at B inside the circle on
+rem OC as diameter. Points on the line
+rem OC are degenerate. With K = R / 8
+rem the circle is a^2 + b^2 < 2 K^2 at
+rem the lattice point (K, K); its points
+rem count by symmetry from a > b > 0.
+Half = R // 2
+Pts = 2 * R * R + 2 * R
+Below = (Pts - 2 * Half) // 2
+Below -= Half
+M = R - Half
+Quart = R // 4
+Above = M * (R + 1) - M // 2
+Above -= Half - Quart
+K = R // 8
+Q = 2 * K * K - 1
+A = Q isqrt
+A0 = (1 + (2 * Q - 1) isqrt) // 2
+Gen = A0 * (A0 - 1) // 2
+for L in A0 + 1 to A by Chunk
+  Xs = L to (L + Chunk - 1 A min) array
+  Gen += (Q - Xs * Xs) isqrt sum
+end
+Diag = Q // 2 isqrt
+Circle = 1 + 4 * A + 4 * Diag + 8 * Gen
+Circle -= (R - 1) // 4
+Answer = Below + Above + Circle
+Answer print
