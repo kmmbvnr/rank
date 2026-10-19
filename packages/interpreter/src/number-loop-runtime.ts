@@ -3,7 +3,7 @@ import { completed } from './execution.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { checkpoint, privateLoopPolling } from './interrupt.js';
 import { arrayRevision, materializedArrayItems } from './array-storage.js';
-import { isRankArray, type RankValue } from './value.js';
+import { isRankArray, type RankArray, type RankValue } from './value.js';
 import type { CompiledLoop, IntegerLoopPlan, LoopHost } from './integer-loop-plan.js';
 
 // Internal control transfer, never exposed as a Rank error or converted to BigInt.
@@ -25,15 +25,17 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         || plan.destinations.size || plan.arrayDefinitions.size || plan.hasReturn
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean')
         || [...arrays.values()].some(info => info.type !== 'integer' || info.rank !== 1)) return undefined;
+    if (plan.vectorIterations.length && !host.declareIteration) return undefined;
     const written = new Set([...plan.writerNames, ...plan.binderNames]);
     const bindings = [...written].map(name => [name, localTypes.get(name)!] as [string, 'integer' | 'boolean']);
     const slots = [...written].map(name => names.indexOf(name));
     const registers = names.map((_, index) => `r${index} = input[${index}]`);
     for (const slot of slots) registers.push(`d${slot} = 0`);
     for (const info of arrays.values()) registers.push(`reader${info.slot} = readers[${info.slot}]`);
-    const publish = `publish([${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
-    const source = `"use strict"; return function(input, readers, publish) {
+    const publish = `publish(entered, [${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
+    const source = `"use strict"; return function(input, readers, cells, publish) {
         let ${registers.length ? `${registers.join(',')}, ` : ''}result, location = -1, order = 0;
+        const entered = [];
         try {
             ${root.setup} ${root.header}
                 let iterationResult;
@@ -48,7 +50,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         ${publish}
         return { value: result };
     };`;
-    type Run = (input: unknown[], readers: ((index: number) => number)[], publish: (values: [number, number, unknown][]) => void) => { value: unknown } | undefined;
+    type Run = (input: unknown[], readers: ((index: number) => number)[], cells: Float64Array[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown } | undefined;
     let run: Run;
     try {
         run = new Function('safe', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', source)(
@@ -62,6 +64,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         for (const [name, module] of plan.builtins) if (!host.builtin(module, name)) return undefined;
         if (!host.canDeferWrites!(bindings)) return recordFallback('number-loop:binding-contract');
         const input: unknown[] = [], readers: ((index: number) => number)[] = [];
+        const buffers: Float64Array[] = [], sources: RankArray[] = [];
         for (const slot of required) {
             const value = host.read(names[slot]);
             if (localTypes.get(names[slot]) === 'boolean') {
@@ -86,6 +89,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
                 if (typeof item !== 'bigint' || !Number.isSafeInteger(Number(item))) return recordFallback('number-loop:unsafe-cell');
                 cells[index] = Number(item);
             }
+            buffers[info.slot] = cells;
+            sources[info.slot] = value;
             const length = value.shape[0];
             readers[info.slot] = index => {
                 if (index < 0) throw new MissingValueError('array index out of bounds on axis 0');
@@ -95,7 +100,12 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         }
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.numberLoops++;
-        const result = run(input, readers, values => {
+        const result = run(input, readers, buffers, (entered, values) => {
+            // Declarations are private too: overflow must leave even empty-loop
+            // binding contracts untouched before the original exact region runs.
+            plan.vectorIterations.forEach(({ binding, slot }, index) => {
+                if (entered[index]) host.declareIteration!(binding, sources[slot]);
+            });
             host.executed?.();
             if (diagnostics) diagnostics.compiledLoops++;
             // First-write order preserves binding insertion order as well as the

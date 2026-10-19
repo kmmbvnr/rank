@@ -493,7 +493,6 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         const tests: string[] = [];
         let setup = '', header: string, bindings = '';
         if (iteration) {
-            if (numberMode && isNameExpression(iteration.iterable)) return undefined;
             let range = iteration.iterable;
             while (isParenthesizedExpression(range)) range = range.value;
             if (iteration.names.length > 2 || iteration.names.some(name => name.includes('.'))
@@ -520,10 +519,18 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 arrays.set(range.name, info);
                 if (!assigned.has(range.name)) arrayInputs.add(range.name);
                 const binding = iteration;
+                const vector = vectorIterations.length;
                 if (elementType === 'integer') vectorIterations.push({ slot: info.slot, binding, iterator: iterators.length });
-                setup = `const iterable = iterators[${iterators.length}](r${info.slot}); ${indexed ? 'let ordinal = 0n;' : ''}`;
-                iterators.push(source => host.iterationValues(binding, source, elementType));
-                header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
+                if (numberMode) {
+                    if (elementType !== 'integer') return undefined;
+                    setup = `const iterable = cells[${info.slot}]; entered[${vector}] = true; ${indexed ? 'let ordinal = 0;' : ''}`;
+                    header = `for (let position = 0; position < iterable.length; position++) {
+                        location = ${location}; checkpoint(); const cursor = iterable[position];`;
+                } else {
+                    setup = `const iterable = iterators[${iterators.length}](r${info.slot}); ${indexed ? 'let ordinal = 0n;' : ''}`;
+                    iterators.push(source => host.iterationValues(binding, source, elementType));
+                    header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
+                }
             } else {
                 if (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)) return undefined;
                 const start = emit(range.left, tests), end = emit(range.right, tests);
