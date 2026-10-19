@@ -6,7 +6,7 @@ import type { RankMultiset } from './multiset.js';
 import type { RankFenwick } from './fenwick.js';
 import type { RankSegmentValue } from './segment.js';
 import type { RankHeap } from './containers.js';
-import type { GraphValue, PredicateGraph } from './graph.js';
+import type { GraphValue, PredicateGraph, SuccessorGraph } from './graph.js';
 import type { RankDsu } from './dsu.js';
 import type { RankFunctionalGraph } from './functional-graph.js';
 import type { RankWavelet } from './wavelet.js';
@@ -344,7 +344,7 @@ export type RankValue = bigint | number | boolean | string | RankMissing | RankA
     RankSequence | RankSequenceMask | RankGraph | RankDsu | RankFunctionalGraph |
     RankWavelet;
 
-export type RankGraph = GraphValue | PredicateGraph;
+export type RankGraph = GraphValue | PredicateGraph | SuccessorGraph;
 
 export interface CollectionElementType {
     readonly type: string;
@@ -754,6 +754,7 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
         return `<wavelet ${value.size}>`;
     }
     if (value.kind === 'graph') {
+        if ('mode' in value && value.mode === 'successor') return '<graph directed successor>';
         const direction = value.directed ? 'directed' : 'undirected';
         return `<graph ${direction} ${value.size}>`;
     }

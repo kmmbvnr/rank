@@ -2,7 +2,7 @@ import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDsu } from '../dsu.js';
 import { RankFunctionalGraph } from '../functional-graph.js';
-import { expectGraph, expectReadableGraph, PredicateGraph, type GraphValue, type TraversalGraph } from '../graph.js';
+import { expectGraph, expectReadableGraph, expectFiniteGraph, graphKey, PredicateGraph, type GraphValue, type TraversalGraph } from '../graph.js';
 import { edgeWeight, trips } from '../graph-trips.js';
 import { indexKey } from '../index-key.js';
 import { ResourceMap } from '../resource-summary.js';
@@ -44,12 +44,13 @@ export const graphModule: RuntimeModule = {
         trips(expectGraph(values[0]), values[1], values[2], values[3])),
     edgeweight: () => native('edgeweight', 3, values =>
         edgeWeight(expectGraph(values[0]), values[1], values[2])),
-    bfs: () => native('bfs', 2, values => {
-        const graph = expectReadableGraph(values[0]);
+    bfs: () => native('bfs', [2, 4], values => {
+        if (values.length === 4) return boundedBreadthFirst(expectReadableGraph(values[0]), values[1], values[2], values[3]);
+        const graph = expectFiniteGraph(values[0]);
         return searchRecord(breadthFirst(graph, values[1]));
     }),
     dfs: () => native('dfs', 2, values => {
-        const graph = expectReadableGraph(values[0]);
+        const graph = expectFiniteGraph(values[0]);
         return searchRecord(depthFirst(graph, values[1]));
     }),
     components: () => native('components', 1, values => isRankDsu(values[0])
@@ -62,7 +63,7 @@ export const graphModule: RuntimeModule = {
     bipartite: () => native('bipartite', 1, values =>
         bipartiteRecord(expectGraph(values[0]))),
     dijkstra: () => native('dijkstra', 2, values => {
-        const graph = expectReadableGraph(values[0]);
+        const graph = expectFiniteGraph(values[0]);
         // Preserve explicit graphs' validation order and whole-graph weight check.
         graph.requireStart(values[1]);
         if (!(graph instanceof PredicateGraph)) rejectNegativeWeights(graph);
@@ -1039,6 +1040,56 @@ export function breadthFirst(graph: TraversalGraph, start: RankValue): SearchSta
         }
     }
     return { vertices, distance, parent, order };
+}
+
+/** Budget counts yielded edges, including repeats. At the boundary exhaustion
+ * is deliberately not probed: another iterator step may execute arbitrary code. */
+export function boundedBreadthFirst(graph: TraversalGraph, start: RankValue, goal: RankValue, limit: RankValue): RankRecord {
+    if (typeof limit !== 'bigint' || limit < 0n) throw new RankError('BFS limit must be a nonnegative integer');
+    const startKey = graph.requireStart(start);
+    const goalKey = graphKey(goal);
+    const vertices = new Map<string, RankValue>([[startKey, start]]);
+    const distance = new Map<string, Numeric>([[startKey, 0n]]);
+    const parent = new Map<string, RankValue>();
+    const order = [start];
+    let examined = 0n;
+    const finish = (status: 'reached' | 'exhausted' | 'limit'): RankRecord => {
+        const path: RankValue[] = [];
+        if (status === 'reached') {
+            let current = vertices.get(goalKey)!;
+            while (true) {
+                checkpoint('reconstructing graph path');
+                path.push(current);
+                const key = setValueKey(current);
+                if (key === startKey) break;
+                current = parent.get(key)!;
+            }
+            path.reverse();
+        }
+        const result = searchRecord({ vertices, distance, parent, order });
+        return record({ ...Object.fromEntries(result.entries), status: { kind: 'label', name: status },
+            path: array(path), examined });
+    };
+    if (startKey === goalKey) return finish('reached');
+    if (limit === 0n) return finish('limit');
+    for (let head = 0; head < order.length; head++) {
+        checkpoint('traversing graph');
+        const current = order[head];
+        for (const edge of graph.outgoingEdges(current)) {
+            checkpoint('traversing graph');
+            examined++;
+            const key = graphKey(edge.target);
+            if (!distance.has(key)) {
+                vertices.set(key, edge.target);
+                distance.set(key, (distance.get(setValueKey(current)) as bigint) + 1n);
+                parent.set(key, current);
+                order.push(edge.target);
+                if (key === goalKey) return finish('reached');
+            }
+            if (examined === limit) return finish('limit');
+        }
+    }
+    return finish('exhausted');
 }
 
 export function depthFirst(graph: TraversalGraph, start: RankValue): SearchState {

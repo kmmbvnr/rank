@@ -451,3 +451,14 @@ G = new graph (array 1 2 3) with edge .directed
 G`]);
     expect(opened(session.inspect(ref))).toMatchObject({ kind: 'opaque', type: 'graph' });
 });
+
+
+it('inspects a successor graph without invoking it or requesting its size', async () => {
+    const { session, ref } = await run([`use graph
+fun N next
+  .Unexpected "successor must not run during inspection" raise
+end
+G = new graph with next .directed
+G`]);
+    expect(opened(session.inspect(ref))).toMatchObject({ kind: 'opaque', type: 'graph' });
+});

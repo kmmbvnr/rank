@@ -13,7 +13,7 @@ const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
 
 it.each([
     ['new graph Nodes with linked .directed', 'new-graph'],
-    ['new graph with linked .directed', 'invalid'],
+    ['new graph with linked .directed', 'new-graph'],
     ['new graph Nodes with linked .directed .cached', 'invalid'],
     ['A diag .anti', 'diagonal'], ['A diag -1', 'diagonal'],
     ['A diag .anti K rank 2', 'diagonal'], ['A diag .anti 1 axis 0 rank 2', 'diagonal'],
@@ -244,5 +244,20 @@ N = G 1
     expect(parsed.parserErrors).toEqual([]);
     const result = analyzeValues(parsed.value);
     expect(result.diagnostics).toEqual([]);
+    expect(result.bindings.get('N')?.callbackFreeScalarCells).not.toBe(true);
+});
+
+
+it('keeps successor neighbors callback-bearing', () => {
+    const parsed = parser.parse<Program>(`use graph
+fun N next = array (N + 1)
+G = new graph with next .directed
+N = G 1
+R = G 0 5 10 bfs
+`);
+    expect(parsed.parserErrors).toEqual([]);
+    const result = analyzeValues(parsed.value);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.bindings.get('G')?.types).toEqual(['graph']);
     expect(result.bindings.get('N')?.callbackFreeScalarCells).not.toBe(true);
 });

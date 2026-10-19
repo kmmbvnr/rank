@@ -368,7 +368,7 @@ export type ApplicationForm =
     | { readonly kind: 'unpack' }
     | { readonly kind: 'reshape'; readonly source: Expression; readonly dimensions: readonly Expression[];
         readonly rest: readonly Expression[] }
-    | { readonly kind: 'new-graph'; readonly predicate?: Expression; readonly domain?: Expression; readonly direction?: Expression }
+    | { readonly kind: 'new-graph'; readonly predicate?: Expression; readonly successor?: Expression; readonly domain?: Expression; readonly direction?: Expression }
     | { readonly kind: 'new-dsu' }
     | { readonly kind: 'new-filled'; readonly structure: string }
     | { readonly kind: 'new-heap'; readonly priorities?: Expression; readonly values?: Expression;
@@ -510,8 +510,11 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: N
     if (parts.some(isUnpackExpression) && !parts.some(part => isNamed(part, 'window', nameOf))) return { kind: 'unpack' };
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'graph') {
         if (parts.some(part => isNamed(part, 'with', nameOf))) {
+            if (parts.length === 4 && isNamed(parts[1], 'with', nameOf)) {
+                return { kind: 'new-graph', successor: parts[2], direction: parts[3] };
+            }
             if (parts.length !== 5 || !isNamed(parts[2], 'with', nameOf)) {
-                return { kind: 'invalid', message: 'new graph with expects Domain with Predicate and a direction' };
+                return { kind: 'invalid', message: 'new graph with expects Domain with Predicate Direction or with Successor .directed' };
             }
             return { kind: 'new-graph', domain: parts[1], predicate: parts[3], direction: parts[4] };
         }

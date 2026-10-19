@@ -39,6 +39,14 @@ vertex table. Identity uses the existing scalar set/index keys. DFS buffers one
 outgoing iterable to retain its reverse-push discovery order; iteration has
 cancellation checkpoints.
 
+Successor graphs implement local expansion without a vertex table. Their constructor
+retains a unary callback without executing it. Only bounded, goal-directed BFS is
+exposed: it counts every yielded edge, checks the goal on discovery, and closes
+iterators on early return. Result indexes retain scalar states, not callbacks.
+An exact budget boundary returns `limit` without probing another iterator step.
+A budget cannot bound work performed inside user callbacks. Exhaustive BFS/DFS/
+Dijkstra reject successor graphs; explicit and predicate behavior is unchanged.
+
 Explicit graph values use mutable adjacency storage. Finite predicate graph
 values retain a deduplicated domain and a callback, and implement the same local
 traversal interface with unit weights. Their neighbor membership invokes only

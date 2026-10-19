@@ -274,7 +274,7 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
                 ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
         case 'new-graph':
             // Do not attach explicit graph's callback-free neighbor facts to a relation.
-            if (form.predicate) return { types: ['graph'] };
+            if (form.predicate || form.successor) return { types: ['graph'] };
             return isApplicationExpression(expression)
                 ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
         case 'plain': case 'new-dsu': case 'new-filled': case 'new-heap': case 'text-format': case 'rank':

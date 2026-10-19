@@ -33,7 +33,7 @@ export interface TraversalGraph {
 
 export function expectGraph(value: RankValue): GraphValue {
     const graph = expectReadableGraph(value);
-    if (graph instanceof PredicateGraph) throw new RankError('graph algorithm requires an explicit graph');
+    if (!(graph instanceof GraphValue)) throw new RankError('graph algorithm requires an explicit graph');
     return graph;
 }
 
@@ -258,6 +258,77 @@ export class PredicateGraph implements TraversalGraph {
     }
 }
 
+/** Open directed state space; traversal must carry an explicit budget. */
+export class SuccessorGraph implements TraversalGraph {
+    readonly kind = 'graph' as const;
+    readonly mode = 'successor' as const;
+    readonly directed = true;
+    readonly captures: readonly ReadonlyMap<string, RankValue>[];
+
+    constructor(direction: RankValue, successor: NativeFunction,
+        private readonly invoke: (vertex: RankValue) => RankValue) {
+        if (!graphDirection(direction)) throw new RankError('successor graph requires .directed');
+        if (!successor.arities.includes(1)) throw new RankError('graph successor expects one argument');
+        this.captures = [new Map([['successor', successor]])];
+    }
+
+    get size(): never { throw new RankError('successor graph has no total size'); }
+    requireStart(vertex: RankValue): string { return graphKey(vertex); }
+
+    *outgoingEdges(vertex: RankValue): IterableIterator<Pick<GraphEdge, 'target' | 'weight'>> {
+        graphKey(vertex);
+        const values = this.invoke(vertex);
+        if (!isRankArray(values) && !isRankSequence(values)) {
+            throw new RankError('graph successor must return a rank-1 array or finite sequence');
+        }
+        if (isRankArray(values)) {
+            if (values.shape.length !== 1) throw new RankError('graph successor must return a rank-1 array');
+            for (let i = 0; i < values.shape[0]; i++) {
+                checkpoint('generating graph successors');
+                const target = arrayItem(values, i);
+                graphKey(target);
+                yield { target, weight: 1n };
+            }
+        } else {
+            if (values.plan.size.kind === 'infinite') throw new RankError('graph successors require a finite sequence');
+            for (const target of values.plan.iterate()) {
+                checkpoint('generating graph successors');
+                graphKey(target);
+                yield { target, weight: 1n };
+            }
+        }
+    }
+
+    neighbors(vertex: RankValue): RankSequence {
+        graphKey(vertex);
+        const graph = this;
+        return { kind: 'sequence', plan: {
+            name: 'graph successors', size: { kind: 'unknown' }, captures: this.captures,
+            *iterate() { for (const edge of graph.outgoingEdges(vertex)) yield edge.target; },
+        } };
+    }
+
+    edges(vertex: RankValue): RankSequence {
+        graphKey(vertex);
+        const graph = this;
+        return { kind: 'sequence', plan: {
+            name: 'graph successor edges', size: { kind: 'unknown' }, captures: this.captures,
+            *iterate() { for (const edge of graph.outgoingEdges(vertex)) yield tuple([edge.target, edge.weight]); },
+        } };
+    }
+
+    adjacent(_left: RankValue, _right: RankValue): never {
+        throw new RankError('successor graph does not support direct adjacency');
+    }
+    add(_arguments: readonly RankValue[]): never { throw new RankError('successor graph is read-only'); }
+}
+
+export function expectFiniteGraph(value: RankValue): GraphValue | PredicateGraph {
+    const graph = expectReadableGraph(value);
+    if (graph instanceof SuccessorGraph) throw new RankError('successor graph requires bounded BFS: Graph Start Goal Limit bfs');
+    return graph;
+}
+
 /** Constructor used by the `new graph ...` application. */
 export function graphConstructor(): RankValue {
     return native('new graph', [1, 2], arguments_ => {
@@ -301,7 +372,7 @@ function isGraphVertex(value: RankValue): boolean {
         || typeof value === 'boolean' || typeof value === 'string' || isRankLabel(value);
 }
 
-function graphKey(value: RankValue): string {
+export function graphKey(value: RankValue): string {
     if (isGraphVertex(value)) return setValueKey(value);
     throw new RankError('graph vertices must be scalar values');
 }

@@ -1,6 +1,6 @@
 # Graphs
 
-`use graph` provides mutable explicit graphs and read-only finite predicate graphs. Its public
+`use graph` provides mutable explicit graphs, finite predicate graphs and directed successor graphs. Its public
 behavior does not expose adjacency-list, CSR or other physical storage.
 
 ## Predicate graphs
@@ -37,14 +37,70 @@ named `fun` declarations.
 
 BFS, DFS and unit-weight Dijkstra accept predicate graphs. `len` counts domain
 vertices. Mutation and other graph algorithms currently require explicit graphs
-and reject predicate graphs. These are finite graphs: no successor generator,
-goal-directed stopping, or `.cached` modifier is provided by this constructor.
+and reject predicate graphs. This constructor describes a finite domain and has no `.cached` modifier.
+For open state spaces, use the successor constructor below.
 
 One adjacency query costs one predicate evaluation plus key lookups. Enumerating
 all neighbors costs one predicate evaluation per domain vertex. Repeatedly
 scanning all vertices can still do quadratic work; filter the search's narrowed
 candidate set when possible. The graph retains its domain and callback, not an
 adjacency table.
+
+## Bounded successor search
+
+A unary function can generate the outgoing neighbors of a scalar state:
+
+```rank
+use graph
+use sequences
+fun N next = (N + 1) to (N + 2)
+Graph = new graph with next .directed
+Result = Graph 0 5 100 bfs
+Result .path
+```
+
+The path is `0 1 3 5`. Construction does not invoke `next`. Each expansion calls
+it once and consumes its rank-1 array or finite sequence in order. Duplicates and
+self-loops are allowed. States use the same scalar equality as explicit graphs;
+encode puzzle states as integers or text. The graph is read-only and directed.
+`Graph State` and `Graph edges State` return repeatable lazy sequences; edges have
+unit weights. Captures remain live and follow the same lifetime rules as predicate
+graphs. Use stable transitions during a search.
+
+`Graph Start Goal Limit bfs` requires a nonnegative integer budget. `Goal` is a
+scalar target state. The budget counts **yielded successor entries**, including
+repeats and already visited states, rather than only newly discovered vertices.
+The search retains at most `Limit + 1` states. It stops as soon as it discovers the
+goal and closes the current successor iterator. Equal start and goal succeeds
+without invoking a callback, even with a zero budget.
+
+The result contains:
+
+- `.status`: `.reached`, `.exhausted`, or `.limit`.
+- `.path`: a shortest path including both endpoints when reached, otherwise empty.
+- `.distance` and `.parent`: indexes for discovered states. Their distances are
+  shortest unweighted distances, but the indexes may be partial.
+- `.order`: all discovered states in stable BFS order, including the goal.
+- `.examined`: number of consumed successor entries.
+
+Only `.exhausted` proves that all reachable states were searched and the goal is
+unreachable. `.reached` does not imply a complete distance index. At the exact
+budget boundary the status is conservatively `.limit`: Rank does not request an
+extra iterator step to check exhaustion. A goal discovered on the last permitted
+entry still wins. A zero budget with a different goal returns `.limit` immediately.
+
+The budget bounds entries consumed and retained search states, not time spent
+inside a callback or its iterator, or an array allocated by the callback. Each
+callback must produce finitely many successors; known-infinite sequences are
+rejected. Unknown-size sequences are consumed within the budget. Cancellation
+checkpoints and ordinary callback errors remain active.
+
+This four-argument BFS also accepts explicit and finite predicate graphs and
+ignores edge weights. For predicate graphs, an entry budget does not count failed
+predicate tests while scanning the finite domain. The existing two-argument BFS
+on finite graphs is unchanged. Successor graphs reject unbounded BFS, DFS,
+Dijkstra, global algorithms, direct `adjacent` and `len`: they have no total domain
+size or direct edge predicate. Weighted successor search is not yet supported.
 
 ## Construction
 

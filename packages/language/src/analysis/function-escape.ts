@@ -119,8 +119,8 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
         }
         if (isApplicationExpression(node)) {
             const form = applicationForm(node);
-            if (form.kind === 'new-graph' && form.predicate) {
-                const callback = value(form.predicate, env, true);
+            if (form.kind === 'new-graph' && (form.predicate || form.successor)) {
+                const callback = value((form.predicate ?? form.successor)!, env, true);
                 return { ...empty(), lazy: new Set([...callback.functions, ...callback.lazy]) };
             }
             if (form.kind === 'named-reduce') {

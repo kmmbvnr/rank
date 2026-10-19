@@ -120,7 +120,7 @@ tuple (E len) (G len) ((G "a") array) (N len) ((N 1.0) array)
         expect(() => run(prelude + 'new graph (1 to 3) with 5 .directed')).toThrow('graph predicate expects a function');
         expect(() => run(prelude + 'fun A identity = A\nnew graph (1 to 3) with identity .directed')).toThrow('graph predicate expects two arguments');
         expect(() => run(prelude + 'new graph (1 to 3) with near .cached')).toThrow('new graph expects .directed or .undirected');
-        expect(() => run(prelude + 'new graph with near .directed')).toThrow('new graph with expects Domain');
+        expect(() => run(prelude + 'new graph with near .directed')).toThrow('graph successor expects one argument');
         expect(() => run(prelude + 'new graph primes with near .directed')).toThrow('graph vertices require a finite sequence');
         expect(() => run(prelude + 'G = new graph (1 to 3) with near .directed\nG add 1 2')).toThrow('predicate graph is read-only');
         for (const query of ['G components', 'G floyd', 'G 1 euler', 'G 1 2 3 trips', 'G 1 2 edgeweight']) {

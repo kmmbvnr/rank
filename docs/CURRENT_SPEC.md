@@ -4759,7 +4759,7 @@ additions are tracked in the
 
 # Graphs
 
-`use graph` provides mutable explicit graphs and read-only finite predicate graphs.
+`use graph` provides mutable explicit graphs, finite predicate graphs and directed successor graphs.
 Its public behavior does not expose adjacency-list, CSR or other physical storage.
 
 `new graph Domain with Predicate .directed` (or `.undirected`) snapshots a finite
@@ -4768,6 +4768,14 @@ adjacent` tests one pair; membership in `Graph U` tests only the requested candi
 Predicate graphs support BFS, DFS and unit-weight Dijkstra, and reject mutation and
 other graph algorithms. For callback lifetime, symmetry, iteration and complexity
 contracts, see [predicate graphs](language/graphs.md#predicate-graphs).
+
+`new graph with Successor .directed` creates an open, unweighted state space.
+Use `Graph Start Goal Limit bfs` with a scalar goal and nonnegative successor-entry
+budget. The result adds `.status` (`.reached`, `.exhausted`, `.limit`), `.path` and
+`.examined`; distance and parent indexes can be partial. Unbounded traversals and
+`len` reject successor graphs. See [bounded successor search](language/graphs.md#bounded-successor-search)
+for exact budget boundaries, callback and termination contracts.
+
 
 ## Construction
 

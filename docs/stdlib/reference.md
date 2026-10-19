@@ -246,7 +246,7 @@ Graphs, disjoint sets, rooted trees and their algorithms.
 | `Graph From To edgeweight` | number | 3 operands: whole | Minimum parallel connection weight; missing if no connection exists. |
 | `Rooted Vertex K ancestor` | element | 3 operands: whole | Vertex K parent edges above another in a rooted tree. |
 | `Graph Start bellmanford` | record | binary all / all | Shortest distances allowing negative weights, plus reachable negative cycles. |
-| `Graph Start bfs` | record | binary all / all | Breadth-first search returning distance, parent and discovery order. |
+| `Graph Start [Goal Limit] bfs` | record | binary all / all; 4 operands: whole | Breadth-first search; an optional goal and successor-entry budget add status and path. |
 | `Graph bipartite` | record | unary all | Two-colouring of an undirected graph, or possible false for an odd cycle. |
 | `Graph components` | record | unary all | Connected components: their count, a per-vertex index and the roots. |
 | `Graph U V adjacent` | boolean | 3 operands: whole | Tests one directed edge; predicate graphs evaluate their callback. |
@@ -275,6 +275,7 @@ These need `use graph` but have no name to look up.
 
 | Form | Summary |
 | --- | --- |
+| `new graph with Successor .directed` | Read-only directed successor graph; requires bounded BFS. |
 | `new graph Nodes with Predicate .directed` | Read-only finite graph with a binary Boolean edge predicate; evaluates edges on demand. |
 | `new graph Nodes .undirected` | Closed graph over a finite vertex domain; direction is always explicit. |
 | `new graph .directed` | Open graph that registers endpoints as edges arrive. |
