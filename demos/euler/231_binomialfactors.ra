@@ -1,0 +1,30 @@
+rem The Prime Factorisation of Binomial
+rem Coefficients
+rem https://projecteuler.net/problem=231
+rem Find the sum of the prime factors,
+rem with multiplicity, of C(N, K)
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 20000000
+option K integer = 15000000
+
+rem Legendre: the power of p in C(N, K)
+rem is the sum over q = p, p^2, ... of
+rem N // q - K // q - (N - K) // q.
+Ps = primes to N array
+Q = Ps
+Answer = 0
+for I in 1 to (N binary len)
+  Fit = Q at most N
+  Q = Q filter Fit array
+  Ps = Ps filter Fit array
+  Pw = N // Q - K // Q - (N - K) // Q
+  Answer += (Ps * Pw) sum
+  Q = Q * Ps
+end
+Answer print

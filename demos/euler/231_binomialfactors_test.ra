@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "231_binomialfactors"
+  run
+
+  Answer equal 7526965179680
+end
+
+test "small coefficients"
+  use "231_binomialfactors"
+  N = 10
+  K = 3
+  run
+
+  Answer equal 14
+  N = 100
+  K = 40
+  run
+
+  Answer equal 847
+end
