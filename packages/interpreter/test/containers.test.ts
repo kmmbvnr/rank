@@ -168,6 +168,32 @@ array (M len) (M lowerbound 2) (M upperbound 2) (M 3 lowerbound) (M upperbound 5
         expect(new RankHeap().push('reused', 1n).pop()).toBe('reused');
     });
 
+    it('preserves stack reads, contracts and live iteration across front operations', () => {
+        const stack = new RankDeque('stack');
+        stack.push(1n).push(2n).push(3n);
+        expect(stack.peek()).toBe(3n);
+        expect(stack.peek(false)).toBe(1n);
+        expect(stack.at(1)).toBe(2n);
+        expect(stack.pop()).toBe(3n);
+        expect(stack.pop(false)).toBe(1n);
+        stack.pushFront(0n).push(4n);
+        expect(stack.items).toEqual([0n, 2n, 4n]);
+        const iterator = stack.values();
+        expect(iterator.next().value).toBe(0n);
+        stack.push(5n);
+        expect([...iterator]).toEqual([2n, 4n, 5n]);
+        while (stack.size) stack.pop();
+        expect(() => stack.pop()).toThrow('stack is empty');
+        expect(() => stack.push('text')).toThrow('stack holds integer');
+        stack.push(9n);
+        expect(stack.pop()).toBe(9n);
+        const dense = new RankDeque('stack').push(1n).push(2n);
+        const live = dense.values();
+        expect(live.next().value).toBe(1n);
+        dense.pushFront(0n).push(3n);
+        expect([...live]).toEqual([2n, 3n]);
+    });
+
     it('handles 100000 entries without shifting or recursion', () => {
         const queue = new RankDeque();
         const heap = new RankHeap();

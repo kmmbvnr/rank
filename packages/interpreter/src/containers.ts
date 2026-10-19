@@ -9,6 +9,7 @@ export class RankDeque {
     private readonly resources = new ResourceSummary();
     readonly kind = 'queue' as const;
     private readonly entries = new Map<number, RankValue>();
+    private stack?: RankValue[];
     private first = 0;
     private last = 0;
     private typeSummary?: { classify: (value: RankValue) => string; types: ReadonlySet<string> };
@@ -16,12 +17,15 @@ export class RankDeque {
 
     constructor(readonly mode: 'queue' | 'deque' | 'stack' = 'queue') {
         this.resources.track(this);
+        if (mode === 'stack') this.stack = [];
     }
 
-    get size(): number { return this.last - this.first; }
+    get size(): number { return this.stack?.length ?? this.last - this.first; }
     get items(): RankValue[] { return [...this.values()]; }
-    at(index: number): RankValue | undefined { return this.entries.get(this.first + index); }
+    at(index: number): RankValue | undefined { return this.stack ? this.stack[index] : this.entries.get(this.first + index); }
     *values(): IterableIterator<RankValue> {
+        // Iterators remain live across front operations and appended values.
+        this.mapStorage();
         for (let index = this.first; index < this.last; index++) yield this.entries.get(index)!;
     }
     /** A snapshot: loop declarations may retain this set after mutation. */
@@ -36,7 +40,8 @@ export class RankDeque {
         this.resources.include(value);
         noteArrayBinding(value);
         this.typeSummary = undefined;
-        this.entries.set(this.last++, value);
+        if (this.stack) this.stack.push(value);
+        else this.entries.set(this.last++, value);
         return this;
     }
     pushFront(value: RankValue): this {
@@ -44,19 +49,32 @@ export class RankDeque {
         this.resources.include(value);
         noteArrayBinding(value);
         this.typeSummary = undefined;
+        this.mapStorage();
         this.entries.set(--this.first, value);
         return this;
     }
     peek(back = this.mode === 'stack'): RankValue {
         if (!this.size) throw new MissingValueError(`${this.mode} is empty`);
-        return this.entries.get(back ? this.last - 1 : this.first)!;
+        return this.stack ? this.stack[back ? this.stack.length - 1 : 0]
+            : this.entries.get(back ? this.last - 1 : this.first)!;
     }
     pop(back = this.mode === 'stack'): RankValue {
         const value = this.peek(back);
         this.typeSummary = undefined;
+        if (this.stack && back) { this.stack.pop(); return value; }
+        this.mapStorage();
         this.entries.delete(back ? --this.last : this.first++);
         if (!this.size) this.first = this.last = 0;
         return value;
+    }
+    // Front operations retain the deque's existing sparse addressing. Ordinary
+    // LIFO stacks never pay for hashing or leave holes in their backing array.
+    private mapStorage(): void {
+        if (!this.stack) return;
+        this.first = 0;
+        this.last = this.stack.length;
+        for (let index = 0; index < this.last; index++) this.entries.set(index, this.stack[index]);
+        this.stack = undefined;
     }
 }
 
