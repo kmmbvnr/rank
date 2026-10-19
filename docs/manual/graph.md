@@ -1,5 +1,38 @@
 # graph manual
 
+## adjacent
+
+Tests whether one edge connects two
+vertices. DSU connected instead tests
+membership in the same component.
+
+```rank
+use graph
+G = new graph (array 1 2 3) .undirected
+G add 1 2
+G add 2 3
+G 1 3 adjacent
+```
+
+```result
+false
+```
+
+### Usage
+
+```text
+Graph U V adjacent
+```
+
+Both vertices must belong to the graph.
+Explicit graphs scan outgoing edges.
+Predicate graphs evaluate their binary
+predicate for the pair.
+
+### See also
+
+connected, bfs
+
 ## ancestor
 
 The vertex K steps above another in a
@@ -96,6 +129,7 @@ R .distance 3
 
 ```text
 Graph Start bfs
+Graph Start Goal Limit bfs
 ```
 
 Gives a record: .distance counts edges
@@ -103,6 +137,33 @@ to each vertex, .parent is the vertex it
 was reached from, and .order lists
 vertices as they were visited. Edge
 weights are ignored.
+
+The four-argument form stops at Goal
+or after Limit successor entries.
+Limit is a nonnegative integer; repeats
+count too. It adds .status (.reached,
+.exhausted or .limit), .path and
+.examined. Only .exhausted proves the
+goal unreachable. .path is empty unless
+reached. The distance index may be
+partial. At the exact budget boundary,
+.limit wins unless Goal was reached.
+
+An open successor graph requires this
+bounded form:
+
+```rank
+use graph
+use sequences
+fun N next = (N + 1) to (N + 2)
+G = new graph with next .directed
+R = G 0 5 100 bfs
+R .path
+```
+
+```result
+0 1 3 5
+```
 
 ### See also
 

@@ -5,7 +5,7 @@ import { isKnownFileFree } from './resource-summary.js';
 import {
     isNativeFunction, isRankArray, isRankCounter, isRankErrorValue, isRankFile,
     isRankTuple, isRankGroupedTable, isRankIndex, isRankObject, isRankQueue, isRankRecord,
-    isRankSegment, isRankSequence, isRankSet, type RankFile, type RankValue,
+    isRankSegment, isRankSequence, isRankGraph, isRankSet, type RankFile, type RankValue,
 } from './value.js';
 
 /** Owns file scopes across ordinary calls, suspended functions and generators. */
@@ -150,6 +150,8 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
             pending.push([item.value, item.cause].values());
         } else if (isNativeFunction(item)) {
             if (item.captures) pending.push(captures(item.captures));
+        } else if (isRankGraph(item) && 'captures' in item) {
+            pending.push(captures(item.captures));
         } else if (isRankSequence(item)) {
             if (item.plan.captures) pending.push(captures(item.plan.captures));
         }

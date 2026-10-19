@@ -441,3 +441,24 @@ describe('value view model', () => {
         expect(buildValueView('Answer', opened(session.inspect(ref)))).toEqual({ kind: 'text', title: 'Answer', typeLine: 'integer', text: '42' });
     });
 });
+
+it('inspects a predicate graph without evaluating its relation', async () => {
+    const { session, ref } = await run([`use graph
+fun A B edge
+  .Unexpected "predicate must not run during inspection" raise
+end
+G = new graph (array 1 2 3) with edge .directed
+G`]);
+    expect(opened(session.inspect(ref))).toMatchObject({ kind: 'opaque', type: 'graph' });
+});
+
+
+it('inspects a successor graph without invoking it or requesting its size', async () => {
+    const { session, ref } = await run([`use graph
+fun N next
+  .Unexpected "successor must not run during inspection" raise
+end
+G = new graph with next .directed
+G`]);
+    expect(opened(session.inspect(ref))).toMatchObject({ kind: 'opaque', type: 'graph' });
+});

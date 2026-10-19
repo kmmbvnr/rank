@@ -39,12 +39,22 @@ vertex table. Identity uses the existing scalar set/index keys. DFS buffers one
 outgoing iterable to retain its reverse-push discovery order; iteration has
 cancellation checkpoints.
 
-The public graph value still uses explicit mutable adjacency storage. Its
-Dijkstra entry point checks the start and scans every stored edge for negative
+Successor graphs implement local expansion without a vertex table. Their constructor
+retains a unary callback without executing it. Only bounded, goal-directed BFS is
+exposed: it counts every yielded edge, checks the goal on discovery, and closes
+iterators on early return. Result indexes retain scalar states, not callbacks.
+An exact budget boundary returns `limit` without probing another iterator step.
+A budget cannot bound work performed inside user callbacks. Exhaustive BFS/DFS/
+Dijkstra reject successor graphs; explicit and predicate behavior is unchanged.
+
+Explicit graph values use mutable adjacency storage. Finite predicate graph
+values retain a deduplicated domain and a callback, and implement the same local
+traversal interface with unit weights. Their neighbor membership invokes only
+the requested pair and is not a callback-free compiler capability. For explicit
+graphs, the Dijkstra entry point checks the start and scans every stored edge for negative
 weights before traversal, including unreachable edges. Global graph algorithms
-continue to use explicit storage. This interface is preparation for implicit
-graphs, not a public successor constructor or a termination guarantee for infinite
-searches. Neighbor sequences from mutable graphs retain snapshot semantics.
+continue to use explicit storage. Successor constructors and bounded searches
+remain future work. Neighbor sequences from mutable graphs retain snapshot semantics.
 
 ## Debug sessions
 
