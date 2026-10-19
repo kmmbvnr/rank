@@ -1,0 +1,35 @@
+rem Twenty-two Foolish Primes
+rem https://projecteuler.net/problem=239
+rem Find the chance that, in a random
+rem permutation of 1 to N, exactly Keep
+rem of the primes are not in place
+rem and the other primes stay put
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100
+option Keep integer = 22
+
+rem The primes that stay can be chosen
+rem in C(P, P - Keep) ways. Of the rest,
+rem Keep primes must all move and the
+rem others are free. By inclusion and
+rem exclusion on the primes that do
+rem stay, that is sum (-1)^j C(Keep, j)
+rem (M - j)! for M = N - P + Keep.
+Pr = primes till (N + 1) array
+P = Pr len
+M = N - P + Keep
+Fact = (1 to N array) scan * with 1
+J = 0 to Keep array
+Sign = 1 - 2 * (J mod 2)
+Binom = Keep J binomial
+Free = Fact (M - J)
+Moves = (Sign * Binom * Free) sum
+Pick = P Keep binomial
+Total = Fact N
+Answer = Pick * Moves / Total 12 round
+Answer print
