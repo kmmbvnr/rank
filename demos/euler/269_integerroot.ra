@@ -1,0 +1,112 @@
+rem Polynomials with at Least One
+rem Integer Root
+rem https://projecteuler.net/problem=269
+rem Count the n up to 10^K whose digits,
+rem taken as the coefficients of a
+rem polynomial, give one with an integer
+rem root
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option K integer = 16
+
+rem The roots can only be 0 and -1 to
+rem -9. Root 0 is a last digit 0, and
+rem 10^K is one of these n. For the
+rem others, by inclusion and exclusion
+rem over sets S of roots, count the
+rem digit strings with last digit 1 to 9
+rem whose polynomial P is divisible by
+rem G, the product of x + r for r in S.
+rem Dividing from the low end, P = G Q
+rem gives q[i] = (p[i] - sum g[j]
+rem q[i-j]) / g[0] so the state is the
+rem last d quotient coefficients, d the
+rem degree of G, packed in base B.
+rem Digits run for K places, then d
+rem zeros, and the quotient must end at
+rem 0. Equal states merge by sort.
+Base = 2001
+Off = 1000
+Total = 10 ** (K - 1)
+Zero = array 0
+Pos = 0 to 8 array
+for Mask in 1 to 511
+  Sel = (Mask Pos shr) 1 band equal 1
+  Rs = (1 to 9 array) filter Sel array
+  G = array 1
+  for R in Rs
+    Up = concat G Zero
+    Sh = concat Zero G
+    G = Up * R + Sh
+  end
+  D = G len - 1
+  Lead = G 0
+  Gw = G drop 1
+  Pw = Base ** (0 to (D - 1) array)
+  Key0 = ((Pw - Pw + Off) * Pw) sum
+  Keep = Base ** (D - 1)
+  Keys = array Key0
+  Cnts = array 1
+  for I in 0 till (K + D)
+    N = Keys len
+    if N equal 0
+      break
+    end
+    Col = Keys reshape N 1
+    Lag = (Col // Pw) mod Base - Off
+    Back = (Lag * Gw) sum axis 1
+    Tail = Keys mod Keep
+    NK = array shape 0 fill 0
+    NC = NK
+    Lo = 0
+    Hi = 9
+    if I equal 0
+      Lo = 1
+    end
+    if I at least K
+      Hi = 0
+    end
+    for P in Lo to Hi
+      Acc = P - Back
+      Q = Acc // Lead
+      Fit = Acc mod Lead equal 0
+      Fit = Fit and (Q at most Off - 1)
+      Fit = Fit and (Q at least 1 - Off)
+      Nk = (Q + Off) + Base * Tail
+      Na = Nk filter Fit array
+      NK = concat NK Na
+      Ca = Cnts filter Fit array
+      NC = concat NC Ca
+    end
+    Keys = NK
+    Cnts = NC
+    if Keys len equal 0
+      break
+    end
+    Ord = Keys argsort
+    Ks = Keys Ord
+    Cum = (Cnts Ord) scan +
+    Tl = Ks drop 1
+    Nx = concat Tl (array -1)
+    Last = Ks not equal Nx
+    Ke = Ks filter Last array
+    Ce = Cum filter Last array
+    H = Ke len
+    Hd = Ce take (H - 1)
+    Pc = concat Zero Hd
+    Keys = Ke
+    Cnts = Ce - Pc
+  end
+  Hit = Keys equal Key0
+  Done = Cnts filter Hit array
+  Count = Done sum
+  Sign = 1 - 2 * ((Rs len + 1) mod 2)
+  Total += Sign * Count
+end
+Answer = Total
+Answer print

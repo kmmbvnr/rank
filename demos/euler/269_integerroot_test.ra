@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "269_integerroot"
+  run
+
+  Answer equal 1311109198529286
+end
+
+test "few digits"
+  use "269_integerroot"
+  K = 3
+  run
+
+  Answer equal 172
+  K = 5
+  run
+
+  Answer equal 14696
+end
