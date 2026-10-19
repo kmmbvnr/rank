@@ -1,0 +1,9 @@
+use testing
+
+test "small spheres"
+  use "360_sphere"
+  45 brute equal 34518
+  1 sphere equal 1 brute
+  5 sphere equal 5 brute
+  25 sphere equal 25 brute
+end
