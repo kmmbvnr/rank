@@ -1,0 +1,55 @@
+rem Cutting Rectangular Grid Paper
+rem https://projecteuler.net/problem=338
+
+use io
+use cli
+
+option Limit integer = 1000000000000
+
+Limit grid print
+
+fun N grid
+  Product = N products
+  Divs = N divsums
+  return Product - Divs
+end
+
+fun N products
+  I = 2
+  Sum = 0
+  for I at most N
+    A = N // I
+    B = N // (I - 1)
+    NA = N // A + 1
+    NB = N // B + 2
+    Next = NA NB min
+    Next = Next (N + 1) min
+    Sum += (Next - I) * A * B
+    I = Next
+  end
+  return Sum
+end
+
+fun N divsums
+  I = 2
+  Sum = 0
+  for I at most N
+    A = N // I
+    R = N // A
+    Sum += (R - I + 1) * (A divisors)
+    I = R + 1
+  end
+  return Sum
+end
+
+fun N divisors
+  I = 1
+  Sum = 0
+  for I at most N
+    Q = N // I
+    R = N // Q
+    Sum += Q * (R - I + 1)
+    I = R + 1
+  end
+  return Sum
+end
