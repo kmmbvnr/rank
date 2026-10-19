@@ -831,3 +831,11 @@ After also integrating main `9b01afa9` (#322, scalar helper entry), the loop
 remained at 0.697/0.576/0.543 s, with initialization plus loop at
 1.254/0.845/0.793 s. The combined scalar-entry, tensor, mask and cuboid tests
 passed (125 tests); diagnostics still show all 71 fused updates.
+
+## Exact integer square roots (#333)
+
+[The square-root measurements](../../benchmarks/integer-square-root-results.md)
+separate forced array materialization, `isqrt sum`, input setup and cold process
+cost. The implementation combines a BigInt-verified floating estimate below
+`2^63` with checked stored scalar-array application; larger integers retain
+Newton iteration. The report includes raw samples and the host-load limitation.

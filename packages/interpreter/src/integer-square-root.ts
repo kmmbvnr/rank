@@ -22,4 +22,3 @@ export function integerSquareRoot(value: bigint): bigint {
         root = next;
     }
 }
-

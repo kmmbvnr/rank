@@ -39,7 +39,9 @@ describe('exact square-root estimates', () => {
             3037000499n, 3037000500n, 2n ** 32n, 2n ** 64n, 2n ** 100n]) {
             for (let d = -8n; d <= 8n; d++) if (k * k + d >= 0n) cases.push(k * k + d);
         }
-        for (let d = -32n; d <= 32n; d++) cases.push((1n << 63n) + d);
+        for (const edge of [1n << 53n, 1n << 63n]) {
+            for (let d = -32n; d <= 32n; d++) cases.push(edge + d);
+        }
         let seed = 0x7abcd123456789n;
         for (let i = 0; i < 10000; i++) {
             seed = (seed * 6364136223846793005n + 1442695040888963407n) & ((1n << 64n) - 1n);
@@ -63,6 +65,11 @@ describe('exact square-root estimates', () => {
 });
 
 describe('stored scalar builtin arrays', () => {
+    it('maps across the floating estimate cutoff without narrowing integers', () => {
+        const inputs = [(1n << 53n) - 1n, 1n << 53n, (1n << 63n) - 1n, 1n << 63n, 1n << 128n];
+        expect(mapped(inputs).result.items).toEqual(inputs.map(newton));
+    });
+
     it('keeps later domain errors lazy and retries after a source write', () => {
         const { source, result } = mapped([4n, -1n, 16n]);
         expect(result.shape).toEqual([3]);

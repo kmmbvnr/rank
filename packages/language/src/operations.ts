@@ -881,7 +881,7 @@ export const operations: readonly Operation[] = [
         signatures: [{ inputs: ['integer'], result: 'integer', ranks: [0] }],
         shape: [{ args: [[]], result: [] }],
         monadicRank: 0, scalarNoCallback: 'integer',
-        summary: 'Exact integer floor of the square root, calculated without reals.' },
+        summary: 'Exact integer floor of the square root, verified with integer arithmetic.' },
     { name: 'lcm', module: 'numbers', arities: [1, 2], form: 'A B lcm', result: 'integer',
         compiledCall: { inputs: ['integer', 'integer'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         signatures: [...integerDyadicSignatures, { inputs: [{ union: ['integer',

@@ -138,7 +138,8 @@ It maps lazily over arrays and sequences. A negative input raises
 `.DomainError`; positive infinity remains infinity.
 
 `isqrt` has intrinsic rank 0 and returns the exact integer floor of the square
-root of a nonnegative `integer`:
+root of a nonnegative `integer`. A bounded floating-point estimate is verified
+using exact integer arithmetic; larger inputs use integer Newton iteration:
 
 ```rank
 Root = Value isqrt

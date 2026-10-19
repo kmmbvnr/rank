@@ -572,8 +572,8 @@ Number isqrt
 
 Number must be a nonnegative integer.
 The answer is exact even for very large
-integers, because no decimal rounding is
-involved.
+integers. Integer arithmetic verifies
+the result.
 
 ### See also
 
