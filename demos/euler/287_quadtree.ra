@@ -1,0 +1,88 @@
+rem Quadtree Encoding (a simple compression
+rem algorithm)
+rem https://projecteuler.net/problem=287
+rem Find the length of the minimal quadtree
+rem sequence of the black disk D(N): the
+rem pixels of a 2^N square with
+rem (x - 2^(N-1))^2 + (y - 2^(N-1))^2 <=
+rem 2^(2N-2)
+
+use numbers
+use io
+use cli
+
+option N integer = 24
+
+rem A region that is all black or all white
+rem costs 2 bits, any other 1 bit and the
+rem cost of its four quarters. Walk the
+rem quarters depth first, keeping the open
+rem regions on a stack of corner and size.
+C = 2 ** (N - 1)
+R2 = C * C
+Cap = 4 * N + 8
+Xs = array shape Cap fill 0
+Ys = array shape Cap fill 0
+Ss = array shape Cap fill 0
+Ss 0 = 2 * C
+Top = 1
+Bits = 0
+for
+  if Top equal 0
+    break
+  end
+  Top -= 1
+  X0 = Xs Top
+  Y0 = Ys Top
+  S = Ss Top
+  X1 = X0 + S - 1
+  Y1 = Y0 + S - 1
+  Fx = (X0 - C) * (X0 - C)
+  Gx = (X1 - C) * (X1 - C)
+  Far = Fx
+  if Gx greater Far
+    Far = Gx
+  end
+  Fy = (Y0 - C) * (Y0 - C)
+  Gy = (Y1 - C) * (Y1 - C)
+  Fary = Fy
+  if Gy greater Fary
+    Fary = Gy
+  end
+  Nx = C
+  if C less X0
+    Nx = X0
+  end
+  if C greater X1
+    Nx = X1
+  end
+  Ny = C
+  if C less Y0
+    Ny = Y0
+  end
+  if C greater Y1
+    Ny = Y1
+  end
+  Near = (Nx - C) * (Nx - C) + (Ny - C) * (Ny - C)
+  if Far + Fary at most R2 or Near greater R2
+    Bits += 2
+  else
+    Bits += 1
+    H = S // 2
+    Xs Top = X0
+    Ys Top = Y0
+    Ss Top = H
+    Xs (Top + 1) = X0 + H
+    Ys (Top + 1) = Y0
+    Ss (Top + 1) = H
+    Xs (Top + 2) = X0
+    Ys (Top + 2) = Y0 + H
+    Ss (Top + 2) = H
+    Xs (Top + 3) = X0 + H
+    Ys (Top + 3) = Y0 + H
+    Ss (Top + 3) = H
+    Top += 4
+  end
+end
+Answer = Bits
+Answer print
