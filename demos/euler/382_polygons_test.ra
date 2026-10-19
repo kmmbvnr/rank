@@ -1,0 +1,17 @@
+use testing
+
+test "generating polygons"
+  use "382_polygons"
+  Limit = 5
+  run
+  Answer equal 7
+  Limit = 4
+  run
+  Answer equal 2
+  Limit = 10
+  run
+  Answer equal 501
+  Limit = 25
+  run
+  Answer equal 18635853
+end
