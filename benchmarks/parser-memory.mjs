@@ -21,8 +21,10 @@ function measure(name, run) {
     const start = performance.now();
     const count = run();
     global.gc();
-    reports.push({ name, count, milliseconds: Math.round(performance.now() - start),
-        heapMiB: process.memoryUsage().heapUsed / 1024 ** 2 });
+    const report = { name, count, milliseconds: Math.round(performance.now() - start),
+        heapMiB: process.memoryUsage().heapUsed / 1024 ** 2 };
+    reports.push(report);
+    if (process.env.RANK_PARSER_PROGRESS) console.error(JSON.stringify(report));
 }
 
 measure('sigmoid', () => {

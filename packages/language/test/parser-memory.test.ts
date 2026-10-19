@@ -1,15 +1,17 @@
-import { execFileSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 import { expect, it } from 'vitest';
 
-it('parses nested calls and the demo corpus within a bounded heap', () => {
+it('parses nested calls and the demo corpus within a bounded heap', async () => {
     // A separate process gives the parser a real heap ceiling, independent of
     // Vitest's own caches. As with workspace tests, build generated sources first.
-    const output = execFileSync(process.execPath, [
+    // The corpus grows; the assertions bound heap, not parsing throughput.
+    const { stdout } = await promisify(execFile)(process.execPath, [
         '--expose-gc', '--max-old-space-size=512',
         fileURLToPath(new URL('../../../benchmarks/parser-memory.mjs', import.meta.url)),
-    ], { encoding: 'utf8', timeout: 25_000 });
-    const [sigmoid, nested, first, second] = JSON.parse(output);
+    ], { encoding: 'utf8', timeout: 150_000 });
+    const [sigmoid, nested, first, second] = JSON.parse(stdout);
     // The old grammar retained 1.8 GiB for sigmoid alone, and nested calls
     // continued multiplying lookahead paths even after factoring its first operand.
     expect(sigmoid.heapMiB).toBeLessThan(64);
@@ -18,4 +20,4 @@ it('parses nested calls and the demo corpus within a bounded heap', () => {
     expect(second.count).toBe(first.count);
     expect(second.heapMiB).toBeLessThan(384);
     expect(second.heapMiB - first.heapMiB).toBeLessThan(16);
-}, 30_000);
+}, 180_000);

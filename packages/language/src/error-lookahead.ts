@@ -1,22 +1,44 @@
-import type { BaseParser, IRecognitionException, IToken } from 'chevrotain';
+import type { BaseParser, IRecognitionException, IToken, Rule } from 'chevrotain';
 import { LLStarLookaheadStrategy } from 'chevrotain-allstar';
 
 /** ALL(*) normally discards the token where prediction failed and reports its starting point. */
 export class ErrorLookaheadStrategy extends LLStarLookaheadStrategy {
     diagnosing = false;
+    private rules?: Rule[];
+    private parses = 0;
+    private readonly rebuild: (() => void)[] = [];
+
+    override initialize(options: { rules: Rule[] }): void {
+        this.rules = options.rules;
+        super.initialize(options);
+    }
+
+    /** Prediction paths are reusable hints, not parse state. Retire their
+     * generation between parses so unrelated documents cannot retain an
+     * ever-growing adaptive DFA. Rebuild through the library's public API. */
+    beginParse(): void {
+        if (++this.parses < 64 || !this.rules) return;
+        this.parses = 0;
+        super.initialize({ rules: this.rules });
+        for (const rebuild of this.rebuild) rebuild();
+    }
+
     readonly failures = new Map<number, IToken>();
 
     override buildLookaheadForAlternation(options: Parameters<LLStarLookaheadStrategy['buildLookaheadForAlternation']>[0]) {
-        return this.track(super.buildLookaheadForAlternation(options));
+        return this.track(() => super.buildLookaheadForAlternation(options));
     }
 
     override buildLookaheadForOptional(options: Parameters<LLStarLookaheadStrategy['buildLookaheadForOptional']>[0]) {
-        return this.track(super.buildLookaheadForOptional(options));
+        return this.track(() => super.buildLookaheadForOptional(options));
     }
 
-    private track<A extends unknown[], R>(predict: (this: BaseParser, ...args: A) => R) {
+    private track<A extends unknown[], R>(build: () => (this: BaseParser, ...args: A) => R) {
+        const entry = { predict: build() };
+        this.rebuild.push(() => { entry.predict = build(); });
         const strategy = this;
         return function (this: BaseParser, ...args: A): R {
+            const predict = entry.predict;
             if (!strategy.diagnosing) return predict.apply(this, args);
             // ALL(*) uses LA_FAST for its first token and LA for subsequent tokens.
             // Only instrument the diagnostic replay; normal parsing keeps its fast path.

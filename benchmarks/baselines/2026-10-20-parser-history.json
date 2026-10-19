@@ -1,0 +1,60 @@
+{
+  "notes": [
+    "Same 1608-file corpus, two passes, 512 MiB V8 ceiling.",
+    "Retained heap measured after explicit GC.",
+    "Exploratory single samples on shared host; not an isolated throughput comparison.",
+    "Candidate retires predictor generations every 64 parses."
+  ],
+  "baseline": [
+    {
+      "name": "sigmoid",
+      "count": 1,
+      "milliseconds": 127,
+      "heapMiB": 19.401588439941406
+    },
+    {
+      "name": "nested calls",
+      "count": 4,
+      "milliseconds": 967,
+      "heapMiB": 35.6822509765625
+    },
+    {
+      "name": "demos 1",
+      "count": 1608,
+      "milliseconds": 45054,
+      "heapMiB": 454.9515380859375
+    },
+    {
+      "name": "demos 2",
+      "count": 1608,
+      "milliseconds": 22976,
+      "heapMiB": 455.1820373535156
+    }
+  ],
+  "candidate": [
+    {
+      "name": "sigmoid",
+      "count": 1,
+      "milliseconds": 108,
+      "heapMiB": 19.336715698242188
+    },
+    {
+      "name": "nested calls",
+      "count": 4,
+      "milliseconds": 976,
+      "heapMiB": 35.612220764160156
+    },
+    {
+      "name": "demos 1",
+      "count": 1608,
+      "milliseconds": 55593,
+      "heapMiB": 27.283416748046875
+    },
+    {
+      "name": "demos 2",
+      "count": 1608,
+      "milliseconds": 55020,
+      "heapMiB": 27.605911254882812
+    }
+  ]
+}

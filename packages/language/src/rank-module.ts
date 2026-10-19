@@ -83,6 +83,7 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
             const parser = createLangiumParser(withBoundedErrorLookahead(services, false, strategy));
             const parse = parser.parse.bind(parser);
             parser.parse = <T extends AstNode>(input: string, options?: ParserOptions) => {
+                strategy.beginParse();
                 const lexer = services.parser.Lexer as SignatureLexer;
                 let grouping = options as GroupingOptions | undefined;
                 if (grouping?.loadModule) {
