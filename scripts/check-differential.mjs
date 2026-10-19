@@ -9,26 +9,13 @@ function programs(directory) {
         return entry.isDirectory() ? programs(file) : file.endsWith('.ra') ? [relative(demos, file)] : [];
     });
 }
-// Keep in step with packages/interpreter/test/differential.test.ts.
-const tooSlow = new RegExp('^euler/(?:' + [
-    '150_subtriangle(?:_default_test)?',
-    '154_pascalpyramid',
-    '155_capacitors',
-    '165_intersections',
-    '170_pandigitalproducts(?:_test)?',
-    '177_quadrilaterals(?:_test)?',
-    '179_consecutivedivisors',
-    '185_numbermind(?:_test)?',
-    '186_connectedness(?:_test)?',
-    '193_squarefree',
-    '196_primetriplets(?:_test)?',
-    '198_ambiguous(?:_test)?',
-].join('|') + ')\\.ra$');
+const executionExclusions = new Set(Object.keys(JSON.parse(readFileSync(
+    new URL('./demo-execution-exclusions.json', import.meta.url), 'utf8'))));
 const summaries = process.argv.slice(2).map(file => JSON.parse(readFileSync(file, 'utf8')));
 assert.deepEqual(summaries.map(result => result.shard).sort(), [0, 1, 2, 3], 'all four shards must report');
 assert.ok(summaries.every(result => result.count === 4), 'shard counts must agree');
-assert.deepEqual(summaries.flatMap(result => result.files).sort(), programs(demos).filter(file => !tooSlow.test(file)).sort(),
-    'every demo and Rank test file must be compared exactly once');
+assert.deepEqual(summaries.flatMap(result => result.files).sort(), programs(demos).filter(file => !executionExclusions.has(file)).sort(),
+    'every eligible demo and Rank test file must be compared exactly once');
 const totals = summaries.reduce((sum, result) => ({ completed: sum.completed + result.completed,
     tests: sum.tests + result.tests, entries: sum.entries + result.entries,
     numberEntries: sum.numberEntries + result.numberEntries }), { completed: 0, tests: 0, entries: 0, numberEntries: 0 });
