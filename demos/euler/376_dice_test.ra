@@ -1,0 +1,8 @@
+use testing
+
+test "six-pip dice"
+  use "376_dice"
+  Limit = 6
+  run
+  Answer equal 581
+end
