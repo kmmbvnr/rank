@@ -1,0 +1,28 @@
+rem Peredur Fab Efrawg
+rem https://projecteuler.net/problem=339
+
+use numbers
+use io
+
+Answer = 10000 expected round 6
+Answer print
+
+fun N expected
+  B = 0.0
+  Before = 0.0
+  P = 1.0
+  for K in 1 to N
+    R = 2 * P / (1 + P)
+    M = 2 * K - 1
+    Before = B
+    B += (M - B) * R
+    P *= (2 * K - 1) / (2 * K)
+  end
+  Q = 0.5
+  for K in 1 till N
+    Q *= (2 * K + 1) / (2 * K + 2)
+  end
+  R = 2 * Q
+  Mid = B + (2 * N - B) * R
+  return (Before + Mid) / 2
+end
