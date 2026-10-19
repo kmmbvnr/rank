@@ -27,6 +27,11 @@ const tooSlow = new RegExp('^euler/(?:' + [
     '193_squarefree',
     '196_primetriplets(?:_test)?',
     '198_ambiguous(?:_test)?',
+    '210_obtuse',
+    '224_almostright',
+    '250_subsets(?:_test)?',
+    '266_pseudosquareroot',
+    '268_fourprimes',
 ].join('|') + ')\\.ra$');
 const sources = new Map(programs(demos).map(file => [file, readFileSync(file, 'utf8')]));
 

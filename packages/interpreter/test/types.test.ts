@@ -8,8 +8,17 @@ import { analyzeBindings, analyzeValues } from '@arrrank/language';
 import { Interpreter, isRankArray, parse, typeName } from '../src/index.js';
 
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));
-// Runs for minutes with its real input (issue #316); its tests use small inputs.
-const tooSlow = new Set(['euler/154_pascalpyramid.ra']);
+// These run a minute or more with their real input (issues #316, #333, #338);
+// their tests use small inputs.
+const tooSlow = new Set([
+    'euler/154_pascalpyramid.ra',
+    'euler/210_obtuse.ra',
+    'euler/224_almostright.ra',
+    'euler/250_subsets.ra',
+    'euler/250_subsets_test.ra',
+    'euler/266_pseudosquareroot.ra',
+    'euler/268_fourprimes.ra',
+]);
 
 function programs(): string[] {
     const files: string[] = [];
