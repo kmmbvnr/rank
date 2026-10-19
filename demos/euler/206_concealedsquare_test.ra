@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "206_concealedsquare"
+  run
+
+  Answer equal 1389019170
+end
+
+test "concealed square"
+  use "206_concealedsquare"
+  run
+
+  Sq = Answer * Answer
+  Sq equal 1929374254627488900
+end
