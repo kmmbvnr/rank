@@ -1,0 +1,36 @@
+rem Triangles with Non Rational Sides
+rem https://projecteuler.net/problem=390
+
+use numbers
+use io
+use cli
+
+option Limit integer = 10 ** 10
+
+Answer = 0
+P = 1
+for P at most Limit
+  First = 8 * P * P * P + P
+  if First greater Limit
+    break
+  end
+  Answer += P 0 P walk
+  P += 1
+end
+Answer print
+
+rem One Pell step and three branches.
+fun P Q A walk
+  K = 8 * P * P + 1
+  B = 4 * P
+  C = B * (4 * P * P + 1)
+  Q2 = K * Q + B * A
+  A2 = C * Q + K * A
+  if A2 greater Limit
+    return 0
+  end
+  Same = P Q2 A2 walk
+  Swap = Q2 P A2 walk
+  Neg = Q2 (-P) A2 walk
+  return A2 + Same + Swap + Neg
+end
