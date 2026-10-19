@@ -1,0 +1,42 @@
+{
+  "driverSha256": "6f1f3704757e65908e95c8152a4e76207c225610f72f0975dfe9a4dfa9b05d9c",
+  "candidateRuntimeCommit": "ba0b7a5dca3012ba989170e53a37294a0a853ff3",
+  "candidateInterpreterSourceTree": "00577c1a740b794508b951b1ada527e4f9d8cd96",
+  "candidateLanguageSourceTree": "27c25d6120623ddf761034e8c5b5e48c652f522d",
+  "baselineRuntimeCommit": "fba5bf74b37d9f47622853b5a3db73e544308087",
+  "baselineMainEquivalent": "d385b5e10fe35105b41d1afd17f9f045d8175b84",
+  "baselineTree": "5a2b6d61ba19a3f5bc9cd41008405b0fd3c52807",
+  "headerCommitMeaning": "The JSONL commit field identifies the driver checkout; runtime provenance is assigned here.",
+  "runs": {
+    "full": {
+      "file": "2026-10-19-short-array-updates-full.jsonl",
+      "sha256": "cfdc49cb49b43d45862eee40a12dbe0a7da3a05713feb921ab48cd3263cfe25d",
+      "runtime": "candidate",
+      "heapLimitMiB": null
+    },
+    "baseline-small": {
+      "file": "2026-10-19-short-array-updates-baseline-small.jsonl",
+      "sha256": "c79917a0b2c601bb339583e9dc696367731889a4172862ec84a88968fbbdf6f5",
+      "runtime": "baseline",
+      "heapLimitMiB": null
+    },
+    "candidate-small": {
+      "file": "2026-10-19-short-array-updates-candidate-small.jsonl",
+      "sha256": "07f68625f894b6f0e628388f520b7749ac286ddd7c216169ef42d0df243f8211",
+      "runtime": "candidate",
+      "heapLimitMiB": null
+    },
+    "bounded": {
+      "file": "2026-10-19-short-array-updates-bounded.jsonl",
+      "sha256": "6da949ab325697ec68937f226b82a0a5db7c2ad96298bace70fafd04bb2a1bf9",
+      "runtime": "candidate",
+      "heapLimitMiB": 256
+    },
+    "baseline-scalar": {
+      "file": "2026-10-19-short-array-updates-baseline-scalar.jsonl",
+      "sha256": "1aa1b29b60dfb51c38309cb71d8420cd5f7f0e1bd700765b817030677a491689",
+      "runtime": "baseline",
+      "heapLimitMiB": null
+    }
+  }
+}

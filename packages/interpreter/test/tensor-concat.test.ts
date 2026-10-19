@@ -49,6 +49,17 @@ C`)).toHaveProperty('error', 'division by zero');
             .toHaveProperty('error');
     });
 
+    it('broadcasts a concatenated column and handles a wholly empty result', () => {
+        expect(compare(`A = array shape 2 1 fill 3
+B = array shape 1 1 fill 5
+Row = array 1 2
+C = ((concat A B) + Row) copy
+C`)).toMatchObject({ value: '4 5 4 5 6 7', kernels: 1 });
+        expect(compare(`A = array shape 0 fill 0
+C = ((concat A A) + 1) copy
+C`)).toMatchObject({ kernels: 1 });
+    });
+
     it('keeps the current offsets when equally shaped views change source positions', () => {
         const source = `A = array 1 2 3 4 5 6
 Q = array shape 0 fill 0

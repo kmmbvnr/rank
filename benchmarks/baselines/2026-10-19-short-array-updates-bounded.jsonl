@@ -1,0 +1,2 @@
+{"node":"v24.15.0","cpu":"Apple M5","n":250250,"trials":1,"commit":"ba0b7a5dca3012ba989170e53a37294a0a853ff3","driverSha256":"6f1f3704757e65908e95c8152a4e76207c225610f72f0975dfe9a4dfa9b05d9c"}
+{"trial":0,"coldMs":22157.123790999998,"mode":"array","n":250250,"compiled":false,"operationMs":21582.6165,"cpuMs":32387.878,"peakRssKB":434448,"heapAfterBytes":131920960,"gcCount":497,"gcMs":5751.194159269333,"answer":"1425480602091519","sourceSha256":"c29f5db83e35d6784f0cf7e36822afb2fe95df7f92dc45894b597b6e163a26e0"}

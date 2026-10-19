@@ -839,3 +839,12 @@ separate forced array materialization, `isqrt sum`, input setup and cold process
 cost. The implementation combines a BigInt-verified floating estimate below
 `2^63` with checked stored scalar-array application; larger integers retain
 Newton iteration. The report includes raw samples and the host-load limitation.
+
+## Short stored arrays and modular subset counts (#335)
+
+[The short-array measurements](../../benchmarks/short-array-updates-results.md)
+cover the original 250250-step array update with and without `copy`, scalar
+loops, cold startup, GC and peak RSS. Three explicit-copy runs meet the 20-second
+criterion. A full no-copy run also succeeds with compilation disabled and a
+256 MiB V8 old-space limit. The report distinguishes heap limits from total RSS
+and records the raw observations and source provenance.
