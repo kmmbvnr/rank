@@ -110,5 +110,6 @@
   "euler/289_eulerianloops_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/291_panaitopolprimes_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/295_lenticularholes_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
-  "euler/300_proteinfolding_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300)."
+  "euler/300_proteinfolding_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
+  "euler/400_fibtree.ra": "Full K=10000 visits 16.7 million sparse DP states and uses about 1 GiB RSS; run benchmarks/sparse-dp.mjs manually, with small checkpoints retained in 400_fibtree_test.ra."
 }

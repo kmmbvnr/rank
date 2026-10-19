@@ -4,7 +4,6 @@ rem https://projecteuler.net/problem=400
 use bits
 use algo
 use sequences
-use text
 use io
 use cli
 
@@ -21,35 +20,64 @@ for N in 3 to K
   Gs N = A B bxor
 end
 
-Memo = new index
-Answer = K 0 Memo cuts
+rem XOR operands stay below Stride.
+rem Key = N * Stride + T + 1.
+Stride = 1
+for Stride at most (1 + Gs max)
+  Stride *= 2
+end
+Answer = K Gs Stride Mod cuts
 Answer print
 
-rem Count cuts leaving Grundy value T.
-fun N T Memo cuts
-  if T equal -1
-    return 1
-  end
-  if T less -1 or N at most 1
-    return 0
-  end
-  if N equal 2
-    if T equal 0
-      return 1
+fun K Gs Stride Mod cuts
+  Cache = new index
+  Tasks = new stack
+  Values = new stack
+  Tasks push K * Stride + 1
+  Value = 0
+  for (Tasks len) greater 0
+    Key = Tasks pop
+    if Key equal -1
+      rem Save the first child's result.
+      Values push Value
+    elif Key less 0
+      rem Combine the two child results.
+      Value += Values pop
+      if Value at least Mod
+        Value -= Mod
+      end
+      Cache (-Key) = Value
+    else
+      Cached = Cache Key default -1
+      if Cached at least 0
+        Value = Cached
+      else
+        N = Key // Stride
+        T = Key mod Stride - 1
+        if T equal -1
+          Value = 1
+        elif N at most 1
+          Value = 0
+        elif N equal 2
+          Value = 0
+          if T equal 0
+            Value = 1
+          end
+        else
+          A = 1 + Gs (N - 1)
+          B = 1 + Gs (N - 2)
+          Right = A T bxor
+          Left = B T bxor
+          Base = (N - 2) * Stride
+          rem Right, save, left, sum.
+          Tasks push -Key
+          Next = Base + Stride + Left
+          Tasks push Next
+          Tasks push -1
+          Tasks push Base + Right
+        end
+      end
     end
-    return 0
   end
-  Key = N text + ":" + (T text)
-  if Key in Memo
-    return Memo Key
-  end
-  A = 1 + Gs (N - 1)
-  B = 1 + Gs (N - 2)
-  Right = (A T bxor) - 1
-  Left = (B T bxor) - 1
-  Total = (N - 2) Right Memo cuts
-  Total += (N - 1) Left Memo cuts
-  Total mod= Mod
-  Memo Key = Total
-  return Total
+  return Value
 end

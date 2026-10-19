@@ -19,3 +19,23 @@ test "Grundy values"
   Want = concat Want (array 3 0 5 7 14)
   Gs equal Want
 end
+
+test "Fibonacci tree boundary cases"
+  use "400_fibtree"
+  K = 0
+  run
+  Answer equal 0
+  K = 1
+  run
+  Answer equal 0
+  K = 2
+  run
+  Answer equal 1
+end
+
+test "Exact Fibonacci tree counts"
+  use "400_fibtree"
+  K = 100
+  run
+  Answer equal 580893155023212545
+end

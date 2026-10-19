@@ -20,7 +20,7 @@ test('new full-scale exclusions retain their small test fixtures', () => {
     for (const file of files) {
         const problem = Number(file.match(/^euler\/(\d+)_/)?.[1]);
         // Euler 300 belongs to the legacy 201-300 execution-budget batch.
-        if (!(problem >= 301 && problem <= 399)) continue;
+        if (!(problem >= 301)) continue;
         assert.ok(!file.endsWith('_test.ra') || file.endsWith('_default_test.ra'), file);
         const fixture = file.endsWith('_default_test.ra')
             ? file.replace('_default_test.ra', '_test.ra') : file.replace(/\.ra$/, '_test.ra');
