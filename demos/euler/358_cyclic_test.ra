@@ -1,0 +1,10 @@
+use testing
+
+test "full reptend primes"
+  use "358_cyclic"
+  7 cyclic equal true
+  13 cyclic equal false
+  17 cyclic equal true
+  P = 729809891
+  P cyclic equal true
+end

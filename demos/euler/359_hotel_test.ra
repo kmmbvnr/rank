@@ -1,0 +1,12 @@
+use testing
+
+test "hotel rooms"
+  use "359_hotel"
+  1 1 person equal 1
+  1 2 person equal 3
+  10 20 person equal 440
+  25 75 person equal 4863
+  99 100 person equal 19454
+  run
+  Answer equal 40632119
+end

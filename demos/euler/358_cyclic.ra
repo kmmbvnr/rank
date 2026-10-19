@@ -1,0 +1,42 @@
+rem Cyclic Numbers
+rem https://projecteuler.net/problem=358
+
+use numbers
+use sequences
+use io
+
+rem Ten must have order P - 1 modulo P.
+fun P cyclic
+  N = P - 1
+  R = N
+  for Q in primes to (N isqrt)
+    if R mod Q equal 0
+      if 10 (N // Q) P powmod equal 1
+        return false
+      end
+      for R mod Q equal 0
+        R //= Q
+      end
+    end
+  end
+  if R greater 1
+    if 10 (N // R) P powmod equal 1
+      return false
+    end
+  end
+  return true
+end
+
+Low = 10 ** 11 // 138 + 1
+High = 10 ** 11 // 137
+P = Low // 100000 * 100000 + 9891
+if P less Low
+  P += 100000
+end
+for P at most High
+  if P in primes and P cyclic
+    Answer = 9 * (P - 1) // 2
+    Answer print
+  end
+  P += 100000
+end

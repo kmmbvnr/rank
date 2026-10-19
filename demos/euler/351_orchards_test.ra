@@ -1,0 +1,8 @@
+use testing
+
+test "small hexagonal orchards"
+  use "351_orchards"
+  5 hidden equal 30
+  10 hidden equal 138
+  10000 hidden equal 117645084
+end

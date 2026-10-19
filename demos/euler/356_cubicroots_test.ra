@@ -1,0 +1,11 @@
+use testing
+
+test "cubic power sums"
+  use "356_cubicroots"
+  2 3 100000000 psum equal 58
+  2 4 100000000 psum equal 224
+  Count = 30
+  Power = 987654321
+  run
+  Answer equal 28010159
+end

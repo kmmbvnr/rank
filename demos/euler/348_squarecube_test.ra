@@ -1,0 +1,18 @@
+use testing
+
+test "four square cube forms"
+  use "348_squarecube"
+  5229225 reps equal 4
+end
+
+test "small palindrome mirror"
+  use "348_squarecube"
+  123 true mirror equal 12321
+  123 false mirror equal 123321
+end
+
+test "full square cube sum"
+  use "348_squarecube"
+  run
+  Answer equal 1004195061
+end

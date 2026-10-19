@@ -1,0 +1,39 @@
+rem Fractional Sequences
+rem https://projecteuler.net/problem=343
+
+use sequences
+use numbers
+use io
+use cli
+
+option Limit integer = 2000000
+
+fun N lpf
+  X = N
+  Last = 1
+  for P in primes till (X isqrt)
+    for X mod P equal 0
+      Last = P
+      X //= P
+    end
+  end
+  if X greater 1
+    Last = X
+  end
+  return Last
+end
+
+fun Limit sumfrac
+  Sum = 0
+  for K in 1 to Limit
+    A = K + 1
+    B = K * K - K + 1
+    P = A lpf
+    Q = B lpf
+    Sum += (P Q max) - 1
+  end
+  return Sum
+end
+
+Answer = Limit sumfrac
+Answer print

@@ -1,0 +1,14 @@
+use testing
+
+test "prime generators"
+  use "357_primegenerating"
+  Limit = 10
+  run
+  Answer equal 19
+  Limit = 100
+  run
+  Answer equal 401
+  Limit = 10000
+  run
+  Answer equal 262615
+end

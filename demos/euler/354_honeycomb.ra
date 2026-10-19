@@ -1,0 +1,119 @@
+rem Distances in a Bee's Honeycomb
+rem https://projecteuler.net/problem=354
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 5 * 10 ** 11
+
+rem Upper bound in a sorted array.
+fun X A upper
+  Lo = 0
+  Hi = A len
+  for Lo less Hi
+    Mid = (Lo + Hi) // 2
+    if A Mid at most X
+      Lo = Mid + 1
+    else
+      Hi = Mid
+    end
+  end
+  return Lo
+end
+
+rem Count 3^a times a 2-mod-3 square.
+fun N Good g
+  Total = 0
+  for N greater 0
+    Total += Good (N isqrt)
+    N //= 3
+  end
+  return Total
+end
+
+N = Limit * Limit // 3
+Base = 7 ** 4 * 13 ** 4
+Top = (N // Base) isqrt
+Pr = primes to Top array
+P1 = Pr filter (Pr mod 3 equal 1) array
+Min = Base * 19 ** 2
+Root = (N // Min) isqrt
+Good = array shape (Root + 1) fill 1
+Good 0 = 0
+for P in Pr
+  if P greater Root
+    break
+  end
+  if P mod 3 not equal 2
+    Good (P to Root by P) = 0
+  end
+end
+Good = Good scan +
+Answer = 0
+
+rem Exponents 24,2.
+P = 7
+P24 = P ** 24
+for Q in P1
+  A = P24 * Q * Q
+  if A greater N
+    break
+  end
+  if Q not equal P
+    Answer += (N // A) Good g
+  end
+end
+
+rem Exponents 14,4.
+for P in P1
+  P14 = P ** 14
+  if P14 * 7 ** 4 greater N
+    break
+  end
+  for Q in P1
+    A = P14 * Q ** 4
+    if A greater N
+      break
+    end
+    if Q not equal P
+      Answer += (N // A) Good g
+    end
+  end
+end
+
+rem Exponents 4,4,2 by quotient blocks.
+for I in 0 to (P1 len - 1)
+  P = P1 I
+  P4 = P ** 4
+  if P4 * P4 * 49 greater N
+    break
+  end
+  for J in I + 1 to (P1 len - 1)
+    Q = P1 J
+    A = P4 * Q ** 4
+    if A * 49 greater N
+      break
+    end
+    C = N // A
+    R = 7
+    for R * R at most C
+      T = C // (R * R)
+      Hi = (C // T) isqrt
+      Count = Hi P1 upper
+      Count -= (R - 1) P1 upper
+      if P at least R and P at most Hi
+        Count -= 1
+      end
+      if Q at least R and Q at most Hi
+        Count -= 1
+      end
+      if Count greater 0
+        Answer += Count * (T Good g)
+      end
+      R = Hi + 1
+    end
+  end
+end
+Answer print

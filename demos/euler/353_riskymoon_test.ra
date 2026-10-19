@@ -1,0 +1,15 @@
+use testing
+
+test "risky moon r7"
+  use "353_riskymoon"
+  Risk = 7 moon
+  Risk greater 0.1784943997
+  Risk less 0.1784943999
+end
+
+test "first five risky moons"
+  use "353_riskymoon"
+  Last = 5
+  run
+  Answer equal 1.1091333145
+end

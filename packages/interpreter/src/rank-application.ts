@@ -65,7 +65,9 @@ export class RankApplication {
         if (typeof value === 'string') {
             if (cellRank >= 1) return this.invoke(fn, [value]);
             const cells = textCells(value);
-            return completed(this.applyToTensorCells(lazyArray(cells.frameShape, cells.cellAt, true), fn, [0]));
+            // Text is immutable: publish a stable dependency so pure ranked
+            // results are cached when overlapping selections reread its cells.
+            return completed(this.applyToTensorCells(derivedArray(cells.frameShape, [], cells.cellAt, true), fn, [0]));
         }
         if (isRankSequence(value)) {
             if (cellRank >= 1) return this.invoke(fn, [value]);

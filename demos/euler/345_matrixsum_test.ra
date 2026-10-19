@@ -1,0 +1,7 @@
+use testing
+
+test "matrix sum"
+  use "345_matrixsum"
+  run
+  Answer equal 13938
+end

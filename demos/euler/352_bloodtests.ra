@@ -1,0 +1,50 @@
+rem Blood Tests
+rem https://projecteuler.net/problem=352
+
+use io
+use numbers
+use cli
+
+option Size integer = 10000
+
+fun P Size blood
+  Q = 1.0 - P
+  Cap = ((2.0 / P) floor) + 50
+  T = array shape (Size + 1) fill 0.0
+  C = array shape (Size + 1) fill 0.0
+  Pow = array shape (Size + 1) fill 0.0
+  Pow 0 = 1.0
+  T 1 = 1.0
+  for I in 1 to Size
+    Pow I = Pow (I - 1) * Q
+  end
+  for N in 2 to Size
+    Den = 1.0 - Pow N
+    Best = Size * 1.0
+    Top = (N - 1) Cap min
+    for M in 1 to Top
+      Neg = (Pow M - Pow N) / Den
+      Pos = (1.0 - Pow M) / Den
+      V = 1.0 + Neg * C (N - M)
+      V += Pos * (C M + T (N - M))
+      Best = Best V min
+    end
+    C N = Best
+    Best = Size * 1.0
+    Top = N Cap min
+    for M in 1 to Top
+      V = 1.0 + T (N - M)
+      V += (1.0 - Pow M) * C M
+      Best = Best V min
+    end
+    T N = Best
+  end
+  return T Size
+end
+
+Sum = 0.0
+for I in 1 to 50
+  Sum += (I / 100.0) Size blood
+end
+Answer = Sum 6 round
+Answer print
