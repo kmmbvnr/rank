@@ -1,0 +1,10 @@
+use testing
+
+test "given tower values"
+  use "324_tower"
+  Exp = 5
+  run
+  5 recurrence equal 96149360
+  500 recurrence equal 24806056
+  500000 recurrence equal 30808124
+end
