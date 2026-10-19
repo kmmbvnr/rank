@@ -1,0 +1,54 @@
+rem Comfortable Distance
+rem https://projecteuler.net/problem=364
+
+use numbers
+use io
+use cli
+
+option N integer = 1000000
+option Mod integer = 100000007
+
+fun F I A B Mod bin
+  if B less 0 or B greater A
+    return 0
+  end
+  R = F A * I B mod Mod
+  return R * I (A - B) mod Mod
+end
+
+F = array shape (N + 1) fill 1
+for I in 1 to N
+  F I = F (I - 1) * I mod Mod
+end
+I = array shape (N + 1) fill 1
+I N = F N (Mod - 2) Mod powmod
+Pow = array shape (N // 3 + 2) fill 1
+for P in 1 till Pow len
+  Pow P = 2 * Pow (P - 1) mod Mod
+end
+for J in N to 1 by -1
+  I (J - 1) = I J * J mod Mod
+end
+Answer = 0
+for A in 1 to 2
+  for B in 0 to 1
+    L = N - A - B
+    E = B
+    if A equal 2
+      E += 1
+    end
+    Start = L mod 2
+    Max = L // 3
+    for P in Start to Max by 2
+      K = 1 + (L - P) // 2
+      Ways = F I (K - 1) P Mod bin
+      Ways = Ways * Pow P mod Mod
+      Ways = Ways * F K mod Mod
+      Ways = Ways * F (P + E) mod Mod
+      Ways = Ways * F (K - 1) mod Mod
+      Answer += Ways
+      Answer mod= Mod
+    end
+  end
+end
+Answer print
