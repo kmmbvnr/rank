@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "260_stonegame"
+  run
+
+  Answer equal 167542057
+end
+
+test "small top"
+  use "260_stonegame"
+  Top = 10
+  run
+
+  Answer equal 213
+  Top = 100
+  run
+
+  Answer equal 173895
+end

@@ -1,0 +1,54 @@
+rem Stone Game
+rem https://projecteuler.net/problem=260
+rem Three piles, and a move takes N
+rem stones from one pile, or from two,
+rem or from all three. Whoever takes the
+rem last stone wins. Add up x + y + z
+rem over the lost positions with x <= y
+rem <= z and z up to Top.
+
+use numbers
+use io
+use cli
+
+option Top integer = 1000
+
+rem A position is lost when no move goes
+rem to a lost one. Going in order of z,
+rem y and x, every lost position marks
+rem the positions that reach it: the
+rem same two piles, or the same third
+rem pile with the other two a fixed
+rem difference apart, or the same
+rem differences of all three. A position
+rem with a mark is won.
+W = Top + 1
+Pr = array shape (W * W) fill 0
+Dg = array shape (W * W) fill 0
+Eq = array shape (W * W) fill 0
+Sum = 0
+for Z in 0 to Top
+  for Y in 0 to Z
+    for X in 0 to Y
+      Hit = Pr (X * W + Y)
+      Hit += Pr (X * W + Z)
+      Hit += Pr (Y * W + Z)
+      Hit += Dg ((Y - X) * W + Z)
+      Hit += Dg ((Z - X) * W + Y)
+      Hit += Dg ((Z - Y) * W + X)
+      Hit += Eq ((Y - X) * W + Z - Y)
+      if Hit equal 0
+        Sum += X + Y + Z
+        Pr (X * W + Y) = 1
+        Pr (X * W + Z) = 1
+        Pr (Y * W + Z) = 1
+        Dg ((Y - X) * W + Z) = 1
+        Dg ((Z - X) * W + Y) = 1
+        Dg ((Z - Y) * W + X) = 1
+        Eq ((Y - X) * W + Z - Y) = 1
+      end
+    end
+  end
+end
+Answer = Sum
+Answer print
