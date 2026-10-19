@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "242_oddtriplets"
+  run
+
+  Answer equal 997104142249036713
+end
+
+test "small limits"
+  use "242_oddtriplets"
+  Limit = 10
+  run
+
+  Answer equal 5
+  Limit = 100
+  run
+
+  Answer equal 139
+  Limit = 1000
+  run
+
+  Answer equal 5793
+end
