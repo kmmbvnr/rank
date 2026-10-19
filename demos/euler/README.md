@@ -47,20 +47,29 @@ demo are timed separately in [the prime sequence benchmark](../../benchmarks/pri
 
 ## Problems 201-300
 
-Written: 201-210, 213, 215, 217-222, 224-228, 230-235, 237, 239-240,
-242-244, 247, 250, 265-268, 271, 274, 276-278, 281-282, 284-286, 288,
-290, 293-294, 297. The others are not written, mostly for the cost of
-the array form in Rank:
+All of 201-300 are written, one program and one test file each. Most
+use arrays; where a problem needs a search or a table that arrays do
+not give (a state machine over partitions, a union find, a depth first
+search), the program is scalar loops over integer arrays, which the
+interpreter compiles. A few depend on an answer found by a guess that is
+named in the program, as 256 (the least s is looked for among multiples
+of 55440) and 262 (a grid of step 2 for the contour).
 
-| Problem | Why not |
-|---|---|
-| 211, 214, 223 | tables of 4 x 10^7 to 6.4 x 10^7 numbers run out of memory (#339) |
-| 212, 238, 249, 258, 259 | minutes or more even in array form: 3-D union volume, tables of 10^8 sums, polynomial powers of degree 2000 |
-| 216, 229, 251, 291 | millions of primality tests or of square roots modulo primes |
-| 248, 272, 298, 300 | need a map from a key to an array, or about 10^7 states |
-| the rest | not attempted |
+Default inputs that take a minute or more keep their tests on smaller
+inputs: 210, 212, 224, 245, 250, 253, 262, 266, 268, 272, 275 and 300.
+Others have the default input in the test and take from 10 s to 2 min:
+213, 229, 233, 236, 238, 247, 251, 254, 260, 283, 289, 291, 292, 295.
+The long ones are left out of the type, name-facts and differential
+audits because the reference interpreter is far slower than the
+compiled loops.
 
-Demos whose default input takes about a minute keep their tests on smaller
-inputs and are left out of the type, name-facts and differential audits:
-210 (#333), 224 (#338), 250 (#335), 266 and 268. 213 and 247 take about
-40 s and 10 s.
+Notes from this range, for the next one:
+
+- `A B gcd`, `A isqrt` and `A B max` are postfix calls and take everything
+  to their left, so use named intermediates.
+- A Boolean array does not sum: use `count` (#392).
+- A gathered or sorted array (`A Order`) is lazy; `copy` it before reading
+  it in a loop, or the loop does not compile.
+- A compiled loop checks its arrays when it is entered, so a small loop
+  inside a loop that is not compiled costs the size of the array each
+  time (#390). `**` and `isqrt` stop a loop from compiling (#391).
