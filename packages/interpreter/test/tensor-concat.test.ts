@@ -1,0 +1,88 @@
+import { describe, expect, it, vi } from 'vitest';
+import { Interpreter, formatValue } from '../src/index.js';
+
+function run(source: string, tensorFusion: boolean) {
+    let kernels = 0, compiled = 0;
+    const runtime = new Interpreter(undefined, { tensorFusion,
+        onTensorKernelExecuted: () => kernels++, onTensorKernelCompiled: () => compiled++ });
+    try {
+        const value = runtime.execute('use sequences\n' + source)!;
+        return { value: formatValue(value), kernels, compiled };
+    } catch (error) {
+        return { error: (error as Error).message, kernels, compiled };
+    } finally { runtime.dispose(); }
+}
+
+function compare(source: string) {
+    const reference = run(source, false), fused = run(source, true);
+    expect({ ...fused, kernels: 0, compiled: 0 }).toEqual({ ...reference, kernels: 0, compiled: 0 });
+    return fused;
+}
+
+describe('concat in tensor expressions', () => {
+    it.each([0, 1, 3, 4])('copies a rotation by %s with no transient concat array', rotation => {
+        const result = compare(`A = array 9007199254740993 -2 3 -4
+Head = A take ${4 - rotation}
+Tail = A drop ${4 - rotation}
+B = (A + concat Tail Head) mod 10000000000000000 copy
+B`);
+        expect(result.kernels).toBe(1);
+    });
+
+    it.each(['//', 'mod'])('preserves %s floor signs and zero-divisor fallback', operator => {
+        expect(compare(`A = array -10 -9 0 9 10
+B = array 3 -3 3 -3 3
+C = (A ${operator} B) copy
+C`).kernels).toBe(1);
+        expect(compare(`A = array 3 0
+C = (A ${operator} A) copy
+C`)).toHaveProperty('error', 'division by zero');
+    });
+
+    it('preserves scalar errors before an empty result', () => {
+        expect(compare('A = array shape 0 fill 0\nC = (A + (1 mod 0)) copy\nC'))
+            .toHaveProperty('error', 'division by zero');
+    });
+
+    it('keeps segment homogeneity checks when numeric promotion would hide them', () => {
+        expect(compare('A = array 1 2\nB = array 3.0 4.0\nC = ((concat A B) + 0.5) copy\nC'))
+            .toHaveProperty('error');
+    });
+
+    it('keeps the current offsets when equally shaped views change source positions', () => {
+        const source = `A = array 1 2 3 4 5 6
+Q = array shape 0 fill 0
+for I in 0 till 3
+ Head = (A drop I) take 2
+ Tail = (A drop (I + 2)) take 2
+ Q = ((concat Head Tail) * 2) copy
+end
+Q`;
+        expect(compare(source)).toMatchObject({ value: '6 8 10 12', kernels: 3 });
+    });
+
+    it('reuses code while preserving the last intermediate bindings and old aliases', () => {
+        const result = compare(`A = array 1 2 3 4
+Old = A
+Head = array shape 0 fill 0
+Tail = array shape 0 fill 0
+for I in 0 till 40
+ R = I mod 5
+ Head = A take R
+ Tail = A drop R
+ A = (A + concat Tail Head) mod 100 copy
+end
+(A sum) + (Old sum) + (Head sum) + (Tail sum)`);
+        expect(result.kernels).toBe(40);
+        expect(result.compiled).toBeLessThanOrEqual(5);
+    });
+
+    it('declines unsupported axes and retains CSP fallback', () => {
+        compare('A = array shape 2 2 fill 1\nB = ((concat A A axis 1) + 1) copy\nB');
+        const mock = vi.spyOn(globalThis, 'Function').mockImplementation(() => { throw new Error('CSP'); });
+        try {
+            expect(compare('A = array 1 2\nB = ((concat A A) mod 3) copy\nB'))
+                .toMatchObject({ value: '1 2 1 2', kernels: 0 });
+        } finally { mock.mockRestore(); }
+    });
+});
