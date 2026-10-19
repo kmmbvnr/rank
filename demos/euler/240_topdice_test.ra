@@ -1,0 +1,19 @@
+use testing
+
+test "default input"
+  use "240_topdice"
+  run
+
+  Answer equal 7448717393364181966
+end
+
+test "five six-sided dice"
+  use "240_topdice"
+  N = 5
+  S = 6
+  Top = 3
+  Sum = 15
+  run
+
+  Answer equal 1111
+end

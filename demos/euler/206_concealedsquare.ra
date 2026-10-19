@@ -1,0 +1,40 @@
+rem Concealed Square
+rem https://projecteuler.net/problem=206
+rem Find the number whose square has the
+rem form 1_2_3_4_5_6_7_8_9_0
+
+use numbers
+use sequences
+use io
+use cli
+
+rem The square ends in 900: the number
+rem is 10 m and m squared is 1_2_..._9.
+rem Grow m one digit at a time from the
+rem right, starting from a last digit of
+rem 3 or 7. The k-th digit fixes digit k
+rem of m squared, which is tested when
+rem it is a specified one.
+Hi = 19293949596979899 isqrt
+M = array 3 7
+for K in 1 to 8
+  Rows = M len
+  Dig = 10 ** K * (0 to 9 array)
+  Up = (M reshape Rows 1) + Dig
+  M = Up reshape (Rows * 10)
+  if K mod 2 equal 0
+    J = K // 2
+    S = M * M // 100 ** J
+    Ok = S mod 10 equal 9 - J
+    M = M filter Ok array
+  end
+end
+Ok = M at most Hi
+M = M filter Ok array
+for J in 0 to 8
+  S = M * M // 100 ** J
+  Ok = S mod 10 equal 9 - J
+  M = M filter Ok array
+end
+Answer = M 0 * 10
+Answer print

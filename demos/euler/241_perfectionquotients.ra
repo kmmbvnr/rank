@@ -1,0 +1,97 @@
+rem Perfection Quotients
+rem https://projecteuler.net/problem=241
+rem Add up the n up to Limit for which
+rem sigma(n) / n = k + 1/2 for an
+rem integer k
+
+use numbers
+use algo
+use io
+use cli
+
+option Limit integer = 10 ** 18
+
+rem For each T = (2 k + 1) / 2, build n
+rem prime power by prime power, keeping
+rem Q = T n / sigma(n) = Num / Den, to
+rem reach 1. Each factor sigma(p^e) /
+rem p^e is above 1, so Q only falls and
+rem a branch dies below 1. A number to
+rem finish n is a multiple of Den, so a
+rem branch with n Den above Limit dies,
+rem and the least prime of Den is forced
+rem in next, with an exponent as large
+rem as its power in Den as only p^e
+rem gives p in the numerator of
+rem sigma(p^e).
+fun D lpf
+  if D mod 2 equal 0
+    return 2
+  end
+  P = 3
+  for
+    if P * P greater D
+      return D
+    end
+    if D mod P equal 0
+      return P
+    end
+    P += 2
+  end
+end
+fun Out N Num Den walk
+  if N * Den greater Limit
+    return 0
+  end
+  if Num equal Den
+    Out add N
+    return 0
+  end
+  if Num less Den
+    return 0
+  end
+  P = Den lpf
+  if N mod P equal 0
+    return 0
+  end
+  A = 0
+  D = Den
+  for
+    if D mod P greater 0
+      break
+    end
+    D = D // P
+    A += 1
+  end
+  Pk = 1
+  Sg = 1
+  E = 0
+  for
+    E += 1
+    Pk = Pk * P
+    Sg += Pk
+    if E less A
+      continue
+    end
+    N2 = N * Pk
+    if N2 greater Limit
+      break
+    end
+    X1 = Num * Pk
+    Y1 = Den * Sg
+    G = X1 Y1 gcd
+    Num2 = X1 // G
+    Den2 = Y1 // G
+    if Num2 less Den2
+      break
+    end
+    Dm = Out N2 Num2 Den2 walk
+  end
+  return 0
+end
+Found = new set
+for T in 3 to 13 by 2
+  Dm = Found 1 T 2 walk
+end
+Answer = Found array sum
+Answer print

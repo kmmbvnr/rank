@@ -1,0 +1,28 @@
+use testing
+
+test "default input"
+  use "283_integertriangles"
+  run
+
+  Answer equal 28038042525570324
+end
+
+test "small top"
+  use "283_integertriangles"
+  Top = 1
+  run
+
+  Answer equal 192
+  Top = 2
+  run
+
+  Answer equal 2796
+  Top = 5
+  run
+
+  Answer equal 140098
+  Top = 10
+  run
+
+  Answer equal 3781786
+end

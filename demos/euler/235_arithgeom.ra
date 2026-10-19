@@ -1,0 +1,31 @@
+rem An Arithmetic Geometric Sequence
+rem https://projecteuler.net/problem=235
+rem Find the ratio r with sum of
+rem (900 - 3 k) r^(k - 1) over k up to
+rem N equal to Target, to 12 places
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 5000
+option Target integer = -600000000000
+
+rem The sum falls as r grows, so bisect
+rem on r.
+K = 1 to N array
+Coef = 900 - 3 * K
+Lo = 1.0
+Hi = 1.01
+for I in 1 to 80
+  R = (Lo + Hi) / 2
+  Total = (Coef * (R ** (K - 1))) sum
+  if Total greater Target
+    Lo = R
+  else
+    Hi = R
+  end
+end
+Answer = (Lo + Hi) / 2 12 round
+Answer print

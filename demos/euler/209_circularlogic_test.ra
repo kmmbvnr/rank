@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "209_circularlogic"
+  run
+
+  Answer equal 15964587728784
+end
+
+test "fewer inputs"
+  use "209_circularlogic"
+  N = 3
+  run
+
+  Answer equal 28
+  N = 4
+  run
+
+  Answer equal 1596
+  N = 5
+  run
+
+  Answer equal 2961596
+end

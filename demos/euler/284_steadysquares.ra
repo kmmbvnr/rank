@@ -1,0 +1,55 @@
+rem Steady squares
+rem https://projecteuler.net/problem=284
+rem Sum the digit sums of the n-digit
+rem steady squares in base 14 for n up
+rem to N, written in base 14
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+option N integer = 10000
+rem x is steady when x^2 = x mod 14^n:
+rem 0, 1 and two more, a = 0 mod 7^n and
+rem 1 mod 2^n, and b = 1 - a. The a for
+rem all n share their low digits, take
+rem the digits d of a for n = N: the n
+rem digit a is the first n of them and b
+rem has digits 8, then 13 - d. A number
+rem counts when its top digit is not 0.
+rem counts when its top digit is not 0.
+Sev = 7 ** N
+Two = 2 ** N
+Inv = Sev (Two // 2 - 1) Two powmod
+A = Sev * Inv mod (14 ** N)
+D = array shape N fill 0
+X = A
+for I in 0 till N
+  D I = X mod 14
+  X = X // 14
+end
+Cum = D scan +
+Top = D at least 1
+TopB = D less 13
+SumA = Cum
+Idx = 0 to (N - 1) array
+SumB = 8 + 13 * Idx - (Cum - 7)
+Zero = Top choose SumA 0
+Rest = TopB choose SumB 0
+Total = (Zero + Rest) sum + 1
+Alpha = "0123456789abcd"
+Ds = array shape 20 fill 0
+Count = 0
+for K in 0 till 20
+  if Total equal 0
+    break
+  end
+  Ds K = Total mod 14
+  Total = Total // 14
+  Count += 1
+end
+Low = Ds take Count
+Answer = Alpha (Low reverse)
+Answer print

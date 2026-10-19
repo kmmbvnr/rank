@@ -1,0 +1,26 @@
+use testing
+
+rem The default input takes about 10 s.
+test "default input"
+  use "221_alexandrian"
+  run
+
+  Answer equal 1884161251122450
+end
+
+test "first six"
+  use "221_alexandrian"
+  N = 1
+  Limit = 10
+  run
+
+  Answer equal 6
+  N = 4
+  run
+
+  Answer equal 156
+  N = 6
+  run
+
+  Answer equal 630
+end

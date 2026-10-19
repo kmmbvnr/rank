@@ -1,0 +1,45 @@
+rem Top Dice
+rem https://projecteuler.net/problem=240
+rem Count the ways to roll N dice with S
+rem sides so that the Top highest dice
+rem add up to Sum
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 20
+option S integer = 12
+option Top integer = 10
+option Sum integer = 70
+
+rem Deal out the faces from the highest
+rem down. W[u, t] counts the ways for u
+rem dice dealt so far with the best Top
+rem of them adding to t. Dealing c dice
+rem a face v picks them in C(N - u, c)
+rem ways and adds v to t for each of the
+rem dice that still make the top.
+Rows = N + 1
+Cols = Sum + 1
+W = array shape Rows Cols fill 0
+W 0 0 = 1
+for V in S to 1 by -1
+  Next = array shape Rows Cols fill 0
+  for U in 0 to N
+    for C in 0 to (N - U)
+      Ways = (N - U) C binomial
+      Gain = V * (C (Top - U 0 max) min)
+      for T in 0 to (Sum - Gain)
+        Old = W U T
+        Nu = U + C
+        Nt = T + Gain
+        Next Nu Nt += Old * Ways
+      end
+    end
+  end
+  W = Next
+end
+Answer = W N Sum
+Answer print

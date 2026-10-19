@@ -1,0 +1,93 @@
+rem Sliding Block Puzzle
+rem https://projecteuler.net/problem=244
+rem Sum the checksums of all shortest
+rem move sequences that turn the start
+rem board into the target
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option Mod integer = 100000007
+
+rem A board is its empty square and a
+rem 16 bit set of red squares. Spread
+rem the boards one level at a time. Each
+rem keeps how many shortest paths reach
+rem it and the sum of their checksums,
+rem which a move m turns into 243 c + m
+rem for each path. Letters name the way
+rem a tile slides: L moves the empty
+rem square right.
+Rs = array 1 4 5 8 9 12 13
+Gs = array 2 5 7 8 10 13 15
+Start = (1 Rs shl) sum
+Goal = (1 Gs shl) sum
+Ords = array 76 82 85 68
+Dels = array 1 -1 4 -4
+Key = array (Start * 16)
+Cnt = array 1
+Chk = array 0
+Seen = array shape 1048576 fill 0
+Seen (Start * 16) = 1
+Answer = 0
+for Level in 1 to 100
+  Pos = Key mod 16
+  Red = Key // 16
+  NK = array shape 0 fill 0
+  NC = NK
+  NS = NK
+  for M in 0 to 3
+    To = Pos + Dels M
+    Ok = (To at least 0) and To less 16
+    if M less 2
+      Row = To // 4 equal Pos // 4
+      Ok = Ok and Row
+    end
+    P = Pos filter Ok array
+    T = To filter Ok array
+    R = Red filter Ok array
+    Sh = R T shr
+    Moved = Sh 1 band
+    Bt = 1 T shl
+    Rest = R (Bt bnot) band
+    Mp = Moved P shl
+    NewRed = Rest Mp bor
+    Ck = Chk * 243 + Ords M * Cnt
+    NK = concat NK (NewRed * 16 + T)
+    NC = concat NC (Cnt filter Ok array)
+    Cm = Ck mod Mod
+    NS = concat NS (Cm filter Ok array)
+  end
+  Fresh = (Seen NK) equal 0
+  NK = NK filter Fresh array
+  NC = NC filter Fresh array
+  NS = NS filter Fresh array
+  Ord = NK argsort
+  Ks = NK Ord
+  Cc = (NC Ord) scan +
+  Cs = (NS Ord) scan +
+  Nx = concat (Ks drop 1) (array -1)
+  Last = Ks not equal Nx
+  Ke = Ks filter Last array
+  Ce = Cc filter Last array
+  Se = Cs filter Last array
+  H = Ke len
+  Hc = Ce take (H - 1)
+  Hs = Se take (H - 1)
+  Pc = concat (array 0) Hc
+  Ps = concat (array 0) Hs
+  Key = Ke
+  Cnt = Ce - Pc
+  Chk = (Se - Ps) mod Mod
+  Seen Key = Seen Key - Seen Key + 1
+  Hit = Key equal (Goal * 16)
+  if Hit any
+    Won = Chk filter Hit array
+    Answer = Won sum mod Mod
+    break
+  end
+end
+Answer print

@@ -1,0 +1,18 @@
+use testing
+
+rem The default input takes about 90 s,
+rem so the test only checks the
+rem practical numbers.
+test "practical numbers"
+  use "263_engineersdream"
+  Count = 0
+  run
+
+  (6 practical) equal true
+  (12 practical) equal true
+  (20 practical) equal true
+  (8 practical) equal true
+  (10 practical) equal false
+  (14 practical) equal false
+  (28 practical) equal true
+end

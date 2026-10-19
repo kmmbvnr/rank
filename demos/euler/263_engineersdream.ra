@@ -1,0 +1,101 @@
+rem An engineers' dream come true
+rem https://projecteuler.net/problem=263
+rem Sum the first Count engineers'
+rem paradises: numbers n with the
+rem consecutive primes n - 9, n - 3, n +
+rem 3, n + 9 and practical n - 8, n - 4,
+rem n, n + 4, n + 8
+
+use numbers
+use sequences
+use io
+use cli
+
+option Count integer = 4
+
+rem n is even, and the primes n - 9 .. n
+rem + 9 avoid 3, 5 and 7 as factors,
+rem which a wheel of 210 keeps to a few
+rem residues. The odd numbers between
+rem the primes must be composite, and
+rem each of the five numbers must be
+rem practical: with the primes p of N in
+rem order, p is at most 1 + the sum of
+rem divisors of the part below p
+rem (Stewart's test).
+fun N practical
+  Left = N
+  Sigma = 1
+  for P in N factors array unique
+    if P greater Sigma + 1
+      return false
+    end
+    Part = 1
+    Total = 1
+    for
+      if Left mod P not equal 0
+        break
+      end
+      Left //= P
+      Part *= P
+      Total += Part
+    end
+    Sigma *= Total
+  end
+  return true
+end
+
+Res = array shape 0 fill 0
+for R in 0 to 209 by 2
+  Ok = true
+  for D in array -9 -3 3 9
+    X = R + D
+    Bad = X mod 3 equal 0
+    Bad = Bad or (X mod 5 equal 0)
+    if Bad or (X mod 7 equal 0)
+      Ok = false
+    end
+  end
+  if Ok
+    Res = concat Res (array R)
+  end
+end
+Found = 0
+Answer = 0
+Gaps = array 7 5 1 -1 -5 -7
+Near = array -8 -4 0 4 8
+for Base in 210 to 100000000000 by 210
+  for R in Res
+    N = Base + R
+    Ok = false
+    L = N - 9
+    if L in primes and L + 18 in primes
+      Ok = L + 6 in primes
+      if Ok
+        Ok = L + 12 in primes
+      end
+    end
+    if Ok
+      for G in Gaps
+        if N - G in primes
+          Ok = false
+        end
+      end
+    end
+    if Ok
+      for D in Near
+        if not ((N + D) practical)
+          Ok = false
+        end
+      end
+    end
+    if Ok
+      Found += 1
+      Answer += N
+    end
+  end
+  if Found equal Count
+    break
+  end
+end
+Answer print

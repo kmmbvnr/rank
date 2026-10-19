@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "259_reachablenumbers"
+  run
+
+  Answer equal 20101196798
+end
+
+test "fewer digits"
+  use "259_reachablenumbers"
+  Top = 3
+  run
+
+  Answer equal 255
+  Top = 4
+  run
+
+  Answer equal 4179
+  Top = 5
+  run
+
+  Answer equal 74689
+end

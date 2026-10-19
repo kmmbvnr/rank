@@ -1,0 +1,31 @@
+rem Linear Combinations of Semiprimes
+rem https://projecteuler.net/problem=278
+rem Sum f(p q r) over primes p < q < r
+rem below Limit, f(n) being the greatest
+rem number not a sum of multiples of
+rem p q, p r and q r
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 5000
+
+rem For these primes f = 2 p q r - p q -
+rem p r - q r. Summed over all triples,
+rem p q r gives the third elementary
+rem symmetric sum e3 of the primes, and
+rem the pairs each occur with the m - 2
+rem other primes. The sums e2 and e3
+rem come from the power sums.
+Ps = primes till Limit array
+M = Ps len
+S1 = Ps sum
+S2 = (Ps * Ps) sum
+S3 = (Ps * Ps * Ps) sum
+E2 = (S1 * S1 - S2) // 2
+Cube = S1 * S1 * S1 - 3 * S1 * S2
+E3 = (Cube + 2 * S3) // 6
+Answer = 2 * E3 - (M - 2) * E2
+Answer print

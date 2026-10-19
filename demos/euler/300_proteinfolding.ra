@@ -1,0 +1,140 @@
+rem Protein folding
+rem https://projecteuler.net/problem=300
+rem A protein is a string of N amino
+rem acids, each H or P, folded on a
+rem square grid as a self avoiding walk.
+rem Its strength is the number of pairs
+rem of H next to each other on the grid,
+rem the best over all folds. Find the
+rem average strength over all 2^N
+rem proteins.
+
+use numbers
+use bits
+use algo
+use sequences
+use io
+use cli
+
+option N integer = 15
+
+rem Walks are found by a depth first
+rem search, the first step to the right
+rem and the first turn up, as the other
+rem folds mirror these. A walk is kept
+rem as its set of touching pairs (i, j),
+rem with bit i N + j for each, so that
+rem the same set of pairs from many
+rem walks counts once. For a protein the
+rem strength of a set is the count of
+rem its pairs with both ends H. The bits
+rem of each place over all proteins are
+rem rows of Bm, the pairs of neighbors
+rem in the chain add Cb to all, and the
+rem best set is taken with the max of
+rem two arrays.
+Dx = array 1 0 -1 0
+Dy = array 0 1 0 -1
+W = 2 * N + 3
+O = N + 1
+Occ = array shape (W * W) fill 0
+X = array shape N fill 0
+Y = array shape N fill 0
+Dc = array shape (N + 1) fill 0
+Tn = array shape (N + 1) fill 0
+Kb = array shape (N + 1) fill 0
+Keys = new set
+Key = 0
+Occ (O * W + O) = 1
+D = 1
+for
+  if D equal N
+    Keys add Key
+    D -= 1
+    Cell = (X D + O) * W + Y D + O
+    Occ Cell = 0
+    Key -= Kb D
+    continue
+  end
+  if Dc D equal 4
+    if D equal 1
+      break
+    end
+    D -= 1
+    Cell = (X D + O) * W + Y D + O
+    Occ Cell = 0
+    Key -= Kb D
+    continue
+  end
+  K = Dc D
+  Dc D += 1
+  Nx = X (D - 1) + Dx K
+  Ny = Y (D - 1) + Dy K
+  Cell = (Nx + N + 1) * W + Ny + N + 1
+  Ok = Occ Cell equal 0
+  if D equal 1 and K greater 0
+    Ok = false
+  end
+  if Tn D equal 0 and K greater 1
+    Ok = false
+  end
+  if Tn D equal 0 and K equal 2
+    Ok = false
+  end
+  if Ok
+    X D = Nx
+    Y D = Ny
+    Bits = 0
+    for J in 0 to 3
+      Jc = (Nx + Dx J + N + 1) * W
+      Jc += Ny + Dy J + N + 1
+      Oc = Occ Jc
+      if Oc greater 0
+        Bits += 1 ((Oc - 1) * N + D) shl
+      end
+    end
+    Kb D = Bits
+    Key += Bits
+    Occ Cell = D + 1
+    Tn (D + 1) = Tn D
+    if K greater 0
+      Tn (D + 1) = 1
+    end
+    D += 1
+    Dc D = 0
+  end
+end
+Sz = 2 ** N
+Ms = 0 to (Sz - 1) array
+Bm = array shape (N * Sz) fill 0
+for I in 0 till N
+  Ai = Ms I shr
+  Lo = I * Sz
+  Bm (Lo till (Lo + Sz)) = Ai 1 band
+end
+Best = array shape Sz fill 0
+for Ky in Keys array
+  Cn = array shape Sz fill 0
+  for I in 0 to (N - 3)
+    for J in (I + 2) to (N - 1)
+      Kp = Ky (I * N + J) shr
+      if (Kp 1 band) equal 1
+        Li = I * Sz
+        Lj = J * Sz
+        Bi = Bm (Li till (Li + Sz))
+        Bj = Bm (Lj till (Lj + Sz))
+        Cn = Cn + Bi * Bj
+      end
+    end
+  end
+  Best = Best Cn max copy
+end
+Cb = array shape Sz fill 0
+for I in 0 to (N - 2)
+  Li = I * Sz
+  Bi = Bm (Li till (Li + Sz))
+  Bj = Bm ((Li + Sz) till (Li + 2 * Sz))
+  Cb = Cb + Bi * Bj
+end
+Answer = (Best + Cb) sum / Sz
+Answer print

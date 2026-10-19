@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "232_race"
+  run
+
+  Answer equal 0.83648556
+end
+
+test "short races"
+  use "232_race"
+  Goal = 3
+  run
+
+  Answer equal 0.54403292
+  Goal = 10
+  run
+
+  Answer equal 0.67006457
+end

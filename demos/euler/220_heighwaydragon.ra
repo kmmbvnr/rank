@@ -1,0 +1,93 @@
+rem Heighway Dragon
+rem https://projecteuler.net/problem=220
+rem Find the position after Steps steps
+rem of the dragon curve D_Order
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+option Order integer = 50
+option Steps integer = 1000000000000
+
+rem D_n = Fa with a -> aRbFR and
+rem b -> LFaLb. For each level and each
+rem letter keep the displacement and the
+rem turn of the whole string, then walk
+rem down from the top letter, taking
+rem whole parts while they fit.
+Cs = array 1 0 -1 0
+Sn = array 0 1 0 -1
+Dx = array 0 1 0 -1
+Dy = array 1 0 -1 0
+Kind = array 2 0 3 1 0 0 1 2 0 3
+Turn = array 0 1 0 0 1 -1 0 0 -1 0
+Vx = array shape (2 * Order + 2) fill 0
+Vy = array shape (2 * Order + 2) fill 0
+Vt = array shape (2 * Order + 2) fill 0
+for N in 1 to Order
+  for Ty in 0 to 1
+    X = 0
+    Y = 0
+    T = 0
+    for J in 0 to 4
+      K = Kind (5 * Ty + J)
+      I = 2 * (N - 1) + K - 2
+      if K equal 1
+        X += Dx (T mod 4)
+        Y += Dy (T mod 4)
+      end
+      if K at least 2
+        C = Cs (T mod 4)
+        S = Sn (T mod 4)
+        X += Vx I * C + Vy I * S
+        Y += Vy I * C - Vx I * S
+        T += Vt I
+      end
+      T += Turn (5 * Ty + J)
+    end
+    Vx (2 * N + Ty) = X
+    Vy (2 * N + Ty) = Y
+    Vt (2 * N + Ty) = T
+  end
+end
+X = 0
+Y = 1
+T = 0
+Rem = Steps - 1
+Ty = 0
+for N in Order to 1 by -1
+  Go = 1
+  H = 2 ** (N - 1) - 1
+  for J in 0 to 4
+    K = Kind (5 * Ty + J)
+    I = 2 * (N - 1) + K - 2
+    Run = (Go equal 1) and Rem greater 0
+    if Run and (K equal 1)
+      X += Dx (T mod 4)
+      Y += Dy (T mod 4)
+      Rem -= 1
+    end
+    if Run and (K at least 2)
+      if Rem at least H
+        C = Cs (T mod 4)
+        S = Sn (T mod 4)
+        X += Vx I * C + Vy I * S
+        Y += Vy I * C - Vx I * S
+        T += Vt I
+        Rem -= H
+      else
+        Ty = K - 2
+        Go = 0
+      end
+    end
+    if Go equal 1 and (K equal 0)
+      T += Turn (5 * Ty + J)
+    end
+  end
+end
+Pair = array X Y
+Answer = Pair "," join
+Answer print

@@ -1,0 +1,41 @@
+rem Resilience
+rem https://projecteuler.net/problem=243
+rem Find the smallest denominator d with
+rem resilience phi(d) / (d - 1) below
+rem the fraction Num / Den
+
+use numbers
+use sequences
+use io
+use cli
+
+option Num integer = 15499
+option Den integer = 94744
+
+rem Resilience falls with each new prime
+rem factor, so the best d are multiples
+rem k Prim of a primorial with k below
+rem the next prime. Such d stay below
+rem the next primorial, so the first
+rem hit over the primorials is smallest.
+Pr = primes till 100 array
+Prods = Pr scan * with 1
+Answer = 0
+for M in 1 to (Pr len - 1)
+  Prim = Prods M
+  for K in 1 to (Pr M - 1)
+    D = K * Prim
+    Ps = D factors array unique
+    Rad = Ps reduce *
+    Tot = (Ps - 1) reduce *
+    Phi = D // Rad * Tot
+    if Phi * Den less Num * (D - 1)
+      Answer = D
+      break
+    end
+  end
+  if Answer greater 0
+    break
+  end
+end
+Answer print

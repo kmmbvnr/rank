@@ -1,0 +1,36 @@
+rem Skew-cost Coding
+rem https://projecteuler.net/problem=219
+rem Find the least total cost of a
+rem prefix-free code of N words, where
+rem a 0 costs 1 and a 1 costs 4
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000
+
+rem Keep the number of leaves of each
+rem cost. Splitting a leaf of cost c
+rem into leaves c + 1 and c + 4 adds
+rem c + 5 to the total and one leaf, so
+rem cheapest leaves are split first,
+rem a whole cost level at a time.
+Cnt = array shape 2000 fill 0
+Cnt 1 = 1
+Cnt 4 = 1
+Leaves = 2
+Total = 5
+for C in 1 to 1990
+  K = Cnt C (N - Leaves) min
+  if K greater 0
+    Cnt C -= K
+    Cnt (C + 1) += K
+    Cnt (C + 4) += K
+    Leaves += K
+    Total += K * (C + 5)
+  end
+end
+Answer = Total
+Answer print

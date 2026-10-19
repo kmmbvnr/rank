@@ -1,0 +1,57 @@
+rem Generalised Hamming Numbers
+rem https://projecteuler.net/problem=204
+rem Count the numbers up to Limit with
+rem no prime factor above Max
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000000
+option Max integer = 100
+option Split integer = 17
+
+rem Meet in the middle: Lo holds the
+rem smooth numbers of the primes below
+rem Split, Hi those of the rest. Each
+rem is grown one prime at a time by all
+rem its powers within Limit. A product
+rem a b fits when b <= Limit / a.
+Bits = Limit binary len
+Pr = primes to Max array
+Small = Pr less Split
+Lo = array 1
+Hi = array 1
+for G in 0 to 1
+  All = array 1
+  Mask = Small
+  if G equal 1
+    Mask = not Small
+  end
+  for P in Pr filter Mask array
+    Pw = P ** (0 to Bits array)
+    Ok = Pw at most Limit
+    Pw = Pw filter Ok array
+    Rows = All len
+    Col = All reshape Rows 1
+    Cells = Rows * (Pw len)
+    Prod = (Col * Pw) reshape Cells
+    Ok = Prod at most Limit
+    All = Prod filter Ok array
+  end
+  if G equal 0
+    Lo = All
+  else
+    Hi = All
+  end
+end
+Cap = Limit // Lo
+Keys = concat (Hi * 2) (Cap * 2 + 1)
+Tag = concat (Hi * 0) (Cap * 0 + 1)
+Sorted = Tag (Keys argsort)
+Below = (1 - Sorted) scan +
+Query = Sorted equal 1
+Answer = Below filter Query array sum
+Answer print

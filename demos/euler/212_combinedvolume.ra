@@ -1,0 +1,199 @@
+rem Combined Volume of Cuboids
+rem https://projecteuler.net/problem=212
+rem Cuboid n has its corner (x, y, z)
+rem and sides (dx, dy, dz) from six
+rem terms of the lagged Fibonacci
+rem sequence S. Find the volume of the
+rem union of the first N cuboids.
+
+use numbers
+use io
+use cli
+
+option N integer = 50000
+
+rem S(k) = 100003 - 200003 k + 300007
+rem k^3 for k up to 55 and S(k) = S(k -
+rem 24) + S(k - 55) after, all mod 10^6.
+rem Cuboid n takes S(6 n - 5) to S(6 n):
+rem x, y, z mod 10000 and 1 + the others
+rem mod 399. The union is cut in slabs
+rem of one unit in x, each the area of
+rem the union of the active (y, z)
+rem rectangles. This is found by
+rem sweeping in y over unit strips, the
+rem open and close of each rectangle at
+rem its y, with a segment tree on z of
+rem cover counts and covered lengths,
+rem updated from the bottom.
+Sq = array shape (6 * N + 1) fill 0
+for K in 1 to (6 * N)
+  if K at most 55
+    Cu = K * K * K
+    Lf = 100003 - 200003 * K
+    Lf += 300007 * Cu
+    Sq K = Lf mod 1000000
+  else
+    Sa = Sq (K - 24)
+    Sb = Sq (K - 55)
+    Sq K = (Sa + Sb) mod 1000000
+  end
+end
+Cx = array shape N fill 0
+Cy = array shape N fill 0
+Cz = array shape N fill 0
+Dx = array shape N fill 0
+Dy = array shape N fill 0
+Dz = array shape N fill 0
+for I in 0 till N
+  Cx I = Sq (6 * I + 1) mod 10000
+  Cy I = Sq (6 * I + 2) mod 10000
+  Cz I = Sq (6 * I + 3) mod 10000
+  Dx I = 1 + Sq (6 * I + 4) mod 399
+  Dy I = 1 + Sq (6 * I + 5) mod 399
+  Dz I = 1 + Sq (6 * I + 6) mod 399
+end
+Xm = 10400
+Hs = array shape (Xm + 1) fill 0 - 1
+Sn = array shape N fill 0 - 1
+for I in 0 till N
+  Sn I = Hs (Cx I)
+  Hs (Cx I) = I
+end
+Nz = 16384
+Cn = array shape (2 * Nz) fill 0
+Ln = array shape (2 * Nz) fill 0
+Sz = array shape (2 * Nz) fill 1
+for I in 1 to (Nz - 1)
+  Hc = Nz - I
+  L2 = 2 * Hc
+  Sz Hc = Sz L2 + Sz (L2 + 1)
+end
+Al = array shape N fill 0
+Na = 0
+Hy = array shape (Xm + 1) fill 0 - 1
+En = array shape (2 * N) fill 0 - 1
+Ev = array shape (2 * N) fill 0
+Total = 0
+for X in 0 to (Xm - 1)
+  Kp = 0
+  for T in 0 till Na
+    I = Al T
+    if Cx I + Dx I greater X
+      Al Kp = I
+      Kp += 1
+    end
+  end
+  Na = Kp
+  Ci = Hs X
+  for
+    if Ci less 0
+      break
+    end
+    Al Na = Ci
+    Na += 1
+    Ci = Sn Ci
+  end
+  if Na equal 0
+    continue
+  end
+  for T in 0 till Na
+    I = Al T
+    E1 = 2 * T
+    E2 = 2 * T + 1
+    En E1 = Hy (Cy I)
+    Hy (Cy I) = E1
+    En E2 = Hy (Cy I + Dy I)
+    Hy (Cy I + Dy I) = E2
+  end
+  Area = 0
+  for Y in 0 to (Xm - 1)
+    Ce = Hy Y
+    for
+      if Ce less 0
+        break
+      end
+      T = Ce // 2
+      I = Al T
+      V = 1
+      if Ce mod 2 equal 1
+        V = 0 - 1
+      end
+      L = Cz I + Nz
+      R = Cz I + Dz I + Nz
+      L0 = L
+      R0 = R - 1
+      for
+        if L at least R
+          break
+        end
+        if L mod 2 equal 1
+          Cn L += V
+          if Cn L greater 0
+            Ln L = Sz L
+          else
+            if L at least Nz
+              Ln L = 0
+            else
+              Ch = 2 * L
+              Ln L = Ln Ch + Ln (Ch + 1)
+            end
+          end
+          L += 1
+        end
+        if R mod 2 equal 1
+          R -= 1
+          Cn R += V
+          if Cn R greater 0
+            Ln R = Sz R
+          else
+            if R at least Nz
+              Ln R = 0
+            else
+              Ch = 2 * R
+              Ln R = Ln Ch + Ln (Ch + 1)
+            end
+          end
+        end
+        L = L // 2
+        R = R // 2
+      end
+      P = L0 // 2
+      for
+        if P equal 0
+          break
+        end
+        if Cn P greater 0
+          Ln P = Sz P
+        else
+          Ch = 2 * P
+          Ln P = Ln Ch + Ln (Ch + 1)
+        end
+        P = P // 2
+      end
+      P = R0 // 2
+      for
+        if P equal 0
+          break
+        end
+        if Cn P greater 0
+          Ln P = Sz P
+        else
+          Ch = 2 * P
+          Ln P = Ln Ch + Ln (Ch + 1)
+        end
+        P = P // 2
+      end
+      Ce = En Ce
+    end
+    Area += Ln 1
+  end
+  for T in 0 till Na
+    I = Al T
+    Hy (Cy I) = 0 - 1
+    Hy (Cy I + Dy I) = 0 - 1
+  end
+  Total += Area
+end
+Answer = Total
+Answer print

@@ -1,0 +1,33 @@
+rem Prime Subset Sums
+rem https://projecteuler.net/problem=249
+rem Count the subsets of the primes
+rem below Limit whose sum is prime,
+rem modulo Mod
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 5000
+option Mod integer = 10000000000000000
+
+rem Count the subsets by sum with the
+rem usual knapsack table, adding each
+rem prime in turn and sweeping the sums
+rem downward.
+Ps = primes till Limit array
+Max = Ps sum
+Ways = array shape (Max + 1) fill 0
+Ways 0 = 1
+Top = 0
+for P in Ps
+  Top += P
+  for S in Top to P by -1
+    From = Ways (S - P)
+    Ways S = (Ways S + From) mod Mod
+  end
+end
+Pr = primes till (Max + 1) array
+Answer = (Ways Pr) sum mod Mod
+Answer print

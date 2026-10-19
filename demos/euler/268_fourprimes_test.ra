@@ -1,0 +1,26 @@
+use testing
+
+rem The default input takes about a
+rem minute: smaller inputs only.
+test "small inputs"
+  use "268_fourprimes"
+  Under = 30
+  Limit = 100000
+  run
+
+  Answer equal 3705
+  Limit = 1000000
+  run
+
+  Answer equal 37268
+  Limit = 1000000000000
+  run
+
+  Answer equal 37351446090
+  Under = 50
+  Limit = 1000000
+  Least = 3
+  run
+
+  Answer equal 210062
+end

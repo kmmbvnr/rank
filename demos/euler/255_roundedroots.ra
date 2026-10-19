@@ -1,0 +1,113 @@
+rem Rounded Square Roots
+rem https://projecteuler.net/problem=255
+rem Find the average number of
+rem iterations of x -> (x + ceil(n / x))
+rem // 2, from the start 2 10^((d -
+rem 1)/2) for odd d and 7 10^((d - 2)/2)
+rem for even d, until x stops changing,
+rem over the n with d digits
+
+use numbers
+use io
+use cli
+
+option Digits integer = 14
+
+rem Group the n. Those with the same x
+rem at some step form an interval, and
+rem ceil(n / x) = c on a sub-interval,
+rem with the next x = (x + c) // 2. A
+rem group finishes when the next x
+rem equals x, and adds its size times
+rem the steps taken. The first step is a
+rem loop over the next x, each then
+rem followed depth first on a small
+rem stack.
+First = 10 ** (Digits - 1)
+Last = 10 ** Digits - 1
+X0 = 7 * 10 ** (Digits // 2 - 1)
+if Digits mod 2 equal 1
+  X0 = 2 * 10 ** (Digits // 2)
+end
+Cap = 400
+Sx = array shape Cap fill 0
+Sl = array shape Cap fill 0
+Sh = array shape Cap fill 0
+Sk = array shape Cap fill 0
+Total = 0
+C = (First + X0 - 1) // X0
+Cend = (Last + X0 - 1) // X0
+for
+  if C greater Cend
+    break
+  end
+  Y = (X0 + C) // 2
+  C2 = 2 * Y + 1 - X0
+  if Cend less C2
+    C2 = Cend
+  end
+  Nlo = (C - 1) * X0 + 1
+  if First greater Nlo
+    Nlo = First
+  end
+  Nhi = C2 * X0
+  if Last less Nhi
+    Nhi = Last
+  end
+  Size = Nhi - Nlo + 1
+  if Y equal X0
+    Total += Size
+  else
+    Sx 0 = Y
+    Sl 0 = Nlo
+    Sh 0 = Nhi
+    Sk 0 = 1
+    Top = 1
+    for
+      if Top equal 0
+        break
+      end
+      Top -= 1
+      X = Sx Top
+      Lo = Sl Top
+      Hi = Sh Top
+      K = Sk Top
+      D1 = (Lo + X - 1) // X
+      D2 = (Hi + X - 1) // X
+      D = D1
+      for
+        if D greater D2
+          break
+        end
+        Z = (X + D) // 2
+        D3 = 2 * Z + 1 - X
+        if D2 less D3
+          D3 = D2
+        end
+        Mlo = (D - 1) * X + 1
+        if Lo greater Mlo
+          Mlo = Lo
+        end
+        Mhi = D3 * X
+        if Hi less Mhi
+          Mhi = Hi
+        end
+        Count = Mhi - Mlo + 1
+        if Z equal X
+          Total += Count * (K + 1)
+        else
+          Sx Top = Z
+          Sl Top = Mlo
+          Sh Top = Mhi
+          Sk Top = K + 1
+          Top += 1
+        end
+        D = D3 + 1
+      end
+    end
+  end
+  C = C2 + 1
+end
+Count = Last - First + 1
+Answer = Total / Count 10 round
+Answer print

@@ -1,0 +1,21 @@
+use testing
+
+test "default input"
+  use "250_subsets"
+  run
+
+  Answer equal 1425480602091519
+end
+
+test "small inputs"
+  use "250_subsets"
+  N = 2500
+  run
+
+  Answer equal 3576981783379967
+  N = 10
+  M = 10
+  run
+
+  Answer equal 103
+end

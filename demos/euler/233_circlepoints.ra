@@ -1,0 +1,77 @@
+rem Lattice points on a circle
+rem https://projecteuler.net/problem=233
+rem Sum the N up to Limit for which the
+rem circle through (0, 0), (N, 0),
+rem (0, N) and (N, N) holds exactly 420
+rem lattice points
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 100000000000
+
+rem The count is 4 times the product of
+rem 2 e + 1 over the primes p = 1 mod 4
+rem of N, with exponents e. For 420 the
+rem product is 105 = 3 5 7 = 7 15 =
+rem 5 21, so the exponents are
+rem (3, 2, 1), (7, 3) or (10, 2), the
+rem rest being too big. So N is a core c
+rem of such primes times an m with none,
+rem and a core adds c times the sum of
+rem the m up to Limit / c, from a sieve.
+Top = Limit // 359125 + 1
+Good = array shape (Top + 1) fill 1
+Good 0 = 0
+for Q in primes to Top
+  if Q mod 4 equal 1
+    Good (Q to Top by Q) = 0
+  end
+end
+Cum = ((0 to Top array) * Good) scan +
+Cap = Limit // 21125 + 2
+Ps = primes till Cap array
+Quad = Ps mod 4 equal 1
+Ones = Ps filter Quad array
+Amax = (Limit // 125) ** (1.0 / 3) floor
+SmallA = Ones at most Amax
+As = Ones filter SmallA array
+Bmax = (Limit // 625) isqrt
+SmallB = Ones at most Bmax
+Bs = Ones filter SmallB array
+Flag = array shape (Cap + 1) fill 0
+Flag Ones = 1
+Seen = Flag scan +
+Total = 0
+for A in As
+  Rest = Bs not equal A
+  Others = Bs filter Rest array
+  for B in Others
+    Base = A ** 3 * B ** 2
+    K = Seen (Limit // Base)
+    Pool = Ones take K
+    NotA = Pool not equal A
+    Fit = NotA and (Pool not equal B)
+    Cs = Base * (Pool filter Fit array)
+    Share = Cum (Limit // Cs)
+    Total += (Cs * Share) sum
+  end
+end
+Ea = array 7 10
+Eb = array 3 2
+for I in 0 to 1
+  X = Ea I
+  Y = Eb I
+  for A in As
+    Cs = A ** X * Ones ** Y
+    Big = Cs at most Limit
+    Fit = Big and (Ones not equal A)
+    Cs = Cs filter Fit array
+    Share = Cum (Limit // Cs)
+    Total += (Cs * Share) sum
+  end
+end
+Answer = Total
+Answer print

@@ -1,0 +1,17 @@
+use testing
+
+rem The default input needs about 40 s;
+rem the tests use small boards.
+test "small boards"
+  use "213_fleacircus"
+  N = 4
+  Rings = 2
+  run
+
+  Answer equal 5.215096
+  N = 6
+  Rings = 5
+  run
+
+  Answer equal 12.689647
+end

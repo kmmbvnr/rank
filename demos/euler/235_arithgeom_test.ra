@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "235_arithgeom"
+  run
+
+  Answer equal 1.002322108633
+end
+
+test "another target"
+  use "235_arithgeom"
+  Target = -500000000000
+  run
+
+  Answer equal 1.002282459509
+end

@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "286_scoring"
+  run
+
+  Answer equal 52.6494571953
+end
+
+test "fewer shots"
+  use "286_scoring"
+  Shots = 20
+  Hits = 8
+  Target = 0.05
+  run
+
+  Answer equal 24.0870606398
+  Shots = 10
+  Hits = 3
+  Target = 0.02
+  run
+
+  Answer equal 14.8143393221
+end

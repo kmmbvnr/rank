@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "298_selectiveamnesia"
+  run
+
+  Answer equal 1.76882294
+end
+
+test "fewer turns"
+  use "298_selectiveamnesia"
+  Turns = 5
+  run
+
+  Answer equal 0
+  Turns = 20
+  run
+
+  Answer equal 0.79884191
+end

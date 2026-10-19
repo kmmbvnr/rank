@@ -1,0 +1,80 @@
+rem Angular Bisectors
+rem https://projecteuler.net/problem=257
+rem Count the integer sided triangles
+rem a <= b <= c of perimeter up to Limit
+rem for which area(ABC) / area(AEG) is
+rem an integer, E, F, G being the points
+rem where the bisectors of C, A and B
+rem meet the sides AB, BC and CA
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 100000000
+
+rem The ratio is k = (a + b)(a + c) / (b
+rem c), between 1 and 4, and a (a + b +
+rem c) = (k - 1) b c. For k = 4 only
+rem equilateral triangles qualify. For k
+rem = 2, 3 write m = k - 1, b = h y and
+rem m b - a = h d with h = gcd(b, m b -
+rem a). Then a = h (m y - d) and c = a
+rem ((m + 1) y - d) / d, where y and d
+rem are coprime and h is a multiple t of
+rem its least value d / gcd(d, m (m +
+rem 1)). Each triangle is found once;
+rem its multiples number Limit //
+rem perimeter.
+Total = Limit // 3
+Top = (5 * Limit) isqrt + 2
+for M in 1 to 2
+  Mm = M * (M + 1)
+  for Y in 1 to Top
+    First = 1 + (M - 1) * Y
+    for D in First to (M * Y - 1)
+      G1 = Y
+      G2 = D
+      for
+        if G2 equal 0
+          break
+        end
+        T = G1 mod G2
+        G1 = G2
+        G2 = T
+      end
+      if G1 equal 1
+        E1 = D
+        E2 = Mm
+        for
+          if E2 equal 0
+            break
+          end
+          T = E1 mod E2
+          E1 = E2
+          E2 = T
+        end
+        Hs = D // E1
+        A0 = M * Y - D
+        Cn = Hs * A0 * ((M + 1) * Y - D)
+        if Cn mod D equal 0
+          C1 = Cn // D
+          A1 = Hs * A0
+          B1 = Hs * Y
+          Per = A1 + B1 + C1
+          Ord = A1 at most B1
+          Ord = Ord and (B1 at most C1)
+          Tri = A1 + B1 greater C1
+          Tri = Tri and (C1 greater A1)
+          Fits = Per at most Limit
+          if Ord and Tri and Fits
+            Total += Limit // Per
+          end
+        end
+      end
+    end
+  end
+end
+Answer = Total
+Answer print

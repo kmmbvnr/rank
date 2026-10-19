@@ -1,0 +1,100 @@
+rem Numbers for which Euler's totient
+rem function equals 13!
+rem https://projecteuler.net/problem=248
+rem Find the Nth smallest n with
+rem phi(n) = Target
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option Target integer = 6227020800
+option Rank integer = 150000
+
+rem If phi(n) = Target then every prime
+rem p of n has p - 1 dividing Target.
+rem Choose the primes of n from the
+rem largest down, each with an exponent
+rem e, dividing what is left of the
+rem target by (p - 1) p^(e - 1) down to
+rem 1. What is left is a divisor of
+rem Target, numbered by its exponents,
+rem and for each the primes that still
+rem fit are listed beforehand.
+Pf = Target factors array unique
+Cnt = Pf len
+Col = Pf reshape Cnt 1
+All = Target factors array
+Ex = (Col equal All) count axis 1
+Rad = Ex + 1
+Wt = Rad scan * with 1
+Num = Wt Cnt
+Ix = 0 till Num array
+Rv = Ix - Ix + 1
+for I in 0 till Cnt
+  Dg = (Ix // Wt I) mod Rad I
+  Rv = Rv * (Pf I) ** Dg
+end
+Pa = Rv + 1
+Ok = Pa in primes
+Ps = ((Pa filter Ok array) sort) reverse
+Np = Ps len
+Pos = 0 till Np array
+Off = array shape Num fill 0
+Len = array shape Num fill 0
+Flat = array shape 0 fill 0
+for K in 0 till Num
+  Fit = Rv K mod (Ps - 1) equal 0
+  Sel = Pos filter Fit array
+  Off K = Flat len
+  Len K = Sel len
+  Flat = concat Flat Sel
+end
+fun R slot
+  Left = R
+  Ixr = 0
+  for I in 0 till Cnt
+    Dg = 0
+    for
+      if Left mod (Pf I) not equal 0
+        break
+      end
+      Left //= Pf I
+      Dg += 1
+    end
+    Ixr += Dg * Wt I
+  end
+  return Ixr
+end
+fun Out R Last N walk
+  if R equal 1
+    Out add N
+  end
+  Ixr = R slot
+  Base = Off Ixr
+  Many = Len Ixr
+  for K in 0 till Many
+    J = Flat (Base + K)
+    if J greater Last
+      P = Ps J
+      Rn = R // (P - 1)
+      Nn = N * P
+      for
+        Dummy = Out Rn J Nn walk
+        if Rn mod P not equal 0
+          break
+        end
+        Rn //= P
+        Nn *= P
+      end
+    end
+  end
+  return 0
+end
+Found = new set
+Start = Found Target (0 - 1) 1 walk
+Sols = (Found array) sort
+Answer = Sols (Rank - 1)
+Answer print

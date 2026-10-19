@@ -1,0 +1,25 @@
+use testing
+
+test "short proteins"
+  use "300_proteinfolding"
+  N = 5
+  run
+
+  Answer equal 1.4375
+  N = 8
+  run
+
+  Answer equal 3.3203125
+  N = 10
+  run
+
+  Answer equal 4.6220703125
+end
+
+test "twelve acids"
+  use "300_proteinfolding"
+  N = 12
+  run
+
+  Answer equal 5.994873046875
+end

@@ -1,0 +1,22 @@
+rem Investigating the primality of
+rem numbers of the form 2n^2 - 1
+rem https://projecteuler.net/problem=216
+rem Count the n from 2 to Limit for
+rem which 2 n^2 - 1 is prime
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 50000000
+
+rem Test each number for primality.
+Count = 0
+for N in 2 to Limit
+  if 2 * N * N - 1 in primes
+    Count += 1
+  end
+end
+Answer = Count
+Answer print

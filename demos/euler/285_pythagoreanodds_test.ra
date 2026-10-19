@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "285_pythagoreanodds"
+  run
+
+  Answer equal 157055.80999
+end
+
+test "few values of k"
+  use "285_pythagoreanodds"
+  N = 1
+  run
+
+  Answer equal 0.00722
+  N = 3
+  run
+
+  Answer equal 1.41705
+end

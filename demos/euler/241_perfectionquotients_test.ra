@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "241_perfectionquotients"
+  run
+
+  Answer equal 482316491800641154
+end
+
+test "small limits"
+  use "241_perfectionquotients"
+  Limit = 1000000
+  run
+
+  Answer equal 35234
+  Limit = 10000000000
+  run
+
+  Answer equal 8919474306
+  Limit = 100000000000000
+  run
+
+  Answer equal 17478354204802
+end

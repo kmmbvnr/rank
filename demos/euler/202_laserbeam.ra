@@ -1,0 +1,34 @@
+rem Laserbeam
+rem https://projecteuler.net/problem=202
+rem Count the ways a beam enters a
+rem mirrored triangle at C, bounces
+rem Bounces times and leaves at C
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option Bounces integer = 12017639147
+
+rem Unfolding the triangle, a path is a
+rem k < n = (Bounces + 3) / 2 with
+rem k = 2 mod 3 and gcd(k, n) = 1.
+rem Inclusion-exclusion over products D
+rem of the distinct primes of n counts
+rem the multiples of D in that class.
+N = (Bounces + 3) // 2
+Ps = N factors array unique
+Size = 1 (Ps len) shl
+Mk = (0 till Size array) reshape Size 1
+Bt = Mk (0 till (Ps len) array) bit
+D = Bt choose Ps 1 reduce * rank 1
+Sign = 1 - 2 * (Bt count axis 1 mod 2)
+R = 3 - D mod 3
+Top = (N - 1) // D
+Num = (Top + 3 - R) // 3
+Ok = D mod 3 not equal 0
+Term = Sign * Num
+Answer = Term filter Ok array sum
+Answer print

@@ -1,0 +1,33 @@
+rem 250250
+rem https://projecteuler.net/problem=250
+rem Count the non-empty subsets of the
+rem numbers k^k, k up to N, whose sum is
+rem divisible by M; give the last 16
+rem digits
+
+use numbers
+use io
+use cli
+
+option N integer = 250250
+option M integer = 250
+option Mod integer = 10000000000000000
+
+rem Count the subsets by sum mod M. A
+rem number with residue r adds each old
+rem count to the one r places up.
+Cnt = array shape M fill 0
+Cnt 0 = 1
+Old = Cnt
+for K in 1 to N
+  R = K K M powmod
+  for S in 0 till M
+    Old S = Cnt S
+  end
+  for S in 0 till M
+    From = (S + M - R) mod M
+    Cnt S = (Old S + Old From) mod Mod
+  end
+end
+Answer = (Cnt 0 - 1) mod Mod
+Answer print

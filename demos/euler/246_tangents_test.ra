@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "246_tangents"
+  run
+
+  Answer equal 810834388
+end
+
+test "smaller ellipses"
+  use "246_tangents"
+  Radius = 1000
+  Gap = 600
+  run
+
+  Answer equal 3780496
+  Radius = 400
+  Gap = 300
+  run
+
+  Answer equal 538584
+end

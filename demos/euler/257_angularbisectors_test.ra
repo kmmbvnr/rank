@@ -1,0 +1,22 @@
+use testing
+
+rem The default input takes about 90 s.
+test "small limits"
+  use "257_angularbisectors"
+  Limit = 60
+  run
+
+  Answer equal 26
+  Limit = 120
+  run
+
+  Answer equal 58
+  Limit = 300
+  run
+
+  Answer equal 160
+  Limit = 1000000
+  run
+
+  Answer equal 1078857
+end

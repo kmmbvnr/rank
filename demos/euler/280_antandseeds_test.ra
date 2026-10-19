@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "280_antandseeds"
+  run
+
+  Answer equal 430.088247
+end
+
+test "fewer digits"
+  use "280_antandseeds"
+  Digits = 2
+  run
+
+  Answer equal 430.09
+end

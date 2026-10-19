@@ -1,0 +1,43 @@
+rem Circular Logic
+rem https://projecteuler.net/problem=209
+rem Count N-input truth tables t with
+rem t(x) and t(g(x)) never both true,
+rem where g shifts in a xor (b and c)
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 6
+
+rem g permutes the 2^N inputs, so it
+rem splits into cycles. A table on
+rem a cycle of length k has no two
+rem neighbours set in Lucas(k) ways, and
+rem the cycles are independent. Each
+rem input takes the least label on its
+rem cycle by repeated neighbour mins.
+S = 1 N shl
+X = 0 till S array
+A = X (N - 1) bit
+B = X (N - 2) bit
+C = X (N - 3) bit
+Bc = B and C
+Nw = A not equal Bc
+Low = X mod (S // 2)
+G = Low * 2 + (Nw choose 1 0)
+Lab = X
+for I in 1 to S
+  Lab = Lab (Lab G) min
+end
+Own = Lab equal X
+Col = X reshape S 1
+Size = (Lab equal Col) count axis 1
+Lens = Size filter Own array
+Fs = fibonacci take (S + 2) array
+Fib = concat (array 0 1) Fs
+Luc = (Fib take S) + (Fib drop 2 take S)
+Answer = (Luc (Lens - 1)) reduce *
+Answer print

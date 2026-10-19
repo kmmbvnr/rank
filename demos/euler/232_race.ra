@@ -1,0 +1,47 @@
+rem The Race
+rem https://projecteuler.net/problem=232
+rem Find the chance that the second
+rem player wins a race to Goal points,
+rem when the first flips a coin for 1
+rem point and the second chooses to flip
+rem until T heads for 2^(T-1) points
+
+use numbers
+use sequences
+use io
+use cli
+
+option Goal integer = 100
+
+rem F[j] is the chance that the second
+rem player wins when the first is to
+rem move, the first having i points and
+rem the second j. H is the same with the
+rem second to move. A coin flip gives
+rem F = (H(i+1) + H(i)) / 2, and H(i)
+rem holds F(i, j) itself when the second
+rem misses, so each T has a closed form
+rem F = (H(i+1) + p F(i, j+g)) / (1 + p)
+rem for chance p = 2^-T and gain g. Take
+rem the best T for every cell.
+T = 1 to 8 array
+P = 0.5 ** T
+G = 2 ** (T - 1)
+Won = array shape 128 fill 1.0
+Zero = array shape Goal fill 0.0
+Hn = array shape Goal fill 0.0
+F = array shape Goal fill 0.0
+for I in (Goal - 1) to 0 by -1
+  Row = concat Zero Won copy
+  for J in (Goal - 1) to 0 by -1
+    A = Row (J + G)
+    Nxt = Hn J
+    Cand = (Nxt + P * A) / (1 + P)
+    Best = Cand max
+    Row J = Best
+  end
+  F = Row take Goal
+  Hn = 2 * F - Hn
+end
+Answer = F 0 8 round
+Answer print

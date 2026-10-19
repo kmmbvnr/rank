@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "290_digitalsignature"
+  run
+
+  Answer equal 20444710234716473
+end
+
+test "few digits"
+  use "290_digitalsignature"
+  N = 3
+  run
+
+  Answer equal 33
+  N = 6
+  run
+
+  Answer equal 27955
+end

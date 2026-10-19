@@ -1,0 +1,67 @@
+rem Crack-free Walls
+rem https://projecteuler.net/problem=215
+rem Count the Width by Height walls of
+rem 2 and 3 bricks in which no vertical
+rem cracks of adjacent rows line up
+
+use bits
+use linalg
+use numbers
+use sequences
+use io
+use cli
+
+option Width integer = 32
+option Height integer = 10
+
+rem Grow the rows brick by brick. A row
+rem is the bit set of its cracks, bit
+rem q - 1 for a crack at distance q, and
+rem two rows fit when the sets are
+rem disjoint. Split each set into a high
+rem and a low half: rows then sit in a
+rem small grid, and disjointness is a
+rem product of two small matrices.
+Pos = array 0
+Msk = array 0
+Rows = array shape 0 fill 0
+for Step in 1 to (Width // 2)
+  Q = concat (Pos + 2) (Pos + 3)
+  Bit = (1 Q shl) 1 shr
+  Cb = (Q less Width) choose Bit 0
+  Mm = concat Msk Msk
+  Nm = Mm Cb bor
+  Done = Q equal Width
+  New = Nm filter Done array
+  Rows = concat Rows New
+  Keep = Q less Width
+  Pos = Q filter Keep array
+  Msk = Nm filter Keep array
+end
+N = Rows len
+Hi = Rows 15 shr
+Lo = Rows 32767 band
+Uh = Hi unique sort
+Ul = Lo unique sort
+Nh = Uh len
+Nl = Ul len
+Hc = Hi reshape N 1
+Lc = Lo reshape N 1
+Hx = (Hc greater Uh) count axis 1
+Lx = (Lc greater Ul) count axis 1
+Dh = ((Uh reshape Nh 1) Uh band) equal 0
+Dl = ((Ul reshape Nl 1) Ul band) equal 0
+Ah = Dh choose 1 0
+Al = Dl choose 1 0
+Key = Hx * Nl + Lx
+Ways = Rows - Rows + 1
+for H in 2 to Height
+  Grid = array shape (Nh * Nl) fill 0
+  Grid Key = Ways
+  Mid = (Grid reshape Nh Nl) Al matmul
+  Mix = Ah Mid matmul
+  Flat = Mix reshape (Nh * Nl)
+  Ways = Flat Key
+end
+Answer = Ways sum
+Answer print

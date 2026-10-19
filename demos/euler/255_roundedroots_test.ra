@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "255_roundedroots"
+  run
+
+  Answer equal 4.447401118
+end
+
+test "fewer digits"
+  use "255_roundedroots"
+  Digits = 4
+  run
+
+  Answer equal 2.8383333333
+  Digits = 5
+  run
+
+  Answer equal 3.2102888889
+end

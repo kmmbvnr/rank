@@ -1,0 +1,54 @@
+rem Tangents to an ellipse
+rem https://projecteuler.net/problem=246
+rem Count the lattice points P from
+rem which the two tangents to the
+rem ellipse of points equidistant from
+rem the circle of radius Radius about M
+rem and from G meet at more than 45
+rem degrees; G is Gap to the right of M,
+rem Gap even
+
+use numbers
+use sequences
+use io
+use cli
+
+option Radius integer = 15000
+option Gap integer = 10000
+
+rem The ellipse has foci M and G and
+rem major axis Radius, so with the
+rem centre as origin A = (Radius / 2)^2
+rem and B = A - (Gap / 2)^2 are its
+rem squares of the semi-axes. The
+rem tangents from (x, y) meet at an
+rem angle above 45 degrees when it lies
+rem outside the ellipse, B x^2 + A y^2 >
+rem A B, and y^2 + x^2 - 3 A - B < 2
+rem sqrt(R), where R = 2 A^2 - (A - B)
+rem x^2 is positive only for a limited
+rem x. The y between those bounds,
+rem either sign, are counted for each x
+rem with exact integer roots.
+A = (Radius // 2) ** 2
+B = A - (Gap // 2) ** 2
+Lim = ((2 * A * A) // (A - B)) isqrt + 1
+X = 0 - Lim to Lim array
+R = 2 * A * A - (A - B) * X * X
+K = 3 * A + B - X * X
+Pos = (4 * R - 1) 0 max
+W = Pos isqrt
+Real = R greater 0
+Ok = Real and (K + W at least 0)
+Base = (K + W) 0 max
+Top = Base isqrt
+N = B * (A - X * X)
+Fl = (N // A) 0 max
+Under = Fl isqrt + 1
+Low = (N less 0) choose 0 Under
+Cnt = Top - Low + 1
+Zero = Low equal 0
+Per = 2 * Cnt - (Zero choose 1 0)
+Used = Ok and (Top at least Low)
+Answer = (Used choose Per 0) sum
+Answer print

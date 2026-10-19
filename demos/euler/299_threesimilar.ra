@@ -1,0 +1,73 @@
+rem Three similar triangles
+rem https://projecteuler.net/problem=299
+rem Count the triples (a, b, d) with b +
+rem d below Limit for which some integer
+rem point P on the line from A(a, 0) to
+rem C(0, a) makes the triangles ABP, CDP
+rem and BDP similar, with B(b, 0) and
+rem D(0, d)
+
+use numbers
+use io
+use cli
+
+option Limit integer = 100000000
+
+rem Such triples come in two families,
+rem with P = (x, a - x) and p = b - a, q
+rem = d - a: p q = a^2 / 2 for x = a /
+rem 2, and b = d with p^2 = 2 x (a - x).
+rem Writing the solutions with coprime
+rem u, v and g a factor, the first
+rem family is g (u^2 + 4 u v + 2 v^2)
+rem with u odd or g (2 u^2 + 4 u v +
+rem v^2) with v odd, the number b + d,
+rem and the second has b + d = 2 g (u^2
+rem + 2 u v + 2 v^2) with u odd. For
+rem each coprime pair the number of g is
+rem the quotient with b + d at most
+rem Limit - 1.
+Max = Limit - 1
+Total = 0
+for U in 1 to (Max isqrt)
+  for V in 1 to Max
+    Qa = U * U + 4 * U * V + 2 * V * V
+    Qb = 2 * U * U + 4 * U * V + V * V
+    Low = Qa
+    if Qb less Low
+      Low = Qb
+    end
+    if Low greater Max
+      break
+    end
+    G1 = U
+    G2 = V
+    for
+      if G2 equal 0
+        break
+      end
+      T = G1 mod G2
+      G1 = G2
+      G2 = T
+    end
+    if G1 equal 1
+      if U mod 2 equal 1
+        if Qa at most Max
+          Total += Max // Qa
+        end
+        Half = U * U + 2 * U * V
+        Q2 = 2 * (Half + 2 * V * V)
+        if Q2 at most Max
+          Total += Max // Q2
+        end
+      end
+      if V mod 2 equal 1
+        if Qb at most Max
+          Total += Max // Qb
+        end
+      end
+    end
+  end
+end
+Answer = Total
+Answer print

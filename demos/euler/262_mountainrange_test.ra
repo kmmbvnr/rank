@@ -1,0 +1,11 @@
+use testing
+
+rem The default input takes 8 min, so
+rem only a coarser grid is tested.
+test "coarse grid"
+  use "262_mountainrange"
+  Step = 8
+  run
+
+  Answer equal 2531.2
+end

@@ -1,0 +1,51 @@
+rem Divisor Square Sum
+rem https://projecteuler.net/problem=211
+rem Add up the n below Limit for which
+rem the sum of the squares of the
+rem divisors of n is a perfect square
+
+use numbers
+use io
+use cli
+
+option Limit integer = 64000000
+option Block integer = 1000000
+
+rem Sieve the sums of squared divisors
+rem one block of n at a time. A divisor
+rem d up to the root of n and the one
+rem beside it, n / d, add d^2 + (n /
+rem d)^2, or d^2 once if they agree. A
+rem table of all the n at once would not
+rem fit in memory.
+Root = Limit isqrt
+Total = 0
+for Lo in 1 to (Limit - 1) by Block
+  Hi = (Lo + Block) (Limit) min
+  Sig = array shape Block fill 0
+  for D in 1 to Root
+    D2 = D * D
+    From = Lo
+    if D2 greater From
+      From = D2
+    end
+    M = (From + D - 1) // D * D
+    for N in M to (Hi - 1) by D
+      Q = N // D
+      Add = D2
+      if Q not equal D
+        Add = D2 + Q * Q
+      end
+      Sig (N - Lo) += Add
+    end
+  end
+  for K in 0 till (Hi - Lo)
+    S = Sig K
+    R = S isqrt
+    if R * R equal S
+      Total += Lo + K
+    end
+  end
+end
+Answer = Total
+Answer print

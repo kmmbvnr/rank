@@ -1,0 +1,35 @@
+rem Sphere Packing
+rem https://projecteuler.net/problem=222
+rem Find the shortest tube of radius R
+rem that holds spheres of every integer
+rem radius from Lo to Hi, in thousandths
+
+use numbers
+use sequences
+use io
+use cli
+
+option R integer = 50
+option Lo integer = 30
+option Hi integer = 50
+
+rem Neighbouring spheres touch the tube
+rem on opposite sides, 2 sqrt(R (a + b -
+rem R)) apart along its axis. The best
+rem order puts every second sphere from
+rem the largest down, then the rest back
+rem up: the smallest sit in the middle.
+Rs = Hi to Lo by -1 array
+Pos = 0 till (Rs len) array
+Even = Pos mod 2 equal 0
+Down = Rs filter Even array
+Rest = Rs filter (not Even) array
+Order = concat Down (Rest reverse)
+N = Order len
+A = Order take (N - 1)
+B = Order drop 1
+Gap = 2 * ((R * (A + B - R)) sqrt)
+Ends = Order 0 + Order (N - 1)
+Length = Ends + (Gap sum)
+Answer = Length * 1000 0 round
+Answer print

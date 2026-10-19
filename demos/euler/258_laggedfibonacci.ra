@@ -1,0 +1,60 @@
+rem A lagged Fibonacci sequence
+rem https://projecteuler.net/problem=258
+rem Find g(N) modulo Mod for g(k) = 1
+rem for k below 2000 and g(k) = g(k -
+rem 2000) + g(k - 1999) after
+
+use bits
+use numbers
+use io
+use cli
+
+option N integer = 1000000000000000000
+option Mod integer = 20092010
+
+rem g(N) is the sum of the coefficients
+rem of x^N reduced modulo x^2000 = x +
+rem 1, as g(i) = 1 for i below 2000.
+rem Build x^N bit by bit from the top,
+rem squaring the polynomial and
+rem multiplying by x.
+Deg = 2000
+Res = array shape Deg fill 0
+Res 1 = 1
+for B in (N binary len - 2) to 0 by -1
+  Tmp = array shape (2 * Deg) fill 0
+  for I in 0 till Deg
+    Ri = Res I
+    if Ri not equal 0
+      for J in 0 till Deg
+        Ix = I + J
+        Acc = Tmp Ix + Ri * Res J
+        Tmp Ix = Acc mod Mod
+      end
+    end
+  end
+  for I in (2 * Deg - 2) to Deg by -1
+    Top = Tmp I
+    Lo = I - Deg
+    Tmp Lo = (Tmp Lo + Top) mod Mod
+    Up = Lo + 1
+    Tmp Up = (Tmp Up + Top) mod Mod
+  end
+  for I in 0 till Deg
+    Res I = Tmp I
+  end
+  if N B bit
+    Top = Res (Deg - 1)
+    for I in (Deg - 1) to 1 by -1
+      Res I = Res (I - 1)
+    end
+    Res 0 = Top
+    Res 1 = (Res 1 + Top) mod Mod
+  end
+end
+Total = 0
+for I in 0 till Deg
+  Total += Res I
+end
+Answer = Total mod Mod
+Answer print

@@ -1,0 +1,94 @@
+rem Tatami-free Rooms
+rem https://projecteuler.net/problem=256
+rem A room of a by b cells, of even area
+rem s, is tiled by 1 by 2 mats, no four
+rem of them meeting at a point. T(s)
+rem counts the rooms of area s that have
+rem no such tiling. Find the least s
+rem with T(s) = Target.
+
+use numbers
+use sequences
+use io
+use cli
+
+option Target integer = 200
+option Start integer = 2000000
+option Step integer = 55440
+
+rem For a <= b the room can be tiled
+rem when |a g - b| <= g + 1, where g is
+rem (b + a // 2) // a, and only when s
+rem is even. The rooms of area s are the
+rem divisors a up to sqrt(s). The least
+rem s is looked for among the multiples
+rem of 55440 = 2^4 3^2 5 7 11, with many
+rem divisors, which is a guess that
+rem holds for 200. Step = 2 and Start =
+rem 2 try every even s, as for small
+rem Target.
+Pr = primes till 20000 array
+Dv = array shape 20000 fill 0
+Pl = array shape 20 fill 0
+El = array shape 20 fill 0
+S = (Start + Step - 1) // Step * Step
+Found = 0
+for
+  Np = 0
+  V = S
+  for Q in Pr
+    if Q * Q greater V
+      break
+    end
+    if V mod Q equal 0
+      Ex = 0
+      for
+        if V mod Q greater 0
+          break
+        end
+        V = V // Q
+        Ex += 1
+      end
+      Pl Np = Q
+      El Np = Ex
+      Np += 1
+    end
+  end
+  if V greater 1
+    Pl Np = V
+    El Np = 1
+    Np += 1
+  end
+  Dv 0 = 1
+  Nd = 1
+  for I in 0 till Np
+    Old = Nd
+    Pw = 1
+    for E in 1 to (El I)
+      Pw = Pw * Pl I
+      for L in 0 till Old
+        Dv Nd = Dv L * Pw
+        Nd += 1
+      end
+    end
+  end
+  Cnt = 0
+  for L in 0 till Nd
+    A = Dv L
+    if A * A at most S
+      B = S // A
+      G = (B + A // 2) // A
+      D = (A * G - B) abs
+      if D greater G + 1
+        Cnt += 1
+      end
+    end
+  end
+  if Cnt equal Target
+    Found = S
+    break
+  end
+  S += Step
+end
+Answer = Found
+Answer print

@@ -1,0 +1,49 @@
+rem Pseudo-Fortunate Numbers
+rem https://projecteuler.net/problem=293
+rem Sum the distinct pseudo-Fortunate
+rem numbers of the admissible numbers
+rem below Limit
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000000
+
+rem N is admissible when its distinct
+rem prime factors are the first k
+rem primes, each to the power 1 or more.
+rem Grow them one prime at a time. The
+rem pseudo-Fortunate number of N is the
+rem least M > 1 with N + M prime.
+Bits = Limit binary len
+Pr = primes till 100 array
+All = array 1
+Found = array shape 0 fill 0
+for P in Pr
+  Pw = P ** (1 to Bits array)
+  Fit = Pw at most Limit
+  Pw = Pw filter Fit array
+  Rows = All len
+  Cells = Rows * (Pw len)
+  Col = All reshape Rows 1
+  Prod = (Col * Pw) reshape Cells
+  Ok = Prod less Limit
+  All = Prod filter Ok array
+  Found = concat Found All copy
+end
+Count = Found len
+Fort = array shape Count fill 0
+for I in 0 till Count
+  N = Found I
+  for M in 2 to 1000
+    if N + M in primes
+      Fort I = M
+      break
+    end
+  end
+end
+Answer = Fort unique sum
+Answer print

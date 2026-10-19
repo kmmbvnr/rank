@@ -1,0 +1,34 @@
+rem Minkowski Sums
+rem https://projecteuler.net/problem=228
+rem Count the sides of the Minkowski sum
+rem of the regular polygons with from Lo
+rem to Hi sides
+
+use numbers
+use sequences
+use io
+use cli
+
+option Lo integer = 1864
+option Hi integer = 1909
+
+rem The sum has one side for each
+rem distinct edge direction, a fraction
+rem k / n of the turn. Reduced to a
+rem denominator q, those are phi(q)
+rem fractions, once for each q that
+rem divides some n.
+Q = 1 to Hi array
+Phi = Q
+for P in primes to Hi
+  Mult = Q mod P equal 0
+  Cut = Mult choose (Phi // P) 0
+  Phi = Phi - Cut
+end
+Ns = Lo to Hi array
+Rows = Q reshape Hi 1
+Zero = Ns mod Rows equal 0
+Divides = Zero any axis 1
+Used = Phi filter Divides array
+Answer = Used sum
+Answer print

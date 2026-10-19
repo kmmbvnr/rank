@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "278_linearcombos"
+  run
+
+  Answer equal 1228215747273908452
+end
+
+test "small limits"
+  use "278_linearcombos"
+  Limit = 20
+  run
+
+  Answer equal 68928
+  Limit = 50
+  run
+
+  Answer equal 7955105
+end

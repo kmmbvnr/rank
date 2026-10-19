@@ -1,0 +1,24 @@
+use testing
+
+test "default input"
+  use "254_digitfactorials"
+  run
+
+  Answer equal 8184523820510
+end
+
+test "small top"
+  use "254_digitfactorials"
+  Top = 3
+  run
+
+  Answer equal 8
+  Top = 10
+  run
+
+  Answer equal 46
+  Top = 20
+  run
+
+  Answer equal 156
+end

@@ -1,0 +1,36 @@
+rem Primitive Triangles
+rem https://projecteuler.net/problem=276
+rem Count the integer sided triangles
+rem with gcd(a, b, c) = 1 and perimeter
+rem up to Limit
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 10000000
+
+rem T(n), the triangles of perimeter n,
+rem is n^2 / 48 rounded for even n and
+rem (n + 3)^2 / 48 for odd n. All the
+rem triangles are the primitive ones
+rem scaled by each d, so by Moebius the
+rem primitive ones are the sum of mu(d)
+rem times the sum of T(n), n <= L / d.
+N = 1 to Limit array
+Odd = N mod 2 equal 1
+Base = Odd choose (N + 3) N
+Tri = (Base * Base + 24) // 48
+Cum = Tri scan +
+Mu = array shape (Limit + 1) fill 1
+for P in primes to Limit
+  Mu (P to Limit by P) *= -1
+  if P * P at most Limit
+    Mu (P * P to Limit by P * P) = 0
+  end
+end
+Quot = Limit // N
+Pick = Cum (Quot - 1)
+Answer = ((Mu drop 1) * Pick) sum
+Answer print

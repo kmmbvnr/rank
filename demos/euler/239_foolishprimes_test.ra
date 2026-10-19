@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "239_foolishprimes"
+  run
+
+  Answer equal 0.001887854841
+end
+
+test "small permutations"
+  use "239_foolishprimes"
+  N = 10
+  Keep = 2
+  run
+
+  Answer equal 0.05119047619
+  N = 20
+  Keep = 5
+  run
+
+  Answer equal 0.006060790488
+end

@@ -1,0 +1,22 @@
+use testing
+
+rem The default input takes minutes.
+test "small indices"
+  use "258_laggedfibonacci"
+  N = 100
+  run
+
+  Answer equal 1
+  N = 2000
+  run
+
+  Answer equal 2
+  N = 4000
+  run
+
+  Answer equal 4
+  N = 100000
+  run
+
+  Answer equal 4438664
+end

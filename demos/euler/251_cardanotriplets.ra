@@ -1,0 +1,84 @@
+rem Cardano Triplets
+rem https://projecteuler.net/problem=251
+rem Count the triples (a, b, c) of
+rem positive integers with
+rem cbrt(a + b sqrt(c)) +
+rem cbrt(a - b sqrt(c)) = 1 and
+rem a + b + c at most Limit
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 110000000
+
+rem Cubing x + y = 1 for x, y the cube
+rem roots gives a^2 - b^2 c = ((1 - 2 a)
+rem / 3)^3, so with a = 3 k - 1 the
+rem triples are the b^2 c = k^2 (8 k -
+rem 3). Let g be the largest number with
+rem g^2 | 8 k - 3 and h = (8 k - 3) /
+rem g^2, which has no square factor.
+rem Then b = k g / e and c = e^2 h for
+rem each divisor e of k g, as b^2 | k^2
+rem g^2 h forces b | k g. The sum a + b
+rem + c is at least 6.78 k, and e goes
+rem up to sqrt(Limit / h). The g of each
+rem k comes from a sieve over blocks of
+rem k, with p^2 | 8 k - 3 when k is a
+rem fixed residue mod p^2.
+Top = Limit // 6 + 1
+Ps = primes till (8 * Top isqrt + 2)
+Blk = 1000000
+Count = 0
+for Lo in 1 to Top by Blk
+  Hi = Lo + Blk - 1
+  if Hi greater Top
+    Hi = Top
+  end
+  G = array shape (Hi - Lo + 1) fill 1
+  for P in Ps
+    if P equal 2
+      continue
+    end
+    Q = P * P
+    R = (8 - Q mod 8) mod 8
+    Iv = (Q * R + 1) // 8
+    K0 = 3 * Iv mod Q
+    Fs = Lo + (K0 - Lo) mod Q
+    for K in Fs to Hi by Q
+      Tm = 8 * K - 3
+      Ct = 0
+      for
+        if Tm mod P greater 0
+          break
+        end
+        Tm = Tm // P
+        Ct += 1
+      end
+      Ix = K - Lo
+      Pw = P ** (Ct // 2)
+      G Ix = G Ix * Pw
+    end
+  end
+  for K in Lo to Hi
+    A = 3 * K - 1
+    Rm = Limit - A
+    Gk = G (K - Lo)
+    H = (8 * K - 3) // (Gk * Gk)
+    S = K * Gk
+    Ee = Rm // H isqrt
+    for E in 1 to Ee
+      if S mod E equal 0
+        Bb = S // E
+        Cc = E * E * H
+        if Bb + Cc at most Rm
+          Count += 1
+        end
+      end
+    end
+  end
+end
+Answer = Count
+Answer print

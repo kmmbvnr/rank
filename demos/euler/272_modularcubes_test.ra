@@ -1,0 +1,15 @@
+use testing
+
+rem The default input takes 15 min,
+rem so only smaller limits are tested.
+test "small limits"
+  use "272_modularcubes"
+  Limit = 10000000
+  run
+
+  Answer equal 4222148009
+  Limit = 1000000000
+  run
+
+  Answer equal 316174709149021
+end

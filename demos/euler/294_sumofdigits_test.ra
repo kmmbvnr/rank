@@ -1,0 +1,21 @@
+use testing
+
+test "default input"
+  use "294_sumofdigits"
+  run
+
+  Answer equal 789184709
+end
+
+test "problem examples"
+  use "294_sumofdigits"
+  Mod = 1000000000000000000
+  N = 9
+  run
+
+  Answer equal 263626
+  N = 42
+  run
+
+  Answer equal 6377168878570056
+end

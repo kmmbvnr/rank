@@ -1,0 +1,76 @@
+rem Robot Walks
+rem https://projecteuler.net/problem=208
+rem Count the closed walks of Steps
+rem one-fifth circle arcs, each turning
+rem left or right
+
+use numbers
+use sequences
+use io
+use cli
+
+option Steps integer = 70
+
+rem The robot is back at the start when
+rem all five edges of the cycle of
+rem headings are crossed equally often.
+rem Walk half the steps from the start,
+rem keeping the position and crossing
+rem counts (packed in base B) of each
+rem state. The other half starts at the
+rem position reached, with the missing
+rem counts, and a rotation moves its
+rem start to heading 0.
+Per = Steps // 5
+B = Per + 1
+Pw = B ** (0 to 4 array)
+Pos = array 0
+Cnt = array 0
+Ways = array 1
+for T in 1 to (Steps // 2)
+  Ed = (Pos + 4) mod 5
+  Lp = (Cnt // B ** Pos) mod B
+  Rp = (Cnt // B ** Ed) mod B
+  Lm = Lp less Per
+  Rm = Rp less Per
+  Nl = (Pos + 1) mod 5
+  Lk = (Cnt + B ** Pos) * 5 + Nl
+  Rk = (Cnt + B ** Ed) * 5 + Ed
+  Ok = concat Lm Rm
+  Key = concat Lk Rk filter Ok array
+  Wt = concat Ways Ways filter Ok array
+  Ord = Key argsort
+  Ks = Key Ord
+  Cum = (Wt Ord) scan +
+  Nx = concat (Ks drop 1) (array -1)
+  Last = Ks not equal Nx
+  Ends = Cum filter Last array
+  R = Ends len
+  Head = Ends take (R - 1)
+  Prev = concat (array 0) Head
+  Ways = Ends - Prev
+  Key = Ks filter Last array
+  Pos = Key mod 5
+  Cnt = Key // 5
+end
+Tab = array shape (B ** 5) fill 0
+for Q in 0 to 4
+  Hit = Pos equal Q
+  Ix = Cnt filter Hit array
+  Add = Ways filter Hit array
+  Tab Ix = Tab Ix + Add
+end
+Rows = Cnt len
+Dg = (Cnt reshape Rows 1 // Pw) mod B
+Cells = Rows * 5
+Pc = Pos reshape Rows 1
+Sh = (0 to 4 array) + Pc
+Cols = Sh mod 5
+Base = (0 to (Rows - 1) array) * 5
+Pick = Cols + (Base reshape Rows 1)
+Rest = (Per - Dg) reshape Cells
+Flat = Rest (Pick reshape Cells)
+Rot = Flat reshape Rows 5
+Key = (Rot * Pw) sum axis 1
+Answer = (Ways * (Tab Key)) sum
+Answer print

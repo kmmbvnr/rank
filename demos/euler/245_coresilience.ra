@@ -1,0 +1,248 @@
+rem Coresilience
+rem https://projecteuler.net/problem=245
+rem C(n) = (n - phi(n)) / (n - 1). Add
+rem up the composite n up to Limit for
+rem which C(n) is a unit fraction 1 / k
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 200000000000
+
+rem Then n - 1 = k (n - phi(n)), so n is
+rem squarefree with all primes above k,
+rem and n = pq gives (p - k) (q - k) =
+rem k^2 - k + 1. Those divisors come
+rem from the factors of k^2 - k + 1
+rem found by a sieve of its roots mod
+rem each prime r, the roots being -w for
+rem the cube roots of unity w. With
+rem three or more primes, k is below the
+rem cube root of Limit and the primes
+rem are chosen from the least up, with m
+rem their product and A = phi(m). The
+rem last prime is then p = (k A + 1) /
+rem (k A - (k - 1) m). The next prime q
+rem must have q / (q - 1) below k A / (k
+rem A - (k - 1) m), and the product of
+rem the ratios of the primes that still
+rem fit must reach it.
+Rt = Limit isqrt + 1
+Pr = primes till (Rt + 1) array
+Np = Pr len
+Pi = array shape (Rt + 2) fill 0
+for I in 0 till Np
+  Pi (Pr I) = 1
+end
+Pi = Pi scan + with 0
+Kk = Rt
+Rs = array shape (Kk + 1) fill 0
+for K in 2 to Kk
+  Rs K = K * K - K + 1
+end
+Nf = array shape (Kk + 1) fill 0
+Fp = array shape (12 * (Kk + 1)) fill 0
+Fe = array shape (12 * (Kk + 1)) fill 0
+for R in Pr
+  if R equal 2
+    continue
+  end
+  Roots = array 0 0
+  Nr = 1
+  if R mod 3 equal 1
+    for G in 2 to R
+      W = 1
+      B = G
+      E = (R - 1) // 3
+      for
+        if E equal 0
+          break
+        end
+        if E mod 2 equal 1
+          W = W * B mod R
+        end
+        B = B * B mod R
+        E = E // 2
+      end
+      if W greater 1
+        Roots 0 = R - W
+        Roots 1 = R - W * W mod R
+        Nr = 2
+        break
+      end
+    end
+  else
+    if R equal 3
+      Roots 0 = 2
+    else
+      Nr = 0
+    end
+  end
+  for J in 0 till Nr
+    X = Roots J
+    Fk = 2 + (X - 2) mod R
+    for K in Fk to Kk by R
+      Ex = 0
+      for
+        if Rs K mod R greater 0
+          break
+        end
+        Rs K = Rs K // R
+        Ex += 1
+      end
+      Slot = K * 12 + Nf K
+      Fp Slot = R
+      Fe Slot = Ex
+      Nf K += 1
+    end
+  end
+end
+Dv = array shape 5000 fill 0
+Total = 0
+for K in 2 to Kk
+  Nd = 1
+  Dv 0 = 1
+  Cf = Nf K
+  for J in 0 till Cf
+    Slot = K * 12 + J
+    Pw = 1
+    Old = Nd
+    for E in 1 to (Fe Slot)
+      Pw = Pw * Fp Slot
+      for L in 0 till Old
+        Dv Nd = Dv L * Pw
+        Nd += 1
+      end
+    end
+  end
+  if Rs K greater 1
+    Old = Nd
+    for L in 0 till Old
+      Dv Nd = Dv L * Rs K
+      Nd += 1
+    end
+  end
+  Kq = K * K - K + 1
+  for L in 0 till Nd
+    A = Dv L
+    B = Kq // A
+    if A less B
+      P = K + A
+      Q = K + B
+      if P * Q at most Limit
+        if P in primes and Q in primes
+          Total += P * Q
+        end
+      end
+    end
+  end
+end
+Ms = array shape 20 fill 0
+As = array shape 20 fill 0
+Lp = array shape 20 fill 0
+Ci = array shape 20 fill 0
+Cm = array shape 100000 fill 0
+Cp = array shape 100000 fill 0
+Nc = 0
+Kc = 2
+for
+  if Kc * Kc * Kc greater Limit
+    break
+  end
+  Kc += 1
+end
+for K in 2 to Kc
+  D = 0
+  Ms 0 = 1
+  As 0 = 1
+  Lp 0 = 1
+  Fresh = 1
+  for
+    M = Ms D
+    A = As D
+    if Fresh equal 1
+      Fresh = 0
+      Kb = K * A
+      Dd = Kb - (K - 1) * M
+      Ci D = Np
+      if Dd greater 0
+        if (Kb + 1) mod Dd equal 0
+          P = (Kb + 1) // Dd
+          if P greater Lp D
+            if M * P at most Limit
+              if D at least 2
+                Cm Nc = M
+                Cp Nc = P
+                Nc += 1
+              end
+            end
+          end
+        end
+        Lb = K
+        if Lp D greater Lb
+          Lb = Lp D
+        end
+        if Kb // Dd greater Lb
+          Lb = Kb // Dd
+        end
+        if Lb less Rt
+          Ci D = Pi (Lb + 1)
+        end
+      end
+    end
+    Up = 0
+    Q = 0
+    if Ci D at least Np
+      Up = 1
+    else
+      Q = Pr (Ci D)
+      Ci D += 1
+      if M * Q * Q greater Limit
+        Up = 1
+      end
+    end
+    if Up equal 0 and D equal 0
+      if Q * Q * Q greater Limit
+        Up = 1
+      end
+    end
+    if Up equal 0
+      Cn = 0
+      Mm = M
+      Lhs = (K - 1) * M
+      Rhs = K * A
+      for
+        if Mm * Q greater Limit
+          break
+        end
+        Mm = Mm * Q
+        Lhs = Lhs * Q
+        Rhs = Rhs * (Q - 1)
+      end
+      if Lhs less Rhs
+        Up = 1
+      end
+    end
+    if Up equal 1
+      if D equal 0
+        break
+      end
+      D -= 1
+    else
+      Ms (D + 1) = M * Q
+      As (D + 1) = A * (Q - 1)
+      Lp (D + 1) = Q
+      D += 1
+      Fresh = 1
+    end
+  end
+end
+for I in 0 till Nc
+  if Cp I in primes
+    Total += Cm I * Cp I
+  end
+end
+Answer = Total
+Answer print

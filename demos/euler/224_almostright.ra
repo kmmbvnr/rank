@@ -1,0 +1,72 @@
+rem Almost Right-angled Triangles II
+rem https://projecteuler.net/problem=224
+rem Count the integer triangles with
+rem a^2 + b^2 + 1 = c^2, a <= b and
+rem perimeter at most Limit
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 75000000
+
+rem All solutions hang from (2, 2, 3) in
+rem a ternary tree whose three maps keep
+rem a^2 + b^2 - c^2. The tree is its own
+rem mirror image (a <-> b), so below a
+rem triangle with a = b, its own mirror,
+rem maps 1 and 3 give mirror subtrees,
+rem so only map 1 is walked.
+rem Those are taken level by level,
+rem dropping the triangles that are too
+rem long; their depth is below the root
+rem of Limit.
+Answer = 0
+A = array shape 0 fill 0
+B = A
+C = A
+S = 2
+T = 3
+for K in 1 to 40
+  if 2 * S + T at most Limit
+    Answer += 1
+    A = concat A (array (2 * T - S))
+    B = concat B (array (S + 2 * T))
+    C = concat C (array (3 * T))
+    Next = 4 * S + 3 * T
+    S = 3 * S + 2 * T
+    T = Next
+  end
+end
+for Lv in 1 to (Limit isqrt)
+  Per = A + B + C
+  Fit = Per at most Limit
+  A = A filter Fit array
+  B = B filter Fit array
+  C = C filter Fit array
+  Answer += A len
+  Ta = 2 * A
+  Tb = 2 * B
+  Tc = 2 * C
+  Tc3 = Tc + C
+  Up = A + Tc
+  Dn = Tc - A
+  Wp = B + Tc
+  Wm = Tc - B
+  Df = Ta - Tb
+  Sm = Ta + Tb
+  A1 = Up - Tb
+  A2 = Up + Tb
+  A3 = Dn + Tb
+  B1 = Ta + Wm
+  B2 = Ta + Wp
+  B3 = Wp - Ta
+  C1 = Tc3 + Df
+  C2 = Tc3 + Sm
+  C3 = Tc3 - Df
+  A = concat A1 A2 A3
+  B = concat B1 B2 B3
+  C = concat C1 C2 C3
+end
+Answer print

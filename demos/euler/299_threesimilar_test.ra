@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "299_threesimilar"
+  run
+
+  Answer equal 549936643
+end
+
+test "problem examples"
+  use "299_threesimilar"
+  Limit = 100
+  run
+
+  Answer equal 92
+  Limit = 100000
+  run
+
+  Answer equal 320471
+end

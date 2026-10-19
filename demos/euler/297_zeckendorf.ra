@@ -1,0 +1,37 @@
+rem Zeckendorf Representation
+rem https://projecteuler.net/problem=297
+rem Sum the numbers of terms in the
+rem Zeckendorf representations of the
+rem integers below N
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000000000000
+
+rem C[i] is the sum over n < F[i], and
+rem C[i] = C[i-1] + C[i-2] + F[i-2]: the
+rem terms of n < F[i-1], of F[i-1] <=
+rem n < F[i], and one more for each.
+rem Then walk down from N, peeling the
+rem largest term F off the numbers
+rem from F up to N - 1.
+Fib = fibonacci till N array
+Top = Fib len
+C = array shape Top fill 0
+C 1 = 1
+for I in 2 to (Top - 1)
+  Low = C (I - 1) + C (I - 2)
+  C I = Low + Fib (I - 2)
+end
+Answer = 0
+Rest = N
+for I in (Top - 1) to 0 by -1
+  if Fib I at most Rest - 1
+    Answer += C I + Rest - Fib I
+    Rest -= Fib I
+  end
+end
+Answer print

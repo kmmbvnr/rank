@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "208_robotwalks"
+  run
+
+  Answer equal 331951449665644800
+end
+
+test "short walks"
+  use "208_robotwalks"
+  Steps = 10
+  run
+
+  Answer equal 12
+  Steps = 20
+  run
+
+  Answer equal 3400
+end

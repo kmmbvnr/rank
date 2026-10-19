@@ -1,0 +1,27 @@
+use testing
+
+test "default input"
+  use "215_crackfree"
+  run
+
+  Answer equal 806844323190414
+end
+
+test "small walls"
+  use "215_crackfree"
+  Width = 9
+  Height = 3
+  run
+
+  Answer equal 8
+  Width = 12
+  Height = 4
+  run
+
+  Answer equal 52
+  Width = 20
+  Height = 5
+  run
+
+  Answer equal 33666
+end

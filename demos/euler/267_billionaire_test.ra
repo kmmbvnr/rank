@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "267_billionaire"
+  run
+
+  Answer equal 0.999992836187
+end
+
+test "short games"
+  use "267_billionaire"
+  N = 20
+  Goal = 20
+  run
+
+  Answer equal 0.131587982178
+  N = 40
+  Goal = 50
+  run
+
+  Answer equal 0.317914001314
+end

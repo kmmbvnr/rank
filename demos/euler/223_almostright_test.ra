@@ -1,0 +1,17 @@
+use testing
+
+test "small limits"
+  use "223_almostright"
+  Limit = 100
+  run
+
+  Answer equal 72
+  Limit = 3000
+  run
+
+  Answer equal 3591
+  Limit = 30000
+  run
+
+  Answer equal 45638
+end

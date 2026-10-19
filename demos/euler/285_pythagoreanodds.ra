@@ -1,0 +1,38 @@
+rem Pythagorean Odds
+rem https://projecteuler.net/problem=285
+rem Sum the expected scores of the game
+rem for k up to N: a and b are random in
+rem 0 to 1 and the score is k when the
+rem root of (k a + 1)^2 + (k b + 1)^2
+rem rounds to k, else 0
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000
+
+rem With x = k a + 1 and y = k b + 1 the
+rem score is k times the share of the
+rem square [1, k + 1]^2 between circles
+rem of radius k - 1/2 and k + 1/2. In
+rem the circle of radius R (at least the
+rem root of 2) the square holds the area
+rem R^2 (pi / 2 - 2 asin(1 / R)) / 2
+rem - sqrt(R^2 - 1) + 1.
+K = 1 to N array
+Rs = concat (K + 0.5) (K - 0.5)
+Rc = Rs 1.5 max
+Hit = Rs * Rs at least 2
+Arc = (1 / Rc) asin
+Sq = Rc * Rc
+Half = 1 asin
+Core = Sq * (Half - 2 * Arc) / 2
+Area = Core - ((Rc * Rc - 1) sqrt) + 1
+Cut = Hit choose Area 0.0
+Outer = Cut take N
+Inner = Cut drop N
+Gain = (Outer - Inner) / K
+Answer = Gain sum 5 round
+Answer print

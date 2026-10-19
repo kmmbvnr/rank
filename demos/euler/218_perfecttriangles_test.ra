@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "218_perfecttriangles"
+  run
+
+  Answer equal 0
+end
+
+test "a stricter modulus fails"
+  use "218_perfecttriangles"
+  Mod = 336
+  run
+
+  Answer equal 24576
+end

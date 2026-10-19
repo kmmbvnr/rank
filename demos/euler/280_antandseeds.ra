@@ -1,0 +1,119 @@
+rem Ant and seeds
+rem https://projecteuler.net/problem=280
+rem Find the expected number of steps of
+rem an ant on a 5 by 5 grid, from the
+rem middle square, to move five seeds
+rem from the bottom row to the top row:
+rem it picks up a seed on a bottom
+rem square that has one and drops it on
+rem the first empty top square it
+rem reaches
+
+use bits
+use linalg
+use numbers
+use sequences
+use io
+use cli
+
+option Digits integer = 6
+
+rem A state is the seeds left on the
+rem bottom row b, the filled top squares
+rem t, whether the ant carries a seed c,
+rem and its square. For one b, t and c
+rem the expected steps from every square
+rem satisfy a linear system, with the
+rem states after a pick-up or a drop
+rem known already: more seeds delivered
+rem first, then carrying before not
+rem carrying.
+Nq = array shape 100 fill -1
+Dg = array shape 25 fill 0
+Dr = array 1 -1 0 0
+Dc = array 0 0 1 -1
+for S in 0 to 24
+  for K in 0 to 3
+    Nr = S // 5 + Dr K
+    Nc = S mod 5 + Dc K
+    On = Nr at least 0 and Nr at most 4
+    On = On and (Nc at least 0)
+    On = On and (Nc at most 4)
+    if On
+      Nq (S * 4 + K) = Nr * 5 + Nc
+      Dg S += 1
+    end
+  end
+end
+Bl = array shape 462 fill 0
+Tl = array shape 462 fill 0
+Cl = array shape 462 fill 0
+At = 0
+for Pt in 5 to 0 by -1
+  for C in 1 to 0 by -1
+    for B in 0 to 31
+      for T in 0 to 31
+        Fit = T popcount equal Pt
+        Count = B popcount + Pt + C
+        Fit = Fit and (Count equal 5)
+        if Fit
+          Bl At = B
+          Tl At = T
+          Cl At = C
+          At += 1
+        end
+      end
+    end
+  end
+end
+Ev = array shape 2048 25 fill 0.0
+for I in 0 till At
+  B = Bl I
+  T = Tl I
+  C = Cl I
+  Mat = array shape 25 25 fill 0.0
+  Rh = array shape 25 fill 1.0
+  for S in 0 to 24
+    Mat S S = 1.0
+    for K in 0 to 3
+      Q = Nq (S * 4 + K)
+      if Q greater -1
+        Share = 1.0 / Dg S
+        Bit = 2 ** (Q mod 5)
+        Seed = (B // Bit) mod 2 equal 1
+        Free = (T // Bit) mod 2 equal 0
+        Low = Q less 5
+        Pick = C equal 0 and Low
+        Pick = Pick and Seed
+        Top = Q at least 20
+        Drop = C equal 1 and Top
+        Drop = Drop and Free
+        Row = (B * 32 + T) * 2 + C
+        if Pick
+          Gone = B - Bit
+          Row = (Gone * 32 + T) * 2 + 1
+        end
+        if Drop
+          Row = (B * 32 + T + Bit) * 2
+        end
+        if Pick or Drop
+          Val = Ev Row Q
+          Rh S += Share * Val
+        else
+          Mat S Q -= Share
+        end
+      end
+    end
+  end
+  Done = B equal 0 and C equal 0
+  if not Done
+    Out = Mat Rh solve
+    Row = (B * 32 + T) * 2 + C
+    for S in 0 to 24
+      Ev Row S = Out S
+    end
+  end
+end
+Row = 31 * 32 * 2
+Answer = Ev Row 12 Digits round
+Answer print

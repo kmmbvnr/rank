@@ -1,0 +1,31 @@
+rem Odd Triplets
+rem https://projecteuler.net/problem=242
+rem Count the triples (n, k, f) that are
+rem all odd, with n up to Limit, f being
+rem the number of k-subsets of 1 to n
+rem with an odd sum
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000000000
+
+rem The triples are exactly n = 4 a + 1
+rem and k = 2 b + 1 with C(2 a, b) odd.
+rem By Lucas that holds when the bits of
+rem b are among those of 2 a, which is
+rem 2^pop(a) choices of b. So the count
+rem is the sum of 2^pop(a) for a below
+rem M = (Limit - 1) // 4 + 1. Each set
+rem bit i of M adds 3^i times 2^c for c
+rem the set bits above it.
+M = (Limit - 1) // 4 + 1
+I = 0 to ((M binary len) - 1) array
+Bit = (M I bit) choose 1 0
+Above = (Bit sum) - (Bit scan +)
+Share = Bit * 2 ** Above * 3 ** I
+Answer = Share sum
+Answer print

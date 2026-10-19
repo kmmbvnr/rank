@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "226_blancmange"
+  run
+
+  Answer equal 0.11316017
+end
+
+test "fewer digits"
+  use "226_blancmange"
+  Digits = 4
+  run
+
+  Answer equal 0.1132
+end

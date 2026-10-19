@@ -1,0 +1,16 @@
+use testing
+
+test "default input"
+  use "244_slidingblock"
+  run
+
+  Answer equal 96356848
+end
+
+test "another modulus"
+  use "244_slidingblock"
+  Mod = 1000003
+  run
+
+  Answer equal 511034
+end
