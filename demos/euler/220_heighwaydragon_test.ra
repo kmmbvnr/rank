@@ -1,0 +1,22 @@
+use testing
+
+test "default input"
+  use "220_heighwaydragon"
+  run
+
+  Answer equal "139776,963904"
+end
+
+test "problem example"
+  use "220_heighwaydragon"
+  Order = 10
+  Steps = 500
+  run
+
+  Answer equal "18,16"
+  Order = 1
+  Steps = 2
+  run
+
+  Answer equal "1,1"
+end
