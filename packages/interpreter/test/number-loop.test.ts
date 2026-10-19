@@ -127,6 +127,18 @@ end`)))).toThrow('Interrupted');
         } finally { runtime.dispose(); }
     });
 
+    it('does not defer a binding contract changed by an entry hook', () => {
+        let runtime: Interpreter;
+        const diagnostics = new RuntimeDiagnostics();
+        runtime = new Interpreter(() => {}, { onIntegerLoopExecuted: () => runtime.execute('Fresh = true') });
+        try {
+            expect(() => diagnostics.run(() => runtime.execute('Before = 0\nfor I in 1 to 3\n Before = I\n Fresh = I\nend'))).toThrow();
+            expect(runtime.variables.get('Before')).toBe(1n);
+            expect(runtime.variables.has('Fresh')).toBe(false);
+            expect(diagnostics.numberLoops).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
     it('retains live array semantics for observable loop-entry hooks', () => {
         let runtime: Interpreter;
         const diagnostics = new RuntimeDiagnostics();

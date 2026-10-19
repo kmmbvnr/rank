@@ -21,7 +21,7 @@ const rankInteger = (value: unknown): RankValue | undefined =>
  * Inspection and custom host polling retain the existing publishing backend. */
 export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): CompiledLoop | undefined {
     const { names, localTypes, arrays, required, body, root, locations, statement } = plan;
-    if (host.observableEntry && arrays.size || !host.canDeferWrites || plan.calls.length || plan.iterators.length || plan.containers.size
+    if (host.observableEntry || !host.canDeferWrites || plan.calls.length || plan.iterators.length || plan.containers.size
         || plan.destinations.size || plan.arrayDefinitions.size || plan.hasReturn
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean')
         || [...arrays.values()].some(info => info.type !== 'integer' || info.rank !== 1)) return undefined;
