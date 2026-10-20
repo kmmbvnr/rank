@@ -199,3 +199,19 @@ in **14.294 s**, still using the original 300 s deadline.
 
 Raw samples: [Euler pairs](baselines/2026-10-20-engineers-dream-builtins.jsonl),
 [direct membership](baselines/2026-10-20-direct-prime-membership.jsonl).
+
+## Verification with current main
+
+Main advanced to `90dc0798` while this work was in progress, adding #348 dense
+sum-of-squares blocks and #350 captured scalar reads/loop jumps. The combined
+runtime was built and 662 focused interpreter tests passed, including those
+features' tests and the membership regressions. All five Euler 263 demo test
+blocks passed again. A fresh full-search sample on the combined runtime took
+**8.936 s**, with 0.140 s static analysis and 276.6 MiB execution peak RSS;
+the answer was again 2039506520. This integration sample includes the other
+main changes and does not isolate the builtin-membership optimization.
+[Integration sample](baselines/2026-10-20-engineers-dream-integrated.jsonl).
+
+The default name-facts corpus entry also passed on this combined runtime in
+**14.536 s**, with the unchanged 300 s deadline.
+[Integration corpus output](baselines/2026-10-20-engineers-dream-integrated-corpus.log).

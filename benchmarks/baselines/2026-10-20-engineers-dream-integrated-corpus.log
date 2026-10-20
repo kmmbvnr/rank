@@ -1,0 +1,15 @@
+
+> @arrrank/common@0.0.2 test
+> node scripts/test.mjs test/name-facts-corpus.test.ts -t euler/263_engineersdream.ra --maxWorkers=1
+
+
+ RUN  v3.2.7 /private/tmp/rank-issue-400-next/packages/common
+
+ ✓ test/name-facts-corpus.test.ts (1477 tests | 1476 skipped) 14541ms
+   ✓ facts at a name against the values a run produced > euler/263_engineersdream.ra  14536ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 1476 skipped (1477)
+   Start at  23:47:53
+   Duration  16.05s (transform 816ms, setup 0ms, collect 1.33s, tests 14.54s, environment 0ms, prepare 43ms)
+
