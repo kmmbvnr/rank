@@ -296,10 +296,15 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
             }
         }
         const filteredLength = source.checkedColumns ? freshDim('filtered') : undefined;
+        const scalar = source.elements?.every(type =>
+            ['integer', 'real', 'boolean', 'text', 'symbol', 'missing'].includes(type));
+        // Filtered scalar cells stay lazy; rows remain a table.
         if (source.types.join() === 'array' && source.rank === 1) return {
-            types: ['array'], rank: 1, shape: [null],
-            ...(source.elements?.every(type => ['integer', 'real', 'boolean', 'text', 'symbol', 'missing'].includes(type))
-                ? { elements: source.elements } : {}),
+            types: [scalar && !source.checkedColumns ? 'sequence' : 'array'], rank: 1, shape: [null],
+            ...(scalar ? { elements: source.elements } : {}),
+            ...(scalar && !source.checkedColumns && (source.eagerScalarCells || source.callbackFreeScalarCells)
+                && conditions.every(condition => callbackFreeCondition(condition, lookup, expressionFacts))
+                ? { callbackFreeScalarCells: true as const } : {}),
             ...(filteredLength && source.checkedInputId !== undefined
                 ? { dims: [filteredLength], checkedInputId: source.checkedInputId, checkedColumns: Object.fromEntries(
                     Object.entries(source.checkedColumns ?? {}).map(([name, column]) => [name,

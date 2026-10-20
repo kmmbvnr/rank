@@ -1,8 +1,8 @@
 import { bindCallWords } from './call-words.js';
 import {
     isAllAxisExpression, isParenthesizedExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
-    isApplicationExpression, isArrayExpression, isBinaryExpression, isLabelLiteral, isNameExpression,
-    type ArrayExpression, type ArrayItem, type Expression,
+    isApplicationExpression, isBinaryExpression, isLabelLiteral, isNameExpression,
+    type Expression,
 } from './generated/ast.js';
 import { findOperation, type Operation } from './operations.js';
 import { applicationExpression, flattenApplication } from './expressions.js';
@@ -147,21 +147,6 @@ export function symbolicApplicationForm(
         };
     }
     return undefined;
-}
-
-export function explicitMaterializePipeline(parts: Expression[]): {
-    readonly source: readonly Expression[];
-    readonly selector: ArrayExpression;
-    readonly steps: readonly ArrayItem[];
-} | undefined {
-    const position = parts.findIndex((part, index) => index > 0
-        && isArrayExpression(part)
-        && part.dimensions.length === 0
-        && part.items.length > 0
-        && part.items.every(item => !item.sign));
-    if (position < 0 || position !== parts.length - 1) return undefined;
-    const selector = parts[position] as ArrayExpression;
-    return { source: parts.slice(0, position), selector, steps: selector.items };
 }
 
 export interface NamedOuterApplication {
@@ -402,8 +387,7 @@ export type ApplicationForm =
     | Recognized<'graph-edges', typeof explicitGraphEdges>
     | Recognized<'dsu-method', typeof explicitDsuMethod>
     | Recognized<'functional-method', typeof explicitFunctionalMethod>
-    | Recognized<'multiset-method', typeof explicitMultisetMethod>
-    | Recognized<'materialize-pipeline', typeof explicitMaterializePipeline>;
+    | Recognized<'multiset-method', typeof explicitMultisetMethod>;
 
 /** One ordered classification for runtime and analysis; never reads array cells. */
 export function applicationForm(
@@ -582,8 +566,6 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: N
     if (form19) return { ...form19, kind: 'functional-method' };
     const form20 = explicitMultisetMethod(parts, nameOf);
     if (form20) return { ...form20, kind: 'multiset-method' };
-    const form21 = explicitMaterializePipeline(parts);
-    if (form21) return { ...form21, kind: 'materialize-pipeline' };
     return { kind: 'plain' };
 }
 

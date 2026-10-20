@@ -34,7 +34,7 @@ it.each([
     ['A B outer min', 'named-outer'], ['A sort .descending', 'sort-direction'],
     ['A findroot 1', 'dsu-method'],
     ['A jump 1 2', 'functional-method'], ['A floor 2', 'multiset-method'],
-    ['A edges 1', 'graph-edges'], ['A array len', 'materialize-pipeline'],
+    ['A edges 1', 'graph-edges'],
     ['A scan + with 0', 'scan'], ['A scan + axis 1', 'scan'], ['A scan min axis 0', 'named-scan'], ['A reduce +', 'reduce'], ['A segment +', 'segment'],
     ['A B outer +', 'outer'], ['1 + 2', 'plain'],
 ])('classifies %s as %s', (source, kind) => {
@@ -133,16 +133,29 @@ it('does not interpret a CSV write as a checked read', () => {
     expect(applicationForm(assignment.value)).toMatchObject({ kind: 'invalid' });
 });
 
-it('returns the original nodes of a pipeline after a user function call', () => {
-    const parsed = parser.parse<Program>('Result = 6 upto array len\n');
+it.each([
+    ['6 upto array len', 'MaterializeExpression', ['len']],
+    ['Values filter Odd array sum', 'MaterializeExpression', ['sum']],
+    ['Values array reshape 2 3', 'MaterializeExpression', ['reshape', '2', '3']],
+    ['Values array 2 0', 'NameExpression', []],
+])('groups %s by the word after array', (source, head, rest) => {
+    const parsed = parser.parse<Program>(`Result = ${source}\n`);
+    expect(parsed.parserErrors).toEqual([]);
     const statement = parsed.value.statements[0];
     if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
-    const form = applicationForm(statement.value, name => name === 'upto' ? false : findOperation(name));
-    if (form.kind !== 'materialize-pipeline') throw new Error('expected materialize-pipeline');
-    expect(form.source).toEqual(flattenApplication(statement.value).slice(0, 2));
-    expect(form.source[1]).toBe(flattenApplication(statement.value)[1]);
-    expect(form.steps).toEqual(form.selector.items);
-    form.steps.forEach((step, index) => expect(step).toBe(form.selector.items[index]));
+    const parts = flattenApplication(statement.value);
+    expect(parts[0].$type).toBe(head);
+    if (head === 'NameExpression') expect(parts[1].$type).toBe('ArrayExpression');
+    else expect(parts.slice(1).map(part => part.$cstNode?.text)).toEqual(rest);
+});
+
+it('folds a materialized source with a symbolic reduction', () => {
+    const parsed = parser.parse<Program>('Result = Values filter Odd array reduce + with 0\n');
+    expect(parsed.parserErrors).toEqual([]);
+    const statement = parsed.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    expect(applicationForm(statement.value)).toMatchObject({ kind: 'reduce', operator: '+',
+        source: { $type: 'MaterializeExpression' } });
 });
 
 it.each(['1 to Lim', 'array Lim Lim'])('validates a pipeline after a user function returning %s', async body => {

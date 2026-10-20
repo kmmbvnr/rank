@@ -25,7 +25,7 @@ import { diagonal, diagonalOptions, diagonalShape, matmulValues } from '../modul
 import { shuffleValue } from '../modules/random.js';
 import { directedMerge } from '../modules/sorted-merge.js';
 import {
-    argsortAxis, directedSort, lengthOfAxis, materializeCollection, reshapeWithDimensions, reshapeWithShapeRows,
+    argsortAxis, directedSort, lengthOfAxis, reshapeWithDimensions, reshapeWithShapeRows,
     sortDescending, sortMode, stackValues, concatValues, transposeValue, uniqueLength,
     type SortMode,
 } from '../modules/sequences.js';
@@ -36,12 +36,12 @@ import { dyadicCells, type RankApplication } from '../rank-application.js';
 import type { ReductionEvaluator } from '../reduction.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
 import { ALL_AXIS, selectAxis } from '../selectors.js';
-import { materializeSequence, shiftValue, windowValue } from '../sequence.js';
+import { shiftValue, windowValue } from '../sequence.js';
 import { safeDimension } from '../tensor-index.js';
 import { callArguments, canApplySelectors, hasField, unpackApplicationItems } from '../value-selection.js';
 import {
     isNativeFunction, isRankArray, isRankDsu, isRankFenwick, isRankFunctionalGraph, isRankGraph, isRankLabel,
-    isRankMultiset, isRankSequence, typeName,
+    isRankMultiset, typeName,
     type NativeFunction, type RankValue,
 } from '../value.js';
 
@@ -834,34 +834,6 @@ export class ApplicationEvaluator {
                         0,
                         [],
                         tail,
-                    ));
-                };
-            }
-            case 'materialize-pipeline': {
-                const materializePipeline = form;
-                return function* (): Execution<RankValue> {
-                    const sourceParts = yield* resume(mapExecution(
-                        materializePipeline.source,
-                        part => context.evaluate(part),
-                    ));
-                    const source = sourceParts.length === 1
-                        ? sourceParts[0]
-                        : yield* resume(application.apply(sourceParts));
-                    // A sequence or a container with a defined order materializes; others are selected from.
-                    const materialized = isRankSequence(source) ? materializeSequence(source) : materializeCollection(source);
-                    if (materialized) {
-                        let result: RankValue = materialized;
-                        for (const item of materializePipeline.steps) {
-                            result = yield* resume(application.apply([
-                                result,
-                                yield* resume(context.evaluateArrayItem(item)),
-                            ], missing, 0, [], tail));
-                        }
-                        return result;
-                    }
-                    const selector = yield* resume(context.evaluate(materializePipeline.selector));
-                    return yield* resume(application.apply(
-                        [source, selector], missing, 0, [], tail,
                     ));
                 };
             }

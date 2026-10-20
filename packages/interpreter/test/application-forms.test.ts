@@ -37,7 +37,7 @@ it('retains builtin identity when an alias crosses a source-module boundary', ()
 
 it.each([
     ['1 to Lim', '6'],
-    ['array Lim Lim', 'mask shape mismatch: 2 and 1'],
+    ['array Lim Lim', 'postfix array expects a sequence, queue, stack, deque, set, multiset, table or SQLite table'],
 ])('evaluates a pipeline after a user function returning %s as after its group', (body, expected) => {
     for (const compiled of [true, false]) {
         const run = (pipeline: string) => {

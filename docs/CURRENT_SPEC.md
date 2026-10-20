@@ -3093,10 +3093,12 @@ Count = Values array len
 Values array len print
 ```
 
-When `array` has following words, the evaluated receiver resolves the apparent
-overlap: a sequence is materialized and the remaining words continue the
-application chain, while an array uses `array` and its following values as a
-selector. This keeps `A array 2 0` unchanged.
+When `array` has following words, the first of them decides. A function, or a
+higher-order word such as `reduce` or `scan`, makes `array` postfix: the source
+materializes and the call goes on, so `Values filter Odd array sum` and
+`Values array reduce + with 0` work as written. Data after `array` forms a
+selector, which keeps `A array 2 0` unchanged; write `(Values array) 0` to index
+a materialized sequence.
 
 Postfix `copy` accepts a material or lazy array, eagerly evaluates all of its
 cells and returns independent writable dense storage with the same shape:

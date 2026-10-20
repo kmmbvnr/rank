@@ -268,6 +268,34 @@ it('infers a filtered numeric vector as a sequence of the same cells', () => {
     });
 });
 
+const masked = new Map<string, ValueFacts>([
+    ['Xs', { types: ['array'], rank: 1, shape: [10], elements: ['integer'], eagerScalarCells: true }],
+    ['Odd', { types: ['array'], rank: 1, shape: [10], elements: ['boolean'], callbackFreeScalarCells: true }],
+]);
+
+it('infers a masked vector as a sequence of the same callback-free cells', () => {
+    expect(facts('Xs filter Odd', masked)).toEqual({ types: ['sequence'], rank: 1, shape: [null],
+        elements: ['integer'], callbackFreeScalarCells: true });
+});
+
+it.each([
+    'sum', 'min', 'max', 'len', 'count', 'reduce +', 'reduce + with 0', 'reduce max with 0',
+])('applies %s to the result of filter ... array', call => {
+    expect(facts(`Xs filter Odd array ${call}`, masked)).toMatchObject({
+        types: ['integer'], rank: 0, shape: [] });
+});
+
+it('keeps data after postfix array a selector', () => {
+    expect(facts('Xs array 2 0', masked)).toMatchObject({ types: ['array'], rank: 1, shape: [2] });
+});
+
+it.each([
+    ['reduce + with 0', ['integer']], ['reduce + with 0.5', ['integer', 'real']],
+    ['reduce - with 0', ['integer']], ['reduce max', ['integer']], ['reduce max with 0', ['integer']],
+])('infers a scalar for %s', (call, types) => {
+    expect(facts(`Xs ${call}`, masked)).toEqual({ types, rank: 0, shape: [] });
+});
+
 it('keeps trailing matrix dimensions after a row predicate', () => {
     const matrix: ValueFacts = { types: ['array'], rank: 2, shape: [3, 2], elements: ['integer'] };
     const predicate: ValueFacts = { types: ['function'] };

@@ -5,7 +5,7 @@ import { prepareFunctionBindings, functionBindingPlan } from './function-binding
 import { groupModifiers } from './modifier-grouping.js';
 import { AstUtils, GrammarUtils, isAstNode, type AstNode, type CstNode } from 'langium';
 import {
-    isFunctionStatement, isApplicationExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isHigherOrderOperator, isMaterializeExpression,
+    isFunctionStatement, isApplicationExpression, isArrayExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isHigherOrderOperator, isMaterializeExpression,
     isLabelLiteral, isNameExpression, type HigherOrderOperator,
     type BinaryExpression, type Expression, type FunctionStatement, type NameExpression, type Program,
 } from './generated/ast.js';
@@ -257,6 +257,19 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         }
         if (isApplicationExpression(expression)) {
             const ungrouped = flatten(expression);
+            // The parser reads `Values array len` as a call with the literal
+            // `array len`. A function after `array` makes it postfix: the source
+            // materializes and the call goes on. Data keeps it a selector.
+            const tail = ungrouped.at(-1);
+            const literal = isArrayExpression(tail) && !tail.range && !tail.dimensions.length && !tail.rows.length
+                && !tail.items[0]?.sign ? tail : undefined;
+            const word = literal?.items[0]?.value;
+            if (literal && word && (callable(word) || isHigherOrderOperator(word)
+                || isNameExpression(word) && higherOrder.has(word.name) && standard(word))) {
+                const source = { $type: 'MaterializeExpression', $cstNode: expression.$cstNode,
+                    source: application(ungrouped.slice(0, -1), expression) } as Expression;
+                return tokens(application([source, ...literal.items.map(item => item.value)], expression));
+            }
             // repeat receives the function value, including its default words.
             const repeated = new Set(ungrouped.filter((_, index) => {
                 const next = ungrouped[index + 1];

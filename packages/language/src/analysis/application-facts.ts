@@ -5,7 +5,7 @@ import { joinValueFacts } from './value-domain.js';
 import { diagonalResultShape } from '../shape-signature.js';
 import { operationShapeFacts, rankedOperandShapes } from './operation-shape.js';
 import { freshDim } from './shape-index.js';
-import { symbolicFormFacts } from './binary-facts.js';
+import { foldedCells, scannedFacts, symbolicFormFacts } from './binary-facts.js';
 import {
     isParenthesizedExpression, isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
     isNumberLiteral, isStringLiteral, isUnpackExpression, type ApplicationExpression, type Expression,
@@ -280,7 +280,7 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
         case 'plain': case 'new-dsu': case 'new-filled': case 'new-heap': case 'text-format': case 'rank':
         case 'named-segment': case 'named-outer': case 'sort-direction':
         case 'axis-length': case 'axis-reduction': case 'axis-covariance': case 'axis-correlation':
-        case 'functional-method': case 'graph-edges': case 'materialize-pipeline':
+        case 'functional-method': case 'graph-edges':
             return isApplicationExpression(expression)
                 ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
         // These forms have runtime implementations but no abstract transfer yet.
@@ -290,14 +290,17 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             return UNKNOWN_VALUE;
         case 'comparison-rank':
             return symbolicFormFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
-        case 'named-scan':
-            return namedScanFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
+        case 'named-scan': case 'named-reduce': {
+            const folded = namedFold(form, lookup, infer);
+            if (!folded) return UNKNOWN_VALUE;
+            return form.kind === 'named-scan'
+                ? { ...scannedFacts(folded.source, folded.seed, folded.cells), types: ['array'] }
+                : { types: folded.cells, rank: 0, shape: [] };
+        }
         case 'repeat': {
             const count = infer(form.count, lookup);
             return count.integer === '0' ? infer(form.source, lookup) : UNKNOWN_VALUE;
         }
-        case 'named-reduce':
-            return UNKNOWN_VALUE;
         case 'multiset-method':
             return multisetMethodFacts(form, lookup, infer);
         case 'segment': case 'scan': case 'reduce': case 'outer':
@@ -307,25 +310,19 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
 }
 
 /** `Values scan bxor with 0`: a builtin scalar operation folded over proven numeric cells. */
-function namedScanFacts(form: Extract<ApplicationForm, { kind: 'named-scan' }>, lookup: FactLookup,
-    infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts | undefined {
+function namedFold(form: Extract<ApplicationForm, { kind: 'named-scan' | 'named-reduce' }>, lookup: FactLookup,
+    infer: (expression: Expression, lookup: FactLookup) => ValueFacts) {
     if (form.axis || !isNameExpression(form.operation)) return undefined;
     const operation = operationBinding(form.operation.name, lookup);
     // Integer-only scalar operations, or ones that return one of their numeric operands.
-    const realCells = operation && operation.selectsNumericCell === true;
+    const realCells = !!operation && operation.selectsNumericCell === true;
     if (!operation || !(operation.scalarNoCallback === 'integer' || realCells) || operation.effects?.length
         || !operation.arities.includes(2) || operation.dyadicRanks?.[0] !== 0
         || operation.dyadicRanks[1] !== 0) return undefined;
     const source = infer(form.source, lookup);
     const seed = form.seed && infer(form.seed, lookup);
-    const cells = [...(source.elements ?? []), ...(seed?.types ?? [])];
-    if (!['array', 'sequence'].includes(source.types.join()) || source.rank !== 1
-        || !(source.eagerScalarCells || source.callbackFreeScalarCells) || !source.elements?.length
-        || seed && seed.rank !== 0
-        || !cells.every(type => type === 'integer' || realCells && type === 'real')) return undefined;
-    const length = source.shape?.[0];
-    return { types: ['array'], rank: 1, shape: [length == null ? null : length + (seed ? 1 : 0)],
-        elements: [...new Set(cells)], callbackFreeScalarCells: true };
+    const cells = foldedCells(source, seed, type => type === 'integer' || realCells && type === 'real');
+    return cells && source.rank === 1 ? { source, seed, cells } : undefined;
 }
 
 function operationBinding(name: string, lookup: FactLookup) {

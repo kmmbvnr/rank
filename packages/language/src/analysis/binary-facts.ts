@@ -234,32 +234,39 @@ export function symbolicFormFacts(symbolic: ApplicationForm, lookup: FactLookup,
             return { types: ['segment'], elements: values.elements, segmentOperation: '+' };
         }
     }
-    if (symbolic?.kind === 'scan' && !symbolic.axis && ['+', '*'].includes(symbolic.operator)) {
+    if (symbolic?.kind === 'scan' && !symbolic.axis && ['+', '-', '*'].includes(symbolic.operator)) {
         const source = infer(symbolic.source, lookup);
         const seed = symbolic.seed && infer(symbolic.seed, lookup);
-        const numeric = (types: Types | undefined) => !!types?.length
-            && types.every(type => type === 'integer' || type === 'real');
-        if (['array', 'sequence'].includes(source.types.join()) && source.rank === 1
-            && (source.eagerScalarCells || source.callbackFreeScalarCells) && numeric(source.elements)
-            && (!seed || seed.rank === 0 && numeric(seed.types))) {
-            const length = source.shape?.[0];
-            const size = length == null ? null : length + (seed ? 1 : 0);
-            return { types: source.types, rank: 1, shape: [size],
-                elements: [...new Set([...source.elements!, ...(seed?.types ?? [])])],
-                callbackFreeScalarCells: true };
-        }
+        const cells = foldedCells(source, seed, type => type === 'integer' || type === 'real');
+        if (cells && source.rank === 1) return scannedFacts(source, seed, cells);
     }
-    if (symbolic?.kind === 'reduce' && ['+', '*'].includes(symbolic.operator)
-        && symbolic.seed === undefined && symbolic.rank === undefined) {
+    if (symbolic?.kind === 'reduce' && ['+', '-', '*'].includes(symbolic.operator)
+        && symbolic.rank === undefined) {
         const source = infer(symbolic.source, lookup);
-        if (['array', 'sequence'].includes(source.types.join()) && source.rank !== undefined
-            && source.rank > 0 && (source.eagerScalarCells || source.callbackFreeScalarCells)
-            && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
-            return { types: source.elements.join() === 'integer' ? ['integer'] : ['integer', 'real'],
-                rank: 0, shape: [] };
-        }
+        const seed = symbolic.seed && infer(symbolic.seed, lookup);
+        const cells = foldedCells(source, seed, type => type === 'integer' || type === 'real');
+        // A real cell may meet only integers in a short source, so either can result.
+        if (cells && source.rank !== undefined && source.rank > 0) return {
+            types: cells.join() === 'integer' ? ['integer'] : ['integer', 'real'], rank: 0, shape: [] };
     }
     return undefined;
+}
+
+/** The cells a fold over proven scalar cells and its seed can yield. */
+export function foldedCells(source: ValueFacts, seed: ValueFacts | undefined,
+    accepts: (type: string) => boolean): Types | undefined {
+    const cells = [...(source.elements ?? []), ...(seed?.types ?? [])];
+    if (!['array', 'sequence'].includes(source.types.join()) || !source.elements?.length
+        || !(source.eagerScalarCells || source.callbackFreeScalarCells)
+        || seed && seed.rank !== 0 || !cells.every(accepts)) return undefined;
+    return [...new Set(cells)];
+}
+
+/** A scan keeps one result per cell, plus one for its seed. */
+export function scannedFacts(source: ValueFacts, seed: ValueFacts | undefined, cells: Types): ValueFacts {
+    const length = source.shape?.[0];
+    return { types: source.types, rank: 1, shape: [length == null ? null : length + (seed ? 1 : 0)],
+        elements: cells, callbackFreeScalarCells: true };
 }
 
 /** `Values (Start until End)`: a contiguous run along one axis keeps the source's kind and cells. */

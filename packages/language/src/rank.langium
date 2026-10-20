@@ -286,9 +286,11 @@ ArrayItem:
     sign=('+' | '-')? value=ArrayItemAtom;
 
 // Bare `shape` ends inline values; `(shape)` still denotes the function value.
+// `Values array reduce +` reaches grouping as this literal, which makes it postfix.
 ArrayItemAtom returns Expression:
     NumberLiteral | StringLiteral | BooleanLiteral | LabelLiteral |
-    NewStructureExpression | StdinExpression | ArrayNameExpression | ParenthesizedExpression;
+    NewStructureExpression | StdinExpression | ArrayNameExpression | ParenthesizedExpression |
+    HigherOrderOperator;
 
 ArrayNameExpression infers NameExpression:
     name=ArrayReferenceName;
