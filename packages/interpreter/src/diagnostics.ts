@@ -28,6 +28,7 @@ export class RuntimeDiagnostics {
     compiledGraphAdds = 0;
     numericSorts = 0;
     numericDistincts = 0;
+    numericUniqueSorts = 0;
     numericSearches = 0;
     numericSearchIndexes = 0;
     numberLoops = 0;

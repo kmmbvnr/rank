@@ -136,6 +136,37 @@ export function numericKey(value: RankValue): bigint | number | boolean | undefi
     return typeof value === 'boolean' ? value : undefined;
 }
 
+/** Fuse distinct + ascending sort only for trusted homogeneous numeric storage.
+ * Native sort cannot poll; interactive execution keeps the ordinary path.
+ * NaN and signed zero retain unique's first-occurrence semantics via fallback. */
+export function numericUniqueSort(value: RankValue): RankArray | undefined {
+    if (interruptsEnabled()) return undefined;
+    const cells = numericCells(value);
+    const concat = !cells && privateLoopPolling() && isRankArray(value) ? integerConcatCells(value) : undefined;
+    const length = cells?.length ?? concat?.length;
+    if (!length) return undefined;
+    const buffer = cells ? orderingCopy(cells) : new BigInt64Array(length);
+    if (!buffer) return undefined;
+    if (concat) {
+        for (let index = 0; index < length; index++) {
+            const cell = concat.read(index);
+            if (cell < MIN_INT64 || cell > MAX_INT64) return undefined;
+            (buffer as BigInt64Array)[index] = cell;
+        }
+    }
+    buffer.sort();
+    let size = 1;
+    for (let index = 1; index < length; index++) {
+        if (buffer[index] === buffer[size - 1]) continue;
+        // The buffer's element type is unchanged throughout this pass.
+        if (buffer instanceof BigInt64Array) buffer[size++] = buffer[index];
+        else buffer[size++] = buffer[index];
+    }
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.numericUniqueSorts++;
+    return resultValues(buffer.slice(0, size));
+}
+
 /** One kernel for materialized unique and fused distinct counts. Keep the first
  * original cell, including -0 and NaN, rather than rebuilding values from keys. */
 export function numericDistinct(value: RankValue, countOnly = false): RankArray | bigint | undefined {
