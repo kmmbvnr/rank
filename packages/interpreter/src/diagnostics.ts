@@ -48,6 +48,9 @@ export class RuntimeDiagnostics {
     elementTypeScannedCells = 0;
     selectionSnapshots = 0;
     selectionSnapshotCells = 0;
+    /** Typed buffers turned back into boxed cells, which costs 4 to 8 times the memory. */
+    typedUnpacks = 0;
+    typedUnpackedCells = 0;
     readonly fallbacks: Record<string, number> = Object.create(null);
 
     /** Scopes nest safely, including exceptions. Lazy readers retain their owner. */

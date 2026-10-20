@@ -360,7 +360,7 @@ function sumStream(items: Iterable<RankValue>): bigint | number {
 
 /** Sum integers without a generic numeric callback on every element.
  * Promotion happens at the first real value, in the original left-fold order. */
-function sumArray(items: readonly RankValue[]): bigint | number {
+function sumArray(items: ArrayLike<RankValue>): bigint | number {
     let integer = 0n;
     for (let index = 0; index < items.length; index++) {
         checkpoint('computing numbers');

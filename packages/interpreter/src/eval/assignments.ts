@@ -8,7 +8,7 @@ import {
 import { hasDeferredSelectionCopy } from '../integer-view.js';
 import { retainSequence } from '../sequence-retention.js';
 import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection,
-    hasWritableBooleanCells, fillBooleanSelection } from '../array-storage.js';
+    hasWritableBooleanCells, fillBooleanSelection, writeArrayCell } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
 import { pushCollection } from '../containers.js';
 import { RankError } from '../errors.js';
@@ -204,13 +204,13 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             ? operand
             : host.operators.evaluateBinary(
                 operator,
-                target.items[selection.offsetAt(index)],
+                readArrayItem(target, selection.offsetAt(index)),
                 operand,
             ));
         const checked = host.checkArrayWrite(statement.name, target, replacements, replacements.map((_, index) => selection.offsetAt(index)));
         const destination = owned(target) as typeof target;
         for (let index = 0; index < replacements.length; index += 1) {
-            destination.items[selection.offsetAt(index)] = checked[index];
+            writeArrayCell(destination, selection.offsetAt(index), checked[index]);
         }
         return result;
     };
@@ -247,10 +247,10 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                     const value = directValue();
                     if (isRankArray(value)) return general(target, [selector], value);
                     const replacement = operator === undefined ? value
-                        : host.operators.evaluateBinary(operator, target.items[offset], value);
+                        : host.operators.evaluateBinary(operator, readArrayItem(target, offset), value);
                     const [checked] = host.checkArrayWrite(statement.name, target, [replacement]);
                     target = owned(target) as typeof target;
-                    target.items[offset] = checked;
+                    writeArrayCell(target, offset, checked);
                     return completed(value);
                 }
             }

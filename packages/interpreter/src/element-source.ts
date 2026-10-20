@@ -15,7 +15,8 @@ export interface ElementSource {
     values(): Iterable<RankValue>;
     readonly rank?: number;
     reduce?(operation: string): RankValue | undefined;
-    denseItems?(): readonly RankValue[] | undefined;
+    /** Stored cells read in place, which may be a typed buffer. */
+    denseItems?(): ArrayLike<RankValue> & Iterable<RankValue> | undefined;
     realCells?(): Float64Array | undefined;
     scalarItems?(): ArrayLike<RankValue> | undefined;
     presentItems?(): ArrayLike<RankValue> | undefined;
@@ -49,7 +50,10 @@ const adapters: { [P in keyof ProtocolValues]: (value: ProtocolValues[P], operat
             if (!masked.found) throw new RankError(`${operation} requires at least one value`, 'EmptyReduction');
             return masked.result;
         },
-        denseItems: () => shouldStream(value) ? undefined : value.items,
+        // Stored cells are a plain array or a typed buffer, both iterable;
+        // reading `items` would unpack a typed buffer for good.
+        denseItems: () => shouldStream(value) ? undefined
+            : denseScalarItems(value) as ArrayLike<RankValue> & Iterable<RankValue> | undefined ?? value.items,
         realCells: () => typedElementKind(value) === 'real' ? float64Cells(value) : undefined,
         scalarItems: () => denseScalarItems(value),
         presentItems: () => denseScalarItems(value) ?? presentReals(value),

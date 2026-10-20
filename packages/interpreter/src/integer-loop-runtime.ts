@@ -10,7 +10,7 @@ import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankBytes, isRankIndex, isNativeFunction, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { indexHas, indexSet, indexKey } from './index-storage.js';
-import { denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray } from './array-storage.js';
+import { denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray, typedElementKind } from './array-storage.js';
 
 /** Bind invocation values and owned storage separately from loop analysis/lowering. */
 export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject: () => undefined): CompiledLoop | undefined {
@@ -55,6 +55,8 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         // Untracked host arrays can expose getters in their cell storage.
         // Scanning them here may read cells the loop never reaches.
         if (revision === undefined) return false;
+        // An integer buffer needs no scan, and reading it as plain cells would unpack it.
+        if (typedElementKind(value) === 'integer') return type !== 'text' && type !== 'boolean';
         const items = materializedArrayItems(value);
         if (!items) return false;
         const checked = checkedCells.get(value);

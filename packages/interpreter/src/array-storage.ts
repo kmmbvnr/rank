@@ -230,6 +230,8 @@ function scalarKind(value: RankValue | undefined): string | undefined {
 export function storedScalarKinds(value: RankArray): readonly string[] | undefined {
     const state = ownedStorage.get(value);
     if (!state?.stable || !state.scalarOnly) return undefined;
+    // An integer buffer can hold nothing else, and scanning it would box every cell.
+    if (state.typed instanceof BigInt64Array) return state.typed.length ? ['integer'] : [];
     if (!state.elementKinds) {
         const kinds = new Map<string, number>();
         const diagnostics = currentDiagnostics();
@@ -277,15 +279,39 @@ export function realCells(value: RankArray): ArrayLike<number> | undefined {
         ? state.items as unknown as number[] : undefined;
 }
 
-/** Trusted integer cells only. A bulk integer write preserves this physical
- * kind, but its caller must separately validate the binding's semantic contract. */
-export function writableIntegerCells(value: RankArray): readonly bigint[] | undefined {
+/** Trusted integer cells only, read in place. A bulk integer write preserves this
+ * physical kind, but its caller must separately validate the binding's semantic contract. */
+export function writableIntegerCells(value: RankArray): ArrayLike<bigint> | undefined {
     const state = ownedStorage.get(value);
     if (!state?.stable || state.readOnlyCells || !state.scalarOnly) return undefined;
     const kinds = storedScalarKinds(value);
     if (!kinds?.length || !kinds.every(kind => kind === 'integer')) return undefined;
+    return state.items as unknown as ArrayLike<bigint>;
+}
+
+/** Writes one stored cell. An integer buffer keeps an integer that fits in 64
+ * bits; any other value turns the buffer into boxed cells first. Callers record
+ * the revision and scalar kinds. */
+function storeCell(state: OwnedStorage, index: number, value: RankValue): void {
+    const typed = state.typed;
+    if (typed instanceof BigInt64Array && !state.validity && typeof value === 'bigint') {
+        typed[index] = value;
+        if (typed[index] === value) return;
+    }
     state.convert?.();
-    return state.items as bigint[];
+    state.items[index] = value;
+}
+
+/** One cell write through the array's own interface, except that an integer
+ * buffer keeps an integer that fits rather than unpacking for it. */
+export function writeArrayCell(value: RankArray, index: number, item: RankValue): void {
+    const state = ownedStorage.get(value);
+    if (state?.stable && state.typed instanceof BigInt64Array && !state.validity && typeof item === 'bigint') {
+        state.revision = noteMutation(state.birth);
+        storeCell(state, index, item);
+    } else {
+        value.items[index] = item;
+    }
 }
 
 /** A scalar boolean fill preserves this storage's physical kind. */
@@ -319,34 +345,21 @@ export function writeIntegerSelection(
     operand: bigint | readonly bigint[], operator: '=' | '+=' | '-=' | '*=',
 ): void {
     const state = ownedStorage.get(value)!;
-    state.convert?.();
-    const cells = state.items as bigint[];
     const diagnostics = currentDiagnostics();
     if (diagnostics) { diagnostics.bulkArrayWrites++; diagnostics.bulkArrayWriteCells += count; }
     state.revision = noteMutation(state.birth);
-    const scalar = typeof operand === 'bigint';
-    // Separate operators outside the loop: no operator dispatch, broadcasting
-    // allocation, scalar-kind changes or user code during the commit.
-    if (operator === '=') {
-        for (let i = 0; i < count; i++) {
-            checkpoint('writing array');
-            cells[offsetAt(i)] = scalar ? operand : operand[i];
-        }
-    } else if (operator === '+=') {
-        for (let i = 0; i < count; i++) {
-            checkpoint('writing array');
-            cells[offsetAt(i)] += scalar ? operand : operand[i];
-        }
-    } else if (operator === '-=') {
-        for (let i = 0; i < count; i++) {
-            checkpoint('writing array');
-            cells[offsetAt(i)] -= scalar ? operand : operand[i];
-        }
-    } else {
-        for (let i = 0; i < count; i++) {
-            checkpoint('writing array');
-            cells[offsetAt(i)] *= scalar ? operand : operand[i];
-        }
+    // Choose the operator once: no operator dispatch, broadcasting allocation,
+    // scalar-kind changes or user code during the commit.
+    const combine = operator === '=' ? (_: bigint, next: bigint) => next
+        : operator === '+=' ? (old: bigint, next: bigint) => old + next
+        : operator === '-=' ? (old: bigint, next: bigint) => old - next
+        : (old: bigint, next: bigint) => old * next;
+    for (let i = 0; i < count; i++) {
+        checkpoint('writing array');
+        const offset = offsetAt(i);
+        // Read through state.items: a write that does not fit replaces the buffer.
+        const old = state.items[offset] as bigint;
+        storeCell(state, offset, combine(old, typeof operand === 'bigint' ? operand : operand[i]));
     }
 }
 
@@ -495,6 +508,14 @@ export function typedArray(
     columnNames?: readonly string[],
 ): RankArray {
     return createOwned(data, shape, true, columnNames);
+}
+
+/** A typed array over a buffer someone else keeps, such as a table column. It
+ * starts out shared, so the first write copies the buffer rather than changing it. */
+export function sharedTypedArray(data: Float64Array | BigInt64Array, shape: readonly number[]): RankArray {
+    const value = typedArray(data, shape);
+    ownedStorage.get(value)!.owners = SHARED;
+    return value;
 }
 
 /** The element type of an array still held in a typed buffer. */
@@ -678,6 +699,11 @@ function createOwned(
     if (typed) {
         Object.defineProperty(raw, 'items', { configurable: true, enumerable: true, get: () => { state.convert!(); return raw.items; } });
         state.convert = () => {
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) {
+                diagnostics.typedUnpacks++;
+                diagnostics.typedUnpackedCells += typed.length;
+            }
             const plain = Array.from(typed as ArrayLike<RankValue>);
             if (state.validity) {
                 const bits = state.validity;
@@ -1208,8 +1234,10 @@ export function borrowArrayStorage(value: RankValue | undefined): RankValue | un
     if (!value || !isRankArray(value)) return value;
     const state = ownedStorage.get(value);
     if (!state?.stable) return value;
-    state.convert?.();
-    const view: RankArray = { kind: 'array', shape: [...value.shape], items: state.items };
+    // An integer buffer is borrowed packed. A write that does not fit replaces
+    // it with boxed cells, so the view and its readers follow state.items.
+    if (!(state.typed instanceof BigInt64Array) || state.validity) state.convert?.();
+    const view: RankArray = { kind: 'array', shape: [...value.shape], get items() { return state.items; } };
     borrowedStorage.set(view, state);
     return view;
 }
@@ -1219,7 +1247,6 @@ export function prepareScalarArrayWriter(value: RankValue | undefined, batch = f
     const array = value as RankArray;
     const state = array && borrowedStorage.get(array);
     if (!state) return (index, item) => { array.items[index] = item; };
-    const items = state.items;
     let changed = false;
     return (index, item) => {
         // Batching is allowed only in a compiler-proved region with no lazy
@@ -1228,8 +1255,8 @@ export function prepareScalarArrayWriter(value: RankValue | undefined, batch = f
             state.revision = noteMutation(state.birth);
             changed = true;
         }
-        updateScalarKinds(state, items[index], item);
-        items[index] = item;
+        updateScalarKinds(state, state.items[index], item);
+        storeCell(state, index, item);
     };
 }
 
@@ -1250,7 +1277,7 @@ export function prepareArrayReader(
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.hoistedReaders++;
     }
-    const items = state?.items ?? cached!, shape = array.shape;
+    const cells = state ?? { items: cached! }, shape = array.shape;
     return indices => {
         let offset = 0;
         for (let axis = 0; axis < indices.length; axis++) {
@@ -1262,7 +1289,7 @@ export function prepareArrayReader(
             }
             offset = offset * shape[axis] + position;
         }
-        return items[offset];
+        return cells.items[offset];
     };
 }
 
@@ -1282,12 +1309,12 @@ export function prepareScalarArrayReader(
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.hoistedReaders++;
     }
-    const items = state?.items ?? cached!, length = array.shape[0];
+    const cells = state ?? { items: cached! }, length = array.shape[0];
     return index => {
         if (index < 0n) throw new MissingValueError('array index out of bounds on axis 0');
         const position = Number(index);
         if (position >= length) throw new MissingValueError(`array index out of bounds on axis 0: ${index}`);
-        return items[position];
+        return cells.items[position];
     };
 }
 
