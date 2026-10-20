@@ -140,33 +140,46 @@ export function borrowArrayStorage(value: RankValue | undefined): RankValue | un
     return view;
 }
 
-/** Keep eager borrowed reads separate from the general reader's proxy/lazy paths. */
-export function prepareArrayReader(
+/** Both scalar and tensor readers use the same borrowed/cache eligibility.
+ * Keep storage in an object: a writer may replace its packed cell buffer. */
+function preparedReaderStorage(
     value: RankValue | undefined,
-    fallback: (source: RankArray, indices: readonly bigint[]) => RankValue,
-    stableReads = false,
-): (indices: readonly bigint[]) => RankValue {
+    stableReads: boolean,
+): { cells: { readonly items: readonly RankValue[] }; shape: readonly number[] } | undefined {
     const array = value as RankArray;
     const state = array && borrowedStorage.get(array);
     // The caller proves no array writes, callbacks or iterators in the region.
     // Only already-computed, revision-tracked caches qualify: never force cells.
     const cached = !state && stableReads && array && arrayRevision(array) !== undefined
         ? materializedArrayItems(array) : undefined;
-    if (!state && !cached) return indices => fallback(array, indices);
+    if (!state && !cached) return undefined;
     if (cached) {
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.hoistedReaders++;
     }
-    const cells = state ?? { items: cached! }, shape = array.shape;
+    return { cells: state ?? { items: cached! }, shape: array.shape };
+}
+
+function readPosition(index: bigint, size: number, axis: number): number {
+    if (index < 0n) throw new MissingValueError(`array index out of bounds on axis ${axis}`);
+    const position = Number(index);
+    if (position >= size) throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);
+    return position;
+}
+
+/** Keep eager borrowed reads separate from the general reader's proxy/lazy paths. */
+export function prepareArrayReader(
+    value: RankValue | undefined,
+    fallback: (source: RankArray, indices: readonly bigint[]) => RankValue,
+    stableReads = false,
+): (indices: readonly bigint[]) => RankValue {
+    const storage = preparedReaderStorage(value, stableReads);
+    if (!storage) return indices => fallback(value as RankArray, indices);
+    const { cells, shape } = storage;
     return indices => {
         let offset = 0;
         for (let axis = 0; axis < indices.length; axis++) {
-            const index = indices[axis];
-            if (index < 0n) throw new MissingValueError(`array index out of bounds on axis ${axis}`);
-            const position = Number(index);
-            if (position >= shape[axis]) {
-                throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);
-            }
+            const position = readPosition(indices[axis], shape[axis], axis);
             offset = offset * shape[axis] + position;
         }
         return cells.items[offset];
@@ -181,21 +194,10 @@ export function prepareScalarArrayReader(
 ): (index: bigint) => RankValue {
     const array = value as RankArray;
     if (!value || !isRankArray(value) || array.shape.length !== 1) return index => fallback(array, [index]);
-    const state = borrowedStorage.get(array);
-    const cached = !state && stableReads && arrayRevision(array) !== undefined
-        ? materializedArrayItems(array) : undefined;
-    if (!state && !cached) return index => fallback(array, [index]);
-    if (cached) {
-        const diagnostics = currentDiagnostics();
-        if (diagnostics) diagnostics.hoistedReaders++;
-    }
-    const cells = state ?? { items: cached! }, length = array.shape[0];
-    return index => {
-        if (index < 0n) throw new MissingValueError('array index out of bounds on axis 0');
-        const position = Number(index);
-        if (position >= length) throw new MissingValueError(`array index out of bounds on axis 0: ${index}`);
-        return cells.items[position];
-    };
+    const storage = preparedReaderStorage(value, stableReads);
+    if (!storage) return index => fallback(array, [index]);
+    const { cells, shape: [length] } = storage;
+    return index => cells.items[readPosition(index, length, 0)];
 }
 
 /** Runtime-owned storage has no observable getters; host readers keep their order. */
