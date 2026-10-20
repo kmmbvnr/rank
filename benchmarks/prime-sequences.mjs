@@ -8,6 +8,13 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const option = name => process.argv.find(x => x.startsWith(`--${name}=`))?.slice(name.length + 3);
 const load = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 const cases = [
+    { name: 'direct-membership', source: `use sequences
+Answer = 0
+for N in 0 till 1000000
+  if N in primes
+    Answer += 1
+  end
+end`, expected: 78498n },
     { name: 'count-50M', source: 'use sequences\nAnswer = primes till 50000000 len', expected: 3001134n },
     { name: '136-original', source: load('./fixtures/136-singleton-materialized.ra'), expected: 2544559n },
     { name: '136-simplified', source: load('../demos/euler/136_singleton.ra'), expected: 2544559n },

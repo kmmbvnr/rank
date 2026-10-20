@@ -145,3 +145,57 @@ Raw samples: [before wheel](baselines/2026-10-20-engineers-dream-wheel-before.js
 
 The default name-facts corpus entry passed through the common npm wrapper in
 15.802 s with the wheel, retaining its 300 s deadline.
+
+## Follow-up: builtin membership in compiled loops
+
+The loop compiler previously read variables only, so bare `primes` was mistaken
+for an index receiver and rejected at entry (`loop:input-type:primes`). It now
+also reads builtin sequences whose catalogue contracts say they are zero-operand,
+callback-free, effect-free integer sequences. Current user bindings take
+precedence, unopened modules stay unopened, and the existing runtime membership
+certificate and binding guards still decide eligibility. Fibonacci plans now
+register that same certificate, including their bounded/filtered variants.
+There is no builtin-name whitelist.
+
+The new `direct-membership` case in `prime-sequences.mjs` counts the 78,498 primes
+below one million with `if N in primes` inside a Rank loop. Three fresh processes
+per runtime measured median execution **1.133 s before, 0.454 s after** (2.50 times
+faster). Cold-process medians were 1.676 s and 0.956 s. The comparison runtime is
+the prior worktree build at `1319f29e`; the unrelated tensor rejection-counter
+change in `8731fffa` is not active in these benchmark runs.
+
+```sh
+node benchmarks/prime-sequences.mjs --cases=direct-membership --trials=3 --baseline=/path/to/old/packages/interpreter/out/index.js
+```
+
+This does **not** establish a further speedup for the full Euler search. With
+the same wheel source, three alternating old/candidate pairs produced:
+
+| Trial | Original runtime | Builtin-loop candidate |
+|---|---:|---:|
+| 1 | 12.274 s | 11.228 s |
+| 2 | 12.073 s | 11.787 s |
+| 3 | 9.412 s | 13.983 s |
+| Median | 12.073 s | 11.787 s |
+
+System load was not controlled, and the spread exceeds the median difference.
+An earlier unmatched 9.663 s / 11.549 s pair was insufficient to distinguish a
+regression from that variation. The specific entry rejection disappears in a
+bounded diagnostic run, but sieve preparation and interpreted work remain.
+Execution peak RSS in the alternating pairs ranged from about 276 to 280 MiB
+for both runtimes; no retained-memory savings are claimed for this change.
+
+Seven new tests check actual compiled execution for direct `in`/`not in`,
+Fibonacci membership, cached-entry shadowing, receiver rebinding, an unopened
+module behind a false branch, and the disabled compilation option. Final checks
+passed: 560 focused interpreter tests, 64 common name-facts tests, all five demo
+test blocks, their compiled/reference differential audit, both demo static
+checks, workspace TypeScript build, and the semantic-boundary checks. The full
+workspace `npm test` was not run.
+
+With both follow-up changes, the final default name-facts corpus entry passed
+in **14.294 s**, still using the original 300 s deadline.
+[Final follow-up corpus output](baselines/2026-10-20-engineers-dream-followup-corpus.log).
+
+Raw samples: [Euler pairs](baselines/2026-10-20-engineers-dream-builtins.jsonl),
+[direct membership](baselines/2026-10-20-direct-prime-membership.jsonl).

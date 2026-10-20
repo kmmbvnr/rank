@@ -5,6 +5,7 @@ export { sortValue, argsortValue } from './sequence-order.js';
 import { uniqueValue } from './sequence-distinct.js';
 export { uniqueLength } from './sequence-distinct.js';
 import { primePlan } from '../prime-sequence.js';
+import { registerSequenceMembership } from '../sequence-membership.js';
 import { above, within, strongerLower, membershipInteger, type Boundary } from '../sequence-bounds.js';
 import { concatArrays } from '../concat-array.js';
 import { orderedSource } from '../ordered-source.js';
@@ -717,7 +718,7 @@ function fibonacciPlan(
     evenOnly = false,
     lower?: Boundary,
 ): SequencePlan {
-    return {
+    const plan: SequencePlan = {
         name: evenOnly ? 'even fibonacci' : 'fibonacci',
         replay: 'pure',
         replCursor: true,
@@ -767,6 +768,8 @@ function fibonacciPlan(
             return undefined;
         },
     };
+    registerSequenceMembership(plan);
+    return plan;
 }
 
 function fibonacciSize(
