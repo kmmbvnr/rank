@@ -60,6 +60,24 @@ describe('real arithmetic in compiled loops', () => {
         expect(result.loops).toBe(1);
     });
 
+    it.each([
+        'use numbers\nfor I in 1 to 8\n R = (I ** 0.5) floor\nend',
+        'for I in 1 to 3\n R = -I ** 0.5\nend',
+        'for I in 1 to 3\n R = (I * 0.5) ** 2\nend',
+        'for I in 1 to 3\n R = (I * 0.5) ** 0.25\nend',
+        'for I in 1 to 3\n R = (-I) ** 2.0\nend',
+        'for I in 1 to 3\n R = (-0.0) ** 0.5\nend',
+        'for I in 1 to 3\n R = 1.0e308 ** 2\nend',
+        'R = 2.0\nfor I in 1 to 3\n R **= I\nend',
+        'R = -2.0\nfor I in 1 to 3\n Before = I\n R **= 0.5\nend',
+        'R = 0.0\nfor I in 1 to 3\n Before = I\n R **= -1\nend',
+        'for I in 1 to 3\n Before = I\n R = (2 - I) ** -0.5\nend',
+        'for I in 1 to 3\n Before = I\n R = (2 - I) ** 0.5\nend',
+        'use numbers\nfor I in 1 to 3\n Before = I\n R = (1.0e308 ** I) floor\nend',
+    ])('preserves real power values, signs and partial errors: %s', source => {
+        expect(compare(source).loops).toBe(1);
+    });
+
     it('treats nan as unordered', () => {
         const result = compare(`use numbers
 N = 0

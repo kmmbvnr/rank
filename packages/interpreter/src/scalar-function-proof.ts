@@ -3,7 +3,7 @@ import {
     functionScope, functionCallSignature, lexicalBinding, applicationForm, findOperation, unaryApplicationHead,
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, flattenApplication, isApplicationExpression,
-    isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression,
+    isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement,
     type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compilerRejection } from './compiler-rejection.js';
@@ -11,7 +11,7 @@ import { recordFallback } from './diagnostics.js';
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'index-default';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'index-default' | 'captured-read';
     readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof };
     readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
@@ -193,6 +193,14 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 const [head, ...indices] = flattenApplication(source);
                 if (!isNameExpression(head)) return undefined;
                 const array = env.get(head.name);
+                // A captured array is guarded as integer cells at call entry.
+                if (!array && loops && lexical && lexical.reads.get(head)?.scope.owner !== statement
+                    && !lexicalBinding(scope, head.name)?.function && !findOperation(head.name) && !head.name.includes('.')
+                    && indices.length && indices.every(index => type(index, env) === 'integer')) {
+                    dependencies.add(head.name);
+                    return { type: 'integer', input: { name: head.name, operation: 'captured-read',
+                        indices: indices.map(index => expressions.get(index)!) } };
+                }
                 if (!array || typeof array === 'string' || (isCompiledContainer(array) ? array.kind !== 'index' || indices.length !== 1 : indices.length !== array.rank)) return undefined;
                 if (!indices.every(index => type(index, env) === 'integer')) return undefined;
                 return { type: isCompiledContainer(array) ? 'integer' : array.element, input: { name: head.name, indices: indices.map(index => expressions.get(index)!) } };
@@ -214,7 +222,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         return inferred.expression.type;
     }
     // null: every path returned; undefined: unproved; map: continuing paths.
-    function flow(commands: readonly Statement[], env: Map<string, CompiledCalleeType>): Map<string, CompiledCalleeType> | null | undefined {
+    function flow(commands: readonly Statement[], env: Map<string, CompiledCalleeType>, inLoop = false): Map<string, CompiledCalleeType> | null | undefined {
         for (let index = 0; index < commands.length; index++) {
             const command = commands[index];
             if (--budget.remaining < 0) return reject(command, 'budget');
@@ -226,6 +234,10 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 return index === commands.length - 1 ? null : reject(commands[index + 1], 'unreachable');
             }
             if (!blocks) return reject(command, 'blocks-disabled');
+            // Like a return, a jump ends this path; the loop exit keeps the entry facts.
+            if (loops && inLoop && (isBreakStatement(command) || isContinueStatement(command))) {
+                return index === commands.length - 1 ? null : reject(commands[index + 1], 'unreachable');
+            }
             if (isAssignmentStatement(command) && !command.name.includes('.')) {
                 const value = type(command.value, env);
                 if (!value || settled.has(command.name) && !sameCompiledCalleeType(settled.get(command.name)!, value)) return reject(command, 'binding-type');
@@ -274,7 +286,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                         if (!parameters.has(name)) locals.add(name);
                     }
                 } else if (command.condition && type(command.condition, env) !== 'boolean') return reject(command, 'loop-condition');
-                if (flow(command.statements, body) === undefined) return undefined;
+                if (flow(command.statements, body, true) === undefined) return undefined;
                 // A loop may execute zero times. New locals are not definitely
                 // assigned afterwards, and a return inside does not prove exit.
                 continue;
@@ -283,11 +295,11 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 const continuing: Map<string, CompiledCalleeType>[] = [];
                 for (const branch of [{ condition: command.condition, statements: command.thenStatements }, ...command.elifClauses]) {
                     if (type(branch.condition, env) !== 'boolean') return reject(branch.condition, 'condition-type');
-                    const outcome = flow(branch.statements, new Map(env));
+                    const outcome = flow(branch.statements, new Map(env), inLoop);
                     if (outcome === undefined) return undefined;
                     if (outcome) continuing.push(outcome);
                 }
-                const otherwise = flow(command.elseStatements, new Map(env));
+                const otherwise = flow(command.elseStatements, new Map(env), inLoop);
                 if (otherwise === undefined) return undefined;
                 if (otherwise) continuing.push(otherwise);
                 if (!continuing.length) return index === commands.length - 1 ? null : reject(commands[index + 1], 'unreachable');

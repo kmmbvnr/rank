@@ -3,6 +3,7 @@ import { takeDropValue } from './sequence.js';
 import { expressionFacts, findOperation, isBinaryExpression, isBooleanLiteral, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
 import { loopValueType, type IntegerLoopPlan, type LoopHost, type LoopTerm, type CompiledLoop } from './integer-loop-plan.js';
 import { ResourceMap } from './resource-summary.js';
+import { prepareIntegerView } from './integer-view.js';
 import { checkpoint, inspectionEnabled } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { completed, type Execution } from './execution.js';
@@ -34,7 +35,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, graphAdds: ((values: RankValue[]) => void)[]) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
@@ -50,7 +51,8 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
                 if (!isRankArray(array) || !writableIntegerCells(array)) return false;
                 writeIntegerSelection(array, count, index => first + index * stride, operand, operator);
                 return true;
-            }, indexRead); }
+            }, indexRead, () => new RankError('zero cannot be raised to a negative power'),
+            () => new RankError('power result is not real')); }
     catch { return reject(); }
     host.compiled?.(source);
     const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0
@@ -67,7 +69,8 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         const kinds = storedScalarKinds(value);
         if (kinds) return kinds.every(kind => (kind === 'numeric-limit' ? 'real' : kind) === (type ?? 'integer'));
         const items = materializedArrayItems(value);
-        if (!items) return false;
+        // A lazy rope or view can still prove integer cells without forcing them.
+        if (!items) return (type ?? 'integer') === 'integer' && prepareIntegerView(value, true) !== undefined;
         const checked = checkedCells.get(value);
         if (checked?.revision === revision && checked.type === type) return true;
         const diagnostics = currentDiagnostics();

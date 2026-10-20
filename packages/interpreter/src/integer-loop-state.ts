@@ -26,6 +26,8 @@ export function createLoopState(host: LoopHost, textSources: ReadonlySet<string>
         bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[] = [];
     const arrays = new Map<string, { slot: number; rank: number; type: LoopTerm['type'] }>();
     const calleeArrays = new Set<string>();
+    // One read per source at a named cursor; computed/repeated reads use undefined.
+    const indexedReads = new Map<string, string | undefined>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
     const graphMutations: string[] = [];
@@ -36,7 +38,7 @@ export function createLoopState(host: LoopHost, textSources: ReadonlySet<string>
     return {
         host, numberMode, textSources, textArrays, zero, one, safe, dirty, reject,
         localTypes, names, required, assigned, written, writers, binders, writerNames, binderNames,
-        containers, builtins, calls, arrays, calleeArrays, arrayInputs, arrayDefinitions, aliases,
+        containers, builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases,
         graphMutations, vectorIterations, iterators, destinations, locations,
         serial: 0, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
     };

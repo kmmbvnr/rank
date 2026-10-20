@@ -14,7 +14,7 @@ export {
 } from './array-read.js';
 export { validityWords, allPresent, isPresentAt, allValid } from './array-validity.js';
 export {
-    retainSelectionSnapshot, holdArraySource, noteArrayBinding, noteArrayBorrow, isSharedArray,
+    retainSelectionSnapshot, holdArraySource, noteArrayBinding, noteArrayBorrow, isSharedArray, hasPendingSelections,
     privateArrayCopy, arrayForWrite,
 } from './array-ownership.js';
 export {

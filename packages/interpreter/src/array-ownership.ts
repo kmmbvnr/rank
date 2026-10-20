@@ -134,6 +134,12 @@ export function noteArrayBorrow(value: RankValue): void {
     }
 }
 
+/** A retained selection can poll while detaching; private loop commits must
+ * leave these writes to the ordinary publishing backend. */
+export function hasPendingSelections(value: RankArray): boolean {
+    return (pendingSelections.get(value)?.size ?? 0) > 0;
+}
+
 /** True when a write must first protect aliases or retained selections. */
 export function isSharedArray(value: RankValue): boolean {
     return typeof value === 'object' && value.kind === 'array'
