@@ -1136,6 +1136,28 @@ retain reference validation before evaluating the expression. Unsupported functi
 calls in return expressions still fall back, retaining tail-call behavior.
 `loopReturnCompilation: false` disables this control edge only.
 
+## Strided range writes in compiled loops
+
+`A (Start to End by Step) = Value` and its `till` and compound forms can join a
+region when A is a stored vector. The run's start, end and step are evaluated once,
+in order. A zero step and both ends of the arithmetic run are checked before the
+right operand and before the first store, reporting the same first offending
+index as the interpreted selection. Every cell then goes through the region's
+array writer. An empty run still evaluates the right operand. Index receivers,
+matrices and text cells retain ordinary execution.
+
+## Scalar yields from compiled loops
+
+A loop in a generator body can compile to a native JavaScript generator when every
+yielded value is a supported scalar. Registers stay live across suspension: a
+generator's frame is reachable only from its own invocation, and the region
+commits each assignment to that frame as it runs, so a consumer between
+resumptions observes nothing stale. Batched revisions and hoisted stable reads are
+disabled, because other code runs while the region is suspended. Yielding an array,
+yields inside finally, inspection and the Number backend all keep the
+generator-loop path described in the performance notes. `loopYieldCompilation: false`
+disables this lowering only.
+
 
 ### Reusing proven iteration types
 

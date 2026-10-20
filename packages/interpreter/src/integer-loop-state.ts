@@ -31,14 +31,14 @@ export function createLoopState(host: LoopHost, textSources: ReadonlySet<string>
     const graphMutations: string[] = [];
     const vectorIterations: { slot: number; binding: IterationBinding }[] = [];
     const iterators: ((source: RankArray | RankDeque | string) => Iterable<RankValue>)[] = [];
-    const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type'] }>();
+    const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type']; slice?: boolean }>();
     const locations: Statement[] = [];
     return {
         host, numberMode, textSources, textArrays, zero, one, safe, dirty, reject,
         localTypes, names, required, assigned, written, writers, binders, writerNames, binderNames,
         containers, builtins, calls, arrays, calleeArrays, arrayInputs, arrayDefinitions, aliases,
         graphMutations, vectorIterations, iterators, destinations, locations,
-        serial: 0, hasControl: false, hasReturn: false, needsAlgo: false,
+        serial: 0, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
     };
 }
 

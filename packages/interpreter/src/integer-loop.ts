@@ -110,7 +110,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     const plan = {
         statement, names, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, graphMutations, vectorIterations, writerNames, binderNames, writers,
-        binders, arrayInputs, calleeArrays, hasControl: state.hasControl, hasReturn: state.hasReturn,
+        binders, arrayInputs, calleeArrays, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
         needsAlgo: state.needsAlgo, arrayDefinitions, writable, iteration,
     };
     return numberMode ? prepareNumberLoop(plan, host) : prepareIntegerLoop(plan, host, () => reject(statement, 'code-generation'));

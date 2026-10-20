@@ -189,6 +189,7 @@ export class FastPaths {
             arrayRead: atArray,
             textRead: (source, index) => applySelectors([source, index]) as string,
             returns: this.context.options().loopReturnCompilation !== false,
+            yields: this.context.options().loopYieldCompilation !== false,
             canReturn: () => this.context.bindings.insideFunction,
             returnValue: value => { throw new ReturnSignal(value); },
             arrayLocals: this.context.options().arrayLocalCompilation !== false,

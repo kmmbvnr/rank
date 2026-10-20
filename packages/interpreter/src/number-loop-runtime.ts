@@ -22,7 +22,7 @@ const rankInteger = (value: unknown): RankValue | undefined =>
 export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): CompiledLoop | undefined {
     const { names, localTypes, arrays, required, body, root, locations, statement } = plan;
     if (host.observableEntry || !host.canDeferWrites || plan.calls.length || plan.iterators.length || plan.containers.size
-        || plan.graphMutations.length || plan.destinations.size || plan.arrayDefinitions.size || plan.hasReturn
+        || plan.graphMutations.length || plan.destinations.size || plan.arrayDefinitions.size || plan.hasReturn || plan.hasYield
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean')
         || [...arrays.values()].some(info => info.type !== 'integer' || info.rank !== 1)) return undefined;
     if (plan.vectorIterations.length && !host.declareIteration) return undefined;
