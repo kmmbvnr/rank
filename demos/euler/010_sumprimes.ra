@@ -2,13 +2,20 @@ rem Summation of Primes
 rem https://projecteuler.net/problem=10
 rem Sum of all primes below two million
 
+use numbers
 use sequences
 use io
 use cli
 
 option Limit integer = 2000000
 
-Primes = primes till Limit
-Answer = Primes sum
+Prime = array shape Limit fill true
+Prime (0 to 1) = false
+for P in 2 to (Limit sqrt integer)
+  if Prime P
+    Prime (P * P till Limit by P) = false
+  end
+end
+Answer = Prime indices sum
 
 Answer print
