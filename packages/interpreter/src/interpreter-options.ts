@@ -66,6 +66,8 @@ export interface InterpreterOptions {
     readonly directIteration?: boolean;
     /** Carry ordinary loop jumps through blocks without throwing signals. */
     readonly directLoopControl?: boolean;
+    /** Carry ordinary function returns and tail transfers without throwing signals. */
+    readonly directFunctionControl?: boolean;
     /** Compile guarded synchronous numeric/text/byte builtin calls inside loops. */
     readonly nativeLoopCompilation?: boolean;
     /** Use checked native wrappers even in typed loops when false. */

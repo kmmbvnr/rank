@@ -8,6 +8,7 @@ import { completed, resume, runExecution, type Evaluation, type Execution } from
 import type { BlockSteps, FastPaths } from '../fast-paths.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
 import { checkpoint, inspectionEnabled } from '../interrupt.js';
+import type { FunctionControl } from '../control-signals.js';
 import type { ExecutionContext, LoopControl, PreparedStatement } from '../statement-control.js';
 import type { RankValue } from '../value.js';
 import type { CompiledBlock } from '../block-compiler.js';
@@ -42,7 +43,7 @@ export class BlockExecution implements BlockSteps {
     /** Executes statements under an existing execution context. */
     executeIn(statements: Statement[], context: ExecutionContext): Evaluation<RankValue | undefined> {
         return this.execute(statements, context.assertBooleanExpressions, context.insideLoop, context.insideFinally,
-            context.insideGenerator, context.tailCallsAllowed, context.loopControl);
+            context.insideGenerator, context.tailCallsAllowed, context.loopControl, context.functionControl);
     }
 
     /** Runs statements to completion; only a top-level program uses this. */
@@ -73,12 +74,13 @@ export class BlockExecution implements BlockSteps {
         insideGenerator = false,
         tailCallsAllowed = true,
         loopControl?: LoopControl,
+        functionControl?: FunctionControl,
     ): Evaluation<RankValue | undefined> {
         // Ordinary blocks keep their compact context; only protected blocks
         // need to carry the additional tail-call flag.
         const context: ExecutionContext = tailCallsAllowed
-            ? { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, loopControl }
-            : { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, loopControl, tailCallsAllowed: false };
+            ? { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, loopControl, functionControl }
+            : { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, loopControl, functionControl, tailCallsAllowed: false };
         const block = this.host.fastPaths.block(statements, this);
         if (block) return block(context);
         let result: RankValue | undefined;
@@ -102,7 +104,7 @@ export class BlockExecution implements BlockSteps {
                     if ('done' in task) result = task.value;
                     else return this.continueStatementStream(statements, index, context, task);
                 }
-                if (loopControl?.signal) return completed(result);
+                if (loopControl?.signal || functionControl?.returned) return completed(result);
             }
         } catch (error) {
             throw this.host.locate(error, statements[index]);
@@ -122,7 +124,7 @@ export class BlockExecution implements BlockSteps {
             return () => block(bodyContext);
         }
         return () => this.execute(statements, context.assertBooleanExpressions,
-            true, context.insideFinally, context.insideGenerator, tailCallsAllowed, loopControl);
+            true, context.insideFinally, context.insideGenerator, tailCallsAllowed, loopControl, context.functionControl);
     }
 
     /** Resumes a compiled block after the step at `index` suspended. */
@@ -132,7 +134,7 @@ export class BlockExecution implements BlockSteps {
     ): Execution<RankValue | undefined> {
         try {
             const value = (yield { task }) as RankValue | undefined;
-            if (context.loopControl?.signal) return value;
+            if (context.loopControl?.signal || context.functionControl?.returned) return value;
             const next = block(context, index + 1, value);
             return 'done' in next ? next.value : (yield { task: next }) as RankValue | undefined;
         } catch (error) { throw this.host.locate(error, statements[index]); }
@@ -198,7 +200,7 @@ export class BlockExecution implements BlockSteps {
     ): Execution<RankValue | undefined> {
         try {
             let result = yield* resume(first);
-            if (context.loopControl?.signal) return result;
+            if (context.loopControl?.signal || context.functionControl?.returned) return result;
             for (index += 1; index < statements.length; index += 1) {
                 checkpoint();
                 const prepared = this.preparedStatement(statements, index);
@@ -213,7 +215,7 @@ export class BlockExecution implements BlockSteps {
                 result = 'run' in prepared
                     ? prepared.run(context)
                     : yield* resume(prepared.stream(context));
-                if (context.loopControl?.signal) return result;
+                if (context.loopControl?.signal || context.functionControl?.returned) return result;
             }
             return result;
         } catch (error) {

@@ -9,9 +9,9 @@ export type PreparedScalarCall = ((arguments_: RankValue[], tail?: boolean) => R
 /**
  * Non-local exits that unwind the JavaScript stack. Each signal has one
  * catcher: a return or tail call ends at the function call loop, a jump at its
- * enclosing loop. Ordinary loop jumps avoid throwing by setting
- * `LoopControl.signal` instead; these remain for protected blocks and for
- * execution with `directLoopControl` disabled.
+ * enclosing loop. Ordinary returns and jumps use their execution carriers.
+ * Signals remain for protected blocks, compiled transfers and execution with
+ * direct control disabled.
  */
 
 /** A `return`, caught by the call that owns the frame. A generator returns without a value. */
@@ -35,3 +35,21 @@ export class ContinueSignal {}
 // The signals carry nothing, so one of each serves every loop.
 export const BREAK_SIGNAL = new BreakSignal();
 export const CONTINUE_SIGNAL = new ContinueSignal();
+
+/** Ordinary blocks pass completed returns to their owning function driver.
+ * Protected blocks omit this carrier and retain exception unwinding. */
+export interface FunctionControl<Definition = unknown> {
+    returned?: boolean;
+    value?: RankValue;
+    tail?: TailCallSignal<Definition>;
+}
+
+export function returnFunctionValue(control: FunctionControl | undefined, value?: RankValue): undefined {
+    if (!control) throw new ReturnSignal(value);
+    // A tail expression has already installed its transfer before completing.
+    if (!control.returned) {
+        control.returned = true;
+        control.value = value;
+    }
+    return undefined;
+}

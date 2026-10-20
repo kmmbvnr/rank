@@ -18,7 +18,7 @@ import { isFlatScalarArray, arrayRevision, enterRuntime, leaveRuntime } from './
 import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './block-compiler.js';
-import { ReturnSignal, TailCallSignal, type PreparedScalarCall } from './control-signals.js';
+import { ReturnSignal, TailCallSignal, type PreparedScalarCall, type FunctionControl } from './control-signals.js';
 import type { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
 import { effectiveEnvironment, withEnvironment } from './environment.js';
@@ -66,7 +66,7 @@ export interface FunctionHost {
     /** A compiled body for these argument types, when the block compiler accepts it. */
     compiled(statement: FunctionStatement, arguments_: RankValue[]): CompiledBlock<ExecutionContext> | undefined;
     /** Runs statements as a function body, or as a generator body that may yield. */
-    execute(statements: Statement[], generator: boolean): Evaluation<RankValue | undefined>;
+    execute(statements: Statement[], generator: boolean, control?: FunctionControl): Evaluation<RankValue | undefined>;
     locate(error: unknown, node: AstNode): unknown;
     /** A proven scalar body that the selected argument types may enter directly, when that path is enabled. */
     scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[]): { readonly locals: readonly string[]; readonly loops: true } | undefined;
@@ -95,6 +95,7 @@ const arrayBatches = new WeakMap<NativeFunction, (source: RankArray, axes: reado
 export class FunctionInvocation {
     readonly maxDepth: number;
     private depth = 0;
+    private control: FunctionControl<FunctionDefinition> | undefined;
     private readonly sources = new WeakMap<NativeFunction, FunctionStatement>();
     private readonly globalScalarCalls = new WeakMap<FunctionStatement, Map<string, PreparedScalarCall>>();
     private readonly localScalarCalls = new WeakMap<LocalFrame, WeakMap<FunctionStatement, Map<string, PreparedScalarCall>>>();
@@ -147,10 +148,15 @@ export class FunctionInvocation {
         return inspectionEnabled() ? undefined : arrayBatches.get(fn)?.(source, axes);
     }
 
-    /** A call in tail position to one of this interpreter's own functions unwinds to the active call. */
-    throwTailCall(fn: NativeFunction, arguments_: RankValue[]): void {
+    /** Transfer to this interpreter's active call; protected/compiled paths still unwind. */
+    transferTailCall(fn: NativeFunction, arguments_: RankValue[]): boolean {
         const definition = functionDefinitions.get(fn);
-        if (definition?.owner === this) throw new TailCallSignal(definition, arguments_, undefined, this.host.inputs?.pending);
+        if (definition?.owner !== this) return false;
+        const transfer = new TailCallSignal(definition, arguments_, undefined, this.host.inputs?.pending);
+        if (!this.control) throw transfer;
+        this.control.returned = true;
+        this.control.tail = transfer;
+        return true;
     }
 
     definitionOf(fn: NativeFunction): FunctionDefinition | undefined {
@@ -736,6 +742,9 @@ export class FunctionInvocation {
         let frame = this.frames.create(statement, arguments_, context);
         const callerStatement = this.inspection.statement;
         const caller = this.bindings.current;
+        const callerControl = this.control;
+        const control: FunctionControl<FunctionDefinition> | undefined = this.options().directFunctionControl !== false ? {} : undefined;
+        this.control = control;
         const scope = new Set<RankFile>();
         this.resources.pushScope(scope);
         this.bindings.current = frame;
@@ -748,54 +757,63 @@ export class FunctionInvocation {
         try {
             while (true) {
                 checkpoint();
+                let transfer: TailCallSignal<FunctionDefinition> | undefined;
+                if (control) { control.returned = false; control.value = undefined; control.tail = undefined; }
                 try {
                     this.bindings.current = frame;
                     if (inspectionEnabled()) this.inspection.replace(statement.name, frame);
                     for (const local of prepareFunction(statement).locals) this.define(local);
                     const body = this.host.compiled(statement, arguments_);
                     if (body) {
-                        result = yield* resume(body({ assertBooleanExpressions: false, insideLoop: false,
-                            insideFinally: false, insideGenerator: false }));
+                        const value = yield* resume(body({ assertBooleanExpressions: false, insideLoop: false,
+                            insideFinally: false, insideGenerator: false, functionControl: control }));
+                        if (!control?.returned) { result = value; break; }
+                    } else {
+                        yield* resume(this.host.execute(statement.statements, false, control));
+                        if (!control?.returned) throw new RankError(`function ${statement.name} reached end without return`);
+                    }
+                    if (!control?.tail) { result = control?.value; break; }
+                    transfer = control.tail;
+                } catch (error) {
+                    if (error instanceof TailCallSignal) transfer = error;
+                    else {
+                        if (error instanceof ReturnSignal && error.value !== undefined) result = error.value;
+                        else pending = error;
                         break;
                     }
-                    yield* resume(this.host.execute(statement.statements, false));
-                    throw new RankError(`function ${statement.name} reached end without return`);
-                } catch (error) {
-                    if (error instanceof TailCallSignal) {
-                        this.host.inputs?.tail(error.definition.statement, error.inputRequirement);
-                        tailContracts.add(error.definition.specialization(error.arguments_));
-                        if (error.compiled && (!error.compiled.available || error.compiled.available())) {
-                            compiledTail = true;
-                            // Keep the tail driver's logical depth and resource scope;
-                            // this proven scalar body needs no new lexical frame.
-                            try { result = error.compiled(error.arguments_, true); }
-                            catch (error) { pending = error; }
-                            break;
-                        }
-                        const reusable = statement === error.definition.statement
-                            && frame.parent === error.definition.context ? frame : undefined;
-                        statement = error.definition.statement;
-                        arguments_ = error.arguments_;
-                        frame = this.frames.create(statement, error.arguments_, error.definition.context, reusable);
-                        if (error.definition.direct) {
-                            this.bindings.current = frame;
-                            try {
-                                result = error.definition.direct();
-                            } catch (error) {
-                                pending = error;
-                            }
-                            break;
-                        }
-                        continue;
+                }
+                if (transfer) {
+                    this.host.inputs?.tail(transfer.definition.statement, transfer.inputRequirement);
+                    tailContracts.add(transfer.definition.specialization(transfer.arguments_));
+                    if (transfer.compiled && (!transfer.compiled.available || transfer.compiled.available())) {
+                        compiledTail = true;
+                        // Keep the tail driver's logical depth and resource scope;
+                        // this proven scalar body needs no new lexical frame.
+                        try { result = transfer.compiled(transfer.arguments_, true); }
+                        catch (error) { pending = error; }
+                        break;
                     }
-                    if (error instanceof ReturnSignal && error.value !== undefined) result = error.value;
-                    else pending = error;
-                    break;
+                    const reusable = statement === transfer.definition.statement
+                        && frame.parent === transfer.definition.context ? frame : undefined;
+                    statement = transfer.definition.statement;
+                    arguments_ = transfer.arguments_;
+                    frame = this.frames.create(statement, transfer.arguments_, transfer.definition.context, reusable);
+                    if (transfer.definition.direct) {
+                        this.bindings.current = frame;
+                        try {
+                            result = transfer.definition.direct();
+                        } catch (error) {
+                            pending = error;
+                        }
+                        break;
+                    }
+                    continue;
                 }
             }
         } finally {
             this.depth -= 1;
             this.bindings.current = caller;
+            this.control = callerControl;
             if (inspectionEnabled()) this.inspection.leave(callerStatement);
             if (pending instanceof RankError && !compiledTail) this.frames.addCall(pending, statement, arguments_);
             if (pending === undefined && result !== undefined) {
@@ -890,11 +908,14 @@ export class FunctionInvocation {
         operation: () => T,
     ): T {
         enterRuntime(this.bindings);
+        const callerControl = this.control;
+        this.control = undefined;
         this.resources.pushScope(resources);
         try {
             return this.bindings.withFrame(frame, operation);
         } finally {
             this.resources.popScope();
+            this.control = callerControl;
             leaveRuntime();
         }
     }

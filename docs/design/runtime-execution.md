@@ -192,6 +192,13 @@ helper, so ordinary Rank recursion does not accumulate JavaScript call frames.
 Non-tail recursion retains intermediate results and resumes them after return.
 Eligible tail calls replace the current invocation instead of retaining its caller.
 
+Ordinary function returns use an invocation-owned `FunctionControl` carrier.
+Branches and loops stop when it is set; the function driver consumes the value
+or tail transfer. `try`/`catch`/`finally` blocks omit the carrier and preserve
+exception unwinding, including cleanup precedence. Compiled loop returns and
+scalar tail transfers can still use their existing signals. Setting
+`directFunctionControl: false` selects the exception path for comparison.
+
 Frames still keep their lexical environments and resource scopes. Exceptions
 unwind the execution stack through the same handlers as normal execution.
 Closing a Rank generator unwinds all suspended tasks and completes its finally
@@ -872,8 +879,9 @@ Euler Collatz demo already compiles its inline loop without helper linking.
 For nongenerator functions ending in a value-returning `return`, the runtime can
 compile a 1–64-command function body using the resumable block compiler. Its
 terminal return hands a value to the existing function-call frame directly,
-avoiding a `ReturnSignal` throw/catch on ordinary completion. Early returns and
-other control signals still use their existing paths. Unsupported body shapes
+avoiding a `ReturnSignal` throw/catch on ordinary completion. Early returns use
+the function carrier outside protected blocks; protected blocks and specialized
+compiled transfers retain their signals. Unsupported body shapes
 or unavailable code generation keep reference execution.
 
 Preparation stays lazy, and suspended expressions resume at the same command

@@ -30,7 +30,7 @@ import { ALL_AXIS, selectAxis } from '../selectors.js';
 import { safeDimension } from '../tensor-index.js';
 import { callArguments, canApplySelectors, hasField, unpackApplicationItems } from '../value-selection.js';
 import {
-    isNativeFunction, isRankArray, isRankFenwick, isRankLabel, typeName, type NativeFunction, type RankValue,
+    MISSING, isNativeFunction, isRankArray, isRankFenwick, isRankLabel, typeName, type NativeFunction, type RankValue,
 } from '../value.js';
 
 /** What evaluating application forms needs from the rest of evaluation. */
@@ -96,7 +96,7 @@ export class ApplicationEvaluator {
             if (!ranks.length && !axes && fn.monadicRank === 'all'
                 && (!fn.dyadicRanks || fn.dyadicRanks.every(rank => rank === 'all'))) {
                 context.functions.transferLastUses(fn, args, lastUses);
-                if (tail) context.functions.throwTailCall(fn, args);
+                if (tail && context.functions.transferTailCall(fn, args)) return MISSING;
                 return yield* resume(context.functions.invoke(fn, args));
             }
             const resultShape = (fn: NativeFunction, cells: readonly (readonly number[])[]): readonly number[] | undefined => {
@@ -540,9 +540,8 @@ export class ApplicationEvaluator {
                 && arguments_.every((argument, i) => argument === values[i])) {
                 context.functions.transferLastUses(value, arguments_, lastUses);
             }
-            if (tail && index === values.length - 1 && context.resources.currentScopeEmpty()) {
-                context.functions.throwTailCall(value, arguments_);
-            }
+            if (tail && index === values.length - 1 && context.resources.currentScopeEmpty()
+                && context.functions.transferTailCall(value, arguments_)) return completed(MISSING);
             const task = context.rankApplication.applyIntrinsicRank(value, arguments_);
             if (!('done' in task)) return application.continueApplication(values, missing, index + 1, task, tail);
             context.resources.ownFiles(task.value);

@@ -110,6 +110,7 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
                             { ...context, insideLoop: true, tailCallsAllowed: false, loopControl });
                     const value = 'done' in body
                         ? body.value : (yield { task: body }) as RankValue | undefined;
+                    if (context.functionControl?.returned) return value;
                     if (loopControl?.signal) {
                         const signal = loopControl.signal;
                         loopControl.signal = undefined;
@@ -143,6 +144,7 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
                         : loop.execute(statement.statements, { ...context, insideLoop: true, loopControl });
                     const value = 'done' in body
                         ? body.value : (yield { task: body }) as RankValue | undefined;
+                    if (context.functionControl?.returned) return value;
                     if (loopControl?.signal) {
                         const signal = loopControl.signal;
                         loopControl.signal = undefined;

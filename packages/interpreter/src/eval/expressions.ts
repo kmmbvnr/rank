@@ -447,9 +447,8 @@ export class ExpressionEvaluator {
             return () => {
                 const value = expressions.context.resolve(expression.name);
                 if (!isNativeFunction(value) || !value.arities.includes(0)) return completed(nameMask(value));
-                if (tail && expressions.context.resources.currentScopeEmpty()) {
-                    expressions.context.functions.throwTailCall(value, []);
-                }
+                if (tail && expressions.context.resources.currentScopeEmpty()
+                    && expressions.context.functions.transferTailCall(value, [])) return completed(MISSING);
                 return mapResult(expressions.context.invoke(value, []), result => {
                     expressions.context.resources.ownFiles(result);
                     return result;

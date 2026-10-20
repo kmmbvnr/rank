@@ -149,7 +149,7 @@ export class Interpreter {
                 apply: (fn, args) => this.rankApplication.applyIntrinsicRank(fn, args),
                 compileDirect: expression => this.expressions.compileDirect(expression),
                 compiled: (statement, arguments_) => this.fastPaths.functionBody(statement, arguments_, this.blocks),
-                execute: (statements, generator) => this.blocks.execute(statements, false, false, false, generator),
+                execute: (statements, generator, control) => this.blocks.execute(statements, false, false, false, generator, true, undefined, control),
                 locate: (error, node) => this.locateError(error, node),
                 scalarEntry: (statement, generator, types) => this.fastPaths.scalarEntry(statement, generator, types),
                 flatCombine: (fn, statement, available) => this.fastPaths.flatCombine(fn, statement, available),

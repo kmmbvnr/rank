@@ -9,10 +9,10 @@ import {
 } from '@arrrank/language';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { inputDeclarationName } from '../cli-args.js';
-import { BREAK_SIGNAL, CONTINUE_SIGNAL, ReturnSignal } from '../control-signals.js';
+import { BREAK_SIGNAL, CONTINUE_SIGNAL, returnFunctionValue } from '../control-signals.js';
 import { materializeSequence } from '../sequence.js';
 import { RankError } from '../errors.js';
-import { emit, mapExecution, mapResult, resume, type Evaluation, type Execution } from '../execution.js';
+import { completed, emit, mapExecution, mapResult, resume, type Evaluation, type Execution } from '../execution.js';
 import {
     prepareIfStatement, prepareTryStatement, type ExecutionContext, type PreparedStatement,
 } from '../statement-control.js';
@@ -139,7 +139,7 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
         if (direct) {
             return { run: context => {
                 validate(context);
-                throw new ReturnSignal(direct());
+                return returnFunctionValue(context.functionControl, direct());
             } };
         }
         let candidate = statement.value;
@@ -148,18 +148,18 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
         if (!tailCandidate) {
             return { stream: function* (context): Execution<RankValue | undefined> {
                 validate(context);
-                throw new ReturnSignal(statement.value === undefined ? undefined
+                return returnFunctionValue(context.functionControl, statement.value === undefined ? undefined
                     : yield* resume(host.evaluate(statement.value)));
             } };
         }
         let tail: (() => Evaluation<RankValue>) | undefined;
         return { stream: context => {
             validate(context);
-            if (statement.value === undefined) throw new ReturnSignal();
+            if (statement.value === undefined) return completed(returnFunctionValue(context.functionControl));
             const result = context.tailCallsAllowed !== false
                 ? (tail ??= host.compileTail(statement.value))()
                 : host.evaluate(statement.value);
-            return mapResult(result, value => { throw new ReturnSignal(value); });
+            return mapResult(result, value => returnFunctionValue(context.functionControl, value));
         } };
     }
     if (isBreakStatement(statement) || isContinueStatement(statement)) {

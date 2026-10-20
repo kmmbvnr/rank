@@ -1,5 +1,6 @@
 import { type Expression, type IfStatement, type Statement, type TryStatement } from '@arrrank/language';
 import { resume, type Evaluation, type Execution } from './execution.js';
+import type { FunctionControl } from './control-signals.js';
 import { InterruptedError } from './interrupt.js';
 import { RankError } from './errors.js';
 import { expectBoolean, type RankValue } from './value.js';
@@ -8,6 +9,7 @@ export interface LoopControl { signal?: 'break' | 'continue' }
 
 export interface ExecutionContext {
     readonly loopControl?: LoopControl;
+    readonly functionControl?: FunctionControl;
     readonly assertBooleanExpressions: boolean;
     readonly insideLoop: boolean;
     readonly insideFinally: boolean;
@@ -45,7 +47,7 @@ export function prepareTryStatement(statement: TryStatement, control: TryControl
     return { stream: function* (context: ExecutionContext): Execution<RankValue | undefined> {
         let result: RankValue | undefined;
         let pending: unknown;
-        const nested = { ...context, tailCallsAllowed: false as const, loopControl: undefined };
+        const nested = { ...context, tailCallsAllowed: false as const, loopControl: undefined, functionControl: undefined };
         try {
             try {
                 try {

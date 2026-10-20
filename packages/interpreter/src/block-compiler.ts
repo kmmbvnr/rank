@@ -6,6 +6,7 @@ interface Context {
     readonly insideFinally: boolean;
     readonly insideGenerator: boolean;
     readonly loopControl?: { signal?: 'break' | 'continue' };
+    readonly functionControl?: { returned?: boolean };
 }
 interface Step<C> {
     readonly run?: (context: C) => Value;
@@ -43,7 +44,7 @@ export function compileBlock<C extends Context>(length: number, host: Host<C>): 
                 if (task.done) result = task.value;
                 else return pause(index, task, context, run);
             }
-            if (context.loopControl?.signal) return complete(result);
+            if (context.loopControl?.signal || context.functionControl?.returned) return complete(result);
         }`).join('\n');
         const source = `"use strict"; let ${Array.from({ length }, (_, i) => `s${i}`).join(',')};
             return function run(context, index = 0, result) {
