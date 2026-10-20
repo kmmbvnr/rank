@@ -10,7 +10,7 @@ const source = `fun X bump
 end
 fun B N total
  Total = 0
- for I in 0 until N
+ for I in 0 till N
   Total += B (I % 10000) + (I bump)
  end
  return Total

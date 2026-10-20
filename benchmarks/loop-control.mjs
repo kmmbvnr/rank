@@ -55,7 +55,7 @@ if (!selected) {
 fun Count work
   Total = 0
   Prefix = (array 0 0) bytes
-  for I in 0 until Count
+  for I in 0 till Count
     ${body}
   end
   return Total

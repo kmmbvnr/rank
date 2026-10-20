@@ -601,7 +601,7 @@ export function createReplSession(host: ReplHost = {}) {
             '  A sum print',
             '  B at least 3 and C in D',
             '  1 to 10 by 2 array',
-            '  for i in 1 until N ... end',
+            '  for i in 1 till N ... end',
             '  if A greater B ... else ... end',
             '  fun X name ... return X ... end',
             '  try ... catch Error ... end',

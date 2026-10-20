@@ -135,7 +135,7 @@ different work; this confirms copy avoidance, not an isolated speedup or
 a measured gain in a demo.
 
 A counted reader loop now also qualifies when it reduces scalar cells into a
-local scalar: `Total += V I` inside `for I in 0 until N`. On Apple M5 / Node
+local scalar: `Total += V I` inside `for I in 0 till N`. On Apple M5 / Node
 v24.15.0, `node benchmarks/borrow-read-write.mjs 65536 32` measured 9.295 ms
 per 32 scan-and-write calls (median of nine alternating batches), with zero
 CoW copies. The `I ** 1` control made 32 copies of 65,536 cells and measured

@@ -427,7 +427,7 @@ export function hasField(value: RankValue, name: string): boolean {
     return (isRankRecord(value) || isRankObject(value)) && value.entries.has(name);
 }
 
-/** `Rows (0 until 10)` on SQLite: the range slices the query instead of reading its rows. */
+/** `Rows (0 till 10)` on SQLite: the range slices the query instead of reading its rows. */
 function sqliteRangeSelection(values: RankValue[]): RankValue | undefined {
     if (values.length !== 2 || !isRankSequence(values[1])) return undefined;
     const bounds = rangeBounds(values[1]);

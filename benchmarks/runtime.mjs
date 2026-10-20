@@ -19,7 +19,7 @@ end
 
 fun N total
   Sum = 0
-  for I in 0 until N
+  for I in 0 till N
     Sum += I
   end
   return Sum
@@ -31,7 +31,7 @@ end
 
 fun N calls
   Sum = 0
-  for I in 0 until N
+  for I in 0 till N
     Sum += I increment
   end
   return Sum
@@ -39,7 +39,7 @@ end
 
 fun N nativecalls
   Sum = 0
-  for I in 0 until N
+  for I in 0 till N
     Sum += I abs
   end
   return Sum
@@ -60,7 +60,7 @@ end
 fun N addressing
   Values = array 1 2 3 4
   Sum = 0
-  for I in 0 until N
+  for I in 0 till N
     Sum += Values (I % 4)
   end
   return Sum
@@ -79,7 +79,7 @@ end
 
 fun N dyadiccalls
   Sum = 0
-  for I in 0 until N
+  for I in 0 till N
     Sum += I 1 add
   end
   return Sum
@@ -95,7 +95,7 @@ end
 fun N indexwork
   Cache = new index
   Sum = 0
-  for I in 0 until N
+  for I in 0 till N
     Cache I = I
     Sum += Cache I
   end

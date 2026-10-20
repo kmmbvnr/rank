@@ -11,14 +11,14 @@ fun Seen V note
 end
 fun N setwork
   Seen = new set
-  for V in 0 until N
+  for V in 0 till N
     Seen V note
   end
   return Seen len
 end
 fun N heapwork
   Heap = new heap
-  for V in 0 until N
+  for V in 0 till N
     Heap V V enqueue
   end
   return Heap len

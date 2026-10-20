@@ -12,7 +12,7 @@ fun X bounded
 end
 
 fun N scores
-  Values = (0 until N) array
+  Values = (0 till N) array
   Scores = Values bounded rank 0
   return Scores sum
 end

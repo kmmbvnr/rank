@@ -1,21 +1,21 @@
 export const denseSource = `
 fun N densewrite
  A = array shape N fill 0
- for I in 0 until N
+ for I in 0 till N
   A I = I
  end
  return A (N - 1)
 end
 fun N matrixwrite
  M = array shape N 1 fill 0
- for I in 0 until N
+ for I in 0 till N
   M I 0 = 1
  end
  return M (N - 1) 0
 end
 fun N denseupdate
  A = array shape N fill 0
- for I in 0 until N
+ for I in 0 till N
   A I += 1
  end
  return A (N - 1)
@@ -23,7 +23,7 @@ end
 fun N denseread
  A = array shape N fill 1
  Total = 0
- for I in 0 until N
+ for I in 0 till N
   Total += A I
  end
  return Total

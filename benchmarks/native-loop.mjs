@@ -65,7 +65,7 @@ fun Count work
   Prefix = "item1" bytes
   Header = "item123payload" bytes
   Empty = "" bytes
-  for I in 0 until Count
+  for I in 0 till Count
     ${body}
   end
   return Total

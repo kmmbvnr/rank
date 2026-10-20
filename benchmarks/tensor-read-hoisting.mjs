@@ -5,7 +5,7 @@ import { Interpreter, RuntimeDiagnostics } from '../packages/interpreter/out/ind
 
 const source = `fun B N total
   Total = 0
-  for I in 0 until N
+  for I in 0 till N
     Total += B (I % 10000)
   end
   return Total

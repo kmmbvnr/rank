@@ -30,6 +30,6 @@ test('does not assume that iterated elements are detached primitive values', () 
 });
 test('rejects repeated and loop-carried bindings', () => {
   assert.equal(a('A = array 1 2\nA = array 3 4\nreturn 0').candidate, false);
-  assert.equal(a('for I in 0 until N\n A = array 1 2\nend\nreturn 0').candidate, false);
-  assert.equal(a('A = array 1 2\nfor A in 0 until N\n 0\nend\nreturn 0').candidate, false);
+  assert.equal(a('for I in 0 till N\n A = array 1 2\nend\nreturn 0').candidate, false);
+  assert.equal(a('A = array 1 2\nfor A in 0 till N\n 0\nend\nreturn 0').candidate, false);
 });

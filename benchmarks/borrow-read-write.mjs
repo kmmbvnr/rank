@@ -51,14 +51,14 @@ fun V Flag branch_local
 end
 fun V N scan
  Total = 0
- for I in 0 until N
+ for I in 0 till N
   Total += V I
  end
  return Total
 end
 fun V N fallback_scan
  Total = 0
- for I in 0 until N
+ for I in 0 till N
   Total += V (I ** 1)
  end
  return Total
