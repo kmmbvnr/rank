@@ -12,13 +12,8 @@ import { functionCallSignature } from '../function-call-signature.js';
 import { findOperation } from '../operations.js';
 import { lexicalBinding, type FunctionScopeAnalysis, type LexicalBinding } from './function-scopes.js';
 
-type Flow = { functions: Set<FunctionStatement>; lazy: Set<FunctionStatement>; stored: Set<FunctionStatement> };
-const empty = (): Flow => ({ functions: new Set(), lazy: new Set(), stored: new Set() });
-function union(values: readonly Flow[]): Flow {
-    return { functions: new Set(values.flatMap(value => [...value.functions])),
-        lazy: new Set(values.flatMap(value => [...value.lazy])),
-        stored: new Set(values.flatMap(value => [...value.stored])) };
-}
+import { empty, union, escapeCalls, type Environment, type Flow } from './function-escape-calls.js';
+
 // Materialization consumes the outer iterator, not lazy values inside its cells.
 const materialized = (source: Flow): Flow => ({ ...source, lazy: new Set(source.stored) });
 
@@ -34,8 +29,6 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
         if (!diagnostics.some(item => item.node === node && item.message === message)) diagnostics.push({ node, message });
     };
     const { values, bodies } = escapeInputs(analysis);
-    type Environment = Map<LexicalBinding, Flow>;
-    const active = new Set<FunctionStatement>();
     const reading = new Set<LexicalBinding>();
     let budget = 20000;
     let exhausted = false;
@@ -178,37 +171,35 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
         if (result) for (const fn of result.functions) if (nested(fn)) report(node, fn, false);
         return result;
     };
-    const invoke = (fn: FunctionStatement, args: readonly Flow[], outer: Environment, site: AstNode): Flow => {
-        const info = analysis.functions.get(fn);
-        if (!info) {
-            const result = union(args);
-            for (const callback of result.functions) if (nested(callback)) report(site, callback, false);
-            return result;
-        }
-        // Recursive forwarding cannot discard callback provenance.
-        if (active.has(fn)) return union(args);
+    const evaluate = (fn: FunctionStatement, args: readonly Flow[], outer: Environment): Flow => {
+        const info = analysis.functions.get(fn)!;
         const env = new Map(outer);
         for (const binding of env.keys()) if (binding.scope.owner === fn) env.delete(binding);
         for (const [index, parameter] of functionCallSignature(fn).parameters.entries()) {
             const binding = lexicalBinding(info.scope, parameter.name)!;
             env.set(binding, args[index] ?? empty());
         }
-        active.add(fn);
-        try {
-            const nodes = bodies.get(fn) ?? [];
-            const returns: Flow[] = [];
-            const yields: Flow[] = [];
-            for (const node of nodes) {
-                const result = check(node, env, fn);
-                if (result && isReturnStatement(node)) returns.push(result);
-                if (result && isYieldStatement(node)) yields.push(result);
-            }
-            if (yields.length) {
-                const emitted = union(yields);
-                return { functions: emitted.functions, lazy: new Set([fn, ...emitted.lazy]), stored: new Set(emitted.lazy) };
-            }
-            return union(returns);
-        } finally { active.delete(fn); }
+
+        const nodes = bodies.get(fn) ?? [];
+        const returns: Flow[] = [];
+        const yields: Flow[] = [];
+        for (const node of nodes) {
+            const result = check(node, env, fn);
+            if (result && isReturnStatement(node)) returns.push(result);
+            if (result && isYieldStatement(node)) yields.push(result);
+        }
+        if (yields.length) {
+            const emitted = union(yields);
+            return { functions: emitted.functions, lazy: new Set([fn, ...emitted.lazy]), stored: new Set(emitted.lazy) };
+        }
+        return union(returns);
+    };
+    const calls = escapeCalls(evaluate);
+    const invoke = (fn: FunctionStatement, args: readonly Flow[], outer: Environment, site: AstNode): Flow => {
+        if (analysis.functions.has(fn)) return calls(fn, args, outer);
+        const result = union(args);
+        for (const callback of result.functions) if (nested(callback)) report(site, callback, false);
+        return result;
     };
     for (const fn of analysis.functions.keys()) {
         budget = 20000;
