@@ -412,7 +412,7 @@ export class FunctionInvocation {
             // work our embedder asked for; readers over storage we cannot track
             // keep their cells for exactly that long. See enterRuntime.
             call: arguments_ => {
-                enterRuntime();
+                enterRuntime(this.bindings);
                 try {
                     if (generator && !frozenFunctions.has(fn)) {
                         const frozen = this.snapshot(fn);
@@ -439,7 +439,7 @@ export class FunctionInvocation {
                 const key = memoCallKey(arguments_, signature.arity);
                 const cached = cachedMemoValue!(key);
                 if (cached !== undefined) return cached;
-                enterRuntime();
+                enterRuntime(this.bindings);
                 try { return runExecution(memoMiss(arguments_, key)); }
                 finally { leaveRuntime(); }
             });
@@ -449,7 +449,7 @@ export class FunctionInvocation {
                 // those same values and keeps memo/generator paths untouched.
                 const selected = selectScalar(arguments_);
                 if (!selected) return fn.call(arguments_);
-                enterRuntime();
+                enterRuntime(this.bindings);
                 try {
                     const contract = specialization(arguments_);
                     return checkReturn(contract, arguments_, selected(arguments_));
@@ -889,11 +889,13 @@ export class FunctionInvocation {
         resources: Set<RankFile>,
         operation: () => T,
     ): T {
+        enterRuntime(this.bindings);
         this.resources.pushScope(resources);
         try {
             return this.bindings.withFrame(frame, operation);
         } finally {
             this.resources.popScope();
+            leaveRuntime();
         }
     }
 

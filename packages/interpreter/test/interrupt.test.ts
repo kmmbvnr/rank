@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, createArraySnapshot, formatValue, isNativeFunction, type RankArray } from '../src/index.js';
-import { checkpoint, InterruptedError, interruptsEnabled, interruptibleCallback, interruptibleValues, withInterrupt, type InterruptSignal, type PauseSnapshot } from '../src/interrupt.js';
+import { checkpoint, InterruptedError, interruptsEnabled, interruptibleCallback, interruptibleValues, withInterrupt, withDemandBudget, passOver, DemandBudgetExhausted, type InterruptSignal, type PauseSnapshot } from '../src/interrupt.js';
 import { sortValue } from '../src/modules/sequences.js';
 import { linalgModule } from '../src/modules/linalg.js';
 import { graphModule } from '../src/modules/graph.js';
@@ -241,4 +241,26 @@ After = 1`))).toThrow(InterruptedError);
         expect(runtime.variables.get('Done')).toBe(1n);
         expect(runtime.variables.has('After')).toBe(false);
     } finally { runtime.dispose(); }
+});
+
+
+describe('nested demand scopes', () => {
+    it('shares an enclosing demand budget across nested interrupt runs', () => {
+        const signal = new Int32Array(new SharedArrayBuffer(4));
+        withDemandBudget(2, () => {
+            passOver();
+            withInterrupt(signal, () => passOver());
+            expect(() => passOver()).toThrow(DemandBudgetExhausted);
+        });
+        expect(() => passOver()).not.toThrow();
+    });
+
+    it('restores the outer budget after an inner budget throws', () => {
+        withDemandBudget(1, () => {
+            expect(() => withDemandBudget(0, () => passOver())).toThrow(DemandBudgetExhausted);
+            passOver();
+            expect(() => passOver()).toThrow(DemandBudgetExhausted);
+        });
+        expect(() => passOver()).not.toThrow();
+    });
 });

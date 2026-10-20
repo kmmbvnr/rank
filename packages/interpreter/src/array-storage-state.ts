@@ -29,20 +29,30 @@ export interface OwnedStorage {
 export let writeRevision = 0;
 export let creationSerial = 0;
 
-// A buffer we cannot track changes only while the host holds control: a JS
-// caller writing its own array is not running Rank at that moment. A reader
-// over one may therefore keep its cells for one stretch of work we were asked
-// to do, and reads live again as soon as control could have left us. Without
-// that, a reader standing on a reader recomputes the chain below it for every
-// cell, and a loop whose step reads the step before it twice — gradient
-// descent — costs an exponent in its number of steps.
-export let runtimeDepth = 0;
+// Storage revisions deliberately share one monotonic clock: arrays and derived
+// readers can be passed between interpreters. Runtime cache scopes, in contrast,
+// belong to the active interpreter and last only until it gives control away.
+interface RuntimeScope {
+    readonly owner: object | undefined;
+    readonly parent: RuntimeScope | undefined;
+    depth: number;
+}
+let runtime: RuntimeScope | undefined;
 export let hostEntry = 0;
 
-/** Opens a stretch of work the host asked for. Nested calls extend the one
- * already open; only the outermost hands control back. */
-export function enterRuntime(): void { runtimeDepth += 1; }
-export function leaveRuntime(): void { if ((runtimeDepth -= 1) === 0) hostEntry += 1; }
+export function runtimeActive(): boolean { return runtime !== undefined; }
+
+/** Same-owner calls extend a run; a different interpreter opens a new scope. */
+export function enterRuntime(owner = runtime?.owner): void {
+    if (runtime && runtime.owner === owner) { runtime.depth++; return; }
+    if (runtime) hostEntry++;
+    runtime = { owner, parent: runtime, depth: 1 };
+}
+export function leaveRuntime(): void {
+    if (--runtime!.depth !== 0) return;
+    runtime = runtime!.parent;
+    hostEntry++;
+}
 
 const mutationBirths = new Float64Array(1024);
 

@@ -64,10 +64,15 @@ copies the breakpoint list. CLI and web workers each own a separate session;
 module calls share the active execution scope. Nested calls to `withInterrupt`
 get fresh stepping state and restore the outer state when they return or throw.
 
-The exported `setDebugBreakpoints()` function remains as a deprecated adapter
-for callers using the default session. New hosts should pass an explicit session.
-Demand budgets and diagnostic scopes still restore their caller in `finally`.
+Omitting the session creates a fresh debugger configuration for that run.
+Interrupt state is one scoped record; nested runs restore the caller in `finally`.
+Demand budgets also restore their caller, and a nested interrupt scope consumes
+its enclosing demand budget unless it installs a budget of its own.
+
 Storage revisions remain shared with the values whose mutations they track.
+Host cache scopes are owned by each interpreter: re-entering a different
+interpreter invalidates untracked caches on entry and exit. Each lazy generator
+resume opens and closes its runtime scope before returning to the host.
 
 ## Function environments
 

@@ -3,7 +3,7 @@ import { checkpoint, interruptibleCallback } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { isRankArray, typeName, requireHomogeneous, MISSING, type RankArray, type RankValue } from './value.js';
 import {
-    derivedRevisions, writeRevision, hostEntry, runtimeDepth, enterRuntime, leaveRuntime, type DerivedRecord,
+    derivedRevisions, writeRevision, hostEntry, runtimeActive, enterRuntime, leaveRuntime, type DerivedRecord,
 } from './array-storage-state.js';
 import { arrayReaderDepth, arrayRevision, lazyDepth } from './array-revision.js';
 import {
@@ -85,7 +85,7 @@ export function derivedArray(
     const undisturbed = (epoch: number, entry: number) =>
         writeRevision === epoch && hostEntry === entry;
     const itemAt = (index: number): RankValue => {
-        if (runtimeDepth === 0) {
+        if (!runtimeActive()) {
             enterRuntime();
             try { return readCell(index); } finally { leaveRuntime(); }
         }
@@ -125,7 +125,7 @@ export function derivedArray(
             checkCell(result, index);
             return result;
         };
-        if (runtimeDepth === 0) {
+        if (!runtimeActive()) {
             enterRuntime();
             try { return run(); } finally { leaveRuntime(); }
         }
@@ -135,7 +135,7 @@ export function derivedArray(
         kind: 'array', shape, itemAt, streamAt,
         containsFiles: fileFree ? false : undefined,
         get items() {
-            if (runtimeDepth === 0) {
+            if (!runtimeActive()) {
                 enterRuntime();
                 try { return readAll(); } finally { leaveRuntime(); }
             }
@@ -158,7 +158,7 @@ export function derivedArray(
     lazyDepth.set(value, depth);
     cellValidators.set(value, checkCell);
     if (evaluate) registerArrayCellEvaluation(value, function* (index) {
-        const entering = runtimeDepth === 0;
+        const entering = !runtimeActive();
         if (entering) enterRuntime();
         try {
             checkpoint('reading array');
