@@ -16,10 +16,15 @@ option Count integer = 4
 option Start integer = 210
 option Limit integer = 100000000000
 
-rem n is even, and the primes n - 9 .. n
-rem + 9 avoid 3, 5 and 7 as factors,
-rem which a wheel of 210 keeps to a few
-rem residues. The odd numbers between
+rem The primes n - 9 .. n + 9 avoid 3,
+rem 5 and 7 as factors. Above 4, practical
+rem numbers that are 2 mod 4 must be divisible
+rem by 3; all five neighbours cannot be,
+rem so n is a multiple of 4. A practical
+rem number that is 4 mod 8 must have an
+rem odd factor 3, 5 or 7. These necessary
+rem conditions give a wheel of 840.
+rem The odd numbers between
 rem the primes must be composite, and
 rem each of the five numbers must be
 rem practical: with the primes p of N in
@@ -59,8 +64,9 @@ fun N practical_neighbours
   return true
 end
 
+Wheel = 840
 Res = array shape 0 fill 0
-for R in 0 to 209 by 2
+for R in 0 till Wheel by 4
   Ok = true
   for D in array -9 -3 3 9
     X = R + D
@@ -72,13 +78,26 @@ for R in 0 to 209 by 2
     end
   end
   if Ok
+    for D in array -8 -4 0 4 8
+      X = R + D + Wheel
+      if X mod 8 equal 4
+        Bad = X mod 3 not equal 0
+        Bad = Bad and (X mod 5 not equal 0)
+        if Bad and (X mod 7 not equal 0)
+          Ok = false
+          break
+        end
+      end
+    end
+  end
+  if Ok
     Res = concat Res (array R)
   end
 end
 Found = 0
 Answer = 0
 Gaps = array 7 5 1 -1 -5 -7
-for Base in (Start // 210) * 210 to Limit by 210
+for Base in (Start // Wheel) * Wheel to Limit by Wheel
   if Found equal Count
     break
   end

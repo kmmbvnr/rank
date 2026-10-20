@@ -115,3 +115,33 @@ audit runner that drains pending reports before synchronous tests; interpreter
 tests and local corpus shards use it. The common npm wrapper now uses the same
 runner, including the CI invocation. The final corpus run above verifies that
 wrapper without changing RPC or test deadlines.
+
+## Follow-up: practical-number wheel
+
+On the same Node/CPU, two sequential fresh processes using runtime `8731fffa`
+measured the old demo at **54.745 s** and the new wheel at **9.663 s** (5.67 times
+faster). Both asserted four results and the sum 2039506520. Execution peak RSS
+was 441.8 MiB and 276.1 MiB respectively; these individual observations do not
+establish retained-memory savings. Static name analysis took 0.173 s and
+0.185 s respectively.
+
+The wheel is derived rather than hard-coded. For values above 4, a practical
+number congruent to 2 modulo 4 must have factor 3. Five neighbours spaced by 4
+cannot all satisfy that condition, so the candidate must be divisible by 4.
+A practical neighbour congruent to 4 modulo 8 must have an odd prime factor
+no greater than 7. Applying those necessary conditions and the existing
+prime-offset screen leaves residues **20 and 820 modulo 840**: two candidates
+instead of the old wheel's 24 candidates per 840 integers. The default search
+starts at 210, so all practical neighbours are above the small exceptions.
+
+The five demo test blocks pass in both compiled and reference execution,
+including an upper bound one below the first result and an inclusive single-
+number range at another result. A separate CPU-profiled full wheel search
+attributed 3.125 s of self-samples to sieve segment preparation; expression
+evaluation, loop dispatch and resolution still contributed.
+
+Raw samples: [before wheel](baselines/2026-10-20-engineers-dream-wheel-before.jsonl),
+[after wheel](baselines/2026-10-20-engineers-dream-wheel-after.jsonl).
+
+The default name-facts corpus entry passed through the common npm wrapper in
+15.802 s with the wheel, retaining its 300 s deadline.
