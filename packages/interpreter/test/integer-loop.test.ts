@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { registerCachedArray, typedArray, typedElementKind } from '../src/array-storage.js';
 import { RuntimeDiagnostics } from '../src/diagnostics.js';
 import { Interpreter, RankError, formatValue } from '../src/index.js';
+import { RuntimeDiagnostics } from '../src/diagnostics.js';
 
 function execute(source: string, integerLoopCompilation: boolean, nestedLoopCompilation = true, scalarFunctionCompilation = true) {
     let loops = 0;
@@ -2785,5 +2786,76 @@ end
 Count`);
         expect(result.value).toBe('2');
         expect(result.loops).toBe(0);
+    });
+});
+
+describe('strided range writes in integer loops', () => {
+    it.each([
+        ['M (I to 1) = 7', 'fill 0'],
+        ['M (8 to I by -2) = 7', 'fill 0'],
+        ['M (1 to 9 by I + 1) += 2', 'fill 0'],
+        ['M (1 till 9 by I + 1) -= 2', 'fill 0'],
+        ['M (9 till 0 by -4) = I', 'fill 0'],
+        ['M (I till I) = 5', 'fill 0'],
+        ['M (9 to 10 by 5) = I', 'fill 0'],
+        ['M (I to 9 by 2) = true', 'fill false'],
+    ])('writes like the interpreter: %s', (write, fill) => {
+        const result = compare(`M = array shape 10 ${fill}
+for I in 1 to 2
+  ${write}
+end
+M`);
+        expect(result.loops).toBe(1);
+    });
+
+    it.each([
+        ['M (I * 0 + 8 to 12) = 7', 'out of bounds on axis 0: 10'],
+        ['M (-1 to I) = 7', 'must be nonnegative'],
+        ['M (12 to I by -1) = 7', 'out of bounds on axis 0: 12'],
+        ['M (3 to -I by -2) = 7', 'must be nonnegative'],
+        ['M (9 to 15 by 5) = 5', 'out of bounds on axis 0: 14'],
+        ['M (0 to 9 by I - 1) = 1', 'range step must be a nonzero integer'],
+        ['M (0 to 9 by I - 1) = 1 // 0', 'range step must be a nonzero integer'],
+    ])('validates the whole run before the first store: %s', (write, message) => {
+        const result = compare(`M = array shape 10 fill 0
+Done = 0
+for I in 1 to 2
+  ${write}
+  Done += 1
+end
+M`);
+        expect(result.error).toContain(message);
+        expect(result.containers).toContainEqual(['M', [10], Array(10).fill('0')]);
+        expect(result.loops).toBe(1);
+    });
+
+    it('commits integer runs without unpacking a typed buffer', () => {
+        const r = new Interpreter(undefined, { scalarEntryCompilation: false });
+        const d = new RuntimeDiagnostics();
+        try {
+            d.run(() => r.execute(`Cnt = array shape 1001 fill 0
+Per = array 12 30 40
+for P in Per
+  Cnt (P to 1000 by P) += 1
+end`));
+            expect(r.execute('Cnt 120')).toBe(3n);
+            expect(d.compiledLoops).toBe(1);
+            expect(d.bulkArrayWrites).toBe(3);
+            expect(d.typedUnpacks).toBe(0);
+        } finally { r.dispose(); }
+    });
+
+    it('keeps a sieve written in one loop compiled', () => {
+        const result = compare(`Marked = array shape 101 fill false
+Total = 0
+for P in 2 to 100
+  if not Marked P
+    Total += P
+    Marked (P * P to 100 by P) = true
+  end
+end
+Total`);
+        expect(result.value).toBe('1060');
+        expect(result.loops).toBe(1);
     });
 });

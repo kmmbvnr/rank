@@ -109,6 +109,7 @@ export class Interpreter {
             absoluteLoopCompilation: false,
             realLoopCompilation: false,
             loopReturnCompilation: false,
+            loopYieldCompilation: false,
             arrayLocalCompilation: false,
             booleanArrayCompilation: false,
             booleanSelectionCompilation: false,

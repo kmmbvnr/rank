@@ -2,8 +2,8 @@ import { type LoopTerm } from './integer-loop-plan.js';
 import {
     applicationForm, isExpressionStatement, findOperation, findCompiledOperator, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement,
-    isPushStatement, isArrayAssignmentStatement, isReturnStatement, isArrayExpression,
-    isParenthesizedExpression, isNameExpression, type Statement,
+    isPushStatement, isArrayAssignmentStatement, isReturnStatement, isYieldStatement, isArrayExpression,
+    isParenthesizedExpression, isNameExpression, isBinaryExpression, type Statement,
 } from '@arrrank/language';
 
 import type { LoopCompilationState } from './integer-loop-state.js';
@@ -59,6 +59,17 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 body.push(`location = ${location};`, ...lines, `leave(${value});`);
                 return 'stop';
             }
+            if (isYieldStatement(assignment)) {
+                // Only scalars leave the region: a yielded array would alias
+                // storage the following iterations still write in place.
+                if (numberMode || !host.yields) return reject(assignment);
+                const lines: string[] = [];
+                const value = emit(assignment.value, lines);
+                if (!value || value.type === 'bytes') return reject(assignment);
+                state.hasYield = true;
+                body.push(`location = ${location};`, ...lines, `yield { value: ${value.code} }; iterationResult = undefined;`);
+                continue;
+            }
             if (isBreakStatement(assignment) || isContinueStatement(assignment)) {
                 state.hasControl = true;
                 body.push(`location = ${location}; ${isBreakStatement(assignment) ? 'break' : 'continue'};`);
@@ -102,12 +113,62 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 if (knownArray && knownArray.rank !== assignment.indices.length) return reject(assignment);
                 const previous = destinations.get(assignment.name);
                 if (previous && previous.rank !== assignment.indices.length) return reject(assignment);
-                const target = previous ?? { slot: slot(assignment.name), rank: assignment.indices.length, compound, type: undefined as LoopTerm['type'] | undefined };
+                const target = previous ?? { slot: slot(assignment.name), rank: assignment.indices.length, compound, type: undefined as LoopTerm['type'] | undefined, slice: false };
                 target.compound ||= compound;
                 destinations.set(assignment.name, target);
                 if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
                 const receiver = `storage${target.slot}`;
                 const lines: string[] = [], keys: string[] = [];
+                let range = assignment.indices.length === 1 && !assignment.indices[0].all && !assignment.indices[0].sign
+                    ? assignment.indices[0].value : undefined;
+                while (range && isParenthesizedExpression(range)) range = range.value;
+                if (range && isBinaryExpression(range) && ['to', 'till'].includes(range.operator)) {
+                    // A strided vector fill: validate both ends of the arithmetic
+                    // run before the first store, as the interpreted selection does.
+                    target.slice = true;
+                    const start = emit(range.left, lines, 'integer'), end = emit(range.right, lines, 'integer');
+                    const step = range.step ? emit(range.step, lines, 'integer') : { code: '1n', type: 'integer' };
+                    if (start?.type !== 'integer' || end?.type !== 'integer' || step?.type !== 'integer') return reject(assignment);
+                    const n = state.serial++, inclusive = range.operator === 'to';
+                    lines.push(`const first${n} = ${start.code}, end${n} = ${end.code}, stride${n} = ${step.code};
+                        if (stride${n} === 0n) throw badStep();
+                        const span${n} = stride${n} > 0n ? end${n} - first${n} : first${n} - end${n};
+                        const count${n} = span${n} < ${inclusive ? '0n' : '1n'} ? 0
+                            : Number((span${n}${inclusive ? '' : ' - 1n'}) / (stride${n} > 0n ? stride${n} : -stride${n})) + 1;
+                        if (count${n} > 0) {
+                            const size${n} = BigInt(${receiver}.shape[0]), last${n} = first${n} + BigInt(count${n} - 1) * stride${n};
+                            if (stride${n} > 0n ? first${n} < 0n : first${n} >= size${n}) throw badIndex(first${n}, 0);
+                            if (stride${n} > 0n ? last${n} >= size${n} : last${n} < 0n) throw badIndex(stride${n} > 0n
+                                ? first${n} + (size${n} - first${n} + stride${n} - 1n) / stride${n} * stride${n}
+                                : first${n} + (first${n} / -stride${n} + 1n) * stride${n}, 0);
+                        }`);
+                    const expected = booleanUpdate ? 'boolean' : compound ? 'integer' : target.type ?? arrays.get(assignment.name)?.type;
+                    const value = emit(assignment.value, lines, expected);
+                    if (!value || value.type === 'text' || value.type === 'bytes' || value.type === 'boolean' && !host.booleanArrays
+                        || expected && value.type !== expected
+                        || arrays.has(assignment.name) && arrays.get(assignment.name)!.type !== value.type) return reject(assignment);
+                    target.type = value.type;
+                    const cell: string[] = [], operand = `operand${state.serial++}`, offset = `offset${n}`;
+                    let result = operand;
+                    if (compound) {
+                        const op = assignment.operator.slice(0, -1);
+                        const signature = loopOperatorSignature(op, [value.type, value.type], host.nativeCalls);
+                        const out = signature?.compound && signature.result === value.type
+                            ? arithmetic(op, { code: `${receiver}.items[${offset}]`, type: value.type }, { code: operand, type: value.type }, value.type, cell) : undefined;
+                        if (out === undefined) return reject(assignment);
+                        result = out;
+                    }
+                    // Integer runs commit through the bulk writer: reading an old cell
+                    // through `items` would unpack a typed buffer for the whole array.
+                    const bulk = value.type === 'integer' && ['=', '+=', '-=', '*='].includes(assignment.operator)
+                        ? `count${n} > 0 && fill(r${target.slot}, Number(first${n}), count${n}, Number(stride${n}), ${operand}, ${JSON.stringify(assignment.operator)})` : 'false';
+                    body.push(`location = ${location};`, ...lines, `const ${operand} = ${value.code};
+                        if (!(${bulk})) for (let index${n} = 0, ${offset} = Number(first${n}), delta${n} = Number(stride${n}); index${n} < count${n}; index${n}++, ${offset} += delta${n}) {
+                            checkpoint(); ${cell.join('\n')} write${target.slot}(${offset}, ${result});
+                        }
+                        iterationResult = ${operand};`);
+                    continue;
+                }
                 for (const address of assignment.indices) {
                     if (address.all || address.sign || !address.value) return reject(assignment);
                     const value = emit(address.value, lines);

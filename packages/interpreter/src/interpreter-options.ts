@@ -40,6 +40,8 @@ export interface InterpreterOptions {
     readonly realLoopCompilation?: boolean;
     readonly provenIterationTypes?: boolean;
     readonly loopReturnCompilation?: boolean;
+    /** Scalar `yield` from exact compiled loops in a generator body. */
+    readonly loopYieldCompilation?: boolean;
     readonly arrayLocalCompilation?: boolean;
     readonly booleanArrayCompilation?: boolean;
     /** Commit scalar boolean selection fills without per-cell contract checks. */

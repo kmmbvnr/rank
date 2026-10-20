@@ -13,20 +13,27 @@ const sieve = `fun Limit sieve
   end
 end`;
 
-describe.each([false, true])('generator loops (compiled=%s)', generatorLoopCompilation => {
+const backends = [
+    ['reference', { generatorLoopCompilation: false, loopYieldCompilation: false }],
+    ['generator', { loopYieldCompilation: false }],
+    ['integer', {}],
+] as const;
+
+describe.each(backends)('generator loops (%s)', (backend, options) => {
     it('sieves with lazy yields and uses the selected execution path', () => {
-        const r = new Interpreter(undefined, { generatorLoopCompilation });
+        const r = new Interpreter(undefined, options);
         const d = new RuntimeDiagnostics();
         try {
             expect(formatValue(d.run(() => r.execute(`${sieve}\n30 sieve array`))!))
                 .toBe('2 3 5 7 11 13 17 19 23 29');
-            expect(d.compiledGeneratorLoops).toBe(generatorLoopCompilation ? 1 : 0);
+            expect(d.compiledGeneratorLoops).toBe(backend === 'generator' ? 1 : 0);
+            expect(d.compiledLoops).toBe(backend === 'integer' ? 1 : 0);
             expect(r.execute('200000 sieve 10000')).toBe(104743n);
         } finally { r.dispose(); }
     });
 
     it('preserves branches, indices, continue, break and nested-loop ownership', () => {
-        const r = new Interpreter(undefined, { generatorLoopCompilation });
+        const r = new Interpreter(undefined, options);
         try {
             expect(formatValue(r.execute(`fun values
   for N I in 1 to 6
@@ -49,7 +56,7 @@ values array`)!)).toBe('0 11 2 31 3 41');
 
     it('does not execute after an abandoned yield, and closes protected blocks', () => {
         const output: string[] = [];
-        const r = new Interpreter(value => output.push(value), { generatorLoopCompilation });
+        const r = new Interpreter(value => output.push(value), options);
         try {
             expect(r.execute(`use io
 fun values
@@ -69,7 +76,7 @@ values 0`)).toBe(1n);
 
     it('unwinds continue and break through finally before the next iteration', () => {
         const output: string[] = [];
-        const r = new Interpreter(value => output.push(value), { generatorLoopCompilation });
+        const r = new Interpreter(value => output.push(value), options);
         try {
             expect(formatValue(r.execute(`use io
 fun values
@@ -93,7 +100,7 @@ values array`)!)).toBe('1 2');
 
     it('closes a generator used as the loop source when the consumer stops', () => {
         const output: string[] = [];
-        const r = new Interpreter(value => output.push(value), { generatorLoopCompilation });
+        const r = new Interpreter(value => output.push(value), options);
         try {
             expect(r.execute(`use io
 fun source
@@ -116,7 +123,7 @@ values 0`)).toBe(2n);
     });
 
     it('preserves yielded array values and observes writes after resuming', () => {
-        const r = new Interpreter(undefined, { generatorLoopCompilation });
+        const r = new Interpreter(undefined, options);
         try {
             expect(formatValue(r.execute(`fun values
   A = array shape 2 fill false
@@ -130,7 +137,7 @@ values array`)!)).toBe('false false true false');
     });
 
     it('retains deferred errors and generator return validation', () => {
-        const r = new Interpreter(undefined, { generatorLoopCompilation });
+        const r = new Interpreter(undefined, options);
         try {
             r.execute(`fun values
   for N in 1 to 3
@@ -152,7 +159,7 @@ end`);
     });
 
     it('keeps separate invocation frames when iterators are interleaved', () => {
-        const r = new Interpreter(undefined, { generatorLoopCompilation });
+        const r = new Interpreter(undefined, options);
         try {
             r.execute(sieve);
             const left = r.execute('10 sieve'), right = r.execute('20 sieve');
@@ -168,9 +175,12 @@ end`);
     });
 });
 
-it('cancels a compiled generator while searching for its next yield', () => {
+it.each([
+    ['generator', (enter: () => void) => ({ loopYieldCompilation: false, onGeneratorLoopExecuted: enter })],
+    ['integer', (enter: () => void) => ({ onIntegerLoopExecuted: enter })],
+] as const)('cancels a compiled %s loop while searching for its next yield', (_, options) => {
     let entered = false;
-    const r = new Interpreter(undefined, { onGeneratorLoopExecuted: () => { entered = true; } });
+    const r = new Interpreter(undefined, options(() => { entered = true; }));
     try {
         r.execute(`fun values
   for N in 1 to 1000000
@@ -188,10 +198,96 @@ end`);
 
 it('keeps inspected generator loops on the reference path', () => {
     let entries = 0;
-    const r = new Interpreter(undefined, { onGeneratorLoopExecuted: () => entries++ });
+    const r = new Interpreter(undefined, { onGeneratorLoopExecuted: () => entries++, onIntegerLoopExecuted: () => entries++ });
     try {
         const signal = { length: 1, load: () => 0, store() {}, wait() {}, exchange: () => 0 };
         expect(withInterrupt(signal, () => r.execute(`${sieve}\n30 sieve 9`), () => {})).toBe(29n);
         expect(entries).toBe(0);
     } finally { r.dispose(); }
+});
+
+describe('scalar yields from integer loops', () => {
+    function run(source: string, expression: string) {
+        const results = backends.map(([, options]) => {
+            const r = new Interpreter(undefined, options);
+            const d = new RuntimeDiagnostics();
+            try {
+                d.run(() => r.execute(source));
+                let value: string;
+                try { value = formatValue(d.run(() => r.execute(expression))!); }
+                catch (error) { value = `error: ${(error as Error).message}`; }
+                return { value, loops: d.compiledLoops };
+            } finally { r.dispose(); }
+        });
+        expect(results.map(result => result.value)).toEqual(Array(3).fill(results[0].value));
+        return results[2];
+    }
+
+    it('suspends inside nested loops with break and continue', () => {
+        const result = run(`fun values
+  for N I in 1 to 6
+    if N equal 2
+      continue
+    elif N equal 5
+      break
+    end
+    yield I
+    for J in 1 to 3
+      yield N * 10 + J
+      if J equal 2
+        break
+      end
+    end
+  end
+end`, 'values array');
+        expect(result.value).toBe('0 11 12 2 31 32 3 41 42');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each([
+        ['Total / 2', '0.5 1.5 3 5'],
+        ['Total greater 4', 'false false true true'],
+    ])('yields %s with locals updated between yields', (value, expected) => {
+        const result = run(`fun values
+  Total = 0
+  for N in 1 to 4
+    Total += N
+    yield ${value}
+  end
+end`, 'values array');
+        expect(result.value).toBe(expected);
+        expect(result.loops).toBe(1);
+    });
+
+    it('stops an abandoned producer and resumes interleaved frames independently', () => {
+        const result = run(`fun Limit evens
+  for N in 0 to Limit by 2
+    yield N
+  end
+end`, '(1000000000 evens 3) + (10 evens array sum)');
+        expect(result.value).toBe('36');
+        expect(result.loops).toBe(2);
+    });
+
+    it('defers an error until the consumer reaches it', () => {
+        expect(run(`fun broken
+  for N in 1 to 3
+    yield N
+    yield N // (2 - N)
+  end
+end`, 'broken 2').value).toBe('2');
+        expect(run(`fun broken
+  for N in 1 to 3
+    yield N
+    yield N // (2 - N)
+  end
+end`, 'broken array').value).toBe('error: division by zero');
+    });
+
+    it('rejects yield outside a generator body the same way', () => {
+        expect(run('', `T = 0
+for N in 1 to 3
+  yield N
+end`).value).toMatch(/^error: /);
+    });
 });

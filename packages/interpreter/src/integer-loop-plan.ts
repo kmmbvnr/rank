@@ -2,7 +2,7 @@ import type { RankDeque } from './containers.js';
 import type { Expression, ForStatement, Statement, CompiledLoopType } from '@arrrank/language';
 import type { CompiledCalleeType } from './compiled-callee-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
-import type { Completed } from './execution.js';
+import type { Evaluation } from './execution.js';
 import { isRankBytes, type RankArray, type RankValue } from './value.js';
 
 export interface IterationBinding {
@@ -35,6 +35,7 @@ export interface LoopHost {
     readonly booleanArrays: boolean;
     readonly arrayLocals: boolean;
     readonly returns: boolean;
+    readonly yields: boolean;
     canReturn(): boolean;
     returnValue(value: RankValue): never;
     dimension(value: bigint): number;
@@ -69,7 +70,7 @@ export function loopValueType(value: RankValue | undefined): CompiledLoopType | 
  * Writers retain fixed-type checks and partial state on errors; optional bound
  * writers specialize repeated known-value stores within one invocation. */
 export type CompiledLoop = {
-    run(insideFinally?: boolean, insideGenerator?: boolean, tailCallsAllowed?: boolean): Completed<RankValue | undefined> | undefined;
+    run(insideFinally?: boolean, insideGenerator?: boolean, tailCallsAllowed?: boolean): Evaluation<RankValue | undefined> | undefined;
 };
 
 
@@ -78,7 +79,7 @@ export interface IntegerLoopPlan {
     statement: ForStatement;
     names: string[];
     arrays: Map<string, { slot: number; rank: number; type: LoopTerm['type'] }>;
-    destinations: Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type'] }>;
+    destinations: Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type']; slice?: boolean }>;
     root: { setup: string; header: string; bindings: string };
     body: string[];
     locations: Statement[];
@@ -98,6 +99,7 @@ export interface IntegerLoopPlan {
     calleeArrays: Set<string>;
     hasControl: boolean;
     hasReturn: boolean;
+    hasYield: boolean;
     needsAlgo: boolean;
     arrayDefinitions: Set<string>;
     writable: Set<string>;

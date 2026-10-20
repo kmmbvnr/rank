@@ -2,7 +2,9 @@ import { expect, it, vi } from 'vitest';
 import { Interpreter, formatValue, type InterpreterOptions } from '../src/index.js';
 
 const probes: { tier: keyof InterpreterOptions; source: string; options?: InterpreterOptions }[] = [
-    { tier: 'onGeneratorLoopExecuted', source: 'fun values\n for N in 1 to 3\n  yield N\n end\nend\nvalues array' },
+    { tier: 'onGeneratorLoopExecuted', options: { loopYieldCompilation: false },
+        source: 'fun values\n for N in 1 to 3\n  yield N\n end\nend\nvalues array' },
+    { tier: 'onIntegerLoopExecuted', source: 'fun values\n for N in 1 to 3\n  yield N\n end\nend\nvalues array' },
     { tier: 'onIntegerLoopExecuted', source: 'Sum = 0\nfor I in 1 to 20\n Sum += I\nend\nSum' },
     { tier: 'onScalarExecuted', options: { scalarEntryCompilation: false, scalarFunctionCompilation: false },
         source: 'fun A B calc\n return A * 3 + B\nend\n2 4 calc' },

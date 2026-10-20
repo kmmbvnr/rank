@@ -8,10 +8,11 @@ import { Interpreter } from '../packages/interpreter/out/index.js';
 // Run after: npx tsc -b tsconfig.build.json
 // Each measurement gets its own process and two warmups. Never run alongside tests.
 const variants = {
-    before: { booleanSelectionCompilation: false, generatorLoopCompilation: false },
-    boolean: { generatorLoopCompilation: false },
-    generator: { booleanSelectionCompilation: false },
-    both: {},
+    before: { booleanSelectionCompilation: false, generatorLoopCompilation: false, loopYieldCompilation: false },
+    boolean: { generatorLoopCompilation: false, loopYieldCompilation: false },
+    generator: { booleanSelectionCompilation: false, loopYieldCompilation: false },
+    both: { loopYieldCompilation: false },
+    integer: {},
 };
 const worker = process.argv.find(arg => arg.startsWith('--worker='))?.slice(9);
 if (worker) {
@@ -49,5 +50,5 @@ if (worker) {
         [name, [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)]]));
     console.log(JSON.stringify({ node: process.version, cpu: cpus()[0]?.model,
         measurement: 'parse + execution, fresh interpreter, two process-local warmups',
-        expected: '104743', results, medians, speedup: medians.before / medians.both }, null, 2));
+        expected: '104743', results, medians, speedup: medians.before / medians.integer }, null, 2));
 }
