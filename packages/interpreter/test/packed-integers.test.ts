@@ -32,6 +32,16 @@ describe('packed integer arrays', () => {
         });
     });
 
+    it('sums packed cells exactly at both 64-bit limits and across signs', () => {
+        const start = -5_000_000_000n, step = 1_000_000n;
+        expect(run(`Xs = ${start} to ${start + BigInt(N - 1) * step} by ${step} array\nXs sum`, ['Xs']))
+            .toMatchObject({ value: sum(N, index => start + index * step), packed: { Xs: true } });
+        for (const fill of [MAX, -MAX - 1n]) {
+            expect(run(`A = array shape ${N} fill ${fill}\nA sum`, ['A']))
+                .toMatchObject({ value: fill * BigInt(N), packed: { A: true } });
+        }
+    });
+
     it('falls back to exact cells when a product leaves 64 bits', () => {
         const start = 3_000_000_000n;
         const result = run(`Xs = ${start} to ${start + BigInt(N - 1)} array\nYs = Xs * Xs * Xs\nYs sum`, ['Xs', 'Ys']);

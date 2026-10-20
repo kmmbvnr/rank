@@ -366,9 +366,31 @@ function sumStream(items: Iterable<RankValue>): bigint | number {
     return total;
 }
 
+const littleEndian = new Uint8Array(new Uint16Array([1]).buffer)[0] === 1;
+
+/** Sum a packed integer buffer by the 32-bit halves of its cells, as plain
+ * numbers a chunk at a time, so no bigint is allocated for each cell. A chunk
+ * of 4096 low halves stays far below 2^53. */
+function sumPacked(cells: BigInt64Array): bigint {
+    const words = new Int32Array(cells.buffer, cells.byteOffset, cells.length * 2);
+    let total = 0n;
+    for (let start = 0; start < cells.length; start += 4096) {
+        const end = Math.min(cells.length, start + 4096);
+        checkpoint('computing numbers', end - start);
+        let low = 0, high = 0;
+        for (let i = start * 2; i < end * 2; i += 2) {
+            low += words[i] >>> 0;
+            high += words[i + 1];
+        }
+        total += (BigInt(high) << 32n) + BigInt(low);
+    }
+    return total;
+}
+
 /** Sum integers without a generic numeric callback on every element.
  * Promotion happens at the first real value, in the original left-fold order. */
 function sumArray(items: ArrayLike<RankValue>): bigint | number {
+    if (items instanceof BigInt64Array && littleEndian) return sumPacked(items);
     let integer = 0n;
     for (let index = 0; index < items.length; index++) {
         checkpoint('computing numbers');
