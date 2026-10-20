@@ -710,9 +710,11 @@ body-command or loop-condition location.
 The scope includes conditional and `to`/`till` range loops with at most 32 outer commands and 128 commands across nested branches and loops,
 integer arithmetic `+ - * // %`, powers with a nonnegative integer literal exponent,
 comparisons and boolean conditions. Power preserves sign precedence and exact
-bigint arithmetic. Guarded array reads/writes, containers and vector iteration are
-described below. Dynamic or negative exponents, unsupported calls/selectors,
-floating-point operations and other iterable loops retain the reference path.
+bigint arithmetic. Real powers use Number coercion, permit infinity, and retain
+the interpreter's zero-to-negative-power and non-real-result errors. Guarded array
+reads/writes, containers and vector iteration are described below. Dynamic or
+negative integer-only exponents, unsupported calls/selectors,
+unsupported real operations and other iterable loops retain the reference path.
 Modifier spellings such as `scan` must not be mistaken for integer operands.
 CSP rejection retains reference execution. `integerLoopCompilation: false`
 disables this pass; compilation/execution callbacks support diagnostics.
@@ -726,14 +728,14 @@ operator catalogue.
 The Number specialization accepts safe integer/boolean scalars, supported nested
 numeric/conditional loops, and rank-one eager stored integer arrays, including
 direct traversal of a named vector. It proves
-scalar stores cannot fail their binding contracts before deferring them. Calls,
-collection/array mutation, returns, powers, arbitrary iterators, lazy arrays and
-unsupported contracts retain the BigInt backend. Array reads use an
-invocation-owned Float64 buffer after checking every cell's type and magnitude;
-there is no retained numeric mirror. Number code reads those buffers directly,
-with a bounds check at every indexed read; it does not bypass checks or narrow
-integer values to Int32. A loop-entry execution hook keeps the
-BigInt backend because that hook may mutate inputs or binding contracts.
+scalar and destination binding stores cannot fail their contracts before deferring
+them. Calls, collection mutation, array rebinding, returns, arbitrary iterators,
+lazy arrays and unsupported contracts retain the BigInt backend. Most array reads
+use an invocation-owned Float64 buffer after checking every cell's type and
+magnitude; there is no retained numeric mirror. Single-pass packed-array scans
+can instead read their original buffer, as described below. Every indexed read
+checks bounds; neither path narrows integer values to Int32. A loop-entry
+execution hook keeps the BigInt backend because that hook may mutate inputs or binding contracts.
 
 Stored-vector traversal captures its invocation-owned buffer once and maintains
 an independent numeric cursor/ordinal; assignments to visible loop variables do
@@ -743,8 +745,8 @@ success, ordinary error or cancellation, along with scalar state. Overflow
 discards both values and staged declarations before exact replay. Empty vectors
 retain their existing element/ordinal contracts; unreached nested traversals do
 not declare bindings. Entry guards decline incompatible contracts before any
-private execution. Mutating/rebinding arrays, lazy or host storage, arbitrary
-iterators and observable hooks retain the existing backend.
+private execution. Array mutation during vector traversal, array rebinding, lazy
+or host storage, arbitrary iterators and observable hooks retain the existing backend.
 
 `loop-traversal.ts` normalizes bindings and named-vector `take`/`drop`
 headers before backend lowering. A slice count is evaluated once on each
@@ -770,8 +772,17 @@ whose existing graph validation throws.
 Each integer intermediate and range increment is checked for safe-integer
 exactness. Division retains floor rounding and remainder retains the divisor's
 sign. Overflow discards the entire unpublished attempt and executes the original
-BigInt region from its original inputs. No array writes or callbacks may have
-occurred in that attempt. Successful exits publish exact BigInt/boolean values;
+BigInt region from its original inputs. Indexed rank-one integer stores use a
+private numeric buffer and changed-cell mask, so no array writes or callbacks
+escape that attempt. Normal/error publication writes changed cells with tracked
+revisions and copies shared sources without polling during the commit. Writes
+with retained selections, and array writes combined with vector iteration, retain
+the exact backend. A non-nested
+range loop with one indexed read per source at its cursor can read packed integer
+storage directly, validating each conversion; other reads use prepared numeric
+buffers. Real intermediates are allowed when published registers remain integer
+or boolean. Exact Number powers are restricted to exponents 0, 1 and 2.
+Successful exits publish exact BigInt/boolean values;
 ordinary errors and cancellation publish preceding successful assignments in
 first-write order before propagating the original located error. No rounded
 Number is converted into an overflow result.

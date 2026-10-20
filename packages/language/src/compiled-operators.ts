@@ -95,9 +95,9 @@ export const compiledOperators: readonly CompiledOperator[] = [
     ...([['and', '&&'], ['or', '||'], ['xor', '!==']] as const)
         .map(([name, binary]) => ({ name, binary, scalarFunction: [booleanBinary], integerLoop: [booleanBinary], tensor: [booleanComparison] })),
     { name: 'not', unary: '!', scalarFunction: [booleanUnary], scalarExpression: [booleanUnary], integerLoop: [booleanUnary], tensor: [booleanUnary] },
-    // The loop emitter additionally requires a nonnegative literal exponent.
+    // Exact integer loop powers additionally require a nonnegative literal exponent.
     { name: '**', binary: '**', scalarFunction: [],
-        integerLoop: [{ inputs: ['integer', 'integer'], result: 'integer' }], tensor: tensorArithmetic },
+        integerLoop: [{ inputs: ['integer', 'integer'], result: 'integer' }, ...realBinary], tensor: tensorArithmetic },
     { name: '/', binary: '/', scalarFunction: [],
         integerLoop: [{ inputs: ['integer', 'integer'], result: 'real' }, ...realBinary],
         tensor: tensorArithmetic.map(signature => ({ ...signature, result: 'real' })) },

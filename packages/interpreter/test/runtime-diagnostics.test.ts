@@ -159,10 +159,10 @@ Total`))).toBe(28n);
                 stats.run(() => alter.call([createArraySnapshot([1n, 2n]), 1n]));
                 const array = createArraySnapshot([1n, 2n]);
                 noteArrayBinding(array);
-                const before = stats.cowCopies;
+                const before = stats.cowCopies, beforeLoops = stats.numberLoops;
                 expect(stats.run(() => alter.call([array, 0n]))).toBe(array);
                 expect(stats.cowCopies).toBe(before);
-                if (integerLoopCompilation) expect(stats.fallbacks['loop:empty-shared-destination']).toBeGreaterThan(0);
+                if (integerLoopCompilation) expect(stats.numberLoops).toBe(beforeLoops + 1);
             } finally { runtime.dispose(); }
         }
     });

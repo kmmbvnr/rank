@@ -32,7 +32,7 @@ const parity = (even: boolean): InlineBuiltin => ({ module: 'numbers', types: { 
 const bound = (name: 'floor' | 'ceil'): InlineBuiltin => ({ module: 'numbers', types: { integer: 'integer', real: 'integer' },
     enabled: host => host.reals,
     domain: { test: (value, type) => type === 'real' ? `!Number.isFinite(${value})` : undefined, message: `${name} expects a finite number` },
-    code: (value, type) => type === 'real' ? `BigInt(Math.${name}(${value}))` : value });
+    code: (value, type, numberMode) => type === 'real' ? numberMode ? `safe(Math.${name}(${value}))` : `BigInt(Math.${name}(${value}))` : value });
 const inlineBuiltins = new Map<string, InlineBuiltin>([
     ['abs', { module: 'numbers', types: { integer: 'integer', real: 'real' }, enabled: host => host.absolute,
         code: (value, type, numberMode) => type === 'real' ? `Math.abs(${value})`
@@ -157,8 +157,9 @@ export function createLoopExpressions(state: LoopCompilationState) {
         return lower(inferred.expression, lines) ?? reject(e);
     }
     function lower(node: CompiledExpression<CompiledLoopType, LoopInput>, lines: string[]): LoopTerm | undefined {
-        // Reals use the exact backend, whose registers hold Rank values.
-        if (state.serial > 256 || numberMode && node.type === 'real') return undefined;
+        // Real intermediates are allowed in Number regions; published
+        // registers still have to satisfy the integer/boolean binding contract.
+        if (state.serial > 256) return undefined;
         if (node.kind === 'group') return lower(node.operand, lines);
         if (node.kind === 'literal') {
             const value = node.value;
@@ -203,8 +204,10 @@ export function createLoopExpressions(state: LoopCompilationState) {
             if (token === '//' || token === '%') return undefined;
             const real = (term: LoopTerm) => term.type === 'integer' ? `Number(${term.code})` : `(${term.code})`;
             const mixed = left.type !== right.type;
-            if (op === '/') lines.push(`if (${zeroTestSource(b, right.type === 'integer' ? 'integer' : 'real')}) throw zero();`);
+            if (op === '/') lines.push(`if (${zeroTestSource(b, right.type === 'integer' && !numberMode ? 'integer' : 'real')}) throw zero();`);
+            if (op === '**') lines.push(`if (${zeroTestSource(a, left.type === 'integer' && !numberMode ? 'integer' : 'real')} && (${b}) < 0) throw powerZero();`);
             lines.push(`const ${name} = ${type === 'boolean' ? binaryOperatorSource(operation, a, b, { mixed }) : binaryOperatorSource(operation, real(left), real(right))};`);
+            if (op === '**') lines.push(`if (Number.isNaN(${name})) throw powerDomain();`);
             return name;
         }
         if (token !== '//' && token !== '%') {
@@ -444,10 +447,12 @@ export function createLoopExpressions(state: LoopCompilationState) {
             const name = `v${state.serial++}`;
             if (numberMode) {
                 if (info.rank !== 1) return undefined;
+                const argument = arguments_[0];
+                state.indexedReads.set(head.name, !state.indexedReads.has(head.name) && isNameExpression(argument) ? argument.name : undefined);
                 const coordinate = `index${state.serial++}`;
                 lines.push(`const ${coordinate} = ${indices[0]};
                     if (${coordinate} < 0 || ${coordinate} >= cells${info.slot}.length) throw badIndex(${coordinate});
-                    const ${name} = cells${info.slot}[${coordinate}];`);
+                    const ${name} = safe(Number(cells${info.slot}[${coordinate}]));`);
             } else {
                 lines.push(`const ${name} = reader${info.slot}(${info.rank === 1 ? indices[0] : `[${indices.join(',')}]`});`);
             }
@@ -475,18 +480,36 @@ export function createLoopExpressions(state: LoopCompilationState) {
             return { code: `${negate}indexHas(${receiver}, key([${key.code}]))`, type: 'boolean' };
         }
         if (isNameExpression(e.right) && ['reduce', 'scan', 'outer', 'segment'].includes(e.right.name)) return undefined;
-        if (!numberMode && e.operator === '**') {
+        if (e.operator === '**') {
             let exponent = e.right;
             while (isParenthesizedExpression(exponent)) exponent = exponent.value;
-            if (!isNumberLiteral(exponent) || typeof exponent.value !== 'bigint' || exponent.value < 0n) return undefined;
             // Power binds before an unparenthesized sign, as in the evaluator.
             const signed = isUnaryExpression(e.left) && ['+', '-'].includes(e.left.operator) ? e.left : undefined;
             const base = emit(signed ? signed.operand : e.left, lines);
-            if (!base || !loopOperatorSignature(e.operator, [base.type, 'integer'], host.nativeCalls)) return undefined;
+            if (!base) return undefined;
+            // Keep exact integer powers restricted to nonnegative literals.
+            // Real powers have the evaluator's Number coercion and NaN check;
+            // infinity is a valid result, and floor/ceil check it themselves.
+            const exact = base.type === 'integer' && isNumberLiteral(exponent)
+                && typeof exponent.value === 'bigint' && exponent.value >= 0n;
+            const right = exact ? undefined : emit(e.right, lines);
+            if (!exact && (!host.reals || !right || !loopOperatorSignature('**', [base.type, right.type], host.nativeCalls)
+                || base.type === 'integer' && right.type === 'integer')) return undefined;
             const name = `v${state.serial++}`;
-            const negative = signed?.operator === '-';
-            lines.push(`const ${name} = ${negative ? '-' : ''}((${base.code}) ** ${exponent.value}n);`);
-            return { code: name, type: 'integer' };
+            const negative = signed?.operator === '-' ? '-' : '';
+            if (exact && isNumberLiteral(exponent)) {
+                const literal = exponent.value;
+                // JS power is approximate even for integer inputs. Only the
+                // trivial powers and one checked multiplication are exact here.
+                if (numberMode && literal > 2n) return undefined;
+                const code = numberMode ? literal === 0n ? '1' : literal === 1n ? base.code : `(${base.code}) * (${base.code})`
+                    : `(${base.code}) ** ${literal}n`;
+                lines.push(`const ${name} = ${negative}(${safe(code)});`);
+                return { code: name, type: 'integer' };
+            }
+            const power = arithmetic('**', base, right!, 'real', lines);
+            if (power === undefined) return undefined;
+            return { code: `${negative}(${power})`, type: 'real' };
         }
         return undefined;
     }

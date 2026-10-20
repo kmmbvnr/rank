@@ -75,7 +75,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     const state = createLoopState(host, textSources, textArrays, failed, numberMode);
     const {
         localTypes, names, required, writers, binders, writerNames, binderNames, written, containers,
-        builtins, calls, arrays, calleeArrays, arrayInputs, arrayDefinitions, aliases, graphMutations,
+        builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases, graphMutations,
         vectorIterations, iterators, destinations, locations, reject,
     } = state;
     if (!statement.statements.length || statement.statements.length > 32) return reject(statement, 'statement-budget');
@@ -110,7 +110,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     const plan = {
         statement, names, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, graphMutations, vectorIterations, writerNames, binderNames, writers,
-        binders, arrayInputs, calleeArrays, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
+        binders, arrayInputs, calleeArrays, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
         needsAlgo: state.needsAlgo, arrayDefinitions, writable, iteration,
     };
     return numberMode ? prepareNumberLoop(plan, host) : prepareIntegerLoop(plan, host, () => reject(statement, 'code-generation'));

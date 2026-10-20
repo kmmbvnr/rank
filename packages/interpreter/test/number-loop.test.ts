@@ -69,6 +69,78 @@ describe('private safe-integer loop registers', () => {
         expect(diagnostics.numberLoops).toBe(1);
     });
 
+    it.each([
+        'use numbers\nS = 0\nfor I in 1 to 20\n S += ((I ** 0.5) floor) + ((I sqrt) ceil) + (I ** 2)\nend',
+        'use numbers\nfor I in 0 to 3\n Before = I\n N = (1 / I) floor\nend',
+        'use numbers\nfor I in 1 to 3\n Before = I\n N = (1.0e308 ** I) floor\nend',
+    ])('keeps real intermediates with integer outputs and original errors: %s', source => {
+        expect(compare(source).numberLoops).toBe(1);
+    });
+
+    it.each([
+        'A = array 0 0 0\nfor I in 0 to 2\n A I += I + 1\n R = A I\nend',
+        'A = array shape 4096 fill 0\nB = A\nfor I in 0 to 3\n A I += I + 1\nend\nX = A 2\nY = B 2',
+        'A = array 1 2 3\nB = A\nfor I in 0 to 2\n A I += 10\n B I *= 2\n R = A I + B I\nend',
+        'A = array 1 2 3\nfor I in 0 to 2\n A I = I ** 2\n A I *= 2\n A I -= 1\nend',
+        'A = array 1 2 3\nfor I in 0 to 2\n A I += 1\n if I equal 1\n  break\n end\nend',
+        'A = array 1 2 3\nfor I in 0 to 2\n A I += 1\n if I equal 1\n  continue\n end\n After = I\nend',
+        'A = array shape 0 fill 0\nfor I in 0 till 0\n A I += 1\nend',
+        'A = array 0 0 0\nB = A\nfor I in 0 till 0\n A I += 1\nend',
+        'A = array 0 0 0\nfor I in 0 to 2\n A I += 1\n Bad = 7 // (I - 1)\nend',
+        'A = array 0 0 0\nfor I in 0 to 3\n Before = I\n A I += 1\nend',
+        'A = array 0 0 0\nfor I in 2 to -1 by -1\n Before = I\n A I = I\nend',
+        'A = array 0 0 0\nfor I in 0 to 2\n Before = I\n A I //= I\nend',
+    ])('publishes private array cells with COW, control flow and partial errors: %s', source => {
+        expect(compare(source).numberLoops).toBe(1);
+    });
+
+    it.each([
+        'A = array 0 0 0\nS = 9007199254740990\nfor I in 0 to 2\n A I += 1\n S += 1\nend',
+        'A = array 9007199254740991 0 0\nB = A\nfor I in 0 to 2\n A I += 1\nend',
+        'A = array shape 4096 fill 0\nfor I in 0 to 2\n A I += 1\n for J in 1 to 3\n  S = 9007199254740991 * J\n end\nend',
+    ])('discards every private array write before exact replay on overflow: %s', source => {
+        const diagnostics = compare(source);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+    });
+
+    it('retains publishing writes when a selection must detach before mutation', () => {
+        const source = 'A = array 1 2 3\nSelection = A (0 to 1)\nfor I in 0 to 2\n A I += 1\nend\nOld = Selection 0';
+        expect(compare(source).numberLoops).toBe(0);
+    });
+
+    it('retains exact Int64 promotion for unsafe stored integers', () => {
+        const source = 'A = array shape 4096 fill 9223372036854775807\nB = A\nfor I in 0 to 1\n A I += 1\nend';
+        expect(compare(source).numberLoops).toBe(0);
+    });
+
+    it('invalidates dependent reductions when private cells are published', () => {
+        const source = 'A = array 1 2 3\nBefore = A sum\nfor I in 0 to 2\n A I += 10\nend\nAfter = A sum';
+        expect(compare(source).numberLoops).toBe(1);
+        expect(execute(source).observation.variables).toContainEqual(['After', '36']);
+    });
+
+    it('publishes private array progress and scalar bindings on cancellation', () => {
+        const source = 'A = array 0 0\nDone = 0\nLast = -1\ntry\n for I in 0 to 1000000\n  A (I mod 2) += 1\n  Last = I\n end\nfinally\n Done = 1\nend';
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        const flag = new Int32Array(1); flag[0] = 1;
+        try {
+            expect(() => withInterrupt(flag, () => diagnostics.run(() => runtime.execute(source)))).toThrow('Interrupted');
+            runtime.execute('Total = A sum');
+            expect(runtime.variables.get('Total')).toBe((runtime.variables.get('Last') as bigint) + 1n);
+            expect(runtime.variables.get('Done')).toBe(1n);
+            expect(diagnostics.numberLoops).toBe(1);
+        } finally { runtime.dispose(); }
+    });
+
+    it('replays a packed read-only scan from its original inputs on an unsafe cell', () => {
+        const source = 'A = array shape 4096 fill 1\nA 1 = 9007199254740992\nS = 0\nfor I in 0 to 2\n S += A I\nend';
+        const diagnostics = compare(source);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+        expect(diagnostics.typedUnpacks).toBe(0);
+    });
+
     it('uses invocation-owned numeric buffers for eager read-only arrays', () => {
         const diagnostics = compare('A = array 1 2 3\nS = 0\nfor I in 0 to 2\n for J in 0 to I\n  S += A J\n end\nend');
         expect(diagnostics.numberLoops).toBe(1);
@@ -170,7 +242,6 @@ end`)))).toThrow('Interrupted');
     });
 
     it.each([
-        'A = array 0 0\nfor I in 0 to 1\n A I += 1\nend',
         'use algo\nQ = queue\nfor I in 0 to 1\n Q push I\nend',
         'fun N twice\n return N * 2\nend\nS = 0\nfor I in 0 to 1\n S += I twice\nend',
         'X = true\nfor I in 0 to 1\n Before = I\n X = I\nend',

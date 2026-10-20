@@ -10,12 +10,17 @@ integral real. `/` checks both `0n` and `0`. Inline `sqrt`, `floor`, `ceil`,
 `abs` and same-type `min`/`max` raise the interpreter's DomainErrors, and
 literals keep the sign of `-0`. Rank-one arrays of reals are read and written in
 place; a plan selects real registers from the first value it sees, and the entry
-guard checks every input and cell. The safe-Number backend stays integer-only.
-`realLoopCompilation: false` turns this off.
+guard checks every input and cell. The safe-Number backend publishes
+integer/boolean registers and also permits real intermediates rounded back to
+integers.
+Real `**` preserves power/sign precedence, rejects zero to a negative power and
+NaN results, and permits infinity. Exact integer powers still need nonnegative
+literal exponents; the Number backend lowers only exponents 0, 1 and 2 with exact
+integer operations. `realLoopCompilation: false` turns off real lowering.
 
 Euler 247's depth-first walk over 782252 squares now compiles. On a loaded
 machine it ran in 0.7-1.1 s, against 19-24 s for the previous build measured at
-the same time (10.4 s on an idle start). Real `//`, `mod`, `**`, real compound
+the same time (10.4 s on an idle start). Real `//`, `mod`, real compound
 array writes, real iteration and real-valued callees still fall back with a
 `loop:` diagnostic; see [deferred refactors](loop-compiler-refactors.md).
 
@@ -23,17 +28,23 @@ array writes, real iteration and real-valued callees still fall back with a
 
 Integer-loop planning and lowering are separate from invocation binding and
 storage access. A second backend uses safe Number registers for integer/boolean
-regions with private scalar writes and eager rank-one integer array reads. Every
-potentially unsafe integer intermediate is guarded. An overflow discards the
-unpublished region and uses its existing BigInt backend; calls, mutations,
-unsupported contracts and observable readers do not enter this specialization.
+regions with private scalar writes and eager rank-one integer array reads and
+indexed writes. Array writes use a private `Float64Array` and a changed-cell mask;
+overflow discards both before exact BigInt replay. Normal/error exits publish
+changed cells through revision-tracked storage, copying shared sources first.
+Writes with retained selections, and vector iteration combined with array writes,
+still use the exact backend.
+A range scan with one read per source at its cursor can read packed integer
+storage directly, checking safe conversion at each load; repeated/nested reads
+retain prepared numeric buffers. Every potentially unsafe integer intermediate
+is guarded. Calls, unsupported contracts and observable readers do not enter this
+specialization.
 Normal/error exits preserve exact integer bindings and partial state. Atomics
 cancellation publishes completed assignments before unwinding through `finally`.
 Inspection and arbitrary host polling keep the existing publishing backend.
 
 Euler 150 accumulates the flat row start once per row instead of recomputing its
-triangular number for every apex. Its array construction remains on the BigInt
-backend; the expensive read-only search uses Number registers. The default
+triangular number for every apex. Its array construction and expensive read-only search can use Number registers. The default
 answer and one-/two-row boundaries are checked by the demo tests. The runtime
 optimization also applies to the frozen original demo without source changes.
 

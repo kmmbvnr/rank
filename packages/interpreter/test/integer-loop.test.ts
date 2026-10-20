@@ -261,7 +261,7 @@ Total`);
         expect(result.loops).toBe(expression === 'I ** 2 ** 3' ? 0 : 1);
     });
 
-    it.each(['I ** -1', 'I ** N', 'I ** 0.5'])('declines %s before execution', expression => {
+    it.each(['I ** -1', 'I ** N'])('declines %s before execution', expression => {
         const result = compare(`N = 2
 for I in 1 to 3
   Answer = ${expression}

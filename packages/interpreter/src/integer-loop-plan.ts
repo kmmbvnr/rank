@@ -11,7 +11,7 @@ export interface IterationBinding {
 }
 export interface LoopHost {
     readonly observableEntry?: boolean;
-    canDeferWrites?(bindings: readonly [string, 'integer' | 'boolean'][]): boolean;
+    canDeferWrites?(bindings: readonly [string, 'integer' | 'boolean' | 'array'][]): boolean;
     readonly tensorReadHoisting: boolean;
     readonly textLoops: boolean;
     readonly textArrayLoops: boolean;
@@ -97,6 +97,7 @@ export interface IntegerLoopPlan {
     binders: ((value: RankValue) => void)[];
     arrayInputs: Set<string>;
     calleeArrays: Set<string>;
+    indexedReads: Map<string, string | undefined>;
     hasControl: boolean;
     hasReturn: boolean;
     hasYield: boolean;

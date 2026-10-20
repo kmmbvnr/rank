@@ -36,7 +36,7 @@ export interface InterpreterOptions {
     readonly textArrayLoopCompilation?: boolean;
     readonly textLoopCompilation?: boolean;
     readonly absoluteLoopCompilation?: boolean;
-    /** Real registers, `/`, `sqrt`, `floor` and `ceil` in exact compiled loops. */
+    /** Real arithmetic, powers, `sqrt`, `floor` and `ceil` in compiled loops. */
     readonly realLoopCompilation?: boolean;
     readonly provenIterationTypes?: boolean;
     readonly loopReturnCompilation?: boolean;
@@ -78,7 +78,7 @@ export interface InterpreterOptions {
     readonly functionBodyCompilation?: boolean;
     readonly onFunctionBodyCompiled?: (source: string) => void;
     readonly onFunctionBodyExecuted?: () => void;
-    /** Use private safe-Number registers in replay-safe integer loops. */
+    /** Use private safe-Number registers and staged cells in replay-safe integer loops. */
     readonly numberLoopCompilation?: boolean;
     readonly integerLoopCompilation?: boolean;
     readonly onIntegerLoopCompiled?: (source: string) => void;
