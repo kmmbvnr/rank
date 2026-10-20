@@ -1,13 +1,13 @@
 import { prepareGraphAdd } from './graph-mutation.js';
 import { takeDropValue } from './sequence.js';
 import { expressionFacts, findOperation, isBinaryExpression, isBooleanLiteral, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
-import type { IntegerLoopPlan, LoopHost, LoopTerm, CompiledLoop } from './integer-loop-plan.js';
+import { loopValueType, type IntegerLoopPlan, type LoopHost, type LoopTerm, type CompiledLoop } from './integer-loop-plan.js';
 import { ResourceMap } from './resource-summary.js';
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { completed } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
-import { isRankArray, isRankBytes, isRankIndex, isNativeFunction, type RankArray, type RankValue } from './value.js';
+import { isRankArray, isRankIndex, isNativeFunction, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { indexHas, indexSet, indexKey } from './index-storage.js';
 import { denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray, typedElementKind } from './array-storage.js';
@@ -63,7 +63,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         if (checked?.revision === revision && checked.type === type) return true;
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.loopElementScans++;
-        if (!items.every(item => typeof item === (type === 'text' ? 'string' : type === 'boolean' ? 'boolean' : 'bigint'))) return false;
+        if (!items.every(item => loopValueType(item) === (type ?? 'integer'))) return false;
         checkedCells.set(value, { revision, type });
         return true;
     }
@@ -115,8 +115,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         for (const index of required) {
             const value = host.read(names[index]);
             const type = localTypes.get(names[index]);
-            if (type === 'bytes' ? value === undefined || !isRankBytes(value)
-                : typeof value !== (type === 'text' ? 'string' : type === 'boolean' ? 'boolean' : 'bigint')) {
+            if (loopValueType(value) !== (type ?? 'integer')) {
                 if (currentDiagnostics()) {
                     // Builtin vocabulary is not stored among variable bindings.
                     const callable = value === undefined ? findOperation(names[index]) !== undefined : isNativeFunction(value);

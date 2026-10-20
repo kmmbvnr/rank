@@ -3,7 +3,7 @@ import type { Expression, ForStatement, Statement, CompiledLoopType } from '@arr
 import type { CompiledCalleeType } from './compiled-callee-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
 import type { Completed } from './execution.js';
-import type { RankArray, RankValue } from './value.js';
+import { isRankBytes, type RankArray, type RankValue } from './value.js';
 
 export interface IterationBinding {
     readonly names: readonly string[];
@@ -52,6 +52,16 @@ export interface LoopHost {
     executed?(): void;
 }
 export interface LoopTerm { code: string; type: CompiledLoopType; ascii?: boolean }
+
+/** The loop register type of a runtime value: one mapping for entry
+ * guards, cell scans and type selection. */
+export function loopValueType(value: RankValue | undefined): CompiledLoopType | undefined {
+    if (typeof value === 'bigint') return 'integer';
+    if (typeof value === 'boolean') return 'boolean';
+    if (typeof value === 'string') return 'text';
+    if (value !== undefined && isRankBytes(value)) return 'bytes';
+    return undefined;
+}
 
 /** Whole numeric loop: keep reads in local registers and commit every assignment.
  * Writers retain fixed-type checks and partial state on errors; optional bound

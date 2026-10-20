@@ -1,6 +1,6 @@
 import { loopTraversal } from './loop-traversal.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
-import type { IterationBinding, LoopHost, LoopTerm, CompiledLoop } from './integer-loop-plan.js';
+import { loopValueType, type IterationBinding, type LoopHost, type LoopTerm, type CompiledLoop } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
 import { compiledIntegerMembership } from './integer-membership.js';
 import { type CompiledCalleeType } from './compiled-callee-type.js';
@@ -14,10 +14,28 @@ import {
     isStringLiteral, isReturnStatement, isArrayExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression,
     type Expression, type ForStatement, type Statement, type CompiledLoopType, type CompiledExpression, type Operation,
 } from '@arrrank/language';
-import { isRankArray, isRankBytes, isRankIndex, type RankArray, type RankValue } from './value.js';
+import { isRankArray, isRankIndex, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { materializedArrayItems, arrayRevision } from './array-storage.js';
 
+
+/** Pure builtins inlined as `Value name`. `types` maps each accepted operand
+ * type to the result type; the entry guard rechecks the binding each time. */
+interface InlineBuiltin {
+    readonly module: string;
+    readonly types: Partial<Record<LoopTerm['type'], LoopTerm['type']>>;
+    readonly enabled?: (host: LoopHost) => boolean;
+    code(value: string, type: LoopTerm['type'], numberMode: boolean): string;
+}
+const parity = (even: boolean): InlineBuiltin => ({ module: 'numbers', types: { integer: 'boolean' },
+    code: (value, _, numberMode) => numberMode ? `((${value}) % 2 ${even ? '===' : '!=='} 0)`
+        : `(BigInt.asUintN(1, ${value}) ${even ? '===' : '!=='} 0n)` });
+const inlineBuiltins = new Map<string, InlineBuiltin>([
+    ['abs', { module: 'numbers', types: { integer: 'integer' }, enabled: host => host.absolute,
+        code: (value, _, numberMode) => `(${value}) < ${numberMode ? '0' : '0n'} ? -(${value}) : (${value})` }],
+    ['even', parity(true)],
+    ['odd', parity(false)],
+]);
 
 export function compileIntegerLoop(statement: ForStatement, host: LoopHost, iteration?: IterationBinding): CompiledLoop | undefined {
     const sources: string[] = [];
@@ -125,12 +143,8 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             if (local) return { types: [local] };
             // This only selects a specialization; required inputs are guarded
             // again on every entry. Never retain a value or invocation frame.
-            const value = host.read(name);
-            if (value && isRankBytes(value)) return { types: ['bytes'] };
-            if (typeof value === 'string') return { types: ['text'] };
-            if (typeof value === 'bigint') return { types: ['integer'] };
-            if (typeof value === 'boolean') return { types: ['boolean'] };
-            return undefined;
+            const type = loopValueType(host.read(name));
+            return type && { types: [type] };
         });
         const type = fact.types.length === 1 ? fact.types[0] : undefined;
         return type === 'integer' || type === 'boolean' || type === 'text' || type === 'bytes' ? type : undefined;
@@ -220,22 +234,30 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         const rightLines: string[] = guard ? [] : lines;
         const right = lower(node.right, rightLines);
         if (!left || !right || !token) return undefined;
-        const a = left.code, b = right.code, op = node.operation.name;
-        const name = `v${serial++}`;
         if (guard) {
-            lines.push(`let ${name} = ${a}; if (${op === 'and' ? '' : '!'}${name}) { ${rightLines.join('\n')} ${name} = ${b}; }`);
+            const name = `v${serial++}`;
+            lines.push(`let ${name} = ${left.code}; if (${node.operation.name === 'and' ? '' : '!'}${name}) { ${rightLines.join('\n')} ${name} = ${right.code}; }`);
             return { code: name, type: node.type };
         }
+        const code = arithmetic(node.operation.name, left.code, right.code, node.type, lines);
+        return code === undefined ? undefined : { code, type: node.type };
+    }
+    /** One checked binary operator. Compound assignments lower through it
+     * too, so division by zero and floor rounding are written once. */
+    function arithmetic(op: string, a: string, b: string, type: LoopTerm['type'], lines: string[]): string | undefined {
+        const token = findCompiledOperator(op)?.binary;
+        if (!token) return undefined;
+        const name = `v${serial++}`;
         if (token !== '//' && token !== '%') {
-            lines.push(`const ${name} = ${node.type === 'integer' ? safe(`(${a}) ${token} (${b})`) : `(${a}) ${token} (${b})`};`);
-        } else {
-            lines.push(`if ((${b}) === ${zero}) throw zero();`);
-            lines.push(`const m${serial} = (${a}) % (${b});`);
-            const adjust = `(m${serial} !== ${zero} && (m${serial} < ${zero}) !== ((${b}) < ${zero}))`;
-            const quotient = numberMode ? safe(`${safe(`(${a}) - m${serial}`)} / (${b})`) : `(${a}) / (${b})`;
-            lines.push(`const ${name} = ${safe(op === '//' ? `${quotient} - (${adjust} ? ${one} : ${zero})` : `m${serial} + (${adjust} ? (${b}) : ${zero})`)};`);
+            lines.push(`const ${name} = ${type === 'integer' ? safe(`(${a}) ${token} (${b})`) : `(${a}) ${token} (${b})`};`);
+            return name;
         }
-        return { code: name, type: node.type };
+        const remainder = `m${serial++}`;
+        lines.push(`if ((${b}) === ${zero}) throw zero();`, `const ${remainder} = (${a}) % (${b});`);
+        const adjust = `(${remainder} !== ${zero} && (${remainder} < ${zero}) !== ((${b}) < ${zero}))`;
+        const quotient = numberMode ? safe(`${safe(`(${a}) - ${remainder}`)} / (${b})`) : `(${a}) / (${b})`;
+        lines.push(`const ${name} = ${safe(op === '//' ? `${quotient} - (${adjust} ? ${one} : ${zero})` : `${remainder} + (${adjust} ? (${b}) : ${zero})`)};`);
+        return name;
     }
     /** Lower an audited catalogue call. Argument reads remain in source order;
      * runtime binding still checks the module and current builtin on every entry. */
@@ -328,19 +350,15 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                     return { code: name, type: 'integer' };
                 }
             }
-            if (op === 'abs' && host.absolute) {
+            const builtin = inlineBuiltins.get(op);
+            if (builtin && (builtin.enabled?.(host) ?? true)) {
                 const value = emit(e.head, lines);
-                if (value?.type !== 'integer') return undefined;
-                builtins.set(op, 'numbers');
+                const type = value && builtin.types[value.type];
+                if (!value || !type) return undefined;
+                builtins.set(op, builtin.module);
                 const name = `v${serial++}`;
-                lines.push(`const ${name} = (${value.code}) < ${zero} ? -(${value.code}) : (${value.code});`);
-                return { code: name, type: 'integer' };
-            }
-            if (op === 'even' || op === 'odd') {
-                const value = emit(e.head, lines);
-                if (value?.type !== 'integer') return undefined;
-                builtins.set(op, 'numbers');
-                return { code: numberMode ? `((${value.code}) % 2 ${op === 'even' ? '===' : '!=='} 0)` : `(BigInt.asUintN(1, ${value.code}) ${op === 'even' ? '===' : '!=='} 0n)`, type: 'boolean' };
+                lines.push(`const ${name} = ${builtin.code(value.code, value.type, numberMode)};`);
+                return { code: name, type };
             }
             if (!numberMode && (op === 'len' || op === 'pop') && isNameExpression(e.head)) {
                 const receiver = container(e.head.name, 'deque', op === 'pop');
@@ -703,19 +721,13 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 target.type = value.type;
                 let result = value.code;
                 if (compound) {
-                    const rhs = `operand${serial++}`, old = `old${serial++}`, out = `updated${serial++}`;
+                    const rhs = `operand${serial++}`, old = `old${serial++}`;
                     lines.push(`const ${rhs} = ${value.code}, ${old} = ${receiver}.items[${name}];`);
                     const op = assignment.operator.slice(0, -1);
                     const signature = loopOperatorSignature(op, [value.type, value.type], host.nativeCalls);
-                    const token = findCompiledOperator(op)?.binary;
-                    if (!signature?.compound || signature.result !== value.type || !token) return reject(assignment);
-                    if (token !== '%' && token !== '//') lines.push(`const ${out} = ${old} ${token} ${rhs};`);
-                    else {
-                        const remainder = `remainder${serial++}`;
-                        lines.push(`if (${rhs} === 0n) throw zero(); const ${remainder} = ${old} % ${rhs};`);
-                        const adjust = `(${remainder} !== 0n && (${remainder} < 0n) !== (${rhs} < 0n))`;
-                        lines.push(`const ${out} = ${op === 'mod' ? `${remainder} + (${adjust} ? ${rhs} : 0n)` : `${old} / ${rhs} - (${adjust} ? 1n : 0n)`};`);
-                    }
+                    const out = signature?.compound && signature.result === value.type
+                        ? arithmetic(op, old, rhs, value.type, lines) : undefined;
+                    if (out === undefined) return reject(assignment);
                     result = out;
                     body.push(`location = ${location};`, ...lines,
                         `write${target.slot}(${name}, ${result}); iterationResult = ${rhs};`);
@@ -827,18 +839,10 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             if (assignment.operator !== '=') {
                 const op = assignment.operator.slice(0, -1);
                 const signature = loopOperatorSignature(op, [value.type, value.type], host.nativeCalls);
-                const token = findCompiledOperator(op)?.binary;
-                if (!signature?.compound || signature.result !== value.type || !token) return reject(assignment);
-                if (token !== '%' && token !== '//') result = value.type === 'integer' ? safe(`(r${destination}) ${token} (${result})`) : `(r${destination}) ${token} (${result})`;
-                else if (op === 'mod' || op === '//') {
-                    lines.push(`if ((${result}) === ${zero}) throw zero();`);
-                    const remainder = `c${index}`;
-                    lines.push(`const ${remainder} = r${destination} % (${result});`);
-                    const adjust = `(${remainder} !== ${zero} && (${remainder} < ${zero}) !== ((${result}) < ${zero}))`;
-                    const quotient = numberMode ? safe(`${safe(`r${destination} - ${remainder}`)} / (${result})`) : `r${destination} / (${result})`;
-                    result = safe(op === 'mod' ? `${remainder} + (${adjust} ? (${result}) : ${zero})`
-                        : `${quotient} - (${adjust} ? ${one} : ${zero})`);
-                } else return reject(assignment);
+                const out = signature?.compound && signature.result === value.type
+                    ? arithmetic(op, `r${destination}`, result, value.type, lines) : undefined;
+                if (out === undefined) return reject(assignment);
+                result = out;
             }
             writers.push(host.writer(assignment.name));
             writerNames.push(assignment.name);
