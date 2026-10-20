@@ -472,3 +472,74 @@ Rank's Langium Language Server and lexical analysis ([bindings.ts](../../package
 3. **Open Decisions:**
    - Should this warning be elevated to an error under a future `--strict-perf` flag for competitive programming and judge submissions?
    - How should the analyzer treat bounded micro-loops ($N \le 8$) where cache effects dominate over allocation cost?
+
+## Binary formats, bit streams and signal primitives
+
+Decoding real-world binary formats and compressed media (such as MP3, FLAC,
+WAV, PNG or ZIP/DEFLATE) exposes four gaps where current Rank code either
+exceeds the 40-column / one-parenthesis budget or runs bit-by-bit loops in the
+interpreter:
+
+1. **Bitfield unpacking and packing (`use bits`):**
+   Binary headers pack fields of arbitrary bit widths across byte boundaries
+   (for example, an MP3 frame header splits 32 bits into widths
+   `11 2 2 1 4 2 1 1 2 2 1 1 2`). Extracting them today with `shr` and `band`
+   requires manual offset tracking and extra parentheses. A width-driven
+   operation analogous to `digits` and `fromDigits` would unpack an integer or
+   `bytes` value into an array of field values in one line:
+   ```rank
+   Widths = array 11 2 2 1 4 2 1 1 2 2 1 1 2
+   Fields = Header Widths bitfields
+   ```
+   Open questions: bit ordering (MSB-first vs LSB-first), signed bitfields,
+   and whether `Header` accepts both `bytes` and `integer`.
+
+2. **Stateful bit streams and prefix-code decoding (`use bits` / `use algo`):**
+   Compressed streams (MP3 Huffman data and bit reservoir, DEFLATE, JPEG) read
+   variable-length bit sequences where each step's width depends on the previous
+   value. A lightweight bit cursor over `bytes` (`Stream = Payload bitstream`,
+   `Stream Width readbits`) avoids manual `BitPos / 8` and `BitPos mod 8`
+   bookkeeping. Pairing it with a prepared prefix/Huffman code table
+   (`Code = Lengths Values prefixcode`, `Stream Code Count decode`) moves the
+   inner bit-walking loop into native host code, just as `segment` and `wavelet`
+   do for range queries.
+
+3. **Typed binary packing and unpacking (`use core` / `use io`):**
+   Converting between `bytes` and numeric arrays of fixed-width integers or
+   floats (`.u16be`, `.i16le`, `.u32be`, `.f32le`) currently requires manual
+   `256 fromDigits` and two's-complement arithmetic. Direct conversion
+   operations (or relationship with [Array element types](#array-element-types))
+   would make reading binary tables and writing PCM `.wav` headers trivial.
+
+4. **1D/2D convolution (`use sequences` / `use linalg`):**
+   While `window` and `matmul` already express block transforms such as IMDCT,
+   a direct `Signal Kernel convolve` operation would simplify polyphase/FIR
+   filtering in audio, time-series smoothing and image kernels.
+
+### Benchmark and competition targets
+
+Following the [competitive-programming admission rules](competitive-programming-library.md),
+each binary or signal primitive should be validated against concrete competition
+tasks rather than synthetic micro-tests:
+
+- **Advent of Code:**
+  - *AoC 2021 Day 16 (Packet Decoder):* nested variable-width bit packets
+    (`bitstream`, `readbits`, `bitfields`).
+  - *AoC 2021 Day 20 (Trench Map):* iterative 2D image filtering (`window`,
+    `convolve`, `fromDigits`).
+- **CTF Forensics & Steganography (PicoCTF, Google CTF, DEF CON):**
+  - *WAV / DTMF and SSTV audio decoding:* reading 16-bit PCM `.wav` frames
+    (`unpackbytes`), sliding window Goertzel / spectral power (`window`,
+    `matmul`), and LSB bit-plane extraction (`band`, `bitfields`).
+  - *PNG / RIFF chunk inspection and repair:* parsing big-endian length/CRC
+    headers and decompressing DEFLATE streams (`bitfields`, `prefixcode`).
+- **Kaggle Audio & Signal Processing (see [Kaggle examples](../examples/kaggle.md)):**
+  - *BirdCLEF / Cornell Birdcall, Google Speech Commands, Freesound:* decoding
+    audio into tensors, framing (`window`), Hann windowing, STFT / mel
+    filterbanks (`matmul`) and 1D/2D convolutions (`convolve`).
+  - *G2Net Gravitational Wave & HMS EEG:* multi-channel 1D signal filtering and
+    cross-correlation.
+- **Demoscene / Bytebeat & Rosetta Code:**
+  - *Procedural WAV synthesis:* generating drum/synth waveforms with array math
+    and packing 16-bit PCM (`packbytes`) into a playable `.wav` file in under
+    15 lines.
