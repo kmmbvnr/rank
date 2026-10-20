@@ -49,6 +49,12 @@ export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
     return plan;
 }
 
+/** Compiled loops iterate `primes` with the bounds `applyBound` would plan. */
+export function primeRange(start: bigint | undefined, from: boolean, end: bigint | undefined, to: boolean): Iterable<bigint> {
+    return primeIterator(end === undefined ? undefined : { limit: end, inclusive: to },
+        start === undefined ? undefined : { limit: start, inclusive: from });
+}
+
 function* primeIterator(
     boundary?: Boundary,
     lower?: Boundary,
