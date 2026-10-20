@@ -4,7 +4,8 @@ import { checkpoint } from './interrupt.js';
 // The base sieve is capped at 2^20 (512 KiB of odd flags); larger values
 // retain the arbitrary-precision primality path instead of growing sqrt(N).
 export const maxSieveInteger = 2 ** 40 - 1;
-const segmentOdds = 32768;
+export const primeSegmentSpan = 65536;
+const segmentOdds = primeSegmentSpan / 2;
 
 /** One bounded workspace per traversal or membership observer. No global cursor. */
 export class PrimeSieve {

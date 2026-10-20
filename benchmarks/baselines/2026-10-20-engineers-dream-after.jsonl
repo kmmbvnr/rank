@@ -1,0 +1,3 @@
+{"node":"v24.15.0","cpu":"Apple M5","count":4,"mode":"default compilation; fresh process; execution includes parsing; static analysis measured separately"}
+{"phase":"execute","ms":51685.613333,"answer":"2039506520","found":"4","heapUsed":76045152,"maxRssKiB":428080}
+{"phase":"static-all-name-sites","ms":131.26837499999965,"queries":87,"maxRssKiB":442448}

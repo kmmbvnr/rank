@@ -28,6 +28,11 @@ export function probablePrime(value: bigint): boolean {
         if (value === prime) return true;
         if (value % prime === 0n) return false;
     }
+    return millerRabin(value);
+}
+
+/** The caller has already screened small factors, including 2. */
+function millerRabin(value: bigint): boolean {
     let odd = value - 1n;
     let shifts = 0;
     while (odd % 2n === 0n) {
@@ -53,4 +58,34 @@ export function probablePrime(value: bigint): boolean {
         if (composite) return false;
     }
     return true;
+}
+
+// Below 4096^2 trial division by the primes under 4096 is exact and cheaper than
+// Miller-Rabin. Larger values only screen out small factors before it, so no
+// table grows toward the square root of the value tested.
+const trialLimit = 4096;
+const trialPrimes = primesBelow(trialLimit);
+const screenPrimes = trialPrimes.filter(prime => prime < 256n);
+const trialSquare = BigInt(trialLimit) ** 2n;
+
+function primesBelow(limit: number): bigint[] {
+    const composite = new Uint8Array(limit);
+    const primes: bigint[] = [];
+    for (let candidate = 2; candidate < limit; candidate += 1) {
+        if (composite[candidate]) continue;
+        primes.push(BigInt(candidate));
+        for (let multiple = candidate * candidate; multiple < limit; multiple += candidate) {
+            composite[multiple] = 1;
+        }
+    }
+    return primes;
+}
+
+export function primeMembership(value: bigint): boolean {
+    if (value < 2n) return false;
+    for (const prime of value < trialSquare ? trialPrimes : screenPrimes) {
+        if (prime * prime > value) return true;
+        if (value % prime === 0n) return value === prime;
+    }
+    return millerRabin(value);
 }

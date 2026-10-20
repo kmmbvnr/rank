@@ -1,12 +1,13 @@
 import { checkpoint } from './interrupt.js';
-import { PrimeSieve, maxSieveInteger } from './prime-sieve.js';
-import { probablePrime } from './primality.js';
+import { PrimeSieve, maxSieveInteger, primeSegmentSpan } from './prime-sieve.js';
+import { primeMembership } from './primality.js';
 import { registerSequenceMembership } from './sequence-membership.js';
 import { above, within, strongerLower, membershipInteger, type Boundary } from './sequence-bounds.js';
 import type { SequencePlan } from './value.js';
 
 export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
     let membershipSieve: PrimeSieve | undefined;
+    let previousSegment: number | undefined;
     const plan: SequencePlan = {
         name: 'primes',
         replay: 'pure',
@@ -15,12 +16,19 @@ export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
         iterate: () => primeIterator(boundary, lower),
         contains(value) {
             const integer = membershipInteger(value);
-            return integer !== undefined
-                && (!boundary || within(integer, boundary))
-                && (!lower || above(integer, lower))
-                && (boundary && integer >= 3n && integer <= BigInt(maxSieveInteger) && integer % 2n !== 0n
-                    ? (membershipSieve ??= new PrimeSieve()).contains(Number(integer))
-                    : primeMembership(integer));
+            if (integer === undefined || boundary && !within(integer, boundary) || lower && !above(integer, lower)) {
+                return false;
+            }
+            if (integer >= 3n && integer <= BigInt(maxSieveInteger) && integer % 2n !== 0n) {
+                const candidate = Number(integer);
+                const segment = Math.floor((candidate - 3) / primeSegmentSpan);
+                // Repeated local queries amortize marking a segment. Isolated
+                // unbounded queries keep trial division / Miller-Rabin.
+                const local = segment === previousSegment;
+                previousSegment = segment;
+                if (boundary || local) return (membershipSieve ??= new PrimeSieve()).contains(candidate);
+            }
+            return primeMembership(integer);
         },
         at(index) {
             let current = 0n;
@@ -39,36 +47,6 @@ export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
     };
     registerSequenceMembership(plan);
     return plan;
-}
-
-// Below 4096^2 trial division by the primes under 4096 is exact and cheaper than
-// Miller-Rabin. Larger values only screen out small factors before it, so no
-// table grows toward the square root of the value tested.
-const trialLimit = 4096;
-const trialPrimes = primesBelow(trialLimit);
-const screenPrimes = trialPrimes.filter(prime => prime < 256n);
-const trialSquare = BigInt(trialLimit) ** 2n;
-
-function primesBelow(limit: number): bigint[] {
-    const composite = new Uint8Array(limit);
-    const primes: bigint[] = [];
-    for (let candidate = 2; candidate < limit; candidate += 1) {
-        if (composite[candidate]) continue;
-        primes.push(BigInt(candidate));
-        for (let multiple = candidate * candidate; multiple < limit; multiple += candidate) {
-            composite[multiple] = 1;
-        }
-    }
-    return primes;
-}
-
-function primeMembership(value: bigint): boolean {
-    if (value < 2n) return false;
-    for (const prime of value < trialSquare ? trialPrimes : screenPrimes) {
-        if (prime * prime > value) return true;
-        if (value % prime === 0n) return value === prime;
-    }
-    return probablePrime(value);
 }
 
 function* primeIterator(
