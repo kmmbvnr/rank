@@ -475,6 +475,8 @@ export function ownedArray(
             if (kind || items.length === 0) scalarKinds = new Map(kind ? [[kind, items.length]] : []);
         }
     }
+    const packed = scalarKinds?.size === 1 && scalarKinds.has('integer') ? packedIntegers(items) : undefined;
+    if (packed) return typedArray(packed, shape);
     const value = createOwned(items, shape, scalarOnly, columnNames);
     if (scalarKinds) ownedStorage.get(value)!.elementKinds = scalarKinds;
     return value;
@@ -483,6 +485,8 @@ export function ownedArray(
 /** Takes fresh cells selected from storage with one proved primitive kind.
  * Internal kernels must preserve that kind; this is not a validation entry. */
 export function ownedScalarArray(items: RankValue[], kind: string, shape: readonly number[] = [items.length]): RankArray {
+    const packed = kind === 'integer' ? packedIntegers(items) : undefined;
+    if (packed) return typedArray(packed, shape);
     const value = createOwned(items, shape, true);
     ownedStorage.get(value)!.elementKinds = new Map(items.length ? [[kind, items.length]] : []);
     return value;
@@ -521,6 +525,19 @@ export function typedArray(
 /** Integer arrays from this size up are packed. Smaller ones stay boxed, since
  * every read from a typed buffer allocates a new bigint. */
 const PACKED_CELLS = 4096;
+
+/** Fresh integer cells in one buffer, when there are enough of them and every
+ * one fits in 64 bits. */
+function packedIntegers(items: RankValue[]): BigInt64Array | undefined {
+    if (items.length < PACKED_CELLS) return undefined;
+    const packed = new BigInt64Array(items.length);
+    for (let index = 0; index < items.length; index++) {
+        const item = items[index];
+        if (typeof item !== 'bigint' || !fitsInt64(item)) return undefined;
+        packed[index] = item;
+    }
+    return packed;
+}
 
 /** Builds the cells of a fresh integer array: packed in one BigInt64Array, or
  * exact bigints from the first value that does not fit in 64 bits. */

@@ -5,7 +5,7 @@ import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
 import { RUNTIME_TYPE_NAMES, type ApplicationForm } from '@arrrank/language';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
-import { evaluateArrayItem, derivedArray, materializeCells, ownedArray, readArrayItem, shouldStream, streamCells } from './array-storage.js';
+import { denseScalarItems, evaluateArrayItem, derivedArray, materializeCells, ownedArray, readArrayItem, shouldStream, streamCells } from './array-storage.js';
 import { applyBound, valueBound } from './clause-expression.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexHas, indexKey } from './index-storage.js';
@@ -157,7 +157,9 @@ export class Operators {
             });
         }
         if (isRankArray(value)) {
-            return ownedArray(value.items.map(item => this.evaluateUnary(operator, item)), value.shape);
+            // Stored cells are read in place: `items` would unpack a typed buffer for good.
+            const items = denseScalarItems(value) ?? value.items;
+            return ownedArray(Array.from(items, item => this.evaluateUnary(operator, item)), value.shape);
         }
         if (value === MISSING && (operator === 'not' || operator === '+' || operator === '-')) return MISSING;
         if (operator === 'not' && typeof value === 'boolean') {

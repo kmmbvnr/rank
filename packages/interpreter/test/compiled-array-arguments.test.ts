@@ -102,7 +102,8 @@ it('uses typed storage proofs and keeps long boxed-cell validation interruptible
     setSemanticArrayType(typed, { key: '["integer"]', scalar: 'integer' });
     expect(compiledArgumentType(typed))
         .toEqual({ kind: 'array', element: 'integer', rank: 1 });
-    const values = ownedArray(Array<bigint>(10000).fill(1n));
+    // A cell past 64 bits keeps the cells boxed.
+    const values = ownedArray([1n << 64n, ...Array<bigint>(9999).fill(1n)]);
     const signal = new Int32Array(new SharedArrayBuffer(4));
     Atomics.store(signal, 0, 1);
     expect(() => withInterrupt(signal, () => compiledArgumentType(values))).toThrow(InterruptedError);

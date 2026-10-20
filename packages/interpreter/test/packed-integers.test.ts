@@ -42,6 +42,15 @@ describe('packed integer arrays', () => {
         }
     });
 
+    it('packs integer results of other kernels without unpacking their source', () => {
+        for (const code of ['Xs scan +', 'Xs sort', 'Xs reverse', 'Xs (Xs // 2)', '- Xs', 'primes to 100000 array']) {
+            expect(run(`use sequences\nXs = 1 to ${N} array\nYs = ${code}`, ['Xs', 'Ys']), code)
+                .toMatchObject({ packed: { Xs: true, Ys: true }, unpacks: 0 });
+        }
+        expect(run(`A = array shape ${N} fill ${-MAX - 1n}\nB = - A\nB 0`, ['A', 'B']))
+            .toMatchObject({ value: MAX + 1n, packed: { A: true, B: false } });
+    });
+
     it('falls back to exact cells when a product leaves 64 bits', () => {
         const start = 3_000_000_000n;
         const result = run(`Xs = ${start} to ${start + BigInt(N - 1)} array\nYs = Xs * Xs * Xs\nYs sum`, ['Xs', 'Ys']);
