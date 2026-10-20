@@ -61,6 +61,7 @@ fun Grid Ratio optimize
   Length = array shape Dim Dim fill 0.0
   Ys = 0 to Grid array
   Score 0 = 0.0 - Ratio * Ys
+  Length 0 = 0.0 + Ys
   for I in 1 to Grid
     Best = array shape Dim fill Neg
     BestA = array shape Dim fill 0.0
