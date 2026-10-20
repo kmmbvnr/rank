@@ -51,20 +51,23 @@ const same = (a: readonly number[], b: readonly number[]) => a.length === b.leng
 export function compileTensorKernel(statements: Statement[], host: TensorKernelHost): {
     count: number; source: string; run(): RankValue | undefined;
 } | undefined {
-    return compileTensorPlan(statements, host) ?? compileTensorPlan(statements, host, true);
+    // Both plans parse the same statement: report its first rejection once.
+    const attempt = { rejected: false };
+    return compileTensorPlan(statements, host, attempt)
+        ?? compileTensorPlan(statements, host, attempt, true);
 }
 
-function compileTensorPlan(statements: Statement[], host: TensorKernelHost, implicit = false) {
+function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
+    attempt: { rejected: boolean }, implicit = false) {
     type Domain = readonly CompiledAtomType[];
     const domains = new Map<TensorNode, Domain>();
     const unknown: Domain = ['integer', 'real', 'boolean', 'text'];
     const definitions = new Map<string, TensorNode>();
     const reads = new Map<string, number>();
     const names: string[] = [];
-    let rejected = false;
     function reject(node: Expression | Statement, detail?: string): undefined {
-        if (!rejected && currentDiagnostics()) recordFallback(compilerRejection('tensor', node, detail));
-        rejected = true;
+        if (!attempt.rejected && currentDiagnostics()) recordFallback(compilerRejection('tensor', node, detail));
+        attempt.rejected = true;
         return undefined;
     }
     function typed(node: TensorNode, domain: Domain): TensorNode {
