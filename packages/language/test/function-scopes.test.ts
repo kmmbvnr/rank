@@ -332,4 +332,70 @@ fun Limit outer
  return S array
 end`)).toEqual([]);
     });
+
+    it('proves synchronous recursive callback results instead of forwarding callback arguments', () => {
+        expect(diagnostics(`fun N walk predicate
+ if N equal 0
+  return 0 predicate
+ end
+ return (N - 1) walk predicate
+end
+fun Limit outer
+ fun X below = X less Limit
+ return 3 walk below
+end`)).toEqual([]);
+    });
+
+    it('propagates lazy results through mutually recursive local helpers', () => {
+        expect(diagnostics(`use sequences
+fun Limit outer
+ fun X below = X less Limit
+ fun N left
+  if N equal 0
+   return 1 to 10 filter below
+  end
+  return (N - 1) right
+ end
+ fun N right = N left
+ return 3 right
+end`).some(message => message.includes('lazy result retains nested function below'))).toBe(true);
+    });
+
+    it('keeps recursive results specific to the callback and its captured environment', () => {
+        expect(diagnostics(`use sequences
+fun X apply action
+ fun Y invoke = Y action
+ return X invoke
+end
+fun N walk action
+ if N equal 0
+  return 10 apply action
+ end
+ return (N - 1) walk action
+end
+fun Limit outer
+ fun X below = X less Limit
+ fun X selected = 1 to X filter below
+ Values = (2 walk selected) array
+ return 2 walk below
+end`)).toEqual([]);
+    });
+
+    it('rejects callbacks stored by a recursive helper', () => {
+        expect(diagnostics(`use algo
+fun Items N save callback
+ if N equal 0
+  Items push callback
+  return 0
+ end
+ return Items (N - 1) save callback
+end
+fun Limit outer
+ Items = new queue
+ fun X below = X less Limit
+ Items 3 save below
+ return 0
+end`).some(message => message.includes('nested function below cannot be returned'))).toBe(true);
+    });
+
 });

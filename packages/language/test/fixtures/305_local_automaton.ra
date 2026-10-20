@@ -1,0 +1,230 @@
+rem Euler 305: local recursive KMP/block automaton.
+rem Mutable caches are explicit parameters; transition tables are captures.
+
+use algo
+use text
+
+fun N before
+  if N equal 0
+    return 0
+  end
+  T = N text
+  D = T len
+  Z = 0
+  for W in 1 till D
+    Z += 9 * (10 ** (W - 1)) * W
+  end
+  Base = 10 ** (D - 1)
+  return Z + (N - Base + 1) * D
+end
+
+fun Need solve
+  Pat = Need text
+  PatternLength = Pat len
+  Pi = array shape PatternLength fill 0
+  for I in 1 till PatternLength
+    J = Pi (I - 1)
+    for J greater 0
+      if Pat I equal Pat J
+        break
+      end
+      J = Pi (J - 1)
+    end
+    if Pat I equal Pat J
+      J += 1
+    end
+    Pi I = J
+  end
+  PatternNext = array shape (PatternLength + 1) 10 fill 0
+  PatternHits = array shape (PatternLength + 1) 10 fill 0
+  for S in 0 to PatternLength
+    for D in 0 to 9
+      J = S
+      Dt = D text
+      for J greater 0
+        Same = J less PatternLength
+        Same = Same and Pat J equal Dt
+        if Same
+          break
+        end
+        J = Pi (J - 1)
+      end
+      if J less PatternLength and Pat J equal Dt
+        J += 1
+      end
+      if J equal PatternLength
+        PatternHits S D = 1
+        J = Pi (PatternLength - 1)
+      end
+      PatternNext S D = J
+    end
+  end
+  State = record
+    .l = PatternLength
+    .nxt = PatternNext
+    .hit = PatternHits
+    .ends = new index
+    .adds = new index
+    .ids = new index
+    .full = new index
+    .dig = array shape 10 fill ""
+    .unit = ""
+  end
+  E0 = 0 to PatternLength array
+  A0 = array shape (PatternLength + 1) fill 0
+  State .unit = State E0 A0 id
+  Digits = State .dig
+  for D in 0 to 9
+    E = 0 to PatternLength array
+    A = array shape (PatternLength + 1) fill 0
+    for S in 0 to PatternLength
+      E S = PatternNext S D
+      A S = PatternHits S D
+    end
+    Digits D = State E A id
+  end
+  State .dig = Digits
+  fun State E A id
+    K = E "," join
+    K += ":"
+    K += A "," join
+    Ids = State .ids
+    if K in Ids
+      return Ids K
+    end
+    Ids K = K
+    Ends = State .ends
+    Adds = State .adds
+    Ends K = E
+    Adds K = A
+    return K
+  end
+
+  fun State X Y merge
+    Ends = State .ends
+    Adds = State .adds
+    EX = Ends X
+    AX = Adds X
+    EY = Ends Y
+    AY = Adds Y
+    E = EY EX
+    A = AX + AY EX
+    return State E A id
+  end
+
+  fun State X D adddig
+    Dig = State .dig
+    return State X (Dig D) merge
+  end
+
+  fun State X R block
+    Full = State .full
+    K = X + ":"
+    K += R text
+    if K in Full
+      return Full K
+    end
+    if R equal 0
+      Full K = X
+      return X
+    end
+    Z = State .unit
+    for D in 0 to 9
+      Y = State X D adddig
+      C = State Y (R - 1) block
+      Z = State Z C merge
+    end
+    Full K = Z
+    return Z
+  end
+
+  fun State X R Top partial
+    if R equal 0
+      return X
+    end
+    B = 10 ** (R - 1)
+    F = Top // B
+    Rest = Top mod B
+    Z = State .unit
+    for D in 0 till F
+      Y = State X D adddig
+      C = State Y (R - 1) block
+      Z = State Z C merge
+    end
+    Y = State X F adddig
+    C = State Y (R - 1) Rest partial
+    return State Z C merge
+  end
+
+  fun State N ranged
+    if N equal 0
+      return State .unit
+    end
+    T = N text
+    D = T len
+    Z = State .unit
+    Dig = State .dig
+    for W in 1 till D
+      for F in 1 to 9
+        C = State (Dig F) (W - 1) block
+        Z = State Z C merge
+      end
+    end
+    F = (T 0) integer
+    R = D - 1
+    for A in 1 till F
+      C = State (Dig A) R block
+      Z = State Z C merge
+    end
+    if R equal 0
+      return State Z (Dig F) merge
+    end
+    Suf = (T (1 to R)) integer
+    C = State (Dig F) R Suf partial
+    return State Z C merge
+  end
+
+  fun State N count
+    X = State N ranged
+    Adds = State .adds
+    A = Adds X
+    return A 0
+  end
+
+  fun State Target nth
+    Hi = 1
+    for State Hi count less Target
+      Hi *= 2
+    end
+    Lo = 1
+    for Lo less Hi
+      Mid = (Lo + Hi) // 2
+      if State Mid count at least Target
+        Hi = Mid
+      else
+        Lo = Mid + 1
+      end
+    end
+    N = Lo
+    Old = State (N - 1) count
+    Left = Target - Old
+    X = State (N - 1) ranged
+    Ends = State .ends
+    E = (Ends X) 0
+    Pos = (N - 1) before
+    T = N text
+    for I in 0 till T len
+      D = (T I) integer
+      if PatternHits E D equal 1
+        Left -= 1
+        if Left equal 0
+          return Pos + I - PatternLength + 2
+        end
+      end
+      E = PatternNext E D
+    end
+    return 0
+  end
+
+  return State Need nth
+end
