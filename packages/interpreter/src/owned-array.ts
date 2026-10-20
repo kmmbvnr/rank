@@ -1,0 +1,592 @@
+import { checkpoint } from './interrupt.js';
+import { currentDiagnostics } from './diagnostics.js';
+import { ResourceSummary } from './resource-summary.js';
+import { RankError } from './errors.js';
+import { isRankArray, typeName, requireHomogeneous, MISSING, type RankArray, type RankValue } from './value.js';
+import {
+    ownedStorage, writeRevision, noteMutation, nextCreationSerial, SHARED, type OwnedStorage,
+} from './array-storage-state.js';
+import { borrowedStorage, materializedArrayItems, readArrayItem } from './array-read.js';
+import { arrayRevision } from './array-revision.js';
+import { scanForMissing } from './array-validity.js';
+
+/** A shallow copy for our JS callers, not an immutability or isolation boundary. */
+export function createArraySnapshot(items: Iterable<RankValue>, shape?: readonly number[]): RankArray {
+    const copied = Array.from(items);
+    const dimensions = shape === undefined ? [copied.length] : [...shape];
+    if (dimensions.some(size => !Number.isSafeInteger(size) || size < 0)
+        || dimensions.reduce((size, dimension) => size * BigInt(dimension), 1n) !== BigInt(copied.length)) {
+        throw new RankError('array snapshot shape does not match its items', 'DimensionMismatch');
+    }
+    return ownedArray(copied, dimensions);
+}
+
+/** Cheap borrow guard: no lazy cells or nested values can escape through indexing. */
+export function isFlatScalarArray(value: RankValue): boolean {
+    if (typeof value !== 'object' || value === null) return false;
+    const storage = ownedStorage.get(value as RankArray);
+    return !!storage?.stable && storage.scalarOnly && storage.shape.length === 1;
+}
+
+/** The stored cells of an array whose every cell is already a scalar and which
+ * nothing can change under us: reading them cannot run lazy work or raise. */
+export function denseScalarItems(value: RankArray): ArrayLike<RankValue> | undefined {
+    const storage = ownedStorage.get(value);
+    return storage?.stable && storage.scalarOnly ? storage.items : undefined;
+}
+
+function scalarKind(value: RankValue | undefined): string | undefined {
+    switch (typeof value) {
+        case 'number': return !Number.isFinite(value) && !Number.isNaN(value) ? 'numeric-limit' : 'real';
+        case 'bigint': return 'integer';
+        case 'boolean': return 'boolean';
+        case 'string': return 'text';
+        default: return undefined;
+    }
+}
+
+/** Exact kinds in trusted scalar storage, without forcing a reader or declaring
+ * a semantic type. Same-kind writes keep this proof valid across data revisions. */
+export function storedScalarKinds(value: RankArray): readonly string[] | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.scalarOnly) return undefined;
+    // An integer buffer can hold nothing else, and scanning it would box every cell.
+    if (state.typed instanceof BigInt64Array) return state.typed.length ? ['integer'] : [];
+    if (!state.elementKinds) {
+        const kinds = new Map<string, number>();
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) {
+            diagnostics.elementTypeScans++;
+            diagnostics.elementTypeScannedCells += state.items.length;
+        }
+        for (let index = 0; index < state.items.length; index++) {
+            if ((index & 4095) === 0) checkpoint('checking scalar storage');
+            const kind = scalarKind(state.items[index]);
+            if (kind === undefined) return undefined;
+            kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
+        }
+        state.elementKinds = kinds;
+    }
+    return [...state.elementKinds.keys()].sort();
+}
+
+function updateScalarKinds(state: OwnedStorage, previous: RankValue | undefined, value: RankValue): void {
+    const kinds = state.elementKinds;
+    if (!kinds) return;
+    const before = scalarKind(previous), after = scalarKind(value);
+    if (before === undefined || after === undefined) {
+        state.elementKinds = undefined;
+        return;
+    }
+    if (before === after) return;
+    const count = kinds.get(before)! - 1;
+    if (count) kinds.set(before, count);
+    else kinds.delete(before);
+    kinds.set(after, (kinds.get(after) ?? 0) + 1);
+}
+
+/**
+ * The cells of an array when every one is a real number: a real typed buffer,
+ * or stored cells with tracked scalar-kind evidence. Real arithmetic on such cells
+ * needs no type dispatch and can write straight into a typed buffer.
+ */
+export function realCells(value: RankArray): ArrayLike<number> | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.scalarOnly) return undefined;
+    if (state.typed) return state.typed instanceof Float64Array ? state.typed : undefined;
+    const kinds = storedScalarKinds(value);
+    return kinds?.every(kind => kind === 'real' || kind === 'numeric-limit')
+        ? state.items as unknown as number[] : undefined;
+}
+
+/** Trusted integer cells only, read in place. A bulk integer write preserves this
+ * physical kind, but its caller must separately validate the binding's semantic contract. */
+export function writableIntegerCells(value: RankArray): ArrayLike<bigint> | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || state.readOnlyCells || !state.scalarOnly) return undefined;
+    const kinds = storedScalarKinds(value);
+    if (!kinds?.length || !kinds.every(kind => kind === 'integer')) return undefined;
+    return state.items as unknown as ArrayLike<bigint>;
+}
+
+const INT64_MIN = -(1n << 63n), INT64_MAX = (1n << 63n) - 1n;
+// Comparing allocates nothing, unlike reading the stored cell back.
+const fitsInt64 = (value: bigint) => value >= INT64_MIN && value <= INT64_MAX;
+
+/** Writes one stored cell. An integer buffer keeps an integer that fits in 64
+ * bits; any other value turns the buffer into boxed cells first. Callers record
+ * the revision and scalar kinds. */
+function storeCell(state: OwnedStorage, index: number, value: RankValue): void {
+    const typed = state.typed;
+    if (typed instanceof BigInt64Array && !state.validity && typeof value === 'bigint' && fitsInt64(value)) {
+        typed[index] = value;
+        return;
+    }
+    state.convert?.();
+    state.items[index] = value;
+}
+
+/** One cell write through the array's own interface, except that an integer
+ * buffer keeps an integer that fits rather than unpacking for it. */
+export function writeArrayCell(value: RankArray, index: number, item: RankValue): void {
+    const state = ownedStorage.get(value);
+    if (state?.stable && state.typed instanceof BigInt64Array && !state.validity && typeof item === 'bigint') {
+        state.revision = noteMutation(state.birth);
+        storeCell(state, index, item);
+    } else {
+        value.items[index] = item;
+    }
+}
+
+/** A scalar boolean fill preserves this storage's physical kind. */
+export function hasWritableBooleanCells(value: RankArray): boolean {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || state.readOnlyCells || !state.scalarOnly || state.typed) return false;
+    const kinds = storedScalarKinds(value);
+    return kinds?.length === 1 && kinds[0] === 'boolean';
+}
+
+/** Ownership, selection bounds and the binding contract are checked by the caller. */
+export function fillBooleanSelection(
+    value: RankArray, count: number, offsetAt: (index: number) => number, operand: boolean,
+): void {
+    const state = ownedStorage.get(value)!;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) { diagnostics.bulkArrayWrites++; diagnostics.bulkArrayWriteCells += count; }
+    state.revision = noteMutation(state.birth);
+    for (let i = 0; i < count; i++) {
+        checkpoint('writing array');
+        state.items[offsetAt(i)] = operand;
+    }
+}
+
+/** Commit a prevalidated integer selection without per-cell Proxy traffic.
+ * Callers have protected ownership, established an integer binding, and removed
+ * lazy reads/callbacks from operands and offsets. Compound writes require unique
+ * offsets; duplicate gathers supply precomputed replacements with '=' instead. */
+export function writeIntegerSelection(
+    value: RankArray, count: number, offsetAt: (index: number) => number,
+    operand: bigint | readonly bigint[], operator: '=' | '+=' | '-=' | '*=',
+): void {
+    const state = ownedStorage.get(value)!;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) { diagnostics.bulkArrayWrites++; diagnostics.bulkArrayWriteCells += count; }
+    state.revision = noteMutation(state.birth);
+    // Choose the operator once: no operator dispatch, broadcasting allocation,
+    // scalar-kind changes or user code during the commit.
+    const combine = operator === '=' ? (_: bigint, next: bigint) => next
+        : operator === '+=' ? (old: bigint, next: bigint) => old + next
+        : operator === '-=' ? (old: bigint, next: bigint) => old - next
+        : (old: bigint, next: bigint) => old * next;
+    for (let i = 0; i < count; i++) {
+        checkpoint('writing array');
+        const offset = offsetAt(i);
+        // Read through state.items: a write that does not fit replaces the buffer.
+        const old = state.items[offset] as bigint;
+        storeCell(state, offset, combine(old, typeof operand === 'bigint' ? operand : operand[i]));
+    }
+}
+
+/** The real cells of an array as one Float64Array, or undefined if any cell is
+ * not a real number. A typed buffer is shared; plain cells are copied. */
+export function float64Cells(value: RankArray): Float64Array | undefined {
+    const state = ownedStorage.get(value);
+    if (state?.stable && state.typed instanceof Float64Array && !state.validity) return state.typed;
+    const plain = realCells(value);
+    if (!plain) return undefined;
+    // A plain loop: `Float64Array.from` walks an iterator, several times slower.
+    const copy = new Float64Array(plain.length);
+    for (let index = 0; index < plain.length; index += 1) copy[index] = plain[index];
+    return copy;
+}
+
+/** Cells already stored, with no lazy reads or host cell getter calls. */
+export function storedOperandItems(value: RankArray): ArrayLike<RankValue> | undefined {
+    if (ownedStorage.get(value)?.validity) return undefined;
+    const dense = denseScalarItems(value);
+    if (dense) return dense;
+    const items = materializedArrayItems(value);
+    if (!items) return undefined;
+    for (let index = 0; index < items.length; index++) {
+        const property = Object.getOwnPropertyDescriptor(items, index);
+        if (!property || !('value' in property)) return undefined;
+        const type = typeof property.value;
+        if (type !== 'number' && type !== 'bigint' && type !== 'boolean') return undefined;
+    }
+    return items;
+}
+
+const SMALL_OPERAND_CELLS = 4096;
+const MAX_EAGER_OPERAND_CELLS = 1 << 25;
+
+/**
+ * The scalar cells of an operand for an eager kernel: the stored cells of a
+ * dense array, or the values of a small lazy one, which costs little next to a
+ * large partner. Declines when reading raises (the lazy path raises it when
+ * the cell is demanded) or when a cell is not a number.
+ */
+export function eagerOperandItems(value: RankArray): ArrayLike<RankValue> | undefined {
+    // Reading the cells of a masked array would turn it into a plain one.
+    if (ownedStorage.get(value)?.validity) return undefined;
+    const stored = denseScalarItems(value);
+    if (stored) return stored;
+    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+    if (size > MAX_EAGER_OPERAND_CELLS) return undefined;
+    if (size > SMALL_OPERAND_CELLS) {
+        // A large lazy operand is read once and kept: the result is dense anyway,
+        // and leaving the layer lazy makes every later read walk the whole chain.
+        // A host buffer has no revision, so its reads stay in the host's order.
+        if (arrayRevision(value) === undefined) return undefined;
+        try {
+            const items = value.items;
+            for (let index = 0; index < size; index += 1) {
+                const cell = items[index];
+                if (typeof cell !== 'number' && typeof cell !== 'bigint') return undefined;
+            }
+            return items;
+        } catch (error) {
+            if (error instanceof RankError) return undefined;
+            throw error;
+        }
+    }
+    const cells: RankValue[] = new Array(size);
+    try {
+        for (let index = 0; index < size; index += 1) {
+            const cell = readArrayItem(value, index);
+            if (typeof cell !== 'number' && typeof cell !== 'bigint') return undefined;
+            cells[index] = cell;
+        }
+    } catch (error) {
+        if (error instanceof RankError) return undefined;
+        throw error;
+    }
+    return cells;
+}
+
+/** Takes exclusive ownership of fresh storage. JS sees a write-tracked facade;
+ * internal read kernels may borrow the raw storage without proxy overhead. */
+export function ownedArray(
+    items: RankValue[], shape: readonly number[] = [items.length], scalarOnly = false,
+    columnNames?: readonly string[],
+): RankArray {
+    let scalarKinds: Map<string, number> | undefined;
+    if (!columnNames) {
+        let firstType: string | undefined;
+        let firstRank: number | undefined;
+        let firstScalarKind: string | undefined;
+        let kinds: Map<string, { type: string; rank?: number }> | undefined;
+        for (const item of items) {
+            const type = typeof item === 'number' && !Number.isFinite(item) && !Number.isNaN(item)
+                ? 'numeric-limit' : typeName(item);
+            const rank = isRankArray(item) ? item.shape.length : undefined;
+            if (firstType === undefined) { firstType = type; firstRank = rank; firstScalarKind = scalarKind(item); }
+            else if (type !== firstType || rank !== firstRank) {
+                // Homogeneous arrays need no per-cell descriptors or type-key strings.
+                kinds ??= new Map([[`${firstType}:${firstRank}`, { type: firstType, rank: firstRank }]]);
+                const key = `${type}:${rank}`;
+                if (!kinds.has(key)) kinds.set(key, { type, rank });
+            }
+        }
+        if (kinds) requireHomogeneous([...kinds.values()]);
+        else {
+            // Validation already proved every cell has the same primitive kind.
+            // Preserve that count for binding/return contracts and later writes.
+            const kind = firstScalarKind;
+            if (kind || items.length === 0) scalarKinds = new Map(kind ? [[kind, items.length]] : []);
+        }
+    }
+    const packed = scalarKinds?.size === 1 && scalarKinds.has('integer') ? packedIntegers(items) : undefined;
+    if (packed) return typedArray(packed, shape);
+    const value = createOwned(items, shape, scalarOnly, columnNames);
+    if (scalarKinds) ownedStorage.get(value)!.elementKinds = scalarKinds;
+    return value;
+}
+
+/** Takes fresh cells selected from storage with one proved primitive kind.
+ * Internal kernels must preserve that kind; this is not a validation entry. */
+export function ownedScalarArray(items: RankValue[], kind: string, shape: readonly number[] = [items.length]): RankArray {
+    const packed = kind === 'integer' ? packedIntegers(items) : undefined;
+    if (packed) return typedArray(packed, shape);
+    const value = createOwned(items, shape, true);
+    ownedStorage.get(value)!.elementKinds = new Map(items.length ? [[kind, items.length]] : []);
+    return value;
+}
+
+/** A scalar fill establishes its physical kind once, including for an empty
+ * shape. Nested/missing fills keep the ordinary storage and validity rules. */
+export function filledArray(fill: RankValue, shape: readonly number[]): RankArray {
+    const size = Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n));
+    if (typeof fill === 'bigint' && size >= PACKED_CELLS && fitsInt64(fill)) {
+        return typedArray(new BigInt64Array(size).fill(fill), shape);
+    }
+    const items = Array(size).fill(fill) as RankValue[];
+    const kind = scalarKind(fill);
+    if (!kind) return ownedArray(items, shape);
+    const value = createOwned(items, shape, true);
+    ownedStorage.get(value)!.elementKinds = new Map(size ? [[kind, size]] : []);
+    return value;
+}
+
+/**
+ * An array of integers or of reals held in one typed buffer, 8 bytes a cell
+ * where boxed cells cost several times that. Kernels and compiled loops read
+ * the cells in place, and an integer that fits in 64 bits is written in place.
+ * Anything else (public `items`, a real write, an integer past 64 bits)
+ * converts once, and the array is an ordinary owned one from then on. Takes
+ * ownership of `data`.
+ */
+export function typedArray(
+    data: Float64Array | BigInt64Array, shape: readonly number[] = [data.length],
+    columnNames?: readonly string[],
+): RankArray {
+    return createOwned(data, shape, true, columnNames);
+}
+
+/** Integer arrays from this size up are packed. Smaller ones stay boxed, since
+ * every read from a typed buffer allocates a new bigint. */
+const PACKED_CELLS = 4096;
+
+/** Fresh integer cells in one buffer, when there are enough of them and every
+ * one fits in 64 bits. */
+function packedIntegers(items: RankValue[]): BigInt64Array | undefined {
+    if (items.length < PACKED_CELLS) return undefined;
+    const packed = new BigInt64Array(items.length);
+    for (let index = 0; index < items.length; index++) {
+        const item = items[index];
+        if (typeof item !== 'bigint' || !fitsInt64(item)) return undefined;
+        packed[index] = item;
+    }
+    return packed;
+}
+
+/** Builds the cells of a fresh integer array: packed in one BigInt64Array, or
+ * exact bigints from the first value that does not fit in 64 bits. */
+export class IntegerCells {
+    private packed?: BigInt64Array;
+    private exact?: bigint[];
+
+    constructor(size: number) {
+        if (size >= PACKED_CELLS) this.packed = new BigInt64Array(size);
+        else this.exact = new Array(size);
+    }
+
+    set(index: number, value: bigint): void {
+        const packed = this.packed;
+        if (packed) {
+            if (fitsInt64(value)) {
+                packed[index] = value;
+                return;
+            }
+            this.exact = Array.from(packed);
+            this.packed = undefined;
+        }
+        this.exact![index] = value;
+    }
+
+    array(shape: readonly number[]): RankArray {
+        return this.packed ? typedArray(this.packed, shape) : ownedScalarArray(this.exact!, 'integer', shape);
+    }
+}
+
+/** A typed array over a buffer someone else keeps, such as a table column. It
+ * starts out shared, so the first write copies the buffer rather than changing it. */
+export function sharedTypedArray(data: Float64Array | BigInt64Array, shape: readonly number[]): RankArray {
+    const value = typedArray(data, shape);
+    ownedStorage.get(value)!.owners = SHARED;
+    return value;
+}
+
+/** The element type of an array still held in a typed buffer. */
+export function typedElementKind(value: RankArray): 'integer' | 'real' | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.typed || state.validity) return undefined;
+    return state.typed instanceof BigInt64Array ? 'integer' : 'real';
+}
+
+/**
+ * A real or integer array whose cells may have no value: the values buffer
+ * plus a validity bitmap, one bit a cell with a set bit meaning a value is
+ * present (the Arrow layout). A cell without a value holds 0 in the buffer.
+ * Takes ownership of both. Kernels that know about the bitmap read it through
+ * `maskedCells`; everything else sees `.NA` cells in the plain view.
+ */
+export function maskedArray(
+    values: Float64Array | BigInt64Array, validity: Uint32Array, shape: readonly number[] = [values.length],
+): RankArray {
+    return createOwned(values, shape, false, undefined, validity);
+}
+
+/** The buffer and bitmap of a real masked array, or undefined for any other array. */
+export function maskedCells(value: RankArray): { values: Float64Array; validity: Uint32Array } | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.validity || !(state.typed instanceof Float64Array)) return undefined;
+    return { values: state.typed, validity: state.validity };
+}
+
+/** Numeric storage with validity, without materializing missing cells. */
+export function maskedNumericCells(value: RankArray): { values: Float64Array | BigInt64Array; validity: Uint32Array } | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.validity || !state.typed) return undefined;
+    return { values: state.typed, validity: state.validity };
+}
+
+export function hasMaskedCells(value: RankArray): boolean {
+    return ownedStorage.get(value)?.validity !== undefined;
+}
+
+export function createOwned(
+    cells: RankValue[] | Float64Array | BigInt64Array, shape: readonly number[], scalarOnly: boolean,
+    columnNames?: readonly string[], validity?: Uint32Array,
+): RankArray {
+    const typed = Array.isArray(cells) ? undefined : cells;
+    const items = cells as RankValue[];
+    if (!typed && !scalarOnly) {
+        // Cells with no value are kept beside a numeric buffer, not in it.
+        const found = scanForMissing(items);
+        if (found === 'scalar') scalarOnly = true;
+        else if (found) return createOwned(found.values, shape, false, columnNames, found.validity);
+    }
+    const state: OwnedStorage = {
+        items, typed, validity, shape: [...shape], revision: writeRevision, birth: nextCreationSerial(),
+        scalarOnly: !validity && (typed !== undefined || scalarOnly || items.every(item => typeof item !== 'object')),
+        stable: true, resources: undefined!,
+    };
+    state.resources = new ResourceSummary(() => state.scalarOnly && state.stable);
+    if (!state.scalarOnly && !typed) for (const item of items) state.resources.include(item);
+    const changed = (value: RankValue) => {
+        state.revision = noteMutation(state.birth);
+        state.resources.include(value);
+        state.scalarOnly &&= typeof value !== 'object';
+    };
+    const uncertain = () => {
+        state.revision = noteMutation(state.birth);
+        state.resources.invalidate();
+        state.scalarOnly = false;
+        state.stable = false;
+        state.elementKinds = undefined;
+    };
+    // Non-cell writes (length, new indexes, metadata) cannot update a cell count.
+    const previousCell = (target: RankValue[], key: PropertyKey): RankValue | undefined => {
+        if (!state.elementKinds || typeof key !== 'string') return undefined;
+        const index = Number(key);
+        return Number.isInteger(index) && index >= 0 && index < target.length && String(index) === key
+            ? target[index] : undefined;
+    };
+    const facadeOf = (target: RankValue[]) => new Proxy(target, {
+        set(target, key, value) {
+            const previous = previousCell(target, key);
+            const length = target.length;
+            const success = Reflect.set(target, key, value, target);
+            if (success) {
+                updateScalarKinds(state, previous, value);
+                changed(value);
+            } else if (target.length !== length) {
+                // Shrinking length can delete trailing cells before hitting a
+                // nonconfigurable index and failing. Those deletions still count.
+                state.elementKinds = undefined;
+                state.revision = noteMutation(state.birth);
+            }
+            return success;
+        },
+        defineProperty(target, key, descriptor) {
+            const previous = previousCell(target, key);
+            const length = target.length;
+            const success = Reflect.defineProperty(target, key, descriptor);
+            if (success) {
+                if (descriptor.writable === false) state.readOnlyCells = true;
+                if ('get' in descriptor || 'set' in descriptor) uncertain();
+                else if ('value' in descriptor) {
+                    updateScalarKinds(state, previous, descriptor.value);
+                    changed(descriptor.value);
+                }
+                else state.revision = noteMutation(state.birth);
+            } else if (target.length !== length) {
+                state.elementKinds = undefined;
+                state.revision = noteMutation(state.birth);
+            }
+            return success;
+        },
+        deleteProperty(target, key) {
+            const success = Reflect.deleteProperty(target, key);
+            if (success) {
+                state.elementKinds = undefined;
+                state.revision = noteMutation(state.birth);
+            }
+            return success;
+        },
+        setPrototypeOf(target, prototype) {
+            const success = Reflect.setPrototypeOf(target, prototype);
+            if (success) uncertain();
+            return success;
+        },
+    });
+    const raw = { kind: 'array' as const, items: undefined as unknown as RankValue[], shape: Object.freeze([...shape]),
+        ...(columnNames === undefined ? {} : { columnNames: Object.freeze([...columnNames]) }) };
+    if (typed) {
+        Object.defineProperty(raw, 'items', { configurable: true, enumerable: true, get: () => { state.convert!(); return raw.items; } });
+        state.convert = () => {
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) {
+                diagnostics.typedUnpacks++;
+                diagnostics.typedUnpackedCells += typed.length;
+            }
+            const plain = Array.from(typed as ArrayLike<RankValue>);
+            if (state.validity) {
+                const bits = state.validity;
+                for (let index = 0; index < plain.length; index += 1) {
+                    if (!(bits[index >>> 5] >>> (index & 31) & 1)) plain[index] = MISSING;
+                }
+                state.validity = undefined;
+            }
+            state.items = plain;
+            state.typed = undefined;
+            state.convert = undefined;
+            Object.defineProperty(raw, 'items', { value: facadeOf(plain), writable: true, enumerable: true, configurable: true });
+        };
+    } else {
+        raw.items = facadeOf(items);
+    }
+    const value: RankArray = new Proxy(raw, {
+        set(target, key, replacement) {
+            const success = Reflect.set(target, key, replacement, target);
+            if (success) uncertain();
+            return success;
+        },
+        defineProperty(target, key, descriptor) {
+            const success = Reflect.defineProperty(target, key, descriptor);
+            if (success) uncertain();
+            return success;
+        },
+        deleteProperty(target, key) {
+            const success = Reflect.deleteProperty(target, key);
+            if (success) uncertain();
+            return success;
+        },
+        setPrototypeOf(target, prototype) {
+            const success = Reflect.setPrototypeOf(target, prototype);
+            if (success) uncertain();
+            return success;
+        },
+    });
+    ownedStorage.set(value, state);
+    return state.resources.track(value);
+}
+
+/** Prepare once per compiled region; avoid a WeakMap lookup on each write. */
+export function prepareScalarArrayWriter(value: RankValue | undefined, batch = false): (index: number, item: bigint | boolean | string) => void {
+    const array = value as RankArray;
+    const state = array && borrowedStorage.get(array);
+    if (!state) return (index, item) => { array.items[index] = item; };
+    let changed = false;
+    return (index, item) => {
+        // Batching is allowed only in a compiler-proved region with no lazy
+        // reads or callbacks. Publish before its first write, including errors.
+        if (!batch || !changed) {
+            state.revision = noteMutation(state.birth);
+            changed = true;
+        }
+        // Typed buffers track no kinds, and reading their old cell allocates.
+        if (state.elementKinds) updateScalarKinds(state, state.items[index], item);
+        storeCell(state, index, item);
+    };
+}

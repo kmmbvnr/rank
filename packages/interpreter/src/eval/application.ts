@@ -1,48 +1,36 @@
+import { compileNumericApplication } from './application-numeric.js';
+import { compileSequenceApplication } from './application-sequences.js';
+import { compileStructureApplication } from './application-structures.js';
+import type { ModuleApplication } from './application-module.js';
 import { isPureLazyFunction, snapshotLazyOperand } from '../lazy-function.js';
 import { queryDefault } from '../query-default.js';
 import {
-    lastArrayUseProofs, applicationExpression as applicationParts, applicationForm, assertNever, flattenApplication, isAllAxisExpression,
-    isUnaryExpression, isParenthesizedExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression,
-    renamedBuiltinCall, type LastArrayUseProof, type DeclaredCallExpression, type ApplicationForm, type ArrayItem, type Expression, type Operation,
+    lastArrayUseProofs, applicationExpression as applicationParts, assertNever, flattenApplication,
+    isAllAxisExpression, isUnaryExpression, isParenthesizedExpression, isApplicationExpression,
+    isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression, renamedBuiltinCall,
+    type LastArrayUseProof, type DeclaredCallExpression, type ApplicationForm, type ArrayItem,
+    type Expression, type Operation,
 } from '@arrrank/language';
 import { checkpoint } from '../interrupt.js';
-import { ownedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import {
     runExecution, completed, flatMapResult, mapExecution, mapResult, resume, type Evaluation, type Execution,
 } from '../execution.js';
 import type { FastPaths } from '../fast-paths.js';
 import type { FunctionInvocation } from '../function-invocation.js';
-import { graphConstructor, PredicateGraph, SuccessorGraph } from '../graph.js';
-import { addToCollection, newStructure } from '../collections.js';
-import { pushCollection, RankHeap } from '../containers.js';
-import { dsuFrom } from '../dsu.js';
-import { finiteValues } from '../multiset.js';
 import type { BuiltinRegistry } from '../modules/builtins.js';
-import { fenwickSum, multisetQuery, namedSegment, symbolicSegment } from '../modules/algo.js';
-import { dsuQuery, functionalQuery } from '../modules/graph.js';
-import { diagonal, diagonalOptions, diagonalShape, matmulValues } from '../modules/linalg.js';
-import { shuffleValue } from '../modules/random.js';
-import { directedMerge } from '../modules/sorted-merge.js';
-import {
-    argsortAxis, directedSort, lengthOfAxis, reshapeWithDimensions, reshapeWithShapeRows,
-    sortDescending, sortMode, stackValues, concatValues, transposeValue, uniqueLength,
-    type SortMode,
-} from '../modules/sequences.js';
-import { correlationValue, covarianceValue, errorMetricValue, quantileValue } from '../modules/stats.js';
+import { fenwickSum } from '../modules/algo.js';
+import { uniqueLength } from '../modules/sequences.js';
 import { formattedText } from '../modules/text.js';
 import { type Operators } from '../operators.js';
-import { dyadicCells, type RankApplication } from '../rank-application.js';
+import { type RankApplication } from '../rank-application.js';
 import type { ReductionEvaluator } from '../reduction.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
 import { ALL_AXIS, selectAxis } from '../selectors.js';
-import { shiftValue, windowValue } from '../sequence.js';
 import { safeDimension } from '../tensor-index.js';
 import { callArguments, canApplySelectors, hasField, unpackApplicationItems } from '../value-selection.js';
 import {
-    isNativeFunction, isRankArray, isRankDsu, isRankFenwick, isRankFunctionalGraph, isRankGraph, isRankLabel,
-    isRankMultiset, typeName,
-    type NativeFunction, type RankValue,
+    isNativeFunction, isRankArray, isRankFenwick, isRankLabel, typeName, type NativeFunction, type RankValue,
 } from '../value.js';
 
 /** What evaluating application forms needs from the rest of evaluation. */
@@ -75,6 +63,11 @@ export interface ApplicationContext {
  * and selects from what remains.
  */
 export class ApplicationEvaluator {
+    private readonly moduleApplication: ModuleApplication = {
+        apply: (...args) => this.apply(...args),
+        applyAtRank: (...args) => this.applyAtRank(...args),
+    };
+
     constructor(private readonly context: ApplicationContext) {}
 
     compileDeclaredCall(expression: DeclaredCallExpression, tail: boolean): () => Evaluation<RankValue> {
@@ -180,14 +173,17 @@ export class ApplicationEvaluator {
                     );
                 };
             }
-            case 'segment': {
-                const segment = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('algo', 'segment');
-                    const build = symbolicSegment(segment.operator, context.operators);
-                    return build(yield* resume(context.evaluate(segment.source)));
-                };
-            }
+            case 'segment':
+            case 'new-graph':
+            case 'new-dsu':
+            case 'new-filled':
+            case 'new-heap':
+            case 'named-segment':
+            case 'graph-edges':
+            case 'dsu-method':
+            case 'functional-method':
+            case 'multiset-method':
+                return compileStructureApplication(context, this.moduleApplication, expression, form, missing, tail);
             case 'scan': {
                 const scan = form;
                 if (scan.axis !== undefined) {
@@ -230,75 +226,23 @@ export class ApplicationEvaluator {
                     );
                 };
             }
-            case 'diagonal': {
-                return function* (): Execution<RankValue> {
-                    context.requireModule('linalg', 'diag');
-                    const source = yield* resume(context.evaluate(form.source));
-                    const mode = form.mode ? yield* resume(context.evaluate(form.mode)) : undefined;
-                    const offset = form.offset ? yield* resume(context.evaluate(form.offset)) : undefined;
-                    const options = diagonalOptions(mode, offset);
-                    const fn = context.resolve('diag');
-                    if (!isNativeFunction(fn) || !context.builtins.is('linalg', 'diag', fn)) {
-                        throw new RankError('diag parameters require the standard diag', 'TypeError');
-                    }
-                    const configured = { ...fn,
-                        monadicResultShape: (shape: readonly number[]) => diagonalShape(shape, options.offset),
-                        call: (args: RankValue[]) => diagonal(args[0], options.anti, options.offset) };
-                    return yield* resume(form.rank !== undefined
-                        ? application.applyAtRank([source, configured], form.rank, form.axes)
-                        : context.rankApplication.applyIntrinsicRank(configured, [source]));
-                };
-            }
-            case 'sort-direction': {
-                const sortDirection = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('sequences', 'sort direction');
-                    const all = flattenApplication(expression);
-                    let labelStart = all.length;
-                    while (labelStart > 1 && isLabelLiteral(all[labelStart - 1])) labelStart--;
-                    // `Values sort .indexes .descending`: the labels may come in either order.
-                    const labels = labelStart < all.length ? all.slice(labelStart)
-                        : [sortDirection.direction];
-                    const parts = labelStart < all.length ? all.slice(0, labelStart) : all.slice(0, -1);
-                    const inner = applicationForm(parts, name => context.operationOf(name));
-                    if (inner.kind === 'invalid') throw new RankError(inner.message);
-                    const axis = inner.kind === 'axis-argsort' ? inner : undefined;
-                    const ranked = inner.kind === 'rank' ? inner : undefined;
-                    const name = sortDirection.operation.name;
-                    if (name !== 'sort' && name !== 'argsort' && name !== 'merge') {
-                        throw new RankError('direction must follow sort, argsort or merge', 'TypeError');
-                    }
-                    const fn = context.resolve(name);
-                    if (!context.builtins.is('sequences', name, fn) || !isNativeFunction(fn)) {
-                        throw new RankError('direction requires the standard sort, argsort or merge', 'TypeError');
-                    }
-                    let descending: boolean | undefined;
-                    let mode: SortMode | undefined;
-                    for (const label of labels) {
-                        const value = yield* resume(context.evaluate(label));
-                        const picked = sortMode(value);
-                        if (picked) {
-                            if (mode) throw new RankError('sort accepts one of .indexes and .indexed', 'TypeError');
-                            if (name !== 'sort') throw new RankError(`argsort does not accept .${picked}`, 'TypeError');
-                            mode = picked;
-                        } else {
-                            if (descending !== undefined) throw new RankError(`${name} direction given twice`, 'TypeError');
-                            descending = sortDescending(value, name);
-                        }
-                    }
-                    if (name === 'merge') {
-                        if (mode || ranked || axis) throw new RankError('merge accepts only a direction label', 'TypeError');
-                        const operands = yield* resume(mapExecution(parts.slice(0, -1), part => context.evaluate(part)));
-                        return yield* resume(context.rankApplication.applyIntrinsicRank(directedMerge(fn, descending ?? false), operands));
-                    }
-                    if (axis) return argsortAxis(yield* resume(context.evaluate(axis.source)), axis.axis, descending ?? false);
-                    const source = yield* resume(context.evaluate(applicationParts((ranked?.parts ?? parts).slice(0, -1))));
-                    const directed = directedSort(fn, name, descending ?? false, mode);
-                    return yield* resume(ranked
-                        ? application.applyAtRank([source, directed], ranked.rank, ranked.axes)
-                        : context.rankApplication.applyIntrinsicRank(directed, [source]));
-                };
-            }
+            case 'diagonal':
+            case 'axis-matmul':
+            case 'axis-covariance':
+            case 'axis-correlation':
+            case 'axis-quantile':
+            case 'axis-metric':
+            case 'axis-shuffle':
+                return compileNumericApplication(context, this.moduleApplication, form);
+            case 'sort-direction':
+            case 'reshape':
+            case 'array-combine-constructor':
+            case 'window':
+            case 'axis-shift':
+            case 'axis-length':
+            case 'axis-argsort':
+            case 'axis-transpose':
+                return compileSequenceApplication(context, this.moduleApplication, expression, form, missing, tail);
 
             case 'unpack': {
                 return function* (): Execution<RankValue> {
@@ -314,135 +258,6 @@ export class ApplicationEvaluator {
                         }
                     }
                     return yield* resume(application.apply(values, missing, 0, [], tail));
-                };
-            }
-            case 'reshape': {
-                return function* (): Execution<RankValue> {
-                    context.requireModule('sequences', 'reshape');
-                    const source = yield* resume(context.evaluate(form.source));
-                    let result: RankValue;
-                    if (form.dimensions.length === 1 && isUnpackExpression(form.dimensions[0])) {
-                        const value = yield* resume(context.evaluate(form.dimensions[0].value));
-                        result = isRankArray(value) && value.shape.length === 2
-                            ? reshapeWithShapeRows(source, value)
-                            : reshapeWithDimensions(source, unpackApplicationItems(value));
-                    } else {
-                        const dimensions: (RankValue | undefined)[] = [];
-                        for (const part of form.dimensions) {
-                            if (isUnpackExpression(part)) {
-                                const value = yield* resume(context.evaluate(part.value));
-                                dimensions.push(...unpackApplicationItems(value));
-                            } else dimensions.push(isAllAxisExpression(part) ? undefined : yield* resume(context.evaluate(part)));
-                        }
-                        result = reshapeWithDimensions(source, dimensions);
-                    }
-                    if (!form.rest.length) return result;
-                    const rest = yield* resume(mapExecution(form.rest, part => context.evaluate(part)));
-                    return yield* resume(application.apply([result, ...rest], missing, 0, [], tail));
-                };
-            }
-            case 'new-graph': {
-                return function* (): Execution<RankValue> {
-                    context.requireModule('graph', 'new graph');
-                    if (form.predicate || form.successor) {
-                        const domain = form.domain ? yield* resume(context.evaluate(form.domain)) : undefined;
-                        let callback = (form.predicate ?? form.successor)!;
-                        while (isParenthesizedExpression(callback)) callback = callback.value;
-                        const predicate = isNameExpression(callback) ? context.resolve(callback.name)
-                            : yield* resume(context.evaluate(callback));
-                        const direction = yield* resume(context.evaluate(form.direction!));
-                        if (!isNativeFunction(predicate)) throw new RankError(form.successor ? 'graph successor expects a function' : 'graph predicate expects a function');
-                        if (form.successor) return new SuccessorGraph(direction, predicate, vertex =>
-                            runExecution(context.functions.invoke(predicate, [vertex])));
-                        return new PredicateGraph(domain!, direction, predicate, (left, right) =>
-                            runExecution(context.functions.invoke(predicate, [left, right])));
-                    }
-                    const constructor = graphConstructor();
-                    if (!isNativeFunction(constructor)) {
-                        throw new RankError('invalid graph constructor');
-                    }
-                    const arguments_ = yield* resume(mapExecution(
-                        parts.slice(1),
-                        part => context.evaluate(part),
-                    ));
-                    return constructor.call(arguments_);
-                };
-            }
-            case 'new-dsu': {
-                if (parts.length !== 2) throw new RankError('new dsu expects one collection');
-                return function* (): Execution<RankValue> {
-                    context.requireModule('graph', 'new dsu');
-                    return dsuFrom(yield* resume(context.evaluate(parts[1])));
-                };
-            }
-            case 'new-filled': {
-                const structure = form.structure;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('algo', 'new');
-                    const filled = newStructure(structure);
-                    const items = yield* resume(context.evaluate(parts[1]));
-                    for (const item of finiteValues(items)) {
-                        if (['queue', 'stack', 'deque', 'heap'].includes(structure)) pushCollection(filled, item);
-                        else addToCollection(filled, item);
-                    }
-                    return filled;
-                };
-            }
-            case 'new-heap': {
-                const heapForm = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('algo', 'new');
-                    const direction = heapForm.direction && (yield* resume(context.evaluate(heapForm.direction)));
-                    if (direction !== undefined && (!isRankLabel(direction)
-                        || !['ascending', 'descending'].includes(direction.name))) {
-                        throw new RankError('heap direction must be .ascending or .descending', 'TypeError');
-                    }
-                    const heap = new RankHeap(direction !== undefined && direction.name === 'descending');
-                    const priorities = heapForm.priorities && (yield* resume(context.evaluate(heapForm.priorities)));
-                    const values = heapForm.values && (yield* resume(context.evaluate(heapForm.values)));
-                    if (priorities !== undefined) {
-                        if (!isRankArray(priorities) || priorities.shape.length !== 1
-                            || values === undefined || !isRankArray(values) || values.shape.length < 1) {
-                            throw new RankError('new heap priorities must be a vector and values must be an array', 'DimensionMismatch');
-                        }
-                        if (priorities.shape[0] !== values.shape[0]) {
-                            throw new RankError('heap priorities and values must have the same length', 'DimensionMismatch');
-                        }
-                        const cells = dyadicCells(values, values.shape.length - 1);
-                        const payloads = Array.from({ length: values.shape[0] }, (_, index) => cells.cellAt(index));
-                        return heap.fill([...finiteValues(priorities)], payloads);
-                    }
-                    if (values !== undefined) {
-                        const items = [...finiteValues(values)];
-                        return heap.fill(items, items);
-                    }
-                    return heap;
-                };
-            }
-            case 'array-combine-constructor': {
-                const constructor = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('sequences', constructor.operation);
-                    const items: RankValue[] = [];
-                    for (const item of constructor.items) {
-                        if (isUnpackExpression(item)) {
-                            const source = yield* resume(context.evaluate(item.value));
-                            items.push(...unpackApplicationItems(source));
-                        } else {
-                            items.push(yield* resume(context.evaluate(item)));
-                        }
-                    }
-                    const axisValue = constructor.axis && (yield* resume(context.evaluate(constructor.axis)));
-                    if (axisValue !== undefined && (typeof axisValue !== 'bigint' || axisValue < 0n
-                        || axisValue > BigInt(Number.MAX_SAFE_INTEGER))) {
-                        throw new RankError(`${constructor.operation} axis expects a nonnegative integer`, 'TypeError');
-                    }
-                    const axis = axisValue === undefined ? 0 : Number(axisValue);
-                    const combined = constructor.operation === 'stack'
-                        ? stackValues(items, axis) : concatValues(items, axis);
-                    if (!constructor.rest.length) return combined;
-                    const rest = yield* resume(mapExecution(constructor.rest, part => context.evaluate(part)));
-                    return yield* resume(application.apply([combined, ...rest], missing, 0, [], tail));
                 };
             }
             case 'named-outer': {
@@ -483,49 +298,6 @@ export class ApplicationEvaluator {
                     return yield* resume(application.applyAtRank([source, operation], explicitRank.rank, explicitRank.axes));
                 };
             }
-            case 'axis-matmul': {
-                const axisMatmul = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('linalg', 'matmul');
-                    return matmulValues(
-                        (yield* resume(context.evaluate(axisMatmul.left))),
-                        (yield* resume(context.evaluate(axisMatmul.right))),
-                        axisMatmul.axes,
-                    );
-                };
-            }
-            case 'axis-covariance': {
-                const axisCovariance = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('stats', 'covariance');
-                    return covarianceValue(
-                        (yield* resume(context.evaluate(axisCovariance.source))),
-                        axisCovariance.axes,
-                    );
-                };
-            }
-            case 'axis-correlation': {
-                const axisCorrelation = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('stats', axisCorrelation.name);
-                    return correlationValue(
-                        (yield* resume(context.evaluate(axisCorrelation.source))),
-                        axisCorrelation.axes,
-                    );
-                };
-            }
-            case 'axis-quantile': {
-                const axisQuantile = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('stats', axisQuantile.isPercentile ? 'percentile' : 'quantile');
-                    return quantileValue(
-                        (yield* resume(context.evaluate(axisQuantile.source))),
-                        (yield* resume(context.evaluate(axisQuantile.q))),
-                        axisQuantile.axes,
-                        axisQuantile.isPercentile,
-                    );
-                };
-            }
             case 'text-format': {
                 const textFormat = form.position;
                 const format = parts[textFormat + 1];
@@ -540,82 +312,6 @@ export class ApplicationEvaluator {
                     return remaining.length ? yield* resume(application.apply([result, ...remaining], missing, 0, [], tail)) : result;
                 };
             }
-            case 'window': {
-                const window = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('sequences', 'window');
-                    const source = yield* resume(context.evaluate(window.source));
-                    const dimensions: RankValue[] = [];
-                    for (const part of window.dimensions) {
-                        if (isUnpackExpression(part)) {
-                            dimensions.push(...unpackApplicationItems(yield* resume(context.evaluate(part.value))));
-                        } else dimensions.push(yield* resume(context.evaluate(part)));
-                    }
-                    const size = window.dimensions.length === 1 && !isUnpackExpression(window.dimensions[0])
-                        ? dimensions[0] : ownedArray(dimensions);
-                    const result = windowValue(source, size, window.axes,
-                        window.stride ? (yield* resume(context.evaluate(window.stride))) : undefined,
-                        window.padding ? (yield* resume(context.evaluate(window.padding))) : undefined,
-                        window.fill ? (yield* resume(context.evaluate(window.fill))) : undefined, window.wrap);
-                    if (!window.rest.length) return result;
-                    const rest = yield* resume(mapExecution(window.rest, part => context.evaluate(part)));
-                    return yield* resume(application.apply([result, ...rest], missing, 0, [], tail));
-                };
-            }
-            case 'axis-shift': {
-                const axisShift = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('sequences', 'shift');
-                    return shiftValue(
-                        (yield* resume(context.evaluate(axisShift.source))),
-                        (yield* resume(context.evaluate(axisShift.amount))),
-                        axisShift.fill
-                            ? (yield* resume(context.evaluate(axisShift.fill)))
-                            : undefined,
-                        axisShift.axis,
-                    );
-                };
-            }
-            case 'axis-shuffle': {
-                const axisShuffle = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('random', 'shuffle');
-                    return shuffleValue(
-                        (yield* resume(context.evaluate(axisShuffle.source))),
-                        axisShuffle.seed ? (yield* resume(context.evaluate(axisShuffle.seed))) : undefined,
-                        axisShuffle.axis,
-                        context.random,
-                    );
-                };
-            }
-            case 'axis-length': {
-                const axisLength = form;
-                return function* (): Execution<RankValue> {
-                    return lengthOfAxis((yield* resume(context.evaluate(axisLength.source))), axisLength.axis);
-                };
-            }
-            case 'axis-argsort': {
-                const axisArgsort = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('sequences', 'argsort');
-                    return argsortAxis(
-                        (yield* resume(context.evaluate(axisArgsort.source))),
-                        axisArgsort.axis,
-                    );
-                };
-            }
-            case 'axis-metric': {
-                const axisMetric = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('stats', axisMetric.metric);
-                    return errorMetricValue(
-                        (yield* resume(context.evaluate(axisMetric.left))),
-                        (yield* resume(context.evaluate(axisMetric.right))),
-                        axisMetric.metric,
-                        axisMetric.axes,
-                    );
-                };
-            }
             case 'axis-reduction': {
                 const axisReduction = form;
                 const axes = axisReduction.axes.map(axis =>
@@ -628,27 +324,6 @@ export class ApplicationEvaluator {
                         (yield* resume(context.evaluate(axisReduction.source))),
                         axes,
                     );
-                };
-            }
-            case 'axis-transpose': {
-                const axisTranspose = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('sequences', 'transpose');
-                    return transposeValue(
-                        (yield* resume(context.evaluate(axisTranspose.source))),
-                        axisTranspose.axes,
-                    );
-                };
-            }
-            case 'named-segment': {
-                const segment = form;
-                return function* (): Execution<RankValue> {
-                    context.requireModule('algo', 'segment');
-                    const source = yield* resume(context.evaluate(segment.source));
-                    const identity = segment.identity
-                        ? yield* resume(context.evaluate(segment.identity)) : undefined;
-                    const operation = yield* resume(context.evaluate(segment.operation));
-                    return namedSegment(source, operation, identity, context.builtins.standard('algo', 'maxsum'));
                 };
             }
             case 'repeat': {
@@ -712,129 +387,6 @@ export class ApplicationEvaluator {
                         axisSelection.axis,
                         (yield* resume(context.evaluate(axisSelection.selector))),
                     );
-                };
-            }
-            case 'graph-edges': {
-                const graphEdges = form;
-                return function* (): Execution<RankValue> {
-                    const receiver = yield* resume(context.evaluate(
-                        graphEdges.receiver,
-                    ));
-                    const argument = yield* resume(context.evaluate(
-                        graphEdges.argument,
-                    ));
-                    if (isRankGraph(receiver)) {
-                        context.requireModule('graph', 'edges');
-                        return receiver.edges(argument);
-                    }
-                    const operation = yield* resume(context.evaluate(
-                        graphEdges.operation,
-                    ));
-                    return yield* resume(application.apply(
-                        [receiver, argument, operation],
-                        missing,
-                        0,
-                        [],
-                        tail,
-                    ));
-                };
-            }
-            case 'dsu-method': {
-                const dsuMethod = form;
-                return function* (): Execution<RankValue> {
-                    const receiver = yield* resume(context.evaluate(dsuMethod.receiver));
-                    const arguments_ = yield* resume(mapExecution(
-                        dsuMethod.arguments,
-                        argument => context.evaluate(argument),
-                    ));
-                    if (isRankDsu(receiver)) {
-                        context.requireModule('graph', dsuMethod.operation);
-                        if (dsuMethod.operation === 'findroot' && isRankArray(arguments_[0])) {
-                                // One representative per queried value, in the shape of the queries.
-                                const operation = yield* resume(context.evaluate(dsuMethod.operationExpression));
-                            if (isNativeFunction(operation)) {
-                                return yield* resume(context.rankApplication.applyDyadicAtRank(
-                                    receiver, arguments_[0], operation,
-                                ));
-                            }
-                        }
-                        return dsuQuery(receiver, dsuMethod.operation, arguments_);
-                    }
-                    const operation = yield* resume(context.evaluate(dsuMethod.operationExpression));
-                    return yield* resume(application.apply(
-                        [receiver, ...arguments_, operation], missing, 0, [], tail,
-                    ));
-                };
-            }
-            case 'functional-method': {
-                const functionalMethod = form;
-                return function* (): Execution<RankValue> {
-                    const receiver = yield* resume(context.evaluate(
-                        functionalMethod.receiver,
-                    ));
-                    const arguments_ = yield* resume(mapExecution(
-                        functionalMethod.arguments,
-                        argument => context.evaluate(argument),
-                    ));
-                    if (isRankFunctionalGraph(receiver)) {
-                        context.requireModule('graph', functionalMethod.operation);
-                        return functionalQuery(receiver, functionalMethod.operation, arguments_);
-                    }
-                    const operation = yield* resume(context.evaluate(
-                        functionalMethod.operationExpression,
-                    ));
-                    return yield* resume(application.apply(
-                        [receiver, ...arguments_, operation], missing, 0, [], tail,
-                    ));
-                };
-            }
-            case 'multiset-method': {
-                const multisetMethod = form;
-                return function* (): Execution<RankValue> {
-                    const receiverParts = yield* resume(mapExecution(
-                        multisetMethod.receiver,
-                        part => context.evaluate(part),
-                    ));
-                    const argumentParts = yield* resume(mapExecution(
-                        multisetMethod.argument,
-                        part => context.evaluate(part),
-                    ));
-                    const receiverValue = receiverParts.length === 1
-                        ? receiverParts[0]
-                        : yield* resume(application.apply(receiverParts));
-                    const argumentValue = argumentParts.length === 1
-                        ? argumentParts[0]
-                        : yield* resume(application.apply(argumentParts));
-                    if (isRankMultiset(receiverValue)) {
-                        context.requireModule('algo', multisetMethod.operation);
-                        if (missing && multisetMethod.operation === 'floor') {
-                            const result = queryDefault('floor', receiverValue, argumentValue);
-                            if (result !== undefined) return result;
-                        }
-                        if (isRankArray(argumentValue)) {
-                            // Many queries against one structure: the operation's intrinsic ranks
-                            // split the queries into scalar cells.
-                            const operation = yield* resume(context.evaluate(
-                                parts[multisetMethod.receiver.length],
-                            ));
-                            if (isNativeFunction(operation)) {
-                                return yield* resume(context.rankApplication.applyDyadicAtRank(
-                                    receiverValue, argumentValue, operation,
-                                ));
-                            }
-                        }
-                        return multisetQuery(receiverValue, multisetMethod.operation, argumentValue);
-                    }
-                    const operation = yield* resume(context.evaluate(
-                        parts[multisetMethod.receiver.length],
-                    ));
-                    return yield* resume(application.apply(
-                        [receiverValue, argumentValue, operation],
-                        missing,
-                        0,
-                        [],
-                        tail,
-                    ));
                 };
             }
             case 'plain': {

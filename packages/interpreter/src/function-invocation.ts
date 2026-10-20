@@ -1,11 +1,18 @@
+import {
+    functionArgumentBinder, functionReturnSpecializations, memoizedFunctionBody, memoCallKey,
+} from './function-definition.js';
 import { membershipLookup } from './membership-lookup.js';
 import { isPureLazyFunction } from './lazy-function.js';
 import { compiledIntegerMembership } from './integer-membership.js';
 import { compiledCalleeTypeKey, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { AstNode } from 'langium';
 import {
-    functionScope, lazyFunctionFailure, lazyBuiltinDependencies, lexicalBinding, findOperation, writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan, groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects, isReturnStatement,
-    type LastArrayUseProof, type FunctionCallSignature, type CallRequirement, type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement, type Program, type Statement, type ValueFacts,
+    functionScope, lazyFunctionFailure, lazyBuiltinDependencies, lexicalBinding, findOperation,
+    writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan,
+    groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects,
+    isReturnStatement, type LastArrayUseProof, type FunctionCallSignature, type CallRequirement,
+    type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement,
+    type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { isFlatScalarArray, arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
@@ -15,7 +22,9 @@ import { ReturnSignal, TailCallSignal, type PreparedScalarCall } from './control
 import type { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
 import { effectiveEnvironment, withEnvironment } from './environment.js';
-import { ExecutionStack, completed, mapResult, resume, runExecution, type Evaluation, type Execution } from './execution.js';
+import {
+    ExecutionStack, completed, mapResult, resume, runExecution, type Evaluation, type Execution,
+} from './execution.js';
 import { CallSpecializations } from './call-specializations.js';
 import { LocalFrame } from './frame.js';
 import { FunctionFrames } from './function-frame.js';
@@ -24,7 +33,7 @@ import { checkpoint, inspectionEnabled } from './interrupt.js';
 import { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
-import { ReturnContract, argumentRankSignature } from './return-contract.js';
+import { ReturnContract } from './return-contract.js';
 import { compiledArgumentType } from './compiled-argument-type.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
 import { compileMembershipFunction, type RankedMembership } from './membership-function.js';
@@ -34,8 +43,8 @@ import { prepareCompiledBuiltin } from './typed-native.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
 import {
-    MISSING, formatValue, isNativeFunction, isRankArray, isRankDate, isRankLabel,
-    type NativeFunction, type RankArray, type RankFile, type RankSequence, type RankValue,
+    MISSING, isNativeFunction, isRankArray, isRankDate, isRankLabel, type NativeFunction, type RankArray,
+    type RankFile, type RankSequence, type RankValue,
 } from './value.js';
 
 /** A user function as its call sites see it. `owner` tells this interpreter's functions from a module child's. */
@@ -344,77 +353,15 @@ export class FunctionInvocation {
             try { return compiled(); }
             catch (error) { throw this.host.locate(error, only!); }
         } : undefined;
-        const proof = this.host.scalarEntry(statement, generator);
-        const scalar = proof ? this.prepareScalarCall(statement, context, undefined, proof.loops) : undefined;
-        const instances = new CallSpecializations<ReturnContract>();
-        const returnRanks = new Map<string, { rank?: number }>();
-        const specialization = (arguments_: RankValue[]): ReturnContract => {
-            let instance = instances.get(arguments_);
-            if (!instance) {
-                const rankKey = argumentRankSignature(arguments_);
-                let rank = returnRanks.get(rankKey);
-                if (!rank) returnRanks.set(rankKey, rank = {});
-                instances.set(arguments_, instance = new ReturnContract(statement.name, rank));
-            }
-            return instance;
-        };
-        const typedEntries = new CallSpecializations<{
-            readonly locals: readonly string[]; readonly call: PreparedScalarCall;
-        } | null>();
-        const selectScalar = (arguments_: RankValue[]): PreparedScalarCall | undefined => {
-            if (inspectionEnabled() || arguments_.length !== signature.arity) return undefined;
-            let call = scalar, locals = proof?.locals;
-            if (!arguments_.every(value => typeof value === 'bigint')) {
-                let types: CompiledFunctionType[] | undefined;
-                if (arguments_.some(value => typeof value === 'object')) {
-                    // Keep ordinary container calls allocation-free when the
-                    // first object is not eligible array storage.
-                    if (arguments_.some(value => typeof value === 'object' && !compiledArgumentType(value))) return undefined;
-                    const guarded = arguments_.map(compiledArgumentType);
-                    if (!guarded.every((type): type is CompiledFunctionType => type !== undefined)) return undefined;
-                    types = guarded;
-                } else if (arguments_.some(value => typeof value !== 'bigint' && typeof value !== 'number'
-                    && typeof value !== 'boolean' && typeof value !== 'string')) return undefined;
-                let entry = typedEntries.get(arguments_);
-                if (entry === undefined) {
-                    types ??= arguments_.map(value => compiledArgumentType(value)!);
-                    const typedProof = this.host.scalarEntry(statement, generator, types);
-                    const typedCall = typedProof ? this.prepareScalarCall(statement, context, types, typedProof.loops) : undefined;
-                    entry = typedCall ? { locals: typedProof!.locals, call: typedCall } : null;
-                    typedEntries.set(arguments_, entry);
-                }
-                call = entry?.call;
-                locals = entry?.locals;
-            }
-            return call && !locals!.some(name => context?.find(name))
-                && (!call.available || call.available()) ? call : undefined;
-        };
+        const { specialization, returnRanks } = functionReturnSpecializations(statement.name);
+        const selectScalar = this.scalarEntrySelector(statement, context, generator, signature.arity);
         const membership = !generator && !statement.memo ? compileMembershipFunction(statement) : undefined;
         const distinct = !generator && !statement.memo ? compileDistinctFunction(statement) : undefined;
         const arrayFunction = membership ?? distinct;
         const body = (arguments_: RankValue[]): Evaluation<RankValue> => {
             if (this.frames.hasTransfers(arguments_)) return this.callFunction(statement, arguments_, context);
-            if (arrayFunction && !inspectionEnabled() && this.options().arrayFunctionCompilation !== false
-                && this.options().tensorFusion !== false && this.modules.has('sequences')
-                && !arrayFunction.locals.some(name => context?.find(name))
-                && (!distinct || ['unique', 'len'].every(name => {
-                    const value = context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
-                    return value !== undefined && this.builtins.is(name === 'unique' ? 'sequences' : 'core', name, value);
-                }))) {
-                const fused = arrayFunction.prepare(arguments_, name => context?.lookup(name) ?? this.bindings.globals.get(name));
-                if (fused) {
-                    if (this.depth >= this.maxDepth) throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
-                    this.depth++;
-                    try {
-                        const diagnostics = currentDiagnostics();
-                        if (diagnostics) diagnostics.compiledArrayFunctions++;
-                        return completed(fused());
-                    } catch (error) {
-                        if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
-                        throw this.host.locate(error, statement);
-                    } finally { this.depth--; }
-                }
-            }
+            const fused = arrayFunction && this.tryArrayFunction(statement, arguments_, context, arrayFunction, distinct);
+            if (fused) return fused;
             const selected = selectScalar(arguments_);
             if (selected) return completed(selected(arguments_));
             return direct ? completed(this.callDirectFunction(statement, arguments_, context, direct))
@@ -432,50 +379,8 @@ export class FunctionInvocation {
             const run = () => mapResult(body(arguments_), value => checkReturn(contract, arguments_, value));
             return this.host.inputs ? this.host.inputs.call(statement, inputRequirement, run) : run();
         };
-        // Only successful, validated returns enter the closure's memo cache.
-        const cache = statement.memo ? new Map<MemoKey, RankValue>() : undefined;
-        const memoMiss = cache ? (arguments_: RankValue[], key: MemoKey, inputRequirement?: CallRequirement): Evaluation<RankValue> => {
-            const diagnostics = currentDiagnostics();
-            if (diagnostics) diagnostics.memoMisses++;
-            return mapResult(checkedBody(arguments_, inputRequirement), value => {
-                memoValueKey(value);
-                cache.set(key, value);
-                return value;
-            });
-        } : undefined;
-        const cachedMemoValue = cache ? (key: MemoKey): RankValue | undefined => {
-            const value = cache.get(key);
-            const diagnostics = currentDiagnostics();
-            if (value !== undefined && diagnostics) diagnostics.memoHits++;
-            return value;
-        } : undefined;
-        const executeBound = cache && memoMiss ? (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> => {
-            const key = memoCallKey(arguments_, signature.arity);
-            const cached = cachedMemoValue!(key);
-            if (cached !== undefined) return completed(cached);
-            return memoMiss(arguments_, key, inputRequirement);
-        } : checkedBody;
-        const defaults = signature.words.map(word => word.defaultValue
-            ? this.host.compileDirect(word.defaultValue)! : () => MISSING);
-        const bindArguments = (arguments_: RankValue[]): RankValue[] => {
-            const required = signature.leftCount + signature.rightParameters.length;
-            if (arguments_.length !== required && arguments_.length !== signature.arity) {
-                throw new RankError(`${statement.name} expects ${required} arguments, got ${arguments_.length}`);
-            }
-            let bound = arguments_;
-            for (const [i, word] of signature.words.entries()) {
-                if (bound[word.parameter] === undefined || bound[word.parameter] === MISSING) {
-                    if (bound === arguments_) bound = [...arguments_];
-                    bound[word.parameter] = defaults[i]();
-                }
-            }
-            for (const parameter of signature.rightParameters) {
-                if (parameter.kind === 'function' && !isNativeFunction(bound[parameter.index])) {
-                    throw new RankError(`${parameter.name} expects a function`, 'TypeError');
-                }
-            }
-            return bound;
-        };
+        const { executeBound, memoMiss, cachedMemoValue } = memoizedFunctionBody(statement.memo, signature.arity, checkedBody);
+        const bindArguments = functionArgumentBinder(statement.name, signature, value => this.host.compileDirect(value));
         const execute = signature.words.length || signature.rightParameters.some(parameter => parameter.kind === 'function')
             ? (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> =>
                 executeBound(bindArguments(arguments_), inputRequirement)
@@ -521,27 +426,7 @@ export class FunctionInvocation {
         };
         this.sources.set(fn, statement);
         functionDeclarations.set(fn, { owner: this, statement, context });
-        if (membership) {
-            const originalCall = fn.call;
-            const enabled = () => !inspectionEnabled() && fn.call === originalCall
-                && this.options().arrayFunctionCompilation !== false && this.options().tensorFusion !== false
-                && this.options().rankedArrayCompilation !== false && this.modules.has('sequences')
-                && this.depth < this.maxDepth && !membership.locals.some(name => context?.find(name));
-            const lookup = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name);
-            arrayBatches.set(fn, (source, axes) => {
-                if (!enabled()) return undefined;
-                const captureValues = membership.captures.map(lookup);
-                const captures = captureValues.map(value => ({ value, revision: value && isRankArray(value) ? arrayRevision(value) : undefined }));
-                const revision = arrayRevision(source);
-                const kernel = membership.prepareRanked(source, axes, lookup);
-                if (!kernel) return undefined;
-                return { ...kernel, available: () => enabled() && arrayRevision(source) === revision
-                    && membership.captures.every((name, i) => {
-                        const value = lookup(name), old = captures[i];
-                        return value === old.value && (!value || !isRankArray(value) || arrayRevision(value) === old.revision);
-                    }) };
-            });
-        }
+        if (membership) this.registerRankedMembership(fn, membership, context);
         if (!generator) {
             functionExecutions.set(fn, execute);
             // A memo call must return through its cache writer. Do not bypass it
@@ -549,7 +434,7 @@ export class FunctionInvocation {
             if (!statement.memo) functionDefinitions.set(fn, { owner: this, statement, context, direct, specialization });
             // Hits already passed the return contract. Misses retain the same
             // execution stack, validation and cache writer as ordinary calls.
-            if (cache && memoMiss && this.options().scalarFunctionCompilation !== false
+            if (memoMiss && this.options().scalarFunctionCompilation !== false
                 && this.options().scalarEntryCompilation !== false) scalarCallbacks.set(fn, arguments_ => {
                 const key = memoCallKey(arguments_, signature.arity);
                 const cached = cachedMemoValue!(key);
@@ -587,6 +472,93 @@ export class FunctionInvocation {
         this.bindings.assign(statement.name, fn);
         if (constant) this.bindings.lockFunction(statement.name);
         return fn;
+    }
+
+    /** Enters a synthesized array function only while its bindings and modules still match. */
+    private tryArrayFunction(statement: FunctionStatement, arguments_: RankValue[], context: LocalFrame | undefined,
+        arrayFunction: ReturnType<typeof compileMembershipFunction> | ReturnType<typeof compileDistinctFunction>,
+        distinct: ReturnType<typeof compileDistinctFunction>): Evaluation<RankValue> | undefined {
+        if (arrayFunction && !inspectionEnabled() && this.options().arrayFunctionCompilation !== false
+            && this.options().tensorFusion !== false && this.modules.has('sequences')
+            && !arrayFunction.locals.some(name => context?.find(name))
+            && (!distinct || ['unique', 'len'].every(name => {
+                const value = context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
+                return value !== undefined && this.builtins.is(name === 'unique' ? 'sequences' : 'core', name, value);
+            }))) {
+            const fused = arrayFunction.prepare(arguments_, name => context?.lookup(name) ?? this.bindings.globals.get(name));
+            if (fused) {
+                if (this.depth >= this.maxDepth) throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
+                this.depth++;
+                try {
+                    const diagnostics = currentDiagnostics();
+                    if (diagnostics) diagnostics.compiledArrayFunctions++;
+                    return completed(fused());
+                } catch (error) {
+                    if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
+                    throw this.host.locate(error, statement);
+                } finally { this.depth--; }
+            }
+        }
+        return undefined;
+    }
+
+    private registerRankedMembership(fn: NativeFunction, membership: NonNullable<ReturnType<typeof compileMembershipFunction>>, context: LocalFrame | undefined): void {
+        const originalCall = fn.call;
+        const enabled = () => !inspectionEnabled() && fn.call === originalCall
+            && this.options().arrayFunctionCompilation !== false && this.options().tensorFusion !== false
+            && this.options().rankedArrayCompilation !== false && this.modules.has('sequences')
+            && this.depth < this.maxDepth && !membership.locals.some(name => context?.find(name));
+        const lookup = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name);
+        arrayBatches.set(fn, (source, axes) => {
+            if (!enabled()) return undefined;
+            const captureValues = membership.captures.map(lookup);
+            const captures = captureValues.map(value => ({ value, revision: value && isRankArray(value) ? arrayRevision(value) : undefined }));
+            const revision = arrayRevision(source);
+            const kernel = membership.prepareRanked(source, axes, lookup);
+            if (!kernel) return undefined;
+            return { ...kernel, available: () => enabled() && arrayRevision(source) === revision
+                && membership.captures.every((name, i) => {
+                    const value = lookup(name), old = captures[i];
+                    return value === old.value && (!value || !isRankArray(value) || arrayRevision(value) === old.revision);
+                }) };
+        });
+    }
+
+    /** Selects per-argument scalar entries without retaining invocation frames. */
+    private scalarEntrySelector(statement: FunctionStatement, context: LocalFrame | undefined, generator: boolean, arity: number) {
+        const proof = this.host.scalarEntry(statement, generator);
+        const scalar = proof ? this.prepareScalarCall(statement, context, undefined, proof.loops) : undefined;
+        const typedEntries = new CallSpecializations<{
+            readonly locals: readonly string[]; readonly call: PreparedScalarCall;
+        } | null>();
+        return (arguments_: RankValue[]): PreparedScalarCall | undefined => {
+            if (inspectionEnabled() || arguments_.length !== arity) return undefined;
+            let call = scalar, locals = proof?.locals;
+            if (!arguments_.every(value => typeof value === 'bigint')) {
+                let types: CompiledFunctionType[] | undefined;
+                if (arguments_.some(value => typeof value === 'object')) {
+                    // Keep ordinary container calls allocation-free when the
+                    // first object is not eligible array storage.
+                    if (arguments_.some(value => typeof value === 'object' && !compiledArgumentType(value))) return undefined;
+                    const guarded = arguments_.map(compiledArgumentType);
+                    if (!guarded.every((type): type is CompiledFunctionType => type !== undefined)) return undefined;
+                    types = guarded;
+                } else if (arguments_.some(value => typeof value !== 'bigint' && typeof value !== 'number'
+                    && typeof value !== 'boolean' && typeof value !== 'string')) return undefined;
+                let entry = typedEntries.get(arguments_);
+                if (entry === undefined) {
+                    types ??= arguments_.map(value => compiledArgumentType(value)!);
+                    const typedProof = this.host.scalarEntry(statement, generator, types);
+                    const typedCall = typedProof ? this.prepareScalarCall(statement, context, types, typedProof.loops) : undefined;
+                    entry = typedCall ? { locals: typedProof!.locals, call: typedCall } : null;
+                    typedEntries.set(arguments_, entry);
+                }
+                call = entry?.call;
+                locals = entry?.locals;
+            }
+            return call && !locals!.some(name => context?.find(name))
+                && (!call.available || call.available()) ? call : undefined;
+        };
     }
 
     /**
@@ -929,29 +901,4 @@ export class FunctionInvocation {
         const source = sequence({ ...plan, singlePass: true });
         return this.options().wrapSinglePassSequence?.(source) ?? source;
     }
-}
-
-type MemoKey = string | bigint | number | boolean | symbol;
-const memoNegativeZero = Symbol('memo negative zero');
-
-function memoCallKey(arguments_: RankValue[], arity: number): MemoKey {
-    return arity === 1 && arguments_.length === 1
-        ? memoValueKey(arguments_[0]) : JSON.stringify(arguments_.map(memoScalarKey));
-}
-
-/** One scalar needs no tuple serialization. Map preserves primitive types,
- * except signed zero, which needs its own key. Text and value objects retain
- * tagged keys so labels/dates cannot collide with text of the same spelling. */
-function memoValueKey(value: RankValue): MemoKey {
-    if (typeof value === 'bigint' || typeof value === 'boolean') return value;
-    if (typeof value === 'number') return Object.is(value, -0) ? memoNegativeZero : value;
-    return memoScalarKey(value);
-}
-
-function memoScalarKey(value: RankValue): string {
-    if (typeof value === 'number' && Object.is(value, -0)) return 'number:-0';
-    if (typeof value !== 'object') return `${typeof value}:${value}`;
-    if (isRankLabel(value)) return `label:${value.name}`;
-    if (isRankDate(value)) return `${value.kind}:${formatValue(value)}`;
-    throw new RankError('memo arguments and results must be scalar values');
 }
