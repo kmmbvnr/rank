@@ -1,10 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, MissingValueError } from '../src/index.js';
-import { textAt, textLength } from '../src/text-storage.js';
+import { textAt, textLength, textPoints } from '../src/text-storage.js';
 import { selectAxis } from '../src/selectors.js';
 
 describe('code-point text storage', () => {
+    it('uses string storage for decimal/BMP text and lone surrogates', () => {
+        for (const text of ['', '1234567890', 'ёж', 'é', '\ud800x\udc00']) {
+            expect(textPoints(text)).toBe(text);
+        }
+        expect(textPoints('a😀é')).toEqual(['a', '😀', 'e', '́']);
+    });
+
     it.each(['', '1234567890', 'ёж', 'a😀é', '\ud800x\udc00', '\ud800\udc00'])('matches Unicode iteration for %j', text => {
         const points = [...text];
         expect(textLength(text)).toBe(points.length);

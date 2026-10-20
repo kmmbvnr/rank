@@ -1,8 +1,12 @@
 import { MissingValueError } from './errors.js';
 
-/** Text positions and lengths count Unicode code points, including lone surrogates. */
-export function textPoints(value: string): readonly string[] {
-    return [...value];
+const surrogatePair = /[\uD800-\uDBFF][\uDC00-\uDFFF]/;
+
+/** Without surrogate pairs, UTF-16 units already are Unicode code points.
+ * Keep decimal/BMP text in its string storage instead of allocating characters
+ * for every indexed read. Lone surrogates remain individual code points. */
+export function textPoints(value: string): string | readonly string[] {
+    return surrogatePair.test(value) ? [...value] : value;
 }
 
 export function textLength(value: string): number {
