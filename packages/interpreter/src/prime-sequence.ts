@@ -1,5 +1,5 @@
 import { checkpoint } from './interrupt.js';
-import { PrimeSieve, maxSieveInteger } from './prime-sieve.js';
+import { PrimeSieve, maxSieveInteger, primeSegmentSpan } from './prime-sieve.js';
 import { primeMembership } from './primality.js';
 import { registerSequenceMembership } from './sequence-membership.js';
 import { above, within, strongerLower, membershipInteger, type Boundary } from './sequence-bounds.js';
@@ -7,6 +7,7 @@ import type { SequencePlan } from './value.js';
 
 export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
     let membershipSieve: PrimeSieve | undefined;
+    let previousSegment: number | undefined;
     const plan: SequencePlan = {
         name: 'primes',
         replay: 'pure',
@@ -18,8 +19,14 @@ export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
             if (integer === undefined || boundary && !within(integer, boundary) || lower && !above(integer, lower)) {
                 return false;
             }
-            if (boundary && integer >= 3n && integer <= BigInt(maxSieveInteger) && integer % 2n !== 0n) {
-                return (membershipSieve ??= new PrimeSieve()).contains(Number(integer));
+            if (integer >= 3n && integer <= BigInt(maxSieveInteger) && integer % 2n !== 0n) {
+                const candidate = Number(integer);
+                const segment = Math.floor((candidate - 3) / primeSegmentSpan);
+                // Repeated local queries amortize marking a segment. Isolated
+                // unbounded queries keep trial division / Miller-Rabin.
+                const local = segment === previousSegment;
+                previousSegment = segment;
+                if (boundary || local) return (membershipSieve ??= new PrimeSieve()).contains(candidate);
             }
             return primeMembership(integer);
         },

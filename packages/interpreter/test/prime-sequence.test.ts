@@ -52,6 +52,26 @@ describe('segmented prime source', () => {
         for (let n = low; n <= high; n++) expect(plan.contains!(n)).toBe(expected.includes(n));
     });
 
+    it('keeps unbounded local, distant and reverse membership queries exact', () => {
+        const plan = primePlan();
+        const members = new Set(reference(200000));
+        for (const n of [65535, 65537, 65539, 131075, 131077, 131079, 65539, 65537, 65535, 3, 5, 7]) {
+            expect(plan.contains!(BigInt(n))).toBe(members.has(BigInt(n)));
+        }
+        for (const n of [BigInt(maxSieveInteger) - 4n, BigInt(maxSieveInteger) - 2n,
+            BigInt(maxSieveInteger), BigInt(maxSieveInteger) + 2n, 10n ** 18n + 3n]) {
+            expect(plan.contains!(n)).toBe(probablePrime(n));
+        }
+    });
+
+    it('rebuilds an interrupted unbounded membership segment', () => {
+        const plan = primePlan();
+        plan.contains!(200003n);
+        expect(() => withInterrupt(cancel(), () => plan.contains!(200009n))).toThrow('Interrupted');
+        expect(plan.contains!(200003n)).toBe(true);
+        expect(plan.contains!(200001n)).toBe(false);
+    });
+
     it('keeps finite and infinite huge-bound searches lazy and exact', () => {
         const runtime = new Interpreter();
         try {

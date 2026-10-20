@@ -28,6 +28,11 @@ export function probablePrime(value: bigint): boolean {
         if (value === prime) return true;
         if (value % prime === 0n) return false;
     }
+    return millerRabin(value);
+}
+
+/** The caller has already screened small factors, including 2. */
+function millerRabin(value: bigint): boolean {
     let odd = value - 1n;
     let shifts = 0;
     while (odd % 2n === 0n) {
@@ -82,5 +87,5 @@ export function primeMembership(value: bigint): boolean {
         if (prime * prime > value) return true;
         if (value % prime === 0n) return value === prime;
     }
-    return probablePrime(value);
+    return millerRabin(value);
 }
