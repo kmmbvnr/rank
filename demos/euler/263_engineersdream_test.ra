@@ -14,6 +14,31 @@ test "practical numbers"
   (10 practical) equal false
   (14 practical) equal false
   (28 practical) equal true
+  Res len equal 2
+  Res(0) equal 20
+  Res(1) equal 820
+end
+
+test "bound just below the first paradise"
+  use "263_engineersdream"
+  Count = 1
+  Start = 219869900
+  Limit = 219869979
+  run
+
+  Found equal 0
+  Answer equal 0
+end
+
+test "inclusive lower bound at another paradise"
+  use "263_engineersdream"
+  Count = 1
+  Start = 360613700
+  Limit = 360613700
+  run
+
+  Found equal 1
+  Answer equal 360613700
 end
 
 test "bounded empty search"

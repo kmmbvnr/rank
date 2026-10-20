@@ -1,0 +1,9 @@
+{"node":"v24.15.0","cpu":"Apple M5","timings":"fresh processes; execute includes parsing; cold includes imports and disposal"}
+{"case":"direct-membership","executeMs":490.56862499999994,"result":"78498","variant":"candidate","trial":0,"coldMs":1037.188375}
+{"case":"direct-membership","executeMs":446.62375,"result":"78498","variant":"candidate","trial":1,"coldMs":955.5138330000002}
+{"case":"direct-membership","executeMs":453.927166,"result":"78498","variant":"candidate","trial":2,"coldMs":947.9142920000002}
+{"case":"direct-membership","variant":"candidate","medianExecuteMs":453.927166,"medianColdMs":955.5138330000002}
+{"case":"direct-membership","executeMs":1129.751833,"result":"78498","variant":"baseline","trial":0,"coldMs":1660.5196659999997}
+{"case":"direct-membership","executeMs":1140.377916,"result":"78498","variant":"baseline","trial":1,"coldMs":1675.9375}
+{"case":"direct-membership","executeMs":1132.916875,"result":"78498","variant":"baseline","trial":2,"coldMs":1699.9286250000005}
+{"case":"direct-membership","variant":"baseline","medianExecuteMs":1132.916875,"medianColdMs":1675.9375}

@@ -169,7 +169,18 @@ export class FastPaths {
             observableEntry: this.context.options().onIntegerLoopExecuted !== undefined,
             canDeferWrites: bindings => this.context.options().numberLoopCompilation !== false && this.context.bindings.canDeferWrites(bindings),
             tensorReadHoisting: this.context.options().tensorReadHoisting !== false,
-            read: name => this.context.bindings.find(name),
+            read: name => {
+                const value = this.context.bindings.find(name);
+                if (value !== undefined) return value;
+                // Collection values live in the builtin registry, not among
+                // variable bindings. Only callback-free, effect-free integer
+                // sequences may be inspected here; entry rechecks the name.
+                const operation = findOperation(name);
+                if (operation?.result !== 'sequence' || operation.arities.length
+                    || operation.valueElements !== 'integer' || !operation.valueCallbackFree
+                    || operation.effects?.length || !this.context.modules.has(operation.module)) return undefined;
+                return this.context.builtins.lookup(name);
+            },
             writer: name => this.context.compileAssign(name),
             prepareWriter: this.context.options().boundIntegerWrites !== false ? (name, checked) => {
                 let direct: ((value: RankValue) => void) | undefined;

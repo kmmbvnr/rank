@@ -5,7 +5,7 @@ import { newStructure } from './collections.js';
 import { indexGet, indexHas, indexSet, indexKey } from './index-storage.js';
 import {
     findCompiledOperator,
-    isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement,
+    isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement, isBreakStatement, isContinueStatement,
     type CompiledExpression, type CompiledOperator, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { checkpoint } from './interrupt.js';
@@ -21,13 +21,15 @@ import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInpu
 interface Kernel {
     readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean }[];
     readonly memberships: readonly string[];
+    readonly captures: readonly { name: string; rank: number }[];
     readonly calls: readonly { operation: Operation; inputs: readonly string[] }[];
     readonly guards: readonly string[];
     readonly modules: readonly string[];
     readonly locations: readonly Statement[];
     run(arguments_: RankValue[], locate: (error: unknown, index: number) => unknown, calls?: readonly ((arguments_: RankValue[]) => RankValue)[],
         userCalls?: readonly ((arguments_: RankValue[], tail?: boolean) => RankValue)[],
-        memberships?: readonly ((value: bigint) => boolean)[]): RankValue;
+        memberships?: readonly ((value: bigint) => boolean)[],
+        captures?: readonly ((indices: bigint[]) => bigint)[]): RankValue;
 }
 const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
 
@@ -48,6 +50,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const calls: { operation: Operation; inputs: readonly string[] }[] = [];
     const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean }[] = [];
     const memberships: string[] = [];
+    const captures: { name: string; rank: number }[] = [];
     let serial = 0;
     function binary(operation: CompiledOperator, left: string, right: string, lines: string[], resultType?: CompiledCalleeType, inputs?: readonly CompiledCalleeType[]): string {
         const op = operation.name;
@@ -93,6 +96,12 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 const value = lower(expression.input.indices![0], lines);
                 const index = memberships.push(expression.input.name) - 1, result = `v${serial++}`;
                 lines.push(`const ${result} = ${operation === 'sequence-not-contains' ? '!' : ''}memberships[${index}](${value});`);
+                return result;
+            }
+            if (operation === 'captured-read') {
+                const indices = expression.input.indices!.map(index => lower(index, lines));
+                const index = captures.push({ name: expression.input.name, rank: indices.length }) - 1, result = `v${serial++}`;
+                lines.push(`const ${result} = captures[${index}]([${indices.join(',')}]);`);
                 return result;
             }
             const receiver = slot(expression.input.name);
@@ -174,7 +183,9 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 if (command.operator !== '=') value = binary(findCompiledOperator(command.operator.slice(0, -1))!, slot(command.name), value, lines, expressions.get(command.value)!.type);
                 lines.push(`${slot(command.name)} = ${value};`);
                 if (proof!.arrayWrites.size && typeof expressions.get(command.value)!.type !== 'string') lines.push(`noteArrayBinding(${value});`);
-            } else if (isPushStatement(command) && isNameExpression(command.receiver)) {
+            } else if (isBreakStatement(command)) lines.push('break;');
+            else if (isContinueStatement(command)) lines.push('continue;');
+            else if (isPushStatement(command) && isNameExpression(command.receiver)) {
                 const value = emit(command.value, lines);
                 lines.push(`${slot(command.receiver.name)}.push(${value});`);
             } else if (isArrayAssignmentStatement(command)) {
@@ -238,14 +249,14 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         const parameter = statement.parameters.lastIndexOf(name);
         return `r${index}${parameter >= 0 ? ` = args[${parameter}]` : ''}`;
     });
-    const source = `"use strict"; return function(args, locate, calls, userCalls, memberships) {
+    const source = `"use strict"; return function(args, locate, calls, userCalls, memberships, captures) {
         ${declarations.length ? `let ${declarations.join(',')};` : ''}
         ${proof.arrayWrites.size ? 'args.forEach(noteArrayBinding);' : ''}
         let location = -1;
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
     let kernel: Kernel | undefined;
-    try { kernel = { locations, calls, userCalls, memberships, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite) as Kernel['run'] }; }
+    try { kernel = { locations, calls, userCalls, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

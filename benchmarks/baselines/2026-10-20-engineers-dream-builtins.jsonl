@@ -1,0 +1,18 @@
+{"variant":"original-runtime","trial":0,"node":"v24.15.0","cpu":"Apple M5","count":4,"mode":"default compilation; fresh process; execution includes parsing; static analysis measured separately"}
+{"variant":"original-runtime","trial":0,"phase":"execute","ms":12274.043125,"answer":"2039506520","found":"4","heapUsed":75717336,"maxRssKiB":286672}
+{"variant":"original-runtime","trial":0,"phase":"static-all-name-sites","ms":230.40758299999834,"queries":107,"maxRssKiB":302544}
+{"variant":"builtin-loop-candidate","trial":0,"node":"v24.15.0","cpu":"Apple M5","count":4,"mode":"default compilation; fresh process; execution includes parsing; static analysis measured separately"}
+{"variant":"builtin-loop-candidate","trial":0,"phase":"execute","ms":11227.530625,"answer":"2039506520","found":"4","heapUsed":118334648,"maxRssKiB":286512}
+{"variant":"builtin-loop-candidate","trial":0,"phase":"static-all-name-sites","ms":221.57999999999993,"queries":107,"maxRssKiB":303872}
+{"variant":"original-runtime","trial":1,"node":"v24.15.0","cpu":"Apple M5","count":4,"mode":"default compilation; fresh process; execution includes parsing; static analysis measured separately"}
+{"variant":"original-runtime","trial":1,"phase":"execute","ms":12072.594208,"answer":"2039506520","found":"4","heapUsed":86968920,"maxRssKiB":283504}
+{"variant":"original-runtime","trial":1,"phase":"static-all-name-sites","ms":220.28166600000077,"queries":107,"maxRssKiB":295296}
+{"variant":"builtin-loop-candidate","trial":1,"node":"v24.15.0","cpu":"Apple M5","count":4,"mode":"default compilation; fresh process; execution includes parsing; static analysis measured separately"}
+{"variant":"builtin-loop-candidate","trial":1,"phase":"execute","ms":11786.946082999999,"answer":"2039506520","found":"4","heapUsed":106187448,"maxRssKiB":283536}
+{"variant":"builtin-loop-candidate","trial":1,"phase":"static-all-name-sites","ms":218.37720799999988,"queries":107,"maxRssKiB":301008}
+{"variant":"original-runtime","trial":2,"node":"v24.15.0","cpu":"Apple M5","count":4,"mode":"default compilation; fresh process; execution includes parsing; static analysis measured separately"}
+{"variant":"original-runtime","trial":2,"phase":"execute","ms":9412.428791,"answer":"2039506520","found":"4","heapUsed":113913408,"maxRssKiB":282896}
+{"variant":"original-runtime","trial":2,"phase":"static-all-name-sites","ms":184.77758299999914,"queries":107,"maxRssKiB":303904}
+{"variant":"builtin-loop-candidate","trial":2,"node":"v24.15.0","cpu":"Apple M5","count":4,"mode":"default compilation; fresh process; execution includes parsing; static analysis measured separately"}
+{"variant":"builtin-loop-candidate","trial":2,"phase":"execute","ms":13982.649959,"answer":"2039506520","found":"4","heapUsed":80535416,"maxRssKiB":284064}
+{"variant":"builtin-loop-candidate","trial":2,"phase":"static-all-name-sites","ms":312.666541999999,"queries":107,"maxRssKiB":296144}
