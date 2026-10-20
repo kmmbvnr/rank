@@ -1,3 +1,4 @@
+import { Factorizer } from '../factorization.js';
 import { integerSquareRoot } from '../integer-square-root.js';
 import { mapScalarArrays } from '../scalar-array-map.js';
 import { expectMultiset } from '../multiset.js';
@@ -31,7 +32,14 @@ import {
     type SequencePredicate,
 } from '../value.js';
 import { expectInteger, expectNumeric, mapValue, native, scalarNative } from './shared.js';
-import type { RuntimeModule } from './types.js';
+import type { RuntimeContext, RuntimeModule } from './types.js';
+
+const factorizers = new WeakMap<RuntimeContext, Factorizer>();
+function factorizer(context: RuntimeContext): Factorizer {
+    let value = factorizers.get(context);
+    if (!value) factorizers.set(context, value = new Factorizer());
+    return value;
+}
 
 export const numbersModule: RuntimeModule = {
     abs: () => native('abs', 1, arguments_ => {
@@ -123,15 +131,15 @@ export const numbersModule: RuntimeModule = {
         }
         return result;
     }),
-    factors: () => native('factors', 1, arguments_ => {
+    factors: context => native('factors', 1, arguments_ => {
         const value = expectInteger(arguments_[0]);
         if (value < 1n) throw new RankError('factors expects a positive integer');
-        return sequence(factorPlan(value));
+        return sequence(factorPlan(value, factorizer(context)));
     }),
-    divisors: () => native('divisors', 1, arguments_ => {
+    divisors: context => native('divisors', 1, arguments_ => {
         const value = expectInteger(arguments_[0]);
         if (value < 1n) throw new RankError('divisors expects a positive integer');
-        return sequence(divisorPlan(value));
+        return sequence(divisorPlan(value, factorizer(context)));
     }),
     // `asUintN` reads the low bit; `% 2n` divides the whole BigInt in V8.
     odd: () => predicateFunction('odd', value => BigInt.asUintN(1, expectInteger(value)) !== 0n),
@@ -520,28 +528,17 @@ function roundTieToEven(value: number): number {
     return lower % 2 === 0 ? lower : lower + 1;
 }
 
-function factorPlan(value: bigint): SequencePlan {
+function factorPlan(value: bigint, factorizer: Factorizer): SequencePlan {
     return {
         name: `factors of ${value}`,
         size: { kind: 'unknown' },
-        *iterate() {
-            let remaining = value;
-            for (let divisor = 2n; divisor * divisor <= remaining; divisor += divisor === 2n ? 1n : 2n) {
-                checkpoint('searching factors', 1, () => ({ divisor: String(divisor), remaining: String(remaining) }));
-                while (remaining % divisor === 0n) {
-                    checkpoint('computing numbers');
-                    yield divisor;
-                    remaining /= divisor;
-                }
-            }
-            if (remaining > 1n) yield remaining;
-        },
+        iterate: () => factorizer.factors(value),
     };
 }
 
-function divisorPlan(value: bigint): SequencePlan {
+function divisorPlan(value: bigint, factorizer: Factorizer): SequencePlan {
     let cached: readonly [bigint, number][] | undefined;
-    const powers = () => cached ??= factorPowers(value);
+    const powers = () => cached ??= factorPowers(value, factorizer);
     return {
         name: `divisors of ${value}`,
         size: { kind: 'unknown' },
@@ -578,24 +575,13 @@ function divisorPlan(value: bigint): SequencePlan {
     };
 }
 
-function factorPowers(value: bigint): readonly [bigint, number][] {
+function factorPowers(value: bigint, factorizer: Factorizer): readonly [bigint, number][] {
     const result: [bigint, number][] = [];
-    let remaining = value;
-    for (
-        let divisor = 2n;
-        divisor * divisor <= remaining;
-        divisor += divisor === 2n ? 1n : 2n
-    ) {
-        checkpoint('searching factors', 1, () => ({ divisor: String(divisor), remaining: String(remaining) }));
-        let exponent = 0;
-        while (remaining % divisor === 0n) {
-            checkpoint('computing numbers');
-            exponent += 1;
-            remaining /= divisor;
-        }
-        if (exponent > 0) result.push([divisor, exponent]);
+    for (const prime of factorizer.factors(value)) {
+        const previous = result[result.length - 1];
+        if (previous?.[0] === prime) previous[1] += 1;
+        else result.push([prime, 1]);
     }
-    if (remaining > 1n) result.push([remaining, 1]);
     return result;
 }
 

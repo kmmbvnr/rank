@@ -458,6 +458,15 @@ N factors
 N must be a positive integer. The primes
 come smallest first, as a sequence.
 
+Repeated calls automatically reuse a
+smallest-prime-factor table within the
+interpreter. No setup call is needed.
+The table grows on demand and retains
+at most 4 MiB, covering integers below
+2 ** 20.
+Larger integers retain trial division;
+their size does not increase this cap.
+
 ### See also
 
 divisors, gcd

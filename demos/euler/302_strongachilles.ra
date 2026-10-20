@@ -19,13 +19,6 @@ for Root ** 3 at least Limit
   Root -= 1
 end
 Pr = primes to Root array
-Spf = array shape (Root + 1) fill 0
-for P in Pr
-  Ix = P to Root by P array
-  Old = Spf Ix
-  Free = Ix filter (Old equal 0) array
-  Spf Free = P
-end
 Facs = new index
 Empty = array shape 0 fill 0
 Last = Pr len - 1
@@ -94,14 +87,7 @@ fun N Fs Gn Gp Max C g
     end
     Base = P - 1
     if Base not in C
-      V = Base
-      F = array shape 0 fill 0
-      for V greater 1
-        Q = Spf V
-        F = concat F (array Q)
-        V //= Q
-      end
-      C Base = F
+      C Base = Base factors array
     end
     for N * Pow less Limit
       Next = N * Pow
