@@ -207,9 +207,8 @@ export function prepareMatrixArrayReader(
     stableReads = false,
 ): (row: bigint, column: bigint) => RankValue {
     const array = value as RankArray;
-    const storage = value && isRankArray(value) && array.shape.length === 2
-        ? preparedReaderStorage(value, stableReads) : undefined;
-    if (!storage) return (row, column) => fallback(array, [row, column]);
+    const storage = preparedReaderStorage(value, stableReads);
+    if (!storage || storage.shape.length !== 2) return (row, column) => fallback(array, [row, column]);
     const { cells, shape: [rows, columns] } = storage;
     return (row, column) => {
         const i = readPosition(row, rows, 0), j = readPosition(column, columns, 1);

@@ -91,10 +91,11 @@ describe('prepared matrix readers', () => {
     });
 
     it('does not inspect host cells when preparing fallback readers', () => {
-        let reads = 0;
-        const array: RankArray = { kind: 'array', shape: [1, 1], get items() { reads++; return [7]; } };
+        let reads = 0, shapes = 0;
+        const array: RankArray = { kind: 'array', get shape() { shapes++; return [1, 1]; }, get items() { reads++; return [7]; } };
         const read = prepareMatrixArrayReader(array, atArray, true);
         expect(reads).toBe(0);
+        expect(shapes).toBe(0);
         expect(read(0n, 0n)).toBe(7);
         expect(reads).toBeGreaterThan(0);
     });
