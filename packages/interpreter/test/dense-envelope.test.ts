@@ -41,6 +41,24 @@ end`);
         }
     });
 
+    it('links real scalar arguments and results inside one compiled loop', () => {
+        let calls = 0;
+        const runtime = new Interpreter(() => {}, { onScalarFunctionExecuted: () => calls++ });
+        try {
+            const diagnostics = new RuntimeDiagnostics();
+            diagnostics.run(() => runtime.execute(`fun X Scale divide
+  return X / Scale
+end
+Total = 0.0
+for I in 1 to 10
+  Total += I 2.0 divide
+end`));
+            expect(runtime.variables.get('Total')).toBe(27.5);
+            expect(calls).toBe(10);
+            expect(diagnostics.compiledLoops).toBe(1);
+        } finally { runtime.dispose(); }
+    });
+
     it('preserves partial real writes and bounds errors', () => {
         for (const compilation of [true, false]) {
             const runtime = new Interpreter(() => {}, { compilation });

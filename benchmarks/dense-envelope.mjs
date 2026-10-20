@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { cpus } from 'node:os';
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -64,7 +65,10 @@ Answer = M 63 63` : source.replace('option Grid integer = 250', `option Grid int
             ...(process.argv.includes('--diagnostic') ? { diagnostics } : {}) }));
     } finally { runtime.dispose(); }
 } else {
+    const revision = checkout => spawnSync('git', ['rev-parse', 'HEAD'], { cwd: checkout, encoding: 'utf8' }).stdout.trim();
     console.log(JSON.stringify({ node: process.version, cpu: cpus()[0]?.model,
+        candidate: revision(root), ...(option('baseline') ? { baseline: revision(option('baseline')) } : {}),
+        sourceSha256: createHash('sha256').update(source).digest('hex'),
         timings: 'fresh processes; parser initialized; corrected candidate source used for both checkouts; diagnostics separate' }));
     const trials = Number(option('trials') ?? 3), timeout = Number(option('timeout') ?? 120000);
     assert.ok(Number.isInteger(trials) && trials > 0);
