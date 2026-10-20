@@ -56,4 +56,22 @@ describe('real scalar function kernels', () => {
             expect(run(true, source, [1.5, 2.5])).toEqual({ ...reference, kernels: 1 });
         }
     });
+
+    it.each(['/', '**'])('preserves numeric results and domain errors for %s', operator => {
+        const pairs = operator === '/' ? [...numericPairs, [1n, 0n], [1, -0]]
+            : [...numericPairs.filter(pair => pair.some(value => typeof value === 'number')),
+                [0, -1n], [-2n, 0.5], [0.5, -2n], [-0, 3n]];
+        for (const pair of pairs) {
+            const args = pair as RankValue[];
+            let reference;
+            try { reference = run(false, `return X ${operator} Y`, args); }
+            catch (error) {
+                expect(() => run(true, `return X ${operator} Y`, args)).toThrow((error as Error).message);
+                continue;
+            }
+            const compiled = run(true, `return X ${operator} Y`, args);
+            expect(Object.is(compiled.value, reference.value), `${operator}: ${pair}`).toBe(true);
+            expect(compiled.kernels).toBe(1);
+        }
+    });
 });

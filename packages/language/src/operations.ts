@@ -924,6 +924,7 @@ export const operations: readonly Operation[] = [
         summary: 'Modular exponentiation by repeated squaring, never building the full power.' },
     { name: 'floor', module: 'numbers', alsoModules: ['algo'], arities: [1, 2],
         form: 'Value floor | Bag floor Limit', result: 'value', mapsScalarCells: true,
+        compiledCall: { inputs: ['real'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         signatures: [{ inputs: ['number'], result: 'integer', ranks: [0] },
             { inputs: ['missing'], result: 'missing', ranks: [0] }, ...orderedQuerySignatures],
         shape: [{ args: [null, []], result: [] }], dyadicRanks: ['all', 0],

@@ -11,7 +11,7 @@ import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankIndex, isNativeFunction, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { IndexEntries, indexHas, indexRead, indexSet, indexKey } from './index-storage.js';
-import { storedScalarKinds, denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray, typedElementKind, writableIntegerCells, writeIntegerSelection } from './array-storage.js';
+import { storedScalarKinds, denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray, typedElementKind, writableIntegerCells, writeIntegerSelection } from './array-storage.js';
 
 /** Bind invocation values and owned storage separately from loop analysis/lowering. */
 export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject: () => undefined): CompiledLoop | undefined {
@@ -24,7 +24,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
             // preparing those unused closures costs more than the loop itself.
             const rank = arrays.get(name)?.rank ?? destinations.get(name)?.rank;
             return rank !== undefined
-                ? `${value}, storage${index} = access(input[${index}]), reader${index} = read(storage${index}, stableReads, ${rank === 1}), write${index} = write(storage${index}, batchWrites)`
+                ? `${value}, storage${index} = access(input[${index}]), reader${index} = read(storage${index}, stableReads, ${rank}), write${index} = write(storage${index}, batchWrites)`
                 : value;
         }).join(',')};` : ''}
         let result, location = -1;
@@ -43,9 +43,10 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
             : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`),
         calls.some(call => !call.stableArrayReads) || iterators.length || graphMutations.length
             ? (value: RankValue) => value : borrowArrayStorage,
-        prepareScalarArrayWriter, (value: RankValue, stableReads: boolean, oneAxis: boolean) => oneAxis
+        prepareScalarArrayWriter, (value: RankValue, stableReads: boolean, rank: number) => rank === 1
             ? prepareScalarArrayReader(value, host.arrayRead, stableReads)
-            : prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint, host.textRead, takeDropValue,
+            : rank === 2 ? prepareMatrixArrayReader(value, host.arrayRead, stableReads)
+                : prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint, host.textRead, takeDropValue,
             (message: string) => new RankError(message, 'DomainError'),
             (array: RankValue, first: number, count: number, stride: number, operand: bigint, operator: '=' | '+=' | '-=' | '*=') => {
                 if (!isRankArray(array) || !writableIntegerCells(array)) return false;

@@ -57,6 +57,11 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         const result = `v${serial++}`;
         if ((op === 'equal' || op === 'notequal') && inputs?.includes('integer') && inputs.includes('real')) {
             lines.push(`const ${result} = ${binaryOperatorSource(operation, left, right, { mixed: true })};`);
+        } else if (op === '/' || op === '**') {
+            if (op === '/') lines.push(`if (${zeroTestSource(right, 'numeric')}) throw new RankError('division by zero');`);
+            else lines.push(`if (${zeroTestSource(left, 'numeric')} && (${right}) < 0) throw new RankError('zero cannot be raised to a negative power');`);
+            lines.push(`const ${result} = ${binaryOperatorSource(operation, `Number(${left})`, `Number(${right})`)};`);
+            if (op === '**') lines.push(`if (Number.isNaN(${result})) throw new RankError('power result is not real');`);
         } else if (resultType === 'real' && (op === '+' || op === '-' || op === '*')) {
             lines.push(`const ${result} = ${binaryOperatorSource(operation, `Number(${left})`, `Number(${right})`)};`);
         } else if (op === '//' || op === 'mod') {

@@ -10,11 +10,12 @@ function statement(body: string) {
     return result;
 }
 
-// Pin the pre-migration compiler boundary independently of the catalogue.
+// Pin the compiler boundary independently of the catalogue.
 const cases = [
     ['+X', 'integer', 7n], ['-X', 'integer', -7n],
     ['X + Y', 'integer', 10n], ['X - Y', 'integer', 4n],
     ['X * Y', 'integer', 21n], ['X // Y', 'integer', 2n], ['X mod Y', 'integer', 1n],
+    ['X / Y', 'real', 7 / 3],
     ['X less Y', 'boolean', false], ['X greater Y', 'boolean', true],
     ['X at most Y', 'boolean', false], ['X at least Y', 'boolean', true],
     ['X equal Y', 'boolean', false], ['X not equal Y', 'boolean', true],
@@ -59,7 +60,7 @@ describe('scalar function operator eligibility', () => {
     });
 
     it.each([
-        'X / Y', 'X ** Y', 'X to Y', 'X to Y step 2',
+        'X ** Y', 'X to Y', 'X to Y step 2',
         'X and Y', 'not X', '-true', '+true', 'true + false',
         'true less false', 'X equal true', 'true not equal X',
         'X abs', 'Missing',

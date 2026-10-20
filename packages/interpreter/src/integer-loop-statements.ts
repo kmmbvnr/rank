@@ -186,7 +186,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                     written.add(assignment.name);
                     writers.push(host.writer(assignment.name)); writerNames.push(assignment.name);
                     body.push(`location = ${location};`, ...lines,
-                        `writers[${index}](${value}); r${destination} = ${value}; storage${destination} = access(${value}); reader${destination} = read(storage${destination}, stableReads, ${rank === 1}); write${destination} = write(storage${destination}, batchWrites); iterationResult = ${value};`);
+                        `writers[${index}](${value}); r${destination} = ${value}; storage${destination} = access(${value}); reader${destination} = read(storage${destination}, stableReads, ${rank}); write${destination} = write(storage${destination}, batchWrites); iterationResult = ${value};`);
                     assigned.add(assignment.name);
                     continue;
                 }

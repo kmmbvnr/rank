@@ -200,6 +200,23 @@ export function prepareScalarArrayReader(
     return index => cells.items[readPosition(index, length, 0)];
 }
 
+/** Matrix addresses stay in two scalar arguments in compiled inner loops. */
+export function prepareMatrixArrayReader(
+    value: RankValue | undefined,
+    fallback: (source: RankArray, indices: readonly bigint[]) => RankValue,
+    stableReads = false,
+): (row: bigint, column: bigint) => RankValue {
+    const array = value as RankArray;
+    const storage = value && isRankArray(value) && array.shape.length === 2
+        ? preparedReaderStorage(value, stableReads) : undefined;
+    if (!storage) return (row, column) => fallback(array, [row, column]);
+    const { cells, shape: [rows, columns] } = storage;
+    return (row, column) => {
+        const i = readPosition(row, rows, 0), j = readPosition(column, columns, 1);
+        return cells.items[i * columns + j];
+    };
+}
+
 /** Runtime-owned storage has no observable getters; host readers keep their order. */
 export function readArrayItem(value: RankArray, index: number): RankValue {
     const state = ownedStorage.get(value);

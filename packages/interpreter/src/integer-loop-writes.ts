@@ -83,7 +83,8 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                         ? first${n} + (size${n} - first${n} + stride${n} - 1n) / stride${n} * stride${n}
                         : first${n} + (first${n} / -stride${n} + 1n) * stride${n}, 0);
                 }`);
-            const expected = booleanUpdate ? 'boolean' : compound ? 'integer' : target.type ?? arrays.get(assignment.name)?.type;
+            const expected = booleanUpdate ? 'boolean' : target.type ?? arrays.get(assignment.name)?.type
+                ?? (compound ? expressions.realInput(assignment.name) ?? 'integer' : undefined);
             const value = emit(assignment.value, lines, expected);
             if (!value || value.type === 'text' || value.type === 'bytes' || value.type === 'boolean' && !host.booleanArrays
                 || expected && value.type !== expected
@@ -132,7 +133,8 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             lines.push(`const ${name} = ${receiver}.kind === 'array'
                 ? arrayOffset(${receiver}, [${keys.join(',')}]) : key([${keys.join(',')}]);`);
         }
-        const expected = booleanUpdate ? 'boolean' : compound ? 'integer' : target.type ?? arrays.get(assignment.name)?.type;
+        const expected = booleanUpdate ? 'boolean' : target.type ?? arrays.get(assignment.name)?.type
+            ?? (compound ? expressions.realInput(assignment.name) ?? 'integer' : undefined);
         const value = emit(assignment.value, lines, expected);
         if (!value || value.type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || value.type === 'bytes' || value.type === 'boolean' && !host.booleanArrays
             || expected && value.type !== expected

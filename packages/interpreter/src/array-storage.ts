@@ -9,7 +9,7 @@ export {
 export {
     eagerArrayStorage, registerCachedArray, materializedArrayItems, copyMaterializedArrayItems,
     registerArrayReadPlan, prepareArrayRead, MAX_HELD_CELLS, STREAM_CELLS, shouldStream, streamCells,
-    materializeCells, readCellOrMissing, borrowArrayStorage, prepareArrayReader, prepareScalarArrayReader,
+    materializeCells, readCellOrMissing, borrowArrayStorage, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader,
     readArrayItem, readArrayShape, registerArrayCellEvaluation, evaluateArrayItem,
 } from './array-read.js';
 export { validityWords, allPresent, isPresentAt, allValid } from './array-validity.js';

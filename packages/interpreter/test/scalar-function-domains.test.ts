@@ -61,6 +61,21 @@ describe('scalar function argument domains', () => {
         } finally { runtime.dispose(); }
     });
 
+    it('rechecks floor identity and retains nonfinite domain errors', () => {
+        let kernels = 0;
+        const runtime = new Interpreter(() => {}, { onScalarFunctionExecuted: () => kernels++ });
+        try {
+            runtime.execute('use numbers\nfun X bound\nreturn X floor\nend');
+            const fn = runtime.variables.get('bound');
+            if (!fn || !isNativeFunction(fn)) throw new Error('missing function');
+            expect(fn.call([-1.5])).toBe(-2n);
+            expect(kernels).toBe(1);
+            for (const value of [NaN, Infinity, -Infinity]) expect(() => fn.call([value])).toThrow('floor expects a finite number');
+            runtime.variables.set('floor', native('replacement', 1, () => 42n));
+            expect(fn.call([1.5])).toBe(42n);
+        } finally { runtime.dispose(); }
+    });
+
     it('uses text kernels in ranked arrays and keeps one callback per cell', () => {
         let kernels = 0;
         const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => kernels++ });

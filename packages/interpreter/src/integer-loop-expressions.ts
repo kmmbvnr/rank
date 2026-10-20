@@ -377,13 +377,13 @@ export function createLoopExpressions(state: LoopCompilationState) {
                             types.push({ kind: 'array', element: type.element, rank: type.rank });
                         } else {
                             const value = emit(part, lines, knownType(part));
-                            if (!value || value.type === 'bytes' || value.type === 'real') return undefined;
+                            if (!value || value.type === 'bytes' || value.type === 'real' && !host.reals) return undefined;
                             arguments_.push(value.code);
                             types.push(value.type);
                         }
                     }
                     const callable = prepareCallee(types);
-                    if (callable?.type === 'real') return reject(e, 'unsupported-type:real');
+                    if (callable?.type === 'real' && !host.reals) return reject(e, 'unsupported-type:real');
                     if (callable) {
                         const name = `v${state.serial++}`, index = calls.length;
                         // The proof fixes input domains and permitted mutations.
@@ -454,7 +454,7 @@ export function createLoopExpressions(state: LoopCompilationState) {
                     if (${coordinate} < 0 || ${coordinate} >= cells${info.slot}.length) throw badIndex(${coordinate});
                     const ${name} = safe(Number(cells${info.slot}[${coordinate}]));`);
             } else {
-                lines.push(`const ${name} = reader${info.slot}(${info.rank === 1 ? indices[0] : `[${indices.join(',')}]`});`);
+                lines.push(`const ${name} = reader${info.slot}(${info.rank <= 2 ? indices.join(',') : `[${indices.join(',')}]`});`);
             }
             return { code: name, type };
         }

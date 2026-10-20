@@ -1,6 +1,7 @@
 // Build both checkouts first: npx tsc -b tsconfig.build.json.
 // node benchmarks/dense-envelope.mjs --baseline=/path/to/checkout --grids=10,25 --trials=3
 // --grids=250 verifies the full Euler answer. Timing is not a CI deadline.
+// --micro isolates dense rank-2 real reads and compound writes.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -36,11 +37,19 @@ function reference(grid) {
 }
 
 if (option('worker')) {
-    const grid = Number(option('worker'));
+    const micro = option('worker') === 'matrix', grid = micro ? 64 : Number(option('worker'));
     const { Interpreter, RuntimeDiagnostics } = await import(pathToFileURL(resolve(option('root') ?? root, 'packages/interpreter/out/index.js')).href);
     const runtime = new Interpreter(() => {}, { compilation: !process.argv.includes('--reference') });
     const diagnostics = new RuntimeDiagnostics();
-    const program = source.replace('option Grid integer = 250', `option Grid integer = ${grid}`);
+    const program = micro ? `M = array shape 64 64 fill 0.5
+for Pass in 1 to 4
+  for I in 0 till 64
+    for J in 0 till 64
+      M I J += I / 8.0 + J / 16.0
+    end
+  end
+end
+Answer = M 63 63` : source.replace('option Grid integer = 250', `option Grid integer = ${grid}`);
     try {
         runtime.execute('');
         const start = performance.now();
@@ -48,9 +57,10 @@ if (option('worker')) {
         else runtime.execute(program);
         const ms = performance.now() - start, answer = runtime.variables.get('Answer');
         assert.equal(typeof answer, 'number');
+        if (micro) assert.equal(answer, 47.75);
         if (grid <= 25) assert.ok(Math.abs(answer - reference(grid)) < 1e-10, String(answer));
         if (grid === 250) assert.equal(answer.toFixed(8), '132.52756426');
-        console.log(JSON.stringify({ grid, ms, answer, maxRssMiB: process.resourceUsage().maxRSS / 1024,
+        console.log(JSON.stringify({ grid: micro ? 'matrix' : grid, ms, answer, maxRssMiB: process.resourceUsage().maxRSS / 1024,
             ...(process.argv.includes('--diagnostic') ? { diagnostics } : {}) }));
     } finally { runtime.dispose(); }
 } else {
@@ -58,8 +68,9 @@ if (option('worker')) {
         timings: 'fresh processes; parser initialized; corrected candidate source used for both checkouts; diagnostics separate' }));
     const trials = Number(option('trials') ?? 3), timeout = Number(option('timeout') ?? 120000);
     assert.ok(Number.isInteger(trials) && trials > 0);
-    for (const grid of (option('grids') ?? '10,25').split(',').map(Number)) {
-        assert.ok(Number.isInteger(grid) && grid > 0);
+    const cases = process.argv.includes('--micro') ? ['matrix'] : (option('grids') ?? '10,25').split(',').map(Number);
+    for (const grid of cases) {
+        assert.ok(grid === 'matrix' || Number.isInteger(grid) && grid > 0);
         for (const [variant, checkout] of [['candidate', root], ...(option('baseline') ? [['baseline', option('baseline')]] : [])]) {
             const samples = [];
             for (let trial = 0; trial < trials + 1; trial++) {
