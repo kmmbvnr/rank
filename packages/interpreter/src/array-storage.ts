@@ -289,14 +289,18 @@ export function writableIntegerCells(value: RankArray): ArrayLike<bigint> | unde
     return state.items as unknown as ArrayLike<bigint>;
 }
 
+const INT64_MIN = -(1n << 63n), INT64_MAX = (1n << 63n) - 1n;
+// Comparing allocates nothing, unlike reading the stored cell back.
+const fitsInt64 = (value: bigint) => value >= INT64_MIN && value <= INT64_MAX;
+
 /** Writes one stored cell. An integer buffer keeps an integer that fits in 64
  * bits; any other value turns the buffer into boxed cells first. Callers record
  * the revision and scalar kinds. */
 function storeCell(state: OwnedStorage, index: number, value: RankValue): void {
     const typed = state.typed;
-    if (typed instanceof BigInt64Array && !state.validity && typeof value === 'bigint') {
+    if (typed instanceof BigInt64Array && !state.validity && typeof value === 'bigint' && fitsInt64(value)) {
         typed[index] = value;
-        if (typed[index] === value) return;
+        return;
     }
     state.convert?.();
     state.items[index] = value;
@@ -488,6 +492,9 @@ export function ownedScalarArray(items: RankValue[], kind: string, shape: readon
  * shape. Nested/missing fills keep the ordinary storage and validity rules. */
 export function filledArray(fill: RankValue, shape: readonly number[]): RankArray {
     const size = Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n));
+    if (typeof fill === 'bigint' && size >= PACKED_CELLS && fitsInt64(fill)) {
+        return typedArray(new BigInt64Array(size).fill(fill), shape);
+    }
     const items = Array(size).fill(fill) as RankValue[];
     const kind = scalarKind(fill);
     if (!kind) return ownedArray(items, shape);
@@ -498,16 +505,50 @@ export function filledArray(fill: RankValue, shape: readonly number[]): RankArra
 
 /**
  * An array of integers or of reals held in one typed buffer, 8 bytes a cell
- * where boxed cells cost several times that. Kernels read the cells in place.
- * Anything that needs a plain array of cells (public `items`, a write, a
- * compiled region) converts once, and the array is an ordinary owned one from
- * then on. Takes ownership of `data`.
+ * where boxed cells cost several times that. Kernels and compiled loops read
+ * the cells in place, and an integer that fits in 64 bits is written in place.
+ * Anything else (public `items`, a real write, an integer past 64 bits)
+ * converts once, and the array is an ordinary owned one from then on. Takes
+ * ownership of `data`.
  */
 export function typedArray(
     data: Float64Array | BigInt64Array, shape: readonly number[] = [data.length],
     columnNames?: readonly string[],
 ): RankArray {
     return createOwned(data, shape, true, columnNames);
+}
+
+/** Integer arrays from this size up are packed. Smaller ones stay boxed, since
+ * every read from a typed buffer allocates a new bigint. */
+const PACKED_CELLS = 4096;
+
+/** Builds the cells of a fresh integer array: packed in one BigInt64Array, or
+ * exact bigints from the first value that does not fit in 64 bits. */
+export class IntegerCells {
+    private packed?: BigInt64Array;
+    private exact?: bigint[];
+
+    constructor(size: number) {
+        if (size >= PACKED_CELLS) this.packed = new BigInt64Array(size);
+        else this.exact = new Array(size);
+    }
+
+    set(index: number, value: bigint): void {
+        const packed = this.packed;
+        if (packed) {
+            if (fitsInt64(value)) {
+                packed[index] = value;
+                return;
+            }
+            this.exact = Array.from(packed);
+            this.packed = undefined;
+        }
+        this.exact![index] = value;
+    }
+
+    array(shape: readonly number[]): RankArray {
+        return this.packed ? typedArray(this.packed, shape) : ownedScalarArray(this.exact!, 'integer', shape);
+    }
 }
 
 /** A typed array over a buffer someone else keeps, such as a table column. It
@@ -1255,7 +1296,8 @@ export function prepareScalarArrayWriter(value: RankValue | undefined, batch = f
             state.revision = noteMutation(state.birth);
             changed = true;
         }
-        updateScalarKinds(state, state.items[index], item);
+        // Typed buffers track no kinds, and reading their old cell allocates.
+        if (state.elementKinds) updateScalarKinds(state, state.items[index], item);
         storeCell(state, index, item);
     };
 }

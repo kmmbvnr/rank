@@ -41,9 +41,10 @@ R sum`));
             expect(r.execute('Left 0')).toBe(4n);
             expect(r.execute('R sum')).toBe(99999999n);
             expect(r.execute('(Right + 1) 0')).toBe(2n);
-            expect(() => r.execute('Right 0 = 5')).toThrow(/lazy array/);
-            r.execute('Material = Right copy\nMaterial 0 = 5');
-            expect(r.execute('Right 0')).toBe(1n);
+            // B is packed, so its slice copies on write instead of refusing it.
+            r.execute('Right 0 = 5');
+            expect(r.execute('Right 0')).toBe(5n);
+            expect(r.execute('Left 0')).toBe(4n);
         } finally { r.dispose(); }
     });
 

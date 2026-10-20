@@ -1,4 +1,4 @@
-import { ownedScalarArray } from './array-storage.js';
+import { IntegerCells } from './array-storage.js';
 import { RankError } from './errors.js';
 import { prepareIntegerView } from './integer-view.js';
 import { checkpoint, inspectionEnabled, InterruptedError, privateLoopPolling } from './interrupt.js';
@@ -30,7 +30,7 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
     };
     const ai = offset(a), bi = offset(b);
     const size = shape.reduce((n, dimension) => n * dimension, 1);
-    const cells: bigint[] = new Array(size);
+    const cells = new IntegerCells(size);
     try {
         for (let start = 0; start < size; start += 4096) {
             const end = Math.min(size, start + 4096);
@@ -39,7 +39,7 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
                 const x = a ? a.read(ai(i)) : left as bigint;
                 const y = b ? b.read(bi(i)) : right as bigint;
                 if ((name === 'mod' || name === '//') && y === 0n) return undefined;
-                cells[i] = operation(x, y);
+                cells.set(i, operation(x, y));
             }
         }
     } catch (error) {
@@ -47,5 +47,5 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
         if (error instanceof RankError) return undefined;
         throw error;
     }
-    return ownedScalarArray(cells, 'integer', shape);
+    return cells.array(shape);
 }

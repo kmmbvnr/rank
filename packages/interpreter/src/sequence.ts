@@ -2,7 +2,8 @@ import { materializeMaskSelection } from './array-mask-selection.js';
 import { sliceSource } from './slice-source.js';
 import { arrayElementTypes } from './array-element-types.js';
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
-import { derivedArray, materializeCells, ownedArray, readArrayItem } from './array-storage.js';
+import { derivedArray, IntegerCells, materializeCells, MAX_HELD_CELLS, ownedArray, readArrayItem } from './array-storage.js';
+import { arithmeticRange } from './range-plan.js';
 import { arrayMaskSelection, checkUnnamedMask } from './array-mask.js';
 import { MissingValueError, RankError } from './errors.js';
 import {
@@ -425,6 +426,19 @@ export function materializeSequence(source: RankSequence): RankArray {
     if (selected) return selected;
     if (source.plan.size.kind === 'infinite') {
         throw new RankError('cannot materialize an infinite sequence');
+    }
+    const range = arithmeticRange(source.plan);
+    if (range && range.count <= MAX_HELD_CELLS) {
+        // A range is computed rather than iterated, straight into packed cells.
+        const size = Number(range.count);
+        const cells = new IntegerCells(size);
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(size, start + 4096);
+            checkpoint('materializing sequence', end - start);
+            let value = range.start + BigInt(start) * range.step;
+            for (let i = start; i < end; i++, value += range.step) cells.set(i, value);
+        }
+        return cells.array([size]);
     }
     return stackItems(interruptibleValues(source.plan.iterate(), 'materializing sequence'), undefined, 'sequence');
 }
