@@ -9,8 +9,8 @@ use cli
 option From integer = 10000000
 option To integer = 20000000
 
-Masks = array 109 80 55 117 90
-Tail = array 109 111 89 127 123
+Masks = array 125 80 55 115 90
+Tail = array 107 111 89 127 123
 Masks = concat Masks Tail
 Answer = 0
 for P in primes from From till To

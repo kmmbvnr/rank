@@ -4,6 +4,7 @@ import {
 import { membershipLookup } from './membership-lookup.js';
 import { isPureLazyFunction } from './lazy-function.js';
 import { compiledIntegerMembership } from './integer-membership.js';
+import { capturedIntegerReader } from './scalar-selection.js';
 import { compiledCalleeTypeKey, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { AstNode } from 'langium';
 import {
@@ -650,6 +651,8 @@ export class FunctionInvocation {
         });
         const users: ((arguments_: RankValue[], tail?: boolean) => RankValue)[] = [];
         const memberships: ((value: bigint) => boolean)[] = [];
+        const captures: ((indices: bigint[]) => bigint)[] = [];
+        const captureReaders: ReturnType<typeof capturedIntegerReader>[] = [];
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
         const binders = kernel.calls.map(({ operation, inputs }) => prepareCompiledBuiltin({
             modules: this.modules, builtins: this.builtins, options: this.options,
@@ -664,7 +667,7 @@ export class FunctionInvocation {
             if (!tail) this.depth += 1;
             try {
                 this.options().onScalarFunctionExecuted?.();
-                return kernel.run(arguments_, locate, calls, users, memberships);
+                return kernel.run(arguments_, locate, calls, users, memberships, captures);
             } catch (error) {
                 // A scalar tail callee replaces this logical frame. Errors from
                 // it must not acquire the discarded caller's stack entry.
@@ -673,7 +676,7 @@ export class FunctionInvocation {
                 throw error;
             } finally { if (!tail) this.depth -= 1; }
         };
-        if (binders.length || userBinders.length || kernel.memberships.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
+        if (binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
             if (inspectionEnabled()) return false;
             if (kernel.modules.some(module => !this.modules.has(module))) return false;
             for (let index = 0; index < userBinders.length; index++) {
@@ -689,6 +692,14 @@ export class FunctionInvocation {
                 // a linked caller. Resolve them at the actual expression, not entry.
                 memberships[index] = value && isRankArray(value)
                     ? integer => membershipLookup(resolve(name) as RankArray)(integer) : contains;
+            }
+            for (let index = 0; index < kernel.captures.length; index++) {
+                const { name, rank } = kernel.captures[index];
+                const reader = captureReaders[index]?.current()
+                    ? captureReaders[index] : capturedIntegerReader(() => resolve(name), rank);
+                if (!reader) return false;
+                captureReaders[index] = reader;
+                captures[index] = reader.read;
             }
             for (const name of kernel.guards) {
                 const operation = findOperation(name);

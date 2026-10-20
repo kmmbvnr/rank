@@ -3,6 +3,7 @@ import { takeDropValue } from './sequence.js';
 import { expressionFacts, findOperation, isBinaryExpression, isBooleanLiteral, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
 import { loopValueType, type IntegerLoopPlan, type LoopHost, type LoopTerm, type CompiledLoop } from './integer-loop-plan.js';
 import { ResourceMap } from './resource-summary.js';
+import { prepareIntegerView } from './integer-view.js';
 import { checkpoint, inspectionEnabled } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { completed, type Execution } from './execution.js';
@@ -68,7 +69,8 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         const kinds = storedScalarKinds(value);
         if (kinds) return kinds.every(kind => (kind === 'numeric-limit' ? 'real' : kind) === (type ?? 'integer'));
         const items = materializedArrayItems(value);
-        if (!items) return false;
+        // A lazy rope or view can still prove integer cells without forcing them.
+        if (!items) return (type ?? 'integer') === 'integer' && prepareIntegerView(value, true) !== undefined;
         const checked = checkedCells.get(value);
         if (checked?.revision === revision && checked.type === type) return true;
         const diagnostics = currentDiagnostics();
