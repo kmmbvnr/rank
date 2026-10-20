@@ -100,7 +100,9 @@ export class BuiltinRegistry {
 
     /** Whether a value is this interpreter's instance of a standard function. */
     is(module: string, name: string, value: RankValue): boolean {
-        const instance = this.standard(module, name);
+        // Standard sequences such as `primes` are cached instances too.
+        const definition = standardModules[module]?.[name];
+        const instance = definition && (this.functions.get(definition) ?? this.sequences.get(definition));
         return instance !== undefined && instance === value;
     }
 

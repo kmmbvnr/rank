@@ -1,6 +1,6 @@
 import { loopTraversal } from './loop-traversal.js';
 import { type IterationBinding } from './integer-loop-plan.js';
-import { isBinaryExpression, isNameExpression, type ForStatement } from '@arrrank/language';
+import { isBinaryExpression, isBoundClauseExpression, isNameExpression, isParenthesizedExpression, type Expression, type ForStatement } from '@arrrank/language';
 import { RankDeque } from './containers.js';
 
 import type { LoopCompilationState } from './integer-loop-state.js';
@@ -9,7 +9,7 @@ import type { LoopExpressions } from './integer-loop-expressions.js';
 export function createLoopHeader(state: LoopCompilationState, expressions: LoopExpressions) {
     const {
         host, numberMode, textSources, textArrays, zero, one, safe, dirty, localTypes, assigned, binders,
-        binderNames, written, arrays, arrayInputs, vectorIterations, iterators, reject,
+        binderNames, written, arrays, arrayInputs, vectorIterations, iterators, builtins, reject,
     } = state;
     const {container, slot, knownType, emit} = expressions;
 
@@ -27,8 +27,9 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
             // expressions are evaluated once in the loop's setup instead.
             const textIteration = host.textLoops && (!isNameExpression(range) && knownType(range) === 'text'
                 || isNameExpression(range) && (textSources.has(range.name) || localTypes.get(range.name) === 'text'));
-            const collectionIteration = textIteration || isNameExpression(range);
+            let collection = textIteration || isNameExpression(range);
             let elementType: 'integer' | 'text' = textIteration ? 'text' : 'integer';
+            const bounds = primeBounds(range);
             if (textIteration) {
                 if (slice) return undefined;
                 const source = emit(range, tests, 'text');
@@ -73,6 +74,24 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
                     iterators.push(source => host.iterationValues(binding, source, elementType));
                     header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
                 }
+            } else if (bounds) {
+                // The same bounded plan as `applyBound`; entry rechecks the binding.
+                if (numberMode || slice) return undefined;
+                const limits: { code: string; inclusive: boolean; upper: boolean }[] = [];
+                for (const bound of bounds) {
+                    const limit = emit(bound.value, tests, 'integer');
+                    if (limit?.type !== 'integer') return undefined;
+                    limits.push({ code: limit.code, inclusive: bound.inclusive, upper: bound.upper });
+                }
+                const lower = limits.find(limit => !limit.upper), upper = limits.find(limit => limit.upper);
+                // `for` rejects an unbounded sequence; that error stays ordinary.
+                if (!upper) return undefined;
+                const limit = (bound?: { code: string; inclusive: boolean }) => bound ? `${bound.code}, ${bound.inclusive}` : 'undefined, false';
+                builtins.set('primes', 'sequences');
+                setup = `${tests.join('\n')} const iterable = primeRange(${limit(lower)}, ${limit(upper)});
+                    ${indexed ? 'let ordinal = 0n;' : ''}`;
+                header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
+                collection = true;
             } else {
                 if (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)) return undefined;
                 const start = emit(range.left, tests), end = emit(range.right, tests);
@@ -89,7 +108,7 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
                 const type = index === 0 ? elementType : 'integer';
                 if (localTypes.has(name) && localTypes.get(name) !== type) return undefined;
                 localTypes.set(name, type);
-                const target = slot(name), value = index === 0 ? 'cursor' : collectionIteration ? 'ordinal++' : 'ordinal';
+                const target = slot(name), value = index === 0 ? 'cursor' : collection ? 'ordinal++' : 'ordinal';
                 bindings += `const bound${binders.length} = ${value}; ${numberMode ? dirty(target) : `binders[${binders.length}](bound${binders.length});`} r${target} = bound${binders.length};\n`;
                 binders.push(host.writer(name));
                 binderNames.push(name);
@@ -104,4 +123,22 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
         return { setup, header, bindings };
     }
     return loopParts;
+}
+
+/** `primes` with at most one lower (`from`, `after`) and one upper (`to`,
+ * `till`) bound, listed innermost first: the order they are evaluated. */
+function primeBounds(range: Expression): { value: Expression; inclusive: boolean; upper: boolean }[] | undefined {
+    const bounds: { value: Expression; inclusive: boolean; upper: boolean }[] = [];
+    for (;;) {
+        while (isParenthesizedExpression(range)) range = range.value;
+        if (isNameExpression(range)) return range.name === 'primes' ? bounds.reverse() : undefined;
+        if (isBinaryExpression(range) && ['to', 'till'].includes(range.operator) && !range.step
+            && !bounds.some(bound => bound.upper)) {
+            bounds.push({ value: range.right, inclusive: range.operator === 'to', upper: true });
+            range = range.left;
+        } else if (isBoundClauseExpression(range) && !bounds.some(bound => !bound.upper)) {
+            bounds.push({ value: range.condition, inclusive: range.operator === 'from', upper: false });
+            range = range.source;
+        } else return undefined;
+    }
 }
