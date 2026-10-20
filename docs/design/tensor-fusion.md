@@ -61,10 +61,32 @@ of each implementation revision, not promises of the language specification.
 The default interpreter now uses `tensor-kernel.ts` for compatible assignment
 expressions and groups of consecutive assignments. It lowers them into input,
 binary, unary, selection, first-axis slice and default-axis concat nodes with a
-terminal reduction or explicit `copy`. Runtime binding
+terminal reduction or explicit `copy`. Ordinary assignments and returns containing
+at least two arithmetic operations from `+`, `-`, `*`, `/`, `//`, `mod`, `**`
+(including unary signs)
+also use the array-output terminal without requiring a source-level `copy`:
+
+```rank
+Packed = (Numerator + Shift) * Width + Denominator
+```
+
+This path fuses one expression and keeps named bindings observable. It accepts
+stored numeric arrays and scalar operands, including trailing-axis broadcasting.
+It does not merge arbitrary statements or evaluate unread lazy inputs. Division,
+remainder and powers retain the existing kernel's domain guards; rejection
+returns to ordinary execution before publishing a result. Empty outputs with
+these operations also retain ordinary execution so scalar errors are not skipped.
+Function calls, inspection and observable host polling retain ordinary expression
+execution.
+
+Runtime binding
 supplies shapes, scalar values and storage offsets before emitting a cached
 JavaScript loop. `tensor-use.ts` provides lexical read/definition counts and
 conservative barriers for escaping or multiply defined intermediates.
+Typed input buffers are read in place rather than unpacked into ordinary arrays.
+`benchmarks/tensor-expression.mjs` compares implicit expression fusion against
+separate passes for integer polynomials, real arithmetic and matrix/vector
+broadcasting, checking every result against an independent oracle.
 
 Eligibility is cached on the existing prepared statement. Ordinary statements do
 not perform a second optimizer-cache lookup on every execution. Successful

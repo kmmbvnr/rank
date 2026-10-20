@@ -41,7 +41,7 @@ function pair(value: Expression): Expression[] | undefined {
     const atom = unwrap(value);
     return isApplicationExpression(atom) && atom.arguments.length === 1 ? [atom.head, atom.arguments[0]] : undefined;
 }
-interface View { items: RankValue[]; offset: number; shape: readonly number[]; kind?: string }
+interface View { items: ArrayLike<RankValue>; offset: number; shape: readonly number[]; kind?: string }
 interface Bound { segments?: Bound[]; shape?: readonly number[]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean; digits?: boolean; progression?: { start: number; step: number; divisor?: number } }
 const numeric = (value: unknown) => typeof value === 'bigint' || typeof value === 'number' && Number.isFinite(value);
 const same = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((n, i) => n === b[i]);
@@ -51,6 +51,10 @@ const same = (a: readonly number[], b: readonly number[]) => a.length === b.leng
 export function compileTensorKernel(statements: Statement[], host: TensorKernelHost): {
     count: number; source: string; run(): RankValue | undefined;
 } | undefined {
+    return compileTensorPlan(statements, host) ?? compileTensorPlan(statements, host, true);
+}
+
+function compileTensorPlan(statements: Statement[], host: TensorKernelHost, implicit = false) {
     type Domain = readonly CompiledAtomType[];
     const domains = new Map<TensorNode, Domain>();
     const unknown: Domain = ['integer', 'real', 'boolean', 'text'];
@@ -155,6 +159,27 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
     // A compound arithmetic assignment is one observable rebinding. Its old
     // value remains an input, never an output buffer or a private temporary.
     const first = statements[0];
+    if (implicit) {
+        if (!(isAssignmentStatement(first) && first.operator === '=' && !first.name.includes('.'))
+            && !isReturnStatement(first)) return undefined;
+        if (!first.value) return undefined;
+        const root = parse(first.value);
+        let operations = 0;
+        const arithmetic = (node: TensorNode): boolean => {
+            if (node.kind === 'input') return true;
+            if (node.kind === 'unary' && ['+', '-'].includes(node.op)) {
+                operations++;
+                return arithmetic(node.operand);
+            }
+            if (node.kind === 'binary' && !node.native && ['+', '-', '*', '/', '//', 'mod', '**'].includes(node.op)) {
+                operations++;
+                return arithmetic(node.left) && arithmetic(node.right);
+            }
+            return false;
+        };
+        if (!root || !arithmetic(root) || operations < 2) return undefined;
+        return build(root, [], 'copy', 1, host, domains, true);
+    }
     if (isAssignmentStatement(first) && ['+=', '-=', '*='].includes(first.operator) && !first.name.includes('.')) {
         const right = parse(first.value);
         const arithmetic = (node: TensorNode): boolean => node.kind === 'input'
@@ -212,7 +237,7 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
 }
 
 function build(root: TensorNode, names: string[], terminal: Terminal, count: number, host: TensorKernelHost,
-    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>) {
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false) {
     const outputDomain = domains.get(root);
     const integerOutput = outputDomain?.length === 1 && outputDomain[0] === 'integer';
     // A successful integer-only kernel has already checked every output cell.
@@ -224,7 +249,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     const sequenceSelectors = new Set([...domains.keys()].flatMap(node =>
         node.kind === 'select' && node.selector.kind === 'input' ? [node.selector] : []));
     let cachedKey: string | undefined;
-    type KernelRun = (data: RankValue[][], offsets: number[], scalars: RankValue[], size: number) => RankValue | RankValue[] | undefined;
+    type KernelRun = (data: ArrayLike<RankValue>[], offsets: number[], scalars: RankValue[], size: number) => RankValue | RankValue[] | undefined;
     let cachedRun: KernelRun | undefined;
     // Concat segment lengths vary between calls; retain bounded code layouts,
     // never source arrays, so recurring shapes do not recompile every step.
@@ -243,14 +268,15 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     let generated = '';
     let unavailable = false;
     return { count, get source() { return generated; }, run(): RankValue | undefined {
+        if (implicit && !privateLoopPolling()) return recordFallback('tensor:observable-expression');
         if (hasSlices && !privateLoopPolling()) return recordFallback('tensor:observable-slices');
         for (const name of nativeCalls) if (!host.builtin(name)) return recordFallback(`tensor:builtin:${name}`);
         if (unavailable) return recordFallback('tensor:code-generation');
         if (names.some(name => host.lookup(name) !== undefined)) return recordFallback('tensor:existing-binding');
         // Interrupt callbacks may enter this kernel again with another shape.
         const plan = layout;
-        if (plan && plan.interruptible === interruptsEnabled() && host.builtin(terminal)) {
-            const data: RankValue[][] = [], scalars: RankValue[] = [], offsets = [...plan.offsets];
+        if (plan && plan.interruptible === interruptsEnabled() && (implicit || host.builtin(terminal))) {
+            const data: ArrayLike<RankValue>[] = [], scalars: RankValue[] = [], offsets = [...plan.offsets];
             const keys: string[] | undefined = hasConcat ? [] : undefined;
             let validations: (() => void)[] | undefined;
             let matches = true;
@@ -291,7 +317,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         layout = undefined;
         const bound = new Map<TensorNode, Bound>();
         let broadcasts = false;
-        const data: RankValue[][] = [], offsets: number[] = [], scalars: RankValue[] = [];
+        const data: ArrayLike<RankValue>[] = [], offsets: number[] = [], scalars: RankValue[] = [];
         let validations: (() => void)[] | undefined;
         let bindingRejected = false;
         function rejectBinding(reason: string): undefined {
@@ -421,7 +447,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         const output = bind(root);
         if (!output) return undefined;
         if (!output.shape) return recordFallback('tensor:output-shape');
-        if (!host.builtin(terminal)) return recordFallback(`tensor:builtin:${terminal}`);
+        if (!implicit && !host.builtin(terminal)) return recordFallback(`tensor:builtin:${terminal}`);
         // A gather preserves its selector's frame: broadcast its selector,
         // then use that value to address the source, never broadcast the table.
         // Filters change cardinality and still require a separate domain plan.
@@ -429,6 +455,12 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             return recordFallback('tensor:broadcast-selection');
         }
         const size = output.shape.reduce((p, n) => p * n, 1);
+        // Even an empty array must evaluate scalar subexpressions that can
+        // fail, such as A * (1 // 0). Let the reference path locate that error.
+        if (implicit && size === 0 && [...domains.keys()].some(node =>
+            node.kind === 'binary' && ['/', '//', 'mod', '**'].includes(node.op))) {
+            return recordFallback('tensor:empty-arithmetic-domain');
+        }
         // A selection changes cardinality. Other operands must not zip an
         // unfiltered vector against it. Until domain algebra is implemented,
         // only scalar maps and gathers can follow a filter.
