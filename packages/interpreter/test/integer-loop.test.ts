@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { registerCachedArray, typedArray, typedElementKind } from '../src/array-storage.js';
 import { RuntimeDiagnostics } from '../src/diagnostics.js';
 import { Interpreter, RankError, formatValue } from '../src/index.js';
-import { RuntimeDiagnostics } from '../src/diagnostics.js';
 
 function execute(source: string, integerLoopCompilation: boolean, nestedLoopCompilation = true, scalarFunctionCompilation = true) {
     let loops = 0;
