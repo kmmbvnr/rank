@@ -26,8 +26,6 @@ const materialized = (source: Flow): Flow => ({ ...source, lazy: new Set(source.
  * A helper is inspected with its actual callback arguments; it needs no annotation. */
 export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { node: AstNode; message: string }[] {
     const diagnostics: { node: AstNode; message: string }[] = [];
-    const values = new Map<LexicalBinding, Expression[]>();
-    const bodies = new Map<FunctionStatement, AstNode[]>();
     const nested = (fn: FunctionStatement): boolean => !!analysis.functions.get(fn)?.scope.parent?.parent;
     if (![...analysis.functions.keys()].some(nested)) return diagnostics;
     const report = (node: AstNode, fn: FunctionStatement, lazy: boolean): void => {
@@ -35,21 +33,7 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
             : `nested function ${fn.name} cannot be returned, assigned, or stored; call it or pass it directly to a helper.`;
         if (!diagnostics.some(item => item.node === node && item.message === message)) diagnostics.push({ node, message });
     };
-    for (const [node, scope] of analysis.scopes) {
-        if (isFunctionStatement(scope.owner)) {
-            const nodes = bodies.get(scope.owner) ?? [];
-            nodes.push(node);
-            bodies.set(scope.owner, nodes);
-        }
-        if (isAssignmentStatement(node) || isFunctionBindingStatement(node)) {
-            const binding = lexicalBinding(scope, node.name);
-            if (binding) {
-                const expressions = values.get(binding) ?? [];
-                expressions.push(node.value);
-                values.set(binding, expressions);
-            }
-        }
-    }
+    const { values, bodies } = escapeInputs(analysis);
     type Environment = Map<LexicalBinding, Flow>;
     const active = new Set<FunctionStatement>();
     const reading = new Set<LexicalBinding>();
@@ -169,7 +153,7 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
         }
         return result;
     };
-    const check = (node: AstNode, env: Environment, owner?: FunctionStatement): void => {
+    const check = (node: AstNode, env: Environment, owner?: FunctionStatement): Flow | undefined => {
         let result: Flow | undefined;
         if (isExpressionStatement(node)) value(node.value, env);
         if (isReturnStatement(node) || isYieldStatement(node)) {
@@ -192,6 +176,7 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
             }
         }
         if (result) for (const fn of result.functions) if (nested(fn)) report(node, fn, false);
+        return result;
     };
     const invoke = (fn: FunctionStatement, args: readonly Flow[], outer: Environment, site: AstNode): Flow => {
         const info = analysis.functions.get(fn);
@@ -214,9 +199,9 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
             const returns: Flow[] = [];
             const yields: Flow[] = [];
             for (const node of nodes) {
-                check(node, env, fn);
-                if (isReturnStatement(node)) returns.push(value(node.value, env));
-                if (isYieldStatement(node)) yields.push(value(node.value, env));
+                const result = check(node, env, fn);
+                if (result && isReturnStatement(node)) returns.push(result);
+                if (result && isYieldStatement(node)) yields.push(result);
             }
             if (yields.length) {
                 const emitted = union(yields);
@@ -239,4 +224,26 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
         if (isExpression(node)) value(node, topEnvironment);
     }
     return diagnostics;
+}
+
+/** Index lexical inputs once; expression evaluation uses these binding identities. */
+function escapeInputs(analysis: FunctionScopeAnalysis) {
+    const values = new Map<LexicalBinding, Expression[]>();
+    const bodies = new Map<FunctionStatement, AstNode[]>();
+    for (const [node, scope] of analysis.scopes) {
+        if (isFunctionStatement(scope.owner)) {
+            const nodes = bodies.get(scope.owner) ?? [];
+            nodes.push(node);
+            bodies.set(scope.owner, nodes);
+        }
+        if (isAssignmentStatement(node) || isFunctionBindingStatement(node)) {
+            const binding = lexicalBinding(scope, node.name);
+            if (binding) {
+                const expressions = values.get(binding) ?? [];
+                expressions.push(node.value);
+                values.set(binding, expressions);
+            }
+        }
+    }
+    return { values, bodies };
 }
