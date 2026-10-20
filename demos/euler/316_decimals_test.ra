@@ -5,6 +5,16 @@ test "statement pattern"
   535 waiting equal 1008
 end
 
+test "overlapping decimal borders"
+  use "316_decimals"
+  1 waiting equal 10
+  10 waiting equal 99
+  1000 waiting equal 9997
+  1111 waiting equal 11107
+  1212 waiting equal 10097
+  10101 waiting equal 101006
+end
+
 test "statement sum"
   use "316_decimals"
   Num = 1000000

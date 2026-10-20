@@ -4,6 +4,7 @@ import { checkpoint } from './interrupt.js';
 import { RankError } from './errors.js';
 import { atSequence, sequence } from './sequence.js';
 import { safeDimension } from './tensor-index.js';
+import { textPoints } from './text-storage.js';
 import type { RankArray, RankQueue, RankSequence, RankValue } from './value.js';
 
 export interface IndexedSource {
@@ -26,7 +27,7 @@ const adapters = {
         at: index => value.itemAt?.(Number(index)) ?? value.items[Number(index)], build: ownedArray,
     }),
     text: (value: string): IndexedSource => {
-        const points = [...value];
+        const points = textPoints(value);
         return { axisSize: axis => { checkAxis(axis, 'text'); return points.length; },
             at: index => points[Number(index)], build: values => values.join('') };
     },

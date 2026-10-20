@@ -15,26 +15,22 @@ end
 Answer print
 
 fun N waiting
-  Text = N text
-  Len = Text len
-  Pi = array shape Len fill 0
-  J = 0
-  for I in 1 till Len
-    for J greater 0
-      if (Text I) equal (Text J)
-        break
-      end
-      J = Pi (J - 1)
-    end
-    if (Text I) equal (Text J)
-      J += 1
-    end
-    Pi I = J
+  Power = 10
+  Len = 1
+  for Power less (N + 1)
+    Power *= 10
+    Len += 1
   end
-  Total = 0
-  for Len greater 0
-    Total += 10 ** Len
-    Len = Pi (Len - 1)
+  Total = Power - Len + 1
+  Suffix = 10
+  Prefix = Power // 10
+  rem Each matching border adds 10 ** K.
+  for Prefix greater 1
+    if (N // Prefix) equal (N mod Suffix)
+      Total += Suffix
+    end
+    Prefix = Prefix // 10
+    Suffix *= 10
   end
-  return Total - (Text len) + 1
+  return Total
 end

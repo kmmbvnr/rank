@@ -306,7 +306,7 @@ export function createLoopExpressions(state: LoopCompilationState) {
                     if (value?.type !== 'text') return undefined;
                     builtins.set(op, 'core');
                     const name = `v${state.serial++}`;
-                    lines.push(`const ${name} = BigInt(${value.ascii ? `(${value.code}).length` : `[...(${value.code})].length`});`);
+                    lines.push(`const ${name} = BigInt(${value.ascii ? `(${value.code}).length` : `textLength(${value.code})`});`);
                     return { code: name, type: 'integer' };
                 }
             }

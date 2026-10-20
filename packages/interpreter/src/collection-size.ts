@@ -1,6 +1,7 @@
 import { collectionProtocol, type CollectionProtocolFor } from '@arrrank/language';
 import { RankDeque } from './containers.js';
 import { RankError } from './errors.js';
+import { textLength } from './text-storage.js';
 import type { RankValue, RankArray, RankQueue, RankSequence } from './value.js';
 
 /** Size and axes are separate capabilities; neither implies element traversal. */
@@ -43,7 +44,7 @@ const adapters = {
     entries: (value: { entries: ReadonlyMap<unknown, unknown> }): CollectionSize => ({ length: () => BigInt(value.entries.size) }),
     tuple: (value: { items: readonly RankValue[] }): CollectionSize => ({ length: () => BigInt(value.items.length) }),
     table: (value: { length: number }): CollectionSize => ({ length: () => BigInt(value.length) }),
-    text: (value: string) => vector(() => BigInt([...value].length)),
+    text: (value: string) => vector(() => BigInt(textLength(value))),
 } satisfies Record<CollectionProtocolFor<'size' | 'shape'>, unknown>;
 
 export function collectionSize(value: RankValue, capability: 'size' | 'shape' = 'size'): CollectionSize | undefined {

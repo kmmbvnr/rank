@@ -29,7 +29,7 @@ import type { InterpreterOptions } from './interpreter-options.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
 import { atArray, scalarArrayWriteOffset, tensorSelection } from './selectors.js';
 import { prepareCompiledBuiltin } from './typed-native.js';
-import { applySelectors } from './value-selection.js';
+import { textAt } from './text-storage.js';
 import { isRankArray, isNativeFunction, type NativeFunction, type RankValue } from './value.js';
 
 export type CompiledLoop = NonNullable<ReturnType<typeof compileIntegerLoop>>;
@@ -198,7 +198,7 @@ export class FastPaths {
             textArrayLoops: this.context.options().textArrayLoopCompilation !== false,
             nestedLoops: this.context.options().nestedLoopCompilation !== false,
             arrayRead: atArray,
-            textRead: (source, index) => applySelectors([source, index]) as string,
+            textRead: textAt,
             returns: this.context.options().loopReturnCompilation !== false,
             yields: this.context.options().loopYieldCompilation !== false,
             canReturn: () => this.context.bindings.insideFunction,

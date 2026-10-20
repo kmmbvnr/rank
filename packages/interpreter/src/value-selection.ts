@@ -1,6 +1,7 @@
 import { maskSelection } from './array-mask-selection.js';
 export { maskSelection };
 import { indexedSource } from './indexed-source.js';
+import { textAt } from './text-storage.js';
 import { denseScalarItems, noteArrayBinding, ownedArray, readArrayItem } from './array-storage.js';
 import { RankDeque } from './containers.js';
 import { counterFrequency } from './collections.js';
@@ -161,13 +162,7 @@ export function applySelectors(values: RankValue[], missing?: () => RankValue): 
         return values[0].neighbors(values[1]);
     }
     if (values.length === 2 && typeof values[0] === 'string' && typeof values[1] === 'bigint') {
-        const atoms = [...values[0]];
-        const index = values[1];
-        if (index < 0n) throw new MissingValueError('text index out of bounds');
-        if (index >= BigInt(atoms.length)) {
-            throw new MissingValueError(`text index out of bounds: ${index}`);
-        }
-        return atoms[Number(index)];
+        return textAt(values[0], values[1]);
     }
     if (values.length === 2 && typeof values[0] === 'string'
         && isCollectionSelector(values[1])) {
