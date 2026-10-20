@@ -45,10 +45,10 @@ Out + (Size text)`)).toBe('1😀😀9');
             } finally { r.dispose(); }
         });
 
-        it(`passes Euler 316 checkpoints (compiled=${compiled})`, () => {
+        it(`passes KMP Euler 316 checkpoints (compiled=${compiled})`, () => {
             const r = runtime();
             try {
-                const source = readFileSync(new URL('../../../demos/euler/316_decimals.ra', import.meta.url), 'utf8');
+                const source = readFileSync(new URL('../../../benchmarks/fixtures/euler316-kmp.ra', import.meta.url), 'utf8');
                 r.execute(source.replace('option Top integer = 999999', 'Top = 999')
                     .replace('option Num integer = 10000000000000000', 'Num = 1000000'));
                 expect(r.variables.get('Answer')).toBe(27280188n);
