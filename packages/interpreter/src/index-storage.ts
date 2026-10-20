@@ -18,9 +18,13 @@ export class IndexEntries extends ResourceMap<RankValue, IndexKey> {
     get integers(): boolean { return this.nonIntegers === 0; }
 
     override set(key: IndexKey, value: RankValue): this {
-        if (this.has(key) && typeof this.get(key) !== 'bigint') this.nonIntegers--;
-        if (typeof value !== 'bigint') this.nonIntegers++;
-        return super.set(key, value);
+        // The common homogeneous case needs no extra Map lookup. Update the
+        // proof only after the resource-aware store succeeds.
+        if (this.integers && typeof value === 'bigint') return super.set(key, value);
+        const previous = this.has(key) && typeof this.get(key) !== 'bigint';
+        super.set(key, value);
+        this.nonIntegers += Number(typeof value !== 'bigint') - Number(previous);
+        return this;
     }
 
     override delete(key: IndexKey): boolean {

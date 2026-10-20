@@ -19,6 +19,12 @@ export function indexKey(values: readonly RankValue[]): IndexKey {
         }
     }
     if (values.length === 0) throw new RankError('index requires at least one key');
+    // Integer coordinates are common in sparse tables. A disjoint prefix and
+    // comma-delimited exact integers avoid structural set codecs and JSON.
+    if (values.length > 1 && values.every(value => typeof value === 'bigint'
+        || typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value))) {
+        return `integers:${values.map(value => typeof value === 'bigint' ? value : BigInt(value as number)).join(',')}`;
+    }
     return JSON.stringify(values.map(value => {
         if (typeof value === 'bigint' || typeof value === 'number'
             || typeof value === 'boolean' || typeof value === 'string'

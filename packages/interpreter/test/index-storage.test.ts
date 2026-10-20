@@ -23,6 +23,10 @@ describe('index storage', () => {
         expect(entries.integers).toBe(true);
         entries.set(1, 5n);
         expect(entries.integers).toBe(true);
+        const invalid = { get kind(): 'label' { throw new Error('host getter'); }, name: 'bad' };
+        expect(() => entries.set(1, invalid)).toThrow('host getter');
+        expect(entries.get(1)).toBe(5n);
+        expect(entries.integers).toBe(true);
     });
     it('preserves scalar and tuple key equality across primitive and encoded keys', () => {
         const values: RankValue[] = [0n, 0, -0, 1n, 1, -1n, -1, 1.5, NaN, Infinity, -Infinity,
@@ -36,9 +40,13 @@ describe('index storage', () => {
             const equal = setValueKey(left) === setValueKey(right);
             expect(indexKey([left]) === indexKey([right])).toBe(equal);
             expect(indexKey([left, 'tail']) === indexKey([right, 'tail'])).toBe(equal);
+            expect(indexKey([left, 0n]) === indexKey([right, 0n])).toBe(equal);
         }
         expect(indexKey([1n])).not.toBe(indexKey([1n, 0n]));
         expect(indexKey(['a', 'b|text:c'])).not.toBe(indexKey(['a|text:b', 'c']));
+        expect(indexKey([1n, 23n])).not.toBe(indexKey([12n, 3n]));
+        expect(indexKey([1n, 2n])).not.toBe(indexKey(['integers:1,2']));
+        expect(indexKey([1n, 2n])).not.toBe(indexKey([1n, 2n, 0n]));
     });
 
     it('keeps aliases, insertion order, cached false/zero and detached previews', () => {
