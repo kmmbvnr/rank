@@ -164,6 +164,33 @@ function prepareIntegerConcat(root: Part | undefined, shape: readonly number[], 
         end += part.length;
         leaves.push({ end, length: part.length, read: integers.read, checks: unique });
     }
+    if (shape.length === 1) {
+        // Collection kernels read a vector from left to right. Keep its current
+        // leaf instead of searching the rope and computing tensor coordinates
+        // for every cell. Arbitrary indexing still uses binary search.
+        let current = 0;
+        let start = 0;
+        return index => {
+            let leaf = leaves[current];
+            if (index === leaf.end && current + 1 < leaves.length) {
+                start = leaf.end;
+                leaf = leaves[++current];
+            } else if (index < start || index >= leaf.end) {
+                let low = 0, high = leaves.length - 1;
+                while (low < high) {
+                    const middle = (low + high) >>> 1;
+                    if (index < leaves[middle].end) high = middle;
+                    else low = middle + 1;
+                }
+                current = low;
+                leaf = leaves[current];
+                start = leaf.end - leaf.length;
+            }
+            let item: RankValue = leaf.read(index - start);
+            for (const check of leaf.checks) item = check.apply(item);
+            return item as bigint;
+        };
+    }
     const stride = shape.slice(axis + 1).reduce((product, size) => product * size, 1);
     const width = shape[axis];
     return index => {

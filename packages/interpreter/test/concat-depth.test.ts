@@ -4,6 +4,7 @@ import { arrayRevision, enterRuntime, leaveRuntime, noteArrayBinding, ownedArray
 import { concatValues } from '../src/modules/sequences.js';
 import { ArrayBindingContract } from '../src/array-binding-contract.js';
 import { sequence } from '../src/sequence.js';
+import { prepareIntegerView } from '../src/integer-view.js';
 import { isRankSequence, type RankArray } from '../src/value.js';
 
 for (const compilation of [false, true]) describe(`deep concat (compiled=${compilation})`, () => {
@@ -64,6 +65,26 @@ Total`)).toBe('49995000');
 });
 
 describe('concat rope reads and dependencies', () => {
+    it('keeps sequential cursors correct across leaf boundaries, jumps and independent readers', () => {
+        const parts = Array.from({ length: 100 }, (_, part) =>
+            ownedArray(Array.from({ length: part % 7 + 1 }, (_, cell) => BigInt(part * 10 + cell))));
+        const expected = parts.flatMap(part => [...part.items]);
+        const joined = concatValues(parts) as RankArray;
+        const first = prepareIntegerView(joined)!;
+        const second = prepareIntegerView(joined)!;
+        expect(first).toBeDefined();
+        for (let index = 0; index < expected.length; index++) {
+            expect(first.read(index)).toBe(expected[index]);
+            const reverse = expected.length - index - 1;
+            expect(second.read(reverse)).toBe(expected[reverse]);
+        }
+        for (let index = 0; index < expected.length; index++) {
+            const jump = (index * 37) % expected.length;
+            expect(first.read(jump)).toBe(expected[jump]);
+        }
+        expect(Array.from({ length: expected.length }, (_, index) => first.read(index))).toEqual(expected);
+    });
+
     it('handles append, prepend, and balanced joins without recursive reads', () => {
         for (const prepend of [false, true]) {
             let value = ownedArray([]);
