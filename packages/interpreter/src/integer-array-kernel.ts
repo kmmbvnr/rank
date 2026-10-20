@@ -1,4 +1,5 @@
 import { IntegerCells } from './array-storage.js';
+import { greatestCommonDivisor } from './integer-gcd.js';
 import { RankError } from './errors.js';
 import { prepareIntegerView } from './integer-view.js';
 import { checkpoint, inspectionEnabled, InterruptedError, privateLoopPolling } from './interrupt.js';
@@ -12,7 +13,9 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
     const operation = name === '+' ? (a: bigint, b: bigint) => a + b
         : name === '-' ? (a: bigint, b: bigint) => a - b
         : name === '*' ? (a: bigint, b: bigint) => a * b
-        : name === 'mod' ? floorRemainder : name === '//' ? floorDivide : undefined;
+        : name === 'mod' ? floorRemainder : name === '//' ? floorDivide
+        : name === 'gcd' ? greatestCommonDivisor
+        : name === 'abs' ? (a: bigint) => a < 0n ? -a : a : undefined;
     if (!operation || inspectionEnabled() || !privateLoopPolling()) return undefined;
     const a = isRankArray(left) ? prepareIntegerView(left, true) : undefined;
     const b = isRankArray(right) ? prepareIntegerView(right, true) : undefined;

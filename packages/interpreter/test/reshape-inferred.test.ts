@@ -1,5 +1,27 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue } from '../src/index.js';
+import { Interpreter, formatValue, type RankArray } from '../src/index.js';
+import { denseScalarItems, typedArray } from '../src/array-storage.js';
+import { reshapeWithDimensions } from '../src/modules/sequences.js';
+
+describe('typed reshape storage', () => {
+    it.each([new BigInt64Array([1n, 2n, 3n, 4n]), new Float64Array([1, 2, 3, 4])])(
+        'shares storage and detaches Rank writes through either shape: %s', buffer => {
+            const source = typedArray(buffer);
+            const reshaped = reshapeWithDimensions(source, [2n, 2n]) as RankArray;
+            expect(denseScalarItems(reshaped)).toBe(denseScalarItems(source));
+            const runtime = new Interpreter();
+            const real = buffer instanceof Float64Array;
+            runtime.variables.set('A', source);
+            runtime.variables.set('B', reshaped);
+            try {
+                runtime.execute(`A 0 = ${real ? '9.0' : '9'}`);
+                expect(formatValue(runtime.execute('B')!)).toBe('1 2 3 4');
+                runtime.execute(`B 1 1 = ${real ? '8.0' : '8'}`);
+                expect(formatValue(runtime.execute('A')!)).toBe('9 2 3 4');
+                expect(formatValue(runtime.execute('B')!)).toBe('1 2 3 8');
+            } finally { runtime.dispose(); }
+        });
+});
 
 for (const compilation of [false, true]) describe(`inferred reshape (compiled=${compilation})`, () => {
     function run(source: string) {

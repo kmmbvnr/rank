@@ -1,4 +1,5 @@
 import { Factorizer } from '../factorization.js';
+import { greatestCommonDivisor } from '../integer-gcd.js';
 import { integerSquareRoot } from '../integer-square-root.js';
 import { mapScalarArrays } from '../scalar-array-map.js';
 import { expectMultiset } from '../multiset.js';
@@ -423,16 +424,6 @@ function add(left: bigint | number, right: bigint | number): bigint | number {
     return typeof left === 'bigint' && typeof right === 'bigint'
         ? left + right
         : Number(left) + Number(right);
-}
-
-function greatestCommonDivisor(left: bigint, right: bigint): bigint {
-    let a = absolute(left);
-    let b = absolute(right);
-    while (b !== 0n) {
-        checkpoint('computing numbers');
-        [a, b] = [b, a % b];
-    }
-    return a;
 }
 
 function leastCommonMultiple(left: bigint, right: bigint): bigint {

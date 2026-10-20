@@ -15,7 +15,7 @@ import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } fro
 import { checkpoint, inspectionEnabled, interruptibleCallback } from '../interrupt.js';
 import { prepareIntegerView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, prepareArrayRead, readArrayItem, realCells, typedArray, typedElementKind } from '../array-storage.js';
+import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, prepareArrayRead, readArrayItem, realCells, typedArray, typedElementKind, reshapeTypedArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind } from '../ordered.js';
@@ -660,7 +660,7 @@ export function reshapeWithDimensions(value: RankValue, dimensions: readonly (Ra
     // A typed array reshapes into a typed array: the cells keep their order.
     const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
     if (stored && typedElementKind(value as RankArray) !== undefined && stored.length === expected) {
-        const result = typedArray((stored as Float64Array | BigInt64Array).slice(), shape);
+        const result = reshapeTypedArray(value as RankArray, shape)!;
         return type ? setSemanticArrayType(result, type) : result;
     }
     const items = collected ?? reshapeItems(value);

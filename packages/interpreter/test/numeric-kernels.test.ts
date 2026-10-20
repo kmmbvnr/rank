@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, RankError, isNativeFunction, isRankArray, type RankArray, type RankValue } from '../src/index.js';
 import { numericKernel } from '../src/numeric-kernels.js';
 import { mapBroadcastArrays } from '../src/tensor.js';
+import { mapStoredIntegers } from '../src/integer-array-kernel.js';
+import { typedArray, ownedArray } from '../src/array-storage.js';
+import { withInterrupt, InterruptedError } from '../src/interrupt.js';
 
 const vector = (items: RankValue[], shape = [items.length]): RankArray => ({ kind: 'array', items, shape });
 
@@ -17,6 +20,30 @@ function items(value: RankValue): RankValue[] {
 }
 
 describe('numeric collection kernels', () => {
+    it('computes exact signed gcd and abs over stored broadcast operands', () => {
+        const left = typedArray(new BigInt64Array([-12n, 0n, -(1n << 63n)]), [3, 1]);
+        const right = typedArray(new BigInt64Array([0n, 18n]), [1, 2]);
+        const result = mapStoredIntegers(left, right, 'gcd')!;
+        expect(result.shape).toEqual([3, 2]);
+        expect(items(result)).toEqual([12n, 6n, 0n, 18n, 1n << 63n, 2n]);
+        expect(items(mapStoredIntegers(left, 0n, 'abs')!)).toEqual([12n, 0n, 1n << 63n]);
+        expect(items(mapStoredIntegers(ownedArray([1n << 100n]), 1n << 80n, 'gcd')!))
+            .toEqual([1n << 80n]);
+        const stop = new Int32Array(new SharedArrayBuffer(4));
+        Atomics.store(stop, 0, 1);
+        const large = typedArray(new BigInt64Array(4096).fill(12n));
+        expect(() => withInterrupt(stop, () => mapStoredIntegers(large, 18n, 'gcd'))).toThrow(InterruptedError);
+    });
+
+    it('leaves opaque and noninteger gcd operands to the ordinary ranked path', () => {
+        let reads = 0;
+        const opaque: RankArray = { kind: 'array', shape: [1], items: [],
+            itemAt: () => { reads++; return 2n; } };
+        expect(mapStoredIntegers(opaque, 4n, 'gcd')).toBeUndefined();
+        expect(reads).toBe(0);
+        expect(mapStoredIntegers(typedArray(new Float64Array([2])), 4n, 'gcd')).toBeUndefined();
+    });
+
     it('guards integer power and leaves real domains to the scalar fallback', () => {
         const calls: RankValue[][] = [];
         const power = numericKernel('**', (left, right) => {

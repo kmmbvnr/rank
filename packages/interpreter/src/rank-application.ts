@@ -1,4 +1,5 @@
 import { scalarBuiltinArray } from './scalar-builtin.js';
+import { mapStoredIntegers } from './integer-array-kernel.js';
 import { rankedCells } from './ranked-cells.js';
 import { rankedNumericFind } from './numeric-search.js';
 import { arrayRevision, derivedArray, materializeCells, ownedArray, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
@@ -131,6 +132,11 @@ export class RankApplication {
         );
         if (frameShape.length === 0) {
             return this.invoke(fn, [left, right]);
+        }
+        if (leftRank === 0 && rightRank === 0
+            && fn === this.standardFunctions.get(standardModules.numbers.gcd)) {
+            const integers = mapStoredIntegers(left, right, 'gcd');
+            if (integers) return completed(integers);
         }
         // The standard find holds the complete left vector and maps scalar
         // targets. Keep error demand lazy and share one revision-checked index.
@@ -324,6 +330,12 @@ export class RankApplication {
         }
         if (frameAxes.length === 0) return fn.call([cells.cellAt(0)]);
 
+        if (fn === this.standardFunctions.get(standardModules.numbers.abs)
+            && frameAxes.length === value.shape.length
+            && frameAxes.every((axis, index) => axis === index)) {
+            const integers = mapStoredIntegers(value, 0n, 'abs');
+            if (integers) return integers;
+        }
         const scalarBuiltin = scalarBuiltinArray(value, fn, frameAxes);
         if (scalarBuiltin) return scalarBuiltin;
 
