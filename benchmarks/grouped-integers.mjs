@@ -7,7 +7,21 @@ import { Interpreter, RuntimeDiagnostics } from '../packages/interpreter/out/ind
 
 // Run each size in a fresh process, bounding the complete workload as well as
 // reporting grouping separately from the pair scan. Includes parse/prepare time.
-if (process.argv[2] === '--worker') {
+if (process.argv[2] === '--index-worker') {
+    const count = Number(process.argv[3] ?? 100000);
+    assert(Number.isSafeInteger(count) && count > 0);
+    const runtime = new Interpreter(() => {});
+    const diagnostics = new RuntimeDiagnostics();
+    try {
+        runtime.execute(`use algo\nData = new index\nfor I in 0 till ${count}\n Data I 0 = I\nend`);
+        const start = performance.now();
+        const answer = diagnostics.run(() => runtime.execute(
+            `Total = 0\nfor I in 0 till ${count}\n Total += Data I 0\nend\nTotal`));
+        assert.equal(answer, BigInt(count) * BigInt(count - 1) / 2n);
+        console.log(JSON.stringify({ count, phase: 'index-reads', ms: performance.now() - start,
+            answer: String(answer), diagnostics }));
+    } finally { runtime.dispose(); }
+} else if (process.argv[2] === '--worker') {
     const limit = Number(process.argv[3]);
     const source = readFileSync(new URL('../demos/euler/309_ladders.ra', import.meta.url), 'utf8')
         .replace('option Limit integer = 1000000', `option Limit integer = ${limit}`);
@@ -23,7 +37,7 @@ if (process.argv[2] === '--worker') {
                 peakRssKiB: process.resourceUsage().maxRSS, diagnostics }));
         }
         const answer = runtime.variables.get('Answer');
-        const expected = new Map([[200, 5n], [1000, 76n], [1000000, 210139n]]).get(limit);
+        const expected = new Map([[200, 5n], [1000, 76n], [10000, 1438n], [1000000, 210139n]]).get(limit);
         if (expected !== undefined) assert.equal(answer, expected);
         console.log(JSON.stringify({ limit, answer: String(answer) }));
     } finally { runtime.dispose(); }
