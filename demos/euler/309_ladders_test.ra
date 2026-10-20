@@ -1,5 +1,13 @@
 use testing
 
+test "no ladder pairs"
+  use "309_ladders"
+  Limit = 3
+  run
+
+  Answer equal 0
+end
+
 test "statement range"
   use "309_ladders"
   Limit = 200
@@ -14,4 +22,12 @@ test "larger range"
   run
 
   Answer equal 76
+end
+
+test "many width groups"
+  use "309_ladders"
+  Limit = 10000
+  run
+
+  Answer equal 1438
 end
