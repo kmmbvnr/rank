@@ -25,16 +25,28 @@ interface InlineBuiltin {
     readonly module: string;
     readonly types: Partial<Record<LoopTerm['type'], LoopTerm['type']>>;
     readonly enabled?: (host: LoopHost) => boolean;
+    /** The interpreter's DomainError for operands outside the domain. */
+    readonly domain?: { test(value: string, type: LoopTerm['type']): string | undefined; message: string };
     code(value: string, type: LoopTerm['type'], numberMode: boolean): string;
 }
 const parity = (even: boolean): InlineBuiltin => ({ module: 'numbers', types: { integer: 'boolean' },
     code: (value, _, numberMode) => numberMode ? `((${value}) % 2 ${even ? '===' : '!=='} 0)`
         : `(BigInt.asUintN(1, ${value}) ${even ? '===' : '!=='} 0n)` });
+const bound = (name: 'floor' | 'ceil'): InlineBuiltin => ({ module: 'numbers', types: { integer: 'integer', real: 'integer' },
+    enabled: host => host.reals,
+    domain: { test: (value, type) => type === 'real' ? `!Number.isFinite(${value})` : undefined, message: `${name} expects a finite number` },
+    code: (value, type) => type === 'real' ? `BigInt(Math.${name}(${value}))` : value });
 const inlineBuiltins = new Map<string, InlineBuiltin>([
-    ['abs', { module: 'numbers', types: { integer: 'integer' }, enabled: host => host.absolute,
-        code: (value, _, numberMode) => `(${value}) < ${numberMode ? '0' : '0n'} ? -(${value}) : (${value})` }],
+    ['abs', { module: 'numbers', types: { integer: 'integer', real: 'real' }, enabled: host => host.absolute,
+        code: (value, type, numberMode) => type === 'real' ? `Math.abs(${value})`
+            : `(${value}) < ${numberMode ? '0' : '0n'} ? -(${value}) : (${value})` }],
     ['even', parity(true)],
     ['odd', parity(false)],
+    ['sqrt', { module: 'numbers', types: { integer: 'real', real: 'real' }, enabled: host => host.reals,
+        domain: { test: value => `(${value}) < 0`, message: 'sqrt expects a nonnegative value' },
+        code: (value, type) => `Math.sqrt(${type === 'integer' ? `Number(${value})` : value})` }],
+    ['floor', bound('floor')],
+    ['ceil', bound('ceil')],
 ]);
 
 export function compileIntegerLoop(statement: ForStatement, host: LoopHost, iteration?: IterationBinding): CompiledLoop | undefined {
@@ -147,7 +159,17 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             return type && { types: [type] };
         });
         const type = fact.types.length === 1 ? fact.types[0] : undefined;
-        return type === 'integer' || type === 'boolean' || type === 'text' || type === 'bytes' ? type : undefined;
+        return type === 'integer' || type === 'boolean' || type === 'text' || type === 'bytes'
+            || type === 'real' && host.reals ? type : undefined;
+    }
+    /** Real bindings and arrays of reals select real registers. This only
+     * chooses a specialization; entry guards check every input and cell. */
+    function realInput(name: string): 'real' | undefined {
+        if (!host.reals) return undefined;
+        const value = host.read(name);
+        const first = value && isRankArray(value)
+            ? arrayRevision(value) === undefined ? undefined : materializedArrayItems(value)?.[0] : value;
+        return typeof first === 'number' ? 'real' : undefined;
     }
     const isExtreme = (part: Expression | undefined) => isNameExpression(part) && ['min', 'max'].includes(part.name);
     // `A B max`, `A max`, or a chain such as `A B max 5 min` that ends in scalar extrema.
@@ -160,22 +182,23 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         const last = parts.at(-1);
         if (!isNameExpression(last)) return undefined;
         const left = parts.length > 3 ? emitExtreme(parts.slice(0, -2), lines) : emit(parts[0], lines);
-        if (left?.type !== 'integer') return undefined;
+        if (left?.type !== 'integer' && left?.type !== 'real') return undefined;
         builtins.set(last.name, 'core');
         if (parts.length === 2) return left;
+        // Mixed operands would give a result of either type.
         const right = emit(parts.at(-2)!, lines);
-        if (right?.type !== 'integer') return undefined;
+        if (right?.type !== left.type) return undefined;
         const name = `v${serial++}`;
         lines.push(`const ${name} = (${right.code}) ${last.name === 'min' ? '<' : '>'} (${left.code}) ? (${right.code}) : (${left.code});`);
-        return { code: name, type: 'integer' };
+        return { code: name, type: left.type };
     }
     interface LoopInput { readonly term: LoopTerm; readonly lines: readonly string[] }
     function emit(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopTerm | undefined {
         let tailSource = e;
         while (isParenthesizedExpression(tailSource)) tailSource = tailSource.value;
         const booleanPairs = new Map<Expression, boolean>();
-        const types: readonly CompiledLoopType[] = host.textLoops
-            ? ['integer', 'boolean', 'text', 'bytes'] : ['integer', 'boolean', 'bytes'];
+        const types: readonly CompiledLoopType[] = ['integer', 'boolean', 'bytes',
+            ...host.textLoops ? ['text' as const] : [], ...host.reals ? ['real' as const] : []];
         const inferred = inferCompiledExpression<CompiledLoopType, LoopInput>(e, {
             atom: type => types.find(candidate => candidate === type),
             read: (source, expected) => {
@@ -189,7 +212,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             },
             isBound: name => localTypes.has(name) || arrays.has(name) || containers.has(name),
             operandHint: (source, index, left) => {
-                if (isUnaryExpression(source)) return source.operator === 'not' ? 'boolean' : 'integer';
+                if (isUnaryExpression(source)) return source.operator === 'not' ? 'boolean' : undefined;
                 if (!isBinaryExpression(source)) return undefined;
                 if (index === 1) return left === 'text' ? 'text'
                     : booleanPairs.get(source) || left === 'boolean' ? 'boolean' : undefined;
@@ -204,19 +227,25 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             },
             // Literal powers are handled by the guarded input path. Accepting
             // the generic overload here would admit computed/negative exponents.
-            operator: (operation, inputs) => operation.name === '**' ? undefined
-                : loopOperatorSignature(operation.name, inputs, host.nativeCalls),
+            operator: (operation, inputs) => {
+                if (operation.name === '**') return undefined;
+                const signature = loopOperatorSignature(operation.name, inputs, host.nativeCalls);
+                return signature?.result === 'real' && !host.reals ? undefined : signature;
+            },
             budget: { remaining: 1024 },
         }, hint);
         if (inferred.failure) return reject(inferred.failure.source, inferred.failure.detail);
         return lower(inferred.expression, lines) ?? reject(e);
     }
     function lower(node: CompiledExpression<CompiledLoopType, LoopInput>, lines: string[]): LoopTerm | undefined {
-        if (serial > 256) return undefined;
+        // Reals use the exact backend, whose registers hold Rank values.
+        if (serial > 256 || numberMode && node.type === 'real') return undefined;
         if (node.kind === 'group') return lower(node.operand, lines);
         if (node.kind === 'literal') {
-            if (numberMode && typeof node.value === 'bigint' && !Number.isSafeInteger(Number(node.value))) return undefined;
-            return { type: node.type, code: typeof node.value === 'bigint' ? `${node.value}${numberMode ? '' : 'n'}` : JSON.stringify(node.value) };
+            const value = node.value;
+            if (numberMode && typeof value === 'bigint' && !Number.isSafeInteger(Number(value))) return undefined;
+            return { type: node.type, code: typeof value === 'bigint' ? `${value}${numberMode ? '' : 'n'}`
+                : typeof value === 'number' ? Object.is(value, -0) ? '-0' : String(value) : JSON.stringify(value) };
         }
         if (node.kind === 'input') {
             lines.push(...node.input.lines);
@@ -239,15 +268,26 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             lines.push(`let ${name} = ${left.code}; if (${node.operation.name === 'and' ? '' : '!'}${name}) { ${rightLines.join('\n')} ${name} = ${right.code}; }`);
             return { code: name, type: node.type };
         }
-        const code = arithmetic(node.operation.name, left.code, right.code, node.type, lines);
+        const code = arithmetic(node.operation.name, left, right, node.type, lines);
         return code === undefined ? undefined : { code, type: node.type };
     }
     /** One checked binary operator. Compound assignments lower through it
      * too, so division by zero and floor rounding are written once. */
-    function arithmetic(op: string, a: string, b: string, type: LoopTerm['type'], lines: string[]): string | undefined {
+    function arithmetic(op: string, left: LoopTerm, right: LoopTerm, type: LoopTerm['type'], lines: string[]): string | undefined {
         const token = findCompiledOperator(op)?.binary;
         if (!token) return undefined;
-        const name = `v${serial++}`;
+        const a = left.code, b = right.code, name = `v${serial++}`;
+        if (op === '/' || left.type === 'real' || right.type === 'real') {
+            // The interpreter's coercions: Number for arithmetic, exact
+            // bigint/number relations, and `==` for integral equality.
+            if (token === '//' || token === '%') return undefined;
+            const real = (term: LoopTerm) => term.type === 'integer' ? `Number(${term.code})` : `(${term.code})`;
+            const mixed = left.type !== right.type;
+            const relation = mixed && token === '===' ? '==' : mixed && token === '!==' ? '!=' : token;
+            if (op === '/') lines.push(`if ((${b}) === ${right.type === 'integer' ? '0n' : '0'}) throw zero();`);
+            lines.push(`const ${name} = ${type === 'boolean' ? `(${a}) ${relation} (${b})` : `${real(left)} ${token} ${real(right)}`};`);
+            return name;
+        }
         if (token !== '//' && token !== '%') {
             lines.push(`const ${name} = ${type === 'integer' ? safe(`(${a}) ${token} (${b})`) : `(${a}) ${token} (${b})`};`);
             return name;
@@ -303,7 +343,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         if (serial > 256) return undefined;
         if (isNameExpression(e) && !e.name.includes('.')) {
             if (arrays.has(e.name)) return undefined;
-            const type = localTypes.get(e.name) ?? (textSources.has(e.name) ? 'text' : hint ?? 'integer');
+            const type = localTypes.get(e.name) ?? (textSources.has(e.name) ? 'text' : hint ?? realInput(e.name) ?? 'integer');
             if (hint && type !== hint || type === 'boolean' && !host.booleanLocals) return undefined;
             localTypes.set(e.name, type);
             const index = slot(e.name);
@@ -351,11 +391,13 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 }
             }
             const builtin = inlineBuiltins.get(op);
-            if (builtin && (builtin.enabled?.(host) ?? true)) {
+            if (builtin && (builtin.enabled?.(host) ?? true) && flattenApplication(e).length === 2) {
                 const value = emit(e.head, lines);
                 const type = value && builtin.types[value.type];
                 if (!value || !type) return undefined;
                 builtins.set(op, builtin.module);
+                const test = builtin.domain?.test(value.code, value.type);
+                if (test) lines.push(`if (${test}) throw domain(${JSON.stringify(builtin.domain!.message)});`);
                 const name = `v${serial++}`;
                 lines.push(`const ${name} = ${builtin.code(value.code, value.type, numberMode)};`);
                 return { code: name, type };
@@ -415,7 +457,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                             types.push({ kind: 'array', element: type.element, rank: type.rank });
                         } else {
                             const value = emit(part, lines, knownType(part));
-                            if (!value || value.type === 'bytes') return undefined;
+                            if (!value || value.type === 'bytes' || value.type === 'real') return undefined;
                             arguments_.push(value.code);
                             types.push(value.type);
                         }
@@ -454,7 +496,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 return { code: name, type: 'integer' };
             }
             const previous = arrays.get(head.name);
-            const type = previous?.type ?? destinations.get(head.name)?.type ?? hint ?? 'integer';
+            const type = previous?.type ?? destinations.get(head.name)?.type ?? hint ?? realInput(head.name) ?? 'integer';
             if (type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || type === 'bytes') return undefined;
             if (hint && hint !== type || type === 'boolean' && !host.booleanArrays) return undefined;
             if (previous && previous.rank !== arguments_.length) return undefined;
@@ -726,7 +768,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                     const op = assignment.operator.slice(0, -1);
                     const signature = loopOperatorSignature(op, [value.type, value.type], host.nativeCalls);
                     const out = signature?.compound && signature.result === value.type
-                        ? arithmetic(op, old, rhs, value.type, lines) : undefined;
+                        ? arithmetic(op, { code: old, type: value.type }, { code: rhs, type: value.type }, value.type, lines) : undefined;
                     if (out === undefined) return reject(assignment);
                     result = out;
                     body.push(`location = ${location};`, ...lines,
@@ -832,18 +874,20 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 && (localTypes.get(assignment.name) === 'text' || typeof host.read(assignment.name) === 'string');
             const value = emit(assignment.value, lines, booleanUpdate ? 'boolean' : textUpdate ? 'text' : undefined);
             if (!value || value.type === 'boolean' && !host.booleanLocals) return reject(assignment);
-            const previousType = localTypes.get(assignment.name);
-            if (previousType && previousType !== value.type) return reject(assignment);
-            localTypes.set(assignment.name, value.type);
+            // A compound update keeps its binding's type, as in `Total += 1`.
+            const compound = assignment.operator !== '=';
+            const type = localTypes.get(assignment.name)
+                ?? (compound ? realInput(assignment.name) : undefined) ?? value.type;
             let result = value.code;
-            if (assignment.operator !== '=') {
+            if (compound) {
                 const op = assignment.operator.slice(0, -1);
-                const signature = loopOperatorSignature(op, [value.type, value.type], host.nativeCalls);
-                const out = signature?.compound && signature.result === value.type
-                    ? arithmetic(op, `r${destination}`, result, value.type, lines) : undefined;
+                const signature = loopOperatorSignature(op, [type, value.type], host.nativeCalls);
+                const out = signature?.compound && signature.result === type
+                    ? arithmetic(op, { code: `r${destination}`, type }, value, type, lines) : undefined;
                 if (out === undefined) return reject(assignment);
                 result = out;
-            }
+            } else if (type !== value.type) return reject(assignment);
+            localTypes.set(assignment.name, type);
             writers.push(host.writer(assignment.name));
             writerNames.push(assignment.name);
             body.push(`location = ${location};`, ...lines, `const out${index} = ${result};`,

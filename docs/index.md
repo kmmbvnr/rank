@@ -136,6 +136,7 @@ Structures, modules, and query syntax that extend the core language via `use`:
 - [REPL input on a phone keyboard](design/repl-input.md)
 - [Looking at a sequence without spending it](design/generator-previews.md)
 - [Judge-scale performance checks](design/judge-scale-benchmarks.md)
+- [Loop compiler: deferred refactors](design/loop-compiler-refactors.md)
 - [Turning solution drafts into Rank programs](design/example-workflow.md)
 - [SQLite query translation roadmap](design/sqlite-tables.md)
 - [Simpler table programs: design decision](design/table-query-ergonomics.md)

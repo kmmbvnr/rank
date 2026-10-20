@@ -28,8 +28,9 @@ export type ResultKind =
 
 // Common compiler vocabulary. Backend profiles declare the supported subset.
 export type CompiledAtomType = 'integer' | 'real' | 'boolean' | 'text' | 'bytes';
-/** Types currently supported by direct native calls and registers in loops. */
-export type CompiledLoopType = Exclude<CompiledAtomType, 'real'>;
+/** Types of loop registers and direct native calls. Reals stay in the exact
+ * loop backend; the Number fast path is integer-only. */
+export type CompiledLoopType = CompiledAtomType;
 
 /** A verified compiler-supported subset, not the operation's full language signature.
  * Calls are synchronous and cannot invoke Rank callbacks or mutate bindings.

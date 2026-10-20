@@ -115,8 +115,8 @@ array Even Odd
         expect(result.loops).toBe(1);
     });
 
-    it('declines noninteger inputs without executing or replaying the body', () => {
-        expect(compare('I = 0.0\nfor I less 3.0\n  I += 1.0\nend\nI').loops).toBe(0);
+    it('compiles real inputs and declines missing values without executing the body', () => {
+        expect(compare('I = 0.0\nfor I less 3.0\n  I += 1.0\nend\nI').loops).toBe(1);
         expect(compare('I = 0\nfor I less 0\n  I += Missing\nend\nI').value).toBe('0');
     });
 
@@ -762,7 +762,7 @@ Total`);
         expect(result.loops).toBe(1);
     });
 
-    it('declines real atoms before execution', () => {
+    it('compiles real cells read into a real total', () => {
         const result = compare(`A = array 1.5 2.5
 Total = 0.0
 for I in 0 till 2
@@ -770,7 +770,7 @@ for I in 0 till 2
 end
 Total`);
         expect(result.value).toBe('4');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 
     it('retains partial indexing semantics', () => {

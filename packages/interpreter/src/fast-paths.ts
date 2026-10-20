@@ -201,6 +201,7 @@ export class FastPaths {
             scalarFunction: (name, arity) => this.scalarCall(name, arity),
             sequenceMembership: this.context.options().sequenceMembershipCompilation !== false,
             absolute: this.context.options().absoluteLoopCompilation !== false,
+            reals: this.context.options().realLoopCompilation !== false,
             extrema: this.context.options().extremaLoopCompilation !== false,
             extremeParts: flattenApplication,
             compoundWrites: this.context.options().compoundArrayCompilation !== false,

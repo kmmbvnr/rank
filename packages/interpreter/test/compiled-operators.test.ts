@@ -15,7 +15,7 @@ function run(source: string, enabled: boolean, nativeLoopCompilation = true) {
     finally { runtime.dispose(); }
 }
 
-const samples = { integer: '3', boolean: 'true', text: '"λ"', bytes: '"λ" bytes' };
+const samples = { integer: '3', real: '2.5', boolean: 'true', text: '"λ"', bytes: '"λ" bytes' };
 const spelling: Record<string, string> = { atmost: 'at most', atleast: 'at least', notequal: 'not equal' };
 
 describe('catalogue operator lowering', () => {

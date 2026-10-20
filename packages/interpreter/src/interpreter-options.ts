@@ -36,6 +36,8 @@ export interface InterpreterOptions {
     readonly textArrayLoopCompilation?: boolean;
     readonly textLoopCompilation?: boolean;
     readonly absoluteLoopCompilation?: boolean;
+    /** Real registers, `/`, `sqrt`, `floor` and `ceil` in exact compiled loops. */
+    readonly realLoopCompilation?: boolean;
     readonly provenIterationTypes?: boolean;
     readonly loopReturnCompilation?: boolean;
     readonly arrayLocalCompilation?: boolean;

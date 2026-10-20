@@ -1,5 +1,24 @@
 # Compiler progress
 
+## Real registers in exact loops
+
+The exact loop backend now holds reals as well as integers (#338). Its
+registers already contain Rank values, so real arithmetic uses the interpreter's
+own coercions: `Number` for integer operands of `+ - * /`, plain JS relations
+between bigints and numbers, and `==` for mixed `equal`, which matches only an
+integral real. `/` checks both `0n` and `0`. Inline `sqrt`, `floor`, `ceil`,
+`abs` and same-type `min`/`max` raise the interpreter's DomainErrors, and
+literals keep the sign of `-0`. Rank-one arrays of reals are read and written in
+place; a plan selects real registers from the first value it sees, and the entry
+guard checks every input and cell. The safe-Number backend stays integer-only.
+`realLoopCompilation: false` turns this off.
+
+Euler 247's depth-first walk over 782252 squares now compiles. On a loaded
+machine it ran in 0.7-1.1 s, against 19-24 s for the previous build measured at
+the same time (10.4 s on an idle start). Real `//`, `mod`, `**`, real compound
+array writes, real iteration and real-valued callees still fall back with a
+`loop:` diagnostic; see [deferred refactors](loop-compiler-refactors.md).
+
 ## Safe Number registers in private integer loops
 
 Integer-loop planning and lowering are separate from invocation binding and

@@ -25,6 +25,7 @@ export interface LoopHost {
     readonly compoundWrites: boolean;
     readonly extrema: boolean;
     readonly absolute: boolean;
+    readonly reals: boolean;
     readonly scalarText: boolean;
     prepareBuiltinCall(module: string, name: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
@@ -57,6 +58,7 @@ export interface LoopTerm { code: string; type: CompiledLoopType; ascii?: boolea
  * guards, cell scans and type selection. */
 export function loopValueType(value: RankValue | undefined): CompiledLoopType | undefined {
     if (typeof value === 'bigint') return 'integer';
+    if (typeof value === 'number') return 'real';
     if (typeof value === 'boolean') return 'boolean';
     if (typeof value === 'string') return 'text';
     if (value !== undefined && isRankBytes(value)) return 'bytes';

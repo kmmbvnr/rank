@@ -34,7 +34,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, graphAdds: ((values: RankValue[]) => void)[]) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
@@ -44,7 +44,8 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
             ? (value: RankValue) => value : borrowArrayStorage,
         prepareScalarArrayWriter, (value: RankValue, stableReads: boolean, oneAxis: boolean) => oneAxis
             ? prepareScalarArrayReader(value, host.arrayRead, stableReads)
-            : prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint, host.textRead, takeDropValue); }
+            : prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint, host.textRead, takeDropValue,
+            (message: string) => new RankError(message, 'DomainError')); }
     catch { return reject(); }
     host.compiled?.(source);
     const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0
@@ -56,7 +57,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         // Scanning them here may read cells the loop never reaches.
         if (revision === undefined) return false;
         // An integer buffer needs no scan, and reading it as plain cells would unpack it.
-        if (typedElementKind(value) === 'integer') return type !== 'text' && type !== 'boolean';
+        if (typedElementKind(value) === 'integer') return (type ?? 'integer') === 'integer';
         const items = materializedArrayItems(value);
         if (!items) return false;
         const checked = checkedCells.get(value);

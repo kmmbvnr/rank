@@ -39,6 +39,14 @@ const textComparison: CompiledOperatorSignature<'text' | 'boolean'> = { inputs: 
 const signed = [integerUnary, integerBinary];
 const equality = [integerComparison, booleanComparison];
 const booleanUnary: CompiledOperatorSignature<'boolean'> = { inputs: ['boolean'], result: 'boolean' };
+// Loop reals coerce integer operands with Number, as the interpreter does.
+const realBinary: readonly CompiledOperatorSignature[] = [
+    { inputs: ['real', 'real'], result: 'real', compound: true },
+    { inputs: ['real', 'integer'], result: 'real', compound: true },
+    { inputs: ['integer', 'real'], result: 'real' },
+];
+const realComparison: readonly CompiledOperatorSignature[] = realBinary.map(({ inputs }) => ({ inputs, result: 'boolean' }));
+const loopSigned = [...signed, { inputs: ['real'], result: 'real' } as const, ...realBinary];
 
 const tensorArithmetic: readonly CompiledOperatorSignature<CompiledTensorType>[] = [
     { inputs: ['integer', 'integer'], result: 'integer' },
@@ -76,21 +84,22 @@ const scalarComparison: readonly CompiledOperatorSignature<CompiledScalarType>[]
 
 export const compiledOperators: readonly CompiledOperator[] = [
     { name: '+', unary: '', binary: '+', scalarFunction: [...scalarSigned, { inputs: ['text', 'text'], result: 'text', compound: true }], scalarExpression: expressionSigned, tensor: tensorSigned,
-        integerLoop: [...signed, { inputs: ['text', 'text'], result: 'text', compound: true, nativeCalls: true }] },
-    { name: '-', unary: '-', binary: '-', scalarFunction: scalarSigned, scalarExpression: expressionSigned, integerLoop: signed, tensor: tensorSigned },
+        integerLoop: [...loopSigned, { inputs: ['text', 'text'], result: 'text', compound: true, nativeCalls: true }] },
+    { name: '-', unary: '-', binary: '-', scalarFunction: scalarSigned, scalarExpression: expressionSigned, integerLoop: loopSigned, tensor: tensorSigned },
     ...(['*', '//', 'mod'] as const).map(name => ({ name, binary: (name === 'mod' ? '%' : name) as '%' | '*' | '//',
-        scalarFunction: name === '*' ? scalarArithmetic : [integerBinary], scalarExpression: name === '*' ? expressionArithmetic : [integerBinary], integerLoop: [integerBinary], tensor: name === '*' ? tensorArithmetic : [integerBinary] })),
+        scalarFunction: name === '*' ? scalarArithmetic : [integerBinary], scalarExpression: name === '*' ? expressionArithmetic : [integerBinary], integerLoop: name === '*' ? [integerBinary, ...realBinary] : [integerBinary], tensor: name === '*' ? tensorArithmetic : [integerBinary] })),
     ...([['less', '<'], ['greater', '>'], ['atmost', '<='], ['atleast', '>=']] as const)
-        .map(([name, binary]) => ({ name, binary, scalarFunction: scalarComparison, scalarExpression: [integerComparison], integerLoop: [integerComparison], tensor: tensorComparison })),
+        .map(([name, binary]) => ({ name, binary, scalarFunction: scalarComparison, scalarExpression: [integerComparison], integerLoop: [integerComparison, ...realComparison], tensor: tensorComparison })),
     ...([['equal', '==='], ['notequal', '!==']] as const)
-        .map(([name, binary]) => ({ name, binary, scalarFunction: [...scalarComparison, booleanComparison, textComparison], scalarExpression: [integerComparison], integerLoop: [...equality, textComparison], tensor: tensorComparison })),
+        .map(([name, binary]) => ({ name, binary, scalarFunction: [...scalarComparison, booleanComparison, textComparison], scalarExpression: [integerComparison], integerLoop: [...equality, textComparison, ...realComparison], tensor: tensorComparison })),
     ...([['and', '&&'], ['or', '||'], ['xor', '!==']] as const)
         .map(([name, binary]) => ({ name, binary, scalarFunction: [booleanBinary], integerLoop: [booleanBinary], tensor: [booleanComparison] })),
     { name: 'not', unary: '!', scalarFunction: [booleanUnary], scalarExpression: [booleanUnary], integerLoop: [booleanUnary], tensor: [booleanUnary] },
     // The loop emitter additionally requires a nonnegative literal exponent.
     { name: '**', binary: '**', scalarFunction: [],
         integerLoop: [{ inputs: ['integer', 'integer'], result: 'integer' }], tensor: tensorArithmetic },
-    { name: '/', binary: '/', scalarFunction: [], integerLoop: [],
+    { name: '/', binary: '/', scalarFunction: [],
+        integerLoop: [{ inputs: ['integer', 'integer'], result: 'real' }, ...realBinary],
         tensor: tensorArithmetic.map(signature => ({ ...signature, result: 'real' })) },
 ];
 const operatorIndex = new Map(compiledOperators.map(operation => [operation.name, operation]));
