@@ -1,12 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RankError, type RankValue } from '../src/index.js';
-import { indexKey, indexGet, indexHas, indexSet } from '../src/index-storage.js';
+import { IndexEntries, indexKey, indexGet, indexHas, indexSet } from '../src/index-storage.js';
 import { newStructure } from '../src/collections.js';
 import { isRankIndex } from '../src/value.js';
 import { setValueKey } from '../src/set.js';
 import { clonePreviewValue } from '../src/preview-values.js';
 
 describe('index storage', () => {
+    it('maintains the integer proof across public writes, replacement, deletion and clear', () => {
+        const entries = new IndexEntries();
+        expect(entries.integers).toBe(true);
+        entries.set(1, 3n).set(2, false).set(3, 'text');
+        expect(entries.integers).toBe(false);
+        entries.set(2, 4n);
+        expect(entries.integers).toBe(false);
+        entries.delete(99);
+        entries.delete(3);
+        expect(entries.integers).toBe(true);
+        entries.set(1, false).set(1, true);
+        expect(entries.integers).toBe(false);
+        entries.clear();
+        expect(entries.integers).toBe(true);
+        entries.set(1, 5n);
+        expect(entries.integers).toBe(true);
+    });
     it('preserves scalar and tuple key equality across primitive and encoded keys', () => {
         const values: RankValue[] = [0n, 0, -0, 1n, 1, -1n, -1, 1.5, NaN, Infinity, -Infinity,
             9007199254740991n, 9007199254740991, 9007199254740992n, 9007199254740992,

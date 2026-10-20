@@ -9,7 +9,7 @@ import { completed, type Execution } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankIndex, isNativeFunction, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
-import { indexHas, indexSet, indexKey } from './index-storage.js';
+import { IndexEntries, indexHas, indexRead, indexSet, indexKey } from './index-storage.js';
 import { storedScalarKinds, denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray, typedElementKind, writableIntegerCells, writeIntegerSelection } from './array-storage.js';
 
 /** Bind invocation values and owned storage separately from loop analysis/lowering. */
@@ -34,7 +34,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, graphAdds: ((values: RankValue[]) => void)[]) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
@@ -50,7 +50,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
                 if (!isRankArray(array) || !writableIntegerCells(array)) return false;
                 writeIntegerSelection(array, count, index => first + index * stride, operand, operator);
                 return true;
-            }); }
+            }, indexRead); }
     catch { return reject(); }
     host.compiled?.(source);
     const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0
@@ -144,6 +144,11 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
             if (info.kind === 'index' ? !isRankIndex(value) : !(value instanceof RankDeque)) return entryGuard('input-type', name);
             if (info.mode && (!(value instanceof RankDeque) || value.mode !== info.mode)) return entryGuard('input-type', name);
             if (info.integers) {
+                if (isRankIndex(value) && value.entries instanceof IndexEntries) {
+                    if (!value.entries.integers) return entryGuard('input-type', name);
+                    values[info.slot] = value;
+                    continue;
+                }
                 const entries = value instanceof RankDeque ? value.values() : isRankIndex(value) && value.entries instanceof ResourceMap ? value.entries.values() : undefined;
                 if (!entries) return entryGuard('input-type', name);
                 for (const item of entries) {

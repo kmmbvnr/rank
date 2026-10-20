@@ -1,4 +1,4 @@
-import type { IndexKey } from './index-key.js';
+import { IndexEntries } from './index-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { ResourceMap } from './resource-summary.js';
 import { RankDeque, RankHeap } from './containers.js';
@@ -15,7 +15,7 @@ export function counterFrequency(counter: RankCounter, key: RankValue): bigint {
 export function newStructure(name: string): RankValue {
     switch (name) {
         case 'index': {
-            const entries = new ResourceMap<RankValue, IndexKey>(value => value);
+            const entries = new IndexEntries();
             return entries.resources.track({ kind: 'index', entries });
         }
         case 'queue': return new RankDeque();

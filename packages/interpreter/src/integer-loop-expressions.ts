@@ -3,6 +3,7 @@ import { loopValueType, type LoopHost, type LoopTerm } from './integer-loop-plan
 import { compiledIntegerMembership } from './integer-membership.js';
 import { type CompiledCalleeType } from './compiled-callee-type.js';
 import { ResourceMap } from './resource-summary.js';
+import { IndexEntries } from './index-storage.js';
 import { compiledArgumentType } from './compiled-argument-type.js';
 import {
     flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
@@ -395,6 +396,21 @@ export function createLoopExpressions(state: LoopCompilationState) {
             if (!host.arrayReads) return undefined;
             const [head, ...arguments_] = flattenApplication(e);
             if (!isNameExpression(head) || head.name.includes('.')) return undefined;
+            const current = !localTypes.has(head.name) && !arrays.has(head.name) ? host.read(head.name) : undefined;
+            if (!numberMode && current && isRankIndex(current) && current.entries instanceof IndexEntries) {
+                if (hint && hint !== 'integer' || !arguments_.length) return undefined;
+                const receiver = container(head.name, 'index', true);
+                if (!receiver) return undefined;
+                const keys: string[] = [];
+                for (const argument of arguments_) {
+                    const key = emit(argument, lines, 'integer');
+                    if (key?.type !== 'integer') return undefined;
+                    keys.push(key.code);
+                }
+                const name = `v${state.serial++}`;
+                lines.push(`const ${name} = indexRead(${receiver}, key([${keys.join(',')}]));`);
+                return { code: name, type: 'integer' };
+            }
             if (!numberMode && host.nativeCalls && host.textLoops && knownType(head) === 'text') {
                 if (arguments_.length !== 1) return undefined;
                 const receiver = emit(head, lines, 'text'), index = emit(arguments_[0], lines, 'integer');

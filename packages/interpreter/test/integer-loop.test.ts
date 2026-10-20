@@ -385,6 +385,69 @@ end`).loops).toBe(1);
 
 
 describe('compiled container loops', () => {
+    it('reads and writes integer tuple keys through aliases inside a compiled region', () => {
+        const result = compare(`use algo
+Cache = new index
+Alias = Cache
+Total = 0
+for I in 1 to 5
+  Cache I 0 = I * 2
+  Total += Alias I 0
+end
+Total`);
+        expect(result.value).toBe('30');
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains completed writes and the missing-key location in compiled index reads', () => {
+        const result = compare(`use algo
+Cache = new index
+Cache 1 = 7
+Done = 0
+Total = 0
+for I in 1 to 2
+  Done += 1
+  Total += Cache I
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('rejects a noninteger write through an alias before entering an integer read region', () => {
+        const result = compare(`use algo
+Cache = new index
+Alias = Cache
+Cache 1 = 7
+Total = 0
+for I in 1 to 2
+  Alias I = "bad"
+  Total += Cache I
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+
+    it('rechecks the index integer domain after a host write between invocations', () => {
+        let loops = 0;
+        const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => loops++ });
+        const source = `Total = 0
+for I in 1 to 2
+  Total += Cache I
+end
+Total`;
+        try {
+            runtime.execute('use algo\nCache = new index\nCache 1 = 2\nCache 2 = 3');
+            expect(runtime.execute(source)).toBe(5n);
+            expect(loops).toBe(1);
+            const cache = runtime.variables.get('Cache')!;
+            if (typeof cache !== 'object' || cache.kind !== 'index') throw new Error('expected index');
+            cache.entries.set(2, 'bad');
+            expect(() => runtime.execute(source)).toThrow();
+            expect(loops).toBe(1);
+            expect(runtime.variables.get('Total')).toBe(2n);
+        } finally { runtime.dispose(); }
+    });
+
     it.each(['stack', 'queue', 'deque'])('pushes and drains a %s through runtime methods', kind => {
         const result = compare(`use algo
 use sequences
