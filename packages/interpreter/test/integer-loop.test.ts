@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { registerCachedArray } from '../src/array-storage.js';
+import { registerCachedArray, typedArray, typedElementKind } from '../src/array-storage.js';
+import { RuntimeDiagnostics } from '../src/diagnostics.js';
 import { Interpreter, RankError, formatValue } from '../src/index.js';
 
 function execute(source: string, integerLoopCompilation: boolean, nestedLoopCompilation = true, scalarFunctionCompilation = true) {
@@ -31,6 +32,43 @@ function compare(source: string) {
 }
 
 describe('whole integer loops', () => {
+    it('prepares numeric loop buffers without unpacking integer storage', () => {
+        const runtime = new Interpreter();
+        const source = typedArray(new BigInt64Array([1n, 2n, 3n]));
+        runtime.variables.set('X', source);
+        const d = new RuntimeDiagnostics();
+        try {
+            expect(formatValue(d.run(() => runtime.execute(`Total = 0
+for I in 0 to 2
+  Total += X I
+end
+Total`))!)).toBe('6');
+            expect(d.numberLoops).toBeGreaterThan(0);
+            expect(d.typedUnpacks).toBe(0);
+            expect(typedElementKind(source)).toBe('integer');
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([new BigInt64Array([1n, 2n, 3n]), new Float64Array([1, 2, 3])])(
+        'keeps typed inputs packed when type selection precedes a rejected loop: %s', buffer => {
+            const runtime = new Interpreter();
+            const source = typedArray(buffer);
+            runtime.variables.set('X', source);
+            const d = new RuntimeDiagnostics();
+            try {
+                const zero = buffer instanceof BigInt64Array ? '0' : '0.0';
+                expect(formatValue(d.run(() => runtime.execute(`Total = ${zero}
+for I in 0 to 2
+  Total += X I
+  Scratch = array Total
+end
+Total`))!)).toBe('6');
+                expect(d.compiledLoops).toBe(0);
+                expect(d.typedUnpacks).toBe(0);
+                expect(typedElementKind(source)).toBe(buffer instanceof BigInt64Array ? 'integer' : 'real');
+            } finally { runtime.dispose(); }
+        });
+
     it.each(['array 1 .NA 3', 'array 1.0 .NA 3.0'])('keeps missing cells in compiled-region reads: %s', input => {
         const zero = input.includes('.0') ? '0.0' : '0';
         const result = compare(`X = ${input}

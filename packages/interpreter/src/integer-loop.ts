@@ -12,7 +12,7 @@ import {
     type Statement,
 } from '@arrrank/language';
 import { isRankArray } from './value.js';
-import { materializedArrayItems, arrayRevision } from './array-storage.js';
+import { denseScalarItems, materializedArrayItems, arrayRevision } from './array-storage.js';
 
 export function compileIntegerLoop(statement: ForStatement, host: LoopHost, iteration?: IterationBinding): CompiledLoop | undefined {
     const sources: string[] = [];
@@ -49,7 +49,7 @@ export function compileIntegerLoop(statement: ForStatement, host: LoopHost, iter
             else if (host.textArrayLoops && value && isRankArray(value) && value.shape.length === 1
                 && arrayRevision(value) !== undefined) {
                 // This only selects a candidate plan; its entry guard checks every cell.
-                const items = materializedArrayItems(value);
+                const items = denseScalarItems(value) ?? materializedArrayItems(value);
                 if (items && typeof items[0] === 'string') textArrays.push(name);
             }
         }

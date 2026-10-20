@@ -2,7 +2,7 @@ import { MissingValueError, RankError } from './errors.js';
 import { completed } from './execution.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { checkpoint, privateLoopPolling } from './interrupt.js';
-import { arrayRevision, materializedArrayItems } from './array-storage.js';
+import { arrayRevision, denseScalarItems, materializedArrayItems } from './array-storage.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 import type { CompiledLoop, IntegerLoopPlan, LoopHost } from './integer-loop-plan.js';
 
@@ -81,7 +81,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         for (const [name, info] of arrays) {
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== 1 || arrayRevision(value) === undefined) return undefined;
-            const items = materializedArrayItems(value);
+            const items = denseScalarItems(value) ?? materializedArrayItems(value);
             if (!items) return undefined;
             // Invocation-owned numeric storage: no retained mirror, no forcing of
             // lazy cells, and no mutation/callback can invalidate it in the region.

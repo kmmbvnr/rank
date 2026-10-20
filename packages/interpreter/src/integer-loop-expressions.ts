@@ -12,7 +12,7 @@ import {
 } from '@arrrank/language';
 import { isRankArray, isRankIndex } from './value.js';
 import { RankDeque } from './containers.js';
-import { materializedArrayItems, arrayRevision } from './array-storage.js';
+import { denseScalarItems, materializedArrayItems, arrayRevision } from './array-storage.js';
 
 import type { LoopCompilationState } from './integer-loop-state.js';
 
@@ -85,7 +85,8 @@ export function createLoopExpressions(state: LoopCompilationState) {
         if (!host.reals) return undefined;
         const value = host.read(name);
         const first = value && isRankArray(value)
-            ? arrayRevision(value) === undefined ? undefined : materializedArrayItems(value)?.[0] : value;
+            ? arrayRevision(value) === undefined ? undefined
+                : (denseScalarItems(value) ?? materializedArrayItems(value))?.[0] : value;
         return typeof first === 'number' ? 'real' : undefined;
     }
     const isExtreme = (part: Expression | undefined) => isNameExpression(part) && ['min', 'max'].includes(part.name);

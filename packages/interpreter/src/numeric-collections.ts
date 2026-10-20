@@ -1,5 +1,6 @@
 import { denseScalarItems, typedArray, ownedScalarArray } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
+import { integerConcatCells } from './concat-array.js';
 import { checkpoint, interruptsEnabled, privateLoopPolling } from './interrupt.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
@@ -139,15 +140,17 @@ export function numericKey(value: RankValue): bigint | number | boolean | undefi
  * original cell, including -0 and NaN, rather than rebuilding values from keys. */
 export function numericDistinct(value: RankValue, countOnly = false): RankArray | bigint | undefined {
     const cells = numericCells(value);
-    if (!cells || !cells.length) return undefined;
-    const kind = cells.length ? typeof cells[0] : 'bigint';
+    const concat = !cells && privateLoopPolling() && isRankArray(value) ? integerConcatCells(value) : undefined;
+    const length = cells?.length ?? concat?.length;
+    if (!length) return undefined;
+    const kind = cells ? typeof cells[0] : 'bigint';
     if (!['bigint', 'number', 'boolean'].includes(kind)) return undefined;
     const seen = new Set<bigint | number | boolean>();
     const result: RankValue[] = [];
 
-    for (let index = 0; index < cells.length; index++) {
+    for (let index = 0; index < length; index++) {
         if ((index & 4095) === 0) checkpoint('counting distinct values', 4096);
-        const cell = cells[index];
+        const cell = cells ? cells[index] : concat!.read(index);
         if (typeof cell !== kind) return undefined;
         if (typeof cell === 'bigint' && (cell < MIN_INT64 || cell > MAX_INT64)) return undefined;
         const key = numericKey(cell)!;

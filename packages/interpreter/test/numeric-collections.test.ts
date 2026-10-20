@@ -4,7 +4,7 @@ import { ownedArray, typedArray, maskedArray, typedElementKind, readArrayItem } 
 import { RuntimeDiagnostics } from '../src/diagnostics.js';
 import { withInterrupt, InterruptedError } from '../src/interrupt.js';
 import { numericSort, numericDistinct } from '../src/numeric-collections.js';
-import { sortValue, argsortValue, argsortAxis } from '../src/modules/sequences.js';
+import { sortValue, argsortValue, argsortAxis, concatValues } from '../src/modules/sequences.js';
 import { uniqueValue, uniqueLength } from '../src/modules/sequence-distinct.js';
 
 const cells = (value: RankValue): RankValue[] => {
@@ -14,6 +14,53 @@ const cells = (value: RankValue): RankValue[] => {
 const signal = () => new Int32Array(new SharedArrayBuffer(4));
 
 describe('stored numeric collection kernels', () => {
+    it('uses numeric distinct through concat binding checks', () => {
+        const runtime = new Interpreter();
+        const d = new RuntimeDiagnostics();
+        try {
+            expect(formatValue(d.run(() => runtime.execute(`use sequences
+Pool = array 3
+Pool = concat Pool (array 1 3 2)
+Pool unique`))!)).toBe('3 1 2');
+            expect(d.numericDistincts).toBe(1);
+            runtime.variables.set('Host', { kind: 'array', shape: [1], items: [], itemAt: () => 'wrong' });
+            runtime.execute('Pool = concat Pool Host');
+            expect(() => runtime.execute('Pool unique')).toThrow(/integer/);
+        } finally { runtime.dispose(); }
+    });
+
+    it('deduplicates nested integer concats without unpacking their leaves', () => {
+        const left = typedArray(new BigInt64Array([3n, 1n, 3n]));
+        const right = typedArray(new BigInt64Array([2n, 1n]));
+        const source = concatValues([concatValues([left, right]), left]);
+        const d = new RuntimeDiagnostics();
+        expect(cells(d.run(() => uniqueValue(source)))).toEqual([3n, 1n, 2n]);
+        expect(d.run(() => uniqueLength(source))).toBe(3n);
+        expect(d.numericDistincts).toBe(2);
+        expect(d.typedUnpacks).toBe(0);
+        left.items[0] = 4n;
+        expect(cells(uniqueValue(source))).toEqual([4n, 1n, 3n, 2n]);
+    });
+
+    it('does not probe opaque concat leaves or bypass their read order', () => {
+        const reads: number[] = [];
+        const host: RankArray = { kind: 'array', shape: [2], get items(): RankValue[] { throw new Error('items'); },
+            itemAt: i => { reads.push(i); return BigInt(i + 1); } };
+        const source = concatValues([typedArray(new BigInt64Array([2n])), host]);
+        expect(numericDistinct(source)).toBeUndefined();
+        expect(reads).toEqual([]);
+        expect(cells(uniqueValue(source))).toEqual([2n, 1n]);
+        expect(reads).toEqual([0, 1]);
+    });
+
+    it('preserves exact wide integers and interruption in concat unique', () => {
+        const source = concatValues([ownedArray([1n << 80n, 2n]), ownedArray([1n << 80n, 3n])]);
+        expect(cells(uniqueValue(source))).toEqual([1n << 80n, 2n, 3n]);
+        const s = signal();
+        Atomics.store(s, 0, 1);
+        expect(() => withInterrupt(s, () => uniqueValue(source))).toThrow(InterruptedError);
+    });
+
     it.each([
         [3n, -2n, 3n, 0n, -2n],
         [-2147483648n, 2147483647n, 0n, -1n, -2147483648n],

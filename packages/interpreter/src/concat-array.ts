@@ -19,6 +19,16 @@ interface Concat {
 }
 const concats = new WeakMap<RankArray, Concat>();
 
+/** Borrow only proven integer concat leaves, without materializing the rope.
+ * Opaque readers and replaced readers remain on the ordinary collection path. */
+export function integerConcatCells(value: RankArray):
+    { length: number; read(index: number): bigint } | undefined {
+    const concat = concats.get(value);
+    if (!concat || concat.read !== value.itemAt || concat.shape.length !== 1 || value.columnNames) return undefined;
+    const view = prepareIntegerView(value, true);
+    return view && { length: concat.shape[0], read: view.read };
+}
+
 function branch(left: Part, right: Part): Branch {
     return { left, right, length: left.length + right.length, height: Math.max(left.height, right.height) + 1 };
 }
