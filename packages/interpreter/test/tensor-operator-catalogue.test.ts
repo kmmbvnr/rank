@@ -41,6 +41,18 @@ describe('tensor catalogue overloads', () => {
         }
     }
 
+    it.each(['//', 'mod'])('preserves signed integer %s and zero-divisor errors', operator => {
+        for (const [a, b] of [['-13', '5'], ['13', '-5'], ['-13', '-5'], ['13', '5'],
+            ['-10', '5'], ['9007199254740993', '-7'], ['1', '0']]) {
+            const left = `array (${a}) (${a})`, right = `array (${b}) (${b})`;
+            const reference = run(`A ${operator} B`, left, right, false, false);
+            const compiled = run(`A ${operator} B`, left, right, false, true);
+            expect({ ...compiled, kernels: 0 }).toEqual(reference);
+            if (b !== '0') expect(compiled.kernels).toBe(1);
+            else expect(compiled.error).toContain('division by zero');
+        }
+    });
+
     it.each([
         ['A equal B', samples.boolean, samples.boolean, true],
         ['A less B', samples.integer, samples.real, true],

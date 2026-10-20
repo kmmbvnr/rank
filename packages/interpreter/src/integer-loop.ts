@@ -1,3 +1,4 @@
+import { binaryOperatorSource, zeroTestSource } from './operator-codegen.js';
 import { loopTraversal } from './loop-traversal.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
 import { loopValueType, type IterationBinding, type LoopHost, type LoopTerm, type CompiledLoop } from './integer-loop-plan.js';
@@ -274,8 +275,9 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     /** One checked binary operator. Compound assignments lower through it
      * too, so division by zero and floor rounding are written once. */
     function arithmetic(op: string, left: LoopTerm, right: LoopTerm, type: LoopTerm['type'], lines: string[]): string | undefined {
-        const token = findCompiledOperator(op)?.binary;
-        if (!token) return undefined;
+        const operation = findCompiledOperator(op);
+        const token = operation?.binary;
+        if (!operation || !token) return undefined;
         const a = left.code, b = right.code, name = `v${serial++}`;
         if (op === '/' || left.type === 'real' || right.type === 'real') {
             // The interpreter's coercions: Number for arithmetic, exact
@@ -283,20 +285,17 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
             if (token === '//' || token === '%') return undefined;
             const real = (term: LoopTerm) => term.type === 'integer' ? `Number(${term.code})` : `(${term.code})`;
             const mixed = left.type !== right.type;
-            const relation = mixed && token === '===' ? '==' : mixed && token === '!==' ? '!=' : token;
-            if (op === '/') lines.push(`if ((${b}) === ${right.type === 'integer' ? '0n' : '0'}) throw zero();`);
-            lines.push(`const ${name} = ${type === 'boolean' ? `(${a}) ${relation} (${b})` : `${real(left)} ${token} ${real(right)}`};`);
+            if (op === '/') lines.push(`if (${zeroTestSource(b, right.type === 'integer' ? 'integer' : 'real')}) throw zero();`);
+            lines.push(`const ${name} = ${type === 'boolean' ? binaryOperatorSource(operation, a, b, { mixed }) : binaryOperatorSource(operation, real(left), real(right))};`);
             return name;
         }
         if (token !== '//' && token !== '%') {
-            lines.push(`const ${name} = ${type === 'integer' ? safe(`(${a}) ${token} (${b})`) : `(${a}) ${token} (${b})`};`);
+            lines.push(`const ${name} = ${type === 'integer' ? safe(binaryOperatorSource(operation, a, b)) : binaryOperatorSource(operation, a, b)};`);
             return name;
         }
         const remainder = `m${serial++}`;
-        lines.push(`if ((${b}) === ${zero}) throw zero();`, `const ${remainder} = (${a}) % (${b});`);
-        const adjust = `(${remainder} !== ${zero} && (${remainder} < ${zero}) !== ((${b}) < ${zero}))`;
-        const quotient = numberMode ? safe(`${safe(`(${a}) - ${remainder}`)} / (${b})`) : `(${a}) / (${b})`;
-        lines.push(`const ${name} = ${safe(op === '//' ? `${quotient} - (${adjust} ? ${one} : ${zero})` : `${remainder} + (${adjust} ? (${b}) : ${zero})`)};`);
+        lines.push(`if (${zeroTestSource(b, numberMode ? 'real' : 'integer')}) throw zero();`, `const ${remainder} = (${a}) % (${b});`);
+        lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b, { remainder, number: numberMode, safe })};`);
         return name;
     }
     /** Lower an audited catalogue call. Argument reads remain in source order;

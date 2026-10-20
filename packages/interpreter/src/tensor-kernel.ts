@@ -1,3 +1,4 @@
+import { binaryOperatorSource, zeroTestSource } from './operator-codegen.js';
 import { tensorInput, validateTensorInputs } from './tensor-input.js';
 import { applicationForm } from '@arrrank/language';
 import { checkpoint, interruptsEnabled, privateLoopPolling } from './interrupt.js';
@@ -490,7 +491,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     if (divisor === undefined) lines.push(`const ${name} = ${name}raw;`);
                     else {
                         lines.push(`const ${name}rem = ${name}raw % scalars[${divisor}];`);
-                        lines.push(`const ${name} = ${name}rem !== 0n && (${name}rem < 0n) !== (scalars[${divisor}] < 0n) ? ${name}rem + scalars[${divisor}] : ${name}rem;`);
+                        lines.push(`const ${name} = ${binaryOperatorSource(findCompiledOperator('mod')!, `${name}raw`, `scalars[${divisor}]`, { remainder: `${name}rem` })};`);
                     }
                 }
                 else if (info.digits) lines.push(`const ${name} = BigInt(scalars[${info.slot}].charCodeAt(i) - 48);`);
@@ -515,29 +516,26 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                         return name;
                     }
                     const signatures = tensorOperatorSignatures(node.op, 2);
-                    const token = findCompiledOperator(node.op)!.binary;
+                    const operation = findCompiledOperator(node.op)!;
                     if (node.op === 'mod' || node.op === '//') {
-                        lines.push(`if (typeof ${a} !== 'bigint' || typeof ${b} !== 'bigint' || ${b} === 0n) ${decline}`);
+                        lines.push(`if (typeof ${a} !== 'bigint' || typeof ${b} !== 'bigint' || ${zeroTestSource(b, 'integer')}) ${decline}`);
                         lines.push(`const ${name}rem = ${a} % ${b};`);
-                        const adjust = `${name}rem !== 0n && (${name}rem < 0n) !== (${b} < 0n)`;
-                        lines.push(`const ${name} = ${node.op === 'mod'
-                            ? `${adjust} ? ${name}rem + ${b} : ${name}rem`
-                            : `${a} / ${b} - (${adjust} ? 1n : 0n)`};`);
+                        lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b, { remainder: `${name}rem` })};`);
                         return name;
                     }
                     if (signatures.every(signature => signature.inputs[0] === 'boolean')) {
                         lines.push(`if (typeof ${a} !== 'boolean' || typeof ${b} !== 'boolean') ${decline}`);
-                        lines.push(`const ${name} = ${a} ${token} ${b};`);
+                        lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b)};`);
                     } else {
                         lines.push(`if (!${num(a)} || !${num(b)}) ${decline}`);
                         if (signatures.every(signature => signature.result === 'boolean')) {
                             lines.push(`if (typeof ${a} !== typeof ${b}) ${decline}`);
-                            lines.push(`const ${name} = ${a} ${token} ${b};`);
+                            lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b)};`);
                         } else {
-                            if (node.op === '/') lines.push(`if (${b} === 0n || ${b} === 0) ${decline}`);
+                            if (node.op === '/') lines.push(`if (${zeroTestSource(b, 'numeric')}) ${decline}`);
                             if (node.op === '**') lines.push(`if (${b} < 0 || ${b} > 1024 || (typeof ${b} === 'number' && !Number.isInteger(${b}))) ${decline}`);
-                            const expr = `Number(${a}) ${token} Number(${b})`;
-                            lines.push(`const ${name} = ${node.op === '/' ? expr : `(typeof ${a} === 'bigint' && typeof ${b} === 'bigint' ? ${a} ${token} ${b} : ${expr})`};`);
+                            const expr = binaryOperatorSource(operation, `Number(${a})`, `Number(${b})`);
+                            lines.push(`const ${name} = ${node.op === '/' ? expr : `(typeof ${a} === 'bigint' && typeof ${b} === 'bigint' ? ${binaryOperatorSource(operation, a, b)} : ${expr})`};`);
                         }
                     }
                 } else if (node.kind === 'unary') {

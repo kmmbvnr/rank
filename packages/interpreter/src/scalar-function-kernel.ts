@@ -1,3 +1,4 @@
+import { binaryOperatorSource, zeroTestSource } from './operator-codegen.js';
 import { membershipLookup } from './membership-lookup.js';
 import { type CompiledCalleeType, isCompiledContainer } from './compiled-callee-type.js';
 import { newStructure } from './collections.js';
@@ -52,19 +53,15 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         const op = operation.name;
         const result = `v${serial++}`;
         if ((op === 'equal' || op === 'notequal') && inputs?.includes('integer') && inputs.includes('real')) {
-            const real = inputs[0] === 'real' ? left : right;
-            const integer = inputs[0] === 'integer' ? left : right;
-            const equal = `(Number.isFinite(${real}) && Number.isInteger(${real}) && ${integer} === BigInt(${real}))`;
-            lines.push(`const ${result} = ${op === 'notequal' ? '!' : ''}${equal};`);
+            lines.push(`const ${result} = ${binaryOperatorSource(operation, left, right, { mixed: true })};`);
         } else if (resultType === 'real' && (op === '+' || op === '-' || op === '*')) {
-            lines.push(`const ${result} = Number(${left}) ${operation.binary} Number(${right});`);
+            lines.push(`const ${result} = ${binaryOperatorSource(operation, `Number(${left})`, `Number(${right})`)};`);
         } else if (op === '//' || op === 'mod') {
             const remainder = `v${serial++}`;
-            lines.push(`if (${right} === 0n) throw new RankError('division by zero');`);
+            lines.push(`if (${zeroTestSource(right, 'integer')}) throw new RankError('division by zero');`);
             lines.push(`const ${remainder} = ${left} % ${right};`);
-            const adjust = `(${remainder} !== 0n && (${remainder} < 0n) !== (${right} < 0n))`;
-            lines.push(`const ${result} = ${op === '//' ? `${left} / ${right} - (${adjust} ? 1n : 0n)` : `${remainder} + (${adjust} ? ${right} : 0n)`};`);
-        } else lines.push(`const ${result} = ${left} ${operation.binary} ${right};`);
+            lines.push(`const ${result} = ${binaryOperatorSource(operation, left, right, { remainder })};`);
+        } else lines.push(`const ${result} = ${binaryOperatorSource(operation, left, right)};`);
         return result;
     }
     function emit(expression: Expression, lines: string[], tail = false): string {

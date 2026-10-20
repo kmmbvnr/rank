@@ -1,3 +1,4 @@
+import { binaryOperatorSource, zeroTestSource } from './operator-codegen.js';
 import {
     findCompiledOperator, expressionOperatorSignatures, applicationForm,
     isBinaryExpression, isUnaryExpression, isParenthesizedExpression,
@@ -96,14 +97,11 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
         const ints = `(typeof ${left} === 'bigint' && typeof ${right} === 'bigint')`;
         let guard = ints, result: string;
         if (op === '//' || op === 'mod') {
-            guard += ` && ${right} !== 0n`;
-            const remainder = `(${left} % ${right})`;
-            const adjust = `(${remainder} !== 0n && (${left} < 0n) !== (${right} < 0n))`;
-            result = op === '//' ? `(${left} / ${right} - (${adjust} ? 1n : 0n))`
-                : `(${remainder} + (${adjust} ? ${right} : 0n))`;
+            guard += ` && !${zeroTestSource(right, 'integer')}`;
+            result = `(${binaryOperatorSource(findCompiledOperator(op)!, left, right)})`;
         } else {
             if (!signatures.every(signature => signature.result === 'boolean')) guard = `(${ints} || (typeof ${left} === 'number' && typeof ${right} === 'number'))`;
-            result = `${left} ${findCompiledOperator(op)!.binary} ${right}`;
+            result = binaryOperatorSource(findCompiledOperator(op)!, left, right);
         }
         lines.push(`const ${name} = ${guard} ? ${result} : binary(${JSON.stringify(op)}, ${left}, ${right});`);
         return name;
